@@ -193,6 +193,7 @@ let GlodaIndexer = {
   /** You can turn on indexing, but you can't turn it off! */
   set indexing(aShouldIndex) {
     if (!this._indexingActive && aShouldIndex) {
+      this._log.info("Indexing Queue Processing Commencing");
       this._indexingActive = true;
       this._domWindow.setTimeout(this._wrapIncrementalIndex, this._indexInterval, this);
     }  
@@ -331,7 +332,7 @@ let GlodaIndexer = {
     // TODO: handle password-protected local cache potentially triggering a
     //  password prompt here...
     try {
-      //this._indexingFolder.updateFolder(this._msgWindow);
+      this._indexingFolder.updateFolder(this._msgWindow);
       // we get an nsIMsgDatabase out of this (unsurprisingly) which
       //  explicitly inherits from nsIDBChangeAnnouncer, which has the
       //  AddListener call we want.
@@ -472,8 +473,14 @@ let GlodaIndexer = {
                 //  let's pretend that this assumption is not a bad idea for now
                 // TODO: stop pretending this assumption is not a bad idea
                 let msgHdr = this._indexingDatabase.getMsgHdrForMessageID(item[1]);
-                if (msgHdr)
+                if (msgHdr) {
                   this._indexMessage(msgHdr);
+                }
+                else {
+                  this._log.error("Move unable to locate message with header " +
+                    "message-id " + item[1] + ". Folder is known to possess " +
+                    this._indexingFolder.getTotalMessages(false) +" messages.");
+                }
                 // remember to eat extra tokens... when we get more than one...
               }
               // -- MESSAGE DELETE (batch steady state)
@@ -661,22 +668,28 @@ let GlodaIndexer = {
      */
     msgsMoveCopyCompleted: function gloda_indexer_msgsMoveCopyCompleted(aMove,
                              aSrcMsgHdrs, aDestFolder) {
+      this.indexer._log.debug("MoveCopy notification.  Move: " + aMove);
+      try {
       if (aMove) {
         let srcFolder = aSrcMsgHdrs.queryElementAt(0, Ci.nsIMsgDBHdr).folder;
-        let messageKeys = [msgHdr.messageKey for each
-                          (msgHdr in fixIterator(aSrcMsgHdrs, Ci.nsIMsgDBHdr))];
+        let messageKeys = [];
+
+        let reindexJob = new IndexingJob("message", 0, null);
+
+        // get the current (about to be nulled) messageKeys and build the
+        //  job list too.
+        for (let iSrcMsgHdr=0; iSrcMsgHdr < aSrcMsgHdrs.length; iSrcMsgHdr++) {
+          let msgHdr = aSrcMsgHdrs.queryElementAt(iSrcMsgHdr, Ci.nsIMsgDBHdr);
+          messageKeys.push(msgHdr.messageKey);
+          reindexJob.items.push(
+            [GlodaDatastore._mapFolderURI(aDestFolder.URI),
+             msgHdr.messageId]);
+        }
         // quickly move them to the right folder, zeroing their message keys
         GlodaDatastore.updateMessageFoldersByKeyPurging(srcFolder.URI,
                                                         messageKeys,
                                                         aDestFolder.URI);
         // and now let us queue the re-indexings...
-        let reindexJob = new IndexingJob("message", 0, null);
-        for (let iSrcMsgHdr=0; iSrcMsgHdrs < aSrcMsgHdrs.length; iSrcMsgHdr++) {
-          let msgHdr = aSrcMsgHdrs.queryElementAt(iSrcMsgHdr, Ci.nsIMsgDBHdr);
-          reindexJob.items.push(
-            [GlodaDatastore._mapFolderURI(msgHdr.folder.URI),
-             msgHdr.messageId]);
-        }
         this.indexer._indexQueue.push(reindexJob);
         this.indexer.indexingJobGoal++;
         this.indexer.indexing = true;
@@ -687,13 +700,14 @@ let GlodaIndexer = {
         for (let iSrcMsgHdr=0; iSrcMsgHdrs < aSrcMsgHdrs.length; iSrcMsgHdr++) {
           let msgHdr = aSrcMsgHdrs.queryElementAt(iSrcMsgHdr, Ci.nsIMsgDBHdr);
           copyIndexJob.items.push([
-            GlodaDatastore._mapFolderURI(msgHdr.folder.URI),
+            GlodaDatastore._mapFolderURI(aDestFolder.URI),
             msgHdr.messageKey]);
         }
 
         this.indexer._indexingJobGoal++;
         this.indexer._indexQueue.push(copyIndexJob);
       }
+      } catch (ex) { this.indexer._log.error("SAD SAD: " + ex); }
     },
     
     /**
@@ -833,6 +847,8 @@ let GlodaIndexer = {
   },
   
   _indexMessage: function gloda_index_indexMessage(aMsgHdr) {
+    this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
+                    aMsgHdr.subject);
     // -- Find/create the conversation the message belongs to.
     // Our invariant is that all messages that exist in the database belong to
     //  a conversation.
@@ -850,27 +866,35 @@ let GlodaIndexer = {
     let candidateCurMsgs = ancestorLists.pop();
     
     let conversationID = null;
-    
-    // (walk from closest to furthest ancestor)
-    for (let iAncestor=ancestorLists.length-1; iAncestor >= 0; --iAncestor) {
-      let ancestorList = ancestorLists[iAncestor];
-      
-      if (ancestorList.length > 0) {
-        // we only care about the first instance of the message because we are
-        //  able to guarantee the invariant that all messages with the same
-        //  message id belong to the same conversation. 
-        let ancestor = ancestorList[0];
-        if (conversationID === null)
-          conversationID = ancestor.conversationID;
-        else if (conversationID != ancestor.conversationID)
-          this._log.error("Inconsistency in conversations invariant on " +
-                          ancestor.messageID + ".  It has conv id " +
-                          ancestor.conversationID + " but expected " + 
-                          conversationID);
+    // -- figure out the conversation ID
+    // if we have a clone/already exist, just use his conversation ID
+    if (candidateCurMsgs.length > 0) {
+      conversationID = candidateCurMsgs[0].conversationID;
+    }
+    // otherwise check out our ancestors
+    else {
+      // (walk from closest to furthest ancestor)
+      for (let iAncestor=ancestorLists.length-1; iAncestor >= 0; --iAncestor) {
+        let ancestorList = ancestorLists[iAncestor];
+        
+        if (ancestorList.length > 0) {
+          // we only care about the first instance of the message because we are
+          //  able to guarantee the invariant that all messages with the same
+          //  message id belong to the same conversation. 
+          let ancestor = ancestorList[0];
+          if (conversationID === null)
+            conversationID = ancestor.conversationID;
+          else if (conversationID != ancestor.conversationID)
+            this._log.error("Inconsistency in conversations invariant on " +
+                            ancestor.messageID + ".  It has conv id " +
+                            ancestor.conversationID + " but expected " + 
+                            conversationID);
+        }
       }
     }
     
     let conversation = null;
+    // nobody had one?  create a new conversation
     if (conversationID === null) {
       // (the create method could issue the id, making the call return
       //  without waiting for the database...)
@@ -902,8 +926,12 @@ let GlodaIndexer = {
     // find if there's a ghost version of our message or we already have indexed
     //  this message.
     let curMsg = null;
+    this._log.debug(candidateCurMsgs.length + " candidate messages");
     for (let iCurCand=0; iCurCand < candidateCurMsgs.length; iCurCand++) {
       let candMsg = candidateCurMsgs[iCurCand];
+
+      this._log.debug("candidate folderID: " + candMsg.folderID +
+                      " messageKey: " + candMsg.messageKey);
       
       // if we are in the same folder and we have the same message key, we
       //  are definitely the same, stop looking.
@@ -917,8 +945,8 @@ let GlodaIndexer = {
       //  message no longer exists/matches, we'll assume we are the same but
       //  were betrayed by a re-indexing or something, but we have to make sure
       //  a perfect match doesn't turn up.
-      if (candMsg.folderURI === aMsgHdr.folder.URI) {
-        if ((candMsg.messageKey === aMsgHdr.messageKey) || 
+      if (candMsg.folderURI == aMsgHdr.folder.URI) {
+        if ((candMsg.messageKey == aMsgHdr.messageKey) || 
             (candMsg.messageKey === null)) {
           curMsg = candMsg;
           break;
@@ -935,6 +963,7 @@ let GlodaIndexer = {
     }
     
     if (curMsg === null) {
+      this._log.debug("...creating new message");
       curMsg = this._datastore.createMessage(aMsgHdr.folder.URI,
                                              aMsgHdr.messageKey,                
                                              conversationID,
@@ -942,8 +971,8 @@ let GlodaIndexer = {
                                              null); // no snippet
      }
      else {
-        curMsg.folderURI = aMsgHdr.folder.URI;
-        curMsg.messageKey = aMsgHdr.messageKey;
+        curMsg._folderID = this._datastore._mapFolderURI(aMsgHdr.folder.URI);
+        curMsg._messageKey = aMsgHdr.messageKey;
         this._datastore.updateMessage(curMsg);
      }
      

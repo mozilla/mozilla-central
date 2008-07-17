@@ -674,10 +674,14 @@ let GlodaDatastore = {
     let destFolderID = this._mapFolderURI(aDestFolderURI);
     
     let sqlStr = "UPDATE messages SET folderID = :newFolderID, \
-                                      messageKey = NULL, \
+                                      messageKey = :nullMsgKey \
                    WHERE folderID = :id \
                      AND messageKey IN (" + aMessageKeys.join(", ") + ")";
+    this._log.debug("SQL STRING: " + sqlStr);
     let statement = this._createStatement(sqlStr);
+    statement.params.id = srcFolderID;
+    statement.params.newFolderID = destFolderID;
+    statement.params.nullMsgKey = null;
     statement.execute();
   },
   

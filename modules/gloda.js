@@ -79,7 +79,7 @@ let Gloda = {
   getMessageForHeader: function gloda_ns_getMessageForHeader(aMsgHdr) {
     let message = GlodaDatastore.getMessageFromLocation(aMsgHdr.folder.URI,
                                                         aMsgHdr.messageKey);
-    if (message == null) {
+    if (message === null) {
       message = GlodaDatastore.getMessageByMessageID(aMsgHdr.messageId);
       this._log.warn("Fell back to locating message by id; actual message " +
                      "key is: " + aMsgHdr.messageKey + " database key: " +
@@ -102,7 +102,7 @@ let Gloda = {
       let identity = GlodaDatastore.getIdentity("email",
                                                 parsed.addresses[iAddress]);
       
-      if (identity == null) {
+      if (identity === null) {
         // we must create a contact
         let contact = GlodaDatastore.createContact(null, null,
                                                    parsed.names[iAddress]);
