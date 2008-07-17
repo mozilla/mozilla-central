@@ -52,6 +52,11 @@ ifdef MOZ_SAFE_BROWSING
 DIRS += phishing 
 endif
 
+# Mac and Windows have search integration components
+ifneq (,$(filter windows cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
+DIRS += search
+endif
+
 DIRS += build
 
 EXTRA_PP_COMPONENTS = nsMailDefaultHandler.js

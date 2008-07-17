@@ -54,4 +54,12 @@ EXTRA_PP_COMPONENTS = \
 	$(NULL)
 endif         
 
+# If on Windows, build Windows Search integration
+ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
+# Windows Search component
+EXTRA_PP_COMPONENTS = \
+  nsWinSearchIntegration.js \
+  $(NULL)
+endif
+
 include $(topsrcdir)/config/rules.mk
