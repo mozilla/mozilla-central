@@ -911,15 +911,17 @@ sub attachments {
     my $dbh = Bugzilla->dbh;
     return $self->{'attachments'} if exists $self->{'attachments'};
 
-    my $attachments = $dbh->selectcol_arrayref(
-        "SELECT attachment_id
+    my $attachments = $dbh->selectall_arrayref(
+        "SELECT attachment_id, case_run_id
            FROM test_case_attachments
-          WHERE case_run_id = ?", 
-         undef, $self->id);
+          WHERE case_id = ?", 
+         { Slice=>{} }, $self->case_id);
     
     my @attachments;
     foreach my $attach (@{$attachments}){
-        push @attachments, Bugzilla::Testopia::Attachment->new($attach);
+        my $att = Bugzilla::Testopia::Attachment->new($attach->{attachment_id});
+        $att->{'caserun_id'} = $self->id if $attach->{case_run_id};
+        push @attachments, $att;
     }
     $self->{'attachments'} = \@attachments;
     return $self->{'attachments'};

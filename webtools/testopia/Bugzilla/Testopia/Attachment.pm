@@ -218,6 +218,7 @@ sub TO_JSON {
     $obj->{'submitter'}  = $self->submitter->name if $self->submitter;
     $obj->{'canedit'}    = $self->canedit;
     $obj->{'candelete'}  = $self->candelete;
+    $obj->{'caserun_id'}   = $self->{'caserun_id'} if $self->{'caserun_id'}; 
 
     return $json->encode($obj); 
 }
