@@ -1,12 +1,15 @@
 # -*- Python -*-
 
+from twisted.python import log
 from buildbot import buildset
 from buildbot.scheduler import Scheduler
 from buildbot.process import step
 from buildbot.process.buildstep import BuildStep
+from buildbot.process.factory import BuildFactory
 from buildbot.buildset import BuildSet
 from buildbot.sourcestamp import SourceStamp
 from buildbot.process.step import ShellCommand
+from buildbot.steps.transfer import FileDownload
 from buildbot.status.builder import SUCCESS, WARNINGS, FAILURE, SKIPPED, EXCEPTION
 import re, urllib, sys, os
 from time import strptime, strftime, localtime
@@ -50,6 +53,7 @@ MozillaEnvironments['mac'] = {
 }
 
 class MultiBuildScheduler(Scheduler):
+    """Trigger N (default three) build requests based upon the same change request"""
     def __init__(self, numberOfBuildsToTrigger=3, **kwargs):
         self.numberOfBuildsToTrigger = numberOfBuildsToTrigger
         Scheduler.__init__(self, **kwargs)
@@ -430,7 +434,7 @@ class MozillaWgetFromChange(ShellCommand):
         if 'url' in kwargs:
             self.url = kwargs['url']
         else:
-            self.url = kwargs['build'].source.changes[0].files[0]
+            self.url = kwargs['build'].source.changes[-1].files[0]
         if 'branch' in kwargs:
             self.branch = kwargs['branch']
         if not 'command' in kwargs:
@@ -575,6 +579,123 @@ class MozillaInstallDmgEx(ShellCommand):
         if SUCCESS != superResult:
             return FAILURE
         return SUCCESS
+
+class TalosFactory(BuildFactory):
+    """Create working talos build factory"""
+
+    winClean   = ["rm", "-rf", "*.zip", "talos/", "firefox/"]
+    macClean   = "rm -vrf *"
+    linuxClean = ["rm", "-rf", "*.bz2", "*.gz", "talos/", "firefox/"]
+
+    def __init__(self, OS, envName, buildBranch, configFile, buildSearchString, buildDir, buildPath, talosCmd, customManifest='', cvsRoot=":pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot"):
+        BuildFactory.__init__(self, **kwargs)
+        if OS in ('linux', 'linuxbranch',):
+            cleanCmd = self.linuxClean
+        elif OS in ('win',):
+            cleanCmd = self.winClean
+        else:
+            cleanCmd = self.macClean
+        self.addStep(ShellCommand,
+                           workdir=".",
+                           description="Cleanup",
+                           command=cleanCmd,
+                           env=MozillaEnvironments[envName])
+        self.addStep(ShellCommand,
+                           command=["cvs", "-d", cvsRoot, "co", "-d", "talos",
+                                    "mozilla/testing/performance/talos"],
+                           workdir=".",
+                           description="checking out talos",
+                           haltOnFailure=True,
+                           flunkOnFailure=True,
+                           env=MozillaEnvironments[envName])
+        self.addStep(FileDownload,
+                           mastersrc="scripts/generate-tpcomponent.py",
+                           slavedest="generate-tpcomponent.py",
+                           workdir="talos/page_load_test")
+        self.addStep(FileDownload,
+                           mastersrc=configFile,
+                           slavedest="sample.config",
+                           workdir="talos/")
+        if customManifest <> '':
+            self.addStep(FileDownload,
+                           mastersrc=customManifest,
+                           slavedest="manifest.txt",
+                           workdir="talos/page_load_test")
+        self.addStep(ShellCommand,
+                           command=["python", "generate-tpcomponent.py"],
+                           workdir="talos/page_load_test",
+                           description="setting up pageloader",
+                           haltOnFailure=True,
+                           flunkOnFailure=True,
+                           env=MozillaEnvironments[envName])
+        self.addStep(MozillaWgetLatestDated,
+                           workdir=".",
+                           branch=buildBranch,
+                           url=buildDir,
+                           filenameSearchString=buildSearchString,
+                           env=MozillaEnvironments[envName])
+        #install the browser, differs based upon platform
+        if OS == 'linux':
+            self.addStep(MozillaInstallTarBz2,
+                               workdir=".",
+                               branch=buildBranch,
+                               haltOnFailure=True,
+                               env=MozillaEnvironments[envName])
+        elif OS == 'linuxbranch': #special case for old linux builds
+            self.addStep(MozillaInstallTarGz,
+                           workdir=".",
+                           branch=buildBranch,
+                           haltOnFailure=True,
+                           env=MozillaEnvironments[envName])
+        elif OS == 'win':
+            self.addStep(MozillaInstallZip,
+                               workdir=".",
+                               branch=buildBranch,
+                               haltOnFailure=True,
+                               env=MozillaEnvironments[envName]),
+            self.addStep(ShellCommand,
+                               workdir="firefox/",
+                               flunkOnFailure=False,
+                               warnOnFailure=False,
+                               description="chmod files (see msys bug)",
+                               command=["chmod", "-v", "-R", "a+x", "."],
+                               env=MozillaEnvironments[envName])
+        elif OS == 'tiger':
+            self.addStep(FileDownload,
+                           mastersrc="scripts/installdmg.sh",
+                           slavedest="installdmg.sh",
+                           workdir=".")
+            self.addStep(MozillaInstallDmg,
+                               workdir=".",
+                               branch=buildBranch,
+                               haltOnFailure=True,
+                               env=MozillaEnvironments[envName])
+        else: #leopard
+            self.addStep(FileDownload,
+                           mastersrc="scripts/installdmg.ex",
+                           slavedest="installdmg.ex",
+                           workdir=".")
+            self.addStep(MozillaInstallDmgEx,
+                               workdir=".",
+                               branch=buildBranch,
+                               haltOnFailure=True,
+                               env=MozillaEnvironments[envName])
+        self.addStep(MozillaUpdateConfig,
+                           workdir="talos/",
+                           branch=buildBranch,
+                           haltOnFailure=True,
+                           executablePath=buildPath,
+                           configPath=".",
+                           env=MozillaEnvironments[envName])
+        self.addStep(MozillaRunPerfTests,
+                           warnOnWarnings=True,
+                           workdir="talos/",
+                           branch=buildBranch,
+                           timeout=21600,
+                           haltOnFailure=True,
+                           command=talosCmd,
+                           env=MozillaEnvironments[envName])
+
 
 def main(argv=None):
     if argv is None:
