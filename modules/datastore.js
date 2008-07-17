@@ -756,7 +756,7 @@ let GlodaDatastore = {
     smidbfs.params.folderID = aFolderID;
     
     while (smidbfs.step()) {
-      smidbfs.push(smidbfs.row["id"]);
+      messageIDs.push(smidbfs.row["id"]);
     }
     smidbfs.reset();
     

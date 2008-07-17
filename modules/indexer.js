@@ -193,7 +193,7 @@ let GlodaIndexer = {
   /** You can turn on indexing, but you can't turn it off! */
   set indexing(aShouldIndex) {
     if (!this._indexingActive && aShouldIndex) {
-      this._log.info("Indexing Queue Processing Commencing");
+      this._log.info("+++ Indexing Queue Processing Commencing");
       this._indexingActive = true;
       this._domWindow.setTimeout(this._wrapIncrementalIndex, this._indexInterval, this);
     }  
@@ -284,15 +284,12 @@ let GlodaIndexer = {
   },
   _notifyListeners: function gloda_index_notifyListeners(aStatus, aFolderName,
       aFolderIndex, aFoldersTotal, aMessageIndex, aMessagesTotal) {
-    this._log.debug("notifying listeners >>>");
     for (let iListener=this._indexListeners.length-1; iListener >= 0; 
          iListener--) {
-      this._log.debug("  listener " + iListener);
       let listener = this._indexListeners[iListener];
       listener(aStatus, aFolderName, aFolderIndex, aFoldersTotal, aMessageIndex,
                aMessagesTotal);
     }
-    this._log.debug("done notifying listeners <<<");
   },
   
   _indexingFolderID: null,
@@ -389,7 +386,7 @@ let GlodaIndexer = {
         if (job === null) {
           // --- Are there any jobs left?
           if (this._indexQueue.length == 0) {
-            this._log.info("Done indexing, disabling timer renewal.");
+            this._log.info("--- Done indexing, disabling timer renewal.");
             this._indexingActive = false;
             this._indexingJobCount = 0;
             this._indexingJobGoal = 0;
@@ -455,12 +452,19 @@ let GlodaIndexer = {
               let item = job.items[job.offset++];
               // -- MESSAGE ADD (batch steady state)
               if (job.deltaType > 0) {
-                // item must be [folder ID, message key]
+                // item is either [folder ID, message key] or
+                //                [folder ID, message ID]
 
                 // get in the folder
                 if (this._indexingFolderID != item[0])
                   this._indexerEnterFolder(item[0], false);
-                let msgHdr = this._indexingFolder.GetMessageHeader(item[1]);
+                let msgHdr;
+                if (typeof item[1] == "number")
+                  msgHdr = this._indexingFolder.GetMessageHeader(item[1]);
+                else
+                  // same deal as in move processing.
+                  // TODO fixme to not assume singular message-id's.
+                  msgHdr = this._indexingDatabase.getMsgHdrForMessageID(item[1]);
                 if (msgHdr)
                   this._indexMessage(msgHdr);
               }
@@ -489,7 +493,7 @@ let GlodaIndexer = {
               // -- MESSAGE DELETE (batch steady state)
               else { // job.deltaType < 0
                 // item must be a message id
-                let message = GlodaDatastore.getMessageByID(messageID);
+                let message = GlodaDatastore.getMessageByID(item);
                 // delete the message!
                 if (message !== null)
                   this._deleteMessage(message);
@@ -645,6 +649,7 @@ let GlodaIndexer = {
      *  many messages, which could be a lot to queue
      */
     msgsDeleted: function gloda_indexer_msgsDeleted(aMsgHdrs) {
+      this.indexer._log.debug("msgsDeleted notification");
       let deleteJob = new IndexingJob("message", -1, null);
       for (let iMsgHdr=0; iMsgHdr < aMsgHdrs.length; iMsgHdr++) {
         let msgHdr = aMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
@@ -702,15 +707,16 @@ let GlodaIndexer = {
       else {
         let copyIndexJob = new IndexingJob("message", 1, null);
 
-        for (let iSrcMsgHdr=0; iSrcMsgHdrs < aSrcMsgHdrs.length; iSrcMsgHdr++) {
+        for (let iSrcMsgHdr=0; iSrcMsgHdr < aSrcMsgHdrs.length; iSrcMsgHdr++) {
           let msgHdr = aSrcMsgHdrs.queryElementAt(iSrcMsgHdr, Ci.nsIMsgDBHdr);
           copyIndexJob.items.push([
             GlodaDatastore._mapFolderURI(aDestFolder.URI),
-            msgHdr.messageKey]);
+            msgHdr.messageId]);
         }
 
-        this.indexer._indexingJobGoal++;
         this.indexer._indexQueue.push(copyIndexJob);
+        this.indexer._indexingJobGoal++;
+        this.indexer.indexing = true;
       }
       } catch (ex) { this.indexer._log.error("SAD SAD: " + ex); }
     },
@@ -722,17 +728,19 @@ let GlodaIndexer = {
      *  URI/id.
      */
     folderDeleted: function gloda_indexer_folderDeleted(aFolder) {
+      this.indexer._log.debug("folderDeleted notification");
       let folderID = GlodaDatastore._mapFolderURI(aFolder.URI);
       
       let messageJob = new IndexingJob("message", -1, null);
       messageJob.items = GlodaDatastore.getMessageIDsByFolderID(folderID);
-      this.indexer._indexQueue.push(messageJob);
+      if (messageJob.items.length > 0)
+        this.indexer._indexQueue.push(messageJob);
       
       let folderJob = new IndexingJob("folder", -1, folderID);
       this.indexer._indexQueue.push(folderJob);
 
-      this._indexingJobGoal += 2;
-      this.indexing = true;
+      this.indexer._indexingJobGoal += 2;
+      this.indexer.indexing = true;
     },
     
     /**
@@ -746,10 +754,12 @@ let GlodaIndexer = {
      */
     folderMoveCopyCompleted: function gloda_indexer_folderMoveCopyCompleted(
                                aMove, aSrcFolder, aDestFolder) {
+      this.indexer._log.debug("folderMoveCopy notification (Move: " + aMove
+                              + ")");
       if (aMove) {
         return this.folderRenamed(aSrcFolder, aDestFolder);
       }
-      this._indexingFolderGoal++;
+      this.indexer._indexingFolderGoal++;
       this.indexer._indexQueue.push(["folder", 1,
         this._mapFolderURI(aDestFolder.URI)]);
       this.indexer.indexing = true;
@@ -761,6 +771,7 @@ let GlodaIndexer = {
      */
     folderRenamed: function gloda_indexer_folderRenamed(aOrigFolder,
                                                         aNewFolder) {
+      this.indexer._log.debug("folderRenamed notification");
       GlodaDatastore.renameFolder(aOrigFolder.URI, aNewFolder.URI);
     },
     
@@ -1038,7 +1049,7 @@ let GlodaIndexer = {
     
     // is everyone else a ghost? (note that conversationMsgs includes us, but
     //  ghosts cannot)
-    if ((conversationsMsgs.length - 1) == ghosts.length) {
+    if ((conversationMsgs.length - 1) == ghosts.length) {
       // obliterate the conversation including aMessage.
       // since everyone else is a ghost they have no attributes.  however, the
       //  conversation may some day have attributes targeted against it, so it
@@ -1050,7 +1061,7 @@ let GlodaIndexer = {
       // do we have a twin (so it's okay to delete us) or do we become a ghost?
       if (twinMessage !== null) { // just delete us
         aMessage._datastore.deleteMessageByID(aMessage.id);
-        aMesssage._nuke();
+        aMessage._nuke();
       }
       else { // ghost us
         aMessage._ghost();
