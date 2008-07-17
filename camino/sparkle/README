@@ -4,5 +4,6 @@ Sparkle. The Sparkle framework is shipped inside Camino's bundle, and some glue
 code is included in Camino itself.
 
 This is a pull of revision 246 of the lp:sparkle branch from http://code.launchpad.net/sparkle
-with changes to ConfigCommon.xcconfig to allow building with versions of Xcode earlier than
-3.1.
+with the following changes:
+- Commented out used of [arch=<foo>] notation in ConfigCommon.xcconfig to allow building with our toolchain
+- Removed use of non-ASCII in NSString literals, and update English .strings keys to match 
