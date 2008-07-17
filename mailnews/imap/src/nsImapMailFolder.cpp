@@ -339,8 +339,7 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsILocalFile> path;
-  nsMsgDBFolder *dbFolder = static_cast<nsMsgDBFolder *>(static_cast<nsIMsgFolder *>(folder.get()));
-  rv = dbFolder->CreateDirectoryForFolder(getter_AddRefs(path));
+  rv = CreateDirectoryForFolder(getter_AddRefs(path));
   NS_ENSURE_SUCCESS(rv, rv);
 
   folder->GetFlags((PRUint32 *)&flags);
