@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <cases>
   <casetext>
-    <setup>[% text.setup FILTER xml %]</setup>
-    <breakdown>[% text.breakdown FILTER xml %]</breakdown>
+    <setup><![CDATA[[% text.setup FILTER none %]]]></setup>
+    <breakdown><![CDATA[[% text.breakdown FILTER none %]]]></breakdown>
     <version>[% text.version FILTER xml %]</version>
-    <action>[% text.action FILTER xml %]</action>
-    <effect>[% text.effect FILTER xml %]</effect>
+    <action><![CDATA[[% text.action FILTER none %]]]></action>
+    <effect><![CDATA[[% text.effect FILTER none %]]]></effect>
     <case_id>[% text.case_id FILTER xml %]</case_id>
     <author>[% text.author FILTER xml %]</author>
     <notes>[% text.notes FILTER xml %]</notes>
