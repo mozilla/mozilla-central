@@ -39,7 +39,7 @@
 function onLoad() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
-    item = (item.isMutable) ? item : item.clone();
+    item = item.clone(); // use an own copy of the passed item
     var calendar = item.calendar;
     window.item = item;
 
@@ -73,6 +73,11 @@ function onLoad() {
     if (!window.readOnly && calendar instanceof Components.interfaces.calISchedulingSupport) {
         var attendee = calendar.getInvitedAttendee(item);
         if (attendee) {
+            // if this is an unresponded invitation, preset our default alarm values:
+            if (attendee.participationStatus == "NEEDS-ACTION") {
+                setDefaultAlarmValues(item);
+            }
+
             window.attendee = attendee.clone();
             // Since we don't have API to update an attendee in place, remove
             // and add again. Also, this is needed if the attendee doesn't exist

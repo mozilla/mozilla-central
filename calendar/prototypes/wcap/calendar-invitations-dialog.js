@@ -112,6 +112,12 @@ function fillJobQueue(queue) {
             var actionString = "modify";
             var oldCalendarItem = richListItem.calendarItem;
             var newCalendarItem = oldCalendarItem.clone();
+
+            // set default alarm on unresponded items that have not been declined:
+            if (oldStatus == "NEEDS-ACTION" && newStatus != "DECLINED") {
+                setDefaultAlarmValues(newCalendarItem);
+            }
+
             richListItem.setCalendarItemParticipationStatus(newCalendarItem,
                 newStatus);
             var job = {
