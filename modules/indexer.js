@@ -127,7 +127,7 @@ function IndexingJob(aJobType, aDeltaType, aID) {
   this.deltaType = aDeltaType;
   this.id = aID;
   this.items = [];
-  this.count = 0;
+  this.offset = 0;
   this.goal = null;
 }
 
@@ -283,12 +283,15 @@ let GlodaIndexer = {
   },
   _notifyListeners: function gloda_index_notifyListeners(aStatus, aFolderName,
       aFolderIndex, aFoldersTotal, aMessageIndex, aMessagesTotal) {
+    this._log.debug("notifying listeners >>>");
     for (let iListener=this._indexListeners.length-1; iListener >= 0; 
          iListener--) {
+      this._log.debug("  listener " + iListener);
       let listener = this._indexListeners[iListener];
       listener(aStatus, aFolderName, aFolderIndex, aFoldersTotal, aMessageIndex,
                aMessagesTotal);
-    } 
+    }
+    this._log.debug("done notifying listeners <<<");
   },
   
   _indexingFolderID: null,
@@ -398,6 +401,7 @@ let GlodaIndexer = {
           else {
             try {
               job = this._curIndexingJob = this._indexQueue.shift();
+              this._indexingJobCount++;
               this._log.debug("Pulling job: " + job.jobType + ", " +
                               job.deltaType + ", " + job.id);
               // (Prepare for the job...)
@@ -411,6 +415,8 @@ let GlodaIndexer = {
                 else {
                   // nuke the folder id
                   this._datastore.deleteFolderByID(job.id);
+                  // and we're done!
+                  job = this._curIndexingJob = null;
                 }
               }
               // messages
@@ -434,6 +440,8 @@ let GlodaIndexer = {
             if (job.jobType == "folder") {
               // -- FOLDER ADD (steady state)
               if (job.deltaType > 0) {
+                // this will throw a stopiteration exception when done, so
+                //  we don't need to clean up the job
                 this._indexMessage(this._indexingIterator.next());
                 job.offset++;
               }
@@ -476,6 +484,10 @@ let GlodaIndexer = {
                 if (message !== null)
                   this._deleteMessage(message);
               }
+              
+              // we do need to kill the job when we hit the items.length
+              if (job.offset == job.items.length)
+                job = this._curIndexingJob = null;
             }
           }
           catch (ex) {
@@ -487,10 +499,10 @@ let GlodaIndexer = {
         
         // perhaps status update
         if (job !== null) {
-          if (job.offset % 50 == 0) {
+          if (job.offset % 50 == 1) {
             let actionStr;
             if (job.deltaType > 0)
-              actionStr = this._strBundle.getString("actionIndex");
+              actionStr = this._strBundle.getString("actionIndexing");
             else if (job.deltaType == 0)
               actionStr = this._strBundle.getString("actionMoving");
             else
@@ -504,7 +516,7 @@ let GlodaIndexer = {
             this._notifyListeners(actionStr + ": " +
                                   prettyName,
                                   prettyName,
-                                  this._indexingJobCount,
+                                  this._indexingJobCount-1, // count, not index
                                   this._indexingJobGoal,
                                   job.offset,
                                   job.goal);
@@ -545,7 +557,7 @@ let GlodaIndexer = {
               (folder in fixIterator(rootFolder.subFolders, Ci.nsIMsgFolder))];
       GlodaDatastore._commitTransaction();
       
-      this._indexingFolderGoal += folderJobs.length;
+      this._indexingJobGoal += folderJobs.length;
       this._indexQueue = this._indexQueue.concat(folderJobs);
       this.indexing = true;
     }
@@ -559,7 +571,7 @@ let GlodaIndexer = {
     
     this._indexQueue.push(new IndexingJob("folder", 1,
                           GlodaDatastore._mapFolderURI(aFolder.URI)));
-    this._indexingFolderGoal++;
+    this._indexingJobGoal++;
     this.indexing = true;
   },
 

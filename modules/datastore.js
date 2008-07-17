@@ -889,9 +889,6 @@ let GlodaDatastore = {
       for (let iAttribute=0; iAttribute < aAttributes.length; iAttribute++) {
         let attribValueTuple = aAttributes[iAttribute];
         
-        this._log.debug("Inserting attribute tuple: " + attribValueTuple +
-                        " is null: " + (attribValueTuple[1] == null));
-        
         imas.params.conversationID = aMessage.conversationID;
         imas.params.messageID = aMessage.id;
         imas.params.attributeID = attribValueTuple[0];

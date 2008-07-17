@@ -485,8 +485,6 @@ let Gloda = {
       }
     }
     
-    this._log.debug("Attributes: " + outAttribs);
-    
     GlodaDatastore.insertMessageAttributes(aMessage, outAttribs);
   },
   
