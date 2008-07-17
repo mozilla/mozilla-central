@@ -3831,13 +3831,13 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
     }
 
     PushSort(sortColumnInfo);
-    if (m_sortColumns.Length() > 1)
-    {
-      m_secondarySort = m_sortColumns[1].mSortType;
-      m_secondarySortOrder = m_sortColumns[1].mSortOrder;
-    }
   }
   
+  if (m_sortColumns.Length() > 1)
+  {
+    m_secondarySort = m_sortColumns[1].mSortType;
+    m_secondarySortOrder = m_sortColumns[1].mSortOrder;
+  }
   SaveSortInfo(sortType, sortOrder);
   // figure out how much memory we'll need, and the malloc it
   PRUint16 maxLen;
