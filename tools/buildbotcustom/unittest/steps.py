@@ -34,6 +34,15 @@ cvsCoLog = "cvsco.log"
 tboxClobberCvsCoLog = "tbox-CLOBBER-cvsco.log"
 buildbotClobberCvsCoLog = "buildbot-CLOBBER-cvsco.log"
 
+def summaryText(passCount, failCount, knownFailCount=None):
+    knownFail = ""
+    if knownFailCount is not None:
+        knownFail = "/%d" % knownFailCount
+    summary = "%d/%d%s" % (passCount, failCount, knownFail)
+    if failCount > 0:
+        summary = '<em class="testfail">%s</em>' % summary
+    return summary
+
 class ShellCommandReportTimeout(ShellCommand):
     """We subclass ShellCommand so that we can bubble up the timeout errors
     to tinderbox that normally only get appended to the buildbot slave logs.
@@ -190,7 +199,7 @@ class MozillaCheck(ShellCommandReportTimeout):
                 passCount = passCount + 1
             if "TEST-UNEXPECTED-" in line:
                 failCount = failCount + 1
-        summary = "TinderboxPrint: TUnit<br/>" + str(passCount) + "/" + str(failCount) + "\n"
+        summary = "TinderboxPrint: TUnit<br/>" + summaryText(passCount,failCount) + "\n"
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
@@ -227,8 +236,7 @@ class MozillaReftest(ShellCommandReportTimeout):
                 knownFailCount += 1
             else:
                 passCount += 1
-        summary = "TinderboxPrint: " + self.name + "<br/>" + str(passCount) + \
-            "/" + str(failCount) + "/" + str(knownFailCount) + "\n"
+        summary = "TinderboxPrint: " + self.name + "<br/>" + summaryText(passCount, failCount, knownFailCount) + "\n"
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
@@ -309,7 +317,7 @@ class MozillaMochitest(ShellCommandReportTimeout):
         if not (passCount + failCount + todoCount):
             summary += "FAIL\n"
         else:
-            summary +=  str(passCount) + "/" + str(failCount) + "/" + str(todoCount) + "\n"
+            summary +=  summaryText(passCount,failCount,todoCount) + "\n"
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
@@ -363,7 +371,7 @@ class MozillaMochichrome(ShellCommandReportTimeout):
         if not (passCount + failCount + todoCount):
             summary += "FAIL\n"
         else:
-            summary +=  str(passCount) + "/" + str(failCount) + "/" + str(todoCount) + "\n"
+            summary +=  summaryText(passCount,failCount,todoCount) + "\n"
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
@@ -418,7 +426,7 @@ class MozillaBrowserChromeTest(ShellCommandReportTimeout):
         if not (passCount + failCount + todoCount):
             summary += "FAIL\n"
         else:
-            summary +=  str(passCount) + "/" + str(failCount) + "/" + str(todoCount) + "\n"
+            summary +=  summaryText(passCount,failCount,todoCount) + "\n"
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
