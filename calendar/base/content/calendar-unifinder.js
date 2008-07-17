@@ -876,7 +876,6 @@ function refreshEventTree() {
 
     gStartDate = StartDate  ? jsDateToDateTime(StartDate, calendarDefaultTimezone()) : null;
     gEndDate = EndDate ? jsDateToDateTime(EndDate, calendarDefaultTimezone()) : null;
-            LOG("Getting between " + gStartDate +  " and " + gEndDate + "\n");
     if (StartDate && EndDate) {
         filter |= ccalendar.ITEM_FILTER_CLASS_OCCURRENCES;
     }
