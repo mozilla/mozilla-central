@@ -236,7 +236,7 @@ nsresult nsPop3Service::RunPopUrl(nsIMsgIncomingServer * aServer, nsIURI * aUrlT
         rv = protocol->Initialize(aUrlToRun);
         if(NS_FAILED(rv))
         {
-          delete protocol;
+          NS_RELEASE(protocol);
           return rv;
         }
         // the protocol stores the unescaped username, so there is no need to escape it.

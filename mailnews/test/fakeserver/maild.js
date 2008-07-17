@@ -184,7 +184,8 @@ nsMailServer.prototype = {
     // spin an event loop and wait for the socket-close notification
     var thr = gThreadManager.currentThread;
     while (!this._socketClosed)
-      thr.processNextEvent(true);
+      // Don't wait for the next event, just in case there isn't one.
+      thr.processNextEvent(false);
   },
   stopTest : function () {
     this._test = false;
