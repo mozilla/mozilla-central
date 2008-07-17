@@ -259,7 +259,7 @@ CaseRunGrid = function(params, run){
     var selected;
     
     envRenderer = function(v,md,r,ri,ci,s){
-        f = this.getColumnModel().getCellEditor(ci,ri).field;
+        var f = this.getColumnModel().getCellEditor(ci,ri).field;
         record = f.store.getById(v);
         if (record) {
             return '<a href="tr_environments.cgi?env_id=' + record.data[f.valueField] +'">' + record.data[f.displayField] +'</a>';
@@ -590,7 +590,7 @@ CaseRunGrid = function(params, run){
                     return;
                 }
                 var sel = [];
-                for (var i=0; i< sm.grid.store.data.items.length; i++){
+                for (i=0; i<sm.grid.store.data.items.length; i++){
                     if (sm.grid.getSelectionModel().isSelected(i)){
                         sel.push(sm.grid.store.getAt(i).get('case_id'));
                     }
@@ -1272,6 +1272,7 @@ CaseBugsGrid = function(id){
     });
     addbug = function(){
         tcid = this.tcid;
+        var ids;
         var type = 'case';
         if (Ext.getCmp('caserun_grid')){
             type = 'caserun';

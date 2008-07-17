@@ -55,6 +55,20 @@ Testopia.Tags.list = function(type, product, tag){
 TestopiaObjectTags = function(obj, obj_id){
     this.orig_id = obj_id;
     this.obj_id = obj_id;
+    this.store = new Ext.data.JsonStore({
+        url: 'tr_tags.cgi',
+        baseParams: {action: 'gettags', type: obj},
+        root: 'tags',
+        id: 'tag_id',
+        fields: [
+            {name: 'tag_id', mapping: 'tag_id'},
+            {name: 'tag_name', mapping: 'tag_name'},
+            {name: 'run_count', mapping:'run_count'},
+            {name: 'case_count', mapping:'case_count'},
+            {name: 'plan_count', mapping:'plan_count'}
+        ]
+    });
+    var ds = this.store;
     this.remove = function(){
         var form = new Ext.form.BasicForm('testopia_helper_frm',{});
         form.submit({
@@ -77,20 +91,6 @@ TestopiaObjectTags = function(obj, obj_id){
             failure: testopiaError
         });
     };
-    this.store = new Ext.data.JsonStore({
-        url: 'tr_tags.cgi',
-        baseParams: {action: 'gettags', type: obj},
-        root: 'tags',
-        id: 'tag_id',
-        fields: [
-            {name: 'tag_id', mapping: 'tag_id'},
-            {name: 'tag_name', mapping: 'tag_name'},
-            {name: 'run_count', mapping:'run_count'},
-            {name: 'case_count', mapping:'case_count'},
-            {name: 'plan_count', mapping:'plan_count'}
-        ]
-    });
-    var ds = this.store;
     this.columns = [
         {dataIndex: 'tag_id', hidden: true, hideable: false},
         {header: 'Name', width: 150, dataIndex: 'tag_name', id: 'tag_name', sortable:true, hideable: false},

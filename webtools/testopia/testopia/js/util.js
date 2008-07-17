@@ -167,11 +167,11 @@ TestopiaUtil = function(){
     this.addOption = addOption;
     var fillSelects = function(data){
       var s = searchToJson(window.location.search);
-      for (i in data.selectTypes){
+      for (var i in data.selectTypes){
         if (typeof data.selectTypes[i] != 'function'){
             try{
               document.getElementById(data.selectTypes[i]).options.length = 0;
-              for (j in data[data.selectTypes[i]]){
+              for (var j in data[data.selectTypes[i]]){
                 if (typeof data[data.selectTypes[i]][j] != 'function'){
                     var newOption = new Option(data[data.selectTypes[i]][j],data[data.selectTypes[i]][j],false, lsearch(data[data.selectTypes[i]][j], s[data.selectTypes[i]]));
                     addOption(document.getElementById(data.selectTypes[i]),newOption);
@@ -955,7 +955,6 @@ DocCompareToolbar = function(object, id){
                 id: 'doc_view_btn',
                 text: 'View Version',
                 handler: function(){
-                    var foo = Ext.getCmp('doc_view').getValue();
                     var tab = Ext.getCmp('object_panel').add({
                         title: 'Version ' + Ext.getCmp('doc_view').getValue(),
                         closable: true,
@@ -1512,8 +1511,8 @@ linkPopup = function(params){
 };
 
 searchToJson = function(url){
+    url = url.replace(/.*\//,'');
     var params = {};
-    var url = url.replace(/.*\//,'');
     var loc = url.split('?',2);
     var file = loc[0];
     var search = loc[1] ? loc[1] : file;
@@ -1540,7 +1539,7 @@ searchToJson = function(url){
 
 jsonToSearch = function(params, searchStr, drops){
     searchStr = searchStr || '';
-    for(key in params){
+    for(var key in params){
         if (drops.indexOf(key) != -1){
             continue;
         }

@@ -28,12 +28,6 @@
 [% PROCESS testopia/style.none.tmpl %]
 [% PROCESS testopia/blocks.html.tmpl %]
 
-[% javascript_urls.push( 'testopia/js/case.js') %]
-[% javascript_urls.push( 'testopia/js/plan.js') %]
-[% javascript_urls.push( 'testopia/js/attachments.js') %] 
-[% javascript_urls.push( 'testopia/js/tags.js') %] 
-[% javascript_urls.push( 'testopia/js/caserun.js') %] 
-
 [% title = "Test Case $case.id: $case.summary" %]
 [% PROCESS global/header.html.tmpl %]
 

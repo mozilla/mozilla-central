@@ -512,7 +512,7 @@ Ext.extend(ReportGrid, Ext.grid.GridPanel, {
     onContextClick: function(grid, index, e){
         var d = grid.store.getAt(index).get('query').match(/(tr_list_|_reports)/);
         if (d){
-            g = grid.store.getAt(index).get('query').match(/completion/);
+            var g = grid.store.getAt(index).get('query').match(/completion/);
             if (g)
                 d = null;
         }

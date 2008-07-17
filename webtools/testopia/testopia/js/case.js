@@ -1170,7 +1170,6 @@ CaseClonePanel = function(product_id, cases){
                 Ext.getCmp('case_copy_plan_ids').setValue(getSelectedObjects(Ext.getCmp('plan_clone_grid'), 'plan_id'));
                 var form = Ext.getCmp('case_clone_frm').getForm();
                 var params = form.getValues();
-                var foo = Ext.getCmp('case_copy_method');
                 params.action = 'clone';
                 params.ids = cases;
                 form.submit({

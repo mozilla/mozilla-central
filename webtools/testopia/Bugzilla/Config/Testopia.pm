@@ -106,7 +106,13 @@ sub get_param_list {
    type    => 't',
    default => '500',
   },
-
+  
+  {
+   name => 'testopia-debug',
+   type => 's',
+   choices => ['ON', 'OFF', 'Developer'],
+   default => 'OFF'
+  },
 #  {
 #   name    => 'new-testrun-email-notif',
 #   type    => 'l',

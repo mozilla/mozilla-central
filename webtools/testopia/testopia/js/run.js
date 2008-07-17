@@ -726,8 +726,9 @@ RunClonePanel = function(product_id, runs, caselist){
         if (form.isValid()){
             form.submit({
                 success: function(f,a){
+                    var msg;
                     if (a.result.runlist.length == 1){
-                        var msg = a.result.failures.length > 0 ? 'Test cases ' + a.result.failures.join(',') + ' were not included. They are either DISABLED or PROPOSED. <br>' : '';
+                        msg = a.result.failures.length > 0 ? 'Test cases ' + a.result.failures.join(',') + ' were not included. They are either DISABLED or PROPOSED. <br>' : '';
                         Ext.Msg.show({
                             title:'Run Copied',
                             msg: msg + 'Run ' + a.result.runlist[0] + ' Created. Would you like to go there now?',
@@ -741,7 +742,7 @@ RunClonePanel = function(product_id, runs, caselist){
                         });
                     }
                     else {
-                        var msg = a.result.failures.length > 0 ? 'Test cases ' + a.result.failures.join(',') + ' were not included. They are either DISABLED or PROPOSED. <br>' : '';
+                        msg = a.result.failures.length > 0 ? 'Test cases ' + a.result.failures.join(',') + ' were not included. They are either DISABLED or PROPOSED. <br>' : '';
                         Ext.Msg.show({
                             title:'Test Run Copied',
                             msg: msg + 'Test runs ' + a.result.runlist.join(',') + ' Copied successfully. <a href="tr_list_runs.cgi?run_id=' + a.result.runlist.join(',') +'">View as List</a>',
@@ -1078,7 +1079,7 @@ RunFilterGrid = function(run){
                 var f = document.getElementById('caserun_filter_form');
                 for (var i=0; i < f.length; i++){
                     if (f[i].type == 'select-multiple'){
-                        for (k=0; k < f[i].options.length; k++){
+                        for (var k=0; k < f[i].options.length; k++){
                             f[i].options[k].selected = false;
                         }
                             
