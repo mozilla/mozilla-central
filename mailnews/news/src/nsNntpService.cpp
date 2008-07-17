@@ -81,6 +81,7 @@
 #include "nsNewsDownloader.h"
 #include "prprf.h"
 #include "nsICacheService.h"
+#include "nsICacheEntryDescriptor.h"
 #include "nsMsgUtils.h"
 #include "nsEscape.h"
 #include "nsNetUtil.h"
@@ -299,11 +300,31 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
         msgUrl->SetMsgIsInLocalCache(hasMsgOffline);
         if (WeAreOffline())
         {
+          nsCOMPtr<nsIMsgIncomingServer> server;
+          // We need to set the port on the url, just like 
+          // nsNNTPProtocol::Initialize does, so the specs will be the same.
+          // we can ignore errors here - worst case, we'll display the
+          // "message not available" message.
+          folder->GetServer(getter_AddRefs(server));
+          PRBool isSecure = PR_FALSE;
+          if (server)
+            server->GetIsSecure(&isSecure);
+          url->SetPort(isSecure ? SECURE_NEWS_PORT : NEWS_PORT);
+
+          // check if message is in memory cache
+          nsCAutoString cacheKey;
+          url->GetAsciiSpec(cacheKey);
+          // nntp urls are truncated at the query part when used as cache keys
+          PRInt32 pos = cacheKey.FindChar('?');
+          if (pos != -1)
+            cacheKey.SetLength(pos);
+          nsCOMPtr <nsICacheEntryDescriptor> cacheEntry;
+          if (mCacheSession)
+            hasMsgOffline = NS_SUCCEEDED(mCacheSession->OpenCacheEntry(cacheKey,
+                                        nsICache::ACCESS_READ, PR_FALSE,
+                                        getter_AddRefs(cacheEntry)));
           if (!hasMsgOffline)
           {
-            nsCOMPtr<nsIMsgIncomingServer> server;
-
-            rv = folder->GetServer(getter_AddRefs(server));
             if (server)
               return server->DisplayOfflineMsg(aMsgWindow);
           }

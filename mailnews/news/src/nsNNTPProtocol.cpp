@@ -473,7 +473,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
         || m_newsAction == nsINntpUrl::ActionSaveMessageToDisk) {
         PRBool msgIsInLocalCache = PR_FALSE;
         mailnewsUrl->GetMsgIsInLocalCache(&msgIsInLocalCache);
-        if (msgIsInLocalCache)
+        if (msgIsInLocalCache || WeAreOffline())
           return NS_OK; // probably don't need to do anything else - definitely don't want
         // to open the socket.
       }
@@ -928,9 +928,9 @@ nsresult nsNNTPProtocol::OpenCacheEntry()
   nsCAutoString urlSpec;
   mailnewsUrl->GetAsciiSpec(urlSpec);
   // for now, truncate of the query part so we don't duplicate urls in the cache...
-  char * anchor = (char *)strrchr(urlSpec.BeginWriting(), '?');
-  if (anchor)
-    *anchor = '\0';
+  PRInt32 pos = urlSpec.FindChar('?');
+  if (pos != -1)
+    urlSpec.SetLength(pos);
   return cacheSession->AsyncOpenCacheEntry(urlSpec, nsICache::ACCESS_READ_WRITE, this);
 }
 
