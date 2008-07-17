@@ -187,20 +187,25 @@ GlodaMessage.prototype = {
    *  null if the message does not exist for one reason or another.
    */
   get folderMessage() {
-    if (this._folderMessage != null)
+    if (this._folderMessage !== null)
       return this._folderMessage;
-    if (this._folderID == null || this._messageKey == null)
+    if (this._folderID === null || this._messageKey === null)
       return null;
 
     let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
                      getService(Ci.nsIRDFService);
-    let folder = rdfService.GetResource(this.folderURI);
+    let folder = rdfService.GetResource(
+                   this._datastore._mapFolderID(this._folderID));
     if (folder instanceof Ci.nsIMsgFolder) {
       this._folderMessage = folder.GetMessageHeader(this._messageKey);
-      if (this._folderMessage != null) {
+      if (this._folderMessage !== null) {
         // verify the message-id header matches what we expect...
-        if (this._folderMessage.messageId != this._headerMessageId)
+        if (this._folderMessage.messageId !== this._headerMessageID) {
+          LOG.warn("Message with message key does not match expected " +
+                   "header! (" + this._headerMessageID + " expected, got " +
+                   this._folderMessage.messageId + ")");
           this._folderMessage = null;
+        }
       }
       return this._folderMessage;
     }

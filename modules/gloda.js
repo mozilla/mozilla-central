@@ -208,7 +208,7 @@ let Gloda = {
     this._nounIDToMeta[this.NOUN_BOOLEAN] = {class: Boolean, firstClass: false,
       fromAttributeValue: function(aVal) {
         if(aVal != 0) return true; else return false;
-      }}; 
+      }};
     this._nounIDToMeta[this.NOUN_DATE] = {class: Date, firstClass: false,
       fromAttributeValue: function(aPRTime) {
         return new Date(aPRTime / 1000);
@@ -248,12 +248,12 @@ let Gloda = {
     if (!(aSubjectType in this._nounIDToMeta))
       throw Error("Invalid subject type: " + aSubjectType);
     
-    let objectCoerce = this._nounIDToMeta[aObjectType].coerce;
+    let objectCoerce = this._nounIDToMeta[aObjectType].fromAttributeValue;
     
     let storageName = "__" + aBindName;
     let getter;
     // should we memoize the value as a getter per-instance?
-    if (aSingular == Gloda.kSingular) {
+    if (aSingular) {
       getter = function() {
         if (this[storageName] != undefined)
           return this[storageName];
@@ -273,6 +273,7 @@ let Gloda = {
         let instances = this.getAttributeInstances(aAttr);
         let values;
         if (instances.length > 0) {
+          values = [];
           for (let iInst=0; iInst < instances.length; iInst++) {
             values.push(objectCoerce(instances[iInst][2]));
           }
@@ -384,7 +385,7 @@ let Gloda = {
       //  not yet 'bound' to a provider (and had important meta-info that
       //  doesn't go in the db copied over)
       attr = GlodaDatastore._attributes[compoundName];
-      if (attr.provider != null) {
+      if (attr.provider !== null) {
         return attr;
       }
       

@@ -61,9 +61,11 @@ const FA_READ = "READ";
  */
 let GlodaExplicitAttr = {
   _log: null,
+  _strBundle: null,
 
-  _init: function gloda_explattr_init() {
+  init: function gloda_explattr_init(aStrBundle) {
     this._log =  Log4Moz.Service.getLogger("gloda.explattr");
+    this._strBundle = aStrBundle;
   
     try {
       this.defineAttributes();
@@ -135,4 +137,3 @@ let GlodaExplicitAttr = {
     return attribs;
   },
 };
-GlodaExplicitAttr._init();

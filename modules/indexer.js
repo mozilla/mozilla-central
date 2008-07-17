@@ -272,7 +272,8 @@ let GlodaIndexer = {
     // if we aren't indexing, give them an idle indicator, otherwise they can
     //  just be happy when we hit the next actual status point.
     if (!this.indexing)
-      aListener(this._strBundle.getString("actionIdle"), null, 0, 1, 0, 1);
+      aListener(this._strBundle ? this._strBundle.getString("actionIdle") : "",
+                null, 0, 1, 0, 1);
     return aListener;
   },
   removeListener: function gloda_index_removeListener(aListener) {
@@ -309,7 +310,7 @@ let GlodaIndexer = {
       this._indexingDatabase.RemoveListener(this._databaseAnnouncerListener);
     }
     
-    let folderURI = GlodaDatastore._mapFolderID(job.folderID);
+    let folderURI = GlodaDatastore._mapFolderID(aFolderID);
     this._log.debug("Active Folder URI: " + folderURI);
   
     let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
@@ -388,7 +389,7 @@ let GlodaIndexer = {
             this._indexingActive = false;
             this._indexingJobCount = 0;
             this._indexingJobGoal = 0;
-            this._notifyListeners(this._strBundle("actionIdle"), null,
+            this._notifyListeners(this._strBundle.getString("actionIdle"), null,
                                   0, 1, 0, 1);
             break;
           }
@@ -397,11 +398,13 @@ let GlodaIndexer = {
           else {
             try {
               job = this._curIndexingJob = this._indexQueue.shift();
+              this._log.debug("Pulling job: " + job.jobType + ", " +
+                              job.deltaType + ", " + job.id);
               // (Prepare for the job...)
               if (job.jobType == "folder") {
                 // -- FOLDER ADD
                 if (job.deltaType > 0) {
-                  this._indexerEnterFolder(job.folderID, true)
+                  this._indexerEnterFolder(job.id, true)
                   job.goal = this._indexingFolder.getTotalMessages(false);
                 }
                 // -- FOLDER DELETE
@@ -536,13 +539,14 @@ let GlodaIndexer = {
       this._log.info("Queueing account folders for indexing: " + aAccount.key);
 
       GlodaDatastore._beginTransaction();
-      let folders =
-              [["folder", 1, GlodaDatastore._mapFolderURI(folder.URI)] for each
+      let folderJobs =
+              [new IndexingJob("folder", 1,
+                              GlodaDatastore._mapFolderURI(folder.URI)) for each
               (folder in fixIterator(rootFolder.subFolders, Ci.nsIMsgFolder))];
       GlodaDatastore._commitTransaction();
       
-      this._indexingFolderGoal += folders.length;
-      this._indexQueue = this._indexQueue.concat(folders);
+      this._indexingFolderGoal += folderJobs.length;
+      this._indexQueue = this._indexQueue.concat(folderJobs);
       this.indexing = true;
     }
     else {
@@ -553,8 +557,9 @@ let GlodaIndexer = {
   indexFolder: function glodaIndexFolder(aFolder) {
     this._log.info("Queue-ing folder for indexing: " + aFolder.prettiestName);
     
-    this._indexQueue.push(["folder", 1,
-                          GlodaDatastore._mapFolderURI(aFolder.URI)]);
+    this._indexQueue.push(new IndexingJob("folder", 1,
+                          GlodaDatastore._mapFolderURI(aFolder.URI)));
+    this._indexingFolderGoal++;
     this.indexing = true;
   },
 

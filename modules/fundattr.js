@@ -59,7 +59,7 @@ let GlodaFundAttr = {
   _log: null,
   _strBundle: null,
 
-  _init: function gloda_explattr_init(aStrBundle) {
+  init: function gloda_explattr_init(aStrBundle) {
     this._log =  Log4Moz.Service.getLogger("gloda.fundattr");
     this._strBundle = aStrBundle;
   
@@ -222,4 +222,3 @@ let GlodaFundAttr = {
     return attribs;
   },
 };
-GlodaFundAttr._init();

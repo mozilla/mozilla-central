@@ -47,6 +47,7 @@ var gloda = {
     // initialization code
     this.initialized = true;
     this.strings = document.getElementById("gloda-strings");
+    GlodaInitModules(this.strings);
     GlodaIndexer.init(window, msgWindow, this.strings);
   },
   onMenuItemCommand: function(e) {

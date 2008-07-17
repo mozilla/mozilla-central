@@ -492,17 +492,9 @@ let GlodaDatastore = {
       return this._folderURIs[aFolderURI];
     }
     
-    let folderID;
-    this._selectFolderLocationByURIStatement.params.folderURI = aFolderURI;
-    if (this._selectFolderLocationByURIStatement.step()) {
-      folderID = this._selectFolderLocationByURIStatement.row["id"];
-    }
-    else {
-      this._insertFolderLocationStatement.params.folderURI = aFolderURI;
-      this._insertFolderLocationStatement.execute();
-      folderID = this.dbConnection.lastInsertRowID;
-    }
-    this._selectFolderLocationByURIStatement.reset();
+    this._insertFolderLocationStatement.params.folderURI = aFolderURI;
+    this._insertFolderLocationStatement.execute();
+    let folderID = this.dbConnection.lastInsertRowID;
 
     this._folderURIs[aFolderURI] = folderID;
     this._folderIDs[folderID] = aFolderURI;
@@ -511,7 +503,7 @@ let GlodaDatastore = {
   },
   
   _mapFolderID: function gloda_ds_mapFolderID(aFolderID) {
-    if (aFolderID == null)
+    if (aFolderID === null)
       return null;
     if (aFolderID in this._folderIDs)
       return this._folderIDs[aFolderID];
@@ -647,8 +639,7 @@ let GlodaDatastore = {
     //ims.execute();
     
     return new GlodaMessage(this, this.dbConnection.lastInsertRowID, folderID,
-                            this._mapFolderID(folderID),
-                            aMessageKey, aConversationID, null, aParentID,
+                            aMessageKey, aConversationID, null,
                             aHeaderMessageID, aBodySnippet);
   },
   
@@ -692,7 +683,6 @@ let GlodaDatastore = {
   
   _messageFromRow: function gloda_ds_messageFromRow(aRow) {
     return new GlodaMessage(this, aRow["id"], aRow["folderID"],
-                            this._mapFolderID(aRow["folderID"]),
                             aRow["messageKey"],
                             aRow["conversationID"], null,
                             aRow["headerMessageID"], aRow["bodySnippet"]);

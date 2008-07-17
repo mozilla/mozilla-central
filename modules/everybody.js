@@ -35,7 +35,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const EXPORTED_SYMBOLS = [];
+const EXPORTED_SYMBOLS = ["GlodaInitModules"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -62,3 +62,8 @@ function loadModule(aModuleURI) {
 
 loadModule("resource://gloda/modules/fundattr.js");
 loadModule("resource://gloda/modules/explattr.js");
+
+function GlodaInitModules(aStrTab) {
+  GlodaFundAttr.init(aStrTab);
+  GlodaExplicitAttr.init(aStrTab);
+}
