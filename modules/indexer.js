@@ -401,9 +401,11 @@ let GlodaIndexer = {
           // --- Get a job
           else {
             try {
+              this._log.debug("Pulling job from queue of size " +
+                              this._indexQueue.length);
               job = this._curIndexingJob = this._indexQueue.shift();
               this._indexingJobCount++;
-              this._log.debug("Pulling job: " + job.jobType + ", " +
+              this._log.debug("Pulled job: " + job.jobType + ", " +
                               job.deltaType + ", " + job.id);
               // (Prepare for the job...)
               if (job.jobType == "folder") {
@@ -430,7 +432,8 @@ let GlodaIndexer = {
               }
             }
             catch (ex) {
-              this._log.debug("Failed to start job because: " + ex);
+              this._log.debug("Failed to start job (at " + ex.fileName + ":" +
+                ex.lineNumber + ") because: " + ex);
               job = this._curIndexingJob = null;
             }
           }
@@ -498,7 +501,8 @@ let GlodaIndexer = {
             }
           }
           catch (ex) {
-            this._log.debug("Bailing on job because: " + ex);
+            this._log.debug("Bailing on job (at " + ex.fileName + ":" +
+                ex.lineNumber + ") because: " + ex);
             this._indexerLeaveFolder();
             job = this._curIndexingJob = null;
           }
@@ -617,15 +621,16 @@ let GlodaIndexer = {
      *  succession.)
      */
     msgAdded: function gloda_indexer_msgAdded(aMsgHdr) {
+      this.indexer._log.debug("msgAdded notification");
       if (this.indexer._pendingAddJob === null) {
         this.indexer._pendingAddJob = new IndexingJob("message", 1, null);
-        this.indexer._indexQueue.push(this._pendingAddJob);
+        this.indexer._indexQueue.push(this.indexer._pendingAddJob);
         this.indexer._indexingJobGoal++;
       }
       this.indexer._pendingAddJob.items.push(
         [GlodaDatastore._mapFolderURI(aMsgHdr.folder.URI),
          aMsgHdr.messageKey]);
-      this.indexer.indexing = true; 
+      this.indexer.indexing = true;
     },
     
     /**
