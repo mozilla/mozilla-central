@@ -52,6 +52,12 @@ SUBMAKEFILES += \
 	$(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/Makefile \
 	$(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales/Makefile \
 	$(NULL)
+else
+DEFINES += -DMOZ_USE_GENERIC_BRANDING
+SUBMAKEFILES += \
+	$(DEPTH)/mail/branding/nightly/Makefile \
+	$(DEPTH)/mail/branding/nightly/locales/Makefile \
+	$(NULL)
 endif
 
 # This makefile uses variable overrides from the libs-% target to
@@ -68,10 +74,6 @@ DEFINES += \
 	-DLOCALE_SRCDIR=$(LOCALE_SRCDIR) \
 	-DPKG_BASENAME=$(PKG_BASENAME) \
 	$(NULL)
-
-ifndef MOZ_BRANDING_DIRECTORY
-DEFINES += -DMOZ_USE_GENERIC_BRANDING
-endif
 
 PREF_JS_EXPORTS = $(LOCALE_SRCDIR)/all-l10n.js
 
@@ -114,6 +116,8 @@ libs-%:
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
 ifdef MOZ_BRANDING_DIRECTORY
 	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales AB_CD=$* XPI_NAME=locale-$*
+else
+	@$(MAKE) -C $(DEPTH)/mail/branding/nightly/locales AB_CD=$* XPI_NAME=locale-$*
 endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
