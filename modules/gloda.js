@@ -81,7 +81,7 @@ let Gloda = {
                                                         aMsgHdr.messageKey);
     if (message === null) {
       message = GlodaDatastore.getMessageByMessageID(aMsgHdr.messageId);
-      this._log.warn("Fell back to locating message by id; actual message " +
+      this._log.info("Fell back to locating message by id; actual message " +
                      "key is: " + aMsgHdr.messageKey + " database key: " +
                      message.messageKey);
     }
@@ -103,15 +103,21 @@ let Gloda = {
                                                 parsed.addresses[iAddress]);
       
       if (identity === null) {
+        let name = parsed.names[iAddress];
+        let mailAddr = parsed.addresses[iAddress];
+        
+        // fall-back to the mail address if the name is empty
+        if ((name === null) || (name == ""))
+          name = mailAddr;
+          
         // we must create a contact
-        let contact = GlodaDatastore.createContact(null, null,
-                                                   parsed.names[iAddress]);
+        let contact = GlodaDatastore.createContact(null, null, name);
         
         // we must create the identity.  use a blank description because there's
         //  nothing to differentiate it from other identities, as this contact
         //  only has one initially (us).
         identity = GlodaDatastore.createIdentity(contact.id, contact, "email",
-                                                 parsed.addresses[iAddress],
+                                                 mailAddr,
                                                  "", false);
       }
       identities.push(identity);
@@ -124,8 +130,8 @@ let Gloda = {
       function gloda_ns_getIdentityForFullMailAddress(aMailAddress) {
     let identities = this.getIdentitiesForFullMailAddresses(aMailAddress);
     if (identities.length != 1) {
-      this._log.error("Expected exactly 1 address, got " + identities.length +
-                      " for address: " + aMailAddress);
+      this._log.info("Expected exactly 1 address, got " + identities.length +
+                     " for address: " + aMailAddress);
       return null;
     }    
     

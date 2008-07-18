@@ -677,7 +677,6 @@ let GlodaDatastore = {
                                       messageKey = :nullMsgKey \
                    WHERE folderID = :id \
                      AND messageKey IN (" + aMessageKeys.join(", ") + ")";
-    this._log.debug("SQL STRING: " + sqlStr);
     let statement = this._createStatement(sqlStr);
     statement.params.id = srcFolderID;
     statement.params.newFolderID = destFolderID;
@@ -734,8 +733,8 @@ let GlodaDatastore = {
     this._selectMessageByLocationStatement.reset();
     
     if (message === null)
-      this._log.error("Error locating message with key=" + aMessageKey +
-                      " and URI " + aFolderURI);
+      this._log.info("Error locating message with key=" + aMessageKey +
+                     " and URI " + aFolderURI);
     
     return message;
   },

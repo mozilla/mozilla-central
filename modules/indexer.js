@@ -484,7 +484,7 @@ let GlodaIndexer = {
                   this._indexMessage(msgHdr);
                 }
                 else {
-                  this._log.error("Move unable to locate message with header " +
+                  this._log.info("Move unable to locate message with header " +
                     "message-id " + item[1] + ". Folder is known to possess " +
                     this._indexingFolder.getTotalMessages(false) +" messages.");
                 }
