@@ -42,7 +42,7 @@
   <select class="dropdown" onchange="if (this.selectedIndex != 0) {document.location=this.value}">
     <option>--Testopia--</option>
     <option value="tr_list_runs.cgi?current_tab=run&run_status=0&distinct=1">Current Runs</a></option>
-    <option value="tr_list_plans.cgi?current_tab=plan&name_type=allwordssubstr&name=&plan_text_type=allwordssubstr&plan_text=&tag_type=allwords&tags=&author_type=exact&author=[% user.login FILTER url_quote %]&plan_id=&distinct=1">My Plans</a></option>
+    <option value="tr_list_plans.cgi?current_tab=plan&distinct=1&field0-0-0=plan_perms&type0-0-0=anyexact&value0-0-0=[% user.id FILTER url_quote %]&permission=15&field0-0-1=case_plan_id&type0-0-1=anyexact&value0-0-1=[% user.login FILTER url_quote %]&case_plans_tester=1&field0-0-2=author&type0-0-2=anyexact&value0-0-2=[% user.login FILTER url_quote %]">My Plans</a></option>
     <option value="tr_list_cases.cgi?current_tab=case&summary_type=allwordssubstr&summary=&tcaction_type=allwordssubstr&tcaction=&tceffect_type=allwordssubstr&tceffect=&script_type=allwordssubstr&script=&requirement_type=allwordssubstr&requirement=&tag_type=allwords&tags=&author_type=exact&author=&default_tester_type=substring&default_tester=[% user.login FILTER url_quote %]&case_id=&plan_id=&distinct=1">My Cases</a></option>
     <option value="tr_list_runs.cgi?current_tab=run&summary_type=allwordssubstr&summary=&notes_type=allwordssubstr&notes=&environment_type=allwordssubstr&environment=&tag_type=allwords&tag=&manager_type=substring&manager=[% user.login FILTER url_quote %]&run_id=&plan_id=&assignee_type=substr&assignee=[% user.login FILTER url_quote %]&distinct=1">My Runs</a></option>
   [% FOREACH q = user.testopia_queries %]

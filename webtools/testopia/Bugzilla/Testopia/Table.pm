@@ -108,19 +108,16 @@ sub init {
     my $debug = $cgi->param('debug') if $cgi;
     my @list;
     if ($query){
-        print "$query" if $debug;
-
         # For paging we need to know the total number of items
         # but Search.pm returns a query with a subset
         my $countquery = $query;
         $countquery =~ s/ LIMIT.*$//;
-        print "<br> $countquery" if $debug;
 
         my $dbh = Bugzilla->switch_to_shadow_db();
 
         my $count_res = $dbh->selectcol_arrayref($countquery);
         my $count = scalar @$count_res;
-        print "<br> total rows: $count" if $debug;
+        print "<p> Total rows: $count</p>" if $debug;
 
         $self->{'list_count'} = $count;
         my @ids;
@@ -156,7 +153,8 @@ sub init {
         $self->{'viewall'} = $cgi->param('viewall');
         $self->{'page'} = $cgi->param('page') || 0;
     }
-            
+    
+    exit if $debug;
 #    elsif (!$query && !$list){
 #        my @list;
 #        foreach my $id (split(",", $self->get_saved_list())){
