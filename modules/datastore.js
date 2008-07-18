@@ -733,7 +733,7 @@ let GlodaDatastore = {
       message = this._messageFromRow(this._selectMessageByLocationStatement.row);
     this._selectMessageByLocationStatement.reset();
     
-    if (message == null)
+    if (message === null)
       this._log.error("Error locating message with key=" + aMessageKey +
                       " and URI " + aFolderURI);
     
@@ -784,7 +784,7 @@ let GlodaDatastore = {
     // Unfortunately, IN doesn't work with statement binding mechanisms, and
     //  a chain of ORed tests really can't be bound unless we create one per
     //  value of N (seems silly).
-    let quotedIDs = ["'" + msgID.replace("'", "\\'", "g") + "'" for each
+    let quotedIDs = ["'" + msgID.replace("'", "''", "g") + "'" for each
                      (msgID in aMessageIDs)]
     let sqlString = "SELECT * FROM messages WHERE headerMessageID IN (" +
                     quotedIDs + ")";
@@ -832,11 +832,21 @@ let GlodaDatastore = {
     dmbcids.execute();
   },
   
-  // could probably do with an optimized version of this...
+  /**
+   * Get the first message found in the database with the given header
+   *  Message-ID, or null if none exists.  Because of the good chance of there
+   *  being more than one message with a Message-ID, you probably want a
+   *  different method than this one.  At the very least, a method that takes
+   *  a hint about what folder to look in...
+   */
   getMessageByMessageID: function gloda_ds_getMessageByMessageID(aMessageID) {
-    var ids = [aMessageID];
-    var messages = this.getMessagesByMessageID(ids);
-    return messages.pop();
+    let ids = [aMessageID];
+    let messagesWithID = this.getMessagesByMessageID(ids)[0];
+    // Just return the first one; we are a failure 
+    if (messagesWithID.length > 0)
+      return messagesWithID[0];
+    else
+      return null;
   },
 
   get _selectMessagesByConversationIDStatement() {

@@ -49,4 +49,12 @@
     <menuitem id="gloda-hello" label="&gloda.label;" 
               oncommand="gloda.onMenuItemCommand(event);"/>
   </menupopup>
+  
+  <popup id="folderPaneContext">
+    <menuseparator id="folderPaneContext-sep-gloda"/>
+    <menuitem id="folderPaneContext-gloda-index"
+              label="&folderContextGlodaIndex.label;"
+              accesskey="&folderContextGlodaIndex.accesskey;"
+              oncommand="GlodaIndexer.indexFolderByURI(GetSelectedFolderURI());"/>
+  </popup>
 </overlay>

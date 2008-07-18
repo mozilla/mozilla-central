@@ -590,6 +590,16 @@ let GlodaIndexer = {
     this.indexing = true;
   },
 
+  indexFolderByURI: function gloda_index_indexFolderByURI(aURI) {
+    if (aURI !== null) {
+      this._log.info("Queue-ing folder URI for indexing: " + aURI);
+      
+      this._indexQueue.push(new IndexingJob("folder", 1,
+                            GlodaDatastore._mapFolderURI(aURI)));
+      this._indexingJobGoal++;
+      this.indexing = true;
+    }
+  },
   
   /* *********** Event Processing *********** */
 
