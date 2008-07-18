@@ -5003,7 +5003,7 @@ nsresult nsMsgDBView::ListUnreadIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIn
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags,
+NS_IMETHODIMP nsMsgDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags,
                                        PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
   // if we're not the instigator, update flags if this key is in our view
@@ -5055,6 +5055,22 @@ NS_IMETHODIMP nsMsgDBView::OnHdrAdded(nsIMsgDBHdr *aHdrChanged, nsMsgKey aParent
   return OnNewHeader(aHdrChanged, aParentKey, PR_FALSE);
   // probably also want to pass that parent key in, since we went to the trouble
   // of figuring out what it is.
+}
+
+NS_IMETHODIMP
+nsMsgDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
+                                 nsIDBChangeListener * aInstigator)
+{
+  if (aPreChange)
+    return NS_OK;
+
+  if (aHdrToChange)
+  {
+    nsMsgViewIndex index = FindHdr(aHdrToChange);
+    if (index != nsMsgViewIndex_None)
+      NoteChange(index, 1, nsMsgViewNotificationCode::changed);
+  }
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDBView::OnParentChanged (nsMsgKey aKeyChanged, nsMsgKey oldParent, nsMsgKey newParent, nsIDBChangeListener *aInstigator)

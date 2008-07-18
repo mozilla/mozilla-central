@@ -2423,7 +2423,97 @@ nsresult VirtualFolderChangeListener::Init()
   /**
    * nsIDBChangeListener
    */
-NS_IMETHODIMP VirtualFolderChangeListener::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
+
+NS_IMETHODIMP
+VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBool aPreChange, PRUint32 *aStatus, 
+                                                 nsIDBChangeListener *aInstigator)
+{
+  const PRUint32 kMatch = 0x1;
+  const PRUint32 kRead = 0x2;
+  const PRUint32 kNew = 0x4;
+  NS_ENSURE_ARG_POINTER(aHdrChanged);
+  NS_ENSURE_ARG_POINTER(aStatus);
+
+  PRUint32 flags;
+  PRBool match;
+  nsCOMPtr<nsIMsgDatabase> msgDB;
+  nsresult rv = m_folderWatching->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+  NS_ENSURE_SUCCESS(rv, rv);
+  // we don't want any early returns from this function, until we've
+  // called ClearScopes on the search session.
+  m_searchSession->AddScopeTerm(nsMsgSearchScope::offlineMail, m_folderWatching);
+  rv = m_searchSession->MatchHdr(aHdrChanged, msgDB, &match);
+  m_searchSession->ClearScopes();
+  NS_ENSURE_SUCCESS(rv, rv);
+  aHdrChanged->GetFlags(&flags);
+  
+  if (aPreChange) // We're looking at the old header, save status
+  {
+    *aStatus = 0;
+    if (match)
+      *aStatus |= kMatch;
+    if (flags & MSG_FLAG_READ)
+      *aStatus |= kRead;
+    if (flags & MSG_FLAG_NEW)
+      *aStatus |= kNew;
+    return NS_OK;
+  }
+  
+  // This is the post change section where changes are detected
+
+  PRBool wasMatch = *aStatus & kMatch;
+  if (!match && !wasMatch) // header not in virtual folder
+    return NS_OK;
+
+  PRInt32 totalDelta = 0, unreadDelta = 0, newDelta = 0;
+
+  if (match) {
+    totalDelta++;
+    if (!(flags & MSG_FLAG_READ)) unreadDelta++;
+    if (flags & MSG_FLAG_NEW) newDelta++;
+  }
+
+  if (wasMatch) {
+    totalDelta--;
+    if (!(*aStatus & kRead)) unreadDelta--;
+    if (*aStatus & kNew) newDelta--;
+  }
+
+  if ( !(unreadDelta || totalDelta || newDelta) )
+    return NS_OK;
+
+  nsCOMPtr<nsIMsgDatabase> virtDatabase;
+  nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
+  rv = m_virtualFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo),
+                        getter_AddRefs(virtDatabase));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (unreadDelta)
+    dbFolderInfo->ChangeNumUnreadMessages(unreadDelta);
+
+  if (newDelta)
+  {
+    PRInt32 numNewMessages;
+    m_virtualFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);
+    m_virtualFolder->SetNumNewMessages(numNewMessages + newDelta);
+    m_virtualFolder->SetHasNewMessages(numNewMessages + newDelta > 0);
+  }
+
+  if (totalDelta)
+  {
+    dbFolderInfo->ChangeNumMessages(totalDelta);
+    nsCString searchUri;
+    m_virtualFolder->GetURI(searchUri);
+    msgDB->UpdateHdrInCache(searchUri.get(), aHdrChanged, totalDelta == 1);
+  }
+
+  m_virtualFolder->UpdateSummaryTotals(PR_TRUE); // force update from db.
+  virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
   nsCOMPtr <nsIMsgDatabase> msgDB;
 

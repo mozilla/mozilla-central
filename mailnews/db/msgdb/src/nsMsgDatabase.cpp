@@ -605,7 +605,7 @@ NS_IMETHODIMP nsMsgDatabase::NotifyHdrChangeAll(nsIMsgDBHdr *aHdrChanged,
                                                 PRUint32 aNewFlags,
                                                 nsIDBChangeListener *aInstigator)
 {
-  NOTIFY_LISTENERS(OnHdrChange, (aHdrChanged, aOldFlags, aNewFlags, aInstigator));
+  NOTIFY_LISTENERS(OnHdrFlagsChanged, (aHdrChanged, aOldFlags, aNewFlags, aInstigator));
   return NS_OK;
 }
 
@@ -2106,31 +2106,67 @@ NS_IMETHODIMP nsMsgDatabase::MarkOffline(nsMsgKey key, PRBool offline,
 NS_IMETHODIMP nsMsgDatabase::SetStringProperty(nsMsgKey aKey, const char *aProperty, const char *aValue)
 {
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
-
   nsresult rv = GetMsgHdrForKey(aKey, getter_AddRefs(msgHdr));
   if (NS_FAILED(rv) || !msgHdr)
     return NS_MSG_MESSAGE_NOT_FOUND; // XXX return rv?
+  return SetStringPropertyByHdr(msgHdr, aProperty, aValue);
+}
 
+NS_IMETHODIMP nsMsgDatabase::SetStringPropertyByHdr(nsIMsgDBHdr *msgHdr, const char *aProperty, const char *aValue)
+{
+  // don't do notifications if message not yet added to database.
+  // Ignore errors (consequences of failure are minor).
+  PRBool notify = PR_TRUE;  
+  nsMsgKey key = kNotFound;
+  msgHdr->GetMessageKey(&key);
+  ContainsKey(key, &notify);
+  
   nsCString oldValue;
-  rv = msgHdr->GetStringProperty(aProperty, getter_Copies(oldValue));
+  nsresult rv = msgHdr->GetStringProperty(aProperty, getter_Copies(oldValue));
   NS_ENSURE_SUCCESS(rv,rv);
 
   // if no change to this string property, bail out
   if (oldValue.Equals(aValue))
     return NS_OK;
 
+  // Precall OnHdrPropertyChanged to store prechange status
+  nsTArray<PRUint32> statusArray(m_ChangeListeners.Length());
+  PRUint32 status;
+  nsCOMPtr<nsIDBChangeListener> listener;
+  if (notify)
+  {
+    nsTObserverArray<nsCOMPtr<nsIDBChangeListener> >::ForwardIterator listeners(m_ChangeListeners);
+    while (listeners.HasMore())
+    {
+      listener = listeners.GetNext();
+      listener->OnHdrPropertyChanged(msgHdr, PR_TRUE, &status, nsnull);
+      // ignore errors, but append element to keep arrays in sync
+      statusArray.AppendElement(status);
+    }
+  }
+
   rv = msgHdr->SetStringProperty(aProperty, aValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  // if this is the junk score property notify, as long as we're not going
-  // from no value to non junk
-  if (!strcmp(aProperty, "junkscore") && !(oldValue.IsEmpty() && !strcmp(aValue, "0")))
-    NotifyJunkScoreChanged(nsnull);
+  //Postcall OnHdrPropertyChanged to process the change
+  if (notify)
+  {
+    // if this is the junk score property notify, as long as we're not going
+    // from no value to non junk
+    if (!strcmp(aProperty, "junkscore") && !(oldValue.IsEmpty() && !strcmp(aValue, "0")))
+      NotifyJunkScoreChanged(nsnull);
 
-  PRUint32 flags;
-  (void)msgHdr->GetFlags(&flags);
+    nsTObserverArray<nsCOMPtr<nsIDBChangeListener> >::ForwardIterator listeners(m_ChangeListeners);
+    for (PRUint32 i = 0; listeners.HasMore(); i++)
+    {
+      listener = listeners.GetNext();
+      status = statusArray[i];
+      listener->OnHdrPropertyChanged(msgHdr, PR_FALSE, &status, nsnull);
+      // ignore errors
+    }
+  }
 
-  return NotifyHdrChangeAll(msgHdr, flags, flags, nsnull);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDatabase::SetLabel(nsMsgKey key, nsMsgLabelValue label)
@@ -2746,10 +2782,19 @@ nsMsgDBThreadEnumerator::~nsMsgDBThreadEnumerator()
 NS_IMPL_ISUPPORTS2(nsMsgDBThreadEnumerator, nsISimpleEnumerator, nsIDBChangeListener)
 
 
-/* void onHdrChange (in nsIMsgDBHdr aHdrChanged, in unsigned long aOldFlags, in unsigned long aNewFlags, in nsIDBChangeListener aInstigator); */
-NS_IMETHODIMP nsMsgDBThreadEnumerator::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
+/* void OnHdrFlagsChanged (in nsIMsgDBHdr aHdrChanged, in unsigned long aOldFlags, in unsigned long aNewFlags, in nsIDBChangeListener aInstigator); */
+NS_IMETHODIMP nsMsgDBThreadEnumerator::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
     return NS_OK;
+}
+
+//void OnHdrPropertyChanged(in nsIMsgDBHdr aHdrToChange, in PRBool aPreChange, 
+// inout PRUint32 aStatus, in nsIDBChangeListener aInstigator);
+NS_IMETHODIMP
+nsMsgDBThreadEnumerator::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
+                                         nsIDBChangeListener * aInstigator)
+{
+  return NS_OK;
 }
 
 /* void onHdrDeleted (in nsIMsgDBHdr aHdrChanged, in nsMsgKey aParentKey, in long aFlags, in nsIDBChangeListener aInstigator); */

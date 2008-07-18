@@ -536,7 +536,7 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgGroupView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags,
+NS_IMETHODIMP nsMsgGroupView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags,
                                       PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
   nsCOMPtr <nsIMsgThread> thread;
@@ -552,7 +552,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOl
   if (deltaFlags & MSG_FLAG_READ)
     thread->MarkChildRead(aNewFlags & MSG_FLAG_READ);
 
-  return nsMsgDBView::OnHdrChange(aHdrChanged, aOldFlags, aNewFlags, aInstigator);
+  return nsMsgDBView::OnHdrFlagsChanged(aHdrChanged, aOldFlags, aNewFlags, aInstigator);
 }
 
 NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, PRInt32 aFlags,

@@ -143,50 +143,18 @@ nsresult nsMsgQuickSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aPare
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
+NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
                                        PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
-  nsresult rv = nsMsgDBView::OnHdrChange(aHdrChanged, aOldFlags, aNewFlags, aInstigator);
-  // flags haven't really changed - check if the message is newly classified as junk 
-  if ((aOldFlags == aNewFlags) && (aOldFlags & MSG_FLAG_NEW)) 
-  {
-    if (aHdrChanged)
-    {
-      nsCString junkScoreStr;
-      (void) aHdrChanged->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-      if (junkScoreStr.ToInteger((PRInt32*)&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE)
-      {
-        nsCString originStr;
-        (void) aHdrChanged->GetStringProperty("junkscoreorigin", 
-                                       getter_Copies(originStr));
+  nsresult rv = nsMsgDBView::OnHdrFlagsChanged(aHdrChanged, aOldFlags, aNewFlags, aInstigator);
 
-        // if this was classified by the plugin, see if we're supposed to
-        // show junk mail
-        if (originStr.get()[0] == 'p') 
-        {
-          PRBool match=PR_FALSE;
-          nsCOMPtr <nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
-          if (searchSession)
-            searchSession->MatchHdr(aHdrChanged, m_db, &match);
-          if (!match)
-          {
-            // remove hdr from view
-            nsMsgViewIndex deletedIndex = FindHdr(aHdrChanged);
-            if (deletedIndex != nsMsgViewIndex_None)
-              RemoveByIndex(deletedIndex);
-          }
-        }
-      }
-      NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
-    }
-  }
-  else if (m_viewFolder && (aOldFlags & MSG_FLAG_READ) != (aNewFlags & MSG_FLAG_READ))
+  if (m_viewFolder && (aOldFlags & MSG_FLAG_READ) != (aNewFlags & MSG_FLAG_READ))
   {
     // if we're displaying a single folder virtual folder for an imap folder,
     // the search criteria might be on message body, and we might not have the
     // message body offline, in which case we can't tell if the message 
     // matched or not. But if the unread flag changed, we need to update the
-    // unread counts. Normally, VirtualFolderChangeListener::OnHdrChange will
+    // unread counts. Normally, VirtualFolderChangeListener::OnHdrFlagsChanged will
     // handle this, but it won't work for body criteria when we don't have the
     // body offline.
     nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_viewFolder);
@@ -203,7 +171,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUi
           aHdrChanged->SetFlags(aOldFlags);
           rv = searchSession->MatchHdr(aHdrChanged, m_db, &oldMatch);
           aHdrChanged->SetFlags(aNewFlags); 
-          // if it doesn't match the criteria, VirtualFolderChangeListener::OnHdrChange
+          // if it doesn't match the criteria, VirtualFolderChangeListener::OnHdrFlagsChanged
           // won't tweak the read/unread counts. So do it here:
           if (!oldMatch && !newMatch)
           {
@@ -221,6 +189,42 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUi
     }
   }
   return rv;
+}
+
+NS_IMETHODIMP
+nsMsgQuickSearchDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBool aPreChange,
+                                        PRUint32 *aStatus, nsIDBChangeListener *aInstigator)
+{
+  // If the junk mail plugin just activated on a new message, then
+  // we'll allow filters to remove from view.
+  // Otherwise, just update the view line.
+
+  if (aPreChange)
+    return NS_OK;
+
+  if (aHdrChanged)
+  {
+    nsCOMPtr<nsIMsgSearchSession> searchSession(do_QueryReferent(m_searchSession));
+    if (searchSession)
+    {
+      nsMsgViewIndex index = FindHdr(aHdrChanged);
+      if (index != nsMsgViewIndex_None)
+      {
+        PRBool match = PR_FALSE;
+        searchSession->MatchHdr(aHdrChanged, m_db, &match);
+        nsCString originStr;
+        PRUint32 flags;
+        aHdrChanged->GetFlags(&flags);
+        (void) aHdrChanged->GetStringProperty("junkscoreorigin", getter_Copies(originStr));
+        // check for "plugin" with only first character for performance
+        if (!match && originStr.get()[0] == 'p' && flags & MSG_FLAG_NEW)
+          RemoveByIndex(index); // remove hdr from view
+        else
+          NoteChange(index, 1, nsMsgViewNotificationCode::changed);
+      }
+    }
+  }
+  return NS_OK;
 }
 
 NS_IMETHODIMP

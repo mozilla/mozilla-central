@@ -192,9 +192,15 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStopRequest(nsIRequest *request, nsISupports
     return NS_OK;
 }
 
+NS_IMETHODIMP
+nsMsgMailboxParser::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
+  nsIDBChangeListener * aInstigator)
+{
+  return NS_OK;
+}
 
 
-NS_IMETHODIMP nsMsgMailboxParser::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
+NS_IMETHODIMP nsMsgMailboxParser::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
     return NS_OK;
 }

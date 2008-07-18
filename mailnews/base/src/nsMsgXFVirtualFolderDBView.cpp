@@ -150,6 +150,41 @@ nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey a
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged,
+                PRBool aPreChange, PRUint32 *aStatus, nsIDBChangeListener *aInstigator)
+{
+  // If the junk mail plugin just activated on a new message, then
+  // we'll allow filters to remove from view.
+  // Otherwise, just update the view line.
+
+  if (aPreChange)
+    return NS_OK;
+
+  if (aHdrChanged)
+  {
+    nsCOMPtr<nsIMsgSearchSession> searchSession(do_QueryReferent(m_searchSession));
+    if (searchSession)
+    {
+      nsMsgViewIndex index = FindHdr(aHdrChanged);
+      if (index != nsMsgViewIndex_None)
+      {
+        PRBool match = PR_FALSE;
+        searchSession->MatchHdr(aHdrChanged, m_db, &match);
+        nsCString originStr;
+        PRUint32 flags;
+        aHdrChanged->GetFlags(&flags);
+        (void) aHdrChanged->GetStringProperty("junkscoreorigin", getter_Copies(originStr));
+        // check for "plugin" with only first character for performance
+        if (!match && originStr.get()[0] == 'p' && flags & MSG_FLAG_NEW)
+          RemoveByIndex(index); // remove hdr from view
+        else
+          NoteChange(index, 1, nsMsgViewNotificationCode::changed);
+      }
+    }
+  }
+  return NS_OK;
+}
+
 nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsISupports *folder)
 {
   nsMsgViewIndex insertIndex = GetInsertIndex(msgHdr);

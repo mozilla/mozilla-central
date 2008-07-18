@@ -63,8 +63,10 @@ public:
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD SetSearchSession(nsIMsgSearchSession *aSearchSession);
   NS_IMETHOD GetSearchSession(nsIMsgSearchSession* *aSearchSession);
-  NS_IMETHOD OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
+  NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
                          PRUint32 aNewFlags, nsIDBChangeListener *aInstigator);
+  NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
+                                 nsIDBChangeListener * aInstigator);
 
 protected:
   nsWeakPtr m_searchSession;

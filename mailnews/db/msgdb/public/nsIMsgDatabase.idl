@@ -137,7 +137,7 @@ interface nsIMsgDBService : nsISupports
     void unregisterPendingListener(in nsIDBChangeListener aListener);
 };
 
-[scriptable, uuid(6c8db586-57ff-4a1b-bb7e-acff79d6a4ce)]
+[scriptable, uuid(55EEECA9-FCF6-4a94-A9D4-0ECFBAAE8CAA)]
 interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   /**
    * Opens a database folder.
@@ -269,6 +269,14 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
                          in nsIDBChangeListener instigator);
   void SetLabel(in nsMsgKey key, in nsMsgLabelValue label);
   void setStringProperty(in nsMsgKey aKey, in string aProperty, in string aValue);
+  /*
+   * Set the value of a string property in a message header
+   *
+   * @param msgHdr    Header of the message whose property will be changed
+   * @param aProperty the property to change
+   * @param aValue    new value for the property
+   */
+  void setStringPropertyByHdr(in nsIMsgDBHdr msgHdr, in string aProperty, in string aValue);
 
   void MarkImapDeleted(in nsMsgKey key, in boolean deleted,
                              in nsIDBChangeListener instigator);

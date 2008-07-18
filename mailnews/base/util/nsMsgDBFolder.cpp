@@ -796,8 +796,16 @@ nsMsgDBFolder::OnJunkScoreChanged(nsIDBChangeListener * aInstigator)
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsMsgDBFolder::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
+                                   nsIDBChangeListener *aInstigator)
+{
+  /* do nothing.  if you care about this, override it.*/
+  return NS_OK;
+}
+
 // 1.  When the status of a message changes.
-NS_IMETHODIMP nsMsgDBFolder::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags,
+NS_IMETHODIMP nsMsgDBFolder::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags,
                                          nsIDBChangeListener * aInstigator)
 {
   if(aHdrChanged)
@@ -4929,13 +4937,10 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsIArray *aMessages, const ns
           keywords.Append(keywordArray[j]->get());
         }
       }
-      // go through the msg, not the db, to set the string property, because
+      // avoid using the message key to set the string property, because
       // in the case of filters running on incoming pop3 mail with quarantining
       // turned on, the message key is wrong.
-      message->SetStringProperty("keywords", keywords.get());
-      PRUint32 msgFlags;
-      message->GetFlags(&msgFlags);
-      mDatabase->NotifyHdrChangeAll(message, msgFlags, msgFlags, nsnull);
+      mDatabase->SetStringPropertyByHdr(message, "keywords", keywords.get());
     }
   }
   return rv;
@@ -4956,10 +4961,8 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
 
     for(PRUint32 i = 0; i < count; i++)
     {
-      nsMsgKey msgKey;
       nsCOMPtr<nsIMsgDBHdr> message = do_QueryElementAt(aMessages, i, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
-      (void) message->GetMessageKey(&msgKey);
       rv = message->GetStringProperty("keywords", getter_Copies(keywords));
       nsCStringArray keywordArray;
       keywordArray.ParseString(nsCString(aKeywords).get(), " ");
@@ -4972,7 +4975,7 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
           nsMsgLabelValue labelValue;
           message->GetLabel(&labelValue);
           // if we're removing the keyword that corresponds to a pre 2.0 label,
-          // we need to clear the old label attribute on the messsage.
+          // we need to clear the old label attribute on the message.
           if (labelValue == (nsMsgLabelValue) (keywordArray[j]->CharAt(6) - '0'))
             message->SetLabel((nsMsgLabelValue) 0);
         }
@@ -4983,7 +4986,8 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
           NS_ASSERTION(keywords.IsEmpty() || keywords.CharAt(0) != ' ', "space only keyword");
         }
       }
-      mDatabase->SetStringProperty(msgKey, "keywords", keywords.get());
+
+      mDatabase->SetStringPropertyByHdr(message, "keywords", keywords.get());
     }
   }
   return rv;

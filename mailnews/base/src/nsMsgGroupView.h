@@ -55,7 +55,7 @@ public:
   NS_IMETHOD Close();
   NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, PRInt32 aFlags, 
                             nsIDBChangeListener *aInstigator);
-  NS_IMETHOD OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
+  NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
                                       PRUint32 aNewFlags, nsIDBChangeListener *aInstigator);
 
   NS_IMETHOD LoadMessageByViewIndex(nsMsgViewIndex aViewIndex);

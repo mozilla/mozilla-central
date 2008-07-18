@@ -41,19 +41,48 @@
 interface nsIDBChangeAnnouncer;
 interface nsIMsgDBHdr;
 
-[scriptable, uuid(1d409e71-3b4e-4611-9759-6335c7362f5c)]
+/**
+ * These callbacks are provided to allow listeners to the message database
+ * to update their status when message changes occur.
+ */
+[scriptable, uuid(F2E12285-79D4-4692-AFEF-92415FCC6C5E)]
 
 interface  nsIDBChangeListener : nsISupports {
-    void onHdrChange(in nsIMsgDBHdr aHdrChanged, in unsigned long aOldFlags, in unsigned long aNewFlags, 
-                           in nsIDBChangeListener aInstigator);
-    void onHdrDeleted(in nsIMsgDBHdr aHdrChanged, in nsMsgKey aParentKey, in long aFlags, 
-                            in nsIDBChangeListener aInstigator);
-    void onHdrAdded(in nsIMsgDBHdr aHdrChanged, in nsMsgKey aParentKey, in long aFlags, 
-                          in nsIDBChangeListener aInstigator);
-	void onParentChanged (in nsMsgKey aKeyChanged, in nsMsgKey oldParent, in nsMsgKey newParent, in nsIDBChangeListener aInstigator);
-    void onAnnouncerGoingAway(in nsIDBChangeAnnouncer instigator);
-    
-    void onReadChanged(in nsIDBChangeListener aInstigator);
-	void onJunkScoreChanged(in nsIDBChangeListener aInstigator);
+  /*
+   * Callback when message flags are changed
+   *
+   * @param aHdrChanged the changed header
+   * @param aOldFlags   message flags prior to change
+   * @param aNewFlags   message flags after change
+   * @param aInstigator object that initiated the change
+   */
+  void onHdrFlagsChanged(in nsIMsgDBHdr aHdrChanged, in unsigned long aOldFlags,
+                   in unsigned long aNewFlags, in nsIDBChangeListener aInstigator);
+  void onHdrDeleted(in nsIMsgDBHdr aHdrChanged, in nsMsgKey aParentKey, in long aFlags,
+                    in nsIDBChangeListener aInstigator);
+  void onHdrAdded(in nsIMsgDBHdr aHdrChanged, in nsMsgKey aParentKey, in long aFlags,
+                  in nsIDBChangeListener aInstigator);
+  void onParentChanged(in nsMsgKey aKeyChanged, in nsMsgKey oldParent, in nsMsgKey newParent,
+                       in nsIDBChangeListener aInstigator);
+  void onAnnouncerGoingAway(in nsIDBChangeAnnouncer instigator);
+
+  void onReadChanged(in nsIDBChangeListener aInstigator);
+  void onJunkScoreChanged(in nsIDBChangeListener aInstigator);
+
+  /*
+   * Callback used in the general case where any field may have changed.
+   * OnHdrPropertyChanged is called twice per change. On the first call, aPreChange
+   * is true, and aStatus is undefined. OnHdrPropertyChanged saves any required status in aStatus
+   * (such as a filter match). The calling function stores the value of aStatus, changes the
+   * header aHdrToChange, then calls OnHdrPropertyChanged again with aPreChange false. On this
+   * second call, the stored value of aStatus is provided, so that any changes may be noted.
+   *
+   * @param aHdrToChange the message header that is changing.
+   * @param aPreChange   true on first call before change, false on second call after change
+   * @param aStatus      storage location provided by calling routine for status
+   * @param aInstigator  object that initiated the change
+   */   
+  void onHdrPropertyChanged(in nsIMsgDBHdr aHdrToChange, in PRBool aPreChange, inout PRUint32 aStatus,
+                       in nsIDBChangeListener aInstigator);
 };
 
