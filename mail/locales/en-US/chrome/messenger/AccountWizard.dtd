@@ -54,7 +54,7 @@
 <!ENTITY smtpServerLabel.label "Outgoing Server:">
 <!ENTITY smtpServerLabel.accesskey "O">
 <!ENTITY newsServerLabel.label "Newsgroup Server:">
-<!ENTITY newsServerLabel.accesskey "N">
+<!ENTITY newsServerLabel.accesskey "w">
 <!-- LOCALIZATION NOTE (imapType.label) : Do not translate "IMAP" in below line -->
 <!ENTITY imapType.label "IMAP">
 <!ENTITY imapType.accesskey "I">
