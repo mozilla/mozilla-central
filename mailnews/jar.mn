@@ -22,6 +22,7 @@ messenger.jar:
     content/messenger/addressbook/pref-directory.js                            (addrbook/prefs/resources/content/pref-directory.js)
     content/messenger/addressbook/pref-directory-add.js                        (addrbook/prefs/resources/content/pref-directory-add.js)
     content/messenger/addressbook/pref-directory-add.xul                       (addrbook/prefs/resources/content/pref-directory-add.xul)
+    content/messenger/addressbook/pref-editdirectories.js                      (addrbook/prefs/resources/content/pref-editdirectories.js)
     content/messenger/addressbook/pref-editdirectories.xul                     (addrbook/prefs/resources/content/pref-editdirectories.xul)
     content/messenger/addressbook/abAddressBookNameDialog.js                   (addrbook/resources/content/abAddressBookNameDialog.js)
     content/messenger/addressbook/abAddressBookNameDialog.xul                  (addrbook/resources/content/abAddressBookNameDialog.xul)

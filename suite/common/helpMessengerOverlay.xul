@@ -46,7 +46,7 @@
   </script>
 
   <dialog id="editDirectories"
-          buttons="accept,cancel,help"
+          buttons="accept,help"
           ondialoghelp="return openHelp('mail-ldap-properties');"/>
 
   <dialog id="addDirectory"

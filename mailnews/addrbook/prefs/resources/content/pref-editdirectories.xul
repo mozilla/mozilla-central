@@ -21,6 +21,7 @@
  the Initial Developer. All Rights Reserved.
 
  Contributor(s):
+   Mark Banner <bugzilla@standard8.plus.com>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -44,20 +45,33 @@
         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         id="editDirectories"
         title="&pref.ldap.window.title;"
-        buttons="accept,cancel"
+        buttons="accept"
         onload="onInitEditDirectories();"
-        ondialogaccept="return onAccept();">
+        onunload="onUninitEditDirectories();">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/pref-directory.js"/>
+  <script type="application/x-javascript"
+          src="chrome://messenger/content/addressbook/abCommon.js"/>
+  <script type="application/x-javascript"
+          src="chrome://messenger/content/addressbook/pref-editdirectories.js"/>
 
-    <label value="&directoriesText.label;" accesskey="&directoriesText.accesskey;" control="directoriesList"/>
-    <hbox flex="1">
-      <listbox id="directoriesList" flex="1" onselect="selectDirectory();"
-               onclick="clickDirectory(event);"/>
-      <vbox>
-        <button id="addButton" label="&addDirectory.label;" oncommand="newDirectory();" accesskey="&addDirectory.accesskey;"/>
-        <button id="editButton" label="&editDirectory.label;" oncommand="editDirectory();" disabled="true" accesskey="&editDirectory.accesskey;"/>
-        <button id="removeButton" label="&deleteDirectory.label;" oncommand="removeDirectory();" disabled="true" accesskey="&deleteDirectory.accesskey;"/>
-      </vbox>
-    </hbox>
+  <stringbundle id="bundle_addressBook"
+                src="chrome://messenger/locale/addressbook/addressBook.properties"/>
+
+  <label value="&directoriesText.label;"
+         accesskey="&directoriesText.accesskey;" control="directoriesList"/>
+  <hbox flex="1">
+    <listbox id="directoriesList" flex="1" onselect="selectDirectory();"
+             ondblclick="dblClickDirectory(event);"/>
+    <vbox>
+      <button id="addButton" label="&addDirectory.label;"
+              accesskey="&addDirectory.accesskey;"
+              oncommand="AbNewLDAPDirectory();"/>
+      <button id="editButton" label="&editDirectory.label;"
+              accesskey="&editDirectory.accesskey;" disabled="true"
+              oncommand="editDirectory();"/>
+      <button id="removeButton" label="&deleteDirectory.label;"
+              accesskey="&deleteDirectory.accesskey;" disabled="true"
+              oncommand="removeDirectory();"/>
+    </vbox>
+  </hbox>
 </dialog>
