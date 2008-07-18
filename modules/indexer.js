@@ -387,6 +387,11 @@ let GlodaIndexer = {
           // --- Are there any jobs left?
           if (this._indexQueue.length == 0) {
             this._log.info("--- Done indexing, disabling timer renewal.");
+            
+            if (this._indexingFolder !== null) {
+              this._indexerLeaveFolder(true);
+            }
+            
             this._indexingActive = false;
             this._indexingJobCount = 0;
             this._indexingJobGoal = 0;
@@ -507,7 +512,7 @@ let GlodaIndexer = {
           catch (ex) {
             this._log.debug("Bailing on job (at " + ex.fileName + ":" +
                 ex.lineNumber + ") because: " + ex);
-            this._indexerLeaveFolder();
+            this._indexerLeaveFolder(true);
             job = this._curIndexingJob = null;
           }
         }
