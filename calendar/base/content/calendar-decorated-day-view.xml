@@ -69,7 +69,6 @@
                 <parameter name="aDate"/>
                 <body><![CDATA[
                     aDate = aDate.getInTimezone(this.viewElem.timezone);
-                    categories = calGetString("categories", "categories");
                     var toolTips = calGetStringArray("calendar",
                                                       ["oneDayBack", "gotoToday", "oneDayForward"]);
                     this.setDateRange(aDate, aDate, toolTips);

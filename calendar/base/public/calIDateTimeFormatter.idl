@@ -130,6 +130,21 @@ interface calIDateTimeFormatter : nsISupports
                         out wstring aEndString);
 
     /**
+     * Format a time interval. The returned string may assume that the dates
+     * are so close to each other, that it can leave out some parts of the
+     * part string denoting the end date
+     *
+     * @param aStartDate
+     *      The start of the interval
+     * @param aEndDate
+     *      The end of the interval
+     * @returns
+     *      A String describing the interval in a legible form
+     */
+    AUTF8String formatNewInterval(in calIDateTime aStartDate,
+                                  in calIDateTime aEndDate);
+
+    /**
      * Get the month name
      *
      * @param aMonthIndex

@@ -164,7 +164,12 @@
                     this.setDateRange(aDate.startOfMonth, aDate.endOfMonth, toolTips);
                 ]]></body>
             </method>
-
+            <method name="getRangeDescription">
+                <body><![CDATA[
+                    var monthName = calGetString("dateFormat", "month." + (this.rangeStartDate.month + 1) + ".name");
+                    return calGetString("calendar", "monthInYear", [monthName, this.rangeStartDate.year]);
+                ]]></body>
+            </method>
             <method name="moveView">
                 <parameter name="aNumber"/>
                 <body><![CDATA[

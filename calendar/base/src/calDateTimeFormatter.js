@@ -42,12 +42,12 @@
 const nsIScriptableDateFormat = Components.interfaces.nsIScriptableDateFormat;
 
 function calDateTimeFormatter() {
-    var strBundleService = 
+    var strBundleService =
         Components.classes["@mozilla.org/intl/stringbundle;1"]
                   .getService(Components.interfaces.nsIStringBundleService);
     this.mDateStringBundle =  strBundleService.createBundle("chrome://calendar/locale/dateFormat.properties");
 
-    this.mDateService = 
+    this.mDateService =
         Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
                   .getService(nsIScriptableDateFormat);
 
@@ -57,7 +57,7 @@ function calDateTimeFormatter() {
     // If LONG FORMATTED DATE is same as short formatted date,
     // then OS has poor extended/long date config, so use workaround.
     this.mUseLongDateService = true;
-    var probeDate = 
+    var probeDate =
         Components.classes["@mozilla.org/calendar/datetime;1"]
                   .createInstance(Components.interfaces.calIDateTime);
     probeDate.timezone = UTC();
@@ -77,7 +77,7 @@ function calDateTimeFormatter() {
         var probeStringC = this.formatDateShort(probeDate);
 
         // Compare the index of the first differing character between
-        // probeStringA to probeStringB and probeStringA to probeStringC. 
+        // probeStringA to probeStringB and probeStringA to probeStringC.
         for (var i=0; i < probeStringA.length ; i++) {
             if (probeStringA[i] != probeStringB[i]) {
                 this.mMonthFirst = true;
@@ -118,7 +118,7 @@ function formatDate(aDate) {
     var format;
     var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                                 .getService(Components.interfaces.nsIPrefBranch);
-    try {     
+    try {
         format = prefBranch.getIntPref("calendar.date.format");
     } catch(e) {
         format = 0;
@@ -190,7 +190,7 @@ function formatDateTime(aDate) {
     var timeBeforeDate;
     var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                                 .getService(Components.interfaces.nsIPrefBranch);
-    try {     
+    try {
         timeBeforeDate = prefBranch.getBoolPref("calendar.date.formatTimeBeforeDate");
     } catch(e) {
         timeBeforeDate = 0;
@@ -201,6 +201,51 @@ function formatDateTime(aDate) {
     else
         return formattedDate+" "+formattedTime;
 };
+
+calDateTimeFormatter.prototype.formatNewInterval =
+function formatNewInterval(aStartDate, aEndDate) {
+    // make sure start and end use the same timezone when formatting intervals:
+    var endDate = aEndDate.getInTimezone(aStartDate.timezone);
+    var testdate = aStartDate.clone();
+    testdate.isDate = true;
+    var sameDay = (testdate.compare(endDate) == 0);
+    if (aStartDate.isDate) {
+        // All-day interval, so we should leave out the time part
+        if (sameDay) {
+            return this.formatDateLong(aStartDate);
+        } else {
+            var startMonthName = this.monthName(aStartDate.month);
+            var startDay = aStartDate.day;
+            var startYear = aStartDate.year;
+            var endMonthName = this.monthName(endDate.month);
+            var endDay = endDate.day;
+            var endYear = endDate.year;
+            if (aStartDate.year != endDate.year) {
+                return calGetString("calendar", "dayIntervalBetweenYears", [startMonthName, startDay, startYear, endMonthName, endDay, endYear]);
+            } else if (aStartDate.month != endDate.month) {
+                return calGetString("calendar", "dayIntervalBetweenMonths", [startMonthName, startDay, endMonthName, endDay, endYear]);
+            } else {
+                return calGetString("calendar", "dayIntervalInMonth", [startMonthName, startDay, endDay, endYear]);
+            }
+        }
+    } else {
+        // non-allday, so need to return date and time
+        if (sameDay) {
+            // End is on the same day as start, so we can leave out the
+            // end date (but still include end time)
+            // "5 Jan 2006 13:00 - 17:00"
+            var retValue = this.formatDate(aStartDate) + " " + this.formatTime(aStartDate);
+            retValue += this.formatTime(endDate);
+        } else {
+            // Spanning multiple days, so need to include date and time
+            // for start and end
+            // "5 Jan 2006 13:00 - 7 Jan 2006 9:00"
+            var retValue = this.formatDateTime(aStartDate);
+            retValue =+ this.formatDateTime(endDate);
+        }
+    }
+}
+
 
 calDateTimeFormatter.prototype.formatInterval =
 function formatInterval(aStartDate, aEndDate, aStartString, aEndString) {
@@ -215,7 +260,7 @@ function formatInterval(aStartDate, aEndDate, aStartString, aEndString) {
     var testdate = aStartDate.clone();
     testdate.isDate = true;
     var sameDay = (testdate.compare(endDate) == 0);
-    
+
     if (aStartDate.isDate) {
         // All-day interval, so we should leave out the time part
         if (sameDay) {

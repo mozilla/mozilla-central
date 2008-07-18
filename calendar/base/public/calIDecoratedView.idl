@@ -159,4 +159,9 @@ interface calIDecoratedView : nsISupports
    * @param aNumber       the number of pages to move the view 
    */
   void moveView(in long aNumber);
+
+  /**
+   * gets the description of the range displayed by the view
+   */
+  AString getRangeDescription();
 };

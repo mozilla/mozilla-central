@@ -61,26 +61,30 @@
                              type="next"
                              oncommand="moveView(1)"/>
           <xul:label anonid="intervalDescription"
-                     class="view-header"/>
-          <xul:spacer flex="1" />
+                     class="view-header"
+                     crop="end"
+                     flex="1"/>
           <xul:label anonid="calendarWeek"
-                     class="view-header"/>
+                     class="view-header"
+                     type="end"
+                     flex="1"
+                     crop="start"/>
         </content>
         <implementation>
             <field name="mStartDate"/>
             <field name="mEndDate"/>
             <field name="mToolTipTexts"/>
-            <field name="mViewElement"/>
+            <field name="mDecoratedView"/>
             <method name="setDateRange">
                 <parameter name="aStartDate"/>
                 <parameter name="aEndDate"/>
                 <parameter name="aToolTipTexts"/>
-                <parameter name="aViewElement"/>
+                <parameter name="aDecoratedView"/>
                 <body><![CDATA[
                     this.mStartDate = aStartDate;
                     this.mEndDate = aEndDate;
                     this.mToolTipTexts = aToolTipTexts;
-                    this.mViewElement = aViewElement;
+                    this.mDecoratedView = aDecoratedView
                     if (this.mStartDate) {
                         var intervalLabel = document.getAnonymousElementByAttribute(this, "anonid", "intervalDescription");
                         var startString = new Object();
@@ -91,12 +95,7 @@
                         if (this.mStartDate.nativeTime == this.mEndDate.nativeTime) {
                             intervalLabel.value = getDateFormatter().formatDate(this.mStartDate);
                         } else {
-                            var endDate = this.mEndDate.clone();
-                            // 'formatInterval handles the endDate exclusively, so we have
-                            // to increment the day priorily...
-                            endDate.day += 1;
-                            var interval = getDateFormatter().formatInterval(this.mStartDate, endDate, startString, endString);
-                            intervalLabel.value = startString.value + " - " + endString.value;
+                            intervalLabel.value = this.mDecoratedView.getRangeDescription();
                             secondWeekNo = getWeekFormatter().getWeekTitle(this.mEndDate);
                         }
                         if (secondWeekNo == firstWeekNo) {
@@ -134,17 +133,10 @@
     </binding>
 
     <binding id="calendar-decorated-base-view">
-        <content>
-            <xul:vbox>
-                <xul:calendar-navigation-buttons />
-                <xul:box style="overflow: auto;" flex="1">
-                    <xul:calendar-multiday-view anonid="view-element" flex="1" orient="vertical" xbl:inherits="context"/>
-                </xul:box>
-            </xul:vbox>
-        </content>
-
         <implementation implements="calIDecoratedView">
           <field name="mRelayoutHandler">null</field>;
+          <field name="mRangeStartDate">null</field>;
+          <field name="mRangeEndDate">null</field>;
           <constructor><![CDATA[
             const kWorkdaysCommand = "calendar_toggle_workdays_only_command";
             const kTasksInViewCommand = "calendar_toggle_tasks_in_view_command";
@@ -313,6 +305,23 @@
                     return this.viewElem.endDate;
                 ]]></getter>
             </property>
+            <property name="rangeStartDate">
+                <getter><![CDATA[
+                    return this.mRangeStartDate;
+                ]]></getter>
+              <setter><![CDATA[
+                return (this.mRangeStartDate = val);
+              ]]></setter>
+            </property>
+            <property name="rangeEndDate">
+                <getter><![CDATA[
+                    return this.mRangeEndDate;
+                ]]></getter>
+              <setter><![CDATA[
+                this.mRangeEndDate = val;
+                return val;
+              ]]></setter>
+            </property>
 
             <property name="observerID">
                 <getter><![CDATA[
@@ -338,11 +347,18 @@
                 <parameter name="aEndDate"/>
                 <parameter name="aToolTipTexts"/>
                 <body><![CDATA[
+                    this.rangeStartDate = aStartDate;
+                    this.rangeEndDate = aEndDate;
                     var viewElement = this.viewElem;
                     viewElement.tasksInView = this.mTasksInView;
                     viewElement.showCompleted = this.mShowCompleted;
                     document.getAnonymousElementByAttribute(this, "anonid", "nav-control").
-                             setDateRange(aStartDate, aEndDate, aToolTipTexts, viewElement);
+                             setDateRange(this.rangeStartDate, this.rangeEndDate, aToolTipTexts, this);
+                ]]></body>
+            </method>
+            <method name="getRangeDescription">
+                <body><![CDATA[
+                    return getDateFormatter().formatNewInterval(this.rangeStartDate, this.rangeEndDate);
                 ]]></body>
             </method>
             <method name="adjustAlignment">

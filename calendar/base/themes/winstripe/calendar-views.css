@@ -495,7 +495,7 @@ calendar-event-box[readOnly="true"]:hover .calendar-event-box-grippy-bottom {
 
 /* Navigation controls for the views */
 calendar-navigation-buttons {
-  padding-top: 7px;
+  padding-top: 8px;
   padding-bottom: 4px;
   background-color: white;
 }
@@ -506,6 +506,9 @@ calendar-navigation-buttons {
     color: #2E4E73;
 }
 
+.view-header[type="end"] {
+    text-align: right;
+}
 
 /* tooltips */
 vbox.tooltipBox {

@@ -507,6 +507,10 @@ calendar-navigation-buttons {
     color: #2E4E73;
 }
 
+.view-header[type="end"] {
+    text-align: right;
+}
+
 /* tooltips */
 vbox.tooltipBox {
     max-width: 40em;
