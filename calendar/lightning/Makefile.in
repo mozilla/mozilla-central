@@ -74,16 +74,20 @@ INSTALL_EXTENSION_ID   = {e2fda1a4-762b-4020-b5ad-a41df1933103}
 endif
 endif
 
-DIRS = ../../extensions/webdav \
-       ../libical \
-       ../locales \
-       ../base \
-       ../providers \
-       ../import-export \
-       ../itip \
-       components \
-       locales \
-       $(NULL)
+ifndef COMM_BUILD
+# In the COMM_BUILD system, this is called by build.mk
+DIRS = ../../extensions/webdav
+endif
+
+DIRS += ../libical \
+        ../locales \
+        ../base \
+        ../providers \
+        ../import-export \
+        ../itip \
+        components \
+        locales \
+        $(NULL)
 
 PWD := $(shell pwd)
 core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(PWD)/$(1)))
@@ -111,7 +115,11 @@ DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
 ifdef MOZILLA_1_8_BRANCH
 DEFINES += -DBUILD_ID=$(BUILD_ID)
 else
+ifdef COMM_BUILD
+GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
+else
 GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
+endif
 DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 endif
 

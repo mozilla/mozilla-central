@@ -1,4 +1,4 @@
-# 
+#! /bin/sh
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,15 +12,16 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is the Oracle Corporation code.
+# The Original Code is the the Mozilla build system
 #
-# The Initial Developer of the Original Code is Oracle Corporation.
-# Portions created by the Initial Developer are Copyright (C) 2004
+# The Initial Developer of the Original Code is
+# Ben Turner <mozilla@songbirdnest.com>
+#
+# Portions created by the Initial Developer are Copyright (C) 2007
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
-#   Philipp Kewisch <mozilla@kewis.ch>
+#   - Simon Paquet <bugzilla@babylonsounds.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,33 +37,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../../..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
-
-include $(DEPTH)/config/autoconf.mk
-
-MODULE = caldav
-
-DIRS = public
-
-ifeq (,$(filter webdav,$(MOZ_EXTENSIONS)))
-ifndef COMM_BUILD
-# In the COMM_BUILD system, this is called by build.mk
-DIRS += ../../../extensions/webdav
-endif
-endif
-
-EXTRA_COMPONENTS = calDavCalendarModule.js
-EXTRA_SCRIPTS = calDavCalendar.js
-
-libs:: $(EXTRA_SCRIPTS)
-	if test ! -d $(FINAL_TARGET)/js; then $(NSINSTALL) -D $(FINAL_TARGET)/js; fi
-	$(INSTALL) $^ $(FINAL_TARGET)/js
-
-# The install target must use SYSINSTALL, which is NSINSTALL in copy mode.
-install:: $(EXTRA_SCRIPTS)
-	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/js
-
-include $(topsrcdir)/config/rules.mk
+add_makefiles "
+calendar/lightning/Makefile
+calendar/lightning/components/Makefile
+calendar/lightning/locales/Makefile
+"
