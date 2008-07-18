@@ -497,8 +497,16 @@ let GlodaIndexer = {
               }
               // -- MESSAGE DELETE (batch steady state)
               else { // job.deltaType < 0
-                // item must be a message id
-                let message = GlodaDatastore.getMessageByID(item);
+                // item is either: a message id
+                //              or [folder ID, message key]
+                let message;
+                if (item instanceof Array) {
+                  this._indexerEnterFolder(item[0], false);
+                  message = this_indexingFolder.GetMessageHeader(item[1]);
+                }
+                else {
+                  message = GlodaDatastore.getMessageByID(item);
+                }
                 // delete the message!
                 if (message !== null)
                   this._deleteMessage(message);
