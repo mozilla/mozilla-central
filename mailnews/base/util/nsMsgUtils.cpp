@@ -1468,9 +1468,12 @@ nsresult MsgMailboxGetURI(nsILocalFile *aLocalPath, nsACString &mailboxUri)
       while((sbdIndex = pathStr.Find(".sbd", PR_TRUE)) != -1)
         pathStr.Cut(sbdIndex, 4);
 
+      nsCString escapedPathStr;
+      MsgEscapeURL(pathStr, nsINetUtil::ESCAPE_URL_MINIMAL, escapedPathStr);
+
       mailboxUri = serverURI;
       mailboxUri.Append('/');
-      mailboxUri.Append(pathStr);
+      mailboxUri.Append(escapedPathStr);
       break;
     }
   }
