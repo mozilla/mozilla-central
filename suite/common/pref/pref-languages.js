@@ -58,73 +58,43 @@ var pref_string = new String();
 //Reg expression for splitting multiple pref values
 var separatorRe = /\s*,\s*/;
 
-function GetBundles()
+
+function Startup()
 {
-  if (!regionsBundle)    regionsBundle   = srGetStrBundle("chrome://global/locale/regionNames.properties");
-  if (!languagesBundle)  languagesBundle = srGetStrBundle("chrome://global/locale/languageNames.properties");
-  if (!prefLangBundle)  prefLangBundle = srGetStrBundle("chrome://communicator/locale/pref/pref-languages.properties");
-  if (!acceptedBundle)   acceptedBundle  = srGetStrBundle("resource://gre/res/language.properties");
+  // Load base window.
+
+  acceptedBundle = document.getElementById("acceptedBundle");
+  languagesBundle = document.getElementById("languagesBundle");
+  prefLangBundle = document.getElementById("prefLangBundle");
+  regionsBundle = document.getElementById("regionsBundle");
+
+  active_languages = document.getElementById("active_languages");
+  pref_string = active_languages.getAttribute("prefvalue");
+
+  ReadAvailableLanguages();
+  LoadActiveLanguages();
+  SelectLanguage();
 }
 
 
 function Init()
 {
-  try {
-    GetBundles();
-  }
+  // Load available languages popup.
 
-  catch(ex) {
-  }
+  // Reuse the language panel's bundle and globals
+  prefLangBundle = opener.prefLangBundle;
+  availLanguageDict = opener.availLanguageDict;
+  pref_string = opener.pref_string;
+  active_languages = opener.active_languages;
 
-  ReadAvailableLanguages();
+  available_languages = document.getElementById("available_languages");
 
-  if (!("arguments" in window)) {
-
-    //no caller arguments - load base window
-
-    try {
-      active_languages              = document.getElementById('active_languages');
-    } //try
-
-    catch(ex) {
-    } //catch
-
-    try {
-      parent.initPanel('chrome://communicator/content/pref/pref-languages.xul');
-    }
-
-    catch(ex) {
-      //pref service backup
-    } //catch
-
-    pref_string = active_languages.getAttribute("prefvalue");
-    LoadActiveLanguages();
-    SelectLanguage();
-
-  } else {
-
-    //load available languages popup
-    try {
-
-      //add language popup
-      available_languages           = document.getElementById('available_languages');
-      active_languages              = window.opener.document.getElementById('active_languages');
-      pref_string                   = window.opener.document.getElementById('intlAcceptLanguages').label;
-
-    } //try
-
-    catch(ex) {
-    } //catch
-
-    LoadAvailableLanguages();
-  }
+  LoadAvailableLanguages();
 }
 
 
 function AddLanguage()
 {
-    //cludge: make pref string available from the popup
-    document.getElementById('intlAcceptLanguages').label = pref_string;
     window.openDialog("chrome://communicator/content/pref/pref-languages-add.xul","_blank","modal,chrome,centerscreen,titlebar", "addlangwindow");
     UpdateSavePrefString();
     SelectLanguage();
@@ -138,7 +108,7 @@ function ReadAvailableLanguages()
   var str = new String();
   var i =0;
 
-  var acceptedBundleEnum = acceptedBundle.getSimpleEnumeration();
+  const acceptedBundleEnum = acceptedBundle.stringBundle.getSimpleEnumeration();
 
   var curItem;
   var stringName;
@@ -173,7 +143,7 @@ function ReadAvailableLanguages()
           var use_region_format = false;
 
           try {
-            language = languagesBundle.GetStringFromName(stringLangRegion[0]);
+            language = languagesBundle.getString(stringLangRegion[0]);
           }
           catch (ex) {
             language = "";
@@ -182,7 +152,7 @@ function ReadAvailableLanguages()
           if (stringLangRegion.length > 1) {
 
             try {
-              region = regionsBundle.GetStringFromName(stringLangRegion[1]);
+              region = regionsBundle.getString(stringLangRegion[1]);
               use_region_format = true;
             }
             catch (ex) {
@@ -190,11 +160,11 @@ function ReadAvailableLanguages()
           }
           
           if (use_region_format) {
-            tit = prefLangBundle.formatStringFromName("languageRegionCodeFormat",
-                                                      [language, region, str], 3);
+            tit = prefLangBundle.getFormattedString("languageRegionCodeFormat",
+                                                    [language, region, str]);
           } else {
-            tit = prefLangBundle.formatStringFromName("languageCodeFormat",
-                                                      [language, str], 2);
+            tit = prefLangBundle.getFormattedString("languageCodeFormat",
+                                                    [language, str]);
           }
 
         } //if language
@@ -401,13 +371,11 @@ function AddAvailableLanguage()
       }
     }
     if (invalidLangs.length > 0) {
-      var errorMsg = prefLangBundle.GetStringFromName("illegalOtherLanguage") + " " +
-                     invalidLangs.join(", ");
-      var errorTitle = prefLangBundle.GetStringFromName("illegalOtherLanguageTitle");
-      
+      const errorMsg = prefLangBundle.getString("illegalOtherLanguage") + " " +
+                       invalidLangs.join(", ");
+      const errorTitle = prefLangBundle.getString("illegalOtherLanguageTitle");
       var prompter = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                  .getService(Components.interfaces.nsIPromptService);
-                                 
       prompter.alert(this.window, errorTitle, errorMsg);
       otherField.focus();
       return false;

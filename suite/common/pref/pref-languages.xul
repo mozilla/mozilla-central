@@ -42,12 +42,10 @@
 <!DOCTYPE page SYSTEM "chrome://communicator/locale/pref/pref-languages.dtd" >
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="Init();"
+      onload="parent.initPanel(document.documentURI);"
       headertitle="&languages.customize.lHeader;">
 
   <script type="application/x-javascript" src="chrome://communicator/content/pref/pref-languages.js"/>
-  <!-- XXX: Replace strres.js when pref-languages.js is converted -->
-  <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript">
   <![CDATA[
     var _elementIDs = ["active_languages", "DefaultCharsetList", "spellcheckDefault"];
@@ -56,13 +54,11 @@
   ]]>
   </script>
 
-  <broadcaster  id="intlAcceptLanguages" 
-                value="" 
-                preftype="localizedstring" 
-                prefattribute="value"
-                prefstring="intl.accept_languages"/>
+  <stringbundle id="acceptedBundle" src="resource://gre/res/language.properties"/>
+  <stringbundle id="languagesBundle" src="chrome://global/locale/languageNames.properties"/>
+  <stringbundle id="regionsBundle" src="chrome://global/locale/regionNames.properties"/>
+  <stringbundle id="prefLangBundle" src="chrome://communicator/locale/pref/pref-languages.properties"/>
 
-                
   <groupbox flex="1">
     <caption label="&langtitle.label;"/>
 
