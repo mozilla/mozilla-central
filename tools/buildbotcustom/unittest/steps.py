@@ -397,7 +397,8 @@ class MozillaOSXMochichrome(MozillaMochichrome):
               "--chrome",
               "--autorun",
               "--console-level=INFO",
-              "--close-when-done"]
+              "--close-when-done",
+              "--leak-threshold=8"]
 
 class MozillaBrowserChromeTest(ShellCommandReportTimeout):
     name = "browser chrome test"
