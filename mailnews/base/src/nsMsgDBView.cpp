@@ -4123,15 +4123,18 @@ nsMsgViewIndex nsMsgDBView::ThreadIndexOfMsg(nsMsgKey msgKey,
 
 nsMsgKey nsMsgDBView::GetKeyOfFirstMsgInThread(nsMsgKey key)
 {
+  // Just report no key for any failure. This can occur when a
+  // message is deleted from a threaded view
   nsCOMPtr <nsIMsgThread> pThread;
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   nsresult rv = m_db->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
-  NS_ENSURE_SUCCESS(rv, nsMsgKey_None);
+  if (NS_FAILED(rv))
+    return nsMsgKey_None;
   rv = GetThreadContainingMsgHdr(msgHdr, getter_AddRefs(pThread));
-  NS_ENSURE_SUCCESS(rv, nsMsgKey_None);
+  if (NS_FAILED(rv))
+    return nsMsgKey_None;
   nsMsgKey  firstKeyInThread = nsMsgKey_None;
 
-  NS_ASSERTION(pThread, "error getting msg from thread");
   if (!pThread)
     return firstKeyInThread;
 

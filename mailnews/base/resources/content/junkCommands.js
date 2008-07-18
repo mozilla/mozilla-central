@@ -35,7 +35,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
  /* functions use for junk processing commands
   *
   * TODO: These functions make the false assumption that a view only contains
@@ -51,6 +51,7 @@
   *   MsgJunkMailInfo(aCheckFirstUse)
   *   SetNextMessageAfterDelete()
   *   pref
+  *   msgWindow
   */
 
 /*
@@ -110,7 +111,7 @@ function determineActionsForJunkMsgs(aFolder)
  *        nsIArray containing headers (nsIMsgDBHdr) of new junk messages
  *
  * @param aGoodMsgHdrs
- *        nsIArray containing headers (nsIMsgDBHdr) of new good messages 
+ *        nsIArray containing headers (nsIMsgDBHdr) of new good messages
  */
  function performActionsOnJunkMsgs(aFolder, aJunkMsgHdrs, aGoodMsgHdrs)
 {
@@ -123,7 +124,7 @@ function determineActionsForJunkMsgs(aFolder)
         junkMsgKeys[i] = aJunkMsgHdrs.queryElementAt(i, Components.interfaces.nsIMsgDBHdr).messageKey;
       aFolder.storeCustomKeywords(null, "Junk", "NonJunk", junkMsgKeys, junkMsgKeys.length);
     }
-    
+
     if (aGoodMsgHdrs.length)
     {
       var goodMsgKeys = new Array();
@@ -132,7 +133,7 @@ function determineActionsForJunkMsgs(aFolder)
       aFolder.storeCustomKeywords(null, "NonJunk", "Junk", goodMsgKeys, goodMsgKeys.length);
     }
   }
-  
+
   if (aJunkMsgHdrs.length)
   {
     var actionParams = determineActionsForJunkMsgs(aFolder);
@@ -158,7 +159,7 @@ function determineActionsForJunkMsgs(aFolder)
  * @param aTotalMessages
  *        Number of messages to process, used for progress report only
  */
- 
+
 function MessageClassifier(aFolder, aTotalMessages)
 {
   this.mFolder = aFolder;
@@ -190,7 +191,7 @@ MessageClassifier.prototype =
    *        if no whitelisting should be done.
    */
   analyzeMessage: function(aMsgHdr, aWhiteListDirectory)
-  { 
+  {
     var junkscoreorigin = aMsgHdr.getStringProperty("junkscoreorigin");
     if (junkscoreorigin == "user") // don't override user-set junk status
       return;
@@ -226,7 +227,7 @@ MessageClassifier.prototype =
     else
       this.mMessageQueue.push(messageURI);
   },
-  
+
   /*
    * nsIJunkMailClassificationListener implementation
    * onMessageClassified
@@ -404,6 +405,27 @@ function deleteJunkInFolder()
 {
   MsgJunkMailInfo(true);
 
+  // use direct folder commands if possible so we don't mess with the selection
+  if ( !(gDBView.viewFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) )
+  {
+    var junkMsgHdrs = Components.classes["@mozilla.org/array;1"]
+                                .createInstance(Components.interfaces.nsIMutableArray);
+    var enumerator = gDBView.msgFolder.getMessages(msgWindow);
+    while (enumerator.hasMoreElements())
+    {
+      var msgHdr = enumerator.getNext().QueryInterface(Components.interfaces.nsIMsgDBHdr);
+      var junkScore = msgHdr.getStringProperty("junkscore");
+      if (junkScore == Components.interfaces.nsIJunkMailPlugin.IS_SPAM_SCORE)
+        junkMsgHdrs.appendElement(msgHdr, false);
+    }
+
+    if (junkMsgHdrs.length)
+      gDBView.msgFolder.deleteMessages(junkMsgHdrs, msgWindow, false, false, null, true);
+    return;
+  }
+
+  // Folder is virtual, let the view do the work (but we lose selection)
+
   // need to expand all threads, so we find everything
   gDBView.doCommand(nsMsgViewCommandType.expandAll);
 
@@ -426,7 +448,7 @@ function deleteJunkInFolder()
     catch (ex) {continue;} // blow off errors for dummy rows
     var msgHdr = messenger.messageServiceFromURI(messageUri).messageURIToMsgHdr(messageUri);
     var junkScore = msgHdr.getStringProperty("junkscore");
-    var isJunk = ((junkScore != "") && (junkScore != Components.interfaces.nsIJunkMailPlugin.IS_HAM_SCORE));
+    var isJunk = (junkScore == Components.interfaces.nsIJunkMailPlugin.IS_SPAM_SCORE);
     // if the message is junk, select it.
     if (isJunk)
     {
@@ -451,11 +473,10 @@ function deleteJunkInFolder()
   treeSelection.selectEventsSuppressed = false;
   // delete the selected messages
   //
-  // XXX todo
-  // Should we try to set next message after delete
-  // to the message selected before we did all this, if it was not junk?
-  SetNextMessageAfterDelete();
+  // We'll leave no selection after the delete
+  gNextMessageViewIndexAfterDelete = nsMsgViewIndex_None;
   gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
   treeSelection.clearSelection();
+  ClearMessagePane();
 }
 

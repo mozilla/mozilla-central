@@ -4100,13 +4100,14 @@ NS_IMETHODIMP nsMsgDatabase::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIM
 
   // if we can't find the thread, try using the msg key as the thread id,
   // because the msg hdr might not have the thread id set correctly
+  // Or maybe the message was deleted?
   if (!*result)
   {
     nsMsgKey msgKey;
-    NS_ASSERTION(PR_FALSE, "this shouldn't happen");
     msgHdr->GetMessageKey(&msgKey);
     *result = GetThreadForThreadId(msgKey);
   }
+  // failure is normal when message was deleted
   return (*result) ? NS_OK : NS_ERROR_FAILURE;
 }
 
