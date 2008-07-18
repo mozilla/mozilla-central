@@ -190,7 +190,7 @@ public:
   virtual void FetchMessage(const nsCString &messageIds, 
     nsIMAPeFetchFields whatToFetch,
     PRBool idAreUid,
-    PRUint32 startByte = 0, PRUint32 endByte = 0,
+    PRUint32 startByte = 0, PRUint32 numBytes = 0,
     char *part = 0);
   void FetchTryChunking(const nsCString &messageIds,
     nsIMAPeFetchFields whatToFetch,
@@ -540,7 +540,7 @@ private:
   nsresult GlobalInitialization(nsIPrefBranch *aPrefBranch);
   nsresult Configure(PRInt32 TooFastTime, PRInt32 IdealTime,
     PRInt32 ChunkAddSize, PRInt32 ChunkSize, PRInt32 ChunkThreshold,
-    PRBool FetchByChunks, PRInt32 MaxChunkSize);
+    PRBool FetchByChunks);
   nsresult GetMsgWindow(nsIMsgWindow ** aMsgWindow);
   // End Process AuthenticatedState Url helper methods
 
@@ -557,6 +557,7 @@ private:
   PRInt32 m_chunkAddSize;
   PRInt32 m_chunkStartSize;
   PRBool  m_fetchByChunks;
+  PRInt32 m_curFetchSize;
   PRBool  m_ignoreExpunges;
   PRBool  m_useSecAuth;
   PRInt32 m_socketType;

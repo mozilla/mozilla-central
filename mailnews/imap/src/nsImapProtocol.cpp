@@ -306,11 +306,11 @@ NS_INTERFACE_MAP_END_THREADSAFE
 
 static PRInt32 gTooFastTime = 2;
 static PRInt32 gIdealTime = 4;
-static PRInt32 gChunkAddSize = 2048;
-static PRInt32 gChunkSize = 10240;
-static PRInt32 gChunkThreshold = 10240 + 4096;
+static PRInt32 gChunkAddSize = 16384;
+static PRInt32 gChunkSize = 250000;
+static PRInt32 gChunkThreshold = gChunkSize + gChunkSize/2;
+static PRBool gChunkSizeDirty = PR_FALSE;
 static PRBool gFetchByChunks = PR_TRUE;
-static PRInt32 gMaxChunkSize = 40960;
 static PRBool gInitialized = PR_FALSE;
 static PRBool gHideUnusedNamespaces = PR_TRUE;
 static PRBool gHideOtherUsersFromList = PR_FALSE;
@@ -331,7 +331,6 @@ nsresult nsImapProtocol::GlobalInitialization(nsIPrefBranch *aPrefBranch)
     aPrefBranch->GetIntPref("mail.imap.chunk_size", &gChunkSize);
     aPrefBranch->GetIntPref("mail.imap.min_chunk_size_threshold",
                             &gChunkThreshold);
-    aPrefBranch->GetIntPref("mail.imap.max_chunk_size", &gMaxChunkSize);
     aPrefBranch->GetBoolPref("mail.imap.hide_other_users",
                              &gHideOtherUsersFromList);
     aPrefBranch->GetBoolPref("mail.imap.hide_unused_namespaces",
@@ -408,6 +407,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_pseudoInterrupted = PR_FALSE;
   m_nextUrlReadyToRun = PR_FALSE;
   m_trackingTime = PR_FALSE;
+  m_curFetchSize = 0;
   LL_I2L(m_startTime, 0);
   LL_I2L(m_endTime, 0);
   LL_I2L(m_lastActiveTime, 0);
@@ -456,7 +456,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_deletableChildren = nsnull;
 
   Configure(gTooFastTime, gIdealTime, gChunkAddSize, gChunkSize,
-                    gChunkThreshold, gFetchByChunks, gMaxChunkSize);
+                    gChunkThreshold, gFetchByChunks);
 
   // where should we do this? Perhaps in the factory object?
   if (!IMAP)
@@ -465,7 +465,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
 
 nsresult nsImapProtocol::Configure(PRInt32 TooFastTime, PRInt32 IdealTime,
                   PRInt32 ChunkAddSize, PRInt32 ChunkSize, PRInt32 ChunkThreshold,
-                  PRBool FetchByChunks, PRInt32 /* MaxChunkSize */)
+                  PRBool FetchByChunks)
 {
   m_tooFastTime = TooFastTime;    // secs we read too little too fast
   m_idealTime = IdealTime;    // secs we read enough in good time
@@ -1036,6 +1036,18 @@ NS_IMETHODIMP nsImapProtocol::CloseStreams()
       me_server = nsnull;
   }
   m_server = nsnull;
+  // take this opportunity of being on the UI thread to
+  // persist chunk prefs if they've changed
+  if (gChunkSizeDirty)
+  {
+    nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+    if (prefBranch)
+    {
+      prefBranch->SetIntPref("mail.imap.chunk_size", gChunkSize);
+      prefBranch->SetIntPref("mail.imap.min_chunk_size_threshold", gChunkThreshold);
+      gChunkSizeDirty = PR_FALSE;
+    }
+  }
   return NS_OK;
 }
 
@@ -2753,7 +2765,7 @@ nsImapProtocol::AdjustChunkSize()
   if (deltaInSeconds < 0)
     return;            // bogus for some reason
 
-  if (deltaInSeconds <= m_tooFastTime)
+  if (deltaInSeconds <= m_tooFastTime && m_curFetchSize >= m_chunkSize)
   {
     m_chunkSize += m_chunkAddSize;
     m_chunkThreshold = m_chunkSize + (m_chunkSize / 2);
@@ -2768,6 +2780,15 @@ nsImapProtocol::AdjustChunkSize()
     else if (m_chunkSize > (m_chunkAddSize * 2))
       m_chunkSize -= m_chunkAddSize;
     m_chunkThreshold = m_chunkSize + (m_chunkSize / 2);
+  }
+  // remember these new values globally so new connections
+  // can take advantage of them.
+  if (gChunkSize != m_chunkSize)
+  {
+    // will cause chunk size pref to be written in CloseStream.
+    gChunkSizeDirty = PR_TRUE;
+    gChunkSize = m_chunkSize;
+    gChunkThreshold = m_chunkThreshold;
   }
 }
 
@@ -2941,7 +2962,7 @@ void
 nsImapProtocol::FetchMessage(const nsCString &messageIds, 
                              nsIMAPeFetchFields whatToFetch,
                              PRBool idIsUid,
-                             PRUint32 startByte, PRUint32 endByte,
+                             PRUint32 startByte, PRUint32 numBytes,
                              char *part)
 {
   IncrementCommandTagNumber();
@@ -2960,6 +2981,9 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
       AdjustChunkSize();      // we started another segment
     m_startTime = PR_Now();     // save start of download time
     m_trackingTime = PR_TRUE;
+    if (numBytes > 0)
+      m_curFetchSize = numBytes;
+
     if (GetServerStateParser().ServerHasIMAP4Rev1Capability())
     {
       if (GetServerStateParser().GetCapabilityFlag() & kHasXSenderCapability)
@@ -2974,10 +2998,10 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
       else
         commandString.Append(" %s (UID RFC822.SIZE RFC822");
     }
-    if (endByte > 0)
+    if (numBytes > 0)
     {
       // if we are retrieving chunks
-      char *byterangeString = PR_smprintf("<%ld.%ld>",startByte,endByte);
+      char *byterangeString = PR_smprintf("<%ld.%ld>",startByte, numBytes);
       if (byterangeString)
       {
         commandString.Append(byterangeString);
@@ -3011,10 +3035,10 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
       }
 
       commandString.Append(formatString);
-      if (endByte > 0)
+      if (numBytes > 0)
       {
         // if we are retrieving chunks
-        char *byterangeString = PR_smprintf("<%ld.%ld>",startByte,endByte);
+        char *byterangeString = PR_smprintf("<%ld.%ld>",startByte, numBytes);
         if (byterangeString)
         {
           commandString.Append(byterangeString);
@@ -3127,10 +3151,10 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
     break;
   case kMIMEPart:
     commandString.Append(" %s (BODY.PEEK[%s]");
-    if (endByte > 0)
+    if (numBytes > 0)
     {
       // if we are retrieving chunks
-      char *byterangeString = PR_smprintf("<%ld.%ld>",startByte,endByte);
+      char *byterangeString = PR_smprintf("<%ld.%ld>",startByte, numBytes);
       if (byterangeString)
       {
         commandString.Append(byterangeString);
@@ -3197,6 +3221,7 @@ void nsImapProtocol::FetchTryChunking(const nsCString &messageIds,
                                       PRBool tryChunking)
 {
   GetServerStateParser().SetTotalDownloadSize(downloadSize);
+  m_curFetchSize = downloadSize; // we'll change this if chunking.
   if (m_fetchByChunks && tryChunking &&
         GetServerStateParser().ServerHasIMAP4Rev1Capability() &&
     (downloadSize > (PRUint32) m_chunkThreshold))
