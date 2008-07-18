@@ -7,7 +7,6 @@
 
 mk_add_options MOZ_POSTFLIGHT_ALL+=calendar/lightning/build/universal.mk
 mk_add_options MOZ_POSTFLIGHT_ALL+=calendar/providers/gdata/universal.mk
-mk_add_options DISABLE_LIGHTNING_INSTALL=TRUE
 
 mk_add_options MOZ_CO_PROJECT=mail,calendar
 mk_add_options MOZ_MAKE_FLAGS="-j4"

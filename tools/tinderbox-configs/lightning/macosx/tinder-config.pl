@@ -9,6 +9,8 @@
 
 $ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
+$ENV{DISABLE_LIGHTNING_INSTALL} = "TRUE";
+
 # $ENV{MOZ_PACKAGE_MSI}
 #-----------------------------------------------------------------------------
 #  Default: 0
