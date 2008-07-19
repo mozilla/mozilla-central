@@ -80,7 +80,6 @@
 #include "nsTextFragment.h"
 #include "nsILookAndFeel.h"
 
-#include "nsICaret.h"
 #include "nsIDOMKeyEvent.h"
 #include "nsIDocShellTreeItem.h"
 #include "nsIWebNavigation.h"
@@ -693,7 +692,7 @@ nsTypeAheadFind::KeyPress(nsIDOMEvent* aEvent)
       CancelFind();
     }
     if (mFocusedDocSelection) {
-      SetSelectionLook(targetPresShell, PR_FALSE, PR_FALSE);
+      SetSelectionLook(targetPresShell, PR_FALSE);
       mFocusedDocSelection->CollapseToStart();
     }
 
@@ -1153,20 +1152,6 @@ nsTypeAheadFind::HandleText(nsIDOMEvent* aTextEvent)
   // show the candidate char/word in the status bar
   DisplayStatus(PR_FALSE, nsnull, PR_FALSE, mIMEString.get());
 
-  // --------- Position the IME window --------------
-  // XXX - what do we do with this, is it even necessary?
-  //       should we position it in a consistent place?
-  nsTextEventReply *textEventReply;
-  textEvent->GetEventReply(&textEventReply);
-
-  nsCOMPtr<nsICaret> caret;
-  targetPresShell->GetCaret(getter_AddRefs(caret));
-  NS_ENSURE_TRUE(caret, NS_ERROR_FAILURE);
-
-  // Reset caret coordinates, so that IM window can move with us
-  caret->GetCaretCoordinates(nsICaret::eIMECoordinates, mFocusedDocSelection,
-    &(textEventReply->mCursorPosition), &(textEventReply->mCursorIsCollapsed), nsnull);
-
   return NS_OK;
 }
 
@@ -1379,7 +1364,7 @@ nsTypeAheadFind::FindItNow(nsIPresShell *aPresShell,
       if (presShell != startingPresShell) {
         // We are in a new document (because of frames/iframes)
         mFocusedDocSelection->CollapseToStart(); // Hide old doc's selection
-        SetSelectionLook(startingPresShell, PR_FALSE, PR_FALSE); // hide caret
+        SetSelectionLook(startingPresShell, PR_FALSE);
 
         nsIDocument *doc = presShell->GetDocument();
         if (!doc) {
@@ -1406,8 +1391,7 @@ nsTypeAheadFind::FindItNow(nsIPresShell *aPresShell,
                            nsISelectionController::SELECTION_NORMAL,
                            nsISelectionController::SELECTION_FOCUS_REGION,
                            PR_TRUE);
-      SetSelectionLook(presShell, PR_TRUE, mRepeatingMode != eRepeatingForward 
-                                           && mRepeatingMode != eRepeatingReverse);
+      SetSelectionLook(presShell, PR_TRUE);
 
       nsIEventStateManager *esm = presContext->EventStateManager();
 
@@ -1734,7 +1718,7 @@ nsTypeAheadFind::NotifySelectionChanged(nsIDOMDocument *aDoc,
       // Selection had changed color for Type Ahead Find's version of Accel+G
       // We change it back when the selection changes from someone else
       nsCOMPtr<nsIPresShell> presShell(GetPresShell());
-      SetSelectionLook(presShell, PR_FALSE, PR_FALSE);
+      SetSelectionLook(presShell, PR_FALSE);
     }
     CancelFind();
   }
@@ -1898,7 +1882,7 @@ nsTypeAheadFind::StartNewFind(nsIDOMWindow *aWindow, PRBool aLinksOnly)
     mFocusedDocSelection->CollapseToStart();
     mIsFindingText = PR_FALSE;
     nsCOMPtr<nsIPresShell> presShell(GetPresShell());
-    SetSelectionLook(presShell, PR_TRUE, PR_TRUE);
+    SetSelectionLook(presShell, PR_TRUE);
   }
   DisplayStatus(PR_TRUE, nsnull, PR_FALSE);
   StartTimeout();
@@ -2062,7 +2046,7 @@ nsTypeAheadFind::CancelFind()
     mTypeAheadBuffer.Truncate();
     DisplayStatus(PR_FALSE, nsnull, PR_TRUE); // Clear status
     nsCOMPtr<nsIPresShell> presShell(GetPresShell());
-    SetSelectionLook(presShell, PR_FALSE, PR_FALSE);
+    SetSelectionLook(presShell, PR_FALSE);
   }
 
   // This is set to true if the user types / (all text) or ' (links only) first
@@ -2189,14 +2173,12 @@ nsTypeAheadFind::StartTimeout()
 
 void
 nsTypeAheadFind::SetSelectionLook(nsIPresShell *aPresShell, 
-                                  PRBool aChangeColor, 
-                                  PRBool aEnabled)
+                                  PRBool aChangeColor)
 {
   if (!aPresShell || !mFocusedDocSelCon)
     return;
 
-  // Show caret when type ahead find is on
-  // Also paint selection bright (typeaheadfind on) or normal
+  // Paint selection bright (typeaheadfind on) or normal
   // (typeaheadfind off)
 
   if (aChangeColor) {
@@ -2206,36 +2188,6 @@ nsTypeAheadFind::SetSelectionLook(nsIPresShell *aPresShell,
   }
 
   mFocusedDocSelCon->RepaintSelection(nsISelectionController::SELECTION_NORMAL);
-
-  if (mCaretBrowsingOn) {
-    return;  // Leave caret visibility as it is
-  }
-
-  nsCOMPtr<nsICaret> caret;
-  aPresShell->GetCaret(getter_AddRefs(caret));
-  nsCOMPtr<nsILookAndFeel> lookNFeel(do_GetService(kLookAndFeelCID));
-  if (!caret || !lookNFeel) {
-    return;
-  }
-
-  if (aEnabled) {
-    // Set caret visible so that it's obvious we're in a live mode
-    caret->SetCaretDOMSelection(mFocusedDocSelection);
-    caret->SetVisibilityDuringSelection(PR_TRUE);
-    caret->SetCaretVisible(PR_TRUE);
-    mFocusedDocSelCon->SetCaretEnabled(PR_TRUE);
-  }
-  else {
-    PRInt32 isCaretVisibleDuringSelection = 0;
-    lookNFeel->GetMetric(nsILookAndFeel::eMetric_ShowCaretDuringSelection,
-                         isCaretVisibleDuringSelection);
-    caret->SetVisibilityDuringSelection(isCaretVisibleDuringSelection != 0);
-    nsCOMPtr<nsISelection> caretDomSelection;
-    caret->GetCaretDOMSelection(getter_AddRefs(caretDomSelection));
-    if (mFocusedDocSelection == caretDomSelection)  {
-      mFocusedDocSelCon->SetCaretEnabled(isCaretVisibleDuringSelection != 0);
-    }
-  }
 }
 
 

@@ -147,8 +147,7 @@ protected:
   nsresult Init();
   void Shutdown();
   nsresult UseInWindow(nsIDOMWindow *aDomWin);
-  void SetSelectionLook(nsIPresShell *aPresShell, PRBool aChangeColor, 
-                        PRBool aEnabled);
+  void SetSelectionLook(nsIPresShell *aPresShell, PRBool aChangeColor);
   void ResetGlobalAutoStart(PRBool aAutoStart);
   void AttachDocListeners(nsIPresShell *aPresShell);
   void RemoveDocListeners();
