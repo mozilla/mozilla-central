@@ -43,17 +43,17 @@ function Startup()
 
 function ToggleCustomColorPickers(aChecked)
 {
-  TogglePickerDisability(aChecked, "foregroundText");
-  TogglePickerDisability(aChecked, "background");
+  TogglePickerDisability(aChecked, "browserForegroundColor");
+  TogglePickerDisability(aChecked, "browserBackgroundColor");
 }
 
 function TogglePickerDisability(aDisable, aPicker)
 {
   var element = document.getElementById(aPicker);
-  if (!document.getElementById(element.getAttribute("preference")).locked)
-  {
-    element.disabled = aDisable;
-    element = document.getElementById(aPicker + "Label");
-    element.disabled = aDisable;
-  }
+  aDisable = aDisable ||
+    document.getElementById(element.getAttribute("preference")).locked;
+ 
+  element.disabled = aDisable;
+  element = document.getElementById(aPicker + "Label");
+  element.disabled = aDisable;
 }

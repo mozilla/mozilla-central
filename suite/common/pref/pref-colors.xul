@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
  Version: MPL 1.1/GPL 2.0/LGPL 2.1
 
@@ -78,17 +78,25 @@
       <groupbox flex="1" id="pageColours">
         <caption label="&color;"/>
         <hbox align="center">
-          <label id="foregroundTextLabel"
-                 control="foregroundText" value="&textColor.label;"
-                 accesskey="&textColor.accesskey;" flex="1"/>
-          <colorpicker type="button" id="foregroundText" palettename="standard"
-                       preference="browser.display.foreground_color"/> 
+          <label id="browserForegroundColorLabel"
+                 value="&textColor.label;"
+                 accesskey="&textColor.accesskey;"
+                 flex="1"
+                 control="browserForegroundColor"/>
+          <colorpicker id="browserForegroundColor"
+                       type="button"
+                       palettename="standard"
+                       preference="browser.display.foreground_color"/>
         </hbox>
         <hbox align="center" style="margin-top: 5px">
-          <label id="backgroundLabel"
-                 control="background" value="&backgroundColor.label;"
-                 accesskey="&backgroundColor.accesskey;" flex="1"/>
-          <colorpicker type="button" id="background" palettename="standard"
+          <label id="browserBackgroundColorLabel"
+                 value="&backgroundColor.label;"
+                 accesskey="&backgroundColor.accesskey;"
+                 flex="1"
+                 control="browserBackgroundColor"/>
+          <colorpicker id="browserBackgroundColor"
+                       type="button"
+                       palettename="standard"
                        preference="browser.display.background_color"/>
         </hbox>
         <separator class="thin"/>
@@ -103,21 +111,33 @@
       <groupbox flex="1">
         <caption label="&links;"/>
         <hbox align="center">
-          <label control="unvisitedLinks" value="&linkColor.label;"
-                 accesskey="&linkColor.accesskey;" flex="1"/>
-          <colorpicker type="button" id="unvisitedLinks" palettename="standard"
+          <label value="&linkColor.label;"
+                 accesskey="&linkColor.accesskey;"
+                 flex="1"
+                 control="browserAnchorColor"/>
+          <colorpicker id="browserAnchorColor"
+                       type="button"
+                       palettename="standard"
                        preference="browser.anchor_color"/>
         </hbox>
         <hbox align="center" style="margin-top: 5px">
-          <label control="activeLinks" value="&activeLinkColor.label;"
-                 accesskey="&activeLinkColor.accesskey;" flex="1"/>
-          <colorpicker type="button" id="activeLinks" palettename="standard"
+          <label value="&activeLinkColor.label;"
+                 accesskey="&activeLinkColor.accesskey;"
+                 flex="1"
+                 control="browserActiveColor"/>
+          <colorpicker id="browserActiveColor"
+                       type="button"
+                       palettename="standard"
                        preference="browser.active_color"/>
         </hbox>
         <hbox align="center" style="margin-top: 5px">
-          <label control="visitedLinks" value="&visitedLinkColor.label;"
-                 accesskey="&visitedLinkColor.accesskey;" flex="1"/>
-          <colorpicker type="button" id="visitedLinks" palettename="standard"
+          <label value="&visitedLinkColor.label;"
+                 accesskey="&visitedLinkColor.accesskey;"
+                 flex="1"
+                 control="browserVisitedColor"/>
+          <colorpicker id="browserVisitedColor"
+                       type="button"
+                       palettename="standard"
                        preference="browser.visited_color"/>
         </hbox>
         <separator class="thin"/>
@@ -138,7 +158,7 @@
         <radio value="true" label="&alwaysUseDocumentColors.label;"
                accesskey="&alwaysUseDocumentColors.accesskey;"/>
         <radio value="false" label="&useMyColors.label;"
-               accesskey="&useMyColors.accesskey;"/>        
+               accesskey="&useMyColors.accesskey;"/>
       </radiogroup>
 
     </groupbox>
