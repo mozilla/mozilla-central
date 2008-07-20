@@ -57,7 +57,7 @@ $TESTNAME = '' unless $TESTNAME =~ m/^[-_\.\w\d]+$/;
 $UNITS = '' unless $UNITS =~ m/^[\w]+$/;
 $TBOX = '' unless $TBOX =~ m/^[-_\.\w\d]+$/;
 $AUTOSCALE = '' unless $AUTOSCALE =~ m/^[01]$/;
-$SIZE = '' unless $SIZE =~ m/^\d*\.?\d*/; 
+$SIZE = '' unless $SIZE =~ m/^\d*\.?\d*$/;
 $DAYS = '' unless $DAYS =~ m/^\d*$/;
 $LTYPE = '' unless $LTYPE =~ m/^(?:lines|steps)$/;
 $POINTS = '' unless $POINTS =~ m/^[01]$/;
