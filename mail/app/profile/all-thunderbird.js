@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -35,9 +35,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#expand pref("general.useragent.extra.thunderbird", "Thunderbird/__APP_VERSION__");
+#filter substitution
 
-#expand pref("general.useragent.locale", "__AB_CD__");
+pref("general.useragent.extra.thunderbird", "@APP_UA_NAME@/@APP_VERSION@");
+
+pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
 
 #ifdef XP_MACOSX
