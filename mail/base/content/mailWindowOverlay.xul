@@ -812,6 +812,7 @@
               oncommand="MsgSaveAsFile();"/>
     <menuitem id="messagePaneContext-printpreview"
               label="&contextPrintPreview.label;"
+              accesskey="&contextPrintPreview.accesskey;"
               oncommand="PrintEnginePrintPreview();"/>
     <menuitem id="messagePaneContext-print"
               label="&contextPrint.label;"
