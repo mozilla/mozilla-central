@@ -1791,7 +1791,7 @@ nsresult nsParseNewMailState::GetTrashFolder(nsIMsgFolder **pTrashFolder)
     incomingServer->GetRootMsgFolder(getter_AddRefs(rootMsgFolder));
     if (rootMsgFolder)
     {
-      rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Trash, pTrashFolder);
+      rv = rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Trash, pTrashFolder);
       if (!*pTrashFolder)
         rv = NS_ERROR_FAILURE;
     }
