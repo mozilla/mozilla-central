@@ -132,9 +132,7 @@
 
       <!-- constructor -->
       <constructor><![CDATA[
-        this.mDateFormatter =
-            Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                      .getService(Components.interfaces.calIDateTimeFormatter);
+        this.mDateFormatter = getDateFormatter();
       ]]></constructor>
 
       <!-- methods -->
@@ -158,18 +156,8 @@
 
             var dateLabel = document.getAnonymousElementByAttribute(
                 this, "anonid", "date");
-            var kDefaultTimezone = calendarDefaultTimezone();
-            var startDate = aItem.startDate.getInTimezone(kDefaultTimezone);
-            var endDate = aItem.endDate.getInTimezone(kDefaultTimezone);
-            var startString = new Object();
-            var endString = new Object();
-            this.mDateFormatter.formatInterval(
-                startDate, endDate, startString, endString);
-            var dateString = startString.value;
-            if (endString.value != null && endString.value.length > 0) {
-                dateString += " - " + endString.value;
-            }
-            if (startDate.isDate) {
+            var dateString = this.mDateFormatter.formatItemInterval(aItem);
+            if (aItem.startDate.isDate) {
                 dateString += ", " + alldayEventText;
             }
             dateLabel.setAttribute("value", dateString);

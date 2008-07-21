@@ -136,40 +136,13 @@ function html_exportToStream(aStream, aCount, aItems, aTitle) {
                 <div class='value summary'>{item.title}</div>
             </div>
         );
-
         var startDate = item[calGetStartDateProp(item)];
-        var endDate = item[calGetEndDateProp(item)];
-        if (startDate) {
-            startDate = startDate.getInTimezone(defaultTimezone);
-        }
-        if (endDate) {
-            endDate = endDate.getInTimezone(defaultTimezone);
-        }
-
-        // Start and end
-        var startstr = new Object();
-        var endstr = new Object();
-        if (startDate && endDate)
-            dateFormatter.formatInterval(startDate, endDate, startstr, endstr);
-        else {
-            startstr.value = "";
-            endstr.value = "";
-        }
-
-        // Include the end date anyway, even when empty, because the dtend
-        // class should be there, for hCalendar goodness.
-        var seperator = "";
-        if (endstr.value) {
-            seperator = " - ";
-        }
-
+        var dateString = dateFormatter.formatItemInterval(item);
         ev.appendChild(
             <div>
                 <div class='key'>{prefixWhen}</div>
                 <div class='value'>
-                    <abbr class='dtstart' title={startDate ? startDate.icalString : "none"}>{startstr.value}</abbr>
-                    {seperator}
-                    <abbr class='dtend' title={endDate ? endDate.icalString : "none"}>{endstr.value}</abbr>
+                    <abbr class='dtstart' title={startDate ? startDate.icalString : "none"}>{dateString}</abbr>
                 </div>
             </div>
         );

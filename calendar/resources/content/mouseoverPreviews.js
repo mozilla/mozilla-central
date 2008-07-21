@@ -370,10 +370,8 @@ function boxAppendBody(box, textString)
  */
 function boxAppendLabeledDateTime(box, labelProperty, date)
 {
-  var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                .getService(Components.interfaces.calIDateTimeFormatter);
   date = date.getInTimezone(calendarDefaultTimezone());
-  var formattedDateTime = dateFormatter.formatDateTime(date);
+  var formattedDateTime = getDateFormatter().formatDateTime(date);
   boxAppendLabeledText(box, labelProperty, formattedDateTime);
 }
 
@@ -387,18 +385,10 @@ function boxAppendLabeledDateTime(box, labelProperty, date)
  */
 function boxAppendLabeledDateTimeInterval(box, labelProperty, start, end)
 {
-  var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                .getService(Components.interfaces.calIDateTimeFormatter);
-  var startString = new Object();
-  var endString = new Object();
   start = start.getInTimezone(calendarDefaultTimezone());
-  end = end.getInTimezone(calendarDefaultTimezone());
-  dateFormatter.formatInterval(start, end, startString, endString);
-  if (endString.value != "") {
-    boxAppendLabeledText(box, labelProperty, startString.value + ' - ' + endString.value);
-  } else {
-    boxAppendLabeledText(box, labelProperty, startString.value);
-  }
+  end = end.getInTimezone(calendarDefaultTimezone());    
+  var dateString = getDateFormatter().formatInterval(start, end);
+  boxAppendLabeledText(box, labelProperty, dateString);
 }
 
 /**

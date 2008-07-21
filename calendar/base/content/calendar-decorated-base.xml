@@ -358,7 +358,7 @@
             </method>
             <method name="getRangeDescription">
                 <body><![CDATA[
-                    return getDateFormatter().formatNewInterval(this.rangeStartDate, this.rangeEndDate);
+                    return getDateFormatter().formatInterval(this.rangeStartDate, this.rangeEndDate);
                 ]]></body>
             </method>
             <method name="adjustAlignment">

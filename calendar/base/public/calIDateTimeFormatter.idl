@@ -38,6 +38,7 @@
 #include "nsISupports.idl"
 
 interface calIDateTime;
+interface calIItemBase;
 
 [scriptable, uuid(17101743-f016-4fb2-90dd-0c043aa44579)]
 interface calIDateTimeFormatter : nsISupports
@@ -108,26 +109,14 @@ interface calIDateTimeFormatter : nsISupports
     AString formatDateTime(in calIDateTime aDate);
 
     /**
-     * Format a time interval. May assume that both out strings are displayed
-     * close to each other, so that it can leave out the date part of the
-     * end string (when applicable)
+     * Format a time interval that is defined by an item with the default
+     * timezone Internally it calls "formatInterval" after retrieving 
+     * the start/entry and end/due date of the item.
      *
-     * @param aStartDate
-     *      The start of the interval
-     * @param aEndDate
-     *      The end of the interval
-     * @param aStartString
-     *      A string representing the start of the interval
-     * @param aEndString
-     *      A string representing the end of the interval. May leave out
-     *      parts already in aStartString.
+     * @param aItem 
+     *      The item describing the interval
      */
-    // XXX using wstring instead of AString, because AString as outparam
-    //     seems to fail in javascript.
-    void formatInterval(in calIDateTime aStartDate,
-                        in calIDateTime aEndDate,
-                        out wstring aStartString,
-                        out wstring aEndString);
+    AUTF8String formatItemInterval(in calIItemBase aItem);
 
     /**
      * Format a time interval. The returned string may assume that the dates
@@ -141,7 +130,7 @@ interface calIDateTimeFormatter : nsISupports
      * @returns
      *      A String describing the interval in a legible form
      */
-    AUTF8String formatNewInterval(in calIDateTime aStartDate,
+    AUTF8String formatInterval(in calIDateTime aStartDate,
                                   in calIDateTime aEndDate);
 
     /**

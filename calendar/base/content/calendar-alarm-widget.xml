@@ -98,8 +98,7 @@
         ]]></getter>
         <setter><![CDATA[
           this.mItem = val;
-          var formatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                    .getService(Components.interfaces.calIDateTimeFormatter);
+          var formatter = getDateFormatter();
           var titleLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-title-label");
           var locationDescription = document.getAnonymousElementByAttribute(this, "anonid", "alarm-location-description");
           var dateLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-date-label");
@@ -109,11 +108,7 @@
           var endString = {};
 
           if (this.mItem instanceof Components.interfaces.calIEvent) {
-              var startDate = val.startDate.getInTimezone(calendarDefaultTimezone());
-              var endDate = val.endDate.getInTimezone(calendarDefaultTimezone());
-              formatter.formatInterval(startDate, endDate, startString, endString);
-              dateLabel.textContent = startString.value +
-                                      (endString.value ? ' - ' + endString.value : "");
+              dateLabel.textContent = formatter.formatItemInterval(val);
           } else if (val instanceof Components.interfaces.calITodo) {
               var startDate = val.entryDate || val.dueDate;
               startDate = startDate.getInTimezone(calendarDefaultTimezone());

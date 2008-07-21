@@ -202,8 +202,8 @@ function formatDateTime(aDate) {
         return formattedDate+" "+formattedTime;
 };
 
-calDateTimeFormatter.prototype.formatNewInterval =
-function formatNewInterval(aStartDate, aEndDate) {
+calDateTimeFormatter.prototype.formatInterval =
+function formatInterval(aStartDate, aEndDate) {
     // make sure start and end use the same timezone when formatting intervals:
     var endDate = aEndDate.getInTimezone(aStartDate.timezone);
     var testdate = aStartDate.clone();
@@ -229,69 +229,39 @@ function formatNewInterval(aStartDate, aEndDate) {
             }
         }
     } else {
+        var startDateString = this.formatDate(aStartDate);
+        var startTime = this.formatTime(aStartDate);
+        var endDateString = this.formatDate(endDate);
+        var endTime = this.formatTime(endDate);
         // non-allday, so need to return date and time
         if (sameDay) {
             // End is on the same day as start, so we can leave out the
             // end date (but still include end time)
             // "5 Jan 2006 13:00 - 17:00"
-            var retValue = this.formatDate(aStartDate) + " " + this.formatTime(aStartDate);
-            retValue += this.formatTime(endDate);
+            return calGetString("calendar", "datetimeIntervalOnSameDay", [startDateString, startTime, endTime]);
         } else {
             // Spanning multiple days, so need to include date and time
             // for start and end
             // "5 Jan 2006 13:00 - 7 Jan 2006 9:00"
-            var retValue = this.formatDateTime(aStartDate);
-            retValue =+ this.formatDateTime(endDate);
+            return calGetString("calendar", "datetimeIntervalOnSeveralDays", [startDateString, startTime, endDateString, endTime]);
         }
     }
 }
 
 
-calDateTimeFormatter.prototype.formatInterval =
-function formatInterval(aStartDate, aEndDate, aStartString, aEndString) {
-    // make sure start and end use the same timezone when formatting intervals:
-    var endDate = aEndDate.getInTimezone(aStartDate.timezone);
+calDateTimeFormatter.prototype.formatItemInterval =
+function formatItemInterval(aItem) {
+    var start = aItem[calGetStartDateProp(aItem)] || aItem[calGetEndDateProp(aItem)];
+    var end = aItem[calGetEndDateProp(aItem)];
+    var kDefaultTimezone = calendarDefaultTimezone();
+    start = start.getInTimezone(kDefaultTimezone);
+    end = end.getInTimezone(kDefaultTimezone);
     // EndDate is exclusive. For all-day events, we ened to substract one day,
     // to get into a format that's understandable.
-    if (aStartDate.isDate) {
-        endDate.day -= 1;
+    if (start.isDate) {
+        end.day -= 1;
     }
-
-    var testdate = aStartDate.clone();
-    testdate.isDate = true;
-    var sameDay = (testdate.compare(endDate) == 0);
-
-    if (aStartDate.isDate) {
-        // All-day interval, so we should leave out the time part
-        if (sameDay) {
-            // Start and end on the same day: only give return the start
-            // date.
-            // "5 Jan 2006"
-            aStartString.value = this.formatDate(aStartDate);
-            aEndString.value = "";
-        } else {
-            // Spanning multiple days, return both dates
-            // "5 Jan 2006 - 7 Jan 2006"
-            aStartString.value = this.formatDate(aStartDate);
-            aEndString.value = this.formatDate(endDate);
-        }
-    } else {
-        // non-allday, so need to return date and time
-        if (sameDay) {
-            // End is on the same day as start, so we can leave out the
-            // end date (but still include end time)
-            // "5 Jan 2006 13:00 - 17:00"
-            aStartString.value = this.formatDate(aStartDate)+" "+this.formatTime(aStartDate);
-            aEndString.value = this.formatTime(endDate);
-        } else {
-            // Spanning multiple days, so need to include date and time
-            // for start and end
-            // "5 Jan 2006 13:00 - 7 Jan 2006 9:00"
-            aStartString.value = this.formatDateTime(aStartDate);
-            aEndString.value = this.formatDateTime(endDate);
-        }
-    }
-    return 1;
+    return this.formatInterval(start, end);
 };
 
 calDateTimeFormatter.prototype.monthName =

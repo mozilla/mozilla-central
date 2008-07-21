@@ -144,15 +144,7 @@ function createHtml(event)
                                                                eventLocation));
         }
 
-        var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                  .getService(Components.interfaces.calIDateTimeFormatter);
-        var startString = new Object();
-        var endString = new Object();
-        dateFormatter.formatInterval(event.startDate.getInTimezone(calendarDefaultTimezone()),
-                                     event.endDate.getInTimezone(calendarDefaultTimezone()),
-                                     startString, endString);
-        var dateString = startString.value + " - " + endString.value;
-
+        var dateString = getDateFormatter().formatItemInterval(event);
         var labelText = stringBundle.GetStringFromName("imipHtml.when");
         html.body.table.appendChild(createHtmlTableSection(labelText,
                                                            dateString));

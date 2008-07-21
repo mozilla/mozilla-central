@@ -98,19 +98,14 @@
         <parameter name="showsToday"/>
         <body><![CDATA[
             this.mItem = synthetic;
-            var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                  .getService(Components.interfaces.calIDateTimeFormatter);
             if (showsToday) {
                 this.kCheckbox.label = this.getAttribute("title");
             } else {
                 if (synthetic.end.day == (synthetic.start.day + 1)) {
-                    var label = dateFormatter.formatDate(synthetic.start);
+                    var label = getDateFormatter().formatDate(synthetic.start);
                     this.kCheckbox.label = label;
                 } else {
-                    var startString = new Object();
-                    var endString = new Object();
-                    dateFormatter.formatInterval(synthetic.start, synthetic.end, startString, endString);
-                    this.kCheckbox.label = startString.value + " - " + endString.value;
+                    this.kCheckbox.label = getDateFormatter().formatInterval(synthetic.start, synthetic.end);
                 }
             }
         ]]></body>
