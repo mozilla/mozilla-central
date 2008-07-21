@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.72 2008-06-20 16:57:03 nelson%bolyard.com Exp $
+ * $Id: cert.h,v 1.73 2008-07-21 20:09:33 julien.pierre.boogz%sun.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -1154,9 +1154,6 @@ CERT_FindSMimeProfile(CERTCertificate *cert);
 
 SECStatus
 CERT_AddNewCerts(CERTCertDBHandle *handle);
-
-CERTPackageType
-CERT_CertPackageType(SECItem *package, SECItem *certitem);
 
 CERTCertificatePolicies *
 CERT_DecodeCertificatePoliciesExtension(SECItem *extnValue);
