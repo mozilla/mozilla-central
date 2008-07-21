@@ -1889,7 +1889,7 @@ function saveItem() {
         }
 
         var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
-        if (sendInvitesCheckbox.disabled) {
+        if (sendInvitesCheckbox.disabled || document.getElementById("event-grid-attendee-row-2").collapsed) {
             item.deleteProperty("X-MOZ-SEND-INVITATIONS");
         } else {
             setItemProperty(item, "X-MOZ-SEND-INVITATIONS",
@@ -2357,7 +2357,11 @@ function updateAttendees() {
     var attendeeRow2 = document.getElementById("event-grid-attendee-row-2");
     if (window.attendees && window.attendees.length > 0) {
         attendeeRow.removeAttribute('collapsed');
-        attendeeRow2.removeAttribute('collapsed');
+        if (isEvent(window.calendarItem)) { // sending email invitations currently only supported for events
+            attendeeRow2.removeAttribute('collapsed');
+        } else {
+            attendeeRow2.setAttribute('collapsed', 'true');
+        }
 
         var attendeeNames = "";
         var numAttendees = window.attendees.length;

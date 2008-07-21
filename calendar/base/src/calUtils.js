@@ -1354,6 +1354,26 @@ function sameDay(date1, date2) {
 }
 
 /**
+ * Iterates all components inside the passed ical component and calls the passed function.
+ * If the called function returns false, iteration is stopped.
+ */
+function calIterateIcalComponent(icalComp, func) {
+    if (icalComp) {
+        if (icalComp.componentType != "VCALENDAR") {
+            return func(icalComp);
+        }
+        for (var subComp = icalComp.getFirstSubcomponent("ANY");
+             subComp;
+             subComp = icalComp.getNextSubcomponent("ANY")) {
+            if (!calIterateIcalComponent(subComp, func)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * Centralized funtions for accessing prodid and version
  */
 function calGetProductId() {

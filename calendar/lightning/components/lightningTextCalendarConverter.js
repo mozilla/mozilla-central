@@ -208,9 +208,18 @@ ltnMimeConverter.prototype = {
     },
 
     convertToHTML: function lmcCTH(contentType, data) {
-        var event = Components.classes["@mozilla.org/calendar/event;1"].
-                    createInstance(Components.interfaces.calIEvent);
-        event.icalString = data;
+        var event = null;
+        calIterateIcalComponent(getIcsService().parseICS(data, null),
+                                function(icalComp) {
+                                    if (icalComp.componentType == "VEVENT") {
+                                        event = createEvent();
+                                        event.icalComponent = icalComp;
+                                    }
+                                    return (icalComp.componentType != "VEVENT");
+                                });
+        if (!event) {
+            return;
+        }
         var html = createHtml(event);
 
         try {
