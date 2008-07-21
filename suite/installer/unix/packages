@@ -497,6 +497,7 @@ bin/components/smime-service.js
 bin/components/mdn-service.js
 bin/components/offlineStartup.js
 
+bin/isp/movemail.rdf
 bin/isp/SpamAssassin.sfd
 bin/isp/SpamPal.sfd
 
