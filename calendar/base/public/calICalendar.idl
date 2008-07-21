@@ -119,7 +119,8 @@ interface calICalendar : nsISupports
    * e.g. on the server or in local prefs.
    *
    * Currently known properties are:
-   *   [boolean] calendar-main-in-composite
+   *   [boolean]  disabled
+   *   [boolean]  calendar-main-in-composite
    *   [string]   name
    *   [boolean]  readOnly
    *   [boolean]  requiresNetwork    If false, the calendar does not require
