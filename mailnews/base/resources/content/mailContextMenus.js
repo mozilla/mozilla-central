@@ -773,8 +773,9 @@ function CheckForMessageIdInFolder(folder, messageId)
                              .getService(Components.interfaces.nsIMsgMailSession);
   }
 
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
   if (!gMailSession.IsFolderOpenInWindow(folder) &&
-      !(folder.flags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_INBOX)))
+      !(folder.flags & (nsMsgFolderFlags.Trash | nsMsgFolderFlags.Inbox)))
   {
     folder.setMsgDatabase(null);
   }

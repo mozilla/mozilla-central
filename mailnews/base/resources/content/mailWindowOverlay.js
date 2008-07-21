@@ -123,7 +123,7 @@ function menu_new_init()
   var isServer = msgFolder.isServer;
   var serverType = msgFolder.server.type;
   var canCreateNew = msgFolder.canCreateSubfolders;
-  var isInbox = IsSpecialFolder(msgFolder, MSG_FOLDER_FLAG_INBOX, false);
+  var isInbox = IsSpecialFolder(msgFolder, Components.interfaces.nsMsgFolderFlags.Inbox, false);
   var isIMAPFolder = serverType == "imap";
   var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                          .getService(Components.interfaces.nsIIOService);

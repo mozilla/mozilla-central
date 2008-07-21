@@ -38,15 +38,6 @@
 var gMsgFolder;
 var gLockedPref = null;
 
-// corresponds to MSG_FOLDER_FLAG_OFFLINE
-const MSG_FOLDER_FLAG_OFFLINE = 0x8000000
-
-// corresponds to MSG_FOLDER_FLAG_CHECK_NEW
-const MSG_FOLDER_FLAG_CHECK_NEW = 0x20000000
-
-// corresponds to MSG_FOLDER_FLAG_INBOX
-const MSG_FOLDER_FLAG_INBOX = 0x1000
-
 // The folderPropsSink is the class that gets notified of an imap folder's properties
 
 var gFolderPropsSink = {
@@ -143,7 +134,7 @@ function folderPropsOKButton()
 {
   if (gMsgFolder)
   {
-
+    const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
     // set charset attributes
     var folderCharsetList = document.getElementById("folderCharsetList");
     gMsgFolder.charset = folderCharsetList.getAttribute("value");
@@ -151,14 +142,14 @@ function folderPropsOKButton()
 
     if(document.getElementById("offline.selectForOfflineFolder").checked ||
       document.getElementById("offline.selectForOfflineNewsgroup").checked)
-      gMsgFolder.setFlag(MSG_FOLDER_FLAG_OFFLINE);
+      gMsgFolder.setFlag(nsMsgFolderFlags.Offline);
     else
-      gMsgFolder.clearFlag(MSG_FOLDER_FLAG_OFFLINE);
+      gMsgFolder.clearFlag(nsMsgFolderFlags.Offline);
 
     if(document.getElementById("folderCheckForNewMessages").checked)
-      gMsgFolder.setFlag(MSG_FOLDER_FLAG_CHECK_NEW);
+      gMsgFolder.setFlag(nsMsgFolderFlags.CheckNew);
     else
-      gMsgFolder.clearFlag(MSG_FOLDER_FLAG_CHECK_NEW);
+      gMsgFolder.clearFlag(nsMsgFolderFlags.CheckNew);
 
     var retentionSettings = saveCommonRetentionSettings();
     retentionSettings.useServerDefaults = document.getElementById("retention.useDefault").checked;
@@ -211,6 +202,7 @@ function folderPropsOnLoad()
 //  name.focusTextField();
   }
 
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
   var serverType = window.arguments[0].serverType;
 
   if (gMsgFolder) {
@@ -224,7 +216,7 @@ function folderPropsOnLoad()
     if (gMsgFolder.canRename)
       document.getElementById("name").removeAttribute("readonly");
 
-    if (gMsgFolder.flags & MSG_FOLDER_FLAG_OFFLINE) {
+    if (gMsgFolder.flags & nsMsgFolderFlags.Offline) {
 
       if(serverType == "imap" || serverType == "pop3")
         document.getElementById("offline.selectForOfflineFolder").checked = true;
@@ -249,7 +241,7 @@ function folderPropsOnLoad()
     document.getElementById("folderCharsetOverride").checked = gMsgFolder.charsetOverride;
 
     // set check for new mail checkbox
-    document.getElementById("folderCheckForNewMessages").checked = gMsgFolder.flags & MSG_FOLDER_FLAG_CHECK_NEW;
+    document.getElementById("folderCheckForNewMessages").checked = gMsgFolder.flags & nsMsgFolderFlags.CheckNew;
   }
 
   if (serverType == "imap")
@@ -330,7 +322,7 @@ function hideShowControls(serverType)
   // hide "check for new mail" checkbox if this is inbox
   if (gMsgFolder)
   {
-    if (gMsgFolder.flags & MSG_FOLDER_FLAG_INBOX)
+    if (gMsgFolder.flags & Components.interfaces.nsMsgFolderFlags.Inbox)
     {
       document.getElementById("folderCheckForNewMessages").setAttribute("hidden", "true");
     }

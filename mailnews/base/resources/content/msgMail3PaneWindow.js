@@ -47,9 +47,6 @@ const nsMsgKey_None = 0xFFFFFFFF;
 const nsMsgViewIndex_None = 0xFFFFFFFF;
 const kMailCheckOncePrefName = "mail.startup.enabledMailCheckOnce";
 
-// from nsMsgFolderFlags.h
-const MSG_FOLDER_FLAG_ELIDED = 0x10;
-
 var gFolderTree;
 var gMessagePane;
 var gThreadTree;
@@ -177,6 +174,7 @@ var folderListener = {
       var eventType = event.toString();
       if (eventType == "FolderLoaded") {
         if (folder) {
+          const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
           var scrolled = false;
           var msgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
           var uri = folder.URI;
@@ -203,7 +201,7 @@ var folderListener = {
               if (gDBView)
                 gDBView.suppressCommandUpdating = false;
 
-              gIsEditableMsgFolder = IsSpecialFolder(msgFolder, MSG_FOLDER_FLAG_DRAFTS, true);
+              gIsEditableMsgFolder = IsSpecialFolder(msgFolder, nsMsgFolderFlags.Drafts, true);
 
               gCurrentLoadingFolderSortType = 0;
               gCurrentLoadingFolderSortOrder = 0;
@@ -232,7 +230,7 @@ var folderListener = {
             gCurrentLoadingFolderURI = "";
             // Scroll to message for virtual folders is done in
             // gSearchNotificationListener.OnSearchDone (see searchBar.js).
-            if (!scrolled && !(gMsgFolderSelected.flags & MSG_FOLDER_FLAG_VIRTUAL))
+            if (!scrolled && !(gMsgFolderSelected.flags & nsMsgFolderFlags.Virtual))
               ScrollToMessageAfterFolderLoad(msgFolder);
             SetBusyCursor(window, false);
           }
@@ -265,7 +263,7 @@ var folderListener = {
               gDBView.viewFolder = gMsgFolderSelected;
               ViewChangeByFolder(gMsgFolderSelected);
             }
-            else if (gMsgFolderSelected.flags & MSG_FOLDER_FLAG_VIRTUAL)
+            else if (gMsgFolderSelected.flags & nsMsgFolderFlags.Virtual)
             {
               viewDebug("selected folder is virtual\n");
               gDefaultSearchViewTerms = null;
@@ -598,7 +596,7 @@ function IsCurrentLoadedFolder(folder)
     {
       var folderURI = folderResource.Value;
       var currentLoadedFolder = GetThreadPaneFolder();
-      if (currentLoadedFolder.flags & MSG_FOLDER_FLAG_VIRTUAL)
+      if (currentLoadedFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
       {
         var msgDatabase = currentLoadedFolder.getMsgDatabase(msgWindow);
         var dbFolderInfo = msgDatabase.dBFolderInfo;

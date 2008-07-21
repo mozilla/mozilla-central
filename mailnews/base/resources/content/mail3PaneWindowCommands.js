@@ -862,8 +862,8 @@ function IsCanSearchMessagesEnabled()
     return false;
 
   var folder = GetMsgFolderFromUri(folderURI, false);
-  var isVirtualFolder = folder.flags & MSG_FOLDER_FLAG_VIRTUAL;
-  return folder.server.canSearchMessages && !isVirtualFolder;
+  return folder.server.canSearchMessages &&
+         !(folder.flags & Components.interfaces.nsMsgFolderFlags.Virtual);
 }
 
 function IsFolderCharsetEnabled()
@@ -937,7 +937,7 @@ function MsgDeleteFolder()
         if (specialFolder != "Inbox" && specialFolder != "Trash")
         {
             var folder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
-            if (folder.flags & MSG_FOLDER_FLAG_VIRTUAL)
+            if (folder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
             {
                 if (gCurrentVirtualFolderUri == folderResource.Value)
                   gCurrentVirtualFolderUri = null;

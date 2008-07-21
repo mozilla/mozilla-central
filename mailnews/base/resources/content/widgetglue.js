@@ -233,7 +233,7 @@ function MsgFolderProperties()
   var serverType = msgFolder.server.type;
   var folderTree = GetFolderTree();
 
-  if (msgFolder.flags & MSG_FOLDER_FLAG_VIRTUAL)
+  if (msgFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
   { 
     // virtual folders get their own property dialog that contains all of the
     // search information related to the virtual folder.

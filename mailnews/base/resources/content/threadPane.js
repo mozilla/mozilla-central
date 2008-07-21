@@ -211,10 +211,11 @@ function MsgComposeDraftMessage()
 
 function ThreadPaneDoubleClick()
 {
-  if (IsSpecialFolderSelected(MSG_FOLDER_FLAG_DRAFTS, true)) {
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+  if (IsSpecialFolderSelected(nsMsgFolderFlags.Drafts, true)) {
     MsgComposeDraftMessage();
   }
-  else if(IsSpecialFolderSelected(MSG_FOLDER_FLAG_TEMPLATES, true)) {
+  else if(IsSpecialFolderSelected(nsMsgFolderFlags.Templates, true)) {
     var loadedFolder = GetLoadedMsgFolder();
     var messageArray = GetSelectedMessages();
 

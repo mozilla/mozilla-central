@@ -95,9 +95,8 @@ function CoalesceGetMsgsForPop3ServersByDestFolder(aCurrentServer,
                                                    aPOP3DownloadServersArray,
                                                    aLocalFoldersToDownloadTo)
 {
-  const MSG_FOLDER_FLAG_INBOX = 0x1000; // XXX will be killed by bug 436044
   // coalesce the servers that download into the same folder...
-  var inbox = aCurrentServer.rootMsgFolder.getFolderWithFlags(MSG_FOLDER_FLAG_INBOX);
+  var inbox = aCurrentServer.rootMsgFolder.getFolderWithFlags(Components.interfaces.nsMsgFolderFlags.Inbox);
   var index = aLocalFoldersToDownloadTo.indexOf(inbox);
   if (index == -1)
   {

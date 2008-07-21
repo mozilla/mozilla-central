@@ -82,7 +82,8 @@ function determineActionsForJunkMsgs(aFolder)
 
   // move only when the corresponding setting is activated
   // and the currently viewed folder is not the junk folder.
-  if (spamSettings.moveOnSpam && !(aFolder.flags & MSG_FOLDER_FLAG_JUNK))
+  if (spamSettings.moveOnSpam &&
+      !(aFolder.flags & Components.interfaces.nsMsgFolderFlags.Junk))
   {
     var spamFolderURI = spamSettings.spamFolderURI;
     if (!spamFolderURI)

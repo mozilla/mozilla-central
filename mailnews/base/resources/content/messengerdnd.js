@@ -146,7 +146,7 @@ function CanDropOnFolderTree(index, orientation)
           }
           
           // don't allow dragging of virtual folders across accounts
-          if ((sourceFolder.flags & MSG_FOLDER_FLAG_VIRTUAL) && sourceServer != targetServer)
+          if ((sourceFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) && sourceServer != targetServer)
             return false;
 
           var isAncestor = sourceFolder.isAncestorOf(targetFolder);

@@ -80,7 +80,8 @@ function FindNextChildFolder(aParent, aAfter)
       // if there is unread mail in the trash, sent, drafts, unsent messages
       // templates or junk special folder, 
       // we ignore it when doing cross folder "next" navigation
-      if (!IsSpecialFolder(folder, MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_SENTMAIL | MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_QUEUE | MSG_FOLDER_FLAG_TEMPLATES | MSG_FOLDER_FLAG_JUNK, true)) {
+      const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+      if (!IsSpecialFolder(folder, nsMsgFolderFlags.Trash | nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue | nsMsgFolderFlags.Templates | nsMsgFolderflags.Junk, true)) {
         if (folder.getNumUnread(false) > 0)
           return folder;
 
