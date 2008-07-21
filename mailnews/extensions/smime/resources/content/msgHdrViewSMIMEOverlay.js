@@ -46,6 +46,9 @@ var gEncryptedStatusPanel = null;
 var gEncryptedURIService = null;
 var gMyLastEncryptedURI = null;
 
+var gSMIMEBundle = null;
+// var gBrandBundle; -- defined in mailWindow.js
+
 // manipulates some globals from msgReadSMIMEOverlay.js
 
 const nsICMSMessageErrors = Components.interfaces.nsICMSMessageErrors;
@@ -125,6 +128,29 @@ var smimeHeaderSink =
       gMyLastEncryptedURI = GetLoadedMessage();
       gEncryptedURIService.rememberEncrypted(gMyLastEncryptedURI);
     }
+
+    switch (aEncryptionStatus)
+    {
+      case nsICMSMessageErrors.SUCCESS:
+      case nsICMSMessageErrors.ENCRYPT_INCOMPLETE:
+        break;
+      default:
+        var brand = gBrandBundle.getString("brandShortName");
+        var title = gSMIMEBundle.getString("CantDecryptTitle").replace(/%brand%/g, brand);
+        var body = gSMIMEBundle.getString("CantDecryptBody").replace(/%brand%/g, brand);
+
+        // insert our message
+        msgWindow.displayHTMLInMessagePane(title,
+         "<html>\n" +
+         "<body bgcolor=\"#fafaee\">\n" +
+         "<center><br><br><br>\n" +
+         "<table>\n" +
+         "<tr><td>\n" +
+         "<center><strong><font size=\"+3\">\n" +
+         title+"</font></center><br>\n" +
+         body+"\n" +
+         "</td></tr></table></center></body></html>", false);
+    }
   },
 
   QueryInterface : function(iid)
@@ -170,8 +196,21 @@ function onSMIMEStartHeaders()
 function onSMIMEEndHeaders()
 {}
 
+function onSmartCardChange()
+{
+  // only reload encrypted windows
+  if (gMyLastEncryptedURI && gEncryptionStatus != -1)
+    ReloadMessage();
+}
+
 function msgHdrViewSMIMEOnLoad(event)
 {
+  window.crypto.enableSmartCardEvents = true;
+  document.addEventListener("smartcard-insert", onSmartCardChange, false);
+  document.addEventListener("smartcard-remove", onSmartCardChange, false);
+  if (!gSMIMEBundle)
+    gSMIMEBundle = document.getElementById("bundle_read_smime");
+
   // we want to register our security header sink as an opaque nsISupports
   // on the msgHdrSink used by mail.....
   msgWindow.msgHeaderSink.securityInfo = smimeHeaderSink;
@@ -197,6 +236,9 @@ function msgHdrViewSMIMEOnLoad(event)
 
 function msgHdrViewSMIMEOnUnload(event)
 {
+  window.crypto.enableSmartCardEvents = false;
+  document.removeEventListener("smartcard-insert", onSmartCardChange, false);
+  document.removeEventListener("smartcard-remove", onSmartCardChange, false);
   forgetEncryptedURI();
   removeEventListener("messagepane-loaded", msgHdrViewSMIMEOnLoad, true);
   removeEventListener("messagepane-unloaded", msgHdrViewSMIMEOnUnload, true);
