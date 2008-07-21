@@ -66,7 +66,6 @@ messenger.jar:
     content/messenger/folderProps.js                (/mailnews/base/resources/content/folderProps.js)
     content/messenger/folderWidgets.xml             (/mailnews/base/resources/content/folderWidgets.xml)
     content/messenger/threadPane.js                 (/mailnews/base/resources/content/threadPane.js)
-    content/messenger/msgHdrViewAddresses.js        (/mailnews/base/resources/content/msgHdrViewAddresses.js)
     content/messenger/shareglue.js                  (/mailnews/base/resources/content/shareglue.js)
     content/messenger/msgFolderPickerOverlay.js     (/mailnews/base/resources/content/msgFolderPickerOverlay.js)
     content/messenger/newFolderDialog.xul           (/mailnews/base/resources/content/newFolderDialog.xul)

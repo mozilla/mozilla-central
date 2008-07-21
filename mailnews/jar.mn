@@ -126,7 +126,6 @@ messenger.jar:
     content/messenger/threadPane.js                                            (base/resources/content/threadPane.js)
     content/messenger/msgHdrViewOverlay.xul                                    (base/resources/content/msgHdrViewOverlay.xul)
     content/messenger/msgHdrViewOverlay.js                                     (base/resources/content/msgHdrViewOverlay.js)
-    content/messenger/msgHdrViewAddresses.js                                   (base/resources/content/msgHdrViewAddresses.js)
     content/messenger/widgetglue.js                                            (base/resources/content/widgetglue.js)
     content/messenger/retention.js                                             (base/resources/content/retention.js)
     content/messenger/commandglue.js                                           (base/resources/content/commandglue.js)
