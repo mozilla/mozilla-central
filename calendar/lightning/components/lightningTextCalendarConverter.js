@@ -115,7 +115,7 @@ function createHtml(event)
                <html>
                <head>
                     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
-                    <link rel='stylesheet' type='text/css' href='chrome://lightning/skin/imip.css'/>
+                    <link rel='stylesheet' type='text/css' href='chrome://messagebody/skin/imip.css'/>
                </head>
                <body>
                     <table>
