@@ -510,7 +510,7 @@ function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
 
             var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
                                      .createInstance(Components.interfaces.calIItipItem);
-            itipItem.init(aItem.icalString);
+            itipItem.init(calGetSerializedItem(aItem));
             itipItem.targetCalendar = aItem.calendar;
             itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
             itipItem.responseMethod = "REPLY";
@@ -530,7 +530,7 @@ function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
         }
 
         for each (var att in itemAtt) {
-            if (att.id in attMap) {
+            if (att.id.toLowerCase() in attMap) {
                 // Attendee was in original item.
                 delete attMap[att.id.toLowerCase()];
             }
@@ -586,6 +586,9 @@ function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
 }
 
 function calSendItipMessage(aItem, aMethod, aRecipientsList) {
+    if (aRecipientsList.length == 0) {
+        return;
+    }
     if ((aItem.calendar instanceof Components.interfaces.calISchedulingSupport) &&
         aItem.calendar.canNotify(aMethod, aItem)) {
         return; // provider will handle that
@@ -600,16 +603,15 @@ function calSendItipMessage(aItem, aMethod, aRecipientsList) {
     var item = aItem.clone();
 
     // We fake Sequence ID support.
-    item.setProperty("METHOD", aMethod);
     item.setProperty("SEQUENCE", item.generation);
 
     // Initialize and set our properties on the item
-    itipItem.init(item.icalString);
+    itipItem.init(calGetSerializedItem(item));
+    itipItem.responseMethod = aMethod;
     itipItem.targetCalendar = item.calendar;
     itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
     // XXX I don't know whether the below are used at all, since we don't use the itip processor
     itipItem.isSend = true;
-    itipItem.receivedMethod = aMethod;
 
     // Get ourselves some default text - when we handle organizer properly
     // We'll need a way to configure the Common Name attribute and we should
@@ -639,5 +641,12 @@ function calSendItipMessage(aItem, aMethod, aRecipientsList) {
 
     // Send it!
     transport.sendItems(aRecipientsList.length, aRecipientsList, subject, body, itipItem);
+}
+
+function calGetSerializedItem(aItem) {
+    var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
+                               .createInstance(Components.interfaces.calIIcsSerializer);
+    serializer.addItems([aItem], 1);
+    return serializer.serializeToString();
 }
 

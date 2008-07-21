@@ -317,20 +317,13 @@ calItipEmailTransport.prototype = {
             }
 
             var itemList = aItem.getItemList({});
-            var calText = "";
-            for (var i = 0; i < itemList.length; i++) {
-                var item = itemList[i].clone();
-                // This is a workaround until bug 353369 is fixed.
-                // Without it, we cannot roundtrip the METHOD property, so we must
-                // re-add it to the ICS data as we serialize it.
-                //
-                // Look at the implicit assumption in the code at:
-                // http://lxr.mozilla.org/seamonkey/source/calendar/base/src/calEvent.js#162
-                // and it's easy to see why.
-                item.setProperty("METHOD", aItem.responseMethod);
-                // xxx todo: should we consider to include exceptional/overridden items?
-                calText += item.icalString;
-            }
+            var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
+                                       .createInstance(Components.interfaces.calIIcsSerializer);
+            serializer.addItems(itemList, itemList.length);
+            var methodProp = getIcsService().createIcalProperty("METHOD");
+            methodProp.value = aItem.responseMethod;
+            serializer.addProperty(methodProp);
+            var calText = serializer.serializeToString();
             var utf8CalText = encodeUTF8(calText);
 
             // Home-grown mail composition; I'd love to use nsIMimeEmitter, but it's not clear to me whether

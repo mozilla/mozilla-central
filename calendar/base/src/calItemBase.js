@@ -558,7 +558,6 @@ calItemBase.prototype = {
         "LAST-MODIFIED": true,
         "SUMMARY": true,
         "PRIORITY": true,
-        "METHOD": true,
         "STATUS": true,
         "CLASS": true,
         "DTSTAMP": true,

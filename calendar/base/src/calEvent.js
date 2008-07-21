@@ -140,9 +140,6 @@ calEvent.prototype = {
     get icalString() {
         var calcomp = getIcsService().createIcalComponent("VCALENDAR");
         calSetProdidVersion(calcomp);
-        if (this.hasProperty("METHOD")) {
-            calcomp.method = this.getProperty("METHOD");
-        }
         calcomp.addSubcomponent(this.icalComponent);
         return calcomp.serializeToICS();
     },
