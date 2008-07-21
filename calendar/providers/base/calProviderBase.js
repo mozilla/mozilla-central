@@ -70,21 +70,24 @@ function calGetEmailIdentityOfCalendar(aCalendar, outAccount) {
         }
         return identity;
     } else { // take default account/identity:
-        var account = getAccountManager().defaultAccount;
-        if (!account && getAccountManager().accounts.Count()) { // take some account
-            account = getAccountManager().accounts.getElementById(0).QueryInterface(Components.interfaces.nsIMsgAccount);
-        }
-        if (account) {
-            var identity = account.defaultIdentity;
-            if (!identity && account.identities.Count()) {
-                identity = account.identities.getElementById(0).QueryInterface(Components.interfaces.nsIMsgIdentity);
+        try {
+            var account = getAccountManager().defaultAccount;
+            if (!account && getAccountManager().accounts.Count()) { // take some account
+                account = getAccountManager().accounts.getElementById(0).QueryInterface(Components.interfaces.nsIMsgAccount);
             }
-            if (identity) {
-                if (outAccount) {
-                    outAccount.value = account;
+            if (account) {
+                var identity = account.defaultIdentity;
+                if (!identity && account.identities.Count()) {
+                    identity = account.identities.getElementById(0).QueryInterface(Components.interfaces.nsIMsgIdentity);
                 }
-                return identity;
+                if (identity) {
+                    if (outAccount) {
+                        outAccount.value = account;
+                    }
+                    return identity;
+                }
             }
+        } catch (exc) { // any error, e.g. no account at all
         }
         return null;
     }
