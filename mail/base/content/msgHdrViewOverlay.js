@@ -1090,6 +1090,10 @@ function detachAttachment(aAttachment, aSaveFirst)
                            aAttachment.uri, aSaveFirst);
 }
 
+/**
+ * Return true if possible attachments in the currently loaded message can be
+ * deleted/detached.
+ */
 function CanDetachAttachments()
 {
   var uri = GetLoadedMessage();
@@ -1102,10 +1106,9 @@ function CanDetachAttachments()
 /** Return true if the content type is an S/MIME one. */
 function ContentTypeIsSMIME(contentType)
 {
-  return contentType.indexOf("application/pkcs7-mime") >= 0 ||
-         contentType.indexOf("application/pkcs7-signature") >= 0 ||
-         contentType.indexOf("application/x-pkcs7-mime") >= 0 ||
-         contentType.indexOf("application/x-pkcs7-signature") >= 0;
+  // S/MIME is application/pkcs7-mime and application/pkcs7-signature
+  // - also match application/x-pkcs7-mime and application/x-pkcs7-signature.
+  return /application\/(x-)?pkcs7-(mime|signature)/.test(contentType);
 }
 
 function onShowAttachmentContextMenu()
@@ -1121,14 +1124,30 @@ function onShowAttachmentContextMenu()
   var saveAllMenu = document.getElementById('context-saveAllAttachments');
   var detachAllMenu = document.getElementById('context-detachAllAttachments');
   var deleteAllMenu = document.getElementById('context-deleteAllAttachments');
+
   var canDetach = CanDetachAttachments();
-  var deleted = true;
-  var deletedAll = true;
+  var deletedAmongSelected = false;
+  var detachedAmongSelected = false;
+  var anyDeleted = false; // at least one deleted attachment in the list
+  var anyDetached = false; // at least one detached attachment in the list
   var selectNone = selectedAttachments.length == 0;
-  for (var i = 0; i < selectedAttachments.length && deleted; i++)
-    deleted = selectedAttachments[i].attachment.contentType == 'text/x-moz-deleted';
-  for (var i = 0; i < currentAttachments.length && deletedAll; i++)
-    deletedAll = currentAttachments[i].contentType == 'text/x-moz-deleted';
+
+  // Check if one or more of the selected attachments are deleted.
+  for (var i = 0; i < selectedAttachments.length && !deletedAmongSelected; i++)
+    deletedAmongSelected =
+      (selectedAttachments[i].attachment.contentType == 'text/x-moz-deleted');
+
+  // Check if one or more of the selected attachments are detached.
+  for (var i = 0; i < selectedAttachments.length && !detachedAmongSelected; i++)
+    detachedAmongSelected = selectedAttachments[i].attachment.isExternalAttachment;
+
+  // Check if any attachments are deleted.
+  for (var i = 0; i < currentAttachments.length && !anyDeleted; i++)
+    anyDeleted = (currentAttachments[i].contentType == 'text/x-moz-deleted');
+
+  // Check if any attachments are detached.
+  for (var i = 0; i < currentAttachments.length && !anyDetached; i++)
+    anyDetached = currentAttachments[i].isExternalAttachment;
 
   openMenu.setAttribute('hidden', selectNone);
   saveMenu.setAttribute('hidden', selectNone);
@@ -1141,16 +1160,18 @@ function onShowAttachmentContextMenu()
 
   if (!selectNone)
   {
-    openMenu.setAttribute('disabled', deleted);
-    saveMenu.setAttribute('disabled', deleted);
-    detachMenu.setAttribute('disabled', !canDetach || deleted);
-    deleteMenu.setAttribute('disabled', !canDetach || deleted);
+    openMenu.setAttribute('disabled', deletedAmongSelected);
+    saveMenu.setAttribute('disabled', deletedAmongSelected);
+    detachMenu.setAttribute('disabled', !canDetach || deletedAmongSelected
+                                        || detachedAmongSelected);
+    deleteMenu.setAttribute('disabled', !canDetach || deletedAmongSelected
+                                        || detachedAmongSelected);
   }
   else
   {
-    saveAllMenu.setAttribute('disabled', deletedAll);
-    detachAllMenu.setAttribute('disabled', !canDetach || deletedAll);
-    deleteAllMenu.setAttribute('disabled', !canDetach || deletedAll);
+    saveAllMenu.setAttribute('disabled', anyDeleted);
+    detachAllMenu.setAttribute('disabled', !canDetach || anyDeleted || anyDetached);
+    deleteAllMenu.setAttribute('disabled', !canDetach || anyDeleted || anyDetached);
   }
 }
 
@@ -1295,26 +1316,25 @@ function FillAttachmentListPopup(popup)
   // First clear out the old view...
   ClearAttachmentMenu(popup);
 
+  var canDetachOrDeleteAll = CanDetachAttachments();
+
   for (index in currentAttachments)
   {
     ++attachmentIndex;
     addAttachmentToPopup(popup, currentAttachments[index], attachmentIndex);
+    if (canDetachOrDeleteAll &&
+        (currentAttachments[index].isExternalAttachment ||
+        currentAttachments[index].contentType == 'text/x-moz-deleted'))
+      canDetachOrDeleteAll = false;
   }
 
   gBuildAttachmentPopupForCurrentMsg = false;
+
   var detachAllMenu = document.getElementById('file-detachAllAttachments');
   var deleteAllMenu = document.getElementById('file-deleteAllAttachments');
-  if (CanDetachAttachments())
-  {
-    detachAllMenu.removeAttribute('disabled');
-    deleteAllMenu.removeAttribute('disabled');
-  }
-  else
-  {
-    detachAllMenu.setAttribute('disabled', 'true');
-    deleteAllMenu.setAttribute('disabled', 'true');
-  }
 
+  detachAllMenu.setAttribute('disabled', !canDetachOrDeleteAll);
+  deleteAllMenu.setAttribute('disabled', !canDetachOrDeleteAll);
 }
 
 // Public method used to clear the file attachment menu
@@ -1373,16 +1393,7 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
         return gMessengerBundle.getString(aName);
       }
 
-      // we should also check if an attachment has been detached...
-      // but that uses X-Mozilla-External-Attachment-URL, which
-      // we'd need to check for somehow.
-
-      var signedOrEncrypted = false;
-      if ("content-type" in currentHeaderData)
-        signedOrEncrypted = ContentTypeIsSMIME(currentHeaderData["content-type"].headerValue);
-      var canDetach = !(/news-message:/.test(attachment.uri)) &&
-          !signedOrEncrypted &&
-          (!(/imap-message/.test(attachment.uri)) || MailOfflineMgr.isOnline());
+      var canDetach = CanDetachAttachments() && !attachment.isExternalAttachment;
       menuitementry.setAttribute('label', getString("openLabel"));
       menuitementry.setAttribute('accesskey', getString("openLabelAccesskey"));
       menuitementry = openpopup.appendChild(menuitementry);

@@ -1111,13 +1111,19 @@ createNewAttachmentInfo.prototype.detachAttachment = function detachAttachment()
 
 function CanDetachAttachments()
 {
-  if (("content-type" in currentHeaderData) &&
-      /application\/x-pkcs7-(mime|signature)/
-      .test(currentHeaderData["content-type"].headerValue))
-    return false;
-
   var uri = GetLoadedMessage();
-  return !IsNewsMessage(uri) && (!IsImapMessage(uri) || CheckOnline());
+  var canDetach = !IsNewsMessage(uri) && (!IsImapMessage(uri) || CheckOnline());
+  if (canDetach && ("content-type" in currentHeaderData))
+    canDetach = !ContentTypeIsSMIME(currentHeaderData["content-type"].headerValue);
+  return canDetach;
+}
+
+/** Return true if the content type is an S/MIME one. */
+function ContentTypeIsSMIME(contentType)
+{
+  // S/MIME is application/pkcs7-mime and application/pkcs7-signature
+  // - also match application/x-pkcs7-mime and application/x-pkcs7-signature.
+  return /application\/(x-)?pkcs7-(mime|signature)/.test(contentType);
 }
 
 function onShowAttachmentContextMenu()
@@ -1130,13 +1136,34 @@ function onShowAttachmentContextMenu()
   var saveMenu = document.getElementById('context-saveAttachment');
   var detachMenu = document.getElementById('context-detachAttachment');
   var deleteMenu = document.getElementById('context-deleteAttachment');
+  var saveAllMenu = document.getElementById('context-saveAllAttachments');
   var detachAllMenu = document.getElementById('context-detachAllAttachments');
   var deleteAllMenu = document.getElementById('context-deleteAllAttachments');
+
   var canDetach = CanDetachAttachments();
-  var canOpen = false;
-  for (var i = 0; i < selectedAttachments.length && !canOpen; i++)
-    canOpen = selectedAttachments[i].attachment.contentType != 'text/x-moz-deleted';
-  if (canOpen && selectedAttachments.length == 1)
+  var deletedAmongSelected = false;
+  var detachedAmongSelected = false;
+  var anyDeleted = false; // at least one deleted attachment in the list
+  var anyDetached = false; // at least one detached attachment in the list
+
+  // Check if one or more of the selected attachments are deleted.
+  for (var i = 0; i < selectedAttachments.length && !deletedAmongSelected; i++)
+    deletedAmongSelected =
+      (selectedAttachments[i].attachment.contentType == 'text/x-moz-deleted');
+
+  // Check if one or more of the selected attachments are detached.
+  for (var i = 0; i < selectedAttachments.length && !detachedAmongSelected; i++)
+    detachedAmongSelected = selectedAttachments[i].attachment.isExternalAttachment;
+
+  // Check if any attachments are deleted.
+  for (var i = 0; i < currentAttachments.length && !anyDeleted; i++)
+    anyDeleted = (currentAttachments[i].contentType == 'text/x-moz-deleted');
+
+  // Check if any attachments are detached.
+  for (var i = 0; i < currentAttachments.length && !anyDetached; i++)
+    anyDetached = currentAttachments[i].isExternalAttachment;
+
+  if (!deletedAmongSelected && selectedAttachments.length == 1)
   {
     openMenu.removeAttribute('disabled');
     viewMenu.removeAttribute('disabled');
@@ -1146,34 +1173,15 @@ function onShowAttachmentContextMenu()
     openMenu.setAttribute('disabled', true);
     viewMenu.setAttribute('disabled', true);
   }
-  if (canOpen)
-  {
-    saveMenu.removeAttribute('disabled');
-  }
-  else
-  {
-    saveMenu.setAttribute('disabled', true);
-  }
-  if (canDetach && canOpen)
-  {
-    detachMenu.removeAttribute('disabled');
-    deleteMenu.removeAttribute('disabled');
-  }
-  else
-  {
-    detachMenu.setAttribute('disabled', 'true');
-    deleteMenu.setAttribute('disabled', 'true');
-  }
-  if (canDetach)
-  {
-    detachAllMenu.removeAttribute('disabled');
-    deleteAllMenu.removeAttribute('disabled');
-  }
-  else
-  {
-    detachAllMenu.setAttribute('disabled', 'true');
-    deleteAllMenu.setAttribute('disabled', 'true');
-  }
+
+  saveMenu.setAttribute('disabled', deletedAmongSelected);
+  detachMenu.setAttribute('disabled', !canDetach || deletedAmongSelected
+                                      || detachedAmongSelected);
+  deleteMenu.setAttribute('disabled', !canDetach || deletedAmongSelected
+                                      || detachedAmongSelected);
+  saveAllMenu.setAttribute('disabled', anyDeleted);
+  detachAllMenu.setAttribute('disabled', !canDetach || anyDeleted || anyDetached);
+  deleteAllMenu.setAttribute('disabled', !canDetach || anyDeleted || anyDetached);
 }
 
 function MessageIdClick(node, event)
@@ -1297,26 +1305,25 @@ function FillAttachmentListPopup(popup)
   // First clear out the old view...
   ClearAttachmentMenu(popup);
 
+  var canDetachOrDeleteAll = CanDetachAttachments();
+
   for (index in currentAttachments)
   {
     ++attachmentIndex;
     addAttachmentToPopup(popup, currentAttachments[index], attachmentIndex);
+    if (canDetachOrDeleteAll &&
+        (currentAttachments[index].isExternalAttachment ||
+        currentAttachments[index].contentType == 'text/x-moz-deleted'))
+      canDetachOrDeleteAll = false;
   }
 
   gBuildAttachmentPopupForCurrentMsg = false;
 
   var detachAllMenu = document.getElementById('file-detachAllAttachments');
   var deleteAllMenu = document.getElementById('file-deleteAllAttachments');
-  if (CanDetachAttachments())
-  {
-    detachAllMenu.removeAttribute('disabled');
-    deleteAllMenu.removeAttribute('disabled');
-  }
-  else
-  {
-    detachAllMenu.setAttribute('disabled', 'true');
-    deleteAllMenu.setAttribute('disabled', 'true');
-  }
+
+  detachAllMenu.setAttribute('disabled', !canDetachOrDeleteAll);
+  deleteAllMenu.setAttribute('disabled', !canDetachOrDeleteAll);
 }
 
 // Public method used to clear the file attachment menu
@@ -1372,8 +1379,8 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
 
 function FillAttachmentItemPopup(event)
 {
-  var canDetach = CanDetachAttachments();
   var openpopup = event.target;
+  var canDetach = CanDetachAttachments() && !openpopup.attachment.isExternalAttachment;
   openpopup.removeEventListener('popupshowing', FillAttachmentItemPopup, false);
 
   var menuitementry = document.getElementById("context-openAttachment").cloneNode(false);
