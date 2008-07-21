@@ -1381,6 +1381,12 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
         array.RemoveObjectAt(i);
       }
     }
+
+    // The trash folder has effectively been deleted
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    if (notifier)
+      notifier->NotifyFolderDeleted(trashFolder);
+
     return NS_OK;
   }
   return rv;
