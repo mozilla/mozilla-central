@@ -681,7 +681,8 @@ CONFIGURES := $(TOPSRCDIR)/configure
 ifeq (,$(filter mozilla/xpcom,$(MOZ_MODULE_LIST)))
   CVSCO_NSPR :=
 else
-  CONFIGURES += $(TOPSRCDIR)/nsprpub/configure
+  CONFIGURES += $(if $(wildcard $(TOPSRCDIR)/nsprpub/configure.in), \
+	$(TOPSRCDIR)/nsprpub/configure, )
 endif
 
 ifeq (,$(filter mozilla/security/manager,$(MOZ_MODULE_LIST)))
@@ -900,8 +901,9 @@ FULL_EN_US_DIRS := toolkit \
 	$(NULL)
 
 EN_US_LOCALE_DIRS := $(foreach dir, \
-	$(filter-out toolkit extensions/% $(MOZ_PROJECT_LIST), $(LOCALE_DIRS)), \
-	mozilla/$(dir)/locales)
+	$(filter-out toolkit extensions/% $(MOZ_PROJECT_LIST) other-licenses/%, $(LOCALE_DIRS)), \
+	mozilla/$(dir)/locales) \
+	mozilla/$(filter other-licenses/%, $(LOCALE_DIRS))
 
 EN_US_CO_DIRS := $(EN_US_LOCALE_DIRS) \
   $(foreach mod,$(FULL_EN_US_DIRS),mozilla/$(mod)) \
