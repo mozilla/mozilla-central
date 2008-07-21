@@ -60,6 +60,10 @@
 #include "nsIXFormsControl.h"
 #include "nsIInstanceElementPrivate.h"
 #include "nsISchemaValidator.h"
+#include "cert.h"
+#include "prmem.h"
+#include "plbase64.h"
+#include "nsICryptoHash.h"
 
 #define NS_NAMESPACE_XFORMS "http://www.w3.org/2002/xforms"
 
@@ -856,6 +860,119 @@ nsXFormsXPathFunctions::AdjustDateTimeToTimezone(const nsAString &aDateTime,
 
   aResult.AppendLiteral(ctime);
   aResult.Append(NS_ConvertASCIItoUTF16(zone_location));
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsXPathFunctions::Digest(txIFunctionEvaluationContext *aContext,
+                               const nsAString &aData,
+                               const nsAString &aAlgorithm,
+                               const nsAString &aEncoding,
+                               nsAString &aResult)
+{
+  aResult.Truncate();
+
+  PRBool throwException = PR_FALSE;
+  
+  // Determine the hash algorithm to use.
+  PRUint32 hashAlg = 0;
+
+  if (aAlgorithm.EqualsLiteral("MD5")) {
+    hashAlg = nsICryptoHash::MD5;
+  } else if (aAlgorithm.EqualsLiteral("SHA-1")) {
+    hashAlg = nsICryptoHash::SHA1;
+  } else if (aAlgorithm.EqualsLiteral("SHA-256")) {
+    hashAlg = nsICryptoHash::SHA256;
+  } else if (aAlgorithm.EqualsLiteral("SHA-384")) {
+    hashAlg = nsICryptoHash::SHA384;
+  } else if (aAlgorithm.EqualsLiteral("SHA-512")) {
+    hashAlg = nsICryptoHash::SHA512;
+  } else {
+    // Throw exception.
+    throwException = PR_TRUE;
+  }
+
+  if (!throwException) {
+    // Perform the hash.
+    nsresult rv;
+  
+    nsCOMPtr<nsICryptoHash> hash =
+      do_CreateInstance("@mozilla.org/security/hash;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+  
+    rv = hash->Init(hashAlg);
+    NS_ENSURE_SUCCESS(rv, rv);
+  
+    nsCAutoString data = NS_LossyConvertUTF16toASCII(aData);
+    rv = hash->Update(reinterpret_cast<const PRUint8*>(data.get()),
+                      data.Length());
+    NS_ENSURE_SUCCESS(rv, rv);
+ 
+    // PR_FALSE means return the raw binary data.
+    nsCAutoString result;
+    rv = hash->Finish(PR_FALSE, result);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Encode the result.
+    if (aEncoding.IsEmpty() || aEncoding.EqualsLiteral("base64")) {
+      char *buffer = PL_Base64Encode((char *)result.get(),
+                                     result.Length(), nsnull);
+      if (buffer) {
+        aResult = ToNewUnicode(NS_ConvertASCIItoUTF16(buffer));
+        PR_Free(buffer);
+      }
+    } else if (aEncoding.EqualsLiteral("hex")) {
+      SECItem secItem;
+      secItem.data = (unsigned char *)result.get();
+      secItem.len = result.Length();
+      // 0 means do not add ':' to the hex string.
+      char *buffer = CERT_Hexify(&secItem, 0);
+      if (buffer) {
+        nsCAutoString hexResult(buffer);
+        ToLowerCase(hexResult);
+        aResult = NS_ConvertASCIItoUTF16(hexResult);
+        PORT_Free(buffer);
+      }
+    } else {
+      // Throw exception.
+      throwException = PR_TRUE;
+    }
+  }
+
+  if (throwException) {
+    // Get xforms node that contained the digest() expression.
+    nsCOMPtr<nsIXFormsXPathState> state;
+    aContext->GetState(getter_AddRefs(state));
+    nsCOMPtr<nsIDOMNode> xfNode;
+    state->GetXformsNode(getter_AddRefs(xfNode));
+    NS_ENSURE_TRUE(xfNode, NS_ERROR_FAILURE);
+
+    // If the digest function appears in a computed expression (An XPath
+    // expression used by model item properties such as relevant and
+    // calculate to include dynamic functionality in XForms), an
+    // xforms-compute-exception occurs. If the digest function appears
+    // in any other attribute that contains an XPath function, an
+    // xforms-binding-exception occurs.
+    nsXFormsEvent event = eEvent_BindingException;
+    nsAutoString localName, namespaceURI;
+    xfNode->GetLocalName(localName);
+    if (localName.EqualsLiteral("bind")) {
+      xfNode->GetNamespaceURI(namespaceURI);
+      if (namespaceURI.EqualsLiteral(NS_NAMESPACE_XFORMS)) {
+        event = eEvent_ComputeException;
+      }
+    }
+
+    // Dispatch the event.
+    nsCOMPtr<nsIDOMElement> resolverElement = do_QueryInterface(xfNode);
+    nsCOMPtr<nsIModelElementPrivate> modelPriv =
+      nsXFormsUtils::GetModel(resolverElement);
+    nsCOMPtr<nsIDOMNode> model = do_QueryInterface(modelPriv);
+    nsXFormsUtils::DispatchEvent(model, event, nsnull, resolverElement,
+                                 nsnull);
+    return NS_ERROR_FAILURE;
+  }
 
   return NS_OK;
 }

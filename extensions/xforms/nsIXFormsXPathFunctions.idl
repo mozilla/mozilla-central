@@ -70,4 +70,6 @@ interface nsIXFormsXPathFunctions : nsISupports
     // context is translated to contextNode because context is a reserved word.
     txINodeSet contextNode(in txIFunctionEvaluationContext aContext);
     DOMString adjustDateTimeToTimezone(in DOMString aDateTime);
+    DOMString digest(in txIFunctionEvaluationContext aContext, in DOMString aData,
+                     in DOMString aAlgorithm, in DOMString aEncoding);
 };

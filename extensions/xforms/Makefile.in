@@ -112,6 +112,7 @@ REQUIRES	= \
 		htmlparser \
 		exthandler \
 		chardet \
+		pipnss \
 		$(NULL)
 
 # XForms IDLs
@@ -229,6 +230,12 @@ EXTRA_DSO_LDOPTS = \
 		$(LIBXUL_DIST)/lib/$(LIB_PREFIX)unicharutil_s.$(LIB_SUFFIX) \
 		$(XPCOM_GLUE_LDOPTS) \
 		$(NULL)
+
+ifeq (,$(filter-out WINNT WINCE,$(OS_ARCH)))
+EXTRA_DSO_LDOPTS += $(DIST)/lib/$(LIB_PREFIX)nss3.$(LIB_SUFFIX)
+else
+EXTRA_DSO_LDOPTS += $(LIBXUL_DIST)/lib/$(LIB_PREFIX)nss3$(DLL_SUFFIX)
+endif
 
 # Do not clean schema-validation on distclean, it should handle that itself
 distclean:: LOOP_OVER_DIRS=
