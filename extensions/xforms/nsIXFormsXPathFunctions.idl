@@ -40,7 +40,7 @@
 #include "nsISupports.idl"
 #include "txIFunctionEvaluationContext.idl"
 
-[scriptable, uuid(c4b8d91a-0397-46a8-982d-225d2036fcdb)]
+[scriptable, uuid(b4d5268b-e458-4a45-9161-d9f84818f4ab)]
 interface nsIXFormsXPathFunctions : nsISupports
 {
     double avg(in txINodeSet aNodeSet);
@@ -72,4 +72,7 @@ interface nsIXFormsXPathFunctions : nsISupports
     DOMString adjustDateTimeToTimezone(in DOMString aDateTime);
     DOMString digest(in txIFunctionEvaluationContext aContext, in DOMString aData,
                      in DOMString aAlgorithm, in DOMString aEncoding);
+    DOMString hmac(in txIFunctionEvaluationContext aContext, in DOMString aKey,
+                   in DOMString aData, in DOMString aAlgorithm,
+                   in DOMString aEncoding);
 };
