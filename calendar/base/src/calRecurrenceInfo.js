@@ -849,6 +849,36 @@ calRecurrenceInfo.prototype = {
             return;
         }
 
+        var rdates = {};
+
+        // take RDATE's and EXDATE's into account.
+        const kCalIRecurrenceDate = Components.interfaces.calIRecurrenceDate;
+        const kCalIRecurrenceDateSet = Components.interfaces.calIRecurrenceDateSet;
+        var ritems = this.getRecurrenceItems({});
+        for each (var ritem in ritems) {
+            if (ritem instanceof kCalIRecurrenceDate) {
+                ritem = ritem.QueryInterface(kCalIRecurrenceDate);
+                var date = ritem.date;
+                date.addDuration(timeDiff);
+                if (!ritem.isNegative) {
+                    rdates[getRidKey(date)] = date;
+                }
+                ritem.date = date;
+            } else if (ritem instanceof kCalIRecurrenceDateSet) {
+                ritem = ritem.QueryInterface(kCalIRecurrenceDateSet);
+                var rdates = ritem.getDates({});
+                for each (var date in rdates) {
+                    date.addDuration(timeDiff);
+                    if (!ritem.isNegative) {
+                        rdates[getRidKey(date)] = date;
+                    }
+                }
+                ritem.setDates(rdates.length,rdates);
+            }
+        }
+
+        var startTimezone = aNewStartTime.timezone;
+
         // convert both dates to UTC since subtractDate is not timezone aware.
         aOldStartTime = aOldStartTime.getInTimezone(UTC());
         aNewStartTime = aNewStartTime.getInTimezone(UTC());
@@ -859,8 +889,14 @@ calRecurrenceInfo.prototype = {
             var ex = this.getExceptionFor(exid, false);
             if (ex) {
                 ex = ex.clone();
-                // xxx todo: isn't the below questionable w.r.t DST changes?
-                ex.recurrenceId.addDuration(timeDiff);
+                // track RECURRENCE-IDs in DTSTART's or RDATE's timezone,
+                // otherwise those won't match any longer w.r.t DST:
+                var rid = ex.recurrenceId;
+                rid = rid.getInTimezone(rdates[getRidKey(rid)]
+                                        ? origRdates[getRidKey(rid)].timezone
+                                        : startTimezone);
+                rid.addDuration(timeDiff);
+                ex.recurrenceId = rid;
 
                 modifiedExceptions.push(ex);
                 this.removeExceptionFor(exid);
@@ -868,25 +904,6 @@ calRecurrenceInfo.prototype = {
         }
         for each (var modifiedEx in modifiedExceptions) {
             this.modifyException(modifiedEx, true);
-        }
-
-        // also take RDATE's and EXDATE's into account.
-        const kCalIRecurrenceDate = Components.interfaces.calIRecurrenceDate;
-        const kCalIRecurrenceDateSet = Components.interfaces.calIRecurrenceDateSet;
-        var ritems = this.getRecurrenceItems({});
-        for (var i in ritems) {
-            var ritem = ritems[i];
-            if (ritem instanceof kCalIRecurrenceDate) {
-                ritem = ritem.QueryInterface(kCalIRecurrenceDate);
-                ritem.date.addDuration(timeDiff);
-            } else if (ritem instanceof kCalIRecurrenceDateSet) {
-                ritem = ritem.QueryInterface(kCalIRecurrenceDateSet);
-                var rdates = ritem.getDates({});
-                for each (var date in rdates) {
-                    date.addDuration(timeDiff);
-                }
-                ritem.setDates(rdates.length,rdates);
-            }
         }
     }
 };
