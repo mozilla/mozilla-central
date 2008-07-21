@@ -3,6 +3,7 @@
   -moz-padding-end: 0;
   padding-bottom: 10px;
   -moz-padding-start: 0;
+  width: 298px;
 }
 
 #modes {
@@ -17,27 +18,37 @@
   color: #000000;
 }
 
-#versionWrapper {
-  margin-top: 0;
-  -moz-margin-end: 0;
-  margin-bottom: 3px;
-  -moz-margin-start: 20px;
+#userAgent {
+  margin-top: 10px;
+  -moz-margin-end: 15px;
+  margin-bottom: 0;
+  -moz-margin-start: 15px;
+  background-color: #FFFFFF;
+  color: #000000;
+  padding-top: 1px;
+  -moz-padding-end: 1px;
+  padding-bottom: 1px;
+  -moz-padding-start: 3px;
+  -moz-appearance: none;
+  overflow: hidden;
+  border: 0;
 }
 
 #versionField {
-  background-color: #FFFFFF;
   -moz-appearance: none;
-  border: none;
   font-weight: bold;
   color: #909090;
+  margin-top: -5px;
+  -moz-margin-end: 0;
+  margin-bottom: 10px;
+  -moz-margin-start: 19px;
 }
 
 #copyright {
-  color: #909090;
   margin-top: 0;
-  -moz-margin-end: 20px;
+  -moz-margin-end: 19px;
   margin-bottom: 3px;
-  -moz-margin-start: 20px;
+  -moz-margin-start: 19px;
 }
 
 #groove {
@@ -47,6 +58,7 @@
 #creditsIframe {
    cursor: default;
    -moz-user-select: none;
+   border: 0;
 }
 
 button[dlgtype="extra2"] {

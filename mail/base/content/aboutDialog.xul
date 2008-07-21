@@ -48,36 +48,32 @@
 
 <dialog xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        id="aboutDialog"
+        id="aboutDialog" windowtype="Mail:About"
 #ifdef XP_MACOSX
-        windowtype="Mail:About"
-        buttons="extra2"
-        align="end"
+        buttons="extra2" align="end"
 #else
         buttons="accept,extra2"
 #endif
-        onload="onLoad();"
-        title="&aboutDialog.title;" creditslabel="&credits.label;" creditsaccesskey="&credits.accesskey;"
-        aboutlabel="&aboutLink.label;" aboutaccesskey="&aboutLink.accesskey;" versionlabel="&aboutVersion;"
-        style="width: 299px; height: 330px;"> 
+        onload="onLoad();" onunload="onUnload(event);"
+        title="&aboutDialog.title;"
+        creditslabel="&credits.label;" creditsaccesskey="&credits.accesskey;"
+        aboutlabel="&aboutLink.label;" aboutaccesskey="&aboutLink.accesskey;">
 
     <script type="application/x-javascript">
       <![CDATA[
-        var gSelectedPage;
+        var gSelectedPage = 0;
 
         function onLoad() {
-          var versionField = document.getElementById("versionField");
-          versionField.value = versionField.value + ' (' + navigator.productSub + ')';
+          document.getElementById("userAgent").value = navigator.userAgent;
 
           var button = document.documentElement.getButton("extra2");
           button.setAttribute("label", document.documentElement.getAttribute("creditslabel"));
           button.setAttribute("accesskey", document.documentElement.getAttribute("creditsaccesskey"));
-          gSelectedPage = 0;
           button.addEventListener("command", switchPage, false);
           document.documentElement.getButton("accept").focus();
         }
 
-        function uninit(aEvent)
+        function onUnload(aEvent)
         {
           if (aEvent.target != document)
             return;
@@ -112,19 +108,15 @@
 
     <deck id="modes" flex="1">
       <vbox flex="1" id="clientBox">
-      <vbox id="versionWrapper" flex="1" pack="center">
-        <textbox id="versionField" readonly="true" class="plain" tabindex="2"
-#expand value="&aboutVersion; __MOZ_APP_VERSION__"/>
-            </vbox>
-      <description id="copyright">&copyrightText;</description>
-      <separator/>
+#expand <label id="versionField" value="&aboutVersion; __MOZ_APP_VERSION__"/>
+        <description id="copyright">&copyrightText;</description>
+        <textbox id="userAgent" multiline="true" readonly="true" flex="1"/>
       </vbox>
 
       <vbox flex="1" id="creditsBox">
-        <html:iframe style="border: 0px;" id="creditsIframe" src="chrome://messenger/content/credits.xhtml" flex="1"/>
-      </vbox> 
-    </deck>   
-  
+        <iframe id="creditsIframe" flex="1"/>
+      </vbox>
+    </deck>
     <separator class="groove" id="groove"/>
-    
+
 </dialog>
