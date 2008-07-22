@@ -35,6 +35,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
+if [ "$COMM_BUILD" ]; then
 add_makefiles "
   suite/Makefile
   suite/app/Makefile
@@ -65,3 +66,4 @@ add_makefiles "
   suite/themes/modern/Makefile
   suite/themes/classic/Makefile
 "
+fi

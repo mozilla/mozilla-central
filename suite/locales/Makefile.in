@@ -155,8 +155,8 @@ MOZ_PKG_MAC_EXTRA=--format UDBZ \
 endif
 
 PACKAGER_NO_LIBS = 1
-include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
-include $(call EXPAND_LOCALE_SRCDIR,toolkit/locales)/installer/windows/charset.mk
+include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
+include $(call EXPAND_MOZLOCALE_SRCDIR,toolkit/locales)/installer/windows/charset.mk
 
 repackage-win32-installer: WIN32_INSTALLER_OUT=$(_ABS_DIST)/install/sea/$(PKG_BASENAME).installer.exe
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)

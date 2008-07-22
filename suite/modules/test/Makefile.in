@@ -47,4 +47,4 @@ _BROWSER_FILES = browser_sanitizer.js \
                $(NULL)
 
 libs::	$(_BROWSER_FILES)
-	$(INSTALL) $(foreach f,$^,"$f") $(DEPTH)/_tests/testing/mochitest/browser/$(relsrcdir)
+	$(INSTALL) $(foreach f,$^,"$f") $(MOZDEPTH)/_tests/testing/mochitest/browser/$(relsrcdir)

@@ -15,11 +15,11 @@
 #
 # The Initial Developer of the Original Code is
 # the Mozilla Foundation <http://www.mozilla.org/>.
-# Portions created by the Initial Developer are Copyright (C) 2006
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Benjamin Smedberg <benjamin@smedbergs.us> (Initial Code)
+#   Robert Kaiser <kairo@kairo.at> (Initial Code)
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,58 +35,9 @@
 #
 # ***** END LICENSE BLOCK *****
 
-ifndef COMM_BUILD # Mozilla Makefile
+MOZ_SUITE = 1
+DEFINES += -DMOZ_SUITE=1
 
-ifndef LIBXUL_SDK
-include $(topsrcdir)/toolkit/toolkit-tiers.mk
-endif
-
-TIERS += app
-
-ifdef MOZ_CALENDAR
-MOZ_EXTENSIONS += webdav
-endif
-
-ifdef MOZ_EXTENSIONS
-tier_app_dirs += extensions
-endif
-
-else # toplevel Makefile
-
-TIERS += app
-
-ifdef MOZ_LDAP_XPCOM
-tier_app_staticdirs += directory/c-sdk
-tier_app_dirs += directory/xpcom
-endif
-
-ifdef MOZ_BRANDING_DIRECTORY
-tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
-endif
-
-ifdef MOZ_COMPOSER
-tier_app_dirs += mozilla/editor/ui
-endif
-
-ifdef MOZ_MAIL_NEWS
-tier_app_dirs += mailnews
-endif
-
-ifdef MOZ_CALENDAR
-tier_app_dirs += calendar/lightning
-endif
-
-tier_app_dirs += \
-	suite \
-	$(NULL)
-
-endif # COMM_BUILD
-
-installer:
-	@$(MAKE) -C suite/installer installer
-
-package:
-	@$(MAKE) -C suite/installer
-
-install::
-	@$(MAKE) -C suite/installer install
+# don't use the toolkit download manager (yet)
+SUITE_USING_XPFE_DM = 1
+DEFINES += -DSUITE_USING_XPFE_DM=1

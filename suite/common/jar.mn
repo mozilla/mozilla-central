@@ -63,7 +63,7 @@ comm.jar:
    content/communicator/helpOverlay.js
    content/communicator/helpOverlay.xul
 # the following file is a suite-specific override of the generic license.html, using suite/common/app-license.html as input:
-*  content/communicator/license.html                                (/toolkit/content/license.html)
+*  content/communicator/license.html                                (/mozilla/toolkit/content/license.html)
    content/communicator/nsContextMenu.js
    content/communicator/openLocation.js
    content/communicator/openLocation.xul
@@ -141,7 +141,7 @@ comm.jar:
    content/communicator/pref/preferences.js                         (pref/preferences.js)
 # files deprecated by preferences.xul: begin
    content/communicator/pref/nsPrefWindow.js                        (pref/nsPrefWindow.js)
-   content/communicator/pref/nsWidgetStateManager.js                (/xpfe/global/resources/content/nsWidgetStateManager.js)
+   content/communicator/pref/nsWidgetStateManager.js                (/mozilla/xpfe/global/resources/content/nsWidgetStateManager.js)
    content/communicator/pref/pref.xul                               (pref/pref.xul)
    content/communicator/pref/preftree.xul                           (pref/preftree.xul)
    content/communicator/pref/pref-help.js                           (pref/pref-help.js)
