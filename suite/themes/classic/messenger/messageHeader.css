@@ -154,11 +154,11 @@
 
 .addresstwisty {
   margin: 2px;
-  list-style-image: url("chrome://global/skin/tree/twisty-clsd.gif");
+  list-style-image: url("chrome://messenger/skin/icons/twisty-clsd.png");
 }
 
 .addresstwisty[open] {
-  list-style-image: url("chrome://global/skin/tree/twisty-open.gif");
+  list-style-image: url("chrome://messenger/skin/icons/twisty-open.png");
 }
 
 /* ::::: view expand and collapse twisties  ::::: */
@@ -169,11 +169,11 @@
 }
 
 .expandHeaderViewButton {
-  list-style-image: url("chrome://global/skin/tree/twisty-open.gif");
+  list-style-image: url("chrome://messenger/skin/icons/twisty-open.png");
 }
 
 .collapsedHeaderViewButton  {
-  list-style-image: url("chrome://global/skin/tree/twisty-clsd.gif");
+  list-style-image: url("chrome://messenger/skin/icons/twisty-clsd.png");
 }
 
 /* ::::: collapsed view styles ::::: */

@@ -252,6 +252,8 @@ classic.jar:
   skin/classic/messenger/icons/thread-new-closed-offl-eye.png           (messenger/icons/thread-new-closed-offl-eye.png)
   skin/classic/messenger/icons/thread-new-closed-offl-kill.png          (messenger/icons/thread-new-closed-offl-kill.png)
   skin/classic/messenger/icons/thread-new-closed.png                    (messenger/icons/thread-new-closed.png)
+  skin/classic/messenger/icons/twisty-open.png                          (messenger/icons/twisty-open.png)
+  skin/classic/messenger/icons/twisty-clsd.png                          (messenger/icons/twisty-clsd.png)
   skin/classic/messenger/folderPaneExtras.css                           (messenger/folderPaneExtras.css)
   skin/classic/messenger/threadPaneExtras.css                           (messenger/threadPaneExtras.css)
   skin/classic/messenger/messageKeywords.css                            (messenger/messageKeywords.css)
