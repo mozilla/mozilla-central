@@ -148,3 +148,34 @@ nsOuterDocAccessible::GetAttributesInternal(nsIPersistentProperties *aAttributes
   }
   return nsAccessible::GetAttributesInternal(aAttributes);
 }
+
+// Internal frame, which is the doc's parent, should not have a click action
+NS_IMETHODIMP
+nsOuterDocAccessible::GetNumActions(PRUint8 *aNumActions)
+{
+  NS_ENSURE_ARG_POINTER(aNumActions);
+  *aNumActions = 0;
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsOuterDocAccessible::GetActionName(PRUint8 aIndex, nsAString& aName)
+{
+  aName.Truncate();
+
+  return NS_ERROR_INVALID_ARG;
+}
+
+NS_IMETHODIMP
+nsOuterDocAccessible::GetActionDescription(PRUint8 aIndex, nsAString& aDescription)
+{
+  // default to same as action name.
+  return GetActionName(aIndex, aDescription);
+}
+
+NS_IMETHODIMP
+nsOuterDocAccessible::DoAction(PRUint8 aIndex)
+{
+  return NS_ERROR_INVALID_ARG;
+}
