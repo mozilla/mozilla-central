@@ -473,11 +473,12 @@ calDavCalendar.prototype = {
             return;
         }
 
-        if (aNewItem.parentItem != aNewItem) {
-            var excItem = aNewItem;
-            aNewItem = aNewItem.parentItem.clone();
-            aNewItem.recurrenceInfo.modifyException(excItem, false);
+        var newItem_ = aNewItem;
+        aNewItem = aNewItem.parentItem.clone();
+        if (newItem_.parentItem != newItem_) {
+            aNewItem.recurrenceInfo.modifyException(newItem_, false);
         }
+        aNewItem.generation += 1;
 
         var eventUri = this.mCalendarUri.clone();
         eventUri.spec = this.makeUri(this.mItemInfoCache[aNewItem.id].locationPath);
