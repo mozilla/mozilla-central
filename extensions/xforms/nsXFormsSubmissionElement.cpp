@@ -926,6 +926,216 @@ nsXFormsSubmissionElement::GetSubmissionURI(nsACString& aURI)
 }
 
 nsresult
+nsXFormsSubmissionElement::OverrideRequestHeaders(nsIHttpChannel *aHttpChannel)
+{
+
+  // Check to see if this submission element has any header elements.  Process
+  // the header elements, which will find any name/value pairs and add them
+  // to the channel's request header
+
+  nsresult rv = NS_OK;
+  nsCOMPtr<nsIDOMNode> currentNode, node, headerNode;
+  mElement->GetFirstChild(getter_AddRefs(currentNode));
+
+  PRUint16 nodeType;
+
+  while (currentNode) {
+    currentNode->GetNodeType(&nodeType);
+    if (nodeType == nsIDOMNode::ELEMENT_NODE) {
+      // Check if the element is a header element.
+      nsAutoString localName, namespaceURI;
+      currentNode->GetLocalName(localName);
+      currentNode->GetNamespaceURI(namespaceURI);
+      if (localName.EqualsLiteral("header") &&
+          namespaceURI.EqualsLiteral(NS_NAMESPACE_XFORMS)) {
+        headerNode = currentNode;
+        nsAutoString name, value;
+        rv = ProcessHeaderElement(headerNode, aHttpChannel);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+    }
+
+    currentNode->GetNextSibling(getter_AddRefs(node));
+    currentNode.swap(node);
+  }
+
+  return NS_OK;
+}
+
+nsresult
+nsXFormsSubmissionElement::ProcessHeaderElement(nsIDOMNode *aHeaderNode,
+                                                nsIHttpChannel *aHttpChannel)
+{
+  // Take the given header node and look for name/value element pairs
+  // underneath.  Evaluate their bindings, if any, and set those headers on
+  // the submission request.
+
+  NS_ENSURE_ARG(aHeaderNode);
+
+  PRBool hasNodeset = PR_FALSE;
+  nsCOMPtr<nsIDOMXPathResult> nodesetResult;
+  PRInt32 contextSize = kNotFound;
+  nsAutoString nodesetString(NS_LITERAL_STRING("nodeset"));
+  nsresult rv;
+  nsCOMPtr<nsIDOMElement> headerElement(do_QueryInterface(aHeaderNode));
+  NS_ENSURE_STATE(headerElement);
+  headerElement->HasAttribute(nodesetString, &hasNodeset);
+
+  if (hasNodeset) {
+    nsAutoString bindExpr;
+    headerElement->GetAttribute(nodesetString, bindExpr);
+    if (!bindExpr.IsEmpty()) {
+      // Get the nodeset we are bound to
+      nsCOMPtr<nsIModelElementPrivate> model;
+      PRBool usesModelBind = PR_FALSE;
+      rv = nsXFormsUtils::EvaluateNodeBinding(headerElement, 0, nodesetString,
+                                              EmptyString(),
+                                              nsIDOMXPathResult::ORDERED_NODE_SNAPSHOT_TYPE,
+                                              getter_AddRefs(model),
+                                              getter_AddRefs(nodesetResult),
+                                              &usesModelBind);
+      NS_ENSURE_SUCCESS(rv, rv);
+      PRUint32 tempSize;
+      rv = nodesetResult->GetSnapshotLength(&tempSize);
+      NS_ENSURE_SUCCESS(rv, rv);
+      contextSize = (PRInt32)tempSize;
+
+      if (contextSize <= 0) {
+        return NS_OK;
+      }
+    }
+  }
+
+  // look for the name and value elements under the header element
+
+  nsCOMPtr<nsIDOMNode> currentNode, node;
+  headerElement->GetFirstChild(getter_AddRefs(currentNode));
+  
+  PRUint16 nodeType;
+  nsAutoString nameExpr, nameValue, valueExpr, valueValue;
+  PRBool useNameExpr = PR_FALSE, useValueExpr = PR_FALSE;
+  nsCOMPtr<nsIDOMElement> nameElement, valueElement;
+  
+  while (currentNode && (!valueElement || !nameElement)) {
+    currentNode->GetNodeType(&nodeType);
+    if (nodeType == nsIDOMNode::ELEMENT_NODE) {
+      nsAutoString localName, namespaceURI,
+                   valueString(NS_LITERAL_STRING("value"));
+      currentNode->GetLocalName(localName);
+      currentNode->GetNamespaceURI(namespaceURI);
+      if (localName.EqualsLiteral("name") &&
+          namespaceURI.EqualsLiteral(NS_NAMESPACE_XFORMS) &&
+          !nameElement) {
+        nameElement = do_QueryInterface(currentNode);
+        if (nameElement) {
+          nameElement->HasAttribute(valueString, &useNameExpr);
+          if (useNameExpr) {
+            nameElement->GetAttribute(valueString, nameExpr);
+            if (contextSize == kNotFound) {
+              nsCOMPtr<nsIModelElementPrivate> model;
+              PRBool usesModelBind = PR_FALSE;
+              nsCOMPtr<nsIDOMXPathResult> xpRes;
+              rv = nsXFormsUtils::EvaluateNodeBinding(nameElement, 0,
+                                                      valueString, EmptyString(),
+                                                      nsIDOMXPathResult::STRING_TYPE,
+                                                      getter_AddRefs(model),
+                                                      getter_AddRefs(xpRes),
+                                                      &usesModelBind);
+              NS_ENSURE_SUCCESS(rv, rv);
+              if (xpRes) {
+                xpRes->GetStringValue(nameValue);
+              }
+            }
+          } else {
+            // No value attribute. Get the string content of the resource element.
+            nsXFormsUtils::GetNodeValue(currentNode, nameValue);
+          }
+        }
+      } else if (localName.Equals(valueString) &&
+          namespaceURI.EqualsLiteral(NS_NAMESPACE_XFORMS) &&
+          !valueElement) {
+        valueElement = do_QueryInterface(currentNode);
+        if (valueElement) {
+          valueElement->HasAttribute(valueString, &useValueExpr);
+          if (useValueExpr) {
+            valueElement->GetAttribute(valueString, valueExpr);
+            if (contextSize == kNotFound) {
+              nsCOMPtr<nsIModelElementPrivate> model;
+              PRBool usesModelBind = PR_FALSE;
+              nsCOMPtr<nsIDOMXPathResult> xpRes;
+              rv = nsXFormsUtils::EvaluateNodeBinding(valueElement, 0,
+                                                      valueString, EmptyString(),
+                                                      nsIDOMXPathResult::STRING_TYPE,
+                                                      getter_AddRefs(model),
+                                                      getter_AddRefs(xpRes),
+                                                      &usesModelBind);
+              NS_ENSURE_SUCCESS(rv, rv);
+              if (xpRes) {
+                xpRes->GetStringValue(valueValue);
+              }
+            }
+          } else {
+            // No value attribute. Get the string content of the resource element.
+            nsXFormsUtils::GetNodeValue(valueElement, valueValue);
+          }
+        }
+      }
+    }
+    currentNode->GetNextSibling(getter_AddRefs(node));
+    currentNode.swap(node);
+  }
+
+  NS_ENSURE_STATE(nameElement && valueElement);
+
+  if (contextSize == kNotFound) {
+    // if the header element didn't have any nodeset attribute we just have the
+    // one name/value pair to worry about
+
+    if (!nameValue.IsEmpty()) {
+      rv = aHttpChannel->SetRequestHeader(NS_ConvertUTF16toUTF8(nameValue),
+                                          NS_ConvertUTF16toUTF8(valueValue),
+                                          PR_TRUE);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+    return NS_OK;
+  }
+
+  for (PRInt32 i = 0; i < contextSize; ++i) {
+    // Get context node
+    nsCOMPtr<nsIDOMNode> contextNode;
+    rv = nodesetResult->SnapshotItem(i, getter_AddRefs(contextNode));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (contextNode) {
+      nsCOMPtr<nsIDOMXPathResult> xpRes;
+      if (!nameExpr.IsEmpty()) {
+        rv = nsXFormsUtils::EvaluateXPath(nameExpr, contextNode, nameElement,
+                                          nsIDOMXPathResult::STRING_TYPE,
+                                          getter_AddRefs(xpRes));
+        NS_ENSURE_SUCCESS(rv, rv);
+        xpRes->GetStringValue(nameValue);
+      }
+      if (!valueExpr.IsEmpty()) {
+        rv = nsXFormsUtils::EvaluateXPath(valueExpr, contextNode, valueElement,
+                                          nsIDOMXPathResult::STRING_TYPE,
+                                          getter_AddRefs(xpRes));
+        NS_ENSURE_SUCCESS(rv, rv);
+        xpRes->GetStringValue(valueValue);
+      }
+
+      if (!nameValue.IsEmpty()) {
+        rv = aHttpChannel->SetRequestHeader(NS_ConvertUTF16toUTF8(nameValue),
+                                            NS_ConvertUTF16toUTF8(valueValue),
+                                            PR_TRUE);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+    }
+  }
+
+  return NS_OK;
+}
+
+nsresult
 nsXFormsSubmissionElement::GetBoundInstanceData(nsIDOMNode **result)
 {
   nsCOMPtr<nsIModelElementPrivate> model;
@@ -2466,6 +2676,7 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
 
   if (httpChannel) {
     httpChannel->SetReferrer(currURI);
+    OverrideRequestHeaders(httpChannel);
   }
 
   if (mFormat & METHOD_POST) {
