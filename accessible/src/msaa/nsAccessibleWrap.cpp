@@ -333,6 +333,9 @@ __try {
     if (NS_FAILED(xpAccessible->GetValue(value)))
       return E_FAIL;
 
+    if (value.IsEmpty())
+      return S_FALSE;
+
     *pszValue = ::SysAllocStringLen(value.get(), value.Length());
     if (!*pszValue)
       return E_OUTOFMEMORY;
