@@ -1,0 +1,25 @@
+# .hgignore - List of filenames hg should ignore
+
+# Filenames that should be ignored wherever they appear
+~$
+\.pyc$
+(^|/)TAGS$
+
+# User files that may appear at the root
+^\.mozconfig$
+^mozconfig$
+^\.mozconfig\.mk$
+^\.mozconfig\.out$
+^configure$
+^config\.cache$
+^config\.log$
+^ID$
+
+# Build directories
+^obj-
+^objdir-
+
+# directories we check out from other repositories
+^calendar$
+^directory/c-sdk$
+^mozilla$
