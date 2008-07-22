@@ -1,0 +1,148 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ * ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+
+interface nsIAuthPrompt;
+
+/**
+ * This interface represents a single SMTP Server. A SMTP server instance may be
+ * created/obtained from nsIMsgAccountManager.
+ *
+ * Most of the attributes will set/get preferences from the main preferences
+ * file.
+ */
+[scriptable, uuid(1d449933-b0b7-4bbf-a8a4-cc4bb9b545c5)]
+interface nsISmtpServer : nsISupports {
+
+  /// A unique identifier for the server.
+  attribute string key;
+
+  /// A user supplied description for the server.
+  attribute AUTF8String description;
+
+  /// The server's hostname.
+  attribute string hostname;
+
+  /// The server's port.
+  attribute PRInt32 port;
+
+  /// The username to access the server with (if required)
+  attribute string username;
+
+  /**
+   * The password to access the server with (if required).
+   *
+   * @note this is stored within the server instance but not within preferences.
+   * It can be specified/saved here to avoid prompting the user constantly for
+   * the sending password.
+   */
+  attribute string password;
+
+  /// Returns a displayname of the format hostname:port or just hostname
+  readonly attribute string displayname;
+
+  /**
+   * Whether or not to use authentication for this server.
+   * 0 = no authentication, 1 = use authentication.
+   * Reflects the mail.smtpserver.*.auth_method pref (default has value 1).
+   */
+  attribute long authMethod;
+
+  /// Should we always use secure authentication?
+  attribute boolean useSecAuth;
+
+  /// Should we attempt to use secure authentication if the server supports it?
+  attribute boolean trySecAuth;
+
+  /// Should we try to use SSL for this connection?
+  attribute long trySSL;
+
+  /**
+   * May contain an alternative argument to EHLO or HELO to provide to the
+   * server. Reflects the value of the mail.smtpserver.*.hello_argument pref.
+   * This is mainly useful where ISPs don't bother providing PTR records for
+   * their servers and therefore users get an error on sending. See bug 244030
+   * for more discussion.
+   */
+  readonly attribute string helloArgument;
+
+  /// Returns the URI of the server (smtp:///)
+  readonly attribute string serverURI;
+
+  /**
+   * Gets a password for this server, using a UI prompt if necessary.
+   *
+   * @param promptString  The string to prompt the user with when asking for
+   *                      the password.
+   * @param promptTitle   The title of the prompt.
+   * @param netPrompt     An nsIAuthPrompt instance to use for the password
+   *                      prompt.
+   * @return              The password to use (may be null if no password was
+   *                      obtained).
+   */  
+  string getPasswordWithUI(in wstring promptString, in wstring promptTitle,
+                           in nsIAuthPrompt netPrompt);
+
+  /**
+   * Gets a username and password for this server, using a UI prompt if
+   * necessary.
+   *
+   * @param promptString  The string to prompt the user with when asking for
+   *                      the password.
+   * @param promptTitle   The title of the prompt.
+   * @param netPrompt     An nsIAuthPrompt instance to use for the password
+   *                      prompt.
+   * @param userid        The username to use (may be null if no password was
+   *                      obtained).
+   * @param password      The password to use (may be null if no password was
+   *                      obtained).
+   */  
+  void getUsernamePasswordWithUI(in wstring promptString, in wstring promptTitle,
+                                 in nsIAuthPrompt netPrompt, out string userid,
+                                 out string password);
+
+  /**
+   * Calling this will *remove* the saved password for this server from the
+   * password manager and from the stored value.
+   */
+  void forgetPassword();
+
+  /// Call this to clear all preference values for this server.
+  void clearAllValues();
+};

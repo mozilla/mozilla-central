@@ -1,0 +1,103 @@
+<?xml version="1.0"?> 
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Mozilla Communicator client code, released
+ March 31, 1998.
+
+ The Initial Developer of the Original Code is
+ Netscape Communications Corporation.
+ Portions created by the Initial Developer are Copyright (C) 1998-1999
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+
+ Alternatively, the contents of this file may be used under the terms of
+ either of the GNU General Public License Version 2 or later (the "GPL"),
+ or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://debugQA/locale/pref-debug.dtd" >
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="debugqa_prefs_general" label="&lHeader;">
+
+    <preferences id="debugqa_preferences">
+      <preference id="xul.debug.box" name="xul.debug.box" type="bool"/>
+      <preference id="browser.dom.window.dump.enabled"
+                  name="browser.dom.window.dump.enabled" type="bool"/>
+      <preference id="javascript.options.strict"
+                  name="javascript.options.strict" type="bool"/>
+      <preference id="javascript.options.showInConsole"
+                  name="javascript.options.showInConsole" type="bool"/>
+      <preference id="print.use_native_print_dialog"
+                  name="print.use_native_print_dialog" type="bool"/>
+      <preference id="print.use_global_printsettings"
+                  name="print.use_global_printsettings" type="bool"/>
+      <preference id="extensions.dss.enabled"
+                  name="extensions.dss.enabled" type="bool"/>
+      <preference id="ui.key.accelKey" name="ui.key.accelKey" type="int"/>
+      <preference id="ui.key.menuAccessKey" name="ui.key.menuAccessKey" type="int"/>
+    </preferences>
+
+    <groupbox align="start">
+      <caption label="&widgetRendering.label;"/>
+      <checkbox id="debugXULBoxes" label="&debugXULBox.label;"
+                preference="xul.debug.box"/>
+    </groupbox>
+
+    <!-- nothing on this page has accesskeys because this is a temporary debug
+         panel and you can damn well click the widgets! -->
+    <groupbox align="start">
+      <caption label="&debugMiscellaneous.label;"/>
+      <checkbox id="browserDOMWindowDumpEnabled" label="&debugEnableDump.label;"
+                preference="browser.dom.window.dump.enabled"/>
+      <checkbox id="javascriptOptionsStrict" label="&debugStrictJavascript.label;"
+                preference="javascript.options.strict"/>
+      <checkbox id="javascriptOptionsShowInConsole"
+                label="&debugConsoleJavascript.label;"
+                preference="javascript.options.showInConsole"/>
+      <checkbox id="nglayoutUseNativePrintDialog" label="&useNativePrintDialog.label;"
+                preference="print.use_native_print_dialog"/>
+      <checkbox id="printUseGlobalPrintSettings" label="&printUseGlobalPrintSettings.label;"
+                preference="print.use_global_printsettings"/>
+      <checkbox id="dynamicSkinSwitching" label="&dynamicSkinSwitching.label;"
+                preference="extensions.dss.enabled"/>
+    </groupbox>              
+
+
+    <groupbox>
+      <caption label="&accelerators.label;"/>
+      <description value="&acceleratorsBlurb.label;"/>
+      <hbox align="center">
+            <label value="&acceleratorKey.label;" control="acceleratorKeyValue"
+                   accesskey="&acceleratorKey.accesskey;"/>
+            <textbox id="acceleratorKeyValue"
+              preference="ui.key.accelKey" size="5"/>
+            <label value="&menuAccessKey.label;" accesskey="&menuAccessKey.accesskey;" control="menuAccessKeyValue"/>
+            <textbox id="menuAccessKeyValue"
+              preference="ui.key.menuAccessKey" size="5"/>
+      </hbox>
+    </groupbox>
+  </prefpane>
+</overlay>

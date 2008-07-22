@@ -1,0 +1,43 @@
+DEPTH   = ../../..
+topsrcdir = @top_srcdir@
+srcdir    = @srcdir@
+VPATH   = @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+MODULE = shellservice
+FORCE_STATIC_LIB=1
+
+REQUIRES = \
+	xpcom \
+	string \
+	uriloader \
+	dom \
+	intl \
+	necko \
+	content \
+	imglib2 \
+	gfx \
+	widget \
+	pref \
+	msgMapi \
+	layout \
+	$(NULL)
+
+ifeq ($(OS_ARCH),WINNT)
+CPPSRCS = nsWindowsShellService.cpp
+OS_LIBS         += $(call EXPAND_LIBNAME,ole32 version uuid shell32)
+
+EXTRA_COMPONENTS = nsSetDefault.js
+endif
+
+ifdef CPPSRCS
+LIBRARY_NAME = shellservice_s
+endif
+
+ifdef MOZ_MAIL_NEWS
+DEFINES += -DMOZ_MAIL_NEWS
+endif
+
+include $(topsrcdir)/config/rules.mk
+

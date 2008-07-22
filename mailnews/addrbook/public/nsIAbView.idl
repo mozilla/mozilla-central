@@ -1,0 +1,141 @@
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2001
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+
+interface nsIAbCard;
+interface nsIAbDirectory;
+interface nsIArray;
+
+/// Define a class using this interface to listen to updates from nsIAbView.
+[scriptable, uuid(79ad5d6e-1dd2-11b2-addd-f547dab50d75)]
+interface nsIAbViewListener : nsISupports
+{
+  /// Called when the selection is changed in the tree
+  void onSelectionChanged();
+
+  /// Called when the total count of cards is changed.
+  void onCountChanged(in long total);
+};
+
+/**
+ * This interface and its associated nsAbView object provides an interface
+ * to allow a tree to be associated with an address book, and the results
+ * to be displayed in that tree.
+ *
+ * If you wish for the tree to display the results of a different address
+ * book, then call setView again. There is no need to delete and recreate the
+ * nsAbView object. If you wish to clear the view, then just call clearView.
+ */
+[scriptable, uuid(c7c454bd-1901-4a4b-aac7-a3f9918b3616)]
+interface nsIAbView : nsISupports
+{
+  /**
+   * Sets up the nsIAbView to look at the specified directory. This may be
+   * called multiple times.
+   *
+   * @param aDirectory      The directory to search, this may be a directory
+   *                        with a query string.
+   * @param aViewListener   An optional listener.
+   * @param aSortColumn     The column to sort by. See the xul element with
+   *                        id abResultsTreeCols for possible values.
+   * @param aSortDirection  The sort direction to use ("ascending"/"descending")
+   * @return                The actual sortColumn (various switching of apps
+   *                        could cause the persisted sortColumn to be bogus).
+   */
+  AString setView(in nsIAbDirectory aAddressBook,
+                  in nsIAbViewListener aAbViewListener,
+                  in AString aSortColumn,
+                  in AString aSortDirection);
+
+  /**
+   * Clears the view and releases any locally held copies of the address book
+   * directory. This should be called when the view is no longer required, e.g.
+   * on unload.
+   */
+  void clearView();
+
+  /**
+   * Sorts the tree by the specified parameters.
+   *
+   * sortBy does not optimize for the case when sortColumn and sortDirection
+   * is identical since the last call, the caller is responsible optimizing
+   * for that case.
+   *
+   * @param aSortColumn     The column to sort by. See the xul element with
+   *                        id abResultsTreeCols for possible values.
+   * @param aSortDirection  The sort direction to use ("ascending"/"descending")
+   */
+  void sortBy(in wstring aSortColumn, in wstring aSortDirection);
+
+  /// Returns the current sort column
+  readonly attribute AString sortColumn;
+
+  /// Returns the current sort direction
+  readonly attribute AString sortDirection;
+
+  /**
+   * Returns the current directory that this view is hooked up to. May be
+   * null if no directory has been set.
+   */
+  readonly attribute nsIAbDirectory directory;
+
+  /**
+   * Returns the card associated with the given row.
+   *
+   * @param aRow  The row from which to return the card.
+   * @return      A card associated with the row, or null if row is not valid.
+   */
+  nsIAbCard getCardFromRow(in long aRow);
+
+  /// Selects all rows in the view.
+  void selectAll();
+
+  /// Deletes all the selected cards (no prompts are given).
+  void deleteSelectedCards();
+
+  /**
+   * Swaps the first and last name order, and updates the appropriate
+   * preference.
+   */
+  void swapFirstNameLastName();
+
+  /**
+   *  Returns an array of the currently selected addresses.
+   */
+  readonly attribute nsIArray selectedAddresses; 
+};

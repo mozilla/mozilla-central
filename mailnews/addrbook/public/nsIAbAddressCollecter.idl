@@ -1,0 +1,74 @@
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Seth Spitzer <sspitzer@netscape.com>
+ *   Mark Banner <bugzilla@standard8.plus.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+
+interface nsIAbCard;
+
+/**
+ * nsIAbAddressCollecter is the interface to the address collecter service.
+ * It will save and update the supplied addresses into the address book
+ * specified by the "mail.collect_addressbook" pref.
+ */
+[scriptable, uuid(759cd643-e96b-4f31-883d-d9cf3d14f7c2)]
+interface nsIAbAddressCollecter : nsISupports {
+  /**
+   * Collects email addresses into the address book.
+   * If a card already exists for the email, the first/last/display names
+   * will be updated if they are supplied alongside the address.
+   * If a card does not exist for the email it will be created if aCreateCard
+   * is true.
+   * 
+   * @param  aAddresses  The list of emails (in standard header format)
+   *                     to collect into the address book.
+   * @param  aCreateCard Set to true if a card should be created if the
+   *                     email address doesn't exist.
+   * @param  aSendFormat The send format to save for the card. See
+   *                     nsIAbPreferMailFormat for values. If updating a card
+   *                     this value will only be changed if the current value
+   *                     for the card is "unknown".
+   */
+  void collectAddress(in AUTF8String aAddresses, in boolean aCreateCard,
+                      in unsigned long aSendFormat);
+
+  /**
+   * Get the first card with this name / value in the collected ab.
+   */
+  nsIAbCard getCardFromAttribute(in ACString aName, in ACString aValue);
+};

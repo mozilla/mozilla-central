@@ -1,0 +1,5 @@
+#ifdef MOZ_SUITE
+messenger.jar:
+    content/messenger/am-dsn.xul                                     (resources/content/am-dsn.xul)
+    content/messenger/am-dsn.js                                      (resources/content/am-dsn.js)
+#endif

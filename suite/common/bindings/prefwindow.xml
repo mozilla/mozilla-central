@@ -1,0 +1,570 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is SeaMonkey prefwindow code.
+   -
+   - The Initial Developer of the Original Code is the SeaMonkey project.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Karsten Düsterloh <mnyromyr@tprac.de>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!--
+    SeaMonkey Extended Preferences Window Framework
+
+    The binding implemented here mostly works like its toolkit ancestor, with
+    one important difference: the <prefwindow> recognizes the first <tree> in
+    its content and assumes that this is the navigation tree:
+
+      <prefwindow>
+        <tree>
+          ...
+          <treeitem id="prefTreeItemA" prefpane="prefPaneA">
+          ...
+        </tree>
+        <prefpane id="prefPaneB">...</prefpane>
+        <prefpane id="prefPaneA">
+      </prefwindow>
+
+    The <tree> structure defines the hierarchical layout of the preference
+    window's navigation tree. A <treeitem>'s "prefpane" attribute references
+    one of the <prefpane>s given on the <prefwindow>'s main level.
+    All <prefpane>s not referenced by a <treeitem> will be appended to the
+    navigation tree's top level. <treeitem>s can be nested as needed, but
+    <treeitem>s without a related <prefpane> will be hidden.
+
+    Furthermore, if the <prefwindow> has attribute "autopanes" set to "true",
+    non-existing <prefpane>s will be generated automatically from certain
+    attributes of the <treeitem>:
+    - "url" must contain the <prefpane>'s url
+    - "prefpane" should contain the <prefpane>'s desired id,
+      otherwise its url will be used as id
+    - "helpTopic" may contain an index into SeaMonkey's help
+
+    Unlike in XPFE, where preferences panels were loaded into a separate
+    iframe, <prefpane>s are an integral part of the <prefwindow> document,
+    by virtue of loadOverlay. Hence <script>s will be loaded into the
+    <prefwindow> scope and possibly clash. To avoid this, <prefpane>s should
+    specify a "script" attribute with a whitespace delimited list of scripts
+    to load into the <prefpane>'s context. The subscriptloader will take care
+    of any internal scoping, so no this.* fest is necessary inside the script.
+
+    <prefwindow> users who want to share the very same file between SeaMonkey
+    and other toolkit apps should hide the <tree> (set <tree>.hidden=true);
+    this binding will then unhide the <tree> if necessary, ie more than just
+    one <prefpane> exists.
+    Also, the <tree> will get the class "prefnavtree" added, so that it may be
+    prestyled by the SeaMonkey themes.
+    Setting <prefwindow xpfe="false"> will enforce the application of just the
+    basic toolkit <prefwindow> even in SeaMonkey. The same "xpfe" attribute
+    exists for <prefpane>, too.
+-->
+
+<!DOCTYPE bindings [
+  <!ENTITY % dtd1 SYSTEM "chrome://communicator/locale/pref/pref.dtd"> %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://communicator-platform/locale/pref/platformPrefOverlay.dtd"> %dtd2;
+  <!ENTITY % dtd3 SYSTEM "chrome://global/locale/preferences.dtd"> %dtd3;
+]>
+
+<bindings id="prefwindowBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <binding id="prefwindow"
+           extends="chrome://global/content/bindings/preferences.xml#prefwindow">
+    <resources>
+      <stylesheet src="chrome://communicator/skin/preferences.css"/>
+    </resources>
+
+    <!-- The only difference between the following <content> and its toolkit
+         ancestor is the help button and the 'navTrees' <vbox> before the 'paneDeck'! -->
+    <content dlgbuttons="accept,cancel" persist="lastSelected screenX screenY"
+             closebuttonlabel="&preferencesCloseButton.label;"
+             closebuttonaccesskey="&preferencesCloseButton.accesskey;"
+             role="dialog">
+      <xul:radiogroup anonid="selector" orient="horizontal" class="paneSelector chromeclass-toolbar"
+                      role="listbox"/> <!-- Expose to accessibility APIs as a listbox -->
+      <xul:hbox flex="1" class="paneDeckContainer">
+        <xul:vbox anonid="navTrees">
+          <children includes="tree"/>
+        </xul:vbox>
+        <xul:vbox flex="1">
+          <xul:dialogheader anonid="paneHeader" hidden="true"/>
+          <xul:deck anonid="paneDeck" flex="1">
+            <children includes="prefpane"/>
+          </xul:deck>
+        </xul:vbox>
+      </xul:hbox>
+      <xul:hbox anonid="dlg-buttons" class="prefWindow-dlgbuttons" pack="end">
+#ifdef XP_UNIX
+        <xul:button dlgtype="disclosure" class="dialog-button" hidden="true"/>
+        <xul:button dlgtype="help" class="dialog-button" hidden="true" icon="help"/>
+        <xul:button dlgtype="extra2" class="dialog-button" hidden="true"/>
+        <xul:button dlgtype="extra1" class="dialog-button" hidden="true"/>
+        <xul:spacer anonid="spacer" flex="1"/>
+        <xul:button dlgtype="cancel" class="dialog-button" icon="cancel"/>
+        <xul:button dlgtype="accept" class="dialog-button" icon="accept"/>
+#else
+        <xul:button dlgtype="extra2" class="dialog-button" hidden="true"/>
+        <xul:spacer anonid="spacer" flex="1"/>
+        <xul:button dlgtype="accept" class="dialog-button" icon="accept"/>
+        <xul:button dlgtype="extra1" class="dialog-button" hidden="true"/>
+        <xul:button dlgtype="cancel" class="dialog-button" icon="cancel"/>
+        <xul:button dlgtype="help" class="dialog-button" hidden="true" icon="help"/>
+        <xul:button dlgtype="disclosure" class="dialog-button" hidden="true"/>
+#endif
+      </xul:hbox>
+      <xul:hbox>
+        <children/>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+      <constructor>
+        <![CDATA[
+          // grab the first child tree and try to tie it to the prefpanes
+          var tree = this.getElementsByTagName('tree')[0];
+          this.initNavigationTree(tree);
+          // hide the toolkit pref strip if we have a tree
+          if (this._navigationTree)
+            this._selector.hidden = true;
+        ]]>
+      </constructor>
+
+      <field name="_navigationTree">null</field>
+
+      <!-- <prefwindow> users can call this method to exchange the <tree> -->
+      <method name="initNavigationTree">
+        <parameter name="aTreeElement"/>
+        <body>
+        <![CDATA[
+          this._navigationTree = null;
+          if (!aTreeElement)
+            return;
+
+          // don't grab trees in prefpanes etc.
+          if (aTreeElement.parentNode != this)
+            return;
+
+          // autogenerate <prefpane>s from <treecell>.url if requested
+          var autopanes = (this.getAttribute('autopanes') == 'true');
+          if (!autopanes)
+          {
+            // without autopanes, we can return early: don't bother
+            // with a navigation tree if we only have one prefpane
+            aTreeElement.hidden = (this.preferencePanes.length < 2);
+            if (aTreeElement.hidden)
+              return;
+          }
+
+          // ensure that we have a tree body
+          if (!aTreeElement.getElementsByTagName('treechildren').length)
+            aTreeElement.appendChild(document.createElement('treechildren'));
+
+          // ensure that we have a tree column
+          if (!aTreeElement.getElementsByTagName('treecol').length)
+          {
+            var navcols = document.createElement('treecols');
+            var navcol  = document.createElement('treecol');
+            navcol.setAttribute('id', 'navtreecol');
+            navcol.setAttribute('primary', true);
+            navcol.setAttribute('flex', 1);
+            navcol.setAttribute('hideheader', true);
+            navcols.appendChild(navcol);
+            aTreeElement.appendChild(navcols);
+            aTreeElement.setAttribute('hidecolumnpicker', true);
+          }
+
+          // add the class "prefnavtree", so that themes can set defaults
+          aTreeElement.className += ' prefnavtree';
+
+          // Do some magic with the treeitem ingredient:
+          // - if it has a label attribute but no treerow child,
+          //   generate a treerow with a treecell child with that label
+          // - if it has a prefpane attribute, tie it to that panel
+          // - if still no panel found and a url attribute is present,
+          //   autogenerate the prefpane and connect to it
+          var treeitems = aTreeElement.getElementsByTagName('treeitem');
+          for (var i = 0; i < treeitems.length; ++i)
+          {
+            var node  = treeitems[i];
+            var label = node.getAttribute('label');
+            if (label)
+            {
+              // autocreate the treecell?
+              var row = node.firstChild;
+              while (row && row.nodeName != 'treerow')
+                row = row.nextSibling;
+              if (!row)
+              {
+                var itemrow  = document.createElement('treerow');
+                var itemcell = document.createElement('treecell');
+                itemcell.setAttribute('label', label);
+                itemrow.appendChild(itemcell);
+                node.appendChild(itemrow);
+              }
+            }
+            var paneID = node.getAttribute('prefpane');
+            var pane = paneID && document.getElementById(paneID);
+            if (!pane && autopanes)
+            {
+              // if we have a url, create a <prefpane> for it
+              var paneURL = node.getAttribute('url');
+              if (paneURL)
+              {
+                // reuse paneID if present, else use the url as id
+                pane = document.createElement('prefpane');
+                pane.setAttribute('id',    paneID || paneURL);
+                pane.setAttribute('src',   paneURL);
+                pane.setAttribute('label', label || paneID || paneURL);
+                var helpTopic = node.getAttribute('helpTopic');
+                if (helpTopic)
+                {
+                  pane.setAttribute('helpURI',   'chrome://communicator/locale/help/suitehelp.rdf');
+                  pane.setAttribute('helpTopic', helpTopic);
+                }
+                // add pane to prefwindow
+                this.appendChild(pane);
+              }
+            }
+            node.prefpane = pane;
+            if (pane)
+              pane.preftreeitem = node;
+            // hide unused treeitems
+            node.hidden = !pane;
+          }
+
+          // now that the number of <prefpane>s is known, try to return early:
+          // don't bother with a navigation tree if we only have one prefpane
+          aTreeElement.hidden = (this.preferencePanes.length < 2);
+          if (aTreeElement.hidden)
+            return;
+          this._navigationTree = aTreeElement;
+
+          // append any still unreferenced <prefpane>s to the tree's top level
+          for (var j = 0; j < this.preferencePanes.length; ++j)
+          {
+            // toolkit believes in fancy pane resizing - we don't
+            var lostpane = this.preferencePanes[j];
+            lostpane.setAttribute('flex', 1);
+
+            if (!("preftreeitem" in lostpane))
+            {
+              var treebody = this._navigationTree
+                                 .getElementsByTagName('treechildren')[0];
+              var treeitem = document.createElement('treeitem');
+              var treerow  = document.createElement('treerow');
+              var treecell = document.createElement('treecell');
+              var label = lostpane.getAttribute('label');
+              if (!label)
+                label = lostpane.getAttribute('id');
+              treecell.setAttribute('label', label);
+              treerow.appendChild(treecell);
+              treeitem.appendChild(treerow);
+              treebody.appendChild(treeitem);
+              treeitem.prefpane     = lostpane;
+              lostpane.preftreeitem = treeitem;
+            }
+          }
+
+          // Some parts of the toolkit base binding's initialization code (like
+          // panel select events) "fire" before we get here. Thus, we may need
+          // to sync the tree manually now (again), if we added any panels or
+          // if toolkit failed to select one.
+          // (This is a loose copy from the toolkit ctor.)
+          var lastPane = this.lastSelected &&
+                         document.getElementById(this.lastSelected);
+          if (!lastPane)
+            this.lastSelected = "";
+          var paneToLoad = null;
+          if ("arguments" in window && window.arguments[0])
+          {
+            var initialPane = document.getElementById(window.arguments[0]);
+            if (initialPane && initialPane.nodeName == "prefpane")
+            {
+              paneToLoad = initialPane;
+              this.lastSelected = paneToLoad.id;
+            }
+          }
+          else if (lastPane)
+            paneToLoad = lastPane;
+          else if (this.preferencePanes.length > 0)
+            paneToLoad = this.preferencePanes[0];
+          if (paneToLoad && (paneToLoad != this.currentPane))
+          {
+            this._initialized = false;
+            try
+            {
+              this.showPane(paneToLoad); // may need to load it first
+            }
+            catch (e)
+            {
+              dump('***** broken prefpane: ' + paneToLoad.id + '\n' + e + '\n');
+              paneToLoad = null;
+            }
+            this.currentPane = paneToLoad;
+          }
+          if (this.currentPane)
+            this.syncTreeWithPane(this.currentPane, true);
+        ]]>
+        </body>
+      </method>
+
+      <!-- don't do any fancy animations -->
+      <property name="_shouldAnimate" onget="return false;"/>
+
+      <method name="setPaneTitle">
+        <parameter name="aPaneElement"/>
+        <body>
+#ifndef XP_MACOSX
+        <![CDATA[
+          // show pane title, if given
+          var paneHeader = document.getAnonymousElementByAttribute(this, 'anonid', 'paneHeader');
+          var paneHeaderLabel = '';
+          if (aPaneElement)
+            paneHeaderLabel = aPaneElement.getAttribute('label');
+          paneHeader.hidden = !paneHeaderLabel;
+          if (!paneHeader.hidden)
+            paneHeader.setAttribute('title', paneHeaderLabel);
+        ]]>
+#endif
+        </body>
+      </method>
+
+      <method name="syncPaneWithTree">
+        <parameter name="aTreeIndex"/>
+        <body>
+        <![CDATA[
+          var pane = null;
+          if ((this._navigationTree) && (aTreeIndex >= 0))
+          {
+            // load the prefpane associated with this treeitem
+            var treeitem = this._navigationTree.contentView
+                               .getItemAtIndex(aTreeIndex);
+            if ('prefpane' in treeitem)
+            {
+              pane = treeitem.prefpane;
+              if (pane && (this.currentPane != pane))
+              {
+                try
+                {
+                  this.showPane(pane); // may need to load it first
+                }
+                catch (e)
+                {
+                  dump('***** broken prefpane: ' + pane.id + '\n' + e + '\n');
+                  pane = null;
+                }
+              }
+            }
+          }
+          // don't show broken panels
+          this._paneDeck.hidden = (pane == null);
+          this.setPaneTitle(pane);
+        ]]>
+        </body>
+      </method>
+
+      <method name="syncTreeWithPane">
+        <parameter name="aPane"/>
+        <parameter name="aExpand"/>
+        <body>
+        <![CDATA[
+          if (this._navigationTree && aPane)
+          {
+            if ('preftreeitem' in aPane)
+            {
+              // make sure the treeitem is visible
+              var container = aPane.preftreeitem;
+              if (!aExpand)
+                container = container.parentNode.parentNode;
+              while (container != this._navigationTree)
+              {
+                container.setAttribute('open', true);
+                container = container.parentNode.parentNode;
+              }
+
+              // mark selected pane in navigation tree
+              var index = this._navigationTree.contentView
+                              .getIndexOfItem(aPane.preftreeitem);
+              this._navigationTree.view.selection.select(index);
+            }
+          }
+          this.setPaneTitle(aPane);
+        ]]>
+        </body>
+      </method>
+
+      // copied from contextHelp.js
+      // Locate existing help window for this helpFileURI.
+      <method name="locateHelpWindow">
+        <parameter name="helpFileURI"/>
+        <body>
+        <![CDATA[
+          const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                               .getService(Components.interfaces.nsIWindowMediator);
+          const iterator = wm.getEnumerator("mozilla:help");
+          var topWindow = null;
+          var aWindow;
+
+          // Loop through help windows looking for one with selected helpFileURI
+          while (iterator.hasMoreElements()) {
+            aWindow = iterator.getNext();
+            if (aWindow.getHelpFileURI() == helpFileURI)
+              topWindow = aWindow;
+          }
+          return topWindow;
+        ]]>
+        </body>
+      </method>
+
+      // copied from contextHelp.js
+      // Opens up the Help Viewer with the specified topic and helpFileURI.
+      <method name="openHelp">
+        <parameter name="topic"/>
+        <parameter name="helpFileURI"/>
+        <body>
+        <![CDATA[
+          // Try to find previously opened help.
+          var topWindow = this.locateHelpWindow(helpFileURI);
+
+          if (topWindow) {
+          // Open topic in existing window.
+            topWindow.focus();
+            topWindow.displayTopic(topic);
+          }
+          else {
+          // Open topic in new window.
+            const params = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
+                                     .createInstance(Components.interfaces.nsIDialogParamBlock);
+            params.SetNumberStrings(2);
+            params.SetString(0, helpFileURI);
+            params.SetString(1, topic);
+            const ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                                 .getService(Components.interfaces.nsIWindowWatcher);
+            ww.openWindow(null, "chrome://help/content/help.xul", "_blank", "chrome,all,alwaysRaised,dialog=no", params);
+          }
+        ]]>
+        </body>
+      </method>
+    </implementation>
+
+    <handlers>
+      <handler event="dialoghelp">
+      <![CDATA[
+        this.openHelp(this.currentPane.helpTopic, this.currentPane.getAttribute("helpURI"));
+      ]]>
+      </handler>
+      <handler event="select">
+      <![CDATA[
+        // navigation tree select or deck change?
+        var target = event.originalTarget;
+        if (target == this._navigationTree)
+        {
+          this.syncPaneWithTree(target.currentIndex);
+        }
+        else if (target == this._paneDeck)
+        {
+          // deck.selectedIndex is a string!
+          var pane = this.preferencePanes[Number(target.selectedIndex)];
+          this.syncTreeWithPane(pane, false);
+        }
+      ]]>
+      </handler>
+
+      <handler event="paneload">
+      <![CDATA[
+        // panes may load asynchronously,
+        // so we have to "late-sync" those to our navigation tree
+        this.syncTreeWithPane(event.originalTarget, false);
+      ]]>
+      </handler>
+    </handlers>
+  </binding>
+
+  <binding id="prefpane"
+           extends="chrome://global/content/bindings/preferences.xml#prefpane">
+    <resources>
+      <stylesheet src="chrome://communicator/skin/preferences.css"/>
+    </resources>
+
+    <handlers>
+      <handler event="paneload">
+      <![CDATA[
+        // Since all <prefpane>s now share the same global document, their
+        // <script>s might clash. Thus we expect the "script" attribute to
+        // contain a whitespace delimited list of script files to be loaded
+        // into the <prefpane>'s context.
+        var subScriptLoader = null;
+        try
+        {
+          subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+                                      .getService(Components.interfaces.mozIJSSubScriptLoader);
+        }
+        catch (e)
+        {
+          var msg = 'prefpane.paneload: no mozIJSSubScriptLoader!\n' + e;
+          Components.utils.reportError(msg);
+          return;
+        }
+
+        // list of scripts to load
+        var scripts = this.getAttribute('script').match(/\S+/g);
+        if (!scripts)
+          return;
+        var count = scripts.length;
+        for (var i = 0; i < count; ++i)
+        {
+          var script = scripts[i];
+          if (script)
+          {
+            try
+            {
+              subScriptLoader.loadSubScript(script, this);
+            }
+            catch (e)
+            {
+              var msg = 'prefpane.paneload: loadSubScript("'
+                      + script + '") failed:\n' + e;
+              Components.utils.reportError(msg);
+            }
+          }
+        }
+
+        // if we have a Startup method, call it
+        if ('Startup' in this)
+          this.Startup();
+      ]]>
+      </handler>
+    </handlers>
+  </binding>
+
+</bindings>

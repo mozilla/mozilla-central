@@ -1,0 +1,90 @@
+// <!-- <mdb:mork:z v="1.4"/> -->
+< <(a=c)> // (f=iso-8859-1)
+  (B8=Custom4)(B9=Notes)(BA=LastModifiedDate)(BB=RecordKey)
+  (BC=AddrCharSet)(BD=LastRecordKey)(BE=ns:addrbk:db:table:kind:pab)
+  (BF=ListName)(C0=ListNickName)(C1=ListDescription)
+  (C2=ListTotalAddresses)(C3=LowercaseListName)
+  (C4=ns:addrbk:db:table:kind:deleted)
+  (80=ns:addrbk:db:row:scope:card:all)
+  (81=ns:addrbk:db:row:scope:list:all)
+  (82=ns:addrbk:db:row:scope:data:all)(83=FirstName)(84=LastName)
+  (85=PhoneticFirstName)(86=PhoneticLastName)(87=DisplayName)
+  (88=NickName)(89=PrimaryEmail)(8A=LowercasePrimaryEmail)
+  (8B=SecondEmail)(8C=PreferMailFormat)(8D=PopularityIndex)
+  (8E=AllowRemoteContent)(8F=WorkPhone)(90=HomePhone)(91=FaxNumber)
+  (92=PagerNumber)(93=CellularNumber)(94=WorkPhoneType)(95=HomePhoneType)
+  (96=FaxNumberType)(97=PagerNumberType)(98=CellularNumberType)
+  (99=HomeAddress)(9A=HomeAddress2)(9B=HomeCity)(9C=HomeState)
+  (9D=HomeZipCode)(9E=HomeCountry)(9F=WorkAddress)(A0=WorkAddress2)
+  (A1=WorkCity)(A2=WorkState)(A3=WorkZipCode)(A4=WorkCountry)
+  (A5=JobTitle)(A6=Department)(A7=Company)(A8=_AimScreenName)
+  (A9=AnniversaryYear)(AA=AnniversaryMonth)(AB=AnniversaryDay)
+  (AC=SpouseName)(AD=FamilyName)(AE=DefaultAddress)(AF=Category)
+  (B0=WebPage1)(B1=WebPage2)(B2=BirthYear)(B3=BirthMonth)(B4=BirthDay)
+  (B5=Custom1)(B6=Custom2)(B7=Custom3)>
+
+<(94=8)(81=)(82=test1@com.invalid)(80=0)(83=1)(84=test2@com.invalid)
+  (85=2)(86=test3@com.invalid)(87=3)(88=test4@com.invalid)(89=4)(8A
+    =test5@com.invalid)(8B=5)(8C=ListTest1)(8D=listtest1)(8E=6)(8F
+    =ListTest2)(90=listtest2)(91=7)(92=ListTest3)(93=listtest3)>
+{1:^80 {(k^BE:c)(s=9)} 
+  [1:^82(^BD=8)]
+  [1(^83=)(^84=)(^85=)(^86=)(^87=)(^88=)(^89^82)(^8A^82)(^8B=)(^8C=0)
+    (^8D=0)(^8E=0)(^8F=)(^90=)(^91=)(^92=)(^93=)(^94=)(^95=)(^96=)(^97=)
+    (^98=)(^99=)(^9A=)(^9B=)(^9C=)(^9D=)(^9E=)(^9F=)(^A0=)(^A1=)(^A2=)
+    (^A3=)(^A4=)(^A5=)(^A6=)(^A7=)(^A8=)(^A9=)(^AA=)(^AB=)(^AC=)(^AD=)
+    (^AE=)(^AF=)(^B0=)(^B1=)(^B2=)(^B3=)(^B4=)(^B5=)(^B6=)(^B7=)(^B8=)
+    (^B9=)(^BA=0)(^BB=1)]
+  [2(^83=)(^84=)(^85=)(^86=)(^87=)(^88=)(^89^84)(^8A^84)(^8B=)(^8C=0)
+    (^8D=0)(^8E=0)(^8F=)(^90=)(^91=)(^92=)(^93=)(^94=)(^95=)(^96=)(^97=)
+    (^98=)(^99=)(^9A=)(^9B=)(^9C=)(^9D=)(^9E=)(^9F=)(^A0=)(^A1=)(^A2=)
+    (^A3=)(^A4=)(^A5=)(^A6=)(^A7=)(^A8=)(^A9=)(^AA=)(^AB=)(^AC=)(^AD=)
+    (^AE=)(^AF=)(^B0=)(^B1=)(^B2=)(^B3=)(^B4=)(^B5=)(^B6=)(^B7=)(^B8=)
+    (^B9=)(^BA=0)(^BB=2)]
+  [3(^83=)(^84=)(^85=)(^86=)(^87=)(^88=)(^89^86)(^8A^86)(^8B=)(^8C=0)
+    (^8D=0)(^8E=0)(^8F=)(^90=)(^91=)(^92=)(^93=)(^94=)(^95=)(^96=)(^97=)
+    (^98=)(^99=)(^9A=)(^9B=)(^9C=)(^9D=)(^9E=)(^9F=)(^A0=)(^A1=)(^A2=)
+    (^A3=)(^A4=)(^A5=)(^A6=)(^A7=)(^A8=)(^A9=)(^AA=)(^AB=)(^AC=)(^AD=)
+    (^AE=)(^AF=)(^B0=)(^B1=)(^B2=)(^B3=)(^B4=)(^B5=)(^B6=)(^B7=)(^B8=)
+    (^B9=)(^BA=0)(^BB=3)]
+  [4(^83=)(^84=)(^85=)(^86=)(^87=)(^88=)(^89^88)(^8A^88)(^8B=)(^8C=1)
+    (^8D=0)(^8E=0)(^8F=)(^90=)(^91=)(^92=)(^93=)(^94=)(^95=)(^96=)(^97=)
+    (^98=)(^99=)(^9A=)(^9B=)(^9C=)(^9D=)(^9E=)(^9F=)(^A0=)(^A1=)(^A2=)
+    (^A3=)(^A4=)(^A5=)(^A6=)(^A7=)(^A8=)(^A9=)(^AA=)(^AB=)(^AC=)(^AD=)
+    (^AE=)(^AF=)(^B0=)(^B1=)(^B2=)(^B3=)(^B4=)(^B5=)(^B6=)(^B7=)(^B8=)
+    (^B9=)(^BA=0)(^BB=4)]
+  [5(^83=)(^84=)(^85=)(^86=)(^87=)(^88=)(^89^8A)(^8A^8A)(^8B=)(^8C=2)
+    (^8D=0)(^8E=0)(^8F=)(^90=)(^91=)(^92=)(^93=)(^94=)(^95=)(^96=)(^97=)
+    (^98=)(^99=)(^9A=)(^9B=)(^9C=)(^9D=)(^9E=)(^9F=)(^A0=)(^A1=)(^A2=)
+    (^A3=)(^A4=)(^A5=)(^A6=)(^A7=)(^A8=)(^A9=)(^AA=)(^AB=)(^AC=)(^AD=)
+    (^AE=)(^AF=)(^B0=)(^B1=)(^B2=)(^B3=)(^B4=)(^B5=)(^B6=)(^B7=)(^B8=)
+    (^B9=)(^BA=0)(^BB=5)]
+  [1:^81(^BF^8C)(^C3^8D)(^C0=)(^C1=)(^C2=0)(^BB=6)]
+  [2:^81(^BF^8F)(^C3^90)(^C0=)(^C1=)(^C2=0)(^BB=7)]
+  [3:^81(^BF^92)(^C3^93)(^C0=)(^C1=)(^C2=0)(^BB=8)]}
+
+@$${7{@
+< <(a=c)> // (f=iso-8859-1)
+  (C5=Address1)>
+[-1:^81(^BF^8C)(^C3^8D)(^C0=)(^C1=)(^C2=1)(^BB=6)(^C5=1)]
+@$$}7}@
+
+@$${8{@
+< <(a=c)> // (f=iso-8859-1)
+  (C6=Address2)>
+[-1:^81(^BF^8C)(^C3^8D)(^C0=)(^C1=)(^C2=2)(^BB=6)(^C5=1)(^C6=2)]
+@$$}8}@
+
+@$${9{@
+< <(a=c)> // (f=iso-8859-1)
+  (C7=Address3)>
+[-1:^81(^BF^8C)(^C3^8D)(^C0=)(^C1=)(^C2=3)(^BB=6)(^C5=1)(^C6=2)(^C7=3)]
+@$$}9}@
+
+@$${A{@
+[-2:^81(^BF^8F)(^C3^90)(^C0=)(^C1=)(^C2=1)(^BB=7)(^C5=4)]
+@$$}A}@
+
+@$${B{@
+[-3:^81(^BF^92)(^C3^93)(^C0=)(^C1=)(^C2=1)(^BB=8)(^C5=5)]
+@$$}B}@

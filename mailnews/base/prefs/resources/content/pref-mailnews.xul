@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Mozilla Communicator client code, released
+ March 31, 1998.
+
+ The Initial Developer of the Original Code is
+ Netscape Communications Corporation.
+ Portions created by the Initial Developer are Copyright (C) 1998-2001
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+   rcassin@supernova.org
+   Seth Spitzer <sspitzer@netscape.com>
+
+ Alternatively, the contents of this file may be used under the terms of
+ either of the GNU General Public License Version 2 or later (the "GPL"),
+ or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://messenger/skin/prefPanels.css" type="text/css"?>
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+
+<!DOCTYPE overlay [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+%brandDTD;
+<!ENTITY % prefMailnewsDTD SYSTEM "chrome://messenger/locale/pref-mailnews.dtd">
+%prefMailnewsDTD;
+]>
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="mailnews_pane"
+            label="&pref.mailnews.title;"
+            script="chrome://messenger/content/pref-mailnews.js">
+
+    <preferences id="mailnews_preferences">
+      <preference id="mailnews.confirm.moveFoldersToTrash"
+                  name="mailnews.confirm.moveFoldersToTrash" type="bool"/>
+      <preference id="mailnews.remember_selected_message"
+                  name="mailnews.remember_selected_message" type="bool"/>
+      <preference id="mailnews.thread_pane_column_unthreads"
+                  name="mailnews.thread_pane_column_unthreads" type="bool"/>
+      <preference id="mailnews.start_page.enabled"
+                  onchange="this.parentNode.parentNode.startPageCheck();"
+                  name="mailnews.start_page.enabled" type="bool"/>
+      <preference id="mailnews.start_page.url"
+                  name="mailnews.start_page.url" type="wstring"/>
+      <preference id="mail.toolbars.showbutton.file"
+                  name="mail.toolbars.showbutton.file" type="bool"/>
+      <preference id="mail.toolbars.showbutton.next"
+                  name="mail.toolbars.showbutton.next" type="bool"/>
+      <preference id="mail.toolbars.showbutton.print"
+                  name="mail.toolbars.showbutton.print" type="bool"/>
+      <preference id="mail.toolbars.showbutton.stop"
+                  name="mail.toolbars.showbutton.stop" type="bool"/>
+      <preference id="mail.toolbars.showbutton.junk"
+                  name="mail.toolbars.showbutton.junk" type="bool"/>
+      <preference id="system.windows.lock_ui.defaultMailClient" readonly="true"
+                  name="system.windows.lock_ui.defaultMailClient" type="bool"/>
+      <preference id="system.windows.lock_ui.defaultNewsClient" readonly="true"
+                  name="system.windows.lock_ui.defaultNewsClient" type="bool"/>
+    </preferences>
+
+    <groupbox>
+      <caption label="&generalSettings.caption;"/>
+
+      <hbox align="center">
+        <checkbox id="mailnewsConfirmMoveFoldersToTrash" label="&confirmMove.label;"
+                  preference="mailnews.confirm.moveFoldersToTrash"
+                  accesskey="&confirmMove.accesskey;"/>
+      </hbox>
+
+      <hbox align="center">
+        <checkbox id="mailRememberLastMsg" label="&rememberLastMsg.label;"
+                  preference="mailnews.remember_selected_message"
+                  accesskey="&rememberLastMsg.accesskey;" />
+      </hbox>
+
+      <hbox align="center">
+        <checkbox id="mailPreserveThreading"
+                  label="&preserveThreading.label;"
+                  accesskey="&preserveThreading.accesskey;"
+                  preference="mailnews.thread_pane_column_unthreads"
+                  reversed="true" />
+      </hbox>
+      <vbox id="defaultMailPrefs">
+        <separator class="thin"/>
+
+        <description>&defaultMailSettings.description;</description>
+        <hbox class="indent" align="center">
+          <button id="setDefaultMail" accesskey="&setDefaultMail.accesskey;"
+                  label="&setDefaultMail.label;" oncommand="onSetDefaultMail();"
+                  preference="system.windows.lock_ui.defaultMailClient"/>
+          <button id="setDefaultNews" accesskey="&setDefaultNews.accesskey;"
+                  label="&setDefaultNews.label;" oncommand="onSetDefaultNews();"
+                  preference="system.windows.lock_ui.defaultNewsClient"/>
+        </hbox>
+      </vbox>
+    </groupbox>
+
+    <groupbox>
+      <caption label="&messengerStartPage.caption;"/>
+      <hbox align="center">
+        <checkbox id="mailnewsStartPageEnabled" label="&enableStartPage.label;"
+                  preference="mailnews.start_page.enabled"
+                  accesskey="&enableStartPage.accesskey;"/>
+      </hbox>
+
+      <hbox align="center">
+        <label value="&location.label;" accesskey="&location.accesskey;" 
+               control="mailnewsStartPageUrl"/>
+        <textbox id="mailnewsStartPageUrl" flex="1" type="autocomplete"
+                 preference="mailnews.start_page.url" timeout="50"
+                 autocompletesearch="history" maxrows="6" class="uri-element"/>
+      </hbox>
+      <hbox pack="end">
+        <button label="&useDefault.label;" accesskey="&useDefault.accesskey;"
+                oncommand="setHomePageToDefaultPage();">
+          <observes element="mailnewsStartPageUrl" attribute="disabled"/>
+        </button>
+      </hbox>
+
+    </groupbox>
+
+    <!-- toolbar buttons customization -->
+    <groupbox flex="1" orient="horizontal">
+      <caption label="&toolbarIntro.caption;"/>
+      <vbox>
+        <checkbox id="fileButton"
+                  label="&fileButton.label;" accesskey="&fileButton.accesskey;"
+                  preference="mail.toolbars.showbutton.file"/>
+        <checkbox id="nextButton"
+                  label="&nextButton.label;" accesskey="&nextButton.accesskey;"
+                  preference="mail.toolbars.showbutton.next"/>
+        <checkbox id="printButton"
+                  label="&printButton.label;" accesskey="&printButton.accesskey;"
+                  preference="mail.toolbars.showbutton.print"/>
+      </vbox>
+      <vbox>
+        <checkbox id="stopButton"
+                  label="&stopButton.label;" accesskey="&stopButton.accesskey;"
+                  preference="mail.toolbars.showbutton.stop"/>
+        <checkbox id="junkMailButton"
+                  label="&junkMailButton.label;" accesskey="&junkMailButton.accesskey;"
+                  preference="mail.toolbars.showbutton.junk"/>
+      </vbox>
+    </groupbox>
+  </prefpane>
+</overlay>

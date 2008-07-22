@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Communicator client code,
+   - released March 31, 1998.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 1998-1999
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Robert Kaiser <kairo@kairo.at>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay [
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd"> %brandDTD;
+  <!ENTITY % prefContentDTD SYSTEM "chrome://communicator/locale/pref/pref-content.dtd"> %prefContentDTD;
+]>
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="content_pane"
+            label="&pref.content.title;">
+
+    <preferences id="content_preferences">
+      <preference id="browser.chrome.site_icons"
+                  name="browser.chrome.site_icons"
+                  type="bool"/>
+      <preference id="browser.chrome.favicons"
+                  name="browser.chrome.favicons"
+                  type="bool"/>
+      <preference id="browser.chrome.load_toolbar_icons"
+                  name="browser.chrome.load_toolbar_icons"
+                  type="int"/>
+      <preference id="general.smoothScroll"
+                  name="general.smoothScroll"
+                  type="bool"/>
+      <preference id="browser.enable_automatic_image_resizing"
+                  name="browser.enable_automatic_image_resizing"
+                  type="bool"/>
+      <preference id="browser.zoom.full"
+                  name="browser.zoom.full"
+                  type="bool" inverted="true"/>
+    </preferences>
+
+    <description>&pref.content.description;</description>
+
+    <groupbox id="siteIconPreferences" align="start">
+      <caption label="&siteIcons.label;"/>
+
+      <checkbox id="useSiteIcons"
+                label="&useSiteIcons.label;"
+                accesskey="&useSiteIcons.accesskey;"
+                preference="browser.chrome.site_icons"/>
+      <checkbox id="useFavIcons"
+                label="&useFavIcons.label;"
+                accesskey="&useFavIcons.accesskey;"
+                preference="browser.chrome.favicons"/>
+
+      <separator class="thin"/>
+      <description>&tbIconsDescription.label;</description>
+      <radiogroup id="loadToolbarIcons"
+                  class="indent"
+                  preference="browser.chrome.load_toolbar_icons">
+        <radio value="0"
+               label="&tbIconsNever.label;"
+               accesskey="&tbIconsNever.accesskey;"/>
+        <radio value="1"
+               label="&tbIconsCache.label;"
+               accesskey="&tbIconsCache.accesskey;"/>
+        <radio value="2"
+               label="&tbIconsAlways.label;"
+               accesskey="&tbIconsAlways.accesskey;"/>
+      </radiogroup>
+    </groupbox>
+
+    <separator class="thin"/>
+
+    <vbox class="box-padded" align="start">
+      <checkbox id="useSmoothScroll"
+                label="&useSmoothScroll.label;"
+                accesskey="&useSmoothScroll.accesskey;"
+                preference="general.smoothScroll"/>
+      <checkbox id="enableAutomaticImageResizing"
+                label="&enableAutomaticImageResizing.label;"
+                accesskey="&enableAutomaticImageResizing.accesskey;"
+                preference="browser.enable_automatic_image_resizing"/>
+      <checkbox id="textZoomOnly"
+                label="&textZoomOnly.label;"
+                accesskey="&textZoomOnly.accesskey;"
+                preference="browser.zoom.full"/>
+    </vbox>
+
+  </prefpane>
+</overlay>

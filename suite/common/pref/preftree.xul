@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Mozilla Communicator client code, released
+ March 31, 1998.
+
+ The Initial Developer of the Original Code is
+ Netscape Communications Corporation.
+ Portions created by the Initial Developer are Copyright (C) 1998-1999
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+   Ben Goodger <ben@netscape.com>
+
+ Alternatively, the contents of this file may be used under the terms of
+ either of the GNU General Public License Version 2 or later (the "GPL"),
+ or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/preftree.dtd">
+
+<overlay id="prefTreeOverlay"
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script>
+<![CDATA[
+  var _elementIDs = []; // hack
+]]>
+</script>
+  
+<tree id="prefsTree" seltype="single" hidecolumnpicker="true"
+          onselect="if( hPrefWindow ) hPrefWindow.switchPage();">
+  <treecols>
+    <treecol id="categoryCol" flex="1" primary="true" hideheader="true"/>
+  </treecols>
+  <treechildren id="panelChildren">
+    <treeitem container="true" id="appearance">
+      <treerow>   
+        <treecell label="(Migrated: &appear.label;)"/> 
+      </treerow>
+      <treechildren id="appearanceChildren">
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &fonts.label;)"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &colors.label;)"/> 
+          </treerow>
+        </treeitem>
+      </treechildren>
+    </treeitem>
+    <treeitem container="true" id="navigator">
+      <treerow>
+        <treecell label="(Migrated: &navigator.label;)"/> 
+      </treerow>
+      <treechildren id="navigatorChildren">
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &history.label;)"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-languages.xul" label="&languages.label;"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &applications.label;)"/> 
+          </treerow>  
+        </treeitem> 
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &locationBar.label;)"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &search.label;)"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell label="Migrated: &tabWindows.label;"/>
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-download.xul" label="&download.label;"/>
+          </treerow>
+        </treeitem>
+        <!-- Taking out Policies panel b/c bug 44121
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-policies.xul" label="&policies.label;"/>
+          </treerow>
+        </treeitem> -->
+      </treechildren>
+    </treeitem>
+    
+    <!-- Security and Privacy items -->
+    <treeitem container="true" id="securityItem">
+      <treerow>
+        <treecell label="(Migrated: &security.label;)"/>
+      </treerow>
+      <treechildren id="securityChildren">
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &cookies.label;)"/>
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &images.label;)"/> 
+          </treerow>
+        </treeitem>
+        <treeitem id="popupspref">
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-popups.xul"
+                      label="&popups.label;"/> 
+          </treerow>
+        </treeitem>
+      </treechildren>
+    </treeitem>
+
+    <treeitem container="true" id="advancedItem">
+      <treerow>
+        <treecell label="(Migrated: &advance.label;)"/> 
+      </treerow>
+      <treechildren id="advancedChildren">
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &scriptsAndWindows.label;)"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-keynav.xul" label="&keynav.label;"/>
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-cache.xul" label="&cache.label;"/> 
+          </treerow>
+        </treeitem>
+        <treeitem id="proxiesItem">
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-proxies.xul" label="&proxies.label;"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://communicator/content/pref/pref-http.xul" label="&httpnetworking.label;"/> 
+          </treerow>
+        </treeitem>        
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &smart.label;)"/>
+          </treerow>
+        </treeitem>
+        <treeitem id="mousewheelItem">
+          <treerow>
+            <treecell label="(Migrated: &mousewheel.label;)"/>
+          </treerow>  
+        </treeitem> 
+      </treechildren>
+    </treeitem>
+
+    <!-- commented out until bug 82487 is fixed -->
+    <!--
+    <treeitem id="offlineItem">
+      <treerow>
+        <treecell url="chrome://communicator/content/pref/pref-offline.xul" label="&offline.label;"/> 
+      </treerow>
+    </treeitem>
+    -->
+  </treechildren>
+</tree>
+
+</overlay>

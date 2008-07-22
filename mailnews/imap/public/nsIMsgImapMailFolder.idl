@@ -1,0 +1,160 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Lorenzo Colitti <lorenzo@colitti.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+#include "nsIMsgFolder.idl"
+
+interface nsIMsgWindow;
+interface nsIImapIncomingServer;
+interface nsIMsgParseMailMsgState;
+
+// this is a simple interface which allows the imap folder to update some values
+// that the folder props js code will use to update the sharing and quota tabs in the folder props.
+                 
+[scriptable, uuid(09D99F2C-3E23-4f8c-A536-5C277BAA9585)] 
+interface nsIMsgImapFolderProps : nsISupports {
+
+    void setFolderType(in AString folderType);
+    void setFolderTypeDescription(in AString folderTypeDescription);
+    void setFolderPermissions(in AString permissions);
+    void serverDoesntSupportACL();
+
+    /**
+     * Toggles the display of quota information in the Quota tab of the folder properties.
+     * If on, the quota root, usage, and percentage used are displayed.
+     * If off, a status message is displayed. The status message can be set with setQuotaStatus().
+     * @param showData If true, display the quota root, usage information and usage percentage bar.
+     * If false, display the status message.
+     */
+    void showQuotaData(in boolean showData);
+
+    /**
+     * Sets the status string displayed in the Quota tab of the folder properties if quota
+     * information is not visible.
+     */
+    void setQuotaStatus(in AString folderQuotaStatus);
+
+    /**
+     * Updates the quota data displayed in the Quota tab.
+     */
+    void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
+};
+
+[scriptable, uuid(b43edc8e-f49b-4d1a-9980-e7c4c0ebcdef)]
+interface nsIMsgImapMailFolder : nsISupports {
+  void removeSubFolder(in nsIMsgFolder folder);
+  void createClientSubfolderInfo(in ACString folderName, in wchar hierarchyDelimiter, in long flags, in boolean suppressNotification);
+  void list();
+  void renameLocal(in ACString newname, in nsIMsgFolder parent);
+  void prepareToRename();
+  void performExpand(in nsIMsgWindow aMsgWindow);
+  void recursiveCloseActiveConnections(in nsIImapIncomingServer aImapServer);
+  void renameClient(in nsIMsgWindow msgWindow, in nsIMsgFolder msgFolder, in ACString oldName, in ACString newName);
+
+  // these are used for offline synchronization
+  void storeImapFlags(in long aFlags, in boolean aAddFlags, [array, size_is (aNumKeys)] 
+      in nsMsgKey aKeysToFlag, in unsigned long aNumKeys, in nsIUrlListener aUrlListener);
+  nsIURI setImapFlags(in string uids, in long flags);
+  void replayOfflineMoveCopy([array, size_is (numKeys)] in nsMsgKey keys, in unsigned long numKeys, in boolean isMove, in nsIMsgFolder aDstFolder,
+                         in nsIUrlListener aUrlListener, in nsIMsgWindow aWindow);
+  nsIURI playbackOfflineFolderCreate(in AString folderName, in nsIMsgWindow aWindow);
+  void liteSelect(in nsIUrlListener aUrlListener);
+  void fillInFolderProps(in nsIMsgImapFolderProps aFolderProps);
+  void resetNamespaceReferences();
+  void folderPrivileges(in nsIMsgWindow aWindow);
+  nsIMsgImapMailFolder findOnlineSubFolder(in ACString onlineName);
+  void addFolderRights(in ACString userName, in ACString rights);
+  void refreshFolderRights();
+
+  void updateStatus(in nsIUrlListener aListener, in nsIMsgWindow aMsgWindow);
+  void updateFolder(in nsIMsgWindow aWindow, in nsIUrlListener aListener);
+  // this is used to issue an arbitrary imap command on the passed in msgs.
+  // It assumes the command needs to be run in the selected state.
+  nsIURI issueCommandOnMsgs(in ACString command, in string uids, in nsIMsgWindow aWindow);
+  nsIURI fetchCustomMsgAttribute(in ACString msgAttribute, in string uids, in nsIMsgWindow aWindow);
+  nsIURI storeCustomKeywords(in nsIMsgWindow aMsgWindow,
+                      in ACString aFlagsToAdd,
+                      in ACString aFlagsToSubtract,
+                      [array, size_is (aNumKeys)] in nsMsgKey aKeysToStore,
+                      in unsigned long aNumKeys);
+
+  void notifyIfNewMail();
+
+  attribute boolean verifiedAsOnlineFolder;
+  attribute boolean explicitlyVerify;
+  attribute wchar hierarchyDelimiter;
+  attribute long boxFlags;
+  attribute ACString onlineName;
+  attribute boolean isNamespace;
+  readonly attribute boolean canOpenFolder;
+  attribute ACString adminUrl;
+  readonly attribute boolean hasAdminUrl;
+  attribute boolean performingBiff;
+  readonly attribute nsIMsgParseMailMsgState hdrParser;
+  readonly attribute nsIImapIncomingServer imapIncomingServer;
+
+  /**
+   * Quota
+   * |valid| indicates whether the server has provided quota information on
+   * this folder. This can be false
+   * - if the server does not supports quotas,
+   * - if there are no storage quotas on this folder, or
+   * - if the folder has never been opened.
+   * If it is true and maxKB > 0, the folder has a storage quota and
+   * the usedKB and maxKB attributes are set to the values provided by
+   * the server (in kilobytes), for this quota root.
+   * Lotus Notes sends us maxKB = 0, usedKB > 0 for unlimited quota.
+   */
+  void getQuota(out boolean valid, out unsigned long usedKB, out unsigned long maxKB);
+  /**
+   * Change the number of "pending" messages in a folder,
+   *  messages we know about, but don't have the headers for yet
+   *
+   * @param aDelta amount to change total by.
+   */
+  void changePendingTotal(in long aDelta);
+  /**
+   * Change the number of "pending" unread messages in a folder,
+   * unread messages we know about, but don't have the headers for yet
+   *
+   * @param aDelta amount to change the unread count by.
+   */
+  void changePendingUnread(in long aDelta);
+
+
+};

@@ -1,0 +1,101 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ *   Nick Kreeger <nick.kreeger@park.edu>
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+interface nsIUrlListener;
+interface nsIMsgWindow;
+interface nsIWebProgressListener;
+
+[scriptable, uuid(D1B43428-B631-4629-B691-AB0E01A2DB4B)]
+interface nsIMsgShutdownTask : nsISupports
+{
+  /**
+   * Inform the caller wheter or not the task needs to be run. This method
+   * gives the task the flexibility to cancel running a task on shutdown
+   * if nothing needs to be run.
+   */
+  readonly attribute boolean needsToRunTask;
+
+  /**
+   * At shutdown-time, this function will be called to all registered implementors.
+   * Shutdown will be temporarily postponed until |OnStopRequest()| has been called
+   * on the passed in url-listener. 
+   * @param inUrlListener The URL listener to report events to.
+   * @param inMsgWindow The current message window to allow for posing dialogs.
+   * @return If the shutdown URL was run or not. If the URL is running, the task
+   *         will be responsible for notifying |inUrlListener| when the task is completed.
+   */
+  boolean doShutdownTask(in nsIUrlListener inUrlListener, in nsIMsgWindow inMsgWindow);
+  
+  /**
+   * Get the displayable name of the current task. This textual information will be
+   * shown to the user so they know what shutdown task is being performed.
+   * @return The name of the current task being performed.
+   */
+  AString getCurrentTaskName();
+};
+
+[scriptable, uuid(483C8ABB-ECF9-48A3-A394-2C604B603BD5)]
+interface nsIMsgShutdownService : nsISupports
+{
+  /**
+   * Get the number of tasks that will need to be processed at shutdown time.
+   * @return The number of shutdown tasks to do.
+   */ 
+  long getNumTasks();
+  
+  /**
+   * Start the shutdown tasks. 
+   */
+  void startShutdownTasks();
+  
+  /**
+   * Tell the service to stop running tasks and go ahead and shutdown the application.
+   */
+  void cancelShutdownTasks();
+  
+  /**
+   * Set the shutdown listener.
+   */
+  void setShutdownListener(in nsIWebProgressListener inListener);
+  
+  /**
+   * Set the status text of the shutdown progress dialog.
+   */
+  void setStatusText(in AString inStatusString);
+};
+
+

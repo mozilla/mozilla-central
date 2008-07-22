@@ -1,0 +1,192 @@
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+#include "nsIAbListener.idl"
+
+interface nsIDOMWindow;
+interface nsIAbDirectory;
+interface nsIAbCard;
+interface nsIAbDirectoryProperties;
+interface nsIRDFDataSource;
+interface nsILocalFile;
+interface nsISimpleEnumerator;
+
+/**
+ * nsIAbManager is an interface to the main address book mananger
+ * via the contract id "@mozilla.org/abmanager;1"
+ *
+ * It contains the main functions to create and delete address books as well
+ * as some helper functions.
+ */
+[scriptable, uuid(3b869b86-c4df-4cae-8dc9-c18073d2593f)]
+interface nsIAbManager : nsISupports 
+{
+  /**
+   * Returns an enumerator containing all the top-level directories
+   * (non-recursive)
+   */
+  readonly attribute nsISimpleEnumerator directories;
+
+  /**
+   * Returns the directory that represents the supplied URI.
+   *
+   * @param  aURI       The URI of the address book to find.
+   * @return            The found address book.
+   */
+  nsIAbDirectory getDirectory(in ACString aURI);
+
+  /**
+   * Creates a new address book.
+   *
+   * @param  aDirName   The description of the address book.
+   * @param  aURI       The URI for the address book. This is specific to each
+   *                    type of address book.
+   * @param  aType      The type of the address book (see nsDirPrefs.h)
+   * @param  aPrefName  Overrides the default of ldap_2.servers.<aDirName>
+   *                    (note that the caller must ensure its uniqueness).
+   */
+  ACString newAddressBook(in AString aDirName, in ACString aURI,
+                          in unsigned long aType,
+                          [optional] in ACString aPrefName);
+
+  /**
+   * Deletes an address book.
+   *
+   * @param  aURI       The URI for the address book. This is specific to each
+   *                    type of address book.
+   */
+  void deleteAddressBook(in ACString aURI);
+
+  /**
+   * Exports an address book, it will provide a dialog to the user for the
+   * location to save the file to and will then save the address book to media.
+   *
+   * @param  aParentWin Parent Window for the file save dialog to use.
+   * @param  aDirectory The directory to export.
+   */
+  void exportAddressBook(in nsIDOMWindow aParentWin, in nsIAbDirectory aDirectory);
+
+  /**
+   * Adds a nsIAbListener to receive notifications of address book updates
+   * according to the specified notifyFlags.
+   *
+   * @param  aListener      The listener that is to receive updates.
+   * @param  aNotifyFlags   A bitwise-or of abListenerNotifyFlagValue items
+   *                        specifying which notifications to receive. See
+   *                        nsIAbListener for possible values.
+   */
+  void addAddressBookListener(in nsIAbListener aListener,
+                              in abListenerNotifyFlagValue aNotifyFlags);
+
+  /**
+   * Removes a nsIAbListener from receive notifications of address book
+   * updates.
+   *
+   * @param  aListener     The listener that is to no longer receive updates.
+   */
+  void removeAddressBookListener(in nsIAbListener aListener);
+
+  /**
+   * Call to notify the registered listeners when a property on an item has
+   * changed.
+   *
+   * @param  aItem         The items that has changed (e.g. an nsIAbDirectory)
+   * @param  aProperty     The property that has changed (e.g. DirName)
+   * @param  aOldValue     The old value of the property.
+   * @param  aNewValue     The new value of the property.
+   */
+  void notifyItemPropertyChanged(in nsISupports aItem,
+                                 in string aProperty,
+                                 in wstring aOldValue,
+                                 in wstring aNewValue);
+
+  /**
+   * Call to notify the registered listeners when a directory item is added.
+   *
+   * @param  aParentDirectory  The parent directory of the item that has been
+   *                           added.
+   * @param  aItem             The item that has been added.
+   */
+  void notifyDirectoryItemAdded(in nsIAbDirectory aParentDirectory,
+                                in nsISupports aItem);
+
+  /**
+   * Call to notify the registered listeners when a directory item is removed.
+   *
+   * @param  aParentDirectory  The parent directory of the item that has been
+   *                           removed.
+   * @param  aItem             The item that has been removed.
+   */
+  void notifyDirectoryItemDeleted(in nsIAbDirectory aParentDirectory,
+                                  in nsISupports aItem);
+  
+  /**
+   * Call to notify the registered listeners when a directory is removed.
+   *
+   * @param  aParentDirectory  The parent directory of the directory that has
+   *                           been removed.
+   * @param  aDirectory        The directory that has been removed.
+   */
+  void notifyDirectoryDeleted(in nsIAbDirectory aParentDirectory,
+                              in nsISupports aDirectory);
+
+  /**
+   * Returns the user profile directory. NOTE: this should not be used
+   * as it may go away soon.
+   */
+  readonly attribute nsILocalFile userProfileDirectory;
+
+  /**
+   * Finds out if the mailing list name exists in any *mork/MDB* based
+   * address book
+   *
+   * @param  aName      The name of the list to try and find.
+   *
+   * @return            True if the name exists.
+   */
+  boolean mailListNameExists(in wstring name);
+
+  /**
+   * Translates an escaped vcard string into a nsIAbCard.
+   *
+   * @param  escapedVCardStr  The string containing the vcard.
+   *
+   * @return            A card containing the translated vcard data.
+   */
+  nsIAbCard escapedVCardToAbCard(in string escapedVCardStr);
+};

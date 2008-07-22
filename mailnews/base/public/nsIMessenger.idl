@@ -1,0 +1,122 @@
+/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+#include "nsrootidl.idl"
+#include "nsIMsgWindow.idl"
+#include "nsIMsgIdentity.idl"
+#include "nsIMsgThread.idl"
+#include "nsIMsgFolder.idl"
+
+interface nsIMsgDBHdr;
+interface nsIDOMWindowInternal;
+interface nsITransactionManager;
+interface nsIMsgMessageService;
+interface nsIFile;
+interface nsIUrlListener;
+
+[scriptable, uuid(1B44C6EB-2C14-470F-AA5C-BDDCE89A4ECC)]
+interface nsIMessenger : nsISupports {
+
+    const long eUnknown = 0;
+    const long eDeleteMsg = 1;
+    const long eMoveMsg = 2;
+    const long eCopyMsg = 3;
+
+    void setDisplayCharset(in ACString aCharset);
+
+    readonly attribute nsITransactionManager transactionManager;
+
+    void setWindow(in nsIDOMWindowInternal ptr, in nsIMsgWindow msgWindow);
+
+    void openURL(in ACString aURL);
+
+    /** load a custom message by url, e.g load a attachment as a email
+      */
+    void loadURL(in nsIDOMWindowInternal ptr, in ACString aURL); 
+
+    void launchExternalURL(in ACString aURL);
+
+    boolean canUndo();
+    boolean canRedo();
+    unsigned long getUndoTransactionType();
+    unsigned long getRedoTransactionType();
+    void undo(in nsIMsgWindow msgWindow);
+    void redo(in nsIMsgWindow msgWindow);
+    void sendUnsentMessages(in nsIMsgIdentity aIdentity, in nsIMsgWindow aMsgWindow);
+    void setDocumentCharset(in ACString characterSet);
+    void saveAs(in ACString aURI, in boolean aAsFile, in nsIMsgIdentity aIdentity, in AString aMsgFilename);
+    void openAttachment(in ACString contentTpe, in ACString url, in ACString displayName, in ACString messageUri, in boolean isExternalAttachment);
+    void saveAttachment(in ACString contentTpe, in ACString url, in ACString displayName, in ACString messageUri, in boolean isExternalAttachment);
+    void saveAllAttachments(in unsigned long count, [array, size_is(count)] in string contentTypeArray,
+                            [array, size_is(count)] in string urlArray, [array, size_is(count)] in string displayNameArray,
+                            [array, size_is(count)] in string messageUriArray);
+    
+    void saveAttachmentToFile(in nsIFile aFile, in ACString aUrl, in ACString aMessageUri, 
+                              in ACString aContentType, in nsIUrlListener aListener);
+    
+    void detachAttachment(in string contentTpe, in string url, in string displayName, in string messageUri, in boolean saveFirst, [optional] in boolean withoutWarning);
+    void detachAllAttachments(in unsigned long count, [array, size_is(count)] in string contentTypeArray,
+                             [array, size_is(count)] in string urlArray, [array, size_is(count)] in string displayNameArray,
+                             [array, size_is(count)] in string messageUriArray, in boolean saveFirst, [optional] in boolean withoutWarning);
+    // saveAttachmentToFolder is used by the drag and drop code to drop an attachment to a destination folder
+    // we need to return the actual file path (including the filename).
+    nsILocalFile saveAttachmentToFolder(in ACString contentType, in ACString url, in ACString displayName, in ACString messageUri, in nsILocalFile aDestFolder);
+
+    attribute boolean sendingUnsentMsgs;
+
+    readonly attribute ACString lastDisplayedMessageUri;
+
+    nsIMsgMessageService messageServiceFromURI(in ACString aUri);
+    nsIMsgDBHdr msgHdrFromURI(in ACString aUri);
+    // for back forward history, we need a list of visited messages,
+    // and where we are in the list.
+    
+    // aPos is relative to the current history cursor - 1 is forward, -1 is back.
+    // Unfortunately, you must call this before navigating to this position,
+    // because calling this has the side effect of making us adjust our current
+    // history pos, and *not* adding the loaded message to the history queue.
+    ACString getMsgUriAtNavigatePos(in long aPos);
+    ACString getFolderUriAtNavigatePos(in long aPos);
+    attribute long navigatePos;
+    // if caller just wants the count and cur pos, they can pass in a null history pointer, which will be more efficent
+    // if they want a list suitable for display in a back/forward menu drop down, they should pass in a aHistory pointer,
+    // and they'll get returned an array with strings containing something like subject and sender of the message - 
+    // other possible info is the folder containing the message, and the preview text, if available.
+    void getNavigateHistory(out unsigned long aCurPos, out unsigned long aCount, [array, size_is(aCount)] out string aHistory);
+};
+

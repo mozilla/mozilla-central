@@ -1,0 +1,142 @@
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * The Mozilla Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   David Bienvenu <bienvenu@mozilla.com>
+ *   Siddharth Agarwal <sid1337@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+#include "nsISupports.idl"
+
+interface nsIMsgDBHdr;
+interface nsIMsgFolder;
+interface nsIArray;
+
+/**
+ * This is similar to nsIFolderListener, but with slightly different semantics,
+ * especially w.r.t. moving messages and folders.  Some listeners want to know
+ * about moves, instead of getting an itemAdded and itemRemoved notification.
+ * Folder listeners also only tend to get called if a view is open on the folder,
+ * which is not always the case. I don't want to change nsIFolderListener at this
+ * point since there are lots of extensions that rely on it. Eventually,
+ * these two interfaces should be combined somehow.
+ */
+
+[scriptable, uuid(4dee6994-1a7d-4200-b9a7-b1fc54df3397)]
+interface nsIMsgFolderListener : nsISupports {
+  /**
+   * Notified immediately after a message is added to a folder. This could be a new incoming
+   * message to a local folder, or a new message in an IMAP folder when it is opened.
+   *
+   * @param aMsg The message header that was just added
+   */
+  void msgAdded(in nsIMsgDBHdr aMsg);
+
+  /**
+   * Notified after a command to delete a group of messages has been given, but before the
+   * messages have actually been deleted.
+   *
+   * @param aMsgs An array of the message headers about to be deleted
+   *
+   * @note
+   * This notification will not take place if the messages are being deleted from the folder
+   * as the result of a move to another folder. Instead, the msgsMoveCopyCompleted() notification
+   * takes place.
+   *
+   * @note
+   * "Deleting" to a trash folder is actually a move, and is covered by msgsMoveCopyCompleted()
+   *
+   * @note
+   * If the user has selected the IMAP delete model (marking messages as deleted, then purging them
+   * later) for an IMAP account, this notification will not take place on the delete. This will only
+   * take place on the purge.
+   */
+  void msgsDeleted(in nsIArray aMsgs);
+
+  /**
+   * Notified after a command to move or copy a group of messages completes. In case of a move,
+   * this is before the messages have been deleted from the source folder.
+   *
+   * @param aMove true if a move, false if a copy
+   * @param aSrcMsgs An array of the message headers in the source folder
+   * @param aDestFolder The folder these messages were moved to
+   *
+   * @note
+   * If messages are moved from a server which uses the IMAP delete model, you'll get aMove =
+   * false. That's because the messages are not deleted from the source database, but instead
+   * simply marked deleted.
+   */
+  void msgsMoveCopyCompleted(in boolean aMove, 
+                             in nsIArray aSrcMsgs, 
+                             in nsIMsgFolder aDestFolder);
+
+  /**
+   * Notified after a folder has been deleted and its corresponding file(s) deleted from disk.
+   *
+   * @param aFolder The folder that has just been deleted
+   *
+   * @note
+   * "Deleting" to a trash folder is actually a move, and is covered by folderMoveCopyCompleted()
+   */
+  void folderDeleted(in nsIMsgFolder aFolder);
+
+  /**
+   * Notified after a command to move or copy a folder completes. In case of a move, at this point,
+   * the original folder and its files have already been moved to the new location.
+   *
+   * @param aMove true if a move, false if a copy
+   * @param aSrcFolder The original folder that was moved
+   * @param aDestFolder The parent folder this folder was moved to
+   */
+  void folderMoveCopyCompleted(in boolean aMove,
+                               in nsIMsgFolder aSrcFolder,
+                               in nsIMsgFolder aDestFolder);
+
+  /**
+   * Notified after a folder is renamed.
+   *
+   * @param aOrigFolder The folder with the old name
+   * @param aNewFolder The folder with the new name
+   */
+  void folderRenamed(in nsIMsgFolder aOrigFolder, in nsIMsgFolder aNewFolder);
+  
+  /**
+   * Notified when a particular event takes place for an item. Currently this is
+   * unused.
+   *
+   * @param aItem The item the event takes place on
+   * @param aEvent String describing the event
+   * @param aData Data relevant to the event
+   */
+  void itemEvent(in nsISupports aItem, in ACString aEvent, in nsISupports aData);
+};

@@ -1,0 +1,606 @@
+/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   David Bienvenu <bienvenu@nventure.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+#include "nsIFolderListener.idl"
+#include "nsIMsgThread.idl"
+#include "nsIMsgIncomingServer.idl"
+#include "nsISupportsArray.idl"
+#include "nsIMsgCopyServiceListener.idl"
+#include "nsIUrlListener.idl"
+#include "nsISimpleEnumerator.idl"
+
+[ptr] native octet_ptr(PRUint8);
+
+interface nsIMsgDBHdr;
+interface nsIMsgWindow;
+interface nsIMsgDatabase;
+interface nsIDBFolderInfo;
+interface nsIMsgFilterList;
+
+interface nsIMsgFolderCacheElement;
+interface nsITransport;
+interface nsIFile;
+interface nsIOutputStream;
+interface nsIInputStream;
+interface nsILocalFile;
+interface nsIMsgIdentity;
+interface nsIArray;
+interface nsIMutableArray;
+
+typedef long nsMsgBiffState;
+
+// enumerated type for determining if a message has been replied to, forwarded, etc.
+typedef long nsMsgDispositionState;
+
+[scriptable, uuid(3f7232c5-2b63-457a-bda9-585f3a9eee7c)]
+interface nsIMsgFolder : nsISupports {
+
+  const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
+  const nsMsgBiffState nsMsgBiffState_NoMail =  1; // No new mail is waiting.
+  const nsMsgBiffState nsMsgBiffState_Unknown = 2; // We dunno whether there is new mail.
+
+  nsISimpleEnumerator getMessages(in nsIMsgWindow aMsgWindow);
+
+  void startFolderLoading();
+  void endFolderLoading();
+
+  /* get new headers for db */
+  void updateFolder(in nsIMsgWindow aWindow);
+
+  readonly attribute AString prettiestName;
+
+  /**
+   * URL for this folder
+   */
+  readonly attribute ACString folderURL;
+
+  /**
+   * should probably move to the server
+   */
+  readonly attribute boolean showDeletedMessages;
+
+  /**
+   * this folder's parent server
+   */
+  readonly attribute nsIMsgIncomingServer server;
+
+  /**
+   * is this folder the "phantom" server folder?
+   */
+  readonly attribute boolean isServer;
+  readonly attribute boolean canSubscribe;
+  readonly attribute boolean canFileMessages;
+  readonly attribute boolean noSelect;  // this is an imap no select folder
+  readonly attribute boolean imapShared; // this is an imap shared folder
+  readonly attribute boolean canDeleteMessages; // can't delete from imap read-only
+
+  /**
+   * does this folder allow subfolders?
+   * for example, newsgroups cannot have subfolders, and the INBOX
+   * on some IMAP servers cannot have subfolders
+   */
+  readonly attribute boolean canCreateSubfolders;
+
+  /**
+   * can you change the name of this folder?
+   * for example, newsgroups
+   * and some special folders can't be renamed
+   */
+  readonly attribute boolean canRename;
+
+  readonly attribute boolean canCompact;
+
+  /**
+   * the phantom server folder
+   */
+  readonly attribute nsIMsgFolder rootFolder;
+
+  /**
+   * function to get the filter list on folder's server
+   * (or in the case of news, the filter list for this newsgroup)'
+   */
+  nsIMsgFilterList getFilterList(in nsIMsgWindow msgWindow);
+  void setFilterList(in nsIMsgFilterList filterList);
+
+  void ForceDBClosed ();
+  void Delete ();
+
+  void deleteSubFolders(in nsIArray folders, in nsIMsgWindow msgWindow);
+  void propagateDelete(in nsIMsgFolder folder, in boolean deleteStorage,
+                       in nsIMsgWindow msgWindow);
+  void recursiveDelete(in boolean deleteStorage, in nsIMsgWindow msgWindow);
+
+  void createSubfolder(in AString folderName, in nsIMsgWindow msgWindow);
+  nsIMsgFolder addSubfolder(in AString folderName);
+  /* this method ensures the storage for the folder exists.
+    For local folders, it creates the berkeley mailbox if missing.
+    For imap folders, it subscribes to the folder if it exists,
+    or creates it if it doesn't exist
+  */
+  void createStorageIfMissing(in nsIUrlListener urlListener);
+
+  void compact(in nsIUrlListener aListener, in nsIMsgWindow aMsgWindow);
+  void compactAll(in nsIUrlListener aListener, in nsIMsgWindow aMsgWindow,
+                  in nsISupportsArray aFolderArray, in boolean aCompactOfflineAlso,
+                  in nsISupportsArray aOfflineFolderArray);
+  void compactAllOfflineStores(in nsIMsgWindow aMsgWindow,
+                               in nsISupportsArray aOfflineFolderArray);
+  void emptyTrash(in nsIMsgWindow aMsgWindow, in nsIUrlListener aListener);
+
+  /**
+   * change the name of the folder
+   *
+   * @param name the new name of the folder
+   */
+  void rename(in AString name, in nsIMsgWindow msgWindow);
+  void renameSubFolders( in nsIMsgWindow msgWindow, in nsIMsgFolder oldFolder);
+
+  AString generateUniqueSubfolderName(in AString prefix,
+                                      in nsIMsgFolder otherFolder);
+
+  void updateSummaryTotals(in boolean force);
+  void summaryChanged();
+  /**
+   * get the total number of unread messages in this folder,
+   * or in all subfolders
+   *
+   * @param deep if true, descends into all subfolders and gets a grand total
+   */
+  long getNumUnread(in boolean deep);
+
+  /**
+   * get the total number of messages in this folder,
+   * or in all subfolders
+   *
+   * @param deep if true, descends into all subfolders and gets a grand total
+   */
+  long getTotalMessages(in boolean deep);
+
+ /**
+  * does this folder have new messages
+  *
+  */
+  attribute boolean hasNewMessages;
+
+  /**
+   * return the first new message in the folder
+   *
+   */
+  readonly attribute nsIMsgDBHdr firstNewMessage;
+
+  /**
+   * clear new status flag of all of the new messages
+   *
+   */
+  void clearNewMessages();
+
+  readonly attribute unsigned long expungedBytes;
+
+  /**
+   * can this folder be deleted?
+   * for example, special folders cannot be deleted
+   */
+  readonly attribute boolean deletable;
+
+  /**
+   * should we be displaying recipients instead of the sender?
+   * for example, in the Sent folder, recipients are more relevant
+   * than the sender
+   */
+  readonly attribute boolean displayRecipients;
+
+  /**
+   * used to determine if it will take a long time to download all
+   * the headers in this folder - so that we can do folder notifications
+   * synchronously instead of asynchronously
+   */
+  readonly attribute boolean manyHeadersToDownload;
+
+  readonly attribute boolean requiresCleanup;
+  void clearRequiresCleanup();
+
+  /**
+   * this should go into a news-specific interface
+   */
+  readonly attribute boolean knowsSearchNntpExtension;
+
+  /**
+   * this should go into a news-specific interface
+   */
+  readonly attribute boolean allowsPosting;
+
+  readonly attribute ACString relativePathName;
+
+  /**
+   * size of this folder on disk (not including .msf file)
+   * for imap, it's the sum of the size of the messages
+   */
+  attribute unsigned long sizeOnDisk;
+
+  readonly attribute ACString username;
+  readonly attribute ACString hostname;
+
+  /**
+   * Sets a flag on the folder. The known flags are defined in
+   * nsMsgFolderFlags.h.
+   *
+   * @param flag  The flag to set on the folder.
+   */
+  void setFlag(in unsigned long flag);
+
+  /**
+   * Clears a flag on the folder. The known flags are defined in
+   * nsMsgFolderFlags.h.
+   *
+   * @param flag  The flag to clear on the folder.
+   */
+  void clearFlag(in unsigned long flag);
+
+  /**
+   * Determines if a flag is set on the folder or not. The known flags are
+   * defined in nsMsgFolderFlags.h.
+   *
+   * @param flag  The flag to check on the folder.
+   * @return      True if the flag exists.
+   */
+  boolean getFlag(in unsigned long flag);
+
+  /**
+   * Toggles a flag on the folder. The known flags are defined in
+   * nsMsgFolderFlags.h.
+   *
+   * @param flag  The flag to toggle
+   */
+  void toggleFlag(in unsigned long flag);
+
+  /**
+   * Called to notify the database and/or listeners of a change of flag. The
+   * known flags are defined in nsMsgFolderFlags.h 
+   *
+   * @note        This doesn't need to be called for normal flag changes via
+   *              the *Flag functions on this interface.
+   *
+   * @param flag  The flag that was changed.
+   */
+  void onFlagChange(in unsigned long flag);
+
+  /**
+   * Direct access to the set/get all the flags at once.
+   */
+  attribute unsigned long flags;
+
+  void setPrefFlag();
+
+  /**
+   * Gets the first folder that has the specified flags set.
+   *
+   * @param flags    The flag(s) to check for.
+   * @return         The folder or the first available child folder that has
+   *                 the specified flags set, or null if there are none.
+   */
+  nsIMsgFolder getFolderWithFlags(in unsigned long flags);
+
+  /**
+   * Gets the folders that have the specified flag set.
+   *
+   * @param flags    The flag(s) to check for.
+   * @return         An array of folders that have the specified flags set.
+   *                 The array may have zero elements.
+   */
+  nsIArray getFoldersWithFlags(in unsigned long flags);
+
+  /**
+   * Lists the folders that have the specified flag set.
+   *
+   * @param flags    The flag(s) to check for.
+   * @param folders  The array in which to append the found folder(s).
+   */
+  void listFoldersWithFlags(in unsigned long flags,
+                            in nsIMutableArray folders);
+
+  void getExpansionArray(in nsISupportsArray expansionArray);
+
+  ACString getUriForMsg(in nsIMsgDBHdr msgHdr);
+
+  void deleteMessages(in nsIArray messages,
+                      in nsIMsgWindow msgWindow,
+                      in boolean deleteStorage, in boolean isMove,
+                      in nsIMsgCopyServiceListener listener, in boolean allowUndo);
+
+  void copyMessages(in nsIMsgFolder srcFolder, in nsIArray messages,
+                    in boolean isMove, in nsIMsgWindow msgWindow,
+                    in nsIMsgCopyServiceListener listener, in boolean isFolder,
+                    in boolean allowUndo);
+
+  void copyFolder(in nsIMsgFolder srcFolder, in boolean isMoveFolder,
+                  in nsIMsgWindow msgWindow, in nsIMsgCopyServiceListener listener );
+
+  void copyFileMessage(in nsIFile file, in nsIMsgDBHdr msgToReplace,
+                       in boolean isDraft, in unsigned long newMsgFlags,
+                       in nsIMsgWindow msgWindow,
+                       in nsIMsgCopyServiceListener listener);
+
+  void acquireSemaphore (in nsISupports semHolder);
+  void releaseSemaphore (in nsISupports semHolder);
+  boolean testSemaphore (in nsISupports semHolder);
+  readonly attribute boolean locked;
+
+  void getNewMessages(in nsIMsgWindow aWindow, in nsIUrlListener aListener);
+
+  /**
+   * write out summary data for this folder
+   * to the given folder cache (i.e. panacea.dat)
+   */
+  void writeToFolderCache(in nsIMsgFolderCache folderCache, in boolean deep);
+
+  /**
+   * the charset of this folder
+   */
+  attribute ACString charset;
+  attribute boolean charsetOverride;
+  attribute unsigned long biffState;
+
+  /**
+   * the number of new messages since this folder was last visited
+   * @param deep if true, descends into all subfolders and gets a grand total
+   */
+
+   long getNumNewMessages (in boolean deep);
+
+   void setNumNewMessages(in long numNewMessages);
+
+  /**
+   * are we running a url as a result of the user clicking get msg?
+   */
+  attribute boolean gettingNewMessages;
+
+  /**
+   * local path of this folder
+   */
+  attribute nsILocalFile filePath;
+
+  readonly attribute ACString baseMessageURI;
+  ACString generateMessageURI(in nsMsgKey msgKey);
+
+  const nsMsgDispositionState nsMsgDispositionState_None = -1;
+  const nsMsgDispositionState nsMsgDispositionState_Replied = 0;
+  const nsMsgDispositionState nsMsgDispositionState_Forwarded = 1;
+  void addMessageDispositionState(in nsIMsgDBHdr aMessage,
+                                  in nsMsgDispositionState aDispositionFlag);
+
+  void markMessagesRead(in nsIArray messages, in boolean markRead);
+  void markAllMessagesRead();
+  void markMessagesFlagged(in nsIArray messages, in boolean markFlagged);
+  void markThreadRead(in nsIMsgThread thread);
+  void setLabelForMessages(in nsIArray messages, in nsMsgLabelValue label);
+  nsIMsgDatabase getMsgDatabase(in nsIMsgWindow msgWindow);
+  void setMsgDatabase (in nsIMsgDatabase msgDatabase);
+  nsIMsgDatabase getDBFolderInfoAndDB(out nsIDBFolderInfo folderInfo);
+  nsIMsgDBHdr GetMessageHeader(in nsMsgKey msgKey);
+
+  readonly attribute boolean supportsOffline;
+  boolean shouldStoreMsgOffline(in nsMsgKey msgKey);
+  boolean hasMsgOffline(in nsMsgKey msgKey);
+
+  nsIInputStream getOfflineFileStream(in nsMsgKey msgKey, out PRUint32 offset,
+                                      out PRUint32 size);
+  readonly attribute nsIOutputStream offlineStoreOutputStream;
+  readonly attribute nsIInputStream offlineStoreInputStream;
+  void DownloadMessagesForOffline(in nsIArray messages,
+                                  in nsIMsgWindow window);
+  nsIMsgFolder getChildWithURI(in ACString uri, in boolean deep,
+                               in boolean caseInsensitive);
+  void downloadAllForOffline(in nsIUrlListener listener, in nsIMsgWindow window);
+  /**
+   *  Turn notifications on/off for various notification types. Currently only
+   *  supporting allMessageCountNotifications which refers to both total and
+   *  unread message counts.
+   */
+  const unsigned long allMessageCountNotifications    = 0;
+  void enableNotifications(in long notificationType, in boolean enable,
+                           in boolean dbBatching);
+  boolean isCommandEnabled(in ACString command);
+  boolean matchOrChangeFilterDestination(in nsIMsgFolder folder,
+                                         in boolean caseInsensitive);
+  boolean confirmFolderDeletionForFilter(in nsIMsgWindow msgWindow);
+  void alertFilterChanged(in nsIMsgWindow msgWindow);
+  void throwAlertMsg(in string msgName, in nsIMsgWindow msgWindow);
+  AString getStringWithFolderNameFromBundle(in string msgName);
+  void notifyCompactCompleted();
+  long compareSortKeys(in nsIMsgFolder msgFolder);
+  [noscript] void getSortKey(out octet_ptr key, out unsigned long length);
+
+  attribute nsIMsgRetentionSettings retentionSettings;
+  attribute nsIMsgDownloadSettings downloadSettings;
+  boolean callFilterPlugins(in nsIMsgWindow aMsgWindow);
+  /**
+   * used for order in the folder pane, folder pickers, etc.
+   */
+  attribute long sortOrder;
+
+  /* handy accessor when we want a msg folder */
+  readonly attribute nsIMsgFolder parentMsgFolder;
+
+  attribute nsIDBFolderInfo dBTransferInfo;
+
+  ACString getStringProperty(in string propertyName);
+  void setStringProperty(in string propertyName, in ACString propertyValue);
+
+  /* does not persist across sessions */
+  attribute nsMsgKey lastMessageLoaded;
+
+  /* old nsIFolder properties and methods */
+  readonly attribute ACString URI;
+  attribute AString name;
+  attribute AString prettyName;
+  readonly attribute AString abbreviatedName;
+
+  attribute nsIMsgFolder parent;
+
+  /**
+   * Returns an enumerator containing a list of nsIMsgFolder items that are
+   * subfolders of the instance this is called on.
+   */
+  readonly attribute nsISimpleEnumerator subFolders;
+
+  /**
+   * Returns true if this folder has sub folders.
+   */
+  readonly attribute boolean hasSubFolders;
+
+  /**
+   * Returns the number of sub folders that this folder has.
+   */
+  readonly attribute unsigned long numSubFolders;
+
+  /**
+   * Determines if this folder is an ancestor of the supplied folder.
+   *
+   * @param folder  The folder that may or may not be a descendent of this
+   *                folder.
+   */
+  boolean isAncestorOf(in nsIMsgFolder folder);
+
+  /**
+   * Looks in immediate children of this folder for the given name.
+   *
+   * @param name the name of the target subfolder
+   */
+  boolean containsChildNamed(in AString name);
+
+  /**
+   * Return the child folder which the specified name.
+   *
+   * @param aName  The name of the child folder to find
+   * @return       The child folder
+   * @exception NS_ERROR_FAILURE Thrown if the folder with aName does not exist
+   */
+  nsIMsgFolder getChildNamed(in AString aName);
+
+  /**
+   * Finds the sub folder with the specified name.
+   *
+   * @param escapedSubFolderName  The name of the sub folder to find.
+   * @note                        Even if the folder doesn't currently exist,
+   *                              a nsIMsgFolder may be returned.
+   */
+  nsIMsgFolder findSubFolder(in ACString escapedSubFolderName);
+
+  void AddFolderListener(in nsIFolderListener listener);
+  void RemoveFolderListener(in nsIFolderListener listener);
+  void NotifyPropertyChanged(in nsIAtom property,
+                             in ACString oldValue,
+                             in ACString newValue);
+  void NotifyIntPropertyChanged(in nsIAtom property,
+                                in long oldValue,
+                                in long newValue);
+  void NotifyBoolPropertyChanged(in nsIAtom property,
+                                 in boolean oldValue,
+                                 in boolean newValue);
+  void NotifyPropertyFlagChanged(in nsIMsgDBHdr item,
+                                 in nsIAtom property,
+                                 in unsigned long oldValue,
+                                 in unsigned long newValue);
+  void NotifyUnicharPropertyChanged(in nsIAtom property,
+                                    in AString oldValue,
+                                    in AString newValue);
+
+  void NotifyItemAdded(in nsISupports item);
+  void NotifyItemRemoved(in nsISupports item);
+
+  void NotifyFolderEvent(in nsIAtom event);
+
+  //  void NotifyFolderLoaded();
+  //  void NotifyDeleteOrMoveMessagesCompleted(in nsIMsgFolder folder);
+
+  // lists all descendents, not just first level children
+  void ListDescendents(in nsISupportsArray descendents);
+  void Shutdown(in boolean shutdownChildren);
+
+  readonly attribute boolean inVFEditSearchScope;
+  void setInVFEditSearchScope(in boolean aSearchThisFolder, in boolean aSetOnSubFolders);
+  void copyDataToOutputStreamForAppend(in nsIInputStream aIStream,
+                     in long aLength, in nsIOutputStream outputStream);
+  void copyDataDone();
+  void setJunkScoreForMessages(in nsIArray aMessages, in ACString aJunkScore);
+  void applyRetentionSettings();
+
+  /**
+   * Get the beginning of the message bodies for the passed in keys and store
+   * them in the msg hdr property "preview". This is intended for
+   * new mail alerts, title tips on folders with new messages, and perhaps
+   * titletips/message preview in the thread pane.
+   *
+   * @param aKeysToFetch   keys of msgs to fetch
+   * @param aNumKeys       number of keys to fetch
+   * @param aLocalOnly     whether to fetch msgs from server (imap msgs might
+   *                       be in memory cache from junk filter)
+   * @param aUrlListener   url listener to notify if we run url to fetch msgs
+   *
+   * @result aAsyncResults if true, we ran a url to fetch one or more of msg bodies
+   *
+   */
+  boolean fetchMsgPreviewText([array, size_is (aNumKeys)] in nsMsgKey aKeysToFetch,
+                      in unsigned long aNumKeys, in boolean aLocalOnly,
+                      in nsIUrlListener aUrlListener);
+
+  // used to set/clear tags - we could have a single method to setKeywords which
+  // would figure out the diffs, but these methods might be more convenient.
+  // keywords are space delimited, in the case of multiple keywords
+  void addKeywordsToMessages(in nsIArray aMessages, in ACString aKeywords);
+  void removeKeywordsFromMessages(in nsIArray aMessages, in ACString aKeywords);
+  /**
+   * Extract the message preview text from aStream, storing it as a string property
+   * on aMsgHdr.
+   *
+   * @param aMsgHdr
+   * @param aStream
+   * @param aBytesToRead number of bytes to read from the stream
+   * @param aMaxOutputLen desired length of the converted message text. Used to control how many characters
+   *        of msg text we want to store.
+   * @param aCompressQuotes Replace quotes and citations with " ... " in the preview text
+   */
+  AUTF8String getMsgTextFromStream(in nsIMsgDBHdr aMsgHdr, in nsIInputStream aStream,
+                                   in long aBytesToRead, in long aMaxOutputLen, in boolean aCompressQuotes);
+
+  // this allows a folder to have a special identity. E.g., you might want to
+  // associate an identity with a particular newsgroup, or for IMAP shared folders in
+  // the other users namespace, you might want to create a delegated identity
+  readonly attribute nsIMsgIdentity customIdentity;
+};

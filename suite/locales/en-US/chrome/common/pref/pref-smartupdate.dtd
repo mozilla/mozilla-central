@@ -1,0 +1,22 @@
+<!--LOCALIZATION NOTE : FILE UI for Software Updates prefs -->
+<!ENTITY pref.smartUpdate.title               "Software Installation">
+<!ENTITY smartTitle.label                     "Manage Software Installations and Updates">
+<!ENTITY enableSU.label                       "Allow web sites to install extensions and updates">
+<!ENTITY enableSU.accesskey                   "e">
+<!ENTITY allowedSites.label                   "Allowed Sites">
+<!ENTITY allowedSites.accesskey               "A">
+
+<!ENTITY verifyUpdates.caption                "Updates">
+<!ENTITY autoUpdates.label                    "Automatically check for updates to:">
+<!ENTITY appUpdates.label                     "&brandShortName;">
+<!ENTITY appUpdates.accesskey                 "S">
+<!ENTITY daily.label                          "daily">
+<!ENTITY appDaily.accesskey                   "d">
+<!ENTITY weekly.label                         "weekly">
+<!ENTITY appWeekly.accesskey                  "w">
+<!ENTITY extensionsUpdates.label              "Installed Add-ons">
+<!ENTITY extensionsUpdates.accesskey          "n">
+<!ENTITY extensionsDaily.accesskey            "i">
+<!ENTITY extensionsWeekly.accesskey           "k">
+<!ENTITY addonManagerButton.label             "Add-on Manager">
+<!ENTITY addonManagerButton.accesskey         "M">

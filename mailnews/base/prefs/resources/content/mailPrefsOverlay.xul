@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE overlay [
+<!ENTITY % mailPrefsOverlayDTD SYSTEM "chrome://messenger/locale/mailPrefsOverlay.dtd" >
+%mailPrefsOverlayDTD;
+]>
+
+<overlay id="mailPrefsOverlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <preferences id="appearance_preferences">
+    <preference id="general.startup.mail"
+                name="general.startup.mail"
+                type="bool"/>
+    <preference id="general.startup.addressbook"
+                name="general.startup.addressbook"
+                type="bool"/>
+  </preferences>
+  <preferences id="scripts_preferences">
+    <preference id="javascript.allow.mailnews"
+                name="javascript.allow.mailnews"
+                type="bool"
+                onchange="javascriptEnabledChange();"/>
+    <preference id="mailnews.message_display.allow.plugins"
+                name="mailnews.message_display.allow.plugins"
+                type="bool"/>
+  </preferences>
+  <!-- javascript toggle for mail/news -->
+  <groupbox id="javascriptPreferences">
+    <checkbox id="javascriptAllowMailNews"
+              insertafter="javascriptAllowNavigator"
+              label="&enbJsCheckMailNews.label;"
+              accesskey="&enbJsCheckMailNews.accesskey;"
+              preference="javascript.allow.mailnews"/>
+  </groupbox>
+  <!-- plugin toggle for mail/news -->
+  <groupbox id="pluginPreferences" hidden="false">
+    <checkbox id="pluginAllowMailNews"
+              label="&enbPluginCheckMailNews.label;"
+              accesskey="&enbPluginCheckMailNews.accesskey;"
+              preference="mailnews.message_display.allow.plugins"/>
+  </groupbox>
+
+  <!-- mail startup toggle -->
+  <groupbox id="generalStartupPreferences">
+    <checkbox id="generalStartupMail"
+              insertafter="generalStartupBrowser"
+              label="&mail.label;"
+              accesskey="&mail.accesskey;"
+              preference="general.startup.mail"/>
+    <checkbox id="generalStartupAddressBook"
+              insertafter="generalStartupEditor,generalStartupMail"
+              label="&addressbook.label;"
+              accesskey="&addressbook.accesskey;"
+              preference="general.startup.addressbook"/>
+  </groupbox>
+
+  <!-- category tree entries for mail/news -->
+  <treechildren id="prefsPanelChildren">
+    <treeitem container="true"
+              id="mailnewsItem"
+              insertafter="navigator"
+              label="&mail.label;"
+              prefpane="mailnews_pane"
+              url="chrome://messenger/content/pref-mailnews.xul"
+              helpTopic="mail_prefs_general">
+      <treechildren id="messengerChildren">
+        <!-- XXX Move pref panes from below to here as they are migrated -->
+        <treeitem id="viewingMessagesItem"
+                  label="&viewingMessages.label;"
+                  prefpane="viewing_messages_pane"
+                  url="chrome://messenger/content/pref-viewing_messages.xul"
+                  helpTopic="mail_prefs_display"/>
+        <treeitem id="tagsItem"
+                  label="&tags.label;"
+                  prefpane="tags_pane"
+                  url="chrome://messenger/content/pref-tags.xul"
+                  helpTopic="mail-prefs-tags"/>
+        <treeitem id="offlineItem"
+                  label="&offline.label;"
+                  prefpane="offline_pane"
+                  url="chrome://messenger/content/pref-offline.xul"
+                  helpTopic="mail_prefs_offline"/>
+      </treechildren>
+    </treeitem>
+  </treechildren>
+
+  <!-- category tree entries for mail/news -->
+  <treechildren id="panelChildren">
+    <treeitem container="true" id="mailnews" insertafter="navigator">
+      <treerow>
+        <treecell label="(Migrated: &mail.label;)"/>
+      </treerow>
+      <!-- XXX Move these up as we migrate the panels -->
+      <treechildren id="messengerChildren">
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &viewingMessages.label;)"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://messenger/content/pref-notifications.xul" label="&notifications.label;"/> 
+          </treerow>
+        </treeitem>
+        <treeitem id="mailcomposepref">
+          <treerow>
+            <treecell url="chrome://messenger/content/messengercompose/pref-composing_messages.xul" label="&composingMessages.label;"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://messenger/content/messengercompose/pref-formatting.xul" label="&format.label;"/> 
+          </treerow>
+        </treeitem>
+        <treeitem id="mailaddressbookpref">
+          <treerow>
+            <treecell url="chrome://messenger/content/addressbook/pref-addressing.xul" label="&address.label;"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://messenger/content/pref-junk.xul" label="&junk.label;"/>
+          </treerow>
+        </treeitem>
+        <treeitem id="mailtagspref">
+          <treerow>
+            <treecell label="(Migrated: &tags.label;)"/>
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://messenger/content/pref-receipts.xul" label="&return.label;"/>
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell url="chrome://messenger/content/pref-character_encoding.xul" label="&characterEncoding.label;"/> 
+          </treerow>
+        </treeitem>
+        <treeitem>
+          <treerow>
+            <treecell label="(Migrated: &offline.label;)"/>
+          </treerow>
+        </treeitem>
+      </treechildren>
+    </treeitem>
+  </treechildren>
+           
+</overlay>         

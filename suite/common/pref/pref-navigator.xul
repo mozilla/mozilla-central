@@ -1,0 +1,234 @@
+<?xml version="1.0"?> 
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Communicator client code,
+   - released March 31, 1998.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 1998-1999
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Ian Neal <ian@arlen.demon.co.uk>
+   -   Karsten Düsterloh <mnyromyr@tprac.de>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay [
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd"> %brandDTD;
+  <!ENTITY % navigatorDTD SYSTEM "chrome://communicator/locale/pref/pref-navigator.dtd"> %navigatorDTD;
+]>
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="navigator_pane"
+            label="&pref.navigator.title;"
+            script="chrome://communicator/content/pref/pref-navigator.js">
+
+    <preferences id="navigator_preferences">
+      <preference id="browser.startup.page"
+                  name="browser.startup.page"
+                  type="int"/>
+      <preference id="browser.windows.loadOnNewWindow"
+                  name="browser.windows.loadOnNewWindow"
+                  type="int"/>
+      <preference id="browser.tabs.loadOnNewTab"
+                  name="browser.tabs.loadOnNewTab"
+                  type="int"/>
+      <preference id="browser.startup.homepage.count"
+                  name="browser.startup.homepage.count"
+                  type="int"/>
+      <preference id="pref.browser.disable_button.default_browser"
+                  name="pref.browser.disable_button.default_browser"
+                  type="bool"/>
+      <preference id="pref.browser.homepage.disable_button.select_file"
+                  name="pref.browser.homepage.disable_button.select_file"
+                  type="bool"/>
+      <preference id="pref.browser.homepage.disable_button.current_page"
+                  name="pref.browser.homepage.disable_button.current_page"
+                  type="bool"/>
+      <preference id="pref.browser.homepage.disable_button.current_group"
+                  name="pref.browser.homepage.disable_button.current_group"
+                  type="bool"/>
+      <preference id="pref.browser.homepage.disable_button.default_page"
+                  name="pref.browser.homepage.disable_button.default_page"
+                  type="bool"/>
+      <preference id="browser.toolbars.showbutton.go"
+                  name="browser.toolbars.showbutton.go"
+                  type="bool"/>
+      <preference id="browser.toolbars.showbutton.search"
+                  name="browser.toolbars.showbutton.search"
+                  type="bool"/>
+      <preference id="browser.toolbars.showbutton.print"
+                  name="browser.toolbars.showbutton.print"
+                  type="bool"/>
+      <preference id="browser.toolbars.showbutton.home"
+                  name="browser.toolbars.showbutton.home"
+                  type="bool"/>
+      <preference id="browser.toolbars.showbutton.bookmarks"
+                  name="browser.toolbars.showbutton.bookmarks"
+                  type="bool"/>
+    </preferences>
+
+    <hbox id="pref-nav-platform-extensions">
+      <!-- navigator startup / new window / new tab behaviour -->  
+      <groupbox flex="1">
+        <caption align="center">
+          <label value="&navRadio;" control="selectDisplayOn"/>
+          <menulist id="selectDisplayOn" oncommand="SwitchPage(this.selectedIndex);">
+            <menupopup>
+              <menuitem label="&navStartPageMenu.label;"/>
+              <menuitem label="&newWinPageMenu.label;"/>
+              <menuitem label="&newTabPageMenu.label;"/>
+            </menupopup>
+          </menulist>
+        </caption>
+        <deck id="behaviourDeck" flex="1">
+          <radiogroup id="startupPage" preference="browser.startup.page">
+            <radio value="0"
+                   label="&blankPageRadio.label;"
+                   accesskey="&blankPageRadio.accesskey;"/>
+            <radio value="1"
+                   label="&homePageRadio.label;"
+                   accesskey="&homePageRadio.accesskey;"/>
+            <radio value="2"
+                   label="&lastPageRadio.label;"
+                   accesskey="&lastPageRadio.accesskey;"/>
+          </radiogroup>
+          <radiogroup id="newWinPage" preference="browser.windows.loadOnNewWindow">
+            <radio value="0"
+                   label="&blankPageRadio.label;"
+                   accesskey="&blankPageRadio.accesskey;"/>
+            <radio value="1"
+                   label="&homePageRadio.label;"
+                   accesskey="&homePageRadio.accesskey;"/>
+            <radio value="2"
+                   label="&lastPageRadio.label;"
+                   accesskey="&lastPageRadio.accesskey;"/>
+          </radiogroup>
+          <radiogroup id="newTabPage" preference="browser.tabs.loadOnNewTab">
+            <radio value="0"
+                   label="&blankPageRadio.label;"
+                   accesskey="&blankPageRadio.accesskey;"/>
+            <radio value="1"
+                   label="&homePageRadio.label;"
+                   accesskey="&homePageRadio.accesskey;"/>
+            <radio value="2"
+                   label="&lastPageRadio.label;"
+                   accesskey="&lastPageRadio.accesskey;"/>
+          </radiogroup>
+        </deck>
+      </groupbox>
+
+      <!-- default browser settings are shown only if supported by the platform -->
+      <groupbox id="defaultBrowserGroup" flex="1000" align="center" hidden="true">
+        <caption label="&defaultBrowserGroup.label;"/>
+        <!-- We have three use cases, identified by their index:
+             0: not already the default => button enabled
+             1: already the default => button disabled
+             2: user pushed button => button disabled with different text
+        -->
+        <description id="defaultBrowserDesc"
+                     desc0="&makeDefaultText;"
+                     desc1="&alreadyDefaultText;"
+                     desc2="&defaultPendingText;"/>
+        <button id="defaultBrowserButton"
+                label="&defaultBrowserButton.label;"
+                accesskey="&defaultBrowserButton.accesskey;"
+                oncommand="SetAsDefaultBrowser()"
+                disabled="true"
+                preference="pref.browser.disable_button.default_browser"/>
+      </groupbox>
+    </hbox>
+
+    <!-- homepage specification -->
+    <groupbox orient="horizontal">
+      <caption label="&header2.label;"/>
+      <vbox flex="1">
+        <description>&homePageIntro.label;</description>
+        <textbox id="browserStartupHomepage" class="uri-element" flex="1"
+                 multiline="true" wrap="off" timeout="500"
+                 oninput="UpdateHomePageListFromInput();"/>
+      </vbox>
+      <vbox>
+        <button label="&browseFile.label;" accesskey="&browseFile.accesskey;"
+                oncommand="SelectFile();"
+                id="browserChooseFile"
+                preference="pref.browser.homepage.disable_button.select_file"/>
+        <button label="&useCurrent.label;" accesskey="&useCurrent.accesskey;"
+                oncommand="SetHomePageToCurrentPage();"
+                id="browserUseCurrent"
+                preference="pref.browser.homepage.disable_button.current_page"/>
+        <button label="&useCurrentGroup.label;" accesskey="&useCurrentGroup.accesskey;"
+                oncommand="SetHomePageToCurrentGroup();"
+                id="browserUseCurrentGroup"
+                preference="pref.browser.homepage.disable_button.current_group"/>
+        <button label="&useDefault.label;" accesskey="&useDefault.accesskey;"
+                oncommand="SetHomePageToDefaultPage();"
+                id="browserUseDefault"
+                preference="pref.browser.homepage.disable_button.default_page"/>
+      </vbox>
+    </groupbox>
+
+    <!-- toolbar buttons customization -->
+    <description value="&toolbarIntro.label;"/>
+    <hbox id="prefShowButtons" flex="1" equalsize="true">
+      <groupbox id="prefShowButtonsBox1" flex="1" orient="horizontal">
+        <caption label="&navToolbarIntro.label;"/>
+        <vbox flex="1">
+          <checkbox id="searchButton"
+                    label="&searchButton.label;"
+                    accesskey="&searchButton.accesskey;"
+                    preference="browser.toolbars.showbutton.search"/>
+          <checkbox id="printButton"
+                    label="&printButton.label;"
+                    accesskey="&printButton.accesskey;"
+                    preference="browser.toolbars.showbutton.print"/>
+        </vbox>
+        <vbox flex="1">
+          <checkbox id="goButton"
+            label="&goButton.label;"
+            accesskey="&goButton.accesskey;"
+            preference="browser.toolbars.showbutton.go"/>
+        </vbox>
+      </groupbox>
+      <groupbox id="prefShowButtonsBox" flex="1">
+        <caption label="&persToolbarIntro.label;"/>
+        <checkbox id="homeButton"
+                  label="&homeButton.label;"
+                  accesskey="&homeButton.accesskey;"
+                  preference="browser.toolbars.showbutton.home"/>
+        <checkbox id="bookmarksButton"
+                  label="&bookmarksButton.label;"
+                  accesskey="&bookmarksButton.accesskey;"
+                  preference="browser.toolbars.showbutton.bookmarks"/>
+      </groupbox>
+      <vbox id="prefShowButtonBox"/>
+    </hbox>
+
+  </prefpane>
+</overlay>

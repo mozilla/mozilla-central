@@ -1,0 +1,109 @@
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+.tabbrowser-tabs {
+  padding-top: 1px;
+  margin-bottom: 0;
+}
+
+.tabs-left,
+.tabs-right {
+  width: 3px;
+}
+
+.tabs-bottom {
+  -moz-appearance: tabpanels;
+  height: 4px;
+}
+
+.tabs-stack {
+  border-bottom: 1px solid;
+  -moz-border-bottom-colors: ThreeDShadow;
+}
+
+.tabs-bottom-spacer {
+  height: 2px;
+}
+
+.tab-image-left {
+  width: 11px;
+  height: 25px;
+}
+
+.tab-image-right {
+  width: 12px;
+  height: 25px;
+}
+
+.tab-image-left, .tab-image-right, .tab-image-middle {
+  -moz-appearance: tab-left-edge;
+}
+
+.tab-icon {
+  margin-top: 1px;
+  margin-right: 3px;
+  width: 16px;
+  height: 16px;
+}
+
+.tabbrowser-tab {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png");
+  padding: 0;
+  margin: 0;
+}
+
+.tabbrowser-tab[busy] {
+  list-style-image: url("chrome://communicator/skin/icons/loading.gif");
+}
+
+.tabbrowser-tab[selected="true"] {
+  -moz-user-focus: normal;
+}
+
+.tabbrowser-tab:focus {
+  outline: 3px solid -moz-mac-focusring;
+  outline-offset: -3px;
+  -moz-outline-radius-topleft:  5px;
+  -moz-outline-radius-topright: 5px;
+}
+
+/* ::::: close button ::::: */
+
+.tabs-closebutton {
+  margin: 3px;
+  padding: 2px;
+  list-style-image: url("chrome://communicator/skin/icons/close-button.gif");
+}
+
+.tabs-closebutton > .toolbarbutton-icon {
+  margin: 0px;
+}
+
+.tabs-newbutton {
+  margin: 0px;
+  padding: 2px;
+  list-style-image: url("chrome://navigator/skin/icons/tab-new.gif");
+}
+
+.tabs-newbutton > .toolbarbutton-icon {
+  margin-right: 2px;
+}
+
+.tab-drop-indicator-bar {
+  height: 11px;
+  margin-top: -11px;
+  margin-left: -8px;
+  position: relative;
+}
+ 
+.tab-drop-indicator {
+  height: 11px;
+  width: 11px;
+  margin-bottom: -5px;
+  position: relative;
+  list-style-image: url('chrome://navigator/skin/icons/tab-drag-indicator.gif');
+}
+
+tooltip[tabpreview="true"] {
+  max-width: none;
+}

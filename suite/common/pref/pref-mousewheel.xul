@@ -1,0 +1,350 @@
+<?xml version="1.0"?> 
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Mozilla Communicator client code, released
+ March 31, 1998.
+
+ The Initial Developer of the Original Code is
+ Netscape Communications Corporation.
+ Portions created by the Initial Developer are Copyright (C) 1998-1999
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+   bryner@brianryner.com
+   sspitzer@netscape.com
+   Peter Weilbacher <mozilla@weilbacher.org>
+   Ian Neal <bugzilla@arlen.demon.co.uk>
+
+ Alternatively, the contents of this file may be used under the terms of
+ either of the GNU General Public License Version 2 or later (the "GPL"),
+ or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?> 
+
+<!DOCTYPE overlay [
+<!ENTITY % platformCommunicatorDTD SYSTEM "chrome://communicator-platform/locale/platformCommunicatorOverlay.dtd" >
+%platformCommunicatorDTD;
+<!ENTITY % prefMousewheelDTD SYSTEM "chrome://communicator/locale/pref/pref-mousewheel.dtd" >
+%prefMousewheelDTD;
+]>
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="mousewheel_pane"
+            label="&pref.mouseWheel.title;"
+            script="chrome://communicator/content/pref/pref-mousewheel.js">
+
+    <preferences id="mousewheel_preferences">
+      <preference id="mousewheel.withnokey.action"
+                  name="mousewheel.withnokey.action"
+                  type="int"/>
+      <preference id="mousewheel.withnokey.numlines"
+                  name="mousewheel.withnokey.numlines"
+                  type="int"/>
+      <preference id="mousewheel.withnokey.sysnumlines"
+                  name="mousewheel.withnokey.sysnumlines"
+                  type="bool"/>
+      <preference id="mousewheel.horizscroll.withnokey.action"
+                  name="mousewheel.horizscroll.withnokey.action"
+                  type="int"/>
+      <preference id="mousewheel.horizscroll.withnokey.numlines"
+                  name="mousewheel.horizscroll.withnokey.numlines"
+                  type="int"/>
+      <preference id="mousewheel.horizscroll.withnokey.sysnumlines"
+                  name="mousewheel.horizscroll.withnokey.sysnumlines"
+                  type="bool"/>
+      <preference id="mousewheel.withaltkey.action"
+                  name="mousewheel.withaltkey.action"
+                  type="int"/>
+      <preference id="mousewheel.withaltkey.numlines"
+                  name="mousewheel.withaltkey.numlines"
+                  type="int"/>
+      <preference id="mousewheel.withaltkey.sysnumlines"
+                  name="mousewheel.withaltkey.sysnumlines"
+                  type="bool"/>
+      <preference id="mousewheel.horizscroll.withaltkey.action"
+                  name="mousewheel.horizscroll.withaltkey.action"
+                  type="int"/>
+      <preference id="mousewheel.horizscroll.withaltkey.numlines"
+                  name="mousewheel.horizscroll.withaltkey.numlines"
+                  type="int"/>
+      <preference id="mousewheel.horizscroll.withaltkey.sysnumlines"
+                  name="mousewheel.horizscroll.withaltkey.sysnumlines"
+                  type="bool"/>
+      <preference id="mousewheel.withcontrolkey.action"
+                  name="mousewheel.withcontrolkey.action"
+                  type="int"/>
+      <preference id="mousewheel.withcontrolkey.numlines"
+                  name="mousewheel.withcontrolkey.numlines"
+                  type="int"/>
+      <preference id="mousewheel.withcontrolkey.sysnumlines"
+                  name="mousewheel.withcontrolkey.sysnumlines"
+                  type="bool"/>
+      <preference id="mousewheel.horizscroll.withcontrolkey.action"
+                  name="mousewheel.horizscroll.withcontrolkey.action"
+                  type="int"/>
+      <preference id="mousewheel.horizscroll.withcontrolkey.numlines"
+                  name="mousewheel.horizscroll.withcontrolkey.numlines"
+                  type="int"/>
+      <preference id="mousewheel.horizscroll.withcontrolkey.sysnumlines"
+                  name="mousewheel.horizscroll.withcontrolkey.sysnumlines"
+                  type="bool"/>
+      <preference id="mousewheel.withshiftkey.action"
+                  name="mousewheel.withshiftkey.action"
+                  type="int"/>
+      <preference id="mousewheel.withshiftkey.numlines"
+                  name="mousewheel.withshiftkey.numlines"
+                  type="int"/>
+      <preference id="mousewheel.withshiftkey.sysnumlines"
+                  name="mousewheel.withshiftkey.sysnumlines"
+                  type="bool"/>
+      <preference id="mousewheel.horizscroll.withshiftkey.action"
+                  name="mousewheel.horizscroll.withshiftkey.action"
+                  type="int"/>
+      <preference id="mousewheel.horizscroll.withshiftkey.numlines"
+                  name="mousewheel.horizscroll.withshiftkey.numlines"
+                  type="int"/>
+      <preference id="mousewheel.horizscroll.withshiftkey.sysnumlines"
+                  name="mousewheel.horizscroll.withshiftkey.sysnumlines"
+                  type="bool"/>
+    </preferences>
+
+    <description>&mouseWheelPanel.label;</description>
+
+    <tabbox class="spaced">
+      <tabs>
+        <tab label="&usingJustTheWheel.label;"/>
+        <tab label="&usingWheelAndAlt.label;"/>
+        <tab label="&usingWheelAndCtrl.label;"/>
+        <tab label="&usingWheelAndShft.label;"/>
+      </tabs>
+
+      <tabpanels>
+        
+        <!-- no key modifiers -->
+        <vbox>
+          <groupbox>
+            <caption label="&mousewheelGroup.label;"/>
+            <radiogroup id="mousewheelWithNoKeyAction"
+                        preference="mousewheel.withnokey.action">
+              <hbox align="start">
+                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
+                <vbox align="start">
+                  <hbox align="center">
+                    <textbox id="mousewheelWithNoKeyNumlines" size="3" 
+                             checkbox="mousewheel.withnokey.sysnumlines"
+                             preference="mousewheel.withnokey.numlines"/>
+                    <label value="&scrollLines.label;"/>
+                  </hbox>
+                  <checkbox id="mousewheelWithNoKeySysNumlines" label="&useSystemDefault.label;"
+                            accesskey="&useSystemDefault.accesskey;"
+                            preference="mousewheel.withnokey.sysnumlines"/>
+                </vbox>
+              </hbox>
+              <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+            </radiogroup>
+          </groupbox>
+
+          <groupbox>
+            <caption label="&mousewheelHorizGroup.label;"/>
+            <radiogroup id="mousewheelHorizWithNoKeyAction"
+                        preference="mousewheel.horizscroll.withnokey.action">
+              <hbox align="start">
+                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
+                <vbox align="start">
+                  <hbox align="center">
+                    <textbox id="mousewheelWithNoKeyNumchars" size="3" 
+                             checkbox="mousewheel.horizscroll.withnokey.sysnumlines"
+                             preference="mousewheel.horizscroll.withnokey.numlines"/>
+                    <label value="&scrollChars.label;"/>
+                  </hbox>
+                  <checkbox id="mousewheelWithNoKeySysNumchars" label="&useSystemDefault.label;"
+                            accesskey="&useSystemDefaultHoriz.accesskey;"
+                            preference="mousewheel.horizscroll.withnokey.sysnumlines"/>
+                </vbox>
+              </hbox>
+              <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
+            </radiogroup>
+          </groupbox>
+        </vbox>
+            
+        <!-- alt modifiers -->
+        <vbox>
+          <groupbox>
+            <caption label="&mousewheelGroup.label;"/>
+            <radiogroup id="mousewheelWithAltKeyAction"
+                        preference="mousewheel.withaltkey.action">
+              <hbox align="start">
+                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
+                <vbox align="start">
+                  <hbox align="center">
+                    <textbox id="mousewheelWithAltKeyNumlines" size="3" 
+                             checkbox="mousewheel.withaltkey.sysnumlines"
+                             preference="mousewheel.withaltkey.numlines"/>
+                    <label value="&scrollLines.label;"/>
+                  </hbox>
+                  <checkbox id="mousewheelWithAltKeySysNumlines" label="&useSystemDefault.label;"
+                            accesskey="&useSystemDefault.accesskey;"
+                            preference="mousewheel.withaltkey.sysnumlines"/>
+                </vbox>
+              </hbox>
+              <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+            </radiogroup>
+          </groupbox>
+
+          <groupbox>
+            <caption label="&mousewheelHorizGroup.label;"/>
+            <radiogroup id="mousewheelHorizWithAltKeyAction"
+                        preference="mousewheel.horizscroll.withaltkey.action">
+              <hbox align="start">
+                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
+                <vbox align="start">
+                  <hbox align="center">
+                    <textbox id="mousewheelWithAltKeyNumchars" size="3" 
+                             checkbox="mousewheel.horizscroll.withaltkey.sysnumlines"
+                             preference="mousewheel.horizscroll.withaltkey.numlines"/>
+                    <label value="&scrollChars.label;"/>
+                  </hbox>
+                  <checkbox id="mousewheelWithAltKeySysNumchars" label="&useSystemDefault.label;"
+                            accesskey="&useSystemDefaultHoriz.accesskey;"
+                            preference="mousewheel.horizscroll.withaltkey.sysnumlines"/>
+                </vbox>
+              </hbox>
+              <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
+            </radiogroup>
+          </groupbox>
+        </vbox>
+    
+        <!-- ctrl modifiers -->
+        <vbox>
+          <groupbox>
+            <caption label="&mousewheelGroup.label;"/>
+            <radiogroup id="mousewheelWithCtrlKeyAction"
+                        preference="mousewheel.withcontrolkey.action" >
+              <hbox align="start">
+                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
+                <vbox align="start">
+                  <hbox align="center">
+                    <textbox id="mousewheelWithCtrlKeyNumlines" size="3" 
+                             checkbox="mousewheel.withcontrolkey.sysnumlines"
+                             preference="mousewheel.withcontrolkey.numlines"/>
+                    <label value="&scrollLines.label;"/>
+                  </hbox>
+                  <checkbox id="mousewheelWithCtrlKeySysNumlines" label="&useSystemDefault.label;"
+                            accesskey="&useSystemDefault.accesskey;"
+                            preference="mousewheel.withcontrolkey.sysnumlines"/>
+                </vbox>
+              </hbox>
+              <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+            </radiogroup>
+          </groupbox>
+
+          <groupbox>
+            <caption label="&mousewheelHorizGroup.label;"/>
+            <radiogroup id="mousewheelHorizWithCtrlKeyAction"
+                        preference="mousewheel.horizscroll.withcontrolkey.action" >
+              <hbox align="start">
+                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
+                <vbox align="start">
+                  <hbox align="center">
+                    <textbox id="mousewheelWithCtrlKeyNumchars" size="3" 
+                             checkbox="mousewheel.horizscroll.withcontrolkey.sysnumlines"
+                             preference="mousewheel.horizscroll.withcontrolkey.numlines"/>
+                    <label value="&scrollChars.label;"/>
+                  </hbox>
+                  <checkbox id="mousewheelWithCtrlKeySysNumchars" label="&useSystemDefault.label;"
+                            accesskey="&useSystemDefaultHoriz.accesskey;"
+                            preference="mousewheel.horizscroll.withcontrolkey.sysnumlines"/>
+                </vbox>
+              </hbox>
+              <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
+            </radiogroup>
+          </groupbox>
+        </vbox>
+    
+        <!-- shift modifiers -->
+        <vbox>
+          <groupbox>
+            <caption label="&mousewheelGroup.label;"/>
+            <radiogroup id="mousewheelWithShiftKeyAction"
+                        preference="mousewheel.withshiftkey.action">
+              <hbox align="start">
+                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
+                <vbox align="start">
+                  <hbox align="center">
+                    <textbox id="mousewheelWithShiftKeyNumlines" size="3" 
+                             checkbox="mousewheel.withshiftkey.sysnumlines"
+                             preference="mousewheel.withshiftkey.numlines"/>
+                    <label value="&scrollLines.label;"/>
+                  </hbox>
+                  <checkbox id="mousewheelWithShiftKeySysNumlines" label="&useSystemDefault.label;"
+                            accesskey="&useSystemDefault.accesskey;"
+                            preference="mousewheel.withshiftkey.sysnumlines"/>
+                </vbox>
+              </hbox>
+              <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+            </radiogroup>
+          </groupbox>
+
+          <groupbox>
+            <caption label="&mousewheelHorizGroup.label;"/>
+            <radiogroup id="mousewheelHorizWithShiftKeyAction"
+                        preference="mousewheel.horizscroll.withshiftkey.action">
+              <hbox align="start">
+                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
+                <vbox align="start">
+                  <hbox align="center">
+                    <textbox id="mousewheelWithShiftKeyNumchars" size="3" 
+                             checkbox="mousewheel.horizscroll.withshiftkey.sysnumlines"
+                             preference="mousewheel.horizscroll.withshiftkey.numlines"/>
+                    <label value="&scrollChars.label;"/>
+                  </hbox>
+                  <checkbox id="mousewheelWithShiftKeySysNumchars" label="&useSystemDefault.label;"
+                            accesskey="&useSystemDefaultHoriz.accesskey;"
+                            preference="mousewheel.horizscroll.withshiftkey.sysnumlines"/>
+                </vbox>
+              </hbox>
+              <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
+            </radiogroup>
+          </groupbox>
+        </vbox>
+      </tabpanels>     
+    </tabbox> 
+  </prefpane>
+</overlay>

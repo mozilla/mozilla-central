@@ -1,0 +1,624 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE bindings [
+<!ENTITY % notificationDTD SYSTEM "chrome://global/locale/notification.dtd">
+%notificationDTD;
+]>
+
+<bindings id="browserNotificationBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <binding id="browser-notificationbox"
+           extends="chrome://global/content/bindings/notification.xml#notificationbox">
+    <implementation implements="nsIObserver, nsIWebProgressListener, nsIDOMEventListener">
+      <field name="_stringBundle" readonly="true">
+        <![CDATA[
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://communicator/locale/notification.properties");
+        ]]>
+      </field>
+
+      <field name="_brandStringBundle" readonly="true">
+        <![CDATA[
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://branding/locale/brand.properties");
+        ]]>
+      </field>
+
+      <field name="_prefs" readonly="true">
+        <![CDATA[
+          Components.classes['@mozilla.org/preferences-service;1']
+                    .getService(Components.interfaces.nsIPrefBranch2);
+        ]]>
+      </field>
+
+      <field name="_activeBrowser">null</field>
+
+      <property name="activeBrowser" readonly="true">
+        <getter>
+          <![CDATA[
+            if (!this._activeBrowser) {
+              const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+              var browsers = this.getElementsByTagNameNS(XUL_NS, "browser");
+              if (browsers.length == 1) {
+                this._activeBrowser = browsers.item(0);
+              } else if (browsers.length) {
+                for (var i = 0; i < browsers.length; i++) {
+                  if (browsers.item(i).docShell) {
+                    this._activeBrowser = browsers.item(i);
+                    break;
+                  }
+                }
+              }
+            }
+            return this._activeBrowser;
+          ]]>
+        </getter>
+      </property>
+
+      <field name="_addedProgressListener">false</field>
+
+      <method name="addProgressListener">
+        <body>
+          <![CDATA[
+            if (this.activeBrowser && !this._addedProgressListener) {
+              this.activeBrowser.webProgress.addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
+              this._addedProgressListener = true;
+            }
+          ]]>
+        </body>
+      </method>
+
+      <method name="onLocationChange">
+        <parameter name="aWebProgress" />
+        <parameter name="aRequest" />
+        <parameter name="aLocation" />
+        <body>
+          <![CDATA[
+            var errorPage = aRequest && !Components.isSuccessCode(aRequest.status);
+            if (aWebProgress.DOMWindow == this.activeBrowser.contentWindow &&
+                (aWebProgress.isLoadingDocument || errorPage)) {
+              this.missingPlugins = {};
+              if (this.popupCount) {
+                this.popupCount = 0;
+                this.notifyPopupCountChanged();
+              }
+              // XXX should be: removeTransientNotifications(true) once bug 303327 is fixed
+              this.removeTransientNotifications();
+            }
+          ]]>
+        </body>  
+      </method>
+
+      <method name="observe">
+        <parameter name="aSubject" />
+        <parameter name="aTopic" />
+        <parameter name="aData" />
+        <body>
+          <![CDATA[
+            var browser = this.activeBrowser;
+
+            // inactive sidebar panel:
+            if (!browser || !browser.docShell)
+              return;
+
+            switch (aTopic) {
+              case "xpinstall-install-blocked":
+                var installInfo = aSubject.QueryInterface(Components.interfaces.nsIXPIInstallInfo);
+                if (installInfo.originatingWindow.top != browser.contentWindow)
+                  return;
+
+                var notificationName, messageString, buttons, host;
+                try {
+                  // this fails with nsSimpleURIs like data: URIs
+                  host = installInfo.originatingURI.host;
+                } catch (ex) {
+                  host = this._stringBundle.GetStringFromName("xpinstallHostNotAvailable");
+                }
+
+                if (!this._prefs.getBoolPref("xpinstall.enabled")) {
+                  notificationName = "xpinstall-disabled";
+                  if (this._prefs.prefIsLocked("xpinstall.enabled")) {
+                    messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessageLocked");
+                    buttons = [];
+                  } else {
+                    var prefBranch = this._prefs;
+                    messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessage");
+                    buttons = [{
+                      label: this._stringBundle.GetStringFromName("xpinstallDisabledButton"),
+                      accessKey: this._stringBundle.GetStringFromName("xpinstallDisabledButton.accesskey"),
+                      popup: null,
+                      callback: function editPrefs() {
+                        prefBranch.setBoolPref("xpinstall.enabled", true);
+                        return false;
+                      }
+                    }];
+                  }
+                } else {
+                  notificationName = "xpinstall";
+                  var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+                  messageString = this._stringBundle.formatStringFromName("xpinstallPromptWarning",
+                                                                          [brandShortName, host], 2);
+                  buttons = [{
+                    label: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton"),
+                    accessKey: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton.accesskey"),
+                    popup: null,
+                    callback: function allowInstall() { 
+                      var mgr = Components.classes["@mozilla.org/xpinstall/install-manager;1"]
+                                          .createInstance(Components.interfaces.nsIXPInstallManager);
+                      mgr.initManagerWithInstallInfo(installInfo);
+
+                      return false;
+                    }
+                  }];
+                }
+
+                if (!this.getNotificationWithValue(notificationName)) {
+                  const priority = this.PRIORITY_WARNING_MEDIUM;
+                  const iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
+                  this.appendNotification(messageString, notificationName,
+                                          iconURL, priority, buttons);
+                }
+                break;
+
+              case "nsPref:changed":
+                if (aData == "privacy.popups.showBrowserMessage") {
+                  if (this._prefs.getBoolPref(aData))
+                    return;
+
+                  var popupNotification = this.getNotificationWithValue("popup-blocked");
+                  if (popupNotification)
+                    this.removeNotification(popupNotification);
+                }
+
+                if (aData == "plugins.hide_infobar_for_missing_plugin") {
+                  if (!this._prefs.getBoolPref(aData))
+                    return;
+
+                  var pluginNotification = this.getNotificationWithValue("missing-plugins");
+                  if (pluginNotification)
+                    this.removeNotification(pluginNotification);
+                }
+
+                if (aData == "dom.disable_open_during_load") {
+                  // remove notifications when popup blocking has been turned off
+                  if (this._prefs.getBoolPref(aData) || !this.popupCount)
+                    return;
+
+                  var popupNotification = this.getNotificationWithValue("popup-blocked");
+                  if (popupNotification)
+                    this.removeNotification(popupNotification);
+                  this.popupCount = 0;
+                  this.notifyPopupCountChanged();
+                }
+                break;
+
+              case "perm-changed":
+                var permission = aSubject.QueryInterface(Components.interfaces.nsIPermission);
+                if (permission.type != "popup" || aData != "added" || !this.popupCount)
+                  return;
+
+                try {
+                  var hostport = this.activeBrowser.currentURI.hostPort;
+                } catch (ex) {
+                  // we can't do much without a hostport here
+                  return;
+                }
+                var host = '.' + permission.host;
+                hostport = '.' + hostport;
+
+                if (host == hostport.slice(-host.length)) {
+                  var popupNotification = this.getNotificationWithValue("popup-blocked");
+                  if (popupNotification)
+                    this.removeNotification(popupNotification);
+                  this.popupCount = 0;
+                  this.notifyPopupCountChanged();
+                }
+                break;
+            }
+          ]]>
+        </body>
+      </method>
+
+      <field name="missingPlugins">{}</field>
+
+      <method name="getPluginInfo">
+        <parameter name="pluginElement"/>
+        <body>
+          <![CDATA[
+            var mimetype;
+            var pluginsPage;
+            if (pluginElement instanceof HTMLAppletElement) {
+              mimetype = "application/x-java-vm";
+            } else {
+              if (pluginElement instanceof HTMLObjectElement) {
+                pluginsPage = pluginElement.codebase;
+              } else {
+                pluginsPage = pluginElement.getAttribute("pluginspage");
+                if (pluginsPage) {
+                  var doc = pluginElement.ownerDocument;
+                  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                            .getService(Components.interfaces.nsIIOService);
+                  pluginsPage = ioService.newURI(pluginsPage, doc.characterSet, doc.documentURIObject).spec;
+                }
+              }
+
+              mimetype = pluginElement.QueryInterface(Components.interfaces.nsIObjectLoadingContent)
+                                      .actualType;
+
+              if (!mimetype) {
+                mimetype = pluginElement.type;
+              }
+            }
+
+            return {mimetype: mimetype, pluginsPage: pluginsPage};
+          ]]>
+        </body>
+      </method>
+
+      <method name="handleEvent">
+        <parameter name="aEvent"/>
+        <body>
+          <![CDATA[
+            var missingPlugins = {};
+            var pluginInfo = this.getPluginInfo(aEvent.target);
+            missingPlugins[pluginInfo.mimetype] = pluginInfo;
+
+            window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
+                              "", "chrome,resizable=yes",
+                              {plugins: missingPlugins, browser: this.activeBrowser});
+            aEvent.preventDefault();
+          ]]>
+        </body>
+      </method>
+
+      <method name="playSoundForBlockedPopup">
+        <body>
+          <![CDATA[
+            var playSound = this._prefs.getBoolPref("privacy.popups.sound_enabled");
+
+            if (playSound) {
+              var sound = Components.classes["@mozilla.org/sound;1"]
+                                    .createInstance(Components.interfaces.nsISound);
+
+              var soundUrlSpec = this._prefs.getCharPref("privacy.popups.sound_url");
+              if (!soundUrlSpec) {
+                sound.beep();
+                return;
+              }
+              if (soundUrlSpec.substr(0, 7) == "file://") {
+                var fileHandler = Components.classes["@mozilla.org/network/protocol;1?name=file"]
+                                            .getService(Components.interfaces.nsIFileProtocolHandler);
+                var file = fileHandler.getFileFromURLSpec(soundUrlSpec);
+                if (file.exists()) {
+                  var soundUrl = fileHandler.newFileURI(file);
+                  sound.play(soundUrl);
+                }
+              } else {
+                sound.playSystemSound(soundUrlSpec);
+              }
+            }
+          ]]>
+        </body>
+      </method>
+
+      <field name="popupCount">0</field>
+
+      <method name="notifyPopupCountChanged">
+        <body>
+          <![CDATA[
+            var event = document.createEvent("Events");
+            event.initEvent("PopupCountChanged", true, true);
+            this.dispatchEvent(event);
+          ]]>
+        </body>
+      </method>
+
+      <method name="allowPopupsForSite">
+        <parameter name="aEvent"/>
+        <body>
+          <![CDATA[
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var uri = this.activeBrowser.currentURI;
+            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                               .getService(nsIPermissionManager);
+            pm.add(uri, "popup", nsIPermissionManager.ALLOW_ACTION);
+
+            this.removeCurrentNotification();
+          ]]>
+        </body>
+      </method>
+
+      <constructor>
+        <![CDATA[
+          var os = Components.classes["@mozilla.org/observer-service;1"]
+                             .getService(Components.interfaces.nsIObserverService);
+          os.addObserver(this, "xpinstall-install-blocked", false);
+          os.addObserver(this, "perm-changed", false);
+
+          this._prefs.addObserver("plugins.hide_infobar_for_missing_plugin", this, false);
+          this._prefs.addObserver("privacy.popups.showBrowserMessage", this, false);
+          this._prefs.addObserver("dom.disable_open_during_load", this, false);
+
+          this.addProgressListener();
+        ]]>
+      </constructor>
+
+      <destructor>
+        <![CDATA[
+          this.destroy();
+        ]]>
+      </destructor>
+
+      <field name="mDestroyed">false</field>
+
+      <!-- This is necessary because the destructor doesn't always get called when
+            we are removed from a tabbrowser. This will be explicitly called by tabbrowser -->
+      <method name="destroy">
+        <body>
+          <![CDATA[
+            if (this.mDestroyed)
+              return;
+            this.mDestroyed = true;
+
+            if (this._addedProgressListener) {
+              this.activeBrowser.webProgress.removeProgressListener(this);
+              this._addedProgressListener = false;
+            }
+
+            this._activeBrowser = null;
+            var os = Components.classes["@mozilla.org/observer-service;1"]
+                                .getService(Components.interfaces.nsIObserverService);
+            try {
+              os.removeObserver(this, "xpinstall-install-blocked");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "perm-changed");
+            } catch (ex) {}
+
+            try {
+              this._prefs.removeObserver("plugins.hide_infobar_for_missing_plugin", this);
+            } catch (ex) {}
+            try {
+              this._prefs.removeObserver("privacy.popups.showBrowserMessage", this);
+            } catch (ex) {}
+            try {
+              this._prefs.removeObserver("dom.disable_open_during_load", this);
+            } catch (ex) {}
+          ]]>
+        </body>
+      </method>
+    </implementation>
+
+    <handlers>
+      <handler event="DOMUpdatePageReport" phase="capturing">
+        <![CDATA[
+          var browser = this.activeBrowser;
+          if (!browser.pageReport)
+            return;
+
+          // this.popupCount can be 0, while browser.pageReport has not been cleared.
+          if (!this.popupCount && browser.pageReport.length > 1) {
+            this.popupCount = browser.pageReport.length;
+          } else {
+            this.popupCount++;
+          }
+          this.playSoundForBlockedPopup();
+          this.notifyPopupCountChanged();
+
+          // Check for duplicates and remove the old occurence of this url,
+          // to update the features.
+          var lastItemPlace = browser.pageReport.length - 1;
+          var lastItem = browser.pageReport[lastItemPlace];
+          for (var i = 0; i < lastItemPlace; i++) {
+            if (browser.pageReport[i].popupWindowURI.equals(lastItem.popupWindowURI)) {
+              browser.pageReport.splice(i, 1);
+              break;
+            }
+          }
+
+          // Limit the length of the menu to some reasonable size.
+          // We only add one item every time in browser.xml, so no need for more complex stuff.
+          if (browser.pageReport.length > 100)
+            browser.pageReport.shift();
+
+          if (this._prefs.getBoolPref("privacy.popups.showBrowserMessage"))
+          {
+            var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+            var message;
+            if (this.popupCount > 1)
+              message = this._stringBundle.formatStringFromName("popupWarningMultiple", [brandShortName, this.popupCount], 2);
+            else
+              message = this._stringBundle.formatStringFromName("popupWarning", [brandShortName], 1);
+
+            var notification = this.getNotificationWithValue("popup-blocked");
+            if (notification) {
+              notification.label = message;
+            } else {
+              var popupButtonText = this._stringBundle.GetStringFromName("popupWarningButton");
+              var popupButtonAccesskey = this._stringBundle.GetStringFromName("popupWarningButton.accesskey");
+              var buttons = [{
+                label: popupButtonText,
+                accessKey: popupButtonAccesskey,
+                popup: "popupNotificationMenu",
+                callback: null
+              }];
+
+              const priority = this.PRIORITY_WARNING_MEDIUM;
+              this.appendNotification(message, "popup-blocked",
+                                      "chrome://navigator/skin/icons/popup-blocked.png",
+                                      priority, buttons);
+            }
+          }
+        ]]>
+      </handler>
+
+      <handler event="PluginNotFound">
+        <![CDATA[
+          // Since we are expecting also untrusted events, make sure
+          // that the target is a plugin
+          if (!(event.target instanceof Components.interfaces.nsIObjectLoadingContent))
+            return;
+
+          // For broken non-object plugin tags, register a click handler so
+          // that the user can click the plugin replacement to get the new
+          // plugin. Object tags can, and often do, deal with that themselves,
+          // so don't stomp on the page developers toes.
+
+          if (!(event.target instanceof HTMLObjectElement))
+            event.target.addEventListener("click", this, false);
+
+          if (this._prefs.getBoolPref("plugins.hide_infobar_for_missing_plugin"))
+            return;
+
+          var pluginInfo = this.getPluginInfo(event.target);
+
+          this.missingPlugins[pluginInfo.mimetype] = pluginInfo;
+
+          if (!this.getNotificationWithValue("missing-plugins")) {
+            var blockedNotification = this.getNotificationWithValue("blocked-plugins");
+            if (blockedNotification)
+              blockedNotification.close();
+
+            var self = this;
+            var messageString = this._stringBundle.GetStringFromName("missingpluginsMessage.title");
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("missingpluginsMessage.button.label"),
+              accessKey: this._stringBundle.GetStringFromName("missingpluginsMessage.button.accesskey"),
+              popup: null,
+              callback: function openPluginInstallerWizard() {
+                window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
+                                  "", "chrome,resizable=yes",
+                                  {plugins: self.missingPlugins, browser: self.activeBrowser});
+              }
+            }];
+
+            const priority = this.PRIORITY_WARNING_MEDIUM;
+            const iconURL = "chrome://mozapps/skin/plugins/pluginGeneric.png";
+            this.appendNotification(messageString, "missing-plugins",
+                                    iconURL, priority, buttons);
+          }
+        ]]>
+      </handler>
+
+      <handler event="PluginBlocklisted">
+        <![CDATA[
+          // Since we are expecting also untrusted events, make sure
+          // that the target is a plugin
+          if (!(event.target instanceof Components.interfaces.nsIObjectLoadingContent))
+            return;
+
+          if (this._prefs.getBoolPref("plugins.hide_infobar_for_missing_plugin"))
+            return;
+
+          var pluginInfo = this.getPluginInfo(event.target);
+          this.missingPlugins[pluginInfo.mimetype] = pluginInfo;
+
+          if (this.getNotificationWithValue("missing-plugins") ||
+              this.getNotificationWithValue("blocked-plugins"))
+            return;
+
+          var self = this;
+          var messageString = this._stringBundle.GetStringFromName("blockedpluginsMessage.title");
+          var buttons = [{
+            label: this._stringBundle.GetStringFromName("blockedpluginsMessage.infoButton.label"),
+            accessKey: this._stringBundle.GetStringFromName("blockedpluginsMessage.infoButton.accesskey"),
+            popup: null,
+            callback: function getBlocklistInfo() {
+              var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                                        .getService(Components.interfaces.nsIURLFormatter);
+              var url = formatter.formatURLPref("extensions.blocklist.detailsURL");
+
+              const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
+              const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
+
+              var browserWin;
+              var whereToOpen = self._prefs.getIntPref("browser.link.open_external");
+
+              if (whereToOpen != kNewWindow) {
+                var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                                              .getService(Components.interfaces.nsIWindowMediator);
+                browserWin = windowManager.getMostRecentWindow("navigator:browser");
+              }
+
+              if (!browserWin) {
+                var browserURL = "chrome://navigator/content/navigator.xul";
+                try {
+                  browserURL = self._prefs.getCharPref("browser.chromeURL");
+                } catch (ex) {}
+
+                window.openDialog(browserURL, "_blank", "chrome,all,dialog=no", url);
+              } else {
+                if (whereToOpen == kExistingWindow)
+                  browserWin.loadURI(url);
+                else {
+                  // new tab
+                  var browser = browserWin.getBrowser();
+                  var newTab = browser.addTab(url);
+                  browser.selectedTab = newTab;
+                }
+                browserWin.content.focus();
+              }
+              return true;
+            }
+          }, {
+            label: this._stringBundle.GetStringFromName("blockedpluginsMessage.searchButton.label"),
+            accessKey: this._stringBundle.GetStringFromName("blockedpluginsMessage.searchButton.accesskey"),
+            popup: null,
+            callback: function openPluginInstallerWizard() {
+              window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
+                                "", "chrome,resizable=yes",
+                                {plugins: self.missingPlugins, browser: self.activeBrowser});
+            }
+          }];
+
+          const priority = this.PRIORITY_WARNING_MEDIUM;
+          const iconURL = "chrome://mozapps/skin/plugins/pluginGeneric.png";
+          this.appendNotification(messageString, "blocked-plugins",
+                                  iconURL, priority, buttons);
+        ]]>
+      </handler>
+
+      <handler event="NewPluginInstalled">
+        <![CDATA[
+          this.missingPlugins = {};
+
+          // clean up the UI after a new plugin has been installed.
+          var notification = this.getNotificationWithValue("missing-plugins");
+          if (notification)
+            this.removeNotification(notification);
+
+          // reload the browser to make the new plugin show.
+          this.activeBrowser.reload();
+        ]]>
+      </handler>
+    </handlers>
+  </binding>
+
+  <binding id="sidebar-notification"
+           extends="chrome://global/content/bindings/notification.xml#notification">
+    <content>
+      <xul:vbox class="notification-inner outset" flex="1" xbl:inherits="type">
+        <xul:hbox align="center">
+          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
+          <xul:spacer flex="1"/>
+          <xul:toolbarbutton ondblclick="event.stopPropagation();"
+                             class="messageCloseButton tabbable"
+                             xbl:inherits="hidden=hideclose"
+                             tooltiptext="&closeNotification.tooltip;"
+                             oncommand="document.getBindingParent(this).close();"/>
+        </xul:hbox>
+        <xul:description anonid="messageText" class="messageText" flex="1" xbl:inherits="xbl:text=label"/>
+        <xul:hbox anonid="details"
+                  oncommand="document.getBindingParent(this)._doButtonCommand(event);">
+          <xul:spacer flex="1"/>
+          <children/>
+        </xul:hbox>
+      </xul:vbox>
+    </content>
+  </binding>
+</bindings>

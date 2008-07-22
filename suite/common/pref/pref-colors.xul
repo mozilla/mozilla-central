@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Mozilla Communicator client code, released
+ March 31, 1998.
+
+ The Initial Developer of the Original Code is
+ Netscape Communications Corporation.
+ Portions created by the Initial Developer are Copyright (C) 1998-1999
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+   Ben Goodger <ben@netscape.com>
+   Ian Neal <iann_bugzilla@blueyonder.co.uk>
+
+ Alternatively, the contents of this file may be used under the terms of
+ either of the GNU General Public License Version 2 or later (the "GPL"),
+ or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-colors.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="colors_pane"
+            label="&pref.colors.title;"
+            script="chrome://communicator/content/pref/pref-colors.js">
+
+    <preferences id="colors_preferences">
+      <preference id="browser.display.foreground_color"
+                  name="browser.display.foreground_color"
+                  type="string"/>
+      <preference id="browser.display.background_color"
+                  name="browser.display.background_color"
+                  type="string"/>
+      <preference id="browser.display.use_system_colors"
+                  name="browser.display.use_system_colors"
+                  type="bool"
+                  onchange="ToggleCustomColorPickers(this.value);"/>
+      <preference id="browser.anchor_color"
+                  name="browser.anchor_color"
+                  type="string"/>
+      <preference id="browser.active_color"
+                  name="browser.active_color"
+                  type="string"/>
+      <preference id="browser.visited_color"
+                  name="browser.visited_color"
+                  type="string"/>
+      <preference id="browser.underline_anchors"
+                  name="browser.underline_anchors"
+                  type="bool"/>
+      <preference id="browser.display.use_document_colors"
+                  name="browser.display.use_document_colors"
+                  type="bool"/>
+    </preferences>
+    <hbox>
+      <groupbox flex="1" id="pageColours">
+        <caption label="&color;"/>
+        <hbox align="center">
+          <label id="browserForegroundColorLabel"
+                 value="&textColor.label;"
+                 accesskey="&textColor.accesskey;"
+                 flex="1"
+                 control="browserForegroundColor"/>
+          <colorpicker id="browserForegroundColor"
+                       type="button"
+                       palettename="standard"
+                       preference="browser.display.foreground_color"/>
+        </hbox>
+        <hbox align="center" style="margin-top: 5px">
+          <label id="browserBackgroundColorLabel"
+                 value="&backgroundColor.label;"
+                 accesskey="&backgroundColor.accesskey;"
+                 flex="1"
+                 control="browserBackgroundColor"/>
+          <colorpicker id="browserBackgroundColor"
+                       type="button"
+                       palettename="standard"
+                       preference="browser.display.background_color"/>
+        </hbox>
+        <separator class="thin"/>
+        <hbox align="center">
+          <checkbox id="browserUseSystemColors"
+                    label="&useSystemColors.label;"
+                    accesskey="&useSystemColors.accesskey;"
+                    preference="browser.display.use_system_colors"/>
+        </hbox>
+      </groupbox>
+
+      <groupbox flex="1">
+        <caption label="&links;"/>
+        <hbox align="center">
+          <label value="&linkColor.label;"
+                 accesskey="&linkColor.accesskey;"
+                 flex="1"
+                 control="browserAnchorColor"/>
+          <colorpicker id="browserAnchorColor"
+                       type="button"
+                       palettename="standard"
+                       preference="browser.anchor_color"/>
+        </hbox>
+        <hbox align="center" style="margin-top: 5px">
+          <label value="&activeLinkColor.label;"
+                 accesskey="&activeLinkColor.accesskey;"
+                 flex="1"
+                 control="browserActiveColor"/>
+          <colorpicker id="browserActiveColor"
+                       type="button"
+                       palettename="standard"
+                       preference="browser.active_color"/>
+        </hbox>
+        <hbox align="center" style="margin-top: 5px">
+          <label value="&visitedLinkColor.label;"
+                 accesskey="&visitedLinkColor.accesskey;"
+                 flex="1"
+                 control="browserVisitedColor"/>
+          <colorpicker id="browserVisitedColor"
+                       type="button"
+                       palettename="standard"
+                       preference="browser.visited_color"/>
+        </hbox>
+        <separator class="thin"/>
+        <hbox align="center">
+          <checkbox id="browserUnderlineAnchors"
+                    label="&underlineLinks.label;"
+                    accesskey="&underlineLinks.accesskey;"
+                    preference="browser.underline_anchors"/>
+        </hbox>
+      </groupbox>
+    </hbox>
+
+    <groupbox>
+      <caption label="&someProvColors;"/>
+
+      <radiogroup id="browserUseDocumentColors"
+                  preference="browser.display.use_document_colors">
+        <radio value="true" label="&alwaysUseDocumentColors.label;"
+               accesskey="&alwaysUseDocumentColors.accesskey;"/>
+        <radio value="false" label="&useMyColors.label;"
+               accesskey="&useMyColors.accesskey;"/>
+      </radiogroup>
+
+    </groupbox>
+  </prefpane>
+</overlay>

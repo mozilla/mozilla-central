@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+#filter substitution
+
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>debugQA@mozilla.org</em:id>
+    <em:version>1.0pre</em:version>
+
+    <em:targetApplication>
+      <!-- Suite -->
+      <Description>
+        <em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
+        <em:minVersion>2.0a</em:minVersion>
+        <em:maxVersion>@SEAMONKEY_VERSION@</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+    
+    <!-- EXTENSION AUTHORS!
+         DO NOT COPY THIS PROPERTY INTO YOUR INSTALL RDF FILES
+         It will cause users not to be informed of incompatibilities 
+         with your extension when they are updated with Software Update
+         and your extension will become unavailable to them!
+         -->
+    <em:appManaged>true</em:appManaged>
+
+    <!-- front-end metadata -->
+    <em:name>SeaMonkey Debug and QA UI</em:name>
+    <em:description>Provides Additional Debug and QA UI for SeaMonkey development</em:description>
+    <em:creator>mozilla.org</em:creator>
+    <em:homepageURL>http://wiki.mozilla.org/SeaMonkey:Debug_And_QA_UI</em:homepageURL>
+  </Description>
+</RDF>

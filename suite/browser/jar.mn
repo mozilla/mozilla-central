@@ -1,0 +1,56 @@
+comm.jar:
+% content navigator %content/navigator/ xpcnativewrappers=yes
+% content navigator-platform %content/navigator-platform/ platform xpcnativewrappers=yes
+% content navigator-region %content/navigator-region/ xpcnativewrappers=yes
+   content/navigator/aboutAbout.html
+   content/navigator/browser.js
+   content/navigator/fullScreen.js
+   content/navigator/hiddenWindow.xul
+   content/navigator/languageDictionary.js
+   content/navigator/linkToolbarHandler.js
+   content/navigator/linkToolbarItem.js
+   content/navigator/linkToolbarOverlay.js
+   content/navigator/linkToolbarOverlay.xul
+   content/navigator/mailNavigatorOverlay.xul
+   content/navigator/metadata.js
+   content/navigator/metadata.xul
+   content/navigator/navigator.css
+   content/navigator/navigator.js
+   content/navigator/navigator.xul
+   content/navigator/navigatorDD.js
+   content/navigator/navigatorOverlay.xul
+   content/navigator/nsBrowserContentListener.js
+   content/navigator/nsBrowserStatusHandler.js
+   content/navigator/searchconfig.properties
+   content/navigator/sessionHistoryUI.js
+   content/navigator/tabbrowser.xml
+   content/navigator/urlbarBindings.xml
+   content/navigator/viewsource.js
+   content/navigator/viewSource.xul
+   content/navigator/viewSourceOverlay.xul
+   content/navigator/viewPartialSource.js
+   content/navigator/viewPartialSource.xul
+#ifdef XP_MACOSX
+   content/navigator/platformNavigationBindings.xul                 (mac/platformNavigationBindings.xul)
+   content/navigator/platformMailOverlay.xul                        (mac/platformMailOverlay.xul)
+#else
+#ifdef XP_WIN32
+   content/navigator/platformNavigationBindings.xul                 (win/platformNavigationBindings.xul)
+   content/navigator/platformMailOverlay.xul                        (win/platformMailOverlay.xul)
+#else
+#ifdef XP_OS2
+   content/navigator/platformNavigationBindings.xul                 (win/platformNavigationBindings.xul)
+   content/navigator/platformMailOverlay.xul                        (win/platformMailOverlay.xul)
+#else
+   content/navigator/platformNavigationBindings.xul                 (unix/platformNavigationBindings.xul)
+   content/navigator/platformMailOverlay.xul                        (unix/platformMailOverlay.xul)
+#endif
+#endif
+#endif
+   content/navigator/pageinfo/feeds.js                              (pageinfo/feeds.js)
+   content/navigator/pageinfo/feeds.xml                             (pageinfo/feeds.xml)
+   content/navigator/pageinfo/pageInfo.css                          (pageinfo/pageInfo.css)
+   content/navigator/pageinfo/pageInfo.js                           (pageinfo/pageInfo.js)
+*  content/navigator/pageinfo/pageInfo.xul                          (pageinfo/pageInfo.xul)
+   content/navigator/pageinfo/permissions.js                        (pageinfo/permissions.js)
+*  content/navigator/pageinfo/security.js                           (pageinfo/security.js)

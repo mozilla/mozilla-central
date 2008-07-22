@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Firefox Preferences System.
+   -
+   - The Initial Developer of the Original Code is
+   - Ben Goodger.
+   - Portions created by the Initial Developer are Copyright (C) 2005
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Ben Goodger <ben@mozilla.org>
+   -   Jeff Walden <jwalden+code@mit.edu>.
+   -   Asaf Romano <mozilla.mano@sent.com>
+   -   Myk Melez <myk@mozilla.org>
+   -   Robert Kaiser <kairo@kairo.at>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay [
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd"> %brandDTD;
+  <!ENTITY % prefApplicationsDTD SYSTEM "chrome://communicator/locale/pref/pref-applications.dtd"> %prefApplicationsDTD;
+]>
+
+<overlay id="ApplicationsPaneOverlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <prefpane id="applications_pane"
+            label="&pref.applications.title;"
+            script="chrome://communicator/content/pref/pref-applications.js">
+
+    <preferences id="feedsPreferences">
+      <preference id="browser.feeds.handler"
+                  name="browser.feeds.handler"
+                  type="string"/>
+      <preference id="browser.feeds.handler.default"
+                  name="browser.feeds.handler.default"
+                  type="string"/>
+      <preference id="browser.feeds.handlers.application"
+                  name="browser.feeds.handlers.application"
+                  type="file"/>
+      <preference id="browser.feeds.handlers.webservice"
+                  name="browser.feeds.handlers.webservice"
+                  type="string"/>
+
+      <preference id="browser.videoFeeds.handler"
+                  name="browser.videoFeeds.handler"
+                  type="string"/>
+      <preference id="browser.videoFeeds.handler.default"
+                  name="browser.videoFeeds.handler.default"
+                  type="string"/>
+      <preference id="browser.videoFeeds.handlers.application"
+                  name="browser.videoFeeds.handlers.application"
+                  type="file"/>
+      <preference id="browser.videoFeeds.handlers.webservice"
+                  name="browser.videoFeeds.handlers.webservice"
+                  type="string"/>
+
+      <preference id="browser.audioFeeds.handler"
+                  name="browser.audioFeeds.handler"
+                  type="string"/>
+      <preference id="browser.audioFeeds.handler.default"
+                  name="browser.audioFeeds.handler.default"
+                  type="string"/>
+      <preference id="browser.audioFeeds.handlers.application"
+                  name="browser.audioFeeds.handlers.application"
+                  type="file"/>
+      <preference id="browser.audioFeeds.handlers.webservice"
+                  name="browser.audioFeeds.handlers.webservice"
+                  type="string"/>
+
+      <preference id="pref.downloads.disable_button.edit_actions"
+                  name="pref.downloads.disable_button.edit_actions"
+                  type="bool"/>
+    </preferences>
+
+    <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
+    <stringbundle id="bundlePrefApplications"
+                  src="chrome://communicator/locale/pref/pref-applications.properties"/>
+
+    <hbox align="center">
+      <label accesskey="&filter.accesskey;" control="filter">&filter.label;</label>
+      <textbox id="filter" flex="1" type="timed" timeout="500"
+               oncommand="gApplicationsPane.filter();"/>
+      <button id="clearFilter" icon="clear" label="&clear.label;" accesskey="&clear.accesskey;"
+              oncommand="gApplicationsPane.clearFilter();" disabled="true"/>
+    </hbox>
+
+    <separator class="thin"/>
+
+    <listbox id="handlersView" persist="lastSelectedType" flex="1"
+             preference="pref.downloads.disable_button.edit_actions">
+      <listcols>
+        <listcol width="1" flex="1"/>
+        <listcol width="1" flex="1"/>
+      </listcols>
+      <listhead>
+        <listheader id="typeColumn" label="&typeColumn.label;" value="type"
+                    accesskey="&typeColumn.accesskey;" persist="sortDirection"
+                    onclick="gApplicationsPane.sort(event);"
+                    sortDirection="ascending"/>
+        <listheader id="actionColumn" label="&actionColumn2.label;" value="action"
+                    accesskey="&actionColumn2.accesskey;" persist="sortDirection"
+                    onclick="gApplicationsPane.sort(event);"/>
+      </listhead>
+    </listbox>
+  </prefpane>
+</overlay>

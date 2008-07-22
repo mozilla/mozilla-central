@@ -1,0 +1,193 @@
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Sun Microsystems, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2001
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Created by: Paul Sandoz   <paul.sandoz@sun.com>
+ *   Dan Mosedale <dan.mosedale@oracle.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+
+#include "nsISupports.idl"
+
+interface nsIAbDirSearchListener;
+interface nsIAbCard;
+interface nsIAbDirectory;
+
+/**
+ * The arguments for a query.
+ *
+ * Contains an expression for perform matches
+ * and an array of properties which should be
+ * returned if a match is found from the expression
+ *
+ */
+[scriptable, uuid(c2d83a31-eba6-4053-9273-c7a006a94311)]
+interface nsIAbDirectoryQueryArguments : nsISupports
+{
+    /**
+     * Defines the boolean expression for
+     * the matching of cards
+     *
+     */
+    attribute nsISupports expression;
+
+    /**
+     * Defines if sub directories should be
+     * queried 
+     *
+     */
+    attribute boolean querySubDirectories;
+
+    /** 
+     * A parameter which can be used to pass in data specific to a particular
+     * type of addressbook.  
+     */
+    attribute nsISupports typeSpecificArg;
+};
+
+
+[scriptable, uuid(3A6E0C0C-1DD2-11B2-B23D-EA3A8CCB333C)]
+interface nsIAbDirectoryQueryPropertyValue : nsISupports
+{
+    /**
+     * The property which should be matched
+     *
+     * For example 'primaryEmail' or 'homePhone'
+     * for card properties.
+     *
+     * Two further properties are defined that 
+     * do not exist as properties on a card.
+     *
+     * 'card:nsIAbCard' which represents the interface
+     * of a card component
+     *
+     */
+    readonly attribute string name;
+
+    /**
+     * The value of the property
+     *
+     */
+    readonly attribute wstring value;
+    
+    /**
+     * The value of the property
+     * as an interface
+     *
+     * Only valid if the corresponding
+     * property name is related to an
+     * interface instead of a wstring
+     *
+     */
+    readonly attribute nsISupports valueISupports;
+};
+
+[scriptable, uuid(516e7ffa-69bc-41db-a493-dfb4895832f3)]
+interface nsIAbDirectoryQueryResultListener : nsISupports
+{
+    /**
+     * Called when a match is found. May be called from a different thread to
+     * the one that initiates the query.
+     *
+     * @param aCard An individual result associated returned from a query
+     */
+    void onQueryFoundCard(in nsIAbCard aCard);
+
+    /**
+     * List of defined query results
+     *
+     */
+    const long queryResultMatch    = 0;
+    const long queryResultComplete = 1;
+    const long queryResultStopped  = 2;
+    const long queryResultError    = 3;
+
+    /**
+     * Called when a query has finished. May be called from a different thread
+     * to the one that initiates the query.
+     *
+     * @param aResult    A result code from the list above.
+     *
+     * @param aErrorCode An error code specific to the type of query.
+     */
+    void onQueryResult(in long aResult, in long aErrorCode);
+};
+
+[scriptable, uuid(60b5961c-ce61-47b3-aa99-6d865f734dee)]
+interface nsIAbDirectoryQuery : nsISupports
+{
+    /**
+     * Initiates a query on a directory and sub-directories for properties
+     * on cards
+     *
+     * @param aDirectory   A directory that the query may get extra details
+     *                     from.
+     *
+     * @param aArguments   The properties and values to match value could of
+     *                     type nsIAbDirectoryQueryMatchItem for matches other
+     *                     than ?contains?
+     *
+     * @param aListener    The listener which will obtain individual query
+     *                     results.
+     *
+     * @param aResultLimit Limits the number of results returned to a maximum
+     *                     value.
+     *
+     * @param aTimeOut     The maximum length of time for the query
+     *
+     * @return             A context id for the query
+     */
+    long doQuery(in nsIAbDirectory aDirectory,
+                 in nsIAbDirectoryQueryArguments aArguments,
+                 in nsIAbDirSearchListener aListener,
+                 in long aResultLimit,
+                 in long aTimeOut);
+
+    /**
+     * Stops an existing query operation if
+     * query operation is asynchronous
+     *
+     * The nsIAbDirectoryQueryResultListener will
+     * be notified when query has stopped
+     *
+     * It is implementation specific if notification
+     * synchronous or asynchronous
+     *
+     * @param contextID
+     *        The unique number returned from
+     *        the doQuery methods
+     *
+     */
+    void stopQuery (in long contextID);
+};

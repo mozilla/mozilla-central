@@ -1,0 +1,22 @@
+<!--LOCALIZATION NOTE : FILE The Appearance > Content prefs dialog.  -->
+
+<!ENTITY pref.content.title                     "Content">
+<!ENTITY pref.content.description               "These settings influence how website and message content appears in &brandShortName;.">
+<!ENTITY siteIcons.label                        "Website icons">
+<!ENTITY useSiteIcons.label                     "Show website icons">
+<!ENTITY useSiteIcons.accesskey                 "S">
+<!ENTITY useFavIcons.label                      "Aggressively look for website icons when the page does not define one">
+<!ENTITY useFavIcons.accesskey                  "A">
+<!ENTITY tbIconsDescription.label               "Display website icons in bookmarks menu and toolbar:">
+<!ENTITY tbIconsNever.label                     "Never show icons for bookmarks">
+<!ENTITY tbIconsNever.accesskey                 "N">
+<!ENTITY tbIconsCache.label                     "Only when website was loaded recently">
+<!ENTITY tbIconsCache.accesskey                 "O">
+<!ENTITY tbIconsAlways.label                    "Always load website icons for bookmarks">
+<!ENTITY tbIconsAlways.accesskey                "w">
+<!ENTITY enableAutomaticImageResizing.label     "Resize large images to fit in the browser window">
+<!ENTITY enableAutomaticImageResizing.accesskey "R">
+<!ENTITY useSmoothScroll.label                  "Use smooth scrolling">
+<!ENTITY useSmoothScroll.accesskey              "U">
+<!ENTITY textZoomOnly.label                     "Zoom only text instead of full pages">
+<!ENTITY textZoomOnly.accesskey                 "Z">

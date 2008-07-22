@@ -1,0 +1,521 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Communicator client code, released
+   - March 31, 1998.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 1998-1999
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Blake Ross   <blakeross@telocity.com>
+   -   Peter Annema <disttsc@bart.nl>
+   -   Jeremy M. Dolan <jmd@pobox.com>
+   -   Ehsan Akhgari <ehsan.akhgari@gmail.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either of the GNU General Public License Version 2 or later (the "GPL"),
+   - or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/viewZoomOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
+<?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
+<?xul-overlay href="chrome://navigator/content/platformNavigationBindings.xul"?>
+
+<!DOCTYPE overlay [
+<!ENTITY % navigatorDTD SYSTEM "chrome://navigator/locale/navigator.dtd" >
+%navigatorDTD;
+<!ENTITY % contentAreaCommandsDTD SYSTEM "chrome://communicator/locale/contentAreaCommands.dtd" >
+%contentAreaCommandsDTD;
+]>
+
+<overlay id="navigatorOverlay"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="bundle_viewZoom"/>
+  </stringbundleset>
+
+  <!-- Keysets -->
+  <keyset id="navKeys">
+    <!-- File Menu -->
+    <key id="key_newNavigator"/>
+    <key id="key_newNavigatorTab" key="&tabCmd.commandkey;" modifiers="accel" command="cmd_newNavigatorTab"/>
+    <key id="key_restoreTab" key="&recentTabs.commandkey;" modifiers="accel,shift" oncommand="gBrowser.restoreTab(0);"/>
+    <key id="key_newBlankPage"/>
+    <key id="focusURLBar"      key="&openCmd.commandkey;" oncommand="ShowAndSelectContentsOfURLBar();"
+         modifiers="accel"/>
+    <key id="openLocationKb"   key="&openCmd.commandkey;" command="Browser:Open" modifiers="accel,shift"/>
+    <key id="openFileKb"         key="&openFileCmd.commandkey;" command="Browser:OpenFile"  modifiers="accel"/>
+    <key id="key_savePage"       key="&savePageCmd.commandkey;" command="Browser:SavePage" modifiers="accel"/>
+    <key id="key_editPage"       key="&editPageCmd.commandkey;" command="Browser:EditPage" modifiers="accel"/>
+    <key id="printKb"            key="&printCmd.commandkey;" command="Browser:Print"  modifiers="accel"/>
+    <key id="key_close"/>
+    <key id="key_closeWindow"/>
+    <key id="key_quit"/>
+
+    <!-- Edit Menu -->
+    <key id="key_undo"/>
+    <key id="key_redo"/>
+    <key id="key_cut"/>
+    <key id="key_copy"/>
+    <key id="key_paste"/>
+    <key id="key_delete"/>
+    <key id="key_delete2"/>
+    <key id="key_selectAll"/>
+    <key id="key_switchTextDirection"/>
+
+    <!-- View Menu -->
+    <key id="key_reload"  key="&reloadCmd.commandkey;" oncommand="BrowserReload();" modifiers="accel"/>
+    <key key="&reloadCmd.commandkey;" oncommand="BrowserReloadSkipCache();" modifiers="accel,shift"/>
+    <key id="key_viewSource" key="&pageSourceCmd.commandkey;" command="View:PageSource" modifiers="accel"/>
+    <key id="key_viewInfo"   key="&pageInfoCmd.commandkey;"   command="View:PageInfo"   modifiers="accel"/>
+    <key id="key_viewNextSidebarPanel" keycode="VK_PAGE_DOWN"  oncommand="SidebarGetRelativePanel(1);"  modifiers="alt" />
+    <key id="key_viewPrevSidebarPanel" keycode="VK_PAGE_UP"  oncommand="SidebarGetRelativePanel(-1);"  modifiers="alt" />
+
+    <!-- Search Menu -->  
+    <key id="key_find"       key="&findOnCmd.commandkey;"         command="Browser:Find"      modifiers="accel"/>
+    <key id="key_findAgain"  key="&findAgainCmd.commandkey;"      command="Browser:FindAgain" modifiers="accel"/>
+    <key id="key_findPrev"   key="&findPrevCmd.commandkey;"       command="Browser:FindPrev"  modifiers="accel,shift"/>
+    <key keycode="&findAgainCmd.commandkey2;" command="Browser:FindAgain"/>
+    <key keycode="&findPrevCmd.commandkey2;"  command="Browser:FindPrev" modifiers="shift"/>
+    <key id="key_findTypeText"/>
+    <key id="key_findTypeLinks"/>
+
+    <!-- Go Menu -->
+    <key keycode="VK_BACK" command="cmd_handleBackspace"/>
+    <key keycode="VK_BACK" command="cmd_handleShiftBackspace" modifiers="shift"/>
+
+    <!-- Bookmarks Menu -->
+    <key id="addBookmarkAsKb" key="&addCurPageAsCmd.commandkey;" command="Browser:AddBookmarkAs" modifiers="accel"/>
+    <key id="manBookmarkKb" key="&manBookmarksCmd.commandkey;" command="Browser:ManageBookmark" modifiers="accel"/>
+
+    <!-- Tools Menu -->
+    <key id="searchInternetKb" key="&searchInternet.commandKey;" modifiers="accel,shift" command="Browser:SearchInternet"/>
+
+    <!-- Misc -->
+          <!-- the amazing fishcam dept. -->
+    <key key="f" modifiers="control,alt" oncommand="loadURI('http://wp.netscape.com/fishcam/fishcam.html');"/>
+    <key id="goUpKb" keycode="VK_UP" command="Browser:Up" modifiers="alt"/>
+    <key id="key_gotoHistory"  key="&history.commandKey;"        oncommand="toHistory();" modifiers="accel"/>
+    <keyset id="viewZoomKeys"/>
+    <keyset id="navigationKeys"/>  
+    <keyset id="tasksKeys"/>
+    <key id="key_sanitize" command="Tools:Sanitize" keycode="VK_DELETE" modifiers="accel,shift"/>
+  </keyset>
+
+  <commandset id="commands">
+    <command id="cmd_newNavigator"/>
+    <command id="cmd_newNavigatorTab" oncommand="BrowserOpenTab();"/>
+    <command id="cmd_newTabWithTarget" oncommand="contentAreaClick(event);"/>
+    <command id="cmd_handleBackspace"  oncommand="BrowserHandleBackspace();" />
+    <command id="cmd_handleShiftBackspace"  oncommand="BrowserHandleShiftBackspace();" />
+
+    <command id="cmd_newEditor"/>
+    <!-- NOT IMPLEMENTED
+    <command id="cmd_newEditorTemplate"/>
+    <command id="cmd_newEditorDraft"/> -->
+    <command id="Browser:OpenFile"  oncommand="BrowserOpenFileWindow();"/>
+    <command id="Browser:SavePage" oncommand="saveDocument(window.content.document);"/>
+    <command id="Browser:EditPage" oncommand="editPageOrFrame();" observes="isImage"/>
+    <command id="Browser:UploadFile" oncommand="BrowserUploadFile();"/>
+    <command id="Browser:Open" oncommand="BrowserOpenWindow();"/>
+    <command id="cmd_printSetup" oncommand="PrintUtils.showPageSetup();"/>
+    <command id="Browser:Print" oncommand="PrintUtils.print();"/>
+    <command id="Browser:PrintPreview" oncommand="BrowserPrintPreview();"/>
+    <command id="cmd_quit"/>
+    <command id="cmd_close" oncommand="BrowserCloseTabOrWindow()"/>
+    <command id="cmd_closeOtherTabs" oncommand="BrowserCloseOtherTabs()"/>
+    <command id="cmd_closeWindow" oncommand="BrowserTryToCloseWindow()"/>
+
+    <!-- Edit Menu -->
+    <command id="cmd_undo"/>
+    <command id="cmd_redo"/>
+    <command id="cmd_cut"/>
+    <command id="cmd_copy"/>
+    <command id="cmd_paste"/>
+    <command id="cmd_delete"/>
+    <command id="cmd_selectAll" observes="isImage"/>
+    <command id="cmd_switchTextDirection"/>
+
+    <!-- Content area context menu -->
+    <command id="cmd_copyLink"/>
+    <command id="cmd_copyImage"/>
+
+    <!-- View Menu -->
+    <command id="View:PageSource" oncommand="BrowserViewSourceOfDocument(content.document);" observes="isImage"/>
+    <command id="View:PageInfo"   oncommand="BrowserPageInfo();"/>
+    <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
+    <command id="cmd_SwitchDocumentDirection" oncommand="SwitchDocumentDirection(window.content);" />
+ 
+    <!-- Search Menu -->
+    <command id="Browser:Find" oncommand="BrowserFind();" observes="isImage"/>
+    <command id="Browser:FindAgain" oncommand="BrowserFindAgain(false);" observes="isImage"/>
+    <command id="Browser:FindPrev"  oncommand="BrowserFindAgain(true);"  observes="isImage"/>
+    <command id="cmd_findTypeText" observes="isImage"/>
+    <command id="cmd_findTypeLinks" observes="isImage"/>
+
+    <!-- Bookmarks Menu -->
+    <command id="Browser:AddBookmark" label="&addCurPageCmd.label;" accesskey="&addCurPageCmd.accesskey;" 
+             oncommand="BookmarksUtils.addBookmarkForBrowser(document.getElementById('content').webNavigation, false);"/>
+    <command id="Browser:AddBookmarkAs" label="&addCurPageAsCmd.label;"
+             accesskey="&addCurPageAsCmd.accesskey;"
+             oncommand="addBookmarkAs();"/>
+    <command id="Browser:AddGroupmarkAs" label="&addCurTabsAsCmd.label;"
+             accesskey="&addCurTabsAsCmd.accesskey;"
+             oncommand="addGroupmarkAs(); event.stopPropagation();"/>
+    <command id="Browser:ManageBookmark" label="&manBookmarksCmd.label;" accesskey="&manBookmarksCmd.accesskey;" 
+             oncommand="BrowserEditBookmarks();" />
+  
+    <!-- Go Menu -->  
+    <command id="Browser:Home"    oncommand="BrowserHome(event);"/>
+    <command id="Browser:Back"    oncommand="BrowserBack();"    observes="canGoBack"/>
+    <command id="Browser:Forward" oncommand="BrowserForward();" observes="canGoForward"/>
+    <command id="Browser:Up"      oncommand="BrowserUp();"      observes="canGoUp"/>
+    <commandset id="viewZoomCommands"/>
+    <commandset id="tasksCommands"/>
+
+    <!-- Tools Menu -->
+    <command id="Browser:SearchInternet" oncommand="BrowserSearchInternet();"/>
+    <command id="Tools:Sanitize"
+             oncommand="Components.classes['@mozilla.org/suite/suiteglue;1'].getService(Components.interfaces.nsISuiteGlue).sanitize(window);"/>
+
+  </commandset>
+
+  <broadcasterset id="navBroadcasters">
+    <broadcaster id="canGoBack"    disabled="true"/>
+    <broadcaster id="canGoForward" disabled="true"/>
+    <broadcaster id="canGoUp"      disabled="true"/>
+    <broadcaster id="Communicator:WorkMode"/>
+    <broadcaster id="cmd_viewnavbar" oncommand="goToggleToolbar( 'nav-bar','cmd_viewnavbar');" checked="true"/>
+    <broadcaster id="cmd_viewpersonaltoolbar" oncommand="goToggleToolbar('PersonalToolbar','cmd_viewpersonaltoolbar');" checked="true"/>
+    <broadcaster id="cmd_viewtaskbar" oncommand="goToggleToolbar('status-bar','cmd_viewtaskbar');" checked="true"/>
+    <broadcaster id="cmd_viewcomponentbar" oncommand="goToggleToolbar('component-bar', 'cmd_viewcomponentbar');" checked="true"/>
+    <broadcaster id="isImage"/>
+  </broadcasterset>
+         
+  <!-- bookmarks context menu -->
+  <popupset id="bookmarksPopupset">
+    <popup id="bookmarks-context-menu" 
+           onpopupshowing="return BookmarksMenu.createContextMenu(event);"
+           onpopuphidden ="BookmarksMenu.destroyContextMenu(event);"/>
+  </popupset>
+
+  <!-- bookmarks toolbar tooltip -->
+  <tooltip id="btTooltip" noautohide="true" 
+           onpopupshowing="return BookmarksToolbar.fillInBTTooltip(document.tooltipNode)">
+    <vbox id="btTooltipTextBox" flex="1">  
+      <label id="btTitleText"/>
+      <label id="btUrlText"/>
+    </vbox>
+  </tooltip>
+
+  <!-- bookmarks template -->
+  <template id="bookmarksMenuTemplate" xmlns:nc="http://home.netscape.com/NC-rdf#">
+    <rule parent="hbox" rdf:type="http://home.netscape.com/NC-rdf#BookmarkSeparator">
+      <toolbarseparator uri="rdf:*"
+                        rdf:type="rdf:http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+    </rule>
+    <!-- yes, the type attribute is necessary otherwise all leaves are 
+         treated as containers for some reason -->
+    <rule parent="hbox" iscontainer="true"
+          nc:FolderGroup="true">
+      <toolbarbutton class="bookmark-item bookmark-group" uri="rdf:*" xulcontentsgenerated="true" 
+                     group="true"
+                     container="false"
+                     rdf:type="http://home.netscape.com/NC-rdf#Folder"
+                     label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+    </rule>
+    <rule parent="hbox" iscontainer="true" isempty="true"
+          rdf:type="http://home.netscape.com/NC-rdf#Folder">
+      <toolbarbutton type="menu" editable="true" class="bookmark-item"
+                     image="rdf:http://home.netscape.com/NC-rdf#Icon"
+                     validate="never"
+                     rdf:type="http://home.netscape.com/NC-rdf#Folder"
+                     uri="rdf:*" label="rdf:http://home.netscape.com/NC-rdf#Name">
+        <menupopup>
+          <menuitem label="&emptyItem.label;" disabled="true"/>
+        </menupopup>
+      </toolbarbutton>
+    </rule>
+    <rule parent="hbox" iscontainer="true">
+      <toolbarbutton type="menu" class="bookmark-item" uri="rdf:*" editable="true"
+                     image="rdf:http://home.netscape.com/NC-rdf#Icon"
+                     validate="never"
+                     rdf:type="http://home.netscape.com/NC-rdf#Folder"
+                     label="rdf:http://home.netscape.com/NC-rdf#Name">
+        <menupopup context="bookmarks-context-menu"/>
+      </toolbarbutton>
+    </rule>
+    <rule parent="hbox">
+      <toolbarbutton class="bookmark-item" uri="rdf:*" editable="true" 
+                     image="rdf:http://home.netscape.com/NC-rdf#Icon"
+                     validate="never"
+                     status="rdf:http://home.netscape.com/WEB-rdf#status"
+                     rdf:type="http://home.netscape.com/NC-rdf#Bookmark"
+                     statustext="rdf:http://home.netscape.com/NC-rdf#URL"
+                     label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+    </rule>
+    <rule nc:FolderGroup="true" iscontainer="true">
+      <menupopup>
+        <menuitem class="menuitem-iconic bookmark-group" 
+                  label="rdf:http://home.netscape.com/NC-rdf#Name"
+                  group="true"
+                  uri="rdf:*"
+                  xulcontentsgenerated="true"/>
+      </menupopup>
+    </rule>
+    <rule iscontainer="true" isempty="true"
+          rdf:type="http://home.netscape.com/NC-rdf#Folder">
+      <menupopup>
+        <menu class="menu-iconic bookmark-item" uri="rdf:*" 
+              image="rdf:http://home.netscape.com/NC-rdf#Icon"
+              validate="never"
+              type="rdf:http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+              label="rdf:http://home.netscape.com/NC-rdf#Name">
+          <menupopup>
+            <menuitem label="&emptyItem.label;" disabled="true"/>
+          </menupopup>
+        </menu>
+      </menupopup>
+    </rule>
+    <rule iscontainer="true">
+      <menupopup>
+        <menu class="menu-iconic bookmark-item" uri="rdf:*"
+              image="rdf:http://home.netscape.com/NC-rdf#Icon"
+              validate="never"
+              label="rdf:http://home.netscape.com/NC-rdf#Name"
+              type="rdf:http://www.w3.org/1999/02/22-rdf-syntax-ns#type">
+          <menupopup context="bookmarks-context-menu"/>
+        </menu>
+      </menupopup>
+    </rule>
+    <rule rdf:type="http://home.netscape.com/NC-rdf#BookmarkSeparator">
+      <menupopup> 
+        <menuseparator uri="rdf:*" />
+      </menupopup>
+    </rule>
+    <rule>
+      <menupopup>
+        <menuitem class="menuitem-iconic bookmark-item" uri="rdf:*"
+                  src="rdf:http://home.netscape.com/NC-rdf#Icon"
+                  validate="never"
+                  label="rdf:http://home.netscape.com/NC-rdf#Name" 
+                  status="rdf:http://home.netscape.com/WEB-rdf#status"
+                  statustext="rdf:http://home.netscape.com/NC-rdf#URL"/>
+      </menupopup>
+    </rule>
+  </template>
+
+  <!-- Menu -->
+  <menubar id="main-menubar" class="chromeclass-menubar">
+    <menu id="menu_File">
+      <menupopup id="menu_FilePopup" onpopupshowing="updateCloseItems();getContentAreaFrameCount();updateSavePageItems();updateFileUploadItem();">
+        <menu id="menu_New">
+          <menupopup id="menu_NewPopup">
+            <!-- From utilityOverlay.xul -->
+            <menuitem id="menu_newNavigator" command="cmd_newNavigator"/>
+            <menuitem id="menu_newNavigatorTab" command="cmd_newNavigatorTab" key="key_newNavigatorTab"
+                      label="&tabCmd.label;" accesskey="&tabCmd.accesskey;"/>
+            <menuseparator id="navBeginGlobalNewItems"/>
+            <menuitem id="menu_newEditor"    command="cmd_newEditor"/>
+          </menupopup>
+        </menu>
+        <menuitem label="&openCmd.label;" accesskey="&openCmd.accesskey;" key="openLocationKb" command="Browser:Open"/>
+        <menuitem label="&openFileCmd.label;" accesskey="&openFileCmd.accesskey;" key="openFileKb" command="Browser:OpenFile"/>
+        <menu label="&recentTabs.label;" accesskey="&recentTabs.accesskey;" id="menu_recentTabs">
+          <menupopup id="menu_recentTabsPopup" onpopupshowing="updateRecentTabs(this);" oncommand="gBrowser.restoreTab(event.target.value);"/>
+        </menu>
+        <menuitem id="menu_close"/>
+        <menuitem id="menu_closeOtherTabs" command="cmd_closeOtherTabs" label="&closeOtherTabs.label;" accesskey="&closeOtherTabs.accesskey;"/>
+        <menuitem id="menu_closeWindow" hidden="true" command="cmd_closeWindow" key="key_closeWindow" label="&closeWindow.label;" accesskey="&closeWindow.accesskey;"/>
+        <menuseparator/>
+        <menuitem id="savepage" valueSaveAs="&savePageAsCmd.label;" valueSave="&savePageCmd.label;"
+                  accesskey="&savePageCmd.accesskey;" key="key_savePage" command="Browser:SavePage"/>
+        <menuitem id="saveframe" valueSaveAs="&saveFrameAsCmd.label;" valueSave="&saveFrameCmd.label;"
+                  accesskey="&saveFrameCmd.accesskey;" oncommand="saveFrameDocument();" hidden="true"/>
+        <menuseparator id="saveMenuBlockEnd"/>
+        <menuitem label="&editPageCmd.label;" accesskey="&editPageCmd.accesskey;" key="key_editPage" command="Browser:EditPage" />
+        <menuseparator/>
+        <menuitem command="Browser:UploadFile" label="&uploadFile.label;" accesskey="&uploadFile.accesskey;"/>
+        <menuseparator/>
+        <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" command="cmd_printSetup"/>
+        <menuitem id="printPreviewMenuItem" label="&printPreviewCmd.label;" accesskey="&printPreviewCmd.accesskey;" command="Browser:PrintPreview"/>
+        <menuitem id="printMenuItem" label="&printCmd.label;" accesskey="&printCmd.accesskey;" key="printKb" command="Browser:Print"/>
+        <menuseparator/>
+        <menuitem id="offlineGoOfflineCmd"/>
+      </menupopup>
+    </menu>
+
+    <menu id="menu_Edit">
+      <menupopup id="menu_Edit_Popup">
+        <menuitem id="menu_undo"/>
+        <menuitem id="menu_redo"/>
+        <menuseparator/>
+        <menuitem id="menu_cut"/>
+        <menuitem id="menu_copy"/>
+        <menuitem id="menu_paste"/>
+        <menuitem id="menu_delete"/>
+        <menuseparator/>
+        <menuitem id="menu_selectAll"/>
+        <menuseparator/>
+        <menuitem id="menu_find" label="&findOnCmd.label;" accesskey="&findOnCmd.accesskey;" key="key_find" command="Browser:Find"/>
+        <menuitem id="menu_findAgain" label="&findAgainCmd.label;" accesskey="&findAgainCmd.accesskey;" key="key_findAgain" command="Browser:FindAgain"/>
+        <menuitem id="menu_findPrev"  label="&findPrevCmd.label;"  accesskey="&findPrevCmd.accesskey;" key="key_findPrev" command="Browser:FindPrev"/>
+        <menuseparator/> 
+        <menuitem id="menu_findTypeLinks"/>
+        <menuitem id="menu_findTypeText"/>
+
+        <menuseparator id="textfieldDirection-separator" hidden="true"/>
+        <menuitem id="textfieldDirection-swap" hidden="true"/>
+
+        <menuseparator id="menu_PrefsSeparator"/> 
+        <menuitem id="menu_preferences" oncommand="goPreferences('navigator_pane')"/>
+        <menuitem label="(Legacy Prefwindow...)" oncommand="goPreferences('navigator', 'chrome://communicator/content/pref/pref-navigator.xul', 'navigator')"/>
+      </menupopup>
+    </menu>
+
+    <menu id="menu_View" accesskey="&viewMenu.accesskey;" label="&viewMenu.label;">
+      <menupopup id="menu_View_Popup">
+        <menu label="&toolbarsCmd.label;" accesskey="&toolbarsCmd.accesskey;" id="menu_Toolbars">
+          <menupopup id="view_toolbars_popup" onpopupshowing="updateToolbarStates(this);"> 
+            <menuitem label="&navbarCmd.label;" accesskey="&navbarCmd.accesskey;" class="menuitem-iconic" type="checkbox" observes="cmd_viewnavbar"  />
+            <menuitem label="&personalbarCmd.label;" accesskey="&personalbarCmd.accesskey;" class="menuitem-iconic" type="checkbox" observes="cmd_viewpersonaltoolbar" />
+            <menuitem id="menuitem_showhide_tabbar" label="&tabbarCmd.label;" accesskey="&tabbarCmd.accesskey;" class="menuitem-iconic" type="checkbox" oncommand="showHideTabbar();" checked="true"/>
+            <menuitem label="&taskbarCmd.label;" accesskey="&taskbarCmd.accesskey;" class="menuitem-iconic" type="checkbox" observes="cmd_viewtaskbar" />
+            <menuitem label="&componentbarCmd.label;" accesskey="&componentbarCmd.accesskey;" class="menuitem-iconic" type="checkbox" observes="cmd_viewcomponentbar"/>
+          </menupopup>
+        </menu>   
+        <menuitem id="menuitem_fullScreen" accesskey="&fullScreenCmd.accesskey;"
+                  label="&fullScreenCmd.label;" key="key_fullScreen"
+                  command="View:FullScreen" hidden="true"/>
+        <menuseparator />
+        <menuitem label="&stopCmd.label;" accesskey="&stopCmd.accesskey;" id="menuitem-stop" disabled="true" oncommand="BrowserStop();" key="key_stop"/>
+        <menuitem id="menuitem_reload" accesskey="&reloadCmd.accesskey;" key="key_reload" label="&reloadCmd.label;" oncommand="BrowserReload();"/>
+        <menuseparator />
+  
+        <!-- overlayed from viewZoomOverlay.xul -->
+        <menu id="menu_zoom" observes="isImage"/>
+
+        <menu id="menu_UseStyleSheet" label="&useStyleSheetMenu.label;" accesskey="&useStyleSheetMenu.accesskey;" disabled="false" observes="isImage">
+          <menupopup onpopupshowing="stylesheetFillPopup(this);"
+                     oncommand="stylesheetSwitchAll(window.content, event.target.getAttribute('data')); setStyleDisabled(false);" type="radio">
+            <menuitem label="&useStyleSheetNone.label;" accesskey="&useStyleSheetNone.accesskey;" oncommand="setStyleDisabled(true); event.stopPropagation();" type="radio"/>
+            <menuitem label="&useStyleSheetPersistentOnly.label;" accesskey="&useStyleSheetPersistentOnly.accesskey;" type="radio"/>
+          </menupopup>
+        </menu>
+        <menu id="charsetMenu" observes="isImage"/>
+        <menuitem hidden="true" id="documentDirection-swap"
+                  label="&bidiSwitchPageDirectionItem.label;"
+                  accesskey="&bidiSwitchPageDirectionItem.accesskey;"
+                  command="cmd_SwitchDocumentDirection"/>
+        <menuseparator />
+        <menuitem accesskey="&pageSourceCmd.accesskey;" label="&pageSourceCmd.label;" key="key_viewSource" command="View:PageSource"/>
+        <menuitem accesskey="&pageInfoCmd.accesskey;"   label="&pageInfoCmd.label;"   key="key_viewInfo"   command="View:PageInfo"/>
+        <menuseparator />
+        <menu label="&applyTheme.label;" accesskey="&applyTheme.accesskey;">
+          <menupopup datasources="rdf:extensions" ref="urn:mozilla:item:root" oncommand="applyTheme(event.target);" onpopupshowing="checkTheme(this);"
+                     sortResource="http://www.mozilla.org/2004/em-rdf#name"
+                     sortDirection="ascending">
+            <menuitem label="&getNewThemesCmd.label;" accesskey="&getNewThemesCmd.accesskey;" oncommand="getNewThemes();"/>
+            <menuseparator/>
+            <template>
+              <rule em-rdf:type="4" parsetype="Integer" xmlns:em-rdf="http://www.mozilla.org/2004/em-rdf">
+                <menuitem uri="..."
+                          label="rdf:http://www.mozilla.org/2004/em-rdf#name"
+                          hidden="rdf:http://www.mozilla.org/2004/em-rdf#hidden"
+                          disabled="rdf:http://www.mozilla.org/2004/em-rdf#isDisabled"
+                          internalName="rdf:http://www.mozilla.org/2004/em-rdf#internalName"
+                          type="radio"
+                          name="themeGroup"/>
+              </rule>
+            </template>
+          </menupopup>
+        </menu>
+      </menupopup>
+    </menu>
+
+    <menu accesskey="&goMenu.accesskey;" label="&goMenu.label;" oncommand="gotoHistoryIndex(event);">
+      <menupopup id="goPopup" onpopupshowing="updateGoMenu(event);">
+        <menuitem label="&goBackCmd.label;"    accesskey="&goBackCmd.accesskey;"    key="goBackKb"    command="Browser:Back"/>
+        <menuitem label="&goForwardCmd.label;" accesskey="&goForwardCmd.accesskey;" key="goForwardKb" command="Browser:Forward"/>
+        <menuitem label="&goUpCmd.label;"      accesskey="&goUpCmd.accesskey;"      key="goUpKb"      command="Browser:Up"/>
+        <menuitem label="&goHomeCmd.label;"    accesskey="&goHomeCmd.accesskey;"    command="Browser:Home" key="goHome"/>
+        <menuseparator/>
+        <menuitem label="&historyCmd.label;" accesskey="&historyCmd.accesskey;" oncommand="toHistory()" key="key_gotoHistory"/>
+        <menuseparator hidden="true"/>
+      </menupopup>
+    </menu>
+    
+    <menu id="BookmarksMenu" label="&bookmarksMenu.label;" accesskey="&bookmarksMenu.accesskey;" 
+          datasources="rdf:bookmarks rdf:files rdf:localsearch rdf:internetsearch" 
+          ref="NC:BookmarksRoot" flags="dont-test-empty" template="bookmarksMenuTemplate"
+          tooltip="btTooltip"
+          oncommand="BookmarksMenu.loadBookmark(event, this.database)"
+          onclick="BookmarksMenu.loadBookmarkMiddleClick(event, this.database)"
+          ondraggesture="nsDragAndDrop.startDrag(event, BookmarksMenuDNDObserver)"
+          ondragdrop="nsDragAndDrop.drop(event, BookmarksMenuDNDObserver); event.stopPropagation()"
+          ondragenter="nsDragAndDrop.dragEnter(event, BookmarksMenuDNDObserver); event.stopPropagation()"
+          ondragexit="nsDragAndDrop.dragExit(event, BookmarksMenuDNDObserver); event.stopPropagation()"
+          ondragover="nsDragAndDrop.dragOver(event, BookmarksMenuDNDObserver); event.stopPropagation()">
+      <menupopup id="menu_BookmarksPopup"
+                 context="bookmarks-context-menu"
+                 onpopupshowing="updateGroupmarkCommand();">
+        <menuitem key="addBookmarkKb"   command="Browser:AddBookmark"/>
+        <menuitem key="addBookmarkAsKb" command="Browser:AddBookmarkAs"/>
+        <menuitem                       command="Browser:AddGroupmarkAs"/>
+        <menuitem key="manBookmarkKb"   command="Browser:ManageBookmark"/>
+        <menuseparator/>
+        <menu id="feedsMenu" class="menu-iconic" disabled="true"
+              label="&feedsMenu.label;" accesskey="&feedsMenu.accesskey;">
+          <menupopup onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
+                     oncommand="loadURI(event.target.statusText, gBrowser.currentURI);"/>
+        </menu>
+        <menuseparator/>
+      </menupopup>
+    </menu>
+      
+  <menu id="tasksMenu">
+    <menupopup id="taskPopup">
+      <menuitem id="menu_searchWeb" label="&searchInternetCmd.label;" key="searchInternetKb" accesskey="&searchInternetCmd.accesskey;" command="Browser:SearchInternet"/>
+      <menuitem id="menu_translate" label="&translateMenu.label;" accesskey="&translateMenu.accesskey;" oncommand="Translate();"/>  
+      <menuseparator id="navBeginGlobalItems"/>
+      <menuitem id="sanitizeItem"
+                accesskey="&clearPrivateDataCmd.accesskey;"
+                label="&clearPrivateDataCmd.label;"
+                key="key_sanitize" command="Tools:Sanitize"/>
+    </menupopup>
+  </menu>
+
+  <menu id="windowMenu"/>
+  
+  <menu accesskey="&helpMenuCmd.accesskey;" id="menu_Help"/>
+</menubar>
+
+</overlay>

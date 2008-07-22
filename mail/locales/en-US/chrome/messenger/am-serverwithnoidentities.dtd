@@ -1,0 +1,11 @@
+<!ENTITY accountTitle.label "Account Settings">
+<!ENTITY accountSettingsDesc.label "The following is a special account.  There are no identities associated with it.">
+<!ENTITY accountName.label "Account Name:">
+<!ENTITY accountName.accesskey "N">
+<!ENTITY messageStorage.label "Message Storage">
+<!ENTITY emptyTrashOnExit.label "Empty Trash on Exit">
+<!ENTITY emptyTrashOnExit.accesskey "x">
+<!ENTITY localPath.label "Local directory:">
+<!ENTITY localFolderPicker.label "Select Local Directory">
+<!ENTITY browseFolder.label "Browse…">
+<!ENTITY browseFolder.accesskey "B">

@@ -1,0 +1,123 @@
+<?xml version="1.0"?> 
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Mozilla Communicator client code, released
+ March 31, 1998.
+
+ The Initial Developer of the Original Code is
+ Netscape Communications Corporation.
+ Portions created by the Initial Developer are Copyright (C) 1998-1999
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+   Blake Ross <blakeross@telocity.com>
+   Diego Biurrun <diego@biurrun.de>
+   Stefan Hermes <stefanh@inbox.com>
+
+ Alternatively, the contents of this file may be used under the terms of
+ either of the GNU General Public License Version 2 or later (the "GPL"),
+ or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://communicator/skin/prefpanels.css" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-locationbar.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <prefpane id="locationBar_pane"
+            label="&pref.locationBar.title;"
+            script="chrome://communicator/content/pref/pref-locationbar.js">
+
+    <preferences id="locationBar_preferences">
+      <preference id="browser.urlbar.autocomplete.enabled"
+                  name="browser.urlbar.autocomplete.enabled"
+                  type="bool"
+                  onchange="updateDependent(this.value);"/>
+      <preference id="browser.urlbar.matchOnlyTyped"
+                  name="browser.urlbar.matchOnlyTyped"
+                  type="bool"/>
+      <preference id="browser.urlbar.autoFill"
+                  name="browser.urlbar.autoFill"
+                  type="bool"
+                  onchange="updateMatchOnlyTyped();"/>
+      <preference id="browser.urlbar.showPopup"
+                  name="browser.urlbar.showPopup"
+                  type="bool"
+                  onchange="updateMatchOnlyTyped();"/>
+      <preference id="browser.urlbar.showSearch"
+                  name="browser.urlbar.showSearch"
+                  type="bool"/>
+      <preference id="browser.fixup.alternate.enabled"
+                  name="browser.fixup.alternate.enabled"
+                  type="bool"/>
+      <preference id="keyword.enabled"
+                  name="keyword.enabled"
+                  type="bool"/>
+    </preferences>
+
+    <groupbox>
+      <caption label="&autoComplete.label;"/>
+      <checkbox id="autoCompleteEnabled"
+                label="&enableAutoComplete.label;"
+                accesskey="&enableAutoComplete.accesskey;"
+                preference="browser.urlbar.autocomplete.enabled"/>
+      <checkbox id="matchOnlyTyped"
+                class="indent"
+                label="&autoCompleteMatchOnlyTyped.label;"
+                accesskey="&autoCompleteMatchOnlyTyped.accesskey;"
+                preference="browser.urlbar.matchOnlyTyped"/>
+      <checkbox id="autoFill"
+                class="indent"
+                label="&autoCompleteAutoFill.label;"
+                accesskey="&autoCompleteAutoFill.accesskey;"
+                preference="browser.urlbar.autoFill"/>
+      <checkbox id="showPopup"
+                class="indent"
+                label="&autoCompleteShowPopup.label;"
+                accesskey="&autoCompleteShowPopup.accesskey;"
+                preference="browser.urlbar.showPopup"/>
+    </groupbox>
+
+    <groupbox>
+      <caption label="&searchEngine.label;"/>
+      <checkbox id="showSearch"
+                label="&showSearchEngine.label;"
+                accesskey="&showSearchEngine.accesskey;"
+                preference="browser.urlbar.showSearch"/>
+    </groupbox>
+
+    <groupbox>
+      <caption label="&unknownLocations.label;"/>
+      <checkbox id="domainGuessingEnabled"
+                label="&domainGuessing.label;"
+                accesskey="&domainGuessing.accesskey;"
+                preference="browser.fixup.alternate.enabled"/>
+      <checkbox id="browserGoBrowsingEnabled"
+                label="&keywords.label;"
+                accesskey="&keywords.accesskey;"
+                preference="keyword.enabled"/>
+    </groupbox>
+  </prefpane>
+</overlay>

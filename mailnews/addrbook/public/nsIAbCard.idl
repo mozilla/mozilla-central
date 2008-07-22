@@ -1,0 +1,178 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+ 
+#include "nsISupports.idl"
+
+interface nsIStringBundle;
+
+[scriptable, uuid(97448252-F189-11d4-A422-001083003D0C)]
+interface nsIAbPreferMailFormat {
+    const unsigned long unknown   = 0;
+    const unsigned long plaintext = 1;
+    const unsigned long html      = 2;
+};
+
+[scriptable, uuid(193d5026-7d1e-41b4-9fc3-c57d4a4937f3)]
+interface nsIAbCard : nsISupports {
+  // Card properties
+  attribute AString firstName;
+  attribute AString lastName;
+  attribute AString phoneticFirstName;
+  attribute AString phoneticLastName;
+  attribute AString displayName;
+  attribute AString nickName;
+  attribute AString primaryEmail;
+  attribute AString secondEmail;
+  attribute AString workPhone;
+  attribute AString homePhone;
+  attribute AString faxNumber;
+  attribute AString pagerNumber;
+  attribute AString cellularNumber;
+  attribute AString workPhoneType;
+  attribute AString homePhoneType;
+  attribute AString faxNumberType;
+  attribute AString pagerNumberType;
+  attribute AString cellularNumberType;
+  attribute AString homeAddress;
+  attribute AString homeAddress2;
+  attribute AString homeCity;
+  attribute AString homeState;
+  attribute AString homeZipCode;
+  attribute AString homeCountry;
+  attribute AString workAddress;
+  attribute AString workAddress2;
+  attribute AString workCity;
+  attribute AString workState;
+  attribute AString workZipCode;
+  attribute AString workCountry;
+  attribute AString jobTitle;
+  attribute AString department;
+  attribute AString company;
+  attribute AString aimScreenName;
+  attribute AString anniversaryYear;
+  attribute AString anniversaryMonth;
+  attribute AString anniversaryDay;
+  attribute AString spouseName;
+  attribute AString familyName;
+  attribute AString defaultAddress;
+  attribute AString category;
+  /**
+   * webPage1 is work web page
+   */
+  attribute AString webPage1;
+  /**
+   * webPage2 is home web page
+   */
+  attribute AString webPage2;
+  attribute AString birthYear;
+  attribute AString birthMonth;
+  attribute AString birthDay;
+  attribute AString custom1;
+  attribute AString custom2;
+  attribute AString custom3;
+  attribute AString custom4;
+  attribute AString notes;
+  attribute unsigned long lastModifiedDate;
+  /**
+   * Popularity Index is bumped every time e-mail is sent to this recipient
+   */
+  attribute unsigned long popularityIndex;
+  attribute unsigned long preferMailFormat;
+  attribute boolean isMailList;
+  /**
+   * If isMailList is true then mailListURI
+   * will contain the URI of the associated
+   * mail list
+   */
+  attribute string mailListURI;
+  /**
+   * allowRemoteContent to be displayed in HTML mail received from this contact
+   */
+  attribute boolean allowRemoteContent;
+
+  AString getCardValue(in string name);
+
+  void setCardValue(in string attrname, in AString value);
+
+  /**
+   * This function will copy all values from one card to another.
+   *
+   * @param  srcCard  The source card to copy values from.
+   */
+  void copy(in nsIAbCard srcCard);
+
+  boolean equals(in nsIAbCard card);
+
+  string convertToBase64EncodedXML();
+  AString convertToXMLPrintData();
+  string convertToEscapedVCard();
+
+  /** 
+   * Generate a name from the card for display purposes. Using the firstName,
+   * lastName and the displayName. We allow the caller to cache the pref value,
+   * so we don't have to go to prefs every time.
+   *
+   * The format follows the "mail.addr_book.lastnamefirst" pref values:
+   *
+   * 0 = generated name is displayName
+   * 1 = lastFirst, formatted following lastFirstFormat
+   * 2 = firstLast, formatted following firstLastFormat
+   *
+   * lastFirstFormat and firstLastFormat are defined in addressBook.properties.
+   *
+   * @param  aGenerateFormat The format to generate as per the above definition.
+   * @param  aBundle         An optional parameter that is a pointer to a string
+   *                         bundle that holds:
+   *           chrome://messenger/locale/addressbook/addressBook.properties
+   *                         If this bundle is not supplied, then the function
+   *                         will obtain the bundle itself. If cached by the
+   *                         caller and supplied to this function, then
+   *                         performance will be improved over many calls.
+   * @return                 A string containing the generated name.
+   */
+  AString generateName(in long aGenerateFormat,
+                       [optional] in nsIStringBundle aBundle);
+
+  /** 
+   * Generate a phonetic name from the card, using the firstName and lastName
+   * values.
+   *
+   * @param  aLastNameFirst  Set to True to put the last name before the first.
+   * @return                 A string containing the generated phonetic name.
+   */
+  AString generatePhoneticName(in boolean aLastNameFirst);
+};

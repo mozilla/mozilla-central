@@ -1,0 +1,152 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+
+interface nsISmtpServer;
+interface nsIURI;
+interface nsIUrlListener;
+interface nsIMsgIdentity;
+interface nsIInterfaceRequestor;
+interface nsIFile;
+interface nsIMsgStatusFeedback;
+interface nsIRequest;
+interface nsISimpleEnumerator;
+
+[scriptable, uuid(8e9a7c57-cee1-46f2-a03b-14fac3086706)]
+interface nsISmtpService : nsISupports {
+  /**
+   * Sends a mail message via the given parameters. This function builds an
+   * SMTP URL and makes an SMTP connection, and then runs the url.
+   * The SMTP server defined
+   * in the aSenderIdentity object (see nsIMsgIdentity) will be used to send
+   * the message. If there is no SMTP server defined in aSenderIdentity, the
+   * default SMTP server will be used.
+   *
+   * @note The file to send must be in the format specified by RFC 2822 for
+   *       sending data. This includes having the correct CRLF line endings
+   *       throughout the file, and the <CRLF>.<CRLF> at the end of the file.
+   *       sendMailMessage does no processing/additions on the file.
+   *
+   * @param aFilePath               The file to send.
+   * @param aRecipients             A comma delimited list of recipients.
+   * @param aSenderIdentity         The identity of the sender.
+   * @param aPassword               Pass this in to prevent a dialog if the
+   *                                password is needed for secure transmission.
+   * @param aUrlListener            A listener to listen to the URL being run,
+   *                                this parameter may be null.
+   * @param aStatusListener         A feedback listener for slightly different
+   *                                feedback on the message send status. This
+   *                                parameter may be null.
+   * @param aNotificationCallbacks  More notification callbacks
+   * @param aRequestDSN             Pass true to request Delivery Status
+   *                                Notification.
+   * @param aURL                    Provides a handle on the running url. You
+   *                                can later interrupt the action by asking the
+   *                                netlib service manager to interrupt the url
+   *                                you are given back. This parameter may be
+   *                                null.
+   * @param aRequest                Provides a handle to the running request.
+   *                                This parameter may be null.
+   */
+  void sendMailMessage(in nsIFile aFilePath, in string aRecipients, 
+                       in nsIMsgIdentity aSenderIdentity,
+                       in string aPassword,
+                       in nsIUrlListener aUrlListener, 
+                       in nsIMsgStatusFeedback aStatusListener, 
+                       in nsIInterfaceRequestor aNotificationCallbacks,
+                       in boolean aRequestDSN,
+                       out nsIURI aURL,
+                       out nsIRequest aRequest);
+
+  /**
+   * Return the SMTP server that is associated with an identity.
+   */
+  void GetSmtpServerByIdentity(in nsIMsgIdentity aSenderIdentity,
+                               out nsISmtpServer aServer);
+
+  /**
+   * A copy of the array of SMTP servers, as stored in the preferences
+   */
+  readonly attribute nsISimpleEnumerator smtpServers;
+
+  /**
+   * The default server, across sessions of the app
+   * (eventually there will be a session default which does not
+   * persist past shutdown)
+   */
+  attribute nsISmtpServer defaultServer;
+
+  /**
+   * The "session default" server - this is never saved, and only used
+   * for the current session. Always falls back to the default server
+   * unless explicitly set.
+   */
+  attribute nsISmtpServer sessionDefaultServer;
+
+  /**
+   * Create a new SMTP server.
+   * Use this instead of createInstance(), so that the SMTP Service can
+   * be aware of this server
+   */
+  nsISmtpServer createSmtpServer();
+
+  /**
+   * Find the first server with the given hostname and/or username.
+   * Note: if either username or hostname is empty, then that parameter will
+   * not be used in the matching process.
+   * @param username  the username for the server
+   * @param hostname  the hostname of the server
+   * @returns         null if no server is found
+   */
+  nsISmtpServer findServer(in string username, in string hostname);
+
+  /**
+   * Look up the server with the given key
+   * If the server does not exist, create it and add it to our list
+   */
+  nsISmtpServer getServerByKey(in string key);
+  
+  /**
+   * Delete the given server from the server list - does nothing if the server
+   * does not exist
+   * @param server   the server to delete. Use findServer() if you only know
+   *                 the hostname
+   */
+  void deleteSmtpServer(in nsISmtpServer server);
+};

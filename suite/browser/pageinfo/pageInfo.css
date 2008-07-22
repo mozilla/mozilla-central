@@ -1,0 +1,9 @@
+richlistitem[feed] {
+  -moz-binding: url("chrome://navigator/content/pageinfo/feeds.xml#feed");
+}
+
+/*
+richlistitem[feed]:not([selected="true"]) .feed-subscribe {
+  display: none;
+}
+*/
