@@ -1651,6 +1651,11 @@ calDavCalendar.prototype = {
             return;
         }
 
+        if (!this.firstInRealm()) {
+            // don't spam every known outbox with freebusy queries
+            return;
+        }
+
         // the caller prepends MAILTO: to calid strings containing @
         // but apple needs that to be mailto:
         var aCalIdParts = aCalId.split(":");
