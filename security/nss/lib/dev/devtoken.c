@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.48 $ $Date: 2008-05-29 17:24:15 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.49 $ $Date: 2008-07-22 04:34:02 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -299,12 +299,18 @@ find_objects (
 {
     CK_RV ckrv = CKR_OK;
     CK_ULONG count;
-    CK_OBJECT_HANDLE *objectHandles;
+    CK_OBJECT_HANDLE *objectHandles = NULL;
     CK_OBJECT_HANDLE staticObjects[OBJECT_STACK_SIZE];
     PRUint32 arraySize, numHandles;
     void *epv = nssToken_GetCryptokiEPV(tok);
     nssCryptokiObject **objects;
     nssSession *session = (sessionOpt) ? sessionOpt : tok->defaultSession;
+
+    /* Don't ask the module to use an invalid session handle. */
+    if (session->handle == CK_INVALID_SESSION) {
+	ckrv = CKR_SESSION_HANDLE_INVALID;
+	goto loser;                
+    }
 
     /* the arena is only for the array of object handles */
     if (maximumOpt > 0) {
