@@ -2226,6 +2226,7 @@ NSEvent* gLastDragEvent = nil;
 
 - (void)widgetDestroyed
 {
+  nsTSMManager::OnDestroyView(self);
   mGeckoChild = nsnull;
   // Just in case we're destroyed abruptly and missed the draggingExited
   // or performDragOperation message.
@@ -5955,6 +5956,18 @@ static BOOL keyUpAlreadySentKeyDown = NO;
 
 
 #pragma mark -
+
+
+void
+nsTSMManager::OnDestroyView(NSView<mozView>* aDestroyingView)
+{
+  if (aDestroyingView != sComposingView)
+    return;
+  if (IsComposing()) {
+    CancelIME(); // XXX Might CancelIME() fail because sComposingView is being destroyed?
+    EndComposing();
+  }
+}
 
 
 PRBool
