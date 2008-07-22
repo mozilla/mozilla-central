@@ -157,7 +157,7 @@ class ShellCommandReportTimeout(ShellCommand):
                                     'buildbot.slave.commands.TimeoutError: ' +
                                     line +
                                     "TinderboxPrint: " +
-                                    self.name + " timeout<br/>")
+                                    self.name + ' <em class="testfail">timeout</em><br/>\n')
                 return WARNINGS
         return superResult
 
