@@ -722,7 +722,17 @@ pref("mailnews.import.text.skipfirstrecord", true);
 // automatically scale attached images that are displayed inline
 pref("mail.enable_automatic_image_resizing", true);
 
+#ifdef MOZ_SUITE
+#ifdef XP_WIN
+pref("ldap_2.servers.oe.uri", "moz-aboutlookdirectory://oe/");
+pref("ldap_2.servers.oe.description", "chrome://messenger/locale/addressbook/addressBook.properties");
+pref("ldap_2.servers.oe.dirType", 3);
+#endif
+#endif
 #ifdef XP_MACOSX
+pref("ldap_2.servers.osx.uri", "moz-abosxdirectory:///");
+pref("ldap_2.servers.osx.description", "chrome://messenger/locale/addressbook/addressBook.properties");
+pref("ldap_2.servers.osx.dirType", 3);
 pref("mail.notification.sound",             "");
 #else
 #ifdef XP_UNIX
