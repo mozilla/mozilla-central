@@ -4,7 +4,7 @@
  */
 function run_test()
 {
-  var file = do_get_file("mailnews/import/test/resources/basic_addressbook.csv");
+  var file = do_get_file("../mailnews/import/test/resources/basic_addressbook.csv");
   var errorStr = Cc["@mozilla.org/supports-string;1"]
                      .createInstance(Ci.nsISupportsString);
   // get the text Address Book import interface and make sure it succeeded

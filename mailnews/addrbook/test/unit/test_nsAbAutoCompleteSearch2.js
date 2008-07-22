@@ -9,7 +9,7 @@
  */
 
 // We import this to allow us to reuse the code of the results object.
-do_import_script("mailnews/addrbook/src/nsAbAutoCompleteSearch.js");
+do_import_script("../mailnews/addrbook/src/nsAbAutoCompleteSearch.js");
 
 function createCard(chars, popularity) {
   var card = Components.classes["@mozilla.org/addressbook/cardproperty;1"]

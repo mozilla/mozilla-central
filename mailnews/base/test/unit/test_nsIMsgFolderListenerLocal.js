@@ -18,7 +18,7 @@
   * - Deleting messages and folders, to trash and from trash (permanently)
   */
 
-do_import_script("mailnews/base/test/resources/msgFolderListenerSetup.js");
+do_import_script("../mailnews/base/test/resources/msgFolderListenerSetup.js");
 
 // Globals
 var gMsgFile1, gMsgFile2, gMsgFile3;
@@ -190,9 +190,9 @@ function run_test()
   loadLocalMailAccount();
 
   // Load up some messages so that we can copy them in later.
-  gMsgFile1 = do_get_file("mailnews/test/data/bugmail10");
-  gMsgFile2 = do_get_file("mailnews/test/data/bugmail11");
-  gMsgFile3 = do_get_file("mailnews/test/data/draft1");
+  gMsgFile1 = do_get_file("../mailnews/test/data/bugmail10");
+  gMsgFile2 = do_get_file("../mailnews/test/data/bugmail11");
+  gMsgFile3 = do_get_file("../mailnews/test/data/draft1");
 
   // Create another folder to move and copy messages around, and force initialization.
   var rootFolder = gLocalIncomingServer.rootMsgFolder;

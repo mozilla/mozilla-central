@@ -41,7 +41,7 @@
  * Does not do comprehensive testing.
  *
  */
-do_import_script("mailnews/test/resources/searchTestUtils.js");
+do_import_script("../mailnews/test/resources/searchTestUtils.js");
 
 const tagService = Cc["@mozilla.org/messenger/tagservice;1"]
                      .getService(Ci.nsIMsgTagService);
@@ -341,7 +341,7 @@ function run_test()
   };
 
   // Get a message into the local filestore. function testKeywordSearch() continues the testing after the copy.
-  var bugmail1 = do_get_file("mailnews/test/data/bugmail1");
+  var bugmail1 = do_get_file("../mailnews/test/data/bugmail1");
   do_test_pending();
   copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
                               copyListener, null);

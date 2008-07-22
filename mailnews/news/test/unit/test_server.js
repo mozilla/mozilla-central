@@ -101,7 +101,7 @@ function testRFC977() {
     // Test - posting
     test = "news with post";
     server.resetTest();
-    var url = create_post(prefix, "mailnews/news/test/postings/post1.eml");
+    var url = create_post(prefix, "../mailnews/news/test/postings/post1.eml");
     setupProtocolTest(NNTP_PORT, url);
     server.performTest();
     transaction = server.playTransaction();

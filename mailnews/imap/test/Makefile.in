@@ -75,7 +75,7 @@ include $(topsrcdir)/config/config.mk
 include $(topsrcdir)/config/rules.mk
 
 LOCAL_INCLUDES = \
-		-I$(topsrcdir)/xpcom/tests \
+		-I$(MOZILLA_SRCDIR)/xpcom/tests \
 		-I$(topsrcdir)/mailnews/base/util \
 		-I$(srcdir)/../src \
 		$(NULL)

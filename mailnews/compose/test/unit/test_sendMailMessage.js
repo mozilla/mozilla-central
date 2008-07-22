@@ -17,7 +17,7 @@ function test_RFC2822() {
   type = "RFC 2822";
 
   // Test file
-  var testFile = do_get_file("mailnews/compose/test/unit/data/message1.eml");
+  var testFile = do_get_file("../mailnews/compose/test/unit/data/message1.eml");
 
   // Ensure we have at least one mail account
   loadLocalMailAccount();

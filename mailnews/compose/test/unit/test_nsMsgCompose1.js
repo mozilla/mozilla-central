@@ -4,7 +4,7 @@
  */
 
 // We need the address book details for this test
-do_import_script("mailnews/addrbook/test/resources/abSetup.js");
+do_import_script("../mailnews/addrbook/test/resources/abSetup.js");
 
 const MsgComposeContractID = "@mozilla.org/messengercompose/compose;1";
 const MsgComposeParamsContractID = "@mozilla.org/messengercompose/composeparams;1";
@@ -46,12 +46,12 @@ function checkPopulate(aTo, aNonHTMLRecipients, aPreferMailOut, aCheckTo)
 
 function run_test() {
   // Test setup - copy the data files into place
-  var testAB = do_get_file("mailnews/addrbook/test/resources/abLists1.mab");
+  var testAB = do_get_file("../mailnews/addrbook/test/resources/abLists1.mab");
 
   // Copy the file to the profile directory for a PAB
   testAB.copyTo(gProfileDir, kPABData.fileName);
 
-  testAB = do_get_file("mailnews/addrbook/test/resources/abLists2.mab");
+  testAB = do_get_file("../mailnews/addrbook/test/resources/abLists2.mab");
 
   // Copy the file to the profile directory for a CAB
   testAB.copyTo(gProfileDir, kCABData.fileName);

@@ -3,7 +3,7 @@
  * Test suite for msg database functions.
  */
 
-do_import_script("mailnews/test/resources/mailTestUtils.js");
+do_import_script("../mailnews/test/resources/mailTestUtils.js");
 
 function run_test() {
   loadLocalMailAccount();

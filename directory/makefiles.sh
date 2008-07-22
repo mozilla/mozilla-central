@@ -1,4 +1,4 @@
-#
+#! /bin/sh
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,18 +12,19 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is the the Mozilla build system
 #
 # The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+# Ben Turner <mozilla@songbirdnest.com>
+#
+# Portions created by the Initial Developer are Copyright (C) 2007
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the terms of
-# either of the GNU General Public License Version 2 or later (the "GPL"),
-# or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
 # in which case the provisions of the GPL or the LGPL are applicable instead
 # of those above. If you wish to allow use of your version of this file only
 # under the terms of either the GPL or the LGPL, and not to allow others to
@@ -35,61 +36,9 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../../..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
-LOCAL_INCLUDES += -I$(srcdir)/../src
-
-include $(DEPTH)/config/autoconf.mk
-
-MODULE		= msgimap
-LIBRARY_NAME	= msgimap
-META_COMPONENT = mail
-EXPORT_LIBRARY = 1
-IS_COMPONENT	= 1
-MODULE_NAME	= IMAP_factory
-MOZILLA_INTERNAL_API = 1
-
-PACKAGE_FILE = msgimap.pkg
-
-REQUIRES	= xpcom \
-		  string \
-		  mailnews \
-		  msgbase \
-		  msgbaseutil \
-		  rdf \
-		  rdfutil \
-		  necko \
-		  msgdb \
-		  txmgr \
-		  mime \
-		  pref \
-		  intl \
-		  msglocal \
-		  nkcache \
-      uriloader \
-		  $(NULL)
-
-ifeq ($(USE_SHORT_LIBNAME),1)
-EXTRA_DSO_LIBS	= msgbsutl
-else
-EXTRA_DSO_LIBS	= msgbaseutil
-endif
-
-CPPSRCS		= nsImapFactory.cpp
-
-SHARED_LIBRARY_LIBS = \
-		../src/$(LIB_PREFIX)msgimap_s.$(LIB_SUFFIX) \
-		$(NULL)
-
-EXTRA_DSO_LDOPTS = \
-		$(LIBS_DIR) \
-		$(MOZDEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
-		$(EXTRA_DSO_LIBS) \
-		$(MOZ_UNICHARUTIL_LIBS) \
-		$(MOZ_COMPONENT_LIBS) \
-		$(NULL)
-
-include $(topsrcdir)/config/rules.mk
-
+add_makefiles "
+directory/xpcom/Makefile
+directory/xpcom/base/Makefile
+directory/xpcom/base/public/Makefile
+directory/xpcom/base/src/Makefile
+"

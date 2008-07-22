@@ -32,7 +32,7 @@ function checkLists(childNodes, number) {
 function run_test() {
   // Create a new card
   // Test setup - copy the data file into place
-  var testAB = do_get_file("mailnews/addrbook/test/resources/abLists1.mab");
+  var testAB = do_get_file("../mailnews/addrbook/test/resources/abLists1.mab");
 
   // Copy the file to the profile directory for a PAB
   testAB.copyTo(gProfileDir, kPABData.fileName);

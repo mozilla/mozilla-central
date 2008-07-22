@@ -38,7 +38,7 @@
 
 // main setup
 
-do_import_script("mailnews/extensions/bayesian-spam-filter/test/resources/trainingfile.js");
+do_import_script("../mailnews/extensions/bayesian-spam-filter/test/resources/trainingfile.js");
 
 const nsIPrefBranch = Cc["@mozilla.org/preferences-service;1"]
                         .getService(Ci.nsIPrefBranch);
@@ -152,7 +152,7 @@ function checkToken(aToken, aGoodCount, aJunkCount)
 
 function getSpec(aFileName)
 {
-  var file = do_get_file("mailnews/extensions/bayesian-spam-filter/test/resources/" + aFileName);
+  var file = do_get_file("../mailnews/extensions/bayesian-spam-filter/test/resources/" + aFileName);
   var uri = nsIIOService.newFileURI(file).QueryInterface(Ci.nsIURL);
   uri.query = "type=application/x-message-display";
   return uri.spec;

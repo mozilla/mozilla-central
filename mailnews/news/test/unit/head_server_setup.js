@@ -1,9 +1,9 @@
 // Import the servers
-do_import_script("mailnews/test/fakeserver/maild.js")
-do_import_script("mailnews/test/fakeserver/nntpd.js")
+do_import_script("../mailnews/test/fakeserver/maild.js")
+do_import_script("../mailnews/test/fakeserver/nntpd.js")
 
 // Generic mailnews resource scripts
-do_import_script("mailnews/test/resources/mailDirService.js")
+do_import_script("../mailnews/test/resources/mailDirService.js")
 
 // The groups to set up on the fake server.
 // It is an array of tuples, where the first element is the group name and the

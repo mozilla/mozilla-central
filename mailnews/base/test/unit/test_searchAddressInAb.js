@@ -36,10 +36,10 @@
 
 // Testing of to, cc, toorcc in addressbook search features added in bug 187768
 
-do_import_script("mailnews/test/resources/searchTestUtils.js");
+do_import_script("../mailnews/test/resources/searchTestUtils.js");
 
 // add address book setup
-do_import_script("mailnews/addrbook/test/resources/abSetup.js");
+do_import_script("../mailnews/addrbook/test/resources/abSetup.js");
 
 const ABUri = kPABData.URI;
 
@@ -120,12 +120,12 @@ var Tests =
 
 var Files = 
 [
-  "mailnews/test/data/bugmail2",
-  "mailnews/test/data/bugmail3",
-  "mailnews/test/data/bugmail4",
-  "mailnews/test/data/bugmail5",
-  "mailnews/test/data/bugmail6",
-  "mailnews/test/data/bugmail7"
+  "../mailnews/test/data/bugmail2",
+  "../mailnews/test/data/bugmail3",
+  "../mailnews/test/data/bugmail4",
+  "../mailnews/test/data/bugmail5",
+  "../mailnews/test/data/bugmail6",
+  "../mailnews/test/data/bugmail7"
 ]
 
 var messageKey, hdr;
@@ -137,7 +137,7 @@ function run_test()
   loadLocalMailAccount();
     
     // Test setup - copy the data file into place
-  var testAB = do_get_file("mailnews/addrbook/test/unit/data/cardForEmail.mab");
+  var testAB = do_get_file("../mailnews/addrbook/test/unit/data/cardForEmail.mab");
 
   // Copy the file to the profile directory for a PAB
   testAB.copyTo(gProfileDir, kPABData.fileName);
