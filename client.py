@@ -51,7 +51,10 @@ def do_hg_pull(dir, repository, hg):
         fulldir = os.path.join(topsrcdir, dir)
         check_call_noisy([hg, 'clone', repository, fulldir])
     else:
-        cmd = [hg, 'pull', '-u', '-R', fulldir]
+        if options.verbose:
+            cmd = [hg, 'pull', '-u', '-v', '-R', fulldir]
+        else:
+            cmd = [hg, 'pull', '-u', '-R', fulldir]
         if repository is not None:
             cmd.append(repository)
         check_call_noisy(cmd)
@@ -106,6 +109,9 @@ o.add_option("--cvs", dest="cvs", default=os.environ.get('CVS', 'cvs'),
 o.add_option("--cvsroot", dest="cvsroot",
              default=os.environ.get('CVSROOT', ':pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot'),
              help="The CVSROOT (default: :pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot")
+o.add_option("-v", "--verbose", dest="verbose",
+             action="store_true", default=False,
+             help="Enable verbose output on hg updates")
 
 
 def fixup_repo_options(options):
