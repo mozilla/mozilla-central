@@ -44,10 +44,10 @@ include $(DEPTH)/config/autoconf.mk
 
 AB_CD = $(MOZ_UI_LOCALE) 
 
-GRE_MILESTONE = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build Milestone)
-GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
+GRE_MILESTONE = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build Milestone)
+GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
 
-PLATFORM_LICENSE_FILE = $(topsrcdir)/toolkit/content/license.html
+PLATFORM_LICENSE_FILE = $(MOZILLA_SRCDIR)/toolkit/content/license.html
 MAIL_LICENSE_HTML_FILE = ../license.html
 MAIL_LICENSE_TXT_FILE = $(topsrcdir)/mail/LICENSE.txt
 MAIL_APP_LICENSE_FILE = $(srcdir)/app-license.html
@@ -92,15 +92,15 @@ CPPSRCS = nsMailApp.cpp
 
 DIST_FILES = application.ini
 
-LOCAL_INCLUDES += -I$(topsrcdir)/toolkit/xre
+LOCAL_INCLUDES += -I$(MOZILLA_SRCDIR)/toolkit/xre
 
 ifdef BUILD_STATIC_LIBS
 ifdef _MSC_VER
-STATIC_COMPONENTS_LINKER_PATH = -LIBPATH:$(DEPTH)/staticlib
+STATIC_COMPONENTS_LINKER_PATH = -LIBPATH:$(MOZDEPTH)/staticlib
 else
-STATIC_COMPONENTS_LINKER_PATH = -L$(DEPTH)/staticlib
+STATIC_COMPONENTS_LINKER_PATH = -L$(MOZDEPTH)/staticlib
 endif
-LIBS += $(DEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
+LIBS += $(MOZDEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
 else
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 LIBS += $(DIST)/bin/XUL
@@ -111,6 +111,9 @@ endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 TK_LIBS := -framework Cocoa $(TK_LIBS)
+ifdef BUILD_STATIC_LIBS
+TK_LIBS := -framework SystemConfiguration $(TK_LIBS)
+endif
 endif
 
 ifdef MOZ_ENABLE_LIBXUL
@@ -244,7 +247,7 @@ LDFLAGS += /HEAP:0x40000
 endif
 endif
 
-$(PROGRAM): $(DEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
+$(PROGRAM): $(MOZDEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
 
 ifneq (,$(filter windows os2 gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
 ifneq (,$(filter windows os2,$(MOZ_WIDGET_TOOLKIT)))

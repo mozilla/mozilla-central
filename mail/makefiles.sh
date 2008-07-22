@@ -35,6 +35,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
+if [ "$COMM_BUILD" ]; then
 add_makefiles "
 mail/Makefile
 mail/app/Makefile
@@ -63,4 +64,4 @@ mail/themes/qute/mail/Makefile
 mail/themes/qute/editor/Makefile
 mail/themes/qute/Makefile
 "
-
+fi

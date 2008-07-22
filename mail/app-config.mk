@@ -1,4 +1,3 @@
-#! /bin/sh
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,15 +11,15 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Build System
+# The Original Code is the Mozilla build system.
 #
 # The Initial Developer of the Original Code is
-# Ben Turner <mozilla@songbirdnest.com>
-#
-# Portions created by the Initial Developer are Copyright (C) 2007
+# the Mozilla Foundation <http://www.mozilla.org/>.
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Robert Kaiser <kairo@kairo.at> (Initial Code)
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,24 +35,5 @@
 #
 # ***** END LICENSE BLOCK *****
 
-MOZ_APP_NAME=thunderbird
-MOZ_UPDATER=1
-MOZ_THUNDERBIRD=1
-MOZ_MATHML=
-MOZ_NO_ACTIVEX_SUPPORT=1
-MOZ_ACTIVEX_SCRIPTING_SUPPORT=
-MOZ_OJI=
-NECKO_DISK_CACHE=
-NECKO_PROTOCOLS_DEFAULT="data file ftp http res viewsource"
-MOZ_IMG_DECODERS_DEFAULT=`echo "$MOZ_IMG_DECODERS_DEFAULT" | sed "s/ xbm//"`
-MOZ_MAIL_NEWS=1
-if [ "$COMM_BUILD" ]; then
-  MOZ_LDAP_XPCOM=1
-fi
-MOZ_STATIC_MAIL_BUILD=1
-MOZ_COMPOSER=1
-MOZ_SAFE_BROWSING=1
-MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version.txt`
-THUNDERBIRD_VERSION=$MOZ_APP_VERSION
-MOZ_EXTENSIONS_DEFAULT=" wallet"
-MOZ_NO_XPCOM_OBSOLETE=1
+MOZ_THUNDERBIRD = 1
+DEFINES += -DMOZ_THUNDERBIRD=1

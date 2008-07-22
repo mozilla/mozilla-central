@@ -43,10 +43,10 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-include $(topsrcdir)/toolkit/mozapps/installer/package-name.mk
+include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/package-name.mk
 
 CONFIG_DIR = instgen
-SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/thunderbird/7zSD.sfx
+SFX_MODULE = $(MOZILLA_SRCDIR)/other-licenses/7zstub/thunderbird/7zSD.sfx
 
 PP_LOCALIZED_FILES = \
 	packages-static \
@@ -75,7 +75,7 @@ DEFINES += \
 	$(NULL)
 
 include $(topsrcdir)/config/config.mk
-include $(call EXPAND_LOCALE_SRCDIR,toolkit/locales)/installer/windows/charset.mk
+include $(call EXPAND_MOZLOCALE_SRCDIR,toolkit/locales)/installer/windows/charset.mk
 
 installer::
 	$(MAKE) -C .. installer-stage
@@ -89,11 +89,11 @@ uninstaller::
 	$(INSTALL) $(addprefix $(DIST)/branding/,$(BRANDING_FILES)) $(CONFIG_DIR)
 	$(EXIT_ON_ERROR) \
 	for i in $(PP_LOCALIZED_FILES); do \
-	  $(PERL) $(topsrcdir)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $(srcdir)/$$i > $(CONFIG_DIR)/$$i; \
+	  $(PERL) $(MOZILLA_SRCDIR)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $(srcdir)/$$i > $(CONFIG_DIR)/$$i; \
 	done
-	$(PERL) $(topsrcdir)/config/preprocessor.pl -Fsubstitution $(DEFINES) $(ACDEFINES) \
+	$(PERL) $(MOZILLA_SRCDIR)/config/preprocessor.pl -Fsubstitution $(DEFINES) $(ACDEFINES) \
 	  $(srcdir)/nsis/defines.nsi.in > $(CONFIG_DIR)/defines.nsi
-	$(PERL) $(topsrcdir)/toolkit/mozapps/installer/windows/nsis/preprocess-locale.pl \
+	$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/preprocess-locale.pl \
 	  $(topsrcdir) $(call EXPAND_LOCALE_SRCDIR,mail/locales)/installer $(AB_CD) \
 	  $(WIN_INSTALLER_CHARSET) $(CONFIG_DIR)
 
@@ -104,18 +104,18 @@ $(CONFIG_DIR)/setup.exe::
 	cp $(topsrcdir)/mail/EULA.rtf $(CONFIG_DIR)/license.rtf
 	$(EXIT_ON_ERROR) \
 	for i in $(PP_LOCALIZED_FILES); do \
-	  $(PERL) $(topsrcdir)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $(srcdir)/$$i > $(CONFIG_DIR)/$$i; \
+	  $(PERL) $(MOZILLA_SRCDIR)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $(srcdir)/$$i > $(CONFIG_DIR)/$$i; \
 	done
-	$(PERL) $(topsrcdir)/toolkit/mozapps/installer/windows/nsis/make-installremoves.pl \
+	$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/make-installremoves.pl \
 	  ../removed-files > $(CONFIG_DIR)/removed-files.log
-	$(PERL) $(topsrcdir)/config/preprocessor.pl -Fsubstitution $(DEFINES) $(ACDEFINES) \
+	$(PERL) $(MOZILLA_SRCDIR)/config/preprocessor.pl -Fsubstitution $(DEFINES) $(ACDEFINES) \
 	  $(srcdir)/nsis/defines.nsi.in > $(CONFIG_DIR)/defines.nsi
-	$(PERL) $(topsrcdir)/toolkit/mozapps/installer/windows/nsis/preprocess-locale.pl \
+	$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/preprocess-locale.pl \
 	  $(topsrcdir) $(call EXPAND_LOCALE_SRCDIR,mail/locales)/installer $(AB_CD) \
 	  $(WIN_INSTALLER_CHARSET) $(CONFIG_DIR)
 
 include $(topsrcdir)/config/rules.mk
-include $(topsrcdir)/toolkit/mozapps/installer/windows/nsis/makensis.mk
+include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/makensis.mk
 
 export::
 ifndef MOZ_BRANDING_DIRECTORY

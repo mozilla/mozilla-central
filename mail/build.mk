@@ -35,12 +35,30 @@
 #
 # ***** END LICENSE BLOCK *****
 
+ifndef COMM_BUILD # Mozilla Makefile
+
 ifndef LIBXUL_SDK
 include $(topsrcdir)/toolkit/toolkit-tiers.mk
 endif
 
 TIERS += app
 
+ifdef MOZ_CALENDAR
+MOZ_EXTENSIONS += webdav
+endif
+
+ifdef MOZ_EXTENSIONS
+tier_app_dirs += extensions
+endif
+
+else # toplevel Makefile
+
+TIERS += app
+
+ifdef MOZ_LDAP_XPCOM
+tier_app_staticdirs += directory/c-sdk
+tier_app_dirs += directory/xpcom
+endif
 
 ifdef MOZ_BRANDING_DIRECTORY
 tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
@@ -49,17 +67,19 @@ tier_app_dirs += mail/branding/nightly
 endif
 
 tier_app_dirs += \
-	editor/ui \
+	mozilla/editor/ui \
 	mailnews \
 	$(NULL)
 
-ifdef MOZ_EXTENSIONS
-tier_app_dirs += extensions
+ifdef MOZ_CALENDAR
+tier_app_dirs += calendar/lightning
 endif
 
 tier_app_dirs += \
 	mail \
 	$(NULL)
+
+endif # COMM_BUILD
 
 installer:
 	@$(MAKE) -C mail/installer installer
