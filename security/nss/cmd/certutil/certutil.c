@@ -466,10 +466,20 @@ listCerts(CERTCertDBHandle *handle, char *name, PK11SlotInfo *slot,
 		return SECFailure;
 	    }
 	}
+	/* Here, we have one cert with the desired nickname or email 
+	 * address.  Now, we will attempt to get a list of ALL certs 
+	 * with the same subject name as the cert we have.  That list 
+	 * should contain, at a minimum, the one cert we have already found.
+	 * If the list of certs is empty (NULL), the libraries have failed.
+	 */
 	certs = CERT_CreateSubjectCertList(NULL, handle, &the_cert->derSubject,
 		PR_Now(), PR_FALSE);
 	CERT_DestroyCertificate(the_cert);
-
+	if (!certs) {
+	    PORT_SetError(SEC_ERROR_LIBRARY_FAILURE);
+	    SECU_PrintError(progName, "problem printing certificates");
+	    return SECFailure;
+	}
 	for (node = CERT_LIST_HEAD(certs); !CERT_LIST_END(node,certs);
 						node = CERT_LIST_NEXT(node)) {
 	    the_cert = node->cert;
