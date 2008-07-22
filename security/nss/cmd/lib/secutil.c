@@ -2042,14 +2042,6 @@ secu_PrintAuthKeyIDExtension(FILE *out, SECItem *value, char *msg, int level)
 	int snPresent = (kid->authCertSerialNumber.data &&
 	                 kid->authCertSerialNumber.len);
 
-        if ((keyIDPresent && !issuerPresent && !snPresent) ||
-	    (!keyIDPresent && issuerPresent && snPresent)) {
-	    /* all is well */
-	} else {
-	    SECU_Indent(out, level);
-	    fprintf(out, 
-	    "Error: KeyID OR (Issuer AND Serial) must be present, not both.\n");
-	}
 	if (keyIDPresent)
 	    SECU_PrintAsHex(out, &kid->keyID, "Key ID", level);
 	if (issuerPresent)
