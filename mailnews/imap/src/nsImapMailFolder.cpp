@@ -6402,16 +6402,10 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
       if (!(supportedUserFlags & kImapMsgSupportUserFlag))
       {
         nsMsgLabelValue label;
-        nsCString junkScore, junkScoreOrigin, junkPercent;
+        nsCString junkScore;
         msgDBHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
-        msgDBHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
-        msgDBHdr->GetStringProperty("junkpercent", getter_Copies(junkPercent));
         if (!junkScore.IsEmpty()) // ignore already scored messages.
           mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscore", junkScore.get(), 0);
-        if (!junkScoreOrigin.IsEmpty())
-          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get(), 0);
-        if (!junkPercent.IsEmpty())
-          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get(), 0);             
         msgDBHdr->GetLabel(&label);
         if (label != 0)
         {
@@ -6425,6 +6419,15 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
           mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "keywords", keywords.get(), 0);
       } 
       // do this even if the server supports user-defined flags.
+      
+      nsCString junkScoreOrigin, junkPercent;
+      msgDBHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
+      msgDBHdr->GetStringProperty("junkpercent", getter_Copies(junkPercent));
+      if (!junkScoreOrigin.IsEmpty())
+        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get(), 0);
+      if (!junkPercent.IsEmpty())
+        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get(), 0);             
+      
       nsMsgPriorityValue priority;
       msgDBHdr->GetPriority(&priority);
       if(priority != 0)
