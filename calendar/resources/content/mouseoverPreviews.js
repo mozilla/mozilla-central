@@ -27,6 +27,7 @@
  *                 ArentJan Banck <ajbanck@planet.nl>
  *                 Eric Belhaire <belhaire@ief.u-psud.fr>
  *                 Philipp Kewisch <mozilla@kewis.ch>
+ *                 Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -68,7 +69,7 @@ function onMouseOverItem( occurrenceBoxMouseEvent )
 
     var holderBox;
     if (isEvent(occurrence)) {
-      holderBox = getPreviewForEvent(occurrence, occurrence.startDate, occurrence.endDate);
+      holderBox = getPreviewForEvent(occurrence);
     } else if (isToDo(occurrence)) {
       holderBox = getPreviewForTask(occurrence);
     }
@@ -241,8 +242,8 @@ function getPreviewForTask( toDoItem )
  *  (recurring or multiday events may be displayed by more than one event box
  *  for different days), or null if should compute next instance from now.
  */
-function getPreviewForEvent( event, instStartDate, instEndDate )
-{
+function getPreviewForEvent( aEvent) {
+  var event = aEvent;
   const vbox = document.createElement( "vbox" );
   vbox.setAttribute("class", "tooltipBox");
   // tooltip appears above or below pointer, so may have as little as
@@ -250,54 +251,36 @@ function getPreviewForEvent( event, instStartDate, instEndDate )
   vbox.maxHeight = Math.floor(screen.height / 2);
   boxInitializeHeaderGrid(vbox);
 
-  if (event)
-  {
-    if (event.title)
-    {
-      boxAppendLabeledText(vbox, "tooltipTitle", event.title);
+  if (event) {
+    if (event.title) {
+      boxAppendLabeledText(vbox, "tooltipTitle", aEvent.title);
     }
 
     var location = event.getProperty("LOCATION");
-    if (location)
-    {
+    if (location) {
       boxAppendLabeledText(vbox, "tooltipLocation", location);
     }
-
-    if (event.startDate || instStartDate)
-    {
-      var startDate, endDate;
-      if (instStartDate && instEndDate) {
-        startDate = instStartDate;
-        endDate = instEndDate;
-      } else {
+    if (!(event.startDate && event.endDate)) {
         // Event may be recurrent event.   If no displayed instance specified,
         // use next instance, or previous instance if no next instance.
-        var occ = getCurrentNextOrPreviousRecurrence(event);
-        startDate = instStartDate || occ.startDate;
-        endDate = occ.endDate;
-      }
-      boxAppendLabeledDateTimeInterval(vbox, "tooltipDate", startDate, endDate);
+        event = getCurrentNextOrPreviousRecurrence(event);
     }
+    boxAppendLabeledDateTimeInterval(vbox, "tooltipDate", event);
 
-    if (event.status && event.status != "NONE")
-    {
+    if (event.status && event.status != "NONE") {
       var statusString = getEventStatusString(event);
       boxAppendLabeledText(vbox, "tooltipStatus", statusString);
     }
 
     var description = event.getProperty("DESCRIPTION");
-    if (description)
-    {
+    if (description) {
       boxAppendBodySeparator(vbox);
       // display wrapped description lines, like body of message below headers
       boxAppendBody(vbox, description);
     }
-
     return ( vbox );
-  }
-  else
-  {
-    return null;
+  } else {
+      return null;
   }
 }
 
@@ -380,14 +363,11 @@ function boxAppendLabeledDateTime(box, labelProperty, date)
  * and to header grid append a row containing localized Label: interval.
  * @param box               contains header grid.
  * @param labelProperty     name of property for localized field label.
- * @param start             calDateTime of start of time interval.
- * @param end               calDateTime of end of time interval.
+ * @param item              the event or task
  */
-function boxAppendLabeledDateTimeInterval(box, labelProperty, start, end)
+function boxAppendLabeledDateTimeInterval(box, labelProperty, item)
 {
-  start = start.getInTimezone(calendarDefaultTimezone());
-  end = end.getInTimezone(calendarDefaultTimezone());    
-  var dateString = getDateFormatter().formatInterval(start, end);
+  var dateString = getDateFormatter().formatItemInterval(item);
   boxAppendLabeledText(box, labelProperty, dateString);
 }
 
