@@ -392,8 +392,19 @@ var calendarpopuplist = new Array();
 var taskpopuplist = new Array();
 var mailpopuplist = new Array();
 var menulist = new Array();
+#ifdef XP_MACOSX
+    var quitMenu = null;
+    var prefMenu = null;
+#endif
 
 function ltnInitializeMenus(){
+#ifdef XP_MACOSX
+    // The following Mac specific code-lines became necessary due to bug 409845
+    prefMenu = document.getElementById("menu_preferences");
+    prefMenu.setAttribute("mode", "system");
+    quitMenu = document.getElementById("menu_FileQuitItem");
+    quitMenu.setAttribute("mode", "system");
+#endif
     copyPopupMenus();
     ltnRemoveMailOnlyItems(calendarpopuplist, "calendar");
     ltnRemoveMailOnlyItems(taskpopuplist, "task");
@@ -493,7 +504,7 @@ function copyPopupMenus() {
     menulist.push(document.getElementById("tasksMenu"));
 
     // define PopupMenus for calendar mode...
-    var excludeList = new Array("mail", "task");
+    var excludeList = new Array("mail", "task", "system");
     addToPopupList(menulist[0], null, calendarpopuplist, excludeList, true, true);
     addToPopupList(menulist[1], null, calendarpopuplist, excludeList, true, false);
     addToPopupList(menulist[2], null, calendarpopuplist, excludeList, true, true);
@@ -502,7 +513,7 @@ function copyPopupMenus() {
     addToPopupList(menulist[5], null, calendarpopuplist, excludeList, true, false);
 
     // define PopupMenus for task mode...
-    var excludeList = new Array("mail", "calendar");
+    var excludeList = new Array("mail", "calendar", "system");
     addToPopupList(menulist[0], null, taskpopuplist, excludeList, true, true);
     addToPopupList(menulist[1], null, taskpopuplist, excludeList, true, false);
     addToPopupList(menulist[2], null, taskpopuplist, excludeList, true, true);
@@ -620,6 +631,12 @@ function swapPopupMenus() {
             menu.replaceChild(newmenupopuplist[i], oldmenupopup);
         }
     }
+#ifdef XP_MACOSX
+    if (gCurrentMode != "mail") {
+        document.getElementById("menu_File").firstChild.appendChild(quitMenu);
+        document.getElementById("tasksMenu").firstChild.appendChild(prefMenu);
+    }
+#endif
     document.getElementById("menu_showTaskbar").setAttribute("checked", showStatusbar);
     var messageMenu = document.getElementById("messageMenu");
     if (gCurrentMode == "mail") {
