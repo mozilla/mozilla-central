@@ -5775,7 +5775,7 @@ moz_memalign(size_t alignment, size_t size)
 void *
 memalign(size_t alignment, size_t size);
 #pragma no_inline(memalign)
-#  elif (defined(__GNU_C__)
+#  elif (defined(__GNU_C__))
 __attribute__((noinline))
 #  endif
 VISIBLE
