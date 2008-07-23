@@ -219,8 +219,8 @@ function doTest(test)
   {
     var testFn = gTestArray[test-1];
     // Set a limit of three seconds; if the notifications haven't arrived by then there's a problem.
-    do_timeout(3000, "if (gTest == "+test+") \
-      do_throw('Notifications not received in 3000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
+    do_timeout(10000, "if (gTest == "+test+") \
+      do_throw('Notifications not received in 10000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
     testFn();
   }
   else
