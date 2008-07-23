@@ -156,6 +156,8 @@ interface calICalendar : nsISupports
    *   capabilities.events.supported       Supports tasks
    *   capabilities.tasks.supported        Supports events
    *   capabilities.alarms.popup.supported Supports popup alarms
+   *   capabilities.timezones.floating.supported Supports local time
+   *   capabilities.timezones.UTC.supported      Supports UTC/GMT timezone
    *
    * The following capabilities are used to restrict the values for specific
    * fields. An array should be specified with the values, the default

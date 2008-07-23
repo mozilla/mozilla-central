@@ -135,19 +135,17 @@ calWcapCalendar.prototype = {
         switch (aName) {
             case "timezones.provider":
                 return ((this.m_session && this.session.isLoggedIn) ? this.session : null);
-            case "timezones.floating.supported":
-                return false;
             case "organizerId":
                 return this.ownerId;
             case "organizerCN":
                 return this.getCalendarProperties("X-S1CS-CALPROPS-COMMON-NAME");
-            case "cache.supported":
-                return false; // until bug 412914 and bug 412606 are fixed
+            case "cache.supported": // until bug 412914 and bug 412606 are fixed
+            case "capabilities.timezones.floating.supported":
+            case "capabilities.timezones.UTC.supported":
             case "capabilities.attachments.supported":
-                return false;
-            case "capabilities.alarms.popup.supported":
-                // CS cannot store X-props reliably (thus writing X-MOZ stamps etc is not possible).
-                // Popup alarms not available no matter what; wtf.
+            case "capabilities.alarms.popup.supported": // CS cannot store X-props reliably
+                                                        // (thus writing X-MOZ stamps etc is not possible).
+                                                        // Popup alarms not available no matter what; wtf.
                 return false;
         }
 

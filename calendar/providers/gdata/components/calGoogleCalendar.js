@@ -249,7 +249,7 @@ calGoogleCalendar.prototype = {
     getProperty: function cGC_getProperty(aName) {
         switch (aName) {
             // Capabilities
-            case "timezones.floating.supported":
+            case "capabilities.timezones.floating.supported":
             case "capabilities.attachments.supported":
             case "capabilities.priority.supported":
             case "capabilities.tasks.supported":

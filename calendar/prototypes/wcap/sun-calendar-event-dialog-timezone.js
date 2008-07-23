@@ -47,11 +47,13 @@ function onLoad() {
     var menulist = document.getElementById("timezone-menulist");
     var tzMenuPopup = document.getElementById("timezone-menupopup");
 
-    // floating (if supported) and UTC at the top:
-    if (args.calendar.getProperty("timezones.floating.supported") !== false) {
+    // floating and UTC (if supported) at the top:
+    if (args.calendar.getProperty("capabilities.timezones.floating.supported") !== false) {
         addMenuItem(tzMenuPopup, floating().displayName, floating().tzid);
     }
-    addMenuItem(tzMenuPopup, UTC().displayName, UTC().tzid);
+    if (args.calendar.getProperty("capabilities.timezones.UTC.supported") !== false) {
+        addMenuItem(tzMenuPopup, UTC().displayName, UTC().tzid);
+    }
 
     var enumerator = tzProvider.timezoneIds;
     var tzids = {};

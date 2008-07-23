@@ -2076,7 +2076,7 @@ function editTimezone(aElementId,aDateTime,aCallback) {
     // prepare the arguments that will be passed to the dialog
     var args = new Object();
     args.time = aDateTime;
-    args.calendar = window.calendarItem.calendar;
+    args.calendar = document.getElementById("item-calendar").selectedItem.calendar;
     args.onOk = aCallback;
 
     // open the dialog modally
