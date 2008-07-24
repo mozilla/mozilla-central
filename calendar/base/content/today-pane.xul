@@ -196,12 +196,9 @@
              </toolbar>
              <popup id="agenda-menu" onpopupshowing="if (event.target == event.currentTarget) { agendaListbox.buildAgendaPopupMenu(this) }"/>
              <vbox id="agenda-menu-box" hidden="true">
-               <menuitem label="&calendar.context.modifyitem.label;"
-                 accesskey="&calendar.context.modifyitem.accesskey;"
-                 observes="agenda_edit_event_command"/>
-               <menuitem label="&calendar.context.deleteitem.label;"
-                 accesskey="&calendar.context.deleteitem.accesskey;"
-                 observes="agenda_delete_event_command"/>
+               <menuitem label="&calendar.context.modifyorviewitem.label;"
+                         accesskey="&calendar.context.modifyorviewitem.accesskey;"
+                         observes="agenda_edit_event_command"/>
                <menu id="agenda-context-menu-convert-menu"
                      label="&calendar.context.convertmenu.label;"
                      accesskey="&calendar.context.convertmenu.accesskey.calendar;">
@@ -215,6 +212,11 @@
                              label="&calendar.context.convertmenu.task.label;"
                              accesskey="&calendar.context.convertmenu.task.accesskey;"
                              oncommand="calendarTaskButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
+               <menuseparator id="calendar-today-pane-menuseparator-before-delete"/>
+               <menuitem label="&calendar.context.deleteevent.label;"
+                         accesskey="&calendar.context.deleteevent.accesskey;"
+                         key="calendar-delete-item-key"
+                         observes="agenda_delete_event_command"/>
                  </menupopup>
                </menu>
              </vbox>

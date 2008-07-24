@@ -484,16 +484,26 @@ function removeCalendarCommandController() {
     top.controllers.removeController(calendarController);
 }
 
+function adaptModificationMenuItem(aMenuItemId, aItems, aItemType){
+    var menuItem = document.getElementById(aMenuItemId);
+    if (menuItem) {
+        menuItem.setAttribute("label", calGetString("calendar", "delete" + aItemType + "Label"));
+        menuItem.setAttribute("accesskey", calGetString("calendar", "delete" + aItemType + "Accesskey"));
+    }
+}
+
 function setupContextItemType(event, items) {
     if (items.some(isEvent) && items.some(isToDo)) {
         event.target.setAttribute("type", "mixed");
+        adaptModificationMenuItem("calendar-item-context-menu-delete-menuitem", items, "Item");
     } else if (items.length && isEvent(items[0])) {
         event.target.setAttribute("type", "event");
+        adaptModificationMenuItem("calendar-item-context-menu-delete-menuitem", items, "Event");
     } else if (items.length && isToDo(items[0])) {
         event.target.setAttribute("type", "todo");
+        adaptModificationMenuItem("calendar-item-context-menu-delete-menuitem", items, "Task");
     } else {
         event.target.removeAttribute("type");
     }
-
     return true;
 }
