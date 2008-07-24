@@ -170,9 +170,9 @@ const componentData =
      constructor: "calDateTimeFormatter"},
 
     {cid: Components.ID("{6877bbdd-f336-46f5-98ce-fe86d0285cc1}"),
-     contractid: "@mozilla.org/calendar/weektitle-service;1",
-     script: "calWeekTitleService.js",
-     constructor: "calWeekTitleService"},
+     contractid: "@mozilla.org/calendar/weekinfo-service;1",
+     script: "calWeekInfoService.js",
+     constructor: "calWeekInfoService"},
 
     {cid: Components.ID("{f41392ab-dcad-4bad-818f-b3d1631c4d93}"),
      contractid: "@mozilla.org/calendar/itip-item;1",

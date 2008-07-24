@@ -1069,13 +1069,8 @@
             aStartDate = aStartDate.getInTimezone(this.mTimezone);
             aEndDate = aEndDate.getInTimezone(this.mTimezone);
           }
-
-          this.mStartDate = aStartDate.startOfWeek;
-          this.mEndDate = aEndDate.endOfWeek;
-
-          this.mStartDate.day += this.mWeekStartOffset;
-          this.mEndDate.day += this.mWeekStartOffset;
-
+          this.mStartDate = getWeekInfoService().getStartOfWeek(aStartDate)
+          this.mEndDate = getWeekInfoService().getEndOfWeek(aEndDate);
           this.refresh();
         ]]></body>
       </method>

@@ -239,7 +239,7 @@ interface calIDateTime : nsISupports
   // Some helper getters for calculating useful ranges
   //
 
-  // the start/end of the current object's week
+  // Return the day of the week of the given time. Sunday is 1
   readonly attribute calIDateTime startOfWeek;
   readonly attribute calIDateTime endOfWeek;
 

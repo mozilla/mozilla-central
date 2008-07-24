@@ -1735,13 +1735,13 @@ function compareItemContent(aFirstItem, aSecondItem) {
     return (firstIcalString == secondIcalString);
 }
 
-var gWeekFormatter = null;
-function getWeekFormatter() {
-    if (!gWeekFormatter) {
-        gWeekFormatter = Components.classes["@mozilla.org/calendar/weektitle-service;1"]
-                   .getService(Components.interfaces.calIWeekTitleService);
+var gWeekInfo = null;
+function getWeekInfoService() {
+    if (!gWeekInfo) {
+        gWeekInfo = Components.classes["@mozilla.org/calendar/weekinfo-service;1"]
+                   .getService(Components.interfaces.calIWeekInfoService);
     }
-    return gWeekFormatter;
+    return gWeekInfo;
 }
 
 

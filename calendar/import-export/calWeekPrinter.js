@@ -109,8 +109,7 @@ function weekPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
     }
     var sortedList = filteredItems.sort(compareItems);
 
-    var weekFormatter = Components.classes["@mozilla.org/calendar/weektitle-service;1"]
-                                  .getService(Components.interfaces.calIWeekTitleService);
+    var weekInfo = getWeekInfoService();
 
     // Start at the beginning of the week that aStart is in, and loop until
     // we're at aEnd. In the loop we build the HTML table for each day, and
@@ -133,7 +132,7 @@ function weekPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
     }
 
     while(date.compare(end) == -1) {
-        var weekno = weekFormatter.getWeekTitle(date);
+        var weekno = weekInfo.getWeekTitle(date);
         var weekTitle = calGetString("calendar", 'WeekTitle', [weekno]);
         body.appendChild(
                      <table border='0' width='100%' class='main-table'>

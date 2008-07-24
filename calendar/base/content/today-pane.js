@@ -166,7 +166,7 @@ var TodayPane = {
       this.setMonthDescription(selMonthPanel,
                                this.start.month,
                                this.start.year,
-                               getWeekFormatter().getWeekTitle(this.start));
+                               getWeekInfoService().getWeekTitle(this.start));
       if (!aDontUpdateMinimonth || !aDontUpdateMinimonth) {
           document.getElementById("today-Minimonth").value = this.start.jsDate;
       }

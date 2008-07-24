@@ -89,14 +89,14 @@
                         var intervalLabel = document.getAnonymousElementByAttribute(this, "anonid", "intervalDescription");
                         var startString = new Object();
                         var endString = new Object();
-                        var firstWeekNo = getWeekFormatter().getWeekTitle(this.mStartDate);
+                        var firstWeekNo = getWeekInfoService().getWeekTitle(this.mStartDate);
                         var secondWeekNo = firstWeekNo;
                         var weekLabel = document.getAnonymousElementByAttribute(this, "anonid", "calendarWeek");
                         if (this.mStartDate.nativeTime == this.mEndDate.nativeTime) {
                             intervalLabel.value = getDateFormatter().formatDate(this.mStartDate);
                         } else {
                             intervalLabel.value = this.mDecoratedView.getRangeDescription();
-                            secondWeekNo = getWeekFormatter().getWeekTitle(this.mEndDate);
+                            secondWeekNo = getWeekInfoService().getWeekTitle(this.mEndDate);
                         }
                         if (secondWeekNo == firstWeekNo) {
                             weekLabel.value = calGetString("calendar", "longCalendarWeek", [firstWeekNo]);

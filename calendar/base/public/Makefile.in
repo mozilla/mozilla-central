@@ -86,7 +86,7 @@ XPIDLSRCS = calIAlarm.idl \
             calITimezoneProvider.idl \
             calITodo.idl \
             calITransactionManager.idl \
-            calIWeekTitleService.idl \
+            calIWeekInfoService.idl \
             calISchedulingSupport.idl \
             $(NULL)
 

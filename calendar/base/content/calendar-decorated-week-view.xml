@@ -117,24 +117,11 @@
                     viewElement.displayDaysOff = !this.mWorkdaysOnly;
 
                     aDate = aDate.getInTimezone(viewElement.timezone);
-
-                    var d1 = aDate.startOfWeek.clone();
-                    var d2 = aDate.endOfWeek.clone();
-
-                    var weekStartOffset = this.mWeekStartOffset;
-
-                    // startOfWeek always returns a Sunday.  Adjust if the user
-                    // chose a different day to start weeks on.
-                    if (weekStartOffset != 0) {
-                        d1.day += weekStartOffset;
-                        d2.day += weekStartOffset;
-                        if (aDate.weekday < weekStartOffset) {
-                            d1.day -= 7;
-                            d2.day -= 7;
-                        }
-                    }
+                    var d1 = getWeekInfoService().getStartOfWeek(aDate);
+                    var d2 = d1.clone();
+                    d2.day += 7;
                     var toolTips = calGetStringArray("calendar",
-                                                      ["oneWeekBack", "gotoToday", "oneWeekForward"]);
+                                                     ["oneWeekBack", "gotoToday", "oneWeekForward"]);
                     this.setDateRange(d1, d2, toolTips);
                     viewElement.setDateRange(d1, d2);
                     viewElement.selectedDay = aDate;
