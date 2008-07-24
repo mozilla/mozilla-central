@@ -342,7 +342,6 @@ calendar-month-view {
 }
 
 .calendar-month-view-grid-row {
-    border-right: 1px solid #D2D2D2 !important;
     min-height: 1px;
     height: 1px;
 }
@@ -434,11 +433,13 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
 }
 
 calendar-month-view-column-header {
-    color: #000000;
+    color: black;
     background-image: url("chrome://calendar/skin/calendar-day-label-back.png");
-    border-left: 1px solid #D2D2D2;
-    border-top: 1px solid #D2D2D2;
-    border-bottom: 1px solid #D2D2D2;
+    padding-right: 1px !important;
+    padding-bottom: 1px !important;
+    border-left: 1px solid #D2D2D2 !important;
+    border-top: 1px solid #D2D2D2 !important;
+    border-bottom: 1px solid #D2D2D2 !important;
     /* Allow overflow so long localized weekday names don't prevent narrow view */
     overflow-x: hidden;
 }
