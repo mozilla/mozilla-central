@@ -48,6 +48,8 @@ Cu.import("resource://gloda/modules/utils.js");
 Cu.import("resource://gloda/modules/datastore.js");
 Cu.import("resource://gloda/modules/gloda.js");
 
+Cu.import("resource://gloda/modules/mimemsg.js");
+
 function range(begin, end) {
   for (let i = begin; i < end; ++i) {
     yield i;
@@ -135,11 +137,13 @@ let GlodaIndexer = {
   _datastore: GlodaDatastore,
   _log: Log4Moz.Service.getLogger("gloda.indexer"),
   _strBundle: null,
+  _messenger: null,
   _msgwindow: null,
   _domWindow: null,
 
   _inited: false,
-  init: function gloda_index_init(aDOMWindow, aMsgWindow, aStrBundle) {
+  init: function gloda_index_init(aDOMWindow, aMsgWindow, aStrBundle,
+                                  aMessenger) {
     if (this._inited)
       return;
     
@@ -147,16 +151,20 @@ let GlodaIndexer = {
     
     this._domWindow = aDOMWindow;
     
-    // topmostMsgWindow explodes for un-clear reasons if we have multiple
-    //  windows open.  very sad.
-    /*
-    let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
-                        getService(Ci.nsIMsgMailSession);
-    this._msgWindow = mailSession.topmostMsgWindow;
-    */
     this._msgWindow = aMsgWindow;
     
     this._strBundle = aStrBundle;
+    
+    this._messenger = aMessenger;
+    
+    // topmostMsgWindow explodes for un-clear reasons if we have multiple
+    //  windows open.  very sad.
+    let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
+                        getService(Ci.nsIMsgMailSession);
+
+    this._folderListener._init(this);
+    mailSession.AddFolderListener(this._folderListener,
+                                  Ci.nsIFolderListener.event);
   },
   
   /**
@@ -280,7 +288,7 @@ let GlodaIndexer = {
   removeListener: function gloda_index_removeListener(aListener) {
     let index = this._indexListeners.indexOf(aListener);
     if (index != -1)
-      this._indexListeners(index, 1);
+      this._indexListeners.splice(index, 1);
   },
   _notifyListeners: function gloda_index_notifyListeners(aStatus, aFolderName,
       aFolderIndex, aFoldersTotal, aMessageIndex, aMessagesTotal) {
@@ -297,10 +305,19 @@ let GlodaIndexer = {
   _indexingDatabase: null,
   _indexingIterator: null,
   
+  _pendingAsyncOps: 0,
+  /** folder whose entry we are pending on */
+  _pendingFolderEntry: null,
+  
   /**
    * Common logic that we want to deal with the given folder ID.  Besides
    *  cutting down on duplicate code, this ensures that we are listening on
    *  the folder in case it tries to go away when we are using it.
+   *
+   * @return true when the folder was successfully entered, false when we need
+   *     to pend on notification of updating of the folder (due to re-parsing
+   *     or what have you).  In the event of an actual problem, an exception
+   *     will escape.
    */
   _indexerEnterFolder: function gloda_index_indexerEnterFolder(aFolderID,
                                                                aNeedIterator) {
@@ -329,7 +346,17 @@ let GlodaIndexer = {
     // TODO: handle password-protected local cache potentially triggering a
     //  password prompt here...
     try {
-      this._indexingFolder.updateFolder(this._msgWindow);
+      try {
+        this._indexingFolder.updateFolder(this._msgWindow);
+      }
+      catch ( e if e.result == 0xc1f30001) {
+        // this means that we need to pend on the update.
+        this._log.debug("Pending on folder load...");
+        this._pendingFolderEntry = this._indexingFolder;
+        this._indexingFolder = null;
+        this._indexingFolderID = null;
+        return false;
+      }
       // we get an nsIMsgDatabase out of this (unsurprisingly) which
       //  explicitly inherits from nsIDBChangeAnnouncer, which has the
       //  AddListener call we want.
@@ -355,6 +382,8 @@ let GlodaIndexer = {
       //  get localized error logging...
       throw ex;
     }
+    
+    return true;
   },
   
   _indexerLeaveFolder: function gloda_index_indexerLeaveFolder(aExpected) {
@@ -371,10 +400,39 @@ let GlodaIndexer = {
     }
   },
   
+  /**
+   * Event fed to us by our nsIFolderListener when a folder is loaded.  We use
+   *  this event to two ends:
+   *
+   * - Know when a folder we were trying to open to index is actually ready to
+   *   be indexed.  (The summary may have not existed, may have been out of
+   *   date, or otherwise.)
+   * - Know when 
+   *
+   * @param aFolder An nsIMsgFolder, already QI'd.
+   */
+  _onFolderLoaded: function gloda_index_onFolderLoaded(aFolder) {
+    if ((this._pendingFolderEntry !== null) &&
+        (aFolder.URI == this._pendingFolderEntry.URI)) {
+      this._log.debug("...Folder Loaded!");
+      this._pendingFolderEntry = null;
+      this.incrementalIndex();
+    }
+  },
+  
+  /**
+   * A simple wrapper to make 'this' be right for incrementalIndex.
+   */
   _wrapIncrementalIndex: function gloda_index_wrapIncrementalIndex(aThis) {
     aThis.incrementalIndex();
   },
   
+  /**
+   * The incremental indexing core logic, responsible for performing work on
+   *  the current job and de-queueing new jobs as needed, while trying to
+   *  keeping our time-slice reasonable.  We use 'tokens' to track cost/activity
+   *  now, but could move to something more explicit such as using a timer.
+   */
   incrementalIndex: function gloda_index_incrementalIndex() {
     this._log.debug("index wake-up!");
   
@@ -413,7 +471,15 @@ let GlodaIndexer = {
               if (job.jobType == "folder") {
                 // -- FOLDER ADD
                 if (job.deltaType > 0) {
-                  this._indexerEnterFolder(job.id, true)
+                  if(!this._indexerEnterFolder(job.id, true)) {
+                    // so, we need to wait for the folder to load, so we need
+                    //  to back out things a little...
+                    this._log.debug("Pending on folder load; job goes back.");
+                    this._indexingJobCount--;
+                    this._indexQueue.unshift(job);
+                    this._curIndexingJob = null;
+                    return;
+                  }
                   job.goal = this._indexingFolder.getTotalMessages(false);
                 }
                 // -- FOLDER DELETE
@@ -461,8 +527,13 @@ let GlodaIndexer = {
                 //                [folder ID, message ID]
 
                 // get in the folder
-                if (this._indexingFolderID != item[0])
-                  this._indexerEnterFolder(item[0], false);
+                if (this._indexingFolderID != item[0]) {
+                  if (!this._indexerEnterFolder(item[0], false)) {
+                    // need to pend on the folder...
+                    job.offset--;
+                    return;
+                  }
+                }
                 let msgHdr;
                 if (typeof item[1] == "number")
                   msgHdr = this._indexingFolder.GetMessageHeader(item[1]);
@@ -478,8 +549,13 @@ let GlodaIndexer = {
                 // item must be [folder ID, header message-id]
                 
                 // get in the folder
-                if (this._indexingFolderID != item[0])
-                  this._indexerEnterFolder(item[0], false);
+                if (this._indexingFolderID != item[0]) {
+                  if (!this._indexerEnterFolder(item[0], false)) {
+                    // need to pend on the folder
+                    job.offset--;
+                    return
+                  }
+                }
                 // process everyone with the message-id.  yeck.
                 // uh, except nsIMsgDatabase only thinks there should be one, so
                 //  let's pretend that this assumption is not a bad idea for now
@@ -501,7 +577,11 @@ let GlodaIndexer = {
                 //              or [folder ID, message key]
                 let message;
                 if (item instanceof Array) {
-                  this._indexerEnterFolder(item[0], false);
+                  if (!this._indexerEnterFolder(item[0], false)) {
+                    // need to pend on the folder
+                    job.offset--;
+                    return;
+                  }
                   message = this_indexingFolder.GetMessageHeader(item[1]);
                 }
                 else {
@@ -553,12 +633,18 @@ let GlodaIndexer = {
       }
     }
     finally {
-      GlodaDatastore._commitTransaction();
-    
-      if (this.indexing)
-        this._domWindow.setTimeout(this._wrapIncrementalIndex, this._indexInterval,
-                                this);
+      if (this._pendingAsyncOps <= 0) {
+        this._pendingAsyncOpsCompleted();
+      }
     }
+  },
+
+  _pendingAsyncOpsCompleted: function gloda_index_pendingAsyncOpsCompleted() {
+    GlodaDatastore._commitTransaction();
+  
+    if (this.indexing && (this._pendingFolderEntry === null))
+      this._domWindow.setTimeout(this._wrapIncrementalIndex, this._indexInterval,
+                              this);
   },
 
   indexEverything: function glodaIndexEverything() {
@@ -804,6 +890,68 @@ let GlodaIndexer = {
     },
   },
   
+  /**
+   * A nsIFolderListener (listening on nsIMsgMailSession so we get all of
+   *  these events) PRIMARILY to get folder loaded notifications.  Because of
+   *  deficiencies in the nsIMsgFolderListener's events at this time, we also
+   *  get our folder-added and newsgroup notifications from here for now.  (This
+   *  will be rectified.)  
+   */
+  _folderListener: {
+    indexer: null,
+    _kFolderLoadedAtom: null,
+    
+    _init: function gloda_indexer_fl_init(aIndexer) {
+      this.indexer = aIndexer;
+      let atomService = Cc["@mozilla.org/atom-service;1"].
+                        getService(Ci.nsIAtomService);
+      this._kFolderLoadedAtom = atomService.getAtom("FolderLoaded");
+    },
+  
+    /**
+     * Find out when folders are added or new messages show up in a newsgroup.
+     */
+    OnItemAdded: function gloda_indexer_OnItemAdded(aParentItem, aItem) {
+    },
+    
+    /**
+     * Find out when messages disappear from a newsgroup.
+     */
+    OnItemRemoved: function gloda_indexer_OnItemRemoved(aParentItem, aItem) {
+    },
+    
+    /**
+     * Do nothing, we get our header change notifications directly from the
+     *  nsMsgDatabase.
+     */
+    OnItemPropertyChanged: function gloda_indexer_OnItemPropertyChanged(
+                             aItem, aProperty, aOldValue, aNewValue) {
+    },
+    OnItemIntPropertyChanged: function gloda_indexer_OnItemIntPropertyChanged(
+                                aItem, aProperty, aOldValue, aNewValue) {
+    },
+    OnItemBoolPropertyChanged: function gloda_indexer_OnItemBoolPropertyChanged(
+                                aItem, aProperty, aOldValue, aNewValue) {
+    },
+    OnItemUnicharPropertyChanged:
+        function gloda_indexer_OnItemUnicharPropertyChanged(
+          aItem, aProperty, aOldValue, aNewValue) {
+      
+    },
+    OnItemPropertyFlagChanged: function gloda_indexer_OnItemPropertyFlagChanged(
+                                aItem, aProperty, aOldValue, aNewValue) {
+    },
+    
+    /**
+     * Get folder loaded notifications for folders that had to do some
+     *  (asynchronous) processing before they could be opened.
+     */
+    OnItemEvent: function gloda_indexer_OnItemEvent(aFolder, aEvent) {
+      if (aEvent == this._kFolderLoadedAtom)
+        this.indexer._onFolderLoaded(aFolder);
+    },
+  },
+  
   /* ***** Rebuilding / Reindexing ***** */
   // TODO: implement a folder observer doodad to handle rebuilding / reindexing
   /**
@@ -885,9 +1033,24 @@ let GlodaIndexer = {
     return aMsgHdr.mime2DecodedSubject;
   },
   
-  _indexMessage: function gloda_index_indexMessage(aMsgHdr) {
+  _indexMessage: function gloda_indexMessage(aMsgHdr) {
+    MsgHdrToMimeMessage(aMsgHdr, this, this._indexMessageWithBody);
+    this._pendingAsyncOps++;
+  },
+  
+  _indexMessageWithBody: function gloda_index_indexMessageWithBody(
+       aMsgHdr, aMimeMsg) {
     this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
                     aMsgHdr.subject);
+
+    /* for now, let's be okay if there's no mime; but the plugins will be sad :(
+    if (aMimeMsg === null) {
+      if (--this._pendingAsyncOps == 0)
+       this._pendingAsyncOpsCompleted();
+      return;
+    } 
+    */
+    
     // -- Find/create the conversation the message belongs to.
     // Our invariant is that all messages that exist in the database belong to
     //  a conversation.
@@ -1015,7 +1178,10 @@ let GlodaIndexer = {
         this._datastore.updateMessage(curMsg);
      }
      
-     Gloda.processMessage(curMsg, aMsgHdr);
+     Gloda.processMessage(curMsg, aMsgHdr, aMimeMsg);
+     
+     if (--this._pendingAsyncOps == 0)
+       this._pendingAsyncOpsCompleted();
   },
   
   /**

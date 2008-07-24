@@ -453,7 +453,8 @@ let Gloda = {
     return GlodaDatastore._attributes[compoundName];
   },
   
-  processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr) {
+  processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr,
+                                                   aMimeMsg) {
     // For now, we are ridiculously lazy and simply nuke all existing attributes
     //  before applying the new attributes.
     aMessage._datastore.clearMessageAttributes(aMessage);
@@ -461,7 +462,8 @@ let Gloda = {
     let allAttribs = [];
   
     for(let i = 0; i < this._attrProviderOrder.length; i++) {
-      let attribs = this._attrProviderOrder[i].process(aMessage, aMsgHdr);
+      let attribs = this._attrProviderOrder[i].process(aMessage, aMsgHdr,
+                                                       aMimeMsg);
       allAttribs = allAttribs.concat(attribs);
     }
     

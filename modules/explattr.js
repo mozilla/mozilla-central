@@ -95,6 +95,8 @@ let GlodaExplicitAttr = {
                         parameterNoun: Gloda.NOUN_TAG,
                         explanation: this._strBundle.getString(
                                        "attrTagExplanation"),
+                        // Property change notifications that we care about:
+                        propertyChanges: ["keywords"],
                         });
     // Star
     this._attrStar = Gloda.defineAttribute({
@@ -128,7 +130,7 @@ let GlodaExplicitAttr = {
     
   },
   
-  process: function Gloda_explattr_process(aGlodaMessage, aMsgHdr) {
+  process: function Gloda_explattr_process(aGlodaMessage, aMsgHdr, aMimeMsg) {
     let attribs = [];
     
     // -- Tag

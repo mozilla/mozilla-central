@@ -43,12 +43,20 @@ Components.utils.import("resource://gloda/modules/everybody.js");
 Components.utils.import("resource://gloda/modules/indexer.js");
 
 var gloda = {
+  _mimeMsg: {},
+  
   onLoad: function() {
     // initialization code
     this.initialized = true;
     this.strings = document.getElementById("gloda-strings");
+    
+    // initialize the globals required for the JS Mime representation
+    Components.utils.import("resource://gloda/modules/mimemsg.js",
+                            this._mimeMsg);
+    this._mimeMsg.MsgHdrToMimeMessage.initGlobals(messenger, msgWindow);
+    
     GlodaInitModules(this.strings);
-    GlodaIndexer.init(window, msgWindow, this.strings);
+    GlodaIndexer.init(window, msgWindow, this.strings, messenger);
     GlodaIndexer.enabled = true;
   },
   onMenuItemCommand: function(e) {

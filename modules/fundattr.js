@@ -176,7 +176,7 @@ let GlodaFundAttr = {
    *   processing.)
    * - Newsgroups.  Same deal as mailing lists.
    */
-  process: function gloda_fundattr_process(aGlodaMessage, aMsgHdr) {
+  process: function gloda_fundattr_process(aGlodaMessage, aMsgHdr, aMimeMsg) {
     let attribs = [];
     
     // -- From
