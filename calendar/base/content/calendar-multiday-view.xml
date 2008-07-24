@@ -197,7 +197,7 @@
               // Set up workweek hours
               if (theHour < this.mDayStartHour || theHour >= this.mDayEndHour) {
                   box.setAttribute("off-time", "true");
-              } 
+              }
 
               box.setAttribute("class", "calendar-time-bar-box-" + (theHour % 2 == 0 ? "even" : "odd"));
               topbox.appendChild(box);
@@ -216,13 +216,9 @@
      - event box.  Needs to handle being dragged and resizing the
      - event, thus changing its start/end time.
     -->
-  <binding id="calendar-event-gripbar">
+  <binding id="calendar-event-gripbar" extends="xul:box">
     <content>
-      <xul:box anonid="thebox" flex="1">
-        <xul:spacer flex="1"/>
-        <xul:image xbl:inherits="class"/>
-        <xul:spacer flex="1"/>
-      </xul:box>
+      <xul:image xbl:inherits="class"/>
     </content>
 
     <implementation>
@@ -235,11 +231,10 @@
         ]]></getter>
         <setter><![CDATA[
           this.setAttribute("parentorient", val);
-          var thebox = document.getAnonymousElementByAttribute(this, "anonid", "thebox");
           if (val == "vertical")
-              thebox.setAttribute("orient", "horizontal");
+              this.setAttribute("orient", "horizontal");
           else
-              thebox.setAttribute("orient", "vertical");
+              this.setAttribute("orient", "vertical");
           return val;
         ]]></setter>
       </property>
@@ -809,9 +804,8 @@
                           chunkBox.occurrence = chunk.event;
                           chunkBox.parentColumn = this;
                           if (minHeight == 0) {
-                              minHeight = getOptimalMinimumHeight(chunkBox.eventNameLabel) + 
-                                          getSummarizedStyleValues(document.getAnonymousElementByAttribute(chunkBox, "anonid", "shadow-bottom"), ["height"]) +
-                                          getSummarizedStyleValues(document.getAnonymousElementByAttribute(chunkBox, "anonid", "eventbox"), ["margin-bottom", "margin-top"]);                              
+                              minHeight = getOptimalMinimumHeight(chunkBox.eventNameLabel) +
+                                          getSummarizedStyleValues(document.getAnonymousElementByAttribute(chunkBox, "anonid", "eventbox"), ["margin-bottom", "margin-top"]);
                               chunkBox.setAttribute("minheight", minHeight);
                           }
                           if (minWidth == 0) {
@@ -1248,7 +1242,7 @@
               event.clientX > (event.target.boxObject.x + event.target.boxObject.width) ||
               event.clientY < (event.target.boxObject.y) ||
               event.clientY > (event.target.boxObject.y + event.target.boxObject.height)) {
-              
+
               var dragState = col.mDragState;
               col.fgboxes.dragbox.removeAttribute("dragging");
               col.fgboxes.box.removeAttribute("dragging");
@@ -1256,7 +1250,7 @@
               window.removeEventListener("mouseup", col.onEventSweepMouseUp, false);
               document.calendarEventColumnDragging = null;
               col.mDragState = null;
-              
+
               var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
                                 getService(Components.interfaces.nsIDragService);
               var transfer = Components.classes["@mozilla.org/widget/transferable;1"].
@@ -1264,7 +1258,7 @@
               transfer.addDataFlavor("text/calendar");
 
               var item = dragState.dragOccurrence;
-          
+
               // the multiday view currently exhibits a less than optimal strategy
               // in terms of item selection. items don't get automatically selected
               // when clicked and dragged, as to differentiate inline editing from
@@ -1309,7 +1303,7 @@
               var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"].
                                           createInstance(Components.interfaces.calIIcsSerializer);
               serializer.addItems([item], 1);
-              
+
               var supportsString = Components.classes["@mozilla.org/supports-string;1"].
                                    createInstance(Components.interfaces.nsISupportsString);
               supportsString.data = serializer.serializeToString();
@@ -1322,7 +1316,7 @@
               supArray.AppendElement(transfer);
 
               dragService.invokeDragSession(col, supArray, null, action);
-              
+
               return;
           }
 
@@ -1950,25 +1944,8 @@
      -  An individual event box, to be inserted into a column.
     -->
   <binding id="calendar-event-box" extends="chrome://calendar/content/calendar-view-core.xml#calendar-editable-item">
-
     <content tooltip="itemTooltip">
-      <xul:box anonid="shadowbox"
-               xbl:inherits="width,height">
-<!-- TODO: Better use the  binding  <xul:calendar-shadow-box xbl:inherits="flat,orient"
-     for the shadows and control their visibility with the "flat" attribute. Probably the flat attribute may be derived from 
-     the "orient"-attribute-->
-        <xul:box anonid="shadow-left-box"
-                 xbl:inherits="orient" >
-          <xul:image anonid="shadow-left"
-                     class="calendar-event-box-shadow-left"
-                     flex="1"/>
-          <xul:image anonid="shadow-edge-left"
-                     class="calendar-event-box-shadow-edge-left"/>
-        </xul:box>
         <xul:box xbl:inherits="orient,width,height" flex="1">
-          <xul:image anonid="shadow-left-if-vertical"
-                     class="calendar-event-box-shadow-left"
-                     hidden="true"/>
           <xul:box anonid="event-container"
                    class="calendar-color-box"
                    xbl:inherits="orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories,item-calendar"
@@ -2014,44 +1991,12 @@
               <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
             </xul:box>
           </xul:box>
-          <xul:image anonid="shadow-bottom"
-                     class="calendar-event-box-shadow-bottom"/>
-        </xul:box>
-        <xul:box xbl:inherits="orient">
-          <xul:image anonid="shadow-edge-left-if-vertical"
-                     class="calendar-event-box-shadow-edge-left"
-                     hidden="true"/>
-          <xul:image anonid="shadow-right"
-                     class="calendar-event-box-shadow-right"
-                     flex="1"/>
-          <xul:image anonid="shadow-edge-right"
-                     class="calendar-event-box-shadow-edge-right"/>
-        </xul:box>
       </xul:box>
     </content>
 
     <implementation>
       <constructor><![CDATA[
          this.orient = this.getAttribute("orient");
-         var otherorient = "vertical";
-         if (!orient) orient = "horizontal";
-         if (orient == "vertical") otherorient = "horizontal";
-
-         var shadowbox = document.getAnonymousElementByAttribute(this, "anonid", "shadowbox");
-         shadowbox.setAttribute("orient",otherorient);
-
-         if (orient != "vertical") {
-             // Switch bottom/right shadows
-             var shadowBottom = document.getAnonymousElementByAttribute(this, "anonid", "shadow-bottom");
-             var shadowRight = document.getAnonymousElementByAttribute(this, "anonid", "shadow-right");
-             shadowBottom.setAttribute("class", "calendar-event-box-shadow-right");
-             shadowRight.setAttribute("class", "calendar-event-box-shadow-bottom");
-
-             // Move left shadow in layout
-             document.getAnonymousElementByAttribute(this, "anonid", "shadow-edge-left-if-vertical").removeAttribute("hidden");
-             document.getAnonymousElementByAttribute(this, "anonid", "shadow-left-if-vertical").removeAttribute("hidden");
-             document.getAnonymousElementByAttribute(this, "anonid", "shadow-left-box").setAttribute("hidden","true");
-         }
       ]]></constructor>
 
       <!-- fields -->
@@ -2139,11 +2084,11 @@
         this.mInMouseDown = true;
         this.mMouseX = event.screenX;
         this.mMouseY = event.screenY;
-        
+
         var whichside = event.whichside;
         if (!whichside)
             return;
-        
+
         this.calendarView.setSelectedItems(1,
             [event.ctrlKey ? this.mOccurrence.parentItem : this.mOccurrence]);
 
@@ -2192,17 +2137,9 @@
     </handlers>
   </binding>
 
-  <binding id="calendar-day-label">
-    <content>
-      <xul:hbox anonid="mainbox" flex="1">
-        <xul:spacer flex="1"/>
-        <xul:vbox>
-          <xul:label anonid="dateName" class="calendar-day-label-date"/>
-          <xul:label anonid="longWeekdayName" class="calendar-day-label-name"/>
-          <xul:label anonid="shortWeekdayName" class="calendar-day-label-name" hidden="true"/>
-        </xul:vbox>
-        <xul:spacer flex="1"/>
-      </xul:hbox>
+  <binding id="calendar-day-label" extends="xul:box">
+    <content flex="1" pack="center" xbl:inherits="selected">
+      <xul:label anonid="dateName" class="calendar-day-label-date" xbl:inherits="selected"/>
     </content>
     <implementation>
       <field name="longWeekdayPixels">0</field>
@@ -2214,27 +2151,19 @@
         ]]></getter>
         <setter><![CDATA[
           this.mDate = val;
-          var df = Components.classes["@mozilla.org/calendar/datetime-formatter;1"].
-                     getService(Components.interfaces.calIDateTimeFormatter);
-
-          var shortName = document.getAnonymousElementByAttribute(this, "anonid", "shortWeekdayName");
-          var longName = document.getAnonymousElementByAttribute(this, "anonid", "longWeekdayName");
           var day = document.getAnonymousElementByAttribute(this, "anonid", "dateName");
-
-          longName.setAttribute("value", calGetString("dateFormat","day." + (val.weekday + 1) + ".name"));
-          shortName.setAttribute("value", calGetString("dateFormat","day." + (val.weekday + 1) + ".Mmm"));
-          day.setAttribute("value", df.formatDateWithoutYear(val));
-
+          var label = getDateFormatter().shortDayName(val.weekday) + " " +
+                      getDateFormatter().formatDateWithoutYear(val);
+          day.setAttribute("value", label);
           return val;
         ]]></setter>
       </property>
 
       <property name="shortWeekNames">
         <getter><![CDATA[
-          return document.getAnonymousElementByAttribute(this, "anonid", "shortWeekdayName").hasAttribute("hidden");
         ]]></getter>
         <setter><![CDATA[
-          var shortName = document.getAnonymousElementByAttribute(this, "anonid", "shortWeekdayName");
+          var shortName = document.getAnonymousElementByAttribute(this, "anonid", "dateNameshortWeekdayName");
           var longName = document.getAnonymousElementByAttribute(this, "anonid", "longWeekdayName");
 
           // cache before change, in case we are switching to short
@@ -2957,6 +2886,7 @@
               this.mSelectedDay = val;
             }
           }
+          var headerColLabel = this.selectColumnHeader(val);
           this.fireEvent("dayselect", val);
           return val;
         ]]></setter>
@@ -3139,16 +3069,10 @@
           for each (var id in normalelems) {
               document.getAnonymousElementByAttribute(this, "anonid", id).setAttribute("orient", orient);
           }
-
           for each (var id in otherelems) {
               document.getAnonymousElementByAttribute(this, "anonid", id).setAttribute("orient", otherorient);
           }
 
-          var labelbox = document.getAnonymousElementByAttribute(this, "anonid", "labelbox");
-          var labeltimespacer = document.getAnonymousElementByAttribute(this, "anonid", "labeltimespacer");
-          var headerbox = document.getAnonymousElementByAttribute(this, "anonid", "headerbox");
-          var headertimespacer = document.getAnonymousElementByAttribute(this, "anonid", "headertimespacer");
-          var timebar = document.getAnonymousElementByAttribute(this, "anonid", "timebar");
           var childbox = document.getAnonymousElementByAttribute(
                          this, "anonid", "childbox");
           var mainbox = document.getAnonymousElementByAttribute(
@@ -3169,12 +3093,10 @@
           var boxes = ["daybox", "headerdaybox"];
           for each (var boxname in boxes) {
               var box = document.getAnonymousElementByAttribute(this, "anonid", boxname);
-              var child = box.firstChild;
-              while (child) {
-                  child.setAttribute("orient", orient);
-                  child = child.nextSibling;
-              }
+              setAttributeToChildren(box, "orient", orient);
           }
+          var box = document.getAnonymousElementByAttribute(this, "anonid", "labeldaybox");
+          setAttributeToChildren(box, "orient", otherorient);
 
           // Refresh
           this.refresh();
@@ -3344,41 +3266,37 @@
                   dayEventsBox.dayOff = false;
                   dayHeaderBox.removeAttribute("weekend");
               }
-
+              var labelbox;
+              if (counter < labelboxkids.length) {
+                  labelbox = labelboxkids[counter];
+                  labelbox.date = d;
+              } else {
+                  labelbox = createXULElement("calendar-day-label");
+                  labelbox.setAttribute("orient", otherorient);
+                  labeldaybox.appendChild(labelbox);
+                  labelbox.date = d;
+              }
               // Set attributes for date relations.
               if (this.numVisibleDates > 1) {
                   switch (d.compare(today)) {
                       case -1:
                           dayHeaderBox.setAttribute("relation", "past");
                           dayEventsBox.setAttribute("relation", "past");
+                          labelbox.setAttribute("relation", "past");
                           break;
                       case 0:
                           dayHeaderBox.setAttribute("relation", "today");
                           dayEventsBox.setAttribute("relation", "today");
+                          labelbox.setAttribute("relation", "today");
                           break;
                       case 1:
                           dayHeaderBox.setAttribute("relation", "future");
                           dayEventsBox.setAttribute("relation", "future");
+                          labelbox.setAttribute("relation", "future");
                           break;
                   }
               }
 
-              var labelbox;
-
-              var df = Components.classes["@mozilla.org/calendar/datetime-formatter;1"].
-                       getService(Components.interfaces.calIDateTimeFormatter);
-              if (counter < labelboxkids.length) {
-                  labelbox = labelboxkids[counter];
-                  labelbox.date = d;
-                  labelbox.shortWeekNames = false;
-              } else {
-                  labelbox = createXULElement("calendar-day-label");
-                  labelbox.setAttribute("flex", "1");
-                  labeldaybox.appendChild(labelbox);
-
-                  labelbox.date = d;
-                  labelbox.shortWeekNames = false;
-              }
               maxDayWidth = Math.max(maxDayWidth, labelbox.longWeekdayPixels);
 
               // We don't want to actually mess with our original dates, plus
@@ -3423,6 +3341,22 @@
                   return col;
           }
           return null;
+        ]]></body>
+      </method>
+
+      <method name="selectColumnHeader">
+        <parameter name="aDate"/>
+        <body><![CDATA[
+          var labeldaybox = document.getAnonymousElementByAttribute(this, "anonid", "labeldaybox");
+          var child = labeldaybox.firstChild;
+          while (child) {
+              if (child.date.compare(aDate) == 0) {
+                  child.setAttribute("selected", "true");
+              } else {
+                  child.removeAttribute("selected");
+              }
+              child = child.nextSibling;
+            }
         ]]></body>
       </method>
 
@@ -3632,7 +3566,8 @@
             // This happens in rotated view. Don't do anything there.
             return;
           }
-
+/* onoverflow is currently not triggered and we keep this code in comments
+   until we will take care of it...
           if (labeldayboxkids[0].boxObject.width * this.daysInView > this.mLongWeekdayTotalPixels) {
             // We have an underflow. Since the boxes all have equal width, we
             // can use the first boxes' width and multiply bu the number of
@@ -3645,7 +3580,7 @@
             for (var i = 0; i < labeldayboxkids.length; i++) {
               labeldayboxkids[i].shortWeekNames = true;
             }
-          }
+          } */
         ]]></body>
       </method>
 

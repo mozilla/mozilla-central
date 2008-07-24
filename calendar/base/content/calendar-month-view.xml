@@ -55,7 +55,6 @@
     <content tooltip="itemTooltip">
       <xul:vbox flex="1">
         <xul:hbox>
-          <xul:image anonid="shadow-left-image" xbl:inherits="hidden=flat" class="calendar-event-box-shadow-left"/>
           <xul:box anonid="event-container"
                    class="calendar-color-box"
                    xbl:inherits="item-calendar"
@@ -100,10 +99,7 @@
             </xul:box>
             <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
           </xul:box>
-          <xul:image anonid="shadow-right-image" xbl:inherits="hidden=flat"
-                     class="calendar-event-box-shadow-right"/>
         </xul:hbox>
-        <xul:calendar-shadow-box xbl:inherits="flat" orient="horizontal"/>
       </xul:vbox>
     </content>
     <implementation>
@@ -239,7 +235,10 @@
 
   <binding id="calendar-month-day-box">
     <content orient="vertical">
-      <xul:label anonid="day-label" crop="end" class="calendar-month-day-box-date-label"/>
+      <xul:label anonid="day-label" 
+                 crop="end" 
+                 class="calendar-month-day-box-date-label" 
+                 xbl:inherits="relation,selected"/>
       <xul:vbox anonid="day-items" class="calendar-month-day-box-items-box" flex="1"/>
     </content>
 

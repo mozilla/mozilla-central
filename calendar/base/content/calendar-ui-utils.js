@@ -353,7 +353,9 @@ function addMenuItem(aParent, aLabel, aValue, aCommand) {
 function setAttributeToChildren(aParent, aAttribute, aValue, aFilterAttribute, aFilterValue) {
     for (var i = 0; i < aParent.childNodes.length; i++) {
         var element = aParent.childNodes[i];
-        if (aFilterAttribute == null || element.hasAttribute(aFilterAttribute)) {
+        if (aFilterAttribute == null) {
+            setElementValue(element, aValue, aAttribute);            
+        } else if (element.hasAttribute(aFilterAttribute)) {
             var compValue = element.getAttribute(aFilterAttribute);
             if (compValue === aFilterValue) {
                 setElementValue(element, aValue, aAttribute);
