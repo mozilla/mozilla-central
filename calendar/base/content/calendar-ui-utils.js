@@ -343,9 +343,9 @@ function addMenuItem(aParent, aLabel, aValue, aCommand) {
  * @param aParent           the parent node.
  * @param aAttribute        the name of the attribute to be set.
  * @param aValue            the value of the attribute.
- * @param aFilterAttribute  The name of an attribute that the child nodes used
- *                            to filter the childnodes.
- * @param aFilterValue      The value of the filterattribute. If set only those
+ * @param aFilterAttribute  OPTIONAL The name of an attribute that the child nodes carry
+ *                            and that is used to filter the childnodes.
+ * @param aFilterValue      OPTIONAL The value of the filterattribute. If set only those
  *                            childnodes are modified that have an attribute 
  *                            'aFilterAttribute' with the given value
  *                            'aFilterValue' set.
