@@ -1614,7 +1614,7 @@ calDavCalendar.prototype = {
     // nsIChannelEventSink implementation
     onChannelRedirect: function(aOldChannel, aNewChannel, aFlags) {
         // TODO We might need to re-prepare the new channel here
-    },
+    }
 };
 
 function calDavObserver(aCalendar) {
