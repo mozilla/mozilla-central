@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
-CVS_CO_TAG = 'HEAD'
+CALENDAR_CO_TAG = 'HEAD'
 EXTENSION_CO_TAG = 'HEAD'
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_3_CLIENT_BRANCH'
 
 CHATZILLA_CO_TAG = 'HEAD'
 VENKMAN_CO_TAG = 'HEAD'
 
-CVS_DIRS = ('calendar',)
+CALENDAR_DIRS = ('calendar',)
 EXTENSION_DIRS = ('extensions/typeaheadfind',
                   'extensions/wallet',
                   'extensions/webdav',)
@@ -152,7 +152,8 @@ if action in ('checkout', 'co'):
         do_hg_pull('mozilla', options.mozilla_repo, options.hg)
 
     if not options.skip_cvs:
-        do_cvs_checkout(CVS_DIRS, CVS_CO_TAG, options.cvsroot, options.cvs, '')
+        if not options.skip_calendar:
+          do_cvs_checkout(CALENDAR_DIRS, CALENDAR_CO_TAG, options.cvsroot, options.cvs, '')
         do_cvs_checkout(LDAPCSDK_DIRS, LDAPCSDK_CO_TAG, options.cvsroot, options.cvs, '')
         if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
           do_cvs_checkout(EXTENSION_DIRS, EXTENSION_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
@@ -171,7 +172,7 @@ if action in ('checkout', 'co'):
         if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
           do_cvs_checkout(VENKMAN_DIRS, VENKMAN_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
         else:
-          print >>sys.stderr, "Warning: mozilla/extensions does not exist, ChatZilla could not be checked out."
+          print >>sys.stderr, "Warning: mozilla/extensions does not exist, Venkman could not be checked out."
           pass
 
 else:
