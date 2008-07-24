@@ -85,6 +85,7 @@ components.ini
 # Clean out obsolete files from Sunbird 0.3a1/0.3a2 installer
 #
 chrome/chromelist.txt
+components/@DLL_PREFIX@webdav@DLL_SUFFIX@
 components/accessibility-msaa.xpt
 components/accessibility.xpt
 components/alerts.xpt
