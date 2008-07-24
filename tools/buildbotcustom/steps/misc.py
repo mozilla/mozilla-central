@@ -57,6 +57,26 @@ class TinderboxShellCommand(ShellCommand):
     def evaluateCommand(self, cmd):
        return SUCCESS
 
+class GetHgRevision(ShellCommand):
+    """Retrieves the revision from a Mercurial repository. Builds based on
+    comm-central use this to query the revision from mozilla-central which is
+    pulled in via client.py, so the revision of the platform can be displayed
+    in addition to the comm-central revision we get through got_revision.
+    """
+    name = "get hg revision"
+    command = ["hg", "identify", "-i"]
+
+    def commandComplete(self, cmd):
+        rev = ""
+        try:
+            rev = cmd.logs['stdio'].getText().strip().rstrip()
+            self.setProperty('hg_revision', rev)
+        except:
+            log.msg("Could not find hg revision")
+            log.msg("Output: %s" % rev)
+            return FAILURE
+        return SUCCESS
+
 class GetBuildID(ShellCommand):
     """Retrieves the BuildID from a Mozilla tree (using platform.ini) and sets
     it as a build property ('buildid'). If defined, uses objdir as it's base.
