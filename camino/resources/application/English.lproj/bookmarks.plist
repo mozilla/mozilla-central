@@ -299,6 +299,12 @@
 					<key>URL</key>
 					<string>http://www.amazon.com/</string>
 				</dict>
+				<dict>
+					<key>Title</key>
+					<string>Translate this Page</string>
+					<key>URL</key>
+					<string>javascript:void(location.href='http://translate.google.com/translate?u='+location.href)</string>
+				</dict>
 			</array>
 			<key>FolderType</key>
 			<integer>4</integer>
