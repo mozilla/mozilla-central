@@ -270,8 +270,8 @@ bin\js\calTimezoneService.js
 bin\js\calUtils.js
 bin\js\calAuthUtils.js
 bin\js\calProviderUtils.js
+bin\js\calWeekInfoService.js
 bin\js\calWeekPrinter.js
-bin\js\calWeekTitleService.js
 bin\js\calWcapCalendar.js
 bin\js\calWcapCalendarItems.js
 bin\js\calWcapErrors.js

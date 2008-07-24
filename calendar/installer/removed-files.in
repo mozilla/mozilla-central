@@ -366,3 +366,6 @@ xpicleanup.exe
 #else
 xpicleanup
 #endif
+
+# bug 446366 (renamed interface)
+js/calWeekTitleService.js
