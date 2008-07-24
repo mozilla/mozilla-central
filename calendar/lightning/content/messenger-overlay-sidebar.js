@@ -632,10 +632,8 @@ function swapPopupMenus() {
         }
     }
 #ifdef XP_MACOSX
-    if (gCurrentMode != "mail") {
-        document.getElementById("menu_File").firstChild.appendChild(quitMenu);
-        document.getElementById("tasksMenu").firstChild.appendChild(prefMenu);
-    }
+    document.getElementById("menu_File").firstChild.appendChild(quitMenu);
+    document.getElementById("tasksMenu").firstChild.appendChild(prefMenu);
 #endif
     document.getElementById("menu_showTaskbar").setAttribute("checked", showStatusbar);
     var messageMenu = document.getElementById("messageMenu");
