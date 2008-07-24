@@ -129,7 +129,7 @@ calICSCalendar.prototype = {
                                   .getService(Components.interfaces.nsIIOService);
         var channel = ioService.newChannelFromURI(this.mUri);
 
-        if (channel instanceof Components.interfaces.nsIHttpChannel) {
+        if (calInstanceOf(channel, Components.interfaces.nsIHttpChannel)) {
             this.mHooks = new httpHooks();
         } else {
             this.mHooks = new dummyHooks();

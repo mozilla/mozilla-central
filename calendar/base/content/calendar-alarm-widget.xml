@@ -107,9 +107,9 @@
           var startString = {};
           var endString = {};
 
-          if (this.mItem instanceof Components.interfaces.calIEvent) {
+          if (isEvent(val)) {
               dateLabel.textContent = formatter.formatItemInterval(val);
-          } else if (val instanceof Components.interfaces.calITodo) {
+          } else if (isToDo(val)) {
               var startDate = val.entryDate || val.dueDate;
               startDate = startDate.getInTimezone(calendarDefaultTimezone());
               dateLabel.textContent = calGetString("calendar",

@@ -601,7 +601,7 @@ function loadRepeat(item) {
         }
         if (rules.length == 1) {
             var rule = rules[0];
-            if (rule instanceof Components.interfaces.calIRecurrenceRule) {
+            if (calInstanceOf(rule, Components.interfaces.calIRecurrenceRule)) {
                 switch (rule.type) {
                     case 'DAILY':
                         if (rule.interval == 1 && !rule.isFinite) {

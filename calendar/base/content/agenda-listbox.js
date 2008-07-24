@@ -441,7 +441,7 @@ agendaListbox.refreshCalendarQuery =
 function refreshCalendarQuery(aStart, aEnd) {
     var pendingRefresh = this.pendingRefresh;
     if (pendingRefresh) {
-        if (pendingRefresh instanceof Components.interfaces.calIOperation) {
+        if (calInstanceOf(pendingRefresh, Components.interfaces.calIOperation)) {
             this.pendingRefresh = null;
             pendingRefresh.cancel(null);
         } else {

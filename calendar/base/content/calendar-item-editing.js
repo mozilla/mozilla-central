@@ -270,7 +270,7 @@ function openEventDialog(calendarItem, calendar, mode, callback, job) {
     // we'll open the summary dialog since the user is not allowed to change
     // the details of the item.
     var isInvitation = false;
-    if (calendar instanceof Components.interfaces.calISchedulingSupport) {
+    if (calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
         isInvitation = calendar.isInvitation(calendarItem);
     }
 
@@ -490,7 +490,7 @@ function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
         return;
     } // else ADD, MODIFY:
 
-    var invitedAttendee = (((aItem.calendar instanceof Components.interfaces.calISchedulingSupport) &&
+    var invitedAttendee = ((calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport) &&
                             aItem.calendar.isInvitation(aItem))
                            ? aItem.calendar.getInvitedAttendee(aItem) : null);
     if (invitedAttendee) { // actually is an invitation copy, fix attendee list to send REPLY
@@ -589,7 +589,7 @@ function calSendItipMessage(aItem, aMethod, aRecipientsList) {
     if (aRecipientsList.length == 0) {
         return;
     }
-    if ((aItem.calendar instanceof Components.interfaces.calISchedulingSupport) &&
+    if (calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport) &&
         aItem.calendar.canNotify(aMethod, aItem)) {
         return; // provider will handle that
     }

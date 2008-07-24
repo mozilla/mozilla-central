@@ -51,7 +51,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
     if (rrules[0].length == 1) {
         var rule = rrules[0][0];
         // currently we don't allow for any BYxxx-rules.
-        if (rule instanceof Components.interfaces.calIRecurrenceRule &&
+        if (calInstanceOf(rule, Components.interfaces.calIRecurrenceRule) &&
             !checkRecurrenceRule(rule, ['BYSECOND',
                                         'BYMINUTE',
                                         //'BYDAY',
@@ -813,7 +813,7 @@ function updateLink() {
             return;
         }
 
-        if (handler && handler instanceof Components.interfaces.nsIExternalProtocolHandler) {
+        if (calInstanceOf(handler, Components.interfaces.nsIExternalProtocolHandler)) {
             // Only show if there is an external app for this scheme
             hideOrShow(handler.externalAppExistsForScheme(uri.scheme));
         } else {

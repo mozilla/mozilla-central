@@ -340,7 +340,7 @@ calCompositeCalendar.prototype = {
     mCompositeObservers: null,
     mObservers: null,
     addObserver: function (aObserver) {
-        if (aObserver instanceof Components.interfaces.calICompositeObserver) {
+        if (calInstanceOf(aObserver, Components.interfaces.calICompositeObserver)) {
             this.mCompositeObservers.add(aObserver);
         }
         this.mObservers.add(aObserver);
@@ -348,7 +348,7 @@ calCompositeCalendar.prototype = {
 
     // void removeObserver( in calIObserver observer );
     removeObserver: function (aObserver) {
-        if (aObserver instanceof Components.interfaces.calICompositeObserver) {
+        if (calInstanceOf(aObserver, Components.interfaces.calICompositeObserver)) {
             this.mCompositeObservers.remove(aObserver);
         }
         this.mObservers.remove(aObserver);

@@ -54,13 +54,8 @@ calItemBase.prototype = {
     mIsProxy: false,
 
     QueryInterface: function (aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calIItemBase))
-        {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
+        return doQueryInterface(this, calItemBase.prototype, aIID,
+                                [Components.interfaces.calIItemBase]);
     },
 
     mHashId: null,
@@ -94,6 +89,14 @@ calItemBase.prototype = {
         return this.setProperty("RECURRENCE-ID", rid);
     },
 
+    get recurrenceInfo() {
+        return this.mRecurrenceInfo;
+    },
+    set recurrenceInfo(value) {
+        this.modify();
+        return (this.mRecurrenceInfo = calTryWrappedJSObject(value));
+    },
+
     mParentItem: null,
     get parentItem() {
         if (this.mParentItem)
@@ -104,7 +107,7 @@ calItemBase.prototype = {
     set parentItem(value) {
         if (this.mImmutable)
             throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
-        this.mParentItem = value;
+        return (this.mParentItem = calTryWrappedJSObject(value));
     },
 
     initializeProxy: function (aParentItem) {
@@ -114,6 +117,7 @@ calItemBase.prototype = {
         if (this.mParentItem != null)
             throw Components.results.NS_ERROR_FAILURE;
 
+        aParentItem = calTryWrappedJSObject(aParentItem);
         this.mParentItem = aParentItem;
         this.mCalendar = aParentItem.mCalendar;
         this.mIsProxy = true;
@@ -192,6 +196,7 @@ calItemBase.prototype = {
 
     // initialize this class's members
     initItemBase: function () {
+        this.wrappedJSObject = this;
         var now = jsDateToDateTime(new Date());
 
         this.mProperties = new calPropertyBag();
@@ -219,11 +224,11 @@ calItemBase.prototype = {
 
         m.mImmutable = false;
         m.mIsProxy = this.mIsProxy;
-        m.mParentItem = aNewParent || this.mParentItem;
+        m.mParentItem = (calTryWrappedJSObject(aNewParent) || this.mParentItem);
         m.mHashId = this.mHashId;
         m.mCalendar = this.mCalendar;
         if (this.mRecurrenceInfo) {
-            m.mRecurrenceInfo = this.mRecurrenceInfo.clone();
+            m.mRecurrenceInfo = calTryWrappedJSObject(this.mRecurrenceInfo.clone());
             m.mRecurrenceInfo.item = m;
         }
 
@@ -652,7 +657,7 @@ calItemBase.prototype = {
             ritem.icalProperty = recprop;
 
             if (!rec) {
-                rec = new CalRecurrenceInfo();
+                rec = new calRecurrenceInfo();
                 rec.item = this;
             }
 
@@ -824,7 +829,6 @@ makeMemberAttr(calItemBase, "CLASS", "PUBLIC", "privacy", true);
 makeMemberAttr(calItemBase, "STATUS", null, "status", true);
 makeMemberAttr(calItemBase, "ALARMTIME", null, "alarmTime", true);
 
-makeMemberAttr(calItemBase, "mRecurrenceInfo", null, "recurrenceInfo");
 makeMemberAttr(calItemBase, "mProperties", null, "properties");
 
 function makeMemberAttr(ctor, varname, dflt, attr, asProperty)

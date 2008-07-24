@@ -201,7 +201,7 @@
                              ? organizer.id
                              : calendar.getProperty("organizerId"));
 
-          this.mIsInvitation = ((calendar instanceof Components.interfaces.calISchedulingSupport) && 
+          this.mIsInvitation = (calInstanceOf(calendar, Components.interfaces.calISchedulingSupport) && 
                                 calendar.isInvitation(args.item));
 
           var listbox =

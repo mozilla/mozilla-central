@@ -200,7 +200,7 @@
         <parameter name="aItem"/>
         <body><![CDATA[
           var att;
-          if (aItem.calendar instanceof Components.interfaces.calISchedulingSupport) {
+          if (calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport)) {
               att = aItem.calendar.getInvitedAttendee(aItem);
           }
           return (att ? att.participationStatus : null);
@@ -211,7 +211,7 @@
         <parameter name="aItem"/>
         <parameter name="aStatus"/>
         <body><![CDATA[
-          if (aItem.calendar instanceof Components.interfaces.calISchedulingSupport) {
+          if (calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport)) {
               var att = aItem.calendar.getInvitedAttendee(aItem);
               if (att) {
                   var att_ = att.clone();

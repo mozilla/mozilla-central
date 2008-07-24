@@ -46,7 +46,6 @@
 // constructor
 //
 function calTodo() {
-    this.wrappedJSObject = this;
     this.initItemBase();
 
     this.todoPromotedProps = {
@@ -58,9 +57,6 @@ function calTodo() {
         __proto__: this.itemBasePromotedProps
     };
 }
-
-// var trickery to suppress lib-as-component errors from loader
-var calItemBase;
 
 var calTodoClassInfo = {
     getInterfaces: function (count) {
@@ -90,14 +86,7 @@ calTodo.prototype = {
     __proto__: calItemBase.prototype,
 
     QueryInterface: function (aIID) {
-        if (aIID.equals(Components.interfaces.calITodo) ||
-            aIID.equals(Components.interfaces.calIInternalShallowCopy))
-            return this;
-
-        if (aIID.equals(Components.interfaces.nsIClassInfo))
-            return calTodoClassInfo;
-
-        return this.__proto__.__proto__.QueryInterface.call(this, aIID);
+        return doQueryInterface(this, calEvent.prototype, aIID, null, calTodoClassInfo);
     },
 
     cloneShallow: function (aNewParent) {

@@ -169,6 +169,7 @@ calRecurrenceInfo.prototype = {
     set item cRI_set_item(value) {
         this.ensureMutable();
 
+        value = calTryWrappedJSObject(value);
         this.mBaseItem = value;
         // patch exception's parentItem:
         for each (exitem in this.mExceptionMap) {
@@ -348,7 +349,7 @@ calRecurrenceInfo.prototype = {
             // If in a loop at least one rid is valid (i.e not an exception, not
             // an exdate, is after aTime), then remember the lowest one.
             for (var i = 0; i < this.mPositiveRules.length; i++) {
-                if (this.mPositiveRules[i] instanceof Components.interfaces.calIRecurrenceDate) {
+                if (calInstanceOf(this.mPositiveRules[i], Components.interfaces.calIRecurrenceDate)) {
                     // RDATEs are special. there is only one date in this rule,
                     // so no need to search anything.
                     var rdate = this.mPositiveRules[i].date;
@@ -363,7 +364,7 @@ calRecurrenceInfo.prototype = {
                     }
                     // TODO What about calIRecurrenceDateSet? Multi-value date
                     // sets are parsed into multiple calIRecurrenceDates, iirc.
-                } else if (this.mPositiveRules[i] instanceof Components.interfaces.calIRecurrenceRule) {
+                } else if (calInstanceOf(this.mPositiveRules[i], Components.interfaces.calIRecurrenceRule)) {
                     // RRULEs must not start searching before |startDate|, since
                     // the pattern is only valid afterwards. If an occurrence
                     // was found in a previous round, we can go ahead and start
@@ -648,7 +649,7 @@ calRecurrenceInfo.prototype = {
             var duration = null;
 
             var name = "DTEND";
-            if (this.mBaseItem instanceof Components.interfaces.calITodo)
+            if (isToDo(this.mBaseItem))
                 name = "DUE";
 
             if (this.mBaseItem.hasProperty(name)) {
@@ -690,7 +691,7 @@ calRecurrenceInfo.prototype = {
         this.ensureSortedRecurrenceRules();
 
         for (var i = 0; i < this.mRecurrenceItems.length; i++) {
-            if (this.mRecurrenceItems[i] instanceof Components.interfaces.calIRecurrenceDate) {
+            if (calInstanceOf(this.mRecurrenceItems[i], Components.interfaces.calIRecurrenceDate)) {
                 var rd = this.mRecurrenceItems[i].QueryInterface(Components.interfaces.calIRecurrenceDate);
                 if (rd.isNegative && rd.date.compare(aRecurrenceId) == 0) {
                     return this.deleteRecurrenceItemAt(i);
@@ -735,6 +736,8 @@ calRecurrenceInfo.prototype = {
     //
     modifyException: function cRI_modifyException(anItem, aTakeOverOwnership) {
         this.ensureBaseItem();
+
+        anItem = calTryWrappedJSObject(anItem);
 
         if (anItem.parentItem.calendar != this.mBaseItem.calendar &&
             anItem.parentItem.id != this.mBaseItem.id)
@@ -856,7 +859,7 @@ calRecurrenceInfo.prototype = {
         const kCalIRecurrenceDateSet = Components.interfaces.calIRecurrenceDateSet;
         var ritems = this.getRecurrenceItems({});
         for each (var ritem in ritems) {
-            if (ritem instanceof kCalIRecurrenceDate) {
+            if (calInstanceOf(ritem, kCalIRecurrenceDate)) {
                 ritem = ritem.QueryInterface(kCalIRecurrenceDate);
                 var date = ritem.date;
                 date.addDuration(timeDiff);
@@ -864,7 +867,7 @@ calRecurrenceInfo.prototype = {
                     rdates[getRidKey(date)] = date;
                 }
                 ritem.date = date;
-            } else if (ritem instanceof kCalIRecurrenceDateSet) {
+            } else if (calInstanceOf(ritem, kCalIRecurrenceDateSet)) {
                 ritem = ritem.QueryInterface(kCalIRecurrenceDateSet);
                 var rdates = ritem.getDates({});
                 for each (var date in rdates) {

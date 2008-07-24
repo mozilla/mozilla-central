@@ -221,13 +221,13 @@ function monthPrint_getHTML(aStart, aItems) {
     var calITodo = Components.interfaces.calITodo
     function compareItems(a, b) {
         // Sort tasks before events
-        if (a instanceof calIEvent && b instanceof calITodo) {
+        if (isEvent(a) && isToDo(b)) {
             return 1;
         }
-        if (a instanceof calITodo && b instanceof calIEvent) {
+        if (isToDo(a) && isEvent(b)) {
             return -1;
         }
-        if (a instanceof calIEvent) {
+        if (isEvent(a)) {
             var startCompare = a.startDate.compare(b.startDate);
             if (startCompare != 0) {
                 return startCompare;

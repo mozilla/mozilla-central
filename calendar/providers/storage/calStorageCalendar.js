@@ -582,9 +582,9 @@ calStorageCalendar.prototype = {
         }
 
         var item_iid = null;
-        if (item instanceof Components.interfaces.calIEvent)
+        if (isEvent(item))
             item_iid = Components.interfaces.calIEvent;
-        else if (item instanceof Components.interfaces.calITodo)
+        else if (isToDo(item))
             item_iid = Components.interfaces.calITodo;
         else {
             this.notifyOperationComplete(aListener,
@@ -1567,7 +1567,7 @@ calStorageCalendar.prototype = {
             var alarmTime = newDateTime(row.alarm_time, row.alarm_time_tz);
             var time;
             var related = Components.interfaces.calIItemBase.ALARM_RELATED_START;
-            if (item instanceof Components.interfaces.calIEvent) {
+            if (isEvent(item)) {
                 time = newDateTime(row.event_start, row.event_start_tz);
             } else { //tasks
                 if (row.todo_entry) {
@@ -1872,7 +1872,7 @@ calStorageCalendar.prototype = {
 
             var rec = item.recurrenceInfo;
 
-            if (item instanceof Components.interfaces.calIEvent) {
+            if (isEvent(item)) {
                 this.mSelectEventExceptions.params.id = item.id;
                 while (this.mSelectEventExceptions.step()) {
                     var row = this.mSelectEventExceptions.row;
@@ -1880,7 +1880,7 @@ calStorageCalendar.prototype = {
                     rec.modifyException(exc, true);
                 }
                 this.mSelectEventExceptions.reset();
-            } else if (item instanceof Components.interfaces.calITodo) {
+            } else if (isToDo(item)) {
                 this.mSelectTodoExceptions.params.id = item.id;
                 while (this.mSelectTodoExceptions.step()) {
                     var row = this.mSelectTodoExceptions.row;
@@ -2019,9 +2019,9 @@ calStorageCalendar.prototype = {
         flags |= this.writeProperties(item, olditem);
         flags |= this.writeAttachments(item, olditem);
 
-        if (item instanceof Components.interfaces.calIEvent)
+        if (isEvent(item))
             this.writeEvent(item, olditem, flags);
-        else if (item instanceof Components.interfaces.calITodo)
+        else if (isToDo(item))
             this.writeTodo(item, olditem, flags);
         else
             throw Components.results.NS_ERROR_UNEXPECTED;
@@ -2131,7 +2131,7 @@ calStorageCalendar.prototype = {
 
             pp.key = prop.name;
             var pval = prop.value;
-            if (pval instanceof Components.interfaces.calIDateTime) {
+            if (calInstanceOf(pval, Components.interfaces.calIDateTime)) {
                 pp.value = pval.nativeTime;
             } else {
                 try {
@@ -2168,13 +2168,11 @@ calStorageCalendar.prototype = {
                 ap.item_id = item.id;
                 ap.recur_index = i;
                 ap.is_negative = ritem.isNegative;
-                if (ritem instanceof kCalIRecurrenceDate) {
-                    ritem = ritem.QueryInterface(kCalIRecurrenceDate);
+                if (calInstanceOf(ritem, kCalIRecurrenceDate)) {
                     ap.recur_type = "x-date";
                     ap.dates = dateToText(getInUtcOrKeepFloating(ritem.date));
 
-                } else if (ritem instanceof kCalIRecurrenceDateSet) {
-                    ritem = ritem.QueryInterface(kCalIRecurrenceDateSet);
+                } else if (calInstanceOf(ritem, kCalIRecurrenceDateSet)) {
                     ap.recur_type = "x-dateset";
 
                     var rdates = ritem.getDates({});
@@ -2188,8 +2186,7 @@ calStorageCalendar.prototype = {
 
                     ap.dates = datestr;
 
-                } else if (ritem instanceof kCalIRecurrenceRule) {
-                    ritem = ritem.QueryInterface(kCalIRecurrenceRule);
+                } else if (calInstanceOf(ritem, kCalIRecurrenceRule)) {
                     ap.recur_type = ritem.type;
 
                     if (ritem.isByCount)

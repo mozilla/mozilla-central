@@ -104,7 +104,7 @@ calItipEmailTransport.prototype = {
 
         var item = itipItem.getItemList({})[0];
         // Get my participation status
-        var att = ((itipItem.targetCalendar instanceof Components.interfaces.calISchedulingSupport)
+        var att = (calInstanceOf(itipItem.targetCalendar, Components.interfaces.calISchedulingSupport)
                    ? itipItem.targetCalendar.getInvitedAttendee(item) : null);
         if (!att && itipItem.identity) {
             att = item.getAttendeeById("mailto:" + itipItem.identity);

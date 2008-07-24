@@ -222,7 +222,7 @@ function fixOldSunbirdExceptions(aItem) {
     for each (var ritem in ritems) {
         // EXDATEs are represented as calIRecurrenceDates, which are
         // negative and finite.
-        if (ritem instanceof kCalIRecurrenceDate &&
+        if (calInstanceOf(ritem, kCalIRecurrenceDate) &&
             ritem.isNegative &&
             ritem.isFinite) {
             // Only mess with the exception if its time is wrong.

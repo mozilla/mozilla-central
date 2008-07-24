@@ -294,9 +294,9 @@ calMemoryCalendar.prototype = {
         var item = this.mItems[aId];
         var iid = null;
 
-        if (item instanceof Components.interfaces.calIEvent) {
+        if (isEvent(item)) {
             iid = Components.interfaces.calIEvent;
-        } else if (item instanceof Components.interfaces.calITodo) {
+        } else if (isToDo(item)) {
             iid = Components.interfaces.calITodo;
         } else {
             this.notifyOperationComplete(aListener,

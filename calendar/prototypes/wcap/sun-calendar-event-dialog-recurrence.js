@@ -72,7 +72,7 @@ function onLoad() {
             // Deal with the rules
             if (rules.length > 0) {
                 // We only handle 1 rule currently
-                if (rules[0] instanceof Components.interfaces.calIRecurrenceRule) {
+                if (calInstanceOf(rules[0], Components.interfaces.calIRecurrenceRule)) {
                     rule = rules[0];
                 }
             }

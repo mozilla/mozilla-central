@@ -161,7 +161,7 @@ calItipProcessor.prototype = {
                                              targetCalendar, aListener) {
         var invitedAttendee = null;
         // we should make calISchedulingSupport mandatory
-        if (newItem.calendar instanceof Components.interfaces.calISchedulingSupport) {
+        if (calInstanceOf(newItem.calendar, Components.interfaces.calISchedulingSupport)) {
             invitedAttendee = newItem.calendar.getInvitedAttendee(newItem);
         }
         if (!invitedAttendee && aItipItem.identity) { // try to fall back to itip item's identity
@@ -327,9 +327,9 @@ calItipProcessor.prototype = {
      * Helper to return whether an item is an event, todo, etc.
      */
     _getCalItemType: function cipGCIT(aCalItem) {
-        if (aCalItem instanceof Components.interfaces.calIEvent) {
+        if (isEvent(aCalItem)) {
             return Components.interfaces.calIEvent;
-        } else if (aCalItem instanceof Components.interfaces.calITodo) {
+        } else if (isToDo(aCalItem)) {
             return Components.interfaces.calITodo;
         }
 

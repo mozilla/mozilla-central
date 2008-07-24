@@ -70,7 +70,7 @@ function onLoad() {
     }
 
     window.readOnly = calendar.readOnly;
-    if (!window.readOnly && calendar instanceof Components.interfaces.calISchedulingSupport) {
+    if (!window.readOnly && calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
         var attendee = calendar.getInvitedAttendee(item);
         if (attendee) {
             // if this is an unresponded invitation, preset our default alarm values:

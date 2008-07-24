@@ -396,13 +396,33 @@ function isItemSupported(aItem, aCalendar) {
 }
 
 /**
+ * (At least on branch 1.8), the js instanceof operator does not work to test
+ * interfaces on direct implementation objects, i.e. non-wrapped objects.
+ * This function falla back to using QueryInterface to check whether the interface
+ * is implemented.
+ */
+function calInstanceOf(aObject, aInterface) {
+    // We first try instanceof which is assumed to be faster than querying the object:
+    if (!(aObject instanceof aInterface)) {
+        // if the passed object in not wrapped (but a plain implementation),
+        // instanceof won't check QueryInterface.
+        try {
+            aObject.QueryInterface(aInterface);
+        } catch (exc) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * Determines whether or not the aObject is a calIEvent
  *
  * @param aObject  the object to test
  * @returns        true if the object is a calIEvent, false otherwise
  */
 function isEvent(aObject) {
-    return aObject instanceof Components.interfaces.calIEvent;
+    return calInstanceOf(aObject, Components.interfaces.calIEvent);
 }
 
 /**
@@ -412,7 +432,7 @@ function isEvent(aObject) {
  * @returns        true if the object is a calITodo, false otherwise
  */
 function isToDo(aObject) {
-    return aObject instanceof Components.interfaces.calITodo;
+    return calInstanceOf(aObject, Components.interfaces.calITodo);
 }
 
 /**
@@ -678,6 +698,16 @@ function compareItems(aItem, aOtherItem) {
     sip2.data = aOtherItem;
     sip2.dataIID = Components.interfaces.calIItemBase;
     return sip1.data == sip2.data;
+}
+
+/**
+ * Tries to get rid of wrappers. This is used to avoid cyclic references, and thus leaks.
+ */
+function calTryWrappedJSObject(obj) {
+    if (obj && obj.wrappedJSObject) {
+        obj = obj.wrappedJSObject;
+    }
+    return obj;
 }
 
 /**
@@ -1393,7 +1423,7 @@ function calGetProductVersion() {
  */
 function calSetProdidVersion(aIcalComponent) {
     // Throw for an invalid parameter
-    if (!(aIcalComponent instanceof Components.interfaces.calIIcalComponent)) {
+    if (!calInstanceOf(aIcalComponent, Components.interfaces.calIIcalComponent)) {
         throw Components.results.NS_ERROR_INVALID_ARG;
     }
     // Set the prodid and version

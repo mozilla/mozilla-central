@@ -728,14 +728,13 @@
           },
           
           onAddItem: function tTO_onAddItem(aItem) {
-              if (aItem instanceof Components.interfaces.calITodo && !this.mInBatch) {
+              if (isToDo(aItem) && !this.mInBatch) {
                   this.binding.mTreeView.addItem(aItem);
               }
           },
           
           onModifyItem: function tTO_onModifyItem(aNewItem, aOldItem) {
-              if ((aNewItem instanceof Components.interfaces.calITodo ||
-                  aOldItem instanceof Components.interfaces.calITodo) &&
+              if ((isToDo(aNewItem) || isToDo(aOldItem)) &&
                   !this.mInBatch) {
                   
                   // forward the call to the view which will in turn
@@ -750,7 +749,7 @@
           },
           
           onDeleteItem: function tTO_onDeleteItem(aDeletedItem) {
-              if (aDeletedItem instanceof Components.interfaces.calITodo &&
+              if (isToDo(aDeletedItem) &&
                   !this.mInBatch) {
                   this.binding.mTreeView.removeItem(aDeletedItem);  
               }
@@ -1010,7 +1009,7 @@
         <body><![CDATA[
           var pendingRefresh = this.mPendingRefresh;
           if (pendingRefresh) {
-              if (pendingRefresh instanceof Components.interfaces.calIOperation) {
+              if (calInstanceOf(pendingRefresh, Components.interfaces.calIOperation)) {
                   this.mPendingRefresh = null;
                   pendingRefresh.cancel(null);
               } else {

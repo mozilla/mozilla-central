@@ -350,7 +350,7 @@ InvitationsManager.prototype = {
 
     getParticipationStatus: function IM_getParticipationStatus(item) {
         var attendee;
-        if (item.calendar instanceof Components.interfaces.calISchedulingSupport) {
+        if (calInstanceOf(item.calendar, Components.interfaces.calISchedulingSupport)) {
             var attendee = item.calendar.getInvitedAttendee(item);
         }
         return (attendee ? attendee.participationStatus : null);

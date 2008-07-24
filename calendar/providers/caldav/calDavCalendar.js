@@ -586,7 +586,7 @@ calDavCalendar.prototype = {
         }
 
         var itemType = "VEVENT";
-        if (aItem instanceof Components.interfaces.calITodo) {
+        if (isToDo(aItem)) {
             itemType = "VTODO";
         }
 

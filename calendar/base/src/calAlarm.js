@@ -250,7 +250,7 @@ calAlarm.prototype = {
 
     _getAlarmDate: function cA_getAlarmDate() {
         var itemAlarmDate;
-        if (this.mItem instanceof Components.interfaces.calIEvent) {
+        if (isEvent(this.mItem)) {
             switch (this.related) {
                 case Components.interfaces.calIAlarm.ALARM_RELATED_START:
                     itemAlarmDate = this.mItem.startDate;
@@ -259,7 +259,7 @@ calAlarm.prototype = {
                     itemAlarmDate = this.mItem.endDate;
                     break;
             }
-        } else if (this.mItem instanceof Components.interfaces.calITodo) {
+        } else if (isToDo(this.mItem)) {
             switch (this.related) {
                 case Components.interfaces.calIAlarm.ALARM_RELATED_START:
                     itemAlarmDate = this.mItem.entryDate;
