@@ -47,13 +47,6 @@ MODULE = caldav
 
 DIRS = public
 
-ifeq (,$(filter webdav,$(MOZ_EXTENSIONS)))
-ifndef COMM_BUILD
-# In the COMM_BUILD system, this is called by build.mk
-DIRS += ../../../extensions/webdav
-endif
-endif
-
 EXTRA_COMPONENTS = calDavCalendarModule.js
 EXTRA_SCRIPTS = calDavCalendar.js
 

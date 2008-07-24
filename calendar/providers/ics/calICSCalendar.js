@@ -880,50 +880,63 @@ httpHooks.prototype = {
             // because there is a time in which we don't know the right
             // etag.
             // Try to do the best we can, by immediatly getting the etag.
-            
-            // Only on branch, because webdav doesn't work on trunk: bug 332840
-            if (isOnBranch) {
-                var res = new WebDavResource(aChannel.URI);
-                var webSvc = Components.classes['@mozilla.org/webdav/service;1']
-                                       .getService(Components.interfaces.nsIWebDAVService);
-                // The namespace is 'DAV:', not just 'DAV'.
-                webSvc.getResourceProperties(res, 1, ['DAV: getetag'], false,
-                                             this, null, null);
-            } else {
-                // instead, on trunk, set mEtag to null, so it will be ignored on 
-                // the next GET/PUT
-                this.mEtag = null;
+
+            var etagListener = {};
+            var thisCalendar = this; // need to reference in callback
+
+            etagListener.onStreamComplete =
+                function ics_etLoSC(aLoader, aContext, aStatus, aResultLength,
+                                    aResult) {
+                var resultConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                                                .createInstance(Components
+                                                .interfaces.nsIScriptableUnicodeConverter);
+                resultConverter.charset = "UTF-8";
+
+                var str;
+                try {
+                    str = resultConverter.convertFromByteArray(aResult, aResultLength);
+                } catch (e) {
+                    LOG("Failed to fetch channel etag");
+                }
+                if (str.indexOf("<?xml ") == 0) {
+                    str = str.substring(str.indexOf('<', 2));
+                }
+                var multistatus = new XML(str);
+                try {
+                    thisCalendar.mEtag = multistatus..D::getetag;
+                } catch (e) {
+                    thisCalendar.mEtag = null;
+                }
             }
+            var D = new Namespace("D", "DAV:");
+            default xml namespace = D;
+            var queryXml = <D:propfind xmlns:D="DAV:">
+                    <D:prop>
+                      <D:getetag/>
+                    </D:prop>
+                  </D:propfind>;
+
+            var etagChannel = calPrepHttpChannel(aChannel.URI, queryXml,
+                                                 "text/xml; charset=utf-8",
+                                                 this);
+            etagChannel.setRequestHeader("Depth", "0", false);
+            etagChannel.requestMethod = "PROPFIND";
+            var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
+                                         .createInstance(Components.interfaces
+                                         .nsIStreamLoader);
+
+            calSendHttpRequest(streamLoader, etagChannel, etagListener);
         }
         return true;
     },
 
-    onOperationComplete: function(aStatusCode, aResource, aOperation, aClosure) {
-    },
+    // nsIProgressEventSink
+    onProgress: function onProgress(aRequest, aContext, aProgress, aProgressMax) {},
+    onStatus: function onStatus(aRequest, aContext, aStatus, aStatusArg) {},
 
-    onOperationDetail: function(aStatusCode, aResource, aOperation, aDetail, aClosure) {
-        var props = aDetail.QueryInterface(Components.interfaces.nsIProperties);
-        try {
-            this.mEtag = props.get('DAV: getetag', Components.interfaces.nsISupportsString).toString();
-        } catch(e) {
-            // No etag header. Now what?
-            this.mEtag = null;
-        }
-    }
-};
-
-function WebDavResource(url) {
-    this.mResourceURL = url;
-}
-
-WebDavResource.prototype = {
-    mResourceURL: {},
-    get resourceURL() { return this.mResourceURL; },
-    QueryInterface: function(iid) {
-        if (iid.equals(CI.nsIWebDAVResource) ||
-            iid.equals(CI.nsISupports)) {
+    getInterface: function(aIid) {
+        if (aIid.equals(Components.interfaces.nsIProgressEventSink)) {
             return this;
         }
-        throw Components.interfaces.NS_ERROR_NO_INTERFACE;
     }
 };
