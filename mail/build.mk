@@ -43,6 +43,8 @@ endif
 
 TIERS += app
 
+tier_app_dirs += editor/ui
+
 ifdef MOZ_CALENDAR
 MOZ_EXTENSIONS += webdav
 endif
@@ -67,7 +69,6 @@ tier_app_dirs += mail/branding/nightly
 endif
 
 tier_app_dirs += \
-	mozilla/editor/ui \
 	mailnews \
 	$(NULL)
 
