@@ -1801,7 +1801,7 @@ nsresult nsParseNewMailState::GetTrashFolder(nsIMsgFolder **pTrashFolder)
 
 void nsParseNewMailState::ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, PRUint32 msgOffset)
 {
-  m_msgMovedByFilter = PR_FALSE;
+  m_msgMovedByFilter = m_msgCopiedByFilter = PR_FALSE;
   m_curHdrOffset = msgOffset;
 
   if (!m_disableFilters)
@@ -1911,7 +1911,11 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
           if (NS_FAILED(err))
             return err;
 
-          if (StringBeginsWith(actionTargetFolderUri, NS_LITERAL_CSTRING("imap:")))
+          // if we're moving to an imap folder, or this message has already 
+          // has a pending copy action, use the imap coalescer so that
+          // we won't truncate the inbox before the copy fires.
+          if (m_msgCopiedByFilter ||
+              StringBeginsWith(actionTargetFolderUri, NS_LITERAL_CSTRING("imap:")))
           {
             if (!m_moveCoalescer)
               m_moveCoalescer = new nsImapMoveCoalescer(m_downloadFolder, m_msgWindow);
@@ -1964,6 +1968,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
             rv = copyService->CopyMessages(m_downloadFolder, messageArray, dstFolder,
                                            PR_FALSE, nsnull, msgWindow, PR_FALSE);
             NS_ENSURE_SUCCESS(rv, rv);
+            m_msgCopiedByFilter = PR_TRUE;
           }
         }
         break;

@@ -279,6 +279,7 @@ protected:
   nsImapMoveCoalescer *m_moveCoalescer; // strictly owned by nsParseNewMailState;
 
   PRBool        m_msgMovedByFilter;
+  PRBool        m_msgCopiedByFilter;
   nsCOMPtr <nsIInputStream>  m_inboxFileStream;
   nsCOMPtr <nsILocalFile>    m_inboxFile;
   PRBool        m_disableFilters;

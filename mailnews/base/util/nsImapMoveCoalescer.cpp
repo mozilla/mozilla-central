@@ -104,67 +104,62 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR
     // is this the right place to make sure dest folder exists
     // (and has proper flags?), before we start copying?
     nsCOMPtr <nsIMsgFolder> destFolder(m_destFolders[i]);
-    nsCOMPtr<nsIImapService> imapService = 
-      do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
-    if (NS_SUCCEEDED(rv))
+    nsTArray<nsMsgKey>& keysToAdd = m_sourceKeyArrays[i];
+    PRInt32 numNewMessages = 0;
+    PRInt32 numKeysToAdd = keysToAdd.Length();
+    if (numKeysToAdd == 0)
+      continue;
+
+    nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
+    for (PRUint32 keyIndex = 0; keyIndex < keysToAdd.Length(); keyIndex++)
     {
-      nsTArray<nsMsgKey>& keysToAdd = m_sourceKeyArrays[i];
-      PRInt32 numNewMessages = 0;
-      PRInt32 numKeysToAdd = keysToAdd.Length();
-      if (numKeysToAdd == 0)
-        continue;
-
-      nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
-      for (PRUint32 keyIndex = 0; keyIndex < keysToAdd.Length(); keyIndex++)
+      nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
+      rv = m_sourceFolder->GetMessageHeader(keysToAdd.ElementAt(keyIndex), getter_AddRefs(mailHdr));
+      if (NS_SUCCEEDED(rv) && mailHdr)
       {
-        nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
-        rv = m_sourceFolder->GetMessageHeader(keysToAdd.ElementAt(keyIndex), getter_AddRefs(mailHdr));
-        if (NS_SUCCEEDED(rv) && mailHdr)
-        {
-          messages->AppendElement(mailHdr, PR_FALSE);
-          PRBool isRead = PR_FALSE;
-          mailHdr->GetIsRead(&isRead);
-          if (!isRead)
-            numNewMessages++;
-        }
+        messages->AppendElement(mailHdr, PR_FALSE);
+        PRBool isRead = PR_FALSE;
+        mailHdr->GetIsRead(&isRead);
+        if (!isRead)
+          numNewMessages++;
       }
-      PRUint32 destFlags;
-      destFolder->GetFlags(&destFlags);
-      if (! (destFlags & nsMsgFolderFlags::Junk)) // don't set has new on junk folder
+    }
+    PRUint32 destFlags;
+    destFolder->GetFlags(&destFlags);
+    if (! (destFlags & nsMsgFolderFlags::Junk)) // don't set has new on junk folder
+    {
+      destFolder->SetNumNewMessages(numNewMessages);
+      if (numNewMessages > 0)
+        destFolder->SetHasNewMessages(PR_TRUE);
+    }
+    // adjust the new message count on the source folder
+    PRInt32 oldNewMessageCount = 0;
+    m_sourceFolder->GetNumNewMessages(PR_FALSE, &oldNewMessageCount);
+    if (oldNewMessageCount >= numKeysToAdd)
+      oldNewMessageCount -= numKeysToAdd;
+    else
+      oldNewMessageCount = 0;
+
+    m_sourceFolder->SetNumNewMessages(oldNewMessageCount);
+
+    nsCOMPtr <nsISupports> sourceSupports = do_QueryInterface(m_sourceFolder, &rv);
+    nsCOMPtr <nsIUrlListener> urlListener(do_QueryInterface(sourceSupports));
+
+    keysToAdd.Clear();
+    nsCOMPtr<nsIMsgCopyService> copySvc = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
+    if (copySvc)
+    {
+      nsCOMPtr <nsIMsgCopyServiceListener> listener;
+      if (m_doNewMailNotification)
       {
-        destFolder->SetNumNewMessages(numNewMessages);
-        if (numNewMessages > 0)
-          destFolder->SetHasNewMessages(PR_TRUE);
+        nsMoveCoalescerCopyListener *copyListener = new nsMoveCoalescerCopyListener(this, destFolder);
+        if (copyListener)
+          listener = do_QueryInterface(copyListener);
       }
-      // adjust the new message count on the source folder
-      PRInt32 oldNewMessageCount = 0;
-      m_sourceFolder->GetNumNewMessages(PR_FALSE, &oldNewMessageCount);
-      if (oldNewMessageCount >= numKeysToAdd)
-        oldNewMessageCount -= numKeysToAdd;
-      else
-        oldNewMessageCount = 0;
-
-      m_sourceFolder->SetNumNewMessages(oldNewMessageCount);
-
-      nsCOMPtr <nsISupports> sourceSupports = do_QueryInterface(m_sourceFolder, &rv);
-      nsCOMPtr <nsIUrlListener> urlListener(do_QueryInterface(sourceSupports));
-
-      keysToAdd.Clear();
-      nsCOMPtr<nsIMsgCopyService> copySvc = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
-      if (copySvc)
-      {
-        nsCOMPtr <nsIMsgCopyServiceListener> listener;
-        if (m_doNewMailNotification)
-        {
-          nsMoveCoalescerCopyListener *copyListener = new nsMoveCoalescerCopyListener(this, destFolder);
-          if (copyListener)
-            listener = do_QueryInterface(copyListener);
-        }
-        rv = copySvc->CopyMessages(m_sourceFolder, messages, destFolder, PR_TRUE,
-                                   listener, m_msgWindow, PR_FALSE /*allowUndo*/);
-        if (NS_SUCCEEDED(rv))
-          m_outstandingMoves++;
-      }
+      rv = copySvc->CopyMessages(m_sourceFolder, messages, destFolder, PR_TRUE,
+                                 listener, m_msgWindow, PR_FALSE /*allowUndo*/);
+      if (NS_SUCCEEDED(rv))
+        m_outstandingMoves++;
     }
   }
   return rv;
