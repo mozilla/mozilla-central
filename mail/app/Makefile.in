@@ -72,10 +72,6 @@ PREF_JS_EXPORTS = \
     $(srcdir)/profile/channel-prefs.js \
     $(NULL)
 
-ifndef MOZ_BRANDING_DIRECTORY
-PREF_JS_EXPORTS += $(srcdir)/thunderbird-branding.js
-endif
-
 ifeq ($(USE_SHORT_LIBNAME), 1)
 PROGRAM = thunderbird$(BIN_SUFFIX)
 else

@@ -35,9 +35,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-# Branding Makefile
-#  - Currently just deals with locales, other items will be moved later into
-#    this directory.
+# Branding Makefile for nightlies/unofficial branding
 
 DEPTH = ../../..
 topsrcdir = @top_srcdir@
@@ -49,5 +47,7 @@ include $(DEPTH)/config/autoconf.mk
 DIRS = \
 	locales \
 	$(NULL)
+
+PREF_JS_EXPORTS += $(srcdir)/thunderbird-branding.js
 
 include $(topsrcdir)/config/rules.mk
