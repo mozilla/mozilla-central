@@ -581,12 +581,12 @@ calAlarmService.prototype = {
         }
     },
 
-    initAlarms: function cas_refreshAlarms(calendars) {
+    initAlarms: function cas_initAlarms(calendars) {
         // Purge out all alarm timers belonging to the refreshed/loaded calendar:
         this.disposeCalendarTimers(calendars);
 
         // Purge out all alarms from dialog belonging to the refreshed/loaded calendar:
-        this.notifyObservers("onRemoveAlarmsByCalendar", [calendar]);
+        this.notifyObservers("onRemoveAlarmsByCalendar", calendars);
 
         // Total refresh similar to startup.  We're going to look for
         // alarms +/- 1 month from now.  If someone sets an alarm more than
