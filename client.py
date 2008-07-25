@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
-CVS_CO_TAG = 'HEAD'
+CALENDAR_CO_TAG = 'HEAD'
 EXTENSION_CO_TAG = 'HEAD'
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_3_CLIENT_BRANCH'
 
 CHATZILLA_CO_TAG = 'HEAD'
 VENKMAN_CO_TAG = 'HEAD'
 
-CVS_DIRS = ('calendar',)
+CALENDAR_DIRS = ('calendar',)
 EXTENSION_DIRS = ('extensions/typeaheadfind',
                   'extensions/wallet',
                   'extensions/webdav',)
@@ -51,7 +51,10 @@ def do_hg_pull(dir, repository, hg):
         fulldir = os.path.join(topsrcdir, dir)
         check_call_noisy([hg, 'clone', repository, fulldir])
     else:
-        cmd = [hg, 'pull', '-u', '-R', fulldir]
+        if options.verbose:
+            cmd = [hg, 'pull', '-u', '-v', '-R', fulldir]
+        else:
+            cmd = [hg, 'pull', '-u', '-R', fulldir]
         if repository is not None:
             cmd.append(repository)
         check_call_noisy(cmd)
@@ -106,6 +109,9 @@ o.add_option("--cvs", dest="cvs", default=os.environ.get('CVS', 'cvs'),
 o.add_option("--cvsroot", dest="cvsroot",
              default=os.environ.get('CVSROOT', ':pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot'),
              help="The CVSROOT (default: :pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot")
+o.add_option("-v", "--verbose", dest="verbose",
+             action="store_true", default=False,
+             help="Enable verbose output on hg updates")
 
 
 def fixup_repo_options(options):
@@ -146,7 +152,8 @@ if action in ('checkout', 'co'):
         do_hg_pull('mozilla', options.mozilla_repo, options.hg)
 
     if not options.skip_cvs:
-        do_cvs_checkout(CVS_DIRS, CVS_CO_TAG, options.cvsroot, options.cvs, '')
+        if not options.skip_calendar:
+          do_cvs_checkout(CALENDAR_DIRS, CALENDAR_CO_TAG, options.cvsroot, options.cvs, '')
         do_cvs_checkout(LDAPCSDK_DIRS, LDAPCSDK_CO_TAG, options.cvsroot, options.cvs, '')
         if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
           do_cvs_checkout(EXTENSION_DIRS, EXTENSION_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
@@ -165,7 +172,7 @@ if action in ('checkout', 'co'):
         if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
           do_cvs_checkout(VENKMAN_DIRS, VENKMAN_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
         else:
-          print >>sys.stderr, "Warning: mozilla/extensions does not exist, ChatZilla could not be checked out."
+          print >>sys.stderr, "Warning: mozilla/extensions does not exist, Venkman could not be checked out."
           pass
 
 else:
