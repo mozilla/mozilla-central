@@ -333,7 +333,6 @@ pref("browser.download.manager.addToRecentDocs", true);
 
 pref("javascript.options.showInConsole",    true);
 
-pref("network.enableIDN",                   false); // Turn on/off IDN (Internationalized Domain Name) resolution
 pref("wallet.captureForms",                 true);
 pref("wallet.enabled",                      true);
 pref("wallet.crypto",                       false); 
