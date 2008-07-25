@@ -881,7 +881,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
   }
 
   // Only use appledouble if we aren't uuencoding.
-  if( sendResourceFork && (! UseUUEncode_p()) )
+  if( sendResourceFork )
   {
     char *separator;
 
@@ -1006,10 +1006,6 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
   {
     if ( sendResourceFork )
     {
-      // The only time we want to send just the data fork of a two-fork
-      // Mac file is if uuencoding has been requested.
-      NS_ASSERTION(UseUUEncode_p(), "not UseUUEncode_p");
-
       // For now, just do the encoding, but in the old world we would ask the
       // user about doing this conversion
       printf("...we could ask the user about this conversion, but for now, nahh..\n");
