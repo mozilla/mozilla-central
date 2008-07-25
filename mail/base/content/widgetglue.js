@@ -224,6 +224,11 @@ function MsgFolderProperties(tabID)
 
 function RebuildSummaryFile(msgFolder)
 {
+  if (msgFolder.locked)
+  {
+    msgFolder.throwAlertMsg("operationFailedFolderBusy", msgWindow);
+    return;
+  }
   var msgDB = msgFolder.getMsgDatabase(msgWindow);
   msgDB.summaryValid = false;
   msgFolder.ForceDBClosed();
