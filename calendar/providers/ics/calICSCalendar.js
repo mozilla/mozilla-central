@@ -377,19 +377,22 @@ calICSCalendar.prototype = {
         if ((channel && !channel.requestSucceeded) ||
             (!channel && !Components.isSuccessCode(request.status))) {
             ctxt.mObserver.onError(this.superCalendar,
-                                   request.status,
+                                   Components.isSuccessCode(request.status)
+                                   ? calIErrors.DAV_PUT_ERROR
+                                   : request.status,
                                    "Publishing the calendar file failed\n" +
                                        "Status code: "+request.status.toString(16)+"\n");
             ctxt.mObserver.onError(this.superCalendar, calIErrors.MODIFICATION_FAILED, "");
         }
 
         // Allow the hook to grab data of the channel, like the new etag
-        ctxt.mHooks.onAfterPut(channel);
-
-        ctxt.unlock();
-        var appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                                   .getService(Components.interfaces.nsIAppStartup);
-        appStartup.exitLastWindowClosingSurvivalArea();
+        ctxt.mHooks.onAfterPut(channel,
+                               function() {
+                                   ctxt.unlock();
+                                   var appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
+                                       .getService(Components.interfaces.nsIAppStartup);
+                                   appStartup.exitLastWindowClosingSurvivalArea();
+                               });
     },
 
     // Always use the queue, just to reduce the amount of places where
@@ -813,7 +816,8 @@ dummyHooks.prototype = {
         return true;
     },
     
-    onAfterPut: function(aChannel) {
+    onAfterPut: function(aChannel, aRespFunc) {
+        aRespFunc();
         return true;
     }
 };
@@ -870,10 +874,11 @@ httpHooks.prototype = {
         return true;
     },
     
-    onAfterPut: function(aChannel) {
+    onAfterPut: function(aChannel, aRespFunc) {
         var httpchannel = aChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
         try {
             this.mEtag = httpchannel.getResponseHeader("ETag");
+            aRespFunc();
         } catch(e) {
             // There was no ETag header on the response. This means that
             // putting is not atomic. This is bad. Race conditions can happen,
@@ -907,6 +912,7 @@ httpHooks.prototype = {
                 } catch (e) {
                     thisCalendar.mEtag = null;
                 }
+                aRespFunc();
             }
             var D = new Namespace("D", "DAV:");
             default xml namespace = D;
