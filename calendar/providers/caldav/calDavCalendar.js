@@ -90,11 +90,6 @@ const CALDAV_ADOPT_ITEM = 1;
 const CALDAV_MODIFY_ITEM = 2;
 const CALDAV_DELETE_ITEM = 3;
 
-// used for compatibility with broken OGo/SOGo CalDAV interfaces
-const CALDAV_REFETCH_FALSE = 0;
-const CALDAV_REFETCH_GET = 1;
-const CALDAV_REFETCH_UID = 2;
-
 calDavCalendar.prototype = {
     __proto__: calProviderBase.prototype,
     //
@@ -225,6 +220,18 @@ calDavCalendar.prototype = {
         return decodeURIComponent(this.mCalendarUri.path);
     },
 
+    getItemLocationPath: function caldavGILP(aItem) {
+        if (aItem.id &&
+            aItem.id in this.mItemInfoCache &&
+            this.mItemInfoCache[aItem.id].locationPath) {
+            // modifying items use the cached location path
+            return this.mItemInfoCache[aItem.id].locationPath;
+        } else {
+            // New items just use id.ics
+            return aItem.id + ".ics";
+        }
+    },
+
     // XXX todo: in general we want to do CalDAV scheduling, but for servers
     //           that don't support it, we want Itip
     // sendItipInvitations is now used from calProviderBase.
@@ -318,7 +325,7 @@ calDavCalendar.prototype = {
             return;
         }
 
-        var locationPath = aItem.id + ".ics";
+        var locationPath = this.getItemLocationPath(aItem);
         var itemUri = this.mCalendarUri.clone();
         itemUri.spec = this.makeUri(locationPath);
         LOG("CalDAV: itemUri.spec = " + itemUri.spec);
@@ -591,13 +598,7 @@ calDavCalendar.prototype = {
         }
 
         var itemUri = this.mCalendarUri.clone();
-        try {
-            // refetch after PUT of modified item
-            var locationPath = this.mItemInfoCache[aItem.id].locationPath;
-        } catch(ex) {
-            // refetch after PUT of new item
-            var locationPath = aItem.id + ".ics";
-        }
+        var locationPath = this.getItemLocationPath(aItem);
         itemUri.spec = this.makeUri(locationPath);
 
         var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
@@ -617,7 +618,7 @@ calDavCalendar.prototype = {
         }
 
         this.getCalendarData(xmlHeader + multigetQueryXml.toXMLString(), aItem,
-                             aListener, CALDAV_REFETCH_GET);
+                             aListener, true);
 
     },
 
@@ -678,7 +679,7 @@ calDavCalendar.prototype = {
         }
 
         this.getCalendarData(xmlHeader + queryXml.toXMLString(), aItem,
-                             aListener, CALDAV_REFETCH_UID);
+                             aListener, false);
     },
 
     // void getItem( in string id, in calIOperationListener aListener );
@@ -913,8 +914,7 @@ calDavCalendar.prototype = {
 
                 var multigetQueryString = xmlHeader +
                                           multigetQueryXml.toXMLString();
-                thisCalendar.getCalendarData(multigetQueryString, null, null,
-                                             CALDAV_REFETCH_FALSE);
+                thisCalendar.getCalendarData(multigetQueryString, null, null, false);
 
                 if (thisCalendar.mAuthScheme == "Digest" &&
                     thisCalendar.firstInRealm()) {
@@ -943,7 +943,7 @@ calDavCalendar.prototype = {
         calSendHttpRequest(streamLoader, httpchannel, etagListener);
     },
 
-    getCalendarData: function caldav_gCD(aQuery, aItem, aListener, aRefetchType) {
+    getCalendarData: function caldav_gCD(aQuery, aItem, aListener, aRefetchWithUid) {
 
         var thisCalendar = this;
         var caldataListener = {};
@@ -981,7 +981,7 @@ calDavCalendar.prototype = {
             for (var j = 0; j < multistatus.*.length(); j++) {
                 var response = new XML(multistatus.*[j]);
                 var elementStatus = response..D::["status"].split(" ")[1];
-                if (elementStatus == 404 && aRefetchType == CALDAV_REFETCH_GET) {
+                if (elementStatus == 404 && aRefetchWithUid) {
                     // this is probably an OGo/SOo server that has improperly
                     // moved the calitem into a subcollection
                     thisCalendar.getUpdatedItemByUid(aItem, aListener);
