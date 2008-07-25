@@ -561,7 +561,7 @@ class TalosFactory(BuildFactory):
                            haltOnFailure=True,
                            flunkOnFailure=True,
                            env=MozillaEnvironments[envName])
-        self.addStep(MozillaWgetLatestDated,
+        self.addStep(MozillaTryServerWgetLatest,
                            workdir=".",
                            branch=buildBranch,
                            url=buildDir,
