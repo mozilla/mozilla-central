@@ -70,9 +70,6 @@ function calAlarmService() {
         onLoad: function co_onLoad(calendar) {
             // ignore any onLoad events until initial getItems() call of startup has finished:
             if (calendar && this.alarmService.mLoadedCalendars[calendar.id]) {
-                // onLoad signals that changes to the item set are unknown, so purge out all
-                // alarms belonging to the refreshed/loaded calendar:
-                this.alarmService.notifyObservers("onRemoveAlarmsByCalendar", [calendar]);
                 // a refreshed calendar signals that it has been reloaded
                 // (and cannot notify detailed changes), thus reget all alarms of it:
                 this.alarmService.initAlarms([calendar]);
@@ -108,27 +105,15 @@ function calAlarmService() {
         },
         onError: function(aCalendar, aErrNo, aMessage) {},
         onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
-            if (aName == "suppressAlarms") {
-                // While in the UI it should be assured that suppressAlarms is
-                // not changed if popup alarms are unsupported, be robust here.
-                if ((!aOldValue && aValue) ||
-                    aCalendar.getProperty("capabilities.alarms.popup.supported") === false) {
-                    this.alarmService.notifyObservers("onRemoveAlarmsByCalendar", [aCalendar]);
-                } else if (aOldValue && !aValue) {
+            switch (aName) {
+                case "suppressAlarms":
+                case "disabled":
                     this.alarmService.initAlarms([aCalendar]);
-                }
-            } else if (aName == "disabled") {
-                if (!aOldValue && aValue) {
-                    this.alarmService.notifyObservers("onRemoveAlarmsByCalendar", [aCalendar]);
-                } else if (aOldValue && !aValue) {
-                    this.alarmService.initAlarms([aCalendar]);
-                }
+                    break;
             }
         },
         onPropertyDeleting: function(aCalendar, aName) {
-            if (aName == "suppressAlarms") {
-                this.onPropertyChanged(aCalendar, aName, null, aCalendar.getProperty(aName));
-            }
+            this.onPropertyChanged(aCalendar, aName);
         }
     };
 
@@ -295,13 +280,9 @@ calAlarmService.prototype = {
         var notifier = this.notifier;
         notifier.observe(null, "alarm-service-startup", null);
 
-        this.calendarManager = Components.classes["@mozilla.org/calendar/manager;1"]
-                                         .getService(Components.interfaces.calICalendarManager);
-        var calendarManager = this.calendarManager;
-        calendarManager.addObserver(this.calendarManagerObserver);
+        getCalendarManager().addObserver(this.calendarManagerObserver);
 
-        var calendars = calendarManager.getCalendars({});
-        for each(var calendar in calendars) {
+        for each(var calendar in getCalendarManager().getCalendars({})) {
             this.observeCalendar(calendar);
         }
 
@@ -330,7 +311,7 @@ calAlarmService.prototype = {
                 end.hour += kHoursBetweenUpdates;
                 this.alarmService.mRangeEnd = end.getInTimezone(UTC());
 
-                this.alarmService.findAlarms(this.alarmService.calendarManager.getCalendars({}),
+                this.alarmService.findAlarms(getCalendarManager().getCalendars({}),
                                              start, until);
             }
         };
@@ -351,8 +332,7 @@ calAlarmService.prototype = {
             this.mUpdateTimer = null;
         }
         
-        var calendarManager = this.calendarManager;
-        calendarManager.removeObserver(this.calendarManagerObserver);
+        getCalendarManager().removeObserver(this.calendarManagerObserver);
 
         for each (var cal in this.mTimerLookup) {
             for each (var itemTimers in cal) {
@@ -365,12 +345,10 @@ calAlarmService.prototype = {
         }
         this.mTimerLookup = {};
 
-        var calendars = calendarManager.getCalendars({});
-        for each(var calendar in calendars) {
+        for each(var calendar in getCalendarManager().getCalendars({})) {
             this.unobserveCalendar(calendar);
         }
 
-        this.calendarManager = null;
         this.notifier = null;
         this.mRangeEnd = null;
 
@@ -391,6 +369,7 @@ calAlarmService.prototype = {
 
     unobserveCalendar: function cas_unobserveCalendar(calendar) {
         calendar.removeObserver(this.calendarObserver);
+        this.disposeCalendarTimers([calendar]);
         this.notifyObservers("onRemoveAlarmsByCalendar", [calendar]);
     },
 
@@ -553,6 +532,22 @@ calAlarmService.prototype = {
         return {};
     },
 
+    disposeCalendarTimers: function cas_removeCalendarTimers(aCalendars) {
+        for each (var cal in aCalendars) {
+            var calTimers = this.mTimerLookup[cal.id];
+            if (calTimers) {
+                for each (var itemTimers in calTimers) {
+                    for each (var timer in itemTimers) {
+                        if (timer instanceof Components.interfaces.nsITimer) {
+                            timer.cancel();
+                        }
+                    }
+                }
+                delete this.mTimerLookup[cal.id];
+            }
+        }
+    },
+
     findAlarms: function cas_findAlarms(calendars, start, until) {
         var getListener = {
             alarmService: this,
@@ -587,6 +582,12 @@ calAlarmService.prototype = {
     },
 
     initAlarms: function cas_refreshAlarms(calendars) {
+        // Purge out all alarm timers belonging to the refreshed/loaded calendar:
+        this.disposeCalendarTimers(calendars);
+
+        // Purge out all alarms from dialog belonging to the refreshed/loaded calendar:
+        this.notifyObservers("onRemoveAlarmsByCalendar", [calendar]);
+
         // Total refresh similar to startup.  We're going to look for
         // alarms +/- 1 month from now.  If someone sets an alarm more than
         // a month ahead of an event, or doesn't start Sunbird/Lightning
