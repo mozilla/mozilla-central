@@ -47,6 +47,7 @@
 #include "nsIPop3IncomingServer.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
+#include "nsMsgI18N.h"
 #include "nsISmtpService.h"
 #include "nsISmtpServer.h"
 #include "nsEudoraWin32.h"
@@ -1119,7 +1120,13 @@ nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFile *pFile
     if (mimeType.IsEmpty())
       mimeType = "application/octet-stream";
 
-    aAttachmentName = name; // use the leaf name of the attachment file url as the attachment name
+    nsAutoString description;
+    rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), name, description);
+ 
+    if (NS_SUCCEEDED(rv))
+      aAttachmentName = NS_ConvertUTF16toUTF8(description);
+    else
+      aAttachmentName = name;
 
     return( NS_OK);
   }
