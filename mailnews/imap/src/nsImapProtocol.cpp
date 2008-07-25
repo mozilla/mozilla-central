@@ -72,6 +72,7 @@
 #include "nsXPCOMCIDInternal.h"
 #include "nsNetUtil.h"
 #include "nsReadableUtils.h"
+#include "nsIDBFolderInfo.h"
 #include "nsIPipe.h"
 #include "nsIMsgFolder.h"
 #include "nsMsgMessageFlags.h"
@@ -357,6 +358,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_idle = PR_FALSE;
   m_retryUrlOnError = PR_FALSE;
   m_useIdle = PR_TRUE; // by default, use it
+  m_useCondStore = PR_TRUE;
   m_ignoreExpunges = PR_FALSE;
   m_useSecAuth = PR_FALSE;
   m_socketType = nsIMsgIncomingServer::tryTLS;
@@ -455,6 +457,8 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_autoSubscribeOnOpen = PR_TRUE;
   m_deletableChildren = nsnull;
 
+  mFolderLastModSeq = 0;
+  
   Configure(gTooFastTime, gIdealTime, gChunkAddSize, gChunkSize,
                     gChunkThreshold, gFetchByChunks);
 
@@ -494,6 +498,7 @@ nsresult nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList, n
      return NS_ERROR_OUT_OF_MEMORY;
 
    aServer->GetUseIdle(&m_useIdle);
+   aServer->GetUseCondStore(&m_useCondStore);
    NS_ADDREF(m_flagState);
 
     m_sinkEventTarget = aSinkEventTarget;
@@ -668,6 +673,8 @@ static void SetSecurityCallbacksFromChannel(nsISocketTransport* aTrans, nsIChann
 // Setup With Url is intended to set up data which is held on a PER URL basis and not
 // a per connection basis. If you have data which is independent of the url we are currently
 // running, then you should put it in Initialize().
+// This is only ever called from the UI thread. It is called from LoadUrl, right
+// before the url gets run - i.e., the url is next in line to run.
 nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
 {
   nsresult rv = NS_ERROR_FAILURE;
@@ -682,6 +689,25 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
     {
       rv = mailnewsUrl->GetServer(getter_AddRefs(server));
       m_server = do_GetWeakReference(server);
+    }
+    nsCOMPtr <nsIMsgFolder> folder;
+    mailnewsUrl->GetFolder(getter_AddRefs(folder));
+    mFolderLastModSeq = 0;
+    mFolderTotalMsgCount = 0;
+    mFolderHighestUID = 0;
+    if (folder)
+    {
+      nsCOMPtr<nsIMsgDatabase> folderDB;
+      nsCOMPtr<nsIDBFolderInfo> folderInfo;
+      folder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(folderDB));
+      if (folderInfo)
+      {
+        nsCString modSeqStr;
+        folderInfo->GetCharProperty(kModSeqPropertyName, modSeqStr);
+        mFolderLastModSeq = ParseUint64Str(modSeqStr.get());
+        folderInfo->GetNumMessages(&mFolderTotalMsgCount);
+        folderInfo->GetUint32Property(kHighestRecordedUIDPropertyName, 0, &mFolderHighestUID);
+      } 
     }
     nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryInterface(server);
     nsCOMPtr<nsIStreamListener> aRealStreamListener = do_QueryInterface(aConsumer);
@@ -1078,7 +1104,8 @@ nsImapProtocol::TellThreadToDie(PRBool isSafeToClose)
 {
   nsresult rv = NS_OK;
   // ** This routine is called from the ui thread and the imap protocol thread.
-  // The UI thread always passes in FALSE for isSafeToClose.
+  // The UI thread  passes in FALSE if it's dropping a timed out connection,
+  // true when closing a cached connection.
   {
     nsAutoCMonitor mon(this);
 
@@ -2168,8 +2195,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
               SetContentModified(IMAP_CONTENT_NOT_MODIFIED);
             FetchMessage(messageIdString,
               (m_imapAction == nsIImapUrl::nsImapMsgPreview)
-              ? kBodyStart : kEveryThingRFC822Peek,
-              bMessageIdsAreUids);
+              ? kBodyStart : kEveryThingRFC822Peek);
             if (m_imapAction == nsIImapUrl::nsImapMsgPreview)
               HeaderFetchCompleted();
             SetProgressString(0);
@@ -2332,8 +2358,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
           // we don't want to send the flags back in a group
           //        GetServerStateParser().ResetFlagInfo(0);
           FetchMessage(messageIds,
-            kHeadersRFC822andUid,
-            bMessageIdsAreUids);
+            kHeadersRFC822andUid);
           // if we explicitly ask for headers, as opposed to getting them as a result
           // of selecting the folder, or biff, send the headerFetchCompleted notification
           // to flush out the header cache.
@@ -2575,7 +2600,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
             m_progressIndex = 0;
             m_progressCount = CountMessagesInIdString(messageIdString.get());
             
-            FetchMessage(messageIdString, kEveryThingRFC822Peek, bMessageIdsAreUids);
+            FetchMessage(messageIdString, kEveryThingRFC822Peek);
 
             SetProgressString(0);
             if (m_imapMailFolderSink)
@@ -2818,7 +2843,10 @@ void nsImapProtocol::SelectMailbox(const char *mailboxName)
   nsCString commandBuffer(GetServerCommandTag());
   commandBuffer.Append(" select \"");
   commandBuffer.Append(escapedName.get());
-  commandBuffer.Append("\"" CRLF);
+  commandBuffer.Append("\"");
+  if (UseCondStore())
+    commandBuffer.Append(" (CONDSTORE)");
+  commandBuffer.Append(CRLF);
 
   nsresult res;
   res = SendData(commandBuffer.get());
@@ -2961,17 +2989,14 @@ void nsImapProtocol::FallbackToFetchWholeMsg(const nsCString &messageId, PRUint3
 void
 nsImapProtocol::FetchMessage(const nsCString &messageIds, 
                              nsIMAPeFetchFields whatToFetch,
-                             PRBool idIsUid,
+                             const char *fetchModifier,
                              PRUint32 startByte, PRUint32 numBytes,
                              char *part)
 {
   IncrementCommandTagNumber();
 
   nsCString commandString;
-  if (idIsUid)
-    commandString = "%s UID fetch";
-  else
-    commandString = "%s fetch";
+  commandString = "%s UID fetch";
 
   switch (whatToFetch) {
   case kEveryThingRFC822:
@@ -3168,6 +3193,9 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
     break;
   };
 
+  if (fetchModifier)
+    commandString.Append(fetchModifier);
+
   commandString.Append(CRLF);
 
   // since messageIds can be infinitely long, use a dynamic buffer rather than the fixed one
@@ -3236,7 +3264,7 @@ void nsImapProtocol::FetchTryChunking(const nsCString &messageIds,
         downloadSize - startByte : m_chunkSize;
       FetchMessage(messageIds,
              whatToFetch,
-             idIsUid,
+             nsnull,
              startByte, sizeToFetch,
              part);
       startByte += sizeToFetch;
@@ -3267,7 +3295,7 @@ void nsImapProtocol::FetchTryChunking(const nsCString &messageIds,
     // small message, or (we're not chunking and not doing bodystructure),
     // or the server is not rev1.
     // Just fetch the whole thing.
-    FetchMessage(messageIds, whatToFetch,idIsUid, 0, 0, part);
+    FetchMessage(messageIds, whatToFetch, nsnull, 0, 0, part);
   }
 }
 
@@ -3700,30 +3728,66 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
     PRInt32 added = 0, deleted = 0;
 
     m_flagState->GetNumberOfMessages(&added);
-    deleted = m_flagState->GetNumberOfDeletedMessages();
+    deleted = m_flagState->NumberOfDeletedMessages();
+    PRBool flagStateEmpty = !added;
+    // Figure out if we need to do any kind of sync.
+    PRBool needFolderSync = (flagStateEmpty || added == deleted) && (!UseCondStore() || 
+      (GetServerStateParser().fHighestModSeq != mFolderLastModSeq) ||
+      (GetShowDeletedMessages() && 
+         GetServerStateParser().NumberOfMessages() != mFolderTotalMsgCount));
 
-    if (!added || (added == deleted))
+    // Figure out if we need to do a full sync (UID Fetch Flags 1:*),
+    // a partial sync using CHANGEDSINCE, or a sync from the previous
+    // highwater mark.
+
+    // if the folder doesn't know about a the highest uid, or the flag state
+    // is empty, and we're not using CondStore, we need a full sync.
+    PRBool needFullFolderSync = !mFolderHighestUID || (flagStateEmpty && !UseCondStore());
+
+    if (needFullFolderSync || needFolderSync)
     {
       nsCString idsToFetch("1:*");
-      FetchMessage(idsToFetch, kFlags, PR_TRUE);  // id string shows uids
+      char fetchModifier[40] = "";
+      if (!needFullFolderSync && !GetShowDeletedMessages())
+        PR_snprintf(fetchModifier, sizeof(fetchModifier), " (CHANGEDSINCE %llu)",
+                    mFolderLastModSeq);
+
+      FetchMessage(idsToFetch, kFlags, fetchModifier);
       // lets see if we should expunge during a full sync of flags.
-      if (!DeathSignalReceived()) // only expunge if not reading messages manually and before fetching new
+      if (!DeathSignalReceived()) 
       {
+        // if we did a CHANGEDSINCE fetch, do a sanity check on the msg counts
+        // to see if some other client may have done an expunge.
+        if (m_flagState->GetPartialUIDFetch())
+        {
+          if (m_flagState->NumberOfDeletedMessages() + 
+              mFolderTotalMsgCount != GetServerStateParser().NumberOfMessages())
+          {
+            // sanity check failed - fall back to full flag sync
+            m_flagState->Reset(0);
+            m_flagState->SetPartialUIDFetch(PR_FALSE);
+            FetchMessage(NS_LITERAL_CSTRING("1:*"), kFlags);  
+          }
+        }
+        PRInt32 numDeleted = m_flagState->NumberOfDeletedMessages();
         // Don't do expunge when we are lite selecting folder because we could be doing undo
-        if ((m_flagState->GetNumberOfDeletedMessages() >= gExpungeThreshold) &&
+        if ((numDeleted >= gExpungeThreshold) &&
                  !GetShowDeletedMessages() && 
                  m_imapAction != nsIImapUrl::nsImapLiteSelectFolder)
           Expunge();
       }
-
     }
     else
     {
-      AppendUid(fetchStr, GetServerStateParser().HighestRecordedUID() + 1);
-      fetchStr.Append(":*");
+      PRUint32 highestRecordedUID = GetServerStateParser().HighestRecordedUID();
+      // if we're using CONDSTORE, and the parser hasn't seen any UIDs, use
+      // the highest UID we've seen from the folder.
+      if (UseCondStore() && !highestRecordedUID)
+        highestRecordedUID = mFolderHighestUID;
 
-      // sprintf(fetchStr, "%ld:*", GetServerStateParser().HighestRecordedUID() + 1);
-      FetchMessage(fetchStr, kFlags, PR_TRUE);      // only new messages please
+      AppendUid(fetchStr, highestRecordedUID + 1);
+      fetchStr.Append(":*");
+      FetchMessage(fetchStr, kFlags);      // only new messages please
     }
   }
   else if (!DeathSignalReceived())
@@ -3911,25 +3975,19 @@ NS_IMETHODIMP nsImapProtocol::GetSupportedUserFlags(PRUint16 *supportedFlags)
 }
 void nsImapProtocol::FolderMsgDumpLoop(PRUint32 *msgUids, PRUint32 msgCount, nsIMAPeFetchFields fields)
 {
-
   PRInt32 msgCountLeft = msgCount;
   PRUint32 msgsDownloaded = 0;
   do
   {
     nsCString idString;
-
     PRUint32 msgsToDownload = msgCountLeft;
     AllocateImapUidString(msgUids + msgsDownloaded, msgsToDownload, m_flagState, idString);  // 20 * 200
-
-    FetchMessage(idString,  fields, PR_TRUE);                  // msg ids are uids                 
-
+    FetchMessage(idString, fields);
     msgsDownloaded += msgsToDownload;
     msgCountLeft -= msgsToDownload;
-
   }
   while (msgCountLeft > 0 && !DeathSignalReceived());
 }
-
 
 void nsImapProtocol::HeaderFetchCompleted()
 {
@@ -3964,7 +4022,7 @@ void nsImapProtocol::PeriodicBiff()
       nsCString fetchStr;           // only update flags
       PRUint32 added = 0, deleted = 0;
 
-      deleted = m_flagState->GetNumberOfDeletedMessages();
+      deleted = m_flagState->NumberOfDeletedMessages();
       added = numMessages;
       if (!added || (added == deleted)) // empty keys, get them all
         id = 1;
@@ -3972,7 +4030,7 @@ void nsImapProtocol::PeriodicBiff()
       //sprintf(fetchStr, "%ld:%ld", id, id + GetServerStateParser().NumberOfMessages() - fFlagState->GetNumberOfMessages());
       AppendUid(fetchStr, id);
       fetchStr.Append(":*"); 
-      FetchMessage(fetchStr, kFlags, PR_TRUE);
+      FetchMessage(fetchStr, kFlags);
       if (((PRUint32) m_flagState->GetHighestNonDeletedUID() >= id) && m_flagState->IsLastMessageUnseen())
         m_currentBiffState = nsIMsgFolder::nsMsgBiffState_NewMail;
       else
@@ -4132,7 +4190,7 @@ PRUint32 nsImapProtocol::GetMessageSize(const char * messageId,
     if (id && folderName)
     {
       if (m_imapMessageSink)
-          m_imapMessageSink->GetMessageSizeFromDB(id, idsAreUids, &size);
+          m_imapMessageSink->GetMessageSizeFromDB(id, &size);
     }
     PR_FREEIF(id);
     PR_FREEIF(folderName);
@@ -4445,13 +4503,14 @@ nsImapProtocol::SetConnectionStatus(PRInt32 status)
 }
 
 void
-nsImapProtocol::NotifyMessageFlags(imapMessageFlagsType flags, nsMsgKey key)
+nsImapProtocol::NotifyMessageFlags(imapMessageFlagsType flags, 
+                                   nsMsgKey key, PRUint64 highestModSeq)
 {
     if (m_imapMessageSink)
     {
       // if we're selecting the folder, don't need to report the flags; we've already fetched them.
       if (m_imapAction != nsIImapUrl::nsImapSelectFolder && (m_imapAction != nsIImapUrl::nsImapMsgFetch || (flags & ~kImapMsgRecentFlag) != kImapMsgSeenFlag))
-        m_imapMessageSink->NotifyMessageFlags(flags, key);
+        m_imapMessageSink->NotifyMessageFlags(flags, key, highestModSeq);
     }
 }
 
@@ -5003,6 +5062,18 @@ void nsImapProtocol::Capability()
         m_hostSessionList->SetCapabilityForHost(GetImapServerKey(), capabilityFlag & ~kLiteralPlusCapability);
       }
     }
+}
+
+void nsImapProtocol::EnableCondStore()
+{
+  IncrementCommandTagNumber();
+  nsCString command(GetServerCommandTag());
+  
+  command.Append(" ENABLE CONDSTORE" CRLF);
+  
+  nsresult rv = SendData(command.get());
+  if (NS_SUCCEEDED(rv))
+    ParseIMAPandCheckForNewMail();  
 }
 
 void nsImapProtocol::Language()
@@ -7405,6 +7476,9 @@ void nsImapProtocol::ProcessAfterAuthenticated()
     if (nameSpacesOverridable && !haveNameSpacesForHost)
       Namespace();
   }
+  if ((GetServerStateParser().GetCapabilityFlag() & kHasEnableCapability) &&
+       UseCondStore())
+    EnableCondStore();
 }
 
 void nsImapProtocol::SetupMessageFlagsString(nsCString& flagString,
@@ -7826,6 +7900,15 @@ PRBool nsImapProtocol::CheckNeeded()
   PRTime2Seconds(deltaTime, &deltaInSeconds);
 
   return (deltaInSeconds >= kMaxSecondsBeforeCheck);
+}
+
+PRBool nsImapProtocol::UseCondStore()
+{
+  // Check that the server is capable of cond store, and the user
+  // hasn't disabled the use of constore for this server.
+  return m_useCondStore &&
+         GetServerStateParser().GetCapabilityFlag() & kHasCondStoreCapability &&
+         GetServerStateParser().fUseModSeq;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

@@ -37,11 +37,28 @@
 
 #include "nsISupports.idl"
 
-[scriptable, uuid(d4ba3414-fe9e-436b-a01b-bd446e737d04)]
+[scriptable, uuid(fe57609e-f90b-46a2-b78c-9c13aded30ee)]
 interface nsIImapFlagAndUidState : nsISupports 
 {
   readonly attribute long numberOfMessages;
   readonly attribute long numberOfRecentMessages;
+
+  /**
+   * If a full update, the total number of deleted messages
+   * in the folder; if a partial update, the number of deleted
+   * messages in the partial update
+   **/
+  readonly attribute long numberOfDeletedMessages;
+
+  /**
+   * If this is true, instead of fetching 1:* (FLAGS), and putting all
+   * UIDs and flags in the array, we only fetched the uids and flags
+   * that changed since the last time we were selected on this folder.
+   * This means we have a sparse array, and should not assume missing
+   * UIDs have been deleted.
+   **/
+  readonly attribute boolean partialUIDFetch;
+
   void getUidOfMessage(in long zeroBasedIndex, out unsigned long result);
   void getMessageFlags(in long zeroBasedIndex, out unsigned short result);
   void setMessageFlags(in long zeroBasedIndex, in unsigned short flags);

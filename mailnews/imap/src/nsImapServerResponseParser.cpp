@@ -89,12 +89,14 @@ nsImapServerResponseParser::nsImapServerResponseParser(nsImapProtocol &imapProto
   fDownloadingHeaders = PR_FALSE;
   fGotPermanentFlags = PR_FALSE;
   fFolderUIDValidity = 0;
+  fHighestModSeq = 0;
   fAuthChallenge = nsnull;
   fStatusUnseenMessages = 0;
   fStatusRecentMessages = 0;
   fStatusNextUID = nsMsgKey_None;
   fStatusExistingMessages = 0;
   fReceivedHeaderOrSizeForUID = nsMsgKey_None;
+  fCondStoreEnabled = PR_FALSE;
 }
 
 nsImapServerResponseParser::~nsImapServerResponseParser()
@@ -695,6 +697,10 @@ void nsImapServerResponseParser::response_data()
       } 
       else SetSyntaxError(PR_TRUE);
       break;
+    case 'E':
+      if (!PL_strcasecmp(fNextToken, "ENABLED"))
+        enable_data();
+        break;
     case 'X':
       if (!PL_strcasecmp(fNextToken, "XSERVERINFO"))
         xserverinfo_data();
@@ -753,7 +759,7 @@ void nsImapServerResponseParser::PostProcessEndOfLine()
   if (fCurrentLineContainedFlagInfo && CurrentResponseUID())
   {
     fCurrentLineContainedFlagInfo = PR_FALSE;
-    fServerConnection.NotifyMessageFlags(fSavedFlagInfo, CurrentResponseUID());
+    fServerConnection.NotifyMessageFlags(fSavedFlagInfo, CurrentResponseUID(), fHighestModSeq);
   }
 }
 
@@ -1015,6 +1021,7 @@ msg_fetch       ::= "(" 1#("BODY" SPACE body /
 "ENVELOPE" SPACE envelope /
 "FLAGS" SPACE "(" #(flag / "\Recent") ")" /
 "INTERNALDATE" SPACE date_time /
+"MODSEQ" SPACE "(" nz_number ")" /
 "RFC822" [".HEADER" / ".TEXT"] SPACE nstring /
 "RFC822.SIZE" SPACE number /
 "UID" SPACE uniqueid) ")"
@@ -1069,10 +1076,49 @@ void nsImapServerResponseParser::msg_fetch()
           fReceivedHeaderOrSizeForUID = CurrentResponseUID();
         // if this token ends in ')', then it is the last token
         // else we advance
-        if ( *(fNextToken + strlen(fNextToken) - 1) == ')')
+        char lastTokenChar = *(fNextToken + strlen(fNextToken) - 1);
+        if (lastTokenChar == ')')
           fNextToken += strlen(fNextToken) - 1;
+        else if (lastTokenChar < '0' || lastTokenChar > '9')
+        {
+          // GIANT HACK
+          // this is a corrupt uid - see if it's pre 5.08 Zimbra omitting
+          // a space between the UID and MODSEQ
+          if (strlen(fNextToken) > 6 && 
+              !strcmp("MODSEQ", fNextToken + strlen(fNextToken) - 6))
+            fNextToken += strlen(fNextToken) - 6;
+        }
         else
           AdvanceToNextToken();
+      }
+    }
+    else if (!PL_strcasecmp(fNextToken, "MODSEQ"))
+    {
+      AdvanceToNextToken();
+      if (ContinueParse())
+      {
+        fNextToken++; // eat '('
+        PRUint64 modSeq =  ParseUint64Str(fNextToken);
+        if (modSeq > fHighestModSeq)
+          fHighestModSeq = modSeq;
+
+        if (PL_strcasestr(fNextToken, ")"))
+        {
+          // eat token chars until we get the ')'
+          fNextToken = strchr(fNextToken, ')');
+          if (fNextToken)
+          {
+            fNextToken++;
+            if (*fNextToken != ')')
+              AdvanceToNextToken();
+          }
+          else
+            SetSyntaxError(PR_TRUE);
+        }
+        else
+        {
+          SetSyntaxError(PR_TRUE);
+        }
       }
     }
     else if (!PL_strcasecmp(fNextToken, "RFC822") ||
@@ -1784,21 +1830,13 @@ void nsImapServerResponseParser::parse_folder_flags()
     fFlagState->SetSupportedUserFlags(fSupportsUserDefinedFlags);
 }
 /*
- resp_text_code  ::= "ALERT" / "PARSE" /
-                              "PERMANENTFLAGS" SPACE "(" #(flag / "\*") ")" /
-                              "READ-ONLY" / "READ-WRITE" / "TRYCREATE" /
-                              "UIDVALIDITY" SPACE nz_number /
-                              "UNSEEN" SPACE nz_number /
-                              atom [SPACE 1*<any TEXT_CHAR except "]">]
-                              
- was changed to in order to enable a one symbol look ahead predictive
- parser.
- 
   resp_text_code  ::= ("ALERT" / "PARSE" /
                               "PERMANENTFLAGS" SPACE "(" #(flag / "\*") ")" /
                               "READ-ONLY" / "READ-WRITE" / "TRYCREATE" /
                               "UIDVALIDITY" SPACE nz_number /
                               "UNSEEN" SPACE nz_number /
+                              "HIGHESTMODSEQ" SPACE nz_number /
+                              "NOMODSEQ" /
                               atom [SPACE 1*<any TEXT_CHAR except "]">] )
                       "]"
 
@@ -1921,6 +1959,22 @@ void nsImapServerResponseParser::resp_text_code()
         if (ContinueParse())
           AdvanceToNextToken();
       }
+    }
+    else if (!PL_strcasecmp(fNextToken, "HIGHESTMODSEQ"))
+    {
+      AdvanceToNextToken();
+      if (ContinueParse())
+      {
+        fHighestModSeq = ParseUint64Str(fNextToken); 
+        fUseModSeq = PR_TRUE;
+        AdvanceToNextToken();
+      }
+    }
+    else if (!PL_strcasecmp(fNextToken, "NOMODSEQ"))
+    {
+      fHighestModSeq = 0;
+      fUseModSeq = PR_FALSE;
+      skip_to_CRLF();
     }
     else 	// just text
     {
@@ -2147,6 +2201,11 @@ void nsImapServerResponseParser::capability_data()
         fCapabilityFlag |= kHasLanguageCapability;
       else if (! PL_strcasecmp(fNextToken, "IDLE"))
         fCapabilityFlag |= kHasIdleCapability;
+      else if (! PL_strcasecmp(fNextToken, "CONDSTORE"))
+        fCapabilityFlag |= kHasCondStoreCapability;
+      else if (! PL_strcasecmp(fNextToken, "ENABLE"))
+        fCapabilityFlag |= kHasEnableCapability;
+
     }
   } while (fNextToken && 
 			 !fAtEndOfLine &&
@@ -2215,6 +2274,18 @@ void nsImapServerResponseParser::xserverinfo_data()
       fManageFiltersUrl.Adopt(CreateNilString());
     }
   } while (fNextToken && !fAtEndOfLine && ContinueParse());
+}
+
+void nsImapServerResponseParser::enable_data()
+{
+  do
+  {
+    // eat each enable response;
+     AdvanceToNextToken();
+     if (!strcmp("CONDSTORE", fNextToken))
+       fCondStoreEnabled = PR_TRUE;
+  } while (fNextToken && !fAtEndOfLine && ContinueParse());
+  
 }
 
 void nsImapServerResponseParser::language_data()
@@ -3075,6 +3146,7 @@ nsImapMailboxSpec *nsImapServerResponseParser::CreateCurrentMailboxSpec(const ch
   
   returnSpec->mFolderSelected = !mailboxName; // if mailboxName is null, we're doing a Status
   returnSpec->mFolder_UIDVALIDITY = fFolderUIDValidity;
+  returnSpec->mHighestModSeq = fHighestModSeq;
   returnSpec->mNumOfMessages = (mailboxName) ? fStatusExistingMessages : fNumberOfExistingMessages;
   returnSpec->mNumOfUnseenMessages = (mailboxName) ? fStatusUnseenMessages : fNumberOfUnseenMessages;
   returnSpec->mNumOfRecentMessages = (mailboxName) ? fStatusRecentMessages : fNumberOfRecentMessages;

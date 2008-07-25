@@ -41,36 +41,42 @@
 
 interface nsIMsgMailNewsUrl;
 
-[scriptable, uuid(AD0F50C3-8C0E-461F-B8DC-DF07FB72E0E0)]
+[scriptable, uuid(271e0cb1-003b-4714-8fca-16a549a7c224)]
 
 interface nsIImapMessageSink : nsISupports {
-    // set up messge download output stream
-	void SetupMsgWriteStream(in nsIFile aFile, in boolean appendDummyEnvelope);
+  // set up messge download output stream
+  void setupMsgWriteStream(in nsIFile aFile, in boolean aAppendDummyEnvelope);
 
-    void ParseAdoptedMsgLine(in string adoptedMsgLine, in nsMsgKey uidOfMsg);
+  void parseAdoptedMsgLine(in string aAdoptedMsgLine, in nsMsgKey aUidOfMsg);
     
-    void normalEndMsgWriteStream(in nsMsgKey uidOfMessage, in boolean markMsgRead, in nsIImapUrl imapUrl);
+  void normalEndMsgWriteStream(in nsMsgKey aUidOfMessage, in boolean aMarkMsgRead, in nsIImapUrl aImapUrl);
     
-    void AbortMsgWriteStream();
+  void abortMsgWriteStream();
 
   attribute boolean notifyDownloadedLines;  // imap protocol doesn't notify message sink of downloaded
                                   // lines when it has a channelListener. This forces it to,
                                   // even if there is a channel listener.
-    // message move/copy related methods
-//    void OnlineCopyReport(in ImapOnlineCopyState aCopyState);
-    void BeginMessageUpload();
-//    void UploadMessageFile(UploadMessageInfo* aMsgInfo);
 
-    // message flags operation
-    void NotifyMessageFlags(in unsigned long flags, in nsMsgKey messageKey);
+  void beginMessageUpload();
 
-    void NotifyMessageDeleted(in string onlineFolderName,in boolean deleteAllMsgs,in string msgIdString);
+  /**
+   *  Notify the message sink that one or more flags have changed
+   *  For Condstore servers, also update the highestMod Sequence
+   *  @param   aFlags         - The new flags for the message
+   *  @param   aMessageKey    - The UID of the message that changed
+   *  @param   aHighestModSeq - The highest mod seq the parser has seen
+   *                            for this folder
+  **/
+  void notifyMessageFlags(in unsigned long aFlags, in nsMsgKey aMessageKey,
+                          in unsigned long long aHighestModSeq);
 
-    void GetMessageSizeFromDB(in string id, in boolean idIsUid, out unsigned long size);
+  void notifyMessageDeleted(in string aOnlineFolderName,in boolean aDeleteAllMsgs,in string aMsgIdString);
 
-    void SetContentModified(in nsIImapUrl aImapUrl, in nsImapContentModifiedType modified);
-    void SetImageCacheSessionForUrl(in nsIMsgMailNewsUrl aMailUrl);
-    
-    unsigned long getCurMoveCopyMessageInfo(in nsIImapUrl runningUrl, 
-                                            out PRTime date, out string keywords);
+  void getMessageSizeFromDB(in string aId, out unsigned long aSize);
+
+  void setContentModified(in nsIImapUrl aImapUrl, in nsImapContentModifiedType aModified);
+  void setImageCacheSessionForUrl(in nsIMsgMailNewsUrl aMailUrl);
+  
+  unsigned long getCurMoveCopyMessageInfo(in nsIImapUrl aRunningUrl, 
+                                          out PRTime aDate, out string aKeywords);
 };

@@ -136,7 +136,6 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsILocalFile **pathResul
     return rv;
   }
   localPath->AppendRelativeNativePath(newPath);
-  
   NS_IF_ADDREF(*pathResult = localPath);
   return NS_OK;
 }
@@ -227,11 +226,12 @@ nsresult nsCreateImapBaseMessageURI(const nsACString& baseURI, nsCString &baseMe
 }
 
 // nsImapMailboxSpec definition
-NS_IMPL_ISUPPORTS1(nsImapMailboxSpec, nsIMailboxSpec)
+NS_IMPL_THREADSAFE_ISUPPORTS1(nsImapMailboxSpec, nsIMailboxSpec)
 
 nsImapMailboxSpec::nsImapMailboxSpec()
 {
   mFolder_UIDVALIDITY = 0;
+  mHighestModSeq = 0;
   mNumOfMessages = 0;
   mNumOfUnseenMessages = 0;
   mNumOfRecentMessages = 0;
@@ -253,6 +253,7 @@ nsImapMailboxSpec::~nsImapMailboxSpec()
 }
 
 NS_IMPL_GETSET(nsImapMailboxSpec, Folder_UIDVALIDITY, PRInt32, mFolder_UIDVALIDITY)
+NS_IMPL_GETSET(nsImapMailboxSpec, HighestModSeq, PRUint64, mHighestModSeq)
 NS_IMPL_GETSET(nsImapMailboxSpec, NumMessages, PRInt32, mNumOfMessages)
 NS_IMPL_GETSET(nsImapMailboxSpec, NumUnseenMessages, PRInt32, mNumOfUnseenMessages)
 NS_IMPL_GETSET(nsImapMailboxSpec, NumRecentMessages, PRInt32, mNumOfRecentMessages)
@@ -317,6 +318,7 @@ NS_IMETHODIMP nsImapMailboxSpec::SetFlagState(nsIImapFlagAndUidState * aFlagStat
 nsImapMailboxSpec& nsImapMailboxSpec::operator= (const nsImapMailboxSpec& aCopy) 
 {
   mFolder_UIDVALIDITY = aCopy.mFolder_UIDVALIDITY;
+  mHighestModSeq = aCopy.mHighestModSeq;
   mNumOfMessages = aCopy.mNumOfMessages;
   mNumOfUnseenMessages = aCopy.mNumOfUnseenMessages;
   mNumOfRecentMessages = aCopy.mNumOfRecentMessages;
@@ -349,6 +351,10 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
   PRUint32 curSequenceEnd = startSequence;
   PRUint32 total = msgCount;
   PRInt32  curFlagStateIndex = -1;
+
+  // a partial fetch flag state doesn't help us, so don't use it.
+  if (flagState && flagState->GetPartialUIDFetch())
+    flagState = nsnull;
 
   for (PRUint32 keyIndex=0; keyIndex < total; keyIndex++)
   {
@@ -453,3 +459,14 @@ void AppendUid(nsCString &msgIds, PRUint32 uid)
   msgIds.Append(buf);
 }
 
+PRUint64 ParseUint64Str(const char *str)
+{
+#ifdef XP_WIN
+  {
+    char *endPtr;
+    return _strtoui64(str, &endPtr, 10);
+  }
+#else
+  return strtoull(str, nsnull, 10);
+#endif
+}

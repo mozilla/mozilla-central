@@ -231,6 +231,7 @@ nsImapMailFolder::nsImapMailFolder() :
   m_moveCoalescer = nsnull;
   m_boxFlags = 0;
   m_uidValidity = kUidUnknown;
+  m_highestModSeq = 0;
   m_numStatusRecentMessages = 0;
   m_numStatusUnseenMessages = 0;
   m_hierarchyDelimiter = kOnlineHierarchySeparatorUnknown;
@@ -2378,12 +2379,18 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   PRUint32 numNewUnread;
   nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
   PRInt32 imapUIDValidity = 0;
-
   if (mDatabase)
   {
     rv = mDatabase->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
     if (NS_SUCCEEDED(rv) && dbFolderInfo)
+    {
       dbFolderInfo->GetImapUidValidity(&imapUIDValidity);
+      PRUint64 mailboxHighestModSeq;
+      aSpec->GetHighestModSeq(&mailboxHighestModSeq);
+      char intStrBuf[40];
+      PR_snprintf(intStrBuf, sizeof(intStrBuf), "%llu",  mailboxHighestModSeq);
+      dbFolderInfo->SetCharProperty(kModSeqPropertyName, nsDependentCString(intStrBuf));
+    }
     mDatabase->ListAllKeys(existingKeys);
     PRInt32 keyCount = existingKeys.Length();
     mDatabase->ListAllOfflineDeletes(&existingKeys);
@@ -2405,7 +2412,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   if ((imapUIDValidity != folderValidity) /* && // if UIDVALIDITY Changed
     !NET_IsOffline() */)
   {
-    NS_ASSERTION(PR_FALSE, "uid validity seems to have changed, blowing away db");
+    NS_ASSERTION(!imapUIDValidity, "non-zero uid validity seems to have changed, blowing away db");
     nsCOMPtr<nsILocalFile> pathFile;
     rv = GetFilePath(getter_AddRefs(pathFile));
     if (NS_FAILED(rv)) return rv;
@@ -2458,7 +2465,12 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     // store the new UIDVALIDITY value
 
     if (NS_SUCCEEDED(rv) && dbFolderInfo)
+    {
       dbFolderInfo->SetImapUidValidity(folderValidity);
+      // need to forget highest mod seq when uid validity rolls.
+      dbFolderInfo->SetCharProperty(kModSeqPropertyName, EmptyCString());
+      dbFolderInfo->SetUint32Property(kHighestRecordedUIDPropertyName, 0);
+    }
     // delete all my msgs, the keys are bogus now
     // add every message in this folder
     existingKeys.Clear();
@@ -2786,6 +2798,17 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
       notifier->NotifyMsgAdded(newMsgHdr);
+  }
+  // adjust highestRecordedUID
+  if (mDatabase)
+  {
+    nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
+    nsMsgKey highestUID;
+    mDatabase->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
+    dbFolderInfo->GetUint32Property(kHighestRecordedUIDPropertyName, 0, &highestUID);
+    if (m_curMsgUid > highestUID)
+      dbFolderInfo->SetUint32Property(kHighestRecordedUIDPropertyName, m_curMsgUid);
+
   }
   m_msgParser->Clear(); // clear out parser, because it holds onto a msg hdr.
   m_msgParser->SetMailDB(nsnull); // tell it to let go of the db too.
@@ -3554,24 +3577,51 @@ nsresult nsImapMailFolder::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
 void nsImapMailFolder::FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey> &keysToDelete, nsIImapFlagAndUidState *flagState)
 {
   PRBool showDeletedMessages = ShowDeletedMessages();
-  PRUint32 total = existingKeys.Length();
-  PRInt32 messageIndex;
+  PRInt32 numMessageInFlagState;
+  PRBool partialUIDFetch;
+  PRUint32 uidOfMessage;
+  imapMessageFlagsType flags;
 
-  int onlineIndex=0; // current index into flagState
-  for (PRUint32 keyIndex=0; keyIndex < total; keyIndex++)
+  flagState->GetNumberOfMessages(&numMessageInFlagState);
+  flagState->GetPartialUIDFetch(&partialUIDFetch);
+
+  // if we're doing a partialUIDFetch, just delete the keys from the db
+  // that have the deleted flag set (if not using imap delete model)
+  // and return.
+  if (partialUIDFetch)
   {
-    PRUint32 uidOfMessage;
+    if (!showDeletedMessages)
+    {
+      for (PRUint32 i = 0; i < numMessageInFlagState; i++)
+      {
+        flagState->GetUidOfMessage(i, &uidOfMessage);
+        // flag state will be zero filled up to first real uid, so ignore those.
+        if (uidOfMessage)
+        {
+          flagState->GetMessageFlags(i, &flags);
+          if (flags & kImapMsgDeletedFlag)
+            keysToDelete.AppendElement(uidOfMessage);
+        }
+      }
+    }
+    return;
+  }
+  // otherwise, we have a complete set of uid's and flags, so we delete
+  // anything thats in existingKeys but not in the flag state, as well
+  // as messages with the deleted flag set.
+  PRUint32 total = existingKeys.Length();
+  int onlineIndex = 0; // current index into flagState
+  for (PRUint32 keyIndex = 0; keyIndex < total; keyIndex++)
+  {
 
-    flagState->GetNumberOfMessages(&messageIndex);
-    while ((onlineIndex < messageIndex) &&
+    while ((onlineIndex < numMessageInFlagState) &&
          (flagState->GetUidOfMessage(onlineIndex, &uidOfMessage), (existingKeys[keyIndex] > uidOfMessage) ))
       onlineIndex++;
 
-    imapMessageFlagsType flags;
     flagState->GetUidOfMessage(onlineIndex, &uidOfMessage);
     flagState->GetMessageFlags(onlineIndex, &flags);
     // delete this key if it is not there or marked deleted
-    if ( (onlineIndex >= messageIndex ) ||
+    if ( (onlineIndex >= numMessageInFlagState ) ||
        (existingKeys[keyIndex] != uidOfMessage) ||
        ((flags & kImapMsgDeletedFlag) && !showDeletedMessages) )
     {
@@ -4078,24 +4128,45 @@ nsresult nsImapMailFolder::NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKe
   return NS_OK;
 }
 
-// message flags operation - this is called (rarely) from the imap protocol,
-// proxied over from the imap thread to the ui thread
+// message flags operation - this is called from the imap protocol,
+// proxied over from the imap thread to the ui thread, when a flag changes
 NS_IMETHODIMP
-nsImapMailFolder::NotifyMessageFlags(PRUint32 flags, nsMsgKey msgKey)
+nsImapMailFolder::NotifyMessageFlags(PRUint32 aFlags, nsMsgKey aMsgKey, PRUint64 aHighestModSeq)
 {
   if (NS_SUCCEEDED(GetDatabase(nsnull)) && mDatabase)
   {
+    PRBool msgDeleted = aFlags & kImapMsgDeletedFlag;
+    if (aHighestModSeq || msgDeleted)
+    {
+      nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
+      mDatabase->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
+      if (dbFolderInfo)
+      {
+        if (aHighestModSeq)
+        {
+          char intStrBuf[40];
+          PR_snprintf(intStrBuf, sizeof(intStrBuf), "%llu",  aHighestModSeq);
+          dbFolderInfo->SetCharProperty(kModSeqPropertyName, nsDependentCString(intStrBuf));
+        }
+        if (msgDeleted)
+        {
+          PRUint32 oldDeletedCount;
+          dbFolderInfo->GetUint32Property(kDeletedHdrCountPropertyName, 0, &oldDeletedCount);
+          dbFolderInfo->SetUint32Property(kDeletedHdrCountPropertyName, oldDeletedCount + 1);
+        }
+      }
+    }
     nsCOMPtr<nsIMsgDBHdr> dbHdr;
-    nsresult rv;
     PRBool containsKey;
-    rv = mDatabase->ContainsKey(msgKey , &containsKey);
+    nsresult rv = mDatabase->ContainsKey(aMsgKey , &containsKey);
     // if we don't have the header, don't diddle the flags.
     // GetMsgHdrForKey will create the header if it doesn't exist.
     if (NS_FAILED(rv) || !containsKey)
       return rv;
-    rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(dbHdr));
+    rv = mDatabase->GetMsgHdrForKey(aMsgKey, getter_AddRefs(dbHdr));
     if(NS_SUCCEEDED(rv) && dbHdr)
-      NotifyMessageFlagsFromHdr(dbHdr, msgKey, flags);
+      NotifyMessageFlagsFromHdr(dbHdr, aMsgKey, aFlags);
+
   }
   return NS_OK;
 }
@@ -4177,7 +4248,7 @@ void nsImapMailFolder::SetIMAPDeletedFlag(nsIMsgDatabase *mailDB, const nsTArray
 }
 
 NS_IMETHODIMP
-nsImapMailFolder::GetMessageSizeFromDB(const char * id, PRBool idIsUid, PRUint32 *size)
+nsImapMailFolder::GetMessageSizeFromDB(const char * id, PRUint32 *size)
 {
   NS_ENSURE_ARG_POINTER(size);
   nsresult rv;
@@ -4187,9 +4258,7 @@ nsImapMailFolder::GetMessageSizeFromDB(const char * id, PRBool idIsUid, PRUint32
   {
     PRUint32 key = atoi(id);
     nsCOMPtr<nsIMsgDBHdr> mailHdr;
-    NS_ASSERTION(idIsUid, "ids must be uids to get message size");
-    if (idIsUid)
-      rv = mDatabase->GetMsgHdrForKey(key, getter_AddRefs(mailHdr));
+    rv = mDatabase->GetMsgHdrForKey(key, getter_AddRefs(mailHdr));
     if (NS_SUCCEEDED(rv) && mailHdr)
       rv = mailHdr->GetMessageSize(size);
   }

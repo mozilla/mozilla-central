@@ -153,6 +153,9 @@ public:
   nsIImapHostSessionList *GetHostSessionList();
   char  *fAuthChallenge;    // the challenge returned by the server in
                             //response to authenticate using CRAM-MD5 or NTLM
+  PRBool          fCondStoreEnabled;  
+  PRBool          fUseModSeq;  // can use mod seq for currently selected folder
+  PRUint64        fHighestModSeq;
 
 protected:
   virtual void    flags();
@@ -168,6 +171,7 @@ protected:
   virtual void    text_mime2();
   virtual void    text();
   virtual void    parse_folder_flags();
+  virtual void    enable_data();
   virtual void    language_data();
   virtual void    authChallengeResponse_data();
   virtual void    resp_text_code();

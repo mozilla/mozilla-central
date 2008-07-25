@@ -324,6 +324,9 @@ NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, AutoSyncOfflineStores,
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseIdle,
                         "use_idle")
 
+NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseCondStore,
+                        "use_condstore")
+
 NS_IMETHODIMP
 nsImapIncomingServer::GetShuttingDown(PRBool *retval)
 {

@@ -54,28 +54,30 @@ public:
     nsImapFlagAndUidState(int numberOfMessages, PRUint16 flags = 0);
     nsImapFlagAndUidState(const nsImapFlagAndUidState& state, PRUint16 flags = 0);
     virtual ~nsImapFlagAndUidState();
-    
 
     NS_DECL_NSIIMAPFLAGANDUIDSTATE
 
-    PRInt32               GetNumberOfDeletedMessages();
+    PRInt32               NumberOfDeletedMessages();
     
     imapMessageFlagsType  GetMessageFlagsFromUID(PRUint32 uid, PRBool *foundIt, PRInt32 *ndx);
-    PRBool                IsLastMessageUnseen(void);
-    
-    PRUint32              GetHighestNonDeletedUID();
-    PRUint16              GetSupportedUserFlags() { return fSupportedUserFlags; }
+
+    PRBool       IsLastMessageUnseen(void);
+    PRBool       GetPartialUIDFetch() {return fPartialUIDFetch;}
+    void         SetPartialUIDFetch(PRBool isPartial) {fPartialUIDFetch = isPartial;}
+    PRUint32     GetHighestNonDeletedUID();
+    PRUint16     GetSupportedUserFlags() { return fSupportedUserFlags; }
 
 private:
     
   static PLDHashOperator FreeCustomFlags(const PRUint32 &aKey, char *aData, void *closure);
     PRInt32                 fNumberOfMessagesAdded;
     PRInt32                 fNumberOfMessageSlotsAllocated;
-    PRInt32                 fNumberDeleted;
     nsTArray<nsMsgKey>      fUids;
     imapMessageFlagsType    *fFlags;
     nsDataHashtable<nsUint32HashKey, char *> m_customFlagsHash;	// Hash table, mapping uids to extra flags
     PRUint16                fSupportedUserFlags;
+    PRInt32                 fNumberDeleted;
+    PRBool                  fPartialUIDFetch;
 };
 
 

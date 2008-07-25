@@ -513,8 +513,8 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
       nsCOMPtr<nsIMsgIncomingServer> aMsgIncomingServer;
 
       if (imapMessageSink)
-        imapMessageSink->GetMessageSizeFromDB(msgKey.get(), PR_TRUE, &messageSize);
-
+        imapMessageSink->GetMessageSizeFromDB(msgKey.get(), &messageSize);
+      
       msgurl->SetMsgWindow(aMsgWindow);
 
       rv = msgurl->GetServer(getter_AddRefs(aMsgIncomingServer));

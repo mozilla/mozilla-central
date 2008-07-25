@@ -446,6 +446,9 @@ protected:
   nsCOMPtr<nsIMutableArray> m_junkMessagesToMarkAsRead;
   nsMsgKey m_curMsgUid;
   PRUint32 m_uidValidity;
+  // used for condstore support;
+  PRUint64 m_highestModSeq;
+
   PRInt32 m_numStatusRecentMessages; // used to store counts from Status command
   PRInt32 m_numStatusUnseenMessages;
   PRInt32  m_nextMessageByteLength;

@@ -40,10 +40,15 @@
 
 interface nsIMAPNamespace;
 
-[scriptable, uuid(35a2d114-2801-431c-bba5-be8cafa0461b)]
+[scriptable, uuid(94AE833C-3E53-481A-B588-89B28096F5D0)]
 interface nsIMailboxSpec : nsISupports
 {
   attribute long folder_UIDVALIDITY;
+  /**
+   * The highest modification sequence number the parser has seen 
+   * for this mailbox. See IMAP RFC 4551
+   **/
+  attribute unsigned long long highestModSeq;
   attribute long numMessages;
   attribute long numUnseenMessages;
   attribute long numRecentMessages;

@@ -189,7 +189,7 @@ public:
   virtual void AdjustChunkSize();
   virtual void FetchMessage(const nsCString &messageIds, 
     nsIMAPeFetchFields whatToFetch,
-    PRBool idAreUid,
+    const char *fetchModifier = nsnull,
     PRUint32 startByte = 0, PRUint32 numBytes = 0,
     char *part = 0);
   void FetchTryChunking(const nsCString &messageIds,
@@ -246,7 +246,8 @@ public:
   const char* GetImapServerKey(); // return the user name from the incoming server;
 
   // state set by the imap parser...
-  void NotifyMessageFlags(imapMessageFlagsType flags, nsMsgKey key);
+  void NotifyMessageFlags(imapMessageFlagsType flags, nsMsgKey key,
+                          PRUint64 highestModSeq);
   void NotifySearchHit(const char * hitLine);
 
   // Event handlers for the imap parser.
@@ -461,6 +462,7 @@ private:
 
   // All of these methods actually issue protocol
   void Capability(); // query host for capabilities.
+  void EnableCondStore(); 
   void Language(); // set the language on the server if it supports it
   void Namespace();
   void InsecureLogin(const char *userName, const nsCString &password);
@@ -546,6 +548,17 @@ private:
 
   // Quota support
   void GetQuotaDataIfSupported(const char *aBoxName);
+
+  // CondStore support - true if server supports it, and the user hasn't disabled it.
+  PRBool UseCondStore();
+  // false if pref "mail.server.serverxxx.use_condstore" is false;
+  PRBool m_useCondStore; 
+  // these come from the nsIDBFolderInfo in the msgDatabase and
+  // are initialized in nsImapProtocol::SetupWithUrl.
+  PRUint64 mFolderLastModSeq;
+  PRInt32 mFolderTotalMsgCount;
+  PRUint32 mFolderHighestUID;
+  PRUint32 mFolderNumDeleted;
 
   nsCStringArray mCustomDBHeaders;
   PRBool  m_trackingTime;

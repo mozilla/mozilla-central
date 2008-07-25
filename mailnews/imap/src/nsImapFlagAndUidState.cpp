@@ -110,6 +110,13 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfRecentMessages(PRInt32 *result)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsImapFlagAndUidState::GetPartialUIDFetch(PRBool *aPartialUIDFetch)
+{
+  NS_ENSURE_ARG_POINTER(aPartialUIDFetch);
+  *aPartialUIDFetch = fPartialUIDFetch;
+  return NS_OK;
+}
+
 /* amount to expand for imap entry flags when we need more */
 
 nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages, PRUint16 flags)
@@ -124,6 +131,7 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages, PRUint16 
   memset(fFlags, 0, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated);
   fSupportedUserFlags = flags;
   fNumberDeleted = 0;
+  fPartialUIDFetch = PR_TRUE;
   m_customFlagsHash.Init(10);
 }
 
@@ -139,6 +147,7 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(const nsImapFlagAndUidState& state,
   memcpy(fFlags, state.fFlags, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated);
   fSupportedUserFlags = flags;
   fNumberDeleted = 0;
+  fPartialUIDFetch = state.fPartialUIDFetch;
   m_customFlagsHash.Init(10);
 }
 
@@ -223,8 +232,10 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFla
   // make sure there is room for this pair
   if (fNumberOfMessagesAdded >= fNumberOfMessageSlotsAllocated)
   {
-    fNumberOfMessageSlotsAllocated += kImapFlagAndUidStateSize;
-    fUids.InsertElementsAt(fUids.Length(), kImapFlagAndUidStateSize, 0);
+    PRInt32 sizeToGrowBy = PR_MAX(kImapFlagAndUidStateSize, 
+                      fNumberOfMessagesAdded - fNumberOfMessageSlotsAllocated);
+    fNumberOfMessageSlotsAllocated += sizeToGrowBy;
+    fUids.InsertElementsAt(fUids.Length(), sizeToGrowBy, 0);
     fFlags = (imapMessageFlagsType*) PR_REALLOC(fFlags, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated); // new imapMessageFlagsType[fNumberOfMessageSlotsAllocated];
     if (!fFlags)
       return NS_ERROR_OUT_OF_MEMORY;
@@ -238,8 +249,15 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFla
   return NS_OK;
 }
 
-	
-PRInt32 nsImapFlagAndUidState::GetNumberOfDeletedMessages()
+
+NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfDeletedMessages(PRInt32 *numDeletedMessages)
+{
+  NS_ENSURE_ARG_POINTER(numDeletedMessages);
+  *numDeletedMessages = NumberOfDeletedMessages();
+  return NS_OK;
+}
+
+PRInt32 nsImapFlagAndUidState::NumberOfDeletedMessages()
 {
   return fNumberDeleted;
 }

@@ -49,6 +49,10 @@ class nsImapProtocol;
 
 static const char kImapRootURI[] = "imap:/";
 static const char kImapMessageRootURI[] = "imap-message:/";
+static const char kModSeqPropertyName[] = "highestModSeq";
+static const char kHighestRecordedUIDPropertyName[] = "highestRecordedUID";
+static const char kDeletedHdrCountPropertyName[] = "numDeletedHeaders";
+
 
 extern nsresult
 nsImapURI2Path(const char* rootURI, const char* uriStr, 
@@ -71,6 +75,8 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount, nsImapFlagAndU
 void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys);
 void AppendUid(nsCString &msgIds, PRUint32 uid);
 
+/* returns 0 for parse failure */
+PRUint64 ParseUint64Str(const char *str);
 
 class nsImapMailboxSpec : public nsIMailboxSpec
 {
@@ -89,6 +95,7 @@ public:
   PRUint32  mBoxFlags;
   PRUint32  mSupportedUserFlags;
   PRInt32   mFolder_UIDVALIDITY;
+  PRUint64  mHighestModSeq;
   PRInt32   mNumOfMessages;
   PRInt32   mNumOfUnseenMessages;
   PRInt32   mNumOfRecentMessages;
