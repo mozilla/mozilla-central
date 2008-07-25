@@ -90,6 +90,11 @@ const CALDAV_ADOPT_ITEM = 1;
 const CALDAV_MODIFY_ITEM = 2;
 const CALDAV_DELETE_ITEM = 3;
 
+// used for compatibility with broken OGo/SOGo CalDAV interfaces
+const CALDAV_REFETCH_FALSE = 0;
+const CALDAV_REFETCH_GET = 1;
+const CALDAV_REFETCH_UID = 2;
+
 calDavCalendar.prototype = {
     __proto__: calProviderBase.prototype,
     //
@@ -585,8 +590,61 @@ calDavCalendar.prototype = {
             return;
         }
 
+        var itemUri = this.mCalendarUri.clone();
+        try {
+            // refetch after PUT of modified item
+            var locationPath = this.mItemInfoCache[aItem.id].locationPath;
+        } catch(ex) {
+            // refetch after PUT of new item
+            var locationPath = aItem.id + ".ics";
+        }
+        itemUri.spec = this.makeUri(locationPath);
+
+        var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
+        var D = new Namespace("D", "DAV:");
+
+        var multigetQueryXml =
+          <calendar-multiget xmlns:D={D} xmlns={C}>
+            <D:prop>
+              <D:getetag/>
+              <calendar-data/>
+            </D:prop>
+            <D:href>{itemUri.path}</D:href>
+          </calendar-multiget>;
+
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + multigetQueryXml.toXMLString());
+        }
+
+        this.getCalendarData(xmlHeader + multigetQueryXml.toXMLString(), aItem,
+                             aListener, CALDAV_REFETCH_GET);
+
+    },
+
+    /**
+     * Retrieves a specific item from the CalDAV store.
+     * Use when an outdated copy of the item is in hand.
+     * This is a fallback used in case getUpdatedItem()
+     * fails, here for compatibility with OGo/SOGo CalDAV
+     * interfaces that are not yet RFC4791-compliant. It
+     * should be removed when OGo/SOGo are fixed
+     * 
+     * @param aItem       item to fetch
+     * @param aListener   listener for method completion
+     */
+    getUpdatedItemByUid: function caldavGUIBU(aItem, aListener) {
+
+        if (aItem == null) {
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.GET,
+                                         null,
+                                         "passed in null item");
+            return;
+        }
+
         var itemType = "VEVENT";
-        if (isToDo(aItem)) {
+        if (aItem instanceof Components.interfaces.calITodo) {
             itemType = "VTODO";
         }
 
@@ -619,7 +677,8 @@ calDavCalendar.prototype = {
             LOG("CalDAV: send: " + queryXml);
         }
 
-        this.getCalendarData(xmlHeader + queryXml.toXMLString(), aItem, aListener);
+        this.getCalendarData(xmlHeader + queryXml.toXMLString(), aItem,
+                             aListener, CALDAV_REFETCH_UID);
     },
 
     // void getItem( in string id, in calIOperationListener aListener );
@@ -854,7 +913,8 @@ calDavCalendar.prototype = {
 
                 var multigetQueryString = xmlHeader +
                                           multigetQueryXml.toXMLString();
-                thisCalendar.getCalendarData(multigetQueryString, null, null);
+                thisCalendar.getCalendarData(multigetQueryString, null, null,
+                                             CALDAV_REFETCH_FALSE);
 
                 if (thisCalendar.mAuthScheme == "Digest" &&
                     thisCalendar.firstInRealm()) {
@@ -883,7 +943,7 @@ calDavCalendar.prototype = {
         calSendHttpRequest(streamLoader, httpchannel, etagListener);
     },
 
-    getCalendarData: function caldav_gCD(aQuery, aItem, aListener) {
+    getCalendarData: function caldav_gCD(aQuery, aItem, aListener, aRefetchType) {
 
         var thisCalendar = this;
         var caldataListener = {};
@@ -921,6 +981,12 @@ calDavCalendar.prototype = {
             for (var j = 0; j < multistatus.*.length(); j++) {
                 var response = new XML(multistatus.*[j]);
                 var elementStatus = response..D::["status"].split(" ")[1];
+                if (elementStatus == 404 && aRefetchType == CALDAV_REFETCH_GET) {
+                    // this is probably an OGo/SOo server that has improperly
+                    // moved the calitem into a subcollection
+                    thisCalendar.getUpdatedItemByUid(aItem, aListener);
+                    return;
+                }
                 if (elementStatus != 200) {
                     LOG("CalDAV: got element status " + elementStatus + " while fetching calendar data");
                     continue;
