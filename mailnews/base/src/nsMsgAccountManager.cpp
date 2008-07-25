@@ -2615,9 +2615,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
     if (!msgHdrIsRead)
       dbFolderInfo->ChangeNumUnreadMessages(-1);
     dbFolderInfo->ChangeNumMessages(-1);
-    PRUint32 hdrFlags;
-    aHdrDeleted->GetFlags(&hdrFlags);
-    if (hdrFlags & MSG_FLAG_NEW)
+    if (aFlags & MSG_FLAG_NEW)
     {
       PRInt32 numNewMessages;
       m_virtualFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);

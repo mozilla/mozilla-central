@@ -1741,6 +1741,7 @@ NS_IMETHODIMP nsMsgDatabase::DeleteHeader(nsIMsgDBHdr *msg, nsIDBChangeListener 
   // only need to do this for mail - will this speed up news expiration?
   SetHdrFlag(msg, PR_TRUE, MSG_FLAG_EXPUNGED);  // tell mailbox (mail)
 
+  PRBool hdrWasNew = m_newSet.BinaryIndexOf(key) != -1;
   m_newSet.RemoveElement(key);
 
   if (m_dbFolderInfo != NULL)
@@ -1759,15 +1760,17 @@ NS_IMETHODIMP nsMsgDatabase::DeleteHeader(nsIMsgDBHdr *msg, nsIDBChangeListener 
   //Save off flags and threadparent since they will no longer exist after we remove the header from the db.
   if (notify)
   {
-
     (void)msg->GetFlags(&flags);
     msg->GetThreadParent(&threadParent);
   }
 
   RemoveHeaderFromThread(msgHdr);
-  if (notify /* && NS_SUCCEEDED(ret)*/)
+  if (notify)
   {
-
+    // If deleted hdr was new, restore the new flag on flags 
+    // so saved searches will know to reduce their new msg count.
+    if (hdrWasNew)
+      flags |= MSG_FLAG_NEW;
     NotifyHdrDeletedAll(msg, threadParent, flags, instigator); // tell listeners
   }
   //  if (!onlyRemoveFromThread)  // to speed up expiration, try this. But really need to do this in RemoveHeaderFromDB
