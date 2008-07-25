@@ -38,9 +38,9 @@
 /**
  * Gets the configured identity and account of a particular calendar instance, or null.
  *
- * @param aCalendar calendar instance
- * @param outAccount optional out value for account
- * @return identity
+ * @param aCalendar     Calendar instance
+ * @param outAccount    Optional out value for account
+ * @return              The configured identity
  */
 function calGetEmailIdentityOfCalendar(aCalendar, outAccount) {
     ASSERT(aCalendar, "no calendar!", Components.results.NS_ERROR_INVALID_ARG);
@@ -70,24 +70,42 @@ function calGetEmailIdentityOfCalendar(aCalendar, outAccount) {
         }
         return identity;
     } else { // take default account/identity:
+
+        var accounts = getAccountManager().accounts;
+        var account = null;
+        var identity = null;
         try {
-            var account = getAccountManager().defaultAccount;
-            if (!account && getAccountManager().accounts.Count()) { // take some account
-                account = getAccountManager().accounts.getElementById(0).QueryInterface(Components.interfaces.nsIMsgAccount);
-            }
-            if (account) {
-                var identity = account.defaultIdentity;
-                if (!identity && account.identities.Count()) {
-                    identity = account.identities.getElementById(0).QueryInterface(Components.interfaces.nsIMsgIdentity);
-                }
-                if (identity) {
-                    if (outAccount) {
-                        outAccount.value = account;
-                    }
-                    return identity;
+            account = getAccountManager().defaultAccount;
+        } catch (exc) {}
+
+        for (var i = 0; accounts && (i < accounts.Count()) && (!account || !identity); ++i) {
+            if (!account) { // Pick an account only if none was set (i.e there is no default account)
+                account = accounts.GetElementAt(i);
+                try {
+                    account = account.QueryInterface(Components.interfaces.nsIMsgAccount);
+                } catch (exc) {
+                    account = null;
                 }
             }
-        } catch (exc) { // any error, e.g. no account at all
+
+            if (account && account.identities.Count()) { // Pick an identity
+                identity = account.defaultIdentity;
+                if (!identity) { // there is no default identity, use the first
+                    identity = account.identities.GetElementAt(0)
+                                                 .QueryInterface(Components.interfaces.nsIMsgIdentity);
+                }
+            } else { // If this account has no identities, continue to the next account.
+                account = null;
+            }
+        }
+
+        if (identity) {
+            // If an identity was set above, set the account out parameter
+            // and return the identity
+            if (outAccount) {
+                outAccount.value = account;
+            }
+            return identity;
         }
         return null;
     }
