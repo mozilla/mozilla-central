@@ -84,7 +84,7 @@ var calICSCalendarModule = {
         var appdir = __LOCATION__.parent.parent;
         appdir.append("js");
         const scripts = ["calUtils.js", "calAuthUtils.js", "calProviderBase.js",
-                         "calICSCalendar.js" ];
+                         "calProviderUtils.js", "calICSCalendar.js" ];
 
         for each (var scriptName in scripts) {
             var f = appdir.clone();
