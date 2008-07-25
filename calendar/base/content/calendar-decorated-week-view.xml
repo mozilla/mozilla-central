@@ -119,7 +119,7 @@
                     aDate = aDate.getInTimezone(viewElement.timezone);
                     var d1 = getWeekInfoService().getStartOfWeek(aDate);
                     var d2 = d1.clone();
-                    d2.day += 7;
+                    d2.day += 6;
                     var toolTips = calGetStringArray("calendar",
                                                      ["oneWeekBack", "gotoToday", "oneWeekForward"]);
                     this.setDateRange(d1, d2, toolTips);
