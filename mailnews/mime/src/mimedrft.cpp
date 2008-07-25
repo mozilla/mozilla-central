@@ -1381,9 +1381,6 @@ mime_parse_stream_complete (nsMIMESession *stream)
       parm = MimeHeaders_get_parameter(draftInfo, "DSN", NULL, NULL);
       fields->SetDSN(parm && !strcmp(parm, "1"));
       PR_Free(parm);
-      parm = MimeHeaders_get_parameter(draftInfo, "uuencode", NULL, NULL);
-      fields->SetUuEncodeAttachments(parm && !strcmp(parm, "1"));
-      PR_FREEIF(parm);
       parm = MimeHeaders_get_parameter(draftInfo, "html", NULL, NULL);
       if (parm)
         sscanf(parm, "%d", &htmlAction);

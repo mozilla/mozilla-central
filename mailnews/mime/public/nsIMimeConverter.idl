@@ -144,11 +144,6 @@ interface nsIMimeConverter : nsISupports {
                                    in voidPtr closure);
 
   [noscript]
-  MimeEncoderDataPtr UUEncoderInit(in string filename,
-                                   in MimeConverterOutputCallback output_fn,
-                                   in voidPtr closure);
-
-  [noscript]
   void EncoderDestroy(in MimeEncoderDataPtr data, in boolean abort_p);
 
   [noscript]

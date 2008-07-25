@@ -184,7 +184,6 @@ public:
   PRBool GetAttachVCard() {return m_attachVCard;}
   PRBool GetForcePlainText() {return m_forcePlainText;}
   PRBool GetUseMultipartAlternative() {return m_useMultipartAlternative;}
-  PRBool GetUuEncodeAttachments() {return m_uuEncodeAttachments;}
   PRBool GetBodyIsAsciiOnly() {return m_bodyIsAsciiOnly;}
   PRBool GetForceMsgEncoding() {return m_forceMsgEncoding;}
 
@@ -201,7 +200,6 @@ protected:
   PRBool      m_attachVCard;
   PRBool      m_forcePlainText;
   PRBool      m_useMultipartAlternative;
-  PRBool      m_uuEncodeAttachments;
   PRBool      m_returnReceipt;
   PRBool      m_DSN;
   PRBool      m_bodyIsAsciiOnly;

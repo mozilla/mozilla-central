@@ -72,20 +72,6 @@ MIME_QPEncoderInit(nsresult (*output_fn) (const char *buf, PRInt32 size, void *c
   return NS_SUCCEEDED(res) ? returnEncoderData : nsnull;
 }
 
-extern "C" MimeEncoderData *	
-MIME_UUEncoderInit(char *filename, nsresult (*output_fn) (const char *buf, PRInt32 size, void *closure), void *closure) 
-{
-  MimeEncoderData *returnEncoderData = nsnull;
-  nsIMimeConverter *converter;
-  nsresult res = CallCreateInstance(NS_MIME_CONVERTER_CONTRACTID, &converter);
-  if (NS_SUCCEEDED(res) && nsnull != converter) 
-  {
-    res = converter->UUEncoderInit(filename, output_fn, closure, &returnEncoderData);
-    NS_RELEASE(converter);
-  }
-  return NS_SUCCEEDED(res) ? returnEncoderData : nsnull;
-}
-
 extern "C" nsresult
 MIME_EncoderDestroy(MimeEncoderData *data, PRBool abort_p) 
 {

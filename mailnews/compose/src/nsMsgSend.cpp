@@ -3072,8 +3072,6 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
 
   mCompFields->SetDSN(fields->GetDSN());
 
-  mCompFields->SetUuEncodeAttachments(fields->GetUuEncodeAttachments());
-
   mCompFields->SetBodyIsAsciiOnly(fields->GetBodyIsAsciiOnly());
   mCompFields->SetForceMsgEncoding(fields->GetForceMsgEncoding());
 

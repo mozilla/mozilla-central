@@ -64,7 +64,6 @@ nsMsgCompFields::nsMsgCompFields()
   m_attachVCard = PR_FALSE;
   m_forcePlainText = PR_FALSE;
   m_useMultipartAlternative = PR_FALSE;
-  m_uuEncodeAttachments = PR_FALSE;
   m_returnReceipt = PR_FALSE;
   m_receiptHeaderType = nsIMsgMdnGenerator::eDntType;
   m_DSN = PR_FALSE;
@@ -248,23 +247,10 @@ NS_IMETHODIMP nsMsgCompFields::GetSubject(nsAString &_retval)
   return GetUnicodeHeader(MSG_SUBJECT_HEADER_ID, _retval);
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetAttachments(const char *value)
-{
-  NS_ASSERTION(0, "nsMsgCompFields::SetAttachments is not supported anymore, please use nsMsgCompFields::AddAttachment");
-  return SetAsciiHeader(MSG_ATTACHMENTS_HEADER_ID, value);
-}
-
 NS_IMETHODIMP nsMsgCompFields::SetTemporaryFiles(const char *value)
 {
   NS_ASSERTION(0, "nsMsgCompFields::SetTemporaryFiles is not supported anymore, please use nsMsgCompFields::AddAttachment");
   return SetAsciiHeader(MSG_TEMPORARY_FILES_HEADER_ID, value);
-}
-
-NS_IMETHODIMP nsMsgCompFields::GetAttachments(char **_retval)
-{
-  NS_ASSERTION(0, "nsMsgCompFields::GetAttachments is not supported anymore, please use nsMsgCompFields::GetAttachmentsArray");
-  *_retval = strdup(GetAsciiHeader(MSG_ATTACHMENTS_HEADER_ID));
-  return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 NS_IMETHODIMP nsMsgCompFields::GetTemporaryFiles(char **_retval)
@@ -452,18 +438,6 @@ NS_IMETHODIMP nsMsgCompFields::SetUseMultipartAlternative(PRBool value)
 NS_IMETHODIMP nsMsgCompFields::GetUseMultipartAlternative(PRBool *_retval)
 {
   *_retval = m_useMultipartAlternative;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgCompFields::SetUuEncodeAttachments(PRBool value)
-{
-  m_uuEncodeAttachments = value;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgCompFields::GetUuEncodeAttachments(PRBool *_retval)
-{
-  *_retval = m_uuEncodeAttachments;
   return NS_OK;
 }
 

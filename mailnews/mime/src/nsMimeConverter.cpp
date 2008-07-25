@@ -172,23 +172,6 @@ MimeEncoderData   *ptr;
 }
 
 nsresult
-nsMimeConverter::UUEncoderInit (const char *filename, nsresult (*output_fn) 
-                     (const char *buf, PRInt32 size, void *closure), void *closure, 
-                     MimeEncoderData ** returnEncoderData)
-{
-MimeEncoderData   *ptr;
-
-  ptr = MimeUUEncoderInit(filename, output_fn, closure);
-  if (ptr)
-  {
-    *returnEncoderData = ptr;
-    return NS_OK;
-  }
-  else
-    return NS_ERROR_OUT_OF_MEMORY;
-}
-
-nsresult
 nsMimeConverter::EncoderDestroy(MimeEncoderData *data, PRBool abort_p) 
 {
   MimeEncoderDestroy(data, abort_p);

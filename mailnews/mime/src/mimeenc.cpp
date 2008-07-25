@@ -871,130 +871,6 @@ struct MimeEncoderData {
   void *closure;
 };
 
-/* Use what looks like a nice, safe value for a standard uue line length */
-#define UUENCODE_LINE_LIMIT 60
-
-#undef ENC
-#define ENC(c) ((c & 0x3F) + ' ')
-
-void
-mime_uuencode_write_line(MimeEncoderData *data)
-{
-  /* Set the length byte at the beginning:
-     encoded (data->line_byte_count). */
-  data->uue_line_buf[0] = ENC(data->line_byte_count);
-
-  /* Tack a CRLF onto the end. */
-  data->uue_line_buf[data->current_column++] = '\r';
-  data->uue_line_buf[data->current_column++] = '\n';
-
-  /* Write the line to output. */
-  data->write_buffer((const char*)data->uue_line_buf, data->current_column,
-             data->closure);
-
-  /* Reset data based on having just written a complete line. */
-  data->in_buffer_count = 0;
-  data->line_byte_count = 0;
-  data->current_column = 1;
-}
-
-void
-mime_uuencode_convert_triplet(MimeEncoderData *data)
-{
-  /*
-     If we have 3 bytes, encode them and add them to the current
-     line. The way we want to encode them is like this
-     (each digit corresponds to a bit in the binary source):
-     11111111 -> 00111111 + ' ' (six highest bits of 1)
-     22222222    00112222 + ' ' (low 2 of 1, high 4 of 2)
-     33333333    00222233 + ' ' (low 4 of 2, high 2 of 3)
-                 00333333 + ' ' (low 6 of 3)
-  */
-  char outData[4];
-  int i;
-
-  outData[0] = data->in_buffer[0] >> 2;
-
-  outData[1] = ((data->in_buffer[0] << 4) & 0x30);
-  outData[1] |= data->in_buffer[1] >> 4;
-
-  outData[2] = ((data->in_buffer[1] << 2) & 0x3C);
-  outData[2] |= data->in_buffer[2] >> 6;
-
-  outData[3] = data->in_buffer[2] & 0x3F;
-
-  for(i=0;i<4;i++)
-    data->uue_line_buf[data->current_column++] = ENC(outData[i]);
-
-  data->in_buffer_count = 0;
-}
-
-int
-mime_uuencode_buffer(MimeEncoderData *data,
-             const char *buffer, PRInt32 size)
-{
-  /* If this is the first time through, write a begin statement. */
-  if (!(data->uue_wrote_begin))
-  {
-    char firstLine[256];
-    PR_snprintf(firstLine, sizeof(firstLine), "begin 644 %s\015\012", data->filename ? data->filename : "");
-    data->write_buffer(firstLine, strlen(firstLine), data->closure);
-    data->uue_wrote_begin = PR_TRUE;
-    data->current_column = 1; /* initialization unique to uuencode */
-  }
-
-  /* Pick up where we left off. */
-  while(size > 0)
-  {
-    /* If we've reached the end of a line, write the line out. */
-    if (data->current_column >= UUENCODE_LINE_LIMIT)
-    {
-      /* End of a line. Write the line out. */
-      mime_uuencode_write_line(data);
-    }
-
-    /* Get the next 3 bytes if we have them, or whatever we can get. */
-    while(size > 0 && data->in_buffer_count < 3)
-    {
-      data->in_buffer[data->in_buffer_count++] = *(buffer++);
-      size--; data->line_byte_count++;
-    }
-
-    if (data->in_buffer_count == 3)
-    {
-      mime_uuencode_convert_triplet(data);
-    }
-  }
-  return 0;
-}
-
-int
-mime_uuencode_finish(MimeEncoderData *data)
-{
-  int i;
-  static const char *endStr = "end\015\012";
-
-  /* If we have converted binary data to write to output, do it now. */
-  if (data->line_byte_count > 0)
-  {
-    /* If we have binary data yet to be converted,
-       pad and convert it. */
-    if (data->in_buffer_count > 0)
-    {
-      for(i=data->in_buffer_count;i<3;i++)
-        data->in_buffer[i] = '\0'; /* pad with zeroes */
-
-      mime_uuencode_convert_triplet(data);
-    }
-
-    mime_uuencode_write_line(data);
-  }
-
-  /* Write 'end' on a line by itself. */
-  return data->write_buffer(endStr, strlen(endStr), data->closure);
-}
-
-#undef ENC
 
 int
 mime_encode_base64_buffer (MimeEncoderData *data,
@@ -1243,11 +1119,7 @@ MimeEncoderDestroy (MimeEncoderData *data, PRBool abort_p)
 {
   int status = 0;
 
-  /* If we're uuencoding, we have our own finishing routine. */
-  if (data->encoding == mime_uuencode)
-   mime_uuencode_finish(data);
-
-  /* Since Base64 (and uuencode) output needs to do some buffering to get
+  /* Since Base64 output needs to do some buffering to get
    a multiple of three bytes on each block, there may be a few bytes
    left in the buffer after the last block has been written.  We need to
    flush those out now.
@@ -1353,8 +1225,6 @@ MimeEncoderWrite (MimeEncoderData *data, const char *buffer, PRInt32 size)
     return mime_encode_base64_buffer (data, buffer, size);
   case mime_QuotedPrintable:
     return mime_encode_qp_buffer (data, buffer, size);
-  case mime_uuencode:
-    return mime_uuencode_buffer(data, buffer, size);
   default:
     NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
     return -1;

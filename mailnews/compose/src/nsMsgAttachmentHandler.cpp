@@ -327,7 +327,6 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
 {
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
 
-  // use the boolean so we only have to test for uuencode vs base64 once
   PRBool needsB64 = PR_FALSE;
   PRBool forceB64 = PR_FALSE;
 
@@ -440,13 +439,10 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   if (needsB64)
   {
     //
-    // We might have to uuencode instead of base64 the binary data.
+    // always base64 binary data.
     //
     PR_Free(m_encoding);
-    if (UseUUEncode_p())
-      m_encoding = PL_strdup (ENCODING_UUENCODE);
-    else
-      m_encoding = PL_strdup (ENCODING_BASE64);
+    m_encoding = PL_strdup (ENCODING_BASE64);
   }
 
   /* Now that we've picked an encoding, initialize the filter.
@@ -455,23 +451,6 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   if (!PL_strcasecmp(m_encoding, ENCODING_BASE64))
   {
     m_encoder_data = MIME_B64EncoderInit(mime_encoder_output_fn,
-      mime_delivery_state);
-    if (!m_encoder_data) return NS_ERROR_OUT_OF_MEMORY;
-  }
-  else if (!PL_strcasecmp(m_encoding, ENCODING_UUENCODE))
-  {
-    nsCString tailName;
-    nsCString turl;
-    if (mURL)
-    {
-      mURL->GetSpec(turl);
-      PRInt32 tailNamePos = turl.RFindChar('/');
-      if (tailNamePos != kNotFound)
-        turl.Right(tailName, turl.Length() - tailNamePos -1);
-     }
-
-    m_encoder_data = MIME_UUEncoderInit((char *)tailName.get(),
-      mime_encoder_output_fn,
       mime_delivery_state);
     if (!m_encoder_data) return NS_ERROR_OUT_OF_MEMORY;
   }
@@ -1399,14 +1378,6 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   return NS_OK;
 }
 
-PRBool
-nsMsgAttachmentHandler::UseUUEncode_p(void)
-{
-  if (mCompFields)
-    return mCompFields->GetUuEncodeAttachments();
-  else
-    return PR_FALSE;
-}
 
 nsresult
 nsMsgAttachmentHandler::GetMimeDeliveryState(nsIMsgSend** _retval)

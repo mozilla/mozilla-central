@@ -41,7 +41,7 @@
 #include "nsIMsgAttachment.idl"
 #include "nsISupportsArray.idl"
 
-[scriptable, uuid(9d9752b2-1dd0-466c-926f-2fe50a153406)]
+[scriptable, uuid(315eb1c3-bcd0-41fc-a652-865859fc2964)]
 interface nsIMsgCompFields : nsISupports {
 
   attribute AString from;
@@ -60,13 +60,6 @@ interface nsIMsgCompFields : nsISupports {
 
   attribute AString subject;
   
-  /**
-   * attachments
-   *
-   * @OBSOLETE, DO NOT USE ANYMORE
-   */
-  attribute string  attachments;
-
   attribute AString organization;
   attribute string  references;
   attribute string  priority;
@@ -83,7 +76,6 @@ interface nsIMsgCompFields : nsISupports {
   attribute boolean attachVCard;
   attribute boolean forcePlainText;
   attribute boolean useMultipartAlternative;
-  attribute boolean uuEncodeAttachments;
   attribute boolean bodyIsAsciiOnly;
   attribute boolean forceMsgEncoding;
 

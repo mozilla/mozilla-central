@@ -474,10 +474,7 @@ mime_generate_headers (nsMsgCompFields *fields,
     else
       PUSH_STRING("DSN=0");
     PUSH_STRING("; ");
-    if (fields->GetUuEncodeAttachments())
-      PUSH_STRING("uuencode=1");
-    else
-      PUSH_STRING("uuencode=0");
+    PUSH_STRING("uuencode=0");
 
     PUSH_NEWLINE ();
   }
