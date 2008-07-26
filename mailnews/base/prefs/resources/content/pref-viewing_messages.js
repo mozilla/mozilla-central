@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,21 +41,19 @@
 
 function Startup()
 {
-  var autoMark = document.getElementById("mailnews.mark_message_read.auto").value;
-  UpdateMarkAsReadOptions(autoMark);
-  UpdateMarkAsReadDelayTextbox(false);
+  var autoPref = document.getElementById("mailnews.mark_message_read.auto");
+  UpdateMarkAsReadOptions(autoPref.value);
 }
 
-function UpdateMarkAsReadOptions(enableRadioGroup)
+function UpdateMarkAsReadOptions(aEnableRadioGroup)
 {
-  document.getElementById('markAsReadAutoPreferences').disabled = !enableRadioGroup;
+  EnableTextbox("markAsReadAutoPreferences", aEnableRadioGroup, false);
   // ... and the extras!
-  document.getElementById('markAsReadDelay').disabled = !enableRadioGroup;
-  document.getElementById('secondsLabel').disabled = !enableRadioGroup;
+  var delayPref = document.getElementById("mailnews.mark_message_read.delay");
+  UpdateMarkAsReadTextbox(aEnableRadioGroup && delayPref.value, false);
 }
 
-function UpdateMarkAsReadDelayTextbox(focusTextBox)
+function UpdateMarkAsReadTextbox(aEnable, aFocus)
 {
-  var enable = document.getElementById('markAsReadAfterDelay').selected;
-  EnableTextbox("markAsReadDelay", enable, focusTextBox);
+  EnableTextbox("markAsReadDelay", aEnable, aFocus);
 }

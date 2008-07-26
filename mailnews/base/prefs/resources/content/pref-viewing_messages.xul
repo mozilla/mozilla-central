@@ -22,6 +22,7 @@
    -
    - Contributor(s):
    -   Bruno Escherl <aqualon@aquachan.de>
+   -   Ian Neal <iann_bugzilla@blueyonder.co.uk>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -53,11 +54,12 @@
                   type="bool"/>
       <preference id="mailnews.mark_message_read.auto"
                   name="mailnews.mark_message_read.auto"
-                  type="bool"/>
+                  type="bool"
+                  onchange="UpdateMarkAsReadOptions(this.value);"/>
       <preference id="mailnews.mark_message_read.delay"
                   name="mailnews.mark_message_read.delay"
                   type="bool"
-                  onchange="UpdateMarkAsReadDelayTextbox(this.value);"/>
+                  onchange="UpdateMarkAsReadTextbox(this.value, this.value);"/>
       <preference id="mailnews.mark_message_read.delay.interval"
                   name="mailnews.mark_message_read.delay.interval"
                   type="int"/>
@@ -121,10 +123,15 @@
               <radio id="markAsReadAfterDelay" value="true"
                      label="&markAsReadDelay.label;"
                      accesskey="&markAsReadDelay.accesskey;"/>
-              <textbox id="markAsReadDelay" size="2"
+              <textbox id="markAsReadDelay"
+                       type="number"
+                       size="2"
+                       maximum="99"
                        preference="mailnews.mark_message_read.delay.interval"
                        aria-labelledby="markAsReadAfterDelay markAsReadDelay secondsLabel"/>
-              <label id="secondsLabel" value="&secondsLabel.label;"/>
+              <label id="secondsLabel" value="&secondsLabel.label;">
+                <observes element="markAsReadDelay" attribute="disabled"/>
+              </label>
             </hbox>
           </radiogroup>
         </hbox>
