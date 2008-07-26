@@ -1452,6 +1452,7 @@ MimeDisplayOptions::MimeDisplayOptions()
   missing_parts = PR_FALSE;
   show_attachment_inline_p = PR_FALSE;
   quote_attachment_inline_p = PR_FALSE;
+  notify_nested_bodies = PR_FALSE;
 }
 
 MimeDisplayOptions::~MimeDisplayOptions()

@@ -454,6 +454,14 @@ nsStreamConverter::DetermineOutputFormat(const char *aUrl, nsMimeOutputType *aNe
     return NS_OK;
   }
 
+  const char *emitter = FindQueryElementData(queryPart, "emitter=");
+  if (emitter)
+  {
+    const char *remainder = SkipPrefix(emitter, "js");
+    if (remainder && (!*remainder || *remainder == '&'))
+      mOverrideFormat = "application/x-js-mime-message";
+  }
+
   // if using the header query
   const char *header = FindQueryElementData(queryPart, "header=");
   if (header)

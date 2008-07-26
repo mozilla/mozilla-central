@@ -1528,6 +1528,11 @@ mime_parse_url_options(const char *url, MimeDisplayOptions *options)
     {
       options->rot13_p = end <= value || !PL_strncasecmp ("true", value, end - value);
     }
+    else if (!PL_strncasecmp ("emitter", q, name_end - q))
+    {
+      options->notify_nested_bodies = 
+        (end > value) && !PL_strncasecmp ("js", value, end - value);
+    }
 
     q = end;
     if (*q)

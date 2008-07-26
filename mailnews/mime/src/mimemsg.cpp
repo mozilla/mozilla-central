@@ -494,7 +494,7 @@ MimeMessage_close_headers (MimeObject *obj)
   //
   PRBool outer_p = !obj->headers;  /* is this the outermost message? */
 
-  if ( outer_p &&
+  if ( (outer_p || obj->options->notify_nested_bodies) &&
        (!obj->options->part_to_load || obj->options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay))
   {
     // call SetMailCharacterSetToMsgWindow() to set a menu charset
@@ -566,7 +566,8 @@ MimeMessage_parse_eof (MimeObject *obj, PRBool abort_p)
 
   // Mark the end of the mail body if we are actually emitting the
   // body of the message (i.e. not Header ONLY)
-  if (outer_p && obj->options && obj->options->write_html_p)
+  if ((outer_p || obj->options->notify_nested_bodies) && obj->options &&
+      obj->options->write_html_p)
   {
     if (obj->options->generate_footer_html_fn)
     {

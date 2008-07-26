@@ -404,6 +404,12 @@ public:
   PRBool quote_attachment_inline_p; /* Whether or not we should include inlined attachments in
                          quotes of replies) */
 
+  /**
+   * Should StartBody/EndBody events be generated for nested MimeMessages.  If
+   *  false (the default value), the events are only generated for the outermost
+   *  MimeMessage.
+   */
+  PRBool notify_nested_bodies;
 };
 
 #endif /* _MODLMIME_H_ */
