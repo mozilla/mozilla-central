@@ -900,6 +900,8 @@ nsContextMenu.prototype = {
           searchSelectText = bundle.formatStringFromName("searchText",
                                                          [searchSelectText], 1);
           this.setItemAttr("context-searchselect", "label", searchSelectText);
+          this.setItemAttr("context-searchselect", "accesskey", 
+                            bundle.GetStringFromName("searchText.accesskey"));
         } 
         return result;
     },
