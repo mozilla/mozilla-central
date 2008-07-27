@@ -49,6 +49,16 @@ function LinkToolbarHandler()
 {
   this.items = new Array();
   this.hasItems = false;
+
+  document.addEventListener("load", this.init, true);
+}
+
+LinkToolbarHandler.prototype.init =
+function()
+{
+  document.removeEventListener("load", this.init, true);
+
+  gLanguageBundle = document.getElementById("languageBundle");
 }
 
 LinkToolbarHandler.prototype.handle =
@@ -181,7 +191,7 @@ function()
 }
 
 const linkToolbarHandler = new LinkToolbarHandler();
-
+var gLanguageBundle;
 
 function LinkElementDecorator(element) {
   /*
@@ -232,13 +242,13 @@ function(rel, rev)
 LinkElementDecorator.prototype.getTooltip =
 function() 
 {
-  return this.getLongTitle() != "" ? this.getLongTitle() : this.href;
+  return this.getLongTitle() || this.href;
 }
 
 LinkElementDecorator.prototype.getLabel =
 function() 
 {
-  return this.getLongTitle() != "" ? this.getLongTitle() : this.rel;
+  return this.getLongTitle() || this.rel;
 }
 
 LinkElementDecorator.prototype.getLongTitle =
@@ -260,9 +270,17 @@ function()
   // XXX: use localized version of ":" separator
   if (this.media && !/\ball\b|\bscreen\b/i.test(this.media))
     prefix += this.media + ": ";
-  if (this.hreflang)
-    prefix += languageDictionary.lookupLanguageName(this.hreflang)
-          + ": ";
+  if (this.hreflang) {
+    try {
+      prefix += gLanguageBundle.getString(this.hreflang);
+    }
+    catch (e) {
+      // XXX: handle non-standard language codes per
+      //      hixie's spec (see bug 2800)
+    }
+
+    prefix += ": ";
+  }
 
   return this.title ? prefix + this.title : prefix;
 }

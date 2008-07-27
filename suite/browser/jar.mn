@@ -6,7 +6,6 @@ comm.jar:
    content/navigator/browser.js
    content/navigator/fullScreen.js
    content/navigator/hiddenWindow.xul
-   content/navigator/languageDictionary.js
    content/navigator/linkToolbarHandler.js
    content/navigator/linkToolbarItem.js
    content/navigator/linkToolbarOverlay.js
