@@ -63,7 +63,9 @@ kbd { font-family: sans-serif; }
 .defaultTable th { background-color: #99ccff;
   border: 1px solid grey; font-size: 10pt; padding: 4px; text-align: left; }
 
-.defaultTable tbody > tr.even { background-color: #eeeeee; }
+.tbody-default > tr:nth-child(2n) {
+  background-color: #eeeeee;
+}
 
 .boilerPlate { font-size: 7pt; }
 
