@@ -9,8 +9,7 @@ VENKMAN_CO_TAG = 'HEAD'
 
 CALENDAR_DIRS = ('calendar',)
 EXTENSION_DIRS = ('extensions/typeaheadfind',
-                  'extensions/wallet',
-                  'extensions/webdav',)
+                  'extensions/wallet',)
 LDAPCSDK_DIRS = ('directory/c-sdk',)
 
 CHATZILLA_DIRS = ('extensions/irc',)
