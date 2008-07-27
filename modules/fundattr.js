@@ -56,6 +56,7 @@ Cu.import("resource://gloda/modules/datastore.js");
  *  unless you won't complain when your code breaks.
  */
 let GlodaFundAttr = {
+  providerName: "gloda.fundattr",
   _log: null,
   _strBundle: null,
 
@@ -120,6 +121,29 @@ let GlodaFundAttr = {
                         explanation: this._strBundle.getString(
                                        "attrCcExplanation"),
                         });
+
+    Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
+      actionTarget: Gloda.NOUN_MESSAGE,
+      shortName: "from",
+      makeConstraint: function(aIdentity) {
+        return [GlodaFundAttr._attrFrom, null, aIdentity.id];
+      },
+      });
+    Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
+      actionTarget: Gloda.NOUN_MESSAGE,
+      shortName: "to",
+      makeConstraint: function(aIdentity) {
+        return [GlodaFundAttr._attrTo, null, aIdentity.id];
+      },
+      });
+    Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
+      actionTarget: Gloda.NOUN_MESSAGE,
+      shortName: "cc",
+      makeConstraint: function(aIdentity) {
+        return [GlodaFundAttr._attrCc, null, aIdentity.id];
+      },
+      });
+
     // Date
     this._attrDate = Gloda.defineAttribute({
                         provider: this,
@@ -218,6 +242,8 @@ let GlodaFundAttr = {
     
     // -- Date
     attribs.push([this._attrDate.id, aMsgHdr.date]);
+    
+    this._log.debug("returning attribs: " + attribs);
     
     return attribs;
   },

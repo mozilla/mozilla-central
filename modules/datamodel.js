@@ -71,6 +71,7 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
 GlodaAttributeDef.prototype = {
   get id() { return this._id; },
   get provider() { return this._provider; },
+  get attributeName() { return this._attrName; },
 
   get objectNoun() { return this._objectType; },
   get parameterNoun() { return this._parameterType; },

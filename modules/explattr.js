@@ -60,6 +60,7 @@ const FA_READ = "READ";
  *  unless you won't complain when your code breaks.
  */
 let GlodaExplicitAttr = {
+  providerName: "gloda.explattr",
   _log: null,
   _strBundle: null,
 
@@ -132,6 +133,9 @@ let GlodaExplicitAttr = {
   
   process: function Gloda_explattr_process(aGlodaMessage, aMsgHdr, aMimeMsg) {
     let attribs = [];
+    
+    attribs.push([this._attrStar.id, aMsgHdr.isFlagged ? 1 : 0]);
+    attribs.push([this._attrRead.id, aMsgHdr.isRead ? 1 : 0]);
     
     // -- Tag
     let keywords = aMsgHdr.getStringProperty("keywords");

@@ -5,7 +5,8 @@
     <em:id>gloda@mozillamessaging.com</em:id>
     <em:name>Global Database</em:name>
     <em:version>0.0.1</em:version>
-    <em:creator>Andrew Sutherland</em:creator>
+    <em:creator>Mozilla Messaging, Inc.</em:creator>
+    <em:contributor>Andrew Sutherland &lt;asutherland@asutherland.org&gt;</em:contributor>
     <em:description>Adds a global database to Thunderbird</em:description>
     <em:optionsURL>chrome://gloda/content/options.xul</em:optionsURL>
     <em:targetApplication>

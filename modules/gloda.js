@@ -196,8 +196,10 @@ let Gloda = {
    */
   defineNoun: function gloda_ns_defineNoun(aNounMeta) {
     let nounID = this._nextNounID++;
-    this._nounNameToNounID[aNounDef.name] = nounID; 
+    aNounMeta.id = nounID;
+    this._nounNameToNounID[aNounMeta.name] = nounID; 
     this._nounIDToMeta[nounID] = aNounMeta;
+    aNounMeta.actions = [];
   },
   
   /**
@@ -211,8 +213,21 @@ let Gloda = {
     
     throw Error("Unable to locate noun with name '" + aNounName + "', but I " +
                 "do know about: " +
-                [propName for each
+                [propName for
                  (propName in this._nounNameToNounID)].join(", ")); 
+  },
+  
+  defineNounAction: function gloda_ns_defineNounAction(aNounID, aActionMeta) {
+    let nounMeta = this._nounIDToMeta[aNounID];
+    nounMeta.actions.push(aActionMeta);
+  },
+  
+  getNounActions: function gloda_ns_getNounActions(aNounID, aActionType) {
+    let nounMeta = this._nounIDToMeta[aNounID];
+    if (!nounMeta)
+      return [];
+    return [action for each (action in nounMeta.actions)
+            if (!aActionType || (action.actionType == aActionType))];
   },
   
   /** Attribute providers in the sequence to process them. */
@@ -222,10 +237,12 @@ let Gloda = {
   
   _initAttributes: function gloda_ns_initAttributes() {
     this._nounIDToMeta[this.NOUN_BOOLEAN] = {class: Boolean, firstClass: false,
+      actions: [],
       fromAttributeValue: function(aVal) {
         if(aVal != 0) return true; else return false;
       }};
     this._nounIDToMeta[this.NOUN_DATE] = {class: Date, firstClass: false,
+      actions: [],
       fromAttributeValue: function(aPRTime) {
         return new Date(aPRTime / 1000);
       }};
@@ -235,22 +252,22 @@ let Gloda = {
     //  unless the UI is extremely clever and does its cleverness before
     //  examining the data, we will probably hit the correlation.
     this._nounIDToMeta[this.NOUN_CONVERSATION] = {class: GlodaConversation,
-      firstClass: false,
+      firstClass: false, actions: [],
       fromAttributeValue: function(aID) {
         return GlodaDatastore.getConversationByID(aID);
       }};
     this._nounIDToMeta[this.NOUN_MESSAGE] = {class: GlodaMessage,
-      firstClass: true,
+      firstClass: true, actions: [],
       fromAttributeValue: function(aID) {
         return GlodaDatastore.getMessageByID(aID);
       }};
     this._nounIDToMeta[this.NOUN_CONTACT] = {class: GlodaContact,
-      firstClass: false,
+      firstClass: false, actions: [],
       fromAttributeValue: function(aID) {
         return GlodaDatastore.getContactByID(aID);
       }};
     this._nounIDToMeta[this.NOUN_IDENTITY] = {class: GlodaIdentity,
-      firstClass: false,
+      firstClass: false, actions: [],
       fromAttributeValue: function(aID) {
         return GlodaDatastore.getIdentityByID(aID);
       }};
@@ -385,9 +402,9 @@ let Gloda = {
                   " consult the documentation as penance.")
 
     // provider tracking
-    if (!(aAttrDef.provider in this._attrProviders)) {
+    if (!(aAttrDef.provider.providerName in this._attrProviders)) {
       this._attrProviderOrder.push(aAttrDef.provider);
-      this._attrProviders[aAttrDef.provider] = [];
+      this._attrProviders[aAttrDef.provider.providerName] = [];
     } 
     
     let bindName;
@@ -424,7 +441,7 @@ let Gloda = {
         }
       }
       
-      this._attrProviders[aAttrDef.provider].push(attr);
+      this._attrProviders[aAttrDef.provider.providerName].push(attr);
       return attr; 
     }
     
@@ -455,7 +472,7 @@ let Gloda = {
       }
     }
 
-    this._attrProviders[aAttrDef.provider].push(attr);
+    this._attrProviders[aAttrDef.provider.providerName].push(attr);
     if (aAttrDef.parameterNoun == null)    
       GlodaDatastore._attributeIDToDef[attrID] = [attr, null];
     return attr;
@@ -505,6 +522,8 @@ let Gloda = {
         outAttribs.push([attribID, attribDesc[2]]);
       }
     }
+    
+    this._log.debug("about to insert: " + outAttribs);
     
     GlodaDatastore.insertMessageAttributes(aMessage, outAttribs);
   },

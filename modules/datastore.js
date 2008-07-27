@@ -983,8 +983,16 @@ let GlodaDatastore = {
         attributeID = APV[0].id;
       let select = "SELECT messageID FROM messageAttributes WHERE attributeID" +
                    " = " + attributeID;
-      if (APV[2] != null)
-        select += " AND value = " + APV[2];
+      // straight value match?
+      if (APV.length == 3) {
+        if (APV[2] != null)
+          select += " AND value = " + APV[2];
+      }
+      else { // APV.length == 4, so range match
+        // BETWEEN is optimized to >= and <=, or we could just do that ourself.
+        //  (in other words, this shouldn't hurt our use of indices)
+        select += " AND value BETWEEN " + APV[2] + " AND " + APV[3];
+      }
       selects.push(select);
     }
     
