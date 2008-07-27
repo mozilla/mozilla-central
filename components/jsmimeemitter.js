@@ -53,6 +53,17 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
  *  of each nested message in addition to the top level message, their headers
  *  and sort-of their bodies.  The sort-of is that we may get more than
  *  would normally be displayed in cases involving multipart/alternatives.
+ * During the second pass, the libmime object model is traversed, generating
+ *  attachment notifications for all leaf nodes.  From our perspective, this
+ *  means file attachments and embedded messages (message/rfc822).  We use this
+ *  pass to create the attachment objects and properly structure the MIME part
+ *  hierarchy.  We extract the 'part name' (ex: 1.2.2.1) from the URL provided
+ *  with the attacment and rely on the fact that the attachment notifications
+ *  are generated as the result of an in-order traversal of the hierarchy.  We
+ *  generate MimeUnknown instances for apparent leaf nodes (nodes for whom
+ *  we did not hear about and do not know of any of their children), and
+ *  MimeContainer instances for apparent container nodes (nodes for whom we
+ *  know about one or more children).
  */
 function MimeMessageEmitter() {
   this._mimeMsg = {};

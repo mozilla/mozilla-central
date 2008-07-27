@@ -184,6 +184,16 @@ let Gloda = {
   _nounNameToNounID: {},
   _nounIDToMeta: {},
   
+  /**
+   * Define a noun.  Takes a dictionary with the following keys/values:
+   *
+   * @param name The name of the noun.  This is not a display name (anything
+   *     being displayed needs to be localized, after all), but simply the
+   *     canonical name for debugging purposes and for people to pass to
+   *     lookupNoun.  The suggested convention is lower-case-dash-delimited,
+   *     with names being singular (since it's a single noun we are referring
+   *     to.)
+   */
   defineNoun: function gloda_ns_defineNoun(aNounMeta) {
     let nounID = this._nextNounID++;
     this._nounNameToNounID[aNounDef.name] = nounID; 

@@ -520,9 +520,10 @@ let GlodaDatastore = {
   },
   
   renameFolder: function gloda_ds_renameFolder(aOldURI, aNewURI) {
-    let folderID = this._folderURIs[aOldURI];
+    let folderID = this._mapFolderURI(aOldURI); // ensure the URI is mapped...
     this._folderURIs[aNewURI] = folderID;
     this._folderIDs[folderID] = aNewURI;
+    this._log.info("renaming folder URI " + aOldURI + " to " + aNewURI);
     this._updateFolderLocationStatement.params.oldFolderURI = aOldURI;
     this._updateFolderLocationStatement.params.newFolderURI = aNewURI;
     this._updateFolderLocationStatement.execute();
