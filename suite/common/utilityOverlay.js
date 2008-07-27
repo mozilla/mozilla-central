@@ -169,8 +169,7 @@ function setProxyTypeUI()
   } catch(e) {}
 
   var onlineTooltip = "onlineTooltip" + networkProxyType;
-  var bundle = srGetStrBundle("chrome://communicator/locale/utilityOverlay.properties");
-  panel.setAttribute("tooltiptext", bundle.GetStringFromName(onlineTooltip));
+  panel.setAttribute("tooltiptext", gUtilityBundle.getString(onlineTooltip));
 }
 
 function GetStringPref(name)
@@ -199,14 +198,12 @@ function setOfflineUI(offline)
       broadcaster.setAttribute("disabled","true");
   }
 
-  var bundle = srGetStrBundle("chrome://communicator/locale/utilityOverlay.properties");
-
   if (offline)
     {
       broadcaster.setAttribute("offline", "true");
       broadcaster.setAttribute("checked", "true");
       panel.removeAttribute("context");
-      panel.setAttribute("tooltiptext", bundle.GetStringFromName("offlineTooltip"));
+      panel.setAttribute("tooltiptext", gUtilityBundle.getString("offlineTooltip"));
     }
   else
     {
@@ -217,7 +214,7 @@ function setOfflineUI(offline)
         var networkProxyType = prefBranch.getIntPref("network.proxy.type");
       } catch(e) {}
       var onlineTooltip = "onlineTooltip" + networkProxyType;
-      panel.setAttribute("tooltiptext", bundle.GetStringFromName(onlineTooltip));
+      panel.setAttribute("tooltiptext", gUtilityBundle.getString(onlineTooltip));
     }
 }
 
@@ -440,9 +437,6 @@ function updateCheckUpdatesItem()
   if (!canUpdate)
     return;
 
-  if (!gUtilityBundle)
-    gUtilityBundle = document.getElementById("bundle_utilityOverlay");
-
   // By default, show "Check for Updates..."
   var key = "default";
   if (um.activeUpdate) {
@@ -590,6 +584,8 @@ var proxyTypeObserver = {
 
 function utilityOnLoad(aEvent)
 {
+  gUtilityBundle = document.getElementById("bundle_utilityOverlay");
+
   var broadcaster = document.getElementById("Communicator:WorkMode");
   if (!broadcaster) return;
 
@@ -702,7 +698,6 @@ function popupNotificationMenuShowing(event)
   var allowPopupsForSite = document.getElementById("allowPopupsForSite");
   allowPopupsForSite.notificationbox = notificationbox;
   var showPopupManager = document.getElementById("showPopupManager");
-  var bundle = srGetStrBundle("chrome://communicator/locale/utilityOverlay.properties");
 
   //  Only offer this menu item for the top window.
   //  See bug 280536 for problems with frames and iframes.
@@ -710,7 +705,7 @@ function popupNotificationMenuShowing(event)
     // uri.host generates an exception on nsISimpleURIs, but we also
     // don't want to show this menu item when there is no host.
     allowPopupsForSite.hidden = !uri.host;
-    var allowString = bundle.formatStringFromName("popupAllow", [uri.host], 1);
+    var allowString = gUtilityBundle.getFormattedString("popupAllow", [uri.host]);
     allowPopupsForSite.setAttribute("label", allowString);
     showPopupManager.hostport = uri.hostPort;
   } catch (ex) {
@@ -735,12 +730,11 @@ function createShowPopupsMenu(parent, browser)
   if (!popups)
     return false;
 
-  var bundle = srGetStrBundle("chrome://communicator/locale/utilityOverlay.properties");
   for (var i = 0; i < popups.length; i++) {
     var popup = popups[i];
     var menuitem = document.createElement("menuitem");
-    var str = bundle.formatStringFromName('popupMenuShow',
-                                          [popup.popupWindowURI.spec], 1);
+    var str = gUtilityBundle.getFormattedString("popupMenuShow",
+                                                [popup.popupWindowURI.spec]);
     menuitem.setAttribute("label", str);
     menuitem.popup = popup;
     parent.appendChild(menuitem);
