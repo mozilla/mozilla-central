@@ -65,12 +65,12 @@
   <script type="application/x-javascript" src="chrome://navigator/content/pageinfo/feeds.js"/>
   <script type="application/x-javascript" src="chrome://navigator/content/pageinfo/permissions.js"/>
   <script type="application/x-javascript" src="chrome://navigator/content/pageinfo/security.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript" src="chrome://help/content/contextHelp.js"/>
   <script type="application/x-javascript" src="chrome://communicator/content/utilityOverlay.js"/>
 
   <stringbundleset id="pageinfobundleset">
     <stringbundle id="pageinfobundle" src="chrome://navigator/locale/pageInfo.properties"/>
+    <stringbundle id="pkiBundle" src="chrome://pippki/locale/pippki.properties"/>
   </stringbundleset>
 
   <commandset id="pageInfoCommandSet">
