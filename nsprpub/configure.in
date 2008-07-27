@@ -996,10 +996,16 @@ case "$target" in
     AC_DEFINE(XP_UNIX)
     AC_DEFINE(DARWIN)
     AC_DEFINE(HAVE_BSD_FLOCK)
+    AC_DEFINE(HAVE_SOCKLEN_T)
     CFLAGS="$CFLAGS -Wmost -fno-common"
     case "${target_cpu}" in
         i*86*)
-            CPU_ARCH=i386
+            if test -n "$USE_64"; then
+                CPU_ARCH=x86_64
+                CC="$CC -arch x86_64"
+            else        
+                CPU_ARCH=i386
+            fi
             ;;
         *)
             CPU_ARCH=ppc

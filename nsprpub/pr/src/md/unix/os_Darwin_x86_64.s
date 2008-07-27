@@ -1,12 +1,12 @@
 # -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-#
+# 
 # ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+# Version: MPL 1.1#GPL 2.0#LGPL 2.1
 #
 # The contents of this file are subject to the Mozilla Public License Version
 # 1.1 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
+# http:##www.mozilla.org#MPL#
 #
 # Software distributed under the License is distributed on an "AS IS" basis,
 # WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
@@ -17,7 +17,7 @@
 #
 # The Initial Developer of the Original Code is
 # Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 2008
+# Portions created by the Initial Developer are Copyright (C) 2004
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -36,10 +36,60 @@
 #
 # ***** END LICENSE BLOCK *****
 
-#ifdef __i386__
-#include "os_Darwin_x86.s"
-#elif defined(__x86_64__)
-#include "os_Darwin_x86_64.s"
-#elif defined(__ppc__)
-#include "os_Darwin_ppc.s"
-#endif
+# PRInt32 __PR_Darwin_x86_64_AtomicIncrement(PRInt32 *val)
+#
+# Atomically increment the integer pointed to by 'val' and return
+# the result of the increment.
+#
+    .text
+    .globl __PR_Darwin_x86_64_AtomicIncrement
+    .align 4
+__PR_Darwin_x86_64_AtomicIncrement:
+    movl $1, %eax
+    lock
+    xaddl %eax, (%rdi)
+    incl %eax
+    ret
+
+# PRInt32 __PR_Darwin_x86_64_AtomicDecrement(PRInt32 *val)
+#
+# Atomically decrement the integer pointed to by 'val' and return
+# the result of the decrement.
+#
+    .text
+    .globl __PR_Darwin_x86_64_AtomicDecrement
+    .align 4
+__PR_Darwin_x86_64_AtomicDecrement:
+    movl $-1, %eax
+    lock
+    xaddl %eax, (%rdi)
+    decl %eax
+    ret
+
+# PRInt32 __PR_Darwin_x86_64_AtomicSet(PRInt32 *val, PRInt32 newval)
+#
+# Atomically set the integer pointed to by 'val' to the new
+# value 'newval' and return the old value.
+#
+    .text
+    .globl __PR_Darwin_x86_64_AtomicSet
+    .align 4
+__PR_Darwin_x86_64_AtomicSet:
+    movl %esi, %eax
+    xchgl %eax, (%rdi)
+    ret
+
+# PRInt32 __PR_Darwin_x86_64_AtomicAdd(PRInt32 *ptr, PRInt32 val)
+#
+# Atomically add 'val' to the integer pointed to by 'ptr'
+# and return the result of the addition.
+#
+    .text
+    .globl __PR_Darwin_x86_64_AtomicAdd
+    .align 4
+__PR_Darwin_x86_64_AtomicAdd:
+    movl %esi, %eax
+    lock
+    xaddl %eax, (%rdi)
+    addl %esi, %eax
+    ret
