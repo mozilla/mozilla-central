@@ -345,6 +345,11 @@
     
     <implementation>
       <constructor><![CDATA[
+        this.navigatorBundle =
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://navigator/locale/navigator.properties");
+
         var text = this.getAttribute("searchvalue");
         if (text)
           this.searchValue = text;
@@ -379,12 +384,12 @@
         ]]></getter>
         <setter><![CDATA[
           this.mSearchValue = val;
-          var kids = this.childNodes;
-          var searchForStrBundle = srGetStrBundle("chrome://navigator/locale/navigator.properties");
+
+          const kids = this.childNodes;
           for (var i = 0; i < kids.length; ++i) {
-            var name = kids[i].getAttribute("name");
-            var searchForStr = searchForStrBundle.formatStringFromName("searchFor",  [name, val], 2);
-            kids[i].setAttribute("label", searchForStr);
+            kids[i].setAttribute("label",
+              this.navigatorBundle.formatStringFromName(
+                "searchFor", [kids[i].getAttribute("name"), val], 2);
           }
         ]]></setter>
       </property>
