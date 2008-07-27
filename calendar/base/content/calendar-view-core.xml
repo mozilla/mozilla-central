@@ -246,6 +246,12 @@
 
           // calendar name
           this.setAttribute("calendar", item.calendar.name.toLowerCase());
+
+          // Invitation
+          if (item.calendar instanceof Components.interfaces.calISchedulingSupport &&
+              item.calendar.isInvitation(item)) { 
+              this.setAttribute("invitation", "true");
+          }
         ]]></body>
       </method>
 
