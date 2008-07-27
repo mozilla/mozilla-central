@@ -61,6 +61,9 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
   this._parameterType = aParameterType;
   this._explanationFormat = aExplanationFormat;
   
+  this._boundName = null;
+  this._boundSingular = null;
+  
   /** Map parameter values to the underlying database id. */
   this._parameterBindings = {};
 }
@@ -68,6 +71,13 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
 GlodaAttributeDef.prototype = {
   get id() { return this._id; },
   get provider() { return this._provider; },
+
+  get objectNoun() { return this._objectType; },
+  get parameterNoun() { return this._parameterType; },
+
+  get isBound() { return this._boundName !== null; },
+  get boundName() { return this._boundName; },
+  get singular() { return this._boundSingular; },
 
   /**
    * Bind a parameter value to the attribute definition, allowing use of the
@@ -89,7 +99,25 @@ GlodaAttributeDef.prototype = {
     this._parameterBindings[aValue] = id;
     this._datastore.reportBinding(id, this, aValue);
     return id;
-  },  
+  },
+  
+  explain: function gloda_attr_explain(aSubject, aParameter, aValue) {
+    let subjStr = (aSubject !== null) ? aSubject.toString() : "";
+    let paramStr = (aParameter !== null) ? aParameter.toString() : "";
+    let valStr = (aValue !== null) ? aValue.toString() : "";
+    
+    let explStr = this._explanationFormat ? this._explanationFormat
+                                          : "Inexplicable";
+    explStr = explStr.replace("%{subject}", subjStr);
+    explStr = explStr.replace("%{parameter}", paramStr);
+    explStr = explStr.replace("%{object}", valStr);
+    
+    return explStr.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+  },
+  
+  toString: function() {
+    return this._compoundName;
+  },
 };
 
 function GlodaConversation(aDatastore, aID, aSubject, aOldestMessageDate,
@@ -115,7 +143,11 @@ GlodaConversation.prototype = {
                                                                    false);
     }
     return this._messages;
-  }
+  },
+  
+  toString: function gloda_conversation_toString() {
+    return this._subject;
+  },
 };
 
 
@@ -134,6 +166,7 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   // for now, let's always cache this; they should really be forgetting about us
   //  if they want to forget about the underlying storage anyways...
   this._folderMessage = null;
+  // the list of attributes, un-processed
   this._attributes = null;
 }
 
@@ -163,6 +196,11 @@ GlodaMessage.prototype = {
   set messageKey(aMessageKey) { this._messageKey = aMessageKey; },
   set folderURI(aFolderURI) {
     this._folderID = this._datastore._mapFolderURI(aFolderURI);
+  },
+  
+  toString: function gloda_message_toString() {
+    // uh, this is a tough one...
+    return "Message " + this._id; 
   },
   
   _ghost: function gloda_message_ghost() {
@@ -201,7 +239,7 @@ GlodaMessage.prototype = {
       if (this._folderMessage != null) {
         // verify the message-id header matches what we expect...
         if (this._folderMessage.messageId != this._headerMessageID) {
-          LOG.warn("Message with message key does not match expected " +
+          LOG.info("Message with message key does not match expected " +
                    "header! (" + this._headerMessageID + " expected, got " +
                    this._folderMessage.messageId + ")");
           this._folderMessage = null;
@@ -215,21 +253,51 @@ GlodaMessage.prototype = {
     // this only gets logged if things have gone very wrong.  we used to throw
     //  here, but it's unlikely our caller can do anything more meaningful than
     //  treating this as a disappeared message.
-    LOG.error("Unable to locate folder message for: " + this._folderID + ":" +
-              this._messageKey);
+    LOG.info("Unable to locate folder message for: " + this._folderID + ":" +
+             this._messageKey);
     return null;
   },
   
-  get attributes() {
-    if (this._attributes == null) {
+  get rawAttributes() {
+    if (this._attributes == null)
       this._attributes = this._datastore.getMessageAttributes(this); 
-    }
-    
     return this._attributes;
   },
   
+  /**
+   * For consistency of caching with the bound attributes, we try and access the
+   *  attributes through their bound names if they are bound.
+   */
+  get attributes() {
+    let seenDefs = {};
+    let attribs = [];
+    for each (let attrParamVal in this.rawAttributes) {
+      let attrDef = attrParamVal[0];
+      if (!(attrDef in seenDefs)) {
+        if (attrDef.isBound) {
+          if (attrDef.singular) {
+            attribs.push([attrDef, this[attrDef.boundName]]);
+          }
+          else {
+            let values = this[attrDef.boundName];
+            for (let iValue=0; iValue < values.length; iValue++)
+              attribs.push([attrDef, values[iValue]]);
+          }
+          seenDefs[attrDef] = true;
+        }
+        else {
+          // TODO: actually deal with unbound attributes
+          LOG.info("unbound attribute ignored in traversal: " + attrDef +
+                   " value: " + attrParamVal[2]);
+        }
+      }
+    }
+    
+    return attribs;
+  },
+  
   getAttributeInstances: function gloda_message_getAttributeInstances(aAttr) {
-    return [attrParamVal for each (attrParamVal in this.attributes) if
+    return [attrParamVal for each (attrParamVal in this.rawAttributes) if
             (attrParamVal[0] == aAttr)];
   },
   
@@ -255,6 +323,10 @@ GlodaContact.prototype = {
   get directoryUUID() { return this._directoryUUID; },
   get contactUUID() { return this._contactUUID; },
   get name() { return this._name },
+  
+  toString: function gloda_contact_toString() {
+    return this._name;
+  }
 };
 
 function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue,
@@ -280,5 +352,9 @@ GlodaIdentity.prototype = {
       this._contact = this._datastore.getContactByID(this._contactID);
     }
     return this._contact;
+  },
+  
+  toString: function gloda_identity_toString() {
+    return this._value;
   },
 };

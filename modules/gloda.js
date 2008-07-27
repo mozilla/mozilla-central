@@ -308,6 +308,9 @@ let Gloda = {
     //  definer to provide the actual logic, since we need to affect reality,
     //  not just the data-store.  we may also just punt that all off onto
     //  STEEL...
+
+    aAttr._boundName = aBindName;
+    aAttr._boundSingular = aSingular;
   },
   
   /**
