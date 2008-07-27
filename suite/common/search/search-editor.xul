@@ -53,9 +53,11 @@
         buttons="accept"
         ondialogaccept="return Commit();">
 
-  <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript" src="chrome://communicator/content/search/search-editor.js"/>
- 
+
+  <stringbundle id="searchBundle"
+                src="chrome://communicator/locale/search/search-editor.properties"/>
+
   <hbox flex="1">
   
     <vbox flex="1">

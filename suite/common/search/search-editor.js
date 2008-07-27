@@ -40,9 +40,8 @@
 
 
 // global(s)
-var bundle = srGetStrBundle("chrome://communicator/locale/search/search-editor.properties");
-var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-promptService = promptService.QueryInterface(Components.interfaces.nsIPromptService);
+var gSearchBundle;
+var promptService;
 var pref = null;
 var RDF = null;
 var RDFC = null;
@@ -81,6 +80,10 @@ function debug(msg)
 
 function doLoad()
 {
+  gSearchBundle = document.getElementById("searchBundle");
+  promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                            .getService(Components.interfaces.nsIPromptService);
+
   var categoryList = document.getElementById("categoryList");
   // adjust category popup
   var internetSearch = Components.classes["@mozilla.org/rdf/datasource;1?name=internetsearch"].getService();
@@ -457,8 +460,8 @@ function doMoveDirectionEnabling()
 
 function NewCategory()
 {
-  var promptStr = bundle.GetStringFromName("NewCategoryPrompt");
-  var newTitle = bundle.GetStringFromName("NewCategoryTitle");
+  const promptStr = gSearchBundle.getString("NewCategoryPrompt");
+  const newTitle = gSearchBundle.getString("NewCategoryTitle");
   var result = {value:null};
   var confirmed = promptService.prompt(window, newTitle, promptStr, result, null, {value:0});
   if (!confirmed || (!result.value) || result.value == "")      return(false);
@@ -509,8 +512,8 @@ function RenameCategory()
 
   var categoryList = document.getElementById( "categoryList" );
   var currentName = categoryList.selectedItem.getAttribute("label");
-  var promptStr = bundle.GetStringFromName("RenameCategoryPrompt");
-  var renameTitle = bundle.GetStringFromName("RenameCategoryTitle");
+  const promptStr = gSearchBundle.getString("RenameCategoryPrompt");
+  const renameTitle = gSearchBundle.getString("RenameCategoryTitle");
   var result = {value:currentName};
   var confirmed = promptService.prompt(window,renameTitle,promptStr,result,null,{value:0});
   if (!confirmed || (!result.value) || (result.value == "") || result.value == currentName)     return(false);
@@ -551,9 +554,9 @@ function RemoveCategory()
   if (!categoryPopup) return(false);
   if (categoryPopup.childNodes.length < 1)  return(false);
 
-  var titleStr = bundle.GetStringFromName("RemoveCategoryTitle");
-  var promptStr = bundle.GetStringFromName("RemoveCategoryPrompt");
-  var yesStr = bundle.GetStringFromName("RemoveCategoryYes");
+  const titleStr = gSearchBundle.getString("RemoveCategoryTitle");
+  const promptStr = gSearchBundle.getString("RemoveCategoryPrompt");
+  const yesStr = gSearchBundle.getString("RemoveCategoryYes");
   var flags = ((promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0) +
                (promptService.BUTTON_TITLE_CANCEL * promptService.BUTTON_POS_1) + 
                promptService.BUTTON_POS_1_DEFAULT);
