@@ -56,7 +56,6 @@
         persist="screenX screenY width height">
 
   <script src="chrome://communicator/content/permissions/cookieViewer.js"/>
-  <script src="chrome://global/content/strres.js"/>
   <script src="chrome://communicator/content/permissions/treeUtils.js"/>
   <script type="application/x-javascript" src="chrome://help/content/contextHelp.js" />
 

@@ -90,7 +90,6 @@
 
         // Block image depends on whether an image was clicked on
         if (gContextMenu.onImage) {
-          var bundle = srGetStrBundle("chrome://communicator/locale/contentAreaCommands.properties");
           var IOService = Components.classes["@mozilla.org/network/io-service;1"]
                                     .getService(Components.interfaces.nsIIOService);
 
@@ -115,6 +114,8 @@
                                                 .getService(Components.interfaces.nsIPermissionManager);
               if (permissionmanager.testPermission(uri, "image") == nsIPermissionManager.DENY_ACTION) 
                 action = "unblock";
+              // Use |getStringBundle()| from <contentAreaUtils.js>.
+              const bundle = getStringBundle();
               var blockImageMenuItem = document.getElementById("context-" + action + "image");
               blockImageMenuItem.setAttribute("label", bundle.formatStringFromName(action + "Image", [serverLabel], 1));
               blockImageMenuItem.setAttribute("accesskey", bundle.GetStringFromName(action + "Image.accesskey"));
