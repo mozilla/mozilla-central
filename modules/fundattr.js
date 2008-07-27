@@ -125,21 +125,21 @@ let GlodaFundAttr = {
     Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
       actionTarget: Gloda.NOUN_MESSAGE,
       shortName: "from",
-      makeConstraint: function(aIdentity) {
+      makeConstraint: function(aAttrDef, aIdentity) {
         return [GlodaFundAttr._attrFrom, null, aIdentity.id];
       },
       });
     Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
       actionTarget: Gloda.NOUN_MESSAGE,
       shortName: "to",
-      makeConstraint: function(aIdentity) {
+      makeConstraint: function(aAttrDef, aIdentity) {
         return [GlodaFundAttr._attrTo, null, aIdentity.id];
       },
       });
     Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
       actionTarget: Gloda.NOUN_MESSAGE,
       shortName: "cc",
-      makeConstraint: function(aIdentity) {
+      makeConstraint: function(aAttrDef, aIdentity) {
         return [GlodaFundAttr._attrCc, null, aIdentity.id];
       },
       });

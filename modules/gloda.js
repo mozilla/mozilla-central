@@ -273,6 +273,23 @@ let Gloda = {
       }};
   
     GlodaDatastore.getAllAttributes();
+
+    /* boolean actions, these are parameterized by the attribute they operate
+       in the context of.  They are also (not coincidentally), ugly. */
+    Gloda.defineNounAction(Gloda.NOUN_BOOLEAN, {actionType: "filter",
+      actionTarget: Gloda.NOUN_MESSAGE,
+      shortName: "true",
+      makeConstraint: function(aAttrDef, aIdentity) {
+        return [aAttrDef, null, 1];
+      },
+      });
+    Gloda.defineNounAction(Gloda.NOUN_BOOLEAN, {actionType: "filter",
+      actionTarget: Gloda.NOUN_MESSAGE,
+      shortName: "false",
+      makeConstraint: function(aAttrDef, aIdentity) {
+        return [aAttrDef, null, 0];
+      },
+      });
   },
   
   
