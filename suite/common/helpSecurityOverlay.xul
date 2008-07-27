@@ -65,18 +65,17 @@
 
     function doDeleteCertificateHelpButton()
     {
-      var bundle = srGetStrBundle("chrome://pippki/locale/pippki.properties");
       switch (gParams.GetString(0)) {
-        case bundle.GetStringFromName("deleteUserCertFlag"):
+        case "mine_tab":
           openHelp("delete_my_certs");
           break;
-        case bundle.GetStringFromName("deleteSslCertFlag"):
+        case "websites_tab":
           openHelp("delete_web_certs");
           break;
-        case bundle.GetStringFromName("deleteCaCertFlag"):
+        case "ca_tab":
           openHelp("delete_ca_certs");
           break;
-        case bundle.GetStringFromName("deleteEmailCertFlag"):
+        case "others_tab":
           openHelp("delete_email_certs");
           break;
       }
