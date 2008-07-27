@@ -111,10 +111,13 @@
           </row>
           <row id="organizer-row" align="top" hidden="true">
             <label value="&read.only.organizer.label;" class="headline"/>
-            <label id="item-organizer"
-                   class="text-link"
-                   crop="right"
-                   onclick="sendMailToOrganizer()"/>
+            <hbox>
+              <label id="item-organizer"
+                     class="text-link"
+                     crop="right"
+                     onclick="sendMailToOrganizer()"/>
+              <spacer flex="1"/>
+            </hbox>
           </row>
           <row id="status-row" align="top" hidden="true">
             <label value="&task.status.label;" class="headline"/>
@@ -234,8 +237,8 @@
       <spacer class="default-spacer"/>
       <listbox id="item-attendee-listbox" rows="6" flex="1" disabled="true">
         <listcols>
-          <listcol/>
-          <listcol/>
+          <listcol flex="1"/>
+          <listcol flex="1"/>
         </listcols>
         <listitem>
           <listcell>

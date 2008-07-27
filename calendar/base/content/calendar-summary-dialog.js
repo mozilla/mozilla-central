@@ -119,21 +119,14 @@ function onLoad() {
     }
 
     var organizer = item.organizer;
-    if (organizer) {
+    if (organizer && organizer.id) {
+        document.getElementById("organizer-row").removeAttribute("hidden");
+
         if (organizer.commonName && organizer.commonName.length) {
-            document.getElementById("organizer-row")
-                .removeAttribute("hidden");
-            document.getElementById("item-organizer")
-                .value = organizer.commonName;
+            document.getElementById("item-organizer").value = organizer.commonName;
+            document.getElementById("item-organizer").setAttribute("tooltiptext", organizer.toString());
         } else if (organizer.id && organizer.id.length) {
-            var email = organizer.id;
-            var re = new RegExp("^mailto:(.*)", "i");
-            var matches = re.exec(email);
-            if (matches) {
-                email = matches[1];
-            }
-            document.getElementById("organizer-row").removeAttribute("hidden");
-            document.getElementById("item-organizer").value = email;
+            document.getElementById("item-organizer").value = organizer.toString();
         }
     }
 
@@ -284,33 +277,28 @@ function updateAttendees() {
         var list = listbox.getElementsByTagName("listitem");
         var page = 0;
         var line = 0;
-        var re = new RegExp("^mailto:(.*)", "i");
         for each (var attendee in attendees) {
-            var name = attendee.commonName;
-            if (!(name && name.length)) {
-                if (attendee.id && attendee.id.length) {
-                    var email = attendee.id;
-                    if (email && email.length) {
-                        var matches = re.exec(email);
-                        if (matches) {
-                            email = matches[1];
-                        }
-                    }
-                    name = email;
-                }
+            var itemNode = list[line];
+            var listcell = itemNode.getElementsByTagName("listcell")[page];
+            var image = itemNode.getElementsByTagName("image")[page];
+            var label = itemNode.getElementsByTagName("label")[page];
+            if (attendee.commonName && attendee.commonName.length) {
+                label.value = attendee.commonName;
+                // XXX While this is correct from a XUL standpoint, it doesn't
+                // seem to work on the listcell. Working around this would be an
+                // evil hack, so I'm waiting for it to be fixed in the core
+                // code instead.
+                listcell.setAttribute("tooltiptext", attendee.toString());
+            } else {
+                label.value = attendee.toString();
             }
-            if (name && name.length) {
-                var itemNode = list[line];
-                var image = itemNode.getElementsByTagName("image")[page];
-                var label = itemNode.getElementsByTagName("label")[page];
-                label.value = name;
-                image.setAttribute("status", attendee.participationStatus);
-                image.removeAttribute("hidden");
-                page++;
-                if (page > 1) {
-                  page = 0;
-                  line++;
-                }
+            image.setAttribute("status", attendee.participationStatus);
+            image.removeAttribute("hidden");
+
+            page++;
+            if (page > 1) {
+              page = 0;
+              line++;
             }
         }
     }
@@ -334,14 +322,7 @@ function sendMailToOrganizer() {
     var organizer = item.organizer;
     if (organizer) {
         if (organizer.id && organizer.id.length) {
-            var email = organizer.id;
-            var re = new RegExp("^mailto:(.*)", "i");
-            if (email && email.length) {
-                var matches = re.exec(email);
-                if (matches) {
-                    email = matches[1];
-                }
-            }
+            var email = organizer.id.replace(/^mailto:/i, "");
 
             // Set up the subject
             var emailSubject = calGetString("sun-calendar-event-dialog",
