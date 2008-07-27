@@ -69,9 +69,6 @@
 
   <!-- The order of loading of these script files is IMPORTANT -->
 
-  <!-- Shared Libraries -->
-  <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
-
   <!-- XXX - This should SO become an XBL widget -->
   <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
 
