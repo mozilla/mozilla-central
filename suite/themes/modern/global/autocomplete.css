@@ -48,6 +48,10 @@ textbox[type="autocomplete"] {
   cursor: default !important;
 }
 
+textbox[nomatch="true"][highlightnonmatches="true"] {
+  color: red;
+}
+
 .textbox-input-box {
   -moz-box-align: center;
 }

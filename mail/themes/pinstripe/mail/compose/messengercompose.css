@@ -417,10 +417,6 @@ treechildren::-moz-tree-image(remote-err) {
   margin: 5px 0px 5px 0px;
 }
 
-.textbox-addressingWidget[noMatchesFound="true"] {
-  color: red;
-}
-
 #typecol-addressingWidget {
   min-width: 9em;
 }
