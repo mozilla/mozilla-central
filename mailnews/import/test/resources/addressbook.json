@@ -1,0 +1,46 @@
+{
+  "basic_addressbook" :
+  [
+    {
+      "DisplayName"      : "Display Name",
+      "PrimaryEmail"     : "primaryemail@host.invalid",
+      "FirstName"        : "First",
+      "LastName"         : "Last",
+      "NickName"         : "Nickname",
+      "SecondEmail"      : "secondemail@host.invalid",
+      "_AimScreenName"    : "screenname",
+      "PreferMailFormat" : "html",
+      "LastModifiedDate" : 1213818826,
+      "WorkPhone"        : "123-456-7890",
+      "HomePhone"        : "234-567-8901",
+      "FaxNumber"        : "345-678-9012",
+      "PagerNumber"      : "456-789-0123",
+      "CellularNumber"   : "567-890-1234",
+      "HomeAddress"      : "Home Address Line 1",
+      "HomeAddress2"     : "Home Address Line 2",
+      "HomeCity"         : "Home City",
+      "HomeState"        : "Home State",
+      "HomeZipCode"      : "Home Zip",
+      "HomeCountry"      : "Home Country",
+      "WorkAddress"      : "Work Address Line 1",
+      "WorkAddress2"     : "Work Address Line 2",
+      "WorkCity"         : "Work City",
+      "WorkState"        : "Work State",
+      "WorkZipCode"      : "Work Zip",
+      "WorkCountry"      : "Work Country",
+      "JobTitle"         : "Job Title",
+      "Department"       : "Department",
+      "Company"          : "Organization Name",
+      "WebPage1"         : "http://127.0.0.1",
+      "WebPage2"         : "http://localhost",
+      "BirthYear"        : "1900",
+      "BirthMonth"       : "1",
+      "BirthDay"         : "2",
+      "Custom1"          : "Custom Field 1",
+      "Custom2"          : "Custom Field 2",
+      "Custom3"          : "Custom Field 3",
+      "Custom4"          : "Custom Field 4",
+      "Notes"            : "Notes line 1\nNotes line 2\nNotes line 3\nNotes line 4"
+    }
+  ]
+}

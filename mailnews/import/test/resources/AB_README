@@ -1,0 +1,39 @@
+To test importing an address book, make a new file in the
+/import/test/unit directory with the prefix test_ in the filename
+(ex. test_ldif_import.js).
+
+It should have a function named run_test with no parameters.  If you are using
+import_helper.js, which is already imported, you must at least get the file
+to import and make a new AbImportHelper object with at least the file and type
+of import.  Call the beginImport method on the object when you are ready to
+start the import.
+
+If you would like the results of the import checked, make sure to update
+addressbook.json.  This file is read by import_helper.js to compare the address
+book cards imported to an array of "cards" in in this file. When making a new
+import, first chose a name for the array (like basic_addressbook) to store the
+cards that should be in the newly-imported address book.  The properties and
+values of each object in the array should identical to the properties and values
+of the newly-imported card(s) and the cards themselves need to be in the
+expected order.  If a card to be imported does not have a property, do not
+include it in the JSON card.  Multiple types of imports can be tested with one
+array, as only the supported attributes are checked.
+
+You will also need to give the AbImportHelper constructor two additional
+parameters: the name the imported address book will have (the filename without
+the extension) and the name you chose for the JSON object.
+
+Here is a sample unit test that doesn't check the results:
+function run_test()
+{
+  var file = do_get_file("../mailnews/import/test/resources/basic_ldif_addressbook.ldif");
+  new AbImportHelper(file, "ldif").beginImport();
+}
+
+Here is a sample unit test that checks the results:
+function run_test()
+{
+  var file = do_get_file("../mailnews/import/test/resources/basic_ldif_addressbook.ldif");
+  new AbImportHelper(file, "ldif", "basic_ldif_addressbook",
+                     "basic_addressbook").beginImport();
+}

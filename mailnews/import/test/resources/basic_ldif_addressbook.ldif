@@ -1,0 +1,43 @@
+dn: cn=Display Name,mail=primaryemail@host.invalid
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+objectclass: mozillaAbPersonAlpha
+givenName: First
+sn: Last
+cn: Display Name
+mozillaNickname: Nickname
+mail: primaryemail@host.invalid
+mozillaSecondEmail: secondemail@host.invalid
+nsAIMid: screenname
+mozillaUseHtmlMail: true
+modifytimestamp: 1213818826
+telephoneNumber: 123-456-7890
+homePhone: 234-567-8901
+fax: 345-678-9012
+pager: 456-789-0123
+mobile: 567-890-1234
+mozillaHomeStreet: Home Address Line 1
+mozillaHomeStreet2: Home Address Line 2
+mozillaHomeLocalityName: Home City
+mozillaHomeState: Home State
+mozillaHomePostalCode: Home Zip
+mozillaHomeCountryName: Home Country
+street: Work Address Line 1
+mozillaWorkStreet2: Work Address Line 2
+l: Work City
+st: Work State
+postalCode: Work Zip
+c: Work Country
+title: Job Title
+ou: Department
+o: Organization Name
+mozillaWorkUrl: http://127.0.0.1
+mozillaHomeUrl: http://localhost
+birthyear: 1900
+mozillaCustom1: Custom Field 1
+mozillaCustom2: Custom Field 2
+mozillaCustom3: Custom Field 3
+mozillaCustom4: Custom Field 4
+description:: Tm90ZXMgbGluZSAxCk5vdGVzIGxpbmUgMgpOb3RlcyBsaW5lIDMKTm90ZXMgbGluZSA0
