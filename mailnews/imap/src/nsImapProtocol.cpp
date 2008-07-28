@@ -1441,7 +1441,8 @@ PRBool nsImapProtocol::ProcessCurrentURL()
       if ( !(GetServerStateParser().GetCapabilityFlag() & (kIMAP4Capability | kIMAP4rev1Capability |
              kIMAP4other) ) )
       {
-        AlertUserEventUsingId(IMAP_SERVER_NOT_IMAP4);
+        if (!DeathSignalReceived() && GetConnectionStatus() >= 0)
+          AlertUserEventUsingId(IMAP_SERVER_NOT_IMAP4);
 
         SetConnectionStatus(-1);        // stop netlib
       }
