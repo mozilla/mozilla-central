@@ -1,0 +1,14 @@
+Path: border1.nntp.dca.giganews.com!nntp.giganews.com!local02.nntp.dca.giganews.com!nntp.mozilla.org!news.mozilla.org.POSTED!not-for-mail
+Date: Sat, 1 Jan 2000 19:58:07 +0400
+From: Normal Person <fake@acme.invalid>
+User-Agent: Program/1.0
+MIME-Version: 1.0
+Newsgroups: test.filter
+Subject: Regular subject
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Message-ID: <4@regular.invalid>
+NNTP-Posting-Host: 127.0.0.1
+Xref: test.filter:4
+
+This is the fourth body post.

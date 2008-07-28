@@ -116,6 +116,8 @@ NNTP_XOVER_SEND,
 NNTP_XOVER_RESPONSE,
 NNTP_XOVER,
 NEWS_PROCESS_XOVER,
+NNTP_XHDR_SEND,
+NNTP_XHDR_RESPONSE,
 NNTP_READ_GROUP,
 NNTP_READ_GROUP_RESPONSE,
 NNTP_READ_GROUP_BODY,
@@ -268,7 +270,6 @@ private:
 
   PRInt32   m_originalContentLength; /* the content length at the time of calling graph progress */
 
-
   nsCOMPtr<nsIStringBundle> m_stringBundle;
 
   nsCOMPtr<nsINntpIncomingServer> m_nntpServer;
@@ -278,17 +279,17 @@ private:
 
   PRInt32 PostMessageInFile(nsIFile * filePath);
 
-  ////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // Communication methods --> Reading and writing protocol
-  ////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   PRInt32 ReadLine(nsIInputStream * inputStream, PRUint32 length, char ** line);
 
-  ////////////////////////////////////////////////////////////////////////////////////////
-  // Protocol Methods --> This protocol is state driven so each protocol method is
-  //            designed to re-act to the current "state". I've attempted to
+  //////////////////////////////////////////////////////////////////////////////
+  // Protocol Methods --> This protocol is state driven so each protocol method
+  //            is designed to re-act to the current "state". I've attempted to
   //            group them together based on functionality.
-  ////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   // gets the response code from the nntp server and the response line. Returns the TCP return code
   // from the read.
@@ -346,11 +347,6 @@ private:
   PRInt32 BeginNewsgroups();
   PRInt32 ProcessNewsgroups(nsIInputStream * inputStream, PRUint32 length);
 
-  PRInt32 ReadNewsgroup();
-  PRInt32 ReadNewsgroupResponse();
-
-  PRInt32 ReadNewsgroupBody(nsIInputStream * inputStream, PRUint32 length);
-
   // Protocol handlers used for posting data
   PRInt32 PostData();
   PRInt32 PostDataResponse();
@@ -361,19 +357,100 @@ private:
   PRInt32 DisplayNewsRC();
   PRInt32 DisplayNewsRCResponse();
 
-  // start off the xover command
+  /////////////////////////////////////////////////////////////////////////////
+  // XHDR, XOVER, HEAD filtering process handlers
+  // These are ordered by the rough order of usage
+  /////////////////////////////////////////////////////////////////////////////
+ 
+  /**
+   * The first step in the filtering process, the state NNTP_XOVER_BEGIN.
+   * This method sets up m_newsgroupList.
+   * Followed by: NNTP_FIGURE_NEXT_CHUNK
+   */
   PRInt32 BeginReadXover();
+  /**
+   * The loop control for filtering, the state NNTP_FIGURE_NEXT_CHUNK.
+   * This method contacts the newsgroupList to figure out which articles to
+   * download and then prepares it for XOVER support.
+   * Followed by: NEWS_PROCESS_XOVER       if everything is finished
+   *              NNTP_READ_GROUP          if XOVER doesn't work
+   *              NNTP_XOVER_SEND          if XOVER does work
+   */
+  PRInt32 FigureNextChunk();
 
-  // process the xover list as it comes from the server and load it into the sort list.
-  PRInt32 ReadXover(nsIInputStream * inputStream, PRUint32 length);
-  // See if the xover response is going to return us data. If the proper code isn't returned then
-  // assume xover isn't supported and use normal read_group.
-  PRInt32 ReadXoverResponse();
-
+  // The XOVER process core
+  /**
+   * The state NNTP_XOVER_SEND, which actually sends the message.
+   * Followed by: NNTP_XOVER_RESPONSE
+   */
   PRInt32 XoverSend();
+  /**
+   * This state, NNTP_XOVER_RESPONSE, actually checks the XOVER capabiliity.
+   * Followed by: NNTP_XOVER               if XOVER is supported
+   *              NNTP_READ_GROUP          if it isn't
+   */
+  PRInt32 ReadXoverResponse();
+  /**
+   * This state, NNTP_XOVER, processes the results from the XOVER command.
+   * It asks nsNNTPNewsgroupList to process the line using ProcessXOVERLINE.
+   * Followed by: NNTP_XHDR_SEND
+   */
+  PRInt32 ReadXover(nsIInputStream * inputStream, PRUint32 length);
+
+  // The XHDR process core
+  /**
+   * This state, NNTP_XHDR_SEND, sends the XHDR command.
+   * The headers are all managed by nsNNTPNewsgroupList, and this picks them up
+   * one by one as they are needed.
+   * Followed by: NNTP_XHDR_RESPONSE       if there is a header to be sent
+   *              NNTP_FIGURE_NEXT_CHUNK   if all headers have been sent
+   */
+  PRInt32 XhdrSend();
+  /**
+   * This state, NNTP_XHDR_RESPONSE, processes the XHDR response.
+   * It mostly passes the information off to nsNNTPNewsgroupList, and only does
+   * response code checking and a bit of preprocessing. Note that if XHDR
+   * doesn't work properly, HEAD fallback is switched on and all subsequent
+   * chunks will NOT use XOVER.
+   * Followed by: NNTP_READ_GROUP          if XHDR doesn't work properly
+   *              NNTP_XHDR_SEND           when finished processing XHR.
+   */
+  PRInt32 XhdrResponse(nsIInputStream *inputStream);
+
+  // HEAD processing core
+  /**
+   * This state, NNTP_READ_GROUP, is the control for the HEAD processor.
+   * It sends the HEAD command and increments the article number until it is
+   * finished. WARNING: HEAD is REALLY SLOW.
+   * Followed by: NNTP_FIGURE_NEXT_CHUNK   when it is finished 
+   *              NNTP_READ_GROUP_RESPONSE when it is not
+   */
+  PRInt32 ReadHeaders();
+  /**
+   * This state, NNTP_READ_GROUP_RESPONSE, checks if the article exists.
+   * Because it is required by NNTP, if it doesn't work, the only problem would
+   * be that the article doesn't exist. Passes off article number data to 
+   * nsNNTPNewsgroupList.
+   * Followed by: NNTP_READ_GROUP_BODY     if the article exists
+   *              NNTP_READ_GROUP          if it doesn't.
+   */
+  PRInt32 ReadNewsgroupResponse();
+  /**
+   * This state, NNTP_READ_GROUP_BODY, reads the body of the HEAD command.
+   * Once again, it passes information off to nsNNTPNewsgroupList.
+   * Followed by: NNTP_READ_GROUP
+   */
+  PRInt32 ReadNewsgroupBody(nsIInputStream * inputStream, PRUint32 length);
+
+  /**
+   * This state, NNTP_PROCESS_XOVER, is the final step of the filter-processing
+   * code. Currently, all it does is cleans up the unread count and calls the
+   * filters, both via nsNNTPNewsgroupList.
+   * Followed by: NEWS_DONE
+   */
   PRInt32 ProcessXover();
 
-  PRInt32 FigureNextChunk();
+
 
   // Canceling
   PRInt32 StartCancel();

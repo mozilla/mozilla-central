@@ -1,0 +1,50 @@
+Path: border1.nntp.dca.giganews.com!nntp.giganews.com!local02.nntp.dca.giganews.com!nntp.mozilla.org!news.mozilla.org.POSTED!not-for-mail
+Date: Mon, 23 Jun 2008 19:58:07 +0400
+From: Normal Person <fake@acme.invalid>
+User-Agent: Program/1.0
+MIME-Version: 1.0
+Newsgroups: test.filter
+Subject: Regular subject
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Message-ID: <5@regular.invalid>
+NNTP-Posting-Host: 127.0.0.1
+Xref: test.filter:5
+Bytes: 2057
+
+This is the fifth body post, with extra special padding to make sure
+that no one else has the same length as it. You see, we have to ensure
+that we have at least two KB of data because search is stupid and
+searches in terms of KB. If we didn't, we'd be stuck with a lot of
+messages merely matching 1, so we use this to pad the size.
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+
+.
+
+But that wasn't all :-)
+
+-- 
+A signature for the heck of it.

@@ -2327,14 +2327,18 @@ NS_IMETHODIMP nsMsgDatabase::MarkHdrRead(nsIMsgDBHdr *msgHdr, PRBool bRead,
   // (we could override this method for news db's, but it's a trivial fix here.
   if (bRead != isRead || isRead != isReadInDB)
   {
-    nsCOMPtr <nsIMsgThread> threadHdr;
     nsMsgKey msgKey;
     msgHdr->GetMessageKey(&msgKey);
+    
+    PRBool inDB = PR_FALSE;
+    (void)ContainsKey(msgKey, &inDB);
 
-    rv = GetThreadForMsgKey(msgKey, getter_AddRefs(threadHdr));
-    if (threadHdr)
+    if (inDB)
     {
-      threadHdr->MarkChildRead(bRead);
+      nsCOMPtr <nsIMsgThread> threadHdr;
+      rv = GetThreadForMsgKey(msgKey, getter_AddRefs(threadHdr));
+      if (threadHdr)
+        threadHdr->MarkChildRead(bRead);
     }
     return MarkHdrReadInDB(msgHdr, bRead, instigator);
   }

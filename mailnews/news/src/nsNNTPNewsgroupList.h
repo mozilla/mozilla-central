@@ -53,6 +53,7 @@
 #include "nsIMsgFilterList.h"
 #include "nsIMsgHdr.h"
 #include "nsIMsgWindow.h"
+#include "nsCOMArray.h"
 
 /* The below is all stuff that we remember for netlib about which
    articles we've already seen in the current newsgroup. */
@@ -103,6 +104,9 @@ private:
   void SetProgressBarPercent(PRInt32 percent);
   void SetProgressStatus(const PRUnichar *message);
 
+  void UpdateStatus(PRBool filtering, PRInt32 numDled, PRInt32 totToDL);
+
+  nsresult AddHeader(const char * header, const char * value);
 protected:
   PRBool m_getOldMessages;
   PRBool m_promptedAlready;
@@ -114,22 +118,37 @@ protected:
   nsCOMPtr <nsIMsgNewsFolder> m_newsFolder;
   nsCOMPtr <nsIMsgDatabase> m_newsDB;
   nsCOMPtr <nsINntpUrl> m_runningURL;
-  
+ 
+  /**
+   * The last message that we have processed (XOVER or HEAD).
+   */
   nsMsgKey m_lastProcessedNumber;
-  nsMsgKey m_firstMsgNumber;
-  nsMsgKey m_lastMsgNumber;
-  PRInt32 m_firstMsgToDownload;
-  PRInt32 m_lastMsgToDownload;
+  /**
+   * The endpoints of the message chunk we are actually downloading.
+   */
+  nsMsgKey m_firstMsgNumber, m_lastMsgNumber;
+  /**
+   * The endpoints of the message chunk we are capable of downloading.
+   */
+  PRInt32 m_firstMsgToDownload, m_lastMsgToDownload;
   
   struct MSG_NewsKnown m_knownArts;
   nsMsgKeySet *m_set;
+
+  nsCStringArray m_filterHeaders;
+  PRInt32 m_currentXHDRIndex;
+  nsCString m_lastHeader;
+  nsCString m_thisLine;
 
 private:
   nsCOMPtr <nsIMsgWindow> m_msgWindow;
   nsCOMPtr <nsIMsgFilterList> m_filterList;
   nsCOMPtr <nsIMsgFilterList> m_serverFilterList;
-  nsCOMPtr <nsIMsgDBHdr> m_newMsgHdr; /* current message header we're building */
+  nsCOMPtr <nsIMsgDBHdr> m_newMsgHdr; // current message header we're building
+  nsCOMArray<nsIMsgDBHdr> m_newHeaders;
+
   PRBool m_addHdrToDB;
+
 };
     
 #endif /* nsNNTPNewsgroupListState_h___ */

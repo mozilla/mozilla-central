@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,17 +36,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* this interface is basically for the old ListNewsGroupState class
- * (the implementation of this class probably wants to also implement
- * or contain ChangeListener so that it can react to OnAnnouncerGoingAway()
- * to destroy the DBView)
- */
 #include "nsISupports.idl"
 
 interface nsIMsgNewsFolder;
 interface nsINntpUrl;
 interface nsIMsgWindow;
 
+/**
+ * A utility class for nsINNTPProtocol that handles the list of new headers.
+ */
 [scriptable, uuid(E628ED19-9452-11d2-B7EA-00805F05FFA5)]
 interface nsINNTPNewsgroupList : nsISupports {
   
@@ -59,24 +58,68 @@ interface nsINNTPNewsgroupList : nsISupports {
   
   void addToKnownArticles(in long first_message, in long last_message);
 
-
-  /* The NNTP module of netlib calls these to feed XOVER data to the message
-     library, in response to a news:group.name URL having been opened.
-     If MSG_FinishXOVER() returns a message ID, that message will be loaded
-     next (used for selecting the first unread message in a group after
-     listing that group.)
-
-     deprecated:
-     The "out" arguments are (if non-NULL) a file descriptor to write the XOVER
-     line to, followed by a "\n".  This is used by the XOVER-caching code.
-  */
-  /* the XOVER Sink should maintain the ListNewsGroupState */
+  /**
+   * Initializes the internal state to get the messages.
+   *
+   * This method should be called before sending the line
+   * <tt>XOVER @arg first_message-@arg last_message</tt> to the server.
+   *
+   * @param first_message  The first message of the download range.
+   * @param last_message   The last message of the download range.
+   */
   void initXOVER(in long first_message, in long last_message);  
   void processXOVERLINE(in string line, out unsigned long status);
-  void processNonXOVER(in string line);
   void resetXOVER();
   void finishXOVERLINE(in long status, out long newstatus);
-  void clearXOVERState();
+
+  /**
+   * Initalizes the state in preparation for a call to XHDR.
+   *
+   * @return               The next header to get, or an empty string if done.
+   */
+  ACString initXHDR();
+  /**
+   * Processes a line of the server's response to XHDR.
+   *
+   * It will calculate the message number and other information itself, so the
+   * unadulterated line itself should be sent.
+   *
+   * @param aLine          The line as sent from the server.
+   */
+  void processXHDRLine(in ACString aLine);
+
+  /**
+   * Initalizes the internal state to process a HEAD command.
+   *
+   * This method should be called before sending the line
+   * <tt>HEAD @arg aMessage</tt> to the server.
+   *
+   * @param aMessage       The message number that will be sent.
+   */
+  void initHEAD(in long aMessage);
+  /**
+   * Processes a line of the server's response to HEAD.
+   *
+   * This will not check for a quoted '.' at the beginning.
+   *
+   * @param aLine          The line the server sent.
+   */
+  void processHEADLine(in ACString aLine);
+  /**
+   * Manages the internal state if the call to HEAD failed.
+   *
+   * @param aMessage       The message key that caused the HEAD failure.
+   */
+  void HEADFailed(in long aMessage);
+
+  /**
+   * Calls the filters after all messages have been processed.
+   *
+   * This method also cleans out some internal state relating to the messages
+   * that have been processed, so it should always be called at the end of
+   * XOVER/XHDR/HEAD processing.
+   */
+  void callFilters();
 
   attribute boolean getOldMessages;
 };

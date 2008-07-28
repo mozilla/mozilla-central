@@ -6,7 +6,6 @@
 // TODO:
 // * We need to hook up mochitest,
 // * TLS negotiation.
-// * Filter tests... very important (see UI requests)
 ////////////////////////////////////////////////////////////////////////////////
 
 // The basic daemon to use for testing nntpd.js implementations
@@ -26,10 +25,6 @@ function do_check_transaction(real, expected) {
   do_check_eq(real.them.join(","), expected.join(","));
   dump("Passed test " + test + "\n");
 }
-
-// Make sure we don't try to use a protected port. I like adding 1024 to the
-// default port when doing so...
-const NNTP_PORT = 1024+119;
 
 ////////////////////////////////////////////////////////////////////////////////
 //                             NNTP SERVER TESTS                              //
@@ -76,8 +71,9 @@ function testRFC977() {
     setupProtocolTest(NNTP_PORT, prefix+"");
     server.performTest();
     transaction = server.playTransaction();
-    do_check_transaction(transaction, ["MODE READER",
-        "GROUP test.subscribe.empty", "GROUP test.subscribe.simple"]);
+    do_check_transaction(transaction, ["MODE READER"].concat(
+          groups.filter(function (group) { return group[1]; })
+                .map(function (group) { return "GROUP "+group[0]; })));
 
     // Test - getting an article
     test = "news:MESSAGE_ID";

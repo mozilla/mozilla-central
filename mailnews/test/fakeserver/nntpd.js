@@ -10,12 +10,24 @@ nntpDaemon.prototype = {
     var flags = 0;
     if (postable)
       flags |= NNTP_POSTABLE;
-    this._groups[group] = { keys : [], flags : flags};
+    this._groups[group] = { keys : [], flags : flags, nextKey : 1};
+  },
+  addArticle : function (article) {
+   this._messages[article.messageID] = article;
+   for each (var group in article.groups) {
+     if (group in this._groups) {
+       var key = this._groups[group].nextKey++;
+       this._groups[group][key] = article;
+       this._groups[group]['keys'].push(key);
+     }
+   }
   },
   addArticleToGroup : function(article, group, key) {
     this._groups[group][key] = article;
     this._messages[article.messageID] = article;
     this._groups[group]['keys'].push(key);
+    if (this._groups[group].nextKey <= key)
+      this._groups[group].nextKey = key+1;
   },
   getGroup : function(group) {
     if (this._groups.hasOwnProperty(group))
@@ -51,24 +63,43 @@ function newsArticle(text) {
   this.headers = {};
   this.body = "";
   this.messageID = "";
+  this.fullText = text;
 
   var lines = text.split("\n"), passedHeaders = false;
+  var preamble = "";
   for each(var line in lines) {
     if (!passedHeaders) {
       if (line.length == 0) {
         passedHeaders = true;
         continue;
       }
-      var parts = text.split(":[ \t]*");
-      this.headers[parts[0]] = parts[1];
+      preamble += line + '\n';
+      var parts = line.split(/:[ \t]*/);
+      this.headers[parts[0].toLowerCase()] = parts[1];
       switch (parts[0].toLowerCase()) {
         case "message-id":
-          this.messageID = parts[1];
+          var start = parts[1].indexOf('<');
+          var end = parts[1].indexOf('>', start);
+          this.messageID = parts[1].substring(start, end+1);
+          break;
+        case "newsgroups":
+          this.groups = parts[1].split(/[ \t]*,[ \t]*/);
+          break;
       }
     } else {
       this.body += line + "\n";
     }
   }
+
+  // Add in non-existent fields
+  if (!("lines" in this.headers))
+  {
+    let lines = this.body.split('\n').length;
+    this.headers["lines"] = lines;
+    preamble += "Lines: "+lines;
+  }
+
+  this.fulltext = preamble + '\n' + this.body;
 }
 
 // NNTP FLAGS
@@ -90,8 +121,8 @@ function hasFlag(flags, flag) {
 // * RFC 3977 bare bones                                                      //
 // * RFC 3977 full                                                            //
 // * RFC 3977 + post-3977 extensions                                          //
-// * INN 2.4 (Gold standard common implementation; highest importance)        //
-// * Giganews (Common newsserver for ISP stuff; second highest importance)    //
+// * Giganews (Common newsserver for ISP stuff; highest importance)           //
+// * INN 2.4 (Gold standard common implementation; second highest importance) //
 // Note too that we want various levels of brokenness:                        //
 // * Perm errors that require login                                           //
 // * "I can't handle that" (e.g., news.mozilla.org only supports XOVER for    //
@@ -108,70 +139,26 @@ function NNTP_RFC977_handler(daemon) {
   this._daemon = daemon;
   this.closing = false;
   this.group = null;
-  this.article = null;
+  this.articleKey = null;
 }
 NNTP_RFC977_handler.prototype = {
   ARTICLE : function (args) {
-     var art;
-     if (args == "") {
-       if (this.article == null)
-         return "420 no current article has been selected";
+     var info = this._selectArticle(args, 220);
+     if (info[0] == null)
+       return info[1];
 
-       art = this.article;
-     } else if (args.charAt(0) == '<') {
-       art = this._daemon.getArticle(args);
-       if (art == null)
-         return "430 no such article found";
-     } else {
-       if (this.group == null)
-         return "412 no newsgroup has been selected";
-
-       var index = Integer.parseInt(args);
-       if (index in this.group.keys) {
-         this.article = this.group.keys[index];
-         art = this.article;
-       } else {
-         return "423 no such article number in this group";
-       }
-     }
-
-     var response = "220 " + art.key + " " + art.messageID +
-                    " article retrieved - head and body follows.\n";
-     for (var header in art.headers) {
-       response += header + ": " + art.headers[header] + "\n";
-     }
-     response += art.body.replace("(?=\n).", "..");
+     var response = info[1]+'\n';
+     response += info[0].fullText.replace("(?=\n).", "..");
      response += ".";
      return response;
   },
   BODY : function (args) {
-     var art;
-     if (args == "") {
-       if (this.article == null)
-         return "420 no current article has been selected";
+     var info = this._selectArticle(args, 222);
+     if (info[0] == null)
+       return info[1];
 
-       art = this.article;
-     } else if (args.charAt(0) == '<') {
-       art = this._daemon.getArticle(args);
-       if (article == null)
-         return "430 no such article found";
-     } else {
-       if (this.group == null)
-         return "412 no newsgroup has been selected";
-
-       var index = Integer.parseInt(args);
-       if (index in this.group.keys) {
-         this.article = this.group.keys[index];
-         art = this.article;
-       } else {
-         return "423 no such article number in this group";
-       }
-     }
-
-     var response = "222 "+art.key+" "+art.messageID+
-                    " article retrieved - body follows.\n";
-     response += "\n";
-     response += art.body.replace("(?=\n).","..");
+     var response = info[1]+'\n';
+     response += info[0].body.replace("(?=\n).","..");
      response += ".";
      return response;
   },
@@ -180,41 +167,21 @@ NNTP_RFC977_handler.prototype = {
     if (group == null)
       return "411 no such news group";
 
-    this.article = null;
+    this.group = group;
+    this.articleKey = 0 in this.group.keys ? this.group.keys[0] : null;
 
     var stats = this._daemon.getGroupStats(group);
     return "211 " + stats[0] + " " + stats[1] + " " + stats[2] + " " + args +
            " group selected";
   },
   HEAD : function (args) {
-     var art;
-     if (args == "") {
-       if (this.article == null)
-         return "420 no current article has been selected";
+     var info = this._selectArticle(args, 221);
+     if (info[0] == null)
+       return info[1];
 
-       art = this.article;
-     } else if (args.charAt(0) == '<') {
-       art = this._daemon.getArticle(args);
-       if (art == null)
-         return "430 no such article found";
-     } else {
-       if (this.group == null)
-         return "412 no newsgroup has been selected";
-
-       var index = Integer.parseInt(args);
-       if (index in this.group.keys) {
-         this.article = this.group.keys[index];
-         art = this.article;
-       } else {
-         return "423 no such article number in this group";
-       }
-     }
-
-     var response = "221 " + art.key + " " + art.messageID +
-                    " article retrieved - head follows.\n";
-     for (var header in art.headers) {
-       response += header + ": " + article.headers[header] + "\n";
-     }
+     var response = info[1]+'\n';
+     for (var header in info[0].headers)
+       response += header + ": " + info[0].headers[header] + "\n";
      response += ".";
      return response;
   },
@@ -239,9 +206,9 @@ NNTP_RFC977_handler.prototype = {
     return response;
   },
   LAST : function (args) {
-    if (group == null)
+    if (this.group == null)
       return "412 no newsgroup selected";
-    if (article == null)
+    if (this.articleKey == null)
       return "420 no current article has been selected";
     return "502 Command not implemented";
   },
@@ -262,9 +229,9 @@ NNTP_RFC977_handler.prototype = {
     return "502 Command not implemented";
   },
   NEXT : function (args) {
-    if (group == null)
+    if (this.group == null)
       return "412 no newsgroup selected";
-    if (article == null)
+    if (this.articleKey == null)
       return "420 no current article has been selected";
     return "502 Command not implemented";
   },
@@ -278,31 +245,8 @@ NNTP_RFC977_handler.prototype = {
     return "205 closing connection - goodbye!";
   },
   STAT : function (args) {
-     var art;
-     if (args == "") {
-       if (this.article == null)
-         return "420 no current article has been selected";
-
-       art = this.article;
-     } else if (args.charAt(0) == '<') {
-       art = this._daemon.getArticle(args);
-       if (article == null)
-         return "430 no such article found";
-     } else {
-       if (this.group == null)
-         return "412 no newsgroup has been selected";
-
-       var index = Integer.parseInt(args);
-       if (index in this.group.keys) {
-         this.article = this.group.keys[index];
-         art = this.article;
-       } else {
-         return "423 no such article number in this group";
-       }
-     }
-
-     return "223 " + art.key + " " + art.messageID +
-            " article retrieved - request text separately.";
+     var info = this._selectArticle(args, 223);
+     return info[1];
   },
   LISTGROUP : function (args) {
     // Yes, I know this isn't RFC 977, but I doubt that mailnews will ever drop
@@ -312,7 +256,7 @@ NNTP_RFC977_handler.prototype = {
       return "411 This newsgroup does not exist";
 
     var response = "211 Articles follow:\n";
-    for (var key in group['keys'])
+    for each (var key in group['keys'])
       response += key + "\n";
     response += ".\n";
     return response;
@@ -333,6 +277,7 @@ NNTP_RFC977_handler.prototype = {
     if (line == ".") {
       if (this.posting) {
         var article = new newsArticle(this.post);
+        this._daemon.addArticle(article);
         this.posting = false;
         return "240 Wonderful article, your style is gorgeous!";
       }
@@ -351,5 +296,151 @@ NNTP_RFC977_handler.prototype = {
     if (this.closing)
       obj.closeSocket();
     obj.setMultiline(this.posting);
+  },
+
+  /**
+   * Selects an article based on args.
+   *
+   * Returns an array of objects consisting of:
+   * # The selected article (or null if non was selected
+   * # The first line response
+   */
+  _selectArticle : function (args, responseCode) {
+    var art, key;
+    if (args == "") {
+      if (this.group == null)
+        return [null, "412 no newsgroup has been selected"];
+      if (this.articleKey == null)
+        return [null, "420 no current article has been selected"];
+
+      art = this.group[this.articleKey];
+      key = this.articleKey;
+    } else if (args.charAt(0) == '<') {
+      art = this._daemon.getArticle(args);
+      key = 0;
+
+      if (art == null)
+        return [null, "430 no such article found"];
+    } else {
+      if (this.group == null)
+        return [null, "412 no newsgroup has been selected"];
+
+      key = parseInt(args);
+      if (key in this.group) {
+        this.articleKey = key;
+        art = this.group[key];
+      } else {
+        return [null, "423 no such article number in this group"];
+      }
+    }
+
+    var respCode = responseCode + " " + key + " " + art.messageID +
+      " article selected";
+    return [art, respCode];
   }
 }
+
+/**
+ * Utility method to define a subclass
+ *
+ * @param sub   The function object of the subclass
+ * @param super The function object of the superclass
+ * @param def   The object definition of the subclass prototype.
+ */
+function subclass(sub, sup, def) {
+  sub.prototype = new sup();
+  for (var obj in def) {
+    sub.prototype[obj] = def[obj];
+  }
+}
+function subconstructor(sub, sup) {
+  sup.apply(sub, Array.prototype.slice.call(arguments, 2));
+  sub.parent = new Object();
+  sub.parent.__noSuchMethod__ = function (name, args) {
+    return sup.prototype[name].apply(sub, args);
+  }
+}
+function NNTP_RFC2980_handler(daemon) {
+  subconstructor(this, NNTP_RFC977_handler, daemon);
+}
+subclass(NNTP_RFC2980_handler, NNTP_RFC977_handler, {
+//NNTP_RFC2980_handler.prototype = new NNTP_RFC977_handler();
+//var subprototype = {
+  DATE : function (args) {
+    return "502 Command not implemented";
+  },
+  LIST : function (args) {
+    var index = args.indexOf(" ");
+    var command = index == -1 ? args : args.substring(0,index);
+    args = index == -1 ? "" : args.substring(index+1);
+    command = command.toUpperCase();
+    if ("LIST_"+command in this)
+      return this["LIST_"+command](args);
+    return this.parent.LIST(command+" "+args);
+  },
+  LIST_ACTIVE : function (args) {
+    return this.parent.LIST(args);
+  },
+  MODE : function (args) {
+    if (args == "READER")
+      return this.onStartup();
+    return "500 What do you think you're trying to pull here?";
+  },
+  XHDR : function (args) {
+    if (!this.group)
+      return "412 No group selected";
+
+    args = args.split(" ");
+    var header = args[0].toLowerCase();
+    var found = false;
+    var response = "221 Headers abound\n";
+    for each (var key in this.group.keys) {
+      if (!(header in this.group[key].headers))
+        continue;
+      found = true;
+      response += key + " " +this.group[key].headers[header] + '\n';
+    }
+    if (!found)
+      return "420 No such article";
+    response += '.';
+    return response;
+  },
+  XOVER : function (args) {
+    if (!this.group)
+      return "412 No group selected";
+    
+    var response = "224 List of articles\n";
+    for each (var key in this.group.keys) {
+      response += key + "\t";
+      var article = this.group[key];
+      response += article.headers["subject"] + "\t" +
+                  article.headers["from"] + "\t" +
+                  article.headers["date"] + "\t" +
+                  article.headers["message-id"] + "\t" +
+                  (article.headers["references"] ? article.headers["references"]
+                                                : "") + "\t" +
+                  article.fullText.replace(/\r?\n/,'\r\n').length + "\t" +
+                  article.body.split(/\r?\n/).length + "\t" +
+                  article.headers["xref"] + "\n";
+    }
+    response += '.\n';
+    return response;
+  },
+  XPAT : function (args) {
+    return "502 Command not implemented";
+  }
+});
+
+function NNTP_Giganews_handler(daemon) {
+  subconstructor(this, NNTP_RFC2980_handler, daemon);
+}
+subclass(NNTP_Giganews_handler, NNTP_RFC2980_handler, {
+  XHDR : function (args) {
+    var header = args.split(" ")[0].toLowerCase();
+    if (header in ["subject", "from", "xref", "date", "message-id",
+                   "references"]) {
+      return this.parent.XHDR(args);
+    }
+    return "503 unsupported header field";
+  }
+});

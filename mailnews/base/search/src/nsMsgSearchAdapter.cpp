@@ -1015,11 +1015,15 @@ NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearch
   case nsMsgSearchScope::news:
     if (!m_newsTable)
       rv = InitNewsTable();
+    if (m_newsTable)
+      rv = SetOtherHeadersInTable(m_newsTable, customHeaders.get());
     *ppOutTable = m_newsTable;
     break;
   case nsMsgSearchScope::newsFilter:
     if (!m_newsFilterTable)
       rv = InitNewsFilterTable();
+    if (m_newsFilterTable)
+      rv = SetOtherHeadersInTable(m_newsFilterTable, customHeaders.get());
     *ppOutTable = m_newsFilterTable;
     break;
   case nsMsgSearchScope::localNews:

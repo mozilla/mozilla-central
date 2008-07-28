@@ -97,6 +97,8 @@
 #include "nsIMsgNewsFolder.h"
 #include "nsIDocShell.h"
 
+#include "nsIMsgFilterList.h"
+
 // for the memory cache...
 #include "nsICacheEntryDescriptor.h"
 #include "nsICacheSession.h"
@@ -202,6 +204,8 @@ const char *const stateLabels[] = {
 "NNTP_XOVER_RESPONSE",
 "NNTP_XOVER",
 "NEWS_PROCESS_XOVER",
+"NNTP_XHDR_SEND",
+"NNTP_XHDR_RESPONSE",
 "NNTP_READ_GROUP",
 "NNTP_READ_GROUP_RESPONSE",
 "NNTP_READ_GROUP_BODY",
@@ -3292,8 +3296,11 @@ void nsNNTPProtocol::HandleAuthenticationFailure()
   }
 }
 
-/* start the xover command
- */
+///////////////////////////////////////////////////////////////////////////////
+// XOVER, XHDR, and HEAD processing code
+// Used for filters
+// State machine explanation located in doxygen comments for nsNNTPProtocol
+///////////////////////////////////////////////////////////////////////////////
 
 PRInt32 nsNNTPProtocol::BeginReadXover()
 {
@@ -3377,8 +3384,7 @@ PRInt32 nsNNTPProtocol::FigureNextChunk()
     rv = m_newsgroupList->GetRangeOfArtsToDownload(m_msgWindow,
       m_firstPossibleArticle,
       m_lastPossibleArticle,
-      m_numArticlesWanted -
-      m_numArticlesLoaded,
+      m_numArticlesWanted - m_numArticlesLoaded,
       &(m_firstArticle),
       &(m_lastArticle),
       &status);
@@ -3497,7 +3503,7 @@ PRInt32 nsNNTPProtocol::ReadXover(nsIInputStream * inputStream, PRUint32 length)
 
   if(line[0] == '.' && line[1] == '\0')
   {
-    m_nextState = NNTP_FIGURE_NEXT_CHUNK;
+    m_nextState = NNTP_XHDR_SEND;
     ClearFlag(NNTP_PAUSE_FOR_READ);
     PR_Free(lineToFree);
     return(0);
@@ -3519,7 +3525,7 @@ PRInt32 nsNNTPProtocol::ReadXover(nsIInputStream * inputStream, PRUint32 length)
 
   m_numArticlesLoaded++;
   PR_Free(lineToFree);
-  return NS_SUCCEEDED(rv) ? status : -1; /* keep going if no error */
+  return NS_SUCCEEDED(rv) ? (PRInt32)status : -1; /* keep going if no error */
 }
 
 /* Finished processing all the XOVER data.
@@ -3534,6 +3540,7 @@ PRInt32 nsNNTPProtocol::ProcessXover()
   if (!m_newsgroupList) return -1;
 
   PRInt32 status = 0;
+  m_newsgroupList->CallFilters();
   rv = m_newsgroupList->FinishXOVERLINE(0,&status);
   m_newsgroupList = nsnull;
   if (NS_SUCCEEDED(rv) && status < 0) return status;
@@ -3543,17 +3550,92 @@ PRInt32 nsNNTPProtocol::ProcessXover()
   return(MK_DATA_LOADED);
 }
 
-PRInt32 nsNNTPProtocol::ReadNewsgroup()
+PRInt32 nsNNTPProtocol::XhdrSend()
+{
+  nsCString header;
+  m_newsgroupList->InitXHDR(header);
+  if (header.IsEmpty())
+  {
+    m_nextState = NNTP_FIGURE_NEXT_CHUNK;
+    return 0;
+  }
+  
+  char outputBuffer[OUTPUT_BUFFER_SIZE];
+  PR_snprintf(outputBuffer, OUTPUT_BUFFER_SIZE, "XHDR %s %d-%d" CRLF,
+              header.get(), m_firstArticle, m_lastArticle);
+
+  m_nextState = NNTP_RESPONSE;
+  m_nextStateAfterResponse = NNTP_XHDR_RESPONSE;
+  SetFlag(NNTP_PAUSE_FOR_READ);
+
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+  return mailnewsurl ? SendData(mailnewsurl, outputBuffer) : 0;
+}
+
+PRInt32 nsNNTPProtocol::XhdrResponse(nsIInputStream *inputStream)
+{
+  if (m_responseCode != MK_NNTP_RESPONSE_XHDR_OK)
+  {
+    m_nextState = NNTP_READ_GROUP;
+    // The reasoning behind setting this flag and not an XHDR flag is that we
+    // are going to have to use HEAD instead. At that point, using XOVER as
+    // well is just wasting bandwidth.
+    SetFlag(NNTP_NO_XOVER_SUPPORT);
+    return 0;
+  }
+  
+  char *line, *lineToFree;
+  nsresult rv;
+  PRUint32 status = 1;
+
+  PRBool pauseForMoreData = PR_FALSE;
+  line = lineToFree = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
+
+  if (pauseForMoreData)
+  {
+    SetFlag(NNTP_PAUSE_FOR_READ);
+    return 0;
+  }
+
+  if (!line)
+    return status;  /* no line yet or TCP error */
+
+  if (line[0] == '.' && line[1] == '\0')
+  {
+    m_nextState = NNTP_XHDR_SEND;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+    PR_Free(lineToFree);
+    return(0);
+  }
+
+  if (status > 1)
+  {
+    mBytesReceived += status;
+    mBytesReceivedSinceLastStatusUpdate += status;
+  }
+
+  rv = m_newsgroupList->ProcessXHDRLine(nsDependentCString(line));
+  NS_ASSERTION(NS_SUCCEEDED(rv), "failed to process the XHDRLINE");
+
+  m_numArticlesLoaded++;
+  PR_Free(lineToFree);
+  return NS_SUCCEEDED(rv) ? (PRInt32)status : -1; /* keep going if no error */
+}
+
+PRInt32 nsNNTPProtocol::ReadHeaders()
 {
   if(m_articleNumber > m_lastArticle)
   {  /* end of groups */
 
+    m_newsgroupList->InitHEAD(-1);
     m_nextState = NNTP_FIGURE_NEXT_CHUNK;
     ClearFlag(NNTP_PAUSE_FOR_READ);
     return(0);
   }
   else
   {
+    m_newsgroupList->InitHEAD(m_articleNumber);
+
     char outputBuffer[OUTPUT_BUFFER_SIZE];
     PR_snprintf(outputBuffer,
       OUTPUT_BUFFER_SIZE,
@@ -3576,8 +3658,6 @@ PRInt32 nsNNTPProtocol::ReadNewsgroup()
 
 PRInt32 nsNNTPProtocol::ReadNewsgroupResponse()
 {
-  nsresult rv;
-
   if (m_responseCode == MK_NNTP_RESPONSE_ARTICLE_HEAD)
   {     /* Head follows - parse it:*/
     m_nextState = NNTP_READ_GROUP_BODY;
@@ -3587,14 +3667,11 @@ PRInt32 nsNNTPProtocol::ReadNewsgroupResponse()
 
     m_key = nsMsgKey_None;
 
-    /* Give the message number to the header parser. */
-    rv = m_newsgroupList->ProcessNonXOVER(m_responseText);
-    /* convert nsresult->status */
-    return NS_FAILED(rv);
+    return 0;
   }
   else
   {
-    NNTP_LOG_NOTE(("Bad group header found!"));
+    m_newsgroupList->HEADFailed(m_articleNumber);
     m_nextState = NNTP_READ_GROUP;
     return(0);
   }
@@ -3629,14 +3706,16 @@ PRInt32 nsNNTPProtocol::ReadNewsgroupBody(nsIInputStream * inputStream, PRUint32
   {
     m_nextState = NNTP_READ_GROUP;
     ClearFlag(NNTP_PAUSE_FOR_READ);
+    return 0;
   }
   else if (line [0] == '.' && line [1] == '.')
     /* The NNTP server quotes all lines beginning with "." by doubling it. */
     line++;
 
-  rv = m_newsgroupList->ProcessNonXOVER(line);
-  /* convert nsresult->status */
+  nsCString safe_line(line);
+  rv = m_newsgroupList->ProcessHEADLine(safe_line);
   PR_Free(lineToFree);
+  /* convert nsresult->status */
   return NS_FAILED(rv);
 }
 
@@ -5031,8 +5110,16 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = ProcessXover();
       break;
 
+    case NNTP_XHDR_SEND:
+      status = XhdrSend();
+      break;
+
+    case NNTP_XHDR_RESPONSE:
+      status = XhdrResponse(inputStream);
+      break;
+
     case NNTP_READ_GROUP:
-      status = ReadNewsgroup();
+      status = ReadHeaders();
       break;
 
     case NNTP_READ_GROUP_RESPONSE:
@@ -5043,7 +5130,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       break;
 
     case NNTP_READ_GROUP_BODY:
-      status = ReadNewsgroupResponse();
+      status = ReadNewsgroupBody(inputStream, length);
       break;
 
     case NNTP_SEND_POST_DATA:

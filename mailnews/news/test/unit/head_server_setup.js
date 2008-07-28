@@ -11,7 +11,8 @@ do_import_script("../mailnews/test/resources/mailDirService.js")
 var groups = [
   ["test.empty", false],
   ["test.subscribe.empty", true],
-  ["test.subscribe.simple", true]
+  ["test.subscribe.simple", true],
+  ["test.filter", true]
 ];
 // Sets up the NNTP daemon object for use in fake server
 function setupNNTPDaemon() {
@@ -19,6 +20,35 @@ function setupNNTPDaemon() {
 
   groups.forEach(function (element) {
     daemon.addGroup(element[0]);
+  });
+
+  var auto_add = do_get_file("../mailnews/news/test/postings/auto-add/");
+  var files = [];
+  var enumerator = auto_add.directoryEntries;
+  while (enumerator.hasMoreElements())
+    files.push(enumerator.getNext().QueryInterface(Ci.nsIFile));
+  
+  files.sort(function (a, b) {
+    if (a.leafName == b.leafName) return 0;
+    return a.leafName < b.leafName ? -1 : 1;
+  });
+
+  files.forEach(function (file) {
+      var fstream = Cc["@mozilla.org/network/file-input-stream;1"]
+                      .createInstance(Ci.nsIFileInputStream);
+      var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
+                      .createInstance(Ci.nsIScriptableInputStream);
+      fstream.init(file, -1, 0, 0);
+      sstream.init(fstream);
+      
+      var post = "";
+      for (let part = sstream.read(4096); part.length > 0;) {
+        post += part;
+        part = sstream.read(4096);
+      }
+      sstream.close();
+      fstream.close();
+      daemon.addArticle(new newsArticle(post));
   });
 
   var article = new newsArticle("From: John Doe <john.doe@example.com>\n"+
@@ -33,6 +63,15 @@ function setupNNTPDaemon() {
   return daemon;
 }
 
+// Enable strict threading
+var prefs = Cc["@mozilla.org/preferences-service;1"]
+              .getService(Ci.nsIPrefBranch);
+prefs.setBoolPref("mail.strict_threading", true);
+
+
+// Make sure we don't try to use a protected port. I like adding 1024 to the
+// default port when doing so...
+const NNTP_PORT = 1024+119;
 
 var _server = null;
 
@@ -114,4 +153,17 @@ function create_post(baseURL, file) {
   post.postMessageFile = do_get_file(file);
   url.messageToPost = post;
   return url;
+}
+
+function resetFolder(folder) {
+  var headerEnum = folder.getMessages(null);
+  var headers = [];
+  while (headerEnum.hasMoreElements())
+    headers.push(headerEnum.getNext().QueryInterface(Ci.nsIMsgDBHdr));
+
+  var db = folder.getMsgDatabase(null);
+  db.dBFolderInfo.knownArtsSet = "";
+  for each (var header in headers) {
+    db.DeleteHeader(header, null, true, false);
+  }
 }
