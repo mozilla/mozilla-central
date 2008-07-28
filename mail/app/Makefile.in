@@ -137,6 +137,11 @@ ifdef MOZ_JPROF
 LIBS += -ljprof
 endif
 
+ifdef MOZ_ENABLE_DBUS
+LIBS += $(MOZ_DBUS_GLIB_LIBS)
+endif
+
+
 ifndef MOZ_WINCONSOLE
 ifdef MOZ_DEBUG
 MOZ_WINCONSOLE = 1
