@@ -119,12 +119,7 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
         echo "fips104" > ${FIPSBADPWFILE}
         echo "pKcs12fips140" > ${FIPSP12PWFILE}
 
-        # NOTE: these keys are only suitable for testing, as this whole thing 
-        # bypasses the entropy gathering. Don't use this method to generate 
-        # keys and certs for product use or deployment.
-        ps -efl > ${NOISE_FILE} 2>&1
-        ps aux >> ${NOISE_FILE} 2>&1
-        date >> ${NOISE_FILE} 2>&1
+        noise
 
         P_SERVER_CADIR=${SERVER_CADIR}
         P_CLIENT_CADIR=${CLIENT_CADIR}
@@ -142,6 +137,17 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
         TEMPFILES="${PWFILE} ${NOISE_FILE}"
 
         export HOSTDIR
+    }
+
+# Generate noise file
+    noise()
+    {
+        # NOTE: these keys are only suitable for testing, as this whole thing 
+        # bypasses the entropy gathering. Don't use this method to generate 
+        # keys and certs for product use or deployment.
+        ps -efl > ${NOISE_FILE} 2>&1
+        ps aux >> ${NOISE_FILE} 2>&1
+        date >> ${NOISE_FILE} 2>&1
     }
 
 # Print selected environment variable (used for backup)
