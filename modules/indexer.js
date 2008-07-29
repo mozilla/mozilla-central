@@ -333,7 +333,7 @@ let GlodaIndexer = {
     }
     else {
       status = this._strBundle.getString("actionIdle");
-      folderName = null;
+      prettyName = null;
       jobIndex = 0;
       jobTotal = 1;
       jobItemIndex = 0;
@@ -964,7 +964,7 @@ let GlodaIndexer = {
       }
       this.indexer._indexingFolderGoal++;
       this.indexer._indexQueue.push(["folder", 1,
-        this._mapFolderURI(aDestFolder.URI)]);
+        GlodaDatastore._mapFolderURI(aDestFolder.URI)]);
       this.indexer.indexing = true;
     },
     
