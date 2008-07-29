@@ -248,7 +248,7 @@ sub coverage() {
         $where .= " AND tr.user_id=u.user_id AND u.user_id=ugm.user_id AND ugm.group_id=sg.group_id AND (sg.grouptype=1 OR sg.grouptype=3)";
     }
     my $sql = $select . $from . $where . $order_by;
-    #print $sql,"<br/>\n";
+#    print STDERR $sql,"\n";
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     my @test_results;
@@ -312,10 +312,11 @@ sub getNewTestcases() {
   }
   
   __PACKAGE__->set_sql(NewTestcases => qq{
-				          SELECT testcase_id, summary, creation_date, last_updated
-                                          FROM testcases
-                                          WHERE creation_date>=?
-                                          ORDER BY creation_date DESC
+				          SELECT tc.testcase_id, tc.summary, tc.creation_date, tc.last_updated, u.email
+                                          FROM testcases tc, users u
+                                          WHERE tccreation_date>=?
+                                          AND tc.author_id=u.user_id
+                                          ORDER BY tc.creation_date DESC
                                           LIMIT $match_limit
 });
   
@@ -339,10 +340,11 @@ sub getRecentlyUpdated() {
   }
   
   __PACKAGE__->set_sql(RecentlyUpdated => qq{
-                                             SELECT testcase_id, summary, creation_date, last_updated
-                                             FROM testcases
-                                             WHERE last_updated>=? AND last_updated>creation_date
-                                             ORDER BY last_updated DESC
+                                             SELECT tc.testcase_id, tc.summary, tc.creation_date, tc.last_updated, u.email
+                                             FROM testcases tc, users u
+                                             WHERE tc.last_updated>=? AND tc.last_updated>tc.creation_date
+                                             AND tc.author_id=u.user_id
+                                             ORDER BY tc.last_updated DESC
                                              LIMIT $match_limit
 });
   
@@ -619,6 +621,20 @@ sub update_tag() {
                   $tag->{'tag_id'},
                   $user_id
                  );
+}
+
+#########################################################################
+sub getTestgroups() {
+    my $self = shift;
+    my @testgroups = Litmus::DB::Testgroup->search_ByTestcase($self->testcase_id);
+    return @testgroups;
+}
+
+#########################################################################
+sub getSubgroups() {
+    my $self = shift;
+    my @subgroups = Litmus::DB::Subgroup->search_ByTestcase($self->testcase_id);
+    return @subgroups;
 }
 
 1;
