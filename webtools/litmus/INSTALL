@@ -14,7 +14,7 @@ Data::JavaScript
 Date::Manip
 Encode
 File::Find
-Getopt::Long;
+Getopt::Long
 HTML::StripScripts
 HTML::StripScripts::Parser
 JSON
@@ -61,11 +61,12 @@ get at it. Have fun!
 
 To get yourself an administrator account, you'll need to load up Litmus in your 
 web browser and follow the link to create a new account. You'll have been 
-lucky enough to score user id number 1. Grant yourself admin rights by loading 
+lucky enough to score user id number 2 (#1 is reserved for the anonymous 
+web-tester account, generally unused now). Grant yourself admin rights by loading 
 up mysql, connecting to your Litmus database, and running the following command:
 
  mysql -u litmus -p litmus
- mysql> insert into user_group_map values ('1', '1');
+ mysql> insert into user_group_map values ('2', '1');
 
 From there, you can go into "Edit Users" in the web interface and grant 
 rights to any new users. 

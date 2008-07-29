@@ -98,7 +98,7 @@ sub getCurrentUser {
 # from Bugzilla.pm:
 sub request_cache {
     if ($ENV{MOD_PERL}) {
-    	my $request;
+    	my $request;	
     	if (MP2) {
     		$request = Apache2::RequestUtil->request();
     	} elsif (MP1) {

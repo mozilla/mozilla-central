@@ -72,11 +72,26 @@ sub memoize {
 	# otherwise, we keep the cache in request_cache where it will get
 	# flushed when the request ends
 	my $cache = {};
+	my $request;
 	if (MP1) {
-		 $cache = Apache->request()->pnotes();
+		 $request = Apache->request();
 	} elsif (MP2) {
-		$cache = Apache2::RequestUtil->request()->pnotes();
+		$request = Apache2::RequestUtil->request();
 	}
+	
+	if ($ENV{MOD_PERL}) {
+		$cache = $request->pnotes();
+		if (!$cache->{cleanup_registered}) {
+             $request->push_handlers(PerlCleanupHandler => sub {
+                 my $r = shift;
+                 foreach my $key (keys %{$r->pnotes}) {
+                     delete $r->pnotes->{$key};
+                 }
+             });
+             $cache->{cleanup_registered} = 1;
+        }
+	}
+	
 	$cache->{'S'.$fn} = {};
 	$cache->{'L'.$fn} = {};
 	my $s_cache = $cache->{'S'.$fn};
