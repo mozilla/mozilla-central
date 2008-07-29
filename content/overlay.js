@@ -62,6 +62,17 @@ var gloda = {
   onMenuItemCommand: function(e) {
     GlodaIndexer.indexEverything();
   },
-
+  indexSelectedMessages: function () {
+    var dbView = GetDBView();
+    var indices = GetSelectedIndices(dbView);
+    var toindex = [];
+    for (var iIndex=0; iIndex < indices.length; iIndex++) {
+      var actualIndex = indices[iIndex];
+      var folder = dbView.getFolderForViewIndex(actualIndex);
+      var msgKey = dbView.getKeyAt(actualIndex);
+      toindex.push([folder, msgKey]);
+    }
+    GlodaIndexer.indexMessages(toindex);
+  },
 };
 window.addEventListener("load", function(e) { gloda.onLoad(e); }, false);

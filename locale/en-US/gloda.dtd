@@ -1,3 +1,5 @@
 <!ENTITY gloda.label "Index Everything">
-<!ENTITY folderContextGlodaIndex.label "Gloda Reindex">
-<!ENTITY folderContextGlodaIndex.accesskey "R">
+<!ENTITY folderContextGlodaIndex.label "Gloda Index">
+<!ENTITY folderContextGlodaIndex.accesskey "x">
+<!ENTITY threadContextGlodaIndex.label "Gloda Index">
+<!ENTITY threadContextGlodaIndex.accesskey "x">

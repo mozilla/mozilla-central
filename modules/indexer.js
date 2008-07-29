@@ -787,6 +787,20 @@ let GlodaIndexer = {
     }
   },
   
+  /**
+   * Index messages.
+   *
+   * @param aFoldersAndMessages List of [nsIMsgFolder, message key] tuples.
+   */
+  indexMessages: function gloda_index_indexMessages(aFoldersAndMessages) {
+    let job = new IndexingJob("message", 1, null);
+    job.items = [[GlodaDatastore._mapFolderURI(fm[0].URI), fm[1]] for each
+                 (fm in aFoldersAndMessages)];
+    this._indexQueue.push(job);
+    this._indexingJobGoal++;
+    this.indexing = true;
+  },
+  
   /* *********** Event Processing *********** */
 
   /* ***** Folder Changes ***** */  

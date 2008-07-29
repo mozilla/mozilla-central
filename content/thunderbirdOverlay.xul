@@ -57,4 +57,13 @@
               accesskey="&folderContextGlodaIndex.accesskey;"
               oncommand="GlodaIndexer.indexFolderByURI(GetSelectedFolderURI());"/>
   </popup>
+
+  <popup id="threadPaneContext">
+    <menuseparator id="threadPaneContext-sep-gloda"/>
+    <menuitem id="threadPaneContext-gloda-index"
+              label="&threadContextGlodaIndex.label;"
+              accesskey="&threadContextGlodaIndex.accesskey;"
+              oncommand="gloda.indexSelectedMessages();"/>
+  </popup>
+
 </overlay>
