@@ -389,7 +389,7 @@
           for (var i = 0; i < kids.length; ++i) {
             kids[i].setAttribute("label",
               this.navigatorBundle.formatStringFromName(
-                "searchFor", [kids[i].getAttribute("name"), val], 2);
+                "searchFor", [kids[i].getAttribute("name"), val], 2));
           }
         ]]></setter>
       </property>
