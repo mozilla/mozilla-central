@@ -63,6 +63,7 @@ let gCallbacks = {};
 
 function CallbackStreamListener(aMsgHdr, aCallbackThis, aCallback) {
   this._msgHdr = aMsgHdr;
+  this._stream = null;
   if (aCallback === undefined) {
     this._callbackThis = null;
     this._callback = aCallbackThis;
@@ -80,6 +81,7 @@ CallbackStreamListener.prototype = {
   onStartRequest: function (aRequest, aContext) {
   },
   onStopRequest: function (aRequest, aContext, aStatusCode) {
+    aContext.QueryInterface(Ci.nsIURI);
     let message = MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
     if (message === undefined)
       message = null;
@@ -97,14 +99,14 @@ CallbackStreamListener.prototype = {
      notification. */
   // nsIStreamListener part
   onDataAvailable: function (aRequest,aContext,aInputStream,aOffset,aCount) {
-    /*
+    dump("this should not be happening! arrgggggh!\n")
     if (this._stream === null) {
       this._stream = Cc["@mozilla.org/scriptableinputstream;1"].
                     createInstance(Ci.nsIScriptableInputStream);
       this._stream.init(aInputStream);
     }
     this._stream.read(aCount);
-    */
+    
   },
 };
 
