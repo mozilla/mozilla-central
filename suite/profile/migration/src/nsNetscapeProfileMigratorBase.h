@@ -125,6 +125,7 @@ public:
   static nsresult SetBool(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult GetInt(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetInt(PrefTransform* aTransform, nsIPrefBranch* aBranch);
+  static nsresult SetFile(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetImage(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetCookie(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   // XXX Bug 381157 When suite uses Toolkit's DM backend, we need to

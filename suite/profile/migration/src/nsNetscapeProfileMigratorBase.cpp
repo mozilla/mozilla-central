@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *  Ben Goodger <ben@bengoodger.com>
+ *  Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -346,6 +347,48 @@ nsNetscapeProfileMigratorBase::SetInt(PrefTransform* aTransform,
                                       nsIPrefBranch* aBranch)
 {
   SETPREF(aTransform, SetIntPref, aTransform->intValue)
+}
+
+nsresult
+nsNetscapeProfileMigratorBase::SetFile(PrefTransform* aTransform,
+                                       nsIPrefBranch* aBranch)
+{
+  // In this case targetPrefName is just an additional preference
+  // that needs to be modified and not what the sourcePrefName is
+  // going to be saved to once it is modified.
+  nsresult rv = NS_OK;
+  if (aTransform->prefHasValue) {
+    nsCString fileURL(aTransform->stringValue);
+    nsCOMPtr<nsIFile> aFile;
+    // Start off by assuming fileURL is a URL spec and
+    // try and get a File from it.
+    rv = NS_GetFileFromURLSpec(fileURL, getter_AddRefs(aFile));
+    if (NS_FAILED(rv)) {
+      // Okay it wasn't a URL spec so assume it is a localfile,
+      // if this fails then just don't set anything.
+      nsCOMPtr<nsILocalFile> localFile;
+      rv = NS_NewNativeLocalFile(fileURL, PR_FALSE, getter_AddRefs(localFile));
+      if (NS_FAILED(rv))
+        return NS_OK;  
+      aFile = localFile;
+    }
+    // Now test to see if File exists and is an actual file.
+    PRBool exists = PR_FALSE;
+    rv = aFile->Exists(&exists);
+    if (NS_SUCCEEDED(rv) && exists)
+      rv = aFile->IsFile(&exists);
+
+    if (NS_SUCCEEDED(rv) && exists) {
+      // After all that let's just get the URL spec and set the pref to it.
+      rv = NS_GetURLSpecFromFile(aFile, fileURL);
+      if (NS_FAILED(rv))
+        return NS_OK;
+      rv = aBranch->SetCharPref(aTransform->sourcePrefName, fileURL.get());
+      if (NS_SUCCEEDED(rv) && aTransform->targetPrefName)
+        rv = aBranch->SetIntPref(aTransform->targetPrefName, 1);
+    }
+  }
+  return rv;
 }
 
 nsresult
