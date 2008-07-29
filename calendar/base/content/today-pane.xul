@@ -212,13 +212,13 @@
                              label="&calendar.context.convertmenu.task.label;"
                              accesskey="&calendar.context.convertmenu.task.accesskey;"
                              oncommand="calendarTaskButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
+                 </menupopup>
+               </menu>
                <menuseparator id="calendar-today-pane-menuseparator-before-delete"/>
                <menuitem label="&calendar.context.deleteevent.label;"
                          accesskey="&calendar.context.deleteevent.accesskey;"
                          key="calendar-delete-item-key"
                          observes="agenda_delete_event_command"/>
-                 </menupopup>
-               </menu>
              </vbox>
              <vbox id="richlistitem-container" hidden="true">
                 <agenda-checkbox-richlist-item id="today-header-hidden"
