@@ -1716,6 +1716,7 @@ AttachGrid = function(object){
         fields: [
            {name: "id", mapping:"attachment_id"},
            {name: "submitter", mapping:"submitter"},
+           {name: "caserun_id", mapping:"caserun_id"},
            {name: "name", mapping:"filename"},           //editable
            {name: "timestamp", mapping:"creation_ts"},
            {name: "mimetype", mapping:"mime_type"},      //editable
@@ -1729,7 +1730,14 @@ AttachGrid = function(object){
     var ds = this.store;
     this.columns= [
         {id:'attach_id', header: "ID", width: 20, sortable: true, dataIndex: 'id', renderer: attachlink},
-        {header: "Created", width:50, sortable:true, dataIndex: 'timestamp'},
+        {header: "Created", width:50, sortable:true, dataIndex: 'timestamp', renderer: function(v,md,r){
+            if (r.get('caserun_id') && Ext.getCmp('caserun_grid') && Ext.getCmp('caserun_grid').getSelectionModel().getSelected().get('caserun_id') == r.get('caserun_id')){
+                return '<b>* ' + v + '</b>'; 
+            }
+            else {
+                return v;
+            }
+        }},
         {header: "Name", width: 50,editor: new Ext.grid.GridEditor(
              new Ext.form.TextField({})), sortable: true, dataIndex: 'name'},
         {header: "Submitted by", width:50, sortable:true, dataIndex: 'submitter'},

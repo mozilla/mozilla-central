@@ -794,20 +794,26 @@ sub init {
              $f = "test_cases.requirement"; 
          },
          "^case_plan_id," => sub {
-             my $join = $cgi->param('case_plans_tester') ? 'LEFT' : 'INNER'; 
-               push(@supptables,
+               if ($cgi->param('case_plans_tester')){
+                   my $join = $cgi->param('case_plans_tester') ? 'LEFT' : 'INNER';
+                   push(@supptables,
                       "$join JOIN test_case_plans AS case_plans_tester " .
                       "ON test_plans.plan_id = case_plans_tester.plan_id");
-               push(@supptables,
+                   push(@supptables,
                       "$join JOIN test_cases " .
                       "ON case_plans_tester.case_id = test_cases.case_id");
-               if ($cgi->param('case_plans_tester')){
                    push(@supptables,
                       "$join JOIN profiles as map_plan_testers " .
                       "ON test_cases.default_tester_id = map_plan_testers.userid");
                    $f = "map_plan_testers.login_name";
                }
                else {
+                   push(@supptables,
+                          "INNER JOIN test_case_plans AS case_plans " .
+                          "ON test_cases.case_id = case_plans.case_id");
+                   push(@supptables,
+                          "INNER JOIN test_plans " .
+                          "ON case_plans.plan_id = test_plans.plan_id");
                    $f = "test_plans.plan_id";
                }
          },
@@ -1412,7 +1418,7 @@ sub init {
         }
     }
     if ($obj eq 'case'){
-        unless ($cgi->param('isactive')){
+        if ($cgi->param('isactive')){
             push @wherepart, 'case_runs.iscurrent = 1';
         }
     }
