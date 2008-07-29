@@ -97,7 +97,7 @@ public:
     NS_DECL_ISUPPORTS
 
     // nsIImportAddressBooks interface
-
+    
   /* PRBool GetSupportsMultiple (); */
   NS_IMETHOD GetSupportsMultiple(PRBool *_retval) { *_retval = PR_FALSE; return( NS_OK);}
 
@@ -118,12 +118,13 @@ public:
 
   /* void ImportAddressBook (in nsIImportABDescriptor source, in nsIAddrDatabase destination, in nsIImportFieldMap fieldMap, in boolean isAddrLocHome, out wstring errorLog, out wstring successLog, out boolean fatalError); */
   NS_IMETHOD ImportAddressBook(nsIImportABDescriptor *source,
-                  nsIAddrDatabase * destination,
-                  nsIImportFieldMap * fieldMap,
-                  PRBool isAddrLocHome,
-                  PRUnichar ** errorLog,
-                  PRUnichar ** successLog,
-                  PRBool * fatalError);
+                               nsIAddrDatabase *destination,
+                               nsIImportFieldMap *fieldMap,
+                               nsISupports *aSupportService,
+                               PRBool isAddrLocHome,
+                               PRUnichar **errorLog,
+                               PRUnichar **successLog,
+                               PRBool *fatalError);
 
   /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
@@ -425,13 +426,15 @@ void ImportAddressImpl::SetLogs( nsString& success, nsString& error, PRUnichar *
 }
 
 
-NS_IMETHODIMP ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
-                          nsIAddrDatabase * pDestination,
-                          nsIImportFieldMap * fieldMap,
-                          PRBool isAddrLocHome,
-                          PRUnichar ** pErrorLog,
-                          PRUnichar ** pSuccessLog,
-                          PRBool * fatalError)
+NS_IMETHODIMP
+ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
+                                     nsIAddrDatabase *pDestination,
+                                     nsIImportFieldMap *fieldMap,
+                                     nsISupports *aSupportService,
+                                     PRBool isAddrLocHome,
+                                     PRUnichar ** pErrorLog,
+                                     PRUnichar ** pSuccessLog,
+                                     PRBool * fatalError)
 {
   NS_PRECONDITION(pSource != nsnull, "null ptr");
   NS_PRECONDITION(pDestination != nsnull, "null ptr");
@@ -482,8 +485,13 @@ NS_IMETHODIMP ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSourc
     return NS_ERROR_FAILURE;
   }
 
+  if (!aSupportService) {
+    IMPORT_LOG0("Missing support service to import call");
+    return NS_ERROR_FAILURE;
+  }
+
   PRBool isLDIF = PR_FALSE;
-    nsCOMPtr<nsIAbLDIFService> ldifService = do_GetService(NS_ABLDIFSERVICE_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbLDIFService> ldifService(do_QueryInterface(aSupportService, &rv));
 
     if (NS_SUCCEEDED(rv)) {
       rv = ldifService->IsLDIFFile(inFile, &isLDIF);

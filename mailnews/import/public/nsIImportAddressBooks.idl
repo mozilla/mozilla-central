@@ -62,15 +62,6 @@
   3) Show the progress dialog for the import - this could be per address book if
   mapping is required? what to do, what to doooooo.....
   4) All done, maybe a what was done panel??
-
-
-*/
-
-/*
-*/
-
-/*
-
 */
 
 #include "nsISupports.idl"
@@ -82,7 +73,7 @@ interface  nsIOutputStream;
 interface  nsIAddrDatabase;
 interface  nsIImportFieldMap;
 
-[scriptable, uuid(d415da06-5d77-468d-aae4-9baaf5b3b6cc)]
+[scriptable, uuid(49e2bdf8-c5c3-4425-8c67-f20d15d45a71)]
 interface nsIImportAddressBooks : nsISupports
 {
 
@@ -133,19 +124,34 @@ interface nsIImportAddressBooks : nsISupports
   */
   void InitFieldMap(in nsIImportFieldMap fieldMap);
 
-  /*
-    Import a specific mailbox into the destination file supplied.  If an error
-    occurs that is non-fatal, the destination will be deleted and other mailbox's
-    will be imported.  If a fatal error occurs, the destination will be deleted
-    and the import operation will abort.
-  */
-  void   ImportAddressBook(   in nsIImportABDescriptor source,
-                   in nsIAddrDatabase destination,
-                   in nsIImportFieldMap fieldMap,
-                in boolean isAddrLocHome,
-                out wstring errorLog,
-                out wstring successLog,
-                   out boolean fatalError);
+  /**
+   * Import a specific mailbox into the destination file supplied.  If an error
+   * occurs that is non-fatal, the destination will be deleted and other
+   * mailbox's will be imported.  If a fatal error occurs, the destination will
+   * be deleted and the import operation will abort.
+   *
+   * @param aSource         The source data for the import.
+   * @param aDestination    The proxy database for the destination of the
+   *                        import.
+   * @param aFieldMap       The field map containing the mapping of fields to be
+   *                        used in cvs and tab type imports.
+   * @param aSupportService An optional proxy support service (nsnull is
+   *                        acceptable if it is not required), may be required
+   *                        for certain import types (e.g. nsIAbLDIFService for
+   *                        LDIF import).
+   * @param aIsAddrLocHome  Whether or not an address is the home location.
+   * @param aErrorLog       The error log from the import.
+   * @param aSuccessLog     The success log from the import.
+   * @param aFatalError     True if there was a fatal error doing the import.
+   */
+  void ImportAddressBook(in nsIImportABDescriptor aSource,
+                         in nsIAddrDatabase aDestination,
+                         in nsIImportFieldMap aFieldMap,
+                         in nsISupports aSupportService,
+                         in boolean aIsAddrLocHome,
+                         out wstring aErrorLog,
+                         out wstring aSuccessLog,
+                         out boolean aFatalError);
 
   /*
     Return the amount of the address book that has been imported so far.  This number

@@ -150,14 +150,14 @@ public:
   NS_IMETHOD InitFieldMap(nsIImportFieldMap *fieldMap)
     { return( NS_ERROR_FAILURE); }
 
-  /* void ImportAddressBook (in nsIImportABDescriptor source, in nsIAddrDatabase destination, in nsIImportFieldMap fieldMap, in boolean isAddrLocHome, out wstring errorLog, out wstring successLog, out boolean fatalError); */
-  NS_IMETHOD ImportAddressBook(  nsIImportABDescriptor *source,
-                  nsIAddrDatabase *  destination,
-                  nsIImportFieldMap *  fieldMap,
-                  PRBool isAddrLocHome,
-                  PRUnichar **    errorLog,
-                  PRUnichar **    successLog,
-                  PRBool *      fatalError);
+  NS_IMETHOD ImportAddressBook(nsIImportABDescriptor *source,
+                               nsIAddrDatabase *destination,
+                               nsIImportFieldMap *fieldMap,
+                               nsISupports *aSupportService,
+                               PRBool isAddrLocHome,
+                               PRUnichar **errorLog,
+                               PRUnichar **successLog,
+                               PRBool *fatalError);
 
   /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
@@ -564,13 +564,14 @@ NS_IMETHODIMP ImportOutlookAddressImpl::FindAddressBooks(nsIFile *location, nsIS
   return( m_address.GetAddressBooks( _retval));
 }
 
-NS_IMETHODIMP ImportOutlookAddressImpl::ImportAddressBook(  nsIImportABDescriptor *source,
-                          nsIAddrDatabase *  destination,
-                          nsIImportFieldMap *  fieldMap,
-                          PRBool isAddrLocHome,
-                          PRUnichar **    pErrorLog,
-                          PRUnichar **    pSuccessLog,
-                          PRBool *      fatalError)
+NS_IMETHODIMP ImportOutlookAddressImpl::ImportAddressBook(nsIImportABDescriptor *source,
+                                                          nsIAddrDatabase *destination,
+                                                          nsIImportFieldMap *fieldMap,
+                                                          nsISupports *aSupportService,
+                                                          PRBool isAddrLocHome,
+                                                          PRUnichar **pErrorLog,
+                                                          PRUnichar **pSuccessLog,
+                                                          PRBool *fatalError)
 {
   m_msgCount = 0;
   m_msgTotal = 0;

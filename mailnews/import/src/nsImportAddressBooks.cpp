@@ -48,6 +48,7 @@
 #include "nsILocalFile.h"
 #include "nsIAddrDatabase.h"
 #include "nsIAbManager.h"
+#include "nsIAbLDIFService.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "nsAbBaseCID.h"
@@ -137,6 +138,7 @@ public:
   PRUint32          currentTotal;
   PRUint32          currentSize;
   nsISupportsArray *      books;
+  nsIAbLDIFService *ldifService;
   nsIImportAddressBooks *    addressImport;
   nsIImportFieldMap *      fieldMap;
   nsISupportsString *    successLog;
@@ -601,7 +603,25 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
     m_pThreadData->pDestinationUri = strdup( m_pDestinationUri);
   m_pThreadData->bAddrLocInput = isAddrLocHome ;
 
-    NS_IF_ADDREF(m_pThreadData->stringBundle = m_stringBundle);
+  NS_IF_ADDREF(m_pThreadData->stringBundle = m_stringBundle);
+
+  nsresult rv;
+  nsCOMPtr<nsIAbLDIFService> ldifService(do_GetService(NS_ABLDIFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
+    do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAbLDIFService> proxyLDIFService;
+  rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
+                                             NS_GET_IID(nsIAbLDIFService),
+                                             ldifService,
+                                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+                                             getter_AddRefs(proxyLDIFService));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  NS_IF_ADDREF(m_pThreadData->ldifService = proxyLDIFService);
 
   PRThread *pThread = PR_CreateThread( PR_USER_THREAD, &ImportAddressThread, m_pThreadData,
                   PR_PRIORITY_NORMAL,
@@ -704,7 +724,8 @@ AddressThreadData::AddressThreadData()
   errorLog = nsnull;
   pDestinationUri = nsnull;
   fieldMap = nsnull;
-    stringBundle = nsnull;
+  stringBundle = nsnull;
+  ldifService = nsnull;
 }
 
 AddressThreadData::~AddressThreadData()
@@ -718,6 +739,7 @@ AddressThreadData::~AddressThreadData()
   NS_IF_RELEASE(successLog);
   NS_IF_RELEASE(fieldMap);
   NS_IF_RELEASE(stringBundle);
+  NS_IF_RELEASE(ldifService);
 }
 
 void AddressThreadData::DriverDelete( void)
@@ -988,6 +1010,7 @@ PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff)
         if (NS_FAILED(rv))
           return;
 
+
         PRBool fatalError = PR_FALSE;
         pData->currentSize = size;
         if (proxyAddrDatabase) {
@@ -1009,13 +1032,14 @@ PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff)
           }
           */
 
-          rv = pData->addressImport->ImportAddressBook(  book,
-                                proxyAddrDatabase, // destination
-                                pData->fieldMap, // fieldmap
-                                pData->bAddrLocInput,
-                                &pError,
-                                &pSuccess,
-                                &fatalError);
+          rv = pData->addressImport->ImportAddressBook(book,
+                                                       proxyAddrDatabase,
+                                                       pData->fieldMap,
+                                                       pData->ldifService,
+                                                       pData->bAddrLocInput,
+                                                       &pError,
+                                                       &pSuccess,
+                                                       &fatalError);
           if (pSuccess) {
             success.Append( pSuccess);
             NS_Free( pSuccess);

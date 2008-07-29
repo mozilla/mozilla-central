@@ -153,14 +153,14 @@ public:
   NS_IMETHOD InitFieldMap(nsIImportFieldMap *fieldMap)
     { return( NS_ERROR_FAILURE); }
 
-  /* void ImportAddressBook (in nsIImportABDescriptor source, in nsIAddrDatabase destination, in nsIImportFieldMap fieldMap, in boolean isAddrLocHome, out wstring errorLog, out wstring successLog, out boolean fatalError); */
-  NS_IMETHOD ImportAddressBook(  nsIImportABDescriptor *source,
-                  nsIAddrDatabase *  destination,
-                  nsIImportFieldMap *  fieldMap,
-                  PRBool isAddrLocHome,
-                  PRUnichar **    errorLog,
-                  PRUnichar **    successLog,
-                  PRBool *      fatalError);
+  NS_IMETHOD ImportAddressBook(nsIImportABDescriptor *source,
+                               nsIAddrDatabase *destination,
+                               nsIImportFieldMap *fieldMap,
+                               nsISupports *aSupportService,
+                               PRBool isAddrLocHome,
+                               PRUnichar **errorLog,
+                               PRUnichar **successLog,
+                               PRBool *fatalError);
 
   /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
@@ -605,12 +605,13 @@ NS_IMETHODIMP ImportOEAddressImpl::FindAddressBooks(nsIFile *location, nsISuppor
 
 
 NS_IMETHODIMP ImportOEAddressImpl::ImportAddressBook(nsIImportABDescriptor *source,
-                                                     nsIAddrDatabase * destination,
-                                                     nsIImportFieldMap * fieldMap,
+                                                     nsIAddrDatabase *destination,
+                                                     nsIImportFieldMap *fieldMap,
+                                                     nsISupports *aSupportService,
                                                      PRBool isAddrLocHome,
-                                                     PRUnichar ** errorLog,
-                                                     PRUnichar ** successLog,
-                                                     PRBool * fatalError)
+                                                     PRUnichar **errorLog,
+                                                     PRUnichar **successLog,
+                                                     PRBool *fatalError)
 {
     NS_PRECONDITION(source != nsnull, "null ptr");
     // NS_PRECONDITION(destination != nsnull, "null ptr");

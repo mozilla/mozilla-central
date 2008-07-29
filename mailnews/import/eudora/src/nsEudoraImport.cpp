@@ -174,13 +174,14 @@ public:
     { return( NS_ERROR_FAILURE); }
 
   /* void ImportAddressBook (in nsIImportABDescriptor source, in nsIAddrDatabase destination, in nsIImportFieldMap fieldMap, in boolean isAddrLocHome, out wstring errorLog, out wstring successLog, out boolean fatalError); */
-  NS_IMETHOD ImportAddressBook(  nsIImportABDescriptor *source,
-                  nsIAddrDatabase *  destination,
-                  nsIImportFieldMap *  fieldMap,
-                  PRBool isAddrLocHome,
-                  PRUnichar **    errorLog,
-                  PRUnichar **    successLog,
-                  PRBool *      fatalError);
+  NS_IMETHOD ImportAddressBook(nsIImportABDescriptor *source,
+                               nsIAddrDatabase *destination,
+                               nsIImportFieldMap *fieldMap,
+                               nsISupports *aSupportService,
+                               PRBool isAddrLocHome,
+                               PRUnichar **errorLog,
+                               PRUnichar **successLog,
+                               PRBool *fatalError);
 
   /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
@@ -734,13 +735,15 @@ void ImportEudoraAddressImpl::ReportSuccess( nsString& name, nsString *pStream)
 }
 
 
-NS_IMETHODIMP ImportEudoraAddressImpl::ImportAddressBook(  nsIImportABDescriptor *pSource,
-                          nsIAddrDatabase *  pDestination,
-                          nsIImportFieldMap *  fieldMap,
-                PRBool isAddrLocHome,
-                          PRUnichar **    pErrorLog,
-                          PRUnichar **    pSuccessLog,
-                          PRBool *      fatalError)
+NS_IMETHODIMP
+ImportEudoraAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
+                                           nsIAddrDatabase *pDestination,
+                                           nsIImportFieldMap *fieldMap,
+                                           nsISupports *aSupportService,
+                                           PRBool isAddrLocHome,
+                                           PRUnichar **pErrorLog,
+                                           PRUnichar **pSuccessLog,
+                                           PRBool *fatalError)
 {
     NS_PRECONDITION(pSource != nsnull, "null ptr");
     NS_PRECONDITION(pDestination != nsnull, "null ptr");
