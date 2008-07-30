@@ -61,20 +61,6 @@
 #import "ViewCertificateDialogController.h"
 #import "CertificatesWindowController.h"
 
-// C++ class that holds owning refs to XPCOM interfaces for the window controller
-class CertDataOwner
-{
-public:
-
-  CertDataOwner()
-  {
-    mCertCache = do_CreateInstance("@mozilla.org/security/nsscertcache;1");
-    mCertCache->CacheAllCerts();
-  }
-
-  nsCOMPtr<nsINSSCertCache>   mCertCache;
-};
-
 #pragma mark -
 
 @interface CertificatesWindowController(Private)
@@ -420,7 +406,6 @@ static CertificatesWindowController* gCertificatesWindowController;
 
   [mCertificatesData release];
   [mDetailsColumnKey release];
-  delete mDataOwner;
   [super dealloc];
 }
 
@@ -581,9 +566,6 @@ static CertificatesWindowController* gCertificatesWindowController;
   if (curSelectedRow == -1)
     curSelectedRow = 0;
 
-  delete mDataOwner;
-  mDataOwner = new CertDataOwner;
-
   [self setupCertsData];
   [mCategoriesTable reloadData];
 
@@ -697,8 +679,20 @@ static CertificatesWindowController* gCertificatesWindowController;
   {
     rowDict = [mCertificatesData objectAtIndex:rowIndex];
     CertificatesDataSource* certsDataSource = [rowDict objectForKey:@"data_source"];
-    [certsDataSource ensureCertsLoaded:mDataOwner->mCertCache.get()];
-    [mCertsOutlineView setDataSource:certsDataSource];
+    nsCOMPtr<nsINSSCertCache> certCache = do_CreateInstance("@mozilla.org/security/nsscertcache;1");
+    
+    // If we can't access the cert cache (for example during app shutdown),
+    // let's just clear the view, and move on.
+    if (certCache)
+    {
+        certCache->CacheAllCerts();
+        [certsDataSource ensureCertsLoaded:certCache];
+        [mCertsOutlineView setDataSource:certsDataSource];
+    }
+    else
+    {
+        [mCertsOutlineView setDataSource:nil]; 
+    }
   }
   else
   {

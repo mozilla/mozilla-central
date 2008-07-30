@@ -39,8 +39,6 @@
 
 #import <AppKit/AppKit.h>
 
-class CertDataOwner;
-
 @class ExtendedSplitView;
 @class ExtendedOutlineView;
 
@@ -58,8 +56,6 @@ class CertDataOwner;
   
   NSArray*                      mCertificatesData;
   NSString*                     mDetailsColumnKey;
-  
-  CertDataOwner*                mDataOwner;   // container for C++ stuff
 }
 
 + (CertificatesWindowController*)sharedCertificatesWindowController;
