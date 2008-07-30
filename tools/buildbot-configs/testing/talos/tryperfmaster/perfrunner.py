@@ -2,6 +2,7 @@
 
 from buildbot.process.buildstep import BuildStep
 from buildbot.buildset import BuildSet
+from buildbot.scheduler import Scheduler
 from buildbot.sourcestamp import SourceStamp
 from buildbot.steps.shell import ShellCommand
 from buildbot.process.buildstep import BuildStep
@@ -49,6 +50,24 @@ MozillaEnvironments['mac'] = {
     # for extracting dmg's
     "PAGER": '/bin/cat',
 }
+
+class noMergeSourceStamp(SourceStamp):
+    def canBeMergedWith(self, other):
+        return False
+
+class noMergeScheduler(Scheduler):
+    """Disallow build requests to be merged"""
+    def fireTimer(self):
+        self.timer = None
+        self.nextBuildTime = None
+        changes = self.importantChanges + self.unimportantChanges
+        self.importantChanges = []
+        self.unimportantChanges = []
+
+        # submit
+        ss = noMergeSourceStamp(changes=changes)
+        bs = buildset.BuildSet(self.builderNames, ss)
+        self.submit(bs)
 
 class ApacheDirectory:
     sortByDateString = "?C=M;O=A"
