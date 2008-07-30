@@ -194,11 +194,12 @@ let Gloda = {
    *     with names being singular (since it's a single noun we are referring
    *     to.)
    */
-  defineNoun: function gloda_ns_defineNoun(aNounMeta) {
-    let nounID = this._nextNounID++;
-    aNounMeta.id = nounID;
-    this._nounNameToNounID[aNounMeta.name] = nounID; 
-    this._nounIDToMeta[nounID] = aNounMeta;
+  defineNoun: function gloda_ns_defineNoun(aNounMeta, aNounID) {
+    if (aNounID === undefined)
+      aNounID = this._nextNounID++;
+    aNounMeta.id = aNounID;
+    this._nounNameToNounID[aNounMeta.name] = aNounID; 
+    this._nounIDToMeta[aNounID] = aNounMeta;
     aNounMeta.actions = [];
   },
   
@@ -238,12 +239,12 @@ let Gloda = {
   _initAttributes: function gloda_ns_initAttributes() {
     this._nounIDToMeta[this.NOUN_BOOLEAN] = {class: Boolean, firstClass: false,
       actions: [],
-      fromAttributeValue: function(aVal) {
+      fromParamAndValue: function(aParam, aVal) {
         if(aVal != 0) return true; else return false;
       }};
     this._nounIDToMeta[this.NOUN_DATE] = {class: Date, firstClass: false,
       actions: [],
-      fromAttributeValue: function(aPRTime) {
+      fromParamAndValue: function(aParam, aPRTime) {
         return new Date(aPRTime / 1000);
       }};
 
@@ -253,22 +254,22 @@ let Gloda = {
     //  examining the data, we will probably hit the correlation.
     this._nounIDToMeta[this.NOUN_CONVERSATION] = {class: GlodaConversation,
       firstClass: false, actions: [],
-      fromAttributeValue: function(aID) {
+      fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getConversationByID(aID);
       }};
     this._nounIDToMeta[this.NOUN_MESSAGE] = {class: GlodaMessage,
       firstClass: true, actions: [],
-      fromAttributeValue: function(aID) {
+      fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getMessageByID(aID);
       }};
     this._nounIDToMeta[this.NOUN_CONTACT] = {class: GlodaContact,
       firstClass: false, actions: [],
-      fromAttributeValue: function(aID) {
+      fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getContactByID(aID);
       }};
     this._nounIDToMeta[this.NOUN_IDENTITY] = {class: GlodaIdentity,
       firstClass: false, actions: [],
-      fromAttributeValue: function(aID) {
+      fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getIdentityByID(aID);
       }};
   
@@ -298,7 +299,7 @@ let Gloda = {
     if (!(aSubjectType in this._nounIDToMeta))
       throw Error("Invalid subject type: " + aSubjectType);
     
-    let objectCoerce = this._nounIDToMeta[aObjectType].fromAttributeValue;
+    let objectCoerce = this._nounIDToMeta[aObjectType].fromParamAndValue;
     
     let storageName = "__" + aBindName;
     let getter;
@@ -310,7 +311,7 @@ let Gloda = {
         let instances = this.getAttributeInstances(aAttr);
         let val;
         if (instances.length > 0)
-          val = objectCoerce(instances[0][2]);
+          val = objectCoerce(instances[0][1], instances[0][2]);
         else
           val = null;
         this[storageName] = val;
@@ -325,7 +326,7 @@ let Gloda = {
         if (instances.length > 0) {
           values = [];
           for (let iInst=0; iInst < instances.length; iInst++) {
-            values.push(objectCoerce(instances[iInst][2]));
+            values.push(objectCoerce(instances[iInst][1], instances[iInst][2]));
           }
         }
         else {

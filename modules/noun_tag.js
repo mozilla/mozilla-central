@@ -35,7 +35,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = [];
+EXPORTED_SYMBOLS = ['Tagged', 'TagNoun'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -44,22 +44,27 @@ const Cu = Components.utils;
 
 Cu.import("resource://gloda/modules/gloda.js");
 
+function Tagged(aTag, aDate) {
+  this.tag = aTag;
+  this.date = aDate;
+}
+
+Tagged.prototype = {
+  toString: function () {
+    return this.tag.tag;
+  }
+};
+
 /**
- * We are the tag noun provider.  We deal in nsIMsgTag instances, at least
- *  until STEEL provides us with a better currency.
- * We are only intended to be used as an attribute parameter, not as an
- *  attribute value.  This is mainly because our unique value is a string,
- *  but the ramifications agree with us.  Namely, this allows the attribute
- *  value to be used to store the date the tag was applied, and we expect
- *  the number of user-defined tags to be reasonable enough to jive with
- *  limits on attribute parameterization.
+ * We are the tag noun provider.  Since the tag unique value is stored as a
+ *  parameter, we are an odd case and semantically confused.
  */
 let TagNoun = {
   name: "tag",
-  class: Ci.nsIMsgTag,
+  class: Tagged,
   firstClass: false,
-  
   _msgTagService: null,
+  
   _init: function () {
     this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
                           getService(Ci.nsIMsgTagService);
@@ -67,21 +72,28 @@ let TagNoun = {
   
   // we cannot be an attribute value
   
-  toParameterValue: function gloda_noun_tag_toParameterValue(aMsgTag) {
-    return aMsgTag.key;
+  toParamAndValue: function gloda_noun_tag_toParamAndValue(aTagged, aGeneric) {
+    if (aGeneric)
+      return [aTagged.tag.key, null];
+    else
+      return [aTagged.tag.key, aTagged.date.valueOf() * 1000];
   },
   
-  fromParameterValue: function gloda_noun_tag_fromParameterValue(aTagKey) {
+  fromParamAndValue: function gloda_noun_tag_fromParameterValue(aTagKey,
+                                                                aPRTime) {
     // we have to walk the array to find our tag.  curse you, tag service!
-    let tagArray = this._msgTagService.getAllTags({});
+    let tagService = Cc["@mozilla.org/messenger/tagservice;1"].
+                          getService(Ci.nsIMsgTagService);
+    let tagArray = tagService.getAllTags({});
     for (let iTag=0; iTag < tagArray.length; iTag++) {
       let tag = tagArray[iTag];
       if (tag.key == aTagKey)
-        return tag;
+        return new Tagged(tag, new Date(aPRTime/1000));
     }
     // the tag has gone a-way, null is probably the safest thing to do.
     return null;
   },
 };
 
-Gloda.defineNoun(TagNoun);
+TagNoun._init();
+Gloda.defineNoun(TagNoun, Gloda.NOUN_TAG);

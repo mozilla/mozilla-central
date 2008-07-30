@@ -46,6 +46,8 @@ Cu.import("resource://gloda/modules/log4moz.js");
 
 Cu.import("resource://gloda/modules/utils.js");
 Cu.import("resource://gloda/modules/gloda.js");
+Cu.import("resource://gloda/modules/noun_tag.js");
+
 
 const EXT_BUILTIN = "built-in";
 const FA_TAG = "TAG";
@@ -63,10 +65,14 @@ let GlodaExplicitAttr = {
   providerName: "gloda.explattr",
   _log: null,
   _strBundle: null,
+  _mstTagService: null,
 
   init: function gloda_explattr_init(aStrBundle) {
     this._log =  Log4Moz.Service.getLogger("gloda.explattr");
     this._strBundle = aStrBundle;
+
+    this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
+                          getService(Ci.nsIMsgTagService);
   
     try {
       this.defineAttributes();
@@ -90,15 +96,24 @@ let GlodaExplicitAttr = {
                         attributeName: "tag",
                         bind: true,
                         bindName: "tags",
-                        singular: true,
+                        singular: false,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
-                        objectNoun: Gloda.NOUN_DATE,
-                        parameterNoun: Gloda.NOUN_TAG,
+                        objectNoun: Gloda.NOUN_TAG,
+                        parameterNoun: null,
                         explanation: this._strBundle.getString(
                                        "attrTagExplanation"),
                         // Property change notifications that we care about:
                         propertyChanges: ["keywords"],
                         });
+    Gloda.defineNounAction(Gloda.NOUN_TAG, {
+      actionType: "filter", actionTarget: Gloda.NOUN_TAG,
+      shortName: "same tag",
+      makeConstraint: function(aAttrDef, aTagged) {
+        return [GlodaExplicitAttr._attrTag].concat(
+          TagNoun.toParamAndValue(aTagged, true));
+      },
+      });
+
     // Star
     this._attrStar = Gloda.defineAttribute({
                         provider: this,
@@ -138,7 +153,24 @@ let GlodaExplicitAttr = {
     attribs.push([this._attrRead.id, aMsgHdr.isRead ? 1 : 0]);
     
     // -- Tag
+    // build a map of the keywords
     let keywords = aMsgHdr.getStringProperty("keywords");
+    let keywordList = keywords.split(' ');
+    let keywordMap = {};
+    for (let iKeyword=0; iKeyword < keywordList.length; iKeyword++) {
+      let keyword = keywordList[iKeyword];
+      keywordMap[keyword] = true;
+    }
+
+    let nowPRTime = Date.now() * 1000;
+
+    let tagArray = this._msgTagService.getAllTags({});
+    for (let iTag=0; iTag < tagArray.length; iTag++) {
+      let tag = tagArray[iTag];
+      if (tag.key in keywordMap)
+        attribs.push([this._attrTag, tag.key, nowPRTime]);
+    }
+
     
     return attribs;
   },
