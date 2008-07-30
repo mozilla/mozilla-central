@@ -81,6 +81,12 @@ class MozillaTryProcessing(BuildStep):
 
         # 2) Set sendchange arguments to build properties
         args = parseSendchangeArguments(changes[0].files)
+        # because we abuse 'branch' for triggering different builders
+        # we need to special case them, so we don't try to actually pull from
+        # PATCH_TRY or HG_TRY
+        branch = self.getProperty('branch')
+        if branch != 'PATCH_TRY' and branch != 'HG_TRY':
+            args['identifier'] = '%s-%s' % (branch, changes[0].revision[0:11])
         for arg in args:
             self.setProperty(arg, args[arg])
 
@@ -249,9 +255,9 @@ class MozillaUploadTryBuild(ShellCommand):
         # the time the change was processed, this should be the same for every
         # build in a set
         when = strftime("%Y-%m-%d_%H:%M", localtime(changes[0].when))
-        dir = "%s-%s-%s" % (when, changer, args['identifier'])
+        dir = "%s-%s-%s" % (when, changer, self.getProperty('identifier'))
         # this is the filename of the package built on the slave
-        filename = "%s-%s" % (args['identifier'], self.baseFilename)
+        filename = "%s-%s" % (self.getProperty('identifier'), self.baseFilename)
         # the path to the package + the filename
         slavesrc = path.join(self.slavedir, filename)
         # the full path + full filename to the package
@@ -268,18 +274,21 @@ class MozillaTryServerHgClone(Mercurial):
     haltOnFailure = True
     flunkOnFailure = True
     
-    def __init__(self, repourl="http://hg.mozilla.org/mozilla-central",
-                 **kwargs):
+    def __init__(self, baseURL="http://hg.mozilla.org/",
+                 defaultBranch='mozilla-central', **kwargs):
         timeout = 3600
         if 'timeout' in kwargs:
             timeout = kwargs['timeout']
         # repourl overridden in startVC
-        Mercurial.__init__(self, repourl=repourl, timeout=timeout, **kwargs)
+        Mercurial.__init__(self, baseURL=baseURL, defaultBranch=defaultBranch,
+                           timeout=timeout, **kwargs)
 
     def startVC(self, branch, revision, patch):
-        changes = self.step_status.build.getChanges()
-        args = parseSendchangeArguments(changes[0].files)
-        self.repourl = args['mozillaRepoPath']
+        branch = self.getProperty('branch')
+        if branch != 'PATCH_TRY' and branch != 'HG_TRY':
+            self.repourl = self.baseURL + '/' + branch
+        else:
+            self.repourl = self.getProperty('mozillaRepoPath')
 
         Mercurial.startVC(self, None, revision, patch)
 
@@ -368,7 +377,7 @@ class MozillaCreateUploadDirectory(ShellCommand):
         when = strftime("%Y-%m-%d_%H:%M", localtime(changes[0].when))
         changer = changes[0].who
         args = parseSendchangeArguments(changes[0].files)
-        dir = "%s-%s-%s" % (when, changer, args['identifier'])
+        dir = "%s-%s-%s" % (when, changer, self.getProperty('identifier'))
         fullDir = path.join(self.sshDir, dir)
         self.setCommand(['ssh', self.sshHost, 'mkdir', fullDir])
 
