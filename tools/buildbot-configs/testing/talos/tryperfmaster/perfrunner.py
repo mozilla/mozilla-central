@@ -1,6 +1,7 @@
 # -*- Python -*-
 
 from buildbot.process.buildstep import BuildStep
+from buildbot import buildset
 from buildbot.buildset import BuildSet
 from buildbot.scheduler import Scheduler
 from buildbot.sourcestamp import SourceStamp
