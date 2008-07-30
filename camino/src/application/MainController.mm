@@ -562,6 +562,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
                                       @"CaminoSession", @"CaminoSession",
                                           @"1Password", @"InputManager", // Yes, that's really the class name
                                         @"GrowlCamino", @"GrowlCamino",
+                                         @"CamiScript", @"CamiScript",
                                         @"UnifyCamino", @"UnifyCamino",
                                                         nil];
       NSMutableArray* addOnsPresent = [NSMutableArray array];
