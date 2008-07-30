@@ -230,6 +230,11 @@ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 ifdef BUILD_STATIC_LIBS
 LIBS	+= -lcups -framework AddressBook
 endif
+ifdef MOZ_OGG
+ifeq ($(OS_ARCH),Darwin)
+OS_LIBS += -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework Carbon
+endif
+endif
 endif
 
 ifeq ($(OS_ARCH),WINNT)
