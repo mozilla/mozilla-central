@@ -154,7 +154,8 @@ class HgPoller(base.ChangeSource):
     volatile = ['loop']
     working = False
     
-    def __init__(self, hgURL, branch, pushlogUrlOverride=None, pollInterval=30):
+    def __init__(self, hgURL, branch, pushlogUrlOverride=None,
+                 tipsOnly=False, pollInterval=30):
         """
         @type   hgURL:          string
         @param  hgURL:          The base URL of the Hg repo
@@ -164,11 +165,16 @@ class HgPoller(base.ChangeSource):
         @type   pollInterval:   int
         @param  pollInterval:   The time (in seconds) between queries for
                                 changes
+        @type  tipsOnly:        bool
+        @param tipsOnly:        Make the pushlog only show the tips of pushes.
+                                With this enabled every push will only show up
+                                as *one* changeset
         """
         
         self.hgURL = hgURL
         self.branch = branch
         self.pushlogUrlOverride = pushlogUrlOverride
+        self.tipsOnly = tipsOnly
         self.pollInterval = pollInterval
         self.lastChange = time.time()
 
@@ -182,8 +188,7 @@ class HgPoller(base.ChangeSource):
         return base.ChangeSource.stopService(self)
     
     def describe(self):
-        return "Getting changes from the Mercurial repo at %s%s" % \
-               (self.hgURL, self.branch)
+        return "Getting changes from: %s" % self._make_url()
     
     def poll(self):
         if self.working:
@@ -207,10 +212,16 @@ class HgPoller(base.ChangeSource):
         return None
 
     def _make_url(self):
+        url = None
         if self.pushlogUrlOverride:
-            return self.pushlogUrlOverride
+            url = self.pushlogUrlOverride
         else:
-            return "%s%s/pushlog" % (self.hgURL, self.branch)
+            url = "%s%s/pushlog" % (self.hgURL, self.branch)
+
+        if self.tipsOnly:
+            url += '?tipsonly=1'
+
+        return url
     
     def _get_changes(self):
         url = self._make_url()
