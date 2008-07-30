@@ -460,6 +460,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
 
 NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
 {
+  NS_ENSURE_ARG_POINTER(aCards);
   nsresult rv = NS_OK;
 
   if (mIsQueryURI) {
