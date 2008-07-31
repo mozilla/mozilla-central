@@ -138,6 +138,9 @@ function MsgEmptyTrash()
     folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
     if (startIndex.value >= 0)
     {
+        if (!confirmToProceed('emptyTrash'))
+            return;
+ 
         var folderResource = GetFolderResource(folderTree, startIndex.value);
         var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
         folder.emptyTrash(msgWindow, null);

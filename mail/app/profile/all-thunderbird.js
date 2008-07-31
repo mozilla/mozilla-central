@@ -391,8 +391,9 @@ pref("browser.safebrowsing.warning.infoURL", "http://%LOCALE%.www.mozilla.com/%L
 // prevent status-bar spoofing even if people are foolish enough to turn on JS
 pref("dom.disable_window_status_change",          true);
 
-// For the Empty Junk confirmation dialog
+// For the Empty Junk/Trash confirmation dialogs.
 pref("mail.emptyJunk.dontAskAgain", false);
+pref("mail.emptyTrash.dontAskAgain", false);
 
 // Tabs
 pref("mail.tabs.tabMinWidth", 100);

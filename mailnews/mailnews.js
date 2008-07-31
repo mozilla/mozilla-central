@@ -764,5 +764,6 @@ pref("nglayout.enable_drag_images", false);
 pref("mail.compose.max_recycled_windows", 0);
 #endif
 
-// For the Empty Junk confirmation dialog
+// For the Empty Junk/Trash confirmation dialogs.
 pref("mailnews.emptyJunk.dontAskAgain", false);
+pref("mailnews.emptyTrash.dontAskAgain", false);

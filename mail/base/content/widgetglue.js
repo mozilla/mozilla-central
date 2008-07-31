@@ -108,7 +108,12 @@ function MsgEmptyTrash()
 {
   var folders = GetSelectedMsgFolders();
   if (folders.length == 1)
+  {
+    if (!confirmToProceed('emptyTrash'))
+      return;
+
     folders[0].emptyTrash(msgWindow, null);
+  }
 }
 
 function MsgCompactFolder(isAll)
