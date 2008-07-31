@@ -66,6 +66,7 @@ function calDavCalendar() {
     this.mObserver = null;
     this.mFirstRefreshDone = false;
     this.mQueuedQueries = [];
+    this.mCtag = null;
 }
 
 // some shorthand
@@ -203,6 +204,8 @@ calDavCalendar.prototype = {
     mFirstRefreshDone: false,
 
     mQueuedQueries: null,
+
+    mCtag: null,
 
     get authRealm() {
         return this.mAuthRealm;
@@ -629,7 +632,7 @@ calDavCalendar.prototype = {
      * fails, here for compatibility with OGo/SOGo CalDAV
      * interfaces that are not yet RFC4791-compliant. It
      * should be removed when OGo/SOGo are fixed
-     * 
+     *
      * @param aItem       item to fetch
      * @param aListener   listener for method completion
      */
@@ -705,6 +708,88 @@ calDavCalendar.prototype = {
         }
     },
 
+    safeRefresh: function caldav_safeRefresh() {
+
+        if (!this.mCtag || !this.mFirstRefreshDone) {
+            var refreshEvent = this.prepRefresh();
+            this.getUpdatedItems(refreshEvent);
+            return;
+        }
+        var thisCalendar = this;
+
+        var D = new Namespace("D", "DAV:");
+        var CS = new Namespace("CS", "http://calendarserver.org/ns/");
+        var queryXml = <D:propfind xmlns:D={D} xmlns:CS={CS}>
+                        <D:prop>
+                            <CS:getctag/>
+                        </D:prop>
+                        </D:propfind>;
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + queryXml);
+        }
+        var httpchannel = calPrepHttpChannel(this.mCalendarUri,
+                                             queryXml,
+                                             "text/xml; charset=utf-8",
+                                             this);
+        httpchannel.setRequestHeader("Depth", "0", false);
+        httpchannel.requestMethod = "PROPFIND";
+
+        var streamListener = {};
+
+        streamListener.onStreamComplete =
+            function checkDavResourceType_oSC(aLoader, aContext, aStatus,
+                                         aResultLength, aResult) {
+            try {
+                LOG("CalDAV: Status " + aContext.responseStatus +
+                    " checking ctag for calendar " + thisCalendar.name);
+            } catch (ex) {
+                LOG("CalDAV: Error without status on checking ctag for calendar " +
+                    thisCalendar.name);
+            }
+
+            var str = convertByteArray(aResult, aResultLength);
+            if (!str) {
+                LOG("CalDAV: Failed to get ctag from server");
+            } else if (thisCalendar.verboseLogging()) {
+                LOG("CalDAV: recv: " + str);
+            }
+
+            if (str.substr(0,6) == "<?xml ") {
+                    str = str.substring(str.indexOf('<', 2));
+            }
+            try {
+                var multistatus = new XML(str);
+            } catch (ex) {
+                LOG("CalDAV: Failed to get ctag from server");
+                return;
+            }
+
+            var ctag = multistatus..CS::getctag;
+            if (!ctag || ctag != thisCalendar.mCtag) {
+                // ctag mismatch, need to fetch calendar-data
+                thisCalendar.mCtag = ctag;
+                var refreshEvent = thisCalendar.prepRefresh();
+                thisCalendar.getUpdatedItems(refreshEvent);
+                if (thisCalendar.verboseLogging()) {
+                    LOG("CalDAV: ctag mismatch on refresh, fetching data for calendar "
+                        + thisCalendar.name);
+                }
+            } else {
+                if (thisCalendar.verboseLogging()) {
+                    LOG("CalDAV: ctag matches, no need to fetch data for calendar "
+                        + thisCalendar.name);
+                }
+                // we may still need to refesh other cals in this authrealm
+                if (thisCalendar.mAuthScheme == "Digest" &&
+                    thisCalendar.firstInRealm()) {
+                    thisCalendar.refreshOtherCals();
+                }
+            }
+        };
+        var streamLoader = createStreamLoader();
+        calSendHttpRequest(streamLoader, httpchannel, streamListener);
+    },
+
     refresh: function caldav_refresh() {
         if (this.mAuthScheme != "Digest") {
             // Basic HTTP Auth will not have timed out, we can just refresh
@@ -750,7 +835,7 @@ calDavCalendar.prototype = {
         }
     },
 
-    safeRefresh: function caldav_safeRefresh() {
+    prepRefresh: function caldav_safeRefresh() {
 
         var itemTypes = new Array("VEVENT", "VTODO");
         var typesCount = itemTypes.length;
@@ -761,7 +846,7 @@ calDavCalendar.prototype = {
         refreshEvent.itemsNeedFetching = [];
         refreshEvent.itemsReported = [];
 
-        this.getUpdatedItems(refreshEvent);
+        return refreshEvent;
 
     },
 
@@ -1097,9 +1182,11 @@ calDavCalendar.prototype = {
         var thisCalendar = this;
 
         var D = new Namespace("D", "DAV:");
-        var queryXml = <D:propfind xmlns:D="DAV:">
+        var CS = new Namespace("CS", "http://calendarserver.org/ns/");
+        var queryXml = <D:propfind xmlns:D="DAV:" xmlns:CS={CS}>
                         <D:prop>
                             <D:resourcetype/>
+                            <CS:getctag/>
                         </D:prop>
                         </D:propfind>;
         if (this.verboseLogging()) {
@@ -1161,6 +1248,15 @@ calDavCalendar.prototype = {
                 thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_NOT_DAV,
                                             "dav_notDav");
                 return;
+            }
+
+            // check for server-side ctag support
+            var ctag = multistatus..CS::["getctag"];
+            if (ctag && ctag.toString().length) {
+                thisCalendar.mCtag = ctag;
+                if (thisCalendar.verboseLogging()) {
+                    LOG("CalDAV: initial ctag " + ctag + " for calendar " + thisCalendar.name);
+                }
             }
 
             var resourceTypeXml = multistatus..D::["resourcetype"];
