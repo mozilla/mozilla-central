@@ -1105,7 +1105,7 @@ calDavCalendar.prototype = {
         if (this.verboseLogging()) {
             LOG("CalDAV: send: " + queryXml);
         }
-        var httpchannel = calPrepHttpChannel(this.mUri,
+        var httpchannel = calPrepHttpChannel(this.mCalendarUri,
                                              queryXml,
                                              "text/xml; charset=utf-8",
                                              this);
