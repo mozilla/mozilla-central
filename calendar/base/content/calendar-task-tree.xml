@@ -247,7 +247,7 @@
       <method name="getTaskAtRow">
         <parameter name="aRow"/>
         <body><![CDATA[
-          return this.mTaskArray[aRow];
+          return (aRow > -1 ? this.mTaskArray[aRow] : null);
         ]]></body>
       </method>
 
