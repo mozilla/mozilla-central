@@ -381,16 +381,6 @@ function allLeftButtonsAreHidden()
   return true;
 }
 
-const gTabOpenObserver = {
-  observe: function(subject, topic, data)
-  {
-    if (topic != "open-new-tab-request" || subject != window)
-      return;
-
-    delayedOpenTab(data);
-  }
-};
-
 const nsIBrowserDOMWindow = Components.interfaces.nsIBrowserDOMWindow;
 const nsIInterfaceRequestor = Components.interfaces.nsIInterfaceRequestor;
 
@@ -683,10 +673,6 @@ function Startup()
         Components.classes[REMOTESERVICE_CONTRACTID]
                   .getService(Components.interfaces.nsIRemoteService);
       remoteService.registerWindow(window);
-
-      var observerService = Components.classes["@mozilla.org/observer-service;1"]
-        .getService(Components.interfaces.nsIObserverService);
-      observerService.addObserver(gTabOpenObserver, "open-new-tab-request", false);
     }
   }
   
@@ -768,13 +754,6 @@ function BrowserFlushBookmarksAndHistory()
 
 function Shutdown()
 {
-  // remove remote support
-  if (REMOTESERVICE_CONTRACTID in Components.classes) {
-    var observerService = Components.classes["@mozilla.org/observer-service;1"]
-      .getService(Components.interfaces.nsIObserverService);
-    observerService.removeObserver(gTabOpenObserver, "open-new-tab-request", false);
-  }
-
   // shut down browser access support
   window.browserDOMWindow = null;
 
