@@ -37,90 +37,105 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/prefPanels.css" type="text/css"?>
 
-<!DOCTYPE page [
+<!DOCTYPE overlay [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
 %brandDTD;
 <!ENTITY % prefJunkDTD SYSTEM "chrome://messenger/locale/pref-junk.dtd">
 %prefJunkDTD;
 ]>
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://messenger/content/pref-junk.xul');"
-      headertitle="&pref.junk.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="junk_pane"
+            label="&pref.junk.title;"
+            script="chrome://messenger/content/pref-junk.js">
+    <preferences id="junk_preferences">
+      <preference id="mail.spam.manualMark"
+                  name="mail.spam.manualMark"
+                  type="bool"
+                  onchange="EnableElementById('manualMarkMode', this.value, false);"/>
+      <preference id="mail.spam.manualMarkMode"
+                  name="mail.spam.manualMarkMode"
+                  type="int"/>
+      <preference id="mail.spam.markAsReadOnSpam"
+                  name="mail.spam.markAsReadOnSpam"
+                  type="bool"/>
+      <preference id="mailnews.ui.junk.manualMarkAsJunkMarksRead"
+                  name="mailnews.ui.junk.manualMarkAsJunkMarksRead"
+                  type="bool"/>
+      <preference id="mail.spam.logging.enabled"
+                  name="mail.spam.logging.enabled"
+                  type="bool"
+                  onchange="EnableElementById('openJunkLog', this.value, false);"/>
+      <preference id="pref.junk.disable_button.openJunkLog"
+                  name="pref.junk.disable_button.openJunkLog"
+                  type="string"/>
+      <preference id="pref.junk.disable_button.resetTrainingData"
+                  name="pref.junk.disable_button.resetTrainingData"
+                  type="string"/>
+    </preferences>
 
-  <script type="application/x-javascript">
-    <![CDATA[
-      var _elementIDs = ["manualMark", "manualMarkMode", 
-                         "autoMarkAsRead", "manualMarkAsRead",
-                         "enableJunkLogging"];
-    ]]>
-  </script>
+    <stringbundle id="bundlePreferences"
+                  src="chrome://messenger/locale/messenger.properties"/>
 
-  <script type="application/x-javascript" src="chrome://messenger/content/pref-junk.js"/>
+    <groupbox>
+      <caption label="&junkSettings.caption;"/>
+      <description>&junkMail.intro;</description>
+      <class separator="thin"/>
 
-  <stringbundle id="bundlePreferences" src="chrome://messenger/locale/messenger.properties"/>
-    
-  <groupbox>
-    <caption label="&junkSettings.caption;"/>
-    <description>&junkMail.intro;</description>
-    <class separator="thin"/>
-          
-    <checkbox id="manualMark" 
+      <checkbox id="manualMark"
               label="&manualMark.label;"
               accesskey="&manualMark.accesskey;"
-              prefstring="mail.spam.manualMark"
-              oncommand="UpdateDependentElement(this, 'manualMarkMode')"/>
-    <radiogroup id="manualMarkMode"
-                class="indent"
-                aria-labelledby="manualMark"
-                prefstring="mail.spam.manualMarkMode">
-      <radio id="manualMarkMode0"
-             label="&manualMarkModeMove.label;"
-             accesskey="&manualMarkModeMove.accesskey;"
-             value="0"/>
-      <radio id="manualMarkMode1"
-             label="&manualMarkModeDelete.label;"
-             accesskey="&manualMarkModeDelete.accesskey;"
-             value="1"/>
-    </radiogroup>
+              preference="mail.spam.manualMark"/>
+      <radiogroup id="manualMarkMode"
+                  class="indent"
+                  aria-labelledby="manualMark"
+                  preference="mail.spam.manualMarkMode">
+        <radio id="manualMarkMode0"
+               label="&manualMarkModeMove.label;"
+               accesskey="&manualMarkModeMove.accesskey;"
+               value="0"/>
+        <radio id="manualMarkMode1"
+               label="&manualMarkModeDelete.label;"
+               accesskey="&manualMarkModeDelete.accesskey;"
+               value="1"/>
+      </radiogroup>
 
-    <separator class="thin"/>
+      <separator class="thin"/>
 
-    <description>&markAsRead.intro;</description>
-    <vbox class="indent">
-      <checkbox id="autoMarkAsRead" 
-                label="&autoMarkAsRead.label;"
-                accesskey="&autoMarkAsRead.accesskey;"
-                prefstring="mail.spam.markAsReadOnSpam"/>
-      <checkbox id="manualMarkAsRead" 
-                label="&manualMarkAsRead.label;"
-                accesskey="&manualMarkAsRead.accesskey;"
-                prefstring="mailnews.ui.junk.manualMarkAsJunkMarksRead"/>
-    </vbox>
+      <description>&markAsRead.intro;</description>
+      <vbox class="indent">
+        <checkbox id="autoMarkAsRead"
+                  label="&autoMarkAsRead.label;"
+                  accesskey="&autoMarkAsRead.accesskey;"
+                  preference="mail.spam.markAsReadOnSpam"/>
+        <checkbox id="manualMarkAsRead"
+                  label="&manualMarkAsRead.label;"
+                  accesskey="&manualMarkAsRead.accesskey;"
+                  preference="mailnews.ui.junk.manualMarkAsJunkMarksRead"/>
+      </vbox>
 
-    <separator class="thin"/>
-  
-    <hbox align="start">
-      <checkbox id="enableJunkLogging"
-                label="&enableJunkLogging.label;"
-                accesskey="&enableJunkLogging.accesskey;"
-                prefstring="mail.spam.logging.enabled" 
-                oncommand="UpdateDependentElement(this, 'openJunkLog')"/>
-      <spacer flex="1"/>
-      <button id="openJunkLog"
-              label="&openJunkLog.label;"
-              accesskey="&openJunkLog.accesskey;" 
-              prefstring="pref.junk.disable_button.openJunkLog"
-              oncommand="OpenJunkLog();"/>
-    </hbox>
-    <hbox align="start">
-      <spacer flex="1"/>
-      <button id="resetTrainingData"
-              label="&resetTrainingData.label;" 
-              accesskey="&resetTrainingData.accesskey;" 
-              prefstring="pref.junk.disable_button.resetTrainingData"
-              oncommand="ResetTrainingData();"/>
-    </hbox>
-  </groupbox>
+      <separator class="thin"/>
 
-</page>
+      <hbox align="start">
+        <checkbox id="enableJunkLogging"
+                  label="&enableJunkLogging.label;"
+                  accesskey="&enableJunkLogging.accesskey;"
+                  preference="mail.spam.logging.enabled"/>
+        <spacer flex="1"/>
+        <button id="openJunkLog"
+                label="&openJunkLog.label;"
+                accesskey="&openJunkLog.accesskey;"
+                preference="pref.junk.disable_button.openJunkLog"
+                oncommand="OpenJunkLog();"/>
+      </hbox>
+      <hbox align="start">
+        <spacer flex="1"/>
+        <button id="resetTrainingData"
+                label="&resetTrainingData.label;"
+                accesskey="&resetTrainingData.accesskey;"
+                preference="pref.junk.disable_button.resetTrainingData"
+                oncommand="ResetTrainingData();"/>
+      </hbox>
+    </groupbox>
+  </prefpane>
+</overlay>

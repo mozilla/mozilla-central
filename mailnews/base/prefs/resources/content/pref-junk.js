@@ -36,15 +36,14 @@
 
 function Startup()
 {
-  UpdateDependentElement(document.getElementById("manualMark"), "manualMarkMode");
-  UpdateDependentElement(document.getElementById("enableJunkLogging"), "openJunkLog");
+  UpdateDependentElement("manualMark", "manualMarkMode");
+  UpdateDependentElement("enableJunkLogging", "openJunkLog");
 }
 
-function UpdateDependentElement(aBaseElement, aDependentElementId)
+function UpdateDependentElement(aBaseId, aDependentId)
 {
-  var element = document.getElementById(aDependentElementId);
-  var isLocked = parent.hPrefWindow.getPrefIsLocked(element.getAttribute("prefstring"));
-  element.disabled = !aBaseElement.checked || isLocked;
+  var pref = document.getElementById(aBaseId).getAttribute("preference");
+  EnableElementById(aDependentId, document.getElementById(pref).value, false);
 }
 
 function OpenJunkLog()
