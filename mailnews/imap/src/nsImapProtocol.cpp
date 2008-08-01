@@ -3749,7 +3749,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
     {
       nsCString idsToFetch("1:*");
       char fetchModifier[40] = "";
-      if (!needFullFolderSync && !GetShowDeletedMessages())
+      if (!needFullFolderSync && !GetShowDeletedMessages() && UseCondStore())
         PR_snprintf(fetchModifier, sizeof(fetchModifier), " (CHANGEDSINCE %llu)",
                     mFolderLastModSeq);
 
