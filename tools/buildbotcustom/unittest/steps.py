@@ -301,7 +301,12 @@ class MozillaMochitest(ShellCommandReportTimeout):
                "--autorun",
                "--console-level=INFO",
                "--close-when-done"]
-     
+    
+    def __init__(self, leakThreshold=None, **kwargs):
+        if leakThreshold:
+            self.command.append("--leak-threshold=" + leakThreshold)
+        ShellCommandReportTimeout.__init__(self, **kwargs)    
+    
     def createSummary(self, log):
         passCount = 0
         failCount = 0
@@ -333,7 +338,12 @@ class MozillaMochitest(ShellCommandReportTimeout):
         return SUCCESS
 
 class MozillaWin32Mochitest(MozillaMochitest):
-    command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --autorun --console-level=INFO --close-when-done']
+    command = ["python",
+               "runtests.py",
+               "--appname=..\\..\\..\\dist\\bin\\firefox.exe",
+               "--autorun",
+               "--console-level=INFO",
+               "--close-when-done"]
 
 class MozillaOSXMochitest(MozillaMochitest):
     command = ["python",
@@ -355,6 +365,11 @@ class MozillaMochichrome(ShellCommandReportTimeout):
               "--autorun",
               "--console-level=INFO",
               "--close-when-done"]
+    
+    def __init__(self, leakThreshold=None, **kwargs):
+        if leakThreshold:
+            self.command.append("--leak-threshold=" + leakThreshold)
+        ShellCommandReportTimeout.__init__(self, **kwargs)    
     
     def createSummary(self, log):
         passCount = 0
@@ -388,7 +403,13 @@ class MozillaMochichrome(ShellCommandReportTimeout):
     
 
 class MozillaWin32Mochichrome(MozillaMochichrome):
-   command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --chrome --autorun --console-level=INFO --close-when-done']
+   command = ["python",
+              "runtests.py",
+              "--appname=..\\..\\..\\dist\\bin\\firefox.exe",
+              "--chrome",
+              "--autorun",
+              "--console-level=INFO",
+              "--close-when-done"]
 
 class MozillaOSXMochichrome(MozillaMochichrome):
    command = ["python",
@@ -397,8 +418,7 @@ class MozillaOSXMochichrome(MozillaMochichrome):
               "--chrome",
               "--autorun",
               "--console-level=INFO",
-              "--close-when-done",
-              "--leak-threshold=8"]
+              "--close-when-done"]
 
 class MozillaBrowserChromeTest(ShellCommandReportTimeout):
     name = "browser chrome test"
@@ -411,6 +431,11 @@ class MozillaBrowserChromeTest(ShellCommandReportTimeout):
                "--autorun",
                "--browser-chrome", 
                "--close-when-done"]
+    
+    def __init__(self, leakThreshold=None, **kwargs):
+        if leakThreshold:
+            self.command.append("--leak-threshold=" + leakThreshold)
+        ShellCommandReportTimeout.__init__(self, **kwargs)    
     
     def createSummary(self, log):
         passCount = 0
@@ -441,7 +466,12 @@ class MozillaBrowserChromeTest(ShellCommandReportTimeout):
         return SUCCESS
     
 class MozillaWin32BrowserChromeTest(MozillaBrowserChromeTest):
-    command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --autorun --browser-chrome --close-when-done']
+    command = ["python",
+               "runtests.py",
+               "--appname=..\\..\\..\\dist\\bin\\firefox.exe",
+               "--autorun",
+               "--browser-chrome",
+               "--close-when-done"]
 
 class MozillaOSXBrowserChromeTest(MozillaBrowserChromeTest):
     command = ["python",
