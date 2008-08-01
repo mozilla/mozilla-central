@@ -76,6 +76,11 @@
                   prefpane="tags_pane"
                   url="chrome://messenger/content/pref-tags.xul"
                   helpTopic="mail-prefs-tags"/>
+        <treeitem id="receiptsItem"
+                  label="&return.label;"
+                  prefpane="receipts_pane"
+                  url="chrome://messenger/content/pref-receipts.xul"
+                  helpTopic="mail-prefs-receipts"/>
         <treeitem id="offlineItem"
                   label="&offline.label;"
                   prefpane="offline_pane"
@@ -130,7 +135,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://messenger/content/pref-receipts.xul" label="&return.label;"/>
+            <treecell label="(Migrated: &return.label;)"/>
           </treerow>
         </treeitem>
         <treeitem>

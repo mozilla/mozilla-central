@@ -35,40 +35,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var receiptSend;
-var notInToCcPref;
-var notInToCcLabel;
-var outsideDomainPref;
-var outsideDomainLabel;
-var otherCasesPref;
-var otherCasesLabel;
+var gNotInToCcLabel;
+var gOutsideDomainLabel;
+var gOtherCasesLabel;
 
-function Startup() {
-  receiptSend = document.getElementById("receiptSend");
-  notInToCcPref = document.getElementById("notInToCcPref");
-  notInToCcLabel = document.getElementById("notInToCcLabel");
-  outsideDomainPref = document.getElementById("outsideDomainPref");
-  outsideDomainLabel = document.getElementById("outsideDomainLabel");
-  otherCasesPref = document.getElementById("otherCasesPref");
-  otherCasesLabel = document.getElementById("otherCasesLabel");
+function Startup()
+{
+  gNotInToCcLabel = document.getElementById("notInToCcLabel");
+  gOutsideDomainLabel = document.getElementById("outsideDomainLabel");
+  gOtherCasesLabel = document.getElementById("otherCasesLabel");
 
-  EnableDisableAllowedReceipts();
-        
-  return true;
+  var value = document.getElementById("mail.mdn.report.enabled").value;
+  EnableDisableAllowedReceipts(value);
 }
 
-function EnableDisableAllowedReceipts() {
-  var prefWindow = parent.hPrefWindow;
-  var notInToCcLocked = prefWindow.getPrefIsLocked("mail.mdn.report.not_in_to_cc");
-  var outsideDomainLocked = prefWindow.getPrefIsLocked("mail.mdn.report.outside_domain");
-  var otherCasesLocked = prefWindow.getPrefIsLocked("mail.mdn.report.other");
-
-  var disableAll = receiptSend && (receiptSend.getAttribute("value") == "false");
-  notInToCcPref.disabled = disableAll || notInToCcLocked;
-  notInToCcLabel.disabled = disableAll;
-  outsideDomainPref.disabled = disableAll || outsideDomainLocked;
-  outsideDomainLabel.disabled = disableAll;
-  otherCasesPref.disabled = disableAll || otherCasesLocked;
-  otherCasesLabel.disabled = disableAll;
-  return true;
+function EnableDisableAllowedReceipts(aEnable)
+{
+  EnableElementById("notInToCcPref", aEnable, false);
+  EnableElementById("outsideDomainPref", aEnable, false);
+  EnableElementById("otherCasesPref", aEnable, false);
+  gNotInToCcLabel.disabled = !aEnable;
+  gOutsideDomainLabel.disabled = !aEnable;
+  gOtherCasesLabel.disabled = !aEnable;
 }
