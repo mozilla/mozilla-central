@@ -41,11 +41,11 @@
 function Startup()
 {
   var value = document.getElementById("mail.prompt_purge_threshhold").value;
-  EnableTextbox("offlineCompactFolderMin", value, false);
+  EnableElementById("offlineCompactFolderMin", value, false);
 }
 
 function EnableMailPurgeThreshhold(aValue)
 {
   var focus = (document.getElementById("offlineCompactFolder") == document.commandDispatcher.focusedElement);
-  EnableTextbox("offlineCompactFolderMin", aValue, focus);
+  EnableElementById("offlineCompactFolderMin", aValue, focus);
 }

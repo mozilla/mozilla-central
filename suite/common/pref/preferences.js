@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,14 +39,18 @@
 // The content of this file is loaded into the scope of the
 // prefwindow and will be available to all prefpanes!
 
-function EnableTextbox(aTextboxId, aEnable, aFocus)
+function EnableElementById(aElementId, aEnable, aFocus)
 {
-  let textbox = document.getElementById(aTextboxId);
-  let pref = document.getElementById(textbox.getAttribute("preference"));
+  EnableElement(document.getElementById(aElementId), aEnable, aFocus);
+}
+
+function EnableElement(aElement, aEnable, aFocus)
+{
+  let pref = document.getElementById(aElement.getAttribute("preference"));
   let enabled = aEnable && !pref.locked;
 
-  textbox.disabled = !enabled;
+  aElement.disabled = !enabled;
 
   if (enabled && aFocus)
-    textbox.focus();
+    aElement.focus();
 }
