@@ -561,7 +561,7 @@
       NSString *fontName = [fontTypeDict objectForKey:@"fontfamily"];
       int fontSize = [[fontSizeDict objectForKey:[self fontSizeType:fontType]] intValue];
 
-      displayString = [NSString stringWithFormat:@"%@, %dpt %@", fontName, fontSize, [self localizedStringForKey:@"Missing"]];
+      displayString = [NSString stringWithFormat:@"%@, %dpx %@", fontName, fontSize, [self localizedStringForKey:@"Missing"]];
       font = [NSFont userFontOfSize:14.0];
 
       // set the missing flag in the dict
@@ -577,7 +577,7 @@
   }
   else
   {
-    displayString = [NSString stringWithFormat:@"%@, %dpt", [font familyName], (int)[font pointSize]];
+    displayString = [NSString stringWithFormat:@"%@, %dpx", [font familyName], (int)[font pointSize]];
     
     // make sure we don't have a missing entry
     [fontTypeDict removeObjectForKey:@"missing"];
