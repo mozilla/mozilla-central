@@ -785,6 +785,13 @@ SECStatus PK11_ReadRawAttribute(PK11ObjectType type, void *object,
 SECStatus PK11_WriteRawAttribute(PK11ObjectType type, void *object, 
 				CK_ATTRIBUTE_TYPE attr, SECItem *item);
 
+/*
+ * PK11_GetAllSlotsForCert returns all the slots that a given certificate
+ * exists on, since it's possible for a cert to exist on more than one
+ * PKCS#11 token.
+ */
+PK11SlotList *
+PK11_GetAllSlotsForCert(CERTCertificate *cert, void *arg);
 
 /**********************************************************************
  * New functions which are already deprecated....
