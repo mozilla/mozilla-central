@@ -299,7 +299,7 @@ let Gloda = {
     if (!(aSubjectType in this._nounIDToMeta))
       throw Error("Invalid subject type: " + aSubjectType);
     
-    let objectCoerce = this._nounIDToMeta[aObjectType].fromParamAndValue;
+    let nounMeta = this._nounIDToMeta[aObjectType];
     
     let storageName = "__" + aBindName;
     let getter;
@@ -311,7 +311,7 @@ let Gloda = {
         let instances = this.getAttributeInstances(aAttr);
         let val;
         if (instances.length > 0)
-          val = objectCoerce(instances[0][1], instances[0][2]);
+          val = nounMeta.fromParamAndValue(instances[0][1], instances[0][2]);
         else
           val = null;
         this[storageName] = val;
@@ -326,7 +326,8 @@ let Gloda = {
         if (instances.length > 0) {
           values = [];
           for (let iInst=0; iInst < instances.length; iInst++) {
-            values.push(objectCoerce(instances[iInst][1], instances[iInst][2]));
+            values.push(nounMeta.fromParamAndValue(instances[iInst][1],
+                                                   instances[iInst][2]));
           }
         }
         else {
@@ -501,7 +502,18 @@ let Gloda = {
     return GlodaDatastore._attributes[compoundName];
   },
   
-  defineTable: function(aTableDef) {
+  /**
+   * Define a table for plug-ins.  The argument should be a dictionary with
+   *  the following keys:
+   * @param name The table name; don't conflict with other things!
+   * @param columns A list of [column name, sqlite type] tuples.  You should
+   *     always include a definition like ["id", "INTEGER PRIMARY KEY"] for
+   *     now.
+   * @param indices A dictionary of lists of column names, where the key name
+   *     becomes the index name.  Ex: {foo: ["bar"]} results in an index on
+   *     the column "bar" where the index is named "foo".
+   */
+  defineTable: function gloda_ns_defineTable(aTableDef) {
     return GlodaDatastore.createTableIfNotExists(aTableDef);
   },
   

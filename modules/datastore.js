@@ -288,23 +288,37 @@ let GlodaDatastore = {
    *  we don't want to have to parse the column names out.
    */
   createTableIfNotExists: function gloda_ds_createTableIfNotExists(aTableDef) {
+    aTableDef._realName = "plugin_" + aTableDef.name;
     // first, check if the table exists
     let testTableSql = "SELECT * FROM sqlite_master WHERE type='table' AND " +
-                       "name = '" + aTableDef.name + "'";
+                       "name = '" + aTableDef._realName + "'";
     let testTableStmt = this._createStatement(testTableSql);
     if (!testTableStmt.step()) {
-      this.dbConnection.createTable(aTableDef.name,
-                                    [coldef.join(" ") for each
+      try {
+        this.dbConnection.createTable(aTableDef._realName,
+                                      [coldef.join(" ") for each
                                      (coldef in aTableDef.columns)].join(", "));
-
-      for (let indexName in table.indices) {
-        let indexColumns = table.indices[indexName];
-        
-        this.dbConnection.executeSimpleSQL(
-          "CREATE INDEX " + indexName + " ON " + tableName +
-          "(" + indexColumns.join(", ") + ")"); 
       }
-      
+      catch (ex) {
+         this._log.error("Problem creating table " + aTableDef.name + " " +
+           "because: " + ex + " at " + ex.fileName + ":" + ex.lineNumber);
+         return null;
+      }
+
+      for (let indexName in aTableDef.indices) {
+        let indexColumns = aTableDef.indices[indexName];
+        
+        try {
+          let indexSql = "CREATE INDEX " + indexName + " ON " +
+            aTableDef._realName + " (" + indexColumns.join(", ") + ")";
+          this.dbConnection.executeSimpleSQL(indexSql);
+        }
+        catch (ex) {
+          this._log.error("Problem creating index " + indexName + " for " +
+            "table " + aTableDef.name + " because " + ex + " at " +
+            ex.fileName + ":" + ex.lineNumber);
+        }
+      }
     }
     testTableStmt.reset();
     
@@ -359,10 +373,15 @@ let GlodaDatastore = {
   _commitTransaction: function gloda_ds_commitTransaction() {
     this._transactionDepth--;
     if (this._transactionDepth == 0) {
-      if (this._transactionGood)
-        this.dbConnection.commitTransaction();
-      else
-        this.dbConnection.rollbackTransaction();
+      try {
+        if (this._transactionGood)
+          this.dbConnection.commitTransaction();
+        else
+          this.dbConnection.rollbackTransaction();
+      }
+      catch (ex) {
+        this._log.error("Commit problem: " + ex);
+      }
     }
   },
   /**
@@ -374,7 +393,12 @@ let GlodaDatastore = {
     this._transactionDepth--;
     this._transactionGood = false;
     if (this._transactionDepth == 0) {
-      this.dbConnection.rollbackTransaction();
+      try {
+        this.dbConnection.rollbackTransaction();
+      }
+      catch (ex) {
+        this._log.error("Rollback problem: " + ex);
+      }
     }
   },
   
@@ -932,6 +956,11 @@ let GlodaDatastore = {
     try {
       for (let iAttribute=0; iAttribute < aAttributes.length; iAttribute++) {
         let attribValueTuple = aAttributes[iAttribute];
+
+        this._log.debug("inserting conv:" + aMessage.conversationID +
+                        " message:" + aMessage.id + 
+                        " attributeID:" + attribValueTuple[0] +
+                        " value:" + attribValueTuple[1]);
         
         imas.params.conversationID = aMessage.conversationID;
         imas.params.messageID = aMessage.id;

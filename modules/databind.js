@@ -52,8 +52,9 @@ Cu.import("resource://gloda/modules/log4moz.js");
 function GlodaDatabind(aTableDef, aDatastore) {
   this._tableDef = aTableDef;
   this._datastore = aDatastore;
+  this._log = Log4Moz.Service.getLogger("gloda.databind." + aTableDef.name);
   
-  let insertSql = "INSERT INTO " + this._tableDef.name + " (" +
+  let insertSql = "INSERT INTO " + this._tableDef._realName + " (" +
                   [coldef[0] for each
                    (coldef in this._tableDef.columns)].join(", ") +
                   ") VALUES (" +
@@ -69,7 +70,7 @@ function GlodaDatabind(aTableDef, aDatastore) {
 GlodaDatabind.prototype = {
   
   getHighId: function(aLessThan) {
-    let sql = "select MAX(id) AS m_id FROM " + this._tableDef.name;
+    let sql = "select MAX(id) AS m_id FROM " + this._tableDef._realName;
     if (aLessThan !== undefined)
       sql += " WHERE id < " + aLessThan;
   dump("SQL: " + sql);
@@ -89,7 +90,7 @@ GlodaDatabind.prototype = {
     let stmt;
     if (!(aColName in this._stmtCache)) {
       stmt = this._datastore._createStatement("SELECT * FROM " +
-        this._tableDef.name + " WHERE " + aColName + " = :value");
+        this._tableDef._realName + " WHERE " + aColName + " = :value");
       this._stmtCache[aColName] = stmt;
     }
     else
@@ -112,6 +113,7 @@ GlodaDatabind.prototype = {
   insert: function(aValueDict) {
     let stmt = this._insertStmt;
     for each (let coldef in this._tableDef.columns) {
+      this._log.debug("insert arg: " + coldef[0] + "=" + aValueDict[coldef[0]]);
       stmt.params[coldef[0]] = aValueDict[coldef[0]];
     }
     stmt.execute();
