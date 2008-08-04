@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.73 2008-07-21 20:09:33 julien.pierre.boogz%sun.com Exp $
+ * $Id: cert.h,v 1.74 2008-08-04 22:31:54 nelson%bolyard.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -621,7 +621,7 @@ extern SECCertTimeValidity CERT_CheckCertValidTimes(CERTCertificate *cert,
 						    PRBool allowOverride);
 
 /*
-** WARNING - this function is depricated, and will either go away or have
+** WARNING - this function is deprecated, and will either go away or have
 **		a new API in the near future.
 **
 ** Check the validity times of a certificate vs. the current time, allowing

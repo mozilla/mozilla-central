@@ -172,7 +172,7 @@ PRBool PK11_HashOK(SECOidTag hashAlg);
 
 
 /**********************************************************************
- * Functions which are  depricated....
+ * Functions which are  deprecated....
  **********************************************************************/
 
 SECItem *

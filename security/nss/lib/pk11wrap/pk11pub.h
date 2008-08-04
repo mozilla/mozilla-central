@@ -570,7 +570,7 @@ SECKEYPrivateKeyList* PK11_ListPrivKeysInSlot(PK11SlotInfo *slot,
 SECKEYPublicKeyList* PK11_ListPublicKeysInSlot(PK11SlotInfo *slot,
 							char *nickname);
 SECKEYPQGParams *PK11_GetPQGParamsFromPrivateKey(SECKEYPrivateKey *privKey);
-/* depricated */
+/* deprecated */
 SECKEYPrivateKeyList* PK11_ListPrivateKeysInSlot(PK11SlotInfo *slot);
 
 PK11SymKey *PK11_ConvertSessionSymKeyToTokenSymKey(PK11SymKey *symk,
@@ -787,7 +787,7 @@ SECStatus PK11_WriteRawAttribute(PK11ObjectType type, void *object,
 
 
 /**********************************************************************
- * New fucntions which are already depricated....
+ * New functions which are already deprecated....
  **********************************************************************/
 SECItem *
 PK11_GetLowLevelKeyIDForCert(PK11SlotInfo *slot,
