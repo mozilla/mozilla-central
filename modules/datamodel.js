@@ -356,4 +356,24 @@ GlodaIdentity.prototype = {
   toString: function gloda_identity_toString() {
     return this._value;
   },
+  
+  get abCard() {
+    // search through all of our local address books looking for a match.
+    let enumerator = Components.classes["@mozilla.org/abmanager;1"]
+                               .getService(Ci.nsIAbManager)
+                               .directories;
+    let cardForEmailAddress;
+    let addrbook;
+    while (!cardForEmailAddress && enumerator.hasMoreElements())
+    {
+      addrbook = enumerator.getNext();
+      if (addrbook instanceof Ci.nsIAbMDBDirectory) {
+        cardForEmailAddress = addrbook.cardForEmailAddress(this._value);
+        if (cardForEmailAddress)
+          return cardForEmailAddress;
+      }
+    }
+  
+    return null;
+  },
 };

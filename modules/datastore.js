@@ -50,6 +50,7 @@ const Cu = Components.utils;
 Cu.import("resource://gloda/modules/log4moz.js");
 
 Cu.import("resource://gloda/modules/datamodel.js");
+Cu.import("resource://gloda/modules/databind.js");
 
 let GlodaDatastore = {
   _log: null,
@@ -279,6 +280,35 @@ let GlodaDatastore = {
     }
     
     aDBConnection.schemaVersion = this._schemaVersion;  
+  },
+  
+  /**
+   * Our table definition used here is slightly different from that used
+   *  internally, because we are potentially creating a sort of crappy ORM and
+   *  we don't want to have to parse the column names out.
+   */
+  createTableIfNotExists: function gloda_ds_createTableIfNotExists(aTableDef) {
+    // first, check if the table exists
+    let testTableSql = "SELECT * FROM sqlite_master WHERE type='table' AND " +
+                       "name = '" + aTableDef.name + "'";
+    let testTableStmt = this._createStatement(testTableSql);
+    if (!testTableStmt.step()) {
+      this.dbConnection.createTable(aTableDef.name,
+                                    [coldef.join(" ") for each
+                                     (coldef in aTableDef.columns)].join(", "));
+
+      for (let indexName in table.indices) {
+        let indexColumns = table.indices[indexName];
+        
+        this.dbConnection.executeSimpleSQL(
+          "CREATE INDEX " + indexName + " ON " + tableName +
+          "(" + indexColumns.join(", ") + ")"); 
+      }
+      
+    }
+    testTableStmt.reset();
+    
+    return new GlodaDatabind(aTableDef, this);
   },
   
   _migrate: function gloda_ds_migrate(aDBConnection, aCurVersion, aNewVersion) {

@@ -501,6 +501,10 @@ let Gloda = {
     return GlodaDatastore._attributes[compoundName];
   },
   
+  defineTable: function(aTableDef) {
+    return GlodaDatastore.createTableIfNotExists(aTableDef);
+  },
+  
   processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr,
                                                    aMimeMsg) {
     // For now, we are ridiculously lazy and simply nuke all existing attributes
