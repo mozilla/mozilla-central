@@ -143,6 +143,7 @@ INCLUDES	+= \
 		-I$(srcdir)/../../../events/src \
 		-I$(srcdir)/../../../xbl/src \
 		-I$(srcdir)/../../../../layout/style \
+		-I$(srcdir)/../../../../layout/tables \
 		-I$(srcdir) \
 		$(NULL)
 
