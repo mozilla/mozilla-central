@@ -3325,6 +3325,38 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
                         caseClonePopup(r.get('product_id'), getSelectedObjects(grid,'case_id'));
                     }
                 },{
+                    text: 'Unlink from Plan',
+                    disabled: hasplan,
+                    handler: function(){
+                        Ext.Msg.show({
+                            title: 'Unlink Selected Test Cases',
+                            msg: 'You are about to unlink the selected test cases from this plan. If a test case is not linked to any other plans, it will be deleted. Do you want to continue?',
+                            buttons: Ext.Msg.YESNO,
+                            icon: Ext.Msg.WARNING,
+                            fn: function(btn){
+                                if (btn == 'yes'){
+                                    var testopia_form = new Ext.form.BasicForm('testopia_helper_frm');
+                                    testopia_form.submit({
+                                        url: 'tr_list_cases.cgi',
+                                        params: {case_ids: getSelectedObjects(grid,'case_id'), action:'unlink', plan_id: plan.plan_id},
+                                        success: function(data){
+                                            Ext.Msg.show({
+                                                msg: "Test cases removed",
+                                                buttons: Ext.Msg.OK,
+                                                icon: Ext.MessageBox.INFO
+                                            });
+                                            grid.store.reload();
+                                        },
+                                        failure: function(f,a){
+                                            testopiaError(f,a);
+                                            grid.store.reload();
+                                        }
+                                    });
+                                }
+                            }
+                        })
+                    }
+                },{
                     text: 'Add or Remove Tags from Selected Cases...',
                     handler: function(){
                         TagsUpdate('case', grid);
@@ -8430,16 +8462,17 @@ Ext.extend(ReportGrid, Ext.grid.GridPanel, {
                     var q = r.get('query');
                     var type;
                     type = q.match(/tr_list_(run|case|plan|caserun)s/);
-                    if (!type){
+                    if (!type) {
                         type = q.match(/tr_(run|case|plan|caserun)_reports/);
-                    }
-                    else {
-                        Ext.Msg.show({
-                           title: "Non-editable",
-                           text: "This Search or Report cannot be edited",
-                           icon: Ext.MessageBox.ERROR 
-                        });
-                        return;
+                        if (!type) {
+                            Ext.Msg.show({
+                                title: "Non-editable",
+                                msg: "This Search or Report cannot be edited",
+                                icon: Ext.MessageBox.ERROR,
+                                buttons: Ext.MessageBox.OK
+                            });
+                            return;
+                        }
                     }
                     type = type[1];
                     

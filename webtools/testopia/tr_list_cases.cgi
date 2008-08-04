@@ -251,6 +251,25 @@ elsif ($action eq 'delete'){
     print "{'success': true}";
 }
 
+elsif ($action eq 'unlink'){
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
+    print $cgi->header;
+    my $plan_id = $cgi->param('plan_id');
+    validate_test_id($plan_id, 'plan');
+    foreach my $id (split(",", $cgi->param('case_ids'))){
+        my $case = Bugzilla::Testopia::TestCase->new($id);
+        if (scalar @{$case->plans} == 1){
+            ThrowUserError("testopia-read-only", {'object' => 'case'}) unless ($case->candelete);
+            $case->obliterate();
+        }
+        else {
+            ThrowUserError("testopia-read-only", {'object' => 'case'}) unless ($case->can_unlink_plan($plan_id));
+            ThrowUserError('testopia-case-unlink-failure') unless $case->unlink_plan($plan_id);
+        }
+    }
+    print "{'success': true}";
+}
+
 elsif ($action eq 'update_bugs'){
     Bugzilla->error_mode(ERROR_MODE_AJAX);
     print $cgi->header;
