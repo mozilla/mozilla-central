@@ -47,6 +47,7 @@ else{
     $cgi->param('viewall', 1);
     my $report = Bugzilla::Testopia::Report->new('caserun', 'tr_list_caseruns.cgi', $cgi);
     $vars->{'report'} = $report;
+    $vars->{'qname'} = $cgi->param('qname');
 
     ### From Bugzilla report.cgi by Gervase Markham
     my $formatparam = $cgi->param('format');

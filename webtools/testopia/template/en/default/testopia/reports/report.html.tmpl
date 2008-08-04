@@ -70,7 +70,7 @@
 [% END %]
 
 <div align="center">
-
+<h1>[% qname FILTER html %]</h1>
   [% FOREACH tbl = report.tbl_names %]    
     [% IF tbl == "-total-" %]
       [% tbl_disp = "Total" %]

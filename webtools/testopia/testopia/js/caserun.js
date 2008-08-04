@@ -257,6 +257,12 @@ CaseRunGrid = function(params, run){
     this.run = run;
     var testopia_form = new Ext.form.BasicForm('testopia_helper_frm',{});
     var selected;
+    this.summary_sort = function(){
+        this.store.sortInfo.field = 'summary';
+        this.store.sortInfo.direction == 'DESC' ? this.store.sortInfo.direction = 'ASC' : this.store.sortInfo.direction = 'DESC';
+        this.getView().mainHd.select('td').removeClass(this.getView().sortClasses);
+        this.store.load();
+    };
     
     envRenderer = function(v,md,r,ri,ci,s){
         var f = this.getColumnModel().getCellEditor(ci,ri).field;
@@ -627,7 +633,7 @@ CaseRunGrid = function(params, run){
             forceFit:true,
             enableRowBody:true,
             getRowClass : function(record, rowIndex, p, ds){
-                p.body = '<p>'+record.data.case_summary+'</p>';
+                p.body = '<p><a href="javascript:Ext.getCmp(\'caserun_grid\').summary_sort()">Summary:</a> '+record.data.case_summary+'</p>';
                 return 'x-grid3-row-expanded';
             }
         }

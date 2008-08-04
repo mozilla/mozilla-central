@@ -159,7 +159,8 @@ else{
     $cgi->param('viewall', 1);
     my $report = Bugzilla::Testopia::Report->new('plan', 'tr_list_plans.cgi', $cgi);
     $vars->{'report'} = $report;
-
+    $vars->{'qname'} = $cgi->param('qname');
+    
     ### From Bugzilla report.cgi by Gervase Markham
     my $formatparam = $cgi->param('format');
     my $report_action = $cgi->param('report_action');
