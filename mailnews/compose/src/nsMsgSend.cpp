@@ -4184,22 +4184,19 @@ nsMsgComposeAndSend::SendMessageFile(
               const char                        *password
               )
 {
+  NS_ENSURE_ARG_POINTER(fields);
+  NS_ENSURE_ARG_POINTER(sendIFile);
+
   nsresult      rv;
 
   /* First thing to do is to reset the send errors report */
   mSendReport->Reset();
   mSendReport->SetDeliveryMode(mode);
 
-  if (!fields)
-    return NS_ERROR_INVALID_ARG;
-
   mStatusFeedback = aStatusFeedback;
   //
   // First check to see if the external file we are sending is a valid file.
   //
-  if (!sendIFile)
-    return NS_ERROR_INVALID_ARG;
-
   PRBool exists;
   if (NS_FAILED(sendIFile->Exists(&exists)))
     return NS_ERROR_INVALID_ARG;
@@ -4774,25 +4771,8 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
       goto FAIL;
     }
 
-    rv = tempOutfile->Write(CRLF, 2, &n);
-    if (NS_FAILED(rv) || n != 2) // write failed
-    {
-      status = NS_MSG_ERROR_WRITING_FILE;
-      goto FAIL;
-    }
-
     rv = inputFile->Available(&available);
     NS_ENSURE_SUCCESS(rv, rv);
-  }
-
-  //
-  // Terminate with a final newline.
-  //
-  rv = tempOutfile->Write(CRLF, 2, &n);
-  if (NS_FAILED(rv) || n != 2) // write failed
-  {
-    status = NS_MSG_ERROR_WRITING_FILE;
-    goto FAIL;
   }
 
 FAIL:

@@ -33,6 +33,7 @@ SMTP_RFC2822_handler.prototype = {
   },
   DATA: function(args) {
     this.expectingData = true;
+    this.post = "";
     return "354 ok\n";
   },
   RSET: function (args) {
@@ -69,10 +70,11 @@ SMTP_RFC2822_handler.prototype = {
 	    }
     }
 
-    if (this.data) {
+    if (this.expectingData) {
 	    if (line[0] == '.')
         line = line.substring(1);
-	    this.post += line+'\n';
+      // This uses CR LF to match with the specification
+	    this.post += line + '\r\n';
     }
     return undefined;
   },

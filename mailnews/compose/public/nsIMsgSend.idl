@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -204,19 +204,49 @@ interface nsIMsgSend : nsISupports
                               in AUTF8String                  aOriginalMsgURI,
                               in MSG_ComposeType              aType
                              );
-                              
-    
-    void sendMessageFile(in nsIMsgIdentity       aUserIdentity,
-                         in string               aAccountKey,
-                         in nsIMsgCompFields     fields,
-                         in nsIFile              sendIFile,
-                         in PRBool               deleteSendFileOnCompletion,
-                         in PRBool               digest_p,
-                         in nsMsgDeliverMode     mode,
-                         in nsIMsgDBHdr          msgToReplace,
-                         in nsIMsgSendListener   aListener,
-                         in nsIMsgStatusFeedback aStatusFeedback,
-                         in string               password
+
+  /**
+   * Sends a file to the specified composition fields, via the user identity
+   * provided.
+   *
+   * @param aUserIdentity    The user identity to use for sending this email.
+   * @param aAccountKey      The key of the account that this message relates
+   *                         to.
+   * @param aFields          An nsIMsgCompFields object containing information
+   *                         on who to send the message to.
+   * @param aSendIFile       A reference to the file to send.
+   * @param aDeleteSendFileOnCompletion
+   *                         Set to true if you want the send file deleted once
+   *                         the message has been sent.
+   * @param aDigest_p        If this is a multipart message, this param
+   *                         specifies whether the message is in digest or mixed
+   *                         format.
+   * @param aMode            The delivery mode for sending the message (see
+   *                         above for values).
+   * @param aMsgToReplace    A message header representing a message to be
+   *                         replaced by the one sent, this param may be null.
+   * @param aListener        An nsIMsgSendListener to receive feedback on the
+   *                         current send status. This parameter can also
+   *                         support the nsIMsgCopyServiceListener interface to
+   *                         receive notifications of copy finishing e.g. after
+   *                         saving a message to the sent mail folder.
+   *                         This param may be null.
+   * @param aStatusFeedback  A feedback listener for slightly different feedback
+   *                         on the message send status. This param may be null.
+   * @param aPassword        Pass this in to prevent a dialog if the password
+   *                         is needed for secure transmission.
+   */
+  void sendMessageFile(in nsIMsgIdentity       aUserIdentity,
+                       in string               aAccountKey,
+                       in nsIMsgCompFields     aFields,
+                       in nsIFile              aSendIFile,
+                       in PRBool               aDeleteSendFileOnCompletion,
+                       in PRBool               aDigest_p,
+                       in nsMsgDeliverMode     aMode,
+                       in nsIMsgDBHdr          aMsgToReplace,
+                       in nsIMsgSendListener   aListener,
+                       in nsIMsgStatusFeedback aStatusFeedback,
+                       in string               aPassword
                        ); 
 
     /* Abort current send/save operation */

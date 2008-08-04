@@ -57,3 +57,26 @@ function loadLocalMailAccount()
   // Force an initialization of the Inbox folder database.
   var folderName = gLocalInboxFolder.prettiestName;
 }
+
+// Loads a file to a string
+function loadFileToString(aFile) {
+  var data = "";
+  var fstream = Cc["@mozilla.org/network/file-input-stream;1"]
+                  .createInstance(Ci.nsIFileInputStream);
+  var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
+                  .createInstance(Ci.nsIScriptableInputStream);
+
+  fstream.init(aFile, -1, 0, 0);
+  sstream.init(fstream); 
+
+  var str = sstream.read(4096);
+  while (str.length > 0) {
+    data += str;
+    str = sstream.read(4096);
+  }
+
+  sstream.close();
+  fstream.close();
+
+  return data;
+}
