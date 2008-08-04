@@ -1098,6 +1098,21 @@ sub access_list {
     return $self->{'access_list'};
 }
 
+sub has_admin {
+    my ($self, $deleted) = @_;
+    my $dbh = Bugzilla->dbh;
+    
+    my $ref = $dbh->selectcol_arrayref(
+        "SELECT userid 
+           FROM test_plan_permissions
+          WHERE plan_id = ? 
+            AND userid != ?
+            AND permissions >= ?",undef,
+            $self->id, $deleted, TR_ADMIN);
+    
+    return scalar @$ref;
+}
+
 =head2 attachments
 
 Returns a reference to a list of attachments on this plan

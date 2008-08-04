@@ -551,16 +551,17 @@ Ext.extend(ReportGrid, Ext.grid.GridPanel, {
                     var q = r.get('query');
                     var type;
                     type = q.match(/tr_list_(run|case|plan|caserun)s/);
-                    if (!type){
+                    if (!type) {
                         type = q.match(/tr_(run|case|plan|caserun)_reports/);
-                    }
-                    else {
-                        Ext.Msg.show({
-                           title: "Non-editable",
-                           text: "This Search or Report cannot be edited",
-                           icon: Ext.MessageBox.ERROR 
-                        });
-                        return;
+                        if (!type) {
+                            Ext.Msg.show({
+                                title: "Non-editable",
+                                msg: "This Search or Report cannot be edited",
+                                icon: Ext.MessageBox.ERROR,
+                                buttons: Ext.MessageBox.OK
+                            });
+                            return;
+                        }
                     }
                     type = type[1];
                     

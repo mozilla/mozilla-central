@@ -87,6 +87,7 @@ elsif ($action eq 'delete'){
     detaint_natural($userid);
     my $user = Bugzilla::User->new($userid);
     ThrowUserError('baduser') unless $user;
+    ThrowUserError('testopia-no-admins') unless $plan->has_admin($user->id) > 0;
     $plan->remove_tester($user->id);
     print "{success: true, action: 'Removed User', value: '" . $user->login ."'}";
     exit;
