@@ -102,6 +102,11 @@ public void setAppData(String absolutePathToNativeBrowserBinDir) throws FileNotF
         throw new ClassNotFoundException(ule.getMessage(), ule);
     }
 }
+
+    public void setProfileDir(String profileDir) {
+        getWrapperFactory().setProfileDir(profileDir);
+    }
+    
         /******
         // figure out the correct value for platformCanvasClassName
         if (browserType.equals(BrowserControl.BROWSER_TYPE_NON_NATIVE)) {
@@ -136,6 +141,8 @@ public void setAppData(String absolutePathToNativeBrowserBinDir) throws FileNotF
                                              e.getMessage());
         }
         ********************/
+
+
 
 public void appTerminate() throws Exception
 {

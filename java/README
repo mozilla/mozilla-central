@@ -75,3 +75,6 @@ Problems?
 
 * post to netscape.public.mozilla.java newsgroup
 
+A sample of working debugger opts for msdev:
+
+-DNSPR_LOG_MODULES=javadom:4,webclient:4,webclientstub:4,pluglets:4 -DNSPR_LOG_FILE=F:\Projects\mozilla\FIREFOX_2_0_0_3_RELEASE\mozilla\java\webclient\build.test\webclient.log -Dbuild.test.results.dir=F:\Projects\mozilla\FIREFOX_2_0_0_3_RELEASE\mozilla\java\webclient\build.test -DBROWSER_BIN_DIR=F:\Projects\mozilla\FIREFOX_2_0_0_3_RELEASE\mozilla\xulrunner-win32_d.obj\dist\bin -Djava.util.logging.config.file=F:\Projects\mozilla\FIREFOX_2_0_0_3_RELEASE\mozilla\java\logging.properties -Djava.library.path=F:\Projects\mozilla\FIREFOX_2_0_0_3_RELEASE\mozilla\xulrunner-win32_d.obj\dist\bin -classpath F:\Projects\mozilla\FIREFOX_2_0_0_3_RELEASE\mozilla\xulrunner-win32_d.obj\dist\classes;F:\Projects\mozilla\FIREFOX_2_0_0_3_RELEASE\mozilla\xulrunner-win32_d.obj\dist\classes\test\classes;C:\PROGRA~1\netbeans-5.5.1\ide7\modules\ext\junit-3.8.1.jar org.mozilla.webclient.test.TestBrowser

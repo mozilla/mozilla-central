@@ -38,6 +38,13 @@
 #include <nsIProfile.h> // for the profile manager
 #include <nsIProfileInternal.h> // for the profile manager
 #include <nsString.h> // for nsCAutoString
+#include <nsIDirectoryService.h>
+#include <nsIProperties.h>
+#include <nsIFile.h>
+#include <nsILocalFile.h>
+#include <nsDependentString.h>
+
+#include "nsXPCOMCID.h" // for NS_DIRECTORY_SERVICE_CONTRACTID
 
 // edburns_20060216
 // static NS_DEFINE_CID(kCmdLineServiceCID, NS_COMMANDLINE_SERVICE_CID);
@@ -171,6 +178,54 @@ JNIEXPORT void JNICALL Java_org_mozilla_webclient_impl_wrapper_1native_ProfileMa
     NS_ADDREF(wcContext->sProfileInternal);
 
 #endif // edburns_20060216
+    nsresult rv;
+
+    nsCOMPtr<nsIDirectoryService> directoryService =
+        do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID);
+    nsCOMPtr<nsIProperties> properties = do_QueryInterface(directoryService);
+    nsCOMPtr<nsIFile> profileDirFile;
+
+    PRUnichar *profileDirUnichar = (PRUnichar *) 
+        ::util_GetStringChars(env, profileDir);
+    PRUnichar *profileNameUnichar = (PRUnichar *)
+        ::util_GetStringChars(env, profileNameJstr);
+
+    nsDependentString profileDirStr(profileDirUnichar);
+    nsDependentString profileNameStr(profileNameUnichar);
+    nsString fullyQualified = profileDirStr + profileNameStr;
+
+    rv = NS_NewLocalFile(fullyQualified,
+                         PR_TRUE, 
+                         (nsILocalFile **)((nsIFile **)getter_AddRefs(profileDirFile)));
+    ::util_ReleaseStringChars(env, profileDir, profileDirUnichar);
+    ::util_ReleaseStringChars(env, profileNameJstr, profileNameUnichar);
+
+    if (NS_FAILED(rv)) {
+        ::util_ThrowExceptionToJava(env, "Can't create profile directory.");
+        return;
+    }
+
+    properties->Set("ProfD", profileDirFile);
+                         
+    if (NS_FAILED(rv)) {
+        ::util_ThrowExceptionToJava(env, "Can't create profile directory.");
+        return;
+    }
+
+    nsCOMPtr<nsISupports> psm = do_GetService("@mozilla.org/psm;1");
+    if (!psm) {
+        PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+               ("WrapperFactoryImpl_nativeAppSetup: unable to initialize PSM.  https sites will crash the client\n"));
+    }
+    else {
+        PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
+               ("WrapperFactoryImpl_nativeAppSetup: successfully initialized PSM. https sites will NOT crash the client\n"));
+    }
+
+
+
+
+
     
     PR_LOG(prLogModuleInfo, PR_LOG_DEBUG, 
            ("ProfileManagerImpl_nativeStartup: exiting\n"));

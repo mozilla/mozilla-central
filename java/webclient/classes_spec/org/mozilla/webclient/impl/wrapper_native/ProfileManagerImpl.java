@@ -23,8 +23,15 @@
 
 package org.mozilla.webclient.impl.wrapper_native;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.mozilla.util.Assert;
-import org.mozilla.util.Log;
 import org.mozilla.util.ParameterCheck;
 import org.mozilla.util.ReturnRunnable;
 
@@ -32,7 +39,6 @@ import org.mozilla.webclient.ProfileManager;
 import org.mozilla.webclient.impl.WrapperFactory;
 import org.mozilla.webclient.impl.Service;
 
-import org.mozilla.webclient.UnimplementedException; 
 
 
 public class ProfileManagerImpl extends ImplObjectNative implements ProfileManager, Service
@@ -47,14 +53,59 @@ public ProfileManagerImpl(WrapperFactory yourFactory)
 }
 
 public void startup() {
+    String profileDir = this.getWrapperFactory().getProfileDir();
+    if (null == profileDir) {
+        createProfileDirInBinDir();
+    }
     Assert.assert_it(isNativeEventThread());
-    nativeStartup(getWrapperFactory().getNativeWrapperFactory(), null, 
+    
+    // Ensure getProfileDir ends with File.separator
+    if (!getWrapperFactory().getProfileDir().endsWith(File.separator)) {
+        getWrapperFactory().setProfileDir(getWrapperFactory().getProfileDir() + File.separator);
+    }
+    nativeStartup(getWrapperFactory().getNativeWrapperFactory(), getWrapperFactory().getProfileDir(), 
 		  getWrapperFactory().getProfile());
 }
 
 public void shutdown() {
     Assert.assert_it(isNativeEventThread());
     nativeShutdown(getWrapperFactory().getNativeWrapperFactory());
+}
+
+private String defaultProfileName = "mevgf29o.default";
+
+private void createProfileDirInBinDir() {
+    getWrapperFactory().setProfileDir(getWrapperFactory().getBinDir());
+    if (null == getWrapperFactory().getProfile()){
+        getWrapperFactory().setProfile(defaultProfileName);
+    }
+    File profileDirFile = new File(getWrapperFactory().getProfileDir() + 
+            File.separator + getWrapperFactory().getProfile());
+    // Assume that if the profileDir exists, it must be valid.  Otherwise
+    // create it.
+    if (!profileDirFile.exists()) {
+        profileDirFile.mkdir();
+        URL profileDirContentsResource = Thread.currentThread().getContextClassLoader().getResource("META-INF/default-profile-dir-contents.jar");
+            try {
+                JarInputStream jis = new JarInputStream(profileDirContentsResource.openStream());
+                JarEntry cur = null;
+                FileOutputStream fos = null;
+                File profileEntry = null;
+                int i;
+                while (null != (cur = jis.getNextJarEntry())) {
+                    profileEntry = new File(profileDirFile, cur.getName());
+                    fos = new FileOutputStream(profileEntry);
+                    while (-1 != (i = jis.read())) {
+                        fos.write(i);
+                    }
+                    fos.close();
+                    jis.closeEntry();
+                }
+                jis.close();
+            } catch (IOException ex) {
+                Logger.getLogger(ProfileManagerImpl.class.getName()).log(Level.SEVERE, null, ex);
+            }
+    }        
 }
 
 public int getProfileCount()

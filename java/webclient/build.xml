@@ -90,7 +90,8 @@
       </and>
     </condition>
 
-
+    <copy todir="${build.home}/META-INF" 
+          file="default-profile-dir-contents.jar" />
 
   </target>
 

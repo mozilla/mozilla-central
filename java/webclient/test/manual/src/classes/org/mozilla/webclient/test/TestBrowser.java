@@ -120,6 +120,7 @@ public class TestBrowser extends JPanel {
 
         frame.pack();
         frame.setVisible(true);
+        testBrowser.setVisible(true);
         if (1 == args.length) {
             testBrowser.loadURL(args[0]);
         }
@@ -445,6 +446,7 @@ public class TestBrowser extends JPanel {
                 if (curUrl == null) {
                     // Check if the text value starts with known protocols.
                     if (inputValue.toLowerCase().startsWith("http://")
+                            || inputValue.toLowerCase().startsWith("https://")
                             || inputValue.toLowerCase().startsWith("ftp://")
                             || inputValue.toLowerCase().startsWith("gopher://")
                             || inputValue.toLowerCase().startsWith("file://")) {
@@ -460,6 +462,7 @@ public class TestBrowser extends JPanel {
                     }
                 }
 
+                browserControlCanvas.setVisible(true);
                 navigation.loadURL(curUrl.toString());
 
                 // Update the address text field, statusbar, and toolbar info.

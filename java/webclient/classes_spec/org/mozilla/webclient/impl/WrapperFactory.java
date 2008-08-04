@@ -80,6 +80,12 @@ public interface WrapperFactory {
 
     public void initialize(String verifiedBinDirAbsolutePath) throws SecurityException, UnsatisfiedLinkError;
     
+    public String getBinDir();
+    
+    public void setProfileDir(String profileDir);
+    
+    public String getProfileDir();
+    
     public void verifyInitialized() throws IllegalStateException;
     
     public void terminate() throws Exception;

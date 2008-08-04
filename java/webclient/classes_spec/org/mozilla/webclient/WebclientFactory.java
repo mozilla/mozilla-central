@@ -57,6 +57,8 @@ public interface WebclientFactory {
 
     public void setAppData(String absolutePathToNativeBrowserBinDir) 
 	throws FileNotFoundException, ClassNotFoundException;
+    
+    public void setProfileDir(String profileDir);
 
     /**
      *

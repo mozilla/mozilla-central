@@ -105,7 +105,7 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
     // Attribute Instance Variables
     
     protected String platformCanvasClassName = null;
-    protected String profileName = "webclient";
+    protected String profileName = null;
     protected boolean initialized = false;
     protected boolean terminated = false;
     protected CountDownLatch oneCountLatch = null;
@@ -137,6 +137,9 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
     
     protected ProfileManager profileManager = null;
     
+    private String binDir = null;
+    
+    private String profileDir = null;
     //
     // Constructors and Initializers    
     //
@@ -184,6 +187,7 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
 	browserControls.put(result, new Integer(nativeBrowserControl));
         if (1 == browserControls.size()) {
             copyProxySettingsIfNecessary();
+            setMiscPrefs();
         }
 	return result;
     }
@@ -360,8 +364,10 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
             LOGGER.log(Level.SEVERE, "Unable to find method 'newNativeEventThread' on class " + 
                     getPlatformCanvasClassName(), nsme);
         }
+        
+        binDir = verifiedBinDirAbsolutePath;
 	
-	final String finalStr = new String(verifiedBinDirAbsolutePath);
+	final String finalStr = new String(binDir);
 	
 	eventThread.pushRunnable(new Runnable() {
 		public void run() {
@@ -424,6 +430,18 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
 	}
 
 
+    }
+
+    public String getBinDir() {
+        return binDir;
+    }
+
+    public String getProfileDir() {
+        return profileDir;
+    }
+
+    public void setProfileDir(String profileDir) {
+        this.profileDir = profileDir;
     }
     
     private enum ProxyEnum {
@@ -524,6 +542,11 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
                 }
             }
         }
+    }
+
+    public void setMiscPrefs() {
+	prefs.setPref("security.suppress_nss_rw_impossible_warning", "true");
+
     }
 
     public void verifyInitialized() throws IllegalStateException
