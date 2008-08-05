@@ -1014,7 +1014,7 @@ calWcapSession.prototype = {
                                 var start =  getDatetimeFromIcalString(str.substr(0, slash));
                                 var end =  getDatetimeFromIcalString(str.substr(slash + 1));
 
-                                ret.push(createFreeBusyInterval(calId, fbType, start, end));
+                                ret.push(new calFreeBusyInterval(calId, fbType, start, end));
                             }
                         }
                         request.execRespFunc(null, ret);

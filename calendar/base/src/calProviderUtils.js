@@ -112,16 +112,16 @@ function convertByteArray(aResult, aResultLength, aCharset, aThrow) {
  * getInterface method for providers. This should be called in the context of
  * the respective provider, i.e
  *
- * return calInterfaceRequestor.apply(this, arguments);
+ * return calInterfaceRequestor_getInterface.apply(this, arguments);
  *
  * or
  * ...
- * getInterface: calInterfaceRequestor,
+ * getInterface: calInterfaceRequestor_getInterface,
  * ...
  *
  * @param aIID      The interface ID to return
  */
-function calInterfaceRequestor(aIID) {
+function calInterfaceRequestor_getInterface(aIID) {
     // Support Auth Prompt Interfaces
     if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
         (Components.interfaces.nsIAuthPrompt2 &&
@@ -145,7 +145,7 @@ function calInterfaceRequestor(aIID) {
 }
 
 /**
- * Create a freebusy interval implementation. All parameters are optional.
+ * Freebusy interval implementation. All parameters are optional.
  *
  * @param aCalId         The calendar id to set up with.
  * @param aFreeBusyType  The type from calIFreeBusyInterval.
@@ -153,25 +153,26 @@ function calInterfaceRequestor(aIID) {
  * @param aEnd           The end of the interval.
  * @return               The fresh calIFreeBusyInterval.
  */
-function createFreeBusyInterval(aCalId, aFreeBusyType, aStart, aEnd) {
-    var interval = Components.classes["@mozilla.org/calendar/period;1"]
-                             .createInstance(Components.interfaces.calIPeriod);
-    interval.start = aStart;
-    interval.end = aEnd;
+function calFreeBusyInterval(aCalId, aFreeBusyType, aStart, aEnd) {
+    this.calId = aCalId
+    this.interval = Components.classes["@mozilla.org/calendar/period;1"]
+                              .createInstance(Components.interfaces.calIPeriod);
+    this.interval.start = aStart;
+    this.interval.end = aEnd;
 
-    var fbType = aFreeBusyType ||
+    this.freeBusyType = aFreeBusyType ||
         Components.interfaces.calIFreeBusyInterval.UNKNOWN;
-
-    return {
-        QueryInterface: function cFBI_QueryInterface(aIID) {
-            return doQueryInterface(this,
-                                    null,
-                                    aIID,
-                                    [Components.interfaces.calIFreeBusyInterval]);
-        },
-
-        calId: aCalId,
-        interval: interval,
-        freeBusyType: fbType
-    };
 }
+
+calFreeBusyInterval.prototype = {
+    QueryInterface: function cFBI_QueryInterface(aIID) {
+        return doQueryInterface(this,
+                                calFreeBusyInterval.prototype,
+                                aIID,
+                                [Components.interfaces.calIFreeBusyInterval]);
+    },
+
+    calId: null,
+    interval: null,
+    freeBusyType: Components.interfaces.calIFreeBusyInterval.UNKNOWN
+};

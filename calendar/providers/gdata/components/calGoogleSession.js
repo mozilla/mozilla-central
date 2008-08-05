@@ -589,7 +589,7 @@ calGoogleSession.prototype = {
         for each (var entry in xml.entry) {
             var start =  fromRFC3339(entry.gd::when.@startTime.toString(), timezone);
             var end = fromRFC3339(entry.gd::when.@endTime.toString(), timezone);
-            var interval = createFreeBusyInterval(aCalId, fbtypes.BUSY, start, end);
+            var interval = new calFreeBusyInterval(aCalId, fbtypes.BUSY, start, end);
             LOGinterval(interval);
             intervals.push(interval);
         }

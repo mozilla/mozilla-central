@@ -314,8 +314,9 @@ calGoogleRequest.prototype = {
 
     /**
      * @see nsIInterfaceRequestor
+     * @see calProviderUtils.js
      */
-    getInterface: calInterfaceRequestor,
+    getInterface: calInterfaceRequestor_getInterface,
 
     /**
      * @see nsIChannelEventSink

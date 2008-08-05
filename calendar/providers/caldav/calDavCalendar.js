@@ -1149,7 +1149,7 @@ calDavCalendar.prototype = {
      * @see nsIInterfaceRequestor
      * @see calProviderUtils.js
      */
-    getInterface: calInterfaceRequestor,
+    getInterface: calInterfaceRequestor_getInterface,
 
     //
     // Helper functions
@@ -1655,10 +1655,10 @@ calDavCalendar.prototype = {
                             begin.icalString = parts[0];
                             var end = new CalDateTime();
                             end.icalString = parts[1];
-                            interval = createFreeBusyInterval(aCalId,
-                                                              fbType,
-                                                              begin,
-                                                              end);
+                            interval = new calFreeBusyInterval(aCalId,
+                                                               fbType,
+                                                               begin,
+                                                               end);
                             periodsToReturn.push(interval);
                         }
                     }
@@ -1667,10 +1667,10 @@ calDavCalendar.prototype = {
                         var replyRangeStart = new CalDateTime();
                         replyRangeStart.icalString = dts;
                         if (aRangeStart.compare(replyRangeStart) == -1) {
-                            interval = createFreeBusyInterval(aCalId,
-                                                              calIFreeBusyInterval.UNKNOWN,
-                                                              aRangeStart,
-                                                              replyRangeStart);
+                            interval = new calFreeBusyInterval(aCalId,
+                                                               calIFreeBusyInterval.UNKNOWN,
+                                                               aRangeStart,
+                                                               replyRangeStart);
                             periodsToReturn.push(interval);
                         }
                     }
@@ -1679,10 +1679,10 @@ calDavCalendar.prototype = {
                         var replyRangeEnd = new CalDateTime();
                         replyRangeEnd.icalString = dte;
                         if (aRangeEnd.compare(replyRangeEnd) == 1) {
-                            interval = createFreeBusyInterval(aCalId,
-                                                              calIFreeBusyInterval.UNKNOWN,
-                                                              replyRangeEnd,
-                                                              aRangeEnd);
+                            interval = new calFreeBusyInterval(aCalId,
+                                                               calIFreeBusyInterval.UNKNOWN,
+                                                               replyRangeEnd,
+                                                               aRangeEnd);
                             periodsToReturn.push(interval);
                         }
                     }
