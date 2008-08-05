@@ -313,8 +313,8 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
     // Close the key we opened.
     ::RegCloseKey(theKey);
     if (REG_FAILED(result) ||
-        !dataLongPath.Equals(currValue, nsCaseInsensitiveStringComparator()) &&
-        !dataShortPath.Equals(currValue, nsCaseInsensitiveStringComparator()))
+        !dataLongPath.Equals(currValue) &&
+        !dataShortPath.Equals(currValue))
     {
       // Key wasn't set, or was set to something else (something else became the default client)
       isDefault = PR_FALSE;
