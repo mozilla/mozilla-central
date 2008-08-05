@@ -481,6 +481,50 @@ class MozillaOSXBrowserChromeTest(MozillaBrowserChromeTest):
                "--browser-chrome",
                "--close-when-done"]
 
+class MozillaA11YTest(MozillaMochichrome):
+    name = "a11y test"
+    warnOnFailure = True
+    description = ["a11y test"]
+    descriptionDone = ["a11y test complete"]
+    command = ["python",
+               "runtests.py",
+               "--appname=../../../dist/bin/firefox",
+               "--console-level=INFO",
+               "--autorun",
+               "--a11y", 
+               "--close-when-done"]
+    
+    def createSummary(self, log):
+        passCount = 0
+        failCount = 0
+        todoCount = 0
+        for line in log.readlines():
+            if "INFO Passed:" in line:
+                passCount = int(line.split()[-1])
+            if "INFO Failed:" in line:
+                failCount = int(line.split()[-1])
+            if "INFO Todo:" in line:
+                todoCount = int(line.split()[-1])
+        summary = "TinderboxPrint: a11y<br/>"
+        if not (passCount + failCount + todoCount):
+            summary += "FAIL\n"
+        else:
+            summary +=  str(passCount) + "/" + str(failCount) + "/" + str(todoCount) + "\n"
+        self.addCompleteLog('summary', summary)
+    
+
+class MozillaWin32A11YTest(MozillaA11YTest):
+   command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --a11y --autorun --console-level=INFO --close-when-done']
+
+class MozillaOSXA11YTest(MozillaA11YTest):
+   command = ["python",
+              "runtests.py",
+              "--appname=../../../dist/Minefield.app/Contents/MacOS/firefox",
+              "--a11y",
+              "--autorun",
+              "--console-level=INFO",
+              "--close-when-done"]
+
 class CreateProfile(ShellCommandReportTimeout):
     name = "create profile"
     warnOnFailure = True
