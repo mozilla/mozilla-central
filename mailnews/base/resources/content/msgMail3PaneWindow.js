@@ -542,7 +542,7 @@ function HandleDeleteOrMoveMsgCompleted(folder)
 
 function HandleCompactCompleted(folder)
 {
-  if (folder)
+  if (folder && folder.server.type != "imap")
   {
     var resource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
     if (resource)
@@ -551,18 +551,10 @@ function HandleCompactCompleted(folder)
       var msgFolder = msgWindow.openFolder;
       if (msgFolder && uri == msgFolder.URI)
       {
-        var msgdb = msgFolder.getMsgDatabase(msgWindow);
-        if (msgdb)
-        {
-          var dbFolderInfo = msgdb.dBFolderInfo;
-          sortType = dbFolderInfo.sortType;
-          sortOrder = dbFolderInfo.sortOrder;
-          viewFlags = dbFolderInfo.viewFlags;
-          viewType = dbFolderInfo.viewType;
-          dbFolderInfo = null;
-        }
-
-        RerootFolder(uri, msgFolder, viewType, viewFlags, sortType, sortOrder);
+        // pretend the selection changed, to reselect the current folder+view.
+        gMsgFolderSelected = null;
+        msgWindow.openFolder = null;
+        FolderPaneSelectionChange();
         LoadCurrentlyDisplayedMessage();
       }
     }
