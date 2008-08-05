@@ -315,6 +315,8 @@ calStorageCalendar.prototype = {
         this.mDeleteAllTodos.execute();
         this.mDeleteAllTodos.reset();
 
+        this.mDeleteAllMetaData(cal.mCalId);
+
         try {
             listener.onDeleteCalendar(cal, Components.results.NS_OK, null);
         } catch (ex) {
@@ -857,7 +859,7 @@ calStorageCalendar.prototype = {
         this.mDB.executeSimpleSQL("INSERT INTO cal_calendar_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
     },
 
-    DB_SCHEMA_VERSION: 11,
+    DB_SCHEMA_VERSION: 12,
 
     /** 
      * @return      db schema version
@@ -1161,6 +1163,22 @@ calStorageCalendar.prototype = {
             }
         }
 
+        if (oldVersion < 12) {
+            this.mDB.beginTransaction();
+            try {
+                this.mDB.createTable("cal_metadata", sqlTables.cal_metadata);
+
+                // update schema
+                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 12;");
+                this.mDB.commitTransaction();
+                oldVersion = 12;
+            } catch (e) {
+                ERROR("Upgrade failed! DB Error: " + this.mDB.lastErrorString);
+                this.mDB.rollbackTransaction();
+                throw e;
+            }
+        }
+
         if (oldVersion != this.DB_SCHEMA_VERSION) {
             dump ("#######!!!!! calStorageCalendar Schema Update failed -- db version: " + oldVersion + " this version: " + this.DB_SCHEMA_VERSION + "\n");
             throw Components.results.NS_ERROR_FAILURE;
@@ -1424,6 +1442,16 @@ calStorageCalendar.prototype = {
             "WHERE item_id = :item_id "
             );
 
+        this.mSelectMetaData = createStatement(
+            this.mDB,
+            "SELECT * FROM cal_metadata"
+            + " WHERE item_id = :item_id");
+
+        this.mSelectAllMetaData = createStatement(
+            this.mDB,
+            "SELECT * FROM cal_metadata"
+            + " WHERE cal_id = :cal_id");
+
         // insert statements
         this.mInsertEvent = createStatement (
             this.mDB,
@@ -1481,6 +1509,12 @@ calStorageCalendar.prototype = {
             "VALUES (:item_id, :data, :format_type, :encoding)"
             );
 
+        this.mInsertMetaData = createStatement(
+            this.mDB,
+            "INSERT INTO cal_metadata"
+            + " (cal_id, item_id, value)"
+            + " VALUES (:cal_id, :item_id, :value)");
+
         // delete statements
         this.mDeleteEvent = createStatement (
             this.mDB,
@@ -1505,6 +1539,10 @@ calStorageCalendar.prototype = {
         this.mDeleteAttachments = createStatement (
             this.mDB,
             "DELETE FROM cal_attachments WHERE item_id = :item_id"
+            );
+        this.mDeleteMetaData = createStatement(
+            this.mDB,
+            "DELETE FROM cal_metadata WHERE item_id = :item_id"
             );
 
         // These are only used when deleting an entire calendar
@@ -1537,6 +1575,11 @@ calStorageCalendar.prototype = {
             "DELETE from cal_todos WHERE cal_id = :cal_id"
             );
 
+        this.mDeleteAllMetaData = createStatement(
+            this.mDB,
+            "DELETE FROM cal_metadata"
+            + " WHERE cal_id = :cal_id"
+            );
     },
 
 
@@ -2272,6 +2315,7 @@ calStorageCalendar.prototype = {
             this.mDeleteEvent(aID);
             this.mDeleteTodo(aID);
             this.mDeleteAttachments(aID);
+            this.mDeleteMetaData(aID);
             if (!hasGuardingTransaction) {
                 this.mDB.commitTransaction();
             }
@@ -2286,8 +2330,60 @@ calStorageCalendar.prototype = {
         delete this.mItemCache[aID];
         delete this.mRecEventCache[aID];
         delete this.mRecTodoCache[aID];
+    },
+
+    //
+    // calISyncCalendar interface
+    //
+
+    setMetaData: function stor_setMetaData(id, value) {
+        this.mDeleteMetaData(id);
+        var sp = this.mInsertMetaData.params;
+        sp.cal_id = this.mCalId;
+        sp.item_id = id;
+        sp.value = value;
+        this.mInsertMetaData.execute();
+        this.mInsertMetaData.reset();
+    },
+
+    deleteMetaData: function stor_deleteMetaData(id) {
+        this.mDeleteMetaData(id);
+    },
+
+    getMetaData: function stor_getMetaData(id) {
+        var query = this.mSelectMetaData;
+        query.params.item_id = id;
+        var value = null;
+        try {
+            if (query.step()) {
+                value = query.row.value;
+            }
+        } finally {
+            query.reset();
+        }
+        return value;
+    },
+
+    getAllMetaData: function stor_getAllMetaData(out_count,
+                                                 out_ids,
+                                                 out_values) {
+        var query = this.mSelectAllMetaData;
+        query.params.cal_id = this.mCalId;
+        var ids = [];
+        var values = [];
+        try {
+            while (query.step()) {
+                ids.push(query.row.item_id);
+                values.push(query.row.value);
+            }
+        } finally {
+            query.reset();
+        }
+        out_count.value = ids.length;
+        out_ids.value = ids;
+        out_values.value = values;
     }
-}
+};
 
 //
 // sqlTables generated from schema.sql via makejsschema.pl
@@ -2295,26 +2391,26 @@ calStorageCalendar.prototype = {
 
 var sqlTables = {
   cal_calendar_schema_version:
-    "	version	INTEGER" +
+    "   version INTEGER" +
     "",
 
   cal_tz_version:
-    "	version	TEXT" +
+    "   version TEXT" +
     "",
 
   cal_events:
-    /* 	REFERENCES cal_calendars.id, */
-    "	cal_id		INTEGER, " +
+    /*  REFERENCES cal_calendars.id, */
+    "   cal_id          INTEGER, " +
     /*  ItemBase bits */
-    "	id		TEXT," +
-    "	time_created	INTEGER," +
-    "	last_modified	INTEGER," +
-    "	title		TEXT," +
-    "	priority	INTEGER," +
-    "	privacy		TEXT," +
-    "	ical_status	TEXT," +
-    "	recurrence_id	INTEGER," +
-    "	recurrence_id_tz	TEXT," +
+    "   id              TEXT," +
+    "   time_created    INTEGER," +
+    "   last_modified   INTEGER," +
+    "   title           TEXT," +
+    "   priority        INTEGER," +
+    "   privacy         TEXT," +
+    "   ical_status     TEXT," +
+    "   recurrence_id   INTEGER," +
+    "   recurrence_id_tz TEXT," +
     /*  CAL_ITEM_FLAG_PRIVATE = 1 */
     /*  CAL_ITEM_FLAG_HAS_ATTENDEES = 2 */
     /*  CAL_ITEM_FLAG_HAS_PROPERTIES = 4 */
@@ -2322,109 +2418,109 @@ var sqlTables = {
     /*  CAL_ITEM_FLAG_HAS_RECURRENCE = 16 */
     /*  CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32 */
     /*  CAL_ITEM_FLAG_HAS_ATTACHMENTS = 64 */
-    "	flags		INTEGER," +
+    "   flags           INTEGER," +
     /*  Event bits */
-    "	event_start	INTEGER," +
-    "	event_start_tz	TEXT," +
-    "	event_end	INTEGER," +
-    "	event_end_tz	TEXT," +
-    "	event_stamp	INTEGER," +
+    "   event_start     INTEGER," +
+    "   event_start_tz  TEXT," +
+    "   event_end       INTEGER," +
+    "   event_end_tz    TEXT," +
+    "   event_stamp     INTEGER," +
     /*  alarm time */
-    "	alarm_time	INTEGER," +
-    "	alarm_time_tz	TEXT," +
-    "	alarm_offset	INTEGER," +
-    "	alarm_related	INTEGER," +
-    "	alarm_last_ack	INTEGER" +
+    "   alarm_time      INTEGER," +
+    "   alarm_time_tz   TEXT," +
+    "   alarm_offset    INTEGER," +
+    "   alarm_related   INTEGER," +
+    "   alarm_last_ack  INTEGER" +
     "",
 
   cal_todos:
-    /* 	REFERENCES cal_calendars.id, */
-    "	cal_id		INTEGER, " +
+    /*  REFERENCES cal_calendars.id, */
+    "   cal_id          INTEGER, " +
     /*  ItemBase bits */
-    "	id		TEXT," +
-    "	time_created	INTEGER," +
-    "	last_modified	INTEGER," +
-    "	title		TEXT," +
-    "	priority	INTEGER," +
-    "	privacy		TEXT," +
-    "	ical_status	TEXT," +
-    "	recurrence_id	INTEGER," +
-    "	recurrence_id_tz	TEXT," +
+    "   id              TEXT," +
+    "   time_created    INTEGER," +
+    "   last_modified   INTEGER," +
+    "   title           TEXT," +
+    "   priority        INTEGER," +
+    "   privacy         TEXT," +
+    "   ical_status     TEXT," +
+    "   recurrence_id   INTEGER," +
+    "   recurrence_id_tz        TEXT," +
     /*  CAL_ITEM_FLAG_PRIVATE = 1 */
     /*  CAL_ITEM_FLAG_HAS_ATTENDEES = 2 */
     /*  CAL_ITEM_FLAG_HAS_PROPERTIES = 4 */
     /*  CAL_ITEM_FLAG_EVENT_ALLDAY = 8 */
     /*  CAL_ITEM_FLAG_HAS_RECURRENCE = 16 */
     /*  CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32 */
-    "	flags		INTEGER," +
+    "   flags           INTEGER," +
     /*  Todo bits */
     /*  date the todo is to be displayed */
-    "	todo_entry	INTEGER," +
-    "	todo_entry_tz	TEXT," +
+    "   todo_entry      INTEGER," +
+    "   todo_entry_tz   TEXT," +
     /*  date the todo is due */
-    "	todo_due	INTEGER," +
-    "	todo_due_tz	TEXT," +
+    "   todo_due        INTEGER," +
+    "   todo_due_tz     TEXT," +
     /*  date the todo is completed */
-    "	todo_completed	INTEGER," +
-    "	todo_completed_tz TEXT," +
+    "   todo_completed  INTEGER," +
+    "   todo_completed_tz TEXT," +
     /*  percent the todo is complete (0-100) */
-    "	todo_complete	INTEGER," +
+    "   todo_complete   INTEGER," +
     /*  alarm time */
-    "	alarm_time	INTEGER," +
-    "	alarm_time_tz	TEXT," +
-    "	alarm_offset	INTEGER," +
-    "	alarm_related	INTEGER," +
-    "	alarm_last_ack	INTEGER" +
+    "   alarm_time      INTEGER," +
+    "   alarm_time_tz   TEXT," +
+    "   alarm_offset    INTEGER," +
+    "   alarm_related   INTEGER," +
+    "   alarm_last_ack  INTEGER" +
     "",
 
   cal_attendees:
-    "	item_id         TEXT," +
-    "	recurrence_id	INTEGER," +
-    "	recurrence_id_tz	TEXT," +
-    "	attendee_id	TEXT," +
-    "	common_name	TEXT," +
-    "	rsvp		INTEGER," +
-    "	role		TEXT," +
-    "	status		TEXT," +
-    "	type		TEXT" +
+    "   item_id         TEXT," +
+    "   recurrence_id   INTEGER," +
+    "   recurrence_id_tz        TEXT," +
+    "   attendee_id     TEXT," +
+    "   common_name     TEXT," +
+    "   rsvp            INTEGER," +
+    "   role            TEXT," +
+    "   status          TEXT," +
+    "   type            TEXT" +
     "",
 
   cal_recurrence:
-    "	item_id		TEXT," +
+    "   item_id         TEXT," +
     /*  the index in the recurrence array of this thing */
-    "	recur_index	INTEGER, " +
+    "   recur_index     INTEGER, " +
     /*  values from calIRecurrenceInfo; if null, date-based. */
-    "	recur_type	TEXT, " +
-    "	is_negative	BOOLEAN," +
+    "   recur_type      TEXT, " +
+    "   is_negative     BOOLEAN," +
     /*  */
     /*  these are for date-based recurrence */
     /*  */
     /*  comma-separated list of dates */
-    "	dates		TEXT," +
+    "   dates           TEXT," +
     /*  */
     /*  these are for rule-based recurrence */
     /*  */
-    "	count		INTEGER," +
-    "	end_date	INTEGER," +
-    "	interval	INTEGER," +
+    "   count           INTEGER," +
+    "   end_date        INTEGER," +
+    "   interval        INTEGER," +
     /*  components, comma-separated list or null */
-    "	second		TEXT," +
-    "	minute		TEXT," +
-    "	hour		TEXT," +
-    "	day		TEXT," +
-    "	monthday	TEXT," +
-    "	yearday		TEXT," +
-    "	weekno		TEXT," +
-    "	month		TEXT," +
-    "	setpos		TEXT" +
+    "   second          TEXT," +
+    "   minute          TEXT," +
+    "   hour            TEXT," +
+    "   day             TEXT," +
+    "   monthday        TEXT," +
+    "   yearday         TEXT," +
+    "   weekno          TEXT," +
+    "   month           TEXT," +
+    "   setpos          TEXT" +
     "",
 
   cal_properties:
-    "	item_id		TEXT," +
-    "	recurrence_id	INTEGER," +
-    "	recurrence_id_tz	TEXT," +
-    "	key		TEXT," +
-    "	value		BLOB" +
+    "   item_id         TEXT," +
+    "   recurrence_id   INTEGER," +
+    "   recurrence_id_tz TEXT," +
+    "   key             TEXT," +
+    "   value           BLOB" +
     "",
 
   cal_attachments:
@@ -2432,6 +2528,11 @@ var sqlTables = {
     "   data            BLOB," +
     "   format_type     TEXT," +
     "   encoding        TEXT" +
-    ""
+    "",
 
+  cal_metadata:
+    "   cal_id          INTEGER, " +
+    "   item_id         TEXT UNIQUE," + 
+    "   value           BLOB" + 
+    ""
 };

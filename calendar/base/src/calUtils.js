@@ -1684,6 +1684,16 @@ calPropertyBag.prototype = {
         }
         return aValue;
     },
+    getAllProperties: function cpb_getAllProperties(aOutKeys, aOutValues) {
+        var keys = [];
+        var values = [];
+        for (var key in this.mData) {
+            keys.push(key);
+            values.push(this.mData[key]);
+        }
+        aOutKeys.value = keys;
+        aOutValues.value = values;
+    },
     deleteProperty: function cpb_deleteProperty(aName) {
         delete this.mData[aName];
     },

@@ -41,10 +41,51 @@ interface calIGenericOperationListener;
 interface calIOperation;
 
 /**
- * Marker interface for synchronously working providers, e.g. storage, memory.
+ * Interface for synchronously working providers, e.g. storage, memory.
+ *
+ * @note
+ *   This interface is used in conjunction with changelog-based synchronization
+ *   and additionally offers storing meta-data for items for this purpose.
+ *   The meta data is stored as long as the corresponding items persist in
+ *   the calendar and automatically cleanup up once the item is deleted from
+ *   the calendar, but is not altered when an item is modified (modifyItem).
+ *   Meta data can be fetched/stored per (master) item, i.e. if you need to
+ *   store meta data for individual overridden items, you need to store it
+ *   along with the master item's meta data.
+ *   Finally, keep in mind that the meta data is "calendar local" and not
+ *   automatically transferred when storing the item on another calISyncCalendar.
  */
 [scriptable, uuid(cef78f0e-bdbe-4534-8546-29b3e85be148)]
 interface calISyncCalendar : calICalendar {
+    /**
+     * Adds or replaces meta data of an item.
+     *
+     * @param id    an item id
+     * @param value an arbitrary string
+     */
+    void setMetaData(in AUTF8String id,
+                     in AUTF8String value);
+
+    /**
+     * Deletes meta data of an item.
+     *
+     * @param id    an item id
+     */
+    void deleteMetaData(in AUTF8String id);
+
+    /**
+     * Gets meta data of an item or null if there's none or the item id is invalid.
+     *
+     * @param id    an item id
+     */
+    AUTF8String getMetaData(in AUTF8String id);
+
+    /**
+     * Gets all meta data. The returned arrays are of the same length.
+     */
+    void getAllMetaData(out PRUint32 count,
+                        [array, size_is(count)] out wstring ids,
+                        [array, size_is(count)] out wstring values);
 };
 
 /**
