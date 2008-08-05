@@ -345,11 +345,16 @@ var nsMailDefaultHandler = {
 
   /* nsICommandLineValidator */
   validate : function mdh_validate(cmdLine) {
+    var osintFlagIdx = cmdLine.findFlag("osint", false);
+    if (osintFlagIdx == -1)
+      return;
+
     // Other handlers may use osint so only handle the osint flag if the mail
     // or compose flag is also present and the command line is valid.
-    var osintFlagIdx = cmdLine.findFlag("osint", false);
     var mailFlagIdx = cmdLine.findFlag("mail", false);
     var composeFlagIdx = cmdLine.findFlag("compose", false);
+    if (mailFlagIdx == -1 && composeFlagIdx == -1)
+      return;
 
     // If both flags are present use the first flag found so the command line
     // length test will fail.

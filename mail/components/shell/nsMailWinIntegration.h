@@ -68,28 +68,13 @@ public:
   NS_DECL_NSISHELLSERVICE
 
 protected:
-  void SetRegKey(const char* aKeyName, const char* aValueName, 
-                 const char* aValue, PRBool aHKLMOnly);
-  DWORD DeleteRegKey(HKEY baseKey, const char *keyName);
-  DWORD DeleteRegKeyDefaultValue(HKEY baseKey, const char *keyName);
-
   PRBool TestForDefault(SETTING aSettings[], PRInt32 aSize);
-  void setKeysForSettings(SETTING aSettings[], PRInt32 aSize, 
-                          const char * aAppname);
-  nsresult setDefaultMail();
-  nsresult setDefaultNews();
-
-  PRBool IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps, PRBool* aIsDefaultClient);
-  PRBool SetDefaultClientVista(PRUint16 aApps);
+  PRBool IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient);
 
 private:
   PRBool mCheckedThisSession;
-  nsCString mAppLongPath;
-  nsCString mAppShortPath;
-  nsCString mMapiDLLPath;
-  nsCString mUninstallPath;
-  nsString mBrandFullName;
-  nsString mBrandShortName;
+  nsAutoString mAppLongPath;
+  nsAutoString mAppShortPath;
  };
 
 #endif

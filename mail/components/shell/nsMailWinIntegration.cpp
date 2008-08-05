@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Robert Strong  <robert.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,15 +39,13 @@
 #include "nsMailWinIntegration.h"
 #include "nsIServiceManager.h"
 #include "nsICategoryManager.h"
-#include "nsIStringBundle.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsIPrefService.h"
-#ifndef __MINGW32__
-#include "nsIMapiSupport.h"
-#endif
 #include "windows.h"
 #include "shellapi.h"
 #include "nsILocalFile.h"
+#include "nsDirectoryServiceDefs.h"
+#include "nsUnicharUtils.h"
 
 #ifdef _WIN32_WINNT
 #undef _WIN32_WINNT
@@ -67,60 +66,18 @@
 NS_IMPL_ISUPPORTS1(nsWindowsShellService, nsIShellService)
 
 static nsresult
-OpenUserKeyForReading(HKEY aStartKey, const char* aKeyName, HKEY* aKey)
+OpenKeyForReading(HKEY aKeyRoot, const nsAString& aKeyName, HKEY* aKey)
 {
-  DWORD result = ::RegOpenKeyEx(aStartKey, aKeyName, 0, KEY_READ, aKey);
+  const nsString &flatName = PromiseFlatString(aKeyName);
 
-  switch (result)
-  {
-    case ERROR_SUCCESS:
-      break;
-    case ERROR_ACCESS_DENIED:
-      return NS_ERROR_FILE_ACCESS_DENIED;
-    case ERROR_FILE_NOT_FOUND:
-      if (aStartKey == HKEY_LOCAL_MACHINE)
-      {
-        // prevent infinite recursion on the second pass through here if
-        // ::RegOpenKeyEx fails in the all-users case.
-        return NS_ERROR_NOT_AVAILABLE;
-      }
-      return OpenUserKeyForReading(HKEY_LOCAL_MACHINE, aKeyName, aKey);
-  }
-  return NS_OK;
-}
-
-// Sets the default mail registry keys for Windows versions prior to Vista.
-// Try to open / create the key in HKLM and if that fails try to do the same
-// in HKCU. Though this is not strictly the behavior I would expect it is the
-// same behavior that Firefox and IE has when setting the default browser previous to Vista.
-static nsresult OpenKeyForWriting(HKEY aStartKey, const char* aKeyName, HKEY* aKey, PRBool aHKLMOnly)
-{
-  DWORD dwDisp = 0;
-  DWORD rv = ::RegCreateKeyEx(aStartKey, aKeyName, 0, NULL, 0,
-                              KEY_READ | KEY_WRITE, NULL, aKey, &dwDisp);
-
-  switch (rv)
-  {
-    case ERROR_SUCCESS:
-      break;
-    case ERROR_ACCESS_DENIED:
-      if (aHKLMOnly || aStartKey == HKEY_CURRENT_USER)
-        return NS_ERROR_FILE_ACCESS_DENIED;
-      // fallback to HKCU immediately on access denied since we won't be able
-      // to create the key.
-      return OpenKeyForWriting(HKEY_CURRENT_USER, aKeyName, aKey, aHKLMOnly);
-    case ERROR_FILE_NOT_FOUND:
-      rv = ::RegCreateKey(aStartKey, aKeyName, aKey);
-      if (rv != ERROR_SUCCESS)
-      {
-        if (aHKLMOnly || aStartKey == HKEY_CURRENT_USER)
-        {
-          // prevent infinite recursion on the second pass through here if
-          // ::RegCreateKey fails in the current user case.
-          return NS_ERROR_FILE_ACCESS_DENIED;
-        }
-        return OpenKeyForWriting(HKEY_CURRENT_USER, aKeyName, aKey, aHKLMOnly);
-      }
+  DWORD res = ::RegOpenKeyExW(aKeyRoot, flatName.get(), 0, KEY_READ, aKey);
+  switch (res) {
+  case ERROR_SUCCESS:
+    break;
+  case ERROR_ACCESS_DENIED:
+    return NS_ERROR_FILE_ACCESS_DENIED;
+  case ERROR_FILE_NOT_FOUND:
+    return NS_ERROR_NOT_AVAILABLE;
   }
 
   return NS_OK;
@@ -130,21 +87,10 @@ static nsresult OpenKeyForWriting(HKEY aStartKey, const char* aKeyName, HKEY* aK
 // Default Mail Registry Settings
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef enum { NO_SUBSTITUTION    = 0x00,
-               APP_PATH_SUBSTITUTION  = 0x01,
-               APPNAME_SUBSTITUTION = 0x02,
-               UNINST_PATH_SUBSTITUTION  = 0x04,
-               MAPIDLL_PATH_SUBSTITUTION = 0x08,
-               HKLM_ONLY = 0x10,
-               USE_FOR_DEFAULT_TEST = 0x20} SettingFlags;
-
-#define CLS "SOFTWARE\\Classes\\"
-#define MAILCLIENTS "SOFTWARE\\Clients\\Mail\\"
-#define NEWSCLIENTS "SOFTWARE\\Clients\\News\\"
-#define MOZ_CLIENT_MAIL_KEY "Software\\Clients\\Mail"
-#define MOZ_CLIENT_NEWS_KEY "Software\\Clients\\News"
-#define DI "\\DefaultIcon"
-#define II "\\InstallInfo"
+typedef enum {
+  NO_SUBSTITUTION    = 0x00,
+  APP_PATH_SUBSTITUTION  = 0x01
+} SettingFlags;
 
 // APP_REG_NAME_MAIL and APP_REG_NAME_NEWS should be kept in synch with
 // AppRegNameMail and AppRegNameNews in the installer file: defines.nsi.in
@@ -155,154 +101,62 @@ typedef enum { NO_SUBSTITUTION    = 0x00,
 #define CLS_NEWSURL "Thunderbird.Url.news"
 #define CLS_FEEDURL "Thunderbird.Url.feed"
 #define SOP "\\shell\\open\\command"
-
-// For the InstallInfo HideIconsCommand, ShowIconsCommand, and ReinstallCommand
-// registry keys. This must be kept in sync with the uninstaller.
-#define UNINSTALL_EXE "\\uninstall\\helper.exe"
-#define EXE "thunderbird.exe"
-
-#define VAL_ICON "%APPPATH%,0"
 #define VAL_OPEN "\"%APPPATH%\" \"%1\""
+#define VAL_MAIL_OPEN "\"%APPPATH%\" -osint -mail \"%1\""
+#define VAL_COMPOSE_OPEN "\"%APPPATH%\" -osint -compose \"%1\""
 
 #define MAKE_KEY_NAME1(PREFIX, MID) \
   PREFIX MID
 
-#define MAKE_KEY_NAME2(PREFIX, MID, SUFFIX) \
-  PREFIX MID SUFFIX
-
 static SETTING gMailSettings[] = {
-  // File Extension Aliases
-  { MAKE_KEY_NAME1(CLS, ".eml"),    "", CLS_EML, NO_SUBSTITUTION },
+  // File Extension Class
+  { ".eml", "",  CLS_EML, NO_SUBSTITUTION },
 
   // File Extension Class
-  { MAKE_KEY_NAME2(CLS, CLS_EML, DI),  "",  VAL_ICON, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, CLS_EML, SOP), "",  VAL_OPEN, APP_PATH_SUBSTITUTION},
+  { MAKE_KEY_NAME1(CLS_EML, SOP), "",  VAL_OPEN, APP_PATH_SUBSTITUTION },
 
   // Protocol Handler Class - for Vista and above
-  { MAKE_KEY_NAME2(CLS, CLS_MAILTOURL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, CLS_MAILTOURL, SOP), "", "\"%APPPATH%\" -osint -compose \"%1\"", APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME1(CLS_MAILTOURL, SOP), "", VAL_COMPOSE_OPEN, APP_PATH_SUBSTITUTION },
 
   // Protocol Handlers
-  { MAKE_KEY_NAME2(CLS, "mailto", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "mailto", SOP), "", "\"%APPPATH%\" -osint -compose \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
-
-  // Mail Client Keys
-  { MAKE_KEY_NAME1(MAILCLIENTS, "%APPNAME%"),
-    "DLLPath",
-    "%MAPIDLLPATH%",
-    MAPIDLL_PATH_SUBSTITUTION | HKLM_ONLY | APPNAME_SUBSTITUTION },
-  { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", II),
-    "HideIconsCommand",
-    "\"%UNINSTPATH%\" /HideShortcuts",
-    UNINST_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", II),
-    "ReinstallCommand",
-    "\"%UNINSTPATH%\" /SetAsDefaultAppGlobal",
-    UNINST_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", II),
-    "ShowIconsCommand",
-    "\"%UNINSTPATH%\" /ShowShortcuts",
-    UNINST_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", DI),
-    "",
-    "%APPPATH%,0",
-    APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", SOP),
-    "",
-    "\"%APPPATH%\" -mail",
-    APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME1(MAILCLIENTS, "%APPNAME%\\shell\\properties\\command"),
-    "",
-    "\"%APPPATH%\" -options",
-    APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
+  { MAKE_KEY_NAME1("mailto", SOP), "", VAL_COMPOSE_OPEN, APP_PATH_SUBSTITUTION },
 };
 
 static SETTING gNewsSettings[] = {
    // Protocol Handler Class - for Vista and above
-  { MAKE_KEY_NAME2(CLS, CLS_NEWSURL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, CLS_NEWSURL, SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME1(CLS_NEWSURL, SOP), "", VAL_MAIL_OPEN, APP_PATH_SUBSTITUTION },
 
   // Protocol Handlers
-  { MAKE_KEY_NAME2(CLS, "news", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "news", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
-  { MAKE_KEY_NAME2(CLS, "nntp", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "nntp", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
-  { MAKE_KEY_NAME2(CLS, "snews", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "snews", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION},
-
-  // News Client Keys
-  { MAKE_KEY_NAME1(NEWSCLIENTS, "%APPNAME%"),
-    "DLLPath",
-    "%MAPIDLLPATH%",
-    MAPIDLL_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(NEWSCLIENTS, "%APPNAME%", DI),
-    "",
-    "%APPPATH%,0",
-    APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(NEWSCLIENTS, "%APPNAME%", SOP),
-    "",
-    "\"%APPPATH%\" -mail",
-    APP_PATH_SUBSTITUTION | APPNAME_SUBSTITUTION | HKLM_ONLY },
+  { MAKE_KEY_NAME1("news", SOP), "", VAL_MAIL_OPEN, APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME1("nntp", SOP), "", VAL_MAIL_OPEN, APP_PATH_SUBSTITUTION },
 };
 
 static SETTING gFeedSettings[] = {
    // Protocol Handler Class - for Vista and above
-  { MAKE_KEY_NAME2(CLS, CLS_FEEDURL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, CLS_FEEDURL, SOP), "", VAL_OPEN, APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME1(CLS_FEEDURL, SOP), "", VAL_MAIL_OPEN, APP_PATH_SUBSTITUTION },
 
   // Protocol Handlers
-  { MAKE_KEY_NAME2(CLS, "feed", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "feed", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
+  { MAKE_KEY_NAME1("feed", SOP), "", VAL_MAIL_OPEN, APP_PATH_SUBSTITUTION },
 };
 
 nsresult nsWindowsShellService::Init()
 {
   nsresult rv;
 
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIStringBundle> bundle, brandBundle;
-  rv = bundleService->CreateBundle("chrome://branding/locale/brand.properties", getter_AddRefs(brandBundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  brandBundle->GetStringFromName(NS_LITERAL_STRING("brandFullName").get(),
-                                 getter_Copies(mBrandFullName));
-  brandBundle->GetStringFromName(NS_LITERAL_STRING("brandShortName").get(),
-                                 getter_Copies(mBrandShortName));
-
-  char appPath[MAX_BUF];
-  if (!::GetModuleFileName(0, appPath, MAX_BUF))
+  PRUnichar appPath[MAX_BUF];
+  if (!::GetModuleFileNameW(0, appPath, MAX_BUF))
     return NS_ERROR_FAILURE;
 
   mAppLongPath = appPath;
 
-  nsCOMPtr<nsILocalFile> lf;
-  rv = NS_NewNativeLocalFile(mAppLongPath, PR_TRUE,
-                                      getter_AddRefs(lf));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIFile> appDir;
-  rv = lf->GetParent(getter_AddRefs(appDir));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  appDir->GetNativePath(mUninstallPath);
-  mUninstallPath.Append(UNINSTALL_EXE);
-
   // Support short path to the exe so if it is already set the user is not
   // prompted to set the default mail client again.
-  if (!::GetShortPathName(appPath, appPath, MAX_BUF))
+  if (!::GetShortPathNameW(appPath, appPath, sizeof(appPath)))
     return NS_ERROR_FAILURE;
 
-  ToUpperCase(mAppShortPath = appPath);
+  mAppShortPath = appPath;
 
-  rv = NS_NewNativeLocalFile(mAppLongPath, PR_TRUE, getter_AddRefs(lf));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = lf->SetNativeLeafName(nsDependentCString("mozMapi32.dll"));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return lf->GetNativePath(mMapiDLLPath);
+  return NS_OK;
 }
 
 nsWindowsShellService::nsWindowsShellService()
@@ -313,87 +167,89 @@ nsWindowsShellService::nsWindowsShellService()
 NS_IMETHODIMP
 nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBool *aIsDefaultClient)
 {
-  if (IsDefaultClientVista(aStartupCheck, aApps, aIsDefaultClient))
-    return NS_OK;
-
-  *aIsDefaultClient = PR_TRUE;
-
-  // for each type,
-  if (aApps & nsIShellService::MAIL)
-    *aIsDefaultClient &= TestForDefault(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING));
-  if (aApps & nsIShellService::NEWS)
-    *aIsDefaultClient &= TestForDefault(gNewsSettings, sizeof(gNewsSettings)/sizeof(SETTING));
-  if (aApps & nsIShellService::RSS)
-    *aIsDefaultClient &= TestForDefault(gFeedSettings, sizeof(gFeedSettings)/sizeof(SETTING));
-
   // If this is the first mail window, maintain internal state that we've
   // checked this session (so that subsequent window opens don't show the
   // default client dialog).
   if (aStartupCheck)
     mCheckedThisSession = PR_TRUE;
 
-  return NS_OK;
-}
+  *aIsDefaultClient = PR_TRUE;
 
-DWORD
-nsWindowsShellService::DeleteRegKeyDefaultValue(HKEY baseKey, const char *keyName)
-{
-  HKEY key;
-  DWORD rc = ::RegOpenKeyEx(baseKey, keyName, 0, KEY_WRITE, &key);
-  if (rc == ERROR_SUCCESS) {
-    rc = ::RegDeleteValue(key, "");
-    ::RegCloseKey(key);
+  // for each type,
+  if (aApps & nsIShellService::MAIL)
+  {
+    *aIsDefaultClient &= TestForDefault(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING));
+    // Only check if this app is default on Vista if the previous checks
+    // indicate that this app is the default.
+    if (*aIsDefaultClient)
+      IsDefaultClientVista(nsIShellService::MAIL, aIsDefaultClient);
   }
-  return rc;
+  if (aApps & nsIShellService::NEWS)
+  {
+    *aIsDefaultClient &= TestForDefault(gNewsSettings, sizeof(gNewsSettings)/sizeof(SETTING));
+    // Only check if this app is default on Vista if the previous checks
+    // indicate that this app is the default.
+    if (*aIsDefaultClient)
+      IsDefaultClientVista(nsIShellService::NEWS, aIsDefaultClient);
+  }
+  // RSS / feed protocol shell integration is not working so return PR_TRUE
+  // until it is fixed (bug 445823).
+  if (aApps & nsIShellService::RSS)
+    *aIsDefaultClient &= PR_TRUE;
+//    *aIsDefaultClient &= TestForDefault(gFeedSettings, sizeof(gFeedSettings)/sizeof(SETTING));
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
 {
-  // Delete the protocol and file handlers under HKCU if they exist. This way
-  // the HKCU registry is cleaned up when HKLM is writeable or if it isn't
-  // the values will then be added under HKCU.
-  if (aApps & nsIShellService::MAIL)
+  nsresult rv;
+  nsCOMPtr<nsIProperties> directoryService = 
+    do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> appHelper;
+  rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(appHelper));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = appHelper->AppendNative(NS_LITERAL_CSTRING("uninstall"));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = appHelper->AppendNative(NS_LITERAL_CSTRING("helper.exe"));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsAutoString appHelperPath;
+  rv = appHelper->GetPath(appHelperPath);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (aForAllUsers)
   {
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\ThunderbirdEML");
-    (void)DeleteRegKeyDefaultValue(HKEY_CURRENT_USER, "Software\\Classes\\.eml");
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\mailto\\shell\\open");
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\mailto\\DefaultIcon");
+    appHelperPath.AppendLiteral(" /SetAsDefaultAppGlobal");
+  }
+  else
+  {
+    appHelperPath.AppendLiteral(" /SetAsDefaultAppUser");
+    if (aApps & nsIShellService::MAIL)
+      appHelperPath.AppendLiteral(" Mail");
+
+    if (aApps & nsIShellService::NEWS)
+      appHelperPath.AppendLiteral(" News");
   }
 
-  if (aApps & nsIShellService::NEWS)
-  {
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\news\\shell\\open");
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\news\\DefaultIcon");
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\snews\\shell\\open");
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\snews\\DefaultIcon");
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\nntp\\shell\\open");
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\nntp\\DefaultIcon");
-  }
+  STARTUPINFOW si = {sizeof(si), 0};
+  PROCESS_INFORMATION pi = {0};
 
-  if (aApps & nsIShellService::RSS)
-  {
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\feed\\shell\\open");
-    (void)DeleteRegKey(HKEY_CURRENT_USER, "Software\\Classes\\feed\\DefaultIcon");
-  }
+  BOOL ok = CreateProcessW(NULL, (LPWSTR)appHelperPath.get(), NULL, NULL,
+                           FALSE, 0, NULL, NULL, &si, &pi);
 
-  if (SetDefaultClientVista(aApps))
-    return NS_OK;
+  if (!ok)
+    return NS_ERROR_FAILURE;
 
-  nsresult rv = NS_OK;
-  if (aApps & nsIShellService::MAIL)
-    rv |= setDefaultMail();
+  CloseHandle(pi.hProcess);
+  CloseHandle(pi.hThread);
 
-  if (aApps & nsIShellService::NEWS)
-    rv |= setDefaultNews();
-
-  if (aApps & nsIShellService::RSS)
-    setKeysForSettings(gFeedSettings, sizeof(gFeedSettings)/sizeof(SETTING),
-                       NS_ConvertUTF16toUTF8(mBrandFullName).get());
-
-  // Refresh the Shell
-  SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, 0, 0);
-  return rv;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -416,241 +272,61 @@ nsWindowsShellService::SetShouldCheckDefaultClient(PRBool aShouldCheck)
   return prefs->SetBoolPref("mail.shell.checkDefaultClient", aShouldCheck);
 }
 
-nsresult
-nsWindowsShellService::setDefaultMail()
-{
-  nsresult rv;
-  NS_ConvertUTF16toUTF8 appName(mBrandFullName);
-  setKeysForSettings(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING), appName.get());
-
-  // at least for now, this key needs to be written to HKLM instead of HKCU
-  // which is where the windows operating system looks (at least on Win XP and earlier)
-  SetRegKey(NS_LITERAL_CSTRING(MOZ_CLIENT_MAIL_KEY).get(), "", appName.get(), PR_TRUE);
-
-  nsCAutoString nativeFullName;
-  // For now, we use 'A' APIs (see bug 240272, 239279)
-  NS_CopyUnicodeToNative(mBrandFullName, nativeFullName);
-
-  nsCAutoString key1(NS_LITERAL_CSTRING(MAILCLIENTS));
-  key1.Append(appName);
-  key1.Append("\\");
-  SetRegKey(key1.get(), "", nativeFullName.get(), PR_TRUE);
-
-  // Set the Options and Safe Mode start menu context menu item labels
-  nsCOMPtr<nsIStringBundle> bundle;
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = bundleService->CreateBundle("chrome://messenger/locale/shellservice.properties", getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCAutoString optionsKey(NS_LITERAL_CSTRING(MAILCLIENTS "%APPNAME%\\shell\\properties"));
-  optionsKey.ReplaceSubstring("%APPNAME%", appName.get());
-
-  const PRUnichar* brandNameStrings[] = { mBrandShortName.get() };
-
-  // Set the Options menu item
-  nsString optionsTitle;
-  bundle->FormatStringFromName(NS_LITERAL_STRING("optionsLabel").get(),
-                               brandNameStrings, 1, getter_Copies(optionsTitle));
-  // Set the registry keys
-  nsCAutoString nativeTitle;
-  // For the now, we use 'A' APIs (see bug 240272,  239279)
-  NS_CopyUnicodeToNative(optionsTitle, nativeTitle);
-  SetRegKey(optionsKey.get(), "", nativeTitle.get(), PR_TRUE);
-#ifndef __MINGW32__
-  // Tell the MAPI Service to register the mapi proxy dll now that we are the default mail application
-  nsCOMPtr<nsIMapiSupport> mapiService (do_GetService(NS_IMAPISUPPORT_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-  return mapiService->RegisterServer();
-#else
-  return NS_OK;
-#endif
-}
-
-nsresult
-nsWindowsShellService::setDefaultNews()
-{
-  NS_ConvertUTF16toUTF8 appName(mBrandFullName);
-  setKeysForSettings(gNewsSettings, sizeof(gNewsSettings)/sizeof(SETTING), appName.get());
-
-  // at least for now, this key needs to be written to HKLM instead of HKCU
-  // which is where the windows operating system looks (at least on Win XP and earlier)
-  SetRegKey(NS_LITERAL_CSTRING(MOZ_CLIENT_NEWS_KEY).get(), "", appName.get(), PR_TRUE);
-
-  nsCAutoString nativeFullName;
-  // For now, we use 'A' APIs (see bug 240272, 239279)
-  NS_CopyUnicodeToNative(mBrandFullName, nativeFullName);
-  nsCAutoString key1(NS_LITERAL_CSTRING(NEWSCLIENTS));
-  key1.Append(appName);
-  key1.Append("\\");
-  SetRegKey(key1.get(), "", nativeFullName.get(), PR_TRUE);
-  return NS_OK;
-}
-
-// Utility function to delete a registry subkey.
-DWORD
-nsWindowsShellService::DeleteRegKey(HKEY baseKey, const char *keyName)
-{
- // Make sure input subkey isn't null.
- if (!keyName || !::strlen(keyName))
-   return ERROR_BADKEY;
-
- DWORD rc;
- // Open subkey.
- HKEY key;
- rc = ::RegOpenKeyEx(baseKey, keyName, 0, KEY_ENUMERATE_SUB_KEYS | DELETE, &key);
-
- // Continue till we get an error or are done.
- while (rc == ERROR_SUCCESS)
- {
-   char subkeyName[_MAX_PATH];
-   DWORD len = sizeof subkeyName;
-   // Get first subkey name.  Note that we always get the
-   // first one, then delete it.  So we need to get
-   // the first one next time, also.
-   rc = ::RegEnumKeyEx(key, 0, subkeyName, &len, 0, 0, 0, 0);
-   if (rc == ERROR_NO_MORE_ITEMS)
-   {
-     // No more subkeys.  Delete the main one.
-     rc = ::RegDeleteKey(baseKey, keyName);
-     break;
-   }
-   if (rc == ERROR_SUCCESS)
-   {
-     // Another subkey, delete it, recursively.
-     rc = DeleteRegKey(key, subkeyName);
-   }
- }
-
- // Close the key we opened.
- ::RegCloseKey(key);
- return rc;
-}
-
-void
-nsWindowsShellService::SetRegKey(const char* aKeyName, const char* aValueName,
-                                 const char* aValue, PRBool aHKLMOnly)
-{
-  char buf[MAX_BUF];
-  DWORD len = sizeof buf;
-
-  HKEY theKey;
-  nsresult rv = OpenKeyForWriting(HKEY_LOCAL_MACHINE, aKeyName, &theKey, aHKLMOnly);
-  if (NS_FAILED(rv))
-    return;
-
-  // Get the old value
-  DWORD result = ::RegQueryValueEx(theKey, aValueName, NULL, NULL, (LPBYTE)buf, &len);
-
-  // Set the new value
-  if (REG_FAILED(result) || strcmp(buf, aValue) != 0)
-    ::RegSetValueEx(theKey, aValueName, 0, REG_SZ,
-                    (LPBYTE)aValue, nsDependentCString(aValue).Length());
-
-  // Close the key we opened.
-  ::RegCloseKey(theKey);
-}
-
-/* helper routine. Iterate over the passed in settings object,
-   testing each key with the USE_FOR_DEFAULT_TEST to see if
-   we are handling it.
-*/
+/* helper routine. Iterate over the passed in settings object. */
 PRBool
 nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
 {
   PRBool isDefault = PR_TRUE;
-  NS_ConvertUTF16toUTF8 appName(mBrandFullName);
-  char currValue[MAX_BUF];
+  PRUnichar currValue[MAX_BUF];
   SETTING* end = aSettings + aSize;
   for (SETTING * settings = aSettings; settings < end; ++settings)
   {
-    if (settings->flags & USE_FOR_DEFAULT_TEST)
+    NS_ConvertUTF8toUTF16 dataLongPath(settings->valueData);
+    NS_ConvertUTF8toUTF16 dataShortPath(settings->valueData);
+    NS_ConvertUTF8toUTF16 key(settings->keyName);
+    NS_ConvertUTF8toUTF16 value(settings->valueName);
+    if (settings->flags & APP_PATH_SUBSTITUTION)
     {
-      nsCAutoString dataLongPath(settings->valueData);
-      nsCAutoString dataShortPath(settings->valueData);
-      if (settings->flags & APP_PATH_SUBSTITUTION) {
-        PRInt32 offset = dataLongPath.Find("%APPPATH%");
-        dataLongPath.Replace(offset, 9, mAppLongPath);
-        // Remove the quotes around %APPPATH% in VAL_OPEN for short paths
-        PRInt32 offsetQuoted = dataShortPath.Find("\"%APPPATH%\"");
-        if (offsetQuoted != -1)
-          dataShortPath.Replace(offsetQuoted, 11, mAppShortPath);
-        else
-          dataShortPath.Replace(offset, 9, mAppShortPath);
-      }
+      PRInt32 offset = dataLongPath.Find("%APPPATH%");
+      dataLongPath.Replace(offset, 9, mAppLongPath);
+      // Remove the quotes around %APPPATH% for short paths
+      PRInt32 offsetQuoted = dataShortPath.Find("\"%APPPATH%\"");
+      if (offsetQuoted != -1)
+        dataShortPath.Replace(offsetQuoted, 11, mAppShortPath);
+      else
+        dataShortPath.Replace(offset, 9, mAppShortPath);
+    }
 
-      nsCAutoString key(settings->keyName);
-      if (settings->flags & APPNAME_SUBSTITUTION)
-      {
-        PRInt32 offset = key.Find("%APPNAME%");
-        key.Replace(offset, 9, appName);
-      }
+    ::ZeroMemory(currValue, sizeof(currValue));
+    HKEY theKey;
+    nsresult rv = OpenKeyForReading(HKEY_CLASSES_ROOT, key, &theKey);
+    if (NS_FAILED(rv))
+    {
+      // Key doesn't exist
+      isDefault = PR_FALSE;
+      break;
+    }
 
-      ::ZeroMemory(currValue, sizeof(currValue));
-      HKEY theKey;
-      nsresult rv = OpenUserKeyForReading(HKEY_CURRENT_USER, key.get(), &theKey);
-      if (NS_SUCCEEDED(rv))
-      {
-        DWORD len = sizeof currValue;
-        DWORD result = ::RegQueryValueEx(theKey, settings->valueName, NULL, NULL, (LPBYTE)currValue, &len);
-        // Close the key we opened.
-        ::RegCloseKey(theKey);
-        if (REG_FAILED(result) || !dataLongPath.EqualsIgnoreCase(currValue) && !dataShortPath.EqualsIgnoreCase(currValue))
-        {
-          // Key wasn't set, or was set to something else (something else became the default client)
-          isDefault = PR_FALSE;
-          break;
-        }
-      }
+    DWORD len = sizeof currValue;
+    DWORD result = ::RegQueryValueExW(theKey, PromiseFlatString(value).get(),
+                                      NULL, NULL, (LPBYTE)currValue, &len);
+    // Close the key we opened.
+    ::RegCloseKey(theKey);
+    if (REG_FAILED(result) ||
+        !dataLongPath.Equals(currValue, nsCaseInsensitiveStringComparator()) &&
+        !dataShortPath.Equals(currValue, nsCaseInsensitiveStringComparator()))
+    {
+      // Key wasn't set, or was set to something else (something else became the default client)
+      isDefault = PR_FALSE;
+      break;
     }
   }  // for each registry key we want to look at
 
   return isDefault;
 }
 
-
-/* helper routine. Iterate over the passed in settings array, setting each key
- * in the windows registry.
-*/
-
-void
-nsWindowsShellService::setKeysForSettings(SETTING aSettings[], PRInt32 aSize, const char * aAppName)
-{
-  SETTING* settings;
-  SETTING* end = aSettings + aSize;
-  PRInt32 offset;
-
-  for (settings = aSettings; settings < end; ++settings)
-  {
-    nsCAutoString data(settings->valueData);
-    nsCAutoString key(settings->keyName);
-    if (settings->flags & APP_PATH_SUBSTITUTION)
-    {
-      offset = data.Find("%APPPATH%");
-      data.Replace(offset, 9, mAppLongPath);
-    }
-    if (settings->flags & MAPIDLL_PATH_SUBSTITUTION)
-    {
-      offset = data.Find("%MAPIDLLPATH%");
-      data.Replace(offset, 13, mMapiDLLPath);
-    }
-    if (settings->flags & APPNAME_SUBSTITUTION)
-    {
-      offset = key.Find("%APPNAME%");
-      key.Replace(offset, 9, aAppName);
-    }
-    if (settings->flags & UNINST_PATH_SUBSTITUTION)
-    {
-      offset = data.Find("%UNINSTPATH%");
-      data.Replace(offset, 12, mUninstallPath);
-    }
-
-    SetRegKey(key.get(), settings->valueName, data.get(), settings->flags & HKLM_ONLY);
-  }
-}
-
 PRBool
-nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps, PRBool* aIsDefaultClient)
+nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient)
 {
 #if !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
   IApplicationAssociationRegistration* pAAR;
@@ -671,38 +347,6 @@ nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME_NEWS, &isDefaultNews);
 
     *aIsDefaultClient = isDefaultNews && isDefaultMail;
-
-    // If this is the first mail window, maintain internal state that we've
-    // checked this session (so that subsequent window opens don't show the
-    // default browser dialog).
-    if (aStartupCheck)
-      mCheckedThisSession = PR_TRUE;
-
-    pAAR->Release();
-    return PR_TRUE;
-  }
-#endif
-  return PR_FALSE;
-}
-
-PRBool
-nsWindowsShellService::SetDefaultClientVista(PRUint16 aApps)
-{
-#if !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
-  IApplicationAssociationRegistration* pAAR;
-
-  HRESULT hr = CoCreateInstance (CLSID_ApplicationAssociationRegistration,
-                                 NULL,
-                                 CLSCTX_INPROC,
-                                 IID_IApplicationAssociationRegistration,
-                                 (void**)&pAAR);
-
-  if (SUCCEEDED(hr))
-  {
-    if (aApps & nsIShellService::MAIL)
-      hr = pAAR->SetAppAsDefaultAll(APP_REG_NAME_MAIL);
-    if (aApps & nsIShellService::NEWS)
-      hr = pAAR->SetAppAsDefaultAll(APP_REG_NAME_NEWS);
 
     pAAR->Release();
     return PR_TRUE;

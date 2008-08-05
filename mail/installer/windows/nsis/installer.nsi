@@ -36,7 +36,9 @@
 # ***** END LICENSE BLOCK *****
 
 # Required Plugins:
-# ShellLink    http://nsis.sourceforge.net/ShellLink_plug-in
+# AppAssocReg http://nsis.sourceforge.net/Application_Association_Registration_plug-in
+# ShellLink   http://nsis.sourceforge.net/ShellLink_plug-in
+# UAC         http://nsis.sourceforge.net/UAC_plug-in
 
 ; Set verbosity to 3 (e.g. no script) to lessen the noise in the build logs
 !verbose 3
@@ -47,6 +49,8 @@ SetDatablockOptimize on
 SetCompress off
 CRCCheck on
 
+RequestExecutionLevel user
+
 !addplugindir ./
 
 ; empty files - except for the comment line - for generating custom pages.
@@ -54,6 +58,9 @@ CRCCheck on
 !system 'echo ; > components.ini'
 !system 'echo ; > shortcuts.ini'
 !system 'echo ; > summary.ini'
+
+; USE_UAC_PLUGIN is temporary until other apps have been updated to use the UAC plugin
+!define USE_UAC_PLUGIN
 
 Var TmpVal
 Var StartMenuDir
@@ -68,23 +75,14 @@ Var AddDesktopSC
 !include LogicLib.nsh
 !include TextFunc.nsh
 !include WinMessages.nsh
+!include WinVer.nsh
 !include WordFunc.nsh
 !include MUI.nsh
 
-; WinVer.nsh was added in the same release that RequestExecutionLevel so check
-; if ___WINVER__NSH___ is defined to determine if RequestExecutionLevel is
-; available.
-!include /NONFATAL WinVer.nsh
-!ifdef ___WINVER__NSH___
-  RequestExecutionLevel admin
-!else
-  !warning "Installer will be created without Vista compatibility.$\n            \
-            Upgrade your NSIS installation to at least version 2.22 to resolve."
-!endif
-
-!insertmacro WordFind
-!insertmacro WordReplace
+!insertmacro GetOptions
+!insertmacro GetParameters
 !insertmacro GetSize
+!insertmacro WordFind
 
 ; NSIS provided macros that we have overridden
 !include overrides.nsh
@@ -98,17 +96,26 @@ Var AddDesktopSC
 !include locales.nsi
 !include version.nsh
 
-VIAddVersionKey "FileDescription" "${BrandShortName} Installer"
+VIAddVersionKey "FileDescription"  "${BrandShortName} Installer"
+VIAddVersionKey "OriginalFilename" "setup.exe"
 
 ; Must be inserted before other macros that use logging
 !insertmacro _LoggingCommon
 
 !insertmacro AddHandlerValues
+!insertmacro ChangeMUIHeaderImage
+!insertmacro CheckForFilesInUse
+!insertmacro CleanUpdatesDir
 !insertmacro CloseApp
+!insertmacro CopyFilesFromDir
 !insertmacro GetPathFromString
+!insertmacro GetParent
+!insertmacro IsHandlerForInstallDir
 !insertmacro ManualCloseAppPrompt
 !insertmacro RegCleanMain
 !insertmacro RegCleanUninstall
+!insertmacro SetBrandNameVars
+!insertmacro UnloadUAC
 !insertmacro WriteRegStr2
 !insertmacro WriteRegDWORD2
 
@@ -120,6 +127,7 @@ VIAddVersionKey "FileDescription" "${BrandShortName} Installer"
 !insertmacro InstallOnInitCommon
 !insertmacro InstallStartCleanupCommon
 !insertmacro LeaveDirectoryCommon
+!insertmacro OnEndCommon
 !insertmacro PreDirectoryCommon
 
 Name "${BrandFullName}"
@@ -155,9 +163,11 @@ ReserveFile summary.ini
  * Installation Pages
  */
 ; Welcome Page
+!define MUI_PAGE_CUSTOMFUNCTION_PRE preWelcome
 !insertmacro MUI_PAGE_WELCOME
 
 ; License Page
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW showLicense
 !define MUI_LICENSEPAGE_CHECKBOX
 !insertmacro MUI_PAGE_LICENSE license.rtf
 
@@ -178,6 +188,7 @@ Page custom preShortcuts leaveShortcuts
 
 ; Start Menu Folder Page Configuration
 !define MUI_PAGE_CUSTOMFUNCTION_PRE preStartMenu
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE leaveStartMenu
 !define MUI_STARTMENUPAGE_NODISABLE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Mozilla\${BrandFullNameInternal}\${AppVersion} (${AB_CD})\Main"
@@ -191,13 +202,15 @@ Page custom preSummary leaveSummary
 !insertmacro MUI_PAGE_INSTFILES
 
 ; Finish Page
-!define MUI_FINISHPAGE_NOREBOOTSUPPORT
 !define MUI_FINISHPAGE_TITLE_3LINES
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION LaunchApp
 !define MUI_FINISHPAGE_RUN_TEXT $(LAUNCH_TEXT)
 !define MUI_PAGE_CUSTOMFUNCTION_PRE preFinish
 !insertmacro MUI_PAGE_FINISH
+
+; Use the default dialog for IDD_VERIFY for a simple Banner
+ChangeUI IDD_VERIFY "${NSISDIR}\Contrib\UIs\default.exe"
 
 ################################################################################
 # Install Sections
@@ -208,78 +221,19 @@ Section "-InstallStartCleanup"
   DetailPrint $(STATUS_CLEANUP)
   SetDetailsPrint none
 
-  SetOutPath $INSTDIR
+  SetOutPath "$INSTDIR"
   ${StartInstallLog} "${BrandFullName}" "${AB_CD}" "${AppVersion}" "${GREVersion}"
 
-  ; Try to delete the app's main executable and if we can't delete it try to
-  ; close the app. This allows running an instance that is located in another
-  ; directory and prevents the launching of the app during the installation.
-  ; A copy of the executable is placed in a temporary directory so it can be
-  ; copied back in the case where a specific file is checked / found to be in
-  ; use that would prevent a successful install.
-
-  ; Create a temporary backup directory.
-  GetTempFileName $TmpVal "$TEMP"
-  ${DeleteFile} $TmpVal
-  SetOutPath $TmpVal
-
-  ${If} ${FileExists} "$INSTDIR\${FileMainEXE}"
-    ClearErrors
-    CopyFiles /SILENT "$INSTDIR\${FileMainEXE}" "$TmpVal\${FileMainEXE}"
-    Delete "$INSTDIR\${FileMainEXE}"
-    ${If} ${Errors}
-      ClearErrors
-      ${CloseApp} "true" $(WARN_APP_RUNNING_INSTALL)
-      ; Try to delete it again to prevent launching the app while we are
-      ; installing.
-      ClearErrors
-      CopyFiles /SILENT "$INSTDIR\${FileMainEXE}" "$TmpVal\${FileMainEXE}"
-      Delete "$INSTDIR\${FileMainEXE}"
-      ${If} ${Errors}
-        ClearErrors
-        ; Try closing the app a second time
-        ${CloseApp} "true" $(WARN_APP_RUNNING_INSTALL)
-        StrCpy $R1 "${FileMainEXE}"
-        Call CheckInUse
-      ${EndIf}
-    ${EndIf}
-  ${EndIf}
-
-  StrCpy $R1 "freebl3.dll"
-  Call CheckInUse
-
-  StrCpy $R1 "nssckbi.dll"
-  Call CheckInUse
-
-  StrCpy $R1 "nspr4.dll"
-  Call CheckInUse
-
-  StrCpy $R1 "xpicleanup.exe"
-  Call CheckInUse
-
-  SetOutPath $INSTDIR
-  RmDir /r "$TmpVal"
+  ; Delete the app exe to prevent launching the app while we are installing.
   ClearErrors
-
-  Call CleanupOldLogs
-
-  ${If} ${FileExists} "$INSTDIR\uninstall\uninstall.log"
-    ; Diff cleanup.log with uninstall.bak
-    ${LogHeader} "Updating Uninstall Log With XPInstall Wizard Logs"
-    StrCpy $R0 "$INSTDIR\uninstall\uninstall.log"
-    StrCpy $R1 "$INSTDIR\uninstall\cleanup.log"
-    GetTempFileName $R2
-    FileOpen $R3 $R2 w
-    ${TextCompareNoDetails} "$R1" "$R0" "SlowDiff" "GetDiff"
-    FileClose $R3
-
-    ${Unless} ${Errors}
-      ${FileJoin} "$INSTDIR\uninstall\uninstall.log" "$R2" "$INSTDIR\uninstall\uninstall.log"
-    ${EndUnless}
-    ${DeleteFile} "$INSTDIR\uninstall\cleanup.log"
-    ${DeleteFile} "$R2"
-    ${DeleteFile} "$INSTDIR\uninstall\uninstall.bak"
-    Rename "$INSTDIR\uninstall\uninstall.log" "$INSTDIR\uninstall\uninstall.bak"
+  ${DeleteFile} "$INSTDIR\${FileMainEXE}"
+  ${If} ${Errors}
+    ; If the user closed the application it can take several seconds for it to
+    ; shut down completely. If the application is being used by another user we
+    ; can rename the file and then delete is when the system is restarted.
+    Sleep 5000
+    ${DeleteFile} "$INSTDIR\${FileMainEXE}"
+    ClearErrors
   ${EndIf}
 
   ${If} $InstallType == ${INSTALLTYPE_CUSTOM}
@@ -293,6 +247,9 @@ Section "-InstallStartCleanup"
     ${EndIf}
   ${EndIf}
 
+  ; Remove the updates directory for Vista and above
+  ${CleanUpdatesDir} "Thunderbird"
+
   ${InstallStartCleanupCommon}
 SectionEnd
 
@@ -304,9 +261,9 @@ Section "-Application" APP_IDX
   SetDetailsPrint none
 
   ${LogHeader} "Installing Main Files"
-  StrCpy $R0 "$EXEDIR\nonlocalized"
-  StrCpy $R1 "$INSTDIR"
-  Call DoCopyFiles
+  ${CopyFilesFromDir} "$EXEDIR\nonlocalized" "$INSTDIR" \
+                      "$(ERROR_CREATE_DIRECTORY_PREFIX)" \
+                      "$(ERROR_CREATE_DIRECTORY_SUFFIX)"
 
   ; Register DLLs
   ; XXXrstrong - AccessibleMarshal.dll can be used by multiple applications but
@@ -341,9 +298,9 @@ Section "-Application" APP_IDX
   SetDetailsPrint none
 
   ${LogHeader} "Installing Localized Files"
-  StrCpy $R0 "$EXEDIR\localized"
-  StrCpy $R1 "$INSTDIR"
-  Call DoCopyFiles
+  ${CopyFilesFromDir} "$EXEDIR\localized" "$INSTDIR" \
+                      "$(ERROR_CREATE_DIRECTORY_PREFIX)" \
+                      "$(ERROR_CREATE_DIRECTORY_SUFFIX)"
 
   ; Default for creating Start Menu folder and shortcuts
   ; (1 = create, 0 = don't create)
@@ -361,28 +318,26 @@ Section "-Application" APP_IDX
     StrCpy $AddDesktopSC "1"
   ${EndIf}
 
-  ; Remove registry entries for non-existent apps and for apps that point to our
-  ; install location in the Software\Mozilla key and uninstall registry entries
-  ; that point to our install location for both HKCU and HKLM.
+  ${LogHeader} "Adding Registry Entries"
   SetShellVarContext current  ; Set SHCTX to HKCU
   ${RegCleanMain} "Software\Mozilla"
   ${RegCleanUninstall}
+  ${UpdateProtocolHandlers}
 
-  SetShellVarContext all  ; Set SHCTX to HKLM
-  ${RegCleanMain} "Software\Mozilla"
-  ${RegCleanUninstall}
-
-  ${LogHeader} "Adding Registry Entries"
   ClearErrors
-  WriteRegStr HKLM "Software\Mozilla\InstallerTest" "InstallerTest" "Test"
+  WriteRegStr HKLM "Software\Mozilla" "${BrandShortName}InstallerTest" "Write Test"
   ${If} ${Errors}
-    SetShellVarContext current  ; Set SHCTX to HKCU
     StrCpy $TmpVal "HKCU" ; used primarily for logging
   ${Else}
     SetShellVarContext all  ; Set SHCTX to HKLM
-    DeleteRegKey HKLM "Software\Mozilla\InstallerTest"
+    DeleteRegValue HKLM "Software\Mozilla" "${BrandShortName}InstallerTest"
     StrCpy $TmpVal "HKLM" ; used primarily for logging
+    ${RegCleanMain} "Software\Mozilla"
+    ${RegCleanUninstall}
+    ${UpdateProtocolHandlers}
   ${EndIf}
+
+  ${RemoveDeprecatedKeys}
 
   ; The previous installer adds several regsitry values to both HKLM and HKCU.
   ; We now try to add to HKLM and if that fails to HKCU
@@ -399,7 +354,14 @@ Section "-Application" APP_IDX
   StrCpy $0 "Software\Mozilla\${BrandFullNameInternal}\${AppVersion} (${AB_CD})\Uninstall"
   ${WriteRegDWORD2} $TmpVal "$0" "Create Start Menu Shortcut" $AddStartMenuSC 0
 
-  ${FixClassKeys}
+  ; On install always add the ThunderbirdEML, Thunderbird.Url.mailto, and
+  ; Thunderbird.Url.news keys.
+  ${AddHandlerValues} "$0\ThunderbirdEML"  "$2" "$8,0" \
+                      "${AppRegNameMail} Document" "" ""
+  ${AddHandlerValues} "$0\Thunderbird.Url.mailto"  "$3" "$8,0" \
+                      "${AppRegNameMail} URL" "true" ""
+  ${AddHandlerValues} "$0\Thunderbird.Url.news" "$2" "$8,0" \
+                      "${AppRegNameNews} URL" "true" ""
 
   ; The following keys should only be set if we can write to HKLM
   ${If} $TmpVal == "HKLM"
@@ -411,9 +373,9 @@ Section "-Application" APP_IDX
 
     ; If we are writing to HKLM and create the quick launch and the desktop
     ; shortcuts set IconsVisible to 1 otherwise to 0.
+    StrCpy $0 "Software\Clients\Mail\${ClientsRegName}\InstallInfo"
     ${If} $AddQuickLaunchSC == 1
     ${OrIf} $AddDesktopSC == 1
-      StrCpy $0 "Software\Clients\Mail\${BrandFullNameInternal}\InstallInfo"
       WriteRegDWORD HKLM "$0" "IconsVisible" 1
     ${Else}
       WriteRegDWORD HKLM "$0" "IconsVisible" 0
@@ -468,9 +430,10 @@ Section /o "Developer Tools" DOMI_IDX
     ${RemoveDir} "$INSTDIR\extensions\inspector@mozilla.org"
     ClearErrors
     ${LogHeader} "Installing Developer Tools"
-    StrCpy $R0 "$EXEDIR\optional\extensions\inspector@mozilla.org"
-    StrCpy $R1 "$INSTDIR\extensions\inspector@mozilla.org"
-    Call DoCopyFiles
+    ${CopyFilesFromDir} "$EXEDIR\optional\extensions\inspector@mozilla.org" \
+                        "$INSTDIR\extensions\inspector@mozilla.org" \
+                        "$(ERROR_CREATE_DIRECTORY_PREFIX)" \
+                        "$(ERROR_CREATE_DIRECTORY_SUFFIX)"
   ${EndIf}
 SectionEnd
 
@@ -479,204 +442,110 @@ Section "-InstallEndCleanup"
   SetDetailsPrint both
   DetailPrint "$(STATUS_CLEANUP)"
   SetDetailsPrint none
-  ${LogHeader} "Updating Uninstall Log With Previous Uninstall Log"
 
-  ${InstallEndCleanupCommon}
+  ${LogHeader} "Updating Uninstall Log With Previous Uninstall Log"
 
   ; Refresh desktop icons
   System::Call "shell32::SHChangeNotify(i, i, i, i) v (0x08000000, 0, 0, 0)"
+
+  ${InstallEndCleanupCommon}
+
+  ; If we have to reboot give SHChangeNotify time to finish the refreshing
+  ; the icons so the OS doesn't display the icons from helper.exe
+  ${If} ${RebootFlag}
+    Sleep 10000
+    ${LogHeader} "Reboot Required To Finish Installation"
+    ; ${FileMainEXE}.moz-upgrade should never exist but just in case...
+    ${Unless} ${FileExists} "$INSTDIR\${FileMainEXE}.moz-upgrade"
+      Rename "$INSTDIR\${FileMainEXE}" "$INSTDIR\${FileMainEXE}.moz-upgrade"
+    ${EndUnless}
+
+    ${If} ${FileExists} "$INSTDIR\${FileMainEXE}"
+      ClearErrors
+      Rename "$INSTDIR\${FileMainEXE}" "$INSTDIR\${FileMainEXE}.moz-delete"
+      ${Unless} ${Errors}
+        Delete /REBOOTOK "$INSTDIR\${FileMainEXE}.moz-delete"
+      ${EndUnless}
+    ${EndUnless}
+
+    ${Unless} ${FileExists} "$INSTDIR\${FileMainEXE}"
+      CopyFiles /SILENT "$INSTDIR\uninstall\helper.exe" "$INSTDIR"
+      FileOpen $0 "$INSTDIR\${FileMainEXE}" w
+      FileWrite $0 "Will be deleted on restart"
+      Rename /REBOOTOK "$INSTDIR\${FileMainEXE}.moz-upgrade" "$INSTDIR\${FileMainEXE}"
+      FileClose $0
+      Delete "$INSTDIR\${FileMainEXE}"
+      Rename "$INSTDIR\helper.exe" "$INSTDIR\${FileMainEXE}"
+    ${EndUnless}
+  ${EndIf}
 SectionEnd
 
 ################################################################################
 # Helper Functions
 
-; Copies a file to a temporary backup directory and then checks if it is in use
-; by attempting to delete the file. If the file is in use an error is displayed
-; and the user is given the options to either retry or cancel. If cancel is
-; selected then the files are restored.
-Function CheckInUse
-  ${If} ${FileExists} "$INSTDIR\$R1"
-    retry:
-    ClearErrors
-    CopyFiles /SILENT "$INSTDIR\$R1" "$TmpVal\$R1"
-    ${Unless} ${Errors}
-      Delete "$INSTDIR\$R1"
-    ${EndUnless}
-    ${If} ${Errors}
-      StrCpy $0 "$INSTDIR\$R1"
-      ${WordReplace} "$(^FileError_NoIgnore)" "\r\n" "$\r$\n" "+*" $0
-      MessageBox MB_RETRYCANCEL|MB_ICONQUESTION "$0" IDRETRY retry
-      Delete "$TmpVal\$R1"
-      CopyFiles /SILENT "$TmpVal\*" "$INSTDIR\"
-      SetOutPath $INSTDIR
-      RmDir /r "$TmpVal"
-      Quit
+Function CheckExistingInstall
+  ; If there is a pending file copy from a previous uninstall don't allow
+  ; installing until after the system has rebooted.
+  IfFileExists "$INSTDIR\${FileMainEXE}.moz-upgrade" +1 +4
+  MessageBox MB_YESNO "$(WARN_RESTART_REQUIRED_UPGRADE)" IDNO +2
+  Reboot
+  Quit
+
+  ; If there is a pending file deletion from a previous uninstall don't allow
+  ; installing until after the system has rebooted.
+  IfFileExists "$INSTDIR\${FileMainEXE}.moz-delete" +1 +4
+  MessageBox MB_YESNO "$(WARN_RESTART_REQUIRED_UNINSTALL)" IDNO +2
+  Reboot
+  Quit
+
+  ${If} ${FileExists} "$INSTDIR\${FileMainEXE}"
+    Banner::show /NOUNLOAD "$(BANNER_CHECK_EXISTING)"
+
+    ${If} "$TmpVal" == "FoundMessageWindow"
+      Sleep 5000
+    ${EndIf}
+
+    ${PushFilesToCheck}
+
+    ; Store the return value in $TmpVal so it is less likely to be accidentally
+    ; overwritten elsewhere.
+    ${CheckForFilesInUse} $TmpVal
+
+    Banner::destroy
+
+    ${If} "$TmpVal" == "true"
+      StrCpy $TmpVal "FoundMessageWindow"
+      ${ManualCloseAppPrompt} "${WindowClass}" "$(WARN_MANUALLY_CLOSE_APP_INSTALL)"
+      StrCpy $TmpVal "true"
     ${EndIf}
   ${EndIf}
-FunctionEnd
-
-Function GetDiff
-  ${TrimNewLines} "$9" "$9"
-  ${If} $9 != ""
-    FileWrite $R3 "$9$\r$\n"
-    ${LogMsg} "Added To Uninstall Log: $9"
-  ${EndIf}
-  Push 0
-FunctionEnd
-
-Function DoCopyFiles
-  StrLen $R2 $R0
-  ${LocateNoDetails} "$R0" "/L=FD" "CopyFile"
-FunctionEnd
-
-Function CopyFile
-  StrCpy $R3 $R8 "" $R2
-  retry:
-  ClearErrors
-  ${If} $R6 ==  ""
-    ${Unless} ${FileExists} "$R1$R3\$R7"
-      ClearErrors
-      CreateDirectory "$R1$R3\$R7"
-      ${If} ${Errors}
-        ${LogMsg}  "** ERROR Creating Directory: $R1$R3\$R7 **"
-        StrCpy $0 "$R1$R3\$R7"
-        StrCpy $0 "$(ERROR_CREATE_DIRECTORY)"
-        MessageBox MB_RETRYCANCEL|MB_ICONQUESTION "$0" IDRETRY retry
-        Quit
-      ${Else}
-        ${LogMsg}  "Created Directory: $R1$R3\$R7"
-      ${EndIf}
-    ${EndUnless}
-  ${Else}
-    ${Unless} ${FileExists} "$R1$R3"
-      ClearErrors
-      CreateDirectory "$R1$R3"
-      ${If} ${Errors}
-        ${LogMsg}  "** ERROR Creating Directory: $R1$R3 **"
-        StrCpy $0 "$R1$R3"
-        StrCpy $0 "$(ERROR_CREATE_DIRECTORY)"
-        MessageBox MB_RETRYCANCEL|MB_ICONQUESTION "$0" IDRETRY retry
-        Quit
-      ${Else}
-        ${LogMsg}  "Created Directory: $R1$R3"
-      ${EndIf}
-    ${EndUnless}
-    ${If} ${FileExists} "$R1$R3\$R7"
-      ClearErrors
-      Delete "$R1$R3\$R7"
-      ${If} ${Errors}
-        ${LogMsg} "** ERROR Deleting File: $R1$R3\$R7 **"
-        StrCpy $0 "$R1$R3\$R7"
-        ${WordReplace} "$(^FileError_NoIgnore)" "\r\n" "$\r$\n" "+*" $0
-        MessageBox MB_RETRYCANCEL|MB_ICONQUESTION "$0" IDRETRY retry
-        Quit
-      ${EndIf}
-    ${EndIf}
-    ClearErrors
-
-    CopyFiles /SILENT $R9 "$R1$R3"
-
-    ${If} ${Errors}
-      ${LogMsg} "** ERROR Installing File: $R1$R3\$R7 **"
-      StrCpy $0 "$R1$R3\$R7"
-      ${WordReplace} "$(^FileError_NoIgnore)" "\r\n" "$\r$\n" "+*" $0
-      MessageBox MB_RETRYCANCEL|MB_ICONQUESTION "$0" IDRETRY retry
-      Quit
-    ${Else}
-      ${LogMsg} "Installed File: $R1$R3\$R7"
-    ${EndIf}
-    ; If the file is installed into the installation directory remove the
-    ; installation directory's path from the file path when writing to the
-    ; uninstall.log so it will be a relative path. This allows the same
-    ; helper.exe to be used with zip builds if we supply an uninstall.log.
-    ${WordReplace} "$R1$R3\$R7" "$INSTDIR" "" "+" $R3
-    ${LogUninstall} "File: $R3"
-  ${EndIf}
-  Push 0
-FunctionEnd
-
-; Clean up the old log files. We only diff the first two found since it is
-; possible for there to be several MB and comparing that many would take a very
-; long time to diff.
-Function CleanupOldLogs
-  FindFirst $0 $TmpVal "$INSTDIR\uninstall\*wizard*"
-  StrCmp $TmpVal "" done
-  StrCpy $TmpVal "$INSTDIR\uninstall\$TmpVal"
-
-  FindNext $0 $1
-  StrCmp $1 "" cleanup
-  StrCpy $1 "$INSTDIR\uninstall\$1"
-  Push $1
-  Call DiffOldLogFiles
-  FindClose $0
-  ${DeleteFile} "$1"
-
-  cleanup:
-    StrCpy $2 "$INSTDIR\uninstall\cleanup.log"
-    ${DeleteFile} "$2"
-    FileOpen $R2 $2 w
-    Push $TmpVal
-    ${LineFind} "$INSTDIR\uninstall\$TmpVal" "/NUL" "1:-1" "CleanOldLogFilesCallback"
-    ${DeleteFile} "$INSTDIR\uninstall\$TmpVal"
-  done:
-    FindClose $0
-    FileClose $R2
-    FileClose $R3
-FunctionEnd
-
-Function DiffOldLogFiles
-  StrCpy $R1 "$1"
-  GetTempFileName $R2
-  FileOpen $R3 $R2 w
-  ${TextCompareNoDetails} "$R1" "$TmpVal" "SlowDiff" "GetDiff"
-  FileClose $R3
-  ${FileJoin} "$TmpVal" "$R2" "$TmpVal"
-  ${DeleteFile} "$R2"
-FunctionEnd
-
-Function CleanOldLogFilesCallback
-  ${TrimNewLines} "$R9" $R9
-  ${WordReplace} "$R9" "$INSTDIR" "" "+" $R3
-  ${WordFind} "$R9" "	" "E+1}" $R0
-  IfErrors updater 0
-
-  ${WordFind} "$R0" "Installing: " "E+1}" $R1
-  ${Unless} ${Errors}
-    FileWrite $R2 "File: $R1$\r$\n"
-    GoTo done
-  ${EndUnless}
-
-  ${WordFind} "$R0" "Replacing: " "E+1}" $R1
-  ${Unless} ${Errors}
-    FileWrite $R2 "File: $R1$\r$\n"
-    GoTo done
-  ${EndUnless}
-
-  ${WordFind} "$R0" "Windows Shortcut: " "E+1}" $R1
-  ${Unless} ${Errors}
-    FileWrite $R2 "File: $R1.lnk$\r$\n"
-    GoTo done
-  ${EndUnless}
-
-  ${WordFind} "$R0" "Create Folder: " "E+1}" $R1
-  ${Unless} ${Errors}
-    FileWrite $R2 "Dir: $R1$\r$\n"
-    GoTo done
-  ${EndUnless}
-
-  updater:
-    ${WordFind} "$R9" "installing: " "E+1}" $R0
-    ${Unless} ${Errors}
-      FileWrite $R2 "File: $R0$\r$\n"
-    ${EndUnless}
-
-  done:
-    Push 0
 FunctionEnd
 
 Function LaunchApp
+  ClearErrors
+  ${GetParameters} $0
+  ${GetOptions} "$0" "/UAC:" $1
+  ${If} ${Errors}
+    ${ManualCloseAppPrompt} "${WindowClass}" "$(WARN_MANUALLY_CLOSE_APP_LAUNCH)"
+    Exec "$INSTDIR\${FileMainEXE}"
+  ${Else}
+    GetFunctionAddress $0 LaunchAppFromElevatedProcess
+    UAC::ExecCodeSegment $0
+  ${EndIf}
+FunctionEnd
+
+Function LaunchAppFromElevatedProcess
   ${ManualCloseAppPrompt} "${WindowClass}" "$(WARN_MANUALLY_CLOSE_APP_LAUNCH)"
-  Exec "$INSTDIR\${FileMainEXE}"
+
+  ; Find the installation directory when launching using GetFunctionAddress
+  ; from an elevated installer since $INSTDIR will not be set in this installer
+  ReadRegStr $0 HKLM "Software\Clients\Mail\${ClientsRegName}\DefaultIcon" ""
+  ${GetPathFromString} "$0" $0
+  ${GetParent} "$0" $1
+  ; Set our current working directory to the application's install directory
+  ; otherwise the 7-Zip temp directory will be in use and won't be deleted.
+  SetOutPath "$1"
+  Exec "$0"
 FunctionEnd
 
 ################################################################################
@@ -694,7 +563,23 @@ FunctionEnd
 BrandingText " "
 
 ################################################################################
-# Page pre and leave functions
+# Page pre, show, and leave functions
+
+Function preWelcome
+  ${If} ${FileExists} "$EXEDIR\localized\distribution\modern-wizard.bmp"
+    Delete "$PLUGINSDIR\modern-wizard.bmp"
+    CopyFiles /SILENT "$EXEDIR\localized\distribution\modern-wizard.bmp" "$PLUGINSDIR\modern-wizard.bmp"
+  ${EndIf}
+FunctionEnd
+
+Function showLicense
+  ${If} ${FileExists} "$EXEDIR\localized\distribution\modern-header.bmp"
+  ${AndIf} $hHeaderBitmap == ""
+    Delete "$PLUGINSDIR\modern-header.bmp"
+    CopyFiles /SILENT "$EXEDIR\localized\distribution\modern-header.bmp" "$PLUGINSDIR\modern-header.bmp"
+    ${ChangeMUIHeaderImage} "$PLUGINSDIR\modern-header.bmp"
+  ${EndIf}
+FunctionEnd
 
 Function preOptions
   !insertmacro MUI_HEADER_TEXT "$(OPTIONS_PAGE_TITLE)" "$(OPTIONS_PAGE_SUBTITLE)"
@@ -712,6 +597,24 @@ Function leaveOptions
   ${MUI_INSTALLOPTIONS_READ} $R0 "options.ini" "Field 3" "State"
   StrCmp $R0 "1" +1 +2
   StrCpy $InstallType ${INSTALLTYPE_CUSTOM}
+
+  ${If} $InstallType != ${INSTALLTYPE_CUSTOM}
+!ifndef NO_INSTDIR_FROM_REG
+    SetShellVarContext all      ; Set SHCTX to HKLM
+    ${GetSingleInstallPath} "Software\Mozilla\${BrandFullNameInternal}" $R9
+
+    StrCmp "$R9" "false" +1 fix_install_dir
+
+    SetShellVarContext current  ; Set SHCTX to HKCU
+    ${GetSingleInstallPath} "Software\Mozilla\${BrandFullNameInternal}" $R9
+
+    fix_install_dir:
+    StrCmp "$R9" "false" +2 +1
+    StrCpy $INSTDIR "$R9"
+!endif
+
+    Call CheckExistingInstall
+  ${EndIf}
 FunctionEnd
 
 Function preComponents
@@ -762,8 +665,48 @@ Function preStartMenu
   ${EndIf}
 FunctionEnd
 
+Function leaveStartMenu
+  ${If} $InstallType == ${INSTALLTYPE_CUSTOM}
+    Call CheckExistingInstall
+  ${EndIf}
+FunctionEnd
+
 Function preSummary
-  !insertmacro createSummaryINI
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Settings" NumFields "3"
+
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 1" Type   "label"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 1" Text   "$(SUMMARY_INSTALLED_TO)"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 1" Left   "0"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 1" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 1" Top    "5"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 1" Bottom "15"
+
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" Type   "text"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" state  ""
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" Left   "0"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" Top    "17"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" Bottom "30"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" flags  "READONLY"
+
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 3" Type   "label"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 3" Text   "$(SUMMARY_CLICK)"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 3" Left   "0"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 3" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 3" Top    "130"
+  WriteINIStr "$PLUGINSDIR\summary.ini" "Field 3" Bottom "150"
+
+  ${If} "$TmpVal" == "true"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field 4" Type   "label"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field 4" Text   "$(SUMMARY_REBOOT_REQUIRED_INSTALL)"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field 4" Left   "0"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field 4" Right  "-1"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field 4" Top    "35"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field 4" Bottom "45"
+
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Settings" NumFields "4"
+  ${EndIf}
+
   !insertmacro MUI_HEADER_TEXT "$(SUMMARY_PAGE_TITLE)" "$(SUMMARY_PAGE_SUBTITLE)"
 
   ; The Summary custom page has a textbox that will automatically receive
@@ -777,16 +720,20 @@ Function preSummary
 FunctionEnd
 
 Function leaveSummary
-  ; If there is a pending deletion from a previous uninstall don't allow
-  ; installing until after the system has rebooted.
-  IfFileExists "$INSTDIR\${FileMainEXE}.moz-delete" +1 +4
-  MessageBox MB_YESNO "$(WARN_RESTART_REQUIRED_UNINSTALL)" IDNO +2
-  Reboot
-  Quit
-
   ${If} $InstallType != ${INSTALLTYPE_CUSTOM}
     ; Set DOMi to be installed
     SectionSetFlags ${DOMI_IDX} 1
+  ${EndIf}
+
+  ; Try to delete the app executable and if we can't delete it try to find the
+  ; app's message window and prompt the user to close the app. This allows
+  ; running an instance that is located in another directory. If for whatever
+  ; reason there is no message window we will just rename the app's files and
+  ; then remove them on restart.
+  ClearErrors
+  ${DeleteFile} "$INSTDIR\${FileMainEXE}"
+  ${If} ${Errors}
+    ${ManualCloseAppPrompt} "${WindowClass}" "$(WARN_MANUALLY_CLOSE_APP_INSTALL)"
   ${EndIf}
 FunctionEnd
 
@@ -801,6 +748,9 @@ FunctionEnd
 # Initialization Functions
 
 Function .onInit
+  StrCpy $LANGUAGE 0
+  ${SetBrandNameVars} "$EXEDIR\localized\distribution\setup.ini"
+
   ${InstallOnInitCommon} "$(WARN_UNSUPPORTED_MSG)"
 
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "options.ini"
@@ -810,8 +760,6 @@ Function .onInit
   !insertmacro createBasicCustomOptionsINI
   !insertmacro createComponentsINI
   !insertmacro createShortcutsINI
-
-  StrCpy $LANGUAGE 0
 
   ; There must always be nonlocalized and localized directories.
   ${GetSize} "$EXEDIR\nonlocalized\" "/S=0K" $R5 $R7 $R8
@@ -827,4 +775,12 @@ Function .onInit
     ; Hide DOMi in the components page if it isn't available.
     SectionSetText ${DOMI_IDX} ""
   ${EndIf}
+
+  ; Initialize $hHeaderBitmap to prevent redundant changing of the bitmap if
+  ; the user clicks the back button
+  StrCpy $hHeaderBitmap ""
+FunctionEnd
+
+Function .onGUIEnd
+  ${OnEndCommon}
 FunctionEnd

@@ -64,6 +64,7 @@ REQUIRES = \
 	appcomps \
 	appshell \
 	intl \
+	unicharutil \
 	windowwatcher \
 	pref \
 	embed_base \
