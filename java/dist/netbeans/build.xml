@@ -391,6 +391,14 @@ MozillaInterfaces.jar is currently ${MozillaInterfaces.jar}
       <echo file="${build.classes.dir}/META-INF/services/org.mozilla.webclient.WebclientFactory">org.mozilla.webclient.impl.WebclientFactoryImpl</echo>
       <echo file="${build.classes.dir}/META-INF/services/org.mozilla.webclient.impl.WrapperFactory">org.mozilla.webclient.impl.wrapper_native.WrapperFactoryImpl</echo>
 
+      <!-- copy the default profile dir to the META-INF -->
+      <unjar src="${file.reference.webclient-2_0_a10.jar}"
+             dest="${build.classes.dir}">
+        <patternset>
+          <include name="META-INF/default-profile-dir-contents.jar" />
+        </patternset>
+      </unjar>
+
       <move failonerror="false" file="${file.reference.webclient-2_0_a10.jar}"
             tofile="${basedir}/../lib/outofdate-webclient_jar" />
 
