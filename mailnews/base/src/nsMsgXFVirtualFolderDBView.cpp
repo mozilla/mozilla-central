@@ -153,35 +153,45 @@ nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey a
 NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged,
                 PRBool aPreChange, PRUint32 *aStatus, nsIDBChangeListener *aInstigator)
 {
-  // If the junk mail plugin just activated on a new message, then
+  // If the junk mail plugin just activated on a message, then
   // we'll allow filters to remove from view.
   // Otherwise, just update the view line.
+  //
+  // Note this will not add newly matched headers to the view. This is
+  // probably a bug that needs fixing.
 
-  if (aPreChange)
+  NS_ENSURE_ARG_POINTER(aStatus);
+  NS_ENSURE_ARG_POINTER(aHdrChanged);
+
+  nsMsgViewIndex index = FindHdr(aHdrChanged);
+  if (index == nsMsgViewIndex_None) // message does not appear in view
     return NS_OK;
 
-  if (aHdrChanged)
+  nsCString originStr;
+  (void) aHdrChanged->GetStringProperty("junkscoreorigin", getter_Copies(originStr));
+  // check for "plugin" with only first character for performance
+  PRBool plugin = (originStr.get()[0] == 'p');
+
+  if (aPreChange)
   {
-    nsCOMPtr<nsIMsgSearchSession> searchSession(do_QueryReferent(m_searchSession));
-    if (searchSession)
-    {
-      nsMsgViewIndex index = FindHdr(aHdrChanged);
-      if (index != nsMsgViewIndex_None)
-      {
-        PRBool match = PR_FALSE;
-        searchSession->MatchHdr(aHdrChanged, m_db, &match);
-        nsCString originStr;
-        PRUint32 flags;
-        aHdrChanged->GetFlags(&flags);
-        (void) aHdrChanged->GetStringProperty("junkscoreorigin", getter_Copies(originStr));
-        // check for "plugin" with only first character for performance
-        if (!match && originStr.get()[0] == 'p' && flags & MSG_FLAG_NEW)
-          RemoveByIndex(index); // remove hdr from view
-        else
-          NoteChange(index, 1, nsMsgViewNotificationCode::changed);
-      }
-    }
+    // first call, done prior to the change
+    *aStatus = plugin;
+    return NS_OK;
   }
+
+  // second call, done after the change
+  PRBool wasPlugin = *aStatus;
+
+  PRBool match = PR_TRUE;
+  nsCOMPtr<nsIMsgSearchSession> searchSession(do_QueryReferent(m_searchSession));
+  if (searchSession)
+    searchSession->MatchHdr(aHdrChanged, m_db, &match);
+
+  if (!match && plugin && !wasPlugin)
+    RemoveByIndex(index); // remove hdr from view
+  else
+    NoteChange(index, 1, nsMsgViewNotificationCode::changed);
+
   return NS_OK;
 }
 
