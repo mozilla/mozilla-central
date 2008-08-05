@@ -187,7 +187,7 @@
             var organizerLabel = document.getAnonymousElementByAttribute(
                 this, "anonid", "organizer");
             var organizerString = organizerText;
-            var commonName = aItem.organizer.commonName;
+            var commonName = (aItem.organizer && aItem.organizer.commonName);
             if (commonName && commonName.length > 0) {
                 organizerString += commonName;
             }

@@ -416,44 +416,31 @@ calProviderBase.prototype = {
 
     // calISchedulingSupport: Implementation corresponding to our iTIP/iMIP support
     isInvitation: function cPB_isInvitation(aItem) {
-        return this.getInvitedAttendee(aItem) != null;
-    },
-
-    // helper function to filter invitations, checks exceptions for invitations:
-    itip_checkInvitation: function cPB_itip_checkInvitation(aItem) {
-        if (this.isInvitation(aItem)) {
-            return true;
-        }
-        var recInfo = aItem.recurrenceInfo;
-        if (recInfo) {
-            var this_ = this;
-            function checkExc(rid) {
-                return this_.isInvitation(recInfo.getExceptionFor(rid, false));
+        var id = this.itip_getIdentity();
+        if (id) {
+            var org = aItem.organizer;
+            if (!org || (org.id.toLowerCase() == id.toLowerCase())) {
+                return false;
             }
-            return recInfo.getExceptionIds({}).some(checkExc);
+            return (aItem.getAttendeeById(id) != null);
         }
         return false;
     },
 
-    itip_getInvitedAttendee: function cPB_itip_getInvitedAttendee(aItem) {
-        // This is the iTIP specific base implementation for storage and memory,
-        // it will mind what account has received the incoming message, e.g.
-        var identity = this.getProperty("imip.identity");
-        if (identity) {
-            var attId = ("mailto:" + identity.QueryInterface(Components.interfaces.nsIMsgIdentity).email);
-            var org = aItem.organizer;
-            if (org && org.id.toLowerCase() == attId.toLowerCase()) {
-                return null;
-            }
-            return aItem.getAttendeeById(attId);
-        }
-        return null;
-    },
     getInvitedAttendee: function cPB_getInvitedAttendee(aItem) {
-        return this.itip_getInvitedAttendee(aItem);
+        var id = this.itip_getIdentity();
+        return (id ? aItem.getAttendeeById(id) : null);
     },
 
     canNotify: function cPB_canNotify(aMethod, aItem) {
-        return false;
+        return false; // use iMIP for all
+    },
+
+    itip_getIdentity: function cPB_itip_getIdentity() {
+        var identity = this.getProperty("imip.identity");
+        if (identity) {
+            var identity = ("mailto:" + identity.QueryInterface(Components.interfaces.nsIMsgIdentity).email);
+        }
+        return identity;
     }
 };

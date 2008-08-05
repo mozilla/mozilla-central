@@ -59,7 +59,9 @@ interface calISchedulingSupport : nsISupports
      * Gets the invited attendee if the passed item corresponds to
      * an invitation. UI code will use that attendee to modify e.g. PARTSTAT.
      * If isInvitation returns true, getInvitedAttendee must return
-     * an attendee.
+     * an attendee. If isInvitation is false, getInvitedAttendee may return
+     * an attendee in case the organizer (and owner of the calendar) has
+     * invited himself.
      *
      * @param aItem     Invitation item.
      * @return          Attendee object, or null.
