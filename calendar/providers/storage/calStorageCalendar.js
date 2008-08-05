@@ -1167,6 +1167,8 @@ calStorageCalendar.prototype = {
             this.mDB.beginTransaction();
             try {
                 this.mDB.createTable("cal_metadata", sqlTables.cal_metadata);
+                addColumn(this.mDB, "cal_attendees", "is_organizer", "BOOLEAN");
+                addColumn(this.mDB, "cal_attendees", "properties", "BLOB");
 
                 // update schema
                 this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 12;");
@@ -1492,8 +1494,8 @@ calStorageCalendar.prototype = {
         this.mInsertAttendee = createStatement (
             this.mDB,
             "INSERT INTO cal_attendees " +
-            "  (item_id, recurrence_id, recurrence_id_tz, attendee_id, common_name, rsvp, role, status, type) " +
-            "VALUES (:item_id, :recurrence_id, :recurrence_id_tz, :attendee_id, :common_name, :rsvp, :role, :status, :type)"
+            "  (item_id, recurrence_id, recurrence_id_tz, attendee_id, common_name, rsvp, role, status, type, is_organizer, properties) " +
+            "VALUES (:item_id, :recurrence_id, :recurrence_id_tz, :attendee_id, :common_name, :rsvp, :role, :status, :type, :is_organizer, :properties)"
             );
         this.mInsertRecurrence = createStatement (
             this.mDB,
@@ -1790,7 +1792,11 @@ calStorageCalendar.prototype = {
 
             while (selectItem.step()) {
                 var attendee = this.getAttendeeFromRow(selectItem.row);
-                item.addAttendee(attendee);
+                if (attendee.isOrganizer) {
+                    item.organizer = attendee;
+                } else {
+                    item.addAttendee(attendee);
+                }
             }
             selectItem.reset();
         }
@@ -1961,6 +1967,14 @@ calStorageCalendar.prototype = {
         a.role = row.role;
         a.participationStatus = row.status;
         a.userType = row.type;
+        a.isOrganizer = row.is_organizer;
+        var props = row.properties;
+        if (props) {
+            for each (var pair in props.split(",")) {
+                [key, value] = pair.split(":");
+                a.setProperty(decodeURIComponent(key), decodeURIComponent(value));
+            }
+        }
 
         return a;
     },
@@ -2135,9 +2149,12 @@ calStorageCalendar.prototype = {
     },
 
     writeAttendees: function (item, olditem) {
-        // XXX how does this work for proxy stuffs?
         var attendees = item.getAttendees({});
-        if (attendees && attendees.length > 0) {
+        if (item.organizer) {
+            attendees = attendees.concat([]);
+            attendees.push(item.organizer);
+        }
+        if (attendees.length > 0) {
             for each (var att in attendees) {
                 var ap = this.mInsertAttendee.params;
                 ap.item_id = item.id;
@@ -2148,6 +2165,22 @@ calStorageCalendar.prototype = {
                 ap.role = att.role;
                 ap.status = att.participationStatus;
                 ap.type = att.userType;
+                ap.is_organizer = att.isOrganizer;
+
+                var props = "";
+                var propEnum = att.propertyEnumerator;
+                while (propEnum && propEnum.hasMoreElements()) {
+                    var prop = propEnum.getNext().QueryInterface(Components.interfaces.nsIProperty);
+                    if (props.length) {
+                        props += ",";
+                    }
+                    props += encodeURIComponent(prop.name);
+                    props += ":";
+                    props += encodeURIComponent(prop.value);
+                }
+                if (props.length) {
+                    ap.properties = props;
+                }
 
                 this.mInsertAttendee.execute();
                 this.mInsertAttendee.reset();
@@ -2482,7 +2515,9 @@ var sqlTables = {
     "   rsvp            INTEGER," +
     "   role            TEXT," +
     "   status          TEXT," +
-    "   type            TEXT" +
+    "   type            TEXT," +
+    "   is_organizer    BOOLEAN," +
+    "   properties      BLOB" +
     "",
 
   cal_recurrence:
