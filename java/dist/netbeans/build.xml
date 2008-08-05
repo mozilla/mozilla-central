@@ -233,7 +233,7 @@ MozillaInterfaces.jar is currently ${MozillaInterfaces.jar}
         <property name="http.proxyPort" value="" />
         <property name="http.nonProxyHosts" value="" />
         <property name="test.browser.url" 
-                  value="${basedir}/../2_0_alpha_9.html" />
+                  value="${basedir}/../2_0_alpha_10.html" />
         
         <java classname="org.mozilla.webclient.test.TestBrowser" fork="true">
             <jvmarg value="-DNSPR_LOG_MODULES=javadom:4,webclient:4,webclientstub:4,pluglets:4"/>
@@ -391,7 +391,7 @@ MozillaInterfaces.jar is currently ${MozillaInterfaces.jar}
       <echo file="${build.classes.dir}/META-INF/services/org.mozilla.webclient.WebclientFactory">org.mozilla.webclient.impl.WebclientFactoryImpl</echo>
       <echo file="${build.classes.dir}/META-INF/services/org.mozilla.webclient.impl.WrapperFactory">org.mozilla.webclient.impl.wrapper_native.WrapperFactoryImpl</echo>
 
-      <move failonerror="false" file="${file.reference.webclient-2_0_a9.jar}"
+      <move failonerror="false" file="${file.reference.webclient-2_0_a10.jar}"
             tofile="${basedir}/../lib/outofdate-webclient_jar" />
 
     </target>
