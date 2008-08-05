@@ -164,6 +164,16 @@ function getCalendarSearchService() {
     return getCalendarSearchService.mObject;
 }
 
+/* Shortcut to the freebusy service */
+function getFreeBusyService() {
+    if (getFreeBusyService.mObject === undefined) {
+        getFreeBusyService.mObject =
+            Components.classes["@mozilla.org/calendar/freebusy-service;1"]
+                      .getService(Components.interfaces.calIFreeBusyService);
+    }
+    return getFreeBusyService.mObject;
+}
+
 /// @return the UTC timezone.
 function UTC() {
     if (UTC.mObject === undefined) {

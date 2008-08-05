@@ -1011,20 +1011,10 @@ calWcapSession.prototype = {
                                 }
                                 var str = node.textContent;
                                 var slash = str.indexOf('/');
-                                var period = new CalPeriod();
-                                period.start = getDatetimeFromIcalString(str.substr(0, slash));
-                                period.end = getDatetimeFromIcalString(str.substr(slash + 1));
-                                period.makeImmutable();
-                                var fbInterval = {
-                                    QueryInterface: function fbInterval_QueryInterface(iid) {
-                                        return doQueryInterface(this, null, iid, [calIFreeBusyInterval]);
-                                        return this;
-                                    },
-                                    calId: calId,
-                                    interval: period,
-                                    freeBusyType: fbType
-                                };
-                                ret.push(fbInterval);
+                                var start =  getDatetimeFromIcalString(str.substr(0, slash));
+                                var end =  getDatetimeFromIcalString(str.substr(slash + 1));
+
+                                ret.push(createFreeBusyInterval(calId, fbType, start, end));
                             }
                         }
                         request.execRespFunc(null, ret);

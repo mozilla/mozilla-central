@@ -20,7 +20,7 @@
  *
  * Contributor(s):
  *   Joey Minta <jminta@gmail.com>
- *   Axel Zechner <axel.zechner@googlemail.com> - category support 
+ *   Axel Zechner <axel.zechner@googlemail.com> - category support
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1193,4 +1193,18 @@ function LOGattendee(aAttendee, asString) {
          "\n\t\t\tIs Organizer: " +  (aAttendee.isOrganizer ? "yes" : "no") +
          "\n\t\t\tRole: " + aAttendee.role +
          "\n\t\t\tStatus: " + aAttendee.participationStatus);
+}
+
+function LOGinterval(aInterval) {
+    const fbtypes = Components.interfaces.calIFreeBusyInterval;
+    if (aInterval.freeBusyType == fbtypes.FREE) {
+        type = "FREE";
+    } else if (aInterval.freeBusyType == fbtypes.BUSY) {
+        type = "BUSY";
+    } else {
+        type = aInterval.freeBusyType + "(UNKNOWN)";
+    }
+
+    LOG("Interval from " + aInterval.interval.start + " to "
+                         + aInterval.interval.end + " is " + type);
 }

@@ -179,14 +179,6 @@ function getWindowWatcher() {
     return getWindowWatcher.m_obj;
 }
 
-function getFreeBusyService() {
-    if (!getFreeBusyService.m_obj) {
-        getFreeBusyService.m_obj = Components.classes["@mozilla.org/calendar/freebusy-service;1"]
-                                             .getService(Components.interfaces.calIFreeBusyService);
-    }
-    return getFreeBusyService.m_obj;
-}
-
 function getCalendarSearchService() {
     if (!getCalendarSearchService.m_obj) {
         getCalendarSearchService.m_obj = Components.classes["@mozilla.org/calendar/calendarsearch-service;1"]

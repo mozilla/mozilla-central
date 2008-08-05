@@ -1145,27 +1145,11 @@ calDavCalendar.prototype = {
         calSendHttpRequest(streamLoader, httpchannel, caldataListener);
     },
 
-    // nsIInterfaceRequestor impl
-    getInterface: function cDC_getInterface(aIID) {
-        // Support Auth Prompt Interfaces
-        if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
-            (Components.interfaces.nsIAuthPrompt2 &&
-             aIID.equals(Components.interfaces.nsIAuthPrompt2))) {
-            return new calAuthPrompt();
-        } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
-                   aIID.equals(Components.interfaces.nsIPrompt)) {
-            return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                             .getService(Components.interfaces.nsIWindowWatcher)
-                             .getNewPrompter(null);
-        }
-
-        try {
-            return this.QueryInterface(aIID);
-        } catch (e) {
-            Components.returnCode = e;
-        }
-        return null;
-    },
+    /**
+     * @see nsIInterfaceRequestor
+     * @see calProviderUtils.js
+     */
+    getInterface: calInterfaceRequestor,
 
     //
     // Helper functions
@@ -1656,7 +1640,6 @@ calDavCalendar.prototype = {
                 if (status.substr(0,3) != "2.0") {
                     LOG("CalDAV: Got status " + status + " in response to freebusy query");
                 }
-                var period;
                 var interval;
                 var caldata = response..C::response..C::["calendar-data"];
                 var lines = caldata.split("\n");
@@ -1672,13 +1655,10 @@ calDavCalendar.prototype = {
                             begin.icalString = parts[0];
                             var end = new CalDateTime();
                             end.icalString = parts[1];
-                            period = new CalPeriod();
-                            period.start = begin;
-                            period.end = end;
-                            period.makeImmutable();
-                            interval =
-                                thisCalendar.createInterval(aCalId, period,
-                                                            fbType);
+                            interval = createFreeBusyInterval(aCalId,
+                                                              fbType,
+                                                              begin,
+                                                              end);
                             periodsToReturn.push(interval);
                         }
                     }
@@ -1687,13 +1667,10 @@ calDavCalendar.prototype = {
                         var replyRangeStart = new CalDateTime();
                         replyRangeStart.icalString = dts;
                         if (aRangeStart.compare(replyRangeStart) == -1) {
-                            period = new CalPeriod();
-                            period.start = aRangeStart;
-                            period.end = replyRangeStart;
-                            period.makeImmutable();
-                            interval =
-                                thisCalendar.createInterval(aCalId, period,
-                                                            calIFreeBusyInterval.UNKNOWN);
+                            interval = createFreeBusyInterval(aCalId,
+                                                              calIFreeBusyInterval.UNKNOWN,
+                                                              aRangeStart,
+                                                              replyRangeStart);
                             periodsToReturn.push(interval);
                         }
                     }
@@ -1702,13 +1679,10 @@ calDavCalendar.prototype = {
                         var replyRangeEnd = new CalDateTime();
                         replyRangeEnd.icalString = dte;
                         if (aRangeEnd.compare(replyRangeEnd) == 1) {
-                            period = new CalPeriod();
-                            period.start = replyRangeEnd;
-                            period.end = aRangeEnd;
-                            period.makeImmutable();
-                            interval =
-                                thisCalendar.createInterval(aCalId, period,
-                                                            calIFreeBusyInterval.UNKNOWN);
+                            interval = createFreeBusyInterval(aCalId,
+                                                              calIFreeBusyInterval.UNKNOWN,
+                                                              replyRangeEnd,
+                                                              aRangeEnd);
                             periodsToReturn.push(interval);
                         }
                     }
@@ -1722,19 +1696,6 @@ calDavCalendar.prototype = {
 
         var streamLoader = createStreamLoader();
         calSendHttpRequest(streamLoader, httpchannel, streamListener);
-    },
-
-
-    createInterval: function caldav_createInterval(aCalId, aPeriod, aFbType) {
-        var interval = {
-            QueryInterface: function fbInterval_QueryInterface(iid) {
-                return doQueryInterface(this, null, iid, [calIFreeBusyInterval]);
-            },
-            calId: aCalId,
-            interval: aPeriod,
-            freeBusyType: aFbType
-        };
-        return interval;
     },
 
     /**
@@ -1819,14 +1780,4 @@ calDavObserver.prototype = {
         this.mCalendar.readOnly = true;
         this.mCalendar.notifyError(aErrNo, aMessage);
     }
-};
-
-var g_fbService = null;
-function getFreeBusyService() {
-    if (!g_fbService) {
-        g_fbService =
-            Components.classes["@mozilla.org/calendar/freebusy-service;1"]
-                      .getService(Components.interfaces.calIFreeBusyService);
-    }
-    return g_fbService;
 };

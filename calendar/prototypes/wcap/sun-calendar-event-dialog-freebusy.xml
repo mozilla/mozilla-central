@@ -20,6 +20,7 @@
    -
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1295,6 +1296,7 @@
       <!-- updateFreeBusy(), implementation of the core functionality of this binding -->
       <method name="updateFreeBusy">
         <body><![CDATA[
+          var fbService = getFreeBusyService();
           for (var i = 1; i <= this.mMaxFreeBusy; i++) {
               // Retrieve the string from the appropriate row
               var freebusy = this.getFreeBusyElement(i);
@@ -1312,34 +1314,16 @@
                       // Update with 'no data available' until response will be received
                       freebusy.onFreeBusy(null);
                       try {
-                          var fbService = Components.classes["@mozilla.org/calendar/freebusy-service;1"]
-                                                    .getService(Components.interfaces.calIFreeBusyService);
-                          var fbListener = {
-                              row: i,
-                              binding: this,
-                              // calIGenericOperationListener:
-                              onResult: function mFBL_onResult(request, entries) {
-                                  if (!request || !request.isPending) {
-                                      // Find request in list of pending requests and remove from queue:
-                                      function neq(op) {
-                                          return (request.id != op.id);
-                                      }
-                                      this.binding.mPendingRequests = this.binding.mPendingRequests.filter(neq);
-                                  }
-                                  if (entries) {
-                                      var freebusy = this.binding.getFreeBusyElement(this.row);
-                                      freebusy.onFreeBusy(entries);
-                                  }
-                              }
-                          };
-                          var request = fbService.getFreeBusyIntervals(
-                              calid, start, end, Components.interfaces.calIFreeBusyInterval.BUSY_ALL,
-                              fbListener);
-                          if (request.isPending) {
+                          var listener = new calFreeBusyListener(freebusy, this);
+                          var request = fbService.getFreeBusyIntervals(calid,
+                                                                       start,
+                                                                       end,
+                                                                       Components.interfaces.calIFreeBusyInterval.BUSY_ALL,
+                                                                       listener);
+                          if (request && request.isPending) {
                               this.mPendingRequests.push(request);
                           }
-                      }
-                      catch (ex) {
+                      } catch (ex) {
                           Components.utils.reportError(ex);
                       }
                   }

@@ -89,6 +89,15 @@ interface calIGoogleRequest : calIOperation {
     attribute calICalendar destinationCal;
 
     /**
+     * If set to false, an authentication failure should not cause any dialogs
+     * to show up that cause reauthentication, but the failure should be
+     * returned directly.
+     *
+     * This attribute defaults to true.
+     */
+    attribute boolean reauthenticate;
+
+    /**
      * Various options to be carried through to the response listener.
      * XXX The corresponding options are not set up automatically just by
      * setting these options. You still need to use addQueryParameter to filter

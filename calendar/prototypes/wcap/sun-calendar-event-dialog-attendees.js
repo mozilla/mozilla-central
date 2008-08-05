@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -877,3 +878,27 @@ function onTimeChange(event) {
         grid.forceRefresh();
     }
 }
+
+/**
+ * This listener is used in sun-calendar-event-dialog-freebusy.xml inside the
+ * binding. It has been taken out of the binding to prevent leaks.
+ */
+function calFreeBusyListener(aFbElement, aBinding) {
+    this.mFbElement = aFbElement;
+    this.mBinding = aBinding;
+}
+
+calFreeBusyListener.prototype = {
+    onResult: function cFBL_onResult(aRequest, aEntries) {
+        if (aRequest && !aRequest.isPending) {
+            // Find request in list of pending requests and remove from queue:
+            function neq(aOp) {
+                return (aRequest.id != aOp.id);
+            }
+            this.mBinding.mPendingRequests = this.mBinding.mPendingRequests.filter(neq);
+        }
+        if (aEntries) {
+            this.mFbElement.onFreeBusy(aEntries);
+        }
+    }
+};

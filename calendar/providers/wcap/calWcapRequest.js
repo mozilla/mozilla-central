@@ -236,25 +236,9 @@ calWcapNetworkRequest.prototype = {
 
     /**
      * @see nsIInterfaceRequestor
+     * @see calProviderUtils.js
      */
-    getInterface: function calWcapNetworkRequest_getInterface(aIID) {
-        // Support Auth Prompt Interfaces
-        if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
-            (Components.interfaces.nsIAuthPrompt2 &&
-             aIID.equals(Components.interfaces.nsIAuthPrompt2))) {
-            return new calAuthPrompt();
-        } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
-                   aIID.equals(Components.interfaces.nsIPrompt)) {
-            return getWindowWatcher().getNewPrompter(null);
-        }
-
-        try {
-            return this.QueryInterface(aIID);
-        } catch (e) {
-            Components.returnCode = e;
-        }
-        return null;
-    },
+    getInterface: calInterfaceRequestor,
 
     /**
      * prepareChannel

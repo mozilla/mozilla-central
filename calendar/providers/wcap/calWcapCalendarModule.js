@@ -208,7 +208,8 @@ var calWcapCalendarModule = { // nsIModule:
     getClassObject: function calWcapCalendarModule_getClassObject(compMgr, cid, iid) {
         if (!this.m_scriptsLoaded) {
             // loading extra scripts from ../js:
-            const scripts = ["calUtils.js", "calAuthUtils.js", "calProviderBase.js",
+            const scripts = ["calUtils.js", "calAuthUtils.js",
+                             "calProviderUtils.js", "calProviderBase.js",
                              "calWcapUtils.js", "calWcapErrors.js",
                              "calWcapRequest.js", "calWcapSession.js",
                              "calWcapCalendar.js", "calWcapCalendarItems.js"];

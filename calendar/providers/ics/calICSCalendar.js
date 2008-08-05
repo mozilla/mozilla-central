@@ -514,25 +514,11 @@ calICSCalendar.prototype = {
         this.mObserver.onEndBatch();
     },
 
-    // nsIInterfaceRequestor impl
-    getInterface: function(iid, instance) {
-        if (iid.equals(Components.interfaces.nsIAuthPrompt)) {
-            return new calAuthPrompt();
-        }
-        else if (iid.equals(Components.interfaces.nsIPrompt)) {
-            // use the window watcher service to get a nsIPrompt impl
-            return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                             .getService(Components.interfaces.nsIWindowWatcher)
-                             .getNewPrompter(null);
-        }
-
-        try {
-            return this.QueryInterface(iid);
-        } catch (e) {
-            Components.returnCode = e;
-        }
-        return null;
-    },
+    /**
+     * @see nsIInterfaceRequestor
+     * @see calProviderUtils.js
+     */
+    getInterface: calInterfaceRequestor,
 
     /**
      * Make a backup of the (remote) calendar

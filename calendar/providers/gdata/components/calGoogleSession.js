@@ -108,6 +108,9 @@ function calGoogleSession(aUsername) {
         this.mPersistPassword = true;
         LOG("Retrieved Password for " + aUsername + " in constructor");
     }
+
+    // Register a freebusy provider for this session
+    getFreeBusyService().addProvider(this);
 }
 
 calGoogleSession.prototype = {
@@ -314,25 +317,26 @@ calGoogleSession.prototype = {
                         calendarName + " (" +
                         this.mGoogleUser + ")");
 
-                    // First of all, disable the calendar so no further login
-                    // dialogs show up.
-                    aCalendar.setProperty("disabled", true);
+                    if (aCalendar) {
+                        // First of all, disable the calendar so no further login
+                        // dialogs show up.
+                        aCalendar.setProperty("disabled", true);
+
+                        // Unset the session in the requesting calendar, if the user
+                        // canceled the login dialog that also asks for the
+                        // username, then the session is not valid. This also
+                        // prevents multiple login windows.
+                        aCalendar.session = null;
+                    }
 
                     // The User even canceled the login prompt asking for
                     // the user. This means we have to fail all requests
                     // that belong to that calendar and are in the queue. This
                     // will also include the request that initiated the login
-                    // request, so that dosent need to be handled extra.
+                    // request, so that dosent need to be handled extra. If no
+                    // calendar was passed, fail all request in that queue
                     this.failQueue(Components.results.NS_ERROR_NOT_AVAILABLE,
                                    aCalendar);
-
-                    // Unset the session in the requesting calendar, if the user
-                    // canceled the login dialog that also asks for the
-                    // username, then the session is not valid. This also
-                    // prevents multiple login windows.
-                    if (aCalendar) {
-                        aCalendar.session = null;
-                    }
                     return;
                 }
             }
@@ -399,7 +403,8 @@ calGoogleSession.prototype = {
             this.mLoggingIn = false;
             LOG("Login failed. Status: " + aOperation.status);
 
-            if (aOperation.status == kGOOGLE_LOGIN_FAILED) {
+            if (aOperation.status == kGOOGLE_LOGIN_FAILED &&
+                aOperation.reauthenticate) {
                 // If the login failed, then retry the login. This is not an
                 // error that should trigger failing the calICalendar's request.
                 this.loginAndContinue(aOperation.calendar);
@@ -485,5 +490,110 @@ calGoogleSession.prototype = {
 
         ASSERT(aRequest);
         aRequest.commit(this);
+    },
+
+    /**
+     * calIFreeBusyProvider Implementation
+     */
+    getFreeBusyIntervals: function cGS_getFreeBusyIntervals(aCalId,
+                                                            aRangeStart,
+                                                            aRangeEnd,
+                                                            aBusyTypes,
+                                                            aListener) {
+        if (aCalId.indexOf("@") < 0 || aCalId.indexOf(".") < 0) {
+            // No valid email, screw it
+            aListener.onResult(null, null);
+            return null;
+        }
+
+        // Requesting only a DATE returns items based on UTC. Therefore, we make
+        // sure both start and end dates include a time and timezone. This may
+        // not quite be what was requested, but I'd say its a shortcoming of
+        // rfc3339.
+        if (aRangeStart) {
+            aRangeStart = aRangeStart.clone();
+            aRangeStart.isDate = false;
+        }
+        if (aRangeEnd) {
+            aRangeEnd = aRangeEnd.clone();
+            aRangeEnd.isDate = false;
+        }
+
+        var rfcRangeStart = toRFC3339(aRangeStart);
+        var rfcRangeEnd = toRFC3339(aRangeEnd);
+
+        var request = new calGoogleRequest(this);
+
+        request.type = request.GET;
+        request.uri = "https://www.google.com/calendar/feeds/" +
+                      encodeURIComponent(aCalId.replace(/^mailto:/i, "")) +
+                      "/private/free-busy";
+        request.operationListener = aListener;
+        request.itemRangeStart = aRangeStart;
+        request.itemRangeEnd = aRangeEnd;
+        request.reauthenticate = false;
+
+        // Request Parameters
+        request.addQueryParameter("ctz", calendarDefaultTimezone().tzid);
+        request.addQueryParameter("max-results", kMANY_EVENTS);
+        request.addQueryParameter("singleevents", "true");
+        request.addQueryParameter("start-min", rfcRangeStart);
+        request.addQueryParameter("start-max", rfcRangeEnd);
+
+        var session = this;
+        request.responseListener = {
+            onResult: function cGS_getFreeBusyIntervals_onResult(aOperation, aData) {
+                session.getFreeBusyIntervals_response(aOperation,
+                                                      aData,
+                                                      aCalId,
+                                                      aRangeStart,
+                                                      aRangeEnd);
+            }
+        };
+
+        this.asyncItemRequest(request);
+        return request;
+    },
+
+    getFreeBusyIntervals_response: function getFreeBusyIntervals_response(aOperation,
+                                                                          aData,
+                                                                          aCalId,
+                                                                          aRangeStart,
+                                                                          aRangeEnd) {
+        // Prepare Namespaces
+        var gCal = new Namespace("gCal",
+                                 "http://schemas.google.com/gCal/2005");
+        var gd = new Namespace("gd", "http://schemas.google.com/g/2005");
+        var atom = new Namespace("", "http://www.w3.org/2005/Atom");
+        default xml namespace = atom;
+
+        if (aOperation.status == kGOOGLE_LOGIN_FAILED ||
+            !Components.isSuccessCode(aOperation.status)) {
+            aOperation.operationListener.onResult(aOperation, null);
+            return;
+        }
+
+        // A feed was passed back, parse it. Due to bug 336551 we need to
+        // filter out the <?xml...?> part.
+        var xml = new XML(aData.substring(38));
+        var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
+        var timezone = getTimezoneService().getTimezone(timezoneString);
+
+        // This line is needed, otherwise the for each () block will never
+        // be entered. It may seem strange, but if you don't believe me, try
+        // it!
+        xml.link.(@rel);
+
+        var intervals = [];
+        const fbtypes = Components.interfaces.calIFreeBusyInterval;
+        for each (var entry in xml.entry) {
+            var start =  fromRFC3339(entry.gd::when.@startTime.toString(), timezone);
+            var end = fromRFC3339(entry.gd::when.@endTime.toString(), timezone);
+            var interval = createFreeBusyInterval(aCalId, fbtypes.BUSY, start, end);
+            LOGinterval(interval);
+            intervals.push(interval);
+        }
+
+        aOperation.operationListener.onResult(aOperation, intervals);
     }
 };

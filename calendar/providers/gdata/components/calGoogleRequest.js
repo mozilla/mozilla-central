@@ -75,6 +75,7 @@ calGoogleRequest.prototype = {
     uri: null,
     responseListener: null,
     operationListener: null,
+    reauthenticate: true,
 
     itemRangeStart: null,
     itemRangeEnd: null,
@@ -217,23 +218,14 @@ calGoogleRequest.prototype = {
             channel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
             channel.redirectionLimit = 3;
 
-            this.mLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
-                                     .createInstance(Components.interfaces.nsIStreamLoader);
+            this.mLoader = createStreamLoader();
 
             LOG("calGoogleRequest: Requesting " + this.method + " " +
                 channel.URI.spec);
 
             channel.notificationCallbacks = this;
 
-            // Required to be trunk and branch compatible.
-            if (Components.interfaces.nsIStreamLoader.number ==
-                "{31d37360-8e5a-11d3-93ad-00104ba0fd40}") {
-                this.mLoader.init(channel, this, this);
-            } else if (Components.interfaces.nsIStreamLoader.number ==
-                      "{8ea7e890-8211-11d9-8bde-f66bad1e3f3a}") {
-                this.mLoader.init(this);
-                channel.asyncOpen(this.mLoader, this);
-            }
+            calSendHttpRequest(this.mLoader, channel, this);
         } catch (e) {
             // Let the response function handle the error that happens here
             this.fail(e.result, e.message);
@@ -323,26 +315,7 @@ calGoogleRequest.prototype = {
     /**
      * @see nsIInterfaceRequestor
      */
-    getInterface: function cGR_getInterface(aIID) {
-        // Support Auth Prompt Interfaces
-        if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
-            (Components.interfaces.nsIAuthPrompt2 &&
-             aIID.equals(Components.interfaces.nsIAuthPrompt2))) {
-            return new calAuthPrompt();
-        } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
-                   aIID.equals(Components.interfaces.nsIPrompt)) {
-            return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                             .getService(Components.interfaces.nsIWindowWatcher)
-                             .getNewPrompter(null);
-        }
-
-        try {
-            return this.QueryInterface(aIID);
-        } catch (e) {
-            Components.returnCode = e;
-        }
-        return null;
-    },
+    getInterface: calInterfaceRequestor,
 
     /**
      * @see nsIChannelEventSink
@@ -362,7 +335,7 @@ calGoogleRequest.prototype = {
                                                     aStatus,
                                                     aResultLength,
                                                     aResult) {
-        if (!aResult || aStatus != Components.results.NS_OK) {
+        if (!aResult || !Components.isSuccessCode(aStatus)) {
             this.fail(aStatus, aResult);
             return;
         }
@@ -370,13 +343,8 @@ calGoogleRequest.prototype = {
         var httpChannel = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
 
         // Convert the stream, falling back to utf-8 in case its not given.
-        var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].
-                        createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-        converter.charset = httpChannel.contentCharset || "UTF-8";
-        var result;
-        try {
-            result = converter.convertFromByteArray(aResult, aResultLength);
-        } catch (e) {
+        var result = convertByteArray(aResult, aResultLength, httpChannel.contentCharset);
+        if (result === null) {
             this.fail(Components.results.NS_ERROR_FAILURE,
                       "Could not convert bytestream to Unicode: " + e);
             return;
@@ -416,6 +384,10 @@ calGoogleRequest.prototype = {
                     // Encountering this error on a write request means the
                     // calendar is readonly
                     this.fail(Components.interfaces.calIErrors.CAL_IS_READONLY, result);
+                } else if (!this.reauthenticate) {
+                    // If no reauth was requested, then don't invalidate the
+                    // whole session and just bail out
+                    this.fail(kGOOGLE_LOGIN_FAILED, result);
                 } else if (this.type == this.LOGIN) {
                     // If this was a login request itself, then fail it.
                     // That will take care of logging in again
