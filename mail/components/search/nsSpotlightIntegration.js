@@ -172,7 +172,7 @@ onStopRequest: function(request, context, status, errorMsg) {
     var stringStream = Cc["@mozilla.org/io/string-input-stream;1"].
       createInstance(Ci.nsIStringInputStream);
     stringStream.setData(this.message, this.message.length);
-    var temp = this.msgHdr.folder.getMsgTextFromStream(this.msgHdr, stringStream, 20000, 20000, false);
+    var temp = this.msgHdr.folder.getMsgTextFromStream(stringStream, this.msgHdr.Charset, 20000, 20000, false, true, {});
     temp = xmlEscapeString(temp);
     SIDump("utf8 text = *****************\n"+ temp + "\n");
     this.outputStream.write(temp, temp.length);

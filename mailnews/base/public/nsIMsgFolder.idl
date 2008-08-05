@@ -68,7 +68,7 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(3f7232c5-2b63-457a-bda9-585f3a9eee7c)]
+[scriptable, uuid(68b5b459-bb89-4ea1-9513-60e763770908)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -586,18 +586,24 @@ interface nsIMsgFolder : nsISupports {
   void addKeywordsToMessages(in nsIArray aMessages, in ACString aKeywords);
   void removeKeywordsFromMessages(in nsIArray aMessages, in ACString aKeywords);
   /**
-   * Extract the message preview text from aStream, storing it as a string property
-   * on aMsgHdr.
+   * Extract the message text from aStream.
    *
-   * @param aMsgHdr
-   * @param aStream
-   * @param aBytesToRead number of bytes to read from the stream
+   * @param aStream stream to read from
+   * @param aCharset character set to use to interpret the body. If an empty string, then the
+   *        charset is retrieved from the headers. msgHdr.charset is recommended in case you have it.
+   * @param aBytesToRead number of bytes to read from the stream. The function will read till the end
+   *        of the line, and there will also be some read ahead due to NS_ReadLine
    * @param aMaxOutputLen desired length of the converted message text. Used to control how many characters
    *        of msg text we want to store.
    * @param aCompressQuotes Replace quotes and citations with " ... " in the preview text
+   * @param aStripHTMLTags strip HTML tags from the output, if present
+   * @param[out] aContentType the content type of the MIME part that was used to generate the text --
+   *             for an HTML part, this will be "text/html" even though aStripHTMLTags might be true
    */
-  AUTF8String getMsgTextFromStream(in nsIMsgDBHdr aMsgHdr, in nsIInputStream aStream,
-                                   in long aBytesToRead, in long aMaxOutputLen, in boolean aCompressQuotes);
+  AUTF8String getMsgTextFromStream(in nsIInputStream aStream, in ACString aCharset,
+                                   in unsigned long aBytesToRead, in unsigned long aMaxOutputLen, 
+                                   in boolean aCompressQuotes, in boolean aStripHTMLTags,
+                                   out ACString aContentType);
 
   // this allows a folder to have a special identity. E.g., you might want to
   // associate an identity with a particular newsgroup, or for IMAP shared folders in

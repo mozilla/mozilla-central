@@ -59,23 +59,40 @@ function loadLocalMailAccount()
 }
 
 // Loads a file to a string
-function loadFileToString(aFile) {
+// If aCharset is specified, treats the file as being of that charset
+function loadFileToString(aFile, aCharset) {
   var data = "";
   var fstream = Cc["@mozilla.org/network/file-input-stream;1"]
                   .createInstance(Ci.nsIFileInputStream);
-  var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
-                  .createInstance(Ci.nsIScriptableInputStream);
-
   fstream.init(aFile, -1, 0, 0);
-  sstream.init(fstream); 
 
-  var str = sstream.read(4096);
-  while (str.length > 0) {
-    data += str;
-    str = sstream.read(4096);
+  if (aCharset)
+  {
+    var cstream = Cc["@mozilla.org/intl/converter-input-stream;1"]
+                    .createInstance(Ci.nsIConverterInputStream);
+    cstream.init(fstream, aCharset, 4096, 0x0000);
+    var str = {};
+    while (cstream.readString(4096, str) != 0)
+      data += str.value;
+
+    cstream.close();
+  }
+  else
+  {
+    var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
+                    .createInstance(Ci.nsIScriptableInputStream);
+
+    sstream.init(fstream);
+
+    var str = sstream.read(4096);
+    while (str.length > 0) {
+      data += str;
+      str = sstream.read(4096);
+    }
+
+    sstream.close();
   }
 
-  sstream.close();
   fstream.close();
 
   return data;

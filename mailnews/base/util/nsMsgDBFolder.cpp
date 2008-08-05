@@ -90,6 +90,7 @@
 #include "nsIMsgFolderNotificationService.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
+#include "nsIMimeHeaders.h"
 
 #define oneHour 3600000000U
 #include "nsMsgUtils.h"
@@ -4586,11 +4587,10 @@ NS_IMETHODIMP nsMsgDBFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUint3
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputStream *stream,
-                                                  PRInt32 bytesToRead,
-                                                  PRInt32 aMaxOutputLen,
-                                                  PRBool aCompressQuotes,
-                                                  nsACString &aMsgText)
+NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const nsACString &aCharset,
+                                                  PRUint32 bytesToRead, PRUint32 aMaxOutputLen,
+                                                  PRBool aCompressQuotes, PRBool aStripHTMLTags,
+                                                  nsACString &aContentType, nsACString &aMsgText)
 {
   /*
    1. non mime message - the message body starts after the blank line following the headers.
@@ -4600,146 +4600,201 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
    4. multipart/mixed - scan past boundary, treat next part as body.
    */
 
-  // If we've got a header charset use it, otherwise look for one in the mime parts.
-  PRUint32 len;
-  msgHdr->GetMessageSize(&len);
   nsLineBuffer<char> *lineBuffer;
-
   nsresult rv = NS_InitLineBuffer(&lineBuffer);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCString strCharset;
-  msgHdr->GetCharset(getter_Copies(strCharset));
-  nsAutoString charset;
-  CopyUTF8toUTF16(strCharset, charset);
-
-  nsCString msgText;
-  nsCAutoString encoding;
-  nsCAutoString boundary;
+  nsCAutoString msgText;
+  nsAutoString contentType;
+  nsAutoString encoding;
   nsCAutoString curLine;
+  nsCAutoString charset(aCharset);
 
   // might want to use a state var instead of bools.
-  PRBool inMsgBody = PR_FALSE, msgBodyIsHtml = PR_FALSE, lookingForBoundary = PR_FALSE;
-  PRBool lookingForCharset = PR_FALSE;
-  PRBool haveBoundary = PR_FALSE;
-  PRBool isBase64 = PR_FALSE;
-  PRBool reachedEndBody = bytesToRead >= len;
+  PRBool msgBodyIsHtml = PR_FALSE;
   PRBool more = PR_TRUE;
-  while (len > 0 && more)
+  PRBool reachedEndBody = PR_FALSE;
+  PRBool isBase64 = PR_FALSE;
+  PRBool inMsgBody = PR_FALSE;
+  PRBool justPassedEndBoundary = PR_FALSE;
+
+  PRUint32 bytesRead = 0;
+
+  // Both are used to extract data from the headers
+  nsCOMPtr<nsIMimeHeaders> mimeHeaders(do_CreateInstance(NS_IMIMEHEADERS_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMIMEHeaderParam> mimeHdrParam(do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Stack of boundaries, used to figure out where we are
+  nsTArray<nsCString> boundaryStack;
+
+  while (!inMsgBody && bytesRead <= bytesToRead)
   {
-    // might be on same line as content-type, so look before
-    // we read the next line.
-    if (lookingForBoundary)
+    nsCAutoString msgHeaders;
+    // We want to NS_ReadLine until we get to a blank line (the end of the headers)
+    while (more)
     {
-      // Mail.app doesn't wrap the boundary id in quotes so we need
-      // to be sure to handle an unquoted boundary.
-      PRInt32 boundaryIndex = curLine.Find("boundary=", PR_TRUE /* ignore case*/);
-      if (boundaryIndex != -1)
+      rv = NS_ReadLine(stream, lineBuffer, curLine, &more);
+      NS_ENSURE_SUCCESS(rv, rv);
+      if (curLine.IsEmpty())
+        break;
+      msgHeaders.Append(curLine);
+      msgHeaders.Append(NS_LITERAL_CSTRING("\r\n"));
+      bytesRead += curLine.Length();
+      if (bytesRead > bytesToRead)
+        break;
+    }
+
+    // There's no point in processing if we can't get the body
+    if (bytesRead > bytesToRead)
+      break;
+
+    // Process the headers, looking for things we need
+    rv = mimeHeaders->Initialize(msgHeaders.get(), msgHeaders.Length());
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCAutoString contentTypeHdr;
+    mimeHeaders->ExtractHeader("Content-Type", PR_FALSE, getter_Copies(contentTypeHdr));
+
+    // Get the content type
+    // If we don't have a content type, then we assign text/plain
+    // this is in violation of the RFC for multipart/digest, though
+    // Also, if we've just passed an end boundary, we're going to ignore this.
+    if (!justPassedEndBoundary && contentTypeHdr.IsEmpty())
+      contentType.Assign(NS_LITERAL_STRING("text/plain"));
+    else
+      mimeHdrParam->GetParameter(contentTypeHdr, nsnull, EmptyCString(), PR_FALSE, nsnull, contentType);
+
+    justPassedEndBoundary = PR_FALSE;
+
+    // If we are multipart, then we need to get the boundary
+#ifdef MOZILLA_INTERNAL_API
+    if (StringBeginsWith(contentType, NS_LITERAL_STRING("multipart/"), nsCaseInsensitiveStringComparator()))
+#else
+    if (StringBeginsWith(contentType, NS_LITERAL_STRING("multipart/"), CaseInsensitiveCompare))
+#endif
+    {
+      nsAutoString boundaryParam;
+      mimeHdrParam->GetParameter(contentTypeHdr, "boundary", EmptyCString(), PR_FALSE, nsnull, boundaryParam);
+      if (!boundaryParam.IsEmpty())
       {
-        boundaryIndex += 9;
-        if (curLine[boundaryIndex] == '\"')
-          boundaryIndex++;
-
-        PRInt32 endBoundaryIndex = curLine.RFindChar('"');
-        if (endBoundaryIndex == -1)
-          endBoundaryIndex = curLine.Length(); // no trailing quote? assume the boundary runs to the end of the line
-
-        // prepend "--" to boundary, and then boundary delimiter, minus the trailing "
-        boundary.Assign("--");
-        boundary.Append(Substring(curLine, boundaryIndex, endBoundaryIndex - boundaryIndex));
-        haveBoundary = PR_TRUE;
-        lookingForBoundary = PR_FALSE;
+        nsCAutoString boundary(NS_LITERAL_CSTRING("--"));
+        boundary.Append(NS_ConvertUTF16toUTF8(boundaryParam));
+        boundaryStack.AppendElement(boundary);
       }
     }
-    rv = NS_ReadLine(stream, lineBuffer, curLine, &more);
-    if (NS_SUCCEEDED(rv))
+
+    // If we are message/rfc822, then there's another header block coming up
+#ifdef MOZILLA_INTERNAL_API
+    else if (contentType.Equals(NS_LITERAL_STRING("message/rfc822"), nsCaseInsensitiveStringComparator()))
+#else
+    else if (contentType.Equals(NS_LITERAL_STRING("message/rfc822"), CaseInsensitiveCompare))
+#endif
+      continue;
+
+    // If we are a text part, then we want it
+#ifdef MOZILLA_INTERNAL_API
+    else if (StringBeginsWith(contentType, NS_LITERAL_STRING("text/"), nsCaseInsensitiveStringComparator()))
+#else
+    else if (StringBeginsWith(contentType, NS_LITERAL_STRING("text/"), CaseInsensitiveCompare))
+#endif
     {
-      len -= MSG_LINEBREAK_LEN;
-      len -= curLine.Length();
-      if (inMsgBody)
+      inMsgBody = PR_TRUE;
+
+#ifdef MOZILLA_INTERNAL_API
+      if (contentType.Equals(NS_LITERAL_STRING("text/html"), nsCaseInsensitiveStringComparator()))
+#else
+      if (contentType.Equals(NS_LITERAL_STRING("text/html"), CaseInsensitiveCompare))
+#endif
+        msgBodyIsHtml = PR_TRUE;
+
+      // Also get the charset if required
+      if (charset.IsEmpty())
       {
-        if (!boundary.IsEmpty() && boundary.Equals(curLine))
+        nsAutoString charsetW;
+        mimeHdrParam->GetParameter(contentTypeHdr, "charset", EmptyCString(), PR_FALSE, nsnull, charsetW);
+        charset.Assign(NS_ConvertUTF16toUTF8(charsetW));
+      }
+
+      // Finally, get the encoding
+      nsCAutoString encodingHdr;
+      mimeHeaders->ExtractHeader("Content-Transfer-Encoding", PR_FALSE, getter_Copies(encodingHdr));
+      if (!encodingHdr.IsEmpty())
+        mimeHdrParam->GetParameter(encodingHdr, nsnull, EmptyCString(), PR_FALSE, nsnull, encoding);
+
+#ifdef MOZILLA_INTERNAL_API
+      if (encoding.Equals(NS_LITERAL_STRING("base64"), nsCaseInsensitiveStringComparator()))
+#else
+      if (encoding.Equals(NS_LITERAL_STRING("base64"), CaseInsensitiveCompare))
+#endif
+        isBase64 = PR_TRUE;
+    }
+
+    // We need to consume the rest, until the next headers
+    PRUint32 count = boundaryStack.Length();
+    nsCAutoString boundary;
+    nsCAutoString endBoundary;
+    if (count)
+    {
+      boundary.Assign(boundaryStack.ElementAt(count - 1));
+      endBoundary.Assign(boundary);
+      endBoundary.Append(NS_LITERAL_CSTRING("--"));
+    }
+    while (more)
+    {
+      rv = NS_ReadLine(stream, lineBuffer, curLine, &more);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      if (count)
+      {
+        // If we've reached a MIME final delimiter, pop and break
+        if (StringBeginsWith(curLine, endBoundary))
         {
-          reachedEndBody = PR_TRUE;
+          if (inMsgBody)
+            reachedEndBody = PR_TRUE;
+          boundaryStack.RemoveElementAt(count - 1);
+          justPassedEndBoundary = PR_TRUE;
           break;
         }
-        msgText.Append(curLine);
-        if (!isBase64) // don't append a LF for base64 encoded text
-          msgText.Append('\n'); // put a LF back, we'll strip this out later
-
-        if (msgText.Length() > bytesToRead)
+        // If we've reached the end of this MIME part, we can break
+        if (StringBeginsWith(curLine, boundary))
+        {
+          if (inMsgBody)
+            reachedEndBody = PR_TRUE;
           break;
-        continue;
+        }
       }
-      if (haveBoundary)
+
+      // Only append the text if we're actually in the message body
+      if (inMsgBody)
       {
-        // this line is the boundary; continue and fall into code that looks
-        // for msg body after headers
-        if (curLine.Equals(boundary))
-          haveBoundary = PR_FALSE;
-        continue;
+        msgText.Append(curLine);
+        if (!isBase64)
+          msgText.Append(NS_LITERAL_CSTRING("\r\n"));
       }
-      if (curLine.IsEmpty())
-      {
-        inMsgBody = PR_TRUE;
-        continue;
-      }
-#ifdef MOZILLA_INTERNAL_API
-      if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Type:"),
-                           nsCaseInsensitiveCStringComparator()) ||
-                           lookingForCharset)
-#else
-      if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Type:"),
-                           CaseInsensitiveCompare) ||
-                           lookingForCharset)
-#endif
-      {
-        // look for a charset in the Content-Type header line, we'll take the first one we find.
-        nsCOMPtr<nsIMIMEHeaderParam> mimehdrpar = do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
-        if (NS_SUCCEEDED(rv) && charset.IsEmpty())
-          mimehdrpar->GetParameter(curLine, "charset", EmptyCString(), false, nsnull, charset);
-        // if the Content-Type header is multiline, look for a charset in other lines
-        if (charset.IsEmpty())
-          lookingForCharset = PR_TRUE;
-        else if (lookingForCharset || (curLine[0] != ' ' && curLine[0] != '\t'))
-          lookingForCharset = PR_FALSE;
-        if (curLine.Find("text/html", PR_TRUE) >= 0)
-          msgBodyIsHtml = PR_TRUE;
-        else if (curLine.Find("multipart/", PR_TRUE) >= 0)
-          lookingForBoundary = PR_TRUE;
-      }
-#ifdef MOZILLA_INTERNAL_API
-      else if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Transfer-Encoding:"),
-               nsCaseInsensitiveCStringComparator()))
-#else
-      else if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Transfer-Encoding:"),
-               CaseInsensitiveCompare))
-#endif
-      {
-        encoding = StringTail(curLine, curLine.Length() - 27);
-#ifdef MOZILLA_INTERNAL_API
-        if (encoding.LowerCaseEqualsLiteral("base64"))
-#else
-        if (encoding.Equals("base64", CaseInsensitiveCompare))
-#endif
-          isBase64 = PR_TRUE;
-      }
+
+      bytesRead += curLine.Length();
+      if (bytesRead > bytesToRead)
+        break;
     }
   }
 
   // if the snippet is encoded, decode it
   if (!encoding.IsEmpty())
-    decodeMsgSnippet(encoding, !reachedEndBody, msgText);
+    decodeMsgSnippet(NS_ConvertUTF16toUTF8(encoding), !reachedEndBody, msgText);
 
   // In order to turn our snippet into unicode, we need to convert it from the charset we
   // detected earlier.
   nsString unicodeMsgBodyStr;
-  ConvertToUnicode(NS_ConvertUTF16toUTF8(charset).get(), msgText, unicodeMsgBodyStr);
+  ConvertToUnicode(charset.get(), msgText, unicodeMsgBodyStr);
 
   // now we've got a msg body. If it's html, convert it to plain text.
-  // Then, set the previewProperty on the msg hdr to the plain text.
-  if (msgBodyIsHtml)
+  if (msgBodyIsHtml && aStripHTMLTags)
     convertMsgSnippetToPlainText(unicodeMsgBodyStr);
+
+  // We want to remove any whitespace from the beginning and end of the string
+  unicodeMsgBodyStr.Trim(" \t\r\n", PR_TRUE, PR_TRUE);
 
   // step 3, optionally remove quoted text from the snippet
   nsString compressedQuotesMsgStr;
@@ -4757,6 +4812,9 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
       nsMsgI18NShrinkUTF8Str(nsCString(aMsgText),
                              aMaxOutputLen, aMsgText);
   }
+
+  // Also assign the content type being returned
+  aContentType.Assign(NS_ConvertUTF16toUTF8(contentType));
   return rv;
 }
 
@@ -4784,13 +4842,6 @@ void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, PRBool aIs
     char *decodedBody = PL_Base64Decode(aMsgSnippet.get(), base64Len, nsnull);
     if (decodedBody)
       aMsgSnippet.Adopt(decodedBody);
-
-    // base64 encoded message haven't had line endings converted to LFs yet.
-    PRInt32 offset = aMsgSnippet.FindChar('\r');
-    while (offset != -1) {
-      aMsgSnippet.Replace(offset, 1, '\n');
-      offset = aMsgSnippet.FindChar('\r', offset);
-    }
   }
 #ifdef MOZILLA_INTERNAL_API
   else if (aEncodingType.LowerCaseEqualsLiteral("quoted-printable"))
@@ -4890,7 +4941,10 @@ nsresult nsMsgDBFolder::convertMsgSnippetToPlainText(nsAString& aMessageText)
 nsresult nsMsgDBFolder::GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputStream *stream)
 {
   nsCString msgBody;
-  nsresult rv = GetMsgTextFromStream(msgHdr, stream, 2048, 255, PR_TRUE, msgBody);
+  nsCAutoString charset;
+  msgHdr->GetCharset(getter_Copies(charset));
+  nsCAutoString contentType;
+  nsresult rv = GetMsgTextFromStream(stream, charset, 4096, 255, PR_TRUE, PR_TRUE, contentType, msgBody);
   // replaces all tabs and line returns with a space, 
   // then trims off leading and trailing white space
   MsgCompressWhitespace(msgBody);
