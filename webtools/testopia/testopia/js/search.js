@@ -669,6 +669,11 @@ PortalTools = [{
                         });
                     }
                 },{
+                    text: 'Refresh',
+                    handler: function(){
+                        panel.load({url: panel.url});
+                    }
+                },{
                     text: 'Link to this report',
                     handler: function(){
                         var path;

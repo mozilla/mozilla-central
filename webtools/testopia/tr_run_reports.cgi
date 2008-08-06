@@ -26,10 +26,12 @@ use Bugzilla;
 use Bugzilla::Constants;
 use Bugzilla::Error;
 use Bugzilla::Util;
+
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Report;
 use Bugzilla::Testopia::TestRun;
+use Bugzilla::Testopia::Search;
 
 my $vars = {};
 my $template = Bugzilla->template;
@@ -116,6 +118,64 @@ if ($type eq 'completion'){
     $template->process("testopia/reports/completion.html.tmpl", $vars)
        || ThrowTemplateError($template->error());
     exit;
+}
+elsif ($type eq 'execution'){
+    print $cgi->header;
+    my $dbh = Bugzilla->dbh;
+    my @run_ids  = $cgi->param('run_ids');
+    my @plan_ids = $cgi->param('plan_ids');
+    my @runs;
+
+    foreach my $g (@plan_ids){
+        foreach my $id (split(',', $g)){
+            my $obj = Bugzilla::Testopia::TestPlan->new($id);
+            push @runs, @{$obj->test_runs} if $obj && $obj->canview;
+        }
+    }
+    foreach my $g (@run_ids){
+        foreach my $id (split(',', $g)){
+            my $obj = Bugzilla::Testopia::TestRun->new($id);
+            push @runs, $obj if $obj && $obj->canview;
+        }
+    }
+    
+    unless (scalar @runs){
+        print "<b>No runs found</b>";
+        exit;
+    }
+    
+    @run_ids = ();
+    foreach my $r (@runs){
+        push @run_ids, $r->id;
+    }
+    my $chfieldfrom = trim(lc($cgi->param('chfieldfrom'))) || '';
+    my $chfieldto = trim(lc($cgi->param('chfieldto'))) || '';
+    trick_taint($chfieldfrom);
+    trick_taint($chfieldto);
+    my $sql_chfrom = Bugzilla::Testopia::Search::SqlifyDate($chfieldfrom);
+    my $sql_chto   = Bugzilla::Testopia::Search::SqlifyDate($chfieldto);
+    
+    my $total = $runs[0]->case_run_count_by_date($sql_chfrom, $sql_chto, undef, \@runs);
+    my $passed = $runs[0]->case_run_count_by_date($sql_chfrom, $sql_chto, PASSED, \@runs);
+    my $failed = $runs[0]->case_run_count_by_date($sql_chfrom, $sql_chto, FAILED, \@runs);
+    my $blocked = $runs[0]->case_run_count_by_date($sql_chfrom, $sql_chto, BLOCKED, \@runs);
+    
+    $vars->{'total'} = $total;
+    $vars->{'passed'} = $passed;
+    $vars->{'failed'} = $failed;
+    $vars->{'blocked'} = $blocked;
+    $vars->{'closed_from'} = $chfieldfrom;
+    $vars->{'closed_to'} = $chfieldto;
+    $vars->{'closed_from_converted'} = $sql_chfrom;
+    $vars->{'closed_to_converted'} = $sql_chto;
+    $vars->{'runs'} = \@run_ids;
+    $vars->{'plans'} = \@plan_ids;
+
+    $template->process("testopia/reports/execution.html.tmpl", $vars)
+       || ThrowTemplateError($template->error());
+
+    exit;
+   
 }
 elsif ($type eq 'bar'){
     

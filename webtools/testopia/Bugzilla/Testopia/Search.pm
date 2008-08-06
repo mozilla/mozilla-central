@@ -1335,6 +1335,16 @@ sub init {
             }
         }
     }
+    if ($cgi->param('closed_from') || $cgi->param('closed_to')){
+        if ($obj eq 'case_run'){
+            my $closedfrom = $cgi->param('closed_from');
+            my $closedto = $cgi->param('closed_to');
+            trick_taint($closedfrom);
+            trick_taint($closedto);
+            push(@specialchart, ['close_date', 'greaterthan', SqlifyDate($closedfrom)||'']);
+            push(@specialchart, ['close_date', 'lessthan', SqlifyDate($closedto)||'']);
+        }
+    }
     if (defined $cgi->param('close_date')){
         my @sta = $cgi->param('close_date');
         unless (scalar @sta > 1){
@@ -1676,9 +1686,9 @@ sub query {
 sub SqlifyDate {
     my ($str) = @_;
     $str = "" if !defined $str;
-    if ($str eq "") {
+    if ($str eq "" || lc($str) eq 'now') {
         my ($sec, $min, $hour, $mday, $month, $year, $wday) = localtime(time());
-        return sprintf("%4d-%02d-%02d 00:00:00", $year+1900, $month+1, $mday);
+        return sprintf("%4d-%02d-%02d %02d:%02d:%02d", $year+1900, $month+1, $mday, $hour, $min, $sec);
     }
 
 

@@ -1214,6 +1214,50 @@ sub case_run_count {
     return $count;
 }
 
+sub case_run_count_by_date {
+    my $self = shift;
+    my ($start, $stop, $status_id, $runs, $plans, $products) = @_;    
+    my $dbh = Bugzilla->dbh;
+    
+    my @runs;
+    if ($products){
+        foreach my $p (@$products){
+            foreach my $plan (@{$p->plans}){
+                push @runs, $_->id foreach (@{$plan->test_runs});
+            }
+        }
+    }
+    if ($plans){
+        push @runs, $_->id foreach (@{$plans->test_runs});
+    }
+    if ($runs){
+        push @runs, $_->id foreach (@$runs);
+    }
+    push @runs, $self->id if $self->id;
+    
+    return 0 unless scalar @runs > 0;
+    
+    my $run_ids = join (',', @runs);
+
+    my $query = 
+           "SELECT COUNT(*) 
+              FROM test_case_runs 
+             WHERE run_id IN (" . $run_ids .") 
+               AND close_date >= ?
+               AND close_date <= ?";
+    $query .= " AND case_run_status_id = ?" if $status_id;
+
+    my $count;
+    if ($status_id){
+        ($count) = $dbh->selectrow_array($query,undef,($start,$stop,$status_id));
+    }
+    else {
+        ($count) = $dbh->selectrow_array($query,undef,($start,$stop));
+    }
+
+    return $count;
+}
+
 sub finished_count {
     my $self = shift;
     my ($status_id) = @_;

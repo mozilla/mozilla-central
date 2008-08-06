@@ -322,6 +322,64 @@ Ext.extend(PlanGrid, Ext.grid.EditorGridPanel, {
                                 });
                             }
                         },{
+                                text: 'New Run Execution Report',
+                                handler: function(){
+                                    var win = new Ext.Window({
+                                       title: 'Select a date range',
+                                       id: 'plan_execution_win',
+                                       layout: 'fit',
+                                       split: true,
+                                       plain: true,
+                                       shadow: false,
+                                       width: 350,
+                                       height: 150,
+                                       items: [
+                                           new Ext.FormPanel({
+                                               labelWidth: '40',
+                                               bodyStyle: 'padding: 5px',
+                                               items: [{
+                                                   xtype: 'datefield',
+                                                   id: 'execution_start_date',
+                                                   fieldLabel: 'Start Date',
+                                                   name: 'chfieldfrom'
+                                               },{
+                                                   xtype: 'datefield',
+                                                   fieldLabel: 'Stop Date',
+                                                   id: 'execution_stop_date',
+                                                   emptyText: 'Now',
+                                                   name: 'chfieldto'
+                                               }]
+                                           })
+                                       ],
+                                        buttons: [{
+                                          text:'Submit',
+                                           handler: function(){
+                                                Ext.getCmp('object_panel').setActiveTab('dashboardpanel');
+                                                
+                                                var newPortlet = new Ext.ux.Portlet({
+                                                    title: 'Completion Report',
+                                                    closable: true,
+                                                    autoScroll: true,
+                                                    tools: PortalTools
+                                                });
+                                                newPortlet.url = 'tr_run_reports.cgi?type=execution&plan_ids=' + getSelectedObjects(grid, 'plan_id') +'&chfieldfrom=' + Ext.getCmp('execution_start_date').getValue() + '&chfieldto=' + Ext.getCmp('execution_stop_date').getValue();
+                                                Ext.getCmp('dashboard_leftcol').add(newPortlet);
+                                                Ext.getCmp('dashboard_leftcol').doLayout();
+                                        		newPortlet.load({
+                                                    url: newPortlet.url
+                                                });
+                                               win.close();
+                                           }
+                                       },{
+                                           text: 'Cancel',
+                                           handler: function(){
+                                               win.close();
+                                           }
+                                       }]
+                                    });
+                                    win.show();
+                                }
+                            },{
                                 text: 'New Bug Report',
                                 handler: function(){
                                     Ext.getCmp('object_panel').setActiveTab('dashboardpanel');
