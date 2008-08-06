@@ -111,6 +111,13 @@ interface calICalendar : nsISupports
   readonly attribute boolean canRefresh;
 
   /**
+   * Setting this attribute to true will prevent the calendar to make calendar properties
+   * persistent, which is useful if you would like to set properties on unregistered
+   * calendar instances.
+   */
+  attribute boolean transientProperties;
+
+  /**
    * Gets a calendar property.
    * The call returns null in case the property is not known;
    * callers should use a sensible default in that case.

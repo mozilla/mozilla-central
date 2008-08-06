@@ -209,6 +209,7 @@ calCachedCalendar.prototype = {
                     default:
                         throw new Error("unsupported cache calendar type: " + calType);
                 }
+                cachedCalendar.transientProperties = true;
                 cachedCalendar.setProperty("relaxedMode", true);
                 cachedCalendar.superCalendar = this;
                 if (!this.mCachedObserver) {

@@ -192,6 +192,7 @@ InvitationsManager.prototype = {
             }
 
             try {
+                calendar = calendar.QueryInterface(Components.interfaces.calICalendar);
                 var endDate = this.mStartDate.clone();
                 endDate.year += 1;
                 var op = calendar.getItems(Components.interfaces.calICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION |

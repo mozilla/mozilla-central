@@ -273,6 +273,14 @@ calProviderBase.prototype = {
         this.observers.notify("onError", [this.superCalendar, aErrNo, aMessage]);
     },
 
+    mTransientPropertiesMode: false,
+    get transientProperties cPB_transientProperties() {
+        return this.mTransientPropertiesMode;
+    },
+    set transientProperties cPB_transientProperties(value) {
+        return (this.mTransientPropertiesMode = value);
+    },
+
     // nsIVariant getProperty(in AUTF8String aName);
     getProperty: function cPB_getProperty(aName) {
         switch (aName) {
@@ -316,7 +324,9 @@ calProviderBase.prototype = {
                     break;
                 }
             }
-            if ((ret === null) && !calProviderBase.mTransientProperties[aName]) {
+            if ((ret === null) &&
+                !calProviderBase.mTransientProperties[aName] &&
+                !this.transientProperties) {
                 if (this.id) {
                     // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
                     ret = getCalendarManager().getCalendarPref_(this, aName);
@@ -365,7 +375,9 @@ calProviderBase.prototype = {
                     delete this.mProperties["imip.account"];
                     break;
             }
-            if (!calProviderBase.mTransientProperties[aName] && this.id) {
+            if (!this.transientProperties &&
+                !calProviderBase.mTransientProperties[aName] &&
+                this.id) {
                 var v = aValue;
                 // xxx todo: work around value types here unless we save into the prefs...
                 switch (aName) {
