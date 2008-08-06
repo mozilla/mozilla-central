@@ -48,6 +48,7 @@ var gFilter;
 // cache the key elements we need
 var gFilterList;
 var gFilterNameElement;
+var gFilterContext;
 var gFilterBundle;
 var gPreFillName;
 var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
@@ -228,11 +229,18 @@ function initializeFilterWidgets()
 {
   gFilterNameElement = document.getElementById("filterName");
   gFilterActionList = document.getElementById("filterActionList");
+  gFilterContext = document.getElementById("contextMenuList");
 }
 
 function initializeDialog(filter)
 {
   gFilterNameElement.value = filter.filterName;
+  var contextIndex = -1;
+  if (filter.filterType & Components.interfaces.nsMsgFilterType.Incoming)
+    contextIndex += 1;
+  if (filter.filterType & Components.interfaces.nsMsgFilterType.Manual)
+    contextIndex += 2;
+  gFilterContext.selectedIndex = contextIndex;
   var actionList = filter.actionList;
   var numActions = actionList.Count();
   
@@ -329,10 +337,22 @@ function saveFilter()
   for (index = 0; index < gFilterActionList.getRowCount(); index++)
     gFilterActionList.getItemAtIndex(index).saveToFilter(gFilter);
 
-  if (getScope(gFilter) == Components.interfaces.nsMsgSearchScope.newsFilter)
-    gFilter.filterType = Components.interfaces.nsMsgFilterType.NewsRule;
+  var contextIndex = gFilterContext.selectedIndex;
+  if (contextIndex < 0 || contextIndex == 1)
+  {
+    gFilter.filterType = Components.interfaces.nsMsgFilterType.None;
+  }
   else
-    gFilter.filterType = Components.interfaces.nsMsgFilterType.InboxRule;
+  {
+    if (getScope(gFilter) == Components.interfaces.nsMsgSearchScope.newsFilter)
+      gFilter.filterType = Components.interfaces.nsMsgFilterType.NewsRule;
+    else
+      gFilter.filterType = Components.interfaces.nsMsgFilterType.InboxRule;
+  }
+  if (contextIndex > 0)
+    gFilter.filterType |= Components.interfaces.nsMsgFilterType.Manual;
+  if (gFilter.filterType == Components.interfaces.nsMsgFilterType.None)
+    gFilter.enabled = false;
 
   saveSearchTerms(gFilter.searchTerms, gFilter);
 

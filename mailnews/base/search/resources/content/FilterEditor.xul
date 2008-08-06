@@ -78,7 +78,22 @@
   <separator/>
 
   <vbox flex="1">
-    <label value="&conditionDesc.label;" control="booleanAndGroup"/>
+    <hbox align="center">
+      <label value="&contextDesc.label;"
+             accesskey="&contextDesc.accesskey;"
+             control="contextMenuList"/>
+      <menulist id="contextMenuList"
+                value="&contextBoth.label;">
+        <menupopup>
+          <menuitem label="&contextIncoming.label;"
+                    value="&contextIncoming.label;"/>
+          <menuitem label="&contextManual.label;"
+                    value="&contextManual.label;"/>
+          <menuitem label="&contextBoth.label;"
+                    value="&contextBoth.label;"/>
+        </menupopup>
+      </menulist>
+    </hbox>
     <hbox flex="1">
       <vbox id="searchTermListBox" flex="1"/>
     </hbox>

@@ -1562,7 +1562,9 @@ function MsgApplyFilters()
   for (var i = 0; i < numFilters; i++)
   {
     var curFilter = curFilterList.getFilterAt(i);
-    if (curFilter.enabled)
+    // only add enabled, UI visibile filters that are in the manual context
+    if (curFilter.enabled && !curFilter.temporary &&
+        (curFilter.filterType & Components.interfaces.nsMsgFilterType.Manual))
     {
       tempFilterList.insertFilterAt(newFilterIndex, curFilter);
       newFilterIndex++;

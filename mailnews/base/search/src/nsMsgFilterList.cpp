@@ -635,7 +635,14 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
       break;
     case nsIMsgFilterList::attribType:
       if (m_curFilter)
-        m_curFilter->SetType((nsMsgFilterTypeType) value.ToInteger(&intToStringResult, 10));
+      {
+        // Older versions of filters didn't have the ability to turn on/off the
+        // manual filter context, so default manual to be on in that case
+        PRInt32 filterType = value.ToInteger(&intToStringResult, 10);
+        if (m_fileVersion < kManualContextVersion)
+          filterType |= nsMsgFilterType::Manual;
+        m_curFilter->SetType((nsMsgFilterTypeType) filterType);
+      }
       break;
     case nsIMsgFilterList::attribScriptFile:
       if (m_curFilter)

@@ -173,7 +173,7 @@ nsMsgFilter::nsMsgFilter():
   NS_NewISupportsArray(getter_AddRefs(m_termList));
   NS_NewISupportsArray(getter_AddRefs(m_actionList));
 
-  m_type = nsMsgFilterType::InboxRule;
+  m_type = nsMsgFilterType::InboxRule | nsMsgFilterType::Manual;
 }
 
 nsMsgFilter::~nsMsgFilter()
@@ -864,31 +864,29 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
 struct RuleActionsTableEntry
 {
   nsMsgRuleActionType  action;
-  nsMsgFilterTypeType    supportedTypes;
-  PRInt32        xp_strIndex;
-  const char      *actionFilingStr;  /* used for filing out filters, don't translate! */
+  const char*          actionFilingStr;  /* used for filing out filters, don't translate! */
 };
 
 static struct RuleActionsTableEntry ruleActionsTable[] =
 {
-  { nsMsgFilterAction::MoveToFolder,    nsMsgFilterType::Inbox, 0,  "Move to folder"},
-  { nsMsgFilterAction::CopyToFolder,    nsMsgFilterType::Inbox, 0,  "Copy to folder"},
-  { nsMsgFilterAction::ChangePriority,  nsMsgFilterType::Inbox, 0,  "Change priority"},
-  { nsMsgFilterAction::Delete,          nsMsgFilterType::All,   0,  "Delete"},
-  { nsMsgFilterAction::MarkRead,        nsMsgFilterType::All,   0,  "Mark read"},
-  { nsMsgFilterAction::KillThread,      nsMsgFilterType::All,   0,  "Ignore thread"},
-  { nsMsgFilterAction::KillSubthread,   nsMsgFilterType::All,   0,  "Ignore subthread"},
-  { nsMsgFilterAction::WatchThread,     nsMsgFilterType::All,   0,  "Watch thread"},
-  { nsMsgFilterAction::MarkFlagged,     nsMsgFilterType::All,   0,  "Mark flagged"},
-  { nsMsgFilterAction::Label,           nsMsgFilterType::All,   0,  "Label"},
-  { nsMsgFilterAction::Reply,           nsMsgFilterType::All,   0,  "Reply"},
-  { nsMsgFilterAction::Forward,         nsMsgFilterType::All,   0,  "Forward"},
-  { nsMsgFilterAction::StopExecution,   nsMsgFilterType::All,   0,  "Stop execution"},
-  { nsMsgFilterAction::DeleteFromPop3Server, nsMsgFilterType::Inbox,   0, "Delete from Pop3 server"},
-  { nsMsgFilterAction::LeaveOnPop3Server, nsMsgFilterType::Inbox,   0, "Leave on Pop3 server"},
-  { nsMsgFilterAction::JunkScore, nsMsgFilterType::All,   0, "JunkScore"},
-  { nsMsgFilterAction::FetchBodyFromPop3Server, nsMsgFilterType::Inbox,   0, "Fetch body from Pop3Server"},
-  { nsMsgFilterAction::AddTag,          nsMsgFilterType::All,   0,  "AddTag"},
+  { nsMsgFilterAction::MoveToFolder,            "Move to folder"},
+  { nsMsgFilterAction::CopyToFolder,            "Copy to folder"},
+  { nsMsgFilterAction::ChangePriority,          "Change priority"},
+  { nsMsgFilterAction::Delete,                  "Delete"},
+  { nsMsgFilterAction::MarkRead,                "Mark read"},
+  { nsMsgFilterAction::KillThread,              "Ignore thread"},
+  { nsMsgFilterAction::KillSubthread,           "Ignore subthread"},
+  { nsMsgFilterAction::WatchThread,             "Watch thread"},
+  { nsMsgFilterAction::MarkFlagged,             "Mark flagged"},
+  { nsMsgFilterAction::Label,                   "Label"},
+  { nsMsgFilterAction::Reply,                   "Reply"},
+  { nsMsgFilterAction::Forward,                 "Forward"},
+  { nsMsgFilterAction::StopExecution,           "Stop execution"},
+  { nsMsgFilterAction::DeleteFromPop3Server,    "Delete from Pop3 server"},
+  { nsMsgFilterAction::LeaveOnPop3Server,       "Leave on Pop3 server"},
+  { nsMsgFilterAction::JunkScore,               "JunkScore"},
+  { nsMsgFilterAction::FetchBodyFromPop3Server, "Fetch body from Pop3Server"},
+  { nsMsgFilterAction::AddTag,                  "AddTag"},
 };
 
 const char *nsMsgFilter::GetActionStr(nsMsgRuleActionType action)

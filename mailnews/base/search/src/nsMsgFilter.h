@@ -85,8 +85,6 @@ public:
   PRBool  GetEnabled() {return m_enabled;}
   void    SetFilterScript(nsCString *filterName) ;
   void    SetFilterList(nsIMsgFilterList* filterList);
-  PRBool  IsRule() {return (m_type & (nsMsgFilterType::InboxRule |
-                               nsMsgFilterType::NewsRule)) != 0;}
 
   PRBool  IsScript() {return (m_type &
                                   (nsMsgFilterType::InboxJavaScript |

@@ -41,16 +41,19 @@
 
 typedef long nsMsgFilterTypeType;
 
-[scriptable,uuid(e9b548ba-304e-11d3-8b33-00a0c900d445)]
+[scriptable,uuid(7d368017-e7b4-446c-98ee-e3e256741947)]
 interface nsMsgFilterType {
     /* these longs are all actually of type nsMsgFilterTypeType */
-  const long InboxRule = 0x1;
-  const long InboxJavaScript = 0x2;
-  const long Inbox = 0x3;
-  const long NewsRule = 0x4;
-  const long NewsJavaScript = 0x8;
-  const long News=0xb;
-  const long All=0xf;
+  const long None             = 0x00;
+  const long InboxRule        = 0x01;
+  const long InboxJavaScript  = 0x02;
+  const long Inbox            = InboxRule | InboxJavaScript;
+  const long NewsRule         = 0x04;
+  const long NewsJavaScript   = 0x08;
+  const long News             = NewsRule | NewsJavaScript;
+  const long Incoming         = Inbox | News;
+  const long Manual           = 0x10;
+  const long All              = Incoming | Manual;
 };
 
 typedef long nsMsgFilterMotionValue;

@@ -47,7 +47,8 @@
 #include "nsILocalFile.h"
 #include "nsIOutputStream.h"
 
-const PRInt16 kFileVersion = 8;
+const PRInt16 kFileVersion = 9;
+const PRInt16 kManualContextVersion = 9;
 const PRInt16 k60Beta1Version = 7;
 const PRInt16 k45Version = 6;
 
