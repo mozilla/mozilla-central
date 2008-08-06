@@ -217,7 +217,7 @@
         <menuseparator/>
 
         <menuitem label="Bugs Filed Today"
-                  oncommand="openTopWin('https://bugzilla.mozilla.org/buglist.cgi?product=Core&amp;product=Mozilla+Application+Suite&amp;chfieldfrom=0d&amp;chfieldto=Now&amp;chfield=%5BBug+creation%5D');"/>
+                  oncommand="openTopWin('https://bugzilla.mozilla.org/buglist.cgi?product=Core&amp;product=SeaMonkey&amp;chfieldfrom=0d&amp;chfieldto=Now&amp;chfield=%5BBug+creation%5D');"/>
         <menuitem label="CVS Checkins Today"
                   oncommand="openTopWin('http://bonsai.mozilla.org/cvsquery.cgi?treeid=default&amp;module=MozillaTinderboxAll&amp;branch=HEAD&amp;branchtype=match&amp;sortby=Date&amp;date=day&amp;cvsroot=%2Fcvsroot');"/>
         <menuitem label="Tree Status"
