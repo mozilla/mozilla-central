@@ -94,6 +94,7 @@ ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS += \
 	$(LIBXUL_DIST)/../modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
 	$(MOZ_COMPONENT_LIBS) \
+	$(MOZ_UNICHARUTIL_LIBS) \
 	$(NULL)
 else
 EXTRA_DSO_LDOPTS += \
