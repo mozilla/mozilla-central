@@ -232,7 +232,7 @@ AbImportHelper.prototype =
   {
     for (var i in aJsonCard)
       if (this.mSupportedAttributes.indexOf(i) >= 0)
-          do_check_eq(aJsonCard[i], aCard.getCardValue(i));
+          do_check_eq(aJsonCard[i], aCard.getProperty(i, "BAD"));
   },
   /**
    * AbImportHelper.getJsonCards
