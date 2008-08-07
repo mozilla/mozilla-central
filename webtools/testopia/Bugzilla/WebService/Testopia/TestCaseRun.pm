@@ -580,6 +580,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
     +---------------------------------------------------+
     | viewall        | 1: returns all records           |
     +---------------------------------------------------+
+      * The default is to only return 25 records at a time
 
     +----------------------------------------------------+
     |                 query_variants                     |

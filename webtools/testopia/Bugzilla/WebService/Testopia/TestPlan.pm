@@ -449,6 +449,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
     +--------------------------------------------------------+
     | viewall        | 1: returns all records 0: first 25    |
     +--------------------------------------------------------+
+      * The default is to only return 25 records at a time
 
     +----------------------------------------------------+
     |                 query_variants                     |

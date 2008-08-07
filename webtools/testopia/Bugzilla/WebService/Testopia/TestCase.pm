@@ -948,6 +948,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
     +---------------------------------------------------+
     | viewall        | 1: returns all records           |
     +---------------------------------------------------+
+      * The default is to only return 25 records at a time
 
     +----------------------------------------------------+
     |                 query_variants                     |
