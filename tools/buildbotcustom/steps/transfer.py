@@ -152,7 +152,7 @@ class MozillaStageUpload(ShellCommand):
         # the build id is extracted in a previous step and set as a build
         # property
         buildid = self.getProperty("buildid")
-        return strftime("%Y-%m-%d-%H", strptime(buildid, "%Y%m%d%H"))
+        return strftime("%Y-%m-%d-%H", strptime(buildid[0:10], "%Y%m%d%H"))
 
     def getBuildStartTime(self):
         return int(self.step_status.build.getTimes()[0])
