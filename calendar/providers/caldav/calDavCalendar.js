@@ -887,7 +887,7 @@ calDavCalendar.prototype = {
         var queryString = xmlHeader + queryXml.toXMLString();
 
         var multigetQueryXml =
-          <calendar-multiget xmlns:D={D}>
+          <calendar-multiget xmlns:D={D} xmlns={C}>
             <D:prop>
               <D:getetag/>
               <calendar-data/>
@@ -926,6 +926,9 @@ calDavCalendar.prototype = {
             for (var i = 0; i < multistatus.*.length(); i++) {
                 var response = new XML(multistatus.*[i]);
                 var etag = response..D::["getetag"];
+                if (etag.length() == 0) {
+                    continue;
+                }
                 var href = response..D::["href"];
                 var resourcePath = thisCalendar.ensurePath(href);
                 aRefreshEvent.itemsReported.push(resourcePath.toString());
@@ -990,7 +993,7 @@ calDavCalendar.prototype = {
                 }
 
                 while (aRefreshEvent.itemsNeedFetching.length > 0) {
-                    var locpath = aRefreshEvent.itemsNeedFetching.pop();
+                    var locpath = aRefreshEvent.itemsNeedFetching.pop().toString();
                     var hrefXml = new XML();
                     hrefXml = <hr xmlns:D={D}/>
                     hrefXml.D::href = locpath;
@@ -1388,15 +1391,15 @@ calDavCalendar.prototype = {
                     str = str.substring(str.indexOf('<', 2));
             }
             var multistatus = new XML(str);
-            var pnsUri = thisCalendar.mUri.clone();
             var pcs = multistatus..D::["principal-collection-set"]..D::href;
-            if (pcs.charAt(pcs.length-1) != '/') {
-                pcs += "/";
+            var nsList = [];
+            for (var ns in pcs) {
+                var nsString = pcs[ns].toString();
+                var nsPath = thisCalendar.ensurePath(nsString);
+                nsList.push(nsPath);
             }
 
-            pnsUri.path = thisCalendar.ensurePath(pcs);
-            thisCalendar.mPrincipalsNS = pnsUri;
-            thisCalendar.checkPrincipalsNameSpace();
+            thisCalendar.checkPrincipalsNameSpace(nsList);
         };
 
         var streamLoader = createStreamLoader();
@@ -1405,10 +1408,11 @@ calDavCalendar.prototype = {
 
     /**
      * Checks the principals namespace for scheduling info
+     *
+     * @param aNameSpaceList    List of available namespaces
      */
-    checkPrincipalsNameSpace: function caldav_cPNS() {
+    checkPrincipalsNameSpace: function caldav_cPNS(aNameSpaceList) {
 
-        var pns = this.mPrincipalsNS.clone();
         var thisCalendar = this;
 
         var homePath = this.mCalHomeSet.path;
@@ -1439,8 +1443,24 @@ calDavCalendar.prototype = {
         if (this.verboseLogging()) {
             LOG("CalDAV: send: " + queryXml);
         }
-        var httpchannel = calPrepHttpChannel(pns,
-                                             queryXml,
+
+        if (!aNameSpaceList.length) {
+            this.mHaveScheduling = false;
+            this.mInBoxUrl = null;
+            this.mOutBoxUrl = null;
+        }
+
+        var pns = aNameSpaceList.pop();
+
+        var nsUrl = this.mCalendarUri.clone();
+        nsUrl.path = pns;
+
+        var nsUri = makeURL(nsUrl.spec);
+        if (nsUrl.spec.charAt(nsUrl.spec.length-1) == "/") {
+            nsUrl.spec = nsUrl.spec.substr(0, nsUrl.spec.length -1);
+        }
+
+        var httpchannel = calPrepHttpChannel(nsUri, queryXml,
                                              "text/xml; charset=utf-8",
                                              this);
 
@@ -1457,6 +1477,7 @@ calDavCalendar.prototype = {
                 thisCalendar.mHaveScheduling = false;
                 thisCalendar.mInBoxUrl = null;
                 thisCalendar.mOutBoxUrl = null;
+                thisCalendar.refresh();
                 return;
             }
             var str = convertByteArray(aResult, aResultLength);
@@ -1520,9 +1541,15 @@ calDavCalendar.prototype = {
             }
 
             if (!thisCalendar.mMailToUrl || !thisCalendar.mInBoxUrl || !thisCalendar.mOutBoxUrl) {
-                thisCalendar.mHaveScheduling = false;
+                if (aNameSpaceList.length) {
+                    thisCalendar.checkPrincipalsNameSpace(aNameSpaceList);
+                } else {
+                    thisCalendar.mHaveScheduling = false;
+                    thisCalendar.refresh();
+                }
+            } else {
+                thisCalendar.refresh();
             }
-            thisCalendar.refresh();
         };
 
         var streamLoader = createStreamLoader();
