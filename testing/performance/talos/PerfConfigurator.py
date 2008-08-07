@@ -8,7 +8,8 @@ Modified by Rob Campbell on 2007-05-30
 Modified by Rob Campbell on 2007-06-26 - added -i buildid option
 Modified by Rob Campbell on 2007-07-06 - added -d testDate option
 Modified by Ben Hearsum on 2007-08-22 - bugfixes, cleanup, support for multiple platforms. Only works on Talos2
-Modified my Alice Nodelman on 2008-04-30 - switch to using application.ini, handle different time stamp formats/options
+Modified by Alice Nodelman on 2008-04-30 - switch to using application.ini, handle different time stamp formats/options
+Modified by Alice Nodelman on 2008-07-10 - added options for test selection, graph server configuration, nochrome
 """
 
 import sys
@@ -17,9 +18,6 @@ import re
 import time
 from datetime import datetime
 from os import path
-
-executablePath = "C:\\cygwin\\tmp\\test\\"
-configFilePath = "C:\\mozilla\\testing\\performance\\talos\\"
 
 # TODO: maybe this should be searched for?
 # For Windows
@@ -37,13 +35,14 @@ defaultTitle = "qm-pxp01"
 help_message = '''
 This is the buildbot performance runner's YAML configurator.bean
 
-USAGE: python PerfConfigurator.py -e executablePath -c configFilePath 
-            -b branchid -t title -o output -i buildid -d
+USAGE: python PerfConfigurator.py --title title --executablePath path --configFilePath cpath --buildid id --branch branch --testDate date --resultsServer server --resultsLink link --activeTests testlist
+
+example testlist: tp:tsspider:tdhtml:twinopen
 '''
 
 class PerfConfigurator:
     exePath = ""
-    configPath = ""
+    configPath = "."
     outputName = ""
     title = ""
     branch = ""
@@ -52,6 +51,10 @@ class PerfConfigurator:
     verbose = False
     testDate = ""
     useId = False
+    resultsServer = ''
+    resultsLink = ''
+    activeTests = ''
+    noChrome = False
     
     def _dumpConfiguration(self):
         """dump class configuration for convenient pickup or perusal"""
@@ -64,8 +67,12 @@ class PerfConfigurator:
         print " - buildid = " + self.buildid
         print " - currentDate = " + self.currentDate
         print " - testDate = " + self.testDate
+        print " - resultsServer = " + self.resultsServer
+        print " - resultsLink = " + self.resultsLink
+        print " - activeTests = " + self.activeTests
     
     def _getCurrentDateString(self):
+        """collect a date string to be used in naming the created config file"""
         currentDateTime = datetime.now()
         return currentDateTime.strftime("%Y%m%d_%H%M")
     
@@ -85,14 +92,18 @@ class PerfConfigurator:
           + path.join(path.dirname(self.exePath), masterIniSubpath))
     
     def _getTimeFromTimeStamp(self):
-        if len(self.testDate) == 12: 
+        if len(self.testDate) == 14: 
+          buildIdTime = time.strptime(self.testDate, "%Y%m%d%H%M%S")
+        elif len(self.testDate) == 12: 
           buildIdTime = time.strptime(self.testDate, "%Y%m%d%H%M")
         else:
           buildIdTime = time.strptime(self.testDate, "%Y%m%d%H")
         return time.strftime("%a, %d %b %Y %H:%M:%S GMT", buildIdTime)
 
     def _getTimeFromBuildId(self):
-        if len(self.buildid) == 12: 
+        if len(self.buildid) == 14: 
+          buildIdTime = time.strptime(self.buildid, "%Y%m%d%H%M%S")
+        elif len(self.buildid) == 12: 
           buildIdTime = time.strptime(self.buildid, "%Y%m%d%H%M")
         else:
           buildIdTime = time.strptime(self.buildid, "%Y%m%d%H")
@@ -100,15 +111,15 @@ class PerfConfigurator:
     
     def writeConfigFile(self):
         configFile = open(path.join(self.configPath, "sample.config"))
-        self.currentDate = self._getCurrentDateString()
-        if not self.buildid:
-            self.buildid = self._getCurrentBuildId()
-        if not self.outputName:
-            self.outputName = self.currentDate + "_config.yml"
         destination = open(self.outputName, "w")
         config = configFile.readlines()
         configFile.close()
         buildidString = "'" + str(self.buildid) + "'"
+        activeList = self.activeTests.split(':')
+        def addSpace(x): return '  ' + x
+        activeList = map(addSpace, activeList)
+        printMe = True
+        testMode = False
         for line in config:
             newline = line
             if 'firefox:' in line:
@@ -125,7 +136,33 @@ class PerfConfigurator:
                 newline = 'buildid: ' + buildidString
             if 'testbranch' in line:
                 newline = 'branch: ' + self.branch
-            destination.write(newline)
+            #only change the results_server if the user has provided one
+            if self.resultsServer and ('results_server' in line):
+                newline = 'results_server: ' + self.resultsServer + '\n'
+            #only change the results_link if the user has provided one
+            if self.resultsLink and ('results_link' in line):
+                newline = 'results_link: ' + self.resultsLink + '\n'
+            if testMode:
+                #only do this if the user has provided a list of tests to turn on/off
+                # otherwise, all tests are considered to be active
+                if self.activeTests:
+                    if line.startswith('  t'): 
+                        #found the start of an individual test description
+                        printMe = False
+                    for test in activeList: 
+                        #determine if this is a test we are going to run
+                        if line.startswith(test + ':') or line.startswith(test + ' :'):
+                            printMe = True
+                if self.noChrome: 
+                    #if noChrome is True remove --tpchrome option 
+                    newline = line.replace('-tpchrome ','')
+            if printMe:
+                destination.write(newline)
+            if line.startswith('tests :'): 
+                #enter into test writing mode
+                testMode = True
+                if self.activeTests:
+                    printMe = False
         destination.close()
         if self.verbose:
             self._dumpConfiguration()
@@ -147,6 +184,19 @@ class PerfConfigurator:
             self.verbose = kwargs['verbose']
         if 'testDate' in kwargs:
             self.testDate = kwargs['testDate']
+        if 'resultsServer' in kwargs:
+            self.resultsServer = kwargs['resultsServer']
+        if 'resultsLink' in kwargs:
+            self.resultsLink = kwargs['resultsLink']
+        if 'activeTests' in kwargs:
+            self.activeTests = kwargs['activeTests']
+        if 'noChrome' in kwargs:
+            self.noChrome = kwargs['noChrome']
+        self.currentDate = self._getCurrentDateString()
+        if not self.buildid:
+            self.buildid = self._getCurrentBuildId()
+        if not self.outputName:
+            self.outputName = self.currentDate + "_config.yml"
 
 
 class Configuration(Exception):
@@ -158,8 +208,8 @@ class Usage(Exception):
         self.msg = msg
 
 def main(argv=None):
-    exePath = executablePath
-    configPath = configFilePath
+    exePath = ""
+    configPath = ""
     output = ""
     title = defaultTitle
     branch = ""
@@ -167,14 +217,18 @@ def main(argv=None):
     verbose = False
     buildid = ""
     useId = False
+    resultsServer = ''
+    resultsLink = ''
+    activeTests = ''
+    noChrome = False
     
     if argv is None:
         argv = sys.argv
     try:
         try:
-            opts, args = getopt.getopt(argv[1:], "hvue:c:t:b:o:i:d:", 
+            opts, args = getopt.getopt(argv[1:], "hvue:c:t:b:o:i:d:s:l:a:n", 
                 ["help", "verbose", "useId", "executablePath=", "configFilePath=", "title=", 
-                "branch=", "output=", "id=", "testDate="])
+                "branch=", "output=", "id=", "testDate=", "resultsServer=", "resultsLink=", "activeTests=", "noChrome"])
         except getopt.error, msg:
             raise Usage(msg)
         
@@ -200,6 +254,14 @@ def main(argv=None):
                 testDate = value
             if option in ("-u", "--useId"):
                 useId = True
+            if option in ("-s", "--resultsServer"):
+                resultsServer = value
+            if option in ("-l", "--resultsLink"):
+                resultsLink = value
+            if option in ("-a", "--activeTests"):
+                activeTests = value
+            if option in ("-n", "--noChrome"):
+                noChrome = True
         
     except Usage, err:
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
@@ -214,7 +276,11 @@ def main(argv=None):
                                     verbose=verbose,
                                     testDate=testDate,
                                     outputName=output,
-                                    useId=useId)
+                                    useId=useId,
+                                    resultsServer=resultsServer,
+                                    resultsLink=resultsLink,
+                                    activeTests=activeTests,
+                                    noChrome=noChrome)
     try:
         configurator.writeConfigFile()
     except Configuration, err:
