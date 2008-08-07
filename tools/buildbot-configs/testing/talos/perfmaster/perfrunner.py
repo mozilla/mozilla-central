@@ -285,7 +285,7 @@ class MozillaUpdateConfig(ShellCommand):
         if 'addOptions' in kwargs:
             self.addOptions = kwargs['addOptions']
         if not 'command' in kwargs:
-            kwargs['command'] = ["python", "PerfConfigurator.py", "-v", "-e", self.exePath, "-t", self.title, "-b", self.branch, "-d", self.buildid] + self.addOptions
+            kwargs['command'] = ["python", "PerfConfigurator.py", "-v", "-e", self.exePath, "-t", self.title, "-b", self.branch, "-d", self.buildid, "-i", self.buildid] + self.addOptions
         ShellCommand.__init__(self, **kwargs)
 
     def describe(self, done=False):
