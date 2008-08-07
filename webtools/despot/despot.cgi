@@ -429,7 +429,7 @@ sub ChangeUser {
     foreach my $field ("email", "voucher") {
         my $value = param($field);
         if ($value ne param("orig_$field")) {
-            if ($field == "email") {
+            if ($field eq "email") {
                 my $query = $::db->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
                 $query->execute($value);
                 my @row;
@@ -438,7 +438,7 @@ sub ChangeUser {
                    Punt("Can't change email to '$value'; already used.");
                 }
             }
-            elsif ($field == "voucher") {
+            elsif ($field eq "voucher") {
                 # EmailToId() will Punt() if the voucher is not valid.
                 $value = EmailToId($value, 1);
             }
