@@ -671,7 +671,7 @@ sub filter_case_categories {
     my $dbh = Bugzilla->dbh;
     
     my $ids = $dbh->selectcol_arrayref(
-            "SELECT DISTINCT tcc.category_id
+            "SELECT DISTINCT tcc.category_id, tcc.name
                FROM test_case_categories AS tcc
                JOIN test_cases ON test_cases.category_id = tcc.category_id
                JOIN test_case_runs AS tcr ON test_cases.case_id = tcr.case_id  
@@ -692,7 +692,7 @@ sub filter_builds {
     my $dbh = Bugzilla->dbh;
     
     my $ids = $dbh->selectcol_arrayref(
-            "SELECT DISTINCT test_case_runs.build_id
+            "SELECT DISTINCT test_case_runs.build_id, test_builds.name
                FROM test_case_runs
                INNER JOIN test_builds on test_builds.build_id = test_case_runs.build_id
               WHERE run_id = ?
@@ -711,7 +711,7 @@ sub filter_components {
     my $dbh = Bugzilla->dbh;
     
     my $ids = $dbh->selectcol_arrayref(
-            "SELECT DISTINCT components.id
+            "SELECT DISTINCT components.id, components.name
                FROM components
                JOIN test_case_components AS tcc ON tcc.component_id = components.id
                JOIN test_cases ON test_cases.case_id = tcc.case_id
