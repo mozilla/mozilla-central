@@ -322,7 +322,7 @@ calDNDBaseObserver.prototype = {
                 try {
                     loader.init(channel, listener, null, 0);
                 } catch(e) {
-                    Component.utils.reportError(e)
+                    Components.utils.reportError(e)
                 }
                 break;
             case "text/x-moz-message":

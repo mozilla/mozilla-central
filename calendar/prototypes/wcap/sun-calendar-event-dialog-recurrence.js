@@ -77,7 +77,7 @@ function onLoad() {
                 }
             }
         } catch (ex) {
-            Component.utils.reportError(ex);
+            Components.utils.reportError(ex);
         }
     }
     if (!rule) {
