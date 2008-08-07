@@ -472,9 +472,12 @@ UserLookup = function(cfg){
                 {name: 'name', mapping: 'name'}
             ]
         }),
+        listeners: {'valid': function(f) {
+            f.value = f.getRawValue();
+        }},
         queryParam: 'search',
         loadingText: 'Looking up users...',
-        displayField: 'name',
+        displayField: 'login',
         valueField: 'login',
         typeAhead: true,
         hideTrigger: true,

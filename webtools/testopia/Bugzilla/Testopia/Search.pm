@@ -1267,9 +1267,9 @@ sub init {
         }
     } 
     my $email = trim($cgi->param("bug_email"));
-    my $type = $cgi->param("bug_emailtype");
-    if ($type eq "exact") {
-        $type = "anyexact";
+    my $email_type = $cgi->param("bug_emailtype");
+    if ($email_type eq "exact") {
+        $email_type = "anyexact";
         foreach my $name (split(',', $email)) {
             $name = trim($name);
             if ($name) {
@@ -1278,17 +1278,17 @@ sub init {
         }
     }
 
-    my @clist;
+    my @bug_clist;
     foreach my $field ("assigned_to", "reporter", "cc", "qa_contact", "infoprovider") {
         if ($cgi->param("bug_email$field")) {
-            push(@clist, $field, $type, $email);
+            push(@bug_clist, $field, $type, $email);
         }
     }
     if ($cgi->param("bug_emaillongdesc")) {
-        push(@clist, "commenter", $type, $email);
+        push(@bug_clist, "commenter", $type, $email);
     }
-    if (@clist) {
-        push(@specialchart, \@clist);
+    if (@bug_clist) {
+        push(@specialchart, \@bug_clist);
     }
            
     # Check the Multi select fields and add them to the chart
