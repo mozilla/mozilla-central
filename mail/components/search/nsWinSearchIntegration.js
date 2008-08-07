@@ -75,7 +75,7 @@ outputFile: null,
 outputStream: null,
 unicodeConverter: null,
 // subject: null,
-message: null,
+message: "",
 msgHdr: null,
 mimeHdrObj: null,
 mimeHdrParamObj: null,
@@ -124,45 +124,24 @@ onStartRequest: function(request, context) {
 onStopRequest: function(request, context, status, errorMsg) {
   try
   {
-    // If, for some reason, the first four characters are "null", then remove them
-    if (this.message.substring(0, 4) == "null")
-      this.message = this.message.substring(4);
+    // XXX Once the JS emitter gets checked in, this code should probably be
+    // switched over to use that
+    // Decode using getMsgTextFromStream
+    var stringStream = Cc["@mozilla.org/io/string-input-stream;1"].
+      createInstance(Ci.nsIStringInputStream);
+    stringStream.setData(this.message, this.message.length);
+    var contentType = {};
+    var text = this.msgHdr.folder.getMsgTextFromStream(stringStream, this.msgHdr.charset,
+                                                       65536, 50000, false, false, contentType);
 
-    // First get all the headers (everything till a double CRLF)
-    var headerLength = this.message.indexOf(CRLF+CRLF)+1;
+    this.outputStream.writeString("From: " + this.msgHdr.author + CRLF);
+    this.outputStream.writeString("To: " + this.msgHdr.recipients + CRLF);
+    this.outputStream.writeString("CC: " + this.msgHdr.ccList + CRLF);
+    this.outputStream.writeString("Subject: " + this.msgHdr.subject + CRLF);
+    this.outputStream.writeString("Date: " + new Date(this.msgHdr.date / 1000).toUTCString() + CRLF);
+    this.outputStream.writeString("Content-Type: " + contentType.value + "; charset=utf-8" + CRLF + CRLF);
 
-    // XXX the below has to be replaced with getMsgTextFromStream
-
-    // Filter out attachments. First locate the content-type header.
-    if (!this.mimeHdrObj)
-      this.mimeHdrObj = Cc["@mozilla.org/messenger/mimeheaders;1"].createInstance(Ci.nsIMimeHeaders);
-    this.mimeHdrObj.initialize(this.message.substring(0, headerLength), headerLength);
-    var contentTypeHeader = this.mimeHdrObj.extractHeader("Content-Type", false);
-
-    if (!this.mimeHdrParamObj)
-      this.mimeHdrParamObj = Cc["@mozilla.org/network/mime-hdrparam;1"].createInstance(Ci.nsIMIMEHeaderParam);
-    // If a multipart header, then strip out attachments
-    var contentType = this.mimeHdrParamObj.getParameter(contentTypeHeader, null, null, true, {});
-    if (contentType.substring(0,10) == "multipart/")
-    {
-      var boundary = this.mimeHdrParamObj.getParameter(contentTypeHeader, "boundary", null, true, {});
-
-      // Search for the boundary after the headers. Remove everything from the second occurrence.
-      boundary = CRLF + "--" + boundary;
-      var getRidFrom = this.message.indexOf(boundary, headerLength);
-      getRidFrom = this.message.indexOf(boundary, getRidFrom + boundary.length);
-
-      // In case we've got more than one boundary so far
-      if (getRidFrom != -1) {
-        this.message = this.message.substring(0, getRidFrom);
-
-        // Add RFC required stuff to the end
-        this.message += boundary + "--" + CRLF;
-      }
-    }
-
-    // We just write whatever we have in |message| out to the file
-    this.outputStream.writeString(this.message);
+    this.outputStream.writeString(text + CRLF + CRLF);
 
     this.msgHdr.setUint32Property(gHdrIndexedProperty, 1);
     var msgDB = this.msgHdr.folder.getMsgDatabase(null);
@@ -193,8 +172,8 @@ onDataAvailable: function(request, context, inputStream, offset, count) {
     if (this.filteredAttachments)
       return 0;
 
-    // Also ignore stuff after the first 20K or so
-    if (this.message && this.message.length > 20000)
+    // Also ignore stuff after the first 50K or so
+    if (this.message && this.message.length > 50000)
       return 0;
     var inStream = Cc["@mozilla.org/scriptableinputstream;1"].
       createInstance(Ci.nsIScriptableInputStream);
