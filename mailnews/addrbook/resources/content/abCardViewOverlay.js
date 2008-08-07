@@ -190,13 +190,21 @@ function GoIM()
   LaunchUrl(top.cvData.cvAimPresence.getAttribute("url"));
 }
 
-function DisplayCardViewPane(card)
+function DisplayCardViewPane(realCard)
 {
-  var generatedName = card.generateName(gPrefs.getIntPref("mail.addr_book.lastnamefirst"));
+  var generatedName = realCard.generateName(gPrefs.getIntPref("mail.addr_book.lastnamefirst"));
 		
   var data = top.cvData;
   var visible;
 
+  var card = { getProperty : function (prop) {
+                 return realCard.getProperty(prop, "");
+               },
+               primaryEmail : realCard.primaryEmail,
+               displayName : realCard.displayName,
+               isMailList : realCard.isMailList,
+               mailListURI : realCard.mailListURI
+  };
   var titleString;
   if (generatedName == "")
     titleString = card.primaryEmail;  // if no generatedName, use email
@@ -210,7 +218,7 @@ function DisplayCardViewPane(card)
     cvSetNode(data.CardTitle, gAddressBookBundle.getFormattedString("viewCardTitle", [titleString]));
 	
   // Contact section
-  cvSetNodeWithLabel(data.cvNickname, zNickname, card.nickName);
+  cvSetNodeWithLabel(data.cvNickname, zNickname, card.getProperty("NickName"));
 
   if (card.isMailList) {
     // email1, display name and screenname always hidden when a mailing list.
@@ -230,8 +238,8 @@ function DisplayCardViewPane(card)
   }
 
   var onlineCheckAllowed = gPrefs.getBoolPref("mail.addr_book.im.onlineCheckAllowed");
-  var goimURL = "aim:goim?screenname=" + card.aimScreenName;
-  var hasScreenName = HandleLink(data.cvScreenname, zScreenName, card.aimScreenName, data.cvScreennameBox, goimURL);
+  var goimURL = "aim:goim?screenname=" + card.getProperty("_AimScreenName");
+  var hasScreenName = HandleLink(data.cvScreenname, zScreenName, card.getProperty("_AimScreenName"), data.cvScreennameBox, goimURL);
 
   if (!onlineCheckAllowed || !hasScreenName || gIOService.offline) {
     data.cvAimPresence.removeAttribute("src");
@@ -239,21 +247,21 @@ function DisplayCardViewPane(card)
     data.cvAimPresence.setAttribute("width","0");
   }
   else {
-    data.cvAimPresence.setAttribute("src","http://big.oscar.aol.com:80/" + card.aimScreenName + "?on_url=http://ncmail.netscape.com/include/nc/images/online.gif&off_url=http://ncmail.netscape.com/include/nc/images/offline.gif");   
+    data.cvAimPresence.setAttribute("src","http://big.oscar.aol.com:80/" + card.getProperty("_AimScreenName") + "?on_url=http://ncmail.netscape.com/include/nc/images/online.gif&off_url=http://ncmail.netscape.com/include/nc/images/offline.gif");   
     data.cvAimPresence.setAttribute("url", goimURL);
     data.cvAimPresence.setAttribute("width","16");
   }
 
   visible = hasScreenName || visible;
-  visible = HandleLink(data.cvEmail2, zSecondaryEmail, card.secondEmail, data.cvEmail2Box, "mailto:" + card.secondEmail) || visible;
+  visible = HandleLink(data.cvEmail2, zSecondaryEmail, card.getProperty("SecondEmail"), data.cvEmail2Box, "mailto:" + card.getProperty("SecondEmail")) || visible;
 
 	// Home section
-	visible = cvSetNode(data.cvHomeAddress, card.homeAddress);
-	visible = cvSetNode(data.cvHomeAddress2, card.homeAddress2) || visible;
-	visible = cvSetCityStateZip(data.cvHomeCityStZip, card.homeCity, card.homeState, card.homeZipCode) || visible;
-	visible = cvSetNode(data.cvHomeCountry, card.homeCountry) || visible;
+	visible = cvSetNode(data.cvHomeAddress, card.getProperty("HomeAddress"));
+	visible = cvSetNode(data.cvHomeAddress2, card.getProperty("HomeAddress2")) || visible;
+	visible = cvSetCityStateZip(data.cvHomeCityStZip, card.getProperty("HomeCity"), card.getProperty("HomeState"), card.getProperty("HomeZipCode")) || visible;
+	visible = cvSetNode(data.cvHomeCountry, card.getProperty("HomeCountry")) || visible;
         if (visible) {
-          var homeMapItUrl = CreateMapItURL(card.homeAddress, card.homeAddress2, card.homeCity, card.homeState, card.homeZipCode, card.homeCountry);
+          var homeMapItUrl = CreateMapItURL(card.getProperty("HomeAddress"), card.getProperty("HomeAddress2"), card.getProperty("HomeCity"), card.getProperty("HomeState"), card.getProperty("HomeZipCode"), card.getProperty("HomeCountry"));
           if (homeMapItUrl) {
 	    cvSetVisible(data.cvbHomeMapItBox, true);
             data.cvHomeMapIt.setAttribute('url', homeMapItUrl);
@@ -266,13 +274,13 @@ function DisplayCardViewPane(card)
 	  cvSetVisible(data.cvbHomeMapItBox, false);
         }
 
-  visible = HandleLink(data.cvHomeWebPage, "", card.webPage2, data.cvHomeWebPageBox, card.webPage2) || visible;
+  visible = HandleLink(data.cvHomeWebPage, "", card.getProperty("WebPage2"), data.cvHomeWebPageBox, card.getProperty("WebPage2")) || visible;
 
 	cvSetVisible(data.cvhHome, visible);
 	cvSetVisible(data.cvbHome, visible);
   if (card.isMailList) {
     // Description section
-	  visible = cvSetNode(data.cvDescription, card.notes)
+	  visible = cvSetNode(data.cvDescription, card.getProperty("Notes"))
   	cvSetVisible(data.cvbDescription, visible);
 
     // Addresses section
@@ -284,11 +292,11 @@ function DisplayCardViewPane(card)
   }
   else {
 	  // Other section
-	  visible = cvSetNodeWithLabel(data.cvCustom1, zCustom1, card.custom1);
-	  visible = cvSetNodeWithLabel(data.cvCustom2, zCustom2, card.custom2) || visible;
-	  visible = cvSetNodeWithLabel(data.cvCustom3, zCustom3, card.custom3) || visible;
-	  visible = cvSetNodeWithLabel(data.cvCustom4, zCustom4, card.custom4) || visible;
-	  visible = cvSetNode(data.cvNotes, card.notes) || visible;
+	  visible = cvSetNodeWithLabel(data.cvCustom1, zCustom1, card.getProperty("Custom1"));
+	  visible = cvSetNodeWithLabel(data.cvCustom2, zCustom2, card.getProperty("Custom2")) || visible;
+	  visible = cvSetNodeWithLabel(data.cvCustom3, zCustom3, card.getProperty("Custom3")) || visible;
+	  visible = cvSetNodeWithLabel(data.cvCustom4, zCustom4, card.getProperty("Custom4")) || visible;
+	  visible = cvSetNode(data.cvNotes, card.getProperty("Notes")) || visible;
     visible = setBuddyIcon(card, data.cvBuddyIcon) || visible;
 
     cvSetVisible(data.cvhOther, visible);
@@ -302,25 +310,25 @@ function DisplayCardViewPane(card)
   }
 
 	// Phone section
-	visible = cvSetNodeWithLabel(data.cvPhWork, zWork, card.workPhone);
-	visible = cvSetNodeWithLabel(data.cvPhHome, zHome, card.homePhone) || visible;
-	visible = cvSetNodeWithLabel(data.cvPhFax, zFax, card.faxNumber) || visible;
-	visible = cvSetNodeWithLabel(data.cvPhCellular, zCellular, card.cellularNumber) || visible;
-	visible = cvSetNodeWithLabel(data.cvPhPager, zPager, card.pagerNumber) || visible;
+	visible = cvSetNodeWithLabel(data.cvPhWork, zWork, card.getProperty("WorkPhone"));
+	visible = cvSetNodeWithLabel(data.cvPhHome, zHome, card.getProperty("HomePhone")) || visible;
+	visible = cvSetNodeWithLabel(data.cvPhFax, zFax, card.getProperty("FaxNumber")) || visible;
+	visible = cvSetNodeWithLabel(data.cvPhCellular, zCellular, card.getProperty("CellularNumber")) || visible;
+	visible = cvSetNodeWithLabel(data.cvPhPager, zPager, card.getProperty("PagerNumber")) || visible;
 	cvSetVisible(data.cvhPhone, visible);
 	cvSetVisible(data.cvbPhone, visible);
 	// Work section
-	visible = cvSetNode(data.cvJobTitle, card.jobTitle);
-	visible = cvSetNode(data.cvDepartment, card.department) || visible;
-	visible = cvSetNode(data.cvCompany, card.company) || visible;
+	visible = cvSetNode(data.cvJobTitle, card.getProperty("JobTitle"));
+	visible = cvSetNode(data.cvDepartment, card.getProperty("Department")) || visible;
+	visible = cvSetNode(data.cvCompany, card.getProperty("Company")) || visible;
         
-        var addressVisible = cvSetNode(data.cvWorkAddress, card.workAddress);
-	addressVisible = cvSetNode(data.cvWorkAddress2, card.workAddress2) || addressVisible;
-	addressVisible = cvSetCityStateZip(data.cvWorkCityStZip, card.workCity, card.workState, card.workZipCode) || addressVisible;
-	addressVisible = cvSetNode(data.cvWorkCountry, card.workCountry) || addressVisible;
+        var addressVisible = cvSetNode(data.cvWorkAddress, card.getProperty("WorkAddress"));
+	addressVisible = cvSetNode(data.cvWorkAddress2, card.getProperty("WorkAddress2")) || addressVisible;
+	addressVisible = cvSetCityStateZip(data.cvWorkCityStZip, card.getProperty("WorkCity"), card.getProperty("WorkState"), card.getProperty("WorkZipCode")) || addressVisible;
+	addressVisible = cvSetNode(data.cvWorkCountry, card.getProperty("WorkCountry")) || addressVisible;
 
         if (addressVisible) {
-          var workMapItUrl = CreateMapItURL(card.workAddress, card.workAddress2, card.workCity, card.workState, card.workZipCode, card.workCountry);
+          var workMapItUrl = CreateMapItURL(card.getProperty("WorkAddress"), card.getProperty("WorkAddress2"), card.getProperty("WorkCity"), card.getProperty("WorkState"), card.getProperty("WorkZipCode"), card.getProperty("WorkCountry"));
           data.cvWorkMapIt.setAttribute('url', workMapItUrl);
           if (workMapItUrl) {
 	    cvSetVisible(data.cvbWorkMapItBox, true);
@@ -334,7 +342,7 @@ function DisplayCardViewPane(card)
 	  cvSetVisible(data.cvbWorkMapItBox, false);
         }
 
-        visible = HandleLink(data.cvWorkWebPage, "", card.webPage1, data.cvWorkWebPageBox, card.webPage1) || addressVisible || visible;
+        visible = HandleLink(data.cvWorkWebPage, "", card.getProperty("WebPage1"), data.cvWorkWebPageBox, card.getProperty("WebPage1")) || addressVisible || visible;
 
 	cvSetVisible(data.cvhWork, visible);
 	cvSetVisible(data.cvbWork, visible);
@@ -357,7 +365,7 @@ function setBuddyIcon(card, buddyIcon)
       }
 
       // if we did have a buddy icon on disk for this screenname, this would be the file url spec for it
-      var iconURLStr = gProfileDirURL.spec + "/NIM/" + myScreenName + "/picture/" + card.aimScreenName + ".gif";
+      var iconURLStr = gProfileDirURL.spec + "/NIM/" + myScreenName + "/picture/" + card.getProperty("_AimScreenName") + ".gif";
 
       // check if the file exists
       var file = gFileHandler.getFileFromURLSpec(iconURLStr);

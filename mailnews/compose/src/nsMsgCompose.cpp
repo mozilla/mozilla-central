@@ -4570,7 +4570,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
                       return rv;
 
                     if (bIsMailList)
-                      rv = existingCard->GetNotes(newRecipient.mEmail);
+                      rv = existingCard->GetPropertyAsAString(kNotesProperty, newRecipient.mEmail);
                     else
                       rv = existingCard->GetPrimaryEmail(newRecipient.mEmail);
 
@@ -4610,7 +4610,8 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
                     else
                     {
                       newRecipient.mPreferFormat = nsIAbPreferMailFormat::unknown;
-                      rv = existingCard->GetPreferMailFormat(&newRecipient.mPreferFormat);
+                      rv = existingCard->GetPropertyAsUint32(
+                          kPreferMailFormatProperty, &newRecipient.mPreferFormat);
                       if (NS_SUCCEEDED(rv))
                         newRecipient.mProcessed = PR_TRUE;
                     }
@@ -4638,22 +4639,25 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
             // Then if we have a card for this email address
             // Please DO NOT change the 4th param of GetCardFromAttribute() call to
             // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
-            rv = abDataBase->GetCardFromAttribute(abDirectory, kPriEmailColumn,
+            rv = abDataBase->GetCardFromAttribute(abDirectory, kPriEmailProperty,
                                                   NS_ConvertUTF16toUTF8(recipient.mEmail),
                                                   PR_FALSE /* case insensitive */,
                                                   getter_AddRefs(existingCard));
             if (NS_SUCCEEDED(rv) && existingCard)
             {
               recipient.mPreferFormat = nsIAbPreferMailFormat::unknown;
-              rv = existingCard->GetPreferMailFormat(&recipient.mPreferFormat);
+              rv = existingCard->GetPropertyAsUint32(kPreferMailFormatProperty,
+                                                     &recipient.mPreferFormat);
               if (NS_SUCCEEDED(rv))
                 recipient.mProcessed = PR_TRUE;
 
               // bump the popularity index for this card since we are about to send e-mail to it
               PRUint32 popularityIndex = 0;
-              if (NS_SUCCEEDED(existingCard->GetPopularityIndex(&popularityIndex)))
+              if (NS_SUCCEEDED(existingCard->GetPropertyAsUint32(
+                      kPopularityIndexProperty, &popularityIndex)))
               {
-                existingCard->SetPopularityIndex(++popularityIndex);
+                existingCard->SetPropertyAsUint32(kPopularityIndexProperty,
+                                                  ++popularityIndex);
                 // Since we are not notifying anyway, send null
                 abDataBase->EditCard(existingCard, PR_FALSE, nsnull);
 

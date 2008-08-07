@@ -357,8 +357,7 @@ function AbPrintPreviewCard()
 
 function CreatePrintCardUrl(card)
 {
-  var url = "data:application/xml;base64," + card.convertToBase64EncodedXML();
-  return url;
+  return "data:application/xml;base64," + card.translateTo("base64xml");
 }
 
 function AbPrintAddressBookInternal(doPrintPreview, msgType)

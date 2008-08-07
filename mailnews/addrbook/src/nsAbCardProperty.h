@@ -49,6 +49,9 @@
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
 
+#include "nsInterfaceHashtable.h"
+#include "nsIVariant.h"
+
 class nsIStringBundle;
 class mozITXTToHTMLConv;
 struct AppendItem;
@@ -60,80 +63,29 @@ struct AppendItem;
 class nsAbCardProperty: public nsIAbCard
 {
 public: 
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIABCARD
+  NS_DECL_NSIABITEM
 
-	NS_DECL_ISUPPORTS
-	NS_DECL_NSIABCARD
-
-	nsAbCardProperty(void);
-	virtual ~nsAbCardProperty(void);
+  nsAbCardProperty();
+  virtual ~nsAbCardProperty(void);
 
 protected:
-
-	nsString m_PhoneticFirstName;
-	nsString m_PhoneticLastName;
-	nsString m_FirstName;
-	nsString m_LastName;
-	nsString m_DisplayName;
-	nsString m_NickName;
-	nsString m_PrimaryEmail;
-	nsString m_SecondEmail;
-	nsString m_WorkPhone;
-	nsString m_HomePhone;
-	nsString m_FaxNumber;
-	nsString m_PagerNumber;
-	nsString m_CellularNumber;
-  nsString m_WorkPhoneType;
-  nsString m_HomePhoneType;
-  nsString m_FaxNumberType;
-  nsString m_PagerNumberType;
-  nsString m_CellularNumberType;
-	nsString m_HomeAddress;
-	nsString m_HomeAddress2;
-	nsString m_HomeCity;
-	nsString m_HomeState;
-	nsString m_HomeZipCode;
-	nsString m_HomeCountry;
-	nsString m_WorkAddress;
-	nsString m_WorkAddress2;
-	nsString m_WorkCity;
-	nsString m_WorkState;
-	nsString m_WorkZipCode;
-	nsString m_WorkCountry;
-	nsString m_JobTitle;
-	nsString m_Department;
-	nsString m_Company;
-  nsString m_AimScreenName;
-  nsString m_AnniversaryYear;
-  nsString m_AnniversaryMonth;
-  nsString m_AnniversaryDay;
-  nsString m_SpouseName;
-  nsString m_FamilyName;
-  nsString m_DefaultAddress;
-  nsString m_Category;
-	nsString m_WebPage1;
-	nsString m_WebPage2;
-	nsString m_BirthYear;
-	nsString m_BirthMonth;
-	nsString m_BirthDay;
-	nsString m_Custom1;
-	nsString m_Custom2;
-	nsString m_Custom3;
-	nsString m_Custom4;
-	nsString m_Note;
-	PRUint32 m_LastModDate;
-	PRUint32 m_PreferMailFormat;
-	PRUint32 m_PopularityIndex;
-  PRBool   m_AllowRemoteContent;
-
 	PRBool   m_IsMailList;
 	nsCString m_MailListURI;
 
+  // Store most of the properties here
+  nsInterfaceHashtable<nsCStringHashKey, nsIVariant> m_properties;
+
 private:
-  nsresult AppendData(const char *aAttrName, mozITXTToHTMLConv *aConv, nsString &aResult);
   nsresult AppendSection(const AppendItem *aArray, PRInt16 aCount, const nsString& aHeading, nsIStringBundle *aBundle, mozITXTToHTMLConv *aConv, nsString &aResult);
   nsresult AppendLine(const AppendItem &aItem, mozITXTToHTMLConv *aConv, nsString &aResult);
   nsresult AppendLabel(const AppendItem &aItem, nsIStringBundle *aBundle, mozITXTToHTMLConv *aConv, nsString &aResult);
   nsresult AppendCityStateZip(const AppendItem &aItem, nsIStringBundle *aBundle, mozITXTToHTMLConv *aConv, nsString &aResult);
+
+  nsresult ConvertToBase64EncodedXML(nsACString &result);
+  nsresult ConvertToXMLPrintData(nsAString &result);
+  nsresult ConvertToEscapedVCard(nsACString &result);
 };
 
 #endif

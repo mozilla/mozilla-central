@@ -70,7 +70,7 @@
 
 struct ExportAttributesTableStruct
 {
-  const char* abColName;
+  const char* abPropertyName;
   PRUint32 plainTextStringID;
 };
 
@@ -94,57 +94,55 @@ struct ExportAttributesTableStruct
 // else use the MOZ_AB_LDIF_PREFIX prefix, see nsIAddrDatabase.idl
 
 const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[] = {
-  {kFirstNameColumn, 2100},
-  {kLastNameColumn, 2101},
-  {kDisplayNameColumn, 2102},
-  {kNicknameColumn, 2103},
-  {kPriEmailColumn, 2104},
-  {k2ndEmailColumn, 2105},
-  {kAimScreenNameColumn},
-  {kPreferMailFormatColumn},
-  {kLastModifiedDateColumn},
-  {kWorkPhoneColumn, 2106},
-  {kWorkPhoneTypeColumn},
-  {kHomePhoneColumn, 2107},
-  {kHomePhoneTypeColumn},
-  {kFaxColumn, 2108},
-  {kFaxTypeColumn},
-  {kPagerColumn, 2109},
-  {kPagerTypeColumn},
-  {kCellularColumn, 2110},
-  {kCellularTypeColumn},
-  {kHomeAddressColumn, 2111},
-  {kHomeAddress2Column, 2112},
-  {kHomeCityColumn, 2113},
-  {kHomeStateColumn, 2114},
-  {kHomeZipCodeColumn, 2115},
-  {kHomeCountryColumn, 2116},
-  {kWorkAddressColumn, 2117},
-  {kWorkAddress2Column, 2118},
-  {kWorkCityColumn, 2119},
-  {kWorkStateColumn, 2120},
-  {kWorkZipCodeColumn, 2121},
-  {kWorkCountryColumn, 2122},
-  {kJobTitleColumn, 2123},
-  {kDepartmentColumn, 2124},
-  {kCompanyColumn, 2125},
-  {kWebPage1Column, 2126},
-  {kWebPage2Column, 2127},
-  {kBirthYearColumn, 2128}, // unused for now
-  {kBirthMonthColumn, 2129}, // unused for now
-  {kBirthDayColumn, 2130}, // unused for now
-  {kCustom1Column, 2131},
-  {kCustom2Column, 2132},
-  {kCustom3Column, 2133},
-  {kCustom4Column, 2134},
-  {kNotesColumn, 2135},
-  {kAnniversaryYearColumn},
-  {kAnniversaryMonthColumn},
-  {kAnniversaryDayColumn},
-  {kSpouseNameColumn},
-  {kFamilyNameColumn},
-  {kDefaultAddressColumn},
-  {kCategoryColumn},
+  {kFirstNameProperty, 2100},
+  {kLastNameProperty, 2101},
+  {kDisplayNameProperty, 2102},
+  {kNicknameProperty, 2103},
+  {kPriEmailProperty, 2104},
+  {k2ndEmailProperty, 2105},
+  {kScreenNameProperty},
+  {kPreferMailFormatProperty},
+  {kLastModifiedDateProperty},
+  {kWorkPhoneProperty, 2106},
+  {kWorkPhoneTypeProperty},
+  {kHomePhoneProperty, 2107},
+  {kHomePhoneTypeProperty},
+  {kFaxProperty, 2108},
+  {kFaxTypeProperty},
+  {kPagerProperty, 2109},
+  {kPagerTypeProperty},
+  {kCellularProperty, 2110},
+  {kCellularTypeProperty},
+  {kHomeAddressProperty, 2111},
+  {kHomeAddress2Property, 2112},
+  {kHomeCityProperty, 2113},
+  {kHomeStateProperty, 2114},
+  {kHomeZipCodeProperty, 2115},
+  {kHomeCountryProperty, 2116},
+  {kWorkAddressProperty, 2117},
+  {kWorkAddress2Property, 2118},
+  {kWorkCityProperty, 2119},
+  {kWorkStateProperty, 2120},
+  {kWorkZipCodeProperty, 2121},
+  {kWorkCountryProperty, 2122},
+  {kJobTitleProperty, 2123},
+  {kDepartmentProperty, 2124},
+  {kCompanyProperty, 2125},
+  {kWorkWebPageProperty, 2126},
+  {kHomeWebPageProperty, 2127},
+  {kBirthYearProperty, 2128}, // unused for now
+  {kBirthMonthProperty, 2129}, // unused for now
+  {kBirthDayProperty, 2130}, // unused for now
+  {kCustom1Property, 2131},
+  {kCustom2Property, 2132},
+  {kCustom3Property, 2133},
+  {kCustom4Property, 2134},
+  {kNotesProperty, 2135},
+  {kAnniversaryYearProperty},
+  {kAnniversaryMonthProperty},
+  {kAnniversaryDayProperty},
+  {kSpouseNameProperty},
+  {kFamilyNameProperty},
 };
 
 //
@@ -623,9 +621,9 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
 
           for (i = 0; i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE); i++) {
             if (EXPORT_ATTRIBUTES_TABLE[i].plainTextStringID != 0) {
-              rv = card->GetCardValue(EXPORT_ATTRIBUTES_TABLE[i].abColName,
-                                      value);
-              NS_ENSURE_SUCCESS(rv,rv);
+              rv = card->GetPropertyAsAString(EXPORT_ATTRIBUTES_TABLE[i].abPropertyName, value);
+              if (NS_FAILED(rv))
+                value.Truncate();
 
               // If a string contains at least one comma, tab or double quote then
               // we need to quote the entire string. Also if double quote is part
@@ -791,15 +789,15 @@ nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *aLo
           nsCAutoString ldapAttribute;
 
           for (i = 0; i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE); i++) {
-            if (NS_SUCCEEDED(attrMap->GetFirstAttribute(nsDependentCString(EXPORT_ATTRIBUTES_TABLE[i].abColName),
+            if (NS_SUCCEEDED(attrMap->GetFirstAttribute(nsDependentCString(EXPORT_ATTRIBUTES_TABLE[i].abPropertyName),
                                                         ldapAttribute)) &&
                 !ldapAttribute.IsEmpty()) {
 
-              rv = card->GetCardValue(EXPORT_ATTRIBUTES_TABLE[i].abColName,
-                                      value);
-              NS_ENSURE_SUCCESS(rv,rv);
+              rv = card->GetPropertyAsAString(EXPORT_ATTRIBUTES_TABLE[i].abPropertyName, value);
+              if (NS_FAILED(rv))
+                value.Truncate();
 
-              if (!PL_strcmp(EXPORT_ATTRIBUTES_TABLE[i].abColName, kPreferMailFormatColumn)) {
+              if (!PL_strcmp(EXPORT_ATTRIBUTES_TABLE[i].abPropertyName, kPreferMailFormatProperty)) {
                 if (value.Equals(NS_LITERAL_STRING("html").get()))
                   value.AssignLiteral("true");
                 else if (value.Equals(NS_LITERAL_STRING("plaintext").get()))
@@ -862,12 +860,12 @@ nsresult nsAbManager::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribute
              "objectclass: top" MSG_LINEBREAK \
              "objectclass: groupOfNames" MSG_LINEBREAK;
 
-  rv = aCard->GetCardValue(kDisplayNameColumn, attrValue);
+  rv = aCard->GetDisplayName(attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCAutoString ldapAttributeName;
 
-  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kDisplayNameColumn),
+  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kDisplayNameProperty),
                                   ldapAttributeName);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -875,27 +873,23 @@ nsresult nsAbManager::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribute
   NS_ENSURE_SUCCESS(rv,rv);
   aResult += MSG_LINEBREAK;
 
-  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kNicknameColumn),
+  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kNicknameProperty),
                                   ldapAttributeName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = aCard->GetCardValue(kNicknameColumn, attrValue);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  if (!attrValue.IsEmpty()) {
+  rv = aCard->GetPropertyAsAString(kNicknameProperty, attrValue);
+  if (NS_SUCCEEDED(rv) && !attrValue.IsEmpty()) {
     rv = AppendProperty(ldapAttributeName.get(), attrValue.get(), aResult);
     NS_ENSURE_SUCCESS(rv,rv);
     aResult += MSG_LINEBREAK;
   }
 
-  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kNotesColumn),
+  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kNotesProperty),
                                   ldapAttributeName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = aCard->GetCardValue(kNotesColumn, attrValue);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  if (!attrValue.IsEmpty()) {
+  rv = aCard->GetPropertyAsAString(kNotesProperty, attrValue);
+  if (NS_SUCCEEDED(rv) && !attrValue.IsEmpty()) {
     rv = AppendProperty(ldapAttributeName.get(), attrValue.get(), aResult);
     NS_ENSURE_SUCCESS(rv,rv);
     aResult += MSG_LINEBREAK;
@@ -944,15 +938,15 @@ nsresult nsAbManager::AppendDNForCard(const char *aProperty, nsIAbCard *aCard, n
   nsString displayName;
   nsCAutoString ldapAttributeName;
 
-  nsresult rv = aCard->GetCardValue(kPriEmailColumn, email);
+  nsresult rv = aCard->GetPrimaryEmail(email);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = aCard->GetCardValue(kDisplayNameColumn, displayName);
+  rv = aCard->GetDisplayName(displayName);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsString cnStr;
 
-  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kDisplayNameColumn),
+  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kDisplayNameProperty),
                                    ldapAttributeName);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -965,7 +959,7 @@ nsresult nsAbManager::AppendDNForCard(const char *aProperty, nsIAbCard *aCard, n
     }
   }
 
-  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kPriEmailColumn),
+  rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kPriEmailProperty),
                                    ldapAttributeName);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1049,67 +1043,67 @@ char *getCString(VObject *vObj)
 
 static void convertNameValue(VObject *vObj, nsIAbCard *aCard)
 {
-  const char *cardColName = NULL;
+  const char *cardPropName = NULL;
 
   // if the vCard property is not a root property then we need to determine its exact property.
   // a good example of this is VCTelephoneProp, this prop has four objects underneath it:
   // fax, work and home and cellular.
   if (PL_strcasecmp(VCCityProp, vObjectName(vObj)) == 0)
-      cardColName = kWorkCityColumn;
+      cardPropName = kWorkCityProperty;
   else if (PL_strcasecmp(VCTelephoneProp, vObjectName(vObj)) == 0)
   {
       if (isAPropertyOf(vObj, VCFaxProp))
-          cardColName = kFaxColumn;
+          cardPropName = kFaxProperty;
       else if (isAPropertyOf(vObj, VCWorkProp))
-          cardColName = kWorkPhoneColumn;
+          cardPropName = kWorkPhoneProperty;
       else if (isAPropertyOf(vObj, VCHomeProp))
-          cardColName = kHomePhoneColumn;
+          cardPropName = kHomePhoneProperty;
       else if (isAPropertyOf(vObj, VCCellularProp))
-          cardColName = kCellularColumn;
+          cardPropName = kCellularProperty;
       else if (isAPropertyOf(vObj, VCPagerProp))
-          cardColName = kPagerColumn;
+          cardPropName = kPagerProperty;
       else
           return;
   }
   else if (PL_strcasecmp(VCEmailAddressProp, vObjectName(vObj)) == 0)
-      cardColName = kPriEmailColumn;
+      cardPropName = kPriEmailProperty;
   else if (PL_strcasecmp(VCFamilyNameProp, vObjectName(vObj)) == 0)
-      cardColName = kLastNameColumn;
+      cardPropName = kLastNameProperty;
   else if (PL_strcasecmp(VCFullNameProp, vObjectName(vObj)) == 0)
-      cardColName = kDisplayNameColumn;
+      cardPropName = kDisplayNameProperty;
   else if (PL_strcasecmp(VCGivenNameProp, vObjectName(vObj)) == 0)
-      cardColName = kFirstNameColumn;
+      cardPropName = kFirstNameProperty;
   else if (PL_strcasecmp(VCOrgNameProp, vObjectName(vObj)) == 0)
-      cardColName = kCompanyColumn;
+      cardPropName = kCompanyProperty;
   else if (PL_strcasecmp(VCOrgUnitProp, vObjectName(vObj)) == 0)
-      cardColName = kDepartmentColumn;
+      cardPropName = kDepartmentProperty;
   else if (PL_strcasecmp(VCPostalCodeProp, vObjectName(vObj)) == 0)
-      cardColName = kWorkZipCodeColumn;
+      cardPropName = kWorkZipCodeProperty;
   else if (PL_strcasecmp(VCRegionProp, vObjectName(vObj)) == 0)
-      cardColName = kWorkStateColumn;
+      cardPropName = kWorkStateProperty;
   else if (PL_strcasecmp(VCStreetAddressProp, vObjectName(vObj)) == 0)
-      cardColName = kWorkAddressColumn;
+      cardPropName = kWorkAddressProperty;
   else if (PL_strcasecmp(VCPostalBoxProp, vObjectName(vObj)) == 0)
-      cardColName = kWorkAddress2Column;
+      cardPropName = kWorkAddress2Property;
   else if (PL_strcasecmp(VCCountryNameProp, vObjectName(vObj)) == 0)
-      cardColName = kWorkCountryColumn;
+      cardPropName = kWorkCountryProperty;
   else if (PL_strcasecmp(VCTitleProp, vObjectName(vObj)) == 0)
-      cardColName = kJobTitleColumn;
+      cardPropName = kJobTitleProperty;
   else if (PL_strcasecmp(VCUseHTML, vObjectName(vObj)) == 0)
-      cardColName = kPreferMailFormatColumn;
+      cardPropName = kPreferMailFormatProperty;
   else if (PL_strcasecmp(VCNoteProp, vObjectName(vObj)) == 0)
-      cardColName = kNotesColumn;
+      cardPropName = kNotesProperty;
   else if (PL_strcasecmp(VCURLProp, vObjectName(vObj)) == 0)
-      cardColName = kWebPage1Column;
+      cardPropName = kWorkWebPageProperty;
   else
       return;
 
   if (!VALUE_TYPE(vObj))
       return;
 
-  char *cardColValue = getCString(vObj);
-  aCard->SetCardValue(cardColName, NS_ConvertUTF8toUTF16(cardColValue));
-  PR_FREEIF(cardColValue);
+  char *cardPropValue = getCString(vObj);
+  aCard->SetPropertyAsAUTF8String(cardPropName, nsDependentCString(cardPropValue));
+  PR_FREEIF(cardPropValue);
   return;
 }
 

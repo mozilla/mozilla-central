@@ -58,7 +58,6 @@ public:
   virtual ~nsAbLDAPCard();
 
 protected:
-  nsCString m_dn;
   nsCStringArray m_attributes;
   nsCStringArray m_objectClass;
 };

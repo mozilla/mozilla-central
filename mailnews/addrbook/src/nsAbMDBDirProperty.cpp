@@ -48,7 +48,6 @@
 #include "nsAddrDatabase.h"
 #include "nsIAbCard.h"
 #include "nsIAbListener.h"
-#include "nsIAbMDBCard.h"
 #include "nsArrayUtils.h"
 #include "mdb.h"
 #include "nsComponentManagerUtils.h"

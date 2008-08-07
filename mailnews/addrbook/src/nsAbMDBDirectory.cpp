@@ -44,7 +44,6 @@
 #include "nsCOMPtr.h"
 #include "nsAbBaseCID.h"
 #include "nsAddrDatabase.h"
-#include "nsIAbMDBCard.h"
 #include "nsIAbListener.h"
 #include "nsIAbManager.h"
 #include "nsIURL.h"
@@ -504,11 +503,12 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
       nsCOMPtr<nsIAbCard> card(do_QueryElementAt(aCards, i, &rv));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(card, &rv));
-      NS_ENSURE_SUCCESS(rv, rv);
-
       if (card)
       {
+        PRUint32 rowID;
+        rv = card->GetPropertyAsUint32("DbRowID", &rowID);
+        NS_ENSURE_SUCCESS(rv, rv);
+
         if (m_IsMailList)
         {
           mDatabase->DeleteCardFromMailList(this, card, PR_TRUE);
@@ -519,15 +519,13 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
             rv = m_AddressList->GetLength(&cardTotal);
           for (i = cardTotal - 1; i >= 0; i--)
           {            
-            nsCOMPtr<nsIAbMDBCard> dbarrayCard(do_QueryElementAt(m_AddressList, i, &rv));
-            if (dbarrayCard)
+            nsCOMPtr<nsIAbCard> arrayCard(do_QueryElementAt(m_AddressList, i, &rv));
+            if (arrayCard)
             {
-              PRUint32 tableID, rowID, cardTableID, cardRowID; 
-              dbarrayCard->GetDbTableID(&tableID);
-              dbarrayCard->GetDbRowID(&rowID);
-              dbcard->GetDbTableID(&cardTableID);
-              dbcard->GetDbRowID(&cardRowID);
-              if (tableID == cardTableID && rowID == cardRowID)
+              // No card can have a row ID of 0
+              PRUint32 arrayRowID = 0;
+              arrayCard->GetPropertyAsUint32("DbRowID", &arrayRowID);
+              if (rowID == arrayRowID)
                 m_AddressList->RemoveElementAt(i);
             }
           }
@@ -540,8 +538,6 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
           if (bIsMailList)
           {
             //to do, get mailing list dir side uri and notify rdf to remove it
-            PRUint32 rowID;
-            dbcard->GetDbRowID(&rowID);
             nsCAutoString listUri(mURI);
             listUri.AppendLiteral("/MailList");
             listUri.AppendInt(rowID);
@@ -697,32 +693,15 @@ NS_IMETHODIMP nsAbMDBDirectory::AddCard(nsIAbCard* card, nsIAbCard **addedCard)
   if (NS_FAILED(rv) || !mDatabase)
     return NS_ERROR_FAILURE;
 
-  nsCOMPtr<nsIAbCard> newCard;
-  nsCOMPtr<nsIAbMDBCard> dbcard;
-
-  dbcard = do_QueryInterface(card, &rv);
-  if (NS_FAILED(rv) || !dbcard) {
-    dbcard = do_CreateInstance(NS_ABMDBCARD_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-    newCard = do_QueryInterface(dbcard, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-  
-    rv = newCard->Copy(card);
-  NS_ENSURE_SUCCESS(rv, rv);
-  }
-  else {
-    newCard = card;
-  }
-
-  dbcard->SetAbDatabase (mDatabase);
   if (m_IsMailList)
-    mDatabase->CreateNewListCardAndAddToDB(this, m_dbRowID, newCard, PR_TRUE /* notify */);
+    rv = mDatabase->CreateNewListCardAndAddToDB(this, m_dbRowID, card, PR_TRUE /* notify */);
   else
-    mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE, this);
+    rv = mDatabase->CreateNewCardAndAddToDB(card, PR_TRUE, this);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
 
-  NS_IF_ADDREF(*addedCard = newCard);
+  NS_IF_ADDREF(*addedCard = card);
   return NS_OK;
 }
 
@@ -758,25 +737,17 @@ NS_IMETHODIMP nsAbMDBDirectory::DropCard(nsIAbCard* aCard, PRBool needToCopyCard
     return NS_ERROR_FAILURE;
 
   nsCOMPtr<nsIAbCard> newCard;
-  nsCOMPtr<nsIAbMDBCard> dbcard;
 
   if (needToCopyCard) {
-    dbcard = do_CreateInstance(NS_ABMDBCARD_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    newCard = do_CreateInstance(NS_ABMDBCARD_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    newCard = do_QueryInterface(dbcard, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-  
     rv = newCard->Copy(aCard);
-  NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
   else {
-    dbcard = do_QueryInterface(aCard, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
     newCard = aCard;
   }  
-
-  dbcard->SetAbDatabase(mDatabase);
 
   if (m_IsMailList) {
     if (needToCopyCard) {
@@ -1091,7 +1062,7 @@ NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const nsACString &aEmailAddr
     // TODO bug #198731
     // unlike the kPriEmailColumn, we don't have kLower2ndEmailColumn
     // so we will still suffer from bug #196777 for "additional emails"
-    mDatabase->GetCardFromAttribute(this, k2ndEmailColumn, aEmailAddress, PR_TRUE /* caseInsensitive, see bug #191798 */, aAbCard);
+    mDatabase->GetCardFromAttribute(this, k2ndEmailProperty, aEmailAddress, PR_TRUE /* caseInsensitive, see bug #191798 */, aAbCard);
   }
 
   return NS_OK;

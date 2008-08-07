@@ -455,8 +455,7 @@ nsresult nsAbDirectoryQuery::matchCardCondition (nsIAbCard* card,
     }
 
     nsString value;
-    rv = card->GetCardValue(name.get(), value);
-    NS_ENSURE_SUCCESS(rv, rv);
+    (void)card->GetPropertyAsAString(name.get(), value);
 
     if (value.IsEmpty())
     {

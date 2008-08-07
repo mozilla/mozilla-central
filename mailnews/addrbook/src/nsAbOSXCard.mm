@@ -74,46 +74,48 @@ GetPropertType(ABRecord *aCard, NSString *aProperty)
 #endif
 
 static void
-SetStringProperty(nsAbOSXCard *aCard, nsString &aValue, nsString &aMember,
-                  const char *aMemberName, PRBool aNotify,
-                  nsIAbManager *aAbManager)
+SetStringProperty(nsAbOSXCard *aCard, nsString &aValue, const char *aMemberName,
+                  PRBool aNotify, nsIAbManager *aAbManager)
 {
+  nsString oldValue;
+  nsresult rv = aCard->GetPropertyAsAString(aMemberName, oldValue);
+  if (NS_FAILED(rv))
+    oldValue.Truncate();
+
   if (!aNotify) {
-    aMember = aValue;
+    aCard->SetPropertyAsAString(aMemberName, aValue);
   }
-  else if (!aMember.Equals(aValue)) {
-    nsString oldValue(aMember);
-    aMember = aValue;
+  else if (!oldValue.Equals(aValue)) {
+    aCard->SetPropertyAsAString(aMemberName, aValue);
     
     nsISupports *supports = NS_ISUPPORTS_CAST(nsRDFResource*, aCard);
     aAbManager->NotifyItemPropertyChanged(supports, aMemberName,
-                                        oldValue.get(), aMember.get());
+                                          oldValue.get(), aValue.get());
   }
 }
 
 static void
-SetStringProperty(nsAbOSXCard *aCard, NSString *aValue, nsString &aMember,
-                  const char *aMemberName, PRBool aNotify,
-                  nsIAbManager *aAbManager)
+SetStringProperty(nsAbOSXCard *aCard, NSString *aValue, const char *aMemberName,
+                  PRBool aNotify, nsIAbManager *aAbManager)
 {
   nsAutoString value;
   if (aValue)
     AppendToString(aValue, value);
 
-  SetStringProperty(aCard, value, aMember, aMemberName, aNotify, aAbManager);
+  SetStringProperty(aCard, value, aMemberName, aNotify, aAbManager);
 }
 
 static void
 MapStringProperty(nsAbOSXCard *aCard, ABRecord *aOSXCard, NSString *aProperty,
-                  nsString &aMember, const char *aMemberName, PRBool aNotify,
+                  const char *aMemberName, PRBool aNotify,
                   nsIAbManager *aAbManager)
 {
   NS_ASSERTION(aProperty, "This is bad! You asked for an unresolved symbol.");
   NS_ASSERTION(GetPropertType(aOSXCard, aProperty) == kABStringProperty,
                "Wrong type!");
   
-  SetStringProperty(aCard, [aOSXCard valueForProperty:aProperty], aMember,
-                    aMemberName, aNotify, aAbManager);
+  SetStringProperty(aCard, [aOSXCard valueForProperty:aProperty], aMemberName,
+                    aNotify, aAbManager);
 }
 
 static ABMutableMultiValue*
@@ -127,9 +129,8 @@ GetMultiValue(ABRecord *aCard, NSString *aProperty)
 }
 
 static void
-MapDate(nsAbOSXCard *aCard, NSDate *aDate, nsString &aYear,
-        const char *aYearName, nsString &aMonth, const char *aMonthName,
-        nsString &aDay, const char *aDayName, PRBool aNotify,
+MapDate(nsAbOSXCard *aCard, NSDate *aDate, const char *aYearPropName,
+        const char *aMonthPropName, const char *aDayPropName, PRBool aNotify,
         nsIAbManager *aAbManager)
 {
   // XXX Should we pass a format and timezone?
@@ -137,11 +138,11 @@ MapDate(nsAbOSXCard *aCard, NSDate *aDate, nsString &aYear,
   
   nsAutoString value;
   value.AppendInt([date yearOfCommonEra]);
-  SetStringProperty(aCard, value, aYear, aYearName, aNotify, aAbManager);
+  SetStringProperty(aCard, value, aYearPropName, aNotify, aAbManager);
   value.AppendInt([date monthOfYear]);
-  SetStringProperty(aCard, value, aMonth, aMonthName, aNotify, aAbManager);
+  SetStringProperty(aCard, value, aMonthPropName, aNotify, aAbManager);
   value.AppendInt([date dayOfWeek]);
-  SetStringProperty(aCard, value, aDay, aDayName, aNotify, aAbManager);
+  SetStringProperty(aCard, value, aDayPropName, aNotify, aAbManager);
 }
 
 static PRBool
@@ -159,8 +160,8 @@ MapMultiValue(nsAbOSXCard *aCard, ABRecord *aOSXCard,
           ? [[value valueAtIndex:j] objectForKey:aMap.mOSXKey]
           : [value valueAtIndex:j];
         
-        SetStringProperty(aCard, stringValue, aCard->*(aMap.mProperty),
-                          aMap.mPropertyName, aNotify, aAbManager);
+        SetStringProperty(aCard, stringValue, aMap.mPropertyName, aNotify,
+                          aAbManager);
         
         return PR_TRUE;
       }
@@ -203,10 +204,10 @@ nsAbOSXCard::Update(PRBool aNotify)
     m_IsMailList = PR_TRUE;
     m_MailListURI.AssignLiteral(NS_ABOSXDIRECTORY_URI_PREFIX);
     m_MailListURI.Append(uid);
-    MapStringProperty(this, card, kABGroupNameProperty, m_DisplayName,
-                      "DisplayName", aNotify, abManager);
-    MapStringProperty(this, card, kABGroupNameProperty, m_LastName,
-                      "LastName", aNotify, abManager);
+    MapStringProperty(this, card, kABGroupNameProperty, "DisplayName", aNotify,
+                      abManager);
+    MapStringProperty(this, card, kABGroupNameProperty, "LastName", aNotify,
+                      abManager);
 
     return NS_OK;
   }
@@ -230,7 +231,6 @@ nsAbOSXCard::Update(PRBool aNotify)
     }
     else {
       MapStringProperty(this, card, propertyMap.mOSXProperty,
-                        this->*(propertyMap.mProperty),
                         propertyMap.mPropertyName, aNotify, abManager);
     }
   }
@@ -240,11 +240,15 @@ nsAbOSXCard::Update(PRBool aNotify)
     flags = [[card valueForProperty:kABPersonFlags] intValue];
   
 #define SET_STRING(_value, _name, _notify, _session) \
-  SetStringProperty(this, _value, m_##_name, #_name, _notify, _session)
+  SetStringProperty(this, _value, #_name, _notify, _session)
     
     // If kABShowAsCompany is set we use the company name as display name.
     if (kABPersonFlags && (flags & kABShowAsCompany)) {
-      SET_STRING(m_Company, DisplayName, aNotify, abManager);
+      nsString company;
+      nsresult rv = GetPropertyAsAString(kCompanyProperty, company);
+      if (NS_FAILED(rv))
+        company.Truncate();
+      SET_STRING(company, DisplayName, aNotify, abManager);
     }
   else {
     // Use the order used in the OS X address book to set DisplayName.
@@ -253,16 +257,20 @@ nsAbOSXCard::Update(PRBool aNotify)
       order = [addressBook defaultNameOrdering];
     }
     
-    nsAutoString displayName;
+    nsAutoString displayName, tempName;
     if (kABPersonFlags && (order == kABFirstNameFirst)) {
-      displayName.Append(m_FirstName);
+      GetFirstName(tempName);
+      displayName.Append(tempName);
       displayName.Append(' ');
-      displayName.Append(m_LastName);
+      GetLastName(tempName);
+      displayName.Append(tempName);
     }
     else {
-      displayName.Append(m_LastName);
+      GetLastName(tempName);
+      displayName.Append(tempName);
       displayName.Append(' ');
-      displayName.Append(m_FirstName);
+      GetFirstName(tempName);
+      displayName.Append(tempName);
     }
     SET_STRING(displayName, DisplayName, aNotify, abManager);
   }
@@ -327,8 +335,8 @@ nsAbOSXCard::Update(PRBool aNotify)
   }
   
 #define MAP_DATE(_date, _name, _notify, _session) \
-  MapDate(this, _date, m_##_name##Year, #_name"Year", m_##_name##Month, \
-#_name"Month", m_##_name##Day, #_name"Day", _notify, _session)
+  MapDate(this, _date, #_name"Year", #_name"Month", #_name"Day", _notify, \
+  _session)
     
     NSDate *date = [card valueForProperty:kABBirthdayProperty];
   if (date)
@@ -355,7 +363,8 @@ nsAbOSXCard::Update(PRBool aNotify)
   
   date = [card valueForProperty:kABModificationDateProperty];
   if (date) 
-    m_LastModDate = PRUint32([date timeIntervalSince1970]);
+    SetPropertyAsUint32("LastModifiedDate",
+                        PRUint32([date timeIntervalSince1970]));
     // XXX No way to notify about this?
   
   return NS_OK;

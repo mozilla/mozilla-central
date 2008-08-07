@@ -48,7 +48,6 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsIAbDirectory.h"
 #include "nsIAbMDBDirectory.h"
-#include "nsIAbMDBCard.h"
 #include "nsIAbCard.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgWindow.h"
@@ -190,7 +189,7 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, 
   
   // if we found a card from the sender, 
   if (cardForAddress)
-    cardForAddress->GetAllowRemoteContent(aAllowForSender);
+    cardForAddress->GetPropertyAsBool(kAllowRemoteContentProperty, aAllowForSender);
 
   return NS_OK;
 }

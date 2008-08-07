@@ -130,13 +130,13 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
     nsCOMPtr <nsIAbCard> cardInstance;
     PRBool emailAddressIn2ndEmailColumn = PR_FALSE;
 
-    rv = GetCardFromAttribute(NS_LITERAL_CSTRING(kPriEmailColumn), curAddress,
+    rv = GetCardFromAttribute(NS_LITERAL_CSTRING(kPriEmailProperty), curAddress,
                               getter_AddRefs(existingCard));
     // We've not found a card, but is this address actually in the additional
     // email column?
     if (!existingCard)
     {
-      rv = GetCardFromAttribute(NS_LITERAL_CSTRING(k2ndEmailColumn), curAddress,
+      rv = GetCardFromAttribute(NS_LITERAL_CSTRING(k2ndEmailProperty), curAddress,
                                 getter_AddRefs(existingCard));
       if (existingCard)
         emailAddressIn2ndEmailColumn = PR_TRUE;
@@ -153,8 +153,7 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
 
         if (NS_SUCCEEDED(senderCard->SetPrimaryEmail(NS_ConvertUTF8toUTF16(curAddress))))
         {
-          if (aSendFormat != nsIAbPreferMailFormat::unknown)
-            senderCard->SetPreferMailFormat(aSendFormat);
+          senderCard->SetPropertyAsUint32(kPreferMailFormatProperty, aSendFormat);
 
           nsCOMPtr<nsIAbCard> addedCard;
           rv = m_directory->AddCard(senderCard, getter_AddRefs(addedCard));
@@ -175,12 +174,12 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
       if (aSendFormat != nsIAbPreferMailFormat::unknown)
       {
         PRUint32 currentFormat;
-        rv = existingCard->GetPreferMailFormat(&currentFormat);
+        rv = existingCard->GetPropertyAsUint32(kPreferMailFormatProperty, &currentFormat);
         NS_ASSERTION(NS_SUCCEEDED(rv), "failed to get preferred mail format");
 
         // we only want to update the AB if the current format is unknown
         if (currentFormat == nsIAbPreferMailFormat::unknown &&
-            NS_SUCCEEDED(existingCard->SetPreferMailFormat(aSendFormat)))
+            NS_SUCCEEDED(existingCard->SetPropertyAsUint32(kPreferMailFormatProperty, aSendFormat)))
           modifiedCard = PR_TRUE;
       }
 
@@ -216,7 +215,7 @@ nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard,
   if (!domain.IsEmpty() &&
       (domain.Equals("aol.com") || domain.Equals("cs.com") ||
        domain.Equals("netscape.net")))
-    aCard->SetAimScreenName(NS_ConvertUTF8toUTF16(Substring(aEmail, 0, atPos)));
+    aCard->SetPropertyAsAUTF8String(kScreenNameProperty, Substring(aEmail, 0, atPos));
 }
 
 // Returns true if the card was modified successfully.

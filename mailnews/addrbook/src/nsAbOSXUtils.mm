@@ -94,7 +94,7 @@ AppendToCString(const NSString *aString, nsCString &aResult)
 #define DONT_MAP(moz_name, osx_property, osx_label, osx_key)
 
 #define DEFINE_PROPERTY(moz_name, osx_property, osx_label, osx_key) \
-    { osx_property, osx_label, osx_key, &nsAbOSXCard::m_##moz_name, #moz_name },
+    { osx_property, osx_label, osx_key, #moz_name },
 
 const nsAbOSXPropertyMap nsAbOSXUtils::kPropertyMap[] = {
     DEFINE_PROPERTY(FirstName, kABFirstNameProperty, nil, nil)

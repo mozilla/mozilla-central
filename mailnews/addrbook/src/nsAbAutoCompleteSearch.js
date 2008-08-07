@@ -133,22 +133,26 @@ nsAbAutoCompleteSearch.prototype = {
     var i;
     if (card.isMailList) {
       return card.displayName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
-        card.notes.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
-        card.nickName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0;
+        card.getProperty("Notes", "").toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
+        card.getProperty("NickName", "").toLocaleLowerCase().lastIndexOf(fullString, 0) == 0;
     }
 
-    if (card.nickName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
-        card.displayName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
-        card.firstName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
-        card.lastName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
+    var firstName = card.firstName.toLocaleLowerCase();
+    var lastName = card.lastName.toLocaleLowerCase();
+    if (card.displayName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
+        firstName.lastIndexOf(fullString, 0) == 0 ||
+        lastName.lastIndexOf(fullString, 0) == 0 ||
         card.primaryEmail.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0)
       return true;
 
     if (firstWord && rest &&
-        ((card.firstName.toLocaleLowerCase().lastIndexOf(firstWord, 0) == 0 &&
-          card.lastName.toLocaleLowerCase().lastIndexOf(rest, 0) == 0) ||
-         (card.firstName.toLocaleLowerCase().lastIndexOf(rest, 0) == 0 &&
-          card.lastName.toLocaleLowerCase().lastIndexOf(firstWord, 0) == 0)))
+        ((firstName.lastIndexOf(firstWord, 0) == 0 &&
+          lastName.lastIndexOf(rest, 0) == 0) ||
+         (firstName.lastIndexOf(rest, 0) == 0 &&
+          lastName.lastIndexOf(firstWord, 0) == 0)))
+      return true;
+
+    if (card.getProperty("NickName", "").toLocaleLowerCase().lastIndexOf(fullString, 0) == 0)
       return true;
 
     return false;
@@ -157,13 +161,13 @@ nsAbAutoCompleteSearch.prototype = {
   _checkDuplicate: function _checkDuplicate(card, emailAddress, currentResults) {
     var lcEmailAddress = emailAddress.toLocaleLowerCase();
 
+    var popIndex = parseInt(card.getProperty("PopularityIndex", "0"));
     for (var i = 0; i < currentResults._searchResults.length; ++i) {
       if (currentResults._searchResults[i].value.toLocaleLowerCase() ==
           lcEmailAddress)
       {
         // It's a duplicate, is the new one is more popular?
-        if (card.popularityIndex >
-            currentResults._searchResults[i].card.popularityIndex) {
+        if (popIndex > currentResults._searchResults[i].popularity) {
           // Yes it is, so delete this element, return false and allow
           // _addToResult to sort the new element into the correct place.
           currentResults._searchResults.splice(i, 1);
@@ -181,7 +185,7 @@ nsAbAutoCompleteSearch.prototype = {
     var emailAddress =
       this._parser.makeFullAddress(card.displayName,
                                    card.isMailList ?
-                                   card.notes || card.displayName :
+                                   card.getProperty("Notes", "") || card.displayName :
                                    card.primaryEmail);
 
     // The old code used to try it manually. I think if the parser can't work
@@ -197,24 +201,26 @@ nsAbAutoCompleteSearch.prototype = {
 
     // Find out where to insert the card.
     var insertPosition = 0;
-    var cardPopularityIndex = card.popularityIndex;
+    // Hack - mork adds in as a string, but we want to get as an integer...
+    var cardPopularityIndex = parseInt(card.getProperty("PopularityIndex", "0"));
 
     while (insertPosition < result._searchResults.length &&
            cardPopularityIndex <
-           result._searchResults[insertPosition].card.popularityIndex)
+           result._searchResults[insertPosition].popularity)
       ++insertPosition;
 
     // Next sort on full address
     while (insertPosition < result._searchResults.length &&
            cardPopularityIndex ==
-           result._searchResults[insertPosition].card.popularityIndex &&
+           result._searchResults[insertPosition].popularity &&
            emailAddress > result._searchResults[insertPosition].value)
       ++insertPosition;
 
     result._searchResults.splice(insertPosition, 0, {
       value: emailAddress,
       comment: commentColumn,
-      card: card
+      card: card,
+      popularity: cardPopularityIndex
     });
   },
 
@@ -269,7 +275,8 @@ nsAbAutoCompleteSearch.prototype = {
           result._searchResults.push({
             value: aPreviousResult.getValueAt(i),
             comment: aPreviousResult.getCommentAt(i),
-            card: aPreviousResult.getCardAt(i)
+            card: aPreviousResult.getCardAt(i),
+            popularity: parseInt(aPreviousResult.getCardAt(i).getProperty("PopularityIndex", "0"))
           });
       }
     }

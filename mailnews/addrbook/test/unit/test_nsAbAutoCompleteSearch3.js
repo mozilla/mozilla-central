@@ -58,7 +58,7 @@ function run_test()
 
     card.primaryEmail = element.email;
     card.displayName = element.displayName;
-    card.popularityIndex = element.popularityIndex;
+    card.setProperty("PopularityIndex", element.popularityIndex);
     card.firstName = element.firstName;
 
     ab.addCard(card);

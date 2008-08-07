@@ -39,29 +39,18 @@
 #ifndef nsAbMDBCard_h__
 #define nsAbMDBCard_h__
 
-#include "nsIAbMDBCard.h"
 #include "nsAbCardProperty.h"
 #include "nsCOMPtr.h"
-#include "nsIAddrDatabase.h"
 
-class nsAbMDBCard: public nsIAbMDBCard,
-                   public nsAbCardProperty
+class nsAbMDBCard: public nsAbCardProperty
 {
 public:
   NS_DECL_ISUPPORTS_INHERITED
-  NS_DECL_NSIABMDBCARD
 
   nsAbMDBCard(void);
   virtual ~nsAbMDBCard(void);
 
   NS_IMETHOD Equals(nsIAbCard *card, PRBool *result);
-
-protected:
-  PRUint32 m_key;
-  PRUint32 m_dbTableID;
-  PRUint32 m_dbRowID;
-
-  nsCOMPtr<nsIAddrDatabase> mCardDatabase;
 };
 
 #endif

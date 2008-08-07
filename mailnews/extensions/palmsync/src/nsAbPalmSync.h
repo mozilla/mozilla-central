@@ -140,7 +140,7 @@ protected:
 
     // utility function
     nsresult AddToListForPalm(nsAbIPCCard & ipcCard);
-    void ConvertAssignPalmIDAttrib(PRUint32 id, nsIAbMDBCard * card);
+    void ConvertAssignPalmIDAttrib(PRUint32 id, nsIAbCard * card);
     nsresult GetABInterface();
     nsresult UpdateABInfo(PRUint32 modTime, PRInt32 categoryId);
     nsresult ModifyAB(const char * ABUrl, const nsString &aAbName,

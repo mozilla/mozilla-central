@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Mark Banner <mark@standard8.demon.co.uk>
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -45,7 +46,6 @@
 #include "nsRDFCID.h"
 #include "nsUnicharUtils.h"
 #include "nsAbBaseCID.h"
-#include "nsIAbMDBCard.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
@@ -64,6 +64,8 @@
 #include "nsIFile.h"
 #include "nsEmbedCID.h"
 #include "nsXPCOMCIDInternal.h"
+#include "nsIProperty.h"
+#include "nsIVariant.h"
 
 #define ID_PAB_TABLE            1
 #define ID_DELETEDCARDS_TABLE           2
@@ -85,6 +87,7 @@ static const char kDataRowScope[] = "ns:addrbk:db:row:scope:data:all";
 
 static const char kRecordKeyColumn[] = "RecordKey";
 static const char kLastRecordKeyColumn[] = "LastRecordKey";
+static const char kRowIDProperty[] = "DbRowID";
 
 static const char kMailListTotalLists[] = "ListTotalLists";    // total number of mail list in a mailing list
 static const char kLowerListNameColumn[] = "LowercaseListName";
@@ -1122,62 +1125,60 @@ nsresult nsAddrDatabase::InitMDBInfo()
     gAddressBookTableOID.mOid_Id = ID_PAB_TABLE;
     if (NS_SUCCEEDED(err))
     {
-      m_mdbStore->StringToToken(m_mdbEnv,  kFirstNameColumn, &m_FirstNameColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kLastNameColumn, &m_LastNameColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kPhoneticFirstNameColumn, &m_PhoneticFirstNameColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kPhoneticLastNameColumn, &m_PhoneticLastNameColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kDisplayNameColumn, &m_DisplayNameColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kNicknameColumn, &m_NickNameColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kPriEmailColumn, &m_PriEmailColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kFirstNameProperty, &m_FirstNameColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kLastNameProperty, &m_LastNameColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kPhoneticFirstNameProperty, &m_PhoneticFirstNameColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kPhoneticLastNameProperty, &m_PhoneticLastNameColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kDisplayNameProperty, &m_DisplayNameColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kNicknameProperty, &m_NickNameColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kPriEmailProperty, &m_PriEmailColumnToken);
       m_mdbStore->StringToToken(m_mdbEnv,  kLowerPriEmailColumn, &m_LowerPriEmailColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  k2ndEmailColumn, &m_2ndEmailColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kPreferMailFormatColumn, &m_MailFormatColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kPopularityIndexColumn, &m_PopularityIndexColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kAllowRemoteContentColumn, &m_AllowRemoteContentColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWorkPhoneColumn, &m_WorkPhoneColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kHomePhoneColumn, &m_HomePhoneColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kFaxColumn, &m_FaxColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kPagerColumn, &m_PagerColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kCellularColumn, &m_CellularColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWorkPhoneTypeColumn, &m_WorkPhoneTypeColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kHomePhoneTypeColumn, &m_HomePhoneTypeColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kFaxTypeColumn, &m_FaxTypeColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kPagerTypeColumn, &m_PagerTypeColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kCellularTypeColumn, &m_CellularTypeColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kHomeAddressColumn, &m_HomeAddressColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kHomeAddress2Column, &m_HomeAddress2ColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kHomeCityColumn, &m_HomeCityColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kHomeStateColumn, &m_HomeStateColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kHomeZipCodeColumn, &m_HomeZipCodeColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kHomeCountryColumn, &m_HomeCountryColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWorkAddressColumn, &m_WorkAddressColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWorkAddress2Column, &m_WorkAddress2ColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWorkCityColumn, &m_WorkCityColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWorkStateColumn, &m_WorkStateColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWorkZipCodeColumn, &m_WorkZipCodeColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWorkCountryColumn, &m_WorkCountryColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kJobTitleColumn, &m_JobTitleColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kDepartmentColumn, &m_DepartmentColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kCompanyColumn, &m_CompanyColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kAimScreenNameColumn, &m_AimScreenNameColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kAnniversaryYearColumn, &m_AnniversaryYearColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kAnniversaryMonthColumn, &m_AnniversaryMonthColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kAnniversaryDayColumn, &m_AnniversaryDayColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kSpouseNameColumn, &m_SpouseNameColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kFamilyNameColumn, &m_FamilyNameColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kDefaultAddressColumn, &m_DefaultAddressColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kCategoryColumn, &m_CategoryColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWebPage1Column, &m_WebPage1ColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kWebPage2Column, &m_WebPage2ColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kBirthYearColumn, &m_BirthYearColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kBirthMonthColumn, &m_BirthMonthColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kBirthDayColumn, &m_BirthDayColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kCustom1Column, &m_Custom1ColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kCustom2Column, &m_Custom2ColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kCustom3Column, &m_Custom3ColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kCustom4Column, &m_Custom4ColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kNotesColumn, &m_NotesColumnToken);
-      m_mdbStore->StringToToken(m_mdbEnv,  kLastModifiedDateColumn, &m_LastModDateColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  k2ndEmailProperty, &m_2ndEmailColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kPreferMailFormatProperty, &m_MailFormatColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kPopularityIndexProperty, &m_PopularityIndexColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kAllowRemoteContentProperty, &m_AllowRemoteContentColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kWorkPhoneProperty, &m_WorkPhoneColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kHomePhoneProperty, &m_HomePhoneColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kFaxProperty, &m_FaxColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kPagerProperty, &m_PagerColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kCellularProperty, &m_CellularColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kWorkPhoneTypeProperty, &m_WorkPhoneTypeColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kHomePhoneTypeProperty, &m_HomePhoneTypeColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kFaxTypeProperty, &m_FaxTypeColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kPagerTypeProperty, &m_PagerTypeColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kCellularTypeProperty, &m_CellularTypeColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kHomeAddressProperty, &m_HomeAddressColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kHomeAddress2Property, &m_HomeAddress2ColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kHomeCityProperty, &m_HomeCityColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kHomeStateProperty, &m_HomeStateColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kHomeZipCodeProperty, &m_HomeZipCodeColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kHomeCountryProperty, &m_HomeCountryColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kWorkAddressProperty, &m_WorkAddressColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kWorkAddress2Property, &m_WorkAddress2ColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kWorkCityProperty, &m_WorkCityColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kWorkStateProperty, &m_WorkStateColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kWorkZipCodeProperty, &m_WorkZipCodeColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kWorkCountryProperty, &m_WorkCountryColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kJobTitleProperty, &m_JobTitleColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kDepartmentProperty, &m_DepartmentColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kCompanyProperty, &m_CompanyColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kScreenNameProperty, &m_AimScreenNameColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kAnniversaryYearProperty, &m_AnniversaryYearColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kAnniversaryMonthProperty, &m_AnniversaryMonthColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kAnniversaryDayProperty, &m_AnniversaryDayColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kSpouseNameProperty, &m_SpouseNameColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kFamilyNameProperty, &m_FamilyNameColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kWorkWebPageProperty, &m_WebPage1ColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kHomeWebPageProperty, &m_WebPage2ColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kBirthYearProperty, &m_BirthYearColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kBirthMonthProperty, &m_BirthMonthColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kBirthDayProperty, &m_BirthDayColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kCustom1Property, &m_Custom1ColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kCustom2Property, &m_Custom2ColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kCustom3Property, &m_Custom3ColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kCustom4Property, &m_Custom4ColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kNotesProperty, &m_NotesColumnToken);
+      m_mdbStore->StringToToken(m_mdbEnv,  kLastModifiedDateProperty, &m_LastModDateColumnToken);
       m_mdbStore->StringToToken(m_mdbEnv,  kRecordKeyColumn, &m_RecordKeyColumnToken);
       m_mdbStore->StringToToken(m_mdbEnv,  kAddressCharSetColumn, &m_AddressCharSetColumnToken);
       m_mdbStore->StringToToken(m_mdbEnv,  kLastRecordKeyColumn, &m_LastRecordKeyColumnToken);
@@ -1214,195 +1215,54 @@ nsresult nsAddrDatabase::AddRecordKeyColumnToRow(nsIMdbRow *pRow)
 
 nsresult nsAddrDatabase::AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *cardRow)
 {
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
 
   if ((!card && !cardRow) || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
 
-  mdbOid rowOid, tableOid;
-  m_mdbPabTable->GetOid(m_mdbEnv, &tableOid);
+  mdbOid rowOid;
   cardRow->GetOid(m_mdbEnv, &rowOid);
 
-  nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(card, &err));
-  if(NS_SUCCEEDED(err) && dbcard)
-  {
-    dbcard->SetDbTableID(tableOid.mOid_Id);
-    dbcard->SetDbRowID(rowOid.mOid_Id);
-  }
+  card->SetPropertyAsUint32(kRowIDProperty, rowOid.mOid_Id);
+
   // add the row to the singleton table.
   if (card && cardRow)
   {
-    nsString unicodeStr;
-    card->GetFirstName(unicodeStr);
-    AddFirstName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
+    nsCOMPtr<nsISimpleEnumerator> properties;
+    rv = card->GetProperties(getter_AddRefs(properties));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    card->GetLastName(unicodeStr);
-    AddLastName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
+    PRBool hasMore;
+    while (NS_SUCCEEDED(properties->HasMoreElements(&hasMore)) && hasMore)
+    {
+      nsCOMPtr<nsISupports> next;
+      rv = properties->GetNext(getter_AddRefs(next));
+      NS_ENSURE_SUCCESS(rv, rv);
 
-    card->GetPhoneticFirstName(unicodeStr);
-    AddPhoneticFirstName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
+      nsCOMPtr<nsIProperty> prop = do_QueryInterface(next);
+      nsAutoString name;
+      prop->GetName(name);
 
-    card->GetPhoneticLastName(unicodeStr);
-    AddPhoneticLastName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
+      nsCOMPtr<nsIVariant> variant;
+      prop->GetValue(getter_AddRefs(variant));
+      
+      // We can't get as a char * because that messes up UTF8 stuff
+      nsCAutoString value;
+      variant->GetAsAUTF8String(value);
 
-    card->GetDisplayName(unicodeStr);
-    AddDisplayName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
+      mdb_token token;
+      rv = m_mdbStore->StringToToken(m_mdbEnv, NS_ConvertUTF16toUTF8(name).get(), &token);
+      NS_ENSURE_SUCCESS(rv, rv);
+ 
+      rv = AddCharStringColumn(cardRow, token, value.get());
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
 
-    card->GetNickName(unicodeStr);
-    AddNickName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetPrimaryEmail(unicodeStr);
-    if (!unicodeStr.IsEmpty())
-      AddUnicodeToColumn(cardRow, m_PriEmailColumnToken, m_LowerPriEmailColumnToken, unicodeStr.get());
-
-    card->GetSecondEmail(unicodeStr);
-    Add2ndEmail(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    PRUint32 format = nsIAbPreferMailFormat::unknown;
-    card->GetPreferMailFormat(&format);
-    AddPreferMailFormat(cardRow, format);
-
-    PRUint32 popularityIndex = 0;
-    card->GetPopularityIndex(&popularityIndex);
-    AddPopularityIndex(cardRow, popularityIndex);
-
-    PRBool allowRemoteContent = PR_FALSE;
-    card->GetAllowRemoteContent(&allowRemoteContent);
-    AddAllowRemoteContent(cardRow, allowRemoteContent);
-
-    card->GetWorkPhone(unicodeStr);
-    AddWorkPhone(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetHomePhone(unicodeStr);
-    AddHomePhone(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetFaxNumber(unicodeStr);
-    AddFaxNumber(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetPagerNumber(unicodeStr);
-    AddPagerNumber(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetCellularNumber(unicodeStr);
-    AddCellularNumber(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetWorkPhoneType(unicodeStr);
-    AddWorkPhoneType(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetHomePhoneType(unicodeStr);
-    AddHomePhoneType(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetFaxNumberType(unicodeStr);
-    AddFaxNumberType(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetPagerNumberType(unicodeStr);
-    AddPagerNumberType(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetCellularNumberType(unicodeStr);
-    AddCellularNumberType(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetHomeAddress(unicodeStr);
-    AddHomeAddress(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetHomeAddress2(unicodeStr);
-    AddHomeAddress2(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetHomeCity(unicodeStr);
-    AddHomeCity(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetHomeState(unicodeStr);
-    AddHomeState(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetHomeZipCode(unicodeStr);
-    AddHomeZipCode(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetHomeCountry(unicodeStr);
-    AddHomeCountry(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetWorkAddress(unicodeStr);
-    AddWorkAddress(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetWorkAddress2(unicodeStr);
-    AddWorkAddress2(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetWorkCity(unicodeStr);
-    AddWorkCity(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetWorkState(unicodeStr);
-    AddWorkState(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetWorkZipCode(unicodeStr);
-    AddWorkZipCode(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetWorkCountry(unicodeStr);
-    AddWorkCountry(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetJobTitle(unicodeStr);
-    AddJobTitle(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetDepartment(unicodeStr);
-    AddDepartment(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetCompany(unicodeStr);
-    AddCompany(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    // AimScreenName
-    card->GetAimScreenName(unicodeStr);
-    AddAimScreenName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetAnniversaryYear(unicodeStr);
-    AddAnniversaryYear(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetAnniversaryMonth(unicodeStr);
-    AddAnniversaryMonth(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetAnniversaryDay(unicodeStr);
-    AddAnniversaryDay(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetSpouseName(unicodeStr);
-    AddSpouseName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetFamilyName(unicodeStr);
-    AddFamilyName(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetDefaultAddress(unicodeStr);
-    AddDefaultAddress(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetCategory(unicodeStr);
-    AddCategory(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetWebPage1(unicodeStr);
-    AddWebPage1(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetWebPage2(unicodeStr);
-    AddWebPage2(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetBirthYear(unicodeStr);
-    AddBirthYear(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetBirthMonth(unicodeStr);
-    AddBirthMonth(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetBirthDay(unicodeStr);
-    AddBirthDay(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetCustom1(unicodeStr);
-    AddCustom1(cardRow,NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetCustom2(unicodeStr);
-    AddCustom2(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetCustom3(unicodeStr);
-    AddCustom3(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetCustom4(unicodeStr);
-    AddCustom4(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    card->GetNotes(unicodeStr);
-    AddNotes(cardRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
-
-    PRUint32 lastModDate = 0;
-    card->GetLastModifiedDate(&lastModDate);
-    AddIntColumn(cardRow, m_LastModDateColumnToken, lastModDate);
+    // Primary email is special: it is stored lowercase as well as in its
+    // original format.
+    nsAutoString primaryEmail;
+    card->GetPrimaryEmail(primaryEmail);
+    AddPrimaryEmail(cardRow, NS_ConvertUTF16toUTF8(primaryEmail).get());
   }
 
   return NS_OK;
@@ -1424,11 +1284,8 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *aNewCard, PRBoo
     // we need to do this for dnd
     PRUint32 key = 0;
     rv = GetIntColumn(cardRow, m_RecordKeyColumnToken, &key, 0);
-    if (NS_SUCCEEDED(rv)) {
-      nsCOMPtr<nsIAbMDBCard> dbnewCard = do_QueryInterface(aNewCard);
-      if (dbnewCard)
-        dbnewCard->SetKey(key);
-    }
+    if (NS_SUCCEEDED(rv))
+      aNewCard->SetPropertyAsUint32(kRecordKeyColumn, key);
 
     mdb_err merror = m_mdbPabTable->AddRow(m_mdbEnv, cardRow);
     if (merror != NS_OK) return NS_ERROR_FAILURE;
@@ -1527,7 +1384,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     nsIMdbRow    *pCardRow = nsnull;
     // Please DO NOT change the 3rd param of GetRowFromAttribute() call to
     // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
-    err = GetRowFromAttribute(kPriEmailColumn, NS_ConvertUTF16toUTF8(email),
+    err = GetRowFromAttribute(kPriEmailProperty, NS_ConvertUTF16toUTF8(email),
                               PR_FALSE /* retain case */, &pCardRow);
     PRBool cardWasAdded = PR_FALSE;
     if (NS_FAILED(err) || !pCardRow)
@@ -1787,10 +1644,8 @@ NS_IMETHODIMP nsAddrDatabase::DeleteCard(nsIAbCard *aCard, PRBool aNotify, nsIAb
 
   rowOid.mOid_Scope = bIsMailList ? m_ListRowScopeToken : m_CardRowScopeToken;
 
-  nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(aCard, &err));
+  err = aCard->GetPropertyAsUint32(kRowIDProperty, &rowOid.mOid_Id);
   NS_ENSURE_SUCCESS(err, err);
-
-  dbcard->GetDbRowID((PRUint32*)&rowOid.mOid_Id);
 
   err = m_mdbStore->GetRow(m_mdbEnv, &rowOid, &pCardRow);
   NS_ENSURE_SUCCESS(err,err);
@@ -1894,10 +1749,9 @@ NS_IMETHODIMP nsAddrDatabase::DeleteCardFromMailList(nsIAbDirectory *mailList, n
 
   PRUint32 cardRowID;
 
-  nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(card, &err));
-  if(NS_FAILED(err) || !dbcard)
+  err = card->GetPropertyAsUint32(kRowIDProperty, &cardRowID);
+  if (NS_FAILED(err))
     return NS_ERROR_NULL_POINTER;
-  dbcard->GetDbRowID(&cardRowID);
 
   err = DeleteCardFromListRow(pListRow, cardRowID);
   if (NS_SUCCEEDED(err) && aNotify) {
@@ -1921,11 +1775,9 @@ NS_IMETHODIMP nsAddrDatabase::SetCardValue(nsIAbCard *card, const char *name, co
   mdbOid rowOid;
   rowOid.mOid_Scope = m_CardRowScopeToken;
 
-  // XXX todo
-  // it might be that the caller always has a nsIAbMDBCard
-  nsCOMPtr<nsIAbMDBCard> dbcard = do_QueryInterface(card, &rv);
+  // it might be that the caller always has a nsAbMDBCard
+  rv = card->GetPropertyAsUint32(kRowIDProperty, &rowOid.mOid_Id);
   NS_ENSURE_SUCCESS(rv, rv);
-  dbcard->GetDbRowID((PRUint32*)&rowOid.mOid_Id);
 
   rv = m_mdbStore->GetRow(m_mdbEnv, &rowOid, getter_AddRefs(cardRow));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1951,11 +1803,9 @@ NS_IMETHODIMP nsAddrDatabase::GetCardValue(nsIAbCard *card, const char *name, PR
   mdbOid rowOid;
   rowOid.mOid_Scope = m_CardRowScopeToken;
 
-  // XXX todo
-  // it might be that the caller always has a nsIAbMDBCard
-  nsCOMPtr<nsIAbMDBCard> dbcard = do_QueryInterface(card, &rv);
+  // it might be that the caller always has a nsAbMDBCard
+  rv = card->GetPropertyAsUint32(kRowIDProperty, &rowOid.mOid_Id);
   NS_ENSURE_SUCCESS(rv, rv);
-  dbcard->GetDbRowID((PRUint32*)&rowOid.mOid_Id);
 
   rv = m_mdbStore->GetRow(m_mdbEnv, &rowOid, getter_AddRefs(cardRow));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -2100,10 +1950,9 @@ NS_IMETHODIMP nsAddrDatabase::EditCard(nsIAbCard *aCard, PRBool aNotify, nsIAbDi
   PRUint32 nowInSeconds;
   PRTime now = PR_Now();
   PRTime2Seconds(now, &nowInSeconds);
-  aCard->SetLastModifiedDate(nowInSeconds);
-  nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(aCard, &err));
+  aCard->SetPropertyAsUint32(kLastModifiedDateProperty, nowInSeconds);
+  err = aCard->GetPropertyAsUint32(kRowIDProperty, &rowOid.mOid_Id);
   NS_ENSURE_SUCCESS(err, err);
-  dbcard->GetDbRowID((PRUint32*)&rowOid.mOid_Id);
 
   err = m_mdbStore->GetRow(m_mdbEnv, &rowOid, getter_AddRefs(cardRow));
   NS_ENSURE_SUCCESS(err, err);
@@ -2137,9 +1986,8 @@ NS_IMETHODIMP nsAddrDatabase::ContainsCard(nsIAbCard *card, PRBool *hasCard)
     else
         rowOid.mOid_Scope = m_CardRowScopeToken;
 
-    nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(card, &err));
+    err = card->GetPropertyAsUint32(kRowIDProperty, &rowOid.mOid_Id);
     NS_ENSURE_SUCCESS(err, err);
-    dbcard->GetDbRowID((PRUint32*)&rowOid.mOid_Id);
 
     err = m_mdbPabTable->HasOid(m_mdbEnv, &rowOid, &hasOid);
     if (NS_SUCCEEDED(err))
@@ -2282,7 +2130,7 @@ NS_IMETHODIMP nsAddrDatabase::AddLdifListMember(nsIMdbRow* listRow, const char* 
   nsCOMPtr <nsIMdbRow> cardRow;
   // Please DO NOT change the 3rd param of GetRowFromAttribute() call to
   // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
-  nsresult rv = GetRowFromAttribute(kPriEmailColumn, email, PR_FALSE /* retain case */,
+  nsresult rv = GetRowFromAttribute(kPriEmailProperty, email, PR_FALSE /* retain case */,
                                     getter_AddRefs(cardRow));
   if (NS_SUCCEEDED(rv) && cardRow)
   {
@@ -2537,325 +2385,54 @@ nsresult nsAddrDatabase::AddLowercaseColumn
 
 NS_IMETHODIMP nsAddrDatabase::InitCardFromRow(nsIAbCard *newCard, nsIMdbRow* cardRow)
 {
-    nsresult    err = NS_OK;
-    if (!newCard || !cardRow)
-        return NS_ERROR_NULL_POINTER;
+  nsresult rv = NS_OK;
+  if (!newCard || !cardRow || !m_mdbEnv)
+    return NS_ERROR_NULL_POINTER;
 
-  nsAutoString tempString;
+  nsCOMPtr<nsIMdbRowCellCursor> cursor;
+  nsCOMPtr<nsIMdbCell> cell;
 
-  // FIX ME
-  // there is no reason to set / copy all these attributes on the card, when we'll never even
-  // ask for them.
-    err = GetStringColumn(cardRow, m_FirstNameColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
+  rv = cardRow->GetRowCellCursor(m_mdbEnv, -1, getter_AddRefs(cursor));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  mdb_column columnNumber;
+  char columnName[100];
+  struct mdbYarn colYarn = {columnName, 0, sizeof(columnName), 0, 0, nsnull};
+  struct mdbYarn cellYarn;
+
+  do
+  {
+    rv = cursor->NextCell(m_mdbEnv, getter_AddRefs(cell), &columnNumber, nsnull);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (!cell)
+      break;
+
+    // Get the value of the cell
+    cell->AliasYarn(m_mdbEnv, &cellYarn);
+    NS_ConvertUTF8toUTF16 value(static_cast<const char*>(cellYarn.mYarn_Buf),
+        cellYarn.mYarn_Fill);
+
+    if (!value.IsEmpty())
     {
-        newCard->SetFirstName(tempString);
+      // Get the column of the cell
+      // Mork makes this so hard...
+      rv = m_mdbStore->TokenToString(m_mdbEnv, columnNumber, &colYarn);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      char *name = PL_strndup(static_cast<char *>(colYarn.mYarn_Buf),
+          colYarn.mYarn_Fill);
+      newCard->SetPropertyAsAString(name, value);
+      PL_strfree(name);
     }
+  } while (true);
+ 
+  PRUint32 key = 0;
+  rv = GetIntColumn(cardRow, m_RecordKeyColumnToken, &key, 0);
+  if (NS_SUCCEEDED(rv))
+    newCard->SetPropertyAsUint32(kRecordKeyColumn, key);
 
-    err = GetStringColumn(cardRow, m_LastNameColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetLastName(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_PhoneticFirstNameColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetPhoneticFirstName(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_PhoneticLastNameColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetPhoneticLastName(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_DisplayNameColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetDisplayName(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_NickNameColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetNickName(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_PriEmailColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetPrimaryEmail(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_2ndEmailColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetSecondEmail(tempString);
-    }
-
-    PRUint32 format = nsIAbPreferMailFormat::unknown;
-    err = GetIntColumn(cardRow, m_MailFormatColumnToken, &format, 0);
-    if (NS_SUCCEEDED(err))
-        newCard->SetPreferMailFormat(format);
-
-    PRUint32 popularityIndex = 0;
-    err = GetIntColumn(cardRow, m_PopularityIndexColumnToken, &popularityIndex, 0);
-    if (NS_SUCCEEDED(err))
-        newCard->SetPopularityIndex(popularityIndex);
-
-    PRBool allowRemoteContent;
-    err = GetBoolColumn(cardRow, m_AllowRemoteContentColumnToken, &allowRemoteContent);
-    if (NS_SUCCEEDED(err))
-        newCard->SetAllowRemoteContent(allowRemoteContent);
-
-    err = GetStringColumn(cardRow, m_WorkPhoneColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetWorkPhone(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_HomePhoneColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetHomePhone(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_FaxColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetFaxNumber(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_PagerColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetPagerNumber(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_CellularColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetCellularNumber(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_WorkPhoneTypeColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetWorkPhoneType(tempString);
-
-    err = GetStringColumn(cardRow, m_HomePhoneTypeColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetHomePhoneType(tempString);
-
-    err = GetStringColumn(cardRow, m_FaxTypeColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetFaxNumberType(tempString);
-
-    err = GetStringColumn(cardRow, m_PagerTypeColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetPagerNumberType(tempString);
-
-    err = GetStringColumn(cardRow, m_CellularTypeColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetCellularNumberType(tempString);
-
-    err = GetStringColumn(cardRow, m_HomeAddressColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetHomeAddress(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_HomeAddress2ColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetHomeAddress2(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_HomeCityColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetHomeCity(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_HomeStateColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetHomeState(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_HomeZipCodeColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetHomeZipCode(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_HomeCountryColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetHomeCountry(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_WorkAddressColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetWorkAddress(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_WorkAddress2ColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetWorkAddress2(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_WorkCityColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetWorkCity(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_WorkStateColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetWorkState(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_WorkZipCodeColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetWorkZipCode(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_WorkCountryColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetWorkCountry(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_JobTitleColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetJobTitle(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_DepartmentColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetDepartment(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_CompanyColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetCompany(tempString);
-    }
-
-    // AimScreenName
-    err = GetStringColumn(cardRow, m_AimScreenNameColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetAimScreenName(tempString);
-
-    err = GetStringColumn(cardRow, m_AnniversaryYearColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetAnniversaryYear(tempString);
-
-    err = GetStringColumn(cardRow, m_AnniversaryMonthColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetAnniversaryMonth(tempString);
-
-    err = GetStringColumn(cardRow, m_AnniversaryDayColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetAnniversaryDay(tempString);
-
-    err = GetStringColumn(cardRow, m_SpouseNameColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetSpouseName(tempString);
-
-    err = GetStringColumn(cardRow, m_FamilyNameColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetFamilyName(tempString);
-
-    err = GetStringColumn(cardRow, m_DefaultAddressColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetDefaultAddress(tempString);
-
-    err = GetStringColumn(cardRow, m_CategoryColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-        newCard->SetCategory(tempString);
-
-    err = GetStringColumn(cardRow, m_WebPage1ColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetWebPage1(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_WebPage2ColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetWebPage2(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_BirthYearColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetBirthYear(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_BirthMonthColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetBirthMonth(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_BirthDayColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetBirthDay(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_Custom1ColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetCustom1(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_Custom2ColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetCustom2(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_Custom3ColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetCustom3(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_Custom4ColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetCustom4(tempString);
-    }
-
-    err = GetStringColumn(cardRow, m_NotesColumnToken, tempString);
-    if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
-    {
-        newCard->SetNotes(tempString);
-    }
-    PRUint32 lastModDate = 0;
-    err = GetIntColumn(cardRow, m_LastModDateColumnToken, &lastModDate, 0);
-    if (NS_SUCCEEDED(err))
-      newCard->SetLastModifiedDate(lastModDate);
-
-    PRUint32 key = 0;
-    err = GetIntColumn(cardRow, m_RecordKeyColumnToken, &key, 0);
-    if (NS_SUCCEEDED(err))
-    {
-        nsCOMPtr<nsIAbMDBCard> dbnewCard(do_QueryInterface(newCard, &err));
-        if (NS_SUCCEEDED(err) && dbnewCard)
-            dbnewCard->SetKey(key);
-    }
-
-    return err;
+  return NS_OK;
 }
 
 nsresult nsAddrDatabase::GetListCardFromDB(nsIAbCard *listCard, nsIMdbRow* listRow)
@@ -2875,21 +2452,17 @@ nsresult nsAddrDatabase::GetListCardFromDB(nsIAbCard *listCard, nsIMdbRow* listR
     err = GetStringColumn(listRow, m_ListNickNameColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        listCard->SetNickName(tempString);
+        listCard->SetPropertyAsAString(kNicknameProperty, tempString);
     }
     err = GetStringColumn(listRow, m_ListDescriptionColumnToken, tempString);
     if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
     {
-        listCard->SetNotes(tempString);
+        listCard->SetPropertyAsAString(kNotesProperty, tempString);
     }
     PRUint32 key = 0;
     err = GetIntColumn(listRow, m_RecordKeyColumnToken, &key, 0);
     if (NS_SUCCEEDED(err))
-    {
-        nsCOMPtr<nsIAbMDBCard> dblistCard(do_QueryInterface(listCard, &err));
-        if (NS_SUCCEEDED(err) && dblistCard)
-            dblistCard->SetKey(key);
-    }
+      listCard->SetPropertyAsUint32(kRecordKeyColumn, key);
     return err;
 }
 
@@ -3273,18 +2846,8 @@ nsresult nsAddrDatabase::CreateCardFromDeletedCardsTable(nsIMdbRow* cardRow, mdb
         personCard = do_CreateInstance(NS_ABMDBCARD_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        nsCOMPtr<nsIAbMDBCard> dbpersonCard (do_QueryInterface(personCard, &rv));
-
-        if (NS_SUCCEEDED(rv) && dbpersonCard)
-        {
-            InitCardFromRow(personCard, cardRow);
-            mdbOid tableOid;
-            m_mdbDeletedCardsTable->GetOid(m_mdbEnv, &tableOid);
-
-            dbpersonCard->SetDbTableID(tableOid.mOid_Id);
-            dbpersonCard->SetDbRowID(rowID);
-            dbpersonCard->SetAbDatabase(this);
-        }
+        InitCardFromRow(personCard, cardRow);
+        personCard->SetPropertyAsUint32(kRowIDProperty, rowID);
 
         NS_IF_ADDREF(*result = personCard);
     }
@@ -3311,18 +2874,8 @@ nsresult nsAddrDatabase::CreateCard(nsIMdbRow* cardRow, mdb_id listRowID, nsIAbC
       personCard = do_CreateInstance(NS_ABMDBCARD_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv,rv);
 
-        nsCOMPtr<nsIAbMDBCard> dbpersonCard (do_QueryInterface(personCard, &rv));
-
-        if (NS_SUCCEEDED(rv) && dbpersonCard)
-        {
-            InitCardFromRow(personCard, cardRow);
-            mdbOid tableOid;
-            m_mdbPabTable->GetOid(m_mdbEnv, &tableOid);
-
-            dbpersonCard->SetDbTableID(tableOid.mOid_Id);
-            dbpersonCard->SetDbRowID(rowID);
-            dbpersonCard->SetAbDatabase(this);
-        }
+        InitCardFromRow(personCard, cardRow);
+        personCard->SetPropertyAsUint32(kRowIDProperty, rowID);
 
         NS_IF_ADDREF(*result = personCard);
     }
@@ -3366,16 +2919,8 @@ nsresult nsAddrDatabase::CreateABListCard(nsIMdbRow* listRow, nsIAbCard **result
         if (personCard)
         {
             GetListCardFromDB(personCard, listRow);
-            mdbOid tableOid;
-            m_mdbPabTable->GetOid(m_mdbEnv, &tableOid);
 
-            nsCOMPtr<nsIAbMDBCard> dbpersonCard(do_QueryInterface(personCard, &rv));
-      if (NS_SUCCEEDED(rv) && dbpersonCard)
-      {
-              dbpersonCard->SetDbTableID(tableOid.mOid_Id);
-              dbpersonCard->SetDbRowID(rowID);
-              dbpersonCard->SetAbDatabase(this);
-      }
+            personCard->SetPropertyAsUint32(kRowIDProperty, rowID);
             personCard->SetIsMailList(PR_TRUE);
             personCard->SetMailListURI(listURI);
         }

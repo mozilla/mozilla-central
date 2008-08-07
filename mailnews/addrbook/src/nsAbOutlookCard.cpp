@@ -109,27 +109,27 @@ nsresult nsAbOutlookCard::Init(const char *aUri)
         SetFirstName(*unichars[index_FirstName]);
         SetLastName(*unichars[index_LastName]);
         SetDisplayName(*unichars[index_DisplayName]);
-        SetNickName(*unichars[index_NickName]);
         SetPrimaryEmail(*unichars[index_EmailAddress]);
-        SetWorkPhone(*unichars[index_WorkPhoneNumber]);
-        SetHomePhone(*unichars[index_HomePhoneNumber]);
-        SetFaxNumber(*unichars[index_WorkFaxNumber]);
-        SetPagerNumber(*unichars[index_PagerNumber]);
-        SetCellularNumber(*unichars[index_MobileNumber]);
-        SetHomeCity(*unichars[index_HomeCity]);
-        SetHomeState(*unichars[index_HomeState]);
-        SetHomeZipCode(*unichars[index_HomeZip]);
-        SetHomeCountry(*unichars[index_HomeCountry]);
-        SetWorkCity(*unichars[index_WorkCity]);
-        SetWorkState(*unichars[index_WorkState]);
-        SetWorkZipCode(*unichars[index_WorkZip]);
-        SetWorkCountry(*unichars[index_WorkCountry]);
-        SetJobTitle(*unichars[index_JobTitle]);
-        SetDepartment(*unichars[index_Department]);
-        SetCompany(*unichars[index_Company]);
-        SetWebPage1(*unichars[index_WorkWebPage]);
-        SetWebPage2(*unichars[index_HomeWebPage]);
-        SetNotes(*unichars[index_Comments]);
+        SetPropertyAsAString(kNicknameProperty, *unichars[index_NickName]);
+        SetPropertyAsAString(kWorkPhoneProperty, *unichars[index_WorkPhoneNumber]);
+        SetPropertyAsAString(kHomePhoneProperty, *unichars[index_HomePhoneNumber]);
+        SetPropertyAsAString(kFaxProperty, *unichars[index_WorkFaxNumber]);
+        SetPropertyAsAString(kPagerProperty, *unichars[index_PagerNumber]);
+        SetPropertyAsAString(kCellularProperty, *unichars[index_MobileNumber]);
+        SetPropertyAsAString(kHomeCityProperty, *unichars[index_HomeCity]);
+        SetPropertyAsAString(kHomeStateProperty, *unichars[index_HomeState]);
+        SetPropertyAsAString(kHomeZipCodeProperty, *unichars[index_HomeZip]);
+        SetPropertyAsAString(kHomeCountryProperty, *unichars[index_HomeCountry]);
+        SetPropertyAsAString(kWorkCityProperty, *unichars[index_WorkCity]);
+        SetPropertyAsAString(kWorkStateProperty, *unichars[index_WorkState]);
+        SetPropertyAsAString(kWorkZipCodeProperty, *unichars[index_WorkZip]);
+        SetPropertyAsAString(kWorkCountryProperty, *unichars[index_WorkCountry]);
+        SetPropertyAsAString(kJobTitleProperty, *unichars[index_JobTitle]);
+        SetPropertyAsAString(kDepartmentProperty, *unichars[index_Department]);
+        SetPropertyAsAString(kCompanyProperty, *unichars[index_Company]);
+        SetPropertyAsAString(kWorkWebPageProperty, *unichars[index_WorkWebPage]);
+        SetPropertyAsAString(kHomeWebPageProperty, *unichars[index_HomeWebPage]);
+        SetPropertyAsAString(kNotesProperty, *unichars[index_Comments]);
     }
     ULONG cardType = 0 ;
     nsCAutoString normalChars ;
@@ -146,14 +146,14 @@ nsresult nsAbOutlookCard::Init(const char *aUri)
     nsAutoString unicharBis ;
 
     if (mapiAddBook->GetPropertyUString(*mMapiData, PR_HOME_ADDRESS_STREET_W, unichar)) {
-        splitString(unichar, unicharBis) ;
-        SetHomeAddress(unichar) ;
-        SetHomeAddress2(unicharBis) ;
+        splitString(unichar, unicharBis);
+        SetPropertyAsAString(kHomeAddressProperty, unichar);
+        SetPropertyAsAString(kHomeAddress2Property, unicharBis);
     }
     if (mapiAddBook->GetPropertyUString(*mMapiData, PR_BUSINESS_ADDRESS_STREET_W, unichar)) {
-        splitString(unichar, unicharBis) ;
-        SetWorkAddress(unichar) ;
-        SetWorkAddress2(unicharBis) ;
+        splitString(unichar, unicharBis);
+        SetPropertyAsAString(kWorkAddressProperty, unichar);
+        SetPropertyAsAString(kWorkAddress2Property, unicharBis);
     }
     WORD year = 0 ;
     WORD month = 0 ;
@@ -161,11 +161,11 @@ nsresult nsAbOutlookCard::Init(const char *aUri)
 
     if (mapiAddBook->GetPropertyDate(*mMapiData, PR_BIRTHDAY, year, month, day)) {
         wordToUnicode(year, unichar);
-        SetBirthYear(unichar);
+        SetPropertyAsAString(kBirthYearProperty, unichar);
         wordToUnicode(month, unichar);
-        SetBirthMonth(unichar);
+        SetPropertyAsAString(kBirthMonthProperty, unichar);
         wordToUnicode(day, unichar);
-        SetBirthDay(unichar);
+        SetPropertyAsAString(kBirthDayProperty, unichar);
     }
     return retCode ;
 }

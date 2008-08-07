@@ -57,7 +57,6 @@ struct nsAbOSXPropertyMap
     NSString * const mOSXProperty;
     NSString * const mOSXLabel;
     NSString * const mOSXKey;
-    nsString nsAbCardProperty::*mProperty;
     const char *mPropertyName;
 };
 

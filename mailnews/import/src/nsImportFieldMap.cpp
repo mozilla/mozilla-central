@@ -423,103 +423,103 @@ NS_IMETHODIMP nsImportFieldMap::GetFieldValue(nsIAbCard *card, PRInt32 fieldNum,
     rv = card->GetDisplayName(value);
     break;
   case 3:
-    rv = card->GetNickName(value);
+    rv = card->GetPropertyAsAString(kNicknameProperty, value);
     break;
   case 4:
     rv = card->GetPrimaryEmail(value);
     break;
   case 5:
-    rv = card->GetSecondEmail(value);
+    rv = card->GetPropertyAsAString(k2ndEmailProperty, value);
     break;
   case 6:
-    rv = card->GetWorkPhone(value);
+    rv = card->GetPropertyAsAString(kWorkPhoneProperty, value);
     break;
   case 7:
-    rv = card->GetHomePhone(value);
+    rv = card->GetPropertyAsAString(kHomePhoneProperty, value);
     break;
   case 8:
-    rv = card->GetFaxNumber(value);
+    rv = card->GetPropertyAsAString(kFaxProperty, value);
     break;
   case 9:
-    rv = card->GetPagerNumber(value);
+    rv = card->GetPropertyAsAString(kPagerProperty, value);
     break;
   case 10:
-    rv = card->GetCellularNumber(value);
+    rv = card->GetPropertyAsAString(kCellularProperty, value);
     break;
   case 11:
-    rv = card->GetHomeAddress(value);
+    rv = card->GetPropertyAsAString(kHomeAddressProperty, value);
     break;
   case 12:
-    rv = card->GetHomeAddress2(value);
+    rv = card->GetPropertyAsAString(kHomeAddress2Property, value);
     break;
   case 13:
-    rv = card->GetHomeCity(value);
+    rv = card->GetPropertyAsAString(kHomeCityProperty, value);
     break;
   case 14:
-    rv = card->GetHomeState(value);
+    rv = card->GetPropertyAsAString(kHomeStateProperty, value);
     break;
   case 15:
-    rv = card->GetHomeZipCode(value);
+    rv = card->GetPropertyAsAString(kHomeZipCodeProperty, value);
     break;
   case 16:
-    rv = card->GetHomeCountry(value);
+    rv = card->GetPropertyAsAString(kHomeCountryProperty, value);
     break;
   case 17:
-    rv = card->GetWorkAddress(value);
+    rv = card->GetPropertyAsAString(kWorkAddressProperty, value);
     break;
   case 18:
-    rv = card->GetWorkAddress2(value);
+    rv = card->GetPropertyAsAString(kWorkAddress2Property, value);
     break;
   case 19:
-    rv = card->GetWorkCity(value);
+    rv = card->GetPropertyAsAString(kWorkCityProperty, value);
     break;
   case 20:
-    rv = card->GetWorkState(value);
+    rv = card->GetPropertyAsAString(kWorkStateProperty, value);
     break;
   case 21:
-    rv = card->GetWorkZipCode(value);
+    rv = card->GetPropertyAsAString(kWorkZipCodeProperty, value);
     break;
   case 22:
-    rv = card->GetWorkCountry(value);
+    rv = card->GetPropertyAsAString(kWorkCountryProperty, value);
     break;
   case 23:
-    rv = card->GetJobTitle(value);
+    rv = card->GetPropertyAsAString(kJobTitleProperty, value);
     break;
   case 24:
-    rv = card->GetDepartment(value);
+    rv = card->GetPropertyAsAString(kDepartmentProperty, value);
     break;
   case 25:
-    rv = card->GetCompany(value);
+    rv = card->GetPropertyAsAString(kCompanyProperty, value);
     break;
   case 26:
-    rv = card->GetWebPage1(value);
+    rv = card->GetPropertyAsAString(kWorkWebPageProperty, value);
     break;
   case 27:
-    rv = card->GetWebPage2(value);
+    rv = card->GetPropertyAsAString(kHomeWebPageProperty, value);
     break;
   case 28:
-    rv = card->GetBirthYear(value);
+    rv = card->GetPropertyAsAString(kBirthYearProperty, value);
     break;
   case 29:
-    rv = card->GetBirthMonth(value);
+    rv = card->GetPropertyAsAString(kBirthMonthProperty, value);
     break;
   case 30:
-    rv = card->GetBirthDay(value);
+    rv = card->GetPropertyAsAString(kBirthDayProperty, value);
     break;
   case 31:
-    rv = card->GetCustom1(value);
+    rv = card->GetPropertyAsAString(kCustom1Property, value);
     break;
   case 32:
-    rv = card->GetCustom2(value);
+    rv = card->GetPropertyAsAString(kCustom2Property, value);
     break;
   case 33:
-    rv = card->GetCustom3(value);
+    rv = card->GetPropertyAsAString(kCustom3Property, value);
     break;
   case 34:
-    rv = card->GetCustom4(value);
+    rv = card->GetPropertyAsAString(kCustom4Property, value);
     break;
   case 35:
-    rv = card->GetNotes(value);
+    rv = card->GetPropertyAsAString(kNotesProperty, value);
     break;
   default:
     /* Get the field description, and add it as an anonymous attr? */
@@ -528,6 +528,8 @@ NS_IMETHODIMP nsImportFieldMap::GetFieldValue(nsIAbCard *card, PRInt32 fieldNum,
       rv = NS_ERROR_FAILURE;
     }
   }
+  if (rv == NS_ERROR_NOT_AVAILABLE)
+    value = EmptyString();
 
   *_retval = ToNewUnicode(value);
 

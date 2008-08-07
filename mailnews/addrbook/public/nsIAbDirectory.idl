@@ -139,9 +139,12 @@ interface nsIAbDirectory : nsISupports {
   boolean hasDirectory(in nsIAbDirectory dir);
 
   /**
-   * Adds a card to the database. card may be an abstract card.
+   * Adds a card to the database.
    *
-   * @return "Real" card (eg nsIAbMDBCard) that can be used for some
+   * This card does not need to be of the same type as the database, e.g., one
+   * can add an nsIAbLDAPCard to an nsIAbMDBDirectory.
+   *
+   * @return "Real" card (eg nsIAbLDAPCard) that can be used for some
    *         extra functions.
    */
   nsIAbCard addCard(in nsIAbCard card);

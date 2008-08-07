@@ -52,6 +52,8 @@
 
 #include <stdio.h>
 
+#define kDNColumn "DN"
+
 nsAbLDAPCard::nsAbLDAPCard()
 {
 }
@@ -146,7 +148,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString attr;
-  nsString propvalue;
+  nsCString propvalue;
   for (PRUint32 i = 0; i < props.GetSize(); ++i)
   {
     // Skip some attributes that don't map to LDAP.
@@ -159,9 +161,9 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
     //
     // PreferMailFormat : by default this is mapped to 'mozillaUseHtmlMail',
     // which is a boolean, not plaintext/html/unknown
-    if (!strcmp(props[i], "BirthYear") ||
-        !strcmp(props[i], "LastModifiedDate") ||
-        !strcmp(props[i], "PreferMailFormat"))
+    if (!strcmp(props[i], kBirthYearProperty) ||
+        !strcmp(props[i], kLastModifiedDateProperty) ||
+        !strcmp(props[i], kPreferMailFormatProperty))
       continue;
     
     rv = aAttributeMap->GetFirstAttribute(nsDependentCString(props[i]),
@@ -173,28 +175,27 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
     if (attr.IsEmpty())
       continue;
  
-    rv = GetCardValue(props[i], propvalue);
-    NS_ENSURE_SUCCESS(rv, rv);
-
     nsCOMPtr<nsILDAPModification> mod =
       do_CreateInstance("@mozilla.org/network/ldap-modification;1", &rv);
     NS_ENSURE_SUCCESS(rv, rv);
    
-    if (!propvalue.IsEmpty())
+    rv = GetPropertyAsAUTF8String(props[i], propvalue);
+
+    if (NS_SUCCEEDED(rv) &&!propvalue.IsEmpty())
     {
       // If the new value is not empty, add/update it
       nsCOMPtr<nsILDAPBERValue> value =
         do_CreateInstance("@mozilla.org/network/ldap-ber-value;1", &rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      rv = value->SetFromUTF8(NS_ConvertUTF16toUTF8(propvalue));
+      rv = value->SetFromUTF8(propvalue);
       NS_ENSURE_SUCCESS(rv, rv);
  
       rv = mod->SetUpModificationOneValue(aType, attr, value);
       NS_ENSURE_SUCCESS(rv, rv);
     
       printf("LDAP : setting attribute %s (%s) to '%s'\n", attr.get(),
-        props[i], NS_ConvertUTF16toUTF8(propvalue).get());
+        props[i], propvalue.get());
       modArray->AppendElement(mod, PR_FALSE);
       if (m_attributes.IndexOf(attr) != -1)
         m_attributes.AppendCString(attr);
@@ -232,9 +233,9 @@ NS_IMETHODIMP nsAbLDAPCard::BuildRdn(nsIAbLDAPAttributeMap *aAttributeMap,
   NS_ENSURE_ARG_POINTER(aAttributes);
   
   nsresult rv;
-  nsCAutoString attr;
+  nsCString attr;
   nsCAutoString prop;
-  nsString propvalue;
+  nsCString propvalue;
 
   aRdn.Truncate();
   for (PRUint32 i = 0; i < aAttrCount; ++i)
@@ -246,13 +247,12 @@ NS_IMETHODIMP nsAbLDAPCard::BuildRdn(nsIAbLDAPAttributeMap *aAttributeMap,
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Get the property value
-    rv = GetCardValue(prop.get(), propvalue);
-    NS_ENSURE_SUCCESS(rv, rv);
+    rv = GetPropertyAsAUTF8String(prop.get(), propvalue);
 
     // XXX The case where an attribute needed to build the Relative
     // Distinguished Name is not set needs to be handled by the caller,
     // so as to let the user know what is missing.
-    if (propvalue.IsEmpty())
+    if (NS_FAILED(rv) || propvalue.IsEmpty())
     {
       NS_ERROR("nsAbLDAPCard::BuildRdn: a required attribute is not set");
       return NS_ERROR_NOT_INITIALIZED;
@@ -260,7 +260,7 @@ NS_IMETHODIMP nsAbLDAPCard::BuildRdn(nsIAbLDAPAttributeMap *aAttributeMap,
   
     aRdn.Append(attr);
     aRdn.AppendLiteral("=");
-    aRdn.Append(NS_ConvertUTF16toUTF8(propvalue));
+    aRdn.Append(propvalue);
     if (i < aAttrCount - 1)
       aRdn.AppendLiteral("+");
   }
@@ -269,14 +269,12 @@ NS_IMETHODIMP nsAbLDAPCard::BuildRdn(nsIAbLDAPAttributeMap *aAttributeMap,
 
 NS_IMETHODIMP nsAbLDAPCard::GetDn(nsACString &aDN)
 {
-  aDN = m_dn;
-  return NS_OK;
+  return GetPropertyAsAUTF8String(kDNColumn, aDN);
 }
 
 NS_IMETHODIMP nsAbLDAPCard::SetDn(const nsACString &aDN)
 {
-  m_dn = aDN;
-  return NS_OK;
+  return SetPropertyAsAUTF8String(kDNColumn, aDN);
 }
 
 NS_IMETHODIMP nsAbLDAPCard::SetMetaProperties(nsILDAPMessage *aMessage)
@@ -288,7 +286,7 @@ NS_IMETHODIMP nsAbLDAPCard::SetMetaProperties(nsILDAPMessage *aMessage)
   nsresult rv = aMessage->GetDn(dn);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  m_dn = dn;
+  SetDn(dn);
 
   // Get the list of set attributes
   CharPtrArrayGuard attrs;
@@ -321,4 +319,3 @@ NS_IMETHODIMP nsAbLDAPCard::SetMetaProperties(nsILDAPMessage *aMessage)
 
   return NS_OK;
 }
-

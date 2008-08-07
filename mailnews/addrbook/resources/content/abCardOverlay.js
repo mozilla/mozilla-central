@@ -47,46 +47,46 @@ const kPhoneticFields =
 // Item is |[dialogField, cardProperty]|.
 const kVcardFields =
         [ // Contact > Name
-         ["FirstName", "firstName"],
-         ["LastName", "lastName"],
-         ["DisplayName", "displayName"],
-         ["NickName", "nickName"],
+         ["FirstName", "FirstName"],
+         ["LastName", "LastName"],
+         ["DisplayName", "DisplayName"],
+         ["NickName", "NickName"],
           // Contact > Internet
-         ["PrimaryEmail", "primaryEmail"],
-         ["SecondEmail", "secondEmail"],
-         ["ScreenName", "aimScreenName"], // NB: AIM.
+         ["PrimaryEmail", "PrimaryEmail"],
+         ["SecondEmail", "SecondEmail"],
+         ["ScreenName", "_AimScreenName"], // NB: AIM.
           // Contact > Phones
-         ["WorkPhone", "workPhone"],
-         ["HomePhone", "homePhone"],
-         ["FaxNumber", "faxNumber"],
-         ["PagerNumber", "pagerNumber"],
-         ["CellularNumber", "cellularNumber"],
+         ["WorkPhone", "WorkPhone"],
+         ["HomePhone", "HomePhone"],
+         ["FaxNumber", "FaxNumber"],
+         ["PagerNumber", "PagerNumber"],
+         ["CellularNumber", "CellularNumber"],
           // Address > Home
-         ["HomeAddress", "homeAddress"],
-         ["HomeAddress2", "homeAddress2"],
-         ["HomeCity", "homeCity"],
-         ["HomeState", "homeState"],
-         ["HomeZipCode", "homeZipCode"],
-         ["HomeCountry", "homeCountry"],
-         ["WebPage2", "webPage2"],
+         ["HomeAddress", "HomeAddress"],
+         ["HomeAddress2", "HomeAddress2"],
+         ["HomeCity", "HomeCity"],
+         ["HomeState", "HomeState"],
+         ["HomeZipCode", "HomeZipCode"],
+         ["HomeCountry", "HomeCountry"],
+         ["WebPage2", "WebPage2"],
           // Address > Work
-         ["JobTitle", "jobTitle"],
-         ["Department", "department"],
-         ["Company", "company"],
-         ["WorkAddress", "workAddress"],
-         ["WorkAddress2", "workAddress2"],
-         ["WorkCity", "workCity"],
-         ["WorkState", "workState"],
-         ["WorkZipCode", "workZipCode"],
-         ["WorkCountry", "workCountry"],
-         ["WebPage1", "webPage1"],
+         ["JobTitle", "JobTitle"],
+         ["Department", "Department"],
+         ["Company", "Company"],
+         ["WorkAddress", "WorkAddress"],
+         ["WorkAddress2", "WorkAddress2"],
+         ["WorkCity", "WorkCity"],
+         ["WorkState", "WorkState"],
+         ["WorkZipCode", "WorkZipCode"],
+         ["WorkCountry", "WorkCountry"],
+         ["WebPage1", "WebPage1"],
           // Other > (custom)
-         ["Custom1", "custom1"],
-         ["Custom2", "custom2"],
-         ["Custom3", "custom3"],
-         ["Custom4", "custom4"],
+         ["Custom1", "Custom1"],
+         ["Custom2", "Custom2"],
+         ["Custom3", "Custom3"],
+         ["Custom4", "Custom4"],
           // Other > Notes
-         ["Notes", "notes"]];
+         ["Notes", "Notes"]];
 
 var gEditCard;
 var gOnSaveListeners = new Array();
@@ -137,12 +137,12 @@ function OnLoadNewCard()
         gEditCard.generateDisplayName = false;
     }
     if ("aimScreenName" in window.arguments[0])
-      gEditCard.card.aimScreenName = window.arguments[0].aimScreenName;
+      gEditCard.card.setProperty("_AimScreenName",
+                                 window.arguments[0].aimScreenName);
     
-    if ("allowRemoteContent" in window.arguments[0]) {
-      gEditCard.card.allowRemoteContent = window.arguments[0].allowRemoteContent;
-      window.arguments[0].allowRemoteContent = false;
-    }
+    if ("allowRemoteContent" in window.arguments[0])
+      gEditCard.card.setProperty("AllowRemoteContent",
+                                 window.arguments[0].allowRemoteContent);
 
     if ("okCallback" in window.arguments[0])
       gOkCallback = window.arguments[0].okCallback;
@@ -368,7 +368,7 @@ function NewCardOKButton()
     if (!CheckAndSetCardValues(gEditCard.card, document, true))
       return false;  // don't close window
 
-    gOkCallback(gEditCard.card.convertToEscapedVCard());
+    gOkCallback(gEditCard.card.translateTo("vcard"));
     return true;  // close the window
   }
 
@@ -394,7 +394,8 @@ function NewCardOKButton()
       gEditCard.card = GetDirectoryFromURI(uri).addCard(gEditCard.card);
       NotifySaveListeners();
       if ("arguments" in window && window.arguments[0])
-        window.arguments[0].allowRemoteContent = gEditCard.card.allowRemoteContent;
+        window.arguments[0].allowRemoteContent =
+          gEditCard.card.getProperty("AllowRemoteContent", false));
     }
   }
 
@@ -407,22 +408,23 @@ function GetCardValues(cardproperty, doc)
   if (!cardproperty)
     return;
 
-  for (var i = kVcardFields.length; i-- > 0; )
+  for (var i = kVcardFields.length; i-- > 0; ) {
     doc.getElementById(kVcardFields[i][0]).value =
-      cardproperty[kVcardFields[i][1]];
+      cardproperty.getProperty(kVcardFields[i][1], "");
+  }
 
   var popup = document.getElementById("PreferMailFormatPopup");
   if (popup)
-    popup.value = cardproperty.preferMailFormat;
+    popup.value = cardproperty.getProperty("PreferMailFormat", "");
     
   var allowRemoteContentEl = document.getElementById("allowRemoteContent");
   if (allowRemoteContentEl)
-    allowRemoteContentEl.checked = cardproperty.allowRemoteContent;
+    allowRemoteContentEl.checked = cardproperty.getProperty("AllowRemoteContent", false);
 
   // get phonetic fields if exist
   try {
-    doc.getElementById("PhoneticFirstName").value = cardproperty.phoneticFirstName;
-    doc.getElementById("PhoneticLastName").value = cardproperty.phoneticLastName;
+    doc.getElementById("PhoneticFirstName").value = cardproperty.getProperty("PhoneticFirstName", "");
+    doc.getElementById("PhoneticLastName").value = cardproperty.getProperty("PhoneticLastName", "");
   }
   catch (ex) {}
 }
@@ -449,21 +451,21 @@ function CheckAndSetCardValues(cardproperty, doc, check)
     return true;
 
   for (var i = kVcardFields.length; i-- > 0; )
-    cardproperty[kVcardFields[i][1]] =
-      doc.getElementById(kVcardFields[i][0]).value;
+    cardproperty.setProperty(kVcardFields[i][1],
+      doc.getElementById(kVcardFields[i][0]).value);
 
   var popup = document.getElementById("PreferMailFormatPopup");
   if (popup)
-    cardproperty.preferMailFormat = popup.value;
+    cardproperty.setProperty("PreferMailFormat", popup.value);
     
   var allowRemoteContentEl = document.getElementById("allowRemoteContent");
   if (allowRemoteContentEl)
-    cardproperty.allowRemoteContent = allowRemoteContentEl.checked;    
+    cardproperty.setProperty("AllowRemoteContent", allowRemoteContentEl.checked);
 
   // set phonetic fields if exist
   try {
-    cardproperty.phoneticFirstName = doc.getElementById("PhoneticFirstName").value;
-    cardproperty.phoneticLastName = doc.getElementById("PhoneticLastName").value;
+    cardproperty.setProperty("PhoneticFirstName", doc.getElementById("PhoneticFirstName").value);
+    cardproperty.setProperty("PhoneticLastName", doc.getElementById("PhoneticLastName").value);
   }
   catch (ex) {}
 

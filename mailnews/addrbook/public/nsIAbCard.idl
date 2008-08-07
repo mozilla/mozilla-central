@@ -20,6 +20,8 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *  Mark Banner <bugzilla@standard8.plus.com>
+ *  Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,8 +38,10 @@
  * ***** END LICENSE BLOCK ***** */
  
 #include "nsISupports.idl"
+#include "nsIAbItem.idl"
 
-interface nsIStringBundle;
+interface nsISimpleEnumerator;
+interface nsIVariant;
 
 [scriptable, uuid(97448252-F189-11d4-A422-001083003D0C)]
 interface nsIAbPreferMailFormat {
@@ -46,126 +50,152 @@ interface nsIAbPreferMailFormat {
     const unsigned long html      = 2;
 };
 
-[scriptable, uuid(193d5026-7d1e-41b4-9fc3-c57d4a4937f3)]
-interface nsIAbCard : nsISupports {
-  // Card properties
+/**
+ * An interface representing an address book card.
+ *
+ * Fundamentally, it is a collection of properties. Modifying a property in
+ * some way on a card does not change the backend used to store the card; the
+ * directory is required to do make the changes here.
+ *
+ * The following are the core properties that are used:
+ * - Names:
+ *   - FirstName, LastName
+ *   - PhoneticFirstName, PhoneticLastName
+ *   - DisplayName, NickName
+ *   - SpouseName, FamilyName
+ * - PrimaryEmail, SecondEmail
+ * - Home Contact:
+ *   - HomeAddress, HomeAddress2, HomeCity, HomeState, HomeZipCode, HomeCountry
+ *   - HomePhone, HomePhoneType
+ * - Work contact. Same as home, but with `Work' instead of `Home'
+ * - Other Contact:
+ *   - FaxNumber, FaxNumberType
+ *   - PagerNumber, PagerNumberType
+ *   - CellularNumber, CellularNumberType
+ * - JobTitle, Department, Company
+ * - _AimScreenName
+ * - Dates:
+ *   - AnniversaryYear, AnniversaryMonth, AnniversaryDay
+ *   - BirthYear, BirthMonth, BirthDay
+ * - WebPage1 (work), WebPage2 (home)
+ * - Custom1, Custom2, Custom3, Custom4
+ * - Notes
+ * - Integral properties:
+ *   - LastModifiedDate
+ *   - PopularityIndex
+ *   - PreferMailFormat (see nsIAbPreferMailFormat)
+ * - Boolean properties:
+ *   - AllowRemoteContent
+ */
+[scriptable, uuid(f5646fba-3d20-4fdf-90fb-9f2ee9899dbb)]
+interface nsIAbCard : nsIAbItem {
+  /**
+   * A list of all the properties that this card has as an enumerator, whose
+   * members are all nsIProperty objects.
+   */
+  readonly attribute nsISimpleEnumerator properties;
+
+  /**
+   * Returns a property for the given name.
+   *
+   * @param name             The case-sensitive name of the property to get.
+   * @param defaultValue     The value to return if the property does not exist.
+   * @exception NS_ERROR_NOT_AVAILABLE if the named property does not exist.
+   * @exception NS_ERROR_CANNOT_CONVERT_DATA if the property cannot be converted
+   *                                         to the desired type.
+   */
+  nsIVariant getProperty(in AUTF8String name, in nsIVariant defaultValue);
+  /**
+   * @{
+   * Returns a property for the given name.
+   *
+   * These functions convert values in the same manner as the default
+   * implementation of nsIVariant. Of particular note is that boolean variables
+   * are converted to integers as in C/C++ (true is a non-zero value), so that
+   * false will be converted to a string of "0" and not "false."
+   *
+   * These functions are marked [noscript] since xpconnect performs automatic
+   * type conversion on nsIVariants such that they are not needed for scripts,
+   * only for C++ callers.
+   *
+   * @param name             The case-sensitive name of the property to get.
+   * @exception NS_ERROR_NOT_AVAILABLE if the named property does not exist.
+   * @exception NS_ERROR_CANNOT_CONVERT_DATA if the property cannot be converted
+   *                                         to the desired type.
+   */
+  [noscript] AString getPropertyAsAString(in string name);
+  [noscript] AUTF8String getPropertyAsAUTF8String(in string name);
+  [noscript] PRUint32 getPropertyAsUint32(in string name);
+  [noscript] boolean getPropertyAsBool(in string name);
+  /** @} */
+
+  /**
+   * @{
+   * Assigns the given to value to the property of the given name.
+   *
+   * Should the property exist, its value will be overwritten. An
+   * implementation may impose additional semantic constraints for certain
+   * properties. However, such constraints might not be checked by this method.
+   *
+   * These functions convert values in the same manner as the default
+   * implementation of nsIVariant.
+   * 
+   * @warning A value MUST be convertible to a string; if this convention is not
+   * followed, consumers of cards may fail unpredictably or return incorrect
+   * results.
+   *
+   * The non-variant functions are marked [noscript] since xpconnect uses
+   * magic with nsIVariant such that the other functions are not needed,
+   * although C++ does need them.
+   *
+   * @param name             The case-sensitive name of the property to set.
+   * @param value            The new value of the property.
+   */
+  void setProperty(in AUTF8String name, in nsIVariant value);
+  [noscript] void setPropertyAsAString(in string name, in AString value);
+  [noscript] void setPropertyAsAUTF8String(in string name, in AUTF8String value);
+  [noscript] void setPropertyAsUint32(in string name, in PRUint32 value);
+  [noscript] void setPropertyAsBool(in string name, in boolean value);
+  /** @} */
+
+  /**
+   * Deletes the property with the given name.
+   *
+   * Some properties may not be deleted. However, the implementation will not
+   * check this constraint at this method. If such a property is deleted, an
+   * error may be thrown when the card is modified at the database level.
+   *
+   * @param name             The case-sensitive name of the property to set.
+   */
+  void deleteProperty(in AUTF8String name);
+ 
+  /**
+   * @{
+   * These properties are shorthand for getProperty and setProperty.
+   */
   attribute AString firstName;
   attribute AString lastName;
-  attribute AString phoneticFirstName;
-  attribute AString phoneticLastName;
   attribute AString displayName;
-  attribute AString nickName;
   attribute AString primaryEmail;
-  attribute AString secondEmail;
-  attribute AString workPhone;
-  attribute AString homePhone;
-  attribute AString faxNumber;
-  attribute AString pagerNumber;
-  attribute AString cellularNumber;
-  attribute AString workPhoneType;
-  attribute AString homePhoneType;
-  attribute AString faxNumberType;
-  attribute AString pagerNumberType;
-  attribute AString cellularNumberType;
-  attribute AString homeAddress;
-  attribute AString homeAddress2;
-  attribute AString homeCity;
-  attribute AString homeState;
-  attribute AString homeZipCode;
-  attribute AString homeCountry;
-  attribute AString workAddress;
-  attribute AString workAddress2;
-  attribute AString workCity;
-  attribute AString workState;
-  attribute AString workZipCode;
-  attribute AString workCountry;
-  attribute AString jobTitle;
-  attribute AString department;
-  attribute AString company;
-  attribute AString aimScreenName;
-  attribute AString anniversaryYear;
-  attribute AString anniversaryMonth;
-  attribute AString anniversaryDay;
-  attribute AString spouseName;
-  attribute AString familyName;
-  attribute AString defaultAddress;
-  attribute AString category;
-  /**
-   * webPage1 is work web page
-   */
-  attribute AString webPage1;
-  /**
-   * webPage2 is home web page
-   */
-  attribute AString webPage2;
-  attribute AString birthYear;
-  attribute AString birthMonth;
-  attribute AString birthDay;
-  attribute AString custom1;
-  attribute AString custom2;
-  attribute AString custom3;
-  attribute AString custom4;
-  attribute AString notes;
-  attribute unsigned long lastModifiedDate;
-  /**
-   * Popularity Index is bumped every time e-mail is sent to this recipient
-   */
-  attribute unsigned long popularityIndex;
-  attribute unsigned long preferMailFormat;
-  attribute boolean isMailList;
-  /**
-   * If isMailList is true then mailListURI
-   * will contain the URI of the associated
-   * mail list
-   */
-  attribute string mailListURI;
-  /**
-   * allowRemoteContent to be displayed in HTML mail received from this contact
-   */
-  attribute boolean allowRemoteContent;
-
-  AString getCardValue(in string name);
-
-  void setCardValue(in string attrname, in AString value);
+  /** @} */
 
   /**
-   * This function will copy all values from one card to another.
+   * Translates a card into a specific format.
+   * The following types are supported:
+   * - base64xml
+   * - xml
+   * - vcard
    *
-   * @param  srcCard  The source card to copy values from.
+   * @param  aType          The type of item to translate the card into.
+   * @return                A string containing the translated card.
+   * @exception NS_ERROR_ILLEGAL_VALUE if we do not recognize the type.
    */
-  void copy(in nsIAbCard srcCard);
+  AUTF8String translateTo(in AUTF8String aType);
 
-  boolean equals(in nsIAbCard card);
-
-  string convertToBase64EncodedXML();
-  AString convertToXMLPrintData();
-  string convertToEscapedVCard();
-
-  /** 
-   * Generate a name from the card for display purposes. Using the firstName,
-   * lastName and the displayName. We allow the caller to cache the pref value,
-   * so we don't have to go to prefs every time.
-   *
-   * The format follows the "mail.addr_book.lastnamefirst" pref values:
-   *
-   * 0 = generated name is displayName
-   * 1 = lastFirst, formatted following lastFirstFormat
-   * 2 = firstLast, formatted following firstLastFormat
-   *
-   * lastFirstFormat and firstLastFormat are defined in addressBook.properties.
-   *
-   * @param  aGenerateFormat The format to generate as per the above definition.
-   * @param  aBundle         An optional parameter that is a pointer to a string
-   *                         bundle that holds:
-   *           chrome://messenger/locale/addressbook/addressBook.properties
-   *                         If this bundle is not supplied, then the function
-   *                         will obtain the bundle itself. If cached by the
-   *                         caller and supplied to this function, then
-   *                         performance will be improved over many calls.
-   * @return                 A string containing the generated name.
+  /**
+   * Translates a card from the specified format
    */
-  AString generateName(in long aGenerateFormat,
-                       [optional] in nsIStringBundle aBundle);
+  //void translateFrom(in AUTF8String aType, in AUTF8String aData);
 
   /** 
    * Generate a phonetic name from the card, using the firstName and lastName
@@ -175,4 +205,103 @@ interface nsIAbCard : nsISupports {
    * @return                 A string containing the generated phonetic name.
    */
   AString generatePhoneticName(in boolean aLastNameFirst);
+
+  /**
+   * This function will copy all values from one card to another.
+   *
+   * @param  srcCard         The source card to copy values from.
+   */
+  void copy(in nsIAbCard aSrcCard);
+
+  /**
+   * Returns true if this card is equal to the other card.
+   *
+   * The default implementation defines equal as this card pointing to the
+   * same object as @arg aCard; another implementation defines it as equality of
+   * properties and values.
+   *
+   * @warning The exact nature of equality is still undefined, and actual
+   *          results may not match theoretical results. Most notably, the code
+   *          <tt>a.equals(b) == b.equals(a)</tt> might not return true. In
+   *          particular, calling equals on cards from different address books
+   *          may return inaccurate results.
+   *          
+   *
+   * @return                 Equality, as defined above.
+   * @param  aCard           The card to compare against.
+   */
+  boolean equals(in nsIAbCard aCard);
+
+  // PROPERTIES TO BE DELETED AS PART OF REWRITE
+
+  attribute boolean isMailList;
+  /**
+   * If isMailList is true then mailListURI
+   * will contain the URI of the associated
+   * mail list
+   */
+  attribute string mailListURI;
 };
+
+%{C++
+// A nice list of properties for the benefit of C++ clients
+#define kFirstNameProperty          "FirstName"
+#define kLastNameProperty           "LastName"
+#define kDisplayNameProperty        "DisplayName"
+#define kNicknameProperty           "NickName"
+#define kPriEmailProperty           "PrimaryEmail"
+#define kPreferMailFormatProperty   "PreferMailFormat"
+#define kLastModifiedDateProperty   "LastModifiedDate"
+#define kPopularityIndexProperty    "PopularityIndex"
+#define kAllowRemoteContentProperty "AllowRemoteContent"
+
+#define kPhoneticFirstNameProperty  "PhoneticFirstName"
+#define kPhoneticLastNameProperty   "PhoneticLastName"
+#define kSpouseNameProperty         "SpouseName"
+#define kFamilyNameProperty         "FamilyName"
+#define k2ndEmailProperty           "SecondEmail"
+
+#define kHomeAddressProperty        "HomeAddress"
+#define kHomeAddress2Property       "HomeAddress2"
+#define kHomeCityProperty           "HomeCity"
+#define kHomeStateProperty          "HomeState"
+#define kHomeZipCodeProperty        "HomeZipCode"
+#define kHomeCountryProperty        "HomeCountry"
+#define kHomeWebPageProperty        "WebPage2"
+
+#define kWorkAddressProperty        "WorkAddress"
+#define kWorkAddress2Property       "WorkAddress2"
+#define kWorkCityProperty           "WorkCity"
+#define kWorkStateProperty          "WorkState"
+#define kWorkZipCodeProperty        "WorkZipCode"
+#define kWorkCountryProperty        "WorkCountry"
+#define kWorkWebPageProperty        "WebPage1"
+
+#define kHomePhoneProperty          "HomePhone"
+#define kHomePhoneTypeProperty      "HomePhoneType"
+#define kWorkPhoneProperty          "WorkPhone"
+#define kWorkPhoneTypeProperty      "WorkPhoneType"
+#define kFaxProperty                "FaxNumber"
+#define kFaxTypeProperty            "FaxNumberType"
+#define kPagerTypeProperty          "PagerNumberType"
+#define kPagerProperty              "PagerNumber"
+#define kCellularProperty           "CellularNumber"
+#define kCellularTypeProperty       "CellularNumberType"
+
+#define kJobTitleProperty           "JobTitle"
+#define kDepartmentProperty         "Department"
+#define kCompanyProperty            "Company"
+#define kScreenNameProperty         "_AimScreenName"
+#define kCustom1Property            "Custom1"
+#define kCustom2Property            "Custom2"
+#define kCustom3Property            "Custom3"
+#define kCustom4Property            "Custom4"
+#define kNotesProperty              "Notes"
+
+#define kAnniversaryYearProperty    "AnniversaryYear"
+#define kAnniversaryMonthProperty   "AnniversaryMonth"
+#define kAnniversaryDayProperty     "AnniversaryDay"
+#define kBirthYearProperty          "BirthYear"
+#define kBirthMonthProperty         "BirthMonth"
+#define kBirthDayProperty           "BirthDay"
+%}

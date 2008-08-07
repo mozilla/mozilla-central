@@ -529,82 +529,44 @@ struct OutlookTableAttr
     ULONG mMapiProp ;
 } ;
 
-/*static const OutlookTableAttr OutlookTableStringToProp [] = 
-{
-{"FirstName", PR_GIVEN_NAME_W},
-{"LastName", PR_SURNAME_W},
-{"DisplayName", PR_DISPLAY_NAME_W},
-{"NickName", PR_NICKNAME_W},
-{"PrimaryEmail", PR_EMAIL_ADDRESS_W},
-{"WorkPhone", PR_BUSINESS_TELEPHONE_NUMBER_W},
-{"HomePhone", PR_HOME_TELEPHONE_NUMBER_W},
-{"FaxNumber", PR_BUSINESS_FAX_NUMBER_W},
-{"PagerNumber", PR_PAGER_TELEPHONE_NUMBER_W},
-{"CellularNumber", PR_MOBILE_TELEPHONE_NUMBER_W},
-{"HomeAddress", PR_HOME_ADDRESS_STREET_W},
-{"HomeCity", PR_HOME_ADDRESS_CITY_W},
-{"HomeState", PR_HOME_ADDRESS_STATE_OR_PROVINCE_W},
-{"HomeZipCode", PR_HOME_ADDRESS_POSTAL_CODE_W},
-{"HomeCountry", PR_HOME_ADDRESS_COUNTRY_W},
-{"WorkAddress", PR_BUSINESS_ADDRESS_STREET_W}, 
-{"WorkCity", PR_BUSINESS_ADDRESS_CITY_W},
-{"WorkState", PR_BUSINESS_ADDRESS_STATE_OR_PROVINCE_W},
-{"WorkZipCode", PR_BUSINESS_ADDRESS_POSTAL_CODE_W},
-{"WorkCountry", PR_BUSINESS_ADDRESS_COUNTRY_W},
-{"JobTitle", PR_TITLE_W},
-{"Department", PR_DEPARTMENT_NAME_W},
-{"Company", PR_COMPANY_NAME_W},
-{"WebPage1", PR_BUSINESS_HOME_PAGE_W},
-{"WebPage2", PR_PERSONAL_HOME_PAGE_W},
-// For the moment, we don't support querying on the birthday
-// sub-elements.
-#if 0
-{"BirthYear", PR_BIRTHDAY},
-{"BirthMonth", PR_BIRTHDAY}, 
-{"BirthDay", PR_BIRTHDAY},
-#endif // 0
-{"Notes", PR_COMMENT_W}
-} ;*/
-
 // Here, we are forced to use the Ascii versions of the properties
 // instead of the widechar ones, because the content restriction
 // operators do not work on unicode strings in mapi.
 static const OutlookTableAttr OutlookTableStringToProp [] = 
 {
-    // replace "PrimaryEmail" with kPriEmailColumn etc.
-    {"FirstName", PR_GIVEN_NAME_A},
-    {"LastName", PR_SURNAME_A},
-    {"DisplayName", PR_DISPLAY_NAME_A},
-    {"NickName", PR_NICKNAME_A},
-    {"PrimaryEmail", PR_EMAIL_ADDRESS_A},
-    {"WorkPhone", PR_BUSINESS_TELEPHONE_NUMBER_A},
-    {"HomePhone", PR_HOME_TELEPHONE_NUMBER_A},
-    {"FaxNumber", PR_BUSINESS_FAX_NUMBER_A},
-    {"PagerNumber", PR_PAGER_TELEPHONE_NUMBER_A},
-    {"CellularNumber", PR_MOBILE_TELEPHONE_NUMBER_A},
-    {"HomeAddress", PR_HOME_ADDRESS_STREET_A},
-    {"HomeCity", PR_HOME_ADDRESS_CITY_A},
-    {"HomeState", PR_HOME_ADDRESS_STATE_OR_PROVINCE_A},
-    {"HomeZipCode", PR_HOME_ADDRESS_POSTAL_CODE_A},
-    {"HomeCountry", PR_HOME_ADDRESS_COUNTRY_A},
-    {"WorkAddress", PR_BUSINESS_ADDRESS_STREET_A}, 
-    {"WorkCity", PR_BUSINESS_ADDRESS_CITY_A},
-    {"WorkState", PR_BUSINESS_ADDRESS_STATE_OR_PROVINCE_A},
-    {"WorkZipCode", PR_BUSINESS_ADDRESS_POSTAL_CODE_A},
-    {"WorkCountry", PR_BUSINESS_ADDRESS_COUNTRY_A},
-    {"JobTitle", PR_TITLE_A},
-    {"Department", PR_DEPARTMENT_NAME_A},
-    {"Company", PR_COMPANY_NAME_A},
-    {"WebPage1", PR_BUSINESS_HOME_PAGE_A},
-    {"WebPage2", PR_PERSONAL_HOME_PAGE_A},
+    {kFirstNameProperty, PR_GIVEN_NAME_A},
+    {kLastNameProperty, PR_SURNAME_A},
+    {kDisplayNameProperty, PR_DISPLAY_NAME_A},
+    {kNicknameProperty, PR_NICKNAME_A},
+    {kPriEmailProperty, PR_EMAIL_ADDRESS_A},
+    {kWorkPhoneProperty, PR_BUSINESS_TELEPHONE_NUMBER_A},
+    {kHomePhoneProperty, PR_HOME_TELEPHONE_NUMBER_A},
+    {kFaxProperty, PR_BUSINESS_FAX_NUMBER_A},
+    {kPagerProperty, PR_PAGER_TELEPHONE_NUMBER_A},
+    {kCellularProperty, PR_MOBILE_TELEPHONE_NUMBER_A},
+    {kHomeAddressProperty, PR_HOME_ADDRESS_STREET_A},
+    {kHomeCityProperty, PR_HOME_ADDRESS_CITY_A},
+    {kHomeStateProperty, PR_HOME_ADDRESS_STATE_OR_PROVINCE_A},
+    {kHomeZipCodeProperty, PR_HOME_ADDRESS_POSTAL_CODE_A},
+    {kHomeCountryProperty, PR_HOME_ADDRESS_COUNTRY_A},
+    {kWorkAddressProperty, PR_BUSINESS_ADDRESS_STREET_A}, 
+    {kWorkCityProperty, PR_BUSINESS_ADDRESS_CITY_A},
+    {kWorkStateProperty, PR_BUSINESS_ADDRESS_STATE_OR_PROVINCE_A},
+    {kWorkZipCodeProperty, PR_BUSINESS_ADDRESS_POSTAL_CODE_A},
+    {kWorkCountryProperty, PR_BUSINESS_ADDRESS_COUNTRY_A},
+    {kJobTitleProperty, PR_TITLE_A},
+    {kDepartmentProperty, PR_DEPARTMENT_NAME_A},
+    {kCompanyProperty, PR_COMPANY_NAME_A},
+    {kWorkWebPageProperty, PR_BUSINESS_HOME_PAGE_A},
+    {kHomeWebPageProperty, PR_PERSONAL_HOME_PAGE_A},
     // For the moment, we don't support querying on the birthday
     // sub-elements.
 #if 0
-    {"BirthYear", PR_BIRTHDAY},
-    {"BirthMonth", PR_BIRTHDAY}, 
-    {"BirthDay", PR_BIRTHDAY},
+    {kBirthYearProperty, PR_BIRTHDAY},
+    {kBirthMonthProperty, PR_BIRTHDAY}, 
+    {kBirthDayProperty, PR_BIRTHDAY},
 #endif // 0
-    {"Notes", PR_COMMENT_A}
+    {kNotesProperty, PR_COMMENT_A}
 } ;
 
 static const PRUint32 OutlookTableNbProps = sizeof(OutlookTableStringToProp) /
@@ -1410,27 +1372,27 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     }
   }
   aModifiedCard->SetDisplayName(properties[index_DisplayName]);
-  aModifiedCard->GetNickName(properties[index_NickName]);
   aModifiedCard->GetPrimaryEmail(properties[index_EmailAddress]);
-  aModifiedCard->GetWorkPhone(properties[index_WorkPhoneNumber]);
-  aModifiedCard->GetHomePhone(properties[index_HomePhoneNumber]);
-  aModifiedCard->GetFaxNumber(properties[index_WorkFaxNumber]);
-  aModifiedCard->GetPagerNumber(properties[index_PagerNumber]);
-  aModifiedCard->GetCellularNumber(properties[index_MobileNumber]);
-  aModifiedCard->GetHomeCity(properties[index_HomeCity]);
-  aModifiedCard->GetHomeState(properties[index_HomeState]);
-  aModifiedCard->GetHomeZipCode(properties[index_HomeZip]);
-  aModifiedCard->GetHomeCountry(properties[index_HomeCountry]);
-  aModifiedCard->GetWorkCity(properties[index_WorkCity]);
-  aModifiedCard->GetWorkState(properties[index_WorkState]);
-  aModifiedCard->GetWorkZipCode(properties[index_WorkZip]);
-  aModifiedCard->GetWorkCountry(properties[index_WorkCountry]);
-  aModifiedCard->GetJobTitle(properties[index_JobTitle]);
-  aModifiedCard->GetDepartment(properties[index_Department]);
-  aModifiedCard->GetCompany(properties[index_Company]);
-  aModifiedCard->GetWebPage1(properties[index_WorkWebPage]);
-  aModifiedCard->GetWebPage2(properties[index_HomeWebPage]);
-  aModifiedCard->GetNotes(properties[index_Comments]);
+  aModifiedCard->GetPropertyAsAString(kNicknameProperty, properties[index_NickName]);
+  aModifiedCard->GetPropertyAsAString(kWorkPhoneProperty, properties[index_WorkPhoneNumber]);
+  aModifiedCard->GetPropertyAsAString(kHomePhoneProperty, properties[index_HomePhoneNumber]);
+  aModifiedCard->GetPropertyAsAString(kFaxProperty, properties[index_WorkFaxNumber]);
+  aModifiedCard->GetPropertyAsAString(kPagerProperty, properties[index_PagerNumber]);
+  aModifiedCard->GetPropertyAsAString(kCellularProperty, properties[index_MobileNumber]);
+  aModifiedCard->GetPropertyAsAString(kHomeCityProperty, properties[index_HomeCity]);
+  aModifiedCard->GetPropertyAsAString(kHomeStateProperty, properties[index_HomeState]);
+  aModifiedCard->GetPropertyAsAString(kHomeZipCodeProperty, properties[index_HomeZip]);
+  aModifiedCard->GetPropertyAsAString(kHomeCountryProperty, properties[index_HomeCountry]);
+  aModifiedCard->GetPropertyAsAString(kWorkCityProperty, properties[index_WorkCity]);
+  aModifiedCard->GetPropertyAsAString(kWorkStateProperty, properties[index_WorkState]);
+  aModifiedCard->GetPropertyAsAString(kWorkZipCodeProperty, properties[index_WorkZip]);
+  aModifiedCard->GetPropertyAsAString(kWorkCountryProperty, properties[index_WorkCountry]);
+  aModifiedCard->GetPropertyAsAString(kJobTitleProperty, properties[index_JobTitle]);
+  aModifiedCard->GetPropertyAsAString(kDepartmentProperty, properties[index_Department]);
+  aModifiedCard->GetPropertyAsAString(kCompanyProperty, properties[index_Company]);
+  aModifiedCard->GetPropertyAsAString(kWorkWebPageProperty, properties[index_WorkWebPage]);
+  aModifiedCard->GetPropertyAsAString(kHomeWebPageProperty, properties[index_HomeWebPage]);
+  aModifiedCard->GetPropertyAsAString(kNotesProperty, properties[index_Comments]);
   if (!mapiAddBook->SetPropertiesUString(*mMapiData, OutlookCardMAPIProps,
                                          index_LastProp, properties)) {
     PRINTF(("Cannot set general properties.\n")) ;
@@ -1443,8 +1405,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   WORD month = 0;
   WORD day = 0;
 
-  aModifiedCard->GetHomeAddress(unichar);
-  aModifiedCard->GetHomeAddress2(unichar2);
+  aModifiedCard->GetPropertyAsAString(kHomeAddressProperty, unichar);
+  aModifiedCard->GetPropertyAsAString(kHomeAddress2Property, unichar2);
 
   utility.Assign(unichar.get());
   if (!utility.IsEmpty())
@@ -1455,8 +1417,10 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     PRINTF(("Cannot set home address.\n")) ;
   }
 
-  aModifiedCard->GetWorkAddress(unichar);
-  aModifiedCard->GetWorkAddress2(unichar2);
+  unichar.Truncate();
+  aModifiedCard->GetPropertyAsAString(kWorkAddressProperty, unichar);
+  unichar2.Truncate();
+  aModifiedCard->GetPropertyAsAString(kWorkAddress2Property, unichar2);
 
   utility.Assign(unichar.get());
   if (!utility.IsEmpty())
@@ -1467,11 +1431,14 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     PRINTF(("Cannot set work address.\n")) ;
   }
 
-  aModifiedCard->GetBirthYear(unichar);
+  unichar.Truncate();
+  aModifiedCard->GetPropertyAsAString(kBirthYearProperty, unichar);
   UnicodeToWord(unichar.get(), year);
-  aModifiedCard->GetBirthMonth(unichar);
+  unichar.Truncate();
+  aModifiedCard->GetPropertyAsAString(kBirthMonthProperty, unichar);
   UnicodeToWord(unichar.get(), month);
-  aModifiedCard->GetBirthDay(unichar);
+  unichar.Truncate();
+  aModifiedCard->GetPropertyAsAString(kBirthDayProperty, unichar);
   UnicodeToWord(unichar.get(), day);
   if (!mapiAddBook->SetPropertyDate(*mMapiData, PR_BIRTHDAY, year, month, day)) {
     PRINTF(("Cannot set date.\n")) ;

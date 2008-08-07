@@ -39,8 +39,7 @@
 #ifndef nsAbIPCCard_h__
 #define nsAbIPCCard_h__
 
-#include "nsAbMDBCard.h"
-#include "nsIAbMDBCard.h"
+#include "nsAbCardProperty.h"
 #include "nsISupportsArray.h"
 #include "nsVoidArray.h"
 #include "IPalmSync.h"
@@ -54,7 +53,7 @@
 #define ATTR_NONE           0x0020
 #define ATTR_NO_REC         0x0040
 
-class nsAbIPCCard : public nsAbMDBCard
+class nsAbIPCCard : public nsAbCardProperty
 {
 public:
     NS_DECL_ISUPPORTS_INHERITED
@@ -93,8 +92,9 @@ private:
     PRUint32 mCategoryId;
     PRUint32 mStatus;
 
-    void CopyValue(PRBool isUnicode, nsString & attribValue, LPTSTR * result);
-    PRBool CompareValue(PRBool isUnicode, LPTSTR cardValue, nsString & attribValue);
+    void CopyValue(PRBool isUnicode, const char *attribute, LPTSTR * result);
+    PRBool CompareValue(PRBool isUnicode, LPTSTR cardValue, const char *attribute);
+    PRBool Compare(nsString &cardValue, const char *attribute);
     void SplitHomeAndWorkAddresses(nsABCOMCardStruct * card, PRBool isUnicode);
     void SplitAddresses(PRBool isUnicode, LPTSTR homeAddress, LPTSTR workAddress);
     void JoinHomeAndWorkAddresses(PRBool isUnicode, nsABCOMCardStruct * card);

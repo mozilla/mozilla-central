@@ -249,16 +249,16 @@ function run_test() {
     switch (card.displayName) {
     case "dis":
     case "disp":
-      card.popularityIndex = "4";
+      card.setProperty("PopularityIndex", 4);
       break;
     case "displ":
-      card.popularityIndex = "5";
+      card.setProperty("PopularityIndex", 5);
       break;
     case "d":
-      card.popularityIndex = "1";
+      card.setProperty("PopularityIndex", 1);
       break;
     case "di":
-      card.popularityIndex = "20";
+      card.setProperty("PopularityIndex", 20);
       break;
     default:
       break;

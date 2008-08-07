@@ -985,7 +985,7 @@ function setFromBuddyIcon(email)
 
      var card = abAddressCollector.getCardFromAttribute("PrimaryEmail", email);
 
-     if (myScreenName && card && card.aimScreenName) {
+     if (myScreenName && card && card.setProperty("_AimScreenName")) {
        if (!gIOService) {
          // lazily create these globals
          gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);

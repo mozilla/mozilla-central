@@ -260,8 +260,8 @@ function EditListOKButton()
       // modify the list card (for the results pane) from the mailing list 
       gListCard.displayName = gEditList.dirName;
       gListCard.lastName = gEditList.dirName;
-      gListCard.nickName = gEditList.listNickName;
-      gListCard.notes = gEditList.description;
+      gListCard.setProperty("NickName", gEditList.listNickName);
+      gListCard.setProperty("Notes", gEditList.description);
     }
 
     gEditList.editMailListToDatabase(gListCard);

@@ -188,7 +188,7 @@ nsAbLDAPAttributeMap.prototype = {
           
           try {
             var values = aMessage.getValues(attr, {});
-            aCard.setCardValue(prop, values[0]);
+            aCard.setProperty(prop, values[0]);
 
             cardValueWasSet = true;
             break;

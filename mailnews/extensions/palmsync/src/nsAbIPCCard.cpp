@@ -40,7 +40,7 @@
 
 #include "nsAbIPCCard.h"
 #include "nsUnicharUtils.h"
-#include "nsIAbMDBCard.h"
+#include "nsIAddrDatabase.h"
 #include "prdtoa.h"
 #include "PalmSyncImp.h"
 
@@ -54,7 +54,7 @@ extern PRLogModuleInfo *PALMSYNC;
 #define CONVERT_CRLF_TO_SPACE(d, s) d.Assign(s); \
                                     d.ReplaceSubstring(NS_LITERAL_STRING("\x0D\x0A").get(),NS_LITERAL_STRING(" ").get());
 
-NS_IMPL_ISUPPORTS_INHERITED1(nsAbIPCCard, nsAbCardProperty, nsIAbMDBCard)
+NS_IMPL_ISUPPORTS_INHERITED0(nsAbIPCCard, nsAbCardProperty)
 
 nsAbIPCCard::nsAbIPCCard()
 {
@@ -86,34 +86,29 @@ NS_IMETHODIMP nsAbIPCCard::Copy(nsIAbCard *srcCard)
 {
     NS_ENSURE_ARG_POINTER(srcCard);
 
-    nsresult rv;
-    nsCOMPtr<nsIAbMDBCard> dbCard;
-    dbCard = do_QueryInterface(srcCard, &rv);
-    if(NS_SUCCEEDED(rv) && dbCard) {
-        nsString palmIDStr;
-        nsresult rv = dbCard->GetStringAttribute(CARD_ATTRIB_PALMID, getter_Copies(palmIDStr));
-        if(NS_SUCCEEDED(rv) && !palmIDStr.IsEmpty()) {
-            PRFloat64 f = PR_strtod(NS_LossyConvertUTF16toASCII(palmIDStr).get(), nsnull);
-            PRInt64 l;
-            LL_D2L(l, f);
-            LL_L2UI(mRecordId, l);
-        }
-        else
-            mRecordId = 0;
-        // set tableID, RowID and Key for the card
-        PRUint32 tableID=0;
-        dbCard->GetDbTableID(&tableID);
-        SetDbTableID(tableID);
-        PRUint32 rowID=0;
-        dbCard->GetDbRowID(&rowID);
-        SetDbRowID(rowID);
-        PRUint32 key;
-        dbCard->GetKey(&key);
-        SetKey(key);
-    }
-    PRUint32 lastModifiedDate = 0;
-    srcCard->GetLastModifiedDate(&lastModifiedDate);
-    mStatus = (lastModifiedDate) ? ATTR_MODIFIED : ATTR_NEW;
+    nsString palmIDStr;
+    nsresult rv = srcCard->GetPropertyAsAString(CARD_ATTRIB_PALMID, palmIDStr);
+   if (NS_SUCCEEDED(rv) && !palmIDStr.IsEmpty()) {
+     PRFloat64 f = PR_strtod(NS_LossyConvertUTF16toASCII(palmIDStr).get(), nsnull);
+     PRInt64 l;
+     LL_D2L(l, f);
+     LL_L2UI(mRecordId, l);
+   }
+   else
+     mRecordId = 0;
+
+   PRUint32 rowID = 0;
+   srcCard->GetPropertyAsUint32("DbRowID", &rowID);
+   SetPropertyAsUint32("DbRowID", rowID);
+
+   PRUint32 key = 0;
+   srcCard->GetPropertyAsUint32("RecordKey", &key);
+   SetPropertyAsUint32("RecordKey", key);
+
+   PRUint32 lastModifiedDate = 0;
+   srcCard->GetPropertyAsUint32(kLastModifiedDateProperty, &lastModifiedDate);
+   mStatus = (lastModifiedDate) ? ATTR_MODIFIED : ATTR_NEW;
+
 
     rv = nsAbCardProperty::Copy(srcCard);
     // do we need to join the work and home addresses?
@@ -146,97 +141,97 @@ nsresult nsAbIPCCard::Copy(nsABCOMCardStruct * srcCard)
     SetDisplayName(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->nickName);
-    SetNickName(str);
+    SetPropertyAsAString(kNicknameProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->primaryEmail);
     SetPrimaryEmail(str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->secondEmail);
-    SetSecondEmail(str);
+    SetPropertyAsAString(k2ndEmailProperty, str);
 
-    SetPreferMailFormat(srcCard->preferMailFormat);
+    SetPropertyAsUint32(kPreferMailFormatProperty, srcCard->preferMailFormat);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workPhone);
-    SetWorkPhone(str);
+    SetPropertyAsAString(kWorkPhoneProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homePhone);
-    SetHomePhone(str);
+    SetPropertyAsAString(kHomePhoneProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->faxNumber);
-    SetFaxNumber(str);
+    SetPropertyAsAString(kFaxProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->pagerNumber);
-    SetPagerNumber(str);
+    SetPropertyAsAString(kPagerProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->cellularNumber);
-    SetCellularNumber(str);
+    SetPropertyAsAString(kCellularProperty, str);
 
     // See if home address contains multiple lines.
     SplitHomeAndWorkAddresses(srcCard, PR_TRUE);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homeCity);
-    SetHomeCity(str);
+    SetPropertyAsAString(kHomeCityProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homeState);
-    SetHomeState(str);
+    SetPropertyAsAString(kHomeStateProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homeZipCode);
-    SetHomeZipCode(str);
+    SetPropertyAsAString(kHomeZipCodeProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->homeCountry);
-    SetHomeCountry(str);
+    SetPropertyAsAString(kHomeCountryProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workCity);
-    SetWorkCity(str);
+    SetPropertyAsAString(kWorkCityProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workState);
-    SetWorkState(str);
+    SetPropertyAsAString(kWorkStateProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workZipCode);
-    SetWorkZipCode(str);
+    SetPropertyAsAString(kWorkZipCodeProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->workCountry);
-    SetWorkCountry(str);
+    SetPropertyAsAString(kWorkCountryProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->jobTitle);
-    SetJobTitle(str);
+    SetPropertyAsAString(kJobTitleProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->department);
-    SetDepartment(str);
+    SetPropertyAsAString(kDepartmentProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->company);
-    SetCompany(str);
+    SetPropertyAsAString(kCompanyProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->webPage1);
-    SetWebPage1(str);
+    SetPropertyAsAString(kWorkWebPageProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->webPage2);
-    SetWebPage2(str);
+    SetPropertyAsAString(kHomeWebPageProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->birthYear);
-    SetBirthYear(str);
+    SetPropertyAsAString(kBirthYearProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->birthMonth);
-    SetBirthMonth(str);
+    SetPropertyAsAString(kBirthMonthProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->birthDay);
-    SetBirthDay(str);
+    SetPropertyAsAString(kBirthDayProperty, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->custom1);
-    SetCustom1(str);
+    SetPropertyAsAString(kCustom1Property, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->custom2);
-    SetCustom2(str);
+    SetPropertyAsAString(kCustom2Property, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->custom3);
-    SetCustom3(str);
+    SetPropertyAsAString(kCustom3Property, str);
 
     CONVERT_CRLF_TO_SPACE(str, srcCard->custom4);
-    SetCustom4(str);
+    SetPropertyAsAString(kCustom4Property, str);
 
     str.Assign(srcCard->notes);
-    SetNotes(str);
-    SetLastModifiedDate(srcCard->lastModifiedDate);
+    SetPropertyAsAString(kNotesProperty, str);
+    SetPropertyAsUint32(kLastModifiedDateProperty, srcCard->lastModifiedDate);
     SetIsMailList(srcCard->isMailList);
     SetMailListURI(srcCard->mailListURI);
 
@@ -266,98 +261,98 @@ nsresult nsAbIPCCard::ConvertToUnicodeAndCopy(nsABCOMCardStruct * srcCard)
     SetDisplayName(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->nickName, PR_TRUE);
-    SetNickName(str);
+    SetPropertyAsAString(kNicknameProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->primaryEmail, PR_TRUE);
     SetPrimaryEmail(str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->secondEmail, PR_TRUE);
-    SetSecondEmail(str);
+    SetPropertyAsAString(k2ndEmailProperty, str);
 
-    SetPreferMailFormat(srcCard->preferMailFormat);
+    SetPropertyAsUint32(kPreferMailFormatProperty, srcCard->preferMailFormat);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workPhone, PR_TRUE);
-    SetWorkPhone(str);
+    SetPropertyAsAString(kWorkPhoneProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homePhone, PR_TRUE);
-    SetHomePhone(str);
+    SetPropertyAsAString(kHomePhoneProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->faxNumber, PR_TRUE);
-    SetFaxNumber(str);
+    SetPropertyAsAString(kFaxProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->pagerNumber, PR_TRUE);
-    SetPagerNumber(str);
+    SetPropertyAsAString(kPagerProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->cellularNumber, PR_TRUE);
-    SetCellularNumber(str);
+    SetPropertyAsAString(kCellularProperty, str);
 
     // See if home address contains multiple lines.
     SplitHomeAndWorkAddresses(srcCard, PR_FALSE);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homeCity, PR_TRUE);
-    SetHomeCity(str);
+    SetPropertyAsAString(kHomeCityProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homeState, PR_TRUE);
-    SetHomeState(str);
+    SetPropertyAsAString(kHomeStateProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homeZipCode, PR_TRUE);
-    SetHomeZipCode(str);
+    SetPropertyAsAString(kHomeZipCodeProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->homeCountry, PR_TRUE);
-    SetHomeCountry(str);
+    SetPropertyAsAString(kHomeCountryProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workCity, PR_TRUE);
-    SetWorkCity(str);
+    SetPropertyAsAString(kWorkCityProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workState, PR_TRUE);
-    SetWorkState(str);
+    SetPropertyAsAString(kWorkStateProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workZipCode, PR_TRUE);
-    SetWorkZipCode(str);
+    SetPropertyAsAString(kWorkZipCodeProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->workCountry, PR_TRUE);
-    SetWorkCountry(str);
+    SetPropertyAsAString(kWorkCountryProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->jobTitle, PR_TRUE);
-    SetJobTitle(str);
+    SetPropertyAsAString(kJobTitleProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->department, PR_TRUE);
-    SetDepartment(str);
+    SetPropertyAsAString(kDepartmentProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->company, PR_TRUE);
-    SetCompany(str);
+    SetPropertyAsAString(kCompanyProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->webPage1, PR_TRUE);
-    SetWebPage1(str);
+    SetPropertyAsAString(kWorkWebPageProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->webPage2, PR_TRUE);
-    SetWebPage2(str);
+    SetPropertyAsAString(kHomeWebPageProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->birthYear, PR_TRUE);
-    SetBirthYear(str);
+    SetPropertyAsAString(kBirthYearProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->birthMonth, PR_TRUE);
-    SetBirthMonth(str);
+    SetPropertyAsAString(kBirthMonthProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->birthDay, PR_TRUE);
-    SetBirthDay(str);
+    SetPropertyAsAString(kBirthDayProperty, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->custom1, PR_TRUE);
-    SetCustom1(str);
+    SetPropertyAsAString(kCustom1Property, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->custom2, PR_TRUE);
-    SetCustom2(str);
+    SetPropertyAsAString(kCustom2Property, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->custom3, PR_TRUE);
-    SetCustom3(str);
+    SetPropertyAsAString(kCustom3Property, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->custom4, PR_TRUE);
-    SetCustom4(str);
+    SetPropertyAsAString(kCustom4Property, str);
 
     CONVERT_ASSIGNTO_UNICODE(str, srcCard->notes, PR_FALSE);
-    SetNotes(str);
+    SetPropertyAsAString(kNotesProperty, str);
 
-    SetLastModifiedDate(srcCard->lastModifiedDate);
+    SetPropertyAsUint32(kLastModifiedDateProperty, srcCard->lastModifiedDate);
     SetIsMailList(srcCard->isMailList);
     SetMailListURI(srcCard->mailListURI);
 
@@ -386,11 +381,11 @@ void nsAbIPCCard::SplitAddresses(PRBool isUnicode, LPTSTR homeAddress, LPTSTR wo
     homeAddressStr.Right( addr2, homeAddressStr.Length() - idx - 2);  // need to minus string lenght of CRLF.
     addr2.ReplaceSubstring(NS_LITERAL_STRING("\x0D\x0A").get(),NS_LITERAL_STRING(", ").get());
 
-    SetHomeAddress(addr1);
-    SetHomeAddress2(addr2);
+    SetPropertyAsAString(kHomeAddressProperty, addr1);
+    SetPropertyAsAString(kHomeAddress2Property, addr2);
   }
   else
-    SetHomeAddress(homeAddressStr);
+    SetPropertyAsAString(kHomeAddressProperty, homeAddressStr);
 
   if ((idx = workAddressStr.Find( "\x0D\x0A")) != kNotFound)
   {
@@ -398,11 +393,11 @@ void nsAbIPCCard::SplitAddresses(PRBool isUnicode, LPTSTR homeAddress, LPTSTR wo
     workAddressStr.Right( addr2, workAddressStr.Length() - idx - 2);  // need to minus string lenght of CRLF.
     addr2.ReplaceSubstring(NS_LITERAL_STRING("\x0D\x0A").get(),NS_LITERAL_STRING(", ").get());
 
-    SetWorkAddress(addr1);
-    SetWorkAddress2(addr2);
+    SetPropertyAsAString(kWorkAddressProperty, addr1);
+    SetPropertyAsAString(kWorkAddress2Property, addr2);
   }
   else
-    SetWorkAddress(workAddressStr);
+    SetPropertyAsAString(kWorkAddressProperty, workAddressStr);
 }
 
 void nsAbIPCCard::SplitHomeAndWorkAddresses(nsABCOMCardStruct * card, PRBool isUnicode)
@@ -430,10 +425,10 @@ PRBool nsAbIPCCard::EqualsAfterUnicodeConversion(nsABCOMCardStruct * card, nsStr
     // want to split newCard home and work address
 
     // I think this leaks...need to free up the original values
-    card1.CopyValue(PR_TRUE, m_HomeAddress, &newCard->homeAddress);
-    card1.CopyValue(PR_TRUE, m_HomeAddress2, &newCard->homeAddress2);
-    card1.CopyValue(PR_TRUE, m_WorkAddress, &newCard->workAddress);
-    card1.CopyValue(PR_TRUE, m_WorkAddress2, &newCard->workAddress2);
+    card1.CopyValue(PR_TRUE, kHomeAddressProperty, &newCard->homeAddress);
+    card1.CopyValue(PR_TRUE, kHomeAddress2Property, &newCard->homeAddress2);
+    card1.CopyValue(PR_TRUE, kWorkAddressProperty, &newCard->workAddress);
+    card1.CopyValue(PR_TRUE, kWorkAddress2Property, &newCard->workAddress2);
   
     PRBool ret = Equals(newCard, differingAttrs);
     delete newCard;
@@ -449,112 +444,112 @@ PRBool nsAbIPCCard::Equals(nsABCOMCardStruct * card, nsStringArray & differingAt
     differingAttrs.Clear();
 
     if(card->firstName)
-        if (Compare(nsDependentString(card->firstName), m_FirstName, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kFirstNameColumn));
+        if (CompareValue(PR_TRUE, card->firstName, kFirstNameProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kFirstNameProperty));
     if(card->lastName)
-        if (Compare(nsDependentString(card->lastName), m_LastName, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kLastNameColumn));
+        if (CompareValue(PR_TRUE, card->lastName, kLastNameProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kLastNameProperty));
     if(card->displayName)
-        if (Compare(nsDependentString(card->displayName), m_DisplayName, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kDisplayNameColumn));
+        if (CompareValue(PR_TRUE, card->displayName, kDisplayNameProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kDisplayNameProperty));
     if(card->nickName)
-        if (Compare(nsDependentString(card->nickName), m_NickName, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kNicknameColumn));
+        if (CompareValue(PR_TRUE, card->nickName, kNicknameProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kNicknameProperty));
     if(card->primaryEmail)
-        if (Compare(nsDependentString(card->primaryEmail), m_PrimaryEmail, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kPriEmailColumn));
+        if (CompareValue(PR_TRUE, card->primaryEmail, kPriEmailProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kPriEmailProperty));
     if(card->secondEmail)
-        if (Compare(nsDependentString(card->secondEmail), m_SecondEmail, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(k2ndEmailColumn));
+        if (CompareValue(PR_TRUE, card->secondEmail, k2ndEmailProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(k2ndEmailProperty));
     if(card->workPhone)
-        if (Compare(nsDependentString(card->workPhone), m_WorkPhone, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkPhoneColumn));
+        if (CompareValue(PR_TRUE, card->workPhone, kWorkPhoneProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkPhoneProperty));
     if(card->homePhone)
-        if (Compare(nsDependentString(card->homePhone), m_HomePhone, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kHomePhoneColumn));
+        if (CompareValue(PR_TRUE, card->homePhone, kHomePhoneProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kHomePhoneProperty));
     if(card->faxNumber)
-        if (Compare(nsDependentString(card->faxNumber), m_FaxNumber, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kFaxColumn));
+        if (CompareValue(PR_TRUE, card->faxNumber, kFaxProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kFaxProperty));
     if(card->pagerNumber)
-        if (Compare(nsDependentString(card->pagerNumber), m_PagerNumber, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kPagerColumn));
+        if (CompareValue(PR_TRUE, card->pagerNumber, kPagerProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kPagerProperty));
     if(card->cellularNumber)
-        if (Compare(nsDependentString(card->cellularNumber), m_CellularNumber, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kCellularColumn));
+        if (CompareValue(PR_TRUE, card->cellularNumber, kCellularProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kCellularProperty));
     // card  has home and work addresses joined, but "this" has them split
     if(card->homeAddress)
-        if (Compare(nsDependentString(card->homeAddress), m_HomeAddress, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeAddressColumn));
+        if (CompareValue(PR_TRUE, card->homeAddress, kHomeAddressProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeAddressProperty));
     if(card->homeAddress2)
-        if (Compare(nsDependentString(card->homeAddress2), m_HomeAddress2, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeAddress2Column));
+        if (CompareValue(PR_TRUE, card->homeAddress2, kHomeAddress2Property))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeAddress2Property));
     if(card->homeCity)
-        if (Compare(nsDependentString(card->homeCity), m_HomeCity, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeCityColumn));
+        if (CompareValue(PR_TRUE, card->homeCity, kHomeCityProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeCityProperty));
     if(card->homeState)
-        if (Compare(nsDependentString(card->homeState), m_HomeState, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeStateColumn));
+        if (CompareValue(PR_TRUE, card->homeState, kHomeStateProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeStateProperty));
     if(card->homeZipCode)
-        if (Compare(nsDependentString(card->homeZipCode), m_HomeZipCode, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeZipCodeColumn));
+        if (CompareValue(PR_TRUE, card->homeZipCode, kHomeZipCodeProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeZipCodeProperty));
     if(card->homeCountry)
-        if (Compare(nsDependentString(card->homeCountry), m_HomeCountry, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeCountryColumn));
-    // card->workAddress is Joined, m_workAddress and m_workAddress2 are split
+        if (CompareValue(PR_TRUE, card->homeCountry, kHomeCountryProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeCountryProperty));
+    // card->workAddress is Joined, WorkAddress and WorkAddress2 are split
     if(card->workAddress)
-        if (Compare(nsDependentString(card->workAddress), m_WorkAddress, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkAddressColumn));
+        if (CompareValue(PR_TRUE, card->workAddress, kWorkAddressProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkAddressProperty));
     if(card->workAddress2)
-        if (Compare(nsDependentString(card->workAddress2), m_WorkAddress2, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkAddress2Column));
+        if (CompareValue(PR_TRUE, card->workAddress2, kWorkAddress2Property))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkAddress2Property));
     if(card->workCity)
-        if (Compare(nsDependentString(card->workCity), m_WorkCity, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkCityColumn));
+        if (CompareValue(PR_TRUE, card->workCity, kWorkCityProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkCityProperty));
     if(card->workState)
-        if (Compare(nsDependentString(card->workState), m_WorkState, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkStateColumn));
+        if (CompareValue(PR_TRUE, card->workState, kWorkStateProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkStateProperty));
     if(card->workZipCode)
-        if (Compare(nsDependentString(card->workZipCode), m_WorkZipCode, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkZipCodeColumn));
+        if (CompareValue(PR_TRUE, card->workZipCode, kWorkZipCodeProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkZipCodeProperty));
     if(card->workCountry)
-        if (Compare(nsDependentString(card->workCountry), m_WorkCountry, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkCountryColumn));
+        if (CompareValue(PR_TRUE, card->workCountry, kWorkCountryProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkCountryProperty));
     if(card->jobTitle)
-        if (Compare(nsDependentString(card->jobTitle), m_JobTitle, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kJobTitleColumn));
+        if (CompareValue(PR_TRUE, card->jobTitle, kJobTitleProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kJobTitleProperty));
     if(card->department)
-        if (Compare(nsDependentString(card->department), m_Department, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kDepartmentColumn));
+        if (CompareValue(PR_TRUE, card->department, kDepartmentProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kDepartmentProperty));
     if(card->company)
-        if (Compare(nsDependentString(card->company), m_Company, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kCompanyColumn));
+        if (CompareValue(PR_TRUE, card->company, kCompanyProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kCompanyProperty));
     if(card->webPage1)
-        if (Compare(nsDependentString(card->webPage1), m_WebPage1, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kWebPage1Column));
+        if (CompareValue(PR_TRUE, card->webPage1, kWorkWebPageProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kWorkWebPageProperty));
     if(card->webPage2)
-        if (Compare(nsDependentString(card->webPage2), m_WebPage2, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kWebPage2Column));
+        if (CompareValue(PR_TRUE, card->webPage2, kWorkWebPageProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kHomeWebPageProperty));
     if(card->birthYear)
-        if (Compare(nsDependentString(card->birthYear), m_BirthYear, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kBirthYearColumn));
+        if (CompareValue(PR_TRUE, card->birthYear, kBirthYearProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kBirthYearProperty));
     if(card->birthMonth)
-        if (Compare(nsDependentString(card->birthMonth), m_BirthMonth, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kBirthMonthColumn));
+        if (CompareValue(PR_TRUE, card->birthMonth, kBirthMonthProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kBirthMonthProperty));
     if(card->birthDay)
-        if (Compare(nsDependentString(card->birthDay), m_BirthDay, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kBirthDayColumn));
+        if (CompareValue(PR_TRUE, card->birthDay, kBirthDayProperty))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kBirthDayProperty));
     if(card->custom1)
-        if (Compare(nsDependentString(card->custom1), m_Custom1, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kCustom1Column));
+        if (CompareValue(PR_TRUE, card->custom1, kCustom1Property))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kCustom1Property));
     if(card->custom2)
-        if (Compare(nsDependentString(card->custom2), m_Custom2, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kCustom2Column));
+        if (CompareValue(PR_TRUE, card->custom2, kCustom2Property))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kCustom2Property));
     if(card->custom3)
-        if (Compare(nsDependentString(card->custom3), m_Custom3, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kCustom3Column));
+        if (CompareValue(PR_TRUE, card->custom3, kCustom3Property))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kCustom3Property));
     if(card->custom4)
-        if (Compare(nsDependentString(card->custom4), m_Custom4, nsCaseInsensitiveStringComparator()))
-            differingAttrs.AppendString(NS_LITERAL_STRING(kCustom4Column));
+        if (CompareValue(PR_TRUE, card->custom4, kCustom4Property))
+            differingAttrs.AppendString(NS_LITERAL_STRING(kCustom4Property));
     if (card->isMailList != m_IsMailList)
         differingAttrs.AppendString(NS_LITERAL_STRING(kMailListName));
     if(card->mailListURI) {
@@ -576,144 +571,175 @@ NS_IMETHODIMP nsAbIPCCard::Equals(nsIAbCard *card, PRBool *_retval)
     *_retval = PR_FALSE;
 
     card->GetFirstName(str);
-    if (Compare(str, m_FirstName, nsCaseInsensitiveStringComparator()))
+    if (Compare(str, kFirstNameProperty))
         return NS_OK;
 
     card->GetLastName(str);
-    if (Compare(str, m_LastName, nsCaseInsensitiveStringComparator()))
+    if (Compare(str, kLastNameProperty))
         return NS_OK;
 
     card->GetDisplayName(str);
-    if (Compare(str, m_DisplayName, nsCaseInsensitiveStringComparator()))
+    if (Compare(str, kDisplayNameProperty))
         return NS_OK;
 
-    card->GetNickName(str);
-    if (Compare(str, m_NickName, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kNicknameProperty, str)))
+      str.Truncate();
+    if (Compare(str, kNicknameProperty))
         return NS_OK;
 
     card->GetPrimaryEmail(str);
-    if (Compare(str, m_PrimaryEmail, nsCaseInsensitiveStringComparator()))
+    if (Compare(str, kPriEmailProperty))
         return NS_OK;
 
-    card->GetSecondEmail(str);
-    if (Compare(str, m_SecondEmail, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(k2ndEmailProperty, str)))
+      str.Truncate();
+    if (Compare(str, k2ndEmailProperty))
         return NS_OK;
 
-    card->GetWorkPhone(str);
-    if (Compare(str, m_WorkPhone, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kWorkPhoneProperty, str)))
+      str.Truncate();
+    if (Compare(str, kWorkPhoneProperty))
         return NS_OK;
 
-    card->GetHomePhone(str);
-    if (Compare(str, m_HomePhone, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kHomePhoneProperty, str)))
+      str.Truncate();
+    if (Compare(str, kHomePhoneProperty))
         return NS_OK;
 
-    card->GetFaxNumber(str);
-    if (Compare(str, m_FaxNumber, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kFaxProperty, str)))
+      str.Truncate();
+    if (Compare(str, kFaxProperty))
         return NS_OK;
 
-    card->GetPagerNumber(str);
-    if (Compare(str, m_PagerNumber, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kPagerProperty, str)))
+      str.Truncate();
+    if (Compare(str, kPagerProperty))
         return NS_OK;
 
-    card->GetCellularNumber(str);
-    if (Compare(str, m_CellularNumber, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kCellularProperty, str)))
+      str.Truncate();
+    if (Compare(str, kCellularProperty))
         return NS_OK;
 
-    card->GetHomeAddress(str);
-    if (Compare(str, m_HomeAddress, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kHomeAddressProperty, str)))
+      str.Truncate();
+    if (Compare(str, kHomeAddressProperty))
         return NS_OK;
 
-    card->GetHomeAddress2(str);
-    if (Compare(str, m_HomeAddress2, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kHomeAddress2Property, str)))
+      str.Truncate();
+    if (Compare(str, kHomeAddress2Property))
         return NS_OK;
 
-    card->GetHomeCity(str);
-    if (Compare(str, m_HomeCity, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kHomeCityProperty, str)))
+      str.Truncate();
+    if (Compare(str, kHomeCityProperty))
         return NS_OK;
 
-    card->GetHomeState(str);
-    if (Compare(str, m_HomeState, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kHomeStateProperty, str)))
+      str.Truncate();
+    if (Compare(str, kHomeStateProperty))
         return NS_OK;
 
-    card->GetHomeZipCode(str);
-    if (Compare(str, m_HomeZipCode, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kHomeZipCodeProperty, str)))
+      str.Truncate();
+    if (Compare(str, kHomeZipCodeProperty))
         return NS_OK;
 
-    card->GetHomeCountry(str);
-    if (Compare(str, m_HomeCountry, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kHomeCountryProperty, str)))
+      str.Truncate();
+    if (Compare(str, kHomeCountryProperty))
         return NS_OK;
 
     // both card and this have their addresses split, which is correct
-    card->GetWorkAddress(str);
-    if (Compare(str, m_WorkAddress, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kWorkAddressProperty, str)))
+      str.Truncate();
+    if (Compare(str, kWorkAddressProperty))
         return NS_OK;
 
-    card->GetWorkAddress2(str);
-    if (Compare(str, m_WorkAddress2, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kWorkAddress2Property, str)))
+      str.Truncate();
+    if (Compare(str, kWorkAddress2Property))
         return NS_OK;
 
-    card->GetWorkCity(str);
-    if (Compare(str, m_WorkCity, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kWorkCityProperty, str)))
+      str.Truncate();
+    if (Compare(str, kWorkCityProperty))
         return NS_OK;
 
-    card->GetWorkState(str);
-    if (Compare(str, m_WorkState, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kWorkStateProperty, str)))
+      str.Truncate();
+    if (Compare(str, kWorkStateProperty))
         return NS_OK;
 
-    card->GetWorkZipCode(str);
-    if (Compare(str, m_WorkZipCode, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kWorkZipCodeProperty, str)))
+      str.Truncate();
+    if (Compare(str, kWorkZipCodeProperty))
         return NS_OK;
 
-    card->GetWorkCountry(str);
-    if (Compare(str, m_WorkCountry, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kWorkCountryProperty, str)))
+      str.Truncate();
+    if (Compare(str, kWorkCountryProperty))
         return NS_OK;
 
-    card->GetJobTitle(str);
-    if (Compare(str, m_JobTitle, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kJobTitleProperty, str)))
+      str.Truncate();
+    if (Compare(str, kJobTitleProperty))
         return NS_OK;
 
-    card->GetDepartment(str);
-    if (Compare(str, m_Department, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kDepartmentProperty, str)))
+      str.Truncate();
+    if (Compare(str, kDepartmentProperty))
         return NS_OK;
 
-    card->GetCompany(str);
-    if (Compare(str, m_Company, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kCompanyProperty, str)))
+      str.Truncate();
+    if (Compare(str, kCompanyProperty))
         return NS_OK;
 
-    card->GetWebPage1(str);
-    if (Compare(str, m_WebPage1, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kWorkWebPageProperty, str)))
+      str.Truncate();
+    if (Compare(str, kWorkWebPageProperty))
         return NS_OK;
 
-    card->GetWebPage2(str);
-    if (Compare(str, m_WebPage2, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kHomeWebPageProperty, str)))
+      str.Truncate();
+    if (Compare(str, kHomeWebPageProperty))
         return NS_OK;
 
-    card->GetBirthYear(str);
-    if (Compare(str, m_BirthYear, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kBirthYearProperty, str)))
+      str.Truncate();
+    if (Compare(str, kBirthYearProperty))
         return NS_OK;
 
-    card->GetBirthMonth(str);
-    if (Compare(str, m_BirthMonth, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kBirthMonthProperty, str)))
+      str.Truncate();
+    if (Compare(str, kBirthMonthProperty))
         return NS_OK;
 
-    card->GetBirthDay(str);
-    if (Compare(str, m_BirthDay, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kBirthDayProperty, str)))
+      str.Truncate();
+    if (Compare(str, kBirthDayProperty))
         return NS_OK;
 
-    card->GetCustom1(str);
-    if (Compare(str, m_Custom1, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kCustom1Property, str)))
+      str.Truncate();
+    if (Compare(str, kCustom1Property))
         return NS_OK;
 
-    card->GetCustom2(str);
-    if (Compare(str, m_Custom2, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kCustom2Property, str)))
+      str.Truncate();
+    if (Compare(str, kCustom2Property))
         return NS_OK;
 
-    card->GetCustom3(str);
-    if (Compare(str, m_Custom3, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kCustom3Property, str)))
+      str.Truncate();
+    if (Compare(str, kCustom3Property))
         return NS_OK;
 
-    card->GetCustom4(str);
-    if (Compare(str, m_Custom4, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kCustom4Property, str)))
+      str.Truncate();
+    if (Compare(str, kCustom4Property))
         return NS_OK;
 
     PRBool isMailList=PR_FALSE;
@@ -730,17 +756,17 @@ NS_IMETHODIMP nsAbIPCCard::Equals(nsIAbCard *card, PRBool *_retval)
     return NS_OK;
 }
 
-PRBool nsAbIPCCard::CompareValue(PRBool isUnicode, LPTSTR cardValue, nsString & attribValue)
+PRBool nsAbIPCCard::CompareValue(PRBool isUnicode, LPTSTR cardValue, const char *attribute)
 {
     if(cardValue) {
         if(isUnicode) {
-            if (Compare(nsDependentString(cardValue), attribValue, nsCaseInsensitiveStringComparator()))
+            if (Compare(nsDependentString(cardValue), attribute))
                 return PR_FALSE;
         }
         else {
             nsAutoString str;
             CONVERT_ASSIGNTO_UNICODE(str, cardValue, PR_TRUE);
-            if (Compare(str, attribValue, nsCaseInsensitiveStringComparator()))
+            if (Compare(str, attribute))
                 return PR_FALSE;
         }
     }
@@ -748,6 +774,12 @@ PRBool nsAbIPCCard::CompareValue(PRBool isUnicode, LPTSTR cardValue, nsString & 
     return PR_TRUE;
 }
 
+PRBool nsAbIPCCard::Compare(nsString &cardValue, const char *attribute)
+{
+  nsAutoString attribValue;
+  GetPropertyAsAString(attribute, attribValue);
+  return ::Compare(cardValue, attribValue, nsCaseInsensitiveStringComparator());
+}
 PRBool nsAbIPCCard::Same(nsABCOMCardStruct * card, PRBool isUnicode)
 {
     if(!card)
@@ -756,10 +788,10 @@ PRBool nsAbIPCCard::Same(nsABCOMCardStruct * card, PRBool isUnicode)
     if(mRecordId && card->dwRecordId) 
         return (mRecordId == card->dwRecordId);
 
-    if(CompareValue(isUnicode, card->firstName, m_FirstName))
-        if(CompareValue(isUnicode, card->lastName, m_LastName))
-            if(CompareValue(isUnicode, card->displayName, m_DisplayName))
-                if(CompareValue(isUnicode, card->nickName, m_NickName))
+    if(CompareValue(isUnicode, card->firstName, kFirstNameProperty))
+        if(CompareValue(isUnicode, card->lastName, kLastNameProperty))
+            if(CompareValue(isUnicode, card->displayName, kDisplayNameProperty))
+                if(CompareValue(isUnicode, card->nickName, kNicknameProperty))
                     return PR_TRUE;
 
     return PR_FALSE;
@@ -772,44 +804,43 @@ PRBool nsAbIPCCard::Same(nsIAbCard *card)
         return PR_FALSE;
 
     nsresult rv;
-    nsCOMPtr<nsIAbMDBCard> dbCard;
-    dbCard = do_QueryInterface(card, &rv);
-    if(NS_SUCCEEDED(rv)) {
-        // first check the palmID for the cards if they exist
-        nsString palmIDStr;
-        rv = dbCard->GetStringAttribute(CARD_ATTRIB_PALMID, getter_Copies(palmIDStr));
-        if(NS_SUCCEEDED(rv) && palmIDStr.get()) {
-            PRInt32 palmID=0;
-            PRFloat64 f = PR_strtod(NS_LossyConvertUTF16toASCII(palmIDStr).get(), nsnull);
-            PRInt64 l;
-            LL_D2L(l, f);
-            LL_L2UI(palmID, l);
-            if(palmID && mRecordId)
-                return mRecordId == palmID;
-        }
+    // first check the palmID for the cards if they exist
+    nsString palmIDStr;
+    rv = card->GetPropertyAsAString(CARD_ATTRIB_PALMID, palmIDStr);
+    if (NS_SUCCEEDED(rv) && palmIDStr.get()) {
+      PRInt32 palmID=0;
+      PRFloat64 f = PR_strtod(NS_LossyConvertUTF16toASCII(palmIDStr).get(), nsnull);
+      PRInt64 l;
+      LL_D2L(l, f);
+      LL_L2UI(palmID, l);
+      if (palmID && mRecordId)
+        return mRecordId == palmID;
     }
 
     nsString str;
     card->GetFirstName(str);
-    if (Compare(str, m_FirstName, nsCaseInsensitiveStringComparator()))
+    if (Compare(str, kFirstNameProperty))
         return PR_FALSE;
     card->GetLastName(str);
-    if (Compare(str, m_LastName, nsCaseInsensitiveStringComparator()))
+    if (Compare(str, kLastNameProperty))
         return PR_FALSE;
     card->GetDisplayName(str);
-    if (Compare(str, m_DisplayName, nsCaseInsensitiveStringComparator()))
+    if (Compare(str, kDisplayNameProperty))
         return PR_FALSE;
-    card->GetNickName(str);
-    if (Compare(str, m_NickName, nsCaseInsensitiveStringComparator()))
+    if (NS_FAILED(card->GetPropertyAsAString(kNicknameProperty, str)))
+      str.Truncate();
+    if (Compare(str, kNicknameProperty))
         return PR_FALSE;
 
     return PR_TRUE;
 }
 
 
-void nsAbIPCCard::CopyValue(PRBool isUnicode, nsString & attribValue, LPTSTR * result)
+void nsAbIPCCard::CopyValue(PRBool isUnicode, const char *attribute, LPTSTR * result)
 {
     *result = NULL;
+    nsAutoString attribValue;
+    GetPropertyAsAString(attribute, attribValue);
     if(attribValue.Length() && attribValue.get()) {
         PRInt32 length;
         if(isUnicode) {                                 
@@ -847,48 +878,53 @@ nsresult nsAbIPCCard::GetABCOMCardStruct(PRBool isUnicode, nsABCOMCardStruct * c
     card->addressToUse = CPalmSyncImp::nsUseABHomeAddressForPalmAddress(); // 0 == home, 1 == work
     PR_LOG(PALMSYNC, PR_LOG_DEBUG, ("nsAbIPCCard::GetABCOMCardStruct using %d\n", card->addressToUse));
 
-    CopyValue(isUnicode, m_FirstName, &card->firstName);
-    CopyValue(isUnicode, m_LastName, &card->lastName);
-    CopyValue(isUnicode, m_DisplayName, &card->displayName);
-    CopyValue(isUnicode, m_NickName, &card->nickName);
-    CopyValue(isUnicode, m_PrimaryEmail, &card->primaryEmail);
-    CopyValue(isUnicode, m_SecondEmail, &card->secondEmail);
-    CopyValue(isUnicode, m_WorkPhone, &card->workPhone);
-    CopyValue(isUnicode, m_HomePhone, &card->homePhone);
-    CopyValue(isUnicode, m_FaxNumber, &card->faxNumber);
-    CopyValue(isUnicode, m_PagerNumber, &card->pagerNumber);
-    CopyValue(isUnicode, m_CellularNumber, &card->cellularNumber);
+    CopyValue(isUnicode, kFirstNameProperty, &card->firstName);
+    CopyValue(isUnicode, kLastNameProperty, &card->lastName);
+    CopyValue(isUnicode, kDisplayNameProperty, &card->displayName);
+    CopyValue(isUnicode, kNicknameProperty, &card->nickName);
+    CopyValue(isUnicode, kPriEmailProperty, &card->primaryEmail);
+    CopyValue(isUnicode, k2ndEmailProperty, &card->secondEmail);
+    CopyValue(isUnicode, kWorkPhoneProperty, &card->workPhone);
+    CopyValue(isUnicode, kHomePhoneProperty, &card->homePhone);
+    CopyValue(isUnicode, kFaxProperty, &card->faxNumber);
+    CopyValue(isUnicode, kPagerProperty, &card->pagerNumber);
+    CopyValue(isUnicode, kCellularProperty, &card->cellularNumber);
     // See if home address contains multiple lines.
     JoinHomeAndWorkAddresses(isUnicode, card);
-    CopyValue(isUnicode, m_HomeCity, &card->homeCity);
-    CopyValue(isUnicode, m_HomeState, &card->homeState);
-    CopyValue(isUnicode, m_HomeZipCode, &card->homeZipCode);
-    CopyValue(isUnicode, m_HomeCountry, &card->homeCountry);
-    CopyValue(isUnicode, m_WorkCity, &card->workCity);
-    CopyValue(isUnicode, m_WorkState, &card->workState);
-    CopyValue(isUnicode, m_WorkZipCode, &card->workZipCode);
-    CopyValue(isUnicode, m_WorkCountry, &card->workCountry);
-    CopyValue(isUnicode, m_JobTitle, &card->jobTitle);
-    CopyValue(isUnicode, m_Department, &card->department);
-    CopyValue(isUnicode, m_Company, &card->company);
-    CopyValue(isUnicode, m_WebPage1, &card->webPage1);
-    CopyValue(isUnicode, m_WebPage2, &card->webPage2);
-    CopyValue(isUnicode, m_BirthYear, &card->birthYear);
-    CopyValue(isUnicode, m_BirthMonth, &card->birthMonth);
-    CopyValue(isUnicode, m_BirthDay, &card->birthDay);
-    CopyValue(isUnicode, m_Custom1, &card->custom1);
-    CopyValue(isUnicode, m_Custom2, &card->custom2);
-    CopyValue(isUnicode, m_Custom3, &card->custom3);
-    CopyValue(isUnicode, m_Custom4, &card->custom4);
-    CopyValue(isUnicode, m_Note, &card->notes);
+    CopyValue(isUnicode, kHomeCityProperty, &card->homeCity);
+    CopyValue(isUnicode, kHomeStateProperty, &card->homeState);
+    CopyValue(isUnicode, kHomeZipCodeProperty, &card->homeZipCode);
+    CopyValue(isUnicode, kHomeCountryProperty, &card->homeCountry);
+    CopyValue(isUnicode, kWorkCityProperty, &card->workCity);
+    CopyValue(isUnicode, kWorkStateProperty, &card->workState);
+    CopyValue(isUnicode, kWorkZipCodeProperty, &card->workZipCode);
+    CopyValue(isUnicode, kWorkCountryProperty, &card->workCountry);
+    CopyValue(isUnicode, kJobTitleProperty, &card->jobTitle);
+    CopyValue(isUnicode, kDepartmentProperty, &card->department);
+    CopyValue(isUnicode, kCompanyProperty, &card->company);
+    CopyValue(isUnicode, kWorkWebPageProperty, &card->webPage1);
+    CopyValue(isUnicode, kHomeWebPageProperty, &card->webPage2);
+    CopyValue(isUnicode, kBirthYearProperty, &card->birthYear);
+    CopyValue(isUnicode, kBirthMonthProperty, &card->birthMonth);
+    CopyValue(isUnicode, kBirthDayProperty, &card->birthDay);
+    CopyValue(isUnicode, kCustom1Property, &card->custom1);
+    CopyValue(isUnicode, kCustom2Property, &card->custom2);
+    CopyValue(isUnicode, kCustom3Property, &card->custom3);
+    CopyValue(isUnicode, kCustom4Property, &card->custom4);
+    CopyValue(isUnicode, kNotesProperty, &card->notes);
 
-    card->lastModifiedDate = m_LastModDate;
-    card->preferMailFormat = m_PreferMailFormat;
+    GetPropertyAsUint32(kLastModifiedDateProperty,
+                        (PRUint32*)&card->lastModifiedDate);
+    GetPropertyAsUint32(kPreferMailFormatProperty,
+                        (PRUint32*)&card->preferMailFormat);
     card->addressToUse = CPalmSyncImp::nsUseABHomeAddressForPalmAddress(); // 0 == home, 1 == work
+    nsAutoString homePhone, workPhone;
+    GetPropertyAsAString(kHomePhoneProperty, homePhone);
+    GetPropertyAsAString(kWorkPhoneProperty, workPhone);
     if (CPalmSyncImp::nsPreferABHomePhoneForPalmPhone())
-      card->preferredPhoneNum = (m_HomePhone.IsEmpty()) ? (m_WorkPhone.IsEmpty() ? 4 : 1) : 2;
+      card->preferredPhoneNum = (homePhone.IsEmpty()) ? (workPhone.IsEmpty() ? 4 : 1) : 2;
     else
-      card->preferredPhoneNum = (m_WorkPhone.IsEmpty()) ? 2 : (m_WorkPhone.IsEmpty() ? 4 : 1);
+      card->preferredPhoneNum = (workPhone.IsEmpty()) ? 2 : (workPhone.IsEmpty() ? 4 : 1);
     card->isMailList = m_IsMailList;
     // Can't use ToNewCString() call here becasue MSCOM will complaint about
     // memory deallocation (ie, NdrPointerFree()) use CoTaskMemAlloc() instead.
@@ -971,8 +1007,16 @@ void nsAbIPCCard::JoinAddress(PRBool isUnicode, LPTSTR *ptrAddress, nsString &ad
 }
 void nsAbIPCCard::JoinHomeAndWorkAddresses(PRBool isUnicode, nsABCOMCardStruct * card)
 {
-  JoinAddress(isUnicode, &card->homeAddress, m_HomeAddress, m_HomeAddress2);
-  JoinAddress(isUnicode, &card->workAddress, m_WorkAddress, m_WorkAddress2);
+  nsAutoString address, address2;
+  GetPropertyAsAString(kHomeAddressProperty, address);
+  GetPropertyAsAString(kHomeAddress2Property, address2);
+  JoinAddress(isUnicode, &card->homeAddress, address, address2);
+
+  address.Truncate();
+  address2.Truncate();
+  GetPropertyAsAString(kWorkAddressProperty, address);
+  GetPropertyAsAString(kWorkAddress2Property, address2);
+  JoinAddress(isUnicode, &card->workAddress, address, address2);
 }
 
 

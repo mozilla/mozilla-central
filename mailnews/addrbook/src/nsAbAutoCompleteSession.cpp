@@ -369,7 +369,7 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
             continue;
           if (bIsMailList)
           {
-            rv = card->GetNotes(pNotesStr);
+            rv = card->GetPropertyAsAString(kNotesProperty, pNotesStr);
             if (NS_FAILED(rv))
               continue;
           }
@@ -383,7 +383,7 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
                   rv = card->GetPrimaryEmail(pEmailStr[i]);
                   break;
                 case 1:
-                  rv = card->GetSecondEmail(pEmailStr[i]);
+                  rv = card->GetPropertyAsAString(k2ndEmailProperty, pEmailStr[i]);
                   break;
                 default:
                   return NS_ERROR_FAILURE;
@@ -404,26 +404,22 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
           }
 
           // Now, retrieve the user name and nickname
-          rv = card->GetDisplayName(pDisplayNameStr);
-          if (NS_FAILED(rv))
-              continue;
-          rv = card->GetFirstName(pFirstNameStr);
-          if (NS_FAILED(rv))
-              continue;
-          rv = card->GetLastName(pLastNameStr);
-          if (NS_FAILED(rv))
-              continue;
-          rv = card->GetNickName(pNickNameStr);
-          if (NS_FAILED(rv))
-              continue;
+          (void)card->GetDisplayName(pDisplayNameStr);
+          (void)card->GetFirstName(pFirstNameStr);
+          (void)card->GetLastName(pLastNameStr);
 
-          (void) card->GetPopularityIndex(&popularityIndex);
+          (void)card->GetPropertyAsAString(kNicknameProperty, pNickNameStr);
 
-          // in the address book a mailing list does not have an email address field. However,
-          // we do "fix up" mailing lists in the UI sometimes to look like "My List <My List>"
-          // if we are looking up an address and we are comparing it to a mailing list to see if it is a match
-          // instead of just looking for an exact match on "My List", hijack the unused email address field 
-          // and use that to test against "My List <My List>"
+          (void)card->GetPropertyAsUint32(kPopularityIndexProperty,
+                                          &popularityIndex);
+
+          // In the address book a mailing list does not have an email address
+          // field. However, we do "fix up" mailing lists in the UI sometimes to
+          // look like "My List <My List>." If we are looking up an address, and
+          // we are comparing it to a mailing list to see if it is a match,
+          // instead of just looking for an exact match on "My List", hijack the
+          // unused email address field and use that to test against
+          // "My List <My List>"
           if (bIsMailList)
             mParser->MakeFullAddress(pDisplayNameStr, pDisplayNameStr, pEmailStr[0]);
 

@@ -49,7 +49,6 @@
 #include "nsAbBaseCID.h"
 #include "nsNetUtil.h"
 #include "nsStringStream.h"
-#include "nsIAbMDBCard.h"
 #include "nsIAbDirectory.h"
 #include "nsIRDFResource.h"
 #include "nsIRDFService.h"
@@ -303,13 +302,13 @@ nsAddbookProtocolHandler::BuildDirectoryXML(nsIAbDirectory *aDirectory,
     
     nsCOMPtr <nsIAbCard> card;
     view->GetCardFromRow(row, getter_AddRefs(card));
-    nsString xmlSubstr;
+    nsCString xmlSubstr;
 
-    rv = card->ConvertToXMLPrintData(xmlSubstr);
+    rv = card->TranslateTo(NS_LITERAL_CSTRING("xml"), xmlSubstr);
     NS_ENSURE_SUCCESS(rv,rv);
 
     aOutput.AppendLiteral("<separator/>");
-    aOutput.Append(xmlSubstr);
+    aOutput.Append(NS_ConvertUTF8toUTF16(xmlSubstr));
     aOutput.AppendLiteral("<separator/>");
   }
 

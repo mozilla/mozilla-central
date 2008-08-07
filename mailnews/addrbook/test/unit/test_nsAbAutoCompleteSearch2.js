@@ -19,7 +19,7 @@ function createCard(chars, popularity) {
   card.lastName = "lastName".slice(0, chars);
   card.displayName = "displayName".slice(0, chars);
   card.primaryEmail = "email".slice(0, chars) + "@invalid.com";
-  card.nickName = "nickName".slice(0, chars);
+  card.setProperty("NickName", "nickName".slice(0, chars));
 
   return card;
 }

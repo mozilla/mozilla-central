@@ -42,7 +42,6 @@
 #include "nsIAbCard.h"
 #include "nsAbBaseCID.h"
 #include "nsAbUtils.h"
-#include "nsIAbMDBCard.h"
 #include "nsAbLDAPReplicationQuery.h"
 #include "nsProxiedService.h"
 #include "nsIRDFService.h"
@@ -279,14 +278,8 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
     // Although we would may naturally create an nsIAbLDAPCard here, we don't
     // need to as we are writing this straight to the database, so just create
     // the database version instead.
-    nsCOMPtr<nsIAbMDBCard> dbCard(do_CreateInstance(NS_ABMDBCARD_CONTRACTID,
-                                                    &rv));
-    if (NS_FAILED(rv)) {
-      Abort();
-      return rv;
-    }
-
-    nsCOMPtr<nsIAbCard> newCard(do_QueryInterface(dbCard, &rv));
+    nsCOMPtr<nsIAbCard> newCard(do_CreateInstance(NS_ABMDBCARD_CONTRACTID,
+                                                  &rv));
     if (NS_FAILED(rv)) {
       Abort();
       return rv;
@@ -312,14 +305,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
     rv = aMessage->GetDn(authDN);
     if(NS_SUCCEEDED(rv) && !authDN.IsEmpty())
     {
-        dbCard->SetAbDatabase(mReplicationDB);
-        dbCard->SetStringAttribute("_DN", NS_ConvertUTF8toUTF16(authDN).get());
-    }
-
-    newCard = do_QueryInterface(dbCard, &rv);
-    if(NS_FAILED(rv)) {
-        Abort();
-        return rv;
+        newCard->SetPropertyAsAUTF8String("_DN", authDN);
     }
 
     rv = mReplicationDB->EditCard(newCard, PR_FALSE, nsnull);

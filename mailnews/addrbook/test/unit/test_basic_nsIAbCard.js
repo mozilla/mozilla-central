@@ -17,17 +17,28 @@ function run_test() {
                          .createInstance(Components.interfaces.nsIAbCard);
 
   // Test - Set First, Last and Display Names and Email Address
-  // via setCardValue, and check correctly saved via their
+  // via setProperty, and check correctly saved via their
   // attributes. We're using firstName to check UTF-8 values.
-  card.setCardValue("FirstName", kFNValue);
-  card.setCardValue("LastName", kLNValue);
-  card.setCardValue("DisplayName", kDNValue);
-  card.setCardValue("PrimaryEmail", kEmailValue);
+  card.setProperty("FirstName", kFNValue);
+  card.setProperty("LastName", kLNValue);
+  card.setProperty("DisplayName", kDNValue);
+  card.setProperty("PrimaryEmail", kEmailValue);
 
   do_check_eq(card.firstName, kFNValue);
   do_check_eq(card.lastName, kLNValue);
   do_check_eq(card.displayName, kDNValue);
   do_check_eq(card.primaryEmail, kEmailValue);
+
+  // Repeat in the opposite order.
+  card.firstName = kFNValue;
+  card.lastName = kLNValue;
+  card.displayName = kDNValue;
+  card.primaryEmail = kEmailValue;
+
+  do_check_eq(card.getProperty("FirstName", "BAD"), kFNValue);
+  do_check_eq(card.getProperty("LastName", "BAD"), kLNValue);
+  do_check_eq(card.getProperty("DisplayName", "BAD"), kDNValue);
+  do_check_eq(card.getProperty("PrimaryEmail", "BAD"), kEmailValue);
 
   // Test - generateName. Note: if the addressBook.properties
   // value changes, this will affect these tests.
@@ -61,8 +72,8 @@ function run_test() {
   // Test - generateNameWithBundle, most of this will have
   // been tested above.
 
-  card.setCardValue("FirstName", kFNValue);
-  card.setCardValue("LastName", kLNValue);
+  card.firstName = kFNValue;
+  card.lastName = kLNValue;
 
   var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
                       .getService(Components.interfaces.nsIStringBundleService);
@@ -73,17 +84,17 @@ function run_test() {
 
   // Test - generatePhoneticName
 
-  card.phoneticFirstName = kFNValue;
-  card.phoneticLastName = kLNValue;
+  card.setProperty("PhoneticFirstName", kFNValue);
+  card.setProperty("PhoneticLastName", kLNValue);
   do_check_eq(card.generatePhoneticName(false), kFNValue + kLNValue);
   do_check_eq(card.generatePhoneticName(true), kLNValue + kFNValue);
 
-  card.phoneticLastName = "";
+  card.setProperty("PhoneticLastName", "");
   do_check_eq(card.generatePhoneticName(false), kFNValue);
   do_check_eq(card.generatePhoneticName(true), kFNValue);
 
-  card.phoneticFirstName = "";
-  card.phoneticLastName = kLNValue;
+  card.setProperty("PhoneticFirstName", "");
+  card.setProperty("PhoneticLastName", kLNValue);
   do_check_eq(card.generatePhoneticName(false), kLNValue);
   do_check_eq(card.generatePhoneticName(true), kLNValue);
 }

@@ -1,0 +1,107 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *  Mark Banner <bugzilla@standard8.plus.com>
+ *  Joshua Cranmer <Pidgeot18@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+
+interface nsIMsgHeaderParser;
+interface nsIStringBundle;
+
+/**
+ * A containable item for address books.
+ */
+[scriptable, uuid(f7320616-3139-419b-a7c3-37441da3caf3)]
+interface nsIAbItem : nsISupports {
+  /**
+   * @{
+   * These constants reflect the possible values of the
+   * mail.addr_book.lastnamefirst preferences. They are intended to be used in
+   * generateName, defined below.
+   */
+   const unsigned long GENERATE_DISPLAY_NAME = 0;
+   const unsigned long GENERATE_LAST_FIRST_ORDER = 1;
+   const unsigned long GENERATE_FIRST_LAST_ORDER = 2;
+   /** @} */
+
+  /** 
+   * Generate a name from the item for display purposes.
+   *
+   * If this item is an nsIAbCard, then it will use the aGenerateFormat option
+   * to determine the string to return.
+   * If this item is not an nsIAbCard, then the aGenerateFormat option may be
+   * ignored, and the displayName of the item returned.
+   *
+   * @param  aGenerateFormat The format to generate as per the GENERATE_*
+   *                         constants above.
+   * @param  aBundle         An optional parameter that is a pointer to a string
+   *                         bundle that holds:
+   *           chrome://messenger/locale/addressbook/addressBook.properties
+   *                         If this bundle is not supplied, then the function
+   *                         will obtain the bundle itself. If cached by the
+   *                         caller and supplied to this function, then
+   *                         performance will be improved over many calls.
+   * @return                 A string containing the generated name.
+   */
+  AString generateName(in long aGenerateFormat,
+                       [optional] in nsIStringBundle aBundle);
+
+  /**
+   * Generate a formatted email address from the card, that can be used for
+   * sending emails.
+   *
+   * @param  aExpandList     If this card is a list, and this parameter is set
+   *                         to true, then the list will be expanded to include
+   *                         the emails of the cards within the list.
+   * @param  aGroupMailLists If this card (or the items within this card) is a
+   *                         list, and this is set to true, then the list will
+   *                         be expanded in the RFC 2822 group format
+   *                         "displayname : email1 ; email2 ; etc".
+   * @param  aHeaderParser   An optional parameter pointing to the
+   *                         nsIMsgHeaderParser service. If this is not supplied
+   *                         the function will obtain the service itself. If
+   *                         cached by the called and supplied to this function,
+   *                         then performance will be improved over many calls.
+   * @return                 A string containing a comma-separated list of
+   *                         formatted addresses.
+   */
+  //AString generateFormattedEmail(in boolean aExpandList,
+  //                               in boolean aAsGroupMailLists,
+  //                               [optional] in nsIMsgHeaderParser aHeaderParser);
+
+};
+

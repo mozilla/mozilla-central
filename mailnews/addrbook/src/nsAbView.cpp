@@ -441,7 +441,12 @@ nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID,
     // use LN/FN order for the phonetic name
     return card->GeneratePhoneticName(PR_TRUE, _retval);
 
-  return card->GetCardValue(NS_LossyConvertUTF16toASCII(colID).get(), _retval);
+  nsresult rv = card->GetPropertyAsAString(NS_ConvertUTF16toUTF8(colID).get(), _retval);
+  if (rv == NS_ERROR_NOT_AVAILABLE) {
+    rv = NS_OK;
+    _retval.Truncate();
+  }
+  return rv;
 }
 
 nsresult nsAbView::RefreshTree()
@@ -465,7 +470,7 @@ nsresult nsAbView::RefreshTree()
   // all we have to do is invalidate (to show the new GeneratedNames), 
   // but the sort will not change.
   if (mSortColumn.EqualsLiteral(GENERATED_NAME_COLUMN_ID) ||
-      mSortColumn.EqualsLiteral(kPriEmailColumn) ||
+      mSortColumn.EqualsLiteral(kPriEmailProperty) ||
       mSortColumn.EqualsLiteral(kPhoneticNameColumn)) {
     rv = SortBy(mSortColumn.get(), mSortDirection.get());
   }
@@ -769,7 +774,7 @@ nsresult nsAbView::GenerateCollationKeysForCard(const PRUnichar *colID, AbCard *
   // Hardcode email to be our secondary key. As we are doing this, just call
   // the card's GetCardValue direct, rather than our own function which will
   // end up doing the same as then we can save a bit of time.
-  rv = abcard->card->GetCardValue(NS_LITERAL_CSTRING(kPriEmailColumn).get(), value);
+  rv = abcard->card->GetPrimaryEmail(value);
   NS_ENSURE_SUCCESS(rv,rv);
   
   PR_FREEIF(abcard->secondaryCollationKey);
@@ -1237,14 +1242,14 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
           }
 
           // swap phonetic names
-          rv = abCard->GetPhoneticFirstName(fn);
+          rv = abCard->GetPropertyAsAString(kPhoneticFirstNameProperty, fn);
           NS_ENSURE_SUCCESS(rv, rv);
-          rv = abCard->GetPhoneticLastName(ln);
+          rv = abCard->GetPropertyAsAString(kPhoneticLastNameProperty, ln);
           NS_ENSURE_SUCCESS(rv, rv);
           if (!fn.IsEmpty() || !ln.IsEmpty())
           {
-            abCard->SetPhoneticFirstName(ln);
-            abCard->SetPhoneticLastName(fn);
+            abCard->SetPropertyAsAString(kPhoneticFirstNameProperty, ln);
+            abCard->SetPropertyAsAString(kPhoneticLastNameProperty, fn);
           }
         }
       }

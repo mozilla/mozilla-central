@@ -2315,7 +2315,7 @@ function allowRemoteContentForSender()
   if (cardForEmailAddress && addrbook instanceof Components.interfaces.nsIAbDirectory)
   {
     // set the property for remote content
-    cardForEmailAddress.allowRemoteContent = true;
+    cardForEmailAddress.setProperty("AllowRemoteContent", true);
     addrbook.modifyCard(cardForEmailAddress);
     allowRemoteContent = true;
   }

@@ -227,19 +227,19 @@ var collectChecker = {
       do_check_true(card != null);
 
       if ("secondEmail" in aDetails)
-        do_check_eq(card.secondEmail, aDetails.secondEmail);
+        do_check_eq(card.getProperty("SecondEmail", "BAD"), aDetails.secondEmail);
 
       if (overrideMailFormat)
-        do_check_eq(card.preferMailFormat, nsIAbPMF.unknown);
+        do_check_eq(card.getProperty("PreferMailFormat", "BAD"), nsIAbPMF.unknown);
       else if ("mailFormatOut" in aDetails)
-        do_check_eq(card.preferMailFormat, aDetails.mailFormatOut);
+        do_check_eq(card.getProperty("PreferMailFormat", "BAD"), aDetails.mailFormatOut);
       else
-        do_check_eq(card.preferMailFormat, aDetails.mailFormat);
+        do_check_eq(card.getProperty("PreferMailFormat", "BAD"), aDetails.mailFormat);
 
       do_check_eq(card.displayName, aDetails.displayName);
       do_check_eq(card.firstName, aDetails.firstName);
       do_check_eq(card.lastName, aDetails.lastName);
-      do_check_eq(card.aimScreenName, aDetails.screenName);
+      do_check_eq(card.getProperty("_AimScreenName", ""), aDetails.screenName);
     }
     catch (e) {
       throw "FAILED in checkCardResult emailHeader: " + aDetails.emailHeader + " : " + e;
@@ -332,7 +332,7 @@ function run_test()
                    .createInstance(Components.interfaces.nsIAbCard);
 
   card.primaryEmail = "userprim\u00D0@invalid.com";
-  card.secondEmail = "usersec\u00D0@invalid.com";
+  card.setProperty("SecondEmail", "usersec\u00D0@invalid.com");
 
   CAB.addCard(card);
 

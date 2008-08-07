@@ -44,7 +44,6 @@
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "nsUnicharUtils.h"
-#include "nsIAbMDBCard.h"
 #include "nsIAbManager.h"
 #include "nsAbCardProperty.h"
 #include "prdtoa.h"
@@ -155,7 +154,7 @@ nsAbPalmHotSync::~nsAbPalmHotSync()
 }
 
 // this is a utility function
-void nsAbPalmHotSync::ConvertAssignPalmIDAttrib(PRUint32 id, nsIAbMDBCard * card)  
+void nsAbPalmHotSync::ConvertAssignPalmIDAttrib(PRUint32 id, nsIAbCard * card)  
 { 
     PRInt64 l;
     LL_UI2L(l, id);
@@ -163,8 +162,7 @@ void nsAbPalmHotSync::ConvertAssignPalmIDAttrib(PRUint32 id, nsIAbMDBCard * card
     LL_L2F(f, l);
     char buf[128];
     PR_cnvtf(buf, 128, 0, f);
-    card->SetAbDatabase(mABDB);
-    card->SetStringAttribute(CARD_ATTRIB_PALMID,NS_ConvertASCIItoUTF16(buf).get());
+    mABDB->SetCardValue(card, CARD_ATTRIB_PALMID, NS_ConvertASCIItoUTF16(buf).get(), PR_TRUE);
 }
 
 nsresult nsAbPalmHotSync::GetABInterface()
@@ -529,7 +527,7 @@ nsresult nsAbPalmHotSync::LoadDeletedCardsSinceLastSync()
             continue;
 
         PRUint32 lastModifiedDate = 0;
-        rv = card->GetLastModifiedDate(&lastModifiedDate);
+        rv = card->GetPropertyAsUint32(kLastModifiedDateProperty, &lastModifiedDate);
         if (NS_FAILED(rv) || !lastModifiedDate)
             continue;
 
@@ -585,7 +583,7 @@ nsresult nsAbPalmHotSync::LoadNewModifiedCardsSinceLastSync()
             continue;
 
         PRUint32 lastModifiedDate = 0;
-        rv = card->GetLastModifiedDate(&lastModifiedDate);
+        rv = card->GetPropertyAsUint32(kLastModifiedDateProperty, &lastModifiedDate);
         if (NS_FAILED(rv))
             continue;
 
@@ -825,9 +823,8 @@ nsresult nsAbPalmHotSync::UpdateMozABWithPalmRecords()
           // it's associated with the palm card going forward, so set the palmid.
           if (NS_SUCCEEDED(rv) && existingCard)
           {
-            nsCOMPtr<nsIAbMDBCard> dbCard = do_QueryInterface(existingCard);
-
-            dbCard->SetStringAttribute(CARD_ATTRIB_PALMID, NS_ConvertASCIItoUTF16(recordIDBuf).get());
+            existingCard->SetPropertyAsAUTF8String(CARD_ATTRIB_PALMID,
+                nsDependentCString(recordIDBuf));
             continue;
           }
 
@@ -857,14 +854,9 @@ nsresult nsAbPalmHotSync::UpdateMozABWithPalmRecords()
             }
         }
 
-        nsCOMPtr<nsIAbMDBCard> dbCard;
-        dbCard = do_CreateInstance(NS_ABMDBCARD_CONTRACTID, &rv);
-        if(NS_FAILED(rv))
-            continue;
-
         nsCOMPtr<nsIAbCard> newCard;
-        newCard = do_QueryInterface(dbCard, &rv);
-        if(NS_FAILED(rv)) 
+        newCard = do_CreateInstance(NS_ABMDBCARD_CONTRACTID, &rv);
+        if(NS_FAILED(rv))
             continue;
 
         rv = newCard->Copy(&ipcCard);
@@ -878,16 +870,14 @@ nsresult nsAbPalmHotSync::UpdateMozABWithPalmRecords()
         {
             PRUint32 modTimeInSec;
             PRTime2Seconds(PR_Now(), &modTimeInSec);
-            ipcCard.SetLastModifiedDate(modTimeInSec);
+            ipcCard.SetPropertyAsUint32(kLastModifiedDateProperty, modTimeInSec);
             rv = mABDB->CreateNewCardAndAddToDB(newCard, PR_FALSE, nsnull);
             if(NS_SUCCEEDED(rv)) 
             {
                 // now set the attribute for the PalmRecID in the card in the DB
-                dbCard->SetAbDatabase(mABDB);
-                dbCard->SetStringAttribute(CARD_ATTRIB_PALMID, NS_ConvertASCIItoUTF16(recordIDBuf).get());
-                newCard = do_QueryInterface(dbCard, &rv);
-                if(NS_SUCCEEDED(rv))
-                    rv = mABDB->EditCard(newCard, PR_FALSE, nsnull);
+                newCard->SetPropertyAsAUTF8String(CARD_ATTRIB_PALMID,
+                    nsDependentCString(recordIDBuf));
+                rv = mABDB->EditCard(newCard, PR_FALSE, nsnull);
             }
         }
     }
@@ -907,15 +897,12 @@ nsresult nsAbPalmHotSync::Done(PRBool aSuccess, PRInt32 aPalmCatIndex, PRUint32 
     {
         for(PRUint32 i=0; i<aPalmRecIDListCount; i++) 
         {
-            nsCOMPtr<nsIAbMDBCard> dbCard;
-            rv = mNewCardsArray->QueryElementAt(i, NS_GET_IID(nsIAbMDBCard), getter_AddRefs(dbCard));
-            if(NS_SUCCEEDED(rv) && dbCard) 
+            nsCOMPtr<nsIAbCard> newCard;
+            rv = mNewCardsArray->QueryElementAt(i, NS_GET_IID(nsIAbCard), getter_AddRefs(newCard));
+            if (NS_SUCCEEDED(rv) && newCard) 
             {
-                ConvertAssignPalmIDAttrib(aPalmRecordIDList[i], dbCard);
-                nsCOMPtr<nsIAbCard> newCard;
-                newCard = do_QueryInterface(dbCard, &rv);
-                if(NS_SUCCEEDED(rv))
-                    mABDB->EditCard(newCard, PR_FALSE, nsnull);
+                ConvertAssignPalmIDAttrib(aPalmRecordIDList[i], newCard);
+                mABDB->EditCard(newCard, PR_FALSE, nsnull);
             }
         }
     }
