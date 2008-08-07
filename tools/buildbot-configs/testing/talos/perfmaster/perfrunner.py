@@ -271,26 +271,21 @@ class MozillaInstallZip(ShellCommand):
 
 class MozillaUpdateConfig(ShellCommand):
     """Configure YAML file for run_tests.py"""
-    
+   
     def __init__(self, **kwargs):
-        self.title = "default"
-        self.branch = ""
-        self.currentDate = ""
-        if 'build' in kwargs:
-            self.title = kwargs['build'].slavename
-            self.changes = kwargs['build'].source.changes
-            self.buildid = strftime("%Y%m%d%H%M", localtime(self.changes[-1].when))
-        if 'branch' in kwargs:
-            self.branch = kwargs['branch']
-        assert 'configPath' in kwargs
+        self.addOptions = []
+        assert 'build' in kwargs
         assert 'executablePath' in kwargs
-        self.configPath = kwargs['configPath']
+        assert 'branch' in kwargs
+        self.title = kwargs['build'].slavename
+        self.changes = kwargs['build'].source.changes
+        self.buildid = strftime("%Y%m%d%H%M", localtime(self.changes[-1].when))
+        self.branch = kwargs['branch']
         self.exePath = kwargs['executablePath']
+        if 'addOptions' in kwargs:
+            self.addOptions = kwargs['addOptions']
         if not 'command' in kwargs:
-            kwargs['command'] = ["python", "PerfConfigurator.py", "-v",
-                                 "-e", self.exePath, "-c", self.configPath,
-                                 "-t", self.title, "-b", self.branch,
-                                 "-d", self.buildid, "-i", self.buildid]
+            kwargs['command'] = ["python", "PerfConfigurator.py", "-v", "-e", self.exePath, "-t", self.title, "-b", self.branch, "-d", self.buildid] + self.addOptions
         ShellCommand.__init__(self, **kwargs)
 
     def describe(self, done=False):
@@ -465,49 +460,6 @@ class MozillaWgetFromChange(ShellCommand):
             return FAILURE
         return SUCCESS
 
-class MozillaUpdateConfigFromChange(ShellCommand):
-    """Configure YAML file for run_tests.py"""
-    
-    def __init__(self, **kwargs):
-        self.title = "default"
-        self.branch = ""
-        self.currentDate = ""
-        if 'build' in kwargs:
-            self.title = kwargs['build'].slavename
-            self.changes = kwargs['build'].source.changes
-            self.buildid = self.changes[-1].comments.split(',')[0]
-        if 'branch' in kwargs:
-            self.branch = kwargs['branch']
-        assert 'configPath' in kwargs
-        assert 'executablePath' in kwargs
-        self.configPath = kwargs['configPath']
-        self.exePath = kwargs['executablePath']
-        if not 'command' in kwargs:
-            kwargs['command'] = ["python", "PerfConfigurator.py", "-v", "-e",
-                                 self.exePath, "-c", self.configPath,
-                                 "-t", self.title, "-b", self.branch,
-                                 "-d", self.buildid, "-i", self.buildid]
-        ShellCommand.__init__(self, **kwargs)
-    
-    def describe(self, done=False):
-        return ["Update config"]
-    
-    def evaluateCommand(self, cmd):
-        superResult = ShellCommand.evaluateCommand(self, cmd)
-        if SUCCESS != superResult:
-            return FAILURE
-        stdioText = cmd.logs['stdio'].getText()
-        if None != re.search('ERROR', stdioText):
-            return FAILURE
-        if None != re.search('USAGE:', stdioText):
-            return FAILURE
-        configFileMatch = re.search('outputName\s*=\s*(\w*?.yml)', stdioText)
-        if not configFileMatch:
-            return FAILURE
-        else:
-            self.setProperty("configFile", configFileMatch.group(1))
-        return SUCCESS
-
 class MozillaInstallDmg(ShellCommand):
     """Install given file, copying to workdir"""
     
@@ -587,7 +539,7 @@ class TalosFactory(BuildFactory):
     macClean   = "rm -vrf *"
     linuxClean = ["rm", "-rf", "*.bz2", "*.gz", "talos/", "firefox/"]
 
-    def __init__(self, OS, envName, buildBranch, configFile, buildSearchString, buildDir, buildPath, talosCmd, customManifest='', cvsRoot=":pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot"):
+    def __init__(self, OS, envName, buildBranch, configOptions, buildSearchString, buildDir, buildPath, talosCmd, customManifest='', cvsRoot=":pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot"):
         BuildFactory.__init__(self)
         if OS in ('linux', 'linuxbranch',):
             cleanCmd = self.linuxClean
@@ -612,10 +564,6 @@ class TalosFactory(BuildFactory):
                            mastersrc="scripts/generate-tpcomponent.py",
                            slavedest="generate-tpcomponent.py",
                            workdir="talos/page_load_test")
-        self.addStep(FileDownload,
-                           mastersrc=configFile,
-                           slavedest="sample.config",
-                           workdir="talos/")
         if customManifest <> '':
             self.addStep(FileDownload,
                            mastersrc=customManifest,
@@ -685,7 +633,7 @@ class TalosFactory(BuildFactory):
                            branch=buildBranch,
                            haltOnFailure=True,
                            executablePath=buildPath,
-                           configPath=".",
+                           addOptions=configOptions,
                            env=MozillaEnvironments[envName])
         self.addStep(MozillaRunPerfTests,
                            warnOnWarnings=True,
