@@ -374,7 +374,6 @@ function scheduleMidnightUpdate(aRefreshCallback) {
     // stuck in an infinite loop.
     var udCallback = {
         notify: function(timer) {
-            LOG("scheduleMidnightUpdate -- timer shot.");
             aRefreshCallback();
         }
     };
@@ -383,7 +382,6 @@ function scheduleMidnightUpdate(aRefreshCallback) {
         // Observer for wake after sleep/hibernate/standby to create new timers and refresh UI
         var wakeObserver = {
            observe: function(aSubject, aTopic, aData) {
-               LOG("scheduleMidnightUpdate -- wakeObserver: " + aTopic);
                if (aTopic == "wake_notification") {
                    // postpone refresh for another couple of seconds to get netwerk ready:
                    if (this.mTimer) {
@@ -413,7 +411,6 @@ function scheduleMidnightUpdate(aRefreshCallback) {
     } else {
         gMidnightTimer.cancel();
     }
-    LOG("scheduleMidnightUpdate -- init timer.");
     gMidnightTimer.initWithCallback(udCallback, msUntilTomorrow, gMidnightTimer.TYPE_ONE_SHOT);
 }
 
