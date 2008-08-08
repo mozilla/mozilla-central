@@ -46,6 +46,7 @@ Cu.import("resource://gloda/modules/log4moz.js");
 
 Cu.import("resource://gloda/modules/datastore.js");
 Cu.import("resource://gloda/modules/datamodel.js");
+Cu.import("resource://gloda/modules/query.js");
 Cu.import("resource://gloda/modules/utils.js");
 
 /**
@@ -173,6 +174,7 @@ let Gloda = {
   /** A date, encoded as a PRTime, represented as a js Date object. */
   NOUN_DATE: 10,
   NOUN_TAG: 50,
+  NOUN_FOLDER: 100,
   NOUN_CONVERSATION: 101,
   NOUN_MESSAGE: 102,
   NOUN_CONTACT: 103,
@@ -193,11 +195,39 @@ let Gloda = {
    *     lookupNoun.  The suggested convention is lower-case-dash-delimited,
    *     with names being singular (since it's a single noun we are referring
    *     to.)
+   * @param class The 'class' to which an instance of the noun will belong (aka
+   *     will pass an instanceof test).
+   * @param firstClass Is this a 'first class noun'/can it be a subject, AKA can
+   *     this noun have attributes stored on it that relate it to other things?  For
+   *     For example, a message is first-class; we store attributes of
+   *     messages.  A date is not first-class now, nor is it likely to be; we
+   *     will not store attributes about a date, although dates will be the
+   *     objects of other subjects.  (For example: we might associate a date
+   *     with a calendar event, but the date is an attribute of the calendar
+   *     event and not vice versa.) 
+   * @param usesParameter A boolean indicating whether this noun requires use
+   *     of the 'parameter' BLOB storage field on the attribute bindings in the
+   *     database to persist itself.  Use of parameters should be limited
+   *     to a reasonable number of values (16-32 is okay, more than that is
+   *     pushing it and 256 should be considered an absolute upper bound)
+   *     because of the database organization.  When false, your toParamAndValue
+   *     function is expected to return null for the parameter and likewise your
+   *     fromParamAndValue should expect ignore and generally ignore the
+   *     argument.
+   * @param fromParamAndValue A function that takes a parameter value and the
+   *     object value and should return an instantiated noun instance. 
+   * @param toParamAndValue A function that takes an instantiated noun
+   *     instance and returns a 2-element list of [parameter, value] where
+   *     parameter may only be non-null if you passed a usesParameter of true.
+   *     Parameter may be of any type (BLOB), and value must be numeric (pass
+   *     0 if you don't need the value).
    */
   defineNoun: function gloda_ns_defineNoun(aNounMeta, aNounID) {
     if (aNounID === undefined)
       aNounID = this._nextNounID++;
     aNounMeta.id = aNounID;
+    if (aNounMeta.firstClass)
+      aNounMeta.queryClass = GlodaQueryClassFactory(aNounMeta);
     this._nounNameToNounID[aNounMeta.name] = aNounID; 
     this._nounIDToMeta[aNounID] = aNounMeta;
     aNounMeta.actions = [];
@@ -237,44 +267,85 @@ let Gloda = {
   _attrProviders: {},
   
   _initAttributes: function gloda_ns_initAttributes() {
-    this._nounIDToMeta[this.NOUN_BOOLEAN] = {class: Boolean, firstClass: false,
-      actions: [],
+    this.defineNoun({class: Boolean, firstClass: false,
       fromParamAndValue: function(aParam, aVal) {
         if(aVal != 0) return true; else return false;
-      }};
-    this._nounIDToMeta[this.NOUN_DATE] = {class: Date, firstClass: false,
-      actions: [],
+      },
+      toParamAndValue: function(aBool) {
+        return [null, aBool ? 1 : 0];
+      }}, this.NOUN_BOOLEAN);
+    this.defineNoun({class: Date, firstClass: false, continuous: true,
       fromParamAndValue: function(aParam, aPRTime) {
         return new Date(aPRTime / 1000);
-      }};
+      },
+      toParamAndValue: function(aDate) {
+        return [null, aDate.valueOf() * 1000];
+      }}, this.NOUN_DATE);
 
+    this.defineNoun({class: null,
+      firstClass: false,
+      fromParamAndValue: function(aParam, aID) {
+        return GlodaDatastore._mapFolderID(aID);
+      },
+      toParamAndValue: function(aFolderURI) {
+        return [null, GlodaDatastore._mapFolderURI(aFolderURI)];
+      }}, this.NOUN_FOLDER);
     // TODO: use some form of (weak) caching layer... it is reasonably likely
     //  that there will be a high degree of correlation in many cases, and
     //  unless the UI is extremely clever and does its cleverness before
     //  examining the data, we will probably hit the correlation.
-    this._nounIDToMeta[this.NOUN_CONVERSATION] = {class: GlodaConversation,
-      firstClass: false, actions: [],
+    this.defineNoun({class: GlodaConversation,
+      firstClass: false,
+      tableName: "conversations",
+      attrTableName: "messageAttributes", attrIDColumnName: "conversationID",
       fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getConversationByID(aID);
-      }};
-    this._nounIDToMeta[this.NOUN_MESSAGE] = {class: GlodaMessage,
-      firstClass: true, actions: [],
+      },
+      toParamAndValue: function(aConversation) {
+        if (aConversation instanceof GlodaConversation)
+          return [null, aConversation.id];
+        else // assume they're just passing the id directly
+          return [null, aConversation];
+      }}, this.NOUN_CONVERSATION);
+    this.defineNoun({class: GlodaMessage,
+      firstClass: true,
+      tableName: "messages",
+      attrTableName: "messageAttributes", attrIDColumnName: "messageID",
+      datastore: GlodaDatastore, objFromRow: GlodaDatastore._messageFromRow,
       fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getMessageByID(aID);
-      }};
-    this._nounIDToMeta[this.NOUN_CONTACT] = {class: GlodaContact,
-      firstClass: false, actions: [],
+      },
+      toParamAndValue: function(aMessage) {
+        if (aMessage instanceof GlodaMessage)
+          return [null, aMessage.id];
+        else // assume they're just passing the id directly
+          return [null, aMessage];
+      }}, this.NOUN_MESSAGE);
+    this.defineNoun({class: GlodaContact,
+      firstClass: false,
       fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getContactByID(aID);
-      }};
-    this._nounIDToMeta[this.NOUN_IDENTITY] = {class: GlodaIdentity,
-      firstClass: false, actions: [],
+      },
+      toParamAndValue: function(aContact) {
+        if (aContact instanceof GlodaContact)
+          return [null, aContact.id];
+        else // assume they're just passing the id directly
+          return [null, aContact];
+      }}, this.NOUN_CONTACT);
+    this.defineNoun({class: GlodaIdentity,
+      firstClass: false,
       fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getIdentityByID(aID);
-      }};
+      },
+      toParamAndValue: function(aIdentity) {
+        if (aIdentity instanceof GlodaIdentity)
+          return [null, aIdentity.id];
+        else // assume they're just passing the id directly
+          return [null, aIdentity];
+      }}, this.NOUN_IDENTITY);
   
     GlodaDatastore.getAllAttributes();
-
+    
     /* boolean actions, these are parameterized by the attribute they operate
        in the context of.  They are also (not coincidentally), ugly. */
     Gloda.defineNounAction(Gloda.NOUN_BOOLEAN, {actionType: "filter",
@@ -337,16 +408,52 @@ let Gloda = {
         return values;
       }
     }
+    
+    let subjectNounMeta = this._nounIDToMeta[aSubjectType];
   
-    let subjectProto = this._nounIDToMeta[aSubjectType].class.prototype;
+    let subjectProto = subjectNounMeta.class.prototype;
     subjectProto.__defineGetter__(aBindName, getter);
     // no setters for now; manipulation comes later, and will require the attr
     //  definer to provide the actual logic, since we need to affect reality,
     //  not just the data-store.  we may also just punt that all off onto
     //  STEEL...
+    
+    if (subjectNounMeta.queryClass !== undefined) {
+      let constrainer = function() {
+        // all the arguments provided end up being ORed together
+        let our_ors = [];
+        for(let iArg=0; iArg < arguments.length; iArg++) {
+          let argument = arguments[iArg];
+          our_ors.push([aAttr].concat(nounMeta.toParamAndValue(argument)));
+        }
+        // but the constraints are ANDed together
+        this._constraints.push(our_ors);
+        return this;
+      };
+      
+      subjectNounMeta.queryClass.prototype[aBindName] = constrainer;
+      
+      if (nounMeta.continuous) {
+        let rangedConstrainer = function() {
+          // all the arguments provided end up being ORed together
+          let our_ors = [];
+          for(let iArg=0; iArg < arguments.length; iArg +=2 ) {
+            let pv1 = nounMeta.toParamAndValue(arguments[iArg]);
+            let pv2 = nounMeta.toParamAndValue(arguments[iArg+1]);
+            our_ors.push([aAttr, pv1[0], pv[1], pv2[1]]);
+          }
+          // but the constraints are ANDed together
+          this._constraints.push(our_ors);
+          return this;
+        }
+        
+        subjectNounMeta.queryClass.prototype[aBindName + "Range"] =
+          rangedConstrainer;
+      }
+    }
 
     aAttr._boundName = aBindName;
-    aAttr._boundSingular = aSingular;
+    aAttr._singular = aSingular;
   },
   
   /**
@@ -387,15 +494,6 @@ let Gloda = {
    *     to represent an attribute, we store the subject (ex: message ID),
    *     attribute ID, and an integer which is the integer representation of the
    *     'object' whose type you are defining right here.
-   * @param parameterNoun The object type (NOUN_* or dynamic) or 'null' that
-   *     parameterizes this attribute.  The attribute ID we mentioned on the
-   *     'objectNoun' could actually be one of many possible attribute IDs
-   *     spawned by a single attribute definition.  For each parameter for each
-   *     attribute, we add an extra row to the attributes table, resulting in
-   *     a new attribute ID.  The parameter can actually be represented as a
-   *     BLOB allowing slightly more choices, although implementation realities
-   *     demand that the number of parameters per attribute be kept reasonably
-   *     small (preferably no more than 32, definitely no more than 256).
    * @param explanation A string (hopefully retrieved from a string bundle) that
    *     is used to provide a textual explanation of what this attribute means.
    *     Strings may contain "%{subject}" to expand a textual representation
@@ -413,7 +511,6 @@ let Gloda = {
         !("singular" in aAttrDef) ||
         !("subjectNouns" in aAttrDef) ||
         !("objectNoun" in aAttrDef) ||
-        !("parameterNoun" in aAttrDef) ||
         !("explanation" in aAttrDef))
       // perhaps we should have a list of required attributes, perchance with
       //  and explanation of what it holds, and use that to be friendlier?
@@ -448,8 +545,8 @@ let Gloda = {
       attr._provider = aAttrDef.provider;
       attr._subjectTypes = aAttrDef.subjectNouns;
       attr._objectType = aAttrDef.objectNoun;
-      attr._parameterType = aAttrDef.parameterNoun;
       attr._explanationFormat = aAttrDef.explanation;
+      attr._specialColumnName = aAttrDef.specialColumnName || null;
       
       if (aAttrDef.bind) {
         for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
@@ -464,11 +561,13 @@ let Gloda = {
       return attr; 
     }
     
+    let objectNounMeta = this._nounIDToMeta[aAttrDef.objectNoun];
+    
     // Being here means the attribute def does not exist in the database.
     // Of course, we only want to create something in the database if the
-    //  parameter is forever un-bound (type is null).
+    //  parameter is forever un-used (noun does not 'usesParameter')
     let attrID = null;
-    if (aAttrDef.parameterNoun == null) {
+    if (!objectNounMeta.usesParameter) {
       attrID = GlodaDatastore._createAttributeDef(aAttrDef.attributeType,
                                                   aAttrDef.extensionName,
                                                   aAttrDef.attributeName,
@@ -479,7 +578,7 @@ let Gloda = {
                                  aAttrDef.provider, aAttrDef.attributeType,
                                  aAttrDef.extensionName, aAttrDef.attributeName,
                                  aAttrDef.subjectNouns, aAttrDef.objectNoun,
-                                 aAttrDef.parameterNoun, aAttrDef.explanation);
+                                 aAttrDef.explanation);
     GlodaDatastore._attributes[compoundName] = attr;
 
     if (aAttrDef.bind) {
@@ -492,7 +591,7 @@ let Gloda = {
     }
 
     this._attrProviders[aAttrDef.provider.providerName].push(attr);
-    if (aAttrDef.parameterNoun == null)    
+    if (!objectNounMeta.usesParameter)
       GlodaDatastore._attributeIDToDef[attrID] = [attr, null];
     return attr;
   },
@@ -515,6 +614,10 @@ let Gloda = {
    */
   defineTable: function gloda_ns_defineTable(aTableDef) {
     return GlodaDatastore.createTableIfNotExists(aTableDef);
+  },
+  
+  newQuery: function gloda_ns_newQuery(aNounId) {
+  
   },
   
   processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr,

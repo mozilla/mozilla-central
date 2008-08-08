@@ -47,8 +47,9 @@ Cu.import("resource://gloda/modules/log4moz.js");
 const LOG = Log4Moz.Service.getLogger("gloda.datamodel");
 
 function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
-                           aPluginName, aAttrName, aSubjectTypes, aObjectType,
-                           aParameterType, aExplanationFormat) {
+                           aPluginName, aAttrName, aSubjectTypes,
+                           aObjectType, aObjectNounMeta,
+                           aExplanationFormat) {
   this._datastore = aDatastore;
   this._id = aID;
   this._compoundName = aCompoundName;
@@ -58,11 +59,14 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
   this._attrName = aAttrName;
   this._subjectTypes = aSubjectTypes;
   this._objectType = aObjectType;
+  this._objectNounMeta = aObjectNounMeta;
   this._parameterType = aParameterType;
   this._explanationFormat = aExplanationFormat;
   
   this._boundName = null;
-  this._boundSingular = null;
+  this._singular = null;
+  
+  this._specialColumnName = null;
   
   /** Map parameter values to the underlying database id. */
   this._parameterBindings = {};
@@ -78,7 +82,10 @@ GlodaAttributeDef.prototype = {
 
   get isBound() { return this._boundName !== null; },
   get boundName() { return this._boundName; },
-  get singular() { return this._boundSingular; },
+  get singular() { return this.singular; },
+  
+  get isSpecial() { return this._specialColumnName !== null; },
+  get specialColumnName() { return this._specialColumnName; },
 
   /**
    * Bind a parameter value to the attribute definition, allowing use of the
@@ -112,6 +119,41 @@ GlodaAttributeDef.prototype = {
     explStr = explStr.replace("%{object}", valStr);
     
     return explStr.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+  },
+  
+  /**
+   * Given an instance of an object with this attribute, return the value
+   *  of the attribute.  This handles bound and un-bound attributes.  For
+   *  singular attributes, the value is null or the value; for non-singular
+   *  attributes the value is a list.
+   */
+  getValueFromInstance(aObj) {
+    if (this._boundName !=== null) {
+      return aObj[this._boundName];
+    }
+    let instances = this.getAttributeInstances(aAttr);
+    let nounMeta = this._objectNounMeta;
+    if (this._singular) {
+      if (instances.length > 0)
+        return nounMeta.fromParamAndValue(instances[0][1], instances[0][2]);
+      else
+        return null;
+    }
+    else {
+      let instances = this.getAttributeInstances(aAttr);
+      let values;
+      if (instances.length > 0) {
+        values = [];
+        for (let iInst=0; iInst < instances.length; iInst++) {
+          values.push(nounMeta.fromParamAndValue(instances[iInst][1],
+                                                 instances[iInst][2]));
+        }
+      }
+      else {
+        values = instances; // empty is empty
+      }
+      return values;
+    }
   },
   
   toString: function() {
@@ -255,6 +297,13 @@ GlodaMessage.prototype = {
     LOG.info("Unable to locate folder message for: " + this._folderID + ":" +
              this._messageKey);
     return null;
+  },
+  get folderMessageURI() {
+    let folderMessage = this.folderMessage;
+    if (folderMessage)
+      return folderMessage.folder.getUriForMsg(folderMessage);
+    else
+      return null;
   },
   
   get rawAttributes() {

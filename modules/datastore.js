@@ -1029,6 +1029,101 @@ let GlodaDatastore = {
     return attribParamVals;
   },
   
+  queryFromQuery: function gloda_ds_queryFromQuery(aQuery) {
+    let nounMeta = aQuery._nounMeta;
+    
+    let whereClauses = [];
+    let unionQueries = [aQuery].concat(aQuery._unions);
+    
+    for (let iUnion=0; iUnion < unionQueries.length; iUnion++) {
+      let curQuery = unionQueries[iUnion];
+      let selects = [];
+      
+      for (let iConstraint=0; iConstraint < curQuery._constraints.length; 
+           iConstraint++) {
+        let attr_ors = curQuery._constraints[iConstraint];
+        
+        let lastAttributeID = null;
+        let attrValueTests = [];
+        let valueTests = null;
+        
+        let tableName, idColumnName, valueColumnName;
+        if (attr_ors[0][0].isSpecial) {
+          tableName = nounMeta.tableName;
+          idColumnName = "id"; // canonical id for a table is "id".
+          valueColumnName = attr_ors[0][0].specialColumnName;
+        }
+        else {
+          tableName = nounMeta.attrTableName;
+          idColumnName = nounMeta.attrIDColumnName;
+          valueColumnName = "value";
+        }
+        
+        // we want a net 'or' for everyone in here, where 'everyone' is presumed
+        //  to have been generated from a single attribute.  Since a single
+        //  attribute can actually map to multiple attribute id's because of the
+        //  parameters, we actually need to make this slightly more complicated
+        //  than it could be.  We want to OR together the clauses for testing
+        //  each attributeID, where within each clause we OR the value.
+        // ex: (attributeID=1 AND (value=1 OR value=2)) OR (attributeID=2 AND
+        //      (value=7))
+        // note that we don't consolidate things into an IN clause (although
+        //  we could) and it's okay because the optimizer makes all such things
+        //  equal.
+        for (let iOrIndex=0; iOrIndex < attr_ors.length; iOrIndex++) {
+          let APV = attr_ors[iOrIndex];
+        
+          let attributeID;
+          if (APV[1] != null)
+            attributeID = APV[0].bindParameter(APV[1]);
+          else
+            attributeID = APV[0].id;
+          if (attributeID != lastAttributeID) {
+            valueTests = [];
+            if (APV[0].isSpecial)
+              attrValueTests.push(["", valueTests]);
+            else
+              attrValueTests.push(["attributeID = " + attributeID + " AND ",
+                                   valueTests]);
+            lastAttributeID = attributeID;
+          }
+          
+          // straight value match?
+          if (APV.length == 3) {
+            if (APV[2] != null)
+              valueTests.push(valueColumnName + " = " + APV[2]);
+          }
+          else { // APV.length == 4, so range match
+            // BETWEEN is optimized to >= and <=, or we could just do that
+            //  ourself (in other words, this shouldn't hurt our use of indices)
+            valueTests.push(valueColumnName + " BETWEEN " + APV[2] + " AND " +
+                            APV[3]);
+          }
+        }
+        let select = "SELECT " + idColumnName + " FROM " + tableName + 
+                     " WHERE " +
+                     [("(" + avt[0] + "(" + avt[1].join(" OR ") + "))")
+                      for each (avt in attrValueTests)].join(" OR ");
+        selects.push(select);
+      }
+      
+      whereClauses.push("id IN (" + selects.join(" INTERSECT ") + " )");
+    }
+    
+    let sqlString = "SELECT * FROM " + nounMeta.tableName + " WHERE " +
+        whereClauses.join(" OR ");
+    
+    let statement = this._createStatement(sqlString);
+    
+    let items = [];
+    while (statement.step()) {
+      items.push(nounMeta.objFromRow.call(nounMeta.datastore, statement.row));
+    }
+    statement.reset();
+     
+    return items;
+  },
+  
   queryMessagesAPV: function gloda_ds_queryMessagesAPV(aAPVs) {
     let selects = [];
     

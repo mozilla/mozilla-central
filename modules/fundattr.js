@@ -73,12 +73,28 @@ let GlodaFundAttr = {
     }
   },
 
+  _attrFolder: null,
   _attrFrom: null,
   _attrTo: null,
   _attrCc: null,
   _attrDate: null,
   
   defineAttributes: function() {
+    this._attrFolder = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "folderURI",
+      bind: false,
+      singular: true,
+      special: true,
+      attrColumn: "folderID",
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_FOLDER,
+      parameterNoun: null,
+      explanation: this._strBundle.getString("attrFolderExplanation"),
+      };
+  
     // From
     this._attrFrom = Gloda.defineAttribute({
                         provider: this,
