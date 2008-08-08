@@ -340,6 +340,10 @@ $dbtool->AddField('users','creation_date','timestamp not null');
 $dbtool->AddKey('users', 'last_updated (last_updated)', '');
 $dbtool->AddKey('users', 'creation_date (creation_date)', '');
 
+$dbtool->ChangeFieldType("test_results", "build_id", "bigint(14) unsigned DEFAULT NULL");
+$dbtool->ChangeFieldType("test_run_criteria", "build_id", "bigint(14) unsigned DEFAULT NULL");
+$dbtool->ChangeFieldType("testdays", "build_id", "bigint(14) unsigned DEFAULT NULL");
+
 print "Schema update complete.\n\n";
 
 print "Done.\n";

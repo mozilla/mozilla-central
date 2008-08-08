@@ -262,7 +262,7 @@ $table{test_results} =
 	 user_id int(11),
 	 opsys_id smallint(6),
 	 branch_id smallint(6),
-	 build_id int(10) unsigned,
+	 build_id bigint(14) unsigned,
 	 user_agent varchar(255),
 	 result_status_id smallint(6),
 	 build_type_id tinyint(4) not null default \'1\',
@@ -304,7 +304,7 @@ $table{test_results} =
 
 $table{test_run_criteria} = 
 	'test_run_id int(11) not null,
-         build_id int(10) unsigned not null,
+         build_id bigint(14) unsigned not null,
          platform_id smallint(6) not null default "0",
          opsys_id smallint(6) not null default "0",
 
@@ -405,7 +405,7 @@ $table{testdays} =
          description varchar(255) not null,
 	 product_id tinyint(4),
 	 testgroup_id smallint(6),
-	 build_id int(10) unsigned,         
+	 build_id bigint(14) unsigned,         
          branch_id smallint(6),
 	 locale_abbrev varchar(16),
          creator_id int(11) not null,
