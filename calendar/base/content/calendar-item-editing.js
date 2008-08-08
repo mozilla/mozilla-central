@@ -541,6 +541,8 @@ function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
         }
     }
 
+    var autoResponse = false; // confirm to send email
+
     // Check to see if some part of the item was updated, if so, re-send invites
     if (!aOriginalItem || aItem.generation != aOriginalItem.generation) { // REQUEST
         var requestItem = aItem.clone();
@@ -570,7 +572,8 @@ function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
         }
 
         if (recipients.length > 0) {
-            calSendItipMessage(requestItem, "REQUEST", recipients);
+            calSendItipMessage(requestItem, "REQUEST", recipients, autoResponse);
+            autoResponse = true; // don't ask again
         }
     }
 
@@ -581,11 +584,11 @@ function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
         for each (var att in canceledAttendees) {
             cancelItem.addAttendee(att);
         }
-        calSendItipMessage(cancelItem, "CANCEL", canceledAttendees);
+        calSendItipMessage(cancelItem, "CANCEL", canceledAttendees, autoResponse);
     }
 }
 
-function calSendItipMessage(aItem, aMethod, aRecipientsList) {
+function calSendItipMessage(aItem, aMethod, aRecipientsList, autoResponse) {
     if (aRecipientsList.length == 0) {
         return;
     }
@@ -609,7 +612,9 @@ function calSendItipMessage(aItem, aMethod, aRecipientsList) {
     itipItem.init(calGetSerializedItem(item));
     itipItem.responseMethod = aMethod;
     itipItem.targetCalendar = item.calendar;
-    itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
+    itipItem.autoResponse = (autoResponse
+                             ? Components.interfaces.calIItipItem.AUTO
+                             : Components.interfaces.calIItipItem.USER);
     // XXX I don't know whether the below are used at all, since we don't use the itip processor
     itipItem.isSend = true;
 
