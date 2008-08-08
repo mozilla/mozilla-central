@@ -426,9 +426,11 @@ pref("mail.identity.default.headers", "");
 
 // by default, only collect addresses the user sends to (outgoing)
 // incoming is all spam anyways
+#ifdef MOZ_SUITE
 pref("mail.collect_email_address_incoming", false);
-pref("mail.collect_email_address_outgoing", true);
 pref("mail.collect_email_address_newsgroup", false);
+#endif
+pref("mail.collect_email_address_outgoing", true);
 
 // by default, use the Personal Addressbook for collection
 pref("mail.collect_addressbook", "moz-abmdbdirectory://abook.mab"); // the Personal addressbook.
