@@ -952,7 +952,8 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                 } else if (item.recurrenceInfo) {
                     unexpandedItems.push(item);
                     uid2parent[item.id] = item;
-                } else if (maxResults == 0 || items.length < maxResults) {
+                } else if ((maxResults == 0 || items.length < maxResults) &&
+                           checkIfInRange(item, rangeStart, rangeEnd)) {
                     if (LOG_LEVEL > 2) {
                         log("item: " + item.title + "\n" + item.icalString, this_);
                     }
