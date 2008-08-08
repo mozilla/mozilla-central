@@ -211,7 +211,7 @@ calWcapSession.prototype = {
             }
 
             var this_ = this;
-            this.getSessionId_(request,
+            this.getSessionId_(null, // don't couple to parent request parent may be cancelled
                                function getSessionId_resp_(err, sessionId) {
                                    log("getSessionId_resp_(): " + sessionId, this_);
                                    if (!err) {
@@ -468,7 +468,9 @@ calWcapSession.prototype = {
                 respFunc(err);
             },
             log("setupSession", this));
-        request_.attachSubRequest(request);
+        if (request_) {
+            request_.attachSubRequest(request);
+        }
 
         request.lockPending();
         try {

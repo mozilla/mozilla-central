@@ -431,7 +431,9 @@ calWcapNetworkRequest.prototype = {
 
 function issueNetworkRequest(parentRequest, respFunc, url, bLogging) {
     var netRequest = new calWcapNetworkRequest(url, respFunc, bLogging);
-    parentRequest.attachSubRequest(netRequest);
+    if (parentRequest) {
+        parentRequest.attachSubRequest(netRequest);
+    }
     try {
         var uri = getIOService().newURI(url, null, null);
         var channel = getIOService().newChannelFromURI(uri);

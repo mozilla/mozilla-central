@@ -55,7 +55,11 @@ function getCompositeCalendar() {
 
 function getSelectedCalendar() {
     var tree = document.getElementById("calendar-list-tree-widget");
-    return calendarListTreeView.getCalendar(tree.currentIndex);
+    if (tree) {
+        return calendarListTreeView.getCalendar(tree.currentIndex);
+    } else { // make robust in startup scenarios when calendar list is not yet loaded:
+        return getCompositeCalendar().defaultCalendar;
+    }
 }
 
 function promptDeleteCalendar(aCalendar) {
