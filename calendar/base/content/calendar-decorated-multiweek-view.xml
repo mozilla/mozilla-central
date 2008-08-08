@@ -194,7 +194,6 @@
                     d1.day -= 7 * getPrefSafe("calendar.previousweeks.inview", 4);
                     // The last day we're supposed to show
                     var d2 = d1.clone();
-                    this.mWeeksInView = getPrefSafe("calendar.weeks.inview", 4);
                     d2.day += ((7 * (this.mWeeksInView)) - 1);
                     var toolTips = calGetStringArray("calendar",
                                                       ["oneWeekBack", "gotoToday", "oneWeekForward"]);
