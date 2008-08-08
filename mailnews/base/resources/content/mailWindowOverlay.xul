@@ -812,7 +812,7 @@
     <menuitem id="messagePaneContext-replyAll"
         label="&contextReplyAll.label;"
         accesskey="&contextReplyAll.accesskey;"
-        oncommand="MsgReplyAll(event);"/>
+        oncommand="MsgReplyToAllRecipients(event);"/>
     <menuitem id="messagePaneContext-forward"
         label="&contextForward.label;"
         accesskey="&contextForward.accesskey;"
