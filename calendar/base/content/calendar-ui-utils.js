@@ -542,7 +542,7 @@ function getOptimalMinimumWidth(aXULElement) {
 function getOptimalMinimumHeight(aXULElement) {
     // the following line of code presumes that the line-height is set to "normal" 
     // which is supposed to be a "reasonable distance" between the lines
-    var firstEntity = parseInt(1.33 * getSummarizedStyleValues(aXULElement, ["font-size"]), 10);
+    var firstEntity = parseInt(1.35 * getSummarizedStyleValues(aXULElement, ["font-size"]), 10);
     var secondEntity = getSummarizedStyleValues(aXULElement,
                                                 ["padding-bottom", "padding-top",
                                                 "margin-bottom", "margin-top",
@@ -598,4 +598,8 @@ function validateNaturalNums(event) {
         event.target.value = -1 * num;
         event.preventDefault();
     }
+}
+
+function getOtherOrientation(aOrientation) {
+     return (aOrientation == "horizontal" ? "vertical" : "horizontal");
 }

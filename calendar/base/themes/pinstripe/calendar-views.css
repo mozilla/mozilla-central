@@ -188,11 +188,13 @@ calendar-header-container[weekend="true"][selected="true"],
 
 .calendar-event-details {
     -moz-padding-start: 2px;
+    overflow: hidden;    
 }
 
 .calendar-event-details-core {
     width: 0px;
     margin: 0px;
+    overflow: hidden;    
 }
 
 .calendar-event-name-textbox {
@@ -222,6 +224,9 @@ calendar-event-box[selected="true"] .calendar-event-selection {
 calendar-event-gripbar {
     -moz-box-align: center;
     -moz-box-pack: center;
+    min-height: 4px;
+    min-width: 4px;
+    overflow: hidden;    
 }
 
 calendar-event-gripbar[parentorient="vertical"] {

@@ -133,9 +133,7 @@
           //dump ("calendar-time-bar: relayout\n");
           var topbox = document.getAnonymousElementByAttribute(this, "anonid", "topbox");
           var orient = topbox.getAttribute("orient");
-          var otherorient = "vertical";
-          if (!orient) orient = "horizontal";
-          if (orient == "vertical") otherorient = "horizontal";
+          var otherorient = getOtherOrientation(orient);
 
           //dump ("calendar-time-bar: orient: " + orient + " other: " + otherorient + "\n");
 
@@ -216,10 +214,12 @@
      - event box.  Needs to handle being dragged and resizing the
      - event, thus changing its start/end time.
     -->
-  <binding id="calendar-event-gripbar" extends="xul:box">
-    <content>
-      <xul:image xbl:inherits="class"/>
-    </content>
+  <binding id="calendar-event-gripbar">
+     <content>
+      <xul:box anonid="thebox" flex="1" pack="center">
+        <xul:image xbl:inherits="class"/>
+      </xul:box>
+     </content>
 
     <implementation>
       <!-- public -->
@@ -230,12 +230,13 @@
           return this.getAttribute("parentorient");
         ]]></getter>
         <setter><![CDATA[
-          this.setAttribute("parentorient", val);
-          if (val == "vertical")
-              this.setAttribute("orient", "horizontal");
-          else
-              this.setAttribute("orient", "vertical");
-          return val;
+           this.setAttribute("parentorient", val);
+           var thebox = document.getAnonymousElementByAttribute(this, "anonid", "thebox");
+           if (val == "vertical")
+              thebox.setAttribute("orient", "horizontal");
+           else
+              thebox.setAttribute("orient", "vertical");
+           return val;
         ]]></setter>
       </property>
 
@@ -289,6 +290,7 @@
           <xul:label anonid="fgdragbox-endlabel" class="fgdragbox-label"/>
         </xul:box>
       </xul:stack>
+      <xul:calendar-event-box anonid="config-box" hidden="true" xbl:inherits="orient"/>      
     </content>
 
     <implementation>
@@ -402,6 +404,7 @@
       </property>
 
       <field name="mFgboxes">null</field>
+      <field name="mMinDuration">null</field>
       <property
         name="fgboxes"
         readonly="true">
@@ -649,13 +652,18 @@
           this.clear();
 
           var orient = this.getAttribute("orient");
-          var otherorient = "vertical";
-          if (!orient) orient = "horizontal";
-          if (orient == "vertical") otherorient = "horizontal";
+          this.bgbox.setAttribute("orient", orient);
 
           // bgbox is used mainly for drawing the grid.  at some point it may
           // also be used for all-day events.
-          this.bgbox.setAttribute("orient", orient);
+          var otherorient = getOtherOrientation(orient);
+          var configBox = document.getAnonymousElementByAttribute(this, "anonid", "config-box");
+          configBox.removeAttribute("hidden");          
+          var minSize = configBox.getOptimalMinSize();
+          configBox.setAttribute("hidden", "true");          
+          this.mMinDuration = Components.classes["@mozilla.org/calendar/duration;1"]
+                                            .createInstance(Components.interfaces.calIDuration);
+          this.mMinDuration.minutes = parseInt(minSize/this.mPixPerMin);
 
           var theMin = this.mStartMin;
           while (theMin < this.mEndMin) {
@@ -786,8 +794,6 @@
                   innerColumn.setAttribute("style", style);
 
                   xulColumn.appendChild(innerColumn);
-                  var minHeight = 0;
-                  var minWidth = 0;
                   var curTime = 0;
                   for each (var chunk in column) {
                       var duration = chunk.duration;
@@ -797,30 +803,23 @@
 
                       if (chunk.event) {
                           var chunkBox = createXULElement("calendar-event-box");
-                          chunkBox.setAttribute("context", this.getAttribute("item-context") || this.getAttribute("context"));
+                          var durMinutes = duration.inSeconds / 60;
+                          chunkBox.setAttribute("style", "min-width: 1px; min-height: 1px;");
+                          var size = Math.max(durMinutes * this.mPixPerMin, minSize);
+                          if (orient == "vertical") {
+                              chunkBox.setAttribute("height", size);
+                          } else {
+                              chunkBox.setAttribute("width", size);
+                          }
+                          chunkBox.setAttribute("context",
+                                                this.getAttribute("item-context") ||
+                                                  this.getAttribute("context"));
                           chunkBox.setAttribute("orient", orient);
                           innerColumn.appendChild(chunkBox);
                           chunkBox.calendarView = this.calendarView;
                           chunkBox.occurrence = chunk.event;
                           chunkBox.parentColumn = this;
-                          if (minHeight == 0) {
-                              minHeight = getOptimalMinimumHeight(chunkBox.eventNameLabel) +
-                                          getSummarizedStyleValues(document.getAnonymousElementByAttribute(chunkBox, "anonid", "eventbox"), ["margin-bottom", "margin-top"]);
-                              chunkBox.setAttribute("minheight", minHeight);
-                          }
-                          if (minWidth == 0) {
-                              chunkBox.eventNameLabel.setAttribute("style", "min-width: 2em");
-                              minWidth = getOptimalMinimumWidth(chunkBox.eventNameLabel);
-                              chunkBox.setAttribute("minwidth", minWidth);
-                          }
-                          var durMinutes = duration.inSeconds / 60;
-                          if (orient == "vertical") {
-                              var height = Math.max(durMinutes * this.mPixPerMin, minHeight)
-                              chunkBox.setAttribute("height", height);
-                          } else {
-                              var width = Math.max(durMinutes * this.mPixPerMin, minWidth)
-                              chunkBox.setAttribute("width", width);
-                          }
+                          
                           this.mEventBoxes.push(chunkBox);
 
                           if (this.mEventToEdit &&
@@ -918,10 +917,10 @@
            */
           for (var i in this.mEvents) {
               var item = this.mEvents[i].event;
-              var itemStart = item.startDate || item.entryDate;
-              var itemEnd = item.endDate || item.dueDate;
+              var itemStart, itemEnd;
+              [itemStart, itemEnd] = this.getLayoutEnd(item);
               if (!latestItemEnd) {
-                  latestItemEnd = itemEnd;
+                 latestItemEnd = itemEnd;
               }
               if (currentBlob.length && latestItemEnd &&
                   itemStart.compare(latestItemEnd) != -1) {
@@ -953,8 +952,9 @@
               //
               // Remember that any time we're starting a new blob, colEndArray
               // will be empty, but that's ok.
-              for (var ii=0; ii<colEndArray.length; ++ii) {
-                  var colEnd = colEndArray[ii].endDate || colEndArray[ii].dueDate;
+              for (var ii = 0; ii < colEndArray.length; ++ii) {
+                  var colStart, colEnd;
+                  [colStart, colEnd] = this.getLayoutEnd(colEndArray[ii]);
                   if (colEnd.compare(itemStart) != 1) {
                       // Yay, we can jump into this column
                       colEndArray[ii] = item;
@@ -963,8 +963,8 @@
                       // jump into as well.
                       var lastCol = Number(ii) + 1;
                       while (lastCol < colEndArray.length) {
-                          var nextColEnd = colEndArray[lastCol].endDate ||
-                                           colEndArray[lastCol].dueDate;
+                          var nextColStart, nextColEnd;
+                          [nextColStart, nextColEnd] = this.getLayoutEnd(colEndArray[lastCol]);
                           // If the next column's item ends after we start, we
                           // can't expand any further
                           if (nextColEnd.compare(itemStart) == 1) {
@@ -1061,7 +1061,8 @@
               //   the start of any possible conflicts.
               var lastColNum = colEndArray.length;
               for (var mm in currentBlob) {
-                  var mmEnd = currentBlob[mm].item.endDate || currentBlob[mm].item.dueDate
+                  var mmStart, mmEnd;
+                  [mmStart, mmEnd] = this.getLayoutEnd(currentBlob[mm].item);
                   if (currentBlob[mm].startCol + currentBlob[mm].colSpan == lastColNum &&
                       mmEnd.compare(itemStart) != 1) {
                       currentBlob[mm] = {item: currentBlob[mm].item,
@@ -1085,6 +1086,29 @@
                       totalCols: colEndArray.length});
 
           return this.setupBoxStructure(blobs);
+        ]]></body>
+      </method>
+
+      <method name="getLayoutEnd">
+        <parameter name="aItem"/>
+        <body><![CDATA[
+              var item = aItem.clone();
+              var start = item.startDate || aItem.entryDate;
+              if (!compareObjects(start.timezone, this.mTimezone)) {
+                  start = start.getInTimezone(this.mTimezone);
+              }
+              var end = item.endDate || aItem.dueDate
+              if (!compareObjects(end.timezone, this.mTimezone)) {
+                  end = end.getInTimezone(this.mTimezone);
+              }
+              var secEnd = start.clone();
+              secEnd.addDuration(this.mMinDuration);
+              if (secEnd.nativeTime > end.nativeTime) {
+                   return [start, secEnd];
+              } else {
+                   return [start, end];
+              }
+          }
         ]]></body>
       </method>
 
@@ -1165,10 +1189,8 @@
                   // take into account that items can span several days.
                   // that's why i'm clipping the start- and end-time to the
                   // timespan of this column.
-                  var start = data.item.startDate || data.item.entryDate;
-                  if (!compareObjects(start.timezone, this.mTimezone)) {
-                      start = start.getInTimezone(this.mTimezone);
-                  }
+                  var start, end;
+                  [start, end] = this.getLayoutEnd(data.item);
                   if (start.year  != this.date.year ||
                       start.month != this.date.month ||
                       start.day   != this.date.day) {
@@ -1178,10 +1200,6 @@
                                     this.date.day,
                                     0,this.mStartMin,0,
                                     start.timezone);
-                  }
-                  var end = data.item.endDate || data.item.dueDate;
-                  if (!compareObjects(end.timezone, this.mTimezone)) {
-                      end = end.getInTimezone(this.mTimezone);
                   }
                   if (end.year  != this.date.year ||
                       end.month != this.date.month ||
@@ -2019,7 +2037,6 @@
           if (needsrelayout) {
               var otherorient = "vertical";
               if (val != "horizontal") otherorient = "horizontal";
-
               var eventbox = document.getAnonymousElementByAttribute(this, "anonid", "eventbox");
               eventbox.setAttribute("orient", val);
               var gb1 = document.getAnonymousElementByAttribute(this, "anonid", "gripbar1");
@@ -2029,6 +2046,24 @@
           }
 
           return ret;
+        ]]></body>
+      </method>
+
+      <method name="getOptimalMinSize">
+        <body><![CDATA[
+          if (this.getAttribute("orient") == "vertical") {
+              var minHeight = getOptimalMinimumHeight(this.eventNameLabel) + 
+                          getSummarizedStyleValues(document.getAnonymousElementByAttribute(this, "anonid", "eventbox"), ["margin-bottom", "margin-top", "border-bottom-width", "border-top-width"]);
+              this.setAttribute("minheight", minHeight);
+              this.setAttribute("minwidth", "1");
+              return minHeight;
+          } else {
+              this.eventNameLabel.setAttribute("style", "min-width: 2em");
+              var minWidth = getOptimalMinimumWidth(this.eventNameLabel);
+              this.setAttribute("minwidth", minWidth);
+              this.setAttribute("minheight", "1");
+              return minWidth;
+          }
         ]]></body>
       </method>
 
@@ -3174,9 +3209,8 @@
       <method name="relayout">
         <body><![CDATA[
           var orient = this.getAttribute("orient");
-          var otherorient = "vertical";
           if (!orient) orient = "horizontal";
-          if (orient == "vertical") otherorient = "horizontal";
+          var otherorient = getOtherOrientation(orient);
 
           var computedDateList;
           if (this.mDateList) {
