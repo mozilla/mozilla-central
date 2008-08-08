@@ -59,12 +59,17 @@ body {
     color: #333333;
     background: #ffffff url("images/body_back.gif") repeat-x;
     font-size: 65%;
+    line-height: 1.2em;
 }
 
 body, td, th, h3, input, pre { /* redundant rules for bad browsers  */
     font-family: verdana, sans-serif;
     voice-family: "\"}\"";
     voice-family: inherit;
+}
+
+p, ul {
+    margin-bottom: 7px;
 }
 
 #container {
@@ -82,12 +87,17 @@ body, td, th, h3, input, pre { /* redundant rules for bad browsers  */
 
 h1.firstHeading, h1.errorHeading {
     text-align: left;
-    padding-top: 5px;
+    padding-top: 0px;
+    padding-bottom: 5px;
     border-bottom: none;
     margin-top: 0;
     font-size: 1.4em;
     line-height: 1.0em;
     text-transform: lowercase; 
+}
+
+td {
+    background: inherit;
 }
 
 td.sectionHeading {
@@ -109,6 +119,7 @@ td.sectionHeading {
 
 select {
     font-size: 0.9em;
+    margin: 7px 7px 7px 0;
 }
 
 /* 2) Links********************************************************************** */
@@ -354,9 +365,6 @@ a.highlighted {
     padding: 0;
 }
 
-#sidebar p {
-    margin-bottom: 6px;
-}
 #sidebar p:last-child {
     margin-bottom: 0;
 }
@@ -385,8 +393,17 @@ div.sidebar-right {
 }
 
 div.sidebar-right h1 {
+    font-size: 1.2em;
+    padding-top: 5px;
+    padding-bottom: 5px;
     text-transform: lowercase;
 }
+
+div.sidebar-right p:last-child {
+    margin-bottom: 0;
+}
+
+
 
 /* 7) Related ******************************************************************* */
 
@@ -469,7 +486,7 @@ div.pagetools ul {
     border-collapse: collapse;
     width: 100%;
     background: #ffffff;
-    margin-bottom: 5px;
+    margin-bottom: 7px;
 }
 
 table.single-result, table.comments, table.stats {
@@ -478,14 +495,18 @@ table.single-result, table.comments, table.stats {
 
 .test-results, .testcases {
     border-collapse: collapse;
-    margin-bottom: 5px;    
+    margin-bottom: 7px;    
     width: 100%;
     background: #ffffff;
 }
 
 .stats {
     border: solid #bbbbbb 1px;
-    margin-bottom: 10px;
+    margin-bottom: 7px;
+}
+
+.stats td {
+    padding-bottom: 3px;
 }
 
 table.section {
@@ -496,7 +517,7 @@ table.section {
 .run-tests {
     border: solid #666666 1px;
     background-color: #ffffff;
-    margin-bottom: 10px;
+    margin-bottom: 7px;
 }
 
 #configuration {
@@ -875,7 +896,7 @@ div.login_form_existing, div.login_form_newuser, div.login_privacy {
 
 div.login_form_existing {
     margin-right: 5px;
-    margin-bottom: 5px;
+    margin-bottom: 7px;
 }
 
 div.login_form_newuser {
@@ -890,11 +911,13 @@ div.login_privacy {
 .login_sectitle {
     font-weight: bold;
     font-size: 120%;
+    padding: 7px 7px 7px 0;
 }
 
 .login_important {
     color: #ff0000;
     font-size: 120%;
+    padding: 0 7px 7px 0;
 }
 
 .login_info {
@@ -1075,7 +1098,7 @@ table.newSubgroups td {
 
 div.testcase {
     padding: 10px;
-    margin-bottom: 5px;    
+    margin-bottom: 7px;    
     border: solid #bbbbbb 1px;
     background-color: #cccccc;
     overflow: auto;
@@ -1085,7 +1108,7 @@ div.testcase {
 
 div.testcase-completed {
     padding: 10px;
-    margin-bottom: 5px;    
+    margin-bottom: 7px;    
     overflow: auto;
     color: #333333;
 }
@@ -1104,7 +1127,7 @@ div.section-full, div.category {
 div.section-center {
     width: 585px;
     padding: 5px;
-    margin-bottom: 5px;    
+    margin-bottom: 7px;    
     border: solid #bbbbbb 1px;
     background-color: #dddddd;
     color: #000000;
@@ -1174,7 +1197,7 @@ div.testcase-content, div.subgroup-content, div.testgroup-content, div.test-run-
 table.section td.subsection {
     padding: 10px;
     border: solid #bbbbbb 1px;
-    margin-bottom: 5px;    
+    margin-bottom: 7px;    
     background-color: #dddddd;
     vertical-align: top;
 }
@@ -1253,7 +1276,6 @@ table.testcase-search th, table.test-runs th {
     padding: 0px 5px 0px 5px;
     border: 0;
 }
-
 
 table.result_container th {
     vertical-align: middle;
@@ -1378,7 +1400,7 @@ table.test_run_report td.subgroup {
 /* Misc ************************************************************** */
 
 fieldset {
-    margin-bottom: 5px;
+    margin-bottom: 7px;
 }
 
 legend {
@@ -1421,7 +1443,7 @@ div.error {
 
 textarea {
     font-size: 1.5em;
-    margin-bottom: 5px;    
+    margin-bottom: 7px;    
 }
 
 .t_link {
@@ -1482,7 +1504,7 @@ ol {
 
 div.section-full, div.category, div.section {
     padding: 10px;
-    margin-bottom: 5px;    
+    margin-bottom: 7px;    
     border: solid #bbbbbb 1px;
     background-color: #dddddd;
     color: #000000;
