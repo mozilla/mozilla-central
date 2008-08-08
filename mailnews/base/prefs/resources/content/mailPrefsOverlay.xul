@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!DOCTYPE overlay [
-<!ENTITY % mailPrefsOverlayDTD SYSTEM "chrome://messenger/locale/mailPrefsOverlay.dtd" >
+<!ENTITY % mailPrefsOverlayDTD SYSTEM "chrome://messenger/locale/mailPrefsOverlay.dtd">
 %mailPrefsOverlayDTD;
 ]>
 
@@ -86,6 +86,11 @@
                   prefpane="receipts_pane"
                   url="chrome://messenger/content/pref-receipts.xul"
                   helpTopic="mail-prefs-receipts"/>
+        <treeitem id="characterEncodingItem"
+                  label="&characterEncoding.label;"
+                  prefpane="character_encoding_pane"
+                  url="chrome://messenger/content/pref-character_encoding.xul"
+                  helpTopic="mail_prefs_character_encoding"/>
         <treeitem id="offlineItem"
                   label="&offline.label;"
                   prefpane="offline_pane"
@@ -145,7 +150,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://messenger/content/pref-character_encoding.xul" label="&characterEncoding.label;"/> 
+            <treecell label="(Migrated: &characterEncoding.label;)"/>
           </treerow>
         </treeitem>
         <treeitem>
@@ -156,5 +161,5 @@
       </treechildren>
     </treeitem>
   </treechildren>
-           
-</overlay>         
+ 
+</overlay>

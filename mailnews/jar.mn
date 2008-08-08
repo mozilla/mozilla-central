@@ -90,6 +90,7 @@ messenger.jar:
     content/messenger/pref-receipts.xul                                        (base/prefs/resources/content/pref-receipts.xul)
     content/messenger/pref-receipts.js                                         (base/prefs/resources/content/pref-receipts.js)
     content/messenger/pref-character_encoding.xul                              (base/prefs/resources/content/pref-character_encoding.xul)
+    content/messenger/pref-character_encoding.js                               (base/prefs/resources/content/pref-character_encoding.js)
     content/messenger/pref-offline.xul                                         (base/prefs/resources/content/pref-offline.xul)
     content/messenger/pref-offline.js                                          (base/prefs/resources/content/pref-offline.js)
 *   content/messenger/AccountWizard.xul                                        (base/prefs/resources/content/AccountWizard.xul)
