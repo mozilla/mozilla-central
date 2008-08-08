@@ -267,7 +267,7 @@ create_pk7 (char *dir, char *keyName, int *keyType)
 
     /* find cert */
     /*cert = CERT_FindCertByNicknameOrEmailAddr(db, keyName);*/
-    cert = PK11_FindCertFromNickname(keyName, NULL /*wincx*/);
+    cert = PK11_FindCertFromNickname(keyName, &pwdata);
 
     if (cert == NULL) {
 	SECU_PrintError ( PROGRAM_NAME,
@@ -329,7 +329,7 @@ jar_find_key_type (CERTCertificate *cert)
     KeyType keyType;
 
     /* determine its type */
-    privk = PK11_FindKeyByAnyCert (cert, /*wincx*/ NULL);
+    privk = PK11_FindKeyByAnyCert (cert, &pwdata);
     if (privk == NULL) {
 	PR_fprintf(errorFD, "warning - can't find private key for this cert\n");
 	warningCount++;
@@ -684,14 +684,7 @@ SignFile (FILE *outFile, FILE *inFile, CERTCertificate *cert)
 	}
     }
 
-    if (password) {
-	rv = SEC_PKCS7Encode(cinfo, SignOut, outFile, NULL, 
-	    (SECKEYGetPasswordKey) password_hardcode, NULL);
-    } else {
-	rv = SEC_PKCS7Encode(cinfo, SignOut, outFile, NULL, NULL,
-	     			NULL);
-    }
-
+    rv = SEC_PKCS7Encode(cinfo, SignOut, outFile, NULL, NULL, &pwdata);
 
     SEC_PKCS7DestroyContentInfo (cinfo);
 

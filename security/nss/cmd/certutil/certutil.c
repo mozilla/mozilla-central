@@ -164,7 +164,7 @@ AddCert(PK11SlotInfo *slot, CERTCertDBHandle *handle, char *name, char *trusts,
 	    GEN_BREAK(SECFailure);
 	}
 
-	/* Create a cert trust to pass to SEC_AddPermCertificate */
+	/* Create a cert trust */
 	trust = (CERTCertTrust *)PORT_ZAlloc(sizeof(CERTCertTrust));
 	if (!trust) {
 	    SECU_PrintError(progName, "unable to allocate cert trust");

@@ -62,11 +62,6 @@
 #define NS_CRL_HEADER  "-----BEGIN CRL-----"
 #define NS_CRL_TRAILER "-----END CRL-----"
 
-/* From libsec/pcertdb.c --- it's not declared in sec.h */
-extern SECStatus SEC_AddPermCertificate(CERTCertDBHandle *handle,
-		SECItem *derCert, char *nickname, CERTCertTrust *trust);
-
-
 #ifdef SECUTIL_NEW
 typedef int (*SECU_PPFunc)(PRFileDesc *out, SECItem *item, 
                            char *msg, int level);

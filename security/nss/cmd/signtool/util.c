@@ -629,42 +629,6 @@ static int	is_dir (char *filename)
 }
 
 
-/*
- *  p a s s w o r d _ h a r d c o d e 
- *
- *  A function to use the password passed in the -p(password) argument
- *  of the command line. This is only to be used for build & testing purposes,
- *  as it's extraordinarily insecure. 
- *
- *  After use once, null it out otherwise PKCS11 calls us forever.
- *
- */
-SECItem *
-password_hardcode(void *arg, void *handle)
-{
-    SECItem * pw = NULL;
-    if (password) {
-	pw = SECITEM_AllocItem(NULL, NULL, PL_strlen(password));
-	pw->data = (unsigned char *)PL_strdup(password);
-	password = NULL;
-    }
-    return pw;
-}
-
-char	*
-pk11_password_hardcode(PK11SlotInfo *slot, PRBool retry, void *arg)
-{
-    char	*pw;
-    if (retry) {
-	return NULL; /* the password is incorrect, fail */
-    }
-    pw = password ? PORT_Strdup (password) : NULL;
-    /* XXX don't do this, or FIPS won't work */
-    /*password = NULL;*/
-    return pw;
-}
-
-
 /***************************************************************
  *
  * s e c E r r o r S t r i n g
@@ -978,12 +942,7 @@ InitCrypto(char *cert_dir, PRBool readOnly)
 	/* Been there done that */
 	prior++;
 
-	if (password) {
-	    PK11_SetPasswordFunc(pk11_password_hardcode);
-	} else {
-	    PK11_SetPasswordFunc(SECU_GetModulePassword);
-	}
-	
+        PK11_SetPasswordFunc(SECU_GetModulePassword);
 
 	/* Must login to FIPS before you do anything else */
 	if (PK11_IsFIPS()) {
@@ -994,7 +953,7 @@ InitCrypto(char *cert_dir, PRBool readOnly)
 		return - 1;
 	    }
 	    if (PK11_Authenticate(slotinfo, PR_FALSE /*loadCerts*/,
-	         			  NULL /*wincx*/) != SECSuccess) {
+	         			  &pwdata) != SECSuccess) {
 		fprintf(stderr, "%s: Unable to authenticate to %s.\n",
 				    PROGRAM_NAME, PK11_GetSlotName(slotinfo));
 		PK11_FreeSlot(slotinfo);
@@ -1020,7 +979,7 @@ InitCrypto(char *cert_dir, PRBool readOnly)
 	/* Make sure we can authenticate to the key slot in FIPS mode */
 	if (PK11_IsFIPS()) {
 	    if (PK11_Authenticate(slotinfo, PR_FALSE /*loadCerts*/,
-	         			  NULL /*wincx*/) != SECSuccess) {
+	         			  &pwdata) != SECSuccess) {
 		fprintf(stderr, "%s: Unable to authenticate to %s.\n",
 				PROGRAM_NAME, PK11_GetSlotName(slotinfo));
 		PK11_FreeSlot(slotinfo);

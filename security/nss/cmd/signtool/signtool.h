@@ -141,5 +141,6 @@ extern PRFileDesc *outputFD, *errorFD;
 extern int verbosity;
 extern int errorCount;
 extern int warningCount;
+extern secuPWData pwdata;
 
 #endif /* SIGNTOOL_H */

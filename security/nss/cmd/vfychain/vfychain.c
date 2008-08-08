@@ -75,25 +75,7 @@
 
 int verbose;
 
-char *password = NULL;
-
-/* Function: char * myPasswd()
- * 
- * Purpose: This function is our custom password handler that is called by
- * SSL when retreiving private certs and keys from the database. Returns a
- * pointer to a string that with a password for the database. Password pointer
- * should point to dynamically allocated memory that will be freed later.
- */
-char *
-myPasswd(PK11SlotInfo *info, PRBool retry, void *arg)
-{
-    char * passwd = NULL;
-
-    if ( (!retry) && arg ) {
-	passwd = PORT_Strdup((char *)arg);
-    }
-    return passwd;
-}
+secuPWData  pwdata          = { PW_NONE, 0 };
 
 static void
 Usage(const char *progName)
@@ -121,6 +103,7 @@ Usage(const char *progName)
 	"\t-v\t\t Verbose mode. Prints root cert subject(double the\n"
 	"\t\t\t argument for whole root cert info)\n"
 	"\t-w password\t Database password.\n",
+	"\t-W pwfile\t Password file.\n",
 	progName);
     exit(1);
 }
@@ -290,7 +273,7 @@ main(int argc, char *argv[], char *envp[])
 
     progName = PL_strdup(argv[0]);
 
-    optstate = PL_CreateOptState(argc, argv, "ab:d:fo:prs:tu:w:v");
+    optstate = PL_CreateOptState(argc, argv, "ab:d:fo:prs:tu:vw:W:");
     while ((status = PL_GetNextOpt(optstate)) == PL_OPT_OK) {
 	switch(optstate->option) {
 	case  0  : /* positional parameter */  goto breakout;
@@ -309,7 +292,15 @@ main(int argc, char *argv[], char *envp[])
 		   certUsage = ((SECCertificateUsage)1) << usage; 
 		   if (certUsage > certificateUsageHighest) Usage(progName);
 		   break;
-	case 'w' : password = PL_strdup(optstate->value);     break;
+        case 'w':
+                  pwdata.source = PW_PLAINTEXT;
+                  pwdata.data = PORT_Strdup(optstate->value);
+                  break;
+
+        case 'W':
+                  pwdata.source = PW_FROMFILE;
+                  pwdata.data = PORT_Strdup(optstate->value);
+                  break;
 	case 'v' : verbose++;                                 break;
 	default  : Usage(progName);                           break;
 	}
@@ -337,7 +328,7 @@ breakout:
     }
 
     /* Set our password function callback. */
-    PK11_SetPasswordFunc(myPasswd);
+    PK11_SetPasswordFunc(SECU_GetModulePassword);
 
     /* Initialize the NSS libraries. */
     if (certDir) {
@@ -402,7 +393,7 @@ breakout:
                                            PR_TRUE /* check sig */,
                                            certUsage, 
                                            time, 
-                                           NULL, /* wincx  */
+                                           &pwdata, /* wincx  */
                                            &log, /* error log */
                                            NULL);/* returned usages */
     } else do {
@@ -512,7 +503,7 @@ breakout:
         cvout[3].type = cert_po_end;
         
         secStatus = CERT_PKIXVerifyCert(firstCert, certUsage,
-                                        cvin, cvout, NULL);
+                                        cvin, cvout, &pwdata);
         if (secStatus != SECSuccess) {
             break;
         }
@@ -579,7 +570,9 @@ punt:
     PORT_Free(certDir);
     PORT_Free(oidStr);
     PORT_Free(revConfig);
-    PORT_Free(password);
+    if (pwdata.data) {
+        PORT_Free(pwdata.data);
+    }
     PR_Cleanup();
     return rv;
 }
