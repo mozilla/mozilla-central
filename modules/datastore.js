@@ -1030,6 +1030,8 @@ let GlodaDatastore = {
   },
   
   queryFromQuery: function gloda_ds_queryFromQuery(aQuery) {
+    // when changing this method, be sure that GlodaQuery's testMatch function
+    //  likewise has its changes made.
     let nounMeta = aQuery._nounMeta;
     
     let whereClauses = [];

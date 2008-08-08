@@ -724,8 +724,8 @@ GlodaMsgDBView.prototype = {
   loadMessageByMsgKey: function gloda_mdbv_loadMessageByMsgKey(aMsgKey) {
     // ambiguity as to what message key we are dealing with.  let's assume it's
     //  a gloda message id for the sake of this method...
-    if (this._messenger)
-      this._messenger.OpenURL
+    
+    this._messenger.OpenURL
   },
   loadMessageByViewIndex: function gloda_mdbv_loadMessageByViewIndex(
       aViewIndex) {
