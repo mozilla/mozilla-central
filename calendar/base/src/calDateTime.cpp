@@ -151,11 +151,20 @@ CAL_VALUETYPE_ATTR(calDateTime, PRInt16, Hour)
 CAL_VALUETYPE_ATTR(calDateTime, PRInt16, Minute)
 CAL_VALUETYPE_ATTR(calDateTime, PRInt16, Second)
 CAL_VALUETYPE_ATTR(calDateTime, PRBool, IsDate)
-CAL_ISUPPORTS_ATTR(calDateTime, calITimezone, Timezone)
 CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRBool, IsValid)
 CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRTime, NativeTime)
 CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRInt16, Weekday)
 CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRInt16, Yearday)
+
+CAL_ISUPPORTS_ATTR_GETTER(calDateTime, calITimezone, Timezone)
+
+NS_IMETHODIMP calDateTime::SetTimezone(calITimezone *aValue) {
+    NS_ENSURE_FALSE(mImmutable, NS_ERROR_OBJECT_IS_IMMUTABLE);
+    NS_ENSURE_ARG_POINTER(aValue);
+    mTimezone = aValue;
+    CAL_ATTR_SET_POST;
+    return NS_OK;
+}
 
 NS_IMETHODIMP
 calDateTime::GetTimezoneOffset(PRInt32 *aResult)
