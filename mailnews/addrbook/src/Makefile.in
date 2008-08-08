@@ -112,7 +112,6 @@ EXTRA_COMPONENTS += \
 
 EXPORTS		= \
 		nsAbCardProperty.h \
-		nsAbMDBCard.h \
                 nsVCardObj.h \
 		$(NULL)
 
@@ -160,15 +159,7 @@ EXTRA_COMPONENTS += nsLDAPPrefsService.js
 # nsAbLDAPChangeLogData.cpp
 endif
 
-
-
 ifeq ($(OS_ARCH),Darwin)
-EXPORTS		+= \
-		nsAbOSXCard.h \
-		nsAbOSXDirFactory.h \
-		nsAbOSXDirectory.h \
-		$(NULL)
-
 CPPSRCS		+= \
 		nsAbOSXDirFactory.cpp \
 		$(NULL)
