@@ -100,10 +100,15 @@ function ltnSwitch2Mail() {
     swapPopupMenus();
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
 
-    var mailToolbar = getMailBar();
     var mailToolbarMenuItem = document.getElementById("menu_showMessengerToolbar");
-    if (mailToolbarMenuItem.getAttribute("checked") == "true") {
-        mailToolbar.removeAttribute("collapsed");
+    if (mailToolbarMenuItem) {
+        if (mailToolbarMenuItem.getAttribute("checked") == "true") {
+            getMailBar().removeAttribute("collapsed");
+        }
+    } else {
+        // Bug 440700: Corresponding toolbar menu entry is currently not
+        // accessible in Thunderbird Trunk -> always restore the toolbar
+        getMailBar().removeAttribute("collapsed");
     }
 
     var calendarToolbar = document.getElementById("calendar-toolbar");
