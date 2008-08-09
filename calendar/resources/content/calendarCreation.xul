@@ -75,7 +75,7 @@
                next="customizePage"
                label="&wizard.label;"
                onpageshow="initLocationPage();"
-               onpageadvanced="prepareCreateCalendar()"
+               onpageadvanced="return prepareCreateCalendar()"
                description="&wizard.description;">
         <description>&locationpage.description;</description>
         <grid>

@@ -85,6 +85,7 @@ function onInitialAdvance() {
  * calendar capabilities of the provider.
  */
 function prepareCreateCalendar() {
+    gCalendar = null;
     var provider;
     var uri;
     var type = document.getElementById('calendar-type').selectedItem.value;
