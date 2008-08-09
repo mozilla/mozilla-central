@@ -47,10 +47,6 @@ ifdef MOZ_COMPOSER
 tier_app_dirs += editor/ui
 endif
 
-ifdef MOZ_CALENDAR
-MOZ_EXTENSIONS += webdav
-endif
-
 ifdef MOZ_EXTENSIONS
 tier_app_dirs += extensions
 endif

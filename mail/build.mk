@@ -45,10 +45,6 @@ TIERS += app
 
 tier_app_dirs += editor/ui
 
-ifdef MOZ_CALENDAR
-MOZ_EXTENSIONS += webdav
-endif
-
 ifdef MOZ_EXTENSIONS
 tier_app_dirs += extensions
 endif
