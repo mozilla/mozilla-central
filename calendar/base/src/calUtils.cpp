@@ -180,6 +180,11 @@ nsCOMPtr<calITimezone> detectTimezone(icaltimetype const& icalt,
 
 icaltimezone * getIcalTimezone(calITimezone * tz) {
     icaltimezone * icaltz = nsnull;
+    if (!tz) {
+        NS_ASSERTION(false, "No Timezone passed to getIcalTimezone");
+        return nsnull;
+    }
+
     PRBool b;
     tz->GetIsUTC(&b);
     if (b) {

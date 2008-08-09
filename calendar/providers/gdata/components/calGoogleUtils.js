@@ -144,6 +144,43 @@ function getCorrectedDate(aDate) {
     return aDate;
 }
 
+
+/**
+ * The timezone service to translate Google timezones.
+ */
+var gdataTimezoneService = {
+    ctz: getTimezoneService(),
+
+    get floating gTS_get_floating() {
+        return this.ctz.floating;
+    },
+
+    get UTC gTS_get_UTC() {
+        return this.ctz.UTC;
+    },
+
+    get version gTS_get_version() {
+        return this.ctz.version;
+    },
+
+    get defaultTimezone gTS_get_defaultTimezone() {
+        return this.ctz.defaultTimezone;
+    },
+
+    getTimezone: function gTS_getTimezone(aTzid) {
+        if (aTzid == "Etc/GMT") {
+            // Most timezones are covered by the timezone service, there is one
+            // exception I've found out about. GMT without DST is pretty close
+            // to UTC, lets take it.
+            return UTC();
+        }
+
+        var baseTZ = this.ctz.getTimezone(aTzid);
+        ASSERT(baseTz, "Unknown Timezone requested: " + aTzid);
+        return baseTZ;
+    }
+};
+
 /**
  * fromRFC3339
  * Convert a RFC3339 compliant Date string to a calIDateTime.
@@ -156,6 +193,7 @@ function fromRFC3339(aStr, aTimezone) {
 
     // XXX I have not covered leapseconds (matches[8]), this might need to
     // be done. The only reference to leap seconds I found is bug 227329.
+    //
 
     // Create a DateTime instance (calUtils.js)
     var dateTime = createDateTime();
@@ -894,7 +932,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
             vevent = "BEGIN:VEVENT\n" + vevent + "END:VEVENT";
             var icsService = getIcsService();
 
-            var rootComp = icsService.parseICS(vevent, null);
+            var rootComp = icsService.parseICS(vevent, gdataTimezoneService);
             var prop = rootComp.getFirstProperty("ANY");
             var i = 0;
             var hasRecurringRules = false;

@@ -725,7 +725,7 @@ calGoogleCalendar.prototype = {
             // filter out the <?xml...?> part.
             var xml = new XML(aData.substring(38));
             var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
-            var timezone = getTimezoneService().getTimezone(timezoneString);
+            var timezone = gdataTimezoneService.getTimezone(timezoneString);
 
             // This line is needed, otherwise the for each () block will never
             // be entered. It may seem strange, but if you don't believe me, try
@@ -824,8 +824,8 @@ calGoogleCalendar.prototype = {
             // filter out the <?xml...?> part.
             var xml = new XML(aData.substring(38));
             var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
-            var timezone = getTimezoneService().getTimezone(timezoneString);
-
+            var timezone = gdataTimezoneService.getTimezone(timezoneString);
+            
             // This line is needed, otherwise the for each () block will never
             // be entered. It may seem strange, but if you don't believe me, try
             // it!
@@ -1102,7 +1102,7 @@ calGoogleCalendar.prototype = {
             // filter out the <?xml...?> part.
             var xml = new XML(aData.substring(38));
             var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
-            var timezone = getTimezoneService().getTimezone(timezoneString);
+            var timezone = gdataTimezoneService.getTimezone(timezoneString);
 
             // This line is needed, otherwise the for each () block will never
             // be entered. It may seem strange, but if you don't believe me, try
