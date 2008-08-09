@@ -62,8 +62,13 @@
         <em:minVersion>2.0a1</em:minVersion>
         <em:maxVersion>2.0.0.*</em:maxVersion>
 #else
+#ifdef COMM_BUILD
+        <em:minVersion>3.0a1pre</em:minVersion>
+        <em:maxVersion>3.0b1pre</em:maxVersion>
+#else
         <em:minVersion>3.0a1pre</em:minVersion>
         <em:maxVersion>3.0a2</em:maxVersion>
+#endif
 #endif
       </Description>
     </em:targetApplication>
