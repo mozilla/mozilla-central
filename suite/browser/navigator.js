@@ -582,6 +582,9 @@ function Startup()
 
     document.documentElement.setAttribute("width", defaultWidth);
     document.documentElement.setAttribute("height", defaultHeight);
+    // Make sure we're safe at the left/top edge of screen
+    document.documentElement.setAttribute("screenX", screen.availLeft);
+    document.documentElement.setAttribute("screenY", screen.availTop);
   }
 
   // hook up UI through progress listener
