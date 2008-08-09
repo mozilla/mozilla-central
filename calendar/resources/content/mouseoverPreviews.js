@@ -134,6 +134,9 @@ function setToolTipContent(toolTip, holderBox)
   // tooltip border disappears if wrapped description below header grid.
   height += 1 + 2 + 2 + 1;
 
+  // workaround bug 390313 (aspect: tooltip width too short)
+  width += 6;
+
   toolTip.sizeTo(width, height);
 }
 
