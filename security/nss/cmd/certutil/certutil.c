@@ -842,6 +842,8 @@ ListKeys(PK11SlotInfo *slot, const char *nickName, int index,
          KeyType keyType, PRBool dopriv, secuPWData *pwdata)
 {
     SECStatus rv = SECFailure;
+    static const char fmt[] = \
+    	"%s: Checking token \"%.33s\" in slot \"%.65s\"\n";
 
     if (slot == NULL) {
 	PK11SlotList *list;
@@ -850,11 +852,16 @@ ListKeys(PK11SlotInfo *slot, const char *nickName, int index,
 	list= PK11_GetAllTokens(CKM_INVALID_MECHANISM,PR_FALSE,PR_FALSE,pwdata);
 	if (list) {
 	    for (le = list->head; le; le = le->next) {
+		PR_fprintf(PR_STDOUT, fmt, progName, 
+			   PK11_GetTokenName(le->slot), 
+			   PK11_GetSlotName(le->slot));
 		rv &= ListKeysInSlot(le->slot,nickName,keyType,pwdata);
 	    }
 	    PK11_FreeSlotList(list);
 	}
     } else {
+	PR_fprintf(PR_STDOUT, fmt, progName, PK11_GetTokenName(slot), 
+	           PK11_GetSlotName(slot));
 	rv = ListKeysInSlot(slot,nickName,keyType,pwdata);
     }
     return rv;
@@ -926,7 +933,8 @@ Usage(char *progName)
 #define FPS fprintf(stderr, 
     FPS "Type %s -H for more detailed descriptions\n", progName);
     FPS "Usage:  %s -N [-d certdir] [-P dbprefix] [-f pwfile]\n", progName);
-    FPS "Usage:  %s -T [-d certdir] [-P dbprefix] [-h token-name] [-f pwfile]\n", progName);
+    FPS "Usage:  %s -T [-d certdir] [-P dbprefix] [-h token-name]\n"
+	"\t\t [-f pwfile] [-0 SSO-password]\n", progName);
     FPS "\t%s -A -n cert-name -t trustargs [-d certdir] [-P dbprefix] [-a] [-i input]\n", 
     	progName);
     FPS "\t%s -B -i batch-file\n", progName);
@@ -966,7 +974,7 @@ Usage(char *progName)
 	progName);
     FPS "\t%s -O -n cert-name [-X] [-d certdir] [-P dbprefix]\n", progName);
     FPS "\t%s -R -s subj -o cert-request-file [-d certdir] [-P dbprefix] [-p phone] [-a]\n"
-	"\t\t [-y emailAddrs] [-k key-type-or-id] [-h token-name] [-f pwfile] [-g key-size]\n",
+	"\t\t [-7 emailAddrs] [-k key-type-or-id] [-h token-name] [-f pwfile] [-g key-size]\n",
 	progName);
     FPS "\t%s -V -n cert-name -u usage [-b time] [-e] \n"
 	"\t\t[-X] [-d certdir] [-P dbprefix]\n",
@@ -1054,9 +1062,9 @@ static void LongUsage(char *progName)
     FPS "%-20s Create extended key usage extension\n",
 	"   -6 ");
     FPS "%-20s Create an email subject alt name extension\n",
-	"   -7 ");
+	"   -7 emailAddrs");
     FPS "%-20s Create an dns subject alt name extension\n",
-	"   -8 ");
+	"   -8 dnsNames");
     FPS "%-20s The input certificate request is encoded in ASCII (RFC1113)\n",
 	"   -a");
     FPS "\n");
@@ -1200,6 +1208,8 @@ static void LongUsage(char *progName)
 	"   -P dbprefix");
     FPS "%-20s Token to reset (default is internal)\n",
 	"   -h token-name");
+    FPS "%-20s Set token's Site Security Officer password\n",
+	"   -0 SSO-password");
     FPS "\n");
 
     FPS "\n");
@@ -1371,9 +1381,9 @@ static void LongUsage(char *progName)
     FPS "%-20s Create extended key usage extension\n",
 	"   -6 ");
     FPS "%-20s Create an email subject alt name extension\n",
-	"   -7 ");
+	"   -7 emailAddrs ");
     FPS "%-20s Create a DNS subject alt name extension\n",
-	"   -8 ");
+	"   -8 DNS-names");
     FPS "%-20s Create an Authority Information Access extension\n",
 	"   --extAIA ");
     FPS "%-20s Create a Subject Information Access extension\n",
