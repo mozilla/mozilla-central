@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.49 $ $Date: 2008-07-22 04:34:02 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.50 $ $Date: 2008-08-09 01:25:58 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -307,6 +307,7 @@ find_objects (
     nssSession *session = (sessionOpt) ? sessionOpt : tok->defaultSession;
 
     /* Don't ask the module to use an invalid session handle. */
+    PORT_Assert(session->handle != CK_INVALID_SESSION);
     if (session->handle == CK_INVALID_SESSION) {
 	ckrv = CKR_SESSION_HANDLE_INVALID;
 	goto loser;                

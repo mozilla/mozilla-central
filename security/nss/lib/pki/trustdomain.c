@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.58 $ $Date: 2008-07-26 02:52:03 $";
+static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.59 $ $Date: 2008-08-09 01:26:05 $";
 #endif /* DEBUG */
 
 #ifndef DEV_H
@@ -52,7 +52,7 @@ static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.58 $
 
 #include "cert.h"
 #include "pki3hack.h"
-
+#include "pk11pub.h"
 #include "nssrwlk.h"
 
 #define NSSTRUSTDOMAIN_DEFAULT_CACHE_SIZE 32
@@ -169,9 +169,18 @@ nssTrustDomain_GetActiveSlots (
     NSSRWLock_UnlockRead(td->tokensLock);
     count = 0;
     for (tp = tokens; *tp; tp++) {
-	slots[count++] = nssToken_GetSlot(*tp);
+        NSSSlot * slot = nssToken_GetSlot(*tp);
+        if (!PK11_IsDisabled(slot->pk11slot)) {
+            slots[count++] = slot;
+        } else {
+	    nssSlot_Destroy(slot);
+	}
     }
     nss_ZFreeIf(tokens);
+    if (!count) {
+	nss_ZFreeIf(slots);
+    	slots = NULL;
+    }
     return slots;
 }
 

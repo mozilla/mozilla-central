@@ -1081,6 +1081,7 @@ PK11_InitToken(PK11SlotInfo *slot, PRBool loadCerts)
     CK_RV crv;
     char *tmp;
     SECStatus rv;
+    PRStatus status;
 
     /* set the slot flags to the current token values */
     if (!slot->isThreadSafe) PK11_EnterSlotMonitor(slot);
@@ -1177,7 +1178,9 @@ PK11_InitToken(PK11SlotInfo *slot, PRBool loadCerts)
 	if (!slot->isThreadSafe) PK11_ExitSlotMonitor(slot);
     }
 
-    nssToken_Refresh(slot->nssToken);
+    status = nssToken_Refresh(slot->nssToken);
+    if (status != PR_SUCCESS)
+    	return SECFailure;
 
     if (!(slot->isInternal) && (slot->hasRandom)) {
 	/* if this slot has a random number generater, use it to add entropy
@@ -1209,7 +1212,7 @@ PK11_InitToken(PK11SlotInfo *slot, PRBool loadCerts)
 	    PK11_ExitSlotMonitor(int_slot);
 	    if (crv == CKR_OK) {
 	        PK11_EnterSlotMonitor(slot);
-		PK11_GETTAB(slot)->C_SeedRandom(slot->session,
+		crv = PK11_GETTAB(slot)->C_SeedRandom(slot->session,
 					random_bytes, sizeof(random_bytes));
 	        PK11_ExitSlotMonitor(slot);
 	    }
