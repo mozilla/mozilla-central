@@ -119,8 +119,27 @@
                        getService(Components.interfaces.calIDateTimeFormatter);
               var timezone = this.calendarView ? this.calendarView.mTimezone :
                              calendarDefaultTimezone();
-              label.value = df.formatTime(
-              val.startDate.getInTimezone(timezone));
+              var parentDate = ensureDateTime(this.parentBox.date);
+              var startTime = val.startDate.getInTimezone(timezone);
+              var endTime = val.endDate.getInTimezone(timezone);
+              var nextDay = parentDate.clone();
+              nextDay.day++;
+              var comp = endTime.compare(nextDay);
+              if(startTime.compare( parentDate) == -1 ) {
+                if (comp == 1)  {
+                  label.value = "↔";
+                } else if (comp == 0) {
+                  label.value = "↤";
+                } else {
+                  label.value = "⇥ " + df.formatTime(endTime);
+                }
+              } else {
+                if (comp == 1) {
+                  label.value = "⇤ " + df.formatTime(startTime);
+                } else {
+                  label.value = df.formatTime(startTime);
+                }
+              }
               label.setAttribute("time", "true");
             }
           } else if (isToDo(val)) {
@@ -474,8 +493,8 @@
 
               box.calendarView = this.monthView;
               box.item = itd.item;
-              box.occurrence = itd.item;
               box.parentBox = this;
+              box.occurrence = itd.item;
               itd.box = box;
             }
           }
