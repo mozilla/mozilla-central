@@ -2321,17 +2321,10 @@ function updateAttachment() {
 
     var documentRow = document.getElementById("event-grid-attachment-row");
     var attSeparator = document.getElementById("event-grid-attachment-separator");
-    var documentButton = document.getElementById("button-url");
-    var attOption = document.getElementById("options-attachments-menuitem");
     if (!hasAttachments) {
-        documentButton.setAttribute("disabled", "true");
-        attOption.setAttribute("disabled", "true");
         documentRow.setAttribute("collapsed", "true");
         attSeparator.setAttribute("collapsed", "true");
     } else {
-        documentButton.removeAttribute("disabled");
-        attOption.removeAttribute("disabled");
-
         var documentLink = document.getElementById("attachment-link");
         setElementValue(documentRow, documentLink.getRowCount() < 1 && "true", "collapsed");
         setElementValue(attSeparator, documentLink.getRowCount() < 1 && "true", "collapsed");
