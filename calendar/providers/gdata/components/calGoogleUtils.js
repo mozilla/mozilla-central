@@ -176,7 +176,7 @@ var gdataTimezoneService = {
         }
 
         var baseTZ = this.ctz.getTimezone(aTzid);
-        ASSERT(baseTz, "Unknown Timezone requested: " + aTzid);
+        ASSERT(baseTZ, "Unknown Timezone requested: " + aTzid);
         return baseTZ;
     }
 };
