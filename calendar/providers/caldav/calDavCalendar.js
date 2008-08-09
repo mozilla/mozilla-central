@@ -620,7 +620,8 @@ calDavCalendar.prototype = {
             LOG("CalDAV: send: " + multigetQueryXml.toXMLString());
         }
 
-        this.getCalendarData(xmlHeader + multigetQueryXml.toXMLString(), aItem,
+        this.getCalendarData(xmlHeader + multigetQueryXml.toXMLString(),
+                             aItem,
                              aListener);
 
     },
