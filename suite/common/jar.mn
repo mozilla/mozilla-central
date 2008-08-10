@@ -161,8 +161,6 @@ comm.jar:
    content/communicator/pref/overrideHandler.js                     (pref/overrideHandler.js)
    content/communicator/pref/pref-cache.js                          (pref/pref-cache.js)
    content/communicator/pref/pref-cache.xul                         (pref/pref-cache.xul)
-   content/communicator/pref/pref-charset.js                        (pref/pref-charset.js)
-   content/communicator/pref/pref-charset.xul                       (pref/pref-charset.xul)
    content/communicator/pref/pref-colors.js                         (pref/pref-colors.js)
    content/communicator/pref/pref-colors.xul                        (pref/pref-colors.xul)
    content/communicator/pref/pref-content.xul                       (pref/pref-content.xul)
