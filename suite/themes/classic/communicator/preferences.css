@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Karsten Düsterloh <mnyromyr@tprac.de>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -45,3 +46,32 @@ prefwindow
   padding: 8px 10px 0px 8px;
 }
 
+/* File Field Widget */
+filefield {
+  margin: 2px 4px;
+  -moz-appearance: textfield;
+}
+
+.fileFieldContentBox {
+  background-color: -moz-Dialog;
+}
+
+.fileFieldIcon[disabled="true"] {
+  opacity: 0.4;
+}
+
+.fileFieldIcon {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  -moz-margin-start: 1px;
+  -moz-margin-end: 4px;
+}
+
+.fileFieldLabel {
+  -moz-appearance: none;
+  background-color: transparent;
+  border: none;
+  margin: 0px;
+}

@@ -39,7 +39,9 @@
 <?xml-stylesheet type="text/css" href="chrome://communicator/skin/"?>
 <?xml-stylesheet type="text/css" href="chrome://communicator/content/communicator.css"?>
 <?xml-stylesheet type="text/css" href="chrome://communicator/content/pref/prefpanels.css"?>
+<?xml-stylesheet type="text/css" href="chrome://mozapps/content/preferences/preferences.css"?>
 <?xml-stylesheet type="text/css" href="chrome://communicator/skin/prefpanels.css"?>
+<?xml-stylesheet type="text/css" href="chrome://communicator/skin/preferences.css"?>
 
 <!DOCTYPE prefwindow [
   <!ENTITY % dtd1 SYSTEM "chrome://communicator/locale/pref/pref.dtd" > %dtd1;

@@ -86,6 +86,10 @@ textbox[focused="true"] {
 /* ..... disabled state ..... */
 
 textbox[disabled="true"] {
+  -moz-border-top-colors: #BEC3D3 #98A5B2;
+  -moz-border-right-colors: #F8FAFE #98A5B2;
+  -moz-border-bottom-colors: #F8FAFE #98A5B2;
+  -moz-border-left-colors: #BEC3D3 #98A5B2;
   background-color: #C7D0D9;
   color: #999999;
   cursor: default !important;
