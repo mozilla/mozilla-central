@@ -164,6 +164,11 @@ const componentData =
      script: "calRecurrenceInfo.js",
      constructor: "calRecurrenceInfo"},
 
+    {cid: Components.ID("{76810fae-abad-4019-917a-08e95d5bbd68}"),
+     contractid: "@mozilla.org/calendar/relation;1",
+     script: "calRelation.js",
+     constructor: "calRelation"},
+
     {cid: Components.ID("{4123da9a-f047-42da-a7d0-cc4175b9f36a}"),
      contractid: "@mozilla.org/calendar/datetime-formatter;1",
      script: "calDateTimeFormatter.js",

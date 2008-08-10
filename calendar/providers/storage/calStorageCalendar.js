@@ -100,6 +100,7 @@ const CAL_ITEM_FLAG_EVENT_ALLDAY = 8;
 const CAL_ITEM_FLAG_HAS_RECURRENCE = 16;
 const CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32;
 const CAL_ITEM_FLAG_HAS_ATTACHMENTS = 64;
+const CAL_ITEM_FLAG_HAS_RELATIONS = 128;
 
 const USECS_PER_SECOND = 1000000;
 
@@ -859,7 +860,7 @@ calStorageCalendar.prototype = {
         this.mDB.executeSimpleSQL("INSERT INTO cal_calendar_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
     },
 
-    DB_SCHEMA_VERSION: 12,
+    DB_SCHEMA_VERSION: 13,
 
     /** 
      * @return      db schema version
@@ -1181,6 +1182,22 @@ calStorageCalendar.prototype = {
             }
         }
 
+        if (oldVersion < 13) {
+            this.mDB.beginTransaction();
+            try {
+                this.mDB.createTable("cal_relations", sqlTables.cal_relations);
+
+                // update schema
+                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 13;");
+                this.mDB.commitTransaction();
+                oldVersion = 13;
+            } catch (e) {
+                ERROR("Upgrade failed! DB Error: " + this.mDB.lastErrorString);
+                this.mDB.rollbackTransaction();
+                throw e;
+            }
+        }
+
         if (oldVersion != this.DB_SCHEMA_VERSION) {
             dump ("#######!!!!! calStorageCalendar Schema Update failed -- db version: " + oldVersion + " this version: " + this.DB_SCHEMA_VERSION + "\n");
             throw Components.results.NS_ERROR_FAILURE;
@@ -1444,6 +1461,12 @@ calStorageCalendar.prototype = {
             "WHERE item_id = :item_id "
             );
 
+        this.mSelectRelationsForItem = createStatement(
+            this.mDBTwo,
+            "SELECT * FROM cal_relations " +
+            "WHERE item_id = :item_id "
+            );
+
         this.mSelectMetaData = createStatement(
             this.mDB,
             "SELECT * FROM cal_metadata"
@@ -1511,6 +1534,13 @@ calStorageCalendar.prototype = {
             "VALUES (:item_id, :data, :format_type, :encoding)"
             );
 
+        this.mInsertRelation = createStatement (
+            this.mDB,
+            "INSERT INTO cal_relations " +
+            " (item_id, rel_type, rel_id) " +
+            "VALUES (:item_id, :rel_type, :rel_id)"
+            );
+
         this.mInsertMetaData = createStatement(
             this.mDB,
             "INSERT INTO cal_metadata"
@@ -1541,6 +1571,10 @@ calStorageCalendar.prototype = {
         this.mDeleteAttachments = createStatement (
             this.mDB,
             "DELETE FROM cal_attachments WHERE item_id = :item_id"
+            );
+        this.mDeleteRelations = createStatement (
+            this.mDB,
+            "DELETE FROM cal_relations WHERE item_id = :item_id"
             );
         this.mDeleteMetaData = createStatement(
             this.mDB,
@@ -1954,6 +1988,18 @@ calStorageCalendar.prototype = {
             selectAttachment.reset();
         }
 
+        if (flags & CAL_ITEM_FLAG_HAS_RELATIONS) {
+            var selectRelation = this.mSelectRelationsForItem;
+            selectRelation.params.item_id = item.id;
+
+            while (selectRelation.step()) {
+                var row = selectRelation.row;
+                var relation = this.getRelationFromRow(row);
+                item.addRelation(relation);
+            }
+            selectRelation.reset();
+        }
+
         // Restore the saved modification time
         item.setProperty("LAST-MODIFIED", savedLastModifiedTime);
     },
@@ -1988,6 +2034,15 @@ calStorageCalendar.prototype = {
         a.encoding = row.encoding;
     
         return a;
+    },
+
+    getRelationFromRow: function (row) {
+        var r = createRelation();
+
+        r.relType = row.rel_type;
+        r.relId = row.rel_id;
+
+        return r;
     },
 
     //
@@ -2075,6 +2130,7 @@ calStorageCalendar.prototype = {
         flags |= this.writeRecurrence(item, olditem);
         flags |= this.writeProperties(item, olditem);
         flags |= this.writeAttachments(item, olditem);
+        flags |= this.writeRelations(item, olditem);
 
         if (isEvent(item))
             this.writeEvent(item, olditem, flags);
@@ -2334,6 +2390,23 @@ calStorageCalendar.prototype = {
         return 0;
     },
 
+    writeRelations: function (item, olditem) {
+        var relations = item.getRelations({});
+        if (relations && relations.length > 0) {
+            for each (rel in relations) {
+                var rp = this.mInsertRelation.params;
+                rp.item_id = item.id;
+                rp.rel_type = rel.relType;
+                rp.rel_id = rel.relId;
+
+                this.mInsertRelation.execute();
+                this.mInsertRelation.reset();
+            }
+            return CAL_ITEM_FLAG_HAS_RELATIONS;
+        }
+        return 0;
+    },
+
     //
     // delete the item with the given uid
     //
@@ -2348,6 +2421,7 @@ calStorageCalendar.prototype = {
             this.mDeleteEvent(aID);
             this.mDeleteTodo(aID);
             this.mDeleteAttachments(aID);
+            this.mDeleteRelations(aID);
             this.mDeleteMetaData(aID);
             if (!hasGuardingTransaction) {
                 this.mDB.commitTransaction();
@@ -2563,6 +2637,12 @@ var sqlTables = {
     "   data            BLOB," +
     "   format_type     TEXT," +
     "   encoding        TEXT" +
+    "",
+
+  cal_relations:
+    "   item_id         TEXT," +
+    "   rel_type        TEXT," +
+    "   rel_id          TEXT" +
     "",
 
   cal_metadata:

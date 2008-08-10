@@ -100,6 +100,7 @@ EXTRA_SCRIPTS = \
     calItipProcessor.js \
     calProtocolHandler.js \
     calRecurrenceInfo.js \
+    calRelation.js \
     calTodo.js \
     calUtils.js \
     calAuthUtils.js \

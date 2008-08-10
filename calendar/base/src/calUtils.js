@@ -101,6 +101,12 @@ function createAlarm() {
            createInstance(Components.interfaces.calIAlarm);
 }
 
+/* Returns a clean new calIRelation */
+function createRelation() {
+    return Components.classes["@mozilla.org/calendar/relation;1"].
+           createInstance(Components.interfaces.calIRelation);
+}
+
 /* Shortcut to the console service */
 function getConsoleService() {
     if (getConsoleService.mObject === undefined) {

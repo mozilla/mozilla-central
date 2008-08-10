@@ -58,6 +58,7 @@ interface calIAttachment;
 
 interface calIIcalComponent;
 
+interface calIRelation;
 //
 // calIItemBase
 //
@@ -267,6 +268,31 @@ interface calIItemBase : nsISupports
   void removeAllAttachments();
 
   //
+  // Relations
+  //
+
+  /**
+   * This gives back every relation where the item is neighter the owner of the
+   * relation nor the referred relation
+   */
+  void getRelations(out PRUint32 count,
+                      [array,size_is(count),retval] out calIRelation relations);
+
+  /**
+   * Removes the relation for this item and the referred item
+   */
+  void removeRelation(in calIRelation relation);
+  
+  /**
+   * Removes every relation for this item (in this items and also where it is referred
+   */
+  void removeAllRelations();
+
+  /**
+   * Adds a relation to the item
+   */
+  void addRelation(in calIRelation relation);
+
   // Occurrence querying
   //
 

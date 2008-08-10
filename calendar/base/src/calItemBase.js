@@ -211,6 +211,8 @@ calItemBase.prototype = {
         this.mRecurrenceInfo = null;
 
         this.mAttachments = null;
+
+        this.mRelations = null;
     },
 
     clone: function () {
@@ -269,7 +271,9 @@ calItemBase.prototype = {
 
         m.mDirty = false;
 
-        m.mAttachments = this.mAttachments;
+        m.mAttachments = this.mAttachments.concat([]);
+
+        m.mRelations = this.mRelations.concat([]);
 
         // Clone any alarm info that exists, set it to null if it doesn't
         if (this.alarmOffset) {
@@ -481,7 +485,7 @@ calItemBase.prototype = {
         this.mAttendees.push(attendee);
         // XXX ensure that the attendee isn't already there?
     },
- 
+
     getAttachments: function cIB_getAttachments(aCount) {
         if (this.mAttachments) {
             aCount.value = this.mAttachments.length;
@@ -513,6 +517,41 @@ calItemBase.prototype = {
     removeAllAttachments: function () {
         this.modify();
         this.mAttachments = [];
+    },
+
+    getRelations: function cIB_getRelations(aCount) {
+        if (this.mRelations) {
+            aCount.value = this.mRelations.length;
+            return this.mRelations.concat([]);
+        } else {
+            aCount.value = 0;
+            return [];
+        }
+    },
+
+    removeRelation: function (aRelation) {
+        this.modify();
+        for (var attIndex in this.mRelations) {
+            // Could we have the same item as parent and as child ?
+            if (this.mRelations[attIndex].relId == aRelation.relId &&
+                this.mRelations[attIndex].relType == aRelation.relType) {
+                this.modify();
+                this.mRelations.splice(attIndex, 1);
+                break;
+            }
+        }
+    },
+
+    addRelation: function (aRelation) {
+        this.modify();
+        this.mRelations = this.getRelations({});
+        this.mRelations.push(aRelation);
+        // XXX ensure that the relation isn't already there?
+    },
+
+    removeAllRelations: function () {
+        this.modify();
+        this.mRelations = [];
     },
 
     mCalendar: null,
@@ -612,7 +651,7 @@ calItemBase.prototype = {
         for (var attprop = icalcomp.getFirstProperty("ATTENDEE");
              attprop;
              attprop = icalcomp.getNextProperty("ATTENDEE")) {
-            
+
             var att = new CalAttendee();
             att.icalProperty = attprop;
             this.addAttendee(att);
@@ -625,6 +664,15 @@ calItemBase.prototype = {
             var att = createAttachment();
             att.icalProperty = attprop;
             this.addAttachment(att);
+        }
+
+        for (var relprop = icalcomp.getFirstProperty("RELATED-TO");
+             relprop;
+             relprop = icalcomp.getNextProperty("RELATED-TO")) {
+
+            var rel = createRelation();
+            rel.icalProperty = relprop;
+            this.addRelation(rel);
         }
 
         var orgprop = icalcomp.getFirstProperty("ORGANIZER");
@@ -760,13 +808,17 @@ calItemBase.prototype = {
             icalcomp.addProperty(att.icalProperty);
         }
 
+        for (var relIndex in this.mRelations) {
+            icalcomp.addProperty(this.mRelations[relIndex].icalProperty);
+        }
+
         if (this.mRecurrenceInfo) {
             var ritems = this.mRecurrenceInfo.getRecurrenceItems({});
             for (i in ritems) {
                 icalcomp.addProperty(ritems[i].icalProperty);
             }
         }
-        
+
         if (this.alarmOffset) {
             var icssvc = getIcsService();
             var alarmComp = icssvc.createIcalComponent("VALARM");
@@ -806,7 +858,7 @@ calItemBase.prototype = {
             icalcomp.addProperty(lastAck);
         }
     },
-    
+
     getOccurrencesBetween: function cIB_getOccurrencesBetween(aStartDate, aEndDate, aCount) {
         if (this.recurrenceInfo) {
             return this.recurrenceInfo.getOccurrences(aStartDate, aEndDate, 0, aCount);

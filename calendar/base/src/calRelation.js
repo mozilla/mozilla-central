@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -12,16 +11,14 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Oracle Corporation code.
+ * The Original Code is Mozilla Calendar code.
  *
- * The Initial Developer of the Original Code is Oracle Corporation
- * Portions created by the Initial Developer are Copyright (C) 2004
+ * The Initial Developer of the Original Code is
+ *   Fred Jendrzejewski <fred.jen@web.de>
+ * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Stuart Parmenter <pavlov@pavlov.net>
- *   Joey Minta <jminta@gmail.com>
- *   Fred Jendrzejewski <fred.jen@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,22 +35,21 @@
  * ***** END LICENSE BLOCK ***** */
 
 //
-// calAttachment.js
+// calRelation.js
 //
-function calAttachment() {
+function calRelation() {
     this.wrappedJSObject = this;
     this.mProperties = new calPropertyBag();
 }
 
-calAttachment.prototype = {
-    mEncoding: null,     
-    mUri: null,
-    mType: null,
+calRelation.prototype = {
     mItem: null,
+    mType: null,
+    mId: null,
 
     QueryInterface: function (aIID) {
         return doQueryInterface(this,
-                                calAttachment.prototype,
+                                calRelation.prototype,
                                 aIID,
                                 null,
                                 this);
@@ -63,71 +59,60 @@ calAttachment.prototype = {
      * nsIClassInfo
      */
 
-    getInterfaces: function cA_getInterfaces(aCount) {
+    getInterfaces: function cR_getInterfaces(aCount) {
         var ifaces = [
             Components.interfaces.nsISupports,
-            Components.interfaces.calIAttachment,
+            Components.interfaces.calIRelation,
             Components.interfaces.nsIClassInfo
         ];
         aCount.value = ifaces.length;
         return ifaces;
     },
 
-    getHelperForLanguage: function cA_getHelperForLanguage(language) {
+    getHelperForLanguage: function cR_getHelperForLanguage(language) {
         return null;
     },
 
-    contractID: "@mozilla.org/calendar/attachment;1",
-    classDescription: "Calendar Item Attachment",
-    classID: Components.ID("{5f76b352-ab75-4c2b-82c9-9206dbbf8571}"),
+    contractID: "@mozilla.org/calendar/relation;1",
+    classDescription: "Calendar Item Relation",
+    classID: Components.ID("{76810fae-abad-4019-917a-08e95d5bbd68}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: 0,
 
     /**
-     * calIAttachment
+     * calIRelation
      */
 
-    get uri cA_get_uri() {
-        return this.mUri;
-    },
-    set uri cA_set_uri(aUri) {
-        return (this.mUri = aUri);
-    },
-
-    get formatType cA_get_formatType() {
-        return this.mType;
-    },
-    set formatType cA_set_formatType(aType) {
-        return (this.mType = aType);
-    },
-
-    get encoding cA_get_encoding() {
-        return this.mEncoding
-    },
-    set encoding cA_set_encoding(aValue) {
-        return (this.mEncoding = aValue);
-    },
-
-    get item cA_get_item() {
+    get item cR_get_item() {
         return this.mItem;
     },
-    set item cA_set_item(aItem) {
+    set item cR_set_item(aItem) {
         return (this.mItem = aItem);
     },
 
-    get icalProperty cA_get_icalProperty(attProp) {
+    get relType cR_get_relType() {
+        return this.mType;
+    },
+    set relType cR_set_relType(aType) {
+        return (this.mType = aType);
+    },
+
+    get relId cR_get_relId() {
+        return this.mId;
+    },
+    set relId cR_set_relId(aRelId) {
+        return (this.mId = aRelId);
+    },
+
+    get icalProperty cR_get_icalProperty(attProp) {
         var icssvc = getIcsService();
-        var icalatt = icssvc.createIcalProperty("ATTACH");
-        if (this.mUri) {
-            icalatt.value = this.mUri.spec;
+        var icalatt = icssvc.createIcalProperty("RELATED-TO");
+        if (this.mId) {
+            icalatt.value = this.mId;
         }
 
         if (this.mType) {
-            icalatt.setParameter("FMTTYPE", this.mType);
-        }
-        
-        if (this.mEncoding) {
-            icalatt.setParameter("ENCODING", this.mEncoding);
+            icalatt.setParameter("RELTYPE", this.mType);
         }
 
         var outKeys = {};
@@ -139,23 +124,16 @@ calAttachment.prototype = {
         return icalatt;
     },
 
-    set icalProperty cA_set_icalProperty(attProp) {
-        //TODO: handle local uris in a sensible way
-        // handle the VALUE = BINARY parameter
+    set icalProperty cR_set_icalProperty(attProp) {
         if (attProp.value) {
-            this.mUri = makeURL(attProp.value);
+            this.mId = attProp.value;
         }
 
         for (var paramname = attProp.getFirstParameterName();
              paramname;
              paramname = attProp.getNextParameterName()) {
-            if (paramname == "FMTTYPE") {
-                this.mType = attProp.getParameter("FMTTYPE");
-                continue;
-            }
-
-            if (paramname == "ENCODING") {
-                this.mEncoding = attProp.getParameter("ENCODING");
+            if (paramname == "RELTYPE") {
+                this.mType = attProp.getParameter("RELTYPE");
                 continue;
             }
 
@@ -168,10 +146,10 @@ calAttachment.prototype = {
     },
 
     setParameter: function (aName, aValue) {
-        this.mProperties.setProperty(aName, aValue);
+        return this.mProperties.setProperty(aName, aValue);
     },
 
     deleteParameter: function (aName) {
-        this.mProperties.deleteProperty(aName);
+        return this.mProperties.deleteProperty(aName);
     }
 };
