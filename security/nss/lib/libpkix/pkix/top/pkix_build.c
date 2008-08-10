@@ -3364,6 +3364,13 @@ cleanup:
                 validityDate = NULL;
         }
         if (!*pValResult && !verifyError) {
+            if (!finalError) {
+                PKIX_CHECK_FATAL(
+                    pkix_VerifyNode_FindError(state->verifyNode,
+                                              &finalError,
+                                              plContext),
+                    PKIX_VERIFYNODEFINDERRORFAILED);
+            }
             if (finalError) {
                 pkixErrorResult = finalError;
                 pkixErrorCode = PKIX_BUILDFORWARDDEPTHFIRSTSEARCHFAILED;
