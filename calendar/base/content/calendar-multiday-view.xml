@@ -1092,22 +1092,21 @@
       <method name="getLayoutEnd">
         <parameter name="aItem"/>
         <body><![CDATA[
-              var item = aItem.clone();
-              var start = item.startDate || aItem.entryDate;
-              if (!compareObjects(start.timezone, this.mTimezone)) {
-                  start = start.getInTimezone(this.mTimezone);
-              }
-              var end = item.endDate || aItem.dueDate
-              if (!compareObjects(end.timezone, this.mTimezone)) {
-                  end = end.getInTimezone(this.mTimezone);
-              }
-              var secEnd = start.clone();
-              secEnd.addDuration(this.mMinDuration);
-              if (secEnd.nativeTime > end.nativeTime) {
-                   return [start, secEnd];
-              } else {
-                   return [start, end];
-              }
+          var item = aItem.clone();
+          var start = item.startDate || aItem.entryDate;
+          if (!compareObjects(start.timezone, this.mTimezone)) {
+              start = start.getInTimezone(this.mTimezone);
+          }
+          var end = item.endDate || aItem.dueDate
+          if (!compareObjects(end.timezone, this.mTimezone)) {
+              end = end.getInTimezone(this.mTimezone);
+          }
+          var secEnd = start.clone();
+          secEnd.addDuration(this.mMinDuration);
+          if (secEnd.nativeTime > end.nativeTime) {
+               return [start, secEnd];
+          } else {
+               return [start, end];
           }
         ]]></body>
       </method>
