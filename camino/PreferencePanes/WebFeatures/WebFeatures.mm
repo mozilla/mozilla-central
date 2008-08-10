@@ -155,8 +155,8 @@ const int kAnnoyancePrefSome = 3;
 //
 // -clickEnableAdBlocking:
 //
-// Enable and disable ad blocking via a userContent.css file that we provide in our
-// package, copied into the user's profile.
+// Enable and disable ad blocking via an ad_blocking.css file that we provide
+// in our package.
 //
 - (IBAction)clickEnableAdBlocking:(id)sender
 {
