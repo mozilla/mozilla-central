@@ -504,6 +504,7 @@ function setupContextItemType(event, items) {
         adaptModificationMenuItem("calendar-item-context-menu-delete-menuitem", items, "Task");
     } else {
         event.target.removeAttribute("type");
+        adaptModificationMenuItem("calendar-item-context-menu-delete-menuitem", items, "Item");
     }
     return true;
 }
