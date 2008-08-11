@@ -430,6 +430,8 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
 
                 },{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 

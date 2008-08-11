@@ -127,6 +127,8 @@ Ext.extend(CaseCategoryGrid, Ext.grid.EditorGridPanel, {
                         }
                     },{
                         text: 'Refresh',
+                        icon: 'testopia/img/refresh.png',
+                        iconCls: 'img_button_16x',
                         handler: function(){
                             grid.store.reload();
                         } 

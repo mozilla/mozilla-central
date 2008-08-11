@@ -574,7 +574,9 @@ Ext.extend(ReportGrid, Ext.grid.GridPanel, {
                 iconCls: 'img_button_16x',
                 handler: this.deleteSearch.createDelegate(this)
             },{
-                text: 'Refresh List', 
+                text: 'Refresh List',
+                icon: 'testopia/img/refresh.png',
+                iconCls: 'img_button_16x',
                 handler: function(){
                     grid.store.reload();
                 }
@@ -670,6 +672,8 @@ PortalTools = [{
                     }
                 },{
                     text: 'Refresh',
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         panel.load({url: panel.url});
                     }

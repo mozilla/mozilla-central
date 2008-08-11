@@ -558,6 +558,8 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
                     }
                 },{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -1088,6 +1090,8 @@ Ext.extend(CasePlans, Ext.grid.GridPanel, {
                         }
                     },{
                         text: 'Refresh', 
+                        icon: 'testopia/img/refresh.png',
+                        iconCls: 'img_button_16x',
                         handler: function(){
                             grid.store.reload();
                         } 

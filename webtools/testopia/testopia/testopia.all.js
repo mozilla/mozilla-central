@@ -207,8 +207,11 @@ TestopiaUtil = function(){
         return false;
     };
     this.addOption = addOption;
-    var fillSelects = function(data){
+    var fillSelects = function(data, prods){
       var s = searchToJson(window.location.search);
+      if (prods){
+          s.product = prods;
+      }
       for (var i in data.selectTypes){
         if (typeof data.selectTypes[i] != 'function'){
             try{
@@ -1067,6 +1070,8 @@ Ext.extend(HistoryGrid, Ext.grid.GridPanel,{
                 id:'history-ctx-menu',
                 items: [{
                     text: 'Refresh',
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -2452,7 +2457,9 @@ Ext.extend(PlanGrid, Ext.grid.EditorGridPanel, {
                             }]
                     }
                 },{
-                    text: 'Refresh List', 
+                    text: 'Refresh List',
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x', 
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -3445,6 +3452,8 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
                     }
                 },{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -3975,6 +3984,8 @@ Ext.extend(CasePlans, Ext.grid.GridPanel, {
                         }
                     },{
                         text: 'Refresh', 
+                        icon: 'testopia/img/refresh.png',
+                        iconCls: 'img_button_16x',
                         handler: function(){
                             grid.store.reload();
                         } 
@@ -5080,6 +5091,8 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                     }
                 },{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -5611,6 +5624,8 @@ Ext.extend(CaseBugsGrid, Ext.grid.GridPanel, {
                 id:'tags-ctx-menu',
                 items: [{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -5772,6 +5787,8 @@ Ext.extend(CaseComponentsGrid, Ext.grid.GridPanel, {
                 id:'tags-ctx-menu',
                 items: [{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -6290,6 +6307,8 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
 
                 },{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -7274,6 +7293,8 @@ Ext.extend(BuildGrid, Ext.grid.EditorGridPanel, {
                     }
                 },{
                     text: 'Refresh',
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -7477,6 +7498,8 @@ Ext.extend(CaseCategoryGrid, Ext.grid.EditorGridPanel, {
                         }
                     },{
                         text: 'Refresh',
+                        icon: 'testopia/img/refresh.png',
+                        iconCls: 'img_button_16x',
                         handler: function(){
                             grid.store.reload();
                         } 
@@ -7839,6 +7862,8 @@ Ext.extend(EnvironmentGrid, Ext.grid.EditorGridPanel, {
                     handler: this.deleteEnv.createDelegate(this)
                 },{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     }
@@ -8610,7 +8635,9 @@ Ext.extend(ReportGrid, Ext.grid.GridPanel, {
                 iconCls: 'img_button_16x',
                 handler: this.deleteSearch.createDelegate(this)
             },{
-                text: 'Refresh List', 
+                text: 'Refresh List',
+                icon: 'testopia/img/refresh.png',
+                iconCls: 'img_button_16x',
                 handler: function(){
                     grid.store.reload();
                 }
@@ -8706,6 +8733,8 @@ PortalTools = [{
                     }
                 },{
                     text: 'Refresh',
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         panel.load({url: panel.url});
                     }
@@ -8930,6 +8959,8 @@ Ext.extend(TestopiaObjectTags, Ext.grid.GridPanel, {
                          handler: this.remove
                     },{
                         text: 'Refresh List', 
+                        icon: 'testopia/img/refresh.png',
+                        iconCls: 'img_button_16x',
                         handler: function(){
                             grid.store.reload();
                         } 
@@ -9013,7 +9044,9 @@ Ext.extend(TestopiaProductTags, Ext.grid.GridPanel, {
                 id:'tags-ctx-menu',
                 items: [
                     {
-                        text: 'Refresh', 
+                         text: 'Refresh', 
+                         icon: 'testopia/img/refresh.png',
+                         iconCls: 'img_button_16x',
                          handler: function(){
                              ds.reload();
                          }

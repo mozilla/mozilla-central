@@ -886,6 +886,8 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                     }
                 },{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -1417,6 +1419,8 @@ Ext.extend(CaseBugsGrid, Ext.grid.GridPanel, {
                 id:'tags-ctx-menu',
                 items: [{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 
@@ -1578,6 +1582,8 @@ Ext.extend(CaseComponentsGrid, Ext.grid.GridPanel, {
                 id:'tags-ctx-menu',
                 items: [{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 

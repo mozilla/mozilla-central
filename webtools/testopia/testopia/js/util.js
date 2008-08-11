@@ -165,8 +165,11 @@ TestopiaUtil = function(){
         return false;
     };
     this.addOption = addOption;
-    var fillSelects = function(data){
+    var fillSelects = function(data, prods){
       var s = searchToJson(window.location.search);
+      if (prods){
+          s.product = prods;
+      }
       for (var i in data.selectTypes){
         if (typeof data.selectTypes[i] != 'function'){
             try{
@@ -1025,6 +1028,8 @@ Ext.extend(HistoryGrid, Ext.grid.GridPanel,{
                 id:'history-ctx-menu',
                 items: [{
                     text: 'Refresh',
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     } 

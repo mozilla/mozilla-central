@@ -151,6 +151,8 @@ Ext.extend(TestopiaObjectTags, Ext.grid.GridPanel, {
                          handler: this.remove
                     },{
                         text: 'Refresh List', 
+                        icon: 'testopia/img/refresh.png',
+                        iconCls: 'img_button_16x',
                         handler: function(){
                             grid.store.reload();
                         } 
@@ -234,7 +236,9 @@ Ext.extend(TestopiaProductTags, Ext.grid.GridPanel, {
                 id:'tags-ctx-menu',
                 items: [
                     {
-                        text: 'Refresh', 
+                         text: 'Refresh', 
+                         icon: 'testopia/img/refresh.png',
+                         iconCls: 'img_button_16x',
                          handler: function(){
                              ds.reload();
                          }

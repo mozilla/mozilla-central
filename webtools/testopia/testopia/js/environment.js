@@ -128,6 +128,8 @@ Ext.extend(EnvironmentGrid, Ext.grid.EditorGridPanel, {
                     handler: this.deleteEnv.createDelegate(this)
                 },{
                     text: 'Refresh List', 
+                    icon: 'testopia/img/refresh.png',
+                    iconCls: 'img_button_16x',
                     handler: function(){
                         grid.store.reload();
                     }
