@@ -395,7 +395,7 @@ function NewCardOKButton()
       NotifySaveListeners();
       if ("arguments" in window && window.arguments[0])
         window.arguments[0].allowRemoteContent =
-          gEditCard.card.getProperty("AllowRemoteContent", false));
+          gEditCard.card.getProperty("AllowRemoteContent", false);
     }
   }
 
