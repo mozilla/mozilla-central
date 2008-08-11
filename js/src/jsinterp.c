@@ -5093,7 +5093,7 @@ interrupt:
                 funobj = fp->callee;
                 slot += JSCLASS_RESERVED_SLOTS(&js_FunctionClass);
                 if (!JS_GetReservedSlot(cx, funobj, slot, &rval))
-                    return JS_FALSE;
+                    goto error;
                 if (JSVAL_IS_VOID(rval))
                     rval = JSVAL_NULL;
             } else {
@@ -5151,7 +5151,7 @@ interrupt:
                 /* Store the regexp object value in its cloneIndex slot. */
                 if (fp->fun) {
                     if (!JS_SetReservedSlot(cx, funobj, slot, rval))
-                        return JS_FALSE;
+                        goto error;
                 } else {
                     fp->vars[slot] = rval;
                 }
