@@ -38,7 +38,7 @@
 
 /*
 **
-** Sample client side test program that uses SSL and NSS
+** Sample client side test program that uses SSL and libsec
 **
 */
 
@@ -126,7 +126,20 @@ int renegotiate = 0;
 
 static char *progName;
 
-secuPWData  pwdata          = { PW_NONE, 0 };
+/* This exists only for the automated test suite. It allows us to
+ * pass in a password on the command line. 
+ */
+
+char *password = NULL;
+
+char * ownPasswd( PK11SlotInfo *slot, PRBool retry, void *arg)
+{
+	char *passwd = NULL;
+	if ( (!retry) && arg ) {
+		passwd = PL_strdup((char *)arg);
+	}
+	return passwd;
+}
 
 void printSecurityInfo(PRFileDesc *fd)
 {
@@ -190,7 +203,7 @@ static void Usage(const char *progName)
 {
     fprintf(stderr, 
 "Usage:  %s -h host [-p port] [-d certdir] [-n nickname] [-23BTfosvxr] \n"
-"                   [-c ciphers] [-w passwd] [-W pwfile] [-q]\n", progName);
+"                   [-c ciphers] [-w passwd] [-q]\n", progName);
     fprintf(stderr, "%-20s Hostname to connect with\n", "-h host");
     fprintf(stderr, "%-20s Port number for SSL server\n", "-p port");
     fprintf(stderr, 
@@ -510,6 +523,7 @@ int main(int argc, char **argv)
     PRSocketOptionData opt;
     PRNetAddr          addr;
     PRPollDesc         pollset[2];
+    PRBool             useCommandLinePassword = PR_FALSE;
     PRBool             pingServerFirst = PR_FALSE;
     PRBool             clientSpeaksFirst = PR_FALSE;
     PRBool             wrStarted = PR_FALSE;
@@ -534,7 +548,7 @@ int main(int argc, char **argv)
        }
     }
 
-    optstate = PL_CreateOptState(argc, argv, "23BTSfc:h:p:d:m:n:oqr:suvw:xW:");
+    optstate = PL_CreateOptState(argc, argv, "23BTSfc:h:p:d:m:n:oqr:suvw:x");
     while ((optstatus = PL_GetNextOpt(optstate)) == PL_OPT_OK) {
 	switch (optstate->option) {
 	  case '?':
@@ -580,15 +594,10 @@ int main(int argc, char **argv)
 
 	  case 'r': renegotiate = atoi(optstate->value);	break;
 
-          case 'w':
-                pwdata.source = PW_PLAINTEXT;
-		pwdata.data = PORT_Strdup(optstate->value);
+	  case 'w':
+		password = PORT_Strdup(optstate->value);
+		useCommandLinePassword = PR_TRUE;
 		break;
-
-          case 'W':
-                pwdata.source = PW_FROMFILE;
-                pwdata.data = PORT_Strdup(optstate->value);
-                break;
 
 	  case 'x': useExportPolicy = 1; 		break;
 	}
@@ -604,7 +613,12 @@ int main(int argc, char **argv)
 
     PR_Init( PR_SYSTEM_THREAD, PR_PRIORITY_NORMAL, 1);
 
-    PK11_SetPasswordFunc(SECU_GetModulePassword);
+    /* set our password function */
+    if ( useCommandLinePassword ) {
+	PK11_SetPasswordFunc(ownPasswd);
+    } else {
+    	PK11_SetPasswordFunc(SECU_GetModulePassword);
+    }
 
     /* open the cert DB, the key DB, and the secmod DB. */
     if (!certDir) {
@@ -829,7 +843,9 @@ int main(int argc, char **argv)
 	return 1;
     }
 
-    SSL_SetPKCS11PinArg(s, &pwdata);
+    if (useCommandLinePassword) {
+	SSL_SetPKCS11PinArg(s, password);
+    }
 
     SSL_AuthCertificateHook(s, SSL_AuthCertificate, (void *)handle);
     if (override) {
@@ -1048,8 +1064,8 @@ int main(int argc, char **argv)
     if (nickname) {
         PORT_Free(nickname);
     }
-    if (pwdata.data) {
-        PORT_Free(pwdata.data);
+    if (password) {
+        PORT_Free(password);
     }
     PORT_Free(host);
 
