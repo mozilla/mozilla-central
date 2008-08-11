@@ -47,8 +47,12 @@ function getCompositeCalendar() {
             .createInstance(Components.interfaces.calICompositeCalendar);
 
         gCompositeCalendar.prefPrefix = 'calendar-main';
-        var chromeWindow = window.QueryInterface(Components.interfaces.nsIDOMChromeWindow);
-        gCompositeCalendar.setStatusObserver(gCalendarStatusFeedback, chromeWindow);
+        if (gCalendarStatusFeedback) {
+            // If we are in a window that has calendar status feedback, set up
+            // our status observer.
+            var chromeWindow = window.QueryInterface(Components.interfaces.nsIDOMChromeWindow);
+            gCompositeCalendar.setStatusObserver(gCalendarStatusFeedback, chromeWindow);
+        }
     }
     return gCompositeCalendar;
 }
