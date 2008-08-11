@@ -217,6 +217,8 @@ function InitMsgWindow()
   messagepane.docShell.allowAuth = false;
   msgWindow.rootDocShell.allowAuth = true;
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
+  // Ensure we don't load xul error pages into the main window
+  msgWindow.rootDocShell.useErrorPages = false;
 }
 
 function messagePaneOnResize(event)

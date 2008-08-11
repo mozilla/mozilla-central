@@ -395,11 +395,15 @@ NS_IMETHODIMP nsMsgProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctx
     if (m_loadGroup)
       m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nsnull, aStatus);
 
+    // !m_channelContext because if we're set up as a channel, then the remove
+    // request above will handle alerting the user, so we don't need to.
+    //
     // !NS_BINDING_ABORTED because we don't want to see an alert if the user
     // cancelled the operation.  also, we'll get here because we call Cancel()
     // to force removal of the nsSocketTransport.  see CloseSocket()
     // bugs #30775 and #30648 relate to this
-    if (NS_FAILED(aStatus) && (aStatus != NS_BINDING_ABORTED))
+    if (!m_channelContext && NS_FAILED(aStatus) &&
+        (aStatus != NS_BINDING_ABORTED))
     {
       nsCOMPtr<nsIPrompt> msgPrompt;
       GetPromptDialogFromUrl(msgUrl , getter_AddRefs(msgPrompt));
