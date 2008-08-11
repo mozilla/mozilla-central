@@ -24,7 +24,6 @@ MozillaEnvironments['windows'] = {
     "MOZ_NO_REMOTE": '1',
     "NO_EM_RESTART": '1',
     "XPCOM_DEBUG_BREAK": 'warn',
-    "MOZ_TOOLS": 'C:\\moztools',
     "CYGWINBASE": 'C:\\work\\cygwin',
     "CVS_RSH": 'ssh',
     "PATH": 'C:\\Python24;' + \
