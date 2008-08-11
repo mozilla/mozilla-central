@@ -65,7 +65,7 @@ function GlodaQueryClass() {
 }
 
 GlodaQueryClass.prototype = {
-  or: function() {
+  or: function gloda_query_or() {
     let owner = this._owner || this;
     let orQuery = new this._queryClass();
     orQuery._owner = owner;
@@ -73,7 +73,7 @@ GlodaQueryClass.prototype = {
     return orQuery;
   },
   
-  getAllSync: function() {
+  getAllSync: function gloda_query_getAllSync() {
     return this._nounMeta.datastore.queryFromQuery(this);
   },
   
@@ -81,7 +81,7 @@ GlodaQueryClass.prototype = {
    * Test whether the given first-class noun instance satisfies this query.
    * 
    */
-  test: function(aObj) {
+  test: function gloda_query_test(aObj) {
     // when changing this method, be sure that GlodaDatastore's queryFromQuery
     //  method likewise has any required changes made. 
     let unionQueries = [aQuery].concat(aQuery._unions);

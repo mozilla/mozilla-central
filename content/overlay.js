@@ -55,7 +55,6 @@ var gloda = {
                             this._mimeMsg);
     this._mimeMsg.MsgHdrToMimeMessage.initGlobals(messenger, msgWindow);
     
-    GlodaInitModules(this.strings);
     GlodaIndexer.init(window, msgWindow, this.strings, messenger);
     GlodaIndexer.enabled = true;
   },

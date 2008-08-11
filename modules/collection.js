@@ -67,7 +67,7 @@ GlodaCollectionManager.prototype = {
   },
   
   getCollectionsForNounID: function(aNounID) {
-    if (!(aNounID in this._collectionsByNoun)
+    if (!(aNounID in this._collectionsByNoun))
       return [];
     
     // generator would be nice, but I suspect get() is too expensive to use
@@ -90,9 +90,9 @@ GlodaCollectionManager.prototype = {
    *  to the collection if the item meets the query that defines the collection.
    */
   itemsAdded: function gloda_colm_itemsAdded(aItems) {
-    for each (collection in this.getCollectionsForNounID()) {
+    for each (let collection in this.getCollectionsForNounID()) {
       let addItems = [item for each (item in aItems)
-                      if collection.query.test(item)];
+                      if (collection.query.test(item))];
       if (addItems.length)
         collection._onItemsAdded(addItems);
     }
@@ -111,7 +111,7 @@ GlodaCollectionManager.prototype = {
   itemsModified: function gloda_colm_itemsModified(aItems) {
     for each (collection in this.getCollectionsForNounID()) {
       let added = [], modified = [], removed = [];
-      for each (item in aItems) {
+      for each (let item in aItems) {
         if (item.id in collection._idMap) {
           // currently in... but should it still be there?
           if (collection.query.test(item))
@@ -140,7 +140,7 @@ GlodaCollectionManager.prototype = {
    *  currently in the collection, we generate onItemsRemoved events.
    */
   itemsDeleted: function gloda_colm_itemsDeleted(aItems) {
-    for each (collection in this.getCollectionsForNounID()) {
+    for each (let collection in this.getCollectionsForNounID()) {
       let removeItems = [item for each (item in aItems)
                          if (item.id in collection._idMap)];
       if (removeItems.length)
@@ -160,7 +160,7 @@ GlodaCollectionManager.prototype = {
 function GlodaCollection(aItems, aQuery, aListener) {
   this.items = aItems || [];
   this._idMap = {};
-  for each (item in this.items) {
+  for each (let item in this.items) {
     this._idMap[item.id] = item;
   }
   
@@ -169,17 +169,39 @@ function GlodaCollection(aItems, aQuery, aListener) {
 }
  
 GlodaCollection.prototype = {
-  _dbListener: {
-    onAsyncBunch: function() {
-    }
-  },
-  
   _onItemsAdded: function(aItems) {
+    this.items.push.apply(this.items, aItems);
+    for each (item in aItems) {
+      this._idMap[item.id] = item;
+    }
+    if (this._listener)
+      this._listener.onItemsAdded(aItems);
   },
   
   _onItemsModified: function(aItems) {
+    if (this._listener)
+      this._listener.onItemsModified(aItems);
   },
   
   _onItemsRemoved: function(aItems) {
+    // we want to avoid the O(n^2) deletion performance case, and deletion
+    //  should be rare enough that the extra cost of building the deletion map
+    //  should never be a real problem.
+    let deleteMap = {};
+    for each (let item in aItems) {
+      deleteMap[item.id] = true;
+    }
+    let items = this.items;
+    // in-place filter.  probably needless optimization.
+    let iWrite=0;
+    for (let iRead=0; iRead < items.length; iRead++) {
+      let item = items[iRead];
+      if (!(item.id in deleteMap))
+        items[iWrite++] = item;
+    }
+    items.slice(iWrite);
+    
+    if (this._listener)
+      this._listener.onItemsRemoved(aItems);
   },
 };

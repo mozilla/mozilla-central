@@ -366,58 +366,63 @@ let Gloda = {
   
   
   _bindAttribute: function gloda_ns_bindAttr(aAttr, aSubjectType, aObjectType,
-                                             aSingular, aBindName) {
+                                             aSingular, aDoBind, aBindName) {
     if (!(aSubjectType in this._nounIDToMeta))
       throw Error("Invalid subject type: " + aSubjectType);
     
     let nounMeta = this._nounIDToMeta[aObjectType];
+    let subjectNounMeta = this._nounIDToMeta[aSubjectType];
     
-    let storageName = "__" + aBindName;
-    let getter;
-    // should we memoize the value as a getter per-instance?
-    if (aSingular) {
-      getter = function() {
-        if (this[storageName] != undefined)
-          return this[storageName];
-        let instances = this.getAttributeInstances(aAttr);
-        let val;
-        if (instances.length > 0)
-          val = nounMeta.fromParamAndValue(instances[0][1], instances[0][2]);
-        else
-          val = null;
-        this[storageName] = val;
-        return val;
-      }
-    } else {
-      getter = function() {
-        if (this[storageName] != undefined)
-          return this[storageName];
-        let instances = this.getAttributeInstances(aAttr);
-        let values;
-        if (instances.length > 0) {
-          values = [];
-          for (let iInst=0; iInst < instances.length; iInst++) {
-            values.push(nounMeta.fromParamAndValue(instances[iInst][1],
-                                                   instances[iInst][2]));
+    // -- the on-object bindings
+    if (aDoBind) {
+      let storageName = "__" + aBindName;
+      let getter;
+      // should we memoize the value as a getter per-instance?
+      if (aSingular) {
+        getter = function() {
+          if (this[storageName] != undefined)
+            return this[storageName];
+          let instances = this.getAttributeInstances(aAttr);
+          let val;
+          if (instances.length > 0)
+            val = nounMeta.fromParamAndValue(instances[0][1], instances[0][2]);
+          else
+            val = null;
+          this[storageName] = val;
+          return val;
+        }
+      } else {
+        getter = function() {
+          if (this[storageName] != undefined)
+            return this[storageName];
+          let instances = this.getAttributeInstances(aAttr);
+          let values;
+          if (instances.length > 0) {
+            values = [];
+            for (let iInst=0; iInst < instances.length; iInst++) {
+              values.push(nounMeta.fromParamAndValue(instances[iInst][1],
+                                                     instances[iInst][2]));
+            }
           }
+          else {
+            values = instances; // empty is empty
+          }
+          this[storageName] = values;
+          return values;
         }
-        else {
-          values = instances; // empty is empty
-        }
-        this[storageName] = values;
-        return values;
       }
+  
+      let subjectProto = subjectNounMeta.class.prototype;
+      subjectProto.__defineGetter__(aBindName, getter);
+      // no setters for now; manipulation comes later, and will require the attr
+      //  definer to provide the actual logic, since we need to affect reality,
+      //  not just the data-store.  we may also just punt that all off onto
+      //  STEEL...
+
+      aAttr._boundName = aBindName;
     }
     
-    let subjectNounMeta = this._nounIDToMeta[aSubjectType];
-  
-    let subjectProto = subjectNounMeta.class.prototype;
-    subjectProto.__defineGetter__(aBindName, getter);
-    // no setters for now; manipulation comes later, and will require the attr
-    //  definer to provide the actual logic, since we need to affect reality,
-    //  not just the data-store.  we may also just punt that all off onto
-    //  STEEL...
-    
+    // -- the query constraint helpers 
     if (subjectNounMeta.queryClass !== undefined) {
       let constrainer = function() {
         // all the arguments provided end up being ORed together
@@ -430,7 +435,9 @@ let Gloda = {
         this._constraints.push(our_ors);
         return this;
       };
-      
+
+dump("binding constraint " + aBindName + " on " + subjectNounMeta.name + " to "+
+  constrainer + "\n");      
       subjectNounMeta.queryClass.prototype[aBindName] = constrainer;
       
       if (nounMeta.continuous) {
@@ -452,7 +459,6 @@ let Gloda = {
       }
     }
 
-    aAttr._boundName = aBindName;
     aAttr._singular = aSingular;
   },
   
@@ -548,13 +554,11 @@ let Gloda = {
       attr._explanationFormat = aAttrDef.explanation;
       attr._specialColumnName = aAttrDef.specialColumnName || null;
       
-      if (aAttrDef.bind) {
-        for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
-             iSubject++) {
-          let subjectType = aAttrDef.subjectNouns[iSubject];
-          this._bindAttribute(attr, subjectType, aAttrDef.objectNoun,
-                              aAttrDef.singular, bindName);
-        }
+      for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
+           iSubject++) {
+        let subjectType = aAttrDef.subjectNouns[iSubject];
+        this._bindAttribute(attr, subjectType, aAttrDef.objectNoun,
+                            aAttrDef.singular, aAttrDef.bind, bindName);
       }
       
       this._attrProviders[aAttrDef.provider.providerName].push(attr);
@@ -581,13 +585,11 @@ let Gloda = {
                                  aAttrDef.explanation);
     GlodaDatastore._attributes[compoundName] = attr;
 
-    if (aAttrDef.bind) {
-      for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
-           iSubject++) {
-        let subjectType = aAttrDef.subjectNouns[iSubject];
-        this._bindAttribute(attr, subjectType, aAttrDef.objectNoun,
-                            aAttrDef.singular, bindName);
-      }
+    for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
+         iSubject++) {
+      let subjectType = aAttrDef.subjectNouns[iSubject];
+      this._bindAttribute(attr, subjectType, aAttrDef.objectNoun,
+                          aAttrDef.singular, aAttrDef.bind, bindName);
     }
 
     this._attrProviders[aAttrDef.provider.providerName].push(attr);
@@ -616,8 +618,9 @@ let Gloda = {
     return GlodaDatastore.createTableIfNotExists(aTableDef);
   },
   
-  newQuery: function gloda_ns_newQuery(aNounId) {
-  
+  newQuery: function gloda_ns_newQuery(aNounID) {
+    let nounMeta = this._nounIDToMeta[aNounID];
+    return new nounMeta.queryClass();
   },
   
   processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr,

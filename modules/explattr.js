@@ -100,7 +100,7 @@ let GlodaExplicitAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_TAG,
                         parameterNoun: null,
-                        explanation: this._strBundle.getString(
+                        explanation: this._strBundle.GetStringFromName(
                                        "attrTagExplanation"),
                         // Property change notifications that we care about:
                         propertyChanges: ["keywords"],
@@ -126,7 +126,7 @@ let GlodaExplicitAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_BOOLEAN,
                         parameterNoun: null,
-                        explanation: this._strBundle.getString(
+                        explanation: this._strBundle.GetStringFromName(
                                        "attrStarExplanation"),
                         });
     // Read/Unread
@@ -140,7 +140,7 @@ let GlodaExplicitAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_BOOLEAN,
                         parameterNoun: null,
-                        explanation: this._strBundle.getString(
+                        explanation: this._strBundle.GetStringFromName(
                                        "attrReadExplanation"),
                         });
     

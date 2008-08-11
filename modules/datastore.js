@@ -1114,6 +1114,8 @@ let GlodaDatastore = {
     
     let sqlString = "SELECT * FROM " + nounMeta.tableName + " WHERE " +
         whereClauses.join(" OR ");
+        
+    this._log.debug("QUERY FROM QUERY: " + sqlString);
     
     let statement = this._createStatement(sqlString);
     

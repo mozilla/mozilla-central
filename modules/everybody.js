@@ -35,7 +35,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const EXPORTED_SYMBOLS = ["GlodaInitModules"];
+const EXPORTED_SYMBOLS = [];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -45,25 +45,39 @@ const Cu = Components.utils;
 Cu.import("resource://gloda/modules/log4moz.js");
 const LOG = Log4Moz.Service.getLogger("gloda.everybody");
 
-function loadModule(aModuleURI) {
+var importNS = {};
+var strtab = null;
+
+function loadModule(aModuleURI, aNSContrib) {
+  if (strtab === null) {
+    let bundleService = Cc["@mozilla.org/intl/stringbundle;1"].
+                        getService(Ci.nsIStringBundleService);
+    strtab = bundleService.createBundle("chrome://gloda/locale/gloda.properties");
+    LOG.debug("string bundle: " + strtab);
+  }
+
   try {
     LOG.info("... loading " + aModuleURI);
-    Cu.import(aModuleURI);
+    Cu.import(aModuleURI, importNS);
   }
   catch (ex) {
     LOG.error("!!! error loading " + aModuleURI);
     LOG.error("" + ex);
     return false;
   }
-  
   LOG.info("+++ loaded " + aModuleURI);
+
+  try {  
+    importNS[aNSContrib].init(strtab);
+  }
+  catch (ex) {
+    LOG.error("!!! error initializing " + aModuleURI);
+    LOG.error("" + ex);
+    return false;
+  }
+  LOG.info("+++ inited " + aModuleURI);
   return true;
 }
 
-loadModule("resource://gloda/modules/fundattr.js");
-loadModule("resource://gloda/modules/explattr.js");
-
-function GlodaInitModules(aStrTab) {
-  GlodaFundAttr.init(aStrTab);
-  GlodaExplicitAttr.init(aStrTab);
-}
+loadModule("resource://gloda/modules/fundattr.js", "GlodaFundAttr");
+loadModule("resource://gloda/modules/explattr.js", "GlodaExplicitAttr");

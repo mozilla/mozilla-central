@@ -88,12 +88,12 @@ let GlodaFundAttr = {
       bind: false,
       singular: true,
       special: true,
-      attrColumn: "folderID",
+      specialColumnName: "folderID",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FOLDER,
       parameterNoun: null,
-      explanation: this._strBundle.getString("attrFolderExplanation"),
-      };
+      explanation: this._strBundle.GetStringFromName("attrFolderExplanation"),
+      });
   
     // From
     this._attrFrom = Gloda.defineAttribute({
@@ -106,7 +106,7 @@ let GlodaFundAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
                         parameterNoun: null,
-                        explanation: this._strBundle.getString(
+                        explanation: this._strBundle.GetStringFromName(
                                        "attrFromExplanation"),
                         });
     // To
@@ -120,7 +120,7 @@ let GlodaFundAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
                         parameterNoun: null,
-                        explanation: this._strBundle.getString(
+                        explanation: this._strBundle.GetStringFromName(
                                        "attrToExplanation"),
                         });
     // Cc
@@ -134,7 +134,7 @@ let GlodaFundAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
                         parameterNoun: null,
-                        explanation: this._strBundle.getString(
+                        explanation: this._strBundle.GetStringFromName(
                                        "attrCcExplanation"),
                         });
 
@@ -171,7 +171,7 @@ let GlodaFundAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_DATE,
                         parameterNoun: null,
-                        explanation: this._strBundle.getString(
+                        explanation: this._strBundle.GetStringFromName(
                                        "attrDateExplanation"),
                         });
     // -- Mailing List
@@ -201,8 +201,8 @@ let GlodaFundAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_DATE,
                         parameterNoun: null,
-                        explanation: this._strBundle.getString(
-                                       "attrDateExplanation"),
+                        explanation: this._strBundle.GetStringFromName(
+                                       "attrListExplanation"),
                         });
   },
   

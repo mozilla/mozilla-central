@@ -60,7 +60,6 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
   this._subjectTypes = aSubjectTypes;
   this._objectType = aObjectType;
   this._objectNounMeta = aObjectNounMeta;
-  this._parameterType = aParameterType;
   this._explanationFormat = aExplanationFormat;
   
   this._boundName = null;
@@ -78,7 +77,6 @@ GlodaAttributeDef.prototype = {
   get attributeName() { return this._attrName; },
 
   get objectNoun() { return this._objectType; },
-  get parameterNoun() { return this._parameterType; },
 
   get isBound() { return this._boundName !== null; },
   get boundName() { return this._boundName; },
@@ -127,8 +125,8 @@ GlodaAttributeDef.prototype = {
    *  singular attributes, the value is null or the value; for non-singular
    *  attributes the value is a list.
    */
-  getValueFromInstance(aObj) {
-    if (this._boundName !=== null) {
+  getValueFromInstance: function gloda_attr_getValueFromInstance(aObj) {
+    if (this._boundName !== null) {
       return aObj[this._boundName];
     }
     let instances = this.getAttributeInstances(aAttr);
