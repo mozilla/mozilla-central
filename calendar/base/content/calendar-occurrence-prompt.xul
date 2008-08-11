@@ -72,6 +72,9 @@
                      "header.isrepeating." + itemType + ".label");
 
       // Set up buttons
+      document.getElementById("accept-buttons-box")
+              .setAttribute("action", action);
+
       document.getElementById("accept-occurrence-button").label =
         calGetString("calendar-occurrence-prompt",
                      "buttons.occurrence." + action + ".label");
@@ -81,9 +84,6 @@
       document.getElementById("accept-parent-button").label =
         calGetString("calendar-occurrence-prompt",
                      "buttons.parent." + action + ".label");
-
-      // Make "just this occurrence" the default button
-
     }
   ]]></script>
 
