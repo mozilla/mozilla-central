@@ -2146,8 +2146,6 @@
                 this.calendarView.selectedItem = this.mOccurrence;
 
                 this.mEditing = false;
-                if (this.calendarView)
-                    this.calendarView.activeInPlaceEdit = false;
 
                 this.parentColumn.startSweepingToModifyEvent(this, this.mOccurrence, "middle", this.mMouseX, this.mMouseY);
                 this.mInMouseDown = false;
@@ -3018,16 +3016,6 @@
         <setter>this.setPixelsPerMin(val); return val;</setter>
       </property>
 
-      <property name="activeInPlaceEdit">
-        <getter><![CDATA[
-          return this.mInPlaceEditActive;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mInPlaceEditActive = val;
-          return val;
-        ]]></setter>
-      </property>
-
       <!-- private -->
 
       <property name="numVisibleDates" readonly="true">
@@ -3761,21 +3749,6 @@
         // action in any case.
         event.preventDefault();
       ]]></handler>
-      <handler event="keypress"><![CDATA[
-        const kKE = Components.interfaces.nsIDOMKeyEvent;
-        if (event.keyCode == kKE.DOM_VK_BACK_SPACE ||
-            event.keyCode == kKE.DOM_VK_DELETE)
-        {
-            if (!this.activeInPlaceEdit && this.mSelectedItems.length && this.controller) {
-                this.controller.deleteOccurrences(this.mSelectedItems.length,
-                                                  this.mSelectedItems,
-                                                  event.ctrlKey,
-                                                  false);
-            }
-        }
-      ]]></handler>
     </handlers>
   </binding>
 </bindings>
-
-<!-- -*- Mode: xml; indent-tabs-mode: nil; -*- -->

@@ -266,9 +266,6 @@
 
           this.eventNameTextbox.value = this.mOriginalTextLabel;
           this.eventNameTextbox.removeAttribute("hidden");
-          if (this.calendarView) {
-              this.calendarView.activeInPlaceEdit = true;
-          }
           this.eventNameInput.focus();
           this.eventNameInput.select();
         ]]></body>
@@ -296,10 +293,6 @@
             return;
 
           this.mEditing = false;
-
-          if (this.calendarView) {
-            this.calendarView.activeInPlaceEdit = false;
-          }
 
           if (saveChanges && (this.eventNameTextbox.value != this.mOriginalTextLabel)) {
               this.calendarView.controller.modifyOccurrence(this.mOccurrence, 

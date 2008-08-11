@@ -1722,22 +1722,5 @@
         ]]></body>
       </method>
     </implementation>
-
-    <handlers>
-      <handler event="keypress"><![CDATA[
-        const kKE = Components.interfaces.nsIDOMKeyEvent;
-        if (event.keyCode == kKE.DOM_VK_BACK_SPACE ||
-            event.keyCode == kKE.DOM_VK_DELETE)
-        {
-            if (!this.activeInPlaceEdit && this.mSelectedItems.length && this.controller) {
-                this.controller.deleteOccurrences(this.mSelectedItems.length,
-                                                  this.mSelectedItems,
-                                                  event.ctrlKey,
-                                                  false);
-            }
-        }
-      ]]></handler>
-    </handlers>
   </binding>
-
 </bindings>
