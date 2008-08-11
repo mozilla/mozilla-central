@@ -271,9 +271,13 @@ calItemBase.prototype = {
 
         m.mDirty = false;
 
-        m.mAttachments = this.mAttachments.concat([]);
+        if (this.mAttachments) {
+            m.mAttachments = this.mAttachments.concat([]);
+        }
 
-        m.mRelations = this.mRelations.concat([]);
+        if (this.mRelations) {
+            m.mRelations = this.mRelations.concat([]);
+        }
 
         // Clone any alarm info that exists, set it to null if it doesn't
         if (this.alarmOffset) {

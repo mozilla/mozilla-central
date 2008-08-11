@@ -261,6 +261,7 @@ bin\js\calOutlookCSVImportExport.js
 bin\js\calProtocolHandler.js
 bin\js\calProviderBase.js
 bin\js\calRecurrenceInfo.js
+bin\js\calRelation.js
 bin\js\calStorageCalendar.js
 bin\js\calTodo.js
 bin\js\calTransactionManager.js
