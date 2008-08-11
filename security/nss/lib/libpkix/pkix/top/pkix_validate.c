@@ -1010,6 +1010,8 @@ cleanup:
                 pkix_AddToVerifyLog(cert, j, checkCertError, pVerifyTree,
                                     plContext),
                 PKIX_ADDTOVERIFYLOGFAILED);
+            pkixErrorResult = checkCertError;
+            checkCertError = NULL;
         }
 
 fatal:
