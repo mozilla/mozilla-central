@@ -2152,7 +2152,8 @@ nsImapIncomingServer::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
       NS_ENSURE_SUCCESS(rv, rv);
       break;
     case nsIImapUrl::nsImapDiscoverAllBoxesUrl:
-      DiscoveryDone();
+      if (NS_SUCCEEDED(exitCode))
+        DiscoveryDone();
       break;
     case nsIImapUrl::nsImapFolderStatus:
     {
