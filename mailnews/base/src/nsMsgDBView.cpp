@@ -3254,7 +3254,7 @@ nsMsgDBView::FnSortIdKey(const void *pItem1, const void *pItem2, void *privateDa
     NS_ASSERTION(NS_SUCCEEDED(rv),"compare failed");
 
     if (retVal)
-      return sortInfo->ascendingSort ? retVal : ~retVal;
+      return sortInfo->ascendingSort ? retVal : -retVal;
     if (sortInfo->view->m_secondarySort == nsMsgViewSortType::byId)
       return (sortInfo->view->m_secondarySortOrder == nsMsgViewSortOrder::ascending &&
               (*p1)->id >= (*p2)->id) ? 1 : -1;
@@ -3279,7 +3279,7 @@ nsMsgDBView::FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privat
   NS_ASSERTION(NS_SUCCEEDED(rv),"compare failed");
 
   if (retVal)
-    return sortInfo->ascendingSort ? retVal : ~retVal;
+    return sortInfo->ascendingSort ? retVal : -retVal;
 
   if (sortInfo->view->m_secondarySort == nsMsgViewSortType::byId)
     return (sortInfo->view->m_secondarySortOrder == nsMsgViewSortOrder::ascending &&
