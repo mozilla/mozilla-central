@@ -25,6 +25,7 @@ fi
 pushd $STAGING_DIR > /dev/null
 echo Running $RSYNC -Pa $STAGING_DIR/$1/ $LIVE_SNIPPET_DIR
 $RSYNC -Pa $STAGING_DIR/$1/ $LIVE_SNIPPET_DIR
+touch $LIVE_SNIPPET_DIR
 popd > /dev/null
 
 exit 0
