@@ -163,6 +163,13 @@ NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
 
 // nsIAbDirectory methods
 
+NS_IMETHODIMP nsAbOutlookDirectory::GetDirType(PRInt32 *aDirType)
+{
+  NS_ENSURE_ARG_POINTER(aDirType);
+  *aDirType = MAPIDirectory;
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsAbOutlookDirectory::GetURI(nsACString &aURI)
 {
   if (mURI.IsEmpty())
