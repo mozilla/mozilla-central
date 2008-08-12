@@ -50,7 +50,7 @@
 <!ENTITY preview.accesskey                "v">
 <!ENTITY systemsound.label                "System New Mail Sound">
 <!ENTITY systemsound.accesskey            "M">
-<!ENTITY customsound.label                "Custom .wav file">
+<!ENTITY customsound.label                "Custom sound file">
 <!ENTITY customsound.accesskey            "C">
 <!ENTITY browse.label                     "Browse…">
 <!ENTITY browse.accesskey                 "B">

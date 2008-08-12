@@ -24,6 +24,7 @@
  Contributor(s):
    rcassin@supernova.org
    Seth Spitzer <sspitzer@netscape.com>
+   Bruno Escherl <aqualon@aquachan.de>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -42,64 +43,101 @@
 <?xml-stylesheet href="chrome://messenger/skin/prefPanels.css" type="text/css"?>
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://messenger/locale/pref-notifications.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/pref-notifications.dtd">
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://messenger/content/pref-notifications.xul');"
-      headertitle="&pref.notifications.title;"
-      id="mailNotificationsPage">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="notifications_pane"
+            label="&pref.notifications.title;"
+            script="chrome://messenger/content/pref-notifications.js">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/pref-notifications.js"/>
+    <preferences id="viewing_messages_preferences">
+      <preference id="mail.biff.show_alert"
+                  name="mail.biff.show_alert"
+                  type="bool"/>
+      <preference id="mail.biff.show_tray_icon"
+                  name="mail.biff.show_tray_icon"
+                  type="bool"/>
+      <preference id="mail.biff.animate_dock_icon"
+                  name="mail.biff.animate_dock_icon"
+                  type="bool"/>
+      <preference id="mail.biff.play_sound"
+                  name="mail.biff.play_sound"
+                  type="bool"
+                  onchange="PlaySoundCheck(this.value);"/>
+      <preference id="mail.biff.play_sound.type"
+                  name="mail.biff.play_sound.type"
+                  type="int"
+                  onchange="EnableSoundURL(this.value == 1);"/>
+      <preference id="mail.biff.play_sound.url"
+                  name="mail.biff.play_sound.url"
+                  type="string"/>
+    </preferences>
 
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["mailnewsSoundFileUrl", "newMailNotification", 
-                       "newMailNotificationType", "newMailNotificationBounce",
-                       "newMailNotificationAlert", "newMailNotificationTrayIcon"];
-  ]]>
-  </script>
-  
-  <groupbox id="newMessagesArrivePrefs">
-    <caption label="&notifications.caption;"/>
+    <groupbox id="newMessagesArrivePrefs">
+      <caption label="&notifications.caption;"/>
 
-    <label value="&newMessagesArrive.label;"/>
-    <vbox align="start">
-      <checkbox id="newMailNotificationAlert" label="&showAnimatedAlert.label;"
-                prefstring="mail.biff.show_alert"
-                accesskey="&showAnimatedAlert.accesskey;" />
-      <checkbox id="newMailNotificationTrayIcon" label="&showTrayIcon.label;"
-                prefstring="mail.biff.show_tray_icon"
-                accesskey="&showTrayIcon.accesskey;"
-                hidden="true" />
-      <checkbox id="newMailNotificationBounce" label="&bounceSystemDockIcon.label;"
-                prefstring="mail.biff.animate_dock_icon"
-                accesskey="&bounceSystemDockIcon.accesskey;"/>
-      <checkbox id="newMailNotification" accesskey="&playSound.accesskey;"
-                prefstring="mail.biff.play_sound" label="&playSound.label;"
-                oncommand="PlaySoundCheck()"/>
-    </vbox>
-    
-    <hbox align="center" class="indent" id="newMailNotificationSoundSelectBox">
-      <radiogroup id="newMailNotificationType" prefstring="mail.biff.play_sound.type"
-                  orient="vertical" aria-labelledby="newMailNotification">
-        <radio id="system" class="iconic" value="0" oncommand="PlaySoundCheck()" 
-               label="&systemsound.label;" accesskey="&systemsound.accesskey;"/>
-        <radio id="custom" class="iconic" value="1" oncommand="PlaySoundCheck()"
-               label="&customsound.label;" accesskey="&customsound.accesskey;"/>
-      </radiogroup>
-    </hbox>
+      <label value="&newMessagesArrive.label;"/>
+      <vbox align="start">
+        <checkbox id="newMailNotificationAlert"
+                  label="&showAnimatedAlert.label;"
+                  accesskey="&showAnimatedAlert.accesskey;"
+                  preference="mail.biff.show_alert"/>
+        <checkbox id="newMailNotificationTrayIcon"
+                  label="&showTrayIcon.label;"
+                  accesskey="&showTrayIcon.accesskey;"
+                  preference="mail.biff.show_tray_icon"
+                  hidden="true"/>
+        <checkbox id="newMailNotificationBounce"
+                  label="&bounceSystemDockIcon.label;"
+                  accesskey="&bounceSystemDockIcon.accesskey;"
+                  preference="mail.biff.animate_dock_icon"/>
+        <checkbox id="newMailNotification"
+                  label="&playSound.label;"
+                  accesskey="&playSound.accesskey;"
+                  preference="mail.biff.play_sound"/>
+      </vbox>
 
-    <hbox align="center" class="indent">
-      <textbox readonly="true" flex="1" id="mailnewsSoundFileUrl" preftype="string"
-               aria-labelledby="custom"
-               prefstring="mail.biff.play_sound.url"/>
-      <hbox align="center">
-        <button id="browse" label="&browse.label;" filepickertitle="&browse.title;"
-                accesskey="&browse.accesskey;" oncommand="Browse()"/>
-        <button id="preview" label="&preview.label;"
-                accesskey="&preview.accesskey;" oncommand="PreviewSound()"/>
+      <hbox align="center" class="indent">
+        <radiogroup id="newMailNotificationType"
+                    preference="mail.biff.play_sound.type"
+                    orient="vertical"
+                    aria-labelledby="newMailNotification">
+          <radio id="system"
+                 class="iconic"
+                 value="0"
+                 label="&systemsound.label;"
+                 accesskey="&systemsound.accesskey;"/>
+          <radio id="custom"
+                 class="iconic"
+                 value="1"
+                 label="&customsound.label;"
+                 accesskey="&customsound.accesskey;"/>
+        </radiogroup>
       </hbox>
-    </hbox>
-  </groupbox>
 
-</page>
+      <hbox align="center" class="indent">
+        <filefield id="mailnewsSoundFileUrl"
+                   flex="1"
+                   preference="mail.biff.play_sound.url"
+                   preference-editable="true"
+                   onsyncfrompreference="return document.getElementById('notifications_pane').ReadSoundLocation(this);"
+                   aria-labelledby="custom"/>
+        <hbox align="center">
+          <button id="browse"
+                  label="&browse.label;"
+                  filepickertitle="&browse.title;"
+                  accesskey="&browse.accesskey;"
+                  oncommand="SelectSound();">
+            <observes element="mailnewsSoundFileUrl" attribute="disabled"/>
+          </button>
+          <button id="preview"
+                  label="&preview.label;"
+                  accesskey="&preview.accesskey;"
+                  oncommand="PreviewSound();">
+            <observes element="mailnewsSoundFileUrl" attribute="disabled"/>
+          </button>
+        </hbox>
+      </hbox>
+    </groupbox>
+  </prefpane>
+</overlay>

@@ -370,7 +370,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.biff.animate_doc_icon",              Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.biff.play_sound",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.biff.play_sound.type",               Int),
-  MAKESAMETYPEPREFTRANSFORM("mail.biff.play_sound.url",                String),
+  MAKEPREFTRANSFORM("mail.biff.play_sound.url", 0, String,             File),
   MAKESAMETYPEPREFTRANSFORM("mail.biff.show_alert",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.biff.show_tray_icon",                Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.check_all_imap_folders_for_new",     Bool),
