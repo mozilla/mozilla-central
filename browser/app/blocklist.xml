@@ -28,8 +28,8 @@
   </emItems>
 <pluginItems>
   <pluginItem>
-    <match name="name" exp="Yahoo Application State Plugin"/>
-    <match name="description" exp="Yahoo Application State Plugin"/>
+    <match name="name" exp="^Yahoo Application State Plugin$"/>
+    <match name="description" exp="^Yahoo Application State Plugin$"/>
     <match name="filename" exp="npYState.dll"/>
   </pluginItem>
   <pluginItem>
