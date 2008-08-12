@@ -56,7 +56,7 @@ const MSG_FLAG_NEW       = 0x10000;
 const MSG_FLAG_ATTACHMENT = 0x10000000;
 
 const NO_SUCH_MESSAGE_KEY = 0xFFFFFFFF; // nsMsgKey_none
-const NO_SUCH_VIEW_INDEX = -1;
+const NO_SUCH_VIEW_INDEX = 0xFFFFFFFF;
 
 function messageStatusString(aFlags) {
   if (aFlags & MSG_FLAG_REPLIED)
@@ -103,8 +103,10 @@ function GMTreeNode(aMessage) {
 GMTreeNode.prototype = {
   setLevel: function(aLevel) {
     this.level = aLevel;
-    for (let iChild=0; iChild < this.children; iChild++) {
-      this.children[iChild].setLevel(aLevel+1);
+    if (this.children) {
+      for (let iChild=0; iChild < this.children.length; iChild++) {
+        this.children[iChild].setLevel(aLevel+1);
+      }
     }
   },
   
@@ -129,7 +131,6 @@ GMTreeNode.prototype = {
 };
 
 function GlodaMsgDBView() {
-dump("GlodaMsgDBView constructor entry\n");
   this._messenger = null;
   this._msgWindow = null;
   this._commandUpdater = null;
@@ -138,9 +139,11 @@ dump("GlodaMsgDBView constructor entry\n");
   this._sortOrder = SORT_DESCENDING;
   this._viewFlags = Ci.nsMsgViewFlagsType.kNone;
   
+  this._collection = null;
   this._messages = [];
   this._toplevelNodes = [];
   this._rows = [];
+  this._idToNode = null;
   
   this._customColumns = {};
   this._customSortColumn = null;
@@ -152,19 +155,17 @@ dump("GlodaMsgDBView constructor entry\n");
   //: the currently displayed message's node
   this._displayedNode = null;
   
+  this._suppressDisplay = false;
+  
   // set up our awesome globals!
   if (Gloda === null) {
-dump("GlodaMsgDBView loading globals\n");
     let loadNS = {};
     Cu.import("resource://gloda/modules/gloda.js", loadNS);
     Gloda = loadNS.Gloda;
     Cu.import("resource://gloda/modules/utils.js", loadNS);
     GlodaUtils = loadNS.GlodaUtils;
-dump("GlodaMsgDBView globals loaded (Gloda: " + Gloda + ", GlodaUtils:" + 
-     GlodaUtils + "\n");
   }
   
-dump("GlodaMsgDBView comparison func inits\n");
   try {
     this._initComparisonFuncs();
   }
@@ -172,7 +173,6 @@ dump("GlodaMsgDBView comparison func inits\n");
     dump("Exception (source: " + ex.fileName + ":" + ex.lineNumber + ") " +
          ex + "\n");
   }
-dump("GlodaMsgDBView constructor completion\n");
 }
 
 GlodaMsgDBView.prototype = {
@@ -333,6 +333,14 @@ GlodaMsgDBView.prototype = {
       return aRec - bRec;
     };
   },
+  
+  onItemsAdded: function gloda_mdbv_itemsAdded(aItems) {
+  },
+  onItemsModified: function gloda_mdbv_itemsModified(aItems) {
+  },
+  onItemsRemoved: function gloda_mdbv_itemsRemoved(aItems) {
+  },
+  
   _sort: function gloda_mdbv_realSort() {
     // TODO: kShowIgnored
     // TODO: kUnreadOnly
@@ -340,14 +348,21 @@ GlodaMsgDBView.prototype = {
     let allExpanded = false;
     
     let nodes;
+    let idToNode = {};
   
     if (this._isThreaded) {
       nodes = [];
       // cluster by conversation
       let conversations = {};
+      let dupeCheck = {};
       
       for (let iMsg=0; iMsg < this._messages.length; iMsg++) {
         let message = this._messages[iMsg];
+        if (message.id in dupeCheck) {
+          throw Error("DUPLICATE!");
+        }
+        dupeCheck[message.id] = true;
+        
         if (!(message.conversationID in conversations))
           conversations[message.conversationID] = [message];
         else
@@ -355,10 +370,12 @@ GlodaMsgDBView.prototype = {
       }
       
       // build hierarchy within each conversation
-      for (let [convID, convMsgs] in Iterator(conversations)) {
+      for each (let convMsgs in conversations) {
         // fast-track conversations with only one messages
         if (convMsgs.length == 1) {
-          nodes.push(new GMTreeNode(convMsgs[0]));
+          let node = new GMTreeNode(convMsgs[0]);
+          idToNode[convMsgs[0].id] = node;
+          nodes.push(node);
           continue;
         }
       
@@ -380,13 +397,14 @@ GlodaMsgDBView.prototype = {
         //  we don't need the mapping object's lifetimes so large.  (perhaps
         //  silly?  worst case is an extra N objects for N messages.)
         for (let iMsg=0; iMsg < convMsgs.length; iMsg++) {
-          let message = this._messages[iMsg];
-          messageIdMap[message.headerMessageID] = new GMTreeNode(message);
+          let message = convMsgs[iMsg];
+          let node = new GMTreeNode(message);
+          messageIdMap[message.headerMessageID] = node;
+          idToNode[message.id] = node;
         }
         // now find their closest parent...
         for each (let treeNode in messageIdMap) {
           let msgHdr = treeNode.message.folderMessage;
-           
           // references are ordered from old (0) to new (n-1), so walk backwards
           for (let iRef=msgHdr.numReferences-1; iRef >= 0; iRef--) {
             let ref = msgHdr.getStringReference(iRef);
@@ -394,21 +412,23 @@ GlodaMsgDBView.prototype = {
               // link them to their parent
               let parentNode = messageIdMap[ref];
               if (parentNode.children === null)
-                parentNode.children = [treeNode.message];
+                parentNode.children = [treeNode];
               else
-                parentNode.children.push(treeNode.message);
+                parentNode.children.push(treeNode);
               treeNode.parent = parentNode;
               break; 
             }
           }
           
-          if (treeNode.parent === null)
+          if (treeNode.parent === null) {
             nodes.push(treeNode);
+          }
         }
       } // (done building hierarchy)
     } // (done dealing with threading)
     else {
-      nodes = [new GMTreeNode(msg) for each (msg in this._messages)];
+      nodes = [(idToNode[msg.id] = new GMTreeNode(msg)) for each
+               (msg in this._messages)];
     }
     
     // SORT!
@@ -468,7 +488,7 @@ GlodaMsgDBView.prototype = {
           groupNode.children.push(curNode);
         }
       }
-      
+dump("@@@@@@ GROUPING @@@@@@@@@\n");      
       nodes = groupedNodes;
     }
     
@@ -477,8 +497,10 @@ GlodaMsgDBView.prototype = {
     }
     
     this._toplevelNodes = nodes;
+    this._idToNode = idToNode;
     for (let iNode=0; iNode < nodes.length; iNode++)
       nodes[iNode].setLevel(0);
+    // by default, just show the top-level nodes...
     this._rows = nodes.concat();
     
     if (this._treeBox) {
@@ -503,7 +525,8 @@ GlodaMsgDBView.prototype = {
     
     let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
     query.folderURI(aFolder.URI);
-    this._messages = query.getAllSync();
+    this._collection = query.getAllSync();
+    this._messages = this._collection.items;
     this._sort();
   },
   openWithHdrs: function gloda_mdbv_openWithHdrs(aHeaders, aSortType,
@@ -515,6 +538,10 @@ GlodaMsgDBView.prototype = {
     
     this._messages = [Gloda.getMessageForHeader(hdr) for each
                       (hdr in aHeaders)];
+    // we want to create an explicit collection so we at least get notifications
+    //  for the ids we already have...
+    this._collection = Gloda.explicitCollection(Gloda.NOUN_MESSAGE,
+                                                this._messages);
     this._sort();
     
     aOutCount.value = this._messages.length;
@@ -572,6 +599,7 @@ GlodaMsgDBView.prototype = {
       case Ci.nsMsgViewCommandType.deleteMsg:
       case Ci.nsMsgViewCommandType.deleteNoTrash:
       case Ci.nsMsgViewCommandType.markThreadRead:
+      
       case Ci.nsMsgViewCommandType.junk:
       case Ci.nsMsgViewCommandType.unjunk:
       case Ci.nsMsgViewCommandType.undeleteMsg:
@@ -610,53 +638,102 @@ GlodaMsgDBView.prototype = {
     }
   },
   getCommandStatus: function gloda_mdbv_getCommandStatus(
-      aCommand, aOutIsSelectable, aOutIsSelected) {
+      aCommand, aOutIsSelectable) { // aOutIsSelected...
+    
+    let selNodes = this.selectedNodes;
+    let haveSelection = (selNodes.length > 0);
+    let haveNewsMessages = false; // XXX news message specialization
+    
+    let canDelete = function() {
+      let lastCheckedFolderID = null;
+      for (let iNode=0; iNode < selNodes.length; iNode++) {
+        let message = selNodes[iNode].message;
+        if (lastCheckedFolderID != message.folderID) {
+          if (message.folderMessage === null ||
+              !message.folderMessage.folder.canDeleteMessages)
+            return false;
+          lastCheckedFolderID = message.folderID;
+        }
+      }
+      return true;
+    };
+    
+    let commandOkay;
+    
     switch (aCommand) { // no 5
-      // -- selection related (15,18,19)
-      case Ci.nsMsgViewCommandType.selectAll:
-      case Ci.nsMsgViewCommandType.selectThread:
-      case Ci.nsMsgViewCommandType.selectFlagged:
-      // -- re-dispatch (0-4,7-9,27-29)
+      case Ci.nsMsgViewCommandType.deleteMsg:
+      case Ci.nsMsgViewCommandType.deleteNoTrash:
+        // it's okay if all the messages' folders support deletion.  now, news
+        //  does't support deletion, but it does support cancelation, and we
+        //  use delete to mean cancel right now (even though it's dubious.)
+        // XXX this logic is not exhaustively correct in the face of news
+        //  inter-mingled with other message types...
+        commandOkay = haveSelection && (haveNewsMessages || canDelete());
+        break;
+      case Ci.nsMsgViewCommandType.applyFilters:
+        // XXX do server-based check required for applyFilters
+        commandOkay = false;
+        break;
+      case Ci.nsMsgViewCommandType.runJunkControls:
+        commandOkay = haveSelection && !haveNewsMessages;
+        break;
+      case Ci.nsMsgViewCommandType.deleteJunk:
+        commandOkay = haveSelection && canDelete();
+        break;
+
       case Ci.nsMsgViewCommandType.markMessagesRead:
       case Ci.nsMsgViewCommandType.markMessagesUnread:
       case Ci.nsMsgViewCommandType.toggleMessageRead:
       case Ci.nsMsgViewCommandType.flagMessages:
       case Ci.nsMsgViewCommandType.unflagMessages:
-      case Ci.nsMsgViewCommandType.deleteMsg:
-      case Ci.nsMsgViewCommandType.deleteNoTrash:
+      case Ci.nsMsgViewCommandType.toggleThreadWatched:
       case Ci.nsMsgViewCommandType.markThreadRead:
+      case Ci.nsMsgViewCommandType.downloadSelectedForOffline:
+        aOutIsSelectable.value = haveSelection;
+        break;
+      
+      
       case Ci.nsMsgViewCommandType.junk:
       case Ci.nsMsgViewCommandType.unjunk:
-      case Ci.nsMsgViewCommandType.undeleteMsg:
-      
-      case Ci.nsMsgViewCommandType.toggleThreadWatched:
-      case Ci.nsMsgViewCommandType.expandAll:
-      case Ci.nsMsgViewCommandType.collapseAll:
-      
+        commandOkay = !haveNewsMessages;
+        break;
+
+      case Ci.nsMsgViewCommandType.cmdRequiringMsgBody:
+        // XXX support offline detection/offline message detection...
+        commandOkay = haveSelection; // && (!areOffline() || offlineMessages());
+        break;
+        
+      case Ci.nsMsgViewCommandType.downloadFlaggedForOffline:
+      case Ci.nsMsgViewCommandType.markAllRead:
+        commandOkay = true;
+        break;
+
+      // the C++ code doesn't call anything from here on out.. perhaps the
+      //   check does't reach us?
       case Ci.nsMsgViewCommandType.copyMessages:
       case Ci.nsMsgViewCommandType.moveMessages:
-      case Ci.nsMsgViewCommandType.downloadSelectedForOffline:
-      case Ci.nsMsgViewCommandType.downloadFlaggedForOffline:
+        commandOkay = haveselection;
+        break;
+
+      case Ci.nsMsgViewCommandType.expandAll:
+      case Ci.nsMsgViewCommandType.collapseAll:
+      case Ci.nsMsgViewCommandType.selectAll:
+      case Ci.nsMsgViewCommandType.selectThread:
+      case Ci.nsMsgViewCommandType.selectFlagged:
+        commandOkay = true;
+        break;
       
-      case Ci.nsMsgViewCommandType.cmdRequiringMsgBody:
-      
-      case Ci.nsMsgViewCommandType.label0:
-      case Ci.nsMsgViewCommandType.label1:
-      case Ci.nsMsgViewCommandType.label2:
-      case Ci.nsMsgViewCommandType.label3:
-      case Ci.nsMsgViewCommandType.label4:
-      case Ci.nsMsgViewCommandType.label5:
-      
-      case Ci.nsMsgViewCommandType.applyFilters:
-      case Ci.nsMsgViewCommandType.runJunkControls:
-      case Ci.nsMsgViewCommandType.deleteJunk:
-        return true;
+      default:
+        commandOkay = false;
+        break;
     }
+    
+    aOutIsSelectable.value = commandOkay;
   },
   
   get viewType() {
     // XXX TODO: do something about the viewtype enumeration issue
-    return 0;
+    return 0; // show all threads...
   },
   
   get viewFlags() {
@@ -750,34 +827,41 @@ GlodaMsgDBView.prototype = {
   },
   
   get msgFolder() {
+dump("&&& get msgFolder\n");
+    if (this._messages.length)
+      return this._messages[0].folderMessage.folder;
     return null;
   },
   get viewFolder() {
+dump("&&& get viewFolder\n");
     return null;
   },
   
   getKeyAt: function gloda_mdbv_getKeyAt(aViewIndex) {
+dump("&&& getKeyAt\n");
     return this._rows[aViewIndex].message.folderMessage.messageKey;
   },
   getFolderForViewIndex: function gloda_mdbv_getFolderForViewIndex(aViewIndex) {
+dump("&&& getFolderForViewIndex\n");
     return this._rows[aViewIndex].message.folderMessage.folder;
   },
   getURIForViewIndex: function gloda_mdbv_getURIForViewIndex(aViewIndex) {
+dump("&&& getURIForViewIndex\n");
     return this._rows[aViewIndex].message.folderMessageURI;
   },
   
   getURIsForSelection: function gloda_mdbv_getURIsForSelection(
-      aOutCount, aOutUris) {
+      aOutCount) {
     let selNodes = this.selectedNodes;
     aOutCount.value = selNodes.length;
     return [node.message.folderMessageURI for each
                       (node in selNodes)];
   },
   getIndicesForSelection: function gloda_mdbv_getIndicesForSelection(
-      aOutCount, aOutIndices) {
+      aOutCount) {
     let selIndices = this.selectedIndices;
     aOutCount.value = selIndices.length;
-    aOutIndices.value = selIndices;
+    return selIndices;
   },
   
   get URIForFirstSelectedMessage() {
@@ -795,17 +879,37 @@ GlodaMsgDBView.prototype = {
       return null;
   },
   
+  _clearDisplay: function() {
+    this._msgWindow.windowCommands.clearMsgPane();
+    this._commandUpdater.updateCommandStatus();
+  },
+  
+  _displayNode: function(aTreeNode) {
+    if (!this._suppressDisplay &&
+        this._displayedNode !== aTreeNode) {
+      this._displayedNode = aTreeNode;
+      this._messenger.openURL(this._displayedNode.message.folderMessageURI);
+      this._commandUpdater.updateCommandStatus();
+    }
+  },
+  
   loadMessageByMsgKey: function gloda_mdbv_loadMessageByMsgKey(aMsgKey) {
+dump("&&& loadMessageByMsgKey\n");
     // ambiguity as to what message key we are dealing with.  let's assume it's
     //  a gloda message id for the sake of this method...
-    
-    this._messenger.OpenURL()
+    this._displayNode(this._idToNode(aMsgKey));
   },
   loadMessageByViewIndex: function gloda_mdbv_loadMessageByViewIndex(
       aViewIndex) {
-    this._messenger.OpenURL()
+dump("&&& loadMessageByViewIndex\n");
+    this._displayNode(this._rows[aViewIndex]);
   },
+  /*
+   * Displays a presumably attached message rather than a message that's
+   *  in our list of messages...
+   */
   loadMessageByUrl: function gloda_mdbv_loadMessageByUrl(aUrl) {
+    this._messenger.LoadURL(null, aUrl);
   },
   
   reloadMessage: function gloda_mdbv_reloadMessage() {
@@ -819,7 +923,11 @@ GlodaMsgDBView.prototype = {
   get msgToSelectAfterDelete() {
   },
   get currentlyDisplayedMessage() {
-    return this._rows.indexOf(this._displayedNode);
+dump("~~~ get currentDisplayedMessage\n");
+    if (this._rows && this._displayedNode)
+      return this._rows.indexOf(this._displayedNode);
+    else
+      return NO_SUCH_VIEW_INDEX;
   },
   
   selectMsgByKey: function gloda_mdbv_selectMsgByKey(aMsgKey) {
@@ -829,11 +937,10 @@ GlodaMsgDBView.prototype = {
   },
   
   get suppressMsgDisplay() {
-    // TODO message display issues
-    return null;
+    return this._suppressDisplay;
   },
   set suppressMsgDisplay(aSuppress) {
-    // TODO message display issues
+    this._suppressDisplay = aSuppress;
   },
   
   get suppressCommandUpdating() {
@@ -845,10 +952,12 @@ GlodaMsgDBView.prototype = {
   },
   
   get db() {
+dump("&&& get db\n");
     return null;
   },
   
   get supportsThreading() {
+dump("&&& get supportsThreading\n");
     return true;
   },
   
@@ -868,14 +977,14 @@ GlodaMsgDBView.prototype = {
   },
   
   findIndexFromKey: function gloda_mdbv_findIndexFromKey(aMsgKey, aExpand) {
+dump("&&& findIndexFromKey\n");
   },
   ExpandAndSelectThreadByIndex:
     function gloda_mdbv_ExpandAndSelectThreadByIndex(aViewIndex, aAugment) {
   },
   
   get usingLines() {
-    // XXX I guess we could support lines
-    return false;
+    return true;
   },
   
   addColumnHandler: function gloda_mdbv_addColumnHandler(aColumn, aHandler) {
@@ -898,7 +1007,7 @@ GlodaMsgDBView.prototype = {
   },
   
   get rowCount() {
-    if (this._rows == null)
+    if (this._rows === null)
       return 0;
     return this._rows.length;
   },
@@ -916,26 +1025,28 @@ GlodaMsgDBView.prototype = {
 
     let message = this._rows[aRow].message;
     // if we can't find the underlying message, be sad and return nothing...
-    if (message.folderMessage === null)
-      return ":(";
+    let folderMessage = message.folderMessage;
+    if (folderMessage === null)
+      return "";
     
     switch(columnId[0]) {
       case "s": // subject, sender, size, status
         switch(columnId[1]) {
           case "u": // subject
-            return message.folderMessage.mime2DecodedSubject;
+            return message.conversation.subject; //folderMessage.mime2DecodedSubject;
           case "e": // sender
             return message.from.contact.name;
           case "i": // size
-            return message.folderMessage.messageSize;
+            return folderMessage.messageSize;
           case "t": // status
-            return messageStatusString(message.folderMessage.flags);
+            return messageStatusString(folderMessage.flags);
         }
         break;
       case "r": // recipient, received
         switch(columnId[3]) {
           case "i": // recipient
-            return message.folderMessage.recipients;
+            return [recip.contact.name for each
+                    (recip in message.to)].join(" ") // folderMessage.recipients;
           case "e": // received
             let recDate = new Date(1000 *
               folderMessage.getUint32Property("dateReceived"));
@@ -945,14 +1056,14 @@ GlodaMsgDBView.prototype = {
       case "d": // date
         return GlodaUtils.dateFormat(message.date);
       case "p": // priority
-        return messagePriorityString(message.folderMessage.priority);
+        return messagePriorityString(folderMessage.priority);
       case "a": // account
-        return message.folderMessage.accountKey;
+        return folderMessage.accountKey;
       case "t": // total messages in thread, tags
         switch (columnId[1]) {
           case "h": // total messages in thread
             // per idiom, only return this for top-level nodes
-            let node = this._Rows[aRow];
+            let node = this._rows[aRow];
             if (node.parent === null)
               return "" + node.nodesInSubTree;
             else
@@ -969,7 +1080,7 @@ GlodaMsgDBView.prototype = {
         else
           return "";        
       case "j": // junk score
-        return message.folderMessage.getStringProperty("junkscore");
+        return folderMessage.getStringProperty("junkscore");
       case "i": // id
         // I don't think this is exposed anymore; perhaps only ever for
         //  debugging?  (The C++ impl exposes the messageKey, which has no
@@ -978,7 +1089,7 @@ GlodaMsgDBView.prototype = {
       case "l": // location, previously label too?
         switch (columnId[1]) {
           case "o": // location
-            return message.folderMessage.folder.prettiestName;
+            return folderMessage.folder.prettiestName;
             break;
         }
       default:
@@ -1017,6 +1128,7 @@ GlodaMsgDBView.prototype = {
     // potentially nicest would be just leveraging our knowledge of the tree to
     //  do our own traversal, although the indexOf has a fair chance of winning
     //  in many cases (assuming it is optimized).
+dump("$$$ getParentIndex\n");
     return this._rows.indexOf(selNode.parent);
   },
   getLevel: function gloda_mdbv_getLevel(aIndex) {
@@ -1025,6 +1137,7 @@ GlodaMsgDBView.prototype = {
   
   hasNextSibling: function gloda_mdbv_hasNextSibling(aIndex, aAfterIndex) {
     let selNode = this._rows[aIndex];
+dump("~~~ hasNextSibling\n");
     // if we have no parent or we are the last child, just rule it out.
     if ((selNode.parent === null) ||
         (selNode.parent.indexOf(selNode) == selNode.parent.children.length - 1))
@@ -1056,7 +1169,7 @@ GlodaMsgDBView.prototype = {
       let spliceArgs = [aIndex+1, 0];
       
       function expandNode(aNode) {
-        for (let iChild=0; iChild < aNode.children; iChild++) {
+        for (let iChild=0; iChild < aNode.children.length; iChild++) {
           let child = aNode.children[iChild];
           spliceArgs.push(child);
           if (child.open)
@@ -1068,8 +1181,10 @@ GlodaMsgDBView.prototype = {
       let rowsInserted = spliceArgs.length - 2;
       this._rows.splice.apply(this._rows, spliceArgs);
       
-      if (this._treeBox)
+      if (this._treeBox) {
+        this._treeBox.invalidateRange(aIndex, aIndex);
         this._treeBox.rowCountChanged(aIndex+1, rowsInserted);
+      }
     }
     else {
       // we're closed now, we were previously open
@@ -1079,15 +1194,18 @@ GlodaMsgDBView.prototype = {
       //  for the first node at or above the given node's level (which must be
       //  a sibling or uncle)
       let curLevel = selNode.level;
-      for (let iRow=aIndex+1; iRow < this._rows.length; iRow++) {
+      let iRow;
+      for (iRow=aIndex+1; iRow < this._rows.length; iRow++) {
         if (this._rows[iRow].level <= curLevel)
           break;
       }
-      let rowsToDelete = iRow - aIndex+1;
+      let rowsToDelete = iRow - (aIndex+1);
       if (rowsToDelete) {
         this._rows.splice(aIndex+1, rowsToDelete);
-        if (this._treeBox)
+        if (this._treeBox) {
+          this._treeBox.invalidateRange(aIndex, aIndex);
           this._treeBox.rowCountChanged(aIndex+1, -rowsToDelete);
+        }
       }
     }
   },
@@ -1098,6 +1216,10 @@ GlodaMsgDBView.prototype = {
   cycleHeader: function(col, elem) {},
   selectionChanged: function gloda_mdbv_selectionChanged() {
     this._selectedNodes = null;
+    if (this.selectedNodes.length == 1)
+      this._displayNode(this.selectedNodes[0]);
+    else
+      this._clearDisplay();
   },
   cycleCell: function(idx, column) {},
   performAction: function(action) {},
@@ -1107,7 +1229,12 @@ GlodaMsgDBView.prototype = {
   getCellProperties: function(idx, column, prop) {
   },
   getColumnProperties: function(column, element, prop) {
-  },  
+  },
+  // no drag and drop!
+  canDrop: function(aIndex, aOrient) {
+    return false;
+  },
+  
 };
 
 var components = [GlodaMsgDBView];

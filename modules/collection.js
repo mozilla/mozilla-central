@@ -55,7 +55,7 @@ GlodaCollectionManager.prototype = {
   registerCollection: function gloda_colm_registerCollection(aCollection) {
     let collections;
     let nounID = aCollection.query._nounMeta.id;
-    if (nounID in this._collectionsByNoun)
+    if (!(nounID in this._collectionsByNoun))
       collections = this._collectionsByNoun[nounID] = [];
     else {
       // purge dead weak references while we're at it
@@ -148,6 +148,8 @@ GlodaCollectionManager.prototype = {
     }
   },
 }
+// singleton
+GlodaCollectionManager = new GlodaCollectionManager();
 
 /**
  * A GlodaCollection is intended to be a current view of the set of first-class
@@ -169,6 +171,9 @@ function GlodaCollection(aItems, aQuery, aListener) {
 }
  
 GlodaCollection.prototype = {
+  get listener() { return this._listener; },
+  set listener(aListener) { this._listener = aListener; },
+
   _onItemsAdded: function(aItems) {
     this.items.push.apply(this.items, aItems);
     for each (item in aItems) {

@@ -51,6 +51,7 @@ Cu.import("resource://gloda/modules/log4moz.js");
 
 Cu.import("resource://gloda/modules/datamodel.js");
 Cu.import("resource://gloda/modules/databind.js");
+Cu.import("resource://gloda/modules/collection.js");
 
 let GlodaDatastore = {
   _log: null,
@@ -1124,8 +1125,10 @@ let GlodaDatastore = {
       items.push(nounMeta.objFromRow.call(nounMeta.datastore, statement.row));
     }
     statement.reset();
-     
-    return items;
+    
+    let collection = new GlodaCollection(items, aQuery);
+    GlodaCollectionManager.registerCollection(collection);
+    return collection;
   },
   
   queryMessagesAPV: function gloda_ds_queryMessagesAPV(aAPVs) {

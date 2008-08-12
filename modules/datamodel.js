@@ -80,7 +80,7 @@ GlodaAttributeDef.prototype = {
 
   get isBound() { return this._boundName !== null; },
   get boundName() { return this._boundName; },
-  get singular() { return this.singular; },
+  get singular() { return this._singular; },
   
   get isSpecial() { return this._specialColumnName !== null; },
   get specialColumnName() { return this._specialColumnName; },
@@ -204,7 +204,7 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
 
   // for now, let's always cache this; they should really be forgetting about us
   //  if they want to forget about the underlying storage anyways...
-  this._folderMessage = null;
+  this._folderMessage = undefined;
   // the list of attributes, un-processed
   this._attributes = null;
 }
@@ -264,11 +264,10 @@ GlodaMessage.prototype = {
    *  null if the message does not exist for one reason or another.
    */
   get folderMessage() {
-    if (this._folderMessage !== null)
+    if (this._folderMessage !== undefined)
       return this._folderMessage;
     if (this._folderID === null || this._messageKey === null)
-      return null;
-
+      return this._folderMessage = null;
     let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
                      getService(Ci.nsIRDFService);
     let folder = rdfService.GetResource(
@@ -282,8 +281,6 @@ GlodaMessage.prototype = {
                    "header! (" + this._headerMessageID + " expected, got " +
                    this._folderMessage.messageId + ")");
           this._folderMessage = null;
-          // null out our message key to shut us up on future attempts
-          this._messageKey = null;
         }
       }
       return this._folderMessage;

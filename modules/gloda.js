@@ -46,6 +46,7 @@ Cu.import("resource://gloda/modules/log4moz.js");
 
 Cu.import("resource://gloda/modules/datastore.js");
 Cu.import("resource://gloda/modules/datamodel.js");
+Cu.import("resource://gloda/modules/collection.js");
 Cu.import("resource://gloda/modules/query.js");
 Cu.import("resource://gloda/modules/utils.js");
 
@@ -226,8 +227,10 @@ let Gloda = {
     if (aNounID === undefined)
       aNounID = this._nextNounID++;
     aNounMeta.id = aNounID;
-    if (aNounMeta.firstClass)
-      aNounMeta.queryClass = GlodaQueryClassFactory(aNounMeta);
+    if (aNounMeta.firstClass) {
+      [aNounMeta.queryClass, aNounMeta.explicitQueryClass] =
+        GlodaQueryClassFactory(aNounMeta);
+    }
     this._nounNameToNounID[aNounMeta.name] = aNounID; 
     this._nounIDToMeta[aNounID] = aNounMeta;
     aNounMeta.actions = [];
@@ -380,23 +383,24 @@ let Gloda = {
       // should we memoize the value as a getter per-instance?
       if (aSingular) {
         getter = function() {
-          if (this[storageName] != undefined)
-            return this[storageName];
+          let val = this[storageName];
+          if (val !== undefined)
+            return val;
           let instances = this.getAttributeInstances(aAttr);
-          let val;
           if (instances.length > 0)
             val = nounMeta.fromParamAndValue(instances[0][1], instances[0][2]);
           else
             val = null;
-          this[storageName] = val;
+          //this[storageName] = val;
+          this.__defineGetter__(aBindName, function() val);
           return val;
         }
       } else {
         getter = function() {
-          if (this[storageName] != undefined)
-            return this[storageName];
+          let values = this[storageName];
+          if (values !== undefined)
+            return values;
           let instances = this.getAttributeInstances(aAttr);
-          let values;
           if (instances.length > 0) {
             values = [];
             for (let iInst=0; iInst < instances.length; iInst++) {
@@ -407,7 +411,8 @@ let Gloda = {
           else {
             values = instances; // empty is empty
           }
-          this[storageName] = values;
+          //this[storageName] = values;
+          this.__defineGetter__(aBindName, function() values);
           return values;
         }
       }
@@ -436,8 +441,6 @@ let Gloda = {
         return this;
       };
 
-dump("binding constraint " + aBindName + " on " + subjectNounMeta.name + " to "+
-  constrainer + "\n");      
       subjectNounMeta.queryClass.prototype[aBindName] = constrainer;
       
       if (nounMeta.continuous) {
@@ -618,9 +621,26 @@ dump("binding constraint " + aBindName + " on " + subjectNounMeta.name + " to "+
     return GlodaDatastore.createTableIfNotExists(aTableDef);
   },
   
+  /**
+   * Create a new query for the given noun-type.
+   */
   newQuery: function gloda_ns_newQuery(aNounID) {
     let nounMeta = this._nounIDToMeta[aNounID];
     return new nounMeta.queryClass();
+  },
+  
+  /**
+   * Create a collection/query for the given noun-type that only matches the
+   *  provided items.  This is to be used when you have an explicit set of items
+   *  that you would still like to receive updates for. 
+   */
+  explicitCollection: function gloda_ns_explicitCollection(aNounID, aItems) {
+    let nounMeta = this._nounIDToMeta[aNounID];
+    let collection = new GlodaCollection(aItems, null, null)
+    let query = new nounMeta.explicitQueryClass(collection);
+    collection.query = query;
+    GlodaCollectionManager.registerCollection(collection);
+    return colleciton;
   },
   
   processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr,

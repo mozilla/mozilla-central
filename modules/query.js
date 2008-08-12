@@ -166,6 +166,23 @@ GlodaQueryClass.prototype = {
   },
 };
 
+function GlodaExplicitQueryClass() {
+}
+
+GlodaExplicitQueryClass.prototype = {
+  // don't let people try and mess with us
+  or: function() { return null; },
+  // don't let people try and query on us (until we have a real use case for
+  //  that...)
+  getAllSync: function() { return null; },
+  /**
+   * Matches only items that are already in the collection (by id).
+   */
+  test: function gloda_query_explicit_test(aObj) {
+    return (aObj.id in this.collection._idMap);
+  }
+};
+
 function GlodaQueryClassFactory(aNounMeta) {
   let newQueryClass = function() {
     GlodaQueryClass.call(this);
@@ -175,5 +192,13 @@ function GlodaQueryClassFactory(aNounMeta) {
   newQueryClass.prototype._queryClass = newQueryClass;
   newQueryClass.prototype._nounMeta = aNounMeta;
   
-  return newQueryClass;
+  let newExplicitClass = function(aCollection) {
+    GlodaExplicitQueryClass.call(this);
+    this.collection = aCollection;
+  };
+  newExplicitClass.prototype = new GlodaExplicitQueryClass();
+  newExplicitClass.prototype._queryClass = newExplicitClass;
+  newExplicitClass.prototype._nounMeta = aNounMeta;
+  
+  return [newQueryClass, newExplicitClass];
 }
