@@ -31,6 +31,7 @@ sub Execute {
     my $appName = $config->Get(var => 'appName');
     my $logDir = $config->Get(sysvar => 'logDir');
     my $mozillaCvsroot = $config->Get(var => 'mozillaCvsroot');
+    my $hgToolsRepo = $config->Get(var => 'hgToolsRepo');
     my $tagDir = $config->Get(var => 'tagDir');
     my $geckoBranchTag = $config->Get(var => 'geckoBranchTag');
 
@@ -78,78 +79,24 @@ sub Execute {
 
     ### Perform version bump
 
-    my $parentDir = catfile($cvsrootTagDir, 'mozilla');
-    foreach my $fileName (@bumpFiles) {
-        my $found = 0;
-
-        my $file = catfile($parentDir, $fileName);
-
-        my $bumpVersion = undef;
-        my $preVersion = undef;
-        my %searchReplace = ();
-
-        # Order or searching for these values is not preserved, so make
-        # sure that the order replacement happens does not matter.
-        if ($fileName eq 'client.mk') {
-            %searchReplace = (
-             # MOZ_CO_TAG is commented out on some branches, make sure to
-             # accommodate that
-             '^#?MOZ_CO_TAG\s+=.+$' =>
-              'MOZ_CO_TAG           = ' . $releaseTag,
-             '^NSPR_CO_TAG\s+=\s+\w*' => 
-              'NSPR_CO_TAG          = ' . $releaseTag,
-             '^NSS_CO_TAG\s+=\s+\w*' =>
-              'NSS_CO_TAG           = ' . $releaseTag,
-             '^LOCALES_CO_TAG\s+=.*$' =>
-              'LOCALES_CO_TAG       = ' . $releaseTag,
-             '^LDAPCSDK_CO_TAG\s+=.*$' =>
-              'LDAPCSDK_CO_TAG      = ' . $releaseTag);
-        } elsif ($fileName eq $moduleVer) {
-            $preVersion = $appVersion . 'pre';
-            %searchReplace = ('^WIN32_MODULE_PRODUCTVERSION_STRING=' . 
-             $preVersion . '$' => 'WIN32_MODULE_PRODUCTVERSION_STRING=' . 
-             $appVersion);
-        } elsif ($fileName eq $versionTxt) {
-            $preVersion = $appVersion . 'pre';
-            %searchReplace = ('^' . $preVersion . '$' => $appVersion);
-        } elsif ($fileName eq $milestoneTxt) {
-            $preVersion = $milestone . 'pre';
-            %searchReplace = ('^' . $preVersion . '$' => $milestone);
-        } else {
-            die("ASSERT: do not know how to bump file $fileName");
-        }
-
-        if (scalar(keys(%searchReplace)) <= 0) {
-            die("ASSERT: no search/replace to perform");
-        }
-        
-        open(INFILE,  "< $file") or die("Could not open $file: $!");
-        open(OUTFILE, "> $file.tmp") or die("Could not open $file.tmp: $!");
-        while(<INFILE>) {
-            foreach my $search (keys(%searchReplace)) {
-                my $replace = $searchReplace{$search};
-                if($_ =~ /$search/) {
-                    $this->Log(msg => "$search found");
-                    $found = 1;
-                    $_ =~ s/$search/$replace/;
-                    $this->Log(msg => "$search replaced with $replace");
-                }
-            }
-
-            print OUTFILE $_;
-        }
-        close INFILE or die("Could not close $file: $!");
-        close OUTFILE or die("Coule not close $file.tmp: $!");
-        if (not $found) {
-            die("None of " . join(' ', keys(%searchReplace)) . 
-             " found in file $file: $!");
-        }
-
-        if (not move("$file.tmp",
-                     "$file")) {
-            die("Cannot rename $file.tmp to $file: $!");
-        }
-    }
+    # bug 449208 moved this logic to an external script to more easily
+    # support both CVS and Mercurial based releases
+    $this->Shell(
+      cmd => 'hg',
+      cmdArgs => ['clone', $hgToolsRepo],
+      dir => catfile($buildTagDir)
+    );
+    $this->Shell(
+      cmd => 'perl',
+      cmdArgs => [catfile($buildTagDir, 'tools', 'release', 'version-bump.pl'),
+                  '-w', catfile($cvsrootTagDir, 'mozilla'),
+                  '-t', $releaseTag,
+                  '-a', $appName,
+                  '-v', $appVersion,
+                  '-m', $milestone,
+                  @bumpFiles],
+      logFile => catfile($logDir, 'tag-bump_files.log'),
+    );
 
     my $bumpCiMsg = 'Automated checkin: version bump, remove pre tag for ' 
                         . $product . ' ' . $version . ' release on ' 
