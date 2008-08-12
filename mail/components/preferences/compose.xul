@@ -62,7 +62,6 @@
       <preference id="mail.forward_add_extension" name="mail.forward_add_extension" type="bool"/>
       <preference id="mail.SpellCheckBeforeSend" name="mail.SpellCheckBeforeSend" type="bool"/>
       <preference id="mail.spellcheck.inline" name="mail.spellcheck.inline" type="bool"/>
-      <preference id="mail.strictly_mime" name="mail.strictly_mime" type="bool"/>
       <preference id="mail.warn_on_send_accel_key" name="mail.warn_on_send_accel_key" type="bool"/>
       <preference id="mail.compose.autosave" name="mail.compose.autosave" type="bool"/>
       <preference id="mail.compose.autosaveinterval" name="mail.compose.autosaveinterval" type="int"/>
@@ -107,10 +106,6 @@
               <textbox  id="autoSaveInterval" size="2" preference="mail.compose.autosaveinterval" aria-labelledby="autoSave autoSaveInterval autoSaveEnd"/>
               <label id="autoSaveEnd" value="&autoSaveEnd.label;"/>
             </hbox>
-
-            <checkbox id="strictlyMime" label="&useMIME.label;"
-                      preference="mail.strictly_mime"
-                      accesskey="&useMIME.accesskey;"/>
 
             <checkbox id="mailWarnOnSendAccelKey" label="&warnOnSendAccelKey.label;"
                       preference="mail.warn_on_send_accel_key"
