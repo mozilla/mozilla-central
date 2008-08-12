@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Address Book code
+
+ The Initial Developer of the Original Code is
+ Mozilla Messaging
+ Portions created by the Initial Developer are Copyright (C) 2008
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+   Mark Banner <bugzilla@standard8.plus.com>
+
+ Alternatively, the contents of this file may be used under the terms of
+ either of the GNU General Public License Version 2 or later (the "GPL"),
+ or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+
+<bindings id="addrbookBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="addrbooks-menupopup"
+           extends="chrome://global/content/bindings/popup.xml#popup">
+    <implementation implements="nsIAbListener">
+      <constructor>
+        <![CDATA[
+          this._build();
+
+          const nsIAbListener = Components.interfaces.nsIAbListener;
+          // Add a listener so we can update correctly if the list should change
+          Components.classes["@mozilla.org/abmanager;1"]
+                    .getService(Components.interfaces.nsIAbManager)
+                    .addAddressBookListener(this,
+                                            nsIAbListener.itemAdded |
+                                            nsIAbListener.directoryRemoved |
+                                            nsIAbListener.itemChanged);
+        ]]>
+      </constructor>
+      <destructor>
+        <![CDATA[
+          Components.classes["@mozilla.org/abmanager;1"]
+                    .getService(Components.interfaces.nsIAbManager)
+                    .removeAddressBookListener(this);
+
+          this._teardown();
+        ]]>
+      </destructor>
+
+      <!-- nsIAbListener methods -->
+      <method name="onItemAdded">
+        <parameter name="aParentDir"/>
+        <parameter name="aItem"/>
+        <body><![CDATA[
+          if (aItem instanceof Components.interfaces.nsIAbDirectory) {
+            // Save the currently selected item
+            var selectedItem = this.parentNode.value;
+            this.parentNode.value = null;
+
+            // Re-use _teardown and _build so that we can use its sort function
+            this._teardown();
+            this._build();
+
+            // Now reset the value of the parent to re-connect it with the
+            // appropriate DOM Node.
+	    this.parentNode.value = selectedItem;
+          }
+        ]]></body>
+      </method>
+
+      <method name="onItemRemoved">
+        <parameter name="aParentDir"/>
+        <parameter name="aItem"/>
+        <body><![CDATA[
+          if (aItem instanceof Components.interfaces.nsIAbDirectory) {
+            // Find the item in the list to remove
+            var nodes = this.getElementsByAttribute("value", aItem.URI);
+
+            // We should only ever have at most one node with the URI.
+            if (nodes.length > 0)
+              this.removeChild(nodes[0]);
+
+            // Update the parent item
+            if (this.parentNode.value == aItem.URI) {
+              this.firstChild.doCommand();
+            }
+          }
+        ]]></body>
+      </method>
+
+      <method name="onItemPropertyChanged">
+        <parameter name="aItem"/>
+        <parameter name="aProperty"/>
+        <parameter name="aOldValue"/>
+        <parameter name="aNewValue"/>
+        <body><![CDATA[
+          if (aItem instanceof Components.interfaces.nsIAbDirectory) {
+            // Find the item in the list to rename.
+            var nodes = this.getElementsByAttribute("value", aItem.URI);
+
+            // We should only ever have at most one node with the URI.
+            if (nodes.length > 0)
+              nodes[0].label = aItem.dirName;
+          }
+        ]]></body>
+      </method>
+
+      // Private methods
+      <method name="_teardown">
+        <body><![CDATA[
+          // Empty out anything in the list.
+          while (this.hasChildNodes())
+            this.removeChild(this.lastChild);
+        ]]></body>
+      </method>
+
+      <method name="_build">
+        <body><![CDATA[
+          // Init the address book list.
+          var addressBooks = Components.classes["@mozilla.org/abmanager;1"]
+                                       .getService(Components.interfaces.nsIAbManager)
+                                       .directories;
+          var holdingArray = [];
+
+          var remoteOnly = this.getAttribute("remoteonly");
+          var localOnly = this.getAttribute("localonly");
+          var writeable = this.getAttribute("writeable");
+          var sml = this.getAttribute("supportsmaillists");
+
+          const nsIAbDirectory = Components.interfaces.nsIAbDirectory;
+
+          while (addressBooks && addressBooks.hasMoreElements()) {
+            var ab = addressBooks.getNext();
+            if (ab instanceof nsIAbDirectory &&
+                (!remoteOnly || ab.isRemote) &&
+                (!localOnly || !ab.isRemote) &&
+                (!sml || ab.supportsMailingLists) &&
+                (!writeable || (ab.operations & nsIAbDirectory.opWrite) ==
+                                nsIAbDirectory.opWrite))
+                holdingArray.push(ab);
+          }
+
+          const kPersonalAddressbookURI = "moz-abmdbdirectory://abook.mab";
+          const kCollectedAddressbookURI = "moz-abmdbdirectory://history.mab";
+
+          holdingArray.sort(function (a, b) {
+            // Personal at the top.
+            if (a.URI == kPersonalAddressbookURI)
+              return -1;
+
+            if (b.URI == kPersonalAddressbookURI)
+              return 1;
+
+            // Collected at the bottom.
+            if (a.URI == kCollectedAddressbookURI)
+              return 1;
+
+            if (b.URI == kCollectedAddressbookURI)
+              return -1;
+
+            // Sort books of the same type by name.
+            if (a.dirType == b.dirType)
+              return a.dirName.localeCompare(b.dirName);
+
+            // If one of the dirTypes is 2 and the other is something else,
+            // then the other will go below the one of type 2.
+            if (a.dirType == 2)
+              return -1;
+
+            if (b.dirType == 2)
+              return 1;
+
+            // Sort anything else by the dir type.
+            return a.dirType - b.dirType;
+          });
+
+          var menupopup = this;
+
+          holdingArray.forEach(function (ab) {
+            var item = document.createElement('menuitem');
+            item.setAttribute("label", ab.dirName);
+            item.setAttribute("value", ab.URI);
+
+            menupopup.appendChild(item);
+          });
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>
