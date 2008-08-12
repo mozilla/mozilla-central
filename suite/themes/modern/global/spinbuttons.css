@@ -68,6 +68,10 @@ spinbuttons {
   -moz-border-right-colors: #8290A5 #A9B5C1 !important;
   -moz-border-bottom-colors: #8290A5 #A9B5C1 !important;
   -moz-border-left-colors: #8290A5 #C6CDD7 !important;
+  -moz-border-radius: 0 !important;
+  width: 13px !important;
+  min-width: 13px !important;
+  margin: 0 !important;
 }
 
 .spinbuttons-up {
