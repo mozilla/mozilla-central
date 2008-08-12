@@ -44,10 +44,9 @@
 
   <script type="application/x-javascript">
   <![CDATA[
-
-    // Code from nsContextMenu.js. Note that we extend the prototype here, rather 
-    // than making these methods on a new object, as some methods require access
-    // to data maintained by nsContextMenu.  
+    // Code from nsContextMenu.js. Note that we extend the prototype here,
+    // rather than making these methods on a new object, as some methods require
+    // access to data maintained by nsContextMenu.
 
     var cookieContextMenu = {
       // Block/Unblock image from loading in the future.
@@ -72,7 +71,7 @@
 
       initImageBlocking : function () {
         try {
-        
+
         //Hide Block and Unblock menuitems
         gContextMenu.showItem("context-blockimage", false);
         gContextMenu.showItem("context-unblockimage", false);
@@ -81,28 +80,26 @@
         if (gContextMenu.onImage) {
           var IOService = Components.classes["@mozilla.org/network/io-service;1"]
                                     .getService(Components.interfaces.nsIIOService);
-
           var uri = IOService.newURI(gContextMenu.imageURL, null, null);
           try {
             var serverLabel = uri.host;
             if (serverLabel) {
-  
               // Limit length to max 15 characters
               serverLabel = serverLabel.replace(/^www\./i, "");
               if (serverLabel.length > 15) {
                 var pref = Components.classes["@mozilla.org/preferences-service;1"]
                                      .getService(Components.interfaces.nsIPrefBranch);
                 var serverLabelEllipsis = pref.getComplexValue("intl.ellipsis",
-                                     Components.interfaces.nsIPrefLocalizedString).data;               
+                                     Components.interfaces.nsIPrefLocalizedString).data;
                 serverLabel = serverLabel.substr(0, 15) + serverLabelEllipsis;
               }
-              
+
               // Set label and accesskey for appropriate action and unhide menuitem
               var action = "block";
               const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
               var permissionmanager = Components.classes["@mozilla.org/permissionmanager;1"]
                                                 .getService(nsIPermissionManager);
-              if (permissionmanager.testPermission(uri, "image") == nsIPermissionManager.DENY_ACTION) 
+              if (permissionmanager.testPermission(uri, "image") == nsIPermissionManager.DENY_ACTION)
                 action = "unblock";
               // Use |getStringBundle()| from <contentAreaUtils.js>.
               const bundle = getStringBundle();
@@ -111,8 +108,9 @@
               blockImageMenuItem.setAttribute("accesskey", bundle.GetStringFromName(action + "Image.accesskey"));
               gContextMenu.showItem("context-" + action + "image", true);
             }
-          } catch (ex) { }           
+          } catch (e) {}
         }
+
         } catch (e) {}
       },
 
@@ -126,10 +124,10 @@
           mailContextPopup.addEventListener("popupshowing", cookieContextMenu.initImageBlocking, false);
       }
     }
-    window.addEventListener("load", cookieContextMenu.addContextMenuItemListeners, false);
 
+    window.addEventListener("load", cookieContextMenu.addContextMenuItemListeners, false);
    ]]>
-  </script>         
+  </script>
 
   <!-- context menu -->
   <popup id="contentAreaContextMenu">
@@ -150,5 +148,5 @@
               oncommand="cookieContextMenu.toggleImageBlocking(false);"
               insertafter="context-viewimage"/>
   </popup>
-  
+
 </overlay>
