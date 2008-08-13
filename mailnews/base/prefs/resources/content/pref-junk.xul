@@ -74,7 +74,7 @@
                   type="string"/>
     </preferences>
 
-    <stringbundle id="bundlePreferences"
+    <stringbundle id="bundleJunkPreferences"
                   src="chrome://messenger/locale/messenger.properties"/>
 
     <groupbox>

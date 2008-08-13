@@ -200,17 +200,17 @@
       <groupbox id="prefShowButtonsBox1" flex="1" orient="horizontal">
         <caption label="&navToolbarIntro.label;"/>
         <vbox flex="1">
-          <checkbox id="searchButton"
+          <checkbox id="browserSearchButton"
                     label="&searchButton.label;"
                     accesskey="&searchButton.accesskey;"
                     preference="browser.toolbars.showbutton.search"/>
-          <checkbox id="printButton"
+          <checkbox id="browserPrintButton"
                     label="&printButton.label;"
                     accesskey="&printButton.accesskey;"
                     preference="browser.toolbars.showbutton.print"/>
         </vbox>
         <vbox flex="1">
-          <checkbox id="goButton"
+          <checkbox id="browserGoButton"
             label="&goButton.label;"
             accesskey="&goButton.accesskey;"
             preference="browser.toolbars.showbutton.go"/>
@@ -218,11 +218,11 @@
       </groupbox>
       <groupbox id="prefShowButtonsBox" flex="1">
         <caption label="&persToolbarIntro.label;"/>
-        <checkbox id="homeButton"
+        <checkbox id="browserHomeButton"
                   label="&homeButton.label;"
                   accesskey="&homeButton.accesskey;"
                   preference="browser.toolbars.showbutton.home"/>
-        <checkbox id="bookmarksButton"
+        <checkbox id="browserBookmarksButton"
                   label="&bookmarksButton.label;"
                   accesskey="&bookmarksButton.accesskey;"
                   preference="browser.toolbars.showbutton.bookmarks"/>

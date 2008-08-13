@@ -58,7 +58,7 @@ function ResetTrainingData()
   // make sure the user really wants to do this
   var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                 .getService(Components.interfaces.nsIPromptService);
-  var bundle = document.getElementById("bundlePreferences");
+  var bundle = document.getElementById("bundleJunkPreferences");
   var title  = bundle.getString("confirmResetJunkTrainingTitle");
   var text   = bundle.getString("confirmResetJunkTrainingText");
 

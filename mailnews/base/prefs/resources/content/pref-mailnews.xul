@@ -144,24 +144,24 @@
     </groupbox>
 
     <!-- toolbar buttons customization -->
-    <groupbox flex="1" orient="horizontal">
+    <groupbox id="mailShowButtonsBox" flex="1" orient="horizontal">
       <caption label="&toolbarIntro.caption;"/>
       <vbox>
-        <checkbox id="fileButton"
+        <checkbox id="mailFileButton"
                   label="&fileButton.label;" accesskey="&fileButton.accesskey;"
                   preference="mail.toolbars.showbutton.file"/>
-        <checkbox id="nextButton"
+        <checkbox id="mailNextButton"
                   label="&nextButton.label;" accesskey="&nextButton.accesskey;"
                   preference="mail.toolbars.showbutton.next"/>
-        <checkbox id="printButton"
+        <checkbox id="mailPrintButton"
                   label="&printButton.label;" accesskey="&printButton.accesskey;"
                   preference="mail.toolbars.showbutton.print"/>
       </vbox>
       <vbox>
-        <checkbox id="stopButton"
+        <checkbox id="mailStopButton"
                   label="&stopButton.label;" accesskey="&stopButton.accesskey;"
                   preference="mail.toolbars.showbutton.stop"/>
-        <checkbox id="junkMailButton"
+        <checkbox id="mailJunkMailButton"
                   label="&junkMailButton.label;" accesskey="&junkMailButton.accesskey;"
                   preference="mail.toolbars.showbutton.junk"/>
       </vbox>
