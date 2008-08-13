@@ -90,7 +90,7 @@ var DirPaneController =
       case "cmd_delete":
       case "button_delete":
         var selectedDir = GetSelectedDirectory();
-        if (command == "cmd_delete" && selectedDir)
+        if (command == "cmd_delete")
           goSetMenuValue(command, GetDirectoryFromURI(selectedDir).isMailList ?
                                   "valueList" : "valueAddressBook");
 
@@ -610,7 +610,7 @@ function DirPaneHasFocus()
 function GetSelectedDirectory()
 {
   if (abList)
-    return abList.value;
+    return abList.selectedItem.id;
   else {
     if (dirTree.currentIndex < 0)
       return null;

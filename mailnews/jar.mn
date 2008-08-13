@@ -38,7 +38,6 @@ messenger.jar:
     content/messenger/addressbook/abResultsPane.js                             (addrbook/resources/content/abResultsPane.js)
     content/messenger/addressbook/abSelectAddressesDialog.js                   (addrbook/resources/content/abSelectAddressesDialog.js)
     content/messenger/addressbook/abSelectAddressesDialog.xul                  (addrbook/resources/content/abSelectAddressesDialog.xul)
-    content/messenger/addressbook/addrbookWidgets.xml                          (addrbook/resources/content/addrbookWidgets.xml)
     content/messenger/addressbook/addressbook.js                               (addrbook/resources/content/addressbook.js)
     content/messenger/addressbook/addressbook.xul                              (addrbook/resources/content/addressbook.xul)
     content/messenger/addressbook/abDragDrop.js                                (addrbook/resources/content/abDragDrop.js)

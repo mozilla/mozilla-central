@@ -53,6 +53,7 @@
 
 <window id="searchAddressBookWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:nc="http://home.netscape.com/NC-rdf#"
         onload="searchOnLoad();"
         onunload="searchOnUnload();"
         onclose="onSearchStop();"
@@ -87,8 +88,21 @@
       <vbox>
         <hbox align="center">
           <label value="&abSearchHeading.label;" accesskey="&abSearchHeading.accesskey;" control="abPopup"/>
-          <menulist id="abPopup" oncommand="SelectDirectory(this.value);">
-            <menupopup id="abPopup-menupopup" class="addrbooksPopup"/>
+          <menulist id="abPopup">
+            <menupopup id="abPopup-menupopup" ref="moz-abdirectory://"
+                       datasources="rdf:addressdirectory"
+                       sortActive="true"
+                       sortDirection="ascending"
+                       sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort"
+                       oncommand="onChooseDirectory(event.target);">
+              <template>
+                <rule nc:IsMailList="false">
+                  <menuitem uri="..."
+                            label="rdf:http://home.netscape.com/NC-rdf#DirName"
+                            value="rdf:http://home.netscape.com/NC-rdf#DirUri"/>
+                </rule>
+              </template>
+            </menupopup>
           </menulist>
           <spacer flex="10"/>
           <button id="search-button" oncommand="onSearchButton(event);" default="true"/>

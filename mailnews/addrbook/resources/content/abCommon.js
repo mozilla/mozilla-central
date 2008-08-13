@@ -622,7 +622,7 @@ function DirPaneHasFocus()
 function GetSelectedDirectory()
 {
   if (abList)
-    return abList.value;
+    return abList.selectedItem.id;
   else {
     if (dirTree.currentIndex < 0)
       return null;

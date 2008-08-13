@@ -96,9 +96,6 @@ function searchOnLoad()
 
   if (window.arguments && window.arguments[0])
     SelectDirectory(window.arguments[0].directory);
-  else
-    SelectDirectory(document.getElementById("abPopup-menupopup")
-                            .firstChild.value);
 
   // initialize globals, see abCommon.js, InitCommonJS()
   abList = document.getElementById("abPopup");
@@ -369,4 +366,12 @@ function UpdateCardView()
     gPropertiesButton.removeAttribute("disabled");
   else
     gPropertiesButton.setAttribute("disabled","true");
+}
+
+function onChooseDirectory(event) 
+{
+    var directoryURI = event.id;
+    if (directoryURI) {
+        SelectDirectory(directoryURI);
+    }
 }

@@ -8,7 +8,6 @@ messenger.jar:
 *   content/messenger/addressbook/abMailListDialog.xul          (content/abMailListDialog.xul)
 *   content/messenger/addressbook/abContactsPanel.xul           (content/abContactsPanel.xul)
 *   content/messenger/addressbook/abContactsPanel.js            (content/abContactsPanel.js)
-    content/messenger/addressbook/addrbookWidgets.xml           (/mailnews/addrbook/resources/content/addrbookWidgets.xml)
     content/messenger/addressbook/pref-directory.js             (/mailnews/addrbook/prefs/resources/content/pref-directory.js)
     content/messenger/addressbook/pref-directory-add.js         (/mailnews/addrbook/prefs/resources/content/pref-directory-add.js)
     content/messenger/addressbook/pref-directory-add.xul        (/mailnews/addrbook/prefs/resources/content/pref-directory-add.xul)

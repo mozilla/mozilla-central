@@ -55,6 +55,8 @@
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       onload="AbPanelLoad();"
       onunload="AbPanelUnload();"
+      xmlns:nc="http://home.netscape.com/NC-rdf#"
+      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
       title="&selectAddressWindow.title;"
       selectedaddresses="true">
 
@@ -93,7 +95,20 @@
       <menulist id="addressbookList" 
                 oncommand="DirPaneSelectionChangeMenulist();" flex="1"
                 persist="value">
-        <menupopup id="addressbookList-menupopup" class="addrbooksPopup"/>
+        <menupopup id="addressbookList-menupopup" 
+          datasources="rdf:addressdirectory" 
+                   ref="moz-abdirectory://"
+                   sortActive="true"
+                   sortDirection="ascending"
+                   sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort">
+          <template>
+            <rule nc:IsMailList="false">
+              <menuitem uri="..."
+                    label="rdf:http://home.netscape.com/NC-rdf#DirName"
+                    value="rdf:http://home.netscape.com/NC-rdf#DirUri"/>
+            </rule>
+          </template>
+        </menupopup>
       </menulist>
     </hbox>
 	<hbox align="center">
