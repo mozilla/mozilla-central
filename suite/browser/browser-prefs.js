@@ -247,6 +247,9 @@ pref("browser.videoFeeds.handler", "ask");
 pref("browser.audioFeeds.handler", "ask");
 
 pref("shell.checkDefaultClient", true);
+// We want to check if we are the default client for browser and mail. See 
+// suite/shell/public/nsIShellService.idl for the possible constants you can use
+pref("shell.checkDefaultApps", 3);
 
 pref("app.releaseNotesURL", "chrome://branding/locale/brand.properties");
 pref("app.vendorURL", "chrome://branding/locale/brand.properties");

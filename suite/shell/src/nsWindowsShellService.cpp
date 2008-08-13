@@ -904,6 +904,27 @@ nsWindowsShellService::SetShouldCheckDefaultClient(PRBool aShouldCheck)
   return prefs->SetBoolPref("shell.checkDefaultClient", aShouldCheck);
 }
 
+NS_IMETHODIMP
+nsWindowsShellService::GetShouldBeDefaultClientFor(PRUint16* aApps)
+{
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRInt32 result;
+  rv = prefs->GetIntPref("shell.shouldBefaultClientFor", &result);
+  *aApps = result;
+  return rv;
+}
+
+NS_IMETHODIMP
+nsWindowsShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
+{
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return prefs->SetIntPref("shell.shouldBefaultClientFor", aApps);
+}
+
 
 nsresult
 nsWindowsShellService::setDefaultBrowser()

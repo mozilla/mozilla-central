@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Frank Wein <mcsmurf@mcsmurf.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,7 +41,7 @@
 
 interface nsIDOMElement;
 
-[scriptable, uuid(95F53544-F445-48d1-B3A2-D54AA020BC3D)]
+[scriptable, uuid(58E4B6D9-10CB-4DA0-AF44-E47C62365380)]
 interface nsIShellService : nsISupports
 {
   /**
@@ -86,6 +87,12 @@ interface nsIShellService : nsISupports
    */
   attribute boolean shouldCheckDefaultClient;
 
+
+  /**
+   * Returns the appTypes constants we should be the default client for.
+   * Saves/reads the default apps to/from the pref shell.checkDefaultApps
+   */
+  attribute unsigned short shouldBeDefaultClientFor;
 
   /**
    * Sets the desktop background image using either the HTML <IMG>
