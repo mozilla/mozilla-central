@@ -911,7 +911,7 @@ nsWindowsShellService::GetShouldBeDefaultClientFor(PRUint16* aApps)
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   PRInt32 result;
-  rv = prefs->GetIntPref("shell.shouldBefaultClientFor", &result);
+  rv = prefs->GetIntPref("shell.checkDefaultApps", &result);
   *aApps = result;
   return rv;
 }
@@ -922,7 +922,7 @@ nsWindowsShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  return prefs->SetIntPref("shell.shouldBefaultClientFor", aApps);
+  return prefs->SetIntPref("shell.checkDefaultApps", aApps);
 }
 
 
