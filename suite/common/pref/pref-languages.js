@@ -338,15 +338,13 @@ function AddAvailableLanguage()
     Languageid      = selItem.getAttribute('id');
 
     if (!LangAlreadyActive(Languageid)) {
-      addThese[nodeIndex] = Languageid;
-      addTheseNames[nodeIndex] = Languagename;
+      addThese.push(Languageid);
+      addTheseNames.push(Languagename);
     }
   }
 
   //user-defined languages
   var otherField = document.getElementById( "languages.other" );
-
-  var selCount = addThese.length;
 
   if (otherField.value) {
 
@@ -361,8 +359,8 @@ function AddAvailableLanguage()
             Languagename = GetLanguageTitle(Languageid);
             if (!Languagename)
               Languagename = '[' + Languageid + ']';
-            addThese[i+selCount] = Languageid;
-            addTheseNames[i+selCount] = Languagename;
+            addThese.push(Languageid);
+            addTheseNames.push(Languagename);
           }
         }
       }
