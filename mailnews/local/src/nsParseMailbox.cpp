@@ -1660,7 +1660,6 @@ void nsParseNewMailState::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 // IncorporateWrite (once or more), and IncorporateComplete for every message.
 void nsParseNewMailState::DoneParsingFolder(nsresult status)
 {
-  PRBool moved = PR_FALSE;
   /* End of file.  Flush out any partial line remaining in the buffer. */
   if (m_ibuffer_fp > 0)
   {
@@ -1668,7 +1667,7 @@ void nsParseNewMailState::DoneParsingFolder(nsresult status)
     m_ibuffer_fp = 0;
   }
   PublishMsgHeader(nsnull);
-  if (!moved && m_mailDB)  // finished parsing, so flush db folder info
+  if (m_mailDB)  // finished parsing, so flush db folder info
     UpdateDBFolderInfo();
 
     /* We're done reading the folder - we don't need these things
