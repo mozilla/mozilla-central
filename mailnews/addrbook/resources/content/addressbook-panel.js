@@ -42,69 +42,23 @@ function GetAbViewListener()
   return null;
 }
 
-var gAddressBookPanelAbListener = {
-  onItemAdded: function(parentDir, item) {
-    // will not be called
-  },
-  onItemRemoved: function(parentDir, item) {
-    // will only be called when an addressbook is deleted
-    try {
-      var directory = item.QueryInterface(Components.interfaces.nsIAbDirectory);
-      // check if the item being removed is the directory
-      // that we are showing in the addressbook sidebar
-      // if so, select the person addressbook (it can't be removed)
-      var abPopup = document.getElementById('addressbookList');
-      if (directory.URI == abPopup.value) {
-          abPopup.value = kPersonalAddressbookURI;
-          LoadPreviouslySelectedAB();
-      } 
-    }
-    catch (ex) {
-    }
-  },
-  onItemPropertyChanged: function(item, property, oldValue, newValue) {
-    try {
-      var directory = item.QueryInterface(Components.interfaces.nsIAbDirectory);
-      // check if the item being changed is the directory
-      // that we are showing in the addressbook sidebar
-      if (directory == GetAbView().directory) {
-          LoadPreviouslySelectedAB();
-      }
-    }
-    catch (ex) {
-    }
-  }
-};
-
-
-// XXX todo
-// can we combine some common code?  see OnLoadNewMailList()
-// set popup with address book names
-function LoadPreviouslySelectedAB()
-{
-  var abPopup = document.getElementById('addressbookList');
-  var value = abPopup.value || kPersonalAddressbookURI;
-  abPopup.selectedItem = null;
-  abPopup.value = value;
-  ChangeDirectoryByURI(abPopup.selectedItem.id);
-}
-
 function AbPanelLoad() 
 {
   InitCommonJS(); 
 
   UpgradeAddressBookResultsPaneUI("mailnews.ui.addressbook_panel_results.version");
 
-  LoadPreviouslySelectedAB();
+  var abPopup = document.getElementById('addressbookList');
 
-  // Add a listener, so we can switch directories if the current directory is
-  // deleted, and change the name if the selected directory's name is modified.
-  // This listener only cares when a directory is removed or modified.
-  Components.classes["@mozilla.org/abmanager;1"]
-            .getService(Components.interfaces.nsIAbManager)
-            .addAddressBookListener(gAddressBookPanelAbListener,
-                                    nsIAbListener.directoryRemoved |
-                                    nsIAbListener.itemChanged);
+  // Reselect the persisted address book if possible, if not just select the
+  // first in the list.
+  var temp = abPopup.value;
+  abPopup.selectedItem = null;
+  abPopup.value = temp;
+  if (!abPopup.selectedItem)
+    abPopup.selectedIndex = 0;
+
+  ChangeDirectoryByURI(abPopup.value);
 
   gSearchInput = document.getElementById("searchInput");
 
@@ -124,10 +78,6 @@ function AbPanelUnload()
 {
   if (gMsgCompose)
     parent.removeEventListener("compose-window-close", onAbClearSearch, true);
-
-  Components.classes["@mozilla.org/abmanager;1"]
-            .getService(Components.interfaces.nsIAbManager)
-            .removeAddressBookListener(gAddressBookPanelAbListener);
 
   CloseAbView();
 }
@@ -151,12 +101,12 @@ function AbPanelAdd(addrtype)
 
 function AbPanelNewCard() 
 {
-  goNewCardDialog(abList.selectedItem.getAttribute('id'));
+  goNewCardDialog(abList.value);
 }
 
 function AbPanelNewList() 
 {
-  goNewListDialog(abList.selectedItem.getAttribute('id'));
+  goNewListDialog(abList.value);
 }
 
 function ResultsPaneSelectionChanged() 

@@ -73,7 +73,8 @@
         <parameter name="aParentDir"/>
         <parameter name="aItem"/>
         <body><![CDATA[
-          if (aItem instanceof Components.interfaces.nsIAbDirectory) {
+          if (aItem instanceof Components.interfaces.nsIAbDirectory &&
+              !aItem.isMailList && !this._building) {
             // Save the currently selected item
             var selectedItem = this.parentNode.value;
             this.parentNode.value = null;
@@ -93,7 +94,8 @@
         <parameter name="aParentDir"/>
         <parameter name="aItem"/>
         <body><![CDATA[
-          if (aItem instanceof Components.interfaces.nsIAbDirectory) {
+          if (aItem instanceof Components.interfaces.nsIAbDirectory &&
+              !aItem.isMailList && !this._building) {
             // Find the item in the list to remove
             var nodes = this.getElementsByAttribute("value", aItem.URI);
 
@@ -115,7 +117,8 @@
         <parameter name="aOldValue"/>
         <parameter name="aNewValue"/>
         <body><![CDATA[
-          if (aItem instanceof Components.interfaces.nsIAbDirectory) {
+          if (aItem instanceof Components.interfaces.nsIAbDirectory &&
+              !aItem.isMailList && !this._building) {
             // Find the item in the list to rename.
             var nodes = this.getElementsByAttribute("value", aItem.URI);
 
@@ -137,6 +140,10 @@
 
       <method name="_build">
         <body><![CDATA[
+          // Protect against cyclic updates that can be caused by getting
+          // all the address books.
+          this._building = true;
+
           // Init the address book list.
           var addressBooks = Components.classes["@mozilla.org/abmanager;1"]
                                        .getService(Components.interfaces.nsIAbManager)
@@ -204,6 +211,8 @@
 
             menupopup.appendChild(item);
           });
+
+          this._building = false;
         ]]></body>
       </method>
     </implementation>

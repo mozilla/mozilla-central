@@ -53,9 +53,7 @@
 ]>
 
 <window id="selectAddressesWindow"
-        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:nc="http://home.netscape.com/NC-rdf#"
         title="&selectAddressWindow.title;"
         class="dialog"
         style="width: 50em; height: 35em;"
@@ -79,22 +77,8 @@
     <hbox id="topBox" align="center">
       <label value="&lookIn.label;" accesskey="&lookIn.accesskey;" control="addressbookList"/>
       <menulist id="addressbookList" 
-                ref="moz-abdirectory://" 
-                datasources="rdf:addressdirectory"
-                containment="http://home.netscape.com/NC-rdf#child"
-                sortActive="true"
-                sortDirection="ascending"
-                sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort"
                 oncommand="DirPaneSelectionChangeMenulist(); document.commandDispatcher.updateCommands('addrbook-select');">
-        <template>
-          <rule nc:IsMailList="false">
-            <menupopup>
-              <menuitem label="rdf:http://home.netscape.com/NC-rdf#DirName" uri="..."
-                        IsMailList="rdf:http://home.netscape.com/NC-rdf#IsMailList"
-                        IsRemote="rdf:http://home.netscape.com/NC-rdf#IsRemote"/>
-            </menupopup>
-          </rule>
-        </template>
+        <menupopup id="addressbookList-menupopup" class="addrbooksPopup"/>
       </menulist>  
       <label value="&for.label;" accesskey="&for.accesskey;" control="searchInput"/>
       <textbox id="searchInput" flex="1"

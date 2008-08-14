@@ -375,7 +375,7 @@ function NewCardOKButton()
   var popup = document.getElementById('abPopup');
   if ( popup )
   {
-    var uri = popup.getAttribute('value');
+    var uri = popup.value;
 
     // FIX ME - hack to avoid crashing if no ab selected because of blank option bug from template
     // should be able to just remove this if we are not seeing blank lines in the ab popup

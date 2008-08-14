@@ -116,7 +116,15 @@ function OnLoadSelectAddress()
   gSearchInput = document.getElementById("searchInput");
   SearchInputChanged();
 
-  SelectFirstAddressBookMenulist();
+  // Reselect the persisted address book if possible, if not just select the
+  // first in the list.
+  var temp = abPopup.value;
+  abPopup.selectedItem = null;
+  abPopup.value = temp;
+  if (!abPopup.selectedItem)
+    abPopup.selectedIndex = 0;
+
+  ChangeDirectoryByURI(abList.value);
 
   DialogBucketPaneSelectionChanged();
   
@@ -397,7 +405,7 @@ function onEnterInSearchBar()
                                               Components.interfaces.nsIPrefLocalizedString).data;
   }
   
-  var searchURI = selectedNode.getAttribute("id");
+  var searchURI = selectedNode.value;
 
   if (gSearchInput.value != "") {
     searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(gSearchInput.value));
@@ -408,19 +416,13 @@ function onEnterInSearchBar()
   SelectFirstCard();
 }
 
-function SelectFirstAddressBookMenulist()
-{
-  ChangeDirectoryByURI(abList.selectedItem.id);
-  return;
-}
-
 function DirPaneSelectionChangeMenulist()
 {
   if (abList && abList.selectedItem) {
     if (gSearchInput.value && (gSearchInput.value != "")) 
       onEnterInSearchBar();
     else
-      ChangeDirectoryByURI(abList.selectedItem.id);
+      ChangeDirectoryByURI(abList.value);
   }
 }
 

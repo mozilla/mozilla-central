@@ -42,8 +42,6 @@
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/addressbook/abMailListDialog.dtd">
 
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:nc="http://home.netscape.com/NC-rdf#"
-        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         id="ablistWindow"
         title="&mailListWindow.title;"
         ondialogaccept="return MailListOKButton();"
@@ -63,21 +61,8 @@
   <hbox align="center">
     <label control="abPopup" value="&addToAddressBook.label;" accesskey="&addToAddressBook.accesskey;"/>
     <menulist id="abPopup">
-      <menupopup id="abPopup-menupopup" 
-                 ref="moz-abdirectory://" 
-                 datasources="rdf:addressdirectory"
-                 sortActive="true"
-                 sortDirection="ascending"
-                 sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort">
-        <template>
-        <rule nc:IsWriteable="false"/>
-        <rule nc:SupportsMailingLists="true">
-          <menuitem uri="..."
-                    label="rdf:http://home.netscape.com/NC-rdf#DirName"
-                    value="rdf:http://home.netscape.com/NC-rdf#DirUri"/>
-        </rule>
-        </template>
-      </menupopup>
+      <menupopup id="abPopup-menupopup" class="addrbooksPopup" writeable="true"
+                 supportsmaillists="true"/>
     </menulist>
   </hbox>
 

@@ -262,3 +262,7 @@ tabmail
 menupopup[type="folder"] {
   -moz-binding: url("chrome://messenger/content/folderWidgets.xml#folder-menupopup");
 }
+
+.addrbooksPopup {
+  -moz-binding: url("chrome://messenger/content/addressbook/addrbookWidgets.xml#addrbooks-menupopup");
+}
