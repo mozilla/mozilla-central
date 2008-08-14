@@ -723,12 +723,12 @@ nsresult
 nsAbOSXDirectory::AssertDirectory(nsIAbManager *aManager,
                                   nsIAbDirectory *aDirectory)
 {
-#if _DEBUG
   PRUint32 pos;
-  NS_ASSERTION(!m_AddressList || 
-      NS_FAILED(m_AddressList->IndexOf(0, aDirectory, &pos)), "Replacing?");
-#endif
-  
+  if (m_AddressList &&
+      NS_SUCCEEDED(m_AddressList->IndexOf(0, aDirectory, &pos)))
+    // We already have this directory, so no point in adding it again.
+    return NS_OK;
+
   nsresult rv;
   if (!m_AddressList) {
     m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
