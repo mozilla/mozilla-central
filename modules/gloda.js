@@ -224,10 +224,12 @@ let Gloda = {
    *     0 if you don't need the value).
    */
   defineNoun: function gloda_ns_defineNoun(aNounMeta, aNounID) {
+    this._log.info("Defining noun: " + aNounMeta.name);
     if (aNounID === undefined)
       aNounID = this._nextNounID++;
     aNounMeta.id = aNounID;
-    if (aNounMeta.firstClass) {
+    // if it has a table, you can query on it.  seems straight-forward.
+    if (aNounMeta.tableName) {
       [aNounMeta.queryClass, aNounMeta.explicitQueryClass] =
         GlodaQueryClassFactory(aNounMeta);
     }
@@ -270,14 +272,18 @@ let Gloda = {
   _attrProviders: {},
   
   _initAttributes: function gloda_ns_initAttributes() {
-    this.defineNoun({class: Boolean, firstClass: false,
+    this.defineNoun({
+      name: "bool",
+      class: Boolean, firstClass: false,
       fromParamAndValue: function(aParam, aVal) {
         if(aVal != 0) return true; else return false;
       },
       toParamAndValue: function(aBool) {
         return [null, aBool ? 1 : 0];
       }}, this.NOUN_BOOLEAN);
-    this.defineNoun({class: Date, firstClass: false, continuous: true,
+    this.defineNoun({
+      name: "date",
+      class: Date, firstClass: false, continuous: true,
       fromParamAndValue: function(aParam, aPRTime) {
         return new Date(aPRTime / 1000);
       },
@@ -285,7 +291,9 @@ let Gloda = {
         return [null, aDate.valueOf() * 1000];
       }}, this.NOUN_DATE);
 
-    this.defineNoun({class: null,
+    this.defineNoun({
+      name: "folder",
+      class: null,
       firstClass: false,
       fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore._mapFolderID(aID);
@@ -297,7 +305,9 @@ let Gloda = {
     //  that there will be a high degree of correlation in many cases, and
     //  unless the UI is extremely clever and does its cleverness before
     //  examining the data, we will probably hit the correlation.
-    this.defineNoun({class: GlodaConversation,
+    this.defineNoun({
+      name: "conversation",
+      class: GlodaConversation,
       firstClass: false,
       tableName: "conversations",
       attrTableName: "messageAttributes", attrIDColumnName: "conversationID",
@@ -310,7 +320,9 @@ let Gloda = {
         else // assume they're just passing the id directly
           return [null, aConversation];
       }}, this.NOUN_CONVERSATION);
-    this.defineNoun({class: GlodaMessage,
+    this.defineNoun({
+      name: "message",
+      class: GlodaMessage,
       firstClass: true,
       tableName: "messages",
       attrTableName: "messageAttributes", attrIDColumnName: "messageID",
@@ -324,8 +336,12 @@ let Gloda = {
         else // assume they're just passing the id directly
           return [null, aMessage];
       }}, this.NOUN_MESSAGE);
-    this.defineNoun({class: GlodaContact,
+    this.defineNoun({
+      name: "contact",
+      class: GlodaContact,
       firstClass: false,
+      tableName: "contacts",
+      datastore: GlodaDatastore, objFromRow: GlodaDatastore._contactFromRow,
       fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getContactByID(aID);
       },
@@ -335,8 +351,12 @@ let Gloda = {
         else // assume they're just passing the id directly
           return [null, aContact];
       }}, this.NOUN_CONTACT);
-    this.defineNoun({class: GlodaIdentity,
+    this.defineNoun({
+      name: "identity",
+      class: GlodaIdentity,
       firstClass: false,
+      tableName: "identities",
+      datastore: GlodaDatastore, objFromRow: GlodaDatastore._identityFromRow,
       fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getIdentityByID(aID);
       },

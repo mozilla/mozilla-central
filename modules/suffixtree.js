@@ -128,25 +128,31 @@ SuffixTree.prototype = {
     
     // state should now be the node which itself and all its children match...
     let results = [];
-    this._resultGather(state, results, {});
+this.dump(state);
+    // index - end captures the over-shoot of the edge traversal,
+    // index - end + 1 captures the fact that we want to find the last letter
+    //  that matched, not just the first letter beyond it
+    this._resultGather(state, results, {}, end, index - end + 1, true);
     return results;
   },
   
-  _resultGather: function resultGather(aState, aResults, aPresence) {
+  _resultGather: function resultGather(aState, aResults, aPresence,
+                                       aPatLength, aDelta, alreadyAdjusted) {
     // find the item that this state originated from based on the state's
     //  start character.  offsetToItem holds [string start index, string end
     //  index (exclusive), item reference].  So we want to binary search to
     //  find the string whose start/end index contains the state's start index.
     let low = 0;
     let high = this._numItems-1;
-    let mid, start;
+    let mid, stringStart, stringEnd;
     
-    let value = aState.start;
+    let patternLast = aState.start - aDelta;
     while (low <= high) {
       mid = low + Math.floor((high - low) / 2); // excessive, especially with js nums
-      start = this._offsetsToItems[mid*3];
-      let startDelta = start - value;
-      let endDelta = this._offsetsToItems[mid*3+1] - value;
+      stringStart = this._offsetsToItems[mid*3];
+      let startDelta = stringStart - patternLast;
+      stringEnd = this._offsetsToItems[mid*3+1];
+      let endDelta = stringEnd - patternLast;
       if (startDelta > 0)
         high = mid - 1;
       else if (endDelta <= 0)
@@ -155,16 +161,68 @@ SuffixTree.prototype = {
         break;
       }
     }
-    if (!(start in aPresence)) {
-      aPresence[start] = true;
+    
+    // - The match occurred completely inside a source string.  Success.
+    // - The match spans more than one source strings, and is therefore not
+    //   a match.
+    
+    // at this point, we have located the origin string that corresponds to the
+    //  start index of this state.
+    // - The match terminated with the end of the preceding string, and does
+    //   not match us at all.  We, and potentially our children, are merely
+    //   serving as a unique terminal.
+    // - The 
+    
+dump("considering " + this._str.slice(stringStart, stringEnd) + " with pos " + 
+     stringStart + ":" + stringEnd + " with state " +
+     aState.start + ":" + aState.end +
+     "(patternLast: " + patternLast + " delta: " + aDelta + ")\n");
+/*
+    // we don't want this string if its start is the start of a string...
+    let bail = false;
+    if (start == aState.start) {
+      if (mid) {
+        mid--;
+        start = this._offsetsToItems[mid*3];
+        end = this._offsetsToItems[mid*3+1];
+        bail = true;
+dump("revised to " + this._str.slice(start, end) + " with pos " + 
+     start + ":" + end + " with state " +
+     aState.start + ":" + aState.end + "\n");
+      }
+      else
+        return; 
+    }
+*/
+  if (patternLast - aPatLength >= stringStart) {
+    if (!(stringStart in aPresence)) {
+dump("  adding!\n");
+      aPresence[stringStart] = true;
       aResults.push(this._offsetsToItems[mid*3+2]);
     }
+  }
+  else {
+dump("  disregarding because pattern is not contained.\n"); 
+  }
     
+    // bail if we had it coming OR
+    // if the result terminates at/part-way through this state, meaning any
+    //  of its children are not going to be actual results, just hangers
+    //  on.
+/*
+    if (bail || (end <= aState.end)) {
+dump("  bailing! (bail was: " + bail + ")\n");
+      return;
+    }
+*/    
     // process our children...
     for (let key in aState) {
       // edges have attributes of length 1...
       if (key.length == 1) {
-        this._resultGather(aState[key], aResults, aPresence);
+        let statePrime = aState[key];
+        this._resultGather(statePrime, aResults, aPresence, aPatLength,
+                           aDelta + (alreadyAdjusted ? 0 : aState.length),
+                           false);
       }
     }
   },
@@ -238,7 +296,7 @@ SuffixTree.prototype = {
   _update: function update(aState, aStart, aIndex) {
     let oldR = this._root;
     let textAtIndex = this._str[aIndex]; // T sub i (0-based corrected...)
-    // because of the way we store the 'stop' value as a one-past form, we do
+    // because of the way we store the 'end' value as a one-past form, we do
     //  not need to subtract 1 off of aIndex.
     let [endPoint, rState] = this._testAndSplit(aState, aStart, aIndex, //no -1
                                                 textAtIndex);
@@ -275,8 +333,9 @@ SuffixTree.prototype = {
   },
   
   dump: function SuffixTree_show(aState, aIndent, aKey) {
-    if (aState === undefined) {
+    if (aState === undefined)
       aState = this._root;
+    if (aIndent === undefined) {
       aIndent = "";
       aKey = ".";
     }

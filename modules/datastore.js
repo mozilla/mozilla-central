@@ -1110,11 +1110,13 @@ let GlodaDatastore = {
         selects.push(select);
       }
       
-      whereClauses.push("id IN (" + selects.join(" INTERSECT ") + " )");
+      if (selects.length)
+        whereClauses.push("id IN (" + selects.join(" INTERSECT ") + " )");
     }
     
-    let sqlString = "SELECT * FROM " + nounMeta.tableName + " WHERE " +
-        whereClauses.join(" OR ");
+    let sqlString = "SELECT * FROM " + nounMeta.tableName;
+    if (whereClauses.length)
+      sqlString += " WHERE " + whereClauses.join(" OR ");
         
     this._log.debug("QUERY FROM QUERY: " + sqlString);
     
