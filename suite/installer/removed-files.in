@@ -53,6 +53,9 @@ extensions/talkback@mozilla.org/components/talkback.exe
 extensions/talkback@mozilla.org/components/talkback.hlp
 extensions/talkback@mozilla.org/InstallDisabled
 #endif
+#ifdef XP_MACOSX
+updater.app/Contents/MacOS/updater.ini
+#endif
 components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
