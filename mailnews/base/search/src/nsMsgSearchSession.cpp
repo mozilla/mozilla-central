@@ -632,6 +632,8 @@ void nsMsgSearchSession::DestroyScopeList()
   {
     scope = m_scopeList.ElementAt(i);
     //    NS_ASSERTION (scope->IsValid(), "invalid search scope");
+    if (scope->m_adapter)
+      scope->m_adapter->ClearScope();
     delete scope;
   }
   m_scopeList.Clear();

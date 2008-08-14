@@ -120,6 +120,16 @@ nsMsgSearchAdapter::~nsMsgSearchAdapter()
 {
 }
 
+NS_IMETHODIMP nsMsgSearchAdapter::ClearScope()
+{
+  if (m_scope)
+  {
+    m_scope->SetInputStream(nsnull);
+    m_scope = nsnull;
+  }
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgSearchAdapter::ValidateTerms ()
 {
   // all this used to do is check if the object had been deleted - we can skip that.

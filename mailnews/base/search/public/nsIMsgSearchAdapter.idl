@@ -46,7 +46,7 @@
 class nsMsgResultElement;
 %}
 
-[scriptable, uuid(66f4b80c-0fb5-11d3-a515-0060b0fc04b7)]
+[scriptable, uuid(B9F49D4C-A494-41f6-9D70-AB6CB5670485)]
 interface nsIMsgSearchAdapter : nsISupports {
     void ValidateTerms();
     void Search(out boolean done);
@@ -66,5 +66,10 @@ interface nsIMsgSearchAdapter : nsISupports {
                                              element);
     void Abort();
     void getSearchCharsets(out AString srcCharset, out AString destCharset);
+    /*
+     * Clear the saved scope reference. This is used when deleting scope, which is not
+     * reference counted in nsMsgSearchSession
+     */
+    void clearScope();
 };
 
