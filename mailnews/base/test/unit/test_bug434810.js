@@ -49,7 +49,7 @@ function run_test()
   var expectedFolders = [ "Inbox" ]; // Inbox hard-coded in mailTestUtils.js
 
   // These two MailNews adds by default
-  expectedFolders.push(msgProps.GetStringFromName("unsentFolderName"));
+  expectedFolders.push(msgProps.GetStringFromName("outboxFolderName"));
   expectedFolders.push(msgProps.GetStringFromName("trashFolderName"));
 
   do_check_eq(rootFolder.numSubFolders, expectedFolders.length);
