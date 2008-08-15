@@ -160,14 +160,16 @@ let GlodaFundAttr = {
       },
       });
 
-    // Date
+    // Date.  now lives on the row.
     this._attrDate = Gloda.defineAttribute({
                         provider: this,
                         extensionName: Gloda.BUILT_IN,
                         attributeType: Gloda.kAttrFundamental,
                         attributeName: "date",
-                        bind: true,
+                        bind: false,
                         singular: true,
+                        special: true,
+                        specialColumnName: "date",
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_DATE,
                         parameterNoun: null,

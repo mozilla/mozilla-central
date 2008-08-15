@@ -828,7 +828,7 @@ dump("@@@@@@ GROUPING @@@@@@@@@\n");
   
   get msgFolder() {
 dump("&&& get msgFolder\n");
-    if (this._messages.length)
+    if (this._messages.length && this._messages[0].folderMessage)
       return this._messages[0].folderMessage.folder;
     return null;
   },

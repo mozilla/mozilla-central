@@ -58,7 +58,7 @@ let GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 4,
+  _schemaVersion: 5,
   _schema: {
     tables: {
       
@@ -107,6 +107,7 @@ let GlodaDatastore = {
           "folderID INTEGER REFERENCES folderLocations(id)",
           "messageKey INTEGER",
           "conversationID INTEGER NOT NULL REFERENCES conversations(id)",
+          "date INTEGER",
           // we used to have the parentID, but because of the very real
           //  possibility of multiple copies of a message with a given
           //  message-id, the parentID concept is unreliable.
@@ -118,6 +119,7 @@ let GlodaDatastore = {
           messageLocation: ['folderID', 'messageKey'],
           headerMessageID: ['headerMessageID'],
           conversationID: ['conversationID'],
+          date: ['date'],
         },
         
         triggers: {
@@ -174,8 +176,14 @@ let GlodaDatastore = {
           "id INTEGER PRIMARY KEY",
           "directoryUUID TEXT",
           "contactUUID TEXT",
+          "popularity INTEGER",
+          "frecency INTEGER",
           "name TEXT"
-        ]
+        ],
+        indices: {
+          popularity: ["popularity"],
+          frecency: ["frecency"],
+        },
       },
       
       /**
@@ -658,16 +666,19 @@ let GlodaDatastore = {
   /* ********** Message ********** */
   get _insertMessageStatement() {
     let statement = this._createStatement(
-      "INSERT INTO messages (folderID, messageKey, conversationID, \
+      "INSERT INTO messages (folderID, messageKey, conversationID, date, \
                              headerMessageID, bodySnippet) \
-              VALUES (:folderID, :messageKey, :conversationID, \
+              VALUES (:folderID, :messageKey, :conversationID, :date, \
                       :headerMessageID, :bodySnippet)");
     this.__defineGetter__("_insertMessageStatement", function() statement);
     return this._insertMessageStatement; 
   }, 
   
+  /**
+   *
+   */
   createMessage: function gloda_ds_createMessage(aFolderURI, aMessageKey,
-                              aConversationID, aHeaderMessageID,
+                              aConversationID, aDatePRTime, aHeaderMessageID,
                               aBodySnippet) {
     let folderID;
     if (aFolderURI != null) {
@@ -681,6 +692,7 @@ let GlodaDatastore = {
     ims.params.folderID = folderID;
     ims.params.messageKey = aMessageKey;
     ims.params.conversationID = aConversationID;
+    ims.params.date = aDatePRTime;
     ims.params.headerMessageID = aHeaderMessageID;
     ims.params.bodySnippet = aBodySnippet;
 
@@ -696,6 +708,7 @@ let GlodaDatastore = {
     
     return new GlodaMessage(this, this.dbConnection.lastInsertRowID, folderID,
                             aMessageKey, aConversationID, null,
+                            aDatePRTime ? new Date(aDatePRTime / 1000) : null,
                             aHeaderMessageID, aBodySnippet);
   },
   
@@ -741,9 +754,11 @@ let GlodaDatastore = {
   },
   
   _messageFromRow: function gloda_ds_messageFromRow(aRow) {
+    let datePRTime = aRow["date"];
     return new GlodaMessage(this, aRow["id"], aRow["folderID"],
                             aRow["messageKey"],
                             aRow["conversationID"], null,
+                            datePRTime ? new Date(datePRTime / 1000) : null,
                             aRow["headerMessageID"], aRow["bodySnippet"]);
   },
 
@@ -1097,10 +1112,15 @@ let GlodaDatastore = {
               valueTests.push(valueColumnName + " = " + APV[2]);
           }
           else { // APV.length == 4, so range match
+            if (APV[2] === null) // so just <=
+              valueTests.push(valueColumnName + " <= " + APV[3]);
+            else if (APV[3] === null) // so just >=
             // BETWEEN is optimized to >= and <=, or we could just do that
             //  ourself (in other words, this shouldn't hurt our use of indices)
-            valueTests.push(valueColumnName + " BETWEEN " + APV[2] + " AND " +
-                            APV[3]);
+              valueTests.push(valueColumnName + " >= " + APV[2]);
+            else
+              valueTests.push(valueColumnName + " BETWEEN " + APV[2] + " AND " +
+                              APV[3]);
           }
         }
         let select = "SELECT " + idColumnName + " FROM " + tableName + 

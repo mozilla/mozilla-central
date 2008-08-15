@@ -162,12 +162,13 @@ let GlodaIndexer = {
     
     this._inited = true;
     
+    // we need this for setTimeout... what to do about this?
     this._domWindow = aDOMWindow;
-    
+    // not sure we actually need this to pass around?
     this._msgWindow = aMsgWindow;
-    
+    // XXX we can XPCOM this up instead...
     this._strBundle = aStrBundle;
-    
+    // XXX we can XPCOM up a messenger instance of our own
     this._messenger = aMessenger;
     
     // topmostMsgWindow explodes for un-clear reasons if we have multiple
@@ -210,6 +211,7 @@ let GlodaIndexer = {
 
   /** Track whether indexing is active (we have timers in-flight). */
   _indexingActive: false,
+  /** Indicates whether indexing is active or not. */
   get indexing() { return this._indexingActive; },
   /** You can turn on indexing, but you can't turn it off! */
   set indexing(aShouldIndex) {
@@ -267,13 +269,15 @@ let GlodaIndexer = {
    * The time interval, in milliseconds between performing indexing work.
    *  This may be altered by user session (in)activity.
    */ 
-  _indexInterval: 100,
+  _indexInterval: 80,
   /**
    * Number of indexing 'tokens' we are allowed to consume before yielding for
    *  each incremental pass.  Consider a single token equal to indexing a single
    *  medium-sized message.  This may be altered by user session (in)activity.
+   * Because we fetch message bodies, which is potentially asynchronous, this
+   *  is not a precise knob to twiddle.
    */
-  _indexTokens: 10,
+  _indexTokens: 15,
   
   _indexListeners: [],
   /**
@@ -288,6 +292,9 @@ let GlodaIndexer = {
    *     number being indexed (int), total number of folders to index (int),
    *     current message number being indexed in this folder (int), total number
    *     of messages in this folder to be indexed (int).
+   *
+   * @TODO should probably allow for a 'this' value to be provided
+   * @TODO generalize to not be folder/message specific.  use nouns!
    */
   addListener: function gloda_index_addListener(aListener) {
     // should we weakify?
@@ -300,11 +307,21 @@ let GlodaIndexer = {
                 null, 0, 1, 0, 1);
     return aListener;
   },
+  /**
+   * Remove the given listener so that it no longer receives indexing progress
+   *  updates.
+   */
   removeListener: function gloda_index_removeListener(aListener) {
     let index = this._indexListeners.indexOf(aListener);
     if (index != -1)
       this._indexListeners.splice(index, 1);
   },
+  /**
+   * Helper method to tell listeners what we're up to.  For code simplicity,
+   *  the caller is just deciding when to send this update (preferably at
+   *  reasonable intervals), and doesn't need to provide any indication of
+   *  state... we figure that out ourselves.
+   */
   _notifyListeners: function gloda_index_notifyListeners() {
     let status, prettyName, jobIndex, jobTotal, jobItemIndex, jobItemGoal;
     
@@ -1222,7 +1239,7 @@ let GlodaIndexer = {
                         ", " + references[iAncestor] +
                         ", null.");
         let ancestor = this._datastore.createMessage(null, null, // ghost
-                                                     conversationID,
+                                                     conversationID, null,
                                                      references[iAncestor],
                                                      null); // no snippet
         ancestorLists[iAncestor].push(ancestor);
@@ -1274,6 +1291,7 @@ let GlodaIndexer = {
       curMsg = this._datastore.createMessage(aMsgHdr.folder.URI,
                                              aMsgHdr.messageKey,                
                                              conversationID,
+                                             aMsgHdr.date,
                                              aMsgHdr.messageId,
                                              null); // no snippet
      }

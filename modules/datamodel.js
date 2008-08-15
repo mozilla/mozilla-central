@@ -191,7 +191,7 @@ GlodaConversation.prototype = {
 
 
 function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
-                      aConversationID, aConversation,
+                      aConversationID, aConversation, aDate,
                       aHeaderMessageID, aBodySnippet) {
   this._datastore = aDatastore;
   this._id = aID;
@@ -199,6 +199,7 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   this._messageKey = aMessageKey;
   this._conversationID = aConversationID;
   this._conversation = aConversation;
+  this.date = date;
   this._headerMessageID = aHeaderMessageID;
   this._bodySnippet = aBodySnippet;
 
