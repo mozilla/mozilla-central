@@ -17,6 +17,8 @@ VENKMAN_DIRS = ('extensions/venkman',)
 
 # URL of the default hg repository to clone for Mozilla.
 DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/mozilla-central/'
+# URL of the default hg repository to clone for inspector.
+DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
 
 import os
 import sys
@@ -88,6 +90,13 @@ o.add_option("--skip-mozilla", dest="skip_mozilla",
              action="store_true", default=False,
              help="Skip pulling the Mozilla repository.")
 
+o.add_option("--inspector-repo", dest="inspector_repo",
+             default=None,
+             help="URL of DOM inspector repository to pull from (default: use hg default in mozilla/extensions/inspector/.hg/hgrc; or if that file doesn't exist, use \"" + DEFAULT_INSPECTOR_REPO + "\".)")
+o.add_option("--skip-inspector", dest="skip_inspector",
+             action="store_true", default=False,
+             help="Skip pulling the DOM inspector repository.")
+
 o.add_option("--skip-cvs", dest="skip_cvs",
              action="store_true", default=False,
              help="Skip pulling the old directories from the Mozilla CVS repository.")
@@ -135,6 +144,11 @@ def fixup_repo_options(options):
             and not os.path.exists(os.path.join(topsrcdir, 'mozilla'))):
         options.mozilla_repo = DEFAULT_MOZILLA_REPO
 
+    # Handle special case: initial checkout of inspector.
+    if (options.inspector_repo is None
+            and not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'inspector'))):
+        options.inspector_repo = DEFAULT_INSPECTOR_REPO
+
 try:
     (options, (action,)) = o.parse_args()
 except ValueError:
@@ -149,6 +163,9 @@ if action in ('checkout', 'co'):
 
     if not options.skip_mozilla:
         do_hg_pull('mozilla', options.mozilla_repo, options.hg)
+
+    if not options.skip_inspector:
+        do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg)
 
     if not options.skip_cvs:
         if not options.skip_calendar:
