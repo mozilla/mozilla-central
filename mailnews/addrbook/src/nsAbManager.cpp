@@ -170,19 +170,26 @@ NS_IMETHODIMP nsAbManager::GetDirectories(nsISimpleEnumerator **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
-  nsresult rv;
-  nsCOMPtr<nsIRDFService> rdfService(do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  // We cache the top level AB to ensure that nsIAbDirectory items are not
+  // created and dumped every time GetDirectores is called. This was causing
+  // performance problems, especially with the content policy on messages
+  // with lots of urls.
+  if (!mCacheTopLevelAb)
+  {
+    nsresult rv;
+    nsCOMPtr<nsIRDFService> rdfService(do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIRDFResource> parentResource;
-  rv = rdfService->GetResource(NS_LITERAL_CSTRING(kAllDirectoryRoot),
-                               getter_AddRefs(parentResource));
-  NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIRDFResource> parentResource;
+    rv = rdfService->GetResource(NS_LITERAL_CSTRING(kAllDirectoryRoot),
+                                 getter_AddRefs(parentResource));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(parentResource, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+    mCacheTopLevelAb = do_QueryInterface(parentResource, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
-  return directory->GetChildNodes(aResult);
+  return mCacheTopLevelAb->GetChildNodes(aResult);
 }
 
 NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,

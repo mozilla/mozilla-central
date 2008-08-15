@@ -86,6 +86,7 @@ private:
   };
 
   nsTObserverArray<abListener> mListeners;
+  nsCOMPtr<nsIAbDirectory> mCacheTopLevelAb;
 };
 
 #endif
