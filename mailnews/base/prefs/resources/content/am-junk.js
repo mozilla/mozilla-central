@@ -51,7 +51,7 @@ function onInit(aPageId, aServerId)
   {
     var server = GetMsgFolderFromUri(aServerId, false).server;
     if (server.canCreateFoldersOnServer && server.canSearchMessages)
-      spamActionTargetAccount = parent.pendingServerId;
+      spamActionTargetAccount = aServerId;
     else
       spamActionTargetAccount = parent.accountManager.localFoldersServer.serverURI;
     document.getElementById('server.spamActionTargetAccount').value = spamActionTargetAccount;
