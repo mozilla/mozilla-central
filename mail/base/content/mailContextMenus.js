@@ -532,8 +532,7 @@ function fillFolderPaneContextMenu()
   ShowMenuItem("folderPaneContext-emptyJunk", (numSelected <= 1) && (specialFolder == 'Junk'));
   EnableMenuItem("folderPaneContext-emptyJunk", true);
 
-  var showSendUnsentMessages = (numSelected <= 1) 
-    && (specialFolder == 'Unsent Messages' || specialFolder == 'Unsent');
+  var showSendUnsentMessages = (numSelected <= 1) && (specialFolder == 'Unsent Messages');
   ShowMenuItem("folderPaneContext-sendUnsentMessages", showSendUnsentMessages);
   if (showSendUnsentMessages) 
     EnableMenuItem("folderPaneContext-sendUnsentMessages", IsSendUnsentMsgsEnabled(folder));
@@ -544,7 +543,7 @@ function fillFolderPaneContextMenu()
   // XXX: Hack for RSS servers...
   ShowMenuItem("folderPaneContext-rssSubscribe", (numSelected <= 1) && (serverType == "rss"));
   EnableMenuItem("folderPaneContext-rssSubscribe", true);
-  
+
   // News folder context menu =============================================
   ShowMenuItem("folderPaneContext-newsUnsubscribe", (numSelected <= 1) && canSubscribeToFolder && isNewsgroup);
   EnableMenuItem("folderPaneContext-newsUnsubscribe", true);

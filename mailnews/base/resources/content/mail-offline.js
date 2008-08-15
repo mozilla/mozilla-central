@@ -124,7 +124,7 @@ function PromptSendMessages()
     var checkValue = {value:true};
     var buttonPressed = gPromptService.confirmEx(window, 
                           gOfflinePromptsBundle.getString('sendMessagesWindowTitle'), 
-                          gOfflinePromptsBundle.getString('sendMessagesLabel'),
+                          gOfflinePromptsBundle.getString('sendMessagesLabel2'),
                           gPromptService.BUTTON_TITLE_IS_STRING * (gPromptService.BUTTON_POS_0 + 
                             gPromptService.BUTTON_POS_1 + gPromptService.BUTTON_POS_2),
                           gOfflinePromptsBundle.getString('sendMessagesSendButtonLabel'),

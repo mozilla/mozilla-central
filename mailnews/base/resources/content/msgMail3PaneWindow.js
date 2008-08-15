@@ -855,7 +855,7 @@ function loadStartFolder(initialUri)
         {
           var buttonPressed = gPromptService.confirmEx(window,
                                 gOfflinePromptsBundle.getString('sendMessagesOfflineWindowTitle'),
-                                gOfflinePromptsBundle.getString('sendMessagesLabel'),
+                                gOfflinePromptsBundle.getString('sendMessagesLabel2'),
                                 gPromptService.BUTTON_TITLE_IS_STRING * (gPromptService.BUTTON_POS_0 +
                                   gPromptService.BUTTON_POS_1),
                                 gOfflinePromptsBundle.getString('sendMessagesSendButtonLabel'),

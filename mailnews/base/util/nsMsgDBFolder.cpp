@@ -2121,7 +2121,7 @@ nsMsgDBFolder::initializeStrings()
                             &kLocalizedTemplatesName);
   bundle->GetStringFromName(NS_LITERAL_STRING("junkFolderName").get(),
                             &kLocalizedJunkName);
-  bundle->GetStringFromName(NS_LITERAL_STRING("unsentFolderName").get(),
+  bundle->GetStringFromName(NS_LITERAL_STRING("outboxFolderName").get(),
                             &kLocalizedUnsentName);
 
   nsCOMPtr<nsIStringBundle> brandBundle;
@@ -2619,9 +2619,7 @@ NS_IMETHODIMP nsMsgDBFolder::SetPrettyName(const nsAString& name)
     rv = SetName(nsDependentString(kLocalizedInboxName));
   else if (mFlags & nsMsgFolderFlags::SentMail && name.LowerCaseEqualsLiteral("sent"))
     rv = SetName(nsDependentString(kLocalizedSentName));
-  //netscape webmail uses "Draft" instead of "Drafts"
-  else if (mFlags & nsMsgFolderFlags::Drafts && (name.LowerCaseEqualsLiteral("drafts")
-                                                || name.LowerCaseEqualsLiteral("draft")))
+  else if (mFlags & nsMsgFolderFlags::Drafts && name.LowerCaseEqualsLiteral("drafts"))
     rv = SetName(nsDependentString(kLocalizedDraftsName));
   else if (mFlags & nsMsgFolderFlags::Templates && name.LowerCaseEqualsLiteral("templates"))
     rv = SetName(nsDependentString(kLocalizedTemplatesName));
