@@ -366,6 +366,7 @@ function processFolderForJunk(aAll)
     whiteListDirectory = Components.classes["@mozilla.org/abmanager;1"]
                                    .getService(Components.interfaces.nsIAbManager)
                                    .getDirectory(spamSettings.whiteListAbURI);
+  }
 
   // create a classifier instance to classify messages in the folder.
   var msgClassifier = new MessageClassifier(tmpMsgHdr.folder, totalMessages);
