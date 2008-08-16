@@ -50,6 +50,7 @@
 #include "nsIObserver.h"
 #include "nsWeakReference.h"
 #include "nsString.h"
+#include "nsIAbDirectory.h"
 
 #include "nsICookiePermission.h" 
 
@@ -80,6 +81,7 @@ protected:
   PRBool   mBlockRemoteImages;
   PRBool   mAllowPlugins;
   nsCString mTrustedMailDomains;
+  nsCOMPtr<nsIAbDirectory> mCachedTopLevelAb;
 
   PRBool IsTrustedDomain(nsIURI * aContentLocation);
   nsresult AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, PRBool * aAllowForSender);

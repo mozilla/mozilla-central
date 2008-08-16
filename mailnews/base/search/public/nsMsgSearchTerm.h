@@ -46,7 +46,7 @@
 #include "nsIMsgSearchTerm.h"
 
 // needed to search for addresses in address books
-#include "nsIAbDirectory.h"
+#include "nsIAbMDBDirectory.h"
 
 #define EMPTY_MESSAGE_LINE(buf) (buf[0] == '\r' || buf[0] == '\n' || buf[0] == '\0')
 
@@ -117,7 +117,7 @@ protected:
     nsresult InitializeAddressBook();
     nsresult MatchInAddressBook(const char * aAddress, PRBool *pResult);
     // fields used by search in address book
-    nsCOMPtr <nsIAbDirectory> mDirectory;
+    nsCOMPtr <nsIAbMDBDirectory> mDirectory;
 
     PRPackedBool mBeginsGrouping;
     PRPackedBool mEndsGrouping;
