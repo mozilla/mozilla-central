@@ -264,8 +264,7 @@ function run_test()
   // Get the actual AB for the collector so we can check cards have been
   // added.
   collectChecker.AB =
-    abManager.getDirectory(prefService.getCharPref("mail.collect_addressbook"))
-             .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
+    abManager.getDirectory(prefService.getCharPref("mail.collect_addressbook"));
 
   // Get the actual collecter
   collectChecker.addressCollect =
@@ -277,10 +276,8 @@ function run_test()
   collectChecker.addressCollect.collectAddress("MyTest <>", true,
                                                nsIAbPMF.unknown);
 
-  var CAB = collectChecker.AB.QueryInterface(Components.interfaces.nsIAbDirectory);
-
   // Address book should have no cards present.
-  do_check_false(CAB.childCards.hasMoreElements());
+  do_check_false(collectChecker.AB.childCards.hasMoreElements());
 
   // Test - Email doesn't exist, but don't add it.
 
@@ -303,21 +300,21 @@ function run_test()
   // Test - Do all emails at the same time.
 
   // First delete all existing cards
-  var childCards = CAB.childCards;
+  var childCards = collectChecker.AB.childCards;
   var cardsToDelete = Components.classes["@mozilla.org/array;1"]
                                 .createInstance(Components.interfaces.nsIMutableArray);
   while (childCards.hasMoreElements()) {
     cardsToDelete.appendElement(childCards.getNext(), false);
   }
 
-  CAB.deleteCards(cardsToDelete);
+  collectChecker.AB.deleteCards(cardsToDelete);
 
   // Null these directly, so gc() will purge them
   childCards = null;
   cardsToDelete = null;
 
   // Address book should have no cards present.
-  do_check_false(CAB.childCards.hasMoreElements());
+  do_check_false(collectChecker.AB.childCards.hasMoreElements());
 
   do_check_eq(collectChecker.AB.cardForEmailAddress(addEmailChecks[0].emailHeader), null);
 
@@ -334,7 +331,7 @@ function run_test()
   card.primaryEmail = "userprim\u00D0@invalid.com";
   card.setProperty("SecondEmail", "usersec\u00D0@invalid.com");
 
-  CAB.addCard(card);
+  collectChecker.AB.addCard(card);
 
   collectChecker.part = 0;
 
