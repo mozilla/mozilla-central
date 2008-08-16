@@ -7850,7 +7850,6 @@ RC=
 unset MAKEFILES
 unset CONFIG_FILES
 
-if test "$COMPILE_ENVIRONMENT"; then
 # build Mozilla first
 #
 # the subdir may not yet have been created in the build tree.
@@ -7881,6 +7880,7 @@ AC_OUTPUT_SUBDIRS(mozilla)
 ac_configure_args="$_SUBDIR_CONFIG_ARGS"
 MOZ_BUILD_APP="$MOZ_BUILD_APP_CACHED"
 
+if test "$COMPILE_ENVIRONMENT"; then
 # if we're building the LDAP XPCOM component, we need to build 
 # the c-sdk first.  
 #
