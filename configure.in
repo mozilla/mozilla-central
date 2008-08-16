@@ -1323,7 +1323,6 @@ if test "$GNU_CC"; then
     #             be a little bit stricter
     # Warnings slamm took out for now (these were giving more noise than help):
     # -Wbad-function-cast - warns when casting a function to a new return type
-    # -Wconversion - complained when char's or short's were used a function args
     # -Wshadow - removed because it generates more noise than help --pete
     _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} -Wall -W -Wno-unused -Wpointer-arith"
     if test -z "$INTEL_CC"; then
@@ -1370,7 +1369,7 @@ if test "$GNU_CXX"; then
     # FIXME: Let us build with strict aliasing. bug 414641.
     CXXFLAGS="$CXXFLAGS -fno-strict-aliasing"
     # Turn on GNU specific features
-    _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} -Wall -Wconversion -Wpointer-arith -Woverloaded-virtual -Wsynth -Wno-ctor-dtor-privacy -Wno-non-virtual-dtor"
+    _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} -Wall -Wpointer-arith -Woverloaded-virtual -Wsynth -Wno-ctor-dtor-privacy -Wno-non-virtual-dtor"
     if test -z "$INTEL_CC"; then
        # Don't use -Wcast-align with ICC
        case "$CPU_ARCH" in
@@ -4393,7 +4392,6 @@ MOZ_XUL=1
 MOZ_XUL_APP=1
 MOZ_ZIPWRITER=1
 NS_PRINTING=1
-SUNCTL=
 JS_STATIC_BUILD=
 XPC_IDISPATCH_SUPPORT=
 
@@ -5103,14 +5101,6 @@ fi
 dnl bi-directional support always on
 IBMBIDI=1
 AC_DEFINE(IBMBIDI)
-
-dnl ========================================================
-dnl complex text support off by default
-dnl ========================================================
-MOZ_ARG_ENABLE_BOOL(ctl,
-[  --enable-ctl            Enable Thai Complex Script support],
-    SUNCTL=1,
-    SUNCTL= )
 
 dnl ========================================================
 dnl view source support on by default
@@ -7309,22 +7299,6 @@ if test "$MOZ_LDAP_XPCOM"; then
     fi
 fi
 
-if test "$COMPILE_ENVIRONMENT"; then
-if test "$SUNCTL"; then
-    dnl older versions of glib do not seem to have gmodule which ctl needs
-    _SAVE_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS $GLIB_CFLAGS"
-    AC_LANG_SAVE
-    AC_LANG_C
-    AC_TRY_COMPILE([#include <gmodule.h>],
-        [ int x = 1; x++; ],,
-        [AC_MSG_ERROR([Cannot build ctl without gmodule support in glib.])])
-    AC_LANG_RESTORE
-    CFLAGS=$_SAVE_CFLAGS
-    AC_DEFINE(SUNCTL)
-fi
-fi # COMPILE_ENVIRONMENT
-
 dnl ========================================================
 dnl =
 dnl = Maintainer debug option (no --enable equivalent)
@@ -7427,7 +7401,6 @@ AC_SUBST(BUILD_STATIC_LIBS)
 AC_SUBST(MOZ_ENABLE_LIBXUL)
 AC_SUBST(ENABLE_TESTS)
 AC_SUBST(IBMBIDI)
-AC_SUBST(SUNCTL)
 AC_SUBST(MOZ_UNIVERSALCHARDET)
 AC_SUBST(ACCESSIBILITY)
 AC_SUBST(MOZ_XPINSTALL)
