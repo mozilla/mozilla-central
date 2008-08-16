@@ -6143,7 +6143,7 @@ InternetSearchDataSource::Observe(nsISupports *aSubject, const char *aTopic, con
         // The profile is about to change.
         categoryDataSource = nsnull;
 
-        if (NS_LITERAL_STRING("shutdown-cleanse").Equals(someData))
+        if (someData && NS_LITERAL_STRING("shutdown-cleanse").Equals(someData))
         {
             // Delete search.rdf
             nsCOMPtr<nsIFile> searchFile;
