@@ -1,131 +1,246 @@
 <?xml version="1.0"?>
 
-<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Communicator.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corp.
+   - Portions created by the Initial Developer are Copyright (C) 2000
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Bruno Escherl <aqualon@aquachan.de>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE page [
-<!ENTITY % pref-composing_messagesDTD SYSTEM "chrome://messenger/locale/messengercompose/pref-composing_messages.dtd" >
+<!DOCTYPE overlay [
+<!ENTITY % pref-composing_messagesDTD SYSTEM "chrome://messenger/locale/messengercompose/pref-composing_messages.dtd">
 %pref-composing_messagesDTD;
-<!ENTITY % editorOverlayDTD SYSTEM "chrome://editor/locale/editorOverlay.dtd" >
+<!ENTITY % editorOverlayDTD SYSTEM "chrome://editor/locale/editorOverlay.dtd">
 %editorOverlayDTD;
 ]>
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="PopulateFonts();parent.initPanel('chrome://messenger/content/messengercompose/pref-composing_messages.xul');"
-      headertitle="&pref.composing.messages.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="composing_messages_pane"
+            label="&pref.composing.messages.title;"
+            script="chrome://messenger/content/messengercompose/pref-composing_messages.js"
+            onpaneload="this.PopulateFonts();">
 
-  <stringbundle id="languageBundle" src="chrome://global/locale/languageNames.properties"/>
-  <stringbundle id="regionBundle" src="chrome://global/locale/regionNames.properties"/>
+    <stringbundle id="languageBundle"
+                  src="chrome://global/locale/languageNames.properties"/>
+    <stringbundle id="regionBundle"
+                  src="chrome://global/locale/regionNames.properties"/>
 
-  <script type="application/x-javascript" src="chrome://messenger/content/messengercompose/pref-composing_messages.js"/>
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["forwardMessageMode", "autoSave", "autoSaveInterval",
-                       "spellCheckBeforeSend", "inlineSpellCheck", "languageMenuList",
-                       "mailWarnOnSendAccelKey", "wrapLength", "fontSelect",
-                       "fontSizeSelect", "textColor", "backgroundColor"];
-  ]]>
-  </script>  
+    <preferences id="composing_messages_preferences">
+      <preference id="mail.forward_message_mode"
+                  name="mail.forward_message_mode"
+                  type="int"/>
+      <preference id="mail.compose.autosave"
+                  name="mail.compose.autosave"
+                  type="bool"
+                  onchange="EnableMailComposeAutosaveInterval(this.value);"/>
+      <preference id="mail.compose.autosaveinterval"
+                  name="mail.compose.autosaveinterval"
+                  type="int"/>
+      <preference id="mail.warn_on_send_accel_key"
+                  name="mail.warn_on_send_accel_key"
+                  type="bool"/>
+      <preference id="mailnews.wraplength"
+                  name="mailnews.wraplength"
+                  type="int"/>
+      <preference id="mail.SpellCheckBeforeSend"
+                  name="mail.SpellCheckBeforeSend"
+                  type="bool"/>
+      <preference id="mail.spellcheck.inline"
+                  name="mail.spellcheck.inline"
+                  type="bool"/>
+      <preference id="spellchecker.dictionary"
+                  name="spellchecker.dictionary"
+                  type="string"
+                  onchange="SelectLanguage(event.target)"/>
+      <preference id="msgcompose.font_face"
+                  name="msgcompose.font_face"
+                  type="string"/>
+      <preference id="msgcompose.font_size"
+                  name="msgcompose.font_size"
+                  type="string"/>
+      <preference id="msgcompose.text_color"
+                  name="msgcompose.text_color"
+                  type="string"/>
+      <preference id="msgcompose.background_color"
+                  name="msgcompose.background_color"
+                  type="string"/>
+    </preferences>
 
-  <groupbox>
-    <caption label="&generalComposing.label;"/>
-
-    <radiogroup id="forwardMessageMode" orient="horizontal" align="center"
-                prefstring="mail.forward_message_mode">
-      <label value="&forwardMsg.label;" control="forwardMessageMode"/>
-      <radio value="2" label="&inline.label;" accesskey="&inline.accesskey;"/>
-      <radio value="0" label="&asAttachment.label;"
-             accesskey="&asAttachment.accesskey;"/>
-    </radiogroup>
-
-    <hbox align="center">
-      <checkbox id="autoSave" label="&autoSave.label;"
-                prefstring="mail.compose.autosave"
-                accesskey="&autoSave.accesskey;"
-                oncommand="EnableTextbox(this, gAutoSaveInterval, false);"/>
-      <textbox id="autoSaveInterval" size="2" preftype="int"
-               aria-labelledby="autoSave autoSaveInterval autoSaveEnd"
-               prefstring="mail.compose.autosaveinterval"/>
-      <label value="&autoSaveEnd.label;" id="autoSaveEnd"/>
-    </hbox>
-
-    <checkbox id="mailWarnOnSendAccelKey" label="&warnOnSendAccelKey.label;"
-              prefstring="mail.warn_on_send_accel_key"
-              accesskey="&warnOnSendAccelKey.accesskey;" />
-
-    <hbox align="center">
-      <label value="&wrapOutMsg.label;" accesskey="&wrapOutMsg.accesskey;" control="wrapLength" id="wrapOutLabel"/>
-      <textbox id="wrapLength" size="3" preftype="int"
-               aria-labelledby="wrapOutLabel wrapLength wrapOutEnd"
-               prefstring="mailnews.wraplength" prefattribute="value"/>
-      <label value="&char.label;" id="wrapOutEnd"/>
-    </hbox>
-  </groupbox>
-
-  <!-- Composing Mail -->
-  <groupbox id="spellingGroup" align="start">
-    <caption label="&spellingHeader.label;"/>
-    <vbox align="start">
-      <checkbox id="spellCheckBeforeSend" label="&spellCheck.label;"
-                prefstring="mail.SpellCheckBeforeSend"
-                accesskey="&spellCheck.accesskey;"/>
-      <checkbox id="inlineSpellCheck" label="&spellCheckInline.label;"
-                prefstring="mail.spellcheck.inline"
-                accesskey="&spellCheckInline.accesskey;"/>
-    </vbox>
-
-    <separator class="thin"/>
-
-    <hbox align="center" pack="start">
-      <label value="&languagePopup.label;" control="languageMenuList"
-             accesskey="&languagePopup.accessKey;"/>
-      <menulist id="languageMenuList" oncommand="SelectLanguage(event.target)"
-                preftype="string" prefstring="spellchecker.dictionary">
-        <menupopup onpopupshowing="InitLanguageMenu();">
-          <!-- dynamic content populated by JS -->
-          <menuseparator/>
-          <menuitem value="more-cmd" label="&moreDictionaries.label;"/>
-        </menupopup>
-      </menulist>
-      <spring flex="1"/>
-    </hbox>
-
-  </groupbox>
-
-  <groupbox align="start">
-    <caption label="&defaultMessagesHeader.label;"/>
-    <vbox>
+    <groupbox>
+      <caption label="&generalComposing.label;"/>
+  
+      <radiogroup id="forwardMessageMode"
+                  orient="horizontal"
+                  align="center"
+                  preference="mail.forward_message_mode">
+        <label value="&forwardMsg.label;" control="forwardMessageMode"/>
+        <radio value="2"
+               label="&inline.label;"
+               accesskey="&inline.accesskey;"/>
+        <radio value="0"
+               label="&asAttachment.label;"
+               accesskey="&asAttachment.accesskey;"/>
+      </radiogroup>
+  
       <hbox align="center">
-        <label control="fontSelect" value="&font.label;" accesskey="&font.accesskey;"/>
-        <menulist id="fontSelect" preftype="string" prefstring="msgcompose.font_face">
-          <menupopup>
-            <menuitem value="" label="&fontVarWidth.label;"/>
-            <menuitem value="tt" label="&fontFixedWidth.label;"/>
+        <checkbox id="autoSave" label="&autoSave.label;"
+                  preference="mail.compose.autosave"
+                  accesskey="&autoSave.accesskey;"
+                  aria-labelledby="autoSave autoSaveInterval autoSaveEnd"/>
+        <textbox id="autoSaveInterval"
+                 type="number"
+                 min="1"
+                 max="99"
+                 size="2"
+                 preference="mail.compose.autosaveinterval"
+                 aria-labelledby="autoSave autoSaveInterval autoSaveEnd"/>
+        <label id="autoSaveEnd" value="&autoSaveEnd.label;"/>
+      </hbox>
+
+      <checkbox id="mailWarnOnSendAccelKey"
+                label="&warnOnSendAccelKey.label;"
+                accesskey="&warnOnSendAccelKey.accesskey;"
+                preference="mail.warn_on_send_accel_key"/>
+  
+      <hbox align="center">
+        <label id="wrapOutLabel"
+               value="&wrapOutMsg.label;"
+               accesskey="&wrapOutMsg.accesskey;"
+               control="wrapLength"/>
+        <textbox id="wrapLength"
+                 type="number"
+                 min="0"
+                 max="999"
+                 size="3"
+                 preference="mailnews.wraplength"
+                 aria-labelledby="wrapOutLabel wrapLength wrapOutEnd"/>
+        <label id="wrapOutEnd" value="&char.label;"/>
+      </hbox>
+    </groupbox>
+  
+    <!-- Composing Mail -->
+    <groupbox id="spellingGroup" align="start">
+      <caption label="&spellingHeader.label;"/>
+      <vbox align="start">
+        <checkbox id="spellCheckBeforeSend"
+                  label="&spellCheck.label;"
+                  accesskey="&spellCheck.accesskey;"
+                  preference="mail.SpellCheckBeforeSend"/>
+        <checkbox id="inlineSpellCheck"
+                  label="&spellCheckInline.label;"
+                  accesskey="&spellCheckInline.accesskey;"
+                  preference="mail.spellcheck.inline"/>
+      </vbox>
+  
+      <separator class="thin"/>
+  
+      <hbox align="center" pack="start">
+        <label value="&languagePopup.label;"
+               accesskey="&languagePopup.accessKey;"
+               control="languageMenuList"/>
+        <menulist id="languageMenuList"
+                  preference="spellchecker.dictionary">
+          <menupopup onpopupshowing="InitLanguageMenu();">
+            <!-- dynamic content populated by JS -->
             <menuseparator/>
-            <menuitem value="Helvetica, Arial, sans-serif" label="&fontHelveticaFont.label;"/>
-            <menuitem value="Times New Roman, Times, serif" label="&fontTimes.label;"/>
-            <menuitem value="Courier New, Courier, monospace" label="&fontCourier.label;"/>
-            <menuseparator/>
+            <menuitem value="more-cmd" label="&moreDictionaries.label;"/>
           </menupopup>
         </menulist>
+        <spring flex="1"/>
       </hbox>
-      <hbox align="center">
-        <label control="fontSizeSelect" value="&size.label;" accesskey="&size.accesskey;"/>
-        <menulist id="fontSizeSelect" preftype="string" prefstring="msgcompose.font_size">
-          <menupopup>
-            <menuitem value="x-small" label="&size-x-smallCmd.label;"/>
-            <menuitem value="small" label="&size-smallCmd.label;"/>
-            <menuitem value="medium" label="&size-mediumCmd.label;"/>
-            <menuitem value="large" label="&size-largeCmd.label;"/>
-            <menuitem value="x-large" label="&size-x-largeCmd.label;"/>
-            <menuitem value="xx-large" label="&size-xx-largeCmd.label;"/>
-          </menupopup>
-        </menulist>
-        <label control="textColor" value="&fontColor.label;" accesskey="&fontColor.accesskey;"/>
-        <colorpicker type="button" id="textColor" prefstring="msgcompose.text_color"/>
-        <label control="backgroundColor" value="&bgColor.label;" accesskey="&bgColor.accesskey;"/>
-        <colorpicker type="button" id="backgroundColor" prefstring="msgcompose.background_color"/>
-      </hbox>
-    </vbox>
-  </groupbox>
-
-</page>
+    </groupbox>
+ 
+    <groupbox align="start">
+      <caption label="&defaultMessagesHeader.label;"/>
+      <grid>
+        <columns>
+          <column/>
+          <column/>
+        </columns>
+    
+        <rows>
+          <row align="center">
+            <label value="&font.label;"
+                   accesskey="&font.accesskey;"
+                   control="fontSelect"/>
+            <menulist id="fontSelect" preference="msgcompose.font_face">
+              <menupopup>
+                <menuitem value=""
+                          label="&fontVarWidth.label;"/>
+                <menuitem value="tt"
+                          label="&fontFixedWidth.label;"/>
+                <menuseparator/>
+                <menuitem value="Helvetica, Arial, sans-serif"
+                          label="&fontHelveticaFont.label;"/>
+                <menuitem value="Times New Roman, Times, serif"
+                          label="&fontTimes.label;"/>
+                <menuitem value="Courier New, Courier, monospace"
+                          label="&fontCourier.label;"/>
+                <menuseparator/>
+              </menupopup>
+            </menulist>
+          </row>
+	  <row align="center">
+            <label value="&size.label;"
+                   accesskey="&size.accesskey;"
+                   control="fontSizeSelect"/>
+            <hbox align="center">
+              <menulist id="fontSizeSelect" preference="msgcompose.font_size">
+                <menupopup>
+                  <menuitem value="x-small" label="&size-x-smallCmd.label;"/>
+                  <menuitem value="small" label="&size-smallCmd.label;"/>
+                  <menuitem value="medium" label="&size-mediumCmd.label;"/>
+                  <menuitem value="large" label="&size-largeCmd.label;"/>
+                  <menuitem value="x-large" label="&size-x-largeCmd.label;"/>
+                  <menuitem value="xx-large" label="&size-xx-largeCmd.label;"/>
+                </menupopup>
+              </menulist>
+              <label value="&fontColor.label;"
+                     accesskey="&fontColor.accesskey;"
+                     control="msgComposeTextColor"/>
+              <colorpicker id="msgComposeTextColor"
+                           type="button"
+                           preference="msgcompose.text_color"/>
+              <label value="&bgColor.label;"
+                     accesskey="&bgColor.accesskey;"
+                     control="msgComposeBackgroundColor"/>
+              <colorpicker id="msgComposeBackgroundColor"
+                           type="button"
+                           preference="msgcompose.background_color"/>
+            </hbox>
+          </row>
+        </rows>
+      </grid>
+    </groupbox>
+  </prefpane>
+</overlay>

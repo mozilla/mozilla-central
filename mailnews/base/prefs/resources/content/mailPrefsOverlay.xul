@@ -76,6 +76,11 @@
                   prefpane="notifications_pane"
                   url="chrome://messenger/content/pref-notifications.xul"
                   helpTopic="mail_prefs_notifications"/>
+        <treeitem id="composingItem"
+                  label="&composingMessages.label;"
+                  prefpane="composing_messages_pane"
+                  url="chrome://messenger/content/messengercompose/pref-composing_messages.xul"
+                  helpTopic="mail_prefs_messages"/> 
         <treeitem id="junkItem"
                   label="&junk.label;"
                   prefpane="junk_pane"
@@ -125,7 +130,7 @@
         </treeitem>
         <treeitem id="mailcomposepref">
           <treerow>
-            <treecell url="chrome://messenger/content/messengercompose/pref-composing_messages.xul" label="&composingMessages.label;"/> 
+            <treecell label="(Migrated: &composingMessages.label;)"/>
           </treerow>
         </treeitem>
         <treeitem>
