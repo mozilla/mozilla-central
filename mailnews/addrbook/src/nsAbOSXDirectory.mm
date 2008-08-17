@@ -841,6 +841,62 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
 }
 
 NS_IMETHODIMP
+nsAbOSXDirectory::CardForEmailAddress(const nsACString &aEmailAddress,
+                                      nsIAbCard **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  *aResult = nsnull;
+
+  if (aEmailAddress.IsEmpty())
+    return NS_OK;
+
+  nsIMutableArray *list = m_IsMailList ? m_AddressList : mCardList;
+
+  if (!list)
+    return NS_OK;
+
+  PRUint32 length;
+  nsresult rv = list->GetLength(&length);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAbCard> card;
+
+  for (PRUint32 i = 0; i < length && !*aResult; ++i)
+  {
+    card = do_QueryElementAt(list, i, &rv);
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCString email;
+      rv = card->GetPropertyAsAUTF8String(kPriEmailProperty, email);
+      if (NS_FAILED(rv))
+        continue;
+
+#ifdef MOZILLA_INTERNAL_API
+      if (email.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
+#else
+      if (email.Equals(aEmailAddress, CaseInsensitiveCompare))
+#endif
+        NS_IF_ADDREF(*aResult = card);
+      else
+      {
+        rv = card->GetPropertyAsAUTF8String(k2ndEmailProperty, email);
+        if (NS_FAILED(rv))
+          continue;
+
+#ifdef MOZILLA_INTERNAL_API
+        if (email.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
+#else
+          if (email.Equals(aEmailAddress, CaseInsensitiveCompare))
+#endif
+          NS_IF_ADDREF(*aResult = card);
+      }
+    }
+  }
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsAbOSXDirectory::HasCard(nsIAbCard *aCard, PRBool *aHasCard)
 {
   NS_ENSURE_ARG_POINTER(aCard);
