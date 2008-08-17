@@ -2306,13 +2306,15 @@ function allowRemoteContentForSender()
   var addrbook;
   while (!cardForEmailAddress && enumerator.hasMoreElements())
   {
-    addrbook = enumerator.getNext();
-    if (addrbook instanceof Components.interfaces.nsIAbMDBDirectory)
+    addrbook = enumerator.getNext()
+                         .QueryInterface(Components.interfaces.nsIAbDirectory);
+    try {
       cardForEmailAddress = addrbook.cardForEmailAddress(authorEmailAddress);
+    } catch (e) {}
   }
 
   var allowRemoteContent = false;
-  if (cardForEmailAddress && addrbook instanceof Components.interfaces.nsIAbDirectory)
+  if (cardForEmailAddress)
   {
     // set the property for remote content
     cardForEmailAddress.setProperty("AllowRemoteContent", true);

@@ -168,11 +168,6 @@ NS_IMETHODIMP nsAbMDBDirProperty::ClearDatabase()
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsAbMDBDirProperty::CardForEmailAddress(const nsACString &aEmailAddress, nsIAbCard ** aAbCard)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 NS_IMETHODIMP nsAbMDBDirProperty::GetDatabaseFile(nsILocalFile **aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
