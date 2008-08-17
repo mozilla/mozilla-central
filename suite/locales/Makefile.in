@@ -74,7 +74,7 @@ PREF_JS_EXPORTS = $(LOCALE_SRCDIR)/suite-l10n.js
 
 include $(topsrcdir)/config/rules.mk
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 README_FILES = \
 	installer/mac/README.txt \
 	$(NULL)
@@ -191,7 +191,7 @@ repackage-win32-installer-%: WIN32_INSTALLER_IN=$(_ABS_DIST)/install/sea/$(PKG_B
 repackage-win32-installer-%: $(WIN32_INSTALLER_IN)
 	@$(MAKE) repackage-win32-installer AB_CD=$* WIN32_INSTALLER_IN=$(WIN32_INSTALLER_IN)
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 STAGEDIST = $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/MacOS
 # leave out $(STAGEPATH) as we never have a universal/ subdir here
 PKG_DMG_SOURCE = $(MOZ_PKG_APPNAME)
@@ -226,7 +226,7 @@ endif
 	$(MAKE) -C ../../mozilla/extensions/irc/locales repackage-zip-$(AB_CD) STAGEDIST=$(STAGEDIST)
 	$(MAKE) -C ../../mozilla/extensions/venkman/locales repackage-zip-$(AB_CD) STAGEDIST=$(STAGEDIST)
 ifneq (en,$(AB))
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj
 endif
 endif
@@ -269,8 +269,11 @@ endif
 ifdef MOZ_UPDATER
 libs:: $(addprefix $(LOCALE_SRCDIR)/,updater/updater.ini)
 ifeq ($(OS_ARCH),WINNT)
-	iconv -f UTF-8 -t $(WIN_INSTALLER_CHARSET) $< > $(FINAL_TARGET)/updater.ini
+	cat $< $(srcdir)/updater_append.ini $(srcdir)/../installer/windows/nsis/updater_append.ini | \
+	  sed -e "s/%AB_CD%/$(AB_CD)/" | \
+	  iconv -f UTF-8 -t $(WIN_INSTALLER_CHARSET) > $(FINAL_TARGET)/updater.ini
 else
-	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
+	cat $< $(srcdir)/updater_append.ini | \
+	  sed -e "s/%AB_CD%/$(AB_CD)/" > $(FINAL_TARGET)/updater.ini
 endif
 endif
