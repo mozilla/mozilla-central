@@ -48,7 +48,7 @@ interface nsIAddrDatabase;
 #define kMDBDirectoryRootLen       21
 %}
 
-[scriptable, uuid(705a6b63-118c-402d-a835-b07347de5a53)]
+[scriptable, uuid(744072be-1ba0-46bc-af24-46e22567a2ea)]
 interface nsIAbMDBDirectory : nsISupports {
 
 	// Creates an RDF directory component from the
@@ -101,15 +101,4 @@ interface nsIAbMDBDirectory : nsISupports {
 	[noscript] void notifyDirItemAdded(in nsISupports item);
 	
 	[noscript] void clearDatabase();
-	
-  /** 
-   * Returns the address card for the specified email address if found.
-   *
-   * @param  emailAddress The email address to find in either the primary or
-   *                      secondary email address fields. If email address is
-   *                      empty, the database won't be searched and the function
-   *                      will return as if no card was found.
-   * @return              An nsIAbCard if one was found, else returns NULL.
-   */
-  nsIAbCard cardForEmailAddress(in AUTF8String emailAddress);
 };

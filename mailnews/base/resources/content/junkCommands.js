@@ -188,7 +188,7 @@ MessageClassifier.prototype =
    * @param aMsgHdr
    *        The header (nsIMsgDBHdr) of the message to classify.
    * @param aWhiteListDirectory
-   *        The addressbook (nsIAbMDBDirectory) to use as a whitelist, or null
+   *        The addressbook (nsIAbDirectory) to use as a whitelist, or null
    *        if no whitelisting should be done.
    */
   analyzeMessage: function(aMsgHdr, aWhiteListDirectory)
@@ -203,7 +203,11 @@ MessageClassifier.prototype =
       var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                                    .getService(Components.interfaces.nsIMsgHeaderParser);
       var authorEmailAddress = headerParser.extractHeaderAddressMailboxes(null, aMsgHdr.author);
-      if (aWhiteListDirectory.cardForEmailAddress(authorEmailAddress))
+      var abCard = false;
+      try {
+        abCard = aWhiteListDirectory.cardForEmailAddress(authorEmailAddress);
+      } catch (e) {}
+      if (abCard)
       {
         // message is ham from whitelist
         {
@@ -358,8 +362,11 @@ function processFolderForJunk(aAll)
 
   // if enabled in the spam settings, retrieve whitelist addressbook
   var whiteListDirectory = null;
-  if (spamSettings.useWhiteList && spamSettings.whiteListAbURI)
-    whiteListDirectory = RDF.GetResource(spamSettings.whiteListAbURI).QueryInterface(Components.interfaces.nsIAbMDBDirectory);
+  if (spamSettings.useWhiteList && spamSettings.whiteListAbURI) {
+    whiteListDirectory = Components.classes["@mozilla.org/abmanager;1"]
+                                   .getService(Components.interfaces.nsIAbManager)
+                                   .getDirectory(spamSettings.whiteListAbURI);
+  }
 
   // create a classifier instance to classify messages in the folder.
   var msgClassifier = new MessageClassifier(tmpMsgHdr.folder, totalMessages);
