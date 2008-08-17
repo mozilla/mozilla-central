@@ -19,8 +19,8 @@
     <key id="goHome" keycode="VK_HOME" command="Browser:Home" modifiers="alt"/>
 
     <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
-    <key id="key_newTabWithTarget" keycode="VK_INSERT" command="cmd_newTabWithTarget"/>
-    <key id="key_newTabWithTarget" keycode="VK_INSERT" modifiers="shift" command="cmd_newTabWithTarget"/>
+    <key id="key_newTabWithTargetBg" keycode="VK_INSERT" command="cmd_newTabWithTarget"/>
+    <key id="key_newTabWithTargetFg" keycode="VK_INSERT" modifiers="shift" command="cmd_newTabWithTarget"/>
 
     <!-- Support Accel+Shift for Add Bookmark -->
     <key id="addBookmarkKb" key="&addCurPageCmd.commandkey;" command="Browser:AddBookmark" modifiers="accel,shift"/>
