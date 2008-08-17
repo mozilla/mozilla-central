@@ -50,7 +50,7 @@
             label="&pref.notifications.title;"
             script="chrome://messenger/content/pref-notifications.js">
 
-    <preferences id="viewing_messages_preferences">
+    <preferences id="notifications_preferences">
       <preference id="mail.biff.show_alert"
                   name="mail.biff.show_alert"
                   type="bool"/>
