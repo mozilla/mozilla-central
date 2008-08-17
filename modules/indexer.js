@@ -598,6 +598,8 @@ let GlodaIndexer = {
         }
       }
     }
+    // XXX doing the dirty commit/check every time could be pretty expensive...
+    GlodaCollectionManager.cacheCommitDirty();
     GlodaDatastore._commitTransaction();
     
     // try and get a job if we don't have one for the sake of the notification
@@ -1241,7 +1243,7 @@ let GlodaIndexer = {
         let ancestor = this._datastore.createMessage(null, null, // ghost
                                                      conversationID, null,
                                                      references[iAncestor],
-                                                     null); // no snippet
+                                                     null); // no body
         ancestorLists[iAncestor].push(ancestor);
       }
     }
@@ -1286,6 +1288,7 @@ let GlodaIndexer = {
       }
     }
     
+    let isNew;
     if (curMsg === null) {
       this._log.debug("...creating new message");
       curMsg = this._datastore.createMessage(aMsgHdr.folder.URI,
@@ -1294,16 +1297,24 @@ let GlodaIndexer = {
                                              aMsgHdr.date,
                                              aMsgHdr.messageId,
                                              null); // no snippet
-     }
-     else {
-        curMsg._folderID = this._datastore._mapFolderURI(aMsgHdr.folder.URI);
-        curMsg._messageKey = aMsgHdr.messageKey;
-        this._datastore.updateMessage(curMsg);
-     }
+      isNew = true;
+    }
+    else {
+      isNew = (curMsg._messageKey === null); // aka was-a-ghost
+      curMsg._folderID = this._datastore._mapFolderURI(aMsgHdr.folder.URI);
+      curMsg._messageKey = aMsgHdr.messageKey;
+      // note: we are assuming that our matching logic is flawless in that
+      //  if this message was not a ghost, we are assuming the 'body'
+      //  associated with the id is still exactly the same.  It is conceivable
+      //  that there are cases where this is not true.
+      this._datastore.updateMessage(curMsg, isNew ? aBody : null);
+    }
+    
+    // TODO: provide the parent gloda message if we can conjure it up.
+    Gloda.processMessage(curMsg, aMsgHdr, aMimeMsg, isNew,
+                         /* parent gloda message */ null);
      
-     Gloda.processMessage(curMsg, aMsgHdr, aMimeMsg);
-     
-     this.callbackDriver();
+    this.callbackDriver();
   },
   
   /**

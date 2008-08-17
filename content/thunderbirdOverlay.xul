@@ -46,8 +46,10 @@
   </stringbundleset>
 
   <menupopup id="taskPopup">
-    <menuitem id="gloda-hello" label="&gloda.label;" 
-              oncommand="gloda.onMenuItemCommand(event);"/>
+    <menuitem id="gloda-hello" label="&glodaIndexEverything.label;" 
+              oncommand="gloda.onIndexEverythingCommand(event);"/>
+    <menuitem id="gloda-hello" label="&glodaIndexAddressBook.label;" 
+              oncommand="gloda.onIndexAddressBookCommand(event);"/>
   </menupopup>
   
   <popup id="folderPaneContext">

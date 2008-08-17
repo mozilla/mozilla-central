@@ -88,6 +88,10 @@ let GlodaDatastore = {
           newestMessageDate: ['newestMessageDate'],
         },
         
+        fulltextColumns: [
+          "subject TEXT",
+        ],
+        
         triggers: {
           delete: "DELETE from messages WHERE conversationID = OLD.id",
         },
@@ -112,7 +116,6 @@ let GlodaDatastore = {
           //  possibility of multiple copies of a message with a given
           //  message-id, the parentID concept is unreliable.
           "headerMessageID TEXT",
-          "bodySnippet TEXT",
         ],
         
         indices: {
@@ -121,6 +124,10 @@ let GlodaDatastore = {
           conversationID: ['conversationID'],
           date: ['date'],
         },
+        
+        fulltextColumns: [
+          "body TEXT",
+        ],
         
         triggers: {
           delete: "DELETE FROM messageAttributes WHERE messageID = OLD.id",
@@ -238,11 +245,13 @@ let GlodaDatastore = {
     else {
       // (Exceptions may be thrown if the database is corrupt)
       { // try {
-        dbConnection = dbService.openDatabase(dbFile);
+        dbConnection = dbService.openUnsharedDatabase(dbFile);
       
         if (dbConnection.schemaVersion != this._schemaVersion) {
-          this._migrate(dbConnection,
-                        dbConnection.schemaVersion, this._schemaVersion);
+          dbConnection = this._migrate(dbService, dbFile,
+                                       dbConnection,
+                                       dbConnection.schemaVersion,
+                                       this._schemaVersion);
         }
       }
       // Handle corrupt databases, other oddities
@@ -255,7 +264,7 @@ let GlodaDatastore = {
   },
   
   _createDB: function gloda_ds_createDB(aDBService, aDBFile) {
-    var dbConnection = aDBService.openDatabase(aDBFile);
+    var dbConnection = aDBService.openUnsharedDatabase(aDBFile);
     
     dbConnection.beginTransaction();
     try {
@@ -277,6 +286,14 @@ let GlodaDatastore = {
       
       // - Create the table
       aDBConnection.createTable(tableName, table.columns.join(", "));
+      
+      // - Create the fulltext table if applicable
+      if ("fulltextColumns" in table) {
+        let createFulltextSQL = "CREATE VIRTUAL TABLE " + tableName + "Text" +
+          " USING fts3(TOKENIZE PORTER, " + table.fulltextColumns.join(", ") +
+          ")";
+        aDBConnection.executeSimpleSQL(createFulltextSQL);
+      }
       
       // - Create its indices
       for (let indexName in table.indices) {
@@ -334,10 +351,16 @@ let GlodaDatastore = {
     return new GlodaDatabind(aTableDef, this);
   },
   
-  _migrate: function gloda_ds_migrate(aDBConnection, aCurVersion, aNewVersion) {
-    let msg = "We currently aren't clever enough to migrate. Delete your DB."
-    this._log.error(msg)
-    throw new Error(msg);
+  _migrate: function gloda_ds_migrate(aDBService, aDBFile, aDBConnection,
+                                      aCurVersion, aNewVersion) {
+    // the 4-to-5 migration is the only possible case right now, and is so
+    //  significant that we want everything purged anyways.
+    // generalize me in the future.
+    aDBConnection.close();
+    aDBFile.remove();
+    this._log.warning("Global database has been purged due to schema change.");
+    
+    return this._createDB(aDBService, aDBFile);
   },
   
   // cribbed from snowl
@@ -609,19 +632,37 @@ let GlodaDatastore = {
     this.__defineGetter__("_insertConversationStatement", function() statement);
     return this._insertConversationStatement; 
   }, 
+
+  get _insertConversationTextStatement() {
+    let statement = this._createStatement(
+      "INSERT INTO conversationsText (docid, subject) \
+              VALUES (:docid, :subject)");
+    this.__defineGetter__("_insertConversationTextStatement",
+      function() statement);
+    return this._insertConversationTextStatement; 
+  }, 
+
   
   /** Create a conversation. */
   createConversation: function gloda_ds_createConversation(aSubject,
         aOldestMessageDate, aNewestMessageDate) {
-    
+
+    // create the data row    
     let ics = this._insertConversationStatement;
     ics.params.subject = aSubject;
     ics.params.oldestMessageDate = aOldestMessageDate;
     ics.params.newestMessageDate = aNewestMessageDate;
-        
     ics.execute();
     
-    return new GlodaConversation(this, this.dbConnection.lastInsertRowID,
+    let conversationID = this.dbConnection.lastInsertRowID; 
+    
+    // create the fulltext row, using the same rowid/docid
+    let icts = this._insertConversationTextStatement;
+    icts.params.docid = conversationID;
+    icts.params.subject = aSubject;
+    icts.execute();
+    
+    return new GlodaConversation(this, conversationID,
                                  aSubject, aOldestMessageDate,
                                  aNewestMessageDate);
   },
@@ -667,19 +708,27 @@ let GlodaDatastore = {
   get _insertMessageStatement() {
     let statement = this._createStatement(
       "INSERT INTO messages (folderID, messageKey, conversationID, date, \
-                             headerMessageID, bodySnippet) \
+                             headerMessageID) \
               VALUES (:folderID, :messageKey, :conversationID, :date, \
-                      :headerMessageID, :bodySnippet)");
+                      :headerMessageID)");
     this.__defineGetter__("_insertMessageStatement", function() statement);
     return this._insertMessageStatement; 
   }, 
+
+  get _insertMessageTextStatement() {
+    let statement = this._createStatement(
+      "INSERT INTO messagesText (docid, body) \
+              VALUES (:docid, :body)");
+    this.__defineGetter__("_insertMessageTextStatement", function() statement);
+    return this._insertMessageTextStatement; 
+  },
   
   /**
    *
    */
   createMessage: function gloda_ds_createMessage(aFolderURI, aMessageKey,
                               aConversationID, aDatePRTime, aHeaderMessageID,
-                              aBodySnippet) {
+                              aBody) {
     let folderID;
     if (aFolderURI != null) {
       folderID = this._mapFolderURI(aFolderURI);
@@ -694,7 +743,6 @@ let GlodaDatastore = {
     ims.params.conversationID = aConversationID;
     ims.params.date = aDatePRTime;
     ims.params.headerMessageID = aHeaderMessageID;
-    ims.params.bodySnippet = aBodySnippet;
 
     try {
        ims.execute();
@@ -704,12 +752,31 @@ let GlodaDatastore = {
              this.dbConnection.lastError + ": " +
              this.dbConnection.lastErrorString + " - " + ex);
     }
-    //ims.execute();
     
-    return new GlodaMessage(this, this.dbConnection.lastInsertRowID, folderID,
+    let messageID = this.dbConnection.lastInsertRowID;
+    
+    // we only create the full-text row if the body is non-null.
+    // so, even though body might be null, we still want to create the
+    //  full-text search row
+    if (aBody) {
+      let imts = this._insertMessageTextStatement;
+      imts.params.docid = messageID;
+      imts.params.body = aBody;
+      
+      try {
+         imts.execute();
+      }
+      catch(ex) {
+         throw("error executing fulltext statement... " +
+               this.dbConnection.lastError + ": " +
+               this.dbConnection.lastErrorString + " - " + ex);
+      }
+    }
+    
+    return new GlodaMessage(this, messageID, folderID,
                             aMessageKey, aConversationID, null,
                             aDatePRTime ? new Date(aDatePRTime / 1000) : null,
-                            aHeaderMessageID, aBodySnippet);
+                            aHeaderMessageID);
   },
   
   get _updateMessageStatement() {
@@ -718,22 +785,33 @@ let GlodaDatastore = {
                            messageKey = :messageKey, \
                            conversationID = :conversationID, \
                            headerMessageID = :headerMessageID, \
-                           bodySnippet = :bodySnippet \
               WHERE id = :id");
     this.__defineGetter__("_updateMessageStatement", function() statement);
     return this._updateMessageStatement; 
   }, 
   
-  updateMessage: function gloda_ds_updateMessage(aMessage) {
+  /**
+   * Update the database row associated with the message.  If aBody is supplied,
+   *  the associated full-text row is created; it is assumed that it did not
+   *  previously exist.
+   */
+  updateMessage: function gloda_ds_updateMessage(aMessage, aBody) {
     let ums = this._updateMessageStatement;
     ums.params.id = aMessage.id;
     ums.params.folderID = aMessage.folderID;
     ums.params.messageKey = aMessage.messageKey;
     ums.params.conversationID = aMessage.conversationID;
     ums.params.headerMessageID = aMessage.headerMessageID;
-    ums.params.bodySnippet = aMessage.bodySnippet;
     
     ums.execute();
+    
+    if (aBody) {
+      let imts = this._insertMessageTextStatement;
+      imts.params.docid = aMessage.id;
+      imts.params.body = aBody;
+      
+      imts.execute();
+    }
   },
 
   updateMessageFoldersByKeyPurging:
@@ -759,7 +837,7 @@ let GlodaDatastore = {
                             aRow["messageKey"],
                             aRow["conversationID"], null,
                             datePRTime ? new Date(datePRTime / 1000) : null,
-                            aRow["headerMessageID"], aRow["bodySnippet"]);
+                            aRow["headerMessageID"]);
   },
 
   get _selectMessageByIDStatement() {
@@ -1065,11 +1143,31 @@ let GlodaDatastore = {
         let attrValueTests = [];
         let valueTests = null;
         
+        // our implementation requires that everyone in attr_ors has the same
+        //  attribute.
+        let presumedAttr = attr_ors[0][0];
+        
+        // -- handle full-text specially here, it's different than the other
+        //  cases...
+        if (presumedAttr.isSpecial == Gloda.kSpecialFulltext) {
+          let matchStr = [APV[2] for each (APV in attr_ors)].join(" OR ");
+          matchStr.replace("'", "''");
+        
+          // for example, the match 
+          let ftSelect = "SELECT docid FROM " + nounMeta.tableName + "Text" +
+            " WHERE " + presumedAttr.specialColumnName + " MATCH '" +
+            matchStr + "'";
+          selects.push(ftSelect);
+        
+          // bypass the logic used by the other cases
+          continue;
+        }
+        
         let tableName, idColumnName, valueColumnName;
-        if (attr_ors[0][0].isSpecial) {
+        if (presumedAttr.isSpecial == Gloda.kSpecialColumn) {
           tableName = nounMeta.tableName;
           idColumnName = "id"; // canonical id for a table is "id".
-          valueColumnName = attr_ors[0][0].specialColumnName;
+          valueColumnName = presumedAttr.specialColumnName;
         }
         else {
           tableName = nounMeta.attrTableName;
@@ -1195,28 +1293,58 @@ let GlodaDatastore = {
   /* ********** Contact ********** */
   get _insertContactStatement() {
     let statement = this._createStatement(
-      "INSERT INTO contacts (directoryUUID, contactUUID, name) \
-              VALUES (:directoryUUID, :contactUUID, :name)");
+      "INSERT INTO contacts (directoryUUID, contactUUID, name, popularity,\
+                             frecency) \
+              VALUES (:directoryUUID, :contactUUID, :name, :popularity,\
+                      :frecency)");
     this.__defineGetter__("_insertContactStatement", function() statement);
     return this._insertContactStatement; 
   },
   
   createContact: function gloda_ds_createContact(aDirectoryUUID, aContactUUID,
-                                                 aName) {
+      aName, aPopularity, aFrecency) {
     let ics = this._insertContactStatement;
     ics.params.directoryUUID = aDirectoryUUID;
     ics.params.contactUUID = aContactUUID;
     ics.params.name = aName;
+    ics.params.popularity = aPopularity;
+    ics.params.frecency = aFrecency;
     
     ics.execute();
     
     return new GlodaContact(this, this.dbConnection.lastInsertRowID,
-                            aDirectoryUUID, aContactUUID, aName);
+                            aDirectoryUUID, aContactUUID, aName,
+                            aPopularity, aFrecency);
+  },
+
+  get _updateContactStatement() {
+    let statement = this._createStatement(
+      "UPDATE contacts SET directoryUUID = :directoryUUID, \
+                           contactUUID = :contactUUID, \
+                           name = :name, \
+                           popularity = :popularity, \
+                           frecency = :frecency \
+                       WHERE id = :id");
+    this.__defineGetter__("_updateContactStatement", function() statement);
+    return this._updateContactStatement; 
+  },
+
+  updateContact: function gloda_ds_updateContact(aContact) {
+    let ucs = this._updateContactStatement;
+    ucs.params.id = aContact.id;
+    ucs.params.directoryUUID = aContact.directoryUUID;
+    ucs.params.contactUUID = aContact.contactUUID;
+    ucs.params.name = aContact.name;
+    ucs.params.popularity = aContact.popularity;
+    ucs.params.frecency = aContact.frecency;
+    
+    ucs.execute();
   },
   
   _contactFromRow: function gloda_ds_contactFromRow(aRow) {
     return new GlodaContact(this, aRow["id"], aRow["directoryUUID"],
-                            aRow["contactUUID"], aRow["name"]);
+                            aRow["contactUUID"], aRow["name"],
+                            aRow["popularity"], aRow["frecency"]);
   },
   
   get _selectContactByIDStatement() {
@@ -1229,6 +1357,12 @@ let GlodaDatastore = {
 
   getContactByID: function gloda_ds_getContactByID(aContactID) {
     let contact = null;
+    
+    let [hit, miss] = GlodaCollectionManager.cacheLookup(
+      GlodaContact.prototype.NOUN_ID, [aContactID]);
+  
+    if (hit.length)
+      return hit[0];
   
     let scbi = this._selectContactByIDStatement;
     scbi.params.id = aContactID;
@@ -1236,6 +1370,9 @@ let GlodaDatastore = {
       contact = this._contactFromRow(scbi.row);
     }
     scbi.reset();
+    
+    if (contact)
+      GlodaCollectionManager.cacheAdd(contact.NOUN_ID, [contact]);
     
     return contact;
   },

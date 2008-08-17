@@ -35,7 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["GlodaAttributeDef", "GlodaConversation", "GlodaMessage",
+EXPORTED_SYMBOLS = ["GlodaAttributeDef",
+                    "GlodaConversation", "GlodaMessage",
                     "GlodaContact", "GlodaIdentity"];
 
 const Cc = Components.classes;
@@ -65,6 +66,7 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
   this._boundName = null;
   this._singular = null;
   
+  this._special = 0; // not special
   this._specialColumnName = null;
   
   /** Map parameter values to the underlying database id. */
@@ -77,12 +79,13 @@ GlodaAttributeDef.prototype = {
   get attributeName() { return this._attrName; },
 
   get objectNoun() { return this._objectType; },
+  get objectNounMeta() { return this._objectNounMeta; },
 
   get isBound() { return this._boundName !== null; },
   get boundName() { return this._boundName; },
   get singular() { return this._singular; },
   
-  get isSpecial() { return this._specialColumnName !== null; },
+  get special() { return this._special; },
   get specialColumnName() { return this._specialColumnName; },
 
   /**
@@ -354,19 +357,36 @@ GlodaMessage.prototype = {
   },
 };
 
-function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName) {
+function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName,
+                      aPopularity, aFrecency) {
   this._datastore = aDatastore;
   this._id = aID;
   this._directoryUUID = aDirectoryUUID;
   this._contactUUID = aContactUUID;
   this._name = aName;
+  this._popularity = aPopularity;
+  this._frecency = aFrecency;
 }
 
 GlodaContact.prototype = {
+  NOUN_ID: 103,
+
   get id() { return this._id; },
   get directoryUUID() { return this._directoryUUID; },
   get contactUUID() { return this._contactUUID; },
   get name() { return this._name },
+  
+  get popularity() { return this._popularity; },
+  set popularity(aPopularity) {
+    this.popularity = aPopularity;
+    this.dirty = true;
+  },
+
+  get frecency() { return this._frecency; },
+  set frecency(aFrecency) {
+    this._frecency = aFrecency;
+    this.dirty = true;
+  },
   
   toString: function gloda_contact_toString() {
     return this._name;

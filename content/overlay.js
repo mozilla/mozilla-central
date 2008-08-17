@@ -58,9 +58,12 @@ var gloda = {
     GlodaIndexer.init(window, msgWindow, this.strings, messenger);
     GlodaIndexer.enabled = true;
   },
-  onMenuItemCommand: function(e) {
+  onIndexEverythingCommand: function(e) {
     GlodaIndexer.indexEverything();
   },
+  onIndexAddressBookCommand: function(e) {
+    // TODO support address-book indexing or something.
+  },  
   indexSelectedMessages: function () {
     var dbView = GetDBView();
     var indices = GetSelectedIndices(dbView);

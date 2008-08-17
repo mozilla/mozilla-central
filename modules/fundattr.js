@@ -73,13 +73,69 @@ let GlodaFundAttr = {
     }
   },
 
+  POPULARITY_FROM_ME_TO: 10,
+  POPULARITY_FROM_ME_CC: 4,
+  POPULARITY_TO_ME: 5,
+  POPULARITY_CC_ME: 1,
+
+  _attrConvSubject: null,
   _attrFolder: null,
+  _attrBody: null,
   _attrFrom: null,
+  _attrFromMe: null,
   _attrTo: null,
+  _attrToMe: null,
   _attrCc: null,
+  _attrCcMe: null,
   _attrDate: null,
   
   defineAttributes: function() {
+    /* ***** Conversations ***** */
+    // conversation: subjectMatches
+    this._attrConvSubject = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "subjectMatches",
+      bind: false,
+      singular: true,
+      special: Gloda.kSpecialFulltext,
+      specialColumnName: "subject",
+      subjectNouns: [Gloda.NOUN_CONVERSATION],
+      objectNoun: Gloda.NOUN_FULLTEXT,
+      explanation: null, // this does not merit explanation
+      });
+    
+    /* ***** Contacts ***** */
+    this._attrContactPopularity = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "popularity",
+      bind: false,
+      singular: true,
+      special: Gloda.kSpecialColumn,
+      specialColumnName: "popularity",
+      subjectNouns: [Gloda.NOUN_CONTACT],
+      objectNoun: Gloda.NOUN_NUMBER,
+      explanation: null, // popularity is internal, no explanation required
+      });    
+    this._attrContactFrecency = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "frecency",
+      bind: false,
+      singular: true,
+      special: Gloda.kSpecialColumn,
+      specialColumnName: "frecency",
+      subjectNouns: [Gloda.NOUN_CONTACT],
+      objectNoun: Gloda.NOUN_NUMBER,
+      explanation: null, // frecency is internal, no explanation required
+      });    
+  
+    /* ***** Messages ***** */
+    // folder
     this._attrFolder = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -87,14 +143,29 @@ let GlodaFundAttr = {
       attributeName: "folderURI",
       bind: false,
       singular: true,
-      special: true,
+      special: Gloda.kSpecialColumn,
       specialColumnName: "folderID",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FOLDER,
-      parameterNoun: null,
       explanation: this._strBundle.GetStringFromName("attrFolderExplanation"),
       });
+    
+    // bodyMatches. super-synthetic full-text matching...
+    this._attrBody = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "bodyMatches",
+      bind: false,
+      singular: true,
+      special: Gloda.kSpecialFulltext,
+      specialColumnName: "body",
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_FULLTEXT,
+      explanation: null, // this does not merit explanation
+      });
   
+    // --- Fundamental
     // From
     this._attrFrom = Gloda.defineAttribute({
                         provider: this,
@@ -105,7 +176,6 @@ let GlodaFundAttr = {
                         singular: true,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
-                        parameterNoun: null,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrFromExplanation"),
                         });
@@ -119,7 +189,6 @@ let GlodaFundAttr = {
                         singular: false,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
-                        parameterNoun: null,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrToExplanation"),
                         });
@@ -133,7 +202,6 @@ let GlodaFundAttr = {
                         singular: false,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
-                        parameterNoun: null,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrCcExplanation"),
                         });
@@ -168,14 +236,65 @@ let GlodaFundAttr = {
                         attributeName: "date",
                         bind: false,
                         singular: true,
-                        special: true,
+                        special: Gloda.kSpecialColumn,
                         specialColumnName: "date",
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_DATE,
-                        parameterNoun: null,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrDateExplanation"),
                         });
+
+    // --- Optimization
+    // From Me To
+    this._attrFromMeTo = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrOptimization,
+      attributeName: "fromMeTo",
+      bind: false,
+      singular: false,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_IDENTITY,
+      explanation: this._strBundle.GetStringFromName("attrFromMeToExplanation")
+      });
+    // From Me Cc
+    this._attrFromMeCc = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrOptimization,
+      attributeName: "fromMeCc",
+      bind: false,
+      singular: false,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_IDENTITY,
+      explanation: this._strBundle.GetStringFromName("attrFromMeCcExplanation")
+      });
+    // To Me
+    this._attrToMe = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "toMe",
+      bind: false,
+      singular: false,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_IDENTITY,
+      explanation: this._strBundle.GetStringFromName("attrToMeExplanation")
+      });
+    // Cc Me
+    this._attrCcMe = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "ccMe",
+      bind: false,
+      singular: false,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_IDENTITY,
+      explanation: this._strBundle.GetStringFromName("attrCcMeExplanation") 
+      });
+
+
     // -- Mailing List
     // Non-singular, but a hard call.  Namely, it is obvious that a message can
     //  be addressed to multiple mailing lists.  However, I don't see how you
@@ -202,7 +321,6 @@ let GlodaFundAttr = {
                         singular: false,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_DATE,
-                        parameterNoun: null,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrListExplanation"),
                         });
@@ -218,7 +336,8 @@ let GlodaFundAttr = {
    *   processing.)
    * - Newsgroups.  Same deal as mailing lists.
    */
-  process: function gloda_fundattr_process(aGlodaMessage, aMsgHdr, aMimeMsg) {
+  process: function gloda_fundattr_process(aGlodaMessage, aMsgHdr, aMimeMsg,
+                                           aIsNew) {
     let attribs = [];
     
     // -- From
@@ -243,7 +362,10 @@ let GlodaFundAttr = {
                       "' somehow lacks a valid author.  Bailing.");
       return attribs;
     }
-    attribs.push([this._attrFrom.id, authorIdentity.id]); 
+    attribs.push([this._attrFrom.id, authorIdentity.id]);
+    
+    let myIdentities = Gloda.myIdentities; // needless optimization?
+    let isFromMe = authorIdentity.id in myIdentities;
     
     // -- To, Cc
     // TODO: handle mailing list semantics (use my visterity logic as a first
@@ -251,12 +373,49 @@ let GlodaFundAttr = {
     let toIdentities = Gloda.getIdentitiesForFullMailAddresses(
                            aMsgHdr.recipients);
     for (let iTo=0; iTo < toIdentities.length; iTo++) {
-      attribs.push([this._attrTo.id, toIdentities[iTo].id]);
+      let toIdentity = toIdentities[iTo];
+      attribs.push([this._attrTo.id, toIdentity.id]);
+      // optimization attribute to-me ('I' am the parameter)
+      if (toIdentity.id in myIdentities) {
+        attribs.push([this._attrCcMe.bindParameter(toIdentity.id),
+                      authorIdentity.id]);
+        if (aIsNew)
+          toIdentity.contact.popularity += this.POPULARITY_TO_ME;
+      }
+      // optimization attribute from-me-to ('I' am the parameter)
+      if (isFromMe) {
+        attribs.push([this._attrFromMeCc.bindParameter(authorIdentity.id),
+                      toIdentity.id]);
+        // also, popularity
+        if (aIsNew)
+          toIdentity.contact.popularity += this.POPULARITY_FROM_ME_TO;
+      }
     }
     let ccIdentities = Gloda.getIdentitiesForFullMailAddresses(aMsgHdr.ccList);
     for (let iCc=0; iCc < ccIdentities.length; iCc++) {
-      attribs.push([this._attrCc.id, ccIdentities[iCc].id]);
+      let ccIdentity = ccIdentities[iCc];
+      attribs.push([this._attrCc.id, ccIdentity.id]);
+      // optimization attribute cc-me ('I' am the parameter)
+      if (ccIdentity.id in myIdentities) {
+        attribs.push([this._attrCcMe.bindParameter(ccIdentity.id),
+                      authorIdentity.id]);
+        if (aIsNew)
+          ccIdentity.contact.popularity += this.POPULARITY_CC_ME;
+      }
+      // optimization attribute from-me-to ('I' am the parameter)
+      if (isFromMe) {
+        attribs.push([this._attrFromMeCc.bindParameter(authorIdentity.id),
+                      ccIdentity.id]);
+        // also, popularity
+        if (aIsNew)
+          ccIdentity.contact.popularity += this.POPULARITY_FROM_ME_CC;
+      }
     }
+    
+    // TODO: deal with mailing lists, including implicit-to.  this will require
+    //  convincing the indexer to pass us in the previous message if it is
+    //  available.  (which we'll simply pass to everyone... it can help body
+    //  logic for quoting purposes, etc. too.)
     
     // -- Date
     attribs.push([this._attrDate.id, aMsgHdr.date]);

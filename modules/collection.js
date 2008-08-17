@@ -44,13 +44,28 @@ const Cu = Components.utils;
 
 Cu.import("resource://gloda/modules/log4moz.js");
 
+/**
+ * The collection manager is a singleton that has the following tasks:
+ * - Let views of objects (nouns) know when their objects have changed.  For
+ *   example, an attribute has changed due to user action.
+ * - Let views of objects based on queries know when new objects match their
+ *   query, or when their existing objects no longer match due to changes.
+ * - Caching/object-identity maintenance.  It is ideal if we only ever have
+ *   one instance of an object at a time.  (More specifically, only one instance
+ *   per database row 'id'.)  The collection mechanism lets us find existing
+ *   instances to this end.  Caching can be directly integrated by being treated
+ *   as a special collection.
+ */
 function GlodaCollectionManager() {
   this._collectionsByNoun = {};
+  this._cachesByNoun = {};
 }
 
 GlodaCollectionManager.prototype = {
   /**
-   *
+   * Registers the existence of a collection with the collection manager.  This
+   *  is done using a weak reference so that the collection can go away if it
+   *  wants to.
    */
   registerCollection: function gloda_colm_registerCollection(aCollection) {
     let collections;
@@ -82,6 +97,53 @@ GlodaCollectionManager.prototype = {
     return collections;
   },
   
+  defineCache: function gloda_colm_defineCache(aNounMeta, aCacheSize) {
+    this._cachesByNoun[aNounMeta.id] = new GlodaLRUCacheCollection(aNounMeta,
+                                                                   aCacheSize);
+  },
+  
+  /** 
+   * Attempt to locate existing instances of nouns with the given IDs. 
+   */
+  cacheLookup: function gloda_colm_cacheLookup(aNounMetaID, aIDs) {
+    // try the cache first; it has explicit semantics related to caching so
+    //  needs slightly different treatment.  (plus, it makes sense to check
+    //  the cache first, especially since it's not an exclusive cache.)
+    let cache = this._cachesByNoun[aNounMetaID];
+    
+    if (cache) {
+      let results = [];
+      let hits = 0;
+      let misses = 
+      for each (id in aIDs) {
+        if (id in cache._idMap) {
+          results.push(cache.hit(id));
+          hits++;
+        }
+        else
+          results.push(null);
+      }
+    }
+  
+    // next, let's fall back to our friend dudes
+    for each (let collection in this.getCollectionsForNounID(aNounID)) {
+    }
+  },
+  
+  cacheAdd: function gloda_colm_cacheAdd(aNounMetaID, aObjs) {
+    let cache = this._cachesByNoun[aNounMetaID];
+    
+    if (cache) {
+      cache.add(aObjs);
+    }
+  },
+  
+  cacheCommitDirty: function glod_colm_cacheCommitDirty() {
+    for each (let cache in this._cachesByNoun) {
+      cache.commitDirty();
+    }
+  }
+  
   /**
    * This should be called when items are added to the global database.  This
    *  should generally mean during indexing by indexers or an attribute
@@ -89,8 +151,8 @@ GlodaCollectionManager.prototype = {
    * We walk all existing collections for the given noun type and add the items
    *  to the collection if the item meets the query that defines the collection.
    */
-  itemsAdded: function gloda_colm_itemsAdded(aItems) {
-    for each (let collection in this.getCollectionsForNounID()) {
+  itemsAdded: function gloda_colm_itemsAdded(aNounID, aItems) {
+    for each (let collection in this.getCollectionsForNounID(aNounID)) {
       let addItems = [item for each (item in aItems)
                       if (collection.query.test(item))];
       if (addItems.length)
@@ -108,8 +170,8 @@ GlodaCollectionManager.prototype = {
    *  onItemsAdded events.  For items included that still match the query, we
    *  generate onItemsModified events.
    */
-  itemsModified: function gloda_colm_itemsModified(aItems) {
-    for each (collection in this.getCollectionsForNounID()) {
+  itemsModified: function gloda_colm_itemsModified(aNounID, aItems) {
+    for each (collection in this.getCollectionsForNounID(aNounID)) {
       let added = [], modified = [], removed = [];
       for each (let item in aItems) {
         if (item.id in collection._idMap) {
@@ -139,8 +201,8 @@ GlodaCollectionManager.prototype = {
    * We walk all existing collections for the given noun type.  For items
    *  currently in the collection, we generate onItemsRemoved events.
    */
-  itemsDeleted: function gloda_colm_itemsDeleted(aItems) {
-    for each (let collection in this.getCollectionsForNounID()) {
+  itemsDeleted: function gloda_colm_itemsDeleted(aNounID, aItems) {
+    for each (let collection in this.getCollectionsForNounID(aNounID)) {
       let removeItems = [item for each (item in aItems)
                          if (item.id in collection._idMap)];
       if (removeItems.length)
@@ -210,3 +272,99 @@ GlodaCollection.prototype = {
       this._listener.onItemsRemoved(aItems);
   },
 };
+
+/**
+ * A LRU-discard cache.  We use a doubly linked-list for the eviction
+ *  tracking.  Since we require that there is at most one LRU-discard cache per
+ *  noun class, we simplify our lives by adding our own attributes to the
+ *  cached objects.
+ */
+function GlodaLRUCacheCollection(aNounMeta, aCacheSize) {
+  GlodaCollection.call(this, null, null, null);
+  
+  this._nounMeta = aNounMeta;
+  
+  this._head = null; // aka oldest!
+  this._tail = null; // aka newest!
+  this._size = 0;
+  // let's keep things sane, and simplify our logic a little...
+  if (aCacheSize < 32)
+    aCacheSize = 32;
+  this._maxCacheSize = aCacheSize;
+}
+
+GlodaLRUCacheCollection.prototype = new GlodaCollection;
+GlodaLRUCacheCollection.prototype.add = function(aItems) {
+  for each (let item in aItems) {
+    this._idMap[item.id] = item;
+    
+    item._lruPrev = this._tail;
+    // we do have to make sure that we will set _head the first time we insert
+    //  something
+    if (this._tail !== null)
+      this._tail._lruNext = item;
+    else
+      this._head = item;
+    item._lruNext = null;
+    this._tail = item;
+    
+    this._size++;
+  }
+  
+  while (this._size > this._maxCacheSize) {
+    let item = this._head;
+    
+    // we never have to deal with the possibility of needing to make _head/_tail
+    //  null.
+    this._head = item._lruNext;
+    this._head._lruPrev = null;
+    // (because we are nice, we will delete the properties...)
+    delete item._lruNext;
+    delete item._lruPrev;
+    
+    // nuke from our id map
+    delete this._idMap[item.id];
+    
+    // flush dirty items to disk (they may not have this attribute, in which
+    //  case, this returns false, which is fine.)
+    if (item.dirty) {
+      this._nounMeta.objUpdate.call(this._nounMeta.datastore, item);
+      delete item.dirty;
+    }
+  }
+};
+
+GlodaLRUCacheCollection.prototype.hit = function(aItem) {
+  // don't do anything in the 0 or 1 items case
+  if (this._head === this._tail)
+    return;
+
+  // unlink the item  
+  if (aItem._lruPrev !== null)
+    aItem._lruPrev._lruNext = aItem._lruNext;
+  if (aItem._lruNext !== null)
+    aItem._lruNext._lruPrev = aIrem._lruPrev;
+  // link it in to the end
+  this._tail._lruNext = aItem; 
+  aItem._lruPrev = this._tail;
+  aItem._lruNext = null;
+  // update tail tracking
+  this._tail = aItem;
+};
+
+/**
+ * If any of the cached items are dirty, commit them, and make them no longer
+ *  dirty.
+ */
+GlodaLRUCacheCollection.prototype.commitDirty = function() {
+  // we can only do this if there is an update method available...
+  if (!this._nounMeta.objUpdate)
+    return;
+
+  for each (let item in this._idMap) {
+    if (item.dirty) {
+      this._nounMeta.objUpdate.call(this._nounMeta.datastore, item);
+      delete item.dirty;
+    }
+  }
+}
