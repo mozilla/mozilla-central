@@ -68,6 +68,7 @@
 #include "nsIFileStreams.h"
 #include "nsUnicharUtils.h"
 #include "nsIAbCard.h"
+#include "nsIAbDirectory.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMemory.h"
@@ -892,8 +893,11 @@ nsresult nsMsgSearchTerm::InitializeAddressBook()
 
   if (mDirectory)
   {
+    nsCOMPtr<nsIAbDirectory> dir(do_QueryInterface(mDirectory, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
     nsCString uri;
-    rv = mDirectory->GetURI(uri);
+    rv = dir->GetURI(uri);
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (!uri.Equals(m_value.string))
@@ -927,11 +931,9 @@ nsresult nsMsgSearchTerm::MatchInAddressBook(const char * aAddress, PRBool *pRes
 
   if (mDirectory)
   {
-    nsIAbCard* cardForAddress = nsnull;
+    nsIAbCard* cardForAddress;
     rv = mDirectory->CardForEmailAddress(nsDependentCString(aAddress),
                                          &cardForAddress);
-    if (NS_FAILED(rv) && rv != NS_ERROR_NOT_IMPLEMENTED)
-      return rv;
     if ((m_operator == nsMsgSearchOp::IsInAB && cardForAddress) || (m_operator == nsMsgSearchOp::IsntInAB && !cardForAddress))
       *pResult = PR_TRUE;
     NS_IF_RELEASE(cardForAddress);

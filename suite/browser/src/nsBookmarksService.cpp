@@ -2498,7 +2498,7 @@ NS_IMETHODIMP nsBookmarksService::Observe(nsISupports *aSubject, const char *aTo
         // The profile has not changed yet.
         rv = Flush();
     
-        if (someData && NS_LITERAL_STRING("shutdown-cleanse").Equals(someData))
+        if (!NS_strcmp(someData, NS_LITERAL_STRING("shutdown-cleanse").get()))
         {
             if (mBookmarksFile)
             {

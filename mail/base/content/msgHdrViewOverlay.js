@@ -977,9 +977,16 @@ function useDisplayNameForAddress(emailAddress)
 
   if (!gPersonalAddressBookDirectory)
   {
-    var manager = Components.classes["@mozilla.org/abmanager;1"]
-                            .getService(Components.interfaces.nsIAbManager);
-    gPersonalAddressBookDirectory = manager.getDirectory(kPersonalAddressbookUri);
+    var dirs = Components.classes["@mozilla.org/abmanager;1"]
+                         .getService(Components.interfaces.nsIAbManager).directories;
+    while (dirs.hasMoreElements) {
+      var dir = dirs.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
+      if (dir.URI == kPersonalAddressbookUri) {
+        gPersonalAddressBookDirectory = dir.QueryInterface(Components.interfaces.nsIAbMDBDirectory);
+        break;
+      }
+    }
+
     if (!gPersonalAddressBookDirectory)
       return false;
   }

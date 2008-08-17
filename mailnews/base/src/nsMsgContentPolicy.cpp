@@ -43,9 +43,11 @@
 #include "nsIPrefBranch2.h"
 #include "nsIURI.h"
 #include "nsCOMPtr.h"
+#include "nsIRDFService.h"
+#include "nsIRDFResource.h"
 #include "nsIMsgHeaderParser.h"
-#include "nsIAbManager.h"
 #include "nsIAbDirectory.h"
+#include "nsIAbMDBDirectory.h"
 #include "nsIAbCard.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgWindow.h"
@@ -151,16 +153,28 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, 
   rv = headerParser->ExtractHeaderAddressMailboxes(nsnull, author.get(), getter_Copies(emailAddress));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAbManager> abManager = do_GetService("@mozilla.org/abmanager;1",
-                                                   &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (!mCachedTopLevelAb)
+  {
+    // Use the RDF service to walk through the list of local directories
+    nsCOMPtr<nsIRDFService> rdfService =
+      do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIRDFResource> resource;
+    rv = rdfService->GetResource(NS_LITERAL_CSTRING("moz-abdirectory://"),
+                                 getter_AddRefs(resource));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    mCachedTopLevelAb = do_QueryInterface(resource, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   nsCOMPtr<nsISimpleEnumerator> enumerator;
-  rv = abManager->GetDirectories(getter_AddRefs(enumerator));
+  rv = mCachedTopLevelAb->GetChildNodes(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupports> supports;
-  nsCOMPtr<nsIAbDirectory> directory;
+  nsCOMPtr<nsIAbMDBDirectory> mdbDirectory;
   nsCOMPtr<nsIAbCard> cardForAddress;
   PRBool hasMore;
 
@@ -168,13 +182,9 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, 
   {
     rv = enumerator->GetNext(getter_AddRefs(supports));
     NS_ENSURE_SUCCESS(rv, rv);
-    directory = do_QueryInterface(supports);
-    if (directory)
-    {
-      rv = directory->CardForEmailAddress(emailAddress, getter_AddRefs(cardForAddress));
-      if (NS_FAILED(rv) && rv != NS_ERROR_NOT_IMPLEMENTED)
-        return rv;
-    }
+    mdbDirectory = do_QueryInterface(supports);
+    if (mdbDirectory)
+      mdbDirectory->CardForEmailAddress(emailAddress, getter_AddRefs(cardForAddress));
   }
   
   // if we found a card from the sender, 

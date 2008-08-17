@@ -1,6 +1,6 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
- * Tests nsIAbDirectory::cardForEmailAddress
+ * Tests nsIAbMDBDirectory::cardForEmailAddress
  * - checks correct return when no email address supplied
  * - checks correct return when no matching email address supplied
  * - checks correct return when matching email address supplied.
@@ -19,7 +19,8 @@ function run_test() {
   var abManager = Components.classes["@mozilla.org/abmanager;1"]
                             .getService(Components.interfaces.nsIAbManager);
 
-  var AB = abManager.getDirectory(kPABData.URI);
+  var AB = abManager.getDirectory(kPABData.URI)
+                .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
 
   // Test - Check that a null string succeeds and does not
   // return a card (bug 404264)

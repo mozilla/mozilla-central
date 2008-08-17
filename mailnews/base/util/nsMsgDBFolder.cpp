@@ -65,7 +65,7 @@
 #include "nsCollationCID.h"
 #include "nsAbBaseCID.h"
 #include "nsIAbCard.h"
-#include "nsIAbDirectory.h"
+#include "nsIAbMDBDirectory.h"
 #include "nsISpamSettings.h"
 #include "nsIMsgFilterPlugin.h"
 #include "nsIMsgMailSession.h"
@@ -1776,7 +1776,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   *aFiltersRun = PR_FALSE;
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsCOMPtr<nsISpamSettings> spamSettings;
-  nsCOMArray<nsIAbDirectory> whiteListDirArray;
+  nsCOMArray<nsIAbMDBDirectory> whiteListDirArray;
   nsCOMPtr<nsIMsgHeaderParser> headerParser;
   PRBool useWhiteList = PR_FALSE;
   PRInt32 spamLevel = 0;
@@ -1876,8 +1876,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         nsCOMPtr<nsIRDFResource> resource;
         rv = rdfService->GetResource(*whiteListArray[index], getter_AddRefs(resource));
 
-        nsCOMPtr<nsIAbDirectory> whiteListDirectory =
-          do_QueryInterface(resource, &rv);
+        nsCOMPtr<nsIAbMDBDirectory> whiteListDirectory = do_QueryInterface(resource, &rv);
         if (whiteListDirectory)
           whiteListDirArray.AppendObject(whiteListDirectory);
       }
@@ -1946,8 +1945,9 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         if (!authorEmailAddress.IsEmpty())
         {
           for (PRInt32 index = 0; index < whiteListDirArray.Count() && !cardForAddress; index++)
-            whiteListDirArray[index]->CardForEmailAddress(authorEmailAddress,
-                                                          &cardForAddress);
+            rv = whiteListDirArray[index]->CardForEmailAddress(authorEmailAddress, &cardForAddress);
+            if (NS_FAILED(rv))
+              cardForAddress = nsnull;
         }
         if (cardForAddress)
         {

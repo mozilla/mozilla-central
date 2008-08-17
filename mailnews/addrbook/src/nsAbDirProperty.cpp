@@ -311,10 +311,6 @@ NS_IMETHODIMP nsAbDirProperty::DeleteCards(nsIArray *cards)
 NS_IMETHODIMP nsAbDirProperty::DropCard(nsIAbCard *childCard, PRBool needToCopyCard)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
-NS_IMETHODIMP nsAbDirProperty::CardForEmailAddress(const nsACString &aEmailAddress,
-                                                   nsIAbCard ** aAbCard)
-{ return NS_ERROR_NOT_IMPLEMENTED; }
-
 NS_IMETHODIMP nsAbDirProperty::GetSupportsMailingLists(PRBool *aSupportsMailingsLists)
 {
   NS_ENSURE_ARG_POINTER(aSupportsMailingsLists);

@@ -59,7 +59,7 @@ interface nsIMutableArray;
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(ab55bec3-5bf9-4928-8322-5cff399b7045)]
+[scriptable, uuid(e30c442f-9d83-4f38-8d41-9884e81237a0)]
 interface nsIAbDirectory : nsISupports {
 
   /**
@@ -307,19 +307,4 @@ interface nsIAbDirectory : nsISupports {
   void setStringValue(in string aName, in ACString aValue);
   void setLocalizedStringValue(in string aName, in AUTF8String aValue);
   //@}
-
-  /** 
-   * Returns the address card for the specified email address if found.
-   *
-   * If the address book type does not know how to find a card, it will throw
-   * NS_ERROR_NOT_IMPLEMENTED. Core address book types do throw this exception,
-   * so beware when calling this method.
-   *
-   * @param  emailAddress The email address to find in either the primary or
-   *                      secondary email address fields. If email address is
-   *                      empty, the database won't be searched and the function
-   *                      will return as if no card was found.
-   * @return              An nsIAbCard if one was found, else returns NULL.
-   */
-  nsIAbCard cardForEmailAddress(in AUTF8String emailAddress);
 };
