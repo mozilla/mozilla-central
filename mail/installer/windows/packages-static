@@ -390,11 +390,9 @@ bin\res\table-remove-row-active.gif
 bin\res\table-remove-row-hover.gif
 bin\res\table-remove-row.gif
 
-#ifdef MOZ_SVG
 ; svg
 bin\res\svg.css
 bin\components\dom_svg.xpt
-#endif
 
 ; [Updater]
 bin\updater.exe

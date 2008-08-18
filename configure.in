@@ -4376,7 +4376,6 @@ MOZ_HELP_VIEWER=
 MOZ_SPELLCHECK=1
 MOZ_STATIC_MAIL_BUILD=
 MOZ_STORAGE=1
-MOZ_SVG=1
 MOZ_TIMELINE=
 MOZ_UI_LOCALE=en-US
 MOZ_UNIVERSALCHARDET=1
@@ -4471,7 +4470,6 @@ basic)
   MOZ_PROFILELOCKING=
   MOZ_PROFILESHARING=
   MOZ_SPELLCHECK=
-  MOZ_SVG=
   MOZ_UNIVERSALCHARDET=
   MOZ_UPDATER=
   MOZ_USE_NATIVE_UCONV=
@@ -4521,7 +4519,6 @@ minimal)
   MOZ_SPELLCHECK=
   MOZ_STORAGE=1
   MOZ_PLACES=
-  MOZ_SVG=
   MOZ_UNIVERSALCHARDET=
   MOZ_UPDATER=
   MOZ_USE_NATIVE_UCONV=1
@@ -6895,38 +6892,6 @@ AC_SUBST(HOST_LIBIDL_CFLAGS)
 AC_SUBST(HOST_LIBIDL_LIBS)
 
 dnl ========================================================
-dnl Check for libart
-dnl ========================================================
-if test "$MOZ_SVG_RENDERER_LIBART"; then
-  if test ! -f $MOZILLA_SRCDIR/other-licenses/libart_lgpl/Makefile.in; then
-    AC_MSG_ERROR([You must check out the mozilla version of libart. Use
-mk_add_options MOZ_CO_MODULE=mozilla/other-licenses/libart_lgpl])
-  fi
-
-  dnl libart's configure hasn't been run yet, but we know what the
-  dnl answer should be anyway
-  MOZ_LIBART_CFLAGS='-I${DIST}/include/libart_lgpl'
-  case "$target_os" in
-  msvc*|mks*|cygwin*|mingw*|wince*)
-      MOZ_LIBART_LIBS='$(LIBXUL_DIST)/lib/$(LIB_PREFIX)moz_art_lgpl.$(IMPORT_LIB_SUFFIX)' 
-      ;;
-  os2*)
-      MOZ_LIBART_LIBS='-lmoz_art -lm'
-      ;;
-  beos*)
-      MOZ_LIBART_LIBS='-lmoz_art_lgpl -lroot -lbe'
-      ;;
-  *)
-      MOZ_LIBART_LIBS='-lmoz_art_lgpl -lm'
-      ;;
-  esac
-  AC_FUNC_ALLOCA
-fi
-
-AC_SUBST(MOZ_LIBART_CFLAGS)
-AC_SUBST(MOZ_LIBART_LIBS)
-
-dnl ========================================================
 dnl Check for cairo
 dnl ========================================================
 MOZ_CAIRO_CFLAGS='-I$(LIBXUL_DIST)/include/cairo'
@@ -7332,8 +7297,6 @@ AC_SUBST(MOZ_PERMISSIONS)
 AC_SUBST(MOZ_XTF)
 AC_SUBST(MOZ_NO_INSPECTOR_APIS)
 AC_SUBST(MOZ_PREF_EXTENSIONS)
-AC_SUBST(MOZ_SVG)
-AC_SUBST(MOZ_SVG_FOREIGNOBJECT)
 AC_SUBST(MOZ_XSLT_STANDALONE)
 AC_SUBST(MOZ_JS_LIBS)
 AC_SUBST(MOZ_PSM)
