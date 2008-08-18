@@ -436,7 +436,7 @@ GlodaIdentity.prototype = {
     while (!cardForEmailAddress && enumerator.hasMoreElements())
     {
       addrbook = enumerator.getNext();
-      if (addrbook instanceof Ci.nsIAbMDBDirectory) {
+      if (addrbook instanceof Ci.nsIAbDirectory) {
         cardForEmailAddress = addrbook.cardForEmailAddress(this._value);
         if (cardForEmailAddress)
           return cardForEmailAddress;

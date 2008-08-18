@@ -68,9 +68,34 @@ nsAutoCompleteGlodaResult.prototype = {
     let thing = this._results[aIndex];
     return thing.name || thing.value || thing.subject;
   },
-  getCommentAt: function() { return null; },
-  getStyleAt: function() { return "gloda-contact"; },
-  getImageAt: function() { return null; },
+  // rich uses this to be the "title"
+  getCommentAt: function(aIndex) {
+    let thing = this._results[aIndex];
+    if (thing.value) // identity
+      return thing.contact.name;
+    else
+      return thing.name || thing.subject;
+  },
+  // rich uses this to be the "type"
+  getStyleAt: function(aIndex) {
+    let thing = this._results[aIndex];
+    if (thing.subject)
+      return "gloda-conversation";
+    if (thing.value)
+      return "gloda-identity";
+    return "gloda-contact";
+  },
+  // rich uses this to be the icon
+  getImageAt: function(aIndex) {
+    let thing = this._results[aIndex];
+    if (!thing.value)
+      return null;
+  
+    let md5hash = GlodaUtils.md5HashString(thing.value);
+    let gravURL = "http://www.gravatar.com/avatar/" + md5hash + 
+                                "?d=identicon&s=16&r=g";
+    return gravURL;
+  },
   removeValueAt: function() {}
 };
 
