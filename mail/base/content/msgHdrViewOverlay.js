@@ -939,18 +939,22 @@ function updateEmailAddressNode(emailAddressNode, address)
 
 function AddExtraAddressProcessing(emailAddress, addressNode)
 {
-  var displayName = addressNode.getAttribute("displayName");
 
-  if (gShowCondensedEmailAddresses && displayName)
+  if (gShowCondensedEmailAddresses)
   {
     // always show the address for the from and reply-to fields
     var parentElementId = addressNode.parentNode.id;
     var condenseName = true;
-
+    var card = useDisplayNameForAddress(emailAddress);
+    var displayName = null;
+    
+    if (card)
+      displayName = card.displayName;
+    
     if (parentElementId == "expandedfromBox" || parentElementId == "expandedreply-toBox")
       condenseName = false;
 
-    if (condenseName && useDisplayNameForAddress(emailAddress))
+    if (condenseName && displayName)
     {
       addressNode.setAttribute("label", displayName);
       addressNode.setAttribute("tooltiptext", emailAddress);
