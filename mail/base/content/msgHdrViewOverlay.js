@@ -1,4 +1,4 @@
-# -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -64,7 +64,6 @@ var gBuiltCollapsedView = false;
 var gMessengerBundle;
 var gProfileDirURL;
 var gShowCondensedEmailAddresses = true; // show the friendly display names for people I know instead of the name + email address
-var gPersonalAddressBookDirectory; // used for determining if we want to show just the display name in email address nodes
 
 // other components may listen to on start header & on end header notifications for each message we display
 // to do that you need to add yourself to our gMessageListeners array with object that has two properties:
@@ -979,17 +978,22 @@ function useDisplayNameForAddress(emailAddress)
   // LDAP directories, and maybe even domain matches (i.e. any email from someone in my company
   // should use the friendly display name)
 
-  if (!gPersonalAddressBookDirectory)
-  {
-    var manager = Components.classes["@mozilla.org/abmanager;1"]
-                            .getService(Components.interfaces.nsIAbManager);
-    gPersonalAddressBookDirectory = manager.getDirectory(kPersonalAddressbookUri);
-    if (!gPersonalAddressBookDirectory)
-      return false;
+  var books = Components.classes["@mozilla.org/abmanager;1"]
+                        .getService(Components.interfaces.nsIAbManager)
+                        .directories;
+
+  var card = null;
+
+  while (!card && books.hasMoreElements()) {
+    var ab = books.getNext()
+                  .QueryInterface(Components.interfaces.nsIAbDirectory);
+    try {
+      card = ab.cardForEmailAddress(emailAddress);
+    }
+    catch (ex) { }
   }
 
-  // look up the email address in the database
-  return gPersonalAddressBookDirectory.cardForEmailAddress(emailAddress);
+  return card;
 }
 
 function AddNodeToAddressBook (emailAddressNode)
