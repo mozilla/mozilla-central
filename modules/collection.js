@@ -457,7 +457,7 @@ GlodaLRUCacheCollection.prototype.hit = function cache_hit(aItem) {
   // don't do anything in the 0 or 1 items case, or if we're already
   //  the last item
   if ((this._head === this._tail) || (this._tail === aItem))
-    return;
+    return aItem;
 
   // unlink the item  
   if (aItem._lruPrev !== null)
