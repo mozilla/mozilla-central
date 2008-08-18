@@ -261,15 +261,25 @@ nsAbOSXCard::Update(PRBool aNotify)
     if (kABPersonFlags && (order == kABFirstNameFirst)) {
       GetFirstName(tempName);
       displayName.Append(tempName);
-      displayName.Append(' ');
+
       GetLastName(tempName);
+
+      // Only append a space if the last name and the first name are not empty
+      if (!tempName.IsEmpty() && !displayName.IsEmpty())
+        displayName.Append(' ');
+
       displayName.Append(tempName);
     }
     else {
       GetLastName(tempName);
       displayName.Append(tempName);
-      displayName.Append(' ');
+
       GetFirstName(tempName);
+
+      // Only append a space if the last name and the first name are not empty
+      if (!tempName.IsEmpty() && !displayName.IsEmpty())
+        displayName.Append(' ');
+
       displayName.Append(tempName);
     }
     SET_STRING(displayName, DisplayName, aNotify, abManager);
