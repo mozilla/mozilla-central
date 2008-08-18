@@ -127,7 +127,18 @@ SuffixTree.prototype = {
       // bail if there was no edge
       if (state === undefined)
         return results;
-      index += state.length; 
+      // bail if the portion of the edge we traversed is not equal to that
+      //  portion of our pattern
+      let actualTraverseLength = Math.min(state.length,
+                                          end - index);
+dump("checking traversal: " + this._str.substring(state.start,
+                              state.start + actualTraverseLength) + " versus " +
+      aSubstring.substring(index, index + actualTraverseLength) + "\n");
+      if (this._str.substring(state.start,
+                              state.start + actualTraverseLength) !=
+          aSubstring.substring(index, index + actualTraverseLength))
+        return results;
+      index += state.length;
     }
     
     // state should now be the node which itself and all its children match...
