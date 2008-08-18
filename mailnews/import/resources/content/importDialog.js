@@ -975,8 +975,13 @@ function next()
 
     if (radioGroup.value == "all")
     {
+#ifdef MOZ_THUNDERBIRD
       window.openDialog("chrome://messenger/content/migration/migration.xul",
                         "", "chrome,dialog,modal,centerscreen");
+#else
+      window.openDialog("chrome://communicator/content/migration/migration.xul",
+                        "", "chrome,dialog,modal,centerscreen");
+#endif
       close();
     }
     else
