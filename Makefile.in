@@ -41,8 +41,12 @@ VPATH		= @srcdir@
 
 include $(topsrcdir)/config/config.mk
 
-default install export libs clean realclean distclean alldep maybe_clobber_profiledbuild check rebase splitsymbols buildsymbols uploadsymbols signnss deliver::
+default install export libs clean realclean distclean alldep maybe_clobber_profiledbuild check rebase splitsymbols uploadsymbols signnss deliver::
 	$(MAKE) -C mozilla $@
+
+# http://bugzilla.mozilla.org/show_bug.cgi?id=450485
+buildsymbols ::
+	$(MAKE) -C mozilla $@ MAKE_SYM_STORE_PATH=..
 
 include $(topsrcdir)/$(MOZ_BUILD_APP)/build.mk
 
