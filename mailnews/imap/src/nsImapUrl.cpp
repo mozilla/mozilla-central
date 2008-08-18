@@ -1181,6 +1181,19 @@ NS_IMETHODIMP nsImapUrl::GetAllowContentChange(PRBool *result)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsImapUrl::Clone(nsIURI **_retval)
+{
+  nsresult rv = nsMsgMailNewsUrl::Clone(_retval);
+  NS_ENSURE_SUCCESS(rv, rv);
+  // also clone the mURI member, because GetUri below won't work if
+  // mURI isn't set due to escaping issues.
+  nsCOMPtr <nsIMsgMessageUrl> clonedUrl = do_QueryInterface(*_retval);
+  if (clonedUrl)
+    clonedUrl->SetUri(mURI.get());
+  return rv;
+}
+
+
 NS_IMETHODIMP nsImapUrl::SetUri(const char * aURI)
 {
   mURI= aURI;

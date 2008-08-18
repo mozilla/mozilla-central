@@ -59,6 +59,7 @@ public:
   // nsIURI override
   NS_IMETHOD SetSpec(const nsACString &aSpec);
   NS_IMETHOD SetQuery(const nsACString &aQuery);
+  NS_IMETHOD Clone(nsIURI **_retval);
 
   //////////////////////////////////////////////////////////////////////////////
   // we support the nsIImapUrl interface
