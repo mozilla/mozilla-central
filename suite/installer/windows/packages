@@ -273,7 +273,6 @@ bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
 bin\components\nsPostUpdateWin.js
 bin\components\nsProxyAutoConfig.js
-bin\components\nsResetPref.js
 bin\components\nsSetDefault.js
 bin\components\nsSetDefaultBrowser.js
 bin\components\nsSidebar.js

@@ -264,7 +264,6 @@ bin/components/nsHandlerService.js
 bin/components/nsHelperAppDlg.js
 bin/components/nsProgressDialog.js
 bin/components/nsProxyAutoConfig.js
-bin/components/nsResetPref.js
 bin/components/nsScriptableIO.js
 bin/components/nsSidebar.js
 bin/components/nsSuiteGlue.js
