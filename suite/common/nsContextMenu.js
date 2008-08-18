@@ -697,11 +697,12 @@ nsContextMenu.prototype = {
     },
     setWallpaper: function() {
       // Confirm since it's annoying if you hit this accidentally.
-      var promptService       = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-      var gNavigatorBundle    = document.getElementById("bundle_navigator");
-      var promptTitle         = gNavigatorBundle.getString("wallpaperConfirmTitle");
-      var promptMsg           = gNavigatorBundle.getString("wallpaperConfirmMsg");
-      var promptConfirmButton = gNavigatorBundle.getString("wallpaperConfirmButton");
+      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                    .getService(Components.interfaces.nsIPromptService);
+      var navigatorBundle = document.getElementById("bundle_navigator");
+      var promptTitle = navigatorBundle.getString("wallpaperConfirmTitle");
+      var promptMsg = navigatorBundle.getString("wallpaperConfirmMsg");
+      var promptConfirmButton = navigatorBundle.getString("wallpaperConfirmButton");
 
       var buttonPressed = promptService.confirmEx(window, promptTitle, promptMsg,
                                                    (promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0) +
@@ -881,29 +882,30 @@ nsContextMenu.prototype = {
         return text;
     },
 
-    //Get selected object and convert it to a string to get
-    //selected text.   Only use the first 15 chars.
-    isTextSelection : function() {
-        var result = false;
-        var selection = this.searchSelected(16);
+    /**
+     * Determines whether the focused window has selected text, and if so
+     * formats the first 15 characters for the label of the context-searchselect
+     * element according to the searchText string.
+     * @return true if there is selected text, false if not
+     */
+    isTextSelection : function isTextSelection() {
+      var searchSelectText = this.searchSelected(16);
+      if (!searchSelectText)
+        return false;
 
-        var bundle = srGetStrBundle("chrome://communicator/locale/contentAreaCommands.properties");
+      if (searchSelectText.length > 15)
+        searchSelectText = searchSelectText.substr(0, 15) + "...";
 
-        var searchSelectText;
-        if (selection != "") {
-            searchSelectText = selection.toString();
-            if (searchSelectText.length > 15)
-                searchSelectText = searchSelectText.substr(0,15) + "...";
-            result = true;
+      // Format "Search for <selection>" string to show in menu.
+      // Use |getStringBundle()| from <contentAreaUtils.js>.
+      var bundle = getStringBundle();
+      searchSelectText = bundle.formatStringFromName("searchText",
+                                                     [searchSelectText], 1);
+      this.setItemAttr("context-searchselect", "label", searchSelectText);
+      this.setItemAttr("context-searchselect", "accesskey",
+                       bundle.GetStringFromName("searchText.accesskey"));
 
-          // format "Search for <selection>" string to show in menu
-          searchSelectText = bundle.formatStringFromName("searchText",
-                                                         [searchSelectText], 1);
-          this.setItemAttr("context-searchselect", "label", searchSelectText);
-          this.setItemAttr("context-searchselect", "accesskey", 
-                            bundle.GetStringFromName("searchText.accesskey"));
-        } 
-        return result;
+      return true;
     },
     
     searchSelected : function( charlen ) {
