@@ -44,6 +44,8 @@ const Cu = Components.utils;
 
 Cu.import("resource://gloda/modules/log4moz.js");
 
+const LOG = Log4Moz.Service.getLogger("gloda.collection");
+
 /**
  * The collection manager is a singleton that has the following tasks:
  * - Let views of objects (nouns) know when their objects have changed.  For
@@ -81,7 +83,7 @@ GlodaCollectionManager.prototype = {
     collections.push(Cu.getWeakReference(aCollection));
   },
   
-  getCollectionsForNounID: function(aNounID) {
+  getCollectionsForNounID: function gloda_colm_getCollectionsForNounID(aNounID){
     if (!(aNounID in this._collectionsByNoun))
       return [];
     
@@ -102,47 +104,147 @@ GlodaCollectionManager.prototype = {
                                                                    aCacheSize);
   },
   
-  /** 
-   * Attempt to locate existing instances of nouns with the given IDs. 
+  /**
+   * Attempt to locate an instance of the object of the given noun type with the
+   *  given id.  Counts as a cache hit if found.  (And if it was't in a cache,
+   *  but rather a collection, it is added to the cache.)
    */
-  cacheLookup: function gloda_colm_cacheLookup(aNounMetaID, aIDs) {
-    // try the cache first; it has explicit semantics related to caching so
-    //  needs slightly different treatment.  (plus, it makes sense to check
-    //  the cache first, especially since it's not an exclusive cache.)
-    let cache = this._cachesByNoun[aNounMetaID];
+  cacheLookupOne: function gloda_colm_cacheLookupOne(aNounID, aID) {
+    let cache = this._cachesByNoun[aNounID];
     
     if (cache) {
-      let results = [];
-      let hits = 0;
-      let misses = 
-      for each (id in aIDs) {
-        if (id in cache._idMap) {
-          results.push(cache.hit(id));
-          hits++;
-        }
-        else
-          results.push(null);
+      if (aID in cache._idMap) {
+        let item = cache._idMap[aID];
+        return cache.hit(item);
       }
     }
   
-    // next, let's fall back to our friend dudes
     for each (let collection in this.getCollectionsForNounID(aNounID)) {
+      if (aID in collection._idMap) {
+        let item = collection._idMap[aID];
+        if (cache)
+          cache.add([item]);
+        return item;
+      }
     }
+    
+    return null;
   },
   
-  cacheAdd: function gloda_colm_cacheAdd(aNounMetaID, aObjs) {
-    let cache = this._cachesByNoun[aNounMetaID];
+  /**
+   * Checks whether the provided item with the given id is actually a duplicate
+   *  of an instance that already exists in the cache/a collection.  If it is,
+   *  the pre-existing instance is returned and counts as a cache hit.  If it
+   *  is not, the passed-in instance is added to the cache and returned.
+   */
+  cacheLoadUnifyOne: function gloda_colm_cacheLoadUnifyOne(aItem) {
+    let items = [aItem];
+    this.cacheLoadUnify(aItem.NOUN_ID, items);
+    return items[0];
+  },
+
+  /**
+   * Given a list of items, check if any of them already have duplicate,
+   *  canonical, instances in the cache or collections.  Items with pre-existing
+   *  instances are replaced by those instances in the provided list, and each
+   *  counts as a cache hit.  Items without pre-existing instances are added
+   *  to the cache and left intact.
+   */
+  cacheLoadUnify: function gloda_colm_cacheLoadUnify(aNounID, aItems) {
+    let cache = this._cachesByNoun[aNounID];
+    
+    // track the items we haven't yet found in a cache/collection (value) and
+    //  their index in aItems (key).  We're somewhat abusing the dictionary
+    //  metaphor with the intent of storing tuples here.  We also do it because
+    //  it allows random-access deletion theoretically without cost.  (Since
+    //  we delete during iteration, that may be wrong, but it sounds like the
+    //  semantics still work?)
+    let unresolvedIndexToItem = {};
+    let numUnresolved = 0;
     
     if (cache) {
-      cache.add(aObjs);
+      for (let iItem=0; iItem < aItems.length; iItem++) {
+        let item = aItems[iItem];
+        
+        if (item.id in cache._idMap) {
+          let realItem = cache._idMap[item.id];
+          // update the caller's array with the reference to the 'real' item
+          aItems[iItem] = realItem;
+          cache.hit(realItem);
+        }
+        else {
+          unresolvedIndexToItem[iItem] = item;
+          numUnresolved++;
+        }
+      }
+      
+      // we're done if everyone was a hit.
+      if (numUnresolved == 0)
+        return;
     }
+    else {
+      for (let iItem=0; iItem < aItems.length; iItem++) {
+        unresolvedIndexToItem[iItem] = aItems[iItem];
+      }
+      numUnresolved = aItems.length;
+    }
+  
+    let needToCache = [];
+    // next, let's fall back to our collections
+    for each (let collection in this.getCollectionsForNounID(aNounID)) {
+      for (let [iItem, item] in Iterator(unresolvedIndexToItem)) {
+        if (item.id in collection._idMap) {
+          let realItem = collection._idMap[item.id];
+          // update the caller's array to now have the 'real' object
+          aItems[iItem] = realItem;
+          // flag that we need to cache this guy (we use an inclusive cache)
+          needToCache.push(realItem);
+          // we no longer need to resolve this item...
+          delete unresolvedIndexToItem[iItem];
+          // stop checking collections if we got everybody
+          if (--numUnresolved == 0)
+            break;
+        }
+      }
+    }
+    
+    // anything left in unresolvedIndexToItem should be added to the cache...
+    // plus, we already have 'needToCache'
+    if (cache) {
+      cache.add(needToCache.concat([val for each
+                                    (val in unresolvedIndexToItem)]));
+    }
+    
+    return aItems;
   },
   
   cacheCommitDirty: function glod_colm_cacheCommitDirty() {
     for each (let cache in this._cachesByNoun) {
       cache.commitDirty();
     }
-  }
+  },
+
+  /**
+   * Notifies the collection manager that an item has been loaded and should
+   *  be cached, assuming caching is active.
+   */    
+  itemLoaded: function gloda_colm_itemsLoaded(aItem) {
+    let cache = this._cachesByNoun[aItem.NOUN_ID];
+    if (cache) {
+      cache.add([aItem]);
+    }
+  },
+
+  /**
+   * Notifies the collection manager that multiple items has been loaded and
+   *  should be cached, assuming caching is active.
+   */  
+  itemsLoaded: function gloda_colm_itemsLoaded(aNounID, aItems) {
+    let cache = this._cachesByNoun[aNounID];
+    if (cache) {
+      cache.add(aItems);
+    }
+  },
   
   /**
    * This should be called when items are added to the global database.  This
@@ -152,6 +254,11 @@ GlodaCollectionManager.prototype = {
    *  to the collection if the item meets the query that defines the collection.
    */
   itemsAdded: function gloda_colm_itemsAdded(aNounID, aItems) {
+    let cache = this._cachesByNoun[aNounID];
+    if (cache) {
+      cache.add(aItems);
+    }
+
     for each (let collection in this.getCollectionsForNounID(aNounID)) {
       let addItems = [item for each (item in aItems)
                       if (collection.query.test(item))];
@@ -202,6 +309,16 @@ GlodaCollectionManager.prototype = {
    *  currently in the collection, we generate onItemsRemoved events.
    */
   itemsDeleted: function gloda_colm_itemsDeleted(aNounID, aItems) {
+    // cache
+    let cache = this._cachesByNoun[aNounID];
+    if (cache) {
+      for each (let item in aItem) {
+        if (item.id in cache._idMap)
+          cache.delete(item);
+      }
+    }
+
+    // collections
     for each (let collection in this.getCollectionsForNounID(aNounID)) {
       let removeItems = [item for each (item in aItems)
                          if (item.id in collection._idMap)];
@@ -294,7 +411,7 @@ function GlodaLRUCacheCollection(aNounMeta, aCacheSize) {
 }
 
 GlodaLRUCacheCollection.prototype = new GlodaCollection;
-GlodaLRUCacheCollection.prototype.add = function(aItems) {
+GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
   for each (let item in aItems) {
     this._idMap[item.id] = item;
     
@@ -331,38 +448,67 @@ GlodaLRUCacheCollection.prototype.add = function(aItems) {
       this._nounMeta.objUpdate.call(this._nounMeta.datastore, item);
       delete item.dirty;
     }
+    
+    this._size--;
   }
 };
 
-GlodaLRUCacheCollection.prototype.hit = function(aItem) {
-  // don't do anything in the 0 or 1 items case
-  if (this._head === this._tail)
+GlodaLRUCacheCollection.prototype.hit = function cache_hit(aItem) {
+  // don't do anything in the 0 or 1 items case, or if we're already
+  //  the last item
+  if ((this._head === this._tail) || (this._tail === aItem))
     return;
 
   // unlink the item  
   if (aItem._lruPrev !== null)
     aItem._lruPrev._lruNext = aItem._lruNext;
-  if (aItem._lruNext !== null)
-    aItem._lruNext._lruPrev = aIrem._lruPrev;
+  else
+    this._head = aItem._lruNext;
+  // _lruNext cannot be null
+  aItem._lruNext._lruPrev = aItem._lruPrev;
   // link it in to the end
   this._tail._lruNext = aItem; 
   aItem._lruPrev = this._tail;
   aItem._lruNext = null;
   // update tail tracking
   this._tail = aItem;
+  
+  return aItem;
 };
+
+GlodaLRUCacheCollection.prototype.deleted = function cache_deleted(aItem) {
+  // unlink the item  
+  if (aItem._lruPrev !== null)
+    aItem._lruPrev._lruNext = aItem._lruNext;
+  else
+    this._head = aItem._lruNext;
+  if (aItem._lruNext !== null)
+    aItem._lruNext._lruPrev = aItem._lruPrev;
+  else
+    this._tail = aItem._lruPrev;
+
+  // (because we are nice, we will delete the properties...)
+  delete aItem._lruNext;
+  delete aItem._lruPrev;
+    
+  // nuke from our id map
+  delete this._idMap[aItem.id];
+  
+  this._size--;
+}
 
 /**
  * If any of the cached items are dirty, commit them, and make them no longer
  *  dirty.
  */
-GlodaLRUCacheCollection.prototype.commitDirty = function() {
+GlodaLRUCacheCollection.prototype.commitDirty = function cache_commitDirty() {
   // we can only do this if there is an update method available...
   if (!this._nounMeta.objUpdate)
     return;
 
   for each (let item in this._idMap) {
     if (item.dirty) {
+      LOG.debug("flushing dirty: " + item);
       this._nounMeta.objUpdate.call(this._nounMeta.datastore, item);
       delete item.dirty;
     }

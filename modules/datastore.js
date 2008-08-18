@@ -53,6 +53,10 @@ Cu.import("resource://gloda/modules/datamodel.js");
 Cu.import("resource://gloda/modules/databind.js");
 Cu.import("resource://gloda/modules/collection.js");
 
+// XXX from Gloda.js
+const kSpecialColumn = 1;
+const kSpecialFulltext = 2;
+
 let GlodaDatastore = {
   _log: null,
 
@@ -290,8 +294,9 @@ let GlodaDatastore = {
       // - Create the fulltext table if applicable
       if ("fulltextColumns" in table) {
         let createFulltextSQL = "CREATE VIRTUAL TABLE " + tableName + "Text" +
-          " USING fts3(TOKENIZE PORTER, " + table.fulltextColumns.join(", ") +
+          " USING fts3(tokenize porter, " + table.fulltextColumns.join(", ") +
           ")";
+        this._log.info("Create fulltext: " + createFulltextSQL);
         aDBConnection.executeSimpleSQL(createFulltextSQL);
       }
       
@@ -357,8 +362,8 @@ let GlodaDatastore = {
     //  significant that we want everything purged anyways.
     // generalize me in the future.
     aDBConnection.close();
-    aDBFile.remove();
-    this._log.warning("Global database has been purged due to schema change.");
+    aDBFile.remove(false);
+    this._log.warn("Global database has been purged due to schema change.");
     
     return this._createDB(aDBService, aDBFile);
   },
@@ -643,7 +648,9 @@ let GlodaDatastore = {
   }, 
 
   
-  /** Create a conversation. */
+  /**
+   * Create a conversation.
+   */
   createConversation: function gloda_ds_createConversation(aSubject,
         aOldestMessageDate, aNewestMessageDate) {
 
@@ -662,9 +669,14 @@ let GlodaDatastore = {
     icts.params.subject = aSubject;
     icts.execute();
     
-    return new GlodaConversation(this, conversationID,
+    // create it
+    let conversation = new GlodaConversation(this, conversationID,
                                  aSubject, aOldestMessageDate,
                                  aNewestMessageDate);
+    // it's new! let the collection manager know about it.
+    GlodaCollectionManager.itemsAdded(conversation.NOUN_ID, [conversation]);
+    // return it
+    return conversation;
   },
 
   get _deleteConversationByIDStatement() {
@@ -680,26 +692,38 @@ let GlodaDatastore = {
     let dcbids = this._deleteConversationByIDStatement;
     dcbids.params.conversationID = aConversationID;
     dcbids.execute();
+    
+    // TODO: collection manager implications
+    GlodaCollectionManager.removeByID()
   },
 
   get _selectConversationByIDStatement() {
     let statement = this._createStatement(
       "SELECT * FROM conversations WHERE id = :conversationID");
-    this.__defineGetter__("_selectConversationByIDStatement", function() statement);
-    return this._selectConversationByIDStatement; 
+    this.__defineGetter__("_selectConversationByIDStatement",
+      function() statement);
+    return this._selectConversationByIDStatement;
   }, 
 
+  _conversationFromRow: function gloda_ds_conversationFromRow(aRow) {
+      return new GlodaConversation(this, aRow["id"],
+        aRow["subject"], aRow["oldestMessageDate"], aRow["newestMessageDate"]);  
+  },
+
   getConversationByID: function gloda_ds_getConversationByID(aConversationID) {
-    this._selectConversationByIDStatement.params.conversationID =
-      aConversationID;
-    
-    let conversation = null;
-    if (this._selectConversationByIDStatement.step()) {
-      let row = this._selectConversationByIDStatement.row;
-      conversation = new GlodaConversation(this, aConversationID,
-        row["subject"], row["oldestMessageDate"], row["newestMessageDate"]);
+    let conversation = GlodaCollectionManager.cacheLookupOne(
+      GlodaConversation.prototype.NOUN_ID, aConversationID);
+
+    if (conversation === null) {
+      let scbids = this._selectConversationByIDStatement;
+      
+      scbids.params.conversationID = aConversationID;
+      if (scbids.step()) {
+        conversation = this._conversationFromRow(scbids.row);
+        GlodaCollectionManager.itemLoaded(conversation);
+      }
+      scbids.reset();
     }
-    this._selectConversationByIDStatement.reset();
     
     return conversation;
   },
@@ -773,10 +797,12 @@ let GlodaDatastore = {
       }
     }
     
-    return new GlodaMessage(this, messageID, folderID,
+    let message = new GlodaMessage(this, messageID, folderID,
                             aMessageKey, aConversationID, null,
                             aDatePRTime ? new Date(aDatePRTime / 1000) : null,
                             aHeaderMessageID);
+    GlodaCollectionManager.itemsAdded(message.NOUN_ID, [message]);
+    return message;
   },
   
   get _updateMessageStatement() {
@@ -784,7 +810,7 @@ let GlodaDatastore = {
       "UPDATE messages SET folderID = :folderID, \
                            messageKey = :messageKey, \
                            conversationID = :conversationID, \
-                           headerMessageID = :headerMessageID, \
+                           headerMessageID = :headerMessageID \
               WHERE id = :id");
     this.__defineGetter__("_updateMessageStatement", function() statement);
     return this._updateMessageStatement; 
@@ -849,14 +875,19 @@ let GlodaDatastore = {
   },
 
   getMessageByID: function gloda_ds_getMessageByID(aID) {
-    let message = null;
+    let message = GlodaCollectionManager.cacheLookupOne(
+      GlodaMessage.prototype.NOUN_ID, aID);
   
-    let smbis = this._selectMessageByIDStatement;
-    
-    smbis.params.id = aID;
-    if (smbis.step())
-      message = this._messageFromRow(smbis.row);
-    smbis.reset();
+    if (message === null) {
+      let smbis = this._selectMessageByIDStatement;
+      
+      smbis.params.id = aID;
+      if (smbis.step()) {
+        message = this._messageFromRow(smbis.row);
+        GlodaCollectionManager.itemLoaded(message);
+      }
+      smbis.reset();
+    }
     
     return message;
   },
@@ -885,7 +916,7 @@ let GlodaDatastore = {
       this._log.info("Error locating message with key=" + aMessageKey +
                      " and URI " + aFolderURI);
     
-    return message;
+    return message && GlodaCollectionManager.cacheLoadUnifyOne(message);
   },
 
   get _selectMessageIDsByFolderStatement() {
@@ -944,6 +975,12 @@ let GlodaDatastore = {
     }
     statement.reset();
     
+    for (let iResult=0; iResult < results.length; iResult++) {
+      if (results[iResult].length)
+        GlodaCollectionManager.cacheLoadUnify(GlodaMessage.prototype.NOUN_ID,
+                                              results[iResult]);
+    }
+    
     return results;
   },
 
@@ -956,6 +993,7 @@ let GlodaDatastore = {
   },
   
   deleteMessageByID: function gloda_ds_deleteMessageByID(aMessageID) {
+    // TODO: collection manager implications
     let dmbids = this._deleteMessageByIDStatement;
     dmbids.params.id = aMessageID;
     dmbids.execute();
@@ -974,6 +1012,7 @@ let GlodaDatastore = {
    *  logic, NOT you.
    */
   deleteMessagesByConversationID:
+    // TODO: collection manager implications
       function gloda_ds_deleteMessagesByConversationID(aConversationID) {
     let dmbcids = this._deleteMessagesByConversationIDStatement;
     dmbcids.params.conversationID = aConversationID;
@@ -989,6 +1028,7 @@ let GlodaDatastore = {
    */
   getMessageByMessageID: function gloda_ds_getMessageByMessageID(aMessageID) {
     let ids = [aMessageID];
+    // getMessagesByMessageID handles the collection manager cache resolution
     let messagesWithID = this.getMessagesByMessageID(ids)[0];
     // Just return the first one; we are a failure 
     if (messagesWithID.length > 0)
@@ -1028,6 +1068,10 @@ let GlodaDatastore = {
       messages.push(this._messageFromRow(statement.row));
     }
     statement.reset();
+
+    if (messages.length)
+      GlodaCollectionManager.cacheLoadUnify(GlodaMessage.prototype.NOUN_ID,
+                                            messages);
     
     return messages;
   },
@@ -1149,7 +1193,7 @@ let GlodaDatastore = {
         
         // -- handle full-text specially here, it's different than the other
         //  cases...
-        if (presumedAttr.isSpecial == Gloda.kSpecialFulltext) {
+        if (presumedAttr.special == kSpecialFulltext) {
           let matchStr = [APV[2] for each (APV in attr_ors)].join(" OR ");
           matchStr.replace("'", "''");
         
@@ -1164,7 +1208,7 @@ let GlodaDatastore = {
         }
         
         let tableName, idColumnName, valueColumnName;
-        if (presumedAttr.isSpecial == Gloda.kSpecialColumn) {
+        if (presumedAttr.special == kSpecialColumn) {
           tableName = nounMeta.tableName;
           idColumnName = "id"; // canonical id for a table is "id".
           valueColumnName = presumedAttr.specialColumnName;
@@ -1196,7 +1240,7 @@ let GlodaDatastore = {
             attributeID = APV[0].id;
           if (attributeID != lastAttributeID) {
             valueTests = [];
-            if (APV[0].isSpecial)
+            if (APV[0].special == kSpecialColumn)
               attrValueTests.push(["", valueTests]);
             else
               attrValueTests.push(["attributeID = " + attributeID + " AND ",
@@ -1245,12 +1289,21 @@ let GlodaDatastore = {
       items.push(nounMeta.objFromRow.call(nounMeta.datastore, statement.row));
     }
     statement.reset();
+    // have the collection manager attempt to replace the instances we just
+    //  created with pre-existing instances.  if the instance didn't exist,
+    //  cache the newly observed ones.  We are trading off wastes here; we don't
+    //  want to have to ask the collection manager about every row, and we don't
+    //  want to invent some alternate row storage.
+    GlodaCollectionManager.cacheLoadUnify(nounMeta.id, items);
     
     let collection = new GlodaCollection(items, aQuery);
     GlodaCollectionManager.registerCollection(collection);
     return collection;
   },
   
+  /**
+   * Deprecated.  Use queries (which in turn use queryFromQuery).
+   */
   queryMessagesAPV: function gloda_ds_queryMessagesAPV(aAPVs) {
     let selects = [];
     
@@ -1286,6 +1339,10 @@ let GlodaDatastore = {
       messages.push(this._messageFromRow(statement.row));
     }
     statement.reset();
+    
+    if (messages.length)
+      GlodaCollectionManager.cacheLoadUnify(GlodaMessage.prototype.NOUN_ID,
+                                            messages);
      
     return messages;
   },
@@ -1312,9 +1369,11 @@ let GlodaDatastore = {
     
     ics.execute();
     
-    return new GlodaContact(this, this.dbConnection.lastInsertRowID,
-                            aDirectoryUUID, aContactUUID, aName,
-                            aPopularity, aFrecency);
+    let contact = new GlodaContact(this, this.dbConnection.lastInsertRowID,
+                                   aDirectoryUUID, aContactUUID, aName,
+                                   aPopularity, aFrecency);
+    GlodaCollectionManager.itemsAdded(contact.NOUN_ID, [contact]);
+    return contact;
   },
 
   get _updateContactStatement() {
@@ -1356,23 +1415,18 @@ let GlodaDatastore = {
   },
 
   getContactByID: function gloda_ds_getContactByID(aContactID) {
-    let contact = null;
+    let contact = GlodaCollectionManager.cacheLookupOne(
+      GlodaContact.prototype.NOUN_ID, aContactID);
     
-    let [hit, miss] = GlodaCollectionManager.cacheLookup(
-      GlodaContact.prototype.NOUN_ID, [aContactID]);
-  
-    if (hit.length)
-      return hit[0];
-  
-    let scbi = this._selectContactByIDStatement;
-    scbi.params.id = aContactID;
-    if (scbi.step()) {
-      contact = this._contactFromRow(scbi.row);
+    if (contact === null) {
+      let scbi = this._selectContactByIDStatement;
+      scbi.params.id = aContactID;
+      if (scbi.step()) {
+        contact = this._contactFromRow(scbi.row);
+        GlodaCollectionManager.itemLoaded(contact);
+      }
+      scbi.reset();
     }
-    scbi.reset();
-    
-    if (contact)
-      GlodaCollectionManager.cacheAdd(contact.NOUN_ID, [contact]);
     
     return contact;
   },
@@ -1397,9 +1451,11 @@ let GlodaDatastore = {
     iis.params.relay = aIsRelay ? 1 : 0;
     iis.execute();
   
-    return new GlodaIdentity(this, this.dbConnection.lastInsertRowID,
-                             aContactID, aContact, aKind, aValue,
-                             aDescription, aIsRelay);
+    let identity = new GlodaIdentity(this, this.dbConnection.lastInsertRowID,
+                                     aContactID, aContact, aKind, aValue,
+                                     aDescription, aIsRelay);
+    GlodaCollectionManager.itemsAdded(identity.NOUN_ID, [identity]);
+    return identity;
   },
   
   _identityFromRow: function gloda_ds_identityFromRow(aRow) {
@@ -1428,7 +1484,7 @@ let GlodaDatastore = {
     }
     ibkv.reset();
     
-    return identity;
+    return identity && GlodaCollectionManager.cacheLoadUnifyOne(identity);
   },
 
   get _selectIdentityByIDStatement() {
@@ -1440,14 +1496,18 @@ let GlodaDatastore = {
   },
 
   getIdentityByID: function gloda_ds_getIdentity(aID) {
-    let identity = null;
+    let identity = GlodaCollectionManager.cacheLookupOne(
+      GlodaIdentity.prototype.NOUN_ID, aID);
     
-    let sibis = this._selectIdentityByIDStatement;
-    sibis.params.id = aID;
-    if (sibis.step()) {
-      identity = this._identityFromRow(sibis.row);
+    if (identity === null) {
+      let sibis = this._selectIdentityByIDStatement;
+      sibis.params.id = aID;
+      if (sibis.step()) {
+        identity = this._identityFromRow(sibis.row);
+        GlodaCollectionManager.itemLoaded(identity);
+      }
+      sibis.reset();
     }
-    sibis.reset();
     
     return identity;
   },

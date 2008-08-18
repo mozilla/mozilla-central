@@ -118,21 +118,39 @@ SuffixTree.prototype = {
    * Find all items matching the provided substring.
    */
   findMatches: function findMatches(aSubstring) {
+    let results = [];
     let state = this._root;
     let index=0;
     let end = aSubstring.length;
     while(index < end) {
       state = state[aSubstring[index]];
+      // bail if there was no edge
+      if (state === undefined)
+        return results;
       index += state.length; 
     }
     
     // state should now be the node which itself and all its children match...
-    let results = [];
 this.dump(state);
+    // The delta is to adjust us to the offset of the last letter of our match;
+    //  the edge we traversed to get here may have found us traversing more
+    //  than we wanted.
     // index - end captures the over-shoot of the edge traversal,
     // index - end + 1 captures the fact that we want to find the last letter
     //  that matched, not just the first letter beyond it
-    this._resultGather(state, results, {}, end, index - end + 1, true);
+    // However, if this state is a leaf node (end == 'infinity'), then 'end'
+    //  isn't describing an edge at all and we want to avoid accounting for it.
+    let delta;
+    /*
+    if (state.end != this._infinity)
+      //delta = index - end + 1;
+      delta = end - (index - state.length); 
+    else */
+    delta = index - state.length - end + 1;
+ 
+dump("about to resultgather. end: " + end + " index: " + index + 
+     " state.end: " + state.end + " infinity: " + this._infinity + "\n");
+    this._resultGather(state, results, {}, end, delta, true);
     return results;
   },
   
@@ -172,37 +190,26 @@ this.dump(state);
     //   not match us at all.  We, and potentially our children, are merely
     //   serving as a unique terminal.
     // - The 
+
+  let patternFirst = patternLast - (aPatLength - 1);
     
 dump("considering " + this._str.slice(stringStart, stringEnd) + " with pos " + 
      stringStart + ":" + stringEnd + " with state " +
      aState.start + ":" + aState.end +
-     "(patternLast: " + patternLast + " delta: " + aDelta + ")\n");
-/*
-    // we don't want this string if its start is the start of a string...
-    let bail = false;
-    if (start == aState.start) {
-      if (mid) {
-        mid--;
-        start = this._offsetsToItems[mid*3];
-        end = this._offsetsToItems[mid*3+1];
-        bail = true;
-dump("revised to " + this._str.slice(start, end) + " with pos " + 
-     start + ":" + end + " with state " +
-     aState.start + ":" + aState.end + "\n");
-      }
-      else
-        return; 
-    }
-*/
-  if (patternLast - aPatLength >= stringStart) {
+     "(patFirst:" + patternFirst + " patLast: " + patternLast +
+     " delta: " + aDelta + ")\n");
+
+  if (patternFirst >= stringStart) {
     if (!(stringStart in aPresence)) {
-dump("  adding!\n");
+dump("  adding! (patternFirst: " + patternFirst + ")\n");
       aPresence[stringStart] = true;
       aResults.push(this._offsetsToItems[mid*3+2]);
     }
   }
   else {
-dump("  disregarding because pattern is not contained.\n"); 
+dump("  disregarding because pattern is not contained. (patternLast:" +
+  patternLast + " aPatLength: " + aPatLength + " stringstart: " +
+  stringStart + "\n"); 
   }
     
     // bail if we had it coming OR
@@ -221,7 +228,7 @@ dump("  bailing! (bail was: " + bail + ")\n");
       if (key.length == 1) {
         let statePrime = aState[key];
         this._resultGather(statePrime, aResults, aPresence, aPatLength,
-                           aDelta + (alreadyAdjusted ? 0 : aState.length),
+                           aDelta + aState.length, //(alreadyAdjusted ? 0 : aState.length),
                            false);
       }
     }

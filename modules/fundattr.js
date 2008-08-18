@@ -133,6 +133,21 @@ let GlodaFundAttr = {
       objectNoun: Gloda.NOUN_NUMBER,
       explanation: null, // frecency is internal, no explanation required
       });    
+
+    /* ***** Identities ***** */
+    this._attrIdentityContact = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "contact",
+      bind: false,
+      singular: true,
+      special: Gloda.kSpecialColumn,
+      specialColumnName: "contactID",
+      subjectNouns: [Gloda.NOUN_IDENTITY],
+      objectNoun: Gloda.NOUN_CONTACT,
+      explanation: null, // popularity is internal, no explanation required
+      });
   
     /* ***** Messages ***** */
     // folder
@@ -380,7 +395,7 @@ let GlodaFundAttr = {
         attribs.push([this._attrCcMe.bindParameter(toIdentity.id),
                       authorIdentity.id]);
         if (aIsNew)
-          toIdentity.contact.popularity += this.POPULARITY_TO_ME;
+          authorIdentity.contact.popularity += this.POPULARITY_TO_ME;
       }
       // optimization attribute from-me-to ('I' am the parameter)
       if (isFromMe) {
@@ -400,7 +415,7 @@ let GlodaFundAttr = {
         attribs.push([this._attrCcMe.bindParameter(ccIdentity.id),
                       authorIdentity.id]);
         if (aIsNew)
-          ccIdentity.contact.popularity += this.POPULARITY_CC_ME;
+          authorIdentity.contact.popularity += this.POPULARITY_CC_ME;
       }
       // optimization attribute from-me-to ('I' am the parameter)
       if (isFromMe) {

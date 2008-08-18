@@ -66,7 +66,7 @@ nsAutoCompleteGlodaResult.prototype = {
   matchCount: 0,
   getValueAt: function(aIndex) {
     let thing = this._results[aIndex];
-    return thing.name || thing.value;
+    return thing.name || thing.value || thing.subject;
   },
   getCommentAt: function() { return null; },
   getStyleAt: function() { return "gloda-contact"; },
@@ -93,15 +93,25 @@ function nsAutoCompleteGloda() {
   
   // get all the contacts
   let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
-  this.contactCollection = contactQuery.getAllSync();
+  this.contactCollection = contactQuery.popularityRange(10, null).getAllSync();
 
-  // get all the identities
-  let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
-  this.identityCollection = identityQuery.getAllSync();
+  // assuming we found some contacts...
+  if (this.contactCollection.items.length) {
+    // get all the identities...
+    let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
+    // ...that belong to one of the above contacts.
+    identityQuery.contact.apply(identityQuery, this.contactCollection.items);
+    this.identityCollection = identityQuery.getAllSync();
+  }
+  else {
+    // create an empty explicit collection
+    this.identityCollection = Gloda.explicitCollection(Gloda.NOUN_IDENTITY, []);
+  }
   
-  let contactNames = [(c.name.replace(" ", "") || "x") for each
+  let contactNames = [(c.name.replace(" ", "").toLowerCase() || "x") for each
                       (c in this.contactCollection.items)];
-  let identityMails = [i.value for each (i in this.identityCollection.items)];
+  let identityMails = [i.value.toLowerCase() for each
+                       (i in this.identityCollection.items)];
   
   this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
     this.contactCollection.items.concat(this.identityCollection.items));
@@ -118,8 +128,15 @@ nsAutoCompleteGloda.prototype = {
     // only match if they type at least 3 letters...
     let matches = [];
     if (aString.length >= 3) {
-      matches = this.suffixTree.findMatches(aString);
-    } 
+      matches = this.suffixTree.findMatches(aString.toLowerCase());
+    }
+    
+    if (aString.length >= 4) {
+      let subjectQuery = Gloda.newQuery(Gloda.NOUN_CONVERSATION);
+      subjectQuery.subjectMatches(aString + "*");
+      let convSubjectCollection = subjectQuery.getAllSync();
+      matches = matches.concat(convSubjectCollection.items);
+    }
   
     var result = new nsAutoCompleteGlodaResult(aString, matches);
     aListener.onSearchResult(this, result);

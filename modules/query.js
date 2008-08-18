@@ -84,7 +84,7 @@ GlodaQueryClass.prototype = {
   test: function gloda_query_test(aObj) {
     // when changing this method, be sure that GlodaDatastore's queryFromQuery
     //  method likewise has any required changes made. 
-    let unionQueries = [aQuery].concat(aQuery._unions);
+    let unionQueries = [this].concat(this._unions);
     
     for (let iUnion=0; iUnion < unionQueries.length; iUnion++) {
       let curQuery = unionQueries[iUnion];

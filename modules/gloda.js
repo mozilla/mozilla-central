@@ -114,7 +114,7 @@ let Gloda = {
           name = mailAddr;
           
         // we must create a contact
-        let contact = GlodaDatastore.createContact(null, null, name);
+        let contact = GlodaDatastore.createContact(null, null, name, 0, 0);
         
         // we must create the identity.  use a blank description because there's
         //  nothing to differentiate it from other identities, as this contact
@@ -213,7 +213,8 @@ let Gloda = {
     }
     else {
       // create a new contact
-      myContact = GlodaDatastore.createContact(null, null, fullName || "Me");
+      myContact = GlodaDatastore.createContact(null, null, fullName || "Me",
+                                               0, 0);
     }
     
     if (identitiesToCreate.length) {
@@ -302,10 +303,10 @@ let Gloda = {
   NOUN_FULLTEXT: 20,
   NOUN_TAG: 50,
   NOUN_FOLDER: 100,
-  NOUN_CONVERSATION: 101,
-  NOUN_MESSAGE: 102,
+  NOUN_CONVERSATION: GlodaConversation.prototype.NOUN_ID, // 101
+  NOUN_MESSAGE: GlodaMessage.prototype.NOUN_ID, // 102
   NOUN_CONTACT: GlodaContact.prototype.NOUN_ID, // 103
-  NOUN_IDENTITY: 104,
+  NOUN_IDENTITY: GlodaIdentity.prototype.NOUN_ID, // 104
   
   /**
    * Parameterized identities, for use in the from-me, to-me, cc-me optimization
@@ -422,7 +423,7 @@ let Gloda = {
       }}, this.NOUN_BOOLEAN);
     this.defineNoun({
       name: "number",
-      class: Number, firstClass: false,
+      class: Number, firstClass: false, continuous: true,
       fromParamAndValue: function(aIgnoredParam, aNum) {
         return aNum;
       },
@@ -471,6 +472,8 @@ let Gloda = {
       cache: true, cacheCost: 512,
       tableName: "conversations",
       attrTableName: "messageAttributes", attrIDColumnName: "conversationID",
+      datastore: GlodaDatastore,
+      objFromRow: GlodaDatastore._conversationFromRow,
       fromParamAndValue: function(aParam, aID) {
         return GlodaDatastore.getConversationByID(aID);
       },
@@ -652,7 +655,7 @@ let Gloda = {
           for(let iArg=0; iArg < arguments.length; iArg +=2 ) {
             let pv1 = nounMeta.toParamAndValue(arguments[iArg]);
             let pv2 = nounMeta.toParamAndValue(arguments[iArg+1]);
-            our_ors.push([aAttr, pv1[0], pv[1], pv2[1]]);
+            our_ors.push([aAttr, pv1[0], pv1[1], pv2[1]]);
           }
           // but the constraints are ANDed together
           this._constraints.push(our_ors);
@@ -753,10 +756,14 @@ let Gloda = {
       }
       
       // we are behind the abstraction veil and can set these things
+      // (these would otherwise be passed in to the GlodaAttributeDef
+      //  constructor.  they are not like the HATHATHAT guys below)
       attr._provider = aAttrDef.provider;
       attr._subjectTypes = aAttrDef.subjectNouns;
       attr._objectType = aAttrDef.objectNoun;
       attr._explanationFormat = aAttrDef.explanation;
+      // things after here also need to be set below the new GlodaAttributeDef
+      //  clause below... HATHATHAT
       attr._special = aAttrDef.special || this.kSpecialNotAtAll;
       attr._specialColumnName = aAttrDef.specialColumnName || null;
       
@@ -789,6 +796,11 @@ let Gloda = {
                                  aAttrDef.extensionName, aAttrDef.attributeName,
                                  aAttrDef.subjectNouns, aAttrDef.objectNoun,
                                  aAttrDef.explanation);
+    // things here match the HATHATHAT clause above.  clearly, this should also
+    //  be resolved more satisfactorily.
+    attr._special = aAttrDef.special || this.kSpecialNotAtAll;
+    attr._specialColumnName = aAttrDef.specialColumnName || null;
+    
     GlodaDatastore._attributes[compoundName] = attr;
 
     for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
@@ -843,7 +855,7 @@ let Gloda = {
     let query = new nounMeta.explicitQueryClass(collection);
     collection.query = query;
     GlodaCollectionManager.registerCollection(collection);
-    return colleciton;
+    return collection;
   },
   
   processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr,

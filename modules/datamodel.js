@@ -129,10 +129,13 @@ GlodaAttributeDef.prototype = {
    *  attributes the value is a list.
    */
   getValueFromInstance: function gloda_attr_getValueFromInstance(aObj) {
-    if (this._boundName !== null) {
+    // if it's bound, we can just use the binding and trigger his caching
+    // if it's special, the attribute actually exists, but just with explicit
+    //  code backing it.
+    if (this._boundName !== null || this._special) {
       return aObj[this._boundName];
     }
-    let instances = this.getAttributeInstances(aAttr);
+    let instances = aObj.getAttributeInstances(this);
     let nounMeta = this._objectNounMeta;
     if (this._singular) {
       if (instances.length > 0)
@@ -141,7 +144,6 @@ GlodaAttributeDef.prototype = {
         return null;
     }
     else {
-      let instances = this.getAttributeInstances(aAttr);
       let values;
       if (instances.length > 0) {
         values = [];
@@ -174,6 +176,7 @@ function GlodaConversation(aDatastore, aID, aSubject, aOldestMessageDate,
 }
 
 GlodaConversation.prototype = {
+  NOUN_ID: 101,
   get id() { return this._id; },
   get subject() { return this._subject; },
   get oldestMessageDate() { return this._oldestMessageDate; },
@@ -202,7 +205,7 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   this._messageKey = aMessageKey;
   this._conversationID = aConversationID;
   this._conversation = aConversation;
-  this.date = date;
+  this.date = aDate;
   this._headerMessageID = aHeaderMessageID;
   this._bodySnippet = aBodySnippet;
 
@@ -214,6 +217,7 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
 }
 
 GlodaMessage.prototype = {
+  NOUN_ID: 102,
   get id() { return this._id; },
   get folderID() { return this._folderID; },
   get messageKey() { return this._messageKey; },
@@ -378,7 +382,7 @@ GlodaContact.prototype = {
   
   get popularity() { return this._popularity; },
   set popularity(aPopularity) {
-    this.popularity = aPopularity;
+    this._popularity = aPopularity;
     this.dirty = true;
   },
 
@@ -405,6 +409,7 @@ function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue,
 }
 
 GlodaIdentity.prototype = {
+  NOUN_ID: 104,
   get id() { return this._id; },
   get contactID() { return this._contactID; }, 
   get kind() { return this._kind; },
@@ -412,9 +417,8 @@ GlodaIdentity.prototype = {
   get isRelay() { return this._isRelay; },
   
   get contact() {
-    if (this._contact == null) {
+    if (this._contact === null)
       this._contact = this._datastore.getContactByID(this._contactID);
-    }
     return this._contact;
   },
   

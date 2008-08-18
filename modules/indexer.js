@@ -47,6 +47,7 @@ Cu.import("resource://gloda/modules/log4moz.js");
 Cu.import("resource://gloda/modules/utils.js");
 Cu.import("resource://gloda/modules/datastore.js");
 Cu.import("resource://gloda/modules/gloda.js");
+Cu.import("resource://gloda/modules/collection.js");
 
 Cu.import("resource://gloda/modules/mimemsg.js");
 
@@ -1296,7 +1297,8 @@ let GlodaIndexer = {
                                              conversationID,
                                              aMsgHdr.date,
                                              aMsgHdr.messageId,
-                                             null); // no snippet
+                                             aMimeMsg ?
+                                             aMimeMsg.body : null); // no snippet
       isNew = true;
     }
     else {
@@ -1307,7 +1309,8 @@ let GlodaIndexer = {
       //  if this message was not a ghost, we are assuming the 'body'
       //  associated with the id is still exactly the same.  It is conceivable
       //  that there are cases where this is not true.
-      this._datastore.updateMessage(curMsg, isNew ? aBody : null);
+      this._datastore.updateMessage(curMsg, (isNew && aMimeMsg) ?
+                                    aMimeMsg.body : null);
     }
     
     // TODO: provide the parent gloda message if we can conjure it up.

@@ -1035,7 +1035,10 @@ dump("&&& findIndexFromKey\n");
           case "u": // subject
             return message.conversation.subject; //folderMessage.mime2DecodedSubject;
           case "e": // sender
-            return message.from.contact.name;
+            if (message.from)
+              return message.from.contact.name;
+            else
+              return "???";
           case "i": // size
             return folderMessage.messageSize;
           case "t": // status
@@ -1054,7 +1057,10 @@ dump("&&& findIndexFromKey\n");
         }
         break;
       case "d": // date
-        return GlodaUtils.dateFormat(message.date);
+        if (message.date)
+          return GlodaUtils.dateFormat(message.date);
+        else
+          return "???";
       case "p": // priority
         return messagePriorityString(folderMessage.priority);
       case "a": // account
