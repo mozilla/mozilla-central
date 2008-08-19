@@ -35,8 +35,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-// The gReturnmycall is used as a global variable that is set during a callback.
-var gReturnmycall=false;
+
 var accountManagerContractID   = "@mozilla.org/messenger/account-manager;1";
 var gAnyValidIdentity = false; //If there are no valid identities for any account
 // returns the first account with an invalid server or identity
@@ -121,11 +120,8 @@ function showMailIntegrationDialog() {
     }
 }
 
-function verifyAccounts(wizardcallback) 
+function verifyAccounts(wizardCallback) 
 {
-  //check to see if the function is called with the callback and if so set the global variable gReturnmycall to true
-  if(wizardcallback)
-		gReturnmycall = true;
 	var openWizard = false;
   var prefillAccount;
 	var state=true;
@@ -174,12 +170,13 @@ function verifyAccounts(wizardcallback)
         //gAnyValidIdentity is true when you've got at least one *valid* identity,
         //Since local folders is an identity-less account, if you only have
         //local folders, it will be false.
-        //wizardcallback is true only when verifyaccounts is called from compose window.
+        //wizardCallback is true only when verifyAccounts is called from compose window or
+        //initial startup.
         //the last condition in the if is so that we call account wizard only when the user
         //has only a local folder and tries to compose mail.
 
-        if (openWizard || prefillAccount || ((!gAnyValidIdentity) && wizardcallback)) {
-            MsgAccountWizard();
+        if (openWizard || prefillAccount || ((!gAnyValidIdentity) && wizardCallback)) {
+            MsgAccountWizard(wizardCallback);
             ret = false;
         }
         else
@@ -218,23 +215,17 @@ function verifyAccounts(wizardcallback)
 // we do this from a timer because if this is called from the onload=
 // handler, then the parent window doesn't appear until after the wizard
 // has closed, and this is confusing to the user
-function MsgAccountWizard()
+function MsgAccountWizard(wizardCallback)
 {
-  setTimeout("msgOpenAccountWizard();", 0);
+  setTimeout(function() { msgOpenAccountWizard(wizardCallback); }, 0);
 }
 
-function msgOpenAccountWizard()
+function msgOpenAccountWizard(wizardCallback)
 {
   gNewAccountToLoad = null;
 
-  // Check to see if the verify accounts function 
-  // was called with callback or not.
-  if (gReturnmycall)
-      window.openDialog("chrome://messenger/content/AccountWizard.xul",
-                        "AccountWizard", "chrome,modal,titlebar,centerscreen", {okCallback:WizCallback});
-  else
-      window.openDialog("chrome://messenger/content/AccountWizard.xul",
-                        "AccountWizard", "chrome,modal,titlebar,centerscreen");
+  window.openDialog("chrome://messenger/content/AccountWizard.xul", "AccountWizard",
+                    "chrome,modal,titlebar,centerscreen", {okCallback: wizardCallback});
 
   loadInboxForNewAccount();
 

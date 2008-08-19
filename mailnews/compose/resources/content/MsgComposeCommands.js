@@ -1484,8 +1484,7 @@ function ComposeLoad()
 
   try {
     SetupCommandUpdateHandlers();
-    var wizardcallback = true;
-    var state = verifyAccounts(wizardcallback); // this will do migration, or create a new account if we need to.
+    var state = verifyAccounts(WizCallback); // this will do migration, or create a new account if we need to.
 
     if (sOther_headers) {
       var selectNode = document.getElementById('addressCol1#1');

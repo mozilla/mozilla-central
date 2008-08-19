@@ -756,8 +756,13 @@ function OnLoadMessenger()
   MailOfflineMgr.init();
   CreateMailWindowGlobals();
   GetMessagePane().collapsed = true;
-  verifyAccounts(null);
+  // verifyAccounts returns true if the callback won't be called
+  if (verifyAccounts(LoadPostAccountWizard))
+    LoadPostAccountWizard();
+}
 
+function LoadPostAccountWizard()
+{
   InitMsgWindow();
   messenger.setWindow(window, msgWindow);
 
