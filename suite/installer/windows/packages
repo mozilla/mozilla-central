@@ -69,7 +69,6 @@ bin\mozlcms.dll
 bin\components\gkgfxthebes.dll
 bin\components\gkwidget.dll
 bin\components\gfx.xpt
-bin\components\widget.xpt
 ; components
 bin\components\accessibility.dll
 bin\components\accessibility.xpt
