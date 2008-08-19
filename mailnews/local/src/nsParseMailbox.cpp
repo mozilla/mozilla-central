@@ -2202,7 +2202,7 @@ nsresult nsParseNewMailState::EndMsgDownload()
 }
 
 nsresult nsParseNewMailState::AppendMsgFromFile(nsIInputStream *fileStream,
-                                                PRInt32 offset, PRUint32 length,
+                                                PRUint32 offset, PRUint32 length,
                                                 nsILocalFile *destFile)
 {
   nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(fileStream);
