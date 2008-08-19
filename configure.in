@@ -77,7 +77,8 @@ COMM_BUILD=1
 AC_SUBST(COMM_BUILD)
 AC_SUBST(MOZILLA_SRCDIR)
 dnl export this, so the var is set for mozilla/configure
-export MOZCONFIG=`$_AUTOCONF_TOOLS_DIR/mozconfig-find $topsrcdir`
+MOZCONFIG=`$_AUTOCONF_TOOLS_DIR/mozconfig-find $topsrcdir`
+export MOZCONFIG
 
 MOZ_DEB_TIMESTAMP=`date +"%a, %d  %b %Y %T %z"   2>&1` 
 AC_SUBST(MOZ_DEB_TIMESTAMP)
