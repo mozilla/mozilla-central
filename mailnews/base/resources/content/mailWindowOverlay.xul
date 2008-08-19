@@ -306,6 +306,13 @@
               events="create-menu-tasks"
               oncommandupdate="goUpdateMailMenuItems(this)">
   <command id="cmd_applyFilters" oncommand="goDoCommand('cmd_applyFilters');" disabled="true"/>
+  <command id="cmd_applyFiltersToSelection"
+           oncommand="goDoCommand('cmd_applyFiltersToSelection');"
+           disabled="true"
+           valueSelection="&filtersApplyToSelection.label;"
+           valueSelectionAccessKey="&filtersApplyToSelection.accesskey;"
+           valueMessage="&filtersApplyToMessage.label;"
+           valueMessageAccessKey="&filtersApplyToMessage.accesskey;"/>
   <command id="cmd_runJunkControls" oncommand="goDoCommand('cmd_runJunkControls');" disabled="true"/>
   <command id="cmd_deleteJunk" oncommand="goDoCommand('cmd_deleteJunk');" disabled="true"/>
   <command id="cmd_search" oncommand="goDoCommand('cmd_search')"/>
@@ -1958,6 +1965,10 @@
               label="&filtersApply.label;"
               accesskey="&filtersApply.accesskey;"
               command="cmd_applyFilters"/>
+    <menuitem id="applyFiltersToSelection"
+              label="&filtersApplyToMessage.label;"
+              accesskey="&filtersApplyToMessage.accesskey;"
+              command="cmd_applyFiltersToSelection"/>
     <menuseparator id="tasksMenuAfterApplySeparator"/>
     <menuitem id="runJunkControls"
               label="&runJunkControls.label;"

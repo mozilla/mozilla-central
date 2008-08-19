@@ -779,6 +779,7 @@ var MessageWindowController =
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
       case "cmd_recalculateJunkScore":
+      case "cmd_applyFiltersToSelection":
       case "cmd_applyFilters":
       case "cmd_runJunkControls":
       case "cmd_deleteJunk":
@@ -917,6 +918,7 @@ var MessageWindowController =
       case "cmd_findPrevious":
       case "cmd_goForward":
       case "cmd_goBack":
+      case "cmd_applyFiltersToSelection":
         return true;
       case "button_goForward":
       case "button_goBack":
@@ -1119,6 +1121,9 @@ var MessageWindowController =
         break;
       case "cmd_goBack":
         performNavigation(nsMsgNavigationType.back);
+        break;
+      case "cmd_applyFiltersToSelection":
+        MsgApplyFiltersToSelection();
         break;
       }
   },

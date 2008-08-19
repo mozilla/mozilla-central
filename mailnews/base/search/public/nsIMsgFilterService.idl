@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *     Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,7 +41,7 @@
 #include "nsIMsgFilterList.idl"
 #include "nsIMsgWindow.idl"
 
-[scriptable, uuid(fda31be9-b5c1-465b-99c9-c90835a214a3)]
+[scriptable, uuid(6f9cecfb-ee4d-42fa-836f-a3a1da8d40a9)]
 interface nsIMsgFilterService : nsISupports {
 
     nsIMsgFilterList OpenFilterList(in nsILocalFile filterFile, in nsIMsgFolder rootFolder, in nsIMsgWindow msgWindow);
@@ -52,5 +53,16 @@ interface nsIMsgFilterService : nsISupports {
     void CancelFilterList(in nsIMsgFilterList filterList);
     nsIMsgFilterList getTempFilterList(in nsIMsgFolder aFolder);
     void applyFiltersToFolders(in nsIMsgFilterList aFilterList, in nsISupportsArray aFolders, in nsIMsgWindow aMsgWindow);
-};
 
+    /*
+     * Apply filters to a specific list of messages in a folder.
+     * @param  aFilterType  The type of filter to match against
+     * @param  aMsgHdrList  The list of message headers (nsIMsgDBHdr objects)
+     * @param  aFolder      The folder the messages belong to
+     * @param  aMsgWindow   A UI window for attaching progress/dialogs
+     */
+    void applyFilters(in nsMsgFilterTypeType aFilterType,
+                      in nsIArray aMsgHdrList,
+                      in nsIMsgFolder aFolder,
+                      in nsIMsgWindow aMsgWindow);
+};

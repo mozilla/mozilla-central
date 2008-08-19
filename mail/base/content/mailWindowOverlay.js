@@ -1912,6 +1912,39 @@ function MsgApplyFilters()
   filterService.applyFiltersToFolders(tempFilterList, selectedFolders, msgWindow);
 }
 
+function MsgApplyFiltersToSelection()
+{
+  var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"]
+                                .getService(Components.interfaces.nsIMsgFilterService);
+
+  var folder = gDBView.msgFolder;
+  var indices = GetSelectedIndices(gDBView);
+  if (indices && indices.length)
+  {
+    var selectedMsgs = Components.classes["@mozilla.org/array;1"]
+                                 .createInstance(Components.interfaces.nsIMutableArray);
+    for (var i = 0; i < indices.length; i++)
+    {
+      try
+      {
+        // Getting the URI will tell us if the item is real or a dummy header
+        var uri = gDBView.getURIForViewIndex(indices[i]);
+        if (uri)
+        {
+          var msgHdr = folder.GetMessageHeader(gDBView.getKeyAt(indices[i]));
+          if (msgHdr)
+            selectedMsgs.appendElement(msgHdr, false);
+        }
+      } catch (ex) {}
+    }
+
+    filterService.applyFilters(Components.interfaces.nsMsgFilterType.Manual,
+                               selectedMsgs,
+                               folder,
+                               msgWindow);
+  }
+}
+
 function ChangeMailLayout(newLayout)
 {
   gPrefBranch.setIntPref("mail.pane_config.dynamic", newLayout);

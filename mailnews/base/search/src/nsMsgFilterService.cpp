@@ -23,6 +23,8 @@
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Karsten Düsterloh <mnyromyr@tprac.de>
+ *   Geoffrey C. Wenger <gwenger@qualcomm.com>
+ *   Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -43,6 +45,7 @@
 #include "msgCore.h"
 #include "nsMsgFilterService.h"
 #include "nsMsgFilterList.h"
+#include "nsMsgSearchScopeTerm.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsIPrompt.h"
 #include "nsIDocShell.h"
@@ -67,6 +70,7 @@
 #include "nsMsgUtils.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
+#include "nsCOMArray.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgFilterService, nsIMsgFilterService)
 
@@ -282,8 +286,8 @@ public:
 
   nsresult  AdvanceToNextFolder();  // kicks off the process
 protected:
-  nsresult  RunNextFilter();
-  nsresult  ApplyFilter();
+  virtual   nsresult  RunNextFilter();
+  nsresult  ApplyFilter(PRBool *aApplyMore = nsnull);
   nsresult  OnEndExecution(nsresult executionStatus); // do what we have to do to cleanup.
   PRBool    ContinueExecutionPrompt();
   nsresult  DisplayConfirmationPrompt(nsIMsgWindow *msgWindow, const PRUnichar *confirmString, PRBool *confirmed);
@@ -437,10 +441,13 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnNewSearch()
   return NS_OK;
 }
 
-nsresult nsMsgFilterAfterTheFact::ApplyFilter()
+nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
 {
   nsresult rv = NS_OK;
-  PRBool applyMoreActions = PR_TRUE;
+  PRBool applyMoreActions;
+  if (!aApplyMore)
+    aApplyMore = &applyMoreActions;
+  *aApplyMore = PR_TRUE;
   if (m_curFilter && m_curFolder)
   {
     // we're going to log the filter actions before firing them because some actions are async
@@ -456,7 +463,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
     PRUint32 numActions;
     actionList->Count(&numActions);
 
-    for (PRUint32 actionIndex =0; actionIndex < numActions && applyMoreActions; actionIndex++)
+    for (PRUint32 actionIndex =0; actionIndex < numActions && *aApplyMore; actionIndex++)
     {
       nsCOMPtr<nsIMsgRuleAction> filterAction;
       actionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction), (void **)getter_AddRefs(filterAction));
@@ -501,7 +508,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         // issuing a search for the next filter, which will block until the delete finishes.
         m_curFolder->DeleteMessages(m_searchHitHdrs, m_msgWindow, PR_FALSE, PR_FALSE, nsnull, PR_FALSE /*allow Undo*/ );
         //if we are deleting then we couldn't care less about applying remaining filter actions
-        applyMoreActions = PR_FALSE;
+        *aApplyMore = PR_FALSE;
         break;
       case nsMsgFilterAction::MoveToFolder:
       case nsMsgFilterAction::CopyToFolder:
@@ -546,7 +553,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
         }
         //we have already moved the hdrs so we can't apply more actions
         if (actionType == nsMsgFilterAction::MoveToFolder)
-          applyMoreActions = PR_FALSE;
+          *aApplyMore = PR_FALSE;
       }
 
         break;
@@ -741,7 +748,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
       case nsMsgFilterAction::StopExecution:
       {
         // don't apply any more filters
-        applyMoreActions = PR_FALSE;
+        *aApplyMore = PR_FALSE;
       }
       break;
 
@@ -750,7 +757,8 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
       }
     }
   }
-  if (applyMoreActions)
+
+  if (*aApplyMore)
     rv = RunNextFilter();
 
   return rv;
@@ -774,6 +782,143 @@ NS_IMETHODIMP nsMsgFilterService::ApplyFiltersToFolders(nsIMsgFilterList *aFilte
     return filterExecutor->AdvanceToNextFolder();
   else
     return NS_ERROR_OUT_OF_MEMORY;
+}
+
+
+// nsMsgApplyFiltersToMessages overrides nsMsgFilterAfterTheFact in order to
+// apply filters to a list of messages, rather than an entire folder
+class nsMsgApplyFiltersToMessages : public nsMsgFilterAfterTheFact
+{
+public:
+  nsMsgApplyFiltersToMessages(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsISupportsArray *aFolderList, nsIArray *aMsgHdrList, nsMsgFilterTypeType aFilterType);
+
+protected:
+  virtual   nsresult  RunNextFilter();
+
+  nsCOMArray<nsIMsgDBHdr> m_msgHdrList;
+  nsMsgFilterTypeType     m_filterType;
+};
+
+nsMsgApplyFiltersToMessages::nsMsgApplyFiltersToMessages(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsISupportsArray *aFolderList, nsIArray *aMsgHdrList, nsMsgFilterTypeType aFilterType)
+: nsMsgFilterAfterTheFact(aMsgWindow, aFilterList, aFolderList),
+  m_filterType(aFilterType)
+{
+  nsCOMPtr<nsISimpleEnumerator> msgEnumerator;
+  if (NS_SUCCEEDED(aMsgHdrList->Enumerate(getter_AddRefs(msgEnumerator))))
+  {
+    PRUint32 length;
+    if (NS_SUCCEEDED(aMsgHdrList->GetLength(&length)))
+      m_msgHdrList.SetCapacity(length);
+
+    PRBool hasMore;
+    while (NS_SUCCEEDED(msgEnumerator->HasMoreElements(&hasMore)) && hasMore)
+    {
+      nsCOMPtr<nsIMsgDBHdr> msgHdr;
+      if (NS_SUCCEEDED(msgEnumerator->GetNext(getter_AddRefs(msgHdr))) && msgHdr)
+        m_msgHdrList.AppendObject(msgHdr);
+    }
+  }
+}
+
+nsresult nsMsgApplyFiltersToMessages::RunNextFilter()
+{
+  while (m_curFilterIndex < m_numFilters)
+  {
+    nsMsgFilterTypeType filterType;
+    PRBool isEnabled;
+    nsresult rv;
+
+    rv = m_filters->GetFilterAt(m_curFilterIndex++, getter_AddRefs(m_curFilter));
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = m_curFilter->GetFilterType(&filterType);
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (!(filterType & m_filterType))
+      continue;
+    rv = m_curFilter->GetEnabled(&isEnabled);
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (!isEnabled)
+      continue;
+
+    nsCOMPtr<nsIMsgSearchScopeTerm> scope(new nsMsgSearchScopeTerm(nsnull, nsMsgSearchScope::offlineMail, m_curFolder));
+    if (!scope)
+      return NS_ERROR_OUT_OF_MEMORY;
+    m_curFilter->SetScope(scope);
+    OnNewSearch();
+
+    for (PRInt32 i = 0; i < m_msgHdrList.Count(); i++)
+    {
+      nsIMsgDBHdr* msgHdr = m_msgHdrList[i];
+      PRBool matched;
+
+      rv = m_curFilter->MatchHdr(msgHdr, m_curFolder, m_curFolderDB, nsnull, 0, &matched);
+
+      if (NS_SUCCEEDED(rv) && matched)
+      {
+        // In order to work with nsMsgFilterAfterTheFact::ApplyFilter we initialize
+        // nsMsgFilterAfterTheFact's information with a search hit now for the message
+        // that we're filtering.
+        OnSearchHit(msgHdr, m_curFolder);
+      }
+    }
+    m_curFilter->SetScope(nsnull);
+
+    if (m_searchHits.Length() > 0)
+    {
+      PRBool applyMore = PR_TRUE;
+
+      rv = ApplyFilter(&applyMore);
+      NS_ENSURE_SUCCESS(rv, rv);
+      if (applyMore)
+      {
+        // If there are more filters to apply, then ApplyFilter() would have
+        // called RunNextFilter() itself, and so we should exit out afterwards
+        return NS_OK;
+      }
+
+      // If we get here we're done applying filters for those messages that
+      // matched, so remove them from the message header list
+      for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
+      {
+        nsCOMPtr <nsIMsgDBHdr> msgHdr;
+        m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
+        if (msgHdr)
+          m_msgHdrList.RemoveObject(msgHdr);
+      }
+
+      if (!m_msgHdrList.Count())
+        break;
+    }
+  }
+
+  return AdvanceToNextFolder();
+}
+
+NS_IMETHODIMP nsMsgFilterService::ApplyFilters(nsMsgFilterTypeType aFilterType,
+                                               nsIArray *aMsgHdrList,
+                                               nsIMsgFolder *aFolder,
+                                               nsIMsgWindow *aMsgWindow)
+{
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  nsresult rv = aFolder->GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgFilterList>    filterList;
+  rv = server->GetFilterList( aMsgWindow, getter_AddRefs(filterList) );
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsISupportsArray>    folderList;
+  rv = NS_NewISupportsArray( getter_AddRefs(folderList) );
+  NS_ENSURE_SUCCESS(rv, rv);
+  folderList->AppendElement(aFolder);
+
+  // Create our nsMsgApplyFiltersToMessages object which will be called when ApplyFiltersToHdr
+  // finds one or more filters that hit.
+  nsMsgApplyFiltersToMessages * filterExecutor = new nsMsgApplyFiltersToMessages(aMsgWindow, filterList, folderList, aMsgHdrList, aFilterType);
+
+  if (filterExecutor)
+    return filterExecutor->AdvanceToNextFolder();
+
+  return NS_ERROR_OUT_OF_MEMORY;
 }
 
 /* void OnStartCopy (); */

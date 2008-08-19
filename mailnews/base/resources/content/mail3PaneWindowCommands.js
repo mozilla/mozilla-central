@@ -225,6 +225,7 @@ var DefaultController =
       case "cmd_recalculateJunkScore":
       case "cmd_markAsShowRemote":
       case "cmd_markAsNotPhish":
+      case "cmd_applyFiltersToSelection":
       case "cmd_applyFilters":
       case "cmd_runJunkControls":
       case "cmd_deleteJunk":
@@ -315,6 +316,15 @@ var DefaultController =
       case "cmd_print":
       case "cmd_viewPageSource":
       case "cmd_reload":
+      case "cmd_applyFiltersToSelection":
+        if (command == "cmd_applyFiltersToSelection")
+        {
+          var whichText = "valueMessage";
+          if (GetNumSelectedMessages() > 1)
+            whichText = "valueSelection";
+          goSetMenuValue(command, whichText);
+          goSetAccessKey(command, whichText + "AccessKey");
+        }
         if (GetNumSelectedMessages() > 0)
         {
           if (gDBView)
@@ -663,6 +673,9 @@ var DefaultController =
         return;
       case "cmd_markAsNotPhish":
         MsgIsNotAScam();
+        return;
+      case "cmd_applyFiltersToSelection":
+        MsgApplyFiltersToSelection();
         return;
       case "cmd_applyFilters":
         MsgApplyFilters(null);
