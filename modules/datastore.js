@@ -1495,7 +1495,7 @@ let GlodaDatastore = {
     return this._selectIdentityByIDStatement;
   },
 
-  getIdentityByID: function gloda_ds_getIdentity(aID) {
+  getIdentityByID: function gloda_ds_getIdentityByID(aID) {
     let identity = GlodaCollectionManager.cacheLookupOne(
       GlodaIdentity.prototype.NOUN_ID, aID);
     
@@ -1512,4 +1512,30 @@ let GlodaDatastore = {
     return identity;
   },
 
+  get _selectIdentityByContactIDStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM identities WHERE contactID = :contactID");
+    this.__defineGetter__("_selectIdentityByContactIDStatement",
+      function() statement);
+    return this._selectIdentityByContactIDStatement;
+  },
+
+  getIdentitiesByContactID: function gloda_ds_getIdentitiesByContactID(
+      aContactID) {
+    let sibcs = this._selectIdentityByContactIDStatement;
+    
+    sibcs.params.contactID = aContactID;
+    
+    let identities = [];
+    while (sibcs.step()) {
+      identities.push(this._identityFromRow(sibcs.row));
+    }
+    sibcs.reset();
+
+    if (identities.length)
+      GlodaCollectionManager.cacheLoadUnify(GlodaIdentity.prototype.NOUN_ID,
+                                            identities);
+    
+    return identities;
+  },
 };

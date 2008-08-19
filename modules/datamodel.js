@@ -370,6 +370,8 @@ function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName,
   this._name = aName;
   this._popularity = aPopularity;
   this._frecency = aFrecency;
+  
+  this._identities = null;
 }
 
 GlodaContact.prototype = {
@@ -390,6 +392,12 @@ GlodaContact.prototype = {
   set frecency(aFrecency) {
     this._frecency = aFrecency;
     this.dirty = true;
+  },
+  
+  get identities() {
+    if (this._identities === null)
+      this._identities = this._datastore.getIdentitiesByContactID(this._id);
+    return this._identities;
   },
   
   toString: function gloda_contact_toString() {

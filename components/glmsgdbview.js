@@ -131,6 +131,8 @@ GMTreeNode.prototype = {
 };
 
 function GlodaMsgDBView() {
+  this.wrappedJSObject = this;
+
   this._messenger = null;
   this._msgWindow = null;
   this._commandUpdater = null;
@@ -506,6 +508,12 @@ dump("@@@@@@ GROUPING @@@@@@@@@\n");
     if (this._treeBox) {
       this._treeBox.rowCountChanged(0, this._rows.length); 
     }
+  },
+
+  absorbNewCollection: function(aCollection) {
+    this._collection = aCollection;
+    this._messages = this._collection.items;
+    this._sort();
   },
 
   /* ========== nsIMsgDBView ========== */

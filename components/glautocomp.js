@@ -129,6 +129,9 @@ function nsAutoCompleteGloda() {
   // get all the contacts
   let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
   this.contactCollection = contactQuery.popularityRange(10, null).getAllSync();
+  
+  // cheat and explicitly add our own contact...
+  this.contactCollection._onItemsAdded([Gloda.myContact]);
 
   // assuming we found some contacts...
   if (this.contactCollection.items.length) {
@@ -168,6 +171,23 @@ nsAutoCompleteGloda.prototype = {
     if (aString.length >= 3) {
       matches = this.suffixTree.findMatches(aString.toLowerCase());
     }
+
+    // let's filter out duplicates due to identity/contact double-hits by
+    //  establishing a map based on the contact id for these guys.
+    // let's also favor identities as we do it, because that gets us the
+    //  most accurate gravat, potentially
+    let contactToThing = {};
+    for (let iMatch=0; iMatch < matches.length; iMatch++) {
+      let thing = matches[iMatch];
+      if (thing.NOUN_ID == Gloda.NOUN_CONTACT && !(thing.id in contactToThing))
+        contactToThing[thing.id] = thing;
+      else if (thing.NOUN_ID == Gloda.NOUN_IDENTITY)
+        contactToThing[thing.contactID] = thing;
+    }
+    // and since we can now map from contacts down to identities, map contacts
+    //  to the first identity for them that we find...
+    matches = [val.NOUN_ID == Gloda.NOUN_IDENTITY ? val : val.identities[0]
+               for each (val in contactToThing)];
     
     if (aString.length >= 4) {
       let subjectQuery = Gloda.newQuery(Gloda.NOUN_CONVERSATION);
@@ -175,6 +195,9 @@ nsAutoCompleteGloda.prototype = {
       let convSubjectCollection = subjectQuery.getAllSync();
       matches = matches.concat(convSubjectCollection.items);
     }
+    
+    // XXX what they hey, just nuke them.  making this all very sketchy
+    this.outstandingSearches = {};
   
     var result = new nsAutoCompleteGlodaResult(this, aString, matches);
     this.outstandingSearches[aListener] = result;

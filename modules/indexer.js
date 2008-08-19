@@ -1167,14 +1167,14 @@ let GlodaIndexer = {
   },
   
   _indexMessage: function gloda_indexMessage(aMsgHdr) {
+    this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
+                    aMsgHdr.subject);
     MsgHdrToMimeMessage(aMsgHdr, this, this._indexMessageWithBody);
     return kWorkAsync;
   },
   
   _indexMessageWithBody: function gloda_index_indexMessageWithBody(
        aMsgHdr, aMimeMsg) {
-    this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
-                    aMsgHdr.subject);
 
     // -- Find/create the conversation the message belongs to.
     // Our invariant is that all messages that exist in the database belong to
@@ -1291,7 +1291,8 @@ let GlodaIndexer = {
     
     let isNew;
     if (curMsg === null) {
-      this._log.debug("...creating new message");
+      this._log.debug("...creating new message.  body length: " +
+                      (aMimeMsg ? aMimeMsg.body.length : null));
       curMsg = this._datastore.createMessage(aMsgHdr.folder.URI,
                                              aMsgHdr.messageKey,                
                                              conversationID,
@@ -1309,6 +1310,9 @@ let GlodaIndexer = {
       //  if this message was not a ghost, we are assuming the 'body'
       //  associated with the id is still exactly the same.  It is conceivable
       //  that there are cases where this is not true.
+      this._log.debug("Updating message.  Providing body: " +
+                      (isNew && aMimeMsg) + " body length: " +
+                      (aMimeMsg ? aMimeMsg.body.length : null));
       this._datastore.updateMessage(curMsg, (isNew && aMimeMsg) ?
                                     aMimeMsg.body : null);
     }

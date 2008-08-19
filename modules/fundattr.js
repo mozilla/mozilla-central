@@ -260,6 +260,23 @@ let GlodaFundAttr = {
                         });
 
     // --- Optimization
+    // Involves.  Means any of from/to/cc.  The queries get ugly enough without
+    //   this that it seems to justify the cost, especially given the frequent
+    //   use case.  (In fact, post-filtering for the specific from/to/cc is
+    //   probably justifiable rather than losing this attribute...)
+    this._attrInvolves = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrOptimization,
+      attributeName: "involves",
+      bind: true,
+      singular: false,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_IDENTITY,
+      explanation: this._strBundle.GetStringFromName(
+                     "attrInvolvesExplanation"),
+      });
+
     // From Me To
     this._attrFromMeTo = Gloda.defineAttribute({
       provider: this,
@@ -354,6 +371,7 @@ let GlodaFundAttr = {
   process: function gloda_fundattr_process(aGlodaMessage, aMsgHdr, aMimeMsg,
                                            aIsNew) {
     let attribs = [];
+    let involvedIdentities = {};
     
     // -- From
     // Let's use replyTo if available.
@@ -378,6 +396,8 @@ let GlodaFundAttr = {
       return attribs;
     }
     attribs.push([this._attrFrom.id, authorIdentity.id]);
+    attribs.push([this._attrInvolves.id, authorIdentity.id]);
+    involvedIdentities[authorIdentity.id] = true;
     
     let myIdentities = Gloda.myIdentities; // needless optimization?
     let isFromMe = authorIdentity.id in myIdentities;
@@ -390,6 +410,10 @@ let GlodaFundAttr = {
     for (let iTo=0; iTo < toIdentities.length; iTo++) {
       let toIdentity = toIdentities[iTo];
       attribs.push([this._attrTo.id, toIdentity.id]);
+      if (!(toIdentity.id in involvedIdentities)) {
+        attribs.push([this._attrInvolves.id, toIdentity.id]);
+        involvedIdentities[toIdentity.id] = true;
+      }
       // optimization attribute to-me ('I' am the parameter)
       if (toIdentity.id in myIdentities) {
         attribs.push([this._attrCcMe.bindParameter(toIdentity.id),
@@ -410,6 +434,10 @@ let GlodaFundAttr = {
     for (let iCc=0; iCc < ccIdentities.length; iCc++) {
       let ccIdentity = ccIdentities[iCc];
       attribs.push([this._attrCc.id, ccIdentity.id]);
+      if (!(ccIdentity.id in involvedIdentities)) {
+        attribs.push([this._attrInvolves.id, ccIdentity.id]);
+        involvedIdentities[ccIdentity.id] = true;
+      }
       // optimization attribute cc-me ('I' am the parameter)
       if (ccIdentity.id in myIdentities) {
         attribs.push([this._attrCcMe.bindParameter(ccIdentity.id),
