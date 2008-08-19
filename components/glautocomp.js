@@ -49,7 +49,8 @@ var Gloda = null;
 var GlodaUtils = null;
 var MultiSuffixTree = null;
 
-function nsAutoCompleteGlodaResult(aString, aResults) {
+function nsAutoCompleteGlodaResult(aCompleter, aString, aResults) {
+  this.completer = aCompleter;
   this.searchString = aString;
   this._results = aResults;
   
@@ -59,6 +60,10 @@ function nsAutoCompleteGlodaResult(aString, aResults) {
 }
 nsAutoCompleteGlodaResult.prototype = {
   _results: null,
+  getObjectAt: function(aIndex) {
+    return this._results[aIndex];
+  },
+  // ==== nsIAutoCompleteResult
   searchString: null,
   searchResult: Ci.nsIAutoCompleteResult.RESULT_FAILURE,
   defaultIndex: -1,
@@ -93,13 +98,18 @@ nsAutoCompleteGlodaResult.prototype = {
   
     let md5hash = GlodaUtils.md5HashString(thing.value);
     let gravURL = "http://www.gravatar.com/avatar/" + md5hash + 
-                                "?d=identicon&s=16&r=g";
+                                "?d=identicon&s=32&r=g";
     return gravURL;
   },
-  removeValueAt: function() {}
+  removeValueAt: function() {},
+  
+  _stop: function() {
+  },
 };
 
 function nsAutoCompleteGloda() {
+  this.wrappedJSObject = this;
+  
   // set up our awesome globals!
   if (Gloda === null) {
     let loadNS = {};
@@ -140,6 +150,9 @@ function nsAutoCompleteGloda() {
   
   this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
     this.contactCollection.items.concat(this.identityCollection.items));
+    
+  this.outstandingSearches = {};
+  this._magicTime = false;
 }
 
 nsAutoCompleteGloda.prototype = {
@@ -163,11 +176,30 @@ nsAutoCompleteGloda.prototype = {
       matches = matches.concat(convSubjectCollection.items);
     }
   
-    var result = new nsAutoCompleteGlodaResult(aString, matches);
+    var result = new nsAutoCompleteGlodaResult(this, aString, matches);
+    this.outstandingSearches[aListener] = result;
     aListener.onSearchResult(this, result);
   },
 
-  stopSearch: function() {}
+  stopSearch: function() {
+    for each (let [controller, search] in Iterator(this.outstandingSearches)) {
+      search._stop();
+    }
+    this.outstandingSearches = {};
+  },
+  
+  getObjectForController: function(aController, aIndex) {
+    aController.QueryInterface(Ci.nsIAutoCompleteObserver);
+    for each (let [controller, search] in Iterator(this.outstandingSearches)) {
+dump("comparing " + controller + " and " + aController + "\n");
+      if (controller.native == aController.native) {
+dump("MATCH\n");
+        return [search.getObjectAt(aIndex), 0];
+      }
+    }
+dump("no match :(\n");
+    return [null, 0];
+  },
 };
 
 function NSGetModule(compMgr, fileSpec) {
