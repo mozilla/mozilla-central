@@ -143,15 +143,6 @@ NS_MSG_BASE nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
 NS_MSG_BASE const char *nsMsgI18NParseMetaCharset(nsILocalFile* file);
 
 /**
- * Convert input to HTML entities (e.g. &nbsp;, &aacute;).
- *
- * @param inString    [IN] Input string to convert.
- * @param outString   [OUT] Converted output string.
- * @return            nsresult.
- */
-NS_MSG_BASE nsresult nsMsgI18NConvertToEntity(const nsString& inString, nsString* outString);
-
-/**
  * Convert from charset to unicode. Also does substitution for unconverted characters (e.g. entity, '?').
  *
  * @param contentType [IN] text/plain or text/html.
@@ -170,19 +161,6 @@ NS_MSG_BASE nsresult nsMsgI18NConvertToEntity(const nsString& inString, nsString
 NS_MSG_BASE nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char* charset, 
                                             const PRUnichar* inString, char** outString, 
                                             char **fallbackCharset=nsnull, PRBool *isAsciiOnly=nsnull);
-
-/**
- * Convert from unicode to charset, generates NNTP XPAT search string.
- * Migrated from mozilla classic, 
- * see "http://lxr.mozilla.org/classic/source/include/libi18n.h#2162" for detail.
- *
- * @param aCharset    [IN] Charset name to convert.
- * @param inString    [IN] Input unicode string to convert.
- * @param outString   [OUT] Converted output, the pattern should be send to NNTP XPAT command 
- *                          for searching non-ASCII header.
- * @return            nsresult.
- */
-NS_MSG_BASE nsresult nsMsgI18NFormatNNTPXPATInNonRFC1522Format(const nsCString& aCharset, const nsString& inString, nsCString& outString);
 
 /**
  * Shrink the aStr to aMaxLength bytes. Note that this doesn't check whether

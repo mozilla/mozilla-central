@@ -41,20 +41,17 @@
 #include "nsICharsetAlias.h"
 #include "nsIPlatformCharset.h"
 #include "nsIServiceManager.h"
-#include "nsICharsetConverterManager.h"
 
 #include "nsISupports.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsIMimeConverter.h"
-#include "msgCore.h"
 #include "nsMsgUtils.h"
 #include "nsMsgI18N.h"
 #include "nsMsgMimeCID.h"
 #include "nsILineInputStream.h"
 #include "nsMimeTypes.h"
-#include "nsIEntityConverter.h"
 #include "nsISaveAsCharset.h"
 #include "nsHankakuToZenkakuCID.h"
 #include "nsStringGlue.h"
@@ -279,7 +276,6 @@ PRBool nsMsgI18Nmultibyte_charset(const char *charset)
   return result;
 }
 
-
 PRBool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* inString, char **fallbackCharset)
 {
   if (!charset || !*charset || !inString || !*inString)
@@ -399,22 +395,6 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
 
   return charset; 
 } 
-
-nsresult nsMsgI18NConvertToEntity(const nsString& inString, nsString* outString)
-{
-  nsresult res;
-
-  outString->Truncate();
-  nsCOMPtr <nsIEntityConverter> entityConv = do_CreateInstance(NS_ENTITYCONVERTER_CONTRACTID, &res);
-  if(NS_SUCCEEDED(res)) {
-    PRUnichar *entities = NULL;
-    res = entityConv->ConvertToEntities(inString.get(), nsIEntityConverter::html40Latin1, &entities);
-    if (NS_SUCCEEDED(res) && (NULL != entities))
-      outString->Adopt(entities);
-  }
- 
-  return res;
-}
 
 nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset, 
                                 const PRUnichar* inString, char** outString, 
@@ -545,42 +525,6 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
     *isAsciiOnly = NS_IsAscii(*outString);
 
   return res;
-}
-
-nsresult nsMsgI18NFormatNNTPXPATInNonRFC1522Format(const nsCString& aCharset, 
-                                                   const nsString& inString, 
-                                                   nsCString& outString)
-{
-  LossyCopyUTF16toASCII(inString, outString);
-  return NS_OK;
-}
-
-const char *
-nsMsgI18NGetAcceptLanguage(void)
-{
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID)); 
-  if (prefBranch)
-  {
-    nsCOMPtr<nsIPrefLocalizedString> prefString;
-
-    prefBranch->GetComplexValue("intl.accept_languages",
-                                NS_GET_IID(nsIPrefLocalizedString),
-                                getter_AddRefs(prefString));
-    if (prefString)
-    {
-      nsString ucsval;
-      prefString->ToString(getter_Copies(ucsval));
-      if (!ucsval.IsEmpty())
-      {
-        static nsCAutoString acceptLang;
-        LossyCopyUTF16toASCII(ucsval, acceptLang);
-        return acceptLang.get();
-      }
-    }
-  }
-
-  // Default Accept-Language
-  return "en";
 }
 
 nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
