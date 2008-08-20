@@ -1306,6 +1306,7 @@ let GlodaIndexer = {
       isNew = (curMsg._messageKey === null); // aka was-a-ghost
       curMsg._folderID = this._datastore._mapFolderURI(aMsgHdr.folder.URI);
       curMsg._messageKey = aMsgHdr.messageKey;
+      curMsg.date = new Date(aMsgHdr.date / 1000); 
       // note: we are assuming that our matching logic is flawless in that
       //  if this message was not a ghost, we are assuming the 'body'
       //  associated with the id is still exactly the same.  It is conceivable

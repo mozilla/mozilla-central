@@ -810,10 +810,11 @@ let GlodaDatastore = {
       "UPDATE messages SET folderID = :folderID, \
                            messageKey = :messageKey, \
                            conversationID = :conversationID, \
+                           date = :date, \
                            headerMessageID = :headerMessageID \
               WHERE id = :id");
     this.__defineGetter__("_updateMessageStatement", function() statement);
-    return this._updateMessageStatement; 
+    return this._updateMessageStatement;
   }, 
   
   /**
@@ -827,6 +828,7 @@ let GlodaDatastore = {
     ums.params.folderID = aMessage.folderID;
     ums.params.messageKey = aMessage.messageKey;
     ums.params.conversationID = aMessage.conversationID;
+    ums.params.date = aMessage.date * 1000;
     ums.params.headerMessageID = aMessage.headerMessageID;
     
     ums.execute();
