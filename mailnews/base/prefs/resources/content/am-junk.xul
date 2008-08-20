@@ -98,7 +98,7 @@
            sortActive="true" sortDirection="ascending"
            sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort">
     <template>
-      <rule nc:IsWriteable="false"/>
+      <rule nc:IsRemote="true"/>
       <rule nc:IsMailList="false">
         <listitem uri="rdf:*" type="checkbox" class="listitem-iconic"
                   label="rdf:http://home.netscape.com/NC-rdf#DirName"
