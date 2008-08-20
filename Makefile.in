@@ -41,7 +41,7 @@ VPATH		= @srcdir@
 
 include $(topsrcdir)/config/config.mk
 
-default install export libs clean realclean distclean alldep maybe_clobber_profiledbuild check rebase splitsymbols uploadsymbols signnss deliver::
+default install export libs clean realclean distclean alldep maybe_clobber_profiledbuild check rebase splitsymbols uploadsymbols signnss deliver mochitest mochitest-plain mochitest-chrome mochitest-browser-chrome mochitest-a11y::
 	$(MAKE) -C mozilla $@
 
 # http://bugzilla.mozilla.org/show_bug.cgi?id=450485
