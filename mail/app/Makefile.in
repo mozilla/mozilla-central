@@ -398,3 +398,10 @@ libs:: $(srcdir)/profile/prefs.js
 
 install:: $(srcdir)/profile/prefs.js
 	$(SYSINSTALL) $(IFLAGS1) $^  $(DESTDIR)$(mozappdir)/defaults/profile
+
+# Disable these tests due to bug 431125
+libs::
+	echo "function run_test() {dump('disabled for bug 431125');}" >$(DIST)/../_tests/xpcshell-simple/test_cookies/unit/test_cookies.js
+	echo "function run_test() {dump('disabled for TB for bug 431125');}" >$(DIST)/../_tests/xpcshell-simple/test_necko/unit/test_cookie_header.js
+	$(RM) $(DIST)/bin/TestCookie
+	cp $(DIST)/bin/TestTArray $(DIST)/bin/TestCookie
