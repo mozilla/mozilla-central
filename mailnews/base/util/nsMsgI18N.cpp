@@ -45,7 +45,6 @@
 #include "nsISupports.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
-#include "nsIPrefLocalizedString.h"
 #include "nsIMimeConverter.h"
 #include "nsMsgUtils.h"
 #include "nsMsgI18N.h"

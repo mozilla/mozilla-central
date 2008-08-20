@@ -87,14 +87,6 @@ NS_MSG_BASE PRBool    nsMsgI18Ncheck_data_in_charset_range(const char *charset, 
                                                            char **fallbackCharset=nsnull);
 
 /**
- * Return accept language.
- * Note, the return value is not valid after this method gets called again.
- *
- * @return            Accept language.
- */
-NS_MSG_BASE const char *nsMsgI18NGetAcceptLanguage(void); 
-
-/**
  * Return charset name of file system (OS dependent).
  *
  * @return            File system charset name.
