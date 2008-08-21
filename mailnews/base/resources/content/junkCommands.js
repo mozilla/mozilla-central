@@ -187,36 +187,37 @@ MessageClassifier.prototype =
    *
    * @param aMsgHdr
    *        The header (nsIMsgDBHdr) of the message to classify.
-   * @param aWhiteListDirectory
-   *        The addressbook (nsIAbDirectory) to use as a whitelist, or null
-   *        if no whitelisting should be done.
+   * @param aWhiteListDirectories
+   *        Array of addressbooks (nsIAbDirectory) to use as a whitelist, or zero
+   *        length if no whitelisting should be done.
    */
-  analyzeMessage: function(aMsgHdr, aWhiteListDirectory)
+  analyzeMessage: function(aMsgHdr, aWhiteListDirectories)
   {
     var junkscoreorigin = aMsgHdr.getStringProperty("junkscoreorigin");
     if (junkscoreorigin == "user") // don't override user-set junk status
       return;
 
     // if a whitelist addressbook was specified, check if the email address is in it
-    if (aWhiteListDirectory)
+    if (aWhiteListDirectories.length)
     {
       var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                                    .getService(Components.interfaces.nsIMsgHeaderParser);
       var authorEmailAddress = headerParser.extractHeaderAddressMailboxes(null, aMsgHdr.author);
       var abCard = false;
-      try {
-        abCard = aWhiteListDirectory.cardForEmailAddress(authorEmailAddress);
-      } catch (e) {}
-      if (abCard)
+      for (var abCount = 0; abCount < aWhiteListDirectories.length; abCount++)
       {
-        // message is ham from whitelist
-        {
-          var db = aMsgHdr.folder.getMsgDatabase(msgWindow);
-          db.setStringProperty(aMsgHdr.messageKey, "junkscore", Components.interfaces.nsIJunkMailPlugin.IS_HAM_SCORE);
-          db.setStringProperty(aMsgHdr.messageKey, "junkscoreorigin", "whitelist");
-          this.mGoodMsgHdrs.appendElement(aMsgHdr, false);
-        }
-        return;
+        try {
+          if (aWhiteListDirectories[abCount].cardForEmailAddress(authorEmailAddress))
+          {
+            // message is ham from whitelist
+            var db = aMsgHdr.folder.getMsgDatabase(msgWindow);
+            db.setStringProperty(aMsgHdr.messageKey, "junkscore",
+                                 Components.interfaces.nsIJunkMailPlugin.IS_HAM_SCORE);
+            db.setStringProperty(aMsgHdr.messageKey, "junkscoreorigin", "whitelist");
+            this.mGoodMsgHdrs.appendElement(aMsgHdr, false);
+            return;
+          }
+        } catch (e) {}
       }
     }
 
@@ -360,12 +361,15 @@ function processFolderForJunk(aAll)
   var tmpMsgHdr = messenger.messageServiceFromURI(tmpMsgURI).messageURIToMsgHdr(tmpMsgURI);
   var spamSettings = tmpMsgHdr.folder.server.spamSettings;
 
-  // if enabled in the spam settings, retrieve whitelist addressbook
-  var whiteListDirectory = null;
-  if (spamSettings.useWhiteList && spamSettings.whiteListAbURI) {
-    whiteListDirectory = Components.classes["@mozilla.org/abmanager;1"]
-                                   .getService(Components.interfaces.nsIAbManager)
-                                   .getDirectory(spamSettings.whiteListAbURI);
+  // if enabled in the spam settings, retrieve whitelist addressbooks
+  var whiteListDirectories = [];
+  if (spamSettings.useWhiteList && spamSettings.whiteListAbURI)
+  {
+    var whiteListAbURIs = spamSettings.whiteListAbURI.split(" ");
+    abManager = Components.classes["@mozilla.org/abmanager;1"]
+                          .getService(Components.interfaces.nsIAbManager);
+    for (var abCount = 0; abCount < whiteListAbURIs.length; abCount++)
+      whiteListDirectories.push(abManager.getDirectory(whiteListAbURIs[abCount]));
   }
 
   // create a classifier instance to classify messages in the folder.
@@ -378,7 +382,7 @@ function processFolderForJunk(aAll)
     {
       var msgURI = gDBView.getURIForViewIndex(index);
       var msgHdr = messenger.messageServiceFromURI(msgURI).messageURIToMsgHdr(msgURI);
-      msgClassifier.analyzeMessage(msgHdr, whiteListDirectory);
+      msgClassifier.analyzeMessage(msgHdr, whiteListDirectories);
     }
     catch (ex)
     {
