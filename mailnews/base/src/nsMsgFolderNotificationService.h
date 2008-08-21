@@ -60,6 +60,8 @@ private:
 
     MsgFolderListener(nsIMsgFolderListener *aListener, msgFolderListenerFlag aFlags)
       : mListener(aListener), mFlags(aFlags) {}
+    MsgFolderListener(const MsgFolderListener &aListener)
+      : mListener(aListener.mListener), mFlags(aListener.mFlags) {}
     ~MsgFolderListener() {}
 
     int operator==(nsIMsgFolderListener* aListener) const {
