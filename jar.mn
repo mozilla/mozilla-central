@@ -1,0 +1,4 @@
+gloda.jar:
+% locale  gloda   en-US   %locale/en-US/
+% resource gloda ../
+  locale/en-US/gloda.properties
