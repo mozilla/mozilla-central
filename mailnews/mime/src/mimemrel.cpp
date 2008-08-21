@@ -815,7 +815,9 @@ flush_tag(MimeMultipartRelated* relobj)
     char quoteDelimiter = '\0';
     while (*ptr && *ptr != '=') ptr++;
     if (*ptr == '=') {
-      ptr++;
+      /* Ignore = and leading space. */
+      /* Safe, because there's a '>' at the end! */
+      do {ptr++;} while (IS_SPACE(*ptr));
       if (*ptr == '"' || *ptr == '\'') {
         quoteDelimiter = *ptr;
         /* Take up the quote and leading space here as well. */
