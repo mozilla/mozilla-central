@@ -14,14 +14,13 @@ const mFNSContractID = "@mozilla.org/messenger/msgnotificationservice;1";
 const nsIMFNService = Ci.nsIMsgFolderNotificationService;
 const nsIMFListener = Ci.nsIMsgFolderListener;
 
-const kMsgAdded = 0x1;
-const kMsgsDeleted = 0x2;
-const kMsgsMoveCopyCompleted = 0x4;
-const kFolderDeleted = 0x8;
-const kFolderMoveCopyCompleted = 0x10;
-const kFolderRenamed = 0x20;
-const kItemEvent = 0x40;
-const numOptions = 7;
+const finalReceived = nsIMFNService.msgAdded |
+                      nsIMFNService.msgsDeleted |
+                      nsIMFNService.msgsMoveCopyCompleted |
+                      nsIMFNService.folderDeleted |
+                      nsIMFNService.folderMoveCopyCompleted |
+                      nsIMFNService.folderRenamed |
+                      nsIMFNService.itemEvent;
 
 var gMFNService = Cc[mFNSContractID].getService(nsIMFNService);
 
@@ -32,44 +31,44 @@ var gMFListener =
 
   msgAdded: function (aMsg)
   {
-    do_check_eq(this.mReceived & kMsgAdded, 0);
-    this.mReceived |= kMsgAdded;
+    do_check_eq(this.mReceived & nsIMFNService.msgAdded, 0);
+    this.mReceived |= nsIMFNService.msgAdded;
   },
 
   msgsDeleted: function (aMsgs)
   {
-    do_check_eq(this.mReceived & kMsgsDeleted, 0);
-    this.mReceived |= kMsgsDeleted;
+    do_check_eq(this.mReceived & nsIMFNService.msgsDeleted, 0);
+    this.mReceived |= nsIMFNService.msgsDeleted;
   },
 
   msgsMoveCopyCompleted: function (aMove, aSrcMsgs, aDestFolder)
   {
-    do_check_eq(this.mReceived & kMsgsMoveCopyCompleted, 0);
-    this.mReceived |= kMsgsMoveCopyCompleted;
+    do_check_eq(this.mReceived & nsIMFNService.msgsMoveCopyCompleted, 0);
+    this.mReceived |= nsIMFNService.msgsMoveCopyCompleted;
   },
 
   folderDeleted: function (aFolder)
   {
-    do_check_eq(this.mReceived & kFolderDeleted, 0);
-    this.mReceived |= kFolderDeleted;
+    do_check_eq(this.mReceived & nsIMFNService.folderDeleted, 0);
+    this.mReceived |= nsIMFNService.folderDeleted;
   },
 
   folderMoveCopyCompleted: function (aMove, aSrcFolder, aDestFolder)
   {
-    do_check_eq(this.mReceived & kFolderMoveCopyCompleted, 0);
-    this.mReceived |= kFolderMoveCopyCompleted;
+    do_check_eq(this.mReceived & nsIMFNService.folderMoveCopyCompleted, 0);
+    this.mReceived |= nsIMFNService.folderMoveCopyCompleted;
   },
 
   folderRenamed: function (aOrigFolder, aNewFolder)
   {
-    do_check_eq(this.mReceived & kFolderRenamed, 0);
-    this.mReceived |= kFolderRenamed;
+    do_check_eq(this.mReceived & nsIMFNService.folderRenamed, 0);
+    this.mReceived |= nsIMFNService.folderRenamed;
   },
 
   itemEvent: function (aItem, aEvent, aData)
   {
-    do_check_eq(this.mReceived & kItemEvent, 0);
-    this.mReceived |= kItemEvent;
+    do_check_eq(this.mReceived & nsIMFNService.itemEvent, 0);
+    this.mReceived |= nsIMFNService.itemEvent;
   }
 };
 
@@ -87,12 +86,12 @@ function NotifyMsgFolderListeners()
 function run_test()
 {
   // Test: Add a listener.
-  gMFNService.addListener(gMFListener);
+  gMFNService.addListener(gMFListener, nsIMFNService.all);
 
   // Test: Notify the listener of all events.
   NotifyMsgFolderListeners();
 
-  do_check_eq(gMFListener.mReceived, (1 << numOptions) - 1);
+  do_check_eq(gMFListener.mReceived, finalReceived);
 
   // Test: Remove the listener.
   gMFNService.removeListener(gMFListener);

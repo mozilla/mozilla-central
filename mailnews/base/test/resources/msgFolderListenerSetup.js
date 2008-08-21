@@ -33,18 +33,6 @@ var gTest = 1;
 // Which events are expected
 var gExpectedEvents;
 
-// Events, use these to indicate which events are expected.
-const kEvents =
-{
-  msgAdded: 0,
-  msgsDeleted: 1,
-  msgsMoveCopyCompleted: 2,
-  folderDeleted: 3,
-  folderMoveCopyCompleted: 4,
-  folderRenamed: 5,
-  itemEvent: 6
-};
-
 // The current status (what all has been done)
 var gCurrStatus = 0;
 const kStatus =
@@ -66,7 +54,7 @@ var gMFListener =
 {
   msgAdded: function(aMsg)
   {
-    verify([kEvents.msgAdded, aMsg]);
+    verify([gMFNService.msgAdded, aMsg]);
     var hdr = gHdrsReceived.pop();
     gMsgHdrs.push({hdr: hdr, ID: hdr.messageId});
     if (gExpectedEvents.length == 0)
@@ -79,7 +67,7 @@ var gMFListener =
 
   msgsDeleted: function(aMsgs)
   {
-    verify([kEvents.msgsDeleted, aMsgs]);
+    verify([gMFNService.msgsDeleted, aMsgs]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -90,7 +78,7 @@ var gMFListener =
 
   msgsMoveCopyCompleted: function(aMove, aSrcMsgs, aDestFolder)
   {
-    verify([kEvents.msgsMoveCopyCompleted, aMove, aSrcMsgs, aDestFolder]);
+    verify([gMFNService.msgsMoveCopyCompleted, aMove, aSrcMsgs, aDestFolder]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -101,7 +89,7 @@ var gMFListener =
 
   folderDeleted: function(aFolder)
   {
-    verify([kEvents.folderDeleted, aFolder]);
+    verify([gMFNService.folderDeleted, aFolder]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -112,7 +100,7 @@ var gMFListener =
 
   folderMoveCopyCompleted: function(aMove, aSrcFolder, aDestFolder)
   {
-    verify([kEvents.folderMoveCopyCompleted, aMove, aSrcFolder, aDestFolder]);
+    verify([gMFNService.folderMoveCopyCompleted, aMove, aSrcFolder, aDestFolder]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -123,7 +111,7 @@ var gMFListener =
 
   folderRenamed: function(aOrigFolder, aNewFolder)
   {
-    verify([kEvents.folderRenamed, aOrigFolder, aNewFolder]);
+    verify([gMFNService.folderRenamed, aOrigFolder, aNewFolder]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -223,14 +211,14 @@ function verify(event)
 
   switch (eventType)
   {
-  case kEvents.msgAdded:
-  case kEvents.msgsDeleted:
-  case kEvents.folderDeleted:
+  case gMFNService.msgAdded:
+  case gMFNService.msgsDeleted:
+  case gMFNService.folderDeleted:
     // Check: headers match/folder matches.
     expected[1].hasExactlyElements(event[1]);
     break;
-  case kEvents.msgsMoveCopyCompleted:
-  case kEvents.folderMoveCopyCompleted:
+  case gMFNService.msgsMoveCopyCompleted:
+  case gMFNService.folderMoveCopyCompleted:
     // Check: Move or copy as expected.
     do_check_eq(expected[1], event[1]);
 
@@ -240,7 +228,7 @@ function verify(event)
     // Check: destination folder matches.
     do_check_eq(expected[3], event[3]);
     break;
-  case kEvents.folderRenamed:
+  case gMFNService.folderRenamed:
     // Check: source folder matches
     expected[1].hasExactlyElements(event[1]);
 

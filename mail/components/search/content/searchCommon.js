@@ -70,7 +70,7 @@ function InitSupportIntegration()
 
   var notificationService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
     .getService(Ci.nsIMsgFolderNotificationService);
-  notificationService.addListener(gFolderListener);
+  notificationService.addListener(gFolderListener, notificationService.all);
   var ObserverService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
   ObserverService.addObserver(MsgMsgDisplayedObserver, "MsgMsgDisplayed", false);
   gMsgHdrsToIndex = new Array();

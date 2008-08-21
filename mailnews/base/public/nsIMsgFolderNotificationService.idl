@@ -43,11 +43,48 @@ interface nsIMsgFolder;
 interface nsIMsgFolderListener;
 interface nsIArray;
 
+typedef unsigned long msgFolderListenerFlag;
 
-[scriptable, uuid(fc5bb4cf-7ad1-4b11-a5a6-550f713fa334)]
+[scriptable, uuid(54900730-ba1f-4315-af44-cfbb2121d115)]
 interface nsIMsgFolderNotificationService : nsISupports {
+  /**
+   * @name Notification flags
+   * These flags determine which notifications will be sent.
+   * @{
+   */
+  /// nsIMsgFolderListener::msgAdded notification
+  const msgFolderListenerFlag msgAdded = 0x1;
+
+  /// nsIMsgFolderListener::msgsDeleted notification
+  const msgFolderListenerFlag msgsDeleted = 0x2;
+
+  /// nsIMsgFolderListener::msgsMoveCopyCompleted notification
+  const msgFolderListenerFlag msgsMoveCopyCompleted = 0x4;
+
+  /// All message notifications
+  const msgFolderListenerFlag allMsgNotifications = 0x7;
+
+  /// nsIMsgFolderListener::folderDeleted notification
+  const msgFolderListenerFlag folderDeleted = 0x1000;
+
+  /// nsIMsgFolderListener::folderMoveCopyCompleted notification
+  const msgFolderListenerFlag folderMoveCopyCompleted = 0x2000;
+
+  /// nsIMsgFolderListener::folderRenamed notification
+  const msgFolderListenerFlag folderRenamed = 0x4000;
+
+  /// All folder notifications
+  const msgFolderListenerFlag allFolderNotifications = 0x7000;
+
+  /// nsIMsgFolderListener::itemEvent notification
+  const msgFolderListenerFlag itemEvent = 0x1000000;
+
+  /// All notifications
+  const msgFolderListenerFlag all = 0xFFFFFFFF;
+  /** @} */
+
   readonly attribute boolean hasListeners;
-  void addListener(in nsIMsgFolderListener aListener);
+  void addListener(in nsIMsgFolderListener aListener, in msgFolderListenerFlag flags);
   void removeListener(in nsIMsgFolderListener aListener);
 
   // message-specific functions

@@ -29,7 +29,7 @@ var gLocalTrashFolder;
 function copyFileMessage(file, destFolder, isDraftOrTemplate)
 {
   copyListener.mFolderStoredIn = destFolder;
-  gExpectedEvents = [[kEvents.msgAdded, gHdrsReceived]];
+  gExpectedEvents = [[gMFNService.msgAdded, gHdrsReceived]];
   gCopyService.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, copyListener, null);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
@@ -42,7 +42,7 @@ function copyMessages(items, isMove, srcFolder, destFolder)
   items.forEach(function (item) {
     array.appendElement(item, false);
   });
-  gExpectedEvents = [[kEvents.msgsMoveCopyCompleted, isMove, items, destFolder]];
+  gExpectedEvents = [[gMFNService.msgsMoveCopyCompleted, isMove, items, destFolder]];
   gCopyService.CopyMessages(srcFolder, array, destFolder, isMove, copyListener, null, true);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
@@ -55,7 +55,7 @@ function copyFolders(items, isMove, destFolder)
   items.forEach(function (item) {
     array.appendElement(item, false);
   });
-  gExpectedEvents = [[kEvents.folderMoveCopyCompleted, isMove, items, destFolder]];
+  gExpectedEvents = [[gMFNService.folderMoveCopyCompleted, isMove, items, destFolder]];
   gCopyService.CopyFolders(array, destFolder, isMove, copyListener, null);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
@@ -75,11 +75,11 @@ function deleteMessages(srcFolder, items, deleteStorage, isMove)
   {
     // We won't be getting any OnStopCopy notification in this case
     gCurrStatus = kStatus.onStopCopyDone;
-    gExpectedEvents = [[kEvents.msgsDeleted, items]];
+    gExpectedEvents = [[gMFNService.msgsDeleted, items]];
   }
   else
     // We have to be getting a move notification, even if isMove is false
-    gExpectedEvents = [[kEvents.msgsMoveCopyCompleted, true, items, gLocalTrashFolder]];
+    gExpectedEvents = [[gMFNService.msgsMoveCopyCompleted, true, items, gLocalTrashFolder]];
 
   srcFolder.deleteMessages(array, null, deleteStorage, isMove, copyListener, true);
   gCurrStatus |= kStatus.functionCallDone;
@@ -89,7 +89,7 @@ function deleteMessages(srcFolder, items, deleteStorage, isMove)
 
 function renameFolder(folder, newName)
 {
-  gExpectedEvents = [[kEvents.folderRenamed, [folder], newName]];
+  gExpectedEvents = [[gMFNService.folderRenamed, [folder], newName]];
   gCurrStatus = kStatus.onStopCopyDone;
   folder.rename(newName, null);
   gCurrStatus |= kStatus.functionCallDone;
@@ -108,9 +108,9 @@ function deleteFolder(folder)
   gCurrStatus = kStatus.onStopCopyDone;
   // If ancestor is trash, expect an itemDeleted, otherwise expect an itemMoveCopyCompleted
   if (gLocalTrashFolder.isAncestorOf(folder))
-    gExpectedEvents = [[kEvents.folderDeleted, [folder]]];
+    gExpectedEvents = [[gMFNService.folderDeleted, [folder]]];
   else
-    gExpectedEvents = [[kEvents.folderMoveCopyCompleted, true, [folder], gLocalTrashFolder]];
+    gExpectedEvents = [[gMFNService.folderMoveCopyCompleted, true, [folder], gLocalTrashFolder]];
 
   folder.parent.deleteSubFolders(array, null);
   gCurrStatus |= kStatus.functionCallDone;
@@ -185,7 +185,7 @@ const gTestArray =
 function run_test()
 {
   // Add a listener.
-  gMFNService.addListener(gMFListener);
+  gMFNService.addListener(gMFListener, gMFNService.all);
 
   loadLocalMailAccount();
 

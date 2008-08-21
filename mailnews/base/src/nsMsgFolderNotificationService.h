@@ -41,7 +41,7 @@
 
 #include "nsIMsgFolderNotificationService.h"
 #include "nsIMsgFolderListener.h"
-#include "nsCOMArray.h"
+#include "nsTArray.h"
 
 class nsMsgFolderNotificationService : public nsIMsgFolderNotificationService
 {
@@ -53,9 +53,24 @@ public:
 
 private:
   ~nsMsgFolderNotificationService();
+  struct MsgFolderListener
+  {
+    nsCOMPtr<nsIMsgFolderListener> mListener;
+    msgFolderListenerFlag mFlags;
 
-protected:
-  nsCOMArray<nsIMsgFolderListener> m_listeners;
+    MsgFolderListener(nsIMsgFolderListener *aListener, msgFolderListenerFlag aFlags)
+      : mListener(aListener), mFlags(aFlags) {}
+    ~MsgFolderListener() {}
+
+    int operator==(nsIMsgFolderListener* aListener) const {
+      return mListener == aListener;
+    }
+    int operator==(const MsgFolderListener &aListener) const {
+      return mListener == aListener.mListener;
+    }
+  };
+
+  nsTArray<MsgFolderListener> mListeners;
 };
 
 #endif

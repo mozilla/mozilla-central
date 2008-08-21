@@ -62,41 +62,45 @@ nsMsgFolderNotificationService::~nsMsgFolderNotificationService()
 NS_IMETHODIMP nsMsgFolderNotificationService::GetHasListeners(PRBool *aHasListeners)
 {
   NS_ENSURE_ARG_POINTER(aHasListeners);
-  *aHasListeners = m_listeners.Count() > 0;
+  *aHasListeners = mListeners.Length() > 0;
   return NS_OK;
 }
 
 
-/* void addListener (in nsIMsgFolderListener aListener); */
-NS_IMETHODIMP nsMsgFolderNotificationService::AddListener(nsIMsgFolderListener *aListener)
+/* void addListener (in nsIMsgFolderListener aListener, in msgFolderListenerFlag flags); */
+NS_IMETHODIMP nsMsgFolderNotificationService::AddListener(nsIMsgFolderListener *aListener,
+                                                          msgFolderListenerFlag aFlags)
 {
-  return m_listeners.AppendObject(aListener);
+  NS_ENSURE_ARG_POINTER(aListener);
+  if (!mListeners.Contains(aListener))
+  {
+    MsgFolderListener listener(aListener, aFlags);
+    mListeners.AppendElement(listener);
+  }
+  return NS_OK;
 }
 
 /* void removeListener (in nsIMsgFolderListener aListener); */
 NS_IMETHODIMP nsMsgFolderNotificationService::RemoveListener(nsIMsgFolderListener *aListener)
 {
-  PRInt32 index = m_listeners.IndexOf(aListener);
-  NS_ASSERTION(index >= 0, "removing non-existent listener");
-  if (index >= 0)
-  {
-    m_listeners.RemoveObjectAt(index);
-  }
+  NS_ENSURE_ARG_POINTER(aListener);
+  NS_ASSERTION(mListeners.RemoveElement(aListener), "removing non-existent listener");
   return NS_OK;
 }
 
 /* void notifyMsgAdded (in nsIMsgDBHdr aMsg); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgAdded(nsIMsgDBHdr *aMsg)
 {
-  PRInt32 count = m_listeners.Count();
+  PRUint32 count = mListeners.Length();
 
-  for (PRInt32 i = 0; i < count; i++)
+  for (PRUint32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
-    NS_ASSERTION(listener, "listener is null");
-    if (!listener)
+    MsgFolderListener listener = mListeners[i];
+    NS_ASSERTION(listener.mListener, "listener is null");
+    if (!listener.mListener)
       return NS_ERROR_FAILURE;
-    listener->MsgAdded(aMsg);
+    if (listener.mFlags & msgAdded)
+      listener.mListener->MsgAdded(aMsg);
   }
 
   return NS_OK;
@@ -105,15 +109,16 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgAdded(nsIMsgDBHdr *aMsg)
 /* void notifyMsgsDeleted (in nsIArray aMsgs); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsDeleted(nsIArray *aMsgs)
 {
-  PRInt32 count = m_listeners.Count();
+  PRUint32 count = mListeners.Length();
 
-  for (PRInt32 i = 0; i < count; i++)
+  for (PRUint32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
-    NS_ASSERTION(listener, "listener is null");
-    if (!listener)
+    MsgFolderListener listener = mListeners[i];
+    NS_ASSERTION(listener.mListener, "listener is null");
+    if (!listener.mListener)
       return NS_ERROR_FAILURE;
-    listener->MsgsDeleted(aMsgs);
+    if (listener.mFlags & msgsDeleted)
+      listener.mListener->MsgsDeleted(aMsgs);
   }
 
   return NS_OK;
@@ -122,7 +127,7 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsDeleted(nsIArray *aMsgs)
 /* void notifyMsgsMoveCopyCompleted (in boolean aMove, in nsIArray aSrcMsgs, in nsIMsgFolder aDestFolder); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(PRBool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder)
 {
-  PRInt32 count = m_listeners.Count();
+  PRUint32 count = mListeners.Length();
   
   // IMAP delete model means that a "move" isn't really a move, it is a copy,
   // followed by storing the IMAP deleted flag on the message.
@@ -153,13 +158,14 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(PRBool
     }
   }
 
-  for (PRInt32 i = 0; i < count; i++)
+  for (PRUint32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
-    NS_ASSERTION(listener, "listener is null");
-    if (!listener)
+    MsgFolderListener listener = mListeners[i];
+    NS_ASSERTION(listener.mListener, "listener is null");
+    if (!listener.mListener)
       return NS_ERROR_FAILURE;
-    listener->MsgsMoveCopyCompleted(isReallyMove, aSrcMsgs, aDestFolder);
+    if (listener.mFlags & msgsMoveCopyCompleted)
+      listener.mListener->MsgsMoveCopyCompleted(aMove, aSrcMsgs, aDestFolder);
   }
 
   return NS_OK;
@@ -168,15 +174,16 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(PRBool
 /* void notifyFolderDeleted(in nsIMsgFolder aFolder); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderDeleted(nsIMsgFolder *aFolder)
 {
-  PRInt32 count = m_listeners.Count();
+  PRUint32 count = mListeners.Length();
 
-  for (PRInt32 i = 0; i < count; i++)
+  for (PRUint32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
-    NS_ASSERTION(listener, "listener is null");
-    if (!listener)
+    MsgFolderListener listener = mListeners[i];
+    NS_ASSERTION(listener.mListener, "listener is null");
+    if (!listener.mListener)
       return NS_ERROR_FAILURE;
-    listener->FolderDeleted(aFolder);
+    if (listener.mFlags & folderDeleted)
+      listener.mListener->FolderDeleted(aFolder);
   }
 
   return NS_OK;
@@ -185,15 +192,16 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderDeleted(nsIMsgFolder *
 /* void notifyFolderMoveCopyCompleted(in boolean aMove, in nsIMsgFolder aSrcFolder, in nsIMsgFolder aDestFolder); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderMoveCopyCompleted(PRBool aMove, nsIMsgFolder *aSrcFolder, nsIMsgFolder *aDestFolder)
 {
-  PRInt32 count = m_listeners.Count();
+  PRUint32 count = mListeners.Length();
 
-  for (PRInt32 i = 0; i < count; i++)
+  for (PRUint32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
-    NS_ASSERTION(listener, "listener is null");
-    if (!listener)
+    MsgFolderListener listener = mListeners[i];
+    NS_ASSERTION(listener.mListener, "listener is null");
+    if (!listener.mListener)
       return NS_ERROR_FAILURE;
-    listener->FolderMoveCopyCompleted(aMove, aSrcFolder, aDestFolder);
+    if (listener.mFlags & folderMoveCopyCompleted)
+      listener.mListener->FolderMoveCopyCompleted(aMove, aSrcFolder, aDestFolder);
   }
 
   return NS_OK;
@@ -202,15 +210,16 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderMoveCopyCompleted(PRBo
 /* void notifyFolderRenamed (in nsIMsgFolder aOrigFolder, in nsIMsgFolder aNewFolder); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderRenamed(nsIMsgFolder *aOrigFolder, nsIMsgFolder *aNewFolder)
 {
-  PRInt32 count = m_listeners.Count();
+  PRInt32 count = mListeners.Length();
 
-  for (PRInt32 i = 0; i < count; i++)
+  for (PRUint32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
-    NS_ASSERTION(listener, "listener is null");
-    if (!listener)
+    MsgFolderListener listener = mListeners[i];
+    NS_ASSERTION(listener.mListener, "listener is null");
+    if (!listener.mListener)
       return NS_ERROR_FAILURE;
-    listener->FolderRenamed(aOrigFolder, aNewFolder);
+    if (listener.mFlags & folderRenamed)
+      listener.mListener->FolderRenamed(aOrigFolder, aNewFolder);
   }
 
   return NS_OK;
@@ -219,15 +228,16 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderRenamed(nsIMsgFolder *
 /* void notifyItemEvent (in nsISupports aItem, in string aEvent, in nsISupports aData); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyItemEvent(nsISupports *aItem, const nsACString &aEvent, nsISupports *aData)
 {
-  PRInt32 count = m_listeners.Count();
+  PRUint32 count = mListeners.Length();
 
-  for (PRInt32 i = 0; i < count; i++)
+  for (PRUint32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
-    NS_ASSERTION(listener, "listener is null");
-    if (!listener)
+    MsgFolderListener listener = mListeners[i];
+    NS_ASSERTION(listener.mListener, "listener is null");
+    if (!listener.mListener)
       return NS_ERROR_FAILURE;
-    listener->ItemEvent(aItem, aEvent, aData);
+    if (listener.mFlags & itemEvent)
+      listener.mListener->ItemEvent(aItem, aEvent, aData);
   }
 
   return NS_OK;
