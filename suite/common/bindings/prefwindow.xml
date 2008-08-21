@@ -423,8 +423,8 @@
         </body>
       </method>
 
-      // copied from contextHelp.js
-      // Locate existing help window for this helpFileURI.
+    <!-- copied from contextHelp.js
+         Locate existing help window for this helpFileURI. -->
       <method name="locateHelpWindow">
         <parameter name="helpFileURI"/>
         <body>
@@ -446,8 +446,8 @@
         </body>
       </method>
 
-      // copied from contextHelp.js
-      // Opens up the Help Viewer with the specified topic and helpFileURI.
+    <!-- copied from contextHelp.js
+         Opens up the Help Viewer with the specified topic and helpFileURI. -->
       <method name="openHelp">
         <parameter name="topic"/>
         <parameter name="helpFileURI"/>
