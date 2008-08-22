@@ -41,7 +41,7 @@
 
 #include "nsIMsgFolderNotificationService.h"
 #include "nsIMsgFolderListener.h"
-#include "nsTArray.h"
+#include "nsTObserverArray.h"
 
 class nsMsgFolderNotificationService : public nsIMsgFolderNotificationService
 {
@@ -72,7 +72,7 @@ private:
     }
   };
 
-  nsTArray<MsgFolderListener> mListeners;
+  nsTObserverArray<MsgFolderListener> mListeners;
 };
 
 #endif
