@@ -237,7 +237,6 @@ function (aTitle, aContentURL, aCustomizeURL, aPersist)
 
     /* Write the modified panels out. */
     this.datasource.QueryInterface(nsIRDFRemoteDataSource).Flush();
-
 }
 
 /* decorate prototype to provide ``class'' methods and property accessors */
@@ -435,26 +434,15 @@ function getSidebarDatasourceURI(panels_file_id)
 }
 
 
-var strBundleService = null;
+// String bundle service
+var gStrBundleService = null;
+
 function srGetStrBundle(path)
 {
-   var strBundle = null;
-   if (!strBundleService) {
-       try {
-          strBundleService =
-          Components.classes["@mozilla.org/intl/stringbundle;1"].getService();
-          strBundleService =
-          strBundleService.QueryInterface(Components.interfaces.nsIStringBundleService);
-       } catch (ex) {
-          dump("\n--** strBundleService failed: " + ex + "\n");
-          return null;
-      }
-   }
-   strBundle = strBundleService.createBundle(path);
-   if (!strBundle) {
-       dump("\n--** strBundle createInstance failed **--\n");
-   }
-   return strBundle;
+  if (!gStrBundleService)
+    gStrBundleService =
+      Components.classes["@mozilla.org/intl/stringbundle;1"]
+                .getService(Components.interfaces.nsIStringBundleService);
+
+  return gStrBundleService.createBundle(path);
 }
-
-
