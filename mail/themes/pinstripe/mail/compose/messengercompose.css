@@ -450,15 +450,21 @@ treechildren::-moz-tree-image(remote-err) {
 
 .aw-menulist {
   -moz-appearance: none;
-        border: none;
-list-style-image: url("chrome://global/skin/arrow/arrow-dn.png");
-       background-color: #FFFFFF;
-          border-right: 1px solid #DCDCDC;
+  border: none;
+  list-style-image: url("chrome://global/skin/arrow/arrow-dn.png");
+  background-color: #FFFFFF;
+  border-right: 1px solid #DCDCDC;
+  -moz-padding-start: 5px;
 }
 
 .aw-menulist > .menulist-label {
   font: icon;
   margin-right: 3px;
+}
+
+.aw-menulist:focus {
+  outline: 2px solid -moz-mac-focusring;
+  -moz-outline-offset: -2px;
 }
 
 /* ::::: format toolbar ::::: */
