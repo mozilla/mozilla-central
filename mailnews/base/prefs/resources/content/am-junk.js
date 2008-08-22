@@ -64,13 +64,20 @@ function onInit(aPageId, aServerId)
     spamActionTargetFolder = parent.accountManager.localFoldersServer.serverURI + "/Junk";
     document.getElementById('server.spamActionTargetFolder').value = spamActionTargetFolder;
   }
-  try {
-    document.getElementById("actionFolderPopup")
-            .selectFolder(GetMsgFolderFromUri(spamActionTargetFolder));
-  } catch(ex) {
-    // This is ok, it might not exist
+
+  try
+  {
+    var folder = GetMsgFolderFromUri(spamActionTargetFolder);
+    var longFolderName = document.getElementById("bundle_messenger")
+                                 .getFormattedString("verboseFolderFormat",
+                                 [folder.prettyName, folder.server.prettyName]);
+    document.getElementById("actionTargetFolder")
+            .setAttribute("label", longFolderName);
   }
-  
+
+  // OK for folder to not exist
+  catch (e) {}
+
   // set up the whitelist UI
   var wList = document.getElementById("whiteListAbURI");
   var currentArray = [];
@@ -175,7 +182,16 @@ function onSaveWhiteList()
 
 function onActionTargetChange(aEvent, aWSMElementId)
 {
-  document.getElementById(aWSMElementId).value = aEvent.target._folder.URI
+  var folder = aEvent.target._folder;
+  document.getElementById(aWSMElementId).value = folder.URI;
+  var folderName;
+  if (folder.isServer)
+    folderName = folder.prettyName;
+  else
+    folderName = document.getElementById("bundle_messenger")
+                         .getFormattedString("verboseFolderFormat",
+                         [folder.prettyName, folder.server.prettyName]);
+  aEvent.currentTarget.setAttribute("label", folderName);
 }
 
 function buildServerFilterMenuList()

@@ -140,21 +140,21 @@
               <radio id="moveTargetMode0" value="0" label="&junkFolderOn.label;"
                      accesskey="&junkFolderOn.accesskey;" observes="broadcaster_moveMode"/>
               <menulist id="actionTargetAccount" observes="broadcaster_moveMode"
-                        aria-labelledby="moveTargetMode0">
+                        aria-labelledby="moveTargetMode0"
+                        oncommand="onActionTargetChange(event, 'server.spamActionTargetAccount');">
                 <menupopup id="actionAccountPopup" type="folder"
-                           expandFolders="false" mode="filing"
-                           onselect="onActionTargetChange(event, 'server.spamActionTargetAccount');"/>
+                           expandFolders="false" mode="filing"/>
               </menulist>
             </row>
             <row>
               <radio id="moveTargetMode1" value="1" label="&otherFolder.label;"
                      accesskey="&otherFolder.accesskey;" observes="broadcaster_moveMode"/>
               <menulist id="actionTargetFolder" observes="broadcaster_moveMode"
-                        aria-labelledby="moveTargetMode1">
+                        aria-labelledby="moveTargetMode1"
+                        oncommand="onActionTargetChange(event, 'server.spamActionTargetFolder');">
                 <menupopup id="actionFolderPopup" type="folder" mode="junk"
                            showFileHereLabel="true"
-                           fileHereLabel="&filemessageschoosethis.label;"
-                           oncommand="onActionTargetChange(event, 'server.spamActionTargetFolder');"/>
+                           fileHereLabel="&filemessageschoosethis.label;"/>
               </menulist>
             </row>
           </rows>

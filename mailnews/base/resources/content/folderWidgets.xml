@@ -127,7 +127,13 @@
         },
 
         junk: function filter_junk(aFolder) {
-          return aFolder.canFileMessages && aFolder.canSearchMessages;
+          // Don't show servers (nntp & any others) which do not allow search or filing
+          // I don't really understand why canSearchMessages is needed, but it was included in
+          // earlier code, so I include it as well.
+          if (!aFolder.server.canFileMessagesOnServer || !aFolder.server.canSearchMessages)
+            return false;
+          // show parents that might have usable subfolders, or usable folders
+          return aFolder.hasSubFolders || aFolder.canFileMessages;
         }
       })]]></field>
 
