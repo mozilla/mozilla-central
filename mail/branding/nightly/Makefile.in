@@ -51,3 +51,26 @@ DIRS = \
 PREF_JS_EXPORTS += $(srcdir)/thunderbird-branding.js
 
 include $(topsrcdir)/config/rules.mk
+
+export::
+	$(NSINSTALL) -D $(DIST)/branding
+ifeq ($(OS_ARCH),WINNT)
+	cp $(srcdir)/thunderbird.ico   $(DIST)/branding/thunderbird.ico
+	cp $(srcdir)/thunderbird.ico   $(DIST)/branding/app.ico
+	cp $(srcdir)/branding.nsi      $(DIST)/branding/branding.nsi
+	cp $(srcdir)/wizHeader.bmp     $(DIST)/branding/wizHeader.bmp
+	cp $(srcdir)/wizHeaderRTL.bmp  $(DIST)/branding/wizHeaderRTL.bmp
+	cp $(srcdir)/wizWatermark.bmp  $(DIST)/branding/wizWatermark.bmp
+endif
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+	cp $(srcdir)/background.png    $(DIST)/branding/background.png
+	cp $(srcdir)/dsstore           $(DIST)/branding/dsstore
+	cp $(srcdir)/disk.icns         $(DIST)/branding/disk.icns
+	cp $(srcdir)/license.r         $(DIST)/branding/license.r
+	cp $(srcdir)/thunderbird.icns  $(DIST)/branding/thunderbird.icns
+endif
+ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
+	cp $(srcdir)/mozicon16.xpm $(DIST)/branding/mozicon16.xpm
+	cp $(srcdir)/mozicon50.xpm $(DIST)/branding/mozicon50.xpm
+	cp $(srcdir)/default.xpm   $(DIST)/branding/default.xpm	
+endif

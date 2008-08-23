@@ -292,29 +292,6 @@ install::
 	$(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/default.xpm $(DESTDIR)$(mozappdir)/chrome/icons/default
 endif
 
-export::
-ifndef MOZ_BRANDING_DIRECTORY
-	$(NSINSTALL) -D $(DIST)/branding
-ifeq ($(OS_ARCH),WINNT)
-	cp $(srcdir)/thunderbird.ico   $(DIST)/branding/thunderbird.ico
-	cp $(srcdir)/thunderbird.ico   $(DIST)/branding/app.ico
-endif
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-	cp $(srcdir)/macbuild/thunderbird.icns  $(DIST)/branding/thunderbird.icns
-	cp $(srcdir)/macbuild/dsstore $(DIST)/branding/dsstore
-	cp $(srcdir)/macbuild/background.png $(DIST)/branding/background.png
-	cp $(srcdir)/macbuild/disk.icns $(DIST)/branding/disk.icns
-	cp $(srcdir)/macbuild/license.r $(DIST)/branding/license.r
-endif
-ifneq (,$(filter gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
-	cp $(srcdir)/mozicon16.xpm $(DIST)/branding/mozicon16.xpm
-	cp $(srcdir)/mozicon50.xpm $(DIST)/branding/mozicon50.xpm
-endif
-ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
-	cp $(srcdir)/default.xpm   $(DIST)/branding/default.xpm	
-endif
-endif
-
 ifneq (,$(filter-out OS2 WINNT Darwin,$(OS_ARCH)))
 thunderbird:: mozilla.in Makefile.in Makefile $(DEPTH)/config/autoconf.mk
 	cat $< | sed -e "s|%MOZAPPDIR%|$(mozappdir)|" \
