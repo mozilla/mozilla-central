@@ -54,6 +54,7 @@ REQUIRES	= xpcom \
 		  uconv \
 		  necko \
 		  msgbase \
+		  mailnews \
 		  $(NULL)
 
 CPPSRCS		= \

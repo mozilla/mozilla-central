@@ -66,7 +66,6 @@
 #include "mozITXTToHTMLConv.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgWindow.h"
-#include "nsStreamConverter.h"
 #include "nsICategoryManager.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
@@ -835,6 +834,21 @@ nsStreamConverter::GetOriginalMsgURI(char ** result)
   *result = ToNewCString(mOriginalMsgURI);
   return NS_OK;
 }
+
+NS_IMETHODIMP
+nsStreamConverter::SetOrigMsgHdr(nsIMsgDBHdr *aMsgHdr)
+{
+  mOrigMsgHdr = aMsgHdr;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsStreamConverter::GetOrigMsgHdr(nsIMsgDBHdr * *aMsgHdr)
+{
+  if (!aMsgHdr) return NS_ERROR_NULL_POINTER;
+  NS_IF_ADDREF(*aMsgHdr = mOrigMsgHdr);
+  return NS_OK;
+} 
 
 /////////////////////////////////////////////////////////////////////////////
 // Methods for nsIStreamListener...

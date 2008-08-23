@@ -102,6 +102,7 @@ private:
   PRBool                        mForwardInline;
   nsCOMPtr<nsIMsgIdentity>      mIdentity;
   nsCString                     mOriginalMsgURI;
+  nsCOMPtr<nsIMsgDBHdr>         mOrigMsgHdr;
 
   nsCString                     mFromType;
   nsCString                     mToType;

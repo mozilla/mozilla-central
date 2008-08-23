@@ -45,6 +45,7 @@
 #include "nsrootidl.idl"
 #include "nsIMimeHeaders.idl"
 #include "nsIMsgIdentity.idl"
+#include "nsIMsgHdr.idl"
 
 interface nsIURI;
 
@@ -75,7 +76,7 @@ interface nsIMimeStreamConverterListener : nsISupports{
       void onHeadersReady(in nsIMimeHeaders headers);
 };
 
-[scriptable, uuid(E4ED8892-3F9E-11d3-9896-001083010E9B)]
+[scriptable, uuid(9b1d157b-4223-42f5-9bec-11c1ec34d609)]
 interface nsIMimeStreamConverter : nsISupports {
 
     /*
@@ -107,4 +108,5 @@ interface nsIMimeStreamConverter : nsISupports {
   */
   attribute nsIMsgIdentity identity;
   attribute string originalMsgURI;
+  attribute nsIMsgDBHdr origMsgHdr;
 };

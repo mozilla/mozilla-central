@@ -101,7 +101,7 @@ private:
 
   nsresult LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType, 
                                nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI, 
-                               PRBool aAddInlineHeaders,
+                               nsIMsgDBHdr * aOrigMsgHdr, PRBool aAddInlineHeaders,
                                nsIMsgWindow *aMsgWindow);
 
   nsresult ShowCachedComposeWindow(nsIDOMWindowInternal *aComposeWindow, PRBool aShow);

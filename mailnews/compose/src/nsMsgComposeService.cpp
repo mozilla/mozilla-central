@@ -534,7 +534,7 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
 }
 
 NS_IMETHODIMP
-nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, const char *originalMsgURI,
+nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDBHdr *origMsgHdr, const char *originalMsgURI,
   MSG_ComposeType type, MSG_ComposeFormat format, nsIMsgIdentity * aIdentity, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
@@ -555,7 +555,7 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, const ch
 
       return LoadDraftOrTemplate(uriToOpen, type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft ?
                                  nsMimeOutput::nsMimeMessageDraftOrTemplate : nsMimeOutput::nsMimeMessageEditorTemplate,
-                                 identity, originalMsgURI, type == nsIMsgCompType::ForwardInline, aMsgWindow);
+                                 identity, originalMsgURI, origMsgHdr, type == nsIMsgCompType::ForwardInline, aMsgWindow);
   }
 
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
@@ -609,20 +609,7 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, const ch
         else
         {
           pMsgComposeParams->SetOriginalMsgURI(originalMsgURI);
-          if (PL_strstr(originalMsgURI, "type=application/x-message-display"))
-          {
-            nsCOMPtr <nsIMsgDBHdr> msgHdr;
-            if (strncmp(originalMsgURI, "file:", 5))
-              rv = GetMsgDBHdrFromURI(originalMsgURI, getter_AddRefs(msgHdr));
-            if (aMsgWindow && !msgHdr)
-            {
-              nsCOMPtr <nsIMsgHeaderSink> headerSink;
-              rv = aMsgWindow->GetMsgHeaderSink(getter_AddRefs(headerSink));
-              if (headerSink)
-                rv = headerSink->GetDummyMsgHeader(getter_AddRefs(msgHdr));
-            }
-            pMsgComposeParams->SetOrigMsgHdr(msgHdr);
-          }
+          pMsgComposeParams->SetOrigMsgHdr(origMsgHdr);
         }
       }
 
@@ -1566,6 +1553,7 @@ nsMsgComposeService::GetMsgComposeForWindow(nsIDOMWindowInternal * aWindow, nsIM
 nsresult
 nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType,
                                          nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI,
+                                         nsIMsgDBHdr * aOrigMsgHdr,
                                          PRBool aAddInlineHeaders, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
@@ -1582,6 +1570,7 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
   mimeConverter->SetForwardInline(aAddInlineHeaders);
   mimeConverter->SetIdentity(aIdentity);
   mimeConverter->SetOriginalMsgURI(aOriginalMsgURI);
+  mimeConverter->SetOrigMsgHdr(aOrigMsgHdr);
 
   nsCOMPtr<nsIURI> url;
   PRBool fileUrl = StringBeginsWith(aMsgURI, NS_LITERAL_CSTRING("file:"));

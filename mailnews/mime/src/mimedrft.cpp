@@ -186,7 +186,8 @@ CreateTheComposeWindow(nsIMsgCompFields *   compFields,
                        MSG_ComposeType      composeType,
                        MSG_ComposeFormat    composeFormat,
                        nsIMsgIdentity *     identity,
-                       const char *         originalMsgURI
+                       const char *         originalMsgURI,
+                       nsIMsgDBHdr *        origMsgHdr
                        )
 {
   nsresult            rv;
@@ -257,6 +258,8 @@ CreateTheComposeWindow(nsIMsgCompFields *   compFields,
     pMsgComposeParams->SetComposeFields(compFields);
     if (originalMsgURI)
       pMsgComposeParams->SetOriginalMsgURI(originalMsgURI);
+    if (origMsgHdr)
+      pMsgComposeParams->SetOrigMsgHdr(origMsgHdr);
 
     rv = msgComposeService->OpenComposeWindowWithParams(nsnull /* default chrome */, pMsgComposeParams);
   }
@@ -1542,16 +1545,16 @@ mime_parse_stream_complete (nsMIMESession *stream)
       if (mdd->format_out == nsMimeOutput::nsMimeMessageEditorTemplate)
       {
         fields->SetDraftId(mdd->url_name);
-        CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::Template, composeFormat, mdd->identity, mdd->originalMsgURI);
+        CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::Template, composeFormat, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
       }
       else
       {
         if (mdd->forwardInline)
-          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::ForwardInline, composeFormat, mdd->identity, mdd->originalMsgURI);
+          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::ForwardInline, composeFormat, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
         else
         {
           fields->SetDraftId(mdd->url_name);
-          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::Draft, composeFormat, mdd->identity, mdd->originalMsgURI);
+          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::Draft, composeFormat, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
         }
       }
     }
@@ -1566,7 +1569,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
 #ifdef NS_DEBUG
         printf("RICHIE: Time to create the EDITOR with this template - NO body!!!!\n");
 #endif
-        CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::Template, nsIMsgCompFormat::Default, mdd->identity, nsnull);
+        CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::Template, nsIMsgCompFormat::Default, mdd->identity, nsnull, mdd->origMsgHdr);
       }
       else
       {
@@ -1574,11 +1577,11 @@ mime_parse_stream_complete (nsMIMESession *stream)
         printf("Time to create the composition window WITHOUT a body!!!!\n");
 #endif
         if (mdd->forwardInline)
-          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::ForwardInline, nsIMsgCompFormat::Default, mdd->identity, mdd->originalMsgURI);
+          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::ForwardInline, nsIMsgCompFormat::Default, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
         else
         {
           fields->SetDraftId(mdd->url_name);
-          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::Draft, nsIMsgCompFormat::Default, mdd->identity, nsnull);
+          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::Draft, nsIMsgCompFormat::Default, mdd->identity, nsnull, mdd->origMsgHdr);
         }
       }
     }
@@ -1592,7 +1595,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
       mdd->mailcharset,
       getter_AddRefs(fields));
     if (fields)
-      CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::New, nsIMsgCompFormat::Default, mdd->identity, nsnull);
+      CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::New, nsIMsgCompFormat::Default, mdd->identity, nsnull, mdd->origMsgHdr);
   }
 
   if ( mdd->headers )
@@ -1623,6 +1626,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
   mdd->identity = nsnull;
   PR_Free(mdd->url_name);
   PR_Free(mdd->originalMsgURI);
+  mdd->origMsgHdr = nsnull;
   PR_Free(mdd);
 
   PR_FREEIF(host);
@@ -2053,6 +2057,7 @@ mime_bridge_create_draft_stream(
   newPluginObj2->GetForwardInline(&mdd->forwardInline);
   newPluginObj2->GetIdentity(getter_AddRefs(mdd->identity));
   newPluginObj2->GetOriginalMsgURI(&mdd->originalMsgURI);
+  newPluginObj2->GetOrigMsgHdr(getter_AddRefs(mdd->origMsgHdr));
   mdd->format_out = format_out;
   mdd->options = new  MimeDisplayOptions ;
   if (!mdd->options)

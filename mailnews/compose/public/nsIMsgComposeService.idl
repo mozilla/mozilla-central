@@ -47,11 +47,14 @@ interface nsIMsgIdentity;
 interface nsIMsgIncomingServer;
 interface nsIMsgDBHdr;
 
-[scriptable, uuid(BC1C0379-82EF-45ae-9710-DD4FA93252F7)]
+[scriptable, uuid(ce5f77c8-f278-4ec7-b8dd-ea9dc84af137)]
 interface nsIMsgComposeService : nsISupports {
 
   /* we need a msg window because when we forward inline we may need progress */
-  void OpenComposeWindow(in string msgComposeWindowURL, in string originalMsgURI, in MSG_ComposeType type, 
+  void OpenComposeWindow(in string msgComposeWindowURL,
+                         in nsIMsgDBHdr msgHdr,
+                         in string originalMsgURI,
+                         in MSG_ComposeType type, 
                          in MSG_ComposeFormat format,
                          in nsIMsgIdentity identity, 
                          in nsIMsgWindow aMsgWindow);

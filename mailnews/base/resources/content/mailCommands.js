@@ -196,13 +196,13 @@ function ComposeMessage(type, format, folder, messageArray)
     if (document.commandDispatcher.focusedWindow.document.documentElement.hasAttribute("selectedaddresses"))
       NewMessageToSelectedAddresses(type, format, identity);
     else
-      msgComposeService.OpenComposeWindow(null, null, type, format, identity, msgWindow);
+      msgComposeService.OpenComposeWindow(null, null, null, type, format, identity, msgWindow);
     return;
   }
   else if (type == msgComposeType.NewsPost)
   {
     // dump("OpenComposeWindow with " + identity + " and " + newsgroup + "\n");
-    msgComposeService.OpenComposeWindow(null, newsgroup, type, format, identity, msgWindow);
+    msgComposeService.OpenComposeWindow(null, null, newsgroup, type, format, identity, msgWindow);
     return;
   }
 
@@ -252,7 +252,7 @@ function ComposeMessage(type, format, folder, messageArray)
         type == msgComposeType.Template ||
         type == msgComposeType.Draft)
       {
-        msgComposeService.OpenComposeWindow(null, messageUri, type, format, identity, msgWindow);
+        msgComposeService.OpenComposeWindow(null, hdr, messageUri, type, format, identity, msgWindow);
         // Limit the number of new compose windows to 8. Why 8 ? I like that number :-)
         if (i == 7)
           break;
@@ -265,7 +265,7 @@ function ComposeMessage(type, format, folder, messageArray)
       }
     }
     if (type == msgComposeType.ForwardAsAttachment)
-      msgComposeService.OpenComposeWindow(null, uri, type, format, identity, msgWindow);
+      msgComposeService.OpenComposeWindow(null, null, uri, type, format, identity, msgWindow);
   }
   else
     dump("### nodeList is invalid\n");

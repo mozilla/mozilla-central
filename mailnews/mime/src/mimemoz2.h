@@ -158,6 +158,7 @@ struct mime_draft_data
   PRBool              forwardInline;
   nsCOMPtr<nsIMsgIdentity>      identity;
   char                *originalMsgURI;     // the original URI of the message we are currently processing
+  nsCOMPtr<nsIMsgDBHdr>         origMsgHdr;
 };
 
 ////////////////////////////////////////////////////////////////
