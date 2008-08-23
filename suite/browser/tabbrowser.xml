@@ -332,7 +332,6 @@
             mTab: aTab,
             mBrowser: aBrowser,
             mBlank: aStartsBlank,
-            mIcon: "",
             mFeeds: [],
 
             onProgressChange : function (aWebProgress, aRequest,
@@ -406,8 +405,8 @@
                 this.mTab.removeAttribute("busy");
 
                 var location = this.mBrowser.currentURI;
-                if (this.mIcon) {
-                  this.mTab.setAttribute("image", this.mIcon);
+                if (this.mBrowser.mIconURL) {
+                  this.mTab.setAttribute("image", this.mBrowser.mIconURL);
                 }
                 else if (this.mBrowser.contentDocument instanceof ImageDocument &&
                          this.mTabBrowser.mPrefs.getBoolPref("browser.chrome.site_icons")) {
@@ -462,7 +461,7 @@
             onLocationChange : function(aWebProgress, aRequest, aLocation)
             {
               if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
-                this.mIcon = "";
+                this.mBrowser.mIconURL = "";
                 this.mFeeds = [];
 
                 if (this.mLocationChangeCount > 0 ||
@@ -531,7 +530,7 @@
 
             setIcon : function(aURI)
             {
-              this.mIcon = aURI;
+              this.mBrowser.mIconURL = aURI;
               if (!this.mTab.hasAttribute("busy"))
                 this.mTab.setAttribute("image", aURI);
             },
@@ -820,8 +819,8 @@
                     p.onSecurityChange(webProgress, null, securityUI.state);
                   var listener = this.mTabListeners[this.mTabContainer
                                                         .selectedIndex];
-                  if (listener.mIcon && 'onLinkIconAvailable' in p)
-                    p.onLinkIconAvailable(listener.mIcon);
+                  if (listener.mBrowser.mIconURL && 'onLinkIconAvailable' in p)
+                    p.onLinkIconAvailable(listener.mBrowser.mIconURL);
                   if ('onFeedAvailable' in p) {
                     for (var j = 0; j < listener.mFeeds.length; j++)
                       p.onFeedAvailable(listener.mFeeds[j]);
