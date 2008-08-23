@@ -443,12 +443,10 @@ GlodaIdentity.prototype = {
     let addrbook;
     while (!cardForEmailAddress && enumerator.hasMoreElements())
     {
-      addrbook = enumerator.getNext();
-      if (addrbook instanceof Ci.nsIAbDirectory) {
-        cardForEmailAddress = addrbook.cardForEmailAddress(this._value);
-        if (cardForEmailAddress)
-          return cardForEmailAddress;
-      }
+      addrbook = enumerator.getNext().QueryInterface(Ci.nsIAbDirectory);
+      cardForEmailAddress = addrbook.cardForEmailAddress(this._value);
+      if (cardForEmailAddress)
+        return cardForEmailAddress;
     }
   
     return null;
