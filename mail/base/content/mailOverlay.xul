@@ -27,7 +27,7 @@
 
         var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"].getService();
         msgComposeService = msgComposeService.QueryInterface(Components.interfaces.nsIMsgComposeService);
-        msgComposeService.OpenComposeWindow(null, null, null
+        msgComposeService.OpenComposeWindow(null, null, null,
                                             Components.interfaces.nsIMsgCompType.New,
                                             Components.interfaces.nsIMsgCompFormat.Default,
                                             null, null);
