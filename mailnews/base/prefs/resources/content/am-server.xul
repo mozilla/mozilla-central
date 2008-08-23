@@ -297,7 +297,8 @@
               oncommand="onCheckItem('nntp.maxArticles', 'nntp.limitArticles');"
               prefattribute="value"
               prefstring="mail.server.%serverkey%.notify.on"/>
-    <textbox wsm_persist="true" id="nntp.maxArticles" size="6"
+    <textbox wsm_persist="true" id="nntp.maxArticles"
+             size="4" type="number" min="1" increment="10"
              aria-labelledby="nntp.limitArticles nntp.maxArticles maxMessagesEnd"
              preftype="int"
              prefstring="mail.server.%serverkey%.max_articles"/>
