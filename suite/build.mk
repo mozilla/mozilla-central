@@ -84,6 +84,9 @@ installer:
 package:
 	@$(MAKE) -C suite/installer
 
+package-compare:
+	@$(MAKE) -C suite/installer package-compare
+
 install::
 	@$(MAKE) -C suite/installer install
 
