@@ -105,7 +105,7 @@
       <separator class="thin"/>
 
       <vbox>
-        <hbox align="center" pack="start">
+        <hbox>
           <checkbox id="automaticallyMarkAsRead"
                     preference="mailnews.mark_message_read.auto"
                     label="&autoMarkAsRead.label;"
@@ -113,28 +113,26 @@
                     oncommand="UpdateMarkAsReadOptions(this.checked)"/>
         </hbox>
 
-        <hbox class="indent">
-          <radiogroup id="markAsReadAutoPreferences" orient="vertical"
-                      preference="mailnews.mark_message_read.delay">
-            <radio id="mark_read_immediately" value="false"
-                    label="&markAsReadNoDelay.label;"
-                    accesskey="&markAsReadNoDelay.accesskey;"/>
-            <hbox align="center" pack="start">
-              <radio id="markAsReadAfterDelay" value="true"
-                     label="&markAsReadDelay.label;"
-                     accesskey="&markAsReadDelay.accesskey;"/>
-              <textbox id="markAsReadDelay"
-                       type="number"
-                       size="2"
-                       maximum="99"
-                       preference="mailnews.mark_message_read.delay.interval"
-                       aria-labelledby="markAsReadAfterDelay markAsReadDelay secondsLabel"/>
-              <label id="secondsLabel" value="&secondsLabel.label;">
-                <observes element="markAsReadDelay" attribute="disabled"/>
-              </label>
-            </hbox>
-          </radiogroup>
-        </hbox>
+        <radiogroup id="markAsReadAutoPreferences" orient="vertical" class="indent"
+                    preference="mailnews.mark_message_read.delay">
+          <radio id="mark_read_immediately" value="false"
+                 label="&markAsReadNoDelay.label;"
+                 accesskey="&markAsReadNoDelay.accesskey;"/>
+          <hbox align="center">
+            <radio id="markAsReadAfterDelay" value="true"
+                   label="&markAsReadDelay.label;"
+                   accesskey="&markAsReadDelay.accesskey;"/>
+            <textbox id="markAsReadDelay"
+                     type="number"
+                     size="2"
+                     maximum="99"
+                     preference="mailnews.mark_message_read.delay.interval"
+                     aria-labelledby="markAsReadAfterDelay markAsReadDelay secondsLabel"/>
+            <label id="secondsLabel" value="&secondsLabel.label;">
+              <observes element="markAsReadDelay" attribute="disabled"/>
+            </label>
+          </hbox>
+        </radiogroup>
       </vbox>
     </groupbox>
 

@@ -102,13 +102,13 @@
       <tabpanels flex="1">
         <!-- General -->
         <tabpanel orient="vertical">
-          <hbox align="center" pack="start">
+          <hbox>
             <checkbox id="showCondensedAddresses" label="&showCondensedAddresses.label;"
                       accesskey="&showCondensedAddresses.accesskey;"  preference="mail.showCondensedAddresses"/>
           </hbox>
 
           <vbox>
-            <hbox align="center" pack="start">
+            <hbox>
               <checkbox id="automaticallyMarkAsRead"
                         preference="mailnews.mark_message_read.auto"
                         label="&autoMarkAsRead.label;"
@@ -116,32 +116,30 @@
                         oncommand="gAdvancedPane.updateMarkAsReadOptions(this.checked)"/>
             </hbox>
 
-            <hbox class="indent">
-              <radiogroup id="markAsReadAutoPreferences" orient="vertical"
-                          preference="mailnews.mark_message_read.delay">
-                <radio id="mark_read_immediately" value="false"
-                       label="&markAsReadNoDelay.label;"
-                       accesskey="&markAsReadNoDelay.accesskey;"/>
-                <hbox align="center" pack="start">
-                  <radio id="markAsReadAfterDelay" value="true"
-                         label="&markAsReadDelay.label;"
-                         accesskey="&markAsReadDelay.accesskey;"/>
-                  <textbox id="markAsReadDelay" size="2"
-                           preference="mailnews.mark_message_read.delay.interval"
-                           aria-labelledby="markAsReadAfterDelay markAsReadDelay secondsLabel"/>
-                  <label id="secondsLabel" value="&secondsLabel.label;"/>
-                </hbox>
-              </radiogroup>
-            </hbox>
+            <radiogroup id="markAsReadAutoPreferences" orient="vertical" class="indent"
+                        preference="mailnews.mark_message_read.delay">
+              <radio id="mark_read_immediately" value="false"
+                     label="&markAsReadNoDelay.label;"
+                     accesskey="&markAsReadNoDelay.accesskey;"/>
+              <hbox align="center">
+                <radio id="markAsReadAfterDelay" value="true"
+                       label="&markAsReadDelay.label;"
+                       accesskey="&markAsReadDelay.accesskey;"/>
+                <textbox id="markAsReadDelay" size="2"
+                         preference="mailnews.mark_message_read.delay.interval"
+                         aria-labelledby="markAsReadAfterDelay markAsReadDelay secondsLabel"/>
+                <label id="secondsLabel" value="&secondsLabel.label;"/>
+              </hbox>
+            </radiogroup>
           </vbox>
 
-          <hbox align="center" pack="start">
+          <hbox>
             <checkbox id="mailRememberLastMsg" label="&rememberLastMsg.label;"
                       preference="mailnews.remember_selected_message"
                       accesskey="&rememberLastMsg.accesskey;"/>
           </hbox>
 
-          <hbox align="center" pack="start">
+          <hbox>
             <checkbox id="showFolderPaneColumns" label="&showFolderColumns.label;"
                       accesskey="&showFolderColumns.accesskey;" preference="mail.showFolderPaneColumns"/>
           </hbox>
