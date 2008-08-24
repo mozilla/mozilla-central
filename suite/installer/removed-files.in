@@ -62,6 +62,7 @@ components/bookmarks.xpt
 components/chatzilla-service.js
 components/crashreporter.xpt
 components/nsCloseAllWindows.js
+components/nsDictionary.js
 components/nsKillAll.js
 components/nsResetPref.js
 components/nsScriptableIO.js
@@ -70,9 +71,11 @@ components/search.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/urlwidgt.xpt
 components/venkman-service.js
+components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
 components/xml-rpc.xpt
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 res/cmessage.txt
+LICENSE
 #ifdef XP_WIN
 #ifdef MOZ_MEMORY
 Microsoft.VC80.CRT.manifest

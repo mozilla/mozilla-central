@@ -55,7 +55,7 @@ bin\mozcrt19.dll
 [browser]
 ; files listed in xpcom (missing in this section) will be installed as part of the browser
 bin\README.txt,bin\readme.txt
-bin\LICENSE,bin\license.txt
+bin\license.txt
 bin\jpeg3250.dll
 bin\seamonkey.exe
 bin\application.ini
@@ -110,6 +110,7 @@ bin\components\dom_canvas.xpt
 bin\components\dom_core.xpt
 bin\components\dom_css.xpt
 bin\components\dom_events.xpt
+bin\components\dom_geolocation.xpt
 bin\components\dom_html.xpt
 bin\components\dom_json.xpt
 bin\components\dom_loadsave.xpt
@@ -119,6 +120,7 @@ bin\components\dom_sidebar.xpt
 bin\components\dom_storage.xpt
 bin\components\dom_stylesheets.xpt
 bin\components\dom_svg.xpt
+bin\components\dom_threads.xpt
 bin\components\dom_traversal.xpt
 bin\components\dom_views.xpt
 bin\components\dom_xbl.xpt
@@ -130,6 +132,7 @@ bin\components\embed_base.xpt
 bin\components\embedcomponents.dll
 bin\components\extensions.xpt
 bin\components\exthandler.xpt
+bin\components\exthelper.xpt
 bin\components\fastfind.xpt
 bin\components\feeds.xpt
 bin\components\find.xpt
@@ -177,6 +180,7 @@ bin\components\necko_strconv.xpt
 bin\components\necko_viewsource.xpt
 bin\components\oji.dll
 bin\components\oji.xpt
+bin\components\parentalcontrols.xpt
 bin\components\perms.dll
 bin\components\plugin.xpt
 bin\components\pref.xpt
@@ -228,7 +232,6 @@ bin\components\windowds.xpt
 bin\components\windowwatcher.xpt
 bin\components\winhooks.xpt
 bin\components\wlltvwrs.dll
-bin\components\xmlextras.dll
 bin\components\xpautoc.dll
 bin\components\xpautocomplete.xpt
 bin\components\xpc3250.dll
@@ -246,6 +249,8 @@ bin\components\xppref32.dll
 bin\components\xulapp.xpt
 bin\components\xuldoc.xpt
 bin\components\xultmpl.xpt
+bin\components\zipwriter.xpt
+bin\components\zipwriter.dll
 bin\plugins\npnul32.dll
 bin\components\helperAppDlg.xpt
 bin\AccessibleMarshal.dll
@@ -257,6 +262,7 @@ bin\sqlite3.dll
 bin\components\FeedProcessor.js
 bin\components\jsconsole-clhandler.js
 bin\components\nsAddonRepository.js
+bin\components\nsBadCertHandler.js
 bin\components\nsAxSecurityPolicy.js
 bin\components\nsBlocklistService.js
 bin\components\nsBrowserContentHandler.js
@@ -264,7 +270,6 @@ bin\components\nsTryToClose.js
 bin\components\nsComposerCmdLineHandler.js
 bin\components\nsContentDispatchChooser.js
 bin\components\nsContentPrefService.js
-bin\components\nsDictionary.js
 bin\components\nsExtensionManager.js
 bin\components\nsInterfaceInfoToIDL.js
 bin\components\nsLoginInfo.js
