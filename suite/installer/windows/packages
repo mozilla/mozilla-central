@@ -150,7 +150,6 @@ bin\components\inspector.xpt
 bin\components\intl.xpt
 bin\components\intlapp.dll
 bin\components\jar.xpt
-bin\components\jsconsole-clhandler.js
 bin\components\jsd3250.dll
 bin\components\jsdservice.xpt
 bin\components\layout_base.xpt
