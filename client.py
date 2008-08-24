@@ -69,10 +69,16 @@ def do_cvs_checkout(modules, tag, cvsroot, cvs, checkoutdir):
     for module in modules:
         (parent, leaf) = os.path.split(module)
         print "CVS checkout begin: " + datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-        check_call_noisy([cvs, '-d', cvsroot, '-q',
-                          'checkout', '-P', '-r', tag, '-d', leaf,
-                          'mozilla/%s' % module],
-                         cwd=os.path.join(topsrcdir, checkoutdir, parent))
+        if tag == 'HEAD':
+            check_call_noisy([cvs, '-d', cvsroot, '-q',
+                              'checkout', '-P', '-A', '-d', leaf,
+                              'mozilla/%s' % module],
+                             cwd=os.path.join(topsrcdir, checkoutdir, parent))
+        else:
+            check_call_noisy([cvs, '-d', cvsroot, '-q',
+                              'checkout', '-P', '-r', tag, '-d', leaf,
+                              'mozilla/%s' % module],
+                             cwd=os.path.join(topsrcdir, checkoutdir, parent))
         print "CVS checkout end: " + datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
 o = OptionParser(usage="client.py [options] checkout")
