@@ -1,0 +1,309 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is SeaMonkey project code.
+   -
+   - The Initial Developer of the Original Code is
+   - Karsten Düsterloh <mnyromyr@tprac.de>
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+<?xml-stylesheet href="chrome://mochikit/content/tests/SimpleTest/test.css" type="text/css"?>
+
+<window title="Chrome Window ID Checking Tests"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="RunTest();">
+  <description>Chrome Window ID Checking Tests</description>
+
+  <script type="application/javascript" 
+          src="chrome://mochikit/content/MochiKit/packed.js"/>
+  <script type="application/javascript"
+          src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
+
+  <script type="application/javascript">
+  <![CDATA[
+    var gLoadedWindows = {};
+
+    // Have all loaded windows been closed again?
+    function AllWindowsClosed()
+    {
+      for each (var e in window.gLoadedWindows)
+        return false;
+      return true;
+    }
+
+    function DumpElementTree(aElement)
+    {
+      // walk upwards from element to DOM root
+      while (aElement)
+      {
+        // print nodeName, id and index in parent
+        let s = "    " + aElement.nodeName + " " + aElement.id + " ";
+        let ix = 0;
+        while (aElement.previousSibling)
+        {
+          aElement = aElement.previousSibling;
+          ++ix;
+        }
+        dump(s + "[" + ix + "]\n");
+        aElement = aElement.parentNode;
+      }
+    }
+
+    function CheckIDs(aDocument, aIgnorableIDs)
+    {
+      var filename = aDocument.location.href.match(/[^/]+$/);
+      // all panes are loaded, now check the ids
+      // first, get the list of all used ids
+      var idList = aDocument.getElementsByAttribute("id", "*");
+      // then store them in another object, checking if it's already there
+      var checkedList = {};
+      var ignoredList = {};
+      for (let i = 0; i < idList.length; ++i)
+      {
+        let id = idList[i].id;
+        let duplicate = (id in checkedList);
+        if (!duplicate)
+        {
+          checkedList[id] = idList[i];
+        }
+        else
+        {
+          // always dump DOM trees of the conflicting elements
+          dump("Double id='" + id + "' detected in " + aDocument.location.href + ":\n");
+          dump("  Tree 0:\n");
+          DumpElementTree(checkedList[id]);
+          dump("  Tree 1:\n");
+          DumpElementTree(idList[i]);
+        }
+        if (aIgnorableIDs.indexOf(id) < 0)
+        {
+          // if the id is not in our ignore list, show its status
+          ok(!duplicate, "check id: " + filename + "#" + id);
+        }
+        else if (!(id in ignoredList))
+        {
+          // mark ignored id tests as todo,
+          // even though we may never (be able to) fix them
+          ignoredList[id] = idList[i];
+          todo(false, "disabled id checks: " + filename + "#" + id);
+        }
+      }
+      
+      // finally, close the loaded window
+      aDocument.defaultView.close();
+    }
+
+    function LoadPaneLoop(aDocument, aPanes, aPaneIndex, aForceLoad)
+    {
+      if (aPaneIndex < aPanes.length)
+      {
+        const WAIT_CYCLE = 10;
+        // may need to load this pane
+        let pane = aPanes[aPaneIndex];
+        if (pane.loaded)
+        {
+          // okay, check/load next one
+          setTimeout(LoadPaneLoop, WAIT_CYCLE, aDocument, aPanes, aPaneIndex + 1, true);
+        }
+        else
+        {
+          // force load once and wait until done
+          if (aForceLoad)
+          {
+            try
+            {
+              aDocument.documentElement.showPane.call(aDocument.documentElement, pane);
+            }
+            catch (ignored) {}
+          }
+          setTimeout(LoadPaneLoop, WAIT_CYCLE, aDocument, aPanes, aPaneIndex, false);
+        }
+      }
+      else
+      {
+        // All preference panes are loaded now!
+
+        // The character_encoding_pane contains two template driven menulists
+        // (viewDefaultCharsetList and sendDefaultCharsetList),
+        // both of which autogenerate the *same* ids for their menuitems.
+        // We alter one set here to avoid unnecessary test failure.
+        // (We probably should remove those RDF templates?)
+        let menulist = aDocument.getElementById("viewDefaultCharsetList")
+                                .getElementsByTagName("menuitem");
+        for each (let menuitem in menulist)
+        {
+          menuitem.id = 'test_idcheck.1.' + menuitem.id;
+          menuitem = menuitem.nextSibling;
+        }
+
+        // now check the ids
+        CheckIDs(aDocument, window.gLoadedWindows[aDocument.location.href]);
+      }
+    }
+
+    function CheckPreferences()
+    {
+      this.removeEventListener("load", window.CheckPreferences, false);
+
+      // Prefpanes are loaded lazily, thus we need to trigger each panel manually
+      // before we can check for doubled ids...
+      var panes = this.document.getElementsByTagName("prefpane");
+      setTimeout(LoadPaneLoop, 0, this.document, panes, 0, true);
+    }
+
+    function CheckGenerics()
+    {
+      this.removeEventListener("load", window.CheckGenerics, false);
+      CheckIDs(this.document, window.gLoadedWindows[this.location.href]);
+    }
+
+    function UncountWindow()
+    {
+      if (this.location.href in window.gLoadedWindows)
+      {
+        this.removeEventListener("unload", window.UncountWindow, false);
+        delete window.gLoadedWindows[this.location.href];
+      }
+    }
+
+    function FinishTest()
+    {
+      if (AllWindowsClosed())
+        SimpleTest.finish();
+      else
+        setTimeout(FinishTest, 1000);
+    }
+
+    function RunTest()
+    {
+      SimpleTest.waitForExplicitFinish();
+      // Basically, this test framework is generic enough to check arbitrary
+      // chrome windows for doubled ids. But certain stuff like preferences
+      // needs some extra processing.
+      // The uriList members have the following format:
+      //    "chrome://uri/of/xul.window":
+      //    [
+      //      check function,
+      //      array of IDs to be ignored during in the test
+      //    ],
+      var uriList =
+      {
+        // Preferences
+        "chrome://communicator/content/pref/preferences.xul":
+          [
+            window.CheckPreferences,
+            []
+          ],
+
+        // Browser
+        "chrome://navigator/content/navigator.xul":
+          [
+            window.CheckGenerics,
+            ["contentAreaContextSet"]
+          ],
+/* need mail account
+        // MailNews
+        "chrome://messenger/content/messenger.xul":
+          [
+            window.CheckGenerics,
+            []
+          ],
+        "chrome://messenger/content/messengercompose/messengercompose.xul":
+          [
+            window.CheckGenerics,
+            []
+          ],
+        // Addressbook
+        "chrome://messenger/content/addressbook/addressbook.xul":
+          [
+            window.CheckGenerics,
+            []
+          ],
+*/
+        // Composer
+        "chrome://editor/content/editor.xul":
+          [
+            window.CheckGenerics,
+            []
+          ],
+        // Error Console
+        "chrome://global/content/console.xul":
+          [
+            window.CheckGenerics,
+            []
+          ],
+/* not available yet in chrome tests
+        // Chatzilla
+        "chrome://chatzilla/content/chatzilla.xul":
+          [
+            window.CheckGenerics,
+            []
+          ],
+        // DOM Inspector
+        "chrome://inspector/content/inspector.xul":
+          [
+            window.CheckGenerics,
+            []
+          ],
+        // Venkman
+        "chrome://venkman/content/venkman.xul":
+          [
+            window.CheckGenerics,
+            []
+          ],
+*/
+      };
+
+      // run test
+      for (var uri in uriList)
+      {
+        // load the window, but postpone the id check until it's fully loaded
+        window.gLoadedWindows[uri] = uriList[uri][1]; // ignore these ids
+        var win = openDialog(uri, "", "chrome,titlebar,dialog=no,resizable");
+        win.addEventListener("load", uriList[uri][0], false);
+        win.addEventListener("unload", window.UncountWindow, false);
+      }
+
+      // wait for all tests to finish
+      setTimeout(FinishTest, 0);
+    }
+  ]]>
+  </script>
+
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <p id="display"></p>
+    <div id="content" style="display: none"></div>
+    <pre id="test"></pre>
+  </body>
+
+</window>
