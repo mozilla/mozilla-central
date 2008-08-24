@@ -972,10 +972,20 @@ function setFromBuddyIcon(email)
      // better to cache this?
      var myScreenName = pref.getCharPref("aim.session.screenname");
 
-     if (!abAddressCollector)
-       abAddressCollector = Components.classes[abAddressCollectorContractID].getService(Components.interfaces.nsIAbAddressCollecter);
+     var manager = Components.classes["@mozilla.org/abmanager;1"]
+                             .getService(Components.interfaces.nsIAbManager);
 
-     var card = abAddressCollector.getCardFromAttribute("PrimaryEmail", email);
+     var directories = manager.directories;
+     var card;
+     while (directories.hasMoreElements()) {
+       var directory = directories.getNext()
+                                  .QueryInterface(Components.interfaces.nsIAbDirectory);
+       try {
+         card = directory.cardForEmailAddress(email);
+         if (card)
+           break;
+       } catch (e) {}
+     }
 
      if (myScreenName && card && card.setProperty("_AimScreenName")) {
        if (!gIOService) {
