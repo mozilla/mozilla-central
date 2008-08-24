@@ -647,7 +647,10 @@ nsMsgComposeAndSend::GatherMimeAttachments()
            in case it does someday. */
         if (attachments[i].highbit_count > 0 && attachments[i].encoding &&
             !PL_strcasecmp(attachments[i].encoding, ENCODING_7BIT))
-          attachments[i].encoding = ENCODING_8BIT;
+        {
+          PR_Free(attachments[i].encoding);
+          attachments[i].encoding = PL_strdup(ENCODING_8BIT);
+        }
       }
 
       m_attachments_done_callback(nsnull, nsnull, attachments);
@@ -813,17 +816,13 @@ nsMsgComposeAndSend::GatherMimeAttachments()
   if (m_attachment1_body)
     mCompFields->GetBodyIsAsciiOnly(&body_is_us_ascii);
 
-  if (mCompFields->GetForceMsgEncoding())
-    body_is_us_ascii = PR_FALSE;
-
-  if (nsMsgI18Nstateful_charset(mCompFields->GetCharacterSet()) ||
-      body_is_us_ascii)
+  if (!mCompFields->GetForceMsgEncoding() && (body_is_us_ascii ||
+      nsMsgI18Nstateful_charset(mCompFields->GetCharacterSet())))
     m_attachment1_encoding = PL_strdup (ENCODING_7BIT);
   else if (mime_use_quoted_printable_p)
     m_attachment1_encoding = PL_strdup (ENCODING_QUOTED_PRINTABLE);
   else
     m_attachment1_encoding = PL_strdup (ENCODING_8BIT);
-
   PR_FREEIF (m_attachment1_body);
 
   maincontainer = mainbody;
@@ -863,7 +862,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
     m_plaintext->mMainBody = PR_TRUE;
 
-    m_plaintext->AnalyzeSnarfedFile(); // look for 8 bit text, long lines, etc.
+    // Determine Content-Transfer-Encoding for the attachments.
     m_plaintext->PickEncoding(mCompFields->GetCharacterSet(), this);
     const char *charset = mCompFields->GetCharacterSet();
     hdrs = mime_generate_attachment_headers(m_plaintext->m_type,
@@ -877,7 +876,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
                         m_plaintext,
                         charset,
                         charset,
-                        mCompFields->GetBodyIsAsciiOnly(),
+                        body_is_us_ascii,
                         nsnull,
                         PR_TRUE);
     if (!hdrs)
@@ -3257,6 +3256,42 @@ nsMsgComposeAndSend::Init(
   if (!fields)
     return NS_ERROR_OUT_OF_MEMORY;
 
+  m_digest_p = digest_p;
+
+  //
+  // Needed for mime encoding!
+  //
+  PRBool strictly_mime = PR_TRUE;
+  nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  if (pPrefBranch)
+  {
+    rv = pPrefBranch->GetBoolPref(PREF_MAIL_STRICTLY_MIME, &strictly_mime);
+    rv = pPrefBranch->GetIntPref(PREF_MAIL_MESSAGE_WARNING_SIZE, (PRInt32 *) &mMessageWarningSize);
+  }
+
+  nsCOMPtr<nsIMsgComposeSecure> secureCompose
+    = do_CreateInstance(NS_MSGCOMPOSESECURE_CONTRACTID, &rv);
+  // It's not an error scenario if there is no secure compose.
+  // The S/MIME extension may be unavailable.
+  if (NS_SUCCEEDED(rv) && secureCompose)
+  {
+    PRBool requiresEncryptionWork = PR_FALSE;
+    rv = secureCompose->RequiresCryptoEncapsulation(aUserIdentity, fields,
+                                                    &requiresEncryptionWork);
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (requiresEncryptionWork)
+    {
+      strictly_mime = PR_TRUE;
+      // RFC2633 3.1.3 doesn't require multipart/signed entities to have
+      // transfer encoding applied for ascii, but do it anyway to make sure
+      // the content (e.g. line endings) isn't mangled along the way.
+      fields->SetForceMsgEncoding(PR_TRUE);
+    }
+  }
+
+  nsMsgMIMESetConformToStandard(strictly_mime);
+  mime_use_quoted_printable_p = strictly_mime;
+
   rv = InitCompositionFields(fields, aOriginalMsgURI, aType);
   if (NS_FAILED(rv))
     return rv;
@@ -3276,31 +3311,6 @@ nsMsgComposeAndSend::Init(
     mTempFile = sendFile;
     return NS_OK;
   }
-
-  m_digest_p = digest_p;
-
-  //
-  // Needed for mime encoding!
-  //
-  PRBool strictly_mime = PR_TRUE;
-  nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-  if (pPrefBranch)
-  {
-    rv = pPrefBranch->GetBoolPref(PREF_MAIL_STRICTLY_MIME, &strictly_mime);
-    rv = pPrefBranch->GetIntPref(PREF_MAIL_MESSAGE_WARNING_SIZE, (PRInt32 *) &mMessageWarningSize);
-  }
-
-  if (!strictly_mime)
-  {
-    nsresult rv = NS_OK;
-    nsCOMPtr<nsIMsgComposeSecure> secureCompose;
-    secureCompose = do_CreateInstance(NS_MSGCOMPOSESECURE_CONTRACTID, &rv);
-    if (NS_SUCCEEDED(rv) && secureCompose)
-      secureCompose->RequiresCryptoEncapsulation(aUserIdentity, fields, &strictly_mime);
-  }
-
-  nsMsgMIMESetConformToStandard(strictly_mime);
-  mime_use_quoted_printable_p = strictly_mime;
 
   // Ok, now watch me pull a rabbit out of my hat....what we need
   // to do here is figure out what the body will be. If this is a
@@ -3336,7 +3346,7 @@ NS_IMETHODIMP nsMsgComposeAndSend::SendDeliveryCallback(nsIURI *aUrl, PRBool inI
     if (NS_FAILED(aExitCode))
       if (aExitCode != NS_ERROR_ABORT && !NS_IS_MSG_ERROR(aExitCode))
         aExitCode = NS_ERROR_POST_FAILED;
-    
+
     DeliverAsNewsExit(aUrl, aExitCode);
   }
   else
