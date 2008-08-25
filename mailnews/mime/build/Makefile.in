@@ -57,6 +57,7 @@ REQUIRES	= xpcom \
 		  string \
 		  necko \
 		  msgbase \
+		  mailnews \
 		  pref \
 		  uconv \
 		  $(NULL)
