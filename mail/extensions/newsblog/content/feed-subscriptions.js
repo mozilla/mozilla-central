@@ -800,8 +800,18 @@ var gFeedSubscriptionsWindow = {
     if (!item || item.container)
       return;
 
-    event.dataTransfer.setData("text/x-moz-feed-index", seln.currentIndex.toString());
-    event.dataTransfer.effectAllowed = "move";
+    var transfer = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable); 
+    var transArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+    var dragData = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
+
+    transfer.addDataFlavor("text/x-moz-feed-index"); // i made this flavor type up
+    dragData.data = seln.currentIndex.toString();
+
+    transfer.setTransferData ( "text/x-moz-feed-index", dragData, seln.currentIndex.toString() * 2 );  // doublebyte byte data
+    transArray.AppendElement(transfer.QueryInterface(Components.interfaces.nsISupports));
+
+    var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].getService().QueryInterface(nsIDragService);
+    dragService.invokeDragSession ( aEvent.target, transArray, null, nsIDragService.DRAGDROP_ACTION_MOVE);
   },
 
   mFeedDownloadCallback:

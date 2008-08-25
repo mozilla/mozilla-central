@@ -68,7 +68,6 @@
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   </stringbundleset>
 
-  <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/mailWindow.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
   <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
