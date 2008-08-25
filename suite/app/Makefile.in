@@ -131,13 +131,8 @@ ifdef _MSC_VER
 WIN32_EXE_LDFLAGS += -ENTRY:wmainCRTStartup
 endif
 
-ifndef BUILD_STATIC_LIBS
+ifdef BUILD_STATIC_LIBS
 
-ifdef NS_TRACE_MALLOC
-EXTRA_DSO_LIBS += tracemalloc
-endif
-
-else
 include $(topsrcdir)/config/static-config.mk
 
 EXTRA_DEPS	+= \
