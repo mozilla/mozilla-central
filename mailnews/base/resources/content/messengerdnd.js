@@ -465,77 +465,10 @@ function BeginDragThreadPane(event)
 
 function BeginDragTree(event, tree, selArray, flavor)
 {
-    var dragStarted = false;
+    var dataTransfer = event.dataTransfer;
+    dataTransfer.setData(flavor, selArray);
+    dataTransfer.effectAllowed = "copyMove";
+    dataTransfer.addElement(event.originalTarget);
 
-    var transArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-    if ( !transArray ) 
-      return false;
-
-    // let's build the drag region
-    var region = null;
-    try {
-      region = Components.classes["@mozilla.org/gfx/region;1"].createInstance(Components.interfaces.nsIScriptableRegion);
-      region.init();
-      var obo = tree.treeBoxObject;
-      var bo = obo.treeBody.boxObject;
-      var sel= tree.view.selection;
-
-      var rowX = bo.x;
-      var rowY = bo.y;
-      var rowHeight = obo.rowHeight;
-      var rowWidth = bo.width;
-
-      //add a rectangle for each visible selected row
-      for (var i = obo.getFirstVisibleRow(); i <= obo.getLastVisibleRow(); i ++)
-      {
-        if (sel.isSelected(i))
-          region.unionRect(rowX, rowY, rowWidth, rowHeight);
-        rowY = rowY + rowHeight;
-      }
-      
-      //and finally, clip the result to be sure we don't spill over...
-      if(!region.isEmpty())
-        region.intersectRect(bo.x, bo.y, bo.width, bo.height);
-    } catch(ex) {
-      dump("Error while building selection region: " + ex + "\n");
-      region = null;
-    }
-    
-    var count = selArray.length;
-    debugDump("selArray.length = " + count + "\n");
-    for (i = 0; i < count; ++i ) {
-        var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
-        if (!trans) 
-          return false;
-
-        var genTextData = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
-        if (!genTextData) 
-          return false;
-
-        trans.addDataFlavor(flavor);
-
-        // get id (url)
-        var id = selArray[i];
-        // If a folder drag, id is a folder object instead of a folder URI
-        if (id instanceof nsIMsgFolder)
-          id = id.URI;
-
-        genTextData.data = id;
-        debugDump("    ID #" + i + " = " + id + "\n");
-
-        trans.setTransferData ( flavor, genTextData, id.length * 2 );  // doublebyte byte data
-
-        // put it into the transferable as an |nsISupports|
-        var genTrans = trans.QueryInterface(Components.interfaces.nsISupports);
-        transArray.AppendElement(genTrans);
-    }
-
-    dragService.invokeDragSessionWithImage(event.target, transArray, region,
-                                           nsIDragService.DRAGDROP_ACTION_COPY +
-                                           nsIDragService.DRAGDROP_ACTION_MOVE,
-                                           null, 0, 0, event);
-
-    dragStarted = true;
-
-    return(!dragStarted);  // don't propagate the event if a drag has begun
+    return false;  // don't propagate the event if a drag has begun
 }

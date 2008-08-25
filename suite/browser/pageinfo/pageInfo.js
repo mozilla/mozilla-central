@@ -707,32 +707,16 @@ function onBeginLinkDrag(event,urlField,descField)
   if (row == -1)
     return;
 
-  // Getting drag-system needed services
-  var dragService = Components.classes[DRAGSERVICE_CONTRACTID].getService()
-                              .QueryInterface(Components.interfaces.nsIDragService);
-  var transArray = Components.classes[ARRAY_CONTRACTID]
-                             .createInstance(Components.interfaces.nsISupportsArray);
-  if (!transArray)
-    return;
-
-  var trans = Components.classes[TRANSFERABLE_CONTRACTID]
-                        .createInstance(Components.interfaces.nsITransferable);
-  if (!trans)
-    return;
-
   // Adding URL flavor
-  trans.addDataFlavor("text/x-moz-url");
   var col = tree.columns[urlField];
   var url = tree.view.getCellText(row, col);
   col = tree.columns[descField];
   var desc = tree.view.getCellText(row, col);
-  var stringURL = Components.classes[STRING_CONTRACTID]
-                            .createInstance(Components.interfaces.nsISupportsString);
-  stringURL.data = url + "\n" + desc;
-  trans.setTransferData("text/x-moz-url", stringURL, stringURL.data.length * 2 );
-  transArray.AppendElement(trans.QueryInterface(Components.interfaces.nsISupports));
 
-  dragService.invokeDragSession(event.target, transArray, null, dragService.DRAGDROP_ACTION_NONE);
+  var dataTransfer = event.dataTransfer;
+  dataTransfer.setData("text/x-moz-url", url + "\n" + desc);
+  dataTransfer.setData("text/url-list", url);
+  dataTransfer.setData("text/plain", url);
 }
 
 //******** Image Stuff
