@@ -53,10 +53,45 @@ Cu.import("resource://gloda/modules/datamodel.js");
 Cu.import("resource://gloda/modules/databind.js");
 Cu.import("resource://gloda/modules/collection.js");
 
-// XXX from Gloda.js
+// XXX from Gloda.js.  duplicated here for dependency reasons.  bad!
 const kSpecialColumn = 1;
 const kSpecialFulltext = 2;
 
+/**
+ * Database abstraction layer.  Contains explicit SQL schemas for our
+ *  fundamental representations (core 'nouns', if you will) as well as
+ *  specialized functions for then dealing with each type of object.  At the
+ *  same time, we are beginning to support extension-provided tables, which
+ *  call into question whether we really need our hand-rolled code, or could
+ *  simply improve the extension-provided table case to work for most of our
+ *  hand-rolled cases.
+ * For now, the argument can probably be made that our explicit schemas and code
+ *  is readable/intuitive (not magic) and efficient (although generic stuff
+ *  could also be made efficient, if slightly evil through use of eval or some
+ *  other code generation mechanism.)
+ *
+ * Dependent on and assumes limited knowledge of the datamodel.js
+ *  implementations.  datamodel.js actually has an implicit dependency on
+ *  our implementation, reaching back into the datastore via the _datastore
+ *  attribute which we pass into every instance we create.
+ * We pass a reference to ourself as we create the datamodel.js instances (and
+ *  they store it as _datastore) because of a half-implemented attempt to make
+ *  it possible to live in a world where we have multiple datastores.  This
+ *  would be desirable in the cases where we are dealing with multiple SQLite
+ *  databases.  This could be because of per-account global databases or
+ *  some other segmentation.  This was abandoned when the importance of
+ *  per-account databases was diminished following public discussion, at least
+ *  for the short-term, but no attempted was made to excise the feature or
+ *  preclude it.  (Merely a recognition that it's too much to try and implement
+ *  correct right now, especially because our solution might just be another
+ *  (aggregating) layer on top of things, rather than complicating the lower
+ *  levels.)
+ *
+ * Note: Although the schema includes "triggers", they are currently not used
+ *  and were added when thinking about implementing the feature.  We will
+ *  probably implement this feature at some point, which is why they are still
+ *  in there.
+ */
 let GlodaDatastore = {
   _log: null,
 
@@ -226,6 +261,11 @@ let GlodaDatastore = {
 
   /* ******************* LOGIC ******************* */
   
+  /**
+   * Initialize logging, create the database if it doesn't exist, "upgrade" it
+   *  if it does and it's not up-to-date, fill our authoritative folder uri/id
+   *  mapping.
+   */
   _init: function gloda_ds_init() {
     this._log = Log4Moz.Service.getLogger("gloda.datastore");
   
@@ -267,6 +307,9 @@ let GlodaDatastore = {
     this._getAllFolderMappings();
   },
   
+  /**
+   * Create our database; basically a wrapper around _createSchema.
+   */
   _createDB: function gloda_ds_createDB(aDBService, aDBFile) {
     var dbConnection = aDBService.openUnsharedDatabase(aDBFile);
     
@@ -283,6 +326,11 @@ let GlodaDatastore = {
     return dbConnection;
   },
   
+  /**
+   * Create our database schema assuming a newly created database.  This
+   *  comes down to creating normal tables, their full-text variants (if
+   *  applicable), and their indices.
+   */
   _createSchema: function gloda_ds_createSchema(aDBConnection) {
     // -- For each table...
     for (let tableName in this._schema.tables) {
