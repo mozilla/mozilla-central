@@ -51,9 +51,27 @@ Cu.import("resource://gloda/modules/query.js");
 Cu.import("resource://gloda/modules/utils.js");
 
 /**
- * 
+ * This object/namespace provides the user-visible (and extension visible)
+ *  global database functionality.  There is currently a dependency/ordering
+ *  problem in that the concept of 'gloda' also includes some logic that is
+ *  contributed by built-in extensions, if you will.  Those built-in extensions
+ *  (fundattr.js, explattr.js) also import this file.  To avoid a circular
+ *  dependency, those built-in extensions are loaded by everybody.js.  The
+ *  simplest/best solution is probably to move everybody.js to be gloda.js and
+ *  have it re-export only 'Gloda'.  gloda.js (this file) can then move to be
+ *  gloda_int.js (or whatever our eventual naming scheme is), which built-in
+ *  extensions can explicitly rely upon.
  */
 let Gloda = {
+  /**
+   * Initialize logging, the datastore (SQLite database), the core nouns and
+   *  attributes, and the contact and identities that belong to the presumed
+   *  current user (based on accounts).
+   *
+   * Additional nouns and the core attribute providers are initialized by the
+   *  everybody.js module which ensures all of those dependencies are loaded
+   *  (and initialized).
+   */
   _init: function gloda_ns_init() {
     this._initLogging();
     GlodaDatastore._init();
@@ -62,6 +80,10 @@ let Gloda = {
   },
   
   _log: null,
+  /**
+   * Initialize logging; the error console window gets Warning/Error, and stdout
+   *  (via dump) gets everything.
+   */
   _initLogging: function gloda_ns_initLogging() {
     let formatter = new Log4Moz.BasicFormatter();
     let root = Log4Moz.Service.rootLogger;
@@ -79,6 +101,17 @@ let Gloda = {
     this._log.info("Logging Initialized");
   },
   
+  /**
+   * Given an nsIMsgDBHdr, return the gloda message object that corresponds to
+   *  it.  If no such message exists, null is returned.
+   *
+   * Ideally, if gloda is unable to locate a gloda message corresponding to the
+   *  header, and it has not been told to avoid indexing the message (based on
+   *  folder or other criteria), and the message is not currently queued for
+   *  indexing, it should take some action to resolve the issue.  Either by
+   *  indexing the single message, or checking if an entire folder has been
+   *  overlooked, etc.
+   */
   getMessageForHeader: function gloda_ns_getMessageForHeader(aMsgHdr) {
     let message = GlodaDatastore.getMessageFromLocation(aMsgHdr.folder.URI,
                                                         aMsgHdr.messageKey);
@@ -93,8 +126,9 @@ let Gloda = {
   },
   
   /**
-   * Given a full mail address (ex: "Bob Smith" <bob@smith.com>), return the
-   *  identity that corresponds to that mail address, creating it if required.
+   * Given one or more full mail addresses (ex: "Bob Smith" <bob@smith.com>),
+   *  return a list of the identities that corresponds to each mail address,
+   *  creating them as required.
    */
   getIdentitiesForFullMailAddresses:
       function gloda_ns_getIdentitiesForMailAddresses(aMailAddresses) {
@@ -129,6 +163,12 @@ let Gloda = {
     return identities;
   },
   
+  /**
+   * Given a full mail address (ex: "Bob Smith" <bob@smith.com>), return the
+   *  identity that corresponds to that mail address, creating it if required.
+   *  (If you want the contact, it is easily retrieved via the 'contact'
+   *  attribute on the identity.)
+   */
   getIdentityForFullMailAddress:
       function gloda_ns_getIdentityForFullMailAddress(aMailAddress) {
     let identities = this.getIdentitiesForFullMailAddresses(aMailAddress);
@@ -143,15 +183,26 @@ let Gloda = {
   
   /**
    * Dictionary of the user's known identities; key is the identity id, value
-   *  is the actual identity.
+   *  is the actual identity.  This is populated by _initMyIdentities based on
+   *  the accounts defined.
    */
   myIdentities: {},
+  /**
+   * The contact corresponding to the current user.  We are assuming that only
+   *  a single user/human being uses the current profile.  This is known to be
+   *  a flawed assumption, but is the best first approximation available.
+   *
+   * @TODO attempt to deal with multile people using the same profile
+   */
   myContact: null,
   /**
-   * Populate myIdentities with all of our identities.  Also, populate
-   *  myContact.
+   * Populate myIdentities with all of our identities.  Currently we do this
+   *  by assuming that there is one human/user per profile, and that all of the
+   *  accounts defined in the profile belong to them.  The single contact is
+   *  stored on myContact.
    *
    * @TODO deal with account addition/modification/removal
+   * @TODO attempt to deal with multiple people using the same profile
    */
   _initMyIdentities: function gloda_ns_initMyIdentities() {
     let myContact = null;
@@ -269,6 +320,12 @@ let Gloda = {
    */
   kAttrImplicit: 4,
   
+  /**
+   * This attribute is not 'special'; it is stored as a (thing id, attribute id,
+   *  attribute id) tuple in the database rather than on thing's row or on
+   *  thing's fulltext row.  (Where "thing" could be a message or any other
+   *  first class noun.)
+   */
   kSpecialNotAtAll: 0,
   /**
    * This attribute is stored as a column on the row for the noun.  The
@@ -283,9 +340,38 @@ let Gloda = {
    */
   kSpecialFulltext: 2,
   
+  /**
+   * The extensionName used for the attributes defined by core gloda plugins
+   *  such as fundattr.js and explattr.js.
+   */
   BUILT_IN: "built-in",
   
+  
+  /*
+   * The following are explicit noun IDs.  While most extension-provided nouns
+   *  will have dynamically allocated id's that are looked up by name, these
+   *  id's can be relied upon to exist and be accessible via these
+   *  pseudo-constants.  It's not really clear that we need these, although it
+   *  does potentially simplify code to not have to look up all of their nouns
+   *  at initialization time.
+   */
+  /**
+   * Boolean values, expressed as 0/1 in the database and non-continuous for
+   *  constraint purposes.  Like numbers, such nouns require their attributes
+   *  to provide them with context, lacking any of their own.
+   * Having this as a noun type may be a bad idea; a change of nomenclature
+   *  (so that we are not claiming a boolean value is a noun, but still using
+   *  it in the same way) or implementation to require each boolean noun
+   *  actually be its own noun may be in order.
+   */
   NOUN_BOOLEAN: 1,
+  /**
+   * A number, which could mean an integer or floating point values.  We treat
+   *  these as continuous, meaning that queries on them can have ranged
+   *  constraints expressed on them.  Lacking any inherent context, numbers
+   *  depend on their attributes to parameterize them as required.
+   * Same deal as with NOUN_BOOLEAN, we may need to change this up conceptually.
+   */
   NOUN_NUMBER: 2,
   /** A date, encoded as a PRTime, represented as a js Date object. */
   NOUN_DATE: 10,
@@ -301,23 +387,75 @@ let Gloda = {
    *  efficiently than it could.
    */
   NOUN_FULLTEXT: 20,
+  /**
+   * Captures a message tag as well as when the tag's presence was observed,
+   *  hoping to approximate when the tag was applied.  It's a somewhat dubious
+   *  attempt to not waste our opporunity to store a value along with the tag.
+   *  (The tag is actually stored as an attribute parameter on the attribute
+   *  definition, rather than a value in the attribute 'instance' for the
+   *  message.)
+   */
   NOUN_TAG: 50,
+  /**
+   * Doesn't actually work owing to a lack of an object to represent a folder.
+   *  We do expose the folderURI and folderID of a message, but need to map that
+   *  to a good abstraction.  Probably something thin around a SteelFolder or
+   *  the like; we would contribute the functionality to easily move from a
+   *  folder to the list of gloda messages in that folder, as well as the
+   *  indexing preferences for that folder.
+   * @TODO folder noun and related abstraction
+   */
   NOUN_FOLDER: 100,
+  /**
+   * All messages belong to a conversation.  See datamodel.js for the
+   *  definition of the GlodaConversation class.
+   */
   NOUN_CONVERSATION: GlodaConversation.prototype.NOUN_ID, // 101
+  /**
+   * A one-to-one correspondence with underlying (indexed) nsIMsgDBHdr
+   *  instances.  See datamodel.js for the definition of the GlodaMessage class.
+   */
   NOUN_MESSAGE: GlodaMessage.prototype.NOUN_ID, // 102
+  /**
+   * Corresponds to a human being, who may have multiple electronic identities
+   *  (a la NOUN_IDENTITY).  There is no requirement for association with an
+   *  address book contact, although when the address book contact exists,
+   *  we want to be associated with it.  See datamodel.js for the definition
+   *  of the GlodaContact class.
+   */
   NOUN_CONTACT: GlodaContact.prototype.NOUN_ID, // 103
+  /**
+   * A single identity of a contact, who may have one or more.  E-mail accounts,
+   *  instant messaging accounts, social network site accounts, etc. are each
+   *  identities.  See datamodel.js for the definition of the GlodaIdentity
+   *  class.
+   */
   NOUN_IDENTITY: GlodaIdentity.prototype.NOUN_ID, // 104
   
   /**
    * Parameterized identities, for use in the from-me, to-me, cc-me optimization
-   *  cases.  Not for reuse without some thought.
+   *  cases.  Not for reuse without some thought.  These nouns use the parameter
+   *  to store the 'me' identity that we are talking about, and the value to
+   *  store the identity of the other party.  So in both the from-me and to-me
+   *  cases involving 'me' and 'foo@bar', the 'me' identity is always stored via
+   *  the attribute parameter, and the 'foo@bar' identity is always stored as
+   *  the attribute value.  See fundattr.js for more information on this, but
+   *  you probably shouldn't be touching this unless you are fundattr.
    */
   NOUN_PARAM_IDENTITY: 200,
   
   /** Next Noun ID to hand out, these don't need to be persisted (for now). */
   _nextNounID: 1000,
 
+  /**
+   * Maps noun names to noun IDs.
+   */
   _nounNameToNounID: {},
+  /**
+   * Maps noun IDs to noun meta dictionaries.  (Noun meta dictionaries being
+   *  the dictionary provided to us at the time a noun was defined, plus some
+   *  additional stuff we put in there.)
+   */
   _nounIDToMeta: {},
   
   /**
@@ -332,7 +470,7 @@ let Gloda = {
    * @param class The 'class' to which an instance of the noun will belong (aka
    *     will pass an instanceof test).
    * @param firstClass Is this a 'first class noun'/can it be a subject, AKA can
-   *     this noun have attributes stored on it that relate it to other things?  For
+   *     this noun have attributes stored on it that relate it to other things?
    *     For example, a message is first-class; we store attributes of
    *     messages.  A date is not first-class now, nor is it likely to be; we
    *     will not store attributes about a date, although dates will be the
@@ -393,11 +531,53 @@ let Gloda = {
                  (propName in this._nounNameToNounID)].join(", ")); 
   },
   
+  /**
+   * Define an action on a noun.  During the prototype stage, this was conceived
+   *  of as a way to expose all the constraints possible given a noun.  For
+   *  example, if you have an identity or a contact, you could use this to
+   *  see all the messages sent from/to a given contact.  It was likewise
+   *  thought potentially usable for future expansion.  For example, you could
+   *  also decide to send an e-mail to a contact when you have the contact
+   *  instance available.
+   * Outside of the 'expmess' checkbox-happy prototype, this functionality is
+   *  not used.  As such, this functionality should be considered in flux and
+   *  subject to changes.  Also, very open to specific suggestsions motivated
+   *  by use cases.
+   * One conceptual issue raised by this mechanism is the interaction of actions
+   *  with facts like "this message is read".  We currently implement the 'fact'
+   *  by defining an attribute with a 'boolean' noun type.  To deal with this,
+   *  in various places we pass-in the attribute as well as the noun value.
+   *  Since the relationships for booleans and integers in these cases is
+   *  standard and well-defined, this works out pretty well, but suggests we
+   *  need to think things through.
+   *
+   * @param The ID of the noun you want to define an action on.
+   * @param The dictionary describing the noun.  The dictionary should have
+   *     the following fields:
+   * - actionType: a string indicating the type of action.  Currently, only
+   *   "filter" is a legal value.
+   * - actionTarget: the noun ID of the noun type on which this action is
+   *   applicable.  For example,
+   *
+   * The following should be present for actionType=="filter";
+   * - shortName: The name that should be used to display this constraint.  For
+   *   example, a checkbox-heavy UI might display a checkbox for each constraint
+   *   using shortName as the label.
+   * - makeConstraint: A function that takes the attribute that is the source
+   *   of the noun and the noun instance as arguments, and returns APV-style
+   *   constraints.  Since the APV-style query mechanism is now deprecated,
+   *   this signature is deprecated.  Probably the way to update this would be
+   *   to pass in the query instance that constraints should be contributed to.
+   */
   defineNounAction: function gloda_ns_defineNounAction(aNounID, aActionMeta) {
     let nounMeta = this._nounIDToMeta[aNounID];
     nounMeta.actions.push(aActionMeta);
   },
   
+  /**
+   * Retrieve all of the actions (as defined using defineNounAction) for the
+   *  given noun type (via noun ID) with the given action type (ex: filter).
+   */
   getNounActions: function gloda_ns_getNounActions(aNounID, aActionType) {
     let nounMeta = this._nounIDToMeta[aNounID];
     if (!nounMeta)
@@ -411,6 +591,17 @@ let Gloda = {
   /** Maps attribute providers to the list of attributes they provide */
   _attrProviders: {},
   
+  /**
+   * Define the core nouns (that are not defined elsewhere) and a few noun
+   *  actions.  Core nouns could be defined in other files, assuming dependency
+   *  issues are resolved via the everybody.js mechanism or something else.
+   *  Right now, noun_tag defines the tag noun.  If we broke more of these out,
+   *  we would probably want to move the 'class' code from datamodel.js, the
+   *  SQL table def and helper code from datastore.js (and this code) to their
+   *  own noun_*.js files.  There are some trade-offs to be made, and I think
+   *  we can deal with those once we start to integrate lightning/calendar and
+   *  our noun space gets large and more heterogeneous.
+   */
   _initAttributes: function gloda_ns_initAttributes() {
     this.defineNoun({
       name: "bool",
@@ -572,7 +763,16 @@ let Gloda = {
       });
   },
   
-  
+  /**
+   * Create accessor functions to 'bind' an attribute to underlying normalized
+   *  attribute storage, as well as creating the appropriate query object
+   *  constraint helper functions.  This name is somewhat of a misnomer because
+   *  special attributes are not 'bound' (because specific/non-generic per-class
+   *  code provides the properties) but still depend on this method to
+   *  establish their constraint helper methods.
+   *
+   * @XXX potentially rename to not suggest binding is required.
+   */
   _bindAttribute: function gloda_ns_bindAttr(aAttr, aSubjectType, aObjectType,
                                              aSingular, aDoBind, aBindName) {
     if (!(aSubjectType in this._nounIDToMeta))
@@ -816,14 +1016,35 @@ let Gloda = {
     return attr;
   },
   
+  /**
+   * Retrieve the attribute provided by the given extension with the given
+   *  attribute name.  The original idea was that plugins would effectively
+   *  name-space attributes, helping avoid collisions.  Since we are leaning
+   *  towards using binding heavily, this doesn't really help, as the collisions
+   *  will just occur on the attribute name instead.  Also, this can turn
+   *  extensions into liars as name changes/moves to core/etc. happen.
+   * @TODO consider removing the extension name argument parameter requirement
+   */
   getAttrDef: function gloda_ns_getAttrDef(aPluginName, aAttrName) {
     let compoundName = aPluginName + ":" + aAttrName;
     return GlodaDatastore._attributes[compoundName];
   },
   
   /**
-   * Define a table for plug-ins.  The argument should be a dictionary with
-   *  the following keys:
+   * Define a SQL table for plug-ins.  This is intended to be used by
+   *  extensions/plug-ins whose storage needs exceed those provided by the
+   *  attribute parameter (on the attribute definition)/attribute value (on the
+   *  attribute instance) idiom.  (This includes extensions whose parameter
+   *  usage would exceed acceptable cardinality.)  They can create a table
+   *  to store information on their nouns, using their row id (commonly "id")
+   *  as the attribute value.
+   * The current implementation was for a prototype and this should not be
+   *  interpreted as our final approach.  Our goal is just to make it easy to
+   *  add your own data-type and have it interact with the rest of the gloda
+   *  schema.  We don't really want to be a be-all, end-all JS ORM (object
+   *  relational mapper), though we started down that road.
+   *
+   * The argument should be a dictionary with the following keys:
    * @param name The table name; don't conflict with other things!
    * @param columns A list of [column name, sqlite type] tuples.  You should
    *     always include a definition like ["id", "INTEGER PRIMARY KEY"] for
@@ -837,7 +1058,38 @@ let Gloda = {
   },
   
   /**
-   * Create a new query for the given noun-type.
+   * Create a new query instance for the given noun-type.  This provides
+   *  a generic way to provide constraint-based queries of any first-class
+   *  nouns supported by the system.
+   *
+   * The idea is that every attribute on an object can be used to express
+   *  a constraint on the query object.  Constraints implicitly 'AND' together,
+   *  but providing multiple arguments to a constraint function results in an
+   *  'OR'ing of those values.  Additionally, you can call or() on the returned
+   *  query to create an alternate query that is effectively a giant OR against
+   *  all the constraints you create on the main query object (or any other
+   *  alternate queries returned by or()).  (Note: there is no nesting of these
+   *  alternate queries. query.or().or() is equivalent to query.or())
+   * For each attribute, there is a constraint with the same name that takes
+   *  one or more arguments.  The arguments represent a set of OR values that
+   *  objects matching the query can have.  (If you want the constraint
+   *  effectively ANDed together, just invoke the constraint function
+   *  multiple times.)  For example, newQuery(NOUN_PERSON).age(25) would
+   *  constraint to all the people aged 25, while age(25, 26) would constrain
+   *  to all the people age 25 or 26.
+   * For each attribute with a 'continuous' noun, there is a constraint with the
+   *  attribute name with "Range" appended.  It takes two arguments which are an
+   *  inclusive lower bound and an inclusive lower bound for values in the
+   *  range.  If you would like an open-ended range on either side, pass null
+   *  for that argument.  If you would like to specify multiple ranges that
+   *  should be ORed together, simply pass additional (pairs of) arguments.
+   *  For example, newQuery(NOUN_PERSON).age(25,100) would constraint to all
+   *  the people who are >= 25 and <= 100.  Likewise age(25, null) would just
+   *  return all the people who are 25 or older.  And age(25,30,35,40) would
+   *  return people who are either 25-30 or 35-30.
+   * There are also full-text constraint columns.  In a nutshell, their
+   *  arguments are the strings that should be passed to the SQLite FTS3
+   *  MATCH clause.
    */
   newQuery: function gloda_ns_newQuery(aNounID) {
     let nounMeta = this._nounIDToMeta[aNounID];
@@ -858,6 +1110,18 @@ let Gloda = {
     return collection;
   },
   
+  /**
+   * Process the given GlodaMessage, determining all the attributes it should
+   *  possess.  This should not be publicly exposed here for multiple reasons.
+   * What we eventually want is the ability for pluggable (non-message specific)
+   *  indexers to be added to the system, and for them to register via this
+   *  Gloda interface.  However, we don't want that mechanism directly exposed
+   *  to user/extension code, at least in the sense that it seems like we are
+   *  suggesting they should use it.
+   * This method should probably end up generalized, and implicitly integrated
+   *  into things as a result of registering an indexing mechanism for a given
+   *  noun type.
+   */
   processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr,
                                                    aMimeMsg, aIsNew) {
     // For now, we are ridiculously lazy and simply nuke all existing attributes
@@ -903,9 +1167,17 @@ let Gloda = {
     GlodaDatastore.insertMessageAttributes(aMessage, outAttribs);
   },
   
+  /**
+   * Deprecated mechanism for querying for messages.  Use newQuery now,
+   *  specifying the message noun id.  Still works for now, but not for long.
+   */
   queryMessagesAPV: function gloda_ns_queryMessagesAPV(aAPVs) {
     return GlodaDatastore.queryMessagesAPV(aAPVs);
   },
 };
 
+/* and initialize the Gloda object/NS before we return... */
 Gloda._init();
+/* but don't forget that we effectively depend on everybody.js too, and
+   currently on our importer to be importing that if they need us fully armed
+   and operational. */
