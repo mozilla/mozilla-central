@@ -621,7 +621,10 @@ pref("mail.biff.animate_dock_icon", false);
 pref("mail.biff.on_new_window", true);
 #endif
 
-pref("mail.content_disposition_type", 0);
+// Content disposition for attachments (except binary files and vcards).
+//   0= Content-Disposition: inline
+//   1= Content-Disposition: attachment
+pref("mail.content_disposition_type", 1);
 
 pref("mailnews.show_send_progress", true); //Will show a progress dialog when saving or sending a message
 pref("mail.server.default.retainBy", 1);
