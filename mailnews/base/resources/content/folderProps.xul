@@ -131,8 +131,8 @@
                 <label value="&message.label;" control="retention.keepNewMsgMin" id="retention.keepNewMsgMinLabel"/>
               </hbox>
               <hbox flex="1" align="center">
-                <radio wsm_persist="true" id="keepMsg" accesskey="&retentionKeepMsg.accesskey;"
-                        value="2" label="&retentionKeepMsg.label;" oncommand="onCheckKeepMsg();"/>
+                <radio wsm_persist="true" id="keepMsg" accesskey="&retentionDeleteMsg.accesskey;"
+                        value="2" label="&retentionDeleteMsg.label;" oncommand="onCheckKeepMsg();"/>
                 <textbox wsm_persist="true" id="retention.keepOldMsgMin" size="2" value="30"
                          aria-labelledby="keepMsg retention.keepOldMsgMin retention.keepOldMsgMinLabel"/>
                 <label value="&daysOld.label;" control="retention.keepOldMsgMin" id="retention.keepOldMsgMinLabel"/>
