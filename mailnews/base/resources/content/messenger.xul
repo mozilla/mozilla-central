@@ -131,11 +131,6 @@
 
 <popup id="emailAddressPopup"/>
 
-<popup id="allHeadersPopup"  onpopupshowing="return fillAllHeadersPopup(document.popupNode);" popupanchor="bottomleft">
-  <hbox id="allHeadersPopupContainer">
-  </hbox>
-</popup>
-
 <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
 
 <popup id="messagePaneContext"/>

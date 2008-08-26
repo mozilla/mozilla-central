@@ -130,10 +130,6 @@
 
     <popup id="messageIdContext"/>
 
-    <popup id="allHeadersPopup"  onpopupshowing="return fillAllHeadersPopup(document.popupNode);" popupanchor="bottomleft">
-      <hbox id="allHeadersPopupContainer"/>
-    </popup>
-
     <popup id="messagePaneContext"/>
   </popupset>
 
