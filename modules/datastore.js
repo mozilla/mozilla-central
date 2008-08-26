@@ -70,6 +70,8 @@ const kSpecialFulltext = 2;
  *  could also be made efficient, if slightly evil through use of eval or some
  *  other code generation mechanism.)
  *
+ * === Data Model Interaction / Dependencies
+ *
  * Dependent on and assumes limited knowledge of the datamodel.js
  *  implementations.  datamodel.js actually has an implicit dependency on
  *  our implementation, reaching back into the datastore via the _datastore
@@ -87,10 +89,63 @@ const kSpecialFulltext = 2;
  *  (aggregating) layer on top of things, rather than complicating the lower
  *  levels.)
  *
- * Note: Although the schema includes "triggers", they are currently not used
+ * === Object Identity / Caching
+ *
+ * The issue of object identity is handled by integration with the collection.js
+ *  provided GlodaCollectionManager.  By "Object Identity", I mean that we only
+ *  should ever have one object instance alive at a time that corresponds to
+ *  an underlying database row in the database.  Where possible we avoid
+ *  performing database look-ups when we can check if the object is already
+ *  present in memory; in practice, this means when we are asking for an object
+ *  by ID.  When we cannot avoid a database query, we attempt to make sure that
+ *  we do not return a duplicate object instance, instead replacing it with the
+ *  'live' copy of the object.  (Ideally, we would avoid any redundant
+ *  construction costs, but that is not currently the case.)
+ * Although you should consult the GlodaCollectionManager for details, the
+ *  general idea is that we have 'collections' which represent views of the
+ *  database (based on a query) which use a single mechanism for double duty.
+ *  The collections are registered with the collection manager via weak
+ *  reference.  The first 'duty' is that since the collections may be desired
+ *  to be 'live views' of the data, we want them to update as changes occur.
+ *  The weak reference allows the collection manager to track the 'live'
+ *  collections and update them.  The second 'duty' is the caching/object
+ *  identity duty.  In theory, every live item should be referenced by at least
+ *  one collection, making it reachable for object identity/caching purposes.
+ * There is also an explicit (inclusive) caching layer present to both try and
+ *  avoid poor performance from some of the costs of this strategy, as well as
+ *  to try and keep track of objects that are being worked with that are not
+ *  (yet) tracked by a collection.  Using a size-bounded cache is clearly not
+ *  a guarantee of correctness for this, but is suspected will work quite well.
+ *  (Well enough to be dangerous because the inevitable failure case will not be
+ *  expected.)
+ *
+ * The current strategy may not be the optimal one, feel free to propose and/or
+ *  implement better ones, especially if you have numbers.
+ * The current strategy is not fully implemented in this file, but the common
+ *  cases are believed to be covered.  (Namely, we fail to purge items from the
+ *  cache as they are purged from the database.)
+ *
+ * === Things That May Not Be Obvious (Gotchas)
+ * 
+ * Although the schema includes "triggers", they are currently not used
  *  and were added when thinking about implementing the feature.  We will
  *  probably implement this feature at some point, which is why they are still
  *  in there.
+ *
+ * We, and the layers above us, are not sufficiently thorough at cleaning out
+ *  data from the database, and may potentially orphan it _as new functionality
+ *  is added in the future at layers above us_.  That is, currently we should
+ *  not be leaking database rows, but we may in the future.  This is because
+ *  we/the layers above us lack a mechanism to track dependencies based on
+ *  attributes.  Say a plugin exists that extracts recipes from messages and
+ *  relates them via an attribute.  To do so, it must create new recipe rows
+ *  in its own table as new recipes are discovered.  No automatic mechanism
+ *  will purge recipes as their source messages are purged, nor does any
+ *  event-driven mechanism explicitly inform the plugin.  (It could infer
+ *  such an event from the indexing/attribute-providing process, or poll the
+ *  states of attributes to accomplish this, but that is not desirable.)  This
+ *  needs to be addressed, and may be best addressed at layers above
+ *  datastore.js.
  */
 let GlodaDatastore = {
   _log: null,
@@ -606,7 +661,11 @@ let GlodaDatastore = {
     return this._selectAllFolderLocations;
   },
   
-  /** Authoritative map from folder URI to folder ID */
+  /**
+   * Authoritative map from folder URI to folder ID.  (Authoritative in the
+   *  sense that this map exactly represents the state of the underlying
+   *  database.  If it does not, it's a bug in updating the database.)
+   */
   _folderURIs: {},
   /** Authoritative map from folder ID to folder URI */
   _folderIDs: {},
@@ -658,6 +717,12 @@ let GlodaDatastore = {
     return this._updateFolderLocationStatement;
   },
   
+  /**
+   * Non-recursive folder renaming based on the URI.
+   *
+   * @TODO provide a mechanism for recursive folder renames or have a higher
+   *     layer deal with it and remove this note.
+   */
   renameFolder: function gloda_ds_renameFolder(aOldURI, aNewURI) {
     let folderID = this._mapFolderURI(aOldURI); // ensure the URI is mapped...
     this._folderURIs[aNewURI] = folderID;
@@ -951,6 +1016,13 @@ let GlodaDatastore = {
     return this._selectMessageByLocationStatement;
   },
 
+  /**
+   * Retrieve the message that we believe to correspond to the given message
+   *  key in the given folder.
+   * @return null on failure to locate the message, the message on success.
+   *
+   * @XXX on failure, attempt to resolve the problem through re-indexing, etc.
+   */
   getMessageFromLocation: function gloda_ds_getMessageFromLocation(aFolderURI,
                                                                  aMessageKey) {
     this._selectMessageByLocationStatement.params.folderID =
@@ -1104,6 +1176,22 @@ let GlodaDatastore = {
     return this._selectMessagesByConversationIDNoGhostsStatement;
   },
 
+  /**
+   * Retrieve all the messages belonging to the given conversation.  This
+   *  method is used by the indexer and the GlodaConversation class and is not
+   *  intended to be used by any other code.  (Most other code should probably
+   *  use the GlodaConversation.messages attribute or the general purpose query
+   *  mechanism.)
+   *
+   * @param aConversationID The ID of the conversation for which you want all
+   *     the messages.
+   * @param aIncludeGhosts Boolean indicating whether you want 'ghost' messages
+   *     (true) or not (false).  'Ghost' messages are messages that exist in the
+   *     database purely for conversation tracking/threading purposes.  They
+   *     are markers for messages we have not yet seen yet assume must exist
+   *     based on references/in-reply-to headers from non-ghost messages in our
+   *     database.
+   */
   getMessagesByConversationID: function gloda_ds_getMessagesByConversationID(
         aConversationID, aIncludeGhosts) {
     let statement;
@@ -1137,6 +1225,29 @@ let GlodaDatastore = {
     return this._insertMessageAttributeStatement;
   },
   
+  /**
+   * Insert a bunch of attributes relating to a GlodaMessage.  This is performed
+   *  inside a pseudo-transaction (we create one if we aren't in one, using
+   *  our _beginTransaction wrapper, but if we are in one, no additional
+   *  meaningful semantics are added).
+   * No attempt is made to verify uniqueness of inserted attributes, either
+   *  against the current database or within the provided list of attributes.
+   *  The caller is responsible for ensuring that unwanted duplicates are
+   *  avoided.
+   * Currently, it is expected that this method will be used following a call to
+   *  clearMessageAttributes to wipe out the existing attributes in the
+   *  database.  We will probably try and move to a delta-mechanism in the
+   *  future, avoiding needless database churn for small changes in state.
+   *
+   * @param aMessage The GlodaMessage the attributes belong to.  This is used
+   *     to provide the message id and conversation id.
+   * @param aAttributes A list of attribute tuples, where each tuple contains
+   *     an attribute ID and a value.  Lest you forget, an attribute ID
+   *     corresponds to a row in the attribute definition table.  The attribute
+   *     definition table stores the 'parameter' for the attribute, if any.
+   *     (Which is to say, our frequent Attribute-Parameter-Value triple has
+   *     the Attribute-Parameter part distilled to a single attribute id.)
+   */
   insertMessageAttributes: function gloda_ds_insertMessageAttributes(aMessage,
                                         aAttributes) {
     let imas = this._insertMessageAttributeStatement;
@@ -1178,6 +1289,14 @@ let GlodaDatastore = {
     return this._deleteMessageAttributesByMessageIDStatement;
   },
 
+  /**
+   * Clear all the message attributes for a given GlodaMessage.  No changes
+   *  are made to the in-memory representation of the message; it is up to the
+   *  caller to ensure that it handles things correctly.
+   *
+   * @param aMessage The GlodaMessage whose database attributes should be
+   *     purged.
+   */
   clearMessageAttributes: function gloda_ds_clearMessageAttributes(aMessage) {
     if (aMessage.id != null) {
       this._deleteMessageAttributesByMessageIDStatement.params.messageID =
@@ -1194,6 +1313,14 @@ let GlodaDatastore = {
     return this._selectMessageAttributesByMessageIDStatement;
   },
   
+  /**
+   * Look-up the attributes associated with the given GlodaMessage instance,
+   *  returning them in APV form (a tuple of Attribute definition object,
+   *  attribute Parameter, and attribute Value).
+   *
+   * @param aMessage The GlodaMessage whose attributes you want retrieved.
+   * @return An APV list of the attributes.
+   */
   getMessageAttributes: function gloda_ds_getMessageAttributes(aMessage) {
     // A list of [attribute def object, (attr) parameter value, attribute value]
     let attribParamVals = []
@@ -1217,6 +1344,19 @@ let GlodaDatastore = {
     return attribParamVals;
   },
   
+  /**
+   * Perform a database query given a GlodaQueryClass instance that specifies
+   *  a set of constraints relating to the noun type associated with the query.
+   *  A GlodaCollection is returned containing the results of the look-up.
+   *  By default the collection is "live", and will mutate (generating events to
+   *  its listener) as the state of the database changes.
+   * Currently, this operation is fully synchronous, but needs to also provide
+   *  an asynchronous means of operation as well.
+   * This functionality is made user/extension visible by the Query's getAllSync
+   *  method.
+   *
+   * @TODO Create an asynchronous query-from-query mechanism
+   */
   queryFromQuery: function gloda_ds_queryFromQuery(aQuery) {
     // when changing this method, be sure that GlodaQuery's testMatch function
     //  likewise has its changes made.
@@ -1352,7 +1492,10 @@ let GlodaDatastore = {
   },
   
   /**
-   * Deprecated.  Use queries (which in turn use queryFromQuery).
+   * Deprecated.  Use queries (which in turn use queryFromQuery).  This was a
+   *  means of querying for messages based on (normalized) attributes by
+   *  specifying an APV style query.  This method does not track changes in the
+   *  APV representation idiom for queries and may possess other shortcomings.
    */
   queryMessagesAPV: function gloda_ds_queryMessagesAPV(aAPVs) {
     let selects = [];

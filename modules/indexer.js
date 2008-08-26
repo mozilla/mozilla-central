@@ -35,6 +35,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+/*
+ * This file currently contains a fairly general implementation of asynchronous
+ *  indexing with a very explicit message indexing implementation.  As gloda
+ *  will eventually want to index more than just messages, the message-specific
+ *  things should ideally lose their special hold on this file.  This will
+ *  benefit readability/size as well.
+ */
+
 EXPORTED_SYMBOLS = ['GlodaIndexer'];
 
 const Cc = Components.classes;
@@ -51,13 +59,16 @@ Cu.import("resource://gloda/modules/collection.js");
 
 Cu.import("resource://gloda/modules/mimemsg.js");
 
+// for list comprehension fun
 function range(begin, end) {
   for (let i = begin; i < end; ++i) {
     yield i;
   }
 }
 
-// FROM STEEL
+// FROM STEEL (a la Joey Minta/jminta)
+// (and to go away when STEEL is checked in, although we may also want to
+//  consider just specializing the code in the few places this method is used.)
 /**
  * This function will take a variety of xpcom iterators designed for c++ and turn
  * them into a nice JavaScript style object that can be iterated using for...in
@@ -121,9 +132,25 @@ function fixIterator(aEnum, aIface) {
 /**
  * Capture the indexing batch concept explicitly.
  *
- * @param aActionDesc ex: "Indexing", "De-indexing" (you should pass in the
- *     localized string)
- * @param aTargetName A folder name, or other.
+ * @param aJobType The type of thing we are indexing.  Current choices are:
+ *   "folder" and "message".  Previous choices included "account".  The indexer
+ *   currently knows too much about these; they should be de-coupled.
+ * @param aDeltaType -1 for deletion, 0 for move, 1 for addition/new.
+ * @param aID Specific to the job type, but for now only used to hold folder
+ *     IDs.
+ *
+ * @ivar items The list of items to process during this job/batch.  (For
+ *     example, if this is a "messages" job, this would be the list of messages
+ *     to process, although the specific representation is determined by the
+ *     job.)  The list will only be mutated through the addition of extra items.
+ * @ivar offset The current offset into the 'items' list (if used), updated as
+ *     processing occurs.  If 'items' is not used, the processing code can also
+ *     update this in a similar fashion.  This is used by the status
+ *     notification code in conjunction with goal.
+ * @ivar goal The total number of items to index/actions to perform in this job.
+ *     This number may increase during the life of the job, but should not
+ *     decrease.  This is used by the status notification code in conjunction
+ *     with the goal.
  */
 function IndexingJob(aJobType, aDeltaType, aID) {
   this.jobType = aJobType;
@@ -146,8 +173,39 @@ const kWorkAsync = 1;
  */
 const kWorkDone = 2;
 
-
+/**
+ * === Message Indexing
+ * 
+ * We are good at listening to nsIMsgFolderListener events.  Unfortunately,
+ *  MailNews isn't pervasively thorough at generating these yet (newsgroups
+ *  don't produce them, probably not RSS either.)  This provides us with
+ *  message addition, moves/copies, and deletion.
+ * We are not good at listening to nsIFolderListener events.  This means we fail
+ *  to update ourselves when a message is changed because of a change in tags,
+ *  read status/starred status/etc.  (Well, in fairness, events aren't actually
+ *  generated in all of those cases either, yet, but we should try.)  We need
+ *  to handle this.
+ *
+ * Currently, when we index a message, when it comes to attributes, we ignore
+ *  all that has come before us and simply blow away the attributes and apply
+ *  those provided by the attribute providers anew.  This is not particularly
+ *  efficient for anyone.  Also, I think we probably screw this up now that we
+ *  have object identity support.  Uh, so, this should be improved, but
+ *  certainly works.
+ *  
+ * We are not sufficiently good at detaching our listeners so as to avoid
+ *  crashes.  We want to hook the shutdown notification, but we don't.  We do
+ *  try to hook database-is-going-away notifications, but it's really not
+ *  tested.  We definitely do crash sometimes when you're shutting down.
+ * 
+ */
 let GlodaIndexer = {
+  /**
+   * A partial attempt to generalize to support multiple databases.  Each
+   *  database would have its own datastore would have its own indexer.  But
+   *  we rather inter-mingle our use of this field with the singleton global
+   *  GlodaDatastore.
+   */
   _datastore: GlodaDatastore,
   _log: Log4Moz.Service.getLogger("gloda.indexer"),
   _strBundle: null,
@@ -156,6 +214,13 @@ let GlodaIndexer = {
   _domWindow: null,
 
   _inited: false,
+  /**
+   * Initialize the indexer, passing in a number of things that either should
+   *  not be needed or should be retrieved by the code directly for XPCOM.
+   *  This means that some chrome code somewhere (generally gloda) needs to
+   *  intitialize us.  In theory this might cause sequencing problems, in
+   *  practice it doesn't.
+   */
   init: function gloda_index_init(aDOMWindow, aMsgWindow, aStrBundle,
                                   aMessenger) {
     if (this._inited)
@@ -754,6 +819,13 @@ let GlodaIndexer = {
     yield kWorkDone;
   },
 
+  /**
+   * Queue all of the folders of all of the accounts of the current profile
+   *  for indexing.  We traverse all folders and queue them immediately to try
+   *  and have an accurate estimate of the number of folders that need to be
+   *  indexed.  (We previously queued accounts rather than immediately
+   *  walking their list of folders.)
+   */
   indexEverything: function glodaIndexEverything() {
     this._log.info("Queueing all accounts for indexing.");
     let msgAccountManager = Cc["@mozilla.org/messenger/account-manager;1"].
@@ -766,6 +838,9 @@ let GlodaIndexer = {
     GlodaDatastore._commitTransaction();
   },
 
+  /**
+   * Queue all of the folders belonging to an account for indexing.
+   */
   indexAccount: function glodaIndexAccount(aAccount) {
     let rootFolder = aAccount.incomingServer.rootFolder;
     if (rootFolder instanceof Ci.nsIMsgFolder) {
@@ -787,6 +862,9 @@ let GlodaIndexer = {
     }
   },
 
+  /**
+   * Queue a single folder for indexing given an nsIMsgFolder.
+   */
   indexFolder: function glodaIndexFolder(aFolder) {
     this._log.info("Queue-ing folder for indexing: " + aFolder.prettiestName);
     
@@ -796,6 +874,9 @@ let GlodaIndexer = {
     this.indexing = true;
   },
 
+  /**
+   * Queue a single folder for indexing given its URI.
+   */
   indexFolderByURI: function gloda_index_indexFolderByURI(aURI) {
     if (aURI !== null) {
       this._log.info("Queue-ing folder URI for indexing: " + aURI);
@@ -808,7 +889,7 @@ let GlodaIndexer = {
   },
   
   /**
-   * Index messages.
+   * Queue a list of messages for indexing.
    *
    * @param aFoldersAndMessages List of [nsIMsgFolder, message key] tuples.
    */
@@ -1144,8 +1225,6 @@ let GlodaIndexer = {
     doShutdownTask: function gloda_indexer_doShutdownTask(aUrlListener,
                                                           aMsgWingow) {
       this.indexer._onStopIndexingUrlListener = aUrlListener;
-      
-      
       
       return true;
     },
