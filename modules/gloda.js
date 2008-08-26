@@ -61,6 +61,82 @@ Cu.import("resource://gloda/modules/utils.js");
  *  have it re-export only 'Gloda'.  gloda.js (this file) can then move to be
  *  gloda_int.js (or whatever our eventual naming scheme is), which built-in
  *  extensions can explicitly rely upon.
+ *
+ * === Concepts
+ *
+ * == Nouns
+ *
+ * Inspired by reasonable uses of triple-stores, I have tried to leverage
+ *  existing model and terminology rather than rolling out own for everything.
+ *  The idea with triple-stores is that you have a subject, a predicate, and an
+ *  object.  For example, if we are talking about a message, that is the
+ *  subject, the predicate could roughly be sent-by, and the object a person.
+ *  We can generalize this idea to say that the subject and objects are nouns.
+ * Since we want to be more flexible than only dealing with messages, we
+ *  therefore introduce the concept of nouns as an organizing principle.
+ *
+ * == Attributes
+ *
+ * Our attributes definitions are basically our predicates.  When we define
+ *  an attribute, it's a label with a bunch of meta-data.  Our attribute
+ *  instances are basically a 'triple' in a triple-store.  The attributes
+ *  are stored in database rows that imply a specific noun-type (ex: the
+ *  messageAttributes table), with an ID identifying the message which is our
+ *  subject, an attribute ID which identifies the attribute definition in use
+ *  (and therefore the predicate), plus an object ID (given context aka the
+ *  noun type by the attribute's meta-data) which identifies the 'object'.
+ *
+ * == But...
+ *
+ * Things aren't entirely as clear as they could be right now, terminology/
+ *  concept/implementation-wise.  Some work is probably still in order.
+ *
+ * === Implementation
+ *
+ * == Nouns
+ *
+ * So, we go and define the nouns that are roughly the classes in our data
+ *  model.  Every 'class' we define in datamodel.js is a noun that gets defined
+ *  here in the Gloda core.  We provide sufficient meta-data about the noun to
+ *  serialize/deserialize its representation from our database representation.
+ *  Nouns do not have to be defined in this class, but can also be contributed
+ *  by external code.
+ * We have a concept of 'first class' nouns versus non-first class nouns.  The
+ *  distinction is meant to be whether we can store meta-information about those
+ *  nouns using attributes.  Right now, only message are real first-class nouns,
+ *  but we want to expand that to include contacts and eventually events and
+ *  tasks as lightning-integration occurs.  In practice, we are stretching the
+ *  definition of first-class nouns slightly to include things we can't store
+ *  meta-data about, but want to be able to query about.  We do want to resolve
+ *  this.
+ *
+ * == Attributes
+ *
+ * Attributes are defined by "attribute providers" who are responsible for
+ *  taking an instance of a first-class noun (for which they are registered)
+ *  plus perhaps some other meta-data, and returning a list of attributes
+ *  extracted from that noun.  For now, this means messages.  Attribute
+ *  providers may create new data records as a side-effect of the indexing
+ *  process, although we have not yet fully dealt with the problem of deleting
+ *  these records should they become orphaned in the database due to the
+ *  purging of a message and its attributes.
+ * All of the 'core' gloda attributes are provided by the fundattr.js and
+ *  explattr.js providers.
+ *
+ * === (Notable) Future Work
+ *
+ * == Attributes
+ *
+ * Attribute mechanisms currently lack any support for 'overriding' attributes
+ *  provided by other attribute providers.  For example, the fundattr provider
+ *  tells us who a message is 'from' based on the e-mail address present.
+ *  However, other plugins may actually know better.  For example, the bugzilla
+ *  daemon e-mails based on bug activity although the daemon gets the credit
+ *  as the official sender.  A bugzilla plugin can easily extract the actual
+ *  person/e-mail addressed who did something on the bug to cause the
+ *  notification to be sent.  In practice, we would like that person to be
+ *  the 'sender' of the bugmail.  But we can't really do that right, yet.
+ * 
  */
 let Gloda = {
   /**
