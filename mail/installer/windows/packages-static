@@ -354,6 +354,7 @@ bin\components\feeds.xpt
 bin\components\saxparser.xpt
 bin\components\shistory.xpt
 bin\components\zipwriter.xpt
+bin\components\nsBadCertHandler.js
 
 bin\res\hiddenWindow.html
 bin\res\ua.css
