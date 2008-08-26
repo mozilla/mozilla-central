@@ -181,9 +181,10 @@
           <treeitem id="scriptsItem" label="&scriptsAndWindows.label;"
                     prefpane="scripts_pane" helpTopic="advanced_pref_scripts"
                     url="chrome://communicator/content/pref/pref-scripts.xul"/>
-<!--
-          <treeitem label="&keynav.label;"
+          <treeitem id="keynavItem" label="&keynav.label;"
+                    prefpane="keynav_pane" helpTopic="advanced_pref_keyboard_nav"
                     url="chrome://communicator/content/pref/pref-keynav.xul"/>
+<!--
           <treeitem label="&cache.label;"
                     url="chrome://communicator/content/pref/pref-cache.xul"/>
           <treeitem id="proxiesItem"

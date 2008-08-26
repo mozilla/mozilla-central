@@ -22,6 +22,7 @@
  * Contributor(s): Aaron Leventhal
  *                 Asaf Romano
  *                 Ian Neal
+ *                 Manuel Reimer <Manuel.Reimer@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,47 +38,46 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const kTabToLinks = 4
+const kTabToLinks = 4;
 const kTabToForms = 2;
-var gData;
+const kTabToTextboxes = 1;
 
 function Startup()
 {
-  gData = parent.hPrefWindow.wsm.dataManager.pageData["chrome://communicator/content/pref/pref-keynav.xul"];
+  if (/Mac/.test(navigator.platform))
+    document.getElementById("tabNavigationPrefs").setAttribute("hidden", true);
 
-  if (!/Mac/.test(navigator.platform)) {
-    parent.hPrefWindow.registerOKCallbackFunc(saveKeyNavPrefs);
-    if (!("tabNavPref" in gData)) {
-      // Textboxes are always part of the tab order
-      gData.tabNavPref = parent.hPrefWindow.getPref('int', 'accessibility.tabfocus') | 1;
-      gData.tabNavLocked = parent.hPrefWindow.getPrefIsLocked('accessibility.tabfocus');
-    }
-    var tabNavigationLinks = document.getElementById('tabNavigationLinks');
-    tabNavigationLinks.checked = ((gData.tabNavPref & kTabToLinks) != 0);
-    tabNavigationLinks.disabled = gData.tabNavLocked;
-    var tabNavigationForms = document.getElementById('tabNavigationForms');
-    tabNavigationForms.checked = ((gData.tabNavPref & kTabToForms) != 0);
-    tabNavigationForms.disabled = gData.tabNavLocked;
-  }
-  else
-    document.getElementById('tabNavigationPrefs').setAttribute("hidden", true);
-
-  setLinksOnlyDisabled();
+  var prefAutostart = document.getElementById("accessibility.typeaheadfind.autostart");
+  SetLinksOnlyEnabled(prefAutostart.value);
 }
 
-function setLinksOnlyDisabled()
+function ReadTabNav(aField)
 {
-  try {
-    document.getElementById('findAsYouTypeAutoWhat').disabled = 
-      (!document.getElementById('findAsYouTypeEnableAuto').checked ||
-       parent.hPrefWindow.getPrefIsLocked('accessibility.typeaheadfind.linksonly'));
-  }
-  catch(e) {}
+  var curval = document.getElementById("accessibility.tabfocus").value;
+  // Return the right bit based on the id of "aField"
+  if (aField.id == "tabNavigationLinks")
+    return (curval & kTabToLinks) != 0;
+
+  return (curval & kTabToForms) != 0;
 }
 
-function saveKeyNavPrefs()
+function WriteTabNav(aField)
 {
-  var data = parent.hPrefWindow.wsm.dataManager
-                   .pageData["chrome://communicator/content/pref/pref-keynav.xul"];
-  parent.hPrefWindow.setPref("int", "accessibility.tabfocus", data.tabNavPref);
+  var curval = document.getElementById("accessibility.tabfocus").value;
+  // Textboxes are always part of the tab order
+  curval |= kTabToTextboxes;
+  // Select the bit, we have to change, based on the id of "aField"
+  var bit = kTabToForms;
+  if (aField.id == "tabNavigationLinks")
+    bit = kTabToLinks;
+
+  if (aField.checked)
+    return curval | bit;
+
+  return curval & ~bit;
+}
+
+function SetLinksOnlyEnabled(aEnable)
+{
+  EnableTextbox("findAsYouTypeAutoWhat", aEnable, false);
 }

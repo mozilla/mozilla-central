@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -21,6 +21,7 @@
    -
    - Contributor(s): Aaron Leventhal
    -                 Ian Neal
+   -                 Manuel Reimer <Manuel.Reimer@gmx.de>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,57 +39,83 @@
 
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://communicator/locale/pref/pref-keynav.dtd" >
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-keynav.dtd">
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://communicator/content/pref/pref-keynav.xul');"
-      headertitle="&pref.keyNav.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="keynav_pane"
+            label="&pref.keyNav.title;"
+            script="chrome://communicator/content/pref/pref-keynav.js">
 
-  <script type="application/x-javascript" 
-          src="chrome://communicator/content/pref/pref-keynav.js"/>
+    <preferences id="keynav_preferences">
+      <preference id="accessibility.typeaheadfind.autostart"
+                  name="accessibility.typeaheadfind.autostart"
+                  onchange="SetLinksOnlyEnabled(this.value);"
+                  type="bool"/>
+      <preference id="accessibility.typeaheadfind.linksonly"
+                  name="accessibility.typeaheadfind.linksonly"
+                  type="bool"/>
+      <preference id="accessibility.typeaheadfind.enablesound"
+                  name="accessibility.typeaheadfind.enablesound"
+                  type="bool"/>
+      <preference id="accessibility.typeaheadfind.enabletimeout"
+                  name="accessibility.typeaheadfind.enabletimeout"
+                  type="bool"/>
+      <preference id="accessibility.tabfocus"
+                  name="accessibility.tabfocus"
+                  type="int"/>
+    </preferences>
 
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["findAsYouTypeEnableAuto", "findAsYouTypeAutoWhat",
-      "findAsYouTypeSound", "findAsYouTypeTimeout"];
-  ]]>
-  </script>
-  
-  <groupbox id="tabNavigationPrefs" align="start">
-    <caption label="&tabNavigationBehavior.label;"/>
-    <description>&tabNavigationDesc.label;</description>
-    <!-- gData var and kTabTo* consts are declared in pref-keynav.js -->
-    <checkbox id="tabNavigationLinks" label="&tabNavigationLinks.label;" 
-              accesskey="&tabNavigationLinks.accesskey;" 
-              oncommand="gData.tabNavPref ^= kTabToLinks;"/>
-    <checkbox id="tabNavigationForms" label="&tabNavigationForms.label;" 
-              accesskey="&tabNavigationForms.accesskey;" 
-              oncommand="gData.tabNavPref ^= kTabToForms;"/>
-    <description>&tabNavigationTextboxes.label;</description>
-  </groupbox>
+    <groupbox id="tabNavigationPrefs"
+              align="start">
+      <caption label="&tabNavigationBehavior.label;"/>
+      <description>&tabNavigationDesc.label;</description>
 
-  <groupbox align="start">
-    <caption label="&findAsYouTypeBehavior.label;"/>
-    <checkbox id="findAsYouTypeEnableAuto" label="&findAsYouTypeEnableAuto.label;" 
-              prefstring="accessibility.typeaheadfind.autostart" 
-              oncommand="setLinksOnlyDisabled();"/>
-    <radiogroup id="findAsYouTypeAutoWhat" class="indent"
-                preftype="bool" prefstring="accessibility.typeaheadfind.linksonly">
-      <radio value="false" label="&findAsYouTypeAutoText.label;"
-             accesskey="&findAsYouTypeAutoText.accesskey;"/>
-      <radio value="true" label="&findAsYouTypeAutoLinks.label;"
-             accesskey="&findAsYouTypeAutoLinks.accesskey;"/>
-    </radiogroup>
-    <description>&findAsYouTypeTip.label;</description>
-    
-    <vbox class="box-padded" align="start">
-      <separator class="thin" />
-      <checkbox id="findAsYouTypeSound" label="&findAsYouTypeSound.label;" 
-                accesskey="&findAsYouTypeSound.accesskey;"
-                prefstring="accessibility.typeaheadfind.enablesound"/>
-      <checkbox id="findAsYouTypeTimeout" label="&findAsYouTypeTimeout.label;" 
-                accesskey="&findAsYouTypeTimeout.accesskey;"
-                prefstring="accessibility.typeaheadfind.enabletimeout"/>
-    </vbox>
-  </groupbox>
-</page>
+      <checkbox id="tabNavigationLinks"
+                label="&tabNavigationLinks.label;"
+                accesskey="&tabNavigationLinks.accesskey;"
+                preference="accessibility.tabfocus"
+                onsyncfrompreference="return document.getElementById('keynav_pane').ReadTabNav(this);"
+                onsynctopreference="return document.getElementById('keynav_pane').WriteTabNav(this);"/>
+      <checkbox id="tabNavigationForms"
+                label="&tabNavigationForms.label;"
+                accesskey="&tabNavigationForms.accesskey;"
+                preference="accessibility.tabfocus"
+                onsyncfrompreference="return document.getElementById('keynav_pane').ReadTabNav(this);"
+                onsynctopreference="return document.getElementById('keynav_pane').WriteTabNav(this);"/>
+      <description>&tabNavigationTextboxes.label;</description>
+    </groupbox>
+
+    <groupbox align="start">
+      <caption label="&findAsYouTypeBehavior.label;"/>
+      <checkbox id="findAsYouTypeEnableAuto"
+                label="&findAsYouTypeEnableAuto.label;"
+                accesskey="&findAsYouTypeEnableAuto.accesskey;"
+                preference="accessibility.typeaheadfind.autostart"/>
+      <radiogroup id="findAsYouTypeAutoWhat"
+                  class="indent"
+                  preference="accessibility.typeaheadfind.linksonly">
+        <radio value="false"
+               label="&findAsYouTypeAutoText.label;"
+               accesskey="&findAsYouTypeAutoText.accesskey;"/>
+        <radio value="true"
+               label="&findAsYouTypeAutoLinks.label;"
+               accesskey="&findAsYouTypeAutoLinks.accesskey;"/>
+      </radiogroup>
+      <description>&findAsYouTypeTip.label;</description>
+
+      <vbox class="box-padded"
+            align="start">
+        <separator class="thin" />
+        <checkbox id="findAsYouTypeSound"
+                  label="&findAsYouTypeSound.label;"
+                  accesskey="&findAsYouTypeSound.accesskey;"
+                  preference="accessibility.typeaheadfind.enablesound"/>
+        <checkbox id="findAsYouTypeTimeout"
+                  label="&findAsYouTypeTimeout.label;"
+                  accesskey="&findAsYouTypeTimeout.accesskey;"
+                  preference="accessibility.typeaheadfind.enabletimeout"/>
+      </vbox>
+    </groupbox>
+
+  </prefpane>
+</overlay>

@@ -158,7 +158,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-keynav.xul" label="&keynav.label;"/>
+            <treecell label="(Migrated: &keynav.label;)"/>
           </treerow>
         </treeitem>
         <treeitem>
