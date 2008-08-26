@@ -51,7 +51,6 @@ EXPORT_DIR	= $(DIST)/bin/isp
 
 REQUIRES	= xpcom \
 		  string \
-		  mailnews \
 		  msgdb \
 		  msgbaseutil \
 		  necko \

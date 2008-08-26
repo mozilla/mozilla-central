@@ -56,7 +56,6 @@ REQUIRES	= xpcom \
 		  intl \
 		  msgbase \
 		  pref \
-		  mailnews \
 		  necko \
 		  msgdb \
 		  msgbaseutil \

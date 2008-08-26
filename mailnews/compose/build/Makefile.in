@@ -70,7 +70,6 @@ REQUIRES	= xpcom \
 		  rdf \
 		  intl \
 		  uconv \
-		  mailnews \
 		  pref \
 		  widget \
 		  msgdb \

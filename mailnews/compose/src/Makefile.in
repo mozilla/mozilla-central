@@ -54,7 +54,6 @@ REQUIRES	= xpcom \
 		  editor \
 		  uriloader \
 		  msgbase \
-		  mailnews \
 		  necko \
 		  mime \
 		  pref \

@@ -50,7 +50,6 @@ MOZILLA_INTERNAL_API = 1
 REQUIRES	= xpcom \
 		  string \
 		  msgbase \
-		  mailnews \
 		  necko \
 		  mime \
 		  pref \

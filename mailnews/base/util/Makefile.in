@@ -65,7 +65,6 @@ REQUIRES	= xpcom \
 		  msgdb \
 		  intl \
 		  mork \
-		  mailnews \
 		  locale \
 		  pref \
 		  rdfutil \

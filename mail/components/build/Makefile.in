@@ -65,7 +65,6 @@ REQUIRES = \
 	intl \
 	pref \
 	msgbase \
-	mailnews \
 	import \
 	shellservice \
 	$(NULL)

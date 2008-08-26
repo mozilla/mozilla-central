@@ -54,7 +54,6 @@ PACKAGE_FILE = msgdb.pkg
 
 REQUIRES	= xpcom \
 		  string \
-		  mailnews \
 		  locale \
 		  mork \
 		  mime \

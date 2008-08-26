@@ -55,7 +55,6 @@ REQUIRES = 	\
 		necko \
 		nkcache \
 		string \
-		mailnews \
 		msgbase \
 		msgimap \
 		$(NULL)

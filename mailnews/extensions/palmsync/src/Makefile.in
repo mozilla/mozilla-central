@@ -62,7 +62,6 @@ REQUIRES = \
 	unicharutil \
 	MapiProxy \
 	locale \
-	mailnews \
 	msgbase \
 	msgbaseutil \
 	necko \

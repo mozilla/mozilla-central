@@ -85,7 +85,6 @@ mailnews/compose/Makefile
 mailnews/compose/public/Makefile
 mailnews/compose/src/Makefile
 mailnews/compose/build/Makefile
-mailnews/public/Makefile
 mailnews/import/Makefile
 mailnews/import/build/Makefile
 mailnews/import/public/Makefile

@@ -69,7 +69,6 @@ REQUIRES	= xpcom \
 		  intl \
 		  msgimap \
 		  exthandler \
-		  mailnews \
 		  chardet \
 		  caps \
 		  mimetype \

@@ -45,6 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= msgbase
 
 EXPORTS		= \
+		MailNewsTypes.h \
 		msgCore.h \
 		nsMsgBaseCID.h \
 		nsMsgHeaderMasks.h \
@@ -53,6 +54,7 @@ EXPORTS		= \
 		$(NULL)
 
 XPIDLSRCS	= \
+                MailNewsTypes2.idl \
 		nsICopyMessageListener.idl \
 		nsICopyMsgStreamListener.idl \
 		nsIMessenger.idl \

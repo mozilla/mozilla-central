@@ -55,7 +55,6 @@ PACKAGE_FILE = msgimap.pkg
 
 REQUIRES	= xpcom \
 		  string \
-		  mailnews \
 		  msgbase \
 		  msgbaseutil \
 		  rdf \

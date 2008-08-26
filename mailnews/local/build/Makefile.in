@@ -56,7 +56,6 @@ PACKAGE_FILE = msglocal.pkg
 
 REQUIRES	= xpcom \
 		  string \
-		  mailnews \
 		  msgbase \
 		  msgbaseutil \
 		  msgdb \

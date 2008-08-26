@@ -62,7 +62,6 @@ REQUIRES	= xpcom \
 		  pref \
 		  msgbaseutil \
 		  msgcompose \
-		  mailnews \
       mime \
       msgimap \
 		  necko \

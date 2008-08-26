@@ -30,7 +30,6 @@ REQUIRES = \
 	uconv \
 	import \
 	msgbase \
-	mailnews \
 	$(NULL)
 
 CPPSRCS = \

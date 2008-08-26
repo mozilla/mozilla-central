@@ -61,7 +61,6 @@ REQUIRES	= xpcom \
 		  msgbase \
 		  dom \
 		  editor \
-		  mailnews \
 		  msgbaseutil \
 		  msglocal \
 		  mime \

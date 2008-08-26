@@ -49,7 +49,7 @@ PACKAGE_VARS += \
 		MOZ_STATIC_MAIL_BUILD \
 		$(NULL)
 
-DIRS		= public base db/msgdb news local mime compose imap addrbook import extensions
+DIRS		= base db/msgdb news local mime compose imap addrbook import extensions
 
 ifeq ($(OS_ARCH),WINNT)
 ifndef GNU_CC

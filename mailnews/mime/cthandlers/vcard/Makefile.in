@@ -68,7 +68,6 @@ REQUIRES	= xpcom \
 		  necko \
 		  intl \
 		  pref \
-		  mailnews \
 		  addrbook \
 		  $(NULL)
 

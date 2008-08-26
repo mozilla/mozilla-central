@@ -52,7 +52,6 @@ REQUIRES	= xpcom \
 		  unicharutil \
 		  msgbase \
 		  necko \
-		  mailnews \
 		  msgbaseutil \
 		  lwbrk \
       mimetype \

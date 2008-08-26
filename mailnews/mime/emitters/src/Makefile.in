@@ -56,7 +56,6 @@ REQUIRES	= xpcom \
 		  necko \
 		  intl \
 		  locale \
-		  mailnews \
 		  mimetype \
 		  msgnews \
 		  unicharutil \

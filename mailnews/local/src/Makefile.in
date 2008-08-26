@@ -51,7 +51,6 @@ REQUIRES	= xpcom \
 		  string \
 		  msgbase \
 		  msgbaseutil \
-		  mailnews \
 		  pref \
 		  necko \
 		  msgdb \
