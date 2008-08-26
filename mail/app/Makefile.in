@@ -377,9 +377,12 @@ install:: $(srcdir)/profile/prefs.js
 	$(SYSINSTALL) $(IFLAGS1) $^  $(DESTDIR)$(mozappdir)/defaults/profile
 
 # Disable these tests due to bug 431125
+TEST_COOKIES_FILE=$(DIST)/../_tests/xpcshell-simple/test_cookies/unit/test_cookies.js
+TEST_COOKIE_HEADER_FILE=$(DIST)/../_tests/xpcshell-simple/test_necko/unit/test_cookie_header.js
+
 libs::
-	if test -f $(DIST)/../_tests/xpcshell-simple/test_cookies/unit/test_cookies.js; then echo "function run_test() {dump('disabled for bug 431125');}" >$(DIST)/../_tests/xpcshell-simple/test_cookies/unit/test_cookies.js; fi;
-	if test -f $(DIST)/../_tests/xpcshell-simple/test_necko/unit/test_cookie_header.js; then echo "function run_test() {dump('disabled for TB for bug 431125');}" >$(DIST)/../_tests/xpcshell-simple/test_necko/unit/test_cookie_header.js; fi;
+	if test -f $(TEST_COOKIES_FILE); then $(RM) $(TEST_COOKIES_FILE); echo "function run_test() {dump('disabled for bug 431125');}" >$(TEST_COOKIES_FILE); fi;
+	if test -f $(TEST_COOKIE_HEADER_FILE); then $(RM) $(TEST_COOKIE_HEADER_FILE); echo "function run_test() {dump('disabled for TB for bug 431125');}" >$(TEST_COOKIE_HEADER_FILE); fi;
 	$(RM) $(DIST)/bin/TestCookie
 	if test -f $(DIST)/bin/TestTArray; then cp $(DIST)/bin/TestTArray $(DIST)/bin/TestCookie; fi;
 
