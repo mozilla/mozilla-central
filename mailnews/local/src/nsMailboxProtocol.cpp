@@ -508,18 +508,12 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
           // urls are run without a docshell to display the msg into, we won't be trying
           // to display the message after we write it to disk...
           {
-            nsCOMPtr<nsIMsgMessageUrl> msgUri = do_QueryInterface(m_runningUrl);
-            msgUri->GetMessageFile(getter_AddRefs(m_tempMessageFile));
-            NS_NewLocalFileOutputStream(getter_AddRefs(m_msgFileOutputStream), m_tempMessageFile, -1, 00600);
-          }
-        case nsIMailboxUrl::ActionCopyMessage:
-        case nsIMailboxUrl::ActionMoveMessage:
-        case nsIMailboxUrl::ActionFetchMessage:
-          if (m_mailboxAction == nsIMailboxUrl::ActionSaveMessageToDisk) 
-          {
-            nsCOMPtr<nsIMsgMessageUrl> messageUrl = do_QueryInterface(aURL, &rv);
+            nsCOMPtr<nsIMsgMessageUrl> messageUrl = do_QueryInterface(m_runningUrl, &rv);
             if (NS_SUCCEEDED(rv))
             {
+              messageUrl->GetMessageFile(getter_AddRefs(m_tempMessageFile));
+              NS_NewLocalFileOutputStream(getter_AddRefs(m_msgFileOutputStream), m_tempMessageFile, -1, 00600);
+
               PRBool addDummyEnvelope = PR_FALSE;
               messageUrl->GetAddDummyEnvelope(&addDummyEnvelope);
               if (addDummyEnvelope)
@@ -528,11 +522,12 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
                 ClearFlag(MAILBOX_MSG_PARSE_FIRST_LINE);
             }
           }
-          else
-          {
-            ClearFlag(MAILBOX_MSG_PARSE_FIRST_LINE);
-          }
-          
+          m_nextState = MAILBOX_READ_MESSAGE;
+          break;
+        case nsIMailboxUrl::ActionCopyMessage:
+        case nsIMailboxUrl::ActionMoveMessage:
+        case nsIMailboxUrl::ActionFetchMessage:
+          ClearFlag(MAILBOX_MSG_PARSE_FIRST_LINE);
           m_nextState = MAILBOX_READ_MESSAGE;
           break;
         case nsIMailboxUrl::ActionFetchPart:
