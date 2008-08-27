@@ -224,6 +224,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetKeywordsToAdd(char * *aKeywords)
 
 NS_IMETHODIMP nsMsgOfflineImapOperation::AddKeywordToAdd(const char * aKeyword)
 {
+  SetOperation(kAddKeywords);
   return AddKeyword(aKeyword, m_keywordsToAdd, PROP_KEYWORD_ADD, m_keywordsToRemove, PROP_KEYWORD_REMOVE);
 }
 
@@ -252,12 +253,12 @@ nsresult nsMsgOfflineImapOperation::AddKeyword(const char *aKeyword, nsCString &
     removeList.Cut(startOffset, keywordLength);
     m_mdb->SetProperty(m_mdbRow, removeProp, removeList.get());
   }
-  SetOperation(kRemoveKeywords);
   return m_mdb->SetProperty(m_mdbRow, addProp, addList.get());
 }
 
 NS_IMETHODIMP nsMsgOfflineImapOperation::AddKeywordToRemove(const char * aKeyword)
 {
+  SetOperation(kRemoveKeywords);
   return AddKeyword(aKeyword, m_keywordsToRemove, PROP_KEYWORD_REMOVE, m_keywordsToAdd, PROP_KEYWORD_ADD);
 }
 
