@@ -43,7 +43,7 @@ MOZ_MATHML=
 MOZ_NO_ACTIVEX_SUPPORT=1
 MOZ_ACTIVEX_SCRIPTING_SUPPORT=
 MOZ_OJI=
-NECKO_PROTOCOLS_DEFAULT="data file ftp http res viewsource"
+NECKO_PROTOCOLS_DEFAULT="about data file ftp http res viewsource"
 MOZ_IMG_DECODERS_DEFAULT=`echo "$MOZ_IMG_DECODERS_DEFAULT" | sed "s/ xbm//"`
 MOZ_MAIL_NEWS=1
 if [ "$COMM_BUILD" ]; then
