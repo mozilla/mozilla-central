@@ -79,7 +79,6 @@ extern void         MacGetFileType(nsILocalFile *fs, PRBool *useDefault, char **
 #include "nsIInternetConfigService.h"
 #include "MoreFilesX.h"
 #include "nsILocalFileMac.h"
-#include "nsMsgMacFileUtilities.h"
 
 /* static */
 nsresult nsSimpleZipper::Zip(nsIFile *aInputFile, nsIFile *aOutputFile)
@@ -738,7 +737,9 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
     // check if it is a bundle. if it is, we'll zip it. 
     // if not, we'll apple encode it (applesingle or appledouble)
     nsCOMPtr<nsILocalFileMac> macFile(do_QueryInterface(sourceFile));
-    if (FileIsPackage(macFile))
+    PRBool isPackage;
+    macFile->IsPackage(&isPackage);
+    if (isPackage)
       rv = ConvertToZipFile(macFile);
     else
       rv = ConvertToAppleEncoding(sourceURISpec, filePath, macFile);
