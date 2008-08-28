@@ -79,8 +79,8 @@ body[dir="rtl"] #errorPageContainer {
 }
 
 #errorTryAgain {
-  margin-top: 2em;
-  -moz-margin-start: 80px;
+  margin-top: 2em !important;
+  -moz-margin-start: 80px !important;
 }
 
 #brand {
