@@ -226,15 +226,14 @@ NS_IMETHODIMP nsMsgCompFields::GetNewshost(char **_retval)
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetFollowupTo(const char *value)
+NS_IMETHODIMP nsMsgCompFields::SetFollowupTo(const nsAString &aValue)
 {
-  return SetAsciiHeader(MSG_FOLLOWUP_TO_HEADER_ID, value);
+  return SetUnicodeHeader(MSG_FOLLOWUP_TO_HEADER_ID, aValue);
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetFollowupTo(char **_retval)
+NS_IMETHODIMP nsMsgCompFields::GetFollowupTo(nsAString &_retval)
 {
-  *_retval = strdup(GetAsciiHeader(MSG_FOLLOWUP_TO_HEADER_ID));
-  return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  return GetUnicodeHeader(MSG_FOLLOWUP_TO_HEADER_ID, _retval);
 }
 
 NS_IMETHODIMP nsMsgCompFields::SetSubject(const nsAString &value)

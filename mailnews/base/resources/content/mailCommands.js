@@ -250,6 +250,7 @@ function ComposeMessage(type, format, folder, messageArray)
         type == msgComposeType.ReplyToSender ||
         type == msgComposeType.ReplyToSenderAndGroup ||
         type == msgComposeType.Template ||
+        type == msgComposeType.Redirect ||
         type == msgComposeType.Draft)
       {
         msgComposeService.OpenComposeWindow(null, hdr, messageUri, type, format, identity, msgWindow);

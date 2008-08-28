@@ -547,15 +547,17 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDB
      Maybe one day when we will have more time we can change that
   */
   if (type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft || type == nsIMsgCompType::Template
-    || type == nsIMsgCompType::ReplyWithTemplate)
+    || type == nsIMsgCompType::ReplyWithTemplate || type == nsIMsgCompType::Redirect)
   {
-      nsCAutoString uriToOpen(originalMsgURI);
-      uriToOpen += (uriToOpen.FindChar('?') == kNotFound) ? "?" : "&";
-      uriToOpen.Append("fetchCompleteMessage=true");
+    nsCAutoString uriToOpen(originalMsgURI);
+    uriToOpen += (uriToOpen.FindChar('?') == kNotFound) ? "?" : "&";
+    uriToOpen.Append("fetchCompleteMessage=true");
+    if (type == nsIMsgCompType::Redirect)
+      uriToOpen.Append("&redirect=true");
 
-      return LoadDraftOrTemplate(uriToOpen, type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft ?
-                                 nsMimeOutput::nsMimeMessageDraftOrTemplate : nsMimeOutput::nsMimeMessageEditorTemplate,
-                                 identity, originalMsgURI, origMsgHdr, type == nsIMsgCompType::ForwardInline, aMsgWindow);
+    return LoadDraftOrTemplate(uriToOpen, type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft ?
+                               nsMimeOutput::nsMimeMessageDraftOrTemplate : nsMimeOutput::nsMimeMessageEditorTemplate,
+                               identity, originalMsgURI, origMsgHdr, type == nsIMsgCompType::ForwardInline, aMsgWindow);
   }
 
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));

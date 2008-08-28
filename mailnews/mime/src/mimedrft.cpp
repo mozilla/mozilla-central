@@ -352,7 +352,7 @@ CreateCompositionFields(const char        *from,
 
   if (followup_to) {
     val = MIME_DecodeMimeHeader(followup_to, charset, PR_FALSE, PR_TRUE);
-    cFields->SetFollowupTo(val ? val : followup_to);
+    cFields->SetFollowupTo(NS_ConvertUTF8toUTF16(val ? val : followup_to));
     PR_FREEIF(val);
   }
 
@@ -1545,7 +1545,13 @@ mime_parse_stream_complete (nsMIMESession *stream)
       if (mdd->format_out == nsMimeOutput::nsMimeMessageEditorTemplate)
       {
         fields->SetDraftId(mdd->url_name);
-        CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::Template, composeFormat, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
+        MSG_ComposeType msgComposeType = PL_strstr(mdd->url_name,
+                                                   "&redirect=true") ?
+                                         nsIMsgCompType::Redirect :
+                                         nsIMsgCompType::Template;
+        CreateTheComposeWindow(fields, newAttachData, msgComposeType,
+                               composeFormat, mdd->identity,
+                               mdd->originalMsgURI, mdd->origMsgHdr);
       }
       else
       {

@@ -60,6 +60,16 @@ interface nsIMsgCompType {
     const long MailToUrl                = 11;
     const long ReplyWithTemplate        = 12;
     const long ReplyToList              = 13;
+
+    /** 
+     * Will resend the original message keeping the Subject and the body the
+     * same, and will set the Reply-To: header to the sender of the original
+     * message.  This gets the redirector "out of the loop" because replies
+     * to the message will go to the original sender.  This is not the same
+     * as the Resent mechanism described in section 3.6.6 of RFC 2822, and
+     * so therefore does not use Resent-* headers.
+     */
+    const long Redirect                 = 14;
 };
 
 

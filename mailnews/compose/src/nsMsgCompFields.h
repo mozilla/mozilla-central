@@ -143,6 +143,7 @@ public:
 
   const char* GetNewshost() {return GetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID);}
 
+  nsresult SetFollowupTo(const char *aValue) {return SetAsciiHeader(MSG_FOLLOWUP_TO_HEADER_ID, aValue);}
   const char* GetFollowupTo() {return GetAsciiHeader(MSG_FOLLOWUP_TO_HEADER_ID);}
 
   nsresult SetSubject(const char *value) {return SetAsciiHeader(MSG_SUBJECT_HEADER_ID, value);}

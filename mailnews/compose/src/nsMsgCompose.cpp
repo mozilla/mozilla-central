@@ -2044,6 +2044,21 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             }
             break;
           }
+        case nsIMsgCompType::Redirect:
+          {
+            // For a redirect, set the Reply-To: header to what was in the original From: header...
+            nsCAutoString author;
+            msgHdr->GetAuthor(getter_Copies(author));
+            m_compFields->SetReplyTo(author.get());
+
+            // ... and empty out the various recipient headers
+            nsAutoString empty;
+            m_compFields->SetTo(empty);
+            m_compFields->SetCc(empty);
+            m_compFields->SetBcc(empty);
+            m_compFields->SetNewsgroups(empty);
+            m_compFields->SetFollowupTo(empty);
+          }
       }
     }
     isFirstPass = PR_FALSE;
@@ -4136,6 +4151,7 @@ nsMsgCompose::BuildBodyMessageAndSignature()
 
     case nsIMsgCompType::Draft :
     case nsIMsgCompType::Template :
+    case nsIMsgCompType::Redirect :
       addSignature = PR_FALSE;
       break;
 
