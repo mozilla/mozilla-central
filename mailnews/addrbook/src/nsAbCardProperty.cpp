@@ -366,6 +366,40 @@ NS_IMETHODIMP nsAbCardProperty::SetPrimaryEmail(const nsAString &aString)
   return SetPropertyAsAString(kPriEmailProperty, aString);
 }
 
+NS_IMETHODIMP nsAbCardProperty::HasEmailAddress(const nsACString &aEmailAddress,
+                                                PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  *aResult = PR_FALSE;
+
+  nsCString emailAddress;
+  nsresult rv = GetPropertyAsAUTF8String(kPriEmailProperty, emailAddress);
+#ifdef MOZILLA_INTERNAL_API
+  if (rv != NS_ERROR_NOT_AVAILABLE &&
+      emailAddress.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
+#else
+  if (rv != NS_ERROR_NOT_AVAILABLE &&
+      emailAddress.Equals(aEmailAddress, CaseInsensitiveCompare))
+#endif
+  {
+    *aResult = PR_TRUE;
+    return NS_OK;
+  }
+
+  rv = GetPropertyAsAUTF8String(k2ndEmailProperty, emailAddress);
+#ifdef MOZILLA_INTERNAL_API
+  if (rv != NS_ERROR_NOT_AVAILABLE &&
+      emailAddress.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
+#else
+  if (rv != NS_ERROR_NOT_AVAILABLE &&
+      emailAddress.Equals(aEmailAddress, CaseInsensitiveCompare))
+#endif
+    *aResult = PR_TRUE;
+
+  return NS_OK;
+}
+
 // This function may be overriden by derived classes for
 // nsAb*Card specific implementations.
 NS_IMETHODIMP nsAbCardProperty::Copy(nsIAbCard* srcCard)

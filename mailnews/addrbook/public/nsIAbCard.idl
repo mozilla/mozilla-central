@@ -87,7 +87,7 @@ interface nsIAbPreferMailFormat {
  * - Boolean properties:
  *   - AllowRemoteContent
  */
-[scriptable, uuid(f5646fba-3d20-4fdf-90fb-9f2ee9899dbb)]
+[scriptable, uuid(fdac4023-cd19-4e75-9a88-8e48881076ea)]
 interface nsIAbCard : nsIAbItem {
   /**
    * A list of all the properties that this card has as an enumerator, whose
@@ -178,6 +178,19 @@ interface nsIAbCard : nsIAbItem {
   attribute AString displayName;
   attribute AString primaryEmail;
   /** @} */
+
+  /**
+   * Determines whether or not a card has the supplied email address in either
+   * of its PrimaryEmail or SecondEmail attributes.
+   *
+   * Note: This function is likely to be temporary whilst we work out proper
+   * APIs for multi-valued attributes in bug 118665.
+   *
+   * @param  aEmailAddress The email address to attempt to match against.
+   * @return               True if aEmailAddress matches any of the email
+   *                       addresses stored in the card.
+   */
+  boolean hasEmailAddress(in AUTF8String aEmailAddress);
 
   /**
    * Translates a card into a specific format.

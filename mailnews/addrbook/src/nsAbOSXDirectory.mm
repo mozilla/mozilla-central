@@ -867,30 +867,11 @@ nsAbOSXDirectory::CardForEmailAddress(const nsACString &aEmailAddress,
     card = do_QueryElementAt(list, i, &rv);
     if (NS_SUCCEEDED(rv))
     {
-      nsCString email;
-      rv = card->GetPropertyAsAUTF8String(kPriEmailProperty, email);
-      if (NS_FAILED(rv))
-        continue;
+      PRBool hasEmailAddress = PR_FALSE;
 
-#ifdef MOZILLA_INTERNAL_API
-      if (email.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
-#else
-      if (email.Equals(aEmailAddress, CaseInsensitiveCompare))
-#endif
+      rv = card->HasEmailAddress(aEmailAddress, &hasEmailAddress);
+      if (NS_SUCCEEDED(rv) && hasEmailAddress)
         NS_IF_ADDREF(*aResult = card);
-      else
-      {
-        rv = card->GetPropertyAsAUTF8String(k2ndEmailProperty, email);
-        if (NS_FAILED(rv))
-          continue;
-
-#ifdef MOZILLA_INTERNAL_API
-        if (email.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
-#else
-          if (email.Equals(aEmailAddress, CaseInsensitiveCompare))
-#endif
-          NS_IF_ADDREF(*aResult = card);
-      }
     }
   }
   return NS_OK;

@@ -8,6 +8,8 @@ const kFNValue = "testFirst\u00D0";
 const kLNValue = "testLast";
 const kDNValue = "testDisplay\u00D1";
 const kEmailValue = "testEmail\u00D2@invalid.com";
+const kEmailValueLC = "testemail\u00D2@invalid.com";
+const kEmailValue2 = "test@test.invalid.com";
 // Email without the @ or anything after it.
 const kEmailReducedValue = "testEmail\u00D2";
 
@@ -97,4 +99,31 @@ function run_test() {
   card.setProperty("PhoneticLastName", kLNValue);
   do_check_eq(card.generatePhoneticName(false), kLNValue);
   do_check_eq(card.generatePhoneticName(true), kLNValue);
+
+  // Test - hasEmailAddress
+
+  card.deleteProperty("PrimaryEmail");
+  card.deleteProperty("SecondEmail");
+
+  do_check_eq(card.hasEmailAddress(kEmailValue), false);
+  do_check_eq(card.hasEmailAddress(kEmailValueLC), false);
+  do_check_eq(card.hasEmailAddress(kEmailValue2), false);
+
+  card.setProperty("PrimaryEmail", kEmailValue);
+
+  do_check_eq(card.hasEmailAddress(kEmailValue), true);
+  do_check_eq(card.hasEmailAddress(kEmailValueLC), true);
+  do_check_eq(card.hasEmailAddress(kEmailValue2), false);
+
+  card.setProperty("SecondEmail", kEmailValue2);
+
+  do_check_eq(card.hasEmailAddress(kEmailValue), true);
+  do_check_eq(card.hasEmailAddress(kEmailValueLC), true);
+  do_check_eq(card.hasEmailAddress(kEmailValue2), true);
+
+  card.deleteProperty("PrimaryEmail");
+
+  do_check_eq(card.hasEmailAddress(kEmailValue), false);
+  do_check_eq(card.hasEmailAddress(kEmailValueLC), false);
+  do_check_eq(card.hasEmailAddress(kEmailValue2), true);
 }
