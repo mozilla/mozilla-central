@@ -41,8 +41,7 @@
 #include "nsAbBaseCID.h"
 #include "nsEnumeratorUtils.h"
 #include "nsIAbDirectory.h"
-#include "nsIRDFService.h"
-#include "rdf.h"
+#include "nsIAbManager.h"
 #include "nsStringGlue.h"
 #include "nsServiceManagerUtils.h"
 #include "nsAbOSXDirectory.h"
@@ -60,20 +59,17 @@ nsAbOSXDirFactory::GetDirectories(const nsAString &aDirName,
   *aDirectories = nsnull;
 
   nsresult rv;
-  nsCOMPtr<nsIRDFService> rdf =
-    do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAbDirectory> directory;
+  rv = abManager->GetDirectory(NS_LITERAL_CSTRING(NS_ABOSXDIRECTORY_URI_PREFIX "/"),
+                               getter_AddRefs(directory));
   NS_ENSURE_SUCCESS(rv, rv);
   
-  // We hardcode the root to "moz-abosxdirectory:///".
-  nsCOMPtr<nsIRDFResource> resource;
-  rv = rdf->GetResource(NS_LITERAL_CSTRING(NS_ABOSXDIRECTORY_URI_PREFIX "/"),
-                        getter_AddRefs(resource));
+  nsCOMPtr<nsIAbOSXDirectory> osxDirectory(do_QueryInterface(directory, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  
-  nsCOMPtr<nsIAbOSXDirectory> osxDirectory =
-    do_QueryInterface(resource, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
+
   rv = osxDirectory->AssertChildNodes();
   NS_ENSURE_SUCCESS(rv, rv);
   

@@ -39,7 +39,6 @@
 
 #include "nsAbView.h"
 #include "nsISupports.h"
-#include "nsIRDFService.h"
 #include "nsCOMPtr.h"
 #include "nsIServiceManager.h"
 #include "nsIAbCard.h"
@@ -60,7 +59,6 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsArrayUtils.h"
 #include "nsIAddrDatabase.h" // for kPriEmailColumn
-#include "rdf.h"
 
 #define CARD_NOT_FOUND -1
 #define ALL_ROWS -1
@@ -1283,16 +1281,17 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsIArray **_retval)
     card->GetIsMailList(&isMailList);
     nsAutoString primaryEmail;
     if (isMailList) {
-      nsCOMPtr<nsIRDFService> rdfService = do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+      nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID,
+                                                     &rv));
       NS_ENSURE_SUCCESS(rv, rv);
-      nsCString mailListURI;
-      card->GetMailListURI(getter_Copies(mailListURI));
-      nsCOMPtr<nsIRDFResource> resource;
-      rv = rdfService->GetResource(mailListURI, getter_AddRefs(resource));
-      NS_ENSURE_SUCCESS(rv,rv);
 
-      nsCOMPtr<nsIAbDirectory> mailList = do_QueryInterface(resource, &rv);
-      NS_ENSURE_SUCCESS(rv,rv);
+      nsCString mailListURI;
+      rv = card->GetMailListURI(getter_Copies(mailListURI));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCOMPtr<nsIAbDirectory> mailList;
+      rv = abManager->GetDirectory(mailListURI, getter_AddRefs(mailList));
+      NS_ENSURE_SUCCESS(rv, rv);
 
       nsCOMPtr<nsIMutableArray> mailListAddresses;
       rv = mailList->GetAddressLists(getter_AddRefs(mailListAddresses));

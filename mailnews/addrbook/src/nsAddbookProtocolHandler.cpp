@@ -50,9 +50,7 @@
 #include "nsNetUtil.h"
 #include "nsStringStream.h"
 #include "nsIAbDirectory.h"
-#include "nsIRDFResource.h"
-#include "nsIRDFService.h"
-#include "nsRDFCID.h"
+#include "nsIAbManager.h"
 #include "prmem.h"
 #include "nsIAbView.h"
 #include "nsITreeView.h"
@@ -203,9 +201,6 @@ nsAddbookProtocolHandler::GeneratePrintOutput(nsIAddbookUrl *addbookUrl,
   nsresult rv = addbookUrl->GetPath(uri);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
   /* turn
    "//moz-abmdbdirectory/abook.mab?action=print"
    into "moz-abmdbdirectory://abook.mab"
@@ -241,15 +236,15 @@ nsAddbookProtocolHandler::GeneratePrintOutput(nsIAddbookUrl *addbookUrl,
   uri.Insert('/', pos);
   uri.Insert(':', pos);
 
-  nsCOMPtr <nsIRDFResource> resource;
-  rv = rdfService->GetResource(uri, getter_AddRefs(resource));
-  NS_ENSURE_SUCCESS(rv,rv);
-  
-  nsCOMPtr <nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAbDirectory> directory;
+  rv = abManager->GetDirectory(uri, getter_AddRefs(directory));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = BuildDirectoryXML(directory, aOutput);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
 }

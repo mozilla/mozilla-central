@@ -41,9 +41,7 @@
 #include "nsAbUtils.h"
 
 #include "nsServiceManagerUtils.h"
-#include "nsIRDFService.h"
-#include "nsIRDFResource.h"
-
+#include "nsIAbManager.h"
 #include "nsIAbDirectory.h"
 #include "nsAbLDAPDirectory.h"
 
@@ -69,10 +67,10 @@ nsAbLDAPDirFactory::GetDirectories(const nsAString &aDirName,
   NS_ENSURE_ARG_POINTER(aDirectories);
 
   nsresult rv;
-  nsCOMPtr<nsIRDFService> rdf = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIRDFResource> resource;
+  nsCOMPtr<nsIAbDirectory> directory;
   if (Substring(aURI, 0, 5).EqualsLiteral("ldap:") ||
       Substring(aURI, 0, 6).EqualsLiteral("ldaps:")) {
     /*
@@ -94,14 +92,11 @@ nsAbLDAPDirFactory::GetDirectories(const nsAString &aDirName,
     nsCAutoString bridgeURI;
     bridgeURI = NS_LITERAL_CSTRING(kLDAPDirectoryRoot);
     bridgeURI += aPrefName;
-    rv = rdf->GetResource(bridgeURI, getter_AddRefs(resource));
+    rv = abManager->GetDirectory(bridgeURI, getter_AddRefs(directory));
   }
   else {
-    rv = rdf->GetResource(aURI, getter_AddRefs(resource));
+    rv = abManager->GetDirectory(aURI, getter_AddRefs(directory));
   }
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_NewSingletonEnumerator(aDirectories, directory);

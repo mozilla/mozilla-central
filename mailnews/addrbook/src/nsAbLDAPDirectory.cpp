@@ -46,7 +46,6 @@
 
 #include "nsAbBaseCID.h"
 #include "nsIAbManager.h"
-#include "nsIRDFService.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsAutoLock.h"
@@ -184,9 +183,6 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
     NS_ENSURE_SUCCESS(rv,rv);
     
     if (offline) {
-      nsCOMPtr <nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-
       nsCString fileName;
       rv = GetReplicationFileName(fileName);
       NS_ENSURE_SUCCESS(rv,rv);
@@ -203,12 +199,14 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
         localDirectoryURI.AppendLiteral("?");
         localDirectoryURI.Append(mQueryString);
       }
-      
-      nsCOMPtr <nsIRDFResource> resource;
-      rv = rdfService->GetResource(localDirectoryURI, getter_AddRefs(resource));
+
+      nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID,
+                                                     &rv));
       NS_ENSURE_SUCCESS(rv, rv);
-      
-      nsCOMPtr <nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
+
+      nsCOMPtr <nsIAbDirectory> directory;
+      rv = abManager->GetDirectory(localDirectoryURI,
+                                   getter_AddRefs(directory));
       NS_ENSURE_SUCCESS(rv, rv);
 
       rv = directory->GetChildCards(result);
