@@ -56,6 +56,11 @@ popup {
   color: #22262F;
 }
 
+menupopup > menu > menupopup,
+popup > menu > menupopup {
+  margin: -2px;
+}
+
 /* ::::: tooltip ::::: */
 
 tooltip {
