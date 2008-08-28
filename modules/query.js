@@ -166,6 +166,9 @@ GlodaQueryClass.prototype = {
   },
 };
 
+/**
+ * A query that only 'tests' for already belonging to the collection.
+ */
 function GlodaExplicitQueryClass() {
 }
 
@@ -183,6 +186,28 @@ GlodaExplicitQueryClass.prototype = {
   }
 };
 
+/**
+ * A query that 'tests' true for everything.  Intended for debugging purposes
+ *  only.
+ */
+function GlodaWildcardQueryClass() {
+}
+
+GlodaWildcardQueryClass.prototype = {
+  // don't let people try and mess with us
+  or: function() { return null; },
+  // don't let people try and query on us (until we have a real use case for
+  //  that...)
+  getAllSync: function() { return null; },
+  /**
+   * Everybody wins!
+   */
+  test: function gloda_query_explicit_test(aObj) {
+    return true;
+  }
+};
+
+
 function GlodaQueryClassFactory(aNounMeta) {
   let newQueryClass = function() {
     GlodaQueryClass.call(this);
@@ -199,6 +224,14 @@ function GlodaQueryClassFactory(aNounMeta) {
   newExplicitClass.prototype = new GlodaExplicitQueryClass();
   newExplicitClass.prototype._queryClass = newExplicitClass;
   newExplicitClass.prototype._nounMeta = aNounMeta;
+
+  let newWildcardClass = function(aCollection) {
+    GlodaWildcardQueryClass.call(this);
+    this.collection = aCollection;
+  };
+  newWildcardClass.prototype = new GlodaWildcardQueryClass();
+  newWildcardClass.prototype._queryClass = newWildcardClass;
+  newWildcardClass.prototype._nounMeta = aNounMeta;
   
-  return [newQueryClass, newExplicitClass];
+  return [newQueryClass, newExplicitClass, newWildcardClass];
 }

@@ -577,8 +577,9 @@ let Gloda = {
     aNounMeta.id = aNounID;
     // if it has a table, you can query on it.  seems straight-forward.
     if (aNounMeta.tableName) {
-      [aNounMeta.queryClass, aNounMeta.explicitQueryClass] =
-        GlodaQueryClassFactory(aNounMeta);
+      [aNounMeta.queryClass, aNounMeta.explicitQueryClass,
+       aNounMeta.wildcardQueryClass] =
+          GlodaQueryClassFactory(aNounMeta);
     }
     if (aNounMeta.cache) {
       let cacheCost = aNounMeta.cacheCost || 1024;
@@ -1181,6 +1182,26 @@ let Gloda = {
     let nounMeta = this._nounIDToMeta[aNounID];
     let collection = new GlodaCollection(aItems, null, null)
     let query = new nounMeta.explicitQueryClass(collection);
+    collection.query = query;
+    GlodaCollectionManager.registerCollection(collection);
+    return collection;
+  },
+  
+  /**
+   * Debugging 'wildcard' collection creation support.  A wildcard collection
+   *  will 'accept' any new item instances presented to the collection manager
+   *  as new.  The result is that it allows you to be notified as new items
+   *  as they are indexed, existing items as they are loaded from the database,
+   *  etc.
+   * Because the items are added to the collection without limit, this will
+   *  result in a leak if you don't do something to clean up after the
+   *  collection.  (Forgetting about the collection will suffice, as it is still
+   *  weakly held.) 
+   */
+  _wildcardCollection: function gloda_ns_explicitCollection(aNounID, aItems) {
+    let nounMeta = this._nounIDToMeta[aNounID];
+    let collection = new GlodaCollection(aItems, null, null)
+    let query = new nounMeta.wildcardQueryClass(collection);
     collection.query = query;
     GlodaCollectionManager.registerCollection(collection);
     return collection;

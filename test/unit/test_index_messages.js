@@ -1,33 +1,34 @@
 
-/**
- * Given a function that generates a set of synthetic messages, feed those
- *  messages to gloda to be indexed, verifying the resulting indexed messages
- *  have the desired properties by calling the provided verification function.
- * This process is executed once for each possible permutation of observation
- *  of the synthetic messages.
- */
-function indexAndVerify() {
-  
-}
 
-function allMessageInSameConversation() {
+
+function allMessageInSameConversation(aSynthMessage, aGlodaMessage, aConvID) {
+  if (aConvID === undefined)
+    return aGlodaMessage.conversationID;
   
+  do_check_eq(aConvID, aGlodaMessage.conversationID);
+  return aConvID;
 }
 
 /**
  * Test our conversation/threading logic.
  */
 function test_threading() {
-  indexAndVerify(scenarios.directReply, allMessageInSameConversation);
-  indexAndVerify(scenarios.missingIntermediary, allMessageInSameConversation);
-  indexAndVerify(scenarios.siblingsMissingParent, allMessageInSameConversation);
+  indexMessagesAndVerify(scenarios.directReply,
+                         allMessageInSameConversation);
+  indexMessagesAndVerify(scenarios.missingIntermediary,
+                         allMessageInSameConversation);
+  indexMessagesAndVerify(scenarios.siblingsMissingParent,
+                         allMessageInSameConversation);
 }
 
 function test_attributes_fundamental() {
   // create a synthetic message
-  let smsg = msgGen.newMessage(); // synthetic message
-  let gmsg = index(sm); // gloda message
+  let smsg = msgGen.newMessage();
   
+  indexMessage(smsg, verify_attributes_fundamental);
+}
+
+function verify_attributes_fundamental(smsg, gmsg) {  
   // -- subject
   do_check_eq(smsg.subject, gmsg.conversation.subject);
   
@@ -59,9 +60,27 @@ function test_message_fulltext() {
   
 }
 
+function test_iterator() {
+  do_test_pending();
+
+  yield test_threading();
+  yield test_attributes_fundamental();
+  
+  do_test_finished();
+  // once the control flow hits the root after do_test_finished, we're done,
+  //  so let's just yield something to avoid callers having to deal with an
+  //  exception indicating completion.
+  yield null;
+}
+
+var gTestIterator = null;
+
+function next_test() {
+  gTestIterator.next();
+}
+
 function run_test() {
   loadLocalMailAccount();
   
-  test_threading();
-  test_attributes_fundamental();
+  gTestIterator = test_iterator();
 }

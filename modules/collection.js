@@ -352,6 +352,17 @@ function GlodaCollection(aItems, aQuery, aListener) {
 GlodaCollection.prototype = {
   get listener() { return this._listener; },
   set listener(aListener) { this._listener = aListener; },
+  
+  /**
+   * Clear the contents of this collection.  This only makes sense for explicit
+   *  collections or wildcard collections.  (Actual query-based collections
+   *  should represent the state of the query, so unless we're going to delete
+   *  all the items, clearing the collection would violate that constraint.)
+   */
+  clear: function() {
+    this._idMap = {};
+    this.items = [];
+  },
 
   _onItemsAdded: function(aItems) {
     this.items.push.apply(this.items, aItems);

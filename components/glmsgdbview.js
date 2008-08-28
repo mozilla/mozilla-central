@@ -35,6 +35,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+/*
+ * This file contains a partially implemented nsIMsgDBView backed by gloda.
+ * It is not a sufficient replacement for any nsIMsgDBView at this time.
+ * The plan is to cram messages into a cross-folder search view implementation
+ *  and use it to display the gloda messages for now. 
+ */
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
