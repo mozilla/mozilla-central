@@ -484,39 +484,7 @@ mime_generate_headers (nsMsgCompFields *fields,
   if (NS_SUCCEEDED(rv) && pHTTPHandler)
   {
     nsCAutoString userAgentString;
-#ifdef MOZ_THUNDERBIRD
-
-    nsCString userAgentOverride;
-    prefs->GetCharPref("general.useragent.override", getter_Copies(userAgentOverride));
-
-    // allow a user to override the default UA
-    if (userAgentOverride.IsEmpty())
-    {
-      nsCOMPtr<nsIXULAppInfo> xulAppInfo (do_GetService(XULAPPINFO_SERVICE_CONTRACTID, &rv));
-      if (NS_SUCCEEDED(rv))
-      {
-        xulAppInfo->GetName(userAgentString);
-
-        nsCAutoString productSub;
-        pHTTPHandler->GetProductSub(productSub);
-
-        nsCAutoString platform;
-        pHTTPHandler->GetPlatform(platform);
-
-        userAgentString += "/";
-        userAgentString += NS_STRINGIFY(MOZ_APP_VERSION);
-        userAgentString += " (";
-        userAgentString += platform;
-        userAgentString += "; ";
-        userAgentString += productSub;
-        userAgentString += ")";
-      }
-    }
-    else
-      userAgentString = userAgentOverride;
-#else
-      pHTTPHandler->GetUserAgent(userAgentString);
-#endif
+    pHTTPHandler->GetUserAgent(userAgentString);
 
     if (!userAgentString.IsEmpty())
     {
