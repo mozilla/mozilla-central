@@ -23,7 +23,7 @@
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Scott MacGregor <mscott@netscape.com>
  *   Pierre Phaneuf <pp@ludusdesign.com>
- *   Håkan Waara <hwaara@chello.se>
+ *   HÃ¥kan Waara <hwaara@chello.se>
  *   David Bienvenu <bienvenu@nventure.com>
  *   Markus Hossner <markushossner@gmx.de>
  *
@@ -91,7 +91,6 @@
 #undef GetPort  // XXX Windows!
 #undef SetPort  // XXX Windows!
 
-#define PREF_NETWORK_HOSTS_NNTP_SERVER  "network.hosts.nntp_server"
 #define PREF_MAIL_ROOT_NNTP   "mail.root.nntp"        // old - for backward compatibility only
 #define PREF_MAIL_ROOT_NNTP_REL   "mail.root.nntp-rel"
 
