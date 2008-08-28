@@ -154,15 +154,8 @@
           events="create, mode_switch"
           oncommandupdate="goUpdateComposerMenuItems(this)"
   >
-    <command id="cmd_undo"/>
-    <command id="cmd_redo"/>
-    <command id="cmd_cut"/>
-    <command id="cmd_copy"/>
-    <command id="cmd_paste"/>  
     <command id="cmd_pasteNoFormatting" oncommand="goDoCommand('cmd_pasteNoFormatting')"
              label="&pasteNoFormatting.label;" accesskey="&pasteNoFormatting.accesskey;"/>
-    <command id="cmd_delete"/>
-    <command id="cmd_selectAll"/>
     <command id="cmd_preferences"   oncommand="goDoCommand('cmd_preferences')"/>
     <command id="cmd_find"          oncommand="goDoCommand('cmd_find')"/>
     <command id="cmd_findNext"      oncommand="goDoCommand('cmd_findNext')"     label="&findAgainCmd.label;"/>
