@@ -63,6 +63,7 @@ var gBuiltExpandedView = false;
 var gBuiltCollapsedView = false;
 var gMessengerBundle;
 var gProfileDirURL;
+var gHeadersShowReferences = false;
 var gShowCondensedEmailAddresses = true; // show the friendly display names for people I know instead of the name + email address
 
 // other components may listen to on start header & on end header notifications for each message we display
@@ -231,9 +232,11 @@ function OnLoadMsgHeaderPane()
   // displaying a message...
   gMinNumberOfHeaders = pref.getIntPref("mailnews.headers.minNumHeaders");
   gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
+  gHeadersShowReferences = pref.getBoolPref("mailnews.headers.showReferences");
 
   // listen to the
   pref.addObserver("mail.showCondensedAddresses", MsgHdrViewObserver, false);
+  pref.addObserver("mailnews.headers.showReferences", MsgHdrViewObserver, false);
 
   initializeHeaderViewTables();
 
@@ -250,6 +253,7 @@ function OnLoadMsgHeaderPane()
 function OnUnloadMsgHeaderPane()
 {
   pref.removeObserver("mail.showCondensedAddresses", MsgHdrViewObserver);
+  pref.removeObserver("mailnews.headers.showReferences", MsgHdrViewObserver);
 
   // dispatch an event letting any listeners know that we have unloaded the message pane
   var event = document.createEvent('Events');
@@ -268,6 +272,11 @@ const MsgHdrViewObserver =
       if (prefName == "mail.showCondensedAddresses")
       {
         gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
+        MsgReload();
+      }
+      else if (prefName == "mailnews.headers.showReferences")
+      {
+        gHeadersShowReferences = pref.getBoolPref("mailnews.headers.showReferences");
         MsgReload();
       }
     }
@@ -802,11 +811,8 @@ function UpdateMessageHeaders()
 
     if (headerEntry)
     {
-      var showReference = Components.classes["@mozilla.org/preferences-service;1"]
-                                    .getService(Components.interfaces.nsIPrefBranch2)
-                                    .getBoolPref("mailnews.headers.showReferences")
       if (headerName == "references" &&
-          !(gViewAllHeaders || showReference ||
+          !(gViewAllHeaders || gHeadersShowReferences ||
             (gDBView.msgFolder && gDBView.msgFolder.server.type == "nntp")))
       {
         // hide references header if view all headers mode isn't selected, the pref show references is
