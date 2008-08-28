@@ -666,6 +666,7 @@ nsresult nsPop3GetMailChainer::RunNextGetNewMail()
       }
     }
   }
+  rv = m_listener ? m_listener->OnStopRunningUrl(nsnull, NS_OK) : NS_OK;
   Release(); // release ref to ourself.
-  return (m_listener) ? m_listener->OnStopRunningUrl(nsnull, NS_OK) : NS_OK;
+  return rv;
 }
