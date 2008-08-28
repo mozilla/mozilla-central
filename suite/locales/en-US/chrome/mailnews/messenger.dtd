@@ -422,7 +422,6 @@
 <!ENTITY markAllReadCmd.label "All Read">
 <!ENTITY markAllReadCmd.accesskey "A">
 <!ENTITY markAllReadCmd.key "c">
-<!ENTITY markAllReadCmdUnix.key "m">
 <!ENTITY markFlaggedCmd.label "Flag">
 <!ENTITY markFlaggedCmd.accesskey "F">
 <!ENTITY markFlaggedCmd.key "i">

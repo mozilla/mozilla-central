@@ -349,11 +349,7 @@
 
   <key id="key_groupBySort" key="&groupBySortCmd.key;" oncommand="MsgGroupBySort();"/>
 
-#ifdef MOZ_WIDGET_GTK2
-  <key id="key_markAllRead" key="&markAllReadCmd.key;"               oncommand="goDoCommand('cmd_markAllRead');" modifiers="shift"/>
-#else
   <key id="key_markAllRead" key="&markAllReadCmd.key;"               oncommand="goDoCommand('cmd_markAllRead');" modifiers="accel, shift"/>
-#endif
 
   <key id="key_markThreadAsRead" key="&markThreadAsReadCmd.key;"     oncommand="goDoCommand('cmd_markThreadAsRead')"/>
   <key id="key_markReadByDate" key="&markReadByDateCmd.key;"         oncommand="goDoCommand('cmd_markReadByDate')"/>
