@@ -509,7 +509,7 @@ panel[nomatch="true"] > .autocomplete-search-box {
 }
 
 #search-button {
-  list-style-image: url("chrome://communicator/skin/icons/search.gif");
+  list-style-image: url("chrome://global/skin/icons/search.gif");
 }
 
 /* ::::: navigator throbber ::::: */

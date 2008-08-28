@@ -90,8 +90,12 @@
 #sidebar-close-button {
   margin: 0px 1px;
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#toolbarbutton-image");
-  padding: 4px 2px 4px 4px;
+  padding: 0px;
   list-style-image: url("chrome://global/skin/icons/closebox.gif");
+}
+
+#sidebar-close-button > .toolbarbutton-icon {
+  margin: 0px;
 }
 
 /* ::::: loading info ::::: */
