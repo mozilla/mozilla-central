@@ -15,10 +15,13 @@ LDAPCSDK_DIRS = ('directory/c-sdk',)
 CHATZILLA_DIRS = ('extensions/irc',)
 VENKMAN_DIRS = ('extensions/venkman',)
 
+DEFAULT_COMM_REV = "tip"
 # URL of the default hg repository to clone for Mozilla.
 DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/mozilla-central/'
+DEFAULT_MOZILLA_REV = "tip"
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
+DEFAULT_INSPECTOR_REV = "tip"
 
 import os
 import sys
@@ -45,20 +48,23 @@ def check_call_noisy(cmd, *args, **kwargs):
     print "Executing command:", cmd
     check_call(cmd, *args, **kwargs)
 
-def do_hg_pull(dir, repository, hg):
+def do_hg_pull(dir, repository, hg, rev):
     fulldir = os.path.join(topsrcdir, dir)
     # clone if the dir doesn't exist, pull if it does
     if not os.path.exists(fulldir):
         fulldir = os.path.join(topsrcdir, dir)
         check_call_noisy([hg, 'clone', repository, fulldir])
     else:
-        if options.verbose:
-            cmd = [hg, 'pull', '-u', '-v', '-R', fulldir]
-        else:
-            cmd = [hg, 'pull', '-u', '-R', fulldir]
+        cmd = [hg, 'pull', '-R', fulldir]
         if repository is not None:
             cmd.append(repository)
         check_call_noisy(cmd)
+    # update to specific revision
+    if options.verbose:
+        cmd = [hg, 'update', '-v', '-r', rev, '-R', fulldir]
+    else:
+        cmd = [hg, 'update', '-r', rev, '-R', fulldir]
+    check_call_noisy(cmd)
     check_call([hg, 'parent', '-R', fulldir,
                 '--template=Updated to revision {node}.\n'])
 
@@ -88,6 +94,9 @@ o.add_option("-m", "--comm-repo", dest="comm_repo",
 o.add_option("--skip-comm", dest="skip_comm",
              action="store_true", default=False,
              help="Skip pulling the comm (Calendar/Mail/Suite) repository.")
+o.add_option("--comm-rev", dest="comm_rev",
+             default=DEFAULT_COMM_REV,
+             help="Revision of comm (Calendar/Mail/Suite) repository to update to. Default: \"" + DEFAULT_COMM_REV + "\"")
 
 o.add_option("-z", "--mozilla-repo", dest="mozilla_repo",
              default=None,
@@ -95,6 +104,9 @@ o.add_option("-z", "--mozilla-repo", dest="mozilla_repo",
 o.add_option("--skip-mozilla", dest="skip_mozilla",
              action="store_true", default=False,
              help="Skip pulling the Mozilla repository.")
+o.add_option("--mozilla-rev", dest="mozilla_rev",
+             default=DEFAULT_MOZILLA_REV,
+             help="Revision of Mozilla repository to update to. Default: \"" + DEFAULT_MOZILLA_REV + "\"")
 
 o.add_option("--inspector-repo", dest="inspector_repo",
              default=None,
@@ -102,6 +114,9 @@ o.add_option("--inspector-repo", dest="inspector_repo",
 o.add_option("--skip-inspector", dest="skip_inspector",
              action="store_true", default=False,
              help="Skip pulling the DOM inspector repository.")
+o.add_option("--inspector-rev", dest="inspector_rev",
+             default=DEFAULT_INSPECTOR_REV,
+             help="Revision of DOM inspector repository to update to. Default: \"" + DEFAULT_INSPECTOR_REV + "\"")
 
 o.add_option("--skip-cvs", dest="skip_cvs",
              action="store_true", default=False,
@@ -165,13 +180,13 @@ fixup_repo_options(options)
 
 if action in ('checkout', 'co'):
     if not options.skip_comm:
-        do_hg_pull('.', options.comm_repo, options.hg)
+        do_hg_pull('.', options.comm_repo, options.hg, options.comm_rev)
 
     if not options.skip_mozilla:
-        do_hg_pull('mozilla', options.mozilla_repo, options.hg)
+        do_hg_pull('mozilla', options.mozilla_repo, options.hg, options.mozilla_rev)
 
     if not options.skip_inspector:
-        do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg)
+        do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg, options.inspector_rev)
 
     if not options.skip_cvs:
         if not options.skip_calendar:
