@@ -38,7 +38,12 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/pref-viewing_messages.dtd">
+<!DOCTYPE overlay [
+<!ENTITY % pref-viewing_messagesDTD SYSTEM "chrome://messenger/locale/pref-viewing_messages.dtd">
+%pref-viewing_messagesDTD;
+<!ENTITY % editorOverlayDTD SYSTEM "chrome://editor/locale/editorOverlay.dtd">
+%editorOverlayDTD;
+]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="viewing_messages_pane"
@@ -81,6 +86,9 @@
       <preference id="mail.citation_color"
                   name="mail.citation_color"
                   type="string"/>
+      <preference id="mail.showCondensedAddresses"
+                  name="mail.showCondensedAddresses"
+                  type="bool"/>
     </preferences>
 
     <groupbox align="start">
@@ -101,6 +109,10 @@
       <checkbox id="disableContent" label="&disableContent.label;"
                 accesskey="&disableContent.accesskey;"
                 preference="mailnews.message_display.disable_remote_image"/>
+      <checkbox id="showCondensedAddresses"
+                label="&showCondensedAddresses.label;"
+                accesskey="&showCondensedAddresses.accesskey;"
+                preference="mail.showCondensedAddresses"/>
 
       <separator class="thin"/>
 
@@ -138,15 +150,17 @@
 
     <groupbox>
       <caption label="&displayPlainText.caption;"/>
-      <label value="&plainTextFont.label;" control="mailFixedWidthMessages"/>
-      <hbox class="indent" align="center">
-        <radiogroup id="mailFixedWidthMessages" orient="horizontal"
-                    preference="mail.fixed_width_messages">
-          <radio value="true" label="&fixedWidth.label;"
-                 accesskey="&fixedWidth.accesskey;"/>
-          <radio value="false" label="&variableWidth.label;"
-                 accesskey="&variableWidth.accesskey;"/>
-        </radiogroup>
+      <hbox align="center">
+        <label value="&fontPlainText.label;"
+               accesskey="&fontPlainText.accesskey;"
+               control="mailFixedWidthMessages"/>
+        <menulist id="mailFixedWidthMessages"
+                  preference="mail.fixed_width_messages">
+          <menupopup>
+            <menuitem value="true" label="&fontFixedWidth.label;"/>
+            <menuitem value="false" label="&fontVarWidth.label;"/>
+          </menupopup>
+        </menulist>
       </hbox>
 
       <separator class="thin"/>

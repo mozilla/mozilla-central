@@ -202,6 +202,8 @@ pref("messenger.throbber.url", "chrome://messenger-region/locale/region.properti
 pref("compose.throbber.url", "chrome://messenger-region/locale/region.properties");
 pref("addressbook.throbber.url", "chrome://messenger-region/locale/region.properties");
 pref("mail.accountwizard.deferstorage", false);
+// |false|: Show both name and address, even for people in my addressbook.
+pref("mail.showCondensedAddresses", false);
 #endif
 
 // the format for "mail.addr_book.quicksearchquery.format" is:

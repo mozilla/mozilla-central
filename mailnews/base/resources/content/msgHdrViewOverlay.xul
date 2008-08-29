@@ -75,7 +75,10 @@
 </popup>
 
 <popup id="emailAddressPopup" popupanchor="bottomleft"
-       onpopupshowing="goUpdateCommand('cmd_createFilterFromPopup');">
+       onpopupshowing="fillEmailAddressPopup(document.popupNode);
+                       goUpdateCommand('cmd_createFilterFromPopup');">
+  <menuitem id="emailAddressPlaceHolder" label="" disabled="true"/>
+  <menuseparator/>
   <menuitem label="&SendMailTo.label;"
             accesskey="&SendMailTo.accesskey;"
             oncommand="SendMailToNode(document.popupNode)"/>
@@ -120,9 +123,6 @@
   <menuitem id="file-deleteAllAttachments" label="&deleteAllAttachmentsCmd.label;" 
     accesskey="&deleteAllAttachmentsCmd.accesskey;" oncommand="HandleMultipleAttachments('deleteAttachment', currentAttachments);" />
 </popup>
-
-<tooltip id="attachmentListTooltip"
-         onpopupshowing="return FillInAttachmentTooltip(document.tooltipNode);"/> 
 
 <hbox id="msgHeaderView" keywordrelated="true" originalclass="none" persist="state">
 

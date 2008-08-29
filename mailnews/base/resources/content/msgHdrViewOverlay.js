@@ -52,8 +52,10 @@
 // view in the message header pane. 
 ////////////////////////////////////////////////////////////////////////////////////
 
-var msgHeaderParserContractID		   = "@mozilla.org/messenger/headerparser;1";
-var abAddressCollectorContractID	 = "@mozilla.org/addressbook/services/addressCollecter;1";
+const msgHeaderParserContractID      = "@mozilla.org/messenger/headerparser;1";
+const abAddressCollectorContractID   = "@mozilla.org/addressbook/services/addressCollecter;1";
+const kPersonalAddressbookUri        = "moz-abmdbdirectory://abook.mab";
+const kRDFServiceContractID          = "@mozilla.org/rdf/rdf-service;1";
 
 var gViewAllHeaders = false;
 var gShowOrganization = false;
@@ -75,6 +77,10 @@ var gProfileDirURL;
 var gIOService;
 var gFileHandler;
 var gExtraExpandedHeaders;
+// Show the friendly display names for people I know, instead of the name + email address.
+var gShowCondensedEmailAddresses;
+// Used for determining if we want to show just the display name in email address nodes.
+var gPersonalAddressBookDirectory;
 
 var msgHeaderParser = Components.classes[msgHeaderParserContractID].getService(Components.interfaces.nsIMsgHeaderParser);
 var abAddressCollector = null;
@@ -247,11 +253,15 @@ function OnLoadMsgHeaderPane()
   gCollectIncoming = pref.getBoolPref("mail.collect_email_address_incoming");
   gCollectNewsgroup = pref.getBoolPref("mail.collect_email_address_newsgroup");
   gCollectOutgoing = pref.getBoolPref("mail.collect_email_address_outgoing");
+  gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
   gShowUserAgent = pref.getBoolPref("mailnews.headers.showUserAgent");
   gShowOrganization = pref.getBoolPref("mailnews.headers.showOrganization");
   gShowReferences = pref.getBoolPref("mailnews.headers.showReferences");
   gShowMessageId = pref.getBoolPref("mailnews.headers.showMessageId");
   gExtraExpandedHeaders = pref.getCharPref("mailnews.headers.extraExpandedHeaders");
+
+  pref.addObserver("mail.showCondensedAddresses", MsgHdrViewObserver, false);
+
   initializeHeaderViewTables();
 
   var toggleHeaderView = document.getElementById("msgHeaderView");
@@ -268,12 +278,30 @@ function OnLoadMsgHeaderPane()
 
 function OnUnloadMsgHeaderPane()
 {
+  pref.removeObserver("mail.showCondensedAddresses", MsgHdrViewObserver);
+
   // dispatch an event letting any listeners know that we have unloaded the message pane
   var event = document.createEvent('Events');
   event.initEvent('messagepane-unloaded', false, true);
   var headerViewElement = document.getElementById("msgHeaderView");
   headerViewElement.dispatchEvent(event);
 }
+
+const MsgHdrViewObserver =
+{
+  observe: function(subject, topic, prefName)
+  {
+    // verify that we're changing the mail pane config pref
+    if (topic == "nsPref:changed")
+    {
+      if (prefName == "mail.showCondensedAddresses")
+      {
+        gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
+        MsgReload();
+      }
+    }
+  }
+};
 
 // The messageHeaderSink is the class that gets notified of a message's headers as we display the message
 // through our mime converter. 
@@ -919,9 +947,9 @@ function OutputMessageIds(headerEntry, headerValue)
 }
 
 // OutputEmailAddresses --> knows how to take a comma separated list of email addresses,
-// extracts them one by one, linkifying each email address into a mailto url. 
-// Then we add the link'ified email address to the parentDiv passed in.
-// 
+// extracts them one by one, linkifying each email address into a mailto url.
+// Then we add the link-ified email address to the parentDiv passed in.
+//
 // emailAddresses --> comma separated list of the addresses for this header field
 
 function OutputEmailAddresses(headerEntry, emailAddresses)
@@ -1021,13 +1049,63 @@ function setFromBuddyIcon(email)
 function updateEmailAddressNode(emailAddressNode, address)
 {
   emailAddressNode.setAttribute("label", address.fullAddress || address.displayName);
-  emailAddressNode.removeAttribute("tooltiptext");
   emailAddressNode.setAttribute("emailAddress", address.emailAddress);
   emailAddressNode.setAttribute("fullAddress", address.fullAddress);
   emailAddressNode.setAttribute("displayName", address.displayName);
-  
-  if ("AddExtraAddressProcessing" in this)
-    AddExtraAddressProcessing(address.emailAddress, emailAddressNode);
+  emailAddressNode.removeAttribute("tooltiptext");
+
+  AddExtraAddressProcessing(address.emailAddress, emailAddressNode);
+}
+
+function AddExtraAddressProcessing(emailAddress, addressNode)
+{
+  if (!gShowCondensedEmailAddresses)
+    return;
+
+  const displayName = addressNode.getAttribute("displayName");
+  if (!(displayName && useDisplayNameForAddress(emailAddress)))
+    return;
+
+  // Don't condense the address for the from and reply-to fields.
+  const parentElementId = addressNode.parentNode.id;
+  if (parentElementId == "expandedfromBox" ||
+      parentElementId == "expandedreply-toBox")
+    return;
+
+  addressNode.setAttribute("label", displayName);
+  addressNode.setAttribute("tooltiptext", emailAddress);
+}
+
+function fillEmailAddressPopup(emailAddressNode)
+{
+  document.getElementById("emailAddressPlaceHolder")
+          .setAttribute("label", emailAddressNode.getAttribute("emailAddress"));
+}
+
+// returns true if we should use the display name for this address
+// otherwise returns false
+function useDisplayNameForAddress(emailAddress)
+{
+  // For now, if the email address is in the personal address book, then
+  // consider this user a 'known' user and use the display name. I could
+  // eventually see our rules enlarged to include other local ABs, replicated
+  // LDAP directories, and maybe even domain matches (i.e. any email from
+  // someone in my company should use the friendly display name).
+
+  if (!gPersonalAddressBookDirectory)
+  {
+    gPersonalAddressBookDirectory =
+      Components.classes[kRDFServiceContractID]
+                .getService(Components.interfaces.nsIRDFService)
+                .GetResource(kPersonalAddressbookUri)
+                .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
+
+    if (!gPersonalAddressBookDirectory)
+      return false;
+  }
+
+  // look up the email address in the database
+  return gPersonalAddressBookDirectory.cardForEmailAddress(emailAddress);
 }
 
 // createnewAttachmentInfo --> constructor method for creating new attachment object which goes into the
@@ -1251,7 +1329,7 @@ function displayAttachmentsForExpandedView()
       var item = attachmentList.appendItem(displayName, "");
       item.setAttribute("crop", "center");
       item.setAttribute("class", "listitem-iconic attachment-item"); 
-      item.setAttribute("tooltip", "attachmentListTooltip");
+      item.setAttribute("tooltiptext", attachment.displayName);
       item.attachment = attachment;
       item.setAttribute("attachmentUrl", attachment.url);
       item.setAttribute("attachmentContentType", attachment.contentType);
@@ -1282,15 +1360,6 @@ function displayAttachmentsForCollapsedView()
   var numAttachments = currentAttachments.length;
   var attachmentNode = document.getElementById('collapsedAttachmentBox');
   attachmentNode.collapsed = numAttachments <= 0; // make sure the attachment button is visible
-}
-
-// Public method called to generate a tooltip over an attachment
-function FillInAttachmentTooltip(cellNode)
-{
-  var attachmentName = cellNode.getAttribute("label");
-  var tooltipNode = document.getElementById("attachmentListTooltip");
-  tooltipNode.setAttribute("label", attachmentName);
-  return true;
 }
 
 // Public method called when we create the attachments file menu
