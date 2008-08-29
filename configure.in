@@ -7858,6 +7858,9 @@ fi
 if test -n "$HAVE_64BIT_OS"; then
     ac_configure_args="$ac_configure_args --enable-64bit"
 fi
+if test -n "$L10NBASEDIR"; then
+    ac_configure_args="$ac_configure_args --with-l10n-base=$L10NBASEDIR"
+fi
 # for Mac universal builds, we need to call the Mozilla configure with MOZ_BUILD_APP=[ppc|i386]
 MOZ_BUILD_APP_CACHED="$MOZ_BUILD_APP"
 if test -n "$MOZ_CURRENT_PROJECT"; then
