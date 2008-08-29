@@ -1383,7 +1383,8 @@ let GlodaIndexer = {
       isNew = true;
     }
     else {
-      isNew = (curMsg._messageKey === null); // aka was-a-ghost
+      isNew = (curMsg._folderID === null); // aka was-a-ghost
+      // (messageKey can be null if it's not new in the move-case)
       curMsg._folderID = this._datastore._mapFolderURI(aMsgHdr.folder.URI);
       curMsg._messageKey = aMsgHdr.messageKey;
       curMsg.date = new Date(aMsgHdr.date / 1000); 
