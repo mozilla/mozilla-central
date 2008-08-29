@@ -41,7 +41,7 @@ const MSG_FOLDER_FLAG_INBOX = 0x1000
 
 var gFilterListMsgWindow = null;
 var gCurrentFilterList;
-var gCurrentServer;
+var gCurrentFolder;
 
 var gStatusFeedback = {
   progressMeterVisible : false,
@@ -110,28 +110,28 @@ function onLoad()
         firstItem = getServerThatCanHaveFilters();
 
     if (firstItem) {
-        selectServer(firstItem);
+        selectFolder(firstItem.rootFolder);
     }
 
     window.tryToClose = onFilterClose;
 }
 
 /**
- * Called when a user selects a server in the list, so we can update the filters
+ * Called when a user selects a folder in the list, so we can update the filters
  * that are displayed
  *
- * @param aServer  the nsIMsgIncomingServer that was selected
+ * @param aFolder  the nsIMsgFolder that was selected
  */
-function onFilterServerClick(aServer)
+function onFilterFolderClick(aFolder)
 {
-    if (!aServer || aServer == gCurrentServer)
+    if (!aFolder || aFolder == gCurrentFolder)
       return;
 
     // Save the current filters to disk before switching because
     // the dialog may be closed and we'll lose current filters.
     gCurrentFilterList.saveToDefaultFile();
 
-    selectServer(aServer);
+    selectFolder(aFolder);
 }
 
 function CanRunFiltersAfterTheFact(aServer)
@@ -145,13 +145,11 @@ function CanRunFiltersAfterTheFact(aServer)
   return aServer.canSearchMessages;
 }
 
-// roots the tree at the specified server
-function setServer(aServer)
+// roots the tree at the specified folder
+function setFolder(msgFolder)
 {
-   if (aServer == gCurrentServer)
+   if (msgFolder == gCurrentFolder)
      return;
-
-   var msgFolder = aServer.rootFolder;
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
    var filterList = msgFolder.getFilterList(gFilterListMsgWindow);
@@ -171,6 +169,7 @@ function setServer(aServer)
 
      // for POP3 and IMAP, select the first folder, which is the INBOX
      document.getElementById("runFiltersFolder").selectedIndex = 0;
+     runMenu.selectFolder(getFirstFolder(msgFolder));
    }
    else {
      document.getElementById("runFiltersFolder").setAttribute("hidden", "true");
@@ -180,10 +179,9 @@ function setServer(aServer)
 
    // Get the first folder for this server. INBOX for
    // imap and pop accts and 1st news group for news.
-   runMenu.selectFolder(getFirstFolder(msgFolder));
    updateButtons();
 
-   gCurrentServer = aServer;
+   gCurrentFolder = msgFolder;
 }
 
 function toggleFilter(aFilter, aIndex)
@@ -204,13 +202,13 @@ function toggleFilter(aFilter, aIndex)
 }
 
 // sets up the menulist and the filter list
-function selectServer(aServer)
+function selectFolder(aFolder)
 {
     // update the server menu
     var serverMenu = document.getElementById("serverMenuPopup");
-    serverMenu.selectFolder(aServer.rootFolder);
+    serverMenu.selectFolder(aFolder);
 
-    setServer(aServer);
+    setFolder(aFolder);
 }
 
 function currentFilter()

@@ -71,8 +71,9 @@
            accesskey="&filtersForPrefix.accesskey;" control="serverMenu"/>
 
         <menulist id="serverMenu"
-                  oncommand="onFilterServerClick(event.target._folder.server)">
-        <menupopup id="serverMenuPopup" type="folder" mode="filters" expandFolders="false"/>
+                  oncommand="onFilterFolderClick(event.target._folder)">
+        <menupopup id="serverMenuPopup" type="folder" mode="filters"
+          expandFolders="nntp" headlabels="&choosethisnewsserver.label;" />
       </menulist>
       <spacer flex="1"/> 
       <vbox>

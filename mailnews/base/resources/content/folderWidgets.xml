@@ -395,11 +395,43 @@
           if (this._parentFolder)
             folders = folders.sort(nameCompare);
 
+          /* In some cases, the user wants to have a list of subfolders for only
+           * some account types (or maybe all of them). So we use this to
+           * determine what the user wanted.
+           */
+           var shouldExpand;
+           var labels = null;
+           if (this.getAttribute("expandFolders") == "true" ||
+               !this.hasAttribute("expandFolders")) {
+             shouldExpand = function (e) { return true; };
+           } else if (this.getAttribute("expandFolders") == "false") {
+             shouldExpand = function (e) { return false; };
+           } else {
+             /* We want a subfolder list for only some servers. We also may need
+              * to create headers to select the servers. If so, then headlabels
+              * is a comma-delimited list of labels corresponding to the server
+              * types specified in expandFolders.
+              */
+             var types = this.getAttribute("expandFolders").split(/ *, */);
+             // Set the labels. labels[type] = label
+             if (this.hasAttribute("headlabels")) {
+               var labelNames = this.getAttribute("headlabels").split(/ *, */);
+               labels = {};
+               // If the length isn't equal, don't give them any of the labels,
+               // since any combination will probably be wrong.
+               if (labelNames.length == types.length) {
+                 for (var index in types)
+                   labels[types[index]] = labelNames[index];
+               }
+             }
+             shouldExpand = function (e) { return types.indexOf(e) != -1; };
+           }
+
           for each (var folder in folders) {
             var node;
             // If we're going to add subFolders, we need to make menus, not
             // menuitems.
-            if (!folder.hasSubFolders || this.getAttribute("expandFolders") == "false") {
+            if (!folder.hasSubFolders || !shouldExpand(folder.server.type)) {
               node = document.createElement("menuitem");
               // Grumble, grumble, legacy code support
               node.setAttribute("id", folder.URI);
@@ -411,8 +443,20 @@
               node = document.createElement("menu");
               node.setAttribute("class", "folderMenuItem menu-iconic");
               this.appendChild(node);
+
+              // Create the submenu
               var popup = this.cloneNode(true);
               popup._teardown();
+
+              // If there are labels, add the labels now
+              if (labels) {
+                var serverNode = document.createElement("menuitem");
+                serverNode.setAttribute("label", labels[folder.server.type]);
+                serverNode._folder = folder;
+                popup.appendChild(serverNode);
+                popup.appendChild(document.createElement("menuseparator"));
+              }
+
               node.appendChild(popup);
               popup.parentFolder = folder;
             }
@@ -623,6 +667,13 @@
                 this._parentFolder.isAncestorOf(aFolder))) {
               // Making an assumption about our DOM positioning here.
               this.parentNode.selectedIndex = i;
+              return;
+            }
+            // Is this a subfolder (that we expect to see)?
+            if (child.tagName == "menu" && child._folder.isAncestorOf(aFolder)) {
+              // If this is a subfolder of what's in question, we merely appear
+              // to select this node.
+              this.parentNode.setAttribute("label", aFolder.name);
               return;
             }
           }
