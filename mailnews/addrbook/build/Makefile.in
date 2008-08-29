@@ -103,7 +103,6 @@ ifeq ($(OS_ARCH),Darwin)
 EXTRA_DSO_LDOPTS += \
     $(TK_LIBS) \
     -framework Cocoa \
-    -framework AddressBook \
     $(NULL)
 endif
 

@@ -228,7 +228,7 @@ DEFINES += -DAPP_VERSION="$(APP_VERSION)" -DAPP_UA_NAME="$(APP_UA_NAME)"
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 ifdef BUILD_STATIC_LIBS
-LIBS	+= -lcups -framework AddressBook
+LIBS	+= -lcups
 endif
 LIBS	+= -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework Carbon
 endif
