@@ -1475,6 +1475,9 @@ let GlodaDatastore = {
             }
             // - string case (LIKE)
             else {
+              // this will result in a warning in debug builds.  as we move to
+              //  supporting async operation, we should also move to binding all
+              //  arguments for dynamic queries too. 
               valueTests.push(valueColumnName + " LIKE " + valueQuoter(APV[2]));
             }
           }
@@ -1752,7 +1755,6 @@ let GlodaDatastore = {
     if (identities.length)
       GlodaCollectionManager.cacheLoadUnify(GlodaIdentity.prototype.NOUN_ID,
                                             identities);
-    
     return identities;
   },
 };

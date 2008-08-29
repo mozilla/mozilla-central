@@ -55,8 +55,6 @@ function nsAutoCompleteGlodaResult(aCompleter, aString, aResults, aDone) {
   this._results = aResults;
   this._done = aDone || false;
   this._problem = false;
-  
-  this.matchCount = aResults.length;
 }
 nsAutoCompleteGlodaResult.prototype = {
   _results: null,
@@ -77,7 +75,9 @@ nsAutoCompleteGlodaResult.prototype = {
   },
   defaultIndex: -1,
   errorDescription: null,
-  matchCount: 0,
+  get matchCount() {
+    return (this._results === null) ? 0 : this._results.length;
+  },
   getValueAt: function(aIndex) {
     let thing = this._results[aIndex];
     return thing.name || thing.value || thing.subject;
@@ -207,7 +207,7 @@ nsAutoCompleteGloda.prototype = {
       matches = matches.concat(convSubjectCollection.items);
     }
     */
-    
+
     // - match against database contacts / identities
     // XXX this should be deferred
     // XXX this should also be async (when we have async support)
@@ -245,7 +245,7 @@ nsAutoCompleteGloda.prototype = {
     
     // XXX what they hey, just nuke them.  making this all very sketchy
     this.outstandingSearches = {};
-  
+
     var result = new nsAutoCompleteGlodaResult(this, aString, matches, true);
     this.outstandingSearches[aListener] = result;
     aListener.onSearchResult(this, result);
