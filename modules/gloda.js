@@ -193,9 +193,10 @@ let Gloda = {
                                                         aMsgHdr.messageKey);
     if (message === null) {
       message = GlodaDatastore.getMessageByMessageID(aMsgHdr.messageId);
-      this._log.info("Fell back to locating message by id; actual message " +
-                     "key is: " + aMsgHdr.messageKey + " database key: " +
-                     message.messageKey);
+      if (message)
+        this._log.info("Fell back to locating message by id; actual message " +
+                       "key is: " + aMsgHdr.messageKey + " database key: " +
+                       message.messageKey);
     }
     
     return message;
