@@ -30,7 +30,7 @@ function copyFileMessage(file, destFolder, isDraftOrTemplate)
 {
   copyListener.mFolderStoredIn = destFolder;
   gExpectedEvents = [[gMFNService.msgAdded, gHdrsReceived]];
-  gCopyService.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, copyListener, null);
+  gCopyService.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, "", copyListener, null);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
     resetStatusAndProceed();

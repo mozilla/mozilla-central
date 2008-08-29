@@ -344,7 +344,7 @@ function run_test()
   var bugmail1 = do_get_file("../mailnews/test/data/bugmail1");
   do_test_pending();
   copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                              copyListener, null);
+                              "", copyListener, null);
 }
 
 // process each test from queue, calls itself upon completion of each search

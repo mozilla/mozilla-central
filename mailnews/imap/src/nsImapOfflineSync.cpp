@@ -463,6 +463,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
                     /* nsIMsgDBHdr* msgToReplace */ nsnull,
                     PR_TRUE /* isDraftOrTemplate */,
                     0, // new msg flags - are there interesting flags here?
+                    EmptyCString(), /* are there keywords we should get? */
                       this,
                       m_window);
                 }

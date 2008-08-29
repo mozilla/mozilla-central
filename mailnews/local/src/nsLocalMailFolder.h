@@ -93,6 +93,8 @@ struct nsLocalMailCopyState
   PRPackedBool m_allowUndo;
   PRPackedBool m_writeFailed;
   PRPackedBool m_notifyFolderLoaded;
+  nsCString    m_newMsgKeywords;
+  nsCOMPtr <nsIMsgDBHdr> newHdr;
 };
 
 struct nsLocalFolderScanState
@@ -175,6 +177,7 @@ public:
   NS_IMETHOD CopyFileMessage(nsIFile* aFile, nsIMsgDBHdr* msgToReplace,
                              PRBool isDraftOrTemplate, 
                              PRUint32 newMsgFlags,
+                             const nsACString &aNewMsgKeywords,
                              nsIMsgWindow *msgWindow,
                              nsIMsgCopyServiceListener* listener);
   NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener);

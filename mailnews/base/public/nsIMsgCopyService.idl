@@ -50,7 +50,7 @@ interface nsIMsgWindow;
 interface nsIFile;
 interface nsIArray;
 
-[scriptable, uuid(4010d881-6c83-4f8d-9332-d44564cee14a)]
+[scriptable, uuid(f21e428b-73c5-4607-993b-d37325b33722)]
 interface nsIMsgCopyService : nsISupports {
 
     /**
@@ -78,6 +78,7 @@ interface nsIMsgCopyService : nsISupports {
                          in nsIMsgDBHdr msgToReplace,
                          in boolean isDraftOrTemplate,
                          in unsigned long aMsgFlags,
+                         in ACString aMsgKeywords,
                          in nsIMsgCopyServiceListener listener,
                          in nsIMsgWindow msgWindow);
 

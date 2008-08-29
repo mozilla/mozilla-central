@@ -4050,6 +4050,7 @@ nsMsgDBFolder::CopyFileMessage(nsIFile* aFile,
                              nsIMsgDBHdr* messageToReplace,
                              PRBool isDraftOrTemplate,
                              PRUint32 aNewMsgFlags,
+                             const nsACString &aNewMsgKeywords,
                              nsIMsgWindow *window,
                              nsIMsgCopyServiceListener* listener)
 {

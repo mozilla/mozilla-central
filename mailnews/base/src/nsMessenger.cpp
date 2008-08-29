@@ -1634,7 +1634,7 @@ nsSaveMsgListener::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
         nsCOMPtr <nsIFile> clone;
         m_file->Clone(getter_AddRefs(clone));
         rv = copyService->CopyFileMessage(clone, templateFolder, nsnull,
-                                          PR_TRUE, MSG_FLAG_READ, this, nsnull);
+                                          PR_TRUE, MSG_FLAG_READ, EmptyCString(), this, nsnull);
       }
       killSelf = PR_FALSE;
     }
@@ -2564,8 +2564,10 @@ nsDelAttachListener::OnStopRequest(nsIRequest * aRequest, nsISupports * aContext
   mMsgFile->Clone(getter_AddRefs(clone));
   if (copyService)
   {
+    nsCString originalKeys;
+    mOriginalMessage->GetStringProperty("keywords", getter_Copies(originalKeys));
     rv = copyService->CopyFileMessage(clone, mMessageFolder, nsnull, PR_FALSE,
-                                      mOrigMsgFlags, listenerCopyService, mMsgWindow);
+                                      mOrigMsgFlags, originalKeys, listenerCopyService, mMsgWindow);
   }
   return rv;
 }

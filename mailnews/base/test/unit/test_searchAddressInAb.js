@@ -248,7 +248,7 @@ var copyListener =
     { 
       var file = do_get_file(fileName);
       copyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
-                              copyListener, null);
+                              "", copyListener, null);
     }
     else
       testAbSearch();

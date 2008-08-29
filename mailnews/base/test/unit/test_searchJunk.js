@@ -221,7 +221,7 @@ function run_test()
   do_test_pending();
   var file = do_get_file(fileName);
   copyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
-                              copyListener, null);
+                              "", copyListener, null);
   return true;
 }
 

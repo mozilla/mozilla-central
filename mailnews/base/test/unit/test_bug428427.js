@@ -69,7 +69,7 @@ function run_test()
 
   // function setupVirtualFolder() continues the testing after CopyFileMessage.
   copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                              copyListener, null);
+                              "", copyListener, null);
   return true;
 }
 
@@ -87,7 +87,7 @@ var copyListener =
   {
     if (--messageCount)
       copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                                  copyListener, null);
+                                  "", copyListener, null);
     else
       setupVirtualFolder();
   }

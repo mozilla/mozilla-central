@@ -68,7 +68,7 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(68b5b459-bb89-4ea1-9513-60e763770908)]
+[scriptable, uuid(ecf2bf05-f08f-4c4b-8b52-41a37292e9d3)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -353,6 +353,7 @@ interface nsIMsgFolder : nsISupports {
 
   void copyFileMessage(in nsIFile file, in nsIMsgDBHdr msgToReplace,
                        in boolean isDraft, in unsigned long newMsgFlags,
+                       in ACString aKeywords,
                        in nsIMsgWindow msgWindow,
                        in nsIMsgCopyServiceListener listener);
 

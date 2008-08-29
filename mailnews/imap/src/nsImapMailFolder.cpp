@@ -4292,12 +4292,12 @@ NS_IMETHODIMP nsImapMailFolder::GetCurMoveCopyMessageInfo(nsIImapUrl *runningUrl
   if (copyState)
   {
     nsCOMPtr<nsImapMailCopyState> mailCopyState = do_QueryInterface(copyState);
+    PRUint32 supportedFlags = 0;
+    GetSupportedUserFlags(&supportedFlags);
     if (mailCopyState && mailCopyState->m_message)
     {
       nsMsgLabelValue label;
-      PRUint32 supportedFlags = 0;
       mailCopyState->m_message->GetFlags(aResult);
-      GetSupportedUserFlags(&supportedFlags);
       if (supportedFlags & (kImapMsgSupportUserFlag | kImapMsgLabelFlags))
       {
         mailCopyState->m_message->GetLabel(&label);
@@ -4313,7 +4313,11 @@ NS_IMETHODIMP nsImapMailFolder::GetCurMoveCopyMessageInfo(nsIImapUrl *runningUrl
     // then mark the message read, since it must be an append to the
     // fcc or templates folder.
     else if (mailCopyState)
+    {
       *aResult = mailCopyState->m_newMsgFlags;
+      if (aKeywords  && (supportedFlags & kImapMsgSupportUserFlag))
+        *aKeywords = ToNewCString(mailCopyState->m_newMsgKeywords);
+    }
   }
   return NS_OK;
 }
@@ -5893,7 +5897,7 @@ nsImapMailFolder::CopyMessagesWithStream(nsIMsgFolder* srcFolder,
   nsCOMPtr<nsISupports> aSupport(do_QueryInterface(srcFolder, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = InitCopyState(aSupport, messages, isMove, PR_FALSE, isCrossServerOp,
-    /* new message flags, not used */0, listener, msgWindow, allowUndo);
+                    0, EmptyCString(), listener, msgWindow, allowUndo);
   if(NS_FAILED(rv))
     return rv;
 
@@ -6520,7 +6524,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
 
   rv = QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
   rv = InitCopyState(srcSupport, messages, isMove, PR_TRUE, PR_FALSE,
-    /* newMsgFlags, not used */0, listener, msgWindow, allowUndo);
+                     0, EmptyCString(), listener, msgWindow, allowUndo);
   if (NS_FAILED(rv)) goto done;
 
   m_copyState->m_curIndex = m_copyState->m_totalCount;
@@ -6917,6 +6921,7 @@ nsImapMailFolder::CopyFileMessage(nsIFile* file,
                                   nsIMsgDBHdr* msgToReplace,
                                   PRBool isDraftOrTemplate,
                                   PRUint32 aNewMsgFlags,
+                                  const nsACString &aNewMsgKeywords,
                                   nsIMsgWindow *msgWindow,
                                   nsIMsgCopyServiceListener* listener)
 {
@@ -6944,12 +6949,12 @@ nsImapMailFolder::CopyFileMessage(nsIFile* file,
     }
 
     rv = InitCopyState(srcSupport, messages, PR_FALSE, isDraftOrTemplate,
-                       PR_FALSE, aNewMsgFlags, listener, msgWindow, PR_FALSE);
+                       PR_FALSE, aNewMsgFlags, aNewMsgKeywords, listener, 
+                       msgWindow, PR_FALSE);
     if (NS_FAILED(rv))
       return OnCopyCompleted(srcSupport, rv);
 
     m_copyState->m_streamCopy = PR_TRUE;
-
     nsCOMPtr<nsISupports> copySupport;
     if( m_copyState )
       copySupport = do_QueryInterface(m_copyState);
@@ -7073,6 +7078,7 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
                                 PRBool selectedState,
                                 PRBool acrossServers,
                                 PRUint32 newMsgFlags,
+                                const nsACString &newMsgKeywords,
                                 nsIMsgCopyServiceListener* listener,
                                 nsIMsgWindow *msgWindow,
                                 PRBool allowUndo)
@@ -7132,6 +7138,7 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
 
   m_copyState->m_isMove = isMove;
   m_copyState->m_newMsgFlags = newMsgFlags;
+  m_copyState->m_newMsgKeywords = newMsgKeywords;
   m_copyState->m_allowUndo = allowUndo;
   m_copyState->m_selectedState = selectedState;
   m_copyState->m_msgWindow = msgWindow;

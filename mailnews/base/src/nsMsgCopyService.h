@@ -77,6 +77,7 @@ public:
     nsresult Init(nsCopyRequestType type, nsISupports* aSupport,
                   nsIMsgFolder* dstFolder,
                   PRBool bVal, PRUint32 newMsgFlags, 
+                  const nsACString &newMsgKeywords,
                   nsIMsgCopyServiceListener* listener,
                   nsIMsgWindow *msgWindow, PRBool allowUndo);
     nsCopySource* AddNewCopySource(nsIMsgFolder* srcFolder);
@@ -91,6 +92,7 @@ public:
     PRBool m_allowUndo;
     PRBool m_processed;
     PRUint32 m_newMsgFlags;
+    nsCString m_newMsgKeywords;
     nsString m_dstFolderName;      // used for copy folder.
     nsVoidArray m_copySourceArray; // array of nsCopySource
 };

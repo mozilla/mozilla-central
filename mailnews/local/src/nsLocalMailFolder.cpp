@@ -1520,21 +1520,28 @@ nsMsgLocalMailFolder::OnCopyCompleted(nsISupports *srcSupport, PRBool moveCopySu
   if (mCopyState && mCopyState->m_notifyFolderLoaded)
     NotifyFolderEvent(mFolderLoadedAtom);
 
-  delete mCopyState;
-  mCopyState = nsnull;
   (void) RefreshSizeOnDisk();
   // we are the destination folder for a move/copy
+  PRBool haveSemaphore;
+  nsresult rv = TestSemaphore(static_cast<nsIMsgLocalMailFolder*>(this), &haveSemaphore);
+  if (NS_SUCCEEDED(rv) && haveSemaphore)
+    ReleaseSemaphore(static_cast<nsIMsgLocalMailFolder*>(this));
+
+  if (mCopyState && !mCopyState->m_newMsgKeywords.IsEmpty() && mCopyState->newHdr)
+  {
+    nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+    NS_ENSURE_TRUE(messageArray, rv);
+    messageArray->AppendElement(mCopyState->newHdr, PR_FALSE);
+    AddKeywordsToMessages(messageArray, mCopyState->m_newMsgKeywords);
+  }
   if (moveCopySucceeded && mDatabase)
   {
     mDatabase->SetSummaryValid(PR_TRUE);
     (void) CloseDBIfFolderNotOpen();
   }
 
-  PRBool haveSemaphore;
-  nsresult rv = TestSemaphore(static_cast<nsIMsgLocalMailFolder*>(this), &haveSemaphore);
-  if(NS_SUCCEEDED(rv) && haveSemaphore)
-    ReleaseSemaphore(static_cast<nsIMsgLocalMailFolder*>(this));
-
+  delete mCopyState;
+  mCopyState = nsnull;
   nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   return copyService->NotifyCompletion(srcSupport, this, moveCopySucceeded ? NS_OK : NS_ERROR_FAILURE);
@@ -2057,9 +2064,11 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
 }
 
 NS_IMETHODIMP
-nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile, nsIMsgDBHdr*
-                                      msgToReplace, PRBool isDraftOrTemplate,
+nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile, 
+                                      nsIMsgDBHdr *msgToReplace,
+                                      PRBool isDraftOrTemplate,
                                       PRUint32 newMsgFlags,
+                                      const nsACString &aNewMsgKeywords,
                                       nsIMsgWindow *msgWindow,
                                       nsIMsgCopyServiceListener* listener)
 {
@@ -2073,10 +2082,13 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile, nsIMsgDBHdr*
   if (msgToReplace)
     messages->AppendElement(msgToReplace, PR_FALSE);
 
-  rv = InitCopyState(fileSupport, messages, msgToReplace ? PR_TRUE:PR_FALSE,
+  rv = InitCopyState(fileSupport, messages, msgToReplace ? PR_TRUE : PR_FALSE,
                      listener, msgWindow, PR_FALSE, PR_FALSE);
   if (NS_SUCCEEDED(rv))
   {
+    if (mCopyState)
+      mCopyState->m_newMsgKeywords = aNewMsgKeywords;
+
     parseMsgState = new nsParseMailMessageState();
     if (parseMsgState)
     {
@@ -2380,9 +2392,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
 
     if (!mCopyState->m_isMove)
     {
-      /* passing PR_TRUE because the messages that have been successfully copied have their corresponding
-                     hdrs in place. The message that has failed has been truncated so the msf file and berkeley mailbox
-                    are in sync */
+      // passing PR_TRUE because the messages that have been successfully 
+      // copied have their corresponding hdrs in place. The message that has 
+      // failed has been truncated so the msf file and berkeley mailbox 
+      // are in sync.
       (void) OnCopyCompleted(mCopyState->m_srcSupport, PR_TRUE);
       // enable the dest folder
       EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_FALSE /*dbBatching*/); //dest folder doesn't need db batching
@@ -2470,6 +2483,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
     if (msgDb)
     {
       nsresult result = mCopyState->m_parseMsgState->GetNewMsgHdr(getter_AddRefs(newHdr));
+      // we need to copy newHdr because mCopyState will get cleared 
+      // in OnCopyCompleted, but we need OnCopyCompleted to know about
+      // the newHdr, via mCopyState. And we send a notification about newHdr
+      // after OnCopyCompleted.
+      mCopyState->newHdr = newHdr;
       if (NS_SUCCEEDED(result) && newHdr)
       {
         // need to copy junk score and label from mCopyState->m_message to newHdr.

@@ -114,6 +114,7 @@ public:
     PRBool m_allowUndo;
     PRBool m_eatLF;
     PRBool m_newMsgFlags; // only used if there's no m_message
+    nsCString m_newMsgKeywords; // ditto 
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsImapMailCopyState, NS_IMAPMAILCOPYSTATE_IID)
@@ -291,6 +292,7 @@ public:
                               nsIMsgDBHdr* msgToReplace,
                               PRBool isDraftOrTemplate,
                               PRUint32 aNewMsgFlags,
+                              const nsACString &aNewMsgKeywords,
                               nsIMsgWindow *msgWindow,
                               nsIMsgCopyServiceListener* listener);
   NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener);
@@ -405,6 +407,7 @@ protected:
                           PRBool selectedState,
                           PRBool acrossServers,
                           PRUint32 newMsgFlags,
+                          const nsACString &newMsgKeywords,
                           nsIMsgCopyServiceListener* listener,
                           nsIMsgWindow *msgWindow,
                           PRBool allowUndo);
