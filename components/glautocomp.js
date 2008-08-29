@@ -49,14 +49,14 @@ var Gloda = null;
 var GlodaUtils = null;
 var MultiSuffixTree = null;
 
-function nsAutoCompleteGlodaResult(aCompleter, aString, aResults) {
+function nsAutoCompleteGlodaResult(aCompleter, aString, aResults, aDone) {
   this.completer = aCompleter;
   this.searchString = aString;
   this._results = aResults;
+  this._done = aDone || false;
+  this._problem = false;
   
   this.matchCount = aResults.length;
-  if (this.matchCount)
-    this.searchResult = Ci.nsIAutoCompleteResult.RESULT_SUCCESS; 
 }
 nsAutoCompleteGlodaResult.prototype = {
   _results: null,
@@ -65,7 +65,16 @@ nsAutoCompleteGlodaResult.prototype = {
   },
   // ==== nsIAutoCompleteResult
   searchString: null,
-  searchResult: Ci.nsIAutoCompleteResult.RESULT_FAILURE,
+  get searchResult() {
+    if (this._problem)
+      return Ci.nsIAutoCompleteResult.RESULT_FAILURE;
+    if (this._results.length)
+      return (this._done) ? Ci.nsIAutoCompleteResult.RESULT_SUCCESS
+                          : Ci.nsIAutoCompleteResult.RESULT_SUCCESS_ONGOING;
+    else
+      return (this._done) ? Ci.nsIAutoCompleteResult.RESULT_NOMATCH
+                          : Ci.nsIAutoCompleteResult.RESULT_NOMATCH_ONGOING;
+  },
   defaultIndex: -1,
   errorDescription: null,
   matchCount: 0,
@@ -189,17 +198,55 @@ nsAutoCompleteGloda.prototype = {
     matches = [val.NOUN_ID == Gloda.NOUN_IDENTITY ? val : val.identities[0]
                for each (val in contactToThing)];
     
+    // - match subjects
+    /*
     if (aString.length >= 4) {
       let subjectQuery = Gloda.newQuery(Gloda.NOUN_CONVERSATION);
       subjectQuery.subjectMatches(aString + "*");
       let convSubjectCollection = subjectQuery.getAllSync();
       matches = matches.concat(convSubjectCollection.items);
     }
+    */
+    
+    // - match against database contacts / identities
+    // XXX this should be deferred
+    // XXX this should also be async (when we have async support)
+    if (aString.length >= 3) {
+      let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
+      let contactColl = contactQuery.nameLike("%" + aString + "%").getAllSync();
+
+      let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
+      identityQuery.kind("email").valueLike("%" + aString + "%");
+      let identityColl = identityQuery.getAllSync();
+      
+      let possibleDudes = [];
+      // check identities first because they are better than contacts in terms
+      //  of display
+      for (let iIdentity=0; iIdentity < identityColl.items.length; iIdentity++){
+        let identity = identityColl.items[iIdentity];
+        if (!(identity.contactID in contactToThing)) {
+          contactToThing[identity.contactID] = identity;
+          possibleDudes.push(identity);
+          // augment the identity with its contact's popularity
+          identity.popularity = identity.contact.popularity;
+        }
+      }
+      for (let iContact=0; iContact < contactColl.items.length; iContact++) {
+        let contact = contactColl.items[iContact];
+        if (!(contact.id in contactToThing)) {
+          contactToThing[contact.id] = contact;
+          possibleDudes.push(contact.identities[0]);
+        } 
+      }
+      // sort in order of descending popularity
+      possibleDudes.sort(function(a, b){ return b.popularity - a.popularity; });
+      matches = matches.concat(possibleDudes);
+    }
     
     // XXX what they hey, just nuke them.  making this all very sketchy
     this.outstandingSearches = {};
   
-    var result = new nsAutoCompleteGlodaResult(this, aString, matches);
+    var result = new nsAutoCompleteGlodaResult(this, aString, matches, true);
     this.outstandingSearches[aListener] = result;
     aListener.onSearchResult(this, result);
   },
@@ -214,13 +261,10 @@ nsAutoCompleteGloda.prototype = {
   getObjectForController: function(aController, aIndex) {
     aController.QueryInterface(Ci.nsIAutoCompleteObserver);
     for each (let [controller, search] in Iterator(this.outstandingSearches)) {
-dump("comparing " + controller + " and " + aController + "\n");
       if (controller.native == aController.native) {
-dump("MATCH\n");
         return [search.getObjectAt(aIndex), 0];
       }
     }
-dump("no match :(\n");
     return [null, 0];
   },
 };

@@ -107,6 +107,19 @@ let GlodaFundAttr = {
       });
     
     /* ***** Contacts ***** */
+    this._attrContactName = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "name",
+      bind: false,
+      singular: true,
+      special: Gloda.kSpecialString,
+      specialColumnName: "name",
+      subjectNouns: [Gloda.NOUN_CONTACT],
+      objectNoun: Gloda.NOUN_STRING,
+      explanation: null, // name is internal, no explanation required
+      });
     this._attrContactPopularity = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -147,6 +160,32 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_CONTACT,
       explanation: null, // popularity is internal, no explanation required
+      });
+    this._attrIdentityKind = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "kind",
+      bind: false,
+      singular: true,
+      special: Gloda.kSpecialString,
+      specialColumnName: "kind",
+      subjectNouns: [Gloda.NOUN_IDENTITY],
+      objectNoun: Gloda.NOUN_STRING,
+      explanation: null, // kind is internal, no explanation required
+      });
+    this._attrIdentityValue = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "value",
+      bind: false,
+      singular: true,
+      special: Gloda.kSpecialString,
+      specialColumnName: "value",
+      subjectNouns: [Gloda.NOUN_IDENTITY],
+      objectNoun: Gloda.NOUN_STRING,
+      explanation: null, // value is internal, no explanation required
       });
   
     /* ***** Messages ***** */

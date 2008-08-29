@@ -404,17 +404,23 @@ let Gloda = {
    */
   kSpecialNotAtAll: 0,
   /**
-   * This attribute is stored as a column on the row for the noun.  The
+   * This attribute is stored as a numeric column on the row for the noun.  The
    *  attribute definition should include this value as 'special' and the
    *  column name that stores the attribute as 'specialColumnName'.
    */
   kSpecialColumn: 1,
   /**
+   * This attribute is stored as a string column on the row for the noun.  It
+   *  differs from kSpecialColumn in that it is a string and thus uses different
+   *  query mechanisms.
+   */
+  kSpecialString: 2,
+  /**
    * This attribute is stored as a fulltext column on the fulltext table for
    *  the noun.  The attribute defintion should include this value as 'special'
    *  and the column name that stores the table as 'specialColumnName'.
    */
-  kSpecialFulltext: 2,
+  kSpecialFulltext: 3,
   
   /**
    * The extensionName used for the attributes defined by core gloda plugins
@@ -449,6 +455,11 @@ let Gloda = {
    * Same deal as with NOUN_BOOLEAN, we may need to change this up conceptually.
    */
   NOUN_NUMBER: 2,
+  /**
+   * A (non-fulltext) string.
+   * Same deal as with NOUN_BOOLEAN, we may need to change this up conceptually.
+   */
+  NOUN_STRING: 3,
   /** A date, encoded as a PRTime, represented as a js Date object. */
   NOUN_DATE: 10,
   /**
@@ -699,6 +710,15 @@ let Gloda = {
         return [null, aNum];
       }}, this.NOUN_NUMBER);
     this.defineNoun({
+      name: "string",
+      class: String, firstClass: false,
+      fromParamAndValue: function(aIgnoredParam, aString) {
+        return aString;
+      },
+      toParamAndValue: function(aString) {
+        return [null, aString];
+      }}, this.NOUN_STRING);
+    this.defineNoun({
       name: "date",
       class: Date, firstClass: false, continuous: true,
       fromParamAndValue: function(aParam, aPRTime) {
@@ -925,6 +945,7 @@ let Gloda = {
 
       subjectNounMeta.queryClass.prototype[aBindName] = constrainer;
       
+      // - ranged value helper: fooRange
       if (nounMeta.continuous) {
         let rangedConstrainer = function() {
           // all the arguments provided end up being ORed together
@@ -941,6 +962,27 @@ let Gloda = {
         
         subjectNounMeta.queryClass.prototype[aBindName + "Range"] =
           rangedConstrainer;
+      }
+      
+      // - string LIKE helper for special on-row attributes: fooLike
+      if (aAttr.special == this.kSpecialString) {
+        let likeConstrainer = function() {
+          let our_ors = [];
+          for(let iArg=0; iArg < arguments.length; iArg++) {
+            let argument = arguments[iArg];
+            let this_or = [aAttr].concat(nounMeta.toParamAndValue(argument));
+            // we are pushing it up to a length of 4 to signify that this is a
+            //  LIKE query rather than an exact match.  this results in a
+            //  similar decision process to the numeric case.
+            this_or.push("LIKE");
+            our_ors.push(this_or);
+          }
+          this._constraints.push(our_ors);
+          return this;
+        }
+        
+        subjectNounMeta.queryClass.prototype[aBindName + "Like"] =
+          likeConstrainer;
       }
     }
 

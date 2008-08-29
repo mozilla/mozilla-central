@@ -55,7 +55,8 @@ Cu.import("resource://gloda/modules/collection.js");
 
 // XXX from Gloda.js.  duplicated here for dependency reasons.  bad!
 const kSpecialColumn = 1;
-const kSpecialFulltext = 2;
+const kSpecialString = 2;
+const kSpecialFulltext = 3;
 
 /**
  * Database abstraction layer.  Contains explicit SQL schemas for our
@@ -1344,6 +1345,13 @@ let GlodaDatastore = {
     return attribParamVals;
   },
   
+  _stringSQLQuoter: function(aString) {
+    return "'" + aString.replace("'", "''", "g") + "'";
+  },
+  _numberQuoter: function(aNum) {
+    return aNum;
+  },
+  
   /**
    * Perform a database query given a GlodaQueryClass instance that specifies
    *  a set of constraints relating to the noun type associated with the query.
@@ -1397,16 +1405,22 @@ let GlodaDatastore = {
           continue;
         }
         
-        let tableName, idColumnName, valueColumnName;
-        if (presumedAttr.special == kSpecialColumn) {
+        let tableName, idColumnName, valueColumnName, valueQuoter;
+        if (presumedAttr.special == kSpecialColumn ||
+            presumedAttr.special == kSpecialString) {
           tableName = nounMeta.tableName;
           idColumnName = "id"; // canonical id for a table is "id".
           valueColumnName = presumedAttr.specialColumnName;
+          if (presumedAttr.special == kSpecialString)
+            valueQuoter = this._stringSQLQuoter;
+          else
+            valueQuoter = this._numberQuoter;
         }
         else {
           tableName = nounMeta.attrTableName;
           idColumnName = nounMeta.attrIDColumnName;
           valueColumnName = "value";
+          valueQuoter = this._numberQuoter;
         }
         
         // we want a net 'or' for everyone in here, where 'everyone' is presumed
@@ -1430,7 +1444,8 @@ let GlodaDatastore = {
             attributeID = APV[0].id;
           if (attributeID != lastAttributeID) {
             valueTests = [];
-            if (APV[0].special == kSpecialColumn)
+            if (APV[0].special == kSpecialColumn ||
+                APV[0].special == kSpecialString)
               attrValueTests.push(["", valueTests]);
             else
               attrValueTests.push(["attributeID = " + attributeID + " AND ",
@@ -1441,18 +1456,27 @@ let GlodaDatastore = {
           // straight value match?
           if (APV.length == 3) {
             if (APV[2] != null)
-              valueTests.push(valueColumnName + " = " + APV[2]);
+              valueTests.push(valueColumnName + " = " + valueQuoter(APV[2]));
           }
+          // (quoting is not required for ranges because we only support ranges
+          //  for numbers.  as such, no use of valueQuoter in here.)
           else { // APV.length == 4, so range match
-            if (APV[2] === null) // so just <=
-              valueTests.push(valueColumnName + " <= " + APV[3]);
-            else if (APV[3] === null) // so just >=
-            // BETWEEN is optimized to >= and <=, or we could just do that
-            //  ourself (in other words, this shouldn't hurt our use of indices)
-              valueTests.push(valueColumnName + " >= " + APV[2]);
-            else
-              valueTests.push(valueColumnName + " BETWEEN " + APV[2] + " AND " +
-                              APV[3]);
+            // - numeric case (no quoting in here)
+            if (presumedAttr.special != kSpecialString) {
+              if (APV[2] === null) // so just <=
+                valueTests.push(valueColumnName + " <= " + APV[3]);
+              else if (APV[3] === null) // so just >=
+              // BETWEEN is optimized to >= and <=, or we could just do that
+              //  ourself (in other words, this shouldn't hurt our use of indices)
+                valueTests.push(valueColumnName + " >= " + APV[2]);
+              else
+                valueTests.push(valueColumnName + " BETWEEN " + APV[2] +
+                                  " AND " + APV[3]);
+            }
+            // - string case (LIKE)
+            else {
+              valueTests.push(valueColumnName + " LIKE " + valueQuoter(APV[2]));
+            }
           }
         }
         let select = "SELECT " + idColumnName + " FROM " + tableName + 

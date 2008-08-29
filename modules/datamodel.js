@@ -282,7 +282,7 @@ GlodaMessage.prototype = {
                    this._datastore._mapFolderID(this._folderID));
     if (folder instanceof Ci.nsIMsgFolder) {
       this._folderMessage = folder.GetMessageHeader(this._messageKey);
-      if (this._folderMessage != null) {
+      if (this._folderMessage !== null) {
         // verify the message-id header matches what we expect...
         if (this._folderMessage.messageId != this._headerMessageID) {
           LOG.info("Message with message key does not match expected " +
