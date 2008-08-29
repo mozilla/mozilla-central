@@ -59,6 +59,9 @@
       <preference id="mail.forward_message_mode"
                   name="mail.forward_message_mode"
                   type="int"/>
+      <preference id="mail.reply_quote_inline"
+                  name="mail.reply_quote_inline"
+                  type="bool"/>
       <preference id="mail.compose.autosave"
                   name="mail.compose.autosave"
                   type="bool"
@@ -112,6 +115,10 @@
                accesskey="&asAttachment.accesskey;"/>
       </radiogroup>
   
+      <checkbox id="replyQuoteInline" label="&replyQuoteInline.label;"
+                preference="mail.reply_quote_inline"
+                accesskey="&replyQuoteInline.accesskey;"/>
+
       <hbox align="center">
         <checkbox id="autoSave" label="&autoSave.label;"
                   preference="mail.compose.autosave"

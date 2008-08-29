@@ -44,6 +44,8 @@
 <!ENTITY asAttachment.label                   "As Attachment">
 <!ENTITY asAttachment.accesskey               "A">
 
+<!ENTITY replyQuoteInline.label               "Quote attachments viewed inline in replies">
+<!ENTITY replyQuoteInline.accesskey           "Q">
 <!ENTITY warnOnSendAccelKey.label             "Confirm when using keyboard shortcut to send message">
 <!ENTITY warnOnSendAccelKey.accesskey         "k">
 <!-- LOCALIZATION NOTE (autoSave.label): This will concatenate with
