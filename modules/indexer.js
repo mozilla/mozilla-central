@@ -259,7 +259,8 @@ let GlodaIndexer = {
       let notificationService =
         Cc["@mozilla.org/messenger/msgnotificationservice;1"].
         getService(Ci.nsIMsgFolderNotificationService);
-      notificationService.addListener(this._msgFolderListener);
+      notificationService.addListener(this._msgFolderListener,
+                                      Ci.nsIMsgFolderNotificationService.all);
       
       this._enabled = true;
     }
