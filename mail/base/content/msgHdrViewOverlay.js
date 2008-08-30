@@ -937,14 +937,8 @@ function updateEmailAddressNode(emailAddressNode, address)
   AddExtraAddressProcessing(address.emailAddress, emailAddressNode);
 }
 
-// thunderbird has smart logic for determining if we should show just the display name.
-// mozilla already has a generic method that gets called on each email address node called
-// AddExtraAddressProcessing which is undefined in seamonkey. Let's hijack this convient method to do what
-// we want.
-
 function AddExtraAddressProcessing(emailAddress, addressNode)
 {
-
   if (gShowCondensedEmailAddresses)
   {
     // always show the address for the from and reply-to fields
