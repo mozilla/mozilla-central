@@ -296,7 +296,19 @@ function fillFolderPaneContextMenu()
   var isVirtualFolder = (specialFolder == "Virtual");
   var canGetMessages =  (isServer && (serverType != "nntp") && (serverType !="none")) || isNewsgroup;
 
-  EnableMenuItem("folderPaneContext-properties", true);
+  if (!isServer)
+  {
+    ShowMenuItem("folderPaneContext-settings", false);
+    ShowMenuItem("folderPaneContext-properties", true);
+    EnableMenuItem("folderPaneContext-properties", true);
+  }
+  else
+  {
+    ShowMenuItem("folderPaneContext-properties", false);
+    ShowMenuItem("folderPaneContext-settings", true);
+    EnableMenuItem("folderPaneContext-settings", true);
+  }
+
   ShowMenuItem("folderPaneContext-getMessages", (numSelected <= 1) && canGetMessages);
   EnableMenuItem("folderPaneContext-getMessages", true);
 

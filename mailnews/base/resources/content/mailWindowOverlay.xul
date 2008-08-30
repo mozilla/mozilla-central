@@ -785,6 +785,10 @@
         label="&folderContextProperties.label;"
         accesskey="&folderContextProperties.accesskey;"
         oncommand="MsgFolderProperties();"/>
+    <menuitem id="folderPaneContext-settings"
+              label="&folderContextSettings.label;"
+              accesskey="&folderContextSettings.accesskey;"
+              oncommand="MsgFolderProperties();"/>
   </popup>
 
   <popup id="messagePaneContext"

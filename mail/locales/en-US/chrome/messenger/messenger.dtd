@@ -522,6 +522,8 @@
 <!ENTITY folderContextProperties.accesskey "P">
 <!ENTITY folderContextFavoriteFolder.label "Favorite Folder">
 <!ENTITY folderContextFavoriteFolder.accesskey "a">
+<!ENTITY folderContextSettings.label "Settings…">
+<!ENTITY folderContextSettings.accesskey "e">
 
 <!-- Search Bar -->
 <!ENTITY SearchNameOrEmail.label "Name or Email contains:">
