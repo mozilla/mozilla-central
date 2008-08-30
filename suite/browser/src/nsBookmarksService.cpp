@@ -1985,8 +1985,8 @@ nsBookmarksService::GetBookmarkToPing(nsIRDFResource **theBookmark)
     if (NS_FAILED(rv = GetSources(kWEB_ScheduleActive, kTrueLiteral, PR_TRUE, getter_AddRefs(srcList))))
         return rv;
 
-    nsCOMPtr<nsISupportsArray>  bookmarkList;
-    if (NS_FAILED(rv = NS_NewISupportsArray(getter_AddRefs(bookmarkList))))
+    nsCOMPtr<nsISupportsArray> bookmarkList(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
+    if (NS_FAILED(rv))
         return rv;
 
     // build up a list of potential bookmarks to check
@@ -2443,8 +2443,7 @@ nsBookmarksService::OnStopRequest(nsIRequest* request, nsISupports *ctxt,
                     if (wwatch)
                     {
                         nsCOMPtr<nsIDOMWindow> newWindow;
-                        nsCOMPtr<nsISupportsArray> suppArray;
-                        rv = NS_NewISupportsArray(getter_AddRefs(suppArray));
+                        nsCOMPtr<nsISupportsArray> suppArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
                         if (NS_FAILED(rv)) return rv;
 
                         nsCOMPtr<nsISupportsString> suppString(do_CreateInstance("@mozilla.org/supports-string;1", &rv));
@@ -4398,9 +4397,8 @@ NS_IMETHODIMP
 nsBookmarksService::GetAllCmds(nsIRDFResource* source,
                    nsISimpleEnumerator/*<nsIRDFResource>*/** commands)
 {
-    nsCOMPtr<nsISupportsArray>  cmdArray;
     nsresult            rv;
-    rv = NS_NewISupportsArray(getter_AddRefs(cmdArray));
+    nsCOMPtr<nsISupportsArray> cmdArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
     if (NS_FAILED(rv))  return rv;
 
     // determine type

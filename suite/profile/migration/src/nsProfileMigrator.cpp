@@ -96,8 +96,7 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
   // By opening the Migration FE with a supplied spm, it will automatically
   // migrate from it.
   nsCOMPtr<nsIWindowWatcher> ww(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-  nsCOMPtr<nsISupportsArray> params;
-  NS_NewISupportsArray(getter_AddRefs(params));
+  nsCOMPtr<nsISupportsArray> params(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
   if (!ww || !params)
     return NS_ERROR_FAILURE;
 

@@ -779,7 +779,7 @@ InternetSearchDataSource::Init()
                                   getter_AddRefs(mLocalstore));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = NS_NewISupportsArray(getter_AddRefs(mUpdateArray));
+  mUpdateArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // register this as a named data source with the service manager
@@ -1444,8 +1444,7 @@ InternetSearchDataSource::ArcLabelsOut(nsIRDFResource *source,
 
   if ((source == mNC_SearchEngineRoot) || (source == mNC_LastSearchRoot) || isSearchURI(source))
   {
-            nsCOMPtr<nsISupportsArray> array;
-            rv = NS_NewISupportsArray(getter_AddRefs(array));
+            nsCOMPtr<nsISupportsArray> array(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
             if (NS_FAILED(rv)) return rv;
 
             array->AppendElement(mNC_Child);
@@ -1542,9 +1541,8 @@ NS_IMETHODIMP
 InternetSearchDataSource::GetAllCmds(nsIRDFResource* source,
                                      nsISimpleEnumerator/*<nsIRDFResource>*/** commands)
 {
-  nsCOMPtr<nsISupportsArray>  cmdArray;
   nsresult      rv;
-  rv = NS_NewISupportsArray(getter_AddRefs(cmdArray));
+  nsCOMPtr<nsISupportsArray> cmdArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
   if (NS_FAILED(rv))  return(rv);
 
   // check if we have any filters, enable command to clear them
@@ -1909,12 +1907,11 @@ InternetSearchDataSource::filterSite(nsIRDFResource *aResource)
 
   // remove all anonymous resources which have this as a site
 
-  nsCOMPtr<nsISupportsArray>  array;
   nsCOMPtr<nsIRDFResource>  aRes;
   nsCOMPtr<nsISimpleEnumerator> cursor;
   PRBool        hasMore;
 
-  rv = NS_NewISupportsArray(getter_AddRefs(array));
+  nsCOMPtr<nsISupportsArray> array(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
   if (NS_FAILED(rv)) return rv;
 
   if (NS_FAILED(rv = GetAllResources(getter_AddRefs(cursor))))  return(rv);
