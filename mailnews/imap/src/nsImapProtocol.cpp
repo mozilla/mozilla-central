@@ -319,8 +319,14 @@ static PRBool gUseEnvelopeCmd = PR_FALSE;
 static PRBool gUseLiteralPlus = PR_TRUE;
 static PRBool gExpungeAfterDelete = PR_FALSE;
 static PRBool gCheckDeletedBeforeExpunge = PR_FALSE; //bug 235004
-static PRInt32 gExpungeThreshold = 20;
 static PRInt32 gResponseTimeout = 60;
+
+static const PRInt32 kAutoExpungeNever = 0;
+static const PRInt32 kAutoExpungeAlways = 1;
+static const PRInt32 kAutoExpungeOnThreshold = 2;
+static PRInt32 gExpungeOption = 0;
+static PRInt32 gExpungeThreshold = 20;
+
 
 nsresult nsImapProtocol::GlobalInitialization(nsIPrefBranch *aPrefBranch)
 {
@@ -345,6 +351,7 @@ nsresult nsImapProtocol::GlobalInitialization(nsIPrefBranch *aPrefBranch)
                              &gExpungeAfterDelete);
     aPrefBranch->GetBoolPref("mail.imap.check_deleted_before_expunge",
                              &gCheckDeletedBeforeExpunge);
+    aPrefBranch->GetIntPref("mail.imap.expunge_option", &gExpungeOption);
     aPrefBranch->GetIntPref("mail.imap.expunge_threshold_number",
                             &gExpungeThreshold);
     aPrefBranch->GetIntPref("mailnews.tcptimeout", &gResponseTimeout);
@@ -3771,10 +3778,12 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
           }
         }
         PRInt32 numDeleted = m_flagState->NumberOfDeletedMessages();
-        // Don't do expunge when we are lite selecting folder because we could be doing undo
-        if ((numDeleted >= gExpungeThreshold) &&
-                 !GetShowDeletedMessages() && 
-                 m_imapAction != nsIImapUrl::nsImapLiteSelectFolder)
+        // Don't do expunge when we are lite selecting folder because we could be doing undo.
+        // Do expunge if we've reached the threshold or we're using the IMAP Delete
+        // model (mark messages as deleted) and it's set to always expunge
+        if (m_imapAction != nsIImapUrl::nsImapLiteSelectFolder &&
+              (numDeleted >= gExpungeThreshold ||
+                (GetShowDeletedMessages() && gExpungeOption == kAutoExpungeAlways)))
           Expunge();
       }
     }
