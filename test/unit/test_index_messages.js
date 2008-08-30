@@ -1,5 +1,13 @@
+do_import_script("../mailnews/base/test/resources/messageGenerator.js");
 
+do_import_script("../mailnews/test/resources/mailDirService.js");
+do_import_script("../mailnews/test/resources/mailTestUtils.js");
+do_import_script("../mailnews/db/global/test/resources/glodaTestHelper.js");
 
+// Create a message generator
+var msgGen = new MessageGenerator();
+// Create a message scenario generator using that message generator
+var scenarios = new MessageScenarioFactory(msgGen);
 
 function allMessageInSameConversation(aSynthMessage, aGlodaMessage, aConvID) {
   if (aConvID === undefined)
@@ -13,19 +21,19 @@ function allMessageInSameConversation(aSynthMessage, aGlodaMessage, aConvID) {
  * Test our conversation/threading logic.
  */
 function test_threading() {
-  indexMessagesAndVerify(scenarios.directReply,
-                         allMessageInSameConversation);
-  indexMessagesAndVerify(scenarios.missingIntermediary,
-                         allMessageInSameConversation);
-  indexMessagesAndVerify(scenarios.siblingsMissingParent,
-                         allMessageInSameConversation);
+  indexAndPermuteMessages(scenarios.directReply,
+                          allMessageInSameConversation);
+  indexAndPermuteMessages(scenarios.missingIntermediary,
+                          allMessageInSameConversation);
+  indexAndPermuteMessages(scenarios.siblingsMissingParent,
+                          allMessageInSameConversation);
 }
 
 function test_attributes_fundamental() {
   // create a synthetic message
   let smsg = msgGen.newMessage();
   
-  indexMessage(smsg, verify_attributes_fundamental);
+  indexMessages([smsg], verify_attributes_fundamental);
 }
 
 function verify_attributes_fundamental(smsg, gmsg) {  
@@ -80,7 +88,8 @@ function next_test() {
 }
 
 function run_test() {
-  loadLocalMailAccount();
-  
   gTestIterator = test_iterator();
+  
+  do_test_pending();
+  next_test();
 }
