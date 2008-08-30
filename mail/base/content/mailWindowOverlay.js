@@ -2670,9 +2670,10 @@ function OnMsgParsed(aUrl)
   if (!findBar.hidden)
     findBar.onFindAgainCommand(false);
 
-  // run the phishing detector on the message
+  // Run the phishing detector on the message if it hasn't been marked as not
+  // a scam already.
   var msgHdr = msgHdrForCurrentMessage();
-  if (msgHdr && msgHdr.getUint32Property("notAPhishMessage"))
+  if (msgHdr && !msgHdr.getUint32Property("notAPhishMessage"))
     gPhishingDetector.analyzeMsgForPhishingURLs(aUrl);
 
   // notify anyone (e.g., extensions) who's interested in when a message is loaded.
