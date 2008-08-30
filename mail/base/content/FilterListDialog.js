@@ -243,15 +243,26 @@ function onDeleteFilter()
   var items = document.getElementById("filterList").selectedItems;
   if (!items.length)
     return;
-
+ 
+  var checkValue = {value:false};
+  var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                             .getService(Components.interfaces.nsIPrefService)
+                             .getBranch(null);
   var bundle = document.getElementById("bundle_filter");
   var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                             .getService(Components.interfaces.nsIPromptService);
-  if (promptSvc.confirmEx(window, null,
-                          bundle.getString("deleteFilterConfirmation"),
-                          promptSvc.STD_YES_NO_BUTTONS,
-                          '', '', '', '', {}))
+  if ((prefBranch.getBoolPref("mailnews.filters.confirm_delete")) && 
+      (promptSvc.confirmEx(window, null,
+                           bundle.getString("deleteFilterConfirmation"),
+                           promptSvc.STD_YES_NO_BUTTONS,
+                           '', '', '', 
+                           bundle.getString('dontWarnAboutDeleteCheckbox'),
+                           checkValue)))
     return;
+    
+  if (checkValue.value) 
+     prefBranch.setBoolPref("mailnews.filters.confirm_delete", false);
+     
   for each (var item in items) {
     gCurrentFilterList.removeFilter(item._filter);
     document.getElementById("filterList").removeChild(item);

@@ -90,6 +90,10 @@ pref("mailnews.messageid.openInNewWindow",   false);
 // in browser (%mid ist replaced with the message-id)
 pref("mailnews.messageid_browser.url", "chrome://messenger-region/locale/region.properties");
 
+
+// hidden pref for whether or not to warn when deleting filters. Default YES
+pref("mailnews.filters.confirm_delete", true);
+
 // space-delimited list of extra headers to show in msg header display area.
 pref("mailnews.headers.extraExpandedHeaders", "");
 
