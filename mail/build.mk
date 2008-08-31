@@ -84,5 +84,8 @@ installer:
 package:
 	@$(MAKE) -C mail/installer
 
+package-compare:
+	@$(MAKE) -C mail/installer package-compare
+
 install::
 	@$(MAKE) -C mail/installer install
