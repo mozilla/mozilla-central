@@ -486,7 +486,7 @@
 <!ENTITY junkButton.label "Junk">
 <!ENTITY notJunkButton.label "Not Junk">
 
-<!--Tooltips-->
+<!-- Tooltips -->
 <!ENTITY menuBar.tooltip "Menu Bar">
 <!ENTITY mailToolbar.tooltip "Mail Toolbar">
 <!ENTITY locationToolbar.tooltip "Location Toolbar">
@@ -579,7 +579,7 @@
 <!ENTITY folderContextSettings.label "Settings…">
 <!ENTITY folderContextSettings.accesskey "e">
 
-<!---SearchBar-->
+<!-- Search Bar -->
 <!-- also used by addressbook -->
 <!ENTITY SearchSubjectOrFrom.label "Subject or From contains:">
 <!ENTITY SearchSubjectOrFrom.accesskey "S">
