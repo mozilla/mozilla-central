@@ -187,9 +187,13 @@
 <!--
           <treeitem label="&cache.label;"
                     url="chrome://communicator/content/pref/pref-cache.xul"/>
+-->
           <treeitem id="proxiesItem"
                     label="&proxies.label;"
+                    prefpane="proxies_pane"
+                    helpTopic="advanced_pref_proxies"
                     url="chrome://communicator/content/pref/pref-proxies.xul"/>
+<!--
           <treeitem label="&httpnetworking.label;"
                     url="chrome://communicator/content/pref/pref-http.xul"/>
 -->

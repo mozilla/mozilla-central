@@ -22,6 +22,7 @@
 
  Contributor(s):
     Stefan Borggraefe <Stefan.Borggraefe@gmx.de>
+    Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -38,165 +39,221 @@
  ***** END LICENSE BLOCK ***** -->
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE dialog SYSTEM "chrome://communicator/locale/pref/pref-proxies-advanced.dtd" >
+<!DOCTYPE prefwindow SYSTEM "chrome://communicator/locale/pref/pref-proxies-advanced.dtd" >
 
-<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        id="advancedProxyPreferences"
-        title="&pref.proxies.advanced.title;"
-        onload="onLoad();"
-        buttons="accept,cancel,help"
-        ondialogaccept="return sendSettingsToProxyPanel();"
-        ondialoghelp="openHelp('nav-prefs-advanced-proxy-advanced', 'chrome://communicator/locale/help/suitehelp.rdf');"
-        style="width: 33em;"
-        persist="screenX,screenY">
+<prefwindow xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+            id="advancedProxyPreferences"
+            type="child"
+            onload="AdvancedInit();"
+            title="&pref.proxies.advanced.title;"
+            style="width: 54ch;"
+            persist="screenX screenY">
 
   <script type="application/x-javascript"
-          src="chrome://help/content/contextHelp.js"/>
+          src="chrome://communicator/content/pref/pref-proxies.js"/>
   <script type="application/x-javascript"
-          src="chrome://communicator/content/pref/pref-proxies-advanced.js"/>
+          src="chrome://communicator/content/pref/preferences.js"/>
 
-  <groupbox>
-    <caption label="&protocols.caption;"/>
-    <description>&protocols.description;</description>
+  <prefpane helpTopic="nav-prefs-advanced-proxy-advanced"
+            helpURI="chrome://communicator/locale/help/suitehelp.rdf">
+    <preferences>
+      <preference id="network.proxy.http"
+                  name="network.proxy.http"
+                  type="string"
+                  onchange="DoProxyHostCopy(this.value);"/>
+      <preference id="network.proxy.http_port"
+                  name="network.proxy.http_port"
+                  type="int"
+                  onchange="DoProxyPortCopy(this.value);"/>
+      <preference id="network.proxy.ssl"
+                  name="network.proxy.ssl"
+                  type="string"/>
+      <preference id="network.proxy.ssl_port"
+                  name="network.proxy.ssl_port"
+                  type="int"/>
+      <preference id="network.proxy.ftp"
+                  name="network.proxy.ftp"
+                  type="string"/>
+      <preference id="network.proxy.ftp_port"
+                  name="network.proxy.ftp_port"
+                  type="int"/>
+      <preference id="network.proxy.gopher"
+                  name="network.proxy.gopher"
+                  type="string"/>
+      <preference id="network.proxy.gopher_port"
+                  name="network.proxy.gopher_port"
+                  type="int"/>
+      <preference id="network.proxy.share_proxy_settings"
+                  name="network.proxy.share_proxy_settings"
+                  type="bool"
+                  onchange="DoProxyCopy(this.value);"/>
+      <preference id="network.proxy.socks"
+                  name="network.proxy.socks"
+                  type="string"/>
+      <preference id="network.proxy.socks_port"
+                  name="network.proxy.socks_port"
+                  type="int"/>
+      <preference id="network.proxy.socks_version"
+                  name="network.proxy.socks_version"
+                  type="int"/>
+      <preference id="network.proxy.socks_remote_dns"
+                  name="network.proxy.socks_remote_dns"
+                  type="bool"/>
+    </preferences>
 
-    <grid>
-      <columns>
-        <column/>
-        <column flex="1"/>
-      </columns>
+    <groupbox>
+      <caption label="&protocols.caption;"/>
+      <description>&protocols.description;</description>
 
-      <rows>
-        <row align="center">
-          <hbox align="center" pack="end">
-            <label value="&http.label;" accesskey="&http.accesskey;"
-                   control="networkProxyHTTP"/>
-          </hbox>
-          <hbox align="center">
-            <textbox id="networkProxyHTTP" preftype="string"
-                     prefstring="network.proxy.http"
-                     flex="1" class="uri-element" oninput="DoProxyCopy();"/>
-            <label value="&port.label;" accesskey="&HTTPport.accesskey;"
-                   control="networkProxyHTTP_Port"/>
-            <textbox id="networkProxyHTTP_Port" preftype="int"
-                     prefstring="network.proxy.http_port"
-                     size="5" oninput="DoProxyCopy();"/>
-          </hbox>
-        </row>
+      <grid>
+        <columns>
+          <column/>
+          <column flex="1"/>
+        </columns>
 
-        <row>
-          <spacer/>
-          <hbox align="left">
-            <checkbox id="networkProxyShareSettings" label="&reuseProxy.label;"
-                      accesskey="&reuseProxy.accesskey;"
-                      oncommand="DoEnabling(); DoProxyCopy();"/>
-          </hbox>
-        </row>
+        <rows>
+          <row>
+            <hbox align="center" pack="end">
+              <label value="&http.label;"
+                     accesskey="&http.accesskey;"
+                     control="networkProxyHTTP"/>
+            </hbox>
+            <hbox align="center">
+              <textbox id="networkProxyHTTP"
+                       preference="network.proxy.http"
+                       flex="1"
+                       class="uri-element"/>
+              <label value="&port.label;"
+                     accesskey="&HTTPPort.accesskey;"
+                     control="networkProxyHTTP_Port"/>
+              <textbox id="networkProxyHTTP_Port"
+                       preference="network.proxy.http_port"
+                       type="number"
+                       max="65535"
+                       size="5"/>
+            </hbox>
+          </row>
 
-        <separator class="thin"/>
+          <row>
+            <spacer/>
+            <hbox>
+              <checkbox id="networkProxyShareSettings"
+                        label="&reuseProxy.label;"
+                        accesskey="&reuseProxy.accesskey;"
+                        preference="network.proxy.share_proxy_settings"/>
+            </hbox>
+          </row>
 
-        <row align="center">
-          <hbox align="center" pack="end">
-            <label value="&ssl.label;" accesskey="&ssl.accesskey;"
-                   control="networkProxySSL"/>
-          </hbox>
-          <hbox align="center">
-            <textbox id="networkProxySSL" preftype="string"
-                     prefstring="network.proxy.ssl"
-                     flex="1" class="uri-element"/>
-            <label value="&port.label;" accesskey="&SSLport.accesskey;"
-                   control="networkProxySSL_Port"/>
-            <textbox id="networkProxySSL_Port" preftype="int"
-                     prefstring="network.proxy.ssl_port" size="5"/>
-          </hbox>
-        </row>
+          <row>
+            <hbox align="center" pack="end">
+              <label value="&ssl.label;"
+                     accesskey="&ssl.accesskey;"
+                     control="networkProxySSL"/>
+            </hbox>
+            <hbox align="center">
+              <textbox id="networkProxySSL"
+                       preference="network.proxy.ssl"
+                       flex="1"
+                       class="uri-element"/>
+              <label value="&port.label;"
+                     accesskey="&SSLPort.accesskey;"
+                     control="networkProxySSL_Port"/>
+              <textbox id="networkProxySSL_Port"
+                       preference="network.proxy.ssl_port"
+                       type="number"
+                       max="65535"
+                       size="5"/>
+            </hbox>
+          </row>
 
-        <row align="center">
-          <hbox align="center" pack="end">
-            <label value="&ftp.label;" accesskey="&ftp.accesskey;"
-                   control="networkProxyFTP"/>
-          </hbox>
-          <hbox align="center">
-            <textbox id="networkProxyFTP" preftype="string"
-                     prefstring="network.proxy.ftp" flex="1"
-                     class="uri-element"/>
-            <label value="&port.label;" accesskey="&FTPport.accesskey;"
-                   control="networkProxyFTP_Port"/>
-            <textbox id="networkProxyFTP_Port" preftype="int"
-                     prefstring="network.proxy.ftp_port" size="5"/>
-          </hbox>
-        </row>
+          <row>
+            <hbox align="center" pack="end">
+              <label value="&ftp.label;" accesskey="&ftp.accesskey;"
+                     control="networkProxyFTP"/>
+            </hbox>
+            <hbox align="center">
+              <textbox id="networkProxyFTP"
+                       preference="network.proxy.ftp"
+                       flex="1"
+                       class="uri-element"/>
+              <label value="&port.label;"
+                     accesskey="&FTPPort.accesskey;"
+                     control="networkProxyFTP_Port"/>
+              <textbox id="networkProxyFTP_Port"
+                       preference="network.proxy.ftp_port"
+                       type="number"
+                       max="65535"
+                       size="5"/>
+            </hbox>
+          </row>
 
-        <row align="center">
-          <hbox align="center" pack="end">
-            <label value="&gopher.label;" accesskey="&gopher.accesskey;"
-                   control="networkProxyGopher"/>
-          </hbox>
-          <hbox align="center">
-            <textbox id="networkProxyGopher" preftype="string"
-                     prefstring="network.proxy.gopher"
-                     flex="1" class="uri-element"/>
-            <label value="&port.label;" control="networkProxyGopher_Port"/>
-            <textbox id="networkProxyGopher_Port" preftype="int"
-                     prefstring="network.proxy.gopher_port"
-                     prefattribute="value" size="5"/>
-          </hbox>
-        </row>
-      </rows>
-    </grid>
-  </groupbox>
+          <row>
+            <hbox align="center" pack="end">
+              <label value="&gopher.label;"
+                     accesskey="&gopher.accesskey;"
+                     control="networkProxyGopher"/>
+            </hbox>
+            <hbox align="center">
+              <textbox id="networkProxyGopher"
+                       preference="network.proxy.gopher"
+                       flex="1"
+                       class="uri-element"/>
+              <label value="&port.label;"
+                     accesskey="&gopherPort.accesskey;"
+                     control="networkProxyGopher_Port"/>
+              <textbox id="networkProxyGopher_Port"
+                       preference="network.proxy.gopher_port"
+                       type="number"
+                       max="65535"
+                       size="5"/>
+            </hbox>
+          </row>
+        </rows>
+      </grid>
+    </groupbox>
 
-  <groupbox>
-    <caption label="&socks.caption;"/>
-    <description>&socks.description;</description>
+    <groupbox>
+      <caption label="&socks.caption;"/>
+      <description>&socks.description;</description>
 
-    <grid>
+      <hbox align="center" pack="end">
+        <label value="&socks.label;"
+               accesskey="&socks.accesskey;"
+               control="networkProxySOCKS"/>
+        <textbox id="networkProxySOCKS"
+                 preference="network.proxy.socks"
+                 flex="1"
+                 class="uri-element"/>
+        <label value="&port.label;"
+               accesskey="&SOCKSport.accesskey;"
+               control="networkProxySOCKS_Port"/>
+        <textbox id="networkProxySOCKS_Port"
+                 type="number"
+                 preference="network.proxy.socks_port"
+                 max="65535"
+                 size="5"/>
+      </hbox>
 
-      <columns>
-        <column/>
-        <column flex="1"/>
-      </columns>
+      <radiogroup id="networkProxySOCKSVersion"
+                  orient="horizontal"
+                  preference="network.proxy.socks_version">
+        <radio id="networkProxySOCKSVersion4"
+               value="4"
+               label="&socks4.label;"
+               accesskey="&socks4.accesskey;"/>
+        <radio id="networkProxySOCKSVersion5"
+               value="5"
+               label="&socks5.label;"
+               accesskey="&socks5.accesskey;"/>
+      </radiogroup>
 
-      <rows>
+      <hbox align="left">
+        <checkbox id="networkProxySOCKSRemoteDNS" 
+                  label="&socksRemoteDNS.label;"
+                  accesskey="&socksRemoteDNS.accesskey;"
+                  preference="network.proxy.socks_remote_dns"/>
+      </hbox>
 
-        <row align="center">
-          <hbox align="center" pack="end">
-            <label value="&socks.label;" accesskey="&socks.accesskey;"
-                   control="networkProxySOCKS"/>
-          </hbox>
-          <hbox align="center">
-            <textbox id="networkProxySOCKS" preftype="string"
-                     prefstring="network.proxy.socks"
-                     flex="1" class="uri-element"/>
-            <label value="&port.label;" accesskey="&SOCKSport.accesskey;"
-                   control="networkProxySOCKS_Port"/>
-            <textbox id="networkProxySOCKS_Port" preftype="int"
-                     prefstring="network.proxy.socks_port"
-                     size="5"/>
-          </hbox>
-        </row>
-
-        <row>
-          <spacer/>
-          <radiogroup id="networkProxySOCKSVersion" orient="horizontal"
-                      prefstring="network.proxy.socks_version">
-            <radio id="networkProxySOCKSVersion4" value="4"
-                   label="&socks4.label;" accesskey="&socks4.accesskey;"/>
-            <radio id="networkProxySOCKSVersion5" value="5"
-                   label="&socks5.label;" accesskey="&socks5.accesskey;"/>
-          </radiogroup>
-        </row>
-
-        <row>
-          <spacer/>
-          <hbox align="left">
-            <checkbox id="networkProxySOCKSRemoteDNS" 
-                      label="&socksRemoteDNS.label;"
-                      accesskey="&socksRemoteDNS.accesskey;"/>
-          </hbox>
-        </row>
-
-      </rows>
-    </grid>
-  </groupbox>
-
-</dialog>
+    </groupbox>
+  </prefpane>
+</prefwindow>

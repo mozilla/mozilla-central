@@ -99,6 +99,7 @@ function InitProxyMenu()
   var networkProxyManual = document.getElementById("network-proxy-manual");
   var networkProxyPac = document.getElementById("network-proxy-pac");
   var networkProxyWpad = document.getElementById("network-proxy-wpad");
+  var networkProxySystem = document.getElementById("network-proxy-system");
   var prefService = Components.classes["@mozilla.org/preferences-service;1"];
   prefService = prefService.getService(Components.interfaces.nsIPrefService);
   var prefBranch = prefService.getBranch(null);
@@ -107,10 +108,12 @@ function InitProxyMenu()
   if (proxyLocked) {
     networkProxyNo.setAttribute("disabled", "true");
     networkProxyWpad.setAttribute("disabled", "true");
+    networkProxySystem.setAttribute("disabled", "true");
   }
   else {
     networkProxyNo.removeAttribute("disabled");
     networkProxyWpad.removeAttribute("disabled");
+    networkProxySystem.removeAttribute("disabled");
   }
 
   // If no proxy is configured, disable the menuitems.
@@ -150,7 +153,8 @@ function InitProxyMenu()
   // The pref value 3 for network.proxy.type is unused to maintain
   // backwards compatibility. Treat 3 equally to 0. See bug 115720.
   var networkProxyStatus = [networkProxyNo, networkProxyManual, networkProxyPac,
-                            networkProxyNo, networkProxyWpad];
+                            networkProxyNo, networkProxyWpad,
+                            networkProxySystem];
   networkProxyStatus[networkProxyType].setAttribute("checked", "true");
 }
 
@@ -606,6 +610,11 @@ function utilityOnLoad(aEvent)
   var ioService = Components.classes[kIOServiceProgID]
                             .getService(Components.interfaces.nsIIOService);
   setOfflineUI(ioService.offline);
+
+  // Check for system proxy settings class and show menuitem if present
+  if ("@mozilla.org/system-proxy-settings;1" in Components.classes &&
+      document.getElementById("network-proxy-system"))
+    document.getElementById("network-proxy-system").hidden = false;
 }
 
 function utilityOnUnload(aEvent)

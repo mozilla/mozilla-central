@@ -77,6 +77,8 @@
 <!ENTITY pac.accesskey                                  "A">
 <!ENTITY wpad.label                                     "Online (Proxy: Auto Discover)">
 <!ENTITY wpad.accesskey                                 "D">
+<!ENTITY system.label                                   "Online (Proxy: System Proxy)">
+<!ENTITY system.accesskey                               "S">
 
 <!ENTITY proxy.label                                    "Proxy Configuration…">
 <!ENTITY proxy.accesskey                                "C">

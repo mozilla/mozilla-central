@@ -168,7 +168,7 @@
         </treeitem>
         <treeitem id="proxiesItem">
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-proxies.xul" label="&proxies.label;"/> 
+            <treecell label="(Migrated: &proxies.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem>

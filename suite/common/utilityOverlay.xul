@@ -45,6 +45,13 @@
               label="&wpad.label;"
               accesskey="&wpad.accesskey;"
               oncommand="setNetworkStatus('4')"/>
+    <menuitem id="network-proxy-system"
+              type="radio"
+              name="status"
+              label="&system.label;"
+              accesskey="&system.accesskey;"
+              hidden="true"
+              oncommand="setNetworkStatus('5')"/>
     <menuitem id="network-proxy-pac"
               type="radio"
               name="status"
@@ -60,9 +67,7 @@
     <menuseparator/>
     <menuitem label="&proxy.label;"
               accesskey="&proxy.accesskey;"
-              oncommand="goPreferences('advancedItem',
-                                       'chrome://communicator/content/pref/pref-proxies.xul',
-                                       'proxiesItem');"/>
+              oncommand="goPreferences('proxies_pane');"/>
   </popup>
 
   <statusbarpanel id="offline-status" context="networkProperties"

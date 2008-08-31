@@ -191,7 +191,6 @@ comm.jar:
    content/communicator/pref/pref-popups.xul                        (pref/pref-popups.xul)
    content/communicator/pref/pref-proxies.js                        (pref/pref-proxies.js)
    content/communicator/pref/pref-proxies.xul                       (pref/pref-proxies.xul)
-   content/communicator/pref/pref-proxies-advanced.js               (pref/pref-proxies-advanced.js)
    content/communicator/pref/pref-proxies-advanced.xul              (pref/pref-proxies-advanced.xul)
    content/communicator/pref/pref-scripts.js                        (pref/pref-scripts.js)
    content/communicator/pref/pref-scripts.xul                       (pref/pref-scripts.xul)

@@ -1,156 +1,226 @@
-var http;
-var httpPort;
-var noProxy;
-var ssl;
-var sslPort;
-var ftp;
-var ftpPort;
-var gopher;
-var gopherPort;
-var socks;
-var socksPort;
-var socksVersion;
-var socksRemoteDNS;
-var advancedButton;
-var autoURL;
-var autoReload;
-var radiogroup;
-var shareSettings;
+/* ***** BEGIN LICENSE BLOCK *****
+* Version: MPL 1.1/GPL 2.0/LGPL 2.1
+*
+* The contents of this file are subject to the Mozilla Public License Version
+* 1.1 (the "License"); you may not use this file except in compliance with
+* the License. You may obtain a copy of the License at
+* http://www.mozilla.org/MPL/
+*
+* Software distributed under the License is distributed on an "AS IS" basis,
+* WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+* for the specific language governing rights and limitations under the
+* License.
+*
+* The Original Code is Mozilla Communicator client code, released
+* March 31, 1998.
+*
+* The Initial Developer of the Original Code is
+* Netscape Communications Corporation.
+* Portions created by the Initial Developer are Copyright (C) 1998-1999
+* the Initial Developer. All Rights Reserved.
+*
+* Contributor(s):
+*   Stefan Borggraefe <Stefan.Borggraefe@gmx.de>
+*   Ian Neal <iann_bugzilla@blueyonder.co.uk>
+*
+* Alternatively, the contents of this file may be used under the terms of
+* either of the GNU General Public License Version 2 or later (the "GPL"),
+* or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+* in which case the provisions of the GPL or the LGPL are applicable instead
+* of those above. If you wish to allow use of your version of this file only
+* under the terms of either the GPL or the LGPL, and not to allow others to
+* use your version of this file under the terms of the MPL, indicate your
+* decision by deleting the provisions above and replace them with the notice
+* and other provisions required by the GPL or the LGPL. If you do not delete
+* the provisions above, a recipient may use your version of this file under
+* the terms of any one of the MPL, the GPL or the LGPL.
+*
+* ***** END LICENSE BLOCK ***** */
 
+const kNoProxy = 0;
+const kManualProxy = 1;
+const kAutoConfigProxy = 2;
+const kObsoleteProxy = 3;
+const kAutoDiscoverProxy = 4;
+const kSystemProxy = 5;
+
+var gInstantApply;
+var gHTTP;
+var gHTTPPort;
+var gSSL;
+var gSSLPort;
+var gFTP;
+var gFTPPort;
+var gGopher;
+var gGopherPort;
+var gAutoURL;
+var gProxyType;
+var gShareSettings;
+
+// Only used by main prefwindow
 function Startup()
 {
-  initElementVars();
+  InitCommonGlobals();
+  gAutoURL = document.getElementById("network.proxy.autoconfig_url");
+  gProxyType = document.getElementById("network.proxy.type");
+
+  // Check for system proxy settings class and unhide UI if present
+  if ("@mozilla.org/system-proxy-settings;1" in Components.classes)
+    document.getElementById("systemPref").hidden = false;
 
   // Calculate a sane default for network.proxy.share_proxy_settings.
-  if (shareSettings.getAttribute("value") == "")
-    shareSettings.setAttribute("value", defaultForShareSettingsPref());
+  if (gShareSettings.value == null)
+    gShareSettings.value = DefaultForShareSettingsPref();
+  
+  // The pref value 3 (kObsoleteProxy) for network.proxy.type is unused to
+  // maintain backwards compatibility. Treat 3 (kObsoleteProxy) equally to
+  // 0 (kNoProxy). See bug 115720.
+  if (gProxyType.value == kObsoleteProxy)
+    gProxyType.value = kNoProxy;
 
   DoEnabling();
-  
-  // Use "" instead of "0" as the default for the port number.
-  // "0" doesn't make sense as a port number.
-  if (httpPort.value == "0")
-    httpPort.setAttribute("value", "");
-
-  // The pref value 3 for network.proxy.type is unused to maintain
-  // backwards compatibility. Treat 3 equally to 0. See bug 115720.
-  if (radiogroup.value == 3)
-    radiogroup.selectedIndex = 0;
 }
 
-function initElementVars()
+// Only used by child prefwindow
+function AdvancedInit()
 {
-  http = document.getElementById("networkProxyHTTP");
-  httpPort = document.getElementById("networkProxyHTTP_Port");
-  ssl = document.getElementById("networkProxySSL");
-  sslPort = document.getElementById("networkProxySSL_Port");
-  ftp = document.getElementById("networkProxyFTP");
-  ftpPort = document.getElementById("networkProxyFTP_Port");
-  gopher = document.getElementById("networkProxyGopher");
-  gopherPort = document.getElementById("networkProxyGopher_Port");
-  socks = document.getElementById("networkProxySOCKS");
-  socksPort = document.getElementById("networkProxySOCKS_Port");
-  socksVersion = document.getElementById("networkProxySOCKSVersion");
-  socksRemoteDNS = document.getElementById("networkProxySOCKSRemoteDNS");
-  noProxy = document.getElementById("networkProxyNone");
-  advancedButton = document.getElementById("advancedButton");
-  autoURL = document.getElementById("networkProxyAutoconfigURL");
-  autoReload = document.getElementById("autoReload");
-  radiogroup = document.getElementById("networkProxyType");
-  shareSettings = document.getElementById("networkProxyShareSettings");
+  InitCommonGlobals();
+  DoProxyCopy(gShareSettings.value);
+}
+
+function InitCommonGlobals()
+{
+  gInstantApply = document.documentElement.instantApply;
+  gHTTP = document.getElementById("network.proxy.http");
+  gHTTPPort = document.getElementById("network.proxy.http_port");
+  gSSL = document.getElementById("network.proxy.ssl");
+  gSSLPort = document.getElementById("network.proxy.ssl_port");
+  gFTP = document.getElementById("network.proxy.ftp");
+  gFTPPort = document.getElementById("network.proxy.ftp_port");
+  gGopher = document.getElementById("network.proxy.gopher");
+  gGopherPort = document.getElementById("network.proxy.gopher_port");
+  gShareSettings = document.getElementById("network.proxy.share_proxy_settings");
 }
 
 // Returns true if all protocol specific proxies and all their
 // ports are set to the same value, false otherwise.
-function defaultForShareSettingsPref()
+function DefaultForShareSettingsPref()
 {
-  return http.value == ftp.getAttribute("value") &&
-         http.value == gopher.getAttribute("value") &&
-         http.value == ssl.getAttribute("value") &&
-         httpPort.value == ftpPort.getAttribute("value") &&
-         httpPort.value == sslPort.getAttribute("value") &&
-         httpPort.value == gopherPort.getAttribute("value");
+  return gHTTP.value == gSSL.value &&
+         gHTTP.value == gFTP.value &&
+         gHTTP.value == gGopher.value &&
+         gHTTPPort.value == gSSLPort.value &&
+         gHTTPPort.value == gFTPPort.value &&
+         gHTTPPort.value == gGopherPort.value;
 }
 
 function DoEnabling()
-{  
+{
   // convenience arrays
-  var manual = [ftp, ftpPort, gopher, gopherPort, http, httpPort, socks,
-                socksPort, socksVersion, socksRemoteDNS, ssl, sslPort, noProxy,
-                advancedButton, shareSettings];
-  var auto = [autoURL, autoReload];
+  var manual = ["networkProxyHTTP", "networkProxyHTTP_Port",
+                "networkProxyNone", "advancedButton"];
+  var auto = ["networkProxyAutoconfigURL", "autoReload"];
 
-  switch (radiogroup.value)
+  switch (gProxyType.value)
   {
-    case "0":
-    case "4":
-      disable(manual);
-      disable(auto);
+    case kNoProxy:
+    case kAutoDiscoverProxy:
+    case kSystemProxy:
+      Disable(manual);
+      Disable(auto);
       break;
-    case "1":
-      disable(auto);
-      if (!radiogroup.disabled)
-        enableUnlockedElements(manual);
+    case kManualProxy:
+      Disable(auto);
+      if (!gProxyType.locked)
+        EnableUnlockedElements(manual, true);
       break;
-    case "2":
+    case kAutoConfigProxy:
     default:
-      disable(manual);
-      if (!radiogroup.disabled)
-        enableUnlockedElements(auto);
+      Disable(manual);
+      if (!gProxyType.locked)
+      {
+        EnableElementById("networkProxyAutoconfigURL", true, false);
+        EnableUnlockedButton(gAutoURL);
+      }
       break;
   }
 }
 
-function disable(elements)
+function Disable(aElementIds)
 {
-  for (var i = 0; i < elements.length; i++)
-    elements[i].setAttribute("disabled", "true");
+  for (var i = 0; i < aElementIds.length; i++)
+    document.getElementById(aElementIds[i]).setAttribute("disabled", "true");
 }
 
-function enableUnlockedElements(elements)
+function EnableUnlockedElements(aElementIds, aEnable)
 {
-  for (var i = 0; i < elements.length; i++) {
-    var prefstring = elements[i].getAttribute("prefstring");
-    if (!parent.hPrefWindow.getPrefIsLocked(prefstring))
-      elements[i].removeAttribute("disabled");
-  }
+  for (var i = 0; i < aElementIds.length; i++)
+    EnableElementById(aElementIds[i], aEnable, false);
+}
+
+function EnableUnlockedButton(aElement)
+{
+  var enable = gInstantApply ||
+               (aElement.valueFromPreferences == aElement.value);
+  EnableElementById("autoReload", enable, false);
 }
 
 function ReloadPAC() {
-  // XXX(darin): This reloads the PAC URL stored in preferences, which may
-  //             differ from what the user may have typed in the UI.
-  Components.classes["@mozilla.org/network/protocol-proxy-service;1"].
-      getService().reloadPAC();
+  // This reloads the PAC URL stored in preferences.
+  // When not in instant apply mode, the button that calls this gets
+  // disabled if the preference and what is showing in the UI differ.
+  Components.classes["@mozilla.org/network/protocol-proxy-service;1"]
+            .getService().reloadPAC();
 }
 
-function FixProxyURL()
+function FixProxyURL(aURL)
 {
   const nsIURIFixup = Components.interfaces.nsIURIFixup;
-  try {
-    var URIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
-                             .getService(nsIURIFixup);
-    autoURL.value = URIFixup.createFixupURI(autoURL.value,
-                                            nsIURIFixup.FIXUP_FLAG_NONE).spec;
-  } catch (e) {}
+  var URIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
+                           .getService(nsIURIFixup);
+  try
+  {
+    aURL.value = URIFixup.createFixupURI(aURL.value,
+                                         nsIURIFixup.FIXUP_FLAG_NONE).spec;
+  }
+  catch (e) {}
+
+  if (!gInstantApply)
+    EnableUnlockedButton(aURL);
 }
 
-function openAdvancedDialog()
+function OpenAdvancedDialog()
 {
-  openDialog("chrome://communicator/content/pref/pref-proxies-advanced.xul",
-             "AdvancedProxyPreferences",
-             "chrome,titlebar,centerscreen,resizable=no,modal");
+  document.documentElement.openSubDialog("chrome://communicator/content/pref/pref-proxies-advanced.xul",
+                                         "AdvancedProxyPreferences", null);
 }
 
-function DoProxyCopy()
+function DoProxyCopy(aChecked)
 {
-  if (shareSettings.getAttribute("value") != "true")
+  DoProxyHostCopy(gHTTP.value);
+  DoProxyPortCopy(gHTTPPort.value);
+  var nonshare = ["networkProxySSL", "networkProxySSL_Port",
+                  "networkProxyFTP", "networkProxyFTP_Port",
+                  "networkProxyGopher", "networkProxyGopher_Port"];
+  EnableUnlockedElements(nonshare, !aChecked);
+}
+
+function DoProxyHostCopy(aValue)
+{
+  if (!gShareSettings.value)
     return;
 
-  ftp.setAttribute("value", http.value);
-  ssl.setAttribute("value", http.value);
-  gopher.setAttribute("value", http.value);
+  gSSL.value = aValue;
+  gFTP.value = aValue;
+  gGopher.value = aValue;
+}
 
-  ftpPort.setAttribute("value", httpPort.value);
-  sslPort.setAttribute("value", httpPort.value);
-  gopherPort.setAttribute("value", httpPort.value);
+function DoProxyPortCopy(aValue)
+{
+  if (!gShareSettings.value)
+    return;
+
+  gSSLPort.value = aValue;
+  gFTPPort.value = aValue;
+  gGopherPort.value = aValue;
 }

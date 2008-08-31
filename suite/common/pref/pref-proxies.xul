@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
  Version: MPL 1.1/GPL 2.0/LGPL 2.1
 
@@ -22,6 +22,7 @@
 
  Contributor(s):
     Stefan Borggraefe <Stefan.Borggraefe@gmx.de>
+    Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -38,124 +39,159 @@
  ***** END LICENSE BLOCK ***** -->
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://communicator/locale/pref/pref-proxies.dtd" >
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://communicator/content/pref/pref-proxies.xul');"
-      headertitle="&pref.proxies.title;">
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-proxies.dtd">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="proxies_pane"
+            label="&pref.proxies.title;"
+            script="chrome://communicator/content/pref/pref-proxies.js">
+    <preferences id="proxies_preferences">
+      <preference id="network.proxy.type"
+                  name="network.proxy.type"
+                  type="int"
+                  onchange="DoEnabling();"/>
+      <preference id="network.proxy.autoconfig_url"
+                  name="network.proxy.autoconfig_url"
+                  type="string"/>
+      <preference id="pref.advanced.proxies.disable_button.reload"
+                  name="pref.advanced.proxies.disable_button.reload"
+                  type="bool"/>
+      <preference id="network.proxy.http"
+                  name="network.proxy.http"
+                  type="string"
+                  onchange="DoProxyHostCopy(this.value);"/>
+      <preference id="network.proxy.http_port"
+                  name="network.proxy.http_port"
+                  type="int"
+                  onchange="DoProxyPortCopy(this.value);"/>
+      <preference id="pref.advanced.proxies.disable_button.advanced"
+                  name="pref.advanced.proxies.disable_button.advanced"
+                  type="bool"/>
+      <preference id="network.proxy.no_proxies_on"
+                  name="network.proxy.no_proxies_on"
+                  type="string"/>
+      <preference id="network.proxy.ssl"
+                  name="network.proxy.ssl"
+                  type="string"/>
+      <preference id="network.proxy.ssl_port"
+                  name="network.proxy.ssl_port"
+                  type="int"/>
+      <preference id="network.proxy.ftp"
+                  name="network.proxy.ftp"
+                  type="string"/>
+      <preference id="network.proxy.ftp_port"
+                  name="network.proxy.ftp_port"
+                  type="int"/>
+      <preference id="network.proxy.gopher"
+                  name="network.proxy.gopher"
+                  type="string"/>
+      <preference id="network.proxy.gopher_port"
+                  name="network.proxy.gopher_port"
+                  type="int"/>
+      <preference id="network.proxy.share_proxy_settings"
+                  name="network.proxy.share_proxy_settings"
+                  type="bool"/>
+    </preferences>
 
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["networkProxyType", "networkProxyShareSettings",
-                       "networkProxyFTP", "networkProxyFTP_Port",
-                       "networkProxyGopher", "networkProxyGopher_Port",
-                       "networkProxyHTTP", "networkProxyHTTP_Port", 
-                       "networkProxySOCKS", "networkProxySOCKS_Port",
-                       "networkProxySOCKSVersion", "networkProxySOCKSRemoteDNS",
-                       "networkProxySSL", "networkProxySSL_Port", 
-                       "networkProxyNone", "networkProxyAutoconfigURL"];
-  ]]>
-  </script>
-        
-  <stringbundle id="bundle_prefutilities"
-                src="chrome://pref/locale/prefutilities.properties"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/pref/pref-proxies.js"/>
+    <description>&pref.proxies.desc;</description>
+    <groupbox>
+      <caption label="&proxyTitle.label;"/>
+      <radiogroup id="networkProxyType"
+                  preference="network.proxy.type"
+                  align="stretch">
+        <vbox align="start">
+          <radio value="0"
+                 label="&directTypeRadio.label;"
+                 accesskey="&directTypeRadio.accesskey;"/>
+          <radio value="4"
+                 label="&wpadTypeRadio.label;"
+                 accesskey="&wpadTypeRadio.accesskey;"/>
+          <radio value="5"
+                 label="&systemTypeRadio.label;"
+                 accesskey="&systemTypeRadio.accesskey;"
+                 id="systemPref"
+                 hidden="true"/>
+          <radio value="2"
+                 label="&autoTypeRadio.label;"
+                 accesskey="&autoTypeRadio.accesskey;"/>
+        </vbox>
 
-  <description>&pref.proxies.desc;</description>  
-  <groupbox>
-    <caption label="&proxyTitle.label;"/>
-    <radiogroup id="networkProxyType" prefstring="network.proxy.type" align="stretch">
-      <vbox align="left">
-        <radio value="0" label="&directTypeRadio.label;"
-               accesskey="&directTypeRadio.accesskey;"
-               oncommand="DoEnabling();"/>
+        <hbox class="indent" flex="1" align="center">
+         <textbox id="networkProxyAutoconfigURL"
+                  flex="1"
+                  class="uri-element"
+                  onchange="FixProxyURL(this);"
+                  preference="network.proxy.autoconfig_url"/>
+         <button id="autoReload"
+                 label="&reload.label;"
+                 accesskey="&reload.accesskey;"
+                 oncommand="ReloadPAC();"
+                 preference="pref.advanced.proxies.disable_button.reload"/>
+        </hbox>
 
-        <radio value="4" label="&wpadTypeRadio.label;"
-               accesskey="&wpadTypeRadio.accesskey;"
-               oncommand="DoEnabling();"/>
+        <vbox align="start">
+          <radio value="1"
+                 label="&manualTypeRadio.label;"
+                 accesskey="&manualTypeRadio.accesskey;"/>
+        </vbox>
 
-        <radio value="2" label="&autoTypeRadio.label;"
-               accesskey="&autoTypeRadio.accesskey;"
-               oncommand="DoEnabling();"/>
-      </vbox>
+        <grid class="indent">
+          <columns>
+            <column/>
+            <column flex="1"/>
+          </columns>
 
-      <hbox class="indent" flex="1" align="center">
-        <textbox id="networkProxyAutoconfigURL" flex="1" preftype="string" class="uri-element"
-                 prefstring="network.proxy.autoconfig_url" onchange="FixProxyURL();"/>
-        <button id="autoReload" label="&reload.label;" accesskey="&reload.accesskey;"
-                oncommand="ReloadPAC();"
-                prefstring="pref.advanced.proxies.disable_button.reload"/>
-      </hbox>
+          <rows>
+            <row align="center">
+              <hbox align="center" pack="end">
+                <label value="&http.label;"
+                       accesskey="&http.accesskey;"
+                       control="networkProxyHTTP"/>
+              </hbox>
+              <textbox id="networkProxyHTTP"
+                       preference="network.proxy.http"
+                       class="uri-element"/>
+            </row>
 
-      <vbox align="left">
-        <radio value="1" label="&manualTypeRadio.label;"
-               accesskey="&manualTypeRadio.accesskey;"
-               oncommand="DoEnabling();"/>
-      </vbox>
+            <row>
+              <hbox align="center" pack="end">
+                <label value="&port.label;"
+                       accesskey="&HTTPPort.accesskey;"
+                       control="networkProxyHTTP_Port"/>
+              </hbox>
+              <hbox align="center">
+                <textbox id="networkProxyHTTP_Port"
+                         preference="network.proxy.http_port"
+                         type="number"
+                         max="65535"
+                         size="5"/>
+                <spacer flex="1"/>
+                <button id="advancedButton"
+                        label="&advanced.label;"
+                        accesskey="&advanced.accesskey;"
+                        align="end"
+                        oncommand="OpenAdvancedDialog();"
+                        preference="pref.advanced.proxies.disable_button.advanced"/>
+              </hbox>
+            </row>
 
-      <grid class="indent">
-        <columns>
-          <column/>
-          <column flex="1"/>
-        </columns>
-        
-        <rows>
-          <row align="center">
-            <hbox align="center" pack="end">
-              <label value="&http.label;" accesskey="&http.accesskey;" control="networkProxyHTTP"/>
-            </hbox>
-            <hbox align="center">
-              <textbox id="networkProxyHTTP" preftype="string" prefstring="network.proxy.http"
-                       flex="1" class="uri-element" onchange="DoProxyCopy();"/>
-              <label value="&port.label;" accesskey="&HTTPport.accesskey;" control="networkProxyHTTP_Port"/>
-              <textbox id="networkProxyHTTP_Port" preftype="int" prefstring="network.proxy.http_port"
-                       size="5" onchange="DoProxyCopy();"/>
-              <button id="advancedButton" label="&advanced.label;"
-                      accesskey="&advanced.accesskey;"
-                      oncommand="openAdvancedDialog();"/>
-            </hbox>
-          </row>
-
-          <row align="center"> 
-            <hbox align="center" pack="end">
-              <label value="&noproxy.label;" accesskey="&noproxy.accesskey;" control="networkProxyNone"/>
-            </hbox>
-            <textbox id="networkProxyNone" preftype="string" prefstring="network.proxy.no_proxies_on" class="uri-element"/>
-          </row>
-          <row>
-            <spacer/>
-            <label value="&noproxyExplain.label;" control="networkProxyNone"/>
-          </row>
-        </rows>
-      </grid>
-    </radiogroup>
-  </groupbox>
-
-  <!-- Data elements for data transfer to and from the "Advanced" dialog. -->
-  <data id="networkProxySSL" prefattribute="value"
-        preftype="string" prefstring="network.proxy.ssl"/>
-  <data id="networkProxySSL_Port" prefattribute="value"
-        preftype="int" prefstring="network.proxy.ssl_port"/>
-
-  <data id="networkProxyFTP" prefattribute="value"
-        preftype="string" prefstring="network.proxy.ftp"/>
-  <data id="networkProxyFTP_Port" prefattribute="value"
-        preftype="int" prefstring="network.proxy.ftp_port"/>
-
-  <data id="networkProxyGopher" prefattribute="value"
-        preftype="string" prefstring="network.proxy.gopher"/>
-  <data id="networkProxyGopher_Port" prefattribute="value"
-        preftype="int" prefstring="network.proxy.gopher_port"/>
-
-  <data id="networkProxySOCKS" prefattribute="value"
-        preftype="string" prefstring="network.proxy.socks"/>
-  <data id="networkProxySOCKS_Port" prefattribute="value"
-        preftype="int" prefstring="network.proxy.socks_port"/>
-  <data id="networkProxySOCKSVersion" prefattribute="value"
-        preftype="int" prefstring="network.proxy.socks_version"/>
-  <data id="networkProxySOCKSRemoteDNS" prefattribute="value"
-        preftype="bool" prefstring="network.proxy.socks_remote_dns"/>
-
-  <data id="networkProxyShareSettings" prefattribute="value"
-        preftype="bool" prefdefval=""
-        prefstring="network.proxy.share_proxy_settings"/>
-</page>
+            <row align="center"> 
+              <hbox align="center" pack="end">
+                <label value="&noproxy.label;"
+                       accesskey="&noproxy.accesskey;"
+                       control="networkProxyNone"/>
+              </hbox>
+              <textbox id="networkProxyNone"
+                       preference="network.proxy.no_proxies_on"
+                       class="uri-element"/>
+            </row>
+            <row>
+              <spacer/>
+              <description control="networkProxyNone">&noproxyExplain.label;
+              </description>
+            </row>
+          </rows>
+        </grid>
+      </radiogroup>
+    </groupbox>
+  </prefpane>
+</overlay>
