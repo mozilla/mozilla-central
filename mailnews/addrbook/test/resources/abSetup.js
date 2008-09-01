@@ -52,6 +52,11 @@ var kOSXData =
   position: 1
 };
 
+// Windows (Outlook Express) Address Book deactivation. (Bug 448859)
+Components.classes["@mozilla.org/preferences-service;1"]
+          .getService(Components.interfaces.nsIPrefBranch)
+          .deleteBranch("ldap_2.servers.oe.");
+
 // This currently applies to all address books of local type.
 const kNormalPropertiesURI =
   "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul";
