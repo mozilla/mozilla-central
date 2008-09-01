@@ -16,7 +16,7 @@
 % locale navigator @AB_CD@ %locale/@AB_CD@/navigator/
 % locale navigator-platform @AB_CD@ %locale/@AB_CD@/navigator-platform/
 % locale navigator-region @AB_CD@ %locale/@AB_CD@/navigator-region/
-* locale/@AB_CD@/branding/brand.dtd                                         (%chrome/branding/brand.dtd)
+  locale/@AB_CD@/branding/brand.dtd                                         (%chrome/branding/brand.dtd)
   locale/@AB_CD@/branding/brand.properties                                  (%chrome/branding/brand.properties)
   locale/@AB_CD@/communicator/askViewZoom.dtd                               (%chrome/common/askViewZoom.dtd)
   locale/@AB_CD@/communicator/consoleOverlay.dtd                            (%chrome/common/consoleOverlay.dtd)
