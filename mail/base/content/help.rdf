@@ -9,7 +9,6 @@
   <RDF:Description about="urn:mozilla:package:help"
         chrome:displayName="Mozilla Help Viewer"
         chrome:author="netscape.com"
-        chrome:name="help"
-#expand chrome:localeVersion="__MOZILLA_LOCALE_VERSION__">
+        chrome:name="help">
   </RDF:Description> 
 </RDF:RDF>
