@@ -82,6 +82,12 @@ function AbPanelUnload()
   CloseAbView();
 }
 
+function onAbClearSearch()
+{
+  gSearchInput.value = "";
+  onEnterInSearchBar();
+}
+
 function AbPanelAdd(addrtype)
 {
   var cards = GetSelectedAbCards();

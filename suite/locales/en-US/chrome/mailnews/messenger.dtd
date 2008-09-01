@@ -491,7 +491,6 @@
 <!ENTITY mailToolbar.tooltip "Mail Toolbar">
 <!ENTITY locationToolbar.tooltip "Location Toolbar">
 <!ENTITY advancedButton.tooltip "Advanced message search">
-<!ENTITY clearButton.tooltip "Clear the search criteria and show all messages">
 <!ENTITY getMsgButton.tooltip "Get new messages">
 <!ENTITY newMsgButton.tooltip "Create a new message">
 <!ENTITY replyButton.tooltip "Reply to the message">
@@ -587,9 +586,6 @@
 <!ENTITY SearchNameOrEmail.accesskey "N">
 <!ENTITY advancedButton.label "Advanced…">
 <!ENTITY advancedButton.accesskey "A">
-
-<!ENTITY clearButton.label "Clear">
-<!ENTITY clearButton.accesskey "C">
 
 <!ENTITY all.label "All">
 <!ENTITY all.accesskey "A">

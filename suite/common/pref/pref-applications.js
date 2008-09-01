@@ -1569,28 +1569,6 @@ var gApplicationsPane = {
       this._visibleTypes.reverse();
   },
 
-  /**
-   * Filter the list when the user enters a filter term into the filter field.
-   */
-  filter: function() {
-    if (this._filter.value == "") {
-      this.clearFilter();
-      return;
-    }
-
-    this._rebuildView();
-
-    document.getElementById("clearFilter").disabled = false;
-  },
-
-  clearFilter: function() {
-    this._filter.value = "";
-    this._rebuildView();
-
-    this._filter.focus();
-    document.getElementById("clearFilter").disabled = true;
-  },
-
 
   //**************************************************************************//
   // Changes

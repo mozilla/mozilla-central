@@ -104,10 +104,8 @@
 
     <hbox align="center">
       <label accesskey="&filter.accesskey;" control="filter">&filter.label;</label>
-      <textbox id="filter" flex="1" type="timed" timeout="500"
-               oncommand="gApplicationsPane.filter();"/>
-      <button id="clearFilter" icon="clear" label="&clear.label;" accesskey="&clear.accesskey;"
-              oncommand="gApplicationsPane.clearFilter();" disabled="true"/>
+      <textbox id="filter" flex="1" type="search"
+               oncommand="gApplicationsPane._rebuildView();"/>
     </hbox>
 
     <separator class="thin"/>

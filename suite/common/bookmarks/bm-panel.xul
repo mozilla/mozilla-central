@@ -98,8 +98,7 @@
 
   <hbox id="search-bar" class="toolbar" align="center">
     <label value="&search.label;" accesskey="&search.accesskey;" control="search-box"/>
-    <textbox id="search-box" flex="1"
-             type="timed" timeout="500"
+    <textbox id="search-box" flex="1" type="search"
              oncommand="document.getElementById('bookmarks-view').searchBookmarks(this.value)"/>
   </hbox>
   

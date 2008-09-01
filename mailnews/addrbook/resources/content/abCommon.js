@@ -630,14 +630,3 @@ function GetSelectedDirectory()
     return selected.Value;
   }
 }
-
-function SearchInputChanged() 
-{
-  gSearchInput.nextSibling.disabled = !gSearchInput.value;
-}
-
-function onAbClearSearch() 
-{
-  gSearchInput.value = "";
-  onEnterInSearchBar();
-}

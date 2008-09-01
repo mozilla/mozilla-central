@@ -241,10 +241,10 @@
                      command="cmd_bm_delete"/>
     </toolbar>
 
-    <toolbar id="bookmarks-search" grippytooltiptext="&bookmarksSearch.tooltip;">
+    <toolbar id="bookmarks-search" align="center"
+             grippytooltiptext="&bookmarksSearch.tooltip;">
       <label value="&search.label;" accesskey="&search.accesskey;" control="search-box"/>
-      <textbox id="search-box" flex="1"
-               type="timed" timeout="500"
+      <textbox id="search-box" flex="1" type="search"
                oncommand="document.getElementById('bookmarks-view').searchBookmarks(this.value)"/>
     </toolbar>
   </toolbox>

@@ -431,16 +431,11 @@
         <label id="searchCriteria" value="&SearchNameOrEmail.label;"
                accesskey="&SearchNameOrEmail.accesskey;"
                control="searchInput"/>
-        <textbox id="searchInput" flex="1" 
-                type="timed" timeout="800"
+        <textbox id="searchInput" flex="1" type="search"
                 oninput="SearchInputChanged();"
                 oncommand="onEnterInSearchBar();"
                 onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"
                 onfocus="this.select();" onclick="this.select();"/>
-        <button id="clear" label="&clearButton.label;" disabled="true"
-                accesskey="&clearButton.accesskey;"
-                oncommand="onAbClearSearch();"
-                tooltiptext="&clearButton.tooltip;"/>
         <button id="advancedButton" label="&advancedButton.label;" 
                 accesskey="&advancedButton.accesskey;"
                 tooltiptext="&advancedButton.tooltip;" 

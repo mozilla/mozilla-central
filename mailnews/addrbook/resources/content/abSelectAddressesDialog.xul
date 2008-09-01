@@ -81,11 +81,8 @@
         <menupopup id="addressbookList-menupopup" class="addrbooksPopup"/>
       </menulist>  
       <label value="&for.label;" accesskey="&for.accesskey;" control="searchInput"/>
-      <textbox id="searchInput" flex="1"
-               type="timed" timeout="800"
-               oninput="SearchInputChanged();"
+      <textbox id="searchInput" flex="1" type="search"
                oncommand="onEnterInSearchBar();"/>  
-      <button id="clear" label="&clearButton.label;" disabled="true" accesskey="&clearButton.accesskey;" oncommand="onAbClearSearch();"/>
     </hbox>
     
     <hbox flex="1">    

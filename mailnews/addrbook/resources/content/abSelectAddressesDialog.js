@@ -114,7 +114,6 @@ function OnLoadSelectAddress()
   }
 
   gSearchInput = document.getElementById("searchInput");
-  SearchInputChanged();
 
   // Reselect the persisted address book if possible, if not just select the
   // first in the list.

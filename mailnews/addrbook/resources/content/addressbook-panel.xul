@@ -98,8 +98,7 @@
     </hbox>
 	<hbox align="center">
 	  <label value="&for.label;" id="forLabel" control="searchInput"/> 
-	  <textbox id="searchInput" flex="1"
-               type="timed" timeout="800"
+	  <textbox id="searchInput" flex="1" type="search"
                aria-labelledby="lookInLabel addressbookList forLabel"
                oncommand="onEnterInSearchBar();"/>
 	</hbox>
