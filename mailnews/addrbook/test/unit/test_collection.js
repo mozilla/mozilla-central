@@ -336,4 +336,41 @@ function run_test()
   collectChecker.part = 0;
 
   modifyEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
+
+  // Test collectSingleAddress - Note: because the above tests test
+  // collectAddress which we know calls collectSingleAddress, we only need to
+  // test the case where aSkipCheckExisting is true.
+
+  // Add an email that is already there and check we get two instances of it in
+  // the AB.
+
+  const kSingleAddress = modifyEmailChecks[modifyEmailChecks.length - 1]
+                         .primaryEmail;
+  const kSingleDisplayName = "Test Single";
+
+  collectChecker.addressCollect.collectSingleAddress(kSingleAddress,
+                                                     kSingleDisplayName,
+                                                     true,
+                                                     nsIAbPMF.unknown,
+                                                     true);
+
+  childCards = collectChecker.AB.childCards;
+  var foundCards = [];
+
+  while(childCards.hasMoreElements()) {
+    var card = childCards.getNext();
+    if (card instanceof Ci.nsIAbCard &&
+        card.primaryEmail == kSingleAddress)
+      foundCards.push(card);
+  }
+
+  do_check_eq(foundCards.length, 2);
+
+  if (foundCards[0].displayName != kSingleDisplayName &&
+      foundCards[1].displayName != kSingleDisplayName)
+    do_throw("Error, collectSingleCard didn't create a new card");
+
+  if (foundCards[0].displayName != "" &&
+      foundCards[1].displayName != "")
+    do_throw("Error, collectSingleCard created ok, but other card does not exist");
 };

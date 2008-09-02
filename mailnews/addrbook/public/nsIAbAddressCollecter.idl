@@ -46,7 +46,7 @@ interface nsIAbCard;
  * It will save and update the supplied addresses into the address book
  * specified by the "mail.collect_addressbook" pref.
  */
-[scriptable, uuid(759cd643-e96b-4f31-883d-d9cf3d14f7c2)]
+[scriptable, uuid(db4eb202-5dec-48d5-b853-b46d8d5bb055)]
 interface nsIAbAddressCollecter : nsISupports {
   /**
    * Collects email addresses into the address book.
@@ -66,6 +66,29 @@ interface nsIAbAddressCollecter : nsISupports {
    */
   void collectAddress(in AUTF8String aAddresses, in boolean aCreateCard,
                       in unsigned long aSendFormat);
+
+  /**
+   * Collects a single name and email address into the address book.
+   * By default, it saves the address without checking for an existing one.
+   * See collectAddress for the general implementation.
+   *
+   * @param  aEmail         The email address to collect.
+   * @param  aDisplayName   The display name associated with the email address.
+   * @param  aCreateCard    Set to true if a card should be created if the
+   *                        email address doesn't exist (ignored if
+   *                        aSkipCheckExisting is true).
+   * @param  aSendFormat    The send format to save for the card. See
+   *                        nsIAbPreferMailFormat for values. If updating a card
+   *                        this value will only be changed if the current value
+   *                        for the card is "unknown".
+   * @param  aSkipCheckExisting Optional parameter, if this is set then the
+   *                            implementation will skip checking for an
+   *                            existing card, and just create a new card.
+   */
+  void collectSingleAddress(in AUTF8String aEmail, in AUTF8String aDisplayName,
+                            in boolean aCreateCard,
+                            in unsigned long aSendFormat,
+                            [optional] in boolean aSkipCheckExisting);
 
   /**
    * Get the first card with this name / value in the collected ab.

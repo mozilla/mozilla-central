@@ -60,8 +60,8 @@ public:
   nsresult Init();
 
 private:
-  void AutoCollectScreenName(nsIAbCard *aCard, const nsCString &aEmail);
-  PRBool SetNamesForCard(nsIAbCard *aSenderCard, const nsCString &aFullName);
+  void AutoCollectScreenName(nsIAbCard *aCard, const nsACString &aEmail);
+  PRBool SetNamesForCard(nsIAbCard *aSenderCard, const nsACString &aFullName);
   void SplitFullName(const nsCString &aFullName, nsCString &aFirstName,
                      nsCString &aLastName);
   nsresult SetAbURI(nsCString &aURI);
