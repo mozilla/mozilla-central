@@ -91,9 +91,10 @@ NS_IMETHODIMP nsAbView::ClearView()
 {
   mDirectory = nsnull;
   mAbViewListener = nsnull;
-  // XXX What about these?
-  //  mTree = nsnull;
-  //  mTreeSelection = nsnull;
+  if (mTree)
+    mTree->SetView(nsnull);
+  mTree = nsnull;
+  mTreeSelection = nsnull;
 
   if (mInitialized)
   {
