@@ -59,7 +59,6 @@ bin\isp\*
 
 bin\components\addrbook.xpt
 bin\components\mime.xpt
-bin\components\mailnews.xpt
 bin\components\msgbase.xpt
 bin\components\msgcompo.xpt
 bin\components\msgdb.xpt
@@ -198,6 +197,8 @@ bin\components\content_html.xpt
 bin\components\content_htmldoc.xpt
 bin\components\content_xmldoc.xpt
 bin\components\content_xslt.xpt
+bin\components\content_xtf.xpt
+bin\components\contentprefs.xpt
 bin\components\xultmpl.xpt
 bin\components\xuldoc.xpt
 bin\components\xulapp.xpt
@@ -237,9 +238,9 @@ bin\components\profile.xpt
 bin\components\toolkitprofile.xpt
 
 ; toolkit
-bin\components\appstartup.xpt
 bin\components\commandlines.xpt
 bin\components\chrome.xpt
+bin\components\nsDefaultCLH.js
 
 ; rdf
 bin\components\rdf.xpt
@@ -257,12 +258,15 @@ bin\components\dom_canvas.xpt
 bin\components\dom_core.xpt
 bin\components\dom_css.xpt
 bin\components\dom_events.xpt
+bin\components\dom_geolocation.xpt
 bin\components\dom_html.xpt
 bin\components\dom_json.xpt
 bin\components\dom_offline.xpt
 bin\components\dom_range.xpt
+bin\components\dom_sidebar.xpt
 bin\components\dom_storage.xpt
 bin\components\dom_stylesheets.xpt
+bin\components\dom_threads.xpt
 bin\components\dom_traversal.xpt
 bin\components\dom_views.xpt
 bin\components\dom_xbl.xpt
@@ -283,14 +287,17 @@ bin\components\storage.xpt
 
 ; netwerk
 bin\components\necko.xpt
+bin\components\necko_about.xpt
 bin\components\necko_dns.xpt
 bin\components\necko_http.xpt
 bin\components\necko_res.xpt
 bin\components\necko_strconv.xpt
 bin\components\necko_file.xpt
+bin\components\necko_ftp.xpt
 bin\components\necko_cache.xpt
 bin\components\necko_cookie.xpt
 bin\components\necko_socket.xpt
+bin\components\necko_viewsource.xpt
 bin\components\nsProxyAutoConfig.js
 
 ; extensions
@@ -306,6 +313,7 @@ bin\components\websrvcs.xpt
 #endif
 bin\components\nsURLFormatter.js
 bin\components\urlformatter.xpt
+bin\components\nsContentPrefService.js
 
 ; plugins
 bin\components\plugin.xpt
@@ -327,6 +335,7 @@ bin\nssckbi.dll
 bin\nssdbm3.dll
 
 ; core platform files
+bin\components\FeedProcessor.js
 bin\components\xpautocomplete.xpt
 bin\components\autocomplete.xpt
 bin\components\alerts.xpt
@@ -338,11 +347,12 @@ bin\components\jsconsole-clhandler.js
 bin\components\layout_xul_tree.xpt
 bin\components\mozfind.xpt
 bin\components\mimetype.xpt
+bin\components\parentalcontrols.xpt
 bin\components\proxyObject.xpt
 bin\components\exthandler.xpt
+bin\components\exthelper.xpt
 bin\components\embed_base.xpt
 bin\components\webshell_idls.xpt
-bin\components\widget.xpt
 bin\components\windowds.xpt
 bin\components\dom_xpath.xpt
 bin\AccessibleMarshal.dll
