@@ -208,7 +208,6 @@ let GlodaIndexer = {
    */
   _datastore: GlodaDatastore,
   _log: Log4Moz.Service.getLogger("gloda.indexer"),
-  _messenger: null,
   /**
    * Our nsITimer that we use to schedule ourselves on the main thread
    *  intermittently.  The timer always exists but may not always be active.
@@ -225,22 +224,17 @@ let GlodaIndexer = {
     
     this._inited = true;
     
-    // we need this for setTimeout... what to do about this?
-    this._messenger = Cc["@mozilla.org/messenger;1"].
-                        createInstance(Ci.nsIMessenger);
-    
+    // create the timer that drives our intermittent indexing
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-    
-    // topmostMsgWindow explodes for un-clear reasons if we have multiple
-    //  windows open.  very sad.
+
+    // register for folder loaded events...
     let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
                         getService(Ci.nsIMsgMailSession);
-
     this._folderListener._init(this);
-    // register for folder loaded events...
     mailSession.AddFolderListener(this._folderListener,
                                   Ci.nsIFolderListener.event);
 
+    // register for shutdown notification
     let observerService = Cc["@mozilla.org/observer-service;1"].
                             getService(Ci.nsIObserverService);
     observerService.addObserver(this, "xpcom-shutdown", false);
