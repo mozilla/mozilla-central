@@ -1,4 +1,4 @@
-do_import_script("../mailnews/base/test/resources/messageGenerator.js");
+do_import_script("../mailnews/db/global/test/resources/messageGenerator.js");
 
 do_import_script("../mailnews/test/resources/mailDirService.js");
 do_import_script("../mailnews/test/resources/mailTestUtils.js");
