@@ -399,8 +399,10 @@ libs::
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 
+TEST_PUNYCODE_FILE=$(DIST)/../_tests/xpcshell-simple/test_uriloader_exthandler/unit/test_punycodeURIs.js
+
 # Disabled due to bug 447999
 libs::
-	if test -f $(DIST)/../_tests/xpcshell-simple/test_uriloader_exthandler/unit/test_punycodeURIs.js; then echo "function run_test() {dump('disabled for bug 447999');}" >$(DIST)/../_tests/xpcshell-simple/test_uriloader_exthandler/unit/test_punycodeURIs.js; fi;
+	if test -f $(TEST_PUNYCODE_FILE); then $(RM) $(TEST_PUNYCODE_FILE); echo "function run_test() {dump('disabled for bug 447999');}" >$(TEST_PUNYCODE_FILE); fi;
 
 endif
