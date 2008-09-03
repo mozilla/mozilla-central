@@ -10,10 +10,8 @@ var msgGen = new MessageGenerator();
 var scenarios = new MessageScenarioFactory(msgGen);
 
 function allMessageInSameConversation(aSynthMessage, aGlodaMessage, aConvID) {
-dump("@#@#@ TEST: " + aConvID + "\n");
   if (aConvID === undefined)
     return aGlodaMessage.conversationID;
-dump("  testing...\n");  
   do_check_eq(aConvID, aGlodaMessage.conversationID);
   return aConvID;
 }
@@ -24,14 +22,11 @@ dump("  testing...\n");
 function test_threading() {
   indexAndPermuteMessages(scenarios.directReply,
                           allMessageInSameConversation);
-dump("11111111111111\n");
   indexAndPermuteMessages(scenarios.missingIntermediary,
                           allMessageInSameConversation);
-dump("22222222222222\n");
   indexAndPermuteMessages(scenarios.siblingsMissingParent,
                           allMessageInSameConversation,
                           next_test);
-dump("33333333333333\n");
 }
 
 function test_attributes_fundamental() {
