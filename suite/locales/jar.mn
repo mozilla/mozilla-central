@@ -334,3 +334,8 @@
   locale/@AB_CD@/navigator-platform/win/navigator.properties                (%chrome/browser/win/navigator.properties)
   locale/@AB_CD@/navigator-platform/win/platformNavigationBindings.dtd      (%chrome/browser/win/platformNavigationBindings.dtd)
   locale/@AB_CD@/navigator-region/region.properties                         (%chrome/browser/region.properties)
+  locale/@AB_CD@/pippki/pref-certs.dtd                                      (%chrome/common/pref/pref-certs.dtd)
+  locale/@AB_CD@/pippki/pref-masterpass.dtd                                 (%chrome/common/pref/pref-masterpass.dtd)
+  locale/@AB_CD@/pippki/pref-ssl.dtd                                        (%chrome/common/pref/pref-ssl.dtd)
+  locale/@AB_CD@/pippki/pref-validation.dtd                                 (%chrome/common/pref/pref-validation.dtd)
+  locale/@AB_CD@/pippki/PrefsOverlay.dtd                                    (%chrome/common/pref/PrefsOverlay.dtd)

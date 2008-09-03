@@ -1,0 +1,10 @@
+pippki.jar:
+% overlay chrome://communicator/content/pref/preftree.xul chrome://pippki/content/PrefOverlay.xul
+   content/pippki/PrefOverlay.xul           (prefs/PrefOverlay.xul)
+   content/pippki/pref-certs.js             (prefs/pref-certs.js)
+   content/pippki/pref-certs.xul            (prefs/pref-certs.xul)
+   content/pippki/pref-masterpass.js        (prefs/pref-masterpass.js)
+   content/pippki/pref-masterpass.xul       (prefs/pref-masterpass.xul)
+   content/pippki/pref-ssl.xul              (prefs/pref-ssl.xul)
+   content/pippki/pref-validation.js        (prefs/pref-validation.js)
+   content/pippki/pref-validation.xul       (prefs/pref-validation.xul)

@@ -166,6 +166,26 @@
           <treeitem id="popupspref"
                     label="&popups.label;"
                     url="chrome://communicator/content/pref/pref-popups.xul"/>
+          <treeitem id="masterpassItem"
+                    label="&masterpass.label;"
+                    prefpane="masterpass_pane"
+                    url="chrome://pippki/content/pref-masterpass.xul"
+                    helpTopic="passwords_master"/>
+          <treeitem id="sslItem"
+                    label="&ssl.label;"
+                    prefpane="ssl_pane"
+                    url="chrome://pippki/content/pref-ssl.xul"
+                    helpTopic="ssl_prefs"/>
+          <treeitem id="certItem"
+                    label="&certs.label;"
+                    prefpane="certs_pane"
+                    url="chrome://pippki/content/pref-certs.xul"
+                    helpTopic="certs_prefs"/>
+          <treeitem id="validationItem"
+                    label="&validation.label;"
+                    prefpane="validation_pane"
+                    url="chrome://pippki/content/pref-validation.xul"
+                    helpTopic="validation_prefs"/>
 -->
         </treechildren>
       </treeitem>

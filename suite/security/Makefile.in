@@ -16,11 +16,11 @@
 #
 # The Initial Developer of the Original Code is
 # the mozilla.org SeaMonkey project.
-# Portions created by the Initial Developer are Copyright (C) 2005
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Mark Banner <bugzilla@standard8.demon.co.uk>
+#   Robert Kaiser <kairo@kairo.at>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,45 +36,9 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
-
-include $(DEPTH)/config/autoconf.mk
-
-# XXX Disable for release builds
-DIRS += debugQA
-
-# if you add DIRS here, care that app is always at the bottom of the list
-# as it packages up the built files on mac...
-DIRS		+= \
-		branding \
-		browser \
-		common \
-		locales \
-		modules \
-		themes \
-		profile \
-		security \
-		shell \
-		build \
-		app \
-		$(NULL)
-
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-DIRS += installer/windows
-endif
-endif
+DEPTH=../..
+topsrcdir=@top_srcdir@
+srcdir=@srcdir@
+VPATH=@srcdir@
 
 include $(topsrcdir)/config/rules.mk
-
-# For Windows build the uninstaller during the application build since the
-# uninstaller is included with the application for mar file generation.
-libs::
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-	$(MAKE) -C installer/windows uninstaller
-endif
-endif

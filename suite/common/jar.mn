@@ -6,7 +6,6 @@ comm.jar:
 % overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/permissionsNavigatorOverlay.xul
 % overlay chrome://global/content/console.xul chrome://communicator/content/consoleOverlay.xul
 % overlay chrome://help/content/help.xul chrome://communicator/content/helpOverlay.xul
-% overlay chrome://communicator/content/pref/preftree.xul chrome://pippki/content/PrefOverlay.xul
 % overlay chrome://editor/content/EdAdvancedEdit.xul chrome://communicator/content/helpEditorOverlay.xul
 % overlay chrome://editor/content/EdImageProps.xul chrome://communicator/content/helpEditorOverlay.xul
 % overlay chrome://editor/content/EditorPublish.xul chrome://communicator/content/helpEditorOverlay.xul
