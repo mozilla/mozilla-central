@@ -74,3 +74,14 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
 	cp $(srcdir)/mozicon50.xpm $(DIST)/branding/mozicon50.xpm
 	cp $(srcdir)/default.xpm   $(DIST)/branding/default.xpm	
 endif
+# Now sort out the branding specific icons
+ifeq ($(OS_ARCH),WINNT)
+	cp $(srcdir)/windows/messengerWindow.ico  $(DIST)/branding/messengerWindow.ico
+endif
+ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
+	cp $(srcdir)/gtk/messengerWindow.xpm  $(DIST)/branding/messengerWindow.xpm
+	cp $(srcdir)/gtk/messengerWindow16.xpm  $(DIST)/branding/messengerWindow16.xpm
+endif
+ifeq ($(OS_ARCH),OS2)
+	cp $(srcdir)/os2/messengerWindow.ico  $(DIST)/branding/messengerWindow.ico
+endif

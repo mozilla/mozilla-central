@@ -46,18 +46,14 @@ ifeq ($(OS_ARCH),OS2)
 	cp $(srcdir)/thunderbird-os2.ico  $(DIST)/branding/app.ico
 endif
 # Now sort out the branding specific icons
-	$(NSINSTALL) -D $(DIST)/mail/app/icons
 ifeq ($(OS_ARCH),WINNT)
-	$(NSINSTALL) -D $(DIST)/mail/app/icons/windows
-	cp $(srcdir)/thunderbird.ico  $(DEPTH)/mail/app/icons/windows/messengerWindow.ico
+	cp $(srcdir)/thunderbird.ico  $(DIST)/branding/messengerWindow.ico
 endif
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
-	$(NSINSTALL) -D $(DIST)/mail/app/icons/gtk
-	cp $(srcdir)/mozicon50.xpm  $(DEPTH)/mail/app/icons/gtk/messengerWindow.xpm
-	cp $(srcdir)/mozicon16.xpm  $(DEPTH)/mail/app/icons/gtk/messengerWindow16.xpm
+	cp $(srcdir)/mozicon50.xpm  $(DIST)/branding/messengerWindow.xpm
+	cp $(srcdir)/mozicon16.xpm  $(DIST)/branding/messengerWindow16.xpm
 endif
 ifeq ($(OS_ARCH),OS2)
-	$(NSINSTALL) -D $(DIST)/mail/app/icons/os2
-	cp $(srcdir)/thunderbird-os2.ico  $(DEPTH)/mail/app/icons/os2/messengerWindow.ico
+	cp $(srcdir)/thunderbird-os2.ico  $(DIST)/branding/messengerWindow.ico
 endif
 

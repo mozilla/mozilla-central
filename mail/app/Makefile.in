@@ -267,20 +267,31 @@ endif
 DESKTOP_ICONS = \
 	abcardWindow \
 	addressbookWindow \
-	messengerWindow \
 	msgcomposeWindow \
 	$(NULL) 
 
+BRANDED_ICONS = \
+	messengerWindow \
+	$(NULL)
+
 ifeq ($(ICON_DIR),gtk)
 DESKTOP_ICONS_SMALL=$(patsubst %,%16,$(DESKTOP_ICONS))
+BRANDED_ICONS_SMALL=$(patsubst %,%16,$(BRANDED_ICONS))
 endif
 
 DESKTOP_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(DESKTOP_ICONS) $(DESKTOP_ICONS_SMALL))
+BRANDED_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(BRANDED_ICONS) $(BRANDED_ICONS_SMALL))
 
 libs:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
 	$(INSTALL) $^ $(DIST)/bin/chrome/icons/default
 
+libs:: $(addprefix $(DIST)/branding/,$(BRANDED_ICON_FILES))
+	$(INSTALL) $^ $(DIST)/bin/chrome/icons/default
+
 install:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
+	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/chrome/icons/default
+
+install:: $(addprefix $(DIST)/branding,$(BRANDED_ICON_FILES))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/chrome/icons/default
 endif
 
