@@ -4523,7 +4523,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetSortOrder(PRInt32 *order)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetSortKey(PRUint8 **aKey, PRUint32 *aLength)
+NS_IMETHODIMP nsMsgDBFolder::GetSortKey(PRUint32 *aLength, PRUint8 **aKey)
 {
   NS_ENSURE_ARG(aKey);
   PRInt32 order;
@@ -4552,9 +4552,9 @@ NS_IMETHODIMP nsMsgDBFolder::CompareSortKeys(nsIMsgFolder *aFolder, PRInt32 *sor
   PRUint8 *sortKey2=nsnull;
   PRUint32 sortKey1Length;
   PRUint32 sortKey2Length;
-  nsresult rv = GetSortKey(&sortKey1, &sortKey1Length);
+  nsresult rv = GetSortKey(&sortKey1Length, &sortKey1);
   NS_ENSURE_SUCCESS(rv,rv);
-  aFolder->GetSortKey(&sortKey2, &sortKey2Length);
+  aFolder->GetSortKey(&sortKey2Length, &sortKey2);
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = gCollationKeyGenerator->CompareRawSortKey(sortKey1, sortKey1Length, sortKey2, sortKey2Length, sortOrder);

@@ -1035,7 +1035,7 @@ nsMsgFolderDataSource::createFolderNameNode(nsIMsgFolder *folder,
   {
     PRUint8 *sortKey=nsnull;
     PRUint32 sortKeyLength;
-    rv = folder->GetSortKey(&sortKey, &sortKeyLength);
+    rv = folder->GetSortKey(&sortKeyLength, &sortKey);
     NS_ENSURE_SUCCESS(rv, rv);
     createBlobNode(sortKey, sortKeyLength, target, getRDFService());
     PR_Free(sortKey);

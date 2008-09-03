@@ -68,7 +68,7 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(ecf2bf05-f08f-4c4b-8b52-41a37292e9d3)]
+[scriptable, uuid(294b98e9-dbdd-4f7f-9d81-5c17073a32c3)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -445,7 +445,12 @@ interface nsIMsgFolder : nsISupports {
   AString getStringWithFolderNameFromBundle(in string msgName);
   void notifyCompactCompleted();
   long compareSortKeys(in nsIMsgFolder msgFolder);
-  [noscript] void getSortKey(out octet_ptr key, out unsigned long length);
+  /**
+   * Returns a sort key that can be used to sort a list of folders.
+   *
+   * Prefer nsIMsgFolder::compareSortKeys over this function.
+   */
+  void getSortKey(out unsigned long length, [array, size_is(length), retval] out octet key);
 
   attribute nsIMsgRetentionSettings retentionSettings;
   attribute nsIMsgDownloadSettings downloadSettings;

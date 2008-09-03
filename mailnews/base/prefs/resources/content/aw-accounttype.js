@@ -89,12 +89,17 @@ function setupWizardPanels() {
       // initialize wizardPanels with the optional mail/news panels
       var wizardPanels, i;
       var isMailAccount = pageData.accounttype.mailaccount;
-    if (skipPanels == "true") // Support old syntax of true/false for wizardSkipPanels
-      wizardPanels = new Array("identitypage"); 
-    else if (isMailAccount && isMailAccount.value)
+      var isNewsAccount = pageData.accounttype.newsaccount;
+      if (skipPanels == "true") // Support old syntax of true/false for wizardSkipPanels
+        wizardPanels = new Array("identitypage"); 
+      else if (isMailAccount && isMailAccount.value)
         wizardPanels = new Array("identitypage", "serverpage", "loginpage", "accnamepage");
-      else
+      else if (isNewsAccount && isNewsAccount.value)
         wizardPanels = new Array("identitypage", "newsserver", "accnamepage");
+      else { // An account created by an extension and XUL overlays
+        var button = document.getElementById("acctyperadio").selectedItem;
+        wizardPanels = button.value.split(/ *, */);
+      }
 
       // Create a hash table of the panels to skip
       var skipArray = skipPanels.split(",");

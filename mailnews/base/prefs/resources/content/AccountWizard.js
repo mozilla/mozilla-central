@@ -391,7 +391,7 @@ function PageDataToAccountData(pageData, accountData)
                 pageData.server.smtphostname.value)
                 smtp.hostname = pageData.server.smtphostname.value;
         }
-        if (pageData.identity.smtpServerKey)
+        if (pageData.identity && pageData.identity.smtpServerKey)
             identity.smtpServerKey = pageData.identity.smtpServerKey.value;
     }
 
@@ -422,7 +422,9 @@ function createAccount(accountData)
     dump("am.createAccount()\n");
     var account = am.createAccount();
     
-    if (accountData.identity.email) // only create an identity for this account if we really have one (use the email address as a check)
+    // only create an identity for this account if we really have one
+    // (use the email address as a check)
+    if (accountData.identity && accountData.identity.email)
     {
         dump("am.createIdentity()\n");
         var identity = am.createIdentity();
@@ -637,7 +639,10 @@ function setupCopiesAndFoldersServer(account, accountIsDeferred, accountData)
 {
   try {
     var server = account.incomingServer;
-    if (server.type == "rss")
+
+    // This function sets up the default send preferences. The send preferences
+    // go on identities, so there is no need to continue without any identities.
+    if (server.type == "rss" || account.identities.Count() == 0)
       return false;
     var identity = account.identities.QueryElementAt(0, Components.interfaces.nsIMsgIdentity);
     // For this server, do we default the folder prefs to this server, or to the "Local Folders" server
@@ -957,6 +962,11 @@ function FixupAccountDataForIsp(accountData)
       return;
 
     var email = accountData.identity.email;
+
+    // The identity might not have an email address, which is what the rest of
+    // this function is looking for.
+    if (!email)
+      return;
        
     // fix up the username
     if (!accountData.incomingServer.username)
