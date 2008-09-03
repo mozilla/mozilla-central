@@ -43,8 +43,6 @@ endif
 
 TIERS += app
 
-tier_app_dirs += editor/ui
-
 ifdef MOZ_EXTENSIONS
 tier_app_dirs += extensions
 endif
@@ -56,6 +54,10 @@ TIERS += app
 ifdef MOZ_LDAP_XPCOM
 tier_app_staticdirs += directory/c-sdk
 tier_app_dirs += directory/xpcom
+endif
+
+ifdef MOZ_COMPOSER
+tier_app_dirs += editor/ui
 endif
 
 ifdef MOZ_BRANDING_DIRECTORY

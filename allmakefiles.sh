@@ -64,6 +64,10 @@ if [ "$MOZ_LDAP_XPCOM" ]; then
   . "${srcdir}/directory/makefiles.sh"
 fi
 
+if [ "$MOZ_COMPOSER" ]; then
+  . "${srcdir}/editor/ui/makefiles.sh"
+fi
+
 if [ "$MOZ_MAIL_NEWS" ]; then
   . "${srcdir}/mailnews/makefiles.sh"
 fi

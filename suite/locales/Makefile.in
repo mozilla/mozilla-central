@@ -138,7 +138,7 @@ install:: $(addsuffix .src,$(SEARCH_PLUGINS)) $(addsuffix .png,$(SEARCH_PLUGINS)
 
 libs-%:
 	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$*
-	@$(MAKE) -C ../../mozilla/editor/ui/locales AB_CD=$* XPI_NAME=locale-$*
+	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$*
 	@$(MAKE) -C ../../mozilla/extensions/irc/locales libs-$*
 	@$(MAKE) -C ../../mozilla/extensions/venkman/locales libs-$*
 	@$(MAKE) -C ../../mozilla/extensions/reporter/locales libs AB_CD=$* XPI_NAME=locale-$*
