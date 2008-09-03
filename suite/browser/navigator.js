@@ -2049,24 +2049,28 @@ function URLBarClickHandler(aEvent)
       gURLBar.select();
 }
 
-// This function gets the "windows hooks" service and has it check its setting
-// This will do nothing on platforms other than Windows.
+// This function gets the shell service and has it check its setting
+// This will do nothing on platforms without a shell service.
 function checkForDefaultBrowser()
 {
-  const NS_WINHOOKS_CONTRACTID = "@mozilla.org/winhooks;1";
-  var dialogShown = false;
-  if (NS_WINHOOKS_CONTRACTID in Components.classes) {
-    try {
-      dialogShown = Components.classes[NS_WINHOOKS_CONTRACTID]
-                      .getService(Components.interfaces.nsIWindowsHooks)
-                      .checkSettings(window);
-    } catch(e) {
-    }
+  const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
+  
+  if (NS_SHELLSERVICE_CID in Components.classes) {
+    const nsIShellService = Components.interfaces.nsIShellService;
+    var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
+                                 .getService(nsIShellService);
+    var appTypes = shellService.shouldBeDefaultClientFor;
 
-    if (dialogShown)  
-    {
+    // show the default client dialog only if we should check for the default
+    // client and we aren't already the default for the stored app types in
+    // shell.checkDefaultApps
+    if (appTypes && shellService.shouldCheckDefaultClient &&
+        !shellService.isDefaultClient(true, appTypes)) {
+      window.openDialog("chrome://communicator/content/defaultClientDialog.xul",
+                        "DefaultClient",
+                        "modal,centerscreen,chrome,resizable=no"); 
       // Force the sidebar to build since the windows 
-      // integration dialog may have come up.
+      // integration dialog has come up.
       SidebarRebuild();
     }
   }

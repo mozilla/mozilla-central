@@ -22,6 +22,7 @@
   locale/@AB_CD@/communicator/consoleOverlay.dtd                            (%chrome/common/consoleOverlay.dtd)
   locale/@AB_CD@/communicator/contentAreaCommands.dtd                       (%chrome/common/contentAreaCommands.dtd)
   locale/@AB_CD@/communicator/contentAreaCommands.properties                (%chrome/common/contentAreaCommands.properties)
+  locale/@AB_CD@/communicator/defaultClientDialog.dtd                       (%chrome/common/defaultClientDialog.dtd)
   locale/@AB_CD@/communicator/notification.properties                       (%chrome/common/notification.properties)
   locale/@AB_CD@/communicator/openLocation.dtd                              (%chrome/common/openLocation.dtd)
   locale/@AB_CD@/communicator/openLocation.properties                       (%chrome/common/openLocation.properties)

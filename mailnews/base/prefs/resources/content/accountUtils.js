@@ -76,48 +76,25 @@ function getInvalidAccounts(accounts)
     return invalidAccounts;
 }
 
-// This function gets called from verifyAccounts.
-// We do not have to do anything on
-// unix and mac but on windows we have to bring up a 
-// dialog based on the settings the user has.
-// This will bring up the dialog only once per session and only if we
-// are not the default mail client.
 function showMailIntegrationDialog() {
-    var mapiRegistry = null;
-    try {
-        var mapiRegistryProgID = "@mozilla.org/mapiregistry;1" 
-        if (mapiRegistryProgID in Components.classes) {
-          mapiRegistry = Components.classes[mapiRegistryProgID].getService(Components.interfaces.nsIMapiRegistry);
-        }
-    }
-    catch (ex) { 
-    }
+  const nsIShellService = Components.interfaces.nsIShellService;
 
-    // showDialog is TRUE only if we did not bring up this dialog already
-    // and we are not the default mail client
-    var prefLocked = false;
-    if (mapiRegistry && mapiRegistry.showDialog) {
-        const prefbase = "system.windows.lock_ui.";
-        try {
-            var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService()
-                          .QueryInterface(Components.interfaces.nsIPrefService);
-            var prefBranch = prefService.getBranch(prefbase);
-        
-            if (prefBranch && prefBranch.prefIsLocked("defaultMailClient")) {
-                prefLocked = true;
-                mapiRegistry.isDefaultMailClient = prefBranch.getBoolPref("defaultMailClient") ;
-            }
-        }
-        catch (ex) {}
-        try {
-          if (!prefLocked)
-            mapiRegistry.showMailIntegrationDialog(window /* parent window */);
-        }
-        catch (ex) {
-          dump("mapi code failed:  " + ex + "\n");
-        }
-    }
+  try {
+    var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
+                                 .getService(nsIShellService);
+    var accountManager = Components.classes[accountManagerContractID].getService(Components.interfaces.nsIMsgAccountManager);
+    var defaultAccount = accountManager.defaultAccount;
+    var appTypesCheck = shellService.shouldBeDefaultClientFor &
+                        (nsIShellService.MAIL | nsIShellService.NEWS);
+
+    // show the default client dialog only if we have at least one account,
+    // if we should check for the default client, and we want to check if we are 
+    // the default for mail/news and are not the default client for mail/news
+    if (appTypesCheck && shellService.shouldCheckDefaultClient &&
+        !shellService.isDefaultClient(true, appTypesCheck))
+        window.openDialog("chrome://communicator/content/defaultClientDialog.xul",
+                        "DefaultClient", "modal,centerscreen,chrome,resizable=no");
+  } catch (ex) {}
 }
 
 function verifyAccounts(wizardCallback) 
@@ -195,15 +172,14 @@ function verifyAccounts(wizardCallback)
           if (!localFoldersExists)
             am.createLocalMailAccount();
         }
-        
-        // This will only succeed on SeaMonkey windows builds
-        var mapiRegistryProgID = "@mozilla.org/mapiregistry;1" 
-        if (mapiRegistryProgID in Components.classes)
+
+        // This will do nothing on platforms without a shell service
+        const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1"
+        if (NS_SHELLSERVICE_CID in Components.classes)
         {
           // hack, set a time out to do this, so that the window can load first
           setTimeout(showMailIntegrationDialog, 0);
         }
-
         return ret;
     }
     catch (ex) {

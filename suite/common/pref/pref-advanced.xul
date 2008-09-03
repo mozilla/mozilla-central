@@ -56,6 +56,9 @@
       <preference id="config.use_system_prefs"
                   name="config.use_system_prefs"
                   type="bool"/>
+      <preference id="shell.checkDefaultClient"
+                  name="shell.checkDefaultClient"
+                  type="bool"/>
     </preferences>
 
     <groupbox id="advancedSettings">
@@ -73,6 +76,14 @@
                 label="&systemPrefCheck.label;"
                 accesskey="&systemPrefCheck.accesskey;"
                 preference="config.use_system_prefs"/>
+    </groupbox>
+
+    <groupbox id="checkDefault">
+      <caption label="&prefCheckDefault.caption;"/>
+      <checkbox id="checkDefaultClient"
+                label="&prefCheckDefaultClient.label;"
+                accesskey="&prefCheckDefaultClient.accesskey;"
+                preference="shell.checkDefaultClient"/>
     </groupbox>
 
   </prefpane>

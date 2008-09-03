@@ -54,6 +54,8 @@ comm.jar:
    content/communicator/contentAreaDD.js
    content/communicator/contentAreaClick.js
    content/communicator/contentAreaContextOverlay.xul
+   content/communicator/defaultClientDialog.js
+   content/communicator/defaultClientDialog.xul
    content/communicator/editorBindings.xul
    content/communicator/findUtils.js
    content/communicator/helpEditorOverlay.xul

@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Frank Wein <mcsmurf@mcsmurf.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,13 +36,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-if ("@mozilla.org/browser/shell-service;1" in Components.classes)
+if ("@mozilla.org/suite/shell-service;1" in Components.classes)
   const nsIShellService = Components.interfaces.nsIShellService;
 
 function Startup()
 {
   startPageCheck();
-
   defaultClientSetup();
 }
 
@@ -63,8 +63,8 @@ function setHomePageToDefaultPage()
 
 function defaultClientSetup()
 {
-  if ("@mozilla.org/browser/shell-service;1" in Components.classes) {
-    var shellService = Components.classes["@mozilla.org/browser/shell-service;1"]
+  if ("@mozilla.org/suite/shell-service;1" in Components.classes) {
+    var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
                                  .getService(nsIShellService);
 
     document.getElementById("setDefaultMail").disabled =
@@ -73,55 +73,30 @@ function defaultClientSetup()
     document.getElementById("setDefaultNews").disabled =
       shellService.isDefaultClient(false, nsIShellService.NEWS);
 
-    return;
+    document.getElementById("defaultMailPrefs").hidden = false;
   }
-  if ("@mozilla.org/mapiregistry;1" in Components.classes) {
-    var mapiRegistry = Components.classes["@mozilla.org/mapiregistry;1"]
-                     .getService(Components.interfaces.nsIMapiRegistry);
-
-    document.getElementById("setDefaultMail").disabled =
-      mapiRegistry.isDefaultMailClient;
-
-    document.getElementById("setDefaultNews").disabled =
-      mapiRegistry.isDefaultNewsClient;
-
-    return;
-  }
-
-  document.getElementById("defaultMailPrefs").hidden = true;
 }
 
 function onSetDefaultMail()
 {
-  if ("@mozilla.org/browser/shell-service;1" in Components.classes) {
-    var shellService = Components.classes["@mozilla.org/browser/shell-service;1"]
-                                 .getService(nsIShellService);
+  var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
+                               .getService(nsIShellService);
+  var appTypes = shellService.shouldBeDefaultClientFor;
 
-    shellService.setDefaultClient(false, false, nsIShellService.MAIL);
-  }
-  else if ("@mozilla.org/mapiregistry;1" in Components.classes) {
-    var mapiRegistry = Components.classes["@mozilla.org/mapiregistry;1"]
-                     .getService(Components.interfaces.nsIMapiRegistry);
+  shellService.setDefaultClient(false, false, nsIShellService.MAIL);
+  shellService.shouldBeDefaultClientFor |= nsIShellService.MAIL;
 
-    mapiRegistry.isDefaultMailClient = true;
-
-  }
   document.getElementById("setDefaultMail").disabled = true;
 }
 
 function onSetDefaultNews()
 {
-  if ("@mozilla.org/browser/shell-service;1" in Components.classes) {
-    var shellService = Components.classes["@mozilla.org/browser/shell-service;1"]
-                                 .getService(nsIShellService);
+  var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
+                               .getService(nsIShellService);
+  var appTypes = shellService.shouldBeDefaultClientFor;
 
-    shellService.setDefaultClient(false, false, nsIShellService.NEWS);
-  }
-  else if ("@mozilla.org/mapiregistry;1" in Components.classes) {
-    var mapiRegistry = Components.classes["@mozilla.org/mapiregistry;1"]
-                     .getService(Components.interfaces.nsIMapiRegistry);
+  shellService.setDefaultClient(false, false, nsIShellService.NEWS);
+  shellService.shouldBeDefaultClientFor |= nsIShellService.NEWS;
 
-    mapiRegistry.isDefaultNewsClient = true;
-  }
   document.getElementById("setDefaultNews").disabled = true;
 }

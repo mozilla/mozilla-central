@@ -84,10 +84,6 @@ CPPSRCS		= \
 		Registry.cpp \
 		$(NULL)
 
-ifndef MOZ_THUNDERBIRD
-CPPSRCS        += nsMapiRegistry.cpp nsMapiRegistryUtils.cpp
-endif
-
 LOBJS		= ../build/msgMapi_i.$(OBJ_SUFFIX)
 
 ifndef MOZ_STATIC_MAIL_BUILD

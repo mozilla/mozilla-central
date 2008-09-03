@@ -104,7 +104,7 @@
                   preference="mailnews.thread_pane_column_unthreads"
                   reversed="true" />
       </hbox>
-      <vbox id="defaultMailPrefs">
+      <vbox id="defaultMailPrefs" hidden="true">
         <separator class="thin"/>
 
         <description>&defaultMailSettings.description;</description>

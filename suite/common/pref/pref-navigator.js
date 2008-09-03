@@ -295,120 +295,56 @@ function SwitchPage(aIndex)
   document.getElementById("behaviourDeck").selectedIndex = aIndex;
 }
 
-
 // platform integration
 
 function ApplySetAsDefaultBrowser()
 {
-  // In future, we will use the Shell Service here,
-  // for now, just use WinHooks.
-  window.gWinHooks.winhooks.settings = window.gWinHooks.prefs;
-}
+  const nsIShellService = Components.interfaces.nsIShellService;
+  var shellSvc = Components.classes["@mozilla.org/suite/shell-service;1"]
+                           .getService(nsIShellService);
+  var appTypes = shellSvc.shouldBeDefaultClientFor; 
 
-function UpdateDefaultBrowserGroup()
-{
-  // set description and button state according to integration setting
-  var state = window.gWinHooks.state;
-  var desc = document.getElementById("defaultBrowserDesc");
-  desc.textContent = desc.getAttribute("desc" + state);
-  document.getElementById("defaultBrowserButton").disabled = (state != PFINT_NOT_DEFAULT);
+  shellSvc.setDefaultClient(false, false, nsIShellService.BROWSER);
+
+  if (appTypes != (appTypes | nsIShellService.BROWSER))
+    shellSvc.shouldBeDefaultClientFor |= nsIShellService.BROWSER;
 }
 
 function InitPlatformIntegration()
 {
-  // In future, we will ask the Shell Service about platform integration here,
-  // for now, just check WinHooks.
-  var showDefaultBrowserGroup = /Win/.test(navigator.platform);
-  document.getElementById("defaultBrowserGroup").hidden = !showDefaultBrowserGroup;
-  if (!showDefaultBrowserGroup)
-    return;
+  const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
 
-  // Determine if we have been selected as the default browser already, and
-  // enable/disable the "Set As Default" button accordingly.
+  if (NS_SHELLSERVICE_CID in Components.classes) {
+    const nsIShellService = Components.interfaces.nsIShellService;
+    var shellSvc = Components.classes["@mozilla.org/suite/shell-service;1"]
+                             .getService(nsIShellService);
+    var desc = document.getElementById("defaultBrowserDesc");
+    document.getElementById("defaultBrowserGroup").hidden = false;
 
-  // We store our state info in the same place as the code in pref-winhooks.js
-  // uses so that this panel and the Advanced/System panel are kept in sync.
-  if (!("gWinHooks" in window))
-  {
-    // Neither the Advanced/System panel nor this panel has appeared.
-    // Initialize the state information.
-    window.gWinHooks = {};
-
-    // Get winhooks service.
-    window.gWinHooks.winhooks = Components.classes["@mozilla.org/winhooks;1"]
-                                          .getService(Components.interfaces.nsIWindowsHooks);
-
-    // Extract current settings (these are what the user has checked on
-    // the Advanced/System panel).
-    window.gWinHooks.prefs = window.gWinHooks.winhooks.settings;
+    if (shellSvc.isDefaultClient(false, nsIShellService.BROWSER))
+      desc.textContent = desc.getAttribute("desc1");
+    else {
+      desc.textContent = desc.getAttribute("desc0");
+      document.getElementById("defaultBrowserButton").disabled = false;
+    }
   }
-  var winHooks = window.gWinHooks;
-  winHooks.state = PFINT_NOT_DEFAULT;
-
-  // Start by checking http/https/ftp and html/xhtml/xml.
-  var prefs = winHooks.prefs;
-  if (prefs.isHandlingHTTP  &&
-      prefs.isHandlingHTTPS &&
-      prefs.isHandlingFTP   &&
-      prefs.isHandlingHTML  &&
-      prefs.isHandlingXHTML &&
-      prefs.isHandlingXML)
-  {
-    // The user *wants* us to be the default, so look if the registry matches.
-    // We test the registry settings using a scratch copy of the settings
-    // because we don't care about some of them, but we don't want to mess up
-    // the user's choices from the Advanced/System panel.
-    var testSettings = winHooks.winhooks.settings;
-    // Test that these are set.
-    testSettings.isHandlingHTTP   = true;
-    testSettings.isHandlingHTTPS  = true;
-    testSettings.isHandlingFTP    = true;
-    testSettings.isHandlingHTML   = true;
-    testSettings.isHandlingXHTML  = true;
-    testSettings.isHandlingXML    = true;
-    // Ignore the rest.
-    testSettings.isHandlingCHROME = false;
-    testSettings.isHandlingGOPHER = false;
-    testSettings.isHandlingJPEG   = false;
-    testSettings.isHandlingGIF    = false;
-    testSettings.isHandlingPNG    = false;
-    testSettings.isHandlingBMP    = false;
-    testSettings.isHandlingICO    = false;
-    testSettings.isHandlingXUL    = false;
-    // Now test whether the registry matches that.
-    if (testSettings.registryMatches)
-      winHooks.state = PFINT_DEFAULT;
-  }
-  UpdateDefaultBrowserGroup();
 }
 
 function SetAsDefaultBrowser()
 {
-  // In future, we will use the Shell Service here,
-  // for now, just process WinHooks.
-
-  // Extract current settings (these are what the
-  // user has checked on the Advanced/System panel).
-  var settings = window.gWinHooks.prefs;
-
-  // Turn on all "default browser" settings.
-  settings.isHandlingHTTP  = true;
-  settings.isHandlingHTTPS = true;
-  settings.isHandlingFTP   = true;
-  settings.isHandlingHTML  = true;
-  settings.isHandlingXHTML = true;
-  settings.isHandlingXML   = true;
+  document.getElementById("defaultBrowserButton").disabled = true;
 
   if (document.documentElement.instantApply)
   {
-    window.gWinHooks.state = PFINT_DEFAULT;
+    var desc = document.getElementById("defaultBrowserDesc"); 
+    desc.textContent = desc.getAttribute("desc1");
     ApplySetAsDefaultBrowser();
   }
   else
   {
     // register OK handler for the capturing phase
-    window.gWinHooks.state = PFINT_PENDING;
+    var desc = document.getElementById("defaultBrowserDesc");
+    desc.textContent = desc.getAttribute("desc2");
     window.addEventListener("dialogaccept", this.ApplySetAsDefaultBrowser, true);
   }
-  UpdateDefaultBrowserGroup();
 }

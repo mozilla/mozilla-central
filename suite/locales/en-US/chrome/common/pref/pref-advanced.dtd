@@ -10,3 +10,7 @@
 <!ENTITY systemPrefCheck.label      "Use Preferences from System">
 <!ENTITY systemPrefCheck.accesskey  "U">
 <!ENTITY systemPref.desc            "With this option, &brandShortName; inherits preferences from the system. These system settings will override the &brandShortName; preferences.">
+
+<!ENTITY prefCheckDefault.caption   "System Integration">
+<!ENTITY prefCheckDefaultClient.label "Check default application settings on startup">
+<!ENTITY prefCheckDefaultClient.accesskey "C">
