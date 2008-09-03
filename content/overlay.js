@@ -36,11 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 // get the core
-Components.utils.import("resource://gloda/modules/gloda.js");
-// make all the built-in plugins join the party
-Components.utils.import("resource://gloda/modules/everybody.js");
-
-Components.utils.import("resource://gloda/modules/indexer.js");
+Components.utils.import("resource://gloda/modules/public.js");
 
 var gloda = {
   _mimeMsg: {},
@@ -54,9 +50,6 @@ var gloda = {
     Components.utils.import("resource://gloda/modules/mimemsg.js",
                             this._mimeMsg);
     this._mimeMsg.MsgHdrToMimeMessage.initGlobals(messenger, msgWindow);
-    
-    GlodaIndexer.init(window, msgWindow, this.strings, messenger);
-    GlodaIndexer.enabled = true;
   },
   onIndexEverythingCommand: function(e) {
     GlodaIndexer.indexEverything();

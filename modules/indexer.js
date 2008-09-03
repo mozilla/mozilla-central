@@ -208,34 +208,28 @@ let GlodaIndexer = {
    */
   _datastore: GlodaDatastore,
   _log: Log4Moz.Service.getLogger("gloda.indexer"),
-  _strBundle: null,
   _messenger: null,
-  _msgwindow: null,
-  _domWindow: null,
+  /**
+   * Our nsITimer that we use to schedule ourselves on the main thread
+   *  intermittently.  The timer always exists but may not always be active.
+   */
+  _timer: null,
 
   _inited: false,
   /**
-   * Initialize the indexer, passing in a number of things that either should
-   *  not be needed or should be retrieved by the code directly for XPCOM.
-   *  This means that some chrome code somewhere (generally gloda) needs to
-   *  intitialize us.  In theory this might cause sequencing problems, in
-   *  practice it doesn't.
+   * Initialize the indexer.
    */
-  init: function gloda_index_init(aDOMWindow, aMsgWindow, aStrBundle,
-                                  aMessenger) {
+  _init: function gloda_index_init() {
     if (this._inited)
       return;
     
     this._inited = true;
     
     // we need this for setTimeout... what to do about this?
-    this._domWindow = aDOMWindow;
-    // not sure we actually need this to pass around?
-    this._msgWindow = aMsgWindow;
-    // XXX we can XPCOM this up instead...
-    this._strBundle = aStrBundle;
-    // XXX we can XPCOM up a messenger instance of our own
-    this._messenger = aMessenger;
+    this._messenger = Cc["@mozilla.org/messenger;1"].
+                        createInstance(Ci.nsIMessenger);
+    
+    this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     
     // topmostMsgWindow explodes for un-clear reasons if we have multiple
     //  windows open.  very sad.
@@ -243,8 +237,18 @@ let GlodaIndexer = {
                         getService(Ci.nsIMsgMailSession);
 
     this._folderListener._init(this);
+    // register for folder loaded events...
     mailSession.AddFolderListener(this._folderListener,
                                   Ci.nsIFolderListener.event);
+
+    // figure out if event-driven indexing should be enabled...
+    let prefService = Cc["@mozilla.org/preferences-service;1"].
+                        getService(Ci.nsIPrefService);
+    let branch = prefService.getBranch("mailnews.database.global.indexer");
+    let eventDrivenEnabled = true; // default
+    if (branch.prefHasUserValue("enabled"))
+      eventDrivenEnabled = branch.getBoolPref("enabled");
+    this.enabled = eventDrivenEnabled;
   },
   
   /**
@@ -285,9 +289,9 @@ let GlodaIndexer = {
     if (!this._indexingActive && aShouldIndex) {
       this._log.info("+++ Indexing Queue Processing Commencing");
       this._indexingActive = true;
-      this._domWindow.setTimeout(this._wrapCallbackDriver,
-                                 this._indexInterval,
-                                 this);
+      this._timer.initWithCallback(this._wrapCallbackDriver,
+                                   this._indexInterval,
+                                   Ci.nsITimer.TYPE_ONE_SHOT);
     }  
   },
   
@@ -354,11 +358,11 @@ let GlodaIndexer = {
    * If indexing is not active when the listener is added, a synthetic idle
    *  notification will be generated.
    *
-   * @param aListener A listener function, taking arguments: status (string),
-   *     folder name being indexed (string or null), current zero-based folder
-   *     number being indexed (int), total number of folders to index (int),
-   *     current message number being indexed in this folder (int), total number
-   *     of messages in this folder to be indexed (int).
+   * @param aListener A listener function, taking arguments: status (Gloda.
+   *     kIndexer*), the folder name if a folder is involved (string or null),
+   *     current zero-based job number (int), total number of jobs (int),
+   *     current item number being indexed in this job (int), total number
+   *     of items in this job to be indexed (int).
    *
    * @TODO should probably allow for a 'this' value to be provided
    * @TODO generalize to not be folder/message specific.  use nouns!
@@ -370,8 +374,7 @@ let GlodaIndexer = {
     // if we aren't indexing, give them an idle indicator, otherwise they can
     //  just be happy when we hit the next actual status point.
     if (!this.indexing)
-      aListener(this._strBundle ? this._strBundle.getString("actionIdle") : "",
-                null, 0, 1, 0, 1);
+      aListener(Gloda.kIndexerIdle, null, 0, 1, 0, 1);
     return aListener;
   },
   /**
@@ -395,19 +398,14 @@ let GlodaIndexer = {
     if (this._indexingActive && this._curIndexingJob) {
       let job = this._curIndexingJob;
       if (job.deltaType > 0)
-        status = this._strBundle.getString("actionIndexing");
+        status = Gloda.kIndexerIndexing;
       else if (job.deltaType == 0)
-        status = this._strBundle.getString("actionMoving");
+        status = Gloda.kIndexerMoving;
       else
-        status = this._strBundle.getString("actionDeindexing");
+        status = Gloda.kIndexerRemoving;
         
-      let prettyName;
-      if (this._indexingFolder !== null)
-        prettyName = this._indexingFolder.prettiestName;
-      else
-        prettyName =
-          this._strBundle.getString("messageIndexingExplanation");
-
+      let prettyName = (this._indexingFolder !== null) ?
+                       this._indexingFolder.prettiestName : null;
       status = status + " " + prettyName;
 
       jobIndex = this._indexingJobCount-1;
@@ -416,7 +414,7 @@ let GlodaIndexer = {
       jobItemGoal  = job.goal;
     }
     else {
-      status = this._strBundle.getString("actionIdle");
+      status = Gloda.kIndexerIdle;
       prettyName = null;
       jobIndex = 0;
       jobTotal = 1;
@@ -478,7 +476,7 @@ let GlodaIndexer = {
     //  password prompt here...
     try {
       try {
-        this._indexingFolder.updateFolder(this._msgWindow);
+        this._indexingFolder.updateFolder(null);
       }
       catch ( e if e.result == 0xc1f30001) {
         // this means that we need to pend on the update.
@@ -493,10 +491,10 @@ let GlodaIndexer = {
       // we get an nsIMsgDatabase out of this (unsurprisingly) which
       //  explicitly inherits from nsIDBChangeAnnouncer, which has the
       //  AddListener call we want.
-      this._indexingDatabase = folder.getMsgDatabase(this._msgWindow);
+      this._indexingDatabase = folder.getMsgDatabase(null);
       if (aNeedIterator)
         this._indexingIterator = fixIterator(
-                                   //folder.getMessages(this._msgWindow),
+                                   //folder.getMessages(null),
                                    this._indexingDatabase.EnumerateMessages(),
                                    Ci.nsIMsgDBHdr);
       this._databaseAnnouncerListener.indexer = this;
@@ -556,8 +554,8 @@ let GlodaIndexer = {
   /**
    * A simple wrapper to make 'this' be right for incrementalIndex.
    */
-  _wrapCallbackDriver: function gloda_index_wrapCallbackDriver(aThis) {
-    aThis.callbackDriver();
+  _wrapCallbackDriver: function gloda_index_wrapCallbackDriver() {
+    GlodaIndexer.callbackDriver();
   },
 
   /**
@@ -573,7 +571,8 @@ let GlodaIndexer = {
    *  The convention is that all the callback handlers end up calling us,
    *  ensuring that control-flow properly resumes.  If the batch completes,
    *  we re-schedule ourselves after a time delay (controlled by _indexInterval)
-   *  and return.
+   *  and return.  (We use one-shot timers because repeating-slack does not
+   *  know enough to deal with our (current) asynchronous nature.)
    */
   callbackDriver: function gloda_index_callbackDriver() {
     // it is conceivable that someone we call will call something that in some
@@ -581,7 +580,9 @@ let GlodaIndexer = {
     //  events without returning.  In the interest of (stack-depth) sanity,
     //  let's handle this by performing a minimal time-delay callback.
     if (this._inCallback) {
-      this._domWindow.setTimeout(this._wrapCallbackDriver, 0, this);
+      this._timer.initWithCallback(this._wrapCallbackDriver,
+                                   0,
+                                   Ci.nsITimer.TYPE_ONE_SHOT);
       return;
     }
     this._inCallback = true;
@@ -600,9 +601,9 @@ let GlodaIndexer = {
         this._batch = null;
 
         if (this.indexing)
-          this._domWindow.setTimeout(this._wrapCallbackDriver,
-                                     this._indexInterval,
-                                     this);
+          this._timer.initWithCallback(this._wrapCallbackDriver,
+                                       this._indexInterval,
+                                       Ci.nsITimer.TYPE_ONE_SHOT);
       }
     }
     finally {    
@@ -1198,7 +1199,7 @@ let GlodaIndexer = {
   // TODO: implement a shutdown/pre-shutdown listener that attempts to either
   //  drain the indexing queue or persist it.
   /**
-   * Shutdown task.
+   * Shutdown task.  THIS IS NOT HOOKED UP TO ANYTHING YET.
    *
    * We implement nsIMsgShutdownTask, served up by nsIMsgShutdownService.  We
    *  offer our services by registering ourselves as a "msg-shutdown" observer
@@ -1231,7 +1232,8 @@ let GlodaIndexer = {
     },
     
     getCurrentTaskName: function gloda_indexer_getCurrentTaskName() {
-      return this.indexer.strBundle.getString("shutdownTaskName");
+      // if we hook this up, we will probably need to L10n this after all...
+      return "Global Database Indexer"; // L10n me
     },
   }, 
   
@@ -1494,3 +1496,4 @@ let GlodaIndexer = {
     aMessage._datastore.deleteConversationByID(aMessage.conversationID);
   },
 };
+GlodaIndexer._init();

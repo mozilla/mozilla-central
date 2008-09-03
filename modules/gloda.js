@@ -177,6 +177,11 @@ let Gloda = {
     this._log.info("Logging Initialized");
   },
   
+  kIndexerIdle: 0,
+  kIndexerIndexing: 1,
+  kIndexerMoving: 2,
+  kIndexerRemoving: 3,
+  
   /**
    * Given an nsIMsgDBHdr, return the gloda message object that corresponds to
    *  it.  If no such message exists, null is returned.
