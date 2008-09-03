@@ -241,6 +241,10 @@ let GlodaIndexer = {
     mailSession.AddFolderListener(this._folderListener,
                                   Ci.nsIFolderListener.event);
 
+    let observerService = Cc["@mozilla.org/observer-service;1"].
+                            getService(Ci.nsIObserverService);
+    observerService.addObserver(this, "xpcom-shutdown", false);
+
     // figure out if event-driven indexing should be enabled...
     let prefService = Cc["@mozilla.org/preferences-service;1"].
                         getService(Ci.nsIPrefService);
@@ -249,6 +253,16 @@ let GlodaIndexer = {
     if (branch.prefHasUserValue("enabled"))
       eventDrivenEnabled = branch.getBoolPref("enabled");
     this.enabled = eventDrivenEnabled;
+  },
+  
+  _shutdown: function gloda_index_shutdown() {
+    this._log.info("Shutting Down");
+
+    this.enabled = false;
+    
+    let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
+                        getService(Ci.nsIMsgMailSession);
+    mailSession.RemoveFolderListener(this._folderListener);
   },
   
   /**
@@ -905,6 +919,11 @@ let GlodaIndexer = {
   },
   
   /* *********** Event Processing *********** */
+  observe: function gloda_indexer_observe(aSubject, aTopic, aData) {
+    if (aTopic == "xpcom-shutdown") {
+      GlodaIndexer._shutdown();
+    }
+  },
 
   /* ***** Folder Changes ***** */  
   /**

@@ -55,6 +55,15 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
   ims.onDone = aOnDone;
 
   if (!ims.inited) {
+    // Disable new mail notifications
+    var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
+      .getService(Components.interfaces.nsIPrefBranch);
+  
+    prefSvc.setBoolPref("mail.biff.play_sound", false);
+    prefSvc.setBoolPref("mail.biff.show_alert", false);
+    prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
+    prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
+  
     GlodaIndexer.addListener(messageIndexerListener.onIndexNotification);
     ims.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
     ims.catchAllCollection.listener = messageCollectionListener;
@@ -62,16 +71,22 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
     // set up POP3 fakeserver to feed things in...
     [ims.daemon, ims.server] = setupServerDaemon();
     ims.incomingServer = createPop3ServerAndLocalFolders();
+
+    ims.pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
+                        .getService(Ci.nsIPop3Service);
     
     ims.inited = true;
   }
   
   ims.daemon.setMessages(_synthMessagesToFakeRep(aSynthMessages));
+  ims.active = true;
+  do_timeout(0, "driveFakeServer();");
 }
 
 var indexMessageState = {
   /** have we been initialized (hooked listeners, etc.) */
   inited: false,
+  active: false,
   /** our catch-all message collection that nets us all messages passing by */
   catchAllCollection: null,
   /** the set of synthetic messages passed in to indexMessages */
@@ -87,11 +102,110 @@ var indexMessageState = {
   
   /** nsMailServer instance with POP3_RFC1939 handler */
   server: null,
+  serverStarted: false,
   /** pop3Daemon instance */
   daemon: null,
   /** incoming pop3 server */
-  incomingServer: null
+  incomingServer: null,
+  /** pop3 service */
+  pop3Service: null,
+
+  urlListener: {
+    OnStartRunningUrl: function (url) {
+    },
+    OnStopRunningUrl: function (url, result) {
+dump("~~onStopRuningUrl\n");
+      let ims = indexMessageState;
+      try {
+        var transaction = ims.server.playTransaction();
+        // we don't realy care about the transaction 
+  
+        do_check_eq(result, 0);
+      }
+      catch (e) {
+        // If we have an error, clean up nicely before we throw it.
+        ims.server.stop();
+  
+        var thread = gThreadManager.currentThread;
+        while (thread.hasPendingEvents())
+          thread.processNextEvent(true);
+  
+        do_throw(e);
+      }
+  
+      // Let OnStopRunningUrl return cleanly before doing anything else.
+      //do_timeout(0, "indexMessageState.checkBusy();");
+    }
+  },
+  
+  checkBusy: function() {
+dump("~~~~checkBusy\n");
+    let ims = indexMessageState;
+    if (tests.length == 0) {
+    }
+  
+    // If the server hasn't quite finished, just delay a little longer.
+    if (ims.incomingServer.serverBusy ||
+        (ims.incomingServer instanceof Ci.nsIPop3IncomingServer &&
+         ims.incomingServer.runningProtocol)) {
+      do_timeout(20, ims.checkBusy);
+      return;
+    }
+    
+    // if there is more to do, do it
+    //if (ims.active)
+    //  driveFakeServer();
+  }
 };
+
+function driveFakeServer() {
+  let ims = indexMessageState;
+dump(">>> enter driveFakeServer\n");
+  // Handle the server in a try/catch/finally loop so that we always will stop
+  // the server if something fails.
+  try {
+    if (!(ims.serverStarted)) {
+      dump("  starting fake server\n");
+      ims.server.start(POP3_PORT);
+      ims.serverStarted = true;
+    }
+    else {
+      dump("  resetting fake server\n");
+      ims.server.resetTest();
+    }
+    
+    // Now get the mail
+    dump("  issuing GetNewMail\n");
+    ims.pop3Service.GetNewMail(null, ims.urlListener, gLocalInboxFolder,
+                               ims.incomingServer);
+    dump("  issuing performTest\n")
+    ims.server.performTest();
+  }
+  catch (e) {
+    ims.server.stop();
+    do_throw(e);
+  }
+  finally {
+    dump("  draining events\n");
+    var thread = gThreadManager.currentThread;
+    while (thread.hasPendingEvents())
+      thread.processNextEvent(true);
+  }
+dump("<<< exit driveFakeServer\n");
+}
+
+function killFakeServer() {
+  let ims = indexMessageState;
+
+  ims.incomingServer.closeCachedConnections();
+  
+  // No more tests, let everything finish
+  ims.server.stop();
+  
+  var thread = gThreadManager.currentThread;
+  while (thread.hasPendingEvents())
+    thread.processNextEvent(true);
+}
 
 var messageCollectionListener = {
   onItemsAdded: function(aItems) {
@@ -113,12 +227,16 @@ var messageIndexerListener = {
     dump("onIndexNotification\n");
     // we only care if indexing has just completed...
     if (!GlodaIndexer.indexing) {
+dump("  gloda is no longer indexing.\n");
       let ims = indexMessageState;
       
       // if we haven't seen all the messages we should see, assume that the
       //  rest are on their way, and are just coming in a subsequent job...
-      if (ims.glodaMessages.length < ims.inputMessages.length)
+      if (ims.glodaMessages.length < ims.inputMessages.length) {
+dump("we wanted " + ims.inputMessages.length + " but have seen " + 
+     ims.glodaMessages.length + "\n");
         return;
+      }
     
       // call the verifier.  (we expect them to generate an exception if the
       //  verification fails, using do_check_*/do_throw; we don't care about
@@ -128,7 +246,9 @@ var messageIndexerListener = {
                                          ims.glodaMessages[iMessage],
                                          ims.previousValue);
       }
-      
+
+dump("  calling onDone\n");
+      ims.active = false;
       ims.onDone();
     }
   }
@@ -143,16 +263,40 @@ var messageIndexerListener = {
  *  on your own time; you should really only be feeding us minimal scenarios.)
  */
 function indexAndPermuteMessages(aScenarioMaker, aVerifier, aOnDone) {
-  let firstSet = aScenarioMaker();
-  
   let mis = multiIndexState;
-  mis.scenarioMaker = aScenarioMaker;
-  mis.verifier = aVerifier;
-  // so, 32 permutations is probably too generous, not to mention an odd choice.
-  mis.numPermutations = Math.min(factorial(firstSet.length), 32);
-  mis.nextPermutationId = 1;
   
-  indexMessages(firstSet, mis.verifier, _permutationIndexed);
+  mis.queue.push([aScenarioMaker, aVerifier, aOnDone]);
+
+  // start processing it immediately if we're not doing anything...
+  if (!mis.active)
+    _multiIndexNext();
+}
+
+function _multiIndexNext() {
+  let mis = multiIndexState;
+  
+  if (mis.queue.length) {
+    mis.active = true;
+    
+    let [aScenarioMaker, aVerifier, aOnDone] = mis.queue.shift();
+  
+    let firstSet = aScenarioMaker();
+    
+    mis.scenarioMaker = aScenarioMaker;
+    mis.verifier = aVerifier;
+    // so, 32 permutations is probably too generous, not to mention an odd choice.
+    mis.numPermutations = Math.min(factorial(firstSet.length), 32);
+    mis.nextPermutationId = 1;
+    
+    mis.onDone = aOnDone;
+    
+    indexMessages(firstSet, mis.verifier, _permutationIndexed);
+  }
+  else {
+    mis.active = false;
+    if (mis.onDone)
+      mis.onDone();
+  }
 }
 
 function _permutationIndexed() {
@@ -161,7 +305,7 @@ function _permutationIndexed() {
     indexMessages(permute(mis.scenarioMaker(), mis.nextPermutationId++),
                   mis.verifier, _permutationIndexed);
   else
-    mis.onDone();
+    _multiIndexNext();
 }
 
 var multiIndexState = {
@@ -169,7 +313,9 @@ var multiIndexState = {
   verifier: null,
   onDone: null,
   numPermutations: undefined,
-  nextPermutationId: undefined
+  nextPermutationId: undefined,
+  active: false,
+  queue: []
 };
 
 function factorial(i, rv) {
@@ -189,11 +335,12 @@ function factorial(i, rv) {
  */
 function permute(aArray, aPermutationId) {
   let out = [];
-  for (let l=aArray.length; l >= 0; l--) {
+  for (let l=aArray.length; l > 0; l--) {
     let offset = aPermutationId % l;  
     out.push(aArray[offset]);
     aArray.splice(offset, 1);
     aPermutationId = Math.floor(aPermutationId / l);
   }
+dump ("permute returning: " + out + "\n");
   return out;
 }

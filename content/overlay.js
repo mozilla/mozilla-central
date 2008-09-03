@@ -45,11 +45,6 @@ var gloda = {
     // initialization code
     this.initialized = true;
     this.strings = document.getElementById("gloda-strings");
-    
-    // initialize the globals required for the JS Mime representation
-    Components.utils.import("resource://gloda/modules/mimemsg.js",
-                            this._mimeMsg);
-    this._mimeMsg.MsgHdrToMimeMessage.initGlobals(messenger, msgWindow);
   },
   onIndexEverythingCommand: function(e) {
     GlodaIndexer.indexEverything();

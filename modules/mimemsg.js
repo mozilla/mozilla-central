@@ -110,8 +110,8 @@ CallbackStreamListener.prototype = {
   },
 };
 
-let gMessenger = null;
-let gMsgWindow = null;
+let gMessenger = Cc["@mozilla.org/messenger;1"].
+                   createInstance(Ci.nsIMessenger);
 
 /**
  * Starts retrieval of a MimeMessage instance for the given message header.
@@ -134,7 +134,7 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
   
   let streamURI = msgService.streamMessage(msgURI,
                                            streamListener, // consumer
-                                           gMsgWindow, // nsIMsgWindow
+                                           null, // nsIMsgWindow
                                            dumbUrlListener, // nsIUrlListener
                                            true, // have them create the converter
       // additional uri payload, note that "header=" is prepended automatically 
@@ -156,13 +156,6 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
  * If you can come up with a prettier way to shuttle this data, please do.
  */
 MsgHdrToMimeMessage.RESULT_RENDEVOUZ = {};
-/**
- * Someone with access to these globals needs to push them into us.
- */
-MsgHdrToMimeMessage.initGlobals = function(aMessenger, aMsgWindow) {
-  gMessenger = aMessenger;
-  gMsgWindow = aMsgWindow;
-}
 
 /**
  * @ivar partName The MIME part, ex "1.2.2.1".  The partName of a (top-level)

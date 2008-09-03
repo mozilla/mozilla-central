@@ -23,17 +23,21 @@ function allMessageInSameConversation(aSynthMessage, aGlodaMessage, aConvID) {
 function test_threading() {
   indexAndPermuteMessages(scenarios.directReply,
                           allMessageInSameConversation);
+dump("11111111111111\n");
   indexAndPermuteMessages(scenarios.missingIntermediary,
                           allMessageInSameConversation);
+dump("22222222222222\n");
   indexAndPermuteMessages(scenarios.siblingsMissingParent,
-                          allMessageInSameConversation);
+                          allMessageInSameConversation,
+                          next_test);
+dump("33333333333333\n");
 }
 
 function test_attributes_fundamental() {
   // create a synthetic message
-  let smsg = msgGen.newMessage();
+  let smsg = msgGen.makeMessage();
   
-  indexMessages([smsg], verify_attributes_fundamental);
+  indexMessages([smsg], verify_attributes_fundamental, next_test);
 }
 
 function verify_attributes_fundamental(smsg, gmsg) {  
@@ -71,13 +75,20 @@ function test_message_fulltext() {
 function test_iterator() {
   do_test_pending();
 
+dump("calling test_threading\n");
   yield test_threading();
+dump("back from test_threading yield\n");
   yield test_attributes_fundamental();
+dump ("back from test_attributes_fundamental\n");
   
+  killFakeServer();
   do_test_finished();
+dump("!!!!!! TEST FINISHED!\n");
+  
   // once the control flow hits the root after do_test_finished, we're done,
   //  so let's just yield something to avoid callers having to deal with an
   //  exception indicating completion.
+  gTestIterator = null;
   yield null;
 }
 
@@ -90,6 +101,5 @@ function next_test() {
 function run_test() {
   gTestIterator = test_iterator();
   
-  do_test_pending();
   next_test();
 }
