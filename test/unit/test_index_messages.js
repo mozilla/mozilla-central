@@ -10,9 +10,10 @@ var msgGen = new MessageGenerator();
 var scenarios = new MessageScenarioFactory(msgGen);
 
 function allMessageInSameConversation(aSynthMessage, aGlodaMessage, aConvID) {
+dump("@#@#@ TEST: " + aConvID + "\n");
   if (aConvID === undefined)
     return aGlodaMessage.conversationID;
-  
+dump("  testing...\n");  
   do_check_eq(aConvID, aGlodaMessage.conversationID);
   return aConvID;
 }
@@ -52,11 +53,11 @@ function verify_attributes_fundamental(smsg, gmsg) {
   do_check_eq(smsg.fromName, gmsg.from.contact.name);
   
   // - to
-  do_check_eq(smsg.toAddress, gmsg.to.value);
-  do_check_eq(smsg.toName, gmsg.to.contact.name);
+  do_check_eq(smsg.toAddress, gmsg.to[0].value);
+  do_check_eq(smsg.toName, gmsg.to[0].contact.name);
   
   // date
-  do_check_eq(smsg.date, gmsg.date);
+  do_check_eq(smsg.date.valueOf(), gmsg.date.valueOf());
 }
 
 function test_attributes_explicit() {

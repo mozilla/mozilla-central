@@ -11,7 +11,7 @@ var glodaFile = do_get_file("../mailnews/db/global");
 var aliasURI = ioService.newFileURI(glodaFile);
 resProt.setSubstitution("gloda", aliasURI);
 
-Components.utils.import("resource://gloda/modules/gloda.js");
+Components.utils.import("resource://gloda/modules/public.js");
 Components.utils.import("resource://gloda/modules/indexer.js");
 
 do_import_script("../mailnews/local/test/unit/head_maillocal.js");
@@ -64,7 +64,7 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
     prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
     prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
   
-    GlodaIndexer.addListener(messageIndexerListener.onIndexNotification);
+    Gloda.addIndexerListener(messageIndexerListener.onIndexNotification);
     ims.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
     ims.catchAllCollection.listener = messageCollectionListener;
     
@@ -241,7 +241,7 @@ dump("we wanted " + ims.inputMessages.length + " but have seen " +
       // call the verifier.  (we expect them to generate an exception if the
       //  verification fails, using do_check_*/do_throw; we don't care about
       //  the return value except to propagate forward to subsequent calls.)
-      for (let iMessage=0; iMessage < ims.inputMessages; iMessage++) {
+      for (let iMessage=0; iMessage < ims.inputMessages.length; iMessage++) {
         ims.previousValue = ims.verifier(ims.inputMessages[iMessage],
                                          ims.glodaMessages[iMessage],
                                          ims.previousValue);
