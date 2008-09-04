@@ -1,20 +1,25 @@
+/*
+ *
+ */
+
+// -- Create the "resource" for "gloda" so our imports work.
 var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                           .getService(Components.interfaces.nsIIOService);
 var resProt = ioService.getProtocolHandler("resource")
                        .QueryInterface(Components.interfaces.nsIResProtocolHandler);
-
-//var aliasFile = Components.classes["@mozilla.org/file/local;1"]
-//                          .createInstance(Components.interfaces.nsILocalFile);
 var glodaFile = do_get_file("../mailnews/db/global");
-//aliasFile.initWithPath("../mailnews/db/global");
 
 var aliasURI = ioService.newFileURI(glodaFile);
 resProt.setSubstitution("gloda", aliasURI);
 
+// -- Use our newfound imports
 Components.utils.import("resource://gloda/modules/public.js");
 Components.utils.import("resource://gloda/modules/indexer.js");
 
+// -- Pull in the POP3 fake-server / local account helper code
 do_import_script("../mailnews/local/test/unit/head_maillocal.js");
+
+
 
 /**
  * Convert a list of synthetic messages to a form appropriate to feed to the
@@ -79,14 +84,12 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
   }
   
   ims.daemon.setMessages(_synthMessagesToFakeRep(aSynthMessages));
-  ims.active = true;
   do_timeout(0, "driveFakeServer();");
 }
 
 var indexMessageState = {
   /** have we been initialized (hooked listeners, etc.) */
   inited: false,
-  active: false,
   /** our catch-all message collection that nets us all messages passing by */
   catchAllCollection: null,
   /** the set of synthetic messages passed in to indexMessages */
@@ -110,16 +113,20 @@ var indexMessageState = {
   /** pop3 service */
   pop3Service: null,
 
+  /**
+   * Listener to handle the completion of the POP3 message retrieval (one way or
+   *  the other.)
+   */
   urlListener: {
     OnStartRunningUrl: function (url) {
     },
     OnStopRunningUrl: function (url, result) {
-dump("~~onStopRuningUrl\n");
       let ims = indexMessageState;
       try {
-        var transaction = ims.server.playTransaction();
-        // we don't realy care about the transaction 
-  
+        // this returns a log of the transaction, but we don't care.  (we
+        //  assume that the POP3 stuff works.)
+        ims.server.playTransaction();
+        // doesn't hurt to break if the POP3 broke though...
         do_check_eq(result, 0);
       }
       catch (e) {
@@ -132,32 +139,42 @@ dump("~~onStopRuningUrl\n");
   
         do_throw(e);
       }
-  
-      // Let OnStopRunningUrl return cleanly before doing anything else.
-      //do_timeout(0, "indexMessageState.checkBusy();");
+      
+      // we are expecting the gloda indexer to receive some notification as the
+      //  result of the new messages showing up, so we don't actually need to
+      //  do anything here.
     }
-  },
-  
-  checkBusy: function() {
-dump("~~~~checkBusy\n");
-    let ims = indexMessageState;
-    if (tests.length == 0) {
-    }
-  
-    // If the server hasn't quite finished, just delay a little longer.
-    if (ims.incomingServer.serverBusy ||
-        (ims.incomingServer instanceof Ci.nsIPop3IncomingServer &&
-         ims.incomingServer.runningProtocol)) {
-      do_timeout(20, ims.checkBusy);
-      return;
-    }
-    
-    // if there is more to do, do it
-    //if (ims.active)
-    //  driveFakeServer();
   }
 };
 
+/**
+ * Indicate that we should expect some modified messages to be indexed.
+ * 
+ * @param aMessages The messages that will be modified and we should expect
+ *   notifications about.  We currently don't do anything with these other than
+ *   count them, so pass whatever you want and it will be the 'source message'
+ *   (1st argument) to your verifier function.
+ * @param aVerifier See indexMessage's aVerifier argument.
+ * @param aDone The (optional) callback to call on completion.
+ */
+function expectModifiedMessages(aMessages, aVerifier, aDone) {
+  let ims = indexMessageState;
+  
+  ims.inputMessages = aMessages;
+  ims.glodaMessages = [];
+  ims.verifier = aVerifier;
+  ims.previousValue = undefined;
+  ims.onDone = aOnDone;
+  
+  // we don't actually need to do anything.  the caller is going to be
+  //  triggering a notification which will spur the indexer into action.  the
+  //  indexer uses its own scheduling mechanism to drive itself, so as long
+  //  as an event loop is active, we're good.
+}
+
+/**
+ * Perform the mail fetching, seeing it through to completion.
+ */
 function driveFakeServer() {
   let ims = indexMessageState;
 dump(">>> enter driveFakeServer\n");
@@ -194,6 +211,11 @@ dump(">>> enter driveFakeServer\n");
 dump("<<< exit driveFakeServer\n");
 }
 
+/**
+ * Tear down the fake server.  This is very important to avoid things getting
+ *  upset during shutdown.  (Namely, XPConnect will get mad about running in
+ *  a context without "Components" defined.)
+ */
 function killFakeServer() {
   let ims = indexMessageState;
 
@@ -207,6 +229,13 @@ function killFakeServer() {
     thread.processNextEvent(true);
 }
 
+/**
+ * Our catch-all collection listener.  Any time a new message gets indexed,
+ *  we should receive an onItemsAdded call.  Any time an existing message
+ *  gets reindexed, we should receive an onItemsModified call.  Any time an
+ *  existing message actually gets purged from the system, we should receive
+ *  an onItemsRemoved call.
+ */
 var messageCollectionListener = {
   onItemsAdded: function(aItems) {
     dump("onItemsAdded\n");
@@ -215,26 +244,32 @@ var messageCollectionListener = {
   },
   
   onItemsModified: function(aItems) {
+    dump("onItemsModified\n");
+    let ims = indexMessageState;
+    ims.glodaMessages = ims.glodaMessages.concat(aItems);
   },
   
   onItemsRemoved: function(aItems) {
   }
 };
 
+/**
+ * Gloda indexer listener, used to know when all active indexing jobs have
+ *  completed so that we can try and process all the things that should have
+ *  been processed.
+ */
 var messageIndexerListener = {
   onIndexNotification: function(aStatus, aPrettyName, aJobIndex, aJobTotal,
                                 aJobItemIndex, aJobItemGoal) {
-    dump("onIndexNotification\n");
     // we only care if indexing has just completed...
     if (!GlodaIndexer.indexing) {
-dump("  gloda is no longer indexing.\n");
       let ims = indexMessageState;
       
       // if we haven't seen all the messages we should see, assume that the
       //  rest are on their way, and are just coming in a subsequent job...
+      // (Also, the first time we register our listener, we will get a synthetic
+      //  idle status; at least if the indexer is idle.)
       if (ims.glodaMessages.length < ims.inputMessages.length) {
-dump("we wanted " + ims.inputMessages.length + " but have seen " + 
-     ims.glodaMessages.length + "\n");
         return;
       }
     
@@ -247,9 +282,8 @@ dump("we wanted " + ims.inputMessages.length + " but have seen " +
                                          ims.previousValue);
       }
 
-dump("  calling onDone\n");
-      ims.active = false;
-      ims.onDone();
+      if (ims.onDone)
+        ims.onDone();
     }
   }
 };
@@ -261,6 +295,20 @@ dump("  calling onDone\n");
  * This process is executed once for each possible permutation of observation
  *  of the synthetic messages.  (Well, we cap it; brute-force test your logic
  *  on your own time; you should really only be feeding us minimal scenarios.)
+ *
+ * @param aScenarioMaker A function that, when called, will generate a series
+ *   of SyntheticMessage instances.  Each call to this method should generate
+ *   a new set of conceptually equivalent, but not identical, messages.  This
+ *   allows us to process without having to reset our state back to nothing each
+ *   time.  (This is more to try and make sure we run the system with a 'dirty'
+ *   state than a bid for efficiency.)
+ * @param aVerifier Verifier function, same signature/intent as the same
+ *   argument for indexMessages (who we internally end up calling).
+ * @param aOnDone The (optional) function to call when we have finished
+ *   processing.  Note that this handler is only called when there are no
+ *   additional jobs to be queued.  So if you queue up 5 jobs, you can pass in
+ *   the same aOnDone handler for all of them, confident in the knowledge that
+ *   only the last job will result in the done handler being called.  
  */
 function indexAndPermuteMessages(aScenarioMaker, aVerifier, aOnDone) {
   let mis = multiIndexState;
@@ -272,6 +320,13 @@ function indexAndPermuteMessages(aScenarioMaker, aVerifier, aOnDone) {
     _multiIndexNext();
 }
 
+/**
+ * Helper function that does the actual multi-indexing work for each call
+ *  made to indexAndPermuteMessages.  Since those calls can stack, the arguments
+ *  are queued, and we process them when there is no (longer) a current job.
+ *  _permutationIndexed handles the work of trying the subsequent permutations
+ *  for each job we de-queue and initiate.
+ */
 function _multiIndexNext() {
   let mis = multiIndexState;
   
@@ -284,7 +339,7 @@ function _multiIndexNext() {
     
     mis.scenarioMaker = aScenarioMaker;
     mis.verifier = aVerifier;
-    // so, 32 permutations is probably too generous, not to mention an odd choice.
+    // 32 permutations is probably too generous, not to mention an odd choice.
     mis.numPermutations = Math.min(factorial(firstSet.length), 32);
     mis.nextPermutationId = 1;
     
@@ -299,6 +354,12 @@ function _multiIndexNext() {
   }
 }
 
+/**
+ * The onDone handler for indexAndPermuteMessages/_multiIndexNext's use of
+ *  indexMessages under the hood.  Generates and initiates processing of then
+ *  next permutation if any remain, otherwise deferring to _multiIndexNext to
+ *  de-queue the next call/job or close up shop. 
+ */
 function _permutationIndexed() {
   let mis = multiIndexState;
   if (mis.nextPermutationId < mis.numPermutations)
@@ -308,6 +369,10 @@ function _permutationIndexed() {
     _multiIndexNext();
 }
 
+/**
+ * The state global for indexAndPermuteMessages / _multiIndexNext / 
+ *  _permutationIndexed.
+ */
 var multiIndexState = {
   scenarioMaker: null,
   verifier: null,
@@ -318,6 +383,10 @@ var multiIndexState = {
   queue: []
 };
 
+/**
+ * A simple factorial function used to calculate the number of permutations
+ *  possible for a given set of messages.
+ */
 function factorial(i, rv) {
   if (i <= 1)
     return rv || 1;
@@ -341,6 +410,35 @@ function permute(aArray, aPermutationId) {
     aArray.splice(offset, 1);
     aPermutationId = Math.floor(aPermutationId / l);
   }
-dump ("permute returning: " + out + "\n");
   return out;
+}
+
+var glodaHelperTests = [];
+var glodaHelperIterator = null;
+
+function _gh_test_iterator() {
+  do_test_pending();
+
+  for (let iTest=0; iTest < glodaHelperTests.length; iTest++) {
+    yield glodaHelperTests[iTest]();
+  }
+
+  killFakeServer();
+  do_test_finished();
+  
+  // once the control flow hits the root after do_test_finished, we're done,
+  //  so let's just yield something to avoid callers having to deal with an
+  //  exception indicating completion.
+  glodaHelperIterator = null;
+  yield null;
+}
+
+function gh_next_test() {
+  glodaHelperIterator.next();
+}
+
+function glodaHelperRunTests(aTests) {
+  glodaHelperTests = aTests;
+  glodaHelperIterator = _gh_test_iterator();
+  gh_next_test();
 }
