@@ -168,7 +168,6 @@
   locale/@AB_CD@/communicator/pref/pref-security.dtd                        (%chrome/common/pref/pref-security.dtd)
   locale/@AB_CD@/communicator/pref/pref-smartupdate.dtd                     (%chrome/common/pref/pref-smartupdate.dtd)
   locale/@AB_CD@/communicator/pref/pref-tabs.dtd                            (%chrome/common/pref/pref-tabs.dtd)
-  locale/@AB_CD@/communicator/pref/pref-winhooks.dtd                        (%chrome/common/pref/pref-winhooks.dtd)
   locale/@AB_CD@/communicator-platform/mac/pref/platformPrefOverlay.dtd     (%chrome/common/pref/mac/platformPrefOverlay.dtd)
   locale/@AB_CD@/communicator-platform/unix/pref/platformPrefOverlay.dtd    (%chrome/common/pref/unix/platformPrefOverlay.dtd)
   locale/@AB_CD@/communicator-platform/win/pref/platformPrefOverlay.dtd     (%chrome/common/pref/win/platformPrefOverlay.dtd)

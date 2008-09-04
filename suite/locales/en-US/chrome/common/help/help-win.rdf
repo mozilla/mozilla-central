@@ -47,16 +47,6 @@
   </nc:subheadings>
 </rdf:Description>
 
-<rdf:Description about="suite-toc.rdf#advanced_pref_advanced">
-  <nc:subheadings>
-    <rdf:Seq><rdf:li>
-      <rdf:Description ID="advanced_pref_system"
-        nc:name="System"
-        nc:link="cs_nav_prefs_advanced.xhtml#system"/>
-    </rdf:li></rdf:Seq>
-  </nc:subheadings>
-</rdf:Description>
-
 <rdf:Description about="help-index1.rdf#browser">
   <nc:subheadings>
      <rdf:Seq><rdf:li>
