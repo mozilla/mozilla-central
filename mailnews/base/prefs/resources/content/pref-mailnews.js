@@ -81,7 +81,6 @@ function onSetDefaultMail()
 {
   var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
                                .getService(nsIShellService);
-  var appTypes = shellService.shouldBeDefaultClientFor;
 
   shellService.setDefaultClient(false, false, nsIShellService.MAIL);
   shellService.shouldBeDefaultClientFor |= nsIShellService.MAIL;
@@ -93,7 +92,6 @@ function onSetDefaultNews()
 {
   var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
                                .getService(nsIShellService);
-  var appTypes = shellService.shouldBeDefaultClientFor;
 
   shellService.setDefaultClient(false, false, nsIShellService.NEWS);
   shellService.shouldBeDefaultClientFor |= nsIShellService.NEWS;

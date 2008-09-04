@@ -302,12 +302,9 @@ function ApplySetAsDefaultBrowser()
   const nsIShellService = Components.interfaces.nsIShellService;
   var shellSvc = Components.classes["@mozilla.org/suite/shell-service;1"]
                            .getService(nsIShellService);
-  var appTypes = shellSvc.shouldBeDefaultClientFor; 
 
   shellSvc.setDefaultClient(false, false, nsIShellService.BROWSER);
-
-  if (appTypes != (appTypes | nsIShellService.BROWSER))
-    shellSvc.shouldBeDefaultClientFor |= nsIShellService.BROWSER;
+  shellSvc.shouldBeDefaultClientFor |= nsIShellService.BROWSER;
 }
 
 function InitPlatformIntegration()
