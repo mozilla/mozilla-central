@@ -47,18 +47,15 @@ include $(topsrcdir)/config/config.mk
 run_for_effect := $(shell if ! test -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if ! test -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
 _ABS_DIST := $(shell cd $(DIST) && pwd)
 
-ifdef MOZ_BRANDING_DIRECTORY
+ifndef MOZ_BRANDING_DIRECTORY
+MOZ_BRANDING_DIRECTORY = mail/branding/nightly
+GENERATE_DMG_SYMLINK = 1
+endif
+
 SUBMAKEFILES += \
 	$(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/Makefile \
 	$(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales/Makefile \
 	$(NULL)
-else
-DEFINES += -DMOZ_USE_GENERIC_BRANDING
-SUBMAKEFILES += \
-	$(DEPTH)/mail/branding/nightly/Makefile \
-	$(DEPTH)/mail/branding/nightly/locales/Makefile \
-	$(NULL)
-endif
 
 # This makefile uses variable overrides from the libs-% target to
 # build non-default locales to non-default dist/ locations. Be aware!
@@ -114,11 +111,7 @@ libs-%:
 	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$*
 	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$*
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
-ifdef MOZ_BRANDING_DIRECTORY
 	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales AB_CD=$* XPI_NAME=locale-$*
-else
-	@$(MAKE) -C $(DEPTH)/mail/branding/nightly/locales AB_CD=$* XPI_NAME=locale-$*
-endif
 
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
@@ -126,7 +119,7 @@ MOZ_PKG_MAC_BACKGROUND=$(_ABS_DIST)/branding/background.png
 MOZ_PKG_MAC_ICON=$(_ABS_DIST)/branding/disk.icns
 MOZ_PKG_MAC_RSRC=$(_ABS_DIST)/branding/license.r
 # Disabled for official branding until we have updated images
-ifndef MOZ_BRANDING_DIRECTORY
+ifdef GENERATE_DMG_SYMLINK
 MOZ_PKG_MAC_EXTRA=--symlink "/Applications:/ "
 endif
 endif
@@ -138,11 +131,7 @@ include $(call EXPAND_MOZLOCALE_SRCDIR,toolkit/locales)/installer/windows/charse
 repackage-win32-installer: WIN32_INSTALLER_OUT=$(_ABS_DIST)/install/sea/$(PKG_BASENAME).installer.exe
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 	@echo "Repackaging $(WIN32_INSTALLER_IN) into $(WIN32_INSTALLER_OUT)."
-ifdef MOZ_BRANDING_DIRECTORY
 	$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY) export
-else
-	$(MAKE) -C ../installer/windows export
-endif
 	if ! test -d $(dir $(WIN32_INSTALLER_OUT)); then \
 	  $(NSINSTALL) -D $(dir $(WIN32_INSTALLER_OUT)); \
 	fi
