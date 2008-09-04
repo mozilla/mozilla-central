@@ -124,42 +124,40 @@ var explicitAttributeTwiddlings = [
 
 
 function test_attributes_explicit() {
-  // create a synthetic message
   let smsg = msgGen.makeMessage();
 
-  let iTwiddling = 0;
-  function twiddle_next_attr(smsg, gmsg) {
-dump("twiddle next\n");
-    let curTwiddling = explicitAttributeTwiddlings[iTwiddling];
-    let twiddleFunc = curTwiddling[0];
-    let desiredState = curTwiddling[2];
-    
-    // the underlying nsIMsgDBHdr should exist at this point...
-    do_check_neq(gmsg.folderMessage, null);
-    // prepare 
-    expectModifiedMessages([gmsg.folderMessage], verify_next_attr);
-    // tell the function to perform its mutation to the desired state
-    twiddleFunc(gmsg.folderMessage, desiredState);
-  }
-  function verify_next_attr(smsg, gmsg) {
-dump("verify next\n");
-    let curTwiddling = explicitAttributeTwiddlings[iTwiddling];
-    let verifyFunc = curTwiddling[1];
-    let expectedVal = curTwiddling[curTwiddling.length == 3 ? 2 : 3];
-    verifyFunc(smsg, gmsg, expectedVal);
-    
-    if (++iTwiddling < explicitAttributeTwiddlings.length)
-      twiddle_next_attr(smsg, gmsg);
-    else
-      next_test();
-  }
-  
-  indexMessages([smsg], twiddle_next_attr);
+  twiddleAndTest(smsg, explicitAttributeTwiddlings);
+}
+
+function do_moveMessage(aMsgHdr, aDestFolder) {
+  gCopyService.CopyMessages(aMsgHdr.folder, toXPArray(aMsgHdr),
+                            aDestFolder, true, null, null, true);
+}
+
+function verify_messageLocation(aMsgHdr, aMessage, aDestFolder) {
+  do_check_eq(aMessage.folderURI, aDestFolder.URI); 
 }
 
 /* ===== Message Moving ===== */
+const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
+                      .getService(Ci.nsIMsgCopyService);
+
+function test_message_moving() {
+  let rootFolder = gLocalIncomingServer.rootMsgFolder;
+  let destFolder = rootFolder.addSubfolder("move1");
+  
+  let moveTestActions = [
+    [do_moveMessage, verify_messageLocation, destFolder],
+    [do_moveMessage, verify_messageLocation, gLocalIncomingFolder],
+  ];
+  
+  let smsg = msgGen.makeMessage();
+  twiddleAndTest(smsg, moveTestActions);
+}
 
 /* ===== Message Deletion ===== */
+function test_message_deletion() {
+}
 
 /* ===== Folder Move/Rename/Copy (Single and Nested) ===== */
 

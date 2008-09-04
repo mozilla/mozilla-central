@@ -268,9 +268,6 @@ var messageIndexerListener = {
     if (!GlodaIndexer.indexing) {
       let ims = indexMessageState;
 
-dump("indexing check: " + ims.glodaMessages.length + " vs " +
-     ims.inputMessages.length + "\n");
-      
       // if we haven't seen all the messages we should see, assume that the
       //  rest are on their way, and are just coming in a subsequent job...
       // (Also, the first time we register our listener, we will get a synthetic
@@ -417,6 +414,46 @@ function permute(aArray, aPermutationId) {
     aPermutationId = Math.floor(aPermutationId / l);
   }
   return out;
+}
+
+function toXPArray(aItems) {
+  var array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+  aItems.forEach(function (item) {
+    array.appendElement(item, false);
+  });
+  return array;
+}
+
+/**
+ *
+ */
+function twiddleAndTest(aSynthMsg, aActionsAndTests) {
+  let iTwiddling = 0;
+  function twiddle_next_attr(smsg, gmsg) {
+    let curTwiddling = aActionsAndTests[iTwiddling];
+    let twiddleFunc = curTwiddling[0];
+    let desiredState = curTwiddling[2];
+    
+    // the underlying nsIMsgDBHdr should exist at this point...
+    do_check_neq(gmsg.folderMessage, null);
+    // prepare 
+    expectModifiedMessages([gmsg.folderMessage], verify_next_attr);
+    // tell the function to perform its mutation to the desired state
+    twiddleFunc(gmsg.folderMessage, desiredState);
+  }
+  function verify_next_attr(smsg, gmsg) {
+    let curTwiddling = aActionsAndTests[iTwiddling];
+    let verifyFunc = curTwiddling[1];
+    let expectedVal = curTwiddling[curTwiddling.length == 3 ? 2 : 3];
+    verifyFunc(smsg, gmsg, expectedVal);
+    
+    if (++iTwiddling < aActionsAndTests.length)
+      twiddle_next_attr(smsg, gmsg);
+    else
+      next_test();
+  }
+  
+  indexMessages([aSynthMsg], twiddle_next_attr);
 }
 
 var glodaHelperTests = [];
