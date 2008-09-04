@@ -118,6 +118,7 @@ urlListener.prototype = {
 
 function onAlertLoad()
 {
+  prefillAlertInfo();
   // read out our initial settings from prefs.
   try 
   {

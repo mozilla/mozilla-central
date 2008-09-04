@@ -69,8 +69,5 @@
       <toolbarbutton id="closeButton" onclick="closeAlert();"/>
     </hbox>
   </stack>
-  <!-- This method is called inline because we want to make sure we establish the width
-       and height of the alert before we fire the onload handler. -->
-  <script type="application/x-javascript">prefillAlertInfo();</script>
 </window>
 
