@@ -1281,7 +1281,10 @@ let Gloda = {
       allAttribs = allAttribs.concat(attribs);
     }
     
+    // [attribute id, value] for for the database
     let outAttribs = [];
+    // [attribute def, parameter, value] for memory usage
+    let memAttribs = [];
     
     for(let iAttrib=0; iAttrib < allAttribs.length; iAttrib++) {
       let attribDesc = allAttribs[iAttrib];
@@ -1289,13 +1292,23 @@ let Gloda = {
       // is it an (attributedef / attribute def id, value) tuple?
       if (attribDesc.length == 2) {
         // if it's already an attrib id, we can use the tuple outright
-        if (typeof attribDesc[0] == "number")
+        if (typeof attribDesc[0] == "number") {
           outAttribs.push(attribDesc);
-        else
+          let [attribDef, attribParam] =
+            GlodaDatastore._attributeIDToDef[attribDesc[0]];
+          memAttribs.push([attribDef, attribParam, attribDesc[1]]);
+        }
+        else {
           outAttribs.push([attribDesc[0].id, attribDesc[1]]);
+          // the parameter is null if they just pass an attribute def
+          memAttribs.push([attribDesc[0], null, attribDesc[1]]);
+        }
       }
       // it must be an (attrib, parameter value, attrib value) tuple
       else {
+        // just store it verbatim for memory purposes
+        memAttribs.push(attribDesc);
+      
         let attrib = attribDesc[0];
         let parameterValue = attribDesc[1];
         let attribID;
@@ -1310,6 +1323,12 @@ let Gloda = {
     this._log.debug("about to insert: " + outAttribs);
     
     GlodaDatastore.insertMessageAttributes(aMessage, outAttribs);
+    aMessage._replaceAttributes(memAttribs);
+    
+    if (aIsNew)
+      GlodaCollectionManager.itemsAdded(aMessage.NOUN_ID, [aMessage]);
+    else
+      GlodaCollectionManager.itemsModified(aMessage.NOUN_ID, [aMessage]);
   },
   
   /**

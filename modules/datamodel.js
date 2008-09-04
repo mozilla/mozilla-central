@@ -347,6 +347,43 @@ GlodaMessage.prototype = {
     return attribs;
   },
   
+  /**
+   * Replace the set of attributes on us.  We need to make sure we purge
+   *  existing cached values off this instance.  For simplicity and because of
+   *  how we cache things currently (we define getters on the instance), we
+   *  force the prototype-resident getters to be activated and to cache
+   *  everything anew.  This is arguably wasteful; it might be better to go
+   *  back to just using storage properties, possibly on a sub-object that
+   *  we could just replace with a new one...
+   * Note: We actually avoid doing this if the attributes weren't previously
+   *  fetched.  Of course, since we do set _attributes with these new
+   *  attributes, this check does not steady-state.
+   *
+   * @XXX Try and avoid compelling ourselves to cache every bound attribute.
+   */
+  _replaceAttributes: function gloda_message_replaceAttributes(aNewAttribs) {
+    let hadAttributes = this._attributes !== null;
+    this._attributes = aNewAttribs;
+    // if this guy didn't already have attributes, we don't actually need to
+    //  do any caching work.
+    if (!hadAttributes)
+      return;
+      
+    let seenDefs = {};
+    for each (let attrParamVal in this._attributes) {
+      let attrDef = attrParamVal[0];
+      if (!(attrDef in seenDefs)) {
+        if (attrDef.isBound) {
+          // get the getter from our _prototype_ (not us!)
+          let getterFunc = this.__proto__.__lookupGetter__(attrDef.boundName);
+          // force the getter to do his work (on us)
+          getterFunc.call(this);
+          seenDefs[attrDef] = true;
+        }
+      }
+    }
+  },
+  
   getAttributeInstances: function gloda_message_getAttributeInstances(aAttr) {
     return [attrParamVal for each (attrParamVal in this.rawAttributes) if
             (attrParamVal[0] == aAttr)];

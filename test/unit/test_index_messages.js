@@ -2,12 +2,9 @@
  *  properly be triggered by events taking place in thunderbird as well as our
  *  ability to correctly extract/index the right data.
  * In general, if these tests pass, things are probably working quite well.
- */
-
-/*
- * NOTE: This file currently has a bunch of helper logic that needs to be pushed
- *  into glodaTestHelper.js or someplace else nice.  (glodaTestHelper is also
- *  going to need some refactoring to be sane inside.)
+ *
+ * Things we don't test that you think we might test:
+ * - Full-text search.  Happens in query testing.
  */
 
 do_import_script("../mailnews/db/global/test/resources/messageGenerator.js");
@@ -112,7 +109,7 @@ var explicitAttributeTwiddlings = [
   [expl_attr_twiddle_star, expl_attr_verify_star, false],
   // toggle read/unread
   [expl_attr_twiddle_read, expl_attr_verify_read, true],
-  [expl_attr_twiddle_read, expl_attr_verify_read, false],
+  [expl_attr_twiddle_read, expl_attr_verify_read, false]/*,
   // twiddle tags
   [expl_attr_twiddle_tags, expl_attr_verify_tags,
    [1, "funky"], ["funky"]],
@@ -122,6 +119,7 @@ var explicitAttributeTwiddlings = [
    [-1, "funky"], ["town"]],
   [expl_attr_twiddle_tags, expl_attr_verify_tags,
    [-1, "town"], []],
+*/
 ];
 
 
@@ -131,6 +129,7 @@ function test_attributes_explicit() {
 
   let iTwiddling = 0;
   function twiddle_next_attr(smsg, gmsg) {
+dump("twiddle next\n");
     let curTwiddling = explicitAttributeTwiddlings[iTwiddling];
     let twiddleFunc = curTwiddling[0];
     let desiredState = curTwiddling[2];
@@ -143,14 +142,14 @@ function test_attributes_explicit() {
     twiddleFunc(gmsg.folderMessage, desiredState);
   }
   function verify_next_attr(smsg, gmsg) {
+dump("verify next\n");
     let curTwiddling = explicitAttributeTwiddlings[iTwiddling];
     let verifyFunc = curTwiddling[1];
     let expectedVal = curTwiddling[curTwiddling.length == 3 ? 2 : 3];
     verifyFunc(smsg, gmsg, expectedVal);
     
-    iTwiddling++;
-    if (iTwiddling < explicitAttributeTwiddlings.length)
-      twiddle_next_attr();
+    if (++iTwiddling < explicitAttributeTwiddlings.length)
+      twiddle_next_attr(smsg, gmsg);
     else
       next_test();
   }
@@ -158,12 +157,12 @@ function test_attributes_explicit() {
   indexMessages([smsg], twiddle_next_attr);
 }
 
-/**
- * Test our full-text searching support for messages.
- */
-function test_message_fulltext() {
-  
-}
+/* ===== Message Moving ===== */
+
+/* ===== Message Deletion ===== */
+
+/* ===== Folder Move/Rename/Copy (Single and Nested) ===== */
+
 
 var tests = [
   test_threading,

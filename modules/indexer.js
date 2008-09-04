@@ -227,11 +227,16 @@ let GlodaIndexer = {
     // create the timer that drives our intermittent indexing
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 
-    // register for folder loaded events...
+    // register for:
+    // - folder loaded events, so we know when updateFolder has finished
+    //   updating the index/what not (if it was't immediately available)
+    // - property changes (so we know when a message's read/starred state have
+    //   changed.)
     let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
                         getService(Ci.nsIMsgMailSession);
     this._folderListener._init(this);
     mailSession.AddFolderListener(this._folderListener,
+                                  Ci.nsIFolderListener.propertyFlagChanged |
                                   Ci.nsIFolderListener.event);
 
     // register for shutdown notification
@@ -1133,6 +1138,30 @@ let GlodaIndexer = {
       let atomService = Cc["@mozilla.org/atom-service;1"].
                         getService(Ci.nsIAtomService);
       this._kFolderLoadedAtom = atomService.getAtom("FolderLoaded");
+      // we explicitly know about these things rather than bothering with some
+      //  form of registration scheme because these aren't going to change much.
+      this._kStatusAtom = atomService.getAtom("Status");
+      this._kFlaggedAtom = atomService.getAtom("Flagged");
+      this._kJunkStatusChangedAtom = atomService.getAtom("JunkStatusChanged");
+    },
+    
+    /**
+     * Helper method to do the leg-work associated with flagging a message
+     *  for re-indexing because of some change in meta-state that happened to
+     *  it.  Job-wise, we treat this as a message addition; we are uniquely
+     *  identifying the message by providing its folder ID and message key, and
+     *  the indexer will cleanly map this to the existing gloda message.
+     */
+    _reindexChangedMessage: function(aMsgHdr) {
+      if (this.indexer._pendingAddJob === null) {
+        this.indexer._pendingAddJob = new IndexingJob("message", 1, null);
+        this.indexer._indexQueue.push(this.indexer._pendingAddJob);
+        this.indexer._indexingJobGoal++;
+      }
+      this.indexer._pendingAddJob.items.push(
+        [GlodaDatastore._mapFolderURI(aMsgHdr.folder.URI),
+         aMsgHdr.messageKey]);
+      this.indexer.indexing = true;
     },
   
     /**
@@ -1166,7 +1195,13 @@ let GlodaIndexer = {
       
     },
     OnItemPropertyFlagChanged: function gloda_indexer_OnItemPropertyFlagChanged(
-                                aItem, aProperty, aOldValue, aNewValue) {
+                                aMsgHdr, aProperty, aOldValue, aNewValue) {
+      if (aProperty == this._kStatusAtom ||
+          aProperty == this._kFlaggedAtom ||
+          aProperty == this._kJunkStatusChangedAtom) {
+        this.indexer._log.debug("ItemPropertyFlagChanged notification");
+        this._reindexChangedMessage(aMsgHdr);
+      }
     },
     
     /**
@@ -1212,7 +1247,8 @@ let GlodaIndexer = {
   // TODO: implement a shutdown/pre-shutdown listener that attempts to either
   //  drain the indexing queue or persist it.
   /**
-   * Shutdown task.  THIS IS NOT HOOKED UP TO ANYTHING YET.
+   * Shutdown task.  THIS IS NOT HOOKED UP TO ANYTHING YET.  THIS IS PROBABLY
+   *  NOT HOW WE WANT TO HANDLE THINGS EITHER.
    *
    * We implement nsIMsgShutdownTask, served up by nsIMsgShutdownService.  We
    *  offer our services by registering ourselves as a "msg-shutdown" observer

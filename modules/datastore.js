@@ -915,7 +915,12 @@ let GlodaDatastore = {
                             aMessageKey, aConversationID, null,
                             aDatePRTime ? new Date(aDatePRTime / 1000) : null,
                             aHeaderMessageID);
-    GlodaCollectionManager.itemsAdded(message.NOUN_ID, [message]);
+    
+    // We would love to notify the collection manager about the message at this
+    //  point (at least if it's not a ghost), but we can't yet.  We need to wait
+    //  until the attributes have been indexed, which means it's out of our
+    //  hands.  (Gloda.processMessage does it.)
+    
     return message;
   },
   
@@ -954,6 +959,11 @@ let GlodaDatastore = {
       
       imts.execute();
     }
+    
+    // In completely abstract theory, this is where we would call
+    //  GlodaCollectionManager.itemsModified, except that the attributes may
+    //  also have changed, so it's out of our hands.  (Gloda.processMessage
+    //  handles it.)
   },
 
   updateMessageFoldersByKeyPurging:

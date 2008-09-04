@@ -73,6 +73,9 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
     ims.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
     ims.catchAllCollection.listener = messageCollectionListener;
     
+    // The indexer doesn't need to worry about load; zero his rescheduling time. 
+    //GlodaIndexer._indexInterval = 0;
+    
     // set up POP3 fakeserver to feed things in...
     [ims.daemon, ims.server] = setupServerDaemon();
     ims.incomingServer = createPop3ServerAndLocalFolders();
@@ -157,7 +160,7 @@ var indexMessageState = {
  * @param aVerifier See indexMessage's aVerifier argument.
  * @param aDone The (optional) callback to call on completion.
  */
-function expectModifiedMessages(aMessages, aVerifier, aDone) {
+function expectModifiedMessages(aMessages, aVerifier, aOnDone) {
   let ims = indexMessageState;
   
   ims.inputMessages = aMessages;
@@ -264,6 +267,9 @@ var messageIndexerListener = {
     // we only care if indexing has just completed...
     if (!GlodaIndexer.indexing) {
       let ims = indexMessageState;
+
+dump("indexing check: " + ims.glodaMessages.length + " vs " +
+     ims.inputMessages.length + "\n");
       
       // if we haven't seen all the messages we should see, assume that the
       //  rest are on their way, and are just coming in a subsequent job...
@@ -420,6 +426,7 @@ function _gh_test_iterator() {
   do_test_pending();
 
   for (let iTest=0; iTest < glodaHelperTests.length; iTest++) {
+    dump("====== Test function: " + glodaHelperTests[iTest].name + "\n");
     yield glodaHelperTests[iTest]();
   }
 
@@ -433,12 +440,12 @@ function _gh_test_iterator() {
   yield null;
 }
 
-function gh_next_test() {
+function next_test() {
   glodaHelperIterator.next();
 }
 
 function glodaHelperRunTests(aTests) {
   glodaHelperTests = aTests;
   glodaHelperIterator = _gh_test_iterator();
-  gh_next_test();
+  next_test();
 }
