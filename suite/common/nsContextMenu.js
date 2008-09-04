@@ -712,10 +712,12 @@ nsContextMenu.prototype = {
       if (buttonPressed != 0)
         return;
 
-      var winhooks = Components.classes[ "@mozilla.org/winhooks;1" ].
-                       getService(Components.interfaces.nsIWindowsHooks);
-      
-      winhooks.setImageAsWallpaper(this.target, false);
+      const nsIShellService = Components.interfaces.nsIShellService;
+
+      Components.classes["@mozilla.org/suite/shell-service;1"]
+                .getService(nsIShellService)
+                .setDesktopBackground(this.target,
+                                      nsIShellService.BACKGROUND_STRETCH);
     },    
     // Save URL of clicked-on frame.
     saveFrame : function () {

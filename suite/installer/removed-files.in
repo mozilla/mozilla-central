@@ -66,12 +66,16 @@ components/nsDictionary.js
 components/nsKillAll.js
 components/nsResetPref.js
 components/nsScriptableIO.js
+components/nsSetDefaultBrowser.js
+components/nsSetDefaultMail.js
+components/nsUnsetDefaultMail.js
 components/nsXmlRpcClient.js
 components/search.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/urlwidgt.xpt
 components/venkman-service.js
 components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
+components/winhooks.xpt
 components/xml-rpc.xpt
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 res/cmessage.txt

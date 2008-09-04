@@ -229,7 +229,6 @@ bin\components\widget.xpt
 bin\components\windowds.dll
 bin\components\windowds.xpt
 bin\components\windowwatcher.xpt
-bin\components\winhooks.xpt
 bin\components\wlltvwrs.dll
 bin\components\xpautoc.dll
 bin\components\xpautocomplete.xpt
@@ -277,7 +276,6 @@ bin\components\nsLoginManagerPrompter.js
 bin\components\nsPostUpdateWin.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsSetDefault.js
-bin\components\nsSetDefaultBrowser.js
 bin\components\nsSidebar.js
 bin\components\nsSuiteGlue.js
 bin\components\nsUpdateService.js
@@ -513,8 +511,6 @@ bin\mozMapi32.dll
 bin\components\msgMapi.dll
 bin\components\mapihook.xpt
 bin\components\mdn-service.js
-bin\components\nsSetDefaultMail.js
-bin\components\nsUnsetDefaultMail.js
 bin\components\offlineStartup.js
 
 [chatzilla]
