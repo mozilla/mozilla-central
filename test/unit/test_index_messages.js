@@ -58,13 +58,16 @@ function test_attributes_fundamental() {
   indexMessages([smsg], verify_attributes_fundamental, next_test);
 }
 
-function verify_attributes_fundamental(smsg, gmsg) {  
+function verify_attributes_fundamental(smsg, gmsg) {
+  do_check_eq(gmsg.folderURI, gLocalInboxFolder.URI);
+  
   // -- subject
   do_check_eq(smsg.subject, gmsg.conversation.subject);
   
   // -- contact/identity information
   // - from
   // check the e-mail address
+  do_check_eq(gmsg.from.kind, "email");
   do_check_eq(smsg.fromAddress, gmsg.from.value);
   // check the name
   do_check_eq(smsg.fromName, gmsg.from.contact.name);
@@ -148,7 +151,7 @@ function test_message_moving() {
   
   let moveTestActions = [
     [do_moveMessage, verify_messageLocation, destFolder],
-    [do_moveMessage, verify_messageLocation, gLocalIncomingFolder],
+    [do_moveMessage, verify_messageLocation, gLocalInboxFolder],
   ];
   
   let smsg = msgGen.makeMessage();

@@ -119,7 +119,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_CONTACT],
       objectNoun: Gloda.NOUN_STRING,
       explanation: null, // name is internal, no explanation required
-      });
+      }); // tested-by: test_attributes_fundamental
     this._attrContactPopularity = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -132,7 +132,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_CONTACT],
       objectNoun: Gloda.NOUN_NUMBER,
       explanation: null, // popularity is internal, no explanation required
-      });    
+      }); // not-tested
     this._attrContactFrecency = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -145,7 +145,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_CONTACT],
       objectNoun: Gloda.NOUN_NUMBER,
       explanation: null, // frecency is internal, no explanation required
-      });    
+      }); // not-tested
 
     /* ***** Identities ***** */
     this._attrIdentityContact = Gloda.defineAttribute({
@@ -160,7 +160,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_CONTACT,
       explanation: null, // popularity is internal, no explanation required
-      });
+      }); // tested-by: test_attributes_fundamental
     this._attrIdentityKind = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -173,7 +173,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_STRING,
       explanation: null, // kind is internal, no explanation required
-      });
+      }); // tested-by: test_attributes_fundamental
     this._attrIdentityValue = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -186,7 +186,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_STRING,
       explanation: null, // value is internal, no explanation required
-      });
+      }); // tested-by: test_attributes_fundamental
   
     /* ***** Messages ***** */
     // folder
@@ -202,7 +202,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FOLDER,
       explanation: this._strBundle.GetStringFromName("attrFolderExplanation"),
-      });
+      }); // tested-by: test_attributes_fundamental
     
     // bodyMatches. super-synthetic full-text matching...
     this._attrBody = Gloda.defineAttribute({
@@ -217,7 +217,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FULLTEXT,
       explanation: null, // this does not merit explanation
-      });
+      }); // not-tested
   
     // --- Fundamental
     // From
@@ -232,7 +232,7 @@ let GlodaFundAttr = {
                         objectNoun: Gloda.NOUN_IDENTITY,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrFromExplanation"),
-                        });
+                        }); // tested-by: test_attributes_fundamental
     // To
     this._attrTo = Gloda.defineAttribute({
                         provider: this,
@@ -245,7 +245,7 @@ let GlodaFundAttr = {
                         objectNoun: Gloda.NOUN_IDENTITY,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrToExplanation"),
-                        });
+                        }); // tested-by: test_attributes_fundamental
     // Cc
     this._attrCc = Gloda.defineAttribute({
                         provider: this,
@@ -258,7 +258,7 @@ let GlodaFundAttr = {
                         objectNoun: Gloda.NOUN_IDENTITY,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrCcExplanation"),
-                        });
+                        }); // not-tested
 
     Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
       actionTarget: Gloda.NOUN_MESSAGE,
@@ -296,7 +296,7 @@ let GlodaFundAttr = {
                         objectNoun: Gloda.NOUN_DATE,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrDateExplanation"),
-                        });
+                        }); // tested-by: test_attributes_fundamental
 
     // --- Optimization
     // Involves.  Means any of from/to/cc.  The queries get ugly enough without
@@ -314,7 +314,7 @@ let GlodaFundAttr = {
       objectNoun: Gloda.NOUN_IDENTITY,
       explanation: this._strBundle.GetStringFromName(
                      "attrInvolvesExplanation"),
-      });
+      }); // not-tested
 
     // From Me To
     this._attrFromMeTo = Gloda.defineAttribute({
@@ -327,7 +327,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
       explanation: this._strBundle.GetStringFromName("attrFromMeToExplanation")
-      });
+      }); // not-tested
     // From Me Cc
     this._attrFromMeCc = Gloda.defineAttribute({
       provider: this,
@@ -339,7 +339,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
       explanation: this._strBundle.GetStringFromName("attrFromMeCcExplanation")
-      });
+      }); // not-tested
     // To Me
     this._attrToMe = Gloda.defineAttribute({
       provider: this,
@@ -351,7 +351,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
       explanation: this._strBundle.GetStringFromName("attrToMeExplanation")
-      });
+      }); // not-tested
     // Cc Me
     this._attrCcMe = Gloda.defineAttribute({
       provider: this,
@@ -363,7 +363,7 @@ let GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
       explanation: this._strBundle.GetStringFromName("attrCcMeExplanation") 
-      });
+      }); // not-tested
 
 
     // -- Mailing List
@@ -394,7 +394,7 @@ let GlodaFundAttr = {
                         objectNoun: Gloda.NOUN_DATE,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrListExplanation"),
-                        });
+                        }); // not-tested, not-implemented
   },
   
   /**

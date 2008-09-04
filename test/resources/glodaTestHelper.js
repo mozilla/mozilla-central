@@ -30,6 +30,37 @@ function _synthMessagesToFakeRep(aSynthMessages) {
           (msg in aSynthMessages)];
 }
 
+function imsInit() {
+  let ims = indexMessageState;
+
+  if (!ims.inited) {
+    // Disable new mail notifications
+    var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
+      .getService(Components.interfaces.nsIPrefBranch);
+  
+    prefSvc.setBoolPref("mail.biff.play_sound", false);
+    prefSvc.setBoolPref("mail.biff.show_alert", false);
+    prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
+    prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
+  
+    Gloda.addIndexerListener(messageIndexerListener.onIndexNotification);
+    ims.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
+    ims.catchAllCollection.listener = messageCollectionListener;
+    
+    // The indexer doesn't need to worry about load; zero his rescheduling time. 
+    //GlodaIndexer._indexInterval = 0;
+    
+    // set up POP3 fakeserver to feed things in...
+    [ims.daemon, ims.server] = setupServerDaemon();
+    ims.incomingServer = createPop3ServerAndLocalFolders();
+
+    ims.pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
+                        .getService(Ci.nsIPop3Service);
+    
+    ims.inited = true;
+  }
+}
+
 /**
  * Have gloda index the given synthetic messages, calling the verifier function
  *  (with accumulator field) once the message has been succesfully indexed.
@@ -59,33 +90,6 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
   ims.previousValue = undefined;
   ims.onDone = aOnDone;
 
-  if (!ims.inited) {
-    // Disable new mail notifications
-    var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-      .getService(Components.interfaces.nsIPrefBranch);
-  
-    prefSvc.setBoolPref("mail.biff.play_sound", false);
-    prefSvc.setBoolPref("mail.biff.show_alert", false);
-    prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
-    prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
-  
-    Gloda.addIndexerListener(messageIndexerListener.onIndexNotification);
-    ims.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
-    ims.catchAllCollection.listener = messageCollectionListener;
-    
-    // The indexer doesn't need to worry about load; zero his rescheduling time. 
-    //GlodaIndexer._indexInterval = 0;
-    
-    // set up POP3 fakeserver to feed things in...
-    [ims.daemon, ims.server] = setupServerDaemon();
-    ims.incomingServer = createPop3ServerAndLocalFolders();
-
-    ims.pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
-                        .getService(Ci.nsIPop3Service);
-    
-    ims.inited = true;
-  }
-  
   ims.daemon.setMessages(_synthMessagesToFakeRep(aSynthMessages));
   do_timeout(0, "driveFakeServer();");
 }
@@ -149,6 +153,7 @@ var indexMessageState = {
     }
   }
 };
+
 
 /**
  * Indicate that we should expect some modified messages to be indexed.
@@ -267,6 +272,10 @@ var messageIndexerListener = {
     // we only care if indexing has just completed...
     if (!GlodaIndexer.indexing) {
       let ims = indexMessageState;
+      
+      // this is just the synthetic notification if inputMessages is null
+      if (ims.inputMessages === null)
+       return;
 
       // if we haven't seen all the messages we should see, assume that the
       //  rest are on their way, and are just coming in a subsequent job...
@@ -482,6 +491,7 @@ function next_test() {
 }
 
 function glodaHelperRunTests(aTests) {
+  imsInit();
   glodaHelperTests = aTests;
   glodaHelperIterator = _gh_test_iterator();
   next_test();

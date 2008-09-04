@@ -104,7 +104,7 @@ let GlodaExplicitAttr = {
                                        "attrTagExplanation"),
                         // Property change notifications that we care about:
                         propertyChanges: ["keywords"],
-                        });
+                        }); // not-tested
     Gloda.defineNounAction(Gloda.NOUN_TAG, {
       actionType: "filter", actionTarget: Gloda.NOUN_TAG,
       shortName: "same tag",
@@ -128,7 +128,7 @@ let GlodaExplicitAttr = {
                         parameterNoun: null,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrStarExplanation"),
-                        });
+                        }); // tested-by: test_attributes_explicit
     // Read/Unread
     this._attrRead = Gloda.defineAttribute({
                         provider: this,
@@ -142,7 +142,7 @@ let GlodaExplicitAttr = {
                         parameterNoun: null,
                         explanation: this._strBundle.GetStringFromName(
                                        "attrReadExplanation"),
-                        });
+                        }); // tested-by: test_attributes_explicit
     
   },
   
@@ -170,7 +170,6 @@ let GlodaExplicitAttr = {
       if (tag.key in keywordMap)
         attribs.push([this._attrTag, tag.key, nowPRTime]);
     }
-
     
     return attribs;
   },
