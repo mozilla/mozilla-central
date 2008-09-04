@@ -387,6 +387,29 @@
         </body>
       </method>
 
+      <!-- Updates the nodes of this field with a call to
+           UpdateExtraAddressProcessing. The parameters are optional fields
+           that can contain extra information to be passed to
+           UpdateExtraAddressProcessing, the implementation of that function
+           should be checked to determine what it requires -->
+      <method name="updateExtraAddressProcessing">
+        <parameter name="aParam1"/>
+        <parameter name="aParam2"/>
+        <parameter name="aParam3"/>
+        <body>
+          <![CDATA[
+            if (UpdateExtraAddressProcessing) {
+	      var childNodes = this.emailAddresses.childNodes;
+	      for (var i = 0; i < childNodes.length / 2; ++i) {
+	        UpdateExtraAddressProcessing(this.mAddresses[i],
+                                             childNodes[i * 2],
+                                             aParam1, aParam2, aParam3);
+              }
+            }
+          ]]>
+	</body>
+      </method>
+
       <method name="toggleWrap">
         <body>
           <![CDATA[
