@@ -466,7 +466,9 @@ function BeginDragThreadPane(event)
 function BeginDragTree(event, tree, selArray, flavor)
 {
     var dataTransfer = event.dataTransfer;
-    dataTransfer.setData(flavor, selArray);
+    var count = selArray.length;
+    for (var i = 0; i < count; ++i)
+      dataTransfer.mozSetDataAt(flavor, selArray[i], i);
     dataTransfer.effectAllowed = "copyMove";
     dataTransfer.addElement(event.originalTarget);
 
