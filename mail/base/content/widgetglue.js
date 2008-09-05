@@ -279,21 +279,12 @@ function MsgToggleMessagePane()
 // same and then this routine will simply return a msgfolder. This scenario
 // applies to a new imap account creation where special folders are created
 // on demand and hence needs to prior check of existence.
-function GetMsgFolderFromUri(uri, checkFolderAttributes)
+function GetMsgFolderFromUri(uri, checkAttributes)
 {
-    var msgfolder = null;
-    try {
-        var rdfService = Components.classes['@mozilla.org/rdf/rdf-service;1']
-                                   .getService(Components.interfaces.nsIRDFService);
-        var resource = rdfService.GetResource(uri);
-        msgfolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        if (checkFolderAttributes) {
-            if (!(msgfolder && (msgfolder.parent || msgfolder.isServer))) {
-                msgfolder = null;
-            }
-        }
-    }
-    catch (ex) {
-    }
-    return msgfolder;
+  var folder = Components.classes["@mozilla.org/mail/folder-lookup;1"]
+                         .getService(Components.interfaces.nsIFolderLookupService)
+                         .getFolderById(uri);
+  if (folder && (!checkAttributes || (folder.parent || folder.isServer)))
+    return folder;
+  return null;
 }

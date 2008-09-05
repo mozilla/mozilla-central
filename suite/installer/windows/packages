@@ -495,6 +495,7 @@ bin\components\nsAbAutoCompleteMyDomain.js
 bin\components\nsAbAutoCompleteSearch.js
 bin\components\nsAbLDAPAttributeMap.js
 bin\components\nsLDAPPrefsService.js
+bin\components\folderLookupService.js
 bin\chrome\messenger.jar
 bin\chrome\messenger.manifest
 bin\chrome\icons\default\abcardWindow.ico
