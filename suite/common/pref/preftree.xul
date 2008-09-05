@@ -139,8 +139,7 @@
         </treeitem>
         <treeitem id="popupspref">
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-popups.xul"
-                      label="&popups.label;"/> 
+            <treecell label="(Migrated: &popups.label;)"/> 
           </treerow>
         </treeitem>
       </treechildren>

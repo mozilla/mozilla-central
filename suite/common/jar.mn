@@ -189,6 +189,7 @@ comm.jar:
    content/communicator/pref/pref-navigator.xul                     (pref/pref-navigator.xul)
    content/communicator/pref/pref-offline.xul                       (pref/pref-offline.xul)
    content/communicator/pref/pref-policies.xul                      (pref/pref-policies.xul)
+   content/communicator/pref/pref-popups.js                         (pref/pref-popups.js)
    content/communicator/pref/pref-popups.xul                        (pref/pref-popups.xul)
    content/communicator/pref/pref-proxies.js                        (pref/pref-proxies.js)
    content/communicator/pref/pref-proxies.xul                       (pref/pref-proxies.xul)

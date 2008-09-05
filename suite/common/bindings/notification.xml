@@ -279,28 +279,29 @@
       <method name="playSoundForBlockedPopup">
         <body>
           <![CDATA[
+            const kCustomSound = 1;
             var playSound = this._prefs.getBoolPref("privacy.popups.sound_enabled");
 
             if (playSound) {
               var sound = Components.classes["@mozilla.org/sound;1"]
                                     .createInstance(Components.interfaces.nsISound);
 
-              var soundUrlSpec = this._prefs.getCharPref("privacy.popups.sound_url");
-              if (!soundUrlSpec) {
-                sound.beep();
-                return;
-              }
-              if (soundUrlSpec.substr(0, 7) == "file://") {
+              var soundType = this._prefs.getIntPref("privacy.popups.sound_type");
+              if (soundType == kCustomSound) {
+                var soundUrlSpec = this._prefs.getCharPref("privacy.popups.sound_url");
                 var fileHandler = Components.classes["@mozilla.org/network/protocol;1?name=file"]
                                             .getService(Components.interfaces.nsIFileProtocolHandler);
                 var file = fileHandler.getFileFromURLSpec(soundUrlSpec);
                 if (file.exists()) {
                   var soundUrl = fileHandler.newFileURI(file);
                   sound.play(soundUrl);
+                  return;
                 }
-              } else {
-                sound.playSystemSound(soundUrlSpec);
               }
+
+              // Either a custom sound is selected which does not exist
+              // or the system beep was selected, so make the system beep.
+              sound.beep();
             }
           ]]>
         </body>

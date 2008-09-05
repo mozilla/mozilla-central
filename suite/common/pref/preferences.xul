@@ -162,10 +162,12 @@
           <treeitem id="imagesItem" label="&images.label;"
                     prefpane="images_pane" helpTopic="images_prefs"
                     url="chrome://communicator/content/pref/pref-images.xul"/>
-<!--
-          <treeitem id="popupspref"
+          <treeitem id="popupsItem"
                     label="&popups.label;"
+                    prefpane="popups_pane"
+                    helpTopic="pop_up_blocking"
                     url="chrome://communicator/content/pref/pref-popups.xul"/>
+<!--
           <treeitem id="masterpassItem"
                     label="&masterpass.label;"
                     prefpane="masterpass_pane"

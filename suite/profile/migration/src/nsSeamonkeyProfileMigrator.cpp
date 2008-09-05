@@ -553,6 +553,14 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("plugin.override_internal_types",          Bool),
   MAKESAMETYPEPREFTRANSFORM("plugin.expose_full_path",                 Bool),
 
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.disable_from_plugins",     Int),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.prefill_whitelist",        Bool),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.remove_blacklist",         Bool),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.showBrowserMessage",       Bool),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.sound_enabled",            Bool),
+  MAKEPREFTRANSFORM("privacy.popups.sound_url", "privacy.popups.sound_type", String, File),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.statusbar_icon_enabled",   Bool),
+
   MAKESAMETYPEPREFTRANSFORM("security.default_personal_cert",          String),
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl2",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl3",                    Bool),
@@ -653,7 +661,8 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName
     "mousewheel.",
     "network.http.",
     "print.",
-    "privacy.",
+    "privacy.item.",
+    "privacy.sanitize.",
     "security.OSCP.",
     "security.crl.",
     "ui.key."

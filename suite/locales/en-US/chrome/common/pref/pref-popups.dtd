@@ -12,13 +12,18 @@
 
 <!ENTITY whenBlock.description          "When a popup window has been blocked:">
 <!ENTITY playSound.label                "Play a sound:">
-<!ENTITY playSound.accesskey            "s">
+<!ENTITY playSound.accesskey            "P">
+<!ENTITY systemSound.label              "System beep">
+<!ENTITY systemSound.accesskey          "S">
+<!ENTITY customSound.label              "Custom sound file">
+<!ENTITY customSound.accesskey          "C">
 
 <!ENTITY selectSound.label              "Browse…">
-<!ENTITY selectSound.accesskey          "r">
+<!ENTITY selectSound.accesskey          "o">
 <!ENTITY previewSound.label             "Preview">
-<!ENTITY previewSound.accesskey         "P">
+<!ENTITY previewSound.accesskey         "v">
 <!ENTITY selectSound.title              "Select Popup Block Sound">
+<!ENTITY selectSound.filter             "Sounds">
 
 <!ENTITY displayIcon.label              "Display an icon in the browser status bar">
 <!ENTITY displayIcon.accesskey          "D">
