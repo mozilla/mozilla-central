@@ -2149,14 +2149,14 @@ NS_IMETHODIMP nsMessenger::GetNavigateHistory(PRUint32 *aCurPos, PRUint32 *aCoun
   return NS_OK;
 }
 
-/* void OnItemAdded (in nsIRDFResource parentItem, in nsISupports item); */
-NS_IMETHODIMP nsMessenger::OnItemAdded(nsIRDFResource *parentItem, nsISupports *item)
+/* void OnItemAdded (in nsIMsgFolder parentItem, in nsISupports item); */
+NS_IMETHODIMP nsMessenger::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void OnItemRemoved (in nsIRDFResource parentItem, in nsISupports item); */
-NS_IMETHODIMP nsMessenger::OnItemRemoved(nsIRDFResource *parentItem, nsISupports *item)
+/* void OnItemRemoved (in nsIMsgFolder parentItem, in nsISupports item); */
+NS_IMETHODIMP nsMessenger::OnItemRemoved(nsIMsgFolder *parentItem, nsISupports *item)
 {
   // check if this item is a message header that's in our history list. If so,
   // remove it from the history list.
@@ -2186,26 +2186,26 @@ NS_IMETHODIMP nsMessenger::OnItemRemoved(nsIRDFResource *parentItem, nsISupports
   return NS_OK;
 }
 
-/* void OnItemPropertyChanged (in nsIRDFResource item, in nsIAtom property, in string oldValue, in string newValue); */
-NS_IMETHODIMP nsMessenger::OnItemPropertyChanged(nsIRDFResource *item, nsIAtom *property, const char *oldValue, const char *newValue)
+/* void OnItemPropertyChanged (in nsIMsgFolder item, in nsIAtom property, in string oldValue, in string newValue); */
+NS_IMETHODIMP nsMessenger::OnItemPropertyChanged(nsIMsgFolder *item, nsIAtom *property, const char *oldValue, const char *newValue)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void OnItemIntPropertyChanged (in nsIRDFResource item, in nsIAtom property, in long oldValue, in long newValue); */
-NS_IMETHODIMP nsMessenger::OnItemIntPropertyChanged(nsIRDFResource *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
+/* void OnItemIntPropertyChanged (in nsIMsgFolder item, in nsIAtom property, in long oldValue, in long newValue); */
+NS_IMETHODIMP nsMessenger::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void OnItemBoolPropertyChanged (in nsIRDFResource item, in nsIAtom property, in boolean oldValue, in boolean newValue); */
-NS_IMETHODIMP nsMessenger::OnItemBoolPropertyChanged(nsIRDFResource *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
+/* void OnItemBoolPropertyChanged (in nsIMsgFolder item, in nsIAtom property, in boolean oldValue, in boolean newValue); */
+NS_IMETHODIMP nsMessenger::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void OnItemUnicharPropertyChanged (in nsIRDFResource item, in nsIAtom property, in wstring oldValue, in wstring newValue); */
-NS_IMETHODIMP nsMessenger::OnItemUnicharPropertyChanged(nsIRDFResource *item, nsIAtom *property, const PRUnichar *oldValue, const PRUnichar *newValue)
+/* void OnItemUnicharPropertyChanged (in nsIMsgFolder item, in nsIAtom property, in wstring oldValue, in wstring newValue); */
+NS_IMETHODIMP nsMessenger::OnItemUnicharPropertyChanged(nsIMsgFolder *item, nsIAtom *property, const PRUnichar *oldValue, const PRUnichar *newValue)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

@@ -415,32 +415,32 @@ nsLocalUndoFolderListener::~nsLocalUndoFolderListener()
 {
 }
 
-NS_IMETHODIMP nsLocalUndoFolderListener::OnItemAdded(nsIRDFResource *parentItem, nsISupports *item)
+NS_IMETHODIMP nsLocalUndoFolderListener::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
 {
     return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalUndoFolderListener::OnItemRemoved(nsIRDFResource *parentItem, nsISupports *item)
+NS_IMETHODIMP nsLocalUndoFolderListener::OnItemRemoved(nsIMsgFolder *parentItem, nsISupports *item)
 {
     return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalUndoFolderListener::OnItemPropertyChanged(nsIRDFResource *item, nsIAtom *property, const char *oldValue, const char *newValue)
+NS_IMETHODIMP nsLocalUndoFolderListener::OnItemPropertyChanged(nsIMsgFolder *item, nsIAtom *property, const char *oldValue, const char *newValue)
 {
     return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalUndoFolderListener::OnItemIntPropertyChanged(nsIRDFResource *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
+NS_IMETHODIMP nsLocalUndoFolderListener::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
 {
     return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalUndoFolderListener::OnItemBoolPropertyChanged(nsIRDFResource *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
+NS_IMETHODIMP nsLocalUndoFolderListener::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
 {
     return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalUndoFolderListener::OnItemUnicharPropertyChanged(nsIRDFResource *item, nsIAtom *property, const PRUnichar *oldValue, const PRUnichar *newValue)
+NS_IMETHODIMP nsLocalUndoFolderListener::OnItemUnicharPropertyChanged(nsIMsgFolder *item, nsIAtom *property, const PRUnichar *oldValue, const PRUnichar *newValue)
 {
     return NS_OK;
 }

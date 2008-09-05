@@ -44,7 +44,6 @@
 #include "nsIMsgIncomingServer.h"
 #include "nsIMsgIdentity.h"
 #include "nsIMsgAccount.h"
-#include "nsIRDFResource.h"
 #include "nsIMsgFolder.h"
 #include "nsCOMPtr.h"
 #include "nsMsgBaseCID.h"
@@ -133,19 +132,19 @@ nsMessengerUnixIntegration::Init()
 }
 
 NS_IMETHODIMP
-nsMessengerUnixIntegration::OnItemPropertyChanged(nsIRDFResource *, nsIAtom *, char const *, char const *)
+nsMessengerUnixIntegration::OnItemPropertyChanged(nsIMsgFolder *, nsIAtom *, char const *, char const *)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMessengerUnixIntegration::OnItemUnicharPropertyChanged(nsIRDFResource *, nsIAtom *, const PRUnichar *, const PRUnichar *)
+nsMessengerUnixIntegration::OnItemUnicharPropertyChanged(nsIMsgFolder *, nsIAtom *, const PRUnichar *, const PRUnichar *)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMessengerUnixIntegration::OnItemRemoved(nsIRDFResource *, nsISupports *)
+nsMessengerUnixIntegration::OnItemRemoved(nsIMsgFolder *, nsISupports *)
 {
   return NS_OK;
 }
@@ -405,13 +404,13 @@ nsMessengerUnixIntegration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom
 }
 
 NS_IMETHODIMP
-nsMessengerUnixIntegration::OnItemAdded(nsIRDFResource *, nsISupports *)
+nsMessengerUnixIntegration::OnItemAdded(nsIMsgFolder *, nsISupports *)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMessengerUnixIntegration::OnItemBoolPropertyChanged(nsIRDFResource *aItem,
+nsMessengerUnixIntegration::OnItemBoolPropertyChanged(nsIMsgFolder *aItem,
                                                          nsIAtom *aProperty,
                                                          PRBool aOldValue,
                                                          PRBool aNewValue)
@@ -426,27 +425,24 @@ nsMessengerUnixIntegration::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 }
 
 NS_IMETHODIMP
-nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIRDFResource *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
+nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
 {
   // if we got new mail show a icon in the system tray
   if (mBiffStateAtom == aProperty && mFoldersWithNewMail)
   {
-    nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(aItem);
-    NS_ENSURE_TRUE(folder, NS_OK);
-
     if (aNewValue == nsIMsgFolder::nsMsgBiffState_NewMail) 
     {
       // only show a system tray icon iff we are performing biff
       // (as opposed to the user getting new mail)
       PRBool performingBiff = PR_FALSE;
       nsCOMPtr<nsIMsgIncomingServer> server;
-      folder->GetServer(getter_AddRefs(server));
+      aItem->GetServer(getter_AddRefs(server));
       if (server)
         server->GetPerformingBiff(&performingBiff);
       if (!performingBiff) 
         return NS_OK; // kick out right now...
 
-      nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(folder); 
+      nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem); 
 
       if (mFoldersWithNewMail->IndexOf(weakFolder) == -1)
         mFoldersWithNewMail->AppendElement(weakFolder);

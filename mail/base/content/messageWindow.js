@@ -59,7 +59,7 @@ var folderListener = {
   OnItemAdded: function(parentItem, item) {},
 
   OnItemRemoved: function(parentItem, item) {
-    if (parentItem.Value != gCurrentFolderUri)
+    if (parentItem.URI != gCurrentFolderUri)
       return;
 
     if (item instanceof Components.interfaces.nsIMsgDBHdr &&
@@ -69,7 +69,7 @@ var folderListener = {
 
   OnItemPropertyChanged: function(item, property, oldValue, newValue) {},
   OnItemIntPropertyChanged: function(item, property, oldValue, newValue) {
-    if (item.Value == gCurrentFolderUri) {
+    if (item.URI == gCurrentFolderUri) {
       if (property.toString() == "TotalMessages" || property.toString() == "TotalUnreadMessages") {
         UpdateStandAloneMessageCounts();
       }
@@ -91,12 +91,9 @@ var folderListener = {
         var uri = folder.URI;
         if (uri == gCurrentFolderToRerootForStandAlone) {
           gCurrentFolderToRerootForStandAlone = null;
-          var msgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
-          if (msgFolder) {
-            msgFolder.endFolderLoading();
-            if (gRerootOnFolderLoadForStandAlone) {
-              RerootFolderForStandAlone(uri);
-            }
+          folder.endFolderLoading();
+          if (gRerootOnFolderLoadForStandAlone) {
+            RerootFolderForStandAlone(uri);
           }
         }
       }

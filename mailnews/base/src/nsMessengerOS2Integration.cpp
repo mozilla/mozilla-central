@@ -108,19 +108,19 @@ nsMessengerOS2Integration::Init()
 }
 
 NS_IMETHODIMP
-nsMessengerOS2Integration::OnItemPropertyChanged(nsIRDFResource *, nsIAtom *, char const *, char const *)
+nsMessengerOS2Integration::OnItemPropertyChanged(nsIMsgFolder *, nsIAtom *, char const *, char const *)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMessengerOS2Integration::OnItemUnicharPropertyChanged(nsIRDFResource *, nsIAtom *, const PRUnichar *, const PRUnichar *)
+nsMessengerOS2Integration::OnItemUnicharPropertyChanged(nsIMsgFolder *, nsIAtom *, const PRUnichar *, const PRUnichar *)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMessengerOS2Integration::OnItemRemoved(nsIRDFResource *, nsISupports *)
+nsMessengerOS2Integration::OnItemRemoved(nsIMsgFolder *, nsISupports *)
 {
   return NS_OK;
 }
@@ -132,13 +132,13 @@ nsMessengerOS2Integration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom 
 }
 
 NS_IMETHODIMP
-nsMessengerOS2Integration::OnItemAdded(nsIRDFResource *, nsISupports *)
+nsMessengerOS2Integration::OnItemAdded(nsIMsgFolder *, nsISupports *)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMessengerOS2Integration::OnItemBoolPropertyChanged(nsIRDFResource *aItem, nsIAtom *aProperty, PRBool aOldValue, PRBool aNewValue)
+nsMessengerOS2Integration::OnItemBoolPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, PRBool aOldValue, PRBool aNewValue)
 {
   return NS_OK;
 }
@@ -150,7 +150,7 @@ nsMessengerOS2Integration::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 }
 
 NS_IMETHODIMP
-nsMessengerOS2Integration::OnItemIntPropertyChanged(nsIRDFResource *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
+nsMessengerOS2Integration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
 {
   PULONG pUnreadState = NULL;
   APIRET rc = DosGetNamedSharedMem((PVOID *)&pUnreadState, WARPCENTER_SHAREDMEM,

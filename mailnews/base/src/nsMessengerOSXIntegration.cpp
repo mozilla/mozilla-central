@@ -44,7 +44,6 @@
 #include "nsIMsgIncomingServer.h"
 #include "nsIMsgIdentity.h"
 #include "nsIMsgAccount.h"
-#include "nsIRDFResource.h"
 #include "nsIMsgFolder.h"
 #include "nsCOMPtr.h"
 #include "nsMsgBaseCID.h"
@@ -121,19 +120,19 @@ nsMessengerOSXIntegration::Init()
 }
 
 NS_IMETHODIMP
-nsMessengerOSXIntegration::OnItemPropertyChanged(nsIRDFResource *, nsIAtom *, char const *, char const *)
+nsMessengerOSXIntegration::OnItemPropertyChanged(nsIMsgFolder *, nsIAtom *, char const *, char const *)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMessengerOSXIntegration::OnItemUnicharPropertyChanged(nsIRDFResource *, nsIAtom *, const PRUnichar *, const PRUnichar *)
+nsMessengerOSXIntegration::OnItemUnicharPropertyChanged(nsIMsgFolder *, nsIAtom *, const PRUnichar *, const PRUnichar *)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMessengerOSXIntegration::OnItemRemoved(nsIRDFResource *, nsISupports *)
+nsMessengerOSXIntegration::OnItemRemoved(nsIMsgFolder *, nsISupports *)
 {
   return NS_OK;
 }
@@ -329,13 +328,13 @@ nsMessengerOSXIntegration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom 
 }
 
 NS_IMETHODIMP
-nsMessengerOSXIntegration::OnItemAdded(nsIRDFResource *, nsISupports *)
+nsMessengerOSXIntegration::OnItemAdded(nsIMsgFolder *, nsISupports *)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMessengerOSXIntegration::OnItemBoolPropertyChanged(nsIRDFResource *aItem,
+nsMessengerOSXIntegration::OnItemBoolPropertyChanged(nsIMsgFolder *aItem,
                                                          nsIAtom *aProperty,
                                                          PRBool aOldValue,
                                                          PRBool aNewValue)
@@ -350,14 +349,11 @@ nsMessengerOSXIntegration::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 }
 
 NS_IMETHODIMP
-nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIRDFResource *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
+nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
 {
   // if we got new mail bounce the Dock icon and/or apply badge to Dock icon
   if (mBiffStateAtom == aProperty && mFoldersWithNewMail)
   {
-    nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(aItem);
-    NS_ENSURE_TRUE(folder, NS_OK);
-
     if (aNewValue == nsIMsgFolder::nsMsgBiffState_NewMail) 
     {
       // if the icon is not already visible, only show a system tray icon iff 
@@ -366,14 +362,14 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIRDFResource *aItem, nsIAt
       {
         PRBool performingBiff = PR_FALSE;
         nsCOMPtr<nsIMsgIncomingServer> server;
-        folder->GetServer(getter_AddRefs(server));
+        aItem->GetServer(getter_AddRefs(server));
         if (server)
           server->GetPerformingBiff(&performingBiff);
         if (!performingBiff) 
           return NS_OK; // kick out right now...
       }
 
-      nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(folder); 
+      nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem); 
       // remove the element if it is already in the array....
       PRUint32 count = 0;
       PRUint32 index = 0; 
@@ -384,7 +380,7 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIRDFResource *aItem, nsIAt
       {
         weakReference = do_QueryElementAt(mFoldersWithNewMail, index);
         oldFolder = do_QueryReferent(weakReference);
-        if (oldFolder == folder) // if they point to the same folder
+        if (oldFolder == aItem) // if they point to the same folder
           break;
         oldFolder = nsnull;
       }

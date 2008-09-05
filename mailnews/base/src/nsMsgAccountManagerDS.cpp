@@ -1266,19 +1266,19 @@ nsMsgAccountManagerDataSource::OnServerChanged(nsIMsgIncomingServer *server)
 }
 
 nsresult
-nsMsgAccountManagerDataSource::OnItemPropertyChanged(nsIRDFResource *, nsIAtom *, char const *, char const *)
+nsMsgAccountManagerDataSource::OnItemPropertyChanged(nsIMsgFolder *, nsIAtom *, char const *, char const *)
 {
   return NS_OK;
 }
 
 nsresult
-nsMsgAccountManagerDataSource::OnItemUnicharPropertyChanged(nsIRDFResource *, nsIAtom *, const PRUnichar *, const PRUnichar *)
+nsMsgAccountManagerDataSource::OnItemUnicharPropertyChanged(nsIMsgFolder *, nsIAtom *, const PRUnichar *, const PRUnichar *)
 {
   return NS_OK;
 }
 
 nsresult
-nsMsgAccountManagerDataSource::OnItemRemoved(nsIRDFResource *, nsISupports *)
+nsMsgAccountManagerDataSource::OnItemRemoved(nsIMsgFolder *, nsISupports *)
 {
   return NS_OK;
 }
@@ -1290,20 +1290,22 @@ nsMsgAccountManagerDataSource::OnItemPropertyFlagChanged(nsIMsgDBHdr *, nsIAtom 
 }
 
 nsresult
-nsMsgAccountManagerDataSource::OnItemAdded(nsIRDFResource *, nsISupports *)
+nsMsgAccountManagerDataSource::OnItemAdded(nsIMsgFolder *, nsISupports *)
 {
   return NS_OK;
 }
 
 
 nsresult
-nsMsgAccountManagerDataSource::OnItemBoolPropertyChanged(nsIRDFResource *aItem,
+nsMsgAccountManagerDataSource::OnItemBoolPropertyChanged(nsIMsgFolder *aItem,
                                                          nsIAtom *aProperty,
                                                          PRBool aOldValue,
                                                          PRBool aNewValue)
 {
-  if (aProperty == kDefaultServerAtom)
-    NotifyObservers(aItem, kNC_IsDefaultServer, kTrueLiteral, nsnull, aNewValue, PR_FALSE);
+  if (aProperty == kDefaultServerAtom) {
+    nsCOMPtr<nsIRDFResource> resource(do_QueryInterface(aItem));
+    NotifyObservers(resource, kNC_IsDefaultServer, kTrueLiteral, nsnull, aNewValue, PR_FALSE);
+  }
   return NS_OK;
 }
 
@@ -1314,7 +1316,7 @@ nsMsgAccountManagerDataSource::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 }
 
 nsresult
-nsMsgAccountManagerDataSource::OnItemIntPropertyChanged(nsIRDFResource *, nsIAtom *, PRInt32, PRInt32)
+nsMsgAccountManagerDataSource::OnItemIntPropertyChanged(nsIMsgFolder *, nsIAtom *, PRInt32, PRInt32)
 {
   return NS_OK;
 }

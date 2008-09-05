@@ -166,25 +166,25 @@ nsresult nsStatusBarBiffManager::PlayBiffSound()
 
 // nsIFolderListener methods....
 NS_IMETHODIMP 
-nsStatusBarBiffManager::OnItemAdded(nsIRDFResource *parentItem, nsISupports *item)
+nsStatusBarBiffManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP 
-nsStatusBarBiffManager::OnItemRemoved(nsIRDFResource *parentItem, nsISupports *item)
+nsStatusBarBiffManager::OnItemRemoved(nsIMsgFolder *parentItem, nsISupports *item)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP 
-nsStatusBarBiffManager::OnItemPropertyChanged(nsIRDFResource *item, nsIAtom *property, const char *oldValue, const char *newValue)
+nsStatusBarBiffManager::OnItemPropertyChanged(nsIMsgFolder *item, nsIAtom *property, const char *oldValue, const char *newValue)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsStatusBarBiffManager::OnItemIntPropertyChanged(nsIRDFResource *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
+nsStatusBarBiffManager::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
 {
   if (kBiffStateAtom == property && mCurrentBiffState != newValue) {
     // if we got new mail, attempt to play a sound.
@@ -207,13 +207,13 @@ nsStatusBarBiffManager::OnItemIntPropertyChanged(nsIRDFResource *item, nsIAtom *
 }
 
 NS_IMETHODIMP 
-nsStatusBarBiffManager::OnItemBoolPropertyChanged(nsIRDFResource *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
+nsStatusBarBiffManager::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP 
-nsStatusBarBiffManager::OnItemUnicharPropertyChanged(nsIRDFResource *item, nsIAtom *property, const PRUnichar *oldValue, const PRUnichar *newValue)
+nsStatusBarBiffManager::OnItemUnicharPropertyChanged(nsIMsgFolder *item, nsIAtom *property, const PRUnichar *oldValue, const PRUnichar *newValue)
 {
   return NS_OK;
 }

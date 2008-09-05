@@ -126,7 +126,7 @@ NS_IMETHODIMP nsMsgMailSession::RemoveFolderListener(nsIFolderListener *aListene
   PR_END_MACRO
 
 NS_IMETHODIMP
-nsMsgMailSession::OnItemPropertyChanged(nsIRDFResource *aItem,
+nsMsgMailSession::OnItemPropertyChanged(nsIMsgFolder *aItem,
                                         nsIAtom *aProperty,
                                         const char* aOldValue,
                                         const char* aNewValue)
@@ -137,7 +137,7 @@ nsMsgMailSession::OnItemPropertyChanged(nsIRDFResource *aItem,
 }
 
 NS_IMETHODIMP
-nsMsgMailSession::OnItemUnicharPropertyChanged(nsIRDFResource *aItem,
+nsMsgMailSession::OnItemUnicharPropertyChanged(nsIMsgFolder *aItem,
                                                nsIAtom *aProperty,
                                                const PRUnichar* aOldValue,
                                                const PRUnichar* aNewValue)
@@ -148,7 +148,7 @@ nsMsgMailSession::OnItemUnicharPropertyChanged(nsIRDFResource *aItem,
 }
 
 NS_IMETHODIMP
-nsMsgMailSession::OnItemIntPropertyChanged(nsIRDFResource *aItem,
+nsMsgMailSession::OnItemIntPropertyChanged(nsIMsgFolder *aItem,
                                            nsIAtom *aProperty,
                                            PRInt32 aOldValue,
                                            PRInt32 aNewValue)
@@ -159,7 +159,7 @@ nsMsgMailSession::OnItemIntPropertyChanged(nsIRDFResource *aItem,
 }
 
 NS_IMETHODIMP
-nsMsgMailSession::OnItemBoolPropertyChanged(nsIRDFResource *aItem,
+nsMsgMailSession::OnItemBoolPropertyChanged(nsIMsgFolder *aItem,
                                             nsIAtom *aProperty,
                                             PRBool aOldValue,
                                             PRBool aNewValue)
@@ -180,14 +180,14 @@ nsMsgMailSession::OnItemPropertyFlagChanged(nsIMsgDBHdr *aItem,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailSession::OnItemAdded(nsIRDFResource *aParentItem,
+NS_IMETHODIMP nsMsgMailSession::OnItemAdded(nsIMsgFolder *aParentItem,
                                             nsISupports *aItem)
 {
   NOTIFY_FOLDER_LISTENERS(added, OnItemAdded, (aParentItem, aItem));
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailSession::OnItemRemoved(nsIRDFResource *aParentItem,
+NS_IMETHODIMP nsMsgMailSession::OnItemRemoved(nsIMsgFolder *aParentItem,
                                               nsISupports *aItem)
 {
   NOTIFY_FOLDER_LISTENERS(removed, OnItemRemoved, (aParentItem, aItem));

@@ -39,7 +39,6 @@
 #include "nsIAtom.idl"
 
 interface nsIMsgFolder;
-interface nsIRDFResource;
 interface nsIMsgDBHdr;
 
 typedef unsigned long folderListenerNotifyFlagValue;
@@ -47,33 +46,33 @@ typedef unsigned long folderListenerNotifyFlagValue;
 [scriptable, uuid(1c8e6a86-ae35-4c95-8e43-b2e98d6d1574)]
 interface nsIFolderListener : nsISupports {
   const folderListenerNotifyFlagValue added = 0x1;
-  void OnItemAdded(in nsIRDFResource aParentItem,
+  void OnItemAdded(in nsIMsgFolder aParentItem,
                    in nsISupports aItem);
   
   const folderListenerNotifyFlagValue removed = 0x2;
-  void OnItemRemoved(in nsIRDFResource aParentItem,
+  void OnItemRemoved(in nsIMsgFolder aParentItem,
                      in nsISupports aItem);
   
   const folderListenerNotifyFlagValue propertyChanged = 0x4;
-  void OnItemPropertyChanged(in nsIRDFResource aItem,
+  void OnItemPropertyChanged(in nsIMsgFolder aItem,
                              in nsIAtom aProperty,
                              in string aOldValue,
                              in string aNewValue);
   
   const folderListenerNotifyFlagValue intPropertyChanged = 0x8;
-  void OnItemIntPropertyChanged(in nsIRDFResource aItem,
+  void OnItemIntPropertyChanged(in nsIMsgFolder aItem,
                                 in nsIAtom aProperty,
                                 in long aOldValue,
                                 in long aNewValue);
   
   const folderListenerNotifyFlagValue boolPropertyChanged = 0x10;
-  void OnItemBoolPropertyChanged(in nsIRDFResource aItem,
+  void OnItemBoolPropertyChanged(in nsIMsgFolder aItem,
                                  in nsIAtom aProperty,
                                  in boolean aOldValue,
                                  in boolean aNewValue);
   
   const folderListenerNotifyFlagValue unicharPropertyChanged = 0x20;
-  void OnItemUnicharPropertyChanged(in nsIRDFResource aItem,
+  void OnItemUnicharPropertyChanged(in nsIMsgFolder aItem,
                                     in nsIAtom aProperty,
                                     in wstring aOldValue,
                                     in wstring aNewValue);

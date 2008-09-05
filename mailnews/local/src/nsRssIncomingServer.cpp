@@ -254,7 +254,7 @@ NS_IMETHODIMP nsRssIncomingServer::GetCanSearchMessages(PRBool *canSearchMessage
   return NS_OK;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::OnItemAdded(nsIRDFResource *parentItem, nsISupports *item)
+NS_IMETHODIMP nsRssIncomingServer::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
 {
   nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(item);
   // just kick out with a success code if the item in question is not a folder
@@ -317,27 +317,27 @@ NS_IMETHODIMP nsRssIncomingServer::OnItemAdded(nsIRDFResource *parentItem, nsISu
   return rv;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::OnItemRemoved(nsIRDFResource *parentItem, nsISupports *item)
+NS_IMETHODIMP nsRssIncomingServer::OnItemRemoved(nsIMsgFolder *parentItem, nsISupports *item)
 {
  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::OnItemPropertyChanged(nsIRDFResource *item, nsIAtom *property, const char *oldValue, const char *newValue)
+NS_IMETHODIMP nsRssIncomingServer::OnItemPropertyChanged(nsIMsgFolder *item, nsIAtom *property, const char *oldValue, const char *newValue)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::OnItemIntPropertyChanged(nsIRDFResource *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
+NS_IMETHODIMP nsRssIncomingServer::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::OnItemBoolPropertyChanged(nsIRDFResource *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
+NS_IMETHODIMP nsRssIncomingServer::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::OnItemUnicharPropertyChanged(nsIRDFResource *item, nsIAtom *property, const PRUnichar *oldValue, const PRUnichar *newValue)
+NS_IMETHODIMP nsRssIncomingServer::OnItemUnicharPropertyChanged(nsIMsgFolder *item, nsIAtom *property, const PRUnichar *oldValue, const PRUnichar *newValue)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

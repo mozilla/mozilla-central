@@ -51,7 +51,6 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgMailNewsUrl.h"
-#include "nsIRDFResource.h"
 
 static NS_DEFINE_CID(kCPop3ServiceCID, NS_POP3SERVICE_CID);
 
@@ -159,12 +158,11 @@ NS_IMETHODIMP nsPop3IncomingServer::SetDeferredToAccount(const nsACString& aAcco
       // if isDeferred state has changed, send notification
       if (aAccountKey.IsEmpty() != deferredToAccount.IsEmpty())
       {
-        nsCOMPtr <nsIRDFResource> folderRes = do_QueryInterface(rootFolder);
         nsCOMPtr <nsIAtom> deferAtom = getter_AddRefs(NS_NewAtom("isDeferred"));
         nsCOMPtr <nsIAtom> canFileAtom = getter_AddRefs(NS_NewAtom("CanFileMessages"));
-        folderListenerManager->OnItemBoolPropertyChanged(folderRes, deferAtom,
+        folderListenerManager->OnItemBoolPropertyChanged(rootFolder, deferAtom,
                   !deferredToAccount.IsEmpty(), deferredToAccount.IsEmpty());
-        folderListenerManager->OnItemBoolPropertyChanged(folderRes, canFileAtom,
+        folderListenerManager->OnItemBoolPropertyChanged(rootFolder, canFileAtom,
                   deferredToAccount.IsEmpty(), !deferredToAccount.IsEmpty());
 
         // this hack causes the account manager ds to send notifications to the

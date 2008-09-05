@@ -160,6 +160,7 @@ var folderListener = {
       if (item == gMsgFolderSelected) {
         if(property.toString() == "TotalMessages" || property.toString() == "TotalUnreadMessages") {
           UpdateStatusMessageCounts(gMsgFolderSelected);
+          item = item.QueryInterface(Components.interfaces.nsIRDFResource);
           UpdateLocationBar(item);
         }
       }

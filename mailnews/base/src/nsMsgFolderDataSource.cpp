@@ -825,28 +825,29 @@ nsMsgFolderDataSource::DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
   //return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFolderDataSource::OnItemAdded(nsIRDFResource *parentItem, nsISupports *item)
+NS_IMETHODIMP nsMsgFolderDataSource::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
 {
   return OnItemAddedOrRemoved(parentItem, item, PR_TRUE);
 }
 
-NS_IMETHODIMP nsMsgFolderDataSource::OnItemRemoved(nsIRDFResource *parentItem, nsISupports *item)
+NS_IMETHODIMP nsMsgFolderDataSource::OnItemRemoved(nsIMsgFolder *parentItem, nsISupports *item)
 {
   return OnItemAddedOrRemoved(parentItem, item, PR_FALSE);
 }
 
-nsresult nsMsgFolderDataSource::OnItemAddedOrRemoved(nsIRDFResource *parentItem, nsISupports *item, PRBool added)
+nsresult nsMsgFolderDataSource::OnItemAddedOrRemoved(nsIMsgFolder *parentItem, nsISupports *item, PRBool added)
 {
   nsCOMPtr<nsIRDFNode> itemNode(do_QueryInterface(item));
   if (itemNode)
   {
-    NotifyObservers(parentItem, kNC_Child, itemNode, nsnull, added, PR_FALSE);
+    nsCOMPtr<nsIRDFResource> parentResource(do_QueryInterface(parentItem));
+    NotifyObservers(parentResource, kNC_Child, itemNode, nsnull, added, PR_FALSE);
   }
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgFolderDataSource::OnItemPropertyChanged(nsIRDFResource *resource,
+nsMsgFolderDataSource::OnItemPropertyChanged(nsIMsgFolder *resource,
                                              nsIAtom *property,
                                              const char *oldValue,
                                              const char *newValue)
@@ -856,11 +857,12 @@ nsMsgFolderDataSource::OnItemPropertyChanged(nsIRDFResource *resource,
 }
 
 NS_IMETHODIMP
-nsMsgFolderDataSource::OnItemIntPropertyChanged(nsIRDFResource *resource,
+nsMsgFolderDataSource::OnItemIntPropertyChanged(nsIMsgFolder *folder,
                                                 nsIAtom *property,
                                                 PRInt32 oldValue,
                                                 PRInt32 newValue)
 {
+  nsCOMPtr<nsIRDFResource> resource(do_QueryInterface(folder));
   if (kTotalMessagesAtom == property)
     OnTotalMessagePropertyChanged(resource, oldValue, newValue);
   else if (kTotalUnreadMessagesAtom == property)
@@ -883,32 +885,30 @@ nsMsgFolderDataSource::OnItemIntPropertyChanged(nsIRDFResource *resource,
 }
 
 NS_IMETHODIMP
-nsMsgFolderDataSource::OnItemUnicharPropertyChanged(nsIRDFResource *resource,
+nsMsgFolderDataSource::OnItemUnicharPropertyChanged(nsIMsgFolder *folder,
                                                     nsIAtom *property,
                                                     const PRUnichar *oldValue,
                                                     const PRUnichar *newValue)
 {
+  nsCOMPtr<nsIRDFResource> resource(do_QueryInterface(folder));
   if (kNameAtom == property)
   {
-    nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(resource));
-    if (folder)
-    {
-      PRInt32 numUnread;
-      folder->GetNumUnread(PR_FALSE, &numUnread);
-      NotifyFolderTreeNameChanged(folder, resource, numUnread);
-      NotifyFolderTreeSimpleNameChanged(folder, resource);
-      NotifyFolderNameChanged(folder, resource);
-    }
+    PRInt32 numUnread;
+    folder->GetNumUnread(PR_FALSE, &numUnread);
+    NotifyFolderTreeNameChanged(folder, resource, numUnread);
+    NotifyFolderTreeSimpleNameChanged(folder, resource);
+    NotifyFolderNameChanged(folder, resource);
   }
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgFolderDataSource::OnItemBoolPropertyChanged(nsIRDFResource *resource,
+nsMsgFolderDataSource::OnItemBoolPropertyChanged(nsIMsgFolder *folder,
                                                  nsIAtom *property,
                                                  PRBool oldValue,
                                                  PRBool newValue)
 {
+  nsCOMPtr<nsIRDFResource> resource(do_QueryInterface(folder));
   if (newValue != oldValue) {
     nsIRDFNode* literalNode = newValue?kTrueLiteral:kFalseLiteral;
     nsIRDFNode* oldLiteralNode = oldValue?kTrueLiteral:kFalseLiteral;
@@ -2318,7 +2318,7 @@ NS_IMETHODIMP nsMsgFlatFolderDataSource::HasAssertion(nsIRDFResource* source,
   return NS_OK;
 }
 
-nsresult nsMsgFlatFolderDataSource::OnItemAddedOrRemoved(nsIRDFResource *parentItem, nsISupports *item, PRBool added)
+nsresult nsMsgFlatFolderDataSource::OnItemAddedOrRemoved(nsIMsgFolder *parentItem, nsISupports *item, PRBool added)
 {
   // When a folder is added or removed, parentItem is the parent folder and item is the folder being
   // added or removed. In a flat data source, there is no arc in the graph between the parent folder
@@ -2327,7 +2327,10 @@ nsresult nsMsgFlatFolderDataSource::OnItemAddedOrRemoved(nsIRDFResource *parentI
   // to be our data source root before calling nsMsgFolderDataSource::OnItemAddedOrRemoved. This ensures
   // that datasource listeners such as the template builder properly handle add and remove
   // notifications on the flat datasource.
-  return nsMsgFolderDataSource::OnItemAddedOrRemoved(m_rootResource, item, added);
+  nsCOMPtr<nsIRDFNode> itemNode(do_QueryInterface(item));
+  if (itemNode)
+    NotifyObservers(m_rootResource, kNC_Child, itemNode, nsnull, added, PR_FALSE);
+  return NS_OK;
 }
 
 PRBool nsMsgFlatFolderDataSource::ResourceIsOurRoot(nsIRDFResource *resource)
@@ -2519,7 +2522,7 @@ PRBool nsMsgRecentFoldersDataSource::WantsThisFolder(nsIMsgFolder *folder)
   return m_folders.IndexOf(folder) != kNotFound;
 }
 
-NS_IMETHODIMP nsMsgRecentFoldersDataSource::OnItemAdded(nsIRDFResource *parentItem, nsISupports *item)
+NS_IMETHODIMP nsMsgRecentFoldersDataSource::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
 {
   // if we've already built the recent folder array, we should add this item to the array
   // since just added items are by definition new.
