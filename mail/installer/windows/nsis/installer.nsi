@@ -265,6 +265,31 @@ Section "-Application" APP_IDX
                       "$(ERROR_CREATE_DIRECTORY_PREFIX)" \
                       "$(ERROR_CREATE_DIRECTORY_SUFFIX)"
 
+
+  ; The MAPI DLL's are copied and the copies are then registered to lessen
+  ; file in use errors on application update.
+  ClearErrors
+  ${DeleteFile} "$INSTDIR\MapiProxy_InUse.dll"
+  ${If} ${Errors}
+    ; Clear the way for the new file and delete the old file on reboot
+    Rename "$INSTDIR\MapiProxy_InUse.dll" "$INSTDIR\MapiProxy_InUse.dll.moz-delete"
+    Delete /REBOOTOK "$INSTDIR\MapiProxy_InUse.dll.moz-delete"
+  ${EndIf}
+  CopyFiles /SILENT "$EXEDIR\nonlocalized\MapiProxy.dll" "$INSTDIR\MapiProxy_InUse.dll"
+  ${LogMsg} "Installed File: $INSTDIR\MapiProxy_InUse.dll"
+  ${LogUninstall} "File: \MapiProxy_InUse.dll"
+
+  ClearErrors
+  ${DeleteFile} "$INSTDIR\mozMapi32_InUse.dll"
+  ${If} ${Errors}
+    ; Clear the way for the new file and delete the old file on reboot
+    Rename "$INSTDIR\mozMapi32_InUse.dll" "$INSTDIR\mozMapi32_InUse.dll.moz-delete"
+    Delete /REBOOTOK "$INSTDIR\mozMapi32_InUse.dll.moz-delete"
+  ${EndIf}
+  CopyFiles /SILENT "$EXEDIR\nonlocalized\mozMapi32.dll" "$INSTDIR\mozMapi32_InUse.dll"
+  ${LogMsg} "Installed File: $INSTDIR\mozMapi32_InUse.dll"
+  ${LogUninstall} "File: \mozMapi32_InUse.dll"
+
   ; Register DLLs
   ; XXXrstrong - AccessibleMarshal.dll can be used by multiple applications but
   ; is only registered for the last application installed. When the last
@@ -370,6 +395,7 @@ Section "-Application" APP_IDX
 
     ; Set the Start Menu Internet and Vista Registered App HKLM registry keys.
     ${SetClientsMail}
+    ${SetClientsNews}
 
     ; If we are writing to HKLM and create the quick launch and the desktop
     ; shortcuts set IconsVisible to 1 otherwise to 0.
@@ -765,6 +791,9 @@ Function .onInit
   ${GetSize} "$EXEDIR\nonlocalized\" "/S=0K" $R5 $R7 $R8
   ${GetSize} "$EXEDIR\localized\" "/S=0K" $R6 $R7 $R8
   IntOp $R8 $R5 + $R6
+  ; Add 1024 Kb to the diskspace requirement since the installer makes a copy
+  ; of the MAPI dll's (around 20 Kb)... also, see Bug 434338.
+  IntOp $R8 $R8 + 1024
   SectionSetSize ${APP_IDX} $R8
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
