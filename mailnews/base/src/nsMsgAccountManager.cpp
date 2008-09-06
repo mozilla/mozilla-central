@@ -616,10 +616,38 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
     PRUint32 count=0;
     identityArray->Count(&count);
     PRUint32 i;
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < count; i++)
+    {
       nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(identityArray, i, &rv));
+      PRBool identityStillUsed = PR_FALSE;
+      // for each identity, see if any existing account still uses it, 
+      // and if not, clear it.
       if (NS_SUCCEEDED(rv))
-        identity->ClearAllValues(); // clear out all identity information.
+      {
+        PRUint32 numAccounts;
+        m_accounts->Count(&numAccounts);
+        PRUint32 index;
+        for (index = 0; index < numAccounts && !identityStillUsed; index++) 
+        {
+          nsCOMPtr<nsIMsgAccount> existingAccount;
+          rv = m_accounts->QueryElementAt(index, NS_GET_IID(nsIMsgAccount),
+                                          (void **)getter_AddRefs(existingAccount));
+          if (NS_SUCCEEDED(rv)) 
+          {
+            nsCOMPtr<nsISupportsArray> existingIdentitiesArray;
+  
+            rv = existingAccount->GetIdentities(getter_AddRefs(existingIdentitiesArray));
+            if (existingIdentitiesArray->IndexOf(identity) != kNotFound)
+            {
+              identityStillUsed = PR_TRUE;
+              break;
+            }
+          }
+        }
+      }
+      // clear out all identity information if no other account uses it.
+      if (!identityStillUsed)
+        identity->ClearAllValues();
     }
   }
 
