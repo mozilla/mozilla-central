@@ -162,7 +162,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-cache.xul" label="&cache.label;"/> 
+            <treecell label="(Migrated: &cache.label;)"/>
           </treerow>
         </treeitem>
         <treeitem id="proxiesItem">

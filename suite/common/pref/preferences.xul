@@ -206,10 +206,11 @@
           <treeitem id="keynavItem" label="&keynav.label;"
                     prefpane="keynav_pane" helpTopic="advanced_pref_keyboard_nav"
                     url="chrome://communicator/content/pref/pref-keynav.xul"/>
-<!--
-          <treeitem label="&cache.label;"
+          <treeitem id="cacheItem"
+                    label="&cache.label;"
+                    prefpane="cache_pane"
+                    helpTopic="advanced_pref_cache"
                     url="chrome://communicator/content/pref/pref-cache.xul"/>
--->
           <treeitem id="proxiesItem"
                     label="&proxies.label;"
                     prefpane="proxies_pane"
