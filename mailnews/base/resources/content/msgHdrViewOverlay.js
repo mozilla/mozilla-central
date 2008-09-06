@@ -351,10 +351,6 @@ var messageHeaderSink = {
 
     onEndHeaders: function() 
     {
-      // WARNING: This is the ONLY routine inside of the message Header Sink that should 
-      // trigger a reflow!
-      CheckNotify();
-      
       ClearHeaderView(gCollapsedHeaderView);
       ClearHeaderView(gExpandedHeaderView);
 
@@ -634,12 +630,6 @@ function EnsureSubjectValue()
   } 
 }
 
-function CheckNotify()
-{
-  if ("NotifyClearAddresses" in this)
-    NotifyClearAddresses();
-}
-
 // Public method called by the tag front end code when the tags for the selected
 // message has changed. 
 function OnTagsChange()
@@ -874,9 +864,6 @@ function UpdateMessageHeaders()
 
   // now update the view to make sure the right elements are visible
   updateHeaderViews();
-  
-  if ("FinishEmailProcessing" in this)
-    FinishEmailProcessing();
 }
 
 function ClearCurrentHeaders()
