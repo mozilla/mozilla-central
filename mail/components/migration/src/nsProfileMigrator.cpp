@@ -45,7 +45,7 @@
 #include "nsIToolkitProfileService.h"
 #include "nsIWindowWatcher.h"
 #include "nsISupportsPrimitives.h"
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIProperties.h"
@@ -88,13 +88,12 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
   // By opening the Migration FE with a supplied mailMigrator, it will automatically
   // migrate from it.
   nsCOMPtr<nsIWindowWatcher> ww (do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-  nsCOMPtr<nsISupportsArray> params;
-  NS_NewISupportsArray(getter_AddRefs(params));
+  nsCOMPtr<nsIMutableArray> params (do_CreateInstance(NS_ARRAY_CONTRACTID));
   if (!ww || !params) return NS_ERROR_FAILURE;
 
-  params->AppendElement(cstr);
-  params->AppendElement(mailMigrator);
-  params->AppendElement(aStartup);
+  params->AppendElement(cstr, PR_FALSE);
+  params->AppendElement(mailMigrator, PR_FALSE);
+  params->AppendElement(aStartup, PR_FALSE);
 
   nsCOMPtr<nsIDOMWindow> migrateWizard;
   return ww->OpenWindow(nsnull,
