@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,204 +37,158 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//Html Domain object
-var htmlobj = null //new Object();
-//htmlobj.domain_pref = void 0;                     // dom element of the broadcaster mailhtmldomain
+var gListbox;
+var gPref;
+var gError;
+var gPromptService;
 
-//Plain Text Domain object
-var plainobj = null //new Object();
-//plainobj.domain_pref = void 0;                    // dom element of the broadcaster mailplaintextdomain
-
-var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-promptService = promptService.QueryInterface(Components.interfaces.nsIPromptService);
-
-
-function Init()
+function Startup()
 {
-  try {
-    parent.initPanel('chrome://messenger/content/messengercompose/pref-formatting.xul');
-  }
-  catch(ex) {
-    dump("*** Couldn't initialize page switcher and pref loader.\n");
-    //pref service backup
-  } //catch
-  //Initialize the objects
-  htmlobj = new Object();
-  plainobj = new Object();
-  //Initialize the broadcaster value so that you can use it later
-  htmlobj.domain_pref            = document.getElementById('mailhtmldomain');
-  plainobj.domain_pref           = document.getElementById('mailplaintextdomain');
-  htmlobj.listbox              = document.getElementById('html_domains');
-  plainobj.listbox             = document.getElementById('plaintext_domains');
+  // Store some useful elements in globals.
+  gListbox =
+  {
+    html:      document.getElementById("html_domains"),
+    plaintext: document.getElementById("plaintext_domains")
+  };
+  gPref =
+  {
+    html_domains:      document.getElementById("mailnews.html_domains"),
+    plaintext_domains: document.getElementById("mailnews.plaintext_domains")
+  };
+  gError = document.getElementById("formatting_error_msg");
 
-  //Get the values of the Add Domain Dlg boxes and store it in the objects
-  var AddDomainDlg               = document.getElementById('domaindlg');
-  htmlobj.DlgTitle               = AddDomainDlg.getAttribute("htmldlg_title");
-  htmlobj.DlgMsg                 = AddDomainDlg.getAttribute("htmldlg_msg");
-  plainobj.DlgTitle              = AddDomainDlg.getAttribute("plaintextdlg_title");
-  plainobj.DlgMsg                = AddDomainDlg.getAttribute("plaintextdlg_msg");
-  //Id values for the objects for comparison
-  htmlobj.id                     = "html";
-  plainobj.id                    = "plain";
-  LoadDomains(htmlobj);
-  LoadDomains(plainobj);
+  // Make it easier to access the pref pane from onsync.
+  gListbox.html.pane = this;
+  gListbox.plaintext.pane = this;
+  gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                             .getService(Components.interfaces.nsIPromptService);
 }
 
-function AddDomain(obj)
+function AddDomain(aType)
 {
-  var DomainName;
-  if (promptService)
+  var domains = null;
+  if (gPromptService)
   {
-    var result = {value:null};
-    if (promptService.prompt(
-      window,
-      obj.DlgTitle,
-      obj.DlgMsg,
-      result,
-      null,
-      {value:0}
-    ))
-      DomainName = result.value.replace(/ /g,"");
+    var result = {value: null};
+    if (gPromptService.prompt(window, gListbox[aType].getAttribute("title"),
+                              gListbox[aType].getAttribute("msg"), result,
+                              null, {value: 0}))
+      domains = result.value.replace(/ /g, "").split(",");
   }
 
-  if (DomainName) {
-    var objPrime;
-    if (obj.id == "html")
-      objPrime = plainobj;
-    else
-      objPrime = htmlobj;
-    if (!DomainAlreadyPresent(obj, DomainName, true))
-      if(!DomainAlreadyPresent(objPrime, DomainName, false)) {
-      AddListItem(obj.listbox, DomainName);
+  if (domains)
+  {
+    var added = false;
+    var removed = false;
+    var listbox = gListbox[aType];
+    var other = aType == "html" ? gListbox.plaintext : gListbox.html;
+    for (var i = 0; i < domains.length; i++)
+    {
+      var domainName = TidyDomainName(domains[i], true);
+      if (domainName)
+      {
+        if (!DomainFirstMatch(listbox, domainName))
+        {
+          var match = DomainFirstMatch(other, domainName);
+          if (match)
+          {
+            other.removeChild(match);
+            removed = true;
+          }
+          listbox.appendItem(domainName);
+          added = true;
+        }
+      }
+    }
+    if (added)
+      listbox.doCommand();
+    if (removed)
+      other.doCommand();
+  }
+}
+
+function TidyDomainName(aDomain, aWarn)
+{
+  // See if it is an email address and if so take just the domain part.
+  aDomain = aDomain.replace(/.*@/, "");
+
+  // See if it is a valid domain otherwise return null.
+  if (!/.\../.test(aDomain))
+  {
+    if (aWarn)
+    {
+      var errorMsg = gError.getAttribute("inverr").replace(/@string@/, aDomain);
+      if (gPromptService)
+        gPromptService.alert(window, gError.getAttribute("title"), errorMsg);
+      else
+        window.alert(errorMsg);
+    }
+    return null;
+  }
+
+  // Finally make sure the domain is in lowercase.
+  return aDomain.toLowerCase();
+}
+
+function DomainFirstMatch(aListbox, aDomain)
+{
+  return aListbox.getElementsByAttribute("label", aDomain).item(0);
+}
+
+function RemoveDomains(aType, aEvent)
+{
+  if (aEvent && aEvent.keyCode != KeyEvent.DOM_VK_DELETE &&
+      aEvent.keyCode != KeyEvent.DOM_VK_BACK_SPACE)
+    return;
+
+  var nextNode = null;
+  var listbox = gListbox[aType];
+
+  while (listbox.selectedItem)
+  {
+    var selectedNode = listbox.selectedItem;
+    nextNode = selectedNode.nextSibling || selectedNode.previousSibling;
+    listbox.removeChild(selectedNode);
+  }
+
+  if (nextNode)
+    listbox.selectItem(nextNode);
+
+  listbox.doCommand();
+}
+
+function ReadDomains(aListbox)
+{
+  var arrayOfPrefs = gPref[aListbox.id].value.replace(/ /g, "").split(",");
+  if (arrayOfPrefs)
+  {
+    var i;
+    // Check all the existing items, remove any that are not needed and
+    // make sure we do not duplicate any by removing from pref array.
+    var domains = aListbox.getElementsByAttribute("label", "*");
+    if (domains)
+    {
+      for (i = domains.length; --i >= 0; )
+      {
+        var domain = domains[i];
+        var index = arrayOfPrefs.indexOf(domain.label);
+        if (index > -1)
+          arrayOfPrefs.splice(index, 1);
+        else
+          aListbox.removeChild(domain);
+      }
+    }
+    for (i = 0; i < arrayOfPrefs.length; i++)
+    {
+      var str = TidyDomainName(arrayOfPrefs[i], false);
+      if (str)
+        aListbox.appendItem(str);
     }
   }
-
-  UpdateSavePrefString(obj);
 }
 
-function AddListItem(listbox, domainTitle)
+function WriteDomains(aListbox)
 {
-  try {
-
-      // Create a listitem for the new Domain
-      var item = document.createElement('listitem');
-
-      // Copy over the attributes
-      item.setAttribute('label', domainTitle);
-
-      // Add it to the active languages listbox
-      listbox.appendChild(item);
-
-  } //try
-
-  catch (ex) {
-    dump("*** Failed to add item: " + domainTitle + "\n");
-  } //catch
-
-}
-
-function DomainAlreadyPresent(obj, domain_name, dup)
-{
-  var errorTitle;
-  var errorMsg;
-  var pref_string = obj.domain_pref.getAttribute('value');
-  var found = false;
-  try {
-    var arrayOfPrefs = pref_string.split(',');
-    if (arrayOfPrefs)
-      for (var i = 0; i < arrayOfPrefs.length; i++) {
-        var str = arrayOfPrefs[i].replace(/ /g,"");
-        if (str == domain_name) {
-          dump("###ERROR DOMAIN ALREADY EXISTS\n");
-          errorTitle = document.getElementById("domainerrdlg").getAttribute("domainerrdlg_title");
-          if(dup)
-          errorMsg = document.getElementById("domainerrdlg").getAttribute("duperr");
-          else
-          errorMsg = document.getElementById("domainerrdlg").getAttribute("dualerr");
-          var errorMessage = errorMsg.replace(/@string@/, domain_name);
-          if (promptService)
-            promptService.alert(window, errorTitle, errorMessage);
-          else
-            window.alert(errorMessage);
-          found = true;
-          break;
-        }//if
-    }//for
-
-    return found;
-  }//try
-
-  catch(ex){
-     return false;
-  }//catch
-}
-
-function RemoveDomains(obj)
-{
-  var nextNode = null;
-  var numSelected = obj.listbox.selectedItems.length;
-  var deleted_all = false;
-
-  while (obj.listbox.selectedItems.length > 0) {
-
-  var selectedNode = obj.listbox.selectedItems[0];
-    nextNode = selectedNode.nextSibling;
-
-  if (!nextNode)
-
-    if (selectedNode.previousSibling)
-    nextNode = selectedNode.previousSibling;
-
-    obj.listbox.removeChild(selectedNode);
-
-   } //while
-
-  if (nextNode) {
-    obj.listbox.selectItem(nextNode)
-  } //if
-
-  UpdateSavePrefString(obj);
-}
-
-function LoadDomains(obj)
-{
-  try {
-    var arrayOfPrefs = obj.domain_pref.getAttribute('value').split(',');
-  }
-  catch (ex) {
-    dump("failed to split the preference string!\n");
-  }
-
-  if (arrayOfPrefs)
-    for (var i = 0; i < arrayOfPrefs.length; i++) {
-
-      var str = arrayOfPrefs[i].replace(/ /g,"");
-      if (str) {
-        AddListItem(obj.listbox, str);
-      } //if
-    } //for
-}
-
-function UpdateSavePrefString(obj)
-{
-  var num_domains = 0;
-  var pref_string = "";
-
-  for (var item = obj.listbox.firstChild; item != null; item = item.nextSibling) {
-
-    var domainid = item.getAttribute('label');
-    if (domainid.length > 1) {
-
-          num_domains++;
-
-      //separate >1 domains by commas
-      if (num_domains > 1) {
-        pref_string = pref_string + "," + domainid;
-      } else {
-        pref_string = domainid;
-      } //if
-    } //if
-  }//for
-
-  obj.domain_pref.setAttribute("value", pref_string);
+  var domains = aListbox.getElementsByAttribute("label", "*");
+  return Array.map(domains, function(e) { return e.label; }).join(",");
 }

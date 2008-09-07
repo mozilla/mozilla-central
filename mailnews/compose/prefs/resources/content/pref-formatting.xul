@@ -1,86 +1,147 @@
 <?xml version="1.0"?>
 
-<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Communicator.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corp.
+   - Portions created by the Initial Developer are Copyright (C) 2001
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Ian Neal <iann_bugzilla@blueyonder.co.uk>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE page SYSTEM "chrome://messenger/locale/messengercompose/pref-formatting.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/messengercompose/pref-formatting.dtd">
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="Init()"
-      headertitle="&pref.formatting.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="formatting_pane"
+            label="&pref.formatting.title;"
+            script="chrome://messenger/content/messengercompose/pref-formatting.js">
+    <preferences id="formatting_preferences">
+      <preference id="mail.default_html_action"
+                  name="mail.default_html_action"
+                  type="int"/>
+      <preference id="mailnews.html_domains"
+                  name="mailnews.html_domains"
+                  type="string"/>
+      <preference id="mailnews.plaintext_domains"
+                  name="mailnews.plaintext_domains"
+                  type="string"/>
+    </preferences>
 
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["mailDefaultHTMLAction","mailhtmldomain","mailplaintextdomain"];
-  ]]>
-  </script>  
-  <script type="application/x-javascript" src="chrome://messenger/content/messengercompose/pref-formatting.js"/>
-  
-  <!-- we are using these DTD values for localization -->
- 
-  <data id="domaindlg" htmldlg_title="&add.htmltitle;" htmldlg_msg="&add.htmldomain;"
-        plaintextdlg_title="&add.plaintexttitle;" plaintextdlg_msg="&add.plaintextdomain;"/>
-  <data id="domainerrdlg" domainerrdlg_title="&domainnameError.title;" duperr="&duplicationError.label;"
-        dualerr="&dualEntryError.label;"/>
+    <data id="formatting_error_msg"
+          title="&domainnameError.title;"
+          inverr="&invalidEntryError.label;"/>
 
-  <broadcaster  id="mailhtmldomain" 
-                preftype="string" 
-                prefstring="mailnews.html_domains"
-                prefattribute="value"
-                wsm_attributes="value"/>
-  <broadcaster  id="mailplaintextdomain" 
-                preftype="string" 
-                prefstring="mailnews.plaintext_domains"
-                prefattribute="value"
-                wsm_attributes="value"/>
-  
-  <description>&sendMaildesc.label;</description>
+    <description>&sendMaildesc.label;</description>
 
-  <radiogroup id="mailDefaultHTMLAction"
-              prefstring="mail.default_html_action">
-    <radio value="0" label="&askMe.label;" accesskey="&askMe.accesskey;"/>
-    <radio value="1" label="&convertPlain.label;" accesskey="&convertPlain.accesskey;"/>                
-    <radio value="2" label="&sendHTML.label;" accesskey="&sendHTML.accesskey;"/>
-    <radio value="3" label="&sendBoth.label;" accesskey="&sendBoth.accesskey;"/>
-  </radiogroup>
-    
-  <description>&override.label;</description>
+    <radiogroup id="mailDefaultHTMLAction"
+                preference="mail.default_html_action">
+      <radio value="0"
+             label="&askMe.label;"
+             accesskey="&askMe.accesskey;"/>
+      <radio value="1"
+             label="&convertPlain.label;"
+             accesskey="&convertPlain.accesskey;"/>
+      <radio value="2"
+             label="&sendHTML.label;"
+             accesskey="&sendHTML.accesskey;"/>
+      <radio value="3"
+             label="&sendBoth.label;"
+             accesskey="&sendBoth.accesskey;"/>
+    </radiogroup>
 
-  <groupbox flex="1">
-    <caption label="&domain.title;"/>
+    <description>&override.label;</description>
 
-    <description>&domaindesc.label;</description>
+    <groupbox flex="1">
+      <caption label="&domain.title;"/>
 
-    <hbox flex="1">
-      <vbox id="html_box" flex="1">
-        <label value="&HTMLdomaintitle.label;" accesskey="&HTMLdomaintitle.accesskey;" control="html_domains"/>
-        <hbox flex="1">
-          <listbox id="html_domains" flex="1" seltype="multiple"
-            onkeypress="if (event.keyCode == 8 || event.keyCode == 46) RemoveDomains(htmlobj);"/>
-          <vbox>
-            <button label="&AddButton.label;" oncommand="AddDomain(htmlobj);" accesskey="&AddHtmlDomain.accesskey;">
-              <observes element="mailhtmldomain" attribute="disabled"/>
-            </button>
-            <button label="&DeleteButton.label;" oncommand="RemoveDomains(htmlobj);" accesskey="&DeleteHtmlDomain.accesskey;">
-              <observes element="mailhtmldomain" attribute="disabled"/>
-            </button>
-          </vbox>
-        </hbox>
-      </vbox>
-      <vbox id="plaintext_box" flex="1">
-        <label value="&PlainTexttitle.label;" accesskey="&PlainTexttitle.accesskey;" control="plaintext_domains"/>
-        <hbox flex="1">
-          <listbox id="plaintext_domains" flex="1" seltype="multiple"
-            onkeypress="if (event.keyCode == 8 || event.keyCode == 46) RemoveDomains(plainobj);"/>
-          <vbox>
-            <button label="&AddButton.label;" oncommand="AddDomain(plainobj);" accesskey="&AddPlainText.accesskey;">
-              <observes element="mailplaintextdomain" attribute="disabled"/>
-            </button>
-            <button label="&DeleteButton.label;" oncommand="RemoveDomains(plainobj);" accesskey="&DeletePlainText.accesskey;">
-              <observes element="mailplaintextdomain" attribute="disabled"/>
-            </button>
-          </vbox>
-        </hbox>
-      </vbox>
-    </hbox>
-  </groupbox>
-</page>
+      <description>&domaindesc.label;</description>
+
+      <hbox flex="1">
+        <vbox flex="1">
+          <label value="&HTMLdomaintitle.label;"
+                 accesskey="&HTMLdomaintitle.accesskey;"
+                 control="html_domains"/>
+          <hbox flex="1">
+            <listbox id="html_domains"
+                     title="&add.htmltitle;"
+                     msg="&add.htmldomain;"
+                     flex="1"
+                     seltype="multiple"
+                     preference="mailnews.html_domains"
+                     onsyncfrompreference="return this.pane.ReadDomains(this);"
+                     onsynctopreference="return this.pane.WriteDomains(this);"
+                     onkeypress="RemoveDomains('html', event);"/>
+            <vbox>
+              <button label="&AddButton.label;"
+                      accesskey="&AddHtmlDomain.accesskey;"
+                      oncommand="AddDomain('html');">
+                <observes element="html_domains" attribute="disabled"/>
+              </button>
+              <button label="&DeleteButton.label;"
+                      accesskey="&DeleteHtmlDomain.accesskey;"
+                      oncommand="RemoveDomains('html', null);">
+                <observes element="html_domains" attribute="disabled"/>
+              </button>
+            </vbox>
+          </hbox>
+        </vbox>
+        <vbox flex="1">
+          <label value="&PlainTexttitle.label;"
+                 accesskey="&PlainTexttitle.accesskey;"
+                 control="plaintext_domains"/>
+          <hbox flex="1">
+            <listbox id="plaintext_domains"
+                     title="&add.plaintexttitle;"
+                     msg="&add.plaintextdomain;"
+                     flex="1"
+                     seltype="multiple"
+                     preference="mailnews.plaintext_domains"
+                     onsyncfrompreference="return this.pane.ReadDomains(this);"
+                     onsynctopreference="return this.pane.WriteDomains(this);"
+                     onkeypress="RemoveDomains('plaintext', event);"/>
+            <vbox>
+              <button label="&AddButton.label;"
+                      accesskey="&AddPlainText.accesskey;"
+                      oncommand="AddDomain('plaintext');">
+                <observes element="plaintext_domains" attribute="disabled"/>
+              </button>
+              <button label="&DeleteButton.label;"
+                      accesskey="&DeletePlainText.accesskey;"
+                      oncommand="RemoveDomains('plaintext', null);">
+                <observes element="plaintext_domains" attribute="disabled"/>
+              </button>
+            </vbox>
+          </hbox>
+        </vbox>
+      </hbox>
+    </groupbox>
+  </prefpane>
+</overlay>

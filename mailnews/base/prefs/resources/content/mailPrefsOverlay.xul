@@ -81,6 +81,11 @@
                   prefpane="composing_messages_pane"
                   url="chrome://messenger/content/messengercompose/pref-composing_messages.xul"
                   helpTopic="mail_prefs_messages"/> 
+        <treeitem id="formattingItem"
+                  label="&format.label;"
+                  prefpane="formatting_pane"
+                  url="chrome://messenger/content/messengercompose/pref-formatting.xul"
+                  helpTopic="mail_prefs_formatting"/>
         <treeitem id="junkItem"
                   label="&junk.label;"
                   prefpane="junk_pane"
@@ -135,7 +140,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://messenger/content/messengercompose/pref-formatting.xul" label="&format.label;"/> 
+            <treecell label="(Migrated: &format.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem id="mailaddressbookpref">
