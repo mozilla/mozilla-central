@@ -780,24 +780,20 @@ function Create3PaneGlobals()
 
 function loadStartFolder(initialUri)
 {
-    var folderTree = GetFolderTree();
     var defaultServer = null;
-    var startFolderResource = null;
     var isLoginAtStartUpEnabled = false;
 
     //First get default account
     try
     {
-        if(initialUri)
-            startFolderResource = RDF.GetResource(initialUri);
-        else
+        if (!initialUri)
         {
             var defaultAccount = accountManager.defaultAccount;
 
             defaultServer = defaultAccount.incomingServer;
-            var rootMsgFolder = defaultServer.rootMsgFolder;
-
-            startFolderResource = rootMsgFolder.QueryInterface(Components.interfaces.nsIRDFResource);
+            // set the initialUri to the server, so we select it
+            // so we'll get account central
+            initialUri = defaultServer.serverURI;
 
             // Enable check new mail once by turning checkmail pref 'on' to bring
             // all users to one plane. This allows all users to go to Inbox. User can
@@ -815,24 +811,22 @@ function loadStartFolder(initialUri)
             if (isLoginAtStartUpEnabled)
             {
                 //now find Inbox
+                var rootMsgFolder = defaultServer.rootMsgFolder;
                 var inboxFolder = rootMsgFolder.getFolderWithFlags(0x1000);
-                if (!inboxFolder) return;
-
-                startFolderResource = inboxFolder.QueryInterface(Components.interfaces.nsIRDFResource);
+                if (inboxFolder)
+                  initialUri = inboxFolder.URI;
             }
         }
 
-        var startFolder = startFolderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+        SelectFolder(initialUri);
 
         // Perform biff on the server to check for new mail, except for imap
-        // or a pop3 account that is deferred or deferred to,
-        // or the case where initialUri is non-null (non-startup)
-        if (!initialUri && isLoginAtStartUpEnabled && gLoadStartFolder
-            && !defaultServer.isDeferredTo &&
+        // or a pop3 account that is deferred or deferred to.
+        if (isLoginAtStartUpEnabled &&
+            gLoadStartFolder &&
+            !defaultServer.isDeferredTo &&
             defaultServer.rootFolder == defaultServer.rootMsgFolder)
           defaultServer.performBiff(msgWindow);
-
-        SelectFolder(startFolder.URI);
     }
     catch(ex)
     {
