@@ -407,7 +407,7 @@ Function un.preConfirm
     ${un.ChangeMUIHeaderImage} "$PLUGINSDIR\modern-header.bmp"
   ${EndIf}
 
-  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Settings" NumFields "2"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Settings" NumFields "3"
 
   WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 1" Type   "label"
   WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 1" Text   "$(UN_CONFIRM_UNINSTALLED_FROM)"
@@ -427,21 +427,29 @@ Function un.preConfirm
   WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 2" Bottom "30"
   WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 2" flags  "READONLY"
 
-  ${If} "$TmpVal" == "true"
-    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Type   "label"
-    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Text   "$(SUMMARY_REBOOT_REQUIRED_UNINSTALL)"
-    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Left   "0"
-    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Right  "-1"
-    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Top    "35"
-    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Bottom "45"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Type   "label"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Text   "$(UN_CONFIRM_CLICK)"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Left   "0"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Top    "130"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Bottom "150"
 
-    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Settings" NumFields "3"
+  ${If} "$TmpVal" == "true"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Type   "label"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Text   "$(SUMMARY_REBOOT_REQUIRED_UNINSTALL)"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Left   "0"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Right  "-1"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Top    "35"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Bottom "45"
+
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Settings" NumFields "4"
   ${EndIf}
 
   !insertmacro MUI_HEADER_TEXT "$(UN_CONFIRM_PAGE_TITLE)" "$(UN_CONFIRM_PAGE_SUBTITLE)"
   ; The Summary custom page has a textbox that will automatically receive
   ; focus. This sets the focus to the Install button instead.
   !insertmacro MUI_INSTALLOPTIONS_INITDIALOG "unconfirm.ini"
+  GetDlgItem $0 $HWNDPARENT 1
   System::Call "user32::SetFocus(i r0, i 0x0007, i,i)i"
   ${MUI_INSTALLOPTIONS_READ} $1 "unconfirm.ini" "Field 2" "HWND"
   SendMessage $1 ${WM_SETTEXT} 0 "STR:$INSTDIR"
