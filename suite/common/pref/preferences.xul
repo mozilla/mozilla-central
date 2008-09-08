@@ -139,10 +139,11 @@
                     prefpane="tabs_pane"
                     helpTopic="navigator_pref_tabbed_browsing"
                     url="chrome://communicator/content/pref/pref-tabs.xul"/>
-<!-- commenting out yet unmigrated panels
-          <treeitem label="&download.label;"
+          <treeitem id="downloadItem"
+                    label="&download.label;"
+                    prefpane="download_pane"
+                    helpTopic="navigator_pref_downloads"
                     url="chrome://communicator/content/pref/pref-download.xul"/>
--->
           <!-- Taking out Policies panel b/c bug 44121
           <treeitem url="chrome://communicator/content/pref/pref-policies.xul" label="&policies.label;"/>
           -->

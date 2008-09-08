@@ -109,7 +109,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-download.xul" label="&download.label;"/>
+            <treecell label="(Migrated: &download.label;)"/>
           </treerow>
         </treeitem>
         <!-- Taking out Policies panel b/c bug 44121

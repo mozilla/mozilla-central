@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
  Version: MPL 1.1/GPL 2.0/LGPL 2.1
 
@@ -21,6 +21,7 @@
  the Initial Developer. All Rights Reserved.
 
  Contributor(s):
+    Manuel Reimer <Manuel.Reimer@gmx.de>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -37,81 +38,134 @@
  ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://mozapps/content/preferences/preferences.css"?>
 
-<!DOCTYPE page SYSTEM "chrome://communicator/locale/pref/pref-download.dtd" >
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-download.dtd">
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://communicator/content/pref/pref-download.xul');"
-      headertitle="&pref.download.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="download_pane"
+            label="&pref.download.title;"
+            script="chrome://communicator/content/pref/pref-download.js">
 
-  <stringbundle id="bundle_prefutilities"
-                src="chrome://communicator/locale/pref/prefutilities.properties"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/pref/pref-download.js"/>
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["downloadBehavior", "autoDownload", "downloadLocation",
-		       "finishedNotificationAlert", "finishedNotificationSound", "finishedSoundUrl"];
-  ]]>
-  </script>
+    <preferences>
+      <preference id="browser.downloadmanager.behavior"
+                  name="browser.downloadmanager.behavior"
+                  type="int"/>
+      <preference id="browser.download.autoDownload"
+                  name="browser.download.autoDownload"
+                  type="bool"
+                  onchange="SetAutoDLEnabled(this.value);"/>
+      <preference id="browser.download.lastLocation"
+                  name="browser.download.lastLocation"
+                  type="bool"/>
+      <preference id="browser.download.finished_download_sound"
+                  name="browser.download.finished_download_sound"
+                  type="bool"
+                  onchange="SetSoundEnabled(this.value);"/>
+      <preference id="browser.download.finished_download_alert"
+                  name="browser.download.finished_download_alert"
+                  type="bool"/>
+      <preference id="browser.download.finished_sound_url"
+                  name="browser.download.finished_sound_url"
+                  type="string"/>
+      <preference id="browser.download.dir"
+                  name="browser.download.dir"
+                  type="file"/>
+    </preferences>
 
-  <groupbox>
-    <caption label="&downloadBehavior.label;"/>
-    <radiogroup id="downloadBehavior" prefstring="browser.downloadmanager.behavior">
-      <radio value="0" label="&openDM.label;" accesskey="&openDM.accesskey;"/>
-      <radio value="1" label="&openProgressDialog.label;" accesskey="&openProgressDialog.accesskey;"/>
-      <radio value="2" label="&doNothing.label;" accesskey="&doNothing.accesskey;"/>
-    </radiogroup>
-  </groupbox>
+    <stringbundle id="bundle_prefutilities"
+                  src="chrome://communicator/locale/pref/prefutilities.properties"/>
 
-  <groupbox>
-    <caption label="&downloadLocation.label;"/>
-    <radiogroup id="autoDownload" oncommand="setPrefDLElements();"
-                preftype="bool" prefstring="browser.download.autoDownload">
-      <radio value="false" label="&promptDownload.label;" accesskey="&promptDownload.accesskey;"/>
-      <radiogroup id="downloadLocation" class="indent"
-                  preftype="bool" prefstring="browser.download.lastLocation">
-        <radio value="true" label="&lastLocation.label;" accesskey="&lastLocation.accesskey;"/>
-        <radio value="false" label="&specifiedLocation.label;" accesskey="&specifiedLocation.accesskey;"/>
+    <groupbox>
+      <caption label="&downloadBehavior.label;"/>
+      <radiogroup id="downloadBehavior"
+                  preference="browser.downloadmanager.behavior">
+        <radio value="0"
+               label="&openDM.label;"
+               accesskey="&openDM.accesskey;"/>
+        <radio value="1"
+               label="&openProgressDialog.label;"
+               accesskey="&openProgressDialog.accesskey;"/>
+        <radio value="2"
+               label="&doNothing.label;"
+               accesskey="&doNothing.accesskey;"/>
       </radiogroup>
-      <radio value="true" label="&autoDownload.label;" accesskey="&autoDownload.accesskey;"/>
-    </radiogroup>
+    </groupbox>
 
-    <separator class="thin"/>
+    <groupbox>
+      <caption label="&downloadLocation.label;"/>
+      <radiogroup id="autoDownload"
+                  preference="browser.download.autoDownload">
+        <radio value="false"
+               label="&promptDownload.label;"
+               accesskey="&promptDownload.accesskey;"/>
+        <radiogroup id="downloadLocation"
+                    class="indent"
+                    preference="browser.download.lastLocation">
+          <radio value="true"
+                 label="&lastLocation.label;"
+                 accesskey="&lastLocation.accesskey;"/>
+          <radio value="false"
+                 label="&specifiedLocation.label;"
+                 accesskey="&specifiedLocation.accesskey;"/>
+        </radiogroup>
+        <radio value="true"
+               label="&autoDownload.label;"
+               accesskey="&autoDownload.accesskey;"/>
+      </radiogroup>
 
-    <vbox>
-      <label value="&downloadFolder.label;"/>
+      <separator class="thin"/>
+
+      <vbox>
+        <label value="&downloadFolder.label;"/>
+        <hbox align="center">
+          <filefield id="downloadFolder"
+                     flex="1"
+                     preference="browser.download.dir"
+                     preference-editable="true"
+                     onsyncfrompreference="return document.getElementById('download_pane').ReadDLFolder(this);"/>
+          <button id="chooseDownloadFolder"
+                  label="&chooseDownloadFolder.label;"
+                  accesskey="&chooseDownloadFolder.accesskey;"
+                  oncommand="DownloadSelectFolder();">
+            <observes element="downloadFolder" attribute="disabled"/>
+          </button>
+        </hbox>
+      </vbox>
+    </groupbox>
+
+    <groupbox>
+      <caption label="&finishedBehavior.label;"/>
       <hbox align="center">
-        <textbox id="downloadFolder" flex="1" readonly="true" class="uri-element"/>
-        <button label="&chooseDownloadFolder.label;" accesskey="&chooseDownloadFolder.accesskey;"
-                oncommand="prefDownloadSelectFolder();" id="chooseDownloadFolder"/>
-      </hbox>
-    </vbox>
-  </groupbox>
-
-  <groupbox>
-    <caption label="&finishedBehavior.label;"/>
-
-      <hbox align="center">
-	<checkbox id="finishedNotificationSound" label="&playSound.label;"
-		  prefstring="browser.download.finished_download_sound"
-		  accesskey="&playSound.accesskey;"
-		  oncommand="PlaySoundCheck()"/>
-	<checkbox id="finishedNotificationAlert" label="&showAlert.label;"
-		  prefstring="browser.download.finished_download_alert"
+	<checkbox id="finishedNotificationSound"
+                  label="&playSound.label;"
+		  preference="browser.download.finished_download_sound"
+		  accesskey="&playSound.accesskey;"/>
+	<checkbox id="finishedNotificationAlert"
+                  label="&showAlert.label;"
+		  preference="browser.download.finished_download_alert"
 		  accesskey="&showAlert.accesskey;"/>
       </hbox>
 
       <hbox align="center" class="indent">
-        <textbox readonly="true" flex="1" id="finishedSoundUrl" preftype="string"
-             prefstring="browser.download.finished_sound_url"/>
+        <filefield id="downloadSndURL"
+                   flex="1"
+                   preference="browser.download.finished_sound_url"
+                   preference-editable="true"
+                   onsyncfrompreference="return document.getElementById('download_pane').ReadSndFile(this);"/>
         <hbox align="center">
-          <button id="browse" label="&browse.label;"
-                  accesskey="&browse.accesskey;" oncommand="Browse()"/>
-          <button id="preview" label="&preview.label;"
-                  accesskey="&preview.accesskey;" oncommand="PreviewSound()"/>
+          <button id="downloadSndBrowse"
+                  label="&browse.label;"
+                  accesskey="&browse.accesskey;"
+                  oncommand="BrowseSound();">
+            <observes element="downloadSndURL" attribute="disabled"/>
+          </button>
+          <button id="downloadSndPreview"
+                  label="&preview.label;"
+                  accesskey="&preview.accesskey;"
+                  oncommand="PreviewSound();"/>
         </hbox>
       </hbox>
-  </groupbox>
-
-</page>
-
+    </groupbox>
+  </prefpane>
+</overlay>

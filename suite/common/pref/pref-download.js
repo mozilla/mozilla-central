@@ -1,181 +1,146 @@
-const nsIFilePicker       = Components.interfaces.nsIFilePicker;
-const nsILocalFile        = Components.interfaces.nsILocalFile;
-const nsIProperties       = Components.interfaces.nsIProperties;
-const nsIIOService        = Components.interfaces.nsIIOService;
-const nsIFileHandler      = Components.interfaces.nsIFileProtocolHandler;
-const nsIURIFixup         = Components.interfaces.nsIURIFixup;
-const kDownloadDirPref    = "browser.download.dir";
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ *
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Manuel Reimer <Manuel.Reimer@gmx.de>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
-var gPrompt;
-var gLocation;
-var gChooseButton;
-var gFolderField;
-var gFinishedSound;
-var gChooseButtonLocked;
-var gPromptLocked;
-var gFinishedSoundLocked;
-var gIOService;
-var gSound = null;
+var gFPHandler;
 
 function Startup()
 {
-  gIOService = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(nsIIOService);
-  gPrompt        = document.getElementById("autoDownload");
-  gLocation      = document.getElementById("downloadLocation");
-  gChooseButton  = document.getElementById("chooseDownloadFolder");
-  gFolderField   = document.getElementById("downloadFolder");
-  gFinishedSound = document.getElementById("finishedSoundUrl");
+  var pAutoDL = document.getElementById("browser.download.autoDownload");
+  SetAutoDLEnabled(pAutoDL.value);
+  var pDLSound = document.getElementById("browser.download.finished_download_sound");
+  SetSoundEnabled(pDLSound.value);
+ 
+  // Define globals
+  gFPHandler = Components.classes["@mozilla.org/network/protocol;1?name=file"]
+                         .getService(Components.interfaces.nsIFileProtocolHandler);
 
-  var prefWindow = parent.hPrefWindow;
-  gChooseButtonLocked  = prefWindow.getPrefIsLocked(kDownloadDirPref);
-  gPromptLocked        = prefWindow.getPrefIsLocked("browser.download.autoDownload");
-  gFinishedSoundLocked = prefWindow.getPrefIsLocked("browser.download.finished_sound_url");
-
-  var dir = prefWindow.getPref("localfile", kDownloadDirPref);
-  if (dir == "!/!ERROR_UNDEFINED_PREF!/!")
-    dir = null;
-
-  if (!dir)
-  {
-    try
-    {
-      // no default_dir folder found; default to profile directory
-      var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
-                             .getService(nsIProperties);
-      dir = dirSvc.get("ProfD", nsILocalFile);
-
-      // now remember the new assumption
-      prefWindow.setPref("localfile", kDownloadDirPref, dir);
-    }
-    catch (ex)
-    {
-    }
-  }
-
-  // if both pref and dir svc fail leave this field blank else show path
-  if (dir)
-    gFolderField.value = (/Mac/.test(navigator.platform)) ? dir.leafName : dir.path;
-
-  setPrefDLElements();
-
-  // Make sure sound_url setting is actually a URL
-  try {
-    var URIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
-                             .getService(nsIURIFixup);
-    gFinishedSound.value = URIFixup.createFixupURI(gFinishedSound.value, nsIURIFixup.FIXUP_FLAG_NONE).spec;
-  } catch (ex) { }
-
-  PlaySoundCheck();
-
-  // if we don't have the alert service, hide the pref UI for using alerts to notify on download completion
+  // if we don't have the alert service, hide the pref UI for using alerts to
+  // notify on download completion
   // see bug #158711
   var downloadDoneNotificationAlertUI = document.getElementById("finishedNotificationAlert");
   downloadDoneNotificationAlertUI.hidden = !("@mozilla.org/alerts-service;1" in Components.classes);
 }
 
-function setPrefDLElements()
+function SetAutoDLEnabled(aEnable)
 {
-  if (!gPromptLocked)
-    gLocation.disabled = (gPrompt.value == "true");
-  gFolderField.disabled = gChooseButtonLocked;
-  gChooseButton.disabled = gChooseButtonLocked;
+  EnableElementById("downloadLocation", !aEnable, false);
 }
 
-function prefDownloadSelectFolder()
+function SetSoundEnabled(aEnable)
 {
-  var prefWindow = parent.hPrefWindow;
-  var initialDir = prefWindow.getPref("localfile", kDownloadDirPref);
+  EnableElementById("downloadSndURL", aEnable, false);
+  document.getElementById("downloadSndPreview").disabled = !aEnable;
+}
 
-  // file picker will open at default location if no pref set
-  if (initialDir == "!/!ERROR_UNDEFINED_PREF!/!")
-    initialDir = null;
-
-  var fpParams = {
-    fp: makeFilePicker(),
-    fptitle: "downloadfolder",
-    fpdir: initialDir,
-    fpmode: nsIFilePicker.modeGetFolder,
-    fpfiletype: null,
-    fpext: null,
-    fpfilters: nsIFilePicker.filterAll
-  };
-
-  var ret = poseFilePicker(fpParams);
-  if (ret == nsIFilePicker.returnOK) {
-    var localFile = fpParams.fp.file.QueryInterface(nsILocalFile);
-    prefWindow.setPref("localfile", kDownloadDirPref, localFile);
-    gFolderField.value = (/Mac/.test(navigator.platform)) ? fpParams.fp.file.leafName : fpParams.fp.file.path;
+function ReadDLFolder(aField)
+{
+  var file = document.getElementById("browser.download.dir").value;
+  if (file)
+  {
+    aField.file = file;
+    aField.label = (/Mac/.test(navigator.platform)) ? file.leafName : file.path;
   }
 }
 
-function makeFilePicker()
+function DownloadSelectFolder()
 {
-  return Components.classes["@mozilla.org/filepicker;1"]
-                   .createInstance(nsIFilePicker);
-}
-
-function poseFilePicker(aFpP)
-{
+  var pref = document.getElementById("browser.download.dir");
+  const nsIFilePicker = Components.interfaces.nsIFilePicker;
+  var fp = Components.classes["@mozilla.org/filepicker;1"]
+                     .createInstance(nsIFilePicker);
   var prefutilitiesBundle = document.getElementById("bundle_prefutilities");
-  var title = prefutilitiesBundle.getString(aFpP.fptitle);
-  var fp = aFpP.fp; // simply for smaller readable code
-
-  fp.init(window, title, aFpP.fpmode);
-  if (aFpP.fpdir)
-    fp.displayDirectory = aFpP.fpdir;
-
-  if (aFpP.fpfiletype) {
-    var filetype = prefutilitiesBundle.getString(aFpP.fpfiletype);
-    fp.appendFilter(filetype, aFpP.fpext);
-  }
-  if (aFpP.fpfilters)
-    fp.appendFilters(aFpP.fpfilters);
-  return fp.show();
+  var title = prefutilitiesBundle.getString("downloadfolder");
+  fp.init(window, title, nsIFilePicker.modeGetFolder);
+  fp.displayDirectory = pref.value;
+  fp.appendFilters(nsIFilePicker.filterAll);
+  if (fp.show() == nsIFilePicker.returnOK)
+    pref.value = fp.file;
 }
 
-function PlaySoundCheck()
+
+function BrowseSound()
 {
-  var disableCustomUI = !document.getElementById("finishedNotificationSound").checked;
+  var pref = document.getElementById("browser.download.finished_sound_url");
 
-  gFinishedSound.disabled = disableCustomUI || gFinishedSoundLocked;
-  document.getElementById("preview").disabled = disableCustomUI;
-  document.getElementById("browse").disabled = disableCustomUI || gFinishedSoundLocked;
-}
+  const nsIFilePicker = Components.interfaces.nsIFilePicker;
+  var fp = Components.classes["@mozilla.org/filepicker;1"]
+                     .createInstance(nsIFilePicker);
+  var prefutilitiesBundle = document.getElementById("bundle_prefutilities");
+  var title = prefutilitiesBundle.getString("choosesound");
+  fp.init(window, title, nsIFilePicker.modeOpen);
 
-function Browse()
-{
-  var initialDir = null;
-  if (gFinishedSound.value != "") {
-    var fileHandler = gIOService.getProtocolHandler("file")
-                                .QueryInterface(nsIFileHandler);
-    initialDir = fileHandler.getFileFromURLSpec(gFinishedSound.value)
-                            .parent.QueryInterface(nsILocalFile);
-  }
-  var fpParams = {
-    fp: makeFilePicker(),
-    fptitle: "choosesound",
-    fpdir: initialDir,
-    fpmode: nsIFilePicker.modeOpen,
-    fpfiletype: "SoundFiles",
-    fpext: "*.wav; *.wave",
-    fpfilters: nsIFilePicker.filterAll
-  };
+  if (pref.value)
+    fp.displayDirectory = gFPHandler.getFileFromURLSpec(pref.value)
+                                    .parent.QueryInterface(nsILocalFile);
 
-  var ret = poseFilePicker(fpParams);
-  if (ret == nsIFilePicker.returnOK) {
-    // convert the nsILocalFile into a nsIFile url 
-    gFinishedSound.value = fpParams.fp.fileURL.spec;
-  }
+  var ftype = prefutilitiesBundle.getString("SoundFiles");
+  fp.appendFilter(ftype, "*.wav; *.wave");
+  fp.appendFilters(nsIFilePicker.filterAll);
+
+  if (fp.show() == nsIFilePicker.returnOK)
+    pref.value = fp.fileURL.spec;
 }
 
 function PreviewSound()
 {
-  if (!gSound)
-    gSound = Components.classes["@mozilla.org/sound;1"].createInstance(Components.interfaces.nsISound);
+  var pref = document.getElementById("browser.download.finished_sound_url");
+  var sound = Components.classes["@mozilla.org/sound;1"]
+                        .createInstance(Components.interfaces.nsISound);
 
-  if (gFinishedSound.value != "")
-    gSound.play(gIOService.newURI(gFinishedSound.value, null, null));
+  if (pref.value)
+  {
+    var ioservice = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
+    sound.play(ioservice.newURI(pref.value, null, null));
+  }
   else
-    gSound.beep();
+    sound.beep();
+}
+
+function ReadSndFile(aField)
+{
+  var pref = document.getElementById("browser.download.finished_sound_url");
+  if (pref.value)
+  {
+    var file = gFPHandler.getFileFromURLSpec(pref.value);
+    aField.file = file;
+    aField.label = (/Mac/.test(navigator.platform)) ? file.leafName : file.path;
+  }
 }
