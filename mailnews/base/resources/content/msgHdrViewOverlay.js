@@ -986,7 +986,7 @@ function setFromBuddyIcon(email)
      {
 
      var card = getCardForAddress(email);
-     if (card && card.setProperty("_AimScreenName"))
+     if (card && card.getProperty("_AimScreenName"))
      {
        if (!gIOService) {
          // lazily create these globals
@@ -1000,7 +1000,7 @@ function setFromBuddyIcon(email)
        }
 
        // if we did have a buddy icon on disk for this screenname, this would be the file url spec for it
-       var iconURLStr = gProfileDirURL.spec + "/NIM/" + myScreenName + "/picture/" + card.aimScreenName + ".gif";
+       var iconURLStr = gProfileDirURL.spec + "/NIM/" + myScreenName + "/picture/" + card.getProperty("_AimScreenName") + ".gif";
 
        // check if the file exists
        // is this a perf hit?  (how expensive is stat()?)
