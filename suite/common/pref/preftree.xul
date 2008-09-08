@@ -172,7 +172,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-http.xul" label="&httpnetworking.label;"/> 
+            <treecell label="(Migrated: &httpnetworking.label;)"/> 
           </treerow>
         </treeitem>        
         <treeitem>

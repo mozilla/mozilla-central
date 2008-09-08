@@ -217,10 +217,11 @@
                     prefpane="proxies_pane"
                     helpTopic="advanced_pref_proxies"
                     url="chrome://communicator/content/pref/pref-proxies.xul"/>
-<!--
-          <treeitem label="&httpnetworking.label;"
+          <treeitem id="httpItem"
+                    label="&httpnetworking.label;"
+                    prefpane="http_pane"
+                    helpTopic="advanced_http_networking"
                     url="chrome://communicator/content/pref/pref-http.xul"/>
--->
           <treeitem id="smartupdateItem" label="&smart.label;"
                     prefpane="smartupdate_pane"
                     helpTopic="advanced_pref_installation"

@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -22,6 +22,7 @@
  * Contributor(s):
  *    Ryan Cassin <rcassin@supernova.org>
  *    Kathleen Brade <brade@netscape.com>
+ *    Manuel Reimer <Manuel.Reimer@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,34 +37,27 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
+function Startup()
+{
+  CheckPipelining();
+  CheckPipeliningProxy();
+}
  
-function checkPipelining()
+function CheckPipelining()
 {
-  try {
-    var enableHTTP11 = document.getElementById("httpVersion11");
-    var enableKeepAlive = document.getElementById("enableKeepAlive");
-    var enablePipelining = document.getElementById("enablePipelining");
+  var prefHTTPVersion = document.getElementById("network.http.version");
+  var prefKeepAlive = document.getElementById("network.http.keep-alive");
 
-    var prefString = enablePipelining.getAttribute("prefstring");
-    var isLocked =  parent.hPrefWindow.getPrefIsLocked(prefString);
-
-    var doDisable = !(enableHTTP11.selected && enableKeepAlive.checked) || isLocked;
-    enablePipelining.disabled = doDisable;
-  } catch(e) {}
+  var enabled = (prefHTTPVersion.value == "1.1" && prefKeepAlive.value);
+  EnableElementById("enablePipelining", enabled, false);
 }
 
-function checkPipeliningProxy()
+function CheckPipeliningProxy()
 {
-  try {
-    var enableHTTP11 = document.getElementById("httpVersion11Proxy");
-    var enableKeepAlive = document.getElementById("enableKeepAliveProxy");
-    var enablePipelining = document.getElementById("enablePipeliningProxy");
+  var prefHTTPVersion = document.getElementById("network.http.proxy.version");
+  var prefKeepAlive = document.getElementById("network.http.proxy.keep-alive");
 
-    var prefString = enablePipelining.getAttribute("prefstring");
-    var isLocked =  parent.hPrefWindow.getPrefIsLocked(prefString);
-
-    var doDisable = !(enableHTTP11.selected && enableKeepAlive.checked) || isLocked;
-    enablePipelining.disabled = doDisable;
-  } catch(e) {}
+  var enabled = (prefHTTPVersion.value == "1.1" && prefKeepAlive.value);
+  EnableElementById("enablePipeliningProxy", enabled, false);
 }
-
