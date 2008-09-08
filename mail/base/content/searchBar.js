@@ -1,4 +1,3 @@
-# -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -64,6 +63,7 @@ const kQuickSearchFromOrSubject = 2;
 const kQuickSearchBody = 3;
 // const kQuickSearchHighlight = 4; // * We no longer support this quick search mode..*
 const kQuickSearchRecipient = 5;
+const kQuickSearchRecipientOrSubject = 6;
 
 
 function SetQSStatusText(aNumHits)
@@ -410,7 +410,6 @@ function createSearchTerms()
   var searchTermsArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
   var selectedFolder = GetThreadPaneFolder();
 
-  var searchAttrib = (IsSpecialFolder(selectedFolder, MSG_FOLDER_FLAG_SENTMAIL | MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_QUEUE, true)) ? nsMsgSearchAttrib.ToOrCC : nsMsgSearchAttrib.Sender;
   // implement | for QS
   // does this break if the user types "foo|bar" expecting to see subjects with that string?
   // I claim no, since "foo|bar" will be a hit for "foo" || "bar"
@@ -429,7 +428,9 @@ function createSearchTerms()
       var value;
 
       // if our search criteria is subject or subject|from then add a term for the subject
-      if (gSearchInput.searchMode == kQuickSearchSubject || gSearchInput.searchMode == kQuickSearchFromOrSubject)
+      if (gSearchInput.searchMode == kQuickSearchSubject ||
+          gSearchInput.searchMode == kQuickSearchFromOrSubject ||
+          gSearchInput.searchMode == kQuickSearchRecipientOrSubject)
       {
         term = gSearchSession.createTerm();
         value = term.value;
@@ -464,14 +465,15 @@ function createSearchTerms()
         value = term.value;
         value.str = termList[i];
         term.value = value;
-        term.attrib = searchAttrib;
+        term.attrib = nsMsgSearchAttrib.Sender;
         term.op = nsMsgSearchOp.Contains; 
         term.booleanAnd = false;
         searchTermsArray.AppendElement(term);
       }
 
       // create, fill, and append the recipient
-      if (gSearchInput.searchMode == kQuickSearchRecipient)
+      if (gSearchInput.searchMode == kQuickSearchRecipient ||
+          gSearchInput.searchMode == kQuickSearchRecipientOrSubject)
       {
         term = gSearchSession.createTerm();
         value = term.value;
@@ -649,4 +651,52 @@ function InitQuickSearchPopup()
     document.getElementById('quickSearchSaveAsVirtualFolder').setAttribute('disabled', 'true');
   else
     document.getElementById('quickSearchSaveAsVirtualFolder').removeAttribute('disabled');
+}
+
+/**
+ * If switching from an "incoming" (Inbox, etc.) type of mail folder,
+ * to an "outbound" (Sent, Drafts etc.)  type, and the current search
+ * type contains 'Sender', then switch it to the equivalent
+ * 'Recipient' search type by default. Vice versa when switching from
+ * outbound to incoming folder type.
+ * @param isOutboundFolder  Bool
+ *        true:  switch from an incoming to an outgoing folder
+ *        false: switch from an outgoing to an incoming folder
+ */
+function onSearchFolderTypeChanged(isOutboundFolder)
+{
+  var quickSearchMenu = document.getElementById('quick-search-menupopup');
+  var newSearchType;
+  var oldSearchMode;
+
+  GetSearchInput();
+
+  if (isOutboundFolder)
+  {
+    if (gSearchInput.searchMode == kQuickSearchFromOrSubject)
+      newSearchType = kQuickSearchRecipientOrSubject;
+    else if (gSearchInput.searchMode == kQuickSearchFrom)
+      newSearchType = kQuickSearchRecipient;
+    else
+      return;
+  }
+  else
+  {
+    if (gSearchInput.searchMode == kQuickSearchRecipientOrSubject)
+      newSearchType = kQuickSearchFromOrSubject;
+    else if (gSearchInput.searchMode == kQuickSearchRecipient)
+      newSearchType = kQuickSearchFrom;
+    else
+      return;
+  }
+  var newMenuItem = quickSearchMenu.getElementsByAttribute('value', newSearchType).item(0);
+  if (newMenuItem)
+  {
+    // If a menu item is already checked, need to uncheck it first:
+    var checked = quickSearchMenu.getElementsByAttribute('checked', 'true').item(0);
+    if (checked)
+      checked.setAttribute('checked', 'false');
+    changeQuickSearchMode(newMenuItem);
+    newMenuItem.setAttribute('checked', 'true');
+  }
 }

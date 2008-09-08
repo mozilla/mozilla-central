@@ -854,6 +854,22 @@ function FolderPaneSelectionChange()
         }
         else
         {
+            const outFolderFlagMask = MSG_FOLDER_FLAG_SENTMAIL |
+              MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_QUEUE |
+              MSG_FOLDER_FLAG_TEMPLATES;
+            if (IsSpecialFolder(gMsgFolderSelected, outFolderFlagMask, true))
+            {
+              if (!gPrevSelectedFolder ||
+                  !IsSpecialFolder(gPrevSelectedFolder, outFolderFlagMask, true))
+                onSearchFolderTypeChanged(true);
+            }
+            else
+            {
+              if (!gPrevSelectedFolder ||
+                  IsSpecialFolder(gPrevSelectedFolder, outFolderFlagMask, true))
+                onSearchFolderTypeChanged(false);
+            }
+
             OnLeavingFolder(gPrevSelectedFolder);  // mark all read in last folder
             var sortType = 0;
             var sortOrder = 0;

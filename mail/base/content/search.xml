@@ -161,24 +161,30 @@
         <![CDATA[
           var  menuPopup = document.getElementById('quick-search-menupopup');
           var menuPopupValue = menuPopup.getAttribute('value');
-          if (menuPopupValue > 0)
+          var menuPopupOrdinal = menuPopup.getElementsByAttribute('value', menuPopupValue)[0].getAttribute('ordinal');
+          if (menuPopupOrdinal > 0)
           {
+            var nextMenuItem = menuPopup.getElementsByAttribute('ordinal', --menuPopupOrdinal)[0];
             menuPopup.getElementsByAttribute('value', this.searchMode)[0].removeAttribute('checked');
-            this.searchMode = --menuPopupValue;
-            menuPopup.getElementsByAttribute('value', this.searchMode)[0].setAttribute('checked', 'true');
+            this.searchMode = nextMenuItem.getAttribute('value');
+            nextMenuItem.setAttribute('checked', 'true');
             menuPopup.setAttribute('value', this.searchMode);
           }
         ]]></handler>
 
       <handler event="keypress" keycode="VK_DOWN" modifiers="control" phase="capturing">
         <![CDATA[
+          var menuItemAfterOptions = document.getElementById('quickSearchAfterLastOptionSeparator');
+          var lastOrdinal = menuItemAfterOptions.getAttribute('ordinal') - 1;
           var  menuPopup = document.getElementById('quick-search-menupopup');
           var menuPopupValue = menuPopup.getAttribute('value');
-          if (menuPopupValue < 4) // Keep this value in synch with mailWindowOverlay.xul
+          var menuPopupOrdinal = menuPopup.getElementsByAttribute('value', menuPopupValue)[0].getAttribute('ordinal');
+          if (menuPopupOrdinal < lastOrdinal)
           {
+            var nextMenuItem = menuPopup.getElementsByAttribute('ordinal', ++menuPopupOrdinal)[0];
             menuPopup.getElementsByAttribute('value', this.searchMode)[0].removeAttribute('checked');
-            this.searchMode = ++menuPopupValue;
-            menuPopup.getElementsByAttribute('value', this.searchMode)[0].setAttribute('checked', 'true');
+            this.searchMode = nextMenuItem.getAttribute('value');
+            nextMenuItem.setAttribute('checked', 'true');
             menuPopup.setAttribute('value', this.searchMode);
           }
         ]]></handler>
