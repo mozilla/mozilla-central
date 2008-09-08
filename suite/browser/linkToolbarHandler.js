@@ -127,9 +127,7 @@ function(relAttribute, element)
       isFeed = true;
       // fall through
     case "alternate":
-      var feed = { title: element.title, href: element.href,
-                    type: element.type };
-      if (isValidFeed(feed, element.nodePrincipal, isFeed)) {
+      if (isValidFeed(element, element.nodePrincipal, isFeed)) {
         return "feed";
       }
 

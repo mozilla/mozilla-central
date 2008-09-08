@@ -936,25 +936,14 @@
               return;
 
             var rel = event.originalTarget.rel;
+            var type = event.originalTarget.type;
             var isIcon = /(?:^|\s)icon(?:\s|$)/i.test(rel) &&
                          this.mPrefs.getBoolPref("browser.chrome.site_icons");
 
-            var isFeed = /(?:^|\s)feed(?:\s|$)/i.test(rel);
-            if (!isFeed && /(?:^|\s)alternate(?:\s|$)/i.test(rel) &&
-                !/(?:^|\s)stylesheet(?:\s|$)/i.test(rel)) {
-              switch (event.originalTarget.type.toLowerCase()
-                           .replace(/^\s+|\s*(?:;.*)?$/g, "")) {
-                case "text/xml":
-                case "application/rdf+xml":
-                case "application/xml":
-                  isFeed = /\brss\b/i.test(event.originalTarget.title);
-                  break;
-                case "application/rss+xml":
-                case "application/atom+xml":
-                  isFeed = true;
-                  break;
-              }
-            }
+            var isFeed = /(?:^|\s)feed(?:\s|$)/i.test(rel) ||
+                         (/(?:^|\s)alternate(?:\s|$)/i.test(rel) &&
+                          !/(?:^|\s)stylesheet(?:\s|$)/i.test(rel) &&
+                          /^application\/(?:atom|rss)\+xml$/i.test(type));
 
             if (!isIcon && !isFeed)
               return;

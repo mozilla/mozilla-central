@@ -59,14 +59,13 @@ function initFeedTab()
     var isFeed = /(?:^|\s)feed(?:\s|$)/i.test(rel);
     if (!isFeed && /(?:^|\s)alternate(?:\s|$)/i.test(rel) &&
         !/(?:^|\s)stylesheet(?:\s|$)/i.test(rel)) {
-      var feed = { title: link.title, href: link.href, type: link.type };
-      if (isValidFeed(feed, gDocument.nodePrincipal, isFeed)) {
-        var type = feed.type;
+      var type = isValidFeed(link, link.nodePrincipal, isFeed);
+      if (type) {
         if (type in feedTypes)
           type = feedTypes[type];
         else
           type = feedTypes["application/rss+xml"];
-        addRow(feed.title, type, feed.href);
+        addRow(link.title, type, link.href);
       }
     }
   }

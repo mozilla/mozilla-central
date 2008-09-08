@@ -781,36 +781,18 @@ function disablePopupBlockerNotifications()
 function isValidFeed(aData, aPrincipal, aIsFeed)
 {
   if (!aData || !aPrincipal)
-    return false;
+    return null;
 
-  if (!aIsFeed) {
-    var type = aData.type.toLowerCase().replace(/^\s+|\s*(?:;.*)?$/g, "");
-
-    switch (type) {
-      case "text/xml":
-      case "application/rdf+xml":
-      case "application/xml":
-        aIsFeed = /\brss\b/i.test(event.originalTarget.title);
-        break;
-      case "application/rss+xml":
-      case "application/atom+xml":
-        aIsFeed = true;
-        break;
-    }
-  }
-
-  if (aIsFeed) {
+  var type = aData.type.toLowerCase().replace(/^\s+|\s*(?:;.*)?$/g, "");
+  if (aIsFeed || /^application\/(?:atom|rss)\+xml$/.test(type)) {
     try {
       urlSecurityCheck(aData.href, aPrincipal,
                        Components.interfaces.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL);
+      return type || "application/rss+xml";
     }
     catch(ex) {
-      aIsFeed = false;
     }
   }
 
-  if (type)
-    aData.type = type;
-
-  return aIsFeed;
+  return null;
 }
