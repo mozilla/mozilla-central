@@ -16,12 +16,12 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * the mozilla.org SeaMonkey project.
+ * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Javier Delgadillo <javi@netscape.com>
+ *   Philip Chee <philip.chee@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,32 +37,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function openCertManager()
+function OpenCertManager()
 {
-    //check for an existing certManager window and focus it; it's not application modal
-    const kWindowMediatorContractID = "@mozilla.org/appshell/window-mediator;1";
-    const kWindowMediatorIID = Components.interfaces.nsIWindowMediator;
-    const kWindowMediator = Components.classes[kWindowMediatorContractID].getService(kWindowMediatorIID);
-    var lastCertManager = kWindowMediator.getMostRecentWindow("mozilla:certmanager");
-    if (lastCertManager)
-      lastCertManager.focus();
-    else {
-      window.open('chrome://pippki/content/certManager.xul',  "",
-                  'chrome,centerscreen,resizable,dialog');
-    }
+    document.documentElement
+            .openWindow("mozilla:certmanager", 
+                        "chrome://pippki/content/certManager.xul",
+                        "", null);
 }
 
-function openDeviceManager()
+function OpenDeviceManager()
 {
-    //check for an existing deviceManger window and focus it; it's not application modal
-    const kWindowMediatorContractID = "@mozilla.org/appshell/window-mediator;1";
-    const kWindowMediatorIID = Components.interfaces.nsIWindowMediator;
-    const kWindowMediator = Components.classes[kWindowMediatorContractID].getService(kWindowMediatorIID);
-    var lastCertManager = kWindowMediator.getMostRecentWindow("mozilla:devicemanager");
-    if (lastCertManager)
-      lastCertManager.focus();
-    else {
-      window.open('chrome://pippki/content/device_manager.xul',  "devmgr",
-                  'chrome,centerscreen,resizable,dialog');
-    }
+    document.documentElement
+            .openWindow("mozilla:devicemanager", 
+                        "chrome://pippki/content/device_manager.xul",
+                        "", null);
 }

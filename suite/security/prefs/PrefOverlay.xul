@@ -50,14 +50,12 @@
     </treeitem>
     <treeitem id="sslItem">
       <treerow>
-        <treecell url="chrome://pippki/content/pref-ssl.xul"
-                      label="&ssl.label;"/>
+        <treecell label="(Migrated: &ssl.label;)"/>
       </treerow>
     </treeitem>
     <treeitem id="certItem">
       <treerow>
-        <treecell url="chrome://pippki/content/pref-certs.xul"
-                      label="&certs.label;"/>
+        <treecell label="(Migrated: &certs.label;)"/>
       </treerow>
     </treeitem>
     <treeitem id="validationItem">

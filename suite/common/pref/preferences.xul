@@ -174,6 +174,7 @@
                     prefpane="masterpass_pane"
                     url="chrome://pippki/content/pref-masterpass.xul"
                     helpTopic="passwords_master"/>
+-->
           <treeitem id="sslItem"
                     label="&ssl.label;"
                     prefpane="ssl_pane"
@@ -184,6 +185,7 @@
                     prefpane="certs_pane"
                     url="chrome://pippki/content/pref-certs.xul"
                     helpTopic="certs_prefs"/>
+<!--
           <treeitem id="validationItem"
                     label="&validation.label;"
                     prefpane="validation_pane"

@@ -22,6 +22,7 @@
    - Contributor(s):
    -   Bob Lord <lord@netscape.com>
    -   Terry Hayes <thayes@netscape.com>
+   -   Philip Chee <philip.chee@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,62 +40,82 @@
 
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page [
+<!DOCTYPE overlay [
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
-  <!ENTITY % prefSslDTD SYSTEM "chrome://pippki/locale/pref-ssl.dtd">
   %brandDTD;
+  <!ENTITY % prefSslDTD SYSTEM "chrome://pippki/locale/pref-ssl.dtd">
   %prefSslDTD;
 ]>
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://pippki/content/pref-ssl.xul');"
-      headertitle="&pref.ssl.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <!-- List elements to manage for prefs -->
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["enableSSL3", "enableTLS", 
-        "warnEnteringSecure", "warnEnteringWeak", 
-        "warnLeavingSecure", "warnInsecurePost",
-        "warnViewMixed" ];
-  ]]>
-  </script>
-            
-  <groupbox orient="horizontal">
-    <caption label="&SSLProtocolVersions.caption;"/>
+  <prefpane id="ssl_pane"
+            label="&pref.ssl.title;">
+    <preferences id="ssl_preferences">
+      <preference id="security.enable_ssl3"
+                  name="security.enable_ssl3"
+                  type="bool"/>
+      <preference id="security.enable_tls"
+                  name="security.enable_tls"
+                  type="bool"/>
+      <preference id="security.warn_entering_secure"
+                  name="security.warn_entering_secure"
+                  type="bool"/>
+      <preference id="security.warn_entering_weak"
+                  name="security.warn_entering_weak"
+                  type="bool"/>
+      <preference id="security.warn_leaving_secure"
+                  name="security.warn_leaving_secure"
+                  type="bool"/>
+      <preference id="security.warn_submit_insecure"
+                  name="security.warn_submit_insecure"
+                  type="bool"/>
+      <preference id="security.warn_viewing_mixed"
+                  name="security.warn_viewing_mixed"
+                  type="bool"/>
+    </preferences>
 
-    <!-- Prefs -->
-    <vbox flex="1" align="start">
-      <checkbox id="enableSSL3" label="&enable.ssl3;"
-                accesskey="&enable.ssl3.accesskey;"
-                prefstring="security.enable_ssl3"/>
-      <checkbox id="enableTLS" label="&enable.tls;"
-                accesskey="&enable.tls.accesskey;"
-                prefstring="security.enable_tls"/>
-    </vbox>
+    <groupbox orient="horizontal">
+      <caption label="&SSLProtocolVersions.caption;"/>
 
-  </groupbox>
+      <vbox flex="1" align="start">
+        <checkbox id="enableSSL3"
+                  label="&enable.ssl3;"
+                  accesskey="&enable.ssl3.accesskey;"
+                  preference="security.enable_ssl3"/>
+        <checkbox id="enableTLS"
+                  label="&enable.tls;"
+                  accesskey="&enable.tls.accesskey;"
+                  preference="security.enable_tls"/>
+      </vbox>
 
-  <groupbox align="start">
-    <caption label="&SSLWarnings.caption;"/>
-    <description>&warn.description;</description>
-    <!-- Prefs -->
-    <checkbox id="warnEnteringSecure" label="&warn.enteringsecure;"
-              accesskey="&warn.enteringsecure.accesskey;"
-              prefstring="security.warn_entering_secure"/>
-    <checkbox id="warnEnteringWeak" label="&warn.enteringweak;"
-              accesskey="&warn.enteringweak.accesskey;"
-              prefstring="security.warn_entering_weak"/>
-    <checkbox id="warnLeavingSecure" label="&warn.leavingsecure;"
-              accesskey="&warn.leavingsecure.accesskey;"
-              prefstring="security.warn_leaving_secure"/>
-    <checkbox id="warnInsecurePost" label="&warn.insecurepost;"
-              accesskey="&warn.insecurepost.accesskey;"
-              prefstring="security.warn_submit_insecure"/>
-    <checkbox id="warnViewMixed" label="&warn.viewmixed;"
-              accesskey="&warn.viewmixed.accesskey;"
-              prefstring="security.warn_viewing_mixed"
-              checked="true"/>
-  </groupbox>
+    </groupbox>
 
-</page>
+    <groupbox align="start">
+      <caption label="&SSLWarnings.caption;"/>
+      <description>&warn.description;</description>
+      <checkbox id="warnEnteringSecure"
+                label="&warn.enteringsecure;"
+                accesskey="&warn.enteringsecure.accesskey;"
+                preference="security.warn_entering_secure"/>
+      <checkbox id="warnEnteringWeak"
+                label="&warn.enteringweak;"
+                accesskey="&warn.enteringweak.accesskey;"
+                preference="security.warn_entering_weak"/>
+      <checkbox id="warnLeavingSecure"
+                label="&warn.leavingsecure;"
+                accesskey="&warn.leavingsecure.accesskey;"
+                preference="security.warn_leaving_secure"/>
+      <checkbox id="warnInsecurePost"
+                label="&warn.insecurepost;"
+                accesskey="&warn.insecurepost.accesskey;"
+                preference="security.warn_submit_insecure"/>
+      <checkbox id="warnViewMixed"
+                label="&warn.viewmixed;"
+                accesskey="&warn.viewmixed.accesskey;"
+                preference="security.warn_viewing_mixed"
+                checked="true"/>
+    </groupbox>
+
+  </prefpane>
+</overlay>

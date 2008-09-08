@@ -22,6 +22,7 @@
    - Contributor(s):
    -   Bob Lord <lord@netscape.com>
    -   Terry Hayes <thayes@netscape.com>
+   -   Philip Chee <philip.chee@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,35 +40,46 @@
 
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page [
+<!DOCTYPE overlay [
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
-  <!ENTITY % prefCertsDTD SYSTEM "chrome://pippki/locale/pref-certs.dtd">
-  <!ENTITY % prefSslDTD SYSTEM "chrome://pippki/locale/pref-ssl.dtd">
   %brandDTD;
+  <!ENTITY % prefCertsDTD SYSTEM "chrome://pippki/locale/pref-certs.dtd">
   %prefCertsDTD;
+  <!ENTITY % prefSslDTD SYSTEM "chrome://pippki/locale/pref-ssl.dtd">
   %prefSslDTD;
 ]>
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://pippki/content/pref-certs.xul');"
-      headertitle="&pref.certs.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <!-- List elements to manage for prefs -->
-  <script type="application/x-javascript" src="chrome://pippki/content/pref-certs.js"/>
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = [ "certSelection" ];
-  ]]>
-  </script>
+  <prefpane id="certs_pane"
+            label="&pref.certs.title;"
+            script="chrome://pippki/content/pref-certs.js">
+    <preferences id="cert_preferences">
+      <preference id="security.default_personal_cert"
+                  name="security.default_personal_cert"
+                  type="string"/>
+      <preference id="security.disable_button.openCertManager"
+                  name="security.disable_button.openCertManager"
+                  type="bool"/>
+      <preference id="security.disable_button.openDeviceManager"
+                  name="security.disable_button.openDeviceManager"
+                  type="bool"/>
+    </preferences>
+
 
   <groupbox align="start">
     <caption label="&SSLClientAuthMethod.caption;"/>
-    <description> &certselect.description; </description>
-    <!-- Prefs -->
-    <radiogroup id="certSelection" orient="horizontal" preftype="string" 
-	        prefstring="security.default_personal_cert">
-    <radio label="&certselect.auto;" accesskey="&certselect.auto.accesskey;" value="Select Automatically"/>
-    <radio label="&certselect.ask;" accesskey="&certselect.ask.accesskey;" value="Ask Every Time"/>
+    <description>&certselect.description;</description>
+    <radiogroup id="certSelection"
+                orient="horizontal"
+                preference="security.default_personal_cert"
+                aria-labelledby="CertGroupCaption CertSelectionDesc">
+      <radio value="Select Automatically"
+             label="&certselect.auto;"
+             accesskey="&certselect.auto.accesskey;"/>
+      <radio value="Ask Every Time"
+             label="&certselect.ask;"
+             accesskey="&certselect.ask.accesskey;"/>
     </radiogroup>
   </groupbox>
 
@@ -77,10 +89,10 @@
     <description>&managecerts.text;</description>
     <hbox align="center">
       <button label="&managecerts.button;"
-              oncommand="openCertManager();" 
+              oncommand="OpenCertManager();" 
               id="openCertManagerButton"
               accesskey="&managecerts.accesskey;"
-              prefstring="security.disable_button.openCertManager"/>
+              preference="security.disable_button.openCertManager"/>
     </hbox>
   </groupbox>
 
@@ -90,11 +102,12 @@
     <description>&managedevices.text;</description>
     <hbox align="center">
       <button label="&managedevices.button;"
-              oncommand="openDeviceManager();"
+              oncommand="OpenDeviceManager();"
               id="openDeviceManagerButton"
               accesskey="&managedevices.accesskey;"
-              prefstring="security.disable_button.openDeviceManager"/>
+              preference="security.disable_button.openDeviceManager"/>
     </hbox>
   </groupbox>
 
-</page>
+  </prefpane>
+</overlay>
