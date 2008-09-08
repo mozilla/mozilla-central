@@ -20,6 +20,7 @@
 <!ENTITY cookies.label "Cookies">
 <!ENTITY images.label "Images">
 <!ENTITY popups.label "Popup Windows">
+<!ENTITY passwords.label "Passwords">
 <!ENTITY masterpass.label "Master Passwords">
 <!ENTITY ssl.label "SSL">
 <!ENTITY certs.label "Certificates">

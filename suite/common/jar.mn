@@ -203,6 +203,8 @@ comm.jar:
    content/communicator/pref/pref-smartupdate.js                    (pref/pref-smartupdate.js)
    content/communicator/pref/pref-smartupdate.xul                   (pref/pref-smartupdate.xul)
    content/communicator/pref/pref-tabs.xul                          (pref/pref-tabs.xul)
+   content/communicator/pref/pref-passwords.xul                     (pref/pref-passwords.xul)
+   content/communicator/pref/pref-passwords.js                      (pref/pref-passwords.js)
    content/communicator/profile/profileSelection.js                 (profile/profileSelection.js)
    content/communicator/profile/profileSelection.xul                (profile/profileSelection.xul)
    content/communicator/related/related-panel.js                    (related/related-panel.js)

@@ -168,6 +168,11 @@
                     prefpane="popups_pane"
                     helpTopic="pop_up_blocking"
                     url="chrome://communicator/content/pref/pref-popups.xul"/>
+          <treeitem id="passwordsItem"
+                    label="&passwords.label;"
+                    prefpane="passwords_pane"
+                    url="chrome://communicator/content/pref/pref-passwords.xul"
+                    helpTopic="passwords_prefs"/>
 <!--
           <treeitem id="masterpassItem"
                     label="&masterpass.label;"
