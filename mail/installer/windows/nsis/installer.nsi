@@ -783,9 +783,112 @@ Function .onInit
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "components.ini"
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "shortcuts.ini"
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "summary.ini"
-  !insertmacro createBasicCustomOptionsINI
-  !insertmacro createComponentsINI
-  !insertmacro createShortcutsINI
+
+  ; Setup the options.ini file for the Custom Options Page
+  WriteINIStr "$PLUGINSDIR\options.ini" "Settings" NumFields "5"
+
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Type   "label"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Text   "$(OPTIONS_SUMMARY)"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Left   "0"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Top    "0"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Bottom "10"
+
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 2" Type   "RadioButton"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 2" Text   "$(OPTION_STANDARD_RADIO)"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 2" Left   "15"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 2" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 2" Top    "25"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 2" Bottom "35"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 2" State  "1"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 2" Flags  "GROUP"
+
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" Type   "RadioButton"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" Text   "$(OPTION_CUSTOM_RADIO)"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" Left   "15"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" Top    "55"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" Bottom "65"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 3" State  "0"
+
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Type   "label"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Text   "$(OPTION_STANDARD_DESC)"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Left   "30"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Top    "37"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 4" Bottom "57"
+
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Type   "label"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Text   "$(OPTION_CUSTOM_DESC)"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Left   "30"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Top    "67"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Bottom "87"
+
+  ; Setup the components.ini file for the Custom Components Page  
+  WriteINIStr "$PLUGINSDIR\components.ini" "Settings" NumFields "3"
+
+  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Type   "label"
+  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Text   "$(OPTIONAL_COMPONENTS_LABEL)"
+  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Left   "0"
+  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Top    "5"
+  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Bottom "15"
+
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Type   "checkbox"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Text   "$(DOMI_TITLE)"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Left   "15"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Right  "-1"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Top    "20"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Bottom "30"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" State  "1"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Flags  "GROUP"
+  ${EndIf}
+
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Type   "label"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Text   "$(DOMI_TEXT)"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Left   "30"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Right  "-1"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Top    "32"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Bottom "52"
+  ${EndIf}
+
+  ; Setup the shortcuts.ini for the Custom Shortcuts Page
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Settings" NumFields "4"
+
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 1" Type   "label"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 1" Text   "$(CREATE_ICONS_DESC)"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 1" Left   "0"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 1" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 1" Top    "5"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 1" Bottom "15"
+
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 2" Type   "checkbox"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 2" Text   "$(ICONS_DESKTOP)"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 2" Left   "15"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 2" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 2" Top    "20"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 2" Bottom "30"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 2" State  "1"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 2" Flags  "GROUP"
+
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 3" Type   "checkbox"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 3" Text   "$(ICONS_STARTMENU)"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 3" Left   "15"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 3" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 3" Top    "40"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 3" Bottom "50"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 3" State  "1"
+
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" Type   "checkbox"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" Text   "$(ICONS_QUICKLAUNCH)"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" Left   "15"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" Top    "60"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" Bottom "70"
+  WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" State  "1"
 
   ; There must always be nonlocalized and localized directories.
   ${GetSize} "$EXEDIR\nonlocalized\" "/S=0K" $R5 $R7 $R8

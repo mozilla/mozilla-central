@@ -158,7 +158,7 @@ ShowUnInstDetails nevershow
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE un.leaveWelcome
 !insertmacro MUI_UNPAGE_WELCOME
 
-; Uninstall Confirm Page
+; Custom Uninstall Confirm Page
 UninstPage custom un.preConfirm un.leaveConfirm
 
 ; Remove Files Page
