@@ -71,7 +71,7 @@ function onOk()
 {
   var feedLocation = document.getElementById('feedLocation').value;
   // trim leading and trailing white space from the url
-  feedLocation = feedLocation.replace( /^\s+/, "").replace( /\s+$/, ""); 
+  feedLocation = feedLocation.trim();
 
   window.arguments[0].feedLocation = feedLocation;
   window.arguments[0].folderURI = document.getElementById('selectFolder').getAttribute("uri");

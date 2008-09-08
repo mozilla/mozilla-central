@@ -124,10 +124,9 @@ var gFontsDialog = {
       return defaultValue;
     
     var fontNames = preference.value.split(",");
-    var stripWhitespace = /^\s*(.*)\s*$/;
     
     for (var i = 0; i < fontNames.length; ++i) {
-      var fontName = fontNames[i].replace(stripWhitespace, "$1");
+      var fontName = fontNames[i].trim();
       fontItems = aElement.getElementsByAttribute("value", fontName);
       if (fontItems.length)
         break;

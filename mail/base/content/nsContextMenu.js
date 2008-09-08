@@ -510,9 +510,8 @@ nsContextMenu.prototype = {
     var focusedWindow = document.commandDispatcher.focusedWindow;
     var searchStr = focusedWindow.getSelection();
     searchStr = searchStr.toString();
-    searchStr = searchStr.replace(/^\s+/, "");
     searchStr = searchStr.replace(/(\n|\r|\t)+/g, " ");
-    searchStr = searchStr.replace(/\s+$/,"");
+    searchStr = searchStr.trim();
     return searchStr;
   },
 

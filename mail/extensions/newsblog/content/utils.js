@@ -337,12 +337,6 @@ function dateRescue(dateString)
   return (new Date()).toString();
 }
 
-// Could be a prototype on String, but I don't know the policy on that
-function trimString(s)
-{
-  return(s.replace(/^\s+/,'').replace(/\s+$/,''));
-}
-
 function W3CToIETFDate(dateString) {
   var date = ISO8601DateUtils.parse(dateString);
   return date.toUTCString();

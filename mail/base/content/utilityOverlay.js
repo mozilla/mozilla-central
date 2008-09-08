@@ -145,10 +145,8 @@ function gatherTextUnder ( root )
       }
     }
   }
-  // Strip leading whitespace.
-  text = text.replace( /^\s+/, "" );
-  // Strip trailing whitespace.
-  text = text.replace( /\s+$/, "" );
+  // Strip leading and trailing whitespace.
+  text = text.trim();
   // Compress remaining whitespace.
   text = text.replace( /\s+/g, " " );
   return text;
@@ -160,7 +158,7 @@ function GenerateValidFilename(filename, extension)
   {
     // clean up the filename to make it usable and
     // then trim whitespace from beginning and end
-    filename = validateFileName(filename).replace(/^\s+|\s+$/g, "");
+    filename = validateFileName(filename).trim();
     if (filename.length > 0)
       return filename + extension;
   }

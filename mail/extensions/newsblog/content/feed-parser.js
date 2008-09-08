@@ -160,7 +160,7 @@ FeedParser.prototype =
       // This is typical aggregator behavior.
       if(item.date)
       {
-        item.date = trimString(item.date);
+        item.date = item.date.trim();
         if(!isValidRFC822Date(item.date))
         {
           // XXX Use this on the other formats as well
