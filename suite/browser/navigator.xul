@@ -133,7 +133,7 @@
   <popup id="feedsPopup" popupanchor="bottomright" popupalign="topright"
          onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
          oncommand="loadURI(event.target.statusText, gBrowser.currentURI);"/>
-  <panel type="autocomplete" id="PopupAutoComplete"/>
+  <panel type="autocomplete" id="PopupAutoComplete" level="top"/>
 
   <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true">
     <!-- Menu -->
