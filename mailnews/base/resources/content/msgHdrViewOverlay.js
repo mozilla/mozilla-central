@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -54,8 +54,6 @@
 
 const msgHeaderParserContractID      = "@mozilla.org/messenger/headerparser;1";
 const abAddressCollectorContractID   = "@mozilla.org/addressbook/services/addressCollecter;1";
-const kPersonalAddressbookUri        = "moz-abmdbdirectory://abook.mab";
-const kRDFServiceContractID          = "@mozilla.org/rdf/rdf-service;1";
 
 var gViewAllHeaders = false;
 var gShowOrganization = false;
@@ -79,8 +77,6 @@ var gFileHandler;
 var gExtraExpandedHeaders;
 // Show the friendly display names for people I know, instead of the name + email address.
 var gShowCondensedEmailAddresses;
-// Used for determining if we want to show just the display name in email address nodes.
-var gPersonalAddressBookDirectory;
 
 var msgHeaderParser = Components.classes[msgHeaderParserContractID].getService(Components.interfaces.nsIMsgHeaderParser);
 var abAddressCollector = null;
@@ -888,7 +884,7 @@ function ShowMessageHeaderPane()
       node.collapsed = false;
   }
 
-	/* workaround for 39655 */
+  /* workaround for 39655 */
   if (gFolderJustSwitched) 
   {
     var el = document.getElementById("msgHeaderView");
@@ -986,23 +982,12 @@ function setFromBuddyIcon(email)
    try {
      // better to cache this?
      var myScreenName = pref.getCharPref("aim.session.screenname");
+     if (myScreenName)
+     {
 
-     var manager = Components.classes["@mozilla.org/abmanager;1"]
-                             .getService(Components.interfaces.nsIAbManager);
-
-     var directories = manager.directories;
-     var card;
-     while (directories.hasMoreElements()) {
-       var directory = directories.getNext()
-                                  .QueryInterface(Components.interfaces.nsIAbDirectory);
-       try {
-         card = directory.cardForEmailAddress(email);
-         if (card)
-           break;
-       } catch (e) {}
-     }
-
-     if (myScreenName && card && card.setProperty("_AimScreenName")) {
+     var card = getCardForAddress(email);
+     if (card && card.setProperty("_AimScreenName"))
+     {
        if (!gIOService) {
          // lazily create these globals
          gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
@@ -1025,6 +1010,8 @@ function setFromBuddyIcon(email)
          return;
        }
      }
+
+     }
    }
    catch (ex) {
      // can get here if no screenname
@@ -1044,17 +1031,23 @@ function updateEmailAddressNode(emailAddressNode, address)
   AddExtraAddressProcessing(address.emailAddress, emailAddressNode);
 }
 
+// If the email address is found in any of the address books,
+// then consider this user a 'known' user and use the display name.
 function AddExtraAddressProcessing(emailAddress, addressNode)
 {
   if (!gShowCondensedEmailAddresses)
     return;
 
+  // TODO: Maybe do domain matches too (i.e. any email from someone in my
+  // company should use the friendly display name).
+
   const displayName = addressNode.getAttribute("displayName");
-  if (!(displayName && useDisplayNameForAddress(emailAddress)))
+  if (!(displayName && getCardForAddress(emailAddress)))
     return;
 
+  // Get the id of the mail-multi-emailHeaderField binding parent.
+  var parentElementId = addressNode.parentNode.parentNode.parentNode.id;
   // Don't condense the address for the from and reply-to fields.
-  const parentElementId = addressNode.parentNode.id;
   if (parentElementId == "expandedfromBox" ||
       parentElementId == "expandedreply-toBox")
     return;
@@ -1069,30 +1062,38 @@ function fillEmailAddressPopup(emailAddressNode)
           .setAttribute("label", emailAddressNode.getAttribute("emailAddress"));
 }
 
-// returns true if we should use the display name for this address
-// otherwise returns false
-function useDisplayNameForAddress(emailAddress)
+/**
+ * Returns a card matching the given address, or |null|.
+ * Searches all (searchable) address books, until a (first) card is found.
+ *
+ * @param emailAddress The email address to find.
+ * @return A card, or |null|.
+ * @see nsIAbDirectory.cardForEmailAddress()
+ */
+function getCardForAddress(emailAddress)
 {
-  // For now, if the email address is in the personal address book, then
-  // consider this user a 'known' user and use the display name. I could
-  // eventually see our rules enlarged to include other local ABs, replicated
-  // LDAP directories, and maybe even domain matches (i.e. any email from
-  // someone in my company should use the friendly display name).
-
-  if (!gPersonalAddressBookDirectory)
+  var books = Components.classes["@mozilla.org/abmanager;1"]
+                        .getService(Components.interfaces.nsIAbManager)
+                        .directories;
+  while (books.hasMoreElements())
   {
-    gPersonalAddressBookDirectory =
-      Components.classes[kRDFServiceContractID]
-                .getService(Components.interfaces.nsIRDFService)
-                .GetResource(kPersonalAddressbookUri)
-                .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
-
-    if (!gPersonalAddressBookDirectory)
-      return false;
+    var ab = books.getNext();
+    if (ab instanceof Components.interfaces.nsIAbDirectory)
+    {
+      try
+      {
+        var card = ab.cardForEmailAddress(emailAddress);
+        if (card)
+          return card;
+      }
+      catch (ex)
+      {
+        // Unsearchable address books throw |NS_ERROR_NOT_IMPLEMENTED|.
+      }
+    }
   }
 
-  // look up the email address in the database
-  return gPersonalAddressBookDirectory.cardForEmailAddress(emailAddress);
+  return null;
 }
 
 // createnewAttachmentInfo --> constructor method for creating new attachment object which goes into the
@@ -1272,7 +1273,7 @@ function attachmentListClick(event)
       var target = event.target;
       if (target.localName == "listitem")
       {
-	target.attachment.openAttachment();
+        target.attachment.openAttachment();
       }
     }
 }
