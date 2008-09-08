@@ -390,7 +390,7 @@ protected:
   nsMsgViewSortOrderValue m_secondarySortOrder;
   nsMsgViewFlagsTypeValue m_viewFlags;
 
-  // I18N date formater service which we'll want to cache locally.
+  // I18N date formatter service which we'll want to cache locally.
   nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
   nsCOMPtr<nsIMsgHeaderParser> mHeaderParser;
   nsCOMPtr<nsIMsgTagService> mTagService;
