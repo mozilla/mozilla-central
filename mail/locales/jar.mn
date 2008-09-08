@@ -127,6 +127,7 @@
   locale/@AB_CD@/messenger/preferences/preferences.properties           (%chrome/messenger/preferences/preferences.properties)
   locale/@AB_CD@/messenger/migration/migration.dtd                      (%chrome/messenger/migration/migration.dtd)
   locale/@AB_CD@/messenger/migration/migration.properties               (%chrome/messenger/migration/migration.properties)
+  locale/@AB_CD@/messenger/search/searchIntegrationDialogWin.dtd        (%chrome/messenger/search/searchIntegrationDialogWin.dtd)
 % locale messenger-mapi @AB_CD@ %locale/@AB_CD@/messenger-mapi/
   locale/@AB_CD@/messenger-mapi/mapi.properties                         (%chrome/messenger-mapi/mapi.properties)
 % locale messenger-newsblog @AB_CD@ %locale/@AB_CD@/messenger-newsblog/

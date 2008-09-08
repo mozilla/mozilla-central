@@ -1,4 +1,5 @@
-#
+<?xml version="1.0"?>
+# -*- Mode: xml; indent-tabs-mode: nil; -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,14 +13,16 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is the Thunderbird Default Client Dialog
 #
 # The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+# Scott MacGregor.
+# Portions created by the Initial Developer are Copyright (C) 2006
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Scott MacGregor <mscott@mozilla.org
+#   Siddharth Agarwal <sid1337@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,36 +38,30 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH   = ../..
-topsrcdir = @top_srcdir@
-srcdir    = @srcdir@
-VPATH   = @srcdir@
+<?xml-stylesheet href="chrome://global/skin/"?>
 
-include $(DEPTH)/config/autoconf.mk
+<!DOCTYPE window [
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
+  %brandDTD;
+#ifdef XP_WIN
+  <!ENTITY % searchIntegrationDTD SYSTEM "chrome://messenger/locale/search/searchIntegrationDialogWin.dtd" >
+  %searchIntegrationDTD;
+#endif
+]>
 
-DIRS    = compose preferences addrbook migration
 
-ifneq (,$(filter windows gtk2 mac cocoa, $(MOZ_WIDGET_TOOLKIT)))
-DIRS += shell
-endif
+<dialog xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        id="searchIntegrationDialog"
+        buttons="accept,cancel"
+        ondialogaccept="window.arguments[0].callback(true); return true"
+        ondialogcancel="window.arguments[0].callback(false); return true"
+        title="&searchIntegration.title;"
+        buttonlabelaccept="&searchIntegration.accept;"
+        buttonlabelcancel="&searchIntegration.cancel;">
 
-ifdef MOZ_SAFE_BROWSING
-DIRS += phishing 
-endif
+  <description>
+    &searchIntegration.description;
+  </description>
 
-# Mac and Windows have search integration components
-ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
-DIRS += search
-endif
-ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
-ifndef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
-DIRS += search
-endif
-endif
-
-DIRS += build
-
-EXTRA_PP_COMPONENTS = nsMailDefaultHandler.js
-
-include $(topsrcdir)/config/rules.mk
-
+</dialog>

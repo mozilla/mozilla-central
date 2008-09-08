@@ -51,21 +51,145 @@ const gFileExt = ".wdseml";
 // The pref base
 const gPrefBase = "mail.winsearch";
 
+var gWinSearchHelper;
+
+var gFoldersInCrawlScope;
+
+var gRegKeysPresent;
+
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function InitWinSearchIntegration()
 {
+  // We're currently only enabled on Vista and above
+  var sysInfo = Cc["@mozilla.org/system-info;1"].getService(Ci.nsIPropertyBag2);
+  var windowsVersion = sysInfo.getProperty("version");
+  if (parseFloat(windowsVersion) < 6)
+  {
+    SIDump("Windows version " + windowsVersion + " < 6.0\n");
+    return;
+  }
+
+  // enabled === undefined means that the first run hasn't occurred yet (pref isn't present).
+  // false or true means that the first run has occurred, and the user has selected
+  // the corresponding decision.
   var enabled;
   try {
     enabled = gPrefBranch.getBoolPref(gPrefBase + ".enable");
     gLastFolderIndexedUri = gPrefBranch.getCharPref(gPrefBase + ".lastFolderIndexedUri");
   } catch (ex) {}
 
-  if (!enabled)
+  gWinSearchHelper = Cc["@mozilla.org/mail/windows-search-helper;1"].getService(Ci.nsIMailWinSearchHelper);
+  var serviceRunning = false;
+  try
+  {
+    serviceRunning = gWinSearchHelper.serviceRunning;
+  }
+  catch (e) {}
+  // If the service isn't running, then we should stay in backoff mode
+  if (!serviceRunning)
+  {
+    SIDump("Windows Search service not running\n");
+    InitSupportIntegration(false);
     return;
+  }
 
-  SIDump("Initializing Windows Search integration\n");
-  InitSupportIntegration();
+  gFoldersInCrawlScope = gWinSearchHelper.foldersInCrawlScope;
+  gRegKeysPresent = CheckRegistryKeys();
+
+  if (enabled === undefined)
+    // First run has to be handled after the main mail window is open
+    return true;
+
+  if (enabled)
+    SIDump("Initializing Windows Search integration\n");
+  InitSupportIntegration(enabled);
+}
+
+// Handles first run, once the main mail window has popped up.
+function WinSearchFirstRun(window)
+{
+  // If any of the two are not present, we need to elevate.
+  var needsElevation = !gFoldersInCrawlScope || !gRegKeysPresent;
+  var params = {in: {showUAC: needsElevation}};
+  var scope = this;
+
+  params.callback = function(enable)
+  {
+    CheckRegistryKeys();
+    if (enable && needsElevation)
+    {
+      try { scope.gWinSearchHelper.runSetup(true); }
+      catch (e) { enable = false; }
+    }
+    if (enable)
+    {
+      if (!scope.gWinSearchHelper.isFileAssociationSet)
+        scope.gWinSearchHelper.setFileAssociation();
+    }
+    scope.gPrefBranch.setBoolPref(gPrefBase + ".enable", enable);
+    scope.InitSupportIntegration(enable);
+  }
+
+  window.openDialog("chrome://messenger/content/search/searchIntegrationDialog.xul", "",
+                    "chrome, dialog, resizable=no, centerscreen", params).focus();
+}
+
+const gRegKeys =
+[
+  // This is the property handler
+  {
+    root: Ci.nsIWindowsRegKey.ROOT_KEY_LOCAL_MACHINE,
+    key: "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.wdseml",
+    name: "",
+    value: "{5FA29220-36A1-40f9-89C6-F4B384B7642E}"
+  },
+  // These two are the association with the MIME IFilter
+  {
+    root: Ci.nsIWindowsRegKey.ROOT_KEY_CLASSES_ROOT,
+    key: ".wdseml",
+    name: "Content Type",
+    value: "message/rfc822"
+  },
+  {
+    root: Ci.nsIWindowsRegKey.ROOT_KEY_CLASSES_ROOT,
+    key: ".wdseml\\PersistentHandler",
+    name: "",
+    value: "{5645c8c4-e277-11cf-8fda-00aa00a14f93}"
+  },
+  // This is the association with the Windows mail preview handler
+  {
+    root: Ci.nsIWindowsRegKey.ROOT_KEY_CLASSES_ROOT,
+    key: ".wdseml\\shellex\\{8895B1C6-B41F-4C1C-A562-0D564250836F}",
+    name: "",
+    value: "{b9815375-5d7f-4ce2-9245-c9d4da436930}"
+  },
+  // This is the association made to display results under email
+  {
+    root: Ci.nsIWindowsRegKey.ROOT_KEY_LOCAL_MACHINE,
+    key: "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\explorer\\KindMap",
+    name: ".wdseml",
+    value: "email;communication"
+  }
+];
+
+// Check whether the required registry keys exist
+function CheckRegistryKeys()
+{
+  for (var i = 0; i < gRegKeys.length; i++)
+  {
+    var regKey = Cc["@mozilla.org/windows-registry-key;1"].createInstance(Ci.nsIWindowsRegKey);
+    try {
+      regKey.open(gRegKeys[i].root, gRegKeys[i].key, regKey.ACCESS_READ);
+    }
+    catch (e) { return false; }
+    var valuePresent = regKey.hasValue(gRegKeys[i].name) &&
+                        (regKey.readStringValue(gRegKeys[i].name) == gRegKeys[i].value);
+    regKey.close();
+    if (!valuePresent)
+      return false;
+  }
+  return true;
 }
 
 // The stream listener to read messages
@@ -207,16 +331,26 @@ WinSearchIntegration.prototype = {
 
   observe : function(aSubject, aTopic, aData)
   {
+    var obsSvc = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
     switch(aTopic)
     {
     case "app-startup":
-      var obsSvc = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
       obsSvc.addObserver(this, "profile-after-change", false);
-    break;
+      break;
     case "profile-after-change":
-      try { InitWinSearchIntegration(); }
+      try
+      {
+        if (InitWinSearchIntegration())
+          obsSvc.addObserver(this, "mail-startup-done", false);
+      }
       catch(err) { SIDump("Could not initialize winsearch component"); }
-    break;
+      break;
+    case "mail-startup-done":
+      aSubject.QueryInterface(Ci.nsIDOMWindowInternal);
+      obsSvc.removeObserver(this, "mail-startup-done");
+      try { WinSearchFirstRun(aSubject); }
+      catch(err) { SIDump("First run unsuccessful\n"); }
+      break;
     default:
       throw Components.Exception("Unknown topic: " + aTopic);
     }

@@ -238,6 +238,10 @@ Section "Uninstall"
   ; handler.
   ${If} ${Errors}
     ${un.RegCleanFileHandler}  ".eml"   "ThunderbirdEML"
+    ${un.RegCleanFileHandler}  ".wdseml" "ThunderbirdEML"
+    DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\explorer\KindMap" ".wdseml"
+    ; It doesn't matter if the value didn't exist
+    ClearErrors
   ${EndIf}
 
   SetShellVarContext all  ; Set SHCTX to HKLM

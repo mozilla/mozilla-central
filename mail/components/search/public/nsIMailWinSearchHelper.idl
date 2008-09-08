@@ -1,0 +1,90 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Windows Search integration.
+ *
+ * The Initial Developer of the Original Code is
+ *  Siddharth Agarwal <sid1337@gmail.com>.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+
+#include "nsISupports.idl"
+
+interface nsIFile;
+
+[scriptable, uuid(a65307b3-64f8-49fc-96a7-2cfc7d1f18ee)]
+interface nsIMailWinSearchHelper : nsISupports
+{
+  /**
+   * Whether the Windows Search service is installed and running.
+   *
+   * @exception NS_ERROR_NOT_AVAILABLE if the Windows Search service is
+   * not installed
+   */
+  readonly attribute boolean serviceRunning;
+
+  /**
+   * Whether the Mail, ImapMail, and News folders are in the crawl scope.
+   *
+   * @exception NS_ERROR_NOT_AVAILABLE if the Windows Search service is not
+   * installed or running
+   */
+  readonly attribute boolean foldersInCrawlScope;
+
+  /**
+   * Sets the File Attribute Not Content Indexed bit. For proper operation
+   * of the indexer, this bit must be set to 0/false.
+   *
+   * @param aFile the file or directory for which this bit is supposed to be set
+   * @param aBit false if the content is to be indexed, true if not
+   * @param aRecurse whether this bit is to be set recursively for all subdirectories
+   * and files inside a directory
+   */
+  void setFANCIBit(in nsIFile aFile, in boolean aBit, in boolean aRecurse);
+
+  /**
+   * Returns whether the .wdseml file association has been set to Thunderbird or not.
+   */
+  readonly attribute boolean isFileAssociationSet;
+
+  /**
+   * Sets the .wdseml file association.
+   */
+  void setFileAssociation();
+
+  /**
+   * Runs the setup application using ShellExecute, passing the profile directory as
+   * a parameter.
+   *
+   * @param aEnable true to enable, false to disable
+   */
+  void runSetup(in boolean aEnable);
+};

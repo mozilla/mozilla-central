@@ -177,6 +177,10 @@ bin\components\url-classifier.xpt
 bin\components\nsAbAutoCompleteMyDomain.js
 bin\components\nsAbAutoCompleteSearch.js
 
+; Windows Search integration
+bin\components\nsWinSearchIntegration.js
+bin\WSEnable.exe
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Base Package Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -60,22 +60,36 @@ var gMessenger;
 var gAlarm;
 var gBackgroundIndexingDone;
 var gPrefBranch = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getBranch(null);
+var gEnabled;
 
 /*
  * Init function -- this should be called from the component's init function
  */
-function InitSupportIntegration()
+function InitSupportIntegration(enabled)
 {
+  SIDump("Search integration running in " + (enabled ? "active" : "backoff") + " mode\n");
+  gEnabled = enabled;
+
   gMessenger = Cc["@mozilla.org/messenger;1"].createInstance().QueryInterface(Ci.nsIMessenger);
 
   var notificationService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
     .getService(Ci.nsIMsgFolderNotificationService);
-  notificationService.addListener(gFolderListener, notificationService.all);
-  var ObserverService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
-  ObserverService.addObserver(MsgMsgDisplayedObserver, "MsgMsgDisplayed", false);
-  gMsgHdrsToIndex = new Array();
 
-  restartTimer(60);
+  // We want to observe moves, deletes and renames in case we're disabled
+  // If we don't, we'll have no idea the support files exist later
+  if (enabled)
+  {
+    notificationService.addListener(gFolderListener, notificationService.all);
+    var ObserverService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+    ObserverService.addObserver(MsgMsgDisplayedObserver, "MsgMsgDisplayed", false);
+    gMsgHdrsToIndex = new Array();
+
+    restartTimer(60);
+  }
+  else
+    notificationService.addListener(gFolderListener, notificationService.msgsMoveCopyCompleted |
+                                    notificationService.msgsDeleted |
+                                    notificationService.allFolderNotifications);
 }
 
 /*
@@ -229,7 +243,8 @@ var gFolderListener = {
   {
     SIDump("in msgsDeleted\n");
     // mail getting deleted, we're not idle, so restart timer.
-    restartTimer(60);
+    if (gEnabled)
+      restartTimer(60);
     var count = aMsgs.length;
     for (var i = 0; i < count; i++)
     {
@@ -262,14 +277,16 @@ var gFolderListener = {
         }
         SIDump ("dst file path = " + destFile.path + "\n");
         SIDump ("src file path = " + srcFile.path + "\n");
+        // We're not going to copy in case we're not in active mode
         if (destFile.exists())
           if (aMove)
             srcFile.moveTo(destFile, "");
-          else
+          else if (gEnabled)
             srcFile.copyTo(destFile, "");
       }
     }
-    restartTimer(30);
+    if (gEnabled)
+      restartTimer(30);
     SIDump("moveCopyCompleted move = " + aMove + "\n");
   },
 
@@ -278,7 +295,8 @@ var gFolderListener = {
     SIDump("in folderDeleted, folder name = " + aFolder.prettiestName + "\n");
     var srcFile = aFolder.filePath;
     srcFile.leafName = srcFile.leafName + ".mozmsgs";
-    srcFile.remove(true);
+    if (srcFile.exists())
+      srcFile.remove(true);
   },
 
   folderMoveCopyCompleted: function(aMove, aSrcFolder, aDestFolder)
@@ -292,9 +310,10 @@ var gFolderListener = {
     SIDump("dst file path = " + destFile.path + "\n");
     if (srcFile.exists())
     {
+      // We're not going to copy if we aren't in active mode
       if (aMove)
         srcFile.moveTo(destFile, "");
-      else
+      else if (gEnabled)
         srcFile.copyTo(destFile, "");
     }
   },

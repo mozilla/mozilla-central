@@ -46,6 +46,10 @@ ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
 DIRS += mdimporter
 endif
 
+ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
+DIRS += wsenable
+endif
+
 #currently, we only build this dir on the mac, but if it gets built on other platforms,
 #make sure we still only build spotlight integration on the mac.
 ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
@@ -56,10 +60,34 @@ endif
 
 # If on Windows, build Windows Search integration
 ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
+MODULE = mailwinsearch
+LIBRARY_NAME = winsearch_s
+MODULE_NAME = nsMailWinSearchHelperModule
+ifdef BUILD_STATIC_LIBS
+MOZILLA_INTERNAL_API = 1
+else
+ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
+MOZILLA_INTERNAL_API = 1
+endif
+endif
+
+REQUIRES = \
+  xpcom \
+  string \
+  $(NULL)
+
+CPPSRCS = \
+  nsMailWinSearchHelper.cpp \
+  $(NULL)
+
+DIRS += public
+
 # Windows Search component
 EXTRA_PP_COMPONENTS = \
   nsWinSearchIntegration.js \
   $(NULL)
+
+FORCE_STATIC_LIB = 1
 endif
 
 include $(topsrcdir)/config/rules.mk

@@ -59,11 +59,9 @@ function InitSpotlightIntegration()
     gLastFolderIndexedUri = gPrefBranch.getCharPref(gPrefBase + ".lastFolderIndexedUri");
   } catch (ex) {}
 
-  if (!enabled)
-    return;
-
-  SIDump("initializing spotlight integration\n");
-  InitSupportIntegration();
+  if (enabled)
+    SIDump("initializing spotlight integration\n");
+  InitSupportIntegration(enabled);
 }
 
 function xmlEscapeString(s)

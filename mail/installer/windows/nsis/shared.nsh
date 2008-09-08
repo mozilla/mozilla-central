@@ -375,6 +375,7 @@
   WriteRegStr HKLM "$0\Capabilities" "ApplicationIcon" "$8,0"
   WriteRegStr HKLM "$0\Capabilities" "ApplicationName" "${AppRegNameMail}"
   WriteRegStr HKLM "$0\Capabilities\FileAssociations" ".eml"   "ThunderbirdEML"
+  WriteRegStr HKLM "$0\Capabilities\FileAssociations" ".wdseml" "ThunderbirdEML"
   WriteRegStr HKLM "$0\Capabilities\StartMenu" "Mail" "${ClientsRegName}"
   WriteRegStr HKLM "$0\Capabilities\URLAssociations" "mailto" "Thunderbird.Url.mailto"
 

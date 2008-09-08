@@ -69,6 +69,14 @@ REQUIRES = \
 	shellservice \
 	$(NULL)
 
+ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
+ifndef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
+REQUIRES += \
+	mailwinsearch \
+	$(NULL)
+endif
+endif
+
 CPPSRCS = nsModule.cpp \
           $(NULL)
 
@@ -81,12 +89,26 @@ LOCAL_INCLUDES = \
 	-I$(srcdir)/../shell \
 	$(NULL)
 
+ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
+ifndef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
+LOCAL_INCLUDES += \
+	-I$(srcdir)/../search \
+	$(NULL)
+endif
+endif
+
 SHARED_LIBRARY_LIBS = \
 	../migration/src/$(LIB_PREFIX)profilemigration_s.$(LIB_SUFFIX) \
 	$(NULL)
 
 ifneq (,$(filter windows mac cocoa gtk2, $(MOZ_WIDGET_TOOLKIT)))
 SHARED_LIBRARY_LIBS += ../shell/$(LIB_PREFIX)shellservice_s.$(LIB_SUFFIX)
+endif
+
+ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
+ifndef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
+SHARED_LIBRARY_LIBS += ../search/$(LIB_PREFIX)winsearch_s.$(LIB_SUFFIX)
+endif
 endif
 
 ifdef MOZILLA_INTERNAL_API

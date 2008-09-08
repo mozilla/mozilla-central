@@ -78,6 +78,11 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMailGNOMEIntegration, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailMacIntegration)
 #endif
 
+#if defined(XP_WIN32) && !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
+#include "nsMailWinSearchHelper.h"
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMailWinSearchHelper, Init)
+#endif
+
 static const nsModuleComponentInfo components[] = {
   { "Profile Importer",
     NS_THUNDERBIRD_PROFILEIMPORT_CID,
@@ -126,6 +131,12 @@ static const nsModuleComponentInfo components[] = {
     NS_MAILMACINTEGRATION_CID,
     "@mozilla.org/mail/shell-service;1",
     nsMailMacIntegrationConstructor },
+#endif
+#if defined(XP_WIN32) && !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
+  { "Mail Windows Search Integration Helper",
+    NS_MAILWINSEARCHHELPER_CID,
+    "@mozilla.org/mail/windows-search-helper;1",
+    nsMailWinSearchHelperConstructor },
 #endif
 };
 
