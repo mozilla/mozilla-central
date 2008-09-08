@@ -73,9 +73,6 @@
                   type="file"/>
     </preferences>
 
-    <stringbundle id="bundle_prefutilities"
-                  src="chrome://communicator/locale/pref/prefutilities.properties"/>
-
     <groupbox>
       <caption label="&downloadBehavior.label;"/>
       <radiogroup id="downloadBehavior"
