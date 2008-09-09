@@ -129,6 +129,7 @@
           <menulist id="directoriesList" wsm_persist="true"
                     style="min-width: 16em;" aria-labelledby="directories">
             <menupopup id="directoriesListPopup" class="addrbooksPopup"
+                       none="&directoriesNone.label;"
                        remoteonly="true" value="dirPrefId"/>
           </menulist>
           <button id="editButton" label="&editDirectories.label;"

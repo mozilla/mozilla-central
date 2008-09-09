@@ -50,6 +50,7 @@
 <!ENTITY autocompleteText.label                "When addressing messages, look for matching entries in:">
 <!ENTITY directories.label                     "Directory Server:">
 <!ENTITY directories.accesskey                 "D">
+<!ENTITY directoriesNone.label                 "None">
 <!ENTITY editDirectories.label                 "Edit Directories…">
 <!ENTITY editDirectories.accesskey             "E">
 <!ENTITY matchText.label                       "If there is a match in your local address books:">

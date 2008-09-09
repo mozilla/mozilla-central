@@ -113,6 +113,7 @@
                   aria-labelledby="autocompleteLDAP"
                   preference="ldap_2.autoComplete.directoryServer">
           <menupopup id="directoriesListPopup" class="addrbooksPopup"
+                     none="&directoriesNone.label;"
                      remoteonly="true" value="dirPrefId"/>
         </menulist>
         <button id="editButton" label="&editDirectories.label;"
