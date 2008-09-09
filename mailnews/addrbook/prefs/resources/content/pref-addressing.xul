@@ -85,7 +85,7 @@
                   aria-labelledby="emailCollectionOutgoing"
                   preference="mail.collect_addressbook">
           <menupopup id="localDirectoriesPopup" class="addrbooksPopup"
-                     localonly="true" writeable="true"/>
+                     localonly="true" writable="true"/>
         </menulist>
       </hbox>
     </groupbox>
