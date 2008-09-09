@@ -21,6 +21,7 @@
 
  Contributor(s):
    Mark Banner <bugzilla@standard8.plus.com>
+   Neil Rashbrook <neil@parkwaycc.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -44,27 +45,64 @@
   <binding id="addrbooks-menupopup"
            extends="chrome://global/content/bindings/popup.xml#popup">
     <implementation implements="nsIAbListener">
+      <!-- A cache of nsIAbDirectory objects. -->
+      <field name="_directories">[]</field>
+
+      <!-- Represents the nsIAbDirectory attribute used as the value of the
+           parent menulist. Defaults to URI but can be e.g. dirPrefId -->
+      <field name="_value">this.getAttribute("value") || "URI"</field>
+
       <constructor>
         <![CDATA[
-          this._build();
+          // Init the address book cache.
+          const nsIAbManager = Components.interfaces.nsIAbManager;
+          const nsIAbDirectory = Components.interfaces.nsIAbDirectory;
+          var abManager = Components.classes["@mozilla.org/abmanager;1"]
+                                    .getService(nsIAbManager);
+          var directories = abManager.directories;
+          while (directories && directories.hasMoreElements()) {
+            var ab = directories.getNext();
+            if (ab instanceof nsIAbDirectory && this._matches(ab))
+              this._directories.push(ab);
+          }
+
+          this._directories.sort(this._compare);
+
+          // Now create menuitems for all displayed directories.
+          var menulist = this.parentNode;
+          var value = this._value;
+          this._directories.forEach(function (ab) {
+            menulist.appendItem(ab.dirName, ab[value]);
+          });
+          if (this.hasAttribute("none")) {
+            // Create a dummy menuitem representing no selection.
+            this._directories.unshift(null);
+            menulist.insertItemAt(0, this.getAttribute("none"), "");
+          }
+
+          // Attempt to select the persisted or otherwise first directory.
+          menulist.value = menulist.value;
+          if (!menulist.selectedItem && this.hasChildNodes())
+            menulist.selectedIndex = 0;
 
           const nsIAbListener = Components.interfaces.nsIAbListener;
           // Add a listener so we can update correctly if the list should change
-          Components.classes["@mozilla.org/abmanager;1"]
-                    .getService(Components.interfaces.nsIAbManager)
-                    .addAddressBookListener(this,
-                                            nsIAbListener.itemAdded |
-                                            nsIAbListener.directoryRemoved |
-                                            nsIAbListener.itemChanged);
+          abManager.addAddressBookListener(this,
+                                           nsIAbListener.itemAdded |
+                                           nsIAbListener.directoryRemoved |
+                                           nsIAbListener.itemChanged);
         ]]>
       </constructor>
+
       <destructor>
         <![CDATA[
           Components.classes["@mozilla.org/abmanager;1"]
                     .getService(Components.interfaces.nsIAbManager)
                     .removeAddressBookListener(this);
 
-          this._teardown();
+          // Empty out anything in the list.
+          while (this.hasChildNodes())
+            this.removeChild(this.lastChild);
         ]]>
       </destructor>
 
@@ -73,19 +111,14 @@
         <parameter name="aParentDir"/>
         <parameter name="aItem"/>
         <body><![CDATA[
+          // Are we interested in this new directory?
           if (aItem instanceof Components.interfaces.nsIAbDirectory &&
-              !aItem.isMailList && !this._building) {
-            // Save the currently selected item
-            var selectedItem = this.parentNode.value;
-            this.parentNode.value = null;
-
-            // Re-use _teardown and _build so that we can use its sort function
-            this._teardown();
-            this._build();
-
-            // Now reset the value of the parent to re-connect it with the
-            // appropriate DOM Node.
-	    this.parentNode.value = selectedItem;
+              !aItem.isMailList && this._matches(aItem)) {
+            this._directories.push(aItem);
+            this._directories.sort(this._compare);
+            // Insert the new menuitem at the position to which it was sorted.
+            this.parentNode.insertItemAt(this._directories.indexOf(aItem),
+                                         aItem.dirName, aItem[this._value]);
           }
         ]]></body>
       </method>
@@ -95,18 +128,21 @@
         <parameter name="aItem"/>
         <body><![CDATA[
           if (aItem instanceof Components.interfaces.nsIAbDirectory &&
-              !aItem.isMailList && !this._building) {
+              !aItem.isMailList) {
             // Find the item in the list to remove
-            var nodes = this.getElementsByAttribute("value", aItem.URI);
-
-            // We should only ever have at most one node with the URI.
-            if (nodes.length > 0)
-              this.removeChild(nodes[0]);
-
-            // Update the parent item
-            if (this.parentNode.value == aItem.URI) {
-              this.firstChild.doCommand();
-            }
+            // We can't use indexOf here because we need loose equality
+            for (var index = this._directories.length; --index >= 0; )
+              if (this._directories[index] == aItem)
+                break;
+            if (index != -1)
+              // Are we removing the selected directory?
+              if (this.parentNode.selectedItem ==
+                  this.removeChild(this.childNodes[index]))
+                // If so, try to select the first directory, if available.
+                if (this.hasChildNodes())
+                  this.firstChild.doCommand();
+                else
+                  this.parentNode.selectedItem = null;
           }
         ]]></body>
       </method>
@@ -118,101 +154,91 @@
         <parameter name="aNewValue"/>
         <body><![CDATA[
           if (aItem instanceof Components.interfaces.nsIAbDirectory &&
-              !aItem.isMailList && !this._building) {
+              !aItem.isMailList) {
             // Find the item in the list to rename.
-            var nodes = this.getElementsByAttribute("value", aItem.URI);
-
-            // We should only ever have at most one node with the URI.
-            if (nodes.length > 0)
-              nodes[0].label = aItem.dirName;
+            // We can't use indexOf here because we need loose equality
+            for (var oldIndex = this._directories.length; --oldIndex >= 0; )
+              if (this._directories[oldIndex] == aItem)
+                break;
+            if (oldIndex != -1) {
+              // Cache the matching item so that we can use indexOf next time.
+              aItem = this._directories[oldIndex];
+              var child = this.childNodes[oldIndex];
+              child.label = aItem.dirName;
+              this._directories.sort(this._compare);
+              // Reorder the menuitems if renaming changed the directory index.
+              var newIndex = this._directories.indexOf(aItem);
+              if (newIndex < oldIndex)
+                this.insertBefore(child, this.childNodes[newIndex]);
+              else if (newIndex > oldIndex)
+                this.insertBefore(child, this.childNodes[newIndex].nextSibling);
+            }
           }
         ]]></body>
       </method>
 
-      // Private methods
-      <method name="_teardown">
+      <!-- Private methods -->
+      <!-- Tests to see whether this directory should display in the list. -->
+      <method name="_matches">
+        <parameter name="ab"/>
         <body><![CDATA[
-          // Empty out anything in the list.
-          while (this.hasChildNodes())
-            this.removeChild(this.lastChild);
+          // This condition is used for instance when creating cards
+          if (this.getAttribute("writable") == "true" &&
+              !(ab.operations & Components.interfaces.nsIAbDirectory.opWrite))
+            return false;
+
+          // This condition is used for isntance when creating mailing lists
+          if (this.getAttribute("supportsmaillists") == "true" &&
+              !ab.supportsMailingLists)
+            return false;
+
+          return this.getAttribute(ab.isRemote ? "localonly" : "remoteonly") != "true";
         ]]></body>
       </method>
 
-      <method name="_build">
+      <!-- Used to sort directories in order -->
+      <method name="_compare">
+        <parameter name="a"/>
+        <parameter name="b"/>
         <body><![CDATA[
-          // Protect against cyclic updates that can be caused by getting
-          // all the address books.
-          this._building = true;
+          // Null at the very top.
+          if (!a)
+            return -1;
 
-          // Init the address book list.
-          var addressBooks = Components.classes["@mozilla.org/abmanager;1"]
-                                       .getService(Components.interfaces.nsIAbManager)
-                                       .directories;
-          var holdingArray = [];
+          if (!b)
+            return 1;
 
-          var remoteOnly = this.getAttribute("remoteonly");
-          var localOnly = this.getAttribute("localonly");
-          var writeable = this.getAttribute("writeable");
-          var sml = this.getAttribute("supportsmaillists");
-
-          const nsIAbDirectory = Components.interfaces.nsIAbDirectory;
-
-          while (addressBooks && addressBooks.hasMoreElements()) {
-            var ab = addressBooks.getNext();
-            if (ab instanceof nsIAbDirectory &&
-                (!remoteOnly || ab.isRemote) &&
-                (!localOnly || !ab.isRemote) &&
-                (!sml || ab.supportsMailingLists) &&
-                (!writeable || (ab.operations & nsIAbDirectory.opWrite) ==
-                                nsIAbDirectory.opWrite))
-                holdingArray.push(ab);
-          }
-
+          // Personal at the top.
           const kPersonalAddressbookURI = "moz-abmdbdirectory://abook.mab";
+          if (a.URI == kPersonalAddressbookURI)
+            return -1;
+
+          if (b.URI == kPersonalAddressbookURI)
+            return 1;
+
+          // Collected at the bottom.
           const kCollectedAddressbookURI = "moz-abmdbdirectory://history.mab";
+          if (a.URI == kCollectedAddressbookURI)
+            return 1;
 
-          holdingArray.sort(function (a, b) {
-            // Personal at the top.
-            if (a.URI == kPersonalAddressbookURI)
-              return -1;
+          if (b.URI == kCollectedAddressbookURI)
+            return -1;
 
-            if (b.URI == kPersonalAddressbookURI)
-              return 1;
+          // Sort books of the same type by name.
+          if (a.dirType == b.dirType)
+            return a.dirName.localeCompare(b.dirName);
 
-            // Collected at the bottom.
-            if (a.URI == kCollectedAddressbookURI)
-              return 1;
+          // If one of the dirTypes is PAB and the other is something else,
+          // then the other will go below the one of type PAB.
+          const PABDirectory = 2;
+          if (a.dirType == PABDirectory)
+            return -1;
 
-            if (b.URI == kCollectedAddressbookURI)
-              return -1;
+          if (b.dirType == PABDirectory)
+            return 1;
 
-            // Sort books of the same type by name.
-            if (a.dirType == b.dirType)
-              return a.dirName.localeCompare(b.dirName);
-
-            // If one of the dirTypes is 2 and the other is something else,
-            // then the other will go below the one of type 2.
-            if (a.dirType == 2)
-              return -1;
-
-            if (b.dirType == 2)
-              return 1;
-
-            // Sort anything else by the dir type.
-            return a.dirType - b.dirType;
-          });
-
-          var menupopup = this;
-
-          holdingArray.forEach(function (ab) {
-            var item = document.createElement('menuitem');
-            item.setAttribute("label", ab.dirName);
-            item.setAttribute("value", ab.URI);
-
-            menupopup.appendChild(item);
-          });
-
-          this._building = false;
+          // Sort anything else by the dir type.
+          return a.dirType - b.dirType;
         ]]></body>
       </method>
     </implementation>
