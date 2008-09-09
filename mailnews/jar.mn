@@ -18,8 +18,8 @@ messenger.jar:
 % overlay chrome://editor/content/editor.xul                                   chrome://messenger/content/mailEditorOverlay.xul
 % overlay chrome://editor/content/EdImageOverlay.xul                           chrome://messenger/content/messengercompose/mailComposeEditorOverlay.xul
 % overlay chrome://editor/content/EdLinkProps.xul                              chrome://messenger/content/messengercompose/mailComposeEditorOverlay.xul
+    content/messenger/addressbook/pref-addressing.js                           (addrbook/prefs/resources/content/pref-addressing.js)
     content/messenger/addressbook/pref-addressing.xul                          (addrbook/prefs/resources/content/pref-addressing.xul)
-    content/messenger/addressbook/pref-directory.js                            (addrbook/prefs/resources/content/pref-directory.js)
     content/messenger/addressbook/pref-directory-add.js                        (addrbook/prefs/resources/content/pref-directory-add.js)
     content/messenger/addressbook/pref-directory-add.xul                       (addrbook/prefs/resources/content/pref-directory-add.xul)
     content/messenger/addressbook/pref-editdirectories.js                      (addrbook/prefs/resources/content/pref-editdirectories.js)

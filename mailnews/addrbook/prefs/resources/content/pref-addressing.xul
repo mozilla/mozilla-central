@@ -1,111 +1,125 @@
 <?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Communicator client code.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 1999
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   <chuang@netscape.com>
+   -   Mark Banner <bugzilla@standard8.plus.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://messenger/locale/addressbook/pref-addressing.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/addressbook/pref-addressing.dtd">
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      xmlns:nc="http://home.netscape.com/NC-rdf#"
-      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-      onload="onLoad();"
-      headertitle="&pref.addressing.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="addressing_pane" label="&pref.addressing.title;"
+            script="chrome://messenger/content/addressbook/pref-addressing.js">
 
-  <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
+    <stringbundle id="bundle_addressBook"
+                  src="chrome://messenger/locale/addressbook/addressBook.properties"/>
 
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/pref-directory.js"/>
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["emailCollectionOutgoing",
-                       "highlightNonMatches",
-                       "addressingAutocomplete",
-                       "autocompleteLDAP",
-                       "localDirectoriesList",
-                       "directoriesList"];
+    <preferences id="addressing_preferences">
+      <preference id="mail.collect_email_address_outgoing"
+                  name="mail.collect_email_address_outgoing"
+                  type="bool"/>
+      <preference id="mail.collect_addressbook"
+                  name="mail.collect_addressbook"
+                  type="string"/>
+      <preference id="mail.autoComplete.highlightNonMatches"
+                  name="mail.autoComplete.highlightNonMatches"
+                  type="bool"/>
+      <preference id="mail.enable_autocomplete"
+                  name="mail.enable_autocomplete"
+                  type="bool"/>
+      <preference id="ldap_2.autoComplete.useDirectory"
+                  name="ldap_2.autoComplete.useDirectory"
+                  onchange="enableAutocomplete();" type="bool"/>
+      <preference id="ldap_2.autoComplete.directoryServer"
+                  name="ldap_2.autoComplete.directoryServer"
+                  type="string"/>
+      <preference id="pref.ldap.disable_button.edit_directories"
+                  name="pref.ldap.disable_button.edit_directories"
+                  type="bool"/>
+    </preferences>
 
-  function onLoad()
-  {
-    createDirectoriesList();
-    parent.initPanel('chrome://messenger/content/addressbook/pref-addressing.xul');   
-  }
-
-  function Startup() 
-  {
-    enableAutocomplete();
-  }
-  ]]>
-  </script>  
-
-  <groupbox>
-    <caption label="&emailCollectiontitle.label;"/>
-  <description>&emailCollectiontext.label;</description>
-    <hbox align="center">
-      <checkbox id="emailCollectionOutgoing" 
-        label="&emailCollectionPicker.label;"
-        accesskey="&emailCollectionPicker.accesskey;"
-        prefstring="mail.collect_email_address_outgoing"/>
-   <menulist id="localDirectoriesList" flex="1"
-             aria-labelledby="emailCollectionOutgoing"
-             preftype="string" 
-             prefstring="mail.collect_addressbook">
-     <menupopup id="abPopup-menupopup" ref="moz-abdirectory://" 
-                 datasources="rdf:addressdirectory"
-                 sortActive="true"
-                 sortDirection="ascending"
-                 sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort">
-        <template>
-        <rule nc:IsWriteable="false"/>
-        <rule nc:IsMailList="false">
-          <menuitem uri="..."
-                    label="rdf:http://home.netscape.com/NC-rdf#DirName"
-                    value="rdf:http://home.netscape.com/NC-rdf#DirUri"/>
-        </rule>
-        </template>
-      </menupopup>
-    </menulist>
-    </hbox>
-  </groupbox>
-	
+    <groupbox>
+      <caption label="&emailCollectiontitle.label;"/>
+      <description>&emailCollectiontext.label;</description>
+      <hbox align="center">
+        <checkbox id="emailCollectionOutgoing"
+                  label="&emailCollectionPicker.label;"
+                  accesskey="&emailCollectionPicker.accesskey;"
+                  preference="mail.collect_email_address_outgoing"/>
+        <menulist id="localDirectoriesList" flex="1"
+                  aria-labelledby="emailCollectionOutgoing"
+                  preference="mail.collect_addressbook">
+          <menupopup id="localDirectoriesPopup" class="addrbooksPopup"
+                     localonly="true" writeable="true"/>
+        </menulist>
+      </hbox>
+    </groupbox>
     <groupbox id="addressAutocompletion">
       <caption label="&addressingTitle.label;"/>
-    <hbox align="center">
-      <checkbox id="highlightNonMatches" label="&highlightNonMatches.label;"
-                prefstring="mail.autoComplete.highlightNonMatches"
-                accesskey="&highlightNonMatches.accesskey;"/>
-    </hbox>
+      <hbox align="center">
+        <checkbox id="highlightNonMatches" label="&highlightNonMatches.label;"
+                  preference="mail.autoComplete.highlightNonMatches"
+                  accesskey="&highlightNonMatches.accesskey;"/>
+      </hbox>
 
-    <separator class="thin"/>
+      <separator class="thin"/>
 
       <description>&autocompleteText.label;</description>
       <hbox align="center">
         <checkbox id="addressingAutocomplete" label="&addressingEnable.label;"
-                  prefstring="mail.enable_autocomplete"
+                  preference="mail.enable_autocomplete"
                   accesskey="&addressingEnable.accesskey;"/>
       </hbox>
       <hbox align="center">
-        <checkbox id="autocompleteLDAP" label="&directories.label;" 
-                  prefstring="ldap_2.autoComplete.useDirectory" 
-                  oncommand="enableAutocomplete();"
+        <checkbox id="autocompleteLDAP" label="&directories.label;"
+                  preference="ldap_2.autoComplete.useDirectory"
                   accesskey="&directories.accesskey;"/>
-       <menulist id="directoriesList" flex="1"
-                 aria-labelledby="autocompleteLDAP"
-                 preftype="string" 
-                 prefstring="ldap_2.autoComplete.directoryServer">
-          <menupopup id="directoriesListPopup" 
-            onpopupshowing="createDirectoriesList();">
-          </menupopup>
-       </menulist>
-       <button id="editButton" label="&editDirectories.label;" 
-               prefstring="pref.ldap.disable_button.edit_directories" 
-               oncommand="onEditDirectories();"
-               accesskey="&editDirectories.accesskey;"/>
-     </hbox>
-<!--
-     <description>&matchText.label;</description>
-     <hbox align="center">
-       <checkbox id="autocompleteSkipDirectory"
-                 label="&skipDirectory.label;" 
-                 prefstring="ldap_2.autoComplete.skipDirectoryIfLocalMatchFound"/>    
-     </hbox>
--->
-   </groupbox>
-</page>
+        <menulist id="directoriesList" flex="1"
+                  aria-labelledby="autocompleteLDAP"
+                  preference="ldap_2.autoComplete.directoryServer">
+          <menupopup id="directoriesListPopup" class="addrbooksPopup"
+                     remoteonly="true" value="dirPrefId"/>
+        </menulist>
+        <button id="editButton" label="&editDirectories.label;"
+                oncommand="onEditDirectories();"
+                accesskey="&editDirectories.accesskey;"
+                preference="pref.ldap.disable_button.edit_directories"/>
+      </hbox>
+    </groupbox>
+  </prefpane>
+</overlay>

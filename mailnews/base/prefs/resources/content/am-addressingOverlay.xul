@@ -36,6 +36,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
    
+<?xml-stylesheet href="chrome://messenger/content/messenger.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
 
 <!DOCTYPE overlay SYSTEM "chrome://messenger/locale/am-addressing.dtd">
@@ -43,7 +44,6 @@
 <overlay xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">                                                       
 
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/pref-directory.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/am-addressing.js"/>
 
   <vbox flex="1" id="compositionAndAddressing">
@@ -126,11 +126,14 @@
         <radio id="directories" value="1" label="&directories.label;"
                accesskey="&directories.accesskey;"/>
         <hbox class="indent">
-          <menulist id="directoriesList" wsm_persist="true" style="min-width: 16em;" aria-labelledby="directories">
-            <menupopup onpopupshowing="createDirectoriesList();" id="directoriesListPopup"/>
+          <menulist id="directoriesList" wsm_persist="true"
+                    style="min-width: 16em;" aria-labelledby="directories">
+            <menupopup id="directoriesListPopup" class="addrbooksPopup"
+                       remoteonly="true" value="dirPrefId"/>
           </menulist>
           <button id="editButton" label="&editDirectories.label;"
-                  accesskey="&editDirectories.accesskey;" oncommand="onEditDirectories();"/>
+                  accesskey="&editDirectories.accesskey;"
+                  oncommand="onEditDirectories();"/>
         </hbox>
       </radiogroup>      
     </groupbox>

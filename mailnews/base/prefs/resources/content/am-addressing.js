@@ -1,9 +1,47 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2001
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Srilatha Moturi <srilatha@netscape.com>, original implementor
+ *   Mark Banner <bugzilla@standard8.plus.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
 var gIdentity = null;
 var gPrefInt = null;
 
 function onLoad()
 {
-  createDirectoriesList();
   parent.onPanelLoaded('am-addressing.xul');
 }
 
@@ -17,6 +55,38 @@ function onInitCompositionAndAddressing()
   setupDirectoriesList();
   enabling();
   quoteEnabling();
+}
+
+function onEditDirectories()
+{
+  window.openDialog("chrome://messenger/content/addressbook/pref-editdirectories.xul",
+                    "editDirectories", "chrome,modal=yes,resizable=no", null);
+}
+
+function setupDirectoriesList()
+{
+  var override = document.getElementById("identity.overrideGlobalPref").getAttribute("value");
+  var autocomplete = document.getElementById("ldapAutocomplete");
+  // useGlobalFlag is set when user changes the selectedItem on the radio button and switches
+  // to a different pane and switches back in Mail/news AccountSettings
+  var useGlobalFlag = document.getElementById("overrideGlobalPref").getAttribute("value");
+  // directoryServerFlag is set when user changes the server to None and switches
+  // to a different pane and switches back in Mail/news AccountSettings
+  var directoryServerFlag = document.getElementById("directoryServer").getAttribute("value");
+
+  if(override == "true" && !useGlobalFlag)
+    autocomplete.selectedItem = document.getElementById("directories");
+  else
+    autocomplete.selectedItem = document.getElementById("useGlobalPref");
+
+  var directoriesList = document.getElementById("directoriesList");
+  var directoryServer =
+        document.getElementById("identity.directoryServer").getAttribute('value');
+  if (directoryServerFlag) {
+    document.getElementById("identity.directoryServer").setAttribute("value", "");
+    directoryServer = "";
+  }
+  directoriesList.value = directoryServer;
 }
 
 function onPreInit(account, accountValues)
@@ -68,8 +138,6 @@ function enabling()
     document.getElementById("directoriesList").setAttribute("disabled", "true");
     document.getElementById("directoriesListPopup").setAttribute("disabled", "true");
   }
-
-  LoadDirectories(directoriesListPopup);
 }
 
 function onSave()
@@ -84,7 +152,7 @@ function onSaveCompositionAndAddressing()
   var directoryServer = document.getElementById("identity.directoryServer");
   var directoriesList = 
       document.getElementById("directoriesList").getAttribute('value');
-  
+
   // When switching between panes, 
   // if we save the value of an element as null
   // we will be forced to get the value from preferences when we get back.
