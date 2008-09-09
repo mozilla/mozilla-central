@@ -604,6 +604,7 @@ nsMsgLocalMailFolder::UpdateFolder(nsIMsgWindow *aWindow)
   //If we don't currently have a database, get it.  Otherwise, the folder has been updated (presumably this
   //changes when we download headers when opening inbox).  If it's updated, send NotifyFolderLoaded.
   if(!mDatabase)
+    // return of NS_ERROR_NOT_INITIALIZED means running parsing URL
     rv = GetDatabaseWithReparse(this, aWindow, getter_AddRefs(mDatabase));
   else
   {
@@ -629,6 +630,10 @@ nsMsgLocalMailFolder::UpdateFolder(nsIMsgWindow *aWindow)
   // if we have new messages, try the filter plugins.
   if (NS_SUCCEEDED(rv) && hasNewMessages)
     (void) CallFilterPlugins(aWindow, &filtersRun);
+  // Callers should rely on folder loaded event to ensure completion of loading. So we'll
+  // return NS_OK even if parsing is still in progress
+  if (rv == NS_ERROR_NOT_INITIALIZED)
+    rv = NS_OK;
   return rv;
 }
 
