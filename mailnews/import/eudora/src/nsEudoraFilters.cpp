@@ -882,6 +882,10 @@ nsresult nsEudoraFilters::GetMailboxFolder(const char* pNameHierarchy, nsIMsgFol
 
   nsCOMPtr<nsIMsgFolder> folder(*ppFolder ? *ppFolder : m_pMailboxesRoot.get());
 
+  // We've already grabbed the pointer on incoming, so now ensure
+  // *ppFolder is null on outgoing if there is an error
+  *ppFolder = nsnull;
+  
   nsCAutoString name(pNameHierarchy + 1);
   PRInt32 sepIndex = name.FindChar(*pNameHierarchy);
   if (sepIndex >= 0)
@@ -894,14 +898,11 @@ nsresult nsEudoraFilters::GetMailboxFolder(const char* pNameHierarchy, nsIMsgFol
   nsresult rv = folder->GetChildNamed(unicodeName, getter_AddRefs(subFolder));
   if (NS_SUCCEEDED(rv))
   {
-    folder = subFolder;
+    *ppFolder = subFolder;
     if (sepIndex >= 0)
-      return GetMailboxFolder(pNameHierarchy + sepIndex + 1,
-                              getter_AddRefs(folder));
-    return NS_OK;
+      return GetMailboxFolder(pNameHierarchy + sepIndex + 1, ppFolder);
+    NS_IF_ADDREF(*ppFolder);
   }
 
-  // Must have failed if we got here, so ensure ppFolder is null
-  *ppFolder = nsnull;
   return rv;
 }
