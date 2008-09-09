@@ -633,14 +633,13 @@ function onSearchInputFocus(event)
     gSearchInput.value = "";
     gSearchInput.showingSearchCriteria = false;
   }
-
-  gSearchInput.select();
 }
 
 // sets focus into the quick search box
 function QuickSearchFocus()
 {
   gSearchInput.focus();
+  gSearchInput.select();
 }
 
 function onSearchInputBlur(event)

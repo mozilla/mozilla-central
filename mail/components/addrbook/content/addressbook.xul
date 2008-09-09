@@ -533,7 +533,7 @@
         <textbox id="searchInput" flex="1" timeout="800"
                  onfocus="onSearchInputFocus(event);"
                  onblur="onSearchInputBlur(event);"
-                 onclick="this.select();" oncommand="onEnterInSearchBar();"
+                 clickSelectsAll="true" oncommand="onEnterInSearchBar();"
                  chromedir="&locale.dir;">
           <button id="quick-search-button" type="menu" chromedir="&locale.dir;">
             <menupopup id="quick-search-menupopup" value="0" persist="value" popupalign="topleft" popupanchor="bottomleft">

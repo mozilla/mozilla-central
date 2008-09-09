@@ -96,7 +96,7 @@
       <label value="&searchInput.label;" accesskey="&searchInput.accesskey;" control="searchInput"/>
       <textbox id="searchInput" flex="1" type="timed" timeout="800"
                onfocus="onSearchInputFocus(event);"
-               onblur="onSearchInputBlur(event);" onclick="this.select();"
+               onblur="onSearchInputBlur(event);" clickSelectsAll="true"
                oncommand="onEnterInSearchBar();" chromedir="&locale.dir;">
         <button id="quick-search-button" type="menu" chromedir="&locale.dir;">
           <menupopup id="quick-search-menupopup" value="0" persist="value" popupalign="topleft" popupanchor="bottomleft">
