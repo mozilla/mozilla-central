@@ -2500,12 +2500,17 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   {
     PRUint32 total;
 
-    // Notify nsIMsgFolderListeners of a mass delete.
     nsCOMPtr<nsIMutableArray> hdrsToDelete(do_CreateInstance(NS_ARRAY_CONTRACTID));
     MsgGetHeadersFromKeys(mDatabase, keysToDelete, hdrsToDelete);
-    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
-    if (notifier)
-      notifier->NotifyMsgsDeleted(hdrsToDelete);
+    // Notify nsIMsgFolderListeners of a mass delete, but only if we actually have headers
+    PRUint32 numHdrs;
+    hdrsToDelete->GetLength(&numHdrs);
+    if (numHdrs)
+    {
+      nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+      if (notifier)
+        notifier->NotifyMsgsDeleted(hdrsToDelete);
+    }
 
     // It would be nice to notify RDF or whoever of a mass delete here.
     mDatabase->DeleteMessages(&keysToDelete, nsnull);
