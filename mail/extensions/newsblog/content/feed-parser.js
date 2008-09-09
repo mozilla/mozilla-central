@@ -138,7 +138,7 @@ FeedParser.prototype =
         item.isStoredWithId = true;
       }
 
-      item.url = link ? link : (guid && isPermaLink) ? guid : null;
+      item.url = (guid && isPermaLink) ? guid : link ? link : null;
       item.description = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "description")[0]);
       item.title = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "title")[0])
                    || (item.description ? (this.stripTags(item.description).substr(0, 150)) : null)
