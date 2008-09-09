@@ -44,8 +44,7 @@
   <treechildren id="securityChildren">
     <treeitem id="masterpassItem">
       <treerow>
-        <treecell url="chrome://pippki/content/pref-masterpass.xul"
-                      label="&masterpass.label;"/>
+        <treecell label="(Migrated: &masterpass.label;)"/>
       </treerow>
     </treeitem>
     <treeitem id="sslItem">
