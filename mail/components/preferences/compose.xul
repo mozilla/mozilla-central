@@ -67,8 +67,12 @@
       <preference id="mail.compose.autosaveinterval" name="mail.compose.autosaveinterval" type="int"/>
       <preference id="mailnews.wraplength" name="mailnews.wraplength" type="int"/>
       <preference id="mail.enable_autocomplete" name="mail.enable_autocomplete" type="bool"/>
-      <preference id="ldap_2.autoComplete.useDirectory" name="ldap_2.autoComplete.useDirectory" type="bool"/>
+      <preference id="ldap_2.autoComplete.useDirectory"
+                  name="ldap_2.autoComplete.useDirectory"
+                  onchange="gComposePane.enableAutocomplete();" type="bool"/>
       <preference id="ldap_2.autoComplete.directoryServer" name="ldap_2.autoComplete.directoryServer" type="string"/>
+      <preference id="pref.ldap.disable_button.edit_directories"
+                  name="pref.ldap.disable_button.edit_directories" type="bool"/>
       <preference id="mail.collect_email_address_outgoing" name="mail.collect_email_address_outgoing" type="bool"/>
       <preference id="mail.collect_addressbook" name="mail.collect_addressbook" type="string"/>
       <preference id="spellchecker.dictionary"  name="spellchecker.dictionary"   type="unichar"/>
@@ -185,15 +189,16 @@
               <hbox align="center">
                 <checkbox id="autocompleteLDAP" label="&directories.label;" 
                           preference="ldap_2.autoComplete.useDirectory" 
-                          oncommand="gComposePane.enableAutocomplete();"
                           accesskey="&directories.accesskey;"/>
                 <menulist id="directoriesList" flex="1" aria-labelledby="autocompleteLDAP"
                           preference="ldap_2.autoComplete.directoryServer">
-                  <menupopup id="directoriesListPopup">
-                  </menupopup>
+                  <menupopup id="directoriesListPopup" class="addrbooksPopup"
+                             none="&directoriesNone.label;"
+                             remoteonly="true" value="dirPrefId"/>
                 </menulist>
                 <button id="editButton" label="&editDirectories.label;" 
                         oncommand="gComposePane.editDirectories();"
+                        preference="pref.ldap.disable_button.edit_directories"
                         accesskey="&editDirectories.accesskey;"/>
               </hbox>
             </groupbox>
@@ -203,9 +208,11 @@
             <hbox align="center" pack="start">
               <checkbox id="emailCollectionOutgoing" label="&emailCollectionPicker.label;" 
                         accesskey="&emailCollectionPicker.accesskey;" preference="mail.collect_email_address_outgoing"/>
-                <menulist id="localDirectoriesList" flex="1" preference="mail.collect_addressbook" aria-labelledby="emailCollectionOutgoing">
-                  <menupopup id="abPopup-menupopup">
-                </menupopup>
+              <menulist id="localDirectoriesList" flex="1"
+                        preference="mail.collect_addressbook"
+                        aria-labelledby="emailCollectionOutgoing">
+                <menupopup id="abPopup-menupopup" class="addrbooksPopup"
+                           localonly="true" writable="true"/>
               </menulist>
             </hbox>   
          </tabpanel>

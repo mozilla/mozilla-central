@@ -42,22 +42,11 @@ var gRefresh = false; // leftover hack from the old preferences dialog
 
 var gComposePane = {
   mInitialized: false,
-  mDirectories: null,
-  mLDAPPrefsService: null,
   mSpellChecker: null,
   mDictCount : 0,
 
   init: function ()
   {
-    if (kLDAPPrefContractID in Components.classes)
-      this.mLDAPPrefsService = Components.classes[kLDAPPrefContractID].getService(Components.interfaces.nsILDAPPrefsService);
-
-    this.createDirectoriesList();
-
-    // build the local address book menu list. We do this by hand instead of using the xul template
-    // builder because of Bug #285076,
-    this.createLocalDirectoriesList();
-
     this.enableAutocomplete();
 
     this.initLanguageMenu();
@@ -99,199 +88,27 @@ var gComposePane = {
     document.documentElement.openSubDialog("chrome://messenger/content/preferences/htmlcompose.xul","", null);
   },
 
+  enableElement: function(aElement, aEnable)
+  {
+    var pref = document.getElementById(aElement.getAttribute("preference"));
+    var enabled = aEnable && !pref.locked;
+
+    aElement.disabled = !enabled;
+  },
+
   enableAutocomplete: function()
   {
-    var directoriesList =  document.getElementById("directoriesList");
-    var directoriesListPopup = document.getElementById("directoriesListPopup");
-    var editButton = document.getElementById("editButton");
+    var acLDAPPref = document.getElementById("ldap_2.autoComplete.useDirectory")
+                             .value;
 
-    if (document.getElementById("autocompleteLDAP").checked)
-    {
-      editButton.removeAttribute("disabled");
-      directoriesList.removeAttribute("disabled");
-      directoriesListPopup.removeAttribute("disabled");
-    }
-    else
-    {
-      directoriesList.setAttribute("disabled", true);
-      directoriesListPopup.setAttribute("disabled", true);
-      editButton.setAttribute("disabled", true);
-    }
-
-    // if we do not have any directories disable the dropdown list box
-    if (!this.mDirectories || (this.mDirectories < 1))
-      directoriesList.setAttribute("disabled", true);
-  },
-
-  createLocalDirectoriesList: function ()
-  {
-    var abPopup = document.getElementById("abPopup-menupopup");
-
-    if (abPopup)
-      this.loadLocalDirectories(abPopup);
-  },
-
-  loadLocalDirectories: function (aPopup)
-  {
-    var enumerator = Components.classes["@mozilla.org/abmanager;1"]
-                               .getService(Components.interfaces.nsIAbManager).directories;
-    var preference = document.getElementById("mail.collect_addressbook");
-
-    if (enumerator)
-    {
-      while (enumerator.hasMoreElements())
-      {
-        var addrbook = enumerator.getNext();
-        if (addrbook instanceof Components.interfaces.nsIAbDirectory &&
-            !addrbook.isRemote && !addrbook.isMailList &&
-            (addrbook.operations & addrbook.opWrite))
-        {
-          var abURI = addrbook.URI;
-          item = document.createElement("menuitem");
-          item.setAttribute("label", addrbook.dirName);
-          item.setAttribute("value", abURI);
-          aPopup.appendChild(item);
-          if (preference.value == abURI)
-          {
-            aPopup.parentNode.value = abURI;
-            aPopup.selectedItem = item;
-          }
-        }
-      }
-    }
-  },
-
-  createDirectoriesList: function()
-  {
-    var directoriesListPopup = document.getElementById("directoriesListPopup");
-
-    if (directoriesListPopup)
-      this.loadDirectories(directoriesListPopup);
-  },
-
-  loadDirectories: function(aPopup)
-  {
-    var prefCount = {value:0};
-    var description = "";
-    var item;
-    var j=0;
-    var arrayOfDirectories;
-    var position;
-    var dirType;
-    var prefService;
-
-    prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefBranch);
-
-    if (!this.mDirectories)
-    {
-      try
-      {
-        if (this.mLDAPPrefsService)
-          arrayOfDirectories = this.mLDAPPrefsService.getServerList(prefService, prefCount);
-      }
-      catch (ex) {}
-
-      if (arrayOfDirectories)
-      {
-        this.mDirectories = new Array();
-        for (var i = 0; i < prefCount.value; i++)
-        {
-          if ((arrayOfDirectories[i] != "ldap_2.servers.pab") &&
-            (arrayOfDirectories[i] != "ldap_2.servers.history"))
-          {
-            try
-            {
-              position = prefService.getIntPref(arrayOfDirectories[i]+".position");
-            }
-             catch(ex)
-            {
-              position = 1;
-            }
-
-            try
-            {
-              dirType = prefService.getIntPref(arrayOfDirectories[i]+".dirType");
-            }
-            catch(ex)
-            {
-              dirType = 1;
-            }
-
-            if ((position != 0) && (dirType == 1))
-            {
-              try
-              {
-                description = prefService.getComplexValue(arrayOfDirectories[i]+".description",
-                                                       Components.interfaces.nsISupportsString).data;
-              }
-              catch(ex)
-              {
-                description="";
-              }
-
-              if (description != "")
-              {
-                if (aPopup)
-                {
-                  item = document.createElement("menuitem");
-                  item.setAttribute("label", description);
-                  item.setAttribute("value", arrayOfDirectories[i]);
-                  aPopup.appendChild(item);
-                }
-
-                this.mDirectories[j++] = {value:arrayOfDirectories[i], label:description};
-              }
-            }
-          }
-        }
-
-        if (aPopup)
-        {
-          // we are in mail/news Account settings
-          item = document.createElement("menuitem");
-          var addressBookBundle = document.getElementById("bundle_addressBook");
-          var directoryName = addressBookBundle.getString("directoriesListItemNone");
-          item.setAttribute("label", directoryName);
-          item.setAttribute("value", "");
-          aPopup.appendChild(item);
-
-          // Now check what we are displaying is valid.
-          var directoriesList =  document.getElementById("directoriesList");
-          var value = directoriesList.value;
-          directoriesList.selectedItem = null;
-          directoriesList.value = value;
-          if (!directoriesList.selectedItem)
-          {
-            directoriesList.value = "";
-            // If we have no other directories, also disable the popup.
-            if (gAvailDirectories.length == 0)
-              directoriesList.disabled = true;
-          }
-          else if (!prefService.prefIsLocked("ldap_2.autoComplete.directoryServer"))
-            directoriesList.disabled = false;
-        }
-      }
-    }
+    this.enableElement(document.getElementById("directoriesList"), acLDAPPref);
+    this.enableElement(document.getElementById("editButton"), acLDAPPref);
   },
 
   editDirectories: function()
   {
-    var args = {fromGlobalPref: true};
     window.openDialog("chrome://messenger/content/addressbook/pref-editdirectories.xul",
-                      "editDirectories", "chrome,modal=yes,resizable=no", args);
-    if (gRefresh)
-    {
-      var popup = document.getElementById("directoriesListPopup");
-      if (popup)
-        while (popup.hasChildNodes())
-          popup.removeChild(popup.lastChild);
-
-    }
-
-    this.mDirectories = null;
-    this.loadDirectories(popup);
-    gRefresh = false;
+                      "editDirectories", "chrome,modal=yes,resizable=no", null);
   },
 
   initLanguageMenu: function ()
