@@ -66,6 +66,7 @@ public:
     nsIMdbRow   *GetMDBRow() {return m_mdbRow;}
     PRBool      IsParentOf(nsIMsgDBHdr *possibleChild);
     PRBool      IsAncestorOf(nsIMsgDBHdr *possibleChild);
+    PRBool      IsAncestorKilled(PRUint32 ancestorsToCheck);
 protected:
     nsresult	SetStringColumn(const char *str, mdb_token token);
     nsresult	SetUInt32Column(PRUint32 value, mdb_token token);

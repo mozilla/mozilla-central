@@ -856,14 +856,13 @@ NS_IMETHODIMP nsMsgHdr::GetIsFlagged(PRBool *isFlagged)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
+PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
 {
-  NS_ENSURE_ARG_POINTER(isKilled);
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
-  *isKilled = m_flags & MSG_FLAG_IGNORED;
+  PRBool isKilled = m_flags & MSG_FLAG_IGNORED;
 
-  if (!*isKilled)
+  if (!isKilled)
   {
     nsMsgKey threadParent;
     GetThreadParent(&threadParent);
@@ -877,7 +876,7 @@ NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
       // out now is probably not a good idea. Ergo, we'll pretend to be OK, show
       // the user the thread (err on the side of caution), and let the assertion
       // alert debuggers to a problem.
-      return NS_OK;
+      return PR_FALSE;
     }
     if (threadParent != nsMsgKey_None)
     {
@@ -900,14 +899,39 @@ NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
           (void) thread->GetChild(threadParent, getter_AddRefs(claimant));
           if (!claimant)
           {
-            NS_ASSERTION(PR_FALSE, "Borked message header, please fix!");
-            return NS_OK;
+            NS_ERROR("Borked message header, please fix!");
+            return PR_FALSE;
           }
         }
-
-        return parentHdr->GetIsKilled(isKilled);
+        if (!ancestorsToCheck)
+        {
+          // We think we have a parent, but we have no more ancestors to check
+          NS_ASSERTION(PR_FALSE, "cycle in parent relationship, please fix!");
+          return PR_FALSE;
+        }
+        // closed system, cast ok
+        nsMsgHdr* parent = static_cast<nsMsgHdr*>(parentHdr.get());
+        return parent->IsAncestorKilled(ancestorsToCheck - 1);
       }
     }
   }
+  return isKilled;
+}
+
+NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
+{
+  NS_ENSURE_ARG_POINTER(isKilled);
+  nsCOMPtr<nsIMsgThread> thread;
+  (void) m_mdb->GetThreadContainingMsgHdr(this, getter_AddRefs(thread));
+  // if we can't find the thread, let's at least check one level; maybe
+  // the header hasn't been added to a thread yet.
+  PRUint32 numChildren = 1;
+  if (thread)
+    thread->GetNumChildren(&numChildren);
+  if (!numChildren)
+    return NS_ERROR_FAILURE;
+  // We can't have as many ancestors as there are messages in the thread,
+  // so tell IsAncestorKilled to only check numChildren - 1 ancestors.
+  *isKilled = IsAncestorKilled(numChildren - 1);
   return NS_OK;
 }
