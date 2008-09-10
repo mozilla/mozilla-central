@@ -850,12 +850,12 @@
               oncommand="gContextMenu.copyEmail();"/>
     <menuseparator id="messagePaneContext-sep-copy"/>
     <menuitem id="messagePaneContext-savelink"
-              label="&saveLinkCmd.label;"
-              accesskey="&saveLinkCmd.accesskey;"
+              label="&saveLinkAsCmd.label;"
+              accesskey="&saveLinkAsCmd.accesskey;"
               oncommand="gContextMenu.saveLink();"/>
     <menuitem id="messagePaneContext-saveimage"
-              label="&saveImageCmd.label;"
-              accesskey="&saveImageCmd.accesskey;"
+              label="&saveImageAsCmd.label;"
+              accesskey="&saveImageAsCmd.accesskey;"
               oncommand="gContextMenu.saveImage();"/>
     <menuseparator id="messagePaneContext-sep-reportPhishing"/>
     <menuitem id="messagePaneContext-reportPhishingURL"
