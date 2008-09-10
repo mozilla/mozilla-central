@@ -283,7 +283,7 @@ function ComposeMessage(type, format, folder, messageArray)
       }
     }
     if (type == msgComposeType.ForwardAsAttachment && uri)
-      msgComposeService.OpenComposeWindow(null, null, uri, type, format, identity, msgWindow);
+      msgComposeService.OpenComposeWindow(null, hdr, uri, type, format, identity, msgWindow);
   }
   else
     dump("### nodeList is invalid\n");
