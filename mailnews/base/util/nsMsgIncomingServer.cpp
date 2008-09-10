@@ -186,6 +186,12 @@ nsMsgIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
 
 
 NS_IMETHODIMP
+nsMsgIncomingServer::VerifyLogon(nsIUrlListener *aUrlListener)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
 nsMsgIncomingServer::PerformBiff(nsIMsgWindow* aMsgWindow)
 {
   //This has to be implemented in the derived class, but in case someone doesn't implement it
@@ -747,14 +753,6 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
       dialog = do_GetInterface(docShell, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
     }
-    else
-    {
-      nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-      if (wwatch)
-        wwatch->GetNewAuthPrompter(0, getter_AddRefs(dialog));
-      NS_ENSURE_TRUE(dialog, NS_ERROR_FAILURE);
-    }
-    
     if (dialog)
     {
       nsCString serverUri;
@@ -1000,7 +998,19 @@ nsMsgIncomingServer::RemoveFiles()
   // tweaked their localPath pref for this server to point to
   // somewhere they didn't want deleted.
   // until we tell them, we shouldn't do the delete.
-  return NS_OK;
+  nsCString deferredToAccount;
+  GetCharValue("deferred_to_account", deferredToAccount);
+  PRBool isDeferredTo = PR_TRUE;
+  GetIsDeferredTo(&isDeferredTo);
+  if (!deferredToAccount.IsEmpty() || isDeferredTo)
+  {
+    NS_ASSERTION(PR_FALSE, "shouldn't remove files for a deferred account");
+    return NS_ERROR_FAILURE;
+  }
+  nsCOMPtr <nsILocalFile> localPath;
+  nsresult rv = GetLocalPath(getter_AddRefs(localPath));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return localPath->Remove(PR_TRUE);
 }
 
 NS_IMETHODIMP

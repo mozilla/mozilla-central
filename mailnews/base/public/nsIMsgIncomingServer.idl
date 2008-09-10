@@ -57,7 +57,7 @@ interface nsILocalFile;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(15087bf7-f63f-42c3-8f60-a0cd11aaca53)]
+[scriptable, uuid(e84541a9-98a7-47b3-8037-2cf83b4c242b)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -173,7 +173,11 @@ interface nsIMsgIncomingServer : nsISupports {
      going off at the same time. */
   attribute boolean serverBusy;
 
-  /* should we use a secure channel? */
+  /**
+   * Should we use a SSL/TLS?
+   * If not, set this to false and socketType to defaultSocket.
+   * If SSL/TLS, set this to true and socketType to the right SSL type.
+   */
   attribute boolean isSecure;
 
   /* should we use secure authentication? */
@@ -192,7 +196,7 @@ interface nsIMsgIncomingServer : nsISupports {
   */
   attribute boolean logonFallback;
 
-  /* can server support a secure channel? */
+  /* dead code. */
   readonly attribute boolean isSecureServer;
 
   /* empty trash on exit */
@@ -206,6 +210,14 @@ interface nsIMsgIncomingServer : nsISupports {
 
   /* we use this to set the default local path.  we use this when migrating prefs */
   void setDefaultLocalPath(in nsILocalFile aDefaultLocalPath);
+
+  /**
+   * Verify that we can logon 
+   * 
+   * @param  aUrlListener - gets called back with success or failure.
+   *
+   */
+  void verifyLogon(in nsIUrlListener aUrlListener);
 
   /* do a biff */
   void performBiff(in nsIMsgWindow aMsgWindow);

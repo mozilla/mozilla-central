@@ -202,11 +202,9 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetMsgWindow(nsIMsgWindow **aMsgWindow)
   NS_ENSURE_ARG_POINTER(aMsgWindow);
   *aMsgWindow = nsnull;
   
-  // note: it is okay to return a null msg window and not return an error
-  // it's possible the url really doesn't have msg window
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
   msgWindow.swap(*aMsgWindow);
-  return NS_OK;
+  return *aMsgWindow ? NS_OK : NS_ERROR_NULL_POINTER;
 }
 
 NS_IMETHODIMP nsMsgMailNewsUrl::SetMsgWindow(nsIMsgWindow *aMsgWindow)

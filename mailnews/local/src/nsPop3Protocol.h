@@ -235,6 +235,8 @@ typedef struct _Pop3ConData {
     PRBool only_check_for_new_mail;
     nsMsgBiffState biffstate;     /* If just checking for, what the answer is. */
 
+    PRBool verify_logon;        /* true if we're just seeing if we can logon */
+
     void *msg_closure;
 
     PRBool graph_progress_bytes_p; /* whether we should display info about

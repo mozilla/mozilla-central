@@ -313,7 +313,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
 NS_IMETHODIMP nsMailtoUrl::SetSpec(const nsACString &aSpec)
 {
   m_baseURL->SetSpec(aSpec);
-	return ParseUrl();
+  return ParseUrl();
 }
 
 nsresult nsMailtoUrl::CleanupMailtoState()
@@ -581,6 +581,7 @@ nsSmtpUrl::nsSmtpUrl() : nsMsgMailNewsUrl()
 
   m_isPostMessage = PR_TRUE;
   m_requestDSN = PR_FALSE;
+  m_verifyLogon = PR_FALSE;
 }
  
 nsSmtpUrl::~nsSmtpUrl()
@@ -608,12 +609,14 @@ NS_IMETHODIMP
 nsSmtpUrl::GetRecipients(char ** aRecipientsList)
 {
   NS_ENSURE_ARG_POINTER(aRecipientsList);
-	if (aRecipientsList)
-		*aRecipientsList = ToNewCString(m_toPart);
-	return NS_OK;
+  if (aRecipientsList)
+    *aRecipientsList = ToNewCString(m_toPart);
+  return NS_OK;
 }
 
 NS_IMPL_GETSET(nsSmtpUrl, PostMessage, PRBool, m_isPostMessage)
+
+NS_IMPL_GETSET(nsSmtpUrl, VerifyLogon, PRBool, m_verifyLogon)
 
 // the message can be stored in a file....allow accessors for getting and setting
 // the file name to post...

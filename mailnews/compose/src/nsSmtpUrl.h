@@ -69,19 +69,19 @@ protected:
     
   // data retrieved from parsing the url: (Note the url could be a post from file or it could be in the url)
   nsCString m_toPart;
-	nsCString m_ccPart;
-	nsCString	m_subjectPart;
-	nsCString	m_newsgroupPart;
-	nsCString	m_newsHostPart;
-	nsCString	m_referencePart;
-	nsCString	m_bodyPart;
-	nsCString	m_bccPart;
-	nsCString	m_followUpToPart;
-	nsCString	m_fromPart;
-	nsCString	m_htmlPart;
-	nsCString	m_organizationPart;
-	nsCString	m_replyToPart;
-	nsCString	m_priorityPart;
+  nsCString m_ccPart;
+  nsCString m_subjectPart;
+  nsCString m_newsgroupPart;
+  nsCString m_newsHostPart;
+  nsCString m_referencePart;
+  nsCString m_bodyPart;
+  nsCString m_bccPart;
+  nsCString m_followUpToPart;
+  nsCString m_fromPart;
+  nsCString m_htmlPart;
+  nsCString m_organizationPart;
+  nsCString m_replyToPart;
+  nsCString m_priorityPart;
 
   MSG_ComposeFormat mFormat;
 };
@@ -89,13 +89,13 @@ protected:
 class nsSmtpUrl : public nsISmtpUrl, public nsMsgMailNewsUrl
 {
 public:
-	NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_ISUPPORTS_INHERITED
 
-	// From nsISmtpUrl
-	NS_DECL_NSISMTPURL
+  // From nsISmtpUrl
+  NS_DECL_NSISMTPURL
 
-	// nsSmtpUrl
-    nsSmtpUrl();
+  // nsSmtpUrl
+  nsSmtpUrl();
 
 protected:
   virtual ~nsSmtpUrl();
@@ -106,6 +106,7 @@ protected:
 
   PRBool m_isPostMessage;
   PRBool m_requestDSN;
+  PRBool m_verifyLogon;
 
   // Smtp specific event sinks
   nsCOMPtr<nsIFile> m_fileName;

@@ -791,11 +791,12 @@ nsresult nsPop3Protocol::LoadUrl(nsIURI* aURL, nsISupports * /* aConsumer */)
   NS_ASSERTION(NS_SUCCEEDED(rv), "unable to get the url spect");
 
   m_pop3ConData->only_check_for_new_mail = (PL_strcasestr(queryPart.get(), "check") != nsnull);
+  m_pop3ConData->verify_logon = (PL_strcasestr(queryPart.get(), "verifyLogon") != nsnull);
   m_pop3ConData->get_url = (PL_strcasestr(queryPart.get(), "gurl") != nsnull);
 
   PRBool deleteByAgeFromServer = PR_FALSE;
   PRInt32 numDaysToLeaveOnServer = -1;
-  if (!m_pop3ConData->only_check_for_new_mail)
+  if (!m_pop3ConData->only_check_for_new_mail && !m_pop3ConData->verify_logon)
   {
     // Pick up pref setting regarding leave messages on server, message size limit
 
@@ -842,7 +843,9 @@ nsresult nsPop3Protocol::LoadUrl(nsIURI* aURL, nsISupports * /* aConsumer */)
     server->GetUsername(userName);
   }
 
-  m_pop3ConData->uidlinfo = net_pop3_load_state(hostName.get(), userName.get(), mailDirectory);
+  if (!m_pop3ConData->verify_logon)
+    m_pop3ConData->uidlinfo = net_pop3_load_state(hostName.get(), userName.get(), mailDirectory);
+
   m_pop3ConData->biffstate = nsIMsgFolder::nsMsgBiffState_NoMail;
 
   if (m_pop3ConData->uidlinfo && numDaysToLeaveOnServer > 0)
@@ -1435,8 +1438,11 @@ PRInt32 nsPop3Protocol::AuthFallback()
         {
             m_nsIPop3Sink->SetUserAuthenticated(PR_TRUE);
             ClearFlag(POP3_PASSWORD_FAILED);
-            m_pop3ConData->next_state = (m_pop3ConData->get_url)
-              ? POP3_SEND_GURL : POP3_SEND_STAT;
+            if (m_pop3ConData->verify_logon)
+              m_pop3ConData->next_state = POP3_SEND_QUIT;
+            else
+              m_pop3ConData->next_state = (m_pop3ConData->get_url)
+                                          ? POP3_SEND_GURL : POP3_SEND_STAT;
         }
         else
             m_pop3ConData->next_state = POP3_SEND_PASSWORD;

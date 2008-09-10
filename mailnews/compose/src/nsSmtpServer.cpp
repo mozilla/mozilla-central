@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIServiceManager.h"
+#include "msgCore.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsEscape.h"
@@ -49,6 +49,8 @@
 #include "nsMsgUtils.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
+#include "nsISmtpService.h"
+#include "nsMsgCompCID.h"
 
 NS_IMPL_ADDREF(nsSmtpServer)
 NS_IMPL_RELEASE(nsSmtpServer)
@@ -317,9 +319,8 @@ nsSmtpServer::SetUsername(const char * aUsername)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::GetPassword(char * *aPassword)
+nsSmtpServer::GetPassword(nsACString& aPassword)
 {
-    NS_ENSURE_ARG_POINTER(aPassword);
     if (m_password.IsEmpty() && !m_logonFailed)
     {
       // try to avoid prompting the user for another password. If the user has set
@@ -406,34 +407,36 @@ nsSmtpServer::GetPassword(char * *aPassword)
         }
       }
       if (incomingServerToUse)
-      {
-        nsCString tmpPassword;
-        nsresult rv = incomingServerToUse->GetPassword(tmpPassword);
-        *aPassword = ToNewCString(tmpPassword);
-        return rv;
-      }
+        return incomingServerToUse->GetPassword(aPassword);
     }
-    *aPassword = ToNewCString(m_password);
+    aPassword = m_password;
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsSmtpServer::SetPassword(const char * aPassword)
+nsSmtpServer::VerifyLogon(nsIUrlListener *aUrlListener)
 {
-    m_password = aPassword;
-    return NS_OK;
+  nsresult rv;
+  nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return smtpService->VerifyLogon(this, aUrlListener);
+}
+
+
+NS_IMETHODIMP
+nsSmtpServer::SetPassword(const nsACString& aPassword)
+{
+  m_password = aPassword;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
                                 PRUnichar *aPromptTitle,
                                 nsIAuthPrompt* aDialog,
-                                char **aPassword)
+                                nsACString &aPassword)
 {
     nsresult rv = NS_OK;
-
-    NS_ENSURE_ARG_POINTER(aPassword);
-
     if (m_password.IsEmpty())
     {
         NS_ENSURE_ARG_POINTER(aDialog);
@@ -461,21 +464,21 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
 
             if (!okayValue) // if the user pressed cancel, just return NULL;
             {
-                *aPassword = nsnull;
+                aPassword.Truncate();
                 return rv;
             }
 
             // we got a password back...so remember it
-            nsCString aCStr; LossyCopyUTF16toASCII(uniPassword, aCStr);
+            nsCString aCStr;
+            LossyCopyUTF16toASCII(uniPassword, aCStr);
 
-            rv = SetPassword(aCStr.get());
+            rv = SetPassword(aCStr);
             if (NS_FAILED(rv))
                 return rv;
         } // if we got a prompt dialog
     } // if the password is empty
 
-    rv = GetPassword(aPassword);
-    return rv;
+    return GetPassword(aPassword);
 }
 
 NS_IMETHODIMP
@@ -483,12 +486,10 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
                                 PRUnichar *aPromptTitle,
                                 nsIAuthPrompt* aDialog,
                                 char **aUsername,
-                                char **aPassword)
+                                nsACString &aPassword)
 {
     nsresult rv = NS_OK;
-
     NS_ENSURE_ARG_POINTER(aUsername);
-    NS_ENSURE_ARG_POINTER(aPassword);
 
     if (m_password.IsEmpty()) {
         NS_ENSURE_ARG_POINTER(aDialog);
@@ -511,7 +512,7 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
             if (!okayValue) // if the user pressed cancel, just return NULL;
             {
                 *aUsername = nsnull;
-                *aPassword = nsnull;
+                aPassword.Truncate();
                 return rv;
             }
 
@@ -524,7 +525,7 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
                 return rv;
 
             LossyCopyUTF16toASCII(uniPassword, aCStr);
-            rv = SetPassword(aCStr.get());
+            rv = SetPassword(aCStr);
             if (NS_FAILED(rv))
                 return rv;
         } // if we got a prompt dialog
@@ -533,8 +534,7 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
     rv = GetUsername(aUsername);
     if (NS_FAILED(rv))
         return rv;
-    rv = GetPassword(aPassword);
-    return rv;
+    return GetPassword(aPassword);
 }
 
 NS_IMETHODIMP
@@ -559,7 +559,7 @@ nsSmtpServer::ForgetPassword()
     rv = observerService->NotifyObservers(uri, "login-failed", nsnull);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    rv = SetPassword("");
+    rv = SetPassword(EmptyCString());
     m_logonFailed = PR_TRUE;
     return rv;
 }
@@ -579,9 +579,7 @@ nsSmtpServer::GetServerURI(char **aResult)
 
     if (NS_SUCCEEDED(rv) && !username.IsEmpty()) {
         nsCString escapedUsername;
-        *((char **)getter_Copies(escapedUsername)) =
-            nsEscape(username.get(), url_XAlphas);
-//            nsEscape(username, url_Path);
+        MsgEscapeString(username, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
         // not all servers have a username
         uri.Append(escapedUsername);
         uri += '@';

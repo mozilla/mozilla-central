@@ -58,13 +58,11 @@ interface nsIMsgWindow;
 interface nsIImapIncomingServer;
 interface nsICacheSession;
 
-[scriptable, uuid(cb905844-b1e1-4850-96c7-407c166319f2)]
+[scriptable, uuid(55ebf0c5-0492-43f4-a17c-56f87cfab5f9)]
 interface nsIImapService : nsISupports
 {
-	// As always, you can pass in null for the url listener and the url if you don't require either.....
-	// aClientEventTarget is the event queue of the event sinks. We post events into this queue.
-	// mscott -- eventually this function will take in the account (identity/incoming server) associated with 
-	// the request
+  // You can pass in null for the url listener and the url if you don't require either.....
+  // aClientEventTarget is the event queue of the event sinks. We post events into this queue.
   void selectFolder(in nsIEventTarget aClientEventTarget, 
                     in nsIMsgFolder aImapMailFolder,
                     in nsIUrlListener aUrlListener,
@@ -113,6 +111,9 @@ interface nsIImapService : nsISupports
   nsIURI updateFolderStatus(in nsIEventTarget aClientEventTarget, 
                in nsIMsgFolder aImapMailFolder,
                in nsIUrlListener aUrlListener);
+
+  void verifyLogon(in nsIMsgFolder aImapMailFolder, 
+                   in nsIUrlListener aUrlListener);
 
   void biff(in nsIEventTarget aClientEventTarget, 
             in nsIMsgFolder aImapMailFolder,

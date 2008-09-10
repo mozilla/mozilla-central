@@ -48,7 +48,7 @@ interface nsIMsgStatusFeedback;
 interface nsIRequest;
 interface nsISimpleEnumerator;
 
-[scriptable, uuid(8e9a7c57-cee1-46f2-a03b-14fac3086706)]
+[scriptable, uuid(7b1c1604-7aad-451e-ae55-a7984c1fd0d9)]
 interface nsISmtpService : nsISupports {
   /**
    * Sends a mail message via the given parameters. This function builds an
@@ -93,6 +93,15 @@ interface nsISmtpService : nsISupports {
                        in boolean aRequestDSN,
                        out nsIURI aURL,
                        out nsIRequest aRequest);
+
+  /**
+   * Verifies that we can logon to the server with given password
+   *
+   * @param  aSmtpServer       Server to try to logon to.
+   * @param  aUrlListener      Listener that will get notified whether logon
+   *                           was successful or not.
+   */
+  void verifyLogon(in nsISmtpServer aServer, in nsIUrlListener aListener);
 
   /**
    * Return the SMTP server that is associated with an identity.

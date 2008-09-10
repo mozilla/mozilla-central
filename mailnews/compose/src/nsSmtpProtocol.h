@@ -216,6 +216,7 @@ private:
     PRInt32 ExtensionLoginResponse(nsIInputStream * inputStream, PRUint32 length);
     PRInt32 SendHeloResponse(nsIInputStream * inputStream, PRUint32 length);
     PRInt32 SendEhloResponse(nsIInputStream * inputStream, PRUint32 length);	
+    PRInt32 SendQuit();
 
     PRInt32 AuthGSSAPIFirst();
     PRInt32 AuthGSSAPIStep();
@@ -243,9 +244,11 @@ private:
     PRInt32 SendMessageInFile();
 
     void AppendHelloArgument(nsACString& aResult);
-    nsresult GetPassword(char **aPassword);
-    nsresult GetUsernamePassword(char **aUsername, char **aPassword);
-    nsresult PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpUrl, const PRUnichar **formatStrings, char **aPassword);
+    nsresult GetPassword(nsCString &aPassword);
+    nsresult GetUsernamePassword(char **aUsername, nsACString &aPassword);
+    nsresult PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpUrl, 
+                               const PRUnichar **formatStrings, 
+                               nsACString &aPassword);
 
     void BackupAuthFlags();
     void RestoreAuthFlags();

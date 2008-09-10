@@ -50,6 +50,7 @@
 #include "nsMsgBaseCID.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgWindow.h"
+#include "nsINetUtil.h"
 
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
@@ -167,6 +168,50 @@ nsresult nsPop3Service::GetMail(PRBool downloadNewMail,
 
   if (aURL && url) // we already have a ref count on pop3url...
     NS_IF_ADDREF(*aURL = url);
+
+  return rv;
+}
+
+NS_IMETHODIMP nsPop3Service::VerifyLogon(nsIMsgIncomingServer *aServer,
+                                         nsIUrlListener *aUrlListener)
+{
+  NS_ENSURE_ARG_POINTER(aServer);
+  nsCString popHost;
+  nsCString popUser;
+  PRInt32 popPort = -1;
+
+  nsresult rv = aServer->GetHostName(popHost);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (popHost.IsEmpty())
+    return NS_MSG_INVALID_OR_MISSING_SERVER;
+
+  rv = aServer->GetPort(&popPort);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = aServer->GetUsername(popUser);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (popUser.IsEmpty())
+    return NS_MSG_SERVER_USERNAME_MISSING;
+
+  nsCString escapedUsername;
+  MsgEscapeString(popUser, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
+
+  nsCOMPtr <nsIPop3IncomingServer> popServer = do_QueryInterface(aServer, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  // now construct a pop3 url...
+  // we need to escape the username because it may contain
+  // characters like / % or @
+  char * urlSpec = PR_smprintf("pop3://%s@%s:%d/?verifyLogon", 
+                              escapedUsername.get(), popHost.get(), popPort);
+  if (!urlSpec)
+    return NS_ERROR_OUT_OF_MEMORY;
+  nsCOMPtr<nsIURI> url;
+  rv = BuildPop3Url(urlSpec, nsnull, popServer, aUrlListener, 
+                    getter_AddRefs(url), nsnull);
+  PR_smprintf_free(urlSpec);
+
+  if (NS_SUCCEEDED(rv) && url)
+    rv = RunPopUrl(aServer, url);
 
   return rv;
 }

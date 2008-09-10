@@ -39,6 +39,7 @@
 #include "nsISupports.idl"
 
 interface nsIAuthPrompt;
+interface nsIUrlListener;
 
 /**
  * This interface represents a single SMTP Server. A SMTP server instance may be
@@ -47,7 +48,7 @@ interface nsIAuthPrompt;
  * Most of the attributes will set/get preferences from the main preferences
  * file.
  */
-[scriptable, uuid(1d449933-b0b7-4bbf-a8a4-cc4bb9b545c5)]
+[scriptable, uuid(71f5d415-094d-4a32-899b-2256c2de6876)]
 interface nsISmtpServer : nsISupports {
 
   /// A unique identifier for the server.
@@ -72,7 +73,7 @@ interface nsISmtpServer : nsISupports {
    * It can be specified/saved here to avoid prompting the user constantly for
    * the sending password.
    */
-  attribute string password;
+  attribute ACString password;
 
   /// Returns a displayname of the format hostname:port or just hostname
   readonly attribute string displayname;
@@ -90,7 +91,14 @@ interface nsISmtpServer : nsISupports {
   /// Should we attempt to use secure authentication if the server supports it?
   attribute boolean trySecAuth;
 
-  /// Should we try to use SSL for this connection?
+  /**
+   * Should we use SSL for this connection?
+   * 0 = never
+   * 1 = STARTTLS, if available (discouraged, insecure)
+   * 2 = TLS (STARTTLS) always
+   * 3 = SSL (SMTPS) always
+   * @see nsSmtpProtocol.h line 115 and nsSmtpProtocol.cpp line 331
+   */
   attribute long trySSL;
 
   /**
@@ -116,7 +124,7 @@ interface nsISmtpServer : nsISupports {
    * @return              The password to use (may be null if no password was
    *                      obtained).
    */  
-  string getPasswordWithUI(in wstring promptString, in wstring promptTitle,
+  ACString getPasswordWithUI(in wstring promptString, in wstring promptTitle,
                            in nsIAuthPrompt netPrompt);
 
   /**
@@ -130,18 +138,28 @@ interface nsISmtpServer : nsISupports {
    *                      prompt.
    * @param userid        The username to use (may be null if no password was
    *                      obtained).
-   * @param password      The password to use (may be null if no password was
+   * @param password      The password to use (may be empty if no password was
    *                      obtained).
    */  
   void getUsernamePasswordWithUI(in wstring promptString, in wstring promptTitle,
                                  in nsIAuthPrompt netPrompt, out string userid,
-                                 out string password);
+                                 out ACString password);
 
   /**
    * Calling this will *remove* the saved password for this server from the
    * password manager and from the stored value.
    */
   void forgetPassword();
+
+    /**
+   * Verify that we can logon 
+   * 
+   * @param  aPassword - password to use
+   * @param  aUrlListener - gets called back with success or failure.
+   *
+   */
+  void verifyLogon(in nsIUrlListener aUrlListener);
+
 
   /// Call this to clear all preference values for this server.
   void clearAllValues();

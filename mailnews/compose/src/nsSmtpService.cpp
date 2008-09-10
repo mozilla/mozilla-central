@@ -87,9 +87,7 @@ static NS_DEFINE_CID(kCMailtoUrlCID, NS_MAILTOURL_CID);
 // foward declarations...
 nsresult
 NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
-                   const nsCString &aSmtpHostName, 
-                   PRInt32 aSmtpPort,
-                   const nsCString &aSmtpUserName, 
+                   nsISmtpServer *aServer,
                    const char* aRecipients, 
                    nsIMsgIdentity * aSenderIdentity,
                    nsIUrlListener * aUrlListener,
@@ -114,7 +112,7 @@ nsSmtpService::~nsSmtpService()
 NS_IMPL_ISUPPORTS2(nsSmtpService, nsISmtpService, nsIProtocolHandler)
 
 
-nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
+NS_IMETHODIMP nsSmtpService::SendMailMessage(nsIFile * aFilePath,
                                         const char * aRecipients, 
                                         nsIMsgIdentity * aSenderIdentity,
                                         const char * aPassword,
@@ -134,38 +132,15 @@ nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
   if (NS_SUCCEEDED(rv) && smtpServer)
   {
     if (aPassword && *aPassword)
-      smtpServer->SetPassword(aPassword);
+      smtpServer->SetPassword(nsDependentCString(aPassword));
 
-    nsCString smtpHostName;
-    nsCString smtpUserName;
-    PRInt32 smtpPort;
-    PRInt32 trySSL;
-
-    smtpServer->GetHostname(getter_Copies(smtpHostName));
-    smtpServer->GetUsername(getter_Copies(smtpUserName));
-    smtpServer->GetPort(&smtpPort);
-    smtpServer->GetTrySSL(&trySSL);
-
-    if (smtpPort == 0)
+    if (!CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_10)) 
     {
-        if (trySSL == PREF_SECURE_ALWAYS_SMTPS)
-            smtpPort = nsISmtpUrl::DEFAULT_SMTPS_PORT;
-        else
-            smtpPort = nsISmtpUrl::DEFAULT_SMTP_PORT;
-    }
-
-    if (!smtpHostName.IsEmpty() && !CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_10)) 
-    {
-      rv = NS_MsgBuildSmtpUrl(aFilePath, smtpHostName, smtpPort, smtpUserName,
+      rv = NS_MsgBuildSmtpUrl(aFilePath, smtpServer,
                               aRecipients, aSenderIdentity, aUrlListener, aStatusFeedback, 
                               aNotificationCallbacks, &urlToRun, aRequestDSN); // this ref counts urlToRun
       if (NS_SUCCEEDED(rv) && urlToRun)	
-      {
-        nsCOMPtr<nsISmtpUrl> smtpUrl = do_QueryInterface(urlToRun, &rv);
-        if (NS_SUCCEEDED(rv))
-            smtpUrl->SetSmtpServer(smtpServer);
         rv = NS_MsgLoadSmtpUrl(urlToRun, nsnull, aRequest);
-      }
 
       if (aURL) // does the caller want a handle on the url?
         *aURL = urlToRun; // transfer our ref count to the caller....
@@ -184,9 +159,7 @@ nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
 
 // short cut function for creating a mailto url...
 nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
-                            const nsCString &aSmtpHostName,
-                            PRInt32 aSmtpPort,
-                            const nsCString &aSmtpUserName,
+                            nsISmtpServer *aSmtpServer,
                             const char * aRecipients, 
                             nsIMsgIdentity * aSenderIdentity,
                             nsIUrlListener * aUrlListener, 
@@ -200,26 +173,40 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
   // other stuff from, we need to use default values....
   // ..for testing purposes....
 
+    nsCString smtpHostName;
+    nsCString smtpUserName;
+    PRInt32 smtpPort;
+    PRInt32 trySSL;
+
+    aSmtpServer->GetHostname(getter_Copies(smtpHostName));
+    aSmtpServer->GetUsername(getter_Copies(smtpUserName));
+    aSmtpServer->GetPort(&smtpPort);
+    aSmtpServer->GetTrySSL(&trySSL);
+
+    if (!smtpPort)
+      smtpPort = (trySSL == PREF_SECURE_ALWAYS_SMTPS) ? 
+        nsISmtpUrl::DEFAULT_SMTPS_PORT :  nsISmtpUrl::DEFAULT_SMTP_PORT;
+
   nsresult rv;
   nsCOMPtr<nsISmtpUrl> smtpUrl(do_CreateInstance(kCSmtpUrlCID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString urlSpec("smtp://");
 
-  if (!aSmtpUserName.IsEmpty())
+  if (!smtpUserName.IsEmpty())
   {
     nsCString escapedUsername;
-    MsgEscapeString(aSmtpUserName, nsINetUtil::ESCAPE_XALPHAS,
+    MsgEscapeString(smtpUserName, nsINetUtil::ESCAPE_XALPHAS,
                     escapedUsername);
     urlSpec.Append(escapedUsername);
     urlSpec.Append('@');
   }
 
-  urlSpec.Append(aSmtpHostName);
-  if (aSmtpHostName.FindChar(':') == -1)
+  urlSpec.Append(smtpHostName);
+  if (smtpHostName.FindChar(':') == -1)
   {
     urlSpec.Append(':');
-    urlSpec.AppendInt(aSmtpPort);
+    urlSpec.AppendInt(smtpPort);
   }
 
   nsCOMPtr<nsIMsgMailNewsUrl> url(do_QueryInterface(smtpUrl, &rv));
@@ -231,6 +218,7 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
   smtpUrl->SetPostMessageFile(aFilePath);
   smtpUrl->SetSenderIdentity(aSenderIdentity);
   smtpUrl->SetNotificationCallbacks(aNotificationCallbacks);
+  smtpUrl->SetSmtpServer(aSmtpServer);
 
   nsCOMPtr<nsIPrompt> smtpPrompt(do_GetInterface(aNotificationCallbacks));
   nsCOMPtr<nsIAuthPrompt> smtpAuthPrompt(do_GetInterface(aNotificationCallbacks));
@@ -281,6 +269,22 @@ nsresult NS_MsgLoadSmtpUrl(nsIURI * aUrl, nsISupports * aConsumer, nsIRequest **
     }
 
     return rv;
+}
+
+NS_IMETHODIMP nsSmtpService::VerifyLogon(nsISmtpServer *aServer,
+                                         nsIUrlListener *aUrlListener)
+{
+  NS_ENSURE_ARG_POINTER(aServer);
+  nsCString popHost;
+  nsCString popUser;
+  nsCOMPtr <nsIURI> urlToRun;
+
+  nsresult rv = NS_MsgBuildSmtpUrl(nsnull, aServer,
+                          nsnull, nsnull, aUrlListener, nsnull, 
+                          nsnull , getter_AddRefs(urlToRun), PR_FALSE);
+  if (NS_SUCCEEDED(rv) && urlToRun)	
+    rv = NS_MsgLoadSmtpUrl(urlToRun, nsnull, nsnull /* aRequest */);
+  return rv;
 }
 
 NS_IMETHODIMP nsSmtpService::GetScheme(nsACString &aScheme)

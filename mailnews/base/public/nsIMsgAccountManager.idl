@@ -47,7 +47,7 @@ interface nsISupportsArray;
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 
-[scriptable, uuid(8129D2AD-6093-479D-884C-D8E79FA29B46)]
+[scriptable, uuid(d0e03f59-ee44-40ab-a444-3d61aaf6da59)]
 interface nsIMsgAccountManager : nsISupports {
 
   nsIMsgAccount createAccount();
@@ -68,11 +68,24 @@ interface nsIMsgAccountManager : nsISupports {
   /*
    * creates a new server and assigns it a new, unique "key"
    * the given type will be used to construct a ContractID
+   *
+   *  @param type "imap", "pop3", "nntp", "movemail", "none", "rss", "generic"
+   * (suffix of contract ID @mozilla.org/messenger/server;1?type= )
    */
   nsIMsgIncomingServer createIncomingServer(in ACString username,
                                             in ACString hostname,
                                             in ACString type);
-  
+
+  /**
+   * Removes the server from the list of servers
+   * 
+   * @param aServer        server to remove
+   * @param aCleanupFiles  remove directory from profile
+   *
+   * @throws NS_ERROR_FAILURE if server not found 
+   */
+  void removeIncomingServer(in nsIMsgIncomingServer aServer, 
+                            in boolean aCleanupFiles);
   /*
    * get the identity with the given key
    * if the identity does not exist, it will be created

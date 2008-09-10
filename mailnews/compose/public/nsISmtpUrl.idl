@@ -46,7 +46,7 @@ interface nsISmtpServer;
 interface nsIInterfaceRequestor;
 interface nsIFile;
 
-[scriptable, uuid(b167bf57-51c0-41ae-b331-bd7025c01a20)]
+[scriptable, uuid(ffc85194-21cc-42a2-9844-34068888a117)]
 interface nsISmtpUrl : nsISupports {
   /**
    * SMTP Parse specific getters.
@@ -94,6 +94,8 @@ interface nsISmtpUrl : nsISupports {
   attribute nsIAuthPrompt authPrompt;
   attribute nsIInterfaceRequestor notificationCallbacks;
   attribute nsISmtpServer smtpServer;
+
+  attribute boolean verifyLogon; // we're just verifying the ability to logon
     
   const PRInt32 DEFAULT_SMTP_PORT = 25;
   const PRInt32 DEFAULT_SMTPS_PORT = 465;

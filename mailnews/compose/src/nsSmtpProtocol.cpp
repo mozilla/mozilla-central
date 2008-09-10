@@ -572,7 +572,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
   if (m_responseCode != 250)
   {
 #ifdef DEBUG
-    nsresult rv =
+    rv =
 #endif
     nsExplainErrorDetails(m_runningURL, NS_ERROR_SMTP_SERVER_ERROR,
                           m_responseText.get());
@@ -581,6 +581,14 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
     m_urlErrorState = NS_ERROR_BUT_DONT_SHOW_ALERT;
     return(NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER);
   }
+
+  // check if we're just verifying the ability to logon
+  nsCOMPtr<nsISmtpUrl> smtpUrl = do_QueryInterface(m_runningURL, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool verifyingLogon = PR_FALSE;
+  smtpUrl->GetVerifyLogon(&verifyingLogon);
+  if (verifyingLogon)
+    return SendQuit();
 
   // extract the email address from the identity
   nsCString emailAddress;
@@ -1159,13 +1167,13 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   rv = smtpServer->GetUsername(getter_Copies(username));
   if (username.IsEmpty())
   {
-    rv = GetUsernamePassword(getter_Copies(username), getter_Copies(password));
+    rv = GetUsernamePassword(getter_Copies(username), password);
     m_usernamePrompted = PR_TRUE;
     if (username.IsEmpty() || password.IsEmpty())
       return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
   }
 
-  GetPassword(getter_Copies(password));
+  GetPassword(password);
   if (password.IsEmpty())
   {
     m_urlErrorState = NS_ERROR_SMTP_PASSWORD_UNDEFINED;
@@ -1230,7 +1238,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
   nsresult rv;
   nsCAutoString password;
 
-  GetPassword(getter_Copies(password));
+  GetPassword(password);
   if (password.IsEmpty())
   {
     m_urlErrorState = NS_ERROR_SMTP_PASSWORD_UNDEFINED;
@@ -1494,21 +1502,19 @@ PRInt32 nsSmtpProtocol::SendDataResponse()
 
     m_urlErrorState = NS_ERROR_BUT_DONT_SHOW_ALERT;
     return(NS_ERROR_SENDING_DATA_COMMAND);
-    }
+  }
 
-    PR_FREEIF(command);
+  PR_FREEIF(command);
 
-    m_nextState = SMTP_SEND_POST_DATA;
-    ClearFlag(SMTP_PAUSE_FOR_READ);   /* send data directly */
+  m_nextState = SMTP_SEND_POST_DATA;
+  ClearFlag(SMTP_PAUSE_FOR_READ);   /* send data directly */
 
-    UpdateStatus(SMTP_DELIV_MAIL);
+  UpdateStatus(SMTP_DELIV_MAIL);
 
-    {
+  {
 //      m_runningURL->GetBodySize(&m_totalMessageSize);
-    }
-
-
-    return(status);
+  }
+  return(status);
 }
 
 PRInt32 nsSmtpProtocol::SendMessageInFile()
@@ -1576,15 +1582,19 @@ PRInt32 nsSmtpProtocol::SendMessageResponse()
 
   UpdateStatus(SMTP_PROGRESS_MAILSENT);
 
-    /* else */
-    m_sendDone = PR_TRUE;
-    nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-       SendData(url, "QUIT"CRLF); // send a quit command to close the connection with the server.
-    m_nextState = SMTP_RESPONSE;
-    m_nextStateAfterResponse = SMTP_DONE;
-    return(0);
+  /* else */
+  return SendQuit();
 }
 
+PRInt32 nsSmtpProtocol::SendQuit()
+{
+  m_sendDone = PR_TRUE;
+  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
+  SendData(url, "QUIT"CRLF); // send a quit command to close the connection with the server.
+  m_nextState = SMTP_RESPONSE;
+  m_nextStateAfterResponse = SMTP_DONE;
+  return(0);
+}
 
 nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 {
@@ -1855,10 +1865,8 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 }
 
 nsresult
-nsSmtpProtocol::GetPassword(char **aPassword)
+nsSmtpProtocol::GetPassword(nsCString &aPassword)
 {
-    NS_ENSURE_ARG_POINTER(aPassword);
-
     nsresult rv;
     nsCOMPtr<nsISmtpUrl> smtpUrl = do_QueryInterface(m_runningURL, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1870,12 +1878,9 @@ nsSmtpProtocol::GetPassword(char **aPassword)
     rv = smtpServer->GetPassword(aPassword);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    if (*aPassword && **aPassword)
+    if (!aPassword.IsEmpty())
         return rv;
     // empty password
-
-    NS_Free(*aPassword);
-    *aPassword = nsnull;
 
     nsCOMPtr <nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1909,7 +1914,7 @@ nsSmtpProtocol::GetPassword(char **aPassword)
 }
 
 nsresult
-nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpUrl, const PRUnichar **formatStrings, char **aPassword)
+nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpUrl, const PRUnichar **formatStrings, nsACString &aPassword)
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> stringService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
@@ -1945,10 +1950,9 @@ nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpU
 }
 
 nsresult
-nsSmtpProtocol::GetUsernamePassword(char **aUsername, char **aPassword)
+nsSmtpProtocol::GetUsernamePassword(char **aUsername, nsACString &aPassword)
 {
     NS_ENSURE_ARG_POINTER(aUsername);
-    NS_ENSURE_ARG_POINTER(aPassword);
 
     nsresult rv;
     nsCOMPtr<nsISmtpUrl> smtpUrl = do_QueryInterface(m_runningURL, &rv);
@@ -1961,7 +1965,8 @@ nsSmtpProtocol::GetUsernamePassword(char **aUsername, char **aPassword)
     rv = smtpServer->GetPassword(aPassword);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    if (*aPassword && **aPassword) {
+    if (!aPassword.IsEmpty())
+    {
         rv = smtpServer->GetUsername(aUsername);
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1974,8 +1979,7 @@ nsSmtpProtocol::GetUsernamePassword(char **aUsername, char **aPassword)
     }
     // empty password
 
-    NS_Free(*aPassword);
-    *aPassword = 0;
+    aPassword.Truncate();
 
     nsCString hostname;
     rv = smtpServer->GetHostname(getter_Copies(hostname));

@@ -460,7 +460,7 @@ void nsImapUrl::ParseImapPart(char *imapPartOfUrl)
     ParseListOfMessageIds();
     // if fetched by spam filter, the action will be changed to nsImapMsgFetchPeek
   }
-  else /* if (fInternal) no concept of internal - not sure there will be one */
+  else
   {
     if (!PL_strcasecmp(m_urlidSubString, "header"))
     {
@@ -713,6 +713,10 @@ void nsImapUrl::ParseImapPart(char *imapPartOfUrl)
     {
       m_imapAction = nsImapFolderStatus;
       ParseFolderPath(&m_sourceCanonicalFolderPathSubString);
+    }
+    else if (!PL_strcasecmp(m_urlidSubString, "verifyLogon"))
+    {
+      m_imapAction = nsImapVerifylogon;
     }
     else if (m_imapAction == nsIImapUrl::nsImapUserDefinedMsgCommand)
     {

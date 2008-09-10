@@ -421,6 +421,15 @@ nsPop3IncomingServer::GetCanCreateFoldersOnServer(PRBool *aCanCreateFoldersOnSer
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsPop3IncomingServer::VerifyLogon(nsIUrlListener *aUrlListener)
+{
+  nsresult rv;
+  nsCOMPtr<nsIPop3Service> pop3Service = do_GetService(kCPop3ServiceCID, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+  return pop3Service->VerifyLogon(this, aUrlListener);
+}
+
 NS_IMETHODIMP nsPop3IncomingServer::DownloadMailFromServers(nsISupportsArray *aServers,
                               nsIMsgWindow *aMsgWindow,
                               nsIMsgFolder *aFolder,

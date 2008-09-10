@@ -44,13 +44,12 @@ interface nsIURI;
 interface nsIStreamListener;
 interface nsIMsgWindow;
 interface nsIMsgFolder;
+
 /*
  * The Pop3 Service is an interface designed to make building and running
- * pop3 urls easier. I'm not sure if this service will go away when the
- * new networking model comes on line (as part of the N2 project). So
- * I reserve the right to change my mind and take this service away =).
+ * pop3 urls easier. 
  */
-[scriptable, uuid(3BB459E0-D746-11d2-806A-006008128C4E)]
+[scriptable, uuid(d3b0eead-a0aa-47bd-a751-aa01e01c1ff7)]
 interface nsIPop3Service : nsISupports {
   /*
    * All of these functions build pop3 urls and run them. If you want
@@ -69,10 +68,20 @@ interface nsIPop3Service : nsISupports {
    */
 
   nsIURI GetNewMail(in nsIMsgWindow aMsgWindow, in nsIUrlListener aUrlListener,
-          in nsIMsgFolder aInbox,
-                    in nsIPop3IncomingServer popServer);
+                    in nsIMsgFolder aInbox, in nsIPop3IncomingServer popServer);
 
   nsIURI CheckForNewMail(in nsIMsgWindow aMsgWindow, in nsIUrlListener aUrlListener,
-             in nsIMsgFolder inbox,
-                         in nsIPop3IncomingServer popServer);
+                         in nsIMsgFolder inbox, in nsIPop3IncomingServer popServer);
+
+  /**
+   * Verify that we can logon 
+   * 
+   * @param  aServer - pop3 server we're logging on to.
+   * @param  aUrlListener - gets called back with success or failure.
+   *
+   */
+  void verifyLogon(in nsIMsgIncomingServer aServer, 
+                   in nsIUrlListener aUrlListener);
+
+
 };

@@ -90,7 +90,6 @@
 
 static NS_DEFINE_CID(kImapProtocolCID, NS_IMAPPROTOCOL_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
-static NS_DEFINE_CID(kImapServiceCID, NS_IMAPSERVICE_CID);
 static NS_DEFINE_CID(kSubscribableServerCID, NS_SUBSCRIBABLESERVER_CID);
 static NS_DEFINE_CID(kCImapHostSessionListCID, NS_IIMAPHOSTSESSIONLIST_CID);
 
@@ -934,14 +933,28 @@ nsImapIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
   
   if (!rootMsgFolder) return NS_ERROR_FAILURE;
 
-  nsCOMPtr<nsIImapService> imapService = do_GetService(kImapServiceCID, &rv);
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  if (!imapService)
-    return NS_ERROR_FAILURE;
   rv = imapService->DiscoverAllFolders(NS_GetCurrentThread(), rootMsgFolder,
                                        this, aMsgWindow, nsnull);
   return rv;
 }
+
+NS_IMETHODIMP
+nsImapIncomingServer::VerifyLogon(nsIUrlListener *aUrlListener)
+{
+  nsresult rv;
+
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgFolder> rootFolder;
+  // this will create the resource if it doesn't exist, but it shouldn't
+  // do anything on disk.
+  rv = GetRootFolder(getter_AddRefs(rootFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return imapService->VerifyLogon(rootFolder, aUrlListener);
+}
+
 
 NS_IMETHODIMP nsImapIncomingServer::PerformBiff(nsIMsgWindow* aMsgWindow)
 {
@@ -2085,7 +2098,7 @@ nsImapIncomingServer::StartPopulatingWithUri(nsIMsgWindow *aMsgWindow, PRBool aF
   rv = GetServerURI(serverUri);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsIImapService> imapService = do_GetService(kImapServiceCID, &rv);
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
 /*
@@ -2114,7 +2127,7 @@ nsImapIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToS
   rv = SetShowFullName(PR_FALSE);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsIImapService> imapService = do_GetService(kImapServiceCID, &rv);
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   return imapService->GetListOfFoldersOnServer(this, aMsgWindow);
 }
@@ -2284,7 +2297,7 @@ NS_IMETHODIMP
 nsImapIncomingServer::SubscribeToFolder(const nsAString& aName, PRBool subscribe, nsIURI **aUri)
 {
   nsresult rv;
-  nsCOMPtr<nsIImapService> imapService = do_GetService(kImapServiceCID, &rv);
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgFolder> rootMsgFolder;
@@ -2688,14 +2701,7 @@ nsImapIncomingServer::GetFormattedStringFromID(const nsAString& aValue, PRInt32 
 nsresult
 nsImapIncomingServer::GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue)
 {
-  NS_ENSURE_ARG_POINTER(prefSuffix);
-  nsresult rv;
-  nsCAutoString prefName;
-  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-
-  // Time to check if this server has the pref
-  // (mail.server.<serverkey>.prefSuffix) already set
-  return mPrefBranch->GetBoolPref(prefName.get(), prefValue);
+  return GetBoolValue(prefSuffix, prefValue);
 }
 
 NS_IMETHODIMP

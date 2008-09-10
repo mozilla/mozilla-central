@@ -1555,7 +1555,7 @@ PRBool nsImapProtocol::ProcessCurrentURL()
 
   if (mailnewsurl && m_imapMailFolderSink)
   {
-      rv = GetServerStateParser().LastCommandSuccessful()
+      rv = GetServerStateParser().LastCommandSuccessful() && !logonFailed
             ? NS_OK : NS_ERROR_FAILURE;
       // we are done with this url.
       m_imapMailFolderSink->SetUrlState(this, mailnewsurl, PR_FALSE, rv);
@@ -4732,9 +4732,18 @@ nsImapProtocol::AlertUserEvent(const char * message)
 {
   if (m_imapServerSink)
   {
-    nsCOMPtr<nsIMsgWindow> msgWindow;
-    GetMsgWindow(getter_AddRefs(msgWindow));
-    m_imapServerSink->FEAlert(NS_ConvertASCIItoUTF16(message), msgWindow);
+    PRBool suppressErrorMsg = PR_FALSE;
+
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningUrl);
+    if (mailnewsUrl)
+      mailnewsUrl->GetSuppressErrorMsgs(&suppressErrorMsg);
+
+    if (!suppressErrorMsg)
+    {
+      nsCOMPtr<nsIMsgWindow> msgWindow;
+      GetMsgWindow(getter_AddRefs(msgWindow));
+      m_imapServerSink->FEAlert(NS_ConvertASCIItoUTF16(message), msgWindow);
+    }
   }
 }
 
@@ -7439,10 +7448,11 @@ void nsImapProtocol::ProcessAuthenticatedStateURL()
       sourceMailbox = OnCreateServerSourceFolderPathString();
       OnMoveFolderHierarchy(sourceMailbox);
       break;
+    case nsIImapUrl::nsImapVerifylogon:
+      break;
     default:
       break;
   }
-
   PR_Free(sourceMailbox);
 }
 
@@ -7621,8 +7631,7 @@ nsresult nsImapProtocol::GetMsgWindow(nsIMsgWindow **aMsgWindow)
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl =
         do_QueryInterface(m_runningUrl, &rv);
     if (NS_FAILED(rv)) return rv;
-    rv = mailnewsUrl->GetMsgWindow(aMsgWindow);
-    return rv;
+    return mailnewsUrl->GetMsgWindow(aMsgWindow);
 }
 
 nsresult nsImapProtocol::GetPassword(nsCString &password)
@@ -7760,8 +7769,13 @@ PRBool nsImapProtocol::TryToLogon()
           // if we failed because of an interrupt, then do not bother the user
           // similarly - if we failed due to a local error, don't bug them
           if (m_imapServerSink && !DeathSignalReceived() && clientSucceeded)
-            rv = m_imapServerSink->ForgetPassword();
-
+          {
+            nsCOMPtr<nsIMsgWindow> msgWindow;
+            GetMsgWindow(getter_AddRefs(msgWindow));
+            // if there's no msg window, don't forget the password
+            if (msgWindow)
+              rv = m_imapServerSink->ForgetPassword();
+          }
           if (!DeathSignalReceived() && clientSucceeded)
           {
             AlertUserEventUsingId(IMAP_LOGIN_FAILED);
