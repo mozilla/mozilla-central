@@ -913,6 +913,9 @@ nsresult nsImapService::DecomposeImapURI(const nsACString &aMessageURI,
   
   nsCOMPtr<nsIMsgFolder> msgFolder;
   rv = lookup->GetFolderById(folderURI, getter_AddRefs(msgFolder));
+  // until/unless the folder lookup service returns errors...
+  if (!msgFolder)
+    rv = NS_ERROR_FAILURE;
   NS_ENSURE_SUCCESS(rv,rv);
   
   msgFolder.swap(*aFolder);
