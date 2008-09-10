@@ -331,7 +331,7 @@ public:
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aMsgFilterList);
   NS_IMETHOD GetCustomIdentity(nsIMsgIdentity **aIdentity);
 
-  nsresult AddSubfolderWithPath(nsAString& name, nsILocalFile *dbPath, nsIMsgFolder **child);
+  nsresult AddSubfolderWithPath(nsAString& name, nsILocalFile *dbPath, nsIMsgFolder **child, PRBool brandNew = PR_FALSE);
   nsresult MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
                                   nsIMsgDatabase *sourceDB,
                                   const nsACString& destFolder,

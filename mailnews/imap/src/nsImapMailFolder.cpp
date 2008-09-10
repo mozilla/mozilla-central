@@ -364,7 +364,7 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
 }
 
 nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *dbPath,
-                                             nsIMsgFolder **child)
+                                             nsIMsgFolder **child, PRBool brandNew)
 {
   NS_ENSURE_ARG_POINTER(child);
 
@@ -428,7 +428,22 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
       folder->SetFlag(nsMsgFolderFlags::Templates);
 #endif
   }
-
+  
+  //special case: 
+  // Make the folder offline if it is newly created and offline_download pref is true 
+  if (brandNew)
+  {
+    nsCOMPtr<nsIImapIncomingServer> imapServer;
+    GetImapIncomingServer(getter_AddRefs(imapServer));
+    if (imapServer)
+    {
+      PRBool setNewFoldersForOffline = PR_FALSE;
+      nsresult rv = imapServer->GetOfflineDownload(&setNewFoldersForOffline);
+      if (NS_SUCCEEDED(rv) && setNewFoldersForOffline)
+        flags |= nsMsgFolderFlags::Offline;
+    }
+  }
+  
   folder->SetFlags(flags);
   //at this point we must be ok and we don't want to return failure in case GetIsServer failed.
   rv = NS_OK;
@@ -889,7 +904,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
   NS_ENSURE_SUCCESS(rv,rv);
 
   //Now let's create the actual new folder
-  rv = AddSubfolderWithPath(folderNameStr, dbFile, getter_AddRefs(child));
+  rv = AddSubfolderWithPath(folderNameStr, dbFile, getter_AddRefs(child), PR_TRUE);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = msgDBService->OpenMailDBFromFile(dbFile, PR_TRUE, PR_TRUE, (nsIMsgDatabase **) getter_AddRefs(unusedDB));
   if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)

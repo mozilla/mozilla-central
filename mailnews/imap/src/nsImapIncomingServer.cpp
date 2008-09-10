@@ -1230,13 +1230,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       imapFolder->SetBoxFlags(boxFlags);
       imapFolder->SetExplicitlyVerify(explicitlyVerify);
       imapFolder->GetOnlineName(onlineName);
-      if (boxFlags & kNewlyCreatedFolder)
-      {
-        PRBool setNewFoldersForOffline = PR_FALSE;
-        GetOfflineDownload(&setNewFoldersForOffline);
-        if (setNewFoldersForOffline)
-          child->SetFlag(nsMsgFolderFlags::Offline);
-      }
+      
       // online name needs to use the correct hierarchy delimiter (I think...)
       // or the canonical path - one or the other, but be consistent.
       dupFolderPath.ReplaceChar('/', hierarchyDelimiter);
