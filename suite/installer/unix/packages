@@ -497,7 +497,6 @@ bin/components/msgsmime.xpt
 bin/components/nsAbAutoCompleteMyDomain.js
 bin/components/nsAbAutoCompleteSearch.js
 bin/components/nsAbLDAPAttributeMap.js
-bin/components/nsLDAPPrefsService.js
 bin/components/smime-service.js
 bin/components/mdn-service.js
 bin/components/offlineStartup.js

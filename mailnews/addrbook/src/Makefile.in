@@ -150,8 +150,6 @@ CPPSRCS		+= \
 		nsLDAPAutoCompleteSession.cpp \
 		$(NULL)
 
-EXTRA_COMPONENTS += nsLDAPPrefsService.js
-
 # XXX These files are not being built as they don't work. Bug 311632 should
 # fix them.
 # nsAbLDAPChangeLogQuery.cpp

@@ -63,6 +63,7 @@ components/chatzilla-service.js
 components/crashreporter.xpt
 components/nsCloseAllWindows.js
 components/nsDictionary.js
+components/nsLDAPPrefsService.js
 components/nsKillAll.js
 components/nsResetPref.js
 components/nsScriptableIO.js

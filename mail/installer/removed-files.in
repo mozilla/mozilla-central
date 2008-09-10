@@ -166,6 +166,7 @@ components/nsUnsetDefaultMail.js
 components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
 components/nsDownloadProgressListener.js
+components/nsLDAPPrefsService.js
 components/xptitemp.dat
 component.reg
 chrome/installed-chrome.txt
