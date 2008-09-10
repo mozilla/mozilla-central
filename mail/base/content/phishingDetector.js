@@ -99,13 +99,25 @@ var gPhishingDetector = {
     if (!aUrl || !gPrefBranch.getBoolPref("mail.phishing.detection.enabled"))
       return;
 
-    // Ignore nntp and RSS messages
-    var folder;
     try {
-      folder = aUrl.folder;
+      // nsIMsgMailNewsUrl.folder can throw an NS_ERROR_FAILURE, especially if
+      // we are opening an .eml file.
+      var folder = aUrl.folder;
+
+      // Ignore nntp and RSS messages.
       if (folder.server.type == 'nntp' || folder.server.type == 'rss')
         return;
-    } catch (ex) {}
+
+      // Also ignore messages in Sent/Drafts/Templates/Outbox.
+      if (IsSpecialFolder(folder, MSG_FOLDER_FLAG_SENTMAIL |
+                          MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_TEMPLATES |
+                          MSG_FOLDER_FLAG_QUEUE, true))
+        return;
+
+    } catch (ex) {
+        if (ex.result != Components.results.NS_ERROR_FAILURE)
+          throw ex;
+    }
 
     // extract the link nodes in the message and analyze them, looking for suspicious URLs...
     var linkNodes = document.getElementById('messagepane').contentDocument.links;
