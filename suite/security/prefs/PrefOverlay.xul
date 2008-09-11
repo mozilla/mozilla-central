@@ -59,8 +59,7 @@
     </treeitem>
     <treeitem id="validationItem">
       <treerow>
-        <treecell url="chrome://pippki/content/pref-validation.xul"
-                      label="&validation.label;"/>
+        <treecell label="(Migrated: &validation.label;)"/>
       </treerow>
     </treeitem>
   </treechildren>

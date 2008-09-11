@@ -157,11 +157,15 @@
                 label="&security.label;"
                 url="chrome://communicator/content/pref/pref-security.xul">
         <treechildren id="securityChildren">
-          <treeitem id="cookiesItem" label="&cookies.label;"
-                    prefpane="cookies_pane" helpTopic="cookies_prefs"
+          <treeitem id="cookiesItem"
+                    label="&cookies.label;"
+                    prefpane="cookies_pane"
+                    helpTopic="cookies_prefs"
                     url="chrome://communicator/content/pref/pref-cookies.xul"/>
-          <treeitem id="imagesItem" label="&images.label;"
-                    prefpane="images_pane" helpTopic="images_prefs"
+          <treeitem id="imagesItem"
+                    label="&images.label;"
+                    prefpane="images_pane"
+                    helpTopic="images_prefs"
                     url="chrome://communicator/content/pref/pref-images.xul"/>
           <treeitem id="popupsItem"
                     label="&popups.label;"
@@ -188,13 +192,11 @@
                     prefpane="certs_pane"
                     url="chrome://pippki/content/pref-certs.xul"
                     helpTopic="certs_prefs"/>
-<!--
           <treeitem id="validationItem"
                     label="&validation.label;"
                     prefpane="validation_pane"
                     url="chrome://pippki/content/pref-validation.xul"
                     helpTopic="validation_prefs"/>
--->
         </treechildren>
       </treeitem>
 

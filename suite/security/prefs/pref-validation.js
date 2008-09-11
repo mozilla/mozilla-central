@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   David Drinan <ddrinan@netscape.com>
+ *   Philip Chee <philip.chee@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,95 +36,78 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const nsIX509CertDB = Components.interfaces.nsIX509CertDB;
-const nsX509CertDB = "@mozilla.org/security/x509certdb;1";
 const nsIOCSPResponder = Components.interfaces.nsIOCSPResponder;
-const nsISupportsArray = Components.interfaces.nsISupportsArray;
 
-var certdb;
-var ocspResponders;
-var cacheRadio = 0;
+var gCacheRadio = 0;
 
-function onLoad()
+function Startup()
 {
-  var ocspEntry;
-  var i;
-
-  certdb = Components.classes[nsX509CertDB].getService(nsIX509CertDB);
-  ocspResponders = certdb.getOCSPResponders();
+  var certdb = Components.classes["@mozilla.org/security/x509certdb;1"]
+                         .getService(Components.interfaces.nsIX509CertDB);
+  var ocspResponders = certdb.getOCSPResponders();
 
   var signersMenu = document.getElementById("signingCA");
-  var signersURL = document.getElementById("serviceURL");
-  for (i=0; i<ocspResponders.length; i++) {
-    ocspEntry = ocspResponders.queryElementAt(i, nsIOCSPResponder);
-    var menuItemNode = document.createElement("menuitem");
-    menuItemNode.setAttribute("value", ocspEntry.responseSigner);
-    menuItemNode.setAttribute("label", ocspEntry.responseSigner);
-    signersMenu.firstChild.appendChild(menuItemNode);
+  for (let i = 0; i < ocspResponders.length; i++)
+  {
+    let ocspEntry = ocspResponders.queryElementAt(i, nsIOCSPResponder);
+    let responseSigner = ocspEntry.responseSigner;
+    let item = signersMenu.appendItem(responseSigner, responseSigner);
+    item.setAttribute("serviceurl", ocspEntry.serviceURL);
   }
 
-  parent.initPanel('chrome://pippki/content/pref-validation.xul');
+  // Make it easier to access the pref pane from onsync.
+  document.getElementById("enableOCSPBox").pane = this;
 
-  doEnabling(0);
+  var securityOCSPEnabled = document.getElementById("security.OCSP.enabled");
+  DoEnabling(securityOCSPEnabled.value);
 }
 
-function doEnabling(called_by)
+function DoEnabling(aOCSPPrefValue)
 {
-  var signingCA = document.getElementById("signingCA");
-  var serviceURL = document.getElementById("serviceURL");
-  var securityOCSPEnabled = document.getElementById("securityOCSPEnabled");
-  var requireWorkingOCSP = document.getElementById("requireWorkingOCSP");
-  var enableOCSPBox = document.getElementById("enableOCSPBox");
-  var certOCSP = document.getElementById("certOCSP");
-  var proxyOCSP = document.getElementById("proxyOCSP");
-
-  var OCSPPrefValue = parseInt(securityOCSPEnabled.value);
-
-  if (called_by == 0) {
-    // the radio button changed, or we init the stored value from prefs
-    enableOCSPBox.checked = (OCSPPrefValue != 0);
-  }
-  else {
-    // the user toggled the checkbox to enable/disable OCSP
-    var new_val = 0;
-    if (enableOCSPBox.checked) {
-      // now enabled. if we have a cached radio val, restore it.
-      // if not, use the first setting
-      new_val = (cacheRadio > 0) ? cacheRadio : 1;
-    }
-    else {
-      // now disabled. remember current value
-      cacheRadio = OCSPPrefValue;
-    }
-    securityOCSPEnabled.value = OCSPPrefValue = new_val;
-  }
-
-  certOCSP.disabled = (OCSPPrefValue == 0);
-  proxyOCSP.disabled = (OCSPPrefValue == 0);
-  signingCA.disabled = serviceURL.disabled = OCSPPrefValue == 0 || OCSPPrefValue == 1;
-  requireWorkingOCSP.disabled = (OCSPPrefValue == 0);
+  EnableElementById("securityOCSPEnabled", aOCSPPrefValue != 0, false);
+  EnableElementById("requireWorkingOCSP", aOCSPPrefValue != 0, false);
+  EnableElementById("signingCA", aOCSPPrefValue == 2, false);
+  EnableElementById("serviceURL", aOCSPPrefValue == 2, false);
 }
 
-function changeURL()
+function SyncToOCSPBox()
 {
-  var signersMenu = document.getElementById("signingCA");
-  var signersURL = document.getElementById("serviceURL");
-  var CA = signersMenu.getAttribute("value");
-  var i;
-  var ocspEntry;
-
-  for (i=0; i < ocspResponders.length; i++) {
-    ocspEntry = ocspResponders.queryElementAt(i, nsIOCSPResponder);
-    if (CA == ocspEntry.responseSigner) {
-      signersURL.setAttribute("value", ocspEntry.serviceURL);
-      break;
-    }
-  }
+  // the radio button changed, or we init the stored value from prefs
+  var securityOCSPEnabled = document.getElementById("security.OCSP.enabled");
+  var OCSPPrefValue = securityOCSPEnabled.value;
+  DoEnabling(OCSPPrefValue);
+  return (OCSPPrefValue != 0);
 }
 
-function openCrlManager()
+function SyncFromOCSPBox(aChecked)
 {
-    window.open('chrome://pippki/content/crlManager.xul',  "",
-                'chrome,centerscreen,resizable');
+  // the user toggled the checkbox to enable/disable OCSP
+  var newVal = 0;
+  if (aChecked)
+  {
+    // now enabled. if we have a cached radio val, restore it.
+    // if not, use the first setting
+    newVal = gCacheRadio || 1;
+  }
+  else
+  {
+    // now disabled. remember current value
+    gCacheRadio = document.getElementById("security.OCSP.enabled").value;
+  }
+  DoEnabling(newVal);
+  return newVal;
 }
 
+function ChangeURL(aCA)
+{
+  var serviceURL = aCA.selectedItem.getAttribute("serviceurl");
+  document.getElementById("security.OCSP.URL").value = serviceURL;
+}
+
+function OpenCrlManager()
+{
+    document.documentElement
+            .openWindow("mozilla:crlmanager", 
+                        "chrome://pippki/content/crlManager.xul",
+                        "", null);
+}
