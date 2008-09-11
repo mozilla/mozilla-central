@@ -49,6 +49,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsAbBaseCID.h"
 #include "nsAbUtils.h"
+#include "nsILDAPErrors.h"
 
 #include <stdio.h>
 
@@ -303,13 +304,20 @@ NS_IMETHODIMP nsAbLDAPCard::SetMetaProperties(nsILDAPMessage *aMessage)
   }
 
   // Get the objectClass values
+  m_objectClass.Clear();
   PRUnicharPtrArrayGuard vals;
   rv = aMessage->GetValues("objectClass", vals.GetSizeAddr(),
     vals.GetArrayAddr());
+
+  // objectClass is not always included in search result entries and
+  // nsILDAPMessage::GetValues returns NS_ERROR_LDAP_DECODING_ERROR if the
+  // requested attribute doesn't exist.
+  if (rv ==  NS_ERROR_LDAP_DECODING_ERROR)
+    return NS_OK;
+
   NS_ENSURE_SUCCESS(rv, rv);
   
   nsCAutoString oclass;
-  m_objectClass.Clear();
   for (PRUint32 i = 0; i < vals.GetSize(); ++i)
   {
     oclass.Assign(NS_LossyConvertUTF16toASCII(nsDependentString(vals[i])));
