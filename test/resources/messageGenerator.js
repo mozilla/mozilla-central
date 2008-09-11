@@ -1,3 +1,39 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Thunderbird Global Database.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 const FIRST_NAMES = [
   "Andy", "Bob", "Chris", "David", "Emily", "Felix",
@@ -127,9 +163,38 @@ SyntheticMessage.prototype = {
                  for each ([headerKey, headerValues] in Iterator(this.headers))];
     
     return lines.join("\n") + "\n\n" + this.body + "\n";
+  },
+  
+  toStream: function () {
+    let stream = Cc["@mozilla.org/io/string-input-stream;1"]
+                   .createInstance(Ci.nsIStringInputStream);
+    let str = this.toMessageString();
+    stream.setData(str, str.length);
+    return stream;
+  },
+  
+  writeToMboxStream: function (aStream) {
+    let str = "From " + this._from[1] + "\n" + this.toMessageString() + "\n";
+    aStream.write(str, str.length);
   }
 }
 
+function writeMessagesToMbox (aMessages, aBaseDir, aRelPath) {
+  let targetFile = Cc["@mozilla.org/file/local;1"]
+                     .createInstance(Ci.nsILocalFile);
+  targetFile.initWithFile(aBaseDir);
+  targetFile.appendRelativePath(aRelPath);
+
+  let ostream = Cc["@mozilla.org/network/file-output-stream;1"]
+                  .createInstance(Ci.nsIFileOutputStream);
+  ostream.init(targetFile, -1, -1, 0);
+  
+  for (let iMessage = 0; iMessage < aMessages.length; iMessage++) {
+    aMessages[iMessage].writeToMboxStream(ostream);
+  }
+  
+  ostream.close();
+}
 
 function MessageGenerator() {
   this._clock = new Date(2000, 1, 1);
@@ -221,9 +286,12 @@ MessageGenerator.prototype = {
     let msg = new SyntheticMessage();
     
     if (aInReplyTo) {
+      msg.parent = aInReplyTo;
+      msg.parent.children.push(msg); 
+      
       let srcMsg = aInReplyTo;
       
-      msg.subject = (srcMsg.subject.substring(0, 3) == "Re: ") ? srcMsg.subject
+      msg.subject = (srcMsg.subject.substring(0, 4) == "Re: ") ? srcMsg.subject
                     : ("Re: " + srcMsg.subject);
       if (aArgs.replyAll)
         msg.to = [srcMsg.from].concat(srcMsg.to.slice(1));
@@ -237,11 +305,14 @@ MessageGenerator.prototype = {
                                    [srcMsg.headers["Message-Id"]]);
     }
     else {
+      msg.parent = null;
+      
       msg.subject = this.makeSubject();
       msg.from = this.makeNameAndAddress();
       msg.to = this.makeNamesAndAddresses(aArgs.toCount || 1);
     }
     
+    msg.children = [];
     msg.messageId = this.makeMessageId(msg);
     msg.date = this.makeDate();
     
@@ -258,12 +329,17 @@ function MessageScenarioFactory(aMessageGenerator) {
 }
 
 MessageScenarioFactory.prototype = {
-  directReply: function() {
-    let msg1 = this._msgGen.makeMessage();
-    let msg2 = this._msgGen.makeMessage(msg1);
-    return [msg1, msg2];
+  /** Create a chain of direct-reply messages of the given length. */
+  directReply: function(aNumMessages) {
+    aNumMessages = aNumMessages || 2;
+    let messages = [this._msgGen.makeMessage()];
+    for (let i = 1; i < aNumMessages; i++) {
+      messages.push(msgGen.makeMessage(messages[i-1]));
+    }
+    return messages;
   },
   
+  /** Two siblings (present), one parent (missing). */
   siblingsMissingParent: function() {
     let missingParent = this._msgGen.makeMessage();
     let msg1 = this._msgGen.makeMessage(missingParent);
@@ -271,11 +347,34 @@ MessageScenarioFactory.prototype = {
     return [msg1, msg2];
   },
   
+  /** Present parent, missing child, present grand-child. */ 
   missingIntermediary: function() {
     let msg1 = this._msgGen.makeMessage();
     let msg2 = this._msgGen.makeMessage(msg1);
     let msg3 = this._msgGen.makeMessage(msg2);
     return [msg1, msg3];
+  },
+  
+  /**
+   * The root message and all non-leaf nodes have aChildrenPerParent children,
+   *  for a total of aHeight layers.  (If aHeight is 1, we have just the root;
+   *  if aHeight is 2, the root and his aChildrePerParent children.)
+   */
+  fullPyramid: function(aChildrenPerParent, aHeight) {
+    let msgGen = this._msgGen;
+    let root = msgGen.makeMessage();
+    let messages = [root];
+    function helper(aParent, aRemDepth) {
+      for (let iChild = 0; iChild < aChildrenPerParent; iChild++) {
+        let child = msgGen.makeMessage(aParent);
+        messages.push(child);
+        if (aRemDepth)
+          helper(child, aRemDepth - 1);
+      }
+    }
+    if (aHeight > 1)
+      helper(root, aHeight - 2);
+    return messages;
   }
 }
 
@@ -293,7 +392,7 @@ function bindMethods(aObj) {
       // 'this' is magic and not from the enclosing scope.  we are assuming the
       //  getter will receive a valid 'this', and so
       let realThis = this;
-      return function() { return realFunc.call(realThis, arguments); };
+      return function() { return realFunc.apply(realThis, arguments); };
     }
     delete aObj[name];
     aObj.__defineGetter__(name, getterFunc);

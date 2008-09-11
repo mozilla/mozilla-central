@@ -258,6 +258,7 @@ let GlodaIndexer = {
     this._log.info("Shutting Down");
 
     this.enabled = false;
+    this._indexerLeaveFolder(); // nop if we aren't "in" a folder
     
     let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
                         getService(Ci.nsIMsgMailSession);
@@ -491,6 +492,7 @@ let GlodaIndexer = {
       try {
         this._indexingFolder.updateFolder(null);
       }
+      // on NS_ERROR_NOT_INITIALIZED
       catch ( e if e.result == 0xc1f30001) {
         // this means that we need to pend on the update.
         this._log.debug("Pending on folder load...");

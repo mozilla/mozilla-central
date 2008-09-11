@@ -424,6 +424,10 @@ function GlodaLRUCacheCollection(aNounMeta, aCacheSize) {
 GlodaLRUCacheCollection.prototype = new GlodaCollection;
 GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
   for each (let item in aItems) {
+    if (item.id in this._idMap) {
+      LOG.error("attempt to add an item to a collection it is already in!");
+      continue;
+    }
     this._idMap[item.id] = item;
     
     item._lruPrev = this._tail;
@@ -470,14 +474,14 @@ GlodaLRUCacheCollection.prototype.hit = function cache_hit(aItem) {
   if ((this._head === this._tail) || (this._tail === aItem))
     return aItem;
 
-  // unlink the item  
+  // - unlink the item  
   if (aItem._lruPrev !== null)
     aItem._lruPrev._lruNext = aItem._lruNext;
   else
     this._head = aItem._lruNext;
-  // _lruNext cannot be null
+  // (_lruNext cannot be null)
   aItem._lruNext._lruPrev = aItem._lruPrev;
-  // link it in to the end
+  // - link it in to the end
   this._tail._lruNext = aItem; 
   aItem._lruPrev = this._tail;
   aItem._lruNext = null;
