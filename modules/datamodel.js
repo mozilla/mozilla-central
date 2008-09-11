@@ -481,9 +481,12 @@ GlodaIdentity.prototype = {
     while (!cardForEmailAddress && enumerator.hasMoreElements())
     {
       addrbook = enumerator.getNext().QueryInterface(Ci.nsIAbDirectory);
-      cardForEmailAddress = addrbook.cardForEmailAddress(this._value);
-      if (cardForEmailAddress)
-        return cardForEmailAddress;
+      try
+      {
+        cardForEmailAddress = addrbook.cardForEmailAddress(this._value);
+        if (cardForEmailAddress)
+          return cardForEmailAddress;
+      } catch (ex) {}
     }
   
     return null;
