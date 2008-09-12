@@ -648,7 +648,7 @@ function AbIMSelected()
   var screennameCount = 0;
 
   for (var i=0;i<count;i++) {
-    var screenname = cards[i].aimScreenName;
+    var screenname = cards[i].getProperty("_AimScreenName", "");
     if (screenname) {
       if (screennameCount == 0)
         screennames = screenname;

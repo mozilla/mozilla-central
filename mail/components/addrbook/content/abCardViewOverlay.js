@@ -253,7 +253,7 @@ function DisplayCardViewPane(realCard)
 #if 0
     // for now, disable the presence check since we don't really support this anymore but we may again in the future.
     // I'm leaving the code here for historical reference. See Bug #295726.
-    data.cvAimPresence.setAttribute("src","http://big.oscar.aol.com:80/" + card.aimScreenName + "?on_url=http://ncmail.netscape.com/include/nc/images/online.gif&off_url=http://ncmail.netscape.com/include/nc/images/offline.gif");
+    data.cvAimPresence.setAttribute("src","http://big.oscar.aol.com:80/" + card.getProperty("_AimScreenName") + "?on_url=http://ncmail.netscape.com/include/nc/images/online.gif&off_url=http://ncmail.netscape.com/include/nc/images/offline.gif");
     data.cvAimPresence.setAttribute("url", goimURL);
     data.cvAimPresence.setAttribute("width","16");
 #endif
