@@ -9,8 +9,9 @@
 
 do_import_script("../mailnews/db/global/test/resources/messageGenerator.js");
 
-do_import_script("../mailnews/test/resources/mailDirService.js");
-do_import_script("../mailnews/test/resources/mailTestUtils.js");
+//these are imported by glodaTestHelper's import of head_maillocal
+// do_import_script("../mailnews/test/resources/mailDirService.js");
+// do_import_script("../mailnews/test/resources/mailTestUtils.js");
 do_import_script("../mailnews/db/global/test/resources/glodaTestHelper.js");
 
 // Create a message generator

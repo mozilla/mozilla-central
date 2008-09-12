@@ -150,8 +150,11 @@ GlodaCollectionManager.prototype = {
    *  counts as a cache hit.  Items without pre-existing instances are added
    *  to the cache and left intact.
    */
-  cacheLoadUnify: function gloda_colm_cacheLoadUnify(aNounID, aItems) {
+  cacheLoadUnify: function gloda_colm_cacheLoadUnify(aNounID, aItems,
+      aCacheIfMissing) {
     let cache = this._cachesByNoun[aNounID];
+    if (aCacheIfMissing === undefined)
+      aCacheIfMissing = true; 
     
     // track the items we haven't yet found in a cache/collection (value) and
     //  their index in aItems (key).  We're somewhat abusing the dictionary
@@ -208,9 +211,9 @@ GlodaCollectionManager.prototype = {
       }
     }
     
-    // anything left in unresolvedIndexToItem should be added to the cache...
-    // plus, we already have 'needToCache'
-    if (cache) {
+    // anything left in unresolvedIndexToItem should be added to the cache
+    //  unless !aCacheIfMissing.  plus, we already have 'needToCache'
+    if (cache && aCacheIfMissing) {
       cache.add(needToCache.concat([val for each
                                     (val in unresolvedIndexToItem)]));
     }
@@ -359,12 +362,12 @@ GlodaCollection.prototype = {
    *  should represent the state of the query, so unless we're going to delete
    *  all the items, clearing the collection would violate that constraint.)
    */
-  clear: function() {
+  clear: function gloda_coll_clear() {
     this._idMap = {};
     this.items = [];
   },
 
-  _onItemsAdded: function(aItems) {
+  _onItemsAdded: function gloda_coll_onItemsAdded(aItems) {
     this.items.push.apply(this.items, aItems);
     for each (item in aItems) {
       this._idMap[item.id] = item;
@@ -373,12 +376,12 @@ GlodaCollection.prototype = {
       this._listener.onItemsAdded(aItems);
   },
   
-  _onItemsModified: function(aItems) {
+  _onItemsModified: function gloda_coll_onItemsModified(aItems) {
     if (this._listener)
       this._listener.onItemsModified(aItems);
   },
   
-  _onItemsRemoved: function(aItems) {
+  _onItemsRemoved: function gloda_coll_onItemsRemoved(aItems) {
     // we want to avoid the O(n^2) deletion performance case, and deletion
     //  should be rare enough that the extra cost of building the deletion map
     //  should never be a real problem.

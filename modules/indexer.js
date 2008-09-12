@@ -813,17 +813,25 @@ let GlodaIndexer = {
     yield kWorkDone;
   },
   
+  /**
+   * Handle the destruction (not just moved to trash) of one or more messages.
+   */
   _worker_messageDelete: function (aJob) {
     for (; aJob.offset < aJob.items.length; aJob.offset++) {
       let item = aJob.items[aJob.offset];
 
       // item is either: a message id
       //              or [folder ID, message key]
+      // we need to load the actual message because deletion may need to cascade
+      //  to other tables, which requires us to actually have all of the details
+      //  on the message available to us.
       let message;
       if (item instanceof Array) {
         if (this._indexingFolderID != item[0])
           yield this._indexerEnterFolder(item[0], false);
-        message = this_indexingFolder.GetMessageHeader(item[1]);
+        let msgHdr = this._indexingFolder.GetMessageHeader(item[1]);
+        let message = GlodaDatastore.getMessageFromLocation(msgHdr.folder.URI,
+                                                            msgHdr.messageKey);
       }
       else
         message = GlodaDatastore.getMessageByID(item);
@@ -1319,8 +1327,19 @@ let GlodaIndexer = {
                       (i in range(0, aMsgHdr.numReferences))];
     // also see if we already know about the message...
     references.push(aMsgHdr.messageId);
+    
+    this._datastore.getMessagesByMessageID(references,
+      this._indexMessageWithBodyAndAncestors, this,
+      [references, aMsgHdr, aMimeMsg]);
+    
+    return kWorkAsync;
+  },
+  
+  _indexMessageWithBodyAndAncestors:
+    function gloda_index_indexMessageWithBodyAndAncestors(ancestorLists,
+      references, aMsgHdr, aMimeMsg) {
     // (ancestorLists has a direct correspondence to the message ids)
-    let ancestorLists = this._datastore.getMessagesByMessageID(references);
+    
     // pull our current message lookup results off
     references.pop();
     let candidateCurMsgs = ancestorLists.pop();

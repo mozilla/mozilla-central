@@ -185,25 +185,10 @@ let Gloda = {
   /**
    * Given an nsIMsgDBHdr, return the gloda message object that corresponds to
    *  it.  If no such message exists, null is returned.
-   *
-   * Ideally, if gloda is unable to locate a gloda message corresponding to the
-   *  header, and it has not been told to avoid indexing the message (based on
-   *  folder or other criteria), and the message is not currently queued for
-   *  indexing, it should take some action to resolve the issue.  Either by
-   *  indexing the single message, or checking if an entire folder has been
-   *  overlooked, etc.
    */
   getMessageForHeader: function gloda_ns_getMessageForHeader(aMsgHdr) {
     let message = GlodaDatastore.getMessageFromLocation(aMsgHdr.folder.URI,
                                                         aMsgHdr.messageKey);
-    if (message === null) {
-      message = GlodaDatastore.getMessageByMessageID(aMsgHdr.messageId);
-      if (message)
-        this._log.info("Fell back to locating message by id; actual message " +
-                       "key is: " + aMsgHdr.messageKey + " database key: " +
-                       message.messageKey);
-    }
-    
     return message;
   },
   
@@ -1341,7 +1326,13 @@ let Gloda = {
 };
 
 /* and initialize the Gloda object/NS before we return... */
-Gloda._init();
+try {
+  Gloda._init();
+}
+catch (ex) {
+  Gloda._log.debug("Exception during Gloda init (" + ex.fileName + ":" +
+                   ex.lineNumber + "): " + ex);
+}
 /* but don't forget that we effectively depend on everybody.js too, and
    currently on our importer to be importing that if they need us fully armed
    and operational. */

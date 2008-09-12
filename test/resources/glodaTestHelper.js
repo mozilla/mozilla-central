@@ -45,13 +45,12 @@ var glodaFile = do_get_file("../mailnews/db/global");
 var aliasURI = ioService.newFileURI(glodaFile);
 resProt.setSubstitution("gloda", aliasURI);
 
-// -- Use our newfound imports
-Components.utils.import("resource://gloda/modules/public.js");
-Components.utils.import("resource://gloda/modules/indexer.js");
-
 // -- Pull in the POP3 fake-server / local account helper code
 do_import_script("../mailnews/local/test/unit/head_maillocal.js");
 
+// -- Use our newfound imports
+Components.utils.import("resource://gloda/modules/public.js");
+Components.utils.import("resource://gloda/modules/indexer.js");
 
 
 /**

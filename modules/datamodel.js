@@ -182,6 +182,11 @@ GlodaConversation.prototype = {
   get oldestMessageDate() { return this._oldestMessageDate; },
   get newestMessageDate() { return this._newestMessageDate; },
 
+  /**
+   * @TODO Return the collection of messages belonging to this conversation.
+   * (And weakly store a reference to the collection.  Once the user is rid of
+   *  it, we really don't care.)
+   */
   get messages() {
     if (this._messages == null) {
       this._messages = this._datastore.getMessagesByConversationID(this._id,
@@ -227,7 +232,7 @@ GlodaMessage.prototype = {
   get bodySnippet() { return this._bodySnippet; },
 
   get folderURI() {
-    if (this._folderID)
+    if (this._folderID != null)
       return this._datastore._mapFolderID(this._folderID);
     else
       return null;
@@ -360,6 +365,9 @@ GlodaMessage.prototype = {
    *  attributes, this check does not steady-state.
    *
    * @XXX Try and avoid compelling ourselves to cache every bound attribute.
+   *  (If we stored the cached values in a sub-object, we could just trash the
+   *   sub-object.  This would imply a return to having the getters just create
+   *   a storage field rather than creating magic getters.)
    */
   _replaceAttributes: function gloda_message_replaceAttributes(aNewAttribs) {
     let hadAttributes = this._attributes !== null;

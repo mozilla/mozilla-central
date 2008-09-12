@@ -73,8 +73,20 @@ GlodaQueryClass.prototype = {
     return orQuery;
   },
   
-  getAllSync: function gloda_query_getAllSync() {
-    return this._nounMeta.datastore.queryFromQuery(this);
+  /**
+   * Return a collection asynchronously populated by this collection.  You must
+   *  provide a listener to receive notifications from the collection as it
+   *  receives updates.  The listener object should implement onItemsAdded,
+   *  onItemsModified, and onItemsRemoved methods, all of which take a single
+   *  argument which is the list of items which have been added, modified, or
+   *  removed respectively.
+   */
+  getCollection: function gloda_query_getAll(aListener) {
+    return this._nounMeta.datastore.queryFromQuery(this, aListener);
+  },
+  
+  getAllSync: function gloda_query_getAllSync(aListener) {
+    return this._nounMeta.datastore.queryFromQuery(this, aListener, true);
   },
   
   /**
