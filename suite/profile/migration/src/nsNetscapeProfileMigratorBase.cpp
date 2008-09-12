@@ -686,33 +686,37 @@ nsresult
 nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir,
                                              nsIFile* destDir)
 {
+  PRBool exists;
+  nsresult rv = srcDir->Exists(&exists);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!exists)
+    // We do not want to fail if the source folder does not exist because then
+    // parts of the migration process following this would not get executed
+    return NS_OK;
+
   PRBool isDir;
-  
-  nsresult rv = srcDir->IsDirectory(&isDir);
-  if (NS_FAILED(rv))
-    return rv;
+
+  rv = srcDir->IsDirectory(&isDir);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (!isDir)
     return NS_ERROR_INVALID_ARG;
-  
-  PRBool exists;
+
   rv = destDir->Exists(&exists);
   if (NS_SUCCEEDED(rv) && !exists)
     rv = destDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
 
-  if (NS_FAILED(rv))
-    return rv;
-  
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsISimpleEnumerator> dirIterator;
   rv = srcDir->GetDirectoryEntries(getter_AddRefs(dirIterator));
-  if (NS_FAILED(rv))
-    return rv;
-  
+  NS_ENSURE_SUCCESS(rv, rv);
+
   PRBool hasMore = PR_FALSE;
   rv = dirIterator->HasMoreElements(&hasMore);
-  if (NS_FAILED(rv))
-    return rv;
-  
+  NS_ENSURE_SUCCESS(rv, rv); 
+
   nsCOMPtr<nsIFile> dirEntry;
   
   while (hasMore) {
