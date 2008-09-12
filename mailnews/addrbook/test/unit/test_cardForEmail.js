@@ -8,6 +8,15 @@
  * Uses: cardForEmail.mab
  */
 
+function check_correct_card(card) {
+  do_check_neq(card, null);
+
+  do_check_eq(card.firstName, "FirstName1");
+  do_check_eq(card.lastName, "LastName1");
+  do_check_eq(card.displayName, "DisplayName1");
+  do_check_eq(card.primaryEmail, "PrimaryEmail1@test.invalid");
+}
+
 function run_test() {
   // Test setup - copy the data file into place
   var testAB = do_get_file("../mailnews/addrbook/test/unit/data/cardForEmail.mab");
@@ -36,10 +45,20 @@ function run_test() {
   // of the card are correct.
   var card = AB.cardForEmailAddress("PrimaryEmail1@test.invalid");
 
-  do_check_true(card != null);
+  check_correct_card(card);
 
-  do_check_eq(card.firstName, "FirstName1");
-  do_check_eq(card.lastName, "LastName1");
-  do_check_eq(card.displayName, "DisplayName1");
-  do_check_eq(card.primaryEmail, "PrimaryEmail1@test.invalid");
+  // Check getCardFromProperty returns null correctly for non-extant properties
+  do_check_eq(AB.getCardFromProperty("JobTitle", "", false), null);
+  do_check_eq(AB.getCardFromProperty("JobTitle", "JobTitle", false), null);
+
+  // Check case-insensitive searching works
+  card = AB.getCardFromProperty("JobTitle", "JobTitle1", true);
+  check_correct_card(card);
+  card = AB.getCardFromProperty("JobTitle", "JobTitle1", false);
+  check_correct_card(card);
+
+  do_check_eq(AB.getCardFromProperty("JobTitle", "jobtitle1", true), null);
+
+  card = AB.getCardFromProperty("JobTitle", "jobtitle1", false);
+  check_correct_card(card);
 };

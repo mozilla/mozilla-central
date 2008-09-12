@@ -458,7 +458,9 @@ protected:
   nsCOMPtr<nsIMdbFactory> mMdbFactory;
 
 private:
-  nsresult GetRowForCharColumn(const PRUnichar *unicodeStr, mdb_column findColumn, PRBool bIsCard, nsIMdbRow **findRow);
+  nsresult GetRowForCharColumn(const PRUnichar *unicodeStr,
+                               mdb_column findColumn, PRBool bIsCard,
+                               PRBool aCaseInsensitive, nsIMdbRow **findRow);
   PRBool HasRowButDeletedForCharColumn(const PRUnichar *unicodeStr, mdb_column findColumn, PRBool aIsCard, nsIMdbRow **aFindRow);
   nsresult OpenInternal(nsIFile *aMabFile, PRBool aCreate, nsIAddrDatabase **pCardDB);
   nsresult AlertAboutCorruptMabFile(const PRUnichar *aOldFileName, const PRUnichar *aNewFileName);

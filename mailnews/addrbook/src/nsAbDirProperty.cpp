@@ -315,6 +315,12 @@ NS_IMETHODIMP nsAbDirProperty::CardForEmailAddress(const nsACString &aEmailAddre
                                                    nsIAbCard ** aAbCard)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
+NS_IMETHODIMP nsAbDirProperty::GetCardFromProperty(const char *aProperty,
+                                                   const nsACString &aValue,
+                                                   PRBool caseSensitive,
+                                                   nsIAbCard **result)
+{ return NS_ERROR_NOT_IMPLEMENTED; }
+
 NS_IMETHODIMP nsAbDirProperty::GetSupportsMailingLists(PRBool *aSupportsMailingsLists)
 {
   NS_ENSURE_ARG_POINTER(aSupportsMailingsLists);

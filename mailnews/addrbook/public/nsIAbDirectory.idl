@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Mark Banner <mark@standard8.demon.co.uk>
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -59,7 +60,7 @@ interface nsIMutableArray;
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(ab55bec3-5bf9-4928-8322-5cff399b7045)]
+[scriptable, uuid(1b2637fb-194e-442b-992a-17fe7c068fd4)]
 interface nsIAbDirectory : nsISupports {
 
   /**
@@ -309,7 +310,10 @@ interface nsIAbDirectory : nsISupports {
   //@}
 
   /** 
-   * Returns the address card for the specified email address if found.
+   * Returns an address book card for the specified email address if found.
+   *
+   * If there are multiple cards with the given email address, this method will
+   * return one of these cards in an implementation-defined manner.
    *
    * If the address book type does not know how to find a card, it will throw
    * NS_ERROR_NOT_IMPLEMENTED. Core address book types do throw this exception,
@@ -322,4 +326,27 @@ interface nsIAbDirectory : nsISupports {
    * @return              An nsIAbCard if one was found, else returns NULL.
    */
   nsIAbCard cardForEmailAddress(in AUTF8String emailAddress);
+
+  /**
+   * Returns an address book card for the specified property if found.
+   *
+   * If there are multiple cards with the given value for the property, this
+   * method will return one of these cards in an implementation-defined manner.
+   *
+   * If the address book type does not know how to do this, it will throw
+   * NS_ERROR_NOT_IMPLEMENTED. Core address book types do throw this exception,
+   * so beware when calling this method.
+   *
+   * If the property is not natively a string, it can still be searched for
+   * using the string-encoded value of the property, e.g. "0". See
+   * nsIAbCard::getPropertyAsAUTF8String for more information. Empty values will
+   * return no match, to prevent spurious results.
+   *
+   * @param  aProperty      The property to look for.
+   * @param  aValue         The value to search for.
+   * @param  aCaseSensitive True if matching should be done case-senstively.
+   * @result                An nsIAbCard if one was found, else returns NULL.
+   */
+  nsIAbCard getCardFromProperty(in string aProperty, in AUTF8String aValue,
+                                in boolean aCaseSensitive);
 };

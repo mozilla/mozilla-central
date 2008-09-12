@@ -1550,7 +1550,8 @@ NS_IMETHODIMP nsAddrDatabase::FindRowByCard(nsIAbCard * aCard,nsIMdbRow **aRow)
 {
     nsString primaryEmail;
     aCard->GetPrimaryEmail(primaryEmail);
-    return GetRowForCharColumn(primaryEmail.get(), m_PriEmailColumnToken, PR_TRUE, aRow);
+    return GetRowForCharColumn(primaryEmail.get(), m_PriEmailColumnToken,
+                               PR_TRUE, PR_TRUE, aRow);
 }
 
 nsresult nsAddrDatabase::GetAddressRowByPos(nsIMdbRow* listRow, PRUint16 pos, nsIMdbRow** cardRow)
@@ -3031,10 +3032,8 @@ nsresult nsAddrDatabase::GetRowFromAttribute(const char *aName,
   m_mdbStore->StringToToken(m_mdbEnv, aName, &token);
   NS_ConvertUTF8toUTF16 newUnicodeString(aUTF8Value);
 
-  if (aCaseInsensitive)
-    ToLowerCase(newUnicodeString);
-
-  return GetRowForCharColumn(newUnicodeString.get(), token, PR_TRUE, aCardRow);
+  return GetRowForCharColumn(newUnicodeString.get(), token, PR_TRUE,
+                             aCaseInsensitive, aCardRow);
 }
 
 NS_IMETHODIMP nsAddrDatabase::GetCardFromAttribute(nsIAbDirectory *aDirectory,
@@ -3104,7 +3103,9 @@ NS_IMETHODIMP nsAddrDatabase::FindMailListbyUnicodeName(const PRUnichar *listNam
   ToLowerCase(unicodeString);
 
   nsCOMPtr <nsIMdbRow> listRow;
-  nsresult rv = GetRowForCharColumn(unicodeString.get(), m_LowerListNameColumnToken, PR_FALSE, getter_AddRefs(listRow));
+  nsresult rv = GetRowForCharColumn(unicodeString.get(),
+                                    m_LowerListNameColumnToken, PR_FALSE,
+                                    PR_FALSE, getter_AddRefs(listRow));
   *exist = (NS_SUCCEEDED(rv) && listRow);
   return rv;
 }
@@ -3167,7 +3168,10 @@ nsAddrDatabase::HasRowButDeletedForCharColumn(const PRUnichar *unicodeStr, mdb_c
 }
 
 nsresult
-nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr, mdb_column findColumn, PRBool aIsCard, nsIMdbRow **aFindRow)
+nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr,
+                                    mdb_column findColumn, PRBool aIsCard,
+                                    PRBool aCaseInsensitive,
+                                    nsIMdbRow **aFindRow)
 {
   NS_ENSURE_ARG_POINTER(unicodeStr);
   NS_ENSURE_ARG_POINTER(aFindRow);
@@ -3197,9 +3201,18 @@ nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr, mdb_column find
   // each time we call GetRowForCharColumn().
   if (!HasRowButDeletedForCharColumn(unicodeStr, findColumn, aIsCard, aFindRow))
   {
-    // if we have a row, it's the row for the non-delete card, so return NS_OK.
-    // otherwise, there is no such card (deleted or not), so return NS_ERROR_FAILURE
-    return *aFindRow ? NS_OK : NS_ERROR_FAILURE;
+    // If we have a row, it's the row for the non-delete card, so return NS_OK.
+    // If we don't have a row, there are two possible conditions: either the
+    // card does not exist, or we are doing case-insensitive searching and the
+    // value isn't lowercase.
+
+    // Valid result, return.
+    if (*aFindRow)
+      return NS_OK;
+
+    // We definitely don't have anything at this point if case-sensitive.
+    if (!aCaseInsensitive)
+      return NS_ERROR_FAILURE;
   }
 
   // check if there is a non-deleted card
@@ -3224,16 +3237,27 @@ nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr, mdb_column find
       if ((currentRow->GetOid(m_mdbEnv, &rowOid) == NS_OK) && (rowOid.mOid_Scope == targetScope))
       {
         rv = GetStringColumn(currentRow, findColumn, columnValue);
-        if (NS_SUCCEEDED(rv) && columnValue.Equals(unicodeStr))
+
+#ifdef MOZILLA_INTERNAL_API
+        PRBool equals = aCaseInsensitive ?
+          columnValue.Equals(unicodeStr, nsCaseInsensitiveStringComparator()) :
+          columnValue.Equals(unicodeStr);
+#else
+        PRBool equals = aCaseInsensitive ?
+          columnValue.Equals(unicodeStr, CaseInsensitiveCompare) :
+          columnValue.Equals(unicodeStr);
+#endif
+
+        if (NS_SUCCEEDED(rv) && equals)
         {
           NS_IF_ADDREF(*aFindRow = currentRow);
           return NS_OK;
+        }
       }
     }
-  }
-  else
+    else
       done = PR_TRUE;
-}
+  }
   return NS_ERROR_FAILURE;
 }
 

@@ -1067,3 +1067,32 @@ NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const nsACString &aEmailAddr
 
   return NS_OK;
 }
+
+NS_IMETHODIMP nsAbMDBDirectory::GetCardFromProperty(const char *aProperty,
+                                                    const nsACString &aValue,
+                                                    PRBool caseSensitive,
+                                                    nsIAbCard **result)
+{
+  NS_ENSURE_ARG(aProperty);
+  NS_ENSURE_ARG_POINTER(result);
+
+  *result = nsnull;
+
+  // If the value is empty, don't match.
+  if (aValue.IsEmpty())
+    return NS_OK;
+
+  nsresult rv;
+  if (!mDatabase)
+  {
+    rv = GetAbDatabase();
+    // We can't find the database file, so we can't find the card at all.
+    if (rv == NS_ERROR_FILE_NOT_FOUND)
+      return NS_OK;
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  // nsIAddrDatabase has aCaseInsensitive as its parameter
+  return mDatabase->GetCardFromAttribute(this, aProperty, aValue,
+                                         !caseSensitive, result);
+}
