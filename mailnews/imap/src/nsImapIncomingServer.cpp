@@ -691,20 +691,17 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
   PRBool userCancelled = PR_FALSE;
 
   // loop until we find a connection that can run the url, or doesn't have to wait?
-  for (PRInt32 i = 0; i < cnt && !canRunUrlImmediately && !canRunButBusy; i++)
+  for (PRInt32 i = cnt - 1; i >= 0 && !canRunUrlImmediately && !canRunButBusy; i--)
   {
     connection = m_connectionCache[i];
     if (connection)
     {
-      if (ConnectionTimeOut(connection))
+      PRBool badConnection = ConnectionTimeOut(connection);
+      if (!badConnection)
       {
-        connection = nsnull;
-        i--; cnt--; // if the connection times out, we'll remove it from the array,
-            // so we need to adjust the array index.
-      }
-      else
-      {
-        rv = connection->CanHandleUrl(aImapUrl, &canRunUrlImmediately, &canRunButBusy);
+        badConnection = NS_FAILED(connection->CanHandleUrl(aImapUrl, 
+                                                           &canRunUrlImmediately, 
+                                                           &canRunButBusy));
 #ifdef DEBUG_bienvenu
         nsCAutoString curSelectedFolderName;
         if (connection)    
@@ -729,12 +726,11 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
         }
 #endif // DEBUG_bienvenu
       }
-    }
-    if (NS_FAILED(rv))
-    {
+      if (badConnection)
+      {
         connection = nsnull;
-        rv = NS_OK; // don't want to return this error, just don't use the connection
         continue;
+      }
     }
 
     // if this connection is wrong, but it's not busy, check if we should designate
@@ -762,11 +758,6 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
     if (!canRunButBusy && !canRunUrlImmediately)
       connection = nsnull;
   }
-
-  if (ConnectionTimeOut(connection))
-      connection = nsnull;
-  if (ConnectionTimeOut(freeConnection))
-    freeConnection = nsnull;
 
   nsImapState requiredState;
   aImapUrl->GetRequiredImapState(&requiredState);
