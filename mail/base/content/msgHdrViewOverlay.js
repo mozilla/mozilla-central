@@ -22,6 +22,7 @@
 #
 # Contributor(s):
 #   Markus Hossner <markushossner@gmx.de>
+#   Mark Banner <bugzilla@standard8.plus.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1174,12 +1175,9 @@ function AddContact(emailAddressNode)
 
 function EditContact(emailAddressNode)
 {
-  if (emailAddressNode.cardDetails.card) {
-    window.openDialog("chrome://messenger/content/addressbook/abEditCardDialog.xul",
-                      "", "chrome,resizable=no,modal,titlebar,centerscreen",
-                      { abURI: emailAddressNode.cardDetails.book.URI,
-                        card: emailAddressNode.cardDetails.card });
-  }
+  if (emailAddressNode.cardDetails.card)
+    editContactInlineUI.showEditContactPanel(emailAddressNode.cardDetails,
+                                             emailAddressNode);
 }
 
 // SendMailToNode takes the email address title button, extracts

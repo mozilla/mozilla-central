@@ -16,6 +16,8 @@ messenger.jar:
 *   content/messenger/hiddenWindow.js               (content/hiddenWindow.js)
 *   content/messenger/msgHdrViewOverlay.js          (content/msgHdrViewOverlay.js)
 *   content/messenger/msgHdrViewOverlay.xul         (content/msgHdrViewOverlay.xul)
+    content/messenger/editContactOverlay.js         (content/editContactOverlay.js)
+*   content/messenger/editContactOverlay.xul        (content/editContactOverlay.xul)
 *   content/messenger/msgMail3PaneWindow.js         (content/msgMail3PaneWindow.js)
 *   content/messenger/mail3PaneWindowCommands.js    (content/mail3PaneWindowCommands.js)
 *   content/messenger/mailCommands.js               (content/mailCommands.js)

@@ -41,6 +41,8 @@
   locale/@AB_CD@/messenger/subscribe.properties                         (%chrome/messenger/subscribe.properties)
   locale/@AB_CD@/messenger/msgFolderPickerOverlay.dtd                   (%chrome/messenger/msgFolderPickerOverlay.dtd)
   locale/@AB_CD@/messenger/msgHdrViewOverlay.dtd                        (%chrome/messenger/msgHdrViewOverlay.dtd)
+  locale/@AB_CD@/messenger/editContactOverlay.dtd                       (%chrome/messenger/editContactOverlay.dtd)
+  locale/@AB_CD@/messenger/editContactOverlay.properties                (%chrome/messenger/editContactOverlay.properties)
   locale/@AB_CD@/messenger/mailTurboMenu.properties                     (%chrome/messenger/mailTurboMenu.properties)
   locale/@AB_CD@/messenger/mailEditorOverlay.dtd                        (%chrome/messenger/mailEditorOverlay.dtd)
   locale/@AB_CD@/messenger/msgSynchronize.dtd                           (%chrome/messenger/msgSynchronize.dtd)

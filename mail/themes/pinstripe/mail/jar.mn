@@ -20,8 +20,11 @@ classic.jar:
      skin/classic/messenger/virtualFolderListDialog.css
      skin/classic/messenger/searchDialog.css
      skin/classic/messenger/filterDialog.css
-*   skin/classic/messenger/tabmailBindings.xml
-    skin/classic/messenger/tabmail.css
+*    skin/classic/messenger/tabmailBindings.xml
+     skin/classic/messenger/tabmail.css
+     skin/classic/messenger/editContactOverlay.css
+     skin/classic/messenger/starred48.png
+     skin/classic/messenger/hud-style-button-middle-background.png
      skin/classic/messenger/addressbook/addressbook.css             (addrbook/addressbook.css)
      skin/classic/messenger/addressbook/abContactsPanel.css         (addrbook/abContactsPanel.css)
      skin/classic/messenger/addressbook/cardDialog.css              (addrbook/cardDialog.css)

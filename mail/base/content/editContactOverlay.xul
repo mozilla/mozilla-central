@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Thunderbird Inline Edit Contact Panel.
+   -
+   - The Initial Developer of the Original Code is
+   - Mozilla Messaging.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Mark Banner <bugzilla@standard8.plus.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay [
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
+<!ENTITY % editContactOverlayDTD SYSTEM "chrome://messenger/locale/editContactOverlay.dtd">
+%editContactOverlayDTD;
+]>
+
+<?xml-stylesheet href="chrome://messenger/skin/"?>
+<?xml-stylesheet href="chrome://messenger/skin/editContactOverlay.css"?>
+<?xml-stylesheet href="chrome://messenger/content/messenger.css"?>
+
+<overlay id="editContactOverlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="bundle_editContact"
+                  src="chrome://messenger/locale/editContactOverlay.properties"/>
+  </stringbundleset>
+
+  <panel id="editContactPanel" orient="vertical" ignorekeys="true" hidden="true"
+	 aria-labelledby="editContactPanelTitle"
+	 chromedir="&locale.dir;"
+	 onpopuphidden="editContactInlineUI.onPopupHidden(event);"
+         onpopupshown="editContactInlineUI.onPopupShown(event);"
+	 onkeypress="editContactInlineUI.onKeyPress(event, true);">
+    <hbox flex="1" align="top">
+      <image id="editContactPanelIcon"/>
+      <label id="editContactPanelTitle" flex="1"/>
+    </hbox>
+      
+    <vbox id="editContactContent">
+      <grid id="editContactGrid" flex="1">
+        <columns>
+          <column/>
+          <column flex="1"/>
+        </columns>
+        <rows>
+          <row align="center" id="editContactNameRow">
+            <label value="&editContactName.label;"
+                   accesskey="&editContactName.accesskey;"
+                   control="editContactName"/>
+            <textbox id="editContactName" class="editContactTextbox"
+                     onkeypress="editContactInlineUI.onKeyPress(event, true);"/>
+          </row>
+	  <row align="center" id="editContactEmailRow">
+            <label value="&editContactEmail.label;"
+                   accesskey="&editContactEmail.accesskey;"
+                   control="editContactEmail"/>
+            <textbox id="editContactEmail" readonly="true"
+                     class="editContactTextbox"
+                     onkeypress="editContactInlineUI.onKeyPress(event, true);"/>
+	  </row>
+        </rows>
+      </grid>
+    </vbox>
+
+    <hbox flex="1" id="editContactPanelBottomButtons">
+      <button id="editContactPanelEditDetailsButton"
+              oncommand="editContactInlineUI.editDetails();"
+              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+      <spacer flex="1"/>
+#ifndef XP_UNIX
+      <button id="editContactPanelDoneButton"
+              label="&editContactPanelDone.label;"
+              accesskey="&editContactPanelDone.accesskey;" default="true"
+              oncommand="editContactInlineUI.saveChanges();"
+	      onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+      <button id="editContactPanelCancelButton"
+              label="&editContactPanelCancel.label;"
+              accesskey="&editContactPanelCancel.accesskey;"
+              oncommand="editContactInlineUI.panel.hidePopup();"
+	      onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+#else
+      <button id="editContactPanelCancelButton"
+              label="&editContactPanelCancel.label;"
+              accesskey="&editContactPanelCancel.accesskey;"
+              oncommand="editContactInlineUI.panel.hidePopup();"
+	      onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+      <button id="editContactPanelDoneButton"
+              label="&editContactPanelDone.label;"
+              accesskey="&editContactPanelDone.accesskey;" default="true"
+              oncommand="editContactInlineUI.saveChanges();"
+	      onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
+#endif
+    </hbox>
+  </panel>
+</overlay>
+ 
