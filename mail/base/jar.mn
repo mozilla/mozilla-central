@@ -3,6 +3,7 @@ messenger.jar:
 % content messenger %content/messenger/ xpcnativewrappers=yes
 % override chrome://messagebody/skin/messageBody.css chrome://messenger/skin/messageBody.css
 % overlay chrome://global/content/viewSource.xul chrome://messenger/content/viewSourceOverlay.xul
+% overlay chrome://global/content/config.xul chrome://messenger/content/configEditorOverlay.xul
 *   content/messenger/mailWindow.js                 (content/mailWindow.js)
 *   content/messenger/mailWindowOverlay.js          (content/mailWindowOverlay.js)
 *   content/messenger/mailWindowOverlay.xul         (content/mailWindowOverlay.xul)
@@ -51,6 +52,7 @@ messenger.jar:
 *   content/messenger/newmailalert.xul              (content/newmailalert.xul)
     content/messenger/newmailalert.js               (content/newmailalert.js)
 *   content/messenger/viewSourceOverlay.xul         (content/viewSourceOverlay.xul)
+*   content/messenger/configEditorOverlay.xul       (content/configEditorOverlay.xul)
     content/messenger/msgSynchronize.xul            (/mailnews/base/resources/content/msgSynchronize.xul)
     content/messenger/msgSynchronize.js             (/mailnews/base/resources/content/msgSynchronize.js)
     content/messenger/folderProps.xul               (/mailnews/base/resources/content/folderProps.xul)
