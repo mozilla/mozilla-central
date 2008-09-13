@@ -674,6 +674,28 @@ let GlodaDatastore = {
   /** Simple nested transaction support as a performance optimization. */  
   _transactionDepth: 0,
   _transactionGood: false,
+  
+  get _beginTransactionStatement() {
+    let statement = this._createAsyncStatement(
+      "BEGIN TRANSACTION");
+    this.__defineGetter__("_beginTransactionStatement", function() statement);
+    return this._beginTransactionStatement; 
+  },
+
+  get _commitTransactionStatement() {
+    let statement = this._createAsyncStatement(
+      "COMMIT");
+    this.__defineGetter__("_commitTransactionStatement", function() statement);
+    return this._commitTransactionStatement; 
+  },
+
+  get _rollbackTransactionStatement() {
+    let statement = this._createAsyncStatement(
+      "ROLLBACK");
+    this.__defineGetter__("_rollbackTransactionStatement", function() statement);
+    return this._rollbackTransactionStatement; 
+  },
+  
   /**
    * Begin a potentially nested transaction; only the outermost transaction gets
    *  to be an actual transaction, and the failure of any nested transaction
@@ -682,8 +704,7 @@ let GlodaDatastore = {
    */
   _beginTransaction: function gloda_ds_beginTransaction() {
     if (this._transactionDepth == 0) {
-// no transactions for async for now
-//      this.dbConnection.beginTransaction();
+      this._beginTransactionStatement.executeAsync();
       this._transactionGood = true;
     }
     this._transactionDepth++;
@@ -697,12 +718,10 @@ let GlodaDatastore = {
     this._transactionDepth--;
     if (this._transactionDepth == 0) {
       try {
-/* no transactions for async for now      
         if (this._transactionGood)
-          this.dbConnection.commitTransaction();
+          this._commitTransactionStatement.executeAsync();
         else
-          this.dbConnection.rollbackTransaction();
-*/
+          this._rollbackTransaction.executeAsync();
       }
       catch (ex) {
         this._log.error("Commit problem: " + ex);
@@ -719,8 +738,7 @@ let GlodaDatastore = {
     this._transactionGood = false;
     if (this._transactionDepth == 0) {
       try {
-// no transactions for async for now
-//        this.dbConnection.rollbackTransaction();
+        this._rollbackTransactionStatement.executeAsync();
       }
       catch (ex) {
         this._log.error("Rollback problem: " + ex);
