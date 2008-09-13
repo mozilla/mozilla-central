@@ -119,7 +119,7 @@ QueryFromQueryCallback.prototype = {
     let row;
     let nounMeta = this.nounMeta;
     while (row = aResultSet.getNextRow()) {
-      let item = nounMeta.objFromRow.call(nounMeta.datastore, statement);
+      let item = nounMeta.objFromRow.call(nounMeta.datastore, row);
       newItems.push(item);
     }
     // have the collection manager attempt to replace the instances we just
@@ -131,7 +131,7 @@ QueryFromQueryCallback.prototype = {
     //  will cause needless churn if so.  as such, indicate that we never want
     //  to have our items added to the cache.  after all, as long as our
     //  collection is alive, they can just be found there anyways.  (and when
-    //  found there, they may be promoted to the cache anyways.)    
+    //  found there, they may be promoted to the cache anyways.)
     GlodaCollectionManager.cacheLoadUnify(nounMeta.id, newItems, false);
     
     // just directly tell the collection about the items.  we know the query
