@@ -142,8 +142,9 @@
     <menuitem id="emailAddressPlaceHolder" label=""
               disabled="true"/>
     <menuseparator/>
-    <menuitem id="addToAddressBookItem" label="&AddToAddressBook.label;"
-              accesskey="&AddToAddressBook.accesskey;"
+    <menuitem id="addToAddressBookItem"
+              label="&AddDirectlyToAddressBook.label;"
+              accesskey="&AddDirectlyToAddressBook.accesskey;"
               oncommand="AddContact(document.popupNode)"/>
     <menuitem id="editContactItem" label="&EditContact.label;" hidden="true"
               accesskey="&EditContact.accesskey;"

@@ -1164,12 +1164,13 @@ function getCardForEmail(emailAddress)
 function AddContact(emailAddressNode)
 {
   if (emailAddressNode) {
-    var primaryEmail = emailAddressNode.getAttribute("emailAddress");
-    var displayName = emailAddressNode.getAttribute("displayName");
-    window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul",
-                      "",
-                      "chrome,resizable=no,titlebar,modal,centerscreen",
-                      {primaryEmail:primaryEmail, displayName:displayName });
+    // Just save the new node straight away
+    Components.classes["@mozilla.org/addressbook/services/addressCollecter;1"]
+      .getService(Components.interfaces.nsIAbAddressCollecter)
+      .collectSingleAddress(emailAddressNode.getAttribute("emailAddress"),
+                            emailAddressNode.getAttribute("displayName"), true,
+                            Components.interfaces.nsIAbPreferMailFormat.unknown,
+                            true);
   }
 }
 
