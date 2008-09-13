@@ -451,13 +451,14 @@ GlodaContact.prototype = {
 };
 
 function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue,
-                       aIsRelay) {
+                       aDescription, aIsRelay) {
   this._datastore = aDatastore;
   this._id = aID;
   this._contactID = aContactID;
   this._contact = aContact;
   this._kind = aKind;
   this._value = aValue;
+  this._description = aDescription;
   this._isRelay = aIsRelay;
 }
 
@@ -467,6 +468,7 @@ GlodaIdentity.prototype = {
   get contactID() { return this._contactID; }, 
   get kind() { return this._kind; },
   get value() { return this._value; },
+  get description() { return this._description; },
   get isRelay() { return this._isRelay; },
   
   get contact() {

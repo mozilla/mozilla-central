@@ -78,11 +78,14 @@ nsAutoCompleteGlodaResult.prototype = {
   get matchCount() {
     return (this._results === null) ? 0 : this._results.length;
   },
+  // this is the lower text, (shows the url in firefox)
+  // we try and show the contact's name here.
   getValueAt: function(aIndex) {
     let thing = this._results[aIndex];
     return thing.name || thing.value || thing.subject;
   },
-  // rich uses this to be the "title"
+  // rich uses this to be the "title".  it is the upper text
+  // we try and show the identity here.
   getCommentAt: function(aIndex) {
     let thing = this._results[aIndex];
     if (thing.value) // identity

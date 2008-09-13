@@ -1082,7 +1082,7 @@ let GlodaDatastore = {
       
       scbids.bindInt64Parameter(0, aConversationID);
       if (scbids.executeStep()) {
-        conversation = this._conversationFromRow(scbids.row);
+        conversation = this._conversationFromRow(scbids);
         GlodaCollectionManager.itemLoaded(conversation);
       }
       scbids.reset();
@@ -1379,7 +1379,7 @@ let GlodaDatastore = {
     smidbfs.bindInt64Parameter(0, aFolderID);
     
     while (smidbfs.executeStep()) {
-      messageIDs.push(smidbfs.row["id"]);
+      messageIDs.push(smidbfs.getInt64(0));
     }
     smidbfs.reset();
     
@@ -1944,10 +1944,14 @@ let GlodaDatastore = {
       directoryUUID = null;
     else
       directoryUUID = aRow.getString(1);
+    if (aRow.getTypeOfIndex(2) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
+      contactUUID = null;
+    else
+      contactUUID = aRow.getString(2);
       
     return new GlodaContact(this, aRow.getInt64(0), directoryUUID,
-                            contactUUID, aRow.getString(3),
-                            aRow.getInt64(4), aRow.getInt64(5));
+                            contactUUID, aRow.getString(5),
+                            aRow.getInt64(3), aRow.getInt64(4));
   },
   
   get _selectContactByIDStatement() {
