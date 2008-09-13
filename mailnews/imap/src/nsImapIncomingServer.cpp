@@ -2692,7 +2692,19 @@ nsImapIncomingServer::GetFormattedStringFromID(const nsAString& aValue, PRInt32 
 nsresult
 nsImapIncomingServer::GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue)
 {
-  return GetBoolValue(prefSuffix, prefValue);
+  NS_ENSURE_ARG_POINTER(prefValue);
+
+  // GetBoolValue will default to false if it's not present, which is not what
+  // the callers of this method expect. Save the passed-in value so that we can
+  // reset if the we can't find the value.
+  // See bug #455069 and bug #454936 for two known regressions caused by this
+  // change.
+  PRBool oldValue = *prefValue;
+  nsresult rv = GetBoolValue(prefSuffix, prefValue);
+  if (NS_FAILED(rv))
+    *prefValue = oldValue;
+
+  return rv;
 }
 
 NS_IMETHODIMP
