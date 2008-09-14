@@ -1546,12 +1546,22 @@
                        oncommand="goDoCommand('button_junk')"/>
       </deck>
     </toolbaritem>
-    <toolbarbutton id="button-delete"
-                   class="toolbarbutton-1"
-                   label="&deleteButton.label;"
-                   tooltiptext="&deleteButton.tooltip;"
-                   observes="button_delete"
-                   oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
+    <toolbaritem id="button-delete">
+      <deck id="delete-deck" observes="button_delete">
+         <toolbarbutton id="button-mark-deleted"
+                        class="toolbarbutton-1"
+                        label="&deleteButton.label;"
+                        tooltiptext="&deleteButton.tooltip;"
+                        observes="button_delete"
+                        oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
+         <toolbarbutton id="button-mark-undelete"
+                        class="toolbarbutton-1"
+                        label="&undeleteButton.label;"
+                        tooltiptext="&undeleteButton.tooltip;"
+                        observes="button_delete"
+                        oncommand="goDoCommand('cmd_delete')"/>
+      </deck>
+    </toolbaritem>
 #ifdef XP_MACOSX
     <toolbarbutton id="button-print"
                    class="toolbarbutton-1"

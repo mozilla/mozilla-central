@@ -183,6 +183,7 @@ nsMsgDBViewCommandUpdater.prototype =
     ClearPendingReadTimer(); // we are loading / selecting a new message so kill the mark as read timer for the currently viewed message
     gCurrentMessageUri = gDBView.URIForFirstSelectedMessage;
     UpdateStandAloneMessageCounts();
+    goUpdateCommand("button_delete");
     goUpdateCommand("button_junk");
     goUpdateCommand("button_goBack");
     goUpdateCommand("button_goForward");
@@ -846,6 +847,8 @@ var MessageWindowController =
         UpdateDeleteCommand();
         // fall through
       case "button_delete":
+        UpdateDeleteToolbarButton();
+        // fall through
       case "cmd_shiftDelete":
         var loadedFolder = GetLoadedMsgFolder();
         return gCurrentMessageUri && loadedFolder && (loadedFolder.canDeleteMessages || isNewsURI(gCurrentFolderUri));

@@ -113,7 +113,6 @@ function menu_new_init()
 function goUpdateMailMenuItems(commandset)
 {
 //  dump("Updating commands for " + commandset.id + "\n");
-
   for (var i = 0; i < commandset.childNodes.length; i++)
   {
     var commandID = commandset.childNodes[i].getAttribute("id");
@@ -781,6 +780,19 @@ function UpdateJunkToolbarButton()
   var junkButtonDeck = document.getElementById("junk-deck");
   if (junkButtonDeck)
     junkButtonDeck.selectedIndex = SelectedMessagesAreJunk() ? 1 : 0;
+}
+
+function UpdateDeleteToolbarButton()
+{
+  var deleteButtonDeck = document.getElementById("delete-deck");
+  if (!deleteButtonDeck)
+    return;
+
+  // Never show "Undelete" for folders.
+  if (WhichPaneHasFocus() == GetFolderTree())
+    deleteButtonDeck.selectedIndex = 0;
+  else
+    deleteButtonDeck.selectedIndex = SelectedMessagesAreDeleted() ? 1 : 0;
 }
 
 function UpdateDeleteCommand()
@@ -2726,6 +2738,8 @@ function OnMsgLoaded(aUrl)
     var msgHdr = msgHdrForCurrentMessage();
     gMessageNotificationBar.setJunkMsg(msgHdr);
 
+    goUpdateCommand('button_delete');
+
     var markReadAutoMode = gPrefBranch.getBoolPref("mailnews.mark_message_read.auto");
 
     // We just finished loading a message. If messages are to be marked as read
@@ -2791,7 +2805,7 @@ function OnMsgLoaded(aUrl)
 
         res = outputPFC.copyMessages(currentMsgFolder, messages, false /*isMove*/, msgWindow /* nsIMsgWindow */, null /* listener */, false /* isFolder */, false /*allowUndo*/ );
       }
-   }
+    }
 }
 
 //

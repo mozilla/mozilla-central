@@ -22,7 +22,8 @@
 #
 # Contributor(s):
 #   Jan Varga <varga@nixcorp.com>
-#   Håkan Waara (hwaara@chello.se)
+#   HÃ¥kan Waara <hwaara@gmail.com>
+#   Magnus Melin <mkmelin+mozilla@iki.fi>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -71,6 +72,8 @@ var FolderPaneController =
         return false;
       case "cmd_delete":
       case "button_delete":
+        // Make sure the button doesn't show "Undelete" for folders.
+        UpdateDeleteToolbarButton();
       case "button_compact":
       if ( command == "cmd_delete" )
         goSetMenuValue(command, 'valueFolder');
@@ -141,7 +144,6 @@ var DefaultController =
 {
    supportsCommand: function(command)
   {
-
     switch ( command )
     {
       case "cmd_createFilterFromPopup":
@@ -259,6 +261,7 @@ var DefaultController =
         UpdateDeleteCommand();
         // fall through
       case "button_delete":
+        UpdateDeleteToolbarButton();
         if (gDBView)
           gDBView.getCommandStatus(nsMsgViewCommandType.deleteMsg, enabled, checkStatus);
         return enabled.value;
@@ -794,7 +797,6 @@ function WhichPaneHasFocus()
 
     currentNode = currentNode.parentNode;
   }
-
   return null;
 }
 
