@@ -247,7 +247,7 @@ let GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 5,
+  _schemaVersion: 6,
   _schema: {
     tables: {
       
@@ -478,8 +478,23 @@ let GlodaDatastore = {
   },
   
   shutdown: function gloda_ds_shutdown() {
+    // clear out any transaction
+    while (this._transactionDepth) {
+      this._log.info("Closing pending transaction out for shutdown.");
+      // just schedule this function to be run again once the transaction has
+      //  been closed out.
+      this._commitTransactionStatement(this.shutdown, this);
+    }
+
     this._cleanupAsyncStatements();
+    this._log.info("Closing async connection");
+    this.asyncConnection.close();
+    this.asyncConnection = null;
+    
     this._cleanupSyncStatements();
+    this._log.info("Closing sync connection");
+    this.syncConnection.close();
+    this.syncConnection = null;
   },
   
   /**
@@ -708,22 +723,19 @@ let GlodaDatastore = {
   _transactionGood: false,
   
   get _beginTransactionStatement() {
-    let statement = this._createAsyncStatement(
-      "BEGIN TRANSACTION");
+    let statement = this._createAsyncStatement("BEGIN TRANSACTION");
     this.__defineGetter__("_beginTransactionStatement", function() statement);
     return this._beginTransactionStatement; 
   },
 
   get _commitTransactionStatement() {
-    let statement = this._createAsyncStatement(
-      "COMMIT");
+    let statement = this._createAsyncStatement("COMMIT");
     this.__defineGetter__("_commitTransactionStatement", function() statement);
     return this._commitTransactionStatement; 
   },
 
   get _rollbackTransactionStatement() {
-    let statement = this._createAsyncStatement(
-      "ROLLBACK");
+    let statement = this._createAsyncStatement("ROLLBACK");
     this.__defineGetter__("_rollbackTransactionStatement", function() statement);
     return this._rollbackTransactionStatement; 
   },
@@ -746,19 +758,33 @@ let GlodaDatastore = {
    *  transaction and no sub-transaction issues a rollback
    *  (via _rollbackTransaction) then we commit, otherwise we rollback.
    */
-  _commitTransaction: function gloda_ds_commitTransaction() {
+  _commitTransaction: function gloda_ds_commitTransaction(aCallback,
+      aCallbackThis) {
     this._transactionDepth--;
     if (this._transactionDepth == 0) {
+      let notifier = undefined;
+      if (aCallback) {
+        notifier = {
+          handleResult: function () {},
+          handleError: function() {},
+          handleCompletion: function () {
+            aCallback.call(aCallbackThis);
+          }
+        };
+      }
       try {
         if (this._transactionGood)
-          this._commitTransactionStatement.executeAsync();
+          this._commitTransactionStatement.executeAsync(notifier);
         else
-          this._rollbackTransaction.executeAsync();
+          this._rollbackTransaction.executeAsync(notifier);
       }
       catch (ex) {
         this._log.error("Commit problem: " + ex);
       }
     }
+    // call the callback immediately if we don't need to pend
+    else if (aCallback)
+      aCallback.call(aCallbackThis);
   },
   /**
    * Abort the commit of the potentially nested transaction.  If we are not the
@@ -840,12 +866,9 @@ let GlodaDatastore = {
    *  database.)
    */
   getAllAttributes: function gloda_ds_getAllAttributes() {
-    let statement = this._createSyncStatement(
+    let stmt = this._createSyncStatement(
       "SELECT id, attributeType, extensionName, name, parameter \
          FROM attributeDefinitions", true);
-    this.__defineGetter__("_selectAttributeDefinitionsStatement",
-      function() statement);
-    return this._selectAttributeDefinitionsStatement;
 
     // map compound name to the attribute
     let attribs = {};
@@ -1324,11 +1347,12 @@ let GlodaDatastore = {
                                       messageKey = ?2 \
                    WHERE folderID = ?3 \
                      AND messageKey IN (" + aMessageKeys.join(", ") + ")";
-    let statement = this._createAsyncStatement(sqlStr);
+    let statement = this._createAsyncStatement(sqlStr, true);
     statement.bindInt64Parameter(2, srcFolderID);
     statement.bindInt64Parameter(0, destFolderID);
     statement.bindNullParameter(1);
     statement.executeAsync();
+    statement.finalize();
   },
   
   _messageFromRow: function gloda_ds_messageFromRow(aRow) {
@@ -1472,6 +1496,7 @@ let GlodaDatastore = {
     
     statement.executeAsync(new MessagesByMessageIdCallback(statement,
       msgIDToIndex, results, aCallback, aCallbackThis, aCallbackArgs));
+    statement.finalize();
   },
 
   get _deleteMessageByIDStatement() {
@@ -1677,12 +1702,12 @@ let GlodaDatastore = {
     
     smas.bindInt64Parameter(0, aMessage.id);
     while (this._syncStep(smas)) {
-      let attributeID = smas.getInt64(1);
+      let attributeID = smas.getInt64(0);
       if (!(attributeID in this._attributeIDToDef)) {
         this._log.error("Attribute ID " + attributeID + " not in our map!");
       } 
       let attribAndParam = this._attributeIDToDef[attributeID];
-      let val = smas.getDouble(2);
+      let val = smas.getDouble(1);
       attribParamVals.push([attribAndParam[0], attribAndParam[1], val]);
     }
     smas.reset();
@@ -1867,6 +1892,7 @@ let GlodaDatastore = {
 
       statement.executeAsync(new QueryFromQueryCallback(statement, nounMeta,
         collection));
+      statement.finalize();
     }
     return collection;
   },

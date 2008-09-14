@@ -242,7 +242,7 @@ let GlodaIndexer = {
     // register for shutdown notification
     let observerService = Cc["@mozilla.org/observer-service;1"].
                             getService(Ci.nsIObserverService);
-    observerService.addObserver(this, "xpcom-shutdown", false);
+    observerService.addObserver(this, "quit-application", false);
 
     // figure out if event-driven indexing should be enabled...
     let prefService = Cc["@mozilla.org/preferences-service;1"].
@@ -263,6 +263,8 @@ let GlodaIndexer = {
     let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
                         getService(Ci.nsIMsgMailSession);
     mailSession.RemoveFolderListener(this._folderListener);
+    
+    GlodaDatastore.shutdown();
   },
   
   /**
@@ -929,7 +931,7 @@ let GlodaIndexer = {
   
   /* *********** Event Processing *********** */
   observe: function gloda_indexer_observe(aSubject, aTopic, aData) {
-    if (aTopic == "xpcom-shutdown") {
+    if (aTopic == "quit-application") {
       GlodaIndexer._shutdown();
     }
   },
