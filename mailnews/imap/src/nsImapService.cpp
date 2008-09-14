@@ -102,7 +102,6 @@
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
 #include "nsInt64.h"
-#include "nsIFolderLookupService.h"
 
 #define PREF_MAIL_ROOT_IMAP "mail.root.imap"            // old - for backward compatibility only
 #define PREF_MAIL_ROOT_IMAP_REL "mail.root.imap-rel"
