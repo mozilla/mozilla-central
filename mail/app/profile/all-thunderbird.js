@@ -211,6 +211,10 @@ pref("editor.singleLine.pasteNewlines", 4);  // substitute commas for new lines 
 // to avoid the height of the header area from changing when headers are present / not present
 pref("mailnews.headers.minNumHeaders", 0); // 0 means we ignore this pref
 
+// 0=no header, 1="<author> wrote:", 2="On <date> <author> wrote:"
+// 3="<author> wrote On <date>:", 4=user specified
+pref("mailnews.reply_header_type", 2);
+
 // only affects cookies from RSS articles
 // 0-Accept, 1-dontAcceptForeign, 2-dontUse
 pref("network.cookie.cookieBehavior", 0);
