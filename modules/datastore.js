@@ -637,6 +637,38 @@ let GlodaDatastore = {
   },
   
   /**
+   * Perform a synchronous executeStep on the statement, handling any
+   *  SQLITE_BUSY fallout that could conceivably happen from a collision on our
+   *  read with the async writes.
+   * Basically we keep trying until we succeed or run out of tries.
+   * We believe this to be a reasonable course of action because we don't
+   *  expect this to happen much.
+   */
+  _syncStep: function gloda_ds_syncStep(aStatement) {
+    let tries = 0;
+    while (tries < 32000) {
+      try {
+        return aStatement.executeStep();
+      }
+      // SQLITE_BUSY becomes NS_ERROR_FAILURE
+      catch (e if e.result == 0x80004005) {
+        tries++;
+        // we really need to delay here, somehow.  unfortunately, we can't
+        //  allow event processing to happen, and most of the things we could
+        //  do to delay ourselves result in event processing happening.  (Use
+        //  of a timer, a synchronous dispatch, etc.)
+        // in theory, nsIThreadEventFilter could allow us to stop other events
+        //  that aren't our timer from happening, but it seems slightly
+        //  dangerous and 'notxpcom' suggests it ain't happening anyways...
+        // so, let's just be dumb and hope that the underlying file I/O going
+        //  on makes us more likely to yield to the other thread so it can
+        //  finish what it is doing...
+      }
+    }
+    this._log.error("Synchronous step gave up after " + tries + " tries.");
+  },
+  
+  /**
    * Helper to bind based on the actual type of the javascript value.  Note
    *  that we always use int64 because under the hood sqlite just promotes the
    *  normal 'int' call to 'int64' anyways.
@@ -762,7 +794,7 @@ let GlodaDatastore = {
   _populateAttributeDefManagedId: function () {
     let stmt = this._createSyncStatement(
       "SELECT MAX(id) FROM attributeDefinitions", true);
-    if (stmt.executeStep()) {
+    if (stmt.executeStep()) { // no chance of this SQLITE_BUSY on this call
       this._nextAttributeId = stmt.getInt64(0) + 1;
     }
     stmt.finalize();
@@ -823,7 +855,7 @@ let GlodaDatastore = {
 
     this._log.info("loading all attribute defs");
     
-    while (stmt.executeStep()) {
+    while (stmt.executeStep()) {  // no chance of this SQLITE_BUSY on this call
       let rowId = stmt.getInt64(0);
       let rowAttributeType = stmt.getInt64(1);
       let rowExtensionName = stmt.getString(2);
@@ -896,7 +928,7 @@ let GlodaDatastore = {
     let stmt = this._createSyncStatement(
       "SELECT id, folderURI FROM folderLocations", true);
 
-    while (stmt.executeStep()) {
+    while (stmt.executeStep()) {  // no chance of this SQLITE_BUSY on this call
       let folderID = stmt.getInt64(0);
       let folderURI = stmt.getString(1);
       this._folderURIs[folderURI] = folderID;
@@ -983,7 +1015,7 @@ let GlodaDatastore = {
   _populateConversationManagedId: function () {
     let stmt = this._createSyncStatement(
       "SELECT MAX(id) FROM conversations", true);
-    if (stmt.executeStep()) {
+    if (stmt.executeStep()) { // no chance of this SQLITE_BUSY on this call
       this._nextConversationId = stmt.getInt64(0) + 1;
     }
     stmt.finalize();
@@ -1099,7 +1131,7 @@ let GlodaDatastore = {
       let scbids = this._selectConversationByIDStatement;
       
       scbids.bindInt64Parameter(0, aConversationID);
-      if (scbids.executeStep()) {
+      if (this._syncStep(scbids)) {
         conversation = this._conversationFromRow(scbids);
         GlodaCollectionManager.itemLoaded(conversation);
       }
@@ -1119,7 +1151,7 @@ let GlodaDatastore = {
   _populateMessageManagedId: function () {
     let stmt = this._createSyncStatement(
       "SELECT MAX(id) FROM messages", true);
-    if (stmt.executeStep()) {
+    if (stmt.executeStep()) { // no chance of this SQLITE_BUSY on this call
       this._nextMessageId = stmt.getInt64(0) + 1;
     }
     stmt.finalize();
@@ -1337,7 +1369,7 @@ let GlodaDatastore = {
       let smbis = this._selectMessageByIDStatement;
       
       smbis.bindInt64Parameter(0, aID);
-      if (smbis.executeStep()) {
+      if (this._syncStep(smbis)) {
         message = this._messageFromRow(smbis);
         GlodaCollectionManager.itemLoaded(message);
       }
@@ -1370,7 +1402,7 @@ let GlodaDatastore = {
     this._selectMessageByLocationStatement.bindInt64Parameter(1, aMessageKey);
     
     let message = null;
-    if (this._selectMessageByLocationStatement.executeStep())
+    if (this._syncStep(this._selectMessageByLocationStatement))
       message = this._messageFromRow(this._selectMessageByLocationStatement);
     this._selectMessageByLocationStatement.reset();
     
@@ -1396,7 +1428,7 @@ let GlodaDatastore = {
     let smidbfs = this._selectMessageIDsByFolderStatement;
     smidbfs.bindInt64Parameter(0, aFolderID);
     
-    while (smidbfs.executeStep()) {
+    while (this._syncStep(smidbfs)) {
       messageIDs.push(smidbfs.getInt64(0));
     }
     smidbfs.reset();
@@ -1520,7 +1552,7 @@ let GlodaDatastore = {
     statement.bindInt64Parameter(0, aConversationID); 
     
     let messages = [];
-    while (statement.executeStep()) {
+    while (this._syncStep(statement)) {
       messages.push(this._messageFromRow(statement));
     }
     statement.reset();
@@ -1644,7 +1676,7 @@ let GlodaDatastore = {
     let smas = this._selectMessageAttributesByMessageIDStatement;
     
     smas.bindInt64Parameter(0, aMessage.id);
-    while (smas.executeStep()) {
+    while (this._syncStep(smas)) {
       let attributeID = smas.getInt64(1);
       if (!(attributeID in this._attributeIDToDef)) {
         this._log.error("Attribute ID " + attributeID + " not in our map!");
@@ -1813,7 +1845,7 @@ let GlodaDatastore = {
       let statement = this._createSyncStatement(sqlString, true);
     
       let items = [];
-      while (statement.executeStep()) {
+      while (this._syncStep(statement)) {
         items.push(nounMeta.objFromRow.call(nounMeta.datastore, statement));
       }
       statement.finalize();
@@ -1874,7 +1906,7 @@ let GlodaDatastore = {
     let statement = this._createSyncStatement(sqlString, true);
     
     let messages = [];
-    while (statement.executeStep()) {
+    while (this._syncStep(statement)) {
       messages.push(this._messageFromRow(statement));
     }
     statement.finalize();
@@ -1891,7 +1923,7 @@ let GlodaDatastore = {
 
   _populateContactManagedId: function () {
     let stmt = this._createSyncStatement("SELECT MAX(id) FROM contacts", true);
-    if (stmt.executeStep()) {
+    if (stmt.executeStep()) {  // no chance of this SQLITE_BUSY on this call
       this._nextContactId = stmt.getInt64(0) + 1;
     }
     stmt.finalize();
@@ -1987,7 +2019,7 @@ let GlodaDatastore = {
     if (contact === null) {
       let scbi = this._selectContactByIDStatement;
       scbi.bindInt64Parameter(0, aContactID);
-      if (scbi.executeStep()) {
+      if (this._syncStep(scbi)) {
         contact = this._contactFromRow(scbi);
         GlodaCollectionManager.itemLoaded(contact);
       }
@@ -2000,10 +2032,10 @@ let GlodaDatastore = {
   /* ********** Identity ********** */
   /** next identity id, managed for async use reasons. */
   _nextIdentityId: 1,
-  _populateIdentityManagedId: function () {
+  _populateIdentityManagedId: function () { 
     let stmt = this._createSyncStatement(
       "SELECT MAX(id) FROM identities", true);
-    if (stmt.executeStep()) {
+    if (stmt.executeStep()) { // no chance of this SQLITE_BUSY on this call
       this._nextIdentityId = stmt.getInt64(0) + 1;
     }
     stmt.finalize();
@@ -2059,7 +2091,7 @@ let GlodaDatastore = {
     let ibkv = this._selectIdentityByKindValueStatement;
     ibkv.bindStringParameter(0, aKind);
     ibkv.bindStringParameter(1, aValue);
-    if (ibkv.executeStep()) {
+    if (this._syncStep(ibkv)) {
       identity = this._identityFromRow(ibkv);
     }
     ibkv.reset();
@@ -2082,7 +2114,7 @@ let GlodaDatastore = {
     if (identity === null) {
       let sibis = this._selectIdentityByIDStatement;
       sibis.bindInt64Parameter(0, aID);
-      if (sibis.executeStep()) {
+      if (this._syncStep(sibis)) {
         identity = this._identityFromRow(sibis);
         GlodaCollectionManager.itemLoaded(identity);
       }
@@ -2107,7 +2139,7 @@ let GlodaDatastore = {
     sibcs.bindInt64Parameter(0, aContactID);
     
     let identities = [];
-    while (sibcs.executeStep()) {
+    while (this._syncStep(sibcs)) {
       identities.push(this._identityFromRow(sibcs));
     }
     sibcs.reset();
