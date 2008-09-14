@@ -671,6 +671,9 @@ function onSearchFolderTypeChanged(isOutboundFolder)
 
   GetSearchInput();
 
+  if (!gSearchInput)
+    return;
+
   if (isOutboundFolder)
   {
     if (gSearchInput.searchMode == kQuickSearchFromOrSubject)
