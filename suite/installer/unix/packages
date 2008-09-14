@@ -500,7 +500,6 @@ bin/components/nsAbLDAPAttributeMap.js
 bin/components/smime-service.js
 bin/components/mdn-service.js
 bin/components/offlineStartup.js
-bin/components/folderLookupService.js
 
 bin/isp/movemail.rdf
 bin/isp/SpamAssassin.sfd

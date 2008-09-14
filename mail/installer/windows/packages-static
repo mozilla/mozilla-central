@@ -101,7 +101,6 @@ bin\components\mapihook.xpt
 bin\components\nsSetDefaultMail.js
 bin\components\offlineStartup.js
 bin\components\nsMailDefaultHandler.js
-bin\components\folderLookupService.js
 
 bin\components\mdn-service.js
 

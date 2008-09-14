@@ -8,7 +8,6 @@ dist/bin/chrome/messenger.jar
 !xpt dist/bin/components/msgdb.xpt
 !xpt dist/bin/components/msgbase.xpt
 !xpt dist/bin/components/msgsearch.xpt
-dist/bin/components/folderLookupService.js
 !xpt dist/bin/components/addrbook.xpt
 #if OS_ARCH==WINNT
 !xpt dist/bin/components/msgcompo.xpt
