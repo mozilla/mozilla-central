@@ -1398,7 +1398,9 @@ let GlodaIndexer = {
         let ancestor = this._datastore.createMessage(null, null, // ghost
                                                      conversationID, null,
                                                      references[iAncestor],
-                                                     null); // no body
+                                                     null, // no subject
+                                                     null, // no body
+                                                     null); // no attachments
         ancestorLists[iAncestor].push(ancestor);
       }
     }
@@ -1443,6 +1445,16 @@ let GlodaIndexer = {
       }
     }
     
+    let attachmentNames = null;
+    if (aMimeMsg) {
+      let allAttachmentNames = [att.name for each
+                                (att in aMimeMsg.allAttachments)
+                                if (att.isRealAttachment)];
+      // we need some kind of delimeter for the names.  we use a newline.
+      if (allAttachmentNames)
+        attachmentNames = allAttachmentNames.join("\n");
+    } 
+    
     let isNew;
     if (curMsg === null) {
       this._log.debug("...creating new message.  body length: " +
@@ -1452,8 +1464,9 @@ let GlodaIndexer = {
                                              conversationID,
                                              aMsgHdr.date,
                                              aMsgHdr.messageId,
-                                             aMimeMsg ?
-                                             aMimeMsg.body : null); // no snippet
+                                             aMsgHdr.subject,
+                                             aMimeMsg ? aMimeMsg.body : null,
+                                             attachmentNames);
       isNew = true;
     }
     else {
@@ -1466,11 +1479,9 @@ let GlodaIndexer = {
       //  if this message was not a ghost, we are assuming the 'body'
       //  associated with the id is still exactly the same.  It is conceivable
       //  that there are cases where this is not true.
-      this._log.debug("Updating message.  Providing body: " +
-                      (isNew && aMimeMsg) + " body length: " +
-                      (aMimeMsg ? aMimeMsg.body.length : null));
-      this._datastore.updateMessage(curMsg, (isNew && aMimeMsg) ?
-                                    aMimeMsg.body : null);
+      this._datastore.updateMessage(curMsg, isNew ? aMsgHdr.subject : null,
+        (isNew && aMimeMsg) ? aMimeMsg.body : null,
+        isNew ? attachmentNames : null);
     }
     
     // TODO: provide the parent gloda message if we can conjure it up.

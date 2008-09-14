@@ -238,7 +238,7 @@ MimeMessage.prototype = {
    *     sub-messages.  Only MimeMessageAttachment instances will be present in
    *     the list (no sub-messages).
    */
-  allAttachments: function MimeMessage_allAttachments() {
+  get allAttachments() {
     let results = []; // messages are not attachments, don't include self
     for (let iChild=0; iChild < this.parts.length; iChild++) {
       let child = this.parts[iChild];
@@ -277,7 +277,7 @@ function MimeContainer(aPartName) {
 }
 
 MimeContainer.prototype = {
-  allAttachments: function MimeContainer_allAttachments() {
+  get allAttachments() {
     let results = [];
     for (let iChild=0; iChild < this.parts.length; iChild++) {
       let child = this.parts[iChild];
@@ -304,7 +304,7 @@ function MimeUnknown(aPartName) {
 }
 
 MimeUnknown.prototype = {
-  allAttachments: function MimeUniknown_allAttachments() {
+  get allAttachments() {
     return []; // we are a leaf
   },
   prettyString: function MimeUnknown_prettyString(aIndent) {
@@ -324,7 +324,18 @@ function MimeMessageAttachment(aPartName, aName, aContentType, aUrl,
 }
 
 MimeMessageAttachment.prototype = {
-  allAttachments: function MimeMessageAttachment_allAttachments() {
+  /**
+   * Is this an actual attachment, as far as we can tell?  An example of
+   *  something that's not a real attachment is a mailing list footer that
+   *  gets its own MIME part because the original message had both HTML and text
+   *  as alternatives.
+   * Our super-advanced heuristic is to check whether the attachment name is
+   *  the same as the part name.
+   */
+  get isRealAttachment() {
+    return this.name != "Part " + this.partName;
+  },
+  get allAttachments() {
     return [this]; // we are a leaf, so just us.
   },
   prettyString: function MimeMessageAttachment_prettyString(aIndent) {

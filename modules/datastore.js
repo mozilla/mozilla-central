@@ -247,7 +247,7 @@ let GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 6,
+  _schemaVersion: 7,
   _schema: {
     tables: {
       
@@ -315,7 +315,9 @@ let GlodaDatastore = {
         },
         
         fulltextColumns: [
+          "subject TEXT",
           "body TEXT",
+          "attachmentNames TEXT",
         ],
         
         triggers: {
@@ -1191,8 +1193,8 @@ let GlodaDatastore = {
 
   get _insertMessageTextStatement() {
     let statement = this._createAsyncStatement(
-      "INSERT INTO messagesText (docid, body) \
-              VALUES (?1, ?2)");
+      "INSERT INTO messagesText (docid, subject, body, attachmentNames) \
+              VALUES (?1, ?2, ?3, ?4)");
     this.__defineGetter__("_insertMessageTextStatement", function() statement);
     return this._insertMessageTextStatement; 
   },
@@ -1209,7 +1211,7 @@ let GlodaDatastore = {
    */
   createMessage: function gloda_ds_createMessage(aFolderURI, aMessageKey,
                               aConversationID, aDatePRTime, aHeaderMessageID,
-                              aBody) {
+                              aSubject, aBody, aAttachmentNames) {
     let folderID;
     if (aFolderURI != null) {
       folderID = this._mapFolderURI(aFolderURI);
@@ -1256,7 +1258,12 @@ let GlodaDatastore = {
     if (aBody) {
       let imts = this._insertMessageTextStatement;
       imts.bindInt64Parameter(0, messageID);
-      imts.bindStringParameter(1, aBody);
+      imts.bindStringParameter(1, aSubject);
+      imts.bindStringParameter(2, aBody);
+      if (aAttachmentNames === null)
+        imts.bindNullParameter(3);
+      else
+        imts.bindStringParameter(3, aAttachmentNames);
       
       try {
          imts.executeAsync();
@@ -1298,7 +1305,8 @@ let GlodaDatastore = {
    *  the associated full-text row is created; it is assumed that it did not
    *  previously exist.
    */
-  updateMessage: function gloda_ds_updateMessage(aMessage, aBody) {
+  updateMessage: function gloda_ds_updateMessage(aMessage, aSubject, aBody,
+                                                 aAttachmentNames) {
     let ums = this._updateMessageStatement;
     ums.bindInt64Parameter(5, aMessage.id);
     if (aMessage.folderID === null)
@@ -1321,7 +1329,12 @@ let GlodaDatastore = {
     if (aBody) {
       let imts = this._insertMessageTextStatement;
       imts.bindInt64Parameter(0, aMessage.id);
-      imts.bindStringParameter(1, aBody);
+      imts.bindStringParameter(1, aSubject);
+      imts.bindStringParameter(2, aBody);
+      if (aAttachmentNames === null)
+        imts.bindNullParameter(3);
+      else
+        imts.bindStringParameter(3, aAttachmentNames);
       
       imts.executeAsync();
     }
