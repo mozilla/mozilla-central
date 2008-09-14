@@ -59,7 +59,6 @@ XPIDLSRCS	= \
 		nsICopyMsgStreamListener.idl \
 		nsIMessenger.idl \
 		nsIFolderListener.idl \
-		nsIFolderLookupService.idl \
 		nsIMsgAccount.idl \
 		nsIMsgAccountManager.idl \
 		nsIMsgFolder.idl \

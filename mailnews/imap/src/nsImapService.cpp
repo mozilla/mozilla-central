@@ -58,7 +58,9 @@
 #include "nsImapUtils.h"
 #include "nsIDocShell.h"
 #include "nsIDocShellLoadInfo.h"
+#include "nsIRDFService.h"
 #include "nsReadableUtils.h"
+#include "nsRDFCID.h"
 #include "nsEscape.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsIPrefBranch.h"
@@ -100,7 +102,6 @@
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
 #include "nsInt64.h"
-#include "nsIFolderLookupService.h"
 
 #define PREF_MAIL_ROOT_IMAP "mail.root.imap"            // old - for backward compatibility only
 #define PREF_MAIL_ROOT_IMAP_REL "mail.root.imap-rel"
@@ -908,12 +909,16 @@ nsresult nsImapService::DecomposeImapURI(const nsACString &aMessageURI,
   rv = nsParseImapMessageURI(nsDependentCString(aMessageURI).get(), folderURI, aMsgKey, nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
   
-  nsCOMPtr <nsIFolderLookupService> lookup = do_GetService("@mozilla.org/mail/folder-lookup;1",&rv);
+  nsCOMPtr <nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
   NS_ENSURE_SUCCESS(rv,rv);
   
-  nsCOMPtr<nsIMsgFolder> msgFolder;
-  rv = lookup->GetFolderById(folderURI, getter_AddRefs(msgFolder));
+  nsCOMPtr<nsIRDFResource> res;
+  rv = rdf->GetResource(folderURI, getter_AddRefs(res));
   NS_ENSURE_SUCCESS(rv,rv);
+  
+  nsCOMPtr<nsIMsgFolder> msgFolder = do_QueryInterface(res);
+  if (!msgFolder)
+    return NS_ERROR_FAILURE;
   
   msgFolder.swap(*aFolder);
   

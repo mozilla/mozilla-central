@@ -91,10 +91,6 @@ REQUIRES	= xpcom \
 		  js \
 		  $(NULL)
 
-EXTRA_COMPONENTS = \
-		folderLookupService.js \
-		$(NULL)
-
 CPPSRCS		= \
 		nsMessenger.cpp \
 		nsMessengerBootstrap.cpp \
