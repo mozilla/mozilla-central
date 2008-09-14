@@ -111,15 +111,7 @@ GlodaAttributeDef.prototype = {
   },
   
   explain: function gloda_attr_explain(aSubject, aValue) {
-    let subjStr = (aSubject !== null) ? aSubject.toString() : "";
-    let valStr = (aValue !== null) ? aValue.toString() : "";
-    
-    let explStr = this._explanationFormat ? this._explanationFormat
-                                          : "Inexplicable";
-    explStr = explStr.replace("%{subject}", subjStr);
-    explStr = explStr.replace("%{object}", valStr);
-    
-    return explStr.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+    return "deprecated. stop calling.";
   },
   
   /**
