@@ -1783,7 +1783,8 @@ mimeEmitterAddAllHeaders(MimeDisplayOptions *opt, const char *allheaders, const 
   if (msd->output_emitter)
   {
     nsIMimeEmitter *emitter = (nsIMimeEmitter *)msd->output_emitter;
-    return emitter->AddAllHeaders(allheaders, allheadersize);
+    return emitter->AddAllHeaders(Substring(allheaders, 
+                                            allheaders + allheadersize));
   }
 
   return NS_ERROR_FAILURE;

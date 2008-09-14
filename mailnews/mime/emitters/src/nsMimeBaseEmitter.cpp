@@ -666,8 +666,7 @@ nsMimeBaseEmitter::AddHeaderField(const char *field, const char *value)
 }
 
 NS_IMETHODIMP
-nsMimeBaseEmitter::AddAllHeaders(const char *allheaders,
-                                 const PRInt32 allheadersize)
+nsMimeBaseEmitter::AddAllHeaders(const nsACString &allheaders)
 {
   if (mDocHeader) //We want to set only the main headers of a message, not the potentially embedded one
   {
@@ -677,7 +676,7 @@ nsMimeBaseEmitter::AddAllHeaders(const char *allheaders,
     {
         nsCOMPtr<nsIMimeHeaders> mimeHeaders = do_CreateInstance(NS_IMIMEHEADERS_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
-        mimeHeaders->Initialize(allheaders, allheadersize);
+        mimeHeaders->Initialize(allheaders.BeginReading(), allheaders.Length());
         msgurl->SetMimeHeaders(mimeHeaders);
     }
   }
