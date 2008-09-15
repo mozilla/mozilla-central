@@ -832,8 +832,8 @@ let GlodaIndexer = {
         if (this._indexingFolderID != item[0])
           yield this._indexerEnterFolder(item[0], false);
         let msgHdr = this._indexingFolder.GetMessageHeader(item[1]);
-        let message = GlodaDatastore.getMessageFromLocation(msgHdr.folder.URI,
-                                                            msgHdr.messageKey);
+        message = GlodaDatastore.getMessageFromLocation(msgHdr.folder.URI,
+                                                        msgHdr.messageKey);
       }
       else
         message = GlodaDatastore.getMessageByID(item);
