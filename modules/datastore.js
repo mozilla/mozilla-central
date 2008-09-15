@@ -1119,7 +1119,7 @@ let GlodaDatastore = {
     dcbids.executeAsync();
     
     // TODO: collection manager implications
-    GlodaCollectionManager.removeByID()
+    //GlodaCollectionManager.removeByID()
   },
 
   get _selectConversationByIDStatement() {
