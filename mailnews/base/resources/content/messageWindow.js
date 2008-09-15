@@ -329,7 +329,12 @@ function OnLoadMessageWindowDelayed(loadCustomMessage)
   else
   {
     var msgKey = extractMsgKeyFromURI(gCurrentMessageUri);
-    LoadMessageByViewIndex(gDBView.findIndexFromKey(msgKey, true));
+    var viewIndex = gDBView.findIndexFromKey(msgKey, true);
+    // the message may not appear in the view if loaded from a search dialog
+    if (viewIndex != nsMsgViewIndex_None)
+      LoadMessageByViewIndex(viewIndex);
+    else
+      messenger.openURL(gCurrentMessageUri);
   }
   gNextMessageViewIndexAfterDelete = gDBView.msgToSelectAfterDelete; 
   UpdateStandAloneMessageCounts();
