@@ -485,7 +485,7 @@ let GlodaDatastore = {
       this._log.info("Closing pending transaction out for shutdown.");
       // just schedule this function to be run again once the transaction has
       //  been closed out.
-      this._commitTransactionStatement(this.shutdown, this);
+      this._commitTransaction(this.shutdown, this);
     }
 
     this._cleanupAsyncStatements();
