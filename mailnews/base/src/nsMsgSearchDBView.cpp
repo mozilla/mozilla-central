@@ -263,6 +263,13 @@ nsMsgSearchDBView::OnNewSearch()
     return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgSearchDBView::GetViewType(nsMsgViewTypeValue *aViewType)
+{
+    NS_ENSURE_ARG_POINTER(aViewType);
+    *aViewType = nsMsgViewType::eShowSearch;
+    return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgSearchDBView::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)
 {
   nsIMsgDatabase *db = static_cast<nsIMsgDatabase *>(instigator);
