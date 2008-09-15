@@ -74,8 +74,9 @@ GetPropertType(ABRecord *aCard, NSString *aProperty)
 #endif
 
 static void
-SetStringProperty(nsAbOSXCard *aCard, nsString &aValue, const char *aMemberName,
-                  PRBool aNotify, nsIAbManager *aAbManager)
+SetStringProperty(nsAbOSXCard *aCard, const nsString &aValue,
+                  const char *aMemberName, PRBool aNotify,
+                  nsIAbManager *aAbManager)
 {
   nsString oldValue;
   nsresult rv = aCard->GetPropertyAsAString(aMemberName, oldValue);
@@ -167,6 +168,9 @@ MapMultiValue(nsAbOSXCard *aCard, ABRecord *aOSXCard,
       }
     }
   }
+  // String wasn't found, set value of card to empty if it was set previously
+  SetStringProperty(aCard, EmptyString(), aMap.mPropertyName, aNotify,
+                    aAbManager);
   
   return PR_FALSE;
 }
