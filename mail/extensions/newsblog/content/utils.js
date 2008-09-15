@@ -341,3 +341,13 @@ function W3CToIETFDate(dateString) {
   var date = ISO8601DateUtils.parse(dateString);
   return date.toUTCString();
 }
+
+function htmlEscape(s)
+{
+  s = s.replace(/&/g, "&amp;");
+  s = s.replace(/>/g, "&gt;");
+  s = s.replace(/</g, "&lt;");
+  s = s.replace(/'/g, "&#39;");
+  s = s.replace(/"/g, "&quot;");
+  return s;
+}

@@ -181,6 +181,9 @@ FeedItem.prototype =
   {
     this.mUnicodeConverter.charset = this.characterSet;
 
+    // this.title and this.content contain HTML
+    // this.mUrl and this.contentBase contain plain text
+
     if (this.isStored())
       debug(this.identity + " already stored; ignoring");
     else if (this.content)
@@ -190,8 +193,8 @@ FeedItem.prototype =
       content = content.replace(/%CONTENT_TEMPLATE%/, LOCAL_CONTENT_TEMPLATE);
       content = content.replace(/%STYLE%/, LOCAL_STYLE);
       content = content.replace(/%TITLE%/, this.title);
-      content = content.replace(/%BASE%/, this.contentBase);
-      content = content.replace(/%URL%/g, this.mURL);
+      content = content.replace(/%BASE%/, htmlEscape(this.contentBase));
+      content = content.replace(/%URL%/g, htmlEscape(this.mURL));
       content = content.replace(/%CONTENT%/, this.content);
       this.content = content; // XXX store it elsewhere, f.e. this.page
       this.writeToFolder();
@@ -205,9 +208,9 @@ FeedItem.prototype =
       var content = MESSAGE_TEMPLATE;
       content = content.replace(/%CONTENT_TEMPLATE%/, LOCAL_CONTENT_TEMPLATE);
       content = content.replace(/%STYLE%/, LOCAL_STYLE);
-      content = content.replace(/%BASE%/, this.contentBase);
+      content = content.replace(/%BASE%/, htmlEscape(this.contentBase));
       content = content.replace(/%TITLE%/, this.title);
-      content = content.replace(/%URL%/g, this.mURL);
+      content = content.replace(/%URL%/g, htmlEscape(this.mURL));
       content = content.replace(/%CONTENT%/, this.content);
       this.content = content; // XXX store it elsewhere, f.e. this.page
       this.writeToFolder();
@@ -220,8 +223,8 @@ FeedItem.prototype =
       content = content.replace(/%CONTENT_TEMPLATE%/, REMOTE_CONTENT_TEMPLATE);
       content = content.replace(/%STYLE%/, REMOTE_STYLE);
       content = content.replace(/%TITLE%/, this.title);
-      content = content.replace(/%BASE%/, this.contentBase);
-      content = content.replace(/%URL%/g, this.mURL);
+      content = content.replace(/%BASE%/, htmlEscape(this.contentBase));
+      content = content.replace(/%URL%/g, htmlEscape(this.mURL));
       content = content.replace(/%DESCRIPTION%/, this.description || this.title);
       this.content = content; // XXX store it elsewhere, f.e. this.page
       this.writeToFolder();
