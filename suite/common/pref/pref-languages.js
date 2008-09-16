@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Adrian Havill <havill@redhat.com>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *   Stefan Hermes <stefanh@inbox.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -37,10 +38,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//Dictionary of all available languages
-var langObj = { availLanguageDict: [] };
-
-var activeLanguages;
+var gActiveLanguages;
+var gLanguages;
+var gLanguageNames = [];
+var gLanguageTitles = {};
 
 function Startup()
 {
@@ -48,22 +49,25 @@ function Startup()
                                   .getService(Components.interfaces.nsIObserverService);
   observerService.notifyObservers(null, "charsetmenu-selected", "other");
 
-  var defaultCharsetList = document.getElementById("DefaultCharsetList");
+  var defaultCharsetList = document.getElementById("defaultCharsetList");
   defaultCharsetList.setAttribute("ref", "NC:DecodersRoot");
 
-  activeLanguages = document.getElementById("activeLanguages");
+  gActiveLanguages = document.getElementById("activeLanguages");
+  // gLanguages stores the ordered list of languages, due to the nature
+  // of childNodes it is live and updates automatically.
+  gLanguages = gActiveLanguages.childNodes;
 
   ReadAvailableLanguages();
 }
 
 function AddLanguage()
 {
-  document.documentElement.openSubDialog("chrome://communicator/content/pref/pref-languages-add.xul","addlangwindow", langObj);
+  document.documentElement.openSubDialog("chrome://communicator/content/pref/pref-languages-add.xul", "addlangwindow", gLanguageNames);
 }
 
 function ReadAvailableLanguages()
 {
-  var i =0;
+  var i = 0;
   var languagesBundle = document.getElementById("languagesBundle");
   var prefLangBundle = document.getElementById("prefLangBundle");
   var regionsBundle = document.getElementById("regionsBundle");
@@ -71,7 +75,7 @@ function ReadAvailableLanguages()
 
   while (langStrings.hasMoreElements())
   {
-    //progress through the bundle
+    // Progress through the bundle.
     var curItem = langStrings.getNext();
 
     if (!(curItem instanceof Components.interfaces.nsIPropertyElement))
@@ -79,261 +83,160 @@ function ReadAvailableLanguages()
 
     var stringNameProperty = curItem.key.split('.');
 
-    if (stringNameProperty[1] == 'accept')
+    var str = stringNameProperty[0];
+    if (str && stringNameProperty[1] == 'accept')
     {
-        var str = stringNameProperty[0];
-        var stringLangRegion = stringNameProperty[0].split('-');
-        var tit;
+      var stringLangRegion = str.split('-');
 
-        if (stringLangRegion[0])
+      if (stringLangRegion[0])
+      {
+        var language = "";
+        var region = null;
+
+        try
         {
-          var language;
-          var region;
-          var useRegionFormat = false;
+          language = languagesBundle.getString(stringLangRegion[0]);
+        }
+        catch (ex) {}
 
-          try {
-            language = languagesBundle.getString(stringLangRegion[0]);
-          }
-          catch (ex) {
-            language = "";
-          }
-
-          if (stringLangRegion.length > 1)
+        if (stringLangRegion.length > 1)
+        {
+          try
           {
-
-            try {
-              region = regionsBundle.getString(stringLangRegion[1]);
-              useRegionFormat = true;
-            }
-            catch (ex) {
-            }
+            region = regionsBundle.getString(stringLangRegion[1]);
           }
-          
-          if (useRegionFormat)
-            tit = prefLangBundle.getFormattedString("languageRegionCodeFormat",
-                                                    [language, region, str]);
-          else
-            tit = prefLangBundle.getFormattedString("languageCodeFormat",
-                                                    [language, str]);
+          catch (ex) {}
         }
 
-        if (str && tit)
-        {
-          langObj.availLanguageDict[i] = [];
-          langObj.availLanguageDict[i].push(tit, str, curItem.value);
-          i++;
-        }
+        var title;
+        if (region)
+          title = prefLangBundle.getFormattedString("languageRegionCodeFormat",
+                                                    [language, region, str]);
+        else
+          title = prefLangBundle.getFormattedString("languageCodeFormat",
+                                                    [language, str]);
+        gLanguageTitles[str] = title;
+        if (curItem.value == "true")
+          gLanguageNames.push([title, str]);
+      }
     }
   }
 
-  langObj.availLanguageDict.sort( // sort on first element
-    function compareFn(a, b) {
+  // Sort on first element.
+  gLanguageNames.sort(
+    function compareFn(a, b)
+    {
       return a[0].localeCompare(b[0]);
-    });
+    }
+  );
 }
 
-function ReadActiveLanguages(aListbox)
+function ReadActiveLanguages()
 {
-  var prefString = document.getElementById("intl.accept_languages").value;
-  var arrayOfPrefs = prefString.split(/\s*,\s*/);
-  
-  var listboxChildren = aListbox.childNodes;
+  var arrayOfPrefs = document.getElementById("intl.accept_languages").value
+                             .split(/\s*,\s*/);
 
   // No need to rebuild listitems if languages in prefs and listitems match.
-  if (InSync(arrayOfPrefs, listboxChildren))
-   return undefined;
+  if (InSync(arrayOfPrefs))
+   return;
 
-  while (aListbox.hasChildNodes())
-    aListbox.removeChild(aListbox.firstChild);
+  while (gActiveLanguages.hasChildNodes())
+    gActiveLanguages.removeChild(gActiveLanguages.lastChild);
 
-  arrayOfPrefs.forEach(function(aElement) {
-    if (aElement)
+  arrayOfPrefs.forEach(
+    function(aKey)
     {
-      let langTitle = GetLanguageTitle(aElement);
-
-      if (!langTitle)
-       langTitle = '[' + aElement + ']';
-
-      let listitem = document.createElement('listitem');
-      listitem.setAttribute('label', langTitle);
-      listitem.id = aElement;
-      aListbox.appendChild(listitem);
+      if (aKey)
+      {
+        let langTitle = gLanguageTitles.hasOwnProperty(aKey) ?
+                        gLanguageTitles[aKey] : "[" + aKey + "]";
+        gActiveLanguages.appendItem(langTitle, aKey);
+      }
     }
-  });
+  );
 
   SelectLanguage();
 
-  return undefined;
+  return;
 }
 
-// Checks whether listitems and pref values matches, returns false if not
-function InSync(aPrefArray, aListItemArray)
+// Checks whether listitems and pref values matches, returns false if not.
+function InSync(aPrefArray)
 {
-  // Can't match if they don't have the same length
-  if (aPrefArray.length != aListItemArray.length)
+  // Can't match if they don't have the same length.
+  if (aPrefArray.length != gLanguages.length)
     return false;
 
-  return aPrefArray.every(IsTheSame, aListItemArray);
-}
-
-function IsTheSame(aElement, aIndex, aArray, aListItemArray)
-{
-  return (aElement == this[aIndex].id);
-}
-
-// Called on onsynctopreference
-function WriteActiveLanguages(aListbox)
-{
-  var languages = 0;
-  var prefString = "";
-
-  for (var item = aListbox.firstChild; item != null; item = item.nextSibling)
-  {
-    var languageid = item.id;
-
-    if (languageid.length > 1)
+  return aPrefArray.every(
+    function(aElement, aIndex)
     {
-      languages++;
-      //separate > 1 languages by commas
-      if (languages > 1)
-        prefString += ", " + languageid;
-      else
-        prefString = languageid;
+      return aElement == gLanguages[aIndex].value;
     }
-  }
-      
-  return prefString;
+  );
 }
-   
+
+// Called on onsynctopreference.
+function WriteActiveLanguages()
+{
+  return Array.map(gLanguages, function(e) { return e.value; }).join(",");
+}
+
 function MoveUp()
 {
-  var selectedItems = activeLanguages.selectedIndex;
-  var selections = activeLanguages.selectedItems;
-  if (activeLanguages.selectedItems.length == 1)
+  var selected = gActiveLanguages.selectedItem;
+  var before = selected.previousSibling;
+  if (before)
   {
-    var selected = activeLanguages.selectedItems[0];
-    var before = selected.previousSibling
-    if (before)
-    {
-      before.parentNode.insertBefore(selected, before);
-      activeLanguages.selectItem(selected);
-      activeLanguages.ensureElementIsVisible(selected);
-    }
+    before.parentNode.insertBefore(selected, before);
+    gActiveLanguages.selectItem(selected);
+    gActiveLanguages.ensureElementIsVisible(selected);
   }
-  
-  if (activeLanguages.selectedIndex == 0)
-  {
-    // selected item is first
-    var moveUp = document.getElementById("up");
-    moveUp.disabled = true;
-  }
-
-  if (activeLanguages.childNodes.length > 1)
-  {
-    // more than one item so we can move selected item back down
-    var moveDown = document.getElementById("down");
-    moveDown.disabled = false;
-  }
-
+ 
   SelectLanguage();
-  activeLanguages.doCommand();
+  gActiveLanguages.doCommand();
 }
 
 function MoveDown()
 {
-  if (activeLanguages.selectedItems.length == 1)
+  var selected = gActiveLanguages.selectedItem;
+  if (selected.nextSibling)
   {
-    var selected = activeLanguages.selectedItems[0];
-    if (selected.nextSibling)
-    {
-      if (selected.nextSibling.nextSibling)
-      {
-        activeLanguages.insertBefore(selected, selected.nextSibling.nextSibling);
-      }
-      else
-      {
-        activeLanguages.appendChild(selected);
-      }
-
-      activeLanguages.selectItem(selected);
-    }
-  }
-
-  if (activeLanguages.selectedIndex == activeLanguages.childNodes.length - 1)
-  {
-    // selected item is last
-    var moveDown = document.getElementById("down");
-    moveDown.disabled = true;
-  }
-
-  if (activeLanguages.childNodes.length > 1)
-  {
-    // more than one item so we can move selected item back up 
-    var moveUp = document.getElementById("up");
-    moveUp.disabled = false;
+    var before = selected.nextSibling.nextSibling;
+    gActiveLanguages.insertBefore(selected, before);
+    gActiveLanguages.selectItem(selected);
   }
 
   SelectLanguage();
-  activeLanguages.doCommand();
+  gActiveLanguages.doCommand();
 }
 
-function RemoveActiveLanguage()
+function RemoveActiveLanguage(aEvent)
 {
+  if (aEvent && aEvent.keyCode != aEvent.DOM_VK_DELETE &&
+      aEvent.keyCode != aEvent.DOM_VK_BACK_SPACE)
+    return;
+
   var nextNode = null;
-  var numSelected = activeLanguages.selectedItems.length;
 
-  for (var i = 0; i < numSelected; i++)
+  while (gActiveLanguages.selectedItem)
   {
-    var selectedNode = activeLanguages.selectedItems[0];
-    nextNode = selectedNode.nextSibling;
-
-    if (!nextNode)
-      if (selectedNode.previousSibling)
-        nextNode = selectedNode.previousSibling;
-
-    activeLanguages.removeChild(selectedNode);
+    var selectedNode = gActiveLanguages.selectedItem;
+    nextNode = selectedNode.nextSibling || selectedNode.previousSibling;
+    gActiveLanguages.removeChild(selectedNode);
   }
 
   if (nextNode)
-    activeLanguages.selectItem(nextNode)
+    gActiveLanguages.selectItem(nextNode);
 
   SelectLanguage();
-  activeLanguages.doCommand();
-}
-
-function GetLanguageTitle(id)
-{
-
-  if (langObj.availLanguageDict)
-    for (var j = 0; j < langObj.availLanguageDict.length; j++)
-    {
-      if ( langObj.availLanguageDict[j][1] == id)
-        return langObj.availLanguageDict[j][0];
-    }
-
-  return "";
+  gActiveLanguages.doCommand();
 }
 
 function SelectLanguage()
 {
-  if (activeLanguages.selectedItems.length)
-  {
-    document.getElementById("remove").disabled = false;
-    var selected = activeLanguages.selectedItems[0];
-    document.getElementById("down").disabled = !selected.nextSibling;
-
-    document.getElementById("up").disabled = !selected.previousSibling;
-  }
-  else
-  {
-    document.getElementById("remove").disabled = true;
-    document.getElementById("down").disabled = true;
-    document.getElementById("up").disabled = true;
-  }
-}
-
-function LanguagesPaneKeyPress(aEvent)
-{
-  if (aEvent.keyCode == aEvent.DOM_VK_DELETE || aEvent.keyCode == aEvent.DOM_VK_BACK_SPACE)
-    RemoveActiveLanguage();
+  var len = gActiveLanguages.selectedItems.length;
+  EnableElementById("langRemove", len, false);
+  var selected = gActiveLanguages.selectedItem;
+  EnableElementById("langDown", (len == 1) && selected.nextSibling, false);
+  EnableElementById("langUp", (len == 1) && selected.previousSibling, false);
 }

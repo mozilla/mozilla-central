@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Adrian Havill <havill@redhat.com>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *   Stefan Hermes <stefanh@inbox.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -37,55 +38,33 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var gLangObj;                             
-var availableLanguages;
-var otherField;
+var gLanguageNames;
+var gAvailableLanguages;
+var gOtherLanguages;
+var gSelectedLanguages = [];
+var gInvalidLanguages;
 
-function Startup()
-{ 
-  gLangObj = window.arguments[0];
-  availableLanguages = document.getElementById("availableLanguages");
-  otherField = document.getElementById("otherLanguages");
-  LoadAvailableLanguages();
-}
-
-function LoadAvailableLanguages()
+function OnLoadAddLanguages()
 {
-  if (gLangObj.availLanguageDict)
+  gLanguageNames = window.arguments[0];
+  gAvailableLanguages = document.getElementById("availableLanguages");
+  gSelectedLanguages = document.getElementById("intl.accept_languages").value
+                               .split(/\s*,\s*/);
+  gOtherLanguages = document.getElementById("otherLanguages");
+
+  if (gLanguageNames)
   {
-    for (var i = 0; i < gLangObj.availLanguageDict.length; i++)
+    for (var i = 0; i < gLanguageNames.length; i++)
     {
-      if (gLangObj.availLanguageDict[i][2] == "true")
-        AddListItem(document, availableLanguages, gLangObj.availLanguageDict[i][1], gLangObj.availLanguageDict[i][0]);
+      if (gSelectedLanguages.indexOf(gLanguageNames[i][1]) == -1)
+        gAvailableLanguages.appendItem(gLanguageNames[i][0],
+                                       gLanguageNames[i][1]);
     }
   }
 }
 
-function IsAlpha(aMixedCase)
-{
-  var allCaps = aMixedCase.toUpperCase();
-  for (var i = allCaps.length - 1; i >= 0; i--)
-  {
-    let c = allCaps.charAt(i);
-    if (c < 'A' || c > 'Z') return false;
-  }
-  return true;
-}
-
-function IsAlphaNum(aMixedCase)
-{
-  var allCaps = aMixedCase.toUpperCase();
-  for (var i = allCaps.length - 1; i >= 0; i--)
-  {
-    let c = allCaps.charAt(i);
-    if ((c < 'A' || c > 'Z') && (c < '0' || c > '9')) return false;
-  }
-  return true;
-}
-
 function IsRFC1766LangTag(aCandidate)
 {
-
   /* reject bogus lang strings, INCLUDING those with HTTP "q"
      values kludged on the end of them
 
@@ -96,16 +75,22 @@ function IsRFC1766LangTag(aCandidate)
           sgn-US-MA (Martha Vineyard's Sign Language)
   */
   var tags = aCandidate.split('-');
+  var checkedTags = 0;
 
+  if (/^[ix]$/.test(tags[0]))
+  {
+    if (tags.length < 2)
+      return false;
+    checkedTags++;
+  }
+  else
   /* if not IANA "i" or a private "x" extension, the primary
      tag should be a ISO 639 country code, two or three letters long.
      we don't check if the country code is bogus or not.
   */
-  var checkedTags = 0;
-  if (tags[0].toLowerCase() != "x" && tags[0].toLowerCase() != "i")
   {
-    if (tags[0].length != 2 && tags[0].length != 3) return false;
-    if (!IsAlpha(tags[0])) return false;
+    if (!/^[a-z]{2,3}$/.test(tags[0]))
+      return false;
     checkedTags++;
 
     /* the first subtag can be either a 2 letter ISO 3166 country code,
@@ -113,34 +98,22 @@ function IsRFC1766LangTag(aCandidate)
     */
     if (tags.length > 1)
     {
-      if (tags[1].length < 2 || tags[1].length > 8) return false;
-      if (!IsAlphaNum(tags[1])) return false;
+      if (!/^[a-z0-9]{2,8}$/.test(tags[1]))
+        return false;
 
       /* do not allow user-assigned ISO 3166 country codes */
-      if (tags[1].length == 2 && IsAlpha(tags[1]))
-      {
-        var countryCode = tags[1].toUpperCase();
-        if (countryCode == "AA" || countryCode == "ZZ") return false;
-        if (countryCode[0] == 'X') return false;
-        if (countryCode[0] == 'Q' && countryCode[1] > 'L') return false;
-      }
+      if (/^(aa|zz|x[a-z]|q[m-z])$/.test(tags[1]))
+        return false;
       checkedTags++;
     }
-  }
-  else if (tags.length < 2) return false;
-  else
-  {
-    if ((tags[1].length < 1) || (tags[1].length > 8)) return false;
-    if (!IsAlphaNum(tags[1])) return false;
-    checkedTags++;
   }
 
   /* any remaining subtags must be one to eight alphabetic characters */
 
-  for (var i = checkedTags; i < tags.length; i++)
+  while (checkedTags < tags.length)
   {
-    if ((tags[1].length < 1) || (tags[i].length > 8)) return false;
-    if (!IsAlphaNum(tags[i])) return false;
+    if (!/^[a-z0-9]{1,8}$/.test(tags[checkedTags]))
+      return false;
     checkedTags++;
   }
   return true;
@@ -148,99 +121,56 @@ function IsRFC1766LangTag(aCandidate)
 
 function WriteAddedLanguages(aListbox)
 {
-  var addedLang = [];
-  var prefString = document.getElementById("intl.accept_languages").value;
+  var invalidLangs = [];
+  // selected languages
+  var languages = aListbox.selectedItems;
+  var addedLang = Array.map(languages, function(e) { return e.value; });
 
-  //selected languages
-  for (var i = 0; i < aListbox.selectedItems.length; i++)
+  // user-defined languages
+  languages = gOtherLanguages.value;
+  if (languages)
   {
-    let selItem = aListbox.selectedItems[i];
-    let languageId = selItem.id;
-    if (!LangAlreadyActive(languageId))
-      addedLang.push(languageId);
-  }
-
-  //user-defined languages
-  if (otherField.value)
-  {
-    let languageIdsString = otherField.value.replace(/\s/g,"").toLowerCase();
-    let languageIds = languageIdsString.split(/\s*,\s*/);
+    let languageIds = languages.replace(/\s+/g, "").toLowerCase().split(",");
     for (var i = 0; i < languageIds.length; i++)
     {
       let languageId = languageIds[i];
-      
       if (IsRFC1766LangTag(languageId))
       {
-        if (!LangAlreadySelected(languageId) && !LangAlreadyActive(languageId))
+        if (addedLang.indexOf(languageId) == -1 &&
+            gSelectedLanguages.indexOf(languageId) == -1)
           addedLang.push(languageId);
+      }
+      else
+      {
+        invalidLangs.push(languageId);
       }
     }
   }
 
-  if (addedLang.length > 0)
-  {
-    if (!prefString)
-      prefString = addedLang[0];
-    else
-      prefString += ", " + addedLang[0];
+  if (invalidLangs.length)
+    gInvalidLanguages = invalidLangs.join(", ");
+  else
+    gSelectedLanguages = gSelectedLanguages.concat(addedLang);
 
-    for (var i = 1; i < addedLang.length; i++)
-      prefString += ", " + addedLang[i];
-  }
-
-  return prefString;
+  return gSelectedLanguages.join(",");
 }
 
-function CheckOtherField()
+function OnAccept()
 {
-  if (!otherField.value)
+  if (!gInvalidLanguages)
     return true;
 
-  var invalidLangs = [];
-  var languageIdsString = otherField.value.replace(/\s/g,"").toLowerCase();
-  var languageIds = languageIdsString.split(/\s*,\s*/);
+  let prefLangBundle = document.getElementById("prefLangAddBundle");
+  const kErrorMsg = prefLangBundle.getString("illegalOtherLanguage") + " " +
+                    gInvalidLanguages;
+  const kErrorTitle = prefLangBundle.getString("illegalOtherLanguageTitle");
+  let prompter = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                           .getService(Components.interfaces.nsIPromptService);
+  prompter.alert(this.window, kErrorTitle, kErrorMsg);
 
-  languageIds.forEach(function(aElement) {
-    if (!IsRFC1766LangTag(aElement))
-      invalidLangs.push(aElement);
-  });
-
-  if (invalidLangs.length > 0)
-  {
-    let prefLangBundle = document.getElementById("prefLangBundle");
-    const errorMsg = prefLangBundle.getString("illegalOtherLanguage") + " " +
-                     invalidLangs.join(", ");
-    const errorTitle = prefLangBundle.getString("illegalOtherLanguageTitle");
-    let prompter = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                             .getService(Components.interfaces.nsIPromptService);
-    prompter.alert(this.window, errorTitle, errorMsg);
-    otherField.focus();
-    return false;
-  }
-
-  return true;
-}
-
-
-function LangAlreadySelected(aLangID)
-{
-  return availableLanguages.selectedItems.some(AlreadyExists, aLangID);
-}
-
-function LangAlreadyActive(aLangID)
-{
-  var prefString = document.getElementById("intl.accept_languages").value;
-  var arrayOfPrefs = prefString.split(/\s*,\s*/);
-
-  if (arrayOfPrefs)
-    return arrayOfPrefs.some(AlreadyExists, aLangID);
-
+  gInvalidLanguages = null;
+  gOtherLanguages.focus();
   return false;
-}
-
-function AlreadyExists(aElement, aIndex, aArray, aLangID)
-{
-  return (aElement == this)
 }
 
 function HandleDoubleClick()
@@ -250,24 +180,5 @@ function HandleDoubleClick()
 
 function DoBeforeAccept()
 {
-  availableLanguages.doCommand();
-}
-
-function AddListItem(doc, listbox, langID, langTitle)
-{
-  try {  //let's beef up our error handling for languages without label / title
-
-      // Create a listitem for the new Language
-      var item = doc.createElement('listitem');
-
-      // Copy over the attributes
-      item.setAttribute('label', langTitle);
-      item.id = langID;
-
-      listbox.appendChild(item);
-
-  } //try
-
-  catch (ex) {
-  } //catch
+  gAvailableLanguages.doCommand();
 }

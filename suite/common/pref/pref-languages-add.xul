@@ -23,6 +23,7 @@
 
  Contributor(s):
    Adrian Havill <havill@redhat.com>
+   Ian Neal <iann_bugzilla@blueyonder.co.uk>
    Stefan Hermes <stefanh@inbox.com>
 
  Alternatively, the contents of this file may be used under the terms of
@@ -45,12 +46,13 @@
 
 
 <prefwindow xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+            id="addLanguagesPreferences"
             title="&languages.customize.add.title.label;"
             type="child"
-            onload="Startup();"
+            onload="OnLoadAddLanguages();"
             onbeforeaccept="DoBeforeAccept();"
-            ondialogaccept="return CheckOtherField();"
-            style="width: 25em;height: 28em;">
+            ondialogaccept="return OnAccept();"
+            style="width: 41ch; height: 28em;">
 
   <script type="application/javascript" src="chrome://communicator/content/pref/pref-languages-add.js"/>
 
@@ -61,14 +63,16 @@
                   type="wstring"/>
     </preferences>
 
-    <stringbundle id="prefLangBundle"
+    <stringbundle id="prefLangAddBundle"
                   src="chrome://communicator/locale/pref/pref-languages.properties"/>
  
     <description>&languages.customize.prefAddLangDescript;</description>
     <separator class="thin"/>
     <description>&languages.customize.available.label;</description>
  
-    <listbox id="availableLanguages" flex="1" seltype="multiple"
+    <listbox id="availableLanguages"
+             flex="1"
+             seltype="multiple"
              preference="intl.accept_languages"
              ondblclick="HandleDoubleClick();"
              onsynctopreference="return WriteAddedLanguages(this);"/>
