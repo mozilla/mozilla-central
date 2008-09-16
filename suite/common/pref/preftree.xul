@@ -84,7 +84,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-languages.xul" label="&languages.label;"/> 
+            <treecell label="(Migrated: &languages.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem>

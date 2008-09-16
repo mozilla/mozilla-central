@@ -20,7 +20,8 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *         Adrian Havill <havill@redhat.com>
+ *   Adrian Havill <havill@redhat.com>
+ *   Stefan Hermes <stefanh@inbox.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,111 +37,59 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//GLOBALS
+//Dictionary of all available languages
+var langObj = { availLanguageDict: [] };
 
-
-//locale bundles
-var regionsBundle;
-var languagesBundle;
-var acceptedBundle;
-var prefLangBundle;
-
-//dictionary of all supported locales
-var availLanguageDict;
-
-//XUL listbox handles
-var available_languages;
-var active_languages;
-
-//XUL window pref window interface object
-var pref_string = new String();
-
-//Reg expression for splitting multiple pref values
-var separatorRe = /\s*,\s*/;
-
+var activeLanguages;
 
 function Startup()
 {
-  // Load base window.
+  var observerService = Components.classes["@mozilla.org/observer-service;1"]
+                                  .getService(Components.interfaces.nsIObserverService);
+  observerService.notifyObservers(null, "charsetmenu-selected", "other");
 
-  acceptedBundle = document.getElementById("acceptedBundle");
-  languagesBundle = document.getElementById("languagesBundle");
-  prefLangBundle = document.getElementById("prefLangBundle");
-  regionsBundle = document.getElementById("regionsBundle");
+  var defaultCharsetList = document.getElementById("DefaultCharsetList");
+  defaultCharsetList.setAttribute("ref", "NC:DecodersRoot");
 
-  active_languages = document.getElementById("active_languages");
-  pref_string = active_languages.getAttribute("prefvalue");
+  activeLanguages = document.getElementById("activeLanguages");
 
   ReadAvailableLanguages();
-  LoadActiveLanguages();
-  SelectLanguage();
 }
-
-
-function Init()
-{
-  // Load available languages popup.
-
-  // Reuse the language panel's bundle and globals
-  prefLangBundle = opener.prefLangBundle;
-  availLanguageDict = opener.availLanguageDict;
-  pref_string = opener.pref_string;
-  active_languages = opener.active_languages;
-
-  available_languages = document.getElementById("available_languages");
-
-  LoadAvailableLanguages();
-}
-
 
 function AddLanguage()
 {
-    window.openDialog("chrome://communicator/content/pref/pref-languages-add.xul","_blank","modal,chrome,centerscreen,titlebar", "addlangwindow");
-    UpdateSavePrefString();
-    SelectLanguage();
+  document.documentElement.openSubDialog("chrome://communicator/content/pref/pref-languages-add.xul","addlangwindow", langObj);
 }
-
 
 function ReadAvailableLanguages()
 {
-  availLanguageDict   = new Array();
-  var visible = new String();
-  var str = new String();
   var i =0;
+  var languagesBundle = document.getElementById("languagesBundle");
+  var prefLangBundle = document.getElementById("prefLangBundle");
+  var regionsBundle = document.getElementById("regionsBundle");
+  var langStrings = document.getElementById("acceptedBundle").strings;
 
-  const acceptedBundleEnum = acceptedBundle.stringBundle.getSimpleEnumeration();
-
-  var curItem;
-  var stringName;
-  var stringNameProperty;
-
-  while (acceptedBundleEnum.hasMoreElements()) {
-
+  while (langStrings.hasMoreElements())
+  {
     //progress through the bundle
-    curItem = acceptedBundleEnum.getNext();
+    var curItem = langStrings.getNext();
 
-    //"unpack" the item, nsIPropertyElement is now partially scriptable
-    curItem = curItem.QueryInterface(Components.interfaces.nsIPropertyElement);
+    if (!(curItem instanceof Components.interfaces.nsIPropertyElement))
+      break;
 
-    //dump string name (key)
-    stringName = curItem.key;
-    stringNameProperty = stringName.split('.');
+    var stringNameProperty = curItem.key.split('.');
 
-    if (stringNameProperty[1] == 'accept') {
-
-      //dump the UI string (value)
-      visible   = curItem.value;
-
-      //if (visible == 'true') {
-
-        str = stringNameProperty[0];
+    if (stringNameProperty[1] == 'accept')
+    {
+        var str = stringNameProperty[0];
         var stringLangRegion = stringNameProperty[0].split('-');
+        var tit;
 
-        if (stringLangRegion[0]) {
-          var tit;
+        if (stringLangRegion[0])
+        {
           var language;
           var region;
-          var use_region_format = false;
+          var useRegionFormat = false;
 
           try {
             language = languagesBundle.getString(stringLangRegion[0]);
@@ -149,449 +98,242 @@ function ReadAvailableLanguages()
             language = "";
           }
 
-          if (stringLangRegion.length > 1) {
+          if (stringLangRegion.length > 1)
+          {
 
             try {
               region = regionsBundle.getString(stringLangRegion[1]);
-              use_region_format = true;
+              useRegionFormat = true;
             }
             catch (ex) {
             }
           }
           
-          if (use_region_format) {
+          if (useRegionFormat)
             tit = prefLangBundle.getFormattedString("languageRegionCodeFormat",
                                                     [language, region, str]);
-          } else {
+          else
             tit = prefLangBundle.getFormattedString("languageCodeFormat",
                                                     [language, str]);
-          }
+        }
 
-        } //if language
-
-        if (str && tit) {
-
-          availLanguageDict[i] = new Array(3);
-          availLanguageDict[i][0] = tit;
-          availLanguageDict[i][1] = str;
-          availLanguageDict[i][2] = visible;
+        if (str && tit)
+        {
+          langObj.availLanguageDict[i] = [];
+          langObj.availLanguageDict[i].push(tit, str, curItem.value);
           i++;
+        }
+    }
+  }
 
-        } // if str&tit
-      //} //if visible
-    } //if accepted
-  } //while
-  availLanguageDict.sort( // sort on first element
+  langObj.availLanguageDict.sort( // sort on first element
     function compareFn(a, b) {
       return a[0].localeCompare(b[0]);
     });
 }
 
-
-function LoadAvailableLanguages()
+function ReadActiveLanguages(aListbox)
 {
-  if (availLanguageDict)
-    for (var i = 0; i < availLanguageDict.length; i++) {
-
-    if (availLanguageDict[i][2] == 'true') {
-
-        AddListItem(document, available_languages, availLanguageDict[i][1], availLanguageDict[i][0]);
-
-      } //if
-
-    } //for
-}
-
-
-function LoadActiveLanguages()
-{
-  if (pref_string) {
-    var arrayOfPrefs = pref_string.split(separatorRe);
-
-    for (var i = 0; i < arrayOfPrefs.length; i++) {
-      var str = arrayOfPrefs[i];
-      var tit = GetLanguageTitle(str);
-
-      if (str) {
-        if (!tit)
-           tit = '[' + str + ']';
-        AddListItem(document, active_languages, str, tit);
-
-      } //if
-    } //for
-  }
-}
-
-
-function LangAlreadyActive(langId)
-{
-  var found = false;
-  try {
-    var arrayOfPrefs = pref_string.split(separatorRe);
-
-    if (arrayOfPrefs)
-      for (var i = 0; i < arrayOfPrefs.length; i++) {
-      if (arrayOfPrefs[i] == langId) {
-         found = true;
-         break;
-      }
-    }
-
-    return found;
-  }
-
-  catch(ex){
-     return false;
-  }
-}
-
-function isAlpha(mixedCase) {
-  var allCaps = mixedCase.toUpperCase();
-  for (var i = allCaps.length - 1; i >= 0; i--) {
-    var c = allCaps.charAt(i);
-    if (c < 'A' || c > 'Z') return false;
-  }
-  return true;
-}
-
-function isAlphaNum(mixedCase) {
-  var allCaps = mixedCase.toUpperCase();
-  for (var i = allCaps.length - 1; i >= 0; i--) {
-    var c = allCaps.charAt(i);
-    if ((c < 'A' || c > 'Z') && (c < '0' || c > '9')) return false;
-  }
-  return true;
-}
-
-function IsRFC1766LangTag(candidate) {
-
-  /* reject bogus lang strings, INCLUDING those with HTTP "q"
-     values kludged on the end of them
-
-     Valid language codes examples:
-     i.e. ja-JP-kansai (Kansai dialect of Japanese)
-          en-US-texas (Texas dialect)
-          i-klingon-tng (did TOS Klingons speak in non-English?)
-          sgn-US-MA (Martha Vineyard's Sign Language)
-  */
-  var tags = candidate.split('-');
-
-  /* if not IANA "i" or a private "x" extension, the primary
-     tag should be a ISO 639 country code, two or three letters long.
-     we don't check if the country code is bogus or not.
-  */
-  var checkedTags = 0;
-  if (tags[0].toLowerCase() != "x" && tags[0].toLowerCase() != "i") {
-    if (tags[0].length != 2 && tags[0].length != 3) return false;
-    if (!isAlpha(tags[0])) return false;
-    checkedTags++;
-
-    /* the first subtag can be either a 2 letter ISO 3166 country code,
-       or an IANA registered tag from 3 to 8 characters.
-    */
-    if (tags.length > 1) {
-      if (tags[1].length < 2 || tags[1].length > 8) return false;
-      if (!isAlphaNum(tags[1])) return false;
-
-      /* do not allow user-assigned ISO 3166 country codes */
-      if (tags[1].length == 2 && isAlpha(tags[1])) {
-        var countryCode = tags[1].toUpperCase();
-        if (countryCode == "AA" || countryCode == "ZZ") return false;
-        if (countryCode[0] == 'X') return false;
-        if (countryCode[0] == 'Q' && countryCode[1] > 'L') return false;
-      }
-      checkedTags++;
-    }
-  }
-  else if (tags.length < 2) return false;
-  else {
-    if ((tags[1].length < 1) || (tags[1].length > 8)) return false;
-    if (!isAlphaNum(tags[1])) return false;
-    checkedTags++;
-  }
-
-  /* any remaining subtags must be one to eight alphabetic characters */
-
-  for (var i = checkedTags; i < tags.length; i++) {
-    if ((tags[1].length < 1) || (tags[i].length > 8)) return false;
-    if (!isAlphaNum(tags[i])) return false;
-    checkedTags++;
-  }
-  return true;
-}
-
-function AddAvailableLanguage()
-{
-  var Languagename = new String();
-  var Languageid = new String();
+  var prefString = document.getElementById("intl.accept_languages").value;
+  var arrayOfPrefs = prefString.split(/\s*,\s*/);
   
-  var addThese = new Array();
-  var addTheseNames = new Array();
-  var invalidLangs = new Array();
+  var listboxChildren = aListbox.childNodes;
 
-  //selected languages
-  for (var nodeIndex=0; nodeIndex < available_languages.selectedItems.length; nodeIndex++) {
+  // No need to rebuild listitems if languages in prefs and listitems match.
+  if (InSync(arrayOfPrefs, listboxChildren))
+   return undefined;
 
-    var selItem =  available_languages.selectedItems[nodeIndex];
+  while (aListbox.hasChildNodes())
+    aListbox.removeChild(aListbox.firstChild);
 
-    Languagename    = selItem.getAttribute('label');
-    Languageid      = selItem.getAttribute('id');
+  arrayOfPrefs.forEach(function(aElement) {
+    if (aElement)
+    {
+      let langTitle = GetLanguageTitle(aElement);
 
-    if (!LangAlreadyActive(Languageid)) {
-      addThese.push(Languageid);
-      addTheseNames.push(Languagename);
+      if (!langTitle)
+       langTitle = '[' + aElement + ']';
+
+      let listitem = document.createElement('listitem');
+      listitem.setAttribute('label', langTitle);
+      listitem.id = aElement;
+      aListbox.appendChild(listitem);
     }
-  }
+  });
 
-  //user-defined languages
-  var otherField = document.getElementById( "languages.other" );
+  SelectLanguage();
 
-  if (otherField.value) {
-
-    var LanguageidsString = otherField.value.replace(/\s/g,"").toLowerCase();
-    var Languageids = LanguageidsString.split(separatorRe);
-    for (var i = 0; i < Languageids.length; i++) {
-      Languageid = Languageids[i];
-      
-      if (IsRFC1766LangTag(Languageid)) {
-        if (!LangAlreadySelected(Languageid)) {
-          if (!LangAlreadyActive(Languageid)) {
-            Languagename = GetLanguageTitle(Languageid);
-            if (!Languagename)
-              Languagename = '[' + Languageid + ']';
-            addThese.push(Languageid);
-            addTheseNames.push(Languagename);
-          }
-        }
-      }
-      else {
-        invalidLangs[invalidLangs.length] = Languageid;
-      }
-    }
-    if (invalidLangs.length > 0) {
-      const errorMsg = prefLangBundle.getString("illegalOtherLanguage") + " " +
-                       invalidLangs.join(", ");
-      const errorTitle = prefLangBundle.getString("illegalOtherLanguageTitle");
-      var prompter = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                 .getService(Components.interfaces.nsIPromptService);
-      prompter.alert(this.window, errorTitle, errorMsg);
-      otherField.focus();
-      return false;
-    }
-  }
-  
-  for (i = 0; i < addThese.length; i++) {
-    AddListItem(window.opener.document, active_languages, addThese[i], addTheseNames[i]);
-  }
-
-  available_languages.clearSelection();
-  return true;
+  return undefined;
 }
 
-function LangAlreadySelected(langid) {
-  var found = false;
-
-  for (var i = 0; i < available_languages.selectedItems.length; i++) {
-    var currentLang = available_languages.selectedItems[i]; 
-    var Languageid  = currentLang.getAttribute('id');
-    if (Languageid == langid)
-      return true;
-  }
-  return false;
-}
-
-function HandleDoubleClick(node)
+// Checks whether listitems and pref values matches, returns false if not
+function InSync(aPrefArray, aListItemArray)
 {
-  var languageId    = node.id;
-  var languageName  = node.getAttribute('label');
+  // Can't match if they don't have the same length
+  if (aPrefArray.length != aListItemArray.length)
+    return false;
 
-  if (languageName && languageName.length > 0)
+  return aPrefArray.every(IsTheSame, aListItemArray);
+}
+
+function IsTheSame(aElement, aIndex, aArray, aListItemArray)
+{
+  return (aElement == this[aIndex].id);
+}
+
+// Called on onsynctopreference
+function WriteActiveLanguages(aListbox)
+{
+  var languages = 0;
+  var prefString = "";
+
+  for (var item = aListbox.firstChild; item != null; item = item.nextSibling)
   {
-    if (!LangAlreadyActive(languageId)) {
-      AddListItem(window.opener.document, active_languages, languageId, languageName);
+    var languageid = item.id;
+
+    if (languageid.length > 1)
+    {
+      languages++;
+      //separate > 1 languages by commas
+      if (languages > 1)
+        prefString += ", " + languageid;
+      else
+        prefString = languageid;
     }
-    window.close();
-  }//if
-} //HandleDoubleClick
-
-function RemoveActiveLanguage()
-{
-
-  var nextNode = null;
-  var numSelected = active_languages.selectedItems.length;
-  var deleted_all = false;
-
-  while (active_languages.selectedItems.length > 0) {
-
-  var selectedNode = active_languages.selectedItems[0];
-    nextNode = selectedNode.nextSibling;
-
-  if (!nextNode)
-
-    if (selectedNode.previousSibling)
-    nextNode = selectedNode.previousSibling;
-
-    active_languages.removeChild(selectedNode);
-   } //while
-
-  if (nextNode) {
-    active_languages.selectItem(nextNode)
-  } else {
-    //active_languages.clearSelection();
   }
-
-  UpdateSavePrefString();
-
-} //RemoveActiveLanguage
-
-
-function GetLanguageTitle(id)
-{
-
-  if (availLanguageDict)
-    for (var j = 0; j < availLanguageDict.length; j++) {
-
-      if ( availLanguageDict[j][1] == id) {
-      //title =
-  return availLanguageDict[j][0];
-      }
-    }
-  return '';
+      
+  return prefString;
 }
-
-
-function AddListItem(doc, listbox, langID, langTitle)
+   
+function MoveUp()
 {
-  try {  //let's beef up our error handling for languages without label / title
-
-      // Create a listitem for the new Language
-      var item = doc.createElement('listitem');
-
-      // Copy over the attributes
-      item.setAttribute('label', langTitle);
-      item.setAttribute('id', langID);
-
-      listbox.appendChild(item);
-
-  } //try
-
-  catch (ex) {
-  } //catch
-
-}
-
-
-function UpdateSavePrefString()
-{
-  var num_languages = 0;
-  pref_string = "";
-
-  for (var item = active_languages.firstChild; item != null; item = item.nextSibling) {
-
-    var languageid = item.getAttribute('id');
-
-    if (languageid.length > 1) {
-
-          num_languages++;
-
-      //separate >1 languages by commas
-      if (num_languages > 1) {
-        pref_string = pref_string + "," + " " + languageid;
-      } else {
-        pref_string = languageid;
-      } //if
-    } //if
-  }//for
-
-  active_languages.setAttribute("prefvalue", pref_string);
-}
-
-
-function MoveUp() {
-
-  if (active_languages.selectedItems.length == 1) {
-    var selected = active_languages.selectedItems[0];
+  var selectedItems = activeLanguages.selectedIndex;
+  var selections = activeLanguages.selectedItems;
+  if (activeLanguages.selectedItems.length == 1)
+  {
+    var selected = activeLanguages.selectedItems[0];
     var before = selected.previousSibling
-    if (before) {
+    if (before)
+    {
       before.parentNode.insertBefore(selected, before);
-      active_languages.selectItem(selected);
-      active_languages.ensureElementIsVisible(selected);
+      activeLanguages.selectItem(selected);
+      activeLanguages.ensureElementIsVisible(selected);
     }
   }
   
-  if (active_languages.selectedIndex == 0)
+  if (activeLanguages.selectedIndex == 0)
   {
     // selected item is first
     var moveUp = document.getElementById("up");
     moveUp.disabled = true;
   }
 
-  if (active_languages.childNodes.length > 1)
+  if (activeLanguages.childNodes.length > 1)
   {
     // more than one item so we can move selected item back down
     var moveDown = document.getElementById("down");
     moveDown.disabled = false;
   }
 
-  UpdateSavePrefString();
+  SelectLanguage();
+  activeLanguages.doCommand();
+}
 
-} //MoveUp
-
-
-function MoveDown() {
-
-  if (active_languages.selectedItems.length == 1) {
-    var selected = active_languages.selectedItems[0];
-    if (selected.nextSibling) {
-      if (selected.nextSibling.nextSibling) {
-        active_languages.insertBefore(selected, selected.nextSibling.nextSibling);
+function MoveDown()
+{
+  if (activeLanguages.selectedItems.length == 1)
+  {
+    var selected = activeLanguages.selectedItems[0];
+    if (selected.nextSibling)
+    {
+      if (selected.nextSibling.nextSibling)
+      {
+        activeLanguages.insertBefore(selected, selected.nextSibling.nextSibling);
       }
-      else {
-        active_languages.appendChild(selected);
+      else
+      {
+        activeLanguages.appendChild(selected);
       }
-      active_languages.selectItem(selected);
+
+      activeLanguages.selectItem(selected);
     }
   }
 
-  if (active_languages.selectedIndex == active_languages.childNodes.length - 1)
+  if (activeLanguages.selectedIndex == activeLanguages.childNodes.length - 1)
   {
     // selected item is last
     var moveDown = document.getElementById("down");
     moveDown.disabled = true;
   }
 
-  if (active_languages.childNodes.length > 1)
+  if (activeLanguages.childNodes.length > 1)
   {
     // more than one item so we can move selected item back up 
     var moveUp = document.getElementById("up");
     moveUp.disabled = false;
   }
 
-  UpdateSavePrefString();
+  SelectLanguage();
+  activeLanguages.doCommand();
+}
 
-} //MoveDown
+function RemoveActiveLanguage()
+{
+  var nextNode = null;
+  var numSelected = activeLanguages.selectedItems.length;
 
+  for (var i = 0; i < numSelected; i++)
+  {
+    var selectedNode = activeLanguages.selectedItems[0];
+    nextNode = selectedNode.nextSibling;
 
-function SelectLanguage() {
-  if (active_languages.selectedItems.length) {
+    if (!nextNode)
+      if (selectedNode.previousSibling)
+        nextNode = selectedNode.previousSibling;
+
+    activeLanguages.removeChild(selectedNode);
+  }
+
+  if (nextNode)
+    activeLanguages.selectItem(nextNode)
+
+  SelectLanguage();
+  activeLanguages.doCommand();
+}
+
+function GetLanguageTitle(id)
+{
+
+  if (langObj.availLanguageDict)
+    for (var j = 0; j < langObj.availLanguageDict.length; j++)
+    {
+      if ( langObj.availLanguageDict[j][1] == id)
+        return langObj.availLanguageDict[j][0];
+    }
+
+  return "";
+}
+
+function SelectLanguage()
+{
+  if (activeLanguages.selectedItems.length)
+  {
     document.getElementById("remove").disabled = false;
-    var selected = active_languages.selectedItems[0];
+    var selected = activeLanguages.selectedItems[0];
     document.getElementById("down").disabled = !selected.nextSibling;
 
     document.getElementById("up").disabled = !selected.previousSibling;
   }
-  else {
+  else
+  {
     document.getElementById("remove").disabled = true;
     document.getElementById("down").disabled = true;
     document.getElementById("up").disabled = true;
   }
+}
 
-  if (parent.hPrefWindow.getPrefIsLocked(document.getElementById("up").getAttribute("prefstring")))
-    document.getElementById("up").disabled = true;
-  if (parent.hPrefWindow.getPrefIsLocked(document.getElementById("down").getAttribute("prefstring")))
-    document.getElementById("down").disabled = true;
-  if (parent.hPrefWindow.getPrefIsLocked(document.getElementById("add").getAttribute("prefstring")))
-    document.getElementById("add").disabled = true;
-  if (parent.hPrefWindow.getPrefIsLocked(document.getElementById("remove").getAttribute("prefstring")))
-    document.getElementById("remove").disabled = true;
-} // SelectLanguage
+function LanguagesPaneKeyPress(aEvent)
+{
+  if (aEvent.keyCode == aEvent.DOM_VK_DELETE || aEvent.keyCode == aEvent.DOM_VK_BACK_SPACE)
+    RemoveActiveLanguage();
+}

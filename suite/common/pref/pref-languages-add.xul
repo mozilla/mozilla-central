@@ -23,6 +23,7 @@
 
  Contributor(s):
    Adrian Havill <havill@redhat.com>
+   Stefan Hermes <stefanh@inbox.com>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,30 +41,44 @@
 
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE dialog SYSTEM "chrome://communicator/locale/pref/pref-languages.dtd" >
+<!DOCTYPE prefwindow SYSTEM "chrome://communicator/locale/pref/pref-languages.dtd" >
 
-<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      title="&languages.customize.add.title.label;"
-      onload="Init();"
-      ondialogaccept="return AddAvailableLanguage();"
-      style="width: 25em;height: 28em;">
 
-  <script type="application/x-javascript" src="pref-languages.js"/>
+<prefwindow xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+            title="&languages.customize.add.title.label;"
+            type="child"
+            onload="Startup();"
+            onbeforeaccept="DoBeforeAccept();"
+            ondialogaccept="return CheckOtherField();"
+            style="width: 25em;height: 28em;">
+
+  <script type="application/javascript" src="chrome://communicator/content/pref/pref-languages-add.js"/>
+
+  <prefpane id="addLanguagesPane">
+    <preferences id="addLanguages">
+      <preference id="intl.accept_languages"
+                  name="intl.accept_languages"
+                  type="wstring"/>
+    </preferences>
+
+    <stringbundle id="prefLangBundle"
+                  src="chrome://communicator/locale/pref/pref-languages.properties"/>
  
-  <description>&languages.customize.prefAddLangDescript;</description>
-  <separator class="thin"/>
-  <description>&languages.customize.available.label;</description>
+    <description>&languages.customize.prefAddLangDescript;</description>
+    <separator class="thin"/>
+    <description>&languages.customize.available.label;</description>
+ 
+    <listbox id="availableLanguages" flex="1" seltype="multiple"
+             preference="intl.accept_languages"
+             ondblclick="HandleDoubleClick();"
+             onsynctopreference="return WriteAddedLanguages(this);"/>
 
-  <listbox id="available_languages" flex="1" seltype="multiple"
-           ondblclick="HandleDoubleClick(event.target)"/>
-
-  <hbox align="center">
-    <label value="&languages.customize.others.label;" 
-           accesskey="&languages.customize.others.accesskey;" 
-           control="languages.other"/>
-    <textbox id="languages.other" size="6" flex="1"/>
-    <label value="&languages.customize.others.examples;" control="languages.other"/>
-  </hbox>
-
-</dialog>
-
+    <hbox align="center">
+      <label value="&languages.customize.others.label;" 
+             accesskey="&languages.customize.others.accesskey;" 
+             control="otherLanguages"/>
+      <textbox id="otherLanguages" size="6" flex="1"/>
+      <label value="&languages.customize.others.examples;" control="otherLanguages"/>
+    </hbox>
+  </prefpane>
+</prefwindow>

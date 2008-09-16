@@ -117,10 +117,11 @@
           <treeitem id="historyItem" label="&history.label;"
                     prefpane="history_pane" helpTopic="navigator_pref_history"
                     url="chrome://communicator/content/pref/pref-history.xul"/>
-<!-- commenting out yet unmigrated panels
-          <treeitem label="&languages.label;"
+          <treeitem id="languagesItem"
+                    label="&languages.label;"
+                    prefpane="languages_pane"
+                    helpTopic="navigator_pref_languages"
                     url="chrome://communicator/content/pref/pref-languages.xul"/>
--->
           <treeitem id="applicationsItem"
                     label="&applications.label;"
                     prefpane="applications_pane"

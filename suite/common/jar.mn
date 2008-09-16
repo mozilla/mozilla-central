@@ -181,6 +181,7 @@ comm.jar:
    content/communicator/pref/pref-languages.js                      (pref/pref-languages.js)
    content/communicator/pref/pref-languages.xul                     (pref/pref-languages.xul)
    content/communicator/pref/pref-languages-add.xul                 (pref/pref-languages-add.xul)
+   content/communicator/pref/pref-languages-add.js                  (pref/pref-languages-add.js)
    content/communicator/pref/pref-locationbar.js                    (pref/pref-locationbar.js)
    content/communicator/pref/pref-locationbar.xul                   (pref/pref-locationbar.xul)
    content/communicator/pref/pref-mousewheel.js                     (pref/pref-mousewheel.js)
