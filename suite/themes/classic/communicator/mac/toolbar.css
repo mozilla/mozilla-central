@@ -49,6 +49,7 @@
    this is a hack until bug 370426 gets resolved */
 toolbar {
   background: none;
+  -moz-appearance: none;
 }
 
 .toolbar-holder {
