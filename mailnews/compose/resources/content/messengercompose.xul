@@ -118,7 +118,6 @@
   <commandset id="composerTableMenuItems"/>
   <commandset id="composerListMenuItems"/>
   <commandset id="tasksCommands"/>
-  <command id="cmd_quit"/>
   <!-- File Menu -->
   <command id="cmd_newNavigator"/>
   <command id="cmd_newEditor"/>
@@ -126,7 +125,6 @@
   <command id="cmd_attachFile" oncommand="goDoCommand('cmd_attachFile')"/>
   <command id="cmd_attachPage" oncommand="goDoCommand('cmd_attachPage')"/>
   <command id="cmd_attachVCard" checked="false" oncommand="ToggleAttachVCard(event.target)"/>
-  <command id="cmd_close" oncommand="goDoCommand('cmd_close')"/>
   <command id="cmd_saveDefault" oncommand="goDoCommand('cmd_saveDefault')"/>
   <command id="cmd_saveAsFile" oncommand="goDoCommand('cmd_saveAsFile')"/>
   <command id="cmd_saveAsDraft" oncommand="goDoCommand('cmd_saveAsDraft')"/>
@@ -135,17 +133,13 @@
   <command id="cmd_sendNow" oncommand="goDoCommand('cmd_sendNow')"/>
   <command id="cmd_sendWithCheck" oncommand="goDoCommand('cmd_sendWithCheck')"/>
   <command id="cmd_sendLater" oncommand="goDoCommand('cmd_sendLater')"/>
-  <command id="cmd_printSetup" oncommand="goDoCommand('cmd_printSetup')"/>
-  <command id="cmd_print" oncommand="goDoCommand('cmd_print')"/>
 
   <!-- Edit Menu -->
   <!--command id="cmd_pasteQuote"/  DO NOT INCLUDE THOSE COMMANDS ELSE THE EDIT MENU WILL BE BROKEN! -->
   <!--command id="cmd_find"/-->
   <!--command id="cmd_findNext"/-->
   <command id="cmd_rewrap"  oncommand="goDoCommand('cmd_rewrap')"/>
-  <command id="cmd_delete"/>
   <command id="cmd_renameAttachment" oncommand="goDoCommand('cmd_renameAttachment')" disabled="true"/>
-  <command id="cmd_selectAll"/>
   <command id="cmd_openAttachment" oncommand="goDoCommand('cmd_openAttachment')"/>
   <command id="cmd_account" oncommand="goDoCommand('cmd_account')"/>
 
@@ -168,24 +162,14 @@
 
 <keyset id="tasksKeys">
   <!-- File Menu -->
-  <key id="key_newNavigator"/>
-  <key id="key_newBlankPage"/>
   <key id="key_close"/>
   <key id="key_save"  key="&saveCmd.key;" command="cmd_saveDefault" modifiers="accel"/>
   <key id="key_send" keycode="&sendCmd.keycode;" observes="cmd_sendWithCheck" modifiers="accel"/>
   <key id="key_sendLater" keycode="&sendLaterCmd.keycode;" observes="cmd_sendLater" modifiers="accel, shift"/>
   <key id="key_print"  key="&printCmd.key;" command="cmd_print" modifiers="accel"/>
-  <key id="key_quit"/>
 
   <!-- Edit Menu -->
-  <key id="key_undo"/>
-  <key id="key_redo"/>
-  <key id="key_cut"/>
-  <key id="key_copy"/>
-  <key id="key_paste"/>
-  <key id="key_delete"/>
   <key id="key_delete2"/>
-  <key id="key_selectAll"/>
   <key id="key_find"  key="&findCmd.key;"  command="cmd_find" modifiers="accel"/>
   <key id="key_findNext"  key="&findAgainCmd.key;" command="cmd_findNext" modifiers="accel"/>
   <key id="key_findPrev"  key="&findPrevCmd.key;"  command="cmd_findPrev" modifiers="accel, shift"/>

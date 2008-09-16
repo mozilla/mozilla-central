@@ -99,7 +99,7 @@
   <menu id="insertMenu">
     <menupopup id="insertMenuPopup">
       <menu id="insertSmiley" label="&insertSmiley.label;" accesskey="&insertSmiley.accesskey;" insertbefore="insertMenuSeparator">
-        <menupopup id="smilyPopup">
+        <menupopup id="smilyMenuPopup">
           <menuitem class="smiley insert-smile menuitem-iconic"       label="&smiley1Cmd.label;" 
                     oncommand="doStatefulCommand('cmd_smiley', ':-)'  )" accesskey="&smiley1Cmd.accesskey;"/>
           <menuitem class="smiley insert-frown menuitem-iconic"       label="&smiley2Cmd.label;"

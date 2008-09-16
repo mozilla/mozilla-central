@@ -117,7 +117,6 @@
 
     <command id="cmd_emptyTrash" oncommand="goDoCommand('cmd_emptyTrash')" disabled="true"/>
     <command id="cmd_compactFolder" oncommand="goDoCommand('cmd_compactFolder')" disabled="true"/>
-    <commandset id="mailDownloadCommands"/>
 
     <command id="cmd_printSetup" oncommand="goDoCommand('cmd_printSetup')" disabled="true"/>
     <command id="cmd_print" oncommand="goDoCommand('cmd_print')" disabled="true"/>
@@ -244,7 +243,6 @@
   <command id="cmd_forwardInline" oncommand="goDoCommand('cmd_forwardInline')"/>
   <command id="cmd_forwardAttachment" oncommand="goDoCommand('cmd_forwardAttachment')"/>
   <command id="cmd_editAsNew" oncommand="goDoCommand('cmd_editAsNew')"/>
-  <commandset id="mailDownloadCommands"/>
   <command id="cmd_openMessage" oncommand="goDoCommand('cmd_openMessage')"/>
   <command id="cmd_createFilterFromMenu" oncommand="goDoCommand('cmd_createFilterFromMenu')"/>
   <command id="cmd_killThread" oncommand="goDoCommand('cmd_killThread')"/>
@@ -255,8 +253,9 @@
 <commandset id="mailToolbarItems"
             commandupdater="true"
             events="mail-toolbar"
-            oncommandupdate="goUpdateMailMenuItems(this)">
-
+            oncommandupdate="goUpdateMailMenuItems(this);
+                             /* update cmd_delete manually to avoid a doubled id */
+                             goUpdateCommand('cmd_delete');">
   <command id="button_reply"/>
   <command id="button_replyall"/>
   <command id="button_forward"/>
@@ -268,7 +267,6 @@
   <command id="button_goBack"/>
   <command id="button_goForward"/>
   <command id="button_file"/>
-  <command id="cmd_delete"/>
   <command id="cmd_shiftDelete" oncommand="goDoCommand('cmd_shiftDelete');"/>
   <command id="button_junk"/>
 </commandset>
@@ -1036,7 +1034,7 @@
     </menu>
     <menu id="messagePaneContext-mark" label="&markMenu.label;" accesskey="&markMenu.accesskey;">
       <menupopup onpopupshowing="InitMessageMark()">
-        <menuitem id="threadPaneContext-markRead"
+        <menuitem id="messagePaneContext-markRead"
                   type="checkbox"
                   label="&markAsReadCmd.label;"
                   accesskey="&markAsReadCmd.accesskey;"
@@ -1051,7 +1049,7 @@
                   accesskey="&markAllReadCmd.accesskey;"
                   command="cmd_markAllRead"/>
         <menuseparator/>
-        <menuitem id="threadPaneContext-markFlagged"
+        <menuitem id="messagePaneContext-markFlagged"
                   type="checkbox"
                   label="&markFlaggedCmd.label;"
                   accesskey="&markFlaggedCmd.accesskey;"

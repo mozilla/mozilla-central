@@ -123,11 +123,8 @@
 </commandset>
 
 <broadcasterset id="abBroadcasters">
-  <!-- File Menu -->
-
   <!-- Edit Menu -->
   <broadcaster id="broadcaster-throbber" busy="false"/>
-  <broadcaster id="button_delete" disabled="true"/>
   <broadcaster id="Communicator:WorkMode"/>
 </broadcasterset>
 
@@ -395,7 +392,7 @@
         <toolbarbutton class="toolbarbutton-1" id="button-editcard" label="&editButton.label;" tooltiptext="&editButton.tooltip;" command="cmd_properties"/>
         <toolbarbutton class="toolbarbutton-1" id="button-newmessage" label="&newmsgButton.label;" tooltiptext="&newmsgButton.tooltip;" command="cmd_newmessage"/>
         <toolbarbutton class="toolbarbutton-1" id="button-newim" label="&newIM.label;" tooltiptext="&newIM.tooltip;" command="cmd_newim"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-delete" observes="button_delete" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" command="button_delete"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-delete" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" command="button_delete"/>
 
         <vbox flex="1">
           <spacer flex="1"/> 

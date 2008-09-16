@@ -90,6 +90,7 @@
 
 <commandset id="mailCommands">
   <commandset id="mailFileMenuItems"/>
+  <commandset id="mailDownloadCommands"/>
   <commandset id="mailViewMenuItems"/>
   <commandset id="mailEditMenuItems"/>
   <commandset id="mailEditContextMenuItems"/>

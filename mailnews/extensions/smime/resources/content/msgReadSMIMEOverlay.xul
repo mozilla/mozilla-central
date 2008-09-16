@@ -57,9 +57,10 @@
       id="signed-status" collapsed="true" oncommand="showMessageReadSecurityInfo();"/>
     <statusbarpanel insertbefore="offline-status" class="statusbarpanel-iconic"
       id="encrypted-status" collapsed="true" oncommand="showMessageReadSecurityInfo();"/>
-
     <stringbundle id="bundle_read_smime" src="chrome://messenger-smime/locale/msgReadSMIMEOverlay.properties"/>
+<!-- This stringbundle is already defined on top window level!
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
+-->
   </statusbar>
 
 </overlay>
