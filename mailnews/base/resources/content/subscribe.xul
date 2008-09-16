@@ -120,6 +120,7 @@
                 <deck id="subscribedeck" selectedIndex="0" flex="1">
                   <hbox id="normalview">
                     <tree id="subscribeTree"
+                          treelines="true"
                           flex="1"
                           datasources="rdf:null"
                           flags="dont-build-content"

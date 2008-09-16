@@ -216,11 +216,6 @@ folderSummaryMessage
   width: 0px;
 }
 
-.foldersTreeChildren::-moz-tree-line
-{
-  visibility: hidden;
-}
-
 tabmail 
 {
   -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail");

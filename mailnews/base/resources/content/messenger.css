@@ -182,11 +182,6 @@ searchterm {
   width: 0px;
 }
 
-.foldersTreeChildren::-moz-tree-line
-{
-  visibility: hidden;
-}
-
 dummy.usesMailWidgets {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#dummy");
 }

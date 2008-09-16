@@ -145,7 +145,12 @@
   <box id="mailContent" orient="vertical" flex="1">
     <box id="messengerBox" orient="horizontal" flex="1" minheight="100" height="100" persist="height">
       <vbox id="folderPaneBox" minwidth="100" width="200" persist="collapsed width">
-        <tree id="folderTree" flex="1" context="folderPaneContext" class="window-focusborder" focusring="false"/>
+        <tree id="folderTree"
+              treelines="true"
+              flex="1"
+              context="folderPaneContext"
+              class="window-focusborder"
+              focusring="false"/>
       </vbox>
 
       <splitter id="gray_vertical_splitter" collapse="before" persist="state" resizeafter="grow">
@@ -163,9 +168,15 @@
           </vbox>
           <!-- second panel is the threadPane -->
           <hbox id="threadPaneBox">
-            <tree id="threadTree" flex="1" minwidth="100" width="100"
-                  persist="width" context="threadPaneContext"
-                  class="window-focusborder" focusring="false"/>
+            <tree id="threadTree"
+                  treelines="true"
+                  flex="1"
+                  minwidth="100"
+                  width="100"
+                  persist="width"
+                  context="threadPaneContext"
+                  class="window-focusborder"
+                  focusring="false"/>
           </hbox>
           <!-- extensions may overlay in additional panels; don't assume that there are only 2! -->
         </deck>

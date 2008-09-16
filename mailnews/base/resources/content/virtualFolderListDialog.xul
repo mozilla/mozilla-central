@@ -61,11 +61,13 @@
   <label control="folderPickerTree">&virtualFolderDesc.label;</label>
 
     <tree id="folderPickerTree"
+          treelines="true"
           flex="1"
           hidecolumnpicker="true"
           seltype="multiple"
           disableKeyNavigation="true"
-          datasources="rdf:msgaccountmanager rdf:mailnewsfolders" ref="msgaccounts:/" 
+          datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+          ref="msgaccounts:/" 
           flags="dont-build-content"
           onkeypress="onSelectFolderTreeKeyPress(event);"
           onclick="selectFolderTreeOnClick(event);"> 

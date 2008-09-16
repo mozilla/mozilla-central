@@ -1723,7 +1723,14 @@
 
   <binding id="folderTargetPopup" extends="chrome://messenger/content/mailWidgets.xml#popup-base">
     <xbl:content xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-      <tree class="foldersTree" flex="1" datasources="rdf:msgaccountmanager rdf:mailnewsfolders" ref="msgaccounts:/" flags="dont-build-content" seltype="text" hidecolumnpicker="true">
+      <tree class="foldersTree"
+            treelines="true"
+            flex="1"
+            datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+            ref="msgaccounts:/"
+            flags="dont-build-content"
+            seltype="text"
+            hidecolumnpicker="true">
         <treecols>
           <treecol flex="1" primary="true" sort="rdf:http://home.netscape.com/NC-rdf#FolderTreeName?sort=true" sortActive="true" sortDirection="ascending" crop="center" hideheader="true"/>
         </treecols>
@@ -1766,7 +1773,13 @@
 
   <binding id="locationpopup" extends="chrome://messenger/content/mailWidgets.xml#popup-base">
     <xbl:content xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-      <tree class="foldersTree" flex="1" datasources="rdf:null" flags="dont-build-content" seltype="text" hidecolumnpicker="true">
+      <tree class="foldersTree"
+            treelines="true"
+            flex="1"
+            datasources="rdf:null"
+            flags="dont-build-content"
+            seltype="text"
+            hidecolumnpicker="true">
         <treecols>
           <treecol flex="1" primary="true" sort="rdf:http://home.netscape.com/NC-rdf#FolderTreeName?sort=true" sortActive="true" sortDirection="ascending" crop="center" hideheader="true"/>
         </treecols>
@@ -1789,7 +1802,14 @@
 
   <binding id="searchpopup" extends="chrome://messenger/content/mailWidgets.xml#popup-base">
     <xbl:content xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-      <tree class="foldersTree" flex="1" datasources="rdf:msgaccountmanager rdf:mailnewsfolders" ref="msgaccounts:/" flags="dont-build-content" seltype="text" hidecolumnpicker="true">
+      <tree class="foldersTree"
+            treelines="true"
+            flex="1"
+            datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+            ref="msgaccounts:/"
+            flags="dont-build-content"
+            seltype="text"
+            hidecolumnpicker="true">
         <treecols>
           <treecol flex="1" primary="true" sort="rdf:http://home.netscape.com/NC-rdf#FolderTreeName?sort=true" sortActive="true" sortDirection="ascending" crop="center" hideheader="true"/>
         </treecols>

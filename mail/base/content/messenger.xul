@@ -187,7 +187,10 @@
                        onclick="CycleFolderView(true);"/>
       </sidebarheader>
 
-      <tree id="folderTree" class="plain focusring" flex="1"
+      <tree id="folderTree"
+            class="plain focusring"
+            treelines="true"
+            flex="1"
             context="folderPaneContext"
             disableKeyNavigation="true"
             datasources="rdf:null"
@@ -322,11 +325,18 @@
           </vbox>
           <!-- second panel is the threadPane -->
           <hbox id="threadPaneBox">
-            <tree id="threadTree" persist="lastfoldersent width" flex="2" enableColumnDrag="true" _selectDelay="500" class="plain focusring" lastfoldersent="false"
-                         disableKeyNavigation="true"
-                         context="threadPaneContext"
-                         onkeypress="ThreadPaneKeyPress(event);"
-                         onselect="ThreadPaneSelectionChanged();">
+            <tree id="threadTree"
+                  persist="lastfoldersent width"
+                  treelines="true"
+                  flex="2"
+                  enableColumnDrag="true"
+                  _selectDelay="500"
+                  class="plain focusring"
+                  lastfoldersent="false"
+                  disableKeyNavigation="true"
+                  context="threadPaneContext"
+                  onkeypress="ThreadPaneKeyPress(event);"
+                  onselect="ThreadPaneSelectionChanged();">
               <treecols id="threadCols" pickertooltiptext="&columnChooser.tooltip;">
                <treecol id="threadCol" persist="hidden ordinal" fixed="true" cycler="true"
                         class="treecol-image threadColumnHeader" currentView="unthreaded"
