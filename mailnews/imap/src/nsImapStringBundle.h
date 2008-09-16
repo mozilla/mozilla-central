@@ -47,8 +47,6 @@ nsresult      IMAPGetStringBundle(nsIStringBundle **aBundle);
 
 PR_END_EXTERN_C
 
-
-
 #define	IMAP_STATUS_SELECTING_MAILBOX                                  5000
 #define	IMAP_STATUS_CREATING_MAILBOX                                  5001
 #define	IMAP_STATUS_DELETING_MAILBOX                                  5002
@@ -96,10 +94,8 @@ PR_END_EXTERN_C
 #define IMAP_UNKNOWN_HOST_ERROR			5052
 #define IMAP_CONNECTION_REFUSED_ERROR               5053
 #define IMAP_NET_TIMEOUT_ERROR                      5054
-#define IMAP_MOVE_FOLDER_TO_TRASH                   5055
 #define IMAP_NO_NEW_MESSAGES                        5056
 #define IMAP_DEFAULT_ACCOUNT_NAME                   5057
-#define IMAP_DELETE_NO_TRASH                        5058
 #define IMAP_HTML_NO_CACHED_BODY_TITLE              5059
 #define IMAP_HTML_NO_CACHED_BODY_BODY               5060
 #define IMAP_EMPTY_TRASH_CONFIRM                    5061
@@ -138,4 +134,8 @@ PR_END_EXTERN_C
 #define IMAP_AUTH_SECURE_NOTSUPPORTED               5102
 #define IMAP_COPYING_MESSAGE_OF                     5103
 #define IMAP_LOGIN_DISABLED                         5104
+#define IMAP_MOVE_FOLDER_TO_TRASH                   5105
+#define IMAP_DELETE_NO_TRASH                        5106
+#define IMAP_DELETE_FOLDER_DIALOG_TITLE             5107
+#define IMAP_DELETE_FOLDER_BUTTON_LABEL             5108
 #endif /* _nsImapStringBundle_H__ */

@@ -788,13 +788,14 @@ function UpdateDeleteToolbarButton()
   if (!deleteButtonDeck)
     return;
 
-  // Never show "Undelete" for folders.
-  if (WhichPaneHasFocus() == GetFolderTree())
+  // Never show "Undelete" in the 3-pane for folders, when delete would
+  // apply to the selected folder.
+  if (this.WhichPaneHasFocus && WhichPaneHasFocus() == GetFolderTree()
+      && GetNumSelectedMessages() == 0)
     deleteButtonDeck.selectedIndex = 0;
   else
     deleteButtonDeck.selectedIndex = SelectedMessagesAreDeleted() ? 1 : 0;
 }
-
 function UpdateDeleteCommand()
 {
   var value = "value";

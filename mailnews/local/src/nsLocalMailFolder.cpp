@@ -1012,10 +1012,12 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteSubFolders(nsIArray *folders, nsIMsgWi
   return rv;
 }
 
-nsresult nsMsgLocalMailFolder::ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow, PRBool *aResult)
+nsresult nsMsgLocalMailFolder::ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow,
+                                                     nsIMsgFolder *aFolder, PRBool *aResult)
 {
   NS_ENSURE_ARG(aResult);
   NS_ENSURE_ARG(aMsgWindow);
+  NS_ENSURE_ARG(aFolder);
   nsCOMPtr<nsIDocShell> docShell;
   aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
   if (docShell)
@@ -1032,11 +1034,42 @@ nsresult nsMsgLocalMailFolder::ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow, P
       nsCOMPtr<nsIStringBundle> bundle;
       rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
       NS_ENSURE_SUCCESS(rv, rv);
-      nsString alertString;
-      bundle->GetStringFromID(POP3_MOVE_FOLDER_TO_TRASH, getter_Copies(alertString));
+
+      nsAutoString folderName;
+      rv = aFolder->GetName(folderName);
+      NS_ENSURE_SUCCESS(rv, rv);
+      const PRUnichar *formatStrings[1] = { folderName.get() };
+
+      nsAutoString deleteFolderDialogTitle;
+      rv = bundle->GetStringFromID(POP3_DELETE_FOLDER_DIALOG_TITLE,
+                                   getter_Copies(deleteFolderDialogTitle));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsAutoString deleteFolderButtonLabel;
+      rv = bundle->GetStringFromID(POP3_DELETE_FOLDER_BUTTON_LABEL,
+                                   getter_Copies(deleteFolderButtonLabel));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsAutoString confirmationStr;
+      rv = bundle->FormatStringFromID(POP3_MOVE_FOLDER_TO_TRASH, formatStrings, 1,
+                                      getter_Copies(confirmationStr));
+      NS_ENSURE_SUCCESS(rv, rv);
+
       nsCOMPtr<nsIPrompt> dialog(do_GetInterface(docShell));
       if (dialog)
-        dialog->Confirm(nsnull, alertString.get(), aResult);
+      {
+        PRInt32 buttonPressed = 0;
+        // Default the dialog to "cancel".
+        const PRUint32 buttonFlags =
+          (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
+          (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
+        rv = dialog->ConfirmEx(deleteFolderDialogTitle.get(), confirmationStr.get(),
+                               buttonFlags,  deleteFolderButtonLabel.get(),
+                               nsnull, nsnull, nsnull, nsnull,
+                               &buttonPressed);
+        NS_ENSURE_SUCCESS(rv, rv);
+        *aResult = !buttonPressed; // "ok" is in position 0
+      }
     }
     else
       *aResult = PR_TRUE;
@@ -1865,7 +1898,7 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
       {
 
         PRBool okToDelete = PR_FALSE;
-        ConfirmFolderDeletion(msgWindow, &okToDelete);
+        ConfirmFolderDeletion(msgWindow, srcFolder, &okToDelete);
         if (!okToDelete)
           return NS_MSG_ERROR_COPY_FOLDER_ABORTED;
       }

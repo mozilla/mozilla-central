@@ -26,7 +26,6 @@
 #define POP3_PREVIOUSLY_ENTERED_PASSWORD_IS_INVALID_ETC       4018
 #define POP3_NO_ANSWER                                        4019
 #define POP3_ENTER_PASSWORD_PROMPT_TITLE                      4020
-#define POP3_MOVE_FOLDER_TO_TRASH                             4021
 #define POP3_FOLDER_FOR_TRASH                                 4023
 #define POP3_STAT_FAILURE                                     4024
 #define POP3_SERVER_SAID                                      4025
@@ -46,5 +45,8 @@
 #define POP3_SERVER_DOES_NOT_SUPPORT_THE_TOP_COMMAND          4041
 #define CANNOT_PROCESS_APOP_AUTH                              4042
 #define NS_ERROR_COULD_NOT_CONNECT_VIA_TLS                    4043
+#define POP3_MOVE_FOLDER_TO_TRASH                             4044
+#define POP3_DELETE_FOLDER_DIALOG_TITLE                       4045
+#define POP3_DELETE_FOLDER_BUTTON_LABEL                       4046
 
 #endif /* _nsLocalStrings_H__ */

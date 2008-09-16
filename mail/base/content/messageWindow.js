@@ -486,6 +486,10 @@ function HideMenus()
   if (expandOrCollapseMenu)
     expandOrCollapseMenu.setAttribute("hidden", "true");
 
+  var menuDeleteFolder = document.getElementById('menu_deleteFolder');
+  if (menuDeleteFolder)
+    menuDeleteFolder.hidden = true;
+
   var renameFolderMenu = document.getElementById('menu_renameFolder');
   if (renameFolderMenu)
     renameFolderMenu.setAttribute("hidden", "true");

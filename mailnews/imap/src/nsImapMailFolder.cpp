@@ -2217,9 +2217,30 @@ nsImapMailFolder::DeleteSubFolders(nsIArray* folders, nsIMsgWindow *msgWindow)
   }
   if (!confirmed && (confirmDeletion || deleteNoTrash)) //let us alert the user if we are deleting folder immediately
   {
-    nsString confirmationStr;
-    IMAPGetStringByID(((!deleteNoTrash) ? IMAP_MOVE_FOLDER_TO_TRASH : IMAP_DELETE_NO_TRASH),
-    getter_Copies(confirmationStr));
+    nsCOMPtr<nsIStringBundle> bundle;
+    rv = IMAPGetStringBundle(getter_AddRefs(bundle));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsAutoString folderName;
+    rv = curFolder->GetName(folderName);
+    NS_ENSURE_SUCCESS(rv, rv);
+    const PRUnichar *formatStrings[1] = { folderName.get() };
+
+    nsAutoString deleteFolderDialogTitle;
+    rv = bundle->GetStringFromID(IMAP_DELETE_FOLDER_DIALOG_TITLE,
+                                 getter_Copies(deleteFolderDialogTitle));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsAutoString deleteFolderButtonLabel;
+    rv = bundle->GetStringFromID(IMAP_DELETE_FOLDER_BUTTON_LABEL,
+                                 getter_Copies(deleteFolderButtonLabel));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsAutoString confirmationStr;
+    rv = bundle->FormatStringFromID(
+           (!deleteNoTrash) ? IMAP_MOVE_FOLDER_TO_TRASH : IMAP_DELETE_NO_TRASH,
+           formatStrings, 1, getter_Copies(confirmationStr));
+    NS_ENSURE_SUCCESS(rv, rv);
     if (!msgWindow)
       return NS_ERROR_NULL_POINTER;
     nsCOMPtr<nsIDocShell> docShell;
@@ -2227,8 +2248,21 @@ nsImapMailFolder::DeleteSubFolders(nsIArray* folders, nsIMsgWindow *msgWindow)
     nsCOMPtr<nsIPrompt> dialog;
     if (docShell)
       dialog = do_GetInterface(docShell);
-    if (dialog && !confirmationStr.IsEmpty())
-      dialog->Confirm(nsnull, confirmationStr.get(), &confirmed);
+    if (dialog)
+    {
+      PRInt32 buttonPressed = 0;
+      // Default the dialog to "cancel".
+      const PRUint32 buttonFlags =
+        (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
+        (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
+
+      rv = dialog->ConfirmEx(deleteFolderDialogTitle.get(), confirmationStr.get(),
+                             buttonFlags,  deleteFolderButtonLabel.get(),
+                             nsnull, nsnull, nsnull, nsnull,
+                             &buttonPressed);
+      NS_ENSURE_SUCCESS(rv, rv);
+      confirmed = !buttonPressed; // "ok" is in position 0
+    }
   }
   else
     confirmed = PR_TRUE;

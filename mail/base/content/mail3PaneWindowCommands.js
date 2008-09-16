@@ -50,6 +50,7 @@ var FolderPaneController =
     {
       case "cmd_delete":
       case "button_delete":
+      case "cmd_deleteFolder":
       case "button_compact":
       //case "cmd_selectAll": the folder pane currently only handles single selection
       case "cmd_cut":
@@ -72,6 +73,12 @@ var FolderPaneController =
         return false;
       case "cmd_delete":
       case "button_delete":
+        // Even if the folder pane has focus, don't do a folder delete if
+        // we have a selected message, but do a message delete instead.
+        if (GetNumSelectedMessages() != 0)
+          return DefaultController.isCommandEnabled(command);
+         // else fall through
+      case "cmd_deleteFolder":
         // Make sure the button doesn't show "Undelete" for folders.
         UpdateDeleteToolbarButton();
       case "button_compact":
@@ -90,9 +97,13 @@ var FolderPaneController =
           isServer = folder.isServer;
           serverType = folder.server.type;
           if (serverType == "nntp") {
-             if ( command == "cmd_delete" ) {
-                goSetMenuValue(command, 'valueNewsgroup');
-                goSetAccessKey(command, 'valueNewsgroupAccessKey');
+            if (command == "cmd_deleteFolder") {
+              // Just disable the command for news.
+              return false;
+            }
+            else if (command == "cmd_delete") {
+              goSetMenuValue(command, 'valueNewsgroup');
+              goSetAccessKey(command, 'valueNewsgroupAccessKey');
             }
           }
         }
@@ -126,6 +137,14 @@ var FolderPaneController =
     {
       case "cmd_delete":
       case "button_delete":
+        // Even if the folder pane has focus, don't do a folder delete if
+        // we have a selected message, but delete the message instead.
+        if (GetNumSelectedMessages() == 0)
+          MsgDeleteFolder();
+        else
+          DefaultController.doCommand(command);
+        break;
+      case "cmd_deleteFolder":
         MsgDeleteFolder();
         break;
       case "button_compact":
@@ -161,6 +180,7 @@ var DefaultController =
       case "cmd_editAsNew":
       case "cmd_createFilterFromMenu":
       case "cmd_delete":
+      case "cmd_deleteFolder":
       case "button_delete":
       case "button_junk":
       case "cmd_shiftDelete":
@@ -269,6 +289,8 @@ var DefaultController =
         if (gDBView)
           gDBView.getCommandStatus(nsMsgViewCommandType.deleteNoTrash, enabled, checkStatus);
         return enabled.value;
+      case "cmd_deleteFolder":
+        return FolderPaneController.isCommandEnabled(command);
       case "button_junk":
         UpdateJunkToolbarButton();
         if (gDBView)
@@ -516,6 +538,9 @@ var DefaultController =
           MarkCurrentMessageAsRead();
         SetNextMessageAfterDelete();
         gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
+        break;
+      case "cmd_deleteFolder":
+        FolderPaneController.doCommand(command);
         break;
       case "cmd_killThread":
         /* kill thread kills the thread and then does a next unread */

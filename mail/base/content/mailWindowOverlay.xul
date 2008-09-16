@@ -111,6 +111,7 @@
     <command id="cmd_saveAsFile" oncommand="goDoCommand('cmd_saveAsFile')" disabled="true"/>
     <command id="cmd_saveAsTemplate" oncommand="goDoCommand('cmd_saveAsTemplate')" disabled="true"/>
     <command id="cmd_getNextNMessages" oncommand="goDoCommand('cmd_getNextNMessages')" disabled="true"/>
+    <command id="cmd_deleteFolder" oncommand="goDoCommand('cmd_deleteFolder')"/>
     <command id="cmd_renameFolder" oncommand="goDoCommand('cmd_renameFolder')" />
     <command id="cmd_sendUnsentMsgs" oncommand="goDoCommand('cmd_sendUnsentMsgs')" />
     <command id="cmd_synchronizeOffline" oncommand="goDoCommand('cmd_synchronizeOffline')" disabled="true"/>
@@ -950,6 +951,9 @@
           <menuitem id="menu_subscribe" label="&subscribeCmd.label;"
                     accesskey="&subscribeCmd.accesskey;" oncommand="MsgSubscribe();"/>
           <menuseparator id="fileMenuAfterSubscribeSeparator"/>
+          <menuitem id="menu_deleteFolder" label="&deleteFolder.label;"
+                 accesskey="&deleteFolder.accesskey;"
+                 command="cmd_deleteFolder"/>
           <menuitem id="menu_renameFolder" label="&renameFolder.label;"
                  accesskey="&renameFolder.accesskey;"
                  key="key_renameFolder"
