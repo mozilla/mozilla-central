@@ -277,22 +277,22 @@ function openAboutDialog()
 }
 
 /**
- * Opens region specific web pages for the application like the release notes, the help site, etc. 
- *   aResourceName --> the string resource ID in region.properties to load. 
+ * Opens the support page based on the 'mailnews_support_url' string in
+ * region.properties.
  */
-function openRegionURL(aResourceName)
+function openSupportURL()
 {
   var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
                           .getService(Components.interfaces.nsIXULAppInfo);
   try {
     var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService(Components.interfaces.nsIStringBundleService);
     var regionBundle = strBundleService.createBundle("chrome://messenger-region/locale/region.properties");
-    // the release notes are special and need to be formatted with the app version
-    var urlToOpen;
-    if (aResourceName == "releaseNotesURL")
-      urlToOpen = regionBundle.formatStringFromName(aResourceName, [appInfo.version], 1);
-    else
-      urlToOpen = regionBundle.GetStringFromName(aResourceName);
+
+    var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                              .getService(Components.interfaces.nsIURLFormatter);
+
+    var urlToOpen = formatter.formatURL(regionBundle
+      .GetStringFromName('mailnews_support_url'));
       
     var uri = Components.classes["@mozilla.org/network/io-service;1"]
               .getService(Components.interfaces.nsIIOService)

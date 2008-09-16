@@ -63,11 +63,11 @@
 #ifdef XP_MACOSX
       <menuitem id="hintsAndTips"
                 label="&openHelpMac.label;" key="key_openHelp"
-                oncommand="openRegionURL('mailnews.hints_and_tips.url');"/>
+                oncommand="openSupportURL();"/>
 #else
       <menuitem id="hintsAndTips"
                 label="&openHelp.label;" accesskey="&openHelp.accesskey;"
-                oncommand="openRegionURL('mailnews.hints_and_tips.url');"
+                oncommand="openSupportURL();"
                 key="key_openHelp"/>
 #endif
       <menuitem id="releaseNotes"
@@ -91,12 +91,12 @@
   <keyset id="baseMenuKeyset">
 #ifdef XP_MACOSX
     <key id="key_openHelp"
-         oncommand="openRegionURL('mailnews.hints_and_tips.url');"
+         oncommand="openSupportURL();"
          key="&openHelpMac2.commandkey;"
          modifiers="&openHelpMac2.modifiers;"/>
 #else
     <key id="key_openHelp"
-         oncommand="openRegionURL('mailnews.hints_and_tips.url');"
+         oncommand="openSupportURL();"
          keycode="&openHelp.commandkey;"/>
 #endif
   </keyset>
