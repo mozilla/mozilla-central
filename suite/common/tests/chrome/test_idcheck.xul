@@ -226,7 +226,8 @@
     {
       if (AllWindowsClosed())
       {
-        ExitTest();
+        // commented out to fix test failures after this due to missing prefs
+        //ExitTest();
         SimpleTest.finish();
       }
       else
