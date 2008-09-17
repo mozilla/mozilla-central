@@ -326,7 +326,8 @@ function runSelectedFilters()
     return;
   }
 
-  var folder = document.getElementById("runFiltersFolder").selectedItem._folder;
+  var menu = document.getElementById("runFiltersFolder");
+  var folder = menu._folder || menu.selectedItem._folder;
 
   var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"].getService(Components.interfaces.nsIMsgFilterService);
   var filterList = filterService.getTempFilterList(folder);
@@ -541,6 +542,12 @@ function onFilterListKeyPress(event)
   var list = document.getElementById("filterList")
   for each (var item in list.selectedItems)
     toggleFilter(item, list.getIndexOfItem(item));
+}
+
+function onTargetSelect(event) {
+  var menu = document.getElementById("runFiltersFolder");
+  menu._folder = event.target._folder;
+  menu.setAttribute("label", event.target._folder.prettyName);
 }
 
 /**

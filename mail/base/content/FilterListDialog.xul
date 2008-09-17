@@ -40,8 +40,12 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/filterDialog.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
+ <?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 
-<!DOCTYPE window SYSTEM "chrome://messenger/locale/FilterListDialog.dtd">
+<!DOCTYPE window [
+<!ENTITY % filtersDTD SYSTEM "chrome://messenger/locale/FilterListDialog.dtd">%filtersDTD;
+<!ENTITY % pickerDTD SYSTEM "chrome://messenger/locale/msgFolderPickerOverlay.dtd"> %pickerDTD;
+]>
 
 <window id="filterListDialog"
   xmlns:nc="http://home.netscape.com/NC-rdf#"
@@ -129,8 +133,11 @@
             <label id="folderPickerPrefix" value="&folderPickerPrefix.label;" 
                    accesskey="&folderPickerPrefix.accesskey;"
                    disabled="true" control="runFiltersFolder"/>
-            <menulist id="runFiltersFolder" disabled="true" flex="1">
-              <menupopup id="runFiltersPopup" type="folder"/>
+            <menulist id="runFiltersFolder" disabled="true" flex="1"
+                      oncommand="onTargetSelect(event);">
+              <menupopup id="runFiltersPopup" type="folder"
+                         showFileHereLabel="true"
+                         fileHereLabel="&filemessageschoosethis.label;"/>
             </menulist>
           </hbox>
         </vbox>
