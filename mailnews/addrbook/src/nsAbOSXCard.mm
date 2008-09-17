@@ -140,9 +140,11 @@ MapDate(nsAbOSXCard *aCard, NSDate *aDate, const char *aYearPropName,
   nsAutoString value;
   value.AppendInt([date yearOfCommonEra]);
   SetStringProperty(aCard, value, aYearPropName, aNotify, aAbManager);
+  value.Truncate();
   value.AppendInt([date monthOfYear]);
   SetStringProperty(aCard, value, aMonthPropName, aNotify, aAbManager);
-  value.AppendInt([date dayOfWeek]);
+  value.Truncate();
+  value.AppendInt([date dayOfMonth]);
   SetStringProperty(aCard, value, aDayPropName, aNotify, aAbManager);
 }
 
