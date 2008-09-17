@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   dianesun@netscape.com
+ *   dascher@mozillamessaging.com
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -41,6 +42,9 @@ var gServerType;
 var gImapIncomingServer;
 var gPref = null;
 var gLockedPref = null;
+var gOfflineMap = null; // map of folder URLs to offline flags
+var Cc = Components.classes;
+var Ci = Components.interfaces;
 
 function onInit(aPageId, aServerId) 
 {
@@ -50,6 +54,7 @@ function onInit(aPageId, aServerId)
     initServerSettings();
     initRetentionSettings();
     initDownloadSettings();
+    initOfflineSettings();
 
     onCheckItem("offline.notDownloadMin", "offline.notDownload");
     onCheckItem("nntp.downloadMsgMin", "nntp.downloadMsg");
@@ -57,9 +62,14 @@ function onInit(aPageId, aServerId)
     onCheckKeepMsg();
 }
 
+function initOfflineSettings()
+{
+    checkOffline();
+    gOfflineMap = collectOfflineFolders();
+}
+
 function initServerSettings()
-{	 
- 
+{
     document.getElementById("offline.notDownload").checked =  gIncomingServer.limitOfflineMessageSize;
     if(gIncomingServer.maxMessageSize > 0)
         document.getElementById("offline.notDownloadMin").setAttribute("value", gIncomingServer.maxMessageSize);
@@ -68,8 +78,7 @@ function initServerSettings()
 
     if(gServerType == "imap") {
         gImapIncomingServer = gIncomingServer.QueryInterface(Components.interfaces.nsIImapIncomingServer);
-        document.getElementById("offline.downloadBodiesOnGetNewMail").checked =  gImapIncomingServer.downloadBodiesOnGetNewMail;
-        document.getElementById("offline.newFolder").checked =  gImapIncomingServer.offlineDownload;
+        document.getElementById("offline.folders").checked =  gImapIncomingServer.offlineDownload;
     }
 }
   
@@ -111,7 +120,7 @@ function onPreInit(account, accountValues)
     // 10 is OFFLINE_SUPPORT_LEVEL_REGULAR, see nsIMsgIncomingServer.idl
     // currently, there is no offline without diskspace
     var titleStringID = (gIncomingServer.offlineSupportLevel >= 10) ?
-     "prefPanel-offline-and-diskspace" : "prefPanel-diskspace";
+     "prefPanel-syncing-and-diskspace" : "prefPanel-diskspace";
 
     var prefBundle = document.getElementById("bundle_prefs");
     var headertitle = document.getElementById("headertitle");
@@ -142,6 +151,13 @@ function onClickSelect()
 
 }
 
+function onCancel()
+{
+    // restore the offline flags for all folders
+    restoreOfflineFolders(gOfflineMap);
+    return true;
+}
+
 function onSave()
 {
     var downloadSettings =
@@ -151,7 +167,7 @@ function onSave()
     gIncomingServer.limitOfflineMessageSize = document.getElementById("offline.notDownload").checked;
     gIncomingServer.maxMessageSize = document.getElementById("offline.notDownloadMin").value;
 
-	var retentionSettings = saveCommonRetentionSettings();
+    var retentionSettings = saveCommonRetentionSettings();
 
     retentionSettings.daysToKeepBodies = document.getElementById("nntp.removeBodyMin").value;
     retentionSettings.cleanupBodiesByDays = document.getElementById("nntp.removeBody").checked;
@@ -164,8 +180,8 @@ function onSave()
     gIncomingServer.downloadSettings = downloadSettings;
 
     if (gImapIncomingServer) {
-        gImapIncomingServer.downloadBodiesOnGetNewMail = document.getElementById("offline.downloadBodiesOnGetNewMail").checked;
-        gImapIncomingServer.offlineDownload = document.getElementById("offline.newFolder").checked;
+        // Set the pref on the incomingserver, and set the flag on all folders.
+        gImapIncomingServer.offlineDownload = document.getElementById("offline.folders").checked;
     }
 }
 
@@ -206,9 +222,6 @@ function onLockPreference()
     // the load/unload/disable.  keep in mind new prefstrings and changes
     // to code in AccountManager, and update these as well.
     var allPrefElements = [
-      { prefstring:"offline_download", id:"offline.newFolder"},
-      { prefstring:"download_bodies_on_get_new_mail",
-                           id:"offline.downloadBodiesOnGetNewMail"},
       { prefstring:"limit_offline_message_size", id:"offline.notDownload"},
       { prefstring:"max_size", id:"offline.notDownloadMin"},
       { prefstring:"downloadUnreadOnly", id:"nntp.notDownloadRead"},
@@ -239,5 +252,65 @@ function onCheckItem(changeElementId, checkElementId)
     }
     else {
         element.setAttribute("disabled", "true");
+    }
+}
+
+function checkOffline()
+{
+    var offline = document.getElementById("offline.folders").checked;
+    var folderPickerButton = document.getElementById('selectImapFoldersButton');
+    folderPickerButton.disabled = !offline;
+}
+
+function toggleOffline()
+{
+    checkOffline()
+    var offline = document.getElementById("offline.folders").checked;
+    var rootFolder = gIncomingServer.rootFolder;
+    var allFolders = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+    rootFolder.ListDescendents(allFolders);
+    var numFolders = allFolders.Count();
+    var folder;
+    for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
+    {
+      folder = allFolders.GetElementAt(folderIndex).QueryInterface(Ci.nsIMsgFolder);
+      if (offline)
+        folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
+      else
+        folder.clearFlag(Components.interfaces.nsMsgFolderFlags.Offline);
+    }
+    
+}
+
+function collectOfflineFolders()
+{
+    var offlineFolderMap = {};
+    var rootFolder = gIncomingServer.rootFolder;
+    var allFolders = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+    rootFolder.ListDescendents(allFolders);
+    var numFolders = allFolders.Count();
+    var folder;
+    for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
+    {
+      folder = allFolders.GetElementAt(folderIndex).QueryInterface(Ci.nsIMsgFolder);
+      offlineFolderMap[folder.folderURL] = folder.getFlag(Components.interfaces.nsMsgFolderFlags.Offline);
+    }
+    return offlineFolderMap;
+}
+
+function restoreOfflineFolders(offlineFolderMap)
+{
+    var rootFolder = gIncomingServer.rootFolder;
+    var allFolders = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+    rootFolder.ListDescendents(allFolders);
+    var numFolders = allFolders.Count();
+    var folder;
+    for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
+    {
+      folder = allFolders.GetElementAt(folderIndex).QueryInterface(Ci.nsIMsgFolder);
+      if (offlineFolderMap[folder.folderURL])
+        folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
+      else
+        folder.clearFlag(Components.interfaces.nsMsgFolderFlags.Offline);
     }
 }

@@ -1,7 +1,7 @@
 <!ENTITY doNotDownloadPop3Movemail.label "To save disk space, do not download:">
 <!ENTITY doNotDownload.label "To save disk space, do not download for offline use:">
-<!ENTITY offlineNewFolder.label "When I create new folders, select them for offline use">
-<!ENTITY offlineNewFolder.accesskey "c">
+<!ENTITY allFoldersOffline.label "Keep messages for this account on this computer">
+<!ENTITY allFoldersOffline.accesskey "o">
 <!ENTITY offlineNotDownload.label "Messages larger than">
 <!ENTITY offlineNotDownload.accesskey "M">
 <!ENTITY kb.label "KB">
@@ -25,10 +25,7 @@
 <!ENTITY nntpRemoveBody.accesskey "O">
 <!ENTITY offlineSelectNntp.label "Select newsgroups for offline use…">
 <!ENTITY offlineSelectNntp.accesskey "S">
-<!ENTITY offlineSelectImap.label "Select folders for offline use…">
-<!ENTITY offlineSelectImap.accesskey "S">
-<!ENTITY offlineDesc.label "You can download your messages locally so that they are available when you are working offline.">
-<!ENTITY makeInboxMsgsAvailable.label "Make the messages in my Inbox available when I am working offline">
-<!ENTITY makeInboxMsgsAvailable.accesskey "k">
-<!ENTITY offlineGroupTitle.label "Offline">
+<!ENTITY offlineImapAdvancedOffline.label "Advanced…">
+<!ENTITY offlineImapAdvancedOffline.accesskey "A">
+<!ENTITY syncGroupTitle.label "Message Synchronizing">
 <!ENTITY diskspaceGroupTitle.label "Disk Space">

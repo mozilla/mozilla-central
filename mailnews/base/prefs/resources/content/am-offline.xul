@@ -58,23 +58,17 @@
     <dialogheader id="headertitle"/>
 
     <groupbox id="offline.titlebox" hidefor="movemail,pop3,none,rss">
-      <caption label="&offlineGroupTitle.label;"/>
-
-    <description hidefor="movemail,pop3">&offlineDesc.label;</description>
+      <caption label="&syncGroupTitle.label;"/>
 
     <checkbox hidefor="movemail,pop3,nntp,none" 
-              id="offline.downloadBodiesOnGetNewMail" wsm_persist="true" 
-              label="&makeInboxMsgsAvailable.label;" 
-              accesskey="&makeInboxMsgsAvailable.accesskey;"/>
-
-    <checkbox hidefor="movemail,pop3,nntp,none" 
-              id="offline.newFolder" label="&offlineNewFolder.label;" 
-              accesskey="&offlineNewFolder.accesskey;"/>
+              id="offline.folders" label="&allFoldersOffline.label;"
+              oncommand="toggleOffline()"
+              accesskey="&allFoldersOffline.accesskey;"/>
 
     <separator class="thin" hidefor="movemail,pop3,nntp,none"/>
 
     <hbox hidefor="movemail,pop3,nntp,none" align="right">
-        <button label="&offlineSelectImap.label;" accesskey="&offlineSelectImap.accesskey;"
+        <button label="&offlineImapAdvancedOffline.label;" accesskey="&offlineImapAdvancedOffline.accesskey;"
                 oncommand="onClickSelect()" id="selectImapFoldersButton" class="selectForOfflineUseButton"/>
     </hbox>
 

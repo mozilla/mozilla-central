@@ -340,7 +340,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
       mStringBundle->GetStringFromName(NS_LITERAL_STRING("prefPanel-copies").get(),
                                        getter_Copies(pageTitle));
     else if (source == kNC_PageTitleOfflineAndDiskSpace)
-      mStringBundle->GetStringFromName(NS_LITERAL_STRING("prefPanel-offline-and-diskspace").get(),
+      mStringBundle->GetStringFromName(NS_LITERAL_STRING("prefPanel-syncing-and-diskspace").get(),
                                        getter_Copies(pageTitle));
     else if (source == kNC_PageTitleDiskSpace)
       mStringBundle->GetStringFromName(NS_LITERAL_STRING("prefPanel-diskspace").get(),
