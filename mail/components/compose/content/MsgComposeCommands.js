@@ -1227,10 +1227,23 @@ function ComposeStartup(recycled, aParams)
       {
         var attachmentList = args.attachment.split(",");
         var attachment;
+        var localFile = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
+        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+        ioService = ioService.getService(Components.interfaces.nsIIOService);
+        var fileHandler = ioService.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
         for (var i = 0; i < attachmentList.length; i ++)
         {
+          var attachmentStr = attachmentList[i];
           attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"].createInstance(Components.interfaces.nsIMsgAttachment);
-          attachment.url = attachmentList[i];
+          if (/^file:\/\//i.test(attachmentStr))
+          {
+            attachment.url = attachmentStr;
+          }
+          else
+          {
+            localFile.initWithPath(attachmentList[i]);
+            attachment.url = fileHandler.getURLSpecFromFile(localFile);;
+          }
           composeFields.addAttachment(attachment);
         }
       }
