@@ -66,6 +66,7 @@
 #include "nsIMutableArray.h"
 #include "nsITimer.h"
 #include "nsCOMArray.h"
+#include "nsAutoSyncState.h"
 
 class nsImapMoveCoalescer;
 class nsIMsgIdentity;
@@ -341,6 +342,7 @@ public:
   virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
 
   static nsresult  AllocateUidStringFromKeys(nsMsgKey *keys, PRUint32 numKeys, nsCString &msgIds);
+  static nsresult  BuildIdsAndKeyArray(nsIArray* messages, nsCString& msgIds, nsTArray<nsMsgKey>& keyArray);
 
   // these might end up as an nsIImapMailFolder attribute.
   nsresult SetSupportedUserFlags(PRUint32 userFlags);
@@ -412,7 +414,6 @@ protected:
                           nsIMsgWindow *msgWindow,
                           PRBool allowUndo);
   nsresult OnCopyCompleted(nsISupports *srcSupport, nsresult exitCode);
-  nsresult BuildIdsAndKeyArray(nsIArray* messages, nsCString& msgIds, nsTArray<nsMsgKey>& keyArray);
   nsresult GetMoveCoalescer();
   nsresult PlaybackCoalescedOperations();
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
@@ -435,6 +436,9 @@ protected:
   void PlaybackTimerCallback(nsITimer *aTimer, void *aClosure);
   
   nsresult CreatePlaybackTimer();
+  
+  // Allocate and initialize associated auto-sync state object 
+  void InitAutoSyncState();
 
   PRBool m_initialized;
   PRBool m_haveDiscoveredAllFolders;
@@ -490,7 +494,10 @@ protected:
   // offline imap support
   PRBool m_downloadMessageForOfflineUse;
   PRBool m_downloadingFolderForOfflineUse;
-
+  
+  // auto-sync (preemptive download) support
+  nsRefPtr<nsAutoSyncState> m_autoSyncStateObj;
+  
   // Quota support
   nsCString m_folderQuotaRoot;
   PRUint32 m_folderQuotaUsedKB;

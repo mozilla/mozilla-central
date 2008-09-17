@@ -54,6 +54,7 @@ REQUIRES	= xpcom \
 		  msgbaseutil \
 		  rdfutil \
 		  necko \
+		  widget \
 		  appshell \
 		  msgdb \
 		  dom \
@@ -97,6 +98,8 @@ CPPSRCS		= \
 		nsImapUndoTxn.cpp \
 		nsImapStringBundle.cpp \
 		nsImapOfflineSync.cpp \
+		nsAutoSyncState.cpp \
+		nsAutoSyncManager.cpp \
 		$(NULL)
 
 include $(topsrcdir)/config/config.mk

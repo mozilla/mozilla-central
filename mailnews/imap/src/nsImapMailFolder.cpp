@@ -123,6 +123,7 @@
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 #include "nsArrayEnumerator.h"
+#include "nsAutoSyncManager.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
@@ -240,7 +241,7 @@ nsImapMailFolder::nsImapMailFolder() :
   m_supportedUserFlags = 0;
   m_namespace = nsnull;
   m_numFilterClassifyRequests = 0;
-  m_pendingPlaybackReq = nsnull;  
+  m_pendingPlaybackReq = nsnull;
 }
 
 nsImapMailFolder::~nsImapMailFolder()
@@ -1784,6 +1785,15 @@ NS_IMETHODIMP nsImapMailFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement
 
   m_aclFlags = -1; // init to invalid value.
   element->GetInt32Property("aclFlags", (PRInt32 *) &m_aclFlags);
+  
+  PRInt32 lastSyncTimeInSec;
+  if ( NS_FAILED(element->GetInt32Property("lastSyncTimeInSec", (PRInt32 *) &lastSyncTimeInSec)) )
+    lastSyncTimeInSec = 0U;
+  
+  // make sure that auto-sync state object is created
+  InitAutoSyncState();
+  m_autoSyncStateObj->SetLastSyncTimeInSec(lastSyncTimeInSec);
+  
   return rv;
 }
 
@@ -1794,6 +1804,16 @@ NS_IMETHODIMP nsImapMailFolder::WriteToFolderCacheElem(nsIMsgFolderCacheElement 
   element->SetInt32Property("hierDelim", (PRInt32) m_hierarchyDelimiter);
   element->SetStringProperty("onlineName", m_onlineFolderName);
   element->SetInt32Property("aclFlags", (PRInt32) m_aclFlags);
+  
+  // store folder's last sync time
+  if (m_autoSyncStateObj)
+  {
+    PRTime lastSyncTime;
+    m_autoSyncStateObj->GetLastSyncTime(&lastSyncTime);
+    // store in sec
+    element->SetInt32Property("lastSyncTimeInSec", (PRInt32) (lastSyncTime / PR_USEC_PER_SEC));
+  }
+   
   return rv;
 }
 
@@ -1894,7 +1914,7 @@ nsImapMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatab
   return rv;
 }
 
-nsresult
+/* static */ nsresult
 nsImapMailFolder::BuildIdsAndKeyArray(nsIArray* messages,
                                       nsCString& msgIds,
                                       nsTArray<nsMsgKey>& keyArray)
@@ -5008,34 +5028,29 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
 
     if (imapServer)
       imapServer->GetAutoSyncOfflineStores(&autoSyncOfflineStores);
+    
     if (autoSyncOfflineStores || mFlags & nsMsgFolderFlags::Inbox)
     {
       if (imapServer && mFlags & nsMsgFolderFlags::Inbox && !autoSyncOfflineStores)
         imapServer->GetDownloadBodiesOnGetNewMail(&autoDownloadNewHeaders);
-      // this isn't quite right - we only want to download bodies for new headers
-      // but we don't know what the new headers are. We could query the inbox db
-      // for new messages, if the above filter playback actually moves the filtered
-      // messages before we get to this code.
-      if (autoDownloadNewHeaders || autoSyncOfflineStores)
-      {
-          // acquire semaphore for offline store. If it fails, we won't download for offline use.
-        if (NS_SUCCEEDED(AcquireSemaphore(static_cast<nsIMsgImapMailFolder*>(this))))
-          m_downloadingFolderForOfflineUse = PR_TRUE;
-      }
-    }
 
-    if (m_downloadingFolderForOfflineUse)
-    {
       nsTArray<nsMsgKey> keysToDownload;
       GetBodysToDownload(&keysToDownload);
       if (!keysToDownload.IsEmpty())
+      {
         SetNotifyDownloadedLines(PR_TRUE);
-
-      aProtocol->NotifyBodysToDownload(keysToDownload.Elements(), keysToDownload.Length());
+      
+        // create auto-sync state object lazily
+        InitAutoSyncState();
+      
+        // make enough room for new downloads
+        m_autoSyncStateObj->ManageStorageSpace();
+        
+        m_autoSyncStateObj->OnNewHeaderFetchCompleted(keysToDownload);
+      }
     }
-    else
-      aProtocol->NotifyBodysToDownload(nsnull, 0/*keysToFetch.Length() */);
-
+    aProtocol->NotifyBodysToDownload(nsnull, 0/*keysToFetch.Length() */);
+   
     nsCOMPtr <nsIURI> runningUri;
     aProtocol->GetRunningUrl(getter_AddRefs(runningUri));
     if (runningUri)
@@ -8230,6 +8245,55 @@ NS_IMETHODIMP nsImapMailFolder::ChangePendingUnread(PRInt32 aDelta)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsImapMailFolder::GetAutoSyncStateObj(nsIAutoSyncState **autoSyncStateObj)
+{
+  NS_ENSURE_ARG_POINTER(autoSyncStateObj);
+  
+  // create auto-sync state object lazily
+  InitAutoSyncState();
+    
+  NS_IF_ADDREF(*autoSyncStateObj = m_autoSyncStateObj);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapMailFolder::InitiateAutoSync(nsIUrlListener *aUrlListener)
+{
+  #ifdef DEBUG_me
+  nsCString folderName;
+  GetURI(folderName);
+  printf("Updating folder: %s\n", folderName.get());
+  #endif
+
+  // HACK: if UpdateFolder finds out that it can't open 
+  // the folder, it doesn't set the url listener and returns 
+  // no error. In this case, we return success from this call 
+  // but the caller never gets a notification on its url listener.
+  PRBool canOpenThisFolder = PR_TRUE;
+  GetCanOpenFolder(&canOpenThisFolder);
+  
+  if (!canOpenThisFolder)
+  {
+    #ifdef DEBUG_me
+    printf("Cannot update folder: %s\n", folderName.get());
+    #endif
+    return NS_ERROR_FAILURE;
+  }
+
+  // create auto-sync state object lazily
+  InitAutoSyncState();
+  
+  nsresult rv = m_autoSyncStateObj->ManageStorageSpace();
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  rv = UpdateFolder(nsnull, aUrlListener);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // record the last update time
+  m_autoSyncStateObj->SetLastUpdateTime(PR_Now());
+  
+  return NS_OK;
+}
+
 nsresult nsImapMailFolder::CreatePlaybackTimer()
 {
   nsresult rv = NS_OK;
@@ -8257,4 +8321,10 @@ void nsImapMailFolder::PlaybackTimerCallback(nsITimer *aTimer, void *aClosure)
   // release request struct
   request->SrcFolder->m_pendingPlaybackReq = nsnull;
   delete request;
+}
+
+void nsImapMailFolder::InitAutoSyncState()
+{
+  if (!m_autoSyncStateObj)
+    m_autoSyncStateObj = new nsAutoSyncState(this);
 }

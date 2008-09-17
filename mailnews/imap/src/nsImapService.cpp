@@ -99,6 +99,7 @@
 #include "nsImapProtocol.h"
 #include "nsIMsgMailSession.h"
 #include "nsIStreamConverterService.h"
+#include "nsIAutoSyncManager.h"
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
 #include "nsInt64.h"
@@ -140,6 +141,16 @@ nsImapService::nsImapService()
       prefBranch->GetBoolPref("mail.imap.mime_parts_on_demand", &gMIMEOnDemand);
       prefBranch->GetIntPref("mail.imap.mime_parts_on_demand_threshold", &gMIMEOnDemandThreshold);
     }
+    
+    // initialize auto-sync service
+    nsCOMPtr<nsIAutoSyncManager> autoSyncMgr = do_GetService(NS_AUTOSYNCMANAGER_CONTRACTID, &rv);
+    if (NS_SUCCEEDED(rv) && autoSyncMgr) 
+    {
+      // auto-sync manager initialization goes here
+      // assign new strategy objects here... 
+    }
+    NS_ASSERTION(autoSyncMgr != nsnull, "*** Cannot initialize nsAutoSyncManager service.");
+      
     gInitialized = PR_TRUE;
   }
 }

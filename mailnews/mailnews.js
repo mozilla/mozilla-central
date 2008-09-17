@@ -509,6 +509,10 @@ pref("mail.server.default.serverFilterTrustFlags", 1); // 1 == trust positives, 
 pref("mail.server.default.purgeSpam", false);
 pref("mail.server.default.purgeSpamInterval", 14); // 14 days
 
+// to activate auto-sync feature (preemptive message download for imap) by default
+pref("mail.server.default.autosync_offline_stores",true);
+pref("mail.server.default.offline_download",true);
+
 // the probablilty threshold over which messages are classified as junk
 // this number is divided by 100 before it is used. The classifier can be fine tuned
 // by changing this pref. Typical values are .99, .95, .90, .5, etc.

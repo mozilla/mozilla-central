@@ -1,0 +1,106 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *  Emre Birol  <ebirol@gmail.com> (Original Author)
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+ 
+#include "nsISupports.idl"
+
+interface nsIAutoSyncMsgStrategy;
+interface nsIAutoSyncFolderStrategy;
+interface nsIMsgDBHdr;
+interface nsIAutoSyncState;
+
+[scriptable, uuid(C358C568-47B2-42b2-8146-3C0F8D1FAD6E)] 
+interface nsIAutoSyncManager : nsISupports {
+
+  /** 
+   * Download models
+   */
+  const long dmParallel = 0;
+  const long dmChained = 1;
+
+  /**
+   * Cumulative message size per download
+   */
+  attribute unsigned long groupSize;
+  
+  /** 
+   * Active strategy function to prioritize
+   * messages in the download queue
+   */
+  attribute nsIAutoSyncMsgStrategy msgStrategy;
+  
+  /** 
+   * Active strategy function to prioritize
+   * folders in the download queue
+   */
+  attribute nsIAutoSyncFolderStrategy folderStrategy;
+    
+  boolean doesMsgFitDownloadCriteria(in nsIMsgDBHdr aMsgHdr);
+  
+  /**
+   * Called by the nsAutoSyncState object when the download
+   * queue is changed. Given interface is already addref'd.
+   */
+  void onDownloadQChanged(in nsIAutoSyncState aAutoSyncStateObj);
+  
+  /**
+   * Called by the nsAutoSyncState object when the download
+   * is started. Given interface is already addref'd.
+   */
+  void onDownloadStarted(in nsIAutoSyncState aAutoSyncStateObj, in nsresult aStartCode);
+  
+  /**
+   * Called by the nsAutoSyncState object when the download
+   * completed. Given interface is already addref'd.
+   */
+  void onDownloadCompleted(in nsIAutoSyncState aAutoSyncStateObj, in nsresult aExitCode);
+  
+  /**
+   * Active download model; Chained (serial), or Parallel
+   */
+  attribute long downloadModel;
+};
+
+%{C++
+#define NS_AUTOSYNCMANAGER_CID  \
+{ /* C358C568-47B2-42b2-8146-3C0F8D1FAD6E */  \
+  0xc358c568, 0x47b2, 0x42b2,                 \
+  { 0x81, 0x46, 0x3c, 0xf, 0x8d, 0x1f, 0xad, 0x6e }}
+#define NS_AUTOSYNCMANAGER_CLASSNAME \
+  "Auto-Sync Manager"
+#define NS_AUTOSYNCMANAGER_CONTRACTID \
+  "@mozilla.org/imap/autosyncmgr;1"
+%}
+

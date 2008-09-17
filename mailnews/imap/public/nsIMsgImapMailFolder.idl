@@ -42,6 +42,7 @@
 interface nsIMsgWindow;
 interface nsIImapIncomingServer;
 interface nsIMsgParseMailMsgState;
+interface nsIAutoSyncState;
 
 // this is a simple interface which allows the imap folder to update some values
 // that the folder props js code will use to update the sharing and quota tabs in the folder props.
@@ -114,6 +115,8 @@ interface nsIMsgImapMailFolder : nsISupports {
                       in unsigned long aNumKeys);
 
   void notifyIfNewMail();
+  
+  void initiateAutoSync(in nsIUrlListener aUrlListener);
 
   attribute boolean verifiedAsOnlineFolder;
   attribute boolean explicitlyVerify;
@@ -127,6 +130,7 @@ interface nsIMsgImapMailFolder : nsISupports {
   attribute boolean performingBiff;
   readonly attribute nsIMsgParseMailMsgState hdrParser;
   readonly attribute nsIImapIncomingServer imapIncomingServer;
+  readonly attribute nsIAutoSyncState autoSyncStateObj;
 
   /**
    * Quota
@@ -155,6 +159,5 @@ interface nsIMsgImapMailFolder : nsISupports {
    * @param aDelta amount to change the unread count by.
    */
   void changePendingUnread(in long aDelta);
-
-
+  
 };
