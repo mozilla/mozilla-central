@@ -205,7 +205,7 @@
       <xul:hbox class="headerNameBox" align="start">
         <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
       </xul:hbox>
-      <xul:mail-emailaddress anonid="emailAddressNode"/>
+      <xul:mail-emailaddress class="headerValue" anonid="emailAddressNode"/>
     </content>
 
     <implementation>

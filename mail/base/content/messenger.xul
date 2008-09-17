@@ -414,8 +414,10 @@
 
         <vbox id="messagepanebox" flex="2" minheight="100" height="200"
               minwidth="100" width="200" persist="height width">
-          <deck id="msgNotificationBar"/>
+
           <hbox id="msgHeaderView"/>
+          <hbox id="editMessageBox"/>
+          <deck id="msgNotificationBar"/>
           <browser id="messagepane" context="messagePaneContext" autofind="false"
                    minheight="1" flex="1" name="messagepane"
                    disablehistory="true" type="content-primary" src="about:blank"

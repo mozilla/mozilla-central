@@ -41,6 +41,14 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+/* ::::: for the entire area ::::: */
+.main-header-area {
+  background-color: #6d84a2;
+  color: #ffffff; 
+  font-size: 12px;
+  overflow: hidden;
+}
+
 /* ::::: msg header toolbars ::::: */
 
 #collapsedHeaderView,
@@ -51,9 +59,43 @@
 /* ::::: msg header buttons ::::: */
 .headerContainer
 {
-  border-bottom: 1px solid ThreeDDarkShadow;
   min-width: 1px;
   background-color: transparent;
+}
+
+#otherActionsButton {
+  margin-bottom: .1em;   
+}
+
+#trashButton {
+  -moz-box-orient: vertical;
+ list-style-image: url("chrome://messenger/skin/icons/folder.png");
+  -moz-image-region: rect(0 144px 16px 128px);
+}
+
+/* ::::: expanded header pane ::::: */
+
+#expandedHeadersButtonBox {
+  padding-bottom: .3em;
+}
+
+#variousHeadersBox {
+  padding-bottom: 1.3em;
+}
+  
+/* ::::: edit message bar ::::: */
+
+#editMessageBox
+{
+  min-width: 1px;
+  -moz-border-radius-bottomleft: 0.2em;
+  -moz-border-radius-bottomright: 0.2em;
+}
+
+#editMessageDescription
+{
+  font-style: italic;
+  font-weight: bolder;
 }
 
 /* ::::: attachment view ::::: */
@@ -122,8 +164,17 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 /* ::::: msg header captions ::::: */
 
 #msgHeaderView {
-  -moz-appearance: toolbox;
-  background-color: -moz-Dialog;
+  border-left: 2px solid #8597b0;
+  border-right: 2px solid #8597b0;
+  font-family: Arial;
+  font-size: 12px;
+  -moz-border-radius-bottomleft: 0.2em;
+  -moz-border-radius-bottomright: 0.2em;
+  
+}
+
+.msgHeaderView-button {
+  min-width: 1px !important;
 }
 
 .headerNameBox {
@@ -133,8 +184,8 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .headerName {
   margin: 0 .5em 5px 0;
-  font-weight: bold;
   text-align: right;
+  color: #bbbbbb;
   background-color: transparent;
 }
 
@@ -143,6 +194,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   min-width: 50px;
   white-space: normal;
   background-color: transparent;
+  color: inherit;
 }
 
 .headerValueBox {
@@ -157,11 +209,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .headerValueBox[singleline="true"] {
   overflow: hidden;
-}
-
-.subjectvalue {
-  font-weight: bold;
-  background-color: transparent;
 }
 
 .tagvalue {
@@ -192,15 +239,13 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .emailDisplayButton {
   cursor: pointer;
-  color: #0000FF;
-  text-decoration: underline;
   margin: 0;
   background-color: transparent;
 }
 
 .headerValueUrl:hover,
 .emailDisplayButton:hover {
-  color: #FF0000;
+  color: blue;
 }
 
 .emailDisplayImage {
@@ -241,6 +286,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   margin: 0 .5em;
   text-align: right;
   background-color: transparent;
+  color: inherit;
 }
 
 #collapseddateValue > .textbox-input-box menupopup { 
@@ -260,11 +306,11 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .collapsedHeaderDisplayName { 
   margin: 0 .5em 0 .8em;
   min-height: 16px;
-  font-weight: bold;
   background-color: transparent;
 }
 
 .collapsedHeaderValue {
   margin: 0;
+  color: inherit;
   background-color: transparent;
 }

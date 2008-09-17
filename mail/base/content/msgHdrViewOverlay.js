@@ -98,17 +98,24 @@ var gCollapsedHeaderList = [ {name:"subject", outputFunction:updateHeaderValueIn
 // We also have an expanded header view. This shows many of your more common (and useful) headers.
 var gExpandedHeaderList = [ {name:"subject"},
                             {name:"from", useToggle:true, outputFunction:OutputEmailAddresses},
-                            {name:"sender", outputFunction:OutputEmailAddresses},
                             {name:"reply-to", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"date"},
                             {name:"to", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"cc", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"bcc", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"newsgroups", outputFunction:OutputNewsgroups},
-                            {name:"references", outputFunction:OutputMessageIds},
                             {name:"followup-to", outputFunction:OutputNewsgroups},
                             {name:"content-base"},
                             {name:"tags"} ];
+
+// XXXdmose need to decide if we want to keep the special elements for these
+// headers when users manually add them to their "display these extended
+// headers" pref.  If so, we'll need to write code that actually uses the below
+// array.  If not, we should get rid of the array as well as the XUL elements.
+// For the moment, display of those things when the user has touched that pref
+// is untested.  It might Just Work as a generic extended header.
+var extraExpandedHeaderList = [ {name:"sender", outputFunction:OutputEmailAddresses},                            
+                                {name:"references", outputFunction:OutputMessageIds} ];
 
 // These are all the items that use a mail-multi-emailHeaderField widget and
 // therefore may require updating if the address book changes.
@@ -208,7 +215,7 @@ function initializeHeaderViewTables()
     for (index = 0; index < extraHeaders.length; index++)
     {
       var extraHeader = extraHeaders[index];
-      gExpandedHeaderView[extraHeader.toLowerCase()] = new createNewHeaderView(extraHeader, extraHeader + ':');
+      gExpandedHeaderView[extraHeader.toLowerCase()] = new createNewHeaderView(extraHeader, extraHeader);
     }
     if (prefBranch.getBoolPref("mailnews.headers.showOrganization"))
     {
@@ -368,7 +375,7 @@ var messageHeaderSink = {
       gBuildAttachmentsForCurrentMsg = false;
       gBuildAttachmentPopupForCurrentMsg = true;
       ClearAttachmentList();
-      ClearEditMessageButton();
+      ClearEditMessageBox();
       gMessageNotificationBar.clearMsgNotifications();
 
       for (index in gMessageListeners)
@@ -386,7 +393,7 @@ var messageHeaderSink = {
 
       ShowMessageHeaderPane();
       UpdateMessageHeaders();
-      ShowEditMessageButton();
+      ShowEditMessageBox();
 
       for (index in gMessageListeners)
         gMessageListeners[index].onEndHeaders();
@@ -760,7 +767,6 @@ function ToggleHeaderView ()
   // Work around a xul deck bug where the height of the deck is determined by the tallest panel in the deck
   // even if that panel is not selected...
   document.getElementById('msgHeaderViewDeck').selectedPanel.collapsed = true;
-
   UpdateMessageHeaders();
 
   // select the new panel.
@@ -855,8 +861,9 @@ function UpdateMessageHeaders()
         }
         else
         {
-          gExpandedHeaderView[headerName] = new createNewHeaderView(headerName,
-                                                                    currentHeaderData[headerName].headerName + ':');
+          gExpandedHeaderView[headerName] = 
+            new createNewHeaderView(headerName, 
+                                    currentHeaderData[headerName].headerName);
         }
 
         headerEntry = gExpandedHeaderView[headerName];
@@ -918,6 +925,8 @@ function HideMessageHeaderPane()
   // disable the attachment box
   document.getElementById("attachmentView").collapsed = true;
   document.getElementById("attachment-splitter").collapsed = true;
+  
+  ClearEditMessageBox();
 }
 
 function OutputNewsgroups(headerEntry, headerValue)
@@ -1706,7 +1715,7 @@ function ClearAttachmentList()
     list.removeChild(list.lastChild);
 }
 
-function ShowEditMessageButton()
+function ShowEditMessageBox()
 {
   // it would be nice if we passed in the msgHdr from the back end
   var msgHdr;
@@ -1723,7 +1732,7 @@ function ShowEditMessageButton()
     document.getElementById("editMessageBox").collapsed = false;
 }
 
-function ClearEditMessageButton()
+function ClearEditMessageBox()
 {
   var editBox = document.getElementById("editMessageBox");
   if (editBox)

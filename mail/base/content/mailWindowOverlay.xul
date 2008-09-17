@@ -1824,8 +1824,8 @@
   <hbox id="phishingBar" class="msgNotificationBar" align="center">
     <image id="phishingBarImage"/>
     <vbox flex="1">
-      <description flex="1" class="msgNotificationBarText">&phishingBarMessage1.label;</description>
-      <label id="reportPhishingError" value="&reportPhishingError.label;" class="msgNotificaton-smallText text-link" collapsed="true"/>
+      <description flex="1" class="msgNotificationBarText">&phishingBarMessage2.label;</description>
+      <label id="reportPhishingError" value="&reportPhishingError1.label;" class="msgNotificaton-smallText text-link" collapsed="true"/>
     </vbox>
     <button label="&removePhishingBarButton1.label;" oncommand="IgnorePhishingWarning();"/>
   </hbox>
@@ -1843,7 +1843,7 @@
       <label id="allowRemoteContentForAuthorDesc" class="msgNotificaton-smallText text-link"
              onclick="allowRemoteContentForSender();"/>
     </vbox>
-    <button label="&loadRemoteContentButton1.label;" oncommand="LoadMsgWithRemoteContent();"/>
+    <button label="&loadRemoteContentButton2.label;" oncommand="LoadMsgWithRemoteContent();"/>
   </hbox>
 </deck>
 

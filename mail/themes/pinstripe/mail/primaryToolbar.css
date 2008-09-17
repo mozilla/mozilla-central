@@ -574,9 +574,23 @@ toolbar[iconsize="small"] #button-compact[disabled] {
 }
 
 #remoteContentBar {
-  background-color: #EFF3D4;
-  padding: 6px 8px;
+  background-color: #FBFBC8;
+  border: 1px solid #DDDDE1;
   color: black;
+  padding: 0.3em 0.2em;
+  -moz-border-radius-bottomleft: 0.2em;
+  -moz-border-radius-bottomright: 0.2em;
+  -moz-border-radius-topleft: 0.2em;
+  -moz-border-radius-topright: 0.2em;
+}
+
+#remoteContentDescription {
+  margin-left: 1.1em;
+}
+
+#remoteContentButton {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 #phishingBarImage {

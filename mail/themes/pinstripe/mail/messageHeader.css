@@ -41,6 +41,13 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+/* ::::: for the entire area ::::: */
+.main-header-area {
+  background-color: #6d84a2;
+  color: #ffffff; 
+  font-size: 12px;
+  overflow: hidden;
+}
 
 /* ::::: msg header toolbars ::::: */
 #collapsedHeaderView,
@@ -52,6 +59,40 @@
 .headerContainer
 {
   min-width: 1px;
+}
+
+#otherActionsButton {
+  margin-bottom: .1em;   
+}
+
+#trashButton {
+  -moz-box-orient: vertical;
+  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
+}
+
+/* ::::: expanded header pane ::::: */
+
+#expandedHeadersButtonBox {
+  padding-bottom: .3em;
+}
+
+#variousHeadersBox {
+  padding-bottom: 1.3em;
+}
+  
+/* ::::: edit message bar ::::: */
+
+#editMessageBox
+{
+  min-width: 1px;
+  -moz-border-radius-bottomleft: 0.2em;
+  -moz-border-radius-bottomright: 0.2em;
+}
+
+#editMessageDescription
+{
+  font-style: italic;
+  font-weight: bolder;
 }
 
 /* ::::: attachment view ::::: */
@@ -135,30 +176,38 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 /* ::::: msg header captions ::::: */
 
 #msgHeaderView {
-  background-color: #FFFFFF;
-  border: none;
+  border-left: 2px solid #8597b0;
+  border-right: 2px solid #8597b0;
   font-family: Arial;
   font-size: 12px;
+  -moz-border-radius-bottomleft: 0.2em;
+  -moz-border-radius-bottomright: 0.2em;
 }
 
-#msgHeaderView > deck {
-  margin: 0 8px 0 8px;
-  padding: 8px 0 4px 0;
-  border-bottom: 1px solid #ccc;
+#msgHeaderViewDeck {
+  margin: 0;
+  padding: 0;
+}
+
+
+.msgHeaderView-button {
+  min-width: 1px;
+  /* XXX need to pick a good outline-color here */
 }
 
 #msgHeaderView textbox {
   background-color: transparent;
+  color: inherit;
 }
 
+
 .headerNameBox {
-  width: 8em;
+  width: 7em;
   background-color: transparent;
-  color: #8f8f8f;
 }
 
 .headerName {
-  font-weight: bold;
+  color: #bbbbbb;
   text-align: right;
   background-color: transparent;
   padding: 0px;
@@ -174,6 +223,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 .headerValueBox {
+  background-color: transparent;
 }
 
 .headerValueUrl {
@@ -190,16 +240,13 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   overflow: hidden;
 }
 
-#collapsedsubjectBox .collapsedHeaderDisplayName {
-  font-weight: bold;
-  color: #8f8f8f;
-  margin-top: 0;
-  -moz-margin-start: 8px;
+.headerField {
+  color: inherit;
 }
 
-.subjectvalue {
-  font-weight: bold;
-  background-color: transparent;
+#collapsedsubjectBox {
+  margin-top: 0;
+  -moz-margin-start: 8px;
 }
 
 .tagvalue {

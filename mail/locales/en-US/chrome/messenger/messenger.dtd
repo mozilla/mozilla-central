@@ -627,12 +627,12 @@
 
 <!-- Remote Content Bar -->
 <!ENTITY remoteContentMessage1.label "To protect your privacy, remote images have been blocked.">
-<!ENTITY loadRemoteContentButton1.label "Load Images">
+<!ENTITY loadRemoteContentButton2.label "Display Images Now">
 
 <!-- Phishing Bar -->
-<!ENTITY phishingBarMessage1.label "Suspected Email Scam">
+<!ENTITY phishingBarMessage2.label "This message may be a scam.">
 <!ENTITY removePhishingBarButton1.label "Ignore Warning">
-<!ENTITY reportPhishingError.label "This isn't an email scam">
+<!ENTITY reportPhishingError1.label "This message doesn't appear to be a scam.">
 
 <!-- Quick Search Bar -->
 <!ENTITY quickSearchCmd.key "k">

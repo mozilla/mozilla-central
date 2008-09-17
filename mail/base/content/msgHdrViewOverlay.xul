@@ -1,48 +1,46 @@
 <?xml version="1.0"?>
 
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-1999
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Communicator client code.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 1998-1999
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE overlay SYSTEM "chrome://messenger/locale/msgHdrViewOverlay.dtd">
 
 <?xml-stylesheet href="chrome://messenger/skin/messageHeader.css" type="text/css"?>
 
-<overlay xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script src="chrome://messenger/content/msgHdrViewOverlay.js"/>
 
@@ -101,36 +99,39 @@
   <menuitem label="&copyLinkCmd.label;" accesskey="&copyLinkCmd.accesskey;" oncommand="CopyWebsiteAddress(document.popupNode)"/>
 </popup>
 
-<hbox id="msgHeaderView" collapsed="true">
+<hbox id="msgHeaderView" collapsed="true" class="main-header-area">
   <deck id="msgHeaderViewDeck" persist="selectedIndex" selectedIndex="1" flex="1">
-    <!-- the message pane consists of 3 'boxes'. Box #1 is a grid, showing a brief view of the headers -->
+    <!-- the message pane consists of 4 'boxes'. Box #1 is a grid, showing a brief view of the headers -->
     <grid id="collapsedHeaderView" class="header-part1 headerContainer" flex="1">
       <rows>
         <row flex="1"/>
       </rows>
       <columns>
         <column class="collapsedToggleHdrBox">
-          <hbox align="start">
+          <hbox align="baseline">
             <image id="toggleHeaderView" class="collapsedHeaderViewButton"
               onclick="ToggleHeaderView();"/>
           </hbox>
         </column>
 
         <column id="collapsedsubjectBox" collapsed="true" flex="1">
-          <hbox>
-            <label class="collapsedHeaderDisplayName" value="&subjectField.label;" control="collapsedsubjectValue"/>
+          <hbox align="baseline">
+            <label class="headerName" value="&subjectField2.label;" control="collapsedsubjectValue"/>
             <textbox id="collapsedsubjectValue" class="collapsedHeaderValue plain" readonly="true" crop="right" appendoriginalclass="true" flex="1"/>
           </hbox>
         </column>
 
         <column id="collapsedfromBox" flex="1">
-          <hbox align="start">
-            <mail-multi-emailHeaderField id="collapsedfromValue" class="collapsedHeaderDisplayName" label="&fromField.label;" collapsed="true" flex="1"/>
+          <hbox align="baseline">
+            <mail-multi-emailHeaderField id="collapsedfromValue"
+                                         class="collapsedHeaderDisplayName"
+                                         label="&fromField2.label;" 
+                                         collapsed="true" flex="1"/>
           </hbox>
         </column>
 
         <column id = "collapseddateBox" collapsed="true">
-          <hbox align="start">
+          <hbox align="baseline">
             <textbox id="collapseddateValue" class="collapsedHeaderValue plain" readonly="true"/>
           </hbox>
         </column>
@@ -139,40 +140,133 @@
 
     <!-- the message pane consists of 3 'boxes'. Box #2 is the expanded headers view (the default view) -->
     <hbox id="expandedHeaderView" flex="1">
+
+      <!--  XXX this should switch to using <grid> for expandedHeaders to get
+            away from gross historical CSS pseudo-boxery used for header
+            name positioning -->
       <vbox id="expandedHeaders" flex="1">
-        <mail-toggle-headerfield id="expandedsubjectBox" class="subjectvalue" label="&subjectField.label;" ontwistyclick="ToggleHeaderView();" collapsed="true"/>
 
-        <mail-multi-emailHeaderField id="expandedfromBox" label="&fromField.label;" collapsed="true"/>
-        <mail-emailheaderfield id="expandedsenderBox" label="&senderField.label;" collapsed="true"/>
-        <mail-headerfield id="expandedorganizationBox" label="&organizationField.label;" collapsed="true"/>
-        <mail-multi-emailHeaderField id="expandedreply-toBox" label="&replyToField.label;" collapsed="true"/>
+        <hbox id="expandedHeadersTopBox" align="end" pack="end">
 
-        <mail-headerfield id="expandeddateBox" label="&dateField.label;" collapsed="true"/>
+          <mail-multi-emailHeaderField id="expandedfromBox"
+                                       label="&fromField2.label;"
+                                       collapsed="true"/>
 
-        <mail-multi-emailHeaderField id="expandedtoBox"  label="&toField.label;"  collapsed="true"/>
-        <mail-multi-emailHeaderField id="expandedccBox"  label="&ccField.label;"  collapsed="true"/>
-        <mail-multi-emailHeaderField id="expandedbccBox" label="&bccField.label;" collapsed="true"/>
+          <spacer id="fromAndToolbarSpacer" flex="1"/>
 
-        <mail-headerfield id="expandednewsgroupsBox"  label="&newsgroupsField.label;" collapsed="true"/>
-        <mail-headerfield id="expandedfollowup-toBox" label="&followupToField.label;" collapsed="true"/>
-        <mail-messageids-headerfield id="expandedmessage-idBox" label="&messageIdField.label;" collapsed="true"/>
-        <mail-messageids-headerfield id="expandedin-reply-toBox" label="&inReplyToField.label;" collapsed="true"/>
-        <mail-messageids-headerfield id="expandedreferencesBox" label="&referencesField.label;" collapsed="true"/>
-        <mail-tagfield    id="expandedtagsBox" label="&tagsHdr.label;" collapsed="true"/>
-        <mail-urlfield    id="expandedcontent-baseBox" label="&originalWebsite.label;" collapsed="true"/>    
-        <mail-headerfield id="expandeduser-agentBox"  label="&userAgentField.label;"  collapsed="true"/>
+          <!-- This might want to become a customizable toolbar at some
+               point -->
+          <hbox id="expandedHeadersButtonBox">
+
+            <!-- XXXdmose need to move these commands to a controller, either
+                 on the header view, the message pane, or the default
+                 controller
+                 -->
+
+            <!-- XXXdmose need to audit our shortcut/a11y setup and make sure
+                 these buttons are doing the right thing -->
+
+            <button id="replyButton" label="&replyButton.label;"
+                    oncommand="MsgReplyMessage(null);" observes="button_reply"
+                    class="msgHeaderView-button"/>
+            <button id="forwardButton" label="&forwardButton.label;"
+                    oncommand="MsgForwardMessage(null);"
+                    observes="button_forward" class="msgHeaderView-button"/>
+            <button id="junkButton" label="&junkButton.label;"
+                    observes="button_junk" class="msgHeaderView-button"
+                    oncommand="goDoCommand('button_junk')"/>
+            <button id="trashButton" tooltiptext="&trashButton.tooltiptext;"
+                    class="msgHeaderView-button" observes="button_delete"
+                    oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
+           </hbox>
+        </hbox>
+
+        <mail-headerfield id="expandedsubjectBox" label="&subjectField2.label;"
+                          collapsed="true"/>
+
+        <hbox id="otherHeadersAndButtonsBox"> 
+          <vbox id="variousHeadersBox">
+            <mail-headerfield id="expandedorganizationBox"
+                              label="&organizationField2.label;"
+                              collapsed="true"/>
+            <mail-emailheaderfield id="expandedsenderBox"
+                                   label="&senderField2.label;"
+                                   collapsed="true"/>
+            <mail-multi-emailHeaderField id="expandedreply-toBox"
+                                         label="&replyToField2.label;"
+                                         collapsed="true"/>
+            <mail-multi-emailHeaderField id="expandedtoBox"
+                                         label="&toField2.label;"
+                                         collapsed="true"/>
+            <mail-multi-emailHeaderField id="expandedccBox"
+                                         label="&ccField2.label;"
+                                         collapsed="true"/>
+            <mail-multi-emailHeaderField id="expandedbccBox" 
+                                         label="&bccField2.label;"
+                                         collapsed="true"/>
+            <mail-headerfield id="expandednewsgroupsBox"
+                              label="&newsgroupsField2.label;"
+                              collapsed="true"/>
+            <mail-headerfield id="expandedfollowup-toBox"
+                              label="&followupToField2.label;"
+                              collapsed="true"/>
+            <mail-headerfield id="expandeddateBox" label="&dateField2.label;"
+                              collapsed="true"/>
+            <mail-messageids-headerfield id="expandedmessage-idBox"
+                                         label="&messageIdField2.label;"
+                                         collapsed="true"/>
+            <mail-messageids-headerfield id="expandedin-reply-toBox"
+                                         label="&inReplyToField2.label;"
+                                         collapsed="true"/>
+            <mail-messageids-headerfield id="expandedreferencesBox"
+                                         label="&referencesField2.label;"
+                                         collapsed="true"/>
+            <mail-tagfield id="expandedtagsBox" label="&tagsHdr2.label;"
+                           collapsed="true"/>
+            <mail-urlfield id="expandedcontent-baseBox"
+                           label="&originalWebsite2.label;" collapsed="true"/>
+            <mail-headerfield id="expandeduser-agentBox"
+                              label="&userAgentField2.label;"
+                              collapsed="true"/>
+          </vbox>
+
+          <spacer flex="1"/>
+
+          <!-- perhaps this should be a customizable toolbar too -->
+          <vbox id="hideDetailsBox" align="end">
+            <button type="menu" id="otherActionsButton"
+                    label="&otherActionsButton.label;"
+                    class="msgHeaderView-button">
+              <menupopup id="otherActionsPopup">
+                <menuitem id="viewSourceMenuItem"
+                          label="&viewSourceMenuItem.label;"
+                          accesskey="&viewSourceMenuItem.accesskey;"
+                          oncommand="MsgViewPageSource();" />
+                <menuitem id="saveAsMenuItem" label="&saveAsMenuItem.label;"
+                          accesskey="&saveAsMenuItem.accesskey;"
+                          oncommand="MsgSaveAsFile();" />
+              </menupopup>
+            </button>
+            <button id="hideDetailsButton" label="&hideDetailsButton.label;"
+                    onclick="ToggleHeaderView();"
+                    class="msgHeaderView-button"/>
+          </vbox>
+        </hbox>
       </vbox>
-
-      <vbox id="editMessageBox" class="header-part1" originalclass="header-part1" collapsed="true">
-        <spacer flex="1"/>
-        <button id="editMessageButton" label="&editMessage.label;" oncommand="MsgComposeDraftMessage()"/>
-        <spacer flex="1"/>
-      </vbox>
-    </hbox>   
+    </hbox>
   </deck>
 </hbox>
 
-<!-- the message pane consists of 3 'boxes'. Box #3 is the attachment box which can be toggled into a slim or an expanded view -->   
+<hbox id="editMessageBox" pack="start" align="center" collapsed="true"
+      class="main-header-area">
+  <label id="editMessageDescription" control="editMessageButton"
+         value="&editMessageDescription.label;"/>
+  <button id="editMessageButton" label="&editMessageButton.label;"
+          oncommand="MsgComposeDraftMessage()" class="msgHeaderView-button"/>
+</hbox>
+
+<!-- the message pane consists of 4 'boxes'. Box #4 is the attachment box which
+     can be toggled into a slim or an expanded view -->
 <hbox id="attachmentView" collapsed="true">
   <description selectable="true" id="attachmentList" flex="1"
                seltype="multiple" disableKeyNavigation="true"
