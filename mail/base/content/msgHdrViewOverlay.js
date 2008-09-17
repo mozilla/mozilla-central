@@ -1002,23 +1002,28 @@ function updateEmailAddressNode(emailAddressNode, address)
 
 function AddExtraAddressProcessing(emailAddress, documentNode)
 {
-  if (gShowCondensedEmailAddresses) {
-    // always show the address for the from and reply-to fields
-    var condenseName = !(documentNode.parentNode.id == "expandedfromBox" ||
-                         documentNode.parentNode.id == "expandedreply-toBox");
-    var cardDetails = getCardForEmail(emailAddress);
-    var displayName = null;
+  // Always get the card details so we can show add or edit menu options.
+  var cardDetails = getCardForEmail(emailAddress);
+  documentNode.cardDetails = cardDetails;
 
-    documentNode.cardDetails = cardDetails;
+  if (!gShowCondensedEmailAddresses)
+    return;
 
-    if (cardDetails.card)
-      displayName = cardDetails.card.displayName;
+  // always show the address for the from and reply-to fields
+  if (documentNode.parentNode.id == "expandedfromBox" ||
+      documentNode.parentNode.id == "expandedreply-toBox")
+    return;
 
-    if (condenseName && displayName) {
-      documentNode.setAttribute("label", displayName);
-      documentNode.setAttribute("tooltiptext", emailAddress);
-    }
-  }
+  if (!cardDetails.card)
+    return;
+
+  var displayName = cardDetails.card.displayName;
+
+  if (!displayName)
+    return;
+
+  documentNode.setAttribute("label", displayName);
+  documentNode.setAttribute("tooltiptext", emailAddress);
 }
 
 function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCondenseName,
@@ -1049,66 +1054,66 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCondenseName,
 function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
                                       aParentDir, aItem)
 {
-  if (gShowCondensedEmailAddresses) {
-    var condenseName = !(aDocumentNode.parentNode.id == "expandedfromBox" ||
-                         aDocumentNode.parentNode.id == "expandedreply-toBox");
+  var condenseName = gShowCondensedEmailAddresses &&
+                     !(aDocumentNode.parentNode.id == "expandedfromBox" ||
+                       aDocumentNode.parentNode.id == "expandedreply-toBox");
 
-    switch (aAction) {
-    case nsIAbListener.itemChanged:
-      if (aDocumentNode.cardDetails.card &&
+  switch (aAction) {
+  case nsIAbListener.itemChanged:
+    if (aAddressData &&
+        aDocumentNode.cardDetails.card &&
+        aItem.hasEmailAddress(aAddressData.emailAddress)) {
+      aDocumentNode.cardDetails.card = aItem;
+      var displayName = aItem.displayName;
+
+      if (condenseName && displayName)
+        aDocumentNode.setAttribute("label", displayName);
+      else
+        aDocumentNode.setAttribute("label",
+                                   aDocumentNode.getAttribute("fullAddress") ||
+                                   aDocumentNode.getAttriubte("displayName"));
+    }
+    break;
+  case nsIAbListener.itemAdded:
+    // Is it a new address book?
+    if (aItem instanceof Components.interfaces.nsIAbDirectory) {
+      // If we don't have a match, search again for updates (e.g. a interface
+      // to an existing book may just have been added).
+      if (!aDocumentNode.cardDetails.card)
+        UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
+                               condenseName);
+    }
+    else if (aItem instanceof nsIAbCard) {
+      // If we don't have a card, does this new one match?
+      if (!aDocumentNode.cardDetails.card &&
           aItem.hasEmailAddress(aAddressData.emailAddress)) {
-        aDocumentNode.cardDetails.card = aItem;
-        var displayName = aItem.displayName;
-
-        if (condenseName && displayName)
-          aDocumentNode.setAttribute("label", displayName);
+        // Just in case we have a bogus parent directory
+        if (aParentDir instanceof Components.interfaces.nsIAbDirectory) {
+          var cardDetails = { book: aParentDir, card: aItem };
+          UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
+                                 condenseName, cardDetails);
+        }
         else
-          aDocumentNode.setAttribute("label",
-                                    aDocumentNode.getAttribute("fullAddress") ||
-                                    aDocumentNode.getAttriubte("displayName"));
-      }
-      break;
-    case nsIAbListener.itemAdded:
-      // Is it a new address book?
-      if (aItem instanceof Components.interfaces.nsIAbDirectory) {
-        // If we don't have a match, search again for updates (e.g. a interface
-        // to an existing book may just have been added).
-        if (!aDocumentNode.cardDetails.card)
           UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
                                  condenseName);
       }
-      else if (aItem instanceof nsIAbCard) {
-        // If we don't have a card, does this new one match?
-        if (!aDocumentNode.cardDetails.card &&
-            aItem.hasEmailAddress(aAddressData.emailAddress)) {
-          // Just in case we have a bogus parent directory
-          if (aParentDir instanceof Components.interfaces.nsIAbDirectory) {
-            var cardDetails = { book: aParentDir, card: aItem };
-            UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
-                                   condenseName, cardDetails);
-          }
-          else
-            UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
-                                   condenseName);
-        }
-          
-      }
-      break;
-    case nsIAbListener.directoryItemRemoved:
-      // Unfortunately we don't necessarily get the same card object back.
-      if (aDocumentNode.cardDetails.card &&
-          aDocumentNode.cardDetails.book == aParentDir &&
-          aItem.hasEmailAddress(aAddressData.emailAddress)) {
-        UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
-                               condenseName);
-      }
-      break;
-    case nsIAbListener.directoryRemoved:
-      if (aDocumentNode.cardDetails.book == aItem)
-        UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
-                               condenseName);
-      break;
     }
+    break;
+  case nsIAbListener.directoryItemRemoved:
+    // Unfortunately we don't necessarily get the same card object back.
+    if (aAddressData &&
+        aDocumentNode.cardDetails.card &&
+        aDocumentNode.cardDetails.book == aParentDir &&
+        aItem.hasEmailAddress(aAddressData.emailAddress)) {
+      UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
+                             condenseName);
+    }
+    break;
+  case nsIAbListener.directoryRemoved:
+    if (aDocumentNode.cardDetails.book == aItem)
+      UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
+                             condenseName);
+    break;
   }
 }
 
