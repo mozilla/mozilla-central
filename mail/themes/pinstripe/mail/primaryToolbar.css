@@ -48,17 +48,7 @@
   background-color: #cfcfcf;
 }
 
-#messengerWindow:not([active="true"]) > #mail-toolbox > #mail-bar2 {
-  background-image: url("chrome://global/skin/toolbar/toolbar-background-inactive.png");
-}
-
 #mail-bar2 {
-  background-color: #9e9e9e;
-  border-top: none;
-  border-bottom: 1px solid rgba(0,0,0,0.35);
-  background-image: url("chrome://global/skin/toolbar/toolbar-background.gif");
-  background-repeat: repeat-x;
-  background-position: top right;
   padding: 0 4px;
 }
 

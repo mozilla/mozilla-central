@@ -39,16 +39,6 @@
 # ***** END LICENSE BLOCK *****
 */
 
-#MailPreferences {
-  -moz-binding: url("chrome://global/skin/globalBindings.xml#unifiedPrefwindow");
-}
-
-#MailPreferences:not([active="true"]) > .paneSelector {
-  background-image: url("chrome://global/skin/toolbar/toolbar-background-tall-inactive.png");
-  background-color: #cfcfcf;
-  border-bottom: 1px solid rgba(0,0,0,0.35);
-}
-
 #MailPreferences:not([active="true"]) > .paneSelector > radio {
   opacity: 0.7;
 }
@@ -68,11 +58,7 @@ prefpane {
 .paneSelector {
   list-style-image: url("chrome://messenger/skin/preferences/mail-options.png");
   padding: 0 5px 2px 5px;
-  background-color: #999;
-  border-bottom: 1px solid #404040;
-  background-image: url("chrome://global/skin/toolbar/toolbar-background-tall.png");
-  background-repeat: repeat-x;
-  background-position: top right;
+  -moz-appearance: -moz-mac-unified-toolbar;
   margin: 0;
 }
 

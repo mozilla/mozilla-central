@@ -44,10 +44,6 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-#messengerWindow {
-  -moz-binding: url("chrome://global/skin/globalBindings.xml#unifiedWindow");
-}
-
 description.error {
   color: #FF0000;
 }

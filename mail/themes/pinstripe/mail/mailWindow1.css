@@ -343,7 +343,6 @@ treechildren::-moz-tree-image(news, threadCol, ignoreSubthread) {
 }
 
 #threadPaneBox {
-  margin-top: -1px;
   border-bottom: 1px solid #919191;
 }
 
