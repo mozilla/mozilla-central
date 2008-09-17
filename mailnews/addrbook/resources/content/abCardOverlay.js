@@ -91,7 +91,6 @@ const kVcardFields =
 const kDefaultYear = 2000;
 var gEditCard;
 var gOnSaveListeners = new Array();
-var gOkCallback = null;
 var gHideABPicker = false;
 
 function OnLoadNewCard()
@@ -144,9 +143,6 @@ function OnLoadNewCard()
     if ("allowRemoteContent" in window.arguments[0])
       gEditCard.card.setProperty("AllowRemoteContent",
                                  window.arguments[0].allowRemoteContent);
-
-    if ("okCallback" in window.arguments[0])
-      gOkCallback = window.arguments[0].okCallback;
 
     if ("escapedVCardStr" in window.arguments[0]) {
       // hide non vcard values
@@ -231,10 +227,6 @@ function EditCardOKButton()
   }
   NotifySaveListeners(directory);
 
-  // callback to allow caller to update
-  if (gOkCallback)
-    gOkCallback();
-
   return true;  // close the window
 }
 
@@ -248,8 +240,6 @@ function OnLoadEditCard()
   {
     if ( window.arguments[0].card )
       gEditCard.card = window.arguments[0].card;
-    if ( window.arguments[0].okCallback )
-      gOkCallback = window.arguments[0].okCallback;
     if ( window.arguments[0].abURI )
       gEditCard.abURI = window.arguments[0].abURI;
   }
@@ -369,15 +359,6 @@ function InitEditCard()
 
 function NewCardOKButton()
 {
-  if (gOkCallback)
-  {
-    if (!CheckAndSetCardValues(gEditCard.card, document, true))
-      return false;  // don't close window
-
-    gOkCallback(gEditCard.card.translateTo("vcard"));
-    return true;  // close the window
-  }
-
   var popup = document.getElementById('abPopup');
   if ( popup )
   {

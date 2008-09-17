@@ -40,7 +40,6 @@ var inputElementType = "";
 
 var gListCard;
 var gEditList;
-var gOkCallback = null;
 var oldListName = "";
 var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
 var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
@@ -266,12 +265,10 @@ function EditListOKButton()
 
     gEditList.editMailListToDatabase(gListCard);
 
-    if (gOkCallback)
-      gOkCallback();
     return true;  // close the window
   }
-  else
-    return false;
+
+  return false;
 }
 
 function OnLoadEditList()
@@ -280,7 +277,6 @@ function OnLoadEditList()
 
   gListCard = window.arguments[0].abCard;
   var listUri  = window.arguments[0].listURI;
-  gOkCallback = window.arguments[0].okCallback;
 
   gEditList = GetDirectoryFromURI(listUri);
 

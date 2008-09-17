@@ -196,7 +196,7 @@ function AbEditSelectedDirectory()
     var selecteduri = GetSelectedDirectory();
     var directory = GetDirectoryFromURI(selecteduri);
     if (directory.isMailList) {
-      goEditListDialog(null, selecteduri, UpdateCardView);
+      goEditListDialog(null, selecteduri);
     }
     else {
       window.openDialog(directory.propertiesChromeURI,
@@ -315,10 +315,10 @@ function AbEditCard(card)
     return;
 
   if (card.isMailList) {
-    goEditListDialog(card, card.mailListURI, UpdateCardView);
+    goEditListDialog(card, card.mailListURI);
   }
   else {
-    goEditCardDialog(GetSelectedDirectory(), card, UpdateCardView);
+    goEditCardDialog(GetSelectedDirectory(), card);
   }
 }
 
@@ -520,12 +520,12 @@ function goNewListDialog(selectedAB)
                     {selectedAB:selectedAB});
 }
 
-function goEditListDialog(abCard, listURI, okCallback)
+function goEditListDialog(abCard, listURI)
 {
   window.openDialog("chrome://messenger/content/addressbook/abEditListDialog.xul",
                     "",
                     "chrome,resizable=no,titlebar,modal,centerscreen",
-                    {abCard:abCard, listURI:listURI, okCallback:okCallback});
+                    {abCard:abCard, listURI:listURI});
 }
 
 function goNewCardDialog(selectedAB)
@@ -536,12 +536,12 @@ function goNewCardDialog(selectedAB)
                     {selectedAB:selectedAB});
 }
 
-function goEditCardDialog(abURI, card, okCallback)
+function goEditCardDialog(abURI, card)
 {
   window.openDialog("chrome://messenger/content/addressbook/abEditCardDialog.xul",
 					  "",
 					  "chrome,resizable=no,modal,titlebar,centerscreen",
-					  {abURI:abURI, card:card, okCallback:okCallback});
+					  {abURI:abURI, card:card});
 }
 
 

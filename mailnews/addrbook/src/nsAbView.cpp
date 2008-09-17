@@ -967,6 +967,13 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
   rv = GenerateCollationKeysForCard(mSortColumn.get(), newCard);
   NS_ENSURE_SUCCESS(rv,rv);
 
+  PRBool cardWasSelected = PR_FALSE;
+
+  if (mTreeSelection) {
+    rv = mTreeSelection->IsSelected(index, &cardWasSelected);
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+  
   if (!CompareCollationKeys(newCard->primaryCollationKey,newCard->primaryCollationKeyLen,oldCard->primaryCollationKey,oldCard->primaryCollationKeyLen)
     && CompareCollationKeys(newCard->secondaryCollationKey,newCard->secondaryCollationKeyLen,oldCard->secondaryCollationKey,oldCard->secondaryCollationKeyLen)) {
     // no need to remove and add, since the collation keys haven't change.
@@ -984,13 +991,6 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else {
-    PRBool cardWasSelected = PR_FALSE;
-
-    if (mTreeSelection) {
-      rv = mTreeSelection->IsSelected(index, &cardWasSelected);
-      NS_ENSURE_SUCCESS(rv,rv);
-    }
-    
     mSuppressSelectionChange = PR_TRUE;
     mSuppressCountChange = PR_TRUE;
 
@@ -1009,6 +1009,13 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
     if (cardWasSelected && mTree) 
       mTree->EnsureRowIsVisible(index);
   }
+
+  // Although the selection hasn't changed, the card that is selected may need
+  // to be displayed differently, therefore pretend that the selection has
+  // changed to force that update.
+  if (cardWasSelected)
+    SelectionChanged();
+
   return NS_OK;
 }
 
