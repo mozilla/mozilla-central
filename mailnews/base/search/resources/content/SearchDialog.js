@@ -37,10 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var rdfDatasourcePrefix = "@mozilla.org/rdf/datasource;1?name=";
-var rdfServiceContractID    = "@mozilla.org/rdf/rdf-service;1";
 var searchSessionContractID = "@mozilla.org/messenger/searchSession;1";
-var folderDSContractID      = rdfDatasourcePrefix + "mailnewsfolders";
 var gSearchView;
 var gSearchSession;
 var gCurrentFolder;
@@ -358,8 +355,7 @@ function updateSearchFolderPicker(folderURI)
     SetFolderPicker(folderURI, gFolderPicker.id);
 
     // use the URI to get the real folder
-    gCurrentFolder =
-        RDF.GetResource(folderURI).QueryInterface(nsIMsgFolder);
+    gCurrentFolder = GetMsgFolderFromUri(folderURI);
 
     var searchLocalSystem = document.getElementById("checkSearchLocalSystem");
     if (searchLocalSystem)
@@ -538,8 +534,6 @@ nsMsgSearchCommandUpdater.prototype =
 }
 
 function setupDatasource() {
-
-    RDF = Components.classes[rdfServiceContractID].getService(Components.interfaces.nsIRDFService);
     gSearchView = Components.classes["@mozilla.org/messenger/msgdbview;1?type=search"].createInstance(Components.interfaces.nsIMsgDBView);
     var count = new Object;
     var cmdupdator = new nsMsgSearchCommandUpdater();
@@ -573,7 +567,8 @@ function setupSearchListener()
 function GetFolderDatasource()
 {
     if (!gFolderDatasource)
-        gFolderDatasource = Components.classes[folderDSContractID].getService(Components.interfaces.nsIRDFDataSource);
+        gFolderDatasource = Components.classes["@mozilla.org/rdf/datasource;1?name=mailnewsfolders"]
+                                      .getService(Components.interfaces.nsIRDFDataSource);
     return gFolderDatasource;
 }
 
@@ -736,10 +731,8 @@ function MoveMessageInSearch(destFolder)
         if (destUri.length == 0) { 
           destUri = destFolder.getAttribute('file-uri')
         }
-        
-        var destResource = RDF.GetResource(destUri);
 
-        var destMsgFolder = destResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+        var destMsgFolder = GetMsgFolderFromUri(destUri).QueryInterface(Components.interfaces.nsIMsgFolder);
 
         // we don't move news messages, we copy them
         if (isNewsURI(gSearchView.getURIForViewIndex(0))) {

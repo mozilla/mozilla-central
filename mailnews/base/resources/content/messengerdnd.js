@@ -40,7 +40,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 // cache these services
-var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService().QueryInterface(Components.interfaces.nsIRDFService);
 var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].getService().QueryInterface(Components.interfaces.nsIDragService);
 var nsIDragService = Components.interfaces.nsIDragService;
 
@@ -71,12 +70,10 @@ function CanDropOnFolderTree(index, orientation)
     trans.addDataFlavor("text/x-moz-url");
  
     var folderTree = GetFolderTree();
-    var targetResource = GetFolderResource(folderTree, index);
-    var targetUri = targetResource.Value;
-    var targetFolder = targetResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+    var targetFolder = GetFolderResource(folderTree, index).QueryInterface(Components.interfaces.nsIMsgFolder);
+    var targetUri = targetFolder.URI;
     var targetServer = targetFolder.server;
-    var sourceServer;
-    var sourceResource;
+    var sourceServer, sourceFolder;
    
     for (var i = 0; i < dragSession.numDropItems; i++)
     {
@@ -103,19 +100,16 @@ function CanDropOnFolderTree(index, orientation)
             continue;
         if (dataFlavor.value == "text/x-moz-message")
         {
-            sourceResource = null;
-
             if (orientation != Components.interfaces.nsITreeView.DROP_ON)
               return false;
 
-            var folder = targetResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-            if (folder.isServer)
+            if (targetFolder.isServer)
             {
                 debugDump("***isServer == true\n");
                 return false;
             }
             // canFileMessages checks no select, and acl, for imap.
-            if (!folder.canFileMessages)
+            if (!targetFolder.canFileMessages)
             {
                 debugDump("***canFileMessages == false\n");
                 return false;
@@ -127,8 +121,7 @@ function CanDropOnFolderTree(index, orientation)
         } else if (dataFlavor.value == "text/x-moz-folder") {
           // we should only get here if we are dragging and dropping folders
           dragFolder = true;
-          sourceResource = RDF.GetResource(sourceUri);
-          var sourceFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+          sourceFolder = GetMsgFolderFromUri(sourceUri);
           sourceServer = sourceFolder.server;
 
           if (orientation != Components.interfaces.nsITreeView.DROP_ON)
@@ -156,8 +149,7 @@ function CanDropOnFolderTree(index, orientation)
         }
         else if (dataFlavor.value == "text/x-moz-newsfolder")
         {
-          sourceResource = RDF.GetResource(sourceUri);
-          var sourceFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+          sourceFolder = GetMsgFolderFromUri(sourceUri);
 
           // don't allow dragging on to element
           if (orientation == Components.interfaces.nsITreeView.DROP_ON)
@@ -174,9 +166,9 @@ function CanDropOnFolderTree(index, orientation)
           // don't allow dragging news folder (newsgroup) to before/after itself
           index += orientation;
           if (index < folderTree.view.rowCount) {	
-            targetResource = GetFolderResource(folderTree, index);
+            targetFolder = GetFolderResource(folderTree, index).QueryInterface(Components.interfaces.nsIMsgFolder);
 
-            if (targetResource == sourceResource)	
+            if (targetFolder == sourceFolder)	
               return false;
           }
 
@@ -207,7 +199,6 @@ function CanDropOnFolderTree(index, orientation)
         if (dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_COPY && sourceServer == targetServer)
             return false;
 
-        var targetFolder = targetResource.QueryInterface(Components.interfaces.nsIMsgFolder);
         // if cannot create subfolders then a folder cannot be dropped here     
         if (!targetFolder.canCreateSubfolders)
         {
@@ -221,8 +212,8 @@ function CanDropOnFolderTree(index, orientation)
         // allow us to drop it if we plan on dropping it on "Local Folders"
         // (but not within the same server, to prevent renaming folders on "Local Folders" that
         // should not be renamed)
-        var srcFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        if (!srcFolder.canRename) {
+
+        if (!sourceFolder.canRename) {
             if (sourceServer == targetServer)
                 return false;
             if (serverType != "none")
@@ -243,11 +234,10 @@ function CanDropOnFolderTree(index, orientation)
 function DropOnFolderTree(row, orientation)
 {
     var folderTree = GetFolderTree();
-    var targetResource = GetFolderResource(folderTree, row);
-    var targetFolder = targetResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+    var targetFolder = GetFolderResource(folderTree, row).QueryInterface(Components.interfaces.nsIMsgFolder);
     var targetServer = targetFolder.server;
 
-    var targetUri = targetResource.Value;
+    var targetUri = targetFolder.URI;
     debugDump("***targetUri = " + targetUri + "\n");
 
     var dragSession = dragService.getCurrentSession();
@@ -264,7 +254,6 @@ function DropOnFolderTree(row, orientation)
 
     var dropMessage;
     var sourceUri;
-    var sourceResource;
     var sourceFolder;
     var sourceServer;
 	
@@ -295,8 +284,7 @@ function DropOnFolderTree(row, orientation)
             if (orientation != Components.interfaces.nsITreeView.DROP_ON)
               return false;
 
-            sourceResource = RDF.GetResource(sourceUri);
-            sourceFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+            sourceFolder = GetMsgFolderFromUri(sourceUri);
             dropMessage = false;  // we are dropping a folder
           }
           else if (flavor.value == "text/x-moz-newsfolder")
@@ -304,8 +292,7 @@ function DropOnFolderTree(row, orientation)
             if (orientation == Components.interfaces.nsITreeView.DROP_ON)
               return false;
 
-            sourceResource = RDF.GetResource(sourceUri);
-            sourceFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+            sourceFolder = GetMsgFolderFromUri(sourceUri);
             dropMessage = false;  // we are dropping a news folder (newsgroup)
           }
           else if (flavor.value == "text/x-moz-message")
@@ -349,10 +336,10 @@ function DropOnFolderTree(row, orientation)
         }
         else {
             // Prevent dropping of a node before, after, or on itself
-            if (sourceResource == targetResource)	
+            if (sourceFolder == targetFolder)	
                 continue;
 
-            list.appendElement(sourceResource, false);
+            list.appendElement(sourceFolder, false);
         }
     }
 
@@ -367,7 +354,6 @@ function DropOnFolderTree(row, orientation)
     if (dropMessage) {
         var sourceMsgHdr = list.queryElementAt(0, Components.interfaces.nsIMsgDBHdr);
         sourceFolder = sourceMsgHdr.folder;
-        sourceResource = sourceFolder.QueryInterface(Components.interfaces.nsIRDFResource);
         sourceServer = sourceFolder.server;
 
 

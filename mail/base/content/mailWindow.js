@@ -48,7 +48,6 @@ var msgWindow;
 
 var msgComposeService;
 var accountManager;
-var RDF;
 
 var mailSession;
 
@@ -136,9 +135,6 @@ function CreateMailWindowGlobals()
   mailSession = Components.classes["@mozilla.org/messenger/services/session;1"].getService(Components.interfaces.nsIMsgMailSession);
 
   accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-
-  RDF = Components.classes['@mozilla.org/rdf/rdf-service;1'].getService();
-  RDF = RDF.QueryInterface(Components.interfaces.nsIRDFService);
 
   gMessengerBundle = document.getElementById("bundle_messenger");
   gBrandBundle = document.getElementById("bundle_brand");
