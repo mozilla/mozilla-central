@@ -159,6 +159,7 @@
 #include "nsIDOMWindowInternal.h"
 #include "nsIMsgComposeSecure.h"
 #include "nsAutoPtr.h"
+#include "nsISupportsArray.h"
 
 //
 // Some necessary defines...

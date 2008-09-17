@@ -39,7 +39,7 @@
 #include "nsISupports.idl"
 #include "nsIMsgRecipientArray.idl"
 #include "nsIMsgAttachment.idl"
-#include "nsISupportsArray.idl"
+#include "nsISimpleEnumerator.idl"
 
 [scriptable, uuid(ab598da9-d272-485b-9941-5ce87251a463)]
 interface nsIMsgCompFields : nsISupports {
@@ -90,7 +90,7 @@ interface nsIMsgCompFields : nsISupports {
    */
   attribute string  temporaryFiles;
   
-  readonly attribute nsISupportsArray attachmentsArray;
+  readonly attribute nsISimpleEnumerator attachments;
   void addAttachment(in nsIMsgAttachment attachment);
   void removeAttachment(in nsIMsgAttachment attachment);
   void removeAttachments();

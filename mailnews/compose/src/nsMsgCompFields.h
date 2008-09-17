@@ -43,6 +43,7 @@
 #include "msgCore.h"
 #include "nsIAbCard.h"
 #include "nsTArray.h"
+#include "nsCOMArray.h"
 
 struct nsMsgRecipient
 {
@@ -197,7 +198,7 @@ public:
 protected:
   char*       m_headers[MSG_MAX_HEADERS];
   nsCString   m_body;
-  nsCOMPtr<nsISupportsArray>  m_attachments;
+  nsCOMArray<nsIMsgAttachment> m_attachments;
   PRBool      m_attachVCard;
   PRBool      m_forcePlainText;
   PRBool      m_useMultipartAlternative;

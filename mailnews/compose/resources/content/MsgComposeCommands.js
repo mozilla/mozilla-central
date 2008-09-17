@@ -1344,10 +1344,10 @@ function ComposeStartup(recycled, aParams)
         var subjectValue = msgCompFields.subject;
         document.getElementById("msgSubject").value = subjectValue;
 
-        var attachments = msgCompFields.attachmentsArray;
-        if (attachments)
-          for (i = 0; i < attachments.Count(); i ++)
-            AddAttachment(attachments.QueryElementAt(i, Components.interfaces.nsIMsgAttachment));
+        var attachments = msgCompFields.attachments;
+        while (attachments.hasMoreElements()) {
+          AddAttachment(attachments.getNext().QueryInterface(Components.interfaces.nsIMsgAttachment));
+        }
       }
 
       var event = document.createEvent('Events');

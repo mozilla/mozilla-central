@@ -47,6 +47,7 @@
 #include "nsIFileChannel.h"
 #include "nsIMsgMdnGenerator.h"
 #include "nsServiceManagerUtils.h"
+#include "nsArrayEnumerator.h"
 
 /* the following macro actually implement addref, release and query interface for our component. */
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgCompFields, nsIMsgCompFields)
@@ -58,8 +59,6 @@ nsMsgCompFields::nsMsgCompFields()
     m_headers[i] = nsnull;
 
   m_body.Truncate();
-
-  NS_NewISupportsArray(getter_AddRefs(m_attachments));
 
   m_attachVCard = PR_FALSE;
   m_forcePlainText = PR_FALSE;
@@ -480,59 +479,45 @@ const char* nsMsgCompFields::GetBody()
     return m_body.get();
 }
 
-/* readonly attribute nsISupportsArray attachmentsArray; */
-NS_IMETHODIMP nsMsgCompFields::GetAttachmentsArray(nsISupportsArray * *aAttachmentsArray)
+/* readonly attribute nsISimpleEnumerator attachmentsArray; */
+NS_IMETHODIMP nsMsgCompFields::GetAttachments(nsISimpleEnumerator * *aAttachmentsEnum)
 {
-  NS_ENSURE_ARG_POINTER(aAttachmentsArray);
-  *aAttachmentsArray = m_attachments;
-  NS_IF_ADDREF(*aAttachmentsArray);
-  return NS_OK;
+  return aAttachmentsEnum ? NS_NewArrayEnumerator(aAttachmentsEnum, m_attachments) : NS_ERROR_NULL_POINTER;
 }
 
 /* void addAttachment (in nsIMsgAttachment attachment); */
 NS_IMETHODIMP nsMsgCompFields::AddAttachment(nsIMsgAttachment *attachment)
 {
-  PRUint32 i;
-  PRUint32 attachmentCount = 0;
-  m_attachments->Count(&attachmentCount);
+  PRInt32 attachmentCount = m_attachments.Count();
 
   //Don't add twice the same attachment.
   nsCOMPtr<nsIMsgAttachment> element;
   PRBool sameUrl;
-  for (i = 0; i < attachmentCount; i ++)
+  for (PRInt32 i = 0; i < attachmentCount; i ++)
   {
-    m_attachments->QueryElementAt(i, NS_GET_IID(nsIMsgAttachment), getter_AddRefs(element));
-    if (element)
-    {
-      element->EqualsUrl(attachment, &sameUrl);
-      if (sameUrl)
-        return NS_OK;
-    }
+    m_attachments[i]->EqualsUrl(attachment, &sameUrl);
+    if (sameUrl)
+      return NS_OK;
   }
+  m_attachments.AppendObject(attachment);
 
-  return m_attachments->InsertElementAt(attachment, attachmentCount);
+  return NS_OK;
 }
 
 /* void removeAttachment (in nsIMsgAttachment attachment); */
 NS_IMETHODIMP nsMsgCompFields::RemoveAttachment(nsIMsgAttachment *attachment)
 {
-  PRUint32 i;
-  PRUint32 attachmentCount = 0;
-  m_attachments->Count(&attachmentCount);
+  PRInt32 attachmentCount = m_attachments.Count();
 
   nsCOMPtr<nsIMsgAttachment> element;
   PRBool sameUrl;
-  for (i = 0; i < attachmentCount; i ++)
+  for (PRInt32 i = 0; i < attachmentCount; i ++)
   {
-    m_attachments->QueryElementAt(i, NS_GET_IID(nsIMsgAttachment), getter_AddRefs(element));
-    if (element)
+    m_attachments[i]->EqualsUrl(attachment, &sameUrl);
+    if (sameUrl)
     {
-      element->EqualsUrl(attachment, &sameUrl);
-      if (sameUrl)
-      {
-        m_attachments->DeleteElementAt(i);
-        break;
-      }
+      m_attachments.RemoveObjectAt(i);
+      break;
     }
   }
 
@@ -542,12 +527,7 @@ NS_IMETHODIMP nsMsgCompFields::RemoveAttachment(nsIMsgAttachment *attachment)
 /* void removeAttachments (); */
 NS_IMETHODIMP nsMsgCompFields::RemoveAttachments()
 {
-  PRUint32 i;
-  PRUint32 attachmentCount = 0;
-  m_attachments->Count(&attachmentCount);
-
-  for (i = 0; i < attachmentCount; i ++)
-    m_attachments->DeleteElementAt(0);
+  m_attachments.Clear();
 
   return NS_OK;
 }

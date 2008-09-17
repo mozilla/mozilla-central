@@ -2186,24 +2186,25 @@ nsMsgComposeAndSend::CountCompFieldAttachments()
   mCompFieldRemoteAttachments = 0;
 
   //Get the attachments array
-  nsCOMPtr<nsISupportsArray> attachmentsArray;
-  mCompFields->GetAttachmentsArray(getter_AddRefs(attachmentsArray));
-  if (!attachmentsArray)
+  nsCOMPtr<nsISimpleEnumerator> attachments;
+  mCompFields->GetAttachments(getter_AddRefs(attachments));
+  if (!attachments)
     return NS_OK;
 
-  PRUint32 i;
-  PRUint32 attachmentCount = 0;
-  attachmentsArray->Count(&attachmentCount);
+  nsresult rv;
 
-  //Parse the attachments array
-  nsCOMPtr<nsIMsgAttachment> element;
+  // Parse the attachments array
+  PRBool moreAttachments;
   nsCString url;
-  for (i = 0; i < attachmentCount; i ++)
-  {
-    attachmentsArray->QueryElementAt(i, NS_GET_IID(nsIMsgAttachment), getter_AddRefs(element));
-    if (element)
+  nsCOMPtr<nsISupports> element;
+  while (NS_SUCCEEDED(attachments->HasMoreElements(&moreAttachments)) && moreAttachments) {
+    rv = attachments->GetNext(getter_AddRefs(element));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIMsgAttachment> attachment = do_QueryInterface(element, &rv);
+    if (NS_SUCCEEDED(rv) && attachment)
     {
-      element->GetUrl(getter_Copies(url));
+      attachment->GetUrl(getter_Copies(url));
       if (!url.IsEmpty())
     {
       // Check to see if this is a file URL, if so, don't retrieve
@@ -2240,25 +2241,26 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
     return NS_OK;
 
   //Get the attachments array
-  nsCOMPtr<nsISupportsArray> attachmentsArray;
-  mCompFields->GetAttachmentsArray(getter_AddRefs(attachmentsArray));
-  if (!attachmentsArray)
+  nsCOMPtr<nsISimpleEnumerator> attachments;
+  mCompFields->GetAttachments(getter_AddRefs(attachments));
+  if (!attachments)
     return NS_OK;
 
-  PRUint32 i;
   PRUint32  newLoc = 0;
-  PRUint32 attachmentCount = 0;
-  attachmentsArray->Count(&attachmentCount);
+  nsresult rv;
+  nsCString url;
 
   //Parse the attachments array
-  nsCOMPtr<nsIMsgAttachment> element;
-  nsCString url;
-  for (i = 0; i < attachmentCount; i ++)
-  {
-    attachmentsArray->QueryElementAt(i, NS_GET_IID(nsIMsgAttachment), getter_AddRefs(element));
-    if (element)
+  PRBool moreAttachments;
+  nsCOMPtr<nsISupports> element;
+  while (NS_SUCCEEDED(attachments->HasMoreElements(&moreAttachments)) && moreAttachments) {
+    rv = attachments->GetNext(getter_AddRefs(element));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIMsgAttachment> attachment = do_QueryInterface(element, &rv);
+    if (NS_SUCCEEDED(rv) && attachment)
     {
-      element->GetUrl(getter_Copies(url));
+      attachment->GetUrl(getter_Copies(url));
       if (!url.IsEmpty())
       {
         // Just look for local file:// attachments and do the right thing.
@@ -2296,7 +2298,7 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           if (m_attachments[newLoc].mURL)
           {
             nsAutoString proposedName;
-            element->GetName(proposedName);
+            attachment->GetName(proposedName);
             msg_pick_real_name(&m_attachments[newLoc], proposedName.get(), mCompFields->GetCharacterSet());
           }
 
@@ -2311,7 +2313,7 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           PRBool mustSnarfAttachment = PR_FALSE;
   #endif
           PR_FREEIF(m_attachments[newLoc].m_type);
-          element->GetContentType(&m_attachments[newLoc].m_type);
+          attachment->GetContentType(&m_attachments[newLoc].m_type);
           if (!m_attachments[newLoc].m_type || !(*m_attachments[newLoc].m_type))
           {
             nsresult  rv = NS_OK;
@@ -2364,7 +2366,7 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           }
           else
           {
-            element->GetContentTypeParam(&m_attachments[newLoc].m_type_param);
+            attachment->GetContentTypeParam(&m_attachments[newLoc].m_type_param);
             mustSnarfAttachment = PR_FALSE;
           }
 
@@ -2395,9 +2397,9 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           }
 
           PR_FREEIF(m_attachments[newLoc].m_x_mac_type);
-          element->GetMacType(&m_attachments[newLoc].m_x_mac_type);
+          attachment->GetMacType(&m_attachments[newLoc].m_x_mac_type);
           PR_FREEIF(m_attachments[newLoc].m_x_mac_creator);
-          element->GetMacCreator(&m_attachments[newLoc].m_x_mac_creator);
+          attachment->GetMacCreator(&m_attachments[newLoc].m_x_mac_creator);
 
           ++newLoc;
         }
@@ -2417,25 +2419,25 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(PRUint32   aStartLocation,
     return NS_OK;
 
   //Get the attachments array
-  nsCOMPtr<nsISupportsArray> attachmentsArray;
-  mCompFields->GetAttachmentsArray(getter_AddRefs(attachmentsArray));
-  if (!attachmentsArray)
+  nsCOMPtr<nsISimpleEnumerator> attachments;
+  mCompFields->GetAttachments(getter_AddRefs(attachments));
+  if (!attachments)
     return NS_OK;
 
-  PRUint32 i;
   PRUint32  newLoc = aStartLocation;
-  PRUint32 attachmentCount = 0;
-  attachmentsArray->Count(&attachmentCount);
 
-  //Parse the attachments array
-  nsCOMPtr<nsIMsgAttachment> element;
+  nsresult rv;
+  PRBool moreAttachments;
   nsCString url;
-  for (i = 0; i < attachmentCount; i ++)
-  {
-    attachmentsArray->QueryElementAt(i, NS_GET_IID(nsIMsgAttachment), getter_AddRefs(element));
-    if (element)
+  nsCOMPtr<nsISupports> element;
+  while (NS_SUCCEEDED(attachments->HasMoreElements(&moreAttachments)) && moreAttachments) {
+    rv = attachments->GetNext(getter_AddRefs(element));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIMsgAttachment> attachment = do_QueryInterface(element, &rv);
+    if (NS_SUCCEEDED(rv) && attachment)
     {
-      element->GetUrl(getter_Copies(url));
+      attachment->GetUrl(getter_Copies(url));
       if (!url.IsEmpty())
       {
         // Just look for files that are NOT local file attachments and do
@@ -2460,9 +2462,9 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(PRUint32   aStartLocation,
           m_attachments[newLoc].m_encoding = PL_strdup ("7bit");
 
           PR_FREEIF(m_attachments[newLoc].m_x_mac_type);
-          element->GetMacType(&m_attachments[newLoc].m_x_mac_type);
+          attachment->GetMacType(&m_attachments[newLoc].m_x_mac_type);
           PR_FREEIF(m_attachments[newLoc].m_x_mac_creator);
-          element->GetMacCreator(&m_attachments[newLoc].m_x_mac_creator);
+          attachment->GetMacCreator(&m_attachments[newLoc].m_x_mac_creator);
 
           /* Count up attachments which are going to come from mail folders
              and from NNTP servers. */
@@ -2484,7 +2486,7 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(PRUint32   aStartLocation,
           if (do_add_attachment)
           {
             nsAutoString proposedName;
-            element->GetName(proposedName);
+            attachment->GetName(proposedName);
             msg_pick_real_name(&m_attachments[newLoc], proposedName.get(), mCompFields->GetCharacterSet());
             ++newLoc;
           }
@@ -3031,22 +3033,19 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
   SetMimeHeader(nsMsgCompFields::MSG_REFERENCES_HEADER_ID, fields->GetReferences());
   SetMimeHeader(nsMsgCompFields::MSG_X_TEMPLATE_HEADER_ID, fields->GetTemplateName());
 
-  nsCOMPtr<nsISupportsArray> srcAttachmentArray;
-  fields->GetAttachmentsArray(getter_AddRefs(srcAttachmentArray));
-  if (srcAttachmentArray)
+  nsCOMPtr<nsISimpleEnumerator> srcAttachments;
+  fields->GetAttachments(getter_AddRefs(srcAttachments));
+  if (srcAttachments)
   {
-    PRUint32 i;
-    PRUint32 attachmentCount = 0;
-    srcAttachmentArray->Count(&attachmentCount);
-    if (attachmentCount > 0)
-    {
-      nsCOMPtr<nsIMsgAttachment> element;
-      for (i = 0; i < attachmentCount; i ++)
-      {
-        srcAttachmentArray->QueryElementAt(i, NS_GET_IID(nsIMsgAttachment), getter_AddRefs(element));
-        if (element)
-          mCompFields->AddAttachment(element);
-      }
+    PRBool moreAttachments;
+    nsCOMPtr<nsISupports> element;
+    while (NS_SUCCEEDED(srcAttachments->HasMoreElements(&moreAttachments)) && moreAttachments) {
+      rv = srcAttachments->GetNext(getter_AddRefs(element));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCOMPtr<nsIMsgAttachment> attachment = do_QueryInterface(element, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+      mCompFields->AddAttachment(attachment);
     }
   }
 
