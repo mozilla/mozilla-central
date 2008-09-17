@@ -72,7 +72,6 @@
             <description class="CardViewLink" id="cvEmail2Box">
               <html:a href="" id="cvEmail2"/>
             </description>
-
             <description class="CardViewLink" id="cvScreennameBox">
               <html:a href="" id="cvScreenname"/>
               <html:img onclick="GoIM()" align="top" id="cvAimPresence"/>
@@ -99,6 +98,7 @@
 
         <vbox id="cvbOther" class="cardViewGroup">
           <description class="CardViewHeading" id="cvhOther">&other.heading;</description>
+          <description class="CardViewText" id="cvBirthday"/>
           <description class="CardViewText" id="cvCustom1"/>
           <description class="CardViewText" id="cvCustom2"/>
           <description class="CardViewText" id="cvCustom3"/>

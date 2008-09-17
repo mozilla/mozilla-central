@@ -64,6 +64,7 @@ var zHome;
 var zFax;
 var zCellular;
 var zPager;
+var zBirthday;
 var zCustom1;
 var zCustom2;
 var zCustom3;
@@ -84,6 +85,7 @@ function OnLoadCardView()
   zFax = gAddressBookBundle.getString("propertyFax");
   zCellular = gAddressBookBundle.getString("propertyCellular");
   zPager = gAddressBookBundle.getString("propertyPager");
+  zBirthday = gAddressBookBundle.getString("propertyBirthday");
   zCustom1 = gAddressBookBundle.getString("propertyCustom1");
   zCustom2 = gAddressBookBundle.getString("propertyCustom2");
   zCustom3 = gAddressBookBundle.getString("propertyCustom3");
@@ -127,8 +129,9 @@ function OnLoadCardView()
   cvData.cvHomeWebPageBox = doc.getElementById("cvHomeWebPageBox");
   cvData.cvHomeWebPage  = doc.getElementById("cvHomeWebPage");
   // Other section
-  cvData.cvbOther      = doc.getElementById("cvbOther");
-  cvData.cvhOther      = doc.getElementById("cvhOther");
+  cvData.cvbOther     = doc.getElementById("cvbOther");
+  cvData.cvhOther     = doc.getElementById("cvhOther");
+  cvData.cvBirthday   = doc.getElementById("cvBirthday");
   cvData.cvCustom1    = doc.getElementById("cvCustom1");
   cvData.cvCustom2    = doc.getElementById("cvCustom2");
   cvData.cvCustom3    = doc.getElementById("cvCustom3");
@@ -310,8 +313,26 @@ function DisplayCardViewPane(realCard)
   }
   else {
     // Other section
+    // setup the birthday information
+    var day = card.getProperty("BirthDay", null);
+    var month = card.getProperty("BirthMonth", null);
+    var year = card.getProperty("BirthYear", null);
+    var dateStr;
+    if (day || month) {
+      var date = (new Date(year, parseInt(month) - 1, day));
+      // if the year exists, just use Date.toLocaleString
+      if (year)
+        dateStr = date.toLocaleDateString();
+      // if the year doesn't exist, display Month DD (ex. January 01)
+      else
+        dateStr = date.toLocaleFormat(gAddressBookBundle.getString("dateformat"));
+    }
+    else if (year)
+      dateStr = year;
+    visible = cvSetNodeWithLabel(data.cvBirthday, zBirthday, dateStr);
+
     visible = cvSetNodeWithLabel(data.cvCustom1, zCustom1,
-                                 card.getProperty("Custom1"));
+                                 card.getProperty("Custom1")) || visible;
     visible = cvSetNodeWithLabel(data.cvCustom2, zCustom2,
                                  card.getProperty("Custom2")) || visible;
     visible = cvSetNodeWithLabel(data.cvCustom3, zCustom3,

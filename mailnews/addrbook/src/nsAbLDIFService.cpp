@@ -434,6 +434,10 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
   case 'b':
     if (colType.EqualsLiteral("birthyear"))
       mDatabase->AddBirthYear(newRow, column.get());
+    else if (colType.EqualsLiteral("birthmonth"))
+      mDatabase->AddBirthMonth(newRow, column.get());
+    else if (colType.EqualsLiteral("birthday"))
+      mDatabase->AddBirthDay(newRow, column.get());
     break; // 'b'
 
   case 'c':

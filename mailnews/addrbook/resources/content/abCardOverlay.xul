@@ -350,25 +350,49 @@
 
       <!-- ** Other Tab ** -->
       <vbox index="other" flex="1">
-        <vbox id="customFields" class="alignBoxWithFieldset">
+        <vbox id="birthdayField" class="alignBoxWithFieldset">
           <hbox flex="1">
-            <label control="Custom1" value="&Custom1.label;" accesskey="&Custom1.accesskey;" class="CardEditLabel"/>
-            <textbox id="Custom1" flex="1"/>
-          </hbox>
-          <hbox flex="1">
-            <label control="Custom2" value="&Custom2.label;" accesskey="&Custom2.accesskey;" class="CardEditLabel"/>
-            <textbox id="Custom2" flex="1"/>
-          </hbox>
-          <hbox flex="1">
-            <label control="Custom3" value="&Custom3.label;" accesskey="&Custom3.accesskey;" class="CardEditLabel"/>
-            <textbox id="Custom3" flex="1"/>
-          </hbox>
-          <hbox flex="1">
-            <label control="Custom4" value="&Custom4.label;" accesskey="&Custom4.accesskey;" class="CardEditLabel"/>
-            <textbox id="Custom4" flex="1"/>
+            <spacer flex="1"/>
+            <label control="Birthday" value="&Birthday.label;" accesskey="&Birthday.accesskey;" class="CardEditLabel"/>
+            <hbox class="CardEditWidth">
+              <!-- NOTE: This datepicker is modified.  See abCardOverlay.js for details-->
+              <datepicker id="Birthday" type="popup"/>
+              <textbox id="BirthYear" maxlength="4" emptytext="&Year.emptytext;" width="60"/>
+              <label control="Age" value="&Or.value;" class="CardEditLabel" disabled="true"/>
+              <textbox id="Age" maxlength="4" emptytext="&Age.emptytext;" width="60"/>
+            </hbox>
           </hbox>
         </vbox>
-
+        <vbox id="customFields" class="alignBoxWithFieldset">
+          <hbox flex="1">
+            <spacer flex="1"/>
+            <label control="Custom1" value="&Custom1.label;" accesskey="&Custom1.accesskey;" class="CardEditLabel"/>
+            <hbox class="CardEditWidth">
+              <textbox id="Custom1" flex="1"/>
+            </hbox>
+          </hbox>
+          <hbox flex="1">
+            <spacer flex="1"/>
+            <label control="Custom2" value="&Custom2.label;" accesskey="&Custom2.accesskey;" class="CardEditLabel"/>
+            <hbox class="CardEditWidth">
+              <textbox id="Custom2" flex="1"/>
+            </hbox>
+          </hbox>
+          <hbox flex="1">
+            <spacer flex="1"/>
+            <label control="Custom3" value="&Custom3.label;" accesskey="&Custom3.accesskey;" class="CardEditLabel"/>
+            <hbox class="CardEditWidth">
+              <textbox id="Custom3" flex="1"/>
+            </hbox>
+          </hbox>
+          <hbox flex="1">
+            <spacer flex="1"/>
+            <label control="Custom4" value="&Custom4.label;" accesskey="&Custom4.accesskey;" class="CardEditLabel"/>
+            <hbox class="CardEditWidth">
+              <textbox id="Custom4" flex="1"/>
+            </hbox>
+          </hbox>
+        </vbox>
         <groupbox flex="1">
           <caption>
             <label control="Notes" value="&Notes.box;" accesskey="&Notes.accesskey;"/>
