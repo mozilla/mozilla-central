@@ -560,19 +560,14 @@ function HandleCompactCompleted(folder)
 {
   if (folder && folder.server.type != "imap")
   {
-    var resource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-    if (resource)
+    var msgFolder = msgWindow.openFolder;
+    if (msgFolder && folder.URI == msgFolder.URI)
     {
-      var uri = resource.Value;
-      var msgFolder = msgWindow.openFolder;
-      if (msgFolder && uri == msgFolder.URI)
-      {
-        // pretend the selection changed, to reselect the current folder+view.
-        gMsgFolderSelected = null;
-        msgWindow.openFolder = null;
-        FolderPaneSelectionChange();
-        LoadCurrentlyDisplayedMessage();
-      }
+      // pretend the selection changed, to reselect the current folder+view.
+      gMsgFolderSelected = null;
+      msgWindow.openFolder = null;
+      FolderPaneSelectionChange();
+      LoadCurrentlyDisplayedMessage();
     }
   }
 }
@@ -597,29 +592,19 @@ function LoadCurrentlyDisplayedMessage()
 function IsCurrentLoadedFolder(folder)
 {
   var msgfolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
-  if(msgfolder)
+  var currentLoadedFolder = GetThreadPaneFolder();
+  if (currentLoadedFolder.flags & MSG_FOLDER_FLAG_VIRTUAL)
   {
-    var folderResource = msgfolder.QueryInterface(Components.interfaces.nsIRDFResource);
-    if(folderResource)
-    {
-      var folderURI = folderResource.Value;
-      var currentLoadedFolder = GetThreadPaneFolder();
-      if (currentLoadedFolder.flags & MSG_FOLDER_FLAG_VIRTUAL)
-      {
-        var msgDatabase = currentLoadedFolder.getMsgDatabase(msgWindow);
-        var dbFolderInfo = msgDatabase.dBFolderInfo;
-        var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
-        var re = new RegExp("^" + folderURI + "$|^" + folderURI + "\||\|" + folderURI + "$|\|" + folderURI +"\|");
-        var retval = (currentLoadedFolder.URI.match(re));
-        return retval;
+    var msgDatabase = currentLoadedFolder.getMsgDatabase(msgWindow);
+    var dbFolderInfo = msgDatabase.dBFolderInfo;
+    var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
+    var re = new RegExp("^" + msgfolder.URI + "$|^" + msgfolder.URI + "\||\|" +
+                        msgfolder.URI + "$|\|" + msgfolder.URI +"\|");
 
-      }
-      var currentURI = currentLoadedFolder.URI;
-      return(currentURI == folderURI);
-    }
+    return currentLoadedFolder.URI.match(re);
   }
 
-  return false;
+  return (currentLoadedFolder.URI == folder.URI);
 }
 
 function ServerContainsFolder(server, folder)
@@ -878,14 +863,14 @@ function loadStartFolder(initialUri)
 {
     var folderTree = GetFolderTree();
     var defaultServer = null;
-    var startFolderResource = null;
+    var startFolder;
     var isLoginAtStartUpEnabled = false;
 
     //First get default account
     try
     {
         if(initialUri)
-            startFolderResource = GetMsgFolderFromUri(initialUri).QueryInterface(Components.interfaces.nsIRDFResource);
+            startFolder = GetMsgFolderFromUri(initialUri);
         else
         {
             var defaultAccount = accountManager.defaultAccount;
@@ -893,7 +878,7 @@ function loadStartFolder(initialUri)
             defaultServer = defaultAccount.incomingServer;
             var rootMsgFolder = defaultServer.rootMsgFolder;
 
-            startFolderResource = rootMsgFolder.QueryInterface(Components.interfaces.nsIRDFResource);
+            startFolder = rootMsgFolder;
 
             // Enable check new mail once by turning checkmail pref 'on' to bring
             // all users to one plane. This allows all users to go to Inbox. User can
@@ -915,11 +900,9 @@ function loadStartFolder(initialUri)
                 var inboxFolder = rootMsgFolder.getFolderWithFlags(0x1000);
                 if (!inboxFolder) return;
 
-                startFolderResource = inboxFolder.QueryInterface(Components.interfaces.nsIRDFResource);
+                startFolder = inboxFolder;
             }
         }
-
-        var startFolder = startFolderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
         // it is possible we were given an initial uri and we need to subscribe or try to add
         // the folder. i.e. the user just clicked on a news folder they aren't subscribed to from a browser

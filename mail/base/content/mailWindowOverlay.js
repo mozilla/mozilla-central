@@ -1003,9 +1003,7 @@ function MsgDeleteMessage(reallyDelete, fromToolbar)
     if (fromToolbar)
     {
         var srcFolder = GetLoadedMsgFolder();
-        var folderResource = srcFolder.QueryInterface(Components.interfaces.nsIRDFResource);
-        var uri = folderResource.Value;
-        if (isNewsURI(uri)) {
+        if (isNewsURI(srcFolder.URI)) {
             // if news, don't delete
             return;
         }
@@ -1286,10 +1284,10 @@ function MsgOpenNewWindowForFolder(uri, key)
 
   if (!uriToOpen)
     // use GetSelectedFolderURI() to find out which message to open instead of
-    // GetLoadedMsgFolder().QueryIntervace(Components.interfaces.nsIRDFResource).value.
-    // This is required because on a right-click, the currentIndex value will be
-    // different from the actual row that is highlighted.  GetSelectedFolderURI()
-    // will return the message that is highlighted.
+    // GetLoadedMsgFolder().URI. This is required because on a right-click, the
+    // currentIndex value will be different from the actual row that is
+    // highlighted. GetSelectedFolderURI() will return the message that is
+    // highlighted.
     uriToOpen = GetSelectedFolderURI();
 
   if (uriToOpen)
@@ -1575,10 +1573,10 @@ function MsgOpenNewTabForFolder(uri, key)
   
   if (!uriToOpen)
     // use GetSelectedFolderURI() to find out which message to open instead of
-    // GetLoadedMsgFolder().QueryIntervace(Components.interfaces.nsIRDFResource).value.
-    // This is required because on a right-click, the currentIndex value will be
-    // different from the actual row that is highlighted.  GetSelectedFolderURI()
-    // will return the message that is highlighted.
+    // GetLoadedMsgFolder().URI. This is required because on a right-click, the
+    // currentIndex value will be different from the actual row that is
+    // highlighted. GetSelectedFolderURI() will return the message that is
+    // highlighted.
     uriToOpen = GetSelectedFolderURI();
   
   // set up the first tab, which was previously invisible.

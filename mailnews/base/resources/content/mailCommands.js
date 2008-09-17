@@ -318,19 +318,9 @@ function UnSubscribe(folder)
 
 function Subscribe(preselectedMsgFolder)
 {
-  var preselectedURI;
-
-  if (preselectedMsgFolder)
-  {
-    var preselectedFolderResource = preselectedMsgFolder.QueryInterface(Components.interfaces.nsIRDFResource);
-    if (preselectedFolderResource)
-      preselectedURI = preselectedFolderResource.Value;
-    dump("preselectedURI = " + preselectedURI + "\n");
-  }
-
   window.openDialog("chrome://messenger/content/subscribe.xul",
                     "subscribe", "chrome,modal,titlebar,resizable=yes",
-                    {preselectedURI:preselectedURI,
+                    {folder:preselectedMsgFolder,
                       okCallback:SubscribeOKCallback});
 }
 

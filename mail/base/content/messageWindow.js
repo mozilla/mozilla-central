@@ -206,11 +206,7 @@ nsMsgDBViewCommandUpdater.prototype =
 
 function HandleDeleteOrMoveMsgCompleted(folder)
 {
-  var folderResource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-  if (!folderResource)
-    return;
-
-  if ((folderResource.Value == gCurrentFolderUri) && gCurrentMessageIsDeleted)
+  if ((folder.URI == gCurrentFolderUri) && gCurrentMessageIsDeleted)
   {
     gDBView.onDeleteCompleted(true);
     gCurrentMessageIsDeleted = false;
@@ -234,22 +230,14 @@ function HandleDeleteOrMoveMsgCompleted(folder)
 
 function HandleDeleteOrMoveMsgFailed(folder)
 {
-  var folderResource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-  if (!folderResource)
-     return;
-
   gDBView.onDeleteCompleted(false);
-  if ((folderResource.Value == gCurrentFolderUri) && gCurrentMessageIsDeleted)
+  if ((folder.URI == gCurrentFolderUri) && gCurrentMessageIsDeleted)
     gCurrentMessageIsDeleted = false;
 }
 
 function IsCurrentLoadedFolder(folder)
 {
-  var folderResource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-  if (!folderResource)
-     return false;
-
-  return (folderResource.Value == gCurrentFolderUri);
+  return (folder.URI == gCurrentFolderUri);
 }
 
 

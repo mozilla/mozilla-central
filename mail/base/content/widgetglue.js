@@ -123,12 +123,10 @@ function MsgCompactFolder(isAll)
 
   if (selectedFolders.length == 1)
   {
-    var selectedFolder = selectedFolders[0];
-    var resource = selectedFolder.QueryInterface(Components.interfaces.nsIRDFResource);
+    var msgfolder = selectedFolders[0];
 
-    if (selectedFolder.server.type != "imap") //can be local only
+    if (msgfolder.server.type != "imap") //can be local only
     {
-      var msgfolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
       var expungedBytes = msgfolder.expungedBytes;
 
       if (expungedBytes > 0)
@@ -136,7 +134,7 @@ function MsgCompactFolder(isAll)
         if (gDBView)
         {
           gCurrentlyDisplayedMessage = gDBView.currentlyDisplayedMessage;
-          if (gDBView.msgFolder == selectedFolder || isAll)
+          if (gDBView.msgFolder == msgfolder || isAll)
           {
             ClearThreadPaneSelection();
             ClearThreadPane();
@@ -150,11 +148,10 @@ function MsgCompactFolder(isAll)
           return;
       }
     }
-    var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
     if (isAll)
-      msgFolder.compactAll(null, msgWindow, null, true, null);
+      msgfolder.compactAll(null, msgWindow, null, true, null);
     else
-      msgFolder.compact(null, msgWindow);
+      msgfolder.compact(null, msgWindow);
   }
 }
 

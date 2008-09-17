@@ -247,12 +247,8 @@ function SubscribeOnLoad()
 	}
 	
 	gServerURI = null;
-	if (window.arguments[0].preselectedURI) {
-		var uri = window.arguments[0].preselectedURI;
-		//dump("subscribe: got a uri," + uri + "\n");
-		var folder = GetMsgFolderFromUri(uri, true);
-		//dump("folder="+folder+"\n");
-		//dump("folder.server="+folder.server+"\n");
+	if (window.arguments[0].folder) {
+                var folder = window.arguments[0].folder;
 		try {
                         CleanUpSearchView();
 			gSubscribableServer = folder.server.QueryInterface(Components.interfaces.nsISubscribableServer);

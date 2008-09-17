@@ -942,14 +942,13 @@ function MsgDeleteFolder()
     for (var i = 0; i < selectedFolders.length; i++)
     {
         var selectedFolder = selectedFolders[i];
-        var folderResource = selectedFolder.QueryInterface(Components.interfaces.nsIRDFResource);
         var specialFolder = getSpecialFolderString(selectedFolder);
         if (specialFolder != "Inbox" && specialFolder != "Trash")
         {
             var folder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
             if (folder.flags & MSG_FOLDER_FLAG_VIRTUAL)
             {
-                if (gCurrentVirtualFolderUri == folderResource.Value)
+                if (gCurrentVirtualFolderUri == selectedFolder.URI)
                   gCurrentVirtualFolderUri = null;
                 var array = Components.classes["@mozilla.org/array;1"]
                                       .createInstance(Components.interfaces.nsIMutableArray);
@@ -975,7 +974,7 @@ function MsgDeleteFolder()
                 promptService.alert(window, specialFolderDeletionErrTitle, errorMessage);
                 continue;
             }
-            else if (isNewsURI(folderResource.Value))
+            else if (isNewsURI(selectedFolder.URI))
             {
                 var unsubscribe = ConfirmUnsubscribe(selectedFolder);
                 if (unsubscribe)
