@@ -91,18 +91,18 @@ interface nsIMsgHeaderParser : nsISupports {
 
      The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
 
-     Caller must PL_strfree usernames.
+     Caller must NS_Free the return value.
   */
-  [noscript] void extractHeaderAddressNames (in string charset, in string line, out string userNames);
+  [noscript] string extractHeaderAddressNames (in string charset, in string line);
 
   /* Like MSG_ExtractHeaderAddressNames(), but only returns the first name
      in the list, if there is more than one. 
      
      The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
 
-     Caller must call PL_strfree on name
+     Caller must NS_Free the return value.
   */
-  [noscript] void extractHeaderAddressName (in string charset, in string line, out string name);
+  [noscript] string extractHeaderAddressName (in string charset, in string line);
 
   /* Given a string which contains a list of Header addresses, returns a new
      string with the same data, but inserts missing commas, parses and reformats
@@ -110,10 +110,9 @@ interface nsIMsgHeaderParser : nsISupports {
 
      The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
 
-     Caller must call PL_strfree on reformattedAddress
+     Caller must NS_Free the return value.
   */
-  [noscript] void reformatHeaderAddresses (in string charset, in string line, 
-                                out string reformattedAddress);
+  [noscript] string reformatHeaderAddresses (in string charset, in string line);
 
   /* Returns a copy of ADDRS which may have had some addresses removed.
      Addresses are removed if they are already in either ADDRS or OTHER_ADDRS.
@@ -130,10 +129,12 @@ interface nsIMsgHeaderParser : nsISupports {
 
      The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
 
-     Caller must call PL_strfree on newAddress which is the return value.
+     Caller must NS_Free the return value.
   */
-  [noscript] void removeDuplicateAddresses (in string charset,  in string addrs, in string other_addrs, 
-                                 in PRBool removeAliasesToMe, out string newAddress);
+  [noscript] string removeDuplicateAddresses (in string charset,
+                                              in string addrs,
+                                              in string other_addrs,
+                                              in boolean removeAliasesToMe);
 
 
   /**
