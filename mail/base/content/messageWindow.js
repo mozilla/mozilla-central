@@ -752,6 +752,11 @@ function MsgDeleteMessageFromMessageWindow(reallyDelete, fromToolbar)
       gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
   else
       gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
+
+  // Need to update the toolbar for *this* message, since with the
+  // imap mark-as-deleted model delete in the standalone msg window
+  // doesn't (currently) advance to next.
+  UpdateDeleteToolbarButton();
 }
 
 // MessageWindowController object (handles commands when one of the trees does not have focus)
