@@ -44,7 +44,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="editing_pane"
             label="&pref.editing.title;"
-            script="chrome://editor/content/pref-composer.js">
+            script="chrome://editor/content/pref-editing.js">
 
     <preferences id="editing_preferences">
       <preference id="editor.author"

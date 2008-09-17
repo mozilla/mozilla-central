@@ -24,7 +24,7 @@ comm.jar:
       content/editor/composerOverlay.xul                       (composer/content/composerOverlay.xul) 
       content/editor/pref-toolbars.xul                         (composer/content/pref-toolbars.xul) 
       content/editor/pref-editing.xul                          (composer/content/pref-editing.xul) 
-      content/editor/pref-composer.js                          (composer/content/pref-composer.js) 
+      content/editor/pref-editing.js                           (composer/content/pref-editing.js) 
       content/editor/pref-composer.xul                         (composer/content/pref-composer.xul) 
       content/editor/editorSmileyOverlay.xul                   (composer/content/editorSmileyOverlay.xul) 
       content/editor/editorPrefsOverlay.xul                    (composer/content/editorPrefsOverlay.xul) 
