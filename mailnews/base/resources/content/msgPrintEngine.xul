@@ -56,8 +56,10 @@
     <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   </stringbundleset>
 
-  <script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
-  <script src="chrome://messenger/content/msgPrintEngine.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/printUtils.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/msgPrintEngine.js"/>
 
   <!-- The main display frame -->
   <browser id="content" type="content-primary" name="content" src="about:blank" flex="1" disablehistory="true" disablesecurity="true"/>

@@ -42,8 +42,10 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script src="chrome://messenger/content/searchTermOverlay.js"/>
-  <script src="chrome://messenger/content/dateFormat.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/searchTermOverlay.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/dateFormat.js"/>
 
   <vbox id="searchTermListBox">
 

@@ -60,15 +60,24 @@
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
 
-  <script src="chrome://messenger/content/mailWindow.js"/>
-  <script src="chrome://messenger/content/threadPane.js"/>
-  <script src="chrome://messenger/content/msgMail3PaneWindow.js"/>
-  <script src="chrome://global/content/globalOverlay.js"/>
-  <script src="chrome://messenger/content/mailCommands.js"/>
-  <script src="chrome://messenger/content/mailWindowOverlay.js"/>
-  <script src="chrome://messenger/content/commandglue.js"/>
-  <script src="chrome://messenger/content/SearchDialog.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/messengerdnd.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/mailWindow.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/threadPane.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/msgMail3PaneWindow.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/mailCommands.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/mailWindowOverlay.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/commandglue.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/SearchDialog.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/messengerdnd.js"/>
 
   <commands id="commands">
     <commandset id="mailSearchItems"

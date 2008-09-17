@@ -49,10 +49,12 @@
 <overlay xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<script src="chrome://messenger/content/msgHdrViewOverlay.js"/>
+<script type="application/javascript"
+        src="chrome://messenger/content/msgHdrViewOverlay.js"/>
 
 <!-- drag and drop -->
-<script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+<script type="application/javascript"
+        src="chrome://global/content/nsDragAndDrop.js"/>
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>

@@ -66,12 +66,18 @@
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   </stringbundleset>
 
-  <script src="chrome://messenger/content/mailWindow.js"/>
-  <script src="chrome://messenger/content/msgMail3PaneWindow.js"/>
-  <script src="chrome://global/content/globalOverlay.js"/>
-  <script src="chrome://messenger/content/commandglue.js"/>
-  <script src="chrome://messenger/content/ABSearchDialog.js"/>
-  <script src="chrome://messenger/content/addressbook/abCommon.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/mailWindow.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/msgMail3PaneWindow.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/commandglue.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/ABSearchDialog.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/addressbook/abCommon.js"/>
 
   <broadcaster id="Communicator:WorkMode"/>
 
