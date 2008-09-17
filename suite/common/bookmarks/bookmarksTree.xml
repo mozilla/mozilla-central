@@ -729,13 +729,19 @@
                  onclick="event.stopPropagation();"
                  onkeypress="event.stopPropagation();"/>
       <vbox flex="1">
-        <tree anonid="bookmarks-tree" flex="1" class="plain" enableColumnDrag="true"
-                  datasources="rdf:bookmarks rdf:internetsearch rdf:localsearch" ref="NC:BookmarksTopRoot" flags="dont-build-content"
-                  onkeypress="if (event.keyCode == 13) this.parentNode.parentNode.openItemKey(event);"
-                  onclick="this.parentNode.parentNode.openItemClick(event, 1);"
-                  ondblclick="this.parentNode.parentNode.openItemClick(event, 2);"
-                  ondraggesture="if (event.originalTarget.localName == 'treechildren') nsDragAndDrop.startDrag(event, this.parentNode.parentNode.DNDObserver);"
-                  onselect="this.treeBoxObject.view.selectionChanged();">
+        <tree anonid="bookmarks-tree"
+              treelines="true"
+              flex="1"
+              class="plain"
+              enableColumnDrag="true"
+              datasources="rdf:bookmarks rdf:internetsearch rdf:localsearch"
+              ref="NC:BookmarksTopRoot"
+              flags="dont-build-content"
+              onkeypress="if (event.keyCode == 13) this.parentNode.parentNode.openItemKey(event);"
+              onclick="this.parentNode.parentNode.openItemClick(event, 1);"
+              ondblclick="this.parentNode.parentNode.openItemClick(event, 2);"
+              ondraggesture="if (event.originalTarget.localName == 'treechildren') nsDragAndDrop.startDrag(event, this.parentNode.parentNode.DNDObserver);"
+              onselect="this.treeBoxObject.view.selectionChanged();">
           <template xmlns:nc="http://home.netscape.com/NC-rdf#">
             <rule rdf:type="http://home.netscape.com/NC-rdf#BookmarkSeparator">
               <treechildren>
@@ -844,9 +850,16 @@
                  onpopuphidden="if (content) content.focus()"
                  onclick="event.stopPropagation();"
                  onkeypress="event.stopPropagation();"/>
-      <tree anonid="bookmarks-tree" flex="1" class="plain" hidecolumnpicker="true"
-                datasources="rdf:bookmarks rdf:internetsearch rdf:localsearch" ref="NC:BookmarksRoot" flags="dont-build-content"
-                onselect="this.parentNode.treeBoxObject.view.selectionChanged();" seltype="single">
+      <tree anonid="bookmarks-tree"
+            treelines="true"
+            flex="1"
+            class="plain"
+            hidecolumnpicker="true"
+            datasources="rdf:bookmarks rdf:internetsearch rdf:localsearch"
+            ref="NC:BookmarksRoot"
+            flags="dont-build-content"
+            seltype="single"
+            onselect="this.parentNode.treeBoxObject.view.selectionChanged();">
         <template xmlns:nc="http://home.netscape.com/NC-rdf#">
           <rule rdf:type="http://home.netscape.com/NC-rdf#BookmarkSeparator">
             <treechildren>
@@ -893,9 +906,14 @@
   <!-- Tree with folders only -->
   <binding id="bookmarks-tree-folders" extends="chrome://communicator/content/bookmarks/bookmarksTree.xml#bookmarks-tree">
     <xbl:content xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:xbl="http://www.mozilla.org/xbl">
-      <tree anonid="bookmarks-tree" flex="1" hidecolumnpicker="true"
+      <tree anonid="bookmarks-tree"
+            treelines="true"
+            flex="1"
+            hidecolumnpicker="true"
             xbl:inherits="rows,seltype"
-            datasources="rdf:bookmarks rdf:internetsearch rdf:localsearch" ref="NC:BookmarksTopRoot" flags="dont-build-content"
+            datasources="rdf:bookmarks rdf:internetsearch rdf:localsearch"
+            ref="NC:BookmarksTopRoot"
+            flags="dont-build-content"
             onselect="this.parentNode.treeBoxObject.view.selectionChanged();">
         <template>
           <rule iscontainer="true">
