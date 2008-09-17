@@ -64,6 +64,7 @@ DEFINES += \
 	-DMOZ_APP_VERSION=$(MOZ_APP_VERSION) \
 	-DLOCALE_SRCDIR=$(call core_abspath,$(LOCALE_SRCDIR)) \
 	-DPKG_BASENAME=$(PKG_BASENAME) \
+	-DPKG_INST_BASENAME=$(PKG_INST_BASENAME) \
 	$(NULL)
 
 ifeq (,$(filter-out pref,$(MOZ_EXTENSIONS)))
@@ -158,7 +159,7 @@ PACKAGER_NO_LIBS = 1
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 include $(call EXPAND_MOZLOCALE_SRCDIR,toolkit/locales)/installer/windows/charset.mk
 
-repackage-win32-installer: WIN32_INSTALLER_OUT=$(_ABS_DIST)/install/sea/$(PKG_BASENAME).installer.exe
+repackage-win32-installer: WIN32_INSTALLER_OUT=$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 	@echo "Repackaging $(WIN32_INSTALLER_IN) into $(WIN32_INSTALLER_OUT)."
 	$(MAKE) -C ../installer/windows export
@@ -187,7 +188,7 @@ repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 	    app.7z > $(WIN32_INSTALLER_OUT)
 	chmod 0755 $(WIN32_INSTALLER_OUT)
 
-repackage-win32-installer-%: WIN32_INSTALLER_IN=$(_ABS_DIST)/install/sea/$(PKG_BASENAME).installer.exe
+repackage-win32-installer-%: WIN32_INSTALLER_IN=$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
 repackage-win32-installer-%: $(WIN32_INSTALLER_IN)
 	@$(MAKE) repackage-win32-installer AB_CD=$* WIN32_INSTALLER_IN=$(WIN32_INSTALLER_IN)
 
@@ -230,20 +231,22 @@ ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj
 endif
 endif
+	$(NSINSTALL) -D $(DIST)/l10n-stage/$(PKG_PATH)
 	cd $(DIST)/l10n-stage; \
 	  $(MAKE_PACKAGE)
-	mv -f $(DIST)/l10n-stage/$(PACKAGE) $(DIST)
+	$(NSINSTALL) -D $(DIST)/$(PKG_PATH)
+	mv -f $(DIST)/l10n-stage/$(PACKAGE) $(DIST)/$(PACKAGE)
 
 repackage-zip-%: ZIP_IN=$(_ABS_DIST)/$(PACKAGE)
 repackage-zip-%: $(ZIP_IN)
 	@$(MAKE) repackage-zip AB_CD=$* ZIP_IN=$(ZIP_IN)
 
-langpack-%: LANGPACK_FILE=$(_ABS_DIST)/install/$(MOZ_APP_NAME)-$(MOZ_APP_VERSION).$(AB_CD).langpack.xpi
+langpack-%: LANGPACK_FILE=$(_ABS_DIST)/$(PKG_LANGPACK_PATH)$(PKG_LANGPACK_BASENAME).langpack.xpi
 langpack-%: AB_CD=$*
 langpack-%: XPI_NAME=locale-$*
 langpack-%:
 	@echo "Making langpack $(LANGPACK_FILE)"
-	@$(NSINSTALL) -D $(DIST)/install
+	@$(NSINSTALL) -D $(DIST)/$(PKG_LANGPACK_PATH)
 	@$(RM) -rf $(DIST)/xpi-stage/locale-$(AB_CD)
 	@$(MAKE) libs-$(AB_CD) USE_EXTENSION_MANIFEST=1
 	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) -I$(call EXPAND_LOCALE_SRCDIR,toolkit/locales)/defines.inc -I$(LOCALE_SRCDIR)/defines.inc $(srcdir)/generic/install.rdf > $(FINAL_TARGET)/install.rdf
@@ -259,7 +262,6 @@ langpack-%:
 # the complete MAR files.
 
 installers-%:
-	$(NSINSTALL) -D $(DIST)/install
 	@$(MAKE) langpack-$*
 ifeq (WINNT,$(OS_ARCH))
 	@$(MAKE) repackage-win32-installer-$*
@@ -293,7 +295,7 @@ endif
 	@$(WGET) -nv --output-document $(_ABS_DIST)/$(PACKAGE) $(EN_US_BINARY_URL)/$(PACKAGE)
 	@echo "Downloaded $(EN_US_BINARY_URL)/$(PACKAGE) to $(_ABS_DIST)/$(PACKAGE)"
 ifeq ($(OS_ARCH), WINNT)
-	$(NSINSTALL) -D $(_ABS_DIST)/install/sea
-	@$(WGET) -nv --output-document $(_ABS_DIST)/install/sea/$(PKG_BASENAME).installer.exe $(EN_US_BINARY_URL)/$(PKG_BASENAME).installer.exe
-	@echo "Downloaded $(EN_US_BINARY_URL)/$(PKG_BASENAME).installer.exe to $(_ABS_DIST)/install/sea/$(PKG_BASENAME)"
+	$(NSINSTALL) -D $(_ABS_DIST)/$(PKG_INST_PATH)
+	@$(WGET) -nv --output-document $(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe $(EN_US_BINARY_URL)/$(PKG_PATH)$(PKG_INST_BASENAME).exe
+	@echo "Downloaded $(EN_US_BINARY_URL)/$(PKG_PATH)$(PKG_INST_BASENAME).exe to $(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME)"
 endif
