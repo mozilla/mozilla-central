@@ -1,13 +1,11 @@
 #!/usr/bin/python
 
-CALENDAR_CO_TAG = 'HEAD'
 EXTENSION_CO_TAG = 'HEAD'
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6_RTM'
 
 CHATZILLA_CO_TAG = 'HEAD'
 VENKMAN_CO_TAG = 'HEAD'
 
-CALENDAR_DIRS = ('calendar',)
 EXTENSION_DIRS = ('extensions/typeaheadfind',
                   'extensions/wallet',)
 LDAPCSDK_DIRS = ('directory/c-sdk',)
@@ -127,9 +125,6 @@ o.add_option("--skip-chatzilla", dest="skip_chatzilla",
 o.add_option("--skip-venkman", dest="skip_venkman",
              action="store_true", default=False,
              help="Skip pulling the Venkman repository.")
-o.add_option("--skip-calendar", dest="skip_calendar",
-             action="store_true", default=False,
-             help="Skip pulling the Calendar repository.")
 
 o.add_option("--hg", dest="hg", default=os.environ.get('HG', 'hg'),
              help="The location of the hg binary")
@@ -189,8 +184,6 @@ if action in ('checkout', 'co'):
         do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg, options.inspector_rev)
 
     if not options.skip_cvs:
-        if not options.skip_calendar:
-          do_cvs_checkout(CALENDAR_DIRS, CALENDAR_CO_TAG, options.cvsroot, options.cvs, '')
         do_cvs_checkout(LDAPCSDK_DIRS, LDAPCSDK_CO_TAG, options.cvsroot, options.cvs, '')
         if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
           do_cvs_checkout(EXTENSION_DIRS, EXTENSION_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
