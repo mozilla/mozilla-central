@@ -4525,16 +4525,6 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
 
       abDirectory = addrbookDirArray[k];
 
-      // These will fail for non-MDB address books, therefore, just ignore
-      // errors, we'll check to see if we have got a valid database before using
-      // it.
-      nsCOMPtr<nsIAddrDatabase> abDataBase;
-      {
-        nsCOMPtr<nsIAbMDBDirectory> mdbDirectory(do_QueryInterface(abDirectory));
-        if (mdbDirectory)
-          mdbDirectory->GetDatabase(getter_AddRefs(abDataBase));
-      }
-
       PRBool supportsMailingLists;
       rv = abDirectory->GetSupportsMailingLists(&supportsMailingLists);
       if (NS_FAILED(rv) || !supportsMailingLists)
@@ -4644,21 +4634,16 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
               continue;
             }
 
-            // If we haven't got a database, don't try to increase the
-            // popularity index.
-            if (!abDataBase)
+            if (!abDirectory)
             {
               stillNeedToSearch = PR_TRUE;
               continue;
             }
 
-            // Then if we have a card for this email address
-            // Please DO NOT change the 4th param of GetCardFromAttribute() call to
-            // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
-            rv = abDataBase->GetCardFromAttribute(abDirectory, kPriEmailProperty,
-                                                  NS_ConvertUTF16toUTF8(recipient.mEmail),
-                                                  PR_FALSE /* case insensitive */,
+            // find a card that contains this e-mail address 
+            rv = abDirectory->CardForEmailAddress(NS_ConvertUTF16toUTF8(recipient.mEmail),
                                                   getter_AddRefs(existingCard));
+
             if (NS_SUCCEEDED(rv) && existingCard)
             {
               recipient.mPreferFormat = nsIAbPreferMailFormat::unknown;
@@ -4667,19 +4652,19 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
               if (NS_SUCCEEDED(rv))
                 recipient.mProcessed = PR_TRUE;
 
+              PRInt32 isWriteable;
+              rv = abDirectory->GetOperations(&isWriteable);
+              NS_ENSURE_SUCCESS(rv,rv);
+
               // bump the popularity index for this card since we are about to send e-mail to it
               PRUint32 popularityIndex = 0;
-              if (NS_SUCCEEDED(existingCard->GetPropertyAsUint32(
+              if ((isWriteable & nsIAbDirectory::opWrite) && NS_SUCCEEDED(existingCard->GetPropertyAsUint32(
                       kPopularityIndexProperty, &popularityIndex)))
               {
+
                 existingCard->SetPropertyAsUint32(kPopularityIndexProperty,
                                                   ++popularityIndex);
-                // Since we are not notifying anyway, send null
-                abDataBase->EditCard(existingCard, PR_FALSE, nsnull);
-
-                // commit the database changes if we updated the popularity
-                // count.
-                abDataBase->Close(PR_TRUE);
+                abDirectory->ModifyCard(existingCard);
               }
             }
             else
