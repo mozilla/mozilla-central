@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is
+   - Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE bindings SYSTEM "chrome://calendar/locale/calendar.dtd">
+
+<bindings id="calendar-item-bindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <!-- Header with a line beside it, used i.e in the event dialog -->
+  <binding id="calendar-caption" extends="xul:hbox">
+    <content align="center">
+      <xul:label xbl:inherits="value=label,control" class="header"/>
+      <xul:separator class="groove" flex="1"/>
+    </content>
+  </binding>
+
+  <binding id="item-date-row" extends="xul:row">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/calendar-event-dialog.css"/>
+    </resources>      
+    <content xbl:inherits="mode">
+      <xul:label anonid="item-datetime-label"
+                 class="headline"
+                 xbl:inherits="align"/>
+      <xul:label anonid="item-datetime-value"/>
+    </content>
+    <implementation>
+      <field name="mItem">null</field>  
+      <property name="mode"
+                readonly="true">
+        <getter><![CDATA[
+            if (this.hasAttribute("mode")) {
+                return this.getAttribute("mode");
+            } else {
+                return "start";
+            }
+        ]]></getter>
+      </property>
+      <property name="Item">
+        <getter><![CDATA[
+            return mItem;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mItem = val;
+          var headerLabel = document.getAnonymousElementByAttribute(this, "anonid", "item-datetime-label");
+          var itemDateTimeLabel = document.getAnonymousElementByAttribute(this, "anonid", "item-datetime-value");
+          if (this.mode == "start") {
+              var date = this.mItem[calGetStartDateProp(this.mItem)];
+              //this.mItem.startDate || this.mItem.entryDate;
+              if (date) {
+                  if (isToDo(this.mItem)) {
+                      var label = calGetString("calendar", "taskDetailsStartDate");
+                  } else {
+                      var label = calGetString("calendar", "eventDetailsStartDate");
+                  }
+                  headerLabel.value = label + " ";
+              }
+          } else {
+              var date = this.mItem[calGetEndDateProp(this.mItem)];
+              if (date) {
+                  if (isToDo(this.mItem)) {                  
+                      var label = calGetString("calendar", "taskDetailsEndDate");
+                  } else {
+                      var label = calGetString("calendar", "eventDetailsEndDate");
+                  }
+                  headerLabel.value = label + " ";
+              }
+          }
+          var hideLabels = (date == null);
+          if (hideLabels) {
+              this.setAttribute("hidden", "true");
+          } else {
+              this.removeAttribute("hidden");
+              var label = getDateFormatter().formatDateTime(date);
+              if (date.timezone.tzid != calendarDefaultTimezone().tzid) {
+                  itemDateTimeLabel.value = calGetString("calendar",
+                                            "datetimeWithTimezone",
+                                            [label, date.timezone.tzid]);
+              } else {
+                  itemDateTimeLabel.value = label;
+              }
+          }
+        ]]></setter>
+      </property>
+    </implementation>
+  </binding>
+</bindings>

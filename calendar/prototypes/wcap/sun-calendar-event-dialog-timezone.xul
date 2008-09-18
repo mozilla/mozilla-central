@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2006
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Michael Buettner <michael.buettner@sun.com>
+   -   Gary Kwong <nth10sd@gmail.com>
+   -   Daniel Boelzle <daniel.boelzle@sun.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/skin/sun-calendar-event-dialog.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
+
+<!DOCTYPE dialog [
+  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
+  <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" > %dtd3;
+  <!ENTITY % dtd4 SYSTEM "chrome://calendar/locale/preferences/timezones.dtd" > %dtd4;
+]>
+
+<dialog id="sun-calendar-event-dialog-timezone"
+        title="&timezone.title.label;"
+        onload="onLoad()"
+        ondialogaccept="return onAccept();"
+        ondialogcancel="return onCancel();"
+        persist="screenX screenY"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <!-- Javascript includes -->
+  <script type="application/x-javascript" src="chrome://calendar/content/sun-calendar-event-dialog-timezone.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-dialog-utils.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+
+  <hbox align="center">
+    <spacer flex="1"/>
+    <datetimepicker id="timezone-time" disabled="true"/>
+  </hbox>
+
+  <menulist id="timezone-menulist" oncommand="updateTimezone()">
+    <menupopup id="timezone-menupopup" style="height: 460px;"/>
+  </menulist>
+
+  <stack id="timezone-stack">
+    <image src="chrome://calendar/skin/timezone_map.png"/>
+    <image src="chrome://calendar/skin/timezone_0h.png" offset="0" tzid="+0000" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_1h.png" offset="3600" tzid="+0100" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_2h.png" offset="7200" tzid="+0200" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_3h30.png" offset="12600" tzid="+0330" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_3h.png" offset="10800" tzid="+0300" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_4h30.png" offset="16200" tzid="+0430" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_4h.png" offset="14400" tzid="+0400" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_5h30.png" offset="19800" tzid="+0530" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_5h45.png" offset="20700" tzid="+0545" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_5h.png" offset="18000" tzid="+0500" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_6h30.png" offset="23400" tzid="+0630" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_6h.png" offset="21600" tzid="+0600" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_7h.png" offset="25200" tzid="+0700" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_8h.png" offset="28800" tzid="+0800" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_9h30.png" offset="34200" tzid="+0930" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_9h.png" offset="32400" tzid="+0900" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_10h30.png" offset="37800" tzid="+1030" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_10h.png" offset="36000" tzid="+1000" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_11h30.png" offset="41400" tzid="+1130" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_11h.png" offset="39600" tzid="+1100" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_12h45.png" offset="45900" tzid="+1245" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_12h.png" offset="43200" tzid="+1200" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_13h.png" offset="46800" tzid="+1300" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_14h.png" offset="50400" tzid="+1400" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-1h.png" offset="-3600" tzid="-0100" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-2h.png" offset="-7200" tzid="-0200" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-3h30.png" offset="-12600" tzid="-0330" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-3h.png" offset="-10800" tzid="-0300" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-4h.png" offset="-14400" tzid="-0400" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-5h.png" offset="-18000" tzid="-0500" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-6h.png" offset="-21600" tzid="-0600" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-7h.png" offset="-25200" tzid="-0700" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-8h30.png" offset="-30600" tzid="-0830" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-8h.png" offset="-28800" tzid="-0800" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-9h30.png" offset="-34200" tzid="-0930" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-9h.png" offset="-32400" tzid="-0900" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-10h.png" offset="-36000" tzid="-1000" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-11h.png" offset="-39600" tzid="-1100" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-12h45.png" offset="-45900" tzid="-1245" hidden="true"/>
+    <image src="chrome://calendar/skin/timezone_-12h.png" offset="-43200" tzid="-1200" hidden="true"/>
+  </stack>
+</dialog>

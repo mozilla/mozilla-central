@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+<!--
+   - ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2006
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Michael Buettner <michael.buettner@sun.com>
+   -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK *****
+-->
+
+<?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-event-dialog.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/calendar-bindings.css"?>
+
+<!DOCTYPE dialog [
+  <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd" >
+  <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" >
+  <!ENTITY % sunDialogDTD SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" >
+  <!ENTITY % dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd" >
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
+  %globalDTD;
+  %calendarDTD;
+  %sunDialogDTD;
+  %dialogDTD;
+  %brandDTD;
+]>     
+
+<dialog id="calendar-summary-dialog"
+        onload="onLoad()"
+        ondialogaccept="return onAccept();"
+        ondialogcancel="return onCancel();"
+        persist="screenX screenY"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <!-- Javascript includes -->
+  <script type="application/x-javascript"
+          src="chrome://calendar/content/calendar-summary-dialog.js"/>
+  <script type="application/x-javascript"
+          src="chrome://calendar/content/calendar-dialog-utils.js"/>
+  <script type="application/x-javascript"
+          src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/x-javascript"
+          src="chrome://calendar/content/calendar-ui-utils.js"/>
+  <script type="application/x-javascript"
+          src="chrome://calendar/content/calendar-item-editing.js"/>
+  <script type="application/x-javascript"
+          src="chrome://calendar/content/calApplicationUtils.js"/>
+
+  <!-- General -->
+  <box id="item-general-box" orient="vertical">
+    <calendar-caption label="&read.only.general.label;"/>
+    <box orient="horizontal">
+      <spacer class="default-spacer"/>
+      <grid flex="1">
+        <columns>
+          <column/>
+          <column/>
+        </columns>
+        <rows>
+          <row align="top">
+            <label value="&read.only.title.label;" class="headline"/>
+            <label id="item-title"/>
+          </row>
+          <row class="item-date-row" id="item-start-row" mode="start" align="start"/>
+          <row class="item-date-row" id="item-end-row" mode="end" align="start"/>
+          <row id="repeat-row" align="top" hidden="true">
+            <label value="&read.only.repeat.label;" class="headline"/>
+            <box id="repeat-details" orient="vertical">
+              <label/>
+            </box>
+          </row>
+          <row id="location-row" align="top" hidden="true">
+            <label value="&read.only.location.label;" class="headline"/>
+            <label id="item-location"/>
+          </row>
+          <row id="category-row" align="top" hidden="true">
+            <label value="&read.only.category.label;" class="headline"/>
+            <label id="item-category"/>
+          </row>
+          <row id="organizer-row" align="top" hidden="true">
+            <label value="&read.only.organizer.label;" class="headline"/>
+            <hbox>
+              <label id="item-organizer"
+                     class="text-link"
+                     crop="right"
+                     onclick="sendMailToOrganizer()"/>
+              <spacer flex="1"/>
+            </hbox>
+          </row>
+          <row id="status-row" align="top" hidden="true">
+            <label value="&task.status.label;" class="headline"/>
+            <label value="&newevent.status.tentative.label;" hidden="true" status="TENTATIVE"/>
+            <label value="&newevent.status.confirmed.label;" hidden="true" status="CONFIRMED"/>
+            <label value="&newevent.status.cancelled.label;" hidden="true" status="CANCELLED"/>
+            <label value="&newevent.status.needsaction.label;" hidden="true" status="NEEDS-ACTION"/>
+            <label value="&newevent.status.inprogress.label;" hidden="true" status="IN-PROCESS"/>
+            <label value="&newevent.status.completed.label;" hidden="true" status="COMPLETED"/>
+          </row>
+          <separator id="item-main-separator" flex="1" class="groove" hidden="true"/>
+          <row id="invitation-row" hidden="true" align="center">
+            <label value="&read.only.reply.label;" control="item-participation"/>
+            <menulist id="item-participation" oncommand="updateInvitation()">
+              <menupopup>
+                <menuitem label="&read.only.accept.label;" value="ACCEPTED"/>
+                <menuitem label="&read.only.decline.label;" value="DECLINED"/>
+                <menuitem label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
+              </menupopup>
+            </menulist>
+          </row>
+          <row id="reminder-row" hidden="true" align="center">
+            <label value="&read.only.reminder.label;" control="item-alarm"/>
+            <box orient="vertical">
+              <menulist id="item-alarm" oncommand="updateReminder()">
+                <menupopup>
+                  <menuitem label="&event.reminder.none.label;"
+                            selected="true"
+                            value="none"/>
+                  <menuitem label="&event.reminder.5minutes.before.label;"
+                            length="5"
+                            origin="1"
+                            relation="START"
+                            unit="minutes"/>
+                  <menuitem label="&event.reminder.10minutes.before.label;"
+                            length="10"
+                            origin="1"
+                            relation="START"
+                            unit="minutes"/>
+                  <menuitem label="&event.reminder.15minutes.before.label;"
+                            length="15"
+                            origin="1"
+                            relation="START"
+                            unit="minutes"/>
+                  <menuitem label="&event.reminder.30minutes.before.label;"
+                            length="30"
+                            origin="1"
+                            relation="START"
+                            unit="minutes"/>
+                  <menuitem label="&event.reminder.45minutes.before.label;"
+                            length="45"
+                            origin="1"
+                            relation="START"
+                            unit="minutes"/>
+                  <menuseparator/>
+                  <menuitem label="&event.reminder.1hour.before.label;"
+                            length="1"
+                            origin="1"
+                            relation="START"
+                            unit="hours"/>
+                  <menuitem label="&event.reminder.2hours.before.label;"
+                            length="2"
+                            origin="1"
+                            relation="START"
+                            unit="hours"/>
+                  <menuitem label="&event.reminder.5hours.before.label;"
+                            length="5"
+                            origin="1"
+                            relation="START"
+                            unit="hours"/>
+                  <menuitem label="&event.reminder.15hours.before.label;"
+                            length="15"
+                            origin="1"
+                            relation="START"
+                            unit="hours"/>
+                  <menuseparator/>
+                  <menuitem label="&event.reminder.1day.before.label;"
+                            length="1"
+                            origin="1"
+                            relation="START"
+                            unit="days"/>
+                  <menuitem label="&event.reminder.2days.before.label;"
+                            length="2"
+                            origin="1"
+                            relation="START"
+                            unit="days"/>
+                  <menuitem label="&event.reminder.1week.before.label;"
+                            length="2"
+                            origin="1"
+                            relation="START"
+                            unit="days"/>
+                  <menuseparator/>
+                  <menuitem id="reminder-custom-menuitem"
+                            label="&event.reminder.custom.label;"
+                            value="custom"/>
+                </menupopup>
+              </menulist>
+              <vbox id="reminder-details">
+                <label class="text-link"
+                       crop="right"
+                       flex="1"
+                       onclick="updateReminder()"/>
+              </vbox>
+            </box>
+          </row>
+        </rows>
+      </grid>
+    </box>
+  </box>
+
+  <!-- Attendees -->
+  <box id="item-attendees" hidden="true" orient="vertical">
+    <spacer class="default-spacer"/>
+    <calendar-caption label="&read.only.attendees.label;"
+                      control="item-attendee-listbox"/>
+    <box orient="horizontal">
+      <spacer class="default-spacer"/>
+      <listbox id="item-attendee-listbox" rows="6" flex="1" disabled="true">
+        <listcols>
+          <listcol flex="1"/>
+          <listcol flex="1"/>
+        </listcols>
+        <listitem>
+          <listcell>
+            <image class="status-icon" hidden="true"/>
+            <label/>
+          </listcell>
+          <listcell>
+            <image class="status-icon" hidden="true"/>
+            <label/>
+          </listcell>
+        </listitem>
+      </listbox>
+    </box>
+  </box>
+
+  <!-- Description -->
+  <box id="item-description-box" hidden="true" orient="vertical" flex="1">
+    <spacer class="default-spacer"/>
+    <calendar-caption label="&read.only.description.label;"
+                      control="item-description"/>
+    <box orient="horizontal" flex="1">
+      <spacer class="default-spacer"/>
+      <textbox id="item-description"
+               multiline="true"
+               rows="6"
+               flex="1"/>
+    </box>
+  </box>
+
+  <!-- URL link -->
+  <box id="event-grid-link-row" hidden="true" orient="vertical">
+    <spacer class="default-spacer"/>
+    <calendar-caption label="&read.only.link.label;"
+                      control="url-link"/>
+    <label id="url-link"
+           class="text-link default-indent"
+           value=" "
+           crop="end"/>
+  </box>
+
+</dialog>

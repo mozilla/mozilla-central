@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Calendar code.
+   -
+   - The Initial Developer of the Original Code is
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/calendar-alarm-dialog.css" type="text/css"?>
+
+<!DOCTYPE dialog
+[
+  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
+]>
+
+<window id="calendar-alarm-snooze-popup-window"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        hidechrome="true"
+        title="&calendar.alarm.snoozefor.label;"
+        onkeydown="windowKeyDown(event)"
+        onblur="windowBlur(event)"
+        onmouseout="windowMouseOut(event)"
+        onDOMContentLoaded="window.sizeToContent()"
+        onload="windowLoad(event)">
+<script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-alarm-dialog.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-alarm-snooze-popup.js"/>
+
+<radiogroup id="custom-menupopup-radiogroup"
+            onblur="radiogroupBlur(event, this)"
+            onmouseover="radiogroupMouseOver(event, this)">
+  <radio label="&calendar.alarm.snooze.5minutes.label;"
+         value="5"
+         onclick="radioSnooze(event)"
+         onkeypress="radioSnooze(event)"/>
+  <radio label="&calendar.alarm.snooze.10minutes.label;"
+         value="10"
+         onclick="radioSnooze(event)"
+         onkeypress="radioSnooze(event)"/>
+  <radio label="&calendar.alarm.snooze.15minutes.label;"
+         value="15"
+         onclick="radioSnooze(event)"
+         onkeypress="radioSnooze(event)"/>
+  <radio label="&calendar.alarm.snooze.30minutes.label;"
+         value="30"
+         onclick="radioSnooze(event)"
+         onkeypress="radioSnooze(event)"/>
+  <radio label="&calendar.alarm.snooze.45minutes.label;"
+         value="45"
+         onclick="radioSnooze(event)"
+         onkeypress="radioSnooze(event)"/>
+  <radio label="&calendar.alarm.snooze.1hour.label;"
+         value="60"
+         onclick="radioSnooze(event)"
+         onkeypress="radioSnooze(event)"/>
+  <radio label="&calendar.alarm.snooze.2hours.label;"
+         value="120"
+         onclick="radioSnooze(event)"
+         onkeypress="radioSnooze(event)"/>
+  <radio label="&calendar.alarm.snooze.1day.label;"
+         value="1440"
+         onclick="radioSnooze(event)"
+         onkeypress="radioSnooze(event)"/>
+</radiogroup>
+<menuseparator/>
+<hbox>
+  <textbox id="custom-menupopup-alarm-value"
+           size="1"
+           oninput="checkSnoozeValue('custom-menupopup-alarm');"/>
+  <menulist id="custom-menupopup-alarm-unit">
+   <menupopup>
+     <menuitem label="&calendar.global.units.minutes;" value="1"/>
+     <menuitem label="&calendar.global.units.hours;" value="60"/>
+     <menuitem label="&calendar.global.units.days;" value="1440"/>
+   </menupopup>
+  </menulist>
+  <button id="custom-menupopup-alarm-button"
+          class="custom-menupopup-ok-button"
+          oncommand="textboxSnooze()"/>
+  <button class="custom-menupopup-cancel-button" oncommand="window.close()"/>
+</hbox>
+</window>

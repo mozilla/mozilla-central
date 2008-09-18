@@ -1,0 +1,80 @@
+lightning.jar:
+% content lightning %content/lightning/
+#ifdef MOZILLA_1_8_BRANCH
+% content messagebody %content/messagebody/
+#else
+% content messagebody %content/messagebody/ contentaccessible=yes
+#endif
+% override chrome://messagebody/skin/imip.css chrome://lightning/skin/imip.css
+% overlay chrome://messenger/content/messenger.xul chrome://lightning/content/lightning-migration.xul
+% overlay chrome://messenger/content/msgAccountCentral.xul chrome://lightning/content/messenger-overlay-accountCentral.xul
+% overlay chrome://messenger/content/messenger.xul chrome://lightning/content/messenger-overlay-sidebar.xul
+% overlay chrome://messenger/content/messageWindow.xul chrome://lightning/content/imip-bar-overlay.xul
+% overlay chrome://messenger/content/messageWindow.xul chrome://lightning/content/messenger-overlay-messageWindow.xul
+% overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://lightning/content/imip-bar-overlay.xul
+% overlay chrome://messenger/content/preferences/preferences.xul chrome://lightning/content/messenger-overlay-preferences.xul
+% overlay chrome://messenger/content/preferences/preferences.xul chrome://calendar/content/preferences/alarms.xul
+% overlay chrome://messenger/content/preferences/preferences.xul chrome://calendar/content/preferences/categories.xul
+% overlay chrome://messenger/content/preferences/preferences.xul chrome://calendar/content/preferences/general.xul
+% overlay chrome://messenger/content/preferences/preferences.xul chrome://calendar/content/preferences/timezones.xul
+% overlay chrome://messenger/content/preferences/preferences.xul chrome://calendar/content/preferences/views.xul
+% overlay chrome://messenger/content/mailWindowOverlay.xul chrome://lightning/content/messenger-overlay-toolbar.xul
+% overlay chrome://global/content/customizeToolbar.xul chrome://lightning/content/customize-toolbar.xul
+% overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/calendar-unifinder.xul
+% overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/calendar-unifinder-todo.xul
+% overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/calendar-task-view.xul
+% overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/today-pane.xul
+% overlay chrome://lightning/content/lightning-standalone.xul chrome://lightning/content/messenger-overlay-sidebar.xul
+% overlay chrome://global/content/customizeToolbar.xul chrome://lightning/content/toolkit-overlay-custombar.xul
+% overlay chrome://calendar/content/calendarCreation.xul chrome://lightning/content/lightning-calendar-creation.xul
+% overlay chrome://calendar/content/calendar-properties-dialog.xul chrome://lightning/content/lightning-calendar-properties.xul
+% skin lightning classic/1.0 %skin/classic/lightning/
+  content/lightning/customize-toolbar.js                (content/customize-toolbar.js)
+  content/lightning/customize-toolbar.xul               (content/customize-toolbar.xul)
+  content/lightning/imip-bar.js                         (content/imip-bar.js)
+  content/lightning/imip-bar-overlay.xul                (content/imip-bar-overlay.xul)
+  content/lightning/lightning-common-sets.js (content/lightning-common-sets.js)
+  content/lightning/lightning-migration.xul             (content/lightning-migration.xul)
+  content/lightning/lightning-standalone.xul		(content/lightning-standalone.xul)
+  content/lightning/lightning-utils.js			(content/lightning-utils.js) 
+  content/lightning/lightning-widgets.css		(content/lightning-widgets.css)
+  content/lightning/lightning-widgets.xml		(content/lightning-widgets.xml)
+  content/lightning/lightning-today-pane.js		(content/lightning-today-pane.js)
+  content/lightning/messenger-overlay-sidebar.css	(content/messenger-overlay-sidebar.css)
+  content/lightning/messenger-overlay-accountCentral.xul (content/messenger-overlay-accountCentral.xul)
+  content/lightning/messenger-overlay-messageWindow.xul (content/messenger-overlay-messageWindow.xul)
+* content/lightning/messenger-overlay-sidebar.js	(content/messenger-overlay-sidebar.js)
+* content/lightning/messenger-overlay-sidebar.xul	(content/messenger-overlay-sidebar.xul)
+  content/lightning/messenger-overlay-preferences.js    (content/messenger-overlay-preferences.js)
+  content/lightning/messenger-overlay-preferences.xul	(content/messenger-overlay-preferences.xul)
+  content/lightning/messenger-overlay-toolbar.js        (content/messenger-overlay-toolbar.js)
+* content/lightning/messenger-overlay-toolbar.xul       (content/messenger-overlay-toolbar.xul)
+  content/lightning/toolkit-overlay-custombar.xul       (content/toolkit-overlay-custombar.xul)
+  content/lightning/lightning-calendar-creation.xul     (content/lightning-calendar-creation.xul)
+  content/lightning/lightning-calendar-creation.js      (content/lightning-calendar-creation.js)
+  content/lightning/lightning-calendar-properties.xul   (content/lightning-calendar-properties.xul)
+  content/lightning/lightning-calendar-properties.js    (content/lightning-calendar-properties.js)
+#expand    skin/classic/lightning/imip.css       (themes/__THEME__/imip.css)
+#expand    skin/classic/lightning/lightning.css  (themes/__THEME__/lightning.css)
+#expand    skin/classic/lightning/accountCentral.css (themes/__THEME__/accountCentral.css)
+#expand    skin/classic/lightning/lightning-widgets.css		(themes/__THEME__/lightning-widgets.css)
+
+calendar.jar:
+  content/calendar/calendarCreation.xul		(/calendar/resources/content/calendarCreation.xul) 
+  content/calendar/calendarCreation.js		(/calendar/resources/content/calendarCreation.js) 
+  content/calendar/mouseoverPreviews.js		(/calendar/resources/content/mouseoverPreviews.js) 
+  content/calendar/datetimepickers/datetimepickers.css (/calendar/resources/content/datetimepickers/datetimepickers.css)
+* content/calendar/datetimepickers/datetimepickers.xml (/calendar/resources/content/datetimepickers/datetimepickers.xml)
+* content/calendar/printDialog.js                (/calendar/resources/content/printDialog.js)
+  content/calendar/printDialog.xul               (/calendar/resources/content/printDialog.xul)
+  content/calendar/publish.js                   (/calendar/resources/content/publish.js)
+  content/calendar/publishDialog.js             (/calendar/resources/content/publishDialog.js)    
+  content/calendar/publishDialog.xul            (/calendar/resources/content/publishDialog.xul)
+  content/calendar/clipboard.js                 (/calendar/resources/content/clipboard.js)
+  content/calendar/sound.wav                    (/calendar/resources/content/sound.wav)
+  content/calendar/calendar-invitations-manager.js	(/calendar/prototypes/wcap/calendar-invitations-manager.js)
+  content/calendar/calendar-invitations-dialog.css	(/calendar/prototypes/wcap/calendar-invitations-dialog.css)
+  content/calendar/calendar-invitations-dialog.js	(/calendar/prototypes/wcap/calendar-invitations-dialog.js)
+  content/calendar/calendar-invitations-dialog.xul	(/calendar/prototypes/wcap/calendar-invitations-dialog.xul)
+  content/calendar/calendar-invitations-list.xml	(/calendar/prototypes/wcap/calendar-invitations-list.xml)
+#expand    skin/classic/calendar/datetimepickers/datetimepickers.css  (/calendar/resources/skin/classic/datetimepickers/datetimepickers.css)

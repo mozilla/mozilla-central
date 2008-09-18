@@ -20,6 +20,5 @@
 ^objdir-
 
 # directories we check out from other repositories
-^calendar$
 ^directory/c-sdk$
 ^mozilla$

@@ -1,0 +1,123 @@
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is Sun Microsystems code.
+#
+# The Initial Developer of the Original Code is
+#   Sun Microsystems, Inc.
+# Portions created by the Initial Developer are Copyright (C) 2008
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#   Daniel Boelzle <daniel.boelzle@sun.com>
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+#
+# HOWTO update the timezones.sqlite:
+#
+# 1. Download latest vzic and Olson database
+#    <http://www.twinsun.com/tz/tz-link.htm>
+#    resp. <ftp://elsie.nci.nih.gov/pub/>
+#
+#    Modify vzic Makefile to your OLSON_DIR and set *empty* TZID_PREFIX, then
+#    then make vzic and execute to produce zoneinfo.
+#
+# 2. Then, make update=<vzic-dir>/zoneinfo/zones.tab
+#
+#    a)  This will read both the current (old) timezones.sqlite from
+#        mozilla/calendar/timezones/timezones.sqlite and produce a new timezones.sqlite
+#    b)  This will read the current timezones.properties and dump out which identifiers
+#        are obsolete and which ones are to be added.
+
+DEPTH = ../..
+topsrcdir = @top_srcdir@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+MODULE = timezones
+export USE_EXTENSION_MANIFEST = 1
+export XPI_NAME = calendar-timezones
+DIST_FILES = install.rdf
+XPI_PKGNAME = calendar-timezones
+STRIP_XPI = 1
+
+PREF_JS_EXPORTS = $(srcdir)/defaults/preferences.js
+ifeq ($(AB_CD),)
+DIRS = locales
+endif
+
+ifdef MOZ_SUNBIRD
+# install as a global extension in dist/bin/extensions/
+INSTALL_EXTENSION_ID = calendar-timezones@mozilla.org
+endif
+
+CALENDAR_VERSION := $(shell cat $(topsrcdir)/calendar/sunbird/config/version.txt)
+TIMEZONES_VERSION := $(shell cat $(srcdir)/config/version.txt)
+
+DEFINES += -DAB_CD=$(AB_CD) \
+           -DCALENDAR_VERSION=$(CALENDAR_VERSION) \
+           -DTIMEZONES_VERSION=$(TIMEZONES_VERSION) \
+           $(NULL)
+
+TIMEZONES_SQLITE =  $(srcdir)/timezones.sqlite
+
+ifneq ($(strip $(update)),)
+ifdef MOZILLA_1_8_BRANCH
+	# xxx todo: update script depends on bug 435474
+	echo 'update script does only run on trunk (and with bug 435474) fixed...'
+	exit
+else
+libs::
+	echo 'SELECT * FROM tz_data ORDER BY tzid;' | sqlite3 $(TIMEZONES_SQLITE) > $(srcdir)/timezones_before_update.dump
+	$(DIST)/bin/xpcshell -s -w $(srcdir)/update.js $(update) $(srcdir)/$(DEPTH) $(TIMEZONES_VERSION)
+	echo 'SELECT * FROM tz_data ORDER BY tzid;' | sqlite3 $(TIMEZONES_SQLITE) > $(srcdir)/timezones.dump
+endif
+endif
+
+libs::
+	$(NSINSTALL) $(TIMEZONES_SQLITE) $(FINAL_TARGET)
+
+# Get all directories in /l10n/*, that contain a calendar subdir.
+calendar_locales := $(subst /calendar,,$(subst $(topsrcdir)/../l10n/,,$(wildcard $(topsrcdir)/../l10n/*/calendar)))
+# Now make sure those dirs are in shipped-locales
+shipped_locales :=$(shell cat $(topsrcdir)/calendar/locales/shipped-locales)
+locales_to_build :=$(foreach locale,$(calendar_locales),$(if $(filter $(locale),$(shipped_locales)),$(locale)))
+
+ifneq ($(strip $(locales_to_build)),)
+# The l10n directory is checked out and contains supported locales, start building our locales
+
+libs:: $(addprefix libs-,$(locales_to_build))
+	$(MAKE) -C locales libs AB_CD=en-US XPI_NAME=calendar-timezones USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
+
+libs-%:
+	@echo - locales to build -- $(locales_to_build)
+	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=calendar-timezones USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
+
+endif
+
+include $(topsrcdir)/config/rules.mk

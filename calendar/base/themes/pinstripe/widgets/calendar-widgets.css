@@ -1,0 +1,120 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Sun Microsystems code.
+ *
+ * The Initial Developer of the Original Code is Oracle Corporation
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Berend Cornelius <berend.cornelius@sun.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+
+treenode-checkbox {
+  -moz-box-align:       center;
+  padding-top:          4px;
+  padding-bottom:       4px;
+  -moz-padding-start:   4px;
+  -moz-padding-end:    4px;
+  font-weight:          bold;
+  border-bottom:        1px dotted #c0c0c0;
+}
+
+.checkbox-label-box {
+  -moz-margin-start: 4px;
+}
+
+.checkbox-icon {
+  -moz-margin-end: 2px;
+}
+
+.checkbox-label {
+  margin: 0 !important;
+}
+
+treenode-checkbox > .checkbox-label-center-box > .checkbox-label-box > .checkbox-label {
+  font-weight: bold;
+  border-bottom: 1px solid -moz-Dialog;
+}
+
+treenode-checkbox[checked="true"] > .checkbox-check {
+  -moz-appearance: treetwistyopen;
+}
+
+treenode-checkbox > .checkbox-check {
+  -moz-appearance: treetwisty;
+}
+
+.treenode-checkbox {
+  -moz-margin-start: 4px;
+  -moz-margin-end: 4px;
+}
+
+.view-navigation-button {
+  list-style-image: url(chrome://calendar/skin/widgets/view-navigation.png);
+  -moz-user-focus: normal;
+}
+
+.view-navigation-button[type="prev"] {
+  -moz-image-region: rect(0px, 10px, 11px, 0px);
+}
+.view-navigation-button[type="prev"]:hover {
+  -moz-image-region: rect(11px, 10px, 22px, 0px);
+}
+.view-navigation-button[type="prev"][disabled="true"] {
+  -moz-image-region: rect(22px, 10px, 33px, 0px);
+}
+
+
+.view-navigation-button[type="today"] {
+  -moz-image-region: rect(0px, 22px, 11px, 10px);
+}
+.view-navigation-button[type="today"]:hover {
+  -moz-image-region: rect(11px, 22px, 22px, 10px);
+}
+.view-navigation-button[type="today"][disabled="true"] {
+  -moz-image-region: rect(22px, 22px, 33px, 10px);
+}
+
+.view-navigation-button[type="next"] {
+  -moz-image-region: rect(0px, 32px, 11px, 22px);
+}
+.view-navigation-button[type="next"]:hover {
+  -moz-image-region: rect(11px, 32px, 22px, 22px);
+}
+.view-navigation-button[type="next"][disabled="true"] {
+  -moz-image-region: rect(22px, 32px, 33px, 22px);
+}
+
+.view-navigation-button > .toolbarbutton-icon {
+  margin: 0px !important;
+}
+
+.view-navigation-button > .toolbarbutton-text  {
+  display: none;
+}

@@ -1,0 +1,220 @@
+<?xml version="1.0"?>
+<!--
+   - ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is calendar views.
+   -
+   - The Initial Developer of the Original Code is Oracle Corporation
+   - Portions created by the Initial Developer are Copyright (C) 2005
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Stuart Parmenter <stuart.parmenter@oracle.com>
+   -   Simon Paquet <bugzilla@babylonsounds.com>
+   -   Joey Minta <jminta@gmail.com>
+   -   Stefan Sitter <ssitter@googlemail.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE bindings SYSTEM "chrome://calendar/locale/calendar.dtd">
+
+<bindings id="calendar-alarms"
+   xmlns="http://www.mozilla.org/xbl"
+   xmlns:xbl="http://www.mozilla.org/xbl"
+   xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <binding id="calendar-alarm-widget" extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <resources>
+      <stylesheet src="chrome://global/skin/button.css"/>
+      <stylesheet src="chrome://calendar/skin/calendar-alarm-dialog.css"/>
+    </resources>
+
+    <content>
+      <xul:hbox flex="1">
+        <xul:vbox pack="start">
+          <xul:image class="alarm-calendar-image"/>
+        </xul:vbox>
+        <xul:vbox>
+          <xul:label anonid="alarm-title-label" class="alarm-title-label" crop="end"/>
+          <xul:vbox class="additional-information-box">
+            <xul:label anonid="alarm-date-label" class="alarm-date-label"/>
+            <xul:hbox>
+              <xul:label anonid="alarm-location-label" class="location-label">&calendar.alarm.location.label;</xul:label>
+              <xul:description anonid="alarm-location-description" class="alarm-location-description" crop="end"/>
+            </xul:hbox>
+            <xul:hbox pack="start">
+              <xul:label class="text-link alarm-details-label"
+                     value="&calendar.alarm.details.label;"
+                     onclick="showDetails(event)"
+                     onkeypress="showDetails(event)"/>
+            </xul:hbox>
+          </xul:vbox>
+        </xul:vbox>
+        <xul:spacer flex="1"/>
+        <xul:label anonid="alarm-relative-date-label" class="alarm-relative-date-label"/>
+        <xul:vbox class="alarm-action-buttons" pack="center">
+          <xul:button anonid="alarm-snooze-button"
+                      oncommand="_openSnoozeWindow(event); return false;">
+            <xul:label class="button-text" value="&calendar.alarm.snoozefor.label;"/>
+            <xul:dropmarker class="button-menu-dropmarker"/>
+          </xul:button>
+          <xul:button anonid="alarm-dismiss-button"
+                      label="&calendar.alarm.dismiss.label;"
+                      oncommand="dismissAlarm()"/>
+        </xul:vbox>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+      <field name="mItem">null</field>
+
+      <property name="item">
+        <getter><![CDATA[
+          return this.mItem;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mItem = val;
+          var formatter = getDateFormatter();
+          var titleLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-title-label");
+          var locationDescription = document.getAnonymousElementByAttribute(this, "anonid", "alarm-location-description");
+          var dateLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-date-label");
+
+          // Dates
+          var startString = {};
+          var endString = {};
+
+          if (isEvent(val)) {
+              dateLabel.textContent = formatter.formatItemInterval(val);
+          } else if (isToDo(val)) {
+              var startDate = val.entryDate || val.dueDate;
+              startDate = startDate.getInTimezone(calendarDefaultTimezone());
+              dateLabel.textContent = calGetString("calendar",
+                                                   "alarmStarts",
+                                                   [formatter.formatDateTime(startDate)]);
+          } else {
+              throw Components.results.NS_ERROR_ILLEGAL_VALUE;
+          }
+
+          // Relative date
+          this.updateRelativeDateLabel();
+
+          // Title, location
+          titleLabel.value = val.title || "";
+          locationDescription.value = val.getProperty("LOCATION") || "";
+          locationDescription.hidden = (locationDescription.value.length < 1);
+
+          document.getAnonymousElementByAttribute(this, "anonid", "alarm-location-label").hidden =
+              (locationDescription.value.length < 1);
+
+          return val;
+        ]]></setter>
+      </property>
+
+      <method name="updateRelativeDateLabel">
+        <body><![CDATA[
+          var formatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                                    .getService(Components.interfaces.calIDateTimeFormatter);
+          var relativeDateLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-relative-date-label");
+          var relativeDateString;
+          var startDate = (this.mItem.startDate || this.mItem.entryDate || this.mItem.dueDate);
+          startDate = startDate.getInTimezone(calendarDefaultTimezone());
+          var currentDate = now();
+          var sinceDayStart = (currentDate.hour * 3600) + (currentDate.minute * 60);
+
+          currentDate.second = 0;
+          startDate.second = 0;
+
+          var sinceAlarm = currentDate.subtractDate(startDate).inSeconds;
+
+          this.mAlarmToday = (sinceAlarm < sinceDayStart) && (sinceAlarm > sinceDayStart - 86400);
+
+          if (this.mAlarmToday) {
+              // The alarm is today
+              relativeDateString = calGetString("calendar",
+                                                "alarmTodayAt",
+                                                [formatter.formatTime(startDate)]);
+          } else if (sinceAlarm <= sinceDayStart - 86400 && sinceAlarm > sinceDayStart - 172800) {
+              // The alarm is tomorrow
+              relativeDateString = calGetString("calendar",
+                                                "alarmTomorrowAt",
+                                                [formatter.formatTime(startDate)]);
+          } else if (sinceAlarm < sinceDayStart + 86400 && sinceAlarm > sinceDayStart) {
+              // The alarm is yesterday
+              relativeDateString = calGetString("calendar",
+                                                "alarmYesterdayAt",
+                                                [formatter.formatTime(startDate)]);
+          } else {
+              // The alarm is way back
+              relativeDateString = [formatter.formatDateTime(startDate)];
+          }
+
+          relativeDateLabel.textContent = relativeDateString;
+        ]]></body>
+      </method>
+
+      <method name="showDetails">
+        <parameter name="event"/>
+        <body><![CDATA[
+          if (event.type == "click" ||
+              (event.type == "keypress" &&
+               (event.keyCode == event.DOM_VK_ENTER ||
+                event.keyCode == event.DOM_VK_RETURN))) {
+              var detailsEvent = document.createEvent('Events');
+              detailsEvent.initEvent('itemdetails', true, false);
+              this.dispatchEvent(detailsEvent);
+          }
+        ]]></body>
+      </method>
+
+      <method name="snoozeAlarm">
+        <parameter name="minutes"/>
+        <body><![CDATA[
+          var snoozeEvent = document.createEvent('Events');
+          snoozeEvent.initEvent('snooze', true, false);
+          snoozeEvent.detail = minutes;
+          this.dispatchEvent(snoozeEvent);
+        ]]></body>
+      </method>
+
+      <method name="dismissAlarm">
+        <body><![CDATA[
+          var dismissEvent = document.createEvent('Events');
+          dismissEvent.initEvent('dismiss', true, false);
+          this.dispatchEvent(dismissEvent);
+        ]]></body>
+      </method>
+
+      <method name="_openSnoozeWindow">
+        <parameter name="event"/>
+        <body><![CDATA[
+          // Call the function from calendar-alarm-dialog.js
+          openSnoozeWindow(event, this); 
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>

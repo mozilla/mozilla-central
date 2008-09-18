@@ -1,0 +1,225 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is OEone Calendar Code, released October 31st, 2001.
+   -
+   - The Initial Developer of the Original Code is
+   - OEone Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 2001
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s): Garth Smedley <garths@oeone.com> 
+   -                 Mike Potter <mikep@oeone.com>
+   -                 Colin Phillips <colinp@oeone.com>
+   -                 Chris Charabaruk <coldacid@djfly.org>
+   -                 Karl Guertin <grayrest@grayrest.com> 
+   -                 Dan Parent <danp@oeone.com> 
+   -                 ArentJan Banck <ajbanck@planet.nl> 
+   -                 Eric Belhaire <belhaire@ief.u-psud.fr>
+   -                 Stefan Sitter <ssitter@googlemail.com>
+   -                 Philipp Kewisch <mozilla@kewis.ch>
+   -                 Simon Paquet <bugzilla@babylonsounds.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!-- Style sheets -->
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/toolbar.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/calendar.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/calendar-toolbar.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/calendar-views.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/widgets/minimonth.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/widgets/calendar-widgets.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/content/calendar-bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/content/calendar-view-bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/content/widgets/calendar-widget-bindings.css" type="text/css"?>
+
+<!-- Overlays -->
+<?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-calendars-list.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-unifinder.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-unifinder-todo.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-common-sets.xul"?>
+
+<!-- All DTD information is stored in a separate file so that it can be shared by
+     hiddenWindow.xul. -->
+#include calendar-doctype.inc
+
+<!-- The Window  -->
+
+<window id="calendar-window"
+        title="&mainWindow.title;"
+        onload="calendarInit()"
+        onunload="calendarFinish()"
+        windowtype="calendarMainWindow"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        persist="screenX screenY width height sizemode"
+        height="550"
+        width="710">
+
+<!-- All sets except for popupsets (commands, keys, stringbundles and broadcasters) *must* go
+     into the calendar-sets.inc file for sharing with hiddenWindow.xul. -->
+#include calendar-sets.inc
+
+<!-- All JS files that calendar.xul wishes to include *must* go into the calendar-scripts.inc
+     file (all scripts shared with Lightning) or sunbird-scripts.inc file (scripts relevant 
+     for Sunbird-only)so that they can be shared by hiddenWindow.xul.-->
+#include ../../../base/content/calendar-scripts.inc
+#include sunbird-scripts.inc
+
+<!-- Those scripts are not used by the hidden window, and thus can be put in here. The
+     scripts assume that they are part of calendar.xul, so they actually must not be
+     in sunbird-scripts.inc. (see bug 413296 comment 13) -->
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder-todo.js"/>
+
+<!-- GENERAL CONTEXT MENU -->
+<popupset id="calendar-popupset">
+  <popup id="toolbar-context-menu">
+    <menuitem command="cmd_CustomizeToolbars"
+              id="toolbar-context-menu-customize"
+              label="&calendar.context.customize.label;"
+              accesskey="&calendar.context.customize.accesskey;"/>
+  </popup>
+</popupset>
+
+<commandset id="commands"/>
+
+<toolbox id="calendar-toolbox" class="toolbox-top" mode="full"
+         defaultmode="full">
+  <!-- Menu -->
+  <toolbar type="menubar" id="main-toolbar" class="chromeclass-menubar" customizable="true"
+           defaultset="menubar-items"
+           mode="full" iconsize="small" context="toolbar-context-menu">
+    <toolbaritem id="menubar-items" align="center">
+<!-- The entire main menubar is placed into calendar-menubar.inc, so that it can be shared by
+     hiddenWindow.xul. -->
+#include calendar-menubar.inc
+    </toolbaritem>
+  </toolbar>
+
+  <toolbarpalette id="calendarToolbarPalette">
+<!-- All toolbar buttons that calendar.xul wishes to include *must* go either 
+     into the calendar-toolbar.inc file (all toolbar buttons shared with 
+     Lightning) or sunbird-toolbar.inc file (toolbar buttons relevant 
+     only for Sunbird-only). -->
+#include ../../../base/content/calendar-toolbar.inc
+#include sunbird-toolbar.inc
+    <toolbaritem id="throbber-box" align="center" pack="center">
+      <button id="navigator-throbber"
+              oncommand="openAboutDialog();"
+              tooltiptext="&aboutCmd.label;"/>
+    </toolbaritem>
+  </toolbarpalette>
+  <toolbar class="toolbar-primary chromeclass-toolbar" id="calendar-bar"
+           iconsize="large"
+           defaultset="calendar-new-event-button,calendar-new-task-button,calendar-edit-button,calendar-delete-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,spring,throbber-box"
+           customizable="true" mode="full"
+           toolbarname="&calendar.maintoolbar.name;" accesskey="&calendar.maintoolbar.accesskey;"
+           context="toolbar-context-menu"/>
+  <toolbarset id="customToolbars" context="toolbar-context-menu"/>
+</toolbox>
+
+
+<!-- V I S I B L E  C O N T E N T  -->
+
+<vbox id="calendar-top-box"
+      flex="1"
+      ondraggesture="nsDragAndDrop.startDrag(event,calendarViewDNDObserver);"
+      ondragover="nsDragAndDrop.dragOver(event,calendarViewDNDObserver);"
+      ondragdrop="nsDragAndDrop.drop(event,calendarViewDNDObserver);">
+
+  <!-- Calendar Controls-->
+ 
+  <hbox id="calendar-content-box" flex="1">
+
+    <vbox id="left-hand-content" persist="width">
+      <tabbox id="tablist" persist="selectedIndex" flex="1">
+        <tabs>
+          <tab label="&calendar.calendartab.label;"/>
+          <tab label="&calendar.listofcalendarstab.label;"/>
+        </tabs>
+        <tabpanels flex="1">
+          <tabpanel>
+            <vbox flex="1" align="center">
+              <spacer id="spaceaboveleftminimonth" flex="1" orient="vertical"/>
+              <minimonth id="lefthandcalendar"
+                         maxheight="300"
+                         onchange="gCalendarWindow.goToDay( this.value );"/>
+              <spacer id="spacebelowleftminimonth" flex="1" orient="vertical"/>
+            </vbox>
+          </tabpanel>
+      
+          <tabpanel id="tablist-calendarlist">
+            <!-- This will be overlayed by calendar-calendars-list.xul -->
+            <tree id="calendar-list-tree-widget" flex="1"/>
+          </tabpanel>
+        </tabpanels>
+      </tabbox>
+
+      <splitter id="calendar-todo-splitter" collapse="before"
+                persist="state,collapsed" orient="vertical"/>
+
+      <vbox id="todo-tab-panel" persist="height,collapsed" flex="1"/>
+    </vbox>
+
+    <splitter id="calendar-splitter" collapse="before" persist="state"
+              class="chromeclass-extrachrome sidebar-splitter" orient="horizontal"/>
+         
+    <vbox id="calendar-view-box" flex="1">
+      <deck id="view-deck" flex="1" persist="selectedIndex">
+          <calendar-decorated-day-view id="day-view" flex="1" 
+                                       context="calendar-view-context-menu"
+                                       item-context="calendar-item-context-menu"/>
+          <calendar-decorated-week-view id="week-view" flex="1" 
+                                        context="calendar-view-context-menu"
+                                        item-context="calendar-item-context-menu"/>
+          <calendar-decorated-multiweek-view id="multiweek-view" flex="1" 
+                                             context="calendar-view-context-menu"
+                                             item-context="calendar-item-context-menu"/>
+          <calendar-decorated-month-view id="month-view" flex="1" 
+                                         context="calendar-view-context-menu"
+                                         item-context="calendar-item-context-menu"/>
+      </deck>
+    </vbox>
+  </hbox> <!-- End: box with unifinder on left, calendar on right -->
+</vbox>
+
+<statusbar id="status-bar" class="chromeclass-status">
+  <statusbarpanel id="offline-status"
+                  class="statusbarpanel-iconic"
+                  offline="true"
+                  oncommand="calendarOfflineManager.toggleOfflineStatus()"/>
+  <statusbarpanel id="statusText"
+                  flex="1"/>
+  <statusbarpanel class="statusbarpanel-progress" collapsed="true" id="statusbar-progresspanel">
+      <progressmeter class="progressmeter-statusbar" id="statusbar-icon" mode="normal" value="0"/>
+  </statusbarpanel>
+</statusbar>
+
+</window>

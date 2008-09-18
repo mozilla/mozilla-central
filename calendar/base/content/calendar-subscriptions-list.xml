@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Thomas Benisch <thomas.benisch@sun.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK *****
+-->
+
+<bindings id="calendar-subscriptions-list-bindings"
+  xmlns="http://www.mozilla.org/xbl"
+  xmlns:html="http://www.w3.org/1999/xhtml"
+  xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="calendar-subscriptions-richlistbox"
+           extends="chrome://global/content/bindings/richlistbox.xml#richlistbox"
+           xbl:inherits="flex">
+
+    <implementation>
+
+      <!-- methods -->
+
+      <method name="addCalendar">
+        <parameter name="aCalendar"/>
+        <parameter name="bSubscribed"/>
+        <body><![CDATA[
+          var newNode = createXULElement("calendar-subscriptions-richlistitem");
+          this.appendChild(newNode);
+          newNode.setAttribute("anonid", "subscriptions-listitem");
+          newNode.calendar = aCalendar;
+          newNode.subscribed = bSubscribed;
+        ]]></body>
+      </method>
+
+      <method name="clear">
+        <body><![CDATA[
+          while (this.lastChild) {
+            this.removeChild(this.lastChild);
+          }
+        ]]></body>
+      </method>
+
+    </implementation>
+  </binding>
+
+  <binding id="calendar-subscriptions-richlistitem"
+           extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <content>
+      <xul:hbox flex="1">
+        <xul:checkbox anonid="subscription-checkbox" class="calendar-subscriptions-richlistitem-checkbox"/>
+        <xul:label anonid="subscription-name" flex="1" crop="end"/>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+
+      <!-- fields -->
+
+      <field name="mCalendar">null</field>
+      <field name="mSubscribed">false</field>
+
+      <!-- properties -->
+
+      <property name="calendar">
+        <getter><![CDATA[
+          return this.mCalendar;
+        ]]></getter>
+        <setter><![CDATA[
+          this.setCalendar(val);
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="subscribed">
+        <getter><![CDATA[
+          return this.mSubscribed;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mSubscribed = val;
+          this.checked = val;
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="checked">
+        <getter><![CDATA[
+          var checkbox = document.getAnonymousElementByAttribute(
+            this, "anonid", "subscription-checkbox");
+          if (checkbox.getAttribute("checked") == "true") {
+            return true;
+          } else {
+            return false;
+          }
+        ]]></getter>
+        <setter><![CDATA[
+          var checkbox = document.getAnonymousElementByAttribute(
+            this, "anonid", "subscription-checkbox");
+          if (val) {
+            checkbox.setAttribute("checked", "true");
+          } else {
+            checkbox.removeAttribute("checked");          
+          }
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="disabled">
+        <getter><![CDATA[
+          var checkbox = document.getAnonymousElementByAttribute(
+            this, "anonid", "subscription-checkbox");
+          if (checkbox.getAttribute("disabled") == "true") {
+            return true;
+          } else {
+            return false;
+          }
+        ]]></getter>
+        <setter><![CDATA[
+          var checkbox = document.getAnonymousElementByAttribute(
+            this, "anonid", "subscription-checkbox");
+          if (val) {
+            checkbox.setAttribute("disabled", "true");
+          } else {
+            checkbox.removeAttribute("disabled");
+          }
+          return val;
+        ]]></setter>
+      </property>
+
+      <!-- methods -->
+
+      <method name="setCalendar">
+        <parameter name="aCalendar"/>
+        <body>
+          <![CDATA[
+            this.mCalendar = aCalendar;
+            var label = document.getAnonymousElementByAttribute(
+                this, "anonid", "subscription-name");
+            label.setAttribute("value", aCalendar.name);
+          ]]>
+        </body>
+      </method>
+
+    </implementation>
+
+  </binding>
+
+</bindings>

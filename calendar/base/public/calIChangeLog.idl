@@ -1,0 +1,120 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Sun Microsystems, Inc. code.
+ *
+ * The Initial Developers of the Original Code are
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "calICalendar.idl"
+
+interface calIGenericOperationListener;
+interface calIOperation;
+
+/**
+ * Interface for synchronously working providers, e.g. storage, memory.
+ *
+ * @note
+ *   This interface is used in conjunction with changelog-based synchronization
+ *   and additionally offers storing meta-data for items for this purpose.
+ *   The meta data is stored as long as the corresponding items persist in
+ *   the calendar and automatically cleanup up once the item is deleted from
+ *   the calendar, but is not altered when an item is modified (modifyItem).
+ *   Meta data can be fetched/stored per (master) item, i.e. if you need to
+ *   store meta data for individual overridden items, you need to store it
+ *   along with the master item's meta data.
+ *   Finally, keep in mind that the meta data is "calendar local" and not
+ *   automatically transferred when storing the item on another calISyncCalendar.
+ */
+[scriptable, uuid(cef78f0e-bdbe-4534-8546-29b3e85be148)]
+interface calISyncCalendar : calICalendar {
+    /**
+     * Adds or replaces meta data of an item.
+     *
+     * @param id    an item id
+     * @param value an arbitrary string
+     */
+    void setMetaData(in AUTF8String id,
+                     in AUTF8String value);
+
+    /**
+     * Deletes meta data of an item.
+     *
+     * @param id    an item id
+     */
+    void deleteMetaData(in AUTF8String id);
+
+    /**
+     * Gets meta data of an item or null if there's none or the item id is invalid.
+     *
+     * @param id    an item id
+     */
+    AUTF8String getMetaData(in AUTF8String id);
+
+    /**
+     * Gets all meta data. The returned arrays are of the same length.
+     */
+    void getAllMetaData(out PRUint32 count,
+                        [array, size_is(count)] out wstring ids,
+                        [array, size_is(count)] out wstring values);
+};
+
+/**
+ * Calendar implementing this interface have improved means of replaying their
+ * changelog data. This could for example mean, that the provider can retrieve
+ * changes between now and the last sync.
+ *
+ * Not implementing this interface is perfectly valid for calendars, that need
+ * to do a full sync each time anyway (i.e ics)
+ */
+[scriptable, uuid(0bf4c6a2-b4c7-4cae-993a-4408d8bded3e)]
+interface calIChangeLog : nsISupports {
+    /**
+     * Resets the changelog. This is used if the cache should be refreshed.
+     */
+    void resetLog();
+
+    /**
+     * Instructs the calendar to replay remote changes into the given
+     * calendar. The calendar itself is responsible for storing anything needed
+     * to keep track of what items need updating.
+     *
+     * TODO: We might reconsider to replay on calICalendar,
+     *       but this complicates implementing this interface
+     *       enormously for providers.
+     *
+     * @param aDestination      The calendar to sync changes into
+     * @param aListener         The listener to notify when the operation completes.
+     */
+    calIOperation replayChangesOn(in calISyncCalendar aDestination,
+                                  in calIGenericOperationListener aListener);
+};

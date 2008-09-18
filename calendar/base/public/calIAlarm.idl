@@ -1,0 +1,187 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Sun Microsytems code.
+ *
+ * The Initial Developer of the Original Code is
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+
+interface nsIVariant;
+interface nsISimpleEnumerator;
+
+interface calIDateTime;
+interface calIDuration;
+interface calIItemBase;
+interface calIcalComponent;
+
+[scriptable, uuid(b8db7c7f-c168-4e11-becb-f26c1c4f5f8f)]
+interface calIAlarm : nsISupports
+{
+    /**
+     * Returns true if this alarm is able to be modified
+     */
+    readonly attribute boolean isMutable;
+
+    /**
+     * Makes this alarm immutable.
+     */
+    void makeImmutable();
+
+    /**
+     * Make a copy of this alarm. The returned alarm will be mutable.
+     */
+    calIAlarm clone();
+
+    /**
+     * The item this alarm is related to
+     */
+    attribute calIItemBase item;
+
+    /**
+     * How this alarm is shown. Special values as described in rfc2445 are
+     * AUDIO, DISPLAY, EMAIL
+     * In addition, custom actions may be defined as an X-Prop, i.e
+     * X-SMS.
+     *
+     * Note that aside from setting this action, the frontend must be able to
+     * handle the specified action. Unknown actions WILL NOT be notified for.
+     */
+    attribute AUTF8String action;
+
+    /**
+     * The offset between the item's date and the alarm time.
+     * Setting an offset unsets any specific absolute date set. This means that
+     * the alarmDate attribute will be calculated with the offset and the item's
+     * date and be null if no item is set.
+     */
+    attribute calIDuration offset;
+
+    /**
+     * The absolute point in time the alarm should fire.
+     * Setting the alarmDate will unset any specific offset. This means that
+     * the offset attribute will be relative to the item this alarm belongs to,
+     * or null if no item is set.
+     */
+    attribute calIDateTime alarmDate;
+
+    /**
+     * One of the ALARM_RELATED constants below.
+     * If an alarmDate was set, changing this influences the offset, and vice
+     * versa.
+     */
+    attribute unsigned long related;
+
+    /**
+     * The alarm's offset should be based off of the startDate or
+     * entryDate (for events and tasks, respectively)
+     */
+    const unsigned long ALARM_RELATED_START = 0;
+
+    /**
+     * the alarm's offset should be based off of the endDate or
+     * dueDate (for events and tasks, respectively)
+     */
+    const unsigned long ALARM_RELATED_END = 1;
+
+    /**
+     * The last time this alarm was fired and acknowledged by the user
+     */
+    attribute calIDateTime lastAck;
+
+    /**
+     * Times the alarm should be repeated. This value is the number of
+     * ADDITIONAL alarms, aside from the actual alarm.
+     *
+     * For the alarm to be valid, if repeat is specified, the repeatOffset
+     * attribute MUST also be specified.
+     */
+    attribute unsigned long repeat;
+
+    /**
+     * The duration between the alarm and each subsequent repeat
+     *
+     * For the alarm to be valid, if repeatOffset is specified, the repeat
+     * attribute MUST also be specified.
+     */
+    attribute calIDuration repeatOffset;
+
+    /**
+     * If repeat is specified, this helper returns the first DATETIME the alarm
+     * should be repeated on.
+     */
+    readonly attribute calIDateTime repeatDate;
+
+    /**
+     * The description of the alarm. Not valid for AUDIO alarms.
+     */
+    attribute AUTF8String description;
+
+    /**
+     * The summary of the alarm. Not valid for AUDIO and DISPLAY alarms.
+     */
+    attribute AUTF8String summary;
+
+    /**
+     * Manage Attendee for this alarm. Not valid for AUDIO and DISPLAY alarms.
+     */
+    // TODO void addAttendee(in AUTF8String aAttendee);
+    // TODO void deleteAttendee(in AUTF8String aAttendee);
+
+    /**
+     * Manage Attachments for this alarm.
+     * For EMAIL alarms, more than one attachment can be specified.
+     * For AUDIO alarms, one Attachment can be specified.
+     * For DISPLAY alarms, attachments are invalid.
+     */
+    // TODO void addAttachment(in AUTF8String aAttachment);
+    // TODO void deleteAttachment(in AUTF8String aAttachment);
+
+    /**
+     * The ical representation of this VALARM
+     */
+    attribute AUTF8String icalString;
+
+    /**
+     * The ical component of this VALARM
+     */
+    attribute calIcalComponent icalComponent;
+
+    // Property bag
+    boolean hasProperty(in AUTF8String name);
+    nsIVariant getProperty(in AUTF8String name);
+    void setProperty(in AUTF8String name, in nsIVariant value);
+    void deleteProperty(in AUTF8String name);
+
+    readonly attribute nsISimpleEnumerator propertyEnumerator;
+
+};

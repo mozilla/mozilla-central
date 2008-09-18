@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTf-8"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Calendar Code.
+   -
+   - The Initial Developer of the Original Code is
+   -   Michiel van Leeuwen <mvl@exedo.nl>
+   - Portions created by the Initial Developer are Copyright (C) 2005
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/calendar-properties-dialog.css" type="text/css"?>
+
+<!DOCTYPE dialog
+[
+    <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
+    <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
+]>
+
+<dialog
+    id="calendar-properties-dialog"
+    title="&calendar.server.dialog.title.edit;"
+    buttons="accept,cancel"
+    ondialogaccept="return onAcceptDialog();"
+    ondialogcancel="return true;"
+    onload="onLoad()"
+    persist="screenX screenY"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    width="500">
+
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-properties-dialog.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+
+  <checkbox id="calendar-enabled-checkbox"
+            label="&calendarproperties.enabled.label;"
+            oncommand="setupEnabledCheckbox()"/>
+
+  <grid id="calendar-properties-grid">
+    <columns>
+      <column/>
+      <column flex="1"/>
+    </columns>
+    <rows id="calendar-properties-rows">
+      <row id="calendar-name-row"
+           align="center">
+        <label value="&calendar.server.dialog.name.label;"
+               disable-with-calendar="true"
+               control="calendar-name"/>
+        <textbox id="calendar-name"
+                 flex="1"
+                 disable-with-calendar="true"/>
+      </row>
+      <row id="calendar-color-row"
+           align="center">
+        <label value="&calendarproperties.color.label;"
+               disable-with-calendar="true"
+               control="calendar-color"/>
+          <hbox align="center">
+            <colorpicker id="calendar-color"
+                         class="small-margin"
+                         type="button"
+                         palettename="standard"
+                         disable-with-calendar="true"/>
+          </hbox>
+      </row>
+      <row id="calendar-uri-row" align="center">
+        <label value="&calendarproperties.location.label;"
+               disable-with-calendar="true"
+               control="calendar-uri"/>
+        <!-- XXX Make location field readonly until Bug 315307 is fixed -->
+        <textbox id="calendar-uri" readonly="true" disable-with-calendar="true"/>
+      </row>
+      <row id="calendar-readOnly-row"
+           align="center">
+        <spacer/>
+        <checkbox id="read-only"
+                  label="&calendarproperties.readonly.label;"
+                  disable-with-calendar="true"/>
+      </row>
+      <row id="calendar-suppressAlarms-row"
+           align="center">
+        <spacer/>
+        <checkbox id="fire-alarms"
+                  label="&calendarproperties.firealarms.label;"
+                  disable-with-calendar="true"/>
+      </row>
+      <row id="calendar-cache-row"
+           align="center">
+        <spacer/>
+        <checkbox id="cache"
+                  label="&calendarproperties.cache.label;"
+                  disable-with-calendar="true"/>
+      </row>
+      <spacer/>
+    </rows>
+  </grid>
+</dialog>

@@ -1,0 +1,168 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Lightning code.
+ *
+ * The Initial Developer of the Original Code is Oracle Corporation
+ * Portions created by the Initial Developer are Copyright (C) 2005
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Mike Shaver <shaver@mozilla.org>
+ *   Vladimir Vukicevic <vladimir@pobox.com>
+ *   Joey Minta <jminta@gmail.com>
+ *   Simon Paquet <bugzilla@babylonsounds.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/* Calendar list rules */
+#calendar-panel {
+    padding: 0px 5px 5px;
+}
+
+/* Lightning preferences icon */
+radio[pane=paneLightning] {
+    list-style-image: url("chrome://calendar/skin/cal-icon32.png");
+}
+
+/* iMIP notification bar */
+#imip-bar > image {
+    list-style-image: url("chrome://calendar/skin/cal-icon32.png");
+    -moz-image-region: rect(0px, 32px, 32px, 0px);
+}
+
+/* ::::: mode toolbar buttons ::::: */
+#mode-toolbar {
+  padding: 5px 2px;
+  border-top: 1px solid ThreeDShadow !important;
+}
+
+#mode-toolbar[location="top"] {
+  border-top: 0 !important;
+}
+
+.toolbarbutton-2 {
+  -moz-box-orient: vertical;
+  min-width: 0px;
+  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
+}
+
+toolbar[mode="full"] .toolbarbutton-2 {
+  min-width: 55px;
+}
+
+.toolbarbutton-2[type="menu"] {
+  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
+}
+
+#mail-switch-button {
+  -moz-image-region: rect(0px 25px 25px 0px);
+}
+
+#mail-switch-button:hover:active {
+  -moz-image-region: rect(25px 25px 50px 0px);
+}
+
+#mail-switch-button[disabled] {
+  -moz-image-region: rect(50px 25px 75px 0px);
+}
+
+#calendar-switch-button {
+  -moz-image-region: rect(0px 50px 25px 25px);
+}
+
+#calendar-switch-button:hover:active {
+  -moz-image-region: rect(25px 50px 50px 25px);
+}
+
+#calendar-switch-button[disabled] {
+  -moz-image-region: rect(50px 50px 75px 25px);
+}
+
+#task-switch-button {
+  -moz-image-region: rect(0px 75px 25px 50px);
+}
+
+#task-switch-button:hover:active {
+  -moz-image-region: rect(25px 75px 50px 50px);
+}
+
+#task-switch-button[disabled] {
+  -moz-image-region: rect(50px 75px 75px 50px);
+}
+
+/* ::::: small mode toolbar buttons ::::: */
+toolbar[iconsize="small"] .toolbarbutton-2 {
+ list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
+}
+
+toolbar[iconsize="small"] #mail-switch-button {
+  -moz-image-region: rect(0px 91px 16px 75px);
+}
+
+toolbar[iconsize="small"] #mail-switch-button:hover:active {
+  -moz-image-region: rect(16px 91px 32px 75px);
+}
+
+toolbar[iconsize="small"] #mail-switch-button[disabled] {
+  -moz-image-region: rect(32px 91px 48px 75px);
+}
+
+toolbar[iconsize="small"] #calendar-switch-button {
+  -moz-image-region: rect(0px 107px 16px 91px);
+}
+
+toolbar[iconsize="small"] #calendar-switch-button:hover:active {
+  -moz-image-region: rect(16px 107px 32px 91px);
+}
+
+toolbar[iconsize="small"] #calendar-switch-button[disabled] {
+  -moz-image-region: rect(32px 107px 48px 91px);
+}
+
+toolbar[iconsize="small"] #task-switch-button {
+  -moz-image-region: rect(0px 123px 16px 107px);
+}
+
+toolbar[iconsize="small"] #task-switch-button:hover:active {
+  -moz-image-region: rect(16px 123px 32px 107px);
+}
+
+toolbar[iconsize="small"] #task-switch-button[disabled] {
+  -moz-image-region: rect(32px 123px 48px 107px);
+}
+
+/* Lightining sidebar background in calendar and task mode */
+#ltnSidebar,
+#invitations-pane {
+  background: -moz-field;  
+}
+
+.calendar-invitations-sidebar-label {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+

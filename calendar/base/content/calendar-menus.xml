@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is
+   - Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Berend Cornelius <berend.cornelius@sun.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE bindings SYSTEM "chrome://calendar/locale/calendar.dtd">
+
+<bindings id="calendar-menu-bindings"
+ xmlns="http://www.mozilla.org/xbl"
+ xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+ xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="task-menupopup" extends="xul:menupopup">
+    <implementation>
+      <field name="mType">null</field>;
+      <field name="mPopupHandler">null</field>
+      <field name="mParentMenuPopup">null</field>
+      <constructor><![CDATA[
+        var self = this;
+        this.mPopupHandler = function popupHandler() { self.changeMenuByPropertyName(); };
+        this.mParentMenuPopup = getParentNodeOrThis(this, "menupopup");
+        this.mParentMenuPopup.addEventListener("popupshowing", this.mPopupHandler, true);
+      ]]></constructor>
+      <destructor><![CDATA[
+        this.mParentMenuPopup.removeEventListener("popupshowing", this.mPopupHandler, true);
+      ]]></destructor>
+
+<!-- This method checks a command which naming follows
+ *  the notation 'calendar_' +  mType + ' + '-' + propertvalue + 'command',
+ *  when its propertyvalue part matches the propertyvalue of the selected tasks
+ *  as long as the selected tasks share common propertyValues.
+ * -->
+      <method name="changeMenuByPropertyName">
+        <body><![CDATA[
+            var liveList = document.getAnonymousNodes(this);
+            for (var i = liveList.length - 1; i >= 0; i-- ) {
+                var commandName = liveList.item(i).getAttribute("command");
+                var command = document.getElementById(commandName);
+                if (command) {
+                    command.setAttribute("checked", "false");
+                    liveList.item(i).setAttribute("checked", "false");
+                }
+            }
+            var tasks = getSelectedTasks();
+            var tasksSelected = ((tasks != null) && (tasks.length > 0));
+            if (tasksSelected) {
+                var task = tasks[0];
+                if (isPropertyValueSame(tasks, this.mType)) {
+                    var command = document.getElementById("calendar_" + this.mType + "-" + task[this.mType] + "_command");
+                    if (command) {
+                        command.setAttribute("checked", "true");
+                    }
+                }
+            } else {
+                applyAttributeToMenuChildren(this, "disabled", (!tasksSelected));
+            }
+        ]]></body>
+      </method>
+    </implementation>
+   </binding>
+
+  <binding id="task-progress-menupopup" extends="chrome://calendar/content/calendar-menus.xml#task-menupopup">
+    <content>
+      <xul:menuitem anonid="percent-0-menuitem"
+                type="checkbox"
+                label="&progress.level.0;"
+                accesskey="&progress.level.0.accesskey;"
+                observes="calendar_percentComplete-0_command"
+                command="calendar_percentComplete-0_command"/>
+      <xul:menuitem anonid="percent-25-menuitem"
+                type="checkbox"
+                label="&progress.level.25;"
+                accesskey="&progress.level.25.accesskey;"
+                observes="calendar_percentComplete-25_command"
+                command="calendar_percentComplete-25_command"/>
+      <xul:menuitem anonid="percent-50-menuitem"
+                type="checkbox"
+                label="&progress.level.50;"
+                accesskey="&progress.level.50.accesskey;"
+                observes="calendar_percentComplete-50_command"
+                command="calendar_percentComplete-50_command"/>
+      <xul:menuitem anonid="percent-75-menuitem"
+                type="checkbox"
+                label="&progress.level.75;"
+                accesskey="&progress.level.75.accesskey;"
+                observes="calendar_percentComplete-75_command"
+                command="calendar_percentComplete-75_command"/>
+      <xul:menuitem anonid="percent-100-menuitem"
+                type="checkbox"
+                label="&progress.level.100;"
+                accesskey="&progress.level.100.accesskey;"
+                observes="calendar_percentComplete-100_command"
+                command="calendar_percentComplete-100_command"/>
+      <children/>
+    </content>
+    <implementation>
+      <constructor><![CDATA[
+          this.mType = "percentComplete";
+      ]]></constructor>
+    </implementation>
+   </binding>
+
+  <binding id="task-priority-menupopup" extends="chrome://calendar/content/calendar-menus.xml#task-menupopup">
+    <content>
+          <xul:menuitem id="priority-0-menuitem"
+                    type="checkbox"
+                    label="&priority.level.none;"
+                    accesskey="&priority.level.none.accesskey;"
+                    command="calendar_priority-0_command"
+                    observes="calendar_priority-0_command"/>
+          <xul:menuitem id="priority-9-menuitem"
+                    type="checkbox"
+                    label="&priority.level.low;"
+                    accesskey="&priority.level.low.accesskey;"
+                    command="calendar_priority-9_command"
+                    observes="calendar_priority-9_command"/>
+          <xul:menuitem id="priority-5-menuitem"
+                    type="checkbox"
+                    label="&priority.level.normal;"
+                    accesskey="&priority.level.normal.accesskey;"
+                    command="calendar_priority-5_command"
+                    observes="calendar_priority-5_command"/>
+          <xul:menuitem id="priority-1-menuitem"
+                    type="checkbox"
+                    label="&priority.level.high;"
+                    accesskey="&priority.level.high.accesskey;"
+                    command="calendar_priority-1_command"
+                    observes="calendar_priority-1_command"/>
+      <children/>                    
+     </content>
+    <implementation>
+      <constructor><![CDATA[
+          this.mType = "priority";
+      ]]></constructor>
+    </implementation>
+   </binding>
+</bindings>

@@ -1,0 +1,15 @@
+#filter substitution
+
+#ifdef MOZ_USE_GENERIC_BRANDING
+@AB_CD@.jar:
+% locale branding @AB_CD@ %locale/branding/
++   locale/branding/brand.dtd                    (%chrome/branding/brand.dtd)
++   locale/branding/brand.properties             (%chrome/branding/brand.properties)
+#endif
+
+calendar-@AB_CD@.jar:
+% locale calendar @AB_CD@ %locale/@AB_CD@/calendar/
+*   locale/@AB_CD@/calendar/aboutDialog.dtd      (%chrome/calendar/aboutDialog.dtd)
+
+# Extra l10n files for documentation and such
+#includesubst @LOCALE_SRCDIR@/extra-jar.mn

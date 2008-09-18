@@ -1,0 +1,164 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is OEone Calendar Code, released October 31st, 2001.
+   -
+   - The Initial Developer of the Original Code is
+   - OEone Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 2001
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Garth Smedley <garths@oeone.com>
+   -   Mike Potter <mikep@oeone.com>
+   -   Colin Phillips <colinp@oeone.com>
+   -   Chris Charabaruk <coldacid@djfly.org>
+   -   Karl Guertin <grayrest@grayrest.com>
+   -   Dan Parent <danp@oeone.com>
+   -   ArentJan Banck <ajbanck@planet.nl>
+   -   Eric Belhaire <belhaire@ief.u-psud.fr>
+   -   Stefan Sitter <ssitter@googlemail.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Michael Buettner <michael.buettner@sun.com>
+   -   Simon Paquet <bugzilla@babylonsounds.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css" ?>
+<?xml-stylesheet href="chrome://calendar/skin/calendar-unifinder.css" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://calendar/locale/calendar.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder.js"/>
+  <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
+
+  <vbox id="calendar-view-box">
+    <vbox id="bottom-events-box" insertbefore="view-deck" persist="height">
+      <hbox id="unifinder-searchBox" persist="collapsed">
+        <box align="center">
+          <menulist id="event-filter-menulist" value="next7Days" persist="value">
+            <menupopup id="event-filter-menupopup" oncommand="refreshEventTree()">
+              <menuitem id="event-filter-all"
+                        label="&calendar.events.filter.all.label;"
+                        value="all"/>
+              <menuitem id="event-filter-today"
+                        label="&calendar.events.filter.today.label;"
+                        value="today"/>
+              <menuitem id="event-filter-next7Days"
+                        label="&calendar.events.filter.next7Days.label;"
+                        value="next7Days"/>
+              <menuitem id="event-filter-next14Days"
+                        label="&calendar.events.filter.next14Days.label;"
+                        value="next14Days"/>
+              <menuitem id="event-filter-next31Days"
+                        label="&calendar.events.filter.next31Days.label;"
+                        value="next31Days"/>
+              <menuitem id="event-filter-thisCalendarMonth"
+                        label="&calendar.events.filter.thisCalendarMonth.label;"
+                        value="thisCalendarMonth"/>
+              <menuitem id="event-filter-future"
+                        label="&calendar.events.filter.future.label;"
+                        value="future"/>
+              <menuitem id="event-filter-current"
+                        label="&calendar.events.filter.current.label;"
+                        value="current"/>
+            </menupopup>
+          </menulist>
+        </box>
+        <box align="center" flex="1">
+          <label control="unifinder-search-field" value="&calendar.search.options.searchfor;"/>
+          <textbox id="unifinder-search-field" onkeypress="searchKeyPress( this, event )" flex="1"/>
+        </box>
+        <toolbarbutton id="unifinder-closer"
+                       class="unifinder-closebutton"
+                       command="calendar_show_unifinder_command"
+                       tooltiptext="&calendar.unifinder.close.tooltip;"/>
+      </hbox>
+      <tree id="unifinder-search-results-tree" flex="1"
+            onselect="unifinderSelect(event); calendarController.onSelectionChanged()"
+            onkeypress="unifinderKeyPress(event)"
+            _selectDelay="500"
+            enableColumnDrag="true">
+        <treecols id="unifinder-search-results-tree-cols">
+          <treecol id="unifinder-search-results-tree-col-title"
+                   persist="hidden ordinal width sortDirection sortActive"
+                   flex="1"
+                   label="&calendar.unifinder.tree.title.label;" />
+          <splitter class="tree-splitter"/>
+          <treecol id="unifinder-search-results-tree-col-startdate"
+                   persist="hidden ordinal width sortDirection sortActive"
+                   flex="1"
+                   label="&calendar.unifinder.tree.startdate.label;"/>
+          <splitter class="tree-splitter"/>
+          <treecol id="unifinder-search-results-tree-col-enddate"
+                   persist="hidden ordinal width sortDirection sortActive"
+                   flex="1"
+                   label="&calendar.unifinder.tree.enddate.label;"/>
+          <splitter class="tree-splitter"/>
+          <treecol id="unifinder-search-results-tree-col-categories"
+                   persist="hidden ordinal width sortDirection sortActive"
+                   flex="1"
+                   label="&calendar.unifinder.tree.categories.label;"/>
+          <splitter class="tree-splitter"/>
+          <treecol id="unifinder-search-results-tree-col-location"
+                   persist="hidden ordinal width sortDirection sortActive"
+                   flex="1"
+                   hidden="true"
+                   label="&calendar.unifinder.tree.location.label;"/>
+          <splitter class="tree-splitter"/>
+          <treecol id="unifinder-search-results-tree-col-status"
+                   persist="hidden ordinal width sortDirection sortActive"
+                   flex="1"
+                   hidden="true"
+                   label="&calendar.unifinder.tree.status.label;"/>
+          <treecol id="unifinder-search-results-tree-col-calendarname"
+                   persist="hidden ordinal width sortDirection sortActive"
+                   flex="1"
+                   hidden="true"
+                   label="&calendar.unifinder.tree.calendarname.label;"/>
+        </treecols>
+
+        <!-- on mousedown here happens before onclick above -->
+        <treechildren tooltip="eventTreeTooltip"
+                      context="calendar-item-context-menu"
+                      onkeypress="if (event.keyCode == 13) unifinderEditCommand();"
+                      ondragover="return( false );"
+                      ondblclick="unifinderDoubleClick(event)"
+                      onfocus="focusFirstItemIfNoSelection( );"/>
+      </tree>
+    </vbox>
+    <splitter id="calendar-view-splitter"
+              insertbefore="view-deck"
+              collapse="before"
+              persist="state"
+              class="chromeclass-extrachrome sidebar-splitter"
+              orient="vertical"
+              onmouseup="setTimeout('refreshEventTree();', 10 );">
+      <grippy class="sidebar-splitter-grippy"/>
+    </splitter>
+  </vbox>
+</overlay>

@@ -1,0 +1,268 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Sun Microsystems code.
+ *
+ * The Initial Developer of the Original Code is Oracle Corporation
+ * Portions created by the Initial Developer are Copyright (C) 2005
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Lars Wohlfahrt <thetux.moz@googlemail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+.today-subpane {
+  padding: 0px;
+  border: 1px solid ThreeDShadow;
+  margin: 3px;
+}
+
+#buttonspacer {
+  width: 5px;
+}
+
+#today-pane-panel {
+  background-color: -moz-Dialog;
+  border-left: 1px solid ThreeDShadow;
+}
+
+#agenda-panel {
+  margin: 3px;
+}
+
+#mini-day-image {
+  list-style-image: url("chrome://calendar/skin/mini-day-background.png");
+}
+
+#mini-day-box,
+#today-minimonth-box {
+  background-color: white;
+}
+
+#weekdayNameContainer {
+  font-family: Trebuchet MS, Lucida Grande, Arial, Helvetica;
+  padding-top: 4px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+#miniday-dropdown-button {
+  margin: 2px;
+  max-width: 15px;
+  -moz-user-focus: normal;
+}
+
+.monthlabel {
+  -moz-margin-end: 0px;
+}
+
+.dateValue {
+  font-family: Arial, Helvetica, Trebuchet MS, Lucida Grande, sans-serif;
+  margin-top: 0px;
+  padding-top: 0px;
+  font-size: 36px;
+  font-weight: bold;
+}
+
+.miniday-nav-buttons {
+  margin-top: 2px;
+  list-style-image: url("chrome://calendar/skin/widgets/nav-buttons.png");
+}
+
+#previous-day-button {
+  -moz-image-region: rect(0px 5px 13px 0px);
+  -moz-user-focus: normal;
+}
+
+#previous-day-button:hover,
+#previous-day-button:hover:active {
+  -moz-image-region: rect(13px 5px 26px 0px);
+}
+
+#previous-day-button[disabled] {
+  -moz-image-region: rect(26px 5px 39px 0px);
+}
+
+#today-button {
+  -moz-image-region: rect(0px 16px 13px 5px);
+  -moz-user-focus: normal;
+}
+
+#today-button:hover,
+#today-button:hover:active {
+  -moz-image-region: rect(13px 16px 26px 5px);
+}
+
+#today-button[disabled] {
+  -moz-image-region: rect(26px 16px 39px 5px);
+  -moz-user-focus: normal;
+}
+
+#next-day-button {
+  -moz-image-region: rect(0px 21px 13px 16px);
+  -moz-user-focus: normal;
+}
+#next-day-button:hover,
+#next-day-button:hover:active {
+  -moz-image-region: rect(13px 21px 26px 16px);
+}
+
+#next-day-button[disabled] {
+  -moz-image-region: rect(26px 21px 39px 16px);
+}
+
+#miniday-dropdown-button > .toolbarbutton-icon,
+  .miniday-nav-buttons > .toolbarbutton-icon {
+  margin: 1px;
+}
+
+#miniday-dropdown-button > .toolbarbutton-text,
+  .miniday-nav-buttons > .toolbarbutton-text  {
+  display: none;
+}
+
+.today-closebutton {
+  list-style-image: url("chrome://messenger/skin/icons/close-button.png");
+  -moz-image-region: rect(0 16px 16px 0);
+  -moz-appearance: none;
+  border: none !important;
+  padding: 2px;
+}
+
+.today-closebutton:hover {
+  -moz-image-region: rect(0 32px 16px 16px);
+}
+
+.today-closebutton:hover:active {
+  -moz-image-region: rect(0 48px 16px 32px);
+}
+
+.today-closebutton > .toolbarbutton-icon {
+  -moz-margin-end: 0px; /* override toolkit's default value */
+}
+
+#agenda-toolbar {
+  border: none;
+  padding: 1px;
+}
+
+#calendar-new-event-button {
+  -moz-user-focus: normal;
+}
+
+#calendar-new-event-button > .toolbarbutton-text {
+ -moz-padding-start: 5px;
+}
+
+#agenda-listbox {
+  -moz-user-focus: normal;
+}
+
+agenda-checkbox-richlist-item {
+  -moz-binding: url("chrome://calendar/content/agenda-listbox.xml#agenda-checkbox-richlist-item");
+  -moz-user-focus: normal;
+}
+
+agenda-richlist-item {
+  -moz-binding: url("chrome://calendar/content/agenda-listbox.xml#agenda-richlist-item");
+  -moz-user-focus: normal;
+  overflow: hidden;
+}
+
+agenda-allday-richlist-item {
+  -moz-binding: url("chrome://calendar/content/agenda-listbox.xml#agenda-allday-richlist-item");
+  -moz-user-focus: normal;
+  overflow: hidden;
+}
+
+.agenda-container-box {
+  border-bottom: 1px dotted #C0C0C0;
+  -moz-margin-start: 4px;
+  -moz-margin-end: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.agenda-allday-container-box {
+  border-bottom: 1px dotted #C0C0C0;
+  -moz-margin-start: 4px;
+  -moz-margin-end: 4px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.agenda-container-box[selected="true"],
+.agenda-allday-container-box[selected="true"],
+.agenda-checkbox[selected="true"],
+.agenda-container-box[selected="true"][current="true"],
+.agenda-allday-container-box[selected="true"][current="true"],
+.agenda-checkbox[selected="true"][current="true"] {
+  background-image: url("chrome://mozapps/skin/extensions/itemEnabledFader.png");
+  background-color: Highlight;
+  color: HighlightText;
+}
+
+.agenda-container-box[current="true"],
+.agenda-alldaycontainer-box[current="true"],
+.agenda-checkbox[current="true"],
+.agenda-container-box[selected="true"][current="true"][disabled="true"],
+.agenda-allday-container-box[selected="true"][current="true"][disabled="true"],
+.agenda-checkbox[selected="true"][current="true"][disabled="true"] {
+  background-image: url("chrome://mozapps/skin/extensions/itemEnabledFader.png");
+  background-color: #DFEAF4;
+}
+
+.agenda-container-box[selected="true"][disabled="true"],
+.agenda-allday-container-box[selected="true"][disabled="true"],
+.agenda-checkbox[selected="true"][disabled="true"] {
+  background-image: none;
+  color: -moz-dialogText;
+  background-color: white;
+}
+
+.agenda-event-title {
+  margin-top: 0px;
+}
+
+.agenda-event-start {
+  margin-bottom: 0px;
+}
+
+.agenda-new-date {
+  width: 15px;
+  height: 15px;
+  border: 1px solid grey;
+  cursor: pointer;
+}
+
+.agenda-calendar-image {
+  list-style-image: url("chrome://calendar/skin/calendar-overlay.png");
+  margin-top: 3px;
+  -moz-margin-start: 4px;
+  width: 10px;
+  height: 10px;
+}

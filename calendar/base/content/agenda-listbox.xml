@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is
+   - Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<bindings id="agenda-list-bindings"
+ xmlns="http://www.mozilla.org/xbl"
+ xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+ xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="agenda-base-richlist-item"
+           extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>
+    </resources>
+    <implementation>
+      <field name="mOccurrence">null</field>;
+      <property name="occurrence" readonly="true">
+        <getter><![CDATA[
+          return this.mOccurrence;
+        ]]></getter>
+      </property>
+    </implementation>
+    <handlers>
+      <handler event="click" phase="capturing"><![CDATA[
+        // We only care about button 0 (left click) events
+        if (event.button == 0) { 
+            if (event.detail == 1) {
+                agendaListbox.onSelect(this);
+            } else {
+                document.getElementById('agenda_edit_event_command').doCommand();
+                event.stopPropagation();
+                event.preventDefault();
+            }
+        }
+      ]]></handler>
+      <handler event="mouseover"><![CDATA[
+         event.stopPropagation();
+         onMouseOverItem(event);
+      ]]></handler>
+    </handlers>
+  </binding>
+
+  <binding id="agenda-checkbox-richlist-item"
+           extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <content>
+      <xul:treenode-checkbox class="agenda-checkbox" anonid="agenda-checkbox-widget"
+                                                   flex="1"
+                                                   xbl:inherits="selected,label,hidden,disabled"/>
+    </content>
+    <implementation>
+      <field name="kCheckbox">null</field>;
+      <constructor><![CDATA[
+          this.kCheckbox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-checkbox-widget");
+      ]]></constructor>
+      <method name="getItem">
+        <body><![CDATA[
+            return this.mItem;
+        ]]></body>
+      </method>
+      <method name="setItem">
+        <parameter name="synthetic"/>
+        <parameter name="showsToday"/>
+        <body><![CDATA[
+            this.mItem = synthetic;
+            if (showsToday) {
+                this.kCheckbox.label = this.getAttribute("title");
+            } else {
+                if (synthetic.duration == 1) {
+                    this.kCheckbox.label = getDateFormatter().formatDate(synthetic.start);
+                } else {
+                    this.kCheckbox.label = getDateFormatter().formatInterval(synthetic.start, synthetic.end);
+                }
+            }
+        ]]></body>
+      </method>
+      <method name="getCheckbox">
+        <body><![CDATA[
+            return this.kCheckbox;
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="agenda-allday-richlist-item"
+           extends="chrome://calendar/content/agenda-listbox.xml#agenda-base-richlist-item">
+    <content tooltip="itemTooltip">
+      <xul:hbox anonid="agenda-container-box"
+                class="agenda-allday-container-box"
+                xbl:inherits="selected,disabled"
+                flex="1">
+        <xul:vbox pack="center" flex="1">
+          <xul:hbox flex="1">
+            <xul:calendar-month-day-box-item anonid="allday-item" 
+                                             flex="1"
+                                             flat="true"/>
+          </xul:hbox>
+        </xul:vbox>
+      </xul:hbox>
+    </content>
+    <implementation>
+      <field name="mAllDayItem">null</field>;
+      <constructor><![CDATA[
+          this.mAllDayItem = document.getAnonymousElementByAttribute(this, "anonid", "allday-item");
+      ]]></constructor>
+      <method name="setOccurrence">
+        <parameter name="aOccurrence"/>
+        <parameter name="aPeriod"/>
+        <body><![CDATA[
+            this.mOccurrence = aOccurrence;
+            this.mAllDayItem.occurrence = aOccurrence;
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="agenda-richlist-item"
+           extends="chrome://calendar/content/agenda-listbox.xml#agenda-base-richlist-item">
+    <content tooltip="itemTooltip">
+      <xul:hbox anonid="agenda-container-box" class="agenda-container-box" xbl:inherits="selected,disabled,current" flex="1">
+      <xul:hbox>
+        <xul:vbox>
+          <xul:image anonid="agenda-calendar-image" class="agenda-calendar-image"/>
+          <xul:spacer flex="1"/>
+        </xul:vbox>
+      </xul:hbox>
+        <xul:vbox anonid="agenda-description">
+          <xul:label anonid="agenda-event-start" class="agenda-event-start" crop="end" xbl:inherits="selected"/>
+          <xul:label anonid="agenda-event-title" class="agenda-event-title" crop="end" xbl:inherits="selected"/>
+        </xul:vbox>
+      </xul:hbox>
+    </content>
+    <implementation>
+      <method name="setOccurrence">
+        <parameter name="aItem"/>
+        <parameter name="aLongFormat"/>
+        <body><![CDATA[
+            this.mOccurrence = aItem;
+            var titlebox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-title");
+            titlebox.value = aItem.title;
+
+            var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                                  .getService(Components.interfaces.calIDateTimeFormatter);
+            var duration = "";
+            var start =  this.mOccurrence[calGetStartDateProp(this.mOccurrence)]
+                            .getInTimezone(calendarDefaultTimezone());
+            if (aLongFormat) {
+                duration = dateFormatter.formatDateTime(start);
+            } else {
+                duration = dateFormatter.formatTime(start);
+            }
+            var durationbox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-start");
+            durationbox.value = duration;
+            this.refreshColor();
+        ]]></body>
+      </method>
+      <method name="refreshColor">
+        <body><![CDATA[
+            var calcolor = ((this.mOccurrence &&
+                             this.mOccurrence.calendar.getProperty("color")) ||
+                            "#a8c2e1");
+  
+            var imagebox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-calendar-image");
+            imagebox.setAttribute("style", "background-color: " + calcolor + ";");
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>

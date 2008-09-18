@@ -1,0 +1,644 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Calendar view code.
+ *
+ * The Initial Developer of the Original Code is
+ *  Oracle Corporation
+ * Portions created by the Initial Developer are Copyright (C) 2005
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Vladimir Vukicevic <vladimir@pobox.com>
+ *   Joey Minta <jminta@gmail.com>
+ *   Michiel van Leeuwen <mvl@exedo.nl>
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Markus Adrario <MarkusAdrario@web.de>
+ *   Simon Paquet <bugzilla@babylonsounds.com>
+ *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Christian Jansen <christian.jansen@sun.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/* Core */
+calendar-category-box:not([categories]) {
+  display: none;
+}
+
+/* Multiday view */
+calendar-event-column {
+  background-color: #FFFFFF;
+}
+
+calendar-event-column[orient="horizontal"] {
+    border-top: 1px solid #D2D2D2;
+}
+
+calendar-event-column[orient="vertical"] {
+    border-left: 1px solid #D2D2D2;
+}
+
+calendar-header-container {
+    background-color: #FFFFFF;
+    border-left: 1px solid #D2D2D2;
+}
+
+calendar-header-container[weekend="true"],
+.calendar-event-column-linebox[weekend="true"],
+.calendar-event-column-linebox[off-time="true"] {
+    background-color: #F0F0F0;
+}
+
+calendar-header-container[relation="today"],
+.calendar-event-column-linebox[relation="today"],
+calendar-day-label[relation="today"] {
+    background-color: #dfeaf4;
+}
+
+calendar-header-container[selected="true"],
+.calendar-event-column-linebox[selected="true"] {
+    background-color: #FFF0C0;
+}
+
+calendar-header-container[weekend="true"][relation="today"],
+.calendar-event-column-linebox[weekend="true"][relation="today"],
+.calendar-event-column-linebox[off-time="true"][relation="today"] {
+    background-color: #D4DEE8;
+}
+
+calendar-header-container[orient="horizontal"] {
+    border-bottom: 1px solid #D2D2D2;
+    min-width: 100px;
+}
+
+calendar-header-container[weekend="true"][selected="true"],
+.calendar-event-column-linebox[weekend="true"][selected="true"],
+.calendar-event-column-linebox[off-time="true"][selected="true"] {
+    background-color: #F2E4B6;
+}
+
+.calendar-event-column-linebox[orient="horizontal"] {
+  border-right: 1px solid #D2D2D2;
+}
+
+.calendar-event-column-linebox[orient="vertical"] {
+    border-bottom: 1px solid #D2D2D2;
+}
+
+/* Make sure we extend the bold line separating scrollable and non-scrollable
+   areas over the timebar. */
+.calendar-header-time-spacer[orient="horizontal"] {
+    border-bottom: 2px solid #D2D2D2;
+}
+
+.calendar-header-time-spacer[orient="vertical"] {
+    border-right: 2px solid #D2D2D2;
+}
+
+.calendar-header-day-box[orient="horizontal"] {
+    border-right: 1px solid #D2D2D2;
+    border-top: 1px solid #D2D2D2;
+    border-bottom: 2px solid #D2D2D2;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 120px;
+}
+
+/* Make sure the box for day-labels appears to end before the scrollbar. */
+.calendar-label-day-box[orient="horizontal"] {
+    border-right: 1px solid #D2D2D2;
+}
+.calendar-label-day-box[orient="vertical"] {
+    border-bottom: 1px solid #D2D2D2;
+}
+
+.calendar-header-day-box[orient="vertical"] {
+    border-top: 1px solid #D2D2D2;
+    border-right: 2px solid #D2D2D2;
+}
+
+/* Make sure to have a border between the edge of the views and the scrollbar. */
+.calendar-day-box {
+    border-right: 1px solid transparent;
+}
+
+.fgdragbox {
+    -moz-box-orient: inherit;
+    display: none;
+}
+
+.fgdragbox[dragging="true"] {
+    display: -moz-box;
+    background-color: grey;
+    border: 5px #ffffff;
+    opacity: 0.5;
+}
+
+.fgdragcontainer {
+    -moz-box-orient: inherit;
+    display: none;
+}
+
+.fgdragcontainer[dragging="true"] {
+    display: -moz-box;
+  /* This is a workaround for a stack bug and display: hidden in underlying
+   * elements -- the display: hidden bits get misrendered as being on top.
+   * Setting an opacity here forces a view to be created for this element, too.
+   */
+    opacity: 0.9999;
+}
+
+.fgdragbox-label {
+    font-weight: bold;
+    text-align: center;
+    overflow: hidden;
+}
+
+.calendar-event-box-container {
+    padding: 0;
+    overflow: hidden;
+    margin: 1px;
+}
+
+.calendar-event-box-container[categories] {
+    -moz-margin-end: 0px;
+}
+
+.calendar-event-details {
+    -moz-padding-start: 2px;
+    overflow: hidden;
+}
+
+.calendar-event-details-core {
+    width: 0px;
+    margin: 0px;
+    overflow: hidden;
+}
+
+.calendar-event-name-textbox {
+    background: transparent !important;
+    color: inherit;
+}
+
+calendar-event-box {
+    border-left: 1px solid transparent;
+    border-top: 1px solid transparent;
+    border-right: 1px solid transparent;
+    border-bottom: 1px solid #D0D0D0;
+}
+
+calendar-event-box[selected="true"] {
+    border-left: 1px solid transparent;
+    border-top: 1px solid white;
+    border-right: 1px solid transparent;
+    border-bottom: 1px solid #727272;
+}
+
+calendar-event-box[selected="true"] .calendar-event-selection {
+    color: #000000 !important;
+    background-color: #ffdb67 !important;
+}
+
+/* headers horizontal, times vertical */
+box[anonid="labelbox"][orient="horizontal"] {
+    height: 10px;
+}
+
+box[anonid="headerbox"][orient="horizontal"] {
+    min-height: 50px;
+}
+
+box[anonid="labelbox"][orient="horizontal"] > box[anonid="labeltimespacer"],
+box[anonid="headertimespacer"][orient="horizontal"],
+calendar-time-bar[orient="vertical"] {
+    width: 10ex; /* space for "11:00 AM" */
+}
+
+/* headers vertical, times horizonal */
+box[anonid="labelbox"][orient="vertical"] {
+    width: 30px;
+}
+
+box[anonid="headerbox"][orient="vertical"] {
+    width: 40px;
+}
+
+box[anonid="labelbox"][orient="vertical"] > box[anonid="labeltimespacer"],
+box[anonid="headertimespacer"][orient="vertical"],
+calendar-time-bar[orient="horizontal"] {
+    height: 40px;
+}
+
+.calendar-time-bar-label {
+    font-size: 1em;
+}
+
+.calendar-time-bar-box-odd,
+.calendar-time-bar-box-even {
+    color: #6A6969;
+    background-color: #FFFFFF;
+    text-align: right;
+    overflow: hidden;
+}
+
+.calendar-time-bar-box-odd[off-time="true"] ,
+.calendar-time-bar-box-even[off-time="true"] {
+    background-color: #F0F0F0;
+    border-right: 3px double #D2D2D2;
+}
+
+
+.calendar-time-bar-box-odd[orient="horizontal"],
+.calendar-time-bar-box-even[orient="horizontal"] {
+    border-right: 1px solid #D2D2D2;
+    border-top: 1px solid #D2D2D2;
+
+}
+
+.calendar-time-bar-box-odd[orient="vertical"],
+.calendar-time-bar-box-even[orient="vertical"] {
+    border-bottom: 1px  transparent !important;
+    border-right: 3px double #D2D2D2;
+}
+
+calendar-multiday-view {
+    background-color: #FFFFFF;
+    padding: 0px;
+}
+
+calendar-multiday-view[hidden="true"] {
+    display: none;
+}
+
+calendar-day-label {
+    color: #000000;
+    background-color: white;
+    background-image: url("chrome://calendar/skin/calendar-day-label-back.png");
+    border-left: 1px solid #D2D2D2;
+    border-top: 1px solid #D2D2D2;
+}
+
+calendar-day-label[selected="true"] {
+    background-color: #FFF0C0;
+}
+
+calendar-day-label[orient="vertical"] {
+    background-image: url("chrome://calendar/skin/calendar-day-label-back-vertical.png");
+    min-width: 90px;
+}
+
+.calendar-day-label-date,
+.calendar-day-label-name {
+    text-align: center;
+}
+
+.calendar-day-label-date[selected="true"],
+.calendar-day-label-name[selected="true"] {
+    font-weight: bold;
+}
+
+/* Month View */
+calendar-month-view {
+    background-color: #FFFFFF;
+    padding: 2px;
+}
+
+.calendar-month-view-grid-column {
+    min-width: 1px;
+    width: 1px;
+}
+
+.calendar-month-view-grid-row {
+    min-height: 1px;
+    height: 1px;
+    border-right: 1px solid #D2D2D2;
+}
+
+calendar-month-day-box {
+    padding-right: 1px !important;
+    padding-bottom: 1px !important;
+    border:none !important;
+    border-left: 1px solid #D2D2D2 !important;
+    border-bottom: 1px solid #D2D2D2 !important;
+}
+
+.calendar-month-day-box-items-box {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.calendar-month-day-box-current-month {
+    background-color: #FFFFFF;
+}
+.calendar-month-day-box-current-month .calendar-month-day-box-date-label {
+    background-color: #F7F7F7;
+}
+.calendar-month-day-box-day-off {
+    background-color: #EFEFEF;
+}
+.calendar-month-day-box-day-off .calendar-month-day-box-date-label {
+    background-color: #E7E7E7;
+}
+.calendar-month-day-box-other-month {
+    background-color: #DFDFDF;
+}
+.calendar-month-day-box-other-month .calendar-month-day-box-date-label {
+    background-color: #D7D7D7;
+}
+
+.calendar-month-day-box-current-month[relation="today"],
+.calendar-month-day-box-day-off[relation="today"],
+.calendar-month-day-box-other-month[relation="today"],
+.calendar-month-day-box-date-label[relation="today"] {
+    background-color: #dfeaf4;
+}
+
+.calendar-month-day-box-date-label[relation="today"] {
+    background-color: #d7e2ec;
+}
+
+.calendar-month-day-box-current-month[selected="true"],
+.calendar-month-day-box-day-off[selected="true"],
+.calendar-month-day-box-other-month[selected="true"] {
+    background-color: #ffe79c;
+}
+
+.calendar-month-day-box-date-label[selected="true"] {
+    background-color: #f7e093;
+    font-weight: bold;
+}
+
+.calendar-month-day-box-date-label {
+    color: #616163;
+    font-size: 0.9em;
+    text-align: right;
+    margin: 0px;
+    padding-top: 1px;
+    padding-right: 2px;
+    padding-bottom: 1px;
+}
+
+calendar-month-day-box-item {
+    margin: 1px;
+    padding: 0px 1px;
+}
+
+calendar-month-day-box-item[selected="true"] .calendar-event-selection {
+    color: #000000 !important;
+    background-color: #ffdb67 !important;
+}
+
+.calendar-month-day-box-item-label {
+    padding: 0px;
+    margin: 0px;
+}
+
+.calendar-month-day-box-item-label[time="true"] {
+    -moz-margin-end: 4px;
+}
+
+.calendar-month-day-box-item-image {
+    list-style-image: url("chrome://calendar/skin/day-box-item-image.png");
+    margin: 2px;
+    -moz-margin-end: 4px;
+    display: none;
+}
+
+.calendar-month-day-box-item-image[type="todo"] {
+    -moz-image-region: rect(0px 11px 11px 0px);
+    display: inline;
+}
+
+.calendar-month-day-box-item-image[type="todo"][progress="completed"] {
+    -moz-image-region: rect(0px 22px 11px 11px);
+}
+
+calendar-month-view-column-header {
+    color: black;
+    background-image: url("chrome://calendar/skin/calendar-day-label-back.png");
+    -moz-padding-end: 1px;
+    border-top: 1px solid #D2D2D2;
+    border-bottom: 1px solid #D2D2D2;
+    /* Allow overflow so long localized weekday names don't prevent narrow view */
+    overflow-x: hidden;
+}
+
+.headerbox-container {
+    border-right: 1px solid #D2D2D2;
+}
+
+.calendar-month-view-column-header-container {
+    border-left: 1px solid #D2D2D2;
+}
+
+.calendar-month-view-column-header-label {
+    /* Override label margins to use full box width, for long localized weekday
+     names or for narrow screens. */
+    -moz-margin-start: 0px !important;
+    -moz-margin-end: 0px !important;
+    padding: 0px 1px;
+}
+
+calendar-editable-item[selected="true"] .calendar-event-selection {
+    color: #000000 !important;
+    background-color: #ffdb67 !important;
+}
+
+box[dropbox="true"] {
+    background-color: blue !important;
+    height: 1.2em;
+    margin: 1px;
+    padding: 0px 1px;
+    opacity: 0.5;
+}
+
+.calendar-event-box-gradient {
+    list-style-image: url("chrome://calendar/skin/gradient-overlay.png");
+}
+
+.calendar-category-box-gradient {
+    list-style-image: url("chrome://calendar/skin/category-overlay.png");
+}
+
+calendar-event-gripbar {
+    -moz-box-align: center;
+    -moz-box-pack: center;
+    min-height: 4px;
+    min-width: 4px;
+    overflow: hidden;
+}
+
+calendar-event-gripbar[parentorient="vertical"][whichside="start"] {
+    cursor: n-resize;
+}
+
+calendar-event-gripbar[parentorient="vertical"][whichside="end"] {
+    cursor: s-resize;
+}
+
+calendar-event-gripbar[parentorient="horizontal"][whichside="start"] {
+    cursor: w-resize;
+}
+
+calendar-event-gripbar[parentorient="horizontal"][whichside="end"] {
+    cursor: e-resize;
+}
+
+calendar-event-box[orient="vertical"] .calendar-event-box-grippy-top {
+    list-style-image: url("chrome://calendar/skin/event-grippy-top.png");
+    visibility: hidden;
+}
+
+calendar-event-box[orient="vertical"] .calendar-event-box-grippy-bottom {
+    list-style-image: url("chrome://calendar/skin/event-grippy-bottom.png");
+    visibility: hidden;
+}
+
+calendar-event-box[orient="horizontal"]:hover .calendar-event-box-grippy-top,
+calendar-event-box[orient="horizontal"]:hover .calendar-event-box-grippy-bottom {
+    visibility: visible;
+}
+
+calendar-event-box[orient="vertical"]:hover .calendar-event-box-grippy-top,
+calendar-event-box[orient="vertical"]:hover .calendar-event-box-grippy-bottom {
+    visibility: visible;
+}
+
+calendar-event-box[orient="horizontal"] .calendar-event-box-grippy-top {
+    list-style-image: url("chrome://calendar/skin/event-grippy-left.png");
+    visibility: hidden;
+}
+
+calendar-event-box[orient="horizontal"] .calendar-event-box-grippy-bottom {
+    list-style-image: url("chrome://calendar/skin/event-grippy-right.png");
+    visibility: hidden;
+}
+
+calendar-event-box[readonly="true"]:hover .calendar-event-box-grippy-top,
+calendar-event-box[readonly="true"]:hover .calendar-event-box-grippy-bottom {
+    visibility: hidden;
+    cursor: auto;
+}
+
+/* Alarm image */
+.alarm-image {
+    list-style-image: url(chrome://calendar/skin/alarm.png);
+    margin: 2px 2px 0px;
+}
+
+.alarm-image[flashing="true"] {
+    list-style-image: url(chrome://calendar/skin/alarm-flashing.png);
+}
+
+.alarm-image[suppressed="true"] {
+    list-style-image: url(chrome://calendar/skin/alarm-suppressed.png);
+}
+
+/* Navigation controls for the views */
+calendar-navigation-buttons {
+    padding-top: 8px;
+    padding-bottom: 4px;
+    background-color: white;
+}
+
+.view-header {
+    font-weight: bold;
+    font-size: 14px;
+    color: #2E4E73;
+}
+
+.view-header[type="end"] {
+    text-align: right;
+}
+
+/* tooltips */
+vbox.tooltipBox {
+    max-width: 40em;
+}
+
+column.tooltipValueColumn {
+    max-width: 35em; /* tooltipBox max-width minus space for label */
+}
+
+label.tooltipHeaderLabel {
+    font-weight: bold;
+    text-align: right;
+    margin-top: 0;
+    margin-bottom: 0;
+    -moz-margin-start: 0;
+    -moz-margin-end: 1em; /* 1em space before value */
+}
+
+description.tooltipHeaderDescription {
+    font-weight: normal;
+    text-align: left;
+    margin: 0pt;
+}
+
+separator.tooltipBodySeparator {
+    height: 1ex; /* 1ex space above body text, below last header. */
+}
+
+description.tooltipBody {
+    font-weight: normal;
+    white-space: -moz-pre-wrap;
+    margin: 0pt;
+}
+
+#calendar-view-context-menu[type="event"] .todo-only,
+#calendar-view-context-menu[type="todo"] .event-only,
+#calendar-view-context-menu[type="mixed"] .event-only,
+#calendar-view-context-menu[type="mixed"] .todo-only,
+#calendar-item-context-menu[type="event"] .todo-only,
+#calendar-item-context-menu[type="todo"] .event-only,
+#calendar-item-context-menu[type="mixed"] .event-only,
+#calendar-item-context-menu[type="mixed"] .todo-only {
+    display: none;
+}
+
+calendar-event-box,
+calendar-editable-item,
+calendar-month-day-box-item {
+    opacity: 0.99;
+}
+
+calendar-event-box[invitation-status="NEEDS-ACTION"],
+calendar-editable-item[invitation-status="NEEDS-ACTION"],
+calendar-month-day-box-item[invitation-status="NEEDS-ACTION"] {
+    border: 2px dotted black;
+    opacity: 0.6;
+}
+
+calendar-event-box[invitation-status="TENTATIVE"],
+calendar-editable-item[invitation-status="TENTATIVE"],
+calendar-month-day-box-item[invitation-status="TENTATIVE"] {
+    opacity: 0.6;
+}
+
+calendar-event-box[invitation-status="DECLINED"],
+calendar-editable-item[invitation-status="DECLINED"],
+calendar-month-day-box-item[invitation-status="DECLINED"] {
+    opacity: 0.3;
+}

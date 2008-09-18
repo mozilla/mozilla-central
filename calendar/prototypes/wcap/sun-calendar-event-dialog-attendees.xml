@@ -1,0 +1,1803 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2006
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Michael Buettner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Daniel Boelzle <daniel.boelzle@sun.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE dialog [
+  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
+  <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" > %dtd3;
+  <!ENTITY % calendar-event-dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd"> %calendar-event-dialogDTD;
+]>
+
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <binding id="attendees-list">
+    <content>
+      <xul:listbox anonid="listbox"
+                   seltype="multiple"
+                   class="listbox-noborder"
+                   rows="-1"
+                   flex="1">
+        <xul:listcols>
+          <xul:listcol/>
+          <xul:listcol flex="1"/>
+        </xul:listcols>
+        <xul:listitem anonid="item" class="addressingWidgetItem" allowevents="true">
+          <xul:listcell class="addressingWidgetCell" align="center" pack="center">
+            <xul:image id="attendeeCol1#1" anonid="icon"/>
+          </xul:listcell>
+          <xul:listcell class="addressingWidgetCell">
+            <!-- Where attributes are repeated, this allows compatibility with
+                 the MOZILLA_1_8_BRANCH -->
+            <xul:textbox id="attendeeCol2#1"
+                         anonid="input"
+                         class="plain textbox-addressingWidget uri-element"
+                         type="autocomplete"
+                         flex="1"
+                         searchSessions="addrbook"
+                         timeout="300"
+                         maxrows="4"
+                         autofill="true" autoFill="true"
+                         autofillaftermatch="true" autoFillAfterMatch="true"
+                         forcecomplete="true" forceComplete="true"
+                         minresultsforpopup="1" minResultsForPopup="true"
+                         ignoreblurwhilesearching="true" ignoreBlurWhileSearching="true"
+                         oninput="this.setAttribute('dirty', 'true');">
+              <xul:image class="person-icon" onclick="this.parentNode.select();"/>
+            </xul:textbox>
+          </xul:listcell>
+        </xul:listitem>
+      </xul:listbox>
+    </content>
+
+    <implementation>
+      <field name="mMaxAttendees">0</field>
+      <field name="mContentHeight">0</field>
+      <field name="mRowHeight">0</field>
+      <field name="mNumColumns">0</field>
+      <field name="mIOService">null</field>
+      <field name="mDirectoryServerObserver">null</field>
+      <field name="mHeaderParser">null</field>
+      <field name="mPrefs">null</field>
+      <field name="mIsOffline">0</field>
+      <field name="mLDAPSession">null</field>
+      <field name="mSessionAdded">0</field>
+      <field name="mIsReadOnly">false</field>
+      <field name="mIsInvitation">false</field>
+      <field name="mPopupOpen">false</field>
+
+      <constructor><![CDATA[
+        this.mMaxAttendees = 0;
+
+        var self = this;
+        var load = function loadHandler() {
+            self.onLoad();
+        };
+        window.addEventListener("load", load, true);
+        var unload = function attendeeListBinding_unloadHandler() {
+            self.onUnload();
+        };
+        window.addEventListener("unload", unload, true);
+
+        var observer = {
+            observe: function DSO_observe(subject,
+                              topic,
+                              value) {
+                // catch the exception and ignore it, so that if LDAP setup
+                // fails, the entire window doesn't get horked
+                try {
+                    self.setupAutocomplete();
+                }
+                catch (ex) {
+                }
+            }
+        }
+
+        this.mDirectoryServerObserver = observer;
+
+        var component = Components.classes["@mozilla.org/messenger/headerparser;1"];
+        if (component) {
+            this.mHeaderParser = component.getService(Components.interfaces.nsIMsgHeaderParser);
+        }
+
+        // First get the preferences service
+        try {
+            this.mPrefs = Components.classes["@mozilla.org/preferences-service;1"]
+                                    .getService(Components.interfaces.nsIPrefService)
+                                    .getBranch(null);
+            this.mPrefs = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+        } catch (ex) {
+        }
+
+        this.mIOService = Components.classes["@mozilla.org/network/io-service;1"]
+                                    .getService(Components.interfaces.nsIIOService);
+        this.mIsOffline = this.mIOService.offline;
+      ]]></constructor>
+
+      <method name="onLoad">
+        <body><![CDATA[
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          var template =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "item");
+
+          // we need to enforce several layout constraints which can't be modelled
+          // with plain xul and css, at least as far as i know.
+          const kStylesheet = "chrome://calendar/content/sun-calendar-event-dialog.css";
+          for each (var stylesheet in document.styleSheets) {
+              if (stylesheet.href == kStylesheet) {
+                  // the height of the text blocks contained in the grid items needs
+                  // to have the same height as the items of the attendee-list.
+                  var height = template.boxObject.height - 1;
+                  stylesheet.insertRule(".freebusy-grid { min-height: " + height + "px; }", 0);
+                  break;
+              }
+          }
+
+          this.onInitialize();
+
+          // this trigger the continous update chain, which
+          // effectively calls this.onModify() on predefined
+          // time intervals [each second].
+          var self = this;
+          var callback = function() {
+              setTimeout(callback, 1000);
+              self.onModify();
+          }
+          callback();
+        ]]></body>
+      </method>
+
+      <method name="onInitialize">
+        <body><![CDATA[
+          var args = window.arguments[0];
+          var organizer = args.organizer;
+          var attendees = args.attendees;
+          var calendar = args.calendar;
+
+          this.mIsReadOnly = calendar.readOnly;
+
+          // assume we're the organizer [in case that the calendar
+          // does not support the concept of identities].
+          var organizerID = ((organizer && organizer.id)
+                             ? organizer.id
+                             : calendar.getProperty("organizerId"));
+
+          this.mIsInvitation = (calInstanceOf(calendar, Components.interfaces.calISchedulingSupport) && 
+                                calendar.isInvitation(args.item));
+
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          var template =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "item");
+          template.focus();
+
+          if (this.mIsReadOnly || this.mIsInvitation) {
+              listbox.setAttribute("disabled", "true");
+          }
+
+          // TODO: the organizer should show up in the attendee list, but this information
+          // should be based on the organizer contained in the appropriate field of calIItemBase.
+          // This is currently not supported, since we're still missing calendar identities.
+          if (organizerID && organizerID != "") {
+              if (!organizer) {
+                  organizer = this.createAttendee();
+                  organizer.id = organizerID;
+                  organizer.role = "CHAIR";
+                  organizer.participationStatus = "ACCEPTED";
+              } else {
+                  if (!organizer.id) {
+                      organizer.id = organizerID;
+                  }
+                  if (!organizer.role) {
+                      organizer.role = "CHAIR";
+                  }
+                  if (!organizer.participationStatus) {
+                      organizer.participationStatus = "ACCEPTED";
+                  }
+              }
+              if (!organizer.commonName || !organizer.commonName.length) {
+                  organizer.commonName = calendar.getProperty("organizerCN");
+              }
+              organizer.isOrganizer = true;
+              this.appendAttendee(organizer, listbox, template, true);
+          }
+
+          var numRowsAdded = 0;
+          if (attendees.length > 0) {
+              for each (var attendee in attendees) {
+                  this.appendAttendee(attendee, listbox, template, false);
+                  numRowsAdded++;
+              }
+          }
+          if (numRowsAdded == 0) {
+              this.appendAttendee(null, listbox, template, false);
+          }
+
+          // detach the template item from the listbox, but hold the reference.
+          // until this function returns we add at least a single copy of this template back again.
+          listbox.removeChild(template);
+
+          this.addDirectoryServerObserver();
+
+          this.setFocus(this.mMaxAttendees);
+        ]]></body>
+      </method>
+
+      <method name="onUnload">
+        <body><![CDATA[
+          this.removeDirectoryServerObserver();
+          this.releaseAutoCompleteState();
+          this.mIOService = null;
+          this.mLDAPSession = null;
+        ]]></body>
+      </method>
+
+      <!-- appends a new row using an existing attendee structure -->
+      <method name="appendAttendee">
+        <parameter name="aAttendee"/>
+        <parameter name="aParentNode"/>
+        <parameter name="aTemplateNode"/>
+        <parameter name="aDisableIfOrganizer"/>
+        <body><![CDATA[
+          // create a new listbox item and append it to our parent control.
+          var newNode = aTemplateNode.cloneNode(true);
+
+          var input =
+              document.getAnonymousElementByAttribute(
+                  newNode, "anonid", "input");
+          var icon =
+              document.getAnonymousElementByAttribute(
+                  newNode, "anonid", "icon");
+
+          // We always clone the first row. The problem is that the first row
+          // could be focused. When we clone that row, we end up with a cloned
+          // XUL textbox that has a focused attribute set.  Therefore we think
+          // we're focused and don't properly refocus.  The best solution to this
+          // would be to clone a template row that didn't really have any presentation,
+          // rather than using the real visible first row of the listbox.
+          // For now we'll just put in a hack that ensures the focused attribute
+          // is never copied when the node is cloned.
+          if (input.getAttribute('focused') != '') {
+              input.removeAttribute('focused');
+          }
+
+          aParentNode.appendChild(newNode);
+
+          // the template could have its fields disabled,
+          // that's why we need to reset their status.
+          input.removeAttribute("disabled");
+          icon.removeAttribute("disabled");
+
+          if (this.mIsReadOnly || this.mIsInvitation) {
+              input.setAttribute("disabled", "true");
+              icon.setAttribute("disabled", "true");
+          }
+
+          // disable the input-field [name <email>] if this attendee
+          // appears to be the organizer.
+          if (aDisableIfOrganizer && aAttendee && aAttendee.isOrganizer) {
+              input.setAttribute("disabled", "true");
+          }
+
+          this.mMaxAttendees++;
+          var rowNumber = this.mMaxAttendees;
+          if (rowNumber >= 0) {
+              icon.setAttribute("id", "attendeeCol1#" + rowNumber);
+              input.setAttribute("id", "attendeeCol2#" + rowNumber);
+          }
+
+          if (!aAttendee) {
+              aAttendee = this.createAttendee();
+          }
+
+          // construct the display string from common name and/or email address.
+          var inputValue = aAttendee.commonName;
+          var regexp = new RegExp("^mailto:(.*)", "i");
+          if (inputValue && this.mHeaderParser) {
+              var email = aAttendee.id;
+              if (email && email.length) {
+                  if (regexp.test(email)) {
+                      inputValue += ' <' + RegExp.$1 + '>';
+                  } else {
+                      inputValue += ' <' + email + '>';
+                  }
+              }
+          } else {
+              var email = aAttendee.id;
+              if (email && email.length) {
+                  if (regexp.test(email)) {
+                      inputValue = RegExp.$1;
+                  } else {
+                      inputValue = email;
+                  }
+              }
+          }
+
+          // remove leading spaces
+          while (inputValue && inputValue[0] == " " ) {
+              inputValue = inputValue.substring(1, inputValue.length);
+          }
+
+          input.setAttribute("value", inputValue);
+          input.value = inputValue;
+          input.attendee = aAttendee;
+          input.setAttribute("dirty", "true");
+
+          if (aAttendee && aAttendee.isOrganizer) {
+              icon.setAttribute("class", "status-icon");
+              icon.setAttribute("status", aAttendee.participationStatus);
+              return true;
+          }
+
+          icon.setAttribute("class", "role-icon");
+          icon.setAttribute("role", aAttendee.role);
+
+          return true;
+        ]]></body>
+      </method>
+
+      <method name="appendNewRow">
+        <parameter name="aSetFocus"/>
+        <body><![CDATA[
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          var listitem1 = this.getListItem(1);
+
+          if (listbox && listitem1) {
+              var newAttendee = this.createAttendee();
+              var nextDummy = this.getNextDummyRow();
+              var newNode = listitem1.cloneNode(true);
+
+              var input =
+                  document.getAnonymousElementByAttribute(
+                      newNode, "anonid", "input");
+              var icon =
+                  document.getAnonymousElementByAttribute(
+                      newNode, "anonid", "icon");
+
+              // the template could have its fields disabled,
+              // that's why we need to reset their status.
+              input.removeAttribute("disabled");
+              icon.removeAttribute("disabled");
+
+              if (this.mIsReadOnly || this.mIsInvitation) {
+                  input.setAttribute("disabled", "true");
+                  icon.setAttribute("disabled", "true");
+              }
+
+              this.mMaxAttendees++;
+              var rowNumber = this.mMaxAttendees;
+              if (rowNumber >= 0) {
+                  icon.setAttribute("id", "attendeeCol1#" + rowNumber);
+                  input.setAttribute("id", "attendeeCol2#" + rowNumber);
+              }
+
+              input.value = null;
+              input.removeAttribute("value");
+              input.attendee = newAttendee;
+
+              // this copies the autocomplete sessions list from first attendee
+              if (this.mLDAPSession && this.mSessionAdded) {
+                  input.syncSessions(document.getElementById('attendeeCol2#1'));
+              }
+
+              // set role and participation status
+              //status.setAttribute("status", newAttendee.participationStatus);
+              //role.setAttribute("role", newAttendee.role);
+              icon.setAttribute("class", "role-icon");
+              icon.setAttribute("role", "REQ-PARTICIPANT");
+
+              // We always clone the first row.  The problem is that the first row
+              // could be focused.  When we clone that row, we end up with a cloned
+              // XUL textbox that has a focused attribute set.  Therefore we think
+              // we're focused and don't properly refocus.  The best solution to this
+              // would be to clone a template row that didn't really have any presentation,
+              // rather than using the real visible first row of the listbox.
+              // For now we'll just put in a hack that ensures the focused attribute
+              // is never copied when the node is cloned.
+              if (input.getAttribute('focused') != '') {
+                  input.removeAttribute('focused');
+              }
+
+              if (nextDummy) {
+                  listbox.replaceChild(newNode, nextDummy);
+              } else {
+                  listbox.appendChild(newNode);
+              }
+
+              // focus on new input widget
+              if (aSetFocus) {
+                  this.setFocus(this.mMaxAttendees);
+              }
+
+              this.onModify();
+          }
+        ]]></body>
+      </method>
+
+      <property name="attendees">
+        <getter><![CDATA[
+          var attendees = [];
+
+          var inputField;
+          for (var i = 1; inputField = this.getInputElement(i); i++) {
+              var fieldValue = inputField.value;
+              if (fieldValue != "") {
+                  // the inputfield already has a reference to the attendee
+                  // object, we just need to fill in the name.
+                  var attendee = inputField.attendee.clone();
+
+                  attendee.role = this.getRoleElement(i).getAttribute("role");
+                  //attendee.participationStatus = this.getStatusElement(i).getAttribute("status");
+
+                  // break the list of potentially many attendees back into individual names
+                  var emailAddresses = {};
+                  var names = {};
+                  var fullNames = {};
+
+                  if (this.mHeaderParser) {
+                      this.mHeaderParser.parseHeadersWithArray(fieldValue,
+                                                               emailAddresses,
+                                                               names,
+                                                               fullNames);
+                  } else {
+                      emailAddresses.value = [ fieldValue ];
+                      names.value = [];
+                  }
+
+                  if (emailAddresses.value.length > 0) {
+                      // If the new address has no 'mailto'-prefix but seems
+                      // to look like an email-address, we prepend the prefix.
+                      // This also allows for non-email-addresses.
+                      var email = emailAddresses.value[0];
+                      if (email.toLowerCase().indexOf("mailto:") != 0) {
+                          if (email.indexOf("@") >= 0) {
+                              email = "MAILTO:" + email;
+                          }
+                      }
+                      attendee.id = email;
+                  }
+                  if (names.value.length > 0) {
+                      attendee.commonName = names.value[0];
+                  }
+
+                  // append the attendee object to the list of attendees.
+                  if (!attendee.isOrganizer || i > 1) {
+                      attendees.push(attendee);
+                  }
+              }
+          }
+
+          return attendees;
+        ]]></getter>
+      </property>
+
+      <property name="organizer">
+        <getter><![CDATA[
+          var inputField;
+          for (var i = 1; inputField = this.getInputElement(i); i++) {
+              var fieldValue = inputField.value;
+              if (fieldValue != "") {
+                  // The inputfield already has a reference to the attendee
+                  // object, we just need to fill in the name.
+                  var attendee = inputField.attendee.clone();
+
+                  //attendee.role = this.getRoleElement(i).getAttribute("role");
+                  attendee.participationStatus = this.getStatusElement(i).getAttribute("status");
+
+                  // break the list of potentially many attendees back into individual names
+                  var emailAddresses = {};
+                  var names = {};
+                  var fullNames = {};
+
+                  if (this.mHeaderParser) {
+                      this.mHeaderParser.parseHeadersWithArray(fieldValue,
+                                                               emailAddresses,
+                                                               names,
+                                                               fullNames);
+                  } else {
+                      emailAddresses.value = [ fieldValue ];
+                      names.value = [];
+                  }
+
+                  if (emailAddresses.value.length > 0) {
+                      // if the new address has no 'mailto'-prefix but seems
+                      // to look like an email-address, we prepend the prefix.
+                      // this also allows for non-email-addresses.
+                      var email = emailAddresses.value[0];
+                      if (email.toLowerCase().indexOf("mailto:") != 0) {
+                          if (email.indexOf("@") >= 0) {
+                              email = "MAILTO:" + email;
+                          }
+                      }
+                      attendee.id = email;
+                  }
+                  if (names.value.length > 0) {
+                      attendee.commonName = names.value[0];
+                  }
+
+                  if (attendee.isOrganizer) {
+                      return attendee;
+                  }
+              }
+          }
+
+          return null;
+        ]]></getter>
+      </property>
+
+      <method name="onModify">
+        <body><![CDATA[
+          var list = [];
+          for (var i = 1; i <= this.mMaxAttendees; i++) {
+              // retrieve the string from the appropriate row
+              var input = this.getInputElement(i);
+              var fieldValue = input.value;
+
+              // parse the string to break this down to individual names and addresses
+              var email = "";
+              var emailAddresses = {};
+              var names = {};
+              var fullNames = {};
+
+              if (this.mHeaderParser) {
+                  this.mHeaderParser.parseHeadersWithArray(
+                      fieldValue,
+                      emailAddresses,
+                      names,
+                      fullNames);
+              } else {
+                  emailAddresses.value = [ fieldValue ];
+                  names.value = [];
+              }
+
+              if (emailAddresses.value.length > 0) {
+                  // if the new address has no 'mailto'-prefix but seems
+                  // to look like an email-address, we prepend the prefix.
+                  // this also allows for non-email-addresses.
+                  email = emailAddresses.value[0];
+                  if (email.toLowerCase().indexOf("mailto:") != 0) {
+                      if (email.indexOf("@") >= 0) {
+                          email = "MAILTO:" + email;
+                      }
+                  }
+              }
+
+              var isdirty = false;
+              if (input.hasAttribute("dirty")) {
+                  isdirty = input.getAttribute("dirty");
+              }
+              input.removeAttribute("dirty");
+              var entry = {
+                  dirty: isdirty,
+                  calid: email
+              };
+              list.push(entry);
+          }
+
+          var event = document.createEvent('Events');
+          event.initEvent('modify', true, false);
+          event.details = list;
+          this.dispatchEvent(event);
+        ]]></body>
+      </method>
+
+      <property name="documentSize">
+        <getter><![CDATA[
+            return this.mRowHeight * this.mMaxAttendees;
+        ]]></getter>
+      </property>
+
+      <method name="fitDummyRows">
+        <body><![CDATA[
+          var self = this;
+          var func = function attendees_list_fitDummyRows() {
+              self.calcContentHeight();
+              self.createOrRemoveDummyRows();
+          }
+          setTimeout(func, 0);
+        ]]></body>
+      </method>
+
+      <method name="calcContentHeight">
+        <body><![CDATA[
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          var items = listbox.getElementsByTagNameNS('*', 'listitem');
+          this.mContentHeight = 0;
+          if (items.length > 0) {
+              var i = 0;
+              do {
+                  this.mRowHeight = items[i].boxObject.height;
+                  ++i;
+              } while (i < items.length && !this.mRowHeight);
+              this.mContentHeight = this.mRowHeight * items.length;
+          }
+        ]]></body>
+      </method>
+
+      <method name="createOrRemoveDummyRows">
+        <body><![CDATA[
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          var listboxHeight = listbox.boxObject.height;
+
+          // remove rows to remove scrollbar
+          var kids = listbox.childNodes;
+          for (var i = kids.length - 1; this.mContentHeight > listboxHeight && i >= 0; --i) {
+              if (kids[i].hasAttribute("_isDummyRow")) {
+                  this.mContentHeight -= this.mRowHeight;
+                  listbox.removeChild(kids[i]);
+              }
+          }
+
+          // add rows to fill space
+          if (this.mRowHeight) {
+              while (this.mContentHeight + this.mRowHeight < listboxHeight) {
+                  this.createDummyItem(listbox);
+                  this.mContentHeight += this.mRowHeight;
+              }
+          }
+        ]]></body>
+      </method>
+
+      <method name="createDummyCell">
+        <parameter name="aParent"/>
+        <body><![CDATA[
+          var cell = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "listcell");
+          cell.setAttribute("class", "addressingWidgetCell dummy-row-cell");
+          if (aParent) {
+              aParent.appendChild(cell);
+          }
+          return cell;
+        ]]></body>
+      </method>
+
+      <method name="createDummyItem">
+        <parameter name="aParent"/>
+        <body><![CDATA[
+          var titem = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "listitem");
+          titem.setAttribute("_isDummyRow", "true");
+          titem.setAttribute("class", "dummy-row");
+          for (var i = this.numColumns; i > 0; i--) {
+              this.createDummyCell(titem);
+          }
+          if (aParent) {
+              aParent.appendChild(titem);
+          }
+          return titem;
+        ]]></body>
+      </method>
+
+      <!-- gets the next row from the top down -->
+      <method name="getNextDummyRow">
+        <body><![CDATA[
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          var kids = listbox.childNodes;
+          for (var i = 0; i < kids.length; ++i) {
+              if (kids[i].hasAttribute("_isDummyRow")) {
+                  return kids[i];
+              }
+          }
+          return null;
+        ]]></body>
+      </method>
+
+      <!-- This method returns the <xul:listitem> at row numer 'aRow' -->
+      <method name="getListItem">
+        <parameter name="aRow"/>
+        <body><![CDATA[
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          if (listbox && aRow > 0) {
+              var listitems = listbox.getElementsByTagNameNS('*', 'listitem');
+              if (listitems && listitems.length >= aRow) {
+                  return listitems[aRow - 1];
+              }
+          }
+          return 0;
+        ]]></body>
+      </method>
+
+      <method name="getRowByInputElement">
+        <parameter name="aElement"/>
+        <body><![CDATA[
+          var row = 0;
+          while (aElement && aElement.localName != "listitem") {
+              aElement = aElement.parentNode;
+          }
+          if (aElement) {
+              while (aElement) {
+                  if (aElement.localName == "listitem") {
+                      ++row;
+                  }
+                  aElement = aElement.previousSibling;
+              }
+          }
+          return row;
+        ]]></body>
+      </method>
+
+      <!-- This method returns the <xul:textbox> that contains
+           the name of the attendee at row number 'aRow' -->
+      <method name="getInputElement">
+        <parameter name="aRow"/>
+        <body><![CDATA[
+          return document.getElementById("attendeeCol2#" + aRow);
+        ]]></body>
+      </method>
+
+      <method name="getRoleElement">
+        <parameter name="aRow"/>
+        <body><![CDATA[
+          return document.getElementById("attendeeCol1#" + aRow);
+        ]]></body>
+      </method>
+
+      <method name="getStatusElement">
+        <parameter name="aRow"/>
+        <body><![CDATA[
+          return document.getElementById("attendeeCol1#" + aRow);
+        ]]></body>
+      </method>
+
+      <method name="setFocus">
+        <parameter name="aRow"/>
+        <body><![CDATA[
+          var self = this;
+          var set_focus = function() {
+              // do we need to scroll in order to see the selected row?
+              var node = self.getListItem(aRow);
+              var listbox =
+                  document.getAnonymousElementByAttribute(
+                      self, "anonid", "listbox");
+              var firstVisibleRow = listbox.getIndexOfFirstVisibleRow();
+              var numOfVisibleRows = listbox.getNumberOfVisibleRows();
+              if (aRow <= firstVisibleRow) {
+                  listbox.scrollToIndex(aRow - 1);
+              } else {
+                  if (aRow - 1 >= (firstVisibleRow + numOfVisibleRows)) {
+                      listbox.scrollToIndex(aRow - numOfVisibleRows);
+                  }
+              }
+              var input =
+                  document.getAnonymousElementByAttribute(
+                      node, "anonid", "input");
+              input.focus();
+          }
+          setTimeout(set_focus, 0);
+        ]]></body>
+      </method>
+
+      <property name="firstVisibleRow">
+        <getter><![CDATA[
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          return listbox.getIndexOfFirstVisibleRow();
+        ]]></getter>
+      </property>
+
+      <method name="createAttendee">
+        <body><![CDATA[
+          var attendee = createAttendee();
+          attendee.id = "";
+          attendee.rsvp = true;
+          attendee.role = "REQ-PARTICIPANT";
+          attendee.participationStatus = "NEEDS-ACTION";
+          return attendee;
+        ]]></body>
+      </method>
+
+      <property name="numColumns">
+        <getter><![CDATA[
+          if (!this.mNumColumns) {
+              var listbox =
+                  document.getAnonymousElementByAttribute(
+                      this, "anonid", "listbox");
+              var listCols = listbox.getElementsByTagNameNS('*', 'listcol');
+              this.mNumColumns = listCols.length;
+              if (!this.mNumColumns) {
+                  this.mNumColumns = 1;
+              }
+          }
+          return this.mNumColumns;
+        ]]></getter>
+      </property>
+
+      <property name="ratio">
+        <setter><![CDATA[
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          var rowcount = listbox.getRowCount();
+          listbox.scrollToIndex(Math.floor(rowcount * val));
+          return val;
+        ]]></setter>
+      </property>
+
+      <method name="arrowHit">
+        <parameter name="aElement"/>
+        <parameter name="aDirection"/>
+        <body><![CDATA[
+          var row = this.getRowByInputElement(aElement) + aDirection;
+          if (row) {
+              if (row > this.mMaxAttendees) {
+                  this.appendNewRow(true);
+              } else {
+                  var input = this.getInputElement(row);
+                  if (input.hasAttribute("disabled")) {
+                      return;
+                  }
+                  this.setFocus(row);
+              }
+              var event = document.createEvent('Events');
+              event.initEvent('rowchange', true, false);
+              event.details = row;
+              this.dispatchEvent(event);
+          }
+        ]]></body>
+      </method>
+
+      <method name="deleteHit">
+        <parameter name="aElement"/>
+        <body><![CDATA[
+          // don't delete the row if it's the last one remaining
+          if (this.mMaxAttendees <= 1) {
+              return;
+          }
+
+          var row = this.getRowByInputElement(aElement);
+          this.deleteRow(row);
+          if (row > 1) {
+              row = row - 1;
+          }
+          this.setFocus(row);
+          this.onModify();
+
+          var event = document.createEvent('Events');
+          event.initEvent('rowchange', true, false);
+          event.details = row;
+          this.dispatchEvent(event);
+        ]]></body>
+      </method>
+
+      <method name="deleteRow">
+        <parameter name="aRow"/>
+        <body><![CDATA[
+          // reset id's in order to not break the sequence
+          var maxAttendees = this.mMaxAttendees;
+          this.removeRow(aRow);
+          var numberOfCols = this.numColumns;
+          for (var row = aRow + 1; row <= maxAttendees; row++) {
+              for (var col = 1; col <= numberOfCols; col++) {
+                  var colID = "attendeeCol" + col + "#" + row;
+                  var elem = document.getElementById(colID);
+                  if (elem) {
+                      elem.setAttribute("id", "attendeeCol" + col + "#" + (row - 1));
+                  }
+              }
+          }
+        ]]></body>
+      </method>
+
+      <method name="removeRow">
+        <parameter name="aRow"/>
+        <body><![CDATA[
+          var listbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "listbox");
+          var nodeToRemove = this.getListItem(aRow);
+          nodeToRemove.parentNode.removeChild(nodeToRemove);
+          this.fitDummyRows();
+          this.mMaxAttendees--;
+        ]]></body>
+      </method>
+
+      <!-- ############################################################################# -->
+      <!-- LDAP support                                                                  -->
+      <!-- ############################################################################# -->
+
+      <method name="setupAutocomplete">
+        <body><![CDATA[
+          var autocompleteLdap = false;
+          var autocompleteDirectory = null;
+          var prevAutocompleteDirectory = this.mCurrentAutocompleteDirectory;
+          var i;
+
+          try {
+              autocompleteLdap = this.mPrefs.getBoolPref("ldap_2.autoComplete.useDirectory");
+          } catch (ex) {
+              return;
+          }
+          if (autocompleteLdap) {
+              autocompleteDirectory = this.mPrefs.getCharPref(
+                  "ldap_2.autoComplete.directoryServer");
+          }
+
+          // Use a temporary to do the setup so that we don't overwrite the
+          // global, then have some problem and throw an exception, and leave the
+          // global with a partially setup session.  We'll assign the temp
+          // into the global after we're done setting up the session.
+          var LDAPSession;
+          if (this.mLDAPSession) {
+              LDAPSession = this.mLDAPSession;
+          } else {
+              LDAPSession = Components.classes[
+                  "@mozilla.org/autocompleteSession;1?type=ldap"].createInstance()
+                  .QueryInterface(
+                      Components.interfaces.nsILDAPAutoCompleteSession);
+          }
+
+          if (autocompleteDirectory && !this.mIsOffline) {
+              // Add observer on the directory server we are autocompleting against
+              // only if current server is different from previous.
+              // Remove observer if current server is different from previous
+              this.mCurrentAutocompleteDirectory = autocompleteDirectory;
+              if (prevAutocompleteDirectory) {
+                  if (prevAutocompleteDirectory != this.mCurrentAutocompleteDirectory) {
+                      this.removeDirectorySettingsObserver(prevAutocompleteDirectory);
+                      this.addDirectorySettingsObserver();
+                  }
+              } else {
+                  this.addDirectorySettingsObserver();
+              }
+
+              // Fill in the session params if there is a session
+              if (LDAPSession) {
+                  var serverURL = Components.classes["@mozilla.org/network/ldap-url;1"]
+                                  .createInstance(Components.interfaces.nsILDAPURL);
+                  try {
+                      serverURL.spec = this.mPrefs.getComplexValue(
+                          autocompleteDirectory + ".uri",
+                          Components.interfaces.nsISupportsString).data;
+                  } catch (ex) {
+                      dump("ERROR: " + ex + "\n");
+                  }
+                  LDAPSession.serverURL = serverURL;
+
+                  // Get the login to authenticate as, if there is one
+                  var login = "";
+                  try {
+                      login = this.mPrefs.getComplexValue(
+                          autocompleteDirectory + ".auth.dn",
+                          Components.interfaces.nsISupportsString).data;
+                  } catch (ex) {
+                      // If we don't have this pref, no big deal
+                  }
+
+                  // Set the LDAP protocol version correctly
+                  var protocolVersion;
+                  try {
+                      protocolVersion = this.mPrefs.getCharPref(
+                          autocompleteDirectory + ".protocolVersion");
+                  } catch (ex) {
+                      // If we don't have this pref, no big deal
+                  }
+                  if (protocolVersion == "2") {
+                      LDAPSession.version =
+                          Components.interfaces.nsILDAPConnection.VERSION2;
+                  }
+
+                  // Find out if we need to authenticate, and if so, tell the LDAP
+                  // autocomplete session how to prompt for a password.  This window
+                  // is being used to parent the authprompter.
+                  LDAPSession.login = login;
+                  if (login != "") {
+                      var windowWatcherSvc = Components.classes[
+                          "@mozilla.org/embedcomp/window-watcher;1"]
+                          .getService(Components.interfaces.nsIWindowWatcher);
+                      var domWin =
+                          window.QueryInterface(Components.interfaces.nsIDOMWindow);
+                      var authPrompter =
+                          windowWatcherSvc.getNewAuthPrompter(domWin);
+                      LDAPSession.authPrompter = authPrompter;
+                  }
+
+                  // Don't search on non-CJK strings shorter than this
+                  try {
+                      LDAPSession.minStringLength = this.mPrefs.getIntPref(
+                          autocompleteDirectory + ".autoComplete.minStringLength");
+                  } catch (ex) {
+                      // if this pref isn't there, no big deal.  Just let
+                      // nsLDAPAutoCompleteSession use its default.
+                  }
+
+                  // don't search on CJK strings shorter than this
+                  try {
+                      LDAPSession.cjkMinStringLength = this.mPrefs.getIntPref(
+                          autocompleteDirectory + ".autoComplete.cjkMinStringLength");
+                  } catch (ex) {
+                      // If this pref isn't there, no big deal.  Just let
+                      // nsLDAPAutoCompleteSession use its default.
+                  }
+
+                  // We don't try/catch here, because if this fails, we're outta luck
+                  var ldapFormatter = Components.classes[
+                      "@mozilla.org/ldap-autocomplete-formatter;1?type=addrbook"]
+                      .createInstance().QueryInterface(
+                          Components.interfaces.nsIAbLDAPAutoCompFormatter);
+
+                  // Override autocomplete name format?
+                  try {
+                      ldapFormatter.nameFormat =
+                          this.mPrefs.getComplexValue(autocompleteDirectory +
+                              ".autoComplete.nameFormat",
+                              Components.interfaces.nsISupportsString).data;
+                  } catch (ex) {
+                      // If this pref isn't there, no big deal.  Just let
+                      // nsAbLDAPAutoCompFormatter use its default.
+                  }
+
+                  // override autocomplete mail address format?
+                  try {
+                      ldapFormatter.addressFormat =
+                          this.mPrefs.getComplexValue(autocompleteDirectory +
+                              ".autoComplete.addressFormat",
+                              Components.interfaces.nsISupportsString).data;
+                  } catch (ex) {
+                      // If this pref isn't there, no big deal.  Just let
+                      // nsAbLDAPAutoCompFormatter use its default.
+                  }
+
+                  try {
+                      // Figure out what goes in the comment column, if anything
+                      //
+                      // 0 = none
+                      // 1 = name of addressbook this card came from
+                      // 2 = other per-addressbook format
+                      var showComments = 0;
+                      showComments = this.mPrefs.getIntPref(
+                          "mail.autoComplete.commentColumn");
+
+                      switch (showComments) {
+                        case 1:
+                            // Use the name of this directory
+                            ldapFormatter.commentFormat = this.mPrefs.getComplexValue(
+                                autocompleteDirectory + ".description",
+                                Components.interfaces.nsISupportsString).data;
+                            break;
+                        case 2:
+                            // Override ldap-specific autocomplete entry?
+                            try {
+                                ldapFormatter.commentFormat =
+                                    this.mPrefs.getComplexValue(autocompleteDirectory +
+                                        ".autoComplete.commentFormat",
+                                        Components.interfaces.nsISupportsString).data;
+                            } catch (innerException) {
+                                // If nothing has been specified, use the ldap
+                                // organization field
+                                ldapFormatter.commentFormat = "[o]";
+                            }
+                            break;
+                        case 0:
+                        default:
+                            // Do nothing
+                      }
+                  } catch (ex) {
+                      // If something went wrong while setting up comments, try and
+                      // proceed anyway
+                  }
+
+                  // Set the session's formatter, which also happens to
+                  // force a call to the formatter's getAttributes() method
+                  // -- which is why this needs to happen after we've set the
+                  // various formats
+                  LDAPSession.formatter = ldapFormatter;
+
+                  // Override autocomplete entry formatting?
+                  try {
+                      LDAPSession.outputFormat =
+                          this.mPrefs.getComplexValue(autocompleteDirectory +
+                              ".autoComplete.outputFormat",
+                              Components.interfaces.nsISupportsString).data;
+                  } catch (ex) {
+                      // If this pref isn't there, no big deal.  Just let
+                      // nsLDAPAutoCompleteSession use its default.
+                  }
+
+                  // override default search filter template?
+                  try {
+                      LDAPSession.filterTemplate = this.mPrefs.getComplexValue(
+                          autocompleteDirectory + ".autoComplete.filterTemplate",
+                          Components.interfaces.nsISupportsString).data;
+                  } catch (ex) {
+                      // If this pref isn't there, no big deal.  Just let
+                      // nsLDAPAutoCompleteSession use its default
+                  }
+
+                  // Override default maxHits (currently 100)
+                  try {
+                      LDAPSession.maxHits =
+                          this.mPrefs.getIntPref(autocompleteDirectory +
+                                                 ".maxHits");
+                  } catch (ex) {
+                      // If this pref isn't there, or is out of range, no big deal.
+                      // Just let nsLDAPAutoCompleteSession use its default.
+                  }
+
+                  if (!this.mSessionAdded) {
+                      // If we make it here, we know that session initialization has
+                      // succeeded; add the session for all recipients, and
+                      // remember that we've done so
+                      var autoCompleteWidget;
+                      for (i = 1; i <= this.mMaxAttendees; i++) {
+                          autoCompleteWidget = this.getInputElement(i);
+                          if (autoCompleteWidget) {
+                              autoCompleteWidget.addSession(LDAPSession);
+                              // Ldap searches don't insert a default entry with
+                              // the default domain appended to it so reduce the
+                              // minimum results for a popup to 2 in this case.
+                              autoCompleteWidget.minResultsForPopup = 2;
+                          }
+                       }
+                       this.mSessionAdded = true;
+                  }
+              }
+          } else {
+              if (this.mCurrentAutocompleteDirectory) {
+                  // Remove observer on the directory server since we are not doing Ldap
+                  // autocompletion.
+                  this.removeDirectorySettingsObserver(this.mCurrentAutocompleteDirectory);
+                  this.mCurrentAutocompleteDirectory = null;
+              }
+              if (this.mLDAPSession && this.mSessionAdded) {
+                  for (var i = 1; i <= this.mMaxAttendees; i++)
+                  this.getInputElement(i).removeSession(this.mLDAPSession);
+                  this.mSessionAdded = false;
+              }
+          }
+
+          this.mLDAPSession = LDAPSession;
+        ]]></body>
+      </method>
+
+      <method name="addDirectoryServerObserver">
+        <body><![CDATA[
+          if (this.mPrefs) {
+              this.mPrefs.addObserver(
+                  "ldap_2.autoComplete.useDirectory",
+                  this.mDirectoryServerObserver,
+                  false);
+              this.mPrefs.addObserver(
+                  "ldap_2.autoComplete.directoryServer",
+                  this.mDirectoryServerObserver,
+                  false);
+          }
+        ]]></body>
+      </method>
+
+      <method name="removeDirectoryServerObserver">
+        <body><![CDATA[
+          if (this.mPrefs) {
+              this.mPrefs.removeObserver(
+                  "ldap_2.autoComplete.useDirectory",
+                  this.mDirectoryServerObserver);
+              this.mPrefs.removeObserver(
+                  "ldap_2.autoComplete.directoryServer",
+                  this.mDirectoryServerObserver);
+          }
+        ]]></body>
+      </method>
+
+      <method name="addDirectorySettingsObserver">
+        <body><![CDATA[
+          if (this.mPrefs) {
+              this.mPrefs.addObserver(
+                  this.mCurrentAutocompleteDirectory,
+                  this.mDirectoryServerObserver,
+                  false);
+          }
+        ]]></body>
+      </method>
+
+      <method name="removeDirectorySettingsObserver">
+        <parameter name="aPrefString"/>
+        <body><![CDATA[
+          if (this.mPrefs) {
+              this.mPrefs.removeObserver(
+                  aPrefString,
+                  this.mDirectoryServerObserver);
+          }
+        ]]></body>
+      </method>
+
+      <method name="releaseAutoCompleteState">
+        <body><![CDATA[
+          if (this.mLDAPSession && this.mSessionAdded) {
+              for (i = 1; i <= this.mMaxAttendees; i++) {
+                  this.getInputElement(i).removeSession(this.mLDAPSession);
+              }
+          }
+
+          this.mSessionAdded = false;
+          this.mLDAPSession = null;
+        ]]></body>
+      </method>
+    </implementation>
+
+    <handlers>
+      <handler event="click" button="0"><![CDATA[
+        var target = event.originalTarget;
+        if (target.hasAttribute("role")) {
+            if (target.hasAttribute("disabled") &&
+                target.getAttribute("disabled")) {
+                return;
+            }
+            var role = target.getAttribute("role");
+            if (role == "CHAIR") {
+                target.setAttribute("role", "REQ-PARTICIPANT");
+            } else if (role == "REQ-PARTICIPANT") {
+                target.setAttribute("role", "OPT-PARTICIPANT");
+            } else if (role == "OPT-PARTICIPANT") {
+                target.setAttribute("role", "CHAIR");
+            }
+            return;
+        }
+
+        if (target.hasAttribute("status")) {
+            if (target.hasAttribute("disabled") &&
+                target.getAttribute("disabled")) {
+                return;
+            }
+            var status = target.getAttribute("status");
+            switch (status) {
+                case "NEEDS-ACTION":
+                    target.setAttribute("status", "ACCEPTED");
+                    break;
+                case "ACCEPTED":
+                    target.setAttribute("status", "DECLINED");
+                    break;
+                case "DECLINED":
+                    target.setAttribute("status", "TENTATIVE");
+                    break;
+                case "TENTATIVE":
+                    target.setAttribute("status", "ACCEPTED");
+                    break;
+            }
+            return;
+        }
+
+        if (this.mIsReadOnly || this.mIsInvitation) {
+            return;
+        }
+
+        if (target == null ||
+           (target.localName != "listboxbody" &&
+            target.localName != "listcell" &&
+            target.localName != "listitem")) {
+            return;
+        }
+
+        var lastInput = this.getInputElement(this.mMaxAttendees);
+        if (lastInput && lastInput.value) {
+            this.appendNewRow(true);
+        }
+      ]]></handler>
+
+      <handler event="popupshown"><![CDATA[
+        this.mPopupOpen = true;
+      ]]></handler>
+
+      <handler event="popuphidden"><![CDATA[
+        this.mPopupOpen = false;
+      ]]></handler>
+
+      <handler event="keydown"><![CDATA[
+        if (this.mIsReadOnly || this.mIsInvitation) {
+            return;
+        }
+        if (event.originalTarget.localName == "input") {
+            switch (event.keyCode) {
+                case 46:
+                case 8:
+                    if (!event.originalTarget.value) {
+                        this.deleteHit(event.originalTarget);
+                    }
+                    event.stopPropagation();
+                    break;
+                case 13:
+                    this.arrowHit(event.originalTarget, 1);
+                    event.stopPropagation();
+                    event.preventDefault();
+                    break;
+            }
+        }
+      ]]></handler>
+
+      <handler event="keypress" phase="capturing"><![CDATA[
+        // In case we're currently showing the autocompletion popup
+        // don't care about keypress-events and let them go. Otherwise
+        // this event indicates the user wants to travel between
+        // the different attendees. In this case we set the focus
+        // appropriately and stop the event propagation.
+        if (this.mPopupOpen || this.mIsReadOnly || this.mIsInvitation) {
+            return;
+        }
+        if (event.originalTarget.localName == "input") {
+            switch (event.keyCode) {
+                case KeyEvent.DOM_VK_UP:
+                    this.arrowHit(event.originalTarget, -1);
+                    event.stopPropagation();
+                    break;
+                case KeyEvent.DOM_VK_DOWN:
+                    this.arrowHit(event.originalTarget, 1);
+                    event.stopPropagation();
+                    break;
+                case KeyEvent.DOM_VK_TAB:
+                    this.arrowHit(event.originalTarget, event.shiftKey ? -1 : +1);
+                    event.stopPropagation();
+                    event.preventDefault();
+                    break;
+                case KeyEvent.DOM_VK_RETURN:
+                    event.stopPropagation();
+                    event.preventDefault();
+                    break;
+            }
+        }
+      ]]></handler>
+
+      <handler event="input"><![CDATA[
+        this.setupAutocomplete();
+      ]]></handler>
+    </handlers>
+  </binding>
+
+  <!-- the 'selection-bar' binding implements the vertical bar that provides
+       a visual indication for the time range the event is configured for. -->
+  <binding id="selection-bar">
+    <content>
+      <xul:scrollbox anonid="scrollbox" width="0" orient="horizontal" flex="1">
+        <xul:box class="selection-bar" anonid="selection-bar">
+          <xul:box class="selection-bar-left" anonid="leftbox"/>
+          <xul:spacer class="selection-bar-spacer" flex="1"/>
+          <xul:box class="selection-bar-right" anonid="rightbox"/>
+        </xul:box>
+      </xul:scrollbox>
+    </content>
+
+    <implementation>
+      <field name="mRange">0</field>
+      <field name="mStartHour">0</field>
+      <field name="mEndHour">24</field>
+      <field name="mContentWidth">0</field>
+      <field name="mHeaderHeight">0</field>
+      <field name="mRatio">0</field>
+      <field name="mBaseDate">null</field>
+      <field name="mStartDate">null</field>
+      <field name="mEndDate">null</field>
+      <field name="mMouseX">0</field>
+      <field name="mMouseY">0</field>
+      <field name="mDragState">0</field>
+      <field name="mMargin">0</field>
+      <field name="mWidth">0</field>
+      <field name="mForce24Hours">false</field>
+      <field name="mZoomFactor">100</field>
+      <!-- constant that defines at which ratio an event is clipped, when moved or resized -->
+      <field name="mfClipRatio">0.7</field>
+      <field name="mLeftBox"/>
+      <field name="mRightBox"/>
+      <field name="mSelectionbar"/>
+
+      <property name="zoomFactor">
+        <getter><![CDATA[
+          return this.mZoomFactor;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mZoomFactor = val;
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="force24Hours">
+        <getter><![CDATA[
+          return this.mForce24Hours;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mForce24Hours = val;
+          this.initTimeRange();
+          this.update();
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="ratio">
+        <setter><![CDATA[
+          this.mRatio = val;
+          this.update();
+          return val;
+        ]]></setter>
+      </property>
+
+      <constructor><![CDATA[
+        this.initTimeRange();
+
+        // The basedate is the date/time from which the display
+        // of the timebar starts. The range is the number of days
+        // we should be able to show. the start- and enddate
+        // is the time the event is scheduled for.
+        this.mRange = Number(this.getAttribute("range"));
+        this.mSelectionbar =
+            document.getAnonymousElementByAttribute(
+                this, "anonid", "selection-bar");
+      ]]></constructor>
+
+      <property name="baseDate">
+        <setter><![CDATA[
+          // we need to convert the date/time in question in
+          // order to calculate with hours that are aligned
+          // with our timebar display.
+          var kDefaultTimezone = calendarDefaultTimezone();
+          this.mBaseDate = val.getInTimezone(kDefaultTimezone);
+          this.mBaseDate.isDate = true;
+          this.mBaseDate.makeImmutable();
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="startDate">
+        <setter><![CDATA[
+          // currently we *always* set the basedate to be
+          // equal to the startdate. we'll most probably
+          // want to change this later.
+          this.baseDate = val;
+          // we need to convert the date/time in question in
+          // order to calculate with hours that are aligned
+          // with our timebar display.
+          var kDefaultTimezone = calendarDefaultTimezone();
+          this.mStartDate = val.getInTimezone(kDefaultTimezone);
+          this.mStartDate.makeImmutable();
+          return val;
+        ]]></setter>
+        <getter><![CDATA[
+          return this.mStartDate;
+        ]]></getter>
+      </property>
+
+      <property name="endDate">
+        <setter><![CDATA[
+          // we need to convert the date/time in question in
+          // order to calculate with hours that are aligned
+          // with our timebar display.
+          var kDefaultTimezone = calendarDefaultTimezone();
+          this.mEndDate = val.getInTimezone(kDefaultTimezone);
+          if (this.mEndDate.isDate) {
+              this.mEndDate.day += 1;
+          }
+          this.mEndDate.makeImmutable();
+          return val;
+        ]]></setter>
+        <getter><![CDATA[
+          return this.mEndDate;
+        ]]></getter>
+      </property>
+
+      <property name="leftdragWidth">
+        <getter><![CDATA[
+          if (!this.mLeftBox) {
+            this.mLeftBox =
+                document.getAnonymousElementByAttribute(
+                    this, "anonid", "leftbox");
+          }
+          return this.mLeftBox.boxObject.width;
+        ]]></getter>
+      </property>
+      <property name="rightdragWidth">
+        <getter><![CDATA[
+          if (!this.mRightBox) {
+              this.mRightBox =
+                  document.getAnonymousElementByAttribute(
+                      this, "anonid", "rightbox");
+          }
+          return this.mRightBox.boxObject.width;
+        ]]></getter>
+      </property>
+
+      <method name="init">
+        <parameter name="width"/>
+        <parameter name="height"/>
+        <body><![CDATA[
+          this.mContentWidth = width;
+          this.mHeaderHeight = height + 2;
+          this.mMargin = 0;
+          this.update();
+        ]]></body>
+      </method>
+
+      <!-- given some specific date this method calculates the
+           corrposonding offset in fractional hours -->
+      <method name="date2offset">
+        <parameter name="date"/>
+        <body><![CDATA[
+          var num_hours = this.mEndHour - this.mStartHour;
+          var diff = date.subtractDate(this.mBaseDate);
+          var offset = diff.days * num_hours;
+          var hours = (diff.hours - this.mStartHour) + (diff.minutes / 60.0);
+          if (hours < 0) {
+              hours = 0;
+          }
+          if (hours > num_hours) {
+              hours = num_hours;
+          }
+          offset += hours;
+          return offset;
+        ]]></body>
+      </method>
+
+      <method name="update">
+        <body><![CDATA[
+          if (!this.mStartDate || !this.mEndDate) {
+              return;
+          }
+
+          // Calculate the relation of startdate/basedate and enddate/startdate.
+          var offset = this.mStartDate.subtractDate(this.mBaseDate);
+          var duration = this.mEndDate.subtractDate(this.mStartDate);
+
+          // Calculate how much pixels a single hour and a single day take up.
+          var num_hours = this.mEndHour - this.mStartHour;
+          var hour_width = this.mContentWidth / num_hours;
+
+          // Calculate the offset in fractional hours that corrospond
+          // to our start- and end-time.
+          var start_offset_in_hours = this.date2offset(this.mStartDate);
+          var end_offset_in_hours = this.date2offset(this.mEndDate);
+          var duration_in_hours = end_offset_in_hours - start_offset_in_hours;
+
+          // Calculate width & margin for the selection bar based on the
+          // relation of startdate/basedate and enddate/startdate.
+          // This is a simple conversion from hours to pixels.
+          this.mWidth = duration_in_hours * hour_width;
+          var totaldragwidths = this.leftdragWidth + this.rightdragWidth;
+          if (this.mWidth < totaldragwidths) {
+              this.mWidth = totaldragwidths;
+          }
+          this.mMargin = start_offset_in_hours * hour_width;
+
+          // Calculate the difference between content and container in pixels.
+          // The container is the window showing this control, the content is the
+          // total number of pixels the selection bar can theoretically take up.
+          var total_width = this.mContentWidth * this.mRange - this.parentNode.boxObject.width;
+
+          // Calculate the current scroll offset.
+          var offset = Math.floor(total_width * this.mRatio);
+
+          // The final margin is the difference between the date-based margin
+          // and the scroll-based margin.
+          this.mMargin -= offset;
+
+          // Set the styles based on the calculations above for the 'selection-bar'.
+          var style = "width: " + this.mWidth +
+                      "px; -moz-margin-start: " + this.mMargin +
+                      "px; margin-top: " + this.mHeaderHeight + "px;";
+          this.mSelectionbar.setAttribute("style", style);
+
+          var event = document.createEvent('Events');
+          event.initEvent('timechange', true, false);
+          event.startDate = this.mStartDate;
+          event.endDate = this.mEndDate.clone();
+          if (event.endDate.isDate) {
+              event.endDate.day--;
+          }
+          event.endDate.makeImmutable();
+          this.dispatchEvent(event);
+        ]]></body>
+      </method>
+
+      <method name="setWidth">
+        <parameter name="width"/>
+        <body><![CDATA[
+            var scrollbox =
+                document.getAnonymousElementByAttribute(
+                    this, "anonid", "scrollbox");
+            scrollbox.setAttribute("width", width);
+        ]]></body>
+      </method>
+
+      <method name="initTimeRange">
+        <body><![CDATA[
+          if (this.force24Hours) {
+              this.mStartHour = 0;
+              this.mEndHour = 24;
+          } else {
+              this.mStartHour = getPrefSafe("calendar.view.daystarthour", 8);
+              this.mEndHour = getPrefSafe("calendar.view.dayendhour", 19);
+          }
+        ]]></body>
+      </method>
+
+      <method name="moveTime">
+        <parameter name="time"/>
+        <parameter name="delta"/>
+        <parameter name="doclip"/>
+        <body><![CDATA[
+          var newTime = time.clone();
+          var clip_minutes = 60 * this.zoomFactor / 100;
+          if (newTime.isDate) {
+              clip_minutes = 60 * 24;
+          }
+          var num_hours = this.mEndHour - this.mStartHour;
+          var hour_width = this.mContentWidth / num_hours;
+          var minutes_per_pixel = 60 / hour_width;
+          var minute_shift = minutes_per_pixel * delta;
+          var isClipped = Math.abs(minute_shift) >= (this.mfClipRatio * clip_minutes);
+          if (isClipped) {
+              if (delta > 0) {
+                  if (time.isDate) {
+                      newTime.day++;
+                  } else {
+                      if (doclip) {
+                          newTime.minute -= newTime.minute % clip_minutes;
+                      }
+                      newTime.minute += clip_minutes;
+                  }
+              } else if (delta < 0) {
+                  if (time.isDate) {
+                      newTime.day--;
+                  } else {
+                      if (doclip) {
+                          newTime.minute -= newTime.minute % clip_minutes;
+                      }
+                      newTime.minute -= clip_minutes;
+                  }
+              }
+          }
+
+          if (!newTime.isDate) {
+              if (newTime.hour < this.mStartHour) {
+                  newTime.hour = this.mEndHour - 1;
+                  newTime.day--;
+              }
+              if (newTime.hour >= this.mEndHour) {
+                  newTime.hour = this.mStartHour;
+                  newTime.day++;
+              }
+          }
+
+          return newTime;
+        ]]></body>
+      </method>
+    </implementation>
+
+    <handlers>
+      <handler event="mousedown"><![CDATA[
+        var element = event.target;
+        this.mMouseX = event.screenX;
+        var mouseX = event.clientX - element.boxObject.x;
+
+        if (mouseX >= this.mMargin) {
+            if (mouseX <= (this.mMargin + this.mWidth)) {
+                if (mouseX <= (this.mMargin + this.leftdragWidth)) {
+                    // Move the startdate only...
+                    window.setCursor("w-resize");
+                    this.mDragState = 2;
+                } else if (mouseX >= (this.mMargin + this.mWidth - (this.rightdragWidth))) {
+                    // Move the enddate only..
+                    window.setCursor("e-resize");
+                    this.mDragState = 3;
+                } else {
+                    // Move the startdate and the enddate
+                    this.mDragState = 1;
+                    window.setCursor("-moz-grab");
+                }
+            }
+        }
+      ]]></handler>
+
+      <handler event="mousemove"><![CDATA[
+        var mouseX = event.screenX;
+        if (this.mDragState == 1) {
+            // Move the startdate and the enddate
+            var delta = mouseX - this.mMouseX;
+            var newStart = this.moveTime(this.mStartDate, delta, false);
+            if (newStart.compare(this.mStartDate) != 0) {
+                newEnd = this.moveTime(this.mEndDate, delta, false);
+
+                // We need to adapt this date in case we're dealing with
+                // an all-day event. This is because setting 'endDate' will
+                // automatically add one day extra for all-day events.
+                if (newEnd.isDate) {
+                    newEnd.day--;
+                }
+
+                this.startDate = newStart;
+                this.endDate = newEnd;
+                this.mMouseX = mouseX;
+                this.update();
+            }
+        } else if (this.mDragState == 2) {
+            // Move the startdate only...
+            var delta = event.screenX - this.mSelectionbar.boxObject.screenX;
+            var newStart = this.moveTime(this.mStartDate, delta, true);
+            if (newStart.compare(this.mEndDate) >= 0) {
+                if (!this.mStartDate.isDate) {
+                    newStart = this.mEndDate;
+                }
+                else{
+                    return;
+                }
+            }
+            if (newStart.compare(this.mStartDate) != 0) {
+                this.startDate = newStart;
+                this.update();
+            }
+        } else if (this.mDragState == 3) {
+            // Move the enddate only..
+            var delta = mouseX - (this.mSelectionbar.boxObject.screenX +
+                                  this.mSelectionbar.boxObject.width);
+            var newEnd = this.moveTime(this.mEndDate, delta, true);
+            if (newEnd.compare(this.mStartDate) < 0) {
+                newEnd = this.mStartDate;
+            }
+            if (newEnd.compare(this.mEndDate) != 0) {
+                // We need to adapt this date in case we're dealing with
+                // an all-day event. This is because setting 'endDate' will
+                // automatically add one day extra for all-day events.
+                if (newEnd.isDate) {
+                    newEnd.day--;
+                }
+
+                // Don't allow all-day events to be shorter than a single day.
+                if (!newEnd.isDate || (newEnd.compare(this.startDate) >= 0)) {
+                    this.endDate = newEnd;
+                    this.update();
+                }
+            }
+        }
+      ]]></handler>
+
+      <handler event="mouseup"><![CDATA[
+        this.mDragState = 0;
+        window.setCursor("auto");
+      ]]></handler>
+    </handlers>
+  </binding>
+
+</bindings>

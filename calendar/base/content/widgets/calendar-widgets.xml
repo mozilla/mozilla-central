@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Berend Cornelius <berend.cornelius@sun.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<bindings id="calendar-widgets"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <!-- this binding directly extends to a checkbox but is visualized as
+       a treenode in a treecontrol-->
+  <binding id="treenode-checkbox" extends="chrome://global/content/bindings/checkbox.xml#checkbox-baseline">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>
+    </resources>
+  </binding>
+
+  <!-- this binding directly extends to a xul:box element and automatically
+       sets the "orient" attribute to "vertical" thus behaving like a vbox-->
+  <binding id="modevbox" extends="chrome://calendar/content/widgets/calendar-widgets.xml#modebox">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>
+    </resources>
+    <implementation>
+      <constructor><![CDATA[
+            this.setAttribute("orient", "vertical");
+      ]]></constructor>
+      </implementation>
+  </binding>
+
+  <!-- this binding directly extends to a xul:box element and automatically
+       sets the "orient" attribute to "horizontal" thus behaving like a vbox-->
+  <binding id="modehbox" extends="chrome://calendar/content/widgets/calendar-widgets.xml#modebox">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>
+    </resources>
+    <implementation>
+      <constructor><![CDATA[
+         this.setAttribute("orient", "horizontal");
+      ]]></constructor>
+    </implementation>
+  </binding>
+
+  <!-- this binding directly extends to a xul:box element and enriches this with some functionality: It is designed
+      to be displayed only 1) in given application modes (e.g "task" mode, "calendar" mode) and 2) only in relation
+      to the "checked" attribute of command or a checkbox control.
+    - The attribute "mode" denotes a coma-separated list of all modes that the binding should not be collapsed in,
+      e.g. mode="calendar,task"
+    - The attribute "broadcaster" points to the id of a broadcaster that is supposed to be notified (by the application)
+      as soon as the mode changes. When this happens the modebox" will be notified and will check if it should
+      collapse itself or not.
+    - The attribute "refcontrol" points to a control either a "command", "checkbox" or a "treenode-checkbox" or other
+      elements that support a "checked" attribute that is often used to denote whether a modebox is supposed to be
+      displayed or not. If "refcontrol" is set to the id of a command you can there set the oncommend attribute like:
+      "oncommand='document.getElementById('my-mode-pane').togglePane(event)'. In case it is a checkbox element or derived
+      checkbox element this is done automatically by listening to the event "CheckboxChange";
+      So if the current application mode is one of the modes listed in the "mode" attribute it is
+      additionally verified if the xul-element denoted by "refcontrol" is checked or not. During runtime an attribute named
+      "collapsedinmodes" with the collpsed modes comma-separated e.g. "mail,calendar,task. This attribute is also made
+      persistent-->
+  <binding id="modebox" extends="xul:box">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>
+    </resources>
+    <implementation>
+      <field name="mBroadcaster">null</field>;
+      <field name="mModHandler">null</field>;
+      <field name="mRefControl">null</field>;
+      <field name="mControlHandler">null</field>;
+      <constructor><![CDATA[
+        if (this.hasAttribute("broadcaster")) {
+            this.setAttribute("broadcaster", this.getAttribute("broadcaster"));
+        }
+        if (this.hasAttribute("refcontrol")) {
+            this.mRefControl = document.getElementById(this.getAttribute("refcontrol"));
+            if (this.mRefControl && ((this.mRefControl.localName == "treenode-checkbox") ||
+                                  (this.mRefControl.localName == "checkbox"))){
+                this.mControlHandler = {
+                    binding: this,
+                    handleEvent : function(aEvent, aHandled) {
+                        return this.binding.onCheckboxStateChange(aEvent, this.binding);
+                    }
+                };
+                this.mRefControl.addEventListener("CheckboxStateChange", this.mControlHandler, true);
+            }
+        }
+      ]]>
+      </constructor>
+      <destructor><![CDATA[
+          if (this.mBroadcaster) {
+              this.mBroadcaster.removeEventListener("DOMAttrModified", this.mModHandler, true);
+          }
+          if (this.mRefControl) {
+              this.mRefControl.removeEventListener("CheckboxStateChange", this.mControlHandler, true);
+          }
+      ]]></destructor>
+
+      <property name="currentMode">
+        <getter><![CDATA[
+            if (this.mBroadcaster && this.mBroadcaster.hasAttribute("mode")) {
+                return this.mBroadcaster.getAttribute("mode");
+            } else {
+                return "";
+            }
+        ]]></getter>
+       </property>
+
+       <method name="isVisible">
+         <parameter name="aMode"/>
+         <body><![CDATA[
+             var lMode = aMode || this.currentMode;
+             if (!this.isVisibleInMode(lMode)) {
+                 return false;
+             }
+             var collapsedModes = this.getAttribute("collapsedinmodes").split(",");
+             var modeIndex = collapsedModes.indexOf(lMode);
+             return (modeIndex == -1);
+         ]]></body>
+      </method>
+
+       <method name="setVisible">
+        <parameter name="aVisible"/>
+        <parameter name="aPushModeCollapsedAttribute"/>
+        <parameter name="aNotifyRefControl"/>
+        <body><![CDATA[
+            var notifyRefControl = ((aNotifyRefControl == null) || (aNotifyRefControl === true))
+            var pushModeCollapsedAttribute = ((aPushModeCollapsedAttribute == null)
+                                                 || (aPushModeCollapsedAttribute === true));
+            var collapsedModes = [];
+            var modeIndex = -1;
+            var display = aVisible;
+            var collapsedInMode = false;
+            if (this.hasAttribute("collapsedinmodes")) {
+                var collapsedModes = this.getAttribute("collapsedinmodes").split(",");
+                var modeIndex = collapsedModes.indexOf(this.currentMode);
+                collapsedInMode = (modeIndex > -1);
+            }
+            if ((aVisible === true) && (pushModeCollapsedAttribute == false)){
+                display = (aVisible === true) && (!collapsedInMode);
+            }
+            setBooleanAttribute(this, "collapsed", (!display));
+            if (pushModeCollapsedAttribute) {
+                if (!display) {
+                    if (modeIndex == -1) {
+                        collapsedModes.push(this.currentMode);
+                    }
+                } else {
+                    if (modeIndex > -1) {
+                        collapsedModes.splice(modeIndex, 1);
+                    }
+                }
+                this.setAttribute("collapsedinmodes", collapsedModes.join(","));
+                var id = this.getAttribute("id");
+                if (id) {
+                    document.persist(id, "collapsedinmodes");
+                }
+            }
+            if (notifyRefControl === true) {
+                if (this.hasAttribute("refcontrol")) {
+                    var command =  document.getElementById(this.getAttribute("refcontrol"))
+                    if (command) {
+                        command.setAttribute("checked", display);
+                    }
+                }
+            }
+        ]]></body>
+      </method>
+
+      <method name="isVisibleInMode">
+        <parameter name="aMode"/>
+        <body><![CDATA[
+            var lMode = aMode || this.currentMode;
+            var display = true;
+            var lModes = new Array();
+            if (this.hasAttribute("mode")) {
+                var modeString = this.getAttribute("mode");
+                lModes = modeString.split(",");
+            }
+            if (lModes && lModes.length > 0) {
+                display = lModes.indexOf(lMode) > -1;
+            }
+            return display;
+        ]]></body>
+      </method>
+
+      <method name="onModeModified">
+        <parameter name="aEvent"/>
+        <parameter name="aBinding"/>
+        <body><![CDATA[
+            if (aEvent.attrName == "mode") {
+                var display = aBinding.isVisibleInMode(aEvent.newValue);
+                aBinding.setVisible(display, false, true);
+            }
+        ]]></body>
+      </method>
+
+      <method name="togglePane">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+            var command = aEvent.target;
+            var newValue = (command.getAttribute("checked") == "true" ? "false" : "true");
+            command.setAttribute("checked", newValue);
+            this.setVisible(newValue == "true", true, true);
+        ]]></body>
+      </method>
+
+      <method name="onCheckboxStateChange">
+        <parameter name="aEvent"/>
+        <parameter name="aBinding"/>
+        <body><![CDATA[
+            var newValue = aEvent.target.checked;
+            this.setVisible(newValue, true, true);
+        ]]></body>
+      </method>
+      <method name="setAttribute">
+        <parameter name="aAttr"/>
+        <parameter name="aVal"/>
+        <body><![CDATA[
+          if (aAttr == "broadcaster") {
+              this.mBroadcaster = document.getElementById(aVal);
+              if (this.mBroadcaster) {
+                  this.mModHandler = {
+                  binding: this,
+                  handleEvent : function(aEvent, aHandled) {
+                      return this.binding.onModeModified(aEvent, this.binding);
+                  }
+              };
+              this.mBroadcaster.addEventListener("DOMAttrModified", this.mModHandler, true);
+            }
+          }
+          var ret = XULElement.prototype.setAttribute.call(this, aAttr, aVal);
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>

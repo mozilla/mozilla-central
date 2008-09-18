@@ -1,0 +1,142 @@
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is the Oracle Corporation code.
+#
+# The Initial Developer of the Original Code is Oracle Corporation.
+# Portions created by the Initial Developer are Copyright (C) 2004
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#   Mike Shaver <shaver@off.net>
+#   Matthew Willis <lilmatt@mozilla.com>
+#   Philipp Kewisch <mozilla@kewis.ch>
+#   Dan Mosedale <dmose@mozilla.org>
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+DEPTH		= ../..
+topsrcdir	= @top_srcdir@
+srcdir		= @srcdir@
+VPATH		= @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+MODULE		= lightning
+
+export XPI_NAME = lightning
+export USE_EXTENSION_MANIFEST = 1
+export NO_JAR_AUTO_REG = 1
+XPI_PKGNAME = lightning
+
+STRIP_XPI = 1
+DIST_FILES = install.rdf
+PREF_JS_EXPORTS = $(srcdir)/content/lightning.js
+LIGHTNING_VERSION := $(shell cat $(srcdir)/../sunbird/config/version.txt)
+THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version.txt)
+SEAMONKEY_VERSION := $(shell cat $(topsrcdir)/suite/config/version.txt)
+ifdef LIGHTNING_FIREFOX
+FIREFOX_VERSION := $(shell cat $(MOZILLA_SRCDIR)/browser/config/version.txt)
+endif
+
+# include config.mk here so myconfig or app-config can set DISABLE_LIGHTNING_INSTALL
+include $(topsrcdir)/config/config.mk
+
+# installing lightning in a thunderbird build causes problems on tinderboxes
+# (see bug 406441 and bug 440017), so we need to provide a hook for the
+# tinderboxen to disable that.
+ifndef DISABLE_LIGHTNING_INSTALL
+ifndef MOZ_SUNBIRD
+# install Lightning as a global extension in dist/bin/extensions/
+INSTALL_EXTENSION_ID   = {e2fda1a4-762b-4020-b5ad-a41df1933103}
+endif
+endif
+
+DIRS = ../libical \
+       ../locales \
+       ../base \
+       ../providers \
+       ../import-export \
+       ../itip \
+       components \
+       locales \
+       $(NULL)
+
+PWD := $(shell pwd)
+core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(PWD)/$(1)))
+
+# Select a theme from which to pull our skin goodness
+# OS X: pinstripe
+# Others: winstripe
+
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+THEME=pinstripe
+else
+THEME=winstripe
+endif
+
+DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
+           -DAB_CD=$(AB_CD) \
+           -DFIREFOX_VERSION=$(FIREFOX_VERSION) \
+           -DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION) \
+           -DLIGHTNING_VERSION=$(LIGHTNING_VERSION) \
+           -DLIGHTNING_FIREFOX=$(LIGHTNING_FIREFOX) \
+           -DTARGET_PLATFORM=$(OS_TARGET)_$(TARGET_XPCOM_ABI) \
+           -DTHEME=$(THEME) \
+           $(NULL)
+
+ifdef MOZILLA_1_8_BRANCH
+DEFINES += -DBUILD_ID=$(BUILD_ID)
+else
+ifdef COMM_BUILD
+GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
+else
+GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
+endif
+DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
+endif
+
+# Get all directories in /l10n/*, that contain a calendar subdir.
+calendar_locales := $(subst /calendar,,$(subst $(topsrcdir)/../l10n/,,$(wildcard $(topsrcdir)/../l10n/*/calendar)))
+# Now make sure those dirs are in shipped-locales
+shipped_locales :=$(shell cat $(topsrcdir)/calendar/locales/shipped-locales)
+locales_to_build :=$(foreach locale,$(calendar_locales),$(if $(filter $(locale),$(shipped_locales)),$(locale)))
+
+ifneq ($(strip $(locales_to_build)),)
+# The l10n directory is checked out and contains supported locales, start building our locales
+
+libs:: $(addprefix libs-,$(locales_to_build))
+libs-%:
+	@echo - locales to build -- $(locales_to_build)
+	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
+	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
+
+endif
+
+# xxx todo: unless our packaging story is revised (bug 406579) we package up timezones.sqlite
+libs::
+	$(NSINSTALL) $(srcdir)/../timezones/timezones.sqlite $(FINAL_TARGET)
+
+include $(topsrcdir)/config/rules.mk

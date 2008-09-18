@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   - ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Calendar view code.
+   -
+   - The Initial Developer of the Original Code is
+   -   Joey Minta <jminta@gmail.com>
+   - Portions created by the Initial Developer are Copyright (C) 2005
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Michael Büttner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK *****
+-->
+
+<!-- Note that this file depends on helper functions in calUtils.js-->
+
+<bindings id="calendar-core-view-bindings"
+    xmlns="http://www.mozilla.org/xbl"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="calendar-editable-item">
+    <content tooltip="itemTooltip">
+      <xul:vbox flex="1">
+        <xul:hbox>
+          <xul:box anonid="event-container"
+                   class="calendar-color-box"
+                   xbl:inherits="item-calendar"                   
+                   flex="1">
+            <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
+              <xul:stack anonid="eventbox"
+                         class="calendar-event-box-container"
+                         flex="1"
+                         xbl:inherits="readonly,flashing,alarm,allday,priority,progress,status,calendar,categories">
+                <xul:hbox class="calendar-event-details">
+                  <xul:vbox align="left"
+                            flex="1"
+                            xbl:inherits="context">
+                    <xul:label anonid="event-name"
+                               crop="end"
+                               flex="1"
+                               style="margin: 0;"/>
+                    <xul:textbox anonid="event-name-textbox"
+                                 class="plain"
+                                 crop="end"
+                                 hidden="true"
+                                 style="background: transparent !important;"
+                                 wrap="true"/>
+                    <xul:spacer flex="1"/>
+                  </xul:vbox>
+                  <xul:vbox pack="center">
+                    <xul:image anonid="alarm-image"
+                               class="alarm-image"
+                               xbl:inherits="flashing"
+                               hidden="true"/>
+                  </xul:vbox>
+                </xul:hbox>
+                <xul:image anonid="gradient"
+                           class="calendar-event-box-gradient"
+                           height="1px"/>
+              </xul:stack>
+            </xul:box>
+            <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
+          </xul:box>
+        </xul:hbox>
+      </xul:vbox>
+    </content>
+
+    <implementation>
+      <constructor><![CDATA[
+         var self = this;
+         this.eventNameInput.onblur = function onBlur() { self.stopEditing(true); };
+         this.eventNameInput.onkeypress = function onKeyPress(event) {
+             // save on enter
+             if (event.keyCode == 13)
+                 self.stopEditing(true);
+             // abort on escape
+             else if (event.keyCode == 27)
+                 self.stopEditing(false);
+         };
+         function stopPropagationIfEditing(event) { 
+           if (self.mEditing) {
+             event.stopPropagation();
+           }
+         }
+         // while editing, single click positions cursor, so don't propagate.
+         this.eventNameInput.onclick = stopPropagationIfEditing;
+         // while editing, double click selects words, so don't propagate.
+         this.eventNameInput.ondblclick = stopPropagationIfEditing;
+         // while editing, don't propagate mousedown/up (selects calEvent).
+         this.eventNameInput.onmousedown = stopPropagationIfEditing;
+         this.eventNameInput.onmouseup = stopPropagationIfEditing;
+      ]]></constructor>
+
+      <field name="mOccurrence">null</field>
+      <field name="mSelected">false</field>
+      <field name="mCalendarView">null</field>
+
+      <property name="selected">
+        <getter><![CDATA[
+          return this.mSelected;
+        ]]></getter>
+        <setter><![CDATA[
+          if (val && !this.mSelected) {
+              this.mSelected = true;
+              this.setAttribute("selected", "true");
+          } else if (!val && this.mSelected) {
+              this.mSelected = false;
+              this.removeAttribute("selected");
+          }
+          return val;
+        ]]></setter>
+      </property>
+      <property name="calendarView">
+        <getter><![CDATA[
+          return this.mCalendarView;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mCalendarView = val;
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="occurrence">
+        <getter><![CDATA[
+          return this.mOccurrence;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mOccurrence = val;
+          this.setEditableLabel();
+          this.setCSSClasses();
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="eventNameLabel" readonly="true"
+        onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'event-name');"/>
+      <property name="eventNameTextbox" readonly="true"
+        onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'event-name-textbox');"/>
+      <property name="eventNameInput" readonly="true"
+        onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'event-name-textbox').inputField;"/>
+      <method name="setEditableLabel">
+        <body><![CDATA[
+          var evl = this.eventNameLabel;
+          var item = this.mOccurrence;
+
+
+          if (item.title && item.title != "") {
+            evl.value = item.title;
+          } else {
+            evl.value = calGetString("calendar", "eventUntitled")
+          }
+        ]]></body>
+      </method>
+
+      <method name="setCSSClasses">
+        <body><![CDATA[
+          var item = this.mOccurrence;          
+          this.setAttribute("item-calendar", item.calendar.uri.spec);
+          var categoriesArray = item.getCategories({});
+          if (categoriesArray.length > 0) {
+            var cssClassesArray = categoriesArray.map(formatStringForCSSRule);
+            this.setAttribute("categories", cssClassesArray.join(" "));
+          }
+
+          if (item.alarmOffset && getPrefSafe("calendar.alarms.indicator.show", true)) {
+              var alarmImage = document.getAnonymousElementByAttribute(this, "anonid", "alarm-image");
+              if (item.calendar.getProperty("suppressAlarms") &&
+                  item.calendar.getProperty("capabilities.alarms.popup.supported") !== false) {
+                  // Only show the suppressed icon if alarms are suppressed and
+                  // popup alarms are supported. This keeps us from making the
+                  // alarm look disabled when the server supports only email
+                  // alarms (e.g. currently WCAP).
+                  alarmImage.setAttribute("suppressed", "true");
+              }
+              alarmImage.removeAttribute("hidden");
+          }
+
+          // Set up event box attributes for use in css selectors. Note if
+          // something is added here, it should also be xbl:inherited correctly
+          // in the <content> section of this binding, and all that inherit it.
+
+          // Event type specific properties
+          if (isEvent(item)) {
+              if (item.startDate.isDate) {
+                this.setAttribute("allday", "true");
+              }
+          } else if (isToDo(item)) {
+              // progress attribute
+              this.setAttribute("progress", getProgressAtom(item));
+          }
+
+          if (this.calendarView &&
+              item.hashId in this.calendarView.mFlashingEvents) {
+              this.setAttribute("flashing", "true");
+          }
+
+          if (item.alarmOffset) {
+              this.setAttribute("alarm", "true")
+          }
+
+          // priority
+          if (item.priority > 0 && item.priority < 5) {
+              this.setAttribute("priority", "high");
+          } else if (item.priority > 5 && item.priority < 10) {
+              this.setAttribute("priority", "low");
+          }
+
+          // status attribute
+          if (item.status) {
+              this.setAttribute("status", item.status.toLowerCase());
+          }
+
+          // calendar name
+          this.setAttribute("calendar", item.calendar.name.toLowerCase());
+
+          // Invitation
+          if (item.calendar instanceof Components.interfaces.calISchedulingSupport &&
+              item.calendar.isInvitation(item)) {
+              this.setAttribute("invitation-status", item.calendar.getInvitedAttendee(item).participationStatus);
+              this.setAttribute("readonly", "true");
+          } else if (!isCalendarWritable(item.calendar)) {
+              this.setAttribute("readonly", "true");
+          }
+        ]]></body>
+      </method>
+
+      <method name="startEditing">
+        <body><![CDATA[
+          this.editingTimer = null;
+          this.mOriginalTextLabel = this.mOccurrence.title;
+
+          this.eventNameLabel.setAttribute("hidden", "true");
+
+          this.mEditing = true;
+
+          this.eventNameTextbox.value = this.mOriginalTextLabel;
+          this.eventNameTextbox.removeAttribute("hidden");
+          this.eventNameInput.focus();
+          this.eventNameInput.select();
+        ]]></body>
+      </method>
+      <method name="select">
+        <parameter name="event"/>
+        <body><![CDATA[
+            if (!this.calendarView) {
+                return;
+            }
+            var items;
+            if (event.ctrlKey || event.metaKey) {
+                items = this.calendarView.mSelectedItems;
+                items.push(this.mOccurrence);
+            } else {
+                items = [this.mOccurrence];
+            }
+            this.calendarView.setSelectedItems(items.length, items);
+        ]]></body>
+      </method>
+      <method name="stopEditing">
+        <parameter name="saveChanges"/>
+        <body><![CDATA[
+          if (!this.mEditing)
+            return;
+
+          this.mEditing = false;
+
+          if (saveChanges && (this.eventNameTextbox.value != this.mOriginalTextLabel)) {
+              this.calendarView.controller.modifyOccurrence(this.mOccurrence, 
+                                                            null, null,
+                                                            this.eventNameTextbox.value);
+
+              // Note that as soon as we do the modifyItem, this element ceases to exist,
+              // so don't bother trying to modify anything further here! ('this' exists,
+              // because it's being kept alive, but our child content etc. is all gone)
+              return;
+          }
+
+          this.eventNameTextbox.setAttribute("hidden", "true");
+          this.eventNameLabel.removeAttribute("hidden");
+          return;
+        ]]></body>
+      </method>
+    </implementation>
+
+    <handlers>
+      <handler event="contextmenu" phase="capturing"><![CDATA[
+       // If the middle/right button was used for click just select the item.
+        this.select(event);
+      ]]></handler>
+      <handler event="click" button="0"><![CDATA[
+        if (this.mEditing) {
+            return;
+        }
+
+        // If the left button was used and the item is already selected start
+        // the 'single click edit' timeout. Otherwise select the item too.
+        // Also, check if the calendar is readOnly or we are offline.
+
+        if (this.selected && isCalendarWritable(this.mOccurrence.calendar)) {
+            var self = this;
+            if (this.editingTimer) {
+                clearTimeout(this.editingTimer);
+            }
+            this.editingTimer = setTimeout(function alldayTimeout() { self.startEditing(); }, 350);
+        } else {
+            this.select(event);
+            event.stopPropagation();
+        }
+      ]]></handler>
+
+      <handler event="dblclick" button="0"><![CDATA[
+        event.stopPropagation();
+
+        // stop 'single click edit' timeout (if started)
+        if (this.editingTimer) {
+            clearTimeout(this.editingTimer);
+            this.editingTimer = null;
+        }
+
+        if (this.calendarView && this.calendarView.controller) {
+            var item = (event.ctrlKey) ? this.mOccurrence.parentItem : this.mOccurrence;
+            this.calendarView.controller.modifyOccurrence(item);
+        }
+      ]]></handler>
+      <handler event="mouseover"><![CDATA[
+        if (this.calendarView && this.calendarView.controller) {
+            event.stopPropagation();
+            onMouseOverItem(event);
+        }
+      ]]></handler>
+      <handler event="draggesture"><![CDATA[
+        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
+                          getService(Components.interfaces.nsIDragService);
+        var transfer = Components.classes["@mozilla.org/widget/transferable;1"].
+                       createInstance(Components.interfaces.nsITransferable);
+        transfer.addDataFlavor("text/calendar");
+
+        var item = this.mOccurrence;
+        if (item.calendar.readOnly)
+            return;
+        if (!item.startDate || !item.startDate.isDate)
+            return;
+        if (!this.selected)
+            this.select(event);
+
+        var flavourProvider = {
+            QueryInterface: function(aIID) {
+                return doQueryInterface(this, null, aIID,  [Components.interfaces.nsIFlavorDataProvider]);
+            },
+            item: item,
+
+            getFlavorData: function(aInTransferable, aInFlavor, aOutData, aOutDataLen) {
+                if ((aInFlavor == "application/vnd.x-moz-cal-event") ||
+                    (aInFlavor == "application/vnd.x-moz-cal-task")) {
+                    aOutData.value = this.item;
+                    aOutDataLen.value = 1;
+                } else {
+                    ASSERT(false, "error:"+aInFlavor);
+                }
+            }
+        };
+
+        if (isEvent(item)) {
+          transfer.addDataFlavor("application/vnd.x-moz-cal-event");
+          transfer.setTransferData("application/vnd.x-moz-cal-event", flavourProvider, 0);
+        } else if (isToDo(item)) {
+          transfer.addDataFlavor("application/vnd.x-moz-cal-task");
+          transfer.setTransferData("application/vnd.x-moz-cal-task", flavourProvider, 0);
+        }
+
+        // Also set some normal data-types, in case we drag into another app
+        var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"].
+                                    createInstance(Components.interfaces.calIIcsSerializer);
+        serializer.addItems([item], 1);
+
+        var supportsString = Components.classes["@mozilla.org/supports-string;1"].
+                             createInstance(Components.interfaces.nsISupportsString);
+        supportsString.data = serializer.serializeToString();
+        transfer.setTransferData("text/calendar", supportsString, supportsString.data.length*2);
+        transfer.setTransferData("text/unicode", supportsString, supportsString.data.length*2);
+
+        var action = dragService.DRAGDROP_ACTION_MOVE;
+        var supArray = Components.classes["@mozilla.org/supports-array;1"].
+                       createInstance(Components.interfaces.nsISupportsArray);
+        supArray.AppendElement(transfer);
+
+        dragService.invokeDragSession(this, supArray, null, action);
+      ]]></handler>
+    </handlers>
+  </binding>
+
+  <binding id="calendar-category-box">
+    <!-- calendar-views.css makes this binding hide if the categories attribute
+         is not specified -->
+    <content>
+      <xul:vbox anonid="category-box"
+                class="category-color-box calendar-event-selection"
+                xbl:inherits="categories">
+        <xul:hbox flex="1">
+          <xul:image class="calendar-category-box-gradient" height="1"/>
+        </xul:hbox>
+        <xul:hbox height="1"/>
+      </xul:vbox>
+    </content>
+  </binding>
+
+</bindings>

@@ -1,0 +1,10 @@
+calendar.jar:
++  skin/classic/calendar/calendar.css
+   skin/classic/calendar/offline-online.png
+   skin/classic/calendar/Throbber.png
+   skin/classic/calendar/Throbber.gif
+   skin/classic/calendar/cal-icon32.png         (/calendar/base/themes/winstripe/cal-icon32.png)
+
+classic.jar:
+   icon.png
+   preview.png

@@ -1,0 +1,286 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2006
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Michael Buettner <michael.buettner@sun.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <binding id="recurrence-preview" extends="xul:box">
+    <resources>
+      <stylesheet src="chrome://calendar/content/widgets/calendar-widget-bindings.css"/>
+    </resources>               
+    <content>
+      <xul:box flex="1" style="overflow: hidden;">
+        <xul:grid flex="1" anonid="mainbox">
+          <xul:columns>
+            <xul:column anonid="column"/>
+            <xul:column flex="1"/>
+          </xul:columns>
+          <xul:rows>
+            <xul:row anonid="row">
+              <xul:minimonth anonid="minimonth" readonly="true"/>
+              <xul:minimonth anonid="minimonth" readonly="true"/>
+              <xul:minimonth anonid="minimonth" readonly="true"/>
+              <xul:spacer/>
+            </xul:row>
+          </xul:rows>
+        </xul:grid>
+      </xul:box>
+    </content>
+
+    <implementation>
+
+      <field name="mRecurrenceInfo">null</field>
+      <field name="mResizeHandler">null</field>
+      <field name="mDateTime">null</field>
+
+      <constructor><![CDATA[
+        var self = this;
+        this.mResizeHandler = function recurrence_preview_resizeHandler() {
+            self.onResize();
+        };
+        window.addEventListener("resize", this.mResizeHandler, true);
+      ]]></constructor>
+
+      <destructor><![CDATA[
+        window.removeEventListener("resize", this.mResizeHandler, true);
+      ]]></destructor>
+
+      <property name="dateTime">
+        <setter><![CDATA[
+            return this.mDateTime = val.clone();
+        ]]></setter>
+        <getter><![CDATA[
+            if (this.mDateTime == null) {
+                this.mDateTime = now();
+            }
+            return this.mDateTime;
+        ]]></getter>
+      </property>
+      <method name="onResize">
+        <body><![CDATA[
+          var mainbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "mainbox");
+          var minimonth =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "minimonth");
+
+          var row =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "row");
+          var rows = row.parentNode;
+
+          var contentWidth = minimonth.boxObject.width;
+          var containerWidth =
+              document.getAnonymousNodes(this)[0]
+                  .boxObject.width;
+
+          // Now find out how much elements can be displayed.
+          // this is a simple division which always yields a positive integer value.
+          var numHorizontal =
+              (containerWidth -
+                  (containerWidth % contentWidth)) /
+                      contentWidth;
+
+          var contentHeight = minimonth.boxObject.height;
+          var containerHeight =
+              document.getAnonymousNodes(this)[0]
+                  .boxObject.height;
+
+          // Now find out how much elements can be displayed.
+          // this is a simple division which always yields a positive integer value.
+          var numVertical =
+              (containerHeight -
+                  (containerHeight % contentHeight)) /
+                      contentHeight;
+          numVertical = Math.max(1, numVertical);
+
+          // Count the number of existing rows
+          var numRows = 0;
+          var rowIterator = row;
+          while (rowIterator) {
+              numRows++;
+              rowIterator = rowIterator.nextSibling;
+          }
+
+          // Adjust rows
+          while (numRows < numVertical) {
+              var newNode = row.cloneNode(true);
+              rows.appendChild(newNode);
+              numRows++;
+          }
+          while (numRows > numVertical) {
+              rows.removeChild(rows.firstChild);
+              numRows--
+          }
+
+          // Adjust columns in the grid
+          var column =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "column");
+          var columns = column.parentNode;
+          while ((columns.childNodes.length - 1) < numHorizontal) {
+              var newColumn = column.cloneNode(false);
+              columns.insertBefore(newColumn, column.nextSibling);
+          }
+          while ((columns.childNodes.length - 1) > numHorizontal) {
+              columns.removeChild(columns.firstChild);
+          }
+
+          // Walk all rows and adjust column elements
+          row = document.getAnonymousElementByAttribute(
+                   this, "anonid", "row");
+          while (row) {
+              var firstChild = row.firstChild;
+              while ((row.childNodes.length - 1) < numHorizontal) {
+                  var newNode = firstChild.cloneNode(true);
+                  firstChild.parentNode.insertBefore(newNode, firstChild);
+              }
+              while ((row.childNodes.length - 1) > numHorizontal) {
+                  row.removeChild(row.firstChild);
+              }
+              row = row.nextSibling;
+          }
+
+          this.updateContent();
+          this.updatePreview(this.mRecurrenceInfo);
+        ]]></body>
+      </method>
+
+      <method name="updateContent">
+        <body><![CDATA[
+          var date = this.dateTime.clone().jsDate;
+          var row = document.getAnonymousElementByAttribute(
+                        this, "anonid", "row");
+          while (row) {
+              var numChilds = row.childNodes.length - 1;
+              for (var i = 0; i < numChilds; i++) {
+                  var minimonth = row.childNodes[i];
+                  minimonth.showMonth(date);
+                  date.setMonth(date.getMonth() + 1);
+              }
+              row = row.nextSibling;
+          }
+        ]]></body>
+      </method>
+
+      <method name="updatePreview">
+        <parameter name="aRecurrenceInfo"/>
+        <body><![CDATA[
+          this.mRecurrenceInfo = aRecurrenceInfo;
+          var start = this.dateTime.clone();
+          start.day = 1;
+          start.hour = 0;
+          start.minute = 0;
+          start.second = 0;
+          var end = start.clone();
+          end.month++;
+                      
+          // the 'minimonth' controls are arranged in a
+          // grid, sorted by rows first -> iterate the rows that may exist.
+          var row = document.getAnonymousElementByAttribute(this, "anonid", "row");
+          while (row) {
+          
+              // now iterater all the child nodes of this row
+              // in order to visit each minimonth in turn.
+              var numChilds = row.childNodes.length - 1;
+              for (var i = 0; i < numChilds; i++) {
+              
+                  // we now have one of the minimonth controls while 'start'
+                  // and 'end' are set to the interval this minimonth shows.
+                  var minimonth = row.childNodes[i];
+                  minimonth.showMonth(start.jsDate);
+                  if (aRecurrenceInfo) {
+                      
+                      // retrieve an array of dates that represents all occurrences
+                      // that fall into this time interval [start,end[.
+                      // note: the following loop assumes that this array conains
+                      // dates that are strictly monotonically increasing.
+                      // should getOccurrenceDates() not enforce this assumption we
+                      // need to fall back to some different algorithm.
+                      var dates = aRecurrenceInfo.getOccurrenceDates(start, end, 0, {});
+                      
+                      // now run throgh all days of this month and set the
+                      // 'busy' attribute with respect to the occurrence array.
+                      var index = 0;
+                      var occurrence = null;
+                      if (index < dates.length) {
+                          occurrence =
+                              dates[index++]
+                                  .getInTimezone(start.timezone);
+                      }
+                      var current = start.clone();
+                      while (current.compare(end) < 0) {
+                        var box = minimonth.getBoxForDate(current.jsDate);
+                        if (box) {
+                            if (occurrence &&
+                                occurrence.day == current.day &&
+                                occurrence.month == current.month &&
+                                occurrence.year == current.year) {
+                                box.setAttribute("busy", 1);
+                                if (index < dates.length) {
+                                    occurrence =
+                                        dates[index++]
+                                            .getInTimezone(start.timezone);
+                                    // take into account that the very next occurrence
+                                    // can happen at the same day as the previous one.
+                                    if (occurrence.day == current.day &&
+                                        occurrence.month == current.month &&
+                                        occurrence.year == current.year) {
+                                        continue;
+                                    }
+                                } else {
+                                    occurrence = null;
+                                }
+                            } else {
+                                box.removeAttribute("busy");
+                            }
+                        }
+                        current.day++;
+                      }
+                  }
+                  start.month++;
+                  end.month++;
+              }
+              row = row.nextSibling;
+          }
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>
