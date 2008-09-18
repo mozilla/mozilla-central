@@ -215,6 +215,7 @@
 #include "nsImapMailFolder.h"
 #include "nsImapUrl.h"
 #include "nsImapProtocol.h"
+#include "nsAutoSyncManager.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // local includes
@@ -459,6 +460,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsImapIncomingServer)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsImapService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsImapMailFolder)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsImapMockChannel)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAutoSyncManager)
 
 ////////////////////////////////////////////////////////////////////////////////
 // local factories
@@ -1095,6 +1097,9 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_IMAPPROTOCOLINFO_CONTRACTID, nsImapServiceConstructor },
     { "imap folder content handler", NS_IMAPSERVICE_CID,
       NS_CONTENT_HANDLER_CONTRACTID_PREFIX"x-application-imapfolder", nsImapServiceConstructor},
+    { "Auto-Sync Manager", NS_AUTOSYNCMANAGER_CID,
+      NS_AUTOSYNCMANAGER_CONTRACTID, 
+      nsAutoSyncManagerConstructor },
 
     ////////////////////////////////////////////////////////////////////////////////
     // local components
