@@ -351,6 +351,11 @@ NS_IMETHODIMP nsMailboxService::OpenAttachment(const char *aContentType,
   urlString += aFileName;
   CreateStartupUrl(urlString.get(), getter_AddRefs(URL));
   nsresult rv;
+
+  nsCOMPtr<nsIMsgMailNewsUrl> mailboxUrl(do_QueryInterface(URL, &rv));
+  if (NS_SUCCEEDED(rv) && mailboxUrl)
+    mailboxUrl->SetMsgWindow(aMsgWindow);
+
   // try to run the url in the docshell...
   nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(aDisplayConsumer, &rv));
   // if we were given a docShell, run the url in the docshell..otherwise just run it normally.
