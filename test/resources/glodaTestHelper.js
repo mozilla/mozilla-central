@@ -52,6 +52,10 @@ do_import_script("../mailnews/local/test/unit/head_maillocal.js");
 Components.utils.import("resource://gloda/modules/public.js");
 Components.utils.import("resource://gloda/modules/indexer.js");
 
+/** Inject messages using a POP3 fake-server. */
+const INJECT_FAKE_SERVER = 1;
+/** Inject messages using freshly created mboxes. */
+const INJECT_MBOX = 2;
 
 /**
  * Convert a list of synthetic messages to a form appropriate to feed to the
@@ -82,12 +86,19 @@ function imsInit() {
     // The indexer doesn't need to worry about load; zero his rescheduling time. 
     //GlodaIndexer._indexInterval = 0;
     
-    // set up POP3 fakeserver to feed things in...
-    [ims.daemon, ims.server] = setupServerDaemon();
-    ims.incomingServer = createPop3ServerAndLocalFolders();
-
-    ims.pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
-                        .getService(Ci.nsIPop3Service);
+    if (ims.injectMechanism == INJECT_FAKE_SERVER) {
+      // set up POP3 fakeserver to feed things in...
+      [ims.daemon, ims.server] = setupServerDaemon();
+      // (this will call loadLocalMailAccount())
+      ims.incomingServer = createPop3ServerAndLocalFolders();
+  
+      ims.pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
+                          .getService(Ci.nsIPop3Service);
+    }
+    else if (ims.injectMechanism == INJECT_MBOX) {
+      // we need a local account to stash the mboxes under.
+      loadLocalMailAccount();
+    }
     
     ims.inited = true;
   }
@@ -122,8 +133,28 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
   ims.previousValue = undefined;
   ims.onDone = aOnDone;
 
-  ims.daemon.setMessages(_synthMessagesToFakeRep(aSynthMessages));
-  do_timeout(0, "driveFakeServer();");
+  if (ims.injectMechanism == INJECT_FAKE_SERVER) {
+    ims.daemon.setMessages(_synthMessagesToFakeRep(aSynthMessages));
+    do_timeout(0, "driveFakeServer();");
+  }
+  else if (ims.injectMechanism == INJECT_MBOX) {
+    ims.mboxName = "injecty" + ims.nextMboxNumber++;
+    writeMessagesToMbox(aSynthMessages, gProfileDir,
+                        "Mail/Local Folders/" + ims.mboxName);
+
+    let rootFolder = gLocalIncomingServer.rootMsgFolder;
+    let subFolder = rootFolder.addSubfolder(ims.mboxName);
+
+    // we need to explicitly kick off indexing...
+    updateFolderAndNotify(subFolder, function() {
+      GlodaIndexer.indexFolder(subFolder);
+    });
+  }
+
+}
+
+function injectMessagesUsing(aInjectMechanism) {
+  indexMessageState.injectMechanism = aInjectMechanism;
 }
 
 var indexMessageState = {
@@ -142,6 +173,9 @@ var indexMessageState = {
   /** the function to call once we have indexed all the messages */
   onDone: null,
   
+  injectMechanism: INJECT_FAKE_SERVER,
+  
+  /* === Fake Server State === */
   /** nsMailServer instance with POP3_RFC1939 handler */
   server: null,
   serverStarted: false,
@@ -151,6 +185,10 @@ var indexMessageState = {
   incomingServer: null,
   /** pop3 service */
   pop3Service: null,
+
+  /* === MBox Injection State === */
+  nextMboxNumber: 0,
+  mboxName: null,
 
   /**
    * Listener to handle the completion of the POP3 message retrieval (one way or
@@ -321,9 +359,10 @@ var messageIndexerListener = {
       //  verification fails, using do_check_*/do_throw; we don't care about
       //  the return value except to propagate forward to subsequent calls.)
       for (let iMessage=0; iMessage < ims.inputMessages.length; iMessage++) {
-        ims.previousValue = ims.verifier(ims.inputMessages[iMessage],
-                                         ims.glodaMessages[iMessage],
-                                         ims.previousValue);
+        if (ims.verifier)
+          ims.previousValue = ims.verifier(ims.inputMessages[iMessage],
+                                           ims.glodaMessages[iMessage],
+                                           ims.previousValue);
       }
 
       if (ims.onDone)
@@ -511,7 +550,10 @@ function _gh_test_iterator() {
     yield glodaHelperTests[iTest]();
   }
 
-  killFakeServer();
+  if (indexMessageState.injectMechanism == INJECT_FAKE_SERVER) {
+    killFakeServer();
+  }
+
   do_test_finished();
   
   // once the control flow hits the root after do_test_finished, we're done,

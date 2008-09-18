@@ -306,6 +306,11 @@ GlodaMessage.prototype = {
       return null;
   },
   
+  /**
+   * Return the (normalized, not stored on the row) attributes in a raw form,
+   *  aka tuples of [attribute id, parameter, value].  If you want to
+   *  generically know about the attributes available, use attributes.
+   */
   get rawAttributes() {
     if (this._attributes == null)
       this._attributes = this._datastore.getMessageAttributes(this); 
