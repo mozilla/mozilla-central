@@ -43,6 +43,7 @@
 <?xul-overlay href="chrome://messenger/content/msgHdrViewOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/mailWindowOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/mailOverlay.xul"?>
+<?xul-overlay href="chrome://messenger/content/editContactOverlay.xul"?>
 
 <!DOCTYPE window [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
@@ -86,6 +87,7 @@
   <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/msgViewNavigation.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
+  <script type="application/x-javascript" src="chrome://messenger/content/editContactOverlay.js"/>
 
   <commandset id="mailCommands">
     <commandset id="mailFileMenuItems"/>
@@ -112,6 +114,7 @@
   </keyset>
 
   <popupset>
+    <panel id="editContactPanel"/>
     <popup id="emailAddressPopup" popupanchor="bottomleft"
            onpopupshowing="setupEmailAddressPopup(document.popupNode); goUpdateCommand('cmd_createFilterFromPopup')">
       <menuitem id="emailAddressPlaceHolder" label=""
