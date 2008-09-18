@@ -2636,7 +2636,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
       }
     }
     // Send the itemAdded notification in case we didn't send the itemMoveCopyCompleted notification earlier.
-    if (!numHdrs)
+    // Posting news messages involves this, yet doesn't have the newHdr initialized, so don't send any
+    // notifications in that case.
+    if (!numHdrs && newHdr)
     {
       nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)

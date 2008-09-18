@@ -94,9 +94,10 @@ nsNNTPArticleList::AddArticleKey(PRInt32 key)
     // if there are keys in the database that aren't in the newsgroup
     // on the server, remove them. We probably shouldn't do this if
     // we have a copy of the article offline.
+    nsTArray<nsMsgKey> keysDeleted;
     while (idInDBToCheck < key)
     {
-      m_newsFolder->RemoveMessage(idInDBToCheck);
+      keysDeleted.AppendElement(idInDBToCheck);
 #ifdef DEBUG
       m_idsDeleted.AppendElement(idInDBToCheck);
 #endif
@@ -106,6 +107,9 @@ nsNNTPArticleList::AddArticleKey(PRInt32 key)
     }
     if (idInDBToCheck == key)
       m_dbIndex++;
+
+    if (keysDeleted.Length())
+      m_newsFolder->RemoveMessages(keysDeleted);
   }
   return NS_OK;
 }

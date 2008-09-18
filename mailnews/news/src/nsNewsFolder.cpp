@@ -94,6 +94,8 @@
 #include "nsNativeCharsetUtils.h"
 #include "nsIMsgAccountManager.h"
 #include "nsArrayUtils.h"
+#include "nsIMsgFolderNotificationService.h"
+#include "nsIMutableArray.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -1464,7 +1466,41 @@ NS_IMETHODIMP nsMsgNewsFolder::RemoveMessage(nsMsgKey key)
 {
   nsresult rv = GetDatabase(nsnull);
   NS_ENSURE_SUCCESS(rv, rv); // if GetDatabase succeeds, mDatabase will be non-null
+
+  // Notify listeners of a delete for a single message
+  nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+  if (notifier)
+  {
+    nsCOMPtr<nsIMsgDBHdr> msgHdr;
+    rv = mDatabase->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIMutableArray> msgHdrs(do_CreateInstance(NS_ARRAY_CONTRACTID));
+    msgHdrs->AppendElement(msgHdr, PR_FALSE);
+
+    notifier->NotifyMsgsDeleted(msgHdrs);
+  }
   return mDatabase->DeleteMessage(key, nsnull, PR_FALSE);
+}
+
+NS_IMETHODIMP nsMsgNewsFolder::RemoveMessages(nsTArray<nsMsgKey> &aMsgKeys)
+{
+  nsresult rv = GetDatabase(nsnull);
+  NS_ENSURE_SUCCESS(rv, rv); // if GetDatabase succeeds, mDatabase will be non-null
+  
+  // Notify listeners of a multiple message delete
+  nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+
+  if (notifier)
+  {
+    nsCOMPtr<nsIMutableArray> msgHdrs(do_CreateInstance(NS_ARRAY_CONTRACTID));
+    rv = MsgGetHeadersFromKeys(mDatabase, aMsgKeys, msgHdrs);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    notifier->NotifyMsgsDeleted(msgHdrs);
+  }
+
+  return mDatabase->DeleteMessages(&aMsgKeys, nsnull);
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::CancelComplete()

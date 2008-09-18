@@ -38,10 +38,16 @@
 #include "nsISupports.idl"
 #include "nsIMsgFolder.idl"
 
+%{C++
+#include "nsTArray.h"
+%}
+
 interface nsIMsgWindow;
 interface nsINntpIncomingServer;
 
-[scriptable, uuid(B6333473-54DC-47C4-B179-3D4744946C95)]
+[ref] native nsMsgKeyArrayRef(nsTArray<nsMsgKey>);
+
+[scriptable, uuid(7fe8c961-3fce-41e2-aa49-9ea3bc332d40)]
 interface nsIMsgNewsFolder : nsISupports {
   attribute ACString groupUsername;
   attribute ACString groupPassword;
@@ -79,6 +85,7 @@ interface nsIMsgNewsFolder : nsISupports {
   void SetNewsrcHasChanged(in boolean newsrcHasChanged);
   void updateSummaryFromNNTPInfo(in long oldest, in long youngest, in long total);
   void removeMessage(in nsMsgKey key); 
+  [noscript] void removeMessages(in nsMsgKeyArrayRef aMsgKeys);
   void cancelComplete();
   void cancelFailed();
 

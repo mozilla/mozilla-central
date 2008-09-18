@@ -91,6 +91,7 @@
 #include "nsIMsgWindow.h"
 #include "nsIDocShell.h"
 #include "nsIMutableArray.h"
+#include "nsIMsgFolderNotificationService.h"
 
 // update status on header download once per second
 #define MIN_STATUS_UPDATE_INTERVAL PR_USEC_PER_SEC
@@ -1125,12 +1126,19 @@ nsNNTPNewsgroupList::CallFilters()
   }
 
   PRUint32 count = m_newHeaders.Count();
-  
+
+  // Notify MsgFolderListeners of message adds
+  nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+
   for (PRUint32 i = 0; i < count; i++)
   {
     if (!filterCount && !serverFilterCount)
     {
       m_newsDB->AddNewHdrToDB(m_newHeaders[i], PR_TRUE);
+
+      if (notifier)
+        notifier->NotifyMsgAdded(m_newHeaders[i]);
+
       continue;
     }
     m_addHdrToDB = PR_TRUE;
@@ -1191,7 +1199,11 @@ nsNNTPNewsgroupList::CallFilters()
     NS_ENSURE_SUCCESS(rv,rv);
 
     if (m_addHdrToDB)
+    {
       m_newsDB->AddNewHdrToDB(m_newMsgHdr, PR_TRUE);
+      if (notifier)
+        notifier->NotifyMsgAdded(m_newMsgHdr);
+    }
   }
   m_newHeaders.Clear();
   return NS_OK;
