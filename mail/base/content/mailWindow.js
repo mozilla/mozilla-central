@@ -417,14 +417,15 @@ function loadStartPage()
     gMessageNotificationBar.clearMsgNotifications();
     var startpageenabled = pref.getBoolPref("mailnews.start_page.enabled");
     // only load the start page if we are online
-    var startpage = getFormattedURL(startPageUrlPref());
+    var startpage = getFormattedURLPref(startPageUrlPref());
     // load about:blank as the start page if we are offline or we don't have a start page url...
+    dump("loading: " + startpage + "\n");
     GetMessagePaneFrame().location.href = startpageenabled && startpage && MailOfflineMgr.isOnline() ? startpage : "about:blank";
     ClearMessageSelection();
   }
   catch (ex)
   {
-    dump("Error loading start page.\n");
+    dump("Error loading start page: " + ex + "\n");
     return;
   }
 }

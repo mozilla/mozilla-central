@@ -312,7 +312,7 @@ function openSupportURL()
  */
 function openFormattedURL(aPrefName)
 {
-  var formattedUrl = getFormattedURL(aPrefName);
+  var formattedUrl = getFormattedURLPref(aPrefName);
   
   var uri = Components.classes["@mozilla.org/network/io-service;1"].
                        getService(Components.interfaces.nsIIOService).
@@ -330,11 +330,9 @@ function openFormattedURL(aPrefName)
  *  @param aPrefName - name of the pref that holds the url we want to format and open
  *  @returns the formatted url string
  */
-function getFormattedURL(aPrefName)
+function getFormattedURLPref(aPrefName)
 {
-  var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-  var format = prefBranch.getComplexValue(aPrefName, Components.interfaces.nsISupportsString).data;
   var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"].
                              getService(Components.interfaces.nsIURLFormatter);
-  return formatter.formatURL(format);
+  return formatter.formatURLPref(aPrefName);
 }
