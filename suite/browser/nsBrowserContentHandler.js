@@ -36,29 +36,30 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const nsISupports            = Components.interfaces.nsISupports;
-const nsIBrowserDOMWindow    = Components.interfaces.nsIBrowserDOMWindow;
-const nsIBrowserHistory      = Components.interfaces.nsIBrowserHistory;
-const nsIChannel             = Components.interfaces.nsIChannel;
-const nsICommandLine         = Components.interfaces.nsICommandLine;
-const nsICommandLineHandler  = Components.interfaces.nsICommandLineHandler;
-const nsIComponentRegistrar  = Components.interfaces.nsIComponentRegistrar;
-const nsICategoryManager     = Components.interfaces.nsICategoryManager;
-const nsIContentHandler      = Components.interfaces.nsIContentHandler;
-const nsIDOMWindow           = Components.interfaces.nsIDOMWindow;
-const nsIFactory             = Components.interfaces.nsIFactory;
-const nsIFileURL             = Components.interfaces.nsIFileURL;
-const nsIHttpProtocolHandler = Components.interfaces.nsIHttpProtocolHandler;
-const nsINetUtil             = Components.interfaces.nsINetUtil;
-const nsIIOService           = Components.interfaces.nsIIOService;
-const nsIPrefService         = Components.interfaces.nsIPrefService;
-const nsIPrefBranch          = Components.interfaces.nsIPrefBranch;
-const nsIPrefLocalizedString = Components.interfaces.nsIPrefLocalizedString;
-const nsISupportsString      = Components.interfaces.nsISupportsString;
-const nsIURIFixup            = Components.interfaces.nsIURIFixup;
-const nsIWindowMediator      = Components.interfaces.nsIWindowMediator;
-const nsIWindowWatcher       = Components.interfaces.nsIWindowWatcher;
-const nsIWebNavigationInfo   = Components.interfaces.nsIWebNavigationInfo;
+const nsISupports             = Components.interfaces.nsISupports;
+const nsIBrowserDOMWindow     = Components.interfaces.nsIBrowserDOMWindow;
+const nsIBrowserHistory       = Components.interfaces.nsIBrowserHistory;
+const nsIChannel              = Components.interfaces.nsIChannel;
+const nsICommandLine          = Components.interfaces.nsICommandLine;
+const nsICommandLineHandler   = Components.interfaces.nsICommandLineHandler;
+const nsICommandLineValidator = Components.interfaces.nsICommandLineValidator;
+const nsIComponentRegistrar   = Components.interfaces.nsIComponentRegistrar;
+const nsICategoryManager      = Components.interfaces.nsICategoryManager;
+const nsIContentHandler       = Components.interfaces.nsIContentHandler;
+const nsIDOMWindow            = Components.interfaces.nsIDOMWindow;
+const nsIFactory              = Components.interfaces.nsIFactory;
+const nsIFileURL              = Components.interfaces.nsIFileURL;
+const nsIHttpProtocolHandler  = Components.interfaces.nsIHttpProtocolHandler;
+const nsINetUtil              = Components.interfaces.nsINetUtil;
+const nsIIOService            = Components.interfaces.nsIIOService;
+const nsIPrefService          = Components.interfaces.nsIPrefService;
+const nsIPrefBranch           = Components.interfaces.nsIPrefBranch;
+const nsIPrefLocalizedString  = Components.interfaces.nsIPrefLocalizedString;
+const nsISupportsString       = Components.interfaces.nsISupportsString;
+const nsIURIFixup             = Components.interfaces.nsIURIFixup;
+const nsIWindowMediator       = Components.interfaces.nsIWindowMediator;
+const nsIWindowWatcher        = Components.interfaces.nsIWindowWatcher;
+const nsIWebNavigationInfo    = Components.interfaces.nsIWebNavigationInfo;
 
 const NS_BINDING_ABORTED = 0x804b0002;
 const NS_ERROR_WONT_HANDLE_CONTENT = 0x805d0001;
@@ -237,6 +238,7 @@ var nsBrowserContentHandler = {
     if (iid.equals(nsISupports) ||
         iid.equals(nsICommandLineHandler) ||
         iid.equals(nsICommandLine) ||
+        iid.equals(nsICommandLineValidator) ||
         iid.equals(nsIContentHandler) ||
         iid.equals(nsIFactory))
       return this;
@@ -432,6 +434,30 @@ var nsBrowserContentHandler = {
 
   },
 
+  /* nsICommandLineValidator */
+  validate: function validate(cmdLine) {
+    var osintFlagIdx = cmdLine.findFlag("osint", false);
+
+    // If the osint flag is not present and we are not called by DDE then we're safe
+    if (cmdLine.state != nsICommandLine.STATE_REMOTE_EXPLICIT &&
+        cmdLine.findFlag("osint", false) == -1)
+    return;
+
+    // Other handlers may use osint so only handle the osint flag if a
+    // flag is also present and the command line is valid.
+    ["url", "news", "compose"].forEach(function(value) {
+      var flagIdx = cmdLine.findFlag(value, false);
+
+      if (flagIdx > -1) {
+        var testExpr = new RegExp("seamonkey" + value + ":");
+        if (cmdLine.length != flagIdx + 2 ||
+            testExpr.test(cmdLine.getArgument(flagIdx + 1)))
+          throw Components.results.NS_ERROR_ABORT;
+        cmdLine.handleFlag("osint", false);
+      }
+    });
+  },
+
   helpInfo: "  -browser <url>       Open a browser window.\n" +
             "  -url <url>           Open the specified url.\n" +
             "  -chrome <url>        Open the specified chrome.\n",
@@ -585,6 +611,9 @@ var Module = {
 
     catMan.addCategoryEntry("command-line-handler", "x-default",
                             BROWSER_CONTRACTID, true, true);
+    catMan.addCategoryEntry("command-line-validator",
+                            "b-default",
+                            BROWSER_CONTRACTID, true, true);
   },
     
   unregisterSelf: function unregisterSelf(compMgr, location, type) {
@@ -596,6 +625,8 @@ var Module = {
 
     catMan.deleteCategoryEntry("command-line-handler",
                                "x-default", true);
+    catMan.deleteCategoryEntry("command-line-validator",
+                               "b-default", true);
   },
 
   canUnload: function canUnload(compMgr) {
