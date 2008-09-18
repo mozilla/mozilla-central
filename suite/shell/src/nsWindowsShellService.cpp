@@ -214,12 +214,12 @@ OpenKeyForWriting(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey,
 //
 // - Windows Vista Protocol Handler
 //
-//   HKCU\SOFTWARE\Classes\SeaMonkey.Url.mailto (default) REG_SZ    SeaMonkey (Mail) URL
+//   HKCU\SOFTWARE\Classes\SeaMonkeyCOMPOSE (default)     REG_SZ    SeaMonkey (Mail) URL
 //                                       DefaultIcon      REG_SZ    <apppath>,0
 //                                       EditFlags        REG_DWORD 2
 //     shell\open\command                (default)        REG_SZ    <apppath> -osint -compose "%1"
 //
-//   HKCU\SOFTWARE\Classes\SeaMonkey.Url.news (default)   REG_SZ    SeaMonkey (News) URL
+//   HKCU\SOFTWARE\Classes\SeaMonkeyNEWS (default)        REG_SZ    SeaMonkey (News) URL
 //                                       DefaultIcon      REG_SZ    <apppath>,0
 //                                       EditFlags        REG_DWORD 2
 //     shell\open\command                (default)        REG_SZ    <apppath> -osint -news "%1"
@@ -298,8 +298,8 @@ typedef enum {
 #define CLS_HTML "SeaMonkeyHTML"
 #define CLS_URL "SeaMonkeyURL"
 #define CLS_EML "SeaMonkeyEML"
-#define CLS_MAILTOURL "SeaMonkey.Url.mailto"
-#define CLS_NEWSURL "SeaMonkey.Url.news"
+#define CLS_MAILTOURL "SeaMonkeyCOMPOSE"
+#define CLS_NEWSURL "SeaMonkeyNEWS"
 #define SMI "SOFTWARE\\Clients\\StartMenuInternet\\"
 #define MAILCLIENTS "SOFTWARE\\Clients\\Mail\\"
 #define NEWSCLIENTS "SOFTWARE\\Clients\\News\\"

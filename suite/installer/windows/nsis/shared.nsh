@@ -173,8 +173,8 @@
   ; protocol handler
   ${AddHandlerValues} "$0\SeaMonkeyEML"  "$2" "$8,1" "${AppRegNameMail} Document" "" ""
 
-  ${AddHandlerValues} "$0\SeaMonkey.Url.mailto"  "$3" "$8,0" "${AppRegNameMail} URL" "true" ""
-  ${AddHandlerValues} "$0\SeaMonkey.Url.news" "$2" "$8,0" "${AppRegNameNews} URL" "true" ""
+  ${AddHandlerValues} "$0\SeaMonkeyCOMPOSE"  "$3" "$8,0" "${AppRegNameMail} URL" "true" ""
+  ${AddHandlerValues} "$0\SeaMonkeyNEWS" "$2" "$8,0" "${AppRegNameNews} URL" "true" ""
 
   ; An empty string is used for the 4th & 5th params because the following
   ; protocol handlers already have a display name and additional keys required
@@ -319,7 +319,7 @@
   WriteRegStr HKLM "$0\Capabilities" "ApplicationName" "${AppRegNameMail}"
   WriteRegStr HKLM "$0\Capabilities\FileAssociations" ".eml"   "SeaMonkeyEML"
   WriteRegStr HKLM "$0\Capabilities\StartMenu" "Mail" "${BrandFullNameInternal}"
-  WriteRegStr HKLM "$0\Capabilities\URLAssociations" "mailto" "SeaMonkey.Url.mailto"
+  WriteRegStr HKLM "$0\Capabilities\URLAssociations" "mailto" "SeaMonkeyCOMPOSE"
 
   ; Vista Registered Application
   WriteRegStr HKLM "Software\RegisteredApplications" "${AppRegNameMail}" "$0\Capabilities"
@@ -339,9 +339,9 @@
   WriteRegStr HKLM "$0\Capabilities" "ApplicationDescription" "$(REG_APP_DESC)"
   WriteRegStr HKLM "$0\Capabilities" "ApplicationIcon" "$8,0"
   WriteRegStr HKLM "$0\Capabilities" "ApplicationName" "${AppRegNameNews}"
-  WriteRegStr HKLM "$0\Capabilities\URLAssociations" "nntp" "SeaMonkey.Url.news"
-  WriteRegStr HKLM "$0\Capabilities\URLAssociations" "news" "SeaMonkey.Url.news"
-  WriteRegStr HKLM "$0\Capabilities\URLAssociations" "snews" "SeaMonkey.Url.news"
+  WriteRegStr HKLM "$0\Capabilities\URLAssociations" "nntp" "SeaMonkeyNEWS"
+  WriteRegStr HKLM "$0\Capabilities\URLAssociations" "news" "SeaMonkeyNEWS"
+  WriteRegStr HKLM "$0\Capabilities\URLAssociations" "snews" "SeaMonkeyNEWS"
 
   ; Protocols
   StrCpy $1 "$\"$8$\" -mail $\"%1$\""
@@ -540,7 +540,7 @@
   GetFullPathName $8 "$INSTDIR\${FileMainEXE}"
 
   StrCpy $1 "$\"$8$\" -compose $\"%1$\""
-  ${AddHandlerValues} "$0\SeaMonkey.Url.mailto" "$1" "$8,0" "${AppRegNameMail} URL" "true" ""
+  ${AddHandlerValues} "$0\SeaMonkeyCOMPOSE" "$1" "$8,0" "${AppRegNameMail} URL" "true" ""
 
   ReadRegStr $2 SHCTX "$0\mailto\shell\open\command" ""
   ${GetPathFromString} "$2" $3
@@ -555,7 +555,7 @@
   ${AddHandlerValues} "$0\SeaMonkeyEML" "$1" "$8,0" "${AppRegNameMail} Document" "" ""
 
   StrCpy $1 "$\"$8$\" -mail $\"%1$\""
-  ${AddHandlerValues} "$0\SeaMonkey.Url.news" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
+  ${AddHandlerValues} "$0\SeaMonkeyNEWS" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
 
   ReadRegStr $2 SHCTX "$0\news\shell\open\command" ""
   ${GetPathFromString} "$2" $3
