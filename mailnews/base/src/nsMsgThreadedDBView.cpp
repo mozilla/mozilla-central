@@ -607,7 +607,17 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
     {	// Fix flags on thread header.
       PRInt32 threadCount;
       PRUint32 threadFlags;
+      PRBool moveThread = PR_FALSE;
       nsMsgViewIndex threadIndex = ThreadIndexOfMsg(newKey, nsMsgViewIndex_None, &threadCount, &threadFlags);
+      nsCOMPtr <nsIMsgThread> threadHdr;
+      m_db->GetThreadContainingMsgHdr(newHdr, getter_AddRefs(threadHdr));
+      if (threadHdr && m_sortType == nsMsgViewSortType::byDate)
+      {
+        PRUint32 newestMsgInThread = 0, msgDate = 0;
+        threadHdr->GetNewestMsgDate(&newestMsgInThread);
+        newHdr->GetDateInSeconds(&msgDate);
+        moveThread = (msgDate == newestMsgInThread);
+      }
       if (threadIndex != nsMsgViewIndex_None)
       {
         PRUint32	flags = m_flags[threadIndex];
@@ -658,13 +668,14 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
           // top of thread, change the keys array.
           m_keys[threadIndex] = newKey;
         }
+        if (moveThread)
+          MoveThreadAt(threadIndex);
+        else
         // note change, to update the parent thread's unread and total counts
-        NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
+          NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
       }
       else // adding msg to thread that's not in view.
       {
-        nsCOMPtr <nsIMsgThread> threadHdr;
-        m_db->GetThreadContainingMsgHdr(newHdr, getter_AddRefs(threadHdr));
         if (threadHdr)
         {
           AddMsgToThreadNotInView(threadHdr, newHdr, ensureListed);
@@ -722,6 +733,73 @@ nsMsgViewIndex nsMsgThreadedDBView::GetInsertInfoForNewHdr(nsIMsgDBHdr *newHdr, 
   return parentIndex;
 }
 
+// This method removes the thread at threadIndex from the view 
+// and puts it back in its new position, determined by the sort order.
+// And, if the selection is affected, save and restore the selection.
+void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
+{
+  // we need to check if the thread is collapsed or not...
+  // We want to turn off tree notifications so that we don't
+  // reload the current message.
+  // We also need to invalidate the range between where the thread was
+  // and where it ended up.
+  DisableChangeUpdates();
+
+  nsCOMPtr <nsIMsgDBHdr> threadHdr;
+
+  GetMsgHdrForViewIndex(threadIndex, getter_AddRefs(threadHdr));
+  PRInt32 childCount = 0;
+
+  nsMsgKey preservedKey;
+  nsAutoTArray<nsMsgKey, 1> preservedSelection;
+  SaveAndClearSelection(&preservedKey, preservedSelection);
+  PRUint32 saveFlags = m_flags[threadIndex];
+  PRBool threadIsExpanded = !(saveFlags & MSG_FLAG_ELIDED);
+
+  if (threadIsExpanded)
+  {
+    ExpansionDelta(threadIndex, &childCount);
+    childCount = -childCount;
+  }
+  nsTArray<nsMsgKey> threadKeys;
+  nsTArray<PRUint32> threadFlags;
+  nsTArray<PRUint8> threadLevels;
+
+  if (threadIsExpanded)
+  {
+    threadKeys.SetCapacity(childCount);
+    threadFlags.SetCapacity(childCount);
+    threadLevels.SetCapacity(childCount);
+    for (nsMsgViewIndex index = threadIndex + 1; 
+        index < GetSize() && m_levels[index]; index++)
+    {
+      threadKeys.AppendElement(m_keys[index]);
+      threadFlags.AppendElement(m_flags[index]);
+      threadLevels.AppendElement(m_levels[index]);
+    }
+    PRUint32 collapseCount;
+    CollapseByIndex(threadIndex, &collapseCount);
+  }
+  nsMsgDBView::RemoveByIndex(threadIndex);
+  nsMsgViewIndex newIndex;
+  AddHdr(threadHdr, &newIndex);
+
+  if (threadIsExpanded)
+  {
+    m_keys.InsertElementsAt(newIndex + 1, threadKeys);
+    m_flags.InsertElementsAt(newIndex + 1, threadFlags);
+    m_levels.InsertElementsAt(newIndex + 1, threadLevels);
+  }
+  m_flags[newIndex] = saveFlags;
+  // unfreeze selection.
+  RestoreSelection(preservedKey, preservedSelection);
+
+  EnableChangeUpdates();
+  nsMsgViewIndex lowIndex = threadIndex < newIndex ? threadIndex : newIndex;
+  nsMsgViewIndex highIndex = lowIndex == threadIndex ? newIndex : threadIndex;
+  NoteChange(lowIndex, highIndex - lowIndex + childCount, 
+              nsMsgViewNotificationCode::changed);
+}
 nsresult nsMsgThreadedDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, PRBool ensureListed)
 {
   nsresult rv = NS_OK;

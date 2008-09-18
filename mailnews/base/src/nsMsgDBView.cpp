@@ -3225,7 +3225,7 @@ struct IdDWord
     nsMsgKey    id;
     PRUint32    bits;
     PRUint32    dword;
-    nsISupports* folder;
+    nsIMsgFolder* folder;
 };
 
 struct IdKey : public IdDWord
@@ -3959,8 +3959,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
 
     if (folders)
     {
-      nsCOMPtr<nsISupports> curFolder;
-      folders->GetElementAt(numSoFar, getter_AddRefs(curFolder));
+      nsCOMPtr<nsIMsgFolder> curFolder = do_QueryElementAt(folders, numSoFar);
       info->folder = curFolder;
     }
     else
@@ -4487,61 +4486,122 @@ nsresult nsMsgDBView::GetThreadContainingIndex(nsMsgViewIndex index, nsIMsgThrea
   return GetThreadContainingMsgHdr(msgHdr, resultThread);
 }
 
-nsMsgViewIndex nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *hdr)
+nsMsgViewIndex 
+nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *msgHdr)
 {
-  nsMsgViewIndex retIndex = nsMsgViewIndex_None;
-  nsMsgViewIndex prevInsertIndex = nsMsgViewIndex_None;
-  nsMsgKey insertKey;
-  hdr->GetMessageKey(&insertKey);
+  // Take advantage of the fact that we're already sorted
+  // and find the insert index via a binary search, though expanded threads
+  // make that tricky.  
 
-  if (m_sortOrder == nsMsgViewSortOrder::ascending)
+  nsMsgViewIndex highIndex = m_keys.Length();
+  nsMsgViewIndex lowIndex = 0;
+  IdKeyPtr EntryInfo1, EntryInfo2;
+  EntryInfo1.key = nsnull;
+  EntryInfo2.key = nsnull;
+
+  nsresult rv;
+  PRUint16  maxLen;
+  eFieldType fieldType;
+  rv = GetFieldTypeAndLenForSort(m_sortType, &maxLen, &fieldType);
+  const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
+
+  int retStatus = 0;
+  msgHdr->GetMessageKey(&EntryInfo1.id);
+  msgHdr->GetFolder(&EntryInfo1.folder);
+  EntryInfo1.folder->Release();
+  //check if a custom column handler exists. If it does then grab it and pass it in
+  //to either GetCollationKey or GetLongField
+  nsIMsgCustomColumnHandler* colHandler = GetCurColumnHandlerFromDBInfo();
+
+  viewSortInfo comparisonContext;
+  comparisonContext.view = this;
+  comparisonContext.isSecondarySort = PR_FALSE;
+  comparisonContext.ascendingSort = (m_sortOrder == nsMsgViewSortOrder::ascending);
+  nsCOMPtr <nsIMsgDatabase> hdrDB;
+  EntryInfo1.folder->GetMsgDatabase(nsnull, getter_AddRefs(hdrDB));
+  comparisonContext.db = hdrDB.get();
+  switch (fieldType)
   {
-    // loop backwards looking for top level message with id > id of header we're inserting
-    // and put new header before found header, or at end.
-    for (PRInt32 i = GetSize() - 1; i >= 0; i--)
-    {
-      if (m_levels[i] == 0)
-      {
-        if (insertKey < m_keys[i])
-          prevInsertIndex = i;
-        else if (insertKey >= m_keys[i])
-        {
-          retIndex = (prevInsertIndex == nsMsgViewIndex_None) ? nsMsgViewIndex_None : i + 1;
-          if (prevInsertIndex == nsMsgViewIndex_None)
-          {
-            retIndex = nsMsgViewIndex_None;
-          }
-          else
-          {
-            for (retIndex = i + 1; retIndex < (nsMsgViewIndex)GetSize(); retIndex++)
-            {
-              if (m_levels[retIndex] == 0)
-                break;
-            }
-          }
-          break;
-        }
+    case kCollationKey:
+      rv = GetCollationKey(msgHdr, m_sortType, &EntryInfo1.key, &EntryInfo1.dword, colHandler);
+      NS_ASSERTION(NS_SUCCEEDED(rv),"failed to create collation key");
+      break;
+    case kU32:
+      if (m_sortType == nsMsgViewSortType::byId)
+        EntryInfo1.dword = EntryInfo1.id;
+      else
+        GetLongField(msgHdr, m_sortType, &EntryInfo1.dword, colHandler);
+      break;
+    default:
+      return highIndex;
+  }
+  while (highIndex > lowIndex)
+  {
+    nsMsgViewIndex tryIndex = (lowIndex + highIndex) / 2;
+    // need to adjust tryIndex if it's not a thread.
+    while (m_levels[tryIndex] && tryIndex)
+      tryIndex--;
 
-      }
+    if (tryIndex < lowIndex)
+    {
+      NS_ERROR("try index shouldn't be less than low index");
+      break;
+    }
+    EntryInfo2.id = m_keys[tryIndex];
+    GetFolderForViewIndex(tryIndex, &EntryInfo2.folder);
+    EntryInfo2.folder->Release();
+    
+    nsCOMPtr <nsIMsgDBHdr> tryHdr;
+    nsCOMPtr <nsIMsgDatabase> db;
+    // ### this should get the db from the folder...
+    GetDBForViewIndex(tryIndex, getter_AddRefs(db));
+    if (db)
+      rv = db->GetMsgHdrForKey(EntryInfo2.id, getter_AddRefs(tryHdr));
+    if (!tryHdr)
+      break;
+    if (tryHdr == msgHdr)
+    {
+      NS_WARNING("didn't expect header to already be in view");
+      highIndex = tryIndex;
+      break;
+    }
+    if (fieldType == kCollationKey)
+    {
+      PR_FREEIF(EntryInfo2.key);
+      rv = GetCollationKey(tryHdr, m_sortType, &EntryInfo2.key, &EntryInfo2.dword, colHandler);
+      NS_ASSERTION(NS_SUCCEEDED(rv),"failed to create collation key");
+      retStatus = FnSortIdKeyPtr(&pValue1, &pValue2, &comparisonContext);
+    }
+    else if (fieldType == kU32)
+    {
+      if (m_sortType == nsMsgViewSortType::byId)
+        EntryInfo2.dword = EntryInfo2.id;
+      else
+        GetLongField(tryHdr, m_sortType, &EntryInfo2.dword, colHandler);
+      retStatus = FnSortIdDWord(&pValue1, &pValue2, &comparisonContext);
+    }
+    if (retStatus == 0)
+    {
+      highIndex = tryIndex;
+      break;
+    }
+
+    if (retStatus < 0)
+    {
+      highIndex = tryIndex;
+      // we already made sure tryIndex was at a thread at the top of the loop.
+    }
+    else
+    {
+      lowIndex = tryIndex + 1;
+      while (lowIndex < GetSize() && m_levels[lowIndex])
+        lowIndex++;
     }
   }
-  else
-  {
-    // loop forwards looking for top level message with id < id of header we're inserting and put
-    // new header before found header, or at beginning.
-    for (PRInt32 i = 0; i < GetSize(); i++)
-    {
-      if (!m_levels[i])
-      {
-        if (insertKey > m_keys[i])
-        {
-          retIndex = i;
-          break;
-        }
-      }
-    }
-  }
-  return retIndex;
+
+  PR_Free(EntryInfo1.key);
+  PR_Free(EntryInfo2.key);
+  return highIndex;
 }
 
 nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<nsMsgKey> &keys,
@@ -4599,9 +4659,8 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
     EntryInfo2.id = keys[tryIndex];
     if (folders)
     {
-      nsCOMPtr<nsISupports> curFolder;
-      folders->GetElementAt(tryIndex, getter_AddRefs(curFolder));
-       EntryInfo2.folder = curFolder;
+      nsCOMPtr<nsIMsgFolder> curFolder = do_QueryElementAt(folders, tryIndex);
+      EntryInfo2.folder = curFolder;
     }
     else
        EntryInfo2.folder = m_folder;
@@ -4663,12 +4722,15 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndex(nsIMsgDBHdr *msgHdr)
   return GetInsertIndexHelper(msgHdr, m_keys, m_sortOrder, m_sortType);
 }
 
-nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr)
+nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex)
 {
   PRUint32  flags = 0;
 #ifdef DEBUG_bienvenu
   NS_ASSERTION(m_keys.Length() == m_flags.Length() && (int) m_keys.Length() == m_levels.Length(), "view arrays out of sync!");
 #endif
+
+  if (resultIndex)
+    *resultIndex = nsMsgViewIndex_None;
 
   if (!GetShowingIgnored())
   {
@@ -4708,6 +4770,8 @@ nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr)
       m_keys.AppendElement(msgKey);
       m_flags.AppendElement(flags);
       m_levels.AppendElement(levelToAdd);
+      if (resultIndex)
+        *resultIndex = GetSize() - 1;
 
       // the call to NoteChange() has to happen after we add the key
       // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
@@ -4718,6 +4782,8 @@ nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr)
       m_keys.InsertElementAt(0, msgKey);
       m_flags.InsertElementAt(0, flags);
       m_levels.InsertElementAt(0, levelToAdd);
+      if (resultIndex)
+        *resultIndex = 0;
 
       // the call to NoteChange() has to happen after we insert the key
       // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
@@ -4731,6 +4797,8 @@ nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr)
     m_flags.InsertElementAt(insertIndex, flags);
     PRInt32 level = 0;
     m_levels.InsertElementAt(insertIndex, level);
+    if (resultIndex)
+      *resultIndex = insertIndex;
 
     // the call to NoteChange() has to happen after we add the key
     // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
