@@ -453,7 +453,7 @@ NS_IMETHODIMP nsAbCardProperty::Equals(nsIAbCard *card, PRBool *result)
 // XXX: Use the category manager instead of this file to implement these
 NS_IMETHODIMP nsAbCardProperty::TranslateTo(const nsACString &type, nsACString &result)
 {
-  if (type.EqualsLiteral("base64"))
+  if (type.EqualsLiteral("base64xml"))
     return ConvertToBase64EncodedXML(result);
   else if (type.EqualsLiteral("xml"))
   {

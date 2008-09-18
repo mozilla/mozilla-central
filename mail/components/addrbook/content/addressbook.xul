@@ -111,7 +111,7 @@
               events="focus"
               oncommandupdate="goUpdateGlobalEditMenuItems()"/>
     <command id="cmd_newlist" oncommand="goDoCommand('cmd_newlist');"/>
-    <command id="cmd_printcardpreview" oncommand="AbPrintCardPreview();"/>
+    <command id="cmd_printcardpreview" oncommand="AbPrintPreviewCard();"/>
     <command id="cmd_printcard" oncommand="AbPrintCard();"/>
     <command id="cmd_properties" oncommand="goDoCommand('button_edit');"/>
     <command id="cmd_undo" oncommand="goDoCommand('cmd_undo')" disabled="true"/>
