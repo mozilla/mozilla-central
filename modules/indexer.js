@@ -1464,17 +1464,6 @@ let GlodaIndexer = {
     },
   }, 
   
-  /**
-   * Attempt to extract the original subject from a message.  For replies, this
-   *  means either taking off the 're[#]:' (or variant, including other language
-   *  variants), or in a Microsoft specific-ism, from the Thread-Topic header.
-   * Since we are using the nsIMsgDBHdr's subject field, this is already done
-   *  for us, and we don't actually need to do any extra work.  Hooray!
-   */
-  _extractOriginalSubject: function glodaIndexExtractOriginalSubject(aMsgHdr) {
-    return aMsgHdr.mime2DecodedSubject;
-  },
-  
   _indexMessage: function gloda_indexMessage(aMsgHdr) {
     this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
                     aMsgHdr.subject);
@@ -1546,7 +1535,7 @@ let GlodaIndexer = {
       // (the create method could issue the id, making the call return
       //  without waiting for the database...)
       conversation = this._datastore.createConversation(
-          this._extractOriginalSubject(aMsgHdr), null, null);
+          aMsgHdr.mime2DecodedSubject, null, null);
       conversationID = conversation.id;
     }
     
