@@ -101,13 +101,14 @@ function initCopiesAndFolder(identity)
 
 function initCompositionAndAddressing(identity)
 {
-  createDirectoriesList();
-
   // if we are editing an existing identity, use it...otherwise copy our values from the default identity
   var addressingIdentity = identity ? identity : gAccount.defaultIdentity;
 
   document.getElementById('identity.directoryServer').value = addressingIdentity.directoryServer;
-  document.getElementById('identity.overrideGlobalPref').value = addressingIdentity.overrideGlobalPref;
+  document.getElementById('identity.overrideGlobal_Pref').value = addressingIdentity.overrideGlobalPref;
+#ifndef MOZ_THUNDERBIRD
+  document.getElementById('identity.autocompleteToMyDomain').checked = addressingIdentity.autocompleteToMyDomain;
+#endif
   document.getElementById('identity.composeHtml').checked = addressingIdentity.composeHtml;
   document.getElementById('identity.autoQuote').checked = addressingIdentity.autoQuote;
   document.getElementById('identity.replyOnTop').value = addressingIdentity.replyOnTop;
@@ -224,10 +225,11 @@ function saveCopiesAndFolderSettings(identity)
 
 function saveAddressingAndCompositionSettings(identity)
 {
-  onSaveCompositionAndAddressing(); // am-addressing.js routine
-
   identity.directoryServer = document.getElementById('identity.directoryServer').value;
-  identity.overrideGlobalPref = document.getElementById('identity.overrideGlobalPref').value;
+  identity.overrideGlobalPref = document.getElementById('identity.overrideGlobal_Pref').value == "true";
+#ifndef MOZ_THUNDERBIRD
+  identity.autocompleteToMyDomain = document.getElementById('identity.autocompleteToMyDomain').checked;
+#endif
   identity.composeHtml = document.getElementById('identity.composeHtml').checked;
   identity.autoQuote = document.getElementById('identity.autoQuote').checked;
   identity.replyOnTop = document.getElementById('identity.replyOnTop').value;

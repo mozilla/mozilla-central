@@ -54,7 +54,7 @@ messenger.jar:
     content/messenger/am-prefs.js                                   (/mailnews/base/prefs/resources/content/am-prefs.js)
     content/messenger/am-identities-list.js                         (/mailnews/base/prefs/resources/content/am-identities-list.js)
     content/messenger/am-identities-list.xul                        (/mailnews/base/prefs/resources/content/am-identities-list.xul)
-    content/messenger/am-identity-edit.js                           (/mailnews/base/prefs/resources/content/am-identity-edit.js)
+*   content/messenger/am-identity-edit.js                           (/mailnews/base/prefs/resources/content/am-identity-edit.js)
     content/messenger/am-identity-edit.xul                          (/mailnews/base/prefs/resources/content/am-identity-edit.xul)
     content/messenger/am-copiesOverlay.xul                          (/mailnews/base/prefs/resources/content/am-copiesOverlay.xul)
 *   content/messenger/am-junk.xul                                   (/mailnews/base/prefs/resources/content/am-junk.xul)
