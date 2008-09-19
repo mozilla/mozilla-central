@@ -195,7 +195,7 @@ GlodaConversation.prototype = {
 
 function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
                       aConversationID, aConversation, aDate,
-                      aHeaderMessageID, aBodySnippet) {
+                      aHeaderMessageID, aDeleted) {
   this._datastore = aDatastore;
   this._id = aID;
   this._folderID = aFolderID;
@@ -204,7 +204,11 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   this._conversation = aConversation;
   this.date = aDate;
   this._headerMessageID = aHeaderMessageID;
-  this._bodySnippet = aBodySnippet;
+
+  // only set _deleted if we're deleted, otherwise the undefined does our
+  //  speaking for us.
+  if (aDeleted)
+    this._deleted = aDeleted;
 
   // for now, let's always cache this; they should really be forgetting about us
   //  if they want to forget about the underlying storage anyways...
@@ -221,7 +225,6 @@ GlodaMessage.prototype = {
   get conversationID() { return this._conversationID; },
   // conversation is special
   get headerMessageID() { return this._headerMessageID; },
-  get bodySnippet() { return this._bodySnippet; },
 
   get folderURI() {
     if (this._folderID != null)
@@ -258,8 +261,8 @@ GlodaMessage.prototype = {
     this._messageKey = null;
     this._conversationID = null;
     this._conversation = null;
+    this.date = null;
     this._headerMessageID = null;
-    this._bodySnippet = null;
     
     this._datastore = null;
   },

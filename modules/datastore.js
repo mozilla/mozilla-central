@@ -75,6 +75,8 @@ function MessagesByMessageIdCallback(aStatement, aMsgIDToIndex, aResults,
   this.callback = aCallback;
   this.callbackThis = aCallbackThis;
   this.callbackArgs = aCallbackArgs;
+  
+  GlodaDatastore._pendingAsyncStatements++;
 }
 
 MessagesByMessageIdCallback.prototype = {
@@ -104,6 +106,8 @@ MessagesByMessageIdCallback.prototype = {
     this.statement = null;
 
     this.callback.apply(this.callbackThis, args);
+    
+    GlodaDatastore._asyncCompleted();
   }
 };
 
@@ -111,6 +115,8 @@ function QueryFromQueryCallback(aStatement, aNounMeta, aCollection) {
   this.statement = aStatement;
   this.nounMeta = aNounMeta;
   this.collection = aCollection;
+  
+  GlodaDatastore._pendingAsyncStatements++;
 }
 
 QueryFromQueryCallback.prototype = {
@@ -148,6 +154,8 @@ QueryFromQueryCallback.prototype = {
   handleCompletion: function gloda_ds_qfq_handleCompletion(aReason) {
     this.statement.finalize();
     this.statement = null;
+    
+    GlodaDatastore._asyncCompleted();
   }
 };
 
@@ -305,6 +313,7 @@ let GlodaDatastore = {
           //  possibility of multiple copies of a message with a given
           //  message-id, the parentID concept is unreliable.
           "headerMessageID TEXT",
+          "deleted INTEGER NOT NULL default 0",
         ],
         
         indices: {
@@ -312,6 +321,7 @@ let GlodaDatastore = {
           headerMessageID: ['headerMessageID'],
           conversationID: ['conversationID'],
           date: ['date'],
+          deleted: ['deleted'],
         },
         
         fulltextColumns: [
@@ -750,7 +760,7 @@ let GlodaDatastore = {
    */
   _beginTransaction: function gloda_ds_beginTransaction() {
     if (this._transactionDepth == 0) {
-      this._beginTransactionStatement.executeAsync();
+      this._beginTransactionStatement.executeAsync(this.trackAsync());
       this._transactionGood = true;
     }
     this._transactionDepth++;
@@ -798,12 +808,40 @@ let GlodaDatastore = {
     this._transactionGood = false;
     if (this._transactionDepth == 0) {
       try {
-        this._rollbackTransactionStatement.executeAsync();
+        this._rollbackTransactionStatement.executeAsync(this.trackAsync());
       }
       catch (ex) {
         this._log.error("Rollback problem: " + ex);
       }
     }
+  },
+  
+  _pendingAsyncStatements: 0,
+  /**
+   * The function to call, if any, when we hit 0 pending async statements.
+   */
+  _pendingAsyncCompletedListener: null,
+  _asyncCompleted: function () {
+    if (--this._pendingAsyncStatements == 0) {
+      if (this._pendingAsyncCompletedListener !== null) {
+        this._pendingAsyncCompletedListener();
+        this._pendingAsyncCompletedListener = null;
+      }
+    }
+  },
+  _ayncTrackerListener: {
+    handleResult: function () {},
+    handleError: function() {},
+    handleCompletion: function () {
+      // the helper method exists because the other classes need to call it too
+      GlodaDatastore._asyncCompleted();
+    }
+  },
+  /**
+   * Increments _pendingAsyncStatements and returns a listener that will
+   *  decrement the value when the statement completes.
+   */
+  trackAsync: function() {
   },
   
   /* ********** Attribute Definitions ********** */
@@ -856,7 +894,7 @@ let GlodaDatastore = {
     iads.bindStringParameter(3, aAttrName);
     this._bindVariant(iads, 4, aParameter);
     
-    iads.executeAsync();
+    iads.executeAsync(this.trackAsync());
     
     return attributeId;
   },
@@ -965,6 +1003,10 @@ let GlodaDatastore = {
     stmt.finalize();
   },
   
+  _folderURIKnown: function gloda_ds_folderURIKnown(aFolderURI) {
+    return aFolderURI in this._folderURIs;
+  },
+  
   /**
    * Map a folder URI to a folder ID, creating the mapping if it does not yet
    *  exist.
@@ -977,7 +1019,7 @@ let GlodaDatastore = {
     let folderID = this._nextFolderId++;
     this._insertFolderLocationStatement.bindInt64Parameter(0, folderID)
     this._insertFolderLocationStatement.bindStringParameter(1, aFolderURI);
-    this._insertFolderLocationStatement.executeAsync();
+    this._insertFolderLocationStatement.executeAsync(this.trackAsync());
 
     this._folderURIs[aFolderURI] = folderID;
     this._folderIDs[folderID] = aFolderURI;
@@ -1015,7 +1057,7 @@ let GlodaDatastore = {
     this._log.info("renaming folder URI " + aOldURI + " to " + aNewURI);
     this._updateFolderLocationStatement.bindStringParameter(1, aOldURI);
     this._updateFolderLocationStatement.bindStringParameter(0, aNewURI);
-    this._updateFolderLocationStatement.executeAsync();
+    this._updateFolderLocationStatement.executeAsync(this.trackAsync());
     delete this._folderURIs[aOldURI];
   },
   
@@ -1030,7 +1072,7 @@ let GlodaDatastore = {
   deleteFolderByID: function gloda_ds_deleteFolder(aFolderID) {
     let dfbis = this._deleteFolderByIDStatement;
     dfbis.bindInt64Parameter(0, aFolderID);
-    dfbis.executeAsync();
+    dfbis.executeAsync(this.trackAsync());
   },
   
   /* ********** Conversation ********** */
@@ -1083,13 +1125,13 @@ let GlodaDatastore = {
       ics.bindNullParameter(3);
     else
       ics.bindInt64Parameter(3, aNewestMessageDate);
-    ics.executeAsync();
+    ics.executeAsync(this.trackAsync());
     
     // create the fulltext row, using the same rowid/docid
     let icts = this._insertConversationTextStatement;
     icts.bindInt64Parameter(0, conversationID);
     icts.bindStringParameter(1, aSubject);
-    icts.executeAsync();
+    icts.executeAsync(this.trackAsync());
     
     // create it
     let conversation = new GlodaConversation(this, conversationID,
@@ -1116,7 +1158,7 @@ let GlodaDatastore = {
                                       aConversationID) {
     let dcbids = this._deleteConversationByIDStatement;
     dcbids.bindInt64Parameter(0, aConversationID);
-    dcbids.executeAsync();
+    dcbids.executeAsync(this.trackAsync());
     
     // TODO: collection manager implications
     //GlodaCollectionManager.removeByID()
@@ -1240,7 +1282,7 @@ let GlodaDatastore = {
     ims.bindStringParameter(5, aHeaderMessageID);
 
     try {
-       ims.executeAsync();
+       ims.executeAsync(this.trackAsync());
     }
     catch(ex) {
        throw("error executing statement... " +
@@ -1266,7 +1308,7 @@ let GlodaDatastore = {
         imts.bindStringParameter(3, aAttachmentNames);
       
       try {
-         imts.executeAsync();
+         imts.executeAsync(this.trackAsync());
       }
       catch(ex) {
          throw("error executing fulltext statement... " +
@@ -1324,7 +1366,7 @@ let GlodaDatastore = {
       ums.bindInt64Parameter(3, aMessage.date * 1000);
     ums.bindStringParameter(4, aMessage.headerMessageID);
     
-    ums.executeAsync();
+    ums.executeAsync(this.trackAsync());
     
     if (aBody) {
       let imts = this._insertMessageTextStatement;
@@ -1336,7 +1378,7 @@ let GlodaDatastore = {
       else
         imts.bindStringParameter(3, aAttachmentNames);
       
-      imts.executeAsync();
+      imts.executeAsync(this.trackAsync());
     }
     
     // In completely abstract theory, this is where we would call
@@ -1364,7 +1406,7 @@ let GlodaDatastore = {
     statement.bindInt64Parameter(2, srcFolderID);
     statement.bindInt64Parameter(0, destFolderID);
     statement.bindNullParameter(1);
-    statement.executeAsync();
+    statement.executeAsync(this.trackAsync());
     statement.finalize();
   },
   
@@ -1383,13 +1425,14 @@ let GlodaDatastore = {
     else
       date = new Date(aRow.getInt64(4) / 1000);
     return new GlodaMessage(this, aRow.getInt64(0), folderId, messageKey,
-                            aRow.getInt64(3), null, date, aRow.getString(5));
+                            aRow.getInt64(3), null, date, aRow.getString(5),
+                            aRow.getInt64(6);
   },
 
   get _selectMessageByIDStatement() {
     let statement = this._createSyncStatement(
-      "SELECT id, folderID, messageKey, conversationID, date, headerMessageID \
-         FROM messages WHERE id = ?1");
+      "SELECT id, folderID, messageKey, conversationID, date, headerMessageID, \
+           deleted FROM messages WHERE id = ?1");
     this.__defineGetter__("_selectMessageByIDStatement",
       function() statement);
     return this._selectMessageByIDStatement;
@@ -1418,8 +1461,8 @@ let GlodaDatastore = {
 
   get _selectMessageByLocationStatement() {
     let statement = this._createSyncStatement(
-      "SELECT id, folderID, messageKey, conversationID, date, headerMessageId \
-       FROM messages WHERE folderID = ?1 AND messageKey = ?2");
+      "SELECT id, folderID, messageKey, conversationID, date, headerMessageId, \
+       deleted FROM messages WHERE folderID = ?1 AND messageKey = ?2");
     this.__defineGetter__("_selectMessageByLocationStatement",
       function() statement);
     return this._selectMessageByLocationStatement;
@@ -1512,6 +1555,33 @@ let GlodaDatastore = {
     statement.finalize();
   },
 
+  get _updateMessagesMarkDeletedByFolderID() {
+    let statement = this._createAsyncStatement(
+      "UPDATE messages SET folderID = NULL, messageKey = NULL, \
+              deleted = 1 WHERE folderID = ?1");
+    this.__defineGetter__("_updateMessagesMarkDeletedByFolderID",
+      function() statement);
+    return this._updateMessagesMarkDeletedByFolderID;
+  },
+
+  markMessagesDeletedByFolderID: function gloda_ds_markMessagesDeletedByIDs(
+      aFolderID) {
+    let statement = this._updateMessagesMarkDeletedByFolderID;
+    statement.bindInt64Parameter(0, aFolderID);
+    statement.executeAsync(this.trackAsync());
+    statement.finalize();
+  },
+
+  markMessagesDeletedByIDs: function gloda_ds_markMessagesDeletedByIDs(
+      aMessageIDs) {
+    let sqlString = "UPDATE messages SET deleted = 1 WHERE id IN (" + 
+      aMessageIDs.join(",") + ")";
+    
+    let statement = this._createAsyncStatement(sqlString, true);
+    statement.executeAsync(this.trackAsync());
+    statement.finalize();
+  },
+
   get _deleteMessageByIDStatement() {
     let statement = this._createAsyncStatement(
       "DELETE FROM messages WHERE id = ?1");
@@ -1524,7 +1594,7 @@ let GlodaDatastore = {
     // TODO: collection manager implications
     let dmbids = this._deleteMessageByIDStatement;
     dmbids.bindInt64Parameter(0, aMessageID);
-    dmbids.executeAsync();
+    dmbids.executeAsync(this.trackAsync());
   },
 
   get _deleteMessagesByConversationIDStatement() {
@@ -1544,7 +1614,7 @@ let GlodaDatastore = {
       function gloda_ds_deleteMessagesByConversationID(aConversationID) {
     let dmbcids = this._deleteMessagesByConversationIDStatement;
     dmbcids.bindInt64Parameter(0, aConversationID);
-    dmbcids.executeAsync();
+    dmbcids.executeAsync(this.trackAsync());
   },
 
   get _selectMessagesByConversationIDStatement() {
@@ -1655,7 +1725,7 @@ let GlodaDatastore = {
           imas.bindInt64Parameter(3, attribValueTuple[1]);
         else
           imas.bindDoubleParameter(3, attribValueTuple[1]);
-        imas.executeAsync();
+        imas.executeAsync(this.trackAsync());
       }
       
       this._commitTransaction();
@@ -1686,7 +1756,8 @@ let GlodaDatastore = {
     if (aMessage.id != null) {
       this._deleteMessageAttributesByMessageIDStatement.bindInt64Parameter(0,
         aMessage.id);
-      this._deleteMessageAttributesByMessageIDStatement.executeAsync();
+      this._deleteMessageAttributesByMessageIDStatement.executeAsync(
+        this.trackAsync());
     }
   },
   
@@ -1994,7 +2065,7 @@ let GlodaDatastore = {
     ics.bindInt64Parameter(4, aPopularity);
     ics.bindInt64Parameter(5, aFrecency);
     
-    ics.executeAsync();
+    ics.executeAsync(this.trackAsync());
     
     let contact = new GlodaContact(this, contactID,
                                    aDirectoryUUID, aContactUUID, aName,
@@ -2024,7 +2095,7 @@ let GlodaDatastore = {
     ucs.bindInt64Parameter(3, aContact.popularity);
     ucs.bindInt64Parameter(4, aContact.frecency);
     
-    ucs.executeAsync();
+    ucs.executeAsync(this.trackAsync());
   },
   
   _contactFromRow: function gloda_ds_contactFromRow(aRow) {
@@ -2099,7 +2170,7 @@ let GlodaDatastore = {
     iis.bindStringParameter(3, aValue);
     iis.bindStringParameter(4, aDescription);
     iis.bindInt64Parameter(5, aIsRelay ? 1 : 0);
-    iis.executeAsync();
+    iis.executeAsync(this.trackAsync());
   
     let identity = new GlodaIdentity(this, identityID,
                                      aContactID, aContact, aKind, aValue,
