@@ -59,8 +59,8 @@ protected:
 
 #ifdef DEBUG
     nsTArray<nsMsgKey> m_idsOnServer;
-    nsTArray<nsMsgKey> m_idsDeleted;
 #endif
+    nsTArray<nsMsgKey> m_idsDeleted;
 
     nsCOMPtr <nsIMsgNewsFolder> m_newsFolder;
     nsCOMPtr <nsIMsgDatabase> m_newsDB;
