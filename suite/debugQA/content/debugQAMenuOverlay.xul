@@ -218,8 +218,10 @@
 
         <menuitem label="Bugs Filed Today"
                   oncommand="openTopWin('https://bugzilla.mozilla.org/buglist.cgi?product=Core&amp;product=SeaMonkey&amp;chfieldfrom=0d&amp;chfieldto=Now&amp;chfield=%5BBug+creation%5D');"/>
-        <menuitem label="CVS Checkins Today"
-                  oncommand="openTopWin('http://bonsai.mozilla.org/cvsquery.cgi?treeid=default&amp;module=MozillaTinderboxAll&amp;branch=HEAD&amp;branchtype=match&amp;sortby=Date&amp;date=day&amp;cvsroot=%2Fcvsroot');"/>
+        <menuitem label="Recent comm-central Checkins"
+                  oncommand="openTopWin('http://hg.mozilla.org/comm-central/index.cgi/pushloghtml?startdate=24+hours+ago&amp;enddate=now');"/>
+        <menuitem label="Recent mozilla-central Checkins"
+                  oncommand="openTopWin('http://hg.mozilla.org/mozilla-central/index.cgi/pushloghtml?startdate=24+hours+ago&amp;enddate=now');"/>
         <menuitem label="Tree Status"
                   oncommand="openTopWin('http://tinderbox.mozilla.org/showbuilds.cgi?tree=SeaMonkey');"/>
 
