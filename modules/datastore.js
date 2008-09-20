@@ -489,24 +489,49 @@ let GlodaDatastore = {
     this._populateIdentityManagedId();
   },
   
-  shutdown: function gloda_ds_shutdown() {
+  /**
+   * Initiate database shutdown; because this might requiring waiting for
+   *  outstanding synchronous events to drain, we allow the caller to pass in
+   *  a callback to invoke if we are unable to complete shutdown within this
+   *  call.
+   * @return true if we were able to shutdown fully, false if we were not.  The
+   *   callback, if provided, will be notified if we return false.  It will
+   *   not be called if we return true.  
+   */
+  shutdown: function gloda_ds_shutdown(aCallback, aCallbackThis) {
     // clear out any transaction
     while (this._transactionDepth) {
       this._log.info("Closing pending transaction out for shutdown.");
       // just schedule this function to be run again once the transaction has
       //  been closed out.
-      this._commitTransaction(this.shutdown, this);
+      this._commitTransaction();
+    }
+    
+    let datastore = this;
+    
+    function finish_cleanup() {
+      datastore._cleanupAsyncStatements();
+      datastore._log.info("Closing async connection");
+      datastore.asyncConnection.close();
+      datastore.asyncConnection = null;
+      
+      datastore._cleanupSyncStatements();
+      datastore._log.info("Closing sync connection");
+      datastore.syncConnection.close();
+      datastore.syncConnection = null;
+      
+      if (aCallback)
+        aCallback.call(aCallbackThis);
     }
 
-    this._cleanupAsyncStatements();
-    this._log.info("Closing async connection");
-    this.asyncConnection.close();
-    this.asyncConnection = null;
-    
-    this._cleanupSyncStatements();
-    this._log.info("Closing sync connection");
-    this.syncConnection.close();
-    this.syncConnection = null;
+    if (this._pendingAsyncStatements) {
+      this._pendingAsyncCompletedListener = finish_cleanup;
+      return false;
+    }
+    else {
+      finish_cleanup();
+      return true;
+    }
   },
   
   /**
@@ -770,33 +795,19 @@ let GlodaDatastore = {
    *  transaction and no sub-transaction issues a rollback
    *  (via _rollbackTransaction) then we commit, otherwise we rollback.
    */
-  _commitTransaction: function gloda_ds_commitTransaction(aCallback,
-      aCallbackThis) {
+  _commitTransaction: function gloda_ds_commitTransaction() {
     this._transactionDepth--;
     if (this._transactionDepth == 0) {
-      let notifier = undefined;
-      if (aCallback) {
-        notifier = {
-          handleResult: function () {},
-          handleError: function() {},
-          handleCompletion: function () {
-            aCallback.call(aCallbackThis);
-          }
-        };
-      }
       try {
         if (this._transactionGood)
-          this._commitTransactionStatement.executeAsync(notifier);
+          this._commitTransactionStatement.executeAsync(this.trackAsync());
         else
-          this._rollbackTransaction.executeAsync(notifier);
+          this._rollbackTransaction.executeAsync(this.trackAsync());
       }
       catch (ex) {
         this._log.error("Commit problem: " + ex);
       }
     }
-    // call the callback immediately if we don't need to pend
-    else if (aCallback)
-      aCallback.call(aCallbackThis);
   },
   /**
    * Abort the commit of the potentially nested transaction.  If we are not the
@@ -842,6 +853,8 @@ let GlodaDatastore = {
    *  decrement the value when the statement completes.
    */
   trackAsync: function() {
+    this._pendingAsyncStatements++;
+    return this._asyncTrackerListener;
   },
   
   /* ********** Attribute Definitions ********** */
@@ -1387,6 +1400,58 @@ let GlodaDatastore = {
     //  handles it.)
   },
 
+  get _updateMessageLocationStatement() {
+    let statement = this._createAsyncStatement(
+      "UPDATE messages SET folderID = ?1, messageKey = ?2 WHERE id = ?3");
+    this.__defineGetter__("_updateMessageLocationStatement",
+                          function() statement);
+    return this._updateMessageLocationStatement;
+  }, 
+
+  /**
+   * Given a list of gloda message ids, and a list of their new message keys in
+   *  the given new folder location, asynchronously update the message's
+   *  database locations.  Also, update the in-memory representations.
+   */
+  updateMessageLocations: function gloda_ds_updateMessageLocations(aMessageIds,
+      aNewMessageKeys, aDestFolderURI) {
+    let statement = this._updateMessageLocationStatement;
+    let destFolderID = this._mapFolderURI(aDestFolderURI);
+    
+    let modifiedItems = [];
+    
+    for (let iMsg = 0; iMsg < aMessageIds.length; iMsg++) {
+      let id = aMessageIds[iMsg]
+      statement.bindInt64Parameter(0, destFolderID);
+      statement.bindInt64Parameter(1, aNewMessageKeys[iMsg]);
+      statement.bindInt64Parameter(2, id);
+      statement.executeAsync(this.trackAsync());
+      
+      // so, if the message is currently loaded, we also need to change it up...
+      let message = GlodaCollectionManager.cacheLookupOne(
+        GlodaMessage.prototype.NOUN_ID, id);
+      if (message) {
+        message._folderID = destFolderID;
+        modifiedItems.push(message);
+      }
+    }
+
+    // if we're talking about a lot of messages, it's worth committing after
+    //  this to ensure that we don't spill to disk and cause contention with
+    //  synchronous reads off (this) the main thread.
+    if ((aMessageIds.length > 200) && this._transactionDepth) {
+      this._commitTransaction();
+      this._beginTransaction();
+    }
+    
+    // tell the collection manager about the modified messages so it can update
+    //  any existing views...
+    if (modifiedItems.length) {
+      GlodaCollectionManager.itemsModified(GlodaMessage.prototype.NOUN,
+                                           modifiedItems);
+    }
+  },
+
   /**
    * Asynchronously mutate message folder id/message keys for the given
    *  messages, indicating that we are moving them to the target folder, but
@@ -1408,6 +1473,14 @@ let GlodaDatastore = {
     statement.bindNullParameter(1);
     statement.executeAsync(this.trackAsync());
     statement.finalize();
+
+    // if we're talking about a lot of messages, it's worth committing after
+    //  this to ensure that we don't spill to disk and cause contention with
+    //  synchronous reads off (this) the main thread.
+    if ((aMessageKeys.length > 200) && this._transactionDepth) {
+      this._commitTransaction();
+      this._beginTransaction();
+    }
   },
   
   _messageFromRow: function gloda_ds_messageFromRow(aRow) {
@@ -1426,7 +1499,7 @@ let GlodaDatastore = {
       date = new Date(aRow.getInt64(4) / 1000);
     return new GlodaMessage(this, aRow.getInt64(0), folderId, messageKey,
                             aRow.getInt64(3), null, date, aRow.getString(5),
-                            aRow.getInt64(6);
+                            aRow.getInt64(6));
   },
 
   get _selectMessageByIDStatement() {
@@ -1564,8 +1637,8 @@ let GlodaDatastore = {
     return this._updateMessagesMarkDeletedByFolderID;
   },
 
-  markMessagesDeletedByFolderID: function gloda_ds_markMessagesDeletedByIDs(
-      aFolderID) {
+  markMessagesDeletedByFolderID:
+      function gloda_ds_markMessagesDeletedByFolderID(aFolderID) {
     let statement = this._updateMessagesMarkDeletedByFolderID;
     statement.bindInt64Parameter(0, aFolderID);
     statement.executeAsync(this.trackAsync());
@@ -1580,6 +1653,18 @@ let GlodaDatastore = {
     let statement = this._createAsyncStatement(sqlString, true);
     statement.executeAsync(this.trackAsync());
     statement.finalize();
+    
+    // some people are inclined to deleting ridiculous numbers of messages at
+    //  a time.  if we are in a transaction, this has the potential to cause us
+    //  to spill the transaction to disk prior to disk, resulting in a lock
+    //  escalation and making any synchronous reads from the main thread need
+    //  to become blocking.  We don't want that, so:
+    // If we are in a transaction and there are a "lot" of messages being
+    //  marked as deleted, issue a commit and then re-open the transaction.
+    if ((aMessageIDs.length > 200) && this._transactionDepth) {
+      this._commitTransaction();
+      this._beginTransaction();
+    }
   },
 
   get _deleteMessageByIDStatement() {

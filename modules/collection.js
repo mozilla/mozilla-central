@@ -109,7 +109,7 @@ GlodaCollectionManager.prototype = {
    *  given id.  Counts as a cache hit if found.  (And if it was't in a cache,
    *  but rather a collection, it is added to the cache.)
    */
-  cacheLookupOne: function gloda_colm_cacheLookupOne(aNounID, aID) {
+  cacheLookupOne: function gloda_colm_cacheLookupOne(aNounID, aID, aDoCache) {
     let cache = this._cachesByNoun[aNounID];
     
     if (cache) {
@@ -118,6 +118,9 @@ GlodaCollectionManager.prototype = {
         return cache.hit(item);
       }
     }
+    
+    if (aDoCache === false)
+      cache = null;
   
     for each (let collection in this.getCollectionsForNounID(aNounID)) {
       if (aID in collection._idMap) {
@@ -428,7 +431,8 @@ GlodaLRUCacheCollection.prototype = new GlodaCollection;
 GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
   for each (let item in aItems) {
     if (item.id in this._idMap) {
-      LOG.error("attempt to add an item to a collection it is already in!");
+      // DEBUGME so, we're dealing with this, but it shouldn't happen.  need
+      //  trace-debuggage.
       continue;
     }
     this._idMap[item.id] = item;
