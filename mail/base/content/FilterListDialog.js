@@ -339,8 +339,9 @@ function runSelectedFilters()
   filterList.loggingEnabled = gCurrentFilterList.loggingEnabled;
 
   var list = document.getElementById("filterList");
+  var index = 0;
   for each (var item in list.selectedItems) {
-    filterList.insertFilterAt(list.getIndexOfItem(item), item._filter);
+    filterList.insertFilterAt(index++, item._filter);
   }
 
   filterService.applyFiltersToFolders(filterList, folders, gFilterListMsgWindow);
