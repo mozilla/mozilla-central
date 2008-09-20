@@ -292,22 +292,6 @@ let GlodaIndexer = {
     // create the timer that drives our intermittent indexing
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 
-    // register for:
-    // - folder loaded events, so we know when updateFolder has finished
-    //   updating the index/what not (if it was't immediately available)
-    // - property changes (so we know when a message's read/starred state have
-    //   changed.)
-    let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
-                        getService(Ci.nsIMsgMailSession);
-    this._folderListener._init(this);
-    mailSession.AddFolderListener(this._folderListener,
-                                  Ci.nsIFolderListener.propertyFlagChanged |
-                                  Ci.nsIFolderListener.event);
-
-    // register for shutdown notification
-    let observerService = Cc["@mozilla.org/observer-service;1"].
-                            getService(Ci.nsIObserverService);
-    observerService.addObserver(this, "quit-application", false);
 
     // figure out if event-driven indexing should be enabled...
     let prefService = Cc["@mozilla.org/preferences-service;1"].
@@ -322,12 +306,9 @@ let GlodaIndexer = {
   _shutdown: function gloda_index_shutdown() {
     this._log.info("Shutting Down");
 
-    this.enabled = false;
     this._indexerLeaveFolder(); // nop if we aren't "in" a folder
-    
-    let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
-                        getService(Ci.nsIMsgMailSession);
-    mailSession.RemoveFolderListener(this._folderListener);
+    this.enabled = false;
+
     
     GlodaDatastore.shutdown();
   },
@@ -339,6 +320,29 @@ let GlodaIndexer = {
   get enabled() { return this._enabled; },
   set enabled(aEnable) {
     if (!this._enabled && aEnable) {
+      // register for:
+      // - folder loaded events, so we know when getDatabaseWithReparse has finished
+      //   updating the index/what not (if it was't immediately available)
+      // - property changes (so we know when a message's read/starred state have
+      //   changed.)
+      let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
+                          getService(Ci.nsIMsgMailSession);
+      this._folderListener._init(this);
+      mailSession.AddFolderListener(this._folderListener,
+                                    Ci.nsIFolderListener.propertyFlagChanged |
+                                    Ci.nsIFolderListener.event);
+  
+      // register for shutdown, offline notifications
+      let observerService = Cc["@mozilla.org/observer-service;1"].
+                              getService(Ci.nsIObserverService);
+      observerService.addObserver(this, "quit-application", false);
+      observerService.addObserver(this, "network:offline-status-changed", false);
+  
+      // register for idle notification
+      let idleService = Cc["@mozilla.org/widget/idleservice;1"].
+                          getService(Ci.nsIIdleService);
+      idleService.addIdleObserver(this, this._indexIdleThresholdSecs);
+
       let notificationService =
         Cc["@mozilla.org/messenger/msgnotificationservice;1"].
         getService(Ci.nsIMsgFolderNotificationService);
@@ -348,6 +352,23 @@ let GlodaIndexer = {
       this._enabled = true;
     }
     else if (this._enabled && !aEnable) {
+      // remove observer; no more events to observe!
+      let observerService = Cc["@mozilla.org/observer-service;1"].
+                              getService(Ci.nsIObserverService);
+      observerService.removeObserver(this, "quit-application");
+      observerService.removeObserver(this, "network:offline-status-changed");
+  
+  
+      // remove idle
+      let idleService = Cc["@mozilla.org/widget/idleservice;1"].
+                          getService(Ci.nsIIdleService);
+      idleService.removeIdleObserver(this, this._indexIdleThresholdSecs);
+  
+      // remove FolderLoaded notification listener
+      let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
+                          getService(Ci.nsIMsgMailSession);
+      mailSession.RemoveFolderListener(this._folderListener);
+
       let notificationService =
         Cc["@mozilla.org/messenger/msgnotificationservice;1"].
         getService(Ci.nsIMsgFolderNotificationService);
@@ -359,19 +380,66 @@ let GlodaIndexer = {
     this._log.info("Event-Driven Indexing is now " + this._enabled);
   },
 
-  /** Track whether indexing is active (we have timers in-flight). */
+  /** Track whether indexing is desired (we have jobs to prosecute). */
+  _indexingDesired: false,
+  /**
+   * Track whether we have an actively pending callback or timer event.  We do
+   *  this so we don't experience a transient suppression and accidentally
+   *  get multiple event-chains driving indexing at the same time (which the
+   *  code will not handle correctly).
+   */
   _indexingActive: false,
-  /** Indicates whether indexing is active or not. */
-  get indexing() { return this._indexingActive; },
-  /** You can turn on indexing, but you can't turn it off! */
+  /**
+   * Indicates whether indexing is currently ongoing.  This may return false
+   *  while indexing activities are still active, but they will quiesce shortly.
+   */
+  get indexing() {
+    return this._indexingDesired && !this._suppressIndexing;
+  },
+  /** Indicates whether indexing is desired. */
+  get indexingDesired() {
+    return this._indexingDesired;
+  },
+  /**
+   * Set this to true to indicate there is indexing work to perform.  This does
+   *  not mean indexing will begin immediately (if it wasn't active), however.
+   *  If suppressIndexing has been set, we won't do anything until indexing is
+   *  no longer suppressed.
+   */
   set indexing(aShouldIndex) {
-    if (!this._indexingActive && aShouldIndex) {
-      this._log.info("+++ Indexing Queue Processing Commencing");
-      this._indexingActive = true;
-      this._timer.initWithCallback(this._wrapCallbackDriver,
-                                   this._indexInterval,
-                                   Ci.nsITimer.TYPE_ONE_SHOT);
-    }  
+    if (!this._indexingDesired && aShouldIndex) {
+      this._indexingDesired = true;
+      if (!this._indexingActive && !this._suppressIndexing) {
+        this._log.info("+++ Indexing Queue Processing Commencing");
+        this._indexingActive = true;
+        this._timer.initWithCallback(this._wrapCallbackDriver,
+                                     this._indexInterval,
+                                     Ci.nsITimer.TYPE_ONE_SHOT);
+      }
+    }
+  },
+  
+  _suppressIndexing: false,
+  /**
+   * Set whether or not indexing should be suppressed.  This is to allow us to
+   *  avoid running down a laptop's battery when it is not on AC.  Only code
+   *  in charge of regulating that tracking should be setting this variable; if
+   *  other factors want to contribute to such a decision, this logic needs to
+   *  be changed to track that, since last-write currently wins.
+   */
+  set suppressIndexing(aShouldSuppress) {
+    this._suppressIndexing = aShouldSuppress;
+    
+    // re-start processing if we are no longer suppressing, there is work yet
+    //  to do, and the indexing process had actually stopped.
+    if (!this._suppressIndexing && this._indexingDesired &&
+        !this._indexingActive) {
+        this._log.info("+++ Indexing Queue Processing Resuming");
+        this._indexingActive = true;
+        this._timer.initWithCallback(this._wrapCallbackDriver,
+                                     this._indexInterval,
+                                     Ci.nsITimer.TYPE_ONE_SHOT);
+    }
   },
   
   GLODA_MESSAGE_ID_PROPERTY: "gloda-id",
@@ -423,6 +491,12 @@ let GlodaIndexer = {
    *  or the message progress bar.
    */
   _pendingAddJob: null,
+  
+  /**
+   * The number of seconds before we declare the user idle and step up our
+   *  indexing.
+   */
+  _indexIdleThresholdSecs: 15,
   
   /**
    * The time interval, in milliseconds between performing indexing work.
@@ -507,7 +581,7 @@ let GlodaIndexer = {
   _notifyListeners: function gloda_index_notifyListeners() {
     let status, prettyName, jobIndex, jobTotal, jobItemIndex, jobItemGoal;
     
-    if (this._indexingActive && this._curIndexingJob) {
+    if (this.indexing && this._curIndexingJob) {
       let job = this._curIndexingJob;
       if (job.deltaType > 0)
         status = Gloda.kIndexerIndexing;
@@ -585,7 +659,8 @@ let GlodaIndexer = {
       // This may require yielding until such time as the msf has been created.
       try {
         if (this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder) {
-          this._indexingDatabase = this._indexingFolder.GetDatabaseWithReparse();
+          this._indexingDatabase =
+            this._indexingFolder.getDatabaseWithReparse();
         }
         // we need do nothing special for IMAP, news, or other
       }
@@ -719,6 +794,8 @@ let GlodaIndexer = {
             this._timer.initWithCallback(this._wrapCallbackDriver,
                                          this._indexInterval,
                                          Ci.nsITimer.TYPE_ONE_SHOT);
+          else // it's important to indicate no more callbacks are in flight
+            this._indexingActive = false;
           break;
         case kWorkAsync:
           // there is nothing to do.  some other code is now responsible for
@@ -823,7 +900,7 @@ let GlodaIndexer = {
       }
       
       this._curIndexingJob = null;
-      this._indexingActive = false;
+      this._indexingDesired = false;
       this._indexingJobCount = 0;
       this._indexingJobGoal = 0;
       return false;
@@ -843,7 +920,7 @@ let GlodaIndexer = {
     }
     else if(job.jobType == "message") {
       if (job === this._pendingAddJob)
-                  this._pendingAddJob = null;
+        this._pendingAddJob = null;
       // update our goal from the items length
       job.goal = job.items.length;
                   
@@ -856,6 +933,9 @@ let GlodaIndexer = {
     return true;
   },
 
+  /**
+   * Index the contents of a folder.
+   */
   _worker_folderIndex: function gloda_worker_folderAdd(aJob) {
     yield this._indexerEnterFolder(aJob.id, true);
     aJob.goal = this._indexingFolder.getTotalMessages(false);
@@ -887,7 +967,7 @@ let GlodaIndexer = {
         if (glodaMessageId != null) {
           let isDirty = false;
           try {
-            isDirty = (msgHdr.getUint32Property(this.GLODA_DIRTY_PROPERTY) != 0;
+            isDirty = msgHdr.getUint32Property(this.GLODA_DIRTY_PROPERTY) != 0;
           }
           catch(ex) {}
           
@@ -903,6 +983,10 @@ let GlodaIndexer = {
     yield kWorkDone;
   },
   
+  /**
+   * Index a specific list of messages that we know to index from
+   *  event-notification hints.
+   */
   _worker_messageIndex: function gloda_worker_messageAdd(aJob) {
     for (; aJob.offset < aJob.items.length; aJob.offset++) {
       let item = aJob.items[aJob.offset];
@@ -929,6 +1013,9 @@ let GlodaIndexer = {
     yield kWorkDone;
   },
   
+  /**
+   *
+   */
   _worker_messageMove: function gloda_worker_messageMove(aJob) {
     for (; aJob.offset < aJob.items.length; aJob.offset++) {
       let item = aJob.items[aJob.offset];
@@ -1040,10 +1127,23 @@ let GlodaIndexer = {
   
   /* *********** Event Processing *********** */
   observe: function gloda_indexer_observe(aSubject, aTopic, aData) {
+    // idle
     if (aTopic == "idle") {
-      
+      this._indexInterval = this._indexInterval_whenIdle;
+      this._indexTokens = this._indexTokens_whenIdle;
     }
     else if (aTopic == "back") {
+      this._indexInterval = this._indexInterval_whenActive;
+      this._indexTokens = this._indexTokens_whenActive;
+    }
+    // offline status
+    else if (aTopic == "network:offline-status-changed") {
+      if (aData == "offline") {
+        this.suppressIndexing = true;
+      }
+      else { // online
+        this.suppressIndexing = false;
+      }
     }
     else if (aTopic == "quit-application") {
       GlodaIndexer._shutdown();
