@@ -801,6 +801,7 @@ let Gloda = {
       class: GlodaIdentity,
       firstClass: false,
       cache: true, cacheCost: 128,
+      usesUniqueValue: true,
       tableName: "identities",
       datastore: GlodaDatastore, objFromRow: GlodaDatastore._identityFromRow,
       fromParamAndValue: function(aParam, aID) {
@@ -1213,7 +1214,7 @@ let Gloda = {
    */
   explicitCollection: function gloda_ns_explicitCollection(aNounID, aItems) {
     let nounMeta = this._nounIDToMeta[aNounID];
-    let collection = new GlodaCollection(aItems, null, null)
+    let collection = new GlodaCollection(nounMeta, aItems, null, null)
     let query = new nounMeta.explicitQueryClass(collection);
     collection.query = query;
     GlodaCollectionManager.registerCollection(collection);
@@ -1233,7 +1234,7 @@ let Gloda = {
    */
   _wildcardCollection: function gloda_ns_explicitCollection(aNounID, aItems) {
     let nounMeta = this._nounIDToMeta[aNounID];
-    let collection = new GlodaCollection(aItems, null, null)
+    let collection = new GlodaCollection(nounMeta, aItems, null, null)
     let query = new nounMeta.wildcardQueryClass(collection);
     collection.query = query;
     GlodaCollectionManager.registerCollection(collection);

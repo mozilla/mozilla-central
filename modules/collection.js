@@ -133,6 +133,38 @@ GlodaCollectionManager.prototype = {
     
     return null;
   },
+
+  /**
+   * Attempt to locate an instance of the object of the given noun type with the
+   *  given id.  Counts as a cache hit if found.  (And if it was't in a cache,
+   *  but rather a collection, it is added to the cache.)
+   */
+  cacheLookupOneByUniqueValue:
+      function gloda_colm_cacheLookupOneByUniqueValue(aNounID, aUniqueValue,
+                                                      aDoCache) {
+    let cache = this._cachesByNoun[aNounID];
+    
+    if (cache) {
+      if (aUniqueValue in cache._uniqueValueMap) {
+        let item = cache._uniqueValueMap[aUniqueValue];
+        return cache.hit(item);
+      }
+    }
+    
+    if (aDoCache === false)
+      cache = null;
+  
+    for each (let collection in this.getCollectionsForNounID(aNounID)) {
+      if (aUniqueValue in collection._uniqueValueMap) {
+        let item = collection._uniqueValueMap[aUniqueValue];
+        if (cache)
+          cache.add([item]);
+        return item;
+      }
+    }
+    
+    return null;
+  },
   
   /**
    * Checks whether the provided item with the given id is actually a duplicate
@@ -344,11 +376,28 @@ GlodaCollectionManager = new GlodaCollectionManager();
  *  does not affect their ability to be present (but the listener may care about
  *  because it is exposing those attributes). 
  */
-function GlodaCollection(aItems, aQuery, aListener) {
+function GlodaCollection(aNounMeta, aItems, aQuery, aListener) {
+  // if aNounMeta is null, we are just being invoked for subclassing
+  if (aNounMeta === undefined)
+    return;
+
+  this._nounMeta = aNounMeta;
+  // should we also maintain a unique value mapping...
+  if (this._nounMeta.usesUniqueValue)
+    this._uniqueValueMap = {};
+
   this.items = aItems || [];
   this._idMap = {};
-  for each (let item in this.items) {
-    this._idMap[item.id] = item;
+  if (this._uniqueValueMap) {
+    for each (let item in this.items) {
+      this._idMap[item.id] = item;
+      this._uniqueValueMap[item.uniqueValue] = item;
+    }
+  }
+  else {
+    for each (let item in this.items) {
+      this._idMap[item.id] = item;
+    }
   }
   
   this.query = aQuery || null;
@@ -367,13 +416,23 @@ GlodaCollection.prototype = {
    */
   clear: function gloda_coll_clear() {
     this._idMap = {};
+    if (this._uniqueValueMap)
+      this._uniqueValueMap = {};
     this.items = [];
   },
 
   _onItemsAdded: function gloda_coll_onItemsAdded(aItems) {
     this.items.push.apply(this.items, aItems);
-    for each (item in aItems) {
-      this._idMap[item.id] = item;
+    if (this._uniqueValueMap) {
+      for each (let item in this.items) {
+        this._idMap[item.id] = item;
+        this._uniqueValueMap[item.uniqueValue] = item;
+      }
+    }
+    else {
+      for each (let item in this.items) {
+        this._idMap[item.id] = item;
+      }
     }
     if (this._listener)
       this._listener.onItemsAdded(aItems);
@@ -384,13 +443,22 @@ GlodaCollection.prototype = {
       this._listener.onItemsModified(aItems);
   },
   
+  /**
+   * Given a list of items that definitely no longer belong in this collection,
+   *  remove them from the collection and notify the listener.  The 'tricky'
+   *  part is that we need to remove the deleted items from our list of items.
+   */
   _onItemsRemoved: function gloda_coll_onItemsRemoved(aItems) {
     // we want to avoid the O(n^2) deletion performance case, and deletion
     //  should be rare enough that the extra cost of building the deletion map
     //  should never be a real problem.
     let deleteMap = {};
+    // build the delete map while also nuking from our id map/unique value map
     for each (let item in aItems) {
       deleteMap[item.id] = true;
+      delete this._idMap[item.id];
+      if (this._uniqueValueMap)
+        delete this._uniqueValueMap[item.uniqueValue];
     }
     let items = this.items;
     // in-place filter.  probably needless optimization.
@@ -414,9 +482,7 @@ GlodaCollection.prototype = {
  *  cached objects.
  */
 function GlodaLRUCacheCollection(aNounMeta, aCacheSize) {
-  GlodaCollection.call(this, null, null, null);
-  
-  this._nounMeta = aNounMeta;
+  GlodaCollection.call(this, aNounMeta, null, null, null);
   
   this._head = null; // aka oldest!
   this._tail = null; // aka newest!
@@ -436,6 +502,8 @@ GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
       continue;
     }
     this._idMap[item.id] = item;
+    if (this._uniqueValueMap)
+      this._uniqueValueMap[item.uniqueValue] = item;
     
     item._lruPrev = this._tail;
     // we do have to make sure that we will set _head the first time we insert
@@ -463,6 +531,8 @@ GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
     
     // nuke from our id map
     delete this._idMap[item.id];
+    if (this._uniqueValueMap)
+      delete this._uniqueValueMap[item.uniqueValue];
     
     // flush dirty items to disk (they may not have this attribute, in which
     //  case, this returns false, which is fine.)
@@ -515,6 +585,8 @@ GlodaLRUCacheCollection.prototype.deleted = function cache_deleted(aItem) {
     
   // nuke from our id map
   delete this._idMap[aItem.id];
+  if (this._uniqueValueMap)
+    delete this._uniqueValueMap[aItem.uniqueValue];
   
   this._size--;
 }

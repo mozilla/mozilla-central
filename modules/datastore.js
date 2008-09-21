@@ -2050,13 +2050,13 @@ let GlodaDatastore = {
       //  want to have to ask the collection manager about every row, and we don't
       //  want to invent some alternate row storage.
       GlodaCollectionManager.cacheLoadUnify(nounMeta.id, items);
-      collection = new GlodaCollection(items, aQuery, aListener);
+      collection = new GlodaCollection(nounMeta, items, aQuery, aListener);
       
       GlodaCollectionManager.registerCollection(collection);
     }
     else { // async!
       let statement = this._createAsyncStatement(sqlString, true);
-      let collection = new GlodaCollection([], aQuery, aListener);    
+      let collection = new GlodaCollection(nounMeta, [], aQuery, aListener);    
       GlodaCollectionManager.registerCollection(collection);
 
       statement.executeAsync(new QueryFromQueryCallback(statement, nounMeta,
@@ -2281,17 +2281,19 @@ let GlodaDatastore = {
 
   /** Lookup an identity by kind and value.  Ex: (email, foo@bar.com) */
   getIdentity: function gloda_ds_getIdentity(aKind, aValue) {
-    let identity = null;
+    let identity = GlodaCollectionManager.cacheLookupOneByUniqueValue(
+      GlodaIdentity.prototype.NOUN_ID, aKind + "@" + aValue);
     
     let ibkv = this._selectIdentityByKindValueStatement;
     ibkv.bindStringParameter(0, aKind);
     ibkv.bindStringParameter(1, aValue);
     if (this._syncStep(ibkv)) {
       identity = this._identityFromRow(ibkv);
+      GlodaCollectionManager.itemLoaded(identity);
     }
     ibkv.reset();
     
-    return identity && GlodaCollectionManager.cacheLoadUnifyOne(identity);
+    return identity;
   },
 
   get _selectIdentityByIDStatement() {

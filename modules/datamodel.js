@@ -467,6 +467,10 @@ GlodaIdentity.prototype = {
   get description() { return this._description; },
   get isRelay() { return this._isRelay; },
   
+  get uniqueValue() {
+    return this._kind + "@" + this._value;
+  },
+  
   get contact() {
     if (this._contact === null)
       this._contact = this._datastore.getContactByID(this._contactID);
