@@ -283,31 +283,37 @@ NS_IMETHODIMP nsMsgHdr::MarkFlagged(PRBool bFlagged)
 
 NS_IMETHODIMP nsMsgHdr::GetProperty(const char *propertyName, nsAString &resultProperty)
 {
+  NS_ENSURE_ARG_POINTER(propertyName);
   return m_mdb->GetPropertyAsNSString(GetMDBRow(), propertyName, resultProperty);
 }
 
 NS_IMETHODIMP nsMsgHdr::SetProperty(const char *propertyName, const nsAString &propertyStr)
 {
+  NS_ENSURE_ARG_POINTER(propertyName);
   return m_mdb->SetPropertyFromNSString(m_mdbRow, propertyName, propertyStr);
 }
 
 NS_IMETHODIMP nsMsgHdr::SetStringProperty(const char *propertyName, const char *propertyValue)
 {
+  NS_ENSURE_ARG_POINTER(propertyName);
   return m_mdb->SetProperty(m_mdbRow, propertyName, propertyValue);
 }
 
 NS_IMETHODIMP nsMsgHdr::GetStringProperty(const char *propertyName, char **aPropertyValue)
 {
+  NS_ENSURE_ARG_POINTER(propertyName);
   return m_mdb->GetProperty(m_mdbRow, propertyName, aPropertyValue);
 }
 
 NS_IMETHODIMP nsMsgHdr::GetUint32Property(const char *propertyName, PRUint32 *pResult)
 {
+  NS_ENSURE_ARG_POINTER(propertyName);
   return m_mdb->GetUint32Property(GetMDBRow(), propertyName, pResult);
 }
 
 NS_IMETHODIMP nsMsgHdr::SetUint32Property(const char *propertyName, PRUint32 value)
 {
+  NS_ENSURE_ARG_POINTER(propertyName);
   return m_mdb->SetUint32Property(GetMDBRow(), propertyName, value);
 }
 
@@ -394,6 +400,7 @@ NS_IMETHODIMP nsMsgHdr::SetAuthor(const char *author)
 
 NS_IMETHODIMP nsMsgHdr::SetReferences(const char *references)
 {
+  NS_ENSURE_ARG_POINTER(references);
   if (*references == '\0') {
     m_numReferences = 0;
   }
@@ -409,12 +416,14 @@ NS_IMETHODIMP nsMsgHdr::SetReferences(const char *references)
 
 NS_IMETHODIMP nsMsgHdr::SetRecipients(const char *recipients)
 {
-	// need to put in rfc822 address parsing code here (or make caller do it...)
-	return SetStringColumn(recipients, m_mdb->m_recipientsColumnToken);
+  // need to put in rfc822 address parsing code here (or make caller do it...)
+  return SetStringColumn(recipients, m_mdb->m_recipientsColumnToken);
 }
 
 nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addresses, PRUint32 numAddresses, nsCAutoString& allRecipients)
 {
+  NS_ENSURE_ARG_POINTER(names);
+  NS_ENSURE_ARG_POINTER(addresses);
   nsresult ret = NS_OK;
   const char *curName = names;
   const char *curAddress = addresses;
@@ -747,6 +756,7 @@ NS_IMETHODIMP nsMsgHdr::GetFolder(nsIMsgFolder **result)
 
 nsresult nsMsgHdr::SetStringColumn(const char *str, mdb_token token)
 {
+  NS_ENSURE_ARG_POINTER(str);
   return m_mdb->CharPtrToRowCellColumn(m_mdbRow, token, str);
 }
 
