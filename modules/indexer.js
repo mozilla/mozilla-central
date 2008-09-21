@@ -999,8 +999,6 @@ let GlodaIndexer = {
       let server = servers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
       let rootFolder = server.rootFolder;
 
-      this._log.debug("sweep-ing account: " + rootFolder.URI);
-      
       // ignore news accounts for now.
       if (rootFolder.URI.indexOf('news://') == 0)
         continue;
@@ -1016,17 +1014,12 @@ let GlodaIndexer = {
         // we could also check nsMsgFolderFlags.Mail conceivably...
         let isLocal = folder instanceof Ci.nsIMsgLocalMailFolder;
         // we only index local folders or IMAP folders that are marked offline.
-        if (!isLocal && !(folder.flags&Ci.nsMsgFolderFlags.Offline) ) {
-          this._log.debug("Ignoring non-local (" + isLocal + ") or " +
-                      "non-offline (" + folder.flags + "): " + folder.URI);
+        if (!isLocal && !(folder.flags&Ci.nsMsgFolderFlags.Offline))
           continue;
-        }
 
         // if no folder was indexed (or the pref's not set), just use the first folder
         if (!aJob.lastFolderIndexedUri || useNextFolder)
         {
-          this._log.debug("Considering folder " + folder.URI);
-        
           // make sure the folder is dirty before accepting this job...
           let isDirty = true;
           try {
@@ -1036,7 +1029,6 @@ let GlodaIndexer = {
           catch (ex) {}
           
           if (!isDirty) {
-            this._log.debug("...not dirty, skipping.");
             continue; 
           }
         
@@ -1051,11 +1043,8 @@ let GlodaIndexer = {
         }
         else
         {
-          this._log.debug("Checking " + folder.URI + " for previous URI match.");
-          if (aJob.lastFolderIndexedUri == folder.URI) {
-            this._log.debug("!! found it !!");
+          if (aJob.lastFolderIndexedUri == folder.URI)
             useNextFolder = true;
-          }
         }
       }
     }
