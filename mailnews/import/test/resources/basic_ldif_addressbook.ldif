@@ -36,6 +36,8 @@ o: Organization Name
 mozillaWorkUrl: http://127.0.0.1
 mozillaHomeUrl: http://localhost
 birthyear: 1900
+birthmonth: 1
+birthday: 2
 mozillaCustom1: Custom Field 1
 mozillaCustom2: Custom Field 2
 mozillaCustom3: Custom Field 3

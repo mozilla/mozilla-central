@@ -20,14 +20,13 @@ var gAbImportHelper;
  */
 function AbImportHelper(aFile, aType, aAbName, aJsonName)
 {
-  helper = null;
+  gAbImportHelper = null;
   this.mFile = aFile; // checked in the beginImport method
   this.mAbName = aAbName;
 
   /* Attribute notes:  The attributes listed in the declaration below are
-   * supported by all three text export/import types.  AimScreenName &
-   * PreferMailFormat are only supported by LDIF, and BirthMonth and BirthDay
-   * are only supported by CSV and tab-delimited exports/imports.
+   * supported by all three text export/import types.  AimScreenName and
+   * PreferMailFormat are only supported by LDIF.
    * The following are not supported: anniversaryYear, anniversaryMonth,
    * anniversaryDay, popularityIndex, isMailList, mailListURI, lastModifiedDate,
    * and allowRemoteContent
@@ -38,8 +37,8 @@ function AbImportHelper(aFile, aType, aAbName, aJsonName)
      "CellularNumber", "HomeAddress", "HomeAddress2", "HomeCity", "HomeState",
      "HomeZipCode", "HomeCountry", "WorkAddress", "WorkAddress2", "WorkCity",
      "WorkState", "WorkZipCode", "WorkCountry", "JobTitle", "Department",
-     "Company", "BirthYear", "WebPage1", "WebPage2", "Custom1", "Custom2",
-     "Custom3", "Custom4", "Notes"];
+     "Company", "BirthYear", "BirthMonth", "BirthDay", "WebPage1", "WebPage2",
+     "Custom1", "Custom2", "Custom3", "Custom4", "Notes"];
   // get the extra attributes supported for the given type of import
   if (aType == "LDIF")
   {
@@ -50,9 +49,7 @@ function AbImportHelper(aFile, aType, aAbName, aJsonName)
   }
   else if (aType == "CSV" || aType == "TAB")
   {
-    // CSV or TAB: add BirthMonth and BirthDay
-    this.mSupportedAttributes = supportedAttributes.concat(["BirthMonth",
-                                                            "BirthDay"]);
+    this.mSupportedAttributes = supportedAttributes;
     this.mLdif = false;
   }
   else
@@ -232,7 +229,7 @@ AbImportHelper.prototype =
   {
     for (var i in aJsonCard)
       if (this.mSupportedAttributes.indexOf(i) >= 0)
-          do_check_eq(aJsonCard[i], aCard.getProperty(i, "BAD"));
+        do_check_eq(aJsonCard[i], aCard.getProperty(i, "BAD"));
   },
   /**
    * AbImportHelper.getJsonCards

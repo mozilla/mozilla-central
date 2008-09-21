@@ -23,17 +23,17 @@ You will also need to give the AbImportHelper constructor two additional
 parameters: the name the imported address book will have (the filename without
 the extension) and the name you chose for the JSON object.
 
-Here is a sample unit test that doesn't check the results:
+Here is a sample LDIF unit test that doesn't check the results:
 function run_test()
 {
   var file = do_get_file("../mailnews/import/test/resources/basic_ldif_addressbook.ldif");
-  new AbImportHelper(file, "ldif").beginImport();
+  new AbImportHelper(file, "LDIF").beginImport();
 }
 
-Here is a sample unit test that checks the results:
+Here is a sample CSV unit test that checks the results:
 function run_test()
 {
-  var file = do_get_file("../mailnews/import/test/resources/basic_ldif_addressbook.ldif");
-  new AbImportHelper(file, "ldif", "basic_ldif_addressbook",
+  var file = do_get_file("../mailnews/import/test/resources/basic_csv_addressbook.csv");
+  new AbImportHelper(file, "CSV", "basic_csv_addressbook",
                      "basic_addressbook").beginImport();
 }

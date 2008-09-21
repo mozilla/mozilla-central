@@ -318,8 +318,8 @@ function DisplayCardViewPane(realCard)
     var month = card.getProperty("BirthMonth", null);
     var year = card.getProperty("BirthYear", null);
     var dateStr;
-    if (day || month) {
-      var date = (new Date(year, parseInt(month) - 1, day));
+    if (day > 0 && day < 32 && month > 0 && month < 13) {
+      var date = new Date(year, month - 1, day);
       // if the year exists, just use Date.toLocaleString
       if (year)
         dateStr = date.toLocaleDateString();

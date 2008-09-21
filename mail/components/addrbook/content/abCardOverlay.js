@@ -407,24 +407,24 @@ function GetCardValues(cardproperty, doc)
 
   // get the month of the year (1 - 12)
   var month = cardproperty.getProperty("BirthMonth", null);
-  // set the datepicker's month and prepend a zero if necessary
-  if (month) {
-    birthday.month = parseInt(month) - 1;
-    if (month.length < 2)
-      month = "0" + month;
-  }
-  birthday.monthField.value = month;
+  if (month > 0 && month < 13)
+    birthday.month = month - 1;
+  else
+    birthday.monthField.value = null;
 
   // get the date of the month (1 - 31)
   var date = cardproperty.getProperty("BirthDay", null);
-  birthday.dateField.value = date;
+  if (date > 0 && date < 32)
+    birthday.date = date;
+  else
+    birthday.dateField.value = null;
 
   // get the year
   var year = cardproperty.getProperty("BirthYear", null);
   var birthYear = doc.getElementById("BirthYear");
   // set the year in the datepicker to the stored year
   // if the year isn't present, default to 2000 (a leap year)
-  birthday.year = year ? year : kDefaultYear;
+  birthday.year = year && year < 10000 && year > 0 ? year : kDefaultYear;
   birthYear.value = year;
 
   // get the current age
@@ -484,19 +484,10 @@ function CheckAndSetCardValues(cardproperty, doc, check)
   var birthDay = birthdayElem.dateField.value;
   var birthYear = doc.getElementById("BirthYear").value;
 
-  // set or delete the birth day, month, and year properties, if necessary
-  if (birthDay)
-    cardproperty.setProperty("BirthDay", birthDay);
-  else if(cardproperty.getProperty("BirthDay", null))
-    cardproperty.deleteProperty("BirthDay");
-  if (birthMonth)
-    cardproperty.setProperty("BirthMonth", birthMonth);
-  else if(cardproperty.getProperty("BirthMonth", null))
-    cardproperty.deleteProperty("BirthMonth");
-  if (birthYear)
-    cardproperty.setProperty("BirthYear", birthYear);
-  else if(cardproperty.getProperty("BirthYear", null))
-    cardproperty.deleteProperty("BirthYear");
+  // set the birth day, month, and year properties
+  cardproperty.setProperty("BirthDay", birthDay);
+  cardproperty.setProperty("BirthMonth", birthMonth);
+  cardproperty.setProperty("BirthYear", birthYear);
 
   var popup = document.getElementById("PreferMailFormatPopup");
   if (popup)
@@ -783,18 +774,18 @@ function modifyDatepicker(aDatepicker) {
         this._dateValue.setDate(0);
       this._updateUI(this.dateField, this.date);
       var date = this._dateValue.getDate();
-      this.dateField.value = date < 10 ? "0" + date : date;
+      this.dateField.value = date < 10 && this.dateLeadingZero ? "0" + date : date;
       var month = this._dateValue.getMonth() + 1;
-      this.monthField.value = month < 10 ? "0" + month : month;
+      this.monthField.value = month < 10 && this.monthLeadingZero ? "0" + month : month;
     }
     // update the date if the value isn't null
     else if (aField == this.dateField && aValue != null) {
       this._dateValue.setDate(aValue);
       this._updateUI(this.dateField, this.date);
       var date = this._dateValue.getDate();
-      this.dateField.value = date < 10 ? "0" + date : date;
+      this.dateField.value = date < 10 && this.dateLeadingZero ? "0" + date : date;
       var month = this._dateValue.getMonth() + 1;
-      this.monthField.value = month < 10 ? "0" + month : month;
+      this.monthField.value = month < 10 && this.monthLeadingZero ? "0" + month : month;
     }
     this.setAttribute("value", this.value);
 

@@ -365,6 +365,8 @@ pref("ldap_2.servers.default.attrmap._AimScreenName", "nsAIMid,nscpaimscreenname
 pref("ldap_2.servers.default.attrmap.WebPage1", "mozillaWorkUrl,workurl");
 pref("ldap_2.servers.default.attrmap.WebPage2", "mozillaHomeUrl,homeurl");
 pref("ldap_2.servers.default.attrmap.BirthYear", "birthyear");
+pref("ldap_2.servers.default.attrmap.BirthMonth", "birthmonth");
+pref("ldap_2.servers.default.attrmap.BirthDay", "birthday");
 pref("ldap_2.servers.default.attrmap.Custom1", "mozillaCustom1,custom1");
 pref("ldap_2.servers.default.attrmap.Custom2", "mozillaCustom2,custom2");
 pref("ldap_2.servers.default.attrmap.Custom3", "mozillaCustom3,custom3");
