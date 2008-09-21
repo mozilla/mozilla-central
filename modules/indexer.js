@@ -691,7 +691,8 @@ let GlodaIndexer = {
       try {
         if (this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder) {
           this._indexingDatabase =
-            this._indexingFolder.getDatabaseWithReparse();
+            this._indexingFolder.getDatabaseWithReparse(this._indexingFolder,
+                                                        null);
         }
         // we need do nothing special for IMAP, news, or other
       }
@@ -936,11 +937,11 @@ let GlodaIndexer = {
       return false;
     }
 
-    this._log.debug("Pulling job from queue of size " +
+    this._log.debug("++ Pulling job from queue of size " +
                     this._indexQueue.length);
     let job = this._curIndexingJob = this._indexQueue.shift();
     this._indexingJobCount++;
-    this._log.debug("Pulled job: " + job.jobType + ", " +
+    this._log.debug("++ Pulled job: " + job.jobType + ", " +
                     job.deltaType + ", " + job.id);
     let generator = null;
     
@@ -988,13 +989,17 @@ let GlodaIndexer = {
     let accountManager = Cc["@mozilla.org/messenger/account-manager;1"].
                            getService(Ci.nsIMsgAccountManager);
     let servers = accountManager.allServers;
-    let foundFolder = false;
     let useNextFolder = false;
+    
+    if (aJob.lastFolderIndexedUri === undefined)
+      aJob.lastFolderIndexedUri = '';
   
-    for (let i = 0; i < servers.Count() && !foundFolder; i++)
+    for (let i = 0; i < servers.Count(); i++)
     {
       let server = servers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
       let rootFolder = server.rootFolder;
+
+      this._log.debug("sweep-ing account: " + rootFolder.URI);
       
       // ignore news accounts for now.
       if (rootFolder.URI.indexOf('news://') == 0)
@@ -1004,20 +1009,24 @@ let GlodaIndexer = {
                          createInstance(Ci.nsISupportsArray);
       rootFolder.ListDescendents(allFolders);
       let numFolders = allFolders.Count();
-      for (let folderIndex = 0; folderIndex < numFolders && !foundFolder;
-           folderIndex++)
+      for (let folderIndex = 0; folderIndex < numFolders; folderIndex++)
       {
         let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
                                                             Ci.nsIMsgFolder);
-                                                            
-        let isLocal = this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
+        // we could also check nsMsgFolderFlags.Mail conceivably...
+        let isLocal = folder instanceof Ci.nsIMsgLocalMailFolder;
         // we only index local folders or IMAP folders that are marked offline.
-        if (!isLocal && !(folder.flags&Ci.nsMsgFolderFlags.Offline) )
+        if (!isLocal && !(folder.flags&Ci.nsMsgFolderFlags.Offline) ) {
+          this._log.debug("Ignoring non-local (" + isLocal + ") or " +
+                      "non-offline (" + folder.flags + "): " + folder.URI);
           continue;
+        }
 
         // if no folder was indexed (or the pref's not set), just use the first folder
         if (!aJob.lastFolderIndexedUri || useNextFolder)
         {
+          this._log.debug("Considering folder " + folder.URI);
+        
           // make sure the folder is dirty before accepting this job...
           let isDirty = true;
           try {
@@ -1026,8 +1035,10 @@ let GlodaIndexer = {
           }
           catch (ex) {}
           
-          if (!isDirty)
+          if (!isDirty) {
+            this._log.debug("...not dirty, skipping.");
             continue; 
+          }
         
           aJob.lastFolderIndexedUri = folder.URI;
           this._indexingJobGoal += 2;
@@ -1040,8 +1051,11 @@ let GlodaIndexer = {
         }
         else
         {
-          if (aJob.LastFolderIndexedUri == folder.URI)
+          this._log.debug("Checking " + folder.URI + " for previous URI match.");
+          if (aJob.lastFolderIndexedUri == folder.URI) {
+            this._log.debug("!! found it !!");
             useNextFolder = true;
+          }
         }
       }
     }
@@ -1061,7 +1075,7 @@ let GlodaIndexer = {
   /**
    * Index the contents of a folder.
    */
-  _worker_folderIndex: function gloda_worker_folderAdd(aJob) {
+  _worker_folderIndex: function gloda_worker_folderIndex(aJob) {
     yield this._indexerEnterFolder(aJob.id, true);
     aJob.goal = this._indexingFolder.getTotalMessages(false);
     
@@ -1076,25 +1090,21 @@ let GlodaIndexer = {
     for (let msgHdr in this._indexingIterator) {
       // per above, we want to periodically release control while doing all
       //  this header traversal/investigation.
-      if (aJob.offset++ % HEADER_CHECK_BLOCK_SIZE == 0)
+      if (++aJob.offset % HEADER_CHECK_BLOCK_SIZE == 0)
         yield kWorkSync;
       
       if (isLocal || msgHdr.flags&MSG_FLAG_OFFLINE) {
-        let glodaMessageId = null;
-        try {
-          glodaMessageId = msgHdr.getUint32Property(
+        // this returns 0 when missing
+        let glodaMessageId = msgHdr.getUint32Property(
                              this.GLODA_MESSAGE_ID_PROPERTY);
-        }
-        catch(ex) {}
         
         // if it has a gloda message id, it has been indexed, but it still
         //  could be dirty.
-        if (glodaMessageId != null) {
-          let isDirty = false;
-          try {
-            isDirty = msgHdr.getUint32Property(this.GLODA_DIRTY_PROPERTY) != 0;
-          }
-          catch(ex) {}
+        if (glodaMessageId != 0) {
+          // (returns 0 when missing)
+          let isDirty = msgHdr.getUint32Property(this.GLODA_DIRTY_PROPERTY)!= 0;
+
+          this._log.debug("gloda id: " + glodaMessageId + " dirty: " + isDirty);
           
           // it's up to date if it's not dirty 
           if (!isDirty)
@@ -1341,7 +1351,7 @@ let GlodaIndexer = {
       }
       // only queue the message if we haven't overflowed our event-driven budget
       if (this.indexer._pendingAddJob.items.length <
-          this._indexMaxEventQueueMessages) {
+          this.indexer._indexMaxEventQueueMessages) {
         this.indexer._pendingAddJob.items.push(
           [GlodaDatastore._mapFolderURI(aMsgHdr.folder.URI),
            aMsgHdr.messageKey]);
@@ -1377,13 +1387,13 @@ let GlodaIndexer = {
         let msgHdr = aMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
         try {
           glodaMessageIds.push(msgHdr.getUint32Property(
-            this.GLODA_MESSAGE_ID_PROPERTY));
+            this.indexer.GLODA_MESSAGE_ID_PROPERTY));
         }
         catch (ex) {}
       }
       
       if (glodaMessageIds.length) {
-        this._datastore.markMessagesDeletedByIDs(glodaMessageIds);
+        this.indexer._datastore.markMessagesDeletedByIDs(glodaMessageIds);
         this.indexer.pendingDeletions = true;
       }
     },
@@ -1441,7 +1451,7 @@ let GlodaIndexer = {
               if (matchingSrcHdr) {
                 try {
                   let glodaId = matchingSrcHdr.getUint32Property(
-                    this.GLODA_MESSAGE_ID_PROPERTY); 
+                    this.indexer.GLODA_MESSAGE_ID_PROPERTY); 
                   glodaIds.push(glodaId);
                   newMessageKeys.push(destMsgHdr.messageKey);
                 }
@@ -1453,8 +1463,8 @@ let GlodaIndexer = {
             
             // this method takes care to update the in-memory representations
             //  too; we don't need to do anything
-            this._datastore.updateMessageLocations(glodaIds, newMessageKeys,
-                                                   aDestFolder.URI);
+            this.indexer._datastore.updateMessageLocations(glodaIds,
+              newMessageKeys, aDestFolder.URI);
           }
           // target is IMAP or something we equally don't understand
           else {
@@ -1472,9 +1482,8 @@ let GlodaIndexer = {
             }
             // XXX we could extract the gloda message id's instead.
             // quickly move them to the right folder, zeroing their message keys
-            this._datastore.updateMessageFoldersByKeyPurging(srcFolder.URI,
-                                                             messageKeys,
-                                                             aDestFolder.URI);
+            this.indexer._datastore.updateMessageFoldersByKeyPurging(
+              srcFolder.URI, messageKeys, aDestFolder.URI);
             // we _do not_ need to mark the folder as dirty, because the
             //  message added events will cause that to happen.
           }
@@ -1482,8 +1491,8 @@ let GlodaIndexer = {
        // copy case
         else {
           // mark the folder as dirty; we'll get to it later.
-          aDestFolder.setStringProperty(this.GLODA_DIRTY_PROPERTY, "1");
-          this.indexingSweepNeeded = true;
+          aDestFolder.setStringProperty(this.indexer.GLODA_DIRTY_PROPERTY, "1");
+          this.indexer.indexingSweepNeeded = true;
         }
       } catch (ex) {
         this.indexer._log.error("Problem encountered during message move/copy" +
@@ -1525,7 +1534,7 @@ let GlodaIndexer = {
         delFunc(folder);
       }
         
-      this.pendingDeletions = true;
+      this.indexer.pendingDeletions = true;
     },
     
     /**
@@ -1546,7 +1555,7 @@ let GlodaIndexer = {
                         srcURI.substring(srcURI.lastIndexOf("/"));
         return this._folderRenameHelper(aSrcFolder, targetURI);
       }
-      this.indexingSweepNeeded = true;
+      this.indexer.indexingSweepNeeded = true;
     },
     
     /**
@@ -1649,7 +1658,7 @@ let GlodaIndexer = {
       }
       // only queue the message if we haven't overflowed our event-driven budget
       if (this.indexer._pendingAddJob.items.length <
-          this._indexMaxEventQueueMessages)
+          this.indexer._indexMaxEventQueueMessages)
         this.indexer._pendingAddJob.items.push(
           [GlodaDatastore._mapFolderURI(msgFolder.URI),
            aMsgHdr.messageKey]);
