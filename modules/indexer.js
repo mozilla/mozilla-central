@@ -1104,8 +1104,6 @@ let GlodaIndexer = {
           // (returns 0 when missing)
           let isDirty = msgHdr.getUint32Property(this.GLODA_DIRTY_PROPERTY)!= 0;
 
-          this._log.debug("gloda id: " + glodaMessageId + " dirty: " + isDirty);
-          
           // it's up to date if it's not dirty 
           if (!isDirty)
             continue;
