@@ -357,6 +357,12 @@ let GlodaIndexer = {
                                       Ci.nsIMsgFolderNotificationService.all);
       
       this._enabled = true;
+      
+      // if we have an accumulated desire to index things, kick it off again.
+      if (this._indexingDesired) {
+        this._indexingDesired = false; // it's edge-triggered for now
+        this.indexing = true;
+      }
     }
     else if (this._enabled && !aEnable) {
       // remove observer; no more events to observe!
@@ -415,7 +421,7 @@ let GlodaIndexer = {
   set indexing(aShouldIndex) {
     if (!this._indexingDesired && aShouldIndex) {
       this._indexingDesired = true;
-      if (!this._indexingActive && !this._suppressIndexing) {
+      if (this.enabled && !this._indexingActive && !this._suppressIndexing) {
         this._log.info("+++ Indexing Queue Processing Commencing");
         this._indexingActive = true;
         this._timer.initWithCallback(this._wrapCallbackDriver,
@@ -445,6 +451,22 @@ let GlodaIndexer = {
         this._timer.initWithCallback(this._wrapCallbackDriver,
                                      this._indexInterval,
                                      Ci.nsITimer.TYPE_ONE_SHOT);
+    }
+  },
+
+  _indexingSweepActive: false,
+  /**
+   * Indicate that an indexing sweep is desired.  We kick-off an indexing
+   *  sweep at start-up and whenever we receive an event-based notification
+   *  that we either can't process as an event or that we normally handle
+   *  during the sweep pass anyways.
+   */
+  set indexingSweepNeeded(aNeeded) {
+    if (!this._indexingSweepActive && aNeeded) {
+      this._indexQueue.push(new IndexingJob("sweep", 0, null));
+      this._indexingJobGoal++;
+      this._indexingSweepActive = true;
+      this.indexing = true;
     }
   },
 
@@ -858,7 +880,6 @@ let GlodaIndexer = {
             case kWorkSync:
               break;
             case kWorkAsync:
-              commit
               yield kWorkAsync;
               break;
             case kWorkDone:
@@ -951,15 +972,90 @@ let GlodaIndexer = {
    *  creating a folder indexing job for them, and rescheduling itself for
    *  execution after that job is completed.  Once it indexes all the folders,
    *  if we believe we have deletions to process (or just don't know), it kicks
-   *  off a deletion processing job. 
+   *  off a deletion processing job.
+   *
+   * Folder traversal logic is based off the spotlight/vista indexer code; we
+   *  retrieve the list of servers and folders each time want to find a new
+   *  folder to index.  This avoids needing to maintain a perfect model of the
+   *  folder hierarchy at all times.  (We may eventually want to do that, but
+   *  this is sufficient and safe for now.)  Although our use of dirty flags on
+   *  the folders allows us to avoid tracking the 'last folder' we processed,
+   *  we do so to avoid getting 'trapped' in a folder with a high rate of
+   *  changes.
    */
   _worker_indexingSweep: function gloda_worker_indexingSweep(aJob) {
     // walk the folders
-    RESUMECODING HERE WHERE THE SYNTAX IS NOT SO GOOD
+    let accountManager = Cc["@mozilla.org/messenger/account-manager;1"].
+                           getService(Ci.nsIMsgAccountManager);
+    let servers = accountManager.allServers;
+    let foundFolder = false;
+    let useNextFolder = false;
+  
+    for (let i = 0; i < servers.Count() && !foundFolder; i++)
+    {
+      let server = servers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
+      let rootFolder = server.rootFolder;
+      
+      // ignore news accounts for now.
+      if (rootFolder.URI.indexOf('news://') == 0)
+        continue;
+      
+      let allFolders = Cc["@mozilla.org/supports-array;1"].
+                         createInstance(Ci.nsISupportsArray);
+      rootFolder.ListDescendents(allFolders);
+      let numFolders = allFolders.Count();
+      for (let folderIndex = 0; folderIndex < numFolders && !foundFolder;
+           folderIndex++)
+      {
+        let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
+                                                            Ci.nsIMsgFolder);
+                                                            
+        let isLocal = this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
+        // we only index local folders or IMAP folders that are marked offline.
+        if (!isLocal && !(folder.flags&Ci.nsMsgFolderFlags.Offline) )
+          continue;
+
+        // if no folder was indexed (or the pref's not set), just use the first folder
+        if (!aJob.lastFolderIndexedUri || useNextFolder)
+        {
+          // make sure the folder is dirty before accepting this job...
+          let isDirty = true;
+          try {
+            isDirty = folder.GetStringProperty(this.GLODA_DIRTY_PROPERTY) !=
+                        "0"; 
+          }
+          catch (ex) {}
+          
+          if (!isDirty)
+            continue; 
+        
+          aJob.lastFolderIndexedUri = folder.URI;
+          this._indexingJobGoal += 2;
+          // add a job for the folder indexing
+          this._indexQueue.push(new IndexingJob("folder", 0,
+              this._datastore._mapFolderURI(aJob.lastFolderIndexedUri)));
+          // re-schedule this job (although this worker will die)
+          this._indexQueue.push(aJob);
+          yield kWorkDone;
+        }
+        else
+        {
+          if (aJob.LastFolderIndexedUri == folder.URI)
+            useNextFolder = true;
+        }
+      }
+    }
+    
     // consider deletion
     if (this.pendingDeletion || this.pendingDeletion === null) {
-      
+      this._indexingJobGoal++;
+      this._indexQueue.push(new IndexingJob("delete", 0, null));
+      // no need to set this.indexing to true, it must be true if we are here.
     }
+    
+    // we don't have any more work to do...
+    this._indexingSweepActive = false;
+    yield kWorkDone;
   },
 
   /**
@@ -1217,7 +1313,27 @@ let GlodaIndexer = {
      *  succession.)
      */
     msgAdded: function gloda_indexer_msgAdded(aMsgHdr) {
-      this.indexer._log.debug("msgAdded notification");
+      // make sure the message is eligible for indexing...
+      let msgFolder = aMsgHdr.folder;
+      if (msgFolder.URI.indexOf("news://") == 0)
+        return;
+      let isFolderLocal = msgFolder instanceof Ci.nsIMsgLocalMailFolder;
+      if (!isFolderLocal && !(msgFolder.flags&Ci.nsMsgFolderFlags.Offline))
+        return;
+      
+      // mark the folder dirty so we know to look in it, but there is no need
+      //  to mark the message because it will lack a gloda-id anyways.
+      // (but don't mark it if it's already marked, as it could result in 
+      //  useless commits.)
+      // XXX if we used our own folder rep here, this would be much cheaper...
+      let folderAlreadyDirty = true;
+      try {
+        folderAlreadyDirty = msgFolder.getStringProperty(
+          this.indexer.GLODA_DIRTY_PROPERTY) != "0";
+      } catch (ex) {}
+      if (!folderAlreadyDirty)
+        msgFolder.setStringProperty(this.indexer.GLODA_DIRTY_PROPERTY, "1");
+
       if (this.indexer._pendingAddJob === null) {
         this.indexer._pendingAddJob = new IndexingJob("message", 1, null);
         this.indexer._indexQueue.push(this.indexer._pendingAddJob);
@@ -1225,11 +1341,17 @@ let GlodaIndexer = {
       }
       // only queue the message if we haven't overflowed our event-driven budget
       if (this.indexer._pendingAddJob.items.length <
-          this._indexMaxEventQueueMessages)
+          this._indexMaxEventQueueMessages) {
         this.indexer._pendingAddJob.items.push(
           [GlodaDatastore._mapFolderURI(aMsgHdr.folder.URI),
            aMsgHdr.messageKey]);
-      this.indexer.indexing = true;
+        this.indexer.indexing = true;
+        this.indexer._log.debug("msgAdded notification, event indexing");
+      }
+      else {
+        this.indexer.indexingSweepNeeded = true;
+        this.indexer._log.debug("msgAdded notification, sweep indexing");
+      }
     },
     
     /**
@@ -1361,6 +1483,7 @@ let GlodaIndexer = {
         else {
           // mark the folder as dirty; we'll get to it later.
           aDestFolder.setStringProperty(this.GLODA_DIRTY_PROPERTY, "1");
+          this.indexingSweepNeeded = true;
         }
       } catch (ex) {
         this.indexer._log.error("Problem encountered during message move/copy" +
@@ -1423,6 +1546,7 @@ let GlodaIndexer = {
                         srcURI.substring(srcURI.lastIndexOf("/"));
         return this._folderRenameHelper(aSrcFolder, targetURI);
       }
+      this.indexingSweepNeeded = true;
     },
     
     /**
@@ -1500,14 +1624,23 @@ let GlodaIndexer = {
      *  identifying the message by providing its folder ID and message key, and
      *  the indexer will cleanly map this to the existing gloda message.
      */
-    _reindexChangedMessage: function(aMsgHdr) {
+    _reindexChangedMessage: function gloda_indexer_reindexChangedMessage(
+        aMsgHdr) {
+      // make sure the message is eligible for indexing...
+      let msgFolder = aMsgHdr.folder;
+      if (msgFolder.URI.indexOf("news://") == 0)
+        return;
+      let isFolderLocal = msgFolder instanceof Ci.nsIMsgLocalMailFolder;
+      if (!isFolderLocal && !(msgFolder.flags&Ci.nsMsgFolderFlags.Offline))
+        return;
+    
       // mark the message as dirty
       // (We could check for the presence of the gloda message id property
       //  first to know whether we technically need the dirty property.  I'm
       //  not sure whether it is worth the high-probability exception cost.) 
-      aMsgHdr.setUint32Property(this.GLODA_DIRTY_PROPERTY, 1);
+      aMsgHdr.setUint32Property(this.indexer.GLODA_DIRTY_PROPERTY, 1);
       // mark the folder dirty too, so we know to look inside
-      aMsgHdr.folder.setStringProperty(this.GLODA_DIRTY_PROPERTY, 1);
+      msgFolder.setStringProperty(this.indexer.GLODA_DIRTY_PROPERTY, "1");
       
       if (this.indexer._pendingAddJob === null) {
         this.indexer._pendingAddJob = new IndexingJob("message", 1, null);
@@ -1518,27 +1651,15 @@ let GlodaIndexer = {
       if (this.indexer._pendingAddJob.items.length <
           this._indexMaxEventQueueMessages)
         this.indexer._pendingAddJob.items.push(
-          [GlodaDatastore._mapFolderURI(aMsgHdr.folder.URI),
+          [GlodaDatastore._mapFolderURI(msgFolder.URI),
            aMsgHdr.messageKey]);
       this.indexer.indexing = true;
     },
   
-    /**
-     * Find out when folders are added or new messages show up in a newsgroup.
-     */
     OnItemAdded: function gloda_indexer_OnItemAdded(aParentItem, aItem) {
     },
-    
-    /**
-     * Find out when messages disappear from a newsgroup.
-     */
     OnItemRemoved: function gloda_indexer_OnItemRemoved(aParentItem, aItem) {
     },
-    
-    /**
-     * Do nothing, we get our header change notifications directly from the
-     *  nsMsgDatabase.
-     */
     OnItemPropertyChanged: function gloda_indexer_OnItemPropertyChanged(
                              aItem, aProperty, aOldValue, aNewValue) {
     },
@@ -1553,6 +1674,10 @@ let GlodaIndexer = {
           aItem, aProperty, aOldValue, aNewValue) {
       
     },
+    /**
+     * Notice when user activity changes a message's status, or automated
+     *  junk processing flags a message as junk.
+     */
     OnItemPropertyFlagChanged: function gloda_indexer_OnItemPropertyFlagChanged(
                                 aMsgHdr, aProperty, aOldValue, aNewValue) {
       if (aProperty == this._kStatusAtom ||
@@ -1749,26 +1874,25 @@ let GlodaIndexer = {
       this._log.debug("candidate folderID: " + candMsg.folderID +
                       " messageKey: " + candMsg.messageKey);
       
-      // if we are in the same folder and we have the same message key, we
-      //  are definitely the same, stop looking.
-      // if we are in the same folder and the candidate message has a null
-      //  message key, we treat it as our best option unless we find an exact
-      //  key match. (this would happen because the 'move' notification case
-      //  has to deal with not knowing the target message key.  this case
-      //  will hopefully be somewhat improved in the future to not go through
-      //  this path which mandates re-indexing of the message in its entirety.)
-      // if we are in the same folder and the candidate message's underlying
-      //  message no longer exists/matches, we'll assume we are the same but
-      //  were betrayed by a re-indexing or something, but we have to make sure
-      //  a perfect match doesn't turn up.
       if (candMsg.folderURI == aMsgHdr.folder.URI) {
-        if ((candMsg.messageKey == aMsgHdr.messageKey) || 
-            (candMsg.messageKey === null)) {
+        // if we are in the same folder and we have the same message key, we
+        //  are definitely the same, stop looking.
+        if (candMsg.messageKey == aMsgHdr.messageKey) {
           curMsg = candMsg;
           break;
         }
+        // if we are in the same folder and the candidate message has a null
+        //  message key, we treat it as our best option unless we find an exact
+        //  key match. (this would happen because the 'move' notification case
+        //  has to deal with not knowing the target message key.  this case
+        //  will hopefully be somewhat improved in the future to not go through
+        //  this path which mandates re-indexing of the message in its entirety)
         if (candMsg.messageKey === null)
           curMsg = candMsg;
+        // if we are in the same folder and the candidate message's underlying
+        //  message no longer exists/matches, we'll assume we are the same but
+        //  were betrayed by a re-indexing or something, but we have to make
+        //  sure a perfect match doesn't turn up.
         else if ((curMsg === null) && (candMsg.folderMessage === null))
           curMsg = candMsg;
       }

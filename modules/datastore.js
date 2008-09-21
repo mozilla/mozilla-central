@@ -255,7 +255,7 @@ let GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 7,
+  _schemaVersion: 8,
   _schema: {
     tables: {
       

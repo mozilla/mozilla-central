@@ -1305,8 +1305,6 @@ let Gloda = {
       }
     }
     
-    this._log.debug("about to insert: " + outAttribs);
-    
     GlodaDatastore.insertMessageAttributes(aMessage, outAttribs);
     aMessage._replaceAttributes(memAttribs);
     

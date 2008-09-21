@@ -210,9 +210,6 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   if (aDeleted)
     this._deleted = aDeleted;
 
-  // for now, let's always cache this; they should really be forgetting about us
-  //  if they want to forget about the underlying storage anyways...
-  this._folderMessage = undefined;
   // the list of attributes, un-processed
   this._attributes = null;
 }
@@ -270,28 +267,27 @@ GlodaMessage.prototype = {
   /**
    * Return the underlying nsIMsgDBHdr from the folder storage for this, or
    *  null if the message does not exist for one reason or another.
+   * This method no longer caches the result, so it's up to you.
    */
   get folderMessage() {
-    if (this._folderMessage !== undefined)
-      return this._folderMessage;
     if (this._folderID === null || this._messageKey === null)
-      return this._folderMessage = null;
+      return null;
     let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
                      getService(Ci.nsIRDFService);
     let folder = rdfService.GetResource(
                    this._datastore._mapFolderID(this._folderID));
     if (folder instanceof Ci.nsIMsgFolder) {
-      this._folderMessage = folder.GetMessageHeader(this._messageKey);
-      if (this._folderMessage !== null) {
+      let folderMessage = folder.GetMessageHeader(this._messageKey);
+      if (folderMessage !== null) {
         // verify the message-id header matches what we expect...
-        if (this._folderMessage.messageId != this._headerMessageID) {
+        if (folderMessage.messageId != this._headerMessageID) {
           LOG.info("Message with message key does not match expected " +
                    "header! (" + this._headerMessageID + " expected, got " +
-                   this._folderMessage.messageId + ")");
-          this._folderMessage = null;
+                   folderMessage.messageId + ")");
+          folderMessage = null;
         }
       }
-      return this._folderMessage;
+      return folderMessage;
     }
 
     // this only gets logged if things have gone very wrong.  we used to throw

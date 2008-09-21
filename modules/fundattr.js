@@ -502,8 +502,6 @@ let GlodaFundAttr = {
     // -- Date
     attribs.push([this._attrDate.id, aMsgHdr.date]);
     
-    this._log.debug("returning attribs: " + attribs);
-    
     return attribs;
   },
 };
