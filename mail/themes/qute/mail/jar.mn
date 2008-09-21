@@ -166,5 +166,9 @@ classic.jar:
     skin/classic/messenger/accountcentral/manage-imap.png       (accountcentral/manage-imap.png)
     skin/classic/messenger/accountcentral/manage-newsgroups.png (accountcentral/manage-newsgroups.png)
     skin/classic/messenger/accountcentral/manage-rss.png        (accountcentral/manage-rss.png)
+    skin/classic/messenger/icons/arrow-dn-grey.png              (icons/arrow-dn-grey.png)
+    skin/classic/messenger/icons/arrow-dn-black.png             (icons/arrow-dn-black.png)
+    skin/classic/messenger/icons/arrow-dn-blue.png              (icons/arrow-dn-blue.png)
+    skin/classic/messenger/tagbg.png                            (tagbg.png)
     icon.png
     preview.png

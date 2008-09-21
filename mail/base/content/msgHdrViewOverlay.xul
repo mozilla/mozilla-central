@@ -102,41 +102,38 @@
 <hbox id="msgHeaderView" collapsed="true" class="main-header-area">
   <deck id="msgHeaderViewDeck" persist="selectedIndex" selectedIndex="1" flex="1">
     <!-- the message pane consists of 4 'boxes'. Box #1 is a grid, showing a brief view of the headers -->
-    <grid id="collapsedHeaderView" class="header-part1 headerContainer" flex="1">
-      <rows>
-        <row flex="1"/>
-      </rows>
-      <columns>
-        <column class="collapsedToggleHdrBox">
-          <hbox align="baseline">
-            <image id="toggleHeaderView" class="collapsedHeaderViewButton"
-              onclick="ToggleHeaderView();"/>
-          </hbox>
-        </column>
-
-        <column id="collapsedsubjectBox" collapsed="true" flex="1">
-          <hbox align="baseline">
-            <label class="headerName" value="&subjectField2.label;" control="collapsedsubjectValue"/>
-            <textbox id="collapsedsubjectValue" class="collapsedHeaderValue plain" readonly="true" crop="right" appendoriginalclass="true" flex="1"/>
-          </hbox>
-        </column>
-
-        <column id="collapsedfromBox" flex="1">
-          <hbox align="baseline">
+    <vbox id="collapsedHeaderView" class="header-part1 headerContainer" flex="1" pack="start">
+      <hbox flex="1">
+        <hbox id="collapsedfromBox" align="baseline">
+          <hbox>
             <mail-multi-emailHeaderField id="collapsedfromValue"
+                                         pack="start"
                                          class="collapsedHeaderDisplayName"
-                                         label="&fromField2.label;" 
-                                         collapsed="true" flex="1"/>
+                                         label="&fromField2.label;"/>
           </hbox>
-        </column>
-
-        <column id = "collapseddateBox" collapsed="true">
-          <hbox align="baseline">
+        </hbox>
+        <spacer flex="1"/>
+        <hbox id="collapseddateBox">
+          <hbox>
             <textbox id="collapseddateValue" class="collapsedHeaderValue plain" readonly="true"/>
           </hbox>
-        </column>
-      </columns>
-    </grid>
+        </hbox>
+      </hbox>
+      <hbox align="baseline" flex="1">
+        <hbox id="collapsedsubjectBox" flex="1">
+          <hbox flex="1" align="center">
+            <textbox flex="1" id="collapsedsubjectValue"
+                     class="collapsedHeaderValue plain" readonly="true"/>
+          </hbox>
+          <vbox>
+            <button align="center"
+                    id="showDetailsButton" label="&showDetailsButton.label;"
+                    onclick="ToggleHeaderView();"
+                    class="msgHeaderView-button"/>
+          </vbox>
+        </hbox>
+      </hbox>
+    </vbox>
 
     <!-- the message pane consists of 3 'boxes'. Box #2 is the expanded headers view (the default view) -->
     <hbox id="expandedHeaderView" flex="1">
@@ -146,17 +143,17 @@
             name positioning -->
       <vbox id="expandedHeaders" flex="1">
 
-        <hbox id="expandedHeadersTopBox" align="end" pack="end">
+        <hbox id="expandedHeadersTopBox" flex="1">
 
-          <mail-multi-emailHeaderField id="expandedfromBox"
-                                       label="&fromField2.label;"
-                                       collapsed="true"/>
-
-          <spacer id="fromAndToolbarSpacer" flex="1"/>
-
+          <hbox flex="1" align="end">
+            <mail-multi-emailHeaderField id="expandedfromBox"
+                                         label="&fromField2.label;"
+                                         collapsed="false"
+                                         flex="1"/>
+          </hbox>
           <!-- This might want to become a customizable toolbar at some
                point -->
-          <hbox id="expandedHeadersButtonBox">
+          <hbox id="expandedHeadersButtonBox" align="start">
 
             <!-- XXXdmose need to move these commands to a controller, either
                  on the header view, the message pane, or the default
@@ -181,11 +178,10 @@
            </hbox>
         </hbox>
 
-        <mail-headerfield id="expandedsubjectBox" label="&subjectField2.label;"
-                          collapsed="true"/>
-
-        <hbox id="otherHeadersAndButtonsBox"> 
-          <vbox id="variousHeadersBox">
+        <hbox id="otherHeadersAndButtonsBox" flex="1">
+          <vbox id="variousHeadersBox" flex="1">
+            <mail-headerfield id="expandedsubjectBox" label="&subjectField2.label;"
+                              collapsed="false"/>
             <mail-headerfield id="expandedorganizationBox"
                               label="&organizationField2.label;"
                               collapsed="true"/>
@@ -229,8 +225,6 @@
                               label="&userAgentField2.label;"
                               collapsed="true"/>
           </vbox>
-
-          <spacer flex="1"/>
 
           <!-- perhaps this should be a customizable toolbar too -->
           <vbox id="hideDetailsBox" align="end">

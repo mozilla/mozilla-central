@@ -1758,6 +1758,17 @@ function MsgJunk()
   JunkSelectedMessages(!SelectedMessagesAreJunk());
 }
 
+
+function UpdateJunkButton()
+{
+  var hdr = gDBView.hdrForFirstSelectedMessage;
+  var junkScore = hdr.getStringProperty("junkscore");
+  var isJunk = ((junkScore != "") && (junkScore != "0"));
+  if (isNewsURI(hdr.folder.URI))
+    isJunk = true;
+  document.getElementById('junkButton').disabled = isJunk;
+}
+
 function MsgMarkMsgAsRead(markRead)
 {
     if (!markRead) {

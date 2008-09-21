@@ -43,17 +43,30 @@
 
 /* ::::: for the entire area ::::: */
 .main-header-area {
-  background-color: #6d84a2;
-  color: #ffffff; 
-  font-size: 12px;
-  overflow: hidden;
+  background-color: #eeeeec;
 }
 
 /* ::::: msg header toolbars ::::: */
 
-#collapsedHeaderView,
-#expandedHeaderView {
+#collapsedHeaderView {
+  padding: .5em;
   min-width: 1px;
+  color: black;
+  font-size: 120%;
+}
+
+#expandedHeaderView {
+  color: #2e3436;
+  font-size: 12px;
+  overflow: visible;
+}
+
+#variousHeadersBox{
+  padding-bottom: 1em;
+}
+
+#collapsedHeaderDisplayName {
+  text-align: left;
 }
 
 /* ::::: msg header buttons ::::: */
@@ -64,7 +77,58 @@
 }
 
 #otherActionsButton {
-  margin-bottom: .1em;   
+  margin-bottom: .1em;
+  background: none;
+  font-weight: normal;
+  color: #41413F; /* higher contrast */
+  border: 2px solid transparent;
+  font-size: 100%;
+  padding-top: 0px;
+}
+
+#otherActionsButton:hover {
+  color: black;
+  background-color: rgb(230,231,227);
+  border: 2px solid #C0C3C6;
+}
+
+#otherActionsButton > .button-box > .button-menu-dropmarker > .dropmarker-icon {
+  list-style-image: url("chrome://messenger/skin/icons/arrow-dn-grey.png");
+}
+
+#otherActionsButton:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon {
+  list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
+}
+
+#hideDetailsButton {
+  font-weight: normal;
+  font-size: 100%;
+  background: none;
+  color: #41413F; /* higher contrast */
+  border: 2px solid transparent;
+  font-size: 100%;
+}
+
+#hideDetailsButton:hover {
+  color: black;
+  background-color: rgb(230,231,227);
+  border: 2px solid #C0C3C6;
+}
+
+
+#collapsedsubjectValue {
+  -moz-box-align: stretch;
+  font-weight: bold;
+}
+
+#showDetailsButton {
+  font-size: 9pt !important;
+}
+
+#showDetailsButton:hover {
+  color: black;
+  background-color: rgb(230,231,227);
+  border: 2px solid #C0C3C6;
 }
 
 #trashButton {
@@ -76,13 +140,12 @@
 /* ::::: expanded header pane ::::: */
 
 #expandedHeadersButtonBox {
-  padding-bottom: .3em;
+  padding-bottom: 0;
 }
 
-#variousHeadersBox {
-  padding-bottom: 1.3em;
+#expandedfromBox {
+  padding-top: .5em;
 }
-  
 /* ::::: edit message bar ::::: */
 
 #editMessageBox
@@ -164,13 +227,42 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 /* ::::: msg header captions ::::: */
 
 #msgHeaderView {
-  border-left: 2px solid #8597b0;
-  border-right: 2px solid #8597b0;
   font-family: Arial;
   font-size: 12px;
-  -moz-border-radius-bottomleft: 0.2em;
-  -moz-border-radius-bottomright: 0.2em;
-  
+}
+
+#msgHeaderViewDeck {
+  margin: 0;
+  padding: 0;
+}
+
+.msgHeaderView-button {
+  min-width: 1px;
+  -moz-appearance: none;
+  font-size: 90%;
+  color: black;
+  margin-left: 0px;
+  padding-left: 3px;
+  padding-right: 3px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  background-color: rgb(211,215,207);
+  border: 2px solid #C0C3C6;
+  -moz-border-radius: 4px;
+}
+
+.msgHeaderView-button[secondary="true"] {
+  background: none;
+}
+
+.msgHeaderView-button > .toolbarbutton-text {
+  margin: 0;
+  padding: 0;
+}
+
+.msgHeaderView-button:hover {
+  background-color: rgb(230,231,227);
+  border: 2px solid #B0B3B6;
 }
 
 .msgHeaderView-button {
@@ -185,7 +277,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .headerName {
   margin: 0 .5em 5px 0;
   text-align: right;
-  color: #bbbbbb;
+  color: #888a85; /* lower contrast */
   background-color: transparent;
 }
 
@@ -194,11 +286,11 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   min-width: 50px;
   white-space: normal;
   background-color: transparent;
-  color: inherit;
+  color: black !important;
 }
 
 .headerValueBox {
-  margin: 0 0 5px 0; 
+  margin: 0 0 5px 0; // XXX needed?
 }
 
 .headerValueUrl {
@@ -207,13 +299,31 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   text-decoration: underline;
 }
 
-.headerValueBox[singleline="true"] {
-  overflow: hidden;
+#collapsedsubjectBox {
+  margin: 0px;
+  padding: 0px;
+}
+
+#collapsedfromValue > .headerNameBox {
+  display: none;
+  /*width: auto !important;*/
+}
+
+#junkButton[disabled="true"] {
+  background: none;
+  opacity: 0;
+  /*border-color: transparent;*/
 }
 
 .tagvalue {
   margin-left: 0px;
-  margin-top: 0px;
+  background-image: url("chrome://messenger/skin/tagbg.png");
+  color: black;
+  -moz-border-radius: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 /* ::::: msg header message ids ::::: */
 
@@ -241,11 +351,13 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   cursor: pointer;
   margin: 0;
   background-color: transparent;
+  background: url("chrome://messenger/skin/icons/arrow-dn-grey.png") no-repeat center right;
 }
 
 .headerValueUrl:hover,
 .emailDisplayButton:hover {
-  color: blue;
+  color: #2A46C7;
+  background: url("chrome://messenger/skin/icons/arrow-dn-blue.png") no-repeat center right;
 }
 
 .emailDisplayImage {
@@ -287,6 +399,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   text-align: right;
   background-color: transparent;
   color: inherit;
+  padding-right: .5em !important;
 }
 
 #collapseddateValue > .textbox-input-box menupopup { 
@@ -313,4 +426,17 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   margin: 0;
   color: inherit;
   background-color: transparent;
+}
+
+.showdetails-button {
+  -moz-appearance: none !important;
+  min-width: 1px;
+  font-size: 90% !important;
+  background-color: rgb(211,215,207);
+  border: 2px solid #C0C3C6;
+  -moz-border-radius: 4px;
+  padding-left: 3px;
+  padding-right: 3px;
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
 }

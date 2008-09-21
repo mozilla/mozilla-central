@@ -23,6 +23,7 @@
 # Contributor(s):
 #   Markus Hossner <markushossner@gmx.de>
 #   Mark Banner <bugzilla@standard8.plus.com>
+#   David Ascher <dascher@mozillamessaging.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -263,6 +264,14 @@ function OnLoadMsgHeaderPane()
 
   var deckHeaderView = document.getElementById("msgHeaderViewDeck");
   gCollapsedHeaderViewMode = deckHeaderView.selectedIndex == 0;
+  
+  // work around XUL deck bug where collapsed header view, if it's the persisted
+  // default, wouldn't be sized properly because of the larger expanded
+  // view "stretches" the deck.
+  if (gCollapsedHeaderViewMode)
+    document.getElementById('expandedHeaderView').collapsed = true;
+  else
+    document.getElementById('collapsedHeaderView').collapsed = true;
 
   // dispatch an event letting any listeners know that we have loaded the message pane
   var event = document.createEvent('Events');
@@ -394,6 +403,7 @@ var messageHeaderSink = {
       ShowMessageHeaderPane();
       UpdateMessageHeaders();
       ShowEditMessageBox();
+      UpdateJunkButton();
 
       for (index in gMessageListeners)
         gMessageListeners[index].onEndHeaders();
@@ -785,7 +795,11 @@ function updateHeaderValue(headerEntry, headerValue)
 
 function updateHeaderValueInTextNode(headerEntry, headerValue)
 {
-  headerEntry.textNode.value = headerValue;
+  try {
+      headerEntry.textNode.value = headerValue;
+  } catch (e) {
+    dump("headerEntry = " + headerEntry + " and headerValue = " + headerValue + '\n')
+  }
 }
 
 function createNewHeaderView(headerName, label)
@@ -795,6 +809,7 @@ function createNewHeaderView(headerName, label)
 
   newHeader.setAttribute('id', idName);
   newHeader.setAttribute('label', label);
+  newHeader.setAttribute('flex', '1');
   newHeader.collapsed = true;
 
   // this new element needs to be inserted into the view...
