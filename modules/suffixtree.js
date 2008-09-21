@@ -131,9 +131,6 @@ SuffixTree.prototype = {
       //  portion of our pattern
       let actualTraverseLength = Math.min(state.length,
                                           end - index);
-dump("checking traversal: " + this._str.substring(state.start,
-                              state.start + actualTraverseLength) + " versus " +
-      aSubstring.substring(index, index + actualTraverseLength) + "\n");
       if (this._str.substring(state.start,
                               state.start + actualTraverseLength) !=
           aSubstring.substring(index, index + actualTraverseLength))
@@ -142,7 +139,6 @@ dump("checking traversal: " + this._str.substring(state.start,
     }
     
     // state should now be the node which itself and all its children match...
-this.dump(state);
     // The delta is to adjust us to the offset of the last letter of our match;
     //  the edge we traversed to get here may have found us traversing more
     //  than we wanted.
@@ -159,8 +155,6 @@ this.dump(state);
     else */
     delta = index - state.length - end + 1;
  
-dump("about to resultgather. end: " + end + " index: " + index + 
-     " state.end: " + state.end + " infinity: " + this._infinity + "\n");
     this._resultGather(state, results, {}, end, delta, true);
     return results;
   },
@@ -203,24 +197,12 @@ dump("about to resultgather. end: " + end + " index: " + index +
     // - The 
 
   let patternFirst = patternLast - (aPatLength - 1);
-    
-dump("considering " + this._str.slice(stringStart, stringEnd) + " with pos " + 
-     stringStart + ":" + stringEnd + " with state " +
-     aState.start + ":" + aState.end +
-     "(patFirst:" + patternFirst + " patLast: " + patternLast +
-     " delta: " + aDelta + ")\n");
 
   if (patternFirst >= stringStart) {
     if (!(stringStart in aPresence)) {
-dump("  adding! (patternFirst: " + patternFirst + ")\n");
       aPresence[stringStart] = true;
       aResults.push(this._offsetsToItems[mid*3+2]);
     }
-  }
-  else {
-dump("  disregarding because pattern is not contained. (patternLast:" +
-  patternLast + " aPatLength: " + aPatLength + " stringstart: " +
-  stringStart + "\n"); 
   }
     
     // bail if we had it coming OR
@@ -380,8 +362,6 @@ dump("  bailing! (bail was: " + bail + ")\n");
 };
 MultiSuffixTree.prototype = SuffixTree.prototype;
 
-//let a = new SuffixTree('AndrewSmithAndrewJonesMarkSmith');
-//a.dump();
 function examplar() {
   let names = ["AndrewSmith", "AndrewJones", "MarkSmith", "BryanClark",
                "MarthaJones", "DavidAscher", "DanMosedale", "DavidBienvenu",
