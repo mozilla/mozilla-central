@@ -85,13 +85,19 @@ CallbackStreamListener.prototype = {
     let message = MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
     if (message === undefined)
       message = null;
+
+    delete MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
     
     if (this._callbackThis)
       this._callback.call(this._callbackThis, this._msgHdr, message);
     else
       this._callback.call(null, this._msgHdr, message);
     
-    delete MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
+    // null everyone out, we are getting hosed by some secretive horrible cycles
+    this._msgHdr = null;
+    this._stream = null;
+    this._callbackThis = null;
+    this._callback = null;
   },
 
   /* okay, our onDataAvailable should actually never be called.  the stream

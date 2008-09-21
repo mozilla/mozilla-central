@@ -92,6 +92,8 @@ MimeMessageEmitter.prototype = {
   classID: Components.ID("{80578315-7021-40f9-9717-413cacf2fa7d}"),
   contractID: "@mozilla.org/steeldestined/jsmimeemitter;1",
   
+  _partRE: new RegExp("^[^?]+\?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
+  
   _xpcom_categories: [{
     category: "mime-emitter",
     entry:
@@ -101,8 +103,6 @@ MimeMessageEmitter.prototype = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMimeEmitter]),
 
   Initialize: function mime_emitter_Initialize(aUrl, aChannel, aFormat) {
-    this._partRE = new RegExp("^[^?]+\?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$");
-
     this._url = aUrl;
     this._curMsg = this._parentMsg = this._rootMsg = new this._mimeMsg.MimeMessage();
     
@@ -113,6 +113,18 @@ MimeMessageEmitter.prototype = {
   },
   
   Complete: function mime_emitter_Complete() {
+    // null out everything we can.  secretive cycles are eating us alive.
+    this._url = null;
+    this._channel = null;
+    
+    this._inputStream = null;
+    this._outputStream = null;
+    
+    this._outputListener = null;
+
+    this._curMsg = this._parentMsg = this._messageStack = this._rootMsg = null;
+    this._messageIndex = null;
+    this._allSubMessages = null;
   },
   
   SetPipe: function mime_emitter_SetPipe(aInputStream, aOutputStream) {
