@@ -77,6 +77,7 @@
 }
 
 #otherActionsButton {
+  -moz-appearance: none;
   margin-bottom: .1em;
   background: none;
   font-weight: normal;
@@ -92,6 +93,10 @@
   border: 2px solid #C0C3C6;
 }
 
+#otherActionsButton > .button-box > .button-menu-dropmarker {
+  -moz-appearance: none !important;
+}
+
 #otherActionsButton > .button-box > .button-menu-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-grey.png");
 }
@@ -101,6 +106,7 @@
 }
 
 #hideDetailsButton {
+  -moz-appearance: none;
   font-weight: normal;
   font-size: 100%;
   background: none;
@@ -249,6 +255,10 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   background-color: rgb(211,215,207);
   border: 2px solid #C0C3C6;
   -moz-border-radius: 4px;
+  -moz-border-top-colors: none;
+  -moz-border-right-colors: none;
+  -moz-border-bottom-colors: none;
+  -moz-border-left-colors: none;
 }
 
 .msgHeaderView-button[secondary="true"] {
@@ -350,6 +360,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .emailDisplayButton {
   cursor: pointer;
   margin: 0;
+  padding: 0 10px 0 0 !important;
   background-color: transparent;
   background: url("chrome://messenger/skin/icons/arrow-dn-grey.png") no-repeat center right;
 }
