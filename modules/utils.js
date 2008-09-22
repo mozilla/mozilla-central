@@ -88,12 +88,12 @@ let GlodaUtils = {
                     createInstance(Ci.nsIScriptableUnicodeConverter);
     let trash = {};
     converter.charset = "UTF-8";
-    let emailArr = converter.convertToByteArray(aString, trash);
+    let data = converter.convertToByteArray(aString, trash);
 
     let hasher = Cc['@mozilla.org/security/hash;1'].
                  createInstance(Ci.nsICryptoHash);
     hasher.init(Ci.nsICryptoHash.MD5);
-    hasher.update(emailArr, emailArr.length);
+    hasher.update(data, data.length);
     let hash = hasher.finish(false);
     
      // return the two-digit hexadecimal code for a byte
