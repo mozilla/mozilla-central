@@ -187,9 +187,8 @@ let Gloda = {
    *  it.  If no such message exists, null is returned.
    */
   getMessageForHeader: function gloda_ns_getMessageForHeader(aMsgHdr) {
-    let message = GlodaDatastore.getMessageFromLocation(aMsgHdr.folder.URI,
-                                                        aMsgHdr.messageKey);
-    return message;
+    return GlodaDatastore.getMessageFromLocation(aMsgHdr.folder.URI,
+                                                 aMsgHdr.messageKey);
   },
   
   /**
