@@ -60,7 +60,7 @@ function MultiSuffixTree(aStrings, aItems) {
 }
 
 /**
- *
+ * @constructor
  */
 function State(aStartIndex, aEndIndex, aSuffix) {
   this.start = aStartIndex;
@@ -105,6 +105,7 @@ State.prototype = {
 
 /**
  * Suffix tree implemented using Ukkonen's algorithm.
+ * @constructor
  */
 function SuffixTree(aStr) {
   this._construct(aStr);

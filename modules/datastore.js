@@ -59,13 +59,15 @@ const kSpecialString = 2;
 const kSpecialFulltext = 3;
 
 /**
- * This callback handles processing the asynchronous query results of
+ * @class This callback handles processing the asynchronous query results of
  *  GlodaDatastore.getMessagesByMessageID.  Because that method is only
  *  called as part of the indexing process, we are guaranteed that there will
  *  be no real caching ramifications.  Accordingly, we can also defer our cache
  *  processing (via GlodaCollectionManager) until the query completes.
  *
- * @param aMsgIDToIndex Map from message-id to the desired   
+ * @param aMsgIDToIndex Map from message-id to the desired
+ *
+ * @constructor
  */
 function MessagesByMessageIdCallback(aStatement, aMsgIDToIndex, aResults,
                                      aCallback, aCallbackThis, aCallbackArgs) {
@@ -111,6 +113,10 @@ MessagesByMessageIdCallback.prototype = {
   }
 };
 
+/**
+ * @class Handles the results from a GlodaDatastore.queryFromQuery call.
+ * @constructor
+ */
 function QueryFromQueryCallback(aStatement, aNounMeta, aCollection) {
   this.statement = aStatement;
   this.nounMeta = aNounMeta;
@@ -249,8 +255,9 @@ QueryFromQueryCallback.prototype = {
  *  states of attributes to accomplish this, but that is not desirable.)  This
  *  needs to be addressed, and may be best addressed at layers above
  *  datastore.js.
+ * @namespace
  */
-let GlodaDatastore = {
+var GlodaDatastore = {
   _log: null,
 
   /* ******************* SCHEMA ******************* */

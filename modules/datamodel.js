@@ -47,6 +47,9 @@ const Cu = Components.utils;
 Cu.import("resource://gloda/modules/log4moz.js");
 const LOG = Log4Moz.Service.getLogger("gloda.datamodel");
 
+/**
+ * @class Represents a gloda attribute definition.
+ */
 function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
                            aPluginName, aAttrName, aSubjectTypes,
                            aObjectType, aObjectNounMeta,
@@ -156,6 +159,9 @@ GlodaAttributeDef.prototype = {
   },
 };
 
+/**
+ * @class A gloda conversation (thread) exists so that messages can belong.
+ */
 function GlodaConversation(aDatastore, aID, aSubject, aOldestMessageDate,
                            aNewestMessageDate) {
   this._datastore = aDatastore;
@@ -192,7 +198,9 @@ GlodaConversation.prototype = {
   },
 };
 
-
+/**
+ * @class A message representation.
+ */
 function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
                       aConversationID, aConversation, aDate,
                       aHeaderMessageID, aDeleted) {
@@ -402,6 +410,10 @@ GlodaMessage.prototype = {
   },
 };
 
+/**
+ * @class Contacts correspond to people (one per person), and may own multiple
+ *  identities (e-mail address, IM account, etc.) 
+ */
 function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName,
                       aPopularity, aFrecency) {
   this._datastore = aDatastore;
@@ -446,6 +458,9 @@ GlodaContact.prototype = {
   }
 };
 
+/**
+ * @class A specific means of communication for a contact.
+ */
 function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue,
                        aDescription, aIsRelay) {
   this._datastore = aDatastore;

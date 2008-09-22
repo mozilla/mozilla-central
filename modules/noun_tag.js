@@ -44,6 +44,10 @@ const Cu = Components.utils;
 
 Cu.import("resource://gloda/modules/gloda.js");
 
+/**
+ * @class Represents a tag applied at a certain time.  Or rather it would if we
+ *  were clever enough to track and maintain that time accurately.
+ */
 function Tagged(aTag, aDate) {
   this.tag = aTag;
   this.date = aDate;
@@ -56,10 +60,10 @@ Tagged.prototype = {
 };
 
 /**
- * We are the tag noun provider.  Since the tag unique value is stored as a
+ * @namespace Tag noun provider.  Since the tag unique value is stored as a
  *  parameter, we are an odd case and semantically confused.
  */
-let TagNoun = {
+var TagNoun = {
   name: "tag",
   class: Tagged,
   firstClass: false,

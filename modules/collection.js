@@ -47,6 +47,8 @@ Cu.import("resource://gloda/modules/log4moz.js");
 const LOG = Log4Moz.Service.getLogger("gloda.collection");
 
 /**
+ * @namespace Central registry and logic for all collections. 
+ *
  * The collection manager is a singleton that has the following tasks:
  * - Let views of objects (nouns) know when their objects have changed.  For
  *   example, an attribute has changed due to user action.
@@ -58,12 +60,10 @@ const LOG = Log4Moz.Service.getLogger("gloda.collection");
  *   instances to this end.  Caching can be directly integrated by being treated
  *   as a special collection.
  */
-function GlodaCollectionManager() {
-  this._collectionsByNoun = {};
-  this._cachesByNoun = {};
-}
+var GlodaCollectionManager = {
+  _collectionsByNoun = {},
+  _cachesByNoun = {},
 
-GlodaCollectionManager.prototype = {
   /**
    * Registers the existence of a collection with the collection manager.  This
    *  is done using a weak reference so that the collection can go away if it
@@ -364,17 +364,16 @@ GlodaCollectionManager.prototype = {
         collection._onItemsRemoved(removeItems);
     }
   },
-}
-// singleton
-GlodaCollectionManager = new GlodaCollectionManager();
+};
 
 /**
- * A GlodaCollection is intended to be a current view of the set of first-class
- *  nouns meeting a given query.  Assuming a listener is present, events are
+ * @class A current view of the set of first-class nouns meeting a given query.
+ *  Assuming a listener is present, events are
  *  generated when new objects meet the query, existing objects no longer meet
  *  the query, or existing objects have experienced a change in attributes that
  *  does not affect their ability to be present (but the listener may care about
- *  because it is exposing those attributes). 
+ *  because it is exposing those attributes).
+ * @constructor 
  */
 function GlodaCollection(aNounMeta, aItems, aQuery, aListener) {
   // if aNounMeta is null, we are just being invoked for subclassing
@@ -403,7 +402,7 @@ function GlodaCollection(aNounMeta, aItems, aQuery, aListener) {
   this.query = aQuery || null;
   this._listener = aListener || null;
 }
- 
+
 GlodaCollection.prototype = {
   get listener() { return this._listener; },
   set listener(aListener) { this._listener = aListener; },
@@ -476,10 +475,8 @@ GlodaCollection.prototype = {
 };
 
 /**
- * A LRU-discard cache.  We use a doubly linked-list for the eviction
- *  tracking.  Since we require that there is at most one LRU-discard cache per
- *  noun class, we simplify our lives by adding our own attributes to the
- *  cached objects.
+ * Create an LRU cache collection for the given noun with the given size.
+ * @constructor
  */
 function GlodaLRUCacheCollection(aNounMeta, aCacheSize) {
   GlodaCollection.call(this, aNounMeta, null, null, null);
@@ -492,7 +489,13 @@ function GlodaLRUCacheCollection(aNounMeta, aCacheSize) {
     aCacheSize = 32;
   this._maxCacheSize = aCacheSize;
 }
-
+/**
+ * @class A LRU-discard cache.  We use a doubly linked-list for the eviction
+ *  tracking.  Since we require that there is at most one LRU-discard cache per
+ *  noun class, we simplify our lives by adding our own attributes to the
+ *  cached objects.
+ * @augments GlodaCollection
+ */
 GlodaLRUCacheCollection.prototype = new GlodaCollection;
 GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
   for each (let item in aItems) {

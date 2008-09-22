@@ -55,13 +55,11 @@ const FA_STAR = "STAR";
 const FA_READ = "READ";
 
 /**
- * The Gloda Fundamental Attribute provider is a special-case attribute
- *  provider; it provides attributes that the rest of the providers should be
- *  able to assume exist.  Also, it may end up accessing things at a lower level
- *  than most extension providers should do.  In summary, don't mimic this code
- *  unless you won't complain when your code breaks.
+ * @namespace Explicit attribute provider.  Indexes/defines attributes that are
+ *  explicitly a result of user action.  This dubiously includes marking a
+ *  message as read. 
  */
-let GlodaExplicitAttr = {
+var GlodaExplicitAttr = {
   providerName: "gloda.explattr",
   _log: null,
   _strBundle: null,

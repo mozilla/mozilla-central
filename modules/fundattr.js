@@ -49,13 +49,13 @@ Cu.import("resource://gloda/modules/gloda.js");
 Cu.import("resource://gloda/modules/datastore.js");
 
 /**
- * The Gloda Fundamental Attribute provider is a special-case attribute
+ * @namespace The Gloda Fundamental Attribute provider is a special attribute
  *  provider; it provides attributes that the rest of the providers should be
  *  able to assume exist.  Also, it may end up accessing things at a lower level
  *  than most extension providers should do.  In summary, don't mimic this code
  *  unless you won't complain when your code breaks.
  */
-let GlodaFundAttr = {
+var GlodaFundAttr = {
   providerName: "gloda.fundattr",
   _log: null,
   _strBundle: null,

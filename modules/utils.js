@@ -42,8 +42,11 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-
-let GlodaUtils = {
+/**
+ * @namespace A holding place for logic that is not gloda-specific and should
+ *  reside elsewhere.
+ */
+var GlodaUtils = {
   _mimeConverter: null,
   deMime: function gloda_utils_deMime(aString) {
     if (this._mimeConverter == null) {

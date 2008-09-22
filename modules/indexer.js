@@ -132,7 +132,7 @@ function fixIterator(aEnum, aIface) {
 const MSG_FLAG_OFFLINE = 0x80;
 
 /**
- * Capture the indexing batch concept explicitly.
+ * @class Capture the indexing batch concept explicitly.
  *
  * @param aJobType The type of thing we are indexing.  Current choices are:
  *   "folder" and "message".  Previous choices included "account".  The indexer
@@ -153,6 +153,8 @@ const MSG_FLAG_OFFLINE = 0x80;
  *     This number may increase during the life of the job, but should not
  *     decrease.  This is used by the status notification code in conjunction
  *     with the goal.
+ *
+ * @constructor
  */
 function IndexingJob(aJobType, aDeltaType, aID) {
   this.jobType = aJobType;
@@ -163,24 +165,9 @@ function IndexingJob(aJobType, aDeltaType, aID) {
   this.goal = null;
 }
 
-/** Synchronous activities performed, you can drive us more. */
-const kWorkSync = 0;
 /**
- * Asynchronous activity performed, you need to relinquish flow control and
- *  trust us to call callbackDriver later.
- */
-const kWorkAsync = 1;
-/**
- * We are all done with our task, close us and figure out something else to do.
- */
-const kWorkDone = 2;
-/**
- * We are not done with our task, but we think it's a good idea to take a
- *  breather.
- */
-const kWorkPause = 3;
-
-/**
+ * @namespace Core indexing logic, plus message-specific indexing logic.
+ *
  * === Indexing Goals
  * We have the following goals:
  *
@@ -260,7 +247,7 @@ const kWorkPause = 3;
  *  tested.  We definitely do crash sometimes when you're shutting down.
  * 
  */
-let GlodaIndexer = {
+var GlodaIndexer = {
   /**
    * A partial attempt to generalize to support multiple databases.  Each
    *  database would have its own datastore would have its own indexer.  But
@@ -481,6 +468,23 @@ let GlodaIndexer = {
   
   GLODA_MESSAGE_ID_PROPERTY: "gloda-id",
   GLODA_DIRTY_PROPERTY: "gloda-dirty",
+
+  /** Synchronous activities performed, you can drive us more. */
+  kWorkSync: 0,
+  /**
+   * Asynchronous activity performed, you need to relinquish flow control and
+   *  trust us to call callbackDriver later.
+   */
+  kWorkAsync: 1,
+  /**
+   * We are all done with our task, close us and figure out something else to do.
+   */
+  kWorkDone: 2,
+  /**
+   * We are not done with our task, but we think it's a good idea to take a
+   *  breather.
+   */
+  kWorkPause: 3,
   
   /**
    * Our current job number, out of _indexingJobGoal.  Although our jobs comes
@@ -704,7 +708,7 @@ let GlodaIndexer = {
         this._indexingFolderID = null;
         this._indexingDatabase = null;
         this._indexingIterator = null;
-        return kWorkAsync;
+        return this.kWorkAsync;
       }
       // we get an nsIMsgDatabase out of this (unsurprisingly) which
       //  explicitly inherits from nsIDBChangeAnnouncer, which has the
@@ -731,7 +735,7 @@ let GlodaIndexer = {
       throw ex;
     }
     
-    return kWorkSync;
+    return this.kWorkSync;
   },
   
   _indexerLeaveFolder: function gloda_index_indexerLeaveFolder(aExpected) {
@@ -816,12 +820,12 @@ let GlodaIndexer = {
       switch (this._batch.next()) {
         // job's done, close the batch and re-schedule ourselves if there's more
         //  to do.
-        case kWorkDone:
+        case this.kWorkDone:
           this._batch.close();
           this._batch = null;
           // (intentional fall-through to re-scheduling logic) 
         // the batch wants to get re-scheduled, do so.
-        case kWorkPause:
+        case this.kWorkPause:
           if (this.indexing)
             this._timer.initWithCallback(this._wrapCallbackDriver,
                                          this._indexInterval,
@@ -829,7 +833,7 @@ let GlodaIndexer = {
           else // it's important to indicate no more callbacks are in flight
             this._indexingActive = false;
           break;
-        case kWorkAsync:
+        case this.kWorkAsync:
           // there is nothing to do.  some other code is now responsible for
           //  calling us.
           break;
@@ -878,12 +882,12 @@ let GlodaIndexer = {
         //  tokens.)
         try {
           switch (this._actualWorker.next()) {
-            case kWorkSync:
+            case this.kWorkSync:
               break;
-            case kWorkAsync:
+            case this.kWorkAsync:
               yield kWorkAsync;
               break;
-            case kWorkDone:
+            case this.kWorkDone:
               this._actualWorker.close();
               this._actualWorker = null;
               break;
@@ -904,7 +908,7 @@ let GlodaIndexer = {
       // take a breather by having the caller re-schedule us sometime in the
       //  future, but only if we're going to perform another loop iteration.
       if (commitTokens > 0)
-        yield kWorkPause;
+        yield this.kWorkPause;
     }
     // XXX doing the dirty commit/check every time could be pretty expensive...
     GlodaCollectionManager.cacheCommitDirty();
@@ -915,7 +919,7 @@ let GlodaIndexer = {
       this._hireJobWorker();
     this._notifyListeners();
     
-    yield kWorkDone;
+    yield this.kWorkDone;
   },
 
   /**
@@ -1039,7 +1043,7 @@ let GlodaIndexer = {
               this._datastore._mapFolderURI(aJob.lastFolderIndexedUri)));
           // re-schedule this job (although this worker will die)
           this._indexQueue.push(aJob);
-          yield kWorkDone;
+          yield this.kWorkDone;
         }
         else
         {
@@ -1058,7 +1062,7 @@ let GlodaIndexer = {
     
     // we don't have any more work to do...
     this._indexingSweepActive = false;
-    yield kWorkDone;
+    yield this.kWorkDone;
   },
 
   /**
@@ -1080,7 +1084,7 @@ let GlodaIndexer = {
       // per above, we want to periodically release control while doing all
       //  this header traversal/investigation.
       if (++aJob.offset % HEADER_CHECK_BLOCK_SIZE == 0)
-        yield kWorkSync;
+        yield this.kWorkSync;
       
       if (isLocal || msgHdr.flags&MSG_FLAG_OFFLINE) {
         // this returns 0 when missing
@@ -1107,7 +1111,7 @@ let GlodaIndexer = {
     // by definition, it's not likely we'll visit this folder again anytime soon
     this._indexerLeaveFolder();
     
-    yield kWorkDone;
+    yield this.kWorkDone;
   },
   
   /**
@@ -1135,9 +1139,9 @@ let GlodaIndexer = {
       if (msgHdr)
         yield this._indexMessage(msgHdr);
       else
-        yield kWorkSync;
+        yield this.kWorkSync;
     }
-    yield kWorkDone;
+    yield this.kWorkDone;
   },
   
   /**
@@ -1157,7 +1161,7 @@ let GlodaIndexer = {
       for each (let message in messagesToDelete) {
         this._deleteMessage(message);
         aJob.offset++;
-        yield kWorkSync;
+        yield this.kWorkSync;
       }
       
       processedAny = true;
@@ -1166,7 +1170,7 @@ let GlodaIndexer = {
     if (processedAny)
       this.pendingDeletions = false;
     
-    yield kWorkDone;
+    yield this.kWorkDone;
   },
 
   /**
@@ -1767,7 +1771,7 @@ let GlodaIndexer = {
     this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
                     aMsgHdr.subject);
     MsgHdrToMimeMessage(aMsgHdr, this, this._indexMessageWithBody);
-    return kWorkAsync;
+    return this.kWorkAsync;
   },
   
   _indexMessageWithBody: function gloda_index_indexMessageWithBody(
@@ -1788,7 +1792,7 @@ let GlodaIndexer = {
       this._indexMessageWithBodyAndAncestors, this,
       [references, aMsgHdr, aMimeMsg]);
     
-    return kWorkAsync;
+    return this.kWorkAsync;
   },
   
   _indexMessageWithBodyAndAncestors:

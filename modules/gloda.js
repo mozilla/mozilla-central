@@ -51,8 +51,8 @@ Cu.import("resource://gloda/modules/query.js");
 Cu.import("resource://gloda/modules/utils.js");
 
 /**
- * This object/namespace provides the user-visible (and extension visible)
- *  global database functionality.  There is currently a dependency/ordering
+ * Provides the user-visible (and extension visible) global database
+ *  functionality.  There is currently a dependency/ordering
  *  problem in that the concept of 'gloda' also includes some logic that is
  *  contributed by built-in extensions, if you will.  Those built-in extensions
  *  (fundattr.js, explattr.js) also import this file.  To avoid a circular
@@ -137,8 +137,9 @@ Cu.import("resource://gloda/modules/utils.js");
  *  notification to be sent.  In practice, we would like that person to be
  *  the 'sender' of the bugmail.  But we can't really do that right, yet.
  * 
+ * @namespace
  */
-let Gloda = {
+var Gloda = {
   /**
    * Initialize logging, the datastore (SQLite database), the core nouns and
    *  attributes, and the contact and identities that belong to the presumed
@@ -635,9 +636,9 @@ let Gloda = {
    *  standard and well-defined, this works out pretty well, but suggests we
    *  need to think things through.
    *
-   * @param The ID of the noun you want to define an action on.
-   * @param The dictionary describing the noun.  The dictionary should have
-   *     the following fields:
+   * @param aNounID The ID of the noun you want to define an action on.
+   * @param aAction Meta The dictionary describing the noun.  The dictionary
+   *     should have the following fields:
    * - actionType: a string indicating the type of action.  Currently, only
    *   "filter" is a legal value.
    * - actionTarget: the noun ID of the noun type on which this action is
@@ -1326,7 +1327,7 @@ let Gloda = {
    */
   queryMessagesAPV: function gloda_ns_queryMessagesAPV(aAPVs) {
     return GlodaDatastore.queryMessagesAPV(aAPVs);
-  },
+  }
 };
 
 /* and initialize the Gloda object/NS before we return... */
@@ -1336,7 +1337,7 @@ try {
 catch (ex) {
   Gloda._log.debug("Exception during Gloda init (" + ex.fileName + ":" +
                    ex.lineNumber + "): " + ex);
-}
+};
 /* but don't forget that we effectively depend on everybody.js too, and
    currently on our importer to be importing that if they need us fully armed
    and operational. */

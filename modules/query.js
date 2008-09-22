@@ -45,12 +45,15 @@ const Cu = Components.utils;
 Cu.import("resource://gloda/modules/log4moz.js");
 
 /**
- * @ivar _owner The query instance that holds the list of unions...
- * @ivar _constraints A list of (lists of OR constraints) that are ANDed
+ * @class Query class core; each noun gets its own sub-class where attributes
+ *  have helper methods bound.
+ * 
+ * @property _owner The query instance that holds the list of unions...
+ * @property _constraints A list of (lists of OR constraints) that are ANDed
  *     together.  For example [[FROM bob, FROM jim], [DATE last week]] would
  *     be requesting us to find all the messages from either bob or jim, and
  *     sent in the last week.
- * @ivar _unions A list of other queries whose results are unioned with our
+ * @property _unions A list of other queries whose results are unioned with our
  *     own.  There is no concept of nesting or sub-queries apart from this
  *     mechanism.
  */
@@ -179,7 +182,7 @@ GlodaQueryClass.prototype = {
 };
 
 /**
- * A query that only 'tests' for already belonging to the collection.
+ * @class A query that only 'tests' for already belonging to the collection.
  */
 function GlodaExplicitQueryClass() {
 }
@@ -199,7 +202,7 @@ GlodaExplicitQueryClass.prototype = {
 };
 
 /**
- * A query that 'tests' true for everything.  Intended for debugging purposes
+ * @class A query that 'tests' true for everything.  Intended for debugging purposes
  *  only.
  */
 function GlodaWildcardQueryClass() {
@@ -219,7 +222,12 @@ GlodaWildcardQueryClass.prototype = {
   }
 };
 
-
+/**
+ * Factory method to effectively create per-noun subclasses of GlodaQueryClass,
+ *  GlodaExplicitQueryClas, and GlodaWildcardQueryClass.  For GlodaQueryClass
+ *  this allows us to add per-noun helpers.  For the others, this is merely a
+ *  means of allowing us to attach the (per-noun) nounMeta to the 'class'.
+ */
 function GlodaQueryClassFactory(aNounMeta) {
   let newQueryClass = function() {
     GlodaQueryClass.call(this);
