@@ -94,7 +94,7 @@ MessagesByMessageIdCallback.prototype = {
   },
   
   handleCompletion: function gloda_ds_mbmi_handleCompletion(aReason) {
-    for (let iResult=0; iResult < this.results.length; iResult++) {
+    for (let iResult = 0; iResult < this.results.length; iResult++) {
       if (this.results[iResult].length)
         GlodaCollectionManager.cacheLoadUnify(GlodaMessage.prototype.NOUN_ID,
                                               this.results[iResult]);
@@ -1608,7 +1608,7 @@ let GlodaDatastore = {
       aCallback, aCallbackThis, aCallbackArgs) {
     let msgIDToIndex = {};
     let results = [];
-    for (let iID=0; iID < aMessageIDs.length; ++iID) {
+    for (let iID = 0; iID < aMessageIDs.length; ++iID) {
       let msgID = aMessageIDs[iID];
       results.push([]);
       msgIDToIndex[msgID] = iID;
@@ -1796,7 +1796,7 @@ let GlodaDatastore = {
     let imas = this._insertMessageAttributeStatement;
     this._beginTransaction();
     try {
-      for (let iAttribute=0; iAttribute < aAttributes.length; iAttribute++) {
+      for (let iAttribute = 0; iAttribute < aAttributes.length; iAttribute++) {
         let attribValueTuple = aAttributes[iAttribute];
 
         imas.bindInt64Parameter(0, aMessage.conversationID);
@@ -1908,11 +1908,11 @@ let GlodaDatastore = {
     let whereClauses = [];
     let unionQueries = [aQuery].concat(aQuery._unions);
     
-    for (let iUnion=0; iUnion < unionQueries.length; iUnion++) {
+    for (let iUnion = 0; iUnion < unionQueries.length; iUnion++) {
       let curQuery = unionQueries[iUnion];
       let selects = [];
       
-      for (let iConstraint=0; iConstraint < curQuery._constraints.length; 
+      for (let iConstraint = 0; iConstraint < curQuery._constraints.length; 
            iConstraint++) {
         let attr_ors = curQuery._constraints[iConstraint];
         
@@ -1969,7 +1969,7 @@ let GlodaDatastore = {
         // note that we don't consolidate things into an IN clause (although
         //  we could) and it's okay because the optimizer makes all such things
         //  equal.
-        for (let iOrIndex=0; iOrIndex < attr_ors.length; iOrIndex++) {
+        for (let iOrIndex = 0; iOrIndex < attr_ors.length; iOrIndex++) {
           let APV = attr_ors[iOrIndex];
         
           let attributeID;
@@ -2073,7 +2073,7 @@ let GlodaDatastore = {
   queryMessagesAPV: function gloda_ds_queryMessagesAPV(aAPVs) {
     let selects = [];
     
-    for (let iAPV=0; iAPV < aAPVs.length; iAPV++) {
+    for (let iAPV = 0; iAPV < aAPVs.length; iAPV++) {
       let APV = aAPVs[iAPV];
       
       let attributeID;

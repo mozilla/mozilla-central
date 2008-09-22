@@ -202,7 +202,7 @@ let Gloda = {
     let parsed = GlodaUtils.parseMailAddresses(aMailAddresses);
     
     let identities = [];
-    for (let iAddress=0; iAddress < parsed.count; iAddress++) {
+    for (let iAddress = 0; iAddress < parsed.count; iAddress++) {
       let identity = GlodaDatastore.getIdentity("email",
                                                 parsed.addresses[iAddress]);
       
@@ -288,7 +288,7 @@ let Gloda = {
     if (!numIdentities)
       return;
     
-    for (let iIdentity=0; iIdentity < numIdentities; iIdentity++) {
+    for (let iIdentity = 0; iIdentity < numIdentities; iIdentity++) {
       let msgIdentity = msgAccountManager.allIdentities.GetElementAt(iIdentity)
                                          .QueryInterface(Ci.nsIMsgIdentity);
       
@@ -336,7 +336,8 @@ let Gloda = {
     }
     
     if (identitiesToCreate.length) {
-      for (let iIdentity=0; iIdentity < identitiesToCreate.length; iIdentity++){
+      for (let iIdentity = 0; iIdentity < identitiesToCreate.length;
+          iIdentity++) {
         let emailAddress = identitiesToCreate[iIdentity];
         // XXX this won't always be of type "email" as we add new account types
         // XXX the blank string could be trying to differentiate; we do have
@@ -349,7 +350,8 @@ let Gloda = {
       }
     }
     
-    for (let iIdentity=0; iIdentity < existingIdentities.length; iIdentity++) {
+    for (let iIdentity = 0; iIdentity < existingIdentities.length;
+        iIdentity++) {
       let identity = existingIdentities[iIdentity];
       myIdentities[identity.id] = identity;
     }
@@ -897,7 +899,7 @@ let Gloda = {
           let instances = this.getAttributeInstances(aAttr);
           if (instances.length > 0) {
             values = [];
-            for (let iInst=0; iInst < instances.length; iInst++) {
+            for (let iInst = 0; iInst < instances.length; iInst++) {
               values.push(nounMeta.fromParamAndValue(instances[iInst][1],
                                                      instances[iInst][2]));
             }
@@ -1078,7 +1080,7 @@ let Gloda = {
       attr._special = aAttrDef.special || this.kSpecialNotAtAll;
       attr._specialColumnName = aAttrDef.specialColumnName || null;
       
-      for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
+      for (let iSubject = 0; iSubject < aAttrDef.subjectNouns.length;
            iSubject++) {
         let subjectType = aAttrDef.subjectNouns[iSubject];
         this._bindAttribute(attr, subjectType, aAttrDef.objectNoun,
@@ -1114,7 +1116,7 @@ let Gloda = {
     
     GlodaDatastore._attributes[compoundName] = attr;
 
-    for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
+    for (let iSubject = 0; iSubject < aAttrDef.subjectNouns.length;
          iSubject++) {
       let subjectType = aAttrDef.subjectNouns[iSubject];
       this._bindAttribute(attr, subjectType, aAttrDef.objectNoun,

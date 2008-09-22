@@ -48,7 +48,7 @@ function MultiSuffixTree(aStrings, aItems) {
   let s = '';
   let offsetsToItems = [];
   let lastLength = 0;
-  for (let i=0; i < aStrings.length; i++) {
+  for (let i = 0; i < aStrings.length; i++) {
     s += aStrings[i];
     offsetsToItems.push(lastLength, s.length, aItems[i]);
     lastLength = s.length;
@@ -326,7 +326,7 @@ dump("  bailing! (bail was: " + bail + ")\n");
     let state = this._root;
     let start = 0;
   
-    for (let i=0; i < aStr.length; i++) {
+    for (let i = 0; i < aStr.length; i++) {
       [state, start] = this._update(state, start, i); // treat as flowing -1...
       [state, start] = this._canonize(state, start, i+1); // 1-length string
     }

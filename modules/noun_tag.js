@@ -85,7 +85,7 @@ let TagNoun = {
     let tagService = Cc["@mozilla.org/messenger/tagservice;1"].
                           getService(Ci.nsIMsgTagService);
     let tagArray = tagService.getAllTags({});
-    for (let iTag=0; iTag < tagArray.length; iTag++) {
+    for (let iTag = 0; iTag < tagArray.length; iTag++) {
       let tag = tagArray[iTag];
       if (tag.key == aTagKey)
         return new Tagged(tag, new Date(aPRTime/1000));

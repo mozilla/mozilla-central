@@ -189,7 +189,7 @@ nsAutoCompleteGloda.prototype = {
     // let's also favor identities as we do it, because that gets us the
     //  most accurate gravat, potentially
     let contactToThing = {};
-    for (let iMatch=0; iMatch < matches.length; iMatch++) {
+    for (let iMatch = 0; iMatch < matches.length; iMatch++) {
       let thing = matches[iMatch];
       if (thing.NOUN_ID == Gloda.NOUN_CONTACT && !(thing.id in contactToThing))
         contactToThing[thing.id] = thing;
@@ -225,7 +225,8 @@ nsAutoCompleteGloda.prototype = {
       let possibleDudes = [];
       // check identities first because they are better than contacts in terms
       //  of display
-      for (let iIdentity=0; iIdentity < identityColl.items.length; iIdentity++){
+      for (let iIdentity = 0; iIdentity < identityColl.items.length;
+          iIdentity++){
         let identity = identityColl.items[iIdentity];
         if (!(identity.contactID in contactToThing)) {
           contactToThing[identity.contactID] = identity;
@@ -234,7 +235,7 @@ nsAutoCompleteGloda.prototype = {
           identity.popularity = identity.contact.popularity;
         }
       }
-      for (let iContact=0; iContact < contactColl.items.length; iContact++) {
+      for (let iContact = 0; iContact < contactColl.items.length; iContact++) {
         let contact = contactColl.items[iContact];
         if (!(contact.id in contactToThing)) {
           contactToThing[contact.id] = contact;

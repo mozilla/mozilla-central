@@ -246,7 +246,7 @@ MimeMessage.prototype = {
    */
   get allAttachments() {
     let results = []; // messages are not attachments, don't include self
-    for (let iChild=0; iChild < this.parts.length; iChild++) {
+    for (let iChild = 0; iChild < this.parts.length; iChild++) {
       let child = this.parts[iChild];
       results = results.concat(child.allAttachments);
     }
@@ -268,7 +268,7 @@ MimeMessage.prototype = {
   
     let s = "Message: " + this.headers.subject;
     
-    for (let iPart=0; iPart < this.parts.length; iPart++) {
+    for (let iPart = 0; iPart < this.parts.length; iPart++) {
       let part = this.parts[iPart];
       s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(nextIndent);
     }
@@ -285,7 +285,7 @@ function MimeContainer(aPartName) {
 MimeContainer.prototype = {
   get allAttachments() {
     let results = [];
-    for (let iChild=0; iChild < this.parts.length; iChild++) {
+    for (let iChild = 0; iChild < this.parts.length; iChild++) {
       let child = this.parts[iChild];
       results = results.concat(child.allAttachments);
     }
@@ -296,7 +296,7 @@ MimeContainer.prototype = {
   
     let s = "Container";
     
-    for (let iPart=0; iPart < this.parts.length; iPart++) {
+    for (let iPart = 0; iPart < this.parts.length; iPart++) {
       let part = this.parts[iPart];
       s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(nextIndent);
     }

@@ -639,7 +639,7 @@ let GlodaIndexer = {
       jobItemGoal = 1;
     }
       
-    for (let iListener=this._indexListeners.length-1; iListener >= 0; 
+    for (let iListener = this._indexListeners.length-1; iListener >= 0; 
          iListener--) {
       let listener = this._indexListeners[iListener];
       listener(status, prettyName, jobIndex, jobTotal, jobItemIndex,
@@ -865,7 +865,7 @@ let GlodaIndexer = {
     GlodaDatastore._beginTransaction();
 
     while (commitTokens > 0) {
-      for (let tokensLeft=this._indexTokens; tokensLeft > 0;
+      for (let tokensLeft = this._indexTokens; tokensLeft > 0;
           tokensLeft--, commitTokens--) {
         if ((this._actualWorker === null) && !this._hireJobWorker()) {
           commitTokens = 0;
@@ -1370,7 +1370,7 @@ let GlodaIndexer = {
       let glodaMessageIds = [];
       
       let deleteJob = new IndexingJob("message", -1, null);
-      for (let iMsgHdr=0; iMsgHdr < aMsgHdrs.length; iMsgHdr++) {
+      for (let iMsgHdr = 0; iMsgHdr < aMsgHdrs.length; iMsgHdr++) {
         let msgHdr = aMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
         try {
           glodaMessageIds.push(msgHdr.getUint32Property(
@@ -1809,7 +1809,8 @@ let GlodaIndexer = {
     // otherwise check out our ancestors
     else {
       // (walk from closest to furthest ancestor)
-      for (let iAncestor=ancestorLists.length-1; iAncestor >= 0; --iAncestor) {
+      for (let iAncestor = ancestorLists.length-1; iAncestor >= 0;
+          --iAncestor) {
         let ancestorList = ancestorLists[iAncestor];
         
         if (ancestorList.length > 0) {
@@ -1842,7 +1843,7 @@ let GlodaIndexer = {
     //  exist. (This is possible if previous messages that were consumed in this
     //  thread only had an in-reply-to or for some reason did not otherwise
     //  provide the full references chain.)
-    for (let iAncestor=0; iAncestor < ancestorLists.length; ++iAncestor) {
+    for (let iAncestor = 0; iAncestor < ancestorLists.length; ++iAncestor) {
       let ancestorList = ancestorLists[iAncestor];
       
       if (ancestorList.length == 0) {
@@ -1864,7 +1865,7 @@ let GlodaIndexer = {
     //  this message.
     let curMsg = null;
     this._log.debug(candidateCurMsgs.length + " candidate messages");
-    for (let iCurCand=0; iCurCand < candidateCurMsgs.length; iCurCand++) {
+    for (let iCurCand = 0; iCurCand < candidateCurMsgs.length; iCurCand++) {
       let candMsg = candidateCurMsgs[iCurCand];
 
       this._log.debug("candidate folderID: " + candMsg.folderID +
@@ -1993,7 +1994,7 @@ let GlodaIndexer = {
                              aMessage.conversationID, true);
     let ghosts = [];
     let twinMessage = null;
-    for (let iMsg=0; iMsg < conversationMsgs.length; iMsg++) {
+    for (let iMsg = 0; iMsg < conversationMsgs.length; iMsg++) {
       let convMsg = conversationMsgs[iMsg];
       
       // ignore our message

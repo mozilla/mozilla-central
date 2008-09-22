@@ -157,7 +157,7 @@ let GlodaExplicitAttr = {
     let keywords = aMsgHdr.getStringProperty("keywords");
     let keywordList = keywords.split(' ');
     let keywordMap = {};
-    for (let iKeyword=0; iKeyword < keywordList.length; iKeyword++) {
+    for (let iKeyword = 0; iKeyword < keywordList.length; iKeyword++) {
       let keyword = keywordList[iKeyword];
       keywordMap[keyword] = true;
     }
@@ -165,7 +165,7 @@ let GlodaExplicitAttr = {
     let nowPRTime = Date.now() * 1000;
 
     let tagArray = this._msgTagService.getAllTags({});
-    for (let iTag=0; iTag < tagArray.length; iTag++) {
+    for (let iTag = 0; iTag < tagArray.length; iTag++) {
       let tag = tagArray[iTag];
       if (tag.key in keywordMap)
         attribs.push([this._attrTag, tag.key, nowPRTime]);

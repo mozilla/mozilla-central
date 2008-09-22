@@ -98,12 +98,12 @@ GlodaQueryClass.prototype = {
     //  method likewise has any required changes made. 
     let unionQueries = [this].concat(this._unions);
     
-    for (let iUnion=0; iUnion < unionQueries.length; iUnion++) {
+    for (let iUnion = 0; iUnion < unionQueries.length; iUnion++) {
       let curQuery = unionQueries[iUnion];
 
       // assume success until a specific (or) constraint proves us wrong
       let querySatisfied = true;
-      for (let iConstraint=0; iConstraint < curQuery._constraints.length; 
+      for (let iConstraint = 0; iConstraint < curQuery._constraints.length; 
            iConstraint++) {
         let attr_ors = curQuery._constraints[iConstraint];
         
@@ -115,7 +115,7 @@ GlodaQueryClass.prototype = {
         if (attribDef.singular) {
           // assume failure unless we find an or that matches...
           let orSatisfied = false;
-          for (let iOrIndex=0; iOrIndex < attr_ors.length; iOrIndex++) {
+          for (let iOrIndex = 0; iOrIndex < attr_ors.length; iOrIndex++) {
             let APV = attr_ors[iOrIndex];
             
             // straight value match
@@ -140,7 +140,7 @@ GlodaQueryClass.prototype = {
         else { // not singular
           // assume failure unless we find an or that matches...
           let orSatisfied = false;
-          for (let iOrIndex=0; iOrIndex < attr_ors.length; iOrIndex++) {
+          for (let iOrIndex = 0; iOrIndex < attr_ors.length; iOrIndex++) {
             let APV = attr_ors[iOrIndex];
             
             // see if the value is present in any of the values on the object
@@ -152,7 +152,7 @@ GlodaQueryClass.prototype = {
             }
             else { // APV.length == 4
               // see if any of the values are in any of the ranges
-              for (let iVal=0; iVal < attribVal.length; iVal++) {
+              for (let iVal = 0; iVal < attribVal.length; iVal++) {
                 let curVal = attribVal[iVal];
                 if ((APV[2] <= curVal) && (curVal <= APV[3])) {
                   orSatisfied = true;

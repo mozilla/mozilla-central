@@ -91,7 +91,7 @@ GlodaCollectionManager.prototype = {
     //  twice (guard/predicate and value)
     let weakCollections = this._collectionsByNoun[aNounID];
     let collections = [];
-    for (let iColl=0; iColl < weakCollections.length; iColl++) {
+    for (let iColl = 0; iColl < weakCollections.length; iColl++) {
       let collection = weakCollections[iColl].get();
       if (collection)
         collections.push(collection);
@@ -201,7 +201,7 @@ GlodaCollectionManager.prototype = {
     let numUnresolved = 0;
     
     if (cache) {
-      for (let iItem=0; iItem < aItems.length; iItem++) {
+      for (let iItem = 0; iItem < aItems.length; iItem++) {
         let item = aItems[iItem];
         
         if (item.id in cache._idMap) {
@@ -221,7 +221,7 @@ GlodaCollectionManager.prototype = {
         return;
     }
     else {
-      for (let iItem=0; iItem < aItems.length; iItem++) {
+      for (let iItem = 0; iItem < aItems.length; iItem++) {
         unresolvedIndexToItem[iItem] = aItems[iItem];
       }
       numUnresolved = aItems.length;
@@ -463,7 +463,7 @@ GlodaCollection.prototype = {
     let items = this.items;
     // in-place filter.  probably needless optimization.
     let iWrite=0;
-    for (let iRead=0; iRead < items.length; iRead++) {
+    for (let iRead = 0; iRead < items.length; iRead++) {
       let item = items[iRead];
       if (!(item.id in deleteMap))
         items[iWrite++] = item;

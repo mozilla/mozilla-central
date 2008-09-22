@@ -111,7 +111,7 @@ GMTreeNode.prototype = {
   setLevel: function(aLevel) {
     this.level = aLevel;
     if (this.children) {
-      for (let iChild=0; iChild < this.children.length; iChild++) {
+      for (let iChild = 0; iChild < this.children.length; iChild++) {
         this.children[iChild].setLevel(aLevel+1);
       }
     }
@@ -120,7 +120,7 @@ GMTreeNode.prototype = {
   get nodesInSubTree() {
     let numNodes = 1;
     if (this.children) {
-      for (let iChild=0; iChild < this.children.length; iChild++)
+      for (let iChild = 0; iChild < this.children.length; iChild++)
         numNodes += this.children[iChild].nodesInSubTree;
     }
     return numNodes;
@@ -130,7 +130,7 @@ GMTreeNode.prototype = {
   get unreadInSubTree() {
     let numUnread = this.message.folderMessage.isRead ? 0 : 1;
     if (this.children) {
-      for (let iChild=0; iChild < this.children.length; iChild++)
+      for (let iChild = 0; iChild < this.children.length; iChild++)
         numUnread += this.children[iChild].unreadInSubTree;
     }
     return numUnread;
@@ -212,7 +212,7 @@ GlodaMsgDBView.prototype = {
         
         let rangeCount = this._treeSelection.getRangeCount();
         let rangeMinObj = {}, rangeMaxObj = {};
-        for (let iRange=0; iRange < rangeCount; iRange++) {
+        for (let iRange = 0; iRange < rangeCount; iRange++) {
           this._treeSelection.getRangeAt(iRange, rangeMinObj, rangeMaxObj);
           selNodes.push.apply(selNodes, this._rows.slice(rangeMinObj.value,
                                                          rangeMaxObj.value+1));
@@ -235,10 +235,10 @@ GlodaMsgDBView.prototype = {
         
         let rangeCount = this._treeSelection.getRangeCount();
         let rangeMinObj = {}, rangeMaxObj = {};
-        for (let iRange=0; iRange < rangeCount; iRange++) {
+        for (let iRange = 0; iRange < rangeCount; iRange++) {
           this._treeSelection.getRangeAt(iRange, rangeMinObj, rangeMaxObj);
           let rangeMax = rangeMaxObj.value;
-          for (let i=rangeMinObj.value; i < rangeMaxObj.value; i++)
+          for (let i = rangeMinObj.value; i < rangeMaxObj.value; i++)
             selIndices.push(i);
         }
       }
@@ -365,7 +365,7 @@ GlodaMsgDBView.prototype = {
       let conversations = {};
       let dupeCheck = {};
       
-      for (let iMsg=0; iMsg < this._messages.length; iMsg++) {
+      for (let iMsg = 0; iMsg < this._messages.length; iMsg++) {
         let message = this._messages[iMsg];
         if (message.id in dupeCheck) {
           throw Error("DUPLICATE!");
@@ -405,7 +405,7 @@ GlodaMsgDBView.prototype = {
         //  we go.  we didn't do this in the conversation-binning pass because
         //  we don't need the mapping object's lifetimes so large.  (perhaps
         //  silly?  worst case is an extra N objects for N messages.)
-        for (let iMsg=0; iMsg < convMsgs.length; iMsg++) {
+        for (let iMsg = 0; iMsg < convMsgs.length; iMsg++) {
           let message = convMsgs[iMsg];
           let node = new GMTreeNode(message);
           messageIdMap[message.headerMessageID] = node;
@@ -415,7 +415,7 @@ GlodaMsgDBView.prototype = {
         for each (let treeNode in messageIdMap) {
           let msgHdr = treeNode.message.folderMessage;
           // references are ordered from old (0) to new (n-1), so walk backwards
-          for (let iRef=msgHdr.numReferences-1; iRef >= 0; iRef--) {
+          for (let iRef = msgHdr.numReferences-1; iRef >= 0; iRef--) {
             let ref = msgHdr.getStringReference(iRef);
             if (ref in messageIdMap) {
               // link them to their parent
@@ -479,7 +479,7 @@ GlodaMsgDBView.prototype = {
       let groupedNodes = [];
     
       let groupNode = null, groupExampleNode = null;
-      for (let iNode=0; iNode < nodes.length; iNode++) {
+      for (let iNode = 0; iNode < nodes.length; iNode++) {
         let curNode = nodes[iNode];
         
         if ((groupNode === null) || comparator(groupExampleNode, curNode)) {
@@ -507,7 +507,7 @@ dump("@@@@@@ GROUPING @@@@@@@@@\n");
     
     this._toplevelNodes = nodes;
     this._idToNode = idToNode;
-    for (let iNode=0; iNode < nodes.length; iNode++)
+    for (let iNode = 0; iNode < nodes.length; iNode++)
       nodes[iNode].setLevel(0);
     // by default, just show the top-level nodes...
     this._rows = nodes.concat();
@@ -661,7 +661,7 @@ dump("@@@@@@ GROUPING @@@@@@@@@\n");
     
     let canDelete = function() {
       let lastCheckedFolderID = null;
-      for (let iNode=0; iNode < selNodes.length; iNode++) {
+      for (let iNode = 0; iNode < selNodes.length; iNode++) {
         let message = selNodes[iNode].message;
         if (lastCheckedFolderID != message.folderID) {
           if (message.folderMessage === null ||
@@ -1169,7 +1169,7 @@ dump("~~~ hasNextSibling\n");
     //  a way that this walk is probably shorter than walking potentially the
     //  entire row list.
     let lastSibling = selNode.parent.children[selNode.parent.children.length-1];
-    for (let iCur=aIndex+1; iCur <= aAfterIndex; iCur++) {
+    for (let iCur = aIndex+1; iCur <= aAfterIndex; iCur++) {
       if (this._rows[iCur] === lastSibling)
         return false;
     }
@@ -1190,7 +1190,7 @@ dump("~~~ hasNextSibling\n");
       let spliceArgs = [aIndex+1, 0];
       
       function expandNode(aNode) {
-        for (let iChild=0; iChild < aNode.children.length; iChild++) {
+        for (let iChild = 0; iChild < aNode.children.length; iChild++) {
           let child = aNode.children[iChild];
           spliceArgs.push(child);
           if (child.open)
@@ -1216,7 +1216,7 @@ dump("~~~ hasNextSibling\n");
       //  a sibling or uncle)
       let curLevel = selNode.level;
       let iRow;
-      for (iRow=aIndex+1; iRow < this._rows.length; iRow++) {
+      for (iRow = aIndex+1; iRow < this._rows.length; iRow++) {
         if (this._rows[iRow].level <= curLevel)
           break;
       }

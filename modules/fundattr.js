@@ -446,7 +446,7 @@ let GlodaFundAttr = {
     //  pass.)
     let toIdentities = Gloda.getIdentitiesForFullMailAddresses(
                            aMsgHdr.recipients);
-    for (let iTo=0; iTo < toIdentities.length; iTo++) {
+    for (let iTo = 0; iTo < toIdentities.length; iTo++) {
       let toIdentity = toIdentities[iTo];
       attribs.push([this._attrTo.id, toIdentity.id]);
       if (!(toIdentity.id in involvedIdentities)) {
@@ -470,7 +470,7 @@ let GlodaFundAttr = {
       }
     }
     let ccIdentities = Gloda.getIdentitiesForFullMailAddresses(aMsgHdr.ccList);
-    for (let iCc=0; iCc < ccIdentities.length; iCc++) {
+    for (let iCc = 0; iCc < ccIdentities.length; iCc++) {
       let ccIdentity = ccIdentities[iCc];
       attribs.push([this._attrCc.id, ccIdentity.id]);
       if (!(ccIdentity.id in involvedIdentities)) {

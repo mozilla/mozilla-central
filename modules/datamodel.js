@@ -139,7 +139,7 @@ GlodaAttributeDef.prototype = {
       let values;
       if (instances.length > 0) {
         values = [];
-        for (let iInst=0; iInst < instances.length; iInst++) {
+        for (let iInst = 0; iInst < instances.length; iInst++) {
           values.push(nounMeta.fromParamAndValue(instances[iInst][1],
                                                  instances[iInst][2]));
         }
@@ -332,7 +332,7 @@ GlodaMessage.prototype = {
           }
           else {
             let values = this[attrDef.boundName];
-            for (let iValue=0; iValue < values.length; iValue++)
+            for (let iValue = 0; iValue < values.length; iValue++)
               attribs.push([attrDef, values[iValue]]);
           }
           seenDefs[attrDef] = true;
