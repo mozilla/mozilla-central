@@ -183,8 +183,12 @@ let Gloda = {
   kIndexerRemoving: 3,
   
   /**
-   * Given an nsIMsgDBHdr, return the gloda message object that corresponds to
-   *  it.  If no such message exists, null is returned.
+   * Lookup a gloda message from an nsIMsgDBHdr.
+   *
+   * @param aMsgHdr The header of the message you want the gloda message for.
+   *
+   * @return the gloda messages that corresponds to the provided nsIMsgDBHdr
+   *    if one exists, null if one cannot be found.
    */
   getMessageForHeader: function gloda_ns_getMessageForHeader(aMsgHdr) {
     return GlodaDatastore.getMessageFromLocation(aMsgHdr.folder.URI,
