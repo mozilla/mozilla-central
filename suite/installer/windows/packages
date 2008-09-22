@@ -56,7 +56,6 @@ bin\mozcrt19.dll
 ; files listed in xpcom (missing in this section) will be installed as part of the browser
 bin\README.txt,bin\readme.txt
 bin\license.txt
-bin\jpeg3250.dll
 bin\seamonkey.exe
 bin\application.ini
 bin\platform.ini
@@ -119,7 +118,6 @@ bin\components\dom_range.xpt
 bin\components\dom_sidebar.xpt
 bin\components\dom_storage.xpt
 bin\components\dom_stylesheets.xpt
-bin\components\dom_svg.xpt
 bin\components\dom_threads.xpt
 bin\components\dom_traversal.xpt
 bin\components\dom_views.xpt
@@ -185,7 +183,6 @@ bin\components\plugin.xpt
 bin\components\pref.xpt
 bin\components\prefetch.xpt
 bin\components\profile.xpt
-bin\components\progressDlg.xpt
 bin\components\proxyObject.xpt
 bin\components\rdf.dll
 bin\components\rdf.xpt
@@ -195,7 +192,6 @@ bin\components\satchel.xpt
 bin\components\saxparser.xpt
 bin\components\shellservice.xpt
 bin\components\shistory.xpt
-bin\components\sidebar.xpt
 bin\components\signonviewer.xpt
 bin\components\storage.xpt
 bin\components\strgcmps.dll
@@ -216,7 +212,6 @@ bin\components\universalchardet.dll
 bin\components\update.xpt
 bin\components\uriloader.xpt
 bin\components\urlformatter.xpt
-bin\components\util.xpt
 bin\components\wallet.dll
 bin\components\wallet.xpt
 bin\components\walleteditor.xpt
@@ -260,8 +255,8 @@ bin\sqlite3.dll
 bin\components\FeedProcessor.js
 bin\components\jsconsole-clhandler.js
 bin\components\nsAddonRepository.js
-bin\components\nsBadCertHandler.js
 bin\components\nsAxSecurityPolicy.js
+bin\components\nsBadCertHandler.js
 bin\components\nsBlocklistService.js
 bin\components\nsBrowserContentHandler.js
 bin\components\nsTryToClose.js
@@ -269,7 +264,6 @@ bin\components\nsComposerCmdLineHandler.js
 bin\components\nsContentDispatchChooser.js
 bin\components\nsContentPrefService.js
 bin\components\nsExtensionManager.js
-bin\components\nsInterfaceInfoToIDL.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
@@ -432,7 +426,6 @@ bin\components\nsHelperAppDlg.js
 bin\components\nsDownloadProgressListener.js
 
 ; spellcheck
-bin\components\myspell.dll
 bin\components\spellchk.dll
 bin\components\spellchecker.xpt
 

@@ -61,8 +61,10 @@ components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
 components/chatzilla-service.js
 components/crashreporter.xpt
+components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
 components/nsDictionary.js
+components/nsInterfaceInfoToIDL.js
 components/nsLDAPPrefsService.js
 components/nsKillAll.js
 components/nsResetPref.js
@@ -71,9 +73,12 @@ components/nsSetDefaultBrowser.js
 components/nsSetDefaultMail.js
 components/nsUnsetDefaultMail.js
 components/nsXmlRpcClient.js
+components/progressDlg.xpt
 components/search.xpt
+components/sidebar.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/urlwidgt.xpt
+components/util.xpt
 components/venkman-service.js
 components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
 components/winhooks.xpt
