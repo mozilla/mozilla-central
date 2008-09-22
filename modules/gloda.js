@@ -928,7 +928,7 @@ let Gloda = {
       let constrainer = function() {
         // all the arguments provided end up being ORed together
         let our_ors = [];
-        for(let iArg=0; iArg < arguments.length; iArg++) {
+        for (let iArg = 0; iArg < arguments.length; iArg++) {
           let argument = arguments[iArg];
           our_ors.push([aAttr].concat(nounMeta.toParamAndValue(argument)));
         }
@@ -944,7 +944,7 @@ let Gloda = {
         let rangedConstrainer = function() {
           // all the arguments provided end up being ORed together
           let our_ors = [];
-          for(let iArg=0; iArg < arguments.length; iArg +=2 ) {
+          for (let iArg = 0; iArg < arguments.length; iArg +=2 ) {
             let pv1 = nounMeta.toParamAndValue(arguments[iArg]);
             let pv2 = nounMeta.toParamAndValue(arguments[iArg+1]);
             our_ors.push([aAttr, pv1[0], pv1[1], pv2[1]]);
@@ -962,7 +962,7 @@ let Gloda = {
       if (aAttr.special == this.kSpecialString) {
         let likeConstrainer = function() {
           let our_ors = [];
-          for(let iArg=0; iArg < arguments.length; iArg++) {
+          for (let iArg = 0; iArg < arguments.length; iArg++) {
             let argument = arguments[iArg];
             let this_or = [aAttr].concat(nounMeta.toParamAndValue(argument));
             // we are pushing it up to a length of 4 to signify that this is a
@@ -1263,7 +1263,7 @@ let Gloda = {
     
     let allAttribs = [];
   
-    for(let i = 0; i < this._attrProviderOrder.length; i++) {
+    for (let i = 0; i < this._attrProviderOrder.length; i++) {
       let attribs = this._attrProviderOrder[i].process(aMessage, aMsgHdr,
                                                        aMimeMsg, aIsNew);
       allAttribs = allAttribs.concat(attribs);
@@ -1274,7 +1274,7 @@ let Gloda = {
     // [attribute def, parameter, value] for memory usage
     let memAttribs = [];
     
-    for(let iAttrib=0; iAttrib < allAttribs.length; iAttrib++) {
+    for (let iAttrib = 0; iAttrib < allAttribs.length; iAttrib++) {
       let attribDesc = allAttribs[iAttrib];
       
       // is it an (attributedef / attribute def id, value) tuple?
