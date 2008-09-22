@@ -315,7 +315,7 @@ let GlodaIndexer = {
     //  callback.
     return GlodaDatastore.shutdown(function () {
       if (aUrlListener)
-        aUrlListener.OnStopRunningUrl(null, Components.results.NS_OK);
+        aUrlListener.OnStopRunningUrl(null, Cr.NS_OK);
     });
   },
   
@@ -696,7 +696,7 @@ let GlodaIndexer = {
         }
         // we need do nothing special for IMAP, news, or other
       }
-      catch ( e if e.result == Components.results.NS_ERROR_NOT_INITIALIZED) {
+      catch ( e if e.result == Cr.NS_ERROR_NOT_INITIALIZED) {
         // this means that we need to pend on the update.
         this._log.debug("Pending on folder load...");
         this._pendingFolderEntry = this._indexingFolder;
