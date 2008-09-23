@@ -842,7 +842,12 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
           PRUint32 msgSize;
           hdr->GetMessageSize(&msgSize);
           hdr->SetMessageKey(newMsgPos);
-          m_tmpDownloadFile->GetFileSize(&tmpDownloadFileSize);
+          // we need to clone because nsLocalFileUnix caches its stat result,
+          // so it doesn't realize the file has changed size.
+          nsCOMPtr <nsIFile> tmpClone;
+          rv = m_tmpDownloadFile->Clone(getter_AddRefs(tmpClone));
+          NS_ENSURE_SUCCESS(rv, rv);
+          tmpClone->GetFileSize(&tmpDownloadFileSize);
 
           if (msgSize > tmpDownloadFileSize)
             rv = NS_MSG_ERROR_WRITING_MAIL_FOLDER;
