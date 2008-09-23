@@ -885,7 +885,7 @@ var GlodaIndexer = {
             case this.kWorkSync:
               break;
             case this.kWorkAsync:
-              yield kWorkAsync;
+              yield this.kWorkAsync;
               break;
             case this.kWorkDone:
               this._actualWorker.close();
