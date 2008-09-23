@@ -60,6 +60,8 @@ public:
   NS_IMETHOD    AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify);
   NS_IMETHOD    SetAttributesOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property, 
                                   const char *propertyVal, PRInt32 flags);
+  NS_IMETHODIMP DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, 
+                               nsIDBChangeListener *instigator);
 
 protected:
   // IMAP does not set local file flags, override does nothing

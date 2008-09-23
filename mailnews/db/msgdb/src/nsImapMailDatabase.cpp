@@ -85,6 +85,15 @@ void	nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, PRBool /* 
 {
 }
 
+// We override this to avoid our parent class (nsMailDatabase)'s 
+// grabbing of the folder semaphore, and bailing on failure.
+NS_IMETHODIMP nsImapMailDatabase::DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, nsIDBChangeListener *instigator)
+{
+  return nsMsgDatabase::DeleteMessages(nsMsgKeys, instigator);
+}
+
+// We override this so we won't try to change the x-mozilla-status flags
+// in the offline store.
 PRBool nsImapMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, MsgFlags flag)
 {
   return nsMsgDatabase::SetHdrFlag(msgHdr, bSet, flag);
