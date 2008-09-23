@@ -1137,6 +1137,8 @@ AutomatedAutoCompleteHandler.prototype =
 
     if (this.indexIntoNames < this.numNamesToComplete && this.namesToComplete[this.indexIntoNames])
     {
+      /* XXX This is used to work, until switching to the new toolkit broke it
+         We should fix it see bug 456550.
       if (this.namesToComplete[this.indexIntoNames].search('@') == -1) // don't autocomplete if address has an @ sign in it
       {
         // make sure total session count is updated before we kick off ANY actual searches
@@ -1164,6 +1166,7 @@ AutomatedAutoCompleteHandler.prototype =
         if (gLDAPSession && gCurrentAutocompleteDirectory)
           gLDAPSession.onStartLookup(this.namesToComplete[this.indexIntoNames], null, this);
       }
+      */
 
       if (!this.numSessionsToSearch)
         this.processAllResults(); // ldap and ab are turned off, so leave text alone
