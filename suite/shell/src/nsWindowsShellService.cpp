@@ -143,7 +143,7 @@ OpenKeyForWriting(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey,
 //   as aliases to the class:
 //
 //   HKCU\SOFTWARE\Classes\SeaMonkeyHTML\
-//     DefaultIcon                      (default)         REG_SZ     <apppath>,1
+//     DefaultIcon                      (default)         REG_SZ     <appfolder>\chrome\icons\default\html-file.ico
 //     shell\open\command               (default)         REG_SZ     <apppath> -requestPending -osint -url "%1"
 //     shell\open\ddeexec               (default)         REG_SZ     "%1",,0,0,,,,
 //     shell\open\ddeexec               NoActivateHandler REG_SZ
@@ -169,7 +169,7 @@ OpenKeyForWriting(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey,
 //   are mapped like so:
 //
 //   HKCU\SOFTWARE\Classes\<protocol>\
-//     DefaultIcon                      (default)         REG_SZ     <apppath>,1
+//     DefaultIcon                      (default)         REG_SZ     <apppath>,0
 //     shell\open\command               (default)         REG_SZ     <apppath> -requestPending -url "%1"
 //     shell\open\ddeexec               (default)         REG_SZ     "%1",,0,0,,,,
 //     shell\open\ddeexec               NoActivateHandler REG_SZ
@@ -209,7 +209,7 @@ OpenKeyForWriting(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey,
 //   That aliases to this class:
 //   HKCU\SOFTWARE\Classes\SeaMonkeyEML\ (default)        REG_SZ    SeaMonkey (Mail) Document
 //                                      FriendlyTypeName  REG_SZ    SeaMonkey (Mail) Document
-//     DefaultIcon                      (default)         REG_SZ    <apppath>,0
+//     DefaultIcon                      (default)         REG_SZ    <appfolder>\chrome\icons\default\misc-file.ico
 //     shell\open\command               (default)         REG_SZ    <apppath> "%1"
 //
 // - Windows Vista Protocol Handler
@@ -278,15 +278,16 @@ OpenKeyForWriting(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey,
 
 
 typedef enum {
-  NO_SUBSTITUTION           = 0x00,
-  APP_PATH_SUBSTITUTION     = 0x01,
-  EXE_NAME_SUBSTITUTION     = 0x02,
-  UNINST_PATH_SUBSTITUTION  = 0x04,
-  MAPIDLL_PATH_SUBSTITUTION = 0x08,
-  HKLM_ONLY                 = 0x10,
-  USE_FOR_DEFAULT_TEST      = 0x20,
-  NON_ESSENTIAL             = 0x40,
-  APP_NAME_SUBSTITUTION     = 0x80
+  NO_SUBSTITUTION           = 0x000,
+  APP_PATH_SUBSTITUTION     = 0x001,
+  EXE_NAME_SUBSTITUTION     = 0x002,
+  UNINST_PATH_SUBSTITUTION  = 0x004,
+  MAPIDLL_PATH_SUBSTITUTION = 0x008,
+  HKLM_ONLY                 = 0x010,
+  USE_FOR_DEFAULT_TEST      = 0x020,
+  NON_ESSENTIAL             = 0x040,
+  APP_NAME_SUBSTITUTION     = 0x080,
+  APP_FOLDER_SUBSTITUTION   = 0x100
 } SettingFlags;
 
 #define APP_REG_NAME L"SeaMonkey"
@@ -316,7 +317,8 @@ typedef enum {
 #define UNINSTALL_EXE "\\uninstall\\helper.exe"
 
 #define VAL_ICON "%APPPATH%,0"
-#define VAL_FILE_ICON "%APPPATH%,1"
+#define VAL_HTML_ICON "%APPFOLDER%\\chrome\\icons\\default\\html-file.ico"
+#define VAL_MISC_ICON "%APPFOLDER%\\chrome\\icons\\default\\misc-file.ico"
 #define VAL_URL_OPEN "\"%APPPATH%\" -requestPending -osint -url \"%1\""
 #define VAL_MAIL_OPEN "\"%APPPATH%\" \"%1\""
 
@@ -345,21 +347,21 @@ static SETTING gBrowserSettings[] = {
   // File Extension Class - as of 1.8.1.2 the value for VAL_URL_OPEN is also
   // checked for CLS_HTML since SeaMonkey should also own opening local files
   // when set as the default browser.
-  { MAKE_KEY_NAME2(CLS, CLS_HTML, DI),  "", VAL_FILE_ICON, APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME2(CLS, CLS_HTML, DI),  "", VAL_HTML_ICON, APP_FOLDER_SUBSTITUTION },
   { MAKE_KEY_NAME2(CLS, CLS_HTML, SOP), "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
 
   // Protocol Handler Class - for Vista and above
-  { MAKE_KEY_NAME2(CLS, CLS_URL, DI),  "", VAL_FILE_ICON, APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME2(CLS, CLS_URL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
   { MAKE_KEY_NAME2(CLS, CLS_URL, SOP), "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
 
   // Protocol Handlers
-  { MAKE_KEY_NAME2(CLS, "HTTP", DI),    "", VAL_FILE_ICON, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
+  { MAKE_KEY_NAME2(CLS, "HTTP", DI),    "", VAL_ICON, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
   { MAKE_KEY_NAME2(CLS, "HTTP", SOP),   "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
-  { MAKE_KEY_NAME2(CLS, "HTTPS", DI),   "", VAL_FILE_ICON, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
+  { MAKE_KEY_NAME2(CLS, "HTTPS", DI),   "", VAL_ICON, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
   { MAKE_KEY_NAME2(CLS, "HTTPS", SOP),  "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
-  { MAKE_KEY_NAME2(CLS, "FTP", DI),     "", VAL_FILE_ICON, APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME2(CLS, "FTP", DI),     "", VAL_ICON, APP_PATH_SUBSTITUTION },
   { MAKE_KEY_NAME2(CLS, "FTP", SOP),    "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, "GOPHER", DI),  "", VAL_FILE_ICON, APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME2(CLS, "GOPHER", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
   { MAKE_KEY_NAME2(CLS, "GOPHER", SOP), "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION },
 
   // DDE settings
@@ -422,7 +424,7 @@ static SETTING gBrowserSettings[] = {
    // File Extension Aliases
    { MAKE_KEY_NAME1(CLS, ".eml"),    "", CLS_EML, NO_SUBSTITUTION },
    // File Extension Class
-   { MAKE_KEY_NAME2(CLS, CLS_EML, DI),  "",  VAL_ICON, APP_PATH_SUBSTITUTION },
+   { MAKE_KEY_NAME2(CLS, CLS_EML, DI),  "",  VAL_MISC_ICON, APP_FOLDER_SUBSTITUTION },
    { MAKE_KEY_NAME2(CLS, CLS_EML, SOP), "",  VAL_MAIL_OPEN, APP_PATH_SUBSTITUTION},
 
    // Protocol Handler Class - for Vista and above
@@ -592,7 +594,9 @@ nsresult nsWindowsShellService::Init()
   rv = lf->GetParent(getter_AddRefs(appDir));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  appDir->GetPath(mUninstallPath);
+  appDir->GetPath(mAppFolder);
+
+  mUninstallPath = mAppFolder;
   mUninstallPath.AppendLiteral(UNINSTALL_EXE);
 
   // Support short path to the exe so if it is already set the user is not
@@ -957,6 +961,10 @@ nsWindowsShellService::setDefaultBrowser()
     NS_ConvertUTF8toUTF16 dataLongPath(settings->valueData);
     NS_ConvertUTF8toUTF16 key(settings->keyName);
     NS_ConvertUTF8toUTF16 value(settings->valueName);
+    if (settings->flags & APP_FOLDER_SUBSTITUTION) {
+      PRInt32 offset = dataLongPath.Find("%APPFOLDER%");
+      dataLongPath.Replace(offset, 11, mAppFolder);
+    }
     if (settings->flags & APP_PATH_SUBSTITUTION) {
       PRInt32 offset = dataLongPath.Find("%APPPATH%");
       dataLongPath.Replace(offset, 9, mAppLongPath);
@@ -1343,6 +1351,11 @@ nsWindowsShellService::setKeysForSettings(SETTING aSettings[], PRInt32 aSize)
     NS_ConvertUTF8toUTF16 data(settings->valueData);
     NS_ConvertUTF8toUTF16 key(settings->keyName);
     NS_ConvertUTF8toUTF16 value(settings->valueName);
+    if (settings->flags & APP_FOLDER_SUBSTITUTION)
+    {
+      offset = data.Find("%APPFOLDER%");
+      data.Replace(offset, 11, mAppFolder);
+    }
     if (settings->flags & APP_PATH_SUBSTITUTION)
     {
       offset = data.Find("%APPPATH%");

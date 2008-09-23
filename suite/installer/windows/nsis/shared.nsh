@@ -153,7 +153,7 @@
 
   ; An empty string is used for the 5th param because SeaMonkeyHTML is not a
   ; protocol handler
-  ${AddHandlerValues} "$0\SeaMonkeyHTML" "$2" "$8,1" "${AppRegName} Document" "" "true"
+  ${AddHandlerValues} "$0\SeaMonkeyHTML" "$2" "$INSTDIR\chrome\icons\default\html-file.ico" "${AppRegName} Document" "" "true"
 
   ${AddHandlerValues} "$0\SeaMonkeyURL" "$2" "$8,0" "${AppRegName} URL" "true" "true"
   ${AddHandlerValues} "$0\gopher" "$2" "$8,0" "URL:Gopher Protocol" "true" "true"
@@ -171,7 +171,7 @@
 
   ; An empty string is used for the 5th param because SeaMonkeyEML is not a
   ; protocol handler
-  ${AddHandlerValues} "$0\SeaMonkeyEML"  "$2" "$8,1" "${AppRegNameMail} Document" "" ""
+  ${AddHandlerValues} "$0\SeaMonkeyEML"  "$2" "$INSTDIR\chrome\icons\default\misc-file.ico" "${AppRegNameMail} Document" "" ""
 
   ${AddHandlerValues} "$0\SeaMonkeyCOMPOSE"  "$3" "$8,0" "${AppRegNameMail} URL" "true" ""
   ${AddHandlerValues} "$0\SeaMonkeyNEWS" "$2" "$8,0" "${AppRegNameNews} URL" "true" ""

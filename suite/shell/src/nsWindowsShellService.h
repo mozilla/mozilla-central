@@ -84,6 +84,7 @@ protected:
 
 private:
   PRBool mCheckedThisSessionClient;
+  nsString mAppFolder;
   nsString mAppLongPath;
   nsString mAppShortPath;
   nsString mMapiDLLPath;
