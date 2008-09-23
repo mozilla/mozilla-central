@@ -69,11 +69,11 @@ public:
   // nsIAbDirectory methods
   NS_IMETHOD GetPropertiesChromeURI(nsACString &aResult);
   NS_IMETHOD GetURI(nsACString &aURI);
-  NS_IMETHOD GetOperations(PRInt32 *aOperations);
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
   NS_IMETHOD GetChildCards(nsISimpleEnumerator* *result);
   NS_IMETHOD HasCard(nsIAbCard *cards, PRBool *hasCard);
   NS_IMETHOD GetSupportsMailingLists(PRBool *aSupportsMailingsLists);
+  NS_IMETHOD GetReadOnly(PRBool *aReadOnly);
   NS_IMETHOD GetIsRemote(PRBool *aIsRemote);
   NS_IMETHOD GetIsSecure(PRBool *aIsRemote);
   NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult);

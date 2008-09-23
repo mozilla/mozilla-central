@@ -522,11 +522,11 @@ nsAbOSXDirectory::GetURI(nsACString &aURI)
 }
 
 NS_IMETHODIMP
-nsAbOSXDirectory::GetOperations(PRInt32 *aOperations)
+nsAbOSXDirectory::GetReadOnly(PRBool *aReadOnly)
 {
-  *aOperations = nsIAbDirectory::opRead |
-  nsIAbDirectory::opSearch;
-  
+  NS_ENSURE_ARG_POINTER(aReadOnly);
+
+  *aReadOnly = PR_TRUE;
   return NS_OK;
 }
 

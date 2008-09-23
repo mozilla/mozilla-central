@@ -98,8 +98,7 @@ var DirPaneController =
           // If the directory is a mailing list, and it is read-only, return
           // false.
           var abDir = GetDirectoryFromURI(selectedDir);
-          if (abDir.isMailList && 
-              ~abDir.operations & abDir.opWrite)
+          if (abDir.isMailList && abDir.readOnly)
             return false;
 
           // If the selected directory is an ldap directory

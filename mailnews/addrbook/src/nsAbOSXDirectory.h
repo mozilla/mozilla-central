@@ -93,7 +93,7 @@ public:
     NS_IMETHOD Init(const char *aUri);
   
   // nsAbDirProperty methods
-  NS_IMETHOD GetOperations(PRInt32 *aOperations);
+  NS_IMETHOD GetReadOnly(PRBool *aReadOnly);
   NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards);
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes);
   NS_IMETHOD HasCard(nsIAbCard *aCard, PRBool *aHasCard);

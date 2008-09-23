@@ -1,0 +1,108 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Mark Banner <bugzilla@standard8.plus.com>
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+ 
+#include "nsISupports.idl"
+#include "nsIAbItem.idl"
+
+interface nsIAbCard;
+
+/**
+ * A collection of address book items.
+ */
+[scriptable, uuid(e6f97fdb-2e3e-46ad-974d-50f1388953c0)]
+interface nsIAbCollection : nsIAbItem {
+  
+  /**
+   * Returns true if this collection is read-only.
+   */
+  readonly attribute boolean readOnly;
+
+  /**
+   * Returns true if this collection is accessed over a network connection.
+   */
+  readonly attribute boolean isRemote;
+
+  /**
+   * Returns true if this collection is accessed over a secure connection.
+   *
+   * If isRemote returns false, then this value MUST be false as well.
+   */
+  readonly attribute boolean isSecure;
+
+  /** 
+   * Returns an address book card for the specified email address if found.
+   *
+   * If there are multiple cards with the given email address, this method will
+   * return one of these cards in an implementation-defined manner.
+   *
+   * This method performs a synchronous operation. If the collection cannot do
+   * the search in such a manner, then it should throw NS_ERROR_NOT_IMPLEMENTED.
+   *
+   * @param  emailAddress The email address to find in any of the email address
+   *                      fields. If emailAddress is empty, the database won't
+   *                      be searched and the function will return as if no card
+   *                      was found.
+   * @return              An nsIAbCard if one was found, else returns NULL.
+   * @exception NS_ERROR_NOT_IMPLEMENTED If the collection cannot do this.
+   */
+  nsIAbCard cardForEmailAddress(in AUTF8String emailAddress);
+
+  /**
+   * Returns an address book card for the specified property if found.
+   *
+   * If there are multiple cards with the given value for the property, this
+   * method will return one of these cards in an implementation-defined manner.
+   *
+   * This method performs a synchronous operation. If the collection cannot do
+   * the search in such a manner, then it should throw NS_ERROR_NOT_IMPLEMENTED.
+   *
+   * If the property is not natively a string, it can still be searched for
+   * using the string-encoded value of the property, e.g. "0". See
+   * nsIAbCard::getPropertyAsAUTF8String for more information. Empty values will
+   * return no match, to prevent spurious results.
+   *
+   * @param  aProperty      The property to look for.
+   * @param  aValue         The value to search for.
+   * @param  aCaseSensitive True if matching should be done case-sensitively.
+   * @result                An nsIAbCard if one was found, else returns NULL.
+   * @exception NS_ERROR_NOT_IMPLEMENTED If the collection cannot do this.
+   */
+  nsIAbCard getCardFromProperty(in string aProperty, in AUTF8String aValue,
+                                in boolean aCaseSensitive);
+};

@@ -38,7 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
-#include "nsISupports.idl"
+#include "nsIAbCollection.idl"
 #include "nsIAbCard.idl"
 
 interface nsISimpleEnumerator;
@@ -60,8 +60,8 @@ interface nsIMutableArray;
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(1b2637fb-194e-442b-992a-17fe7c068fd4)]
-interface nsIAbDirectory : nsISupports {
+[scriptable, uuid(5ee48561-aff9-447c-802d-93384d524f53)]
+interface nsIAbDirectory : nsIAbCollection {
 
   /**
    * The chrome URI to use for bringing up a dialog to edit this directory.
@@ -70,21 +70,6 @@ interface nsIAbDirectory : nsISupports {
    * got the chrome URI from.
    */
   readonly attribute ACString propertiesChromeURI;
-
-  // Types of operation
-  // Perform linear reading of directory card
-  // content
-  const long opRead = 0x1;
-  // Perform modification and deletion on a
-  // directories content
-  const long opWrite = 0x2;
-  // Perform searching on a directory card
-  // content via the uri format:
-  // 	scheme://path?query
-  const long opSearch = 0x4;
-
-  // The supported operations
-  readonly attribute long operations;
 
   /**
    * The description of the directory. If this directory is not a mailing list,
@@ -163,16 +148,6 @@ interface nsIAbDirectory : nsISupports {
   void deleteCards(in nsIArray aCards);
 
   void dropCard(in nsIAbCard card, in boolean needToCopyCard);
-
-  /**
-   * directory is local (example, mork based) or remote (example, LDAP)
-   */
-  readonly attribute boolean isRemote;
-
-  /**
-   * directory is secure (as in LDAP over SSL)
-   */
-  readonly attribute boolean isSecure;
 
   /**
    * Whether or not the directory should be searched when doing autocomplete,
@@ -308,45 +283,4 @@ interface nsIAbDirectory : nsISupports {
   void setStringValue(in string aName, in ACString aValue);
   void setLocalizedStringValue(in string aName, in AUTF8String aValue);
   //@}
-
-  /** 
-   * Returns an address book card for the specified email address if found.
-   *
-   * If there are multiple cards with the given email address, this method will
-   * return one of these cards in an implementation-defined manner.
-   *
-   * If the address book type does not know how to find a card, it will throw
-   * NS_ERROR_NOT_IMPLEMENTED. Core address book types do throw this exception,
-   * so beware when calling this method.
-   *
-   * @param  emailAddress The email address to find in either the primary or
-   *                      secondary email address fields. If email address is
-   *                      empty, the database won't be searched and the function
-   *                      will return as if no card was found.
-   * @return              An nsIAbCard if one was found, else returns NULL.
-   */
-  nsIAbCard cardForEmailAddress(in AUTF8String emailAddress);
-
-  /**
-   * Returns an address book card for the specified property if found.
-   *
-   * If there are multiple cards with the given value for the property, this
-   * method will return one of these cards in an implementation-defined manner.
-   *
-   * If the address book type does not know how to do this, it will throw
-   * NS_ERROR_NOT_IMPLEMENTED. Core address book types do throw this exception,
-   * so beware when calling this method.
-   *
-   * If the property is not natively a string, it can still be searched for
-   * using the string-encoded value of the property, e.g. "0". See
-   * nsIAbCard::getPropertyAsAUTF8String for more information. Empty values will
-   * return no match, to prevent spurious results.
-   *
-   * @param  aProperty      The property to look for.
-   * @param  aValue         The value to search for.
-   * @param  aCaseSensitive True if matching should be done case-senstively.
-   * @result                An nsIAbCard if one was found, else returns NULL.
-   */
-  nsIAbCard getCardFromProperty(in string aProperty, in AUTF8String aValue,
-                                in boolean aCaseSensitive);
 };

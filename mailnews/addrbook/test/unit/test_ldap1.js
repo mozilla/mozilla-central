@@ -26,6 +26,7 @@ function run_test() {
   // Test - Check various fields
   do_check_eq(abDir.dirName, "test");
   do_check_eq(abDir.lDAPURL.spec, kLDAPTestSpec);
+  do_check_true(abDir.readOnly);
 
   // Test - Write a UTF-8 Auth DN and check it
   abDir.authDn = "test\u00D0";

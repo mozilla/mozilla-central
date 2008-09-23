@@ -47,9 +47,10 @@ MODULE		= addrbook
 
 XPIDLSRCS	= \
 		nsIAbListener.idl \
-		nsIAbDirectory.idl \
 		nsIAbItem.idl \
+		nsIAbCollection.idl \
 		nsIAbCard.idl \
+		nsIAbDirectory.idl \
 		nsIAbMDBDirectory.idl \
 		nsIAddrDBAnnouncer.idl \
 		nsIAddrDBListener.idl \

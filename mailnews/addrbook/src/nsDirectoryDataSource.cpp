@@ -494,11 +494,11 @@ nsresult
 nsAbDirectoryDataSource::createDirectoryIsWriteableNode(nsIAbDirectory* directory,
                                                         nsIRDFNode **target)
 {
-  PRBool isWriteable;
-  nsresult rv = directory->GetOperations(&isWriteable);
+  PRBool isReadOnly;
+  nsresult rv = directory->GetReadOnly(&isReadOnly);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  NS_IF_ADDREF(*target = ((isWriteable & nsIAbDirectory::opWrite) ? kTrueLiteral : kFalseLiteral));
+  NS_IF_ADDREF(*target = (isReadOnly ? kFalseLiteral : kTrueLiteral));
   return NS_OK;
 }
 

@@ -65,8 +65,10 @@ public:
 	nsAbDirProperty(void);
 	virtual ~nsAbDirProperty(void);
 
-	NS_DECL_ISUPPORTS
-	NS_DECL_NSIABDIRECTORY
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIABITEM
+  NS_DECL_NSIABCOLLECTION
+  NS_DECL_NSIABDIRECTORY
 
 protected:
   /**

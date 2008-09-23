@@ -220,7 +220,7 @@ function OnLoadNewMailList()
           selectedAB = parentURI;
         }
   }
-      else if (!(directory.operations & directory.opWrite)) {
+      else if (directory.readOnly) {
         selectedAB = kPersonalAddressbookURI;
         
       }      
@@ -309,7 +309,7 @@ function OnLoadEditList()
 
   // Is this directory read-only? If so, we now need to set all the fields to
   // read-only.
-  if (~gEditList.operations & gEditList.opWrite) {
+  if (gEditList.readOnly) {
     const kMailListFields = [ 'ListName', 'ListNickName', 'ListDescription' ];
 
     for (var i = 0; i < kMailListFields.length; ++i)

@@ -77,23 +77,17 @@ nsAbDirProperty::~nsAbDirProperty(void)
 
 NS_IMPL_ISUPPORTS1(nsAbDirProperty,nsIAbDirectory)
 
+NS_IMETHODIMP nsAbDirProperty::GenerateName(PRInt32 aGenerateFormat,
+                                            nsIStringBundle *aBundle,
+                                            nsAString &name)
+{
+  return GetDirName(name);
+}
+
 NS_IMETHODIMP nsAbDirProperty::GetPropertiesChromeURI(nsACString &aResult)
 {
   aResult.AssignLiteral("chrome://messenger/content/addressbook/abAddressBookNameDialog.xul");
   return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirProperty::GetOperations(PRInt32 *aOperations)
-{
-  // Default is to support all operations.
-  // Inheriting implementations may override
-  // to reduce supported operations
-  NS_ENSURE_ARG_POINTER(aOperations);
-	*aOperations = nsIAbDirectory::opRead |
-		nsIAbDirectory::opWrite |
-		nsIAbDirectory::opSearch;
-
-	return NS_OK;
 }
 
 NS_IMETHODIMP nsAbDirProperty::GetDirName(nsAString &aDirName)
@@ -327,6 +321,15 @@ NS_IMETHODIMP nsAbDirProperty::GetSupportsMailingLists(PRBool *aSupportsMailings
   // We don't currently support nested mailing lists, so only return true if
   // we're not a mailing list.
   *aSupportsMailingsLists = !m_IsMailList;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbDirProperty::GetReadOnly(PRBool *aReadOnly)
+{
+  NS_ENSURE_ARG_POINTER(aReadOnly);
+  // Default is that we are writable. Any implementation that is read-only must
+  // override this method.
+  *aReadOnly = PR_FALSE;
   return NS_OK;
 }
 

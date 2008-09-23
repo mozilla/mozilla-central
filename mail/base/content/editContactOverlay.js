@@ -117,8 +117,7 @@ var editContactInlineUI = {
     var bundle = document.getElementById("bundle_editContact");
 
     // Is this address book writeable?
-    this._writeable = this._cardDetails.book.operations &
-                      Components.interfaces.nsIAbDirectory.opWrite;
+    this._writeable = !this._cardDetails.book.readOnly;
     var type = this._writeable ? "edit" : "view";
 
     // Update the labels accordingly.

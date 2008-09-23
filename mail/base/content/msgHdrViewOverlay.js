@@ -1141,8 +1141,7 @@ function setupEmailAddressPopup(emailAddressNode)
 
   if (emailAddressNode.cardDetails.card) {
     document.getElementById('addToAddressBookItem').setAttribute('hidden', true);
-    if (emailAddressNode.cardDetails.book.operations &
-        Components.interfaces.nsIAbDirectory.opWrite) {
+    if (!emailAddressNode.cardDetails.book.readOnly) {
       document.getElementById('editContactItem').removeAttribute('hidden');
       document.getElementById('viewContactItem').setAttribute('hidden', true);
     }

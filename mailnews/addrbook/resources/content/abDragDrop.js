@@ -55,7 +55,7 @@ var abResultsPaneObserver = {
       var srcDirectory = GetDirectoryFromURI(GetSelectedDirectory());
       // The default allowable actions are copy, move and link, so we need
       // to restrict them here.
-      if ((srcDirectory.operations & srcDirectory.opWrite))
+      if (!srcDirectory.readOnly)
         // Only allow copy & move from read-write directories.
         aDragAction.action = Components.interfaces.
                              nsIDragService.DRAGDROP_ACTION_COPY |
@@ -137,7 +137,7 @@ var abDirTreeObserver = {
     // e.g. LDAP is readonly currently
     var targetDirectory = GetDirectoryFromURI(targetURI);
 
-    if (!(targetDirectory.operations & targetDirectory.opWrite))
+    if (targetDirectory.readOnly)
       return false;
 
     var dragSession = dragService.getCurrentSession();
@@ -157,7 +157,7 @@ var abDirTreeObserver = {
     var srcDirectory = GetDirectoryFromURI(srcURI);
 
     // Only allow copy from read-only directories.
-    if (!(srcDirectory.operations & srcDirectory.opWrite) &&
+    if (srcDirectory.readOnly &&
         dragSession.dragAction != Components.interfaces.
                                   nsIDragService.DRAGDROP_ACTION_COPY)
       return false;

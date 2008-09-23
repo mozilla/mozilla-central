@@ -381,7 +381,7 @@ var ResultsPaneController =
         var enabled = false;
         if (gAbView && gAbView.selection) {
           if (gAbView.directory)
-            enabled = gAbView.directory.operations & gAbView.directory.opWrite;
+            enabled = !gAbView.directory.readOnly;
           numSelected = gAbView.selection.count;
         }
         else

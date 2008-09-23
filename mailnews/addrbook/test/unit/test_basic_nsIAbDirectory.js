@@ -44,8 +44,9 @@ function check_ab(abConfig) {
 
   // Test - Check attributes
 
+  do_check_eq(AB.generateName(0), abConfig.dirName);
   do_check_eq(AB.propertiesChromeURI, kNormalPropertiesURI);
-  do_check_eq(AB.operations, abConfig.operations);
+  do_check_eq(AB.readOnly, abConfig.readOnly);
   do_check_eq(AB.dirName, abConfig.dirName);
   do_check_eq(AB.dirType, abConfig.dirType);
   do_check_eq(AB.fileName, abConfig.fileName);

@@ -4652,13 +4652,13 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
               if (NS_SUCCEEDED(rv))
                 recipient.mProcessed = PR_TRUE;
 
-              PRInt32 isWriteable;
-              rv = abDirectory->GetOperations(&isWriteable);
+              PRBool readOnly;
+              rv = abDirectory->GetReadOnly(&readOnly);
               NS_ENSURE_SUCCESS(rv,rv);
 
               // bump the popularity index for this card since we are about to send e-mail to it
               PRUint32 popularityIndex = 0;
-              if ((isWriteable & nsIAbDirectory::opWrite) && NS_SUCCEEDED(existingCard->GetPropertyAsUint32(
+              if (!readOnly && NS_SUCCEEDED(existingCard->GetPropertyAsUint32(
                       kPopularityIndexProperty, &popularityIndex)))
               {
 

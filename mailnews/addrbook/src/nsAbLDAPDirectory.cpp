@@ -138,34 +138,6 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetURI(nsACString &aURI)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetOperations(PRInt32 *aOperations)
-{
-  *aOperations = nsIAbDirectory::opSearch;
-
-#ifdef MOZ_EXPERIMENTAL_WRITEABLE_LDAP
-  PRBool readOnly;
-  nsresult rv = GetBoolValue("readonly", PR_FALSE, &readOnly);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (readOnly)
-    return NS_OK;
-
-  // when online, we'll allow writing as well
-  PRBool offline;
-  nsCOMPtr <nsIIOService> ioService =
-    do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = ioService->GetOffline(&offline);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  if (!offline)
-    *aOperations |= nsIAbDirectory::opWrite;
-#endif
-
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsAbLDAPDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
 {
   return NS_NewEmptyEnumerator(aResult);
@@ -454,6 +426,36 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetSupportsMailingLists(PRBool *aSupportsMailin
 {
   NS_ENSURE_ARG_POINTER(aSupportsMailingsLists);
   *aSupportsMailingsLists = PR_FALSE;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::GetReadOnly(PRBool *aReadOnly)
+{
+  NS_ENSURE_ARG_POINTER(aReadOnly);
+
+  *aReadOnly = PR_TRUE;
+
+#ifdef MOZ_EXPERIMENTAL_WRITEABLE_LDAP
+  PRBool readOnly;
+  nsresult rv = GetBoolValue("readonly", PR_FALSE, &readOnly);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (readOnly)
+    return NS_OK;
+
+  // when online, we'll allow writing as well
+  PRBool offline;
+  nsCOMPtr <nsIIOService> ioService =
+    do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  rv = ioService->GetOffline(&offline);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  if (!offline)
+    *aReadOnly = PR_FALSE;
+#endif
+
   return NS_OK;
 }
 

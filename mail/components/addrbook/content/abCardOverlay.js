@@ -120,7 +120,7 @@ function OnLoadNewCard()
         if (parentURI)
           gEditCard.selectedAB = parentURI;
       }
-      else if (directory.operations & directory.opWrite)
+      else if (!directory.readOnly)
         gEditCard.selectedAB = window.arguments[0].selectedAB;
     }
 
@@ -266,7 +266,7 @@ function OnLoadEditCard()
       var abURI = window.arguments[0].abURI;
       var directory = GetDirectoryFromURI(abURI);
 
-      if (!(directory.operations & directory.opWrite)) 
+      if (directory.readOnly) 
       {
         // Set all the editable vcard fields to read only
         for (var i = kVcardFields.length; i-- > 0; )

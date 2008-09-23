@@ -19,9 +19,7 @@ var kPABData =
   dirName: "Personal Address Book",
   dirType: 2,
   dirPrefID: "ldap_2.servers.pab",
-  operations: Components.interfaces.nsIAbDirectory.opRead |
-              Components.interfaces.nsIAbDirectory.opWrite |
-              Components.interfaces.nsIAbDirectory.opSearch,
+  readOnly: false,
   position: 1
 };
 
@@ -33,9 +31,7 @@ var kCABData =
   dirName: "Collected Addresses",
   dirType: 2,
   dirPrefID: "ldap_2.servers.history",
-  operations: Components.interfaces.nsIAbDirectory.opRead |
-              Components.interfaces.nsIAbDirectory.opWrite |
-              Components.interfaces.nsIAbDirectory.opSearch,
+  readOnly: false,
   position: 2
 };
 
@@ -47,8 +43,7 @@ var kOSXData =
   dirName: "Mac OS X Address Book",
   dirType: 3,
   dirPrefID: "ldap_2.servers.osx",
-  operations: Components.interfaces.nsIAbDirectory.opRead |
-              Components.interfaces.nsIAbDirectory.opSearch,
+  readOnly: true,
   position: 1
 };
 

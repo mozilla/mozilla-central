@@ -183,11 +183,10 @@
         <parameter name="ab"/>
         <body><![CDATA[
           // This condition is used for instance when creating cards
-          if (this.getAttribute("writable") == "true" &&
-              !(ab.operations & Components.interfaces.nsIAbDirectory.opWrite))
+          if (this.getAttribute("writable") == "true" && ab.readOnly)
             return false;
 
-          // This condition is used for isntance when creating mailing lists
+          // This condition is used for instance when creating mailing lists
           if (this.getAttribute("supportsmaillists") == "true" &&
               !ab.supportsMailingLists)
             return false;
