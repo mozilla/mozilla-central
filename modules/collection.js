@@ -61,8 +61,8 @@ const LOG = Log4Moz.Service.getLogger("gloda.collection");
  *   as a special collection.
  */
 var GlodaCollectionManager = {
-  _collectionsByNoun = {},
-  _cachesByNoun = {},
+  _collectionsByNoun: {},
+  _cachesByNoun: {},
 
   /**
    * Registers the existence of a collection with the collection manager.  This
