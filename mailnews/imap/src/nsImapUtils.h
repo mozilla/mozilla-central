@@ -53,11 +53,6 @@ static const char kModSeqPropertyName[] = "highestModSeq";
 static const char kHighestRecordedUIDPropertyName[] = "highestRecordedUID";
 static const char kDeletedHdrCountPropertyName[] = "numDeletedHeaders";
 
-
-extern nsresult
-nsImapURI2Path(const char* rootURI, const char* uriStr, 
-               nsILocalFile **pathResult);
-
 extern nsresult
 nsImapURI2FullName(const char* rootURI, const char* hostname, const char* uriStr,
                    char **name);

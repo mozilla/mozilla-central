@@ -5762,13 +5762,8 @@ nsresult nsMsgIMAPFolderACL::CreateACLRightsString(nsAString& aRightsString)
 
 NS_IMETHODIMP nsImapMailFolder::GetFilePath(nsILocalFile ** aPathName)
 {
-  nsresult rv;
-  if (!mPath)
-  {
-    rv = nsImapURI2Path(kImapRootURI, mURI.get(), getter_AddRefs(mPath));
-    if (NS_FAILED(rv)) return rv;
-  }
   // this will return a copy of mPath, which is what we want.
+  // this will also initialize mPath using parseURI if it isn't already done
   return nsMsgDBFolder::GetFilePath(aPathName);
 }
 
