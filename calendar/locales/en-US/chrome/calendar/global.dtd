@@ -35,29 +35,7 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!ENTITY time.midnight "Midnight" >
-<!ENTITY time.1 "1:00 AM" >
-<!ENTITY time.2 "2:00 AM" >
-<!ENTITY time.3 "3:00 AM" >
-<!ENTITY time.4 "4:00 AM" >
-<!ENTITY time.5 "5:00 AM" >
-<!ENTITY time.6 "6:00 AM" >
-<!ENTITY time.7 "7:00 AM" >
-<!ENTITY time.8 "8:00 AM" >
-<!ENTITY time.9 "9:00 AM" >
-<!ENTITY time.10 "10:00 AM" >
-<!ENTITY time.11 "11:00 AM" >
 <!ENTITY time.noon "Noon" >
-<!ENTITY time.13 "1:00 PM" >
-<!ENTITY time.14 "2:00 PM" >
-<!ENTITY time.15 "3:00 PM" >
-<!ENTITY time.16 "4:00 PM" >
-<!ENTITY time.17 "5:00 PM" >
-<!ENTITY time.18 "6:00 PM" >
-<!ENTITY time.19 "7:00 PM" >
-<!ENTITY time.20 "8:00 PM" >
-<!ENTITY time.21 "9:00 PM" >
-<!ENTITY time.22 "10:00 PM" >
-<!ENTITY time.23 "11:00 PM" >
 
 <!-- Day Names -->
 <!-- LOCALIZATION NOTE : Accesskeys for day.1.Ddd to day.7.Ddd are currently
