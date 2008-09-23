@@ -23,6 +23,7 @@
  *   Joey Minta <jminta@gmail.com>
  *   Simon Paquet <bugzilla@babylonsounds.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Lars Wohlfahrt <thetux.moz@googlemail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -156,9 +157,13 @@ toolbar[iconsize="small"] #task-switch-button[disabled] {
 }
 
 /* Lightining sidebar background in calendar and task mode */
-#ltnSidebar,
+#ltnSidebar {
+  background-color: -moz-field;  
+}
+
 #invitations-pane {
-  background: -moz-field;  
+  border-top: 1px solid ThreeDShadow !important;
+  background-color: -moz-dialog;  
 }
 
 .calendar-invitations-sidebar-label {
