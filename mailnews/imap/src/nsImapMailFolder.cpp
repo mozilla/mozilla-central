@@ -628,6 +628,11 @@ NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
         CreateClientSubfolderInfo(NS_LITERAL_CSTRING("INBOX"), kOnlineHierarchySeparatorUnknown, 0, PR_TRUE);
       }
     }
+
+    PRInt32 count = mSubFolders.Count();
+    for (PRInt32 i = 0; i < count; i++)
+      mSubFolders[i]->GetSubFolders(nsnull);
+
     UpdateSummaryTotals(PR_FALSE);
     if (NS_FAILED(rv)) return rv;
   }
