@@ -70,7 +70,7 @@ var gCategoriesPane = {
 
         // If no categories are configured load a default set from properties file
         if (!categories || categories == "") {
-            categories = calGetString("categories", "categories");
+            categories = calGetString("categories", "categories2");
             document.getElementById("calendar.categories.names").value = categories;
         }
 

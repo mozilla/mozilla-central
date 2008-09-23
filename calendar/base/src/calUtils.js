@@ -571,7 +571,7 @@ function getPrefCategoriesArray() {
     var categories = getLocalizedPref("calendar.categories.names", null);
     // If no categories are configured load a default set from properties file
     if (!categories || categories == "") {
-        categories = calGetString("categories", "categories");
+        categories = calGetString("categories", "categories2");
         setLocalizedPref("calendar.categories.names", categories);
     }
     return categoriesStringToArray(categories);
