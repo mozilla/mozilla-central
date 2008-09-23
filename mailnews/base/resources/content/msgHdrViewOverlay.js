@@ -1038,21 +1038,21 @@ function AddExtraAddressProcessing(emailAddress, addressNode)
   if (!gShowCondensedEmailAddresses)
     return;
 
-  // TODO: Maybe do domain matches too (i.e. any email from someone in my
-  // company should use the friendly display name).
-
-  const displayName = addressNode.getAttribute("displayName");
-  if (!(displayName && getCardForAddress(emailAddress)))
-    return;
-
   // Get the id of the mail-multi-emailHeaderField binding parent.
   var parentElementId = addressNode.parentNode.parentNode.parentNode.id;
   // Don't condense the address for the from and reply-to fields.
-  if (parentElementId == "expandedfromBox" ||
-      parentElementId == "expandedreply-toBox")
+  // Ids: "collapsedfromValue", "expandedfromBox", "expandedreply-toBox".
+  if (/^(collapsedfromValue|expanded(from|reply-to)Box)$/.test(parentElementId))
     return;
 
-  addressNode.setAttribute("label", displayName);
+  // TODO: Maybe do domain matches too (i.e. any email from someone in my
+  // company should use the friendly display name).
+
+  var card = getCardForAddress(emailAddress);
+  if (!(card && card.displayName))
+    return;
+
+  addressNode.setAttribute("label", card.displayName);
   addressNode.setAttribute("tooltiptext", emailAddress);
 }
 
