@@ -623,6 +623,7 @@ function changeWidgetsOrder() {
                             "monthly-weekday"]);
     changeOrderForElements("yearlyOrder",
                            ["yearly-days",
+                            "yearly-period-of-month-label",
                             "yearly-month-ordinal"]);
     changeOrderForElements("yearlyOrder2",
                            ["yearly-ordinal",

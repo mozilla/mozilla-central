@@ -301,6 +301,9 @@
                                  oninput="updateRecurrenceControls();"
                                  disable-on-readonly="true"
                                  disable-on-occurrence="true"/>
+                        <label id="yearly-period-of-month-label"
+                               value="&event.recurrence.pattern.yearly.of.label;"
+                               control="yearly-month-ordinal"/>
                         <menulist id="yearly-month-ordinal"
                                   disable-on-readonly="true"
                                   disable-on-occurrence="true">
@@ -409,7 +412,7 @@
                     <row id="yearly-period-monthname-row" align="center">
                       <label id="yearly-period-of-label"
                              value="&event.recurrence.of.label;"
-                             style="text-align: right" control="yearly-month-rule"/>
+                             control="yearly-month-rule"/>
                       <menulist id="yearly-month-rule"
                                 disable-on-readonly="true"
                                 disable-on-occurrence="true">
