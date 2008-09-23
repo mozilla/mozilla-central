@@ -341,15 +341,22 @@ function OnAddressBookDataChanged(aAction, aParentDir, aItem) {
   gEmailAddressHeaderNames.forEach(function (headerName) {
       var headerEntry = null;
 
-      if (gCollapsedHeaderViewMode && headerName in gCollapsedHeaderView)
+      // Ensure both collapsed and expanded are updated in case we toggle
+      // between the two.
+      if (headerName in gCollapsedHeaderView) {
         headerEntry = gCollapsedHeaderView[headerName];
-      else if (headerName in gExpandedHeaderView)
+        if (headerEntry)
+          headerEntry.enclosingBox.updateExtraAddressProcessing(aAction,
+                                                                aParentDir,
+                                                                aItem);
+      }
+      if (headerName in gExpandedHeaderView) {
         headerEntry = gExpandedHeaderView[headerName];
-
-      if (headerEntry)
-        headerEntry.enclosingBox.updateExtraAddressProcessing(aAction,
-                                                              aParentDir,
-                                                              aItem);
+        if (headerEntry)
+          headerEntry.enclosingBox.updateExtraAddressProcessing(aAction,
+                                                                aParentDir,
+                                                                aItem);
+      }
     });
 }
 
@@ -1010,7 +1017,7 @@ function updateEmailAddressNode(emailAddressNode, address)
   emailAddressNode.setAttribute("emailAddress", address.emailAddress);
   emailAddressNode.setAttribute("fullAddress", address.fullAddress);
   emailAddressNode.setAttribute("displayName", address.displayName);
-  emailAddressNode.removeAttribute("tooltiptext");
+  emailAddressNode.removeAttribute("tooltipemail");
 
   AddExtraAddressProcessing(address.emailAddress, emailAddressNode);
 }
@@ -1021,15 +1028,18 @@ function AddExtraAddressProcessing(emailAddress, documentNode)
   var cardDetails = getCardForEmail(emailAddress);
   documentNode.cardDetails = cardDetails;
 
+  if (!cardDetails.card) {
+    documentNode.setAttribute("hascard", "false");
+    documentNode.setAttribute("tooltipstar",
+      document.getElementById("addToAddressBookItem").label);
+    return;
+  }
+
+  documentNode.setAttribute("hascard", "true");
+  documentNode.setAttribute("tooltipstar",
+    document.getElementById("editContactItem").label);
+
   if (!gShowCondensedEmailAddresses)
-    return;
-
-  // always show the address for the from and reply-to fields
-  if (documentNode.parentNode.id == "expandedfromBox" ||
-      documentNode.parentNode.id == "expandedreply-toBox")
-    return;
-
-  if (!cardDetails.card)
     return;
 
   var displayName = cardDetails.card.displayName;
@@ -1038,14 +1048,10 @@ function AddExtraAddressProcessing(emailAddress, documentNode)
     return;
 
   documentNode.setAttribute("label", displayName);
-  documentNode.setAttribute("tooltiptext", emailAddress);
+  documentNode.setAttribute("tooltipemail", emailAddress);
 }
 
-function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCondenseName,
-                                aCardDetails) {
-  // The directory for this card has been removed. Re-query to find
-  // any other cards.
-
+function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
   // If we haven't been given specific details, search for a card.
   var cardDetails = aCardDetails ? aCardDetails :
                                    getCardForEmail(aEmailAddress);
@@ -1053,12 +1059,33 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCondenseName,
 
   aDocumentNode.cardDetails = cardDetails;
 
-  if (cardDetails.card)
+  if (cardDetails.card) {
     displayName = cardDetails.card.displayName;
+    aDocumentNode.setAttribute("hascard", "true");
+    aDocumentNode.setAttribute("tooltipstar", 
+                               document.getElementById("editContactItem").label);
+  }
+  else {
+    aDocumentNode.setAttribute("hascard", "false");
+    aDocumentNode.setAttribute("tooltipstar", 
+                               document.getElementById("editContactItem").label);
+  }
 
-  if (aCondenseName && displayName) {
+  // When we are adding cards, we don't want to move the display around if the
+  // user has clicked on the star, therefore if it is locked, just exit and
+  // leave the display updates until later.
+  if (aDocumentNode.hasAttribute("updatingUI"))
+    return;
+
+  if (gShowCondensedEmailAddresses && displayName) {
     aDocumentNode.setAttribute("label", displayName);
-    aDocumentNode.setAttribute("tooltiptext", aEmailAddress);
+    aDocumentNode.setAttribute("tooltipemail", aEmailAddress);
+  }
+  else if (aDocumentNode.parentNode.useShortView &&
+           aDocumentNode.getAttribute("displayName")) {
+    aDocumentNode.setAttribute("label",
+                               aDocumentNode.getAttribute("displayName"));
+    aDocumentNode.setAttribute("tooltipemail", aEmailAddress);
   }
   else
     aDocumentNode.setAttribute("label",
@@ -1069,10 +1096,6 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCondenseName,
 function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
                                       aParentDir, aItem)
 {
-  var condenseName = gShowCondensedEmailAddresses &&
-                     !(aDocumentNode.parentNode.id == "expandedfromBox" ||
-                       aDocumentNode.parentNode.id == "expandedreply-toBox");
-
   switch (aAction) {
   case nsIAbListener.itemChanged:
     if (aAddressData &&
@@ -1081,7 +1104,7 @@ function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
       aDocumentNode.cardDetails.card = aItem;
       var displayName = aItem.displayName;
 
-      if (condenseName && displayName)
+      if (gShowCondensedEmailAddresses && displayName)
         aDocumentNode.setAttribute("label", displayName);
       else
         aDocumentNode.setAttribute("label",
@@ -1095,8 +1118,7 @@ function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
       // If we don't have a match, search again for updates (e.g. a interface
       // to an existing book may just have been added).
       if (!aDocumentNode.cardDetails.card)
-        UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
-                               condenseName);
+        UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode);
     }
     else if (aItem instanceof nsIAbCard) {
       // If we don't have a card, does this new one match?
@@ -1106,11 +1128,10 @@ function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
         if (aParentDir instanceof Components.interfaces.nsIAbDirectory) {
           var cardDetails = { book: aParentDir, card: aItem };
           UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
-                                 condenseName, cardDetails);
+                                 cardDetails);
         }
         else
-          UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
-                                 condenseName);
+          UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode);
       }
     }
     break;
@@ -1120,14 +1141,12 @@ function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
         aDocumentNode.cardDetails.card &&
         aDocumentNode.cardDetails.book == aParentDir &&
         aItem.hasEmailAddress(aAddressData.emailAddress)) {
-      UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
-                             condenseName);
+      UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode);
     }
     break;
   case nsIAbListener.directoryRemoved:
     if (aDocumentNode.cardDetails.book == aItem)
-      UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
-                             condenseName);
+      UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode);
     break;
   }
 }
@@ -1189,9 +1208,29 @@ function getCardForEmail(emailAddress)
   return result;
 }
 
+function onClickEmailStar(event, emailAddressNode)
+{
+  // Only care about left-click events
+  if (event.button != 0)
+    return;
+
+  if (emailAddressNode && emailAddressNode.cardDetails &&
+      emailAddressNode.cardDetails.card)
+    EditContact(emailAddressNode);
+  else
+    AddContact(emailAddressNode);
+}
+
 function AddContact(emailAddressNode)
 {
   if (emailAddressNode) {
+    // When we collect an address, it updates the AB which sends out
+    // notifications to update the UI. In the add case we don't want to update
+    // the UI so that accidentally double-clicking on the star doesn't lead
+    // to something strange (i.e star would be moved out from underneath,
+    // leaving something else there).
+    emailAddressNode.setAttribute("updatingUI", true);
+
     // Just save the new node straight away
     Components.classes["@mozilla.org/addressbook/services/addressCollecter;1"]
       .getService(Components.interfaces.nsIAbAddressCollecter)
@@ -1199,6 +1238,8 @@ function AddContact(emailAddressNode)
                             emailAddressNode.getAttribute("displayName"), true,
                             Components.interfaces.nsIAbPreferMailFormat.unknown,
                             true);
+
+    emailAddressNode.removeAttribute("updatingUI");
   }
 }
 

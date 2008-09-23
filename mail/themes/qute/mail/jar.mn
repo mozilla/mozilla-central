@@ -31,6 +31,8 @@ classic.jar:
     skin/classic/messenger/tabmail.css
     skin/classic/messenger/editContactOverlay.css
     skin/classic/messenger/starred48.png
+    skin/classic/messenger/contactStarred.png
+    skin/classic/messenger/starContact.png
     skin/classic/messenger/addressbook/addressbook.css          (addrbook/addressbook.css)
     skin/classic/messenger/addressbook/abContactsPanel.css      (addrbook/abContactsPanel.css)
     skin/classic/messenger/addressbook/cardDialog.css           (addrbook/cardDialog.css)

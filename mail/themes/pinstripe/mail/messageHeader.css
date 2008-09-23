@@ -373,16 +373,59 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .emailDisplayButton {
   margin: 0;
-  padding: 0 10px 0 0 !important;
   background-color: transparent;
-  background: url("chrome://messenger/skin/icons/arrow-dn-grey.png") no-repeat center right;
 }
 
 .emailDisplayButton:hover {
   cursor: pointer;
   text-decoration: underline;
   color: #2A46C7;
-  background: url("chrome://messenger/skin/icons/arrow-dn-blue.png") no-repeat center right;
+}
+
+.emailDisplayButton:focus, .emailStar:focus, .emailPopup:focus {
+  border: 1px dotted;
+}
+
+.emailStar {
+  max-width: 1em;
+  max-height: 1em;
+  -moz-appearance: none;
+  -moz-box-orient: vertical;
+  padding: 0px;
+  margin: 0px 2px;
+  list-style-image: url("chrome://messenger/skin/starIcons.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
+}
+
+.emailStar:hover {
+  -moz-image-region: rect(0px, 32px, 16px, 16px);
+}
+
+.emailStar:hover:active {
+  -moz-image-region: rect(0px, 48px, 16px, 32px);
+}
+
+.emailStar[hascard="true"] {
+  -moz-image-region: rect(16px, 16px, 32px, 0px);
+}
+
+.emailStar:hover[hascard="true"] {
+  -moz-image-region: rect(16px, 32px, 32px, 16px);
+}
+
+.emailStar:hover:active[hascard="true"] {
+  -moz-image-region: rect(16px, 48px, 32px, 32px);
+}
+
+.emailPopup {
+  font-size: inherit;
+  max-height: 7px; /* the height of the image */
+  margin: 0.2em 2px 0px 2px; /* 0.2em just to move it off the top of the text */
+  list-style-image: url("chrome://messenger/skin/icons/arrow-dn-7.png");
+}
+
+.emailPopup:hover {
+  list-style-image: url("chrome://messenger/skin/icons/arrow-dn-blue.png");
 }
  
 /* ::::: email address twisty ::::: */

@@ -463,12 +463,28 @@
   </binding>
 
   <binding id="mail-emailaddress">
+#ifndef MOZ_THUNDERBIRD
     <content popup="emailAddressPopup" context="emailAddressPopup">
       <xul:description anonid="emailValue" class="emailDisplayButton plain"
                  xbl:inherits="xbl:text=label,crop" flex="1"/>
       <xul:image class="emailDisplayImage" anonid="emailImage"
                  xbl:inherits="src=image"/>
     </content>
+#else
+    <content>
+      <xul:description anonid="emailValue" class="emailDisplayButton plain"
+                       context="emailAddressPopup" popup="emailAddressPopup"
+                       xbl:inherits="xbl:text=label,crop,tooltiptext=tooltipemail"
+                       flex="1"/>
+      <xul:image class="emailStar" anonid="emailStar"
+                 context="emailAddressPopup"
+                 onclick="onClickEmailStar(event, this.parentNode);"
+                 xbl:inherits="hascard,tooltiptext=tooltipstar"/>
+      <xul:image class="emailPopup" anonid="emailPopup"
+                 context="emailAddressPopup" popup="emailAddressPopup"
+                 xbl:inherits="hascard,tooltiptext=tooltipemail"/>
+    </content>
+#endif
 
     <implementation>
       <property name="label"      onset="this.getPart('emailValue').setAttribute('label',val); return val;"
@@ -477,10 +493,12 @@
                                   onget="return this.getPart('emailValue').getAttribute('crop');"/>
       <property name="disabled"   onset="this.getPart('emailValue').setAttribute('disabled',val); return val;"
                                   onget="return this.getPart('emailValue').getAttribute('disabled');"/>
+#ifndef MOZ_THUNDERBIRD
       <property name="src"        onset="this.getPart('emailImage').setAttribute('src',val); return val;"
                                   onget="return this.getPart('emailImage').getAttribute('src');"/>
       <property name="imgalign"   onset="this.getPart('emailImage').setAttribute('imgalign',val); return val;"
                                   onget="return this.getPart('emailImage').getAttribute('imgalign');"/>
+#endif
 
       <method name="getPart">
         <parameter name="aPartId"/>

@@ -116,30 +116,30 @@
   <popupset>
     <panel id="editContactPanel"/>
     <popup id="emailAddressPopup" popupanchor="bottomleft"
-           onpopupshowing="setupEmailAddressPopup(document.popupNode); goUpdateCommand('cmd_createFilterFromPopup')">
+           onpopupshowing="setupEmailAddressPopup(document.popupNode.parentNode); goUpdateCommand('cmd_createFilterFromPopup')">
       <menuitem id="emailAddressPlaceHolder" label=""
                 disabled="true"/>
       <menuseparator/>
       <menuitem id="addToAddressBookItem"
                 label="&AddDirectlyToAddressBook.label;"
                 accesskey="&AddDirectlyToAddressBook.accesskey;"
-                oncommand="AddContact(document.popupNode)"/>
+                oncommand="AddContact(document.popupNode.parentNode)"/>
       <menuitem id="editContactItem" label="&EditContact.label;" hidden="true"
                 accesskey="&EditContact.accesskey;"
-                oncommand="EditContact(document.popupNode)"/>
+                oncommand="EditContact(document.popupNode.parentNode)"/>
       <menuitem id="viewContactItem" label="&ViewContact.label;" hidden="true"
                 accesskey="&ViewContact.accesskey;"
-                oncommand="EditContact(document.popupNode)"/>
+                oncommand="EditContact(document.popupNode.parentNode)"/>
       <menuitem id="sendMailToItem" label="&SendMailTo.label;"
                 accesskey="&SendMailTo.accesskey;"
-                oncommand="SendMailToNode(document.popupNode)"/>
+                oncommand="SendMailToNode(document.popupNode.parentNode)"/>
       <menuitem id="copyEmailAddressItem" label="&CopyEmailAddress.label;"
                 accesskey="&CopyEmailAddress.accesskey;"
-                oncommand="CopyEmailAddress(document.popupNode)"/>
+                oncommand="CopyEmailAddress(document.popupNode.parentNode)"/>
       <menuseparator/>
       <menuitem id="createFilterFromItem" label="&CreateFilterFrom.label;"
                 accesskey="&CreateFilterFrom.accesskey;"
-                oncommand="CreateFilter(document.popupNode)"
+                oncommand="CreateFilter(document.popupNode.parentNode)"
                 observes="cmd_createFilterFromPopup"/>
     </popup>
 
