@@ -177,6 +177,7 @@ bin\components\nsAbAutoCompleteSearch.js
 
 ; Windows Search integration
 bin\components\nsWinSearchIntegration.js
+bin\components\mailwinsearch.xpt
 bin\WSEnable.exe
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

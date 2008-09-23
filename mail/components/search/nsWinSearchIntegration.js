@@ -125,7 +125,14 @@ function WinSearchFirstRun(window)
     if (enable)
     {
       if (!scope.gWinSearchHelper.isFileAssociationSet)
-        scope.gWinSearchHelper.setFileAssociation();
+      {
+        try { scope.gWinSearchHelper.setFileAssociation(); }
+        catch (e) { SIDump("File association not set\n"); }
+      }
+      // Also set the FANCI bit to 0 for the profile directory
+      scope.gWinSearchHelper.setFANCIBit(Cc["@mozilla.org/file/directory_service;1"]
+                                         .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile),
+                                         false, true);
     }
     scope.gPrefBranch.setBoolPref(gPrefBase + ".enable", enable);
     scope.InitSupportIntegration(enable);
