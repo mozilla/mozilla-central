@@ -1970,7 +1970,7 @@ void nsImapServerResponseParser::resp_text_code()
         AdvanceToNextToken();
       }
     }
-    else if (!PL_strcasecmp(fNextToken, "NOMODSEQ"))
+    else if (!PL_strcasecmp(fNextToken, "NOMODSEQ]"))
     {
       fHighestModSeq = 0;
       fUseModSeq = PR_FALSE;
