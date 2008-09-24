@@ -184,6 +184,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::Reset(PRUint32 howManyLeft)
   if (m_customFlagsHash.IsInitialized())
     m_customFlagsHash.EnumerateRead(FreeCustomFlags, nsnull);
   m_customFlagsHash.Clear();
+  fPartialUIDFetch = PR_TRUE;
   PR_CExitMonitor(this);
   return NS_OK;
 }
