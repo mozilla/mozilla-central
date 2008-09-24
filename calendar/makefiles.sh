@@ -37,6 +37,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
+if [ "$COMM_BUILD" ]; then
+
 add_makefiles "
 calendar/sunbird/Makefile
 calendar/sunbird/app/Makefile
@@ -45,3 +47,4 @@ calendar/sunbird/locales/Makefile
 "
 
  . ${srcdir}/calendar/shared_makefiles.sh
+fi

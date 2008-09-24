@@ -41,4 +41,5 @@ add_makefiles "
 calendar/lightning/Makefile
 calendar/lightning/components/Makefile
 calendar/lightning/locales/Makefile
+calendar/itip/Makefile
 "

@@ -52,4 +52,7 @@ calendar/providers/composite/Makefile
 calendar/installer/Makefile
 calendar/installer/windows/Makefile
 calendar/locales/Makefile
+calendar/import-export/Makefile
+calendar/timezones/Makefile
+calendar/timezones/locales/Makefile
 "

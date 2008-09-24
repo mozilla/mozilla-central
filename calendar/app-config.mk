@@ -15,11 +15,11 @@
 #
 # The Initial Developer of the Original Code is
 # the Mozilla Foundation <http://www.mozilla.org/>.
-# Portions created by the Initial Developer are Copyright (C) 2006
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Benjamin Smedberg <benjamin@smedbergs.us> (Initial Code)
+#   Robert Kaiser <kairo@kairo.at> (Initial Code)
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,39 +35,5 @@
 #
 # ***** END LICENSE BLOCK *****
 
-ifndef COMM_BUILD # Mozila Makefile
-
-ifndef LIBXUL_SDK
-include $(topsrcdir)/toolkit/toolkit-tiers.mk
-endif
-
-TIERS += app
-
-ifdef MOZ_EXTENSIONS
-tier_app_dirs += extensions
-endif
-
-else # toplevel Makefile
-
-TIERS += app
-
-ifdef MOZ_BRANDING_DIRECTORY
-tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
-endif
-
-tier_app_dirs += \
-	calendar \
-	calendar/sunbird \
-	$(NULL)
-
-ifdef MOZ_CALENDAR
-tier_app_dirs += calendar/lightning
-endif
-
-endif # COMM_BUILD
-
-installer:
-	@$(MAKE) -C calendar/installer installer
-
-package:
-	@$(MAKE) -C calendar/installer
+MOZ_SUNBIRD = 1
+DEFINES += -DMOZ_SUNBIRD=1
