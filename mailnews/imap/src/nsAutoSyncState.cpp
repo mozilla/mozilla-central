@@ -290,6 +290,10 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(nsIMutableArray **aMessage
 
         PRUint32 msgSize;
         qhdr->GetMessageSize(&msgSize);
+        // ignore 0 byte messages; the imap parser asserts when we try 
+        // to download them, and there's no point anyway.
+        if (!msgSize)
+          continue;
         
         if (totalSize == 0 && msgSize >= groupSize) 
         {
