@@ -3,7 +3,6 @@ debugqa.jar:
 % overlay chrome://navigator/content/navigatorOverlay.xul chrome://debugqa/content/debugQAMenuOverlay.xul
 % overlay chrome://editor/content/editor.xul chrome://debugqa/content/debugQAEditorOverlay.xul
 % overlay chrome://navigator/content/navigator.xul chrome://debugqa/content/debugQANavigatorOverlay.xul
-% overlay chrome://communicator/content/pref/preftree.xul chrome://debugqa/content/debugQAPrefsOverlay.xul
 % overlay chrome://communicator/content/pref/preferences.xul chrome://debugqa/content/debugQAPrefsOverlay.xul
   content/debugqa/debugQAEditorOverlay.js                 (content/debugQAEditorOverlay.js)
   content/debugqa/debugQAEditorOverlay.xul                (content/debugQAEditorOverlay.xul)

@@ -136,17 +136,8 @@ comm.jar:
    content/communicator/permissions/permissionsNavigatorOverlay.xul (permissions/permissionsNavigatorOverlay.xul)
    content/communicator/permissions/permissionsOverlay.js           (permissions/permissionsOverlay.js)
    content/communicator/permissions/treeUtils.js                    (permissions/treeUtils.js)
-# preferences.xul will replace all the files marked below, once we have migrated all our pref panels
-# to toolkit style - begone, foul spirits of the past!
    content/communicator/pref/preferences.xul                        (pref/preferences.xul)
    content/communicator/pref/preferences.js                         (pref/preferences.js)
-# files deprecated by preferences.xul: begin
-   content/communicator/pref/nsPrefWindow.js                        (pref/nsPrefWindow.js)
-   content/communicator/pref/nsWidgetStateManager.js                (/mozilla/xpfe/global/resources/content/nsWidgetStateManager.js)
-   content/communicator/pref/pref.xul                               (pref/pref.xul)
-   content/communicator/pref/preftree.xul                           (pref/preftree.xul)
-   content/communicator/pref/pref-help.js                           (pref/pref-help.js)
-# files deprecated by preferences.xul: end
    content/communicator/pref/prefpanels.css                         (pref/prefpanels.css)
    content/communicator/pref/prefpanels.xml                         (pref/prefpanels.xml)
    content/communicator/pref/pref-advanced.js                       (pref/pref-advanced.js)

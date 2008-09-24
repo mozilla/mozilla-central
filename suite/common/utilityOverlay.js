@@ -235,35 +235,20 @@ function getBrowserURL() {
   return "chrome://navigator/content/navigator.xul";
 }
 
-function goPreferences(containerID, paneURL, itemID)
+function goPreferences(paneID)
 {
   //check for an existing pref window and focus it; it's not application modal
   const kWindowMediatorContractID = "@mozilla.org/appshell/window-mediator;1";
   const kWindowMediatorIID = Components.interfaces.nsIWindowMediator;
   const kWindowMediator = Components.classes[kWindowMediatorContractID]
                                     .getService(kWindowMediatorIID);
-
-  // Bug 394522:
-  // Until all our pref panels have been migrated to the toolkit way,
-  // we need to distinguish between old and new methods of opening a specific
-  // panel -> prefwindow only needs the prefpane id in window.arguments[0], so
-  // this function here only needs to get one param passed in the future
-  // -> we assume that a new style style pref panel is requested if only one
-  // (the first) parameter is passed.
-  var legacyPrefWindow = paneURL || itemID;
-  var prefWindowFragment = legacyPrefWindow ? "pref" : "preferences";
-  var lastPrefWindow = kWindowMediator.getMostRecentWindow("mozilla:" + prefWindowFragment);
+  var lastPrefWindow = kWindowMediator.getMostRecentWindow("mozilla:preferences");
   if (lastPrefWindow)
     lastPrefWindow.focus();
-  else {
-    if (!legacyPrefWindow) {
-      paneURL = containerID;
-      containerID = null;
-    }
-    openDialog("chrome://communicator/content/pref/" + prefWindowFragment + ".xul",
+  else
+    openDialog("chrome://communicator/content/pref/preferences.xul",
                "PrefWindow", "chrome,titlebar,dialog=no,resizable",
-               paneURL, containerID, itemID);
-  }
+               paneID);
 }
 
 function goToggleToolbar( id, elementID )

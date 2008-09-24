@@ -1,6 +1,4 @@
 pippki.jar:
-% overlay chrome://communicator/content/pref/preftree.xul chrome://pippki/content/PrefOverlay.xul
-   content/pippki/PrefOverlay.xul           (prefs/PrefOverlay.xul)
    content/pippki/pref-certs.js             (prefs/pref-certs.js)
    content/pippki/pref-certs.xul            (prefs/pref-certs.xul)
    content/pippki/pref-masterpass.js        (prefs/pref-masterpass.js)

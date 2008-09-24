@@ -1063,7 +1063,7 @@ function DoCommandPrint()
 
 function DoCommandPreferences()
 {
-  goPreferences('mailnews', 'chrome://messenger/content/messengercompose/pref-composing_messages.xul', 'mailcomposepref');
+  goPreferences('composing_messages_pane');
 }
 
 function ToggleWindowLock()

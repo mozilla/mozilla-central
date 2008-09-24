@@ -57,24 +57,4 @@
     </treeitem>
   </treechildren>
 
-  <treechildren id="panelChildren">
-    <treeitem container="true" id="debugItem">
-      <treerow>       
-        <treecell label="Migrated: (&debug.label;)"/>
-      </treerow>
-      <treechildren>
-        <treeitem>
-          <treerow>
-            <treecell label="Migrated: (&debug1.label;)"/> 
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell label="Migrated: (&debug2.label;)"/> 
-          </treerow>
-        </treeitem>
-      </treechildren>
-    </treeitem>
-  </treechildren>
-
 </overlay>

@@ -4,7 +4,6 @@ messenger.jar:
 % content messenger %content/messenger/ xpcnativewrappers=yes
 % override chrome://messagebody/skin/messageBody.css chrome://messenger/skin/messageBody.css
 % content messenger-region %content/messenger-region/
-% overlay chrome://communicator/content/pref/preftree.xul                      chrome://messenger/content/mailPrefsOverlay.xul
 % overlay chrome://communicator/content/pref/preferences.xul                   chrome://messenger/content/mailPrefsOverlay.xul
 % overlay chrome://communicator/content/pref/pref-appearance.xul               chrome://messenger/content/mailPrefsOverlay.xul
 % overlay chrome://communicator/content/pref/pref-scripts.xul                  chrome://messenger/content/mailPrefsOverlay.xul

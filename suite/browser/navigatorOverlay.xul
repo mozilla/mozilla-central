@@ -397,7 +397,6 @@
 
         <menuseparator id="menu_PrefsSeparator"/> 
         <menuitem id="menu_preferences" oncommand="goPreferences('navigator_pane')"/>
-        <menuitem label="(Legacy Prefwindow...)" oncommand="goPreferences('navigator', 'chrome://communicator/content/pref/pref-navigator.xul', 'navigator')"/>
       </menupopup>
     </menu>
 

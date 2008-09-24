@@ -88,7 +88,7 @@
 -->
 
 <!DOCTYPE bindings [
-  <!ENTITY % dtd1 SYSTEM "chrome://communicator/locale/pref/pref.dtd"> %dtd1;
+  <!ENTITY % dtd1 SYSTEM "chrome://communicator/locale/pref/preftree.dtd"> %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://communicator-platform/locale/pref/platformPrefOverlay.dtd"> %dtd2;
   <!ENTITY % dtd3 SYSTEM "chrome://global/locale/preferences.dtd"> %dtd3;
 ]>

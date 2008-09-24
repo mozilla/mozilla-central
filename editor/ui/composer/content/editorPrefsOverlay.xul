@@ -48,25 +48,4 @@
     </treeitem>
   </treechildren>
 
-  <!-- category tree entries for editor -->
-  <treechildren id="panelChildren">
-    <treeitem container="true" id="editor" insertafter="mailnews,navigator">
-      <treerow>       
-        <treecell label="Migrated: &compose.label;"/> 
-      </treerow>
-      <treechildren>
-        <treeitem>
-          <treerow>
-            <treecell label="Migrated: &editing.label;"/> 
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell label="Migrated: &toolbars.label;"/> 
-          </treerow>
-        </treeitem>  
-      </treechildren>
-    </treeitem>
-  </treechildren>
-           
 </overlay>         

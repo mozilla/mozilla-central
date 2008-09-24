@@ -65,7 +65,6 @@
               url="chrome://messenger/content/pref-mailnews.xul"
               helpTopic="mail_prefs_general">
       <treechildren id="messengerChildren">
-        <!-- XXX Move pref panes from below to here as they are migrated -->
         <treeitem id="viewingMessagesItem"
                   label="&viewingMessages.label;"
                   prefpane="viewing_messages_pane"
@@ -120,66 +119,4 @@
     </treeitem>
   </treechildren>
 
-  <!-- category tree entries for mail/news -->
-  <treechildren id="panelChildren">
-    <treeitem container="true" id="mailnews" insertafter="navigator">
-      <treerow>
-        <treecell label="(Migrated: &mail.label;)"/>
-      </treerow>
-      <!-- XXX Move these up as we migrate the panels -->
-      <treechildren id="messengerChildren">
-        <treeitem>
-          <treerow>
-            <treecell label="(Migrated: &viewingMessages.label;)"/> 
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell label="(Migrated: &notifications.label;)"/>
-          </treerow>
-        </treeitem>
-        <treeitem id="mailcomposepref">
-          <treerow>
-            <treecell label="(Migrated: &composingMessages.label;)"/>
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell label="(Migrated: &format.label;)"/> 
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell label="(Migrated: &address.label;)"/>
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell label="(Migrated: &junk.label;)"/>
-          </treerow>
-        </treeitem>
-        <treeitem id="mailtagspref">
-          <treerow>
-            <treecell label="(Migrated: &tags.label;)"/>
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell label="(Migrated: &return.label;)"/>
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell label="(Migrated: &characterEncoding.label;)"/>
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell label="(Migrated: &offline.label;)"/>
-          </treerow>
-        </treeitem>
-      </treechildren>
-    </treeitem>
-  </treechildren>
- 
 </overlay>

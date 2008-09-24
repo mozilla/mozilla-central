@@ -44,7 +44,6 @@
 <?xml-stylesheet type="text/css" href="chrome://communicator/skin/preferences.css"?>
 
 <!DOCTYPE prefwindow [
-  <!ENTITY % dtd1 SYSTEM "chrome://communicator/locale/pref/pref.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://communicator/locale/pref/preftree.dtd" > %dtd2;
   <!ENTITY % dtd3 SYSTEM "chrome://communicator-platform/locale/pref/platformPrefOverlay.dtd" > %dtd3;
 ]>
@@ -78,7 +77,6 @@
     </treecols>
 
     <treechildren id="prefsPanelChildren">
-      <treeitem label="READ THIS!" prefpane="temp_readthis_pane"/>
       <!-- Appearance items -->
       <treeitem container="true"
                 id="appearanceItem"
@@ -114,8 +112,10 @@
                 url="chrome://communicator/content/pref/pref-navigator.xul">
 
         <treechildren id="navigatorChildren">
-          <treeitem id="historyItem" label="&history.label;"
-                    prefpane="history_pane" helpTopic="navigator_pref_history"
+          <treeitem id="historyItem"
+                    label="&history.label;"
+                    prefpane="history_pane"
+                    helpTopic="navigator_pref_history"
                     url="chrome://communicator/content/pref/pref-history.xul"/>
           <treeitem id="languagesItem"
                     label="&languages.label;"
@@ -132,11 +132,13 @@
                     prefpane="locationBar_pane"
                     helpTopic="navigator_pref_location_bar"
                     url="chrome://communicator/content/pref/pref-locationbar.xul"/>
-          <treeitem id="searchItem" label="&search.label;"
+          <treeitem id="searchItem"
+                    label="&search.label;"
                     prefpane="search_pane"
                     helpTopic="navigator_pref_internet_searching"
                     url="chrome://communicator/content/pref/pref-search.xul"/>
-          <treeitem id="tabsItem" label="&tabWindows.label;"
+          <treeitem id="tabsItem"
+                    label="&tabWindows.label;"
                     prefpane="tabs_pane"
                     helpTopic="navigator_pref_tabbed_browsing"
                     url="chrome://communicator/content/pref/pref-tabs.xul"/>
@@ -209,11 +211,15 @@
                 helpTopic="advanced_pref_advanced"
                 url="chrome://communicator/content/pref/pref-advanced.xul">
         <treechildren id="advancedChildren">
-          <treeitem id="scriptsItem" label="&scriptsAndWindows.label;"
-                    prefpane="scripts_pane" helpTopic="advanced_pref_scripts"
+          <treeitem id="scriptsItem"
+                    label="&scriptsAndWindows.label;"
+                    prefpane="scripts_pane"
+                    helpTopic="advanced_pref_scripts"
                     url="chrome://communicator/content/pref/pref-scripts.xul"/>
-          <treeitem id="keynavItem" label="&keynav.label;"
-                    prefpane="keynav_pane" helpTopic="advanced_pref_keyboard_nav"
+          <treeitem id="keynavItem"
+                    label="&keynav.label;"
+                    prefpane="keynav_pane"
+                    helpTopic="advanced_pref_keyboard_nav"
                     url="chrome://communicator/content/pref/pref-keynav.xul"/>
           <treeitem id="cacheItem"
                     label="&cache.label;"
@@ -230,12 +236,15 @@
                     prefpane="http_pane"
                     helpTopic="advanced_http_networking"
                     url="chrome://communicator/content/pref/pref-http.xul"/>
-          <treeitem id="smartupdateItem" label="&smart.label;"
+          <treeitem id="smartupdateItem"
+                    label="&smart.label;"
                     prefpane="smartupdate_pane"
                     helpTopic="advanced_pref_installation"
                     url="chrome://communicator/content/pref/pref-smartupdate.xul"/>
-          <treeitem id="mousewheelItem" helpTopic="advanced_pref_mouse_wheel"
-                    prefpane="mousewheel_pane" label="&mousewheel.label;"
+          <treeitem id="mousewheelItem"
+                    label="&mousewheel.label;"
+                    prefpane="mousewheel_pane"
+                    helpTopic="advanced_pref_mouse_wheel"
                     url="chrome://communicator/content/pref/pref-mousewheel.xul"/>
         </treechildren>
       </treeitem>
@@ -243,33 +252,10 @@
       <!-- commented out until bug 82487 is fixed 
       <treeitem id="offlineItem"
                 label="&offline.label;"
+                helpTopic="mail_prefs_offline"
                 url="chrome://communicator/content/pref/pref-offline.xul"/>
       -->
     </treechildren>
   </tree>
-
-  <!-- the following script is only needed for the temporary prefpane below -->
-  <script type="application/x-javascript" src="chrome://communicator/content/utilityOverlay.js"/>
-  <prefpane id="temp_readthis_pane" label="Some Explanatory Words…">
-    <description>
-      The SeaMonkey preferences are being rewritten to use the same backend code
-      as other applications using the Mozilla XUL toolkit, e.g. Firefox or
-      Thunderbird. We have over 40 panels to migrate, which we'll do in small
-      chunks to guarantee we don't break anything. During this transition,
-      this dialog here will only contain those panels which have already been
-      migrated.
-    </description>
-    <description>
-      You can reach the old dialog via the menuitem Edit→(Legacy Prefwindow…)
-      in a browser window or by clicking the button below.
-    </description>
-    <description>
-      This panel will go away once all panels have been migrated.
-    </description>
-    <button label="Show old dialog with still unmigrated panels."
-            oncommand="goPreferences('navigator', 'chrome://communicator/content/pref/pref-navigator.xul', 'navigator');"/>
-    <label class="text-link" value="More information…"
-           onclick="openTopWin('https://bugzilla.mozilla.org/show_bug.cgi?id=394522', null);"/>
-  </prefpane>
 
 </prefwindow>

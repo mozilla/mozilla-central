@@ -1,6 +1,6 @@
-<!-- extracted from content/preftree.xul -->
-
 <!--LOCALIZATION NOTE : FILE Lists preferences categories that appear on the left of the preferences dialog -->
+<!ENTITY prefWindow.title "Preferences">
+<!ENTITY categoryHeader "Category">
 <!ENTITY appear.label "Appearance">
 <!ENTITY content.label "Content">
 <!ENTITY fonts.label "Fonts">
