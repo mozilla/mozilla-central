@@ -56,7 +56,7 @@
           <xul:label xbl:inherits="value=type"/>
         </xul:hbox>
         <xul:textbox xbl:inherits="value=feedURL" readonly="true"/>
-        <xul:hbox flex="1" class="feed-subscribe" style="display: none !important">
+        <xul:hbox flex="1" class="feed-subscribe">
           <xul:spacer flex="1"/>
           <xul:button label="&feedSubscribe;" accesskey="&feedSubscribe.accesskey;"
                       oncommand="onSubscribeFeed()"/>

@@ -492,12 +492,11 @@
         <menuitem key="manBookmarkKb"   command="Browser:ManageBookmark"/>
         <menuseparator/>
         <menu id="feedsMenu" class="menu-iconic" disabled="true"
-              label="&feedsMenu.label;" accesskey="&feedsMenu.accesskey;"
-              style="display: none !important">
+              label="&feedsMenu.label;" accesskey="&feedsMenu.accesskey;">
           <menupopup onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
                      oncommand="loadURI(event.target.statusText, gBrowser.currentURI);"/>
         </menu>
-        <menuseparator style="display: none !important"/>
+        <menuseparator/>
       </menupopup>
     </menu>
       
