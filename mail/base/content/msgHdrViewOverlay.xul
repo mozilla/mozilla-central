@@ -127,7 +127,8 @@
           </hbox>
           <vbox>
             <button align="center"
-                    id="showDetailsButton" label="&showDetailsButton.label;"
+                    id="showDetailsButton"
+                    tooltiptext="&showDetailsButton.label;"
                     onclick="ToggleHeaderView();"
                     class="msgHeaderView-button"/>
           </vbox>

@@ -104,6 +104,7 @@ classic.jar:
      skin/classic/messenger/smime/icons/hdrSignNotOk.gif            (smime/hdrSignNotOk.gif)
      skin/classic/messenger/smime/icons/hdrCryptoOk.gif             (smime/hdrCryptoOk.gif)
      skin/classic/messenger/smime/icons/hdrCryptoNotOk.gif          (smime/hdrCryptoNotOk.gif)
+     skin/classic/messenger/icons/chevron.png                       (icons/chevron.png)
      skin/classic/messenger/icons/twisty-open.gif                   (icons/twisty-open.gif)
      skin/classic/messenger/icons/twisty-closed.gif                 (icons/twisty-closed.gif)
      skin/classic/messenger/icons/spin-buttons-active.png           (icons/spin-buttons-active.png)

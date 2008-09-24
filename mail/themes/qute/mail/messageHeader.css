@@ -52,12 +52,17 @@
   padding: .5em;
   min-width: 1px;
   color: black;
-  font-size: 120%;
+  font-size: 125%;
+  font-family: Arial; /* default font looks bad & not antialiased on windows */
 }
 
 #expandedHeaderView {
   color: #2e3436;
-  font-size: 12px;
+%ifdef XP_WIN
+  font-size: 95%;
+%else
+  font-size: 100%;
+%endif
   overflow: visible;
 }
 
@@ -98,6 +103,7 @@
 }
 
 #otherActionsButton > .button-box > .button-menu-dropmarker > .dropmarker-icon {
+  padding-left: 4px;
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-grey.png");
 }
 
@@ -127,12 +133,19 @@
   font-weight: bold;
 }
 
+
 #showDetailsButton {
-  font-size: 9pt !important;
+  -moz-appearance: none !important;
+  border: 2px solid transparent;
+  background-color: transparent;
+  width: 22px;
+  height: 22px;
+  background-image: url("chrome://messenger/skin/icons/chevron.png");
+  background-repeat: no-repeat;
+  background-position: center center;
 }
 
 #showDetailsButton:hover {
-  color: black;
   background-color: rgb(230,231,227);
   border: 2px solid #C0C3C6;
 }
@@ -146,6 +159,7 @@
 /* ::::: expanded header pane ::::: */
 
 #expandedHeadersButtonBox {
+  padding-top: 0.5em;
   padding-bottom: 0;
 }
 
@@ -233,7 +247,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 /* ::::: msg header captions ::::: */
 
 #msgHeaderView {
-  font-family: Arial;
   font-size: 12px;
 }
 
@@ -245,7 +258,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .msgHeaderView-button {
   min-width: 1px;
   -moz-appearance: none;
-  font-size: 90%;
+  font-size: 95%;
   color: black;
   margin-left: 0px;
   padding-left: 3px;
@@ -316,13 +329,11 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 #collapsedfromValue > .headerNameBox {
   display: none;
-  /*width: auto !important;*/
 }
 
 #junkButton[disabled="true"] {
   background: none;
   opacity: 0;
-  /*border-color: transparent;*/
 }
 
 .tagvalue {
@@ -422,11 +433,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 /* ::::: view expand and collapse twisties  ::::: */
 
-.expandHeaderViewButton,
-.collapsedHeaderViewButton  {
-  margin: 4px .5em 0 .5em;
-}
-
 .expandHeaderViewButton {
   list-style-image: url("chrome://global/skin/tree/twisty-open.png");
 }
@@ -445,22 +451,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   padding-right: .5em !important;
 }
 
-#collapseddateValue > .textbox-input-box menupopup { 
-  text-align: left;
-}
-
-#collapsedfromBox {
-  width: 18em;
-  background-color: transparent;
-}
-
-#collapseddateBox {
-  width: 12em;
-  background-color: transparent;
-}
-
 .collapsedHeaderDisplayName { 
-  margin: 0 .5em 0 .8em;
   min-height: 16px;
   background-color: transparent;
 }
@@ -469,17 +460,4 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   margin: 0;
   color: inherit;
   background-color: transparent;
-}
-
-.showdetails-button {
-  -moz-appearance: none !important;
-  min-width: 1px;
-  font-size: 90% !important;
-  background-color: rgb(211,215,207);
-  border: 2px solid #C0C3C6;
-  -moz-border-radius: 4px;
-  padding-left: 3px;
-  padding-right: 3px;
-  padding-top: 0px !important;
-  padding-bottom: 0px !important;
 }

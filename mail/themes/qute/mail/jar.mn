@@ -8,7 +8,7 @@ classic.jar:
     skin/classic/messenger/accountCentral.css
     skin/classic/messenger/accountManage.css
     skin/classic/messenger/accountWizard.css
-    skin/classic/messenger/messageHeader.css
+*   skin/classic/messenger/messageHeader.css
     skin/classic/messenger/messageBody.css
     skin/classic/messenger/messageQuotes.css
     skin/classic/messenger/messenger.css
@@ -171,6 +171,7 @@ classic.jar:
     skin/classic/messenger/icons/arrow-dn-grey.png              (icons/arrow-dn-grey.png)
     skin/classic/messenger/icons/arrow-dn-black.png             (icons/arrow-dn-black.png)
     skin/classic/messenger/icons/arrow-dn-blue.png              (icons/arrow-dn-blue.png)
+    skin/classic/messenger/icons/chevron.png                    (icons/chevron.png)
     skin/classic/messenger/tagbg.png                            (tagbg.png)
     icon.png
     preview.png

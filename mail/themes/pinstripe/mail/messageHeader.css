@@ -121,11 +121,16 @@
 }
 
 #showDetailsButton {
-  font-size: 9pt !important;
+  -moz-appearance: none !important;
+  border: 2px solid transparent;
+  background-color: transparent;
+  width: 22px;
+  background-image: url("chrome://messenger/skin/icons/chevron.png");
+  background-repeat: no-repeat;
+  background-position: center center;
 }
 
 #showDetailsButton:hover {
-  color: black;
   background-color: rgb(230,231,227);
   border: 2px solid #C0C3C6;
 }
@@ -458,19 +463,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 #collapseddateValue {
   text-align: right;
   padding-right: .5em !important;
-}
-
-.showdetails-button {
-  -moz-appearance: none !important;
-  min-width: 1px;
-  font-size: 90% !important;
-  background-color: rgb(211,215,207);
-  border: 2px solid #C0C3C6;
-  -moz-border-radius: 4px;
-  padding-left: 3px;
-  padding-right: 3px;
-  padding-top: 0px !important;
-  padding-bottom: 0px !important;
 }
 
 mail-multi-emailHeaderField,
