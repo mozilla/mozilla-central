@@ -260,7 +260,7 @@ nsAddbookProtocolHandler::BuildDirectoryXML(nsIAbDirectory *aDirectory,
   nsCOMPtr<nsIAbCard> card;
 
   aOutput.AppendLiteral("<?xml version=\"1.0\"?>\n"
-                        "<?xml-stylesheet type=\"text/css\" href=\"chrome://messenger/content/addressbook/print.css\"?>\n"
+                        "<?xml-stylesheet type=\"text/css\" href=\"chrome://messagebody/content/addressbook/print.css\"?>\n"
                         "<directory>\n");
 
   // Get Address Book string and set it as title of XML document

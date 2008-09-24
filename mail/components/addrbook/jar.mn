@@ -24,4 +24,4 @@ messenger.jar:
     content/messenger/addressbook/abResultsPane.js              (/mailnews/addrbook/resources/content/abResultsPane.js)
     content/messenger/addressbook/abDragDrop.js                 (/mailnews/addrbook/resources/content/abDragDrop.js)
     content/messenger/addressbook/abMailListDialog.js           (/mailnews/addrbook/resources/content/abMailListDialog.js)
-    content/messenger/addressbook/print.css                     (/mailnews/addrbook/resources/content/print.css)
+    content/messagebody/addressbook/print.css                   (/mailnews/addrbook/resources/content/print.css)
