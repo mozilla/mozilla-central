@@ -64,10 +64,156 @@ var recentFoldersDataSource;
 
 var gAccountCentralLoaded = true;
 
+var gAutoSyncManager;
+const nsIAutoSyncMgrListener = Components.interfaces.nsIAutoSyncMgrListener;
+
+var gAutoSyncMonitor = {
+  logEnabled : false,
+  msgWindow : null,
+  inQFolderList : new Array(),
+  runnning : false,
+  
+  onStateChanged : function(running)
+    {
+      this.runnning = running;
+      this.log("***Auto_Sync OnStatusChanged: " + (running ? "running" : "sleeping") + "\n");
+      if (!this.running)
+        this.clearStatusString();
+    },
+  onFolderAddedIntoQ : function(queue, folder)
+    {
+      if (folder instanceof Components.interfaces.nsIMsgFolder) 
+      {
+        if (queue == nsIAutoSyncMgrListener.PriorityQueue)
+        {
+          this.inQFolderList.push(folder);
+          this.log("***Auto_Sync OnFolderAddedIntoQ [" + this.inQFolderList.length + "] " + 
+                          folder.prettiestName + " of " + folder.server.prettyName + "\n");
+        }
+      }
+    },
+  onFolderRemovedFromQ : function(queue, folder)
+    {
+      if (folder instanceof Components.interfaces.nsIMsgFolder) 
+      {        
+        if (queue == nsIAutoSyncMgrListener.PriorityQueue)
+        { 
+          var i = this.inQFolderList.indexOf(folder);
+          if (i > -1)
+            this.inQFolderList.splice(i,1);
+         
+          this.log("***Auto_Sync OnFolderRemovedFromQ [" + this.inQFolderList.length + "] " + 
+                          folder.prettiestName + " of " + folder.server.prettyName + "\n");
+        
+          if (this.inQFolderList.length > 0)
+            this.showStatusString();
+          else
+            this.clearStatusString();
+        }
+      }
+    },
+  onDownloadStarted : function(folder, numOfMessages, totalPending)
+    {
+      if (folder instanceof Components.interfaces.nsIMsgFolder) 
+      {        
+        this.log("***Auto_Sync OnDownloadStarted (" + numOfMessages + "/" + totalPending + "): " + 
+                                folder.prettiestName + " of " + folder.server.prettyName + "\n");
+                
+        this.showStatusString();
+      }
+    },
+  onDownloadCompleted : function(folder)
+    {
+      if (folder instanceof Components.interfaces.nsIMsgFolder) 
+      {         
+        this.log("***Auto_Sync OnDownloadCompleted: " + folder.prettiestName + " of " + 
+                                                                  folder.server.prettyName + "\n");
+        if (this.runnning)
+          this.showStatusString();     
+      }
+    },
+  onDownloadError : function(folder)
+    {
+      if (folder instanceof Components.interfaces.nsIMsgFolder) 
+      {         
+        this.log("***Auto_Sync OnDownloadError: " + folder.prettiestName + " of " + 
+                                                                    folder.server.prettyName + "\n");
+      }
+    },
+  onDiscoveryQProcessed : function (folder, numOfHdrsProcessed, leftToProcess)
+    {
+      this.log("***Auto_Sync onDiscoveryQProcessed: Processed " + numOfHdrsProcessed + "/" + 
+                            (leftToProcess+numOfHdrsProcessed) + " of " + folder.prettiestName + "\n");
+    },
+  onAutoSyncInitiated : function (folder)
+    {
+      this.log("***Auto_Sync onAutoSyncInitiated: " + folder.prettiestName + " of " +
+                                                  folder.server.prettyName + " has been updated.\n"); 
+    },
+  getFolderListString : function()
+    {
+      var folderList;
+      if (this.inQFolderList.length > 0)
+        folderList = this.inQFolderList[0].prettiestName;
+          
+      for (var i = 1; i < this.inQFolderList.length; i++)
+        folderList = folderList + ", " + this.inQFolderList[i].prettiestName;
+        
+      return folderList;
+    },
+  getAccountListString : function()
+    {
+      var accountList;
+      if (this.inQFolderList.length > 0)
+        accountList = this.inQFolderList[0].server.prettyName;
+          
+      for (var i = 1; i < this.inQFolderList.length; i++)
+      {
+        // no do repeat already existing account names
+        if (accountList.search(this.inQFolderList[i].server.prettyName) == -1)
+          accountList = accountList + ", " + this.inQFolderList[i].server.prettyName;
+      }
+      return accountList;
+    },
+  showStatusString : function()
+    {
+      if (this.msgWindow && this.msgWindow.statusFeedback)
+      {
+        this.msgWindow.statusFeedback.showStatusString(
+                this.formatStatusString(this.getFolderListString(), this.getAccountListString()));
+      }
+    },
+  clearStatusString : function()
+    {
+      if (this.msgWindow && this.msgWindow.statusFeedback)
+        this.msgWindow.statusFeedback.showStatusString("");
+    },
+  formatStatusString : function(folderList, accountList)
+    {
+      if (!gMessengerBundle)
+        gMessengerBundle = document.getElementById("bundle_messenger");
+          
+      return gMessengerBundle.getFormattedString("autosyncProgress", 
+                                                  [folderList, accountList]);
+    },
+  log : function(text)
+    {
+      if (this.logEnabled)
+        dump(text);
+    } 
+};
+
 function OnMailWindowUnload()
 {
   MailOfflineMgr.uninit();
   ClearPendingReadTimer();
+  
+  try {
+    gAutoSyncManager.removeListener(gAutoSyncMonitor);
+  }
+  catch(ex) {
+    dump("error while removing auto-sync listener: " + ex);
+  }
 
   var searchSession = GetSearchSession();
   if (searchSession)
@@ -151,6 +297,11 @@ function CreateMailWindowGlobals()
                                         .getService();
   recentFoldersDataSource = Components.classes[prefix + "mailnewsrecentfolders"]
                                       .getService();
+                                      
+  gAutoSyncManager = Components.classes["@mozilla.org/imap/autosyncmgr;1"]
+                                       .getService(Components.interfaces.nsIAutoSyncManager);
+  gAutoSyncMonitor.msgWindow = msgWindow;
+  gAutoSyncManager.addListener(gAutoSyncMonitor);
 }
 
 function InitMsgWindow()
@@ -541,3 +692,5 @@ function GetSearchSession()
   else
     return null;
 }
+
+

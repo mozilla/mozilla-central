@@ -40,6 +40,78 @@ interface nsIAutoSyncMsgStrategy;
 interface nsIAutoSyncFolderStrategy;
 interface nsIMsgDBHdr;
 interface nsIAutoSyncState;
+interface nsIAutoSyncMgrListener;
+interface nsIMsgFolder;
+interface nsIMsgAccount;
+
+[scriptable, uuid(41ec36a7-1a53-4ca3-b698-dca6452a8761)] 
+interface nsIAutoSyncMgrListener : nsISupports {
+
+  /**
+   * Queue types
+   */
+  const long PriorityQueue = 1;
+  const long UpdateQueue = 2;
+  const long DiscoveryQueue = 3;
+
+  /**
+   * It is called on the listener when a new folder is added into
+   * the queue
+   *
+   * @param aQType type of the queue
+   * @param aFolder folder that is added into the queue
+   */
+  void onFolderAddedIntoQ(in long aQType, in nsIMsgFolder aFolder);
+  
+  /**
+   * It is called on the listener when a folder is removed from
+   * the queue
+   *
+   * @param aQType type of the queue
+   * @param aFolder folder that is removed from the queue
+   */
+  void onFolderRemovedFromQ(in long aQType, in nsIMsgFolder aFolder);
+  
+  /**
+   * It is called on the listener when a message download is successfully started
+   *
+   * @param aFolder folder in which the download is started 
+   * @param aNumberOfMessages number of the messages that will be downloaded 
+   * @param aTotalPending  total number of messages waiting to be downloaded 
+   */
+  void onDownloadStarted(in nsIMsgFolder aFolder, in unsigned long aNumberOfMessages, 
+                         in unsigned long aTotalPending);
+  /**
+   * It is called on the listener when a message download on the given folder 
+   * is completed
+   */
+  void onDownloadCompleted(in nsIMsgFolder aFolder);
+  
+  /**
+   * It is called on the listener when an error occurs during the message download
+   */
+  void onDownloadError(in nsIMsgFolder aFolder);
+  
+  /*
+   * Auto-Sync manager is running or waiting for idle 
+   */
+  void onStateChanged(in boolean aRunning);
+  
+  /**
+   * It is called on the listener after the auto-sync manager starts to process 
+   * existing headers of the given folder to find missing message bodies
+   * (mostly for debugging purposes)
+   */
+  void onDiscoveryQProcessed(in nsIMsgFolder aFolder, in unsigned long aNumberOfHdrsProcessed, 
+                             in unsigned long aLeftToProcess);
+  
+  /**
+   * It is called on the listener after the auto-sync manager updates the given folder 
+   * (mostly for debugging purposes)
+   */
+  void onAutoSyncInitiated(in nsIMsgFolder aFolder);
+};
+
 
 [scriptable, uuid(C358C568-47B2-42b2-8146-3C0F8D1FAD6E)] 
 interface nsIAutoSyncManager : nsISupports {
@@ -49,7 +121,7 @@ interface nsIAutoSyncManager : nsISupports {
    */
   const long dmParallel = 0;
   const long dmChained = 1;
-
+  
   /**
    * Cumulative message size per download
    */
@@ -66,7 +138,21 @@ interface nsIAutoSyncManager : nsISupports {
    * folders in the download queue
    */
   attribute nsIAutoSyncFolderStrategy folderStrategy;
+  
+  /**
+   * Adds a listener to notify about auto-sync events
+   */
+  void addListener(in nsIAutoSyncMgrListener aListener);
+  
+  /**
+   * Removes the listener from notification list
+   */
+  void removeListener(in nsIAutoSyncMgrListener aListener);
     
+  /**
+   * Tests the given message to make sure that whether 
+   * it fits the download criteria or not
+   */
   boolean doesMsgFitDownloadCriteria(in nsIMsgDBHdr aMsgHdr);
   
   /**
@@ -87,6 +173,24 @@ interface nsIAutoSyncManager : nsISupports {
    */
   void onDownloadCompleted(in nsIAutoSyncState aAutoSyncStateObj, in nsresult aExitCode);
   
+  /**
+   * Number of elements in the discovery queue.
+   * @see nsAutoSyncManager.h for details
+   */
+  readonly attribute unsigned long discoveryQLength;
+  
+  /**
+   * Number of elements in the update queue.
+   * @see nsAutoSyncManager.h for details
+   */
+  readonly attribute unsigned long updateQLength;
+  
+  /**
+   * Number of elements in the download queue (a.k.a priority queue).
+   * @see nsAutoSyncManager.h for details
+   */
+  readonly attribute unsigned long downloadQLength;
+
   /**
    * Active download model; Chained (serial), or Parallel
    */

@@ -43,6 +43,7 @@
 #include "nsIObserver.h"
 #include "nsIUrlListener.h"
 #include "nsITimer.h"
+#include "nsTObserverArray.h"
 #include "nsIAutoSyncManager.h"
 #include "nsIAutoSyncMsgStrategy.h"
 #include "nsIAutoSyncFolderStrategy.h"
@@ -115,8 +116,8 @@ class nsAutoSyncManager : public nsIObserver,
   private:
     ~nsAutoSyncManager();
 
-    void SetIdleState(IdleState st) { mIdleState = st; }
-    IdleState GetIdleState() const { return mIdleState; }
+    void SetIdleState(IdleState st);    
+    IdleState GetIdleState() const;
     nsresult AutoUpdateFolders(); 
     void ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAutoSyncStateObj);
     nsresult DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj);
@@ -148,12 +149,6 @@ class nsAutoSyncManager : public nsIObserver,
     /// pref helpers
     PRUint32 GetUpdateIntervalFor(nsIAutoSyncState *aAutoSyncStateObj);
     
-    #ifdef DEBUG_me
-    void DebugDumpQ(char *s, const nsCOMArray<nsIAutoSyncState> &aQueue);
-    nsCString DebugGetFolderName(nsIAutoSyncState *aAutoSyncStateObj);
-    nsCString DebugGetFolderName(nsIMsgFolder *aFolder);
-    #endif
-
   protected:
     nsCOMPtr<nsIAutoSyncMsgStrategy> mMsgStrategyImpl;
     nsCOMPtr<nsIAutoSyncFolderStrategy> mFolderStrategyImpl;
@@ -173,14 +168,15 @@ class nsAutoSyncManager : public nsIObserver,
     PRInt32 mDownloadModel;
     nsCOMPtr<nsIIdleService> mIdleService;
     nsCOMPtr<nsITimer> mTimer;
+    nsTObserverArray<nsCOMPtr<nsIAutoSyncMgrListener> > mListeners;
 };
 
 #endif
 
 /*
- How queues interact in general:
+How queues inter-relate:
 
-sAutoSyncState has an internal priority queue to store messages waiting to be
+nsAutoSyncState has an internal priority queue to store messages waiting to be
 downloaded. nsAutoSyncMsgStrategy object determines the order in this queue,
 nsAutoSyncManager uses this queue to manage downloads. Two events cause a
 change in this queue: 
