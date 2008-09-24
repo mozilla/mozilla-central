@@ -106,8 +106,9 @@ function onAcceptDialog() {
     // Save cache options
     gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
 
-    // Save disabled option (should do this last)
+    // Save disabled option (should do this last), remove auto-enabled
     gCalendar.setProperty("disabled", !document.getElementById("calendar-enabled-checkbox").checked);
+    gCalendar.deleteProperty("auto-enabled");
 
     // tell standard dialog stuff to close the dialog
     return true;

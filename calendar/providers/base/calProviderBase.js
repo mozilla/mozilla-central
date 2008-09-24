@@ -350,6 +350,7 @@ calProviderBase.prototype = {
                             // Otherwise fall through to fix the type
                         case "readOnly":
                         case "disabled":
+                        case "auto-enabled":
                         case "relaxedMode":
                         case "cache.supported":
                         case "cache.enabled":

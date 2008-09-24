@@ -288,6 +288,7 @@ calWcapSession.prototype = {
                         } else {
                             log("login prompt cancelled.", this_);
                             this_.defaultCalendar.setProperty("disabled", true);
+                            this_.defaultCalendar.setProperty("auto-enabled", true);
                             respFunc(new Components.Exception(errorToString(calIWcapErrors.WCAP_LOGIN_FAILED),
                                                               calIWcapErrors.WCAP_LOGIN_FAILED));
                         }

@@ -584,10 +584,6 @@ calCalendarManager.prototype = {
 
         this.assureCache();
 
-        // Add an observer to track readonly-mode triggers
-        var newObserver = new calMgrCalendarObserver(calendar, this);
-        calendar.addObserver(newObserver);
-
         var pp = this.mRegisterCalendar.params;
         pp.type = calendar.type;
         pp.uri = calendar.uri.spec;
@@ -596,10 +592,18 @@ calCalendarManager.prototype = {
         this.mRegisterCalendar.reset();
         
         calendar.id = this.mDB.lastInsertRowID;
-        
-        //dump("adding [" + this.mDB.lastInsertRowID + "]\n");
-        //this.mCache[this.mDB.lastInsertRowID] = calendar;
+
+        this.setupCalendar(calendar);
+
+        this.notifyObservers("onCalendarRegistered", [calendar]);
+    },
+
+    setupCalendar: function cmgr_setupCalendar(calendar) {
         this.mCache[calendar.id] = calendar;
+
+        // Add an observer to track readonly-mode triggers
+        var newObserver = new calMgrCalendarObserver(calendar, this);
+        calendar.addObserver(newObserver);
         this.mCalObservers[calendar.id] = newObserver;
 
         // Set up statistics
@@ -614,8 +618,6 @@ calCalendarManager.prototype = {
         if (!calendar.getProperty("disabled") && calendar.canRefresh) {
             calendar.refresh();
         }
-
-        this.notifyObservers("onCalendarRegistered", [calendar]);
     },
 
     unregisterCalendar: function(calendar) {
@@ -710,27 +712,17 @@ calCalendarManager.prototype = {
                         continue;
                     }
                     cal.id = caldata.id;
+
+                    if (cal.getProperty("auto-enabled") === true) {
+                        cal.deleteProperty("disabled");
+                        cal.deleteProperty("auto-enabled");
+                    }
+
                     if ((cal.getProperty("cache.supported") !== false) && cal.getProperty("cache.enabled")) {
                         cal = new calCachedCalendar(cal);
                     }
-                    var newObserver = new calMgrCalendarObserver(cal, this);
-                    cal.addObserver(newObserver);
-                    this.mCalObservers[caldata.id] = newObserver;
 
-                    this.mCache[caldata.id] = cal;
-
-                    // Set up statistics
-                    if (cal.getProperty("requiresNetwork") !== false) {
-                        this.mNetworkCalendarCount++;
-                    }
-                    if (cal.readOnly) {
-                        this.mReadonlyCalendarCount++;
-                    }
-                    this.mCalendarCount++;
-
-                    if (!cal.getProperty("disabled") && cal.canRefresh) {
-                        cal.refresh();
-                    }
+                    this.setupCalendar(cal);
                 } catch (exc) {
                     Components.utils.reportError(
                         "Can't create calendar for " + caldata.id +
