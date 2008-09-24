@@ -3727,6 +3727,9 @@ void nsImapMailFolder::FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsT
   numNewUnread = 0;
   existTotal = numberOfKnownKeys = existingKeys.Length();
   flagState->GetNumberOfMessages(&messageIndex);
+  PRBool partialUIDFetch;
+  flagState->GetPartialUIDFetch(&partialUIDFetch);
+
   for (PRInt32 flagIndex=0; flagIndex < messageIndex; flagIndex++)
   {
     PRUint32 uidOfMessage;
@@ -3749,9 +3752,11 @@ void nsImapMailFolder::FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsT
         if (mDatabase)
         {
           PRBool dbContainsKey;
-          if (NS_SUCCEEDED(mDatabase->ContainsKey(uidOfMessage, &dbContainsKey)) && dbContainsKey)
+          if (NS_SUCCEEDED(mDatabase->ContainsKey(uidOfMessage, &dbContainsKey)) &&
+              dbContainsKey)
           {
-            NS_ASSERTION(PR_FALSE, "db has key - flagState messed up?");
+            // this is expected in the partial uid fetch case.
+            NS_ASSERTION(!partialUIDFetch, "db has key - flagState messed up?");
             continue;
           }
         }
