@@ -316,6 +316,10 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   margin: 0 0 5px 0; /* XXX needed?*/
 }
 
+.headerValueBox[singleline="true"] {
+  overflow: hidden;
+}
+
 .headerValueUrl {
   cursor: pointer;
   color: #0000FF;
@@ -424,11 +428,19 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .addresstwisty {
   -moz-padding-end: 5px;
   padding-top: 4px;
-  list-style-image: url("chrome://global/skin/tree/twisty-clsd.png");
+  list-style-image:url("chrome://messenger/skin/icons/arrow/arrow-right-dim.png");
+}
+
+.addresstwisty:hover {
+  list-style-image:url("chrome://messenger/skin/icons/arrow/arrow-right.png");
 }
 
 .addresstwisty[open] {
-  list-style-image: url("chrome://global/skin/tree/twisty-open.png");
+  list-style-image:url("chrome://messenger/skin/icons/arrow/arrow-down-dim.png");
+}
+
+.addresstwisty[open]:hover {
+  list-style-image:url("chrome://messenger/skin/icons/arrow/arrow-down.png");
 }
 
 /* ::::: view expand and collapse twisties  ::::: */
