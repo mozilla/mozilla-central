@@ -203,7 +203,7 @@
                    tooltiptext="&proxyIcon.tooltip;"/>
           </deck>
           <hbox id="urlbar-icons">
-            <image id="feedsButton" hidden="true" popup="feedsPopup"/>
+            <image id="feedsButton" hidden="true" popup="feedsPopup" style="display: none !important"/>
           </hbox>
           <menupopup id="ubhist-popup" class="autocomplete-history-popup"
                      popupalign="topleft" popupanchor="bottomleft"

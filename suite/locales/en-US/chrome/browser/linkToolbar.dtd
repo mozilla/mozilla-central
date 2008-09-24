@@ -78,4 +78,6 @@
 
 <!ENTITY alternateButton.label "Other Versions">
 
-<!ENTITY feedButton.label "Subscribe">
+<!-- XXXCallek Disabling for alpha release only -->
+<!--<!ENTITY feedButton.label "Subscribe">-->
+<!ENTITY feedButton.labelTemp "Feeds">
