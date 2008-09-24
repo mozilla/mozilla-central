@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-EXTENSION_CO_TAG = 'HEAD'
+EXTENSION_CO_TAG = 'SEAMONKEY_2_0a1_RELEASE'
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6_RTM'
 
-CHATZILLA_CO_TAG = 'HEAD'
-VENKMAN_CO_TAG = 'HEAD'
+CHATZILLA_CO_TAG = 'SEAMONKEY_2_0a1_RELEASE'
+VENKMAN_CO_TAG = 'SEAMONKEY_2_0a1_RELEASE'
 
 EXTENSION_DIRS = ('extensions/typeaheadfind',
                   'extensions/wallet',)
@@ -13,13 +13,13 @@ LDAPCSDK_DIRS = ('directory/c-sdk',)
 CHATZILLA_DIRS = ('extensions/irc',)
 VENKMAN_DIRS = ('extensions/venkman',)
 
-DEFAULT_COMM_REV = "tip"
+DEFAULT_COMM_REV = "SEAMONKEY_2_0a1_RELEASE"
 # URL of the default hg repository to clone for Mozilla.
 DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/mozilla-central/'
-DEFAULT_MOZILLA_REV = "tip"
+DEFAULT_MOZILLA_REV = "SEAMONKEY_2_0a1_RELEASE"
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
-DEFAULT_INSPECTOR_REV = "tip"
+DEFAULT_INSPECTOR_REV = "SEAMONKEY_2_0a1_RELEASE"
 
 import os
 import sys
