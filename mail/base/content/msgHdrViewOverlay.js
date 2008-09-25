@@ -820,7 +820,7 @@ function createNewHeaderView(headerName, label)
   newHeader.collapsed = true;
 
   // this new element needs to be inserted into the view...
-  var topViewNode = document.getElementById('expandedHeaders');
+  var topViewNode = document.getElementById('variousHeadersBox');
 
   topViewNode.appendChild(newHeader);
 
