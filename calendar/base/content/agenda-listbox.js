@@ -58,7 +58,8 @@ function initAgendaListbox() {
     this.today = new Synthetic(showTodayHeader, 1);
     this.addPeriodListItem(this.today, "today-header");
     this.tomorrow = new Synthetic(showTomorrowHeader, 1);
-    this.soon = new Synthetic(showSoonHeader, 5);
+    var soondays = getPrefSafe("calendar.agendaListbox.soondays", 5);
+    this.soon = new Synthetic(showSoonHeader, soondays);
     this.periods = [this.today, this.tomorrow, this.soon];
 
     // Make sure the agenda listbox is unloaded
