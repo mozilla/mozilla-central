@@ -56,7 +56,7 @@
 
 #expandedHeaderView {
   color: #2e3436;
-  font-size: 12px;
+  font-size: 100%;
   overflow: visible;
 }
 
@@ -245,8 +245,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 /* ::::: msg header captions ::::: */
 
 #msgHeaderView {
-  font-family: Arial;
-  font-size: 12px;
+  font-size: 100%;
 }
 
 #msgHeaderViewDeck {

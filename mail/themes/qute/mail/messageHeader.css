@@ -53,16 +53,11 @@
   min-width: 1px;
   color: black;
   font-size: 125%;
-  font-family: Arial; /* default font looks bad & not antialiased on windows */
 }
 
 #expandedHeaderView {
   color: #2e3436;
-%ifdef XP_WIN
-  font-size: 95%;
-%else
   font-size: 100%;
-%endif
   overflow: visible;
 }
 
@@ -247,7 +242,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 /* ::::: msg header captions ::::: */
 
 #msgHeaderView {
-  font-size: 12px;
+  font-size: 100%;
 }
 
 #msgHeaderViewDeck {
