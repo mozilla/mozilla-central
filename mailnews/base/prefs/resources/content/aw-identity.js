@@ -22,7 +22,7 @@
  * Contributor(s):
  *   Alec Flett <alecf@netscape.com>
  *   Seth Spitzer <sspitzer@netscape.com>
- *   Håkan Waara <hwaara@chello.se>
+ *   HÃ¥kan Waara <hwaara@chello.se>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -45,10 +45,23 @@ function identityPageValidate()
 {
   var canAdvance = false;
   var name = document.getElementById("fullName").value;
+  var email = trim(document.getElementById("email").value);
 
-  if (name) {
-    var email = trim(document.getElementById("email").value);
+  if (name && email) {
     canAdvance = gCurrentDomain ? emailNameIsLegal(email) : emailNameAndDomainAreLegal(email);
+
+    if (gCurrentDomain && canAdvance) {
+      // For prefilled ISP data we must check if the account already exists as
+      // there is no second chance. The email is the username since the user
+      // fills in [______]@example.com.
+      var pageData = parent.GetPageData();
+      var serverType = parent.getCurrentServerType(pageData);
+      var hostName = parent.getCurrentHostname(pageData);
+      var usernameWithDomain = email + "@" + gCurrentDomain;
+      if (parent.AccountExists(email, hostName, serverType) ||
+          parent.AccountExists(usernameWithDomain, hostName, serverType))
+        canAdvance = false;
+    }
   }
 
   document.documentElement.canAdvance = canAdvance;
@@ -84,11 +97,10 @@ function fixPreFilledEmail()
   }
 }
 
-
-
-// This function checks for common illegal
-// characters. This shouldn't be too strict, since
-// we do more extensive tests later. -Håkan
+/**
+ * This function checks for common illegal characters.
+ * It shouldn't be too strict, since we do more extensive tests later.
+ */
 function emailNameIsLegal(aString)
 {
   return aString && !/[^!-?A-~]/.test(aString);
