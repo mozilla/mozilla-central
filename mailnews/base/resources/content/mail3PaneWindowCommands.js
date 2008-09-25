@@ -798,14 +798,22 @@ function WhichPaneHasFocus()
 
 function SetupCommandUpdateHandlers()
 {
-	var widget;
-	
-	// folder pane
-	widget = GetFolderTree();
-	if ( widget )
-		widget.controllers.appendController(FolderPaneController);
-	
-	top.controllers.insertControllerAt(0, DefaultController);
+  // folder pane
+  var widget = GetFolderTree();
+  if (widget)
+    widget.controllers.appendController(FolderPaneController);
+
+  top.controllers.insertControllerAt(0, DefaultController);
+}
+
+// Called from <msgMail3PaneWindow.js>.
+function UnloadCommandUpdateHandlers()
+{
+  top.controllers.removeController(DefaultController);
+
+  var widget = GetFolderTree();
+  if (widget)
+    widget.controllers.removeController(FolderPaneController);
 }
 
 function IsSendUnsentMsgsEnabled(folderResource)

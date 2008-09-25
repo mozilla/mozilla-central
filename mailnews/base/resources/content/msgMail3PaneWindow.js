@@ -761,6 +761,8 @@ function OnUnloadMessenger()
   // FIX ME - later we will be able to use onload from the overlay
   OnUnloadMsgHeaderPane();
 
+  UnloadPanes();
+
   OnMailWindowUnload();
 }
 
@@ -884,6 +886,12 @@ function InitPanes()
   OnLoadLocationTree();
   OnLoadThreadPane();
   SetupCommandUpdateHandlers();
+}
+
+function UnloadPanes()
+{
+  // Call to <mail3PaneWindowCommands.js>.
+  UnloadCommandUpdateHandlers();
 }
 
 function InitializeDataSources()

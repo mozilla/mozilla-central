@@ -573,6 +573,11 @@ function SetupCommandUpdateHandlers()
   top.controllers.insertControllerAt(0, defaultController);
 }
 
+function UnloadCommandUpdateHandlers()
+{
+  top.controllers.removeController(defaultController);
+}
+
 function CommandUpdate_MsgCompose()
 {
   var focusedWindow = top.document.commandDispatcher.focusedWindow;
@@ -1516,6 +1521,8 @@ function ComposeLoad()
 function ComposeUnload()
 {
   dump("\nComposeUnload from XUL\n");
+
+  UnloadCommandUpdateHandlers();
 
   // Stop InlineSpellCheckerUI so personal dictionary is saved
   EnableInlineSpellCheck(false);

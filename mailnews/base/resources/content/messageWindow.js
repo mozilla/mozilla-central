@@ -414,6 +414,8 @@ function extractMsgKeyFromURI()
 
 function OnUnloadMessageWindow()
 {
+  UnloadCommandUpdateHandlers();
+
   RemoveToolBarPrefListener();
 	// FIX ME - later we will be able to use onunload from the overlay
 	OnUnloadMsgHeaderPane();
@@ -999,7 +1001,12 @@ function performNavigation(type)
 
 function SetupCommandUpdateHandlers()
 {
-	top.controllers.insertControllerAt(0, MessageWindowController);
+  top.controllers.insertControllerAt(0, MessageWindowController);
+}
+
+function UnloadCommandUpdateHandlers()
+{
+  top.controllers.removeController(MessageWindowController);
 }
 
 function GetDBView()
