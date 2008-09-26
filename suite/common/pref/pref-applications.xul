@@ -104,7 +104,7 @@
 
     <hbox align="center">
       <label accesskey="&filter.accesskey;" control="filter">&filter.label;</label>
-      <textbox id="filter" flex="1" type="search"
+      <textbox id="filter" flex="1" type="search" clickSelectsAll="true"
                oncommand="gApplicationsPane._rebuildView();"/>
     </hbox>
 

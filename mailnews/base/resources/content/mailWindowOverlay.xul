@@ -2255,7 +2255,9 @@
 <hbox id="searchBox" align="center" flex="1">
   <label id="searchCriteria" value="&SearchSubjectOrFrom.label;" control="searchInput"
          accesskey="&SearchSubjectOrFrom.accesskey;"/>
-  <textbox id="searchInput" flex="1" onfocus="this.select();" onclick="this.select();" onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();" oncommand="onEnterInSearchBar();" type="search"/>
+  <textbox id="searchInput" flex="1" type="search" clickSelectsAll="true"
+           onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"
+           oncommand="onEnterInSearchBar();"/>
   <button id="advancedButton" label="&advancedButton.label;" tooltiptext="&advancedButton.tooltip;" oncommand="onAdvancedSearch();"
           accesskey="&advancedButton.accesskey;"/>
 </hbox>

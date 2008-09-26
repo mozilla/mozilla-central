@@ -93,7 +93,8 @@
             <row align="center">
               <label value="&namefield.label;" accesskey="&namefield.accesskey;" 
                      id="namefieldlabel" control="namefield"/>
-              <textbox id="namefield" flex="1" type="search" oncommand="Search();"/>
+              <textbox id="namefield" flex="1" type="search" oncommand="Search();"
+                       clickSelectsAll="true"/>
             </row>
           </rows>
          </grid>

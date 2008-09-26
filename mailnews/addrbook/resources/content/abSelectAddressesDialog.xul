@@ -82,7 +82,7 @@
       </menulist>  
       <label value="&for.label;" accesskey="&for.accesskey;" control="searchInput"/>
       <textbox id="searchInput" flex="1" type="search"
-               oncommand="onEnterInSearchBar();"/>  
+               oncommand="onEnterInSearchBar();" clickSelectsAll="true"/>
     </hbox>
     
     <hbox flex="1">    

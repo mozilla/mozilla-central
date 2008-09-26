@@ -433,7 +433,7 @@
                 oninput="SearchInputChanged();"
                 oncommand="onEnterInSearchBar();"
                 onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"
-                onfocus="this.select();" onclick="this.select();"/>
+                clickSelectsAll="true"/>
         <button id="advancedButton" label="&advancedButton.label;" 
                 accesskey="&advancedButton.accesskey;"
                 tooltiptext="&advancedButton.tooltip;" 

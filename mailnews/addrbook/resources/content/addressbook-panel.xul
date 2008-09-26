@@ -100,7 +100,7 @@
 	  <label value="&for.label;" id="forLabel" control="searchInput"/> 
 	  <textbox id="searchInput" flex="1" type="search"
                aria-labelledby="lookInLabel addressbookList forLabel"
-               oncommand="onEnterInSearchBar();"/>
+               oncommand="onEnterInSearchBar();" clickSelectsAll="true"/>
 	</hbox>
 
     <tree id="abResultsTree" flex="1" context="composeMail" onclick="AbResultsPaneOnClick(event);" class="plain"
