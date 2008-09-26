@@ -400,7 +400,7 @@
           <![CDATA[
             if (UpdateExtraAddressProcessing) {
 	      var childNodes = this.emailAddresses.childNodes;
-	      for (var i = 0; i < childNodes.length / 2; ++i) {
+	      for (var i = 0; i < this.mAddresses.length; ++i) {
 	        UpdateExtraAddressProcessing(this.mAddresses[i],
                                              childNodes[i * 2],
                                              aParam1, aParam2, aParam3);
@@ -474,15 +474,14 @@
     <content>
       <xul:description anonid="emailValue" class="emailDisplayButton plain"
                        context="emailAddressPopup" popup="emailAddressPopup"
-                       xbl:inherits="xbl:text=label,crop,tooltiptext=tooltipemail"
-                       flex="1"/>
+                       xbl:inherits="xbl:text=label,crop" flex="1"/>
       <xul:image class="emailStar" anonid="emailStar"
                  context="emailAddressPopup"
                  onclick="onClickEmailStar(event, this.parentNode);"
                  xbl:inherits="hascard,tooltiptext=tooltipstar"/>
       <xul:image class="emailPopup" anonid="emailPopup"
                  context="emailAddressPopup" popup="emailAddressPopup"
-                 xbl:inherits="hascard,tooltiptext=tooltipemail"/>
+                 xbl:inherits="hascard"/>
     </content>
 #endif
 

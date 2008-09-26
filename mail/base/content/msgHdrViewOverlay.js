@@ -1017,7 +1017,7 @@ function updateEmailAddressNode(emailAddressNode, address)
   emailAddressNode.setAttribute("emailAddress", address.emailAddress);
   emailAddressNode.setAttribute("fullAddress", address.fullAddress);
   emailAddressNode.setAttribute("displayName", address.displayName);
-  emailAddressNode.removeAttribute("tooltipemail");
+  emailAddressNode.removeAttribute("tooltiptext");
 
   AddExtraAddressProcessing(address.emailAddress, emailAddressNode);
 }
@@ -1048,7 +1048,7 @@ function AddExtraAddressProcessing(emailAddress, documentNode)
     return;
 
   documentNode.setAttribute("label", displayName);
-  documentNode.setAttribute("tooltipemail", emailAddress);
+  documentNode.setAttribute("tooltiptext", emailAddress);
 }
 
 function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
@@ -1068,7 +1068,7 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
   else {
     aDocumentNode.setAttribute("hascard", "false");
     aDocumentNode.setAttribute("tooltipstar", 
-                               document.getElementById("editContactItem").label);
+                               document.getElementById("addToAddressBookItem").label);
   }
 
   // When we are adding cards, we don't want to move the display around if the
@@ -1079,13 +1079,14 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
 
   if (gShowCondensedEmailAddresses && displayName) {
     aDocumentNode.setAttribute("label", displayName);
-    aDocumentNode.setAttribute("tooltipemail", aEmailAddress);
+    aDocumentNode.setAttribute("tooltiptext", aEmailAddress);
   }
   else if (aDocumentNode.parentNode.useShortView &&
            aDocumentNode.getAttribute("displayName")) {
     aDocumentNode.setAttribute("label",
                                aDocumentNode.getAttribute("displayName"));
-    aDocumentNode.setAttribute("tooltipemail", aEmailAddress);
+    aDocumentNode.setAttribute("tooltiptext",
+                               aDocumentNode.getAttribute("fullAddress"));
   }
   else
     aDocumentNode.setAttribute("label",
