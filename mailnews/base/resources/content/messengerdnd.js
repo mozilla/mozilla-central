@@ -428,8 +428,20 @@ function BeginDragFolderTree(event)
       flavor = "text/x-moz-folder";
     }
 
-    var selectedFolders = GetSelectedFolders();
-    return BeginDragTree(event, folderTree, selectedFolders, flavor);
+    var folderArray = [];
+    var folderTree = GetFolderTree();
+    var rangeCount = folderTree.view.selection.getRangeCount();
+
+    for (var i = 0; i < rangeCount; i++)
+    {
+      var startIndex = {};
+      var endIndex = {};
+      folderTree.view.selection.getRangeAt(i, startIndex, endIndex);
+      for (var j = startIndex.value; j <= endIndex.value; j++)
+        folderArray.push(GetFolderResource(folderTree, j).Value);
+    }
+
+    return BeginDragTree(event, folderTree, folderArray, flavor);
 }
 
 function BeginDragThreadPane(event)
