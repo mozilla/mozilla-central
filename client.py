@@ -119,6 +119,9 @@ o.add_option("--inspector-rev", dest="inspector_rev",
 o.add_option("--skip-cvs", dest="skip_cvs",
              action="store_true", default=False,
              help="Skip pulling the old directories from the Mozilla CVS repository.")
+o.add_option("--skip-ldap", dest="skip_ldap",
+             action="store_true", default=False,
+             help="Skip pulling LDAP from the Mozilla CVS repository.")
 o.add_option("--skip-chatzilla", dest="skip_chatzilla",
              action="store_true", default=False,
              help="Skip pulling the ChatZilla repository.")
@@ -184,7 +187,8 @@ if action in ('checkout', 'co'):
         do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg, options.inspector_rev)
 
     if not options.skip_cvs:
-        do_cvs_checkout(LDAPCSDK_DIRS, LDAPCSDK_CO_TAG, options.cvsroot, options.cvs, '')
+        if not options.skip_ldap:
+          do_cvs_checkout(LDAPCSDK_DIRS, LDAPCSDK_CO_TAG, options.cvsroot, options.cvs, '')
         if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
           do_cvs_checkout(EXTENSION_DIRS, EXTENSION_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
         else:
