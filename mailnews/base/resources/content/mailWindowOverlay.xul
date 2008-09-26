@@ -1208,7 +1208,6 @@
               </menupopup>
             </rule>
           </template>
-          <menupopup/>
         </menu>
       <menuitem id="menu_getnextnmsg" label="&getNextNMsgCmd.label;"
        accesskey="&getNextNMsgCmd.accesskey;"
