@@ -173,13 +173,14 @@ nsContextMenu.prototype = {
         this.showItem( "context-viewinfo", showView );
 
         this.showItem( "context-sep-properties", !( this.inDirList || this.isContentSelected || this.onTextInput ) );
-        // Set As Wallpaper depends on whether an image was clicked on, and only works on Windows.
-        var isWin = navigator.appVersion.indexOf("Windows") != -1;
-        this.showItem( "context-setWallpaper", isWin && (this.onLoadedImage || this.onStandaloneImage));
+        // Set As Wallpaper depends on whether an image was clicked on,
+        // and requires the shell service.
+        var hasShell = "@mozilla.org/suite/shell-service;1" in Components.classes;
+        this.showItem( "context-setWallpaper", hasShell && (this.onLoadedImage || this.onStandaloneImage));
 
         this.showItem( "context-sep-image", this.onLoadedImage || this.onStandaloneImage);
 
-        if( isWin && this.onLoadedImage )
+        if( hasShell && this.onLoadedImage )
             // Disable the Set As Wallpaper menu item if we're still trying to load the image
           this.setItemAttr( "context-setWallpaper", "disabled", (("complete" in this.target) && !this.target.complete) ? "true" : null );
 
