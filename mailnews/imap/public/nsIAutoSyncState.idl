@@ -72,6 +72,9 @@ interface nsIAutoSyncState : nsISupports {
    */
   void tryCurrentGroupAgain(in unsigned long aRetryCount);
   
+  /**
+   * Resets the retry counter.
+   */
   void resetRetryCounter();
   
   /**
@@ -79,21 +82,29 @@ interface nsIAutoSyncState : nsISupports {
    */
   boolean isSibling(in nsIAutoSyncState aAnotherStateObj);
 
+  /**
+   * Downloads the bodies of the given messages from the server.
+   */
   void downloadMessagesForOffline(in nsIArray aMessageList);
 
   /**
    * Populates the given array with the keys of the messages that will 
    * be downloaded next.
+   *
+   * @param aSuggestedGroupSizeLimit suggested size per group in bytes
+   * @param aActualGroupSize total size of the messages in bytes in the group
    */
-  nsIMutableArray getNextGroupOfMessages();
+  nsIMutableArray getNextGroupOfMessages(in unsigned long aSuggestedGroupSizeLimit, 
+                                         out unsigned long aActualGroupSize);
   
   /**
    * Iterates through the existing headers of the folder to find 
    * the messages not downloaded yet. 
    *
-   * @param aNumberOfHeadersToProcess  - num to process in this pass
+   * @param aNumberOfHeadersToProcess number of headers to be processed
+   *                                  at this pass
    *
-   * @ret   the number of headers left to process
+   * @return the number of headers left to process
    */
   unsigned long processExistingHeaders(in unsigned long aNumberOfHeadersToProcess);
 
@@ -112,7 +123,13 @@ interface nsIAutoSyncState : nsISupports {
    */
   attribute long state;
   
+  /**
+   * Number of messages waiting to be downloaded.
+   */
   readonly attribute long pendingMessageCount;
   
+  /**
+   * The folder this auto-sync object is related to.
+   */
   readonly attribute nsIMsgFolder ownerFolder;
 };

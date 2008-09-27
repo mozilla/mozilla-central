@@ -181,6 +181,7 @@ nsDefaultAutoSyncFolderStrategy::IsExcluded(nsIMsgFolder *aFolder, PRBool *aDeci
 nsAutoSyncManager::nsAutoSyncManager()
 {
   mGroupSize = kDefaultGroupSize;
+  mIdleState = back;
   mStartupTime = PR_Now();
   mDownloadModel = dmChained;
   mUpdateState = completed;
@@ -475,6 +476,12 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
   }
   else
   {
+    // although we don't expect to get idle notification while we are already
+    // idle, it is better to be defensive here to avoid platform specific idle
+    // service issues, if any. 
+    if (GetIdleState() == idle)
+      return NS_OK;
+    
     SetIdleState(idle);
     if (WeAreOffline())
       return NS_OK;
@@ -728,19 +735,31 @@ void nsAutoSyncManager::ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAuto
   }//endif
 }
 
-nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj)
+/**
+ * Zero aSizeLimit means no limit 
+ */
+nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj, PRUint32 aSizeLimit)
 {  
   if (!aAutoSyncStateObj)
     return NS_ERROR_INVALID_ARG;
   
   PRInt32 count;
   nsresult rv = aAutoSyncStateObj->GetPendingMessageCount(&count);
-  if ( NS_FAILED(rv) || (NS_SUCCEEDED(rv) && 0 == count) )
+  // TODO: right thing to do here is to return an error to the caller saying that do not
+  // try again. Not sure how to do it using nserror mechanism.
+  // Note that we can't return success in case of 0 == count here since
+  // we only remove the object from the queue in the OnDownloadCompleted method
+  if (NS_FAILED(rv) || !count)
     return NS_ERROR_FAILURE; 
  
   nsCOMPtr<nsIMutableArray> messagesToDownload;
-  rv = aAutoSyncStateObj->GetNextGroupOfMessages(getter_AddRefs(messagesToDownload));
+  PRUint32 totalSize = 0;
+  rv = aAutoSyncStateObj->GetNextGroupOfMessages(mGroupSize, &totalSize, getter_AddRefs(messagesToDownload));
   NS_ENSURE_SUCCESS(rv,rv);
+  
+  // ensure that we don't exceed the given size limit for this particular group
+  if (aSizeLimit && aSizeLimit < totalSize)
+    return NS_ERROR_FAILURE;
   
   PRUint32 length;
   rv = messagesToDownload->GetLength(&length);
@@ -832,7 +851,7 @@ NS_IMETHODIMP nsAutoSyncManager::GetGroupSize(PRUint32 *aGroupSize)
 }
 NS_IMETHODIMP nsAutoSyncManager::SetGroupSize(PRUint32 aGroupSize)
 {
-  mGroupSize = aGroupSize;
+  mGroupSize = aGroupSize ? aGroupSize : kDefaultGroupSize;
   return NS_OK;
 }
 
@@ -940,9 +959,17 @@ NS_IMETHODIMP nsAutoSyncManager::OnDownloadQChanged(nsIAutoSyncState *aAutoSyncS
     
     if (mDownloadModel == dmParallel || !DoesQContainAnySiblingOf(mPriorityQ, autoSyncStateObj))
     {
-      rv = DownloadMessagesForOffline(autoSyncStateObj);
+      // this will download the first group of messages immediately;
+      // to ensure that we don't end up downloading a large single message in not-idle time, 
+      // we enforce a limit. If there is no message fits into this limit we postpone the 
+      // download until the next idle.
+      if (GetIdleState() != idle)
+        rv =  DownloadMessagesForOffline(autoSyncStateObj, kFirstGroupSizeLimit);
+      else
+        rv = DownloadMessagesForOffline(autoSyncStateObj);
+      
       if (NS_FAILED(rv))
-        HandleDownloadErrorFor(autoSyncStateObj);
+        autoSyncStateObj->TryCurrentGroupAgain(kGroupRetryCount);
     }
   }
   return rv;

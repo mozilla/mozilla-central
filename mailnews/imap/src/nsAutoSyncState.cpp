@@ -218,9 +218,14 @@ nsresult nsAutoSyncState::SortQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue)
   return rv;
 }
 
-NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(nsIMutableArray **aMessagesList)
+NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSizeLimit, 
+                                                      PRUint32 *aActualGroupSize, 
+                                                      nsIMutableArray **aMessagesList)
 {
   NS_ENSURE_ARG_POINTER(aMessagesList);
+  NS_ENSURE_ARG_POINTER(aActualGroupSize);
+  
+  *aActualGroupSize = 0;
   
   nsresult rv;
   nsCOMPtr <nsIMsgFolder> folder = do_QueryReferent(mOwnerFolder, &rv);
@@ -252,14 +257,9 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(nsIMutableArray **aMessage
       nsCOMPtr<nsIAutoSyncManager> autoSyncMgr = do_GetService(NS_AUTOSYNCMANAGER_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      PRUint32 groupSize;
-      PRUint32 totalSize = 0;
       PRUint32 msgCount = mDownloadQ.Length();
       PRUint32 idx = mOffset;
-
-      // get the group size allowed per download
-      autoSyncMgr->GetGroupSize(&groupSize);
-      
+     
       nsCOMPtr<nsIAutoSyncMsgStrategy> msgStrategy;
       autoSyncMgr->GetMsgStrategy(getter_AddRefs(msgStrategy));
 
@@ -295,19 +295,21 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(nsIMutableArray **aMessage
         if (!msgSize)
           continue;
         
-        if (totalSize == 0 && msgSize >= groupSize) 
+        if (!*aActualGroupSize && msgSize >= aSuggestedGroupSizeLimit) 
         {
+          *aActualGroupSize = msgSize;
           group->AppendElement(qhdr, PR_FALSE);
           idx++;
           break;
         }
-        else if (totalSize + msgSize > groupSize)
+        else if ((*aActualGroupSize) + msgSize > aSuggestedGroupSizeLimit)
           break;
         else
-          group->AppendElement(qhdr, PR_FALSE);
-         
-        totalSize += msgSize;
-      }//endfor
+        {
+         group->AppendElement(qhdr, PR_FALSE);
+         *aActualGroupSize += msgSize;
+        }
+      }// endfor
       
       mLastOffset = mOffset;
       mOffset = idx;
