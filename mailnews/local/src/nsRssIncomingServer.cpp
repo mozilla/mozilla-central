@@ -280,7 +280,6 @@ NS_IMETHODIMP nsRssIncomingServer::OnItemAdded(nsIMsgFolder *parentItem, nsISupp
     rv = GetRootFolder(getter_AddRefs(rootMsgFolder));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 numFolders;
     rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Trash,
                                       getter_AddRefs(trashFolder));
 

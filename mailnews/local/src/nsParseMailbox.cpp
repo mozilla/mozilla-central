@@ -1810,7 +1810,6 @@ void nsParseNewMailState::ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, 
     nsCOMPtr <nsIMsgFolder> rootMsgFolder = do_QueryInterface(m_rootFolder);
     if (rootMsgFolder)
     {
-      PRUint32 numFolders;
       if (!downloadFolder)
         rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
                                           getter_AddRefs(downloadFolder));
