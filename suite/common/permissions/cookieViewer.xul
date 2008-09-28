@@ -47,6 +47,7 @@
         buttons="accept,help"
         title="&windowtitle.label;"
         buttonlabelaccept="&buttonaccept.label;"
+        buttonaccesskeyaccept="&buttonaccept.accesskey;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         windowtype="mozilla:cookieviewer"
         style="width: 30em;"
@@ -149,15 +150,17 @@
           <hbox>
             <button id="removeCookie" disabled="true"
                           label="&button.removecookie.label;"
+                          accesskey="&button.removecookie.accesskey;"
                           oncommand="DeleteCookie();"/>
             <button id="removeAllCookies"
                           label="&button.removeallcookies.label;"
+                          accesskey="&button.removeallcookies.accesskey;"
                           oncommand="DeleteAllCookies();"/>
             <!--  todo: <button id="restoreCookies" class="dialog push" disabled="true" label="&button.restorecookie.label;" oncommand="RestoreCookies();"/> -->
           </hbox>
           <separator class="thin"/>
           <hbox align="start">
-            <checkbox id="checkbox" label="&checkbox.label;" persist="checked"/>
+            <checkbox id="checkbox" label="&futureCookies.label;" accesskey="&futureCookies.accesskey;" persist="checked"/>
           </hbox>
         </vbox>
       </vbox>
@@ -168,10 +171,13 @@
           <hbox>
             <textbox id="cookie-site" flex="1" oninput="buttonEnabling(this);"/>
             <button id="btnBlock" label="&blockSite.label;" disabled="true"
+                    accesskey="&blockSite.accesskey;"
                     oncommand="setCookiePermissions(nsIPermissionManager.DENY_ACTION);"/>
             <button id="btnSession" label="&allowSiteSession.label;" disabled="true"
+                    accesskey="&allowSiteSession.accesskey;"
                     oncommand="setCookiePermissions(nsICookiePermission.ACCESS_SESSION);"/>
             <button id="btnAllow" label="&allowSite.label;" disabled="true"
+                    accesskey="&allowSite.accesskey;"
                     oncommand="setCookiePermissions(nsIPermissionManager.ALLOW_ACTION);"/>
           </hbox>
           <separator class="thin"/>
@@ -191,9 +197,11 @@
           <hbox>
             <button id="removePermission" disabled="true" 
                           label="&removepermission.label;" 
+                          accesskey="&removepermission.accesskey;" 
                           oncommand="DeletePermission();"/>
             <button id="removeAllPermissions"
                           label="&removeallpermissions.label;" 
+                          accesskey="&removeallpermissions.accesskey;" 
                           oncommand="DeleteAllPermissions();"/>
           </hbox>
       </vbox>

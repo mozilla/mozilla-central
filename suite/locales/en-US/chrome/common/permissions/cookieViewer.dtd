@@ -7,7 +7,9 @@
 <!ENTITY     treehead.cookieexpires.label   "Expires"> 
 <!ENTITY     treehead.infoselected.label    "Information about the selected Cookie">
 <!ENTITY     button.removecookie.label      "Remove Cookie">
+<!ENTITY     button.removecookie.accesskey  "R">
 <!ENTITY     button.removeallcookies.label  "Remove All Cookies">
+<!ENTITY     button.removeallcookies.accesskey "e">
 
 <!ENTITY     props.name.label               "Name:">
 <!ENTITY     props.value.label              "Content:">
@@ -20,14 +22,21 @@
 <!ENTITY     treehead.status.label          "Status">
 <!ENTITY     windowtitle.label              "Cookie Manager">
 <!ENTITY     buttonaccept.label             "Close">
+<!ENTITY     buttonaccept.accesskey         "C">
 
 <!ENTITY     blockSite.label                "Block">
+<!ENTITY     blockSite.accesskey            "B">
 <!ENTITY     allowSite.label                "Allow">
+<!ENTITY     allowSite.accesskey            "A">
 <!ENTITY     allowSiteSession.label         "Session">
+<!ENTITY     allowSiteSession.accesskey     "S">
 <!ENTITY     removepermission.label         "Remove Site">
+<!ENTITY     removepermission.accesskey     "R">
 <!ENTITY     removeallpermissions.label     "Remove All Sites">
+<!ENTITY     removeallpermissions.accesskey "e">
 
 <!ENTITY     canSet.label                   "can set cookies">
 <!ENTITY     cannotSet.label                "cannot set cookies">
 
-<!ENTITY     checkbox.label                 "Don't allow sites that set removed cookies to set future cookies">
+<!ENTITY     futureCookies.label            "Don't allow sites that set removed cookies to set future cookies">
+<!ENTITY     futureCookies.accesskey        "D">
