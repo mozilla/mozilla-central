@@ -44,8 +44,8 @@
 <?xml-stylesheet type="text/css" href="chrome://communicator/skin/preferences.css"?>
 
 <!DOCTYPE prefwindow [
-  <!ENTITY % dtd2 SYSTEM "chrome://communicator/locale/pref/preftree.dtd" > %dtd2;
-  <!ENTITY % dtd3 SYSTEM "chrome://communicator-platform/locale/pref/platformPrefOverlay.dtd" > %dtd3;
+  <!ENTITY % dtdPrefs    SYSTEM "chrome://communicator/locale/pref/preferences.dtd"> %dtdPrefs;
+  <!ENTITY % dtdPlatform SYSTEM "chrome://communicator-platform/locale/pref/platformPrefOverlay.dtd"> %dtdPlatform;
 ]>
 
 <prefwindow id="prefDialog" 

@@ -133,7 +133,7 @@
   locale/@AB_CD@/communicator/permissions/permissionsManager.properties     (%chrome/common/permissions/permissionsManager.properties)
   locale/@AB_CD@/communicator/permissions/permissionsNavigatorOverlay.dtd   (%chrome/common/permissions/permissionsNavigatorOverlay.dtd)
   locale/@AB_CD@/communicator/pref/prefutilities.properties                 (%chrome/common/pref/prefutilities.properties)
-  locale/@AB_CD@/communicator/pref/preftree.dtd                             (%chrome/common/pref/preftree.dtd)
+  locale/@AB_CD@/communicator/pref/preferences.dtd                          (%chrome/common/pref/preferences.dtd)
   locale/@AB_CD@/communicator/pref/pref-advanced.dtd                        (%chrome/common/pref/pref-advanced.dtd)
   locale/@AB_CD@/communicator/pref/pref-appearance.dtd                      (%chrome/common/pref/pref-appearance.dtd)
   locale/@AB_CD@/communicator/pref/pref-applications.dtd                    (%chrome/common/pref/pref-applications.dtd)
