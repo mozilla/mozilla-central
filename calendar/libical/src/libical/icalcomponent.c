@@ -367,7 +367,6 @@ icalcomponent_as_ical_string (icalcomponent* impl)
    icalmemory_append_string(&buf, &buf_ptr, &buf_size, 
 			    icalcomponent_kind_to_string(kind));
    icalmemory_append_string(&buf, &buf_ptr, &buf_size, newline);
-   icalmemory_append_string(&buf, &buf_ptr, &buf_size, newline);
 
    out_buf = icalmemory_tmp_copy(buf);
    free(buf);
