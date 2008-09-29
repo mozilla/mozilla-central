@@ -1,0 +1,8 @@
+From: from@invalid.com
+To: to@invalid.com
+cc: dupemail@test.com
+Subject: test mail
+
+this email is in dos format because that is what the interface requires
+
+test message
