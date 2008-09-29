@@ -300,6 +300,8 @@ function searchOnUnload()
 	gSearchView = null;
     }
 
+    top.controllers.removeController(nsSearchResultsController);
+
     // release this early because msgWindow holds a weak reference
     msgWindow.rootDocShell = null;
 }
