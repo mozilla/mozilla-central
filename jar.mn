@@ -7,3 +7,5 @@ gloda.jar:
   locale/en-US/gloda.properties
   content/overlay.js
   content/thunderbirdOverlay.xul
+  content/glodacomplete.css
+* content/glodacomplete.xml

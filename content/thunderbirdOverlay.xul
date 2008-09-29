@@ -36,7 +36,6 @@
   - 
   - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://gloda/skin/overlay.css" type="text/css"?>
 <!DOCTYPE overlay SYSTEM "chrome://gloda/locale/gloda.dtd">
 <overlay id="gloda-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">

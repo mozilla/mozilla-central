@@ -47,6 +47,8 @@ const Cu = Components.utils;
 Cu.import("resource://gloda/modules/log4moz.js");
 const LOG = Log4Moz.Service.getLogger("gloda.datamodel");
 
+Cu.import("resource://gloda/modules/utils.js");
+
 /**
  * @class Represents a gloda attribute definition.
  */
@@ -65,13 +67,13 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
   this._objectType = aObjectType;
   this._objectNounMeta = aObjectNounMeta;
   this._explanationFormat = aExplanationFormat;
-  
+
   this._boundName = null;
   this._singular = null;
-  
+
   this._special = 0; // not special
   this._specialColumnName = null;
-  
+
   /** Map parameter values to the underlying database id. */
   this._parameterBindings = {};
 }
@@ -87,7 +89,7 @@ GlodaAttributeDef.prototype = {
   get isBound() { return this._boundName !== null; },
   get boundName() { return this._boundName; },
   get singular() { return this._singular; },
-  
+
   get special() { return this._special; },
   get specialColumnName() { return this._specialColumnName; },
 
@@ -95,7 +97,7 @@ GlodaAttributeDef.prototype = {
    * Bind a parameter value to the attribute definition, allowing use of the
    *  attribute-parameter as an attribute.
    *
-   * @return 
+   * @return
    */
   bindParameter: function gloda_attr_bindParameter(aValue) {
     // people probably shouldn't call us with null, but handle it
@@ -112,11 +114,11 @@ GlodaAttributeDef.prototype = {
     this._datastore.reportBinding(id, this, aValue);
     return id;
   },
-  
+
   explain: function gloda_attr_explain(aSubject, aValue) {
     return "deprecated. stop calling.";
   },
-  
+
   /**
    * Given an instance of an object with this attribute, return the value
    *  of the attribute.  This handles bound and un-bound attributes.  For
@@ -153,11 +155,121 @@ GlodaAttributeDef.prototype = {
       return values;
     }
   },
-  
+
   toString: function() {
     return this._compoundName;
-  },
+  }
 };
+
+
+let GlodaHasAttributesMixIn = {
+  _attributes: null,
+  /**
+   * Return the (normalized, not stored on the row) attributes in a raw form,
+   *  aka tuples of [attribute id, parameter, value].  If you want to
+   *  generically know about the attributes available, use attributes.
+   */
+  get_rawAttributes: function() {
+    if (this._attributes == null)
+      this._attributes = this._datastore.getMessageAttributes(this);
+    return this._attributes;
+  },
+
+  /**
+   * For consistency of caching with the bound attributes, we try and access the
+   *  attributes through their bound names if they are bound.
+   */
+  get_attributes: function() {
+    let seenDefs = {};
+    let attribs = [];
+    for each (let attrParamVal in this.rawAttributes) {
+      let attrDef = attrParamVal[0];
+      if (!(attrDef in seenDefs)) {
+        if (attrDef.isBound) {
+          if (attrDef.singular) {
+            attribs.push([attrDef, this[attrDef.boundName]]);
+          }
+          else {
+            let values = this[attrDef.boundName];
+            for (let iValue = 0; iValue < values.length; iValue++)
+              attribs.push([attrDef, values[iValue]]);
+          }
+          seenDefs[attrDef] = true;
+        }
+        else {
+          // TODO: actually deal with unbound attributes
+          LOG.info("unbound attribute ignored in traversal: " + attrDef +
+                   " value: " + attrParamVal[2]);
+        }
+      }
+    }
+
+    return attribs;
+  },
+
+  /**
+   * Replace the set of attributes on us.  We need to make sure we purge
+   *  existing cached values off this instance.  For simplicity and because of
+   *  how we cache things currently (we define getters on the instance), we
+   *  force the prototype-resident getters to be activated and to cache
+   *  everything anew.  This is arguably wasteful; it might be better to go
+   *  back to just using storage properties, possibly on a sub-object that
+   *  we could just replace with a new one...
+   * Note: We actually avoid doing this if the attributes weren't previously
+   *  fetched.  Of course, since we do set _attributes with these new
+   *  attributes, this check does not steady-state.
+   *
+   * @XXX Try and avoid compelling ourselves to cache every bound attribute.
+   *  (If we stored the cached values in a sub-object, we could just trash the
+   *   sub-object.  This would imply a return to having the getters just create
+   *   a storage field rather than creating magic getters.)
+   */
+  _replaceAttributes: function gloda_message_replaceAttributes(aNewAttribs) {
+    let hadAttributes = this._attributes !== null;
+    this._attributes = aNewAttribs;
+    // if this guy didn't already have attributes, we don't actually need to
+    //  do any caching work.
+    if (!hadAttributes)
+      return;
+
+    let seenDefs = {};
+    for each (let attrParamVal in this._attributes) {
+      let attrDef = attrParamVal[0];
+      if (!(attrDef in seenDefs)) {
+        if (attrDef.isBound) {
+          // get the getter from our _prototype_ (not us!)
+          let getterFunc = this.__proto__.__lookupGetter__(attrDef.boundName);
+          // force the getter to do his work (on us)
+          getterFunc.call(this);
+          seenDefs[attrDef] = true;
+        }
+      }
+    }
+  },
+
+  getAttributeInstances: function gloda_message_getAttributeInstances(aAttr) {
+    return [attrParamVal for each (attrParamVal in this.rawAttributes) if
+            (attrParamVal[0] == aAttr)];
+  },
+
+  getSingleAttribute: function gloda_message_getSingleAttribute(aAttr) {
+    let instances = this.getAttributeInstances(aAttr);
+    if (instances.length > 0)
+      return instances[0];
+    else
+      return null;
+  }
+};
+
+function MixIn(aConstructor, aMixIn) {
+  let proto = aConstructor.prototype;
+  for (let [name, func] in Iterator(aMixIn)) {
+    if (name.substring(0, 4) == "get_")
+      proto.__defineGetter__(name.substring(4), func);
+    else
+      proto[name] = func;
+  }
+}
 
 /**
  * @class A gloda conversation (thread) exists so that messages can belong.
@@ -192,7 +304,7 @@ GlodaConversation.prototype = {
     }
     return this._messages;
   },
-  
+
   toString: function gloda_conversation_toString() {
     return this._subject;
   },
@@ -217,9 +329,6 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   //  speaking for us.
   if (aDeleted)
     this._deleted = aDeleted;
-
-  // the list of attributes, un-processed
-  this._attributes = null;
 }
 
 GlodaMessage.prototype = {
@@ -249,17 +358,17 @@ GlodaMessage.prototype = {
   set folderURI(aFolderURI) {
     this._folderID = this._datastore._mapFolderURI(aFolderURI);
   },
-  
+
   toString: function gloda_message_toString() {
     // uh, this is a tough one...
-    return "Message " + this._id; 
+    return "Message " + this._id;
   },
-  
+
   _ghost: function gloda_message_ghost() {
     this._folderID = null;
     this._messageKey = null;
   },
-  
+
   _nuke: function gloda_message_nuke() {
     this._id = null;
     this._folderID = null;
@@ -268,10 +377,10 @@ GlodaMessage.prototype = {
     this._conversation = null;
     this.date = null;
     this._headerMessageID = null;
-    
+
     this._datastore = null;
   },
-  
+
   /**
    * Return the underlying nsIMsgDBHdr from the folder storage for this, or
    *  null if the message does not exist for one reason or another.
@@ -311,108 +420,13 @@ GlodaMessage.prototype = {
       return folderMessage.folder.getUriForMsg(folderMessage);
     else
       return null;
-  },
-  
-  /**
-   * Return the (normalized, not stored on the row) attributes in a raw form,
-   *  aka tuples of [attribute id, parameter, value].  If you want to
-   *  generically know about the attributes available, use attributes.
-   */
-  get rawAttributes() {
-    if (this._attributes == null)
-      this._attributes = this._datastore.getMessageAttributes(this); 
-    return this._attributes;
-  },
-  
-  /**
-   * For consistency of caching with the bound attributes, we try and access the
-   *  attributes through their bound names if they are bound.
-   */
-  get attributes() {
-    let seenDefs = {};
-    let attribs = [];
-    for each (let attrParamVal in this.rawAttributes) {
-      let attrDef = attrParamVal[0];
-      if (!(attrDef in seenDefs)) {
-        if (attrDef.isBound) {
-          if (attrDef.singular) {
-            attribs.push([attrDef, this[attrDef.boundName]]);
-          }
-          else {
-            let values = this[attrDef.boundName];
-            for (let iValue = 0; iValue < values.length; iValue++)
-              attribs.push([attrDef, values[iValue]]);
-          }
-          seenDefs[attrDef] = true;
-        }
-        else {
-          // TODO: actually deal with unbound attributes
-          LOG.info("unbound attribute ignored in traversal: " + attrDef +
-                   " value: " + attrParamVal[2]);
-        }
-      }
-    }
-    
-    return attribs;
-  },
-  
-  /**
-   * Replace the set of attributes on us.  We need to make sure we purge
-   *  existing cached values off this instance.  For simplicity and because of
-   *  how we cache things currently (we define getters on the instance), we
-   *  force the prototype-resident getters to be activated and to cache
-   *  everything anew.  This is arguably wasteful; it might be better to go
-   *  back to just using storage properties, possibly on a sub-object that
-   *  we could just replace with a new one...
-   * Note: We actually avoid doing this if the attributes weren't previously
-   *  fetched.  Of course, since we do set _attributes with these new
-   *  attributes, this check does not steady-state.
-   *
-   * @XXX Try and avoid compelling ourselves to cache every bound attribute.
-   *  (If we stored the cached values in a sub-object, we could just trash the
-   *   sub-object.  This would imply a return to having the getters just create
-   *   a storage field rather than creating magic getters.)
-   */
-  _replaceAttributes: function gloda_message_replaceAttributes(aNewAttribs) {
-    let hadAttributes = this._attributes !== null;
-    this._attributes = aNewAttribs;
-    // if this guy didn't already have attributes, we don't actually need to
-    //  do any caching work.
-    if (!hadAttributes)
-      return;
-      
-    let seenDefs = {};
-    for each (let attrParamVal in this._attributes) {
-      let attrDef = attrParamVal[0];
-      if (!(attrDef in seenDefs)) {
-        if (attrDef.isBound) {
-          // get the getter from our _prototype_ (not us!)
-          let getterFunc = this.__proto__.__lookupGetter__(attrDef.boundName);
-          // force the getter to do his work (on us)
-          getterFunc.call(this);
-          seenDefs[attrDef] = true;
-        }
-      }
-    }
-  },
-  
-  getAttributeInstances: function gloda_message_getAttributeInstances(aAttr) {
-    return [attrParamVal for each (attrParamVal in this.rawAttributes) if
-            (attrParamVal[0] == aAttr)];
-  },
-  
-  getSingleAttribute: function gloda_message_getSingleAttribute(aAttr) {
-    let instances = this.getAttributeInstances(aAttr);
-    if (instances.length > 0)
-      return instances[0];
-    else
-      return null;
-  },
+  }
 };
+MixIn(GlodaMessage, GlodaHasAttributesMixIn);
 
 /**
  * @class Contacts correspond to people (one per person), and may own multiple
- *  identities (e-mail address, IM account, etc.) 
+ *  identities (e-mail address, IM account, etc.)
  */
 function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName,
                       aPopularity, aFrecency) {
@@ -423,7 +437,7 @@ function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName,
   this._name = aName;
   this._popularity = aPopularity;
   this._frecency = aFrecency;
-  
+
   this._identities = null;
 }
 
@@ -434,7 +448,7 @@ GlodaContact.prototype = {
   get directoryUUID() { return this._directoryUUID; },
   get contactUUID() { return this._contactUUID; },
   get name() { return this._name },
-  
+
   get popularity() { return this._popularity; },
   set popularity(aPopularity) {
     this._popularity = aPopularity;
@@ -446,17 +460,23 @@ GlodaContact.prototype = {
     this._frecency = aFrecency;
     this.dirty = true;
   },
-  
+
   get identities() {
     if (this._identities === null)
       this._identities = this._datastore.getIdentitiesByContactID(this._id);
     return this._identities;
   },
-  
+
   toString: function gloda_contact_toString() {
     return this._name;
+  },
+  
+  get accessibleLabel() {
+    return "Contact: " + this._name;
   }
 };
+MixIn(GlodaContact, GlodaHasAttributesMixIn);
+
 
 /**
  * @class A specific means of communication for a contact.
@@ -476,26 +496,26 @@ function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue,
 GlodaIdentity.prototype = {
   NOUN_ID: 104,
   get id() { return this._id; },
-  get contactID() { return this._contactID; }, 
+  get contactID() { return this._contactID; },
   get kind() { return this._kind; },
   get value() { return this._value; },
   get description() { return this._description; },
   get isRelay() { return this._isRelay; },
-  
+
   get uniqueValue() {
     return this._kind + "@" + this._value;
   },
-  
+
   get contact() {
     if (this._contact === null)
       this._contact = this._datastore.getContactByID(this._contactID);
     return this._contact;
   },
-  
+
   toString: function gloda_identity_toString() {
     return this._value;
   },
-  
+
   get abCard() {
     // search through all of our local address books looking for a match.
     let enumerator = Components.classes["@mozilla.org/abmanager;1"]
@@ -513,7 +533,14 @@ GlodaIdentity.prototype = {
           return cardForEmailAddress;
       } catch (ex) {}
     }
-  
+
     return null;
   },
+  
+  pictureURL: function(aSize) {
+    let md5hash = GlodaUtils.md5HashString(this._value);
+    let gravURL = "http://www.gravatar.com/avatar/" + md5hash +
+                                "?d=identicon&s=" + aSize + "&r=g";
+    return gravURL;
+  }
 };

@@ -434,12 +434,12 @@ GlodaCollection.prototype = {
       }
     }
     if (this._listener)
-      this._listener.onItemsAdded(aItems);
+      this._listener.onItemsAdded(aItems, this);
   },
   
   _onItemsModified: function gloda_coll_onItemsModified(aItems) {
     if (this._listener)
-      this._listener.onItemsModified(aItems);
+      this._listener.onItemsModified(aItems, this);
   },
   
   /**
@@ -470,8 +470,13 @@ GlodaCollection.prototype = {
     items.slice(iWrite);
     
     if (this._listener)
-      this._listener.onItemsRemoved(aItems);
+      this._listener.onItemsRemoved(aItems, this);
   },
+
+  _onQueryCompleted: function gloda_coll_onQueryCompleted() {
+    if (this._listener && this._listener.onQueryCompleted)
+      this._listener.onQueryCompleted(this);
+  }
 };
 
 /**

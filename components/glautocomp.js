@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -33,7 +33,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 const Cc = Components.classes;
@@ -43,23 +43,73 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+var LOG = null;
 
 var Gloda = null;
 var GlodaUtils = null;
 var MultiSuffixTree = null;
+var FreeTagNoun = null;
 
-function nsAutoCompleteGlodaResult(aCompleter, aString, aResults, aDone) {
+function ResultRowSingle(aItem, aCriteriaType, aCriteria) {
+  this.nounID = aItem.NOUN_ID;
+  this.nounMeta = Gloda._nounIDToMeta[this.nounID];
+  this.criteriaType = aCriteriaType;
+  this.criteria = aCriteria;
+  this.item = aItem;
+}
+ResultRowSingle.prototype = {
+  multi: false
+};
+
+function ResultRowMulti(aNounID, aCriteriaType, aCriteria, aQuery) {
+  this.nounID = aNounID;
+  this.nounMeta = Gloda._nounIDToMeta[aNounID];
+  this.criteriaType = aCriteriaType;
+  this.criteria = aCriteria;
+  this.collection = aQuery.getCollection(this);
+}
+ResultRowMulti.prototype = {
+  multi: true,
+  onItemsAdded: function(aItems) {
+  },
+  onItemsModified: function(aItems) {
+  },
+  onItemsRemoved: function(aItems) {
+  },
+  onQueryCompleted: function() {
+  }
+}
+
+function nsAutoCompleteGlodaResult(aListener, aCompleter, aString) {
+  this.listener = aListener;
   this.completer = aCompleter;
   this.searchString = aString;
-  this._results = aResults;
-  this._done = aDone || false;
+  this._results = [];
+  this._pendingCount = 0;
   this._problem = false;
+  
+  this.wrappedJSObject = this;
 }
 nsAutoCompleteGlodaResult.prototype = {
-  _results: null,
   getObjectAt: function(aIndex) {
     return this._results[aIndex];
+  },
+  markPending: function ACGR_markPending(aCompleter) {
+    this._pendingCount++;
+  },
+  markCompleted: function ACGR_markCompleted(aCompleter) {
+    if (--this._pendingCount == 0) {
+      LOG.debug("Notifying completion.");
+      this.listener.onSearchResult(this.completer, this);
+    }
+  },
+  addRows: function ACGR_addRows(aRows) {
+    if (!aRows.length)
+      return;
+    LOG.debug("Adding " + aRows.length + " rows (" + this._pendingCount +
+              " jobs still pending)");
+    this._results.push.apply(this._results, aRows); 
+    this.listener.onSearchResult(this.completer, this);
   },
   // ==== nsIAutoCompleteResult
   searchString: null,
@@ -67,10 +117,10 @@ nsAutoCompleteGlodaResult.prototype = {
     if (this._problem)
       return Ci.nsIAutoCompleteResult.RESULT_FAILURE;
     if (this._results.length)
-      return (this._done) ? Ci.nsIAutoCompleteResult.RESULT_SUCCESS
+      return (!this._pendingCount) ? Ci.nsIAutoCompleteResult.RESULT_SUCCESS
                           : Ci.nsIAutoCompleteResult.RESULT_SUCCESS_ONGOING;
     else
-      return (this._done) ? Ci.nsIAutoCompleteResult.RESULT_NOMATCH
+      return (!this._pendingCount) ? Ci.nsIAutoCompleteResult.RESULT_NOMATCH
                           : Ci.nsIAutoCompleteResult.RESULT_NOMATCH_ONGOING;
   },
   defaultIndex: -1,
@@ -96,52 +146,38 @@ nsAutoCompleteGlodaResult.prototype = {
   // rich uses this to be the "type"
   getStyleAt: function(aIndex) {
     let thing = this._results[aIndex];
-    if (thing.subject)
-      return "gloda-conversation";
-    if (thing.value)
-      return "gloda-identity";
-    return "gloda-contact";
+    if (thing.multi)
+      return "gloda-multi-" + thing.nounMeta.name;
+    else
+      return "gloda-single-" + thing.nounMeta.name;
   },
   // rich uses this to be the icon
   getImageAt: function(aIndex) {
     let thing = this._results[aIndex];
     if (!thing.value)
       return null;
-  
+
     let md5hash = GlodaUtils.md5HashString(thing.value);
-    let gravURL = "http://www.gravatar.com/avatar/" + md5hash + 
+    let gravURL = "http://www.gravatar.com/avatar/" + md5hash +
                                 "?d=identicon&s=32&r=g";
     return gravURL;
   },
   removeValueAt: function() {},
-  
+
   _stop: function() {
   },
 };
 
-function nsAutoCompleteGloda() {
-  this.wrappedJSObject = this;
-  
-  // set up our awesome globals!
-  if (Gloda === null) {
-    let loadNS = {};
-    Cu.import("resource://gloda/modules/gloda.js", loadNS);
-    Gloda = loadNS.Gloda;
-    // force initialization
-    Cu.import("resource://gloda/modules/everybody.js", loadNS);
-
-    Cu.import("resource://gloda/modules/utils.js", loadNS);
-    GlodaUtils = loadNS.GlodaUtils;
-    Cu.import("resource://gloda/modules/suffixtree.js", loadNS);
-    MultiSuffixTree = loadNS.MultiSuffixTree;
-  }
-  
-  Gloda.lookupNoun("contact");
-  
+/**
+ * Complete contacts/identities based on name/email.  Instant phase is based on
+ *  a suffix-tree built of popular contacts/identities.  Delayed phase relies
+ *  on a LIKE search of all known contacts.
+ */
+function ContactIdentityCompleter() {
   // get all the contacts
   let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
   this.contactCollection = contactQuery.popularityRange(10, null).getAllSync();
-  
+
   // cheat and explicitly add our own contact...
   this.contactCollection._onItemsAdded([Gloda.myContact]);
 
@@ -157,32 +193,22 @@ function nsAutoCompleteGloda() {
     // create an empty explicit collection
     this.identityCollection = Gloda.explicitCollection(Gloda.NOUN_IDENTITY, []);
   }
-  
+
   let contactNames = [(c.name.replace(" ", "").toLowerCase() || "x") for each
                       (c in this.contactCollection.items)];
   let identityMails = [i.value.toLowerCase() for each
                        (i in this.identityCollection.items)];
-  
+
   this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
     this.contactCollection.items.concat(this.identityCollection.items));
-    
-  this.outstandingSearches = {};
-  this._magicTime = false;
 }
+ContactIdentityCompleter.prototype = {
+  _popularitySorter: function(a, b){ return b.popularity - a.popularity; },
+  complete: function ContactIdentityCompleter_complete(aResult, aString) {
+    if (aString.length < 3)
+      return false;
 
-nsAutoCompleteGloda.prototype = {
-  classDescription: "AutoCompleteGloda",
-  contractID: "@mozilla.org/autocomplete/search;1?name=gloda",
-  classID: Components.ID("{3bbe4d77-3f70-4252-9500-bc00c26f476c}"),
-  QueryInterface: XPCOMUtils.generateQI([
-      Components.interfaces.nsIAutoCompleteSearch]),
-
-  startSearch: function(aString, aParam, aResult, aListener) {
-    // only match if they type at least 3 letters...
-    let matches = [];
-    if (aString.length >= 3) {
-      matches = this.suffixTree.findMatches(aString.toLowerCase());
-    }
+    let matches = this.suffixTree.findMatches(aString.toLowerCase());
 
     // let's filter out duplicates due to identity/contact double-hits by
     //  establishing a map based on the contact id for these guys.
@@ -200,34 +226,51 @@ nsAutoCompleteGloda.prototype = {
     //  to the first identity for them that we find...
     matches = [val.NOUN_ID == Gloda.NOUN_IDENTITY ? val : val.identities[0]
                for each (val in contactToThing)];
-    
-    // - match subjects
-    /*
-    if (aString.length >= 4) {
-      let subjectQuery = Gloda.newQuery(Gloda.NOUN_CONVERSATION);
-      subjectQuery.subjectMatches(aString + "*");
-      let convSubjectCollection = subjectQuery.getAllSync();
-      matches = matches.concat(convSubjectCollection.items);
-    }
-    */
+
+    let rows = [new ResultRowSingle(match, "text", aResult.searchString)
+                for each (match in matches)];
+    aResult.addRows(rows);
 
     // - match against database contacts / identities
-    // XXX this should be deferred
-    // XXX this should also be async (when we have async support)
-    if (aString.length >= 3) {
-      let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
-      let contactColl = contactQuery.nameLike("%" + aString + "%").getAllSync();
+    let pending = {contactToThing: contactToThing, pendingCount: 2};
+    
+    let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
+    contactQuery.nameLike([contactQuery.WILD, aString, contactQuery.WILD]);
+    pending.contactColl = contactQuery.getCollection(this);
+    pending.contactColl.data = aResult;
 
-      let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
-      identityQuery.kind("email").valueLike("%" + aString + "%");
-      let identityColl = identityQuery.getAllSync();
-      
+    let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
+    identityQuery.kind("email").valueLike([identityQuery.WILD, aString,
+        identityQuery.WILD]);
+    pending.identityColl = identityQuery.getCollection(this);
+    pending.identityColl.data = aResult;
+    
+    aResult._contactCompleterPending = pending;
+
+    return true;
+  },
+  onItemsAdded: function(aItems, aCollection) {
+  },
+  onItemsModified: function(aItems, aCollection) {
+  },
+  onItemsRemoved: function(aItems, aCollection) {
+  },
+  onQueryCompleted: function(aCollection) {
+    let result = aCollection.data;
+    let pending = result._contactCompleterPending;
+    
+    if (--pending.pendingCount == 0) {
       let possibleDudes = [];
+      
+      let contactToThing = pending.contactToThing;
+      
+      let items;
+      
       // check identities first because they are better than contacts in terms
       //  of display
-      for (let iIdentity = 0; iIdentity < identityColl.items.length;
-          iIdentity++){
-        let identity = identityColl.items[iIdentity];
+      items = pending.identityColl.items;
+      for (let iIdentity = 0; iIdentity < items.length; iIdentity++){
+        let identity = items[iIdentity];
         if (!(identity.contactID in contactToThing)) {
           contactToThing[identity.contactID] = identity;
           possibleDudes.push(identity);
@@ -235,41 +278,143 @@ nsAutoCompleteGloda.prototype = {
           identity.popularity = identity.contact.popularity;
         }
       }
-      for (let iContact = 0; iContact < contactColl.items.length; iContact++) {
-        let contact = contactColl.items[iContact];
+      items = pending.contactColl.items;
+      for (let iContact = 0; iContact < items.length; iContact++) {
+        let contact = items[iContact];
         if (!(contact.id in contactToThing)) {
           contactToThing[contact.id] = contact;
           possibleDudes.push(contact.identities[0]);
-        } 
+        }
       }
+      
       // sort in order of descending popularity
-      possibleDudes.sort(function(a, b){ return b.popularity - a.popularity; });
-      matches = matches.concat(possibleDudes);
+      possibleDudes.sort(this._popularitySorter);
+      let rows = [new ResultRowSingle(dude, "text", result.searchString)
+                  for each (dude in possibleDudes)];
+      result.addRows(rows);
+      result.markCompleted(this);
+      
+      // the collections no longer care about the result, make it clear.
+      delete pending.identityColl.data;
+      delete pending.contactColl.data;
+      // the result object no longer needs us or our data
+      delete result._contactCompleterPending;
+    }
+  }
+};
+
+/**
+ * Complete tags that are used on contacts.
+ */
+function ContactTagCompleter() {
+  this._buildSuffixTree();
+  FreeTagNoun.addListener(this);
+}
+ContactTagCompleter.prototype = {
+  _buildSuffixTree: function() {
+    let tagNames = [], tags = [];
+    for (let [tagName, tag] in Iterator(FreeTagNoun.knownFreeTags)) {
+      tagNames.push(tagName.toLowerCase());
+      tags.push(tag);
+    }
+    this._suffixTree = new MultiSuffixTree(tagNames, tags);
+    this._suffixTreeDirty = false;
+  },
+  onFreeTagAdded: function(aTag) {
+    this._suffixTreeDirty = true;
+  },
+  complete: function ContactTagCompleter_complete(aResult, aString) {
+    // now is not the best time to do this; have onFreeTagAdded use a timer.
+    if (this.suffixTreeDirty)
+      this._buildSuffixTree();
+    
+    if (aString.length < 2)
+      return false; // no async mechanism that will add new rows
+      
+    tags = this._suffixTree.findMatches(aString.toLowerCase());
+    let rows = [];
+    for each (let tag in tags) {
+      let query = Gloda.newQuery(Gloda.NOUN_CONTACT);
+      query.freeTags(tag);
+      let resRow = new ResultRowMulti(Gloda.NOUN_CONTACT, "tag", tag.name,
+                                      query);
+      rows.push(resRow);
+    }
+    aResult.addRows(rows);
+    
+    return false; // no async mechanism that will add new rows
+  }
+};
+
+/**
+ * Complete tags that are used on messages
+ */
+function MessageTagCompleter() {
+
+}
+MessageTagCompleter.prototype = {
+  complete: function MessageTagCompleter_complete(aResult, aString) {
+    return false;
+  }
+};
+
+function nsAutoCompleteGloda() {
+  this.wrappedJSObject = this;
+
+  // set up our awesome globals!
+  if (Gloda === null) {
+    let loadNS = {};
+
+    Cu.import("resource://gloda/modules/public.js", loadNS);
+    Gloda = loadNS.Gloda;
+
+    Cu.import("resource://gloda/modules/utils.js", loadNS);
+    GlodaUtils = loadNS.GlodaUtils;
+    Cu.import("resource://gloda/modules/suffixtree.js", loadNS);
+    MultiSuffixTree = loadNS.MultiSuffixTree;
+    Cu.import("resource://gloda/modules/noun_freetag.js", loadNS);
+    FreeTagNoun = loadNS.FreeTagNoun;
+
+    Cu.import("resource://gloda/modules/log4moz.js", loadNS);
+    LOG = loadNS["Log4Moz"].Service.getLogger("gloda.autocomp");
+  }
+
+  LOG.debug("initializing completers");
+
+  this.completers = [];
+  
+  this.curResult = null;
+
+  this.completers.push(new ContactIdentityCompleter());
+  this.completers.push(new ContactTagCompleter());
+  this.completers.push(new MessageTagCompleter());
+  
+  LOG.debug("initialized completers");
+}
+
+nsAutoCompleteGloda.prototype = {
+  classDescription: "AutoCompleteGloda",
+  contractID: "@mozilla.org/autocomplete/search;1?name=gloda",
+  classID: Components.ID("{3bbe4d77-3f70-4252-9500-bc00c26f476c}"),
+  QueryInterface: XPCOMUtils.generateQI([
+      Components.interfaces.nsIAutoCompleteSearch]),
+
+  startSearch: function(aString, aParam, aResult, aListener) {
+    let result = new nsAutoCompleteGlodaResult(aListener, this, aString);
+    // save this for hacky access to the search.  I somewhat suspect we simply
+    //  should not be using the formal autocomplete mechanism at all.
+    this.curResult = result;
+    
+    for each (let completer in this.completers) {
+      // they will return true if they have something pending.
+      if (completer.complete(result, aString))
+        result.markPending(completer);
     }
     
-    // XXX what they hey, just nuke them.  making this all very sketchy
-    this.outstandingSearches = {};
-
-    var result = new nsAutoCompleteGlodaResult(this, aString, matches, true);
-    this.outstandingSearches[aListener] = result;
     aListener.onSearchResult(this, result);
   },
 
   stopSearch: function() {
-    for each (let [controller, search] in Iterator(this.outstandingSearches)) {
-      search._stop();
-    }
-    this.outstandingSearches = {};
-  },
-  
-  getObjectForController: function(aController, aIndex) {
-    aController.QueryInterface(Ci.nsIAutoCompleteObserver);
-    for each (let [controller, search] in Iterator(this.outstandingSearches)) {
-      if (controller.native == aController.native) {
-        return [search.getObjectAt(aIndex), 0];
-      }
-    }
-    return [null, 0];
   },
 };
 

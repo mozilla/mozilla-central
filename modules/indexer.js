@@ -306,6 +306,29 @@ var GlodaIndexer = {
     });
   },
   
+  _otherIndexers: [],
+  registerIndexer: function gloda_index_registerIndexer(aIndexer) {
+    this._log.info("Registering indexer: " + aIndexer.name);
+    this._otherIndexers.push(aIndexer);
+    
+    try {
+      for each (let [workerCode, workerFunc] in aIndexer.workers) {
+        this._otherIndexerWorkers[workerCode] = [aIndexer, workerFunc];
+      }
+    }
+    catch (ex) {
+      this._log.warning("Helper indexer threw exception on worker enum.");
+    }
+    
+    if (this._enabled) {
+      try {
+        aIndexer.enable();
+      } catch (ex) {
+        this._log.warning("Helper indexer threw exception on enable: " + ex);
+      }
+    }
+  },
+  
   /**
    * Are we enabled, read: are we processing change events?
    */
@@ -345,6 +368,14 @@ var GlodaIndexer = {
       
       this._enabled = true;
       
+      for each (let indexer in this._otherIndexers) {
+        try {
+          indexer.enable();
+        } catch (ex) {
+          this._log.warning("Helper indexer threw exception on enable: " + ex);
+        }
+      }
+      
       // if we have an accumulated desire to index things, kick it off again.
       if (this._indexingDesired) {
         this._indexingDesired = false; // it's edge-triggered for now
@@ -352,6 +383,14 @@ var GlodaIndexer = {
       }
     }
     else if (this._enabled && !aEnable) {
+      for each (let indexer in this._otherIndexers) {
+        try {
+          indexer.disable();
+        } catch (ex) {
+          this._log.warning("Helper indexer threw exception on disable: " + ex);
+        }
+      }
+
       // remove observer; no more events to observe!
       let observerService = Cc["@mozilla.org/observer-service;1"].
                               getService(Ci.nsIObserverService);
@@ -441,6 +480,7 @@ var GlodaIndexer = {
     }
   },
 
+  _initialSweepPerformed: false,
   _indexingSweepActive: false,
   /**
    * Indicate that an indexing sweep is desired.  We kick-off an indexing
@@ -922,6 +962,7 @@ var GlodaIndexer = {
     yield this.kWorkDone;
   },
 
+  _otherIndexerWorkers: {},
   /**
    * Perform the initialization step and return a generator if there is any
    *  steady-state processing to be had.
@@ -967,6 +1008,13 @@ var GlodaIndexer = {
       // we'll count the block processing as a cost of 1...
       job.goal = 1;
       this._actualWorker = this._worker_processDeletes(job);
+    }
+    else if (job.jobType in this._otherIndexerWorkers) {
+      let [indexer, workerFunc] = this._otherIndexerWorkers[job.jobType];
+      this._actualWorker = workerFunc.call(indexer, job);
+    }
+    else {
+      this._log.warning("Unknown job type: " + job.jobType);
     }
     
     return true;
@@ -1058,6 +1106,24 @@ var GlodaIndexer = {
       this._indexingJobGoal++;
       this._indexQueue.push(new IndexingJob("delete", 0, null));
       // no need to set this.indexing to true, it must be true if we are here.
+    }
+    
+    // if this is our first sweep, give the other indexers a chance to do their
+    //  own initial sweep.  it's on them to schedule their own job if they have
+    //  a lot to do, but if they only have a little to do, they can get away
+    //  with it, as we yield a sync after each one.
+    if (!this._initialSweepPerformed) {
+      for each (let indexer in this._otherIndexers) {
+        try {
+          indexer.initialSweep();
+        }
+        catch (ex) {
+          this._log.warning("Helper indexer threw exception on initial sweep:" +
+                            ex);
+        }
+        yield this.kWorkSync;
+      }
+      this._initialSweepPerformed = true;
     }
     
     // we don't have any more work to do...

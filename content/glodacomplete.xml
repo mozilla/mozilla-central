@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+
+# -*- Mode: HTML -*-
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is mozilla.org browser.
+#
+# The Initial Developer of the Original Code is
+# Joe Hewitt.
+# Portions created by the Initial Developer are Copyright (C) 2003
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#   Pierre Chanial (p_ch@verizon.net)
+#   Dean Tessman   (dean_tessman@hotmail.com)
+#   Masayuki Nakano (masayuki@d-toybox.com)
+#   Pamela Greene (pamg.bugs@gmail.com)
+#   Edward Lee (edward.lee@engineering.uiuc.edu)
+#   Andrew Sutherland (asutherland@asutherland.org)
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+<bindings id="autocompleteBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:html="http://www.w3.org/1999/xhtml"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="glodacomplete-rich-result-popup" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-rich-result-popup">
+    <implementation implements="nsIAutoCompletePopup">
+      <method name="_appendCurrentResult">
+        <body>
+          <![CDATA[
+          var controller = this.mInput.controller;
+
+          // Process maxRows per chunk to improve performance and user experience
+          for (let i = 0; i < this.maxRows; i++) {
+            if (this._currentIndex >= this._matchCount)
+              return;
+
+            var existingItemsCount = this.richlistbox.childNodes.length;
+            var item;
+
+            // trim the leading/trailing whitespace
+            var trimmedSearchString = controller.searchString.replace(/^\s+/, "").replace(/\s+$/, "");
+
+            // Unescape the URI spec for showing as an entry in the popup
+            let url = Components.classes["@mozilla.org/intl/texttosuburi;1"].
+              getService(Components.interfaces.nsITextToSubURI).
+              unEscapeURIForUI("UTF-8", controller.getValueAt(this._currentIndex));
+
+            if (this._currentIndex < existingItemsCount) {
+              // re-use the existing item
+              item = this.richlistbox.childNodes[this._currentIndex];
+
+              // Completely re-use the existing richlistitem if it's the same
+              if (item.getAttribute("text") == trimmedSearchString &&
+                  item.getAttribute("url") == url) {
+                item.collapsed = false;
+                this._currentIndex++;
+                continue;
+              }
+            }
+            else {
+              // need to create a new item
+              item = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "richlistitem");
+            }
+            
+            var glodaCompleter =  Components.
+              classes["@mozilla.org/autocomplete/search;1?name=gloda"].
+              getService(). //Components.interfaces.nsIAutoCompleteSearch)
+              wrappedJSObject;
+            var result = glodaCompleter.curResult;
+
+            // set these attributes before we set the class
+            // so that we can use them from the contructor
+            var row = result.getObjectAt(this._currentIndex);
+            var obj = row.item;
+            item.setAttribute("text", trimmedSearchString);
+            item.setAttribute("type", result.getStyleAt(this._currentIndex));
+
+            item.row = row;
+            item.obj = obj;
+
+            if (this._currentIndex < existingItemsCount) {
+              // re-use the existing item
+              item._adjustAcItem();
+              item.collapsed = false;
+            }
+            else {
+              // set the class at the end so we can use the attributes
+              // in the xbl constructor
+              item.className = "autocomplete-richlistitem";
+              this.richlistbox.appendChild(item);
+            }
+
+            this._currentIndex++;
+          }
+
+          // yield after each batch of items so that typing the url bar is responsive
+          setTimeout(function (self) { self._appendCurrentResult(); }, 0, this);
+        ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="gloda-single-identity-item" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem">
+    <content orient="horizontal">
+      <xul:image anonid="picture"/>
+      <xul:vbox>
+        <xul:hbox>
+          <xul:hbox anonid="name-box" class="ac-title" flex="1"
+                    onunderflow="_doUnderflow('_name');">
+            <xul:description anonid="name" class="ac-normal-text ac-comment"
+                             xbl:inherits="selected"/>
+          </xul:hbox>
+          <xul:label anonid="name-overflow-ellipsis" xbl:inherits="selected"
+	                 class="ac-ellipsis-after ac-comment" hidden="true"/>
+        </xul:hbox>
+        <xul:hbox>
+          <xul:hbox anonid="identity-box" class="ac-url" flex="1"
+                    onunderflow="_doUnderflow('_identity');">
+            <xul:description anonid="identity" class="ac-normal-text ac-url-text"
+                             xbl:inherits="selected"/>
+          </xul:hbox>
+          <xul:label anonid="identity-overflow-ellipsis" xbl:inherits="selected"
+                     class="ac-ellipsis-after ac-url-text" hidden="true"/>
+          <xul:image anonid="type-image" class="ac-type-icon"/>
+        </xul:hbox>
+      </xul:vbox>
+    </content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+            let ellipsis = "\u2026";
+            try {
+              ellipsis = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch).
+                getComplexValue("intl.ellipsis",
+                  Components.interfaces.nsIPrefLocalizedString).data;
+            } catch (ex) {
+              // Do nothing.. we already have a default
+            }
+
+            this._identityOverflowEllipsis = document.getAnonymousElementByAttribute(this, "anonid", "identity-overflow-ellipsis");
+            this._nameOverflowEllipsis = document.getAnonymousElementByAttribute(this, "anonid", "name-overflow-ellipsis");
+
+            this._identityOverflowEllipsis.value = ellipsis;
+            this._nameOverflowEllipsis.value = ellipsis;
+
+            this._typeImage = document.getAnonymousElementByAttribute(this, "anonid", "type-image");
+
+            this._identityBox = document.getAnonymousElementByAttribute(this, "anonid", "identity-box");
+            this._identity = document.getAnonymousElementByAttribute(this, "anonid", "identity");
+
+            this._nameBox = document.getAnonymousElementByAttribute(this, "anonid", "name-box");
+            this._name = document.getAnonymousElementByAttribute(this, "anonid", "name");
+            
+            this._picture = document.getAnonymousElementByAttribute(this, "anonid", "picture");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            var item = this.getAttribute("item");
+            return item.accessibleLabel;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          var identity = this.obj;
+          
+          if (identity == null)
+            return;
+          
+          // I guess we should get the picture size from CSS or something?
+          this._picture.src = identity.pictureURL(32);
+          
+          // Emphasize the matching search terms for the description
+          this._setUpDescription(this._name, identity.contact.name);
+          this._setUpDescription(this._identity, identity.value);
+
+          // Set up overflow on a timeout because the contents of the box
+          // might not have a width yet even though we just changed them
+          setTimeout(this._setUpOverflow, 0, this._nameBox, this._nameOverflowEllipsis);
+          setTimeout(this._setUpOverflow, 0, this._identityBox, this._identityOverflowEllipsis);
+          ]]>
+        </body>
+      </method>
+
+    </implementation>
+  </binding>
+
+</bindings>

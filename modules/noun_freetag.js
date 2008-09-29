@@ -35,54 +35,63 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const EXPORTED_SYMBOLS = [];
+EXPORTED_SYMBOLS = ['FreeTag', 'FreeTagNoun'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://gloda/modules/log4moz.js");
-const LOG = Log4Moz.Service.getLogger("gloda.everybody");
+Cu.import("resource://gloda/modules/gloda.js");
 
-var importNS = {};
-var strtab = null;
-
-function loadModule(aModuleURI, aNSContrib) {
-  if (strtab === null) {
-    let bundleService = Cc["@mozilla.org/intl/stringbundle;1"].
-                        getService(Ci.nsIStringBundleService);
-    strtab = bundleService.createBundle("chrome://gloda/locale/gloda.properties");
-    LOG.debug("string bundle: " + strtab);
-  }
-
-  try {
-    LOG.info("... loading " + aModuleURI);
-    Cu.import(aModuleURI, importNS);
-  }
-  catch (ex) {
-    LOG.error("!!! error loading " + aModuleURI);
-    LOG.error("(" + ex.fileName + ":" + ex.lineNumber + ") " + ex);
-    return false;
-  }
-  LOG.info("+++ loaded " + aModuleURI);
-
-  if (aNSContrib) {
-    try {  
-      importNS[aNSContrib].init(strtab);
-    }
-    catch (ex) {
-      LOG.error("!!! error initializing " + aModuleURI);
-      LOG.error("(" + ex.fileName + ":" + ex.lineNumber + ") " + ex);
-      return false;
-    }
-    LOG.info("+++ inited " + aModuleURI);
-  }
-  return true;
+function FreeTag(aTagName) {
+  this.name = aTagName;
 }
 
-loadModule("resource://gloda/modules/fundattr.js", "GlodaFundAttr");
-loadModule("resource://gloda/modules/explattr.js", "GlodaExplicitAttr");
+FreeTag.prototype = {
+  toString: function () {
+    return this.name;
+  }
+};
 
-loadModule("resource://gloda/modules/noun_freetag.js");
-loadModule("resource://gloda/modules/index_ab.js", "GlodaABAttrs");
+/**
+ * @namespace Tag noun provider.  Since the tag unique value is stored as a
+ *  parameter, we are an odd case and semantically confused.
+ */
+var FreeTagNoun = {
+  name: "freetag",
+  class: FreeTag,
+  firstClass: false,
+  
+  _listeners: [],
+  addListener: function(aListener) {
+    this._listeners.push(aListener);
+  },
+  removeListener: function(aListener) {
+    let index = this._listeners.indexOf(aListener);
+    if (index >=0)
+      this._listeners.splice(index, 1);
+  },
+  
+  knownFreeTags: {},
+  getFreeTag: function(aTagName) {
+    let tag = this.knownFreeTags[aTagName];
+    if (!tag) {
+      tag = this.knownFreeTags[aTagName] = new FreeTag(aTagName);
+      for each (let listener in this._listeners)
+        listener.onFreeTagAdded(tag);
+    }
+    return tag;
+  },
+
+  toParamAndValue: function gloda_noun_tag_toParamAndValue(aTag) {
+    return [aTag.name, null];
+  },
+  
+  fromParamAndValue: function gloda_noun_tag_fromParameterValue(aTagName,
+                                                                aIgnored) {
+    return this.getFreeTag(aTagName);
+  },
+};
+
+Gloda.defineNoun(FreeTagNoun);

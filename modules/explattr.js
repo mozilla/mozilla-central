@@ -63,7 +63,7 @@ var GlodaExplicitAttr = {
   providerName: "gloda.explattr",
   _log: null,
   _strBundle: null,
-  _mstTagService: null,
+  _msgTagService: null,
 
   init: function gloda_explattr_init(aStrBundle) {
     this._log =  Log4Moz.Service.getLogger("gloda.explattr");
