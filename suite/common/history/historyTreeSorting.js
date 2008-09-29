@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// This file got moved from
+// CVS /mozilla/xpfe/global/resources/content/nsTreeSorting.js.
 
 // utility routines for sorting
 
