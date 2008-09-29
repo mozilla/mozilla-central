@@ -866,6 +866,50 @@ NS_IMETHODIMP nsMsgHdr::GetIsFlagged(PRBool *isFlagged)
   return NS_OK;
 }
 
+void nsMsgHdr::ReparentInThread(nsIMsgThread *thread)
+{
+  NS_WARNING("Borked message header, attempting to fix!");
+  PRUint32 numChildren;
+  thread->GetNumChildren(&numChildren);
+  // bail out early for the singleton thread case.
+  if (numChildren == 1)
+  {
+    SetThreadParent(nsMsgKey_None);
+    return;
+  }
+  else
+  {
+    nsCOMPtr <nsIMsgDBHdr> curHdr;
+    // loop through thread, looking for our proper parent.
+    for (PRUint32 childIndex = 0; childIndex < numChildren; childIndex++)
+    {
+      thread->GetChildHdrAt(childIndex, getter_AddRefs(curHdr));
+      // closed system, cast ok
+      nsMsgHdr* curMsgHdr = static_cast<nsMsgHdr*>(curHdr.get());
+      if (curHdr && curMsgHdr->IsParentOf(this))
+      {
+        nsMsgKey curHdrKey;
+        curHdr->GetMessageKey(&curHdrKey);
+        SetThreadParent(curHdrKey);
+        return;
+      }
+    }
+    // we didn't find it. So either the root header is our parent,
+    // or we're the root.
+    PRInt32 rootIndex;
+    nsCOMPtr <nsIMsgDBHdr> rootHdr;
+    thread->GetRootHdr(&rootIndex, getter_AddRefs(rootHdr));
+    NS_ASSERTION(rootHdr, "thread has no root hdr - shouldn't happen");
+    if (rootHdr)
+    {
+      nsMsgKey rootKey;
+      rootHdr->GetMessageKey(&rootKey);
+      // if we're the root, our thread parent is -1.
+      SetThreadParent(rootKey == m_messageKey ? nsMsgKey_None : rootKey);
+    }
+  }
+}
+
 PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
 {
   if (!(m_initedValues & FLAGS_INITED))
@@ -880,7 +924,7 @@ PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
     if (threadParent == m_messageKey)
     {
       // isKilled is false by virtue of the enclosing if statement
-      NS_ASSERTION(PR_FALSE, "Thread is parent of itself, please fix!");
+      NS_ERROR("Thread is parent of itself, please fix!");
 
       // Something's wrong, but the problem happened some time ago, so erroring
       // out now is probably not a good idea. Ergo, we'll pretend to be OK, show
@@ -895,7 +939,6 @@ PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
 
       if (parentHdr)
       {
-
         // More proofing against crashers. This crasher was derived from the
         // fact that something got borked, leaving is in hand with a circular
         // reference to borked headers inducing these loops. The defining
@@ -909,10 +952,13 @@ PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
           (void) thread->GetChild(threadParent, getter_AddRefs(claimant));
           if (!claimant)
           {
-            NS_ERROR("Borked message header, please fix!");
+            // attempt to reparent, and say the thread isn't killed,
+            // erring on the side of safety.
+            ReparentInThread(thread);
             return PR_FALSE;
           }
         }
+
         if (!ancestorsToCheck)
         {
           // We think we have a parent, but we have no more ancestors to check

@@ -45,6 +45,7 @@
 
 class nsMsgDatabase;
 class nsCString;
+class nsIMsgThread;
 
 class nsMsgHdr : public nsIMsgDBHdr {
 public:
@@ -67,6 +68,7 @@ public:
     PRBool      IsParentOf(nsIMsgDBHdr *possibleChild);
     PRBool      IsAncestorOf(nsIMsgDBHdr *possibleChild);
     PRBool      IsAncestorKilled(PRUint32 ancestorsToCheck);
+    void        ReparentInThread(nsIMsgThread *thread);
 protected:
     nsresult	SetStringColumn(const char *str, mdb_token token);
     nsresult	SetUInt32Column(PRUint32 value, mdb_token token);
