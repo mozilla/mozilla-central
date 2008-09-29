@@ -1737,8 +1737,15 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
                 nsCOMPtr <nsIMsgFolder> trash;
                 GetTrashFolder(getter_AddRefs(trash));
                 if (trash)
+                {
+                  // save off m_newMsgHdr because MoveIncorporatedMessage 
+                  // clears it by calling nsParseMailMessageState::Init
+                  nsCOMPtr<nsIMsgDBHdr> msgHdr = m_newMsgHdr;
                   MoveIncorporatedMessage(m_newMsgHdr, m_mailDB, trash,
                                                           nsnull, msgWindow);
+                  if (!m_downloadingToTempFile)
+                    m_mailDB->RemoveHeaderMdbRow(msgHdr);
+                }
               }
               break;
             case nsIMsgIncomingServer::markDupsRead:
