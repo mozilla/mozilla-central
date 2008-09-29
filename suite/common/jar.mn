@@ -123,6 +123,7 @@ comm.jar:
    content/communicator/history/history.js                          (history/history.js)
    content/communicator/history/history.xul                         (history/history.xul)
    content/communicator/history/historyTreeOverlay.xul              (history/historyTreeOverlay.xul)
+   content/communicator/history/historyTreeSorting.js               (history/historyTreeSorting.js)
    content/communicator/history/history-panel.xul                   (history/history-panel.xul)
    content/communicator/history/history-test.js                     (history/history-test.js)
    content/communicator/history/history-test.xul                    (history/history-test.xul)
