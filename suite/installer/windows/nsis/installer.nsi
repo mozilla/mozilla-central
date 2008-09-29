@@ -399,9 +399,6 @@ Section "-Application" Section1
   ${LogUninstall} "File: \install_status.log"
   ${LogUninstall} "File: \install_wizard.log"
   ${LogUninstall} "File: \updates.xml"
-  ; As soon as installed-chrome.txt is removed from the build, this line can be
-  ; deleted and a new entry can be added to removed-files.in
-  ${LogUninstall} "File: \chrome\app-chrome.manifest"
 
   SetDetailsPrint textonly
   DetailPrint $(STATUS_INSTALL_LANG)

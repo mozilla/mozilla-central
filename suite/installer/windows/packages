@@ -314,7 +314,6 @@ bin\chrome\comm.jar
 bin\chrome\comm.manifest
 bin\chrome\toolkit.jar
 bin\chrome\toolkit.manifest
-bin\chrome\installed-chrome.txt
 bin\chrome\chromelist.txt
 bin\chrome\icons\default\bmPropsWindow.ico
 bin\chrome\icons\default\bookmark-window.ico

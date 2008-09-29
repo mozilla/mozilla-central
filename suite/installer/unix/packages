@@ -330,7 +330,6 @@ bin/chrome/icons/default/seamonkey.png
 bin/chrome/icons/default/venkman-window.png
 bin/chrome/icons/default/venkman-window16.png
 bin/chrome/icons/default/venkman-window48.png
-bin/chrome/installed-chrome.txt
 bin/chrome/toolkit.jar
 bin/chrome/toolkit.manifest
 
