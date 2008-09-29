@@ -59,9 +59,9 @@
 
 <window id="messengerWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        title="&titledefault.label;"
+        title="&titledefault.label; 3 Beta 1"
         titlemodifier="&titledefault.label;"
-        titlemenuseparator="&titleSeparator.label;"
+        titlemenuseparator="&titleSeparator.label; 3 Beta 1"
         onload="OnLoadMessenger()"
         onunload="OnUnloadMessenger()"
         screenX="10" screenY="10"
