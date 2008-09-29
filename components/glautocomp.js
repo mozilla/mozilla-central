@@ -334,7 +334,7 @@ ContactTagCompleter.prototype = {
   },
   complete: function ContactTagCompleter_complete(aResult, aString) {
     // now is not the best time to do this; have onFreeTagAdded use a timer.
-    if (this.suffixTreeDirty)
+    if (this._suffixTreeDirty)
       this._buildSuffixTree();
     
     if (aString.length < 2)
