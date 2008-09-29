@@ -76,6 +76,7 @@ var gRightMouseButtonDown = false;
 // This is used to make sure that the row with the currentIndex has the selection
 // after a Delete or Move of a message that has a row index less than currentIndex.
 var gThreadPaneCurrentSelectedIndex = -1;
+// Account Wizard can exceptionally override this feature.
 var gLoadStartFolder = true;
 
 // Global var to keep track of if the 'Delete Message' or 'Move To' thread pane
@@ -237,9 +238,8 @@ var folderListener = {
           }
           if (gNotifyDefaultInboxLoadedOnStartup && (folder.flags & 0x1000))
           {
-            var defaultAccount = accountManager.defaultAccount;
-            defaultServer = defaultAccount.incomingServer;
-            var inboxFolder = GetInboxFolder(defaultServer);
+            var inboxFolder = GetInboxFolder(accountManager.defaultAccount
+                                                           .incomingServer);
             if (inboxFolder && inboxFolder.URI == folder.URI)
             {
               NotifyObservers(null,"defaultInboxLoadedOnStartup",null);
@@ -768,15 +768,18 @@ function OnUnloadMessenger()
 
 function NotifyObservers(aSubject, aTopic, aData)
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(aSubject, aTopic, aData);
+  Components.classes["@mozilla.org/observer-service;1"]
+            .getService(Components.interfaces.nsIObserverService)
+            .notifyObservers(aSubject, aTopic, aData);
 }
 
 function Create3PaneGlobals()
 {
+  // Update <mailWindow.js> global variables.
   accountCentralBox = document.getElementById("accountCentralBox");
   gSearchBox = document.getElementById("searchBox");
   gSearchBox.collapsed = true;
+
   GetMessagePane().collapsed = true;
 }
 
@@ -790,9 +793,10 @@ function loadStartFolder(initialUri)
     {
         if (!initialUri)
         {
-            var defaultAccount = accountManager.defaultAccount;
+            // Startup time.
 
-            defaultServer = defaultAccount.incomingServer;
+            defaultServer = accountManager.defaultAccount.incomingServer;
+
             // set the initialUri to the server, so we select it
             // so we'll get account central
             initialUri = defaultServer.serverURI;
@@ -822,8 +826,10 @@ function loadStartFolder(initialUri)
 
         SelectFolder(initialUri);
 
-        // Perform biff on the server to check for new mail, except for imap
-        // or a pop3 account that is deferred or deferred to.
+        // Perform biff on the server to check for new mail, if:
+        // the login at startup is enabled, and
+        // this feature is not exceptionally overridden, and
+        // the account is not deferred-to or deferred.
         if (isLoginAtStartUpEnabled &&
             gLoadStartFolder &&
             !defaultServer.isDeferredTo &&
@@ -838,12 +844,8 @@ function loadStartFolder(initialUri)
 
     MsgGetMessagesForAllServers(defaultServer);
 
-    if (CheckForUnsentMessages())
+    if (CheckForUnsentMessages() && CheckOnline())
     {
-      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService);
-      if (!ioService.offline)
-      {
         InitPrompts();
         InitServices();
 
@@ -863,7 +865,6 @@ function loadStartFolder(initialUri)
         }
         else if(sendUnsentWhenGoingOnlinePref == 1) // pref is "yes"
           SendUnsentMessages();
-      }
     }
 }
 
@@ -1049,8 +1050,7 @@ function goToggleLocationToolbar(toggle)
 
 function GetFolderDatasource()
 {
-  var folderTree = GetFolderTree();
-  return folderTree.database;
+  return GetFolderTree().database;
 }
 
 /* Functions for accessing particular parts of the window*/
@@ -1165,10 +1165,9 @@ function ClearMessagePane()
 
 function GetSelectedFolderIndex()
 {
-    var folderTree = GetFolderTree();
     var startIndex = {};
     var endIndex = {};
-    folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
+    GetFolderTree().view.selection.getRangeAt(0, startIndex, endIndex);
     return startIndex.value;
 }
 
@@ -1511,7 +1510,9 @@ function MigrateJunkMailSettings()
     var defaultAccount;
     try {
       defaultAccount = accountManager.defaultAccount;
-    } catch (ex) {}
+    } catch (ex) {
+      defaultAccount = null;
+    }
     if (defaultAccount && defaultAccount.incomingServer)
     {
       // we only care about
