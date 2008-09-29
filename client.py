@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-EXTENSION_CO_TAG = 'HEAD'
+EXTENSION_CO_TAG = 'THUNDERBIRD_3_0b1_RELEASE'
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6_RTM'
 
 CHATZILLA_CO_TAG = 'HEAD'
@@ -13,13 +13,13 @@ LDAPCSDK_DIRS = ('directory/c-sdk',)
 CHATZILLA_DIRS = ('extensions/irc',)
 VENKMAN_DIRS = ('extensions/venkman',)
 
-DEFAULT_COMM_REV = "tip"
+DEFAULT_COMM_REV = "THUNDERBIRD_3_0b1_RELEASE"
 # URL of the default hg repository to clone for Mozilla.
 DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/mozilla-central/'
-DEFAULT_MOZILLA_REV = "tip"
+DEFAULT_MOZILLA_REV = "THUNDERBIRD_3_0b1_RELEASE"
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
-DEFAULT_INSPECTOR_REV = "tip"
+DEFAULT_INSPECTOR_REV = "THUNDERBIRD_3_0b1_RELEASE"
 
 import os
 import sys
