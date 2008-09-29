@@ -612,7 +612,7 @@ var GlodaDatastore = {
   _createSchema: function gloda_ds_createSchema(aDBConnection) {
     // -- For each table...
     for (let tableName in this._schema.tables) {
-      this._createTableSchema(tableName);
+      this._createTableSchema(aDBConnection, tableName);
     }
 
     aDBConnection.schemaVersion = this._schemaVersion;
