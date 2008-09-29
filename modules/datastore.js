@@ -2085,8 +2085,7 @@ var GlodaDatastore = {
                 APV[0].special == kSpecialString)
               attrValueTests.push(["", valueTests]);
             else
-              attrValueTests.push(["attributeID = " + attributeID + " AND ",
-                                   valueTests]);
+              attrValueTests.push(["attributeID = " + attributeID, valueTests]);
             lastAttributeID = attributeID;
           }
 
@@ -2130,7 +2129,11 @@ var GlodaDatastore = {
         }
         let select = "SELECT " + idColumnName + " FROM " + tableName +
                      " WHERE " +
-                     [("(" + avt[0] + "(" + avt[1].join(" OR ") + "))")
+                     [("(" + avt[0] +
+                       (avt[1].length ? ((avt[0] ? " AND " : "") + "(" 
+                            + avt[1].join(" OR ") + ")") :
+                          "")
+                       + ")")
                       for each (avt in attrValueTests)].join(" OR ");
         selects.push(select);
       }

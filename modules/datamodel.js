@@ -92,6 +92,8 @@ GlodaAttributeDef.prototype = {
 
   get special() { return this._special; },
   get specialColumnName() { return this._specialColumnName; },
+  
+  get parameterBindings() { return this._parameterBindings; },
 
   /**
    * Bind a parameter value to the attribute definition, allowing use of the

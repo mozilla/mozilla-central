@@ -22,8 +22,14 @@ panel[type="glodacomplete-richlistbox"] {
   overflow: -moz-hidden-unscrollable;
 }
 
-.autocomplete-richlistitem[type="gloda-multi-identity"] {
-  -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-multi-identity-item");
+richlistitem[type="gloda-contact-chunk"] {
+  -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-contact-chunk");
+  -moz-box-orient: vertical;
+  overflow: -moz-hidden-unscrollable;
+}
+
+.autocomplete-richlistitem[type="gloda-multi"] {
+  -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-multi-item");
   -moz-box-orient: vertical;
   overflow: -moz-hidden-unscrollable;
 }

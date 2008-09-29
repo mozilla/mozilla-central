@@ -103,7 +103,6 @@
             item.setAttribute("type", result.getStyleAt(this._currentIndex));
 
             item.row = row;
-            item.obj = obj;
 
             if (this._currentIndex < existingItemsCount) {
               // re-use the existing item
@@ -129,29 +128,31 @@
   </binding>
 
   <binding id="gloda-single-identity-item" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem">
-    <content orient="horizontal">
-      <xul:image anonid="picture"/>
-      <xul:vbox>
-        <xul:hbox>
-          <xul:hbox anonid="name-box" class="ac-title" flex="1"
-                    onunderflow="_doUnderflow('_name');">
-            <xul:description anonid="name" class="ac-normal-text ac-comment"
-                             xbl:inherits="selected"/>
-          </xul:hbox>
-          <xul:label anonid="name-overflow-ellipsis" xbl:inherits="selected"
-	                 class="ac-ellipsis-after ac-comment" hidden="true"/>
-        </xul:hbox>
-        <xul:hbox>
-          <xul:hbox anonid="identity-box" class="ac-url" flex="1"
-                    onunderflow="_doUnderflow('_identity');">
-            <xul:description anonid="identity" class="ac-normal-text ac-url-text"
-                             xbl:inherits="selected"/>
-          </xul:hbox>
-          <xul:label anonid="identity-overflow-ellipsis" xbl:inherits="selected"
-                     class="ac-ellipsis-after ac-url-text" hidden="true"/>
-          <xul:image anonid="type-image" class="ac-type-icon"/>
-        </xul:hbox>
-      </xul:vbox>
+    <content>
+      <xul:hbox>
+	    <xul:image anonid="picture"/>
+	    <xul:vbox>
+	      <xul:hbox>
+	        <xul:hbox anonid="name-box" class="ac-title" flex="1"
+	                  onunderflow="_doUnderflow('_name');">
+	          <xul:description anonid="name" class="ac-normal-text ac-comment"
+	                           xbl:inherits="selected"/>
+	        </xul:hbox>
+	        <xul:label anonid="name-overflow-ellipsis" xbl:inherits="selected"
+	                   class="ac-ellipsis-after ac-comment" hidden="true"/>
+	      </xul:hbox>
+	      <xul:hbox>
+	        <xul:hbox anonid="identity-box" class="ac-url" flex="1"
+	                  onunderflow="_doUnderflow('_identity');">
+	          <xul:description anonid="identity" class="ac-normal-text ac-url-text"
+	                           xbl:inherits="selected"/>
+	        </xul:hbox>
+	        <xul:label anonid="identity-overflow-ellipsis" xbl:inherits="selected"
+	                   class="ac-ellipsis-after ac-url-text" hidden="true"/>
+	        <xul:image anonid="type-image" class="ac-type-icon"/>
+	      </xul:hbox>
+	    </xul:vbox>
+	  </xul:hbox>
     </content>
     <implementation implements="nsIDOMXULSelectControlItemElement">
       <constructor>
@@ -189,8 +190,8 @@
       <property name="label" readonly="true">
         <getter>
           <![CDATA[
-            var item = this.getAttribute("item");
-            return item.accessibleLabel;
+            var identity = this.row.item;
+            return identity.accessibleLabel;
           ]]>
         </getter>
       </property>
@@ -198,7 +199,7 @@
       <method name="_adjustAcItem">
         <body>
           <![CDATA[
-          var identity = this.obj;
+          var identity = this.row.item;
           
           if (identity == null)
             return;
@@ -217,8 +218,167 @@
           ]]>
         </body>
       </method>
-
     </implementation>
   </binding>
+
+  <binding id="gloda-contact-chunk" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem">
+    <content orient="horizontal">
+      <xul:image anonid="picture"/>
+      <xul:vbox>
+        <xul:hbox>
+          <xul:hbox anonid="name-box" class="ac-title" flex="1"
+                    onunderflow="_doUnderflow('_name');">
+            <xul:description anonid="name" class="ac-normal-text ac-comment"
+                             xbl:inherits="selected"/>
+          </xul:hbox>
+          <xul:label anonid="name-overflow-ellipsis" xbl:inherits="selected"
+                     class="ac-ellipsis-after ac-comment" hidden="true"/>
+        </xul:hbox>
+        <xul:hbox>
+          <xul:hbox anonid="identity-box" class="ac-url" flex="1"
+                    onunderflow="_doUnderflow('_identity');">
+            <xul:description anonid="identity" class="ac-normal-text ac-url-text"
+                             xbl:inherits="selected"/>
+          </xul:hbox>
+          <xul:label anonid="identity-overflow-ellipsis" xbl:inherits="selected"
+                     class="ac-ellipsis-after ac-url-text" hidden="true"/>
+          <xul:image anonid="type-image" class="ac-type-icon"/>
+        </xul:hbox>
+      </xul:vbox>
+    </content>
+    <implementation>
+      <constructor>
+        <![CDATA[
+            let ellipsis = "\u2026";
+            try {
+              ellipsis = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch).
+                getComplexValue("intl.ellipsis",
+                  Components.interfaces.nsIPrefLocalizedString).data;
+            } catch (ex) {
+              // Do nothing.. we already have a default
+            }
+
+            this._identityOverflowEllipsis = document.getAnonymousElementByAttribute(this, "anonid", "identity-overflow-ellipsis");
+            this._nameOverflowEllipsis = document.getAnonymousElementByAttribute(this, "anonid", "name-overflow-ellipsis");
+
+            this._identityOverflowEllipsis.value = ellipsis;
+            this._nameOverflowEllipsis.value = ellipsis;
+
+            this._typeImage = document.getAnonymousElementByAttribute(this, "anonid", "type-image");
+
+            this._identityBox = document.getAnonymousElementByAttribute(this, "anonid", "identity-box");
+            this._identity = document.getAnonymousElementByAttribute(this, "anonid", "identity");
+
+            this._nameBox = document.getAnonymousElementByAttribute(this, "anonid", "name-box");
+            this._name = document.getAnonymousElementByAttribute(this, "anonid", "name");
+            
+            this._picture = document.getAnonymousElementByAttribute(this, "anonid", "picture");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            var identity = this.obj;
+            return identity.accessibleLabel;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          var contact = this.obj;
+          
+          if (contact == null)
+            return;
+          
+          var identity = contact.identities[0];
+          
+          // I guess we should get the picture size from CSS or something?
+          this._picture.src = identity.pictureURL(32);
+          
+          // Emphasize the matching search terms for the description
+          this._setUpDescription(this._name, contact.name);
+          this._setUpDescription(this._identity, identity.value);
+
+          // Set up overflow on a timeout because the contents of the box
+          // might not have a width yet even though we just changed them
+          setTimeout(this._setUpOverflow, 0, this._nameBox, this._nameOverflowEllipsis);
+          setTimeout(this._setUpOverflow, 0, this._identityBox, this._identityOverflowEllipsis);
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="gloda-multi-item" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem">
+    <content orient="vertical">
+      <xul:description anonid="explanation"/>
+      <xul:hbox anonid="identity-holder" flex="1">
+      </xul:hbox>
+    </content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+            this._explanation = document.getAnonymousElementByAttribute(this, "anonid", "explanation");
+            this._identityHolder = document.getAnonymousElementByAttribute(this, "anonid", "identity-holder");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            return this._explanation.value;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="renderItem">
+        <parameter name="aObj"/>
+        <body>
+          var node = document.createElementNS(
+            "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
+            "richlistitem");
+          
+          node.obj = aObj;
+          node.setAttribute("type",
+                            "gloda-" + this.row.nounMeta.name + "-chunk");
+          
+          this._identityHolder.appendChild(node);
+        </body>
+      </method>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          // clear out any lingering children
+          while (this._identityHolder.hasChildNodes())
+            this._identityHolder.removeChild(this._identityHolder.firstChild);
+          
+          var row = this.row;
+          if (row == null)
+            return;
+          
+          this._explanation.value = row.nounMeta.name + "s " +
+            row.criteriaType + "ed " + row.criteria;
+          
+          // render anyone already in there
+          for each (let item in row.collection.items) {
+            this.renderItem(item);
+          }
+          // listen up, yo.
+          row.renderer = this;
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
 
 </bindings>

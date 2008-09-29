@@ -223,7 +223,8 @@ var GlodaABAttrs = {
                         }); // not-tested
     // we need to find any existing bound freetag attributes, and use them to
     //  populate to FreeTagNoun's understanding
-    for (let freeTagName in this._attrFreeTag._bindings) {
+    for (let freeTagName in this._attrFreeTag.parameterBindings) {
+      this._log.debug("Telling FreeTagNoun about: " + freeTagName);
       FreeTagNoun.getFreeTag(freeTagName);
     }
   },

@@ -67,10 +67,19 @@ function ResultRowMulti(aNounID, aCriteriaType, aCriteria, aQuery) {
   this.criteriaType = aCriteriaType;
   this.criteria = aCriteria;
   this.collection = aQuery.getCollection(this);
+  this.renderer = null;
 }
 ResultRowMulti.prototype = {
   multi: true,
   onItemsAdded: function(aItems) {
+    LOG.debug("onItemsAdded");
+    if (this.renderer) {
+      LOG.debug("rendering...");
+      for each (let item in aItems) {
+        LOG.debug(" ..." + item);
+        this.renderer.renderItem(item);
+      }
+    }
   },
   onItemsModified: function(aItems) {
   },
@@ -145,11 +154,11 @@ nsAutoCompleteGlodaResult.prototype = {
   },
   // rich uses this to be the "type"
   getStyleAt: function(aIndex) {
-    let thing = this._results[aIndex];
-    if (thing.multi)
-      return "gloda-multi-" + thing.nounMeta.name;
+    let row = this._results[aIndex];
+    if (row.multi)
+      return "gloda-multi";
     else
-      return "gloda-single-" + thing.nounMeta.name;
+      return "gloda-single-" + row.nounMeta.name;
   },
   // rich uses this to be the icon
   getImageAt: function(aIndex) {
@@ -330,11 +339,14 @@ ContactTagCompleter.prototype = {
     
     if (aString.length < 2)
       return false; // no async mechanism that will add new rows
-      
+    
+    LOG.debug("Completing on tags...");
+    
     tags = this._suffixTree.findMatches(aString.toLowerCase());
     let rows = [];
     for each (let tag in tags) {
       let query = Gloda.newQuery(Gloda.NOUN_CONTACT);
+      LOG.debug("  checking for tag: " + tag.name);
       query.freeTags(tag);
       let resRow = new ResultRowMulti(Gloda.NOUN_CONTACT, "tag", tag.name,
                                       query);

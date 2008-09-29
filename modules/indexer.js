@@ -719,7 +719,7 @@ var GlodaIndexer = {
     }
     
     let folderURI = GlodaDatastore._mapFolderID(aFolderID);
-    this._log.debug("Active Folder URI: " + folderURI);
+    //this._log.debug("Active Folder URI: " + folderURI);
   
     let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
                      getService(Ci.nsIRDFService);
@@ -982,12 +982,12 @@ var GlodaIndexer = {
       return false;
     }
 
-    this._log.debug("++ Pulling job from queue of size " +
-                    this._indexQueue.length);
+    //this._log.debug("++ Pulling job from queue of size " +
+    //                this._indexQueue.length);
     let job = this._curIndexingJob = this._indexQueue.shift();
     this._indexingJobCount++;
-    this._log.debug("++ Pulled job: " + job.jobType + ", " +
-                    job.deltaType + ", " + job.id);
+    //this._log.debug("++ Pulled job: " + job.jobType + ", " +
+    //                job.deltaType + ", " + job.id);
     let generator = null;
     
     if (job.jobType == "sweep") {
