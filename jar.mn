@@ -8,4 +8,4 @@ gloda.jar:
   content/overlay.js
   content/thunderbirdOverlay.xul
   content/glodacomplete.css
-* content/glodacomplete.xml
+  content/glodacomplete.xml
