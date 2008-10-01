@@ -1340,7 +1340,7 @@ var Gloda = {
       GlodaCollectionManager.itemsModified(aMessage.NOUN_ID, [aMessage]);
   },
 
-  _processNounItem: function gloda_ns_processNounItem(aItem, aRawItem) {
+  _processNounItem: function gloda_ns_processNounItem(aItem, aRawItem, aIsNew) {
     // For now, we are ridiculously lazy and simply nuke all existing attributes
     //  before applying the new attributes.
     aItem._datastore.clearAttributes(aItem);

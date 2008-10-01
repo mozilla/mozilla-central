@@ -95,7 +95,7 @@ var GlodaABIndexer = {
       let identity = GlodaDatastore.getIdentity("email", card.primaryEmail);
       if (identity) {
         this._log.debug("Found identity, processing card.");
-        Gloda._processNounItem(identity.contact, card);
+        Gloda._processNounItem(identity.contact, card, false);
         this._log.debug("Done processing card.");
       }
     }
