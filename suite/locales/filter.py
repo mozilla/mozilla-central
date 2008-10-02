@@ -1,6 +1,6 @@
 def test(mod, path, entity = None):
   import re
-  # ignore anyhting but SeaMonkey
+  # ignore anything but SeaMonkey
   if mod not in ("netwerk", "dom", "toolkit", "security/manager",
                  "extensions/reporter", "editor/ui",
                  "suite"):
@@ -20,5 +20,8 @@ def test(mod, path, entity = None):
                 re.match(r"chrome\/common\/help\/images\/[A-Za-z-_]+\.[a-z]+", path))
   if path == "defines.inc":
     return entity != "MOZ_LANGPACK_CONTRIBUTORS"
+  if path == "profile/bookmarks.html":
+    # for now, ignore default bookmarks
+    return False
   
   return True
