@@ -139,9 +139,10 @@ var taskDetailsView = {
                 parentItem = parentItem.parentItem;
             }
             var recurrenceInfo = parentItem.recurrenceInfo;
-            if (displayElement("calendar-task-details-repeat-row", recurrenceInfo != null)) {
+            var recurStart = parentItem.recurrenceStartDate;
+            if (displayElement("calendar-task-details-repeat-row", recurrenceInfo && recurStart)) {
                 var kDefaultTimezone = calendarDefaultTimezone();
-                var startDate = item.entryDate ? item.entryDate.getInTimezone(kDefaultTimezone) : null;
+                var startDate = recurStart.getInTimezone(kDefaultTimezone);
                 var endDate = item.dueDate ? item.dueDate.getInTimezone(kDefaultTimezone) : null;
                 var detailsString = recurrenceRule2String(recurrenceInfo,startDate,endDate,startDate.isDate);
                 if (detailsString) {

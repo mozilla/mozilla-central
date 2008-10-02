@@ -487,6 +487,13 @@ calRecurrenceInfo.prototype = {
         }
 
         var startDate = this.mBaseItem.recurrenceStartDate;
+        if (startDate == null) {
+            // Todo created by other apps may have a saved recurrence but
+            // start and due dates disabled.  Since no recurrenceStartDate,
+            // treat as undated task.
+            return [];
+        }
+
         var dates = [];
 
         // toss in exceptions first. Save a map of all exceptions ids, so we
