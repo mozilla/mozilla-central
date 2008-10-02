@@ -49,19 +49,22 @@ def check_call_noisy(cmd, *args, **kwargs):
 def do_hg_pull(dir, repository, hg, rev):
     fulldir = os.path.join(topsrcdir, dir)
     # clone if the dir doesn't exist, pull if it does
+    hgopts = []
+    if options.hgopts:
+        hgopts = options.hgopts.split()
     if not os.path.exists(fulldir):
         fulldir = os.path.join(topsrcdir, dir)
-        check_call_noisy([hg, 'clone', repository, fulldir])
+        check_call_noisy([hg, 'clone'] + hgopts + [repository, fulldir])
     else:
-        cmd = [hg, 'pull', '-R', fulldir]
+        cmd = [hg, 'pull', '-R', fulldir ] + hgopts
         if repository is not None:
             cmd.append(repository)
         check_call_noisy(cmd)
     # update to specific revision
     if options.verbose:
-        cmd = [hg, 'update', '-v', '-r', rev, '-R', fulldir]
+        cmd = [hg, 'update', '-v', '-r', rev, '-R', fulldir ] + hgopts
     else:
-        cmd = [hg, 'update', '-r', rev, '-R', fulldir]
+        cmd = [hg, 'update', '-r', rev, '-R', fulldir ] + hgopts
     check_call_noisy(cmd)
     check_call([hg, 'parent', '-R', fulldir,
                 '--template=Updated to revision {node}.\n'])
@@ -139,7 +142,8 @@ o.add_option("--cvsroot", dest="cvsroot",
 o.add_option("-v", "--verbose", dest="verbose",
              action="store_true", default=False,
              help="Enable verbose output on hg updates")
-
+o.add_option("--hg-options", dest="hgopts",
+             help="Pass arbitrary options to hg commands (i.e. --debug, --time)")
 
 def fixup_repo_options(options):
     """ Check options.comm_repo and options.mozilla_repo values;
