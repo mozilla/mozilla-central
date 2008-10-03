@@ -29,9 +29,6 @@
 <!ENTITY reuseExpRadio1.accesskey      "x">
 <!ENTITY reuseExpRadio2.label          "A new message tab">
 <!ENTITY reuseExpRadio2.accesskey      "Z">
-<!ENTITY connectionTimeout.label       "Connection timeout: ">
-<!ENTITY connectionTimeout.accesskey   "C">
-<!ENTITY connectionSeconds.label       "seconds">
 <!ENTITY configEditDesc.label          "Advanced Configuration">
 <!ENTITY configEdit.label              "Config Editor…">
 <!ENTITY configEdit.accesskey          "g">
@@ -57,9 +54,9 @@
 <!ENTITY showUpdates.accesskey          "y">
 
 <!-- Networking and Disk Space -->
-<!ENTITY showConnections.label         "Connection…">
-<!ENTITY showConnections.accesskey     "n">
-<!ENTITY proxiesInfo.label             "Determine how &brandShortName; connects to the Internet.">
+<!ENTITY showSettings.label            "Settings…">
+<!ENTITY showSettings.accesskey        "n">
+<!ENTITY proxiesConfigure.label        "Configure how &brandShortName; connects to the Internet">
 <!ENTITY connectionsInfo.caption       "Connection">
 <!ENTITY offlineInfo.caption           "Offline">
 <!ENTITY offlineInfo.label             "Configure offline settings">

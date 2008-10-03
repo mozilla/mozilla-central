@@ -64,7 +64,6 @@
                   name="mailnews.mark_message_read.delay.interval" type="int"/>
       <preference id="mail.showFolderPaneColumns" name="mail.showFolderPaneColumns" type="bool"/>
       <preference id="mailnews.reuse_message_window" name="mailnews.reuse_message_window" type="bool"/>
-      <preference id="mailnews.tcptimeout" name="mailnews.tcptimeout" type="int"/>
       <preference id="mail.prompt_purge_threshhold"          name="mail.prompt_purge_threshhold"    type="bool"/>
       <preference id="mail.purge_threshhold"                 name="mail.purge_threshhold"    type="int"/>
       <preference id="app.update.enabled" name="app.update.enabled" type="bool"
@@ -181,16 +180,10 @@
           <groupbox>
             <caption label="&connectionsInfo.caption;"/>
             <hbox align="center">
-              <description flex="1" control="catProxiesButton">&proxiesInfo.label;</description>
-              <button id="catProxiesButton" label="&showConnections.label;"
-                      accesskey="&showConnections.accesskey;"
+              <description flex="1" control="catProxiesButton">&proxiesConfigure.label;</description>
+              <button id="catProxiesButton" icon="network" label="&showSettings.label;"
+                      accesskey="&showSettings.accesskey;"
                       oncommand="gAdvancedPane.showConnections();"/>
-            </hbox>
-
-            <hbox align="center" pack="start">
-              <label id="connectionTimeoutLabel" value="&connectionTimeout.label;" accesskey="&connectionTimeout.accesskey;" control="connectionTimeoutBox"/>
-              <textbox  id="connectionTimeoutBox" size="3" preference="mailnews.tcptimeout" aria-labelledby="connectionTimeoutLabel connectionTimeoutBox connectionSeconds"/>
-              <label id="connectionSeconds" value="&connectionSeconds.label;"/>
             </hbox>
           </groupbox>
 

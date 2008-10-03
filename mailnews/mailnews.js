@@ -118,7 +118,7 @@ pref("mailnews.default_news_view_flags", 1); // for News (nsNewsDatabase)
 pref("mail.delete_matches_sort_order", false);
 
 // mailnews tcp read+write timeout in seconds.
-pref("mailnews.tcptimeout", 60);
+pref("mailnews.tcptimeout", 100);
 
 pref("mailnews.headers.showSender", false);
 
