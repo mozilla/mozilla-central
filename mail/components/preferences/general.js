@@ -211,5 +211,25 @@ var gGeneralPane = {
     soundTypeEl.disabled = soundsDisabled;
     document.getElementById('browseForSound').disabled = soundsDisabled || soundTypeEl.value != 1;
     document.getElementById('playSound').disabled = soundsDisabled || soundTypeEl.value != 1; 
+  },
+
+  /**
+   * Displays the Add-ons Manager.
+   */
+  showAddonsMgr: function ()
+  {
+    const EMTYPE = "Extension:Manager";
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator);
+    var theEM = wm.getMostRecentWindow(EMTYPE);
+    if (theEM) {
+      theEM.focus();
+      theEM.showView("extensions");
+      return;
+    }
+
+    const EMURL = "chrome://mozapps/content/extensions/extensions.xul";
+    const EMFEATURES = "chrome,menubar,extra-chrome,toolbar,dialog=no,resizable";
+    window.openDialog(EMURL, "", EMFEATURES, "extensions");
   }
 };
