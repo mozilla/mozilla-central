@@ -823,9 +823,7 @@ static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const
         }
     }
     else
-    {
-        value = defaultValue ? strdup(defaultValue) : nsnull;
-    }
+        value = defaultValue; 
 
     return ToNewCString(value);
 }
