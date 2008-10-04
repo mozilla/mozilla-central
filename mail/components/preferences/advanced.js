@@ -78,6 +78,48 @@ var gAdvancedPane = {
                                         "", null);
   },
 
+  // NETWORK TAB
+
+  /*
+   * Preferences:
+   *
+   * browser.cache.disk.capacity
+   * - the size of the browser cache in KB
+   */
+
+  /**
+   * Converts the cache size from units of KB to units of MB and returns that
+   * value.
+   */
+  readCacheSize: function ()
+  {
+    var preference = document.getElementById("browser.cache.disk.capacity");
+    return preference.value / 1024;
+  },
+
+  /**
+   * Converts the cache size as specified in UI (in MB) to KB and returns that
+   * value.
+   */
+  writeCacheSize: function ()
+  {
+    var cacheSize = document.getElementById("cacheSize");
+    var intValue = parseInt(cacheSize.value, 10);
+    return isNaN(intValue) ? 0 : intValue * 1024;
+  },
+
+  /**
+   * Clears the cache.
+   */
+  clearCache: function ()
+  {
+    var cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
+                                 .getService(Components.interfaces.nsICacheService);
+    try {
+      cacheService.evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
+    } catch(ex) {}
+  },
+
   updateButtons: function (aButtonID, aPreferenceID)
   {
     var button = document.getElementById(aButtonID);

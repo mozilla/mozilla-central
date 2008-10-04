@@ -64,8 +64,12 @@
                   name="mailnews.mark_message_read.delay.interval" type="int"/>
       <preference id="mail.showFolderPaneColumns" name="mail.showFolderPaneColumns" type="bool"/>
       <preference id="mailnews.reuse_message_window" name="mailnews.reuse_message_window" type="bool"/>
+      <!-- Network tab -->
       <preference id="mail.prompt_purge_threshhold"          name="mail.prompt_purge_threshhold"    type="bool"/>
       <preference id="mail.purge_threshhold"                 name="mail.purge_threshhold"    type="int"/>
+      <preference id="browser.cache.disk.capacity"
+                  name="browser.cache.disk.capacity" type="int"/>
+      <!-- Update tab -->
       <preference id="app.update.enabled" name="app.update.enabled" type="bool"
                   onchange="gAdvancedPane.updateAppUpdateItems();
                             gAdvancedPane.updateAutoItems();
@@ -79,6 +83,7 @@
       <preference id="app.update.disable_button.showUpdateHistory"
                   name="app.update.disable_button.showUpdateHistory"
                   type="bool"/>
+      <!-- Certificates tab -->
       <preference id="security.disable_button.openCertManager"
                   name="security.disable_button.openCertManager"
                   type="bool"/>
@@ -199,6 +204,19 @@
 
           <groupbox>
             <caption label="&Diskspace;"/>
+            <hbox align="center">
+              <label id="useCacheBefore" control="cacheSize"
+                     accesskey="&useCacheBefore.accesskey;" value="&useCacheBefore.label;"/>
+              <textbox id="cacheSize" type="number" size="2"
+                       preference="browser.cache.disk.capacity"
+                       onsyncfrompreference="return gAdvancedPane.readCacheSize();"
+                       onsynctopreference="return gAdvancedPane.writeCacheSize();"
+                       aria-labelledby="useCacheBefore cacheSize useCacheAfter"/>
+              <label id="useCacheAfter" flex="1">&useCacheAfter.label;</label>
+              <button id="clearCacheButton" icon="clear"
+                      label="&clearCacheNow.label;" accesskey="&clearCacheNow.accesskey;"
+                      oncommand="gAdvancedPane.clearCache();"/>
+            </hbox>
             <hbox align="center">
                 <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
                           preference="mail.prompt_purge_threshhold"/>
