@@ -78,15 +78,15 @@
       <rows>
         <row align="center">
           <deck id="InputNameDeck">
-            <label control="InputName" value="&InputName.label;" accesskey="&Name.accesskey;"/>
-            <label control="InputName" value="&GroupName.label;" accesskey="&Name.accesskey;"/>
+            <label control="InputName" value="&InputName.label;" accesskey="&InputName.accesskey;"/>
+            <label control="InputName" value="&GroupName.label;" accesskey="&GroupName.accesskey;"/>
           </deck>
           <textbox id="InputName" oninput="onInput();"/>
         </row>
         <row align="center">
           <deck id="InputValueDeck">
-            <label control="InputValue" value="&InputValue.label;" accesskey="&Value.accesskey;"/>
-            <label control="InputValue" value="&InitialValue.label;" accesskey="&Value.accesskey;"/>
+            <label control="InputValue" value="&InputValue.label;" accesskey="&InputValue.accesskey;"/>
+            <label control="InputValue" value="&InitialValue.label;" accesskey="&InitialValue.accesskey;"/>
           </deck>
           <textbox id="InputValue" oninput="onInput();"/>
         </row>
