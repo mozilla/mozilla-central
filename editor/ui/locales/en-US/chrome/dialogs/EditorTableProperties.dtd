@@ -80,9 +80,7 @@
 <!ENTITY cellSelectPrevious.accessKey     "P">
 <!ENTITY cellApplyBeforeMove.label        "Apply changes before changing selection">
 <!ENTITY cellKeepCurrentData.label        "Keep current settings">
-<!-- LOCALIZATION NOTE Next 2 form 1 sentence (we don't want to use HTML tag to wrap) -->
-<!ENTITY applyBeforeChange1.label         "Current changes will be applied">
-<!ENTITY applyBeforeChange2.label         "before changing the selection.">
+<!ENTITY applyBeforeChange.label          "Current changes will be applied before changing the selection.">
 <!ENTITY cellRowSpan.label                "Row Span:">
 <!ENTITY cellColSpan.label                "Column Span:">
 <!ENTITY cellContentAlignment.label       "Content Alignment">

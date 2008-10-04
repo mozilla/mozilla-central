@@ -190,10 +190,7 @@
             </hbox>
           </vbox>
           <spacer class="bigspacer"/>
-          <vbox flex="1">
-            <label value="&applyBeforeChange1.label;"/>
-            <label value="&applyBeforeChange2.label;"/>
-          </vbox>
+            <description class="wrap" flex="1">&applyBeforeChange.label;</description> 
         </groupbox>
         <hbox align="center">
           <!-- cell size groupbox -->
