@@ -165,10 +165,10 @@
                  these buttons are doing the right thing -->
 
             <button id="replyButton" label="&replyButton.label;"
-                    oncommand="MsgReplyMessage(null);" observes="button_reply"
+                    oncommand="MsgReplyMessage(event);" observes="button_reply"
                     class="msgHeaderView-button"/>
             <button id="forwardButton" label="&forwardButton.label;"
-                    oncommand="MsgForwardMessage(null);"
+                    oncommand="MsgForwardMessage(event);"
                     observes="button_forward" class="msgHeaderView-button"/>
             <button id="junkButton" label="&junkButton.label;"
                     observes="button_junk" class="msgHeaderView-button"
