@@ -138,14 +138,14 @@
     <menu id="fileMenu"/>
     <menu id="editMenu"/>
 
-    <menu id="viewMenu" label="&viewMenu.label;" accesskey="&viewmenu.accesskey;">
+    <menu id="viewMenu" label="&viewMenu.label;" accesskey="&viewMenu.accesskey;">
     <!-- id pulls in "Show Sidebar" item from sidebarOverlay -->
     <menupopup id="menu_View_Popup">
       <menu id="menu_Toolbars">
         <menupopup id="view_toolbars_popup"> 
-          <menuitem id="viewComposerToolbar" label="&compositionToolbarCmd.label;" type="checkbox" accesskey="&compositiontb.accesskey;" command="cmd_viewCompToolbar"  />
-          <menuitem id="viewFormatToolbar"   label="&formattingToolbarCmd.label;"  type="checkbox" accesskey="&formattingtb.accesskey;"  command="cmd_viewFormatToolbar" />
-          <menuitem id="viewEditModeToolbar" label="&editmodeToolbarCmd.label;"    type="checkbox" accesskey="&editmodetb.accesskey;"    command="cmd_viewEditModeToolbar" />
+          <menuitem id="viewComposerToolbar" label="&compositionToolbarCmd.label;" type="checkbox" accesskey="&compositionToolbarCmd.accesskey;" command="cmd_viewCompToolbar"  />
+          <menuitem id="viewFormatToolbar"   label="&formattingToolbarCmd.label;"  type="checkbox" accesskey="&formattingToolbarCmd.accesskey;"  command="cmd_viewFormatToolbar" />
+          <menuitem id="viewEditModeToolbar" label="&editmodeToolbarCmd.label;"    type="checkbox" accesskey="&editmodeToolbarCmd.accesskey;"    command="cmd_viewEditModeToolbar" />
           <menuitem id="menu_showTaskbar"/>
         </menupopup>
       </menu>
@@ -161,7 +161,7 @@
  
     <menu id="insertMenu"/>
 
-    <menu id="formatMenu" label="&formatMenu.label;" accesskey="&formatmenu.accesskey;">
+    <menu id="formatMenu" label="&formatMenu.label;" accesskey="&formatMenu.accesskey;">
       <menupopup id="formatMenuPopup">
         <menuitem id="snapToGrid"/>
         <menuseparator/>

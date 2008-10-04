@@ -44,17 +44,17 @@
 
 <!-- View menu items -->
 <!ENTITY viewMenu.label "View">
-<!ENTITY viewmenu.accesskey "v">
+<!ENTITY viewMenu.accesskey "v">
 <!ENTITY compositionToolbarCmd.label "Composition Toolbar">
-<!ENTITY compositiontb.accesskey "c">
+<!ENTITY compositionToolbarCmd.accesskey "c">
 <!ENTITY formattingToolbarCmd.label "Format Toolbar">
-<!ENTITY formattingtb.accesskey "f">
+<!ENTITY formattingToolbarCmd.accesskey "f">
 <!ENTITY editmodeToolbarCmd.label "Edit Mode Toolbar">
-<!ENTITY editmodetb.accesskey "E">
+<!ENTITY editmodeToolbarCmd.accesskey "E">
 
 <!-- Format menu items -->
 <!ENTITY formatMenu.label "Format">
-<!ENTITY formatmenu.accesskey "o">
+<!ENTITY formatMenu.accesskey "o">
 
 <!ENTITY helpMenu.label "Help">
 <!ENTITY aboutCmd.label ".About">
