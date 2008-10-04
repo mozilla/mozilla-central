@@ -83,7 +83,7 @@
 <!ENTITY renameFolder.label "Rename Folder…">
 <!ENTITY renameFolder.accesskey "R">
 <!ENTITY compactFolders.label "Compact Folders">
-<!ENTITY compactFolder.accesskey		"F">
+<!ENTITY compactFolders.accesskey		"F">
 <!ENTITY emptyTrashCmd.label "Empty Trash">
 <!ENTITY emptyTrashCmd.accesskey		"y">
 <!ENTITY offlineMenu.label "Offline">
@@ -311,8 +311,8 @@
 <!ENTITY nextFlaggedMsgCmd.accesskey "F">
 <!ENTITY nextUnflaggedMsgCmd.label "Unflagged Message">
 <!ENTITY nextUnreadThread.label "Unread Thread">
-<!ENTITY nextUnreadThreadCmd.accesskey "T">
-<!ENTITY nextUnreadThreadCmd.key "t">
+<!ENTITY nextUnreadThread.accesskey "T">
+<!ENTITY nextUnreadThread.key "t">
 <!ENTITY prevMenu.label "Previous">
 <!ENTITY prevMenu.accesskey "P">
 <!ENTITY prevMsgCmd.label "Message">
@@ -326,7 +326,7 @@
 <!ENTITY goForwardCmd.label "Forward">
 <!ENTITY goForwardCmd.commandKey "]">
 <!ENTITY prevFlaggedMsgCmd.label "Flagged Message">
-<!ENTITY previousFlaggedMsgCmd.accesskey "F">
+<!ENTITY prevFlaggedMsgCmd.accesskey "F">
 <!ENTITY backCmd.label ".Back">
 <!ENTITY backCmd.accesskey "B">
 <!ENTITY forwardCmd.label ".Forward">

@@ -360,7 +360,7 @@
   <key key="&expandAllThreadsCmd.key;" modifiers="shift"             oncommand="goDoCommand('cmd_expandAllThreads')"/>
   <key id="key_collapseAllThreads" key="&collapseAllThreadsCmd.key;" oncommand="goDoCommand('cmd_collapseAllThreads')"/>
   <key key="&collapseAllThreadsCmd.key;" modifiers="shift"           oncommand="goDoCommand('cmd_collapseAllThreads')"/>
-  <key id="key_nextUnreadThread" key="&nextUnreadThreadCmd.key;"     oncommand="goDoCommand('cmd_nextUnreadThread')"/>
+  <key id="key_nextUnreadThread" key="&nextUnreadThread.key;"        oncommand="goDoCommand('cmd_nextUnreadThread')"/>
   <key id="key_previousMsg" key="&prevMsgCmd.key;"                   oncommand="goDoCommand('cmd_previousMsg')"/>
   <key id="key_previousUnreadMsg" key="&prevUnreadMsgCmd.key;"       oncommand="goDoCommand('cmd_previousUnreadMsg')"/>
   <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward')"/>
@@ -958,7 +958,10 @@
                  accesskey="&renameFolder.accesskey;"
                  key="key_renameFolder"
                  command="cmd_renameFolder"/>
-          <menuitem id="menu_compactFolder" label="&compactFolders.label;" accesskey="&compactFolder.accesskey;" command="cmd_compactFolder"/>
+          <menuitem id="menu_compactFolder" 
+                    label="&compactFolders.label;" 
+                    accesskey="&compactFolders.accesskey;" 
+                    command="cmd_compactFolder"/>
           <menuitem id="menu_emptyTrash" label="&emptyTrashCmd.label;"
                  accesskey="&emptyTrashCmd.accesskey;"
                  command="cmd_emptyTrash"/>
@@ -1213,7 +1216,10 @@
                         key="key_nextUnreadMsg"/>
               <menuitem id="menu_nextFlaggedMsg" label="&nextStarredMsgCmd.label;" accesskey="&nextStarredMsgCmd.accesskey;" command="cmd_nextFlaggedMsg"/>
               <menuseparator id="goNextAfterFlaggedSeparator"/>
-              <menuitem id="menu_nextUnreadThread" label="&nextUnreadThread.label;" accesskey="&nextUnreadThreadCmd.accesskey;" command="cmd_nextUnreadThread"
+              <menuitem id="menu_nextUnreadThread" 
+                        label="&nextUnreadThread.label;" 
+                        accesskey="&nextUnreadThread.accesskey;" 
+                        command="cmd_nextUnreadThread"
                         key="key_nextUnreadThread"/>
             </menupopup>
           </menu>
