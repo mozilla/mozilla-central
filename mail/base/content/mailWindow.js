@@ -39,8 +39,6 @@
 # ***** END LICENSE BLOCK *****
 
 //This file stores variables common to mail windows
-var mailSessionContractID = "@mozilla.org/messenger/services/session;1";
-
 var messenger;
 var pref;
 var statusFeedback;
@@ -48,8 +46,6 @@ var msgWindow;
 
 var msgComposeService;
 var accountManager;
-
-var mailSession;
 
 var gMessengerBundle;
 var gBrandBundle;
@@ -228,13 +224,9 @@ function OnMailWindowUnload()
     dbview.close();
   }
 
-  var mailSession = Components.classes[mailSessionContractID].getService();
-  if(mailSession)
-  {
-    mailSession = mailSession.QueryInterface(Components.interfaces.nsIMsgMailSession);
-    if(mailSession)
-      mailSession.RemoveFolderListener(folderListener);
-  }
+  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
+                              .getService(Components.interfaces.nsIMsgMailSession);
+  mailSession.RemoveFolderListener(folderListener);
 
   mailSession.RemoveMsgWindow(msgWindow);
   messenger.setWindow(null, null);
@@ -242,16 +234,11 @@ function OnMailWindowUnload()
   msgWindow.closeWindow();
 }
 
-function CreateMessenger()
-{
-  messenger = Components.classes["@mozilla.org/messenger;1"]
-                        .createInstance(Components.interfaces.nsIMessenger);
-}
-
 function CreateMailWindowGlobals()
 {
   // get the messenger instance
-  CreateMessenger();
+  messenger = Components.classes["@mozilla.org/messenger;1"]
+                        .createInstance(Components.interfaces.nsIMessenger);
 
   pref = Components.classes["@mozilla.org/preferences-service;1"]
           .getService(Components.interfaces.nsIPrefBranch2);
@@ -277,8 +264,6 @@ function CreateMailWindowGlobals()
 
   msgComposeService = Components.classes['@mozilla.org/messengercompose;1']
                                 .getService(Components.interfaces.nsIMsgComposeService);
-
-  mailSession = Components.classes["@mozilla.org/messenger/services/session;1"].getService(Components.interfaces.nsIMsgMailSession);
 
   accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
 
@@ -311,7 +296,9 @@ function InitMsgWindow()
   msgWindow.domWindow = window;
   msgWindow.statusFeedback = statusFeedback;
   msgWindow.msgHeaderSink = messageHeaderSink;
-  mailSession.AddMsgWindow(msgWindow);
+  Components.classes["@mozilla.org/messenger/services/session;1"]
+            .getService(Components.interfaces.nsIMsgMailSession)
+            .AddMsgWindow(msgWindow);
   getBrowser().docShell.allowAuth = false;
   msgWindow.rootDocShell.allowAuth = true;
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
@@ -528,11 +515,6 @@ nsMsgWindowCommands.prototype =
   }
 }
 
-function StopUrls()
-{
-  msgWindow.StopUrls();
-}
-
 /**
  * @returns the pref name to use for fetching the start page url. Every time the application version changes,
  * return "mailnews.start_page.override_url". If this is the first time the application has been
@@ -596,19 +578,6 @@ function ShowAccountCentral()
   window.frames["accountCentralPane"].location.href = acctCentralPage;
 }
 
-function ShowingAccountCentral()
-{
-  if (!IsFolderPaneCollapsed())
-    GetFolderTree().focus();
-
-  gAccountCentralLoaded = true;
-}
-
-function HidingAccountCentral()
-{
-  gAccountCentralLoaded = false;
-}
-
 function ShowThreadPane()
 {
   document.getElementById("displayDeck").selectedPanel =
@@ -656,10 +625,13 @@ function ObserveDisplayDeckChange(event)
     else
       HidingThreadPane();
 
-    if (nowSelected == "accountCentralBox")
-      ShowingAccountCentral();
-    else
-      HidingAccountCentral();
+    if (nowSelected == "accountCentralBox") {
+      if (!IsFolderPaneCollapsed())
+        GetFolderTree().focus();
+
+      gAccountCentralLoaded = true;
+    } else
+      gAccountCentralLoaded = false;
     gCurrentDisplayDeckId = nowSelected;
   }
 }

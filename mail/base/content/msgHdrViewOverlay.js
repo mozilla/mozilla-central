@@ -306,12 +306,12 @@ const MsgHdrViewObserver =
       if (prefName == "mail.showCondensedAddresses")
       {
         gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
-        MsgReload();
+        ReloadMessage();
       }
       else if (prefName == "mailnews.headers.showReferences")
       {
         gHeadersShowReferences = pref.getBoolPref("mailnews.headers.showReferences");
-        MsgReload();
+        ReloadMessage();
       }
     }
   }

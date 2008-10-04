@@ -477,14 +477,10 @@ function CheckForMessageIdInFolder(folder, messageId)
   {
     dump("Failed to find message-id in folder!");
   }
+  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
+                              .getService(Components.interfaces.nsIMsgMailSession);
 
-  if (!gMailSession)
-  {
-    gMailSession = Components.classes[mailSessionContractID]
-                             .getService(Components.interfaces.nsIMsgMailSession);
-  }
-
-  if (!gMailSession.IsFolderOpenInWindow(folder) &&
+  if (!mailSession.IsFolderOpenInWindow(folder) &&
       !(folder.flags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_INBOX)))
   {
     folder.setMsgDatabase(null);

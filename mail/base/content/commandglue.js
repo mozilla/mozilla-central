@@ -1095,8 +1095,6 @@ var gMessengerBundle = null;
 var gDataSourceSearchListener;
 var gViewSearchListener;
 
-var gMailSession;
-
 function GetScopeForFolder(folder) 
 {
   return folder.server.searchScope;
@@ -1108,8 +1106,6 @@ function setupXFVirtualFolderSearch(folderUrisToSearch, searchTerms, searchOnlin
   var i;
 
     gSearchSession = Components.classes[searchSessionContractID].createInstance(Components.interfaces.nsIMsgSearchSession);
-
-    gMailSession = Components.classes[mailSessionContractID].getService(Components.interfaces.nsIMsgMailSession);
 
   for (i in folderUrisToSearch)
     {

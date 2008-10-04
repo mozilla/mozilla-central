@@ -264,13 +264,11 @@ function delayedOnLoadMessageWindow()
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadMsgHeaderPane();
 
-  try {
-    var nsIFolderListener = Components.interfaces.nsIFolderListener;
-    var notifyFlags = nsIFolderListener.removed | nsIFolderListener.event | nsIFolderListener.intPropertyChanged;
-    mailSession.AddFolderListener(folderListener, notifyFlags);
-  } catch (ex) {
-    dump("Error adding to session: " +ex + "\n");
-  }
+  var nsIFolderListener = Components.interfaces.nsIFolderListener;
+  var notifyFlags = nsIFolderListener.removed | nsIFolderListener.event | nsIFolderListener.intPropertyChanged;
+  Components.classes["@mozilla.org/messenger/services/session;1"]
+            .getService(Components.interfaces.nsIMsgMailSession)
+            .AddFolderListener(folderListener, notifyFlags);
 
   var originalView = null;
   var folder = null;
@@ -1044,7 +1042,7 @@ var MessageWindowController =
         MsgViewPageSource();
         break;
       case "cmd_reload":
-        MsgReload();
+        ReloadMessage();
         break;
       case "cmd_find":
         MsgFind();

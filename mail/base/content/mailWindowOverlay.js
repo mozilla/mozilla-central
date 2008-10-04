@@ -1442,7 +1442,8 @@ function DisplayFolderAndThreadPane(show)
 function openFolderTab(aMailTabOwner)
 {
   ClearThreadPaneSelection(); 
-  CreateMessenger();
+  messenger = Components.classes["@mozilla.org/messenger;1"]
+                        .createInstance(Components.interfaces.nsIMessenger);
   messenger.setWindow(window, msgWindow);
   aMailTabOwner.msgSelectedFolder = gMsgFolderSelected;
   // clear selection, because context clicking on a folder and opening in a new
@@ -1975,21 +1976,21 @@ function ChangeMailLayout(newLayout)
 function MsgViewAllHeaders()
 {
     gPrefBranch.setIntPref("mail.show_headers",2);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
 function MsgViewNormalHeaders()
 {
     gPrefBranch.setIntPref("mail.show_headers",1);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
 function MsgViewBriefHeaders()
 {
     gPrefBranch.setIntPref("mail.show_headers",0);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
@@ -1998,7 +1999,7 @@ function MsgBodyAllowHTML()
     gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
     gPrefBranch.setIntPref("mailnews.display.html_as", 0);
     gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers", 0);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
@@ -2008,7 +2009,7 @@ function MsgBodySanitized()
     gPrefBranch.setIntPref("mailnews.display.html_as", 3);
     gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers",
                       gDisallow_classes_no_html);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
@@ -2017,7 +2018,7 @@ function MsgBodyAsPlaintext()
     gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", true);
     gPrefBranch.setIntPref("mailnews.display.html_as", 1);
     gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers", gDisallow_classes_no_html);
-    MsgReload();
+    ReloadMessage();
     return true;
 }
 
@@ -2026,17 +2027,7 @@ function ToggleInlineAttachment(target)
     var viewAttachmentInline = !pref.getBoolPref("mail.inline_attachments");
     pref.setBoolPref("mail.inline_attachments", viewAttachmentInline)
     target.setAttribute("checked", viewAttachmentInline ? "true" : "false");
-    MsgReload();
-}
-
-function MsgReload()
-{
     ReloadMessage();
-}
-
-function MsgStop()
-{
-    StopUrls();
 }
 
 function MsgSendUnsentMsgs()
@@ -2477,7 +2468,7 @@ function HandleJunkStatusChanged(folder)
         // Furthermore, if we are about to move the message that was just marked as junk, 
         // then don't bother reloading it.
         if (!(isJunk && moveJunkMail)) 
-          MsgReload();
+          ReloadMessage();
       }
     }
   }
@@ -2639,7 +2630,7 @@ function allowRemoteContentForSender()
   
   // reload the message if we've updated the remote content policy for the sender  
   if (allowRemoteContent)
-    MsgReload();
+    ReloadMessage();
 }
 
 /** 
@@ -2661,7 +2652,7 @@ function setMsgHdrPropertyAndReload(aProperty, aValue)
   if (msgHdr)
   {
     msgHdr.setUint32Property(aProperty, aValue);
-    MsgReload();
+    ReloadMessage();
   }
 }
 
