@@ -308,6 +308,7 @@ pref("xpinstall.dialog.progress.chrome", "chrome://mozapps/content/extensions/ex
 pref("xpinstall.dialog.progress.type.skin", "Extension:Manager"); 
 pref("xpinstall.dialog.progress.type.chrome", "Extension:Manager");
 
+pref("browser.display.auto_quality_min_font_size", 0);
 /////////////////////////////////////////////////////////////////
 // End seamonkey suite all.js pref overrides
 ///////////////////////////////////////////////////////////////// 
