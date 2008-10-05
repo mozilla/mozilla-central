@@ -497,12 +497,7 @@ function setupContextItemType(event, items) {
         adaptModificationMenuItem("calendar-item-context-menu-delete-menuitem", "Event");
     } else if (items.length && isToDo(items[0])) {
         event.target.setAttribute("type", "todo");
-        //XXX Workaround added in bug 448771 because of string freeze (removal in bug 450391)
-        var menuItem = document.getElementById("calendar-item-context-menu-delete-menuitem");
-        if (menuItem) {
-            menuItem.setAttribute("label", calGetString("calendar", "deleteTaskLabel"));
-            menuItem.setAttribute("accesskey", calGetString("calendar", "deletetaskAccesskey"));
-        }
+        adaptModificationMenuItem("calendar-item-context-menu-delete-menuitem", "Task");
     } else {
         event.target.removeAttribute("type");
         adaptModificationMenuItem("calendar-item-context-menu-delete-menuitem", "Item");
