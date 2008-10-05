@@ -95,7 +95,8 @@
         <checkbox wsm_persist="true" id="offline.notDownload"
                   label="&offlineNotDownload.label;" accesskey="&offlineNotDownload.accesskey;"
                   oncommand="onCheckItem('offline.notDownloadMin', 'offline.notDownload');"/>
-        <textbox wsm_persist="true" id="offline.notDownloadMin" size="4" value="50"
+        <textbox wsm_persist="true" id="offline.notDownloadMin"
+                 type="number" min="1" increment="10" size="4" value="50"
                  aria-labelledby="offline.notDownload offline.notDownloadMin kbLabel"/>
         <label value="&kb.label;" control="offline.notDownloadMin" id="kbLabel"/>
     </hbox>
@@ -104,7 +105,8 @@
         <checkbox wsm_persist="true" id="nntp.downloadMsg"
                   label="&nntpDownloadMsg.label;" accesskey="&nntpDownloadMsg.accesskey;"
                   oncommand="onCheckItem('nntp.downloadMsgMin', 'nntp.downloadMsg');"/>
-        <textbox wsm_persist="true" id="nntp.downloadMsgMin" size="2" value="30"
+        <textbox wsm_persist="true" id="nntp.downloadMsgMin"
+                 type="number" min="1" size="2" value="30"
                  aria-labelledby="nntp.downloadMsg nntp.downloadMsgMin daysOldLabel"/>
         <label value="&daysOld.label;" control="nntp.downloadMsgMin" id="daysOldLabel"/>
     </hbox>
@@ -119,14 +121,16 @@
         <hbox flex="1" align="center">
             <radio wsm_persist="true" id="retention.keepNewMsg" accesskey="&retentionKeepNew.accesskey;" 
                 value="3" label="&retentionKeepNew.label;" oncommand="onCheckKeepMsg();"/>
-            <textbox wsm_persist="true" id="retention.keepNewMsgMin" size="4" value="30"
+            <textbox wsm_persist="true" id="retention.keepNewMsgMin"
+                     type="number" min="1" increment="10" size="4" value="2000"
                      aria-labelledby="retention.keepNewMsg retention.keepNewMsgMin newMsgLabel"/>
             <label value="&message.label;" control="retention.keepNewMsgMin" id="newMsgLabel"/>
         </hbox>
         <hbox flex="1" align="center">
             <radio wsm_persist="true" id="retention.keepOldMsg" accesskey="&retentionKeepMsg.accesskey;"
                 value="2" label="&retentionKeepMsg.label;" oncommand="onCheckKeepMsg();"/>
-            <textbox wsm_persist="true" id="retention.keepOldMsgMin" size="4" value="30"
+            <textbox wsm_persist="true" id="retention.keepOldMsgMin"
+                     type="number" min="1" size="4" value="30"
                      aria-labelledby="retention.keepOldMsg retention.keepOldMsgMin oldMsgLabel"/>
             <label value="&daysOld.label;" control="retention.keepOldMsgMin" id="oldMsgLabel"/>
         </hbox>
@@ -140,6 +144,7 @@
         <checkbox wsm_persist="true" id="nntp.removeBody" accesskey="&nntpRemoveBody.accesskey;"
                   label="&nntpRemoveBody.label;" oncommand="onCheckItem('nntp.removeBodyMin','nntp.removeBody');"/>
         <textbox wsm_persist="true" id="nntp.removeBodyMin" size="2" value="30"
+                 type="number" min="1"
                  aria-labelledby="nntp.removeBody nntp.removeBodyMin daysOldMsg"/>
         <label value="&daysOld.label;" control="nntp.removeBodyMin" id="daysOldMsg"/>
     </hbox>

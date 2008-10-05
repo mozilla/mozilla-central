@@ -126,14 +126,16 @@
               <hbox flex="1" align="center">
                 <radio wsm_persist="true" id="keepNewMsg" accesskey="&retentionKeepNew.accesskey;" 
                         value="3" label="&retentionKeepNew.label;" oncommand="onCheckKeepMsg();"/>
-                <textbox wsm_persist="true" id="retention.keepNewMsgMin" size="2" value="30"
+                <textbox wsm_persist="true" id="retention.keepNewMsgMin"
+                         type="number" min="1" increment="10" size="4" value="2000"
                          aria-labelledby="keepNewMsg retention.keepNewMsgMin retention.keepNewMsgMinLabel"/>
                 <label value="&message.label;" control="retention.keepNewMsgMin" id="retention.keepNewMsgMinLabel"/>
               </hbox>
               <hbox flex="1" align="center">
                 <radio wsm_persist="true" id="keepMsg" accesskey="&retentionDeleteMsg.accesskey;"
                         value="2" label="&retentionDeleteMsg.label;" oncommand="onCheckKeepMsg();"/>
-                <textbox wsm_persist="true" id="retention.keepOldMsgMin" size="2" value="30"
+                <textbox wsm_persist="true" id="retention.keepOldMsgMin"
+                         type="number" min="1" size="2" value="30"
                          aria-labelledby="keepMsg retention.keepOldMsgMin retention.keepOldMsgMinLabel"/>
                 <label value="&daysOld.label;" control="retention.keepOldMsgMin" id="retention.keepOldMsgMinLabel"/>
               </hbox>

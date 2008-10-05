@@ -45,13 +45,9 @@ function initCommonRetentionSettings(retentionSettings)
   if(retentionSettings.daysToKeepHdrs > 0)
     document.getElementById("retention.keepOldMsgMin").value = 
     (retentionSettings.daysToKeepHdrs > 0) ? retentionSettings.daysToKeepHdrs : 30;
-  document.getElementById("retention.keepNewMsgMin").value = 
-    (retentionSettings.numHeadersToKeep > 0) ? retentionSettings.numHeadersToKeep : 30;
-
-  document.getElementById("retention.keepMsg").value = retentionSettings.retainByPreference;
+  document.getElementById("retention.keepNewMsgMin").value =
+    (retentionSettings.numHeadersToKeep > 0) ? retentionSettings.numHeadersToKeep : 2000;
 }
-
-
 
 function saveCommonRetentionSettings()
 {
@@ -67,7 +63,6 @@ function saveCommonRetentionSettings()
 
   return retentionSettings;
 }
-
 
 function onCheckKeepMsg()
 {
