@@ -50,7 +50,13 @@ var FolderPaneController =
     {
       case "cmd_delete":
       case "button_delete":
-      case "cmd_deleteFolder":
+        // Even if the folder pane has focus, don't do a folder delete if
+        // we have a selected message, but do a message delete instead.
+        // Return false here supportsCommand and let the command fall back
+        // to the DefaultController.
+        if (GetNumSelectedMessages() != 0)
+          return false;
+        // else fall through
       case "button_compact":
       //case "cmd_selectAll": the folder pane currently only handles single selection
       case "cmd_cut":
@@ -73,12 +79,6 @@ var FolderPaneController =
         return false;
       case "cmd_delete":
       case "button_delete":
-        // Even if the folder pane has focus, don't do a folder delete if
-        // we have a selected message, but do a message delete instead.
-        if (GetNumSelectedMessages() != 0)
-          return DefaultController.isCommandEnabled(command);
-         // else fall through
-      case "cmd_deleteFolder":
         // Make sure the button doesn't show "Undelete" for folders.
         UpdateDeleteToolbarButton();
       case "button_compact":
@@ -87,38 +87,17 @@ var FolderPaneController =
       var folders = GetSelectedMsgFolders();
 
       if (folders.length) {
-        var canDeleteThisFolder;
-        var specialFolder = null;
-        var isServer = null;
-        var serverType = null;
-        try {
-          var folder = folders[0];
-          specialFolder = getSpecialFolderString(folder);
-          isServer = folder.isServer;
-          serverType = folder.server.type;
-          if (serverType == "nntp") {
-            if (command == "cmd_deleteFolder") {
-              // Just disable the command for news.
-              return false;
-            }
-            else if (command == "cmd_delete") {
-              goSetMenuValue(command, 'valueNewsgroup');
-              goSetAccessKey(command, 'valueNewsgroupAccessKey');
-            }
+        var folder = folders[0];
+        var canDeleteThisFolder = CanDeleteFolder(folder);
+        if (folder.server.type == "nntp") {
+          if (command == "cmd_delete") {
+            goSetMenuValue(command, 'valueNewsgroup');
+            goSetAccessKey(command, 'valueNewsgroupAccessKey');
           }
         }
-        catch (ex) {
-          //dump("specialFolder failure: " + ex + "\n");
-        }
-        if (specialFolder == "Inbox" || specialFolder == "Trash" || specialFolder == "Drafts" ||
-            specialFolder == "Sent" || specialFolder == "Templates" || specialFolder == "Unsent Messages" ||
-            (specialFolder == "Junk" && !CanRenameDeleteJunkMail(GetSelectedFolderURI())) || isServer)
-          canDeleteThisFolder = false;
-        else
-          canDeleteThisFolder = true;
         return (command != "button_compact") ?
           canDeleteThisFolder && isCommandEnabled(command) :
-          !isServer && IsCompactFolderEnabled();
+          !folder.isServer && IsCompactFolderEnabled();
       }
       else
         return false;
@@ -137,14 +116,6 @@ var FolderPaneController =
     {
       case "cmd_delete":
       case "button_delete":
-        // Even if the folder pane has focus, don't do a folder delete if
-        // we have a selected message, but delete the message instead.
-        if (GetNumSelectedMessages() == 0)
-          MsgDeleteFolder();
-        else
-          DefaultController.doCommand(command);
-        break;
-      case "cmd_deleteFolder":
         MsgDeleteFolder();
         break;
       case "button_compact":
@@ -290,7 +261,15 @@ var DefaultController =
           gDBView.getCommandStatus(nsMsgViewCommandType.deleteNoTrash, enabled, checkStatus);
         return enabled.value;
       case "cmd_deleteFolder":
-        return FolderPaneController.isCommandEnabled(command);
+        var folders = GetSelectedMsgFolders();
+        if (folders.length) {
+          var folder = folders[0];
+          if (folder.server.type == "nntp")
+            return false; // Just disable the command for news.
+          else
+            return CanDeleteFolder(folder);
+        }
+        return false;
       case "button_junk":
         UpdateJunkToolbarButton();
         if (gDBView)
@@ -540,7 +519,7 @@ var DefaultController =
         gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
         break;
       case "cmd_deleteFolder":
-        FolderPaneController.doCommand(command);
+        MsgDeleteFolder();
         break;
       case "cmd_killThread":
         /* kill thread kills the thread and then does a next unread */
@@ -1089,5 +1068,22 @@ function CanRenameDeleteJunkMail(aFolderUri)
   {
       dump("Can't get all servers\n");
   }
+  return true;
+}
+
+/** Check if this is a folder the user is allowed to delete. */
+function CanDeleteFolder(folder)
+{
+  if (folder.isServer)
+    return false;
+
+  var specialFolder = getSpecialFolderString(folder);
+
+  if (specialFolder == "Inbox" || specialFolder == "Trash" ||
+      specialFolder == "Drafts" || specialFolder == "Sent" ||
+      specialFolder == "Templates" || specialFolder == "Unsent Messages" ||
+      (specialFolder == "Junk" && !CanRenameDeleteJunkMail(folder.URI)))
+    return false;
+
   return true;
 }
