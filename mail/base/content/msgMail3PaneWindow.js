@@ -949,15 +949,11 @@ function loadStartFolder(initialUri)
 
 function AddToSession()
 {
-  try {
-    var mailSession = Components.classes[mailSessionContractID]
-                                .getService(Components.interfaces.nsIMsgMailSession);
-    var nsIFolderListener = Components.interfaces.nsIFolderListener;
-    var notifyFlags = nsIFolderListener.intPropertyChanged | nsIFolderListener.event;
-    mailSession.AddFolderListener(folderListener, notifyFlags);
-  } catch (ex) {
-    dump("Error adding to session\n");
-  }
+  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
+                              .getService(Components.interfaces.nsIMsgMailSession);
+  var nsIFolderListener = Components.interfaces.nsIFolderListener;
+  var notifyFlags = nsIFolderListener.intPropertyChanged | nsIFolderListener.event;
+  mailSession.AddFolderListener(folderListener, notifyFlags);
 }
 
 function InitPanes()
