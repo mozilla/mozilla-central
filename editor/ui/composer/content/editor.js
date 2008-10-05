@@ -1803,8 +1803,7 @@ function SetEditMode(mode)
           if (titleNode && titleNode.firstChild && titleNode.firstChild.data)
             title = titleNode.firstChild.data;
         }
-        if (editor.document.title != title)
-          SetDocumentTitle(title);
+        SetDocumentTitle(title);
 
       } catch (ex) {
         dump(ex);
