@@ -207,6 +207,8 @@
   <key id="key_cut" key="&cutCmd.key;" modifiers="accel"/>
   <key id="key_copy" key="&copyCmd.key;" modifiers="accel"/>
   <key id="key_paste" key="&pasteCmd.key;" modifiers="accel"/>
+  <key id="pastenoformattingkb" key="&pasteNoFormattingCmd.key;"
+       modifiers="accel, shift" observes="cmd_pasteNoFormatting"/>
   <key id="key_rewrap" key="&editRewrapCmd.key;" modifiers="accel"/>
 #ifdef XP_MACOSX
   <key id="key_delete" keycode="VK_BACK"/>
@@ -367,7 +369,8 @@
           <menuitem id="menu_cut" label="&cutCmd.label;" key="key_cut" accesskey="&cutCmd.accesskey;" command="cmd_cut"/>
           <menuitem id="menu_copy" label="&copyCmd.label;" key="key_copy" accesskey="&copyCmd.accesskey;" command="cmd_copy"/>
           <menuitem id="menu_paste" label="&pasteCmd.label;" key="key_paste" accesskey="&pasteCmd.accesskey;" command="cmd_paste"/>
-          <menuitem id="menu_pasteNoFormatting" command="cmd_pasteNoFormatting"/>
+          <menuitem id="menu_pasteNoFormatting" command="cmd_pasteNoFormatting"
+                    key="pastenoformattingkb"/>
           <menuitem id="menu_pasteQuote"/>
           <menuitem id="menu_rewrap" label="&editRewrapCmd.label;" key="key_rewrap" accesskey="&editRewrapCmd.accesskey;" command="cmd_rewrap"/>
           <menuitem id="menu_delete" label="&deleteCmd.label;" key="key_delete" accesskey="&deleteCmd.accesskey;" command="cmd_delete"/>

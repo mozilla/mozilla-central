@@ -276,7 +276,8 @@
           <menuitem id="menu_cut"/>
           <menuitem id="menu_copy"/>
           <menuitem id="menu_paste"/>
-          <menuitem id="menu_pasteNoFormatting" command="cmd_pasteNoFormatting"/>
+          <menuitem id="menu_pasteNoFormatting" command="cmd_pasteNoFormatting"
+                    key="pastenoformattingkb"/>
           <menuitem id="menu_pasteQuote"/>
           <menuitem label="&editRewrapCmd.label;" accesskey="&editRewrapCmd.accesskey;" command="cmd_rewrap"/>
           <menuitem id="menu_delete"/>

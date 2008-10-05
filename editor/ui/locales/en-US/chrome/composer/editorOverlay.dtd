@@ -96,6 +96,7 @@
 <!ENTITY editmenu.accesskey "e">
 <!ENTITY pasteNoFormatting.label "Paste Without Formatting">
 <!ENTITY pasteNoFormatting.accesskey "o">
+<!ENTITY pasteNoFormatting.key "V">
 <!ENTITY pasteAs.label "Paste As">
 <!ENTITY pasteAs.accesskey "a">
 <!ENTITY publishSettings.label "Publishing Site Settings…">
@@ -121,7 +122,6 @@
 <!ENTITY editpastelink.accesskey "l">
 <!ENTITY pasteAsQuotationCmd.label "Paste As Quotation">
 <!ENTITY editpastequotation.accesskey "q">
-<!ENTITY editpastequotation.keybinding "v">
 <!ENTITY editStripQuotesCmd.label "Strip Quotes">
 <!ENTITY editRewrapCmd.label "Rewrap">
 <!ENTITY findCmd.label "Find and Replace…">

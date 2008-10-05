@@ -73,7 +73,8 @@
     <key id="key_paste"/>
     <key id="key_delete"/>
     <key id="key_selectAll"/>
-    <key id="pastequotationkb"  key="&editpastequotation.keybinding;"   observes="cmd_pasteQuote"  modifiers="accel, shift"/>
+    <key id="pastenoformattingkb" key="&pasteNoFormatting.key;"
+         observes="cmd_pasteNoFormatting" modifiers="accel, shift"/>
     <key id="findkb"            key="&editfind.keybinding;"            observes="cmd_find"  modifiers="accel"/>
     <key id="findnextkb"        key="&editfindnext.keybinding;"        observes="cmd_findNext"  modifiers="accel"/>
     <key id="findprevkb"        key="&editfindprev.keybinding;"        observes="cmd_findPrev"  modifiers="accel,shift"/>
@@ -382,7 +383,8 @@
       <menuitem id="menu_cut"/>
       <menuitem id="menu_copy"/>
       <menuitem id="menu_paste"/>
-      <menuitem id="menu_pasteNoFormatting" observes="cmd_pasteNoFormatting"/>
+      <menuitem id="menu_pasteNoFormatting" key="pastenoformattingkb"
+                observes="cmd_pasteNoFormatting"/>
 
 <!-- PasteAs not implemented yet
       <menu id="menu_pasteAs" label="&pasteAs.label;" accesskey="&pasteAs.accesskey;">
@@ -913,6 +915,7 @@
   <!-- Paste as quotation is used by mail compose,
        but in composer it has to go in the debug menu
    -->
-  <menuitem id="menu_pasteQuote" accesskey="&editpastequotation.accesskey;" command="cmd_pasteQuote" key="pastequotationkb"/>
+  <menuitem id="menu_pasteQuote" accesskey="&editpastequotation.accesskey;"
+            command="cmd_pasteQuote"/>
 
 </overlay>

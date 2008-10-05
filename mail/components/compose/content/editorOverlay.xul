@@ -62,7 +62,6 @@
 
     <key id="increaseindentkb"  key="&formatindent.keybinding;"  observes="cmd_indent"  modifiers="accel"/>
     <key id="decreaseindentkb"  key="&formatoutdent.keybinding;"  observes="cmd_outdent"  modifiers="accel"/>
-    <key id="pastequotationkb"  key="&editpastequotation.keybinding;"   observes="cmd_pasteQuote"  modifiers="accel, shift"/>
 
     <key id="removestyleskb"       key="&formatremovestyles.keybinding;"   observes="cmd_removeStyles"  modifiers="accel, shift"/>
     <key id="removestyleskb2"       key=" "   observes="cmd_removeStyles"  modifiers="accel"/>
@@ -769,6 +768,7 @@
   <!-- Paste as quotation is used by mail compose,
        but in composer it has to go in the debug menu
    -->
-  <menuitem id="menu_pasteQuote" accesskey="&editpastequotation.accesskey;" command="cmd_pasteQuote" key="pastequotationkb"/>
+  <menuitem id="menu_pasteQuote" accesskey="&editpastequotation.accesskey;"
+            command="cmd_pasteQuote"/>
 
 </overlay>
