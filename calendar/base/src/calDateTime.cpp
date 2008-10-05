@@ -480,7 +480,11 @@ void calDateTime::FromIcalTime(icaltimetype const* icalt, calITimezone * tz)
         if (t.is_utc) {
             NS_ASSERTION(SameCOMIdentity(mTimezone, cal::UTC()), "UTC mismatch!");
         } else if (!t.zone) {
-            NS_ASSERTION(SameCOMIdentity(mTimezone, cal::floating()), "floating mismatch!");
+            nsCAutoString tzid;
+            mTimezone->GetTzid(tzid);
+            if (tzid.EqualsLiteral("floating")) {
+                NS_ASSERTION(SameCOMIdentity(mTimezone, cal::floating()), "floating mismatch!");
+            }
         } else {
             nsCAutoString tzid;
             mTimezone->GetTzid(tzid);

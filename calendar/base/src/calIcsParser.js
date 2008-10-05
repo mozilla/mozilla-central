@@ -35,6 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 function calIcsParser() {
     this.wrappedJSObject = this;
     this.mItems = new Array();
@@ -70,6 +72,26 @@ function ip_parseString(aICSString, aTzProvider) {
     var uid2parent = {};
     var excItems = [];
 
+    let tzErrors = {};
+    function checkTimezone(item, dt) {
+        if (dt && cal.isPhantomTimezone(dt.timezone)) {
+            let tzid = dt.timezone.tzid;
+            let hid = item.hashId + "#" + tzid;
+            if (tzErrors[hid] === undefined) {
+                // For now, publish errors to console and alert user.
+                // In future, maybe make them available through an interface method
+                // so this UI code can be removed from the parser, and caller can
+                // choose whether to alert, or show user the problem items and ask
+                // for fixes, or something else.
+                let msg = (calGetString("calendar", "unknownTimezoneInItem",
+                                        [tzid, item.title, cal.getDateFormatter().formatDateTime(dt)]) +
+                           "\n" + item.icalString);
+                cal.ERROR(msg);
+                tzErrors[hid] = true;
+            }
+        }
+    }
+
     while (calComp) {
 
         // Get unknown properties
@@ -93,12 +115,17 @@ function ip_parseString(aICSString, aTzProvider) {
             var item = null;
             switch (subComp.componentType) {
             case "VEVENT":
-                item = Components.classes["@mozilla.org/calendar/event;1"]
-                                 .createInstance(Components.interfaces.calIEvent);
+                item = cal.createEvent();
+                item.icalComponent = subComp;
+                checkTimezone(item, item.startDate);
+                checkTimezone(item, item.endDate);
                 break;
             case "VTODO":
-                item = Components.classes["@mozilla.org/calendar/todo;1"]
-                                 .createInstance(Components.interfaces.calITodo);
+                item = cal.createTodo();
+                item.icalComponent = subComp;
+                checkTimezone(item, item.entryDate);
+                checkTimezone(item, item.dueDate);
+                // completed is defined to be in UTC
                 break;
             case "VTIMEZONE":
                 // this should already be attached to the relevant
@@ -110,8 +137,6 @@ function ip_parseString(aICSString, aTzProvider) {
             }
 
             if (item) {
-                item.icalComponent = subComp;
-
                 // Only try to fix ICS from Sunbird 0.2 (and earlier) if it
                 // has an EXDATE.
                 hasExdate = subComp.getFirstProperty("EXDATE");
@@ -149,6 +174,19 @@ function ip_parseString(aICSString, aTzProvider) {
     for each (var item in unexpandedItems) {
         this.mItems.push(item);
     }
+
+    for (let e in tzErrors) { // if any error has occurred
+        // Use an alert rather than a prompt because problems may appear in
+        // remote subscribed calendars the user cannot change.
+        if (Components.classes["@mozilla.org/alerts-service;1"]) {
+            let notifier = Components.classes["@mozilla.org/alerts-service;1"]
+                                     .getService(Components.interfaces.nsIAlertsService);
+            let title = calGetString("calendar", "TimezoneErrorsAlertTitle")
+            let text = calGetString("calendar", "TimezoneErrorsSeeConsole");
+            notifier.showAlertNotification("", title, text, false, null, null, title);
+        }
+        break;
+     }
 };
 
 calIcsParser.prototype.parseFromStream =

@@ -113,6 +113,10 @@ EXTRA_SCRIPTS = \
     calTimezoneService.js \
     $(NULL)
 
+EXTRA_JS_MODULES = \
+    calUtils.jsm \
+    $(NULL)
+
 # Use NSINSTALL to make the directory, as there's no mtime to preserve.
 libs:: $(EXTRA_SCRIPTS)
 	if test ! -d $(FINAL_TARGET)/js; then $(NSINSTALL) -D $(FINAL_TARGET)/js; fi

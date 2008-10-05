@@ -203,7 +203,7 @@ icaltimezone * getIcalTimezone(calITimezone * tz) {
         tz->GetIcalComponent(getter_AddRefs(tzComp));
         if (tzComp) {
             icaltz = tzComp->GetIcalTimezone();
-        } // else floating
+        } // else floating or phantom timezone
     }
     return icaltz;
 }

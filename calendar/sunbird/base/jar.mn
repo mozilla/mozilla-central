@@ -1,4 +1,5 @@
 calendar.jar:
+% resource calendar .
 % content calendar %content/calendar/
 *  content/calendar/aboutDialog.css              (content/aboutDialog.css)
 *  content/calendar/aboutDialog.js               (content/aboutDialog.js)

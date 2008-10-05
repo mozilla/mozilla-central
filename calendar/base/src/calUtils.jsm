@@ -34,60 +34,44 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#include "calTimezone.h"
-#include "calUtils.h"
-#include "calAttributeHelpers.h"
 
-NS_IMPL_ISUPPORTS1(calTimezone, calITimezone)
+// New code must not load/import calUtils.js, but should use calUtils.jsm.
 
-CAL_ISUPPORTS_ATTR_GETTER(calTimezone, calIIcalComponent, IcalComponent)
-CAL_STRINGTYPE_ATTR_GETTER(calTimezone, nsACString, Tzid)
+var EXPORTED_SYMBOLS = ["cal"];
+let cal = {
+    // new code should land here,
+    // and more code should be moved from calUtils.js into this object to avoid
+    // clashes with other extensions
 
-NS_IMETHODIMP
-calTimezone::GetIsFloating(PRBool * _retval) {
-    NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = PR_FALSE;
-    return NS_OK;
-}
+    getIOService: generateServiceAccessor("@mozilla.org/network/io-service;1",
+                                          Components.interfaces.nsIIOService2),
 
-NS_IMETHODIMP
-calTimezone::GetIsUTC(PRBool * _retval) {
-    NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = PR_FALSE;
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-calTimezone::GetDisplayName(nsAString & _retval) {
-    _retval = NS_ConvertUTF8toUTF16(mTzid);
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-calTimezone::GetLatitude(nsACString & _retval) {
-    _retval.SetIsVoid(PR_TRUE);
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-calTimezone::GetLongitude(nsACString & _retval) {
-    _retval.SetIsVoid(PR_TRUE);
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-calTimezone::GetProvider(calITimezoneProvider ** _retval) {
-    NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = nsnull;
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-calTimezone::ToString(nsACString & aResult) {
-    if (mIcalComponent) {
-        return mIcalComponent->ToString(aResult);
-    } else {
-        return GetTzid(aResult);
+    /**
+     * Checks whether a timezone lacks a definition.
+     */
+    isPhantomTimezone: function cal_isPhantomTimezone(tz) {
+        return (!tz.icalComponent && !tz.isUTC && !tz.isFloating);
     }
+};
+
+// local to this module;
+// will be used to generate service accessor functions, getIOService()
+function generateServiceAccessor(id, iface) {
+    return function this_() {
+        if (this_.mService === undefined) {
+            this_.mService = Components.classes[id].getService(iface);
+        }
+        return this_.mService;
+    };
 }
+
+// Interim import of all symbols into cal:
+// This should serve as a clean start for new code, e.g. new code could use
+// cal.createDatetime instead of plain createDatetime NOW.
+let calUtils = __LOCATION__.parent.parent.clone();
+calUtils.append("js");
+calUtils.append("calUtils.js");
+Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+          .getService(Components.interfaces.mozIJSSubScriptLoader)
+          .loadSubScript(cal.getIOService().newFileURI(calUtils).spec, cal);
 

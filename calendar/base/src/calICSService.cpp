@@ -438,6 +438,9 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
                         CAL_ENSURE_MEMORY(tzComp);
                         tz = new calTimezone(tzid, tzComp);
                         CAL_ENSURE_MEMORY(tz);
+                    } else { // install phantom timezone, so the data could be repaired:
+                        tz = new calTimezone(tzid, nsnull);
+                        CAL_ENSURE_MEMORY(tz);
                     }
                 }
             }
@@ -481,8 +484,9 @@ calIcalComponent::AddTimezoneReference(calITimezone *aTimezone)
     nsCAutoString tzid;
     nsresult rv = aTimezone->GetTzid(tzid);
     NS_ENSURE_SUCCESS(rv, rv);
-    if (!mReferencedTimezones.Put(tzid, aTimezone))
+    if (!mReferencedTimezones.Put(tzid, aTimezone)) {
         return NS_ERROR_OUT_OF_MEMORY;
+    }
     return NS_OK;
 }
 
@@ -764,15 +768,28 @@ nsresult calIcalProperty::setDatetime_(calIcalComponent * parent,
     dt->ToIcalTime(&itt);
 
     if (parent) {
-        if (!itt.is_utc && itt.zone) {
+        if (!itt.is_utc) {
             nsCOMPtr<calITimezone> tz;
             nsresult rv = dt->GetTimezone(getter_AddRefs(tz));
             NS_ENSURE_SUCCESS(rv, rv);
-            rv = parent->getParentVCalendarOrThis()->AddTimezoneReference(tz);
-            NS_ENSURE_SUCCESS(rv, rv);
-            icalparameter * const param = icalparameter_new_from_value_string(
-                ICAL_TZID_PARAMETER, icaltimezone_get_tzid(const_cast<icaltimezone *>(itt.zone)));
-            icalproperty_set_parameter(prop, param);
+            if (itt.zone) {
+                rv = parent->getParentVCalendarOrThis()->AddTimezoneReference(tz);
+                NS_ENSURE_SUCCESS(rv, rv);
+                icalparameter * const param = icalparameter_new_from_value_string(
+                    ICAL_TZID_PARAMETER, icaltimezone_get_tzid(const_cast<icaltimezone *>(itt.zone)));
+                icalproperty_set_parameter(prop, param);
+            } else { // either floating or phantom:
+                PRBool b = PR_FALSE;
+                if (NS_FAILED(tz->GetIsFloating(&b)) || !b) {
+                    // restore the same phantom TZID:
+                    nsCAutoString tzid;
+                    rv = tz->GetTzid(tzid);
+                    NS_ENSURE_SUCCESS(rv, rv);
+                    icalparameter * const param = icalparameter_new_from_value_string(ICAL_TZID_PARAMETER,
+                                                                                      tzid.get());
+                    icalproperty_set_parameter(prop, param);
+                }
+            }
         }
     } else if (!itt.is_date && !itt.is_utc && itt.zone) {
         // no parent to add the CTIMEZONE to: coerce DATETIMEs to UTC, DATEs to floating
