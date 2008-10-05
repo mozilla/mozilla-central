@@ -272,7 +272,7 @@ function setupImapDeleteUI(aServerId)
 {
   // read delete_model preference
   var deleteModel = document.getElementById("imap.deleteModel").getAttribute("value");
-  selectImapDeleteModel(deleteModel)
+  selectImapDeleteModel(deleteModel);
 
   // read trash_folder_name preference
   var trashFolderName = getTrashFolderName();
@@ -320,8 +320,15 @@ function selectImapDeleteModel(choice)
 // Capture any menulist changes from folderPicker
 function folderPickerChange(aEvent)
 {
+  var folder = aEvent.target._folder;
+
+  // Set the value to be persisted.
   document.getElementById("imap.trashFolderName")
-          .setAttribute("value", aEvent.target._folder.name);
+          .setAttribute("value", folder.name);
+
+  // Update the widget to show/do correct things even for subfolders.
+  var trashFolderPicker = document.getElementById("msgTrashFolderPicker");
+  trashFolderPicker.setAttribute("label", folder.prettyName);
 }
 
 // Get trash_folder_name from prefs

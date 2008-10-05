@@ -663,8 +663,7 @@
             var child = this.childNodes[i];
             if (!child || !child._folder)
               continue;
-            if (child._folder.URI == aFolder.URI || (this._parentFolder &&
-                this._parentFolder.isAncestorOf(aFolder))) {
+            if (child._folder.URI == aFolder.URI) {
               // Making an assumption about our DOM positioning here.
               this.parentNode.selectedIndex = i;
               return;
