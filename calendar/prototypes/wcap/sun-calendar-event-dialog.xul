@@ -70,19 +70,19 @@
     </stringbundleset>
 
     <!-- Javascript includes -->
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://calendar/content/sun-calendar-event-dialog.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://calendar/content/calendar-dialog-utils.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://calendar/content/calendar-ui-utils.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://calendar/content/calUtils.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://calendar/content/calApplicationUtils.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://global/content/globalOverlay.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://global/content/printUtils.js"/>
 
     <!-- Command updater -->

@@ -44,11 +44,11 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <vbox id="calPreferencesBoxCategories">
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/preferences/categories.js"/>
 
         <!-- Get the localized text for use in the .js -->
-        <script type="application/x-javascript">
+        <script type="application/javascript">
             var noneLabel  = "&pref.categories.none.label;";
             var addTitle   = "&pref.categories.add.title;";
             var editTitle  = "&pref.categories.edit.title;";

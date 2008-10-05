@@ -50,7 +50,7 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <vbox id="calPreferencesBoxAdvanced">
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/preferences/advanced.js"/>
 
         <preferences id="advancePrefs-preferences">

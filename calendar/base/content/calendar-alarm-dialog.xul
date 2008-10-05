@@ -62,8 +62,8 @@
         onkeypress="if (event.keyCode == event.DOM_VK_ESCAPE) { window.close(); }"
         width="600"
         height="300">
-  <script type="application/x-javascript" src="chrome://calendar/content/calendar-alarm-dialog.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-alarm-dialog.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
 
   <richlistbox id="alarm-richlist" flex="1"/>
 

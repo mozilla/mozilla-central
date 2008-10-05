@@ -54,8 +54,8 @@
 
 <overlay id="ltnMigrationOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-    <script type="application/x-javascript" src="chrome://calendar/content/migration.js"/>
-    <script type="application/x-javascript"><![CDATA[
+    <script type="application/javascript" src="chrome://calendar/content/migration.js"/>
+    <script type="application/javascript"><![CDATA[
         function checkOld() {
             document.removeEventListener("load", checkOld, true);
             var calMgr = Components.classes["@mozilla.org/calendar/manager;1"]

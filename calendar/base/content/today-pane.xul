@@ -54,11 +54,11 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<script type="application/x-javascript" src="chrome://calendar/content/today-pane.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/agenda-listbox.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-management.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
+<script type="application/javascript" src="chrome://calendar/content/today-pane.js"/>
+<script type="application/javascript" src="chrome://calendar/content/agenda-listbox.js"/>
+<script type="application/javascript" src="chrome://calendar/content/calendar-management.js"/>
+<script type="application/javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
+<script type="application/javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
 
     <modevbox id="today-pane-panel" addtoolbarbutton="true" width="200"
               mode="mail,calendar,task" refcontrol="calendar_toggle_todaypane_command"

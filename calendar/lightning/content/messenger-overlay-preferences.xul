@@ -95,9 +95,9 @@
             </tabbox>
         </prefpane>
 
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/calUtils.js"/>
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://lightning/content/messenger-overlay-preferences.js"/>
 
     </prefwindow>

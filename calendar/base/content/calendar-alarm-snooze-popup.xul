@@ -53,9 +53,9 @@
         onmouseout="windowMouseOut(event)"
         onDOMContentLoaded="window.sizeToContent()"
         onload="windowLoad(event)">
-<script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-alarm-dialog.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-alarm-snooze-popup.js"/>
+<script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+<script type="application/javascript" src="chrome://calendar/content/calendar-alarm-dialog.js"/>
+<script type="application/javascript" src="chrome://calendar/content/calendar-alarm-snooze-popup.js"/>
 
 <radiogroup id="custom-menupopup-radiogroup"
             onblur="radiogroupBlur(event, this)"

@@ -48,7 +48,7 @@
   <stringbundleset id="calendar_stringbundles">
     <stringbundle id="bundle_branding" src="chrome://branding/locale/brand.properties"/>
   </stringbundleset>
-  <script type="application/x-javascript" src="chrome://calendar/content/calendar-common-sets.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-common-sets.js"/>
 
   <broadcasterset id="calendar_broadcasters">
     <broadcaster id="modeBroadcaster" mode="calendar"/>

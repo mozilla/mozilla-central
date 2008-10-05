@@ -115,7 +115,7 @@
         <vbox id="calPreferencesBoxAdvanced"/>
     </prefpane>
 
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://calendar/content/calUtils.js"/>
 
 </prefwindow>

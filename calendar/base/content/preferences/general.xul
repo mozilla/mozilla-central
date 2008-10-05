@@ -49,13 +49,13 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <vbox id="calPreferencesBoxGeneral">
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/preferences/general.js"/>
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/calendar-ui-utils.js"/>
 
         <!-- Get the localized text for use in the .js -->
-        <script type="application/x-javascript">
+        <script type="application/javascript">
             var labelLong  = "&pref.dateformat.long;";
             var labelShort = "&pref.dateformat.short;";
         </script>

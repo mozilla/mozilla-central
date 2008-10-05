@@ -48,8 +48,8 @@
         xmlns:xhtml2="http://www.w3.org/TR/xhtml2"
         xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
         xhtml2:role="wairole:alertdialog">
-  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
-  <script type="application/x-javascript"><![CDATA[
+  <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript"><![CDATA[
     function exitOccurrenceDialog(aReturnValue) {
       window.arguments[0].value = aReturnValue;
       window.close();

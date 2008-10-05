@@ -45,11 +45,11 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <vbox id="calPreferencesBoxTimezones">
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/preferences/timezones.js"/>
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/calendar-ui-utils.js"/>
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/calUtils.js"/>
 
         <preferences>

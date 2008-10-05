@@ -56,8 +56,8 @@
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     width="500">
 
-  <script type="application/x-javascript" src="chrome://calendar/content/calendar-properties-dialog.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-properties-dialog.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
 
   <checkbox id="calendar-enabled-checkbox"
             label="&calendarproperties.enabled.label;"

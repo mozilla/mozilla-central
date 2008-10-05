@@ -53,7 +53,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
 
   <popup id="toolbar-context-menu">

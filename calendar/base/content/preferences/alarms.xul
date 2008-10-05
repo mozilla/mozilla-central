@@ -52,9 +52,9 @@
     <vbox id="calPreferencesBoxAlarms">
         <stringbundle id="bundleCalendarPreferences"
                       src="chrome://calendar/locale/calendar.properties"/>
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/preferences/alarms.js"/>
-        <script type="application/x-javascript"
+        <script type="application/javascript"
                 src="chrome://calendar/content/calendar-dialog-utils.js"/>
 
         <preferences>

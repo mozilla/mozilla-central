@@ -51,7 +51,7 @@
         onload="editCategoryLoad();"
         ondialogaccept="return doOK();">
 
-<script type="application/x-javascript">
+<script type="application/javascript">
  <![CDATA[
    var oldColor="#000000";
    function editCategoryLoad()

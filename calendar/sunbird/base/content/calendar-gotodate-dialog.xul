@@ -57,7 +57,7 @@
         buttons="accept,cancel"
         ondialogaccept="window.arguments[0].callback(document.getElementById('datepicker').value);"
         ondialogcancel="return true;">
-  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
   <hbox align="center">
     <label control="datepicker">&calendar.flat.topbar.choosedate;</label>
     <datepicker id="datepicker"/>

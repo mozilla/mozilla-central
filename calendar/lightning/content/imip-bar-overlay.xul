@@ -51,15 +51,15 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://lightning/content/lightning-utils.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://calendar/content/calUtils.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://lightning/content/imip-bar.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://calendar/content/calendar-management.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://calendar/content/calendar-ui-utils.js"/>
 
     <vbox id="messagepanebox">

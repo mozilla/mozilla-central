@@ -43,11 +43,11 @@
 <overlay id="ltnCalendarPropertiesOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://calendar/content/calendar-ui-utils.js"/>
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://lightning/content/lightning-utils.js"/>
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://lightning/content/lightning-calendar-properties.js"/>
 
   <rows id="calendar-properties-rows">

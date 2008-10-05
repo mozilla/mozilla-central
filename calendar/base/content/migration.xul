@@ -54,9 +54,9 @@
         branded="true"
         persist="screenX screenY">
 
-    <script type="application/x-javascript" src="chrome://calendar/content/migration.js"/>
-    <script type="application/x-javascript" src="chrome://calendar/content/import-export.js"/>
-    <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+    <script type="application/javascript" src="chrome://calendar/content/migration.js"/>
+    <script type="application/javascript" src="chrome://calendar/content/import-export.js"/>
+    <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
 
     <wizardpage id="wizardPage1"
                 pageid="initialPage"

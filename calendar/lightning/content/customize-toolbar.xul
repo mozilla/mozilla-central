@@ -51,7 +51,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://lightning/content/customize-toolbar.js"/>
 
   <vbox id="main-box" flex="1" collapsed="true">

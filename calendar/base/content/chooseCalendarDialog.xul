@@ -53,7 +53,7 @@
         ondialogaccept="return doOK();"
         persist="screenX screenY height width">
 
-    <script type="application/x-javascript"><![CDATA[
+    <script type="application/javascript"><![CDATA[
         function loadCalendars() {
             const calendarManager = Components.classes["@mozilla.org/calendar/manager;1"]
                                             .getService(Components.interfaces.calICalendarManager);

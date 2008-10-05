@@ -64,10 +64,10 @@
    
    <!-- Javascript includes -->
    
-   <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
-   <script type="application/x-javascript" src="chrome://calendar/content/publishDialog.js"/>
+   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+   <script type="application/javascript" src="chrome://calendar/content/publishDialog.js"/>
    
-   <script type="application/x-javascript" >
+   <script type="application/javascript" >
    var publishButtonLabel = "&calendar.publish.publish.button;" ;
    var closeButtonLabel = "&calendar.publish.close.button;" ;
    </script>

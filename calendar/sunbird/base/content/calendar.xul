@@ -95,8 +95,8 @@
 <!-- Those scripts are not used by the hidden window, and thus can be put in here. The
      scripts assume that they are part of calendar.xul, so they actually must not be
      in sunbird-scripts.inc. (see bug 413296 comment 13) -->
-  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder-todo.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-unifinder.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-unifinder-todo.js"/>
 
 <!-- GENERAL CONTEXT MENU -->
 <popupset id="calendar-popupset">

@@ -73,9 +73,9 @@
    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
    xmlns:nc="http://home.netscape.com/NC-rdf#">
 
-  <script type="application/x-javascript" src="chrome://calendar/content/printDialog.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/printDialog.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
 
   <hbox id="firstHbox" flex="1">
     <vbox id="groupboxVbox">

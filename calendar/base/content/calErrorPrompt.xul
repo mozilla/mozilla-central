@@ -52,7 +52,7 @@
         width="500"
         xmlns:nc="http://home.netscape.com/NC-rdf#">
 
-    <script type="application/x-javascript"><![CDATA[
+    <script type="application/javascript"><![CDATA[
         function loadErrorPrompt() {
             var args = window.arguments[0].QueryInterface(Components.interfaces.nsIDialogParamBlock);
             document.getElementById("general-text").value = args.GetString(0);

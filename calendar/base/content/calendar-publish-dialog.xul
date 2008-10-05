@@ -61,10 +61,10 @@
   xmlns:nc="http://home.netscape.com/NC-rdf#">
 
   <!-- Javascript includes -->
-  <script type="application/x-javascript" src="chrome://calendar/content/calendar-publish-dialog.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-publish-dialog.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
 
-  <script type="application/x-javascript">
+  <script type="application/javascript">
   var closeButtonLabel = "&calendar.publish.close.button;";
   </script>
 
