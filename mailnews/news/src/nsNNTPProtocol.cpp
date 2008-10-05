@@ -26,7 +26,7 @@
  *   David Bienvenu <bienvenu@nventure.com>
  *   Jeff Tsai <jefft@netscape.com>
  *   Pierre Phaneuf <pp@ludusdesign.com>
- *   Håkan Waara <hwaara@chello.se>
+ *   HÃ¥kan Waara <hwaara@chello.se>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -281,11 +281,6 @@ const char *const stateLabels[] = {
 ////////////////////////////////////////////////////////////////////////////////////////////
 // TEMPORARY HARD CODED FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////
-#ifdef XP_WIN
-static char *XP_AppCodeName = "Mozilla";
-#else
-static const char *XP_AppCodeName = "Mozilla";
-#endif
 #define NET_IS_SPACE(x) ((x)==' ' || (x)=='\t')
 
 // turn "\xx" (with xx being hex numbers) in string into chars
@@ -716,7 +711,7 @@ NS_IMETHODIMP nsNNTPProtocol::SetOriginalURI(nsIURI* aURI)
 
 nsresult nsNNTPProtocol::SetupPartExtractorListener(nsIStreamListener * aConsumer)
 {
-  PRBool convertData;
+  PRBool convertData = PR_FALSE;
   nsresult rv = NS_OK;
 
   if (m_newsAction == nsINntpUrl::ActionFetchArticle)
@@ -2832,8 +2827,6 @@ PRInt32 nsNNTPProtocol::AuthorizationResponse()
 
 PRInt32 nsNNTPProtocol::PasswordResponse()
 {
-  nsresult rv = NS_OK;
-
   if (MK_NNTP_RESPONSE_AUTHINFO_OK == m_responseCode ||
     MK_NNTP_RESPONSE_AUTHINFO_SIMPLE_OK == m_responseCode)
   {
@@ -2843,7 +2836,7 @@ PRInt32 nsNNTPProtocol::PasswordResponse()
     /* If we're here because the host demanded authentication before we
     * even sent a single command, then jump back to the beginning of everything
     */
-    rv = m_nntpServer->GetPushAuth(&pushAuth);
+    nsresult rv = m_nntpServer->GetPushAuth(&pushAuth);
 
     if (!TestFlag(NNTP_READER_PERFORMED))
       m_nextState = NNTP_SEND_MODE_READER;
@@ -3727,12 +3720,10 @@ nsresult nsNNTPProtocol::GetNewsStringByID(PRInt32 stringID, PRUnichar **aString
 
   if (!m_stringBundle)
   {
-    char*       propertyURL = NEWS_MSGS_URL;
-
     nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = bundleService->CreateBundle(propertyURL, getter_AddRefs(m_stringBundle));
+    rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(m_stringBundle));
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
@@ -3763,12 +3754,11 @@ nsresult nsNNTPProtocol::GetNewsStringByName(const char *aName, PRUnichar **aStr
   nsAutoString resultString(NS_LITERAL_STRING("???"));
   if (!m_stringBundle)
   {
-    char*       propertyURL = NEWS_MSGS_URL;
-
     nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = bundleService->CreateBundle(propertyURL, getter_AddRefs(m_stringBundle));
+    rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(m_stringBundle));
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   if (m_stringBundle)
@@ -4202,6 +4192,21 @@ PRInt32 nsNNTPProtocol::DoCancel()
    m_cancelFromHdr &&
    m_cancelNewsgroups, "null ptr");
 
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_OUT_OF_MEMORY);
+
+  nsCOMPtr<nsIStringBundle> brandBundle;
+  bundleService->CreateBundle("chrome://branding/locale/brand.properties",
+                              getter_AddRefs(brandBundle));
+  NS_ENSURE_TRUE(brandBundle, NS_ERROR_FAILURE);
+
+  nsString brandFullName;
+  rv = brandBundle->GetStringFromName(NS_LITERAL_STRING("brandFullName").get(),
+                                      getter_Copies(brandFullName));
+  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ConvertUTF16toUTF8 appName(brandFullName);
+
   newsgroups = m_cancelNewsgroups;
   distribution = m_cancelDistribution;
   id = m_cancelID;
@@ -4230,7 +4235,7 @@ PRInt32 nsNNTPProtocol::DoCancel()
   L = PL_strlen (id);
 
   subject = (char *) PR_Malloc (L + 20);
-  body = (char *) PR_Malloc (PL_strlen (XP_AppCodeName) + 100);
+  body = (char *) PR_Malloc (PL_strlen (appName.get()) + 100);
 
   nsString alertText;
   nsString confirmText;
@@ -4323,9 +4328,8 @@ reported here */
   }
 
   PL_strcpy (body, "This message was cancelled from within ");
-  PL_strcat (body, XP_AppCodeName);
+  PL_strcat (body, appName.get());
   PL_strcat (body, "." CRLF);
-
 
   m_cancelStatus = 0;
 
