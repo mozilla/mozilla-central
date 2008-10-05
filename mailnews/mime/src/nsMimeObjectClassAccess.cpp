@@ -114,3 +114,10 @@ nsMimeObjectClassAccess::GetmimeMultipartSignedClass(void **ptr)
   *ptr = XPCOM_GetmimeMultipartSignedClass();
   return NS_OK;
 }
+
+nsresult 
+nsMimeObjectClassAccess::MimeCreate(char * content_type, void * hdrs, void * opts, void **ptr)
+{
+  *ptr = XPCOM_Mime_create(content_type, hdrs, opts);
+  return NS_OK;
+}

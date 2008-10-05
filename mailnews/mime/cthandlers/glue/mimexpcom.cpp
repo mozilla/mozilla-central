@@ -149,3 +149,17 @@ COM_MimeObject_write(void *mimeObject, char *data, PRInt32 length,
 
   return rc;
 }
+
+extern "C" void *
+COM_MimeCreate(char * content_type, void * hdrs, void * opts)
+{
+  void *ptr = NULL;
+
+  nsresult res;
+  nsCOMPtr<nsIMimeObjectClassAccess> objAccess =
+      do_CreateInstance(kMimeObjectClassAccessCID, &res);
+  if (NS_SUCCEEDED(res) && objAccess)
+    objAccess->MimeCreate(content_type, hdrs, opts, &ptr);
+
+  return ptr;
+}

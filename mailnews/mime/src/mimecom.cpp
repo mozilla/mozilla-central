@@ -91,3 +91,9 @@ XPCOM_MimeObject_write(void *mimeObject,
   return MIME_MimeObject_write((MimeObject *)mimeObject, data,
                                 length, user_visible_p);
 }
+
+extern "C" void *
+XPCOM_Mime_create(char *content_type, void* hdrs, void* opts)
+{
+  return mime_create(content_type, (MimeHeaders *)hdrs, (MimeDisplayOptions *)opts);
+}

@@ -72,6 +72,8 @@ public:
   NS_IMETHOD    GetmimeContainerClass(void **ptr) = 0;
   NS_IMETHOD    GetmimeMultipartClass(void **ptr) = 0;
   NS_IMETHOD    GetmimeMultipartSignedClass(void **ptr) = 0;
+
+  NS_IMETHOD    MimeCreate(char* content_type, void * hdrs, void * opts, void **ptr) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIMimeObjectClassAccess,

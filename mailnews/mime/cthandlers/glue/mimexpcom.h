@@ -120,4 +120,6 @@ extern "C" void *COM_GetmimeContainerClass(void);
 extern "C" void *COM_GetmimeMultipartClass(void);
 extern "C" void *COM_GetmimeMultipartSignedClass(void);
 
+extern "C" void *COM_MimeCreate(char * content_type, void * hdrs, void * opts);
+
 #endif /* _MIMEXPCOM_H_ */

@@ -64,4 +64,6 @@ extern "C" void *XPCOM_GetmimeContainerClass(void);
 extern "C" void *XPCOM_GetmimeMultipartClass(void);
 extern "C" void *XPCOM_GetmimeMultipartSignedClass(void);
 
+extern "C" void *XPCOM_Mime_create(char *content_type, void* hdrs, void* opts);
+
 #endif /* _MIMECOM_H_ */

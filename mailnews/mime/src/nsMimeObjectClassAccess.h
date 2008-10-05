@@ -73,6 +73,8 @@ public:
   NS_IMETHOD    GetmimeContainerClass(void **ptr);
   NS_IMETHOD    GetmimeMultipartClass(void **ptr);
   NS_IMETHOD    GetmimeMultipartSignedClass(void **ptr);
+
+  NS_IMETHOD    MimeCreate(char *content_type, void * hdrs, void * opts, void**ptr);
 }; 
 
 #endif /* nsMimeObjectClassAccess_h_ */
