@@ -415,7 +415,7 @@ calItemBase.prototype = {
         } else {
             this.modify();
         }
-        if (aValue || !isNaN(aValue)) {
+        if (aValue || !isNaN(parseInt(aValue, 10))) {
             this.mProperties.setProperty(aName.toUpperCase(), aValue);
         } else {
             this.deleteProperty(aName);
