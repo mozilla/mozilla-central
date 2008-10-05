@@ -71,3 +71,6 @@ installer:
 
 package:
 	@$(MAKE) -C calendar/installer
+
+package-compare:
+	@$(MAKE) -C calendar/installer package-compare

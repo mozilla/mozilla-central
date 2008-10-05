@@ -95,6 +95,19 @@ endif
 
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 
+ifeq (WINNT,$(OS_ARCH))
+PKGCOMP_FIND_OPTS = 
+else
+PKGCOMP_FIND_OPTS = -L
+endif
+
+package-compare::
+ifdef MOZ_PKG_MANIFEST_P
+	cd $(DIST); find $(PKGCOMP_FIND_OPTS) bin -type f | sort > bin-list.txt
+	grep "^bin" $(MOZ_PKG_MANIFEST) | sed -e 's/\\/\//g' | sort > $(DIST)/pack-list.txt
+	-diff -u $(DIST)/pack-list.txt $(DIST)/bin-list.txt
+endif
+
 installer: removed-files
 ifdef INSTALLER_DIR
 	$(MAKE) -C $(INSTALLER_DIR)
