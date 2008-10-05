@@ -1,8 +1,6 @@
-#filter substitution
-
 calendar.jar:
 % content calendar %content/calendar/
-*   content/calendar/calendar.js (content/calendar.js)
+    content/calendar/calendar.js (content/calendar.js)
     content/calendar/calendarWindow.js (content/calendarWindow.js)
     content/calendar/calendarCreation.xul (content/calendarCreation.xul)
     content/calendar/calendarCreation.js (content/calendarCreation.js)
@@ -17,17 +15,12 @@ calendar.jar:
     content/calendar/datetimepickers/datetimepickers.css (content/datetimepickers/datetimepickers.css)
 *   content/calendar/datetimepickers/datetimepickers.xml (content/datetimepickers/datetimepickers.xml)
     content/calendar/preferences/advanced.js      (/calendar/base/content/preferences/advanced.js)
-*    content/calendar/preferences/advanced.xul     (/calendar/base/content/preferences/advanced.xul)
+*   content/calendar/preferences/advanced.xul     (/calendar/base/content/preferences/advanced.xul)
 *   content/calendar/preferences/connection.xul   (/calendar/base/content/preferences/connection.xul)
-*   content/calendar/preferences/connection.js    (/calendar/base/content/preferences/connection.js)
+    content/calendar/preferences/connection.js    (/calendar/base/content/preferences/connection.js)
 *   content/calendar/preferences/preferences.xul  (/calendar/base/content/preferences/preferences.xul)
 % skin calendar classic/1.0 %skin/classic/calendar/
-#ifdef XP_MACOSX
-    skin/classic/calendar/preferences/Options.png  (/calendar/base/themes/pinstripe/preferences/Options.png)
-    skin/classic/calendar/preferences/preferences.css  (/calendar/base/themes/pinstripe/preferences/preferences.css)
-#else
-    skin/classic/calendar/preferences/Options.png  (/calendar/base/themes/winstripe/preferences/Options.png)
-    skin/classic/calendar/preferences/preferences.css  (/calendar/base/themes/winstripe/preferences/preferences.css)
-#endif
     skin/classic/calendar/dialogOverlay.css (skin/classic/dialogOverlay.css)
     skin/classic/calendar/datetimepickers/datetimepickers.css (skin/classic/datetimepickers/datetimepickers.css)
+#expand    skin/classic/calendar/preferences/Options.png  (/calendar/base/themes/__THEME__/preferences/Options.png)
+#expand    skin/classic/calendar/preferences/preferences.css  (/calendar/base/themes/__THEME__/preferences/preferences.css)

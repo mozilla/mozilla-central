@@ -43,9 +43,7 @@
 #include "calBaseCID.h"
 
 #include "nsServiceManagerUtils.h"
-#ifndef MOZILLA_1_8_BRANCH
 #include "nsIClassInfoImpl.h"
-#endif
 
 #include "calIErrors.h"
 #include "calDuration.h"
@@ -841,16 +839,9 @@ calDateTime::HasInstance(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-#if defined MOZILLA_1_8_BRANCH
-/* PRUint32 mark (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in voidPtr arg); */
-NS_IMETHODIMP
-calDateTime::Mark(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                  JSObject * obj, void * arg, PRUint32 *_retval)
-#else
 /* void trace (in nsIXPConnectWrappedNative wrapper, in JSTracePtr trc, in JSObjectPtr obj); */
 NS_IMETHODIMP
 calDateTime::Trace(nsIXPConnectWrappedNative *wrapper, JSTracer *trc, JSObject *obj)
-#endif
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

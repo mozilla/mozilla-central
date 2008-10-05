@@ -107,16 +107,12 @@ DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
            -DTHEME=$(THEME) \
            $(NULL)
 
-ifdef MOZILLA_1_8_BRANCH
-DEFINES += -DBUILD_ID=$(BUILD_ID)
-else
 ifdef COMM_BUILD
 GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
 else
 GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
 endif
 DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
-endif
 
 # Get all directories in /l10n/*, that contain a calendar subdir.
 calendar_locales := $(subst /calendar,,$(subst $(topsrcdir)/../l10n/,,$(wildcard $(topsrcdir)/../l10n/*/calendar)))

@@ -272,12 +272,6 @@ calItipEmailTransport.prototype = {
                 }
                 var mailFile = this._createTempImipFile(compatMode, toList, aSubject, aBody, aItem, identity);
                 if (mailFile) {
-#ifdef MOZILLA_1_8_BRANCH
-                    var mailFileURL = getIOService().newFileURI(mailFile).spec;
-                    mailFile = Components.classes["@mozilla.org/filespec;1"]
-                                         .createInstance(Components.interfaces.nsIFileSpec);
-                    mailFile.URLString = mailFileURL;
-#endif
                     // compose fields for message: from/to etc need to be specified both here and in the file
                     var composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
                                                   .createInstance(Components.interfaces.nsIMsgCompFields);

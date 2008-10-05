@@ -82,12 +82,8 @@ function calPrepHttpChannel(aUri, aUploadData, aContentType, aNotificationCallba
  * @param aListener         listener for method completion
  */
 function calSendHttpRequest(aStreamLoader, aChannel, aListener) {
-    if (isBranch()) {
-        aStreamLoader.init(aChannel, aListener, aChannel);
-    } else {
-        aStreamLoader.init(aListener);
-        aChannel.asyncOpen(aStreamLoader, aChannel);
-    }
+    aStreamLoader.init(aListener);
+    aChannel.asyncOpen(aStreamLoader, aChannel);
 }
 
 function createStreamLoader() {

@@ -33,23 +33,17 @@ bin\xpcom_core.dll
 bin\nspr4.dll
 bin\components\xpinstal.dll
 bin\components\jar50.dll
-#ifdef MOZILLA_1_8_BRANCH
-bin\xpcom_compat.dll
-#else
 bin\Microsoft.VC80.CRT.manifest
 bin\msvcm80.dll
 bin\msvcp80.dll
 bin\msvcr80.dll
-#endif
 
 [calendar]
 ; [Base Calendar Files]
 bin\sunbird.exe
-#ifndef MOZILLA_1_8_BRANCH
 bin\application.ini
 bin\platform.ini
 bin\sqlite3.dll
-#endif
 bin\LICENSE
 
 ; [Components]
@@ -87,10 +81,8 @@ bin\components\dom_css.xpt
 bin\components\dom_events.xpt
 bin\components\dom_html.xpt
 bin\components\dom_loadsave.xpt
-#ifndef MOZILLA_1_8_BRANCH
 bin\components\dom_json.xpt
 bin\components\dom_offline.xpt
-#endif
 bin\components\dom_range.xpt
 bin\components\dom_sidebar.xpt
 bin\components\dom_storage.xpt
@@ -142,17 +134,11 @@ bin\components\necko_res.xpt
 bin\components\necko_socket.xpt
 bin\components\necko_strconv.xpt
 bin\components\necko_viewsource.xpt
-#ifdef MOZILLA_1_8_BRANCH
-bin\components\passwordmgr.xpt
-#else
 bin\components\loginmgr.xpt
-#endif
 bin\components\pipboot.xpt
 bin\components\pipnss.xpt
 bin\components\pippki.xpt
-#ifndef MOZILLA_1_8_BRANCH
 bin\components\plugin.xpt
-#endif
 bin\components\pref.xpt
 bin\components\prefetch.xpt
 bin\components\profile.xpt
@@ -182,15 +168,10 @@ bin\components\windowwatcher.xpt
 bin\components\winhooks.xpt
 bin\components\xpautocomplete.xpt
 bin\components\xpcom_base.xpt
-#ifndef MOZILLA_1_8_BRANCH
 bin\components\xpcom_system.xpt
-#endif
 bin\components\xpcom_components.xpt
 bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt
-#ifdef MOZILLA_1_8_BRANCH
-bin\components\xpcom_obsolete.xpt
-#endif
 bin\components\xpcom_thread.xpt
 bin\components\xpcom_xpti.xpt
 bin\components\xpconnect.xpt
@@ -203,12 +184,7 @@ bin\components\wcap.xpt
 bin\components\zipwriter.xpt
 ; JavaScript components
 bin\components\nsDefaultCLH.js
-#ifdef MOZILLA_1_8_BRANCH
-bin\components\nsCloseAllWindows.js
-#else
 bin\components\nsTryToClose.js
-#endif
-bin\components\nsInterfaceInfoToIDL.js
 bin\components\nsPostUpdateWin.js
 bin\components\nsProgressDialog.js
 bin\components\nsUpdateService.js
@@ -218,13 +194,11 @@ bin\components\nsDownloadManagerUI.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsExtensionManager.js
 bin\components\nsBadCertHandler.js
-#ifndef MOZILLA_1_8_BRANCH
 bin\components\nsBlocklistService.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
 bin\components\storage-Legacy.js
-#endif
 bin\components\calendarService.js
 bin\components\calCompositeCalendar.js
 bin\components\calDavCalendarModule.js
@@ -281,10 +255,8 @@ bin\js\calWcapRequest.js
 bin\js\calWcapSession.js
 bin\js\calWcapUtils.js
 
-#ifndef MOZILLA_1_8_BRANCH
 ; [Modules]
 bin\modules\*
-#endif
 
 ; [Calendar Chrome Files]
 bin\chrome\calendar.jar
@@ -345,9 +317,7 @@ bin\res\entityTables\*
 ; [Personal Security Manager]
 ;
 bin\nssckbi.dll
-#ifndef MOZILLA_1_8_BRANCH
 bin\nssdbm3.dll
-#endif
 bin\components\pipboot.xpt
 bin\components\pipnss.xpt
 bin\components\pippki.xpt
@@ -367,23 +337,6 @@ bin\chrome\pippki.manifest
 ;
 bin\updater.exe
 
-#ifndef MOZILLA_1_8_BRANCH
 ; [Crash Reporter]
 bin\crashreporter.exe
 bin\crashreporter.ini
-#endif
-
-#ifdef MOZILLA_1_8_BRANCH
-[talkback]
-bin\extensions\talkback@mozilla.org\install.rdf
-bin\extensions\talkback@mozilla.org\chrome.manifest
-bin\extensions\talkback@mozilla.org\components\qfaservices.dll
-bin\extensions\talkback@mozilla.org\components\qfaservices.xpt
-bin\extensions\talkback@mozilla.org\components\BrandRes.dll
-bin\extensions\talkback@mozilla.org\components\fullsoft.dll
-bin\extensions\talkback@mozilla.org\components\master.ini
-bin\extensions\talkback@mozilla.org\components\talkback-l10n.ini
-bin\extensions\talkback@mozilla.org\components\talkback.cnt
-bin\extensions\talkback@mozilla.org\components\talkback.exe
-bin\extensions\talkback@mozilla.org\components\talkback.hlp
-#endif

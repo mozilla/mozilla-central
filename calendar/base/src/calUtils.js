@@ -351,16 +351,6 @@ function makeURL(aUriString) {
 }
 
 /**
- * Returns true if this is MOZILLA_1_8_BRANCH, else false.
- */
-function isBranch() {
-    if (isBranch.mIsBranch === undefined) {
-        isBranch.mIsBranch = (Components.interfaces.nsIStreamLoader.number == "{31d37360-8e5a-11d3-93ad-00104ba0fd40}");
-    }
-    return isBranch.mIsBranch;
-}
-
-/**
  * Returns a calIDateTime that corresponds to the current time in the user's
  * default timezone.
  */

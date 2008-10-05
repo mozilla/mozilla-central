@@ -91,9 +91,6 @@ CPPSRCS = nsCalendarApp.cpp
 
 LOCAL_INCLUDES += -I$(MOZILLA_SRCDIR)/toolkit/xre
 
-ifdef MOZILLA_1_8_BRANCH
-LIBS += $(DIST)/lib/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
-else
 ifdef BUILD_STATIC_LIBS
 ifdef _MSC_VER
 STATIC_COMPONENTS_LINKER_PATH = -LIBPATH:$(DEPTH)/staticlib
@@ -106,7 +103,6 @@ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 LIBS += $(DIST)/bin/XUL
 else
 EXTRA_DSO_LIBS += xul
-endif
 endif
 endif
 
@@ -181,9 +177,6 @@ endif
 
 ifeq ($(OS_ARCH),WINNT)
 OS_LIBS += $(call EXPAND_LIBNAME,comctl32 comdlg32 uuid shell32 ole32 oleaut32 version winspool)
-ifdef MOZILLA_1_8_BRANCH
-OS_LIBS += $(call EXPAND_LIBNAME,gdi32)
-endif
 OS_LIBS += $(call EXPAND_LIBNAME,usp10 msimg32)
 RCINCLUDE = splash.rc
 ifndef GNU_CC

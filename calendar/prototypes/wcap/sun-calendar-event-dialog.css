@@ -188,10 +188,6 @@ timezone-page {
     -moz-user-focus: none;
 }
 
-/* This definition is only required for MOZILLA_1_8_BRANCH */
-.textbox-addressingWidget[noMatchesFound="true"] {
-    color: red;
-}
 
 #typecol-addressingWidget {
     min-width: 9em;

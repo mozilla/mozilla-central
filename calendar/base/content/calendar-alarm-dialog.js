@@ -181,15 +181,6 @@ function openSnoozeWindow(event, aContainerItem) {
     const uri = "chrome://calendar/content/calendar-alarm-snooze-popup.xul";
     var pos = ",left=" + (event.target.boxObject.screenX - 3) +
              ",top=" + (event.target.boxObject.screenY + event.target.boxObject.height - 3);
-#ifdef MOZILLA_1_8_BRANCH
-#ifdef XP_MACOSX
-    // On branch on the mac, the titlebar seems to be part of the
-    // window, even though titlebar is set to no. It is 22px and I was
-    // told that its not possible to change its size.
-    pos = ",left=" + event.target.boxObject.screenX +
-         ",top=" + (event.target.boxObject.screenY + event.target.boxObject.height - 22);
-#endif
-#endif
     window.openDialog(uri,
                       uri,
                       "chrome,dependent=yes,titlebar=no" + pos,

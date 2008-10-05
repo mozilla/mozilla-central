@@ -216,15 +216,3 @@ function compareItemsSpecific(aLeftItem, aRightItem, aPropArray) {
                     aPropArray[i]));
     }
 }
-
-// Support do_check_true and  do_check_false on MOZILLA_1_8_BRANCH
-if (typeof do_check_true != "function") {
-    do_check_true = function do_check_true(condition) {
-        do_check_eq(condition, true);
-    }
-}
-if (typeof do_check_false != "function") {
-    do_check_false = function do_check_false(condition) {
-        do_check_eq(condition, false);
-    }
-}

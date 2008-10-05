@@ -1,10 +1,6 @@
 lightning.jar:
 % content lightning %content/lightning/
-#ifdef MOZILLA_1_8_BRANCH
-% content messagebody %content/messagebody/
-#else
 % content messagebody %content/messagebody/ contentaccessible=yes
-#endif
 % override chrome://messagebody/skin/imip.css chrome://lightning/skin/imip.css
 % overlay chrome://messenger/content/messenger.xul chrome://lightning/content/lightning-migration.xul
 % overlay chrome://messenger/content/msgAccountCentral.xul chrome://lightning/content/messenger-overlay-accountCentral.xul

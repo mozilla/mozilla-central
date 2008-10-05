@@ -258,16 +258,8 @@ regxpcom.exe
 sunbird.url
 unins000.dat
 unins000.exe
-#ifndef MOZILLA_1_8_BRANCH
 xpcom_compat.dll
-#else
 components/nsInterfaceInfoToIDL.js
-components/pluginGlue.js
-Microsoft.VC80.CRT.manifest
-msvcm80.dll
-msvcp80.dll
-msvcr80.dll
-#endif
 xpcshell.exe
 xpidl.exe
 xpt_dump.exe
@@ -288,7 +280,6 @@ extensions/inspector@mozilla.org/components/inspector.xpt
 extensions/inspector@mozilla.org/components/@DLL_PREFIX@inspector@DLL_SUFFIX@
 uninstall/UninstallSunbird.exe
 #
-#ifndef MOZILLA_1_8_BRANCH
 #
 # Clean out obsolete Talkback files
 #
@@ -348,7 +339,6 @@ extensions/talkback@mozilla.org/components/talkback.so
 #endif
 #endif
 #
-#endif
 
 # bug 404085 (Consolidate provider methods into a default calendar
 # implementation)

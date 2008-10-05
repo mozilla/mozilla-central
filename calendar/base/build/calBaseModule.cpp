@@ -38,9 +38,7 @@
 
 #include "nsIGenericFactory.h"
 
-#ifndef MOZILLA_1_8_BRANCH
 #include "nsIClassInfoImpl.h"
-#endif
 
 #include "calDateTime.h"
 #include "calDuration.h"

@@ -2004,17 +2004,10 @@ function onCommandCustomize() {
 
     var id = "event-toolbox";
     if (isSunbird()) {
-#ifdef MOZILLA_1_8_BRANCH
-        var newwindow = window.openDialog("chrome://calendar/content/customizeToolbar.xul",
-                                          "CustomizeToolbar",
-                                          "chrome,all,dependent",
-                                          document.getElementById(id));
-#else
         window.openDialog("chrome://global/content/customizeToolbar.xul",
                           "CustomizeToolbar",
                           "chrome,all,dependent",
                           document.getElementById(id));
-#endif
     } else {
         var wintype = document.documentElement.getAttribute("windowtype");
         wintype = wintype.replace(/:/g, "");

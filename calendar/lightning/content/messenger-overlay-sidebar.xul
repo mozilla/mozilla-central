@@ -473,11 +473,7 @@
 
 </window>
 
-#ifdef MOZILLA_1_8_BRANCH
-<hbox id="mailContent" flex="1">
-#else
 <hbox id="messengerBox" flex="1">
-#endif
 
   <!-- this will replace 'folderPaneBox' -->
   <vbox id="ltnModeBox" insertbefore="folderPaneBox" persist="collapsed width">

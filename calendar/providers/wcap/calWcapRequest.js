@@ -446,17 +446,9 @@ function issueNetworkRequest(parentRequest, respFunc, url, bLogging) {
         netRequest.m_loader = loader;
 
         log("opening channel.", netRequest);
-        // Required to be trunk and branch compatible:
-        if (isBranch()) {
-            loader.init(channel,
-                        netRequest,
-                        null /* context */,
-                        Components.interfaces.nsIUnicharStreamLoader.DEFAULT_SEGMENT_SIZE);
-        } else {
-            loader.init(netRequest,
-                        Components.interfaces.nsIUnicharStreamLoader.DEFAULT_SEGMENT_SIZE);
-            channel.asyncOpen(loader, null);
-        }
+        loader.init(netRequest,
+                    Components.interfaces.nsIUnicharStreamLoader.DEFAULT_SEGMENT_SIZE);
+        channel.asyncOpen(loader, null);
     } catch (exc) {
         netRequest.execRespFunc(exc);
     }

@@ -38,9 +38,8 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsStringStream.h"
 #include "nsComponentManagerUtils.h"
-#ifndef MOZILLA_1_8_BRANCH
 #include "nsIClassInfoImpl.h"
-#endif
+
 #include "calICSService.h"
 #include "calTimezone.h"
 #include "calDateTime.h"

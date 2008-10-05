@@ -51,12 +51,7 @@ MODULE_NAME = calBaseModule
 # We don't want an EXPORT_LIBRARY
 FORCE_SHARED_LIB = 1
 FORCE_USE_PIC   = 1 # Force use of PIC
-ifdef MOZILLA_1_8_BRANCH
-MOZ_STATIC_COMPONENT_LIBS =
-MOZILLA_INTERNAL_API = 1
-else
 USE_STATIC_LIBS = 1 # This links against the static CRT on Windows
-endif
 
 REQUIRES = \
 	xpcom \
