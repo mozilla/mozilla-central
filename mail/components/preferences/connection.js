@@ -66,6 +66,9 @@ var gConnectionsDialog = {
       }
     }
 
+    var noProxiesPref = document.getElementById("network.proxy.no_proxies_on");
+    noProxiesPref.value = noProxiesPref.value.replace(/[;]/g,',');
+
     return true;
   },
 
