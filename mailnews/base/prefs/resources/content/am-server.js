@@ -321,14 +321,27 @@ function selectImapDeleteModel(choice)
 function folderPickerChange(aEvent)
 {
   var folder = aEvent.target._folder;
+  var folderPath = getFolderPathFromRoot(folder);
 
   // Set the value to be persisted.
   document.getElementById("imap.trashFolderName")
-          .setAttribute("value", folder.name);
+          .setAttribute("value", folderPath);
 
   // Update the widget to show/do correct things even for subfolders.
   var trashFolderPicker = document.getElementById("msgTrashFolderPicker");
   trashFolderPicker.setAttribute("label", folder.prettyName);
+}
+
+/** Generate the relative folder path from the root. */
+function getFolderPathFromRoot(folder)
+{
+  var path = folder.name;
+  var parentFolder = folder.parent;
+  while (parentFolder && parentFolder != folder.rootFolder) {
+    path = parentFolder.name + "/" + path;
+    parentFolder = parentFolder.parent;
+  }
+  return path;
 }
 
 // Get trash_folder_name from prefs
