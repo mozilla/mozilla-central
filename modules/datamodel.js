@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ["GlodaAttributeDef",
-                    "GlodaConversation", "GlodaMessage",
+                    "GlodaConversation", "GlodaFolder", "GlodaMessage",
                     "GlodaContact", "GlodaIdentity"];
 
 const Cc = Components.classes;
@@ -311,6 +311,22 @@ GlodaConversation.prototype = {
     return this._subject;
   },
 };
+
+function GlodaFolder(aDatastore, aID, aURI, aPrettyName) {
+  this._datastore = aDatastore;
+  this._id = aID;
+  this._uri = aURI;
+  this._prettyName = aPrettyName;
+}
+
+GlodaFolder.prototype = {
+ NOUN_ID: 100,
+ get id() { return this._id; },
+ get uri() { return this._uri; },
+  toString: function gloda_folder_toString() {
+    return this._prettyName;
+  }
+}
 
 /**
  * @class A message representation.

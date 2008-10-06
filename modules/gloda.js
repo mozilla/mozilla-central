@@ -195,6 +195,12 @@ var Gloda = {
     return GlodaDatastore.getMessageFromLocation(aMsgHdr.folder.URI,
                                                  aMsgHdr.messageKey);
   },
+  
+  getFolderForFolder: function gloda_ns_getFolderForFolder(aMsgFolder) {
+    let uri = aMsgFolder.URI;
+    return new GlodaFolder(GlodaDatastore, GlodaDatastore._mapFolderURI(uri),
+                           uri, aMsgFolder.prettyName);
+  },
 
   /**
    * Given one or more full mail addresses (ex: "Bob Smith" <bob@smith.com>),
@@ -489,7 +495,7 @@ var Gloda = {
    *  indexing preferences for that folder.
    * @TODO folder noun and related abstraction
    */
-  NOUN_FOLDER: 100,
+  NOUN_FOLDER: GlodaFolder.prototype.NOUN_ID, // 100
   /**
    * All messages belong to a conversation.  See datamodel.js for the
    *  definition of the GlodaConversation class.
@@ -748,13 +754,19 @@ var Gloda = {
 
     this.defineNoun({
       name: "folder",
-      class: null,
+      class: GlodaFolder,
       firstClass: false,
       fromParamAndValue: function(aParam, aID) {
+        // XXX map into folder-space rather than uri-space
+        // (this does not pose an immediate problem because folders are
+        //  currently special attributes because they are cols on message rows.)
         return GlodaDatastore._mapFolderID(aID);
       },
-      toParamAndValue: function(aFolderURI) {
-        return [null, GlodaDatastore._mapFolderURI(aFolderURI)];
+      toParamAndValue: function(aFolderOrURI) {
+        if (aFolderOrURI instanceof GlodaFolder)
+          return [null, aFolderOrURI.id];
+        else
+          return [null, GlodaDatastore._mapFolderURI(aFolderOrURI)];
       }}, this.NOUN_FOLDER);
     // TODO: use some form of (weak) caching layer... it is reasonably likely
     //  that there will be a high degree of correlation in many cases, and
