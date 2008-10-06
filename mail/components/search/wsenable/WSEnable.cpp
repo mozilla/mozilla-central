@@ -109,7 +109,7 @@ LSTATUS SetRegistryKeys()
     HKEY subKey;
     // Since we're administrator, we should be able to do this just fine
     rv = RegCreateKeyExW(key->mRoot, key->mSubKey, 0, NULL, REG_OPTION_NON_VOLATILE,
-          KEY_ALL_ACCESS, NULL, &subKey, NULL);
+          KEY_ALL_ACCESS | KEY_WOW64_64KEY, NULL, &subKey, NULL);
     if (rv == ERROR_SUCCESS)
       rv = RegSetValueExW(subKey, key->mName, 0, REG_SZ, (LPBYTE) key->mValue, 
             (lstrlenW(key->mValue) + 1) * sizeof(WCHAR));

@@ -95,7 +95,10 @@ function InitWinSearchIntegration()
   }
 
   gFoldersInCrawlScope = gWinSearchHelper.foldersInCrawlScope;
-  gRegKeysPresent = CheckRegistryKeys();
+  // XXX disable CheckRegistryKeys for now, we'll just harmlessly elevate every
+  // time the status goes from disabled to enabled
+  // gRegKeysPresent = CheckRegistryKeys();
+  gRegKeysPresent = false;
 
   if (enabled === undefined)
     // First run has to be handled after the main mail window is open
@@ -181,6 +184,8 @@ const gRegKeys =
 ];
 
 // Check whether the required registry keys exist
+// TODO: handle the 64 bit registry on 64 bit Windows, via probably moving this
+// to the helper component
 function CheckRegistryKeys()
 {
   for (var i = 0; i < gRegKeys.length; i++)
