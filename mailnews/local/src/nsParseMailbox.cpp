@@ -1398,25 +1398,17 @@ int nsParseMailMessageState::FinalizeHeaders()
         {
           // what to do about this? we used to do a hash of all the headers...
           nsCAutoString hash;
-          const char *md5_bin = "dummy message id";
+          const char *md5_b64 = "dummy.message.id";
           nsresult rv;
           nsCOMPtr<nsICryptoHash> hasher = do_CreateInstance("@mozilla.org/security/hash;1", &rv);
           if (NS_SUCCEEDED(rv))
           {
             if (NS_SUCCEEDED(hasher->Init(nsICryptoHash::MD5)) &&
-              NS_SUCCEEDED(hasher->Update((const PRUint8*) m_headers.GetBuffer(), m_headers.GetSize())) &&
-              NS_SUCCEEDED(hasher->Finish(PR_FALSE, hash)))
-                  md5_bin = hash.get();
+                NS_SUCCEEDED(hasher->Update((const PRUint8*) m_headers.GetBuffer(), m_headers.GetSize())) &&
+                NS_SUCCEEDED(hasher->Finish(PR_TRUE, hash)))
+              md5_b64 = hash.get();
           }
-          PR_snprintf (md5_data, sizeof(md5_data),
-            "<md5:"
-            "%02X%02X%02X%02X%02X%02X%02X%02X"
-            "%02X%02X%02X%02X%02X%02X%02X%02X"
-            ">",
-            md5_bin[0], md5_bin[1], md5_bin[2], md5_bin[3],
-            md5_bin[4], md5_bin[5], md5_bin[6], md5_bin[7],
-            md5_bin[8], md5_bin[9], md5_bin[10],md5_bin[11],
-            md5_bin[12],md5_bin[13],md5_bin[14],md5_bin[15]);
+          PR_snprintf (md5_data, sizeof(md5_data), "<md5:%s>", md5_b64);
           md5_header.value = md5_data;
           md5_header.length = strlen(md5_data);
           id = &md5_header;
