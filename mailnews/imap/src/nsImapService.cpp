@@ -989,6 +989,35 @@ NS_IMETHODIMP nsImapService::SaveMessageToDisk(const char *aMessageURI,
 /* imap4://HOST>fetch><UID>>MAILBOXPATH>x */
 /*   'x' is the message UID */
 /* will set the 'SEEN' flag */
+NS_IMETHODIMP nsImapService::AddImapFetchToUrl(nsIURI *aUrl,
+                                               nsIMsgFolder *aImapMailFolder,
+                                               const nsACString &aMessageIdentifierList,
+                                               const nsACString &aAdditionalHeader)
+{
+  nsCAutoString urlSpec;
+  aUrl->GetSpec(urlSpec);
+
+  PRUnichar hierarchySeparator = GetHierarchyDelimiter(aImapMailFolder);
+
+  urlSpec.Append("fetch>UID>");
+  urlSpec.Append(char(hierarchySeparator));
+
+  nsCAutoString folderName;
+  GetFolderName(aImapMailFolder, folderName);
+  urlSpec.Append(folderName);
+
+  urlSpec.Append(">");
+  urlSpec.Append(aMessageIdentifierList);
+
+  if (!aAdditionalHeader.IsEmpty())
+  {
+    urlSpec.Append("?header=");
+    urlSpec.Append(aAdditionalHeader);
+  }
+
+  return aUrl->SetSpec(urlSpec);
+}
+
 NS_IMETHODIMP nsImapService::FetchMessage(nsIImapUrl *aImapUrl,
                                           nsImapAction aImapAction,
                                           nsIMsgFolder *aImapMailFolder, 
@@ -1006,75 +1035,56 @@ NS_IMETHODIMP nsImapService::FetchMessage(nsIImapUrl *aImapUrl,
 
   nsresult rv;
   nsCOMPtr<nsIURI> url = do_QueryInterface(aImapUrl);
-  nsCAutoString urlSpec;
-  rv = SetImapUrlSink(aImapMailFolder, aImapUrl);
-  
-  rv = aImapUrl->SetImapMessageSink(aImapMessage);
-  url->GetSpec(urlSpec);
-  
-  PRUnichar hierarchySeparator = GetHierarchyDelimiter(aImapMailFolder); 
-  
-  urlSpec.Append("fetch>UID>");
-  urlSpec.Append(char(hierarchySeparator));
-  
-  nsCString folderName;
-  GetFolderName(aImapMailFolder, folderName);
-  urlSpec.Append(folderName);
-  urlSpec.Append(">");
-  urlSpec.Append(messageIdentifierList);
-  
-  if (!aAdditionalHeader.IsEmpty())
-  {
-    urlSpec.Append("?header=");
-    urlSpec.Append(aAdditionalHeader);
-  }
-  
-  rv = url->SetSpec(urlSpec);
-  
+
+  rv = AddImapFetchToUrl(url, aImapMailFolder, messageIdentifierList, aAdditionalHeader);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   if (WeAreOffline())
   {
-    nsCOMPtr<nsIMsgMailNewsUrl> msgurl (do_QueryInterface(aImapUrl));
-    if (msgurl)
-    {
-      PRBool msgIsInCache = PR_FALSE;
-      msgurl->GetMsgIsInLocalCache(&msgIsInCache);
-      if (!msgIsInCache && mCacheSession)
-      {
-        // check if message is in memory cache
-        PRInt32 uidValidity = -1;
-        nsCOMPtr <nsIImapMailFolderSink> folderSink = do_QueryInterface(aImapMailFolder);
-        if (folderSink)
-        {
-          folderSink->GetUidValidity(&uidValidity);
-          // stick the uid validity in front of the url, so that if the uid validity
-          // changes, we won't re-use the wrong cache entries.
-          nsCAutoString cacheKey;
-          nsCAutoString escapedSpec;
+    PRBool msgIsInCache = PR_FALSE;
+    nsCOMPtr<nsIMsgMailNewsUrl> msgUrl(do_QueryInterface(aImapUrl));
+    msgUrl->GetMsgIsInLocalCache(&msgIsInCache);
+    if (!msgIsInCache)
+      IsMsgInMemCache(url, aImapMailFolder, nsnull, &msgIsInCache);
 
-          cacheKey.AppendInt(uidValidity, 16);
-          url->GetAsciiSpec(escapedSpec);
-          cacheKey.Append(escapedSpec);
-          nsCOMPtr <nsICacheEntryDescriptor> cacheEntry;
-          msgIsInCache = NS_SUCCEEDED(mCacheSession->OpenCacheEntry(cacheKey,
-                                      nsICache::ACCESS_READ, PR_FALSE,
-                                      getter_AddRefs(cacheEntry)));
-        }
-      }
-      if (!msgIsInCache)
-      {
-        nsCOMPtr<nsIMsgIncomingServer> server;
-        rv = aImapMailFolder->GetServer(getter_AddRefs(server));
-        if (server && aDisplayConsumer)
-          rv = server->DisplayOfflineMsg(aMsgWindow);
-        return rv;
-      }
+    // Display the "offline" message if we didn't find it in the memory cache either
+    if (!msgIsInCache)
+    {
+      nsCOMPtr<nsIMsgIncomingServer> server;
+      rv = aImapMailFolder->GetServer(getter_AddRefs(server));
+      if (server && aDisplayConsumer)
+        rv = server->DisplayOfflineMsg(aMsgWindow);
+      return rv;
     }
   }
-  
+
   if (aURL)
     NS_IF_ADDREF(*aURL = url);
-  
+
+  return GetMessageFromUrl(aImapUrl, aImapAction, aImapMailFolder, aImapMessage,
+                           aMsgWindow, aDisplayConsumer, aConvertDataToText, aURL);
+}
+
+nsresult nsImapService::GetMessageFromUrl(nsIImapUrl *aImapUrl,
+                                          nsImapAction aImapAction,
+                                          nsIMsgFolder *aImapMailFolder,
+                                          nsIImapMessageSink *aImapMessage,
+                                          nsIMsgWindow *aMsgWindow,
+                                          nsISupports *aDisplayConsumer,
+                                          PRBool aConvertDataToText,
+                                          nsIURI **aURL)
+{
+  nsresult rv = SetImapUrlSink(aImapMailFolder, aImapUrl);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = aImapUrl->SetImapMessageSink(aImapMessage);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   rv = aImapUrl->SetImapAction(aImapAction);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIURI> url(do_QueryInterface(aImapUrl));
+
   // if the display consumer is a docshell, then we should run the url in the docshell.
   // otherwise, it should be a stream listener....so open a channel using AsyncRead
   // and the provided stream listener....
@@ -1161,6 +1171,7 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
                                            nsIUrlListener *aUrlListener, 
                                            PRBool aConvertData,
                                            const nsACString &aAdditionalHeader,
+                                           PRBool aLocalOnly,
                                            nsIURI **aURL)
 {
   NS_ENSURE_ARG_POINTER(aMessageURI);
@@ -1186,36 +1197,93 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
                                 folder, aUrlListener, urlSpec, hierarchySeparator);
       NS_ENSURE_SUCCESS(rv, rv);
       nsCOMPtr<nsIMsgMailNewsUrl> msgurl (do_QueryInterface(imapUrl));
-      
+      nsCOMPtr<nsIURI> url(do_QueryInterface(imapUrl));
+
+      // We need to add the fetch command here for the cache lookup to behave correctly
+      rv = AddImapFetchToUrl(url, folder, msgKey, aAdditionalHeader);
+      NS_ENSURE_SUCCESS(rv, rv);
+
       PRBool shouldStoreMsgOffline = PR_FALSE;
-      PRBool hasMsgOffline = PR_FALSE;
       
       nsCOMPtr<nsIMsgIncomingServer> aMsgIncomingServer;
       
       msgurl->SetMsgWindow(aMsgWindow);
       
       rv = msgurl->GetServer(getter_AddRefs(aMsgIncomingServer));
-      
+ 
       if (folder)
-      {
         folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
+
+      // If we don't have the message available locally, and we can't get it over
+      // the network, return with an error
+      if (aLocalOnly || WeAreOffline())
+      {
+        PRBool hasMsgOffline = PR_FALSE;
         folder->HasMsgOffline(key, &hasMsgOffline);
+
+        if (!hasMsgOffline)
+        {
+          rv = IsMsgInMemCache(url, folder, nsnull, &hasMsgOffline);
+          NS_ENSURE_SUCCESS(rv, rv);
+        }
+
+        if (!hasMsgOffline)
+          return NS_ERROR_FAILURE;
+
+        msgurl->SetMsgIsInLocalCache(hasMsgOffline);
       }
-      
+
       imapUrl->SetFetchPartsOnDemand(PR_FALSE);
       msgurl->SetAddToMemoryCache(PR_TRUE);
       if (imapMessageSink)
         imapMessageSink->SetNotifyDownloadedLines(shouldStoreMsgOffline);
       
-      if (hasMsgOffline)
-        msgurl->SetMsgIsInLocalCache(PR_TRUE);
-      
-      rv = FetchMessage(imapUrl, nsIImapUrl::nsImapMsgFetchPeek, folder,
-                        imapMessageSink, aMsgWindow, aConsumer, msgKey,
-                        aConvertData, aAdditionalHeader, aURL);
+      rv = GetMessageFromUrl(imapUrl, nsIImapUrl::nsImapMsgFetchPeek, folder,
+                             imapMessageSink, aMsgWindow, aConsumer,
+                             aConvertData, aURL);
     }
   }
   return rv;
+}
+
+NS_IMETHODIMP nsImapService::IsMsgInMemCache(nsIURI *aUrl,
+                                             nsIMsgFolder *aImapMailFolder,
+                                             nsICacheEntryDescriptor **aCacheEntry,
+                                             PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aUrl);
+  NS_ENSURE_ARG_POINTER(aImapMailFolder);
+  *aResult = PR_FALSE;
+
+  // Poke around in the memory cache
+  if (mCacheSession)
+  {
+    nsresult rv;
+    nsCOMPtr<nsIImapMailFolderSink> folderSink(do_QueryInterface(aImapMailFolder, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    PRInt32 uidValidity = -1;
+    folderSink->GetUidValidity(&uidValidity);
+    // stick the uid validity in front of the url, so that if the uid validity
+    // changes, we won't re-use the wrong cache entries.
+    nsCAutoString cacheKey;
+    nsCAutoString escapedSpec;
+
+    cacheKey.AppendInt(uidValidity, 16);
+    aUrl->GetAsciiSpec(escapedSpec);
+    cacheKey.Append(escapedSpec);
+    nsCOMPtr<nsICacheEntryDescriptor> cacheEntry;
+    rv = mCacheSession->OpenCacheEntry(cacheKey, nsICache::ACCESS_READ, PR_FALSE,
+                                       getter_AddRefs(cacheEntry));
+    if (NS_SUCCEEDED(rv))
+    {
+      *aResult = PR_TRUE;
+      if (aCacheEntry)
+        NS_IF_ADDREF(*aCacheEntry = cacheEntry);
+    }
+  }
+
+  return NS_OK;
 }
 
 nsresult nsImapService::CreateStartOfImapUrl(const nsACString &aImapURI, 

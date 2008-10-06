@@ -90,6 +90,7 @@ protected:
   nsresult FindServerWithNewsgroup(nsCString &host, nsCString &groupName);
 
   nsresult CreateMessageIDURL(nsIMsgFolder *folder, nsMsgKey key, char **url);
+  nsresult GetMessageFromUrl(nsIURI *aUrl, nsIMsgWindow *aMsgWindow, nsISupports *aDisplayConsumer);
   // a convience routine used to put together news urls
   nsresult ConstructNntpUrl(const char * urlString, nsIUrlListener *aUrlListener,  nsIMsgWindow * aMsgWindow, const char *originalMessageUri, PRInt32 action, nsIURI ** aUrl);
   nsresult CreateNewsAccount(const char *aHostname, PRBool aIsSecure, PRInt32 aPort, nsIMsgIncomingServer **aServer);

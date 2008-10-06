@@ -413,7 +413,18 @@ function GenerateSupportFile(msgHdr)
       var msgService = gMessenger.messageServiceFromURI(uri);
       gStreamListener.outputFile = file;
 
-      msgService.streamMessage(uri, gStreamListener, null, null, false, "", null);
+      try
+      {
+        // XXX For now, try getting the messages from the server. This has to be
+        // improved so that we don't generate any excess network traffic
+        msgService.streamMessage(uri, gStreamListener, null, null, false, "", false);
+      }
+      catch (ex)
+      {
+        // This is an expected case, in case we're offline
+        SIDump("StreamMessage not successful\n");
+        gStreamListener.onDoneStreamingCurMessage(false);
+      }
     }
   }
   catch (ex)

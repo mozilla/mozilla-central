@@ -78,7 +78,17 @@ protected:
   PRUnichar GetHierarchyDelimiter(nsIMsgFolder *aMsgFolder);
   
   nsresult GetFolderName(nsIMsgFolder *aImapFolder, nsACString &aFolderName);
-  
+
+  // This is called by both FetchMessage and StreamMessage
+  nsresult GetMessageFromUrl(nsIImapUrl *aImapUrl,
+                             nsImapAction aImapAction,
+                             nsIMsgFolder *aImapMailFolder, 
+                             nsIImapMessageSink *aImapMessage,
+                             nsIMsgWindow *aMsgWindow,
+                             nsISupports *aDisplayConsumer, 
+                             PRBool aConvertDataToText,
+                             nsIURI **aURL);
+
   nsresult CreateStartOfImapUrl(const nsACString &aImapURI,  // a RDF URI for the current message/folder, can be empty
                                 nsIImapUrl  **imapUrl,
                                 nsIMsgFolder *aImapFolder,

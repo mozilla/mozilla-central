@@ -46,6 +46,7 @@ interface nsIMsgFolder;
 interface nsIMsgSearchSession;
 interface nsIMsgDBHdr;
 interface nsIStreamConverter;
+interface nsICacheEntryDescriptor;
 
 %{C++
 #include "MailNewsTypes.h"
@@ -55,7 +56,7 @@ interface nsIStreamConverter;
 [ref] native nsMsgKeyArrayRef(nsTArray<nsMsgKey>);
 
 
-[scriptable, uuid(e0b51637-c16e-4f23-b5e3-934df0d71515)]
+[scriptable, uuid(5f173e8d-0046-4eec-b178-b850a7211654)]
 interface nsIMsgMessageService : nsISupports {
      
      /////////////////////////////////////////////////////////////////
@@ -165,12 +166,34 @@ interface nsIMsgMessageService : nsISupports {
   // @param aUrlListener gets notified when url starts and stops
   // @param aConvertData should we create a stream converter?
   // @param aAdditionalHeader added to URI, e.g., "header=filter"
+  // @param aLocalOnly whether data should be retrieved only from local caches
+  //        If streaming over the network is required and this is true, then
+  //        an exception is thrown. This defaults to false.
+  //
+  // @note If we're offline, then even if aLocalOnly is false, we won't stream over the
+  //       network
+  //
   // @return the URL that gets run
   nsIURI streamMessage(in string aMessageURI, in nsISupports aConsumer, 
                     in nsIMsgWindow aMsgWindow,
                     in nsIUrlListener aUrlListener, 
                     in boolean aConvertData,
-                    in ACString aAdditionalHeader);
+                    in ACString aAdditionalHeader,
+                    [optional] in boolean aLocalOnly);
+
+  
+  /**
+   * Determines whether a message is in the memory cache. Local folders
+   * don't implement this.
+   *
+   * @param aUrl The URL of the message, possibly with an appropriate command in it
+   * @param aFolder The folder this message is in
+   * @param aCacheEntry If a cache entry is found, then a pointer to it
+   */
+  boolean isMsgInMemCache(in nsIURI aUrl,
+                          in nsIMsgFolder aFolder,
+                          out nsICacheEntryDescriptor aCacheEntry);
+
     /**
      * now the the message datasource is going away
      * we need away to go from message uri to go nsIMsgDBHdr

@@ -8067,24 +8067,13 @@ NS_IMETHODIMP nsImapMailFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUi
     NS_ENSURE_SUCCESS(rv,rv);
     rv = msgService->GetUrlForUri(messageUri.get(), getter_AddRefs(url), nsnull);
     NS_ENSURE_SUCCESS(rv,rv);
-    nsCAutoString urlSpec;
-    url->GetAsciiSpec(urlSpec);
 
-    nsCOMPtr<nsICacheSession> cacheSession;
-    rv = imapService->GetCacheSession(getter_AddRefs(cacheSession));
+    nsCOMPtr<nsICacheEntryDescriptor> cacheEntry;
+    PRBool msgInMemCache = PR_FALSE;
+    rv = msgService->IsMsgInMemCache(url, this, getter_AddRefs(cacheEntry), &msgInMemCache);
     NS_ENSURE_SUCCESS(rv, rv);
-    PRInt32 uidValidity;
-    GetUidValidity(&uidValidity);
-    // stick the uid validity in front of the url, so that if the uid validity
-    // changes, we won't re-use the wrong cache entries.
-    nsCAutoString cacheKey;
-    cacheKey.AppendInt(uidValidity, 16);
-    cacheKey.Append(urlSpec);
-    nsCOMPtr <nsICacheEntryDescriptor> cacheEntry;
 
-    // if mem cache entry is broken or empty, go to next message.
-    rv = cacheSession->OpenCacheEntry(cacheKey, nsICache::ACCESS_READ, PR_FALSE, getter_AddRefs(cacheEntry));
-    if (cacheEntry)
+    if (msgInMemCache)
     {
       rv = cacheEntry->OpenInputStream(0, getter_AddRefs(inputStream));
       if (NS_SUCCEEDED(rv))

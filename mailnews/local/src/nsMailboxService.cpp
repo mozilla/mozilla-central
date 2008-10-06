@@ -317,6 +317,7 @@ nsMailboxService::StreamMessage(const char *aMessageURI,
                                 nsIUrlListener *aUrlListener,
                                 PRBool /* aConvertData */,
                                 const nsACString &aAdditionalHeader,
+                                PRBool aLocalOnly,
                                 nsIURI **aURL)
 {
     // The mailbox protocol object will look for "header=filter" or
@@ -333,6 +334,14 @@ nsMailboxService::StreamMessage(const char *aMessageURI,
 
     return FetchMessage(aURIString.get(), aConsumer, aMsgWindow, aUrlListener, nsnull,
                                         nsIMailboxUrl::ActionFetchMessage, nsnull, aURL);
+}
+
+NS_IMETHODIMP nsMailboxService::IsMsgInMemCache(nsIURI *aUrl,
+                                                nsIMsgFolder *aFolder,
+                                                nsICacheEntryDescriptor **aCacheEntry,
+                                                PRBool *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMailboxService::OpenAttachment(const char *aContentType,

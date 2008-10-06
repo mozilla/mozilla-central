@@ -2833,7 +2833,7 @@ nsDelAttachListener::StartProcessing(nsMessenger * aMessenger, nsIMsgWindow * aM
 
   rv = mMessageService->StreamMessage(messageUri, listenerSupports, mMsgWindow,
                                       listenerUrlListener, PR_TRUE, sHeader,
-                                      nsnull);
+                                      PR_FALSE, nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
 
   return NS_OK;

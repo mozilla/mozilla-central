@@ -276,113 +276,109 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
   rv = ConstructNntpUrl(urlStr.get(), aUrlListener, aMsgWindow, aMessageURI, action, getter_AddRefs(url));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  if (NS_SUCCEEDED(rv))
+  nsCOMPtr <nsIMsgMailNewsUrl> msgUrl = do_QueryInterface(url,&rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  nsCOMPtr<nsIMsgI18NUrl> i18nurl = do_QueryInterface(msgUrl,&rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  i18nurl->SetCharsetOverRide(aCharsetOverride);
+
+  PRBool shouldStoreMsgOffline = PR_FALSE;
+
+  if (folder)
   {
-    nsCOMPtr <nsIMsgMailNewsUrl> msgUrl = do_QueryInterface(url,&rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    nsCOMPtr<nsIMsgIncomingServer> server;
+    // We need to set the port on the url, just like 
+    // nsNNTPProtocol::Initialize does, so the specs will be the same.
+    // we can ignore errors here - worst case, we'll display the
+    // "message not available" message.
+    rv = folder->GetServer(getter_AddRefs(server));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIMsgI18NUrl> i18nurl = do_QueryInterface(msgUrl,&rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    PRBool isSecure = PR_FALSE;
+    server->GetIsSecure(&isSecure);
+    url->SetPort(isSecure ? SECURE_NEWS_PORT : NEWS_PORT);
 
-    i18nurl->SetCharsetOverRide(aCharsetOverride);
+    folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
 
-    PRBool shouldStoreMsgOffline = PR_FALSE;
+    // Look for the message in the offline cache
     PRBool hasMsgOffline = PR_FALSE;
+    folder->HasMsgOffline(key, &hasMsgOffline);
 
-    if (folder)
+    // Now look in the memory cache
+    if (!hasMsgOffline)
     {
-      nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(folder);
-      if (newsFolder)
-      {
-        folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
-        folder->HasMsgOffline(key, &hasMsgOffline);
-        msgUrl->SetMsgIsInLocalCache(hasMsgOffline);
-        if (WeAreOffline())
-        {
-          nsCOMPtr<nsIMsgIncomingServer> server;
-          // We need to set the port on the url, just like 
-          // nsNNTPProtocol::Initialize does, so the specs will be the same.
-          // we can ignore errors here - worst case, we'll display the
-          // "message not available" message.
-          folder->GetServer(getter_AddRefs(server));
-          PRBool isSecure = PR_FALSE;
-          if (server)
-            server->GetIsSecure(&isSecure);
-          url->SetPort(isSecure ? SECURE_NEWS_PORT : NEWS_PORT);
-
-          // check if message is in memory cache
-          nsCAutoString cacheKey;
-          url->GetAsciiSpec(cacheKey);
-          // nntp urls are truncated at the query part when used as cache keys
-          PRInt32 pos = cacheKey.FindChar('?');
-          if (pos != -1)
-            cacheKey.SetLength(pos);
-          nsCOMPtr <nsICacheEntryDescriptor> cacheEntry;
-          if (mCacheSession)
-            hasMsgOffline = NS_SUCCEEDED(mCacheSession->OpenCacheEntry(cacheKey,
-                                        nsICache::ACCESS_READ, PR_FALSE,
-                                        getter_AddRefs(cacheEntry)));
-          if (!hasMsgOffline)
-          {
-            if (server)
-              return server->DisplayOfflineMsg(aMsgWindow);
-          }
-        }
-        newsFolder->SetSaveArticleOffline(shouldStoreMsgOffline);
-      }
+      rv = IsMsgInMemCache(url, folder, nsnull, &hasMsgOffline);
+      NS_ENSURE_SUCCESS(rv, rv);
     }
 
-    // now is where our behavior differs....if the consumer is the docshell then we want to
-    // run the url in the webshell in order to display it. If it isn't a docshell then just
-    // run the news url like we would any other news url.
-    nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(aDisplayConsumer, &rv));
-    if (NS_SUCCEEDED(rv) && docShell)
-    {
-      nsCOMPtr<nsIDocShellLoadInfo> loadInfo;
-      // DIRTY LITTLE HACK --> if we are opening an attachment we want the docshell to
-      // treat this load as if it were a user click event. Then the dispatching stuff will be much
-      // happier.
-      if (mOpenAttachmentOperation)
-      {
-        docShell->CreateLoadInfo(getter_AddRefs(loadInfo));
-        loadInfo->SetLoadType(nsIDocShellLoadInfo::loadLink);
-      }
+    // If the message is not found in either, then we might need to return
+    if (!hasMsgOffline && WeAreOffline())
+      return server->DisplayOfflineMsg(aMsgWindow);
 
-      rv = docShell->LoadURI(url, loadInfo, nsIWebNavigation::LOAD_FLAGS_NONE, PR_FALSE);
-    }
-    else
-    {
-      nsCOMPtr<nsIStreamListener> aStreamListener = do_QueryInterface(aDisplayConsumer, &rv);
-      if (NS_SUCCEEDED(rv) && aStreamListener)
-      {
-        nsCOMPtr<nsIChannel> aChannel;
-        nsCOMPtr<nsILoadGroup> aLoadGroup;
-        nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(url, &rv);
-        if (NS_SUCCEEDED(rv) && mailnewsUrl)
-        {
-          if (aMsgWindow)
-            mailnewsUrl->SetMsgWindow(aMsgWindow);
-          mailnewsUrl->GetLoadGroup(getter_AddRefs(aLoadGroup));
-        }
-        rv = NewChannel(url, getter_AddRefs(aChannel));
-        if (NS_FAILED(rv)) return rv;
+    msgUrl->SetMsgIsInLocalCache(hasMsgOffline);
 
-        rv = aChannel->SetLoadGroup(aLoadGroup);
-        if (NS_FAILED(rv)) return rv;
-
-        nsCOMPtr<nsISupports> aCtxt = do_QueryInterface(url);
-        //  now try to open the channel passing in our display consumer as the listener
-        rv = aChannel->AsyncOpen(aStreamListener, aCtxt);
-      }
-      else
-        rv = RunNewsUrl(url, aMsgWindow, aDisplayConsumer);
-    }
+    nsCOMPtr<nsIMsgNewsFolder> newsFolder(do_QueryInterface(folder, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    newsFolder->SetSaveArticleOffline(shouldStoreMsgOffline);
   }
 
   if (aURL)
+    NS_IF_ADDREF(*aURL = url);
+
+  return GetMessageFromUrl(url, aMsgWindow, aDisplayConsumer);
+}
+
+nsresult nsNntpService::GetMessageFromUrl(nsIURI *aUrl,
+                                          nsIMsgWindow *aMsgWindow,
+                                          nsISupports *aDisplayConsumer)
+{
+  nsresult rv;
+  // if the consumer is the docshell then we want to run the url in the webshell
+  // in order to display it. If it isn't a docshell then just run the news url
+  // like we would any other news url.
+  nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(aDisplayConsumer, &rv));
+  if (NS_SUCCEEDED(rv))
   {
-    *aURL = url;
-    NS_IF_ADDREF(*aURL);
+    nsCOMPtr<nsIDocShellLoadInfo> loadInfo;
+    // DIRTY LITTLE HACK --> if we are opening an attachment we want the docshell to
+    // treat this load as if it were a user click event. Then the dispatching stuff will be much
+    // happier.
+    if (mOpenAttachmentOperation)
+    {
+      docShell->CreateLoadInfo(getter_AddRefs(loadInfo));
+      loadInfo->SetLoadType(nsIDocShellLoadInfo::loadLink);
+    }
+
+    rv = docShell->LoadURI(aUrl, loadInfo, nsIWebNavigation::LOAD_FLAGS_NONE, PR_FALSE);
+  }
+  else
+  {
+    nsCOMPtr<nsIStreamListener> aStreamListener(do_QueryInterface(aDisplayConsumer, &rv));
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCOMPtr<nsIChannel> aChannel;
+      nsCOMPtr<nsILoadGroup> aLoadGroup;
+      nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(aUrl, &rv);
+      if (NS_SUCCEEDED(rv) && mailnewsUrl)
+      {
+        if (aMsgWindow)
+          mailnewsUrl->SetMsgWindow(aMsgWindow);
+        mailnewsUrl->GetLoadGroup(getter_AddRefs(aLoadGroup));
+      }
+      rv = NewChannel(aUrl, getter_AddRefs(aChannel));
+      if (NS_FAILED(rv)) return rv;
+
+      rv = aChannel->SetLoadGroup(aLoadGroup);
+      if (NS_FAILED(rv)) return rv;
+
+      nsCOMPtr<nsISupports> aCtxt = do_QueryInterface(aUrl);
+      //  now try to open the channel passing in our display consumer as the listener
+      rv = aChannel->AsyncOpen(aStreamListener, aCtxt);
+    }
+    else
+      rv = RunNewsUrl(aUrl, aMsgWindow, aDisplayConsumer);
   }
   return rv;
 }
@@ -1553,19 +1549,102 @@ nsNntpService::StreamMessage(const char *aMessageURI, nsISupports *aConsumer,
                               nsIUrlListener *aUrlListener,
                               PRBool /* convertData */,
                               const nsACString &aAdditionalHeader,
+                              PRBool aLocalOnly,
                               nsIURI **aURL)
 {
     // The nntp protocol object will look for "header=filter" to decide if it wants to convert
     // the data instead of using aConvertData. It turns out to be way too hard to pass aConvertData
     // all the way over to the nntp protocol object.
     nsCAutoString aURIString(aMessageURI);
+
     if (!aAdditionalHeader.IsEmpty())
     {
       aURIString.FindChar('?') == kNotFound ? aURIString += "?" : aURIString += "&";
       aURIString += "header=";
       aURIString += aAdditionalHeader;
     }
-    return DisplayMessage(aURIString.get(), aConsumer, aMsgWindow, aUrlListener, nsnull, aURL);
+
+    nsCOMPtr<nsIMsgFolder> folder;
+    nsMsgKey key;
+    nsresult rv = DecomposeNewsMessageURI(aMessageURI, getter_AddRefs(folder), &key);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCAutoString urlStr;
+    rv = CreateMessageIDURL(folder, key, getter_Copies(urlStr));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsNewsAction action = nsINntpUrl::ActionFetchArticle;
+    if (mOpenAttachmentOperation)
+      action = nsINntpUrl::ActionFetchPart;
+
+    nsCOMPtr<nsIURI> url;
+    rv = ConstructNntpUrl(urlStr.get(), aUrlListener, aMsgWindow, aURIString.get(),
+                          action, getter_AddRefs(url));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (aLocalOnly || WeAreOffline())
+    {
+      // Check in the offline cache, then in the mem cache
+      nsCOMPtr<nsIMsgMailNewsUrl> msgUrl(do_QueryInterface(url, &rv));
+      PRBool hasMsgOffline = PR_FALSE;
+      folder->HasMsgOffline(key, &hasMsgOffline);
+      if (!hasMsgOffline)
+      {
+        nsCOMPtr<nsIMsgIncomingServer> server;
+        folder->GetServer(getter_AddRefs(server));
+        PRBool isSecure = PR_FALSE;
+        if (server)
+          server->GetIsSecure(&isSecure);
+        url->SetPort(isSecure ? SECURE_NEWS_PORT : NEWS_PORT);
+
+        rv = IsMsgInMemCache(url, folder, nsnull, &hasMsgOffline);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+
+      // Return with an error if we didn't find it in the memory cache either
+      if (!hasMsgOffline)
+        return NS_ERROR_FAILURE;
+
+      msgUrl->SetMsgIsInLocalCache(PR_TRUE);
+    }
+
+    if (aURL)
+      NS_IF_ADDREF(*aURL = url);
+
+    return GetMessageFromUrl(url, aMsgWindow, aConsumer);
+}
+
+NS_IMETHODIMP nsNntpService::IsMsgInMemCache(nsIURI *aUrl,
+                                             nsIMsgFolder *aFolder,
+                                             nsICacheEntryDescriptor **aCacheEntry,
+                                             PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aUrl);
+  NS_ENSURE_ARG_POINTER(aFolder);
+  *aResult = PR_FALSE;
+
+  if (mCacheSession)
+  {
+    // check if message is in memory cache
+    nsCAutoString cacheKey;
+    aUrl->GetAsciiSpec(cacheKey);
+    // nntp urls are truncated at the query part when used as cache keys
+    PRInt32 pos = cacheKey.FindChar('?');
+    if (pos != -1)
+      cacheKey.SetLength(pos);
+
+    nsCOMPtr<nsICacheEntryDescriptor> cacheEntry;
+    if (NS_SUCCEEDED(mCacheSession->OpenCacheEntry(cacheKey,
+                     nsICache::ACCESS_READ, PR_FALSE,
+                     getter_AddRefs(cacheEntry))))
+    {
+      *aResult = PR_TRUE;
+      if (aCacheEntry)
+        NS_IF_ADDREF(*aCacheEntry = cacheEntry);
+    }
+  }
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsNntpService::Search(nsIMsgSearchSession *aSearchSession, nsIMsgWindow *aMsgWindow, nsIMsgFolder *aMsgFolder, const char *aSearchUri)

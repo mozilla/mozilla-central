@@ -58,7 +58,7 @@ interface nsIMsgWindow;
 interface nsIImapIncomingServer;
 interface nsICacheSession;
 
-[scriptable, uuid(55ebf0c5-0492-43f4-a17c-56f87cfab5f9)]
+[scriptable, uuid(a12113ff-0cc4-41ba-ae98-fe31cf2411ce)]
 interface nsIImapService : nsISupports
 {
   // You can pass in null for the url listener and the url if you don't require either.....
@@ -74,6 +74,11 @@ interface nsIImapService : nsISupports
                         in nsIUrlListener aUrlListener,
                         out nsIURI aURL);
   
+  void addImapFetchToUrl(in nsIURI aURL,
+                         in nsIMsgFolder aImapMailFolder,
+                         in ACString aMessageIdentifierList,
+                         in ACString aAdditionalHeader);
+
   void fetchMessage(in nsIImapUrl aUrl,
                     in nsImapState aImapAction,
                     in nsIMsgFolder aImapMailFolder,
