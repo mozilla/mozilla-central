@@ -646,8 +646,9 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
 
       PRUint32 numToRecips;
       PRUint32 numCCRecips;
-      parser->ParseHeaderAddresses(nsnull, recipients.get(), nsnull, nsnull, &numToRecips);
-      parser->ParseHeaderAddresses(nsnull, ccList.get(), nsnull, nsnull, &numCCRecips);
+      parser->ParseHeaderAddresses(recipients.get(), nsnull, nsnull,
+				   &numToRecips);
+      parser->ParseHeaderAddresses(ccList.get(), nsnull, nsnull, &numCCRecips);
 
       message->lpRecips = (lpnsMapiRecipDesc) CoTaskMemAlloc ((numToRecips + numCCRecips) * sizeof(MapiRecipDesc));
       memset(message->lpRecips, 0, (numToRecips + numCCRecips) * sizeof(MapiRecipDesc));
@@ -697,7 +698,7 @@ void MsgMapiListContext::ConvertRecipientsToMapiFormat (nsIMsgHeaderParser *pars
   if (!parser)
     return ;
   PRUint32 numAddresses = 0;
-  parser->ParseHeaderAddresses(nsnull, recipients, &names, &addresses, &numAddresses);
+  parser->ParseHeaderAddresses(recipients, &names, &addresses, &numAddresses);
   
   if (numAddresses > 0)
   {
