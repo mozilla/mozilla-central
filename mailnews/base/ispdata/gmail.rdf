@@ -6,7 +6,68 @@
 
   <RDF:Description about="NC:ispinfo">
     <NC:providers>
-      <NC:nsIMsgAccount about="domain:gmail.com">
+      <!-- Gmail IMAP access -->
+      <NC:nsIMsgAccount about="domain:gmail.com?type=imap">
+        <!-- IMAP server info -->
+        <NC:incomingServer>
+          <NC:nsIMsgIncomingServer>
+            <NC:prettyName>Gmail</NC:prettyName>
+            <NC:hostName>imap.gmail.com</NC:hostName>
+            <NC:type>imap</NC:type>
+            <NC:ServerType-imap>
+              <NC:nsIImapIncomingServer>
+                <NC:usingSubscription>false</NC:usingSubscription>
+                <!-- IMAP delete model: "remove it immediately". -->
+                <NC:deleteModel>2</NC:deleteModel>
+                <NC:trashFolderName>[Gmail]/Trash</NC:trashFolderName>
+              </NC:nsIImapIncomingServer>
+            </NC:ServerType-imap>
+            <NC:loginAtStartUp>true</NC:loginAtStartUp>
+            <NC:rememberPassword>true</NC:rememberPassword>
+            <NC:port>993</NC:port>
+            <NC:socketType>3</NC:socketType>
+          </NC:nsIMsgIncomingServer>
+        </NC:incomingServer>
+
+        <!-- SMTP server info -->
+        <NC:smtp>
+          <NC:nsISmtpServer>
+            <NC:hostname>smtp.gmail.com</NC:hostname>
+            <NC:port>587</NC:port>
+            <NC:trySSL>2</NC:trySSL>
+            <NC:description>Gmail SMTP</NC:description>
+          </NC:nsISmtpServer>
+        </NC:smtp>
+        <NC:smtpRequiresUsername>true</NC:smtpRequiresUsername>
+        <NC:smtpCreateNewServer>true</NC:smtpCreateNewServer>
+        <NC:smtpUsePreferredServer>true</NC:smtpUsePreferredServer>
+
+        <!-- identity defaults -->
+        <NC:identity>
+          <NC:nsIMsgIdentity>
+            <!-- Don't store sent mail in a Sent folder, as Gmail will show it
+                 in [Gmail]/Sent Mail anyway. -->
+            <NC:doFcc>false</NC:doFcc>
+            <NC:FccFolder>[Gmail]/Sent Mail</NC:FccFolder>
+            <NC:DraftFolder>[Gmail]/Drafts</NC:DraftFolder>
+          </NC:nsIMsgIdentity>
+        </NC:identity>
+
+        <!-- other options -->
+        <NC:wizardSkipPanels>true</NC:wizardSkipPanels>
+        <NC:wizardShortName>Gmail</NC:wizardShortName>
+        <NC:wizardLongName>Gmail IMAP</NC:wizardLongName>
+        <NC:wizardLongNameAccesskey>M</NC:wizardLongNameAccesskey>
+        <NC:wizardShow>true</NC:wizardShow>
+        <NC:wizardPromote>true</NC:wizardPromote>
+        <NC:emailProviderName>Gmail</NC:emailProviderName>
+        <NC:sampleEmail>example@gmail.com</NC:sampleEmail>
+        <NC:sampleUserName>example</NC:sampleUserName>
+        <NC:emailIDDescription>Gmail Username:</NC:emailIDDescription>
+        <NC:showServerDetailsOnWizardSummary>true</NC:showServerDetailsOnWizardSummary>
+      </NC:nsIMsgAccount>
+
+      <NC:nsIMsgAccount about="domain:gmail.com?type=pop3">
         <!-- pop3 server info -->
         <NC:incomingServer>
           <NC:nsIMsgIncomingServer>
@@ -49,7 +110,7 @@
         <!-- other options -->
         <NC:wizardSkipPanels>true</NC:wizardSkipPanels>
         <NC:wizardShortName>Gmail</NC:wizardShortName>
-        <NC:wizardLongName>Gmail</NC:wizardLongName>
+        <NC:wizardLongName>Gmail POP</NC:wizardLongName>
         <NC:wizardLongNameAccesskey>G</NC:wizardLongNameAccesskey>
         <NC:wizardShow>true</NC:wizardShow>
         <NC:wizardPromote>true</NC:wizardPromote>

@@ -6,7 +6,68 @@
 
   <RDF:Description about="NC:ispinfo">
     <NC:providers>
-      <NC:nsIMsgAccount about="domain:googlemail.com">
+      <!-- Google Mail IMAP access -->
+      <NC:nsIMsgAccount about="domain:googlemail.com?type=imap">
+        <!-- IMAP server info -->
+        <NC:incomingServer>
+          <NC:nsIMsgIncomingServer>
+            <NC:prettyName>Google Mail</NC:prettyName>
+            <NC:hostName>imap.googlemail.com</NC:hostName>
+            <NC:type>imap</NC:type>
+            <NC:ServerType-imap>
+              <NC:nsIImapIncomingServer>
+                <NC:usingSubscription>false</NC:usingSubscription>
+                <!-- IMAP delete model: "remove it immediately". -->
+                <NC:deleteModel>2</NC:deleteModel>
+                <NC:trashFolderName>[Google Mail]/Trash</NC:trashFolderName>
+              </NC:nsIImapIncomingServer>
+            </NC:ServerType-imap>
+            <NC:loginAtStartUp>true</NC:loginAtStartUp>
+            <NC:rememberPassword>true</NC:rememberPassword>
+            <NC:port>993</NC:port>
+            <NC:socketType>3</NC:socketType>
+          </NC:nsIMsgIncomingServer>
+        </NC:incomingServer>
+
+        <!-- SMTP server info -->
+        <NC:smtp>
+          <NC:nsISmtpServer>
+            <NC:hostname>smtp.googlemail.com</NC:hostname>
+            <NC:port>587</NC:port>
+            <NC:trySSL>2</NC:trySSL>
+            <NC:description>Google Mail SMTP</NC:description>
+          </NC:nsISmtpServer>
+        </NC:smtp>
+        <NC:smtpRequiresUsername>true</NC:smtpRequiresUsername>
+        <NC:smtpCreateNewServer>true</NC:smtpCreateNewServer>
+        <NC:smtpUsePreferredServer>true</NC:smtpUsePreferredServer>
+
+        <!-- identity defaults -->
+        <NC:identity>
+          <NC:nsIMsgIdentity>
+            <!-- Don't store sent mail in a Sent folder, as Google Mail will show it
+                 in [Google Mail]/Sent Mail anyway. -->
+            <NC:doFcc>false</NC:doFcc>
+            <NC:FccFolder>[Google Mail]/Sent Mail</NC:FccFolder>
+            <NC:DraftFolder>[Google Mail]/Drafts</NC:DraftFolder>
+          </NC:nsIMsgIdentity>
+        </NC:identity>
+
+        <!-- other options -->
+        <NC:wizardSkipPanels>true</NC:wizardSkipPanels>
+        <NC:wizardShortName>Google Mail</NC:wizardShortName>
+        <NC:wizardLongName>Google Mail IMAP</NC:wizardLongName>
+        <NC:wizardLongNameAccesskey>M</NC:wizardLongNameAccesskey>
+        <NC:wizardShow>true</NC:wizardShow>
+        <NC:wizardPromote>true</NC:wizardPromote>
+        <NC:emailProviderName>Google Mail</NC:emailProviderName>
+        <NC:sampleEmail>example@googlemail.com</NC:sampleEmail>
+        <NC:sampleUserName>example</NC:sampleUserName>
+        <NC:emailIDDescription>Google Mail Username:</NC:emailIDDescription>
+        <NC:showServerDetailsOnWizardSummary>true</NC:showServerDetailsOnWizardSummary>
+      </NC:nsIMsgAccount>
+
+      <NC:nsIMsgAccount about="domain:googlemail.com?type=pop3">
         <!-- pop3 server info -->
         <NC:incomingServer>
           <NC:nsIMsgIncomingServer>
@@ -49,7 +110,8 @@
         <!-- other options -->
         <NC:wizardSkipPanels>true</NC:wizardSkipPanels>
         <NC:wizardShortName>Google Mail</NC:wizardShortName>
-        <NC:wizardLongName>Google Mail</NC:wizardLongName>
+        <NC:wizardLongName>Google Mail POP</NC:wizardLongName>
+        <NC:wizardLongNameAccesskey>G</NC:wizardLongNameAccesskey>
         <NC:wizardShow>true</NC:wizardShow>
         <NC:wizardPromote>true</NC:wizardPromote>
         <NC:emailProviderName>Google Mail</NC:emailProviderName>

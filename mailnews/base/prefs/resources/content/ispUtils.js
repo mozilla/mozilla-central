@@ -61,13 +61,13 @@ function getIspDefaultsForUri(domainURI)
 {
     if (!ispDefaults) 
         ispDefaults = rdf.GetDataSource("rdf:ispdefaults");
-    
+
     var domainRes = rdf.GetResource(domainURI);
 
     var result = dataSourceToObject(ispDefaults, domainRes);
 
     if (!result) return null;
-    
+
     // The domainURI should be in the format domain:aol.com. (Where 
     // aol.com is the domain name to use for all email addresses). If
     // it does not match this pattern, then it is possible no domain
@@ -76,10 +76,15 @@ function getIspDefaultsForUri(domainURI)
         // add this extra attribute which is the domain itself
         var domainData = domainURI.split(':');
         if (domainData.length > 1) {
-            result.domain = domainData[1];
+          // To faciltate distributing two different account types for one ISP,
+          // it's possible to add parameters to the domain URI 
+          // - e.g. domain:gmail.com?type=imap.
+          // This is necessary so RDF doesn't think they're the same.
+
+          // Save the domain, but only the part up to the (possible) question mark.
+          result.domain = /[^?]*/.exec(domainData[1]);
         }
     }
-    
     return result;
 }
 
@@ -108,16 +113,16 @@ function getIspDefaultsForEmail(email) {
 // return in an associative array
 function getEmailInfo(email) {
     if (!email) return null;
-    
+
     var result = new Object;
-    
+
     var emailData = email.split('@');
-    
+
     if (emailData.length != 2) {
         dump("bad e-mail address!\n");
         return null;
     }
-    
+
     // all the variables we'll be returning
     result.username = emailData[0];
     result.domain = emailData[1];
@@ -144,7 +149,6 @@ function prefillIspData(ispData, email, fullName) {
             !ispData.incomingServer.noDefaultUsername)
             ispData.incomingServer.username = emailData.username;
     }
-    
 }
 
 // this function will extract an entire datasource into a giant
@@ -162,9 +166,9 @@ function dataSourceToObject(datasource, root)
         arcName = arcName.substring(NClength, arcName.length);
 
         if (!result) result = new Object;
-        
+
         var target = datasource.GetTarget(root, arc, true);
-        
+
         var value;
         var targetHasChildren = false;
         try {
@@ -187,8 +191,7 @@ function dataSourceToObject(datasource, root)
                 if (!isNaN(num)) value = num;
             }
         }
-            
-        
+
         // add this value
         result[arcName] = value;
     }

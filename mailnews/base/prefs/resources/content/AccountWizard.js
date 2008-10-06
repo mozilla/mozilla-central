@@ -560,7 +560,7 @@ function finishAccount(account, accountData)
 // This routine skips any attribute that begins with ServerType- 
 function setGenericAttribute(dest, src, attribute)
 {
-  if (!(/^ServerType-/i.test(attribute)))
+  if (!(/^ServerType-/i.test(attribute)) && src[attribute])
   {
     switch (typeof src[attribute])
     {
@@ -574,7 +574,7 @@ function setGenericAttribute(dest, src, attribute)
         dest.setIntAttribute(attribute, src[attribute]);
         break;
       default:
-        dump('Error: No Generic attribute found for: ' +  typeof src[attribute] + '\n');
+        dump("Error: No Generic attribute " + attribute + " found for: " + dest + "\n");
         break;
     }
   }
@@ -663,13 +663,13 @@ function setupCopiesAndFoldersServer(account, accountIsDeferred, accountData)
       }
       copiesAndFoldersServer = am.localFoldersServer;
     }
-	  
+
     setDefaultCopiesAndFoldersPrefs(identity, copiesAndFoldersServer, accountData);
 
   } catch (ex) {
     // return false (meaning we did not setupCopiesAndFoldersServer)
     // on any error
-    dump("Error setupCopiesAndFoldersServer" + ex + "\n");
+    dump("Error in setupCopiesAndFoldersServer: " + ex + "\n");
     return false;
   }
   return true;
@@ -696,7 +696,6 @@ function setDefaultCopiesAndFoldersPrefs(identity, server, accountData)
   // because we happen to be doing things that way, and if the user changes
   // that, it will work because to change the folder, it must be in rdf,
   // coming from the folder cache, in the worst case.
-  var folders = rootFolder.GetSubFolders();
   var msgFolder = rootFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
 
   /** 
@@ -712,19 +711,26 @@ function setDefaultCopiesAndFoldersPrefs(identity, server, accountData)
   /* we use internal names known to everyone like Sent, Templates and Drafts */
   /* if folder names were already given in isp rdf, we use them,
      otherwise we use internal names known to everyone like Sent, Templates and Drafts */
-  
-  var draftFolder = (accountData.identity && accountData.identity.draftFolder ? accountData.identity.draftFolder : "Drafts");
-  var stationeryFolder = (accountData.identity && accountData.identity.stationeryFolder ? accountData.identity.stationeryFolder : "Templates");
-  var fccFolder = (accountData.identity && accountData.identity.fccFolder ? accountData.identity.fccFolder : "Sent");
+
+  // Note the capital F, D and S!
+  var draftFolder = (accountData.identity && accountData.identity.DraftFolder ?
+    accountData.identity.DraftFolder : "Drafts");
+  var stationeryFolder = (accountData.identity && accountData.identity.StationeryFolder ?
+    accountData.identity.StationeryFolder : "Templates");
+  var fccFolder = (accountData.identity && accountData.identity.FccFolder ?
+    accountData.identity.FccFolder : "Sent");
 
   identity.draftFolder = msgFolder.server.serverURI+ folderDelim + draftFolder;
   identity.stationeryFolder = msgFolder.server.serverURI+ folderDelim + stationeryFolder;
   identity.fccFolder = msgFolder.server.serverURI+ folderDelim + fccFolder;
-          
 
-  identity.fccFolderPickerMode = (accountData.identity && accountData.identity.fccFolder ? 1 : gDefaultSpecialFolderPickerMode);
-  identity.draftsFolderPickerMode = (accountData.identity && accountData.identity.draftFolder ? 1 : gDefaultSpecialFolderPickerMode);
-  identity.tmplFolderPickerMode = (accountData.identity && accountData.identity.stationeryFolder ? 1 : gDefaultSpecialFolderPickerMode);
+  // Note the capital F, D and S!
+  identity.fccFolderPickerMode = (accountData.identity &&
+    accountData.identity.FccFolder ? 1 : gDefaultSpecialFolderPickerMode);
+  identity.draftsFolderPickerMode = (accountData.identity &&
+    accountData.identity.DraftFolder ? 1 : gDefaultSpecialFolderPickerMode);
+  identity.tmplFolderPickerMode = (accountData.identity &&
+    accountData.identity.StationeryFolder ? 1 : gDefaultSpecialFolderPickerMode);
 }
 
 function AccountExists(userName,hostName,serverType)
@@ -745,10 +751,11 @@ function AccountExists(userName,hostName,serverType)
 
 function getFirstInvalidAccount()
 {
-    am = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
+    var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                       .getService(Components.interfaces.nsIMsgAccountManager);
 
     var invalidAccounts = getInvalidAccounts(am.accounts);
-  
+
     if (invalidAccounts.length > 0)
         return invalidAccounts[0];
     else
