@@ -226,7 +226,7 @@ let GlodaHasAttributesMixIn = {
    *   sub-object.  This would imply a return to having the getters just create
    *   a storage field rather than creating magic getters.)
    */
-  _replaceAttributes: function gloda_message_replaceAttributes(aNewAttribs) {
+  _replaceAttributes: function gloda_attrix_replaceAttributes(aNewAttribs) {
     let hadAttributes = this._attributes !== null;
     this._attributes = aNewAttribs;
     // if this guy didn't already have attributes, we don't actually need to
@@ -249,12 +249,12 @@ let GlodaHasAttributesMixIn = {
     }
   },
 
-  getAttributeInstances: function gloda_message_getAttributeInstances(aAttr) {
+  getAttributeInstances: function gloda_attrix_getAttributeInstances(aAttr) {
     return [attrParamVal for each (attrParamVal in this.rawAttributes) if
             (attrParamVal[0] == aAttr)];
   },
 
-  getSingleAttribute: function gloda_message_getSingleAttribute(aAttr) {
+  getSingleAttribute: function gloda_attrix_getSingleAttribute(aAttr) {
     let instances = this.getAttributeInstances(aAttr);
     if (instances.length > 0)
       return instances[0];
