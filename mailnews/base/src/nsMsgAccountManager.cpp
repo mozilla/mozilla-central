@@ -112,14 +112,23 @@ static NS_DEFINE_CID(kMsgFolderCacheCID, NS_MSGFOLDERCACHE_CID);
 
 // use this to search for all servers with the given hostname/iid and
 // put them in "servers"
-typedef struct _findServerEntry {
-  nsCString hostname;
-  nsCString username;
-  PRInt32 port;
-  nsCString type;
-  PRBool useRealSetting;
+struct findServerEntry {
+  const nsACString& hostname;
+  const nsACString& username;
+  const nsACString& type;
+  const PRInt32 port;
+  const PRBool useRealSetting;
   nsIMsgIncomingServer *server;
-} findServerEntry;
+  findServerEntry(const nsACString& aHostName, const nsACString& aUserName,
+                  const nsACString& aType, PRInt32 aPort, PRBool aUseRealSetting)
+    : hostname(aHostName),
+      username(aUserName),
+      type(aType),
+      port(aPort),
+      useRealSetting(aUseRealSetting),
+      server(nsnull)
+    {}
+};
 
 typedef struct _findServerByKeyEntry {
   nsCString key;
@@ -1625,7 +1634,6 @@ nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
                                 nsIMsgIncomingServer** aResult)
 {
   nsresult rv;
-  nsCOMPtr<nsISupportsArray> servers;
 
   // Get username and hostname and port so we can get the server
   nsCAutoString username;
@@ -1665,38 +1673,45 @@ nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
       port = 0;
   }
 
+  return findServerInternal(username, hostname, type, port, aRealFlag, aResult);
+}
+
+nsresult
+nsMsgAccountManager::findServerInternal(const nsACString& username,
+                                        const nsACString& hostname,
+                                        const nsACString& type,
+                                        PRInt32 port,
+                                        PRBool aRealFlag,
+                                        nsIMsgIncomingServer** aResult)
+{
   // If 'aRealFlag' is set then we want to scan all existing accounts
   // to make sure there's no duplicate including those whose host and/or
   // user names have been changed.
   if (!aRealFlag &&
-      (m_lastFindServerHostName.Equals(hostname)) &&
       (m_lastFindServerUserName.Equals(username)) &&
-      (port == m_lastFindServerPort) &&
+      (m_lastFindServerHostName.Equals(hostname)) &&
       (m_lastFindServerType.Equals(type)) &&
+      (m_lastFindServerPort == port) &&
       m_lastFindServerResult)
   {
     NS_ADDREF(*aResult = m_lastFindServerResult);
     return NS_OK;
   }
 
-  rv = GetAllServers(getter_AddRefs(servers));
+  nsCOMPtr<nsISupportsArray> servers;
+  nsresult rv = GetAllServers(getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  findServerEntry serverInfo;
-
-  serverInfo.hostname = hostname;
-  serverInfo.username = username;
-  serverInfo.port = port;
-  serverInfo.type = type;
-  serverInfo.useRealSetting = aRealFlag;
-  serverInfo.server = *aResult = nsnull;
+  findServerEntry serverInfo(hostname, username, type, port, aRealFlag);
   servers->EnumerateForwards(findServerUrl, (void *)&serverInfo);
 
   if (!serverInfo.server)
     return NS_ERROR_UNEXPECTED;
 
   // cache for next time
-  SetLastServerFound(serverInfo.server, hostname, username, port, type);
+  if (!aRealFlag)
+    SetLastServerFound(serverInfo.server, hostname, username, port, type);
+
   NS_ADDREF(*aResult = serverInfo.server);
   return NS_OK;
 }
@@ -1707,44 +1722,7 @@ nsMsgAccountManager::FindServer(const nsACString& username,
                                 const nsACString& type,
                                 nsIMsgIncomingServer** aResult)
 {
-  nsresult rv;
-  nsCOMPtr<nsISupportsArray> servers;
-
-  findServerEntry serverInfo;
-
-  // "" acts as the wild card.
-  serverInfo.hostname = hostname;
-  serverInfo.username = username;
-  serverInfo.type = type;
-  serverInfo.useRealSetting = PR_FALSE;
-
-  // If 'useRealSetting' is set then we want to scan all existing accounts
-  // to make sure there's no duplicate including those whose host and/or
-  // user names have been changed.
-  if ((m_lastFindServerHostName.Equals(serverInfo.hostname)) &&
-      (m_lastFindServerUserName.Equals(serverInfo.username)) &&
-      (m_lastFindServerType.Equals(serverInfo.type)) &&
-      m_lastFindServerResult)
-  {
-    NS_ADDREF(*aResult = m_lastFindServerResult);
-    return NS_OK;
-  }
-
-  rv = GetAllServers(getter_AddRefs(servers));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  serverInfo.server = *aResult = nsnull;
-
-  servers->EnumerateForwards(findServer, (void *)&serverInfo);
-
-  if (!serverInfo.server)
-    return NS_ERROR_UNEXPECTED;
-
-  // cache for next time
-  SetLastServerFound(serverInfo.server, hostname, username, 0, type);
-
-  NS_ADDREF(*aResult = serverInfo.server);
-  return NS_OK;
+  return findServerInternal(username, hostname, type, 0, PR_FALSE, aResult);
 }
 
 // Interface called by UI js only (always return true).
@@ -1755,26 +1733,8 @@ nsMsgAccountManager::FindRealServer(const nsACString& username,
                                     PRInt32 port,
                                     nsIMsgIncomingServer** aResult)
 {
-  // Dummy string to initialize the URL
-  // Needed so that we can use the Set....() items below (except SetSpec())
-  nsCAutoString spec("http://user@hostname:1111");
-  nsresult rv;
-  nsCOMPtr<nsIURL> aUrl = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
-  if (NS_FAILED(rv))
-    return NS_OK;
-
-  aUrl->SetSpec(spec);
-
-  if (type.IsEmpty())
-    // empty type -- use 'any' as the magic scheme value
-    aUrl->SetScheme(NS_LITERAL_CSTRING("any"));
-  else
-    aUrl->SetScheme(type);
-
-  aUrl->SetHost(hostname);
-  aUrl->SetUserPass(username);
-  aUrl->SetPort(port);
-  FindServerByURI(aUrl, PR_TRUE, aResult);
+  *aResult = nsnull;
+  findServerInternal(username, hostname, type, port, PR_TRUE, aResult);
   return NS_OK;
 }
 
@@ -1887,52 +1847,6 @@ nsMsgAccountManager::findServerUrl(nsISupports *aElement, void *data)
     entry->server = server;
     return PR_FALSE; // stop on first find
   }
-  return PR_TRUE;
-}
-
-// if the aElement matches the given hostname, add it to the given array
-PRBool
-nsMsgAccountManager::findServer(nsISupports *aElement, void *data)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(aElement, &rv);
-  if (NS_FAILED(rv))
-    return PR_TRUE;
-
-  findServerEntry *entry = (findServerEntry*) data;
-
-  nsCString thisHostname;
-  if (entry->useRealSetting)
-    rv = server->GetRealHostName(thisHostname);
-  else
-    rv = server->GetHostName(thisHostname);
-  if (NS_FAILED(rv))
-    return PR_TRUE;
-
-  nsCString thisUsername;
-  if (entry->useRealSetting)
-    rv = server->GetRealUsername(thisUsername);
-  else
-    rv = server->GetUsername(thisUsername);
-  if (NS_FAILED(rv))
-    return PR_TRUE;
-
-  nsCString thisType;
-  rv = server->GetType(thisType);
-  if (NS_FAILED(rv))
-    return PR_TRUE;
-
-  // treat "" as a wild card, so if the caller passed in "" for the desired attribute
-  // treat it as a match
-  if ((entry->type.IsEmpty()     || thisType.Equals(entry->type)) &&
-      (entry->hostname.IsEmpty() || thisHostname.Equals(entry->hostname, nsCaseInsensitiveCStringComparator())) &&
-      (entry->username.IsEmpty() || thisUsername.Equals(entry->username)))
-  {
-    entry->server = server;
-    return PR_FALSE;            // stop on first find
-  }
-
   return PR_TRUE;
 }
 

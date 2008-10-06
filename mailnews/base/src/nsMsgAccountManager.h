@@ -168,12 +168,16 @@ private:
   // server enumerators
   // ("element" is always a server)
   //
-  
-  // find the server given by {username, hostname, type}
-  static PRBool findServer(nsISupports *aElement, void *data);
 
   // find the server given by {username, hostname, port, type}
   static PRBool findServerUrl(nsISupports *aElement, void *data);
+
+  nsresult findServerInternal(const nsACString& username,
+                              const nsACString& hostname,
+                              const nsACString& type,
+                              PRInt32 port,
+                              PRBool aRealFlag,
+                              nsIMsgIncomingServer** aResult);
 
   // handle virtual folders
   nsresult GetVirtualFoldersFile(nsCOMPtr<nsILocalFile>& file);
