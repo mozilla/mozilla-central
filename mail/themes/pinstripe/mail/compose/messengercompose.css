@@ -449,7 +449,7 @@ treechildren::-moz-tree-image(remote-err) {
 
 .aw-menulist:focus {
   outline: 2px solid -moz-mac-focusring;
-  -moz-outline-offset: -2px;
+  outline-offset: -2px;
 }
 
 /* ::::: format toolbar ::::: */
