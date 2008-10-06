@@ -5037,13 +5037,13 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
     PRBool autoSyncOfflineStores = PR_FALSE;
 
     if (imapServer)
-      imapServer->GetAutoSyncOfflineStores(&autoSyncOfflineStores);
-    
-    if (autoSyncOfflineStores || mFlags & nsMsgFolderFlags::Inbox)
     {
-      if (imapServer && mFlags & nsMsgFolderFlags::Inbox && !autoSyncOfflineStores)
-        imapServer->GetDownloadBodiesOnGetNewMail(&autoDownloadNewHeaders);
-
+      imapServer->GetAutoSyncOfflineStores(&autoSyncOfflineStores);
+      imapServer->GetDownloadBodiesOnGetNewMail(&autoDownloadNewHeaders);
+    }
+    
+    if (autoSyncOfflineStores || autoDownloadNewHeaders)
+    {
       nsTArray<nsMsgKey> keysToDownload;
       GetBodysToDownload(&keysToDownload);
       if (!keysToDownload.IsEmpty())
