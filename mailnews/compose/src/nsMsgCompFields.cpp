@@ -559,7 +559,7 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const nsAString &aRecipients, PRB
       
       CopyUTF16toUTF8(aRecipients, recipientsStr);
       
-      rv= parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names, 
+      rv= parser->ParseHeaderAddresses(recipientsStr.get(), &names, 
                                        &addresses, &numAddresses);
       if (NS_SUCCEEDED(rv))
       {
@@ -620,7 +620,7 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
   PRUint32 numAddresses;
       
   CopyUTF16toUTF8(recipients, recipientsStr);
-  rv = parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names,
+  rv = parser->ParseHeaderAddresses(recipientsStr.get(), &names,
                                     &addresses, &numAddresses);
   if (NS_SUCCEEDED(rv))
   {

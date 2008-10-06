@@ -49,7 +49,7 @@ interface nsISimpleEnumerator;
 /* 
  * nsIMsgRFCParser Interface declaration 
  */ 
-[scriptable, uuid(dda9b90c-4c05-464c-82d0-c5901f40d93c)]
+[scriptable, uuid(a6f865a2-eb19-4072-bd44-6720e69adbc6)]
 interface nsIMsgHeaderParser : nsISupports {
 
   void parseHeadersWithArray(in wstring aLine, 
@@ -59,83 +59,91 @@ interface nsIMsgHeaderParser : nsISupports {
                              [retval] out unsigned long count);
 
 
-  /* Given a string which contains a list of Header addresses, parses it into
-     their component names and mailboxes.
+  /**
+   * Given a string which contains a list of Header addresses, parses it into
+   * their component names and mailboxes.
+   *
+   * @param aLine          The header line to parse.
+   * @param aNames         A string of the names in the header line. The names
+   *                       are separated by null-terminators.
+   *                       This param may be null if the caller does not want
+   *                       this part of the result.
+   * @param aAddresses     A string of the addresses in the header line. The
+   *                       addresses are separated by null-terminators.
+   *                       This param may be null if the caller does not want
+   *                       this part of the result.
+   * @param aNumAddresses  The number of addresses in the header. If this is
+   *                       negative, there has been an error parsing the
+   *                       header.
+   */
+  [noscript] void parseHeaderAddresses(in string aLine, out string aNames, 
+                                       out string aAddresses,
+                                       out PRUint32 aNumAddresses);
 
-     The returned value is the number of addresses, or a negative error code;
-     the names and addresses are returned into the provided pointers as
-     consecutive null-terminated strings.  It is up to the caller to free them.
-     Note that some of the strings may be zero-length.
-
-     The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
-
-     Either of the provided pointers may be NULL if the caller is not interested
-     in those components.
-  */
-  [noscript] void parseHeaderAddresses (in string charset, in string line, out string names, 
-                             out string addresses, out PRUint32 numAddresses);
-
-  /* Given a string which contains a list of Header addresses, returns a
-     comma-separated list of just the `mailbox' portions.
-
-     The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
-
-     Caller must call PL_strfree on returnValue (which is allocated by the function)
-  */
-  string extractHeaderAddressMailboxes (in string charset, in string line);
+  /**
+   * Given a string which contains a list of Header addresses, returns a
+   * comma-separated list of just the `mailbox' portions.
+   *
+   * @param aLine          The header line to parse.
+   * @return               A comma-separated list of just the mailbox parts
+   *                       of the email-addresses.
+   */
+  string extractHeaderAddressMailboxes(in string aLine);
 
 
-  /* Given a string which contains a list of Header addresses, returns a
-     comma-separated list of just the `user name' portions.  If any of
-     the addresses doesn't have a name, then the mailbox is used instead.
+  /**
+   * Given a string which contains a list of Header addresses, returns a
+   * comma-separated list of just the `user name' portions.  If any of
+   * the addresses doesn't have a name, then the mailbox is used instead.
+   *
+   * @param aLine          The header line to parse.
+   * @return               A comma-separated list of just the name parts
+   *                       of the addresses.
+   */
+  [noscript] string extractHeaderAddressNames(in string aLine);
 
-     The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
+  /*
+   * Like extractHeaderAddressNames, but only returns the first name in the
+   * header if there is one.
+   *
+   * @param aLine          The header line to parse.
+   * @return               The first name found in the list.
+   */
+  [noscript] string extractHeaderAddressName(in string aLine);
 
-     Caller must NS_Free the return value.
-  */
-  [noscript] string extractHeaderAddressNames (in string charset, in string line);
+  /**
+   * Given a string which contains a list of Header addresses, returns a new
+   * string with the same data, but inserts missing commas, parses and reformats
+   * it, and wraps long lines with newline-tab.
+   *
+   * @param aLine          The header line to parse.
+   * @return               The reformatted header line.
+   */
+  [noscript] string reformatHeaderAddresses(in string aLine);
 
-  /* Like MSG_ExtractHeaderAddressNames(), but only returns the first name
-     in the list, if there is more than one. 
-     
-     The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
-
-     Caller must NS_Free the return value.
-  */
-  [noscript] string extractHeaderAddressName (in string charset, in string line);
-
-  /* Given a string which contains a list of Header addresses, returns a new
-     string with the same data, but inserts missing commas, parses and reformats
-     it, and wraps long lines with newline-tab.
-
-     The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
-
-     Caller must NS_Free the return value.
-  */
-  [noscript] string reformatHeaderAddresses (in string charset, in string line);
-
-  /* Returns a copy of ADDRS which may have had some addresses removed.
-     Addresses are removed if they are already in either ADDRS or OTHER_ADDRS.
-     (If OTHER_ADDRS contain addresses which are not in ADDRS, they are not
-     added.  That argument is for passing in addresses that were already
-     mentioned in other header fields.)
-
-     Addresses are considered to be the same if they contain the same mailbox
-     part (case-insensitive.)  Real names and other comments are not compared.
-
-     removeAliasesToMe allows the address parser to use the preference which
-     contains regular expressions which also mean 'me' for the purpose of
-     stripping the user's email address(es) out of addrs
-
-     The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
-
-     Caller must NS_Free the return value.
-  */
-  [noscript] string removeDuplicateAddresses (in string charset,
-                                              in string addrs,
-                                              in string other_addrs,
-                                              in boolean removeAliasesToMe);
-
+  /**
+   * Returns a copy of the input which may have had some addresses removed.
+   * Addresses are removed if they are already in either of the supplied
+   * address lists.
+   *
+   * Addresses are considered to be the same if they contain the same mailbox
+   * part (case-insensitive.)  Real names and other comments are not compared.
+   *
+   * @param aAddrs              The addresses to remove duplicates from.
+   * @param aOtherAddrs         Other addresses that the duplicate removal
+   *                            process also checks for duplicates against.
+   *                            Addresses in this list will not be added to the
+   *                            result.
+   * @param aRemoveAliasesToMe  Allows the address parser to use the preference
+   *                            which contains regular expressions which also
+   *                            mean 'me' for the purpose of stripping the
+   *                            user's email address(es) out of addrs.
+   * @return                    A string based on the original without the
+   *                            duplicate addresses.
+   */
+  [noscript] string removeDuplicateAddresses(in string aAddrs,
+                                             in string aOtherAddrs,
+                                             in boolean aRemoveAliasesToMe);
 
   /**
    * Given an e-mail address and a person's name, cons them together into a

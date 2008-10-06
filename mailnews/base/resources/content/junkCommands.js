@@ -203,7 +203,7 @@ MessageClassifier.prototype =
     {
       var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                                    .getService(Components.interfaces.nsIMsgHeaderParser);
-      var authorEmailAddress = headerParser.extractHeaderAddressMailboxes(null, aMsgHdr.author);
+      var authorEmailAddress = headerParser.extractHeaderAddressMailboxes(aMsgHdr.author);
       var abCard = false;
       for (var abCount = 0; abCount < aWhiteListDirectories.length; abCount++)
       {

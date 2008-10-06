@@ -98,7 +98,7 @@ nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
   nsCOMPtr<nsIMsgHeaderParser> pHeader = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = pHeader->ParseHeaderAddresses(nsnull, PromiseFlatCString(aAddresses).get(),
+  rv = pHeader->ParseHeaderAddresses(PromiseFlatCString(aAddresses).get(),
                                      &names, &addresses, &numAddresses);
   NS_ASSERTION(NS_SUCCEEDED(rv), "failed to parse, so can't collect");
   if (NS_FAILED(rv))

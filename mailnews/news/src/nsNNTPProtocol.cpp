@@ -4146,8 +4146,8 @@ PRBool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
 
     nsCString us;
     nsCString them;
-    nsresult rv1 = parser->ExtractHeaderAddressMailboxes(nsnull, cancelInfo->from.get(), getter_Copies(us));
-    nsresult rv2 = parser->ExtractHeaderAddressMailboxes(nsnull, cancelInfo->old_from.get(), getter_Copies(them));
+    nsresult rv1 = parser->ExtractHeaderAddressMailboxes(cancelInfo->from.get(), getter_Copies(us));
+    nsresult rv2 = parser->ExtractHeaderAddressMailboxes(cancelInfo->old_from.get(), getter_Copies(them));
 
     PR_LOG(NNTP,PR_LOG_ALWAYS,("us = %s, them = %s", us.get(), them.get()));
 

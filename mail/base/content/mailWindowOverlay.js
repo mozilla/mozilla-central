@@ -1141,7 +1141,7 @@ function MsgCreateFilter()
   // retrieve Sender direct from selected message's headers
   var msgHdr = gDBView.hdrForFirstSelectedMessage;
   var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
-  var emailAddress = headerParser.extractHeaderAddressMailboxes(null, msgHdr.author);
+  var emailAddress = headerParser.extractHeaderAddressMailboxes(msgHdr.author);
   if (emailAddress)
     top.MsgFilters(emailAddress, null);
 }
@@ -2506,7 +2506,7 @@ var gMessageNotificationBar =
   {  
     // update the allow remote content for sender string
     var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
-    var emailAddress = headerParser.extractHeaderAddressMailboxes(null, aMsgHdr.author);
+    var emailAddress = headerParser.extractHeaderAddressMailboxes(aMsgHdr.author);
     document.getElementById('allowRemoteContentForAuthorDesc').value = 
       gMessengerBundle.getFormattedString('alwaysLoadRemoteContentForSender1', [emailAddress ? emailAddress : aMsgHdr.author]);
     this.updateMsgNotificationBar(kMsgNotificationRemoteImages, true);

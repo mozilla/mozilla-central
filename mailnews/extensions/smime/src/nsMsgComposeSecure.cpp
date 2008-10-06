@@ -904,15 +904,15 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
     goto FAIL;
   }
 
-  pHeader->ExtractHeaderAddressMailboxes(nsnull,aRecipients, &all_mailboxes);
-  pHeader->RemoveDuplicateAddresses(nsnull, all_mailboxes, 0, PR_FALSE /*removeAliasesToMe*/, &mailboxes);
+  pHeader->ExtractHeaderAddressMailboxes(aRecipients, &all_mailboxes);
+  pHeader->RemoveDuplicateAddresses(all_mailboxes, 0, PR_FALSE, &mailboxes);
   if (all_mailboxes) {
     nsMemory::Free(all_mailboxes);
     all_mailboxes = nsnull;
   }
 
   if (mailboxes) {
-    pHeader->ParseHeaderAddresses (nsnull, mailboxes, 0, &mailbox_list, &count);
+    pHeader->ParseHeaderAddresses(mailboxes, 0, &mailbox_list, &count);
     nsMemory::Free(mailboxes);
     mailboxes = nsnull;
   }

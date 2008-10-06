@@ -179,7 +179,8 @@ static void ParseRFC822Addresses (const char *line, nsCString &names, nsCString 
 
   if (NS_SUCCEEDED(res))
   {
-    pHeader->ParseHeaderAddresses(nsnull, line, getter_Copies(names), getter_Copies(addresses), &numAddresses);
+    pHeader->ParseHeaderAddresses(line, getter_Copies(names),
+                                  getter_Copies(addresses), &numAddresses);
   }
 }
 

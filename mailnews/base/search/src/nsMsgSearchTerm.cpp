@@ -1091,7 +1091,10 @@ NS_IMETHODIMP nsMsgSearchTerm::GetMatchAllBeforeDeciding (PRBool *aResult)
    result = boolContinueLoop;
 
    PRUint32 count;
-   nsresult parseErr = m_headerAddressParser->ParseHeaderAddresses(charset, string, &names, &addresses, &count) ;
+   nsresult parseErr = m_headerAddressParser->ParseHeaderAddresses(string,
+                                                                   &names,
+                                                                   &addresses,
+                                                                   &count);
 
    if (NS_SUCCEEDED(parseErr) && count > 0)
    {

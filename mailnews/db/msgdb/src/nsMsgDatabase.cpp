@@ -3178,9 +3178,11 @@ nsresult nsMsgDatabase::RowCellColumnToAddressCollationKey(nsIMdbRow *row, mdb_t
         ret = converter->DecodeMimeHeaderToCharPtr(cSender, charset.get(),
           characterSetOverride, PR_TRUE, getter_Copies(resultStr));
         if (NS_SUCCEEDED(ret) && !resultStr.IsEmpty())
-          ret = headerParser->ExtractHeaderAddressName ("UTF-8", resultStr.get(), getter_Copies(name));
+          ret = headerParser->ExtractHeaderAddressName(resultStr.get(),
+                                                       getter_Copies(name));
         else
-          ret = headerParser->ExtractHeaderAddressName ("UTF-8", cSender, getter_Copies(name));
+          ret = headerParser->ExtractHeaderAddressName(cSender,
+                                                       getter_Copies(name));
       }
     }
   }

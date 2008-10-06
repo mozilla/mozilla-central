@@ -1185,7 +1185,7 @@ nsresult nsParseMailMessageState::InternRfc822 (struct message_header *header,
 
   if (m_HeaderAddressParser)
   {
-    ret = m_HeaderAddressParser->ExtractHeaderAddressName (nsnull, header->value, &s);
+    ret = m_HeaderAddressParser->ExtractHeaderAddressName(header->value, &s);
     if (! s)
       return NS_ERROR_OUT_OF_MEMORY;
 
@@ -1360,7 +1360,9 @@ int nsParseMailMessageState::FinalizeHeaders()
         char  *names;
         char  *addresses;
 
-        ret = m_HeaderAddressParser->ParseHeaderAddresses (nsnull, recipient->value, &names, &addresses, &numAddresses);
+        ret = m_HeaderAddressParser->ParseHeaderAddresses(recipient->value,
+                                                          &names, &addresses,
+                                                          &numAddresses);
         if (ret == NS_OK)
         {
           m_newMsgHdr->SetRecipientsArray(names, addresses, numAddresses);
@@ -1377,7 +1379,9 @@ int nsParseMailMessageState::FinalizeHeaders()
         char  *names;
         char  *addresses;
 
-        ret = m_HeaderAddressParser->ParseHeaderAddresses (nsnull, ccList->value, &names, &addresses, &numAddresses);
+        ret = m_HeaderAddressParser->ParseHeaderAddresses(ccList->value,
+                                                          &names, &addresses,
+                                                          &numAddresses);
         if (ret == NS_OK)
         {
           m_newMsgHdr->SetCCListArray(names, addresses, numAddresses);

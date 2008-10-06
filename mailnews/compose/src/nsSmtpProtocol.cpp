@@ -1647,7 +1647,8 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 
 			if (NS_SUCCEEDED(rv) && parser)
 			{
-				parser->RemoveDuplicateAddresses(nsnull, addresses.get(), nsnull, PR_FALSE, &addrs1);
+                parser->RemoveDuplicateAddresses(addresses.get(), nsnull,
+                                                 PR_FALSE, &addrs1);
 
 				/* Extract just the mailboxes from the full RFC822 address list.
 				   This means that people can post to mailto: URLs which contain
@@ -1656,7 +1657,8 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 				*/
 				if (addrs1 && *addrs1)
 				{
-					rv = parser->ParseHeaderAddresses(nsnull, addrs1, nsnull, &addrs2, &m_addressesLeft);
+                    rv = parser->ParseHeaderAddresses(addrs1, nsnull, &addrs2,
+                                                      &m_addressesLeft);
 					PR_FREEIF (addrs1);
 				}
 

@@ -146,7 +146,8 @@ static nsresult RemoveDuplicateAddresses(const char * addresses, const char * an
 
   nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
   if (parser)
-    rv= parser->RemoveDuplicateAddresses("UTF-8", addresses, anothersAddresses, removeAliasesToMe, newAddress);
+    rv = parser->RemoveDuplicateAddresses(addresses, anothersAddresses,
+                                          removeAliasesToMe, newAddress);
   else
     rv = NS_ERROR_FAILURE;
 
@@ -1876,15 +1877,15 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
             if (parser) {
               // convert to UTF8 before passing to MakeFullAddress
-              rv = parser->ExtractHeaderAddressMailboxes(nsnull, author.get(),
+              rv = parser->ExtractHeaderAddressMailboxes(author.get(),
                                                          getter_Copies(authorEmailAddress));
               NS_ENSURE_SUCCESS(rv,rv);
 
-              rv = parser->ExtractHeaderAddressMailboxes(nsnull, recipients.get(),
+              rv = parser->ExtractHeaderAddressMailboxes(recipients.get(),
                                                          getter_Copies(recipientsEmailAddresses));
               NS_ENSURE_SUCCESS(rv,rv);
 
-              rv = parser->ExtractHeaderAddressMailboxes(nsnull, ccList.get(),
+              rv = parser->ExtractHeaderAddressMailboxes(ccList.get(),
                                                          getter_Copies(ccListEmailAddresses));
               NS_ENSURE_SUCCESS(rv,rv);
             }
@@ -2282,7 +2283,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
         if (parser)
         {
           nsCString authorName;
-          rv = parser->ExtractHeaderAddressName("UTF-8", !decodedCString.IsEmpty() ? decodedCString.get() : author.get(),
+          rv = parser->ExtractHeaderAddressName(!decodedCString.IsEmpty() ? decodedCString.get() : author.get(),
                                                 getter_Copies(authorName));
           // take care "%s wrote"
           PRUnichar *formatedString = nsnull;

@@ -1404,7 +1404,7 @@ mime_fix_header_1 (const char *string, PRBool addr_p, PRBool news_p)
     nsCOMPtr<nsIMsgHeaderParser> pHeader = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv)) {
       char *n;
-      pHeader->ReformatHeaderAddresses(nsnull, string, &n);
+      pHeader->ReformatHeaderAddresses(string, &n);
       if (n)        return n;
     }
   }

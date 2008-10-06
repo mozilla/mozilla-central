@@ -447,10 +447,12 @@ var messageHeaderSink = {
 
       if (("from" in currentHeaderData) && ("sender" in currentHeaderData) && msgHeaderParser)
       {
-        var senderMailbox = kMailboxSeparator + msgHeaderParser.extractHeaderAddressMailboxes(null,
-                            currentHeaderData.sender.headerValue) + kMailboxSeparator;
-        var fromMailboxes = kMailboxSeparator + msgHeaderParser.extractHeaderAddressMailboxes(null,
-                            currentHeaderData.from.headerValue) + kMailboxSeparator;
+        var senderMailbox = kMailboxSeparator +
+          msgHeaderParser.extractHeaderAddressMailboxes(
+            currentHeaderData.sender.headerValue) + kMailboxSeparator;
+        var fromMailboxes = kMailboxSeparator +
+          msgHeaderParser.extractHeaderAddressMailboxes(
+            currentHeaderData.from.headerValue) + kMailboxSeparator;
         if (fromMailboxes.indexOf(senderMailbox) >= 0)
           delete currentHeaderData.sender;
       }

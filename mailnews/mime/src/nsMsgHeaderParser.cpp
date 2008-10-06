@@ -151,7 +151,7 @@ NS_IMETHODIMP nsMsgHeaderParser::ParseHeadersWithArray(const PRUnichar * aLine, 
   nsAutoString tempString (aLine);
   char * utf8String = ToNewUTF8String(tempString);
 
-  rv = ParseHeaderAddresses("UTF-8", utf8String, &names, &addresses, &numAddresses);
+  rv = ParseHeaderAddresses(utf8String, &names, &addresses, &numAddresses);
   NS_Free(utf8String);
   if (NS_SUCCEEDED(rv) && numAddresses)
   {
@@ -190,67 +190,60 @@ NS_IMETHODIMP nsMsgHeaderParser::ParseHeadersWithArray(const PRUnichar * aLine, 
   return rv;
 }
 
-nsresult nsMsgHeaderParser::ParseHeaderAddresses (const char *charset, const char *line, char **names, char **addresses, PRUint32 *numAddresses)
+NS_IMETHODIMP
+nsMsgHeaderParser::ParseHeaderAddresses(const char *aLine, char **aNames,
+                                        char **aAddresses,
+                                        PRUint32 *aNumAddresses)
 {
-  *numAddresses = msg_parse_Header_addresses(line, names, addresses);
-
+  NS_ENSURE_ARG_POINTER(aNumAddresses);
+  *aNumAddresses = msg_parse_Header_addresses(aLine, aNames, aAddresses);
   return NS_OK;
 }
 
-nsresult nsMsgHeaderParser::ExtractHeaderAddressMailboxes (const char *charset, const char *line, char ** mailboxes)
+NS_IMETHODIMP
+nsMsgHeaderParser::ExtractHeaderAddressMailboxes(const char *aLine,
+                                                 char **aMailboxes)
 {
-  if (mailboxes)
-  {
-    *mailboxes = msg_extract_Header_address_mailboxes(line);
-    return NS_OK;
-  }
-  else
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aMailboxes);
+  *aMailboxes = msg_extract_Header_address_mailboxes(aLine);
+  return NS_OK;
 }
 
-nsresult nsMsgHeaderParser::ExtractHeaderAddressNames (const char *charset, const char *line, char ** names)
+NS_IMETHODIMP
+nsMsgHeaderParser::ExtractHeaderAddressNames(const char *aLine, char **aNames)
 {
-  if (names)
-  {
-    *names = msg_extract_Header_address_names(line);
-    return NS_OK;
-  }
-  else
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aNames);
+  *aNames = msg_extract_Header_address_names(aLine);
+  return NS_OK;
 }
 
-
-nsresult nsMsgHeaderParser::ExtractHeaderAddressName (const char *charset, const char *line, char ** name)
+NS_IMETHODIMP
+nsMsgHeaderParser::ExtractHeaderAddressName(const char *aLine, char **aName)
 {
-  if (name)
-  {
-    *name = msg_extract_Header_address_name(line);
-    return NS_OK;
-  }
-  else
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aName);
+  *aName = msg_extract_Header_address_name(aLine);
+  return NS_OK;
 }
 
-nsresult nsMsgHeaderParser::ReformatHeaderAddresses (const char *charset, const char *line, char ** reformattedAddress)
+NS_IMETHODIMP
+nsMsgHeaderParser::ReformatHeaderAddresses(const char *aLine,
+                                           char **aReformattedAddress)
 {
-  if (reformattedAddress)
-  {
-    *reformattedAddress = msg_reformat_Header_addresses(line);
-    return NS_OK;
-  }
-  else
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aReformattedAddress);
+  *aReformattedAddress = msg_reformat_Header_addresses(aLine);
+  return NS_OK;
 }
 
-nsresult nsMsgHeaderParser::RemoveDuplicateAddresses (const char *charset, const char *addrs, const char *other_addrs, PRBool removeAliasesToMe, char ** newOutput)
+NS_IMETHODIMP
+nsMsgHeaderParser::RemoveDuplicateAddresses(const char *aAddrs,
+                                            const char *aOtherAddrs,
+                                            PRBool aRemoveAliasesToMe,
+                                            char **aResult)
 {
-  if (newOutput)
-  {
-    *newOutput = msg_remove_duplicate_addresses(addrs, other_addrs, removeAliasesToMe);
-    return NS_OK;
-  }
-  else
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = msg_remove_duplicate_addresses(aAddrs, aOtherAddrs,
+                                            aRemoveAliasesToMe);
+  return NS_OK;
 }
 
 NS_IMETHODIMP

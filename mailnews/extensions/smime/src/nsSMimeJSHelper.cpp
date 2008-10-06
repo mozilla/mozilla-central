@@ -1,3 +1,4 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -434,15 +435,17 @@ nsresult nsSMimeJSHelper::getMailboxList(nsIMsgCompFields *compFields, PRUint32 
 
     {
       char *all_mailboxes = nsnull;
-      parser->ExtractHeaderAddressMailboxes(nsnull, all_recipients.get(), &all_mailboxes);
-      parser->RemoveDuplicateAddresses(nsnull, all_mailboxes, 0, PR_FALSE /*removeAliasesToMe*/, &unique_mailboxes);
+      parser->ExtractHeaderAddressMailboxes(all_recipients.get(), &all_mailboxes);
+      parser->RemoveDuplicateAddresses(all_mailboxes, 0, PR_FALSE,
+                                       &unique_mailboxes);
       if (all_mailboxes) {
         nsMemory::Free(all_mailboxes);
       }
     }
     if (unique_mailboxes)
     {
-      parser->ParseHeaderAddresses(nsnull, unique_mailboxes, 0, mailbox_list, mailbox_count);
+      parser->ParseHeaderAddresses(unique_mailboxes, 0, mailbox_list,
+                                   mailbox_count);
     }
     if (unique_mailboxes) {
       nsMemory::Free(unique_mailboxes);
