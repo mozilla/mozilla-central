@@ -65,9 +65,9 @@
                   oncommand="EditorGetText()"/>
         <menuitem label="&outputHTMLCmd.label;"
                   oncommand="EditorGetHTML()"/>
-        <menuseparator />
+        <menuseparator/>
         <menuitem label="&pasteAsQuotationCmd.label;"
-                  accesskey="&editpastequotation.accesskey;"
+                  accesskey="&pasteAsQuotationCmd.accesskey;"
                   oncommand="goDoCommand('cmd_pasteQuote')"/>
         <menuitem label="&editRewrapCmd.label;"
                   oncommand="try { GetCurrentEditor().rewrap(true); } catch (e) {}"/>
@@ -77,30 +77,30 @@
                   oncommand="EditorInsertText('All good things come to those who wait. ')"/>
         <menuitem id="menu_checkLinks" observes="cmd_checkLinks"
                   label="&checkLinksCmd.label;"/>
-        <menuseparator />
-        <menu accesskey="&insertformmenu.accesskey;" id="insertFormMenu"
+        <menuseparator/>
+        <menu accesskey="&insertFormMenu.accesskey;" id="insertFormMenu"
               label="&insertFormMenu.label;">
           <menupopup>
-            <menuitem accesskey="&insertform.accesskey;" command="cmd_form"
+            <menuitem accesskey="&insertFormCmd.accesskey;" command="cmd_form"
                       label="&insertFormCmd.label;"/>
             <menuseparator/>
-            <menuitem accesskey="&insertinputtag.accesskey;" 
+            <menuitem accesskey="&insertInputTagCmd.accesskey;"
                       command="cmd_inputtag" label="&insertInputTagCmd.label;"/>
-            <menuitem accesskey="&insertinputimage.accesskey;"
+            <menuitem accesskey="&insertInputImageCmd.accesskey;"
                       command="cmd_inputimage"
                       label="&insertInputImageCmd.label;"/>
-            <menuitem accesskey="&inserttextarea.accesskey;"
+            <menuitem accesskey="&insertTextAreaCmd.accesskey;"
                       command="cmd_textarea" label="&insertTextAreaCmd.label;"/>
-            <menuitem accesskey="&insertselect.accesskey;" command="cmd_select"
+            <menuitem accesskey="&insertSelectCmd.accesskey;" command="cmd_select"
                       label="&insertSelectCmd.label;"/>
-            <menuitem accesskey="&insertbutton.accesskey;"
+            <menuitem accesskey="&insertButtonCmd.accesskey;"
                       command="cmd_button" label="&insertButtonCmd.label;"/>
-            <menuitem accesskey="&insertlabel.accesskey;" command="cmd_label"
+            <menuitem accesskey="&insertLabelCmd.accesskey;" command="cmd_label"
                       label="&insertLabelCmd.label;"/>
-            <menuitem accesskey="&insertfieldset.accesskey;"
+            <menuitem accesskey="&insertFieldSetCmd.accesskey;"
                       command="cmd_fieldset" label="&insertFieldSetCmd.label;"/>
             <menuseparator/>
-            <menuitem accesskey="&insertisindex.accesskey;"
+            <menuitem accesskey="&insertIsIndexCmd.accesskey;"
                       command="cmd_isindex" label="&insertIsIndexCmd.label;"/>
           </menupopup>
         </menu>
@@ -116,7 +116,7 @@
                   oncommand="EditorTestDocument()"/>
         <menuitem label="&runUnitTestsCmd.label;"
                   oncommand="EditorUnitTests()"/>
-        <menuseparator />
+        <menuseparator/>
         <menuitem label="&dumpUndoStack.label;"
                   oncommand="DumpUndoStack()"/>
         <menuitem label="&dumpRedoStack.label;"
@@ -125,16 +125,15 @@
                   oncommand="ExecuteJSTransactionViaTxmgr()"/>
         <menuitem label="&executeJSTransactionViaEditor.label;"
                   oncommand="ExecuteJSTransactionViaEditor()"/>
-        <menuseparator />
+        <menuseparator/>
         <menuitem label="&startLogCmd.label;"
                   oncommand="EditorStartLog()"/>
         <menuitem label="&stopLogCmd.label;"
                   oncommand="EditorStopLog()"/>
         <menuitem label="&runLogCmd.label;"
                   oncommand="EditorRunLog()"/>
-        <menuseparator />
+        <menuseparator/>
         <menuitem label="&setFocusCmd.label;"
-                  accesskey="&toolsetfocus.accesskey;"
                   oncommand="window.focus()"/>
       </menupopup>
     </menu>

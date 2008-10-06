@@ -44,11 +44,11 @@
 
 <!-- View menu items -->
 <!ENTITY viewMenu.label "View">
-<!ENTITY viewMenu.accesskey "v">
+<!ENTITY viewMenu.accesskey "V">
 <!ENTITY compositionToolbarCmd.label "Composition Toolbar">
-<!ENTITY compositionToolbarCmd.accesskey "c">
+<!ENTITY compositionToolbarCmd.accesskey "C">
 <!ENTITY formattingToolbarCmd.label "Format Toolbar">
-<!ENTITY formattingToolbarCmd.accesskey "f">
+<!ENTITY formattingToolbarCmd.accesskey "F">
 <!ENTITY editmodeToolbarCmd.label "Edit Mode Toolbar">
 <!ENTITY editmodeToolbarCmd.accesskey "E">
 
@@ -63,4 +63,3 @@
 <!ENTITY editMode.label "Edit Mode:">
 
 <!ENTITY statusText.label "Done loading page">
-

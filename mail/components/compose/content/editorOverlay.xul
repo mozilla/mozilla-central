@@ -55,24 +55,24 @@
 <script type="application/x-javascript" src="chrome://editor/content/ComposerCommands.js"/>
 
   <keyset id="editorKeys">
-    <key id="boldkb"         key="&stylebold.keybinding;"       observes="cmd_bold" modifiers="accel"/>
-    <key id="italickb"       key="&styleitalic.keybinding;"     observes="cmd_italic" modifiers="accel"/>
-    <key id="underlinekb"    key="&styleunderline.keybinding;"  observes="cmd_underline" modifiers="accel"/>
-    <key id="fixedwidthkb"   key="&formatfontfixed.keybinding;" observes="cmd_tt" modifiers="accel"/>
+    <key id="boldkb"         key="&styleBoldCmd.key;"       observes="cmd_bold" modifiers="accel"/>
+    <key id="italickb"       key="&styleItalicCmd.key;"     observes="cmd_italic" modifiers="accel"/>
+    <key id="underlinekb"    key="&styleUnderlineCmd.key;"  observes="cmd_underline" modifiers="accel"/>
+    <key id="fixedwidthkb"   key="&fontFixedWidth.key;" observes="cmd_tt" modifiers="accel"/>
 
-    <key id="increaseindentkb"  key="&formatindent.keybinding;"  observes="cmd_indent"  modifiers="accel"/>
-    <key id="decreaseindentkb"  key="&formatoutdent.keybinding;"  observes="cmd_outdent"  modifiers="accel"/>
+    <key id="increaseindentkb"  key="&increaseIndent.key;"  observes="cmd_indent"  modifiers="accel"/>
+    <key id="decreaseindentkb"  key="&decreaseIndent.key;"  observes="cmd_outdent"  modifiers="accel"/>
 
-    <key id="removestyleskb"       key="&formatremovestyles.keybinding;"   observes="cmd_removeStyles"  modifiers="accel, shift"/>
+    <key id="removestyleskb"       key="&formatRemoveStyles.key;"   observes="cmd_removeStyles"  modifiers="accel, shift"/>
     <key id="removestyleskb2"       key=" "   observes="cmd_removeStyles"  modifiers="accel"/>
-    <key id="removelinkskb"        key="&formatremovelinks.keybinding;"    observes="cmd_removeLinks"  modifiers="accel, shift"/>
-    <key id="removenamedanchorskb" key="&formatremovenamedanchors.keybinding;"    observes="cmd_removeNamedAnchors"  modifiers="accel, shift"/>
-    <key id="decreasefontsizekb"   key="&decreaseFontSize.keybinding;"     observes="cmd_decreaseFont"  modifiers="accel"/>
-    <key id="increasefontsizekb"   key="&increaseFontSize.keybinding;"     observes="cmd_increaseFont"  modifiers="accel"/>
-    <key                           key="&increaseFontSize.keybinding;"     observes="cmd_increaseFont"  modifiers="accel,shift"/>
-    <key                           key="&increaseFontSize.keybinding2;"    observes="cmd_increaseFont"  modifiers="accel"/>
+    <key id="removelinkskb"        key="&formatRemoveLinks.key;"    observes="cmd_removeLinks"  modifiers="accel, shift"/>
+    <key id="removenamedanchorskb" key="&formatRemoveNamedAnchors.key;"    observes="cmd_removeNamedAnchors"  modifiers="accel, shift"/>
+    <key id="decreasefontsizekb"   key="&decreaseFontSize.key;"     observes="cmd_decreaseFont"  modifiers="accel"/>
+    <key id="increasefontsizekb"   key="&increaseFontSize.key;"     observes="cmd_increaseFont"  modifiers="accel"/>
+    <key                           key="&increaseFontSize.key;"     observes="cmd_increaseFont"  modifiers="accel,shift"/>
+    <key                           key="&increaseFontSize.key2;"    observes="cmd_increaseFont"  modifiers="accel"/>
 
-    <key id="insertlinkkb"         key="&insertlink.keybinding;"           observes="cmd_link"          modifiers="accel"/>
+    <key id="insertlinkkb"         key="&insertLinkCmd.key;"           observes="cmd_link"          modifiers="accel"/>
   </keyset>
 
   <!-- commands updated when the editor gets created -->
@@ -81,7 +81,7 @@
           events="create"
           oncommandupdate="goUpdateComposerMenuItems(this)">
     <command id="cmd_open"                                          oncommand="goDoCommand('cmd_open')"/>
-    <command id="cmd_openRemote"   label="&openremoteCmd.label;"    oncommand="goDoCommand('cmd_openRemote')"/>
+    <command id="cmd_openRemote"   label="&openRemoteCmd.label;"    oncommand="goDoCommand('cmd_openRemote')"/>
     <command id="cmd_printSetup"   oncommand="goDoCommand('cmd_printSetup')"/>
     <command id="cmd_print"                                         oncommand="goDoCommand('cmd_print')"/>
     <command id="cmd_quit"         oncommand="goDoCommand('cmd_quit')"/>
@@ -143,7 +143,7 @@
     <command id="cmd_revert"         label="&fileRevert.label;"        oncommand="goDoCommand('cmd_revert')"/>
     <command id="cmd_preview"                                          oncommand="goDoCommand('cmd_preview')"/>
     <command id="cmd_editSendPage"   label="&sendPageCmd.label;"
-                                     accesskey="&sendPage.accesskey;"  oncommand="goDoCommand('cmd_editSendPage')"/>
+                                     accesskey="&sendPageCmd.accesskey;"  oncommand="goDoCommand('cmd_editSendPage')"/>
   </commandset>
 
 
@@ -160,10 +160,12 @@
     <command id="cmd_findNext"      oncommand="goDoCommand('cmd_findNext')"     label="&findAgainCmd.label;"/>
     <command id="cmd_findPrev"      oncommand="goDoCommand('cmd_findPrev')"     label="&findPrevCmd.label;"/>
     <command id="cmd_spelling"      oncommand="goDoCommand('cmd_spelling')"/>
-    <command id="cmd_validate"      label="&validateCmd.label;" accesskey="&validate.accesskey;" oncommand="goDoCommand('cmd_validate')"/>
+    <command id="cmd_validate"      label="&validateCmd.label;" accesskey="&validateCmd.accesskey;" 
+                                    oncommand="goDoCommand('cmd_validate')"/>
     <command id="cmd_checkLinks"    oncommand="goDoCommand('cmd_checkLinks')"/>
     <command id="cmd_pasteQuote"    oncommand="goDoCommand('cmd_pasteQuote')" label="&pasteAsQuotationCmd.label;"/>
-    <command id="cmd_publishSettings" label="&publishSettings.label;" accesskey="&publishSettings.accesskey;" oncommand="goDoCommand('cmd_publishSettings')"/>
+    <command id="cmd_publishSettings" label="&publishSettings.label;" accesskey="&publishSettings.accesskey;" 
+                                    oncommand="goDoCommand('cmd_publishSettings')"/>
   </commandset>
 
   <!-- style related commands that update on creation, and on selection change -->
@@ -284,22 +286,44 @@
   </broadcasterset>
 
   <!-- Insert menu for PlainText editor -->
-  <menu id="insertMenuPlainText" label="&insertMenu.label;" accesskey="&insertmenu.accesskey;">
+  <menu id="insertMenuPlainText" label="&insertMenu.label;" accesskey="&insertMenu.accesskey;">
     <menupopup>
-      <menuitem accesskey="&insertchars.accesskey;" observes="cmd_insertChars" />
+      <menuitem accesskey="&insertCharsCmd.accesskey;" observes="cmd_insertChars"/>
     </menupopup>
   </menu>
 
   <!-- Insert menu -->
-  <menu id="insertMenu" label="&insertMenu.label;" accesskey="&insertmenu.accesskey;">
+  <menu id="insertMenu" label="&insertMenu.label;" accesskey="&insertMenu.accesskey;">
     <menupopup id="insertMenuPopup">
-      <menuitem id="insertImage" accesskey="&insertimage.accesskey;"      observes="cmd_image"       label="&insertImageCmd.label;"/>
-      <menuitem id="insertTable" accesskey="&inserttable.accesskey;"      observes="cmd_InsertTable" label="&insertTableCmd.label;"/>
-      <menuitem id="insertLink" accesskey="&insertlink.accesskey;"       observes="cmd_link"        label="&insertLinkCmd.label;"   key="insertlinkkb"/>
-      <menuitem id="insertAnchor" accesskey="&insertanchor.accesskey;"     observes="cmd_anchor"      label="&insertAnchorCmd.label;"/>
-      <menuitem id="insertHline" accesskey="&inserthline.accesskey;"      observes="cmd_hline"       label="&insertHLineCmd.label;"/>
-      <menuitem id="insertHTMLSource" accesskey="&insertHTMLCmd.accesskey;"   observes="cmd_insertHTMLWithDialog"  key="inserthtmlkb"/>
-      <menuitem accesskey="&insertchars.accesskey;"      observes="cmd_insertChars" id="insertChars"/>
+      <menuitem id="insertImage"
+                label="&insertImageCmd.label;"
+                accesskey="&insertImageCmd.accesskey;"
+                observes="cmd_image"/>
+      <menuitem id="insertTable"
+                label="&insertTableCmd.label;"
+                accesskey="&insertTableCmd.accesskey;"
+                observes="cmd_InsertTable"/>
+      <menuitem id="insertLink"
+                label="&insertLinkCmd.label;"
+                accesskey="&insertLinkCmd.accesskey;"
+                key="insertlinkkb"
+                observes="cmd_link"/>
+      <menuitem id="insertAnchor"
+                label="&insertAnchorCmd.label;"
+                accesskey="&insertAnchorCmd.accesskey;"
+                observes="cmd_anchor"/>
+      <menuitem id="insertHline"
+                label="&insertHLineCmd.label;"
+                accesskey="&insertHLineCmd.accesskey;"
+                observes="cmd_hline"/>
+      <menuitem id="insertHTMLSource"
+                accesskey="&insertHTMLCmd.accesskey;"
+                key="inserthtmlkb"
+                observes="cmd_insertHTMLWithDialog"/>
+      <menuitem id="insertChars"
+                accesskey="&insertCharsCmd.accesskey;"
+                observes="cmd_insertChars"/>
+
       <menu id="insertTOC" label="&tocMenu.label;" accesskey="&tocMenu.accesskey;">
         <menupopup onpopupshowing="InitTOCMenu()">
           <menuitem id="insertTOCMenuitem"
@@ -317,78 +341,195 @@
         </menupopup>
       </menu>
       <menuseparator id="insertMenuSeparator"/>
-      <menuitem id="insertBreakAll" accesskey="&insertbreakall.accesskey;"   observes="cmd_insertBreakAll"   label="&insertBreakAllCmd.label;"/>
+      <menuitem id="insertBreakAll" accesskey="&insertBreakAllCmd.accesskey;"   observes="cmd_insertBreakAll"   label="&insertBreakAllCmd.label;"/>
     </menupopup>
   </menu>
 
   <!-- Format Menu -->
   <menupopup id="formatMenuPopup" onpopupshowing="EditorInitFormatMenu()">
     <!-- Font face submenu -->
-    <menu id="fontFaceMenu" label="&fontfaceMenu.label;" accesskey="&formatfontmenu.accesskey;" 
+    <menu id="fontFaceMenu" label="&fontfaceMenu.label;" accesskey="&fontfaceMenu.accesskey;" 
           position="1">
       <menupopup oncommand="if (event.target.localName == 'menuitem')
                               doStatefulCommand('cmd_fontFace', event.target.getAttribute('value'));"
                  onpopupshowing="initFontFaceMenu(this);">
-        <menuitem label="&fontVarWidth.label;"      accesskey="&fontvarwidth.accesskey;"    value=""    type="radio" name="1" observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&fontFixedWidth.label;"    accesskey="&fontfixedwidth.accesskey;"  value="tt"  type="radio" name="1" observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&fontVarWidth.label;"
+                  accesskey="&fontVarWidth.accesskey;"
+                  value=""
+                  type="radio"
+                  name="1"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&fontFixedWidth.label;"
+                  accesskey="&fontFixedWidth.accesskey;"
+                  value="tt"
+                  type="radio"
+                  name="1"
+                  observes="cmd_renderedHTMLEnabler"/>
         <menuseparator/>
-        <menuitem label="&fontHelveticaFont.label;" accesskey="&fonthelvetica.accesskey;"   value="Helvetica, Arial, sans-serif"    type="radio" name="2" observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&fontTimes.label;"         accesskey="&fonttimes.accesskey;"       value="Times New Roman, Times, serif"   type="radio" name="2" observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&fontCourier.label;"       accesskey="&fontcourier.accesskey;"     value="Courier New, Courier, monospace" type="radio" name="2" observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&fontHelvetica.label;"
+                  accesskey="&fontHelvetica.accesskey;"
+                  value="Helvetica, Arial, sans-serif"
+                  type="radio"
+                  name="2"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&fontTimes.label;"
+                  accesskey="&fontTimes.accesskey;"
+                  value="Times New Roman, Times, serif"
+                  type="radio"
+                  name="2"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&fontCourier.label;"
+                  accesskey="&fontCourier.accesskey;"
+                  value="Courier New, Courier, monospace"
+                  type="radio"
+                  name="2"
+                  observes="cmd_renderedHTMLEnabler"/>
         <menuseparator/>
           <!-- Local font face items added here by initLocalFontFaceMenu() -->
       </menupopup>
     </menu>
 
     <!-- Font size submenu -->
-    <menu id="fontSizeMenu" label="&fontsizeMenu.label;"
-          accesskey="&formatsizemenu.accesskey;" 
+    <menu id="fontSizeMenu" label="&fontSizeMenu.label;"
+          accesskey="&fontSizeMenu.accesskey;"
           position="2">
       <menupopup onpopupshowing="initFontSizeMenu(this)">
-      <menuitem label="&decreaseFontSize.label;" accesskey="&decreasefontsize.accesskey;" observes="cmd_decreaseFont" type="radio" name="1" key="decreasefontsizekb"/>
-      <menuitem label="&increaseFontSize.label;" accesskey="&increasefontsize.accesskey;" observes="cmd_increaseFont" type="radio" name="1" key="increasefontsizekb"/>
+        <menuitem label="&decreaseFontSize.label;"
+                  accesskey="&decreaseFontSize.accesskey;"
+                  key="decreasefontsizekb"
+                  observes="cmd_decreaseFont"
+                  type="radio"
+                  name="1"/>
+        <menuitem label="&increaseFontSize.label;"
+                  accesskey="&increaseFontSize.accesskey;"
+                  key="increasefontsizekb"
+                  observes="cmd_increaseFont"
+                  type="radio"
+                  name="1"/>
         <menuseparator/>
 <!-- Not supported in current font size implementation
-        <menuitem label="&size-xx-smallCmd.label;" accesskey="&size-xx-small.accesskey;" oncommand="EditorSetFontSize('xx-small')" type="radio" name="2" />
+        <menuitem label="&size-xx-smallCmd.label;" accesskey="&size-xx-smallCmd.accesskey;" oncommand="EditorSetFontSize('xx-small')" type="radio" name="2"/>
 -->
-        <menuitem label="&size-x-smallCmd.label;"  accesskey="&size-x-small.accesskey;"  oncommand="EditorSetFontSize('x-small')"  type="radio" name="2" observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-smallCmd.label;"    accesskey="&size-small.accesskey;"    oncommand="EditorSetFontSize('small')"    type="radio" name="2" observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-mediumCmd.label;"   accesskey="&size-medium.accesskey;"   oncommand="EditorSetFontSize('medium')"   type="radio" name="2" observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-largeCmd.label;"    accesskey="&size-large.accesskey;"    oncommand="EditorSetFontSize('large')"    type="radio" name="2" observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-x-largeCmd.label;"  accesskey="&size-x-large.accesskey;"  oncommand="EditorSetFontSize('x-large')"  type="radio" name="2" observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-xx-largeCmd.label;" accesskey="&size-xx-large.accesskey;" oncommand="EditorSetFontSize('xx-large')" type="radio" name="2" observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&size-x-smallCmd.label;"
+                  accesskey="&size-x-smallCmd.accesskey;"
+                  oncommand="EditorSetFontSize('x-small')"
+                  type="radio"
+                  name="2"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&size-smallCmd.label;"
+                  accesskey="&size-smallCmd.accesskey;"
+                  oncommand="EditorSetFontSize('small')"
+                  type="radio"
+                  name="2"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&size-mediumCmd.label;"
+                  accesskey="&size-mediumCmd.accesskey;"
+                  oncommand="EditorSetFontSize('medium')"
+                  type="radio"
+                  name="2"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&size-largeCmd.label;"
+                  accesskey="&size-largeCmd.accesskey;"
+                  oncommand="EditorSetFontSize('large')"
+                  type="radio"
+                  name="2"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&size-x-largeCmd.label;"
+                  accesskey="&size-x-largeCmd.accesskey;"
+                  oncommand="EditorSetFontSize('x-large')"
+                  type="radio"
+                  name="2"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem label="&size-xx-largeCmd.label;"
+                  accesskey="&size-xx-largeCmd.accesskey;"
+                  oncommand="EditorSetFontSize('xx-large')"
+                  type="radio"
+                  name="2"
+                  observes="cmd_renderedHTMLEnabler"/>
       </menupopup>
     </menu>
 
     <!-- Font style submenu -->
     <menu id="fontStyleMenu" label="&fontStyleMenu.label;" 
-          accesskey="&formatstylemenu.accesskey;"
+          accesskey="&fontStyleMenu.accesskey;"
           position="3">
     <menupopup onpopupshowing="initFontStyleMenu(this)">
-      <menuitem label="&styleBoldCmd.label;"        accesskey="&stylebold.accesskey;"         observes="cmd_bold"          type="checkbox" key="boldkb"/>
-      <menuitem label="&styleItalicCmd.label;"      accesskey="&styleitalic.accesskey;"       observes="cmd_italic"        type="checkbox" key="italickb" />
-      <menuitem label="&styleUnderlineCmd.label;"   accesskey="&styleunderline.accesskey;"    observes="cmd_underline"     type="checkbox" key="underlinekb"/>
-      <menuitem label="&styleStrikeThruCmd.label;"  accesskey="&stylestrikethru.accesskey;"   observes="cmd_strikethrough" type="checkbox"/>
-      <menuitem label="&styleSuperscriptCmd.label;" accesskey="&stylesuperscript.accesskey;"  observes="cmd_superscript"   type="checkbox"/>
-      <menuitem label="&styleSubscriptCmd.label;"   accesskey="&stylesubscript.accesskey;"    observes="cmd_subscript"     type="checkbox"/>
-      <menuitem label="&fontFixedWidth.label;"      accesskey="&fontfixedwidth.accesskey;"    observes="cmd_tt"            type="checkbox" key="fixedwidthkb"/>
-      <menuitem label="&styleNonbreakingCmd.label;" accesskey="&stylenonbreaking.accesskey;"  observes="cmd_nobreak"       type="checkbox"/>
+      <menuitem label="&styleBoldCmd.label;"
+                accesskey="&styleBoldCmd.accesskey;"
+                observes="cmd_bold"
+                type="checkbox"
+                key="boldkb"/>
+      <menuitem label="&styleItalicCmd.label;"
+                accesskey="&styleItalicCmd.accesskey;"
+                observes="cmd_italic"
+                type="checkbox"
+                key="italickb"/>
+      <menuitem label="&styleUnderlineCmd.label;"
+                accesskey="&styleUnderlineCmd.accesskey;"
+                observes="cmd_underline"
+                type="checkbox"
+                key="underlinekb"/>
+      <menuitem label="&styleStrikeThruCmd.label;"
+                accesskey="&styleStrikeThruCmd.accesskey;"
+                observes="cmd_strikethrough"
+                type="checkbox"/>
+      <menuitem label="&styleSuperscriptCmd.label;"
+                accesskey="&styleSuperscriptCmd.accesskey;"
+                observes="cmd_superscript"
+                type="checkbox"/>
+      <menuitem label="&styleSubscriptCmd.label;"
+                accesskey="&styleSubscriptCmd.accesskey;"
+                observes="cmd_subscript"
+                type="checkbox"/>
+      <menuitem label="&fontFixedWidth.label;"
+                accesskey="&fontFixedWidth.accesskey;"
+                observes="cmd_tt"
+                type="checkbox"
+                key="fixedwidthkb"/>
+      <menuitem label="&styleNonbreakingCmd.label;"
+                accesskey="&styleNonbreakingCmd.accesskey;"
+                observes="cmd_nobreak"
+                type="checkbox"/>
       <menuseparator/>
-      <menuitem label="&styleEm.label;"             accesskey="&styleEm.accesskey;"           observes="cmd_em"            type="checkbox"/>
-      <menuitem label="&styleStrong.label;"         accesskey="&styleStrong.accesskey;"       observes="cmd_strong"        type="checkbox"/>
-      <menuitem label="&styleCite.label;"           accesskey="&styleCite.accesskey;"         observes="cmd_cite"          type="checkbox"/>
-      <menuitem label="&styleAbbr.label;"           accesskey="&styleAbbr.accesskey;"         observes="cmd_abbr"          type="checkbox"/>
-      <menuitem label="&styleAcronym.label;"        accesskey="&styleAcronym.accesskey;"      observes="cmd_acronym"       type="checkbox"/>
-      <menuitem label="&styleCode.label;"           accesskey="&styleCode.accesskey;"         observes="cmd_code"          type="checkbox"/>
-      <menuitem label="&styleSamp.label;"           accesskey="&styleSamp.accesskey;"         observes="cmd_samp"          type="checkbox"/>
-      <menuitem label="&styleVar.label;"            accesskey="&styleVar.accesskey;"          observes="cmd_var"           type="checkbox"/>
+      <menuitem label="&styleEm.label;"
+                accesskey="&styleEm.accesskey;"
+                observes="cmd_em"
+                type="checkbox"/>
+      <menuitem label="&styleStrong.label;"
+                accesskey="&styleStrong.accesskey;"
+                observes="cmd_strong"
+                type="checkbox"/>
+      <menuitem label="&styleCite.label;"
+                accesskey="&styleCite.accesskey;"
+                observes="cmd_cite"
+                type="checkbox"/>
+      <menuitem label="&styleAbbr.label;"
+                accesskey="&styleAbbr.accesskey;"
+                observes="cmd_abbr"
+                type="checkbox"/>
+      <menuitem label="&styleAcronym.label;"
+                accesskey="&styleAcronym.accesskey;"
+                observes="cmd_acronym"
+                type="checkbox"/>
+      <menuitem label="&styleCode.label;"
+                accesskey="&styleCode.accesskey;"
+                observes="cmd_code"
+                type="checkbox"/>
+      <menuitem label="&styleSamp.label;"
+                accesskey="&styleSamp.accesskey;"
+                observes="cmd_samp"
+                type="checkbox"/>
+      <menuitem label="&styleVar.label;"
+                accesskey="&styleVar.accesskey;"
+                observes="cmd_var"
+                type="checkbox"/>
     </menupopup>
     </menu>
     
     <!-- Note: "cmd_fontColor" only monitors color state, it doesn't execute the command
          (We should use "cmd_fontColorState" and "cmd_backgroundColorState" ?) -->
     <menuitem id="fontColor" label="&formatFontColor.label;" 
-          accesskey="&formatfontcolor.accesskey;"
+          accesskey="&formatFontColor.accesskey;"
           observes="cmd_fontColor"
           oncommand="EditorSelectColor('Text', null);"
           position="4"/>
@@ -414,52 +555,172 @@
      -->
     <!-- Paragraph Style submenu -->
     <menu id="paragraphMenu" label="&paragraphMenu.label;"
-          accesskey="&formatparagraphmenu.accesskey;"
+          accesskey="&paragraphMenu.accesskey;"
           position="10" onpopupshowing="InitParagraphMenu()">
       <menupopup oncommand="doStatefulCommand('cmd_paragraphState', event.target.getAttribute('value'))">
-        <menuitem id="menu_bodyText"  type="radio" name="1" label="&bodyTextCmd.label;"             accesskey="&bodytext.accesskey;"            value=""      observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_p"         type="radio" name="1" label="&paragraphParagraphCmd.label;"   accesskey="&paragraphparagraph.accesskey;"  value="p"     observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_h1"        type="radio" name="1" label="&heading1Cmd.label;"             accesskey="&heading1.accesskey;"            value="h1"    observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_h2"        type="radio" name="1" label="&heading2Cmd.label;"             accesskey="&heading2.accesskey;"            value="h2"    observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_h3"        type="radio" name="1" label="&heading3Cmd.label;"             accesskey="&heading3.accesskey;"            value="h3"    observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_h4"        type="radio" name="1" label="&heading4Cmd.label;"             accesskey="&heading4.accesskey;"            value="h4"    observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_h5"        type="radio" name="1" label="&heading5Cmd.label;"             accesskey="&heading5.accesskey;"            value="h5"    observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_h6"        type="radio" name="1" label="&heading6Cmd.label;"             accesskey="&heading6.accesskey;"            value="h6"    observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_address"   type="radio" name="1" label="&paragraphAddressCmd.label;"     accesskey="&paragraphaddress.accesskey;"    value="address"  observes="cmd_renderedHTMLEnabler"/>   
-        <menuitem id="menu_pre"       type="radio" name="1" label="&paragraphPreformatCmd.label;"   accesskey="&paragraphpreformat.accesskey;"  value="pre"   observes="cmd_renderedHTMLEnabler"/>       
+        <menuitem id="menu_bodyText"
+                  type="radio"
+                  name="1"
+                  label="&bodyTextCmd.label;"
+                  accesskey="&bodyTextCmd.accesskey;"
+                  value=""
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_p"
+                  type="radio"
+                  name="1"
+                  label="&paragraphParagraphCmd.label;"
+                  accesskey="&paragraphParagraphCmd.accesskey;"
+                  value="p"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_h1"
+                  type="radio"
+                  name="1"
+                  label="&heading1Cmd.label;"
+                  accesskey="&heading1Cmd.accesskey;"
+                  value="h1"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_h2"
+                  type="radio"
+                  name="1"
+                  label="&heading2Cmd.label;"
+                  accesskey="&heading2Cmd.accesskey;"
+                  value="h2"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_h3"
+                  type="radio"
+                  name="1"
+                  label="&heading3Cmd.label;"
+                  accesskey="&heading3Cmd.accesskey;"
+                  value="h3"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_h4"
+                  type="radio"
+                  name="1"
+                  label="&heading4Cmd.label;"
+                  accesskey="&heading4Cmd.accesskey;"
+                  value="h4"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_h5"
+                  type="radio"
+                  name="1"
+                  label="&heading5Cmd.label;"
+                  accesskey="&heading5Cmd.accesskey;"
+                  value="h5"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_h6"
+                  type="radio"
+                  name="1"
+                  label="&heading6Cmd.label;"
+                  accesskey="&heading6Cmd.accesskey;"
+                  value="h6"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_address"
+                  type="radio"
+                  name="1"
+                  label="&paragraphAddressCmd.label;"
+                  accesskey="&paragraphAddressCmd.accesskey;"
+                  value="address"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_pre"
+                  type="radio"
+                  name="1"
+                  label="&paragraphPreformatCmd.label;"
+                  accesskey="&paragraphPreformatCmd.accesskey;"
+                  value="pre"
+                  observes="cmd_renderedHTMLEnabler"/>
       </menupopup>
     </menu>
 
     <!-- List Style submenu -->
     <menu id="listMenu" label="&formatlistMenu.label;"
-          accesskey="&formatlistmenu.accesskey;"
+          accesskey="&formatlistMenu.accesskey;"
           position="11" onpopupshowing="InitListMenu()">
       <menupopup>
-        <menuitem id="menu_noList" type="radio" name="1" label="&noneCmd.label;"           accesskey="&none.accesskey;"           observes="cmd_removeList"/>
-        <menuitem id="menu_ul"     type="radio" name="1" label="&listBulletCmd.label;"     accesskey="&listbullet.accesskey;"     observes="cmd_ul"/>
-        <menuitem id="menu_ol"     type="radio" name="1" label="&listNumberedCmd.label;"   accesskey="&listnumbered.accesskey;"   observes="cmd_ol"/>
-        <menuitem id="menu_dt"     type="radio" name="1" label="&listTermCmd.label;"       accesskey="&listterm.accesskey;"       observes="cmd_dt"/>
-        <menuitem id="menu_dd"     type="radio" name="1" label="&listDefinitionCmd.label;" accesskey="&listdefinition.accesskey;" observes="cmd_dd"/>
+        <menuitem id="menu_noList"
+                  type="radio"
+                  name="1"
+                  label="&noneCmd.label;"
+                  accesskey="&noneCmd.accesskey;"
+                  observes="cmd_removeList"/>
+        <menuitem id="menu_ul"
+                  type="radio"
+                  name="1"
+                  label="&listBulletCmd.label;"
+                  accesskey="&listBulletCmd.accesskey;"
+                  observes="cmd_ul"/>
+        <menuitem id="menu_ol"
+                  type="radio"
+                  name="1"
+                  label="&listNumberedCmd.label;"
+                  accesskey="&listNumberedCmd.accesskey;"
+                  observes="cmd_ol"/>
+        <menuitem id="menu_dt"
+                  type="radio"
+                  name="1"
+                  label="&listTermCmd.label;"
+                  accesskey="&listTermCmd.accesskey;"
+                  observes="cmd_dt"/>
+        <menuitem id="menu_dd"
+                  type="radio"
+                  name="1"
+                  label="&listDefinitionCmd.label;"
+                  accesskey="&listDefinitionCmd.accesskey;"
+                  observes="cmd_dd"/>
         <menuseparator/>
-        <menuitem id="listProps" label="&listProps.label;" accesskey="&listprops.accesskey;" observes="cmd_listProperties"/>
+        <menuitem id="listProps"
+                  label="&listPropsCmd.label;"
+                  accesskey="&listPropsCmd.accesskey;"
+                  observes="cmd_listProperties"/>
       </menupopup>
     </menu>
     <menuseparator id="identingSep" position="12"/>
 
-    <menuitem id="increaseIndent" label="&increaseIndent.label;"  accesskey="&increaseindent.accesskey;"  key="increaseindentkb"
-                observes="cmd_indent" position="13"/>
-    <menuitem id="decreaseIndent" label="&decreaseIndent.label;"  accesskey="&decreaseindent.accesskey;"  key="decreaseindentkb"
-              observes="cmd_outdent"  position="14"/>
+    <menuitem id="increaseIndent"
+              label="&increaseIndent.label;"
+              accesskey="&increaseIndent.accesskey;"
+              key="increaseindentkb"
+              observes="cmd_indent"
+              position="13"/>
+    <menuitem id="decreaseIndent"
+              label="&decreaseIndent.label;"
+              accesskey="&decreaseIndent.accesskey;"
+              key="decreaseindentkb"
+              observes="cmd_outdent"
+              position="14"/>
 
-    <menu id="alignMenu" label="&alignMenu.label;" accesskey="&formatalignmenu.accesskey;"
+    <menu id="alignMenu" label="&alignMenu.label;" accesskey="&alignMenu.accesskey;"
         onpopupshowing="InitAlignMenu()"
         position="15">
       <!-- Align submenu -->
       <menupopup oncommand="doStatefulCommand('cmd_align', event.target.getAttribute('value'))">
-        <menuitem id="menu_left"    label="&alignLeft.label;"  accesskey="&alignleft.accesskey;"      type="radio" name="1" value="left"    observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_center"  label="&alignCenter.label;"  accesskey="&aligncenter.accesskey;"  type="radio" name="1" value="center"  observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_right"   label="&alignRight.label;"   accesskey="&alignright.accesskey;"   type="radio" name="1" value="right"   observes="cmd_renderedHTMLEnabler"/>
-        <menuitem id="menu_justify" label="&alignJustify.label;" accesskey="&alignjustify.accesskey;" type="radio" name="1" value="justify" observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_left"
+                  label="&alignLeft.label;"
+                  accesskey="&alignLeft.accesskey;"
+                  type="radio"
+                  name="1"
+                  value="left"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_center"
+                  label="&alignCenter.label;"
+                  accesskey="&alignCenter.accesskey;"
+                  type="radio"
+                  name="1"
+                  value="center"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_right"
+                  label="&alignRight.label;"
+                  accesskey="&alignRight.accesskey;"
+                  type="radio"
+                  name="1"
+                  value="right"
+                  observes="cmd_renderedHTMLEnabler"/>
+        <menuitem id="menu_justify"
+                  label="&alignJustify.label;"
+                  accesskey="&alignJustify.accesskey;"
+                  type="radio"
+                  name="1"
+                  value="justify"
+                  observes="cmd_renderedHTMLEnabler"/>
       </menupopup>
     </menu>
     <menuseparator id="tableSep" position="16"/>
@@ -474,54 +735,123 @@
   <!-- label and accesskey filled in during menu creation -->
   <menuitem id="objectProperties"   oncommand="goDoCommand('cmd_objectProperties')"   observes="cmd_renderedHTMLEnabler"/>
   <!-- Dont use 'observes', must call command correctly -->
-  <menuitem id="pageProperties"       label="&pageProperties.label;"       accesskey="&pageproperties.accesskey;"      
-            oncommand="goDoCommand('cmd_pageProperties')"  observes="cmd_renderedHTMLEnabler"/>
-  <menuitem id="colorsAndBackground"  label="&colorsAndBackground.label;"  accesskey="&colorsandbackground.accesskey;"
-            oncommand="goDoCommand('cmd_colorProperties')" observes="cmd_renderedHTMLEnabler"/>
+  <menuitem id="pageProperties"
+            label="&pageProperties.label;"
+            accesskey="&pageProperties.accesskey;"
+            oncommand="goDoCommand('cmd_pageProperties')"
+            observes="cmd_renderedHTMLEnabler"/>
+  <menuitem id="colorsAndBackground"
+            label="&colorsAndBackground.label;"
+            accesskey="&colorsAndBackground.accesskey;"
+            oncommand="goDoCommand('cmd_colorProperties')"
+            observes="cmd_renderedHTMLEnabler"/>
 
-  <menu id="tableMenu" label="&tableMenu.label;" accesskey="&tablemenu.accesskey;">
+  <menu id="tableMenu" label="&tableMenu.label;" accesskey="&tableMenu.accesskey;">
     <menupopup  onpopupshowing="EditorInitTableMenu()">
       <!-- From EditorCommandOverlay.xul (shared with context popup) -->
-      <menu id="tableInsertMenu" label="&tableInsertMenu.label;" accesskey="&tableinsertmenu.accesskey;">
+      <menu id="tableInsertMenu" label="&tableInsertMenu.label;" accesskey="&tableInsertMenu.accesskey;">
         <menupopup>
-          <menuitem label="&insertTableCmd.label;"    accesskey="&tabletable.accesskey;"        observes="cmd_InsertTable"/>
-          <menuseparator />
-          <menuitem label="&tableRowAbove.label;"     accesskey="&tablerow.accesskey;"          observes="cmd_InsertRowAbove"/>
-          <menuitem label="&tableRowBelow.label;"     accesskey="&tablerowbelow.accesskey;"     observes="cmd_InsertRowBelow"/>
-          <menuseparator />
-          <menuitem label="&tableColumnBefore.label;" accesskey="&tablecolumn.accesskey;"       observes="cmd_InsertColumnBefore"/>
-          <menuitem label="&tableColumnAfter.label;"  accesskey="&tablecolumnafter.accesskey;"  observes="cmd_InsertColumnAfter"/>
-          <menuseparator />
-          <menuitem label="&tableCellBefore.label;"   accesskey="&tablecell.accesskey;"         observes="cmd_InsertCellBefore"/>
-          <menuitem label="&tableCellAfter.label;"    accesskey="&tablecellafter.accesskey;"    observes="cmd_InsertCellAfter"/>
+          <menuitem label="&insertTableCmd.label;"
+                    accesskey="&insertTableCmd.accesskey;"
+                    observes="cmd_InsertTable"/>
+          <menuseparator/>
+          <menuitem label="&tableRowAbove.label;"
+                    accesskey="&tableRowAbove.accesskey;"
+                    observes="cmd_InsertRowAbove"/>
+          <menuitem label="&tableRowBelow.label;"
+                    accesskey="&tableRowBelow.accesskey;"
+                    observes="cmd_InsertRowBelow"/>
+          <menuseparator/>
+          <menuitem label="&tableColumnBefore.label;"
+                    accesskey="&tableColumnBefore.accesskey;"
+                    observes="cmd_InsertColumnBefore"/>
+          <menuitem label="&tableColumnAfter.label;"
+                    accesskey="&tableColumnAfter.accesskey;"
+                    observes="cmd_InsertColumnAfter"/>
+          <menuseparator/>
+          <menuitem label="&tableCellBefore.label;"
+                    accesskey="&tableCellBefore.accesskey;"
+                    observes="cmd_InsertCellBefore"/>
+          <menuitem label="&tableCellAfter.label;"
+                    accesskey="&tableCellAfter.accesskey;"
+                    observes="cmd_InsertCellAfter"/>
         </menupopup>
       </menu>
-      <menu id="tableSelectMenu" label="&tableSelectMenu.label;" accesskey="&tableselectmenu.accesskey;">
+      <menu id="tableSelectMenu"
+            label="&tableSelectMenu.label;"
+            accesskey="&tableSelectMenu.accesskey;" >
         <menupopup id="tableSelectPopup">
-          <menuitem id="menu_SelectTable"    label="&tableTable.label;"    accesskey="&tabletable.accesskey;"    observes="cmd_SelectTable"    />
-          <menuitem id="menu_SelectRow"      label="&tableRow.label;"      accesskey="&tablerow.accesskey;"      observes="cmd_SelectRow"      />
-          <menuitem id="menu_SelectColumn"   label="&tableColumn.label;"   accesskey="&tablecolumn.accesskey;"   observes="cmd_SelectColumn"   />
-          <menuitem id="menu_SelectCell"     label="&tableCell.label;"     accesskey="&tablecell.accesskey;"     observes="cmd_SelectCell"     />
-          <menuitem id="menu_SelectAllCells" label="&tableAllCells.label;" accesskey="&tableallcells.accesskey;" observes="cmd_SelectAllCells" />
+          <menuitem id="menu_SelectTable"
+                    label="&tableTable.label;"
+                    accesskey="&tableTable.accesskey;"
+                    observes="cmd_SelectTable"/>
+          <menuitem id="menu_SelectRow"
+                    label="&tableRow.label;"
+                    accesskey="&tableRow.accesskey;"
+                    observes="cmd_SelectRow"/>
+          <menuitem id="menu_SelectColumn"
+                    label="&tableColumn.label;"
+                    accesskey="&tableColumn.accesskey;"
+                    observes="cmd_SelectColumn"/>
+          <menuitem id="menu_SelectCell"
+                    label="&tableCell.label;"
+                    accesskey="&tableCell.accesskey;"
+                    observes="cmd_SelectCell"/>
+          <menuitem id="menu_SelectAllCells"
+                    label="&tableAllCells.label;"
+                    accesskey="&tableAllCells.accesskey;"
+                    observes="cmd_SelectAllCells"/>
         </menupopup>
       </menu>
-      <menu id="tableDeleteMenu" label="&tableDeleteMenu.label;" accesskey="&tabledeletemenu.accesskey;">
+      <menu id="tableDeleteMenu"
+            label="&tableDeleteMenu.label;"
+            accesskey="&tableDeleteMenu.accesskey;">
         <menupopup id="tableDeletePopup">
-          <menuitem id="menu_DeleteTable"         label="&tableTable.label;"        accesskey="&tabletable.accesskey;"          observes="cmd_DeleteTable"/>
-          <menuitem id="menu_DeleteRow"           label="&tableRows.label;"         accesskey="&tablerow.accesskey;"            observes="cmd_DeleteRow"/>
-          <menuitem id="menu_DeleteColumn"        label="&tableColumns.label;"      accesskey="&tablecolumn.accesskey;"         observes="cmd_DeleteColumn"/>
-          <menuitem id="menu_DeleteCell"          label="&tableCells.label;"        accesskey="&tablecell.accesskey;"           observes="cmd_DeleteCell"/>
-          <menuitem id="menu_DeleteCellContents"  label="&tableCellContents.label;" accesskey="&tablecellcontents.accesskey;"   observes="cmd_DeleteCellContents"/>
+          <menuitem id="menu_DeleteTable"
+                    label="&tableTable.label;"
+                    accesskey="&tableTable.accesskey;"
+                    observes="cmd_DeleteTable"/>
+          <menuitem id="menu_DeleteRow"
+                    label="&tableRows.label;"
+                    accesskey="&tableRow.accesskey;"
+                    observes="cmd_DeleteRow"/>
+          <menuitem id="menu_DeleteColumn"
+                    label="&tableColumns.label;"
+                    accesskey="&tableColumn.accesskey;"
+                    observes="cmd_DeleteColumn"/>
+          <menuitem id="menu_DeleteCell"
+                    label="&tableCells.label;"
+                    accesskey="&tableCell.accesskey;"
+                    observes="cmd_DeleteCell"/>
+          <menuitem id="menu_DeleteCellContents"
+                    label="&tableCellContents.label;"
+                    accesskey="&tableCellContents.accesskey;"
+                    observes="cmd_DeleteCellContents"/>
         </menupopup>
       </menu>
-      <menuseparator />
+      <menuseparator/>
       <!-- menu label is set in InitTableMenu -->
-      <menuitem id="menu_JoinTableCells"   label="&tableJoinCells.label;"   accesskey="&tablejoincells.accesskey;"   observes="cmd_JoinTableCells"/>
-      <menuitem id="menu_SlitTableCell"    label="&tableSplitCell.label;"   accesskey="&tablesplitcell.accesskey;"   observes="cmd_SplitTableCell"/>
-      <menuitem id="menu_ConvertToTable"   label="&convertToTable.label;"   accesskey="&converttotable.accesskey;"   observes="cmd_ConvertToTable"/>
-      <menuseparator />
-      <menuitem id="menu_TableOrCellColor" label="&tableOrCellColor.label;" accesskey="&tableOrCellColor.accesskey;" observes="cmd_TableOrCellColor"/>
-      <menuitem id="menu_tableProperties"  label="&tableProperties.label;"  accesskey="&tableProperties.accesskey;"  observes="cmd_editTable"/>
+      <menuitem id="menu_JoinTableCells"
+                label="&tableJoinCells.label;"
+                accesskey="&tableJoinCells.accesskey;"
+                observes="cmd_JoinTableCells"/>
+      <menuitem id="menu_SlitTableCell"
+                label="&tableSplitCell.label;"
+                accesskey="&tableSplitCell.accesskey;"
+                observes="cmd_SplitTableCell"/>
+      <menuitem id="menu_ConvertToTable"
+                label="&convertToTable.label;"
+                accesskey="&convertToTable.accesskey;"
+                observes="cmd_ConvertToTable"/>
+      <menuseparator/>
+      <menuitem id="menu_TableOrCellColor"
+                label="&tableOrCellColor.label;"
+                accesskey="&tableOrCellColor.accesskey;"
+                observes="cmd_TableOrCellColor"/>
+      <menuitem id="menu_tableProperties"
+                label="&tableProperties.label;"
+                accesskey="&tableProperties.accesskey;"
+                observes="cmd_editTable"/>
     </menupopup>
   </menu>
 
@@ -546,7 +876,7 @@
 
   <!-- InsertPopupButton is used by messengercompose.xul -->
   <toolbarbutton type="menu" id="InsertPopupButton" observes="cmd_renderedHTMLEnabler"
-              tooltiptext="&InsertPopupButton.tooltip;">
+                 tooltiptext="&InsertPopupButton.tooltip;">
     <menupopup id="InsertPopup">
       <menuitem id="InsertLinkItem" class="menuitem-iconic" observes="cmd_link"
                 oncommand="goDoCommand('cmd_link')" label="&linkToolbarCmd.label;"
@@ -597,7 +927,7 @@
                  tooltiptext="&printToolbarCmd.tooltip;"
                  oncommand="if (event.target==this) goDoCommand('cmd_print');">
     <menupopup id="printMenu">
-      <menuitem id="printMenuItemToolbar" accesskey="&fileprint.accesskey;" label="&printCmd.label;" default="true"
+      <menuitem id="printMenuItemToolbar" accesskey="&printCmd.accesskey;" label="&printCmd.label;" default="true"
                 oncommand="goDoCommand('cmd_print');"/>
       <!-- 'printSetupToolbar' is merged in here from platformGlobalOverlay.xul -->
     </menupopup>
@@ -627,7 +957,7 @@
 
   <!-- Formatting toolbar items. "value" are HTML tagnames, don't translate -->
   <menulist class="toolbar-focustarget" id="ParagraphSelect" observes="cmd_renderedHTMLEnabler"
-    tooltiptext="&ParagraphSelect.tooltip;" crop="right">
+            tooltiptext="&ParagraphSelect.tooltip;" crop="right">
     <observes element="cmd_paragraphState" attribute="state" onbroadcast="onParagraphFormatChange(this.parentNode, 'cmd_paragraphState')"/>
     <menupopup id="ParagraphPopup" oncommand="doStatefulCommand('cmd_paragraphState', event.target.value)">
       <menuitem label="&bodyTextCmd.label;"            value=""/>
@@ -651,7 +981,7 @@
       <menuitem label="&fontVarWidth.label;"      value=""/>
       <menuitem label="&fontFixedWidth.label;"    value="tt"/>
       <menuseparator/>
-      <menuitem label="&fontHelveticaFont.label;" value="Helvetica, Arial, sans-serif"/>
+      <menuitem label="&fontHelvetica.label;" value="Helvetica, Arial, sans-serif"/>
       <menuitem label="&fontTimes.label;"         value="Times New Roman, Times, serif"/>
       <menuitem label="&fontCourier.label;"       value="Courier New, Courier, monospace"/>
       <menuseparator/>
@@ -768,7 +1098,7 @@
   <!-- Paste as quotation is used by mail compose,
        but in composer it has to go in the debug menu
    -->
-  <menuitem id="menu_pasteQuote" accesskey="&editpastequotation.accesskey;"
+  <menuitem id="menu_pasteQuote" accesskey="&pasteAsQuotationCmd.accesskey;"
             command="cmd_pasteQuote"/>
 
 </overlay>

@@ -116,7 +116,7 @@ editor.xul has these - do we need them?
       <menu id="fileMenu"/>
       <menu id="editMenu"/>
 
-      <menu label="&viewMenu.label;" accesskey="&viewmenu.accesskey;">
+      <menu label="&viewMenu.label;" accesskey="&viewMenu.accesskey;">
         <!-- id pulls in "Show Sidebar" item from sidebarOverlay -->
         <menupopup id="menu_View_Popup">
           <menu id="viewToolbar"/>

@@ -4,9 +4,9 @@
 <!ENTITY  authorName.accesskey      "u">
 <!ENTITY  pageColorHeader           "Default Page Appearance">
 
-<!ENTITY defaultColorsRadio.label   "Reader's default colors (Don't set colors in page)">
+<!ENTITY defaultColors.label        "Reader's default colors (Don't set colors in page)">
 <!ENTITY defaultColors.accesskey    "d">
-<!ENTITY customColorsRadio.label    "Use custom colors:">
+<!ENTITY customColors.label         "Use custom colors:">
 <!ENTITY customColors.accesskey     "c">
 
 <!ENTITY normalText.label           "Normal text">

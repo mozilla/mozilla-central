@@ -208,7 +208,7 @@
                           label="&fontFixedWidth.label;"/>
                 <menuseparator/>
                 <menuitem value="Helvetica, Arial, sans-serif"
-                          label="&fontHelveticaFont.label;"/>
+                          label="&fontHelvetica.label;"/>
                 <menuitem value="Times New Roman, Times, serif"
                           label="&fontTimes.label;"/>
                 <menuitem value="Courier New, Courier, monospace"

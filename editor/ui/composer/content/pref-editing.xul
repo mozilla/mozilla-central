@@ -102,11 +102,11 @@
                   preference="editor.use_custom_colors">
         <radio id="defaultColorsRadio"
                value="false" 
-               label="&defaultColorsRadio.label;" 
+               label="&defaultColors.label;"
                accesskey="&defaultColors.accesskey;"/>
         <radio id="customColorsRadio" 
                value="true"
-               label="&customColorsRadio.label;"
+               label="&customColors.label;"
                accesskey="&customColors.accesskey;"/>
       </radiogroup>
       <hbox class="indent">
