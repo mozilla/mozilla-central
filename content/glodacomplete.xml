@@ -126,7 +126,218 @@
     </implementation>
   </binding>
 
-  <binding id="gloda-single-identity-item" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem">
+  <!-- This is autocomplete.xml's autocomplete-richlistitem duplicated and
+       modified to include its useful helper functions, but eliminating anything
+       that assumes specific content sub-items.  Namely, url/title/etc.  -->
+  <binding id="glodacomplete-base-richlistitem" extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <field name="_boundaryCutoff">null</field>
+
+      <property name="boundaryCutoff" readonly="true">
+        <getter>
+          <![CDATA[
+          if (!this._boundaryCutoff) {
+            this._boundaryCutoff =
+              Components.classes["@mozilla.org/preferences-service;1"].
+              getService(Components.interfaces.nsIPrefBranch).
+              getIntPref("toolkit.autocomplete.richBoundaryCutoff");
+          }
+          return this._boundaryCutoff;
+          ]]>
+        </getter>
+      </property>
+
+      <method name="_getBoundaryIndices">
+        <parameter name="aText"/>
+        <parameter name="aSearchTokens"/>
+        <body>
+          <![CDATA[
+          // Short circuit for empty search ([""] == "")
+          if (aSearchTokens == "")
+            return [0, aText.length];
+
+          // Find which regions of text match the search terms
+          let regions = [];
+          for each (let search in aSearchTokens) {
+            let matchIndex;
+            let startIndex = 0;
+            let searchLen = search.length;
+
+            // Find all matches of the search terms, but stop early for perf
+            let lowerText = aText.toLowerCase().substr(0, this.boundaryCutoff);
+            while ((matchIndex = lowerText.indexOf(search, startIndex)) >= 0) {
+              // Start the next search from where this one finished
+              startIndex = matchIndex + searchLen;
+              regions.push([matchIndex, startIndex]);
+            }
+          }
+
+          // Sort the regions by start position then end position
+          regions = regions.sort(function(a, b) let (start = a[0] - b[0])
+            start == 0 ? a[1] - b[1] : start);
+
+          // Generate the boundary indices from each region
+          let start = 0;
+          let end = 0;
+          let boundaries = [];
+          let len = regions.length;
+          for (let i = 0; i < len; i++) {
+            // We have a new boundary if the start of the next is past the end
+            let region = regions[i];
+            if (region[0] > end) {
+              // First index is the beginning of match
+              boundaries.push(start);
+              // Second index is the beginning of non-match
+              boundaries.push(end);
+
+              // Track the new region now that we've stored the previous one
+              start = region[0];
+            }
+
+            // Push back the end index for the current or new region
+            end = Math.max(end, region[1]);
+          }
+
+          // Add the last region
+          boundaries.push(start);
+          boundaries.push(end);
+
+          // Put on the end boundary if necessary
+          if (end < aText.length)
+            boundaries.push(aText.length);
+
+          // Skip the first item because it's always 0
+          return boundaries.slice(1);
+          ]]>
+        </body>
+      </method>
+
+      <method name="_getSearchTokens">
+        <parameter name="aSearch"/>
+        <body>
+          <![CDATA[
+          let search = aSearch.toLowerCase();
+          return search.split(/\s+/);
+          ]]>
+        </body>
+      </method>
+
+      <method name="_needsAlternateEmphasis">
+        <parameter name="aText"/>
+        <body>
+          <![CDATA[
+          for (let i = aText.length; --i >= 0; ) {
+            let charCode = aText.charCodeAt(i);
+            // Arabic, Syriac, Indic languages are likely to have ligatures
+            // that are broken when using the main emphasis styling
+            if (0x0600 <= charCode && charCode <= 0x109F)
+              return true;
+          }
+
+          return false;
+          ]]>
+        </body>
+      </method>
+
+      <method name="_setUpDescription">
+        <parameter name="aDescriptionElement"/>
+        <parameter name="aText"/>
+        <body>
+          <![CDATA[
+          // Get rid of all previous text
+          while (aDescriptionElement.hasChildNodes())
+            aDescriptionElement.removeChild(aDescriptionElement.firstChild);
+
+          // Get the indices that separate match and non-match text
+          let search = this.getAttribute("text");
+          let tokens = this._getSearchTokens(search);
+          let indices = this._getBoundaryIndices(aText, tokens);
+
+          // If we're searching for something that needs alternate emphasis,
+          // we'll need to check the text that we match
+          let checkAlt = this._needsAlternateEmphasis(search);
+
+          let next;
+          let start = 0;
+          let len = indices.length;
+          // Even indexed boundaries are matches, so skip the 0th if it's empty
+          for (let i = indices[0] == 0 ? 1 : 0; i < len; i++) {
+            next = indices[i];
+            let text = aText.substr(start, next - start);
+            start = next;
+
+            if (i % 2 == 0) {
+              // Emphasize the text for even indices
+              let span = aDescriptionElement.appendChild(
+                document.createElementNS("http://www.w3.org/1999/xhtml", "span"));
+              span.className = checkAlt && this._needsAlternateEmphasis(text) ?
+                "ac-emphasize-alt" : "ac-emphasize-text";
+              span.textContent = text;
+            } else {
+              // Otherwise, it's plain text
+              aDescriptionElement.appendChild(document.createTextNode(text));
+            }
+          }
+          ]]>
+        </body>
+      </method>
+
+      <method name="_setUpOverflow">
+        <parameter name="aParentBox"/>
+        <parameter name="aEllipsis"/>
+        <body>
+          <![CDATA[
+          // Hide the ellipsis incase there's just enough to not underflow
+          aEllipsis.hidden = true;
+
+          // Start with the parent's width and subtract off its children
+          let tooltip = [];
+          let children = aParentBox.childNodes;
+          let widthDiff = aParentBox.boxObject.width;
+
+          for (let i = 0; i < children.length; i++) {
+            // Only consider a child if it actually takes up space
+            let childWidth = children[i].boxObject.width;
+            if (childWidth > 0) {
+              // Subtract a little less to account for subpixel rounding
+              widthDiff -= childWidth - .5;
+
+              // Add to the tooltip if it's not hidden and has text
+              let childText = children[i].textContent;
+              if (childText)
+                tooltip.push(childText);
+            }
+          }
+
+          // If the children take up more space than the parent.. overflow!
+          if (widthDiff < 0) {
+            // Re-show the ellipsis now that we know it's needed
+            aEllipsis.hidden = false;
+
+            // Separate text components with a ndash --
+            aParentBox.tooltipText = tooltip.join(" \u2013 ");
+          }
+          ]]>
+        </body>
+      </method>
+
+      <method name="_doUnderflow">
+        <parameter name="aName"/>
+        <body>
+          <![CDATA[
+          // Hide the ellipsis right when we know we're underflowing instead of
+          // waiting for the timeout to trigger the _setUpOverflow calculations
+          this[aName + "Box"].tooltipText = "";
+          this[aName + "OverflowEllipsis"].hidden = true;
+          ]]>
+        </body>
+      </method>
+
+    </implementation>
+  </binding>
+
+
+  <binding id="gloda-single-identity-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
     <content>
       <xul:hbox>
 	    <xul:image anonid="picture"/>
@@ -220,7 +431,7 @@
     </implementation>
   </binding>
 
-  <binding id="gloda-contact-chunk" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem">
+  <binding id="gloda-contact-chunk" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
     <content orient="horizontal">
       <xul:image anonid="picture"/>
       <xul:vbox>
@@ -314,7 +525,7 @@
     </implementation>
   </binding>
 
-  <binding id="gloda-multi-item" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem">
+  <binding id="gloda-multi-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
     <content orient="vertical">
       <xul:description anonid="explanation"/>
       <xul:hbox anonid="identity-holder" flex="1">
