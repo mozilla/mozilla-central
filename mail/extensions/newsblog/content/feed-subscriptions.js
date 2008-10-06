@@ -808,6 +808,9 @@ var gFeedSubscriptionsWindow = {
   {
     downloaded: function(feed, aErrorCode)
     {
+      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                    .getService(Components.interfaces.nsIPromptService);
+
       // feed is null if our attempt to parse the feed failed
       if (aErrorCode == kNewsBlogSuccess)
       {
@@ -827,9 +830,11 @@ var gFeedSubscriptionsWindow = {
         gFeedSubscriptionsWindow.selectFeed(feed);
       } 
       else if (aErrorCode == kNewsBlogInvalidFeed) //  the feed was bad...
-        window.alert(gFeedSubscriptionsWindow.mBundle.getFormattedString('newsblog-invalidFeed', [feed.url]));
+        promptService.alert(null, null,
+                            gFeedSubscriptionsWindow.mBundle.getFormattedString("newsblog-invalidFeed", [feed.url]));
       else if (aErrorCode == kNewsBlogRequestFailure) 
-        window.alert(gFeedSubscriptionsWindow.mBundle.getFormattedString('newsblog-networkError', [feed.url]));
+        promptService.alert(null, null,
+                            gFeedSubscriptionsWindow.mBundle.getFormattedString('newsblog-networkError', [feed.url]));
 
       // re-enable the add button now that we are done subscribing
       document.getElementById('addFeed').removeAttribute('disabled');

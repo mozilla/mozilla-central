@@ -856,10 +856,7 @@ function awRecipientErrorCommand(errItem, element)
   if (specificErrString == "")
     specificErrString = "Internal error";
 
-  if (gPromptService)
-    gPromptService.alert(window, generalErrString, specificErrString);
-  else
-    window.alert(generalErrString + ": " + specificErrString);
+  gPromptService.alert(window, generalErrString, specificErrString);
 }
 
 function awRecipientKeyPress(event, element)
