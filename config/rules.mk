@@ -195,10 +195,6 @@ LIBRARY			:= $(NULL)
 endif
 endif
 
-ifdef JAVA_LIBRARY_NAME
-JAVA_LIBRARY := $(JAVA_LIBRARY_NAME).jar
-endif
-
 ifeq (,$(filter-out WINNT WINCE,$(OS_ARCH)))
 ifndef GNU_CC
 
@@ -265,7 +261,7 @@ HOST_PDBFILE=$(basename $(@F)).pdb
 endif
 
 ifndef TARGETS
-TARGETS			= $(LIBRARY) $(SHARED_LIBRARY) $(PROGRAM) $(SIMPLE_PROGRAMS) $(HOST_LIBRARY) $(HOST_PROGRAM) $(HOST_SIMPLE_PROGRAMS) $(JAVA_LIBRARY)
+TARGETS			= $(LIBRARY) $(SHARED_LIBRARY) $(PROGRAM) $(SIMPLE_PROGRAMS) $(HOST_LIBRARY) $(HOST_PROGRAM) $(HOST_SIMPLE_PROGRAMS)
 endif
 
 ifndef OBJS
@@ -730,7 +726,7 @@ HOST_LIBS_DEPS = $(filter %.$(LIB_SUFFIX), $(HOST_LIBS))
 DSO_LDOPTS_DEPS = $(EXTRA_DSO_LIBS) $(filter %.$(LIB_SUFFIX), $(EXTRA_DSO_LDOPTS))
 
 ##############################################
-libs:: $(SUBMAKEFILES) $(MAKE_DIRS) $(HOST_LIBRARY) $(LIBRARY) $(SHARED_LIBRARY) $(IMPORT_LIBRARY) $(HOST_PROGRAM) $(PROGRAM) $(HOST_SIMPLE_PROGRAMS) $(SIMPLE_PROGRAMS) $(JAVA_LIBRARY)
+libs:: $(SUBMAKEFILES) $(MAKE_DIRS) $(HOST_LIBRARY) $(LIBRARY) $(SHARED_LIBRARY) $(IMPORT_LIBRARY) $(HOST_PROGRAM) $(PROGRAM) $(HOST_SIMPLE_PROGRAMS) $(SIMPLE_PROGRAMS)
 ifndef NO_DIST_INSTALL
 ifdef LIBRARY
 ifdef EXPORT_LIBRARY # Stage libs that will be linked into a static build
@@ -782,13 +778,6 @@ endif
 ifdef HOST_LIBRARY
 	$(INSTALL) $(IFLAGS1) $(HOST_LIBRARY) $(DIST)/host/lib
 endif
-ifdef JAVA_LIBRARY
-ifdef IS_COMPONENT
-	$(INSTALL) $(IFLAGS1) $(JAVA_LIBRARY) $(FINAL_TARGET)/components
-else
-	$(INSTALL) $(IFLAGS1) $(JAVA_LIBRARY) $(FINAL_TARGET)
-endif
-endif # JAVA_LIBRARY
 endif # !NO_DIST_INSTALL
 	+$(LOOP_OVER_DIRS)
 
@@ -1379,66 +1368,6 @@ endif
 %: SCCS/s.%
 
 ###############################################################################
-# Java rules
-###############################################################################
-ifneq (,$(filter OS2 WINNT WINCE,$(OS_ARCH)))
-SEP := ;
-else
-SEP := :
-endif
-
-EMPTY :=
-SPACE := $(EMPTY) $(EMPTY)
-
-# Cygwin and MSYS have their own special path form, but javac expects the source
-# and class paths to be in the DOS form (i.e. e:/builds/...).  This function
-# does the appropriate conversion on Windows, but is a noop on other systems.
-ifeq (,$(filter-out WINNT WINCE, $(HOST_OS_ARCH)))
-ifdef CYGWIN_WRAPPER
-normalizepath = $(foreach p,$(1),$(shell cygpath -m $(p)))
-else
-# assume MSYS
-#  We use 'pwd -W' to get DOS form of the path.  However, since the given path
-#  could be a file or a non-existent path, we cannot call 'pwd -W' directly
-#  on the path.  Instead, we extract the root path (i.e. "c:/"), call 'pwd -W'
-#  on it, then merge with the rest of the path.
-root-path = $(shell echo $(1) | sed -e "s|\(/[^/]*\)/\?\(.*\)|\1|")
-non-root-path = $(shell echo $(1) | sed -e "s|\(/[^/]*\)/\?\(.*\)|\2|")
-normalizepath = $(foreach p,$(1),$(if $(filter /%,$(1)),$(shell cd $(call root-path,$(1)) && pwd -W)$(call non-root-path,$(1)),$(1)))
-endif
-else
-normalizepath = $(1)
-endif
-
-_srcdir = $(call normalizepath,$(srcdir))
-ifdef JAVA_SOURCEPATH
-SP = $(subst $(SPACE),$(SEP),$(call normalizepath,$(strip $(JAVA_SOURCEPATH))))
-_JAVA_SOURCEPATH = ".$(SEP)$(_srcdir)$(SEP)$(SP)"
-else
-_JAVA_SOURCEPATH = ".$(SEP)$(_srcdir)"
-endif
-
-ifdef JAVA_CLASSPATH
-CP = $(subst $(SPACE),$(SEP),$(call normalizepath,$(strip $(JAVA_CLASSPATH))))
-_JAVA_CLASSPATH = ".$(SEP)$(CP)"
-else
-_JAVA_CLASSPATH = .
-endif
-
-_JAVA_DIR = _java
-$(_JAVA_DIR)::
-	$(NSINSTALL) -D $@
-
-$(_JAVA_DIR)/%.class: %.java Makefile Makefile.in $(_JAVA_DIR)
-	$(CYGWIN_WRAPPER) $(JAVAC) $(JAVAC_FLAGS) -classpath $(_JAVA_CLASSPATH) \
-			-sourcepath $(_JAVA_SOURCEPATH) -d $(_JAVA_DIR) $(_VPATH_SRCS)
-
-$(JAVA_LIBRARY): $(addprefix $(_JAVA_DIR)/,$(JAVA_SRCS:.java=.class)) Makefile Makefile.in
-	$(JAR) cf $@ -C $(_JAVA_DIR) .
-
-GARBAGE_DIRS += $(_JAVA_DIR)
-
-###############################################################################
 # Update Makefiles
 ###############################################################################
 
@@ -1474,13 +1403,6 @@ endif
 ifneq ($(EXPORTS)$(XPIDLSRCS)$(SDK_HEADERS)$(SDK_XPIDLSRCS),)
 $(SDK_PUBLIC) $(PUBLIC)::
 	@if test ! -d $@; then $(ECHO) Creating $@; rm -rf $@; $(NSINSTALL) -D $@; else true; fi
-endif
-
-ifdef MOZ_JAVAXPCOM
-ifneq ($(XPIDLSRCS)$(SDK_XPIDLSRCS),)
-$(JAVA_DIST_DIR)::
-	$(NSINSTALL) -D $@
-endif
 endif
 
 ifneq ($(XPI_NAME),)
@@ -1666,47 +1588,6 @@ endif
 
 endif # SDK_XPIDLSRCS
 
-
-
-ifdef MOZ_JAVAXPCOM
-ifneq ($(XPIDLSRCS)$(SDK_XPIDLSRCS),)
-
-JAVA_XPIDLSRCS = $(XPIDLSRCS) $(SDK_XPIDLSRCS)
-
-# A single IDL file can contain multiple interfaces, which result in multiple
-# Java interface files.  So use hidden dependency files.
-JAVADEPFILES = $(addprefix $(JAVA_GEN_DIR)/.,$(JAVA_XPIDLSRCS:.idl=.java.pp))
-
-$(JAVA_GEN_DIR):
-	$(NSINSTALL) -D $@
-GARBAGE_DIRS += $(JAVA_GEN_DIR)
-
-# generate .java files into _javagen/[package name dirs]
-_JAVA_GEN_DIR = $(JAVA_GEN_DIR)/$(JAVA_IFACES_PKG_NAME)
-$(_JAVA_GEN_DIR):
-	$(NSINSTALL) -D $@
-
-$(JAVA_GEN_DIR)/.%.java.pp: %.idl $(XPIDL_COMPILE) $(_JAVA_GEN_DIR)
-	$(REPORT_BUILD)
-	$(ELOG) $(XPIDL_COMPILE) -m java -w -I$(srcdir) -I$(IDL_DIR) -o $(_JAVA_GEN_DIR)/$* $(_VPATH_SRCS)
-	@touch $@
-
-# "Install" generated Java interfaces.  We segregate them based on the XPI_NAME.
-# If XPI_NAME is not set, install into the "default" directory.
-ifneq ($(XPI_NAME),)
-JAVA_INSTALL_DIR = $(JAVA_DIST_DIR)/$(XPI_NAME)
-else
-JAVA_INSTALL_DIR = $(JAVA_DIST_DIR)/default
-endif
-
-$(JAVA_INSTALL_DIR):
-	$(NSINSTALL) -D $@
-
-export:: $(JAVA_DIST_DIR) $(JAVADEPFILES) $(JAVA_INSTALL_DIR)
-	(cd $(JAVA_GEN_DIR) && tar $(TAR_CREATE_FLAGS) - .) | (cd $(JAVA_INSTALL_DIR) && tar -xf -)
-
-endif # XPIDLSRCS || SDK_XPIDLSRCS
-endif # MOZ_JAVAXPCOM
 
 ################################################################################
 # Copy each element of EXTRA_COMPONENTS to $(FINAL_TARGET)/components

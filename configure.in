@@ -4319,19 +4319,6 @@ if test "$MOZ_ENABLE_GLITZ"; then
 fi
 
 dnl ========================================================
-dnl Java SDK support
-dnl ========================================================
-JAVA_INCLUDE_PATH=
-MOZ_ARG_WITH_STRING(java-include-path,
-[  --with-java-include-path=dir   Location of Java SDK headers],
-    JAVA_INCLUDE_PATH=$withval)
-
-JAVA_BIN_PATH=
-MOZ_ARG_WITH_STRING(java-bin-path,
-[  --with-java-bin-path=dir   Location of Java binaries (java, javac, jar)],
-    JAVA_BIN_PATH=$withval)
-
-dnl ========================================================
 dnl Use ARM userspace kernel helpers; tell NSPR to enable
 dnl their usage and use them in spidermonkey.
 dnl ========================================================
@@ -4357,20 +4344,14 @@ MOZ_ACTIVEX_SCRIPTING_SUPPORT=
 MOZ_BRANDING_DIRECTORY=
 MOZ_CALENDAR=
 MOZ_DBGRINFO_MODULES=
-MOZ_ENABLE_CANVAS=1
-MOZ_EXTENSIONS_ALL=" wallet p3p venkman inspector irc typeaheadfind gnomevfs sroaming datetime finger cview layout-debug tasks sql xforms schema-validation reporter"
 MOZ_FEEDS=1
-MOZ_IMG_DECODERS_DEFAULT="png gif jpeg bmp xbm icon"
-MOZ_IMG_ENCODERS_DEFAULT="png jpeg"
 MOZ_IPCD=
-MOZ_JAVAXPCOM=
 MOZ_JSDEBUGGER=1
 MOZ_JSLOADER=1
 MOZ_LDAP_XPCOM=
 MOZ_LIBART_CFLAGS=
 MOZ_LIBART_LIBS=
 MOZ_MAIL_NEWS=
-MOZ_MATHML=1
 MOZ_MORK=1
 MOZ_MORKREADER=
 MOZ_AUTH_EXTENSION=1
@@ -4387,15 +4368,6 @@ MOZ_PREF_EXTENSIONS=1
 MOZ_PROFILELOCKING=1
 MOZ_PROFILESHARING=1
 MOZ_PSM=1
-MOZ_PYTHON_EXTENSIONS="xpcom dom"
-MOZ_PYTHON=
-MOZ_PYTHON_DEBUG_SUFFIX=
-MOZ_PYTHON_DLL_SUFFIX=
-MOZ_PYTHON_INCLUDES=
-MOZ_PYTHON_LIBS=
-MOZ_PYTHON_PREFIX=
-MOZ_PYTHON_VER=
-MOZ_PYTHON_VER_DOTTED=
 MOZ_RDF=1
 MOZ_REFLOW_PERF=
 MOZ_SAFE_BROWSING=
@@ -4475,15 +4447,10 @@ basic)
   MOZ_COMPOSER=
   MOZ_ENABLE_CANVAS=
   MOZ_ENABLE_POSTSCRIPT=
-  MOZ_EXTENSIONS_DEFAULT=" spatialnavigation"
-  MOZ_IMG_DECODERS_DEFAULT="png gif jpeg"
-  MOZ_IMG_ENCODERS_DEFAULT=
-  MOZ_IMG_ENCODERS=
   MOZ_INSTALLER=
   MOZ_JSDEBUGGER=
   MOZ_LDAP_XPCOM=
   MOZ_MAIL_NEWS=
-  MOZ_MATHML=
   MOZ_AUTH_EXTENSION=
   MOZ_NO_ACTIVEX_SUPPORT=1
   MOZ_NO_INSPECTOR_APIS=1
@@ -4504,9 +4471,6 @@ basic)
   MOZ_XPINSTALL=
   MOZ_XTF=
   MOZ_ZIPWRITER=
-  NECKO_DISK_CACHE=
-  NECKO_PROTOCOLS_DEFAULT="about data http file res"
-  NECKO_SMALL_BUFFERS=1
   NS_DISABLE_LOGGING=1
   NS_PRINTING=
   JS_STATIC_BUILD=1
@@ -4522,15 +4486,10 @@ minimal)
   MOZ_COMPOSER=
   MOZ_ENABLE_CANVAS=
   MOZ_ENABLE_POSTSCRIPT=
-  MOZ_EXTENSIONS_DEFAULT=" spatialnavigation"
-  MOZ_IMG_DECODERS_DEFAULT="png gif jpeg"
-  MOZ_IMG_ENCODERS_DEFAULT=
-  MOZ_IMG_ENCODERS=
   MOZ_INSTALLER=
   MOZ_JSDEBUGGER=
   MOZ_LDAP_XPCOM=
   MOZ_MAIL_NEWS=
-  MOZ_MATHML=
   MOZ_AUTH_EXTENSION=
   MOZ_NO_ACTIVEX_SUPPORT=1
   MOZ_NO_INSPECTOR_APIS=1
@@ -4555,9 +4514,6 @@ minimal)
   MOZ_XUL=
   MOZ_ZIPWRITER=
   MOZ_RDF=
-  NECKO_DISK_CACHE=
-  NECKO_PROTOCOLS_DEFAULT="about data http file res"
-  NECKO_SMALL_BUFFERS=1
   NS_DISABLE_LOGGING=1
   NS_PRINTING=
   JS_STATIC_BUILD=1
@@ -7124,112 +7080,9 @@ MOZ_ARG_DISABLE_BOOL(xul,
     MOZ_XUL= )
 if test "$MOZ_XUL"; then
   AC_DEFINE(MOZ_XUL)
-else
-  dnl remove extensions that require XUL
-  MOZ_EXTENSIONS=`echo $MOZ_EXTENSIONS | sed -e 's/inspector//' -e 's/venkman//' -e 's/irc//' -e 's/tasks//'`
 fi
 
 AC_SUBST(MOZ_XUL)
-
-dnl ========================================================
-dnl Two ways to enable Python support:
-dnl   --enable-extensions=python # select all available.
-dnl    (MOZ_PYTHON_EXTENSIONS contains the list of extensions)
-dnl or:
-dnl   --enable-extensions=python/xpcom,... # select individual ones
-dnl
-dnl If either is used, we locate the Python to use.
-dnl ========================================================
-dnl
-dnl If 'python' appears anywhere in the extensions list, go lookin'...
-if test `echo "$MOZ_EXTENSIONS" | grep -c python` -ne 0; then
-    dnl Allow PYTHON to point to the Python interpreter to use
-    dnl (note that it must be the python executable - which we
-    dnl run to locate the relevant paths etc)
-    dnl If not set, we use whatever Python we can find.
-    MOZ_PYTHON=$PYTHON
-    dnl Ask Python what its version number is
-    changequote(,)
-    MOZ_PYTHON_VER=`$PYTHON -c "import sys;print '%d%d' % sys.version_info[0:2]"`
-    MOZ_PYTHON_VER_DOTTED=`$PYTHON -c "import sys;print '%d.%d' % sys.version_info[0:2]"`
-    changequote([,])
-    dnl Ask for the Python "prefix" (ie, home/source dir)
-    MOZ_PYTHON_PREFIX=`$PYTHON -c "import sys; print sys.prefix"`
-    dnl Setup the include and library directories.
-    if test "$OS_ARCH" = "WINNT"; then
-        MOZ_PYTHON_PREFIX=`$CYGPATH_W $MOZ_PYTHON_PREFIX | $CYGPATH_S`
-        dnl Source trees have "include" and "PC" for .h, and "PCbuild" for .lib
-        dnl Binary trees have "include" for .h, and "libs" for .lib
-        dnl We add 'em both - along with quotes, to handle spaces.
-        MOZ_PYTHON_DLL_SUFFIX=.pyd
-        MOZ_PYTHON_INCLUDES="\"-I$MOZ_PYTHON_PREFIX/include\" \"-I$MOZ_PYTHON_PREFIX/PC\""
-        MOZ_PYTHON_LIBS="\"/libpath:$MOZ_PYTHON_PREFIX/PCBuild\" \"/libpath:$MOZ_PYTHON_PREFIX/libs\""
-    else
-        dnl Non-Windows include and libs
-        MOZ_PYTHON_DLL_SUFFIX=$DLL_SUFFIX
-        MOZ_PYTHON_INCLUDES="-I$MOZ_PYTHON_PREFIX/include/python$MOZ_PYTHON_VER_DOTTED"
-        dnl Check for dynamic Python lib
-        dnl - A static Python is no good - multiple dynamic libraries (xpcom
-        dnl - core, xpcom loader, pydom etc) all need to share Python.
-        dnl - Python 2.3's std --enable-shared configure option will
-        dnl   create a libpython2.3.so.1.0. We should first try this
-        dnl   dotted versioned .so file because this is the one that
-        dnl   the PyXPCOM build mechanics tries to link to.
-        dnl   XXX Should find a better way than hardcoding "1.0".
-        dnl - Python developement tree dir layouts are NOT allowed here
-        dnl   because the PyXPCOM build just dies on it later anyway.
-        dnl - Fixes to the above by Python/*nix knowledgable people welcome!
-        if test -f "$MOZ_PYTHON_PREFIX/lib/libpython$MOZ_PYTHON_VER_DOTTED.so.1.0"; then
-            MOZ_PYTHON_LIBS="-L$MOZ_PYTHON_PREFIX/lib -lpython$MOZ_PYTHON_VER_DOTTED"
-        elif test -f "$MOZ_PYTHON_PREFIX/lib64/libpython$MOZ_PYTHON_VER_DOTTED.so.1.0"; then
-            MOZ_PYTHON_LIBS="-L$MOZ_PYTHON_PREFIX/lib64 -lpython$MOZ_PYTHON_VER_DOTTED"
-        elif test -f "$MOZ_PYTHON_PREFIX/lib/libpython$MOZ_PYTHON_VER_DOTTED.so"; then
-            MOZ_PYTHON_LIBS="-L$MOZ_PYTHON_PREFIX/lib -lpython$MOZ_PYTHON_VER_DOTTED"
-        elif test -f "$MOZ_PYTHON_PREFIX/libpython$MOZ_PYTHON_VER_DOTTED.so"; then
-            dnl Don't Python development tree directory layout.
-            MOZ_PYTHON_LIBS="-L$MOZ_PYTHON_PREFIX -lpython$MOZ_PYTHON_VER_DOTTED"
-            AC_MSG_ERROR([The Python at $MOZ_PYTHON_PREFIX looks like a dev tree. The PyXPCOM build cannot handle this yet. You must 'make install' Python and use the installed tree.])
-        elif test "$OS_ARCH" = "Darwin"; then
-            dnl We do Darwin last, so if a custom non-framework build of
-            dnl python is used on OSX, then it will be picked up first by
-            dnl the logic above.
-            MOZ_PYTHON_LIBS="-framework Python"
-        else
-            AC_MSG_ERROR([Could not find build shared libraries for Python at $MOZ_PYTHON_PREFIX.  This is required for PyXPCOM.])
-        fi
-        if test "$OS_ARCH" = "Linux"; then
-            MOZ_PYTHON_LIBS="$MOZ_PYTHON_LIBS -lutil"
-        fi
-    fi
-    dnl Handle "_d" on Windows
-    if test "$OS_ARCH" = "WINNT" && test -n "$MOZ_DEBUG"; then
-        MOZ_PYTHON_DEBUG_SUFFIX="_d"
-    else
-        MOZ_PYTHON_DEBUG_SUFFIX=
-    fi
-    AC_MSG_RESULT(Building Python extensions using python-$MOZ_PYTHON_VER_DOTTED from $MOZ_PYTHON_PREFIX)
-fi
-
-dnl If the user asks for the 'python' extension, then we add
-dnl MOZ_PYTHON_EXTENSIONS to MOZ_EXTENSIONS - but with the leading 'python/'
-dnl Note the careful regex - it must match 'python' followed by anything
-dnl other than a '/', including the end-of-string.
-if test `echo "$MOZ_EXTENSIONS" | grep -c 'python\([[^/]]\|$\)'` -ne 0; then
-    for pyext in $MOZ_PYTHON_EXTENSIONS; do
-        MOZ_EXTENSIONS=`echo $MOZ_EXTENSIONS python/$pyext`
-    done
-fi
-dnl Later we may allow MOZ_PYTHON_EXTENSIONS to be specified on the
-dnl command-line, but not yet
-AC_SUBST(MOZ_PYTHON_EXTENSIONS)
-AC_SUBST(MOZ_PYTHON)
-AC_SUBST(MOZ_PYTHON_PREFIX)
-AC_SUBST(MOZ_PYTHON_INCLUDES)
-AC_SUBST(MOZ_PYTHON_LIBS)
-AC_SUBST(MOZ_PYTHON_VER)
-AC_SUBST(MOZ_PYTHON_VER_DOTTED)
-AC_SUBST(MOZ_PYTHON_DEBUG_SUFFIX)
-AC_SUBST(MOZ_PYTHON_DLL_SUFFIX)
 
 dnl ========================================================
 dnl disable profile sharing
@@ -7276,21 +7129,6 @@ fi
 
 AC_SUBST(MOZ_RDF)
 
-
-dnl
-dnl option to disable cookies
-dnl
-MOZ_ARG_DISABLE_BOOL(cookies,
-[  --disable-cookies       Disable cookie support],
-    NECKO_COOKIES=,
-    NECKO_COOKIES=1)
-AC_SUBST(NECKO_COOKIES)
-if test "$NECKO_COOKIES"; then
-    AC_DEFINE(NECKO_COOKIES)
-fi
-
-dnl NECKO_ configuration options are not global
-_NON_GLOBAL_ACDEFINES="$_NON_GLOBAL_ACDEFINES NECKO_"
 
 dnl Only build Mork if it's required
 AC_SUBST(MOZ_MORK)
@@ -7352,7 +7190,6 @@ AC_SUBST(MOZ_GFX_TOOLKIT)
 AC_SUBST(MOZ_UPDATE_XTERM)
 AC_SUBST(MINIMO)
 AC_SUBST(MOZ_AUTH_EXTENSION)
-AC_SUBST(MOZ_MATHML)
 AC_SUBST(MOZ_PERMISSIONS)
 AC_SUBST(MOZ_XTF)
 AC_SUBST(MOZ_NO_INSPECTOR_APIS)
@@ -7369,9 +7206,6 @@ AC_SUBST(MOZ_DEBUG_FLAGS)
 AC_SUBST(MOZ_DEBUG_LDFLAGS)
 AC_SUBST(WARNINGS_AS_ERRORS)
 AC_SUBST(MOZ_DBGRINFO_MODULES)
-AC_SUBST(MOZ_EXTENSIONS)
-AC_SUBST(MOZ_IMG_DECODERS)
-AC_SUBST(MOZ_IMG_ENCODERS)
 AC_SUBST(MOZ_JSDEBUGGER)
 AC_SUBST(MOZ_OJI)
 AC_SUBST(MOZ_NO_XPCOM_OBSOLETE)
@@ -7403,12 +7237,6 @@ AC_SUBST(MOZ_PLACES_BOOKMARKS)
 AC_SUBST(MOZ_STORAGE)
 AC_SUBST(MOZ_FEEDS)
 AC_SUBST(NS_PRINTING)
-
-AC_SUBST(MOZ_JAVAXPCOM)
-AC_SUBST(JAVA_INCLUDE_PATH)
-AC_SUBST(JAVA)
-AC_SUBST(JAVAC)
-AC_SUBST(JAR)
 
 AC_SUBST(MOZ_PROFILESHARING)
 AC_SUBST(MOZ_PROFILELOCKING)
