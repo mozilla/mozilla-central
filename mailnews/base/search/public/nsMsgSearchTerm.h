@@ -114,6 +114,13 @@ protected:
   nsresult ParseOperator(char *inStream, nsMsgSearchOpValue *value);
   nsresult ParseValue(char *inStream);
   nsresult InitHeaderAddressParser();
+  /**
+   * Switch a string to lower case, except for special database rows
+   * that are not headers, but could be headers
+   *
+   * @param aValue  the string to switch
+   */
+  void ToLowerCaseExceptSpecials(nsACString &aValue);
     nsresult InitializeAddressBook();
     nsresult MatchInAddressBook(const char * aAddress, PRBool *pResult);
     // fields used by search in address book

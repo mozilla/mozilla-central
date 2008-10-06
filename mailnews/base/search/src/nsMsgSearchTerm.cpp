@@ -369,7 +369,7 @@ nsMsgSearchTerm::nsMsgSearchTerm (
   if (attrib > nsMsgSearchAttrib::OtherHeader  && attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes && arbitraryHeader)
   {
     m_arbitraryHeader = arbitraryHeader;
-    ToLowerCase(m_arbitraryHeader);
+    ToLowerCaseExceptSpecials(m_arbitraryHeader);
   }
   nsMsgResultElement::AssignValues (val, &m_value);
   m_matchAll = PR_FALSE;
@@ -660,7 +660,7 @@ nsMsgSearchTerm::ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib)
     if (*attrib > nsMsgSearchAttrib::OtherHeader && *attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)  // if we are dealing with an arbitrary header....
     {
       m_arbitraryHeader = inStream;
-      ToLowerCase(m_arbitraryHeader);
+      ToLowerCaseExceptSpecials(m_arbitraryHeader);
     }
     return rv;
 }
@@ -1628,12 +1628,41 @@ NS_IMETHODIMP
 nsMsgSearchTerm::SetArbitraryHeader(const nsACString &aValue)
 {
     m_arbitraryHeader = aValue;
-    ToLowerCase(m_arbitraryHeader);
+    ToLowerCaseExceptSpecials(m_arbitraryHeader);
     return NS_OK;
 }
 
 NS_IMPL_GETSET(nsMsgSearchTerm, BeginsGrouping, PRBool, mEndsGrouping)
 NS_IMPL_GETSET(nsMsgSearchTerm, EndsGrouping, PRBool, mEndsGrouping)
+
+//
+// Certain possible standard values of a message database row also sometimes
+// appear as header values. To prevent a naming collision, we use all
+// lower case for the standard headers, and first capital when those
+// same strings are requested as arbitrary headers. This routine is used
+// when setting arbitrary headers.
+//
+void nsMsgSearchTerm::ToLowerCaseExceptSpecials(nsACString &aValue)
+{
+#ifdef MOZILLA_INTERNAL_API
+  if (NS_LITERAL_CSTRING("Sender").Equals(aValue, nsCaseInsensitiveCStringComparator()))
+    aValue.Assign(NS_LITERAL_CSTRING("Sender"));
+  else if (NS_LITERAL_CSTRING("Date").Equals(aValue, nsCaseInsensitiveCStringComparator()))
+    aValue.Assign(NS_LITERAL_CSTRING("Date"));
+  else if (NS_LITERAL_CSTRING("Status").Equals(aValue, nsCaseInsensitiveCStringComparator()))
+    aValue.Assign(NS_LITERAL_CSTRING("Status"));
+#else
+  if (NS_LITERAL_CSTRING("Sender").Equals(aValue, CaseInsensitiveCompare))
+    aValue.Assign(NS_LITERAL_CSTRING("Sender"));
+  else if (NS_LITERAL_CSTRING("Date").Equals(aValue, CaseInsensitiveCompare))
+    aValue.Assign(NS_LITERAL_CSTRING("Date"));
+  else if (NS_LITERAL_CSTRING("Status").Equals(aValue, CaseInsensitiveCompare))
+    aValue.Assign(NS_LITERAL_CSTRING("Status"));
+#endif
+  else
+    ToLowerCase(aValue);
+}
+
 
 //-----------------------------------------------------------------------------
 // nsMsgSearchScopeTerm implementation
