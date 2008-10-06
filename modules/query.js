@@ -70,6 +70,10 @@ function GlodaQueryClass() {
 GlodaQueryClass.prototype = {
   WILDCARD: {},
   
+  get constraintCount() {
+    return this._constraints.length;
+  },
+  
   or: function gloda_query_or() {
     let owner = this._owner || this;
     let orQuery = new this._queryClass();
