@@ -2176,6 +2176,11 @@ nsresult nsImapService::GetImapConnectionAndLoadUrl(nsIEventTarget *aClientEvent
 {
   NS_ENSURE_ARG(aImapUrl);
 
+  PRBool isValidUrl;
+  aImapUrl->GetValidUrl(&isValidUrl);
+  if (!isValidUrl)
+    return NS_ERROR_FAILURE;
+
   if (WeAreOffline())
   {
     nsImapAction imapAction;
