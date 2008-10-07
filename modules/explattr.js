@@ -35,6 +35,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+/*
+ * This file provides the "explicit attribute" provider for messages.  It is
+ *  concerned with attributes that are the result of user actions.  For example,
+ *  whether a message is starred (flagged), message tags, whether it is
+ *  read/unread, etc.
+ */
+
 EXPORTED_SYMBOLS = ['GlodaExplicitAttr'];
 
 const Cc = Components.classes;
