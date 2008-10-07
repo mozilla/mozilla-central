@@ -61,10 +61,16 @@ var GlodaUtils = {
   
   /**
    * Parses an RFC 2822 list of e-mail addresses and returns an object with
-   *  4 attributes: count, the number of addresses parsed; addresses, a list of
-   *  e-mail addresses (ex: bob@company.com); names, list (ex: Bob Smith); and
-   *  fullAddresses, aka the list of name and e-mail together (ex: "Bob Smith"
-   *  <bob@company.com>). 
+   *  4 attributes, as described below.  We will use the example of the user
+   *  passing an argument of '"Bob Smith" <bob@company.com>'.
+   *  
+   * count: the number of addresses parsed. (ex: 1)
+   * addresses: a list of e-mail addresses (ex: ["bob@company.com"])
+   * names: a list of names (ex: ["Bob Smith"])
+   * fullAddresses: aka the list of name and e-mail together (ex: ['"Bob Smith"
+   *  <bob@company.com>']).
+   *
+   * This method is a convenience wrapper around nsIMsgHeaderParser. 
    */
   parseMailAddresses: function gloda_utils_parseMailAddresses(aMailAddresses) {
     if (this._headerParser == null) {
