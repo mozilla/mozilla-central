@@ -52,11 +52,6 @@ GRE_MODULE       = 1
 FORCE_USE_PIC   = 1 # Force use of PIC
 USE_STATIC_LIBS = 1 # This links against the static CRT on Windows
 
-# for changes that should only be triggered on the comm-central trunk
-ifdef COMM_BUILD
-DEFINES += -DCOMM_BUILD
-endif
-
 REQUIRES = xpcom \
 	   js \
 	   xpconnect \

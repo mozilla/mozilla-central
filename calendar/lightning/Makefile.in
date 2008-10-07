@@ -107,11 +107,7 @@ DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
            -DTHEME=$(THEME) \
            $(NULL)
 
-ifdef COMM_BUILD
 GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
-else
-GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
-endif
 DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 
 # Get all directories in /l10n/*, that contain a calendar subdir.

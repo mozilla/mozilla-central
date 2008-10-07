@@ -728,13 +728,11 @@ calDateTime::PostCreate(nsIXPConnectWrappedNative *wrapper, JSContext * cx, JSOb
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-#ifdef COMM_BUILD
 NS_IMETHODIMP
 calDateTime::PostCreatePrototype(JSContext * cx, JSObject * proto)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
-#endif
 
 /* PRBool addProperty (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in JSVal id, in JSValPtr vp); */
 NS_IMETHODIMP
