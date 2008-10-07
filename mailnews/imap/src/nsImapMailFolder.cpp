@@ -3755,8 +3755,11 @@ void nsImapMailFolder::FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsT
           if (NS_SUCCEEDED(mDatabase->ContainsKey(uidOfMessage, &dbContainsKey)) &&
               dbContainsKey)
           {
-            // this is expected in the partial uid fetch case.
-            NS_ASSERTION(!partialUIDFetch, "db has key - flagState messed up?");
+            // this is expected in the partial uid fetch case because the 
+            // flag state does not contain all messages, so the db has
+            // messages the flag state doesn't know about.
+            if (!partialUIDFetch)
+              NS_ERROR("db has key - flagState messed up?");
             continue;
           }
         }
