@@ -49,7 +49,7 @@ function hiddenWindowStartup()
              'viewSortMenu', 'groupBySort', 'viewMessageViewMenu', 'mailviewCharsetMenu',
              'viewMessagesMenu', 'menu_expandAllThreads', 'collapseAllThreads',
              'viewheadersmenu', 'viewBodyMenu', 'viewAttachmentsInlineMenuitem',
-             'viewTextSizeMenu', 'menu_textZoomEnlarge', 'menu_textZoomReduce',
+             'viewFullZoomMenu',
              'goNextMenu', 'menu_nextMsg', 'menu_nextUnreadMsg', 'menu_nextUnreadThread',
              'goPreviousMenu', 'menu_prevMsg', 'menu_prevUnreadMsg', 'menu_goForward', 'menu_goBack',
              'goStartPage', 'newMsgCmd', 'replyMainMenu', 'replySenderMainMenu', 'replyNewsgroupMainMenu',

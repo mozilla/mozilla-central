@@ -22,7 +22,7 @@
 #
 # Contributor(s):
 #   Jan Varga <varga@nixcorp.com>
-#   Håkan Waara (hwaara@chello.se)
+#   HÃ¥kan Waara <hwaara@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -665,4 +665,8 @@ function GetSearchSession()
     return null;
 }
 
-
+/** Update state of zoom type (text vs. full) menu item. */
+function UpdateFullZoomMenu() {
+  var menuItem = document.getElementById("menu_fullZoomToggle");
+  menuItem.setAttribute("checked", !ZoomManager.useFullZoom);
+}

@@ -63,7 +63,6 @@
 <script type="application/x-javascript" src="chrome://messenger/content/junkCommands.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mail-offline.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/mailCore.js"/>
 <script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/msgViewPickerOverlay.js"/>
 <script type="application/x-javascript" src="chrome://global/content/viewZoomOverlay.js"/>
@@ -145,9 +144,10 @@
    <command id="cmd_viewWatchedThreadsWithUnread" oncommand="goDoCommand('cmd_viewWatchedThreadsWithUnread')" disabled="true"/>
    <command id="cmd_viewIgnoredThreads" oncommand="goDoCommand('cmd_viewIgnoredThreads')" disabled="true"/>
    <commandset id="viewZoomCommands">
-     <command id="cmd_textZoomReduce" oncommand="ZoomManager.reduce();"/>
-     <command id="cmd_textZoomEnlarge" oncommand="ZoomManager.enlarge();"/>
-     <command id="cmd_textZoomReset" oncommand="ZoomManager.reset();"/>
+     <command id="cmd_fullZoomReduce"  oncommand="ZoomManager.reduce()"/>
+     <command id="cmd_fullZoomEnlarge" oncommand="ZoomManager.enlarge()"/>
+     <command id="cmd_fullZoomReset"   oncommand="ZoomManager.reset()"/>
+     <command id="cmd_fullZoomToggle"  oncommand="ZoomManager.toggleZoom();"/>
    </commandset>
 </commandset>
 
@@ -400,13 +400,20 @@
   <key id="key_stop" keycode="VK_ESCAPE" command="cmd_stop"/>
 
   <keyset id="viewZoomKeys">
-    <key id="key_textZoomReduce" key="&textZoomReduceCmd.commandkey;" command="cmd_textZoomReduce"  modifiers="accel"/>
-    <key key="&textZoomReduceCmd.commandkey;" command="cmd_textZoomReduce"  modifiers="accel shift"/>
-    <key id="key_textZoomEnlarge" key="&textZoomEnlargeCmd.commandkey;" command="cmd_textZoomEnlarge" modifiers="accel"/>
-    <key key="&textZoomEnlargeCmd.commandkey;" command="cmd_textZoomEnlarge" modifiers="accel shift"/>
-    <key key="&textZoomEnlargeCmd.commandkey2;" command="cmd_textZoomEnlarge" modifiers="accel"/>
-    <key key="&textZoomEnlargeCmd.commandkey2;" command="cmd_textZoomEnlarge" modifiers="accel shift"/>
-    <key id="key_textZoomReset"   key="&textZoomResetCmd.commandkey;"    command="cmd_textZoomReset"   modifiers="accel"/>
+    <key id="key_fullZoomReduce"  key="&fullZoomReduceCmd.commandkey;"
+         command="cmd_fullZoomReduce"  modifiers="accel"/>
+    <key                          key="&fullZoomReduceCmd.commandkey2;"
+         command="cmd_fullZoomReduce"  modifiers="accel"/>
+    <key id="key_fullZoomEnlarge" key="&fullZoomEnlargeCmd.commandkey;"
+         command="cmd_fullZoomEnlarge" modifiers="accel"/>
+    <key                          key="&fullZoomEnlargeCmd.commandkey2;"
+         command="cmd_fullZoomEnlarge" modifiers="accel"/>
+    <key                          key="&fullZoomEnlargeCmd.commandkey3;"
+         command="cmd_fullZoomEnlarge" modifiers="accel"/>
+    <key id="key_fullZoomReset"   key="&fullZoomResetCmd.commandkey;"
+         command="cmd_fullZoomReset"   modifiers="accel"/>
+    <key                          key="&fullZoomResetCmd.commandkey2;"
+         command="cmd_fullZoomReset"   modifiers="accel"/>
   </keyset>
 
   <!-- Tab/F6 Keys -->
@@ -1189,14 +1196,26 @@
           <menuitem id="viewAttachmentsInlineMenuitem" label="&viewAttachmentsInlineCmd.label;" accesskey="&viewAttachmentsInlineCmd.accesskey;"
             oncommand="ToggleInlineAttachment(event.target)" type="checkbox" checked="true"/>
           <menuseparator id="viewAfterAttachmentsSeparator"/>
-          <menu id="viewTextSizeMenu" label="&textSize.label;" accesskey="&textSize.accesskey;">
-            <menupopup id="menu_TextSizePopup">
-          <menuitem id="menu_textZoomEnlarge" key="key_textZoomEnlarge" label="&textZoomEnlargeCmd.label;" accesskey="&textZoomEnlargeCmd.accesskey;"
-                    command="cmd_textZoomEnlarge"/>
-          <menuitem id="menu_textZoomReduce" key="key_textZoomReduce" label="&textZoomReduceCmd.label;" accesskey="&textZoomReduceCmd.accesskey;"
-                    command="cmd_textZoomReduce"/>
-              <menuseparator id="textSizeAfterReduceSeparator"/>
-              <menuitem key="key_textZoomReset" label="&textZoomResetCmd.label;" accesskey="&textZoomResetCmd.accesskey;" command="cmd_textZoomReset"/>
+          <menu id="viewFullZoomMenu" label="&fullZoom.label;" accesskey="&fullZoom.accesskey;"
+                onpopupshowing="UpdateFullZoomMenu()">
+            <menupopup id="viewFullZoomPopupMenu">
+              <menuitem id="menu_fullZoomEnlarge" key="key_fullZoomEnlarge"
+                        label="&fullZoomEnlargeCmd.label;"
+                        accesskey="&fullZoomEnlargeCmd.accesskey;"
+                        command="cmd_fullZoomEnlarge"/>
+              <menuitem id="menu_fullZoomReduce" key="key_fullZoomReduce"
+                        label="&fullZoomReduceCmd.label;"
+                        accesskey="&fullZoomReduceCmd.accesskey;"
+                        command="cmd_fullZoomReduce"/>
+              <menuseparator id="fullZoomAfterReduceSeparator"/>
+              <menuitem id="menu_fullZoomReset" key="key_fullZoomReset"
+                        label="&fullZoomResetCmd.label;"
+                        accesskey="&fullZoomResetCmd.accesskey;"
+                        command="cmd_fullZoomReset"/>
+              <menuseparator id="fullZoomAfterResetSeparator"/>
+              <menuitem id="menu_fullZoomToggle" label="&fullZoomToggleCmd.label;"
+                        accesskey="&fullZoomToggleCmd.accesskey;"
+                        type="checkbox" command="cmd_fullZoomToggle" checked="false"/>
             </menupopup>
           </menu>
           <menu id="mailviewCharsetMenu" />
