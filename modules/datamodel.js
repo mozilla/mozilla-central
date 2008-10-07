@@ -66,7 +66,7 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
   this._objectType = aObjectType;
   this._objectNounMeta = aObjectNounMeta;
 
-  this._boundName = null;
+  this.boundName = null;
   this._singular = null;
 
   this._special = 0; // not special
@@ -84,8 +84,7 @@ GlodaAttributeDef.prototype = {
   get objectNoun() { return this._objectType; },
   get objectNounMeta() { return this._objectNounMeta; },
 
-  get isBound() { return this._boundName !== null; },
-  get boundName() { return this._boundName; },
+  get isBound() { return this.boundName !== null; },
   get singular() { return this._singular; },
 
   get special() { return this._special; },
@@ -125,8 +124,8 @@ GlodaAttributeDef.prototype = {
     // if it's bound, we can just use the binding and trigger his caching
     // if it's special, the attribute actually exists, but just with explicit
     //  code backing it.
-    if (this._boundName !== null || this._special) {
-      return aObj[this._boundName];
+    if (this.boundName !== null || this._special) {
+      return aObj[this.boundName];
     }
     let instances = aObj.getAttributeInstances(this);
     let nounMeta = this._objectNounMeta;

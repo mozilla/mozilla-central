@@ -947,7 +947,7 @@ var Gloda = {
       //  not just the data-store.  we may also just punt that all off onto
       //  STEEL...
 
-      aAttr._boundName = aBindName;
+      aAttr.boundName = aBindName;
     }
 
     // -- the query constraint helpers
