@@ -107,8 +107,4 @@ var GlodaUtils = {
     // convert the binary hash data to a hex string.
     return [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
   },
-  
-  dateFormat: function gloda_utils_dateFormat(aDate) {
-    return aDate.toLocaleString();
-  },
 };
