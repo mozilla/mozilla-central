@@ -85,9 +85,6 @@ var GlodaUtils = {
             count: names.value.length}; 
   },
   
-  extractBodySnippet: function gloda_utils_extractBodySnippet(aBodyString) {
-  },
-  
   /**
    * MD5 hash a string and return the hex-string result. Impl from nsICryptoHash
    *  docs.
