@@ -134,7 +134,6 @@ var GlodaABAttrs = {
       specialColumnName: "name",
       subjectNouns: [Gloda.NOUN_CONTACT],
       objectNoun: Gloda.NOUN_STRING,
-      explanation: null, // name is internal, no explanation required
       }); // tested-by: test_attributes_fundamental
     this._attrContactPopularity = Gloda.defineAttribute({
       provider: this,
@@ -147,7 +146,6 @@ var GlodaABAttrs = {
       specialColumnName: "popularity",
       subjectNouns: [Gloda.NOUN_CONTACT],
       objectNoun: Gloda.NOUN_NUMBER,
-      explanation: null, // popularity is internal, no explanation required
       }); // not-tested
     this._attrContactFrecency = Gloda.defineAttribute({
       provider: this,
@@ -160,7 +158,6 @@ var GlodaABAttrs = {
       specialColumnName: "frecency",
       subjectNouns: [Gloda.NOUN_CONTACT],
       objectNoun: Gloda.NOUN_NUMBER,
-      explanation: null, // frecency is internal, no explanation required
       }); // not-tested
 
     /* ***** Identities ***** */
@@ -175,7 +172,6 @@ var GlodaABAttrs = {
       specialColumnName: "contactID",
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_CONTACT,
-      explanation: null, // popularity is internal, no explanation required
       }); // tested-by: test_attributes_fundamental
     this._attrIdentityKind = Gloda.defineAttribute({
       provider: this,
@@ -188,7 +184,6 @@ var GlodaABAttrs = {
       specialColumnName: "kind",
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_STRING,
-      explanation: null, // kind is internal, no explanation required
       }); // tested-by: test_attributes_fundamental
     this._attrIdentityValue = Gloda.defineAttribute({
       provider: this,
@@ -201,7 +196,6 @@ var GlodaABAttrs = {
       specialColumnName: "value",
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_STRING,
-      explanation: null, // value is internal, no explanation required
       }); // tested-by: test_attributes_fundamental
 
     /* ***** Contact Meta ***** */
@@ -219,7 +213,6 @@ var GlodaABAttrs = {
                         subjectNouns: [Gloda.NOUN_CONTACT],
                         objectNoun: Gloda.lookupNoun("freetag"),
                         parameterNoun: null,
-                        explanation: null,
                         }); // not-tested
     // we need to find any existing bound freetag attributes, and use them to
     //  populate to FreeTagNoun's understanding

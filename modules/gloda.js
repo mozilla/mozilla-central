@@ -1048,12 +1048,6 @@ var Gloda = {
    *     to represent an attribute, we store the subject (ex: message ID),
    *     attribute ID, and an integer which is the integer representation of the
    *     'object' whose type you are defining right here.
-   * @param explanation A string (hopefully retrieved from a string bundle) that
-   *     is used to provide a textual explanation of what this attribute means.
-   *     Strings may contain "%{subject}" to expand a textual representation
-   *     of the attribute's subject, "%{object}" to expand a textual
-   *     representation of the object, and "%{parameter}" to expand a textual
-   *     representation of the parameter.
    */
   defineAttribute: function gloda_ns_defineAttribute(aAttrDef) {
     // ensure required properties exist on aAttrDef
@@ -1064,8 +1058,7 @@ var Gloda = {
         !("bind" in aAttrDef) ||
         !("singular" in aAttrDef) ||
         !("subjectNouns" in aAttrDef) ||
-        !("objectNoun" in aAttrDef) ||
-        !("explanation" in aAttrDef))
+        !("objectNoun" in aAttrDef))
       // perhaps we should have a list of required attributes, perchance with
       //  and explanation of what it holds, and use that to be friendlier?
       throw Error("You omitted a required attribute defining property, please" +
@@ -1100,7 +1093,6 @@ var Gloda = {
       attr._provider = aAttrDef.provider;
       attr._subjectTypes = aAttrDef.subjectNouns;
       attr._objectType = aAttrDef.objectNoun;
-      attr._explanationFormat = aAttrDef.explanation;
       // things after here also need to be set below the new GlodaAttributeDef
       //  clause below... HATHATHAT
       attr._special = aAttrDef.special || this.kSpecialNotAtAll;
@@ -1141,8 +1133,7 @@ var Gloda = {
     attr = new GlodaAttributeDef(GlodaDatastore, attrID, compoundName,
                                  aAttrDef.provider, aAttrDef.attributeType,
                                  aAttrDef.extensionName, aAttrDef.attributeName,
-                                 aAttrDef.subjectNouns, aAttrDef.objectNoun,
-                                 aAttrDef.explanation);
+                                 aAttrDef.subjectNouns, aAttrDef.objectNoun);
     // things here match the HATHATHAT clause above.  clearly, this should also
     //  be resolved more satisfactorily.
     attr._special = aAttrDef.special || this.kSpecialNotAtAll;

@@ -982,10 +982,10 @@ var GlodaDatastore = {
       if (compoundName in attribs) {
         attrib = attribs[compoundName];
       } else {
-        attrib = new GlodaAttributeDef(this, null,
-                                       compoundName, null, rowAttributeType,
-                                       rowExtensionName, rowName,
-                                       null, null, null, null);
+        attrib = new GlodaAttributeDef(this, /* aID */ null,
+          compoundName, /* aProvider */ null, rowAttributeType,
+          rowExtensionName, rowName, /* subject types */ null,
+          /* obj type */ null, /* noun def */ null);
         attribs[compoundName] = attrib;
       }
       // if the parameter is null, the id goes on the attribute def, otherwise

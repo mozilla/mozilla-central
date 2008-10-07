@@ -54,8 +54,7 @@ Cu.import("resource://gloda/modules/utils.js");
  */
 function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
                            aPluginName, aAttrName, aSubjectTypes,
-                           aObjectType, aObjectNounMeta,
-                           aExplanationFormat) {
+                           aObjectType, aObjectNounMeta) {
   this._datastore = aDatastore;
   this._id = aID;
   this._compoundName = aCompoundName;
@@ -66,7 +65,6 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
   this._subjectTypes = aSubjectTypes;
   this._objectType = aObjectType;
   this._objectNounMeta = aObjectNounMeta;
-  this._explanationFormat = aExplanationFormat;
 
   this._boundName = null;
   this._singular = null;
@@ -115,10 +113,6 @@ GlodaAttributeDef.prototype = {
     this._parameterBindings[aValue] = id;
     this._datastore.reportBinding(id, this, aValue);
     return id;
-  },
-
-  explain: function gloda_attr_explain(aSubject, aValue) {
-    return "deprecated. stop calling.";
   },
 
   /**

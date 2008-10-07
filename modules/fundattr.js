@@ -103,7 +103,6 @@ var GlodaFundAttr = {
       specialColumnName: "subject",
       subjectNouns: [Gloda.NOUN_CONVERSATION],
       objectNoun: Gloda.NOUN_FULLTEXT,
-      explanation: null, // this does not merit explanation
       });
   
     /* ***** Messages ***** */
@@ -119,7 +118,6 @@ var GlodaFundAttr = {
       specialColumnName: "folderID",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FOLDER,
-      explanation: this._strBundle.GetStringFromName("attrFolderExplanation"),
       }); // tested-by: test_attributes_fundamental
     
     // bodyMatches. super-synthetic full-text matching...
@@ -134,7 +132,6 @@ var GlodaFundAttr = {
       specialColumnName: "body",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FULLTEXT,
-      explanation: null, // this does not merit explanation
       }); // not-tested
   
     // --- Fundamental
@@ -148,8 +145,6 @@ var GlodaFundAttr = {
                         singular: true,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
-                        explanation: this._strBundle.GetStringFromName(
-                                       "attrFromExplanation"),
                         }); // tested-by: test_attributes_fundamental
     // To
     this._attrTo = Gloda.defineAttribute({
@@ -161,8 +156,6 @@ var GlodaFundAttr = {
                         singular: false,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
-                        explanation: this._strBundle.GetStringFromName(
-                                       "attrToExplanation"),
                         }); // tested-by: test_attributes_fundamental
     // Cc
     this._attrCc = Gloda.defineAttribute({
@@ -174,8 +167,6 @@ var GlodaFundAttr = {
                         singular: false,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
-                        explanation: this._strBundle.GetStringFromName(
-                                       "attrCcExplanation"),
                         }); // not-tested
 
     Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
@@ -212,8 +203,6 @@ var GlodaFundAttr = {
                         specialColumnName: "date",
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_DATE,
-                        explanation: this._strBundle.GetStringFromName(
-                                       "attrDateExplanation"),
                         }); // tested-by: test_attributes_fundamental
 
     // --- Optimization
@@ -230,8 +219,6 @@ var GlodaFundAttr = {
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
-      explanation: this._strBundle.GetStringFromName(
-                     "attrInvolvesExplanation"),
       }); // not-tested
 
     // From Me To
@@ -244,7 +231,6 @@ var GlodaFundAttr = {
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
-      explanation: this._strBundle.GetStringFromName("attrFromMeToExplanation")
       }); // not-tested
     // From Me Cc
     this._attrFromMeCc = Gloda.defineAttribute({
@@ -256,7 +242,6 @@ var GlodaFundAttr = {
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
-      explanation: this._strBundle.GetStringFromName("attrFromMeCcExplanation")
       }); // not-tested
     // To Me
     this._attrToMe = Gloda.defineAttribute({
@@ -268,7 +253,6 @@ var GlodaFundAttr = {
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
-      explanation: this._strBundle.GetStringFromName("attrToMeExplanation")
       }); // not-tested
     // Cc Me
     this._attrCcMe = Gloda.defineAttribute({
@@ -280,7 +264,6 @@ var GlodaFundAttr = {
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
-      explanation: this._strBundle.GetStringFromName("attrCcMeExplanation") 
       }); // not-tested
 
 
@@ -310,8 +293,6 @@ var GlodaFundAttr = {
                         singular: false,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_DATE,
-                        explanation: this._strBundle.GetStringFromName(
-                                       "attrListExplanation"),
                         }); // not-tested, not-implemented
   },
   

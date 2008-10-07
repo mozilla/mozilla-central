@@ -105,8 +105,6 @@ var GlodaExplicitAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_TAG,
                         parameterNoun: null,
-                        explanation: this._strBundle.GetStringFromName(
-                                       "attrTagExplanation"),
                         // Property change notifications that we care about:
                         propertyChanges: ["keywords"],
                         }); // not-tested
@@ -131,8 +129,6 @@ var GlodaExplicitAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_BOOLEAN,
                         parameterNoun: null,
-                        explanation: this._strBundle.GetStringFromName(
-                                       "attrStarExplanation"),
                         }); // tested-by: test_attributes_explicit
     // Read/Unread
     this._attrRead = Gloda.defineAttribute({
@@ -145,8 +141,6 @@ var GlodaExplicitAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_BOOLEAN,
                         parameterNoun: null,
-                        explanation: this._strBundle.GetStringFromName(
-                                       "attrReadExplanation"),
                         }); // tested-by: test_attributes_explicit
     
   },
