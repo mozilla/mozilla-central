@@ -79,15 +79,23 @@ var editContactInlineUI = {
   },
 
   onKeyPress: function (aEvent, aHandleOnlyReadOnly) {
+    // Escape should just close this panel
+    if (aEvent.keyCode == KeyEvent.DOM_VK_ESCAPE) {
+      this.panel.hidePopup();
+      return;
+    }
+
+    // Return does the default button (done)
+    if (aEvent.keyCode == KeyEvent.DOM_VK_RETURN) {
+      if (!aEvent.target.hasAttribute("oncommand"))
+        this.saveChanges();
+      return;
+    }
+
     // Only handle the read-only cases here.
     if (aHandleOnlyReadOnly &&
         (this._writeable && !aEvent.target.readOnly))
       return;
-
-    // Escape/return should just close this panel
-    if (aEvent.keyCode == KeyEvent.DOM_VK_ESCAPE ||
-        aEvent.keyCode == KeyEvent.DOM_VK_RETURN)
-      this.panel.hidePopup();
 
     // Any other character and we prevent the default, this stops us doing
     // things in the main message window.
