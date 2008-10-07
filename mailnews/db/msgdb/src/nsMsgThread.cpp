@@ -445,15 +445,21 @@ nsresult nsMsgThread::ReparentNonReferenceChildrenOf(nsIMsgDBHdr *oldTopLevelHdr
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *result)
+NS_IMETHODIMP nsMsgThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 {
+  NS_ENSURE_ARG_POINTER(aResult);
   nsresult rv;
 
+  if (aIndex >= (PRInt32) m_numChildren)
+  {
+    *aResult = nsMsgKey_None;
+    return NS_ERROR_ILLEGAL_VALUE;
+  }
   mdbOid oid;
   rv = m_mdbTable->PosToOid( m_mdbDB->GetEnv(), aIndex, &oid);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  *result = oid.mOid_Id;
+  *aResult = oid.mOid_Id;
   return NS_OK;
 }
 
