@@ -41,13 +41,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-<script type="application/javascript">
-  var confirmDeleteAllEvents = "&calendar.confirm.deleteallevents;";
-  var confirmDeleteEvent = "&calendar.confirm.deleteevent;";
-  var confirmDeleteUntitledEvent = "&calendar.confirm.deleteuntitledevent;";
-  var defaultCalendarFileName = "&calendar.file.default.name;";
-</script>
-
 #ifdef XP_MACOSX
   <!-- Needed for Mac OS X "Window" menu -->
   <script type="application/javascript" src="chrome://calendar/content/hiddenWindow.js"/>

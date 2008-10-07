@@ -43,14 +43,8 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!-- General -->
-<!ENTITY calendar.file.default.name  "My Calendar" >
 <!ENTITY calendar.calendar.label     "Calendar">
 <!ENTITY calendar.calendar.accesskey "C">
-
-
-<!ENTITY calendar.confirm.deleteallevents  "Are you sure you want to delete all the selected events?" >
-<!ENTITY calendar.confirm.deleteevent "Are you sure you want to delete this event titled: " >
-<!ENTITY calendar.confirm.deleteuntitledevent "Are you sure you want to delete this untitled event?" >
 
 <!ENTITY calendar.flat.topbar.choosedate       "Go to Date" >
 <!ENTITY calendar.flat.topbar.dayview          "Day View" >
