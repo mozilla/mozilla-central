@@ -52,7 +52,8 @@
  * This is a hacked in interface to the unifinder. We will need to
  * improve this to make it usable in general.
  */
-var kEventStatusOrder = ["TENTATIVE", "CONFIRMED", "CANCELLED"];
+
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 // Set this to true when the calendar event tree is clicked to allow for
 // multiple selection
@@ -224,13 +225,20 @@ function prepareCalendarUnifinder() {
         viewDeck.addEventListener("itemselect", unifinderItemSelect, true);
 
         // Set up sortDirection and sortActive, in case it persisted
-        var active = document.getElementById("unifinder-search-results-tree-cols")
-                             .getElementsByAttribute("sortActive", "true");
-        if (active.length > 0) {
-            unifinderTreeView.selectedColumn = active[0].id;
-            unifinderTreeView.sortDirection = active[0].getAttribute("sortDirection");
+        var sorted = unifinderTree.getAttribute("sort-active");
+        var sortDirection = unifinderTree.getAttribute("sort-direction") || "ascending";
+        var tree = document.getElementById("unifinder-search-results-tree");
+        var treecols = tree.getElementsByTagName("treecol");
+        for (var i = 0; i < treecols.length; i++) {
+            var col = treecols[i];
+            var content = col.getAttribute("itemproperty");
+            if (sorted && sorted.length > 0) {
+                if (sorted == content) {
+                    unifinderTreeView.sortDirection = sortDirection;
+                    unifinderTreeView.selectedColumn = col;
+                }
+            }
         }
-
         // Display something upon first load. onLoad doesn't work properly for
         // observers
         if (!isUnifinderHidden()) {
@@ -251,6 +259,17 @@ function finishCalendarUnifinder() {
     if (viewDeck) {
         viewDeck.removeEventListener("dayselect", unifinderDaySelect, false);
         viewDeck.removeEventListener("itemselect", unifinderItemSelect, true);
+    }
+
+    //persist the sort
+    var unifinderTree = document.getElementById("unifinder-search-results-tree");
+    var sorted = unifinderTreeView.selectedColumn;
+    if (sorted) {
+        unifinderTree.setAttribute("sort-active",sorted.getAttribute("itemproperty"));
+        unifinderTree.setAttribute("sort-direction",unifinderTree.sortDirection);
+    } else {
+        unifinderTree.removeAttribute("sort-active");
+        unifinderTree.removeAttribute("sort-direction");
     }
 }
 
@@ -387,6 +406,30 @@ var unifinderTreeView = {
     treeElement: null,
     doingSelection: false,
 
+    mSelectedColumn: null,
+    sortDirection: null,
+
+    get selectedColumn uTV_getSelectedColumn() {
+        return this.mSelectedColumn;
+    },
+
+    set selectedColumn uTV_setSelectedColumn(aCol) {
+        var tree = document.getElementById("unifinder-search-results-tree");
+        var treecols = tree.getElementsByTagName("treecol");
+        for (var i = 0; i < treecols.length; i++) {
+            var col = treecols[i];
+            if (col.getAttribute("sortActive")) {
+                  col.removeAttribute("sortActive");
+                  col.removeAttribute("sortDirection");
+            }
+            if (aCol.getAttribute("itemproperty") == col.getAttribute("itemproperty")) {
+                col.setAttribute("sortActive", "true");
+                col.setAttribute("sortDirection", this.sortDirection);
+            }
+        }
+        return (this.mSelectedColumn = aCol);
+    },
+
     /**
      * Event functions
      */
@@ -438,7 +481,7 @@ var unifinderTreeView = {
         }
        
         if (aDontSort) {
-            //this.calculateIndexMap();
+            this.calculateIndexMap();
         } else {
             this.sortItems();
         }
@@ -456,26 +499,17 @@ var unifinderTreeView = {
     },
 
     sortItems: function uTV_sortItems() {
-        // Get a current locale string collator for compareEvents
-        if (!this.localeCollator) {
-            var localeService =
-                Components
-                .classes["@mozilla.org/intl/nslocaleservice;1"]
-                .getService(Components.interfaces.nsILocaleService);
-            this.localeCollator =
-                Components
-                .classes["@mozilla.org/intl/collation-factory;1"]
-                .getService(Components.interfaces.nsICollationFactory)
-                .CreateCollation(localeService.getApplicationLocale());
+        if( this.selectedColumn) {
+            var modifier = (this.sortDirection == "descending" ? -1 : 1);
+            var sortKey = unifinderTreeView.selectedColumn.getAttribute("itemproperty");
+            var sortType = cal.getSortTypeForSortKey(sortKey);
+            // sort (key,item) entries
+            cal.sortEntry.mSortKey = sortKey;
+            cal.sortEntry.mSortStartedDate = now();
+            var entries = this.eventArray.map(cal.sortEntry, cal.sortEntry);
+            entries.sort(cal.sortEntryComparer(sortType, modifier));
+            this.eventArray = entries.map(cal.sortEntryItem);
         }
-
-        this.sortStartedTime = new Date().getTime(); // for null/0 dates in sort
-
-        // sort (key,item) entries
-        var entries = this.eventArray.map(sortEntry);
-        entries.sort(sortEntryComparer(this));
-        this.eventArray = entries.map(sortEntryItem);
-
         this.calculateIndexMap();
     },
 
@@ -649,14 +683,14 @@ var unifinderTreeView = {
     getCellText: function uTV_getCellText(row, column) {
         calendarEvent = this.eventArray[row];
 
-        switch (column.id) {
-            case "unifinder-search-results-tree-col-title":
+        switch (column.element.getAttribute("itemproperty")) {
+            case "title":
                 return calendarEvent.title;
 
-            case "unifinder-search-results-tree-col-startdate":
+            case "startDate":
                 return formatUnifinderEventDateTime(calendarEvent.startDate);
 
-            case "unifinder-search-results-tree-col-enddate":
+            case "endDate":
                 var eventEndDate = calendarEvent.endDate.clone();
                 // XXX reimplement
                 //var eventEndDate = getCurrentNextOrPreviousRecurrence(calendarEvent);
@@ -666,16 +700,16 @@ var unifinderTreeView = {
                 }
                 return formatUnifinderEventDateTime(eventEndDate);
 
-            case "unifinder-search-results-tree-col-categories":
+            case "categories":
                 return calendarEvent.getCategories({}).join(", ");
 
-            case "unifinder-search-results-tree-col-location":
+            case "location":
                 return calendarEvent.getProperty("LOCATION");
 
-            case "unifinder-search-results-tree-col-status":
+            case "status":
                 return getEventStatusString(calendarEvent);
 
-            case "unifinder-search-results-tree-col-calendarname":
+            case "calendar":
                 return calendarEvent.calendar.name;
 
             default:
@@ -690,18 +724,7 @@ var unifinderTreeView = {
     toggleOpenState: function uTV_toggleOpenState(aRow) {},
 
     cycleHeader: function uTV_cycleHeader(col) {
-
-        var sortActive = col.element.getAttribute("sortActive");
-        this.selectedColumn = col.id;
-        this.sortDirection = col.element.getAttribute("sortDirection");
-
-        if (sortActive != "true") {
-            var unifinder = document.getElementById("unifinder-search-results-tree");
-            var treeCols = unifinder.getElementsByTagName("treecol");
-            for (var i = 0; i < treeCols.length; i++) {
-                treeCols[i].removeAttribute("sortActive");
-                treeCols[i].removeAttribute("sortDirection");
-            }
+        if (!this.selectedColumn) {
             this.sortDirection = "ascending";
         } else {
             if (!this.sortDirection || this.sortDirection == "descending") {
@@ -710,9 +733,7 @@ var unifinderTreeView = {
                 this.sortDirection = "descending";
             }
         }
-        col.element.setAttribute("sortActive", "true");
-        col.element.setAttribute("sortDirection", this.sortDirection);
-
+        this.selectedColumn = col.element;
         this.sortItems();
     },
 
@@ -729,108 +750,8 @@ var unifinderTreeView = {
 
     performActionOnCell: function uTV_performActionOnCell(aAction, aRow, aCol) {},
 
-    selectedColumn: null,
-    sortDirection: null,
-    sortStartedTime: new Date().getTime(), // updated just before sort
     outParameter: new Object() // used to obtain dates during sort
 };
-
-function getEventSortKey(calEvent) {
-    switch(unifinderTreeView.selectedColumn) {
-        case "unifinder-search-results-tree-col-title":
-            return calEvent.title || "";
-
-        case "unifinder-search-results-tree-col-startdate":
-            return nativeTimeOrNow(calEvent.startDate);
-
-        case "unifinder-search-results-tree-col-enddate":
-            return nativeTimeOrNow(calEvent.endDate);
-
-        case "unifinder-search-results-tree-col-categories":
-            return calEvent.getCategories({}).join(", ");
-
-        case "unifinder-search-results-tree-col-location":
-            return calEvent.getProperty("LOCATION") || "";
-
-        case "unifinder-search-results-tree-col-status":
-            return calEvent.status || "";
-
-        case "unifinder-search-results-tree-col-calendarname":
-            return calEvent.calendar.name || "";
-
-        default:
-            return null;
-    }
-}
-
-function sortEntry (aItem) {
-    return {mSortKey : getEventSortKey(aItem), mItem: aItem};
-}
-function sortEntryItem(sortEntry) { 
-    return sortEntry.mItem;
-}
-function sortEntryKey(sortEntry) {
-    return sortEntry.mSortKey;
-}
-
-
-function sortEntryComparer(unifinderTreeView) {
-    var modifier = (unifinderTreeView.sortDirection == "descending" ? -1 : 1);
-    var collator = unifinderTreeView.localeCollator;
-    switch (unifinderTreeView.selectedColumn) {
-        case "unifinder-search-results-tree-col-startdate":
-        case "unifinder-search-results-tree-col-enddate":
-            function compareTimes(sortEntryA, sortEntryB) { 
-                var nsA = sortEntryKey(sortEntryA);
-                var nsB = sortEntryKey(sortEntryB);
-                return compareNativeTime(nsA, nsB) * modifier;
-            }
-            return compareTimes;
-
-        case "unifinder-search-results-tree-col-title":
-        case "unifinder-search-results-tree-col-categories":
-        case "unifinder-search-results-tree-col-location":
-        case "unifinder-search-results-tree-col-status":
-        case "unifinder-search-results-tree-col-calendarname":
-            function compareStrings(sortEntryA, sortEntryB) { 
-                var sA = sortEntryKey(sortEntryA);
-                var sB = sortEntryKey(sortEntryB);
-                if (sA.length == 0 || sB.length == 0) {
-                    // sort empty values to end (so when users first sort by a
-                    // column, they can see and find the desired values in that
-                    // column without scrolling past all the empty values).
-                    return -(sA.length - sB.length) * modifier;
-                }
-                var comparison = collator.compareString(0, sA, sB);
-                return comparison * modifier;
-            }
-            return compareStrings;
-
-        default:
-            function compareOther(sortEntryA, sortEntryB) {
-                return 0;
-            }
-            return compareOther;
-    }
-}
-
-function compareNativeTime(a, b) {
-    return (a < b ? -1 :
-            a > b ?  1 : 0);
-}
-
-function nativeTimeOrNow(calDateTime) {
-    // Treat null/0 as 'now' when sort started, so incomplete tasks stay current.
-    // Time is computed once per sort (just before sort) so sort is stable.
-    if (calDateTime == null) {
-        return unifinderTreeView.sortStartedTime;
-    }
-    var ns = calDateTime.nativeTime;
-    if (ns == -62168601600000000) { // ns value for (0000/00/00 00:00:00)
-        return unifinderTreeView.sortStartedTime;
-    }
-    return ns;
-}
 
 function refreshEventTree() {
     if (isUnifinderHidden()) {

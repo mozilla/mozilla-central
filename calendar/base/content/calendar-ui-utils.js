@@ -45,6 +45,9 @@
  *                        use "checked" for radios & checkboxes, "data" for
  *                        drop-downs
  */
+
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 function setElementValue(aElement, aNewValue, aPropertyName) {
     ASSERT(aElement);
     var undefined;
@@ -290,7 +293,7 @@ function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
                 categoriesList.push(itemCategory);
             }
         }
-        sortArrayByLocaleCollator(categoriesList);
+        cal.sortArrayByLocaleCollator(categoriesList);
     }
     
     while (aCategoryMenuList.hasChildNodes()) {

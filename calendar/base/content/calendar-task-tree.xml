@@ -71,6 +71,8 @@
                        minwidth="19"
                        fixed="true"
                        cycler="true"
+                       sortKey="completedDate"
+                       itemproperty="completed"
                        label="&calendar.unifinder.tree.done.label;">
             <xul:image anonid="checkboximg" />
           </xul:treecol>
@@ -79,44 +81,56 @@
                        class="calendar-task-tree-col-priority"
                        minwidth="17"
                        fixed="true"
+                       itemproperty="priority"
                        label="&calendar.unifinder.tree.priority.label;">
             <xul:image anonid="priorityimg"/>
           </xul:treecol>
           <xul:splitter class="tree-splitter" ordinal="4"/>
           <xul:treecol anonid="calendar-task-tree-col-title"
                        flex="1" 
+                       itemproperty="title"
                        label="&calendar.unifinder.tree.title.label;"/>
           <xul:splitter class="tree-splitter" ordinal="6"/>
-          <xul:treecol anonid="calendar-task-tree-col-startdate"
+          <xul:treecol anonid="calendar-task-tree-col-entrydate"
+                       itemproperty="entryDate"
                        flex="1" label="&calendar.unifinder.tree.startdate.label;"/>
           <xul:splitter class="tree-splitter" ordinal="8"/>
           <xul:treecol anonid="calendar-task-tree-col-duedate"
+                       itemproperty="dueDate"
                        flex="1" label="&calendar.unifinder.tree.duedate.label;"/>
           <xul:splitter class="tree-splitter" ordinal="10"/>
           <xul:treecol anonid="calendar-task-tree-col-duration"
+                       sortKey="dueDate"
+                       itemproperty="duration"
                        flex="1" label="&calendar.unifinder.tree.duration.label;"/>
           <xul:splitter class="tree-splitter" ordinal="12"/>
           <xul:treecol anonid="calendar-task-tree-col-completeddate"
+                       itemproperty="completedDate"
                        flex="1" label="&calendar.unifinder.tree.completeddate.label;"/>
           <xul:splitter class="tree-splitter" ordinal="14"/>
           <xul:treecol anonid="calendar-task-tree-col-percentcomplete"
                        flex="1"
                        type="progressmeter"
                        minwidth="19"
+                       itemproperty="percentComplete"
                        label="&calendar.unifinder.tree.percentcomplete.label;"/>
           <xul:splitter class="tree-splitter" ordinal="16"/>
           <xul:treecol anonid="calendar-task-tree-col-categories"
+                       itemproperty="categories"
                        flex="1" label="&calendar.unifinder.tree.categories.label;"/>
           <xul:splitter class="tree-splitter" ordinal="18"/>
           <xul:treecol anonid="calendar-task-tree-col-location"
+                       itemproperty="location"
                        label="&calendar.unifinder.tree.location.label;"/>
           <xul:splitter class="tree-splitter" ordinal="20"/>
           <xul:treecol anonid="calendar-task-tree-col-status"
                        flex="1"
+                       itemproperty="status"
                        label="&calendar.unifinder.tree.status.label;"/>
           <xul:splitter class="tree-splitter" ordinal="22"/>
           <xul:treecol anonid="calendar-task-tree-col-calendarname"
                        flex="1"
+                       itemproperty="calendar"
                        label="&calendar.unifinder.tree.calendarname.label;"/>
         </xul:treecols>
         <xul:treechildren tooltip="taskTreeTooltip"/>
@@ -243,7 +257,6 @@
           return null;
         ]]></body>
       </method>
-
       <method name="getTaskAtRow">
         <parameter name="aRow"/>
         <body><![CDATA[
@@ -268,17 +281,35 @@
           binding: this,
           tree: null,
           treebox: null,
-          selectedColumn: null,
+          mSelectedColumn: null,
           sortDirection: null,
-          
-          // updated just before sort
-          sortStartedTime: now(),
+
+          get selectedColumn tTV_getSelectedColumn() {
+              return this.mSelectedColumn;
+          },
+
+          set selectedColumn tTV_setSelectedColumn(aCol) {
+              var tree = document.getAnonymousNodes(this.binding)[0];
+              var treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
+              for (var i = 0; i < treecols.length; i++) {
+                  var col = treecols[i];
+                  if (col.getAttribute("sortActive")) {
+                      col.removeAttribute("sortActive");
+                      col.removeAttribute("sortDirection");
+                  }
+                  if (aCol.getAttribute("itemproperty") == col.getAttribute("itemproperty")) {
+                      col.setAttribute("sortActive", "true");
+                      col.setAttribute("sortDirection", this.sortDirection);
+                  }
+              }
+              return (this.mSelectedColumn = aCol);
+          }, 
 
           /**
            * High-level task tree manipulation
            */
 
-          addItem: function tTV_addItem(aItem) {
+          addItem: function tTV_addItem(aItem, aDontSort) {
               if (aItem.isCompleted && !this.binding.showCompleted) {
                   return;
               }
@@ -293,9 +324,15 @@
                   this.tree.view.selection.select(index);
               }
               this.treebox.ensureRowIsVisible(this.rowCount - 1);
+
+              if(aDontSort) {
+                this.binding.recreateHashTable();
+              } else {
+                this.binding.sortItems();
+              }
           },
 
-          removeItem: function tTV_removeItem(aItem) {
+          removeItem: function tTV_removeItem(aItem, aDontSort) {
               var index = this.binding.mHash2Index[aItem.hashId];
               if (index != undefined) {
                   delete this.binding.mHash2Index[aItem.hashId];
@@ -312,7 +349,7 @@
               }
           },
 
-          modifyItem: function tTV_modifyItem(aNewItem, aOldItem) {
+           modifyItem: function tTV_modifyItem(aNewItem, aOldItem, aDontSort) {
               var index = this.binding.mHash2Index[aOldItem.hashId];
               if (index != undefined) {
                   // if a filter is installed we need to make sure that
@@ -336,7 +373,12 @@
                   this.binding.mHash2Index[aNewItem.hashId] = index;
                   this.binding.mTaskArray[index] = aNewItem;
                   this.tree.view.selection.select(index);
-                  this.treebox.invalidateRow(index);
+
+                  if(aDontSort) { 
+                      this.treebox.invalidateRow(index);
+                  } else {
+                      this.binding.sortItems();
+                  }
               }
           },
 
@@ -421,8 +463,8 @@
               if(!task)
                   return;
               if (aCol != null) {
-                  var anonid = aCol.element.getAttribute("anonid");
-                  if (anonid == "calendar-task-tree-col-completed")  {
+                  var content = aCol.element.getAttribute("itemproperty");
+                  if (content == "completed")  {
                       var newTask = task.clone().QueryInterface(Components.interfaces.calITodo);
                       newTask.isCompleted = !task.completedDate;
                       doTransaction('modify', newTask, newTask.calendar, task, null);
@@ -432,35 +474,18 @@
 
           // Called on the view when a header is clicked.
           cycleHeader: function mTV_cycleHeader(aCol) {
-              var element = aCol.element;
-              var sortActive = element.getAttribute("sortActive");
-              this.selectedColumn = element.getAttribute("anonid");  
-              this.sortDirection = element.getAttribute("sortDirection");
-
-              var treeCols;
-              if (sortActive != "true") {
-                  var tree = document.getAnonymousNodes(this.binding)[0];
-                  var treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
-                  for (var i = 0; i < treecols.length; i++) {
-                      treecols[i].removeAttribute("sortActive");
-                      treecols[i].removeAttribute("sortDirection");
-                  }
-                  sortActive = true;
+              if (!this.selectedColumn) {
                   this.sortDirection = "ascending";
               }
               else {
-                  sortActive = true;
-                  if(this.sortDirection == "" || this.sortDirection == "descending") {
+                  if(!this.sortDirection || this.sortDirection == "descending") {
                       this.sortDirection = "ascending";
                   } else {
                       this.sortDirection = "descending";
                   }
               }
-              element.setAttribute("sortActive", sortActive);
-              element.setAttribute("sortDirection", this.sortDirection);
-              this.sortStartedTime = now(); // for null dates during sort
-              this.binding.sortTaskArray();
-              this.binding.recreateHashTable();
+              this.selectedColumn = aCol.element;
+              this.binding.sortItems();
           },
           
           // The text for a given cell. If a column consists only of an
@@ -469,30 +494,30 @@
               var task = this.binding.mTaskArray[aRow];
               if (!task)
                   return false;
-              switch (aCol.element.getAttribute("anonid")) {
-                  case "calendar-task-tree-col-title":
+              switch (aCol.element.getAttribute("itemproperty")) {
+                  case "title":
                       // return title, or "Untitled" if empty/null
                       return task.title || calGetString("calendar", "eventUntitled");
-                  case "calendar-task-tree-col-startdate":
+                  case "entryDate":
                       return this._formatDateTime(task.entryDate);
-                  case "calendar-task-tree-col-duedate":
+                  case "dueDate":
                       return this._formatDateTime(task.dueDate);
-                  case "calendar-task-tree-col-completeddate":
+                  case "completedDate":
                       return this._formatDateTime(task.completedDate);
-                  case "calendar-task-tree-col-percentcomplete":
+                  case "percentComplete":
                       return (task.percentComplete > 0 ? task.percentComplete + "%" : "");
-                  case "calendar-task-tree-col-categories":
+                  case "categories":
                       return task.getCategories({}).join(", "); // TODO l10n-unfriendly
-                  case "calendar-task-tree-col-location":
+                  case "location":
                       return task.getProperty("LOCATION");
-                  case "calendar-task-tree-col-status":
+                  case "status":
                       return getToDoStatusString(task);
-                  case "calendar-task-tree-col-calendarname":
+                  case "calendar":
                       return task.calendar.name;
-                  case "calendar-task-tree-col-duration":
+                  case "duration":
                       return this.binding.duration(task);
-                  case "calendar-task-tree-col-completed":
-                  case "calendar-task-tree-col-priority":
+                  case "completed":
+                  case "priority":
                   default:
                       return "";
               }
@@ -504,8 +529,8 @@
               if (!task) {
                   return null;
               }
-              switch (aCol.element.getAttribute("anonid")) {
-                  case "calendar-task-tree-col-percentcomplete":
+              switch (aCol.element.getAttribute("itemproperty")) {
+                  case "percentComplete":
                       return task.percentComplete;
               }
               return null;
@@ -588,8 +613,8 @@
           // The progress mode for a given cell. This method is only called for
           // columns of type |progressmeter|.
           getProgressMode: function mTV_getProgressMode(aRow, aCol) {
-              switch(aCol.element.getAttribute("anonid")) {
-                  case "calendar-task-tree-col-percentcomplete":
+              switch(aCol.element.getAttribute("itemproperty")) {
+                  case "percentcomplete":
                       var task = this.binding.mTaskArray[aRow];
                       if (aCol.element.boxObject.width > 75 && 
                           task.percentComplete > 0 ) {
@@ -613,8 +638,8 @@
                   var col = {};
                   var item = this._getItemFromEvent(event, col);
                   if (item) {
-                      var colAnonId = col.value.element.getAttribute("anonid");
-                      if (colAnonId == "calendar-task-tree-col-completed") {
+                      var colAnonId = col.value.element.getAttribute("itemproperty");
+                      if (colAnonId == "completed") {
                           // item holds checkbox state toggled by first click,
                           // so don't call modifyEventWithDialog
                           // to make sure user notices state changed.
@@ -639,7 +664,7 @@
                   case kKE.DOM_VK_SPACE:
                       if (this.tree.currentIndex > -1) {
                           var col = document.getAnonymousElementByAttribute(
-                              this.binding, "anonid", "calendar-task-tree-col-completed");
+                              this.binding, "itemproperty", "completed");
                           this.cycleCell(
                               this.tree.currentIndex,
                               { element: col });
@@ -730,6 +755,7 @@
           },
           
           onAddItem: function tTO_onAddItem(aItem) {
+              // XXX: we have to use a filter here
               if (isToDo(aItem) && !this.mInBatch) {
                   this.binding.mTreeView.addItem(aItem);
               }
@@ -812,16 +838,15 @@
         var names = this.getAttribute("visible-columns").split(' ');
         var ordinals = this.getAttribute("ordinals").split(' ');
         var widths = this.getAttribute("widths").split(' ');
-        var sortActive = this.getAttribute("sort-active");
+        var sorted = this.getAttribute("sort-active");
         var sortDirection = this.getAttribute("sort-direction") || "ascending";
         var tree = document.getAnonymousNodes(this)[0];
         var treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
         for (var i = 0; i < treecols.length; i++) {
-            var anonid = treecols[i].getAttribute("anonid");
+            var content = treecols[i].getAttribute("itemproperty"); 
             if (names.some(
                 function(element) {
-                    var pos = anonid.length - element.length;
-                    return (anonid.indexOf(element) == pos);
+                    return (element == content);
                 })) {
                 treecols[i].removeAttribute("hidden");
             } else {
@@ -833,11 +858,10 @@
             if (widths && widths.length > 0) {
                treecols[i].width = Number(widths.shift());
             }
-            if (sortActive && sortActive.length > 0) {
-                var pos = anonid.length - sortActive.length;
-                if (anonid.indexOf(sortActive) == pos) {
-                    treecols[i].setAttribute("sortActive", "true");
-                    treecols[i].setAttribute("sortDirection", sortDirection);
+            if (sorted && sorted.length > 0) {
+                if (sorted == content) {
+                    this.mTreeView.sortDirection = sortDirection;
+                    this.mTreeView.selectedColumn = treecols[i];
                 }
             }
         }
@@ -869,15 +893,13 @@
               var widths = "";
               var ordinals = "";
               var visible = "";
-              var sortActive = null;
-              var sortDirection = null;
+              var sorted = this.mTreeView.selectedColumn;
               var tree = document.getAnonymousNodes(this)[0];
               var treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
               for (var i = 0; i < treecols.length; i++) {
                   if (treecols[i].getAttribute("hidden") != "true") {
-                    var anonid = treecols[i].getAttribute("anonid");
-                    anonid = anonid.substr(anonid.lastIndexOf("-")+1);
-                    visible += (visible.length > 0) ? " "+anonid : anonid;
+                    var content = treecols[i].getAttribute("itemproperty");
+                    visible += (visible.length > 0) ? " "+content : content;
                   }
                   if(ordinals.length > 0)
                       ordinals += " ";
@@ -885,20 +907,13 @@
                   if(widths.length > 0)
                       widths += " ";
                   widths += treecols[i].width || 0;
-
-                  if (treecols[i].getAttribute("sortActive") == "true") {
-                    sortActive = treecols[i].getAttribute("anonid");
-                    sortActive = sortActive.substr(sortActive.lastIndexOf("-")+1);
-                    sortDirection = treecols[i].getAttribute("sortDirection");
-                  }
-
               }
               this.setAttribute("visible-columns",visible);
               this.setAttribute("ordinals",ordinals);
               this.setAttribute("widths",widths);
-              if (sortActive) {
-                  this.setAttribute("sort-active",sortActive);
-                  this.setAttribute("sort-direction",sortDirection);
+              if (sorted) {
+                  this.setAttribute("sort-active",sorted.getAttribute("itemproperty"));
+                  this.setAttribute("sort-direction",this.mTreeView.sortDirection);
               } else {
                   this.removeAttribute("sort-active");
                   this.removeAttribute("sort-direction");
@@ -1042,17 +1057,8 @@
         
           this.mTreeView.rowCount = this.mTaskArray.length;
           var tree = document.getAnonymousNodes(this)[0];
-          var treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
-          for (var i = 0; i < treecols.length; i++) {
-            if (treecols[i].getAttribute("sortActive") == "true") {
-               this.mTreeView.selectedColumn = treecols[i].getAttribute("anonid");
-               this.mTreeView.sortDirection = treecols[i].getAttribute("sortDirection");
-               this.mTreeView.sortStartedTime = now(); //for null/0 dates
-               this.sortTaskArray();
-               break;
-            }
-          }
-          this.recreateHashTable();
+          if(this.mTreeView.selectedColumn)
+            this.sortItems();
           
           var tree = document.getAnonymousElementByAttribute(
               this, "anonid", "calendar-task-tree");
@@ -1065,89 +1071,24 @@
         ]]></body>
       </method>
       
-      <method name="sortTaskArray">
+      <method name="sortItems">
         <body><![CDATA[
-          var kStatusOrder = [
-              "NEEDS-ACTION",
-              "IN-PROCESS",
-              "COMPLETED",
-              "CANCELLED" ];
-          function compareString(a, b) {
-              a = nullToEmpty(a);
-              b = nullToEmpty(b);
-              return ((a < b) ? -1 :
-                      (a > b) ?  1 : 0);
+          if (this.mTreeView.selectedColumn) {
+              var modifier = (this.mTreeView.sortDirection == "descending" ? -1 : 1);
+              debugger;
+              var sortKey = cal.sortEntry.mSortKey = this.mTreeView.selectedColumn.getAttribute("sortKey") ?
+                          this.mTreeView.selectedColumn.getAttribute("sortKey") : 
+                          this.mTreeView.selectedColumn.getAttribute("itemproperty");
+              var sortType = cal.getSortTypeForSortKey(sortKey);
+
+              // sort (key,item) entries
+              cal.sortEntry.mSortStartedDate = now();
+              var entries = this.mTaskArray.map(cal.sortEntry, cal.sortEntry);
+              entries.sort(cal.sortEntryComparer(sortType, modifier));
+              this.mTaskArray = entries.map(cal.sortEntryItem);
           }
 
-          function nullToEmpty(value) {
-              return value == null? "" : value;
-          }
-
-          function compareNumber(a, b) {
-              // Number converts a date to msecs since 1970, and converts a null to 0.
-              a = Number(a); 
-              b = Number(b);
-              return ((a < b) ? -1 :      // avoid underflow problems of subtraction
-                      (a > b) ?  1 : 0); 
-          }
-
-          var sortStartedTime = this.mTreeView.sortStartedTime;
-          var sortDirection = this.mTreeView.sortDirection;
-          var selectedColumn = this.mTreeView.selectedColumn;
-
-          // Takes two calDateTimes
-          function compareDate(a, b) {
-              if (!a)
-                  a = sortStartedTime;
-              if (!b)
-                  b = sortStartedTime;
-              return a.compare(b);
-          }
-                  
-          function compareItems(a, b) {
-              var modifier = (sortDirection == "descending") ? -1 : 1;
-              switch(selectedColumn) {
-                  case "calendar-task-tree-col-priority":  // 0-9
-                      // No priority set (0) should be weighted as "normal" (5).
-                      return compareNumber(a.priority || 5, b.priority || 5) * modifier;
-                  case "calendar-task-tree-col-title":
-                      return compareString(a.title ? a.title.toLowerCase() : "", b.title ? b.title.toLowerCase() : "") * modifier;
-                  case "calendar-task-tree-col-startdate":
-                      return compareDate(a.entryDate, b.entryDate) * modifier;
-                  case "calendar-task-tree-col-duedate":
-                      return compareDate(a.dueDate, b.dueDate) * modifier;
-                  case "calendar-task-tree-col-duration":
-                      return compareDate(a.dueDate, b.dueDate) * modifier;
-                  case "calendar-task-tree-col-completed": // checkbox if date exists
-                  case "calendar-task-tree-col-completeddate":
-                      return compareDate(a.completedDate, b.completedDate) * modifier;
-                  case "calendar-task-tree-col-percentcomplete":
-                      return compareNumber(a.percentComplete, b.percentComplete) * modifier;
-                  case "calendar-task-tree-col-categories": {
-                      function getCompStr(item) {
-                          var cats = item.getCategories({});
-                          cats.sort();
-                          return cats.join("");
-                      }
-                      return compareString(getCompStr(a), getCompStr(b)) * modifier;
-                  }
-                  case "calendar-task-tree-col-location":
-                      return compareString(a.getProperty("LOCATION"), b.getProperty("LOCATION")) * modifier;
-                  case "calendar-task-tree-col-status":
-                      return compareNumber(kStatusOrder.indexOf(a.status), kStatusOrder.indexOf(b.status)) * modifier;
-                  case "calendar-task-tree-col-calendarname":
-                      return compareString(a.calendar.name, b.calendar.name) * modifier;
-                  default:
-                      return 0;
-              }
-          }
-        
-          // use above local defined functor
-          this.mTaskArray.sort(compareItems);
-          var tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
-          if (tree.boxObject.invalidateRange) {
-              tree.boxObject.invalidateRange(0, this.mTaskArray.length - 1);
-          }
+          this.recreateHashTable();
         ]]></body>
       </method>
       
@@ -1157,6 +1098,9 @@
           for (var i=0; i<this.mTaskArray.length; i++) {
               var item = this.mTaskArray[i];
               this.mHash2Index[item.hashId] = i;
+          }
+          if (this.mTreeView.treebox) {
+            this.mTreeView.treebox.invalidate();
           }
         ]]></body>
       </method>

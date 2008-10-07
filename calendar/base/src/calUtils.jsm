@@ -51,7 +51,172 @@ let cal = {
      */
     isPhantomTimezone: function cal_isPhantomTimezone(tz) {
         return (!tz.icalComponent && !tz.isUTC && !tz.isFloating);
+    },
+
+    // The below functions will move to some different place once the
+    // unifinder tress are consolidated.
+
+    compareNativeTime: function cal_compareNativeTime(a, b) {
+      return (a < b ? -1 :
+              a > b ?  1 : 0);
+    },
+
+    compareNumber: function cal_compareNumber(a, b) {
+      a = Number(a);
+      b = Number(b);
+      return ((a < b) ? -1 :      // avoid underflow problems of subtraction
+              (a > b) ?  1 : 0);
+    },
+
+    sortEntryComparer: function cal_sortEntryComparer(sortType, modifier) {
+      switch (sortType) {
+        case "number":
+          function compareNumbers(sortEntryA, sortEntryB) {
+            var nsA = cal.sortEntryKey(sortEntryA);
+            var nsB = cal.sortEntryKey(sortEntryB);
+            return cal.compareNumber(nsA, nsB) * modifier;
+          }
+          return compareNumbers;
+        case "date":
+          function compareTimes(sortEntryA, sortEntryB) {
+            var nsA = cal.sortEntryKey(sortEntryA);
+            var nsB = cal.sortEntryKey(sortEntryB);
+            return cal.compareNativeTime(nsA, nsB) * modifier;
+          }
+          return compareTimes;
+        case "string":
+          var collator = cal.createLocaleCollator();
+          function compareStrings(sortEntryA, sortEntryB) {
+            var sA = cal.sortEntryKey(sortEntryA);
+            var sB = cal.sortEntryKey(sortEntryB);
+            if (sA.length == 0 || sB.length == 0) {
+              // sort empty values to end (so when users first sort by a
+              // column, they can see and find the desired values in that
+              // column without scrolling past all the empty values).
+              return -(sA.length - sB.length) * modifier;
+            }
+            var comparison = collator.compareString(0, sA, sB);
+            return comparison * modifier;
+          }
+          return compareStrings;
+
+        default:
+          function compareOther(sortEntryA, sortEntryB) {
+            return 0;
+          }
+          return compareOther;
+      }
+    },
+
+    getItemSortKey: function cal_getItemSortKey(aItem, aKey, aStartTime) {
+      switch(aKey) {
+        case "priority":
+          return aItem.priority || 5;
+
+        case "title":
+          return aItem.title || "";
+
+        case "entryDate":
+            return cal.nativeTimeOrNow(aItem.entryDate, aStartTime);
+        case "startDate":
+            return cal.nativeTimeOrNow(aItem.startDate, aStartTime);
+
+        case "dueDate":
+          return cal.nativeTimeOrNow(aItem.dueDate, aStartTime);
+
+        case "endDate":
+          return cal.nativeTimeOrNow(aItem.endDate, aStartTime);
+        case "completedDate":
+                  // XXX: is this right ??
+          return cal.nativeTimeOrNow(aItem.completedDate, aStartTime);
+
+        case "percentComplete":
+          return aItem.percentComplete;
+
+        case "categories":
+          return aItem.getCategories({}).join(", ");
+
+        case "location":
+          return aItem.getProperty("LOCATION") || "";
+
+        case "status":
+          if (isToDo(aItem))
+            return ["NEEDS-ACTION", "IN-PROCESS", "COMPLETED", "CANCELLED" ].indexOf(aItem.status);
+          else
+            return ["TENTATIVE", "CONFIRMED", "CANCELLED"].indexOf(aItem.status);
+        case "calendar":
+          return aItem.calendar.name || "";
+
+        default:
+          return null;
+      }
+    },
+
+    getSortTypeForSortKey: function cal_getSortTypeForSortKey(aSortKey) {
+      switch(aSortKey) {
+        case "title":
+        case "categories":
+        case "location":
+        case "calendar":
+          return "string";
+
+        case "completedDate":
+        case "entryDate":
+        case "dueDate":
+        case "startDate":
+        case "endDate":
+          return "date";
+
+        case "priority":
+        case "percentComplete":
+        case "status":
+          return "number";
+      }
+    },
+
+    nativeTimeOrNow: function cal_nativeTimeOrNow(calDateTime, sortStartedTime) {
+        // Treat null/0 as 'now' when sort started, so incomplete tasks stay current.
+        // Time is computed once per sort (just before sort) so sort is stable.
+        if (calDateTime == null) {
+            return sortStartedTime.nativeTime;
+        }
+        var ns = calDateTime.nativeTime;
+        if (ns == -62168601600000000) { // ns value for (0000/00/00 00:00:00)
+            return sortStartedTime;
+        }
+        return ns;
+    },
+
+    sortEntry: function cal_sortEntry(aItem) {
+        var key = cal.getItemSortKey(aItem, this.mSortKey, this.mSortStartedDate);
+        return {mSortKey : key, mItem: aItem};
+    },
+
+    sortEntryItem: function cal_sortEntryItem(sortEntry) {
+        return sortEntry.mItem;
+    },
+
+    sortEntryKey: function cal_sortEntryKey(sortEntry) {
+        return sortEntry.mSortKey;
+    },
+
+    createLocaleCollator: function cal_createLocaleCollator() {
+      var localeService = generateServiceAccessor("@mozilla.org/intl/nslocaleservice;1");
+      return generateServiceAccessor("@mozilla.org/intl/collation-factory;1")
+            .CreateCollation(localeService.getApplicationLocale());
+     },
+
+    /**
+     * Sort an array of strings according to the current locale.
+     * Modifies aStringArray, returning it sorted.
+     */
+    sortArrayByLocaleCollator: function cal_sortArrayByLocaleCollator(aStringArray) {
+        var localeCollator = cal.createLocaleCollator();
+        function compare(a, b) { return localeCollator.compareString(0, a, b); }
+        aStringArray.sort(compare);
+        return aStringArray;
     }
+
 };
 
 // local to this module;

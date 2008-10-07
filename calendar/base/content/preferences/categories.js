@@ -39,6 +39,7 @@
  *
  * ***** END LICENSE BLOCK *****
  */
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 var gCategoryList;
 var prefService = Components.classes["@mozilla.org/preferences-service;1"]
@@ -87,7 +88,7 @@ var gCategoriesPane = {
     },
 
     updateCategoryList: function () {
-        sortArrayByLocaleCollator(gCategoryList);
+        cal.sortArrayByLocaleCollator(gCategoryList);
         document.getElementById("calendar.categories.names").value =
             categoriesArrayToString(gCategoryList);
 

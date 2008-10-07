@@ -111,6 +111,16 @@ function createRelation() {
            createInstance(Components.interfaces.calIRelation);
 }
 
+function createLocaleCollator() {
+  var localeService = Components
+        .classes["@mozilla.org/intl/nslocaleservice;1"]
+        .getService(Components.interfaces.nsILocaleService);
+  return Components
+        .classes["@mozilla.org/intl/collation-factory;1"]
+        .getService(Components.interfaces.nsICollationFactory)
+        .CreateCollation(localeService.getApplicationLocale());
+ }
+ 
 /* Shortcut to the console service */
 function getConsoleService() {
     if (getConsoleService.mObject === undefined) {
@@ -607,26 +617,6 @@ function setPrefCategoriesFromArray(aCategoriesArray) {
 function categoriesArrayToString(aSortedCategoriesArray) {
     function escapeComma(category) { return category.replace(/,/g,"\\,"); }
     return aSortedCategoriesArray.map(escapeComma).join(",");
-}
-
-/**
- * Sort an array of strings according to the current locale.
- * Modifies aStringArray, returning it sorted.
- */
-function sortArrayByLocaleCollator(aStringArray) {
-    // get a current locale string collator for compareEvents
-    var localeService =
-        Components
-        .classes["@mozilla.org/intl/nslocaleservice;1"]
-        .getService(Components.interfaces.nsILocaleService);
-    var localeCollator =
-        Components
-        .classes["@mozilla.org/intl/collation-factory;1"]
-        .getService(Components.interfaces.nsICollationFactory)
-        .CreateCollation(localeService.getApplicationLocale());
-    function compare(a, b) { return localeCollator.compareString(0, a, b); }
-    aStringArray.sort(compare);
-    return aStringArray;
 }
 
 /**
