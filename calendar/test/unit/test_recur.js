@@ -147,10 +147,10 @@ function run_test() {
     item.recurrenceInfo.modifyException(occ2, true);
     test_recur(item, ["20020402T120000Z", "20020403T120000Z"]);
 
-    var item = makeEvent("DESCRIPTION:rdate and exception before the recurrence start date\n" +
-                  "RRULE:FREQ=DAILY;COUNT=2\n" +
-                 "DTSTART:20020402T114500Z\n" +
-               "RDATE:20020401T114500Z\n");
+    item = makeEvent("DESCRIPTION:rdate and exception before the recurrence start date\n" +
+                     "RRULE:FREQ=DAILY;COUNT=2\n" +
+                     "DTSTART:20020402T114500Z\n" +
+                     "RDATE:20020401T114500Z\n");
     occ1 = item.recurrenceInfo.getOccurrenceFor(createDate(2002,3,2,true,11,45,00));
     occ1.startDate = createDate(2002,2,30,true,11,45,0);
     item.recurrenceInfo.modifyException(occ1, true);
@@ -199,7 +199,7 @@ function test_recur(event, expected, ignoreNextOccCheck) {
     }
 }
 
-function test_interface(item) {
+function test_interface() {
     var RRULE = "RRULE:FREQ=WEEKLY;COUNT=6;INTERVAL=1;BYDAY=TU,WE\r\n";
     var EXDATE = "EXDATE:20020403T114500Z\r\n"
     var RDATE = "RDATE;VALUE=DATE-TIME:20020401T114500Z\r\n";
