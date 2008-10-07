@@ -568,7 +568,7 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
 
                 // this character gets treated as a literal
                 //
-                aValue->Append(NS_ConvertUTF16toUTF8(nsDependentString(iter,1)));
+                aValue->Append(NS_ConvertUTF16toUTF8(iter, 1));
             }
         }
 
