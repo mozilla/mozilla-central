@@ -50,6 +50,8 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
 Cu.import("resource://gloda/modules/log4moz.js");
 
 Cu.import("resource://gloda/modules/utils.js");
@@ -292,6 +294,9 @@ var GlodaIndexer = {
   },
   
   _shutdown: function gloda_index_shutdown(aUrlListener) {
+    if (!this.enabled)
+      return;
+    
     this._log.info("Shutting Down");
 
     this.suppressIndexing = true;
@@ -352,8 +357,11 @@ var GlodaIndexer = {
       let observerService = Cc["@mozilla.org/observer-service;1"].
                               getService(Ci.nsIObserverService);
       observerService.addObserver(this, "network:offline-status-changed", false);
-      // sign up for the nsIMsgShutdownService's scheme
+      // sign up for the nsIMsgShutdownService's scheme...
       observerService.addObserver(this._shutdownTask, "msg-shutdown", false);
+      // ...which isn't fool-proof, so sign up for quit-application too
+      // (msg-shutdown depends on quit-application-request which is optional)
+      observerService.addObserver(this, "quit-application", false);
   
       // register for idle notification
       let idleService = Cc["@mozilla.org/widget/idleservice;1"].
@@ -395,7 +403,8 @@ var GlodaIndexer = {
       let observerService = Cc["@mozilla.org/observer-service;1"].
                               getService(Ci.nsIObserverService);
       observerService.removeObserver(this, "network:offline-status-changed");
-      observerService.removeObserver(this._shutdownTask, "msg-shutdown", false);
+      observerService.removeObserver(this._shutdownTask, "msg-shutdown");
+      observerService.removeObserver(this, "quit-application");
   
       // remove idle
       let idleService = Cc["@mozilla.org/widget/idleservice;1"].
@@ -1346,6 +1355,10 @@ var GlodaIndexer = {
         this.suppressIndexing = false;
       }
     }
+    // shutdown fallback
+    else if (aTopic == "quit-application") {
+      this._shutdown();
+    }
   },
 
   /* ***** Folder Changes ***** */  
@@ -1808,6 +1821,8 @@ var GlodaIndexer = {
    *  with the observer service.
    */
   _shutdownTask: {
+    QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgShutdownTask]),
+  
     indexer: null,
     
     /**
@@ -1825,7 +1840,7 @@ var GlodaIndexer = {
      */
     doShutdownTask: function gloda_indexer_doShutdownTask(aUrlListener,
                                                           aMsgWingow) {
-      return !this._shutdown(aUrlListener);
+      return !this.indexer._shutdown(aUrlListener);
     },
     
     getCurrentTaskName: function gloda_indexer_getCurrentTaskName() {

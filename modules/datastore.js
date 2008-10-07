@@ -545,8 +545,9 @@ var GlodaDatastore = {
       datastore.syncConnection.close();
       datastore.syncConnection = null;
 
-      if (aCallback)
+      if (aCallback) {
         aCallback.call(aCallbackThis);
+      }
     }
 
     if (this._pendingAsyncStatements) {
@@ -554,6 +555,7 @@ var GlodaDatastore = {
       return false;
     }
     else {
+      aCallback = null;
       finish_cleanup();
       return true;
     }
@@ -876,7 +878,7 @@ var GlodaDatastore = {
       }
     }
   },
-  _ayncTrackerListener: {
+  _asyncTrackerListener: {
     handleResult: function () {},
     handleError: function() {},
     handleCompletion: function () {
