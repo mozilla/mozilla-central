@@ -655,7 +655,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
           char charset[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH] = "";
           if (nsIMimeConverter::MAX_CHARSET_NAME_LENGTH >= (p2 - p1))
             strncpy(charset, p1, p2 - p1);
-          rv = mimeConverter->EncodeMimePartIIStr_UTF8(s, PR_FALSE, charset,
+          rv = mimeConverter->EncodeMimePartIIStr_UTF8(nsDependentCString(s), PR_FALSE, charset,
             sizeof("Subject:"), nsIMimeConverter::MIME_ENCODED_WORD_SIZE,
             modifiedSubject);
           if (NS_SUCCEEDED(rv))

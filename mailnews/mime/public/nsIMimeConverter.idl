@@ -94,11 +94,11 @@ interface nsIMimeConverter : nsISupports {
    *
    * @return The encoded buffer (as a C string).
    */
-  string encodeMimePartIIStr_UTF8(in string  header, 
-                                  in boolean structured, 
-                                  in string  mailCharset, 
-                                  in long    fieldnamelen,
-                                  in long    encodedWordSize);
+  string encodeMimePartIIStr_UTF8(in AUTF8String header,
+                                  in boolean     structured,
+                                  in string      mailCharset,
+                                  in long        fieldnamelen,
+                                  in long        encodedWordSize);
 
   /**
    * Decode a MIME header to UTF-8 if conversion is required.  Marked as

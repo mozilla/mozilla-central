@@ -245,7 +245,7 @@ char * nsMsgI18NEncodeMimePartIIStr(const char *header, PRBool structured, const
   nsresult res;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &res);
   if (NS_SUCCEEDED(res) && nsnull != converter)
-    res = converter->EncodeMimePartIIStr_UTF8(header, structured, charset,
+    res = converter->EncodeMimePartIIStr_UTF8(nsDependentCString(header), structured, charset,
       fieldnamelen, nsIMimeConverter::MIME_ENCODED_WORD_SIZE, &encodedString);
 
   return NS_SUCCEEDED(res) ? encodedString : nsnull;
