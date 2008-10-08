@@ -75,12 +75,16 @@ endif
 ifdef MOZ_UPDATER
 libs:: $(addprefix $(LOCALE_SRCDIR)/,updater/updater.ini)
 ifeq ($(OS_ARCH),WINNT)
-	iconv -f UTF-8 -t $(WIN_INSTALLER_CHARSET) $< > $(FINAL_TARGET)/updater.ini
+	cat $< $(srcdir)/updater_append.ini | \
+	  sed -e "s/%AB_CD%/$(AB_CD)/" | \
+ 	  iconv -f UTF-8 -t $(WIN_INSTALLER_CHARSET) > $(FINAL_TARGET)/updater.ini
 else
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-	$(INSTALL) $^ $(FINAL_TARGET)/updater.app/Contents/MacOS
+	cat $< $(srcdir)/updater_append.ini | \
+	  sed -e "s/%AB_CD%/$(AB_CD)/" > $(FINAL_TARGET)/updater.app/Contents/MacOS/updater.ini
 else
-	$(INSTALL) $^ $(FINAL_TARGET)
+	cat $< $(srcdir)/updater_append.ini | \
+	  sed -e "s/%AB_CD%/$(AB_CD)/" > $(FINAL_TARGET)/updater.ini
 endif
 endif
 endif
