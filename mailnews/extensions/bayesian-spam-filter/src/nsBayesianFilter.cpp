@@ -22,7 +22,6 @@
  * Contributor(s):
  *   Patrick C. Beard <beard@netscape.com>
  *   Seth Spitzer <sspitzer@netscape.com>
- *   Kent James <kent@caspia.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -106,24 +105,12 @@ static int kMaxLengthForToken = 12; // upper bound on the number of characters i
 #define M_E   2.7182818284590452354
 #endif
 
-// provide base implementation of hash lookup of a string
-struct BaseToken : public PLDHashEntryHdr
-{
+struct Token : public PLDHashEntryHdr {
     const char* mWord;
-};
-
-// token for a particular message
-struct Token : public BaseToken {
-    PRUint32 mCount;
+    PRUint32 mLength;
+    PRUint32 mCount;            // TODO:  put good/bad count values in same token object.
     double mProbability;        // TODO:  cache probabilities
     double mDistance;
-};
-
-// token stored in a training file for a group of messages
-struct CorpusToken : public BaseToken
-{
-    PRUint32 mJunkCount;
-    PRUint32 mGoodCount;
 };
 
 TokenEnumeration::TokenEnumeration(PLDHashTable* table)
@@ -141,16 +128,16 @@ inline PRBool TokenEnumeration::hasMoreTokens()
     return (mEntryOffset < mEntryCount);
 }
 
-inline BaseToken* TokenEnumeration::nextToken()
+inline Token* TokenEnumeration::nextToken()
 {
-    BaseToken* token = nsnull;
+    Token* token = NULL;
     PRUint32 entrySize = mEntrySize;
     char *entryAddr = mEntryAddr, *entryLimit = mEntryLimit;
     while (entryAddr < entryLimit) {
         PLDHashEntryHdr* entry = (PLDHashEntryHdr*) entryAddr;
         entryAddr += entrySize;
         if (PL_DHASH_ENTRY_IS_LIVE(entry)) {
-            token = static_cast<BaseToken*>(entry);
+            token = static_cast<Token*>(entry);
             ++mEntryOffset;
             break;
         }
@@ -160,7 +147,7 @@ inline BaseToken* TokenEnumeration::nextToken()
 }
 
 struct VisitClosure {
-    PRBool (*f) (BaseToken*, void*);
+    PRBool (*f) (Token*, void*);
     void* data;
 };
 
@@ -168,7 +155,7 @@ static PLDHashOperator PR_CALLBACK VisitEntry(PLDHashTable* table, PLDHashEntryH
                                               PRUint32 number, void* arg)
 {
     VisitClosure* closure = reinterpret_cast<VisitClosure*>(arg);
-    BaseToken* token = static_cast<BaseToken*>(entry);
+    Token* token = static_cast<Token*>(entry);
     return (closure->f(token, closure->data) ? PL_DHASH_NEXT : PL_DHASH_STOP);
 }
 
@@ -183,25 +170,23 @@ static const PLDHashTableOps gTokenTableOps = {
     PL_DHashFinalizeStub
 };
 
-TokenHash::TokenHash(PRUint32 aEntrySize)
+Tokenizer::Tokenizer()
 {
-    mEntrySize = aEntrySize;
     PL_INIT_ARENA_POOL(&mWordPool, "Words Arena", 16384);
-    PRBool ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nsnull,
-                                  aEntrySize, 256);
+    PRBool ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nsnull, sizeof(Token), 256);
     NS_ASSERTION(ok, "mTokenTable failed to initialize");
     if (!ok)
       PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("mTokenTable failed to initialize"));
 }
 
-TokenHash::~TokenHash()
+Tokenizer::~Tokenizer()
 {
     if (mTokenTable.entryStore)
         PL_DHashTableFinish(&mTokenTable);
     PL_FinishArenaPool(&mWordPool);
 }
 
-nsresult TokenHash::clearTokens()
+nsresult Tokenizer::clearTokens()
 {
     // we re-use the tokenizer when classifying multiple messages,
     // so this gets called after every message classification.
@@ -210,8 +195,7 @@ nsresult TokenHash::clearTokens()
     {
         PL_DHashTableFinish(&mTokenTable);
         PL_FreeArenaPool(&mWordPool);
-        ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nsnull,
-                               mEntrySize, 256);
+        ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nsnull, sizeof(Token), 256);
         NS_ASSERTION(ok, "mTokenTable failed to initialize");
         if (!ok)
           PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("mTokenTable failed to initialize in clearTokens()"));
@@ -219,7 +203,7 @@ nsresult TokenHash::clearTokens()
     return (ok) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
-char* TokenHash::copyWord(const char* word, PRUint32 len)
+char* Tokenizer::copyWord(const char* word, PRUint32 len)
 {
     void* result;
     PRUint32 size = 1 + len;
@@ -229,26 +213,20 @@ char* TokenHash::copyWord(const char* word, PRUint32 len)
     return reinterpret_cast<char*>(result);
 }
 
-inline BaseToken* TokenHash::get(const char* word)
+inline Token* Tokenizer::get(const char* word)
 {
     PLDHashEntryHdr* entry = PL_DHashTableOperate(&mTokenTable, word, PL_DHASH_LOOKUP);
     if (PL_DHASH_ENTRY_IS_BUSY(entry))
-        return static_cast<BaseToken*>(entry);
+        return static_cast<Token*>(entry);
     return NULL;
 }
 
-BaseToken* TokenHash::add(const char* word)
+Token* Tokenizer::add(const char* word, PRUint32 count)
 {
-    if (!word || !*word)
-    {
-      NS_ERROR("Trying to add a null word");
-      return nsnull;
-    }
-
-    PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("add word: %s", word));
+    PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("add word: %s (count=%d)", word, count));
 
     PLDHashEntryHdr* entry = PL_DHashTableOperate(&mTokenTable, word, PL_DHASH_ADD);
-    BaseToken* token = static_cast<BaseToken*>(entry);
+    Token* token = static_cast<Token*>(entry);
     if (token) {
         if (token->mWord == NULL) {
             PRUint32 len = strlen(word);
@@ -262,59 +240,35 @@ BaseToken* TokenHash::add(const char* word)
                 PL_DHashTableRawRemove(&mTokenTable, entry);
                 return NULL;
             }
+            token->mLength = len;
+            token->mCount = count;
+            token->mProbability = 0;
+            PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("adding word to tokenizer: %s (len=%d) (count=%d)", word, len, count));
+        } else {
+            token->mCount += count;
+            PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("adding word to tokenizer: %s (count=%d) (mCount=%d)", word, count, token->mCount));
         }
     }
     return token;
 }
 
-void TokenHash::visit(PRBool (*f) (BaseToken*, void*), void* data)
+void Tokenizer::remove(const char* word, PRUint32 count)
 {
-    VisitClosure closure = { f, data };
-    PRUint32 visitCount = PL_DHashTableEnumerate(&mTokenTable, VisitEntry, &closure);
-    NS_ASSERTION(visitCount == mTokenTable.entryCount, "visitCount != entryCount!");
-    if (visitCount != mTokenTable.entryCount) {
-      PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("visitCount != entryCount!: %d vs %d", visitCount, mTokenTable.entryCount));
+    PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("remove word: %s (count=%d)", word, count));
+    Token* token = get(word);
+    if (token) {
+        PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
+          ("remove word: %s (count=%d) (mCount=%d)", word, count, token->mCount));
+        
+        if (token->mCount >= count)
+            token->mCount -= count;
+        else
+            token->mCount = 0;
+         
+        if (token->mCount == 0)
+            PL_DHashTableRawRemove(&mTokenTable, token);
+        
     }
-}
-
-inline PRUint32 TokenHash::countTokens()
-{
-  return mTokenTable.entryCount;
-}
-
-inline TokenEnumeration TokenHash::getTokens()
-{
-  return TokenEnumeration(&mTokenTable);
-}
-
-Tokenizer::Tokenizer() :
-  TokenHash(sizeof(Token))
-{
-}
-
-Tokenizer::~Tokenizer()
-{
-}
-
-inline Token* Tokenizer::get(const char* word)
-{
-  return static_cast<Token*>(TokenHash::get(word));
-}
-
-Token* Tokenizer::add(const char* word, PRUint32 count)
-{
-  PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("add word: %s (count=%d)",
-         word, count));
-
-  Token* token = static_cast<Token*>(TokenHash::add(word));
-  if (token) 
-  {
-    token->mCount += count; // hash code initializes this to zero
-    PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
-           ("adding word to tokenizer: %s (count=%d) (mCount=%d)",
-           word, count, token->mCount));
-  }
-  return token;
 }
 
 static PRBool isDecimalNumber(const char* word)
@@ -545,7 +499,7 @@ enum char_class{
     ascii
 };
 
-static char_class getCharClass(PRUnichar c)
+char_class getCharClass(PRUnichar c)
 {
   char_class charClass = others;
 
@@ -579,7 +533,7 @@ static PRBool isJapanese(const char* word)
   return PR_FALSE;
 }
 
-static PRBool isFWNumeral(const PRUnichar* p1, const PRUnichar* p2)
+PRBool isFWNumeral(const PRUnichar* p1, const PRUnichar* p2)
 {
   for(;p1<p2;p1++)
     if(!IS_JA_FWNUMERAL(*p1))
@@ -711,6 +665,21 @@ void Tokenizer::tokenize(const char* aText)
   }
 }
 
+void Tokenizer::visit(PRBool (*f) (Token*, void*), void* data)
+{
+    VisitClosure closure = { f, data };
+    PRUint32 visitCount = PL_DHashTableEnumerate(&mTokenTable, VisitEntry, &closure);
+    NS_ASSERTION(visitCount == mTokenTable.entryCount, "visitCount != entryCount!");
+    if (visitCount != mTokenTable.entryCount) {
+      PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("visitCount != entryCount!: %d vs %d", visitCount, mTokenTable.entryCount));
+    }
+}
+
+inline PRUint32 Tokenizer::countTokens()
+{
+    return mTokenTable.entryCount;
+}
+
 Token* Tokenizer::copyTokens()
 {
     PRUint32 count = countTokens();
@@ -720,11 +689,16 @@ Token* Tokenizer::copyTokens()
             Token* tp = tokens;
             TokenEnumeration e(&mTokenTable);
             while (e.hasMoreTokens())
-                *tp++ = *(static_cast<Token*>(e.nextToken()));
+                *tp++ = *e.nextToken();
         }
         return tokens;
     }
     return NULL;
+}
+
+inline TokenEnumeration Tokenizer::getTokens()
+{
+    return TokenEnumeration(&mTokenTable);
 }
 
 class TokenAnalyzer {
@@ -952,7 +926,7 @@ NS_IMETHODIMP TokenStreamListener::OnStopRequest(nsIRequest *aRequest, nsISuppor
 NS_IMPL_ISUPPORTS2(nsBayesianFilter, nsIMsgFilterPlugin, nsIJunkMailPlugin)
 
 nsBayesianFilter::nsBayesianFilter()
-    :   mTrainingDataDirty(PR_FALSE)
+    :   mGoodCount(0), mBadCount(0), mTrainingDataDirty(PR_FALSE)
 {
     if (!BayesianFilterLogModule)
       BayesianFilterLogModule = PR_NewLogModule("BayesianFilter");
@@ -969,7 +943,15 @@ nsBayesianFilter::nsBayesianFilter()
 
     PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("junk probability threshold: %f", mJunkProbabilityThreshold));
 
-    mCorpus.readTrainingData();
+    getTrainingFile(getter_AddRefs(mTrainingFile));
+
+    PRBool ok = (mGoodTokens && mBadTokens);
+    NS_ASSERTION(ok, "error allocating tokenizers");
+    if (ok)
+        readTrainingData();
+    else {
+      PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("error allocating tokenizers"));
+    }
 
     // get parameters for training data flushing, from the prefs
 
@@ -984,10 +966,10 @@ nsBayesianFilter::nsBayesianFilter()
     // it is not a good idea to allow a minimum interval of under 1 second
     if (NS_FAILED(rv) || (mMinFlushInterval <= 1000) )
         mMinFlushInterval = DEFAULT_MIN_INTERVAL_BETWEEN_WRITES;
-
+        
     rv = prefBranch->GetIntPref("mailnews.bayesian_spam_filter.junk_maxtokens", &mMaximumTokenCount);
     if (NS_FAILED(rv))
-      mMaximumTokenCount = 0; // which means do not limit token counts
+      mMaximumTokenCount = 0; // which means do not limit token counts    
     PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("maximum junk tokens: %d", mMaximumTokenCount));
 
     mTimer = do_CreateInstance(NS_TIMER_CONTRACTID, &rv);
@@ -1005,8 +987,7 @@ nsBayesianFilter::TimerCallback(nsITimer* aTimer, void* aClosure)
     // since the first time a message has been classified after the last flush
 
     nsBayesianFilter *filter = static_cast<nsBayesianFilter *>(aClosure);
-    filter->mCorpus.writeTrainingData(filter->mMaximumTokenCount);
-    filter->mTrainingDataDirty = PR_FALSE;
+    filter->writeTrainingData();
 }
 
 nsBayesianFilter::~nsBayesianFilter()
@@ -1140,15 +1121,13 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
     // and if there are no bad tokens, assume the message is not junk
     // this will also "encourage" the user to train
     // see bug #194238
-    if (listener && !mCorpus.mGoodMessageCount)
-    {
+    if (listener && !mGoodCount && !mGoodTokens.countTokens()) {
       PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("no good tokens, assume junk"));
       listener->OnMessageClassified(messageURI, nsMsgJunkStatus(nsIJunkMailPlugin::JUNK),
         nsIJunkMailPlugin::IS_SPAM_SCORE);
       return;
     }
-    if (listener && !mCorpus.mJunkMessageCount)
-    {
+    if (listener && !mBadCount && !mBadTokens.countTokens()) {
       PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("no bad tokens, assume good"));
       listener->OnMessageClassified(messageURI, nsMsgJunkStatus(nsIJunkMailPlugin::GOOD),
         nsIJunkMailPlugin::IS_HAM_SCORE);
@@ -1157,15 +1136,16 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
 
     /* this part is similar to the Graham algorithm with some adjustments. */
     PRUint32 i, goodclues=0, count = tokenizer.countTokens();
-    double ngood = mCorpus.mGoodMessageCount,
-           nbad = mCorpus.mJunkMessageCount, prob;
+    double ngood = mGoodCount, nbad = mBadCount, prob;
 
     for (i = 0; i < count; ++i)
     {
-      Token& token = tokens[i];
-      CorpusToken *t = mCorpus.get(token.mWord);
-      double hamcount = ((t != nsnull) ? t->mGoodCount : 0);
-      double spamcount = ((t != nsnull) ? t->mJunkCount : 0);
+        Token& token = tokens[i];
+        const char* word = token.mWord;
+        Token* t = mGoodTokens.get(word);
+      double hamcount = ((t != NULL) ? t->mCount : 0);
+        t = mBadTokens.get(word);
+       double spamcount = ((t != NULL) ? t->mCount : 0);
 
       // if hamcount and spam count are both 0, we could end up with a divide by 0 error,
       // tread carefully here. (Bug #240819)
@@ -1188,7 +1168,7 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
     }
 
     // sort the array by the token distances
-    NS_QuickSort(tokens, count, sizeof(Token), compareTokens, NULL);
+        NS_QuickSort(tokens, count, sizeof(Token), compareTokens, NULL);
     PRUint32 first, last = count;
     first = (goodclues > 150) ? count - 150 : 0;
 
@@ -1238,7 +1218,7 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
         prob = 0.5;
 
     PRBool isJunk = (prob >= mJunkProbabilityThreshold);
-    PRUint32 junkPercent = static_cast<PRUint32>(prob*100. + .5);
+    PRUint32 junkPercent = prob*100. + .5;
     PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("%s is junk probability = (%f)  HAM SCORE:%f SPAM SCORE:%f", messageURI, prob,H,S));
 
     delete[] tokens;
@@ -1252,11 +1232,9 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
 /* void shutdown (); */
 NS_IMETHODIMP nsBayesianFilter::Shutdown()
 {
-  if (mTrainingDataDirty)
-    mCorpus.writeTrainingData(mMaximumTokenCount);
-  mTrainingDataDirty = PR_FALSE;
-
-  return NS_OK;
+    if (mTrainingDataDirty)
+        writeTrainingData();
+    return NS_OK;
 }
 
 /* readonly attribute boolean shouldDownloadAllHeaders; */
@@ -1271,8 +1249,7 @@ NS_IMETHODIMP nsBayesianFilter::GetShouldDownloadAllHeaders(PRBool *aShouldDownl
 NS_IMETHODIMP nsBayesianFilter::ClassifyMessage(const char *aMessageURL, nsIMsgWindow *aMsgWindow, nsIJunkMailClassificationListener *aListener)
 {
     MessageClassifier* analyzer = new MessageClassifier(this, aListener, aMsgWindow, 1, &aMessageURL);
-    if (!analyzer)
-      return NS_ERROR_OUT_OF_MEMORY;
+    if (!analyzer) return NS_ERROR_OUT_OF_MEMORY;
     TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
     analyzer->setTokenListener(tokenListener);
     return tokenizeMessage(aMessageURL, aMsgWindow, analyzer);
@@ -1317,6 +1294,26 @@ private:
     nsMsgJunkStatus mNewClassification;
 };
 
+static void forgetTokens(Tokenizer& corpus, TokenEnumeration tokens)
+{
+    // if we are forgetting the tokens for a message, should only
+    // subtract 1 from the occurrence count for that token in the training set
+    // because we assume we only bumped the training set count once per messages
+    // containing the token.
+    while (tokens.hasMoreTokens()) {
+        Token* token = tokens.nextToken();
+        corpus.remove(token->mWord);
+    }
+}
+
+static void rememberTokens(Tokenizer& corpus, TokenEnumeration tokens)
+{
+    while (tokens.hasMoreTokens()) {
+        Token* token = tokens.nextToken();
+        corpus.add(token->mWord);
+    }
+}
+
 void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageURL,
                                       nsMsgJunkStatus oldClassification, nsMsgJunkStatus newClassification,
                                       nsIJunkMailClassificationListener* listener)
@@ -1338,17 +1335,17 @@ void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageU
     switch (oldClassification) {
     case nsIJunkMailPlugin::JUNK:
         // remove tokens from junk corpus.
-        if (mCorpus.mJunkMessageCount > 0) {
-            --mCorpus.mJunkMessageCount;
-            mCorpus.forgetTokens(tokens, 1, 0);
+        if (mBadCount > 0) {
+            --mBadCount;
+            forgetTokens(mBadTokens, tokens);
             mTrainingDataDirty = PR_TRUE;
         }
         break;
     case nsIJunkMailPlugin::GOOD:
         // remove tokens from good corpus.
-        if (mCorpus.mGoodMessageCount > 0) {
-            --mCorpus.mGoodMessageCount;
-            mCorpus.forgetTokens(tokens, 0, 1);
+        if (mGoodCount > 0) {
+            --mGoodCount;
+            forgetTokens(mGoodTokens, tokens);
             mTrainingDataDirty = PR_TRUE;
         }
         break;
@@ -1360,15 +1357,15 @@ void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageU
     switch (newClassification) {
     case nsIJunkMailPlugin::JUNK:
         // put tokens into junk corpus.
-        ++mCorpus.mJunkMessageCount;
-        mCorpus.rememberTokens(tokens, 1, 0);
+        ++mBadCount;
+        rememberTokens(mBadTokens, tokens);
         mTrainingDataDirty = PR_TRUE;
         junkPercent = nsIJunkMailPlugin::IS_SPAM_SCORE;
         break;
     case nsIJunkMailPlugin::GOOD:
         // put tokens into good corpus.
-        ++mCorpus.mGoodMessageCount;
-        mCorpus.rememberTokens(tokens, 0, 1);
+        ++mGoodCount;
+        rememberTokens(mGoodTokens, tokens);
         mTrainingDataDirty = PR_TRUE;
         junkPercent = nsIJunkMailPlugin::IS_HAM_SCORE;
         break;
@@ -1388,44 +1385,6 @@ void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageU
     }
 }
 
-NS_IMETHODIMP nsBayesianFilter::GetUserHasClassified(PRBool *aResult)
-{
-  *aResult = ((mCorpus.mGoodMessageCount + mCorpus.mJunkMessageCount) &&
-              mCorpus.countTokens());
-  return NS_OK;
-}
-
-/* void setMessageClassification (in string aMsgURL,
-   in long aOldClassification, in long aNewClassification); */
-NS_IMETHODIMP nsBayesianFilter::SetMessageClassification(
-                const char *aMsgURL,
-                nsMsgJunkStatus aOldClassification,
-                nsMsgJunkStatus aNewClassification,
-                nsIMsgWindow *aMsgWindow,
-                nsIJunkMailClassificationListener *aListener)
-{
-  MessageObserver* analyzer = new MessageObserver(this, 
-      aOldClassification, aNewClassification, aListener);
-  if (!analyzer)
-    return NS_ERROR_OUT_OF_MEMORY;
-
-  TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
-  if (!tokenListener)
-    return NS_ERROR_OUT_OF_MEMORY;
-
-  analyzer->setTokenListener(tokenListener);
-  return tokenizeMessage(aMsgURL, aMsgWindow, analyzer);
-}
-
-NS_IMETHODIMP nsBayesianFilter::ResetTrainingData()
-{
-  if (mCorpus)
-    return mCorpus.resetTrainingData();
-  return NS_ERROR_FAILURE;
-}
-
-/* Corpus Store */
-
 /*
     Format of the training file for version 1:
     [0xFEEDFACE]
@@ -1437,16 +1396,6 @@ NS_IMETHODIMP nsBayesianFilter::ResetTrainingData()
     [count][length of word]word
     ...
  */
-
-CorpusStore::CorpusStore() :
-  TokenHash(sizeof(CorpusToken)), mGoodMessageCount(0), mJunkMessageCount(0)
-{
-  getTrainingFile(getter_AddRefs(mTrainingFile));
-}
-
-CorpusStore::~CorpusStore()
-{
-}
 
 inline int writeUInt32(FILE* stream, PRUint32 value)
 {
@@ -1463,83 +1412,53 @@ inline int readUInt32(FILE* stream, PRUint32* value)
     return n;
 }
 
-void CorpusStore::forgetTokens(TokenEnumeration tokens,
-                    PRUint32 aJunkCount, PRUint32 aGoodCount)
+static PRBool writeTokens(FILE* stream, Tokenizer& tokenizer, PRBool shrink)
 {
-  // if we are forgetting the tokens for a message, should only
-  // subtract 1 from the occurrence count for that token in the training set
-  // because we assume we only bumped the training set count once per messages
-  // containing the token.
-  while (tokens.hasMoreTokens())
-  {
-    CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-    remove(token->mWord, aJunkCount, aGoodCount);
-  }
+    PRUint32 tokenCount = tokenizer.countTokens();
+    PRUint32 newTokenCount = 0;
+    
+    if (shrink) {
+      // Shrinking the token database is accomplished by dividing all token counts by 2.
+      // Recalculate the shrunk token count, keeping tokens with a count > 1
+      
+      TokenEnumeration tokens = tokenizer.getTokens();
+      for (PRUint32 i = 0; i < tokenCount; ++i) {
+        Token* token = tokens.nextToken();
+        if (token->mCount > 1)
+          newTokenCount++;
+      }
+    }
+    else // Use the original token count
+      newTokenCount = tokenCount;
+    
+    if (writeUInt32(stream, newTokenCount) != 1)
+        return PR_FALSE;
+
+    if (newTokenCount > 0) {
+      TokenEnumeration tokens = tokenizer.getTokens();
+      for (PRUint32 i = 0; i < tokenCount; ++i) {
+            Token* token = tokens.nextToken();
+            PRUint32 wordCount = token->mCount;
+            if (shrink) {
+              if (wordCount > 1)
+                wordCount /= 2;
+              else
+                continue;
+            }
+            if (writeUInt32(stream, wordCount) != 1)
+                break;
+            PRUint32 tokenLength = token->mLength;
+            if (writeUInt32(stream, tokenLength) != 1)
+                break;
+            if (fwrite(token->mWord, tokenLength, 1, stream) != 1)
+                break;
+        }
+    }
+
+    return PR_TRUE;
 }
 
-void CorpusStore::rememberTokens(TokenEnumeration tokens,
-                    PRUint32 aJunkCount, PRUint32 aGoodCount)
-{
-  while (tokens.hasMoreTokens())
-  {
-    CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-    if (!token)
-    {
-      NS_ERROR("null token");
-      continue;
-    }
-    add(token->mWord, aJunkCount, aGoodCount);
-  }
-}
-
-PRBool CorpusStore::writeTokens(FILE* stream, PRBool shrink, PRBool aIsJunk)
-{
-  PRUint32 tokenCount = countTokens();
-  PRUint32 newTokenCount = 0;
-  TokenEnumeration tokens = getTokens();
-
-  // Shrinking the token database is accomplished by dividing all token
-  // counts by 2. If shrinking, recalculate the shrunk token count,
-  // keeping tokens with a count > 1. Otherwise, keep tokens with
-  // count > 0
-
-  for (PRUint32 i = 0; i < tokenCount; ++i)
-  {
-    CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-    {
-      PRUint32 count = aIsJunk ? token->mJunkCount : token->mGoodCount;
-      if (count > 1 || (!shrink && count == 1))
-        newTokenCount++;
-    }
-  }
-
-  if (writeUInt32(stream, newTokenCount) != 1)
-    return PR_FALSE;
-
-  if (newTokenCount > 0)
-  {
-    TokenEnumeration tokens = getTokens();
-    for (PRUint32 i = 0; i < tokenCount; ++i)
-    {
-      CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-      PRUint32 wordCount = aIsJunk ? token->mJunkCount : token->mGoodCount;
-      if (shrink)
-        wordCount /= 2;
-      if (!wordCount)
-        continue; // Don't output zero count words
-      if (writeUInt32(stream, wordCount) != 1)
-        return PR_FALSE;
-      PRUint32 tokenLength = strlen(token->mWord);
-      if (writeUInt32(stream, tokenLength) != 1)
-        return PR_FALSE;
-      if (fwrite(token->mWord, tokenLength, 1, stream) != 1)
-        return PR_FALSE;
-    }
-  }
-  return PR_TRUE;
-}
-
-PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize, PRBool isJunk)
+static PRBool readTokens(FILE* stream, Tokenizer& tokenizer, PRInt64 fileSize)
 {
     PRUint32 tokenCount;
     if (readUInt32(stream, &tokenCount) != 1)
@@ -1579,10 +1498,7 @@ PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize, PRBool isJunk)
             break;
         fpos += size;
         buffer[size] = '\0';
-        if (isJunk)
-          add(buffer, count, 0);
-        else
-          add(buffer, 0, count);
+        tokenizer.add(buffer, count);
     }
 
     delete[] buffer;
@@ -1591,7 +1507,7 @@ PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize, PRBool isJunk)
 }
 
 
-nsresult CorpusStore::getTrainingFile(nsILocalFile ** aTrainingFile)
+nsresult nsBayesianFilter::getTrainingFile(nsILocalFile ** aTrainingFile)
 {
   // should we cache the profile manager's directory?
   nsCOMPtr<nsIFile> profileDir;
@@ -1606,7 +1522,7 @@ nsresult CorpusStore::getTrainingFile(nsILocalFile ** aTrainingFile)
 
 static const char kMagicCookie[] = { '\xFE', '\xED', '\xFA', '\xCE' };
 
-void CorpusStore::writeTrainingData(PRInt32 aMaximumTokenCount)
+void nsBayesianFilter::writeTrainingData()
 {
   PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("writeTrainingData() entered"));
   if (!mTrainingFile)
@@ -1617,24 +1533,20 @@ void CorpusStore::writeTrainingData(PRInt32 aMaximumTokenCount)
   nsresult rv = mTrainingFile->OpenANSIFileDesc("wb", &stream);
   if (NS_FAILED(rv))
     return;
-
+    
   // If the number of tokens exceeds our limit, set the shrink flag
   PRBool shrink = false;
-  if ((aMaximumTokenCount > 0) && // if 0, do not limit tokens
-      (countTokens() > aMaximumTokenCount))
-  {
+  if ((mMaximumTokenCount > 0) && // if 0, do not limit tokens
+      (mGoodTokens.countTokens() + mBadTokens.countTokens() > mMaximumTokenCount)) {
     shrink = true;
     PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("shrinking token data file"));
   }
 
-  // We implement shrink by dividing counts by two
-  PRUint32 shrinkFactor = shrink ? 2 : 1;
-
   if (!((fwrite(kMagicCookie, sizeof(kMagicCookie), 1, stream) == 1) &&
-         writeUInt32(stream, mGoodMessageCount / shrinkFactor) &&
-         writeUInt32(stream, mJunkMessageCount / shrinkFactor) &&
-         writeTokens(stream, shrink, PR_FALSE) &&
-         writeTokens(stream, shrink, PR_TRUE)))
+        (writeUInt32(stream, shrink ? mGoodCount/2 : mGoodCount) == 1) &&
+        (writeUInt32(stream, shrink ? mBadCount/2 : mBadCount) == 1) &&
+         writeTokens(stream, mGoodTokens, shrink) &&
+         writeTokens(stream, mBadTokens, shrink)))
   {
     NS_WARNING("failed to write training data.");
     fclose(stream);
@@ -1650,19 +1562,26 @@ void CorpusStore::writeTrainingData(PRInt32 aMaximumTokenCount)
       // We'll clear the tokens, and read them back in from the file.
       // Yes this is slower than in place, but this is a rare event.
 
-      if (countTokens())
+      if (mGoodTokens && mGoodTokens.countTokens())
       {
-        clearTokens();
-        mGoodMessageCount = 0;
-        mJunkMessageCount = 0;
+        mGoodTokens.clearTokens();
+        mGoodCount = 0;
+      }
+
+      if (mBadTokens && mBadTokens.countTokens())
+      {
+        mBadTokens.clearTokens();
+        mBadCount = 0;
       }
 
       readTrainingData();
     }
+
+    mTrainingDataDirty = PR_FALSE;
   }
 }
 
-void CorpusStore::readTrainingData()
+void nsBayesianFilter::readTrainingData()
 {
   if (!mTrainingFile)
     return;
@@ -1686,10 +1605,10 @@ void CorpusStore::readTrainingData()
   char cookie[4];
   if (!((fread(cookie, sizeof(cookie), 1, stream) == 1) &&
         (memcmp(cookie, kMagicCookie, sizeof(cookie)) == 0) &&
-        (readUInt32(stream, &mGoodMessageCount) == 1) &&
-        (readUInt32(stream, &mJunkMessageCount) == 1) &&
-         readTokens(stream, fileSize, PR_FALSE) &&
-         readTokens(stream, fileSize, PR_TRUE))) {
+        (readUInt32(stream, &mGoodCount) == 1) &&
+        (readUInt32(stream, &mBadCount) == 1) &&
+         readTokens(stream, mGoodTokens, fileSize) &&
+         readTokens(stream, mBadTokens, fileSize))) {
       NS_WARNING("failed to read training data.");
       PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("failed to read training data."));
   }
@@ -1697,63 +1616,46 @@ void CorpusStore::readTrainingData()
   fclose(stream);
 }
 
-nsresult CorpusStore::resetTrainingData()
+NS_IMETHODIMP nsBayesianFilter::GetUserHasClassified(PRBool *aResult)
 {
-  // clear out our in memory training tokens...
-  if (countTokens())
-    clearTokens();
-
-  mGoodMessageCount = 0;
-  mJunkMessageCount = 0;
-
-  if (mTrainingFile)
-    mTrainingFile->Remove(PR_FALSE);
+  *aResult = (mGoodCount && mGoodTokens.countTokens() ||
+              mBadCount && mBadTokens.countTokens());
   return NS_OK;
 }
 
-inline CorpusToken* CorpusStore::get(const char* word)
+/* void setMessageClassification (in string aMsgURL, in long aOldClassification, in long aNewClassification); */
+NS_IMETHODIMP nsBayesianFilter::SetMessageClassification(const char *aMsgURL,
+                                                         nsMsgJunkStatus aOldClassification,
+                                                         nsMsgJunkStatus aNewClassification,
+                                                         nsIMsgWindow *aMsgWindow,
+                                                         nsIJunkMailClassificationListener *aListener)
 {
-    return static_cast<CorpusToken*>(TokenHash::get(word));
+    MessageObserver* analyzer = new MessageObserver(this, aOldClassification, aNewClassification, aListener);
+    if (!analyzer) return NS_ERROR_OUT_OF_MEMORY;
+    TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
+    analyzer->setTokenListener(tokenListener);
+    return tokenizeMessage(aMsgURL, aMsgWindow, analyzer);
 }
 
-CorpusToken* CorpusStore::add(const char* word, PRUint32 aJunkCount,
-                              PRUint32 aGoodCount)
+NS_IMETHODIMP nsBayesianFilter::ResetTrainingData()
 {
-  PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
-         ("add word: %s (aJunkCount=%d) (aGoodCount=%d)", word, aJunkCount,
-         aGoodCount));
-  CorpusToken* token = static_cast<CorpusToken*>(TokenHash::add(word));
-  if (token)
+  // clear out our in memory training tokens...
+  if (mGoodCount && mGoodTokens.countTokens())
   {
-    token->mJunkCount += aJunkCount;
-    token->mGoodCount += aGoodCount;
+    mGoodTokens.clearTokens();
+    mGoodCount = 0;
   }
-  PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
-         ("adding word to corpus store: %s (junkCount=%d) (goodCount=%d)",
-         word, token->mJunkCount, token->mGoodCount));
-  return token;
-}
 
-void CorpusStore::remove(const char* word, PRUint32 aJunkCount,
-                         PRUint32 aGoodCount)
-{
-  PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
-         ("remove word: %s (junkCount=%d) (goodCount=%d)",
-         word, aJunkCount, aGoodCount));
-  CorpusToken* token = get(word);
-  if (token)
+  if (mBadCount && mBadTokens.countTokens())
   {
-    if (token->mJunkCount >= aJunkCount)
-      token->mJunkCount -= aJunkCount;
-    else
-      token->mJunkCount = 0;
-
-    if (token->mGoodCount >= aGoodCount)
-      token->mGoodCount -= aGoodCount;
-    else
-      token->mGoodCount = 0;
-
-    if (token->mGoodCount == 0 && token->mJunkCount == 0)
-      PL_DHashTableRawRemove(&mTokenTable, token);
+    mBadTokens.clearTokens();
+    mBadCount = 0;
   }
+
+  // now remove training.dat
+  if (mTrainingFile)
+    mTrainingFile->Remove(PR_FALSE);
+
+  return NS_OK;
 }
+

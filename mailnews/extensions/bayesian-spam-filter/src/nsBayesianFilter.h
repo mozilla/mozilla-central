@@ -21,7 +21,6 @@
  *
  * Contributor(s):
  *   Patrick C. Beard <beard@netscape.com>
- *   Kent James <kent@caspia.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -58,8 +57,6 @@ class TokenAnalyzer;
 class nsIMsgWindow;
 class nsIMimeHeaders;
 class nsIUTF8StringEnumerator;
-struct BaseToken;
-struct CorpusToken;
 
 /**
  * Helper class to enumerate Token objects in a PLDHashTable
@@ -71,44 +68,19 @@ class TokenEnumeration {
 public:
     TokenEnumeration(PLDHashTable* table);
     PRBool hasMoreTokens();
-    BaseToken* nextToken();
+    Token* nextToken();
     
 private:
     PRUint32 mEntrySize, mEntryCount, mEntryOffset;
     char *mEntryAddr, *mEntryLimit;
 };
 
-class TokenHash {
-public:
-
-    virtual ~TokenHash();
-    /**
-     * Clears out the previous message tokens.
-     */
-    nsresult clearTokens();
-    operator int() { return mTokenTable.entryStore != NULL; }
-    PRUint32 countTokens();
-    TokenEnumeration getTokens();
-    BaseToken* add(const char* word);
-    
-protected:
-    TokenHash(PRUint32 entrySize);
-    PLArenaPool mWordPool;
-    PRUint32 mEntrySize;
-    PLDHashTable mTokenTable;
-    char* copyWord(const char* word, PRUint32 len);
-    /**
-     * Calls passed-in function for each token in the table.
-     */
-    void visit(PRBool (*f) (BaseToken*, void*), void* data);
-    BaseToken* get(const char* word);
-
-};
-
-class Tokenizer: public TokenHash {
+class Tokenizer {
 public:
     Tokenizer();
     ~Tokenizer();
+
+    operator int() { return mTokenTable.entryStore != NULL; }
     
     Token* get(const char* word);
 
@@ -117,8 +89,16 @@ public:
     // When add/remove is called while tokenizing a message and NOT the training set,
     // 
     Token* add(const char* word, PRUint32 count = 1);
+    void remove(const char* word, PRUint32 count = 1);
     
+    PRUint32 countTokens();
     Token* copyTokens();
+    TokenEnumeration getTokens();
+
+    /**
+     * Clears out the previous message tokens.
+     */
+    nsresult clearTokens();
 
     void tokenize(const char* text);
 
@@ -129,109 +109,22 @@ public:
 
     void tokenizeAttachment(const char * aContentType, const char * aFileName);
 
-private:
+    /**
+     * Calls passed-in function for each token in the table.
+     */
+    void visit(PRBool (*f) (Token*, void*), void* data);
 
+private:
+    char* copyWord(const char* word, PRUint32 len);
     void tokenize_ascii_word(char * word);
     void tokenize_japanese_word(char* chunk);
     inline void addTokenForHeader(const char * aTokenPrefix, nsACString& aValue, PRBool aTokenizeValue = false);
     nsresult stripHTML(const nsAString& inString, nsAString& outString);
 
 private:
+    PLDHashTable mTokenTable;
+    PLArenaPool mWordPool;
     nsCOMPtr<nsISemanticUnitScanner> mScanner;
-};
-
-/**
- * Implements storage of a collection of message tokens and counts for
- * a corpus of classified messages
- */
-
-class CorpusStore: public TokenHash {
-public:
-    CorpusStore();
-    ~CorpusStore();
-
-    /**
-     * retrieve the token structure for a particular string
-     *
-     * @param word  the character representation of the token
-     *
-     * @return      token structure containing counts, null if not found
-     */
-    CorpusToken* get(const char* word);
-
-    /**
-     * add tokens to the storage, or increment counts if already exists.
-     *
-     * @param tokens     enumerator for the list of tokens to remember
-     * @param aJunkCount number of new messages classified as junk with this
-     *                   token list
-     * @param aGoodCount number of new messages classified as good with this
-     *                   token list
-     */
-    void rememberTokens(TokenEnumeration tokens, PRUint32 aJunkCount,
-                        PRUint32 aGoodCount);
-    
-    /**
-     * decrement counts for tokens in the storage, removing if all counts
-     * are zero
-     *
-     * @param tokens     enumerator for the list of tokens to forget
-     * @param aJunkCount number of messages classified as junk with this token
-     *                   to be removed
-     * @param aGoodCount number of new messages classified as good with this
-     *                   token to be removed
-     */
-    void forgetTokens(TokenEnumeration tokens, PRUint32 aJunkCount, PRUint32 aGoodCount);
-    
-    /**
-     * write the corpus information to file storage
-     *
-     * @param aMaximumTokenCount  prune tokens if number of tokens exceeds
-     *                            this value.  == 0  for no pruning
-     */
-    void writeTrainingData(PRInt32 aMaximumTokenCount);
-    
-    /**
-     * read the corpus information from file storage
-     */
-    void readTrainingData();
-    
-    /**
-     * delete the local corpus storage file and data
-     */
-    nsresult resetTrainingData();
-
-    PRUint32 mGoodMessageCount;    // count of good messages in the store
-    PRUint32 mJunkMessageCount;    // count of junk messages in the store
-
-protected:
-    
-    /**
-     * return the local corpus storage file
-     */
-    nsresult getTrainingFile(nsILocalFile ** aFile);
-
-    /**
-     * read token strings from the data file
-     */
-    PRBool readTokens(FILE* stream, PRInt64 fileSize, PRBool isJunk);
-    
-    /**
-     * write token strings to the data file
-     */
-    PRBool writeTokens(FILE* stream, PRBool shrink, PRBool aIsJunk);
-    
-    /**
-     * remove counts for a token string, and delete it if all counts are zero
-     */
-    void remove(const char* word, PRUint32 aJunkCount, PRUint32 aGoodCount);
-
-    /**
-     * add counts for a token string, adding the token string if new
-     */
-    CorpusToken* add(const char* word, PRUint32 aJunkCount,
-                     PRUint32 aGoodCount);
-    nsCOMPtr<nsILocalFile> mTrainingFile; // file used to store training data
 };
 
 class nsBayesianFilter : public nsIJunkMailPlugin {
@@ -248,17 +141,23 @@ public:
     void observeMessage(Tokenizer& tokens, const char* messageURI, nsMsgJunkStatus oldClassification, nsMsgJunkStatus newClassification, 
                         nsIJunkMailClassificationListener* listener);
 
+    void writeTrainingData();
+    void readTrainingData();
+    nsresult getTrainingFile(nsILocalFile ** aFile);
+    
 protected:
 
     static void TimerCallback(nsITimer* aTimer, void* aClosure);
 
-    CorpusStore mCorpus;
+    Tokenizer mGoodTokens, mBadTokens;
     double   mJunkProbabilityThreshold;
+    PRUint32 mGoodCount, mBadCount;
     PRInt32 mMaximumTokenCount;
     PRPackedBool mTrainingDataDirty;
     PRInt32 mMinFlushInterval; // in milliseconds, must be positive
                                //and not too close to 0
     nsCOMPtr<nsITimer> mTimer;
+    nsCOMPtr<nsILocalFile> mTrainingFile;
 };
 
 #endif // _nsBayesianFilter_h__
