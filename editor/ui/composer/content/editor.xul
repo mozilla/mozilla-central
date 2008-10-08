@@ -70,6 +70,7 @@
         onunload="EditorShutdown()"
         onclose="return EditorCanClose()"
         onfocus="EditorOnFocus()"
+        title="&editorWindow.titlemodifier;"
         titlemodifier="&editorWindow.titlemodifier;"
         titlemenuseparator="&editorWindow.titlemodifiermenuseparator;"
         windowtype="composer:html"
