@@ -263,7 +263,7 @@ function taskViewObserveDisplayDeckChange(event) {
 
     // Bug 309505: The 'select' event also fires when we change the selected
     // panel of calendar-view-box.  Workaround with this check.
-    if (deck.id != "displayDeck") {
+    if (deck.id != "calendarDisplayDeck") {
         return;
     }
 
@@ -280,5 +280,7 @@ function taskViewObserveDisplayDeckChange(event) {
     }
 }
 
-document.getElementById("displayDeck").
+document.addEventListener("load", function () {
+  document.getElementById("calendarDisplayDeck").
     addEventListener("select", taskViewObserveDisplayDeckChange, true);
+  }, true);

@@ -51,44 +51,11 @@ var gCustomizeId;
 var gCurrentMode = 'mail';
 
 /**
- * Helper function to get the view deck in a neutral way, regardless of whether
- * we're in Thunderbird or SeaMonkey
- */
-function getMailBar() {
-  return document.getElementById("mail-bar2") ||
-         document.getElementById("msgToolbar");
-}
-
-/**
- * Ensure that switching to the messenger window also switches to mail mode.
- * We probably should also catch this from other windows (compose, addressbook),
- * but for now we'll keep it here. This function overrides the toMessengerWindow
- * function in /mail/base/content/mailCore.js.
- */
-var toMessengerWindow = function ltnToMessengerWindow() {
-    var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-             .getService(Components.interfaces.nsIWindowMediator);
-
-    var topWindow = wm.getMostRecentWindow("mail:3pane");
-
-    if (topWindow) {
-        var tomail = topWindow.document.getElementById("switch2mail");
-        tomail.doCommand();
-        topWindow.focus();
-    } else {
-        window.open("chrome://messenger/content/messenger.xul",
-                    "_blank",
-                    "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
-    }
-};
-
-/**
  * ltnSwitch2Mail() switches to the mail mode
  */
 
 function ltnSwitch2Mail() {
   if (gCurrentMode != 'mail') {
-
     var switch2mail = document.getElementById("switch2mail");
     var switch2calendar = document.getElementById("switch2calendar");
     var switch2task = document.getElementById("switch2task");
@@ -100,41 +67,6 @@ function ltnSwitch2Mail() {
     swapPopupMenus();
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
 
-    var mailToolbarMenuItem = document.getElementById("menu_showMessengerToolbar");
-    if (mailToolbarMenuItem) {
-        if (mailToolbarMenuItem.getAttribute("checked") == "true") {
-            getMailBar().removeAttribute("collapsed");
-        }
-    } else {
-        // Bug 440700: Corresponding toolbar menu entry is currently not
-        // accessible in Thunderbird Trunk -> always restore the toolbar
-        getMailBar().removeAttribute("collapsed");
-    }
-
-    var calendarToolbar = document.getElementById("calendar-toolbar");
-    calendarToolbar.setAttribute("collapsed", "true");
-
-    var calendarToolbar = document.getElementById("task-toolbar");
-    calendarToolbar.setAttribute("collapsed", "true");
-
-    // the content panel should display the folder tree
-    var contentDeck = document.getElementById("contentPanel");
-    contentDeck.selectedPanel = document.getElementById("folderPaneBox");
-
-    // display the mail panel on the display deck
-    var viewBox = document.getElementById("calendar-view-box");
-    collapseElement(viewBox);
-
-    // tell thunderbird that it needs to refresh the mail list.
-    // basically, we fake a selection change by directly calling
-    // the appropriate handler while clearing out some internal
-    // variables in order to force a refresh of the mail views.
-    gMsgFolderSelected = null;
-    msgWindow.openFolder = null;
-    ShowThreadPane();
-    FolderPaneSelectionChange();
-
-    document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
 
     // Disable the rotate view menuitem
@@ -150,7 +82,6 @@ function ltnSwitch2Mail() {
 
 function ltnSwitch2Calendar() {
   if (gCurrentMode != 'calendar') {
-
     var switch2mail = document.getElementById("switch2mail");
     var switch2calendar = document.getElementById("switch2calendar");
     var switch2task = document.getElementById("switch2task");
@@ -162,29 +93,20 @@ function ltnSwitch2Calendar() {
     swapPopupMenus();
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);    
 
-    var mailToolbar = getMailBar();
-    mailToolbar.setAttribute("collapsed", "true");
-
     toggleControlDisplay("cmd_toggleCalendarToolbar", "calendar-toolbar", "calendar");
     toggleControlDisplay("cmd_toggleTaskToolbar", "task-toolbar", "task");
     var taskToolbar = document.getElementById("task-toolbar");
     taskToolbar.setAttribute("collapsed", "true");
 
-
-    // the content deck should display the calendar panel
-    var contentDeck = document.getElementById("contentPanel");
-    contentDeck.selectedPanel = document.getElementById("ltnSidebar");
-
     // display the calendar panel on the display deck
     var viewBox = document.getElementById("calendar-view-box");
     uncollapseElement(viewBox);
-    var deck = document.getElementById("displayDeck");
+    var deck = document.getElementById("calendarDisplayDeck");
     deck.selectedPanel = viewBox;
 
     // show the last displayed type of calendar view
     showCalendarView(gLastShownCalendarView);
 
-    document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
 
     window.setCursor("auto");
@@ -197,38 +119,27 @@ function ltnSwitch2Calendar() {
 
 function ltnSwitch2Task() {
   if (gCurrentMode != 'task') {
-
     var switch2mail = document.getElementById("switch2mail");
     var switch2calendar = document.getElementById("switch2calendar");
     var switch2task = document.getElementById("switch2task");
     switch2mail.removeAttribute("checked");
     switch2calendar.removeAttribute("checked");
     switch2task.setAttribute("checked", "true");
+
     toggleControlDisplay("cmd_toggleCalendarToolbar", "calendar-toolbar", "calendar");
     toggleControlDisplay("cmd_toggleTaskToolbar", "task-toolbar", "task");
     gCurrentMode = 'task';
     swapPopupMenus();
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);    
-    var mailToolbar = getMailBar();
     var calendarToolbar = document.getElementById("calendar-toolbar");
-    mailToolbar.setAttribute("collapsed", "true");
     calendarToolbar.setAttribute("collapsed", "true");
-
-    // the content deck should display the calendar panel
-    var contentDeck = document.getElementById("contentPanel");
-    contentDeck.selectedPanel = document.getElementById("ltnSidebar");
 
     // display the task panel on the display deck
     var taskBox = document.getElementById("calendar-task-box");
     uncollapseElement(taskBox);
-    var deck = document.getElementById("displayDeck");
+    var deck = document.getElementById("calendarDisplayDeck");
     deck.selectedPanel = taskBox;
 
-    // change title to "Tasks"
-    document.title = ltnGetString("lightning", "taskModeApplicationTitle") + " - " + 
-                     calGetString("brand", "brandShortName", null, "branding");
-
-    document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
 
     window.setCursor("auto");
@@ -242,41 +153,17 @@ function ltnSwitch2Task() {
 
 // this shadows CustomizeMailToolbar from mail/base/content/mailCore.js
 // but adds the specific bits and pieces for lightning.
-function CustomizeApplicationToolbar(id) {
+function CustomizeCalendarToolbar(id) {
   // the following code operates different whether
   // or not we're actually customizing the mode toolbar or
   // any other toolbar.
   gCustomizeId = id;
-  var isModeToolbox = (id == 'mode-toolbox');
-  var modeName = isModeToolbox ? 'mode' : gCurrentMode;
+  var modeName = gCurrentMode;
 
   // retrieve the toolbars from the tree
-  var mailbar = getMailBar();
-  var menubar = document.getElementById('mail-menubar');
+  var calendarbox = document.getElementById('calendar-toolbox');
   var calendarbar = document.getElementById('calendar-toolbar');
   var taskbar = document.getElementById('task-toolbar');
-  var mailbox = document.getElementById("mail-toolbox");
-  var modebar = document.getElementById('mode-toolbar');
-  var modebox = document.getElementById('mode-toolbox');
-
-  // install the callback that handles what needs to be
-  // done after a toolbar has been customized.
-  if (modebox) {
-    mailbox.customizeDone = ModeToolboxCustomizeDone;
-    modebox.customizeDone = ModeToolboxCustomizeDone;
-
-    // disable elements on the toolbars
-    if (isModeToolbox) {
-      EnableDisableHierarchy(menubar, true);
-      EnableDisableHierarchy(mailbar, true);
-      EnableDisableHierarchy(calendarbar, true);
-      EnableDisableHierarchy(taskbar, true);
-    } else {
-      EnableDisableHierarchy(modebar, true);
-    }
-  } else {
-    modeName = null;
-  }
 
   var customizePopup = document.getElementById("CustomizeMailToolbar");
   customizePopup.setAttribute("disabled", "true");
@@ -296,15 +183,12 @@ function CustomizeApplicationToolbar(id) {
 
     // check which toolbar is to be customized next
     // and possibly switch the the appropriate mode.
-    if(aMode == 'mail') {
-      ltnSwitch2Mail();
-      toolbox = 'mail-toolbox';
-    } else if(aMode == 'calendar') {
+    if (aMode == 'calendar') {
       ltnSwitch2Calendar();
-      toolbox = 'mail-toolbox';
+      toolbox = 'calendar-toolbox';
     } else if(aMode == 'task') {
       ltnSwitch2Task();
-      toolbox = 'mail-toolbox';
+      toolbox = 'calendar-toolbox';
     }
 
     // enable/disable all toolbar to reflect the new state

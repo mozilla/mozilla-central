@@ -98,13 +98,19 @@
     </menu>
   </popup>
 
-  <menuitem id="menu_customizeToolbar"
+  <window id="messengerWindow">
+    <popup id="calendar-toolbar-context-menu"
+           onpopupshowing="onViewToolbarsPopupShowing(event, 'calendar-toolbox');">
+      <menuitem id="CustomizeCalendarToolbar"
+                oncommand="CustomizeMailToolbar('calendar-toolbox', 'CustomizeMailToolbar');"
             label="&customizeToolbar.label;"
-            accesskey="&customizeToolbar.accesskey;"
-            oncommand="CustomizeApplicationToolbar('mail-toolbox');"/>
+                accesskey="&customizeToolbar.accesskey;"/>
+    </popup>
+  </window>
 
-  <toolbarpalette id="MailToolbarPalette">
-<!-- All toolbar buttons that messenger-overlay-toolbar.xul wishes to include
+  <toolbox id="calendar-toolbox">
+    <toolbarpalette id="CalendarToolbarPalette">
+  <!-- All toolbar buttons that messenger-overlay-toolbar.xul wishes to include
      *must* go either into the calendar-toolbar.inc file (all toolbar buttons
      shared with Sunbird) or lightning-toolbar.inc file (toolbar buttons
      relevant only for Lightning). -->
@@ -112,11 +118,10 @@
 #include lightning-toolbar.inc
   </toolbarpalette>
   
-  <toolbox id="mail-toolbox">
     <toolbar id="calendar-toolbar"
              class="chromeclass-toolbar"
              customizable="true"
-             context="toolbar-context-menu"
+             context="calendar-toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
              defaultset="calendar-new-event-button,calendar-new-task-button,calendar-show-todaypane-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,separator,calendar-delete-button,calendar-print-button,separator,calendar-remote-reload-button,spring"
@@ -124,11 +129,12 @@
     <toolbar id="task-toolbar"
              class="chromeclass-toolbar"
              customizable="true"
-             context="toolbar-context-menu"
+             context="calendar-toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
              defaultset="task-new-event-button,task-new-task-button,task-button-address,task-show-todaypane-button,separator,task-category-button,task-progress-button,task-priority-button,separator,task-delete-button,task-print-button,separator,task-remote-reload-button,spring"
              persist="collapsedinMode"/>
+    <toolbarset id="calendar-custom-toolbars"/>
   </toolbox>
 
 </overlay>

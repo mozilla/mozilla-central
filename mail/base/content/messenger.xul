@@ -173,7 +173,9 @@
 
   <toolbox id="mail-toolbox" class="toolbox-top">
   </toolbox>
-  <tabmail id="tabmail" flex="1">
+  <tabmail id="tabmail" flex="1" panelcontainer="tabpanelcontainer">
+  <box id="tabmail-buttons" orientation="horizontal"/>
+  <tabpanels id="tabpanelcontainer" flex="1" class="plain" selectedIndex="0">
     <box id="mailContent" orient="vertical" flex="1">
     <box id="messengerBox" orient="horizontal" flex="1" minheight="100" height="100" persist="height">
     <vbox id="folderPaneBox" minwidth="100" width="200" persist="collapsed width">
@@ -431,7 +433,7 @@
     </vbox>
   </box>
   </box> <!-- end of mailContent -->
-
+  </tabpanels>
     </tabmail>
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
   <panel id="customizeToolbarSheetPopup" noautohide="true">

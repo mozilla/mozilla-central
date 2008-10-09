@@ -2327,7 +2327,7 @@
       <method name="onScroll">
         <body><![CDATA[
           // workaround: deck changes shouldn't provoke onScroll events...
-          var displayDeck = document.getElementById("displayDeck");
+          var displayDeck = document.getElementById("calendarDisplayDeck");
           if (displayDeck && displayDeck.selectedPanel.id != "calendar-view-box") {
             return;
           }

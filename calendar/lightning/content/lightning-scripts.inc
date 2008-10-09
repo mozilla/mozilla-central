@@ -46,7 +46,6 @@
 <script type="application/javascript" src="chrome://lightning/content/messenger-overlay-sidebar.js"/>
 <script type="application/javascript" src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
 <script type="application/javascript" src="chrome://lightning/content/lightning-common-sets.js"/>
-<script type="application/javascript" src="chrome://lightning/content/lightning-today-pane.js"/>
 <script type="application/javascript" src="chrome://calendar/content/calendar-invitations-manager.js"/>
 <script type="application/javascript">
     var calendarmenulabel = "&lightning.calendar.label;";

@@ -69,6 +69,6 @@
         document.addEventListener("load", checkOld, true);
     ]]></script>
 
-    <deck id="displayDeck"/>
+    <deck id="calendarDisplayDeck"/>
 
 </overlay>

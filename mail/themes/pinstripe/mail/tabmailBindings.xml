@@ -77,8 +77,9 @@
               <xul:spacer class="tabs-left"/>
             </xul:stack>
             <xul:arrowscrollbox anonid="arrowscrollbox" orient="horizontal" flex="1" style="min-width: 1px;" class="tabmail-arrowscrollbox">
-              <children/>
+              <children includes="tab"/>
             </xul:arrowscrollbox>
+            <children/>
             <xul:stack align="center" pack="end">
               <xul:hbox flex="1" class="tabs-alltabs-box" 
                         anonid="alltabs-box"/>

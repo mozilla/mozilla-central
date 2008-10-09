@@ -55,108 +55,56 @@ radio[pane=paneLightning] {
     -moz-margin-end: 8px;
 }
 
-/* ::::: mode toolbar buttons ::::: */
-#mode-toolbar {
-  padding: 5px 2px;
-  border-top: 1px solid ThreeDShadow !important;
-}
+/* ::::: tabs ::::: */
 
-#mode-toolbar[location="top"] {
-  border-top: 0 !important;
-}
-
-.toolbarbutton-2 {
-  -moz-box-orient: vertical;
-  min-width: 0px;
+/* ::: new tab buttons ::: */
+#calendar-tab-button {
   list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
-}
-
-toolbar[mode="full"] .toolbarbutton-2 {
-  min-width: 55px;
-}
-
-.toolbarbutton-2[type="menu"] {
-  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
-}
-
-#mail-switch-button {
-  -moz-image-region: rect(0px 25px 25px 0px);
-}
-
-#mail-switch-button:hover:active {
-  -moz-image-region: rect(25px 25px 50px 0px);
-}
-
-#mail-switch-button[disabled] {
-  -moz-image-region: rect(50px 25px 75px 0px);
-}
-
-#calendar-switch-button {
-  -moz-image-region: rect(0px 50px 25px 25px);
-}
-
-#calendar-switch-button:hover:active {
-  -moz-image-region: rect(25px 50px 50px 25px);
-}
-
-#calendar-switch-button[disabled] {
-  -moz-image-region: rect(50px 50px 75px 25px);
-}
-
-#task-switch-button {
-  -moz-image-region: rect(0px 75px 25px 50px);
-}
-
-#task-switch-button:hover:active {
-  -moz-image-region: rect(25px 75px 50px 50px);
-}
-
-#task-switch-button[disabled] {
-  -moz-image-region: rect(50px 75px 75px 50px);
-}
-
-/* ::::: small mode toolbar buttons ::::: */
-toolbar[iconsize="small"] .toolbarbutton-2 {
- list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
-}
-
-toolbar[iconsize="small"] #mail-switch-button {
-  -moz-image-region: rect(0px 91px 16px 75px);
-}
-
-toolbar[iconsize="small"] #mail-switch-button:hover:active {
-  -moz-image-region: rect(16px 91px 32px 75px);
-}
-
-toolbar[iconsize="small"] #mail-switch-button[disabled] {
-  -moz-image-region: rect(32px 91px 48px 75px);
-}
-
-toolbar[iconsize="small"] #calendar-switch-button {
   -moz-image-region: rect(0px 107px 16px 91px);
 }
 
-toolbar[iconsize="small"] #calendar-switch-button:hover:active {
+#calendar-tab-button:hover:active {
   -moz-image-region: rect(16px 107px 32px 91px);
 }
 
-toolbar[iconsize="small"] #calendar-switch-button[disabled] {
+#calendar-tab-button[disabled] {
   -moz-image-region: rect(32px 107px 48px 91px);
 }
 
-toolbar[iconsize="small"] #task-switch-button {
+#task-tab-button {
+ list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
   -moz-image-region: rect(0px 123px 16px 107px);
 }
 
-toolbar[iconsize="small"] #task-switch-button:hover:active {
+#task-tab-button:hover:active {
   -moz-image-region: rect(16px 123px 32px 107px);
 }
 
-toolbar[iconsize="small"] #task-switch-button[disabled] {
+#task-tab-button[disabled] {
   -moz-image-region: rect(32px 123px 48px 107px);
 }
 
-/* Lightining sidebar background in calendar and task mode */
+/* ::: tab icons ::: */
+.tabmail-tab[type="calendar"] .tab-icon-image {
+  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
+  -moz-image-region: rect(0px 107px 16px 91px);
+}
+
+.tabmail-tab[type="calendar"][selected="true"] .tab-icon-image {
+  -moz-image-region: rect(16px 107px 32px 91px);
+}
+
+.tabmail-tab[type="tasks"] .tab-icon-image {
+  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
+  -moz-image-region: rect(0px 123px 16px 107px);
+}
+
+.tabmail-tab[type="tasks"][selected="true"] .tab-icon-image {
+  -moz-image-region: rect(16px 123px 32px 107px);
+}
+
+
+/* Lightning sidebar background in calendar and task mode */
 #ltnSidebar {
   background-color: -moz-field;  
 }

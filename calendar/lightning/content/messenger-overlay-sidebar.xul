@@ -354,13 +354,6 @@
              command="cmd_toggleTaskToolbar"
              observes="cmd_toggleTaskToolbar"
              position="2"/>
-   <menuitem id="ltnModeToolbar"
-             type="checkbox"
-             label="&mode.toolbar.label;"
-             accesskey="&mode.toolbar.accesskey;"
-             observes="modeBroadcaster"
-             command="cmd_toggleModeToolbar"
-             position="3"/>
   </menupopup>
 
 <window id="messengerWindow">
@@ -374,11 +367,16 @@
   <commandset id="calendar_commands">
     <command id="agenda_delete_event_command" oncommand="agendaListbox.deleteSelectedItem(false);"/>
     <command id="agenda_edit_event_command" oncommand="agendaListbox.editSelectedItem(event);"/>
-    <command id="switch2mail" checked="true" oncommand="ltnSwitch2Mail()"/>
-    <command id="switch2calendar" oncommand="ltnSwitch2Calendar()"/>
-    <command id="switch2task" oncommand="ltnSwitch2Task()"/>
-    <command id="cmd_toggleTodayPane" oncommand="toggleTodayPaneinMailMode()"/>
-    <command id="cmd_toggleModeToolbar" oncommand="toggleToolbar('cmd_toggleModeToolbar', 'mode-toolbar')"/>
+    <command id="switch2mail" checked="true"
+      oncommand="document.getElementById('tabmail').selectTabByMode('folder')"/>
+    <command id="switch2calendar"
+      oncommand="document.getElementById('tabmail').openTab('calendar', document.getElementById('calendar-tab-button').getAttribute('tooltiptext'))"/>
+    <command id="switch2task"
+      oncommand="document.getElementById('tabmail').openTab('tasks', document.getElementById('task-tab-button').getAttribute('tooltiptext'))"/>
+    <command id="new_calendar_tab"
+      oncommand="document.getElementById('tabmail').openTab('calendar', document.getElementById('calendar-tab-button').getAttribute('tooltiptext'))"/>
+    <command id="new_task_tab"
+      oncommand="document.getElementById('tabmail').openTab('tasks', document.getElementById('task-tab-button').getAttribute('tooltiptext'))"/>
     <command id="cmd_toggleCalendarToolbar" oncommand="toggleControlinMode('cmd_toggleCalendarToolbar', 'calendar-toolbar')"/>
     <command id="cmd_toggleTaskToolbar" oncommand="toggleControlinMode('cmd_toggleTaskToolbar', 'task-toolbar')"/>
     <command id="calendar-delete-command" oncommand="ltnDeleteSelectedItem()" disabledwhennoeventsselected="true"/>
@@ -389,8 +387,8 @@
   </commandset>
 
   <keyset id="calendar-keys">
-    <key id="openLightningKey" modifiers="accel" key="3" observes="switch2calendar"/>
-    <key id="openTasksKey" modifiers="accel" key="4" command="switch2task"/>
+    <key id="openLightningKey" modifiers="accel" key="3" observes="new_calendar_tab"/>
+    <key id="openTasksKey" modifiers="accel" key="4" command="new_task_tab"/>
     <key id="todaypanekey" command="calendar_toggle_todaypane_command" keycode="VK_F11"/>
     <key id="calendar-new-event-key" key="&lightning.keys.event.new;" modifiers="accel" command="calendar_new_event_command"/>
     <key id="calendar-new-todo-key" key="&lightning.keys.todo.new;" modifiers="accel" command="calendar_new_todo_command"/>
@@ -473,16 +471,20 @@
 
 </window>
 
-<hbox id="messengerBox" flex="1">
-
-  <!-- this will replace 'folderPaneBox' -->
-  <vbox id="ltnModeBox" insertbefore="folderPaneBox" persist="collapsed width">
-
-    <deck id="contentPanel" flex="1" minwidth="100" width="200" persist="collapsed width">
-
+<box id="tabmail-buttons">
+  <toolbarbutton id="calendar-tab-button" command="new_calendar_tab"
+    tooltiptext="&lightning.toolbar.calendar.label;"/>
+  <toolbarbutton id="task-tab-button" command="new_task_tab"
+    tooltiptext="&lightning.toolbar.task.label;"/>
+</box>
+<tabpanels id="tabpanelcontainer">
+  <vbox id="calendarTabPanel" orientation="vertical">
+    <toolbox id="calendar-toolbox" class="toolbox-top"/>
+    <box id="calendarContent" orientation="horizontal" flex="1">
       <vbox id="ltnSidebar"
-            height="350"
-            persist="height"
+            minwidth="100"
+            width="200"
+            persist="collapsed width"
             ondraggesture="nsDragAndDrop.startDrag(event, calendarViewDNDObserver);"
             ondragover="nsDragAndDrop.dragOver(event, calendarViewDNDObserver);"
             ondragdrop="nsDragAndDrop.drop(event, calendarViewDNDObserver);">
@@ -531,23 +533,13 @@
                              label="&calendar.list.header.label;"/>
             <modevbox id="calendar-listtree-pane" flex="1" mode="calendar,task" broadcaster="modeBroadcaster"
                       refcontrol="calendar-list-header">
-              <!-- This will be overlayed by calendar-calendars-list.xul -->
+              
               <tree id="calendar-list-tree-widget"  class="task-tree-subpane"
                 flex="1"/>
             </modevbox>
         </modevbox>
         </vbox>
-      </vbox>
-    </deck>
-
-    <popup id="mode-toolbar-context-menu">
-      <menuitem id="customize-mode-toolbar"
-                label="&customizeToolbar.label;"
-                accesskey="&customizeToolbar.accesskey;"
-                oncommand="CustomizeApplicationToolbar('mode-toolbox');"/>
-    </popup>
-
-    <modehbox id="invitations-pane" mode="mail,calendar,task" 
+        <modehbox id="invitations-pane" mode="calendar,task"
               broadcaster="modeBroadcaster" refcontrol="calendar_toggle_invitations_command">
       <label id="invitations"
              class="text-link calendar-invitations-sidebar-label"
@@ -555,53 +547,11 @@
              onclick="openInvitationsDialog();"/>
       <spacer flex="1"/>
     </modehbox>
-
-    <toolbox id="mode-toolbox" location="bottom" mode="full">
-      <toolbarpalette id="mode-toolbox-palette">
-        <toolbarbutton class="toolbarbutton-2"
-                       mode="mode"
-                       id="mail-switch-button"
-                       label="&lightning.toolbar.mail.label;"
-                       command="switch2mail"
-                       ondraggesture="nsDragAndDrop.startDrag(event, calendarMailButtonDNDObserver);"
-                       ondragover="nsDragAndDrop.dragOver(event, calendarMailButtonDNDObserver);"
-                       ondragdrop="nsDragAndDrop.drop(event, calendarMailButtonDNDObserver);"/>
-        <toolbarbutton class="toolbarbutton-2"
-                       mode="mode"
-                       id="calendar-switch-button"
-                       label="&lightning.toolbar.calendar.label;"
-                       command="switch2calendar"
-                       ondraggesture="nsDragAndDrop.startDrag(event, calendarCalendarButtonDNDObserver);"
-                       ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
-                       ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);"/>
-        <toolbarbutton class="toolbarbutton-2"
-                       mode="mode"
-                       id="task-switch-button"
-                       label="&lightning.toolbar.task.label;"
-                       command="switch2task"
-                       ondraggesture="nsDragAndDrop.startDrag(event, calendarTaskButtonDNDObserver);"
-                       ondragover="nsDragAndDrop.dragOver(event, calendarTaskButtonDNDObserver);"
-                       ondragdrop="nsDragAndDrop.drop(event, calendarTaskButtonDNDObserver);"/>
-      </toolbarpalette>
-      <toolbar id="mode-toolbar"
-               class="chromeclass-toolbar"
-               customizable="true"
-               defaultset="mail-switch-button,calendar-switch-button,task-switch-button,spring"
-               context="mode-toolbar-context-menu"
-               persist="collapsed"/>
-      <toolbarset id="custom-toolbars"/>
-    </toolbox>
-
   </vbox>
-  <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed">
-      <grippy/>
-  </splitter>
-  <modevbox id="today-pane-panel"
-            addtoolbarbutton="true"
-            persist="width addtoolbarbutton"/>
-</hbox>
 
-<deck id="displayDeck">
+      <splitter id="calsidebar_splitter" collapse="before" persist="state"/>
+      
+      <deck id="calendarDisplayDeck" flex="1">
   <vbox id="calendar-view-box" context="calendar-view-context-menu">
     <deck flex="1"
           id="view-deck"
@@ -623,7 +573,16 @@
                                          item-context="calendar-item-context-menu"/>
     </deck>
   </vbox>
-</deck>
+      </deck>
 
-<vbox id="messagepanebox"/>
+      <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed">
+          <grippy/>
+      </splitter>
+      <modevbox id="today-pane-panel"
+                addtoolbarbutton="true"
+                persist="width addtoolbarbutton"/>
+    </box>
+  </vbox>
+</tabpanels>
+
 </overlay>

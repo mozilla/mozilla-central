@@ -30,6 +30,7 @@
 #   Karsten Düsterloh <mnyromyr@tprac.de>
 #   Christopher Thomas <cst@yecc.com>
 #   Jeremy Morton <bugzilla@game-point.net>
+#   Andrew Sutherland <asutherland@asutherland.org>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1294,104 +1295,6 @@ function MsgOpenNewWindowForFolder(uri, key)
     window.openDialog("chrome://messenger/content/", "_blank", "chrome,all,dialog=no", uriToOpen, keyToSelect);
 }
 
-/** 
-  *saveMailTabInfo - a private helper routine shared by message and folder tab owners to save
-  *                                 the local state of a mail tab
-  * @param aMailTabOwner
-  */
-function saveMailTabInfo(aMailTabOwner)
-{
-  if (aMailTabOwner)
-  {
-    aMailTabOwner.messenger = messenger;
-    aMailTabOwner.dbView = gDBView;
-    aMailTabOwner.searchSession = gSearchSession;
-    var indices = GetSelectedIndices(gDBView);
-    if (indices)
-    {
-      aMailTabOwner.selectedKeys = new Array(indices.length);
-      aMailTabOwner.selectedFolders = new Array(indices.length);
-    }
-    if (gDBView.currentlyDisplayedMessage != -1)
-    {
-      try // there may not be a selected message.
-      {
-          var curMsgHdr = gDBView.hdrForFirstSelectedMessage;
-          aMailTabOwner.selectedMsgId = curMsgHdr.messageId;
-          aMailTabOwner.msgSelectedFolder = curMsgHdr.folder;
-      }
-      catch (ex) {aMailTabOwner.msgSelectedFolder = gMsgFolderSelected};
-    }
-    else
-    {
-      aMailTabOwner.selectedMsgId = null;
-      aMailTabOwner.msgSelectedFolder = null;
-    }
-    if (indices)
-    {
-      for (var i = 0; i < indices.length; i++)
-      {
-        aMailTabOwner.selectedKeys[i] = gDBView.getKeyAt(i);
-        aMailTabOwner.selectedFolders[i] = gDBView.getFolderForViewIndex(i);
-      }
-    }
-  }
-}
-
-/**
-  * setMailTabState - a private helper routine shared by message and folder tab owners for setting up various
-                                     global variables based on the current tab.
-  * @param aMailTabOwner 
-  */
-function setMailTabState(aMailTabOwner)
-{
-  messenger = aMailTabOwner.messenger;
-  gDBView = aMailTabOwner.dbView;
-  gSearchSession = aMailTabOwner.searchSession;
-  if (gDBView)
-  {
-    var folderTree = GetFolderTree();
-    var row = EnsureFolderIndex(folderTree.builderView, gDBView.msgFolder);
-    
-    var folderTreeBoxObj = folderTree.treeBoxObject;
-    var folderTreeSelection = folderTreeBoxObj.view.selection;
-    // make sure that row.value is valid so that it doesn't mess up
-    // the call to ensureRowIsVisible().
-    if((row >= 0) && !folderTreeSelection.isSelected(row))
-    {
-      gMsgFolderSelected = gDBView.msgFolder;
-      folderTreeSelection.selectEventsSuppressed = true;
-      folderTreeSelection.select(row);
-      folderTreeBoxObj.ensureRowIsVisible(row);
-      folderTreeSelection.selectEventsSuppressed = false;
-    }
-    // this sets the thread pane tree's view to the gDBView view.
-    UpdateSortIndicators(gDBView.sortType, gDBView.sortOrder);
-    RerootThreadPane();
-    // we need to restore the selection to what it was when we switched away from this tab.
-    // we need to remember the selected keys, instead of the selected indices, since the view
-    // might have changed. But maybe the selectedIndices adjust as items are added/removed from
-    // the (hidden) view.
-    ClearThreadPaneSelection(); 
-    try
-    {
-      if (aMailTabOwner.selectedMsgId && aMailTabOwner.msgSelectedFolder)
-      {
-        var msgDB = aMailTabOwner.msgSelectedFolder.getMsgDatabase(msgWindow);
-        var msgHdr = msgDB.getMsgHdrForMessageID(aMailTabOwner.selectedMsgId);
-        setTimeout(gDBView.selectFolderMsgByKey, 0, aMailTabOwner.msgSelectedFolder, msgHdr.messageKey);
-      }
-    }
-    catch (ex) {dump(ex);}
-  }
-  else
-  {
-    var tree = GetThreadTree();
-    tree.boxObject.QueryInterface(Components.interfaces.nsITreeBoxObject).view = null;
-    ClearMessagePane();
-  }
-}
-
 function CreateToolbarTooltip(document, event)
 {
   event.stopPropagation();
@@ -1436,16 +1339,78 @@ function DisplayFolderAndThreadPane(show)
 }
 
 /**
-  * openFolderTab - a private helper method used by folder and message tab owners.
-  * @param aMailTabOwner
+ * mailTabType provides both "folder" and "message" tab modes.  Under the
+ *  previous TabOwner framework, their logic was separated into two 'classes'
+ *  which called common helper methods and had similar boilerplate logic.
   */
-function openFolderTab(aMailTabOwner)
-{
+let mailTabType = {
+  name: "mail",
+  panelId: "mailContent",
+  modes: {
+    folder: {
+      isDefault: true,
+      type: "folder",
+      openTab: function(aTab, aFolderUri) {
+        aTab.uriToOpen = aFolderUri;
+
+        this.openTab(aTab); // call superclass logic
+      },
+      showTab: function(aTab) {
+        this.folderAndThreadPaneVisible = true;
+        ClearMessagePane();
+
+        this.showTab(aTab);
+      },
+      onTitleChanged: function(aTab, aTabNode) {
+        aTab.title = gMsgFolderSelected.prettyName;
+        // the user may have changed folders, triggering our onTitleChanged callback.
+        // update the appropriate attributes on the tab.
+        aTabNode.setAttribute('SpecialFolder', getSpecialFolderString(gMsgFolderSelected));
+        aTabNode.setAttribute('ServerType', gMsgFolderSelected.server.type);
+      }
+    },
+    message: {
+      type: "message",
+      openTab: function(aTab, aFolderUri, aMsgHdr) {
+        aTab.uriToOpen = aFolderUri;
+        aTab.hdr = aMsgHdr;
+
+        aTab.title = aTab.hdr.mime2DecodedSubject;
+
+        this.openTab(aTab); // call superclass logic
+
+        gCurrentlyDisplayedMessage = nsMsgViewIndex_None;
   ClearThreadPaneSelection(); 
+        setTimeout(gDBView.selectFolderMsgByKey, 0, aTab.hdr.folder,
+                   aTab.hdr.messageKey);
+
+        // let's try hiding the thread pane and folder pane
+        this.folderAndThreadPaneVisible = false;
+      },
+      showTab: function(aTab) {
+        this.folderAndThreadPaneVisible = false;
+        // ClearMessagePane();
+
+        this.showTab(aTab);
+      }
+    }
+  },
+  /**
+   * Create the new tab's state, which engenders some side effects.  Part of our
+   *  contract is that we leave the tab in the selected state.
+   */
+  openTab: function(aTab) {
+    ClearThreadPaneSelection();
+
+    // each tab gets its own messenger instance; I assume this is so each one
+    //  gets its own undo/redo stack?
   messenger = Components.classes["@mozilla.org/messenger;1"]
                         .createInstance(Components.interfaces.nsIMessenger);
   messenger.setWindow(window, msgWindow);
-  aMailTabOwner.msgSelectedFolder = gMsgFolderSelected;
+    aTab.messenger = messenger;
+
+    aTab.msgSelectedFolder = gMsgFolderSelected;
+
   // clear selection, because context clicking on a folder and opening in a new
   // tab needs to have SelectFolder think the selection has changed.
   // We also need to clear these globals to subvert the code that prevents
@@ -1454,118 +1419,126 @@ function openFolderTab(aMailTabOwner)
   GetFolderTree().view.selection.currentIndex = -1;
   gMsgFolderSelected = null;
   msgWindow.openFolder = null;
+
   // clear thread pane selection - otherwise, the tree tries to impose 
   // the current selection on the new view.
   gDBView = null; // clear gDBView so we won't try to close it.
-  SelectFolder(aMailTabOwner.uriToOpen);
-  aMailTabOwner.dbView = gDBView;
-}
-
-function folderTabOwner()
-{
-  saveMailTabInfo(this);
-}
-
-folderTabOwner.prototype =
-{
-  open : function ()
-  {
-    openFolderTab(this);
+    SelectFolder(aTab.uriToOpen);
+    aTab.dbView = gDBView;
   },
   
-  close : function () 
-  {
-    if (this.dbView)
-      this.dbView.close();
-    if (this.messenger)
-      this.messenger.setWindow(null, null);
+  closeTab: function(aTab) {
+    if (aTab.dbView)
+      aTab.dbView.close();
+    if (aTab.messenger)
+      aTab.messenger.setWindow(null, null);
   },
 
-  saveCurrentInfo : function()
-  {
-    saveMailTabInfo(this);
-  },
+  saveTabState: function(aTab) {
+    aTab.messenger = messenger;
+    aTab.dbView = gDBView;
+    aTab.searchSession = gSearchSession;
 
-  onSelect : function(aPreviousTabOwner)
+    if (gDBView.currentlyDisplayedMessage != nsMsgViewIndex_None)
   {
-    if (aPreviousTabOwner.type != this.type)
+      try // there may not be a selected message.
     {
-      ClearMessagePane();
-      DisplayFolderAndThreadPane(true);
+        var curMsgHdr = gDBView.hdrForFirstSelectedMessage;
+        aTab.selectedMsgId = curMsgHdr.messageId;
+        aTab.msgSelectedFolder = curMsgHdr.folder;
     }
-    setMailTabState(this);
+      catch (ex)
+  {
+        aTab.msgSelectedFolder = gMsgFolderSelected
+      }
+    }
+    else
+  {
+      aTab.selectedMsgId = null;
+      aTab.msgSelectedFolder = null;
+    }
   },
 
-  onTitleChanged: function(aTab)
-  {
-    // the user may have changed folders, triggering our onTitleChanged callback.
-    // update the appropriate attributes on the tab.
-    aTab.setAttribute('SpecialFolder', getSpecialFolderString(gMsgFolderSelected));
-    aTab.setAttribute('ServerType', gMsgFolderSelected.server.type);
-    return;
+  _folderAndThreadPaneVisible: true,
+  get folderAndThreadPaneVisible() { return this._folderAndThreadPaneVisible; },
+  set folderAndThreadPaneVisible(aDesiredVisible) {
+    if (aDesiredVisible != this._folderAndThreadPaneVisible) {
+      DisplayFolderAndThreadPane(aDesiredVisible);
+      this._folderAndThreadPaneVisible = aDesiredVisible;
+    }
   },
 
-  get title()
+  showTab: function(aTab) {
+    // restore globals
+    messenger = aTab.messenger;
+    gDBView = aTab.dbView;
+    gSearchSession = aTab.searchSession;
+
+    // restore view state if we had one
+    if (gDBView)
   {
-    // this only works if we are the owner of the current tab...
-    return gMsgFolderSelected.prettyName;
-  },
+      var folderTree = GetFolderTree();
+      var row = EnsureFolderIndex(folderTree.builderView, gDBView.msgFolder);
 
-  type : "folder",
-};
-
-function messageTabOwner()
-{
-  saveMailTabInfo(this);
-}
-
-messageTabOwner.prototype =
-{
-  open : function ()
-  {
-    openFolderTab(this);
-    gCurrentlyDisplayedMessage = -1;
-    ClearThreadPaneSelection();
-    setTimeout(gDBView.selectFolderMsgByKey, 0, this.hdr.folder, this.hdr.messageKey);
-    // let's try hiding the thread pane and folder pane
-    DisplayFolderAndThreadPane(false);
-  },
-
-  close : function () 
-  {
-    if (this.dbView)
-      this.dbView.close();
-    if (this.messenger)
-      this.messenger.setWindow(null, null);
-  },
-
-  saveCurrentInfo : function()
-  {
-    saveMailTabInfo(this);
-  },
-
-  onSelect : function(aPreviousTabOwner)
-  {
-    if (aPreviousTabOwner.type != this.type)
+      var folderTreeBoxObj = folderTree.treeBoxObject;
+      var folderTreeSelection = folderTreeBoxObj.view.selection;
+      // make sure that row.value is valid so that it doesn't mess up
+      // the call to ensureRowIsVisible().
+      if ((row >= 0) && !folderTreeSelection.isSelected(row))
     {
-      ClearMessagePane();
-      DisplayFolderAndThreadPane(false);
+        gMsgFolderSelected = gDBView.msgFolder;
+        folderTreeSelection.selectEventsSuppressed = true;
+        folderTreeSelection.select(row);
+        folderTreeBoxObj.ensureRowIsVisible(row);
+        folderTreeSelection.selectEventsSuppressed = false;
     }
-    setMailTabState(this);
-  },
-
-  onTitleChanged: function(aTab)
+      // this sets the thread pane tree's view to the gDBView view.
+      UpdateSortIndicators(gDBView.sortType, gDBView.sortOrder);
+      RerootThreadPane();
+      // we need to restore the selection to what it was when we switched away
+      // from this tab. we need to remember the selected keys, instead of the
+      // selected indices, since the view might have changed. But maybe the
+      // selectedIndices adjust as items are added/removed from the (hidden)
+      // view.
+      try
   {
-    return;
-  },
-
-  get title()
+        if (aTab.selectedMsgId && aTab.msgSelectedFolder)
   {
-    return this.hdr.mime2DecodedSubject;
-  },
+          // we clear the selection in order to generate an event when we
+          //  re-select our message.
+          ClearThreadPaneSelection();
 
-  type : "message",
+          var msgDB = aTab.msgSelectedFolder.getMsgDatabase(msgWindow);
+          var msgHdr = msgDB.getMsgHdrForMessageID(aTab.selectedMsgId);
+          setTimeout(gDBView.selectFolderMsgByKey, 0, aTab.msgSelectedFolder,
+                     msgHdr.messageKey);
+        }
+        // (we do not clear the selection if there was more than one message
+        //  displayed.  this leaves our selection intact. there was originally
+        //  some claim that the selection might lose synchronization with the
+        //  view, but this is unsubstantiated.  said comment came from the
+        //  original code that stored information on the selected rows, but
+        //  then failed to do anything with it, probably because there is no
+        //  existing API call that accomplishes it.)
+      }
+      catch (ex) {dump(ex);}
+    }
+    // make sure the folder tree knows that we don't have a view
+    else
+    {
+      var tree = GetThreadTree();
+      tree.boxObject.QueryInterface(Ci.nsITreeBoxObject).view = null;
+      ClearMessagePane();
+    }
+  }
 };
+window.addEventListener("load", function(e) {
+    let tabmail = document.getElementById('tabmail');
+    if (tabmail) {
+      tabmail.registerTabType(mailTabType);
+      tabmail.openFirstTab();
+    }
+  }, false);
 
 function MsgOpenNewTabForFolder(uri, key)
 {
@@ -1584,9 +1557,7 @@ function MsgOpenNewTabForFolder(uri, key)
   // This assumes the first tab is always a 3-pane ui, which
   // may not be right, especially if we have the ability
   // to persist your tab setup.
-  var newTab = new folderTabOwner();
-  newTab.uriToOpen = uriToOpen;
-  document.getElementById('tabmail').addTab(newTab);
+  document.getElementById('tabmail').openTab("folder", uriToOpen);
 }
 
 function MsgOpenNewTabForMessage(messageKey, folderUri)
@@ -1605,10 +1576,7 @@ function MsgOpenNewTabForMessage(messageKey, folderUri)
   // fix it so we won't try to load the previously loaded message.
   hdr.folder.lastMessageLoaded = nsMsgKey_None;
   
-  tab = new messageTabOwner();
-  tab.uriToOpen = folderUri;
-  tab.hdr = hdr;
-  document.getElementById('tabmail').addTab(tab);
+  document.getElementById('tabmail').openTab("message", folderUri, hdr);
 }
 
 // passing in the view, so this will work for search and the thread pane
@@ -2319,7 +2287,7 @@ function CoalesceGetMsgsForPop3ServersByDestFolder(currentServer, pop3DownloadSe
   var index = localFoldersToDownloadTo.GetIndexOf(inboxFolder);
   if (index == -1)
   {
-    if(inboxFolder) 
+    if (inboxFolder)
     {
       inboxFolder.biffState =  Components.interfaces.nsIMsgFolder.nsMsgBiffState_NoMail;
       inboxFolder.clearNewMessages();

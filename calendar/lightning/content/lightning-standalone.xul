@@ -48,11 +48,11 @@
   id="lightning"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <!-- messenger-overlay-sidebar expects to overlay a vbox named "folderPaneBox" and a 
-     - deck named "displayDeck".  So we oblige.
+     - deck named "calendarDisplayDeck".  So we oblige.
     -->
   <hbox flex="1">
     <vbox id="folderPaneBox" flex="1"/>
     <splitter />
-    <deck id="displayDeck" flex="4"/>
+    <deck id="calendarDisplayDeck" flex="4"/>
   </hbox>
 </window>
