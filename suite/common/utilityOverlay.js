@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -291,7 +291,7 @@ function goClickThrobber( urlPref )
   }
 
   if ( url )
-    openTopWin(url);
+    openUILink(url);
 }
 
 function getTopWin()
@@ -360,28 +360,23 @@ function goAbout(aProtocol)
   const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
   const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
 
-  var browserWin;
+  var target;
   var url = "about:" + (aProtocol || "");
   var pref = Components.classes["@mozilla.org/preferences-service;1"]
                        .getService(Components.interfaces.nsIPrefBranch);
   var defaultAboutState = pref.getIntPref("browser.link.open_external");
 
-  if (defaultAboutState != kNewWindow)
-    browserWin = getTopWin();
-
-  if (!browserWin)
-    window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", url);
-  else {
-    if (defaultAboutState == kExistingWindow)
-      browserWin.loadURI(url);
-    else {
-      // new tab
-      var browser = browserWin.getBrowser();
-      var newTab = browser.addTab(url);
-      browser.selectedTab = newTab;
-    }
-    browserWin.content.focus();
+  switch (defaultAboutState) {
+  case kNewWindow:
+    target = "window";
+    break;
+  case kExistingWindow:
+    target = "current";
+    break;
+  default:
+    target = "tab";
   }
+  openUILinkIn(url, target);
 }
 
 function goReleaseNotes()
@@ -390,7 +385,7 @@ function goReleaseNotes()
   try {
     var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
                               .getService(Components.interfaces.nsIURLFormatter);
-    openTopWin(formatter.formatURLPref("app.releaseNotesURL"));
+    openUILink(formatter.formatURLPref("app.releaseNotesURL"));
   }
   catch (ex) { dump(ex); }
 }
@@ -780,4 +775,206 @@ function isValidFeed(aData, aPrincipal, aIsFeed)
   }
 
   return null;
+}
+
+// Used as an onclick handler for UI elements with link-like behavior.
+// e.g. onclick="checkForMiddleClick(this, event);"
+function checkForMiddleClick(node, event) {
+  // We should be using the disabled property here instead of the attribute,
+  // but some elements that this function is used with don't support it (e.g.
+  // menuitem).
+  if (node.getAttribute("disabled") == "true")
+    return; // Do nothing
+
+  if (event.button == 1) {
+    /* Execute the node's oncommand or command.
+     *
+     * XXX: we should use node.oncommand(event) once bug 246720 is fixed.
+     */
+    var target = node.hasAttribute("oncommand") ? node :
+                 node.ownerDocument.getElementById(node.getAttribute("command"));
+    var fn = new Function("event", target.getAttribute("oncommand"));
+    fn.call(target, event);
+
+    // If the middle-click was on part of a menu, close the menu.
+    // (Menus close automatically with left-click but not with middle-click.)
+    closeMenus(event.target);
+  }
+}
+
+// Closes all popups that are ancestors of the node.
+function closeMenus(node)
+{
+  for (; node; node = node.parentNode) {
+    if (node instanceof Components.interfaces.nsIDOMXULPopupElement)
+      node.hidePopup();
+  }
+}
+
+function getBoolPref(prefname, def)
+{
+  try {
+    var pref = Components.classes["@mozilla.org/preferences-service;1"]
+                         .getService(Components.interfaces.nsIPrefBranch);
+    return pref.getBoolPref(prefname);
+  }
+  catch (er) {
+    return def;
+  }
+}
+
+// openUILink handles clicks on UI elements that cause URLs to load.
+function openUILink(url, e, ignoreButton, ignoreSave, allowKeywordFixup)
+{
+  var where = whereToOpenLink(e, ignoreButton, ignoreSave);
+  return openUILinkIn(url, where, allowKeywordFixup);
+}
+
+/* whereToOpenLink() looks at an event to decide where to open a link.
+ *
+ * The event may be a mouse event (click, double-click, middle-click) or keypress event (enter).
+ *
+ * The logic for modifiers is as following:
+ * If browser.tabs.opentabfor.middleclick is true, then Ctrl (or Meta) and middle-click
+ * open a new tab, depending on Shift and browser.tabs.loadInBackground.
+ * Otherwise if middlemouse.openNewWindow is true, then Ctrl (or Meta) and middle-click
+ * open a new window.
+ * Otherwise if middle-click is pressed then nothing happens.
+ * Save is Alt or Shift depending on the ui.key.saveLink.shift preference.
+ * Otherwise if Alt, or Shift, or Ctrl (or Meta) is pressed then nothing happens.
+ * Otherwise the most recent browser is used for left clicks.
+ */
+function whereToOpenLink(e, ignoreButton, ignoreSave)
+{
+  if (!e)
+    return "current";
+
+  var shift = e.shiftKey;
+  var ctrl = e.ctrlKey;
+  var meta = e.metaKey;
+  var alt = e.altKey;
+
+  // ignoreButton allows "middle-click paste" to use function without always opening in a new window.
+  var middle = !ignoreButton && e.button == 1;
+
+  if (meta || ctrl || middle) {
+    if (getBoolPref("browser.tabs.opentabfor.middleclick", true))
+      return shift ? "tabshifted" : "tab";
+    if (getBoolPref("middlemouse.openNewWindow", true))
+      return "window";
+    if (middle)
+      return null;
+  }
+  if (!ignoreSave) {
+    var saveKey = getBoolPref("ui.key.saveLink.shift", true) ? shift : alt;
+    if (saveKey)
+      return "save";
+  }
+  if (alt || shift || meta || ctrl)
+    return null;
+  return "current";
+}
+
+/* openUILinkIn opens a URL in a place specified by the parameter |where|.
+ *
+ * |where| can be:
+ *  "current"     current tab            (if there aren't any browser windows, then in a new window instead)
+ *  "tab"         new tab                (if there aren't any browser windows, then in a new window instead)
+ *  "tabshifted"  same as "tab" but in background if default is to select new tabs, and vice versa
+ *  "window"      new window
+ *  "save"        save to disk (with no filename hint!)
+ *
+ * allowThirdPartyFixup controls whether third party services such as Google's
+ * I'm Feeling Lucky are allowed to interpret this URL. This parameter may be
+ * undefined, which is treated as false.
+ */
+function openUILinkIn(url, where, allowThirdPartyFixup)
+{
+  if (!where || !url)
+    return null;
+
+  if (where == "save") {
+    saveURL(url, null, null, true);
+    return null;
+  }
+
+  var w = getTopWin();
+
+  const nsIWebNavigation = Components.interfaces.nsIWebNavigation;
+  var flags = allowThirdPartyFixup ? nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP :
+                                     nsIWebNavigation.LOAD_FLAGS_NONE;
+
+  if (!w || where == "window") {
+    return window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", url,
+                             null, null, flags);
+  }
+
+  var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
+
+  switch (where) {
+  case "current":
+    w.loadURI(url, null, flags);
+    break;
+  case "tabshifted":
+    loadInBackground = !loadInBackground;
+    // fall through
+  case "tab":
+    var browser = w.getBrowser();
+    var tab = browser.addTab(url, null, null, false, flags);
+    if (!loadInBackground)
+      browser.selectedTab = tab;
+    break;
+  }
+
+  w.content.focus();
+  return w;
+}
+
+// This opens the URLs contained in the given array in new tabs
+// of the most recent window, creates a new window if necessary.
+function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
+{
+  if (!where || !urlArray.length)
+    return null;
+
+  if (where == "save") {
+    for (var i = 0; i < urlArray.length; i++)
+      saveURL(urlArray[i], null, null, true);
+    return null;
+  }
+
+  var w = getTopWin();
+
+  const nsIWebNavigation = Components.interfaces.nsIWebNavigation;
+  var flags = allowThirdPartyFixup ? nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP :
+                                     nsIWebNavigation.LOAD_FLAGS_NONE;
+
+  if (!w || where == "window") {
+    return window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no",
+                             urlArray.join("\n"), // Pretend that we're a home page group
+                             null, null, flags);
+  }
+
+  var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
+
+  var browser;
+  switch (where) {
+  case "current":
+    w.loadURI(urlArray[0], null, flags);
+    browser = w.getBrowser();
+    break;
+  case "tabshifted":
+    loadInBackground = !loadInBackground;
+    // fall through
+  case "tab":
+    browser = w.getBrowser();
+    var tab = browser.addTab(urlArray[0], null, null, false, flags);
+    if (!loadInBackground)
+      browser.selectedTab = tab;
+  }
+  for (var i = 1; i < urlArray.length; i++)
+    browser.addTab(urlArray[i], null, null, false, flags);
+
+  w.content.focus();
+  return w;
 }
