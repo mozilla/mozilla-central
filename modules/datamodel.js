@@ -177,7 +177,7 @@ let GlodaHasAttributesMixIn = {
   get_attributes: function() {
     let seenDefs = {};
     let attribs = [];
-    for each (let attrParamVal in this.rawAttributes) {
+    for each (let [iAPV, attrParamVal] in Iterator(this.rawAttributes)) {
       let attrDef = attrParamVal[0];
       if (!(attrDef in seenDefs)) {
         if (attrDef.isBound) {
@@ -228,7 +228,7 @@ let GlodaHasAttributesMixIn = {
       return;
 
     let seenDefs = {};
-    for each (let attrParamVal in this._attributes) {
+    for each (let [iAPV, attrParamVal] in Iterator(this._attributes)) {
       let attrDef = attrParamVal[0];
       if (!(attrDef in seenDefs)) {
         if (attrDef.isBound) {
@@ -243,7 +243,8 @@ let GlodaHasAttributesMixIn = {
   },
 
   getAttributeInstances: function gloda_attrix_getAttributeInstances(aAttr) {
-    return [attrParamVal for each (attrParamVal in this.rawAttributes) if
+    return [attrParamVal for each
+            ([iAPV, attrParamVal] in Iterator(this.rawAttributes)) if
             (attrParamVal[0] == aAttr)];
   },
 

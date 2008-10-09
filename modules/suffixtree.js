@@ -356,7 +356,7 @@ dump("  bailing! (bail was: " + bail + ")\n");
       dump(aIndent + aKey + ": (explicit:" + aState.start + ":" + aState.end +")\n");
     let nextIndent = aIndent + "  ";
     let keys = [c for (c in aState) if (c.length == 1)];
-    for each (let key in keys) {
+    for each (let [iKey, key] in Iterator(keys)) {
       this.dump(aState[key], nextIndent, key);
     }
   }

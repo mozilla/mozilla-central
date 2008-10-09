@@ -239,7 +239,7 @@ var GlodaABAttrs = {
     }
     if (tags) {
       this._log.debug("Found tags: " + tags);
-      for each (let tagName in tags.split(",")) {
+      for each (let [iTagName, tagName] in Iterator(tags.split(","))) {
         tagName = tagName.trim();
         // return attrib, param, value; we know the param to use because we know
         //  how FreeTagNoun works, but this is a candidate for refactoring.

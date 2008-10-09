@@ -632,8 +632,8 @@ var GlodaDatastore = {
     if (!this.syncConnection.tableExists(aTableDef._realName)) {
       try {
         this.syncConnection.createTable(aTableDef._realName,
-                                        [coldef.join(" ") for each
-                                     (coldef in aTableDef.columns)].join(", "));
+          [coldef.join(" ") for each
+           ([i, coldef] in Iterator(aTableDef.columns))].join(", "));
       }
       catch (ex) {
          this._log.error("Problem creating table " + aTableDef.name + " " +
@@ -699,7 +699,8 @@ var GlodaDatastore = {
   },
 
   _cleanupAsyncStatements: function gloda_ds_cleanupAsyncStatements() {
-    [stmt.finalize() for each (stmt in this._outstandingAsyncStatements)];
+    [stmt.finalize() for each
+     ([i, stmt] in Iterator(this._outstandingAsyncStatements))];
   },
 
   _outstandingSyncStatements: [],
@@ -723,7 +724,8 @@ var GlodaDatastore = {
   },
 
   _cleanupSyncStatements: function gloda_ds_cleanupSyncStatements() {
-    [stmt.finalize() for each (stmt in this._outstandingSyncStatements)];
+    [stmt.finalize() for each
+     ([i, stmt] in Iterator(this._outstandingSyncStatements))];
   },
 
   /**
@@ -1656,7 +1658,7 @@ var GlodaDatastore = {
     //  a chain of ORed tests really can't be bound unless we create one per
     //  value of N (seems silly).
     let quotedIDs = ["'" + msgID.replace("'", "''", "g") + "'" for each
-                     (msgID in aMessageIDs)]
+                     ([i, msgID] in Iterator(aMessageIDs))]
     let sqlString = "SELECT * FROM messages WHERE headerMessageID IN (" +
                     quotedIDs + ")";
     let statement = this._createAsyncStatement(sqlString, true);
@@ -2031,7 +2033,8 @@ var GlodaDatastore = {
         // -- handle full-text specially here, it's different than the other
         //  cases...
         if (presumedAttr.special == kSpecialFulltext) {
-          let matchStr = [APV[2] for each (APV in attr_ors)].join(" OR ");
+          let matchStr = [APV[2] for each
+            ([iAPV, APV] in Iterator(attr_ors))].join(" OR ");
           matchStr.replace("'", "''");
 
           // for example, the match
@@ -2117,7 +2120,7 @@ var GlodaDatastore = {
               //  supporting async operation, we should also move to binding all
               //  arguments for dynamic queries too.
               likePayload = '';
-              for each (let valuePart in APV[2]) {
+              for each (let [iValuePart, valuePart] in Iterator(APV[2])) {
                 if (typeof valuePart == "string")
                   likePayload += this._escapeLikeStatement.escapeStringForLIKE(
                     valuePart, "/");
@@ -2130,13 +2133,13 @@ var GlodaDatastore = {
           }
         }
         let select = "SELECT " + idColumnName + " FROM " + tableName +
-                     " WHERE " +
-                     [("(" + avt[0] +
-                       (avt[1].length ? ((avt[0] ? " AND " : "") + "(" 
-                            + avt[1].join(" OR ") + ")") :
-                          "")
-                       + ")")
-                      for each (avt in attrValueTests)].join(" OR ");
+          " WHERE " +
+          [("(" + avt[0] +
+            (avt[1].length ? ((avt[0] ? " AND " : "") + "(" 
+                 + avt[1].join(" OR ") + ")") :
+               "")
+            + ")")
+           for each ([i, avt] in Iterator(attrValueTests))].join(" OR ");
         selects.push(select);
       }
 

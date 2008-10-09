@@ -78,7 +78,7 @@ var FreeTagNoun = {
     let tag = this.knownFreeTags[aTagName];
     if (!tag) {
       tag = this.knownFreeTags[aTagName] = new FreeTag(aTagName);
-      for each (let listener in this._listeners)
+      for each (let [iListener, listener] in Iterator(this._listeners))
         listener.onFreeTagAdded(tag);
     }
     return tag;

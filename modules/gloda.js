@@ -678,7 +678,7 @@ var Gloda = {
     let nounMeta = this._nounIDToMeta[aNounID];
     if (!nounMeta)
       return [];
-    return [action for each (action in nounMeta.actions)
+    return [action for each ([i, action] in Iterator(nounMeta.actions))
             if (!aActionType || (action.actionType == aActionType))];
   },
 

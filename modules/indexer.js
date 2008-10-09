@@ -318,7 +318,8 @@ var GlodaIndexer = {
     this._otherIndexers.push(aIndexer);
     
     try {
-      for each (let [workerCode, workerFunc] in aIndexer.workers) {
+      for each (let [iWorker, workerInfo] in Iterator(aIndexer.workers)) {
+        let [workerCode, workerFunc] = workerInfo;
         this._otherIndexerWorkers[workerCode] = [aIndexer, workerFunc];
       }
     }
@@ -377,7 +378,7 @@ var GlodaIndexer = {
       
       this._enabled = true;
       
-      for each (let indexer in this._otherIndexers) {
+      for each (let [iIndexer, indexer] in Iterator(this._otherIndexers)) {
         try {
           indexer.enable();
         } catch (ex) {
@@ -392,7 +393,7 @@ var GlodaIndexer = {
       }
     }
     else if (this._enabled && !aEnable) {
-      for each (let indexer in this._otherIndexers) {
+      for each (let [iIndexer, indexer] in Iterator(this._otherIndexers)) {
         try {
           indexer.disable();
         } catch (ex) {
@@ -1123,7 +1124,7 @@ var GlodaIndexer = {
     //  a lot to do, but if they only have a little to do, they can get away
     //  with it, as we yield a sync after each one.
     if (!this._initialSweepPerformed) {
-      for each (let indexer in this._otherIndexers) {
+      for each (let [iIndexer, indexer] in Iterator(this._otherIndexers)) {
         try {
           indexer.initialSweep();
         }
@@ -1235,7 +1236,7 @@ var GlodaIndexer = {
     let processedAny = false;
     while (messagesToDelete.length) {
       aJob.goal += messagesToDelete.length;
-      for each (let message in messagesToDelete) {
+      for each (let [iMessage, message] in Iterator(messagesToDelete)) {
         this._deleteMessage(message);
         aJob.offset++;
         yield this.kWorkSync;
@@ -1327,7 +1328,7 @@ var GlodaIndexer = {
   indexMessages: function gloda_index_indexMessages(aFoldersAndMessages) {
     let job = new IndexingJob("message", 1, null);
     job.items = [[GlodaDatastore._mapFolderURI(fm[0].URI), fm[1]] for each
-                 (fm in aFoldersAndMessages)];
+                 ([i, fm] in Iterator(aFoldersAndMessages))];
     this._indexQueue.push(job);
     this._indexingJobGoal++;
     this.indexing = true;
@@ -1989,7 +1990,7 @@ var GlodaIndexer = {
     let attachmentNames = null;
     if (aMimeMsg) {
       let allAttachmentNames = [att.name for each
-                                (att in aMimeMsg.allAttachments)
+                                ([i, att] in Iterator(aMimeMsg.allAttachments))
                                 if (att.isRealAttachment)];
       // we need some kind of delimeter for the names.  we use a newline.
       if (allAttachmentNames)

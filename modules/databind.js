@@ -50,12 +50,12 @@ function GlodaDatabind(aTableDef, aDatastore) {
   this._log = Log4Moz.Service.getLogger("gloda.databind." + aTableDef.name);
   
   let insertSql = "INSERT INTO " + this._tableDef._realName + " (" +
-                  [coldef[0] for each
-                   (coldef in this._tableDef.columns)].join(", ") +
-                  ") VALUES (" +
-                  [(":" + coldef[0]) for each
-                   (coldef in this._tableDef.columns)].join(", ") +
-                  ")";
+    [coldef[0] for each
+     ([i, coldef] in Iterator(this._tableDef.columns))].join(", ") +
+    ") VALUES (" +
+    [(":" + coldef[0]) for each
+     ([i, coldef] in Iterator(this._tableDef.columns))].join(", ") +
+    ")";
   
   this._insertStmt = aDatastore._createStatement(insertSql);
   
@@ -107,9 +107,9 @@ GlodaDatabind.prototype = {
   
   insert: function(aValueDict) {
     let stmt = this._insertStmt;
-    for each (let coldef in this._tableDef.columns) {
-      this._log.debug("insert arg: " + coldef[0] + "=" + aValueDict[coldef[0]]);
-      stmt.params[coldef[0]] = aValueDict[coldef[0]];
+    for each (let [iColDef, colDef] in Iterator(this._tableDef.columns)) {
+      this._log.debug("insert arg: " + colDef[0] + "=" + aValueDict[colDef[0]]);
+      stmt.params[colDef[0]] = aValueDict[colDef[0]];
     }
     stmt.execute();
   }

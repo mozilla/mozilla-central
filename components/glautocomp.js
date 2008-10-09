@@ -75,7 +75,7 @@ ResultRowMulti.prototype = {
     LOG.debug("onItemsAdded");
     if (this.renderer) {
       LOG.debug("rendering...");
-      for each (let item in aItems) {
+      for each (let [iItem, item] in Iterator(aItems)) {
         LOG.debug(" ..." + item);
         this.renderer.renderItem(item);
       }
@@ -204,9 +204,9 @@ function ContactIdentityCompleter() {
   }
 
   let contactNames = [(c.name.replace(" ", "").toLowerCase() || "x") for each
-                      (c in this.contactCollection.items)];
+                      ([ic, c] in Iterator(this.contactCollection.items))];
   let identityMails = [i.value.toLowerCase() for each
-                       (i in this.identityCollection.items)];
+                       ([ii, i] in Iterator(this.identityCollection.items))];
 
   this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
     this.contactCollection.items.concat(this.identityCollection.items));
@@ -234,10 +234,10 @@ ContactIdentityCompleter.prototype = {
     // and since we can now map from contacts down to identities, map contacts
     //  to the first identity for them that we find...
     matches = [val.NOUN_ID == Gloda.NOUN_IDENTITY ? val : val.identities[0]
-               for each (val in contactToThing)];
+               for each ([iVal, val] in Iterator(contactToThing))];
 
     let rows = [new ResultRowSingle(match, "text", aResult.searchString)
-                for each (match in matches)];
+                for each ([iMatch, match] in Iterator(matches))];
     aResult.addRows(rows);
 
     // - match against database contacts / identities
@@ -299,7 +299,7 @@ ContactIdentityCompleter.prototype = {
       // sort in order of descending popularity
       possibleDudes.sort(this._popularitySorter);
       let rows = [new ResultRowSingle(dude, "text", result.searchString)
-                  for each (dude in possibleDudes)];
+                  for each ([iDude, dude] in Iterator(possibleDudes))];
       result.addRows(rows);
       result.markCompleted(this);
       
@@ -344,7 +344,7 @@ ContactTagCompleter.prototype = {
     
     tags = this._suffixTree.findMatches(aString.toLowerCase());
     let rows = [];
-    for each (let tag in tags) {
+    for each (let [iTag, tag] in Iterator(tags)) {
       let query = Gloda.newQuery(Gloda.NOUN_CONTACT);
       LOG.debug("  checking for tag: " + tag.name);
       query.freeTags(tag);
@@ -417,7 +417,7 @@ nsAutoCompleteGloda.prototype = {
     //  should not be using the formal autocomplete mechanism at all.
     this.curResult = result;
     
-    for each (let completer in this.completers) {
+    for each (let [iCompleter, completer] in Iterator(this.completers)) {
       // they will return true if they have something pending.
       if (completer.complete(result, aString))
         result.markPending(completer);
