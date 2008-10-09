@@ -145,7 +145,7 @@
       <field name="mRefreshQueue">[]</field>
       <field name="mPendingRefresh">null</field>
       <field name="mShowCompletedTasks">true</field>
-      <field name="mFilterFunction">null</field>
+      <field name="mFilter">null</field>
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
 
@@ -198,34 +198,6 @@
           return val;
         ]]></setter>
       </property>
-      
-      <property name="filterFunction">
-        <setter><![CDATA[
-          this.mFilterFunction = val;
-          return val;
-        ]]></setter>
-      </property>
-      
-      <property name="startDate">
-        <getter><![CDATA[
-          return this.mStartDate;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mStartDate = val;
-          return val;
-        ]]></setter>
-      </property>
-
-      <property name="endDate">
-        <getter><![CDATA[
-          return this.mEndDate;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mEndDate = val;
-          return val;
-        ]]></setter>
-      </property>
-      
       <method name="duration">
         <parameter name="aTask"/>
         <body><![CDATA[
@@ -356,8 +328,7 @@
                   // the item still belongs to the set of valid items before
                   // moving forward. if the filter cuts this item off, we
                   // need to act accordingly.
-                  if (this.binding.mFilterFunction &&
-                      !this.binding.mFilterFunction(aNewItem)) {
+                  if (!this.binding.mFilter.isItemInFilters(aNewItem)) {
                       this.removeItem(aNewItem);
                       return;
                   }
@@ -755,8 +726,10 @@
           },
           
           onAddItem: function tTO_onAddItem(aItem) {
-              // XXX: we have to use a filter here
-              if (isToDo(aItem) && !this.mInBatch) {
+              // XXX: We have to filter here
+              if (isToDo(aItem)  &&
+                  !this.mInBatch &&
+                  this.binding.mFilter.isItemInFilters(aItem)) {
                   this.binding.mTreeView.addItem(aItem);
               }
           },
@@ -871,6 +844,9 @@
         <body><![CDATA[
           if (!this.mLoadCount++) {
 
+              // set up the tree filter
+              this.mFilter = new calFilter();
+
               // set up the custom tree view
               var tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
               this.mTreeView.tree = tree;
@@ -926,19 +902,22 @@
       <method name="refresh">
         <parameter name="aFilter"/>
         <body><![CDATA[
+          // XXX: why do I need this ?
+          if(!this.mFilter) {
+            this.mFilter = new calFilter();
+          }
           var savedThis = this;
           var refreshListener = {
               mTaskArray: [],
 
               onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDateTime) {
-                  savedThis.mTaskArray = this.mTaskArray;
+              savedThis.mTaskArray = this.mTaskArray;
                   savedThis.onOperationComplete();
              },
 
              onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
-                 for (var i=0; i<aCount; i++) {
-                     if (!savedThis.mFilterFunction ||
-                         savedThis.mFilterFunction(aItems[i])) {
+             for (var i=0; i<aCount; i++) {
+                     if (savedThis.mFilter.isItemInFilters(aItems[i])) {
                          refreshListener.mTaskArray.push(aItems[i]);
                      }
                  }
@@ -952,10 +931,11 @@
                       composite.ITEM_FILTER_COMPLETED_NO :
                       composite.ITEM_FILTER_COMPLETED_ALL;
                   filter |= composite.ITEM_FILTER_TYPE_TODO;
-                  if (savedThis.startDate && savedThis.endDate) {
+
+                  if (savedThis.mFilter.startDate && savedThis.mFilter.endDate) {
                       filter |= composite.ITEM_FILTER_CLASS_OCCURRENCES;
                   }
-                  composite.getItems(filter, 0, savedThis.startDate, savedThis.endDate, refreshListener);
+                  composite.getItems(filter, 0, savedThis.mFilter.startDate, savedThis.mFilter.endDate, refreshListener);
               }
           };
           this.mRefreshQueue.push(refreshJob);
@@ -975,8 +955,7 @@
 
              onGetResult: function (aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
                  for (var i=0; i<aCount; i++) {
-                     if (!savedThis.mFilterFunction ||
-                         savedThis.mFilterFunction(aItems[i])) {
+                   if (savedThis.mFilter.isItemInFilters(aItems[i])) {
                          savedThis.mTaskArray.push(aItems[i]);
                      }
                  }
@@ -990,10 +969,10 @@
                       composite.ITEM_FILTER_COMPLETED_NO :
                       composite.ITEM_FILTER_COMPLETED_ALL;
                   filter |= composite.ITEM_FILTER_TYPE_TODO;
-                  if (savedThis.startDate && savedThis.endDate) {
+                  if (savedThis.mFilter.startDate && savedThis.mFilter.endDate) {
                       filter |= composite.ITEM_FILTER_CLASS_OCCURRENCES;
                   }
-                  aCalendar.getItems(filter, 0, savedThis.startDate, savedThis.endDate, refreshListener);
+                  aCalendar.getItems(filter, 0, savedThis.mFilter.startDate, savedThis.mFilter.endDate, refreshListener);
               }
           };
           this.mRefreshQueue.push(refreshJob);

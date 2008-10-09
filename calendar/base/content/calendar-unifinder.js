@@ -31,6 +31,7 @@
  *   Dan Mosedale <dan.mosedale@oracle.com>
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Fred Jendrzejewski <fred.jen@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -61,24 +62,12 @@ var gCalendarEventTreeClicked = false;
 
 // Store the start and enddate, because the providers can't be trusted when
 // dealing with all-day events. So we need to filter later. See bug 306157
-var gStartDate;
-var gEndDate;
 
 var kDefaultTimezone;
 var gUnifinderNeedsRefresh = true;
 
 function isUnifinderHidden() {
     return document.getElementById("bottom-events-box").hidden;
-}
-
-// Extra check to see if the events are in the daterange. Some providers
-// are broken when looking at all-day events.
-function fixAlldayDates(aItem) {
-    // Using .compare on the views start and end, not on the events dates,
-    // because .compare uses the timezone of the datetime it is called on.
-    // The view's timezone is what is important here.
-    return ((!gEndDate || gEndDate.compare(aItem.startDate) >= 0) &&
-            (!gStartDate || gStartDate.compare(aItem.endDate) < 0));
 }
 
 function getCurrentUnifinderFilter() {
@@ -131,7 +120,8 @@ var unifinderObserver = {
         if (isEvent(aItem) &&
             !this.mInBatch &&
             !gUnifinderNeedsRefresh &&
-            isItemInFilter(aItem)) {
+            unifinderTreeView.mFilter.isItemInFilters(aItem)
+            ) {
             this.addItemToTree(aItem);
         }
     },
@@ -151,21 +141,25 @@ var unifinderObserver = {
     // whether or not anything actually needs to be done to the tree
     addItemToTree: function uO_addItemToTree(aItem) {
         var items;
-        if (gStartDate && gEndDate) {
-            items = aItem.getOccurrencesBetween(gStartDate, gEndDate, {});
+        var filter = unifinderTreeView.mFilter;
+
+        if (filter.startDate && filter.endDate) {
+            items = aItem.getOccurrencesBetween(filter.startDate, filter.endDate, {});
         } else {
             items = [aItem];
         }
-        unifinderTreeView.addItems(items.filter(fixAlldayDates));
+        unifinderTreeView.addItems(items.filter(filter.isItemInFilters, filter));
     },
     removeItemFromTree: function uO_removeItemFromTree(aItem) {
         var items;
-        if (gStartDate && gEndDate && (aItem.parentItem == aItem)) {
-            items = aItem.getOccurrencesBetween(gStartDate, gEndDate, {});
+        var filter = unifinderTreeView.mFilter;
+        if (filter.startDate && filter.endDate && (aItem.parentItem == aItem)) {
+            items = aItem.getOccurrencesBetween(filter.startDate, filter.endDate, {});
         } else {
             items = [aItem];
         }
-        unifinderTreeView.removeItems(items.filter(fixAlldayDates));
+        // XXX: do we really still need this, we are always checking it in the refreshInternal
+        unifinderTreeView.removeItems(items.filter(filter.isItemInFilters, filter));
     },
 
     onError: function uO_onError(aCalendar, aErrNo, aMessage) {},
@@ -214,6 +208,10 @@ function prepareCalendarUnifinder() {
         ccalendar.addObserver(unifinderObserver);
 
         kDefaultTimezone = calendarDefaultTimezone();
+
+        // Set up the filter
+        unifinderTreeView.mFilter = new calFilter();
+        unifinderTreeView.mFilter.propertyFilter = "unifinder-search-field";
 
         // Set up the unifinder views.
         unifinderTreeView.treeElement = unifinderTree;
@@ -405,6 +403,8 @@ var unifinderTreeView = {
     tree: null,
     treeElement: null,
     doingSelection: false,
+    mFilter: null,
+    
 
     mSelectedColumn: null,
     sortDirection: null,
@@ -793,18 +793,16 @@ function refreshEventTree() {
     filter |= ccalendar.ITEM_FILTER_TYPE_EVENT;
 
     // Not all xul might be there yet...
-    if (!document.getElementById("event-filter-menulist")) {
+    if (!document.getElementById(unifinderTreeView.mFilter.textFilterField)) {
         return;
     }
-    var [StartDate, EndDate] = getDatesForFilter(getCurrentUnifinderFilter());
+    unifinderTreeView.mFilter.setDateFilter(getCurrentUnifinderFilter());
 
-    gStartDate = StartDate  ? jsDateToDateTime(StartDate, calendarDefaultTimezone()) : null;
-    gEndDate = EndDate ? jsDateToDateTime(EndDate, calendarDefaultTimezone()) : null;
-    if (StartDate && EndDate) {
+    if (unifinderTreeView.mFilter.startDate && unifinderTreeView.mFilter.endDate) {
         filter |= ccalendar.ITEM_FILTER_CLASS_OCCURRENCES;
     }
 
-    ccalendar.getItems(filter, 0, gStartDate, gEndDate, refreshListener);
+    ccalendar.getItems(filter, 0, unifinderTreeView.mFilter.startDate, unifinderTreeView.mFilter.endDate, refreshListener);
 }
 
 /**
@@ -812,93 +810,19 @@ function refreshEventTree() {
  * unifinder. To add a new view, just overwrite this function with your own. Be
  * sure to call this function afterwards though.
  */
-function getDatesForFilter(aFilter) {
-    var Today = new Date();
-    // Do this to allow all day events to show up all day long.
-    var StartDate = new Date(Today.getFullYear(),
-                             Today.getMonth(),
-                             Today.getDate(),
-                             0, 0, 0);
-    var EndDate;
-    switch (aFilter) {
-        case "all":
-            StartDate = null;
-            EndDate = null;
-            break;
-
-        case "today":
-            EndDate = new Date(StartDate.getTime() + (1000 * 60 * 60 * 24) - 1);
-            break;
-
-        case "next7Days":
-            EndDate = new Date(StartDate.getTime() + (1000 * 60 * 60 * 24 * 8));
-            break;
-
-        case "next14Days":
-            EndDate = new Date(StartDate.getTime() + (1000 * 60 * 60 * 24 * 15));
-            break;
-
-        case "next31Days":
-            EndDate = new Date(StartDate.getTime() + (1000 * 60 * 60 * 24 * 32));
-            break;
-
-        case "thisCalendarMonth":
-            // midnight on first day of this month
-            var startOfMonth = new Date(Today.getFullYear(), Today.getMonth(), 1, 0, 0, 0);
-            // midnight on first day of next month
-            var startOfNextMonth = new Date(Today.getFullYear(), (Today.getMonth() + 1), 1, 0, 0, 0);
-            // 23:59:59 on last day of this month
-            EndDate = new Date(startOfNextMonth.getTime() - 1000);
-            StartDate = startOfMonth;
-            break;
-
-        case "future":
-            EndDate = null;
-            break;
-
-        case "current":
-            var SelectedDate = currentView().selectedDay.jsDate;
-            StartDate = new Date(SelectedDate.getFullYear(), SelectedDate.getMonth(), SelectedDate.getDate(), 0, 0, 0);
-            EndDate = new Date(StartDate.getTime() + (1000 * 60 * 60 * 24) - 1000);
-            break;
-    }
-    return [StartDate, EndDate];
-}
 
 function refreshEventTreeInternal(eventArray) {
-    var searchText = document.getElementById("unifinder-search-field").value;
 
-    unifinderTreeView.setItems(eventArray.filter(isItemInFilter));
+    unifinderTreeView.setItems(eventArray.filter(unifinderTreeView
+                                                .mFilter
+                                                .isItemInFilters
+                                                , unifinderTreeView
+                                                .mFilter
+                                                ));
 
     // Select selected events in the tree. Not passing the argument gets the
     // items from the view.
     unifinderTreeView.setSelectedItems();
-}
-
-function isItemInFilter(aItem) {
-    var searchText = document.getElementById("unifinder-search-field")
-                             .value.toLowerCase();
-
-    if (!searchText.length || searchText.match(/^\s*$/)) {
-        return true;
-    }
-
-    const fieldsToSearch = ["SUMMARY", "DESCRIPTION", "LOCATION", "URL"];
-    if (!fixAlldayDates(aItem)) {
-        return false;
-    }
-
-    for each (var field in fieldsToSearch) {
-        var val = aItem.getProperty(field);
-        if (val && val.toLowerCase().indexOf(searchText) != -1) {
-            return true;
-        }
-    }
-
-    return aItem.getCategories({}).some(
-        function someFunc(cat) {
-            return (cat.toLowerCase().indexOf(searchText) != -1);
-        });
 }
 
 function focusSearch() {

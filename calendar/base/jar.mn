@@ -60,6 +60,7 @@ calendar.jar:
     content/calendar/calendar-views.js           (content/calendar-views.js)
 *   content/calendar/calApplicationUtils.js      (src/calApplicationUtils.js)
     content/calendar/calUtils.js                 (src/calUtils.js)
+    content/calendar/calFilter.js                 (src/calFilter.js)
     content/calendar/Windows98ToZoneInfoTZId.properties (src/Windows98ToZoneInfoTZId.properties)
     content/calendar/WindowsNTToZoneInfoTZId.properties (src/WindowsNTToZoneInfoTZId.properties)
     content/calendar/calErrorPrompt.xul          (content/calErrorPrompt.xul)

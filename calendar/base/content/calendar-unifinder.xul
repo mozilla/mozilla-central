@@ -60,7 +60,7 @@
     <vbox id="bottom-events-box" insertbefore="view-deck" persist="height">
       <hbox id="unifinder-searchBox" persist="collapsed">
         <box align="center">
-          <menulist id="event-filter-menulist" value="next7Days" persist="value">
+          <menulist id="event-filter-menulist" value="next7days" persist="value">
             <menupopup id="event-filter-menupopup" oncommand="refreshEventTree()">
               <menuitem id="event-filter-all"
                         label="&calendar.events.filter.all.label;"
@@ -68,15 +68,15 @@
               <menuitem id="event-filter-today"
                         label="&calendar.events.filter.today.label;"
                         value="today"/>
-              <menuitem id="event-filter-next7Days"
+              <menuitem id="event-filter-next7days"
                         label="&calendar.events.filter.next7Days.label;"
-                        value="next7Days"/>
+                        value="next7days"/>
               <menuitem id="event-filter-next14Days"
                         label="&calendar.events.filter.next14Days.label;"
-                        value="next14Days"/>
+                        value="next14days"/>
               <menuitem id="event-filter-next31Days"
                         label="&calendar.events.filter.next31Days.label;"
-                        value="next31Days"/>
+                        value="next31days"/>
               <menuitem id="event-filter-thisCalendarMonth"
                         label="&calendar.events.filter.thisCalendarMonth.label;"
                         value="thisCalendarMonth"/>

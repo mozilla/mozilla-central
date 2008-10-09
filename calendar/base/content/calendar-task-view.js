@@ -21,6 +21,7 @@
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Fred Jendrzejewski <fred.jen@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -165,69 +166,13 @@ var taskDetailsView = {
 
 function taskViewUpdate(filter) {
     document.getElementById("filterBroadcaster").setAttribute("value", filter);
-    var percentCompleted = function(item) {
-        var percent = 0;
-        var property = item.getProperty("PERCENT-COMPLETE");
-        if (property != null) {
-            var percent = parseInt(property);
-        }
-        return percent;
-    }
-
-    var filterFunctions = {
-        notstarted: function filterNotStarted(item) {
-            return (percentCompleted(item) <= 0);
-        },
-        overdue: function filterOverdue(item) {
-          // in case the item has no due date
-          // it can't be overdue by definition
-          if (item.dueDate == null) {
-              return false;
-          }
-          return (percentCompleted(item) < 100) &&
-                 !(item.dueDate.compare(now()) > 0);
-        },
-        open: function filterCompleted(item) {
-            return (percentCompleted(item) < 100);
-        },
-        completed: function filterCompleted(item) {
-            return (percentCompleted(item) >= 100);
-        }
-    }
 
     var tree = document.getElementById("calendar-task-tree");
-    tree.filterFunction = filterFunctions[filter] || null;
 
-    var todayDate = new Date();
-    var startDate = new Date(todayDate.getFullYear(),
-                             todayDate.getMonth(),
-                             todayDate.getDate(),
-                             0, 0, 0);
-
-    var rangeFunctions = {
-        today: function rangeToday() {
-            tree.startDate = jsDateToDateTime(startDate)
-                .getInTimezone(calendarDefaultTimezone());
-            tree.endDate = jsDateToDateTime(
-                new Date(startDate.getTime() + (1000 * 60 * 60 * 24) - 1))
-                    .getInTimezone(calendarDefaultTimezone());
-        },
-        next7days: function rangeNext7Days() {
-            tree.startDate = jsDateToDateTime(startDate)
-                .getInTimezone(calendarDefaultTimezone());
-            tree.endDate = jsDateToDateTime(
-                new Date(startDate.getTime() + (1000 * 60 * 60 * 24 * 8)))
-                    .getInTimezone(calendarDefaultTimezone());
-        }
-    }
+    // set the filters
+    tree.mFilter.propertyFilter  = filter;
+    tree.mFilter.setDateFilter(filter);
     
-    if (rangeFunctions[filter]) {
-      rangeFunctions[filter]();
-    } else {
-      tree.startDate = null;
-      tree.endDate = null;
-    }
-
     tree.refresh();
 }
 

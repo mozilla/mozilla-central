@@ -89,6 +89,7 @@ EXTRA_SCRIPTS = \
     calCachedCalendar.js \
     calDateTimeFormatter.js \
     calEvent.js \
+    calFilter.js \
     calIcsParser.js \
     calIcsSerializer.js \
     calItemBase.js \

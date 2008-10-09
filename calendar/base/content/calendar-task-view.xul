@@ -51,6 +51,7 @@
   <script type="application/javascript" src="chrome://calendar/content/calendar-task-view.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calendar-dialog-utils.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calApplicationUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calFilter.js"/>
   <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
 
   <vbox id="calendarDisplayDeck">
