@@ -1362,6 +1362,8 @@ let mailTabType = {
         this.showTab(aTab);
       },
       onTitleChanged: function(aTab, aTabNode) {
+        if (!gMsgFolderSelected)
+          return;
         aTab.title = gMsgFolderSelected.prettyName;
         // the user may have changed folders, triggering our onTitleChanged callback.
         // update the appropriate attributes on the tab.
@@ -1439,16 +1441,19 @@ let mailTabType = {
     aTab.dbView = gDBView;
     aTab.searchSession = gSearchSession;
 
+    if (!gDBView)
+      return;
+      
     if (gDBView.currentlyDisplayedMessage != nsMsgViewIndex_None)
-  {
-      try // there may not be a selected message.
     {
+      try // there may not be a selected message.
+      {
         var curMsgHdr = gDBView.hdrForFirstSelectedMessage;
         aTab.selectedMsgId = curMsgHdr.messageId;
         aTab.msgSelectedFolder = curMsgHdr.folder;
-    }
+      }
       catch (ex)
-  {
+      {
         aTab.msgSelectedFolder = gMsgFolderSelected
       }
     }
