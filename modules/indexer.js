@@ -1164,7 +1164,7 @@ var GlodaIndexer = {
         yield this.kWorkSync;
       
       if ((isLocal || msgHdr.flags&MSG_FLAG_OFFLINE) &&
-          !msgHdr.flags&MSG_FLAG_EXPUNGED) {
+          !(msgHdr.flags&MSG_FLAG_EXPUNGED)) {
         // this returns 0 when missing
         let glodaMessageId = msgHdr.getUint32Property(
                              this.GLODA_MESSAGE_ID_PROPERTY);
@@ -1214,7 +1214,7 @@ var GlodaIndexer = {
         // TODO fixme to not assume singular message-id's.
         msgHdr = this._indexingDatabase.getMsgHdrForMessageID(item[1]);
       
-      if (msgHdr && !msgHdr.flags&MSG_FLAG_EXPUNGED)
+      if (msgHdr && !(msgHdr.flags&MSG_FLAG_EXPUNGED))
         yield this._indexMessage(msgHdr);
       else
         yield this.kWorkSync;
