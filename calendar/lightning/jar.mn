@@ -1,5 +1,4 @@
 lightning.jar:
-% resource calendar .
 % content lightning %content/lightning/
 % content messagebody %content/messagebody/ contentaccessible=yes
 % override chrome://messagebody/skin/imip.css chrome://lightning/skin/imip.css

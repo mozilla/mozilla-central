@@ -242,7 +242,20 @@ var calItemModule = {
 
         // Note that unintuitively, __LOCATION__.parent == .
         // We expect to find the subscripts in ./../js
-        var appdir = __LOCATION__.parent.parent;
+        let appdir = __LOCATION__.parent.parent.clone();
+
+        // Register our alias here: this code always needs to run first (triggered by app-startup)
+        let modulesDir = appdir.clone();
+        modulesDir.append("modules");
+        modulesDir = iosvc.newFileURI(modulesDir);
+        // bug 459196:
+        // we need to cut/hack around the trailing slash, otherwise our modules won't be found
+        // when loaded like "resource://calendar/modules/calUtils.jsm"
+        modulesDir.spec = modulesDir.spec.replace(/\/$/, "");
+        iosvc.getProtocolHandler("resource")
+             .QueryInterface(Components.interfaces.nsIResProtocolHandler)
+             .setSubstitution("calendar", modulesDir);
+
         appdir.append("js");
 
         for (var i = 0; i < componentData.length; i++) {
