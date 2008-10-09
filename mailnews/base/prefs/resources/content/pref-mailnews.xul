@@ -60,7 +60,8 @@
       <preference id="mailnews.remember_selected_message"
                   name="mailnews.remember_selected_message" type="bool"/>
       <preference id="mailnews.thread_pane_column_unthreads"
-                  name="mailnews.thread_pane_column_unthreads" type="bool"/>
+                  name="mailnews.thread_pane_column_unthreads"
+                  inverted="true" type="bool"/>
       <preference id="mailnews.start_page.enabled"
                   onchange="this.parentNode.parentNode.startPageCheck();"
                   name="mailnews.start_page.enabled" type="bool"/>
@@ -101,8 +102,7 @@
         <checkbox id="mailPreserveThreading"
                   label="&preserveThreading.label;"
                   accesskey="&preserveThreading.accesskey;"
-                  preference="mailnews.thread_pane_column_unthreads"
-                  reversed="true" />
+                  preference="mailnews.thread_pane_column_unthreads"/>
       </hbox>
       <vbox id="defaultMailPrefs" hidden="true">
         <separator class="thin"/>
