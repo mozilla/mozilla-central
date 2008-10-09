@@ -314,7 +314,7 @@
 <!ENTITY calendar.context.convertmenu.task.label         "Task…">
 <!ENTITY calendar.context.convertmenu.task.accesskey     "T">
 
-<!ENTITY calendar.tasks.view.minimonth.label           "Mini Month">
+<!ENTITY calendar.tasks.view.minimonth.label           "Mini-Month">
 <!ENTITY calendar.tasks.view.minimonth.accesskey       "M">
 
 <!ENTITY calendar.tasks.view.calendarlist.label        "Calendar List">
