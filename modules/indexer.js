@@ -132,6 +132,7 @@ function fixIterator(aEnum, aIface) {
 }
 
 const MSG_FLAG_OFFLINE = 0x80;
+const MSG_FLAG_EXPUNGED = 0x08;
 
 /**
  * @class Capture the indexing batch concept explicitly.
@@ -1161,7 +1162,8 @@ var GlodaIndexer = {
       if (++aJob.offset % HEADER_CHECK_BLOCK_SIZE == 0)
         yield this.kWorkSync;
       
-      if (isLocal || msgHdr.flags&MSG_FLAG_OFFLINE) {
+      if ((isLocal || msgHdr.flags&MSG_FLAG_OFFLINE) &&
+          !msgHdr.flags&MSG_FLAG_EXPUNGED) {
         // this returns 0 when missing
         let glodaMessageId = msgHdr.getUint32Property(
                              this.GLODA_MESSAGE_ID_PROPERTY);
@@ -1211,7 +1213,7 @@ var GlodaIndexer = {
         // TODO fixme to not assume singular message-id's.
         msgHdr = this._indexingDatabase.getMsgHdrForMessageID(item[1]);
       
-      if (msgHdr)
+      if (msgHdr && !msgHdr.flags&MSG_FLAG_EXPUNGED)
         yield this._indexMessage(msgHdr);
       else
         yield this.kWorkSync;
