@@ -39,30 +39,26 @@
 #include "nsIChannel.idl"
 #include "nsIMimeStreamConverter.idl"
 
-[scriptable, uuid(fcc907ce-abff-47b7-8c0f-c09063b13494)]
+[scriptable, uuid(5e601eed-95e8-4598-8917-26fe983e2803)]
 interface nsIMsgQuote : nsISupports {
-	/*
-	 * This is the primary interface for quoting a particular message specified
-	   by a URI
-	 */
- 
-    /* aCharset is an option parameter which can be used to force the message to be 
-	   quoted using a particular charset. 
-	*/
-  void QuoteMessage(in string msgURI, in boolean quoteHeaders,
-                    in nsIMsgQuotingOutputStreamListener streamListener, 
-                    in string aCharset, in boolean headersOnly);
-	                  
-    readonly attribute nsIMimeStreamConverterListener quoteListener;
-    readonly attribute nsIChannel quoteChannel;
-    readonly attribute nsIMsgQuotingOutputStreamListener streamListener;
+
+ /**
+  * Quote a particular message specified by its URI.
+  *
+  * @param charset optional parameter - if set, force the message to be
+  *                quoted using this particular charset
+  */
+  void quoteMessage(in string msgURI, in boolean quoteHeaders,
+                    in nsIMsgQuotingOutputStreamListener streamListener,
+                    in string charset, in boolean headersOnly);
+
+  readonly attribute nsIMimeStreamConverterListener quoteListener;
+  readonly attribute nsIChannel quoteChannel;
+  readonly attribute nsIMsgQuotingOutputStreamListener streamListener;
 };
 
 [scriptable, uuid(1EC75AD9-88DE-11d3-989D-001083010E9B)]
 interface nsIMsgQuoteListener : nsIMimeStreamConverterListener
 {
-	attribute nsIMsgQuote msgQuote;
+  attribute nsIMsgQuote msgQuote;
 };
-
-
-

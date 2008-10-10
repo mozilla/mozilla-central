@@ -52,50 +52,47 @@ interface nsMimeHeaderDisplayTypes
 };
 
 %{C++
-//#define NS_IMIME_MISC_STATUS_KEY       "@mozilla.org/messenger/mimestatus;1?"
 #define NS_IMIME_MISC_STATUS_KEY       "@mozilla.org/MimeMiscStatus;1?type="
 %}
 
-[scriptable, uuid(8c9f218a-d1a6-4cb4-b985-e38140c0af93)]
-interface nsIMimeEmitter : nsISupports{
+[scriptable, uuid(c470b05e-9006-43a4-aa84-0da080360675)]
+interface nsIMimeEmitter : nsISupports {
 
-    // These will be called to start and stop the total operation
-    void    Initialize(in nsIURI url, in nsIChannel aChannel, in long aFormat);
-    void    Complete();
+    // Output listener to allow access to it from mime.
+    attribute nsIStreamListener outputListener;
+
+    // These will be called to start and stop the total operation.
+    void initialize(in nsIURI url, in nsIChannel aChannel, in long aFormat);
+    void complete();
 
     // Set the output stream/listener for processed data.
-    void    SetPipe(in nsIInputStream inputStream, in nsIOutputStream outStream);
-    void    SetOutputListener(in nsIStreamListener listener);
-
-    //Get the output listener to allow access to it from mime
-    nsIStreamListener    GetOutputListener();
+    void setPipe(in nsIInputStream inputStream, in nsIOutputStream outStream);
 
     // Header handling routines.
-    void    StartHeader(in PRBool rootMailHeader, in PRBool headerOnly,
-                        [const] in string msgID, [const] in string outCharset);
-    void    AddHeaderField([const] in string field, [const] in string value);
-    void    addAllHeaders(in ACString allheaders);
-  void    WriteHTMLHeaders(); // book case this with a EndHeader call.
-    void    EndHeader();
-    void    UpdateCharacterSet([const] in string aCharset);
+    void startHeader(in PRBool rootMailHeader, in PRBool headerOnly,
+                     [const] in string msgID, [const] in string outCharset);
+    void addHeaderField([const] in string field, [const] in string value);
+    void addAllHeaders(in ACString allheaders);
+    void writeHTMLHeaders(); // Book case this with an EndHeader call.
+    void endHeader();
+    void updateCharacterSet([const] in string aCharset);
 
-    // Attachment handling routines
-    void    StartAttachment([const] in string name, [const] in string contentType,
-                            [const] in string url, in PRBool aNotDownloaded);
-    void    AddAttachmentField([const] in string field, [const] in string value);
-    void    EndAttachment();
+    // Attachment handling routines.
+    void startAttachment([const] in string name, [const] in string contentType,
+                         [const] in string url, in PRBool aNotDownloaded);
+    void addAttachmentField([const] in string field, [const] in string value);
+    void endAttachment();
 
-    void    EndAllAttachments();
+    void endAllAttachments();
 
-    // Body handling routines
-    void    StartBody(in PRBool bodyOnly, [const] in string msgID, [const] in string outCharset);
-    void    WriteBody([const] in string buf, in PRUint32 size, out PRUint32 amountWritten);
-    void    EndBody();
+    // Body handling routines.
+    void startBody(in PRBool bodyOnly, [const] in string msgID, [const] in string outCharset);
+    void writeBody([const] in string buf, in PRUint32 size, out PRUint32 amountWritten);
+    void endBody();
 
     // Generic write routine. This is necessary for output that
     // libmime needs to pass through without any particular parsing
     // involved (i.e. decoded images, HTML Body Text, etc...
-    void    Write([const] in string buf, in PRUint32 size, out PRUint32 amountWritten);
-    void    UtilityWrite([const] in string buf);
+    void write([const] in string buf, in PRUint32 size, out PRUint32 amountWritten);
+    void utilityWrite([const] in string buf);
 };
-
