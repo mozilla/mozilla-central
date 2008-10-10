@@ -287,8 +287,9 @@
 
   <!-- Insert menu for PlainText editor -->
   <menu id="insertMenuPlainText" label="&insertMenu.label;" accesskey="&insertMenu.accesskey;">
-    <menupopup>
-      <menuitem accesskey="&insertCharsCmd.accesskey;" observes="cmd_insertChars"/>
+    <menupopup id="insertMenuPlainTextPopup">
+      <menuitem id="menu_insertChars" accesskey="&insertCharsCmd.accesskey;"
+                observes="cmd_insertChars"/>
     </menupopup>
   </menu>
 
@@ -325,7 +326,7 @@
                 observes="cmd_insertChars"/>
 
       <menu id="insertTOC" label="&tocMenu.label;" accesskey="&tocMenu.accesskey;">
-        <menupopup onpopupshowing="InitTOCMenu()">
+        <menupopup id="insertTOCPopup" onpopupshowing="InitTOCMenu()">
           <menuitem id="insertTOCMenuitem"
                     label="&insertTOC.label;"
                     accesskey="&insertTOC.accesskey;"
@@ -350,41 +351,47 @@
     <!-- Font face submenu -->
     <menu id="fontFaceMenu" label="&fontfaceMenu.label;" accesskey="&fontfaceMenu.accesskey;" 
           position="1">
-      <menupopup oncommand="if (event.target.localName == 'menuitem')
+      <menupopup id="fontFaceMenuPopup"
+                 oncommand="if (event.target.localName == 'menuitem')
                               doStatefulCommand('cmd_fontFace', event.target.getAttribute('value'));"
                  onpopupshowing="initFontFaceMenu(this);">
-        <menuitem label="&fontVarWidth.label;"
+        <menuitem id="menu_fontFaceVarWidth"
+                  label="&fontVarWidth.label;"
                   accesskey="&fontVarWidth.accesskey;"
                   value=""
                   type="radio"
                   name="1"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&fontFixedWidth.label;"
+        <menuitem id="menu_fontFaceFixedWidth"
+                  label="&fontFixedWidth.label;"
                   accesskey="&fontFixedWidth.accesskey;"
                   value="tt"
                   type="radio"
                   name="1"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuseparator/>
-        <menuitem label="&fontHelvetica.label;"
+        <menuseparator id="fontFaceMenuAfterFixedWidthSeparator"/>
+        <menuitem id="menu_fontFaceHelvetica"
+                  label="&fontHelvetica.label;"
                   accesskey="&fontHelvetica.accesskey;"
                   value="Helvetica, Arial, sans-serif"
                   type="radio"
                   name="2"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&fontTimes.label;"
+        <menuitem id="menu_fontFaceTimes"
+                  label="&fontTimes.label;"
                   accesskey="&fontTimes.accesskey;"
                   value="Times New Roman, Times, serif"
                   type="radio"
                   name="2"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&fontCourier.label;"
+        <menuitem id="menu_fontFaceCourier"
+                  label="&fontCourier.label;"
                   accesskey="&fontCourier.accesskey;"
                   value="Courier New, Courier, monospace"
                   type="radio"
                   name="2"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuseparator/>
+        <menuseparator id="fontFaceMenuAfterCourierSeparator"/>
           <!-- Local font face items added here by initLocalFontFaceMenu() -->
       </menupopup>
     </menu>
@@ -393,54 +400,66 @@
     <menu id="fontSizeMenu" label="&fontSizeMenu.label;"
           accesskey="&fontSizeMenu.accesskey;"
           position="2">
-      <menupopup onpopupshowing="initFontSizeMenu(this)">
-        <menuitem label="&decreaseFontSize.label;"
+      <menupopup id="fontSizeMenuPopup" onpopupshowing="initFontSizeMenu(this)">
+        <menuitem id="menu_decreaseFontSize"
+                  label="&decreaseFontSize.label;"
                   accesskey="&decreaseFontSize.accesskey;"
                   key="decreasefontsizekb"
                   observes="cmd_decreaseFont"
                   type="radio"
                   name="1"/>
-        <menuitem label="&increaseFontSize.label;"
+        <menuitem id="menu_increaseFontSize"
+                  label="&increaseFontSize.label;"
                   accesskey="&increaseFontSize.accesskey;"
                   key="increasefontsizekb"
                   observes="cmd_increaseFont"
                   type="radio"
                   name="1"/>
-        <menuseparator/>
+        <menuseparator id="fontSizeMenuAfterIncreaseFontSizeSeparator"/>
 <!-- Not supported in current font size implementation
-        <menuitem label="&size-xx-smallCmd.label;" accesskey="&size-xx-smallCmd.accesskey;" oncommand="EditorSetFontSize('xx-small')" type="radio" name="2"/>
+        <menuitem id="menu_xx-small"
+                  label="&size-xx-smallCmd.label;"
+                  accesskey="&size-xx-smallCmd.accesskey;"
+                  oncommand="EditorSetFontSize('xx-small')"
+                  type="radio" name="2"/>
 -->
-        <menuitem label="&size-x-smallCmd.label;"
+        <menuitem id="menu_size-x-small"
+                  label="&size-x-smallCmd.label;"
                   accesskey="&size-x-smallCmd.accesskey;"
                   oncommand="EditorSetFontSize('x-small')"
                   type="radio"
                   name="2"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-smallCmd.label;"
+        <menuitem id="menu_size-small"
+                  label="&size-smallCmd.label;"
                   accesskey="&size-smallCmd.accesskey;"
                   oncommand="EditorSetFontSize('small')"
                   type="radio"
                   name="2"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-mediumCmd.label;"
+        <menuitem id="menu_size-medium"
+                  label="&size-mediumCmd.label;"
                   accesskey="&size-mediumCmd.accesskey;"
                   oncommand="EditorSetFontSize('medium')"
                   type="radio"
                   name="2"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-largeCmd.label;"
+        <menuitem id="menu_size-large"
+                  label="&size-largeCmd.label;"
                   accesskey="&size-largeCmd.accesskey;"
                   oncommand="EditorSetFontSize('large')"
                   type="radio"
                   name="2"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-x-largeCmd.label;"
+        <menuitem id="menu_size-x-large"
+                  label="&size-x-largeCmd.label;"
                   accesskey="&size-x-largeCmd.accesskey;"
                   oncommand="EditorSetFontSize('x-large')"
                   type="radio"
                   name="2"
                   observes="cmd_renderedHTMLEnabler"/>
-        <menuitem label="&size-xx-largeCmd.label;"
+        <menuitem id="menu_size-xx-large"
+                  label="&size-xx-largeCmd.label;"
                   accesskey="&size-xx-largeCmd.accesskey;"
                   oncommand="EditorSetFontSize('xx-large')"
                   type="radio"
@@ -453,79 +472,95 @@
     <menu id="fontStyleMenu" label="&fontStyleMenu.label;" 
           accesskey="&fontStyleMenu.accesskey;"
           position="3">
-    <menupopup onpopupshowing="initFontStyleMenu(this)">
-      <menuitem label="&styleBoldCmd.label;"
+    <menupopup id="fontStyleMenuPopup" onpopupshowing="initFontStyleMenu(this)">
+      <menuitem id="menu_styleBold"
+                label="&styleBoldCmd.label;"
                 accesskey="&styleBoldCmd.accesskey;"
                 observes="cmd_bold"
                 type="checkbox"
                 key="boldkb"/>
-      <menuitem label="&styleItalicCmd.label;"
+      <menuitem id="menu_styleItalic"
+                label="&styleItalicCmd.label;"
                 accesskey="&styleItalicCmd.accesskey;"
                 observes="cmd_italic"
                 type="checkbox"
                 key="italickb"/>
-      <menuitem label="&styleUnderlineCmd.label;"
+      <menuitem id="menu_styleUnderline"
+                label="&styleUnderlineCmd.label;"
                 accesskey="&styleUnderlineCmd.accesskey;"
                 observes="cmd_underline"
                 type="checkbox"
                 key="underlinekb"/>
-      <menuitem label="&styleStrikeThruCmd.label;"
+      <menuitem id="menu_styleStrikeThru"
+                label="&styleStrikeThruCmd.label;"
                 accesskey="&styleStrikeThruCmd.accesskey;"
                 observes="cmd_strikethrough"
                 type="checkbox"/>
-      <menuitem label="&styleSuperscriptCmd.label;"
+      <menuitem id="menu_styleSuperscript"
+                label="&styleSuperscriptCmd.label;"
                 accesskey="&styleSuperscriptCmd.accesskey;"
                 observes="cmd_superscript"
                 type="checkbox"/>
-      <menuitem label="&styleSubscriptCmd.label;"
+      <menuitem id="menu_styleSubscript"
+                label="&styleSubscriptCmd.label;"
                 accesskey="&styleSubscriptCmd.accesskey;"
                 observes="cmd_subscript"
                 type="checkbox"/>
-      <menuitem label="&fontFixedWidth.label;"
+      <menuitem id="menu_fontFixedWidth"
+                label="&fontFixedWidth.label;"
                 accesskey="&fontFixedWidth.accesskey;"
                 observes="cmd_tt"
                 type="checkbox"
                 key="fixedwidthkb"/>
-      <menuitem label="&styleNonbreakingCmd.label;"
+      <menuitem id="menu_styleNonbreaking"
+                label="&styleNonbreakingCmd.label;"
                 accesskey="&styleNonbreakingCmd.accesskey;"
                 observes="cmd_nobreak"
                 type="checkbox"/>
-      <menuseparator/>
-      <menuitem label="&styleEm.label;"
+      <menuseparator id="fontStyleMenuAfterNonbreakingSeparator"/>
+      <menuitem id="menu_styleEm"
+                label="&styleEm.label;"
                 accesskey="&styleEm.accesskey;"
                 observes="cmd_em"
                 type="checkbox"/>
-      <menuitem label="&styleStrong.label;"
+      <menuitem id="menu_styleStrong"
+                label="&styleStrong.label;"
                 accesskey="&styleStrong.accesskey;"
                 observes="cmd_strong"
                 type="checkbox"/>
-      <menuitem label="&styleCite.label;"
+      <menuitem id="menu_styleCite"
+                label="&styleCite.label;"
                 accesskey="&styleCite.accesskey;"
                 observes="cmd_cite"
                 type="checkbox"/>
-      <menuitem label="&styleAbbr.label;"
+      <menuitem id="menu_styleAbbr"
+                label="&styleAbbr.label;"
                 accesskey="&styleAbbr.accesskey;"
                 observes="cmd_abbr"
                 type="checkbox"/>
-      <menuitem label="&styleAcronym.label;"
+      <menuitem id="menu_styleAcronym"
+                label="&styleAcronym.label;"
                 accesskey="&styleAcronym.accesskey;"
                 observes="cmd_acronym"
                 type="checkbox"/>
-      <menuitem label="&styleCode.label;"
+      <menuitem id="menu_styleCode"
+                label="&styleCode.label;"
                 accesskey="&styleCode.accesskey;"
                 observes="cmd_code"
                 type="checkbox"/>
-      <menuitem label="&styleSamp.label;"
+      <menuitem id="menu_styleSamp"
+                label="&styleSamp.label;"
                 accesskey="&styleSamp.accesskey;"
                 observes="cmd_samp"
                 type="checkbox"/>
-      <menuitem label="&styleVar.label;"
+      <menuitem id="menu_styleVar"
+                label="&styleVar.label;"
                 accesskey="&styleVar.accesskey;"
                 observes="cmd_var"
                 type="checkbox"/>
     </menupopup>
     </menu>
-    
+
     <!-- Note: "cmd_fontColor" only monitors color state, it doesn't execute the command
          (We should use "cmd_fontColorState" and "cmd_backgroundColorState" ?) -->
     <menuitem id="fontColor" label="&formatFontColor.label;" 
@@ -557,7 +592,8 @@
     <menu id="paragraphMenu" label="&paragraphMenu.label;"
           accesskey="&paragraphMenu.accesskey;"
           position="10" onpopupshowing="InitParagraphMenu()">
-      <menupopup oncommand="doStatefulCommand('cmd_paragraphState', event.target.getAttribute('value'))">
+      <menupopup id="paragraphMenuPopup"
+                 oncommand="doStatefulCommand('cmd_paragraphState', event.target.getAttribute('value'))">
         <menuitem id="menu_bodyText"
                   type="radio"
                   name="1"
@@ -635,7 +671,7 @@
     <menu id="listMenu" label="&formatlistMenu.label;"
           accesskey="&formatlistMenu.accesskey;"
           position="11" onpopupshowing="InitListMenu()">
-      <menupopup>
+      <menupopup id="listMenuPopup">
         <menuitem id="menu_noList"
                   type="radio"
                   name="1"
@@ -692,7 +728,8 @@
         onpopupshowing="InitAlignMenu()"
         position="15">
       <!-- Align submenu -->
-      <menupopup oncommand="doStatefulCommand('cmd_align', event.target.getAttribute('value'))">
+      <menupopup id="alignMenuPopup"
+                 oncommand="doStatefulCommand('cmd_align', event.target.getAttribute('value'))">
         <menuitem id="menu_left"
                   label="&alignLeft.label;"
                   accesskey="&alignLeft.accesskey;"
@@ -747,32 +784,39 @@
             observes="cmd_renderedHTMLEnabler"/>
 
   <menu id="tableMenu" label="&tableMenu.label;" accesskey="&tableMenu.accesskey;">
-    <menupopup  onpopupshowing="EditorInitTableMenu()">
+    <menupopup id="tableMenuPopup" onpopupshowing="EditorInitTableMenu()">
       <!-- From EditorCommandOverlay.xul (shared with context popup) -->
       <menu id="tableInsertMenu" label="&tableInsertMenu.label;" accesskey="&tableInsertMenu.accesskey;">
-        <menupopup>
-          <menuitem label="&insertTableCmd.label;"
+        <menupopup id="tableMenuPopup">
+          <menuitem id="menu_insertTable"
+                    label="&insertTableCmd.label;"
                     accesskey="&insertTableCmd.accesskey;"
                     observes="cmd_InsertTable"/>
-          <menuseparator/>
-          <menuitem label="&tableRowAbove.label;"
+          <menuseparator id="tableMenuAfterInsertTableSeparator"/>
+          <menuitem id="menu_tableRowAbove"
+                    label="&tableRowAbove.label;"
                     accesskey="&tableRowAbove.accesskey;"
                     observes="cmd_InsertRowAbove"/>
-          <menuitem label="&tableRowBelow.label;"
+          <menuitem id="menu_tableRowBelow"
+                    label="&tableRowBelow.label;"
                     accesskey="&tableRowBelow.accesskey;"
                     observes="cmd_InsertRowBelow"/>
-          <menuseparator/>
-          <menuitem label="&tableColumnBefore.label;"
+          <menuseparator id="tableMenuAfterTableRowSeparator"/>
+          <menuitem id="menu_tableColumnBefore"
+                    label="&tableColumnBefore.label;"
                     accesskey="&tableColumnBefore.accesskey;"
                     observes="cmd_InsertColumnBefore"/>
-          <menuitem label="&tableColumnAfter.label;"
+          <menuitem id="menu_tableColumnAfter"
+                    label="&tableColumnAfter.label;"
                     accesskey="&tableColumnAfter.accesskey;"
                     observes="cmd_InsertColumnAfter"/>
-          <menuseparator/>
-          <menuitem label="&tableCellBefore.label;"
+          <menuseparator id="tableMenuAfterInsertColumnSeparator"/>
+          <menuitem id="menu_tableCellBefore"
+                    label="&tableCellBefore.label;"
                     accesskey="&tableCellBefore.accesskey;"
                     observes="cmd_InsertCellBefore"/>
-          <menuitem label="&tableCellAfter.label;"
+          <menuitem id="menu_tableCellAfter"
+                    label="&tableCellAfter.label;"
                     accesskey="&tableCellAfter.accesskey;"
                     observes="cmd_InsertCellAfter"/>
         </menupopup>
@@ -960,16 +1004,16 @@
             tooltiptext="&ParagraphSelect.tooltip;" crop="right">
     <observes element="cmd_paragraphState" attribute="state" onbroadcast="onParagraphFormatChange(this.parentNode, 'cmd_paragraphState')"/>
     <menupopup id="ParagraphPopup" oncommand="doStatefulCommand('cmd_paragraphState', event.target.value)">
-      <menuitem label="&bodyTextCmd.label;"            value=""/>
-      <menuitem label="&paragraphParagraphCmd.label;"  value="p"/>
-      <menuitem label="&heading1Cmd.label;"            value="h1"/>
-      <menuitem label="&heading2Cmd.label;"            value="h2"/>
-      <menuitem label="&heading3Cmd.label;"            value="h3"/>
-      <menuitem label="&heading4Cmd.label;"            value="h4"/>
-      <menuitem label="&heading5Cmd.label;"            value="h5"/>
-      <menuitem label="&heading6Cmd.label;"            value="h6"/>
-      <menuitem label="&paragraphAddressCmd.label;"    value="address"/>
-      <menuitem label="&paragraphPreformatCmd.label;"  value="pre"/>
+      <menuitem id="toolbarmenu_bodyText" label="&bodyTextCmd.label;" value=""/>
+      <menuitem id="toolbarmenu_paragraph" label="&paragraphParagraphCmd.label;" value="p"/>
+      <menuitem id="toolbarmenu_h1" label="&heading1Cmd.label;" value="h1"/>
+      <menuitem id="toolbarmenu_h2"  label="&heading2Cmd.label;" value="h2"/>
+      <menuitem id="toolbarmenu_h3" label="&heading3Cmd.label;" value="h3"/>
+      <menuitem id="toolbarmenu_h4" label="&heading4Cmd.label;" value="h4"/>
+      <menuitem id="toolbarmenu_h5" label="&heading5Cmd.label;" value="h5"/>
+      <menuitem id="toolbarmenu_h6" label="&heading6Cmd.label;" value="h6"/>
+      <menuitem id="toolbarmenu_address" label="&paragraphAddressCmd.label;" value="address"/>
+      <menuitem id="toolbarmenu_pre" label="&paragraphPreformatCmd.label;"  value="pre"/>
     </menupopup>
   </menulist>
 
@@ -978,28 +1022,31 @@
     tooltiptext="&FontFaceSelect.tooltip;" crop="right">
     <observes element="cmd_fontFace" attribute="state" onbroadcast="onFontFaceChange(this.parentNode, 'cmd_fontFace')"/>
     <menupopup id="FontFacePopup" oncommand="doStatefulCommand('cmd_fontFace', event.target.value)">
-      <menuitem label="&fontVarWidth.label;"      value=""/>
-      <menuitem label="&fontFixedWidth.label;"    value="tt"/>
-      <menuseparator/>
-      <menuitem label="&fontHelvetica.label;" value="Helvetica, Arial, sans-serif"/>
-      <menuitem label="&fontTimes.label;"         value="Times New Roman, Times, serif"/>
-      <menuitem label="&fontCourier.label;"       value="Courier New, Courier, monospace"/>
-      <menuseparator/>
+      <menuitem id="toolbarmenu_fontVarWidth" label="&fontVarWidth.label;" value=""/>
+      <menuitem id="toolbarmenu_fontFixedWidth" label="&fontFixedWidth.label;" value="tt"/>
+      <menuseparator id="toolbarmenuAfterFontFaceFontFixedWidthSeparator"/>
+      <menuitem id="toolbarmenu_fontHelvetica" label="&fontHelvetica.label;"
+                value="Helvetica, Arial, sans-serif"/>
+      <menuitem id="toolbarmenu_fontTimes" label="&fontTimes.label;"
+                value="Times New Roman, Times, serif"/>
+      <menuitem id="toolbarmenu_fontCourier" label="&fontCourier.label;"
+                value="Courier New, Courier, monospace"/>
+      <menuseparator id="toolbarmenuAfterFontFaceCourierSeparator"/>
     </menupopup>
-  </menulist>  
-  
+  </menulist>
+
   <menulist class="toolbar-focustarget" id="FontSizeSelect" oncommand="EditorSelectFontSize()"  tooltiptext="&FontSizeSelect.tooltip;" crop="right">
     <observes element="cmd_fontSize" attribute="state" onbroadcast="onFontSizeChange(this.parentNode, 'cmd_fontSize')"/>
-    <menupopup>
-      <menuitem label="&size-xx-smallCmd.label;"/>
-      <menuitem label="&size-x-smallCmd.label;"/>
-      <menuitem label="&size-smallCmd.label;"/>
-      <menuitem label="&size-mediumCmd.label;"/>
-      <menuitem label="&size-largeCmd.label;"/>
-      <menuitem label="&size-x-largeCmd.label;"/>
-      <menuitem label="&size-xx-largeCmd.label;"/>
+    <menupopup id="FontSizePopup">
+      <menuitem id="toobarmenu_fontSize_xx-small" label="&size-xx-smallCmd.label;"/>
+      <menuitem id="toobarmenu_fontSize_x-small" label="&size-x-smallCmd.label;"/>
+      <menuitem id="toobarmenu_fontSize_small" label="&size-smallCmd.label;"/>
+      <menuitem id="toobarmenu_fontSize_medium" label="&size-mediumCmd.label;"/>
+      <menuitem id="toobarmenu_fontSize_large" label="&size-largeCmd.label;"/>
+      <menuitem id="toobarmenu_fontSize_x-large" label="&size-x-largeCmd.label;"/>
+      <menuitem id="toobarmenu_fontSize_xx-large" label="&size-xx-largeCmd.label;"/>
     </menupopup>
-  </menulist>          
+  </menulist>
 
   <stack id="ColorButtons" align="center">
     <observes element="cmd_fontColor"       attribute="state" onbroadcast="onFontColorChange()"/>
@@ -1076,7 +1123,7 @@
     <observes element="cmd_align" attribute="state"
               onbroadcast="onStateButtonUpdate(this.parentNode, 'cmd_align', 'justify')"/>
   </toolbarbutton>
-  
+
   <toolbarbutton id="absolutePositionButton" type="checkbox" tooltiptext="&layer.tooltip;" observes="cmd_absPos">
     <observes element="cmd_absPos" attribute="state" onbroadcast="onStateButtonUpdate(this.parentNode, 'cmd_absPos', 'absolute')"/>
   </toolbarbutton>
