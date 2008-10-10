@@ -138,9 +138,6 @@
 <!ENTITY task.toolbar.label                     "Task Toolbar">
 <!ENTITY task.toolbar.accesskey                 "b">
 
-<!ENTITY mode.toolbar.label                     "Mode Toolbar">
-<!ENTITY mode.toolbar.accesskey                 "M">
-
 <!ENTITY calendar.menu.customize.label          "Customize…">
 <!ENTITY calendar.menu.customize.accesskey      "C">
 
