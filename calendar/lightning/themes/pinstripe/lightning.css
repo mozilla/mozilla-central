@@ -122,3 +122,34 @@ radio[pane=paneLightning] {
 .task-tree-subpane {
   -moz-margin-start: 12px;
 }
+
+/* Today pane button in status bar */
+#calendar-status-todaypane-button,
+#calendar-status-todaypane-button[checked="true"] {
+  min-width: 0;
+  min-height: 0;
+  -moz-appearance: none;
+  -moz-border-radius: 3px;
+  padding: 0.2pt 2px !important;
+  border: 1px solid transparent;
+}
+
+#calendar-status-todaypane-button:hover {
+  border: 1px solid ThreeDShadow;
+  background-color: transparent !important;
+  background-image: none !important;
+  -moz-appearance: none;
+}
+
+#calendar-status-todaypane-button > .toolbarbutton-icon-begin {
+  list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+  -moz-image-region: rect(0px 336px 16px 320px);
+}
+
+#calendar-status-todaypane-button > .toolbarbutton-icon-end {
+  list-style-image: url(chrome://global/skin/icons/collapse.png);
+}
+
+#calendar-status-todaypane-button[checked="true"] > .toolbarbutton-icon-end {
+  list-style-image: url(chrome://global/skin/icons/expand.png);
+}  

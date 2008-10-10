@@ -210,42 +210,6 @@ toolbar[iconsize="small"] #calendar-unifinder-button[disabled="true"] {
 }
 
 /*--------------------------------------------------------------------
- *   Show Today-Pane button
- *-------------------------------------------------------------------*/
-
-#mail-show-todaypane-button,
-#task-show-todaypane-button,
-#calendar-show-todaypane-button {
-        -moz-image-region: rect(0px 672px 32px 640px);
-}
-#mail-show-todaypane-button:active,
-#task-show-todaypane-button:active,
-#calendar-show-todaypane-button:active {
-        -moz-image-region: rect(32px 672px 64px 640px);
-}
-#mail-show-todaypane-button[disabled="true"],
-#task-show-todaypane-button[disabled="true"],
-#calendar-show-todaypane-button[disabled="true"] {
-        -moz-image-region: rect(64px 672px 96px 640px);
-}
-
-toolbar[iconsize="small"] #mail-show-todaypane-button,
-toolbar[iconsize="small"] #task-show-todaypane-button,
-toolbar[iconsize="small"] #calendar-show-todaypane-button {
-        -moz-image-region: rect(0px 504px 24px 480px);
-}
-toolbar[iconsize="small"] #mail-show-todaypane-button:active,
-toolbar[iconsize="small"] #task-show-todaypane-button:active,
-toolbar[iconsize="small"] #calendar-show-todaypane-button:active {
-        -moz-image-region: rect(24px 504px 48px 480px);
-}
-toolbar[iconsize="small"] #mail-show-todaypane-button[disabled="true"],
-toolbar[iconsize="small"] #task-show-todaypane-button[disabled="true"],
-toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"] {
-        -moz-image-region: rect(48px 504px 72px 480px);
-}
-
-/*--------------------------------------------------------------------
  *   Button: "Choose Date"
  *-------------------------------------------------------------------*/
 

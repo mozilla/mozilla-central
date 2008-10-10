@@ -60,9 +60,9 @@
 <script type="application/javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
 <script type="application/javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
 
-    <modevbox id="today-pane-panel" addtoolbarbutton="true" width="200"
+    <modevbox id="today-pane-panel" width="200"
               mode="mail,calendar,task" refcontrol="calendar_toggle_todaypane_command"
-              broadcaster="modeBroadcaster" persist="addtoolbarbutton width">
+              broadcaster="modeBroadcaster" persist="width">
       <sidebarheader align="center">
         <label id ="today-pane-header"/>
         <spacer flex="1"/>

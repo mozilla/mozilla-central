@@ -123,3 +123,11 @@ treenode-checkbox > .checkbox-check {
 .view-navigation-button > .toolbarbutton-text  {
   display: none;
 }
+
+.toolbarbutton-icon-begin {
+  -moz-margin-end: 5px;
+}
+
+.toolbarbutton-icon-end {
+  -moz-margin-start: 5px;
+}

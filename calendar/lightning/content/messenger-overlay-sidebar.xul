@@ -578,11 +578,21 @@
       <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed">
           <grippy/>
       </splitter>
-      <modevbox id="today-pane-panel"
-                addtoolbarbutton="true"
-                persist="width addtoolbarbutton"/>
+      <modevbox id="today-pane-panel" persist="width"/>
     </box>
   </vbox>
 </tabpanels>
 
+  <statusbar id="status-bar">
+    <statusbarpanel id="calendar-show-todaypane-panel"
+                    pack="center">
+      <toolbarbutton id="calendar-status-todaypane-button"
+                     doubleimage="true"
+                     type="checkbox"
+                     label="&todaypane.statusButton.label;"
+                     tooltiptext="&calendar.todaypane.button.tooltip;"
+                     observes="calendar_toggle_todaypane_command"
+                     command="calendar_toggle_todaypane_command"/>
+    </statusbarpanel>
+  </statusbar>
 </overlay>

@@ -53,6 +53,10 @@ modehbox {
   -moz-user-focus: normal;
 }
 
+toolbarbutton[doubleimage="true"] {
+  -moz-binding: url(chrome://calendar/content/widgets/calendar-widgets.xml#doubleimage-toolbarbutton);
+}
+
 minimonth {
   -moz-binding: url("chrome://calendar/content/widgets/minimonth.xml#minimonth");
 }

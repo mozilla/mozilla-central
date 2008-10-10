@@ -39,6 +39,18 @@
           xmlns="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
           xmlns:xbl="http://www.mozilla.org/xbl">
+  <binding id="doubleimage-toolbarbutton" extends="chrome://global/content/bindings/toolbarbutton.xml#toolbarbutton">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>
+    </resources>
+    <content>
+      <children includes="observes|template|menupopup|tooltip"/>
+      <xul:image class="toolbarbutton-icon-begin" xbl:inherits="validate,src-begin=image,toolbarmode,buttonstyle"/>
+      <xul:label class="toolbarbutton-text" crop="right" flex="1"
+                 xbl:inherits="value=label,accesskey,crop,toolbarmode,buttonstyle"/>
+      <xul:image class="toolbarbutton-icon-end" xbl:inherits="validate,src-end=image,toolbarmode,buttonstyle"/>
+    </content>
+  </binding>
 
   <!-- this binding directly extends to a checkbox but is visualized as
        a treenode in a treecontrol-->

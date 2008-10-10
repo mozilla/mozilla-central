@@ -289,66 +289,6 @@ toolbar[iconsize="small"] #calendar-go-to-today-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
- *   Show TodayPane button
- *-------------------------------------------------------------------*/
-
-#mail-show-todaypane-button,
-#task-show-todaypane-button,
-#calendar-show-todaypane-button {
-        -moz-image-region: rect(0px 504px 24px 480px);
-}
-#mail-show-todaypane-button[disabled="true"],
-#mail-show-todaypane-button[disabled="true"]:hover,
-#mail-show-todaypane-button[disabled="true"]:hover:active,
-#task-show-todaypane-button[disabled="true"],
-#task-show-todaypane-button[disabled="true"]:hover,
-#task-show-todaypane-button[disabled="true"]:hover:active,
-#calendar-show-todaypane-button[disabled="true"],
-#calendar-show-todaypane-button[disabled="true"]:hover,
-#calendar-show-todaypane-button[disabled="true"]:hover:active {
-        -moz-image-region: rect(48px 504px 72px 480px);
-}
-#mail-show-todaypane-button:hover,
-#task-show-todaypane-button:hover,
-#calendar-show-todaypane-button:hover {
-        -moz-image-region: rect(24px 504px 48px 480px);
-}
-#mail-show-todaypane-button:hover:active,
-#task-show-todaypane-button:hover:active,
-#calendar-show-todaypane-button:hover:active {
-}
-
-/*--------------------------------------------------------------------
- *   Show TodayPane button - small
- *-------------------------------------------------------------------*/
-
-toolbar[iconsize="small"] #mail-show-todaypane-button,
-toolbar[iconsize="small"] #task-show-todaypane-button,
-toolbar[iconsize="small"] #calendar-show-todaypane-button {
-        -moz-image-region: rect(0px 336px 16px 320px);
-}
-toolbar[iconsize="small"] #mail-show-todaypane-button[disabled="true"],
-toolbar[iconsize="small"] #mail-show-todaypane-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #mail-show-todaypane-button[disabled="true"]:hover:active,
-toolbar[iconsize="small"] #task-show-todaypane-button[disabled="true"],
-toolbar[iconsize="small"] #task-show-todaypane-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #task-show-todaypane-button[disabled="true"]:hover:active,
-toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"],
-toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"]:hover:active {
-        -moz-image-region: rect(32px 336px 48px 320px);
-}
-toolbar[iconsize="small"] #mail-show-todaypane-button:hover,
-toolbar[iconsize="small"] #task-show-todaypane-button:hover,
-toolbar[iconsize="small"] #calendar-show-todaypane-button:hover {
-        -moz-image-region: rect(16px 336px 32px 320px);
-}
-toolbar[iconsize="small"] #mail-show-todaypane-button:hover:active,
-toolbar[iconsize="small"] #task-show-todaypane-button:hover:active,
-toolbar[iconsize="small"] #calendar-show-todaypane-button:hover:active {
-}
-
-/*--------------------------------------------------------------------
  *   Unifinder button
  *-------------------------------------------------------------------*/
 
