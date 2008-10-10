@@ -1,4 +1,5 @@
 <!ENTITY itemGeneral.label       "General">
+<!ENTITY itemDisplay.label       "Reading &amp; Display">
 <!ENTITY itemUpdate.label        "Update">
 <!ENTITY itemNetworking.label    "Network &amp; Disk Space">
 <!ENTITY itemCertificates.label  "Certificates">
@@ -33,6 +34,10 @@
 <!ENTITY returnReceiptsInfo.label      "Determine how &brandShortName; handles return receipts">
 <!ENTITY showReturnReceipts.label      "Return Receipts…">
 <!ENTITY showReturnReceipts.accesskey  "R">
+
+<!-- Display and Reading Settings -->
+<!ENTITY reading.caption                "Reading">
+<!ENTITY display.caption                "Display">
 
 <!-- Update -->
 <!ENTITY autoCheck.label                "Automatically check for updates to:">
