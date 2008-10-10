@@ -102,11 +102,6 @@ NS_IMETHODIMP nsMsgCompUtils::GetMsgMimeConformToStandard(PRBool *_retval)
 }
 
 //
-// Hopefully, someone will write and XP call like this eventually!
-//
-#define     TPATH_LEN   1024
-
-//
 // Create a file for the a unique temp file
 // on the local machine. Caller must free memory
 //
