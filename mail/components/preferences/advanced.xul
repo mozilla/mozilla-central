@@ -97,6 +97,7 @@
     <tabbox id="advancedPrefs" flex="1" onselect="gAdvancedPane.tabSelectionChanged();">
       <tabs>
         <tab label="&itemGeneral.label;"/>
+        <tab label="&itemDisplay.label;"/>
         <tab id="networkingTab" label="&itemNetworking.label;"/>
         <tab label="&itemUpdate.label;"/>
         <tab label="&itemCertificates.label;"/>
@@ -105,58 +106,6 @@
       <tabpanels flex="1">
         <!-- General -->
         <tabpanel orient="vertical">
-          <hbox>
-            <checkbox id="showCondensedAddresses" label="&showCondensedAddresses.label;"
-                      accesskey="&showCondensedAddresses.accesskey;"  preference="mail.showCondensedAddresses"/>
-          </hbox>
-
-          <vbox>
-            <hbox>
-              <checkbox id="automaticallyMarkAsRead"
-                        preference="mailnews.mark_message_read.auto"
-                        label="&autoMarkAsRead.label;"
-                        accesskey="&autoMarkAsRead.accesskey;"
-                        oncommand="gAdvancedPane.updateMarkAsReadOptions(this.checked)"/>
-            </hbox>
-
-            <radiogroup id="markAsReadAutoPreferences" orient="vertical" class="indent"
-                        preference="mailnews.mark_message_read.delay">
-              <radio id="mark_read_immediately" value="false"
-                     label="&markAsReadNoDelay.label;"
-                     accesskey="&markAsReadNoDelay.accesskey;"/>
-              <hbox align="center">
-                <radio id="markAsReadAfterDelay" value="true"
-                       label="&markAsReadDelay.label;"
-                       accesskey="&markAsReadDelay.accesskey;"/>
-                <textbox id="markAsReadDelay" size="2"
-                         preference="mailnews.mark_message_read.delay.interval"
-                         aria-labelledby="markAsReadAfterDelay markAsReadDelay secondsLabel"/>
-                <label id="secondsLabel" value="&secondsLabel.label;"/>
-              </hbox>
-            </radiogroup>
-          </vbox>
-
-          <hbox>
-            <checkbox id="showFolderPaneColumns" label="&showFolderColumns.label;"
-                      accesskey="&showFolderColumns.accesskey;" preference="mail.showFolderPaneColumns"/>
-          </hbox>
-
-          <separator class="thin"/>
-
-          <vbox>
-            <hbox align="center" pack="start">
-              <label value="&openMsgIn.label;" control="mailnewsDoubleClick2NewWindow"/>
-            </hbox>
-
-            <hbox class="indent">
-              <radiogroup id="mailnewsDoubleClick2NewWindow" preference="mailnews.reuse_message_window" orient="horizontal">
-                <radio value="false" label="&reuseExpRadio0.label;" accesskey="&reuseExpRadio0.accesskey;" id="new"/>
-                <radio value="true" label="&reuseExpRadio1.label;" accesskey="&reuseExpRadio1.accesskey;" id="existing"/>
-              </radiogroup>
-            </hbox>
-          </vbox>
-
-          <separator class="thin"/>
 
           <hbox align="center">
             <description flex="1">&returnReceiptsInfo.label;</description>
@@ -170,6 +119,80 @@
             <button id="configEditor" label="&configEdit.label;"
                     accesskey="&configEdit.accesskey;" oncommand="gAdvancedPane.showConfigEdit();"/>
           </hbox>
+
+        </tabpanel>
+
+        <!-- Reading and Display -->
+        <tabpanel orient="vertical">
+          <groupbox>
+            <caption label="&reading.caption;"/>
+
+            <vbox>
+              <hbox>
+                <checkbox id="automaticallyMarkAsRead"
+                          preference="mailnews.mark_message_read.auto"
+                          label="&autoMarkAsRead.label;"
+                          accesskey="&autoMarkAsRead.accesskey;"
+                          oncommand="gAdvancedPane.updateMarkAsReadOptions(this.checked)"/>
+              </hbox>
+
+              <radiogroup id="markAsReadAutoPreferences" orient="vertical"
+                          class="indent"
+                          preference="mailnews.mark_message_read.delay">
+                <radio id="mark_read_immediately" value="false"
+                       label="&markAsReadNoDelay.label;"
+                       accesskey="&markAsReadNoDelay.accesskey;"/>
+                <hbox align="center">
+                  <radio id="markAsReadAfterDelay" value="true"
+                         label="&markAsReadDelay.label;"
+                         accesskey="&markAsReadDelay.accesskey;"/>
+                  <textbox id="markAsReadDelay" size="2"
+                           preference="mailnews.mark_message_read.delay.interval"
+                           aria-labelledby="markAsReadAfterDelay markAsReadDelay secondsLabel"/>
+                  <label id="secondsLabel" value="&secondsLabel.label;"/>
+                </hbox>
+              </radiogroup>
+            </vbox>
+
+            <vbox>
+              <hbox>
+                <label value="&openMsgIn.label;"
+                       control="mailnewsDoubleClick2NewWindow"/>
+              </hbox>
+
+              <hbox>
+                <radiogroup id="mailnewsDoubleClick2NewWindow" class="indent"
+                            preference="mailnews.reuse_message_window"
+                            orient="horizontal">
+                  <radio id="new" value="false" label="&reuseExpRadio0.label;"
+                         accesskey="&reuseExpRadio0.accesskey;"/>
+                  <radio id="existing" value="true"
+                         label="&reuseExpRadio1.label;"
+                         accesskey="&reuseExpRadio1.accesskey;"/>
+                </radiogroup>
+              </hbox>
+            </vbox>
+
+          </groupbox>
+
+          <groupbox>
+            <caption label="&display.caption;"/>
+
+            <hbox>
+              <checkbox id="showCondensedAddresses"
+                        label="&showCondensedAddresses.label;"
+                        accesskey="&showCondensedAddresses.accesskey;"
+                        preference="mail.showCondensedAddresses"/>
+            </hbox>
+
+            <hbox>
+              <checkbox id="showFolderPaneColumns"
+                        label="&showFolderColumns.label;"
+                        accesskey="&showFolderColumns.accesskey;"
+                        preference="mail.showFolderPaneColumns"/>
+            </hbox>
+
+          </groupbox>
 
         </tabpanel>
 
