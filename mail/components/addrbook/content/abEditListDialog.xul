@@ -91,7 +91,7 @@
           <textbox id="addressCol1#1" class="plain textbox-addressingWidget uri-element"
                    type="autocomplete" allowevents="true" flex="1"
                    searchSessions="addrbook" timeout="300" maxrows="4"
-                   autofill="true" autofillaftermatch="true" forcecomplete="true"
+                   completedefaultindex="true" forcecomplete="true"
                    minresultsforpopup="3"
                    ontextentered="awRecipientTextCommand(eventParam, this)"
                    oninput="setupLdapAutocompleteSession();"

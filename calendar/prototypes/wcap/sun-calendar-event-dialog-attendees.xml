@@ -63,8 +63,6 @@
             <xul:image id="attendeeCol1#1" anonid="icon"/>
           </xul:listcell>
           <xul:listcell class="addressingWidgetCell">
-            <!-- Where attributes are repeated, this allows compatibility with
-                 the MOZILLA_1_8_BRANCH -->
             <xul:textbox id="attendeeCol2#1"
                          anonid="input"
                          class="plain textbox-addressingWidget uri-element"
@@ -73,11 +71,10 @@
                          searchSessions="addrbook"
                          timeout="300"
                          maxrows="4"
-                         autofill="true" autoFill="true"
-                         autofillaftermatch="true" autoFillAfterMatch="true"
-                         forcecomplete="true" forceComplete="true"
-                         minresultsforpopup="1" minResultsForPopup="true"
-                         ignoreblurwhilesearching="true" ignoreBlurWhileSearching="true"
+                         completedefaultindex="true"
+                         forcecomplete="true"
+                         minresultsforpopup="1"
+                         ignoreblurwhilesearching="true"
                          oninput="this.setAttribute('dirty', 'true');">
               <xul:image class="person-icon" onclick="this.parentNode.select();"/>
             </xul:textbox>

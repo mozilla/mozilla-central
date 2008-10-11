@@ -78,7 +78,7 @@
                  aria-labelledby="addressCol1#1"
                  type="autocomplete" flex="1" maxrows="4"
                  autocompletesearch="mydomain addrbook" timeout="300"
-                 autofill="true" autofillaftermatch="true" forcecomplete="true"
+                 completedefaultindex="true" forcecomplete="true"
                  minresultsforpopup="3" ignoreblurwhilesearching="true"
                  ontextentered="awRecipientTextCommand(eventParam, this)"
                  onerrorcommand="awRecipientErrorCommand(eventParam, this)"
