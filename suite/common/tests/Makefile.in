@@ -48,7 +48,7 @@ MODULE		= test_suite_common
 
 XPCSHELL_TESTS = unit
 
-ifdef MOZ_MOCHITEST
+ifdef ENABLE_TESTS
 DIRS = chrome
 endif
 
