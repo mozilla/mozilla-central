@@ -48,13 +48,18 @@
 #include "nsString.h"
 #include "nsInt64.h"
 #include "nsISupportsArray.h"
+#include "nsIObserver.h"
+#include "nsIAlertsService.h"
 
 #define NS_MESSENGEROSXINTEGRATION_CID \
   {0xaa83266, 0x4225, 0x4c4b, \
   {0x93, 0xf8, 0x94, 0xb1, 0x82, 0x58, 0x6f, 0x93}}
 
+class nsIStringBundle;
+
 class nsMessengerOSXIntegration : public nsIMessengerOSIntegration,
-                                  public nsIFolderListener
+                                  public nsIFolderListener,
+                                  public nsIObserver
 {
 public:
   nsMessengerOSXIntegration();
@@ -64,12 +69,18 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMESSENGEROSINTEGRATION
   NS_DECL_NSIFOLDERLISTENER
+  NS_DECL_NSIOBSERVER
 
 private:
   nsCOMPtr<nsISupportsArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
   nsCOMPtr<nsIAtom> mBiffStateAtom;
   PRInt32 CountNewMessages();
+  nsresult ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI);
   nsresult OnAlertFinished(const PRUnichar * aAlertCookie);
+  nsresult OnAlertClicked();
+  nsresult GetStringBundle(nsIStringBundle **aBundle);
+  void FillToolTipInfo();
+  nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
 
   PRPackedBool mBiffIconVisible;
   PRPackedBool mSuppressBiffIcon;

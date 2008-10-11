@@ -96,6 +96,10 @@ REQUIRES	= xpcom \
 		  uriloader \
 		  $(NULL)
 
+ifeq ($(OS_TARGET),Darwin)
+REQUIRES += alerts
+endif
+
 ifdef MOZ_LDAP_XPCOM
 REQUIRES	+= mozldap \
                $(NULL)
