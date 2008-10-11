@@ -149,7 +149,7 @@ nsMessengerOSXIntegration::Init()
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
   if (NS_SUCCEEDED(rv))
     observerService->AddObserver(this, "before-growl-registration", PR_FALSE);
-    
+
   nsCOMPtr <nsIMsgAccountManager> accountManager = 
     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -195,7 +195,6 @@ nsMessengerOSXIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
   // register named Growl notification for new mail alerts.
   if (!strcmp(aTopic, "before-growl-registration"))
   {
-      printf("\n\n\nbefore-growl-registration\n\n\n");
     nsresult rv;
     nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
     if (NS_SUCCEEDED(rv))
@@ -204,7 +203,6 @@ nsMessengerOSXIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
     nsCOMPtr<nsINotificationsList> notifications = do_QueryInterface(aSubject, &rv);
     if (NS_SUCCEEDED(rv))
     {
-      printf("...trying to get string bundle...\n");
       nsCOMPtr<nsIStringBundle> bundle; 
       GetStringBundle(getter_AddRefs(bundle));
       if (bundle)

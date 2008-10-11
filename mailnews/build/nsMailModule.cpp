@@ -652,6 +652,40 @@ UnregisterCommandLineHandlers(nsIComponentManager* compMgr, nsIFile* path,
   return NS_OK;
 }
 
+#ifdef XP_MACOSX
+static NS_METHOD RegisterOSXIntegration(nsIComponentManager *aCompMgr,
+                                        nsIFile *aPath,
+                                        const char *registryLocation,
+                                        const char *componentType,
+                                        const nsModuleComponentInfo *info)
+{
+  nsresult rv;
+  nsCOMPtr<nsICategoryManager> catman =
+    do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCString previous;
+  return catman->AddCategoryEntry("app-startup",
+                                  NS_MESSENGEROSINTEGRATION_CONTRACTID,
+                                  "service," NS_MESSENGEROSINTEGRATION_CONTRACTID,
+                                  PR_TRUE, PR_TRUE, getter_Copies(previous));
+}
+
+static NS_METHOD UnregisterOSXIntegration(nsIComponentManager *aCompMgr,
+                                          nsIFile *aPath,
+                                          const char *registryLocation,
+                                          const nsModuleComponentInfo *info)
+{
+  nsresult rv;
+  nsCOMPtr<nsICategoryManager> catman =
+    do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return catman->DeleteCategoryEntry("app-startup",
+                                     NS_MESSENGEROSINTEGRATION_CONTRACTID,
+                                     PR_TRUE);
+}
+#endif
 
 // The list of components we register
 static const nsModuleComponentInfo gComponents[] = {
@@ -886,6 +920,8 @@ static const nsModuleComponentInfo gComponents[] = {
     { "OSX OS Integration", NS_MESSENGEROSXINTEGRATION_CID,
       NS_MESSENGEROSINTEGRATION_CONTRACTID,
       nsMessengerOSXIntegrationConstructor,
+      RegisterOSXIntegration,
+      UnregisterOSXIntegration,
     },
 #endif
 #if defined(MOZ_WIDGET_GTK) || defined(MOZ_WIDGET_GTK2)
