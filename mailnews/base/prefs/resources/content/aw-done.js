@@ -240,8 +240,3 @@ function setUserNameDescField(name)
        userNameField.setAttribute("value", name);
    }
 }
-
-function setupAnother(event)
-{
-    window.alert("Unimplemented, see bug #19982");
-}

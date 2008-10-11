@@ -118,10 +118,7 @@ function TidyDomainName(aDomain, aWarn)
     if (aWarn)
     {
       var errorMsg = gError.getAttribute("inverr").replace(/@string@/, aDomain);
-      if (gPromptService)
-        gPromptService.alert(window, gError.getAttribute("title"), errorMsg);
-      else
-        window.alert(errorMsg);
+      gPromptService.alert(window, gError.getAttribute("title"), errorMsg);
     }
     return null;
   }

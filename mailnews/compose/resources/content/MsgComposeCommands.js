@@ -1505,10 +1505,7 @@ function ComposeLoad()
     var errorTitle = sComposeMsgsBundle.getString("initErrorDlogTitle");
     var errorMsg = sComposeMsgsBundle.getFormattedString("initErrorDlogMessage",
                                                          [""]);
-    if (gPromptService)
-      gPromptService.alert(window, errorTitle, errorMsg);
-    else
-      window.alert(errorMsg);
+    gPromptService.alert(window, errorTitle, errorMsg);
 
     MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
     return;
@@ -3125,10 +3122,7 @@ function DisplaySaveFolderDlg(folderURI)
                                                         msgfolder.server.prettyName]);
 
     var CheckMsg = sComposeMsgsBundle.getString("CheckMsg");
-    if (gPromptService)
-      gPromptService.alertCheck(window, SaveDlgTitle, dlgMsg, CheckMsg, checkbox);
-    else
-      window.alert(dlgMsg);
+    gPromptService.alertCheck(window, SaveDlgTitle, dlgMsg, CheckMsg, checkbox);
     try {
           gCurrentIdentity.showSaveMsgDlg = !checkbox.value;
     }//try

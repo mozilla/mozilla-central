@@ -171,7 +171,11 @@ function onOK()
 
   if (!gSearchFolderURIs)
   {
-    window.alert(messengerBundle.getString('alertNoSearchFoldersSelected'));
+    var promptService =
+      Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                .getService(Components.interfaces.nsIPromptService);
+    promptService.alert(window, null,
+                        messengerBundle.getString('alertNoSearchFoldersSelected'));
     return false;
   }
 
@@ -209,12 +213,20 @@ function onOK()
     // it can't contain a ';' or '#'.
     if (/^\.|[\.\~ ]$|[\;\#]/.test(name))
     {
-      window.alert(messengerBundle.getString('folderCreationFailed'));
+      var promptService =
+        Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                  .getService(Components.interfaces.nsIPromptService);
+      promptService.alert(window, null,
+                          messengerBundle.getString('folderCreationFailed'));
       return false;
     }
     else if (parentFolder.containsChildNamed(name))
     {
-      window.alert(messengerBundle.getString('folderExists'));
+      var promptService =
+        Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                  .getService(Components.interfaces.nsIPromptService);
+      promptService.alert(window, null,
+                          messengerBundle.getString('folderExists'));
       return false;
     }
     

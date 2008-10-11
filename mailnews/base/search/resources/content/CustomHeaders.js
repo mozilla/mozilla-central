@@ -152,7 +152,10 @@ function customHeaderOverflow()
       gFilterBundle = document.getElementById("bundle_filter");
 
     var alertText = gFilterBundle.getString("customHeaderOverflow");
-    window.alert(alertText);
+    var promptService =
+      Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                .getService(Components.interfaces.nsIPromptService);
+    promptService.alert(window, null, alertText);
     return true;
   }
   return false;
@@ -168,7 +171,10 @@ function onAddHeader()
       gCustomBundle = document.getElementById("bundle_custom");
 
     var alertText = gCustomBundle.getString("colonInHeaderName");
-    window.alert(alertText);
+    var promptService =
+      Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                .getService(Components.interfaces.nsIPromptService);
+    promptService.alert(window, null, alertText);
     return;
   }
 

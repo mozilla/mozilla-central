@@ -68,10 +68,7 @@ function onAccept()
       var alertTitle = brandBundle.getString("brandShortName");
       var alertMsg = prefsBundle.getString("enterValidHostname");
       var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-      if (promptService)
-        promptService.alert(window, alertTitle, alertMsg);
-      else
-        window.alert(alertMsg);
+      promptService.alert(window, alertTitle, alertMsg);
 
       window.arguments[0].result = false;
       return false;

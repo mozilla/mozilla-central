@@ -76,7 +76,6 @@ var RDF;
 var accountManager;
 var smtpService;
 var nsPrefBranch;
-var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
 
 // widgets
 var duplicateButton;
@@ -303,12 +302,11 @@ function checkUserServerChanges(showAlert) {
       if (hostnameIsIllegal(smtpHostName.value)) {
         var alertTitle = gBrandBundle.getString("brandShortName");
         var alertMsg = gPrefsBundle.getString("enterValidHostname");
-
-        if (gPromptService)
-          gPromptService.alert(window, alertTitle, alertMsg);
-        else
-          window.alert(alertMsg);
-       gSmtpHostNameIsIllegal = true;
+        var promptService =
+          Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                    .getService(Components.interfaces.nsIPromptService);
+        promptService.alert(window, alertTitle, alertMsg);
+        gSmtpHostNameIsIllegal = true;
       }
     }
     catch (ex) {}
@@ -365,7 +363,10 @@ function checkUserServerChanges(showAlert) {
     if (newServer) {
       if (showAlert) {
         var alertText = gPrefsBundle.getString("modifiedAccountExists");
-        window.alert(alertText);
+        var promptService =
+          Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                    .getService(Components.interfaces.nsIPromptService);
+        promptService.alert(window, null, alertText);
       }
       // Restore the old values before return
       if (newType != "nntp")
@@ -393,11 +394,15 @@ function checkUserServerChanges(showAlert) {
       if ( (serverChangeText != undefined) && (userChangeText != undefined) )
         serverChangeText = serverChangeText + "\n\n" + userChangeText;
       else
-      if (userChangeText != undefined)
-        serverChangeText = userChangeText;
+        if (userChangeText != undefined)
+          serverChangeText = userChangeText;
 
-      if (serverChangeText != undefined)
-        window.alert(serverChangeText);
+      if (serverChangeText != undefined) {
+        var promptService =
+          Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                    .getService(Components.interfaces.nsIPromptService);
+        promptService.alert(window, null, serverChangeText);
+      }
     }
   }
   return true;
@@ -474,7 +479,10 @@ function onDuplicateAccount() {
       }
       catch (ex) {
         var alertText = gPrefsBundle.getString("failedDuplicateAccount");
-        window.alert(alertText);
+        var promptService =
+          Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                    .getService(Components.interfaces.nsIPromptService);
+        promptService.alert(window, null, alertText);
       }
     }
   }
@@ -531,12 +539,10 @@ function onRemoveAccount(event) {
   var confirmTitle = gPrefsBundle.getString("confirmRemoveAccountTitle");
 
   var promptService =
-    Components.classes["@mozilla.org/embedcomp/prompt-service;1"].
-               getService(Components.interfaces.nsIPromptService);
-  if (!promptService ||
-      !promptService.confirm(window, confirmTitle, confirmRemoveAccount)) {
+    Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+              .getService(Components.interfaces.nsIPromptService);
+  if (!promptService.confirm(window, confirmTitle, confirmRemoveAccount))
     return;
-  }
 
   try {
     // clear cached data out of the account array
@@ -550,7 +556,10 @@ function onRemoveAccount(event) {
   catch (ex) {
     dump("failure to remove account: " + ex + "\n");
     var alertText = gPrefsBundle.getString("failedRemoveAccount");
-    window.alert(alertText);
+    var promptService =
+      Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                .getService(Components.interfaces.nsIPromptService);
+    promptService.alert(window, null, alertText);
   }
 }
 
