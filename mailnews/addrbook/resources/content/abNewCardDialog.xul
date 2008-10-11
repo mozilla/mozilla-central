@@ -54,7 +54,7 @@
     <label id="abPopupLabel" control="abPopup" value="&chooseAddressBook.label;" accesskey="&chooseAddressBook.accesskey;"/>
 
     <menulist id="abPopup">
-      <menupopup id="abPopup-menupopup" class="addrbooksPopup" writeable="true"/>
+      <menupopup id="abPopup-menupopup" class="addrbooksPopup" writable="true"/>
     </menulist>
 
   </hbox>

@@ -61,7 +61,7 @@
   <hbox align="center">
     <label control="abPopup" value="&addToAddressBook.label;" accesskey="&addToAddressBook.accesskey;"/>
     <menulist id="abPopup">
-      <menupopup id="abPopup-menupopup" class="addrbooksPopup" writeable="true"
+      <menupopup id="abPopup-menupopup" class="addrbooksPopup" writable="true"
                  supportsmaillists="true"/>
     </menulist>
   </hbox>
