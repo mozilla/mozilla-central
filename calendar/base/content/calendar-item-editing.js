@@ -99,6 +99,10 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event, aFo
                 event.endDate.day++;
             }
         }
+
+        if (!event.calendar) {
+            event.calendar = calendar || getSelectedCalendar();
+        }
     } else {
         event = createEvent();
 
@@ -175,6 +179,10 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
         if (todo.id) {
             todo = todo.clone();
             todo.id = null;
+        }
+
+        if (!todo.calendar) {
+            todo.calendar = calendar || getSelectedCalendar();
         }
     } else {
         todo = createTodo();

@@ -324,7 +324,8 @@ calDNDBaseObserver.prototype = {
                 };
 
                 try {
-                    loader.init(channel, listener, null, 0);
+                    loader.init(listener, Components.interfaces.nsIUnicharStreamLoader.DEFAULT_SEGMENT_SIZE);
+                    channel.asyncOpen(loader, null);
                 } catch(e) {
                     Components.utils.reportError(e)
                 }
