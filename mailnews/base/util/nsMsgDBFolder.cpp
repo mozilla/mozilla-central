@@ -5036,6 +5036,9 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
         PRInt32 startOffset, length;
         if (MsgFindKeyword(*(keywordArray[j]), keywords, &startOffset,&length))
         {
+          // delete any space delimiter
+          if (keywords.CharAt(startOffset + length) == ' ')
+            length++;
           keywords.Cut(startOffset, length);
           NS_ASSERTION(keywords.IsEmpty() || keywords.CharAt(0) != ' ', "space only keyword");
         }
