@@ -70,5 +70,5 @@ minimonth-header {
 }
 
 minimonth-header[readonly="true"] {
-  -moz-binding: url("chrome://calendar/content/widgets/minimonth.xml#inactive-minimonth-header");
+  -moz-binding: url("chrome://calendar/content/widgets/minimonth.xml#minimonth-header");
 }

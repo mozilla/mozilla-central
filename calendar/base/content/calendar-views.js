@@ -530,8 +530,7 @@ function observeViewDaySelect(event) {
  * Sunbird or Lightning.
  */
 function getMinimonth() {
-    var sbMinimonth = document.getElementById("lefthandcalendar");
-    return sbMinimonth || document.getElementById("ltnMinimonth");
+    return document.getElementById("calMinimonth");
 }
 
 /**

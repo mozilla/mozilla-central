@@ -54,7 +54,6 @@ calendar.jar:
     content/calendar/calendar-subscriptions-list.xml    (content/calendar-subscriptions-list.xml)
     content/calendar/widgets/minimonth.xml     (content/widgets/minimonth.xml)
     content/calendar/widgets/calendar-widget-bindings.css    (content/widgets/calendar-widget-bindings.css)
-    content/calendar/calendar-minimonth-busy.js  (content/calendar-minimonth-busy.js)
     content/calendar/calendar-view-bindings.css  (content/calendar-view-bindings.css)
     content/calendar/calendar-view-core.xml      (content/calendar-view-core.xml)
     content/calendar/calendar-views.js           (content/calendar-views.js)

@@ -1863,3 +1863,20 @@ function binaryInsert(itemArray, item, comptor, discardDuplicates) {
     }
     return newIndex;
 }
+
+function getCompositeCalendar() {
+    if (getCompositeCalendar.mObject === undefined) {
+        getCompositeCalendar.mObject =
+            Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
+            .createInstance(Components.interfaces.calICompositeCalendar);
+
+        getCompositeCalendar.mObject.prefPrefix = 'calendar-main';
+        if (gCalendarStatusFeedback) {
+            // If we are in a window that has calendar status feedback, set up
+            // our status observer.
+            var chromeWindow = window.QueryInterface(Components.interfaces.nsIDOMChromeWindow);
+            getCompositeCalendar.mObject.setStatusObserver(gCalendarStatusFeedback, chromeWindow);
+        }
+    }
+    return getCompositeCalendar.mObject;
+}

@@ -56,7 +56,7 @@ CalendarWindow.prototype.pickAndGoToDate = function calWin_pickAndGoToDate() {
   var initialDate = currentView().selectedDay.getInTimezone(floating()).jsDate;
   var callback = function receiveAndGoToDate(pickedDate) {
     currentView().goToDay(jsDateToDateTime(pickedDate));
-    document.getElementById("lefthandcalendar").value = pickedDate;
+    getMinimonth().value = pickedDate;
   };
   openDialog("chrome://calendar/content/calendar-gotodate-dialog.xul",
              "calendar-gotodate-dialog",

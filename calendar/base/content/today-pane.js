@@ -195,7 +195,8 @@ var TodayPane = {
       document.getElementById("today-minimonth-box").setVisible(aIndex == 2);
       document.getElementById("mini-day-box").setVisible(aIndex == 1);
       document.getElementById("today-none-box").setVisible(aIndex == 3);
-  },
+      setBooleanAttribute(document.getElementById("today-Minimonth"), "freebusy", aIndex == 2);
+},
 
   disableMenuItems: function disableMenuItems(disable) {
        var menu = document.getElementById("today-pane-menu");

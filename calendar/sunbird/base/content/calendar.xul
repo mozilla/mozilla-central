@@ -168,8 +168,9 @@
           <tabpanel>
             <vbox flex="1" align="center">
               <spacer id="spaceaboveleftminimonth" flex="1" orient="vertical"/>
-              <minimonth id="lefthandcalendar"
+              <minimonth id="calMinimonth"
                          maxheight="300"
+                         freebusy="true"
                          onchange="gCalendarWindow.goToDay( this.value );"/>
               <spacer id="spacebelowleftminimonth" flex="1" orient="vertical"/>
             </vbox>

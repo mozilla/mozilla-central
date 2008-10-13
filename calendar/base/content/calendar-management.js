@@ -37,26 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/**
- * Calendar specific utility functions
- */
-var gCompositeCalendar = null;
-function getCompositeCalendar() {
-    if (!gCompositeCalendar) {
-        gCompositeCalendar =
-            Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
-            .createInstance(Components.interfaces.calICompositeCalendar);
-
-        gCompositeCalendar.prefPrefix = 'calendar-main';
-        if (gCalendarStatusFeedback) {
-            // If we are in a window that has calendar status feedback, set up
-            // our status observer.
-            var chromeWindow = window.QueryInterface(Components.interfaces.nsIDOMChromeWindow);
-            gCompositeCalendar.setStatusObserver(gCalendarStatusFeedback, chromeWindow);
-        }
-    }
-    return gCompositeCalendar;
-}
 
 function getSelectedCalendar() {
     var tree = document.getElementById("calendar-list-tree-widget");

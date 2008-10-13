@@ -38,7 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-.minimonth-mainbox {
+minimonth {
   background-color: #FFFFFF;
   border: 0px;
   padding: 5px;
@@ -138,7 +138,7 @@
 .minimonth-cal-box {
 }
 
-.minimonth-header {
+.minimonth-row-header {
   text-align: center;
 }
 
@@ -156,7 +156,7 @@
   min-height: 16px;
 }
 
-.minimonth-day[othermonth="true"] {
+.minimonth-day[othermonth="true"]{
   color: #b2b2b2;
   background-color: #FFFFFF;
   border: 1px solid #FFFFFF;

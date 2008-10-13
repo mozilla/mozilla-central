@@ -93,15 +93,14 @@
                        refcontrol="today-pane-displaynone"
                        persist="collapsedinmodes"/>
               <modehbox id="today-minimonth-box"
+                        pack="center"
                         class="today-subpane"
                         mode="mail,calendar,task"
                         broadcaster="modeBroadcaster"
                         collapsedinmodes="mail,calendar,task"
                         refcontrol="today-pane-displayminimonth"
                         persist="collapsedinmodes">
-                <spacer flex="1"/>
-                <minimonth id="today-Minimonth" onchange="TodayPane.setDaywithjsDate(this.value);"/>
-                <spacer flex="1"/>
+                <minimonth id="today-Minimonth" freebusy="true" onchange="TodayPane.setDaywithjsDate(this.value);"/>
               </modehbox>
               <modebox id="mini-day-box"
                        mode="mail,calendar,task"
@@ -150,19 +149,19 @@
                         </hbox>
                       </hbox>
                       <hbox pack="start">
-                        <deck id ="monthNameContainer">
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
-                          <label class="monthlabel"/>
+                        <deck id ="monthNameContainer" class="monthlabel">
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
                         </deck>
                         <spacer flex="1"/>
                       </hbox>

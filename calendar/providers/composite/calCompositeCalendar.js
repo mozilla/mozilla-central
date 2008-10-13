@@ -40,6 +40,9 @@
 // calCompositeCalendar.js
 //
 
+/**
+ * Calendar specific utility functions
+ */
 const calIOperationListener = Components.interfaces.calIOperationListener;
 
 function calCompositeCalendarObserverHelper (compCalendar) {

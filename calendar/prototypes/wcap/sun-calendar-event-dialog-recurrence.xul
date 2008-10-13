@@ -62,6 +62,7 @@
   <script type="application/javascript" src="chrome://calendar/content/calendar-dialog-utils.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-statusbar.js"/>
 
   <!-- recurrence pattern -->
   <groupbox id="recurrence-pattern-groupbox">
