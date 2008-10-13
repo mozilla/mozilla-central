@@ -311,6 +311,7 @@
         -->
       <field name="mCreatedNewEvent">false</field>
       <field name="mEventToEdit">null</field>
+      <field name="mSelectedItemIds">new Object()</field>
 
       <!-- properties -->
       <property name="pixelsPerMinute">
@@ -431,6 +432,7 @@
         <parameter name="aOccurrence"/>
         <body><![CDATA[
           if (aOccurrence) {
+              this.mSelectedItemIds[aOccurrence.hashId] = true;
               var chunk = this.findChunkForOccurrence(aOccurrence);
               if (!chunk) {
                   dump("++ Couldn't find chunk to select!!!\n");
@@ -446,6 +448,7 @@
         <parameter name="aOccurrence"/>
         <body><![CDATA[
           if (aOccurrence) {
+              delete this.mSelectedItemIds[aOccurrence.hashId];
               var chunk = this.findChunkForOccurrence(aOccurrence);
               if (!chunk) {
                   dump ("++ Couldn't find chunk to unselect!!!\n");
@@ -503,7 +506,7 @@
         <parameter name="aOccurrence"/>
         <body><![CDATA[
            var itemIndex = -1;
-           var i;
+           var occ;
            for (var i in this.mEvents) {
                occ = this.mEvents[i].event;
                if (occ.hashId == aOccurrence.hashId)
@@ -514,6 +517,7 @@
            }
 
            if (itemIndex != -1) {
+               delete this.mSelectedItemIds[occ.hashId];
                function isNotItem(a) {
                   return a.occurrence.hashId != aOccurrence.hashId;
                }
@@ -804,6 +808,9 @@
                           chunkBox.calendarView = this.calendarView;
                           chunkBox.occurrence = chunk.event;
                           chunkBox.parentColumn = this;
+                          if (chunk.event.hashId in this.mSelectedItemIds) {
+                              chunkBox.selected = true;
+                          }
                           
                           this.mEventBoxes.push(chunkBox);
 
@@ -2819,6 +2826,10 @@
           }
 
           if (this.mDisplayDaysOff) {
+            // tell old date columns to forget old selected occurrences.
+            var selectedItems = this.getSelectedItems({});
+            this.setSelectedItems(0, [], true); // suppress event, will restore
+
             startDate.makeImmutable();
             endDate.makeImmutable();
             this.mDateList = null;
@@ -2831,6 +2842,9 @@
             // replacing.
             //
             this.refresh();
+
+            // restore selected item occurrences in view with new date columns.
+            this.setSelectedItems(selectedItems.length, selectedItems, true);
           } else { // workdays only
             var dateList = new Array();
             for (var d = startDate.clone(); d.compare(endDate) <= 0;) {
@@ -2850,6 +2864,10 @@
         <parameter name="aCount"/>
         <parameter name="aDates"/>
         <body><![CDATA[
+          // tell old date columns to forget old selected occurrences.
+          var selectedItems = this.getSelectedItems({});
+          this.setSelectedItems(0, [], true); // suppress event, will restore
+
           this.mStartDate = null;
           this.mEndDate = null;
 
@@ -2871,6 +2889,9 @@
           }
 
           this.refresh();
+
+          // restore selected item occurrences in view with new date columns.
+          this.setSelectedItems(selectedItems.length, selectedItems, true);
         ]]></body>
       </method>
 
