@@ -2983,27 +2983,70 @@
 
       <method name="centerSelectedItems">
         <body><![CDATA[
+          var displayTZ = calendarDefaultTimezone();
           var lowMinute = 24 * 60;
           var highMinute = 0;
 
           for each (var item in this.mSelectedItems) {
+              var startDateProperty = calGetStartDateProp(item);
+              var endDateProperty = calGetEndDateProp(item);
+
               var occs = [];
-              var startDate = item[calGetStartDateProp(item)];
-              var endDate = item[calGetEndDateProp(item)] || startDate;
               if (item.recurrenceInfo) {
+                  // if selected a parent item, show occurrence(s) in view range
                   occs = item.getOccurrencesBetween(this.startDate, this.queryEndDate, {}, 0);
-              } else if (startDate.compare(this.startDate) >= 0 ||
-                         endDate.compare(this.queryEndDate) <= 0) {
+              } else {
                   occs = [item];
               }
 
-              if (occs.length) {
-                  if (!startDate.isDate && !endDate.isDate) {
-                    lowMinute = Math.min(startDate.hour * 60 + startDate.minute,
-                                         lowMinute);
-                    highMinute = Math.max(endDate.hour * 60 + endDate.minute,
-                                          highMinute);
+              for each (var occ in occs) {
+                  var occStart = occ[startDateProperty];
+                  var occEnd = occ[endDateProperty];
+                  // must have at least one of start or end
+                  if (!occStart && !occEnd) {
+                      continue; // task with no dates
                   }
+
+                  // if just has single datetime, treat as zero duration item
+                  // (such as task with due datetime or start datetime only)
+                  occStart = (occStart || occEnd);
+                  occEnd   = (occEnd || occStart);
+                  // Now both occStart and occEnd are datetimes.
+
+                  // skip occurrence if all-day: it won't show in time view.
+                  if (occStart.isDate || occEnd.isDate) {
+                     continue;
+                  }
+
+                  // Trim dates to view.  (Not mutated so just reuse view dates)
+                  if (this.startDate.compare(occStart) > 0) {
+                      occStart = this.startDate;
+                  }
+                  if (this.queryEndDate.compare(occEnd) < 0) {
+                      occEnd = this.queryEndDate;
+                  }
+
+                  // Convert to display timezone if different
+                  if (occStart.timezone != displayTZ) {
+                      occStart = occStart.getInTimezone(displayTZ);
+                  }
+                  if (occEnd.timezone != displayTZ) { 
+                      occEnd = occEnd.getInTimezone(displayTZ);
+                  }
+                  // If crosses midnite in current TZ, set end just
+                  // before midnite after start so start/title usually visible.
+                  if (!sameDay(occStart, occEnd)) {
+                      occEnd = occStart.clone();
+                      occEnd.day = occStart.day;
+                      occEnd.hour = 23;
+                      occEnd.minute = 59;
+                  }
+
+                  // Ensure range shows occ
+                  lowMinute = Math.min(occStart.hour * 60 + occStart.minute,
+                                       lowMinute);
+                  highMinute = Math.max(occEnd.hour * 60 + occEnd.minute,
+                                        highMinute);
               }
           }
 
