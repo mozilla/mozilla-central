@@ -2110,19 +2110,22 @@
             return;
 
         this.parentColumn.calendarView.selectedDay = this.parentColumn.mDate;
-        this.mInMouseDown = true;
         this.mMouseX = event.screenX;
         this.mMouseY = event.screenY;
 
         var whichside = event.whichside;
-        if (!whichside)
-            return;
-
-        this.calendarView.setSelectedItems(1,
+        if (!whichside) {
+          // may be click or drag,
+          // so wait for mousemove (or mouseout if fast) to start item move drag
+          this.mInMouseDown = true;
+          return;
+        } else {
+          this.calendarView.setSelectedItems(1,
             [event.ctrlKey ? this.mOccurrence.parentItem : this.mOccurrence]);
 
-        // start dragging it
-        this.parentColumn.startSweepingToModifyEvent(this, this.mOccurrence, whichside, event.screenX, event.screenY);
+          // start edge resize drag
+          this.parentColumn.startSweepingToModifyEvent(this, this.mOccurrence, whichside, event.screenX, event.screenY);
+        }
       ]]></handler>
 
       <handler event="mousemove"><![CDATA[
@@ -2145,6 +2148,22 @@
                 this.parentColumn.startSweepingToModifyEvent(this, this.mOccurrence, "middle", this.mMouseX, this.mMouseY);
                 this.mInMouseDown = false;
             }
+        }
+      ]]></handler>
+
+      <handler event="mouseout"><![CDATA[
+        if (!this.mEditing && this.mInMouseDown && this.parentColumn) { 
+            if (this.editingTimer) {
+                clearTimeout(this.editingTimer);
+                this.editingTimer = null;
+            }
+
+            this.calendarView.selectedItem = this.mOccurrence;
+
+            this.mEditing = false;
+
+            this.parentColumn.startSweepingToModifyEvent(this, this.mOccurrence, "middle", this.mMouseX, this.mMouseY);
+            this.mInMouseDown = false;
         }
       ]]></handler>
 
