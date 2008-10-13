@@ -169,17 +169,6 @@
 }
 
 //
-// nsAbAutoCompleteSession
-//
-#define NS_ABAUTOCOMPLETESESSION_CONTRACTID \
-  "@mozilla.org/autocompleteSession;1?type=addrbook"
-#define NS_ABAUTOCOMPLETESESSION_CID				\
-{ /* 138DE9BD-362B-11d3-988E-001083010E9B */		\
-    0x138de9bd, 0x362b, 0x11d3,						\
-    {0x98, 0x8e, 0x0, 0x10, 0x83, 0x1, 0xe, 0x9b}	\
-}
-
-//
 // nsAbAddressCollecter
 //
 #define NS_ABADDRESSCOLLECTER_CONTRACTID \
