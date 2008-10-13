@@ -2971,26 +2971,28 @@
         <parameter name="aItems"/>
         <parameter name="aSuppressEvent"/>
         <body><![CDATA[
-          if (this.mSelectedItems.length) {
-              for each (var item in this.mSelectedItems) {
-                  var cols = this.findColumnsForItem(item);
+          for each (var item in this.mSelectedItems) {
+              for each (var occ in this.getItemOccurrencesInView(item)) {
+                  var cols = this.findColumnsForItem(occ);
                   for each (col in cols) {
-                      col.header.unselectOccurrence(item);
-                      col.column.unselectOccurrence(item);
+                      col.header.unselectOccurrence(occ);
+                      col.column.unselectOccurrence(occ);
                   }
               }
           }
           this.mSelectedItems = aItems || [];
 
           for each (var item in this.mSelectedItems) {
-              var cols = this.findColumnsForItem(item);
-              if (cols.length > 0) {
-                  var start = item.startDate || item.entryDate;
-                  for each (col in cols) {
-                      if (start.isDate) {
-                          col.header.selectOccurrence(item);
-                      } else {
-                          col.column.selectOccurrence(item);
+              for each (var occ in this.getItemOccurrencesInView(item)) {
+                  var cols = this.findColumnsForItem(occ);
+                  if (cols.length > 0) {
+                      var start = item.startDate || item.entryDate;
+                      for each (col in cols) {
+                          if (start.isDate) {
+                              col.header.selectOccurrence(occ);
+                          } else {
+                              col.column.selectOccurrence(occ);
+                          }
                       }
                   }
               }
@@ -2998,6 +3000,20 @@
 
           if (!aSuppressEvent) {
               this.fireEvent("itemselect", this.mSelectedItems);
+          }
+        ]]></body>
+      </method>
+
+      <method name="getItemOccurrencesInView">
+        <parameter name="aItem"/>
+        <body><![CDATA[
+          if (aItem.recurrenceInfo && aItem.recurrenceStartDate) {
+              // if selected a parent item, show occurrence(s) in view range
+              return aItem.getOccurrencesBetween(this.startDate, this.queryEndDate, {}, 0);
+          } else if (aItem.recurrenceStartDate) {
+              return [aItem];
+          } else { // undated todo
+              return [];
           }
         ]]></body>
       </method>
