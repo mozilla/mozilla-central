@@ -107,7 +107,7 @@ public:
     /* void OnStatus (in string aMsgID, in wstring aMsg); */
     NS_IMETHOD OnStatus(const char *aMsgID, const PRUnichar *aMsg) { return NS_OK;}
 
-    /* void OnStopSending (in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFileSpec returnFileSpec); */
+    /* void OnStopSending (in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFile returnFile); */
     NS_IMETHOD OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg,
                            nsIFile *returnFile) {
         PR_CEnterMonitor(this);

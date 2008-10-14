@@ -146,7 +146,7 @@ public:
   NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify)
     { return( NS_ERROR_FAILURE);}
 
-  /* nsISupportsArray FindAddressBooks (in nsIFileSpec location); */
+  /* nsISupportsArray FindAddressBooks (in nsIFile location); */
   NS_IMETHOD FindAddressBooks(nsIFile *location, nsISupportsArray **_retval);
 
   /* nsISupports InitFieldMap(nsIImportFieldMap *fieldMap); */

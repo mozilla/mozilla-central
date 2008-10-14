@@ -96,7 +96,7 @@ public:
   /* nsISupportsArray FindMailboxes (in nsIFile location); */
   NS_IMETHOD FindMailboxes(nsIFile *location, nsISupportsArray **_retval);
 
-  /* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFileSpec destination, out boolean fatalError); */
+  /* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFile destination, out boolean fatalError); */
   NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFile *destination,
                 PRUnichar **pErrorLog, PRUnichar **pSuccessLog, PRBool *fatalError);
 
