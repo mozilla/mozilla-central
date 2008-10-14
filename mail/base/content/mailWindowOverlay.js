@@ -1532,7 +1532,8 @@ let mailTabType = {
     else
     {
       var tree = GetThreadTree();
-      tree.boxObject.QueryInterface(Ci.nsITreeBoxObject).view = null;
+      tree.boxObject.QueryInterface(Components.interfaces.nsITreeBoxObject)
+        .view = null;
       ClearMessagePane();
     }
   }
