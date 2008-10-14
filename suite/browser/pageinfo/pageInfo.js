@@ -674,7 +674,7 @@ function onFormSelect()
 function FormControlFilter(node) 
 {
   if (node instanceof HTMLInputElement || node instanceof HTMLSelectElement ||
-      node instanceof HTMLButtonElement || node instanceof HTMLTextareaElement ||
+      node instanceof HTMLButtonElement || node instanceof HTMLTextAreaElement ||
       node instanceof HTMLObjectElement)
       return NodeFilter.FILTER_ACCEPT;
     return NodeFilter.FILTER_SKIP;
