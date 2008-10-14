@@ -277,31 +277,11 @@ function openAboutDialog()
 }
 
 /**
- * Opens the support page based on the 'mailnews_support_url' string in
- * region.properties.
+ * Opens the support page based on the app.support.baseURL pref.
  */
 function openSupportURL()
 {
-  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
-  try {
-    var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService(Components.interfaces.nsIStringBundleService);
-    var regionBundle = strBundleService.createBundle("chrome://messenger-region/locale/region.properties");
-
-    var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                              .getService(Components.interfaces.nsIURLFormatter);
-
-    var urlToOpen = formatter.formatURL(regionBundle
-      .GetStringFromName('mailnews_support_url'));
-      
-    var uri = Components.classes["@mozilla.org/network/io-service;1"]
-              .getService(Components.interfaces.nsIIOService)
-              .newURI(urlToOpen, null, null);
-
-    var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
-                      .getService(Components.interfaces.nsIExternalProtocolService);
-    protocolSvc.loadUrl(uri);
-  } catch (ex) {}
+  openFormattedURL("app.support.baseURL");
 }
 
 /**
@@ -312,27 +292,15 @@ function openSupportURL()
  */
 function openFormattedURL(aPrefName)
 {
-  var formattedUrl = getFormattedURLPref(aPrefName);
-  
-  var uri = Components.classes["@mozilla.org/network/io-service;1"].
-                       getService(Components.interfaces.nsIIOService).
-                       newURI(formattedUrl, null, null);
+  var urlToOpen = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                            .getService(Components.interfaces.nsIURLFormatter)
+                            .formatURLPref(aPrefName);
 
-  var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"].
-                               getService(Components.interfaces.nsIExternalProtocolService);
-  protocolSvc.loadUrl(uri);  
-}
+  var uri = Components.classes["@mozilla.org/network/io-service;1"]
+                      .getService(Components.interfaces.nsIIOService)
+                      .newURI(urlToOpen, null, null);
 
-/**
- *  Fetches the url for the passed in pref name and uses the URL formatter service to 
- *    format  it.
- *
- *  @param aPrefName - name of the pref that holds the url we want to format and open
- *  @returns the formatted url string
- */
-function getFormattedURLPref(aPrefName)
-{
-  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"].
-                             getService(Components.interfaces.nsIURLFormatter);
-  return formatter.formatURLPref(aPrefName);
+  var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
+                              .getService(Components.interfaces.nsIExternalProtocolService);
+  protocolSvc.loadURI(uri);
 }

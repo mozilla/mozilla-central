@@ -113,6 +113,9 @@ pref("app.update.showInstalledUI", false);
 // Release notes URL
 pref("app.releaseNotesURL", "http://www.mozillamessaging.com/%LOCALE%/%APP%/%VERSION%/releasenotes/");
 
+// Base URL for web-based support pages.
+pref("app.support.baseURL", "http://support.live.mozillamessaging.com/%LOCALE%/%APP%/%APPBUILDID%/");
+
 // Blocklist preferences
 pref("extensions.blocklist.enabled", true);
 pref("extensions.blocklist.interval", 86400);
