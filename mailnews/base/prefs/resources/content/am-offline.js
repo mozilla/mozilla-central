@@ -43,8 +43,6 @@ var gImapIncomingServer;
 var gPref = null;
 var gLockedPref = null;
 var gOfflineMap = null; // map of folder URLs to offline flags
-var Cc = Components.classes;
-var Ci = Components.interfaces;
 
 function onInit(aPageId, aServerId) 
 {
@@ -264,16 +262,18 @@ function checkOffline()
 
 function toggleOffline()
 {
-    checkOffline()
+    checkOffline();
     var offline = document.getElementById("offline.folders").checked;
     var rootFolder = gIncomingServer.rootFolder;
-    var allFolders = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+    var allFolders = Components.classes["@mozilla.org/supports-array;1"]
+                               .createInstance(Components.interfaces.nsISupportsArray);
     rootFolder.ListDescendents(allFolders);
     var numFolders = allFolders.Count();
     var folder;
     for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
     {
-      folder = allFolders.GetElementAt(folderIndex).QueryInterface(Ci.nsIMsgFolder);
+      folder = allFolders.QueryElementAt(folderIndex,
+                                         Components.interfaces.nsIMsgFolder);
       if (offline)
         folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
       else
@@ -286,13 +286,15 @@ function collectOfflineFolders()
 {
     var offlineFolderMap = {};
     var rootFolder = gIncomingServer.rootFolder;
-    var allFolders = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+    var allFolders = Components.classes["@mozilla.org/supports-array;1"]
+                               .createInstance(Components.interfaces.nsISupportsArray);
     rootFolder.ListDescendents(allFolders);
     var numFolders = allFolders.Count();
     var folder;
     for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
     {
-      folder = allFolders.GetElementAt(folderIndex).QueryInterface(Ci.nsIMsgFolder);
+      folder = allFolders.QueryElementAt(folderIndex,
+                                         Components.interfaces.nsIMsgFolder);
       offlineFolderMap[folder.folderURL] = folder.getFlag(Components.interfaces.nsMsgFolderFlags.Offline);
     }
     return offlineFolderMap;
@@ -301,13 +303,15 @@ function collectOfflineFolders()
 function restoreOfflineFolders(offlineFolderMap)
 {
     var rootFolder = gIncomingServer.rootFolder;
-    var allFolders = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+    var allFolders = Components.classes["@mozilla.org/supports-array;1"]
+                               .createInstance(Components.interfaces.nsISupportsArray);
     rootFolder.ListDescendents(allFolders);
     var numFolders = allFolders.Count();
     var folder;
     for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
     {
-      folder = allFolders.GetElementAt(folderIndex).QueryInterface(Ci.nsIMsgFolder);
+      folder = allFolders.QueryElementAt(folderIndex,
+                                         Components.interfaces.nsIMsgFolder);
       if (offlineFolderMap[folder.folderURL])
         folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
       else
