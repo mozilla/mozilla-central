@@ -128,15 +128,16 @@ window.addEventListener("load", function(e) {
 
 
 function ltnOnLoad(event) {
+
+    // nuke the onload, or we get called every time there's
+    // any load that occurs
+    document.removeEventListener("load", ltnOnLoad, true);
+
     document.getElementById("calendarDisplayDeck").
       addEventListener("select", LtnObserveDisplayDeckChange, true);
 
     // Take care of common initialization
     commonInitCalendar();
-
-    // nuke the onload, or we get called every time there's
-    // any load that occurs
-    document.removeEventListener("load", ltnOnLoad, true);
 
     // Hide the calendar view so it doesn't push the status-bar offscreen
     collapseElement(document.getElementById("calendar-view-box"));

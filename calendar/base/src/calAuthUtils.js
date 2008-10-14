@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 /**
  * Auth prompt implementation - Uses password manager if at all possible.
  */
@@ -122,13 +124,19 @@ calAuthPrompt.prototype = {
 
     // promptAuth is needed/used on trunk only
     promptAuth: function capPA(aChannel, aLevel, aAuthInfo) {
-        var hostRealm = {};
+        let hostRealm = {};
         hostRealm.prePath = aChannel.URI.prePath;
         hostRealm.realm = aAuthInfo.realm;
-        hostRealm.passwordRealm = aChannel.URI.host + ":" + aChannel.URI.port +
-                                          " (" + aAuthInfo.realm + ")";
+        let port = aChannel.URI.port;
+        if (port == -1) {
+            let handler = cal.getIOService().getProtocolHandler(aChannel.URI.scheme)
+                                        .QueryInterface(Components.interfaces.nsIProtocolHandler);
+            port = handler.defaultPort;
+        }
+        hostRealm.passwordRealm = aChannel.URI.host + ":" + port +
+                                  " (" + aAuthInfo.realm + ")";
 
-        var pw;
+        let pw;
         if (!this.mTriedStoredPassword) {
             pw = this.getPasswordInfo(hostRealm);
         }
@@ -138,7 +146,7 @@ calAuthPrompt.prototype = {
             aAuthInfo.password = pw.password;
             return true;
         } else {
-            var prompter2 = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+            let prompter2 = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                                       .getService(Components.interfaces.nsIPromptFactory)
                                       .getPrompt(null, Components.interfaces.nsIAuthPrompt2);
             return prompter2.promptAuth(aChannel, aLevel, aAuthInfo);
@@ -204,26 +212,14 @@ function calGetCredentials(aTitle,
 
     var aText;
     if (aFixedUsername) {
-        try {
-            // Branch uses chrome://necko/locale/necko.properties
-            aText = calGetString("necko", "EnterPasswordFor", [aUsername.value, aCalendarName], "necko");
-        } catch (exc) {
-            // Trunk uses chrome://global/locale/prompts.properties
-            aText = calGetString("prompts", "EnterPasswordFor", [aUsername.value, aCalendarName], "global");
-        }
+        aText = calGetString("prompts", "EnterPasswordFor", [aUsername.value, aCalendarName], "global");
         return prompter.promptPassword(aTitle,
                                        aText,
                                        aPassword,
                                        savepassword,
                                        aSavePassword);
     } else {
-        try {
-            // Branch uses chrome://necko/locale/necko.properties
-            aText = calGetString("necko", "EnterUserPasswordFor", [aCalendarName], "necko");
-        } catch (exc) {
-            // Trunk uses chrome://global/locale/prompts.properties
-            aText = calGetString("prompts", "EnterUserPasswordFor", [aCalendarName], "global");
-        }
+        aText = calGetString("prompts", "EnterUserPasswordFor", [aCalendarName], "global");
         return prompter.promptUsernameAndPassword(aTitle,
                                                   aText,
                                                   aUsername,

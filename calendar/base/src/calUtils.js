@@ -954,14 +954,18 @@ function ERROR(aMessage) {
  * numbers.
  *
  * @param aDepth (optional) The number of frames to include. Defaults to 5.
+ * @param aSkip  (optional) Number of frames to skip
  */
-function STACK(aDepth) {
-    var depth = aDepth || 5;
-    var stack = "";
-    var frame = Components.stack.caller;
-    for (var i = 1; i <= depth && frame; i++) {
-        stack += i + ": [" + frame.filename + ":" +
-                 frame.lineNumber + "] " + frame.name + "\n";
+function STACK(aDepth, aSkip) {
+    let depth = aDepth || 5;
+    let skip = aSkip || 0;
+    let stack = "";
+    let frame = Components.stack.caller;
+    for (let i = 1; i <= depth + skip && frame; i++) {
+        if (i > skip) {
+            stack += i + ": [" + frame.filename + ":" +
+                     frame.lineNumber + "] " + frame.name + "\n";
+        }
         frame = frame.caller;
     }
     return stack;
@@ -981,7 +985,7 @@ function ASSERT(aCondition, aMessage, aCritical) {
         return;
     }
 
-    var string = "Assert failed: " + aMessage + '\n' + STACK();
+    var string = "Assert failed: " + aMessage + '\n' + STACK(null, 1);
     if (aCritical) {
         throw new Components.Exception(string,
                                        aCritical === true ? Components.results.NS_ERROR_UNEXPECTED : aCritical);
