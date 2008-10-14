@@ -225,13 +225,14 @@ mime_locate_external_content_handler(const char *content_type,
                                      contentTypeHandlerInitStruct  *ctHandlerInfo)
 {
   MimeObjectClass               *newObj = NULL;
-  char                          lookupID[256];
-  nsCOMPtr<nsIMimeContentTypeHandler>     ctHandler;
   nsresult rv;
 
-  PR_snprintf(lookupID, sizeof(lookupID), "@mozilla.org/mimecth;1?type=%s", content_type);
+  nsCAutoString lookupID("@mozilla.org/mimecth;1?type=");
+  nsCAutoString lowerCaseContentType;
+  ToLowerCase(nsDependentCString(content_type), lowerCaseContentType);
+  lookupID += lowerCaseContentType;
 
-  ctHandler = do_CreateInstance(lookupID, &rv);
+  nsCOMPtr<nsIMimeContentTypeHandler> ctHandler = do_CreateInstance(lookupID.get(), &rv);
   if (NS_FAILED(rv) || !ctHandler) {
     nsCOMPtr<nsICategoryManager> catman =
       do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
