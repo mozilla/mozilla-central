@@ -1847,7 +1847,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
       nsAutoString keyString;
       nsMsgKey key;
       msgHdr->GetMessageKey(&key);
-      keyString.AppendInt(key);
+      keyString.AppendInt((PRInt64)key);
       aValue.Assign(keyString);
     }
   default:
