@@ -39,50 +39,52 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// Initialize the LeakDetector class.
-function LeakDetector(verbose)
+var gLeakDetector = null;
+var gLeakDetectorVerbose = false;
+
+// The Leak Detector (class) can be undefined in a given (application) build.
+if ("@mozilla.org/xpcom/leakdetector;1" in Components.classes)
+  window.addEventListener("load", onLoadLeakDetector, false);
+
+// Initialize the Leak Detector,
+// and unhide its menu and its associated separator.
+function onLoadLeakDetector()
 {
-  this.verbose = verbose;
+  window.removeEventListener("load", onLoadLeakDetector, false);
+
+  gLeakDetector = Components.classes["@mozilla.org/xpcom/leakdetector;1"]
+                            .createInstance(Components.interfaces.nsILeakDetector);
+
+  document.getElementById("leakSeparator").hidden = false;
+  document.getElementById("leakMenu").hidden = false;
 }
-
-const NS_LEAKDETECTOR_CONTRACTID = "@mozilla.org/xpcom/leakdetector;1";
-
-if (NS_LEAKDETECTOR_CONTRACTID in Components.classes) {
-  try {
-    LeakDetector.prototype = Components.classes[NS_LEAKDETECTOR_CONTRACTID]
-                                       .createInstance(Components.interfaces.nsILeakDetector);
-  } catch (err) {
-    LeakDetector.prototype = Object.prototype;
-  }
-} else {
-  LeakDetector.prototype = Object.prototype;
-}
-
-var leakDetector = new LeakDetector(false);
 
 // Dumps current set of memory leaks.
 function dumpMemoryLeaks()
 {
-  leakDetector.dumpLeaks();
+  gLeakDetector.dumpLeaks();
 }
 
 // Traces all objects reachable from the chrome document.
 function traceChrome()
 {
-  leakDetector.traceObject(document, leakDetector.verbose);
+  gLeakDetector.traceObject(document, gLeakDetectorVerbose);
 }
 
 // Traces all objects reachable from the content document.
 function traceDocument()
 {
   // keep the chrome document out of the dump.
-  leakDetector.markObject(document, true);
-  leakDetector.traceObject(content, leakDetector.verbose);
-  leakDetector.markObject(document, false);
+  gLeakDetector.markObject(document, true);
+  gLeakDetector.traceObject(content, gLeakDetectorVerbose);
+  gLeakDetector.markObject(document, false);
 }
 
-// Controls whether or not we do verbose tracing.
+/**
+ * Controls whether or not we do verbose tracing.
+ * @param verbose Either |"true"| or |""|.
+ */
 function traceVerbose(verbose)
 {
-  leakDetector.verbose = (verbose == "true");
+  gLeakDetectorVerbose = (verbose == "true");
 }

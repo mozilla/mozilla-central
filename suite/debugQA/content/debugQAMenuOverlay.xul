@@ -44,7 +44,7 @@
          xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<script type="application/x-javascript"
+<script type="application/javascript"
         src="chrome://debugQA/content/debugQAMenuOverlay.js"/>
 
   <!-- Menu -->
@@ -184,9 +184,9 @@
         <menuitem label="Bloat: Clear Stats"
                   oncommand="openTopWin('about:bloat?clear');"/>
 
-        <menuseparator/>
+        <menuseparator id="leakSeparator" hidden="true"/>
 
-        <menu label="Leak Detector">
+        <menu id="leakMenu" label="Leak Detector" hidden="true">
           <menupopup>
             <menuitem label="Dump Memory Leaks" oncommand="dumpMemoryLeaks();"/>
             <menuitem label="Trace Chrome" oncommand="traceChrome();"/>
