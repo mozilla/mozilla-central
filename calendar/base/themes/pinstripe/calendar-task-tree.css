@@ -60,15 +60,15 @@
 }
 
 .calendar-task-tree > treechildren::-moz-tree-cell-text(duetoday) {
-    color: blue;
+    color: ActiveCaption;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-row(duetoday, selected, focus) {
-    background-color: blue;
+    background-color: Background;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-cell-text(future) {
-    color: gray;
+    color: InfoText;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-row(future, selected, focus) {
@@ -77,7 +77,7 @@
 
 .calendar-task-tree > treechildren::-moz-tree-cell-text(completed) {
     text-decoration: line-through;
-    color: black;
+    color: GrayText;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, completed),
