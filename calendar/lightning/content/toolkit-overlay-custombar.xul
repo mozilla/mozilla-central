@@ -37,6 +37,6 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-toolbar.css"?>
-<?xml-stylesheet type="text/css" href="chrome://calendar/skin/sun-calendar-event-dialog.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-event-dialog.css"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" />

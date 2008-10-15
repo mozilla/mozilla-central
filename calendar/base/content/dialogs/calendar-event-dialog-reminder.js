@@ -100,7 +100,7 @@ function stringFromReminderObject(reminder) {
 
     var props =
         sbs.createBundle(
-            "chrome://calendar/locale/sun-calendar-event-dialog.properties");
+            "chrome://calendar/locale/calendar-event-dialog.properties");
 
     var unitString;
     switch (reminder.unit) {

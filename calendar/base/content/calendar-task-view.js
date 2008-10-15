@@ -193,7 +193,7 @@ function sendMailToOrganizer() {
                 }
 
                 // Set up the subject
-                var emailSubject = calGetString("sun-calendar-event-dialog",
+                var emailSubject = calGetString("calendar-event-dialog",
                                                 "emailSubjectReply",
                                                 [item.title]);
 

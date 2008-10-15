@@ -47,12 +47,10 @@
 <!DOCTYPE dialog [
   <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd" >
   <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" >
-  <!ENTITY % sunDialogDTD SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" >
   <!ENTITY % dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd" >
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
   %globalDTD;
   %calendarDTD;
-  %sunDialogDTD;
   %dialogDTD;
   %brandDTD;
 ]>     

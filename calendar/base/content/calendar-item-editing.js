@@ -283,7 +283,7 @@ function openEventDialog(calendarItem, calendar, mode, callback, job) {
     }
 
     // open the dialog modeless
-    var url = "chrome://calendar/content/sun-calendar-event-dialog.xul";
+    var url = "chrome://calendar/content/calendar-event-dialog.xul";
     if ((mode != "new" && isInvitation) || !isCalendarWritable(calendar)) {
         url = "chrome://calendar/content/calendar-summary-dialog.xul";
     }

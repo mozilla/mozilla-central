@@ -164,7 +164,7 @@ function getPreviewForTask( toDoItem )
       var priorityInteger = parseInt(toDoItem.priority);
       var priorityString;
 
-      // These cut-offs should match sun-calendar-event-dialog.js
+      // These cut-offs should match calendar-event-dialog.js
       if (priorityInteger >= 1 && priorityInteger <= 4) {
            priorityString = calGetString('calendar', 'highPriority'); // high priority
       } else if (priorityInteger == 5) {

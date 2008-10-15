@@ -132,7 +132,7 @@ function onLoad() {
 
     // new items should have a non-empty title.
     if (item.isMutable && (!item.title || item.title.length <= 0)) {
-        item.title = calGetString("sun-calendar-event-dialog",
+        item.title = calGetString("calendar-event-dialog",
                                   isEvent(item) ? "newEvent" : "newTask");
     }
 
@@ -174,11 +174,11 @@ function onLoad() {
     }
     window.recurrenceInfo = parentItem.recurrenceInfo;
 
-    document.getElementById("sun-calendar-event-dialog").getButton("accept")
+    document.getElementById("calendar-event-dialog").getButton("accept")
             .setAttribute("collapsed", "true");
-    document.getElementById("sun-calendar-event-dialog").getButton("cancel")
+    document.getElementById("calendar-event-dialog").getButton("cancel")
             .setAttribute("collapsed", "true");
-    document.getElementById("sun-calendar-event-dialog").getButton("cancel")
+    document.getElementById("calendar-event-dialog").getButton("cancel")
             .parentNode.setAttribute("collapsed", "true");
 
     loadDialog(window.calendarItem);
@@ -834,7 +834,7 @@ function updateTitle() {
 }
 
 function updateStyle() {
-    const kDialogStylesheet = "chrome://calendar/content/sun-calendar-event-dialog.css";
+    const kDialogStylesheet = "chrome://calendar/content/calendar-event-dialog.css";
 
     for each (var stylesheet in document.styleSheets) {
         if (stylesheet.href == kDialogStylesheet) {
@@ -1092,7 +1092,7 @@ function editAttendees() {
 
     // open the dialog modally
     openDialog(
-        "chrome://calendar/content/sun-calendar-event-dialog-attendees.xul",
+        "chrome://calendar/content/calendar-event-dialog-attendees.xul",
         "_blank",
         "chrome,titlebar,modal,resizable",
         args);
@@ -1327,9 +1327,9 @@ function attachURL() {
         // ghost in an example...
         var result = { value: "http://" };
         if (promptService.prompt(window,
-                                 calGetString("sun-calendar-event-dialog",
+                                 calGetString("calendar-event-dialog",
                                               "specifyLinkLocation"),
-                                 calGetString("sun-calendar-event-dialog",
+                                 calGetString("calendar-event-dialog",
                                               "enterLinkLocation"),
                                  result,
                                  null,
@@ -1360,7 +1360,7 @@ function attachFile() {
         var fp = Components.classes["@mozilla.org/filepicker;1"]
                            .createInstance(nsIFilePicker);
         fp.init(window,
-                calGetString("sun-calendar-event-dialog", "selectAFile"),
+                calGetString("calendar-event-dialog", "selectAFile"),
                 nsIFilePicker.modeOpenMultiple);
   
         // Check for the last directory 
@@ -1472,9 +1472,9 @@ function deleteAllAttachments() {
         var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                       .getService(Components.interfaces.nsIPromptService);
         ok = promptService.confirm(window,
-                                       calGetString("sun-calendar-event-dialog",
+                                       calGetString("calendar-event-dialog",
                                                     "removeCalendarsTitle"),
-                                       calGetString("sun-calendar-event-dialog",
+                                       calGetString("calendar-event-dialog",
                                                     "removeCalendarsText",
                                                     [itemCount]),
                                        {});
@@ -1646,7 +1646,7 @@ function editRepeat() {
 
     // open the dialog modally
     openDialog(
-        "chrome://calendar/content/sun-calendar-event-dialog-recurrence.xul",
+        "chrome://calendar/content/calendar-event-dialog-recurrence.xul",
         "_blank",
         "chrome,titlebar,modal,resizable",
         args);
@@ -2074,7 +2074,7 @@ function editTimezone(aElementId,aDateTime,aCallback) {
 
     // open the dialog modally
     openDialog(
-        "chrome://calendar/content/sun-calendar-event-dialog-timezone.xul",
+        "chrome://calendar/content/calendar-event-dialog-timezone.xul",
         "_blank",
         "chrome,titlebar,modal,resizable",
         args);
@@ -2565,7 +2565,7 @@ function sendMailToAttendees(aAttendees) {
     }
 
     // Set up the subject
-    var emailSubject = calGetString("sun-calendar-event-dialog",
+    var emailSubject = calGetString("calendar-event-dialog",
                                     "emailSubjectReply",
                                     [item.title]);
 

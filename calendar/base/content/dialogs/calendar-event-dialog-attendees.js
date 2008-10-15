@@ -71,7 +71,7 @@ function onLoad() {
 
     // we need to enforce several layout constraints which can't be modelled
     // with plain xul and css, at least as far as i know.
-    const kStylesheet = "chrome://calendar/content/sun-calendar-event-dialog.css";
+    const kStylesheet = "chrome://calendar/content/calendar-event-dialog.css";
     for each (var stylesheet in document.styleSheets) {
         if (stylesheet.href == kStylesheet) {
             // make the dummy-spacer #1 [top] the same height as the timebar
@@ -440,7 +440,7 @@ function editStartTimezone() {
 
     // Open the dialog modally
     openDialog(
-        "chrome://calendar/content/sun-calendar-event-dialog-timezone.xul",
+        "chrome://calendar/content/calendar-event-dialog-timezone.xul",
         "_blank",
         "chrome,titlebar,modal,resizable",
         args);
@@ -466,7 +466,7 @@ function editEndTimezone() {
 
     // Open the dialog modally
     openDialog(
-        "chrome://calendar/content/sun-calendar-event-dialog-timezone.xul",
+        "chrome://calendar/content/calendar-event-dialog-timezone.xul",
         "_blank",
         "chrome,titlebar,modal,resizable",
         args);
@@ -880,7 +880,7 @@ function onTimeChange(event) {
 }
 
 /**
- * This listener is used in sun-calendar-event-dialog-freebusy.xml inside the
+ * This listener is used in calendar-event-dialog-freebusy.xml inside the
  * binding. It has been taken out of the binding to prevent leaks.
  */
 function calFreeBusyListener(aFbElement, aBinding) {

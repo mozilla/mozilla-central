@@ -593,13 +593,13 @@ function changeOrderForElements(aPropKey, aPropParams) {
     }
 
     try {
-        localeOrder = calGetString("sun-calendar-event-dialog",
+        localeOrder = calGetString("calendar-event-dialog",
                                    aPropKey,
                                    aPropParams);
 
         localeOrder = localeOrder.split(" ");
     } catch (ex) {
-        var s = "The key " + aPropKey + " in sun-calendar-event-dialog.prop" +
+        var s = "The key " + aPropKey + " in calendar-event-dialog.prop" +
                 "erties has incorrect number of params. Expected " +
                 aPropParams.length + " params.";
         Components.utils.reportError(s + " " + ex);

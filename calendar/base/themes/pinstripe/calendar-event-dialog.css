@@ -34,6 +34,247 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/*--------------------------------------------------------------------
+ *   Event dialog toolbar buttons
+ *-------------------------------------------------------------------*/
+
+.cal-toolbarbutton-2 {
+    -moz-box-orient: vertical;
+    min-width: 0px;
+    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png");
+}
+
+toolbar[mode="full"] .cal-toolbarbutton-2 {
+    min-width: 55px;
+}
+
+/*--------------------------------------------------------------------
+ *   Event dialog toolbar buttons - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] .cal-toolbarbutton-2 {
+    -moz-box-orient: vertical;
+    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png");
+}
+
+/*--------------------------------------------------------------------
+ *   invite attendees button
+ *-------------------------------------------------------------------*/
+
+#button-attendees {
+  -moz-image-region: rect(0px 64px 32px 32px);
+}
+#button-attendees[disabled="true"],
+#button-attendees[disabled="true"]:hover,
+#button-attendees[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 64px 96px 32px);
+}
+#button-attendees:hover {
+  -moz-image-region: rect(32px 64px 64px 32px);
+}
+#button-attendees:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   spellcheck button
+ *-------------------------------------------------------------------*/
+
+#button-spellcheck {
+  -moz-image-region: rect(0px 96px 32px 64px);
+}
+#button-spellcheck[disabled="true"],
+#button-spellcheck[disabled="true"]:hover,
+#button-spellcheck[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 96px 96px 64px);
+}
+#button-spellcheck:hover {
+  -moz-image-region: rect(32px 96px 64px 64px);
+}
+#button-spellcheck:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   documents button
+ *-------------------------------------------------------------------*/
+
+#button-url {
+  -moz-image-region: rect(0px 128px 32px 96px);
+}
+#button-url[disabled="true"],
+#button-url[disabled="true"]:hover,
+#button-url[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 128px 96px 96px);
+}
+#button-url:hover {
+  -moz-image-region: rect(32px 128px 64px 96px);
+}
+#button-url:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   privacy button
+ *-------------------------------------------------------------------*/
+
+#button-privacy {
+  -moz-image-region: rect(0px 160px 32px 128px);
+}
+#button-privacy[disabled="true"],
+#button-privacy[disabled="true"]:hover,
+#button-privacy[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 160px 96px 128px);
+}
+#button-privacy:hover {
+  -moz-image-region: rect(32px 160px 64px 128px);
+}
+#button-privacy:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   save button
+ *-------------------------------------------------------------------*/
+
+#button-save {
+  -moz-image-region: rect(0px 192px 32px 160px);
+}
+#button-save[disabled="true"],
+#button-save[disabled="true"]:hover,
+#button-save[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 192px 96px 160px);
+}
+#button-save:hover {
+  -moz-image-region: rect(32px 192px 64px 160px);
+}
+#button-save:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   print button
+ *-------------------------------------------------------------------*/
+
+#button-print {
+  -moz-image-region: rect(0px 608px 32px 576px);
+}
+#button-print[disabled="true"],
+#button-print[disabled="true"]:hover,
+#button-print[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 608px 96px 576px);
+}
+#button-print:hover {
+  -moz-image-region: rect(32px 608px 64px 576px);
+}
+#button-print:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   help button
+ *-------------------------------------------------------------------*/
+
+#button-question {
+  -moz-image-region: rect(0px 768px 32px 736px);
+}
+#button-question[disabled="true"],
+#button-question[disabled="true"]:hover,
+#button-question[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 768px 96px 736px);
+}
+#button-question:hover {
+  -moz-image-region: rect(32px 768px 64px 736px);
+}
+#button-question:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Event dialog statusbar images
+ *-------------------------------------------------------------------*/
+
+.cal-statusbar-1 {
+    -moz-box-orient: vertical;
+    min-width: 0px;
+    list-style-image: url("chrome://calendar/skin/calendar-event-dialog.png");
+}
+
+/*--------------------------------------------------------------------
+ *   privacy "public" image
+ *-------------------------------------------------------------------*/
+
+#button-privacy-public {
+  -moz-image-region: rect(0px 28px 16px 0px);
+}
+#button-privacy-public:hover:active {
+  -moz-image-region: rect(0px 28px 16px 0px);
+}
+#button-privacy-public[disabled="true"] {
+  -moz-image-region: rect(0px 28px 16px 0px);
+}
+
+/*--------------------------------------------------------------------
+ *   privacy "private" image
+ *-------------------------------------------------------------------*/
+
+#button-privacy-private {
+  -moz-image-region: rect(0px 56px 16px 28px);
+}
+#button-privacy-private:hover:active {
+}
+#button-privacy-private[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   privacy "confidential" image
+ *-------------------------------------------------------------------*/
+
+#button-privacy-confidential {
+  -moz-image-region: rect(0px 84px 16px 56px);
+}
+#button-privacy-confidential:hover:active {
+}
+#button-privacy-confidential[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   importance "low" image
+ *-------------------------------------------------------------------*/
+
+#button-importance-low {
+  -moz-image-region: rect(0px 100px 16px 84px);
+}
+#button-importance-low:hover:active {
+}
+#button-importance-low[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   importance "medium" image
+ *-------------------------------------------------------------------*/
+
+#button-importance-medium {
+  -moz-image-region: rect(0px 116px 16px 100px);
+}
+#button-importance-medium:hover:active {
+}
+#button-importance-medium[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   importance "high" image
+ *-------------------------------------------------------------------*/
+
+#button-importance-high {
+  -moz-image-region: rect(0px 132px 16px 116px);
+}
+#button-importance-high:hover:active {
+}
+#button-importance-high[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   Recurrence dialog preview border
+ *-------------------------------------------------------------------*/
+#preview-border {
+    border: none;
+    padding: 0px;
+}
+
 #calendar-summary-dialog {
   min-width: 35em;
 }
@@ -48,7 +289,7 @@ listbox[disabled="true"] {
 
 .headline[align=end],
 .headline[align=right]{
-  text-align: right;  
+  text-align: right;
 }
 
 .default-spacer {
@@ -63,7 +304,7 @@ listbox[disabled="true"] {
 .status-icon {
   margin: 0 3px;
   display: none;
-  list-style-image: url("chrome://calendar/skin/sun-calendar-event-dialog-attendees.png");
+  list-style-image: url("chrome://calendar/skin/calendar-event-dialog-attendees.png");
 }
 
 .status-icon[status="ACCEPTED"] {

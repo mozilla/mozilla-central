@@ -38,17 +38,17 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
-<?xml-stylesheet type="text/css" href="chrome://calendar/skin/sun-calendar-event-dialog.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
 
 <!DOCTYPE dialog [
   <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
-  <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" > %dtd3;
+  <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd" > %dtd3;
   <!ENTITY % dtd4 SYSTEM "chrome://calendar/locale/preferences/timezones.dtd" > %dtd4;
 ]>
 
-<dialog id="sun-calendar-event-dialog-timezone"
+<dialog id="calendar-event-dialog-timezone"
         title="&timezone.title.label;"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
@@ -57,7 +57,7 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <!-- Javascript includes -->
-  <script type="application/javascript" src="chrome://calendar/content/sun-calendar-event-dialog-timezone.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-event-dialog-timezone.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calendar-dialog-utils.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>

@@ -39,24 +39,22 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
-<?xml-stylesheet type="text/css" href="chrome://calendar/skin/sun-calendar-event-dialog.css"?>
-<?xml-stylesheet type="text/css" href="chrome://calendar/content/sun-calendar-event-dialog.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-event-dialog.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
 
 <!DOCTYPE dialog [
     <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
     <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd">
     <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd">
-    <!ENTITY % sunDialogDTD SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd">
     <!ENTITY % eventDialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd">
     %brandDTD;
     %globalDTD;
     %calendarDTD;
-    %sunDialogDTD;
     %eventDialogDTD;
 ]>
 
-<dialog id="sun-calendar-event-dialog"
+<dialog id="calendar-event-dialog"
         title="&event.title.label;"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
@@ -71,7 +69,7 @@
 
     <!-- Javascript includes -->
     <script type="application/javascript"
-            src="chrome://calendar/content/sun-calendar-event-dialog.js"/>
+            src="chrome://calendar/content/calendar-event-dialog.js"/>
     <script type="application/javascript"
             src="chrome://calendar/content/calendar-dialog-utils.js"/>
     <script type="application/javascript"
@@ -84,7 +82,7 @@
             src="chrome://global/content/globalOverlay.js"/>
     <script type="application/javascript"
             src="chrome://global/content/printUtils.js"/>
-    <script type="application/x-javascript" 
+    <script type="application/javascript" 
             src="chrome://calendar/content/calendar-statusbar.js"/>
 
     <!-- Command updater -->

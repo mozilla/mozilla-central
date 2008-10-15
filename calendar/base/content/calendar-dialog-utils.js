@@ -82,22 +82,22 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         }
                         if (i == weekdays.length) {
                             ruleString = calGetString(
-                                "sun-calendar-event-dialog",
+                                "calendar-event-dialog",
                                 "repeatDetailsRuleDaily4");
                         }
                     }
                 } else {
                     if (rule.interval == 1) {
                         ruleString = calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsRuleDaily1");
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsRuleDaily2");
                     } else {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleDaily3",
                           [ rule.interval ]);
                     }
@@ -112,11 +112,11 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     var weekdays = "";
                     for (var i = 0; i < days.length; i++) {
                         weekdays += calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsDay" + days[i]);
                         if (days.length > 1 && i == (days.length - 2)) {
                             weekdays += ' ' + calGetString(
-                                "sun-calendar-event-dialog",
+                                "calendar-event-dialog",
                                 "repeatDetailsAnd") + ' ';
                         } else if (i < days.length - 1) {
                             weekdays += ', ';
@@ -126,30 +126,30 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     // now decorate this with 'every other week, etc'.
                     if (rule.interval == 1) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleWeekly1", [ weekdays ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleWeekly2", [ weekdays ]);
                     } else {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleWeekly3",
                           [ rule.interval, weekdays ]);
                     }
                 } else {
                     if (rule.interval == 1) {
                         ruleString = calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsRuleWeekly4");
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsRuleWeekly5");
                     } else {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleWeekly6",
                           [ rule.interval ]);
                     }
@@ -160,26 +160,26 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     var byday = component[0];
                     var ordinal_string =
                         calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsOrdinal" + day_position(byday));
                     var day_string =
                         calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsDay" + day_of_week(byday));
 
                     if (rule.interval == 1) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleMonthly1",
                           [ ordinal_string, day_string ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleMonthly2",
                           [ ordinal_string, day_string ]);
                     } else {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleMonthly3",
                           [ ordinal_string, day_string, rule.interval ]);
                     }
@@ -199,7 +199,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         if (component.length > 1 &&
                             i == (component.length - 2)) {
                             day_string += ' ' +calGetString(
-                                "sun-calendar-event-dialog",
+                                "calendar-event-dialog",
                                 "repeatDetailsAnd") + ' ';
                         } else if (i < component.length-1) {
                             day_string += ', ';
@@ -208,34 +208,34 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
 
                     if (rule.interval == 1) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleMonthly4",
                           [ day_string ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleMonthly5",
                           [ day_string ]);
                     } else {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleMonthly6",
                           [ day_string, rule.interval ]);
                     }
                 } else {
                     if (rule.interval == 1) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleMonthly4",
                           [ startDate.day ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleMonthly5",
                           [ startDate.day ]);
                     } else {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleMonthly6",
                           [ startDate.day, rule.interval ]);
                     }
@@ -249,22 +249,22 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     if (bymonth.length == 1 && bymonthday.length == 1) {
                         var month_string =
                             calGetString(
-                                "sun-calendar-event-dialog",
+                                "calendar-event-dialog",
                                 "repeatDetailsMonth" + bymonth[0]);
 
                         if (rule.interval == 1) {
                             ruleString = calGetString(
-                              "sun-calendar-event-dialog",
+                              "calendar-event-dialog",
                               "repeatDetailsRuleYearly1",
                               [ month_string, bymonthday[0] ]);
                         } else if (rule.interval == 2) {
                             ruleString = calGetString(
-                              "sun-calendar-event-dialog",
+                              "calendar-event-dialog",
                               "repeatDetailsRuleYearly2",
                               [ month_string, bymonthday[0] ]);
                         } else {
                             ruleString = calGetString(
-                              "sun-calendar-event-dialog",
+                              "calendar-event-dialog",
                               "repeatDetailsRuleYearly3",
                               [ month_string,
                                 bymonthday[0],
@@ -279,31 +279,31 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     if (bymonth.length == 1 && byday.length == 1) {
                         var month_string =
                             calGetString(
-                                "sun-calendar-event-dialog",
+                                "calendar-event-dialog",
                                 "repeatDetailsMonth" + bymonth[0]);
                         var ordinal_string =
                             calGetString(
-                                "sun-calendar-event-dialog",
+                                "calendar-event-dialog",
                                 "repeatDetailsOrdinal" +
                                     day_position(byday[0]));
                         var day_string =
                             calGetString(
-                                "sun-calendar-event-dialog",
+                                "calendar-event-dialog",
                                 "repeatDetailsDay" + day_of_week(byday[0]));
 
                         if (rule.interval == 1) {
                             ruleString = calGetString(
-                              "sun-calendar-event-dialog",
+                              "calendar-event-dialog",
                               "repeatDetailsRuleYearly4",
                               [ ordinal_string, day_string, month_string ]);
                         } else if (rule.interval == 2) {
                             ruleString = calGetString(
-                              "sun-calendar-event-dialog",
+                              "calendar-event-dialog",
                               "repeatDetailsRuleYearly5",
                               [ ordinal_string, day_string, month_string ]);
                         } else {
                             ruleString = calGetString(
-                              "sun-calendar-event-dialog",
+                              "calendar-event-dialog",
                               "repeatDetailsRuleYearly6",
                               [ ordinal_string,
                                 day_string,
@@ -314,21 +314,21 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                 } else {
                     var month_string =
                         calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsMonth" + (startDate.month+1));
                     if (rule.interval == 1) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleYearly1",
                           [ month_string, startDate.day ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleYearly2",
                           [ month_string, startDate.day ]);
                     } else {
                         ruleString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsRuleYearly3",
                           [ month_string,
                             startDate.day,
@@ -348,7 +348,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                 if (rule.isFinite) {
                     if (rule.isByCount) {
                         detailsString = calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsCountAllDay",
                             [ ruleString,
                               dateFormatter.formatDateShort(startDate),
@@ -356,7 +356,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     } else {
                         var untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
                         detailsString = calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsUntilAllDay",
                             [ ruleString,
                               dateFormatter.formatDateShort(startDate),
@@ -364,7 +364,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     }
                   } else {
                       detailsString = calGetString(
-                          "sun-calendar-event-dialog",
+                          "calendar-event-dialog",
                           "repeatDetailsInfiniteAllDay",
                           [ ruleString,
                             dateFormatter.formatDateShort(startDate) ]);
@@ -373,7 +373,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                 if (rule.isFinite) {
                     if (rule.isByCount) {
                         detailsString = calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsCount",
                             [ ruleString,
                               dateFormatter.formatDateShort(startDate),
@@ -383,7 +383,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     } else {
                         var untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
                         detailsString = calGetString(
-                            "sun-calendar-event-dialog",
+                            "calendar-event-dialog",
                             "repeatDetailsUntil",
                             [ ruleString,
                               dateFormatter.formatDateShort(startDate),
@@ -393,7 +393,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     }
                 } else {
                     detailsString = calGetString(
-                        "sun-calendar-event-dialog",
+                        "calendar-event-dialog",
                         "repeatDetailsInfinite",
                         [ ruleString,
                           dateFormatter.formatDateShort(startDate),
@@ -452,7 +452,7 @@ function editReminder() {
 
     // open the dialog modally
     openDialog(
-        "chrome://calendar/content/sun-calendar-event-dialog-reminder.xul",
+        "chrome://calendar/content/calendar-event-dialog-reminder.xul",
         "_blank",
         "chrome,titlebar,modal,resizable",
         args);
@@ -476,28 +476,28 @@ function updateReminderDetails() {
             case 'minutes':
                 unitString = Number(reminder.length) <= 1 ?
                     calGetString(
-                        "sun-calendar-event-dialog",
+                        "calendar-event-dialog",
                         "reminderCustomUnitMinute") :
                     calGetString(
-                        "sun-calendar-event-dialog",
+                        "calendar-event-dialog",
                         "reminderCustomUnitMinutes");
                 break;
             case 'hours':
                 unitString = Number(reminder.length) <= 1 ?
                     calGetString(
-                        "sun-calendar-event-dialog",
+                        "calendar-event-dialog",
                         "reminderCustomUnitHour") :
                     calGetString(
-                        "sun-calendar-event-dialog",
+                        "calendar-event-dialog",
                         "reminderCustomUnitHours");
                 break;
             case 'days':
                 unitString = Number(reminder.length) <= 1 ?
                     calGetString(
-                        "sun-calendar-event-dialog",
+                        "calendar-event-dialog",
                         "reminderCustomUnitDay") :
                     calGetString(
-                        "sun-calendar-event-dialog",
+                        "calendar-event-dialog",
                         "reminderCustomUnitDays");
                 break;
         }
@@ -506,12 +506,12 @@ function updateReminderDetails() {
         switch (reminder.relation) {
             case 'START':
                 relationString = calGetString(
-                    "sun-calendar-event-dialog",
+                    "calendar-event-dialog",
                     "reminderCustomRelationBefore");
                 break;
             case 'END':
                 relationString = calGetString(
-                    "sun-calendar-event-dialog",
+                    "calendar-event-dialog",
                     "reminderCustomRelationAfter");
                 break;
         }
@@ -519,16 +519,16 @@ function updateReminderDetails() {
         var originString;
         if (reminder.origin && reminder.origin < 0) {
             originString = calGetString(
-                "sun-calendar-event-dialog",
+                "calendar-event-dialog",
                 "reminderCustomOriginEndEvent");
         } else {
             originString = calGetString(
-                "sun-calendar-event-dialog",
+                "calendar-event-dialog",
                 "reminderCustomOriginBeginEvent");
         }
 
         var detailsString = calGetString(
-          "sun-calendar-event-dialog",
+          "calendar-event-dialog",
           "reminderCustomTitle",
           [ reminder.length,
             unitString,

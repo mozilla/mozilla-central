@@ -40,8 +40,7 @@
 <!DOCTYPE dialog [
   <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
-  <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" > %dtd3;
-  <!ENTITY % calendar-event-dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd"> %calendar-event-dialogDTD;
+  <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd"> %dtd3;
 ]>
 
 <bindings xmlns="http://www.mozilla.org/xbl"
@@ -158,7 +157,7 @@
 
           // we need to enforce several layout constraints which can't be modelled
           // with plain xul and css, at least as far as i know.
-          const kStylesheet = "chrome://calendar/content/sun-calendar-event-dialog.css";
+          const kStylesheet = "chrome://calendar/content/calendar-event-dialog.css";
           for each (var stylesheet in document.styleSheets) {
               if (stylesheet.href == kStylesheet) {
                   // the height of the text blocks contained in the grid items needs
