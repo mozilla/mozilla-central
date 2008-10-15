@@ -59,6 +59,7 @@
   <script type="application/javascript" src="chrome://calendar/content/sun-calendar-event-dialog-attendees.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calendar-dialog-utils.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-statusbar.js"/>
 
   <box orient="vertical" flex="1">
     <box orient="horizontal" align="center" pack="end">
