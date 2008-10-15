@@ -102,16 +102,12 @@ bin\components\fastfind.xpt
 bin\components\feeds.xpt
 bin\components\find.xpt
 bin\components\gfx.xpt
-bin\components\gksvgrenderer.xpt
-bin\components\history.xpt
 bin\components\htmlparser.xpt
 bin\components\imgicon.xpt
 bin\components\imglib2.xpt
 bin\components\inspector.xpt
 bin\components\intl.xpt
-bin\components\intlcmpt.xpt
 bin\components\jar.xpt
-bin\components\jsconsole.xpt
 bin\components\jsd3250.dll
 bin\components\jsdservice.xpt
 bin\components\layout_base.xpt
@@ -142,7 +138,6 @@ bin\components\plugin.xpt
 bin\components\pref.xpt
 bin\components\prefetch.xpt
 bin\components\profile.xpt
-bin\components\progressDlg.xpt
 bin\components\proxyObject.xpt
 bin\components\rdf.xpt
 bin\components\satchel.xpt
@@ -161,11 +156,9 @@ bin\components\urlformatter.xpt
 bin\components\webBrowser_core.xpt
 bin\components\webbrowserpersist.xpt
 bin\components\webshell_idls.xpt
-bin\components\websrvcs.xpt
 bin\components\widget.xpt
 bin\components\windowds.xpt
 bin\components\windowwatcher.xpt
-bin\components\winhooks.xpt
 bin\components\xpautocomplete.xpt
 bin\components\xpcom_base.xpt
 bin\components\xpcom_system.xpt
@@ -220,13 +213,13 @@ bin\js\calCachedCalendar.js
 bin\js\calDateTimeFormatter.js
 bin\js\calDavCalendar.js
 bin\js\calEvent.js
+bin\js\calFilter.js
 bin\js\calHtmlExport.js
 bin\js\calICSCalendar.js
 bin\js\calIcsImportExport.js
 bin\js\calIcsParser.js
 bin\js\calIcsSerializer.js
 bin\js\calItemBase.js
-bin\js\calItipEmailTransport.js
 bin\js\calItipItem.js
 bin\js\calItipProcessor.js
 bin\js\calListFormatter.js
@@ -277,7 +270,6 @@ bin\extensions\calendar-timezones@mozilla.org\install.rdf
 bin\extensions\calendar-timezones@mozilla.org\timezones.sqlite
 bin\extensions\calendar-timezones@mozilla.org\chrome.manifest
 bin\extensions\calendar-timezones@mozilla.org\chrome\calendar-timezones-@AB_CD@.jar
-bin\extensions\calendar-timezones@mozilla.org\chrome\chromelist.txt
 bin\extensions\calendar-timezones@mozilla.org\defaults\preferences\preferences.js
 
 ; [Default Preferences]
@@ -329,7 +321,6 @@ bin\softokn3.dll
 bin\freebl3.chk
 bin\freebl3.dll
 bin\ssl3.dll
-bin\chrome\pipnss.jar
 bin\chrome\pippki.jar
 bin\chrome\pippki.manifest
 
