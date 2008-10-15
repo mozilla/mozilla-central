@@ -177,6 +177,8 @@ nsAutoCompleteGlodaResult.prototype = {
   },
 };
 
+const MAX_POPULAR_CONTACTS = 200;
+
 /**
  * Complete contacts/identities based on name/email.  Instant phase is based on
  *  a suffix-tree built of popular contacts/identities.  Delayed phase relies
@@ -185,28 +187,22 @@ nsAutoCompleteGlodaResult.prototype = {
 function ContactIdentityCompleter() {
   // get all the contacts
   let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
-  this.contactCollection = contactQuery.popularityRange(10, null).getAllSync();
+  contactQuery.orderBy("-popularity").limit(MAX_POPULAR_CONTACTS);
+  this.contactCollection = contactQuery.getAllSync();
 
   // cheat and explicitly add our own contact...
-  this.contactCollection._onItemsAdded([Gloda.myContact]);
-
-  // assuming we found some contacts...
-  if (this.contactCollection.items.length) {
-    // get all the identities...
-    let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
-    // ...that belong to one of the above contacts.
-    identityQuery.contact.apply(identityQuery, this.contactCollection.items);
-    this.identityCollection = identityQuery.getAllSync();
-  }
-  else {
-    // create an empty explicit collection
-    this.identityCollection = Gloda.explicitCollection(Gloda.NOUN_IDENTITY, []);
-  }
+  if (!(Gloda.myContact.id in this.contactCollection._idMap))
+    this.contactCollection._onItemsAdded([Gloda.myContact]);
+    
+  // the set of identities owned by the contacts is automatically loaded as part
+  //  of the contact loading...
+  this.identityCollection =
+    this.contactCollection.subCollections[Gloda.NOUN_IDENTITY];
 
   let contactNames = [(c.name.replace(" ", "").toLowerCase() || "x") for each
-                      ([ic, c] in Iterator(this.contactCollection.items))];
+                      ([, c] in Iterator(this.contactCollection.items))];
   let identityMails = [i.value.toLowerCase() for each
-                       ([ii, i] in Iterator(this.identityCollection.items))];
+                       ([, i] in Iterator(this.identityCollection.items))];
 
   this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
     this.contactCollection.items.concat(this.identityCollection.items));

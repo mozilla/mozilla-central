@@ -35,7 +35,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['Tagged', 'TagNoun'];
+EXPORTED_SYMBOLS = ['TagNoun'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -45,57 +45,52 @@ const Cu = Components.utils;
 Cu.import("resource://gloda/modules/gloda.js");
 
 /**
- * @class Represents a tag applied at a certain time.  Or rather it would if we
- *  were clever enough to track and maintain that time accurately.
- */
-function Tagged(aTag, aDate) {
-  this.tag = aTag;
-  this.date = aDate;
-}
-
-Tagged.prototype = {
-  toString: function () {
-    return this.tag.tag;
-  }
-};
-
-/**
- * @namespace Tag noun provider.  Since the tag unique value is stored as a
- *  parameter, we are an odd case and semantically confused.
+ * @namespace Tag noun provider.
  */
 var TagNoun = {
   name: "tag",
-  class: Tagged,
-  firstClass: false,
+  class: Ci.nsIMsgTag,
+  allowsArbitraryAttrs: false,
   _msgTagService: null,
+  _tagMap: null,
   
   _init: function () {
     this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
                           getService(Ci.nsIMsgTagService);
+    this._updateTagMap();
+    
+    this.fromJSON = this.fromParamAndValue;
+  },
+  
+  _updateTagMap: function gloda_noun_tag_updateTagMap() {
+    this._tagMap = {};
+    let tagArray = this._msgTagService.getAllTags({});
+    for (let iTag = 0; iTag < tagArray.length; iTag++) {
+      let tag = tagArray[iTag];
+      this._tagMap[tag.key] = tag;
+    }
   },
   
   // we cannot be an attribute value
   
-  toParamAndValue: function gloda_noun_tag_toParamAndValue(aTagged, aGeneric) {
-    if (aGeneric)
-      return [aTagged.tag.key, null];
-    else
-      return [aTagged.tag.key, aTagged.date.valueOf() * 1000];
+  toParamAndValue: function gloda_noun_tag_toParamAndValue(aTag) {
+    return [aTag.key, null];
   },
-  
+  toJSON: function gloda_noun_tag_toJSON(aTag) {
+    return aTag.key;
+  }
   fromParamAndValue: function gloda_noun_tag_fromParameterValue(aTagKey,
-                                                                aPRTime) {
-    // we have to walk the array to find our tag.  curse you, tag service!
-    let tagService = Cc["@mozilla.org/messenger/tagservice;1"].
-                          getService(Ci.nsIMsgTagService);
-    let tagArray = tagService.getAllTags({});
-    for (let iTag = 0; iTag < tagArray.length; iTag++) {
-      let tag = tagArray[iTag];
-      if (tag.key == aTagKey)
-        return new Tagged(tag, new Date(aPRTime/1000));
+                                                                aIgnored) {
+    let tag = this._tagMap[aTagKey];
+    // you will note that if a tag is removed, we are unable to aggressively
+    //  deal with this.  we are okay with this, but it would be nice to be able
+    //  to listen to the message tag service to know when we should rebuild.
+    if ((tag === undefined) && this._msgTagService.isValidKey(aTagKey)) {
+      this._updateTagMap();
+      tag = this._tagMap[aTagKey];
     }
-    // the tag has gone a-way, null is probably the safest thing to do.
-    return null;
+    // we intentionally are returning undefined if the tag doesn't exist
+    return tag;
   },
 };
 

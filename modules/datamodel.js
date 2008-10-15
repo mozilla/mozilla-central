@@ -54,7 +54,7 @@ Cu.import("resource://gloda/modules/utils.js");
  */
 function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
                            aPluginName, aAttrName, aSubjectTypes,
-                           aObjectType, aObjectNounMeta) {
+                           aObjectType, aObjectNounDef) {
   this._datastore = aDatastore;
   this._id = aID;
   this._compoundName = aCompoundName;
@@ -64,7 +64,7 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
   this._attrName = aAttrName;
   this._subjectTypes = aSubjectTypes;
   this._objectType = aObjectType;
-  this._objectNounMeta = aObjectNounMeta;
+  this._objectNounDef = aObjectNounDef;
 
   this.boundName = null;
   this._singular = null;
@@ -82,7 +82,7 @@ GlodaAttributeDef.prototype = {
   get attributeName() { return this._attrName; },
 
   get objectNoun() { return this._objectType; },
-  get objectNounMeta() { return this._objectNounMeta; },
+  get objectNounDef() { return this._objectNounDef; },
 
   get isBound() { return this.boundName !== null; },
   get singular() { return this._singular; },
@@ -115,39 +115,39 @@ GlodaAttributeDef.prototype = {
   },
 
   /**
-   * Given an instance of an object with this attribute, return the value
-   *  of the attribute.  This handles bound and un-bound attributes.  For
-   *  singular attributes, the value is null or the value; for non-singular
-   *  attributes the value is a list.
+   * Given a list of values (if non-singular) or a single value (if singular),
+   *  return a list (regardless of plurality) of database-ready [attribute id,
+   *  value] tuples.  This is intended to be used to directly convert the value
+   *  of a property on an object that corresponds to a bound attribute.
    */
-  getValueFromInstance: function gloda_attr_getValueFromInstance(aObj) {
-    // if it's bound, we can just use the binding and trigger his caching
-    // if it's special, the attribute actually exists, but just with explicit
-    //  code backing it.
-    if (this.boundName !== null || this._special) {
-      return aObj[this.boundName];
-    }
-    let instances = aObj.getAttributeInstances(this);
-    let nounMeta = this._objectNounMeta;
+  convertValuesToDBAttributes:
+      function gloda_attr_convertValuesToDBAttributes(aInstanceValues) {
+    let nounDef = this._objectNounDef;
+    
     if (this._singular) {
-      if (instances.length > 0)
-        return nounMeta.fromParamAndValue(instances[0][1], instances[0][2]);
-      else
-        return null;
+      if (nounDef.usesParameter) {
+        let [param, dbValue] = nounDef.toParamAndValue(aInstanceValues);
+        return [[this.bindParameter(param), dbValue]];
+      }
+      else {
+        return [[this._id, nounDef.toParamAndValue(aInstanceValues)[1]]];
+      }
     }
     else {
-      let values;
-      if (instances.length > 0) {
-        values = [];
-        for (let iInst = 0; iInst < instances.length; iInst++) {
-          values.push(nounMeta.fromParamAndValue(instances[iInst][1],
-                                                 instances[iInst][2]));
+      let dbAttributes = [];
+      if (nounDef.usesParameter) {
+        for each (let [iValue, instanceValue] in Iterator(aInstanceValues)) {
+          let [param, dbValue] = nounDef.toParamAndValue(aInstanceValues);
+          dbAttributes.push([this.bindParameter(param), dbValue]);
         }
       }
       else {
-        values = instances; // empty is empty
+        for each (let [iValue, instanceValue] in Iterator(aInstanceValues)) {
+          dbAttributes.push([this._id,
+                             nounDef.toParamAndValue(instanceValue)[1]);
+        }
       }
-      return values;
+      return dbAttributes;
     }
   },
 
@@ -277,8 +277,6 @@ function GlodaConversation(aDatastore, aID, aSubject, aOldestMessageDate,
   this._subject = aSubject;
   this._oldestMessageDate = aOldestMessageDate;
   this._newestMessageDate = aNewestMessageDate;
-
-  this._messages = null;
 }
 
 GlodaConversation.prototype = {
@@ -288,35 +286,38 @@ GlodaConversation.prototype = {
   get oldestMessageDate() { return this._oldestMessageDate; },
   get newestMessageDate() { return this._newestMessageDate; },
 
-  /**
-   * @TODO Return the collection of messages belonging to this conversation.
-   * (And weakly store a reference to the collection.  Once the user is rid of
-   *  it, we really don't care.)
-   */
-  get messages() {
-    if (this._messages == null) {
-      this._messages = this._datastore.getMessagesByConversationID(this._id,
-                                                                   false);
-    }
-    return this._messages;
-  },
-
   toString: function gloda_conversation_toString() {
     return this._subject;
   },
 };
 
-function GlodaFolder(aDatastore, aID, aURI, aPrettyName) {
+function GlodaFolder(aDatastore, aID, aURI, aDirtyStatus, aPrettyName) {
   this._datastore = aDatastore;
   this._id = aID;
   this._uri = aURI;
+  this._dirtyStatus = aDirtyStatus;
   this._prettyName = aPrettyName;
 }
 
 GlodaFolder.prototype = {
- NOUN_ID: 100,
- get id() { return this._id; },
- get uri() { return this._uri; },
+  NOUN_ID: 100,
+  /** The folder is believed to be up-to-date */
+  kFolderClean: 0,
+  /** The folder has some un-indexed or dirty messages */
+  kFolderDirty: 1,
+  /** The folder needs to be entirely re-indexed, regardless of the flags on
+   * the messages in the folder. This state will be downgraded to dirty */
+  kFolderFilthy: 2,
+  get id() { return this._id; },
+  get uri() { return this._uri; },
+  get dirtyStatus { return this._dirtyStatus; },
+  set dirtyStatus (aNewStatus) {
+    if (aNewStatus != this._dirtyStatus) {
+      this._dirtyStatus = aNewStatus;
+      this._datastore.updateFolderDirtyStatus(this);
+    }
+  },
+  get name { return this._prettyName; },
   toString: function gloda_folder_toString() {
     return this._prettyName;
   }
@@ -334,7 +335,7 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   this._messageKey = aMessageKey;
   this._conversationID = aConversationID;
   this._conversation = aConversation;
-  this.date = aDate;
+  this._date = aDate;
   this._headerMessageID = aHeaderMessageID;
 
   // only set _deleted if we're deleted, otherwise the undefined does our
@@ -351,10 +352,13 @@ GlodaMessage.prototype = {
   get conversationID() { return this._conversationID; },
   // conversation is special
   get headerMessageID() { return this._headerMessageID; },
+  
+  get date() { return this._date; },
+  set date(aNewDate) { this._date = aNewDate; },
 
   get folderURI() {
     if (this._folderID != null)
-      return this._datastore._mapFolderID(this._folderID);
+      return this._datastore._mapFolderID(this._folderID).uri;
     else
       return null;
   },
@@ -366,14 +370,15 @@ GlodaMessage.prototype = {
     return this._conversation;
   },
 
-  set messageKey(aMessageKey) { this._messageKey = aMessageKey; },
-  set folderURI(aFolderURI) {
-    this._folderID = this._datastore._mapFolderURI(aFolderURI);
-  },
-
   toString: function gloda_message_toString() {
     // uh, this is a tough one...
     return "Message " + this._id;
+  },
+
+  _clone: function gloda_message_clone() {
+    return new GlodaMessage(this._datastore, this._id, this._folderId,
+      this._messageKey, this._conversationID, this._conversation, this._date,
+      this._headerMessageID, this._deleted);
   },
 
   _ghost: function gloda_message_ghost() {
@@ -404,7 +409,7 @@ GlodaMessage.prototype = {
     let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
                      getService(Ci.nsIRDFService);
     let folder = rdfService.GetResource(
-                   this._datastore._mapFolderID(this._folderID));
+                   this._datastore._mapFolderID(this._folderID).uri);
     if (folder instanceof Ci.nsIMsgFolder) {
       let folderMessage = folder.GetMessageHeader(this._messageKey);
       if (folderMessage !== null) {
@@ -459,7 +464,8 @@ GlodaContact.prototype = {
   get id() { return this._id; },
   get directoryUUID() { return this._directoryUUID; },
   get contactUUID() { return this._contactUUID; },
-  get name() { return this._name },
+  get name() { return this._name; },
+  set name(aName) { this._name = aName; },
 
   get popularity() { return this._popularity; },
   set popularity(aPopularity) {
@@ -485,7 +491,12 @@ GlodaContact.prototype = {
   
   get accessibleLabel() {
     return "Contact: " + this._name;
-  }
+  },
+
+  _clone: function gloda_contact_clone() {
+    return new GlodaContact(this._datastore, this._id, this._directoryUUID,
+      this._contactUUID, this._name, this._popularity, this._frecency);
+  },
 };
 MixIn(GlodaContact, GlodaHasAttributesMixIn);
 
@@ -529,24 +540,7 @@ GlodaIdentity.prototype = {
   },
 
   get abCard() {
-    // search through all of our local address books looking for a match.
-    let enumerator = Components.classes["@mozilla.org/abmanager;1"]
-                               .getService(Ci.nsIAbManager)
-                               .directories;
-    let cardForEmailAddress;
-    let addrbook;
-    while (!cardForEmailAddress && enumerator.hasMoreElements())
-    {
-      addrbook = enumerator.getNext().QueryInterface(Ci.nsIAbDirectory);
-      try
-      {
-        cardForEmailAddress = addrbook.cardForEmailAddress(this._value);
-        if (cardForEmailAddress)
-          return cardForEmailAddress;
-      } catch (ex) {}
-    }
-
-    return null;
+    return GlodaUtils.getCardForEmail(this._value);
   },
   
   pictureURL: function(aSize) {

@@ -169,28 +169,6 @@ var GlodaFundAttr = {
                         objectNoun: Gloda.NOUN_IDENTITY,
                         }); // not-tested
 
-    Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
-      actionTarget: Gloda.NOUN_MESSAGE,
-      shortName: "from",
-      makeConstraint: function(aAttrDef, aIdentity) {
-        return [GlodaFundAttr._attrFrom, null, aIdentity.id];
-      },
-      });
-    Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
-      actionTarget: Gloda.NOUN_MESSAGE,
-      shortName: "to",
-      makeConstraint: function(aAttrDef, aIdentity) {
-        return [GlodaFundAttr._attrTo, null, aIdentity.id];
-      },
-      });
-    Gloda.defineNounAction(Gloda.NOUN_IDENTITY, {actionType: "filter",
-      actionTarget: Gloda.NOUN_MESSAGE,
-      shortName: "cc",
-      makeConstraint: function(aAttrDef, aIdentity) {
-        return [GlodaFundAttr._attrCc, null, aIdentity.id];
-      },
-      });
-
     // Date.  now lives on the row.
     this._attrDate = Gloda.defineAttribute({
                         provider: this,
@@ -306,10 +284,39 @@ var GlodaFundAttr = {
    *   processing.)
    * - Newsgroups.  Same deal as mailing lists.
    */
-  process: function gloda_fundattr_process(aGlodaMessage, aMsgHdr, aMimeMsg,
-                                           aIsNew) {
-    let attribs = [];
+  process: function gloda_fundattr_process(aGlodaMessage, aRawReps,
+                                           aIsNew, aCallbackHandle) {
+    let aMsgHdr = aRawReps.header;
+    let aMimeMsg = aRawReps.mime;
+    
+    let attribs = aGlodaMessage.attributes;
+    let optimizations = aGlobaMessage.optimizationAttributes;
+    
     let involvedIdentities = {};
+    
+    let involved = aGlodaMessage.involved;
+    if (involved === undefined)
+      involved = aGlodaMessage.involved = [];
+    let to = aGlodaMessage.to;
+    if (to === undefined)
+      to = aGlodaMessage.to = [];
+    let cc = aGlodaMessage.cc;
+    if (cc === undefined)
+      cc = aGlodaMessage.cc = [];
+    
+    // me specialization optimizations
+    let toMe = aGlodaMessage.toMe;
+    if (toMe === undefined)
+      toMe = aGlodaMessage.toMe = [];
+    let fromMeTo = aGlodaMessage.fromMeTo;
+    if (fromMeTo === undefined)
+      fromMeTo = aGlodaMessage.fromMeTo = [];
+    let ccMe = aGlodaMessage.ccMe;
+    if (ccMe === undefineD)
+      ccMe = aGlodaMEssage.ccMe = [];
+    let fromMeCc = aGlodaMessage.fromMeCc;
+    if (fromMeCc === undefined)
+      fromMeCc = aGlodaMessage.fromMeCc = [];
     
     // -- From
     // Let's use replyTo if available.
@@ -326,16 +333,21 @@ var GlodaFundAttr = {
     */
     if (author == null || author == "")
       author = aMsgHdr.author;
+    
+    let [authorIdentities, toIdentities, ccIdentities] =
+      yield aCallbackHandle.pushAndGo(
+        Gloda.getOrCreateMailIdentities(aCallbackHandle,
+                                        author, aMsgHdr.recipients,
+                                        aMsgHdr.ccList));
 
-    let authorIdentity = Gloda.getIdentityForFullMailAddress(author);
-    if (authorIdentity == null) {
+    if (authorIdentities.length == 0) {
       this._log.error("Message with subject '" + aMsgHdr.mime2DecodedSubject +
                       "' somehow lacks a valid author.  Bailing.");
       return attribs;
     }
-    attribs.push([this._attrFrom.id, authorIdentity.id]);
-    attribs.push([this._attrInvolves.id, authorIdentity.id]);
-    involvedIdentities[authorIdentity.id] = true;
+    aGlodaMessage.from = authorIdentities[0];
+    involved.push(authorIdentities[0]);
+    involvedIdentities[authorIdentities[0].id] = true;
     
     let myIdentities = Gloda.myIdentities; // needless optimization?
     let isFromMe = authorIdentity.id in myIdentities;
@@ -343,13 +355,11 @@ var GlodaFundAttr = {
     // -- To, Cc
     // TODO: handle mailing list semantics (use my visterity logic as a first
     //  pass.)
-    let toIdentities = Gloda.getIdentitiesForFullMailAddresses(
-                           aMsgHdr.recipients);
     for (let iTo = 0; iTo < toIdentities.length; iTo++) {
       let toIdentity = toIdentities[iTo];
-      attribs.push([this._attrTo.id, toIdentity.id]);
+      to.push(toIdentity);
       if (!(toIdentity.id in involvedIdentities)) {
-        attribs.push([this._attrInvolves.id, toIdentity.id]);
+        involved.push(toIdentity);
         involvedIdentities[toIdentity.id] = true;
       }
       // optimization attribute to-me ('I' am the parameter)
@@ -361,6 +371,7 @@ var GlodaFundAttr = {
       }
       // optimization attribute from-me-to ('I' am the parameter)
       if (isFromMe) {
+        fromMeTo.push(
         attribs.push([this._attrFromMeCc.bindParameter(authorIdentity.id),
                       toIdentity.id]);
         // also, popularity
@@ -368,7 +379,6 @@ var GlodaFundAttr = {
           toIdentity.contact.popularity += this.POPULARITY_FROM_ME_TO;
       }
     }
-    let ccIdentities = Gloda.getIdentitiesForFullMailAddresses(aMsgHdr.ccList);
     for (let iCc = 0; iCc < ccIdentities.length; iCc++) {
       let ccIdentity = ccIdentities[iCc];
       attribs.push([this._attrCc.id, ccIdentity.id]);
@@ -401,6 +411,6 @@ var GlodaFundAttr = {
     // -- Date
     attribs.push([this._attrDate.id, aMsgHdr.date]);
     
-    return attribs;
+    yield Gloda.kWorkDone;
   },
 };

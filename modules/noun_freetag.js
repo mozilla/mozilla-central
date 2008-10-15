@@ -61,7 +61,7 @@ FreeTag.prototype = {
 var FreeTagNoun = {
   name: "freetag",
   class: FreeTag,
-  firstClass: false,
+  allowsArbitraryAttrs: false,
   
   _listeners: [],
   addListener: function(aListener) {
@@ -84,12 +84,18 @@ var FreeTagNoun = {
     return tag;
   },
 
-  toParamAndValue: function gloda_noun_tag_toParamAndValue(aTag) {
+  toParamAndValue: function gloda_noun_freetag_toParamAndValue(aTag) {
     return [aTag.name, null];
   },
+  fromParamAndValue: function gloda_noun_freetag_fromParameterValue(aTagName,
+                                                                    aIgnored) {
+    return this.getFreeTag(aTagName);
+  },
   
-  fromParamAndValue: function gloda_noun_tag_fromParameterValue(aTagName,
-                                                                aIgnored) {
+  toJSON: function gloda_noun_freetag_toJSON(aTag) {
+    return aTag.name;
+  },
+  fromJSON: function gloda_noun_freetag_fromJSON(aTagName) {
     return this.getFreeTag(aTagName);
   },
 };

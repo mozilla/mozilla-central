@@ -53,11 +53,6 @@ Cu.import("resource://gloda/modules/datamodel.js");
 Cu.import("resource://gloda/modules/databind.js");
 Cu.import("resource://gloda/modules/collection.js");
 
-// XXX from Gloda.js.  duplicated here for dependency reasons.  bad!
-const kSpecialColumn = 1;
-const kSpecialString = 2;
-const kSpecialFulltext = 3;
-
 /**
  * @class This callback handles processing the asynchronous query results of
  *  GlodaDatastore.getMessagesByMessageID.  Because that method is only
@@ -113,6 +108,33 @@ MessagesByMessageIdCallback.prototype = {
   }
 };
 
+function PostCommitHandler(aCallbacks) {
+  this.callbacks = aCallbacks;
+}
+
+PostCommitHandler.prototype = {
+  handleResult: function gloda_ds_pch_handleResult(aResultSet) {
+  },
+  
+  handleError: function gloda_ds_pch_handleError(aError) {
+  },
+  
+  handleCompletion: function gloda_ds_pch_handleCompletion(aReason) {
+    if (aReason == Ci.mozIStorageStatementCallback.REASON_FINISHED) {
+      for each (let [iCallback, callback] in Iterator(this.callbacks)) {
+        try {
+          callback();
+        }
+        catch (ex) {
+          dump("PostCommitHandler callback (" + ex.fileName + ":" +
+               ex.lineNumber + ") threw: " + ex);
+        }
+      }
+    }
+    GlodaDatastore._asyncCompleted();
+  }
+};
+
 /**
  * @class Handles the results from a GlodaDatastore.queryFromQuery call.
  * @constructor
@@ -121,6 +143,8 @@ function QueryFromQueryCallback(aStatement, aNounMeta, aCollection) {
   this.statement = aStatement;
   this.nounMeta = aNounMeta;
   this.collection = aCollection;
+  
+  this.referencesByNounID = {};
 
   GlodaDatastore._pendingAsyncStatements++;
 }
@@ -132,6 +156,7 @@ QueryFromQueryCallback.prototype = {
     let nounMeta = this.nounMeta;
     while (row = aResultSet.getNextRow()) {
       let item = nounMeta.objFromRow.call(nounMeta.datastore, row);
+      GlodaDatastore.loadNounItem(item, this.referencesByNounID);
       newItems.push(item);
     }
     // have the collection manager attempt to replace the instances we just
@@ -262,9 +287,20 @@ QueryFromQueryCallback.prototype = {
 var GlodaDatastore = {
   _log: null,
 
+  /* see Gloda's documentation for these constants */
+  kSpecialColumn: 1,
+  kSpecialString: 2,
+  kSpecialFulltext: 3,
+  
+  kMagicAttrIDs: -1,
+  
+  kConstraintEquals: 0,
+  kConstraintIn: 1,
+  kConstraintRanges: 2,
+
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 9,
+  _schemaVersion: 10,
   _schema: {
     tables: {
 
@@ -273,6 +309,8 @@ var GlodaDatastore = {
         columns: [
           "id INTEGER PRIMARY KEY",
           "folderURI TEXT NOT NULL",
+          "dirtyStatus INTEGER NOT NULL",
+          "name TEXT NOT NULL",
         ],
 
         triggers: {
@@ -323,6 +361,7 @@ var GlodaDatastore = {
           //  message-id, the parentID concept is unreliable.
           "headerMessageID TEXT",
           "deleted INTEGER NOT NULL default 0",
+          "jsonAttributes TEXT",
         ],
 
         indices: {
@@ -371,12 +410,6 @@ var GlodaDatastore = {
           attribQuery: [
             "attributeID", "value",
             /* covering: */ "conversationID", "messageID"],
-          messageAttribFetch: [
-            "messageID",
-            /* covering required: */ "attributeID", "value"],
-          conversationAttribFetch: [
-            "conversationID",
-            /* covering: */ "messageID", "attributeID", "value"],
         },
       },
 
@@ -395,7 +428,8 @@ var GlodaDatastore = {
           "contactUUID TEXT",
           "popularity INTEGER",
           "frecency INTEGER",
-          "name TEXT"
+          "name TEXT",
+          "jsonAttributes TEXT",
         ],
         indices: {
           popularity: ["popularity"],
@@ -413,9 +447,6 @@ var GlodaDatastore = {
           contactAttribQuery: [
             "attributeID", "value",
             /* covering: */ "contactID"],
-          contactAttribFetch: [
-            "contactID",
-            /* covering */ "attributeID", "value"]
         }
       },
 
@@ -465,8 +496,10 @@ var GlodaDatastore = {
    *  if it does and it's not up-to-date, fill our authoritative folder uri/id
    *  mapping.
    */
-  _init: function gloda_ds_init() {
+  _init: function gloda_ds_init(aNsJSON) {
     this._log = Log4Moz.Service.getLogger("gloda.datastore");
+    
+    this._json = aNsJSON;
 
     // Get the path to our global database
     var dirService = Cc["@mozilla.org/file/directory_service;1"].
@@ -673,6 +706,22 @@ var GlodaDatastore = {
     if (aCurVersion < 9) {
       this._createTableSchema(aDBConnection, "contactAttributes");
     }
+    // version 10:
+    // we have so many changes here, not to mention semantic changes, that
+    //  purging is the right answer.
+    // - adds dirtyStatus, name to folderLocations
+    // - removes messageAttribFetch index from messageAttributes
+    // - removes conversationAttribFetch index from messageAttributes
+    // - removes contactAttribFetch index from contactAttributes
+    // - adds jsonAttributes column to messages table
+    // - adds jsonAttributes column to contacts table
+    if (aCurVersion < 10) {
+      aDBConnection.close();
+      aDBFile.remove(false);
+      this._log.warn("Global database has been purged due to schema change.");
+      return this._createDB(aDBService, aDBFile);
+    }
+    
     aDBConnection.schemaVersion = aNewVersion;
     
     return aDBConnection;
@@ -817,6 +866,15 @@ var GlodaDatastore = {
     return this._rollbackTransactionStatement;
   },
 
+  _pendingPostCommitCallbacks: null,
+  /**
+   * Register a callback to be invoked when the current transaction's commit
+   *  completes.
+   */
+  runPostCommit: function gloda_ds_runPostCommit(aCallback) {
+    this._pendingPostCommitCallbacks.push(aCallback);
+  },
+
   /**
    * Begin a potentially nested transaction; only the outermost transaction gets
    *  to be an actual transaction, and the failure of any nested transaction
@@ -825,6 +883,7 @@ var GlodaDatastore = {
    */
   _beginTransaction: function gloda_ds_beginTransaction() {
     if (this._transactionDepth == 0) {
+      this._pendingPostCommitCallbacks = [];
       this._beginTransactionStatement.executeAsync(this.trackAsync());
       this._transactionGood = true;
     }
@@ -840,13 +899,15 @@ var GlodaDatastore = {
     if (this._transactionDepth == 0) {
       try {
         if (this._transactionGood)
-          this._commitTransactionStatement.executeAsync(this.trackAsync());
+          this._commitTransactionStatement.executeAsync(
+            new PostCommitHandler(this._pendingPostCommitCallbacks));
         else
           this._rollbackTransaction.executeAsync(this.trackAsync());
       }
       catch (ex) {
         this._log.error("Commit problem: " + ex);
       }
+      this._pendingPostCommitCallbacks = [];
     }
   },
   /**
@@ -1024,7 +1085,8 @@ var GlodaDatastore = {
 
   get _insertFolderLocationStatement() {
     let statement = this._createAsyncStatement(
-      "INSERT INTO folderLocations (id, folderURI) VALUES (?1, ?2)");
+      "INSERT INTO folderLocations (id, folderURI, dirtyStatus, name) VALUES \
+        (?1, ?2, ?3, ?4)");
     this.__defineGetter__("_insertFolderLocationStatement",
       function() statement);
     return this._insertFolderLocationStatement;
@@ -1035,63 +1097,93 @@ var GlodaDatastore = {
    *  sense that this map exactly represents the state of the underlying
    *  database.  If it does not, it's a bug in updating the database.)
    */
-  _folderURIs: {},
+  _folderByURI: {},
   /** Authoritative map from folder ID to folder URI */
-  _folderIDs: {},
+  _folderByID: {},
 
-  /** Intialize our _folderURIs/_folderIDs mappings, called by _init(). */
+  /** Intialize our _folderByURI/_folderByID mappings, called by _init(). */
   _getAllFolderMappings: function gloda_ds_getAllFolderMappings() {
     let stmt = this._createSyncStatement(
-      "SELECT id, folderURI FROM folderLocations", true);
+      "SELECT id, folderURI, dirtyStatus, name FROM folderLocations", true);
 
     while (stmt.executeStep()) {  // no chance of this SQLITE_BUSY on this call
       let folderID = stmt.getInt64(0);
       let folderURI = stmt.getString(1);
-      this._folderURIs[folderURI] = folderID;
-      this._folderIDs[folderID] = folderURI;
+      let dirtyStatus = stmt.getInt32(2);
+      let folderName = stmt.getString(3);
+      
+      let folder = new GlodaFolder(this, folderID, folderURI, dirtyStatus,
+                                   folderName);
+      
+      this._folderByURI[folderURI] = folder;
+      this._folderByID[folderID] = folder;
 
-      if (folderID + 1 > this._nextFolderId)
+      if (folderID >= this._nextFolderId)
         this._nextFolderId = folderID + 1;
     }
     stmt.finalize();
   },
 
-  _folderURIKnown: function gloda_ds_folderURIKnown(aFolderURI) {
-    return aFolderURI in this._folderURIs;
+  _folderKnown: function gloda_ds_folderKnown(aFolder) {
+    let folderURI = aFolder.URI;
+    return folderURI in this._folderByURI;
   },
 
   /**
    * Map a folder URI to a folder ID, creating the mapping if it does not yet
    *  exist.
    */
-  _mapFolderURI: function gloda_ds_mapFolderURI(aFolderURI) {
-    if (aFolderURI in this._folderURIs) {
-      return this._folderURIs[aFolderURI];
+  _mapFolder: function gloda_ds_mapFolderURI(aFolder) {
+    let folderURI = aFolder.URI;
+    if (folderURI in this._folderByURI) {
+      return this._folderByURI[folderURI];
     }
 
     let folderID = this._nextFolderId++;
-    this._insertFolderLocationStatement.bindInt64Parameter(0, folderID)
-    this._insertFolderLocationStatement.bindStringParameter(1, aFolderURI);
+    
+    let folder = new GlodaFolder(this, folderID, folderURI,
+      GlodaFolder.prototype.kFolderFilthy, aFolder.prettyName);
+    
+    this._insertFolderLocationStatement.bindInt64Parameter(0, folder.id)
+    this._insertFolderLocationStatement.bindStringParameter(1, folder.uri);
+    this._insertFolderLocationStatement.bindInt64Parameter(2,
+                                                           folder.dirtyStatus);
+    this._insertFolderLocationStatement.bindStringParameter(3, folder.name);
     this._insertFolderLocationStatement.executeAsync(this.trackAsync());
 
-    this._folderURIs[aFolderURI] = folderID;
-    this._folderIDs[folderID] = aFolderURI;
-    this._log.info("mapping URI " + aFolderURI + " to " + folderID);
-    return folderID;
+    this._folderByURI[aFolderURI] = folder;
+    this._folderByID[folderID] = folder;
+    return folder;
   },
 
   _mapFolderID: function gloda_ds_mapFolderID(aFolderID) {
     if (aFolderID === null)
       return null;
-    if (aFolderID in this._folderIDs)
-      return this._folderIDs[aFolderID];
+    if (aFolderID in this._folderByID)
+      return this._folderByID[aFolderID];
     throw "Got impossible folder ID: " + aFolderID;
+  },
+
+  get _updateFolderDirtyStatusStatement() {
+    let statement = this._createAsyncStatement(
+      "UPDATE folderLocations SET dirtyStatus = ?1 \
+              WHERE id = ?2");
+    this.__defineGetter__("_updateFolderDirtyStatusStatement",
+      function() statement);
+    return this._updateFolderDirtyStatusStatement;
+  },
+
+  updateFolderDirtyStatus: function gloda_ds_updateFolderDirtyStatus(aFolder) {
+    let ufds = this._updateFolderDirtyStatusStatement;
+    ufds.bindInt64Parameter(1, folder.id);
+    ufds.bindInt64Parameter(0, folder.dirtyStatus);
+    ufds.executeAsync(this.trackAsync());
   },
 
   get _updateFolderLocationStatement() {
     let statement = this._createAsyncStatement(
       "UPDATE folderLocations SET folderURI = ?1 \
-              WHERE folderURI = ?2");
+              WHERE id = ?2");
     this.__defineGetter__("_updateFolderLocationStatement",
       function() statement);
     return this._updateFolderLocationStatement;
@@ -1103,15 +1195,17 @@ var GlodaDatastore = {
    * @TODO provide a mechanism for recursive folder renames or have a higher
    *     layer deal with it and remove this note.
    */
-  renameFolder: function gloda_ds_renameFolder(aOldURI, aNewURI) {
-    let folderID = this._mapFolderURI(aOldURI); // ensure the URI is mapped...
-    this._folderURIs[aNewURI] = folderID;
-    this._folderIDs[folderID] = aNewURI;
-    this._log.info("renaming folder URI " + aOldURI + " to " + aNewURI);
-    this._updateFolderLocationStatement.bindStringParameter(1, aOldURI);
+  renameFolder: function gloda_ds_renameFolder(aOldFolder, aNewURI) {
+    let folder = this._mapFolder(aOldFolder); // ensure the folder is mapped
+    let oldURI = folder.uri; 
+    this._folderByURI[aNewURI] = folder;
+    folder._uri = aNewURI;
+    this._log.info("renaming folder URI " + oldURI + " to " + aNewURI);
+    this._updateFolderLocationStatement.bindStringParameter(1, folder.id);
     this._updateFolderLocationStatement.bindStringParameter(0, aNewURI);
     this._updateFolderLocationStatement.executeAsync(this.trackAsync());
-    delete this._folderURIs[aOldURI];
+    
+    delete this._folderByURI[oldURI];
   },
 
   get _deleteFolderByIDStatement() {
@@ -1280,8 +1374,8 @@ var GlodaDatastore = {
   get _insertMessageStatement() {
     let statement = this._createAsyncStatement(
       "INSERT INTO messages (id, folderID, messageKey, conversationID, date, \
-                             headerMessageID) \
-              VALUES (?1, ?2, ?3, ?4, ?5, ?6)");
+                             headerMessageID, jsonAttributes) \
+              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)");
     this.__defineGetter__("_insertMessageStatement", function() statement);
     return this._insertMessageStatement;
   },
@@ -1304,12 +1398,12 @@ var GlodaDatastore = {
    *  this message actually existing in the database must be done using an
    *  async query.
    */
-  createMessage: function gloda_ds_createMessage(aFolderURI, aMessageKey,
+  createMessage: function gloda_ds_createMessage(aFolder, aMessageKey,
                               aConversationID, aDatePRTime, aHeaderMessageID,
                               aSubject, aBody, aAttachmentNames) {
     let folderID;
-    if (aFolderURI != null) {
-      folderID = this._mapFolderURI(aFolderURI);
+    if (aFolder != null) {
+      folderID = this._mapFolder(aFolder).id;
     }
     else {
       folderID = null;
@@ -1317,22 +1411,45 @@ var GlodaDatastore = {
 
     let messageID = this._nextMessageId++;
 
+    let message = new GlodaMessage(this, messageID, folderID,
+                            aMessageKey, aConversationID, null,
+                            aDatePRTime ? new Date(aDatePRTime / 1000) : null,
+                            aHeaderMessageID);
+
+    this._log.debug("CreateMessage: " + folderID + ", " + aMessageKey + ", " +
+                    aConversationID + ", " + aDatePRTime + ", " +
+                    aHeaderMessageID);
+
+    // We would love to notify the collection manager about the message at this
+    //  point (at least if it's not a ghost), but we can't yet.  We need to wait
+    //  until the attributes have been indexed, which means it's out of our
+    //  hands.  (Gloda.processMessage does it.)
+
+    return message;
+  },
+  
+  insertMessage: function gloda_ds_insertMessage(aMessage) {
+
     let ims = this._insertMessageStatement;
-    ims.bindInt64Parameter(0, messageID);
-    if (folderID === null)
+    ims.bindInt64Parameter(0, aMessage.id);
+    if (aMessage.folderID === null)
       ims.bindNullParameter(1);
     else
-      ims.bindInt64Parameter(1, folderID);
-    if (aMessageKey === null)
+      ims.bindInt64Parameter(1, aMessage.folderID);
+    if (aMessage.messageKey === null)
       ims.bindNullParameter(2);
     else
-      ims.bindInt64Parameter(2, aMessageKey);
-    ims.bindInt64Parameter(3, aConversationID);
-    if (aDatePRTime === null)
+      ims.bindInt64Parameter(2, aMessage.messageKey);
+    ims.bindInt64Parameter(3, aMessage.conversationID);
+    if (aMessage.date === null)
       ims.bindNullParameter(4);
     else
-      ims.bindInt64Parameter(4, aDatePRTime);
-    ims.bindStringParameter(5, aHeaderMessageID);
+      ims.bindInt64Parameter(4, aMessage.date * 1000);
+    ims.bindStringParameter(5, aMessage.headerMessageID);
+    if (aMessage._jsonText)
+      ims.bindStringParameter(6, aMessage._jsonText);
+    else
+      ims.bindNullParameter(6);
 
     try {
        ims.executeAsync(this.trackAsync());
@@ -1342,10 +1459,6 @@ var GlodaDatastore = {
              this.asyncConnection.lastError + ": " +
              this.asyncConnection.lastErrorString + " - " + ex);
     }
-
-    this._log.debug("CreateMessage: " + folderID + ", " + aMessageKey + ", " +
-                    aConversationID + ", " + aDatePRTime + ", " +
-                    aHeaderMessageID);
 
     // we only create the full-text row if the body is non-null.
     // so, even though body might be null, we still want to create the
@@ -1370,17 +1483,6 @@ var GlodaDatastore = {
       }
     }
 
-    let message = new GlodaMessage(this, messageID, folderID,
-                            aMessageKey, aConversationID, null,
-                            aDatePRTime ? new Date(aDatePRTime / 1000) : null,
-                            aHeaderMessageID);
-
-    // We would love to notify the collection manager about the message at this
-    //  point (at least if it's not a ghost), but we can't yet.  We need to wait
-    //  until the attributes have been indexed, which means it's out of our
-    //  hands.  (Gloda.processMessage does it.)
-
-    return message;
   },
 
   get _updateMessageStatement() {
@@ -1389,8 +1491,9 @@ var GlodaDatastore = {
                            messageKey = ?2, \
                            conversationID = ?3, \
                            date = ?4, \
-                           headerMessageID = ?5 \
-              WHERE id = ?6");
+                           headerMessageID = ?5,
+                           jsonAttributes = ?6 \
+              WHERE id = ?7");
     this.__defineGetter__("_updateMessageStatement", function() statement);
     return this._updateMessageStatement;
   },
@@ -1403,7 +1506,7 @@ var GlodaDatastore = {
   updateMessage: function gloda_ds_updateMessage(aMessage, aSubject, aBody,
                                                  aAttachmentNames) {
     let ums = this._updateMessageStatement;
-    ums.bindInt64Parameter(5, aMessage.id);
+    ums.bindInt64Parameter(6, aMessage.id);
     if (aMessage.folderID === null)
       ums.bindNullParameter(0);
     else
@@ -1418,6 +1521,10 @@ var GlodaDatastore = {
     else
       ums.bindInt64Parameter(3, aMessage.date * 1000);
     ums.bindStringParameter(4, aMessage.headerMessageID);
+    if (aMessage._jsonText)
+      ims.bindStringParameter(5, aMessage._jsonText);
+    else
+      ims.bindNullParameter(5);
 
     ums.executeAsync(this.trackAsync());
 
@@ -1454,9 +1561,9 @@ var GlodaDatastore = {
    *  database locations.  Also, update the in-memory representations.
    */
   updateMessageLocations: function gloda_ds_updateMessageLocations(aMessageIds,
-      aNewMessageKeys, aDestFolderURI) {
+      aNewMessageKeys, aDestFolder) {
     let statement = this._updateMessageLocationStatement;
-    let destFolderID = this._mapFolderURI(aDestFolderURI);
+    let destFolderID = this._mapFolder(aDestFolder).id;
 
     let modifiedItems = [];
 
@@ -1498,10 +1605,10 @@ var GlodaDatastore = {
    *  don't yet know their target message keys.
    */
   updateMessageFoldersByKeyPurging:
-      function gloda_ds_updateMessageFoldersByKeyPurging(aSrcFolderURI,
-        aMessageKeys, aDestFolderURI) {
-    let srcFolderID = this._mapFolderURI(aSrcFolderURI);
-    let destFolderID = this._mapFolderURI(aDestFolderURI);
+      function gloda_ds_updateMessageFoldersByKeyPurging(aSrcFolder,
+        aMessageKeys, aDestFolder) {
+    let srcFolderID = this._mapFolder(aSrcFolder).id;
+    let destFolderID = this._mapFolder(aDestFolder).id;
 
     let sqlStr = "UPDATE messages SET folderID = ?1, \
                                       messageKey = ?2 \
@@ -1588,10 +1695,10 @@ var GlodaDatastore = {
    *
    * @XXX on failure, attempt to resolve the problem through re-indexing, etc.
    */
-  getMessageFromLocation: function gloda_ds_getMessageFromLocation(aFolderURI,
+  getMessageFromLocation: function gloda_ds_getMessageFromLocation(aFolder,
                                                                  aMessageKey) {
     this._selectMessageByLocationStatement.bindInt64Parameter(0,
-      this._mapFolderURI(aFolderURI));
+      this._mapFolder(aFolder).id);
     this._selectMessageByLocationStatement.bindInt64Parameter(1, aMessageKey);
 
     let message = null;
@@ -1808,8 +1915,17 @@ var GlodaDatastore = {
     return this._insertMessageAttributeStatement;
   },
 
+  get _deleteMessageAttributeStatement() {
+    let statement = this._createAsyncStatement(
+      "DELETE FROM messageAttributes WHERE attributeID = ?1 AND value = ?2 \
+         AND conversationID = ?3 AND messageID = ?4");
+    this.__defineGetter__("_deleteMessageAttributeStatement",
+      function() statement);
+    return this._deleteMessageAttributeStatement;
+  },
+
   /**
-   * Insert a bunch of attributes relating to a GlodaMessage.  This is performed
+   * Insert and remove attributes relating to a GlodaMessage.  This is performed
    *  inside a pseudo-transaction (we create one if we aren't in one, using
    *  our _beginTransaction wrapper, but if we are in one, no additional
    *  meaningful semantics are added).
@@ -1817,27 +1933,25 @@ var GlodaDatastore = {
    *  against the current database or within the provided list of attributes.
    *  The caller is responsible for ensuring that unwanted duplicates are
    *  avoided.
-   * Currently, it is expected that this method will be used following a call to
-   *  clearMessageAttributes to wipe out the existing attributes in the
-   *  database.  We will probably try and move to a delta-mechanism in the
-   *  future, avoiding needless database churn for small changes in state.
    *
    * @param aMessage The GlodaMessage the attributes belong to.  This is used
    *     to provide the message id and conversation id.
-   * @param aAttributes A list of attribute tuples, where each tuple contains
-   *     an attribute ID and a value.  Lest you forget, an attribute ID
+   * @param aAddDBAttributes A list of attribute tuples to add, where each tuple
+   *     contains an attribute ID and a value.  Lest you forget, an attribute ID
    *     corresponds to a row in the attribute definition table.  The attribute
    *     definition table stores the 'parameter' for the attribute, if any.
    *     (Which is to say, our frequent Attribute-Parameter-Value triple has
    *     the Attribute-Parameter part distilled to a single attribute id.)
+   * @param aRemoveDBAttributes A list of attribute tuples to remove.
    */
-  insertMessageAttributes: function gloda_ds_insertMessageAttributes(aMessage,
-                                        aAttributes) {
+  adjustMessageAttributes: function gloda_ds_adjustMessageAttributes(aMessage,
+                                        aAddDBAttributes, aRemoveDBAttributes) {
     let imas = this._insertMessageAttributeStatement;
+    let dmas = this._deleteMessageAttributeStatement;
     this._beginTransaction();
     try {
-      for (let iAttribute = 0; iAttribute < aAttributes.length; iAttribute++) {
-        let attribValueTuple = aAttributes[iAttribute];
+      for (let iAttrib = 0; iAttrib < aAddDBAttributes.length; iAttrib++) {
+        let attribValueTuple = aAddDBAttributes[iAttrib];
 
         imas.bindInt64Parameter(0, aMessage.conversationID);
         imas.bindInt64Parameter(1, aMessage.id);
@@ -1851,6 +1965,23 @@ var GlodaDatastore = {
         else
           imas.bindDoubleParameter(3, attribValueTuple[1]);
         imas.executeAsync(this.trackAsync());
+      }
+
+      for (let iAttrib = 0; iAttrib < aRemoveDBAttributes.length; iAttrib++) {
+        let attribValueTuple = aRemoveDBAttributes[iAttrib];
+
+        dmas.bindInt64Parameter(0, attribValueTuple[0]);
+        // use 0 instead of null, otherwise the db gets upset.  (and we don't
+        //  really care anyways.)
+        if (attribValueTuple[1] == null)
+          dmas.bindInt64Parameter(1, 0);
+        else if (Math.floor(attribValueTuple[1]) == attribValueTuple[1])
+          dmas.bindInt64Parameter(1, attribValueTuple[1]);
+        else
+          dmas.bindDoubleParameter(1, attribValueTuple[1]);
+        dmas.bindInt64Parameter(2, aMessage.conversationID);
+        dmas.bindInt64Parameter(3, aMessage.id);
+        dmas.executeAsync(this.trackAsync());
       }
 
       this._commitTransaction();
@@ -1932,8 +2063,8 @@ var GlodaDatastore = {
   },
 
   /* ===== Generic Attribute Support ===== */
-  insertAttributes: function gloda_ds_insertAttributes(aItem,
-                                        aAttributes) {
+  adjustAttributes: function gloda_ds_adjustAttributes(aItem, aAddDBAttributes,
+      aRemoveDBAttributes) {
     let nounMeta = aItem.NOUN_META;
     let dbMeta = nounMeta._dbMeta;
     if (dbMeta.insertAttrStatement === undefined) {
@@ -1941,13 +2072,19 @@ var GlodaDatastore = {
         "INSERT INTO " + nounMeta.attrTableName +
         " (" + nounMeta.attrIDColumnName + ", attributeID, value) " +
         " VALUES (?1, ?2, ?3)");
+      // we always create this at the same time (right here), no need to check
+      dbMeta.deleteAttrStatement = this._createAsyncStatement(
+        "DELETE FROM " + nounMeta.attrTableName + " WHERE " +
+        " attributeID = ?1 AND value = ?2 AND " +
+        nounMeta.attrIDColumnName + " = ?3");
     }
 
     let ias = dbMeta.insertAttrStatement;
+    let das = dbMeta.deleteAttrStatement;
     this._beginTransaction();
     try {
-      for (let iAttribute = 0; iAttribute < aAttributes.length; iAttribute++) {
-        let attribValueTuple = aAttributes[iAttribute];
+      for (let iAttr = 0; iAttr < aAddDBAttributes.length; iAttr++) {
+        let attribValueTuple = aAddDBAttributes[iAttr];
 
         ias.bindInt64Parameter(0, aItem.id);
         ias.bindInt64Parameter(1, attribValueTuple[0]);
@@ -1960,6 +2097,22 @@ var GlodaDatastore = {
         else
           ias.bindDoubleParameter(2, attribValueTuple[1]);
         ias.executeAsync(this.trackAsync());
+      }
+
+      for (let iAttr = 0; iAttr < aRemoveDBAttributes.length; iAttr++) {
+        let attribValueTuple = aRemoveDBAttributes[iAttr];
+
+        das.bindInt64Parameter(0, attribValueTuple[0]);
+        // use 0 instead of null, otherwise the db gets upset.  (and we don't
+        //  really care anyways.)
+        if (attribValueTuple[1] == null)
+          das.bindInt64Parameter(1, 0);
+        else if (Math.floor(attribValueTuple[1]) == attribValueTuple[1])
+          das.bindInt64Parameter(1, attribValueTuple[1]);
+        else
+          das.bindDoubleParameter(1, attribValueTuple[1]);
+        das.bindInt64Parameter(2, aItem.id);
+        das.executeAsync(this.trackAsync());
       }
 
       this._commitTransaction();
@@ -2005,7 +2158,8 @@ var GlodaDatastore = {
    * This functionality is made user/extension visible by the Query's
    *  getCollection (asynchronous) and getAllSync (synchronous).
    */
-  queryFromQuery: function gloda_ds_queryFromQuery(aQuery, aListener, bSynchronous) {
+  queryFromQuery: function gloda_ds_queryFromQuery(aQuery, aListener,
+      bSynchronous, aListenerData) {
     // when changing this method, be sure that GlodaQuery's testMatch function
     //  likewise has its changes made.
     let nounMeta = aQuery._nounMeta;
@@ -2150,6 +2304,22 @@ var GlodaDatastore = {
     let sqlString = "SELECT * FROM " + nounMeta.tableName;
     if (whereClauses.length)
       sqlString += " WHERE " + whereClauses.join(" OR ");
+    
+    if (aQuery._order.length) {
+      let orderClauses = [];
+      for (let [, colName] in Iterator(aQuery._order)) {
+         if (colName[0] == "-")
+           orderClauses.push(colName.substring(1) + " DESC");
+         else
+           orderClauses.push(colName + " ASC");
+      }
+      sqlString += " ORDER BY " + orderClauses.join(", ");
+    }
+    
+    if (aQuery._limit) {
+      sqlString += " LIMIT ?";
+      boundArgs.push(aQuery._limit); 
+    }
 
     this._log.debug("QUERY FROM QUERY: " + sqlString);
 
@@ -2173,6 +2343,8 @@ var GlodaDatastore = {
       //  want to invent some alternate row storage.
       GlodaCollectionManager.cacheLoadUnify(nounMeta.id, items);
       collection = new GlodaCollection(nounMeta, items, aQuery, aListener);
+      if (aListenerData !== undefined)
+        collection.data = aListenerData;
 
       GlodaCollectionManager.registerCollection(collection);
     }
@@ -2183,6 +2355,8 @@ var GlodaDatastore = {
       }
 
       collection = new GlodaCollection(nounMeta, [], aQuery, aListener);
+      if (aListenerData !== undefined)
+        collection.data = aListenerData;
       GlodaCollectionManager.registerCollection(collection);
 
       statement.executeAsync(new QueryFromQueryCallback(statement, nounMeta,
@@ -2192,51 +2366,69 @@ var GlodaDatastore = {
     return collection;
   },
 
-  /**
-   * Deprecated, but still in existence for the benefit of expmess code that
-   *  needs to go away anyways and can take this with it.
-   */
-  queryMessagesAPV: function gloda_ds_queryMessagesAPV(aAPVs) {
-    let selects = [];
-
-    for (let iAPV = 0; iAPV < aAPVs.length; iAPV++) {
-      let APV = aAPVs[iAPV];
-
-      let attributeID;
-      if (APV[1] != null)
-        attributeID = APV[0].bindParameter(APV[1]);
+  loadNounItem: function gloda_ds_loadNounItem(aItem, aReferencesByNounID) {
+    let jsonDict = this._json.decode(aItem._jsonText);
+    delete aItem._jsonText;
+    
+    let attribIDToDef = this._attributeIDToDef;
+    
+    let deps = {};
+    let hasDeps = false;
+    
+    // Iterate over the attributes on the item
+    for each (let [attribId, jsonValue] in Iterator(jsonDict)) {
+      // find the attribute definition that corresponds to this key
+      let attrib = attribIDToDef[attribId][0];
+      // the attribute should only fail to exist if an extension was removed
+      if (attrib === undefined)
+        continue;
+      
+      let objectNounDef = attrib.objectNounDef;
+      
+      // if it has a tableName member, then it's a persistent object that needs
+      //  to be loaded, which also means we need to hold it in a collection
+      //  owned by our collection.
+      if (objectNounDef.tableName) {
+        let references = aReferencesByNounID[objectNounDef.id];
+        if (references === undefined)
+          references = aReferencesByNounID[objectNounDef.id] = {};
+          
+        if (attrib.singular)
+          references[jsonValue] = null;
+        else {
+          for each (let [, anID] in Iterator(jsonValue))
+            references[anID] = null;
+        }
+        
+        deps[attrib] = jsonValue;
+        hasDeps = true;
+      }
+      /* if it has custom contribution logic, use it */
+      else if (objectNounDef.contributeObjDependencies) {
+        if (objectNounDef.contributeObjDependencies(jsonValue,
+                                                    aReferencesByNounID)) {
+          deps[attrib] = jsonValue;
+          hasDeps = true;
+        }
+        else // just propagate the value, it's some form of simple sentinel
+          aItem[attrib.boundName] = jsonValue;
+      }
+      // otherwise, the value just needs to be de-persisted, or not
+      else if (objectNounDef.fromJSON) {
+        if (attrib.singular)
+          aItem[attrib.boundName] = objectNounDef.fromJSON(jsonValue);
+        else
+          aItem[attrib.boundName] = [objectNounDef.fromJSON(val) for each
+            ([, val] in Iterator(jsonValue)];
+      }
+      // it's fine as is
       else
-        attributeID = APV[0].id;
-      let select = "SELECT messageID FROM messageAttributes WHERE attributeID" +
-                   " = " + attributeID;
-      // straight value match?
-      if (APV.length == 3) {
-        if (APV[2] != null)
-          select += " AND value = " + APV[2];
-      }
-      else { // APV.length == 4, so range match
-        // BETWEEN is optimized to >= and <=, or we could just do that ourself.
-        //  (in other words, this shouldn't hurt our use of indices)
-        select += " AND value BETWEEN " + APV[2] + " AND " + APV[3];
-      }
-      selects.push(select);
+        aItem[attrib.boundName] = jsonValue;
     }
-
-    let sqlString = "SELECT * FROM messages WHERE id IN (" +
-                    selects.join(" INTERSECT ") + " )";
-    let statement = this._createSyncStatement(sqlString, true);
-
-    let messages = [];
-    while (this._syncStep(statement)) {
-      messages.push(this._messageFromRow(statement));
-    }
-    statement.finalize();
-
-    if (messages.length)
-      GlodaCollectionManager.cacheLoadUnify(GlodaMessage.prototype.NOUN_ID,
-                                            messages);
-
-    return messages;
+    
+    if (hasDeps)
+      aItem._deps = deps;
+    return hasDeps;
   },
 
   /* ********** Contact ********** */
@@ -2253,8 +2445,8 @@ var GlodaDatastore = {
   get _insertContactStatement() {
     let statement = this._createAsyncStatement(
       "INSERT INTO contacts (id, directoryUUID, contactUUID, name, popularity,\
-                             frecency) \
-              VALUES (?1, ?2, ?3, ?4, ?5, ?6)");
+                             frecency, jsonAttributes) \
+              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)");
     this.__defineGetter__("_insertContactStatement", function() statement);
     return this._insertContactStatement;
   },
@@ -2262,25 +2454,35 @@ var GlodaDatastore = {
   createContact: function gloda_ds_createContact(aDirectoryUUID, aContactUUID,
       aName, aPopularity, aFrecency) {
     let contactID = this._nextContactId++;
-    let ics = this._insertContactStatement;
-    ics.bindInt64Parameter(0, contactID);
-    if (aDirectoryUUID == null)
-      ics.bindNullParameter(1);
-    else
-      ics.bindStringParameter(1, aDirectoryUUID);
-    if (aContactUUID == null)
-      ics.bindNullParameter(2);
-    else
-      ics.bindStringParameter(2, aContactUUID);
-    ics.bindStringParameter(3, aName);
-    ics.bindInt64Parameter(4, aPopularity);
-    ics.bindInt64Parameter(5, aFrecency);
-
-    ics.executeAsync(this.trackAsync());
 
     let contact = new GlodaContact(this, contactID,
                                    aDirectoryUUID, aContactUUID, aName,
                                    aPopularity, aFrecency);
+    GlodaCollectionManager.itemsAdded(contact.NOUN_ID, [contact]);
+    return contact;
+  },
+  
+  insertContact: function gloda_ds_insertContact(aContact) {
+    let ics = this._insertContactStatement;
+    ics.bindInt64Parameter(0, aContact.id);
+    if (aContact.directoryUUID == null)
+      ics.bindNullParameter(1);
+    else
+      ics.bindStringParameter(1, aContact.directoryUUID);
+    if (aContact.contactUUID == null)
+      ics.bindNullParameter(2);
+    else
+      ics.bindStringParameter(2, aContact.contactUUID);
+    ics.bindStringParameter(3, aContact.name);
+    ics.bindInt64Parameter(4, aContact.popularity);
+    ics.bindInt64Parameter(5, aContact.frecency);
+    if (aContact._jsonText)
+      ims.bindStringParameter(6, aContact._jsonText);
+    else
+      ims.bindNullParameter(6);
+
+    ics.executeAsync(this.trackAsync());
+
     GlodaCollectionManager.itemsAdded(contact.NOUN_ID, [contact]);
     return contact;
   },
@@ -2291,20 +2493,25 @@ var GlodaDatastore = {
                            contactUUID = ?2, \
                            name = ?3, \
                            popularity = ?4, \
-                           frecency = ?5 \
-                       WHERE id = ?6");
+                           frecency = ?5,
+                           jsonAttributes = ?6 \
+                       WHERE id = ?7");
     this.__defineGetter__("_updateContactStatement", function() statement);
     return this._updateContactStatement;
   },
 
   updateContact: function gloda_ds_updateContact(aContact) {
     let ucs = this._updateContactStatement;
-    ucs.bindInt64Parameter(5, aContact.id);
+    ucs.bindInt64Parameter(6, aContact.id);
     ucs.bindStringParameter(0, aContact.directoryUUID);
     ucs.bindStringParameter(1, aContact.contactUUID);
     ucs.bindStringParameter(2, aContact.name);
     ucs.bindInt64Parameter(3, aContact.popularity);
     ucs.bindInt64Parameter(4, aContact.frecency);
+    if (aContact._jsonText)
+      ims.bindStringParameter(5, aContact._jsonText);
+    else
+      ims.bindNullParameter(5);
 
     ucs.executeAsync(this.trackAsync());
   },

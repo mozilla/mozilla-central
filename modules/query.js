@@ -65,6 +65,9 @@ function GlodaQueryClass() {
   this._constraints = [];
   // the other instances we union with
   this._unions = [];
+  
+  this._order = [];
+  this._limit = 0;
 }
 
 GlodaQueryClass.prototype = {
@@ -82,6 +85,17 @@ GlodaQueryClass.prototype = {
     return orQuery;
   },
   
+  orderBy: function gloda_query_orderBy() {
+    for (let iArg = 0; iArg < arguments.length; iArg++) {
+      let arg = arguments[iArg];
+      this._order.push(arg);
+    }
+  },
+  
+  limit: function gloda_query_limit(aLimit) {
+    this._limit = aLimit;
+  },
+  
   /**
    * Return a collection asynchronously populated by this collection.  You must
    *  provide a listener to receive notifications from the collection as it
@@ -90,8 +104,9 @@ GlodaQueryClass.prototype = {
    *  argument which is the list of items which have been added, modified, or
    *  removed respectively.
    */
-  getCollection: function gloda_query_getAll(aListener) {
-    return this._nounMeta.datastore.queryFromQuery(this, aListener);
+  getCollection: function gloda_query_getCollection(aListener, aData) {
+    return this._nounMeta.datastore.queryFromQuery(this, aListener, false,
+      aData);
   },
   
   getAllSync: function gloda_query_getAllSync(aListener) {

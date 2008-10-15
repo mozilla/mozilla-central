@@ -110,4 +110,25 @@ var GlodaUtils = {
     // convert the binary hash data to a hex string.
     return [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
   },
+  
+  getCardForEmail: function gloda_utils_getCardForEmail(aAddress) {
+    // search through all of our local address books looking for a match.
+    let enumerator = Components.classes["@mozilla.org/abmanager;1"]
+                               .getService(Ci.nsIAbManager)
+                               .directories;
+    let cardForEmailAddress;
+    let addrbook;
+    while (!cardForEmailAddress && enumerator.hasMoreElements())
+    {
+      addrbook = enumerator.getNext().QueryInterface(Ci.nsIAbDirectory);
+      try
+      {
+        cardForEmailAddress = addrbook.cardForEmailAddress(aAddress);
+        if (cardForEmailAddress)
+          return cardForEmailAddress;
+      } catch (ex) {}
+    }
+
+    return null;
+  },
 };

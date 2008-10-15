@@ -391,22 +391,19 @@ function GlodaCollection(aNounMeta, aItems, aQuery, aListener) {
   if (this._nounMeta.usesUniqueValue)
     this._uniqueValueMap = {};
 
-  this.items = aItems || [];
+  this.items = [];
   this._idMap = {};
-  if (this._uniqueValueMap) {
-    for each (let [iItem, item] in Iterator(this.items)) {
-      this._idMap[item.id] = item;
-      this._uniqueValueMap[item.uniqueValue] = item;
-    }
-  }
-  else {
-    for each (let [iItem, item] in Iterator(this.items)) {
-      this._idMap[item.id] = item;
-    }
-  }
+  
+  // force the listener to null for our call to _onItemsAdded; no events for
+  //  the initial load-out.
+  this._listener = null;
+  this._onItemsAdded(items);
   
   this.query = aQuery || null;
   this._listener = aListener || null;
+  
+  this.referencesByNounID = {};
+  this.subCollections = {};
 }
 
 GlodaCollection.prototype = {

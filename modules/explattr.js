@@ -108,14 +108,6 @@ var GlodaExplicitAttr = {
                         // Property change notifications that we care about:
                         propertyChanges: ["keywords"],
                         }); // not-tested
-    Gloda.defineNounAction(Gloda.NOUN_TAG, {
-      actionType: "filter", actionTarget: Gloda.NOUN_TAG,
-      shortName: "same tag",
-      makeConstraint: function(aAttrDef, aTagged) {
-        return [GlodaExplicitAttr._attrTag].concat(
-          TagNoun.toParamAndValue(aTagged, true));
-      },
-      });
 
     // Star
     this._attrStar = Gloda.defineAttribute({
@@ -146,10 +138,10 @@ var GlodaExplicitAttr = {
   },
   
   process: function Gloda_explattr_process(aGlodaMessage, aMsgHdr, aMimeMsg) {
-    let attribs = [];
+    aGlodaMessage.flagged = aMsgHdr.isFlagged;
+    aGlodeMessage.read = aMsgHdr.isRead;
     
-    attribs.push([this._attrStar.id, aMsgHdr.isFlagged ? 1 : 0]);
-    attribs.push([this._attrRead.id, aMsgHdr.isRead ? 1 : 0]);
+    let tags = aGlodaMessage.tags = [];
     
     // -- Tag
     // build a map of the keywords
@@ -161,15 +153,13 @@ var GlodaExplicitAttr = {
       keywordMap[keyword] = true;
     }
 
-    let nowPRTime = Date.now() * 1000;
-
     let tagArray = this._msgTagService.getAllTags({});
     for (let iTag = 0; iTag < tagArray.length; iTag++) {
       let tag = tagArray[iTag];
       if (tag.key in keywordMap)
-        attribs.push([this._attrTag, tag.key, nowPRTime]);
+        tags.push(tag);
     }
     
-    return attribs;
+    yield Gloda.kWorkDone;
   },
 };

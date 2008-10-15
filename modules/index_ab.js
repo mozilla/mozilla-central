@@ -222,36 +222,33 @@ var GlodaABAttrs = {
     }
   },
   
-  process: function(aContact, aCard) {
+  process: function(aContact, aCard, aIsNew, aCallbackHandle) {
     if (aContact.NOUN_ID != Gloda.NOUN_CONTACT) {
       this._log.warning("Somehow got a non-contact: " + aContact);
-      return [];
+      return Gloda.kWorkDone;
     }
+    
+    // update the name
+    if (aCard.displayName && aCard.displayName != aContact.name)
+      aContact.name = aCard.displayName;
   
-    this._log.debug("Processing a contact and card.");
-    let attribs = [];
+    aContact.freeTags = [];
     
     let tags = null;
     try {
-      tags = aCard.getProperty("tags", null);
+      tags = aCard.getProperty("Categories", null);
     } catch (ex) {
       this._log.error("Problem accessing property: " + ex);
     }
     if (tags) {
-      this._log.debug("Found tags: " + tags);
       for each (let [iTagName, tagName] in Iterator(tags.split(","))) {
         tagName = tagName.trim();
-        // return attrib, param, value; we know the param to use because we know
-        //  how FreeTagNoun works, but this is a candidate for refactoring.
         if (tagName) {
-          FreeTagNoun.getFreeTag(tagName); // cause the tag to be known
-          attribs.push([this._attrFreeTag, tagName, null]);
+          aContact.freeTags.push(FreeTagNoun.getFreeTag(tagName));
         }
       }
     }
     
-    this._log.debug("Returning attributes: " + attribs);
-    
-    return attribs;
+    yield Gloda.kWorkDone;
   }
 };
