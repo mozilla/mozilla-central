@@ -171,7 +171,7 @@ NS_IMETHODIMP nsAbManager::GetDirectories(nsISimpleEnumerator **aResult)
   NS_ENSURE_ARG_POINTER(aResult);
 
   // We cache the top level AB to ensure that nsIAbDirectory items are not
-  // created and dumped every time GetDirectores is called. This was causing
+  // created and dumped every time GetDirectories is called. This was causing
   // performance problems, especially with the content policy on messages
   // with lots of urls.
   if (!mCacheTopLevelAb)
@@ -503,7 +503,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
           (fileName.Find(LDIF_FILE_EXTENSION2, fileName.Length() - strlen(LDIF_FILE_EXTENSION2), PR_TRUE) == -1)) {
 
 
-       // Add the extenstion and build a new localFile.
+       // Add the extension and build a new localFile.
        fileName.AppendLiteral(LDIF_FILE_EXTENSION2);
        localFile->SetLeafName(fileName);
     }
@@ -514,7 +514,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
       // If filename does not have the correct ext, add one.
       if (fileName.Find(CSV_FILE_EXTENSION, fileName.Length() - strlen(CSV_FILE_EXTENSION), PR_TRUE) == -1) {
 
-       // Add the extenstion and build a new localFile.
+       // Add the extension and build a new localFile.
        fileName.AppendLiteral(CSV_FILE_EXTENSION);
        localFile->SetLeafName(fileName);
     }
@@ -526,7 +526,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
       if ((fileName.Find(TXT_FILE_EXTENSION, fileName.Length() - strlen(TXT_FILE_EXTENSION), PR_TRUE) == -1) && 
           (fileName.Find(TAB_FILE_EXTENSION, fileName.Length() - strlen(TAB_FILE_EXTENSION), PR_TRUE) == -1)) {
 
-       // Add the extenstion and build a new localFile.
+       // Add the extension and build a new localFile.
        fileName.AppendLiteral(TXT_FILE_EXTENSION);
        localFile->SetLeafName(fileName);
   }
@@ -833,7 +833,7 @@ nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *aLo
             }
             else {
               // something we don't support yet
-              // ldif doesn't export mutliple addresses
+              // ldif doesn't export multiple addresses
             }
           }
 

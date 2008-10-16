@@ -614,7 +614,7 @@ function GetParentDirectoryFromMailingListURI(abURI)
 
 function DirPaneHasFocus()
 {
-  // returns true if diectory pane has the focus. Returns false, otherwise.
+  // Returns true if directory pane has the focus. Returns false, otherwise.
   return (top.document.commandDispatcher.focusedElement == dirTree)
 }
 

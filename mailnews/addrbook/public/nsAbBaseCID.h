@@ -353,7 +353,7 @@
 }
 
 //
-// LDAP autcomplete directory factory
+// LDAP autocomplete directory factory
 //
 #define NS_ABLDAPACDIRFACTORY_CONTRACTID \
   NS_AB_DIRECTORY_FACTORY_CONTRACTID_PREFIX "ldap"

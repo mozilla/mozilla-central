@@ -61,7 +61,7 @@ NS_IMETHODIMP nsAbMDBCard::Equals(nsIAbCard *card, PRBool *result)
   // however, the only known users of this method are for locating us in a list
   // of cards, most commonly mailing lists; a warning on the IDL has also
   // notified consumers that this method is not generally safe to use. In this
-  // respect, it is safe to assume that the directory portion is satisified when
+  // respect, it is safe to assume that the directory portion is satisfied when
   // making this call.
   // However, if we make the wrong assumption, one of two things will happen.
   // If the other directory is a local address book, we could return a spurious

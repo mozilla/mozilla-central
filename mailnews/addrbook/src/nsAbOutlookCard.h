@@ -120,4 +120,4 @@ protected:
 private:
 };
 
-#endif // nsAbOultlookCard_h___
+#endif // nsAbOutlookCard_h___

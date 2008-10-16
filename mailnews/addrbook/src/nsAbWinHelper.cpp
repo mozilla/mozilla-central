@@ -496,7 +496,7 @@ BOOL nsAbWinHelper::GetPropertyBin(const nsMapiEntry& aObject, ULONG aPropertyTa
 
 // This function, supposedly indicating whether a particular entry was
 // in a particular container, doesn't seem to work very well (has
-// a tendancy to return TRUE even if we're talking to different containers...).
+// a tendency to return TRUE even if we're talking to different containers...).
 BOOL nsAbWinHelper::TestOpenEntry(const nsMapiEntry& aContainer, const nsMapiEntry& aEntry)
 {
     nsMapiInterfaceWrapper<LPMAPICONTAINER> container ;

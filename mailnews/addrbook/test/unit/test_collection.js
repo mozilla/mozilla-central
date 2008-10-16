@@ -11,7 +11,7 @@ const nsIAbPMF = Components.interfaces.nsIAbPreferMailFormat;
 // Source fields (emailHeader/mailFormat) and expected results for use for
 // testing the addition of new addresses to the database.
 //
-// Note: these email addressess should be different to allow collecting an
+// Note: these email addresses should be different to allow collecting an
 // address to add a different card each time.
 var addEmailChecks =
   // First 3 items aimed at basic collection and mail format.

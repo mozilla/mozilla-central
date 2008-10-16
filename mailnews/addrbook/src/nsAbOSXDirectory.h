@@ -130,7 +130,7 @@ private:
   // This wasn't too bad for mork, as that just gets a list from its database,
   // but because we store our own copy of the list, we must store a separate
   // list of nsIAbCards here. nsIMutableArray is used, because then it is
-  // interchangable with m_AddressList.
+  // interchangeable with m_AddressList.
   nsCOMPtr<nsIMutableArray> mCardList;
 };
 

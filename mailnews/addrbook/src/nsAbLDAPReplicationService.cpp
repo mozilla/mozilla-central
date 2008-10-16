@@ -70,7 +70,7 @@ NS_IMETHODIMP nsAbLDAPReplicationService::StartReplication(nsIAbLDAPDirectory *a
   printf("Start Replication called");
 #endif
 
-  // makes sure to allow only one replication at a time
+  // Makes sure to allow only one replication at a time.
   if(mReplicating)
     return NS_ERROR_FAILURE;
 
@@ -132,7 +132,7 @@ NS_IMETHODIMP nsAbLDAPReplicationService::CancelReplication(nsIAbLDAPDirectory *
       rv = mQuery->CancelQuery();  
   }
 
-  // if query has been cancelled successfully
+  // If query has been cancelled successfully
   if (NS_SUCCEEDED(rv))
     Done(PR_FALSE);
 
@@ -144,20 +144,20 @@ NS_IMETHODIMP nsAbLDAPReplicationService::Done(PRBool aSuccess)
   mReplicating = PR_FALSE;
   if (mQuery)
   {
-    mQuery = nsnull;  // release query obj
-    mDirectory = nsnull; // release directory
+    mQuery = nsnull;  // Release query obj
+    mDirectory = nsnull; // Release directory
   }
 
   return NS_OK;
 }
 
 
-// XXX: This method should query the RootDSE for the changeLog attribute, 
+// XXX: This method should query the RootDSE for the changeLog attribute,
 // if it exists ChangeLog protocol is supported.
 PRInt32 nsAbLDAPReplicationService::DecideProtocol()
 {
-  // do the changeLog, it will decide if there is a need to replicate all
-  // entries or only update existing DB and will do the approprite thing.
+  // Do the changeLog, it will decide if there is a need to replicate all
+  // entries or only update existing DB and will do the appropriate thing.
   //
   // XXX: Bug 231965 changed this from kChangeLogProtocol to
   // kDefaultDownloadAll because of a problem with ldap replication not

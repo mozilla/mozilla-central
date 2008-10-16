@@ -400,7 +400,7 @@ NS_IMETHODIMP nsAbCardProperty::HasEmailAddress(const nsACString &aEmailAddress,
   return NS_OK;
 }
 
-// This function may be overriden by derived classes for
+// This function may be overridden by derived classes for
 // nsAb*Card specific implementations.
 NS_IMETHODIMP nsAbCardProperty::Copy(nsIAbCard* srcCard)
 {

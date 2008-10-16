@@ -74,7 +74,7 @@ NS_IMETHODIMP nsAbAddressCollecter::GetCardFromAttribute(const nsACString &aName
   NS_ENSURE_ARG_POINTER(aCard);
   if (m_database)
     // Please DO NOT change the 3rd param of GetCardFromAttribute() call to 
-    // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
+    // PR_TRUE (i.e. case insensitive) without reading bugs #128535 and #121478.
     return m_database->GetCardFromAttribute(m_directory.get(),
                                             PromiseFlatCString(aName).get(),
                                             aValue, PR_FALSE /* retain case */,

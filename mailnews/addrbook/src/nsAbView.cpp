@@ -67,7 +67,7 @@
 #define PREF_MAIL_ADDR_BOOK_DISPLAYNAME_AUTOGENERATION "mail.addr_book.displayName.autoGeneration"
 #define PREF_MAIL_ADDR_BOOK_DISPLAYNAME_LASTNAMEFIRST "mail.addr_book.displayName.lastnamefirst"
 
-// also, our default primary sort
+// Also, our default primary sort
 #define GENERATED_NAME_COLUMN_ID "GeneratedName" 
 
 NS_IMPL_ISUPPORTS4(nsAbView, nsIAbView, nsITreeView, nsIAbListener, nsIObserver)
@@ -134,7 +134,7 @@ nsresult nsAbView::RemoveCardAt(PRInt32 row)
   PR_FREEIF(abcard);
 
   
-  // this needs to happen after we remove the card, as RowCountChanged() will call GetRowCount()
+  // This needs to happen after we remove the card, as RowCountChanged() will call GetRowCount()
   if (mTree) {
     rv = mTree->RowCountChanged(row, -1);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -201,12 +201,12 @@ NS_IMETHODIMP nsAbView::SetView(nsIAbDirectory *aAddressBook,
   mAbViewListener = nsnull;
   if (mTree)
   {
-    // try and speed deletion of old cards by disconnecting the tree from us
+    // Try and speed deletion of old cards by disconnecting the tree from us.
     mTreeSelection->ClearSelection();
     mTree->SetView(nsnull);
   }
 
-  // clear out old cards
+  // Clear out old cards
   PRInt32 i = mCards.Count();
   while(i-- > 0)
   {
@@ -221,17 +221,17 @@ NS_IMETHODIMP nsAbView::SetView(nsIAbDirectory *aAddressBook,
 
   NS_NAMED_LITERAL_STRING(generatedNameColumnId, GENERATED_NAME_COLUMN_ID);
 
-  // see if the persisted sortColumn is valid.
-  // it may not be, if you migrated from older versions, or switched between
+  // See if the persisted sortColumn is valid.
+  // It may not be, if you migrated from older versions, or switched between
   // a mozilla build and a commercial build, which have different columns.
   nsAutoString actualSortColumn;
   if (!generatedNameColumnId.Equals(aSortColumn) && mCards.Count()) {
     nsIAbCard *card = ((AbCard *)(mCards.ElementAt(0)))->card;
     nsString value;
     // XXX todo
-    // need to check if _Generic is valid.  GetCardValue() will always return NS_OK for _Generic
-    // we're going to have to ask mDirectory if it is.
-    // it might not be.  example:  _ScreenName is valid in Netscape, but not Mozilla.
+    // Need to check if _Generic is valid.  GetCardValue() will always return NS_OK for _Generic
+    // We're going to have to ask mDirectory if it is.
+    // It might not be.  example:  _ScreenName is valid in Netscape, but not Mozilla.
     rv = GetCardValue(card, PromiseFlatString(aSortColumn).get(), value);
     if (NS_FAILED(rv))
       actualSortColumn = generatedNameColumnId;
@@ -281,7 +281,7 @@ nsresult nsAbView::EnumerateCards()
       if (NS_SUCCEEDED(rv))
       {
         nsCOMPtr <nsIAbCard> card = do_QueryInterface(item);
-        // malloc these from an arena
+        // Malloc these from an arena
         AbCard *abcard = (AbCard *) PR_Calloc(1, sizeof(struct AbCard));
         if (!abcard) 
           return NS_ERROR_OUT_OF_MEMORY;
@@ -290,11 +290,11 @@ nsresult nsAbView::EnumerateCards()
         NS_IF_ADDREF(abcard->card);
 
         // XXX todo
-        // would it be better to do an insertion sort, than append and sort?
+        // Would it be better to do an insertion sort, than append and sort?
         // XXX todo
-        // if we knew how many cards there was going to be
-        // we could allocate an array of the size, 
-        // instead of growing and copying as we append
+        // If we knew how many cards there was going to be
+        // we could allocate an array of the size,
+        // instead of growing and copying as we append.
         rv = mCards.AppendElement((void *)abcard);
         NS_ASSERTION(NS_SUCCEEDED(rv), "failed to append card");
       }
@@ -437,7 +437,7 @@ nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID,
     return card->GenerateName(mGeneratedNameFormat, mABBundle, _retval);
 
   if (colID[0] == PRUnichar('_') && colID[1] == PRUnichar('P'))
-    // use LN/FN order for the phonetic name
+    // Use LN/FN order for the phonetic name
     return card->GeneratePhoneticName(PR_TRUE, _retval);
 
   nsresult rv = card->GetPropertyAsAString(NS_ConvertUTF16toUTF8(colID).get(), _retval);
@@ -452,21 +452,21 @@ nsresult nsAbView::RefreshTree()
 {
   nsresult rv;
 
-  // the PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST pref affects how the GeneratedName column looks.
+  // The PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST pref affects how the GeneratedName column looks.
   // so if the GeneratedName is our primary or secondary sort,
   // we need to resort.
-  // the same applies for kPhoneticNameColumn 
+  // the same applies for kPhoneticNameColumn
   //
   // XXX optimize me
   // PrimaryEmail is always the secondary sort, unless it is currently the
-  // primary sort.  So, if PrimaryEmail is the primary sort, 
+  // primary sort.  So, if PrimaryEmail is the primary sort,
   // GeneratedName might be the secondary sort.
   //
-  // one day, we can get fancy and remember what the secondary sort is.
-  // we do that, we can fix this code.  at best, it will turn a sort into a invalidate.
+  // One day, we can get fancy and remember what the secondary sort is.
+  // We do that, we can fix this code. At best, it will turn a sort into a invalidate.
   // 
-  // if neither the primary nor the secondary sorts are GeneratedName (or kPhoneticNameColumn), 
-  // all we have to do is invalidate (to show the new GeneratedNames), 
+  // If neither the primary nor the secondary sorts are GeneratedName (or kPhoneticNameColumn),
+  // all we have to do is invalidate (to show the new GeneratedNames),
   // but the sort will not change.
   if (mSortColumn.EqualsLiteral(GENERATED_NAME_COLUMN_ID) ||
       mSortColumn.EqualsLiteral(kPriEmailProperty) ||
@@ -608,8 +608,8 @@ inplaceSortCallback(const void *data1, const void *data2, void *privateData)
   
   PRInt32 sortValue;
   
-  // if we are sorting the "PrimaryEmail", swap the collation keys, as the secondary is always the 
-  // PrimaryEmail.  use the last primary key as the secondary key.
+  // If we are sorting the "PrimaryEmail", swap the collation keys, as the secondary is always the
+  // PrimaryEmail. Use the last primary key as the secondary key.
   //
   // "Pr" to distinguish "PrimaryEmail" from "PagerNumber"
   if (closure->colID[0] == PRUnichar('P') && closure->colID[1] == PRUnichar('r')) {
@@ -654,20 +654,20 @@ NS_IMETHODIMP nsAbView::SortBy(const PRUnichar *colID, const PRUnichar *sortDir)
     sortColumn = colID;
 
   PRInt32 i;
-  // this function does not optimize for the case when sortColumn and sortDirection
+  // This function does not optimize for the case when sortColumn and sortDirection
   // are identical since the last call, the caller is responsible optimizing
   // for that case
 
-  // if we are sorting by how we are already sorted, 
+  // If we are sorting by how we are already sorted,
   // and just the sort direction changes, just reverse
   //
-  // note, we'll call SortBy() with the existing sort column and the
+  // Note, we'll call SortBy() with the existing sort column and the
   // existing sort direction, and that needs to do a complete resort.
-  // for example, we do that when the PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST changes
+  // For example, we do that when the PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST changes
   if (!NS_strcmp(mSortColumn.get(),sortColumn.get()) && NS_strcmp(mSortDirection.get(), sortDir)) {
     PRInt32 halfPoint = count / 2;
     for (i=0; i < halfPoint; i++) {
-      // swap the elements.
+      // Swap the elements.
       void *ptr1 = mCards.ElementAt(i);
       void *ptr2 = mCards.ElementAt(count - i - 1);
       mCards.ReplaceElementAt(ptr2, i);
@@ -677,7 +677,7 @@ NS_IMETHODIMP nsAbView::SortBy(const PRUnichar *colID, const PRUnichar *sortDir)
     mSortDirection = sortDir;
   }
   else {
-    // generate collation keys
+    // Generate collation keys
     for (i=0; i < count; i++) {
       AbCard *abcard = (AbCard *)(mCards.ElementAt(i));
 
@@ -792,7 +792,7 @@ NS_IMETHODIMP nsAbView::OnItemAdded(nsISupports *parentDir, nsISupports *item)
   if (directory.get() == mDirectory.get()) {
     nsCOMPtr <nsIAbCard> addedCard = do_QueryInterface(item);
     if (addedCard) {
-      // malloc these from an arena
+      // Malloc these from an arena
       AbCard *abcard = (AbCard *) PR_Calloc(1, sizeof(struct AbCard));
       if (!abcard) 
         return NS_ERROR_OUT_OF_MEMORY;
@@ -834,7 +834,7 @@ nsresult nsAbView::AddCard(AbCard *abcard, PRBool selectCardAfterAdding, PRInt32
   rv = mCards.InsertElementAt((void *)abcard, *index);
   NS_ENSURE_SUCCESS(rv,rv);
     
-  // this needs to happen after we insert the card, as RowCountChanged() will call GetRowCount()
+  // This needs to happen after we insert the card, as RowCountChanged() will call GetRowCount()
   if (mTree)
     rv = mTree->RowCountChanged(*index, 1);
 
@@ -862,11 +862,11 @@ PRInt32 nsAbView::FindIndexForInsert(AbCard *abcard)
   SetSortClosure(mSortColumn.get(), mSortDirection.get(), this, &closure);
   
   // XXX todo
-  // make this a binary search
+  // Make this a binary search
   for (i=0; i < count; i++) {
     void *current = mCards.ElementAt(i);
     PRInt32 value = inplaceSortCallback(item, current, (void *)(&closure));
-    // XXX fix me, this is not right for both ascending and descending
+    // XXX Fix me, this is not right for both ascending and descending
     if (value <= 0) 
       break;
   }
@@ -898,7 +898,7 @@ nsresult nsAbView::RemoveCardAndSelectNextCard(nsISupports *item)
       if (mTreeSelection) {
         PRInt32 selectedIndex;
         // XXX todo
-        // make sure it works if nothing selected
+        // Make sure it works if nothing selected
         mTreeSelection->GetCurrentIndex(&selectedIndex);
         if (index == selectedIndex)
           selectNextCard = PR_TRUE;
@@ -910,7 +910,7 @@ nsresult nsAbView::RemoveCardAndSelectNextCard(nsISupports *item)
       if (selectNextCard) {
       PRInt32 count = mCards.Count();
       if (count && mTreeSelection) {
-        // if we deleted the last card, adjust so we select the new "last" card
+        // If we deleted the last card, adjust so we select the new "last" card
         if (index >= (count - 1)) {
           index = count -1;
         }
@@ -928,7 +928,7 @@ PRInt32 nsAbView::FindIndexForCard(nsIAbCard *card)
   PRInt32 count = mCards.Count();
   PRInt32 i;
  
-  // you can't implement the binary search here, as all you have is the nsIAbCard
+  // You can't implement the binary search here, as all you have is the nsIAbCard
   // you might be here because one of the card properties has changed, and that property
   // could be the collation key.
   for (i=0; i < count; i++) {
@@ -956,7 +956,7 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
 
   AbCard *oldCard = (AbCard*) (mCards.ElementAt(index));
 
-  // malloc these from an arena
+  // Malloc these from an arena
   AbCard *newCard = (AbCard *) PR_Calloc(1, sizeof(struct AbCard));
   if (!newCard)
     return NS_ERROR_OUT_OF_MEMORY;
@@ -976,9 +976,9 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
   
   if (!CompareCollationKeys(newCard->primaryCollationKey,newCard->primaryCollationKeyLen,oldCard->primaryCollationKey,oldCard->primaryCollationKeyLen)
     && CompareCollationKeys(newCard->secondaryCollationKey,newCard->secondaryCollationKeyLen,oldCard->secondaryCollationKey,oldCard->secondaryCollationKeyLen)) {
-    // no need to remove and add, since the collation keys haven't change.
-    // since they haven't chagned, the card will sort to the same place.
-    // we just need to clean up what we allocated.
+    // No need to remove and add, since the collation keys haven't changed.
+    // Since they haven't changed, the card will sort to the same place.
+    // We just need to clean up what we allocated.
     NS_IF_RELEASE(newCard->card);
     if (newCard->primaryCollationKey)
       nsMemory::Free(newCard->primaryCollationKey);
@@ -986,7 +986,7 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
       nsMemory::Free(newCard->secondaryCollationKey);
     PR_FREEIF(newCard);
 
-    // still need to invalidate, as the other columns may have changed
+    // Still need to invalidate, as the other columns may have changed.
     rv = InvalidateTree(index);
     NS_ENSURE_SUCCESS(rv,rv);
   }
@@ -994,18 +994,18 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
     mSuppressSelectionChange = PR_TRUE;
     mSuppressCountChange = PR_TRUE;
 
-    // remove the old card
+    // Remove the old card.
     rv = RemoveCardAt(index);
     NS_ASSERTION(NS_SUCCEEDED(rv), "remove card failed\n");
 
-    // add the card we created, and select it (to restore selection) if it was selected
+    // Add the card we created, and select it (to restore selection) if it was selected.
     rv = AddCard(newCard, cardWasSelected /* select card */, &index);
     NS_ASSERTION(NS_SUCCEEDED(rv), "add card failed\n");
 
     mSuppressSelectionChange = PR_FALSE;
     mSuppressCountChange = PR_FALSE;
 
-    // ensure restored selection is visible
+    // Ensure restored selection is visible
     if (cardWasSelected && mTree) 
       mTree->EnsureRowIsVisible(index);
   }
@@ -1064,7 +1064,7 @@ nsresult nsAbView::ReselectCards(nsIArray *aCards, nsIAbCard *aIndexCard)
     }
   }
 
-  // reset the index card, and ensure it is visible
+  // Reset the index card, and ensure it is visible.
   if (aIndexCard) {
     PRInt32 currentIndex = FindIndexForCard(aIndexCard);
     rv = mTreeSelection->SetCurrentIndex(currentIndex);
@@ -1087,7 +1087,7 @@ NS_IMETHODIMP nsAbView::DeleteSelectedCards()
   NS_ENSURE_SUCCESS(rv, rv);
 
   // mDirectory should not be null
-  // bullet proof (and assert) to help figure out bug #127748
+  // Bullet proof (and assert) to help figure out bug #127748
   NS_ENSURE_TRUE(mDirectory, NS_ERROR_UNEXPECTED);
 
   rv = mDirectory->DeleteCards(cardsToDelete);
@@ -1148,8 +1148,8 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
   if (!selectionCount)
     return NS_OK;
   
-  // prepare for displayname generation
-  // no cache for pref and bundle since the swap operation is not executed frequently
+  // Prepare for displayname generation
+  // No cache for pref and bundle since the swap operation is not executed frequently
   PRBool displayNameAutoGeneration;
   PRBool displayNameLastnamefirst = PR_FALSE;
 
@@ -1192,7 +1192,7 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
         rv = GetCardFromRow(rangeIndex, getter_AddRefs(abCard));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        // swap FN/LN
+        // Swap FN/LN
         nsAutoString fn, ln;
         abCard->GetFirstName(fn);
         abCard->GetLastName(ln);
@@ -1201,7 +1201,7 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
           abCard->SetFirstName(ln);
           abCard->SetLastName(fn);
 
-          // generate display name using the new order
+          // Generate display name using the new order
           if (displayNameAutoGeneration &&
               !fn.IsEmpty() && !ln.IsEmpty())
           {
@@ -1210,12 +1210,12 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
             const PRUnichar *nameString[2];
             const PRUnichar *formatString;
 
-            // the format should stays the same before/after we swap the names
+            // The format should stays the same before/after we swap the names
             formatString = displayNameLastnamefirst ?
                               NS_LITERAL_STRING("lastFirstFormat").get() :
                               NS_LITERAL_STRING("firstLastFormat").get();
 
-            // generate both ln/fn and fn/ln combination since we need both later
+            // Generate both ln/fn and fn/ln combination since we need both later
             // to check to see if the current display name was edited
             // note that fn/ln still hold the values before the swap
             nameString[0] = ln.get();
@@ -1229,12 +1229,12 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
                                               nameString, 2, getter_Copies(dnFnLn));
             NS_ENSURE_SUCCESS(rv, rv);
 
-            // get the current display name
+            // Get the current display name
             nsAutoString dn;
             rv = abCard->GetDisplayName(dn);
             NS_ENSURE_SUCCESS(rv, rv);
 
-            // swap the display name if not edited
+            // Swap the display name if not edited
             if (displayNameLastnamefirst)
             {
               if (dn.Equals(dnLnFn))
@@ -1247,7 +1247,7 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
             }
           }
 
-          // swap phonetic names
+          // Swap phonetic names
           rv = abCard->GetPropertyAsAString(kPhoneticFirstNameProperty, fn);
           NS_ENSURE_SUCCESS(rv, rv);
           rv = abCard->GetPropertyAsAString(kPhoneticLastNameProperty, ln);
@@ -1261,8 +1261,8 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
       }
     }
   }
-  // update the tree
-  // re-sort if either generated or phonetic name is primary or secondary sort,
+  // Update the tree
+  // Re-sort if either generated or phonetic name is primary or secondary sort,
   // otherwise invalidate to reflect the change
   rv = RefreshTree();
 

@@ -58,7 +58,7 @@
 #include "nsILDAPErrors.h"
 #include "prmem.h"
 
-// defined here since to be used 
+// Defined here since to be used
 // only locally to this file.
 enum UpdateOp {
  NO_OP,
@@ -85,14 +85,14 @@ NS_IMETHODIMP nsAbLDAPProcessChangeLogData::Init(nsIAbLDAPReplicationQuery * que
 {
    NS_ENSURE_ARG_POINTER(query);
 
-   // here we are assuming that the caller will pass a nsAbLDAPChangeLogQuery object,
+   // Here we are assuming that the caller will pass a nsAbLDAPChangeLogQuery object,
    // an implementation derived from the implementation of nsIAbLDAPReplicationQuery.
    nsresult rv = NS_OK;
    mChangeLogQuery = do_QueryInterface(query, &rv);
    if(NS_FAILED(rv))
        return rv;
    
-   // call the parent's Init now
+   // Call the parent's Init now.
    return nsAbLDAPProcessReplicationData::Init(query, progressListener);
 }
 
@@ -160,7 +160,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchEntry(nsILDAPMessage *aMessag
     case kFindingChanges:
         rv = ParseChangeLogEntries(aMessage);
         break;
-    // fall through since we only add (for updates we delete and add)
+    // Fall through since we only add (for updates we delete and add)
     case kReplicatingChanges:
     case kReplicatingAll :
         return nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(aMessage);
@@ -191,7 +191,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchResult(nsILDAPMessage *aMessa
                 break;
             case kSearchingRootDSE:
              {
-                // before starting the changeLog check the DB file, if its not there or bogus
+                // Before starting the changeLog check the DB file, if its not there or bogus
                 // we need to create a new one and set to all.
                 nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
                 if (NS_FAILED(rv)) 
@@ -223,8 +223,8 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchResult(nsILDAPMessage *aMessa
                 if (!fileExists || !fileSize)
                     mUseChangeLog = PR_FALSE;
 
-                // open / create the AB here since it calls Done,
-                // just return from here. 
+                // Open / create the AB here since it calls Done,
+                // just return from here.
                 if (mUseChangeLog)
                    rv = OpenABForReplicatedDir(PR_FALSE);
                 else
@@ -232,13 +232,13 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchResult(nsILDAPMessage *aMessa
                 if (NS_FAILED(rv))
                    return rv;
                 
-                // now start the appropriate query
+                // Now start the appropriate query
                 rv = OnSearchRootDSEDone();
                 break;
              }
             case kFindingChanges:
                 rv = OnFindingChangesDone();
-                // if success we return from here since
+                // If success we return from here since
                 // this changes state to kReplicatingChanges
                 // and it falls thru into the if clause below.
                 if (NS_SUCCEEDED(rv))
@@ -250,7 +250,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchResult(nsILDAPMessage *aMessa
         }
         else
             rv = NS_ERROR_FAILURE;
-        // if one of the changed entry in changelog is not found, 
+        // If one of the changed entry in changelog is not found,
         // continue with replicating the next one.
         if(mState == kReplicatingChanges)
             rv = OnReplicatingChangeDone();
@@ -347,10 +347,10 @@ nsresult nsAbLDAPProcessChangeLogData::ParseRootDSEEntry(nsILDAPMessage *aMessag
     if (!mInitialized)
         return NS_ERROR_NOT_INITIALIZED;
 
-    // populate the RootDSEChangeLogEntry
+    // Populate the RootDSEChangeLogEntry
     CharPtrArrayGuard attrs;
     nsresult rv = aMessage->GetAttributes(attrs.GetSizeAddr(), attrs.GetArrayAddr());
-    // no attributes !!!
+    // No attributes
     if(NS_FAILED(rv)) 
         return rv;
 
@@ -381,7 +381,7 @@ nsresult nsAbLDAPProcessChangeLogData::ParseRootDSEEntry(nsILDAPMessage *aMessag
 
     if (mRootDSEEntry.lastChangeNumber &&
         (lastChangeNumber == mRootDSEEntry.lastChangeNumber)) {
-        Done(PR_TRUE); // we are up to date no need to replicate, db not open yet so call Done
+        Done(PR_TRUE); // We are up to date no need to replicate, db not open yet so call Done
         return NS_OK;
     }
 
@@ -426,10 +426,10 @@ nsresult nsAbLDAPProcessChangeLogData::ParseChangeLogEntries(nsILDAPMessage *aMe
     if(!mInitialized) 
         return NS_ERROR_NOT_INITIALIZED;
 
-    // populate the RootDSEChangeLogEntry
+    // Populate the RootDSEChangeLogEntry
     CharPtrArrayGuard attrs;
     nsresult rv = aMessage->GetAttributes(attrs.GetSizeAddr(), attrs.GetArrayAddr());
-    // no attributes
+    // No attributes
     if(NS_FAILED(rv)) 
         return rv;
 
@@ -455,9 +455,9 @@ nsresult nsAbLDAPProcessChangeLogData::ParseChangeLogEntries(nsILDAPMessage *aMe
     }
 
     mChangeLogEntriesCount++;
-    if(!(mChangeLogEntriesCount % 10)) { // inform the listener every 10 entries
+    if(!(mChangeLogEntriesCount % 10)) { // Inform the listener every 10 entries
         mListener->OnProgressChange(nsnull,nsnull,mChangeLogEntriesCount, -1, mChangeLogEntriesCount, -1);
-        // in case if the LDAP Connection thread is starved and causes problem
+        // In case if the LDAP Connection thread is starved and causes problem
         // uncomment this one and try.
         // PR_Sleep(PR_INTERVAL_NO_WAIT); // give others a chance
     }
@@ -469,18 +469,18 @@ nsresult nsAbLDAPProcessChangeLogData::ParseChangeLogEntries(nsILDAPMessage *aMe
 
     switch(operation) {
     case ENTRY_ADD:
-        // add the DN to the add list if not already in the list
+        // Add the DN to the add list if not already in the list
         if(!(mEntriesToAdd.IndexOf(targetDN) >= 0))
             mEntriesToAdd.AppendString(targetDN);
         break;
     case ENTRY_DELETE:
-        // donot check the return here since delete may fail if 
-        // entry deleted in changelog doesnot exist in DB 
+        // Do not check the return here since delete may fail if
+        // entry deleted in changelog does not exist in DB
         // for e.g if the user specifies a filter, so go next entry
         DeleteCard(targetDN);
         break;
     case ENTRY_MODIFY:
-        // for modify, delte the entry from DB and add updated entry
+        // For modify, delete the entry from DB and add updated entry
         // we do this since we cannot access the changes attribs of changelog
         rv = DeleteCard(targetDN);
         if (NS_SUCCEEDED(rv)) 
@@ -488,15 +488,15 @@ nsresult nsAbLDAPProcessChangeLogData::ParseChangeLogEntries(nsILDAPMessage *aMe
                 mEntriesToAdd.AppendString(targetDN);
         break;
     default:
-        // should not come here, would come here only
+        // Should not come here, would come here only
         // if the entry is not a changeLog entry
         NS_WARNING("nsAbLDAPProcessChangeLogData::ParseChangeLogEntries"
            "Not an changelog entry");
     }
 
-    // go ahead processing the next entry,  a modify or delete DB operation 
-    // can 'correctly' fail if the entry is not present in the DB. 
-    // eg : in case a filter is specified.
+    // Go ahead processing the next entry, a modify or delete DB operation
+    // can 'correctly' fail if the entry is not present in the DB,
+    // e.g. in case a filter is specified.
     return NS_OK;
 }
 
@@ -511,17 +511,17 @@ nsresult nsAbLDAPProcessChangeLogData::OnFindingChangesDone()
 
     nsresult rv = NS_OK;
 
-    // no entries to add/update (for updates too we delete and add) entries,
+    // No entries to add/update (for updates too we delete and add) entries,
     // we took care of deletes in ParseChangeLogEntries, all Done!
     mEntriesAddedQueryCount = mEntriesToAdd.Count();
     if(mEntriesAddedQueryCount <= 0) {
         if(mReplicationDB && mDBOpen) {
-            // close the DB, no need to commit since we have not made
+            // Close the DB, no need to commit since we have not made
             // any changes yet to the DB.
             rv = mReplicationDB->Close(PR_FALSE);
             NS_ASSERTION(NS_SUCCEEDED(rv), "Replication DB Close(no commit) on Success failed");
             mDBOpen = PR_FALSE;
-            // once are done with the replication file, delete the backup file
+            // Once are done with the replication file, delete the backup file
             if(mBackupReplicationFile) {
                 rv = mBackupReplicationFile->Remove(PR_FALSE);
                 NS_ASSERTION(NS_SUCCEEDED(rv), "Replication BackupFile Remove on Success failed");
@@ -531,7 +531,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnFindingChangesDone()
         return NS_OK;
     }
 
-    // decrement the count first to get the correct array element
+    // Decrement the count first to get the correct array element
     mEntriesAddedQueryCount--;
     rv = mChangeLogQuery->QueryChangedEntries(NS_ConvertUTF16toUTF8(*(mEntriesToAdd[mEntriesAddedQueryCount])));
     if (NS_FAILED(rv))
@@ -554,20 +554,20 @@ nsresult nsAbLDAPProcessChangeLogData::OnReplicatingChangeDone()
     if(!mEntriesAddedQueryCount)
     {
         if(mReplicationDB && mDBOpen) {
-            rv = mReplicationDB->Close(PR_TRUE); // commit and close the DB
+            rv = mReplicationDB->Close(PR_TRUE); // Commit and close the DB
             NS_ASSERTION(NS_SUCCEEDED(rv), "Replication DB Close (commit) on Success failed");
             mDBOpen = PR_FALSE;
         }
-        // once we done with the replication file, delete the backup file
+        // Once we done with the replication file, delete the backup file.
         if(mBackupReplicationFile) {
             rv = mBackupReplicationFile->Remove(PR_FALSE);
             NS_ASSERTION(NS_SUCCEEDED(rv), "Replication BackupFile Remove on Success failed");
         }
-        Done(PR_TRUE);  // all data is received
+        Done(PR_TRUE);  // All data is received
         return NS_OK;
     }
 
-    // remove the entry already added from the list and query the next one
+    // Remove the entry already added from the list and query the next one.
     if(mEntriesAddedQueryCount < mEntriesToAdd.Count() && mEntriesAddedQueryCount >= 0)
         mEntriesToAdd.RemoveStringAt(mEntriesAddedQueryCount);
     mEntriesAddedQueryCount--;

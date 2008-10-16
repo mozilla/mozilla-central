@@ -101,7 +101,7 @@ var gAddressBookAbListener = {
           if (newRow == -1)
             newRow = gPreviousDirTreeIndex;
 
-          // Fall back to the first adddress book if we're not in a valid range
+          // Fall back to the first address book if we're not in a valid range
           if (newRow >= dirTree.view.rowCount)
             newRow = 0;
 

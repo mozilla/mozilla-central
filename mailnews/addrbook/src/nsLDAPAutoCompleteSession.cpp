@@ -93,11 +93,10 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
                                          nsIAutoCompleteResults *previousSearchResult,
                                          nsIAutoCompleteListener *listener)
 {
-    nsresult rv; // hold return values from XPCOM calls
+    nsresult rv; // Hold return values from XPCOM calls
 
 #ifdef PR_LOGGING
-    // initialize logging, if it hasn't been already
-    //
+    // Initialize logging, if it hasn't been already.
     if (!sLDAPAutoCompleteLogModule) {
         sLDAPAutoCompleteLogModule = PR_NewLogModule("ldapautocomplete");
 
@@ -114,12 +113,11 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
                  "passed in");
         return NS_ERROR_NULL_POINTER;
     } else {
-        mListener = listener;   // save it for later callbacks
+        mListener = listener;   // Save it for later callbacks
     }
 
-    // ignore the empty string, strings with @ in them, and strings
-    // that are too short
-    //
+    // Ignore the empty string, strings with @ in them, and strings
+    // that are too short.
     if (searchString[0] == 0 ||
         nsDependentString(searchString).FindChar(PRUnichar('@'), 0) != -1 || 
         nsDependentString(searchString).FindChar(PRUnichar(','), 0) != -1 || 
@@ -134,8 +132,7 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
         mSearchString = searchString;        // save it for later use
     }
 
-    // make sure this was called appropriately.
-    //
+    // Make sure this was called appropriately.
     if (mState == SEARCHING || mState == BINDING) {
         NS_ERROR("nsLDAPAutoCompleteSession::OnStartLookup(): called while "
                  "search already in progress; no lookup started.");
@@ -147,12 +144,10 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
     NS_ASSERTION(mFormatter, "nsLDAPAutoCompleteSession::OnStartLookup(): "
                  "formatter attribute has not been set");
 
-    // see if this is a narrow search that we could potentially do locally
-    //
+    // See if this is a narrow search that we could potentially do locally.
     if (previousSearchResult) {
 
-        // get the string representing previous search results
-        //
+        // Get the string representing previous search results.
         nsString prevSearchStr;
 
         rv = previousSearchResult->GetSearchString(
@@ -165,16 +160,15 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
             return NS_ERROR_FAILURE;
         }
 
-        // does the string actually contain anything?
-        //
+        // Does the string actually contain anything?
         if ( prevSearchStr.get() && prevSearchStr.get()[0]) {
 
             PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG, 
                    ("nsLDAPAutoCompleteSession::OnStartLookup(): starting "
                     "narrowing search\n"));
 
-            // XXXdmose for performance, we should really do a local, 
-            // synchronous search against the existing dataset instead of 
+            // XXXdmose for performance, we should really do a local,
+            // synchronous search against the existing dataset instead of
             // just kicking off a new LDAP search here.  When implementing
             // this, need to be sure that only previous results which did not
             // hit the size limit and were successfully completed are used.
@@ -184,17 +178,17 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
         }
     }
 
-    // init connection if necesary
+    // Init connection if necessary
     //
     switch (mState) {
     case UNBOUND:
 
-        // initialize the connection.  
+        // Initialize the connection.  
         //
         rv = InitConnection();
         if (NS_FAILED(rv)) {
 
-            // InitConnection() will have already called 
+            // InitConnection() will have already called
             // FinishAutoCompleteLookup for us as necessary
             //
             return rv;
@@ -208,7 +202,7 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
                ("nsLDAPAutoComplete::OnStartLookup(): subsequent search "
                 "starting"));
 
-        // kick off an LDAP search
+        // Kick off an LDAP search
         mState = SEARCHING;
         return DoTask();
 
@@ -222,7 +216,7 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
 
     case BINDING:
     case SEARCHING:
-        // we should never get here
+        // We should never get here
         NS_ERROR("nsLDAPAutoCompleteSession::OnStartLookup(): unexpected "
                  "value of mStatus");
         return NS_ERROR_UNEXPECTED;
@@ -236,8 +230,7 @@ NS_IMETHODIMP
 nsLDAPAutoCompleteSession::OnStopLookup()
 {
 #ifdef PR_LOGGING
-    // initialize logging, if it hasn't been already
-    //
+    // Initialize logging, if it hasn't been already.
     if (!sLDAPAutoCompleteLogModule) {
         sLDAPAutoCompleteLogModule = PR_NewLogModule("ldapautocomplete");
 
@@ -251,15 +244,15 @@ nsLDAPAutoCompleteSession::OnStopLookup()
 
     switch (mState) {
     case UNBOUND:
-        // nothing to stop
+        // Nothing to stop
         return NS_OK;
 
     case BOUND:
-        // nothing to stop
+        // Nothing to stop
         return NS_OK;
 
     case INITIALIZING:
-        // We can't or shouldn't abor the initialization, because then the
+        // We can't or shouldn't abort the initialization, because then the
         // DNS service can hang again...
         //
         return NS_OK;
@@ -267,26 +260,22 @@ nsLDAPAutoCompleteSession::OnStopLookup()
     case BINDING:
     case SEARCHING:
         // Abandon the operation, if there is one
-        //
         if (mOperation) {
             nsresult rv = mOperation->AbandonExt();
 
             if (NS_FAILED(rv)) {
-                // since there's nothing interesting that can or should be
+                // Since there's nothing interesting that can or should be
                 // done if this abandon failed, warn about it and move on
-                //
                 NS_WARNING("nsLDAPAutoCompleteSession::OnStopLookup(): "
                            "error calling mOperation->AbandonExt()");
             }
 
-            // force nsCOMPtr to release mOperation
-            //
+            // Force nsCOMPtr to release mOperation
             mOperation = 0;
         }
 
         // Set the status properly, set to UNBOUND of we were binding, or
         // to BOUND if we were searching.
-        //
         mState = (mState == BINDING ? UNBOUND : BOUND);
         if (mState == UNBOUND)
           NS_IF_RELEASE(mConnection);
@@ -306,10 +295,10 @@ nsLDAPAutoCompleteSession::OnAutoComplete(const PRUnichar *searchString,
                                           nsIAutoCompleteListener *listener)
 {
     // OnStopLookup should have already been called, so there's nothing to
-    // free here.  Additionally, as of this writing, noone is hanging around 
-    // waiting for mListener->OnAutoComplete() to be called either, and if 
-    // they were, it's unclear what we'd return, since we're not guaranteed 
-    // to be in any particular state.  My suspicion is that this method 
+    // free here.  Additionally, as of this writing, no one is hanging around
+    // waiting for mListener->OnAutoComplete() to be called either, and if
+    // they were, it's unclear what we'd return, since we're not guaranteed
+    // to be in any particular state.  My suspicion is that this method
     // (nsIAutoCompleteSession::OnAutoComplete) should probably be removed
     // from the interface.
 
@@ -328,34 +317,30 @@ nsLDAPAutoCompleteSession::OnLDAPMessage(nsILDAPMessage *aMessage)
 {
     PRInt32 messageType;
 
-    // just in case.
+    // Just in case.
     // XXXdmose the semantics of NULL are currently undefined, but are likely
     // to be defined once we insert timeout handling code into the XPCOM SDK
     // At that time we should figure out if this still the right thing to do.
-    // 
     if (!aMessage) {
         return NS_OK;
     }
 
-    // figure out what sort of message was returned
-    //
+    // Figure out what sort of message was returned.
     nsresult rv = aMessage->GetType(&messageType);
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPAutoCompleteSession::OnLDAPMessage(): unexpected "
                  "error in aMessage->GetType()");
        
-        // don't call FinishAutoCompleteLookup(), as this could conceivably 
-        // be an anomaly, and perhaps the next message will be ok.  if this
+        // Don't call FinishAutoCompleteLookup(), as this could conceivably 
+        // be an anomaly, and perhaps the next message will be ok. If this
         // really was a problem, this search should eventually get
         // reaped by a timeout (once that code gets implemented).
-        //
         return NS_ERROR_UNEXPECTED;
     }
 
-    // if this message is not associated with the current operation, 
-    // discard it, since it is probably from a previous (aborted) 
-    // operation
-    //
+    // If this message is not associated with the current operation,
+    // discard it, since it is probably from a previous (aborted)
+    // operation.
     PRBool isCurrent;
     rv = IsMessageCurrent(aMessage, &isCurrent);
     if (NS_FAILED(rv)) {
@@ -370,26 +355,24 @@ nsLDAPAutoCompleteSession::OnLDAPMessage(nsILDAPMessage *aMessage)
     }
 
     // XXXdmose - we may want a small state machine either here or
-    // or in the nsLDAPConnection object, to make sure that things are 
-    // happening in the right order and timing out appropriately.  this will
+    // or in the nsLDAPConnection object, to make sure that things are
+    // happening in the right order and timing out appropriately. This will
     // certainly depend on how timeouts are implemented, and how binding
-    // gets is dealt with by nsILDAPService.  also need to deal with the case
+    // gets is dealt with by nsILDAPService. Also need to deal with the case
     // where a bind callback happens after onStopLookup was called.
-    // 
     switch (messageType) {
 
     case nsILDAPMessage::RES_BIND:
 
-        // a bind has completed
-        //
+        // A bind has completed
         if (mState != BINDING) {
             PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG, 
                    ("nsLDAPAutoCompleteSession::OnLDAPMessage(): LDAP bind "
                     "entry returned after OnStopLookup() called; ignoring"));
 
-            // XXXdmose when nsLDAPService integration happens, need to make 
-            // sure that the possibility of having an already bound 
-            // connection, due to a previously unaborted bind, doesn't cause 
+            // XXXdmose when nsLDAPService integration happens, need to make
+            // sure that the possibility of having an already bound
+            // connection, due to a previously unaborted bind, doesn't cause
             // any problems.
 
             return NS_OK;
@@ -408,8 +391,7 @@ nsLDAPAutoCompleteSession::OnLDAPMessage(nsILDAPMessage *aMessage)
 
     case nsILDAPMessage::RES_SEARCH_ENTRY:
         
-        // ignore this if OnStopLookup was already called
-        //
+        // Ignore this if OnStopLookup was already called.
         if (mState != SEARCHING) {
             PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG, 
                    ("nsLDAPAutoCompleteSession::OnLDAPMessage(): LDAP search "
@@ -417,14 +399,12 @@ nsLDAPAutoCompleteSession::OnLDAPMessage(nsILDAPMessage *aMessage)
             return NS_OK;
         }
 
-        // a search entry has been returned
-        //
+        // A search entry has been returned.
         return OnLDAPSearchEntry(aMessage);
 
     case nsILDAPMessage::RES_SEARCH_RESULT:
 
-        // ignore this if OnStopLookup was already called
-        //
+        // Ignore this if OnStopLookup was already called.
         if (mState != SEARCHING) {
             PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG,
                    ("nsLDAPAutoCompleteSession::OnLDAPMessage(): LDAP search "
@@ -432,16 +412,15 @@ nsLDAPAutoCompleteSession::OnLDAPMessage(nsILDAPMessage *aMessage)
             return NS_OK;
         }
 
-        // the search is finished; we're all done
-        //  
+        // The search is finished; we're all done.
         return OnLDAPSearchResult(aMessage);
 
     default:
         
         // Given the LDAP operations nsLDAPAutoCompleteSession uses, we should
-        // never get here.  If we do get here in a release build, it's
+        // never get here. If we do get here in a release build, it's
         // probably a bug, but maybe it's the LDAP server doing something
-        // weird.  Might as well try and continue anyway.  The session should
+        // weird. Might as well try and continue anyway. The session should
         // eventually get reaped by the timeout code, if necessary.
         //
         NS_ERROR("nsLDAPAutoCompleteSession::OnLDAPMessage(): unexpected "
@@ -458,7 +437,6 @@ nsLDAPAutoCompleteSession::InitFailed(PRBool aCancelled)
 }
 
 // void onLDAPInit (in nsresult aStatus);
-//
 NS_IMETHODIMP
 nsLDAPAutoCompleteSession::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus)
 {
@@ -476,9 +454,8 @@ nsLDAPAutoCompleteSession::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
     PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG, 
            ("nsLDAPAutoCompleteSession::OnLDAPSearchEntry entered\n"));
 
-    // make sure this is only getting called after DoTask has 
-    // initialized the result set
-    //
+    // Make sure this is only getting called after DoTask has
+    // initialized the result set.
     NS_ASSERTION(mResultsArray,
                  "nsLDAPAutoCompleteSession::OnLDAPSearchEntry(): "
                  "mResultsArrayItems is uninitialized");
@@ -486,13 +463,12 @@ nsLDAPAutoCompleteSession::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
     // Errors in this method return an error (which ultimately gets
     // ignored, since this is being called through an async proxy).
     // But the important thing is that we're bailing out here rather
-    // than trying to generate a bogus nsIAutoCompleteItem.  Also note
+    // than trying to generate a bogus nsIAutoCompleteItem. Also note
     // that FinishAutoCompleteLookup is _NOT_ being called here, because
     // this error may just have to do with this particular item.
 
-    // generate an autocomplete item from this message by calling the
-    // formatter
-    //
+    // Generate an autocomplete item from this message by calling the
+    // formatter.
     nsCOMPtr<nsIAutoCompleteItem> item;
     nsresult rv = mFormatter->Format(aMessage, getter_AddRefs(item));
     if (NS_FAILED(rv)) {
@@ -509,8 +485,7 @@ nsLDAPAutoCompleteSession::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
         return NS_ERROR_FAILURE;
     }
 
-    // remember that something has been returned
-    //
+    // Remember that something has been returned.
     mEntriesReturned++;
 
     return NS_OK;
@@ -519,14 +494,13 @@ nsLDAPAutoCompleteSession::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
 nsresult
 nsLDAPAutoCompleteSession::OnLDAPSearchResult(nsILDAPMessage *aMessage)
 {
-    nsresult rv;        // temp for return vals
+    nsresult rv;        // Temp for return vals
 
     PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG, 
            ("nsLDAPAutoCompleteSession::OnLDAPSearchResult entered\n"));
 
-    // figure out if we succeeded or failed, and set the status 
-    // and default index appropriately
-    //
+    // Figure out if we succeeded or failed, and set the status
+    // and default index appropriately.
     AutoCompleteStatus status;
     PRInt32 lderrno;
 
@@ -534,11 +508,10 @@ nsLDAPAutoCompleteSession::OnLDAPSearchResult(nsILDAPMessage *aMessage)
 
         status = nsIAutoCompleteStatus::matchFound;
 
-        // there's at least one match, so the default index should
+        // There's at least one match, so the default index should
         // point to the first thing here.  This ensures that if the local
-        // addressbook autocomplete session only found foo@local.domain, 
-        // this will be given preference
-        //
+        // addressbook autocomplete session only found foo@local.domain,
+        // this will be given preference.
         rv = mResults->SetDefaultItemIndex(0);
         if (NS_FAILED(rv)) {
             NS_ERROR("nsLDAPAutoCompleteSession::OnLDAPSearchResult(): "
@@ -547,12 +520,11 @@ nsLDAPAutoCompleteSession::OnLDAPSearchResult(nsILDAPMessage *aMessage)
                                      BOUND);
         }
     } else {
-        // note that we only look at the error code if there are no results for
+        // Note that we only look at the error code if there are no results for
         // this session; if we got results and then an error happened, this
         // is ignored, in part because it seems likely to be confusing to the
-        // user, and in part because it is likely to be scrolled out of view 
-        // anyway
-        //
+        // user, and in part because it is likely to be scrolled out of view
+        // anyway.
         aMessage->GetErrorCode(&lderrno);
         if (lderrno != nsILDAPErrors::SUCCESS) {
 
@@ -566,15 +538,14 @@ nsLDAPAutoCompleteSession::OnLDAPSearchResult(nsILDAPMessage *aMessage)
             return NS_OK;
         }
 
-        // we could potentially keep track of non-fatal errors to the 
+        // We could potentially keep track of non-fatal errors to the
         // search, and if there has been more than 1, and there are no entries,
-        // we could return |failed| instead of |noMatch|.  It's unclear to me
+        // we could return |failed| instead of |noMatch|. It's unclear to me
         // that this actually buys us anything though.
-        //
         status = nsIAutoCompleteStatus::noMatch;
     }
 
-    // call the mListener's OnAutoComplete and clean up
+    // Call the mListener's OnAutoComplete and clean up
     //
     // XXXdmose should we really leave the connection BOUND here?
     FinishAutoCompleteLookup(status, NS_OK, BOUND);
@@ -591,8 +562,7 @@ nsLDAPAutoCompleteSession::DoTask()
     PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG, 
            ("nsLDAPAutoCompleteSession::DoTask entered\n"));
 
-    // create and initialize an LDAP operation (to be used for the search
-    //  
+    // Create and initialize an LDAP operation (to be used for the search).
     mOperation = 
         do_CreateInstance("@mozilla.org/network/ldap-operation;1", &rv);
 
@@ -605,8 +575,7 @@ nsLDAPAutoCompleteSession::DoTask()
         return NS_ERROR_FAILURE;
     }
 
-    // get a proxy object so the callback happens on the main thread
-    //
+    // Get a proxy object so the callback happens on the main thread.
     nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
     if (NS_FAILED(rv)) {
         FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, UNBOUND);
@@ -625,8 +594,7 @@ nsLDAPAutoCompleteSession::DoTask()
         return NS_ERROR_FAILURE;
     }
 
-    // initialize the LDAP operation object
-    //
+    // Initialize the LDAP operation object.
     rv = mOperation->Init(mConnection, selfProxy, nsnull);
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPAutoCompleteSession::DoTask(): couldn't "
@@ -636,7 +604,7 @@ nsLDAPAutoCompleteSession::DoTask()
         return NS_ERROR_UNEXPECTED;
     }
 
-    // set the server and client controls on the operation
+    // Set the server and client controls on the operation.
     if (mSearchServerControls) {
         rv = mOperation->SetServerControls(mSearchServerControls);
         if (NS_FAILED(rv)) {
@@ -658,9 +626,8 @@ nsLDAPAutoCompleteSession::DoTask()
         }
     }
 
-    // get the search filter associated with the directory server url; 
+    // Get the search filter associated with the directory server url;
     // it will be ANDed with the rest of the search filter that we're using.
-    //
     nsCAutoString urlFilter;
     rv = mDirectoryUrl->GetFilter(urlFilter);
     if ( NS_FAILED(rv) ){
@@ -669,8 +636,7 @@ nsLDAPAutoCompleteSession::DoTask()
         return NS_ERROR_UNEXPECTED;
     }
 
-    // get the LDAP service, since createFilter is called through it.
-    //
+    // Get the LDAP service, since createFilter is called through it.
     nsCOMPtr<nsILDAPService> ldapSvc = do_GetService(
         "@mozilla.org/network/ldap-service;1", &rv);
     if (NS_FAILED(rv)) {
@@ -681,15 +647,13 @@ nsLDAPAutoCompleteSession::DoTask()
         return NS_ERROR_FAILURE;
     }
 
-    // if urlFilter is unset (or set to the default "objectclass=*"), there's
-    // no need to AND in an empty search term, so leave prefix and suffix empty
-    //
+    // If urlFilter is unset (or set to the default "objectclass=*"), there's
+    // no need to AND in an empty search term, so leave prefix and suffix empty.
     nsCAutoString prefix, suffix;
     if (urlFilter.Length() && !urlFilter.Equals(NS_LITERAL_CSTRING("(objectclass=*)"))) {
 
-        // if urlFilter isn't parenthesized, we need to add in parens so that
+        // If urlFilter isn't parenthesized, we need to add in parens so that
         // the filter works as a term to &
-        //
         if (urlFilter[0] != '(') {
             prefix.AssignLiteral("(&(");
             prefix.Append(urlFilter);
@@ -702,9 +666,8 @@ nsLDAPAutoCompleteSession::DoTask()
         suffix = ')';
     }
 
-    // generate an LDAP search filter from mFilterTemplate.  If it's unset,
+    // Generate an LDAP search filter from mFilterTemplate. If it's unset,
     // use the default.
-    //
 #define MAX_AUTOCOMPLETE_FILTER_SIZE 1024
     nsCAutoString searchFilter;
     rv = ldapSvc->CreateFilter(MAX_AUTOCOMPLETE_FILTER_SIZE,
@@ -733,8 +696,7 @@ nsLDAPAutoCompleteSession::DoTask()
         case NS_ERROR_UNEXPECTED:
         default:
 
-            // all this stuff indicates code bugs
-            //
+            // All this stuff indicates code bugs.
             NS_ERROR("nsLDAPAutoCompleteSession::DoTask(): "
                      "createFilter returned unexpected value");
             FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, 
@@ -745,20 +707,17 @@ nsLDAPAutoCompleteSession::DoTask()
     }
 
     // If the results array for this search hasn't already been created, do
-    // so now.  Note that we don't return ::failureItems here, because if
+    // so now. Note that we don't return ::failureItems here, because if
     // there's no array, there's nowhere to put the items.
-    //
     rv = CreateResultsArray();
     if (NS_FAILED(rv)) {
         FinishAutoCompleteLookup(nsIAutoCompleteStatus::failed, rv, BOUND);
     }
 
-    // nothing returned yet!
-    //
+    // Nothing returned yet!
     mEntriesReturned = 0;
     
-    // get the base dn to search
-    //
+    // Get the base dn to search
     nsCAutoString dn;
     rv = mDirectoryUrl->GetDn(dn);
     if ( NS_FAILED(rv) ){
@@ -767,8 +726,7 @@ nsLDAPAutoCompleteSession::DoTask()
         return NS_ERROR_UNEXPECTED;
     }
 
-    // and the scope
-    //
+    // And the scope
     PRInt32 scope;
     rv = mDirectoryUrl->GetScope(&scope);
     if ( NS_FAILED(rv) ){
@@ -778,7 +736,7 @@ nsLDAPAutoCompleteSession::DoTask()
         return NS_ERROR_UNEXPECTED;
     }
 
-    // take the relevant controls on this object and set them
+    // Take the relevant controls on this object and set them
     // on the operation
     rv = mOperation->SetServerControls(mSearchServerControls.get());
     if ( NS_FAILED(rv) ){
@@ -796,7 +754,7 @@ nsLDAPAutoCompleteSession::DoTask()
         return NS_ERROR_UNEXPECTED;
     }
 
-    // time to kick off the search.
+    // Time to kick off the search.
     //
     // XXXdmose what about timeouts? 
     //
@@ -823,8 +781,8 @@ nsLDAPAutoCompleteSession::DoTask()
             return NS_OK;
 
         case NS_ERROR_LDAP_SERVER_DOWN:
-            // XXXdmose discuss with leif how to handle this in general in the 
-            // LDAP XPCOM SDK.  
+            // XXXdmose discuss with leif how to handle this in general in the
+            // LDAP XPCOM SDK.
 
             PR_LOG(sLDAPAutoCompleteLogModule, PR_LOG_DEBUG, 
                    ("nsLDAPAutoCompleteSession::DoTask(): SearchExt "
@@ -843,8 +801,7 @@ nsLDAPAutoCompleteSession::DoTask()
         case NS_ERROR_INVALID_ARG:
         default:
 
-            // all this stuff indicates code bugs
-            //
+            // All this stuff indicates code bugs.
             NS_ERROR("nsLDAPAutoCompleteSession::DoTask(): SearchExt "
                      "returned unexpected value");
             FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, 
@@ -866,8 +823,7 @@ nsLDAPAutoCompleteSession::InitConnection()
     
     NS_ASSERTION(!mConnection, "in InitConnection w/ existing connection");
 
-    // create an LDAP connection
-    //
+    // Create an LDAP connection
     nsCOMPtr<nsILDAPConnection> connection =
       do_CreateInstance("@mozilla.org/network/ldap-connection;1", &rv);
     if (NS_FAILED(rv)) {
@@ -880,8 +836,7 @@ nsLDAPAutoCompleteSession::InitConnection()
 
     NS_ADDREF(mConnection = connection);
 
-    // have we been properly initialized?
-    //
+    // Have we been properly initialized?
     if (!mDirectoryUrl) {
         NS_ERROR("nsLDAPAutoCompleteSession::InitConnection(): mDirectoryUrl "
                  "is NULL");
@@ -890,8 +845,7 @@ nsLDAPAutoCompleteSession::InitConnection()
         return NS_ERROR_NOT_INITIALIZED;
     }
 
-    // get a proxy object so the callback happens on the main thread
-    //
+    // Get a proxy object so the callback happens on the main thread.
     nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
     if (NS_FAILED(rv)) {
         FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, UNBOUND);
@@ -913,7 +867,6 @@ nsLDAPAutoCompleteSession::InitConnection()
     // Initialize the connection. This will cause an asynchronous DNS
     // lookup to occur, and we'll finish the binding of the connection
     // in the OnLDAPInit() listener function.
-    //
     rv = mConnection->Init(mDirectoryUrl, mLogin, selfProxy, nsnull, mVersion);
     if (NS_FAILED(rv)) {
         switch (rv) {
@@ -936,8 +889,7 @@ nsLDAPAutoCompleteSession::InitConnection()
         }
     }
 
-    // set our state
-    //
+    // Set our state
     mState = INITIALIZING;
 
     return NS_OK;
@@ -948,8 +900,7 @@ nsLDAPAutoCompleteSession::CreateResultsArray(void)
 {
     nsresult rv;
 
-    // create a result set
-    //
+    // Create a result set
     mResults = do_CreateInstance(NS_AUTOCOMPLETERESULTS_CONTRACTID, &rv);
 
     if (NS_FAILED(rv)) {
@@ -960,7 +911,6 @@ nsLDAPAutoCompleteSession::CreateResultsArray(void)
 
     // This seems to be necessary for things to work, though I'm not sure
     // why that's true.
-    //
     rv = mResults->SetSearchString(mSearchString.get());
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPAutoCompleteSession::OnLDAPSearchResult(): couldn't "
@@ -968,9 +918,8 @@ nsLDAPAutoCompleteSession::CreateResultsArray(void)
         return NS_ERROR_FAILURE;
     }
 
-    // get a pointer to the array in question now, so that we don't have to
-    // keep re-fetching it every time an entry callback happens
-    //
+    // Get a pointer to the array in question now, so that we don't have to
+    // keep re-fetching it every time an entry callback happens.
     rv = mResults->GetItems(getter_AddRefs(mResultsArray));
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPAutoCompleteSession::DoTask() couldn't "
@@ -989,8 +938,7 @@ nsLDAPAutoCompleteSession::FinishAutoCompleteLookup(
     nsCOMPtr<nsIAutoCompleteItem> errorItem; // pointer to item we may create
     nsresult rv; // temp for return value 
 
-    // if there's a listener, inform the listener that the search is over
-    //
+    // If there's a listener, inform the listener that the search is over.
     rv = NS_OK;
     if (mListener) {
         
@@ -1001,10 +949,9 @@ nsLDAPAutoCompleteSession::FinishAutoCompleteLookup(
             break;
 
         case nsIAutoCompleteStatus::failureItems:
-            // if the results array hasn't already been created, make one
+            // If the results array hasn't already been created, make one
             // to return the error message.  If there's an error, fallback
             // to ::failed
-            //
             if (!mResults) {
                 rv = CreateResultsArray();
                 if (NS_FAILED(rv)) {
@@ -1017,14 +964,13 @@ nsLDAPAutoCompleteSession::FinishAutoCompleteLookup(
                 }
             }
 
-            // create the error item
-            //
+            // Create the error item.
             rv = mFormatter->FormatException(mState, aResult,
                                              getter_AddRefs(errorItem));
             if (NS_SUCCEEDED(rv)) {
 
-                // try and append the error item; falling back to ::failed
-                // if there's a problem 
+                // Try and append the error item; falling back to ::failed
+                // if there's a problem.
                 //
                 rv = mResultsArray->AppendElement(errorItem);
                 if (NS_FAILED(rv)) {
@@ -1036,8 +982,8 @@ nsLDAPAutoCompleteSession::FinishAutoCompleteLookup(
                     break;
                 } 
 
-                // we don't want the autocomplete widget trying to 
-                // automagically use the error item for anything.  If 
+                // We don't want the autocomplete widget trying to
+                // automagically use the error item for anything. If
                 // something goes wrong here, continue on anyway.
                 //
                 (void)mResults->SetDefaultItemIndex(-1);
@@ -1047,7 +993,7 @@ nsLDAPAutoCompleteSession::FinishAutoCompleteLookup(
                 break;
             } 
 
-            // fallback to ::failed
+            // Fallback to ::failed
             NS_ERROR("nsLDAPAutoCompleteSession::FinishAutoCompleteLookup(): "
                      "error calling FormatException()");
 
@@ -1061,33 +1007,28 @@ nsLDAPAutoCompleteSession::FinishAutoCompleteLookup(
         }
 
     } else {
-        // if there's no listener, something's wrong 
-        // 
+        // If there's no listener, something's wrong.
         NS_ERROR("nsLDAPAutoCompleteSession::FinishAutoCompleteLookup(): "
                  "called with mListener unset!");
     }
 
     if (NS_FAILED(rv)) {
 
-        // there's nothing we can actually do here other than warn
-        //
+        // There's nothing we can actually do here other than warn.
         NS_WARNING("nsLDAPAutoCompleteSession::FinishAutoCompleteLookup(): "
                    "error calling mListener->OnAutoComplete()");
     }
 
-    // set the state appropriately
-    //
+    // Set the state appropriately.
     mState = aEndState;
 
-    // we're done with various things; cause nsCOMPtr to release them
-    //
+    // We're done with various things; cause nsCOMPtr to release them.
     mResultsArray = 0;
     mResults = 0;
     mListener = 0;
     mOperation = 0;
 
-    // If we are unbound, drop the connection (if any)
-    //
+    // If we are unbound, drop the connection (if any).
     if (mState == UNBOUND) {
         NS_IF_RELEASE(mConnection);
     }
@@ -1155,13 +1096,12 @@ nsLDAPAutoCompleteSession::SetServerURL(nsILDAPURL * aServerURL)
 
     mDirectoryUrl = aServerURL;
 
-    // the following line will cause the next call to OnStartLookup to 
-    // call InitConnection again.  This will reinitialize all the relevant
-    // member variables and kick off an LDAP bind.  By virtue of the magic of 
+    // The following line will cause the next call to OnStartLookup to
+    // call InitConnection again. This will reinitialize all the relevant
+    // member variables and kick off an LDAP bind. By virtue of the magic of
     // nsCOMPtrs, doing this will cause all the nsISupports-based stuff to
     // be Released, which will eventually result in the old connection being
     // destroyed, and the destructor for that calls ldap_unbind()
-    //
     mState = UNBOUND;
 
     return NS_OK;
@@ -1205,22 +1145,19 @@ nsLDAPAutoCompleteSession::SetCjkMinStringLength(PRUint32 aCjkMinStringLength)
     return NS_OK;
 }
 
-// check to see if the message returned is related to our current operation
-// if there is no current operation, it's not.  :-)
-//
+// Check to see if the message returned is related to our current operation
+// if there is no current operation, it's not. :-)
 nsresult 
 nsLDAPAutoCompleteSession::IsMessageCurrent(nsILDAPMessage *aMessage, 
                                             PRBool *aIsCurrent)
 {
-    // if there's no operation, this message must be stale (ie non-current)
-    //
+    // If there's no operation, this message must be stale (ie non-current).
     if ( !mOperation ) {
         *aIsCurrent = PR_FALSE;
         return NS_OK;
     }
 
-    // get the message id from the current operation
-    //
+    // Get the message id from the current operation.
     PRInt32 currentId;
     nsresult rv = mOperation->GetMessageID(&currentId);
     if (NS_FAILED(rv)) {
@@ -1230,8 +1167,7 @@ nsLDAPAutoCompleteSession::IsMessageCurrent(nsILDAPMessage *aMessage,
         return NS_ERROR_UNEXPECTED;
     }
 
-    // get the message operation from the message
-    //
+    // Get the message operation from the message.
     nsCOMPtr<nsILDAPOperation> msgOp;
     rv = aMessage->GetOperation(getter_AddRefs(msgOp));
     if (NS_FAILED(rv)) {
@@ -1241,8 +1177,7 @@ nsLDAPAutoCompleteSession::IsMessageCurrent(nsILDAPMessage *aMessage,
         return NS_ERROR_UNEXPECTED;
     }
 
-    // get the message operation id from the message operation
-    //
+    // Get the message operation id from the message operation.
     PRInt32 msgOpId;
     rv = msgOp->GetMessageID(&msgOpId);
     if (NS_FAILED(rv)) {
@@ -1288,8 +1223,7 @@ nsLDAPAutoCompleteSession::SetFormatter(nsILDAPAutoCompFormatter* aFormatter)
         mSearchAttrs = nsnull;
     }
 
-    // get and cache the attributes that will be used to do lookups
-    //
+    // Get and cache the attributes that will be used to do lookups.
     nsresult rv = mFormatter->GetAttributes(&mSearchAttrsSize, &mSearchAttrs);
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPAutoCompleteSession::SetFormatter(): "

@@ -41,7 +41,7 @@
 [scriptable, uuid(d9e45fee-1dd1-11b2-938c-9147855ed837)]
 interface nsIMessengerOSIntegration : nsISupports {
   // for now, nothing.  it's up to the implementation to 
-  // do all the work of registering itsself as listeners
+  // do all the work of registering itself as listeners
   // all we guarantee is your service will be created
   // when accounts are loaded by the account manager
 };

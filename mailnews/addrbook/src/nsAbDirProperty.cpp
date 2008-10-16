@@ -110,7 +110,7 @@ NS_IMETHODIMP nsAbDirProperty::GetDirName(nsAString &aDirName)
 // XXX Although mailing lists could use the NotifyItemPropertyChanged
 // mechanism here, it requires some rework on how we write/save data
 // relating to mailing lists, so we're just using the old method of a
-// local variable to store tha mailing list name.
+// local variable to store the mailing list name.
 NS_IMETHODIMP nsAbDirProperty::SetDirName(const nsAString &aDirName)
 {
   if (m_DirPrefId.IsEmpty())

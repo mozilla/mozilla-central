@@ -149,7 +149,7 @@ function selectDirectory()
       disable = prefs.getBoolPref(ab.dirPrefId + ".disable_delete");
     }
     catch(ex){
-      // if this preference is not set its ok.
+      // If this preference is not set, it's ok.
     }
     if (disable)
       removeButton.setAttribute("disabled", true);
