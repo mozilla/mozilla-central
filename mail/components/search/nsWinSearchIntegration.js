@@ -265,13 +265,27 @@ onStopRequest: function(request, context, status, errorMsg) {
       createInstance(Ci.nsIStringInputStream);
     stringStream.setData(this.message, this.message.length);
     var contentType = {};
-    var text = this.msgHdr.folder.getMsgTextFromStream(stringStream, this.msgHdr.charset,
-                                                       65536, 50000, false, false, contentType);
+    var folder = this.msgHdr.folder;
+    var text = folder.getMsgTextFromStream(stringStream, this.msgHdr.charset,
+                                           65536, 50000, false, false, contentType);
+
+    // To get the Received header, we need to parse the message headers.
+    // We only need the first header, which contains the latest received date
+    var headers = this.message.split(/\r\n\r\n|\r\r|\n\n/, 1)[0];
+    var mimeHeaders = Cc["@mozilla.org/messenger/mimeheaders;1"].createInstance(Ci.nsIMimeHeaders);
+    mimeHeaders.initialize(headers, headers.length);
+    var receivedHeader = mimeHeaders.extractHeader("Received", false);
 
     this.outputStream.writeString("From: " + this.msgHdr.author + CRLF);
-    this.outputStream.writeString("To: " + this.msgHdr.recipients + CRLF);
+    // If we're a newsgroup, then add the name of the folder as the newsgroups header
+    if (folder instanceof Ci.nsIMsgNewsFolder)
+      this.outputStream.writeString("Newsgroups: " + folder.name + CRLF);
+    else
+      this.outputStream.writeString("To: " + this.msgHdr.recipients + CRLF);
     this.outputStream.writeString("CC: " + this.msgHdr.ccList + CRLF);
     this.outputStream.writeString("Subject: " + this.msgHdr.subject + CRLF);
+    if (receivedHeader)
+      this.outputStream.writeString("Received: " + receivedHeader + CRLF);
     this.outputStream.writeString("Date: " + new Date(this.msgHdr.date / 1000).toUTCString() + CRLF);
     this.outputStream.writeString("Content-Type: " + contentType.value + "; charset=utf-8" + CRLF + CRLF);
 
