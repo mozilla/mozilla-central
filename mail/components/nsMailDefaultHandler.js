@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 const nsISupports              = Components.interfaces.nsISupports;
 
 const nsICommandLine           = Components.interfaces.nsICommandLine;
@@ -123,14 +125,8 @@ function openURI(uri)
       appstartup.exitLastWindowClosingSurvivalArea();
     },
 
-    QueryInterface: function ll_QI(iid) {
-      if (iid.equals(nsISupports) ||
-          iid.equals(Components.interfaces.nsIRequestObserver) ||
-          iid.equals(Components.interfaces.nsISupportsWeakReference))
-        return this;
-
-      throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIRequestObserver,
+                                           Components.interfaces.nsISupportsWeakReference])
   };
 
   loadgroup.groupObserver = loadlistener;
@@ -156,17 +152,9 @@ function openURI(uri)
 }
 
 var nsMailDefaultHandler = {
-  /* nsISupports */
-
-  QueryInterface : function mdh_QI(iid) {
-    if (iid.equals(nsICommandLineHandler) ||
-        iid.equals(nsICommandLineValidator) ||
-        iid.equals(nsIFactory) ||
-        iid.equals(nsISupports))
-      return this;
-
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  },
+  QueryInterface: XPCOMUtils.generateQI([nsICommandLineHandler,
+                                         nsICommandLineValidator,
+                                         nsIFactory]),
 
   /* nsICommandLineHandler */
 
@@ -388,69 +376,25 @@ var nsMailDefaultHandler = {
   }
 };
 
-const mdh_contractID = "@mozilla.org/mail/clh;1";
-const mdh_CID = Components.ID("{44346520-c5d2-44e5-a1ec-034e04d7fac4}");
+function mailDefaultCommandLineHandler() {}
 
-var Module = {
-  /* nsISupports */
+mailDefaultCommandLineHandler.prototype = {
+  classDescription: "Mail default commandline handler",
+  classID: Components.ID("{44346520-c5d2-44e5-a1ec-034e04d7fac4}"),
+  contractID: "@mozilla.org/mail/clh;1",
 
-  QueryInterface : function QI(iid) {
-    if (iid.equals(Components.interfaces.nsIModule) &&
-        iid.equals(Components.interfaces.nsISupports))
-      return this;
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIModule]),
 
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  },
+  _xpcom_categories:
+    [ { category: "command-line-handler",
+        entry: "x-default" },
+      { category: "command-line-validator",
+        entry: "b-default" } ],
 
-  /* nsIModule */
-  getClassObject : function (compMgr, cid, iid) {
-    if (cid.equals(mdh_CID))
-      return nsMailDefaultHandler.QueryInterface(iid);
-
-    throw Components.results.NS_ERROR_FAILURE;
-  },
-    
-  registerSelf: function mod_regself(compMgr, fileSpec, location, type) {
-    var compReg =
-      compMgr.QueryInterface( Components.interfaces.nsIComponentRegistrar );
-
-    compReg.registerFactoryLocation(mdh_CID,
-                                    "nsMailDefaultHandler",
-                                    mdh_contractID,
-                                    fileSpec,
-                                    location,
-                                    type );
-
-    var catMan = Components.classes["@mozilla.org/categorymanager;1"]
-                           .getService(Components.interfaces.nsICategoryManager);
-
-    catMan.addCategoryEntry("command-line-handler",
-                            "x-default",
-                            mdh_contractID, true, true);
-    catMan.addCategoryEntry("command-line-validator",
-                            "b-default",
-                            mdh_contractID, true, true);
-  },
-    
-  unregisterSelf : function mod_unregself(compMgr, location, type) {
-    var compReg = compMgr.QueryInterface(nsIComponentRegistrar);
-    compReg.unregisterFactoryLocation(mdh_CID, location);
-
-    var catMan = Components.classes["@mozilla.org/categorymanager;1"]
-                           .getService(Components.interfaces.nsICategoryManager);
-
-    catMan.deleteCategoryEntry("command-line-handler",
-                               "x-default", true);
-    catMan.deleteCategoryEntry("command-line-validator",
-                               "b-default", true);
-  },
-
-  canUnload: function(compMgr) {
-    return true;
-  }
+  _xpcom_factory: nsMailDefaultHandler
 }
 
 // NSGetModule: Return the nsIModule object.
 function NSGetModule(compMgr, fileSpec) {
-  return Module;
+  return XPCOMUtils.generateModule([mailDefaultCommandLineHandler]);
 }
