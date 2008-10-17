@@ -224,7 +224,7 @@ MimeObjectClass *
 mime_locate_external_content_handler(const char *content_type,
                                      contentTypeHandlerInitStruct  *ctHandlerInfo)
 {
-  if (!content_type || !*(content_type)) // null or emtpy content type
+  if (!content_type || !*(content_type)) // null or empty content type
     return nsnull;
 
   MimeObjectClass               *newObj = NULL;
