@@ -71,9 +71,12 @@ var gBuildAttachmentPopupForCurrentMsg = true;
 var gBuiltExpandedView = false;
 var gBuiltCollapsedView = false;
 var gMessengerBundle;
-var gProfileDirURL;
-var gIOService;
+
+// Globals for setFromBuddyIcon().
 var gFileHandler;
+var gIOService = null;
+var gProfileDirURL;
+
 var gExtraExpandedHeaders;
 // Show the friendly display names for people I know, instead of the name + email address.
 var gShowCondensedEmailAddresses;
@@ -979,47 +982,54 @@ function OutputEmailAddresses(headerEntry, emailAddresses)
 
 function setFromBuddyIcon(email)
 {
-   var fromBuddyIcon = document.getElementById("fromBuddyIcon");
+  var fromBuddyIcon = document.getElementById("fromBuddyIcon");
 
-   try {
-     // better to cache this?
-     var myScreenName = pref.getCharPref("aim.session.screenname");
-     if (myScreenName)
-     {
+  var myScreenName = null;
+  try {
+    // TODO: Cache this.
+    myScreenName = pref.getCharPref("aim.session.screenname");
+  }
+  catch (ex) {
+    // No screenname preference.
+  }
+  if (myScreenName)
+  {
+    var card = getCardForAddress(email);
+    if (card)
+    {
+      // For now, retrieve the screen name only.
+      var iconURLStr = card.getProperty("_AimScreenName", "");
+      if (iconURLStr)
+      {
+        // Lazily create these globals.
+        if (!gIOService) {
+          gIOService = Components.classes["@mozilla.org/network/io-service;1"]
+                                 .getService(Components.interfaces.nsIIOService);
+          gFileHandler = gIOService.getProtocolHandler("file")
+                                   .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
-     var card = getCardForAddress(email);
-     if (card && card.getProperty("_AimScreenName"))
-     {
-       if (!gIOService) {
-         // lazily create these globals
-         gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-         gFileHandler = gIOService.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-         
-         var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
-             .getService(Components.interfaces.nsIProperties);
-         var profileDir = dirService.get("ProfD", Components.interfaces.nsIFile);
-         gProfileDirURL = gIOService.newFileURI(profileDir);
-       }
+          var profileDir = Components.classes["@mozilla.org/file/directory_service;1"]
+                                     .getService(Components.interfaces.nsIProperties)
+                                     .get("ProfD", Components.interfaces.nsIFile);
+          gProfileDirURL = gIOService.newFileURI(profileDir);
+        }
 
-       // if we did have a buddy icon on disk for this screenname, this would be the file url spec for it
-       var iconURLStr = gProfileDirURL.spec + "/NIM/" + myScreenName + "/picture/" + card.getProperty("_AimScreenName") + ".gif";
+        // If we did have a buddy icon on disk for this screenname,
+        // this would be the file url spec for it.
+        iconURLStr = gProfileDirURL.spec + "/NIM/" + myScreenName
+                                         + "/picture/" + iconURLStr + ".gif";
 
-       // check if the file exists
-       // is this a perf hit?  (how expensive is stat()?)
-       var iconFile = gFileHandler.getFileFromURLSpec(iconURLStr);
-       if (iconFile.exists()) {
-         fromBuddyIcon.setAttribute("src", iconURLStr);
-         return;
-       }
-     }
+        // check if the file exists
+        // is this a perf hit?  (how expensive is stat()?)
+        if (gFileHandler.getFileFromURLSpec(iconURLStr).exists()) {
+          fromBuddyIcon.setAttribute("src", iconURLStr);
+          return;
+        }
+      }
+    }
+  }
 
-     }
-   }
-   catch (ex) {
-     // can get here if no screenname
-     //dump("ex = " + ex + "\n");
-   }
-   fromBuddyIcon.setAttribute("src", "");
+  fromBuddyIcon.setAttribute("src", "");
 }
 
 function updateEmailAddressNode(emailAddressNode, address)
