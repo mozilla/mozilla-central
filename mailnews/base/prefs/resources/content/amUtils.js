@@ -42,42 +42,46 @@ const LOCALFILE_CTRID = "@mozilla.org/file/local;1";
 
 function BrowseForLocalFolders()
 {
-  var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-  var currentFolder = Components.classes[LOCALFILE_CTRID].createInstance(nsILocalFile);
   var currentFolderTextBox = document.getElementById("server.localPath");
+  var fp = Components.classes["@mozilla.org/filepicker;1"]
+                     .createInstance(nsIFilePicker);
 
+  fp.init(window,
+          document.getElementById("browseForLocalFolder")
+                  .getAttribute("filepickertitle"),
+          nsIFilePicker.modeGetFolder);
+
+  var currentFolder = Components.classes[LOCALFILE_CTRID]
+                                .createInstance(nsILocalFile);
   currentFolder.initWithPath(currentFolderTextBox.value);
-
-  fp.init(window, document.getElementById("browseForLocalFolder").getAttribute("filepickertitle"), nsIFilePicker.modeGetFolder);
-
   fp.displayDirectory = currentFolder;
 
-  var ret = fp.show();
-
-  if (ret == nsIFilePicker.returnOK) 
+  if (fp.show() == nsIFilePicker.returnOK)
   {
-    // check that no other account/server has this same local directory
-    var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-    var allServers = accountManager.allServers;
+    // Retrieve the selected folder.
+    var selectedFolder = fp.file;
 
-    for (var i=0; i < allServers.Count(); i++)
+    // check that no other account/server has this same local directory
+    var allServers = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                               .getService(Components.interfaces.nsIMsgAccountManager)
+                               .allServers;
+    for (var i = allServers.Count(); --i >= 0;)
     {
-      var currentServer = allServers.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgIncomingServer);
-      var localPath = currentServer.localPath;
-      if (currentServer.key != gServer.key && fp.file.path == localPath.nativePath)
+      var currentServer = allServers.QueryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
+      if (currentServer.key != gServer.key &&
+          currentServer.localPath.equals(selectedFolder))
       {
         var directoryAlreadyUsed =
-          top.gPrefsBundle.getString("directoryUsedByOtherServer");
-
-        var promptService =
-          Components.classes["@mozilla.org/embedcomp/prompt-service;1"].
-                   getService(Components.interfaces.nsIPromptService);
-        promptService.alert(window, null, directoryAlreadyUsed);
+          top.gPrefsBundle.getFormattedString(
+            "directoryUsedByOtherAccount", [ currentServer.prettyName ]);
+        Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                  .getService(Components.interfaces.nsIPromptService)
+                  .alert(window, null, directoryAlreadyUsed);
         return;
       }
     }
-    // convert the nsILocalFile into a nsIFileSpec 
-    currentFolderTextBox.value = fp.file.path;
+
+    currentFolderTextBox.value = selectedFolder.path;
   }
 }
 
