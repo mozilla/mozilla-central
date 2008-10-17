@@ -433,15 +433,10 @@ nsresult nsSMimeJSHelper::getMailboxList(nsIMsgCompFields *compFields, PRUint32 
 
     char *unique_mailboxes = nsnull;
 
-    {
-      char *all_mailboxes = nsnull;
-      parser->ExtractHeaderAddressMailboxes(all_recipients.get(), &all_mailboxes);
-      parser->RemoveDuplicateAddresses(all_mailboxes, 0, PR_FALSE,
-                                       &unique_mailboxes);
-      if (all_mailboxes) {
-        nsMemory::Free(all_mailboxes);
-      }
-    }
+    nsCString all_mailboxes;
+    parser->ExtractHeaderAddressMailboxes(all_recipients, all_mailboxes);
+    parser->RemoveDuplicateAddresses(all_mailboxes.get(), 0, PR_FALSE,
+                                     &unique_mailboxes);
     if (unique_mailboxes)
     {
       parser->ParseHeaderAddresses(unique_mailboxes, 0, mailbox_list,

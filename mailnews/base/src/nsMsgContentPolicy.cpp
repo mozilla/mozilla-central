@@ -148,8 +148,7 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, 
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString emailAddress; 
-  rv = headerParser->ExtractHeaderAddressMailboxes(author.get(),
-                                                   getter_Copies(emailAddress));
+  rv = headerParser->ExtractHeaderAddressMailboxes(author, emailAddress);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbManager> abManager = do_GetService("@mozilla.org/abmanager;1",

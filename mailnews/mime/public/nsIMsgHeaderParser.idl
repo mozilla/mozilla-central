@@ -49,7 +49,7 @@ interface nsISimpleEnumerator;
 /* 
  * nsIMsgRFCParser Interface declaration 
  */ 
-[scriptable, uuid(a6f865a2-eb19-4072-bd44-6720e69adbc6)]
+[scriptable, uuid(96502670-07dd-4dd3-987a-ee6cafa8afa3)]
 interface nsIMsgHeaderParser : nsISupports {
 
   void parseHeadersWithArray(in wstring aLine, 
@@ -88,8 +88,7 @@ interface nsIMsgHeaderParser : nsISupports {
    * @return               A comma-separated list of just the mailbox parts
    *                       of the email-addresses.
    */
-  string extractHeaderAddressMailboxes(in string aLine);
-
+  ACString extractHeaderAddressMailboxes(in ACString aLine);
 
   /**
    * Given a string which contains a list of Header addresses, returns a

@@ -1913,8 +1913,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     if (whiteListDirArray.Count() != 0 || !trustedMailDomains.IsEmpty())
     {
       msgHdr->GetAuthor(getter_Copies(author));
-      rv = headerParser->ExtractHeaderAddressMailboxes(author.get(),
-                                                       getter_Copies(authorEmailAddress));
+      rv = headerParser->ExtractHeaderAddressMailboxes(author, authorEmailAddress);
     }
 
     if (!trustedMailDomains.IsEmpty())

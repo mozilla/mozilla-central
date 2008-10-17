@@ -1877,16 +1877,16 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
             if (parser) {
               // convert to UTF8 before passing to MakeFullAddress
-              rv = parser->ExtractHeaderAddressMailboxes(author.get(),
-                                                         getter_Copies(authorEmailAddress));
+              rv = parser->ExtractHeaderAddressMailboxes(author,
+                                                         authorEmailAddress);
               NS_ENSURE_SUCCESS(rv,rv);
 
-              rv = parser->ExtractHeaderAddressMailboxes(recipients.get(),
-                                                         getter_Copies(recipientsEmailAddresses));
+              rv = parser->ExtractHeaderAddressMailboxes(recipients,
+                                                         recipientsEmailAddresses);
               NS_ENSURE_SUCCESS(rv,rv);
 
-              rv = parser->ExtractHeaderAddressMailboxes(ccList.get(),
-                                                         getter_Copies(ccListEmailAddresses));
+              rv = parser->ExtractHeaderAddressMailboxes(ccList,
+                                                         ccListEmailAddresses);
               NS_ENSURE_SUCCESS(rv,rv);
             }
 

@@ -70,7 +70,6 @@ static int msg_parse_Header_addresses(const char *line, char **names, char **add
                                       PRBool first_only_p = PR_FALSE);
 static int msg_quote_phrase_or_addr(char *address, PRInt32 length, PRBool addr_p);
 static nsresult msg_unquote_phrase_or_addr(const char *line, PRBool strict, char **lineout);
-static char *msg_extract_Header_address_mailboxes(const char *line);
 static char *msg_extract_Header_address_names(const char *line);
 static char *msg_extract_Header_address_name(const char *line);
 #if 0
@@ -197,15 +196,6 @@ nsMsgHeaderParser::ParseHeaderAddresses(const char *aLine, char **aNames,
 {
   NS_ENSURE_ARG_POINTER(aNumAddresses);
   *aNumAddresses = msg_parse_Header_addresses(aLine, aNames, aAddresses);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsMsgHeaderParser::ExtractHeaderAddressMailboxes(const char *aLine,
-                                                 char **aMailboxes)
-{
-  NS_ENSURE_ARG_POINTER(aMailboxes);
-  *aMailboxes = msg_extract_Header_address_mailboxes(aLine);
   return NS_OK;
 }
 
@@ -1105,37 +1095,43 @@ msg_unquote_phrase_or_addr(const char *line, PRBool preserveIntegrity, char **li
   return NS_OK;
 }
 
-/* msg_extract_Header_address_mailboxes
- *
+/**
  * Given a string which contains a list of Header addresses, returns a
  * comma-separated list of just the `mailbox' portions.
  */
-static char *
-msg_extract_Header_address_mailboxes(const char *line)
+NS_IMETHODIMP
+nsMsgHeaderParser::ExtractHeaderAddressMailboxes(const nsACString &aLine,
+                                                 nsACString &aResult)
 {
-  char *addrs = 0;
-  char *result, *s, *out;
-  PRUint32 i, size = 0;
-  int status = msg_parse_Header_addresses(line, NULL, &addrs);
-  if (status <= 0)
-    return NULL;
+  if (aLine.IsEmpty())
+  {
+    aResult.Truncate();
+    return NS_OK;
+  }
 
-  s = addrs;
+  char *addrs = 0;
+  int status = msg_parse_Header_addresses(PromiseFlatCString(aLine).get(),
+                                          NULL, &addrs);
+  if (status <= 0)
+    return NS_ERROR_FAILURE;
+
+  char *s = addrs;
+  PRUint32 i, size = 0;
+
   for (i = 0; (int) i < status; i++)
   {
     PRUint32 j = strlen(s);
     s += j + 1;
-    size += j + 2;
+    if ((int)(i + 1) < status)
+      size += j + 2;
+    else
+      size += j;
   }
 
-  result = (char*)PR_Malloc(size + 1);
-  if (!result)
-  {
-    PR_Free(addrs);
-    return 0;
-  }
-  out = result;
+  nsCString result;
+  result.SetLength(size);
   s = addrs;
+  char* out = result.BeginWriting();
   for (i = 0; (int)i < status; i++)
   {
     PRUint32 j = strlen(s);
@@ -1148,10 +1144,10 @@ msg_extract_Header_address_mailboxes(const char *line)
     }
     s += j + 1;
   }
-  *out = 0;
 
   PR_Free(addrs);
-  return result;
+  aResult = result;
+  return NS_OK;
 }
 
 
