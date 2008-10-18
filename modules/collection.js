@@ -136,6 +136,52 @@ var GlodaCollectionManager = {
   },
 
   /**
+   * Lookup multiple nouns by ID from the cache/existing collections.
+   * @return [The number that were found, the number that were not found.]
+   */
+  cacheLookupMany: function gloda_colm_cacheLookupOne(aNounID, aIDMap,
+      aDoCache) {
+    let foundCount = 0, notFoundCount = 0, notFound = {};
+    
+    let cache = this._cachesByNoun[aNounID];
+    
+    if (cache) {
+      for (let key in aIDMap) {
+        let cacheValue = cache._idMap[key];
+        if (cacheValue === undefined) {
+          notFoundCount++;
+          notFound[key] = null;
+        }
+        else {
+          foundCount++;
+          aIDMap[key] = cacheValue;
+          cache.hit(cacheValue);
+        }
+      }
+    }
+
+    if (aDoCache === false)
+      cache = null;
+    
+    for each (let [iCollection, collection] in
+              Iterator(this.getCollectionsForNounID(aNounID))) {
+      for (let key in notFound) {
+        let collValue = collection._idMap[key];
+        if (collValue !== undefined) {
+          aIDMap[key] = collValue;
+          delete notFound[key];
+          foundCount++;
+          notFoundCount--;
+          if (cache)
+            cache.add([collValue]);
+        }
+      }
+    }
+    
+    return [foundCount, notFoundCount, notFound];
+  },
+  
+  /**
    * Attempt to locate an instance of the object of the given noun type with the
    *  given id.  Counts as a cache hit if found.  (And if it was't in a cache,
    *  but rather a collection, it is added to the cache.)
@@ -381,7 +427,8 @@ var GlodaCollectionManager = {
  *  because it is exposing those attributes).
  * @constructor 
  */
-function GlodaCollection(aNounDef, aItems, aQuery, aListener) {
+function GlodaCollection(aNounDef, aItems, aQuery, aListener,
+      aMasterCollection) {
   // if aNounDef is null, we are just being invoked for subclassing
   if (aNounDef === undefined)
     return;
@@ -391,6 +438,7 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener) {
   if (this._nounDef.usesUniqueValue)
     this._uniqueValueMap = {};
 
+  this.pendingItems = [];
   this.items = [];
   this._idMap = {};
   
@@ -402,8 +450,14 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener) {
   this.query = aQuery || null;
   this._listener = aListener || null;
   
-  this.referencesByNounID = {};
-  this.subCollections = {};
+  if (aMasterCollection) {
+    this.masterCollection = aMasterCollection;
+  }
+  else {
+    this.masterCollection = this;
+    this.referencesByNounDef = {};
+    this.subCollections = {};
+  }
 }
 
 GlodaCollection.prototype = {

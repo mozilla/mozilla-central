@@ -130,7 +130,7 @@ GlodaAttributeDef.prototype = {
       else {
         for each (let [iValue, instanceValue] in Iterator(aInstanceValues)) {
           dbAttributes.push([this._id,
-                             nounDef.toParamAndValue(instanceValue)[1]);
+                             nounDef.toParamAndValue(instanceValue)[1]]);
         }
       }
       return dbAttributes;
@@ -296,14 +296,14 @@ GlodaFolder.prototype = {
   kFolderFilthy: 2,
   get id() { return this._id; },
   get uri() { return this._uri; },
-  get dirtyStatus { return this._dirtyStatus; },
-  set dirtyStatus (aNewStatus) {
+  get dirtyStatus() { return this._dirtyStatus; },
+  set dirtyStatus(aNewStatus) {
     if (aNewStatus != this._dirtyStatus) {
       this._dirtyStatus = aNewStatus;
       this._datastore.updateFolderDirtyStatus(this);
     }
   },
-  get name { return this._prettyName; },
+  get name() { return this._prettyName; },
   toString: function gloda_folder_toString() {
     return this._prettyName;
   }

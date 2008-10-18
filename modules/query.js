@@ -105,12 +105,7 @@ GlodaQueryClass.prototype = {
    *  removed respectively.
    */
   getCollection: function gloda_query_getCollection(aListener, aData) {
-    return this._nounDef.datastore.queryFromQuery(this, aListener, false,
-      aData);
-  },
-  
-  getAllSync: function gloda_query_getAllSync(aListener) {
-    return this._nounDef.datastore.queryFromQuery(this, aListener, true);
+    return this._nounDef.datastore.queryFromQuery(this, aListener, aData);
   },
   
   /**
@@ -129,69 +124,164 @@ GlodaQueryClass.prototype = {
       let querySatisfied = true;
       for (let iConstraint = 0; iConstraint < curQuery._constraints.length; 
            iConstraint++) {
-        let attr_ors = curQuery._constraints[iConstraint];
+        let constraint = curQuery._constraints[iConstraint];
+        let [constraintType, attrDef] = constraint;
+        let constraintValues = constraint.slice(2);
         
-        // the attribute is the same for a given constraint, so we can pull it
-        //  out here.
-        let attribDef = attr_ors[0][0];
-        let attribVal = attribDef.getValueFromInstance(aObj);
-        
-        if (attribDef.singular) {
-          // assume failure unless we find an or that matches...
-          let orSatisfied = false;
-          for (let iOrIndex = 0; iOrIndex < attr_ors.length; iOrIndex++) {
-            let APV = attr_ors[iOrIndex];
-            
-            // straight value match
-            if (APV.length == 3) {
-              if (APV[2] == attribVal) {
-                orSatisfied = true;
-                break;
-              }
-            }
-            else { // APV.length == 4, range match
-              if ((APV[2] <= attribVal) && (attribVal <= APV[3])) {
-                orSatisfied = true;
-                break;
-              } 
-            }
-          }
-          if (!orSatisfied) { 
+        if (constraintType === this.kConstraintIdIn) {
+          if (constraintValues.indexOf(aObj.id) == -1) {
             querySatisfied = false;
             break;
           }
         }
-        else { // not singular
-          // assume failure unless we find an or that matches...
-          let orSatisfied = false;
-          for (let iOrIndex = 0; iOrIndex < attr_ors.length; iOrIndex++) {
-            let APV = attr_ors[iOrIndex];
-            
-            // see if the value is present in any of the values on the object
-            if (APV.length == 3) {
-              if (attribVal.indexOf(APV[2]) != -1) {
-                orSatisfied = true;
-                break;
-              }
-            }
-            else { // APV.length == 4
-              // see if any of the values are in any of the ranges
-              for (let iVal = 0; iVal < attribVal.length; iVal++) {
-                let curVal = attribVal[iVal];
-                if ((APV[2] <= curVal) && (curVal <= APV[3])) {
-                  orSatisfied = true;
+        else if ((constraintType === this.kConstraintIn) ||
+                 (constraintType === this.kConstraintEquals)) {
+          let objectNounDef = attrDef.objectNounDef;
+          
+          // if they provide an equals comparator, use that.
+          // (note: the next case has better optimization possibilities than
+          //  this mechanism, but of course has higher initialization costs or
+          //  code complexity costs...)
+          if (objectNounDef.equals) {
+            let testValues;
+            if (attrDef.singular)
+              testValues = [aObj[attrDef.boundName]];
+            else
+              testValues = aObj[attrDef.boundName];
+
+            let foundMatch = false;
+            for each (let [,testValue] in Iterator(testValues)) {
+              for each (let [,value] in Iterator(constraintValues)) {
+                if (objectNounDef.equals(testValue, value)) {
+                  foundMatch = true;
                   break;
                 }
               }
-              if (orSatisfied)
+              if (foundMatch)
                 break;
             }
+            if (!foundMatch) {
+              querySatisfied = false;
+              break;
+            }
           }
-          if (!orSatisfied) { 
+          // otherwise, we need to convert everyone to their param/value form
+          //  in order to test for equality
+          else {
+            // let's just do the simple, obvious thing for now.  which is
+            //  what we did in the prior case but exploding values using
+            //  toParamAndValue, and then comparing.
+            let testValues;
+            if (attrDef.singular)
+              testValues = [aObj[attrDef.boundName]];
+            else
+              testValues = aObj[attrDef.boundName];
+
+            let foundMatch = false;
+            for each (let [,testValue] in Iterator(testValues)) {
+              let [aParam, aValue] = objectNounDef.toParamAndValue(testValue);
+              for each (let [,value] in Iterator(constraintValues)) {
+                let [bParam, bValue] = objectNounDef.toParamAndValue(value);
+                if (aParam == bParam && aVAlue == bValue) {
+                  foundMatch = true;
+                  break;
+                }
+              }
+              if (foundMatch)
+                break;
+            }
+            if (!foundMatch) {
+              querySatisfied = false;
+              break;
+            }
+          }
+        }
+        else if (constraintType === this.kConstraintRanges) {
+          let testValues;
+          if (attrDef.singular)
+            testValues = [aObj[attrDef.boundName]];
+          else
+            testValues = aObj[attrDef.boundName];
+
+          let foundMatch = false;
+          for each (let [,testValue] in Iterator(testValues)) {
+            let [tParam, tValue] = objectNounDef.toParamAndValue(testValue);
+            for each (let [,rangeTuple] in Iterator(constraintValues)) {
+              let [lowRValue, upperRValue] = rangeTuple;
+              if (lowRValue == null) {
+                let [upperParam, upperValue] =
+                  objectNounDef.toParamAndValue(upperRValue);
+                if (tParam == upperParam && tValue <= upperValue) {
+                  foundMatch = true;
+                  break;
+                }
+              }
+              else if (upperRValue == null) {
+                let [lowerParam, lowerValue] =
+                  objectNounDef.toParamAndValue(lowerRValue);
+                if (tParam == lowerParam && tValue >= lowerValue) {
+                  foundMatch = true;
+                  break;
+                }
+              }
+              else { // no one is null
+                let [upperParam, upperValue] =
+                  objectNounDef.toParamAndValue(upperRValue);
+                let [lowerParam, lowerValue] =
+                  objectNounDef.toParamAndValue(lowerRValue);
+                if ((tParam == lowerParam) && (tValue >= lowerValue) &&
+                    (tParam == upperParam) && (tValue <= upperValue)) {
+                  foundMatch = true;
+                  break;
+                }
+              }
+            }
+            if (foundMatch)
+              break;
+          }
+          if (!foundMatch) {
             querySatisfied = false;
             break;
           }
         }
+        else if (constraintType === this.kConstraintStringLike) {
+          let curIndex = 0;
+          let value = aObj[attrDef.boundName];
+          // the attribute must be singular, we don't support arrays of strings.
+          for each (let [iValuePart, valuePart] in Iterator(constraintValues)) {
+            if (typeof valuePart == "string") {
+              let index = value.indexOf(valuePart);
+              // if curIndex is null, we just need any match
+              // if it's not null, it must match the offset of our found match
+              if (curIndex === null) {
+                if (index == -1)
+                  querySatisfied = false;
+                else
+                  curIndex = index + valuePart.length;
+              }
+              else {
+                if (index != curIndex)
+                  querySatisfied = false;
+                else
+                  curIndex = index + valuePart.length;
+              }
+              if (!querySatisfied)
+                break;
+            }
+            else // wild!
+              curIndex = null;
+          }
+          // curIndex must be null or equal to the length of the string
+          if (querySatisfied && curIndex !== null && curIndex != value.length)
+            querySatisfied = false;
+        }
+        else if (constraintType === this.kConstraintFulltext) {
+          // this is beyond our powers.  don't match.
+          querySatisfied = false;
+        }
+        
+        if (!querySatisfied)
+          break;
       }
       
       if (querySatisfied)
@@ -213,7 +303,7 @@ GlodaExplicitQueryClass.prototype = {
   or: function() { return null; },
   // don't let people try and query on us (until we have a real use case for
   //  that...)
-  getAllSync: function() { return null; },
+  getCollection: function() { return null; },
   /**
    * Matches only items that are already in the collection (by id).
    */
@@ -234,7 +324,7 @@ GlodaWildcardQueryClass.prototype = {
   or: function() { return null; },
   // don't let people try and query on us (until we have a real use case for
   //  that...)
-  getAllSync: function() { return null; },
+  getCollection: function() { return null; },
   /**
    * Everybody wins!
    */

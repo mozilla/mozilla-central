@@ -276,9 +276,6 @@ var GlodaFundAttr = {
     let aMsgHdr = aRawReps.header;
     let aMimeMsg = aRawReps.mime;
     
-    let attribs = aGlodaMessage.attributes;
-    let optimizations = aGlobaMessage.optimizationAttributes;
-    
     let involvedIdentities = {};
     
     let involved = aGlodaMessage.involved;
@@ -330,7 +327,7 @@ var GlodaFundAttr = {
     if (authorIdentities.length == 0) {
       this._log.error("Message with subject '" + aMsgHdr.mime2DecodedSubject +
                       "' somehow lacks a valid author.  Bailing.");
-      return attribs;
+      return; // being a generator, this generates an exception; we like.
     }
     aGlodaMessage.from = authorIdentities[0];
     involved.push(authorIdentities[0]);
@@ -351,16 +348,13 @@ var GlodaFundAttr = {
       }
       // optimization attribute to-me ('I' am the parameter)
       if (toIdentity.id in myIdentities) {
-        attribs.push([this._attrCcMe.bindParameter(toIdentity.id),
-                      authorIdentity.id]);
+        toMe.push([toIDentity, authorIdentity]);
         if (aIsNew)
           authorIdentity.contact.popularity += this.POPULARITY_TO_ME;
       }
       // optimization attribute from-me-to ('I' am the parameter)
       if (isFromMe) {
-        fromMeTo.push(
-        attribs.push([this._attrFromMeCc.bindParameter(authorIdentity.id),
-                      toIdentity.id]);
+        fromMeTo.push([authorIdentity, toIdentity]);
         // also, popularity
         if (aIsNew)
           toIdentity.contact.popularity += this.POPULARITY_FROM_ME_TO;
@@ -368,22 +362,20 @@ var GlodaFundAttr = {
     }
     for (let iCc = 0; iCc < ccIdentities.length; iCc++) {
       let ccIdentity = ccIdentities[iCc];
-      attribs.push([this._attrCc.id, ccIdentity.id]);
+      cc.push(ccIdentity);
       if (!(ccIdentity.id in involvedIdentities)) {
-        attribs.push([this._attrInvolves.id, ccIdentity.id]);
+        involved.push(ccIdentity);
         involvedIdentities[ccIdentity.id] = true;
       }
       // optimization attribute cc-me ('I' am the parameter)
       if (ccIdentity.id in myIdentities) {
-        attribs.push([this._attrCcMe.bindParameter(ccIdentity.id),
-                      authorIdentity.id]);
+        ccMe.push([ccIdentity, authorIdentity]);
         if (aIsNew)
           authorIdentity.contact.popularity += this.POPULARITY_CC_ME;
       }
       // optimization attribute from-me-to ('I' am the parameter)
       if (isFromMe) {
-        attribs.push([this._attrFromMeCc.bindParameter(authorIdentity.id),
-                      ccIdentity.id]);
+        fromMeCc.push([authorIdentity, ccIdentity]);
         // also, popularity
         if (aIsNew)
           ccIdentity.contact.popularity += this.POPULARITY_FROM_ME_CC;
@@ -394,9 +386,6 @@ var GlodaFundAttr = {
     //  convincing the indexer to pass us in the previous message if it is
     //  available.  (which we'll simply pass to everyone... it can help body
     //  logic for quoting purposes, etc. too.)
-    
-    // -- Date
-    attribs.push([this._attrDate.id, aMsgHdr.date]);
     
     yield Gloda.kWorkDone;
   },

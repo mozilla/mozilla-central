@@ -78,7 +78,7 @@ var TagNoun = {
   },
   toJSON: function gloda_noun_tag_toJSON(aTag) {
     return aTag.key;
-  }
+  },
   fromParamAndValue: function gloda_noun_tag_fromParameterValue(aTagKey,
                                                                 aIgnored) {
     let tag = this._tagMap[aTagKey];

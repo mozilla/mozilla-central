@@ -947,14 +947,15 @@ var Gloda = {
         
         return [added, removed];
       },
-      contributeObjDependencies: function(aJsonValues, aReferencesByNounID) {
+      contributeObjDependencies: function(aJsonValues, aReferencesByNounDef) {
         // nothing to do with a zero-length list
         if (aJsonValues.length == 0)
           return false;
       
-        let references = aReferencesByNounID[this.NOUN_IDENTITY];
+        let nounIdentityDef = Gloda._nounIDToDef[this.NOUN_IDENTITY]
+        let references = aReferencesByNounDef[nounIdentityDef];
         if (references === undefined)
-          references = aReferencesByNounID[this.NOUN_IDENTITY] = {};
+          references = aReferencesByNounDef[nounIdentityDef] = {};
         
         for each (let [, tupe] in Iterator(aJsonValues)) {
           let [originIdentityID, targetIdentityID] = tupe;
@@ -964,10 +965,9 @@ var Gloda = {
         
         return true;
       },
-      resolveObjDependencies: function(aJsonValues, aReferencesByNounID) {
-        let references = aReferencesByNounID[this.NOUN_IDENTITY];
-        if (references === undefined)
-          references = aReferencesByNounID[this.NOUN_IDENTITY] = {};
+      resolveObjDependencies: function(aJsonValues, aReferencesByNounDef) {
+        let references =
+          aReferencesByNounDef[Gloda._nounIDToDef[this.NOUN_IDENTITY]];
         
         let results = [];
         for each (let [, tupe] in Iterator(aJsonValues)) {

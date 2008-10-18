@@ -188,24 +188,7 @@ function ContactIdentityCompleter() {
   // get all the contacts
   let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
   contactQuery.orderBy("-popularity").limit(MAX_POPULAR_CONTACTS);
-  this.contactCollection = contactQuery.getAllSync();
-
-  // cheat and explicitly add our own contact...
-  if (!(Gloda.myContact.id in this.contactCollection._idMap))
-    this.contactCollection._onItemsAdded([Gloda.myContact]);
-    
-  // the set of identities owned by the contacts is automatically loaded as part
-  //  of the contact loading...
-  this.identityCollection =
-    this.contactCollection.subCollections[Gloda.NOUN_IDENTITY];
-
-  let contactNames = [(c.name.replace(" ", "").toLowerCase() || "x") for each
-                      ([, c] in Iterator(this.contactCollection.items))];
-  let identityMails = [i.value.toLowerCase() for each
-                       ([, i] in Iterator(this.identityCollection.items))];
-
-  this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
-    this.contactCollection.items.concat(this.identityCollection.items));
+  this.contactCollection = contactQuery.getCollection(this, null);
 }
 ContactIdentityCompleter.prototype = {
   _popularitySorter: function(a, b){ return b.popularity - a.popularity; },
@@ -213,7 +196,11 @@ ContactIdentityCompleter.prototype = {
     if (aString.length < 3)
       return false;
 
-    let matches = this.suffixTree.findMatches(aString.toLowerCase());
+    let matches;
+    if (this.suffixTree)
+      matches = this.suffixTree.findMatches(aString.toLowerCase());
+    else
+      matches = [];
 
     // let's filter out duplicates due to identity/contact double-hits by
     //  establishing a map based on the contact id for these guys.
@@ -241,14 +228,12 @@ ContactIdentityCompleter.prototype = {
     
     let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
     contactQuery.nameLike([contactQuery.WILD, aString, contactQuery.WILD]);
-    pending.contactColl = contactQuery.getCollection(this);
-    pending.contactColl.data = aResult;
+    pending.contactColl = contactQuery.getCollection(this, aResult);
 
     let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
     identityQuery.kind("email").valueLike([identityQuery.WILD, aString,
         identityQuery.WILD]);
-    pending.identityColl = identityQuery.getCollection(this);
-    pending.identityColl.data = aResult;
+    pending.identityColl = identityQuery.getCollection(this, aResult);
     
     aResult._contactCompleterPending = pending;
 
@@ -261,6 +246,29 @@ ContactIdentityCompleter.prototype = {
   onItemsRemoved: function(aItems, aCollection) {
   },
   onQueryCompleted: function(aCollection) {
+    // handle the initial setup case...
+    if (aCollection.data == null) {
+      // cheat and explicitly add our own contact...
+      if (!(Gloda.myContact.id in this.contactCollection._idMap))
+        this.contactCollection._onItemsAdded([Gloda.myContact]);
+        
+      // the set of identities owned by the contacts is automatically loaded as part
+      //  of the contact loading...
+      this.identityCollection =
+        this.contactCollection.subCollections[Gloda.NOUN_IDENTITY];
+
+      let contactNames = [(c.name.replace(" ", "").toLowerCase() || "x") for each
+                          ([, c] in Iterator(this.contactCollection.items))];
+      let identityMails = [i.value.toLowerCase() for each
+                           ([, i] in Iterator(this.identityCollection.items))];
+
+      this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
+        this.contactCollection.items.concat(this.identityCollection.items));
+      
+      return;
+    }
+    
+    // handle the completion case
     let result = aCollection.data;
     let pending = result._contactCompleterPending;
     
