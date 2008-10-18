@@ -1977,6 +1977,11 @@ var GlodaIndexer = {
     MsgHdrToMimeMessage(aMsgHdr, aCallbackHandle, aCallbackHandle.callback);
     let aMimeMsg = yield this.kWorkAsync;
 
+    if (aMimeMsg)
+      this._log.debug("  * Got Body! Length: " + aMimeMsg.body.length);
+    else
+      this._log.debug("  * Did not get body!");
+
     // -- Find/create the conversation the message belongs to.
     // Our invariant is that all messages that exist in the database belong to
     //  a conversation.
