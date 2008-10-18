@@ -50,27 +50,23 @@ const LOG = Log4Moz.Service.getLogger("gloda.datamodel");
 Cu.import("resource://gloda/modules/utils.js");
 
 /**
- * @class Represents a gloda attribute definition.
+ * @class Represents a gloda attribute definition's DB form.  This class
+ *  stores the information in the database relating to this attribute
+ *  definition.  Access its attrDef attribute to get at the realy juicy data.
+ *  This main interesting thing this class does is serve as the keeper of the
+ *  mapping from parameters to attribute ids in the database if this is a 
+ *  parameterized attribute.
  */
-function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
-                           aPluginName, aAttrName, aSubjectTypes,
-                           aObjectType, aObjectNounDef) {
+function GlodaAttributeDBDef(aDatastore, aID, aCompoundName, aAttrType,
+                           aPluginName, aAttrName) {
   this._datastore = aDatastore;
   this._id = aID;
   this._compoundName = aCompoundName;
-  this._provider = aProvider;
   this._attrType = aAttrType;
   this._pluginName = aPluginName;
   this._attrName = aAttrName;
-  this._subjectTypes = aSubjectTypes;
-  this._objectType = aObjectType;
-  this._objectNounDef = aObjectNounDef;
-
-  this.boundName = null;
-  this._singular = null;
-
-  this._special = 0; // not special
-  this._specialColumnName = null;
+  
+  this.attrDef = null;
 
   /** Map parameter values to the underlying database id. */
   this._parameterBindings = {};
@@ -78,20 +74,10 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
 
 GlodaAttributeDef.prototype = {
   get id() { return this._id; },
-  get provider() { return this._provider; },
   get attributeName() { return this._attrName; },
 
-  get objectNoun() { return this._objectType; },
-  get objectNounDef() { return this._objectNounDef; },
-
-  get isBound() { return this.boundName !== null; },
-  get singular() { return this._singular; },
-
-  get special() { return this._special; },
-  get specialColumnName() { return this._specialColumnName; },
-  
   get parameterBindings() { return this._parameterBindings; },
-
+  
   /**
    * Bind a parameter value to the attribute definition, allowing use of the
    *  attribute-parameter as an attribute.

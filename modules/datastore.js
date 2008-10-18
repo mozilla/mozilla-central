@@ -139,9 +139,9 @@ PostCommitHandler.prototype = {
  * @class Handles the results from a GlodaDatastore.queryFromQuery call.
  * @constructor
  */
-function QueryFromQueryCallback(aStatement, aNounMeta, aCollection) {
+function QueryFromQueryCallback(aStatement, aNounDef, aCollection) {
   this.statement = aStatement;
-  this.nounMeta = aNounMeta;
+  this.nounDef = aNounDef;
   this.collection = aCollection;
   
   this.referencesByNounID = {};
@@ -153,9 +153,9 @@ QueryFromQueryCallback.prototype = {
   handleResult: function gloda_ds_qfq_handleResult(aResultSet) {
     let newItems = [];
     let row;
-    let nounMeta = this.nounMeta;
+    let nounDef = this.nounDef;
     while (row = aResultSet.getNextRow()) {
-      let item = nounMeta.objFromRow.call(nounMeta.datastore, row);
+      let item = nounDef.objFromRow.call(nounDef.datastore, row);
       GlodaDatastore.loadNounItem(item, this.referencesByNounID);
       newItems.push(item);
     }
@@ -169,7 +169,7 @@ QueryFromQueryCallback.prototype = {
     //  to have our items added to the cache.  after all, as long as our
     //  collection is alive, they can just be found there anyways.  (and when
     //  found there, they may be promoted to the cache anyways.)
-    GlodaCollectionManager.cacheLoadUnify(nounMeta.id, newItems, false);
+    GlodaCollectionManager.cacheLoadUnify(nounDef.id, newItems, false);
 
     // just directly tell the collection about the items.  we know the query
     //  matches (at least until we introduce predicates that we cannot express
@@ -292,11 +292,12 @@ var GlodaDatastore = {
   kSpecialString: 2,
   kSpecialFulltext: 3,
   
-  kMagicAttrIDs: -1,
-  
-  kConstraintEquals: 0,
+  kConstraintIdIn: 0,
   kConstraintIn: 1,
   kConstraintRanges: 2,
+  kConstraintEquals: 3,
+  kConstraintStringLike: 4,
+  kConstraintFulltext: 5,
 
   /* ******************* SCHEMA ******************* */
 
@@ -959,10 +960,10 @@ var GlodaDatastore = {
   },
 
   /* ********** Attribute Definitions ********** */
-  /** Maps (attribute def) compound names to the GlodaAttributeDef objects. */
-  _attributes: {},
+  /** Maps (attribute def) compound names to the GlodaAttributeDBDef objects. */
+  _attributeDBDefs: {},
   /** Map attribute ID to the definition and parameter value that produce it. */
-  _attributeIDToDef: {},
+  _attributeIDToDBDefAndParam: {},
   /**
    * We maintain the attributeDefinitions next id counter mainly because we can.
    *  Since we mediate the access, there's no real risk to doing so, and it
@@ -1015,9 +1016,9 @@ var GlodaDatastore = {
 
   /**
    * Sync-ly look-up all the attribute definitions, populating our authoritative
-   *  _attributes and _attributeIDToDef maps.  (In other words, once this method
-   *  is called, those maps should always be in sync with the underlying
-   *  database.)
+   *  _attributeDBDefss and _attributeIDToDBDefAndParam maps.  (In other words,
+   *  once this method is called, those maps should always be in sync with the
+   *  underlying database.)
    */
   getAllAttributes: function gloda_ds_getAllAttributes() {
     let stmt = this._createSyncStatement(
@@ -1045,10 +1046,8 @@ var GlodaDatastore = {
       if (compoundName in attribs) {
         attrib = attribs[compoundName];
       } else {
-        attrib = new GlodaAttributeDef(this, /* aID */ null,
-          compoundName, /* aProvider */ null, rowAttributeType,
-          rowExtensionName, rowName, /* subject types */ null,
-          /* obj type */ null, /* noun def */ null);
+        attrib = new GlodaAttributeDBDef(this, /* aID */ null,
+          compoundName, rowAttributeType, rowExtensionName, rowName);
         attribs[compoundName] = attrib;
       }
       // if the parameter is null, the id goes on the attribute def, otherwise
@@ -1065,8 +1064,8 @@ var GlodaDatastore = {
 
     this._log.info("done loading all attribute defs");
 
-    this._attributes = attribs;
-    this._attributeIDToDef = idToAttribAndParam;
+    this._attributeDBDefs = attribs;
+    this._attributeIDToDBDefAndParam = idToAttribAndParam;
   },
 
   /**
@@ -1076,7 +1075,7 @@ var GlodaDatastore = {
    *  an additional argument and obviate the need for this method.
    */
   reportBinding: function gloda_ds_reportBinding(aID, aAttrDef, aParamValue) {
-    this._attributeIDToDef[aID] = [aAttrDef, aParamValue];
+    this._attributeIDToDBDefAndParam[aID] = [aAttrDef, aParamValue];
   },
 
   /* ********** Folders ********** */
@@ -2043,10 +2042,10 @@ var GlodaDatastore = {
     smas.bindInt64Parameter(0, aMessage.id);
     while (this._syncStep(smas)) {
       let attributeID = smas.getInt64(0);
-      if (!(attributeID in this._attributeIDToDef)) {
+      if (!(attributeID in this._attributeIDToDBDefAndParam)) {
         this._log.error("Attribute ID " + attributeID + " not in our map!");
       }
-      let attribAndParam = this._attributeIDToDef[attributeID];
+      let attribAndParam = this._attributeIDToDBDefAndParam[attributeID];
       let val = smas.getDouble(1);
       attribParamVals.push([attribAndParam[0], attribAndParam[1], val]);
     }
@@ -2065,18 +2064,18 @@ var GlodaDatastore = {
   /* ===== Generic Attribute Support ===== */
   adjustAttributes: function gloda_ds_adjustAttributes(aItem, aAddDBAttributes,
       aRemoveDBAttributes) {
-    let nounMeta = aItem.NOUN_META;
-    let dbMeta = nounMeta._dbMeta;
+    let nounDef = aItem.NOUN_DEF;
+    let dbMeta = nounDef._dbMeta;
     if (dbMeta.insertAttrStatement === undefined) {
       dbMeta.insertAttrStatement = this._createAsyncStatement(
-        "INSERT INTO " + nounMeta.attrTableName +
-        " (" + nounMeta.attrIDColumnName + ", attributeID, value) " +
+        "INSERT INTO " + nounDef.attrTableName +
+        " (" + nounDef.attrIDColumnName + ", attributeID, value) " +
         " VALUES (?1, ?2, ?3)");
       // we always create this at the same time (right here), no need to check
       dbMeta.deleteAttrStatement = this._createAsyncStatement(
-        "DELETE FROM " + nounMeta.attrTableName + " WHERE " +
+        "DELETE FROM " + nounDef.attrTableName + " WHERE " +
         " attributeID = ?1 AND value = ?2 AND " +
-        nounMeta.attrIDColumnName + " = ?3");
+        nounDef.attrIDColumnName + " = ?3");
     }
 
     let ias = dbMeta.insertAttrStatement;
@@ -2124,12 +2123,12 @@ var GlodaDatastore = {
   },
 
   clearAttributes: function gloda_ds_clearAttributes(aItem) {
-    let nounMeta = aItem.NOUN_META;
+    let nounDef = aItem.NOUN_DEF;
     let dbMeta = nounMeta._dbMeta;
     if (dbMeta.clearAttrStatement === undefined) {
       dbMeta.clearAttrStatement = this._createAsyncStatement(
-        "DELETE FROM " + nounMeta.attrTableName + " WHERE " +
-        nounMeta.attrIDColumnName + " = ?1");
+        "DELETE FROM " + nounDef.attrTableName + " WHERE " +
+        nounDef.attrIDColumnName + " = ?1");
     }
   
     if (aItem.id != null) {
@@ -2149,6 +2148,106 @@ var GlodaDatastore = {
     return this._escapeLikeStatement;
   },
 
+  _convertToDBValuesAndGroupByAttributeID:
+    function gloda_ds__convertToDBValuesAndGroupByAttributeID(aAttrDef,
+                                                              aValues) {
+    let objectNounDef = aAttrDef.objectNounDef;
+    if (!aAttrDef.usesParameter) {
+      let dbValues = [];
+      for (let iValue = 0; iValue < aValues.length; iValue++) {
+        dbValues.push(objectNounDef.toParamAndValue(aValues[iValue])[1]);
+      }
+      yield [aAttrDef.id, dbValues];
+      return;
+    }
+    
+    let curParam, attrID, dbValues;
+    let attrDBDef = aAttrDef.dbDef;
+    for (let iValue = 0; iValue < aValues.length; iValue++) {
+      let [dbParam, dbValue] = objectNounDef.toParamAndValue(aValues[iValue]);
+      if (curParam === undefined) {
+        curParam = dbParam;
+        attrID = attrDBDef.bindParameter(curParam);
+        dbValues = [dbValue];
+      }
+      else if (curParam == dbParam) {
+        dbValues.push(dbValue);
+      }
+      else {
+        yield [attrID, dbValues];
+        curParam = dbParam;
+        attrID = attrDBDef.bindParameter(curParam);
+        dbValues = [dbValue];
+      }
+    }
+    if (dbValues !== undefined)
+      yield [attrID, dbValues];
+  },
+
+  _convertRangesToDBStringsAndGroupByAttributeID:
+    function gloda_ds__convertRangesToDBStringsAndGroupByAttributeID(aAttrDef,
+      aValues, aValueColumnName) {
+    let objectNounDef = aAttrDef.objectNounDef;
+    if (!aAttrDef.usesParameter) {
+      let dbStrings = [];
+      for (let iValue = 0; iValue < aValues.length; iValue++) {
+        let [lowerVal, upperVal] = aValues[iValue];
+        // they both can't be null.  that is the law.
+        if (lowerVal == null)
+          dbStrings.push(aValueColumnName + " <= " +
+                         objectNounDef.toParamAndValue(upperVal)[1]);
+        else if (upperVal == null)
+          dbStrings.push(aValueColumnName + " >= " +
+                         objectNounDef.toParamAndValue(lowerVal)[1]);
+        else // no one is null!
+          dbStrings.push(aValueColumnName + " BETWEEN " +
+                         objectNounDef.toParamAndValue(lowerVal)[1] + " AND " +
+                         objectNounDef.toParamAndValue(upperVal)[1]);
+      }
+      yield [aAttrDef.id, dbStrings];
+      return;
+    }
+    
+    let curParam, attrID, dbStrings;
+    let attrDBDef = aAttrDef.dbDef;
+    for (let iValue = 0; iValue < aValues.length; iValue++) {
+      let [lowerVal, upperVal] = aValues[iValue];
+
+      let dbString, dbParam, lowerDBVal, upperDBVal;
+      // they both can't be null.  that is the law.
+      if (lowerVal == null) {
+        [dbParam, upperDBVal] = objectNounDef.toParamAndValue(upperVal);
+        dbString = aValueColumnName + " <= " + upperDBVal;
+      }
+      else if (upperVal == null) {
+        [dbParam, lowerDBVal] = objectNounDef.toParamAndValue(lowerVal);
+        dbString = aValueColumnName + " >= " + lowerDBVal; 
+      }
+      else { // no one is null!
+        [dbParam, lowerDBVal] = objectNounDef.toParamAndValue(lowerVal);
+        dbString = aValueColumnName + " BETWEEN " + lowerDBVal + " AND " +
+                   objectNounDef.toParamAndValue(upperVal)[1];
+      }
+
+      if (curParam === undefined) {
+        curParam = dbParam;
+        attrID = attrDBDef.bindParameter(curParam);
+        dbStrings = [dbString];
+      }
+      else if (curParam == dbParam) {
+        dbStrings.push(dbString);
+      }
+      else {
+        yield [attrID, dbStrings];
+        curParam = dbParam;
+        attrID = attrDBDef.bindParameter(curParam);
+        dbStrings = [dbString];
+      }
+    }
+    if (dbStrings !== undefined)
+      yield [attrID, dbStrings];
+  },
+
   /**
    * Perform a database query given a GlodaQueryClass instance that specifies
    *  a set of constraints relating to the noun type associated with the query.
@@ -2162,7 +2261,7 @@ var GlodaDatastore = {
       bSynchronous, aListenerData) {
     // when changing this method, be sure that GlodaQuery's testMatch function
     //  likewise has its changes made.
-    let nounMeta = aQuery._nounMeta;
+    let nounDef = aQuery._nounDef;
 
     let whereClauses = [];
     let unionQueries = [aQuery].concat(aQuery._unions);
@@ -2174,134 +2273,103 @@ var GlodaDatastore = {
 
       for (let iConstraint = 0; iConstraint < curQuery._constraints.length;
            iConstraint++) {
-        let attr_ors = curQuery._constraints[iConstraint];
-
-        let lastAttributeID = null;
-        let attrValueTests = [];
-        let valueTests = null;
-
-        // our implementation requires that everyone in attr_ors has the same
-        //  attribute.
-        let presumedAttr = attr_ors[0][0];
-
-        // -- handle full-text specially here, it's different than the other
-        //  cases...
-        if (presumedAttr.special == kSpecialFulltext) {
-          let matchStr = [APV[2] for each
-            ([iAPV, APV] in Iterator(attr_ors))].join(" OR ");
-          matchStr.replace("'", "''");
-
-          // for example, the match
-          let ftSelect = "SELECT docid FROM " + nounMeta.tableName + "Text" +
-            " WHERE " + presumedAttr.specialColumnName + " MATCH '" +
-            matchStr + "'";
-          selects.push(ftSelect);
-
-          // bypass the logic used by the other cases
-          continue;
+        let constraint = curQuery._constraints[iConstraint];
+        let [constraintType, attrDef] = constraint;
+        let constraintValues = constraint.slice(2);
+        
+        let idColumnName, tableColumnName;
+        if (constraintType == this.kConstraintIdIn) {
+          // we don't need any of the next cases' setup code, and we especially
+          //  would prefer that attrDef isn't accessed since it's null for us.
         }
-
-        let tableName, idColumnName, valueColumnName, valueQuoter;
-        if (presumedAttr.special == kSpecialColumn ||
-            presumedAttr.special == kSpecialString) {
-          tableName = nounMeta.tableName;
+        else if (attrDef.special) {
+          tableName = nounDef.tableName;
           idColumnName = "id"; // canonical id for a table is "id".
-          valueColumnName = presumedAttr.specialColumnName;
-          if (presumedAttr.special == kSpecialString)
-            valueQuoter = this._stringSQLQuoter;
-          else
-            valueQuoter = this._numberQuoter;
+          valueColumnName = attrDef.specialColumnName;
         }
         else {
-          tableName = nounMeta.attrTableName;
-          idColumnName = nounMeta.attrIDColumnName;
+          tableName = nounDef.attrTableName;
+          idColumnName = nounDef.attrIDColumnName;
           valueColumnName = "value";
-          valueQuoter = this._numberQuoter;
         }
-
-        // we want a net 'or' for everyone in here, where 'everyone' is presumed
-        //  to have been generated from a single attribute.  Since a single
-        //  attribute can actually map to multiple attribute id's because of the
-        //  parameters, we actually need to make this slightly more complicated
-        //  than it could be.  We want to OR together the clauses for testing
-        //  each attributeID, where within each clause we OR the value.
-        // ex: (attributeID=1 AND (value=1 OR value=2)) OR (attributeID=2 AND
-        //      (value=7))
-        // note that we don't consolidate things into an IN clause (although
-        //  we could) and it's okay because the optimizer makes all such things
-        //  equal.
-        for (let iOrIndex = 0; iOrIndex < attr_ors.length; iOrIndex++) {
-          let APV = attr_ors[iOrIndex];
-
-          let attributeID;
-          if (APV[1] != null)
-            attributeID = APV[0].bindParameter(APV[1]);
-          else
-            attributeID = APV[0].id;
-          if (attributeID != lastAttributeID) {
-            valueTests = [];
-            if (APV[0].special == kSpecialColumn ||
-                APV[0].special == kSpecialString)
-              attrValueTests.push(["", valueTests]);
+        
+        let select = null, bindArgs = null;
+        if (constraintType === this.kConstraintIdIn) {
+          // this is somewhat of a trick.  this does mean that this can be the
+          //  only constraint.  Namely, our idiom is:
+          // SELECT * FROM blah WHERE id IN (a INTERSECT b INTERSECT c)
+          //  but if we only have 'a', then that becomes "...IN (a)", and if
+          //  'a' is not a select but a list of id's... tricky, no?  
+          select = constraintValue.join(",");
+        }
+        else if (constraintType === this.kConstraintIn) {
+          let clauses = [];
+          for each ([attrID, values] in
+              this._convertToDBValuesAndGroupByAttributeID(attrDef,
+                                                           constraintValues)) {
+            clauses.push("(attributeID = " + attrID +
+                         " AND " + valueColumnName + " IN (" +
+                         values.join(",") + "))");
+          }
+          select = "SELECT " + idColumnName + " FROM " + tableName +
+            " WHERE " + clauses.join(" OR ");
+        }
+        else if (constraintType === this.kConstraintRanges) {
+          let clauses = [];
+          for each ([attrID, dbStrings] in
+              this._convertRangesToDBStringsAndGroupByAttributeID(attrDef,
+                              constraintValues, valueColumnName)) {
+            clauses.push("(attributeID = " + attrID +
+                         " AND (" + dbStrings.join(" OR ") + "))");
+          }
+          select = "SELECT " + idColumnName + " FROM " + tableName +
+            " WHERE " + clauses.join(" OR ");
+        }
+        else if (constraintType === this.kConstraintEquals) {
+          let clauses = [];
+          for each ([attrID, values] in
+              this._convertToDBValuesAndGroupByAttributeID(attrDef,
+                                                           constraintValues)) {
+            clauses.push("(attributeID = " + attrID +
+                         " AND (" + [valueColumnName + " = ?" for each
+                         (value in values)].join("OR") + ")");
+            boundArgs.push.apply(boundArgs, values);
+          }
+          select = "SELECT " + idColumnName + " FROM " + tableName +
+            " WHERE " + clauses.join(" OR ");
+        }
+        else if (constraintType === this.kConstraintStringLike) {
+          likePayload = '';
+          for each (let [iValuePart, valuePart] in Iterator(constraintValues) {
+            if (typeof valuePart == "string")
+              likePayload += this._escapeLikeStatement.escapeStringForLIKE(
+                valuePart, "/");
             else
-              attrValueTests.push(["attributeID = " + attributeID, valueTests]);
-            lastAttributeID = attributeID;
+              likePayload += "%";
           }
-
-          // straight value match?
-          if (APV.length == 3) {
-            if (APV[2] != null)
-              valueTests.push(valueColumnName + " = " + valueQuoter(APV[2]));
-          }
-          // (quoting is not required for ranges because we only support ranges
-          //  for numbers.  as such, no use of valueQuoter in here.)
-          else { // APV.length == 4, so range match
-            // - numeric case (no quoting in here)
-            if (presumedAttr.special != kSpecialString) {
-              if (APV[2] === null) // so just <=
-                valueTests.push(valueColumnName + " <= " + APV[3]);
-              else if (APV[3] === null) // so just >=
-              // BETWEEN is optimized to >= and <=, or we could just do that
-              //  ourself (in other words, this shouldn't hurt our use of indices)
-                valueTests.push(valueColumnName + " >= " + APV[2]);
-              else
-                valueTests.push(valueColumnName + " BETWEEN " + APV[2] +
-                                  " AND " + APV[3]);
-            }
-            // - string case (LIKE)
-            else {
-              // this will result in a warning in debug builds.  as we move to
-              //  supporting async operation, we should also move to binding all
-              //  arguments for dynamic queries too.
-              likePayload = '';
-              for each (let [iValuePart, valuePart] in Iterator(APV[2])) {
-                if (typeof valuePart == "string")
-                  likePayload += this._escapeLikeStatement.escapeStringForLIKE(
-                    valuePart, "/");
-                else
-                  likePayload += "%";
-              }
-              valueTests.push(valueColumnName + " LIKE ? ESCAPE '/'");
-              boundArgs.push(likePayload);
-            }
-          }
+          select = "SELECT " + idColumnName + " FROM " + tableName +
+            " WHERE " + valueColumnName + " LIKE ? ESCAPE '/'";
+          boundArgs.push(likePayload);
         }
-        let select = "SELECT " + idColumnName + " FROM " + tableName +
-          " WHERE " +
-          [("(" + avt[0] +
-            (avt[1].length ? ((avt[0] ? " AND " : "") + "(" 
-                 + avt[1].join(" OR ") + ")") :
-               "")
-            + ")")
-           for each ([i, avt] in Iterator(attrValueTests))].join(" OR ");
-        selects.push(select);
+        else if (constraintType === this.kConstraintFulltext) {
+          let matchStr = constraintValues[0];
+          select = "SELECT docid FROM " + nounDef.tableName + "Text" +
+            " WHERE " + attrDef.specialColumnName + " MATCH ?";
+          boundArgs.push(matchStr);
+        }
+        
+        if (select)
+          selects.push(select);
+        else
+          this._log.warning("Unable to translate constraint of type " + 
+            constraintType + " on attribute bound as " + aAttrDef.boundName);
       }
 
       if (selects.length)
         whereClauses.push("id IN (" + selects.join(" INTERSECT ") + " )");
     }
 
-    let sqlString = "SELECT * FROM " + nounMeta.tableName;
+    let sqlString = "SELECT * FROM " + nounDef.tableName;
     if (whereClauses.length)
       sqlString += " WHERE " + whereClauses.join(" OR ");
     
@@ -2332,7 +2400,7 @@ var GlodaDatastore = {
 
       let items = [];
       while (this._syncStep(statement)) {
-        items.push(nounMeta.objFromRow.call(nounMeta.datastore, statement));
+        items.push(nounDef.objFromRow.call(nounDef.datastore, statement));
       }
       statement.finalize();
 
@@ -2341,8 +2409,8 @@ var GlodaDatastore = {
       //  cache the newly observed ones.  We are trading off wastes here; we don't
       //  want to have to ask the collection manager about every row, and we don't
       //  want to invent some alternate row storage.
-      GlodaCollectionManager.cacheLoadUnify(nounMeta.id, items);
-      collection = new GlodaCollection(nounMeta, items, aQuery, aListener);
+      GlodaCollectionManager.cacheLoadUnify(nounDef.id, items);
+      collection = new GlodaCollection(nounDef, items, aQuery, aListener);
       if (aListenerData !== undefined)
         collection.data = aListenerData;
 
@@ -2354,12 +2422,12 @@ var GlodaDatastore = {
         this._bindVariant(statement, iBinding, bindingValue);
       }
 
-      collection = new GlodaCollection(nounMeta, [], aQuery, aListener);
+      collection = new GlodaCollection(nounDef, [], aQuery, aListener);
       if (aListenerData !== undefined)
         collection.data = aListenerData;
       GlodaCollectionManager.registerCollection(collection);
 
-      statement.executeAsync(new QueryFromQueryCallback(statement, nounMeta,
+      statement.executeAsync(new QueryFromQueryCallback(statement, nounDef,
         collection));
       statement.finalize();
     }
@@ -2370,7 +2438,7 @@ var GlodaDatastore = {
     let jsonDict = this._json.decode(aItem._jsonText);
     delete aItem._jsonText;
     
-    let attribIDToDef = this._attributeIDToDef;
+    let attribIDToDBDefAndParam = this._attributeIDToDBDefAndParam;
     
     let deps = {};
     let hasDeps = false;
@@ -2378,7 +2446,7 @@ var GlodaDatastore = {
     // Iterate over the attributes on the item
     for each (let [attribId, jsonValue] in Iterator(jsonDict)) {
       // find the attribute definition that corresponds to this key
-      let attrib = attribIDToDef[attribId][0];
+      let attrib = attribIDToDBDefAndParam[attribId][0];
       // the attribute should only fail to exist if an extension was removed
       if (attrib === undefined)
         continue;

@@ -52,7 +52,7 @@ var FreeTagNoun = null;
 
 function ResultRowSingle(aItem, aCriteriaType, aCriteria) {
   this.nounID = aItem.NOUN_ID;
-  this.nounMeta = Gloda._nounIDToMeta[this.nounID];
+  this.nounDef = Gloda._nounIDToDef[this.nounID];
   this.criteriaType = aCriteriaType;
   this.criteria = aCriteria;
   this.item = aItem;
@@ -63,7 +63,7 @@ ResultRowSingle.prototype = {
 
 function ResultRowMulti(aNounID, aCriteriaType, aCriteria, aQuery) {
   this.nounID = aNounID;
-  this.nounMeta = Gloda._nounIDToMeta[aNounID];
+  this.nounDef = Gloda._nounIDToDef[aNounID];
   this.criteriaType = aCriteriaType;
   this.criteria = aCriteria;
   this.collection = aQuery.getCollection(this);
@@ -158,7 +158,7 @@ nsAutoCompleteGlodaResult.prototype = {
     if (row.multi)
       return "gloda-multi";
     else
-      return "gloda-single-" + row.nounMeta.name;
+      return "gloda-single-" + row.nounDef.name;
   },
   // rich uses this to be the icon
   getImageAt: function(aIndex) {

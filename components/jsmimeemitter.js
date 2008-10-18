@@ -89,8 +89,8 @@ function MimeMessageEmitter() {
 
 MimeMessageEmitter.prototype = {
   classDescription: "JS Mime Message Emitter",
-  classID: Components.ID("{80578315-7021-40f9-9717-413cacf2fa7d}"),
-  contractID: "@mozilla.org/steeldestined/jsmimeemitter;1",
+  classID: Components.ID("{8cddbbbc-7ced-46b0-a936-8cddd1928c24}"),
+  contractID: "@mozilla.org/gloda/jsmimeemitter;1",
   
   _partRE: new RegExp("^[^?]+\?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
   
@@ -102,7 +102,7 @@ MimeMessageEmitter.prototype = {
   
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMimeEmitter]),
 
-  Initialize: function mime_emitter_Initialize(aUrl, aChannel, aFormat) {
+  initialize: function mime_emitter_initialize(aUrl, aChannel, aFormat) {
     this._url = aUrl;
     this._curMsg = this._parentMsg = this._rootMsg = new this._mimeMsg.MimeMessage();
     
@@ -112,7 +112,7 @@ MimeMessageEmitter.prototype = {
     this._channel = aChannel;
   },
   
-  Complete: function mime_emitter_Complete() {
+  complete: function mime_emitter_complete() {
     // null out everything we can.  secretive cycles are eating us alive.
     this._url = null;
     this._channel = null;
@@ -127,24 +127,23 @@ MimeMessageEmitter.prototype = {
     this._allSubMessages = null;
   },
   
-  SetPipe: function mime_emitter_SetPipe(aInputStream, aOutputStream) {
+  setPipe: function mime_emitter_setPipe(aInputStream, aOutputStream) {
     this._inputStream = aInputStream;
     this._outputStream = aOutputStream;
   },
-  // can we use getters/setters to replace explicit functions on the interface?
-  SetOutputListener: function mime_emitter_SetOutputListener(aListener) {
+  set outputListener(aListener) {
     this._outputListener = aListener;
   },
-  GetOutputListener: function mime_emitter_GetOutputListener() {
+  get outputListener() {
     return this._outputListener;
   }, 
   
   // ----- Header Routines
-  StartHeader: function mime_emitter_StartHeader(aIsRootMailHeader,
+  startHeader: function mime_emitter_startHeader(aIsRootMailHeader,
       aIsHeaderOnly, aMsgID, aOutputCharset) {
     
     if (aIsRootMailHeader) {
-      this.UpdateCharacterSet(aOutputCharset);
+      this.updateCharacterSet(aOutputCharset);
       // nothing to do curMsg-wise, already initialized.
     }
     else {
@@ -153,7 +152,7 @@ MimeMessageEmitter.prototype = {
       this._allSubMessages.push(this._curMsg);
     }
   },
-  AddHeaderField: function mime_emitter_AddHeaderField(aField, aValue) {
+  addHeaderField: function mime_emitter_addHeaderField(aField, aValue) {
     let lowerField = aField.toLowerCase();
     if (lowerField in this._curMsg.headers)
       this._curMsg.headers[lowerField].push(aValue);
@@ -167,14 +166,14 @@ MimeMessageEmitter.prototype = {
     //  nsIMimeHeaders instance and hands it to the nsIMsgMailNewsUrl.)
     // nop
   },
-  WriteHTMLHeaders: function mime_emitter_WriteHTMLHeaders() {
+  writeHTMLHeaders: function mime_emitter_writeHTMLHeaders() {
     // It does't look like this should even be part of the interface; I think
     //  only the nsMimeHtmlDisplayEmitter::EndHeader call calls this signature.
     // nop
   },
-  EndHeader: function mime_emitter_EndHeader() {
+  endHeader: function mime_emitter_endHeader() {
   },
-  UpdateCharacterSet: function mime_emitter_UpdateCharacterSet(aCharset) {
+  updateCharacterSet: function mime_emitter_updateCharacterSet(aCharset) {
     // for non US-ASCII, ISO-8859-1, or UTF-8 charsets (case-insensitive),
     //  nsMimeBaseEmitter grabs the channel's content type, nukes the "charset="
     //  parameter if it exists, and tells the channel the updated content type
@@ -246,7 +245,7 @@ MimeMessageEmitter.prototype = {
   //  which time we receive the messages, both bodies and headers).  Our caller
   //  traverses the libmime child object hierarchy, emitting an attachment for
   //  each leaf object or sub-message.
-  StartAttachment: function mime_emitter_StartAttachment(aName, aContentType,
+  startAttachment: function mime_emitter_startAttachment(aName, aContentType,
       aUrl, aNotDownloaded) {
     
     // we need to strip our magic flags from the URL
@@ -273,35 +272,35 @@ MimeMessageEmitter.prototype = {
     this._putPart(part.partName.substring(2), "1",
                   part, this._rootMsg);
   },
-  AddAttachmentField: function mime_emitter_AddAttachmentField(aField, aValue) {
+  addAttachmentField: function mime_emitter_addAttachmentField(aField, aValue) {
     // this only gives us X-Mozilla-PartURL, which is the same as aUrl we
     //  already got previously, so need to do anything with this.
   },
-  EndAttachment: function mime_emitter_EndAttachment() {
+  endAttachment: function mime_emitter_endAttachment() {
     // don't need to do anything here, since we don't care about the headers.
   },
-  EndAllAttachments: function mime_emitter_EndAllAttachments() {
+  endAllAttachments: function mime_emitter_endAllAttachments() {
     // nop
   },
   
   // ----- Body Routines
-  StartBody: function mime_emitter_StartBody(aIsBodyOnly, aMsgID, aOutCharset) {
+  startBody: function mime_emitter_startBody(aIsBodyOnly, aMsgID, aOutCharset) {
     this._messageStack.push(this._curMsg);
     this._parentMsg = this._curMsg;
   },
   
-  WriteBody: function mime_emitter_WriteBody(aBuf, aSize, aOutAmountWritten) {
+  writeBody: function mime_emitter_writeBody(aBuf, aSize, aOutAmountWritten) {
     this._curMsg.body += aBuf;
   },
   
-  EndBody: function mime_emitter_EndBody() {
+  endBody: function mime_emitter_endBody() {
     this._messageStack.pop();
     this._parentMsg = this._messageStack[this._messageStack.length - 1];
   },
   
   // ----- Generic Write (confusing)
   // (binary data writing...)
-  Write: function mime_emitter_Write(aBuf, aSize, aOutAmountWritten) {
+  write: function mime_emitter_write(aBuf, aSize, aOutAmountWritten) {
     // we don't actually ever get called because we don't have the attachment
     //  binary payloads pass through us, but we do the following just in case
     //  we did get called (otherwise the caller gets mad and throws exceptions).
@@ -309,8 +308,8 @@ MimeMessageEmitter.prototype = {
   },
   
   // (string writing)
-  UtilityWrite: function mime_emitter_UtilityWrite(aBuf) {
-    this.Write(aBuf, aBuf.length, {});
+  utilityWrite: function mime_emitter_utilityWrite(aBuf) {
+    this.write(aBuf, aBuf.length, {});
   },
 };
 

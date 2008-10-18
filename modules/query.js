@@ -105,12 +105,12 @@ GlodaQueryClass.prototype = {
    *  removed respectively.
    */
   getCollection: function gloda_query_getCollection(aListener, aData) {
-    return this._nounMeta.datastore.queryFromQuery(this, aListener, false,
+    return this._nounDef.datastore.queryFromQuery(this, aListener, false,
       aData);
   },
   
   getAllSync: function gloda_query_getAllSync(aListener) {
-    return this._nounMeta.datastore.queryFromQuery(this, aListener, true);
+    return this._nounDef.datastore.queryFromQuery(this, aListener, true);
   },
   
   /**
@@ -247,16 +247,16 @@ GlodaWildcardQueryClass.prototype = {
  * Factory method to effectively create per-noun subclasses of GlodaQueryClass,
  *  GlodaExplicitQueryClas, and GlodaWildcardQueryClass.  For GlodaQueryClass
  *  this allows us to add per-noun helpers.  For the others, this is merely a
- *  means of allowing us to attach the (per-noun) nounMeta to the 'class'.
+ *  means of allowing us to attach the (per-noun) nounDef to the 'class'.
  */
-function GlodaQueryClassFactory(aNounMeta) {
+function GlodaQueryClassFactory(aNounDef) {
   let newQueryClass = function() {
     GlodaQueryClass.call(this);
   }; 
   
   newQueryClass.prototype = new GlodaQueryClass;
   newQueryClass.prototype._queryClass = newQueryClass;
-  newQueryClass.prototype._nounMeta = aNounMeta;
+  newQueryClass.prototype._nounDef = aNounDef;
   
   let newExplicitClass = function(aCollection) {
     GlodaExplicitQueryClass.call(this);
@@ -264,7 +264,7 @@ function GlodaQueryClassFactory(aNounMeta) {
   };
   newExplicitClass.prototype = new GlodaExplicitQueryClass();
   newExplicitClass.prototype._queryClass = newExplicitClass;
-  newExplicitClass.prototype._nounMeta = aNounMeta;
+  newExplicitClass.prototype._nounDef = aNounDef;
 
   let newWildcardClass = function(aCollection) {
     GlodaWildcardQueryClass.call(this);
@@ -272,7 +272,7 @@ function GlodaQueryClassFactory(aNounMeta) {
   };
   newWildcardClass.prototype = new GlodaWildcardQueryClass();
   newWildcardClass.prototype._queryClass = newWildcardClass;
-  newWildcardClass.prototype._nounMeta = aNounMeta;
+  newWildcardClass.prototype._nounDef = aNounDefww;
   
   return [newQueryClass, newExplicitClass, newWildcardClass];
 }

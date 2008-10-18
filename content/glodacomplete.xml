@@ -558,7 +558,7 @@
           
           node.obj = aObj;
           node.setAttribute("type",
-                            "gloda-" + this.row.nounMeta.name + "-chunk");
+                            "gloda-" + this.row.nounDef.name + "-chunk");
           
           this._identityHolder.appendChild(node);
         </body>
@@ -575,7 +575,7 @@
           if (row == null)
             return;
           
-          this._explanation.value = row.nounMeta.name + "s " +
+          this._explanation.value = row.nounDef.name + "s " +
             row.criteriaType + "ed " + row.criteria;
           
           // render anyone already in there

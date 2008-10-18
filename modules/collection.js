@@ -71,7 +71,7 @@ var GlodaCollectionManager = {
    */
   registerCollection: function gloda_colm_registerCollection(aCollection) {
     let collections;
-    let nounID = aCollection.query._nounMeta.id;
+    let nounID = aCollection.query._nounDef.id;
     if (!(nounID in this._collectionsByNoun))
       collections = this._collectionsByNoun[nounID] = [];
     else {
@@ -99,8 +99,8 @@ var GlodaCollectionManager = {
     return collections;
   },
   
-  defineCache: function gloda_colm_defineCache(aNounMeta, aCacheSize) {
-    this._cachesByNoun[aNounMeta.id] = new GlodaLRUCacheCollection(aNounMeta,
+  defineCache: function gloda_colm_defineCache(aNounDef, aCacheSize) {
+    this._cachesByNoun[aNounDef.id] = new GlodaLRUCacheCollection(aNounDef,
                                                                    aCacheSize);
   },
   
@@ -381,14 +381,14 @@ var GlodaCollectionManager = {
  *  because it is exposing those attributes).
  * @constructor 
  */
-function GlodaCollection(aNounMeta, aItems, aQuery, aListener) {
-  // if aNounMeta is null, we are just being invoked for subclassing
-  if (aNounMeta === undefined)
+function GlodaCollection(aNounDef, aItems, aQuery, aListener) {
+  // if aNounDef is null, we are just being invoked for subclassing
+  if (aNounDef === undefined)
     return;
 
-  this._nounMeta = aNounMeta;
+  this._nounDef = aNounDef;
   // should we also maintain a unique value mapping...
-  if (this._nounMeta.usesUniqueValue)
+  if (this._nounDef.usesUniqueValue)
     this._uniqueValueMap = {};
 
   this.items = [];
@@ -486,8 +486,8 @@ GlodaCollection.prototype = {
  * Create an LRU cache collection for the given noun with the given size.
  * @constructor
  */
-function GlodaLRUCacheCollection(aNounMeta, aCacheSize) {
-  GlodaCollection.call(this, aNounMeta, null, null, null);
+function GlodaLRUCacheCollection(aNounDef, aCacheSize) {
+  GlodaCollection.call(this, aNounDef, null, null, null);
   
   this._head = null; // aka oldest!
   this._tail = null; // aka newest!
@@ -548,7 +548,7 @@ GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
     // flush dirty items to disk (they may not have this attribute, in which
     //  case, this returns false, which is fine.)
     if (item.dirty) {
-      this._nounMeta.objUpdate.call(this._nounMeta.datastore, item);
+      this._nounDef.objUpdate.call(this._nounDef.datastore, item);
       delete item.dirty;
     }
     
@@ -608,13 +608,13 @@ GlodaLRUCacheCollection.prototype.deleted = function cache_deleted(aItem) {
  */
 GlodaLRUCacheCollection.prototype.commitDirty = function cache_commitDirty() {
   // we can only do this if there is an update method available...
-  if (!this._nounMeta.objUpdate)
+  if (!this._nounDef.objUpdate)
     return;
 
   for each (let [iItem, item] in Iterator(this._idMap)) {
     if (item.dirty) {
       LOG.debug("flushing dirty: " + item);
-      this._nounMeta.objUpdate.call(this._nounMeta.datastore, item);
+      this._nounDef.objUpdate.call(this._nounDef.datastore, item);
       delete item.dirty;
     }
   }
