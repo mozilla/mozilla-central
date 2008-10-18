@@ -1860,6 +1860,10 @@ var GlodaIndexer = {
   
   _indexMessageWithBody: function gloda_index_indexMessageWithBody(
        aMsgHdr, aMimeMsg) {
+    if (aMimeMsg)
+      this._log.debug("  * Got Body! Length: " + aMimeMsg.body.length);
+    else
+      this._log.debug("  * Did not get body!");
 
     // -- Find/create the conversation the message belongs to.
     // Our invariant is that all messages that exist in the database belong to
