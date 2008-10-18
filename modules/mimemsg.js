@@ -144,7 +144,8 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
                                            dumbUrlListener, // nsIUrlListener
                                            true, // have them create the converter
       // additional uri payload, note that "header=" is prepended automatically 
-                                           "filter&emitter=js"); 
+                                           "filter&emitter=js",
+                                           true);
 }
 
 /**
