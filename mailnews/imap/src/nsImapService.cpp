@@ -1214,23 +1214,24 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
       if (folder)
         folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
 
+      // Try to check if the message is offline
+      PRBool hasMsgOffline = PR_FALSE;
+      folder->HasMsgOffline(key, &hasMsgOffline);
+      msgurl->SetMsgIsInLocalCache(hasMsgOffline);
+
       // If we don't have the message available locally, and we can't get it over
       // the network, return with an error
       if (aLocalOnly || WeAreOffline())
       {
-        PRBool hasMsgOffline = PR_FALSE;
-        folder->HasMsgOffline(key, &hasMsgOffline);
-
+        PRBool isMsgInMemCache = PR_FALSE;
         if (!hasMsgOffline)
         {
-          rv = IsMsgInMemCache(url, folder, nsnull, &hasMsgOffline);
+          rv = IsMsgInMemCache(url, folder, nsnull, &isMsgInMemCache);
           NS_ENSURE_SUCCESS(rv, rv);
+
+          if (!isMsgInMemCache)
+            return NS_ERROR_FAILURE;
         }
-
-        if (!hasMsgOffline)
-          return NS_ERROR_FAILURE;
-
-        msgurl->SetMsgIsInLocalCache(hasMsgOffline);
       }
 
       imapUrl->SetFetchPartsOnDemand(PR_FALSE);
