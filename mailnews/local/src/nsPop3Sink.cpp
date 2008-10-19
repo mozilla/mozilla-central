@@ -784,8 +784,11 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
 
   nsresult rv = WriteLineToMailbox(MSG_LINEBREAK);
   if (NS_FAILED(rv)) return rv;
+  PRBool leaveOnServer = PR_FALSE;
+  m_popServer->GetLeaveMessagesOnServer(&leaveOnServer);
   // aSize is only set for partial messages. Skip the flush for partials.
-  if (!aSize)
+  // Only flush if this is a full message and we didn't leave a copy on the server.
+  if (!aSize && !leaveOnServer)
     rv = m_outFileStream->Flush();   //to make sure the message is written to the disk
   if (NS_FAILED(rv)) return rv;
   NS_ASSERTION(m_newMailParser, "could not get m_newMailParser");
