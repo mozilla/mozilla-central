@@ -100,8 +100,8 @@
   </commandset>
 
   <menupopup id="menu_View_Popup">
-    <menuseparator/>
-    <menuitem label="&menu_viewSecurityStatus.label;" 
+    <menuseparator id="viewMenuBeforeSecurityStatusSeparator"/>
+    <menuitem id="menu_viewSecurityStatus" label="&menu_viewSecurityStatus.label;"
       accesskey="&menu_viewSecurityStatus.accesskey;" observes="cmd_viewSecurityStatus"/>
   </menupopup>
 

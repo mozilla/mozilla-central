@@ -319,7 +319,9 @@
         <menupopup id="menu_FilePopup">
           <menu id="menu_New" label="&newMenu.label;" accesskey="&newMenu.accesskey;">
             <menupopup id="menu_NewPopup">
-              <menuitem label="&newMessage.label;" accesskey="&newMessage.accesskey;" key="key_newMessage2" oncommand="goOpenNewMessage();"/>
+              <menuitem id="menu_NewMessage"
+                        label="&newMessage.label;" accesskey="&newMessage.accesskey;"
+                        key="key_newMessage2" oncommand="goOpenNewMessage();"/>
               <menuseparator/>
               <menuitem label="&newCard.label;" accesskey="&newCard.accesskey;"
                         oncommand="window.openDialog('chrome://messenger/content/addressbook/abNewCardDialog.xul', '', 'chrome,resizable=no,titlebar,modal');"/>
@@ -335,10 +337,13 @@
           </menu>
           <menuitem id="menu_close" label="&closeCmd.label;" key="key_close" accesskey="&closeCmd.accesskey;" command="cmd_close"/>
           <menuseparator/>
-          <menuitem label="&saveCmd.label;" accesskey="&saveCmd.accesskey;" key="key_save" command="cmd_saveDefault"/>
+          <menuitem id="menu_SaveCmd" label="&saveCmd.label;" accesskey="&saveCmd.accesskey;"
+                    key="key_save" command="cmd_saveDefault"/>
           <menu id="menu_SaveAsCmd" label="&saveAsCmd.label;" accesskey="&saveAsCmd.accesskey;">
             <menupopup id="menu_SaveAsCmdPopup">
-              <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;" command="cmd_saveAsFile"/>
+              <menuitem id="menu_SaveAsFileCmd"
+                        label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;"
+                        command="cmd_saveAsFile"/>
               <menuseparator/>
               <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;" command="cmd_saveAsDraft"/>
               <menuitem label="&saveAsTemplateCmd.label;" accesskey="&saveAsTemplateCmd.accesskey;" command="cmd_saveAsTemplate"/>

@@ -11,7 +11,7 @@ classic.jar:
     skin/classic/messenger/messageHeader.css
     skin/classic/messenger/messageBody.css
     skin/classic/messenger/messageQuotes.css
-    skin/classic/messenger/messenger.css
+*   skin/classic/messenger/messenger.css
     skin/classic/messenger/mailWindow1.css
     skin/classic/messenger/tagColors.css
     skin/classic/messenger/messageWindow.css
@@ -33,7 +33,7 @@ classic.jar:
     skin/classic/messenger/starred48.png
     skin/classic/messenger/contactStarred.png
     skin/classic/messenger/starContact.png
-    skin/classic/messenger/addressbook/addressbook.css          (addrbook/addressbook.css)
+*   skin/classic/messenger/addressbook/addressbook.css          (addrbook/addressbook.css)
     skin/classic/messenger/addressbook/abContactsPanel.css      (addrbook/abContactsPanel.css)
     skin/classic/messenger/addressbook/cardDialog.css           (addrbook/cardDialog.css)
     skin/classic/messenger/addressbook/abResultsPane.css        (addrbook/abResultsPane.css)
@@ -46,7 +46,8 @@ classic.jar:
     skin/classic/messenger/addressbook/icons/remote-addrbook.png (addrbook/remote-addrbook.png)
     skin/classic/messenger/addressbook/icons/remote-addrbook-error.png      (addrbook/remote-addrbook-error.png)
     skin/classic/messenger/addressbook/icons/secure-remote-addrbook.png     (addrbook/secure-remote-addrbook.png)
-    skin/classic/messenger/messengercompose/messengercompose.css (compose/messengercompose.css)
+*   skin/classic/messenger/messengercompose/messengercompose.css (compose/messengercompose.css)
+*   skin/classic/messenger/messengercompose/editorOverlay.css    (compose/editorOverlay.css)
     skin/classic/messenger/messengercompose/compose-toolbar.png  (compose/compose-toolbar.png)
     skin/classic/messenger/messengercompose/compose-toolbar-small.png   (compose/compose-toolbar-small.png)
     skin/classic/messenger/messengercompose/format-buttons.png  (compose/format-buttons.png)
@@ -65,9 +66,9 @@ classic.jar:
     skin/classic/messenger/preferences/background.png           (preferences/background.png)
     skin/classic/messenger/preferences/hover.png                (preferences/hover.png)
     skin/classic/messenger/preferences/selected.png             (preferences/selected.png)
-    skin/classic/messenger/smime/msgCompSMIMEOverlay.css        (smime/msgCompSMIMEOverlay.css)
+*   skin/classic/messenger/smime/msgCompSMIMEOverlay.css        (smime/msgCompSMIMEOverlay.css)
     skin/classic/messenger/smime/msgHdrViewSMIMEOverlay.css     (smime/msgHdrViewSMIMEOverlay.css)
-    skin/classic/messenger/smime/msgReadSMIMEOverlay.css        (smime/msgReadSMIMEOverlay.css)
+*   skin/classic/messenger/smime/msgReadSMIMEOverlay.css        (smime/msgReadSMIMEOverlay.css)
     skin/classic/messenger/smime/msgReadSecurityInfo.css        (smime/msgReadSecurityInfo.css)
     skin/classic/messenger/smime/msgCompSecurityInfo.css        (smime/msgCompSecurityInfo.css)
     skin/classic/messenger/smime/certFetchingStatus.css         (smime/certFetchingStatus.css)

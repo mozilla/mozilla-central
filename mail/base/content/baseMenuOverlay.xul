@@ -61,11 +61,11 @@
 #endif
     <menupopup id="menu_HelpPopup" onpopupshowing="buildHelpMenu();">
 #ifdef XP_MACOSX
-      <menuitem id="hintsAndTips"
+      <menuitem id="menu_openHelp"
                 label="&openHelpMac.label;" key="key_openHelp"
                 oncommand="openSupportURL();"/>
 #else
-      <menuitem id="hintsAndTips"
+      <menuitem id="menu_openHelp"
                 label="&openHelp.label;" accesskey="&openHelp.accesskey;"
                 oncommand="openSupportURL();"
                 key="key_openHelp"/>

@@ -1248,10 +1248,12 @@
               <menuitem id="menu_prevFlaggedMsg" label="&prevStarredMsgCmd.label;" accesskey="&prevStarredMsgCmd.accesskey;" command="cmd_previousFlaggedMsg"/>
             </menupopup>
           </menu>
-          <menuitem id="menu_goForward" label="&goForwardCmd.label;" accesskey="&goForwardCmd.accesskey;" command="cmd_goForward"
-                    key="key_goForward"/>
-          <menuitem id="menu_goBack" label="&goBackCmd.label;" accesskey="&goBackCmd.accesskey;" command="cmd_goBack"
-                    key="key_goBack"/>
+          <menuitem id="menu_goForward" label="&goForwardCmd.label;"
+                    accesskey="&goForwardCmd.accesskey;" command="cmd_goForward"
+                    chromedir="&locale.dir;" key="key_goForward"/>
+          <menuitem id="menu_goBack" label="&goBackCmd.label;"
+                    accesskey="&goBackCmd.accesskey;" command="cmd_goBack"
+                    chromedir="&locale.dir;" key="key_goBack"/>
           <menuseparator id="goNextSeparator"/>
           <menuitem id="goStartPage" label="&startPageCmd.label;" accesskey="&startPageCmd.accesskey;" command="cmd_goStartPage"/>
         </menupopup>

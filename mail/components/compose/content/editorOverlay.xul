@@ -40,6 +40,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
+<?xml-stylesheet href="chrome://messenger/skin/messengercompose/editorOverlay.css" type="text/css"?>
 <!DOCTYPE overlay [
 <!ENTITY % editorOverlayDTD SYSTEM "chrome://editor/locale/editorOverlay.dtd">
 %editorOverlayDTD;

@@ -83,7 +83,6 @@ toolbar[iconsize="small"] #button-security[disabled] {
   visibility: visible;
 }
 
-
 #msgcomposeWindow #encryption-status {
   list-style-image: none;
   visibility: collapse;
@@ -99,3 +98,10 @@ toolbar[iconsize="small"] #button-security[disabled] {
   visibility: visible;
 }
 
+%ifdef MOZ_WIDGET_GTK2
+/* Stock icons for the menu bar items. */
+#menu_viewSecurityStatus,
+#menu_securityStatus2 {
+  list-style-image: url("moz-icon://stock/gtk-info?size=menu");
+}
+%endif
