@@ -885,7 +885,8 @@ var Gloda = {
       objInsert: GlodaDatastore.insertMessage,
       objUpdate: GlodaDatastore.updateMessage,
       fromParamAndValue: function(aParam, aID) {
-        return GlodaDatastore.getMessageByID(aID);
+        // XXX we need some form of official semantics on references to messages
+        return aID;
       },
       toParamAndValue: function(aMessage) {
         if (aMessage instanceof GlodaMessage)
@@ -1390,7 +1391,8 @@ var Gloda = {
       // if there's no attribute, that's not good, but not horrible.
       if (attrib === undefined)
         continue;
-      
+
+      let attribDB = attrib.dbDef;
       let objectNounDef = attrib.objectNounDef;
       
       // - translate for our JSON rep
@@ -1416,9 +1418,9 @@ var Gloda = {
         // in the singular case if they don't match, it's one add and one remove
         if (attrib.singular) {
           if (value != oldValue) {
-            addDBAttribs.push(attrib.convertValuesToDBAttributes(value)[0]);
+            addDBAttribs.push(attribDB.convertValuesToDBAttributes(value)[0]);
             removeDBAttribs.push(
-              attrib.convertValuesToDBAttributes(oldValue)[0]);
+              attribDB.convertValuesToDBAttributes(oldValue)[0]);
           }
         }
         // in the plural case, we have to figure the deltas accounting for
@@ -1431,9 +1433,9 @@ var Gloda = {
             objectNounDef.computeDelta(value, oldValue);
           // convert the values to database-style attribute rows
           addDBAttribs.push.apply(addDBAttribs,
-            attrib.convertValuesToDBAttributes(valuesAdded));
+            attribDB.convertValuesToDBAttributes(valuesAdded));
           removeDBAttribs.push.apply(removeDBAttribs,
-            attrib.convertValuesToDBAttributes(valuesRemoved));
+            attribDB.convertValuesToDBAttributes(valuesRemoved));
         }
         else {
           // build a map of the previous values; we will delete the values as
@@ -1455,9 +1457,9 @@ var Gloda = {
           let valuesRemoved = [val for (val in Iterator(oldValueMap, true))];
           // convert the values to database-style attribute rows
           addDBAttribs.push.apply(addDBAttribs,
-            attrib.convertValuesToDBAttributes(valuesAdded));
+            attribDB.convertValuesToDBAttributes(valuesAdded));
           removeDBAttribs.push.apply(removeDBAttribs,
-            attrib.convertValuesToDBAttributes(valuesRemoved));
+            attribDB.convertValuesToDBAttributes(valuesRemoved));
         }
       
         // delete the old values to mark that we have processed them
@@ -1466,7 +1468,7 @@ var Gloda = {
       // no old value, all attributes are new
       else {
         addDBAttribs.push.apply(addDBAttribs,
-                                attrib.dbDef.convertValuesToDBAttributes(value));
+                                attribDB.convertValuesToDBAttributes(value));
       }
     }
     
@@ -1484,7 +1486,7 @@ var Gloda = {
         continue;
       
       removeDBAttribs.push.apply(removeDBAttribs,
-                                 attrib.convertValuesToDBAttributes(value));
+                                 attribDB.convertValuesToDBAttributes(value));
     }
     
     aItem._jsonText = this._json.encode(jsonDict);

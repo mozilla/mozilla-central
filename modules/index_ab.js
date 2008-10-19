@@ -189,7 +189,7 @@ var GlodaABAttrs = {
       attributeType: Gloda.kAttrDerived,
       attributeName: "contact",
       singular: true,
-      special: Gloda.kSpecialColumn,
+      special: Gloda.kSpecialColumnParent,
       specialColumnName: "contactID", // the column in the db
       idStorageAttributeName: "_contactID",
       valueStorageAttributeName: "_contact", 

@@ -1007,6 +1007,8 @@ var GlodaIndexer = {
       GlodaIndexer.callbackDriver();
     }
   },
+  _forceGCCounter: 0,
+  FORCE_GC_THRESHOLD: 256,
   _workBatchData: undefined,
   /**
    * The workBatch generator handles a single 'batch' of processing, managing
@@ -1025,6 +1027,13 @@ var GlodaIndexer = {
     while (commitTokens > 0) {
       for (let tokensLeft = this._indexTokens; tokensLeft > 0;
           tokensLeft--, commitTokens--) {
+        // we need to periodically force a GC to avoid excessive process size
+        //  and because nsAutoLock is a jerk on debug builds
+        if (++this._forceGCCounter >= this.FORCE_GC_THRESHOLD) {
+          Cu.forceGC();
+          this._forceGCCounter = 0;
+        }
+        
         if ((this._callbackHandle.activeIterator === null) &&
             !this._hireJobWorker()) {
           commitTokens = 0;

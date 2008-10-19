@@ -130,6 +130,21 @@ var GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FULLTEXT,
       }); // not-tested
+    
+    // conversation
+    this._attrConversation = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "conversation",
+      singular: true,
+      special: Gloda.kSpecialColumnParent,
+      specialColumnName: "conversationID",
+      idStorageAttributeName: "_conversationID",
+      valueStorageAttributeName: "_conversation", 
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_CONVERSATION,
+      });
   
     // --- Fundamental
     // From

@@ -140,7 +140,7 @@ var GlodaCollectionManager = {
    * @return [The number that were found, the number that were not found.]
    */
   cacheLookupMany: function gloda_colm_cacheLookupMany(aNounID, aIDMap,
-      aDoCache) {
+      aTargetMap, aDoCache) {
     let foundCount = 0, notFoundCount = 0, notFound = {};
     
     let cache = this._cachesByNoun[aNounID];
@@ -154,7 +154,7 @@ var GlodaCollectionManager = {
         }
         else {
           foundCount++;
-          aIDMap[key] = cacheValue;
+          aTargetMap[key] = cacheValue;
           cache.hit(cacheValue);
         }
       }
@@ -168,7 +168,7 @@ var GlodaCollectionManager = {
       for (let key in notFound) {
         let collValue = collection._idMap[key];
         if (collValue !== undefined) {
-          aIDMap[key] = collValue;
+          aTargetMap[key] = collValue;
           delete notFound[key];
           foundCount++;
           notFoundCount--;
@@ -455,7 +455,7 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener,
   this.resolvedCount = 0;
   
   if (aMasterCollection) {
-    this.masterCollection = aMasterCollection;
+    this.masterCollection = aMasterCollection.masterCollection;
   }
   else {
     this.masterCollection = this;

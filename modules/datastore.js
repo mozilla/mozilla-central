@@ -121,7 +121,7 @@ PostCommitHandler.prototype = {
 let QFQ_LOG = Log4Moz.Service.getLogger("gloda.ds.qfq");
 
 let QueryFromQueryResolver = {
-  onItemsAdded: function(aItems, aCollection, aFake) {
+  onItemsAdded: function(aIgnoredItems, aCollection, aFake) {
     let originColl = aCollection.data;
 
     if (!aFake) {
@@ -130,39 +130,45 @@ let QueryFromQueryResolver = {
     }
     
     // bail if we are still pending on some other load completion
-    if (originColl.deferredCount > 0)
+    if (originColl.deferredCount > 0) {
+      QFQ_LOG.debug("QFQR: bailing " + originColl._nounDef.name);
       return;
+    }
     
     let referencesByNounID = originColl.masterCollection.referencesByNounID;
     let inverseReferencesByNounID = 
-      originColl.masterCollection.inverseReferencesByNounID
+      originColl.masterCollection.inverseReferencesByNounID;
 
-    QFQ_LOG.debug("QFQR: onItemsAdded: " + originColl._nounDef.name);
-    
-    for (let [, item] in Iterator(originColl.pendingItems)) {
-      GlodaDatastore.loadNounDeferredDeps(item, referencesByNounID,
-          inverseReferencesByNounID);
+    if (originColl.pendingItems) {
+      for (let [, item] in Iterator(originColl.pendingItems)) {
+        GlodaDatastore.loadNounDeferredDeps(item, referencesByNounID,
+            inverseReferencesByNounID);
+      }
+      
+      // we need to consider the possibility that we are racing a collection very
+      //  much like our own.  as such, this means we need to perform cache
+      //  unification as our last step.
+      GlodaCollectionManager.cacheLoadUnify(originColl._nounDef.id,
+        originColl.pendingItems, false);
+  
+      // just directly tell the collection about the items.  we know the query
+      //  matches (at least until we introduce predicates that we cannot express
+      //  in SQL.)
+      QFQ_LOG.debug(" QFQR: about to trigger listener: " + originColl._listener +
+          "with collection: " + originColl._nounDef.name);
+      originColl._onItemsAdded(originColl.pendingItems);
+      delete originColl.pendingItems;
     }
-    
-    // we need to consider the possibility that we are racing a collection very
-    //  much like our own.  as such, this means we need to perform cache
-    //  unification as our last step.
-    GlodaCollectionManager.cacheLoadUnify(originColl._nounDef.id,
-      originColl.pendingItems, false);
-
-    // just directly tell the collection about the items.  we know the query
-    //  matches (at least until we introduce predicates that we cannot express
-    //  in SQL.)
-    originColl._onItemsAdded(originColl.pendingItems);
-    delete originColl.pendingItems;
-    
-    originColl._onQueryCompleted();
   },
   onItemsModified: function() {
   },
   onItemsRemoved: function() {
   },
-  onQueryCompleted: function() {
+  onQueryCompleted: function(aCollection) {
+    let originColl = aCollection.data;
+    if (originColl.deferredCount <= 0) {
+      originColl._onQueryCompleted();
+    }
   },
 };
 
@@ -178,18 +184,30 @@ function QueryFromQueryCallback(aStatement, aNounDef, aCollection) {
   QFQ_LOG.debug("Creating QFQCallback for noun: " + aNounDef.name);
   
   // the master collection holds the referencesByNounID
-  this.referencesByNounID =
+  this.referencesByNounID = {};
+  this.masterReferencesByNounID =
     this.collection.masterCollection.referencesByNounID;
-  this.inverseReferencesByNounID =
+  this.inverseReferencesByNounID = {};
+  this.masterInverseReferencesByNounID =
     this.collection.masterCollection.inverseReferencesByNounID;
   // we need to contribute our references as we load things; we need this 
   //  because of the potential for circular dependencies and our inability to
   //  put things into the caching layer (or collection's _idMap) until we have
   //  fully resolved things.
-  if (this.nounDef.id in this.referencesByNounID)
-    this.selfReferences = this.referencesByNounID[this.nounDef.id];
+  if (this.nounDef.id in this.masterReferencesByNounID)
+    this.selfReferences = this.masterReferencesByNounID[this.nounDef.id];
   else
-    this.selfReferences = this.referencesByNounID[this.nounDef.id] = {};
+    this.selfReferences = this.masterReferencesByNounID[this.nounDef.id] = {};
+  if (this.nounDef.parentColumnAttr) {
+    if (this.nounDef.id in this.masterInverseReferencesByNounID)
+      this.selfInverseReferences =
+        this.masterInverseReferencesByNounID[this.nounDef.id];
+    else
+      this.selfInverseReferences =
+        this.masterInverseReferencesByNounID[this.nounDef.id] = {};
+  }
+  
+  this.needsLoads = false;
   
   GlodaDatastore._pendingAsyncStatements++;
 }
@@ -202,17 +220,34 @@ QueryFromQueryCallback.prototype = {
     let nounID = nounDef.id;
     while (row = aResultSet.getNextRow()) {
       let item = nounDef.objFromRow.call(nounDef.datastore, row);
+QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
+    this.selfReferences[item.id]);
       // try and replace the item with one from the cache, if we can
       let cachedItem = GlodaCollectionManager.cacheLookupOne(nounID, item.id,
                                                              false);
       if (cachedItem)
         item = cachedItem;
+      // we may already have been loaded by this process
+      else if (this.selfReferences[item.id] != null)
+        item = this.selfReferences[item.id];
       // perform loading logic which may produce reference dependencies
-      else if (nounDef.allowsArbitraryAttrs) 
-        GlodaDatastore.loadNounItem(item, this.referencesByNounID,
-            this.inverseReferencesByNounID);
+      else
+        this.needsLoads = this.needsLoads ||
+          GlodaDatastore.loadNounItem(item, this.referencesByNounID,
+                                      this.inverseReferencesByNounID);
       
+      // add ourself to the references by our id
       this.selfReferences[item.id] = item;
+      // if we're tracking it, add ourselves to our parent's list of children
+      //  too
+      if (this.selfInverseReferences) {
+        let parentID = item[nounDef.parentColumnAttr.idStorageAttributeName];
+        let childrenList = this.selfInverseReferences[parentID];
+        if (childrenList === undefined)
+          childrenList = this.selfInverseReferences[parentID] = [];
+        childrenList.push(item);
+      }
+      
       pendingItems.push(item);
     }
   },
@@ -228,64 +263,96 @@ QueryFromQueryCallback.prototype = {
     
     QFQ_LOG.debug("handleCompletion: " + this.collection._nounDef.name);
     
-    for each (let [nounID, references] in Iterator(this.referencesByNounID)) {
-      if (nounID == this.nounDef.id)
-        continue;
-      let nounDef = GlodaDatastore._nounIDToDef[nounID];
-      QFQ_LOG.debug("  have references for noun: " + nounDef.name);
-      // try and load them out of the cache/existing collections.  items in the
-      //  cache will be fully formed, which is nice for us.
-      // XXX this mechanism will get dubious when we have multiple paths to a
-      //  single noun-type.  For example, a -> b -> c, a-> c; two paths to c
-      //  and we're looking at issuing two requests to c, the latter of which
-      //  will be a superset of the first one.  This does not currently pose
-      //  a problem because we only have a -> b -> c -> b, and sequential
-      //  processing means no alarms and no surprises.
-      let [foundCount, notFoundCount, notFound] =
-        GlodaCollectionManager.cacheLookupMany(nounDef.id, references);
-      QFQ_LOG.debug("  found: " + foundCount + " not found: " + notFoundCount);
-      if (notFoundCount === 0) {
-        this.collection.resolvedCount++;
-      }
-      else {
-        this.collection.deferredCount++;
-        let query = new nounDef.queryClass();
-        query.id.apply(query, [id for (id in notFound)]);
+    if (this.needsLoads) {
+      for each (let [nounID, references] in Iterator(this.referencesByNounID)) {
+        if (nounID == this.nounDef.id)
+          continue;
+        let nounDef = GlodaDatastore._nounIDToDef[nounID];
+        QFQ_LOG.debug("  have references for noun: " + nounDef.name);
+        // try and load them out of the cache/existing collections.  items in the
+        //  cache will be fully formed, which is nice for us.
+        // XXX this mechanism will get dubious when we have multiple paths to a
+        //  single noun-type.  For example, a -> b -> c, a-> c; two paths to c
+        //  and we're looking at issuing two requests to c, the latter of which
+        //  will be a superset of the first one.  This does not currently pose
+        //  a problem because we only have a -> b -> c -> b, and sequential
+        //  processing means no alarms and no surprises.
+        let masterReferences = this.masterReferencesByNounID[nounID];
+        if (masterReferences === undefined)
+          masterReferences = this.masterReferencesByNounID[nounID] = {};
+        let outReferences;
+        if (this.selfInverseReferences)
+          outReferences = {};
+        else
+          outReferences = masterReferences;
+        let [foundCount, notFoundCount, notFound] =
+          GlodaCollectionManager.cacheLookupMany(nounDef.id, references,
+              outReferences);
+
+        if (this.selfInverseReferences) {
+          for each (let item in outReferences) {
+            masterReferences[item.id] = item;
+            let parentID = item[nounDef.parentColumnAttr.idStorageAttributeName];
+            let childrenList = this.selfInverseReferences[parentID];
+            if (childrenList === undefined)
+              childrenList = this.selfInverseReferences[parentID] = [];
+            childrenList.push(item);
+          }
+        }
         
+        QFQ_LOG.debug("  found: " + foundCount + " not found: " + notFoundCount);
+        if (notFoundCount === 0) {
+          this.collection.resolvedCount++;
+        }
+        else {
+          this.collection.deferredCount++;
+          let query = new nounDef.queryClass();
+          query.id.apply(query, [id for (id in notFound)]);
+          
+          this.collection.masterCollection.subCollections[nounDef.id] = 
+            GlodaDatastore.queryFromQuery(query, QueryFromQueryResolver, 
+              this.collection,
+              // we fully expect/allow for there being no such subcollection yet.
+              this.collection.masterCollection.subCollections[nounDef.id],
+              this.collection.masterCollection);
+        }
+      }
+      
+      for each (let [nounID, inverseReferences] in
+          Iterator(this.inverseReferencesByNounID)) {
+        this.collection.deferredCount++;
+        let nounDef = GlodaDatastore._nounIDToDef[nounID];
+        
+        QFQ_LOG.debug("Want to load inverse via " + nounDef.parentColumnAttr.boundName);
+  
+        let query = new nounDef.queryClass();
+        // we want to constrain using the parent column
+        let queryConstrainer = query[nounDef.parentColumnAttr.boundName];
+        queryConstrainer.apply(query, [pid for (pid in inverseReferences)]);
         this.collection.masterCollection.subCollections[nounDef.id] = 
-          GlodaDatastore.queryFromQuery(query, null, this.collection,
+          GlodaDatastore.queryFromQuery(query, QueryFromQueryResolver,
+            this.collection,
             // we fully expect/allow for there being no such subcollection yet.
             this.collection.masterCollection.subCollections[nounDef.id],
             this.collection.masterCollection);
       }
     }
-    
-    for each (let [nounID, inverseReferencess] in
-        Iterator(this.inverseReferencesByNounID)) {
-      this.collection.deferredCount++;
-      let nounDef = GlodaDatastore._nounIDToDef[nounID];
-
-      let query = nounDef.queryClass();
-      // we want to constrain using the parent column
-      let queryConstrainer = query[nounDef.parentColumnAttr.boundName];
-      queryConstrainer.apply(query, [pid for (pid in inverseReferences)]);
-      this.collection.masterCollection.subCollections[nounDef.id] = 
-        GlodaDatastore.queryFromQuery(query, null, this.collection,
-          // we fully expect/allow for there being no such subcollection yet.
-          this.collection.masterCollection.subCollections[nounDef.id],
-          this.collection.masterCollection);
+    else {
+      this.collection.deferredCount--;
+      this.collection.resolvedCount++;
     }
     
     QFQ_LOG.debug("  defer: " + this.collection.deferredCount +
                   " resolved: " + this.collection.resolvedCount);
     
     // process immediately and kick-up to the master collection...
-    if (!this.collection.deferredCount) {
+    if (this.collection.deferredCount <= 0) {
       // this guy will resolve everyone using referencesByNounID and issue the
       //  call to this.collection._onItemsAdded to propagate things to the
       //  next concerned subCollection or the actual listener if this is the
       //  master collection.  (Also, call _onQueryCompleted).
       QueryFromQueryResolver.onItemsAdded(null, {data: this.collection}, true);
+      QueryFromQueryResolver.onQueryCompleted({data: this.collection});
     }
 
     GlodaDatastore._asyncCompleted();
@@ -2386,7 +2453,7 @@ var GlodaDatastore = {
    *  getCollection (asynchronous).
    */
   queryFromQuery: function gloda_ds_queryFromQuery(aQuery, aListener,
-      aListenerData, aExistingCollection) {
+      aListenerData, aExistingCollection, aMasterCollection) {
     // when changing this method, be sure that GlodaQuery's testMatch function
     //  likewise has its changes made.
     let nounDef = aQuery._nounDef;
@@ -2446,7 +2513,7 @@ var GlodaDatastore = {
                   values.join(",") + "))");
             else
               clauses.push("(" + valueColumnName + " IN (" +
-                  values.join(",") + ")");
+                  values.join(",") + "))");
           }
           test = clauses.join(" OR ");
         }
@@ -2542,12 +2609,12 @@ var GlodaDatastore = {
     this._log.debug("QUERY FROM QUERY: " + sqlString + " ARGS: " + boundArgs);
     
     return this._queryFromSQLString(sqlString, boundArgs, nounDef, aQuery,
-        aListener, aListenerData, aExistingCollection);
+        aListener, aListenerData, aExistingCollection, aMasterCollection);
   },
   
   _queryFromSQLString: function gloda_ds__queryFromSQLString(aSqlString,
       aBoundArgs, aNounDef, aQuery, aListener, aListenerData,
-      aExistingCollection) {
+      aExistingCollection, aMasterCollection) {
     let statement = this._createAsyncStatement(aSqlString, true);
     for (let [iBinding, bindingValue] in Iterator(aBoundArgs)) {
       this._bindVariant(statement, iBinding, bindingValue);
@@ -2557,11 +2624,15 @@ var GlodaDatastore = {
     if (aExistingCollection)
       collection = aExistingCollection;
     else {
-      collection = new GlodaCollection(aNounDef, [], aQuery, aListener);
+      collection = new GlodaCollection(aNounDef, [], aQuery, aListener,
+                                       aMasterCollection);
       GlodaCollectionManager.registerCollection(collection);
+      // we don't want to overwrite the existing listener or its data, but this
+      //  does raise the question about what should happen if we get passed in
+      //  a different listener and/or data.
+      if (aListenerData !== undefined)
+        collection.data = aListenerData;
     }
-    if (aListenerData !== undefined)
-      collection.data = aListenerData;
 
     statement.executeAsync(new QueryFromQueryCallback(statement, aNounDef,
       collection));
@@ -2575,13 +2646,10 @@ var GlodaDatastore = {
    */
   loadNounItem: function gloda_ds_loadNounItem(aItem, aReferencesByNounID,
       aInverseReferencesByNounID) {
-    this._log.debug(" load json: " + aItem._jsonText);
-    let jsonDict = this._json.decode(aItem._jsonText);
-    delete aItem._jsonText;
-    
     let attribIDToDBDefAndParam = this._attributeIDToDBDefAndParam;
     
-    let deps = {};
+    let hadDeps = aItem._deps != null;
+    let deps = aItem._deps || {};
     let hasDeps = false;
     
     for each (let [, attrib] in Iterator(aItem.NOUN_DEF.specialLoadAttribs)) {
@@ -2591,17 +2659,42 @@ var GlodaDatastore = {
         let invReferences = aInverseReferencesByNounID[objectNounDef.id];
         if (invReferences === undefined)
           invReferences = aInverseReferencesByNounID[objectNounDef.id] = {};
-        invReferences[aItem.id] = null;
+        // only contribute if it's not already pending or there
+        if (!(attrib.id in deps) && aItem[attrib.storageAttributeName] == null){
+          this._log.debug("   Adding inv ref for: " + aItem.id);
+          invReferences[aItem.id] = null;
+          deps[attrib.id] = null;
+          hasDeps = true;
+        }
       }
       else if (attrib.special === this.kSpecialColumnParent) {
         let references = aReferencesByNounID[objectNounDef.id];
         if (references === undefined)
           references = aReferencesByNounID[objectNounDef.id] = {};
-        references[aItem[attrib.idStorageAttributeName]] = null;
-        deps[attrib.id] = null;
-        hasDeps = true;
+        // nothing to contribute if it's already there
+        if (!(attrib.id in deps) && 
+            aItem[attrib.valueStorageAttributeName] == null) {
+          references[aItem[attrib.idStorageAttributeName]] = null;
+          this._log.debug("   Adding parent ref for: " +
+            aItem[attrib.idStorageAttributeName]);
+          deps[attrib.id] = null;
+          hasDeps = true;
+        }
       }
     }
+    
+    // bail here if arbitrary values are not allowed, there just is no
+    //  encoded json, or we already had dependencies for this guy, implying
+    //  the json pass has already been performed
+    if (!aItem.NOUN_DEF.allowsArbitraryAttrs || !aItem._jsonText || hadDeps) {
+      if (hasDeps)
+        aItem._deps = deps;
+      return hasDeps;
+    }
+
+    this._log.debug(" load json: " + aItem._jsonText);
+    let jsonDict = this._json.decode(aItem._jsonText);
+    delete aItem._jsonText;
     
     // Iterate over the attributes on the item
     for each (let [attribId, jsonValue] in Iterator(jsonDict)) {
@@ -2684,6 +2777,9 @@ var GlodaDatastore = {
         }
       }
       else if (objectNounDef.tableName) {
+        this._log.info("trying to load: " + objectNounDef.id + " refs: " +
+            jsonValue + ": " + Log4Moz.enumerateProperties(jsonValue).join(","));
+        this._log.info("references: "+ Log4Moz.enumerateProperties(references).join(","));
         if (attrib.singular)
           aItem[attrib.boundName] = references[jsonValue];
         else
@@ -2787,7 +2883,7 @@ var GlodaDatastore = {
   },
 
   _contactFromRow: function gloda_ds_contactFromRow(aRow) {
-    let directoryUUID, contactUUID;
+    let directoryUUID, contactUUID, jsonText;
     if (aRow.getTypeOfIndex(1) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
       directoryUUID = null;
     else
@@ -2796,11 +2892,14 @@ var GlodaDatastore = {
       contactUUID = null;
     else
       contactUUID = aRow.getString(2);
+    if (aRow.getTypeOfIndex(6) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
+      jsonText = undefined;
+    else
+      jsonText = aRow.getString(6);
 
     return new GlodaContact(this, aRow.getInt64(0), directoryUUID,
                             contactUUID, aRow.getString(5),
-                            aRow.getInt64(3), aRow.getInt64(4),
-                            aRow.getString(5));
+                            aRow.getInt64(3), aRow.getInt64(4), jsonText);
   },
 
   get _selectContactByIDStatement() {
