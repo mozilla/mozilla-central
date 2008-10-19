@@ -289,13 +289,21 @@ QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
           GlodaCollectionManager.cacheLookupMany(nounDef.id, references,
               outReferences);
 
-        if (this.selfInverseReferences) {
+        if (nounDef.parentColumnAttr) {
+          let inverseReferences;
+          if (nounDef.id in this.masterInverseReferencesByNounID)
+            inverseReferences =
+              this.masterInverseReferencesByNounID[nounDef.id];
+          else
+            inverseReferences =
+              this.masterInverseReferencesByNounID[nounDef.id] = {};
+          
           for each (let item in outReferences) {
             masterReferences[item.id] = item;
             let parentID = item[nounDef.parentColumnAttr.idStorageAttributeName];
-            let childrenList = this.selfInverseReferences[parentID];
+            let childrenList = inverseReferences[parentID];
             if (childrenList === undefined)
-              childrenList = this.selfInverseReferences[parentID] = [];
+              childrenList = inverseReferences[parentID] = [];
             childrenList.push(item);
           }
         }
