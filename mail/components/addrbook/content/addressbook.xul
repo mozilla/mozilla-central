@@ -155,7 +155,9 @@
 
   <key id="key_printCard" key="&printCardViewCmd.key;" command="cmd_printcard" modifiers="accel"/>
   <key id="key_close" key="&closeCmd.key;" modifiers="accel" oncommand="AbClose()"/>
+#ifdef XP_UNIX
   <key id="key_quit" key="&quitApplicationCmd.key;" modifiers="accel" oncommand="goQuitApplication()"/>
+#endif
   <!-- Edit Menu -->
   <key id="key_undo" key="&undoCmd.key;" modifiers="accel"/>
   <key id="key_redo" key="&redoCmd.key;" modifiers="accel"/>
@@ -299,7 +301,10 @@
 #else
                 label="&quitApplicationCmd.label;" accesskey="&quitApplicationCmd.accesskey;" 
 #endif
-                key="key_quit" oncommand="goQuitApplication()"/>
+#ifdef XP_UNIX
+                key="key_quit"
+#endif
+                oncommand="goQuitApplication()"/>
             </menupopup>
         </menu>
         

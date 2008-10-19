@@ -324,7 +324,9 @@
 #ifndef XP_MACOSX
   <key id="key_renameFolder" keycode="&renameFolder.key;" oncommand="goDoCommand('cmd_renameFolder')"/>
 #endif
+#ifdef XP_UNIX
   <key id="key_quit"/>
+#endif
   <!-- Edit Menu -->
   <key id="key_undo"/>
   <key id="key_redo"/>
