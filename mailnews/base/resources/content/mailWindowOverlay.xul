@@ -1666,9 +1666,9 @@
        <menupopup id="attachmentMenuList" onpopupshowing="FillAttachmentListPopup(this);"/>
      </menu>
      <menuseparator id="messageAfterAttachmentMenuSeparator"/>
-     <menu label="&moveMsgMenu.label;"
-           accesskey="&moveMsgMenu.accesskey;"
-           id="moveMenu"
+     <menu id="moveMenu"
+           label="&moveMsgToMenu.label;"
+           accesskey="&moveMsgToMenu.accesskey;"
            datasources="rdf:null"
            sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
            sortDirection="ascending">
@@ -1762,8 +1762,8 @@
       </template>
     </menu>
     <menu id="copyMenu"
-          label="&copyMsgMenu.label;"
-          accesskey="&copyMsgMenu.accesskey;"
+          label="&copyMsgToMenu.label;"
+          accesskey="&copyMsgToMenu.accesskey;"
           datasources="rdf:null"
           sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
           sortDirection="ascending">

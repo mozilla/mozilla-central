@@ -1304,8 +1304,9 @@
               accesskey="&openMessageWindowCmd.accesskey;"
               key="key_openMessage"/>
             <menuseparator id="messageAfterOpenMsgSeparator"/>
-            <menu id="moveMenu" accesskey="&moveMsgMenu.accesskey;"
-                  label="&moveMsgMenu.label;"
+            <menu id="moveMenu"
+                  label="&moveMsgToMenu.label;"
+                  accesskey="&moveMsgToMenu.accesskey;"
                   oncommand="MsgMoveMessage(event.target._folder)">
               <menupopup type="folder" mode="filing" showFileHereLabel="true"
                          showRecent="true" fileHereLabel="&fileHereMenu.label;"
@@ -1313,8 +1314,9 @@
                          recentLabel="&moveCopyMsgRecentMenu.label;"
                          recentAccessKey="&moveCopyMsgRecentMenu.accesskey;"/>
             </menu>
-            <menu id="copyMenu" accesskey="&copyMsgMenu.accesskey;"
-                  label="&copyMsgMenu.label;"
+            <menu id="copyMenu"
+                  label="&copyMsgToMenu.label;"
+                  accesskey="&copyMsgToMenu.accesskey;"
                   oncommand="MsgCopyMessage(event.target._folder)">
               <menupopup type="folder" mode="filing" showFileHereLabel="true"
                          showRecent="true" fileHereLabel="&copyHereMenu.label;"
