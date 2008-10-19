@@ -139,7 +139,7 @@ var GlodaCollectionManager = {
    * Lookup multiple nouns by ID from the cache/existing collections.
    * @return [The number that were found, the number that were not found.]
    */
-  cacheLookupMany: function gloda_colm_cacheLookupOne(aNounID, aIDMap,
+  cacheLookupMany: function gloda_colm_cacheLookupMany(aNounID, aIDMap,
       aDoCache) {
     let foundCount = 0, notFoundCount = 0, notFound = {};
     
@@ -445,17 +445,22 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener,
   // force the listener to null for our call to _onItemsAdded; no events for
   //  the initial load-out.
   this._listener = null;
-  this._onItemsAdded(items);
+  if (aItems && aItems.length)
+    this._onItemsAdded(aItems);
   
   this.query = aQuery || null;
   this._listener = aListener || null;
+  
+  this.deferredCount = 0;
+  this.resolvedCount = 0;
   
   if (aMasterCollection) {
     this.masterCollection = aMasterCollection;
   }
   else {
     this.masterCollection = this;
-    this.referencesByNounDef = {};
+    this.referencesByNounID = {};
+    this.inverseReferencesByNounID = {};
     this.subCollections = {};
   }
 }

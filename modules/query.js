@@ -344,7 +344,7 @@ function GlodaQueryClassFactory(aNounDef) {
     GlodaQueryClass.call(this);
   }; 
   
-  newQueryClass.prototype = new GlodaQueryClass;
+  newQueryClass.prototype = new GlodaQueryClass();
   newQueryClass.prototype._queryClass = newQueryClass;
   newQueryClass.prototype._nounDef = aNounDef;
   
@@ -362,7 +362,7 @@ function GlodaQueryClassFactory(aNounDef) {
   };
   newWildcardClass.prototype = new GlodaWildcardQueryClass();
   newWildcardClass.prototype._queryClass = newWildcardClass;
-  newWildcardClass.prototype._nounDef = aNounDefww;
+  newWildcardClass.prototype._nounDef = aNounDef;
   
   return [newQueryClass, newExplicitClass, newWildcardClass];
 }

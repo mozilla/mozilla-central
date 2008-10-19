@@ -72,10 +72,26 @@ var GlodaABIndexer = {
   },
 
   get workers() {
-    return [["ab-index", this._worker_index]];
+    return [["ab-card", this._worker_index_card]];
   },
   
-  _worker_index: function(aJob) {
+  _worker_index_card: function(aJob, aCallbackHandle) {
+    // load the identity
+    let query = Gloda.newQuery(Gloda.NOUN_IDENTITY);
+    query.kind("email");
+    query.value(card.primaryEmail);
+    let identityCollection = query.getCollection(aCallbackHandle);
+    yield Gloda.kWorkAsync;
+    
+    if (identityCollection.length) {
+      let identity = identityCollection.items[0];
+
+      this._log.debug("Found identity, processing card.");
+      yield aCallbackHandle.pushAndGo(
+          Gloda.grokNounItem(identity.contact, card, false, aCallbackHandle));
+      this._log.debug("Done processing card.");
+    }
+    
     yield GlodaIndexer.kWorkDone;
   },
   
@@ -91,13 +107,10 @@ var GlodaABIndexer = {
       aProperty, aOldValue, aNewValue) {
     if (aProperty == null && aItem instanceof Ci.nsIAbCard) {
       this._log.debug("Received Card Change Notification");
+
       let card = aItem; // instanceof already QueryInterface'd for us.
-      let identity = GlodaDatastore.getIdentity("email", card.primaryEmail);
-      if (identity) {
-        this._log.debug("Found identity, processing card.");
-        Gloda._processNounItem(identity.contact, card, false);
-        this._log.debug("Done processing card.");
-      }
+      let job = new IndexingJob("ab-card", 1, card);
+      GlodaIndexer.indexJob(job);
     }
   }
 };
@@ -123,12 +136,23 @@ var GlodaABAttrs = {
   
   defineAttributes: function() {
     /* ***** Contacts ***** */
+    this._attrIdentityContact = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "identities",
+      singular: false,
+      special: Gloda.kSpecialColumnChildren,
+      //specialColumnName: "contactID",
+      storageAttributeName: "_identities",
+      subjectNouns: [Gloda.NOUN_CONTACT],
+      objectNoun: Gloda.NOUN_IDENTITY,
+      }); // tested-by: test_attributes_fundamental
     this._attrContactName = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrFundamental,
       attributeName: "name",
-      bind: false,
       singular: true,
       special: Gloda.kSpecialString,
       specialColumnName: "name",
@@ -140,7 +164,6 @@ var GlodaABAttrs = {
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrDerived,
       attributeName: "popularity",
-      bind: false,
       singular: true,
       special: Gloda.kSpecialColumn,
       specialColumnName: "popularity",
@@ -152,7 +175,6 @@ var GlodaABAttrs = {
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrDerived,
       attributeName: "frecency",
-      bind: false,
       singular: true,
       special: Gloda.kSpecialColumn,
       specialColumnName: "frecency",
@@ -166,10 +188,11 @@ var GlodaABAttrs = {
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrDerived,
       attributeName: "contact",
-      bind: false,
       singular: true,
       special: Gloda.kSpecialColumn,
-      specialColumnName: "contactID",
+      specialColumnName: "contactID", // the column in the db
+      idStorageAttributeName: "_contactID",
+      valueStorageAttributeName: "_contact", 
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_CONTACT,
       }); // tested-by: test_attributes_fundamental
@@ -178,7 +201,6 @@ var GlodaABAttrs = {
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrFundamental,
       attributeName: "kind",
-      bind: false,
       singular: true,
       special: Gloda.kSpecialString,
       specialColumnName: "kind",
@@ -190,7 +212,6 @@ var GlodaABAttrs = {
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrFundamental,
       attributeName: "value",
-      bind: false,
       singular: true,
       special: Gloda.kSpecialString,
       specialColumnName: "value",

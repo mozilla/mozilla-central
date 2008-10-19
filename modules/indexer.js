@@ -43,7 +43,7 @@
  *  benefit readability/size as well.
  */
 
-EXPORTED_SYMBOLS = ['GlodaIndexer'];
+EXPORTED_SYMBOLS = ['GlodaIndexer', 'IndexingJob'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -131,18 +131,20 @@ function fixIterator(aEnum, aIface) {
   } catch(ex) {}
 }
 
-function MakeCleanMsgHdrCallback(aMsgHdr) {
+function MakeCleanMsgHdrCallback(aMsgHdr, aGlodaMessageID) {
   return function() {
     // Mark this message as indexed
-    aMsgHdr.setUint32Property(this.GLODA_MESSAGE_ID_PROPERTY, curMsg.id);
+    aMsgHdr.setUint32Property(GlodaIndexer.GLODA_MESSAGE_ID_PROPERTY,
+                              aGlodaMessageID);
     // If there is a gloda-dirty flag on there, clear it by writing a 0.  (But
     //  don't do this if we didn't have a dirty flag on there in the first
     //  case.)  It sounds like we would actually prefer to "cut" the "cell",
     //  but I don't see any in-domain means of doing that.
     try {
-      let isDirty = aMsgHdr.getUint32Property(this.GLODA_DIRTY_PROPERTY);
+      let isDirty = aMsgHdr.getUint32Property(
+        GlodaIndexer.GLODA_DIRTY_PROPERTY);
       if (isDirty)
-        aMsgHdr.setUint32Property(this.GLODA_DIRTY_PROPERTY, 0);
+        aMsgHdr.setUint32Property(GlodaIndexer.GLODA_DIRTY_PROPERTY, 0);
     }
     catch (ex) {}
   };
@@ -297,7 +299,7 @@ var GlodaIndexer = {
     this._msgFolderListener.indexer = this;
     this._shutdownTask.indexer = this;
     
-    this._callbackHandler.init();
+    this._callbackHandle.init();
     
     // create the timer that drives our intermittent indexing
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
@@ -909,14 +911,15 @@ var GlodaIndexer = {
       //  not done indexing.  (On kWorkAsync, we don't care what happens, because
       //  someone else will be receiving the callback, and they will call us when
       //  they are done doing their thing.
-      let result;
       let args;
       if (this._savedCallbackArgs != null) {
         args = this._savedCallbackArgs;
         this._savedCallbackArgs = null;
       }
       else
-        args = arguments;
+        args = arguments; //Array.slice.call(arguments);
+      
+      let result;
       if (args.length == 0)
         result = this._batch.next();
       else if (args.length == 1)
@@ -951,10 +954,10 @@ var GlodaIndexer = {
   },
 
   _callbackHandle: {
-    _init: function gloda_index_callbackhandle_init() {
+    init: function gloda_index_callbackhandle_init() {
       this.wrappedCallback = GlodaIndexer._wrapCallbackDriver;
+      this.callbackThis = GlodaIndexer;
       this.callback = GlodaIndexer.callbackDriver;
-      
     },
     activeStack: [],
     activeIterator: null,
@@ -985,25 +988,26 @@ var GlodaIndexer = {
     },
     popWithResult: function gloda_index_callbackhandle_popWithResult() {
       this.pop();
-      let reslt = this._result;
+      let result = this._result;
       this._result = null;
       return result;
     },
     _result: null,
     doneWithResult: function gloda_index_callbackhandle_doneWithResult(aResult){
       this._result = aResult;
-      yield Gloda.kWorkDoneWithResult;
+      return Gloda.kWorkDoneWithResult;
     },
     
     /* be able to serve as a collection listener, resuming the active iterator's
        last yield kWorkAsync */
-    _onItemsAdded: function() {},
-    _onItemsModified: function() {},
-    _onItemsRemoved: function() {},
-    _onQueryCompleted: function(aCollection) {
+    onItemsAdded: function() {},
+    onItemsModified: function() {},
+    onItemsRemoved: function() {},
+    onQueryCompleted: function(aCollection) {
       GlodaIndexer.callbackDriver();
     }
   },
+  _workBatchData: undefined,
   /**
    * The workBatch generator handles a single 'batch' of processing, managing
    *  the database transaction and keeping track of "tokens".  It drives the
@@ -1018,7 +1022,6 @@ var GlodaIndexer = {
     let commitTokens = this._indexCommitTokens;
     GlodaDatastore._beginTransaction();
 
-    let data = undefined;
     while (commitTokens > 0) {
       for (let tokensLeft = this._indexTokens; tokensLeft > 0;
           tokensLeft--, commitTokens--) {
@@ -1033,18 +1036,20 @@ var GlodaIndexer = {
         //  if we left the loop due to an exception (without consuming all the
         //  tokens.)
         try {
-          switch (this._callbackHandler.activeIterator.send(data)) {
+          switch (this._callbackHandle.activeIterator.send(this._workBatchData)) {
             case this.kWorkSync:
+              this._workBatchData = undefined;
               break;
             case this.kWorkAsync:
-              data = yield this.kWorkAsync;
+              this._workBatchData = yield this.kWorkAsync;
               break;
             case this.kWorkDone:
-              this._callbackHandler.pop();
+              this._callbackHandle.pop();
+              this._workBatchData = undefined;
               tokensLeft++; // don't eat a token for this pass
               break;
             case this.kWorkDoneWithResult:
-              data = this._callbackHandler.popWithResult();
+              this._workBatchData = this._callbackHandle.popWithResult();
               tokensLeft++; // don't eat a token for this pass
               continue;
           }
@@ -1124,7 +1129,7 @@ var GlodaIndexer = {
     }
     else if (job.jobType in this._otherIndexerWorkers) {
       let [indexer, workerFunc] = this._otherIndexerWorkers[job.jobType];
-      generator = workerFunc.call(indexer, job);
+      generator = workerFunc.call(indexer, job, this._callbackHandle);
     }
     else {
       this._log.warning("Unknown job type: " + job.jobType);
@@ -1315,7 +1320,10 @@ var GlodaIndexer = {
             continue;
         }
         
-        yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr));
+        this._log.debug(">>>  _indexMessage");
+        yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
+            this._callbackHandle));
+        this._log.debug("<<<  _indexMessage");
       }
     }
     
@@ -1350,7 +1358,8 @@ var GlodaIndexer = {
         msgHdr = this._indexingDatabase.getMsgHdrForMessageID(item[1]);
       
       if (msgHdr && !(msgHdr.flags&MSG_FLAG_EXPUNGED))
-        yield this._indexMessage(msgHdr);
+        yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
+            this._callbackHandle));
       else
         yield this.kWorkSync;
     }
@@ -1429,6 +1438,14 @@ var GlodaIndexer = {
     }
   },
 
+  indexJob: function glodaIndexJob(aJob) {
+    this._log.info("Queue-ing job for indexing: " + aJob.jobType);
+    
+    this._indexQueue.push(aJob);
+    this._indexingJobGoal++;
+    this.indexing = true;
+  },
+  
   /**
    * Queue a single folder for indexing given an nsIMsgFolder.
    */
@@ -1974,8 +1991,9 @@ var GlodaIndexer = {
   _indexMessage: function gloda_indexMessage(aMsgHdr, aCallbackHandle) {
     this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
                     aMsgHdr.subject);
-    MsgHdrToMimeMessage(aMsgHdr, aCallbackHandle, aCallbackHandle.callback);
-    let aMimeMsg = yield this.kWorkAsync;
+    MsgHdrToMimeMessage(aMsgHdr, aCallbackHandle.callbackThis,
+        aCallbackHandle.callback);
+    let [,aMimeMsg] = yield this.kWorkAsync;
 
     if (aMimeMsg)
       this._log.debug("  * Got Body! Length: " + aMimeMsg.body.length);
@@ -1994,9 +2012,14 @@ var GlodaIndexer = {
     references.push(aMsgHdr.messageId);
     
     this._datastore.getMessagesByMessageID(references, aCallbackHandle.callback,
-      aCallbackHandle);
+      aCallbackHandle.callbackThis);
     // (ancestorLists has a direct correspondence to the message ids)
-    let ancestorLists = yield kWorkAsync; 
+    let ancestorLists = yield this.kWorkAsync; 
+    
+    this._log.debug("ancestors raw: " + ancestorLists);
+    this._log.debug("ref len: " + references.length + " anc len: " + ancestorLists.length);
+    this._log.debug("references: " + Log4Moz.enumerateProperties(references).join(","));
+    this._log.debug("ancestors: " + Log4Moz.enumerateProperties(ancestorLists).join(","));
     
     // pull our current message lookup results off
     references.pop();
@@ -2119,10 +2142,8 @@ var GlodaIndexer = {
                                              aMsgHdr.messageKey,                
                                              conversationID,
                                              aMsgHdr.date,
-                                             aMsgHdr.messageId,
-                                             aMsgHdr.subject,
-                                             aMimeMsg ? aMimeMsg.body : null,
-                                             attachmentNames);
+                                             aMsgHdr.messageId);
+      curMsg._conversation = conversation;
       isNew = true;
     }
     else {
@@ -2135,20 +2156,24 @@ var GlodaIndexer = {
       //  if this message was not a ghost, we are assuming the 'body'
       //  associated with the id is still exactly the same.  It is conceivable
       //  that there are cases where this is not true.
-      this._datastore.updateMessage(curMsg, isNew ? aMsgHdr.subject : null,
-        (isNew && aMimeMsg) ? aMimeMsg.body : null,
-        isNew ? attachmentNames : null);
     }
     
-    yield aCallbackHandle.pushAndGo("Process Message Attributes",
-      Gloda.grokNounItem(curMsg, {header: aMsgHdr, mime: aMimeMsg}, isNew));
+    if (isNew) {
+      curMsg._subject = aMsgHdr.subject;
+      curMsg._body = aMimeMsg.body;
+      curMsg._attachmentNames = attachmentNames;
+    }
+    
+    yield aCallbackHandle.pushAndGo(
+        Gloda.grokNounItem(curMsg, {header: aMsgHdr, mime: aMimeMsg}, isNew,
+            aCallbackHandle));
     
     // we want to update the header for messages only after the transaction
     //  irrevocably hits the disk.  otherwise we could get confused if the
     //  transaction rolls back or what not.
-    GlodaDatastore.runPostCommit(MakeCleanMsgHdrCallback(aMsgHdr));
+    GlodaDatastore.runPostCommit(MakeCleanMsgHdrCallback(aMsgHdr, curMsg.id));
     
-    this.callbackDriver();
+    yield this.kWorkDone;
   },
   
   /**

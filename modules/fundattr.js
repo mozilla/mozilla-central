@@ -296,8 +296,8 @@ var GlodaFundAttr = {
     if (fromMeTo === undefined)
       fromMeTo = aGlodaMessage.fromMeTo = [];
     let ccMe = aGlodaMessage.ccMe;
-    if (ccMe === undefineD)
-      ccMe = aGlodaMEssage.ccMe = [];
+    if (ccMe === undefined)
+      ccMe = aGlodaMessage.ccMe = [];
     let fromMeCc = aGlodaMessage.fromMeCc;
     if (fromMeCc === undefined)
       fromMeCc = aGlodaMessage.fromMeCc = [];
@@ -329,9 +329,10 @@ var GlodaFundAttr = {
                       "' somehow lacks a valid author.  Bailing.");
       return; // being a generator, this generates an exception; we like.
     }
-    aGlodaMessage.from = authorIdentities[0];
-    involved.push(authorIdentities[0]);
-    involvedIdentities[authorIdentities[0].id] = true;
+    let authorIdentity = authorIdentities[0];
+    aGlodaMessage.from = authorIdentity;
+    involved.push(authorIdentity);
+    involvedIdentities[authorIdentity.id] = true;
     
     let myIdentities = Gloda.myIdentities; // needless optimization?
     let isFromMe = authorIdentity.id in myIdentities;
@@ -348,7 +349,7 @@ var GlodaFundAttr = {
       }
       // optimization attribute to-me ('I' am the parameter)
       if (toIdentity.id in myIdentities) {
-        toMe.push([toIDentity, authorIdentity]);
+        toMe.push([toIdentity, authorIdentity]);
         if (aIsNew)
           authorIdentity.contact.popularity += this.POPULARITY_TO_ME;
       }

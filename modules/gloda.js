@@ -152,7 +152,7 @@ var Gloda = {
   _init: function gloda_ns_init() {
     this._initLogging();
     this._json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-    GlodaDatastore._init(this._jsn);
+    GlodaDatastore._init(this._json, this._nounIDToDef);
     this._initAttributes();
     this._initMyIdentities();
   },
@@ -254,13 +254,15 @@ var Gloda = {
 
     let query = this.newQuery(this.NOUN_IDENTITY);
     query.kind("email");
-    query.value.apply(query.value, [address for (address in addresses)]);
+    query.value.apply(query, [address for (address in addresses)]);
     let collection = query.getCollection(aCallbackHandle);
     yield this.kWorkAsync;
 
     // put the identities in the appropriate result lists
     for each (let [, identity] in Iterator(collection.items)) {
       let nameAndResultLists = addresses[identity.value];
+      this._log.debug(" found identity for '" + nameAndResultLists[0] + "' (" +
+                      identity.value + ")");
       // index 0 is the name, skip it
       for (let iResList = 1; iResList < nameAndResultLists.length; iResList++) {
         nameAndResultLists[iResList].push(identity);
@@ -270,10 +272,12 @@ var Gloda = {
     
     // create the identities that did not exist yet
     for each (let [address, nameAndResultLists] in Iterator(addresses)) {
-      let name = nameAndResultsLists[0];
+      let name = nameAndResultLists[0];
+      
+      this._log.debug(" creating contact for '" + name + "' (" + address + ")");
 
       // try and find an existing address book contact.
-      let card = GlodaUtils.getCardForEmail();
+      let card = GlodaUtils.getCardForEmail(address);
       // XXX when we have the address book GUID stuff, we need to use that to
       //  find existing contacts... (this will introduce a new query phase
       //  where we batch all the GUIDs for an async query)
@@ -281,6 +285,21 @@ var Gloda = {
       //  should also just create identities for any that don't yet exist
 
       let contact = GlodaDatastore.createContact(null, null, name, 0, 0);
+
+      // we must create the identity.  use a blank description because there's
+      //  nothing to differentiate it from other identities, as this contact
+      //  only has one initially (us).
+      // XXX when we have multiple e-mails and there is a meaning associated
+      //  with each e-mail, try and use that to populate the description.
+      // XXX we are creating the identity here before we insert the contact.
+      //  conceptually it is good for us to be creating the identity before
+      //  exposing it to the address-book indexer, but we could get our id's
+      //  in a bad way from not deferring the identity insertion until after
+      //  the contact insertion.
+      let identity = GlodaDatastore.createIdentity(contact.id, contact,
+        "email", address, /* description */ "", /* relay? */ false);
+      contact._identities = [identity];
+      
       // give the address book indexer a chance if we have a card.
       // (it will fix-up the name based on the card as appropriate)
       if (card)
@@ -289,14 +308,6 @@ var Gloda = {
       else // grokNounItem will issue the insert for us...
         GlodaDatastore.insertContact(contact);
 
-      // we must create the identity.  use a blank description because there's
-      //  nothing to differentiate it from other identities, as this contact
-      //  only has one initially (us).
-      // XXX when we have multiple e-mails and there is a meaning associated
-      //  with each e-mail, try and use that to populate the description. 
-      let identity = GlodaDatastore.createIdentity(contact.id, contact,
-        "email", mailAddr, /* description */ "", /* relay? */ false);
-      
       for (let iResList = 1; iResList < nameAndResultLists.length; iResList++) {
         nameAndResultLists[iResList].push(identity);
       }
@@ -382,6 +393,11 @@ var Gloda = {
       }
     }
 
+    // we need to establish the identity.contact portions of the relationship
+    for each (let [,identity] in Iterator(existingIdentities)) {
+      identity._contact = GlodaDatastore.getContactByID(identity.contactID);
+    }
+    
     if (existingIdentities.length) {
       // just use the first guy's contact
       myContact = existingIdentities[0].contact;
@@ -415,7 +431,7 @@ var Gloda = {
     }
 
     this.myContact = myContact;
-    this.myIdentities = myIdentities;
+    this.myIdentities = myContact._identities = myIdentities;
   },
 
   /**
@@ -453,13 +469,15 @@ var Gloda = {
    *  thing's fulltext row.  (Where "thing" could be a message or any other
    *  first class noun.)
    */
-  kSpecialNotAtAll: 0,
+  kSpecialNotAtAll: GlodaDatastore.kSpecialNotAtAll,
   /**
    * This attribute is stored as a numeric column on the row for the noun.  The
    *  attribute definition should include this value as 'special' and the
    *  column name that stores the attribute as 'specialColumnName'.
    */
   kSpecialColumn: GlodaDatastore.kSpecialColumn,
+  kSpecialColumnChildren: GlodaDatastore.kSpecialColumnChildren,
+  kSpecialColumnParent: GlodaDatastore.kSpecialColumnParent,
   /**
    * This attribute is stored as a string column on the row for the noun.  It
    *  differs from kSpecialColumn in that it is a string and thus uses different
@@ -649,6 +667,19 @@ var Gloda = {
       aNounDef._dbMeta = {};
       aNounDef.class.prototype.NOUN_DEF = aNounDef;
       aNounDef.toJSON = this._managedToJSON;
+      
+      aNounDef.specialLoadAttribs = [];
+
+      // - define the 'id' constrainer
+      let idConstrainer = function() {
+        let constraint = [GlodaDatastore.kConstraintIdIn, null];
+        for (let iArg = 0; iArg < arguments.length; iArg++) {
+          constraint.push(arguments[iArg]);
+        }
+        this._constraints.push(constraint);
+        return this;
+      };
+      aNounDef.queryClass.prototype.id = idConstrainer;
     }
     if (aNounDef.cache) {
       let cacheCost = aNounDef.cacheCost || 1024;
@@ -657,26 +688,14 @@ var Gloda = {
       if (cacheSize)
         GlodaCollectionManager.defineCache(aNounDef, cacheSize);
     }
-    if (aNounDef.allowsArbitraryAttrs) {
-      aNounDef.attribsByBoundName = {};
-    }
+    aNounDef.attribsByBoundName = {};
+    
     this._nounNameToNounID[aNounDef.name] = aNounID;
     this._nounIDToDef[aNounID] = aNounDef;
     aNounDef.actions = [];
     
     this._attrProviderOrderByNoun[aNounDef.id] = [];
     this._attrProvidersByNoun[aNounDef.id] = {};
-    
-    // - define the 'id' constrainer
-    let idConstrainer = function() {
-      let constraint = [GlodaDatastore.kConstraintIdIn, null];
-      for (let iArg = 0; iArg < arguments.length; iArg++) {
-        constraint.push(arguments[iArg]);
-      }
-      this._constraints.push(constraint);
-      return this;
-    };
-    subjectNounDef.queryClass.prototype.id = idConstrainer;
   },
 
   /**
@@ -882,6 +901,7 @@ var Gloda = {
       tableName: "contacts",
       attrTableName: "contactAttributes", attrIDColumnName: "contactID",
       datastore: GlodaDatastore, objFromRow: GlodaDatastore._contactFromRow,
+      dbAttribAdjuster: GlodaDatastore.adjustMessageAttributes,
       objInsert: GlodaDatastore.insertContact,
       objUpdate: GlodaDatastore.updateContact,
       fromParamAndValue: function(aParam, aID) {
@@ -947,15 +967,16 @@ var Gloda = {
         
         return [added, removed];
       },
-      contributeObjDependencies: function(aJsonValues, aReferencesByNounDef) {
+      contributeObjDependencies: function(aJsonValues, aReferencesByNounID,
+          aInverseReferencesByNounID) {
         // nothing to do with a zero-length list
         if (aJsonValues.length == 0)
           return false;
       
         let nounIdentityDef = Gloda._nounIDToDef[this.NOUN_IDENTITY]
-        let references = aReferencesByNounDef[nounIdentityDef];
+        let references = aReferencesByNounID[nounIdentityDef.id];
         if (references === undefined)
-          references = aReferencesByNounDef[nounIdentityDef] = {};
+          references = aReferencesByNounID[nounIdentityDef.id] = {};
         
         for each (let [, tupe] in Iterator(aJsonValues)) {
           let [originIdentityID, targetIdentityID] = tupe;
@@ -965,9 +986,10 @@ var Gloda = {
         
         return true;
       },
-      resolveObjDependencies: function(aJsonValues, aReferencesByNounDef) {
+      resolveObjDependencies: function(aJsonValues, aReferencesByNounID,
+          aInverseReferencesByNounID) {
         let references =
-          aReferencesByNounDef[Gloda._nounIDToDef[this.NOUN_IDENTITY]];
+          aReferencesByNounID[this.NOUN_IDENTITY];
         
         let results = [];
         for each (let [, tupe] in Iterator(aJsonValues)) {
@@ -999,33 +1021,39 @@ var Gloda = {
    *
    * @XXX potentially rename to not suggest binding is required.
    */
-  _bindAttribute: function gloda_ns_bindAttr(aAttrDef, aSubjectType) {
-    if (!(aSubjectType in this._nounIDToDef))
-      throw Error("Invalid subject type: " + aSubjectType);
-
-    let objNounDef = this._nounIDToDef[aAttrDef.objectNoun];
-    let subjectNounDef = this._nounIDToDef[aSubjectType];
-
-    // -- the on-object bindings
-    if (aDoBind) {
-      aAttr.boundName = aBindName;
-    }
+  _bindAttribute: function gloda_ns_bindAttr(aAttrDef, aSubjectNounDef) {
+    let objectNounDef = aAttrDef.objectNounDef;
 
     // -- the query constraint helpers
-    if (subjectNounDef.queryClass !== undefined) {
-      let constrainer = function() {
-        let constraint = [GlodaDatastore.kConstraintIn, aAttrDef];
-        for (let iArg = 0; iArg < arguments.length; iArg++) {
-          constraint.push(arguments[iArg]);
-        }
-        this._constraints.push(constraint);
-        return this;
-      };
+    if (aSubjectNounDef.queryClass !== undefined) {
+      let constrainer;
+      // non-strings can use IN
+      if (aAttrDef.special != this.kSpecialString) {
+        constrainer = function() {
+          let constraint = [GlodaDatastore.kConstraintIn, aAttrDef];
+          for (let iArg = 0; iArg < arguments.length; iArg++) {
+            constraint.push(arguments[iArg]);
+          }
+          this._constraints.push(constraint);
+          return this;
+        };
+      }
+      else { // strings need to use equals for escaping reasons
+        // (we could introduce an 'escaped' in that we manually escape though)
+        constrainer = function() {
+          let constraint = [GlodaDatastore.kConstraintEquals, aAttrDef];
+          for (let iArg = 0; iArg < arguments.length; iArg++) {
+            constraint.push(arguments[iArg]);
+          }
+          this._constraints.push(constraint);
+          return this;
+        };
+      }
 
-      subjectNounDef.queryClass.prototype[aBindName] = constrainer;
+      aSubjectNounDef.queryClass.prototype[aAttrDef.boundName] = constrainer;
 
       // - ranged value helper: fooRange
-      if (objNounDef.continuous) {
+      if (objectNounDef.continuous) {
         // takes one or more tuples of [lower bound, upper bound]
         let rangedConstrainer = function() {
           let constraint = [GlodaDatastore.kConstraintRanges, aAttrDef];
@@ -1036,14 +1064,14 @@ var Gloda = {
           return this;
         }
 
-        subjectNounDef.queryClass.prototype[aBindName + "Range"] =
+        aSubjectNounDef.queryClass.prototype[aAttrDef.boundName + "Range"] =
           rangedConstrainer;
       }
 
       // - string LIKE helper for special on-row attributes: fooLike
       // (it is impossible to store a string as an indexed attribute, which is
       //  why we do this for on-row only.)
-      if (aAttr.special == this.kSpecialString) {
+      if (aAttrDef.special == this.kSpecialString) {
         let likeConstrainer = function() {
           let constraint = [GlodaDatastore.kConstraintStringLike, aAttrDef];
           for (let iArg = 0; iArg < arguments.length; iArg++) {
@@ -1053,12 +1081,10 @@ var Gloda = {
           return this;
         }
 
-        subjectNounDef.queryClass.prototype[aBindName + "Like"] =
+        aSubjectNounDef.queryClass.prototype[aAttrDef.boundName + "Like"] =
           likeConstrainer;
       }
     }
-
-    aAttr._singular = aSingular;
   },
 
   /**
@@ -1106,7 +1132,6 @@ var Gloda = {
         !("extensionName" in aAttrDef) ||
         !("attributeType" in aAttrDef) ||
         !("attributeName" in aAttrDef) ||
-        !("bind" in aAttrDef) ||
         !("singular" in aAttrDef) ||
         !("subjectNouns" in aAttrDef) ||
         !("objectNoun" in aAttrDef))
@@ -1128,7 +1153,7 @@ var Gloda = {
     let compoundName = aAttrDef.extensionName + ":" + aAttrDef.attributeName;
     let attrDBDef;
     if (compoundName in GlodaDatastore._attributeDBDefs) {
-      // the existence of the GlodaAttributeDef means that either it has
+      // the existence of the GlodaAttributeDBDef means that either it has
       //  already been fully defined, or has been loaded from the database but
       //  not yet 'bound' to a provider (and had important meta-info that
       //  doesn't go in the db copied over)
@@ -1150,19 +1175,21 @@ var Gloda = {
     
     aAttrDef.dbDef = attrDBDef;
     attrDBDef.attrDef = aAttrDef;
+    
+    aAttrDef.id = aAttrDef.dbDef.id;
 
-    let bindName;
     if ("bindName" in aAttrDef)
-      bindName = aAttrDef.bindName;
+      aAttrDef.boundName = aAttrDef.bindName;
     else
-      bindName = aAttrDef.attributeName;
-    aAttrDef.boundName = bindName;
+      aAttrDef.boundName = aAttrDef.attributeName;
+    
+    aAttrDef.objectNounDef = this._nounIDToDef[aAttrDef.objectNoun];
 
     for (let iSubject = 0; iSubject < aAttrDef.subjectNouns.length;
            iSubject++) {
       let subjectType = aAttrDef.subjectNouns[iSubject];
-      this._bindAttribute(attr, subjectType, aAttrDef.objectNoun,
-                          aAttrDef.singular, aAttrDef.bind, bindName);
+      let subjectNounDef = this._nounIDToDef[subjectType];
+      this._bindAttribute(aAttrDef, subjectNounDef);
 
       // update the provider maps...
       if (this._attrProviderOrderByNoun[subjectType]
@@ -1172,21 +1199,26 @@ var Gloda = {
       }
       this._attrProvidersByNoun[subjectType][aAttrDef.provider].push(aAttrDef);
       
-      let subjectNounDef = this._nounIDToDef[subjectType];
-      subjectNounDef.attribsByBoundName[bindName] = attr;
+      subjectNounDef.attribsByBoundName[aAttrDef.boundName] = aAttrDef;
       
+      if (aAttrDef.special & this.kSpecialColumn)
+        subjectNounDef.specialLoadAttribs.push(aAttrDef);
       
-      if (objectNounDef.tableName ||
-          objectNounDef.contributeObjDependencies) {
-        subjectNounDef.hasObjDependencies = true;
+      // if this is a parent column attribute, make note of it so that if we
+      //  need to do an inverse references lookup, we know what column we are
+      //  issuing against.
+      if (aAttrDef.special === this.kSpecialColumnParent) {
+        subjectNounDef.parentColumnAttr = aAttrDef;
       }
       
-      this._attrProviders[aAttrDef.provider.providerName].push(attr);
-      return attr;
+      if (aAttrDef.objectNounDef.tableName ||
+          aAttrDef.objectNounDef.contributeObjDependencies) {
+        subjectNounDef.hasObjDependencies = true;
+      }
     }
     
-    this._attrProviders[aAttrDef.provider.providerName].push(attr);
-    return attr;
+    this._attrProviders[aAttrDef.provider.providerName].push(aAttrDef);
+    return aAttrDef;
   },
 
   /**
@@ -1294,7 +1326,7 @@ var Gloda = {
    *  collection.  (Forgetting about the collection will suffice, as it is still
    *  weakly held.)
    */
-  _wildcardCollection: function gloda_ns_explicitCollection(aNounID, aItems) {
+  _wildcardCollection: function gloda_ns_wildcardCollection(aNounID, aItems) {
     let nounDef = this._nounIDToDef[aNounID];
     let collection = new GlodaCollection(nounDef, aItems, null, null)
     let query = new nounDef.wildcardQueryClass(collection);
@@ -1303,81 +1335,6 @@ var Gloda = {
     return collection;
   },
 
-  /**
-   * Process the given GlodaMessage, determining all the attributes it should
-   *  possess.  This should not be publicly exposed here for multiple reasons.
-   * What we eventually want is the ability for pluggable (non-message specific)
-   *  indexers to be added to the system, and for them to register via this
-   *  Gloda interface.  However, we don't want that mechanism directly exposed
-   *  to user/extension code, at least in the sense that it seems like we are
-   *  suggesting they should use it.
-   * This method should probably end up generalized, and implicitly integrated
-   *  into things as a result of registering an indexing mechanism for a given
-   *  noun type.
-   */
-  processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr,
-                                                   aMimeMsg, aIsNew) {
-    // For now, we are ridiculously lazy and simply nuke all existing attributes
-    //  before applying the new attributes.
-    aMessage._datastore.clearMessageAttributes(aMessage);
-
-    let allAttribs = [];
-
-    let attrProviders = this._attrProviderOrderByNoun[aMessage.NOUN_ID];
-    for (let iProvider = 0; iProvider < attrProviders.length; iProvider++) {
-      let attribs = attrProviders[iProvider].process(aMessage, aMsgHdr,
-                                                     aMimeMsg, aIsNew);
-      allAttribs = allAttribs.concat(attribs);
-    }
-
-    // [attribute id, value] for for the database
-    let outAttribs = [];
-    // [attribute def, parameter, value] for memory usage
-    let memAttribs = [];
-
-    for (let iAttrib = 0; iAttrib < allAttribs.length; iAttrib++) {
-      let attribDesc = allAttribs[iAttrib];
-
-      // is it an (attributedef / attribute def id, value) tuple?
-      if (attribDesc.length == 2) {
-        // if it's already an attrib id, we can use the tuple outright
-        if (typeof attribDesc[0] == "number") {
-          outAttribs.push(attribDesc);
-          let [attribDef, attribParam] =
-            GlodaDatastore._attributeIDToDBDefAndParam[attribDesc[0]];
-          memAttribs.push([attribDef, attribParam, attribDesc[1]]);
-        }
-        else {
-          outAttribs.push([attribDesc[0].id, attribDesc[1]]);
-          // the parameter is null if they just pass an attribute def
-          memAttribs.push([attribDesc[0], null, attribDesc[1]]);
-        }
-      }
-      // it must be an (attrib, parameter value, attrib value) tuple
-      else {
-        // just store it verbatim for memory purposes
-        memAttribs.push(attribDesc);
-
-        let attrib = attribDesc[0];
-        let parameterValue = attribDesc[1];
-        let attribID;
-        if (parameterValue != null)
-          attribID = attrib.bindParameter(parameterValue);
-        else
-          attribID = attrib.id;
-        outAttribs.push([attribID, attribDesc[2]]);
-      }
-    }
-
-    GlodaDatastore.insertMessageAttributes(aMessage, outAttribs);
-    aMessage._replaceAttributes(memAttribs);
-
-    if (aIsNew)
-      GlodaCollectionManager.itemsAdded(aMessage.NOUN_ID, [aMessage]);
-    else
-      GlodaCollectionManager.itemsModified(aMessage.NOUN_ID, [aMessage]);
-  },
-  
   /**
    * Populate a gloda representation of an item given the thus-far built
    *  representation, the previous representation, and one or more raw
@@ -1393,23 +1350,33 @@ var Gloda = {
     let itemNounDef = this._nounIDToDef[aItem.NOUN_ID];
     let attribsByBoundName = itemNounDef.attribsByBoundName;
     
+    this._log.debug("grokNounItem: " + itemNounDef.name);
+    
     let addDBAttribs = [];
     let removeDBAttribs = [];
     
     let jsonDict = {};
     
-    let aOldItem = aItem;
-    // we want to create a clone of the existing item so that we can know the
-    //  deltas that happened for indexing purposes
-    aItem = aItem._clone();
+    let aOldItem;
+    if (aIsNew) // there is no old item if we are new.
+      aOldItem = {};
+    else {
+      aOldItem = aItem;
+      // we want to create a clone of the existing item so that we can know the
+      //  deltas that happened for indexing purposes
+      aItem = aItem._clone();
+    }
   
     // Have the attribute providers directly set properties on the aItem
     let attrProviders = this._attrProviderOrderByNoun[aItem.NOUN_ID];
     for (let iProvider = 0; iProvider < attrProviders.length; iProvider++) {
+      this._log.debug("  provider: " + attrProviders[iProvider].providerName);
       yield aCallbackHandle.pushAndGo(
-        attrProviders[iProvider].process(aItem, aRawItem, aIsNew,
+        attrProviders[iProvider].process(aItem, aRawReps, aIsNew,
                                          aCallbackHandle));
     }
+    
+    this._log.debug(" done with providers.");
   
     // Iterate over the attributes on the item
     for each (let [key, value] in Iterator(aItem)) {
@@ -1424,18 +1391,18 @@ var Gloda = {
       if (attrib === undefined)
         continue;
       
-      let objNounDef = attrib.objectNounDef;
+      let objectNounDef = attrib.objectNounDef;
       
       // - translate for our JSON rep
       if (attrib.singular) {
-        if (obnNounDef.toJSON)
-          jsonDict[attrib.id] = objNounDef.toJSON(value);
+        if (objectNounDef.toJSON)
+          jsonDict[attrib.id] = objectNounDef.toJSON(value);
         else
           jsonDict[attrib.id] = value; 
       }
       else {
-        if (objNounDef.toJSON) {
-          toJSON = objNounDef.toJSON;
+        if (objectNounDef.toJSON) {
+          toJSON = objectNounDef.toJSON;
           jsonDict[attrib.id] = [toJSON(subValue) for each
                            ([, subValue] in Iterator(value))] ;
         }
@@ -1459,9 +1426,9 @@ var Gloda = {
         //  indexing perspective)
         // some nouns may not meet === equivalence needs, so must provide a
         //  custom computeDelta method to help us out
-        else if (objNounDef.computeDelta) {
+        else if (objectNounDef.computeDelta) {
           let [valuesAdded, valuesRemoved] = 
-            objNounDef.computeDelta(value, oldValue);
+            objectNounDef.computeDelta(value, oldValue);
           // convert the values to database-style attribute rows
           addDBAttribs.push.apply(addDBAttribs,
             attrib.convertValuesToDBAttributes(valuesAdded));
@@ -1499,7 +1466,7 @@ var Gloda = {
       // no old value, all attributes are new
       else {
         addDBAttribs.push.apply(addDBAttribs,
-                                attrib.convertValuesToDBAttributes(value));
+                                attrib.dbDef.convertValuesToDBAttributes(value));
       }
     }
     
@@ -1521,76 +1488,24 @@ var Gloda = {
     }
     
     aItem._jsonText = this._json.encode(jsonDict);
+    this._log.debug("  json text: " + aItem._jsonText);
     
     if (aIsNew) {
+      this._log.debug(" inserting item");
       itemNounDef.objInsert.call(itemNounDef.datastore, aItem);
     }
     else {
+      this._log.debug(" updating item");
       itemNounDef.objUpdate.call(itemNounDef.datastore, aItem);
     }
     
+    this._log.debug(" adjusting attributes");
+    itemNounDef.dbAttribAdjuster.call(itemNounDef.datastore, aItem,
+      addDBAttribs, removeDBAttribs);
+    
+    this._log.debug(" done grokking.");
+    
     yield this.kWorkDone;
-  },
-
-  _processNounItem: function gloda_ns_processNounItem(aItem, aRawItem, aIsNew) {
-    // For now, we are ridiculously lazy and simply nuke all existing attributes
-    //  before applying the new attributes.
-    aItem._datastore.clearAttributes(aItem);
-
-    let allAttribs = [];
-
-    let attrProviders = this._attrProviderOrderByNoun[aItem.NOUN_ID];
-    for (let iProvider = 0; iProvider < attrProviders.length; iProvider++) {
-      let attribs = attrProviders[iProvider].process(aItem, aRawItem);
-      allAttribs = allAttribs.concat(attribs);
-    }
-
-    // [attribute id, value] for for the database
-    let outAttribs = [];
-    // [attribute def, parameter, value] for memory usage
-    let memAttribs = [];
-
-    for (let iAttrib = 0; iAttrib < allAttribs.length; iAttrib++) {
-      let attribDesc = allAttribs[iAttrib];
-
-      // is it an (attributedef / attribute def id, value) tuple?
-      if (attribDesc.length == 2) {
-        // if it's already an attrib id, we can use the tuple outright
-        if (typeof attribDesc[0] == "number") {
-          outAttribs.push(attribDesc);
-          let [attribDef, attribParam] =
-            GlodaDatastore._attributeIDToDBDefAndParam[attribDesc[0]];
-          memAttribs.push([attribDef, attribParam, attribDesc[1]]);
-        }
-        else {
-          outAttribs.push([attribDesc[0].id, attribDesc[1]]);
-          // the parameter is null if they just pass an attribute def
-          memAttribs.push([attribDesc[0], null, attribDesc[1]]);
-        }
-      }
-      // it must be an (attrib, parameter value, attrib value) tuple
-      else {
-        // just store it verbatim for memory purposes
-        memAttribs.push(attribDesc);
-
-        let attrib = attribDesc[0];
-        let parameterValue = attribDesc[1];
-        let attribID;
-        if (parameterValue != null)
-          attribID = attrib.bindParameter(parameterValue);
-        else
-          attribID = attrib.id;
-        outAttribs.push([attribID, attribDesc[2]]);
-      }
-    }
-
-    GlodaDatastore.insertAttributes(aItem, outAttribs);
-    aItem._replaceAttributes(memAttribs);
-
-    if (aIsNew)
-      GlodaCollectionManager.itemsAdded(aItem.NOUN_ID, [aItem]);
-    else
-      GlodaCollectionManager.itemsModified(aItem.NOUN_ID, [aItem]);
   },
 };
 

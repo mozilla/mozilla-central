@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["GlodaAttributeDef",
+EXPORTED_SYMBOLS = ["GlodaAttributeDBDef",
                     "GlodaConversation", "GlodaFolder", "GlodaMessage",
                     "GlodaContact", "GlodaIdentity"];
 
@@ -58,12 +58,13 @@ Cu.import("resource://gloda/modules/utils.js");
  *  parameterized attribute.
  */
 function GlodaAttributeDBDef(aDatastore, aID, aCompoundName, aAttrType,
-                           aPluginName, aAttrName) {
+                           aPluginName, aNounName, aAttrName) {
   this._datastore = aDatastore;
   this._id = aID;
   this._compoundName = aCompoundName;
   this._attrType = aAttrType;
   this._pluginName = aPluginName;
+  this._nounName = aNounName;
   this._attrName = aAttrName;
   
   this.attrDef = null;
@@ -72,7 +73,7 @@ function GlodaAttributeDBDef(aDatastore, aID, aCompoundName, aAttrType,
   this._parameterBindings = {};
 }
 
-GlodaAttributeDef.prototype = {
+GlodaAttributeDBDef.prototype = {
   get id() { return this._id; },
   get attributeName() { return this._attrName; },
 
@@ -108,7 +109,7 @@ GlodaAttributeDef.prototype = {
    */
   convertValuesToDBAttributes:
       function gloda_attr_convertValuesToDBAttributes(aInstanceValues) {
-    let nounDef = this._objectNounDef;
+    let nounDef = this.attrDef.objectNounDef;
     
     if (this._singular) {
       if (nounDef.usesParameter) {
@@ -142,105 +143,7 @@ GlodaAttributeDef.prototype = {
   }
 };
 
-
 let GlodaHasAttributesMixIn = {
-  _attributes: null,
-  /**
-   * Return the (normalized, not stored on the row) attributes in a raw form,
-   *  aka tuples of [attribute id, parameter, value].  If you want to
-   *  generically know about the attributes available, use attributes.
-   */
-  get_rawAttributes: function() {
-    if (this._attributes == null)
-      this._attributes = this._datastore.getMessageAttributes(this);
-    return this._attributes;
-  },
-
-  /**
-   * For consistency of caching with the bound attributes, we try and access the
-   *  attributes through their bound names if they are bound.
-   */
-  get_attributes: function() {
-    let seenDefs = {};
-    let attribs = [];
-    for each (let [iAPV, attrParamVal] in Iterator(this.rawAttributes)) {
-      let attrDef = attrParamVal[0];
-      if (!(attrDef in seenDefs)) {
-        if (attrDef.isBound) {
-          if (attrDef.singular) {
-            attribs.push([attrDef, this[attrDef.boundName]]);
-          }
-          else {
-            let values = this[attrDef.boundName];
-            for (let iValue = 0; iValue < values.length; iValue++)
-              attribs.push([attrDef, values[iValue]]);
-          }
-          seenDefs[attrDef] = true;
-        }
-        else {
-          // TODO: actually deal with unbound attributes
-          LOG.info("unbound attribute ignored in traversal: " + attrDef +
-                   " value: " + attrParamVal[2]);
-        }
-      }
-    }
-
-    return attribs;
-  },
-
-  /**
-   * Replace the set of attributes on us.  We need to make sure we purge
-   *  existing cached values off this instance.  For simplicity and because of
-   *  how we cache things currently (we define getters on the instance), we
-   *  force the prototype-resident getters to be activated and to cache
-   *  everything anew.  This is arguably wasteful; it might be better to go
-   *  back to just using storage properties, possibly on a sub-object that
-   *  we could just replace with a new one...
-   * Note: We actually avoid doing this if the attributes weren't previously
-   *  fetched.  Of course, since we do set _attributes with these new
-   *  attributes, this check does not steady-state.
-   *
-   * @XXX Try and avoid compelling ourselves to cache every bound attribute.
-   *  (If we stored the cached values in a sub-object, we could just trash the
-   *   sub-object.  This would imply a return to having the getters just create
-   *   a storage field rather than creating magic getters.)
-   */
-  _replaceAttributes: function gloda_attrix_replaceAttributes(aNewAttribs) {
-    let hadAttributes = this._attributes !== null;
-    this._attributes = aNewAttribs;
-    // if this guy didn't already have attributes, we don't actually need to
-    //  do any caching work.
-    if (!hadAttributes)
-      return;
-
-    let seenDefs = {};
-    for each (let [iAPV, attrParamVal] in Iterator(this._attributes)) {
-      let attrDef = attrParamVal[0];
-      if (!(attrDef in seenDefs)) {
-        if (attrDef.isBound) {
-          // get the getter from our _prototype_ (not us!)
-          let getterFunc = this.__proto__.__lookupGetter__(attrDef.boundName);
-          // force the getter to do his work (on us)
-          getterFunc.call(this);
-          seenDefs[attrDef] = true;
-        }
-      }
-    }
-  },
-
-  getAttributeInstances: function gloda_attrix_getAttributeInstances(aAttr) {
-    return [attrParamVal for each
-            ([iAPV, attrParamVal] in Iterator(this.rawAttributes)) if
-            (attrParamVal[0] == aAttr)];
-  },
-
-  getSingleAttribute: function gloda_attrix_getSingleAttribute(aAttr) {
-    let instances = this.getAttributeInstances(aAttr);
-    if (instances.length > 0)
-      return instances[0];
-    else
-      return null;
-  }
 };
 
 function MixIn(aConstructor, aMixIn) {
@@ -273,7 +176,7 @@ GlodaConversation.prototype = {
   get newestMessageDate() { return this._newestMessageDate; },
 
   toString: function gloda_conversation_toString() {
-    return this._subject;
+    return "Conversation:" + this._id;
   },
 };
 
@@ -305,7 +208,7 @@ GlodaFolder.prototype = {
   },
   get name() { return this._prettyName; },
   toString: function gloda_folder_toString() {
-    return this._prettyName;
+    return "Folder:" + this._id;
   }
 }
 
@@ -314,7 +217,7 @@ GlodaFolder.prototype = {
  */
 function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
                       aConversationID, aConversation, aDate,
-                      aHeaderMessageID, aDeleted) {
+                      aHeaderMessageID, aDeleted, aJsonText) {
   this._datastore = aDatastore;
   this._id = aID;
   this._folderID = aFolderID;
@@ -323,6 +226,8 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   this._conversation = aConversation;
   this._date = aDate;
   this._headerMessageID = aHeaderMessageID;
+  if (aJsonText)
+    this._jsonText = aJsonText;
 
   // only set _deleted if we're deleted, otherwise the undefined does our
   //  speaking for us.
@@ -358,11 +263,11 @@ GlodaMessage.prototype = {
 
   toString: function gloda_message_toString() {
     // uh, this is a tough one...
-    return "Message " + this._id;
+    return "Message:" + this._id;
   },
 
   _clone: function gloda_message_clone() {
-    return new GlodaMessage(this._datastore, this._id, this._folderId,
+    return new GlodaMessage(this._datastore, this._id, this._folderID,
       this._messageKey, this._conversationID, this._conversation, this._date,
       this._headerMessageID, this._deleted);
   },
@@ -432,7 +337,7 @@ MixIn(GlodaMessage, GlodaHasAttributesMixIn);
  *  identities (e-mail address, IM account, etc.)
  */
 function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName,
-                      aPopularity, aFrecency) {
+                      aPopularity, aFrecency, aJsonText) {
   this._datastore = aDatastore;
   this._id = aID;
   this._directoryUUID = aDirectoryUUID;
@@ -440,6 +345,8 @@ function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName,
   this._name = aName;
   this._popularity = aPopularity;
   this._frecency = aFrecency;
+  if (aJsonText)
+    this._jsonText = aJsonText;
 
   this._identities = null;
 }
@@ -466,8 +373,6 @@ GlodaContact.prototype = {
   },
 
   get identities() {
-    if (this._identities === null)
-      this._identities = this._datastore.getIdentitiesByContactID(this._id);
     return this._identities;
   },
 
@@ -476,7 +381,7 @@ GlodaContact.prototype = {
   },
   
   get accessibleLabel() {
-    return "Contact: " + this._name;
+    return "Contact:" + this._id;
   },
 
   _clone: function gloda_contact_clone() {
@@ -506,6 +411,7 @@ GlodaIdentity.prototype = {
   NOUN_ID: 104,
   get id() { return this._id; },
   get contactID() { return this._contactID; },
+  get contact() { return this._contact; },
   get kind() { return this._kind; },
   get value() { return this._value; },
   get description() { return this._description; },
@@ -515,14 +421,8 @@ GlodaIdentity.prototype = {
     return this._kind + "@" + this._value;
   },
 
-  get contact() {
-    if (this._contact === null)
-      this._contact = this._datastore.getContactByID(this._contactID);
-    return this._contact;
-  },
-
   toString: function gloda_identity_toString() {
-    return this._value;
+    return "Identity:" + this._kind + ":" + this._value;
   },
 
   get abCard() {
