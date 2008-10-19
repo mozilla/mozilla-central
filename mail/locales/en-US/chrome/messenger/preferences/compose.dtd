@@ -39,10 +39,6 @@
 <!ENTITY autoSave.label                       "Auto Save every">
 <!ENTITY autoSave.accesskey                   "u">
 <!ENTITY autoSaveEnd.label                    "minutes">
-<!-- LOCALIZATION NOTE (wrapOutMsg.label): This will concatenate with "xxx characters", using a number and (char.label). -->
-<!ENTITY wrapOutMsg.label                     "Wrap plain text messages at">
-<!ENTITY wrapOutMsg.accesskey                 "l">
-<!ENTITY char.label                           "characters">
 
 <!ENTITY emailCollectionPicker.label           "Automatically add outgoing e-mail addresses to my:">
 <!ENTITY emailCollectionPicker.accesskey       "t">

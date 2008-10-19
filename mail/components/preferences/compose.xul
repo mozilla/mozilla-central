@@ -65,7 +65,6 @@
       <preference id="mail.warn_on_send_accel_key" name="mail.warn_on_send_accel_key" type="bool"/>
       <preference id="mail.compose.autosave" name="mail.compose.autosave" type="bool"/>
       <preference id="mail.compose.autosaveinterval" name="mail.compose.autosaveinterval" type="int"/>
-      <preference id="mailnews.wraplength" name="mailnews.wraplength" type="int"/>
       <preference id="mail.enable_autocomplete" name="mail.enable_autocomplete" type="bool"/>
       <preference id="ldap_2.autoComplete.useDirectory"
                   name="ldap_2.autoComplete.useDirectory"
@@ -114,12 +113,6 @@
             <checkbox id="mailWarnOnSendAccelKey" label="&warnOnSendAccelKey.label;"
                       preference="mail.warn_on_send_accel_key"
                       accesskey="&warnOnSendAccelKey.accesskey;"/>
-
-            <hbox align="center">
-              <label id="wrapOutLabel" value="&wrapOutMsg.label;" accesskey="&wrapOutMsg.accesskey;" control="wrapLength"/>
-              <textbox id="wrapLength" size="3" preference="mailnews.wraplength" aria-labelledby="wrapOutLabel wrapLength wrapOutChars"/>
-              <label id="wrapOutChars" value="&char.label;"/>
-            </hbox>            
           </groupbox>
 
           <groupbox>
