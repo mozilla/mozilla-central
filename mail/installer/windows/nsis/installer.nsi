@@ -55,7 +55,6 @@ RequestExecutionLevel user
 
 ; empty files - except for the comment line - for generating custom pages.
 !system 'echo ; > options.ini'
-!system 'echo ; > components.ini'
 !system 'echo ; > shortcuts.ini'
 !system 'echo ; > summary.ini'
 
@@ -137,7 +136,6 @@ InstallDir "$PROGRAMFILES\${BrandFullName}\"
 ShowInstDetails nevershow
 
 ReserveFile options.ini
-ReserveFile components.ini
 ReserveFile shortcuts.ini
 ReserveFile summary.ini
 
@@ -173,9 +171,6 @@ ReserveFile summary.ini
 
 ; Custom Options Page
 Page custom preOptions leaveOptions
-
-; Custom Components Page
-Page custom preComponents leaveComponents
 
 ; Select Install Directory Page
 !define MUI_PAGE_CUSTOMFUNCTION_PRE preDirectory
@@ -234,17 +229,6 @@ Section "-InstallStartCleanup"
     Sleep 5000
     ${DeleteFile} "$INSTDIR\${FileMainEXE}"
     ClearErrors
-  ${EndIf}
-
-  ${If} $InstallType == ${INSTALLTYPE_CUSTOM}
-    ; Custom installs.
-    ; If DOMi is installed and this install includes DOMi remove it from
-    ; the installation directory. This will remove it if the user deselected
-    ; DOMi on the components page.
-    ${If} ${FileExists} "$INSTDIR\extensions\inspector@mozilla.org"
-    ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
-      RmDir /r "$INSTDIR\extensions\inspector@mozilla.org"
-    ${EndIf}
   ${EndIf}
 
   ; Remove the updates directory for Vista and above
@@ -447,22 +431,6 @@ Section "-Application" APP_IDX
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
-Section /o "Developer Tools" DOMI_IDX
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
-    SetDetailsPrint both
-    DetailPrint $(STATUS_INSTALL_OPTIONAL)
-    SetDetailsPrint none
-
-    ${RemoveDir} "$INSTDIR\extensions\inspector@mozilla.org"
-    ClearErrors
-    ${LogHeader} "Installing Developer Tools"
-    ${CopyFilesFromDir} "$EXEDIR\optional\extensions\inspector@mozilla.org" \
-                        "$INSTDIR\extensions\inspector@mozilla.org" \
-                        "$(ERROR_CREATE_DIRECTORY_PREFIX)" \
-                        "$(ERROR_CREATE_DIRECTORY_SUFFIX)"
-  ${EndIf}
-SectionEnd
-
 ; Cleanup operations to perform at the end of the installation.
 Section "-InstallEndCleanup"
   SetDetailsPrint both
@@ -643,23 +611,6 @@ Function leaveOptions
   ${EndIf}
 FunctionEnd
 
-Function preComponents
-  ${CheckCustomCommon}
-  ; If DOMi isn't available skip the components page
-  ${Unless} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
-    Abort
-  ${EndUnless}
-  !insertmacro MUI_HEADER_TEXT "$(OPTIONAL_COMPONENTS_TITLE)" "$(OPTIONAL_COMPONENTS_SUBTITLE)"
-  !insertmacro MUI_INSTALLOPTIONS_DISPLAY "components.ini"
-FunctionEnd
-
-Function leaveComponents
-  ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field 2" "State"
-  ; State will be 1 for checked and 0 for unchecked so we can use that to set
-  ; the section flags for installation.
-  SectionSetFlags ${DOMI_IDX} $R0
-FunctionEnd
-
 Function preDirectory
   ${PreDirectoryCommon}
 FunctionEnd
@@ -746,11 +697,6 @@ Function preSummary
 FunctionEnd
 
 Function leaveSummary
-  ${If} $InstallType != ${INSTALLTYPE_CUSTOM}
-    ; Set DOMi to be installed
-    SectionSetFlags ${DOMI_IDX} 1
-  ${EndIf}
-
   ; Try to delete the app executable and if we can't delete it try to find the
   ; app's message window and prompt the user to close the app. This allows
   ; running an instance that is located in another directory. If for whatever
@@ -780,7 +726,6 @@ Function .onInit
   ${InstallOnInitCommon} "$(WARN_UNSUPPORTED_MSG)"
 
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "options.ini"
-  !insertmacro MUI_INSTALLOPTIONS_EXTRACT "components.ini"
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "shortcuts.ini"
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "summary.ini"
 
@@ -825,36 +770,6 @@ Function .onInit
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Top    "67"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Bottom "87"
 
-  ; Setup the components.ini file for the Custom Components Page  
-  WriteINIStr "$PLUGINSDIR\components.ini" "Settings" NumFields "3"
-
-  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Type   "label"
-  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Text   "$(OPTIONAL_COMPONENTS_LABEL)"
-  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Left   "0"
-  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Right  "-1"
-  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Top    "5"
-  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Bottom "15"
-
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Type   "checkbox"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Text   "$(DOMI_TITLE)"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Left   "15"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Right  "-1"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Top    "20"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Bottom "30"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" State  "1"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 2" Flags  "GROUP"
-  ${EndIf}
-
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Type   "label"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Text   "$(DOMI_TEXT)"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Left   "30"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Right  "-1"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Top    "32"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field 3" Bottom "52"
-  ${EndIf}
-
   ; Setup the shortcuts.ini for the Custom Shortcuts Page
   WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Settings" NumFields "4"
 
@@ -898,15 +813,6 @@ Function .onInit
   ; of the MAPI dll's (around 20 Kb)... also, see Bug 434338.
   IntOp $R8 $R8 + 1024
   SectionSetSize ${APP_IDX} $R8
-
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
-    ; Set the section size for DOMi.
-    ${GetSize} "$EXEDIR\optional\extensions\inspector@mozilla.org" "/S=0K" $0 $8 $9
-    SectionSetSize ${DOMI_IDX} $0
-  ${Else}
-    ; Hide DOMi in the components page if it isn't available.
-    SectionSetText ${DOMI_IDX} ""
-  ${EndIf}
 
   ; Initialize $hHeaderBitmap to prevent redundant changing of the bitmap if
   ; the user clicks the back button
