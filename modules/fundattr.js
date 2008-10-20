@@ -110,12 +110,23 @@ var GlodaFundAttr = {
       provider: this,
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrFundamental,
-      attributeName: "folderURI",
+      attributeName: "folder",
       singular: true,
       special: Gloda.kSpecialColumn,
       specialColumnName: "folderID",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FOLDER,
+      }); // tested-by: test_attributes_fundamental
+    this._attrFolder = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "messageKey",
+      singular: true,
+      special: Gloda.kSpecialColumn,
+      specialColumnName: "messageKey",
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_NUMBER,
       }); // tested-by: test_attributes_fundamental
     
     // bodyMatches. super-synthetic full-text matching...

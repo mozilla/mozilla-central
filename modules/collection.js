@@ -459,7 +459,21 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener,
   }
   else {
     this.masterCollection = this;
+    /** a dictionary of dictionaries. at the top level, the keys are noun IDs.
+     * each of these sub-dictionaries maps the IDs of desired noun instances to
+     * the actual instance, or null if it has not yet been loaded.
+     */ 
     this.referencesByNounID = {};
+    /**
+     * a dictionary of dictionaries. at the top level, the keys are noun IDs.
+     * each of the sub-dictionaries maps the IDs of the _recognized parent
+     * noun_ to the list of children, or null if the list has not yet been
+     * populated.
+     * 
+     * So if we have a noun definition A with ID 1 who is the recognized parent
+     *  noun of noun definition B with ID 2, AND we have an instance A(1) with
+     *  two children B(10), B(11), then an example might be: {2: {1: [10, 11]}}.
+     */
     this.inverseReferencesByNounID = {};
     this.subCollections = {};
   }

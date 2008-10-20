@@ -1378,7 +1378,8 @@ var GlodaIndexer = {
   /**
    * Process pending deletes...
    */
-  _worker_processDeletes: function gloda_worker_processDeletes(aJob) {
+  _worker_processDeletes: function gloda_worker_processDeletes(aJob,
+      aCallbackHandle) {
     // get a block of messages to delete.  for now, let's just do this
     //  synchronously.  we don't care if there are un-landed delete changes
     //  on the asynchronous thread.  (well, there is a potential race that
@@ -1390,7 +1391,7 @@ var GlodaIndexer = {
     while (messagesToDelete.length) {
       aJob.goal += messagesToDelete.length;
       for each (let [iMessage, message] in Iterator(messagesToDelete)) {
-        this._deleteMessage(message);
+        yield aCallbackHandle.pushAndGo(this._deleteMessage(message));
         aJob.offset++;
         yield this.kWorkSync;
       }
@@ -2216,9 +2217,11 @@ var GlodaIndexer = {
     
     // -- delete our message or ghost us, and maybe nuke the whole conversation
     // look at the other messages in the conversation.
-    // TODO: have this be/use an async lookup.  we have no need to block here.
-    let conversationMsgs = aMessage._datastore.getMessagesByConversationID(
-                             aMessage.conversationID, true);
+    let conversationCollection = aMessage.conversation.getMessagesCollection(
+        aCallbackHandle);
+    yield this.kWorkAsync;
+    let conversationMsgs = conversationCollection.items;
+    
     let ghosts = [];
     let twinMessage = null;
     for (let iMsg = 0; iMsg < conversationMsgs.length; iMsg++) {
@@ -2259,6 +2262,8 @@ var GlodaIndexer = {
         aMessage._datastore.updateMessage(aMessage);
       }
     }
+    
+    yield this.kWorkDone;
   },
   
   /**

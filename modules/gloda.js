@@ -230,9 +230,11 @@ var Gloda = {
    * @return the gloda messages that corresponds to the provided nsIMsgDBHdr
    *    if one exists, null if one cannot be found.
    */
-  getMessageForHeader: function gloda_ns_getMessageForHeader(aMsgHdr) {
-    return GlodaDatastore.getMessageFromLocation(aMsgHdr.folder,
-                                                 aMsgHdr.messageKey);
+  getMessageCollectionForHeader: function gloda_ns_getMessageForHeader(aMsgHdr,
+      aListener, aData) {
+    let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
+    query.folder(aMsgHdr.folder).messageKey(aMsgHdr.messageKey);
+    return query.getCollection(aListener, aData);
   },
   
   getFolderForFolder: function gloda_ns_getFolderForFolder(aMsgFolder) {
@@ -660,8 +662,6 @@ var Gloda = {
    *     function is expected to return null for the parameter and likewise your
    *     fromParamAndValue should expect ignore and generally ignore the
    *     argument.
-   * @param fromParamAndValue A function that takes a parameter value and the
-   *     object value and should return an instantiated noun instance.
    * @param toParamAndValue A function that takes an instantiated noun
    *     instance and returns a 2-element list of [parameter, value] where
    *     parameter may only be non-null if you passed a usesParameter of true.
@@ -807,36 +807,24 @@ var Gloda = {
     this.defineNoun({
       name: "bool",
       class: Boolean, allowsArbitraryAttrs: false,
-      fromParamAndValue: function(aParam, aVal) {
-        if(aVal != 0) return true; else return false;
-      },
       toParamAndValue: function(aBool) {
         return [null, aBool ? 1 : 0];
       }}, this.NOUN_BOOLEAN);
     this.defineNoun({
       name: "number",
       class: Number, allowsArbitraryAttrs: false, continuous: true,
-      fromParamAndValue: function(aIgnoredParam, aNum) {
-        return aNum;
-      },
       toParamAndValue: function(aNum) {
         return [null, aNum];
       }}, this.NOUN_NUMBER);
     this.defineNoun({
       name: "string",
       class: String, allowsArbitraryAttrs: false,
-      fromParamAndValue: function(aIgnoredParam, aString) {
-        return aString;
-      },
       toParamAndValue: function(aString) {
         return [null, aString];
       }}, this.NOUN_STRING);
     this.defineNoun({
       name: "date",
       class: Date, allowsArbitraryAttrs: false, continuous: true,
-      fromParamAndValue: function(aParam, aPRTime) {
-        return new Date(aPRTime / 1000);
-      },
       toParamAndValue: function(aDate) {
         return [null, aDate.valueOf() * 1000];
       }}, this.NOUN_DATE);
@@ -845,9 +833,6 @@ var Gloda = {
       class: String, allowsArbitraryAttrs: false, continuous: false,
       // as noted on NOUN_FULLTEXT, we just pass the string around.  it never
       //  hits the database, so it's okay.
-      fromParamAndValue: function(aParam, aString) {
-        return aString;
-      },
       toParamAndValue: function(aString) {
         return [null, aString];
       }}, this.NOUN_FULLTEXT);
@@ -856,19 +841,12 @@ var Gloda = {
       name: "folder",
       class: GlodaFolder,
       allowsArbitraryAttrs: false,
-      fromParamAndValue: function(aParam, aID) {
-        return GlodaDatastore._mapFolderID(aID);
-      },
       toParamAndValue: function(aFolderOrGlodaFolder) {
         if (aFolderOrGlodaFolder instanceof GlodaFolder)
           return [null, aFolderOrURI.id];
         else
           return [null, GlodaDatastore._mapFolder(aFolderOrGlodaFolder).id];
       }}, this.NOUN_FOLDER);
-    // TODO: use some form of (weak) caching layer... it is reasonably likely
-    //  that there will be a high degree of correlation in many cases, and
-    //  unless the UI is extremely clever and does its cleverness before
-    //  examining the data, we will probably hit the correlation.
     this.defineNoun({
       name: "conversation",
       class: GlodaConversation,
@@ -878,9 +856,6 @@ var Gloda = {
       attrTableName: "messageAttributes", attrIDColumnName: "conversationID",
       datastore: GlodaDatastore,
       objFromRow: GlodaDatastore._conversationFromRow,
-      fromParamAndValue: function(aParam, aID) {
-        return GlodaDatastore.getConversationByID(aID);
-      },
       toParamAndValue: function(aConversation) {
         if (aConversation instanceof GlodaConversation)
           return [null, aConversation.id];
@@ -898,10 +873,6 @@ var Gloda = {
       dbAttribAdjuster: GlodaDatastore.adjustMessageAttributes,
       objInsert: GlodaDatastore.insertMessage,
       objUpdate: GlodaDatastore.updateMessage,
-      fromParamAndValue: function(aParam, aID) {
-        // XXX we need some form of official semantics on references to messages
-        return aID;
-      },
       toParamAndValue: function(aMessage) {
         if (aMessage instanceof GlodaMessage)
           return [null, aMessage.id];
@@ -919,9 +890,6 @@ var Gloda = {
       dbAttribAdjuster: GlodaDatastore.adjustMessageAttributes,
       objInsert: GlodaDatastore.insertContact,
       objUpdate: GlodaDatastore.updateContact,
-      fromParamAndValue: function(aParam, aID) {
-        return GlodaDatastore.getContactByID(aID);
-      },
       toParamAndValue: function(aContact) {
         if (aContact instanceof GlodaContact)
           return [null, aContact.id];
@@ -936,9 +904,6 @@ var Gloda = {
       usesUniqueValue: true,
       tableName: "identities",
       datastore: GlodaDatastore, objFromRow: GlodaDatastore._identityFromRow,
-      fromParamAndValue: function(aParam, aID) {
-        return GlodaDatastore.getIdentityByID(aID);
-      },
       toParamAndValue: function(aIdentity) {
         if (aIdentity instanceof GlodaIdentity)
           return [null, aIdentity.id];
@@ -995,8 +960,10 @@ var Gloda = {
         
         for each (let [, tupe] in Iterator(aJsonValues)) {
           let [originIdentityID, targetIdentityID] = tupe;
-          references[originIdentityID] = null;
-          references[targetIdentityID] = null;
+          if (!(originIdentityID in references))
+            references[originIdentityID] = null;
+          if (!(targetIdentityID in references))
+            references[targetIdentityID] = null;
         }
         
         return true;
@@ -1014,10 +981,6 @@ var Gloda = {
         }
         
         return results;
-      },
-      fromParamAndValue: function(aParamIdentityID, aValueIdentityID) {
-        return [GlodaDatastore.getIdentityByID(aParamIdentityID),
-                GlodaDatastore.getIdentityByID(aValueIdentityID)];
       },
       toParamAndValue: function(aIdentityTuple) {
         return [aIdentityTuple[0].id, aIdentityTuple[1].id];

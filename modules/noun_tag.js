@@ -58,8 +58,6 @@ var TagNoun = {
     this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
                           getService(Ci.nsIMsgTagService);
     this._updateTagMap();
-    
-    this.fromJSON = this.fromParamAndValue;
   },
   
   _updateTagMap: function gloda_noun_tag_updateTagMap() {
@@ -79,8 +77,7 @@ var TagNoun = {
   toJSON: function gloda_noun_tag_toJSON(aTag) {
     return aTag.key;
   },
-  fromParamAndValue: function gloda_noun_tag_fromParameterValue(aTagKey,
-                                                                aIgnored) {
+  fromJSON: function gloda_noun_tag_fromJSON(aTagKey, aIgnored) {
     let tag = this._tagMap[aTagKey];
     // you will note that if a tag is removed, we are unable to aggressively
     //  deal with this.  we are okay with this, but it would be nice to be able

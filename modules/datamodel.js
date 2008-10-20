@@ -144,6 +144,28 @@ GlodaAttributeDBDef.prototype = {
 };
 
 let GlodaHasAttributesMixIn = {
+  enumerateAttributes: function gloda_attrix_enumerateAttributes() {
+    let nounDef = this.NOUN_DEF;
+    for each (let [key, value] in Iterator(this)) {
+      let attrDef = nounDef.attribsByBoundName[key];
+      // we expect to not have attributes for underscore prefixed values (those
+      //  are managed by the instance's logic.  we also want to not explode
+      //  should someone crap other values in there, we get both birds with this
+      //  one stone.
+      if (attrDef === undefined)
+        continue;
+      if (attrDef.singular) {
+        // ignore attributes with null values
+        if (value != null)
+          yield [attrDef, [value]];
+      }
+      else {
+        // ignore attributes with no values
+        if (value.length)
+          yield [attrDef, value];
+      }
+    }
+  },
 };
 
 function MixIn(aConstructor, aMixIn) {
@@ -174,6 +196,13 @@ GlodaConversation.prototype = {
   get subject() { return this._subject; },
   get oldestMessageDate() { return this._oldestMessageDate; },
   get newestMessageDate() { return this._newestMessageDate; },
+  
+  getMessagesCollection: function gloda_conversation_getMessagesCollection(
+    aListener, aData) {
+    let query = new GlodaMessage.prototype.NOUN_DEF.queryClass();
+    query.conversation(this._id);
+    return query.getCollection(aListener, aData);
+  },
 
   toString: function gloda_conversation_toString() {
     return "Conversation:" + this._id;
@@ -254,10 +283,6 @@ GlodaMessage.prototype = {
       return null;
   },
   get conversation() {
-    if (this._conversation == null) {
-      this._conversation = this._datastore.getConversationByID(
-        this._conversationID);
-    }
     return this._conversation;
   },
 
@@ -377,11 +402,11 @@ GlodaContact.prototype = {
   },
 
   toString: function gloda_contact_toString() {
-    return this._name;
+    return "Contact:" + this._id;
   },
   
   get accessibleLabel() {
-    return "Contact:" + this._id;
+    return "Contact: " + this._name;
   },
 
   _clone: function gloda_contact_clone() {

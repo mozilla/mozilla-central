@@ -141,6 +141,7 @@ let QueryFromQueryResolver = {
 
     if (originColl.pendingItems) {
       for (let [, item] in Iterator(originColl.pendingItems)) {
+        QFQ_LOG.debug("QFQR: loading deferred " + item.NOUN_ID + ":" + item.id);
         GlodaDatastore.loadNounDeferredDeps(item, referencesByNounID,
             inverseReferencesByNounID);
       }
@@ -220,11 +221,11 @@ QueryFromQueryCallback.prototype = {
     let nounID = nounDef.id;
     while (row = aResultSet.getNextRow()) {
       let item = nounDef.objFromRow.call(nounDef.datastore, row);
-QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
-    this.selfReferences[item.id]);
       // try and replace the item with one from the cache, if we can
       let cachedItem = GlodaCollectionManager.cacheLookupOne(nounID, item.id,
                                                              false);
+      QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
+          this.selfReferences[item.id] + " cached: " + cachedItem);
       if (cachedItem)
         item = cachedItem;
       // we may already have been loaded by this process
@@ -232,12 +233,16 @@ QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
         item = this.selfReferences[item.id];
       // perform loading logic which may produce reference dependencies
       else
-        this.needsLoads = this.needsLoads ||
+        this.needsLoads = 
           GlodaDatastore.loadNounItem(item, this.referencesByNounID,
-                                      this.inverseReferencesByNounID);
+                                      this.inverseReferencesByNounID) ||
+          this.needsLoads;
       
       // add ourself to the references by our id
+QFQ_LOG.debug("saving item " + nounDef.id + ":" + item.id + " to self-refs");
       this.selfReferences[item.id] = item;
+QFQ_LOG.info("self-refs: "+ Log4Moz.enumerateProperties(this.selfReferences).join(","));
+      
       // if we're tracking it, add ourselves to our parent's list of children
       //  too
       if (this.selfInverseReferences) {
@@ -281,7 +286,7 @@ QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
         if (masterReferences === undefined)
           masterReferences = this.masterReferencesByNounID[nounID] = {};
         let outReferences;
-        if (this.selfInverseReferences)
+        if (nounDef.parentColumnAttr)
           outReferences = {};
         else
           outReferences = masterReferences;
@@ -1831,7 +1836,7 @@ var GlodaDatastore = {
   },
 
   _messageFromRow: function gloda_ds_messageFromRow(aRow) {
-    let folderId, messageKey, date;
+    let folderId, messageKey, date, jsonText;
     if (aRow.getTypeOfIndex(1) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
       folderId = null;
     else
@@ -1844,9 +1849,13 @@ var GlodaDatastore = {
       date = null;
     else
       date = new Date(aRow.getInt64(4) / 1000);
+    if (aRow.getTypeOfIndex(7) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
+      jsonText = undefined;
+    else
+      jsonText = aRow.getString(7);
     return new GlodaMessage(this, aRow.getInt64(0), folderId, messageKey,
                             aRow.getInt64(3), null, date, aRow.getString(5),
-                            aRow.getInt64(6), aRow.getString(7));
+                            aRow.getInt64(6), jsonText);
   },
 
   get _selectMessageByIDStatement() {
@@ -1881,8 +1890,7 @@ var GlodaDatastore = {
 
   get _selectMessageByLocationStatement() {
     let statement = this._createSyncStatement(
-      "SELECT id, folderID, messageKey, conversationID, date, headerMessageId, \
-       deleted FROM messages WHERE folderID = ?1 AND messageKey = ?2");
+      "SELECT * FROM messages WHERE folderID = ?1 AND messageKey = ?2");
     this.__defineGetter__("_selectMessageByLocationStatement",
       function() statement);
     return this._selectMessageByLocationStatement;
@@ -2660,6 +2668,9 @@ var GlodaDatastore = {
     let deps = aItem._deps || {};
     let hasDeps = false;
     
+    this._log.debug("  hadDeps: " + hadDeps + " deps: " + 
+        Log4Moz.enumerateProperties(deps).join(","));
+    
     for each (let [, attrib] in Iterator(aItem.NOUN_DEF.specialLoadAttribs)) {
       let objectNounDef = attrib.objectNounDef;
       
@@ -2670,7 +2681,8 @@ var GlodaDatastore = {
         // only contribute if it's not already pending or there
         if (!(attrib.id in deps) && aItem[attrib.storageAttributeName] == null){
           this._log.debug("   Adding inv ref for: " + aItem.id);
-          invReferences[aItem.id] = null;
+          if (!(aItem.id in invReferences))
+            invReferences[aItem.id] = null;
           deps[attrib.id] = null;
           hasDeps = true;
         }
@@ -2682,11 +2694,16 @@ var GlodaDatastore = {
         // nothing to contribute if it's already there
         if (!(attrib.id in deps) && 
             aItem[attrib.valueStorageAttributeName] == null) {
-          references[aItem[attrib.idStorageAttributeName]] = null;
+          let parentID = aItem[attrib.idStorageAttributeName];
+          if (!(parentID in references))
+            references[parentID] = null;
           this._log.debug("   Adding parent ref for: " +
             aItem[attrib.idStorageAttributeName]);
           deps[attrib.id] = null;
           hasDeps = true;
+        }
+        else {
+          this._log.debug("  paranoia value storage: " + aItem[attrib.valueStorageAttributeName]);
         }
       }
     }
@@ -2723,11 +2740,15 @@ var GlodaDatastore = {
         if (references === undefined)
           references = aReferencesByNounID[objectNounDef.id] = {};
           
-        if (attrib.singular)
-          references[jsonValue] = null;
+        if (attrib.singular) {
+          if (!(jsonValue in references))
+            references[jsonValue] = null;
+        }
         else {
-          for each (let [, anID] in Iterator(jsonValue))
+          for each (let [, anID] in Iterator(jsonValue)) {
+            if (!(anID in references))
             references[anID] = null;
+          }
         }
         
         deps[attribId] = jsonValue;
@@ -2777,9 +2798,16 @@ var GlodaDatastore = {
       if (attrib.special) {
         if (attrib.special === this.kSpecialColumnChildren) {
           let inverseReferences = aInverseReferencesByNounID[objectNounDef.id];
+          this._log.info("inverse assignment: " + objectNounDef.id +
+              " of " + aItem.id +
+              " inverse refs: " + Log4Moz.enumerateProperties(inverseReferences).join(","))
           aItem[attrib.storageAttributeName] = inverseReferences[aItem.id];
         }
         else if (attrib.special === this.kSpecialColumnParent) {
+          this._log.info("parent column load: " + objectNounDef.id +
+              " storage value: " + aItem[attrib.idStorageAttributeName] +
+              " refs: " + references[aItem[attrib.idStorageAttributeName]]);
+          this._log.info("references: "+ Log4Moz.enumerateProperties(references).join(","));
           aItem[attrib.valueStorageAttributeName] =
             references[aItem[attrib.idStorageAttributeName]];
         }
@@ -2832,7 +2860,6 @@ var GlodaDatastore = {
     let contact = new GlodaContact(this, contactID,
                                    aDirectoryUUID, aContactUUID, aName,
                                    aPopularity, aFrecency);
-    GlodaCollectionManager.itemsAdded(contact.NOUN_ID, [contact]);
     return contact;
   },
   
@@ -2857,6 +2884,7 @@ var GlodaDatastore = {
 
     ics.executeAsync(this.trackAsync());
 
+    // XXX caching-notifications-post-refactoring
     GlodaCollectionManager.itemsAdded(aContact.NOUN_ID, [aContact]);
     return aContact;
   },
