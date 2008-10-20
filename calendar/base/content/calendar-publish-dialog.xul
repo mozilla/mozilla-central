@@ -56,7 +56,7 @@
   ondialogaccept="return onOKCommand();"
   ondialogcancel="return true;"
   onload="loadCalendarPublishDialog()"
-  persist="screenX screenY"
+  persist="screenX screenY width height"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   xmlns:nc="http://home.netscape.com/NC-rdf#">
 

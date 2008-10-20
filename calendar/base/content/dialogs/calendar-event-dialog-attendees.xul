@@ -50,7 +50,7 @@
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();"
-        persist="screenX screenY"
+        persist="screenX screenY width height"
         style="padding-top: 8px; padding-bottom: 10px; -moz-padding-start: 8px; -moz-padding-end: 10px;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
