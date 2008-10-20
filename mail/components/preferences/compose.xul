@@ -106,7 +106,9 @@
             <hbox align="center" pack="start">
               <checkbox id="autoSave" label="&autoSave.label;" preference="mail.compose.autosave"
                         accesskey="&autoSave.accesskey;"/>
-              <textbox  id="autoSaveInterval" size="2" preference="mail.compose.autosaveinterval" aria-labelledby="autoSave autoSaveInterval autoSaveEnd"/>
+              <textbox id="autoSaveInterval" size="2" type="number" max="35790"
+                       preference="mail.compose.autosaveinterval"
+                       aria-labelledby="autoSave autoSaveInterval autoSaveEnd"/>
               <label id="autoSaveEnd" value="&autoSaveEnd.label;"/>
             </hbox>
 

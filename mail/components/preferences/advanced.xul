@@ -147,6 +147,7 @@
                          label="&markAsReadDelay.label;"
                          accesskey="&markAsReadDelay.accesskey;"/>
                   <textbox id="markAsReadDelay" size="2"
+                           type="number" max="2147483"
                            preference="mailnews.mark_message_read.delay.interval"
                            aria-labelledby="markAsReadAfterDelay markAsReadDelay secondsLabel"/>
                   <label id="secondsLabel" value="&secondsLabel.label;"/>
@@ -236,7 +237,10 @@
             <hbox align="center">
                 <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
                           preference="mail.prompt_purge_threshhold"/>
-                <textbox id="offlineCompactFolderMin" size="5" value="100" preference="mail.purge_threshhold" aria-labelledby="offlineCompactFolder offlineCompactFolderMin compactFolderKB"/>
+                <textbox id="offlineCompactFolderMin" size="5" value="100"
+                         type="number" max="2097151" increment="10"
+                         preference="mail.purge_threshhold"
+                         aria-labelledby="offlineCompactFolder offlineCompactFolderMin compactFolderKB"/>
                 <label id="compactFolderKB" value="&kb.label;"/>
             </hbox>
           </groupbox>
