@@ -285,9 +285,7 @@
 
         <!-- Certificates -->
         <tabpanel orient="vertical">
-          <description>&certificatesInfo2.label;</description>
-          <separator class="thin"/>
-          <description class="indent">
+          <hbox>
             <button label="&viewCertificates.label;" accesskey="&viewCertificates.accesskey;"
                     oncommand="gAdvancedPane.showCertificates();"
                     preference="security.disable_button.openCertManager"/>
@@ -300,7 +298,7 @@
             <button label="&viewSecurityDevices.label;" accesskey="&viewSecurityDevices.accesskey;"
                     oncommand="gAdvancedPane.showSecurityDevices();"
                     preference="security.disable_button.openDeviceManager"/>
-          </description>
+          </hbox>
         </tabpanel>
       </tabpanels>
     </tabbox>
