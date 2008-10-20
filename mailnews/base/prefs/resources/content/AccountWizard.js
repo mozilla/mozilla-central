@@ -974,7 +974,7 @@ function FixupAccountDataForIsp(accountData)
     // this function is looking for.
     if (!email)
       return;
-       
+
     // fix up the username
     if (!accountData.incomingServer.username)
         accountData.incomingServer.username = getUsernameFromEmail(email, accountData.incomingServerUserNameRequiresDomain);
@@ -984,7 +984,8 @@ function FixupAccountDataForIsp(accountData)
       // fix for bug #107953
       // if incoming hostname is same as smtp hostname
       // use the server username (instead of the email username)
-      if (accountData.smtp.hostname == accountData.incomingServer.hostName)
+      if (accountData.smtp.hostname == accountData.incomingServer.hostName &&
+          accountData.smtpUserNameRequiresDomain == accountData.incomingServerUserNameRequiresDomain)
         accountData.smtp.username = accountData.incomingServer.username;
       else
         accountData.smtp.username = getUsernameFromEmail(email, accountData.smtpUserNameRequiresDomain);
