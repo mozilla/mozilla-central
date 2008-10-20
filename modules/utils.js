@@ -131,4 +131,27 @@ var GlodaUtils = {
 
     return null;
   },
+  
+  /* from mailTestUtils.js, but whittled for our purposes... */
+  loadFileToString: function(aFile) {
+    let fstream = Cc["@mozilla.org/network/file-input-stream;1"]
+                    .createInstance(Ci.nsIFileInputStream);
+    fstream.init(aFile, -1, 0, 0);
+    
+    let sstream = Cc["@mozilla.org/scriptableinputstream;1"]
+                    .createInstance(Ci.nsIScriptableInputStream);
+    sstream.init(fstream);
+
+    let data = "";
+    let str = sstream.read(4096);
+    while (str.length > 0) {
+      data += str;
+      str = sstream.read(4096);
+    }
+
+    sstream.close();
+    fstream.close();
+
+    return data;
+  },
 };

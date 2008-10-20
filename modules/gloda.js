@@ -174,6 +174,20 @@ var Gloda = {
     let dapp = new Log4Moz.DumpAppender(formatter);
     dapp.level = Log4Moz.Level.All;
     root.addAppender(dapp);
+    
+    let file = Cc["@mozilla.org/file/directory_service;1"]
+                  .getService(Ci.nsIProperties)
+                  .get("TmpD", Ci.nsIFile);
+    file.append("chainsaw.ptr");
+    if (file.exists()) {
+      let data = GlodaUtils.loadFileToString(file);
+      data = data.trim();
+      let [host, port] = data.split(":");
+      let xf = new Log4Moz.XMLFormatter();
+      let sapp = new Log4Moz.SocketAppender(host, Number(port), xf);
+      sapp.level = Log4Moz.Level.All;
+      root.addAppender(sapp);
+    }
 
     this._log = Log4Moz.Service.getLogger("gloda.NS");
     this._log.info("Logging Initialized");

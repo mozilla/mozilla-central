@@ -21,6 +21,7 @@
  * Contributor(s):
  * Michael Johnston <special.michael@gmail.com>
  * Dan Mills <thunder@mozilla.com>
+ * Andrew Sutherland <asutherland@asutherland.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -58,6 +59,12 @@ const ONE_BYTE = 1;
 const ONE_KILOBYTE = 1024 * ONE_BYTE;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
+const DEFAULT_NETWORK_TIMEOUT_DELAY = 5;
+
+const CDATA_START = "<![CDATA[";
+const CDATA_END = "]]>";
+const CDATA_ESCAPED_END = CDATA_END + "]]&gt;" + CDATA_START;
+
 let Log4Moz = {
   Level: {
     Fatal:  70,
@@ -88,10 +95,12 @@ let Log4Moz = {
 
   get Formatter() { return Formatter; },
   get BasicFormatter() { return BasicFormatter; },
+  get XMLFormatter() { return XMLFormatter; },
   get Appender() { return Appender; },
   get DumpAppender() { return DumpAppender; },
   get ConsoleAppender() { return ConsoleAppender; },
   get FileAppender() { return FileAppender; },
+  get SocketAppender() { return SocketAppender; },
   get RotatingFileAppender() { return RotatingFileAppender; },
 
   // Logging helper:
@@ -335,6 +344,29 @@ BasicFormatter.prototype = {
 BasicFormatter.prototype.__proto__ = new Formatter();
 
 /*
+ * XMLFormatter
+ * Format like log4j's XMLLayout.  The intent is that you can hook this up to
+ * a SocketAppender and point them at a Chainsaw GUI running with an
+ * XMLSocketReceiver running.  Then your output comes out in Chainsaw.
+ * (Chainsaw is log4j's GUI that displays log output with niceties such as
+ * filtering and conditional coloring.)
+ */
+
+function XMLFormatter() {}
+XMLFormatter.prototype = {
+  format: function XF_format(message) {
+    let cdataEscapedMessage = message.message.replace(CDATA_END,
+                                                      CDATA_ESCAPED_END);
+    return "<log4j:event logger='" + message.loggerName + "' " +
+                        "level='" + message.levelDesc + "' thread='unknown' " +
+                        "timestamp='" + message.time + "'>" +
+      "<log4j:message><![CDATA[" + cdataEscapedMessage + "]]></log4j:message>" +
+      "</log4j:event>";
+  }
+}
+XMLFormatter.prototype.__proto__ = new Formatter();
+
+/*
  * Appenders
  * These can be attached to Loggers to log to different places
  * Simply subclass and override doAppend to implement a new one
@@ -503,6 +535,106 @@ RotatingFileAppender.prototype = {
   }
 };
 RotatingFileAppender.prototype.__proto__ = new FileAppender();
+
+/*
+ * SocketAppender
+ * Logs via TCP to a given host and port.  Attempts to automatically reconnect
+ * when the connection drops or cannot be initially re-established.  Connection
+ * attempts will happen at most every timeoutDelay seconds (has a sane default
+ * if left blank).  Messages are dropped when there is no connection.  
+ */
+
+function SocketAppender(host, port, formatter, timeoutDelay) {
+  this._name = "SocketAppender";
+  this._host = host;
+  this._port = port;
+  this._formatter = formatter;
+  this._timeout_delay = timeoutDelay || DEFAULT_NETWORK_TIMEOUT_DELAY;
+
+  this._socketService = Cc["@mozilla.org/network/socket-transport-service;1"]
+                          .getService(Ci.nsISocketTransportService);
+  this._mainThread =
+    Cc["@mozilla.org/thread-manager;1"].getService().mainThread;
+}
+SocketAppender.prototype = {
+  __nos: null,
+  get _nos() {
+    if (!this.__nos)
+      this.openStream();
+    return this.__nos;
+  },
+  _nextCheck: 0,
+  openStream: function SApp_openStream() {
+    let now = Date.now();
+    if (now <= this._nextCheck) {
+      return null;
+    }
+    this._nextCheck = now + this._timeout_delay * 1000;
+    try {
+      this._transport = this._socketService.createTransport(
+        null, 0, // default socket type
+        this._host, this._port,
+        null); // no proxy
+      this._transport.setTimeout(Ci.nsISocketTransport.TIMEOUT_CONNECT,
+                                 this._timeout_delay);
+      this._transport.setTimeout(Ci.nsISocketTransport.TIMEOUT_READ_WRITE,
+                                 this._timeout_delay);
+      this._transport.setEventSink(this, this._mainThread);
+  
+      this.__nos = this._transport.openOutputStream(
+        0, // neither blocking nor unbuffered operation is desired
+        0, // default buffer size is fine
+        0 // default buffer count is fine
+        );
+    } catch (ex) {
+      dump("Unexpected SocketAppender connection problem: " +
+           ex.fileName + ":" + ex.lineNumber + ": " + ex + "\n");
+    }
+  },
+
+  closeStream: function SApp_closeStream() {
+    if (!this._transport)
+      return;
+    try {
+      this._connected = false;
+      this._transport = null;
+      let nos = this.__nos;
+      this.__nos = null;
+      nos.close();
+    } catch(e) {
+      // this shouldn't happen, but no one cares
+    }
+  },
+
+  doAppend: function SApp_doAppend(message) {
+    if (message === null || message.length <= 0)
+      return;
+    try {
+      let nos = this._nos;
+      if (nos)
+        nos.write(message, message.length);
+    } catch(e) {
+      if (this._transport && !this._transport.isAlive()) {
+        this.closeStream();
+      }
+    }
+  },
+
+  clear: function SApp_clear() {
+    this.closeStream();
+    this._file.remove(false);
+  },
+  
+  /* nsITransportEventSink */
+  onTransportStatus: function SApp_onTransportStatus(aTransport, aStatus,
+      aProgress, aProgressMax) {
+    if (aStatus == 0x804b0004) // STATUS_CONNECTED_TO is not a constant.
+      this._connected = true;
+  },
+  
+};
+SocketAppender.prototype.__proto__ = new Appender();
+
 
 /*
  * LoggingService
