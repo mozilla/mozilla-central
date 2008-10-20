@@ -2597,6 +2597,16 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
               mIdentity->GetEmail(email);
               addressToBeRemoved.AppendLiteral(", ");
               addressToBeRemoved.Append(email);
+              // Remove my own address if using Mail-Followup-To (see bug 325429)
+              if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
+              {
+                rv = RemoveDuplicateAddresses(_compFields->GetTo(), email.get(), PR_TRUE, &resultStr);
+                if (NS_SUCCEEDED(rv))
+                {
+                  _compFields->SetTo(resultStr);
+                  PR_Free(resultStr);
+                }
+              }
             }
 
             rv= RemoveDuplicateAddresses(_compFields->GetCc(), addressToBeRemoved.get(), PR_TRUE, &resultStr);
