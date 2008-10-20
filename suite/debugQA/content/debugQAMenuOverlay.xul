@@ -175,8 +175,6 @@
 
         <menuseparator/>
 
-        <menuitem label="StringBundle Test"
-                  oncommand="openTopWin('resource:/res/strres-test.xul');"/>
         <menuitem label="Bloat: Dump New Stats"
                   oncommand="openTopWin('about:bloat?new');"/>
         <menuitem label="Bloat: Dump All Stats"
