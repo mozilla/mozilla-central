@@ -161,6 +161,10 @@ include $(call EXPAND_MOZLOCALE_SRCDIR,toolkit/locales)/installer/windows/charse
 
 repackage-win32-installer: WIN32_INSTALLER_OUT=$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
+ifneq (en-US,$(AB_CD))
+	@echo "Verifying $(AB_CD) installer variable usage"
+	@$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer
+endif
 	@echo "Repackaging $(WIN32_INSTALLER_IN) into $(WIN32_INSTALLER_OUT)."
 	$(MAKE) -C ../installer/windows export
 	if test ! -d $(dir $(WIN32_INSTALLER_OUT)); then \
@@ -299,3 +303,38 @@ ifeq ($(OS_ARCH), WINNT)
 	@$(WGET) -nv --output-document $(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe $(EN_US_BINARY_URL)/$(PKG_PATH)$(PKG_INST_BASENAME).exe
 	@echo "Downloaded $(EN_US_BINARY_URL)/$(PKG_PATH)$(PKG_INST_BASENAME).exe to $(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME)"
 endif
+
+#These make targets call prepare-repackages by setting different UPLOAD_DIR
+prepare-upload-latest-%:
+	@$(MAKE) prepare-repackages-$* UPLOAD_DIR=$(DIST)/upload/latest
+
+prepare-upload-dated-%:
+	@$(MAKE) prepare-repackages-$* UPLOAD_DIR=$(DIST)/upload/`date "+%Y-%m-%d-%H"`-$(MOZ_PKG_APPNAME)$(MOZ_APP_VERSION)-l10n
+
+# This target will generate a UPLOAD_DIR folder with
+# l10n repackages in the way that we offer l10n nightlies
+#  1) the package/binary
+#  2) the langpack xpi
+#  3) the installer (on windows)
+# To set the paths those packages should end up, override the following vars:
+# PKG_PATH, PKG_LANGPACK_PATH, PKG_INST_PATH
+prepare-repackages-%: AB_CD=$*
+prepare-repackages-%:
+ifndef UPLOAD_DIR
+	$(error UPLOAD_DIR not defined)
+endif
+	$(NSINSTALL) -D $(UPLOAD_DIR)
+	$(NSINSTALL) -D $(UPLOAD_DIR)/$(PKG_LANGPACK_PATH)
+# Move the langpack
+	mv $(DIST)/$(PKG_LANGPACK_PATH)$(PKG_LANGPACK_BASENAME).xpi \
+	   $(UPLOAD_DIR)/$(PKG_LANGPACK_PATH)$(PKG_LANGPACK_BASENAME).xpi
+# Move the repackage
+	mv $(DIST)/$(PACKAGE) \
+	   $(UPLOAD_DIR)/$(PACKAGE)
+# Move the windows installer
+ifeq (WINNT, $(OS_ARCH))
+	mv $(DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe \
+	   $(UPLOAD_DIR)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
+endif
+# Set the permissions that the folders will have in ftp once uploaded
+	chmod -vR 775 $(UPLOAD_DIR)
