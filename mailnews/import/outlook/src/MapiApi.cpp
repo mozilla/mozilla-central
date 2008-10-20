@@ -346,7 +346,8 @@ BOOL CGetStoreFoldersIter::HandleHierarchyItem( ULONG oType, ULONG cb, LPENTRYID
         m_pList->AddItem( pNewFolder);
 
         pVal = m_pApi->GetMapiProperty( pFolder, PR_FOLDER_TYPE);
-        MAPI_TRACE2( "Type: %d, name: %s\n", m_pApi->GetLongFromProp( pVal), (const char *)name);
+        MAPI_TRACE2("Type: %d, name: %s\n",
+                    m_pApi->GetLongFromProp(pVal), name.get());
         // m_pApi->ListProperties( pFolder);
 
         CGetStoreFoldersIter  nextIter( m_pApi, *m_pList, m_depth + 1, m_isMail);
@@ -644,7 +645,7 @@ void CMapiApi::ListProperties( LPMAPIPROP lpProp, BOOL getValues)
         MAPIFreeBuffer( pVal);
       }
     }
-    MAPI_TRACE2( "    Tag #%d: %s\n", (int)i, (const char *)desc);
+    MAPI_TRACE2("    Tag #%d: %s\n", (int) i, desc.get());
   }
 
   MAPIFreeBuffer( pArray);
@@ -1325,7 +1326,7 @@ void CMapiApi::ReportStringProp( const char *pTag, LPSPropValue pVal)
 {
   if ( pVal && (PROP_TYPE( pVal->ulPropTag) == PT_TSTRING)) {
     nsCString val((LPCTSTR) (pVal->Value.LPSZ));
-    MAPI_TRACE2( "%s %s\n", pTag, (const char *)val);
+    MAPI_TRACE2("%s %s\n", pTag, val.get());
   }
   else if (pVal && (PROP_TYPE( pVal->ulPropTag) == PT_NULL)) {
     MAPI_TRACE1( "%s {NULL}\n", pTag);

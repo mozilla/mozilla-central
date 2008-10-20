@@ -237,10 +237,10 @@ BOOL CMapiMessage::FetchHeaders( void)
   }
 
   if (!m_fromLine.IsEmpty()) {
-    MAPI_DUMP_STRING( m_fromLine);
+    MAPI_DUMP_STRING(m_fromLine.get());
   }
-  MAPI_DUMP_STRING( m_headers);
-  MAPI_TRACE0( "\r\n");
+  MAPI_DUMP_STRING(m_headers.get());
+  MAPI_TRACE0("\r\n");
 
   ProcessHeaders();
 
@@ -443,9 +443,9 @@ void CMapiMessage::ProcessHeaders( void)
   }
 
   if (!m_mimeContentType.IsEmpty() || !m_mimeBoundary.IsEmpty() || !m_mimeCharset.IsEmpty()) {
-    MAPI_TRACE1( "\tDecoded mime content type: %s\r\n", (PC_S8)m_mimeContentType);
-    MAPI_TRACE1( "\tDecoded mime boundary: %s\r\n", (PC_S8)m_mimeBoundary);
-    MAPI_TRACE1( "\tDecoded mime charset: %s\r\n", (PC_S8)m_mimeCharset);
+    MAPI_TRACE1("\tDecoded mime content type: %s\r\n", m_mimeContentType.get());
+    MAPI_TRACE1("\tDecoded mime boundary: %s\r\n", m_mimeBoundary.get());
+    MAPI_TRACE1("\tDecoded mime charset: %s\r\n", m_mimeCharset.get());
   }
 }
 
@@ -484,8 +484,8 @@ BOOL CMapiMessage::FetchBody( void)
   if (pVal)
     CMapiApi::MAPIFreeBuffer( pVal);
 
-  MAPI_DUMP_STRING( m_body);
-  MAPI_TRACE0( "\r\n");
+  MAPI_DUMP_STRING(m_body.get());
+  MAPI_TRACE0("\r\n");
 
   return( TRUE);
 }
@@ -615,10 +615,12 @@ BOOL CMapiMessage::CopyBinAttachToFile( LPATTACH lpAttach)
   HRESULT hr = CMapiApi::OpenStreamOnFile( gpMapiAllocateBuffer, gpMapiFreeBuffer, STGM_READWRITE | STGM_CREATE,
     (char *) tmpPath.get(), NULL, &lpStreamFile);
   if (HR_FAILED(hr)) {
-    MAPI_TRACE1( "~~ERROR~~ OpenStreamOnFile failed - temp path: %s\r\n", tPath);
+    MAPI_TRACE1("~~ERROR~~ OpenStreamOnFile failed - temp path: %s\r\n",
+                tmpPath.get());
     return( FALSE);
   }
-  MAPI_TRACE1( "\t\t** Attachment extracted to temp file: %s\r\n", (const char *)m_attachPath);
+  MAPI_TRACE1("\t\t** Attachment extracted to temp file: %s\r\n",
+              m_attachPath.get());
 
   BOOL bResult = TRUE;
   LPSTREAM lpAttachStream;
@@ -689,7 +691,8 @@ BOOL CMapiMessage::GetAttachmentInfo( int idx)
       pVal = CMapiApi::GetMapiProperty( lpAttach, PR_ATTACH_PATHNAME);
       if (pVal)
         CMapiApi::GetStringFromProp( pVal, m_attachPath);
-      MAPI_TRACE2( "\t\t** Attachment #%d by ref: %s\r\n", idx, (const char *)m_attachPath);
+      MAPI_TRACE2("\t\t** Attachment #%d by ref: %s\r\n",
+                  idx, m_attachPath.get());
       m_ownsAttachFile = FALSE;
     }
     else if (aMethod == ATTACH_BY_VALUE) {
@@ -734,9 +737,10 @@ BOOL CMapiMessage::GetAttachmentInfo( int idx)
       }
   */
 
-  MAPI_TRACE1( "\t\t\t--- Mime type: %s\r\n", (const char *)m_attachMimeType);
-  MAPI_TRACE2( "\t\t\t--- File name: %s, extension: %s\r\n", (const char *)fName, (const char *)fExt);
-  MAPI_TRACE1( "\t\t\t--- Size: %ld\r\n", sz);
+  MAPI_TRACE1("\t\t\t--- Mime type: %s\r\n", m_attachMimeType.get());
+  MAPI_TRACE2("\t\t\t--- File name: %s, extension: %s\r\n",
+              fName.get(), fExt.get());
+  MAPI_TRACE1("\t\t\t--- Size: %ld\r\n", sz);
 
   if (fExt.IsEmpty()) {
     int idx = fName.RFindChar( '.');
@@ -765,7 +769,7 @@ BOOL CMapiMessage::GetAttachmentInfo( int idx)
   pVal = CMapiApi::GetMapiProperty( lpAttach, PR_ATTACH_TRANSPORT_NAME);
   if (pVal) {
     CMapiApi::GetStringFromProp( pVal, fName);
-    MAPI_TRACE1( "\t\t\t--- Transport name: %s\r\n", (const char *)fName);
+    MAPI_TRACE1("\t\t\t--- Transport name: %s\r\n", fName.get());
   }
 
   lpAttach->Release();
