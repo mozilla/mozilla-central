@@ -879,7 +879,7 @@ void nsMsgHdr::ReparentInThread(nsIMsgThread *thread)
   }
   else
   {
-    nsCOMPtr <nsIMsgDBHdr> curHdr;
+    nsCOMPtr<nsIMsgDBHdr> curHdr;
     // loop through thread, looking for our proper parent.
     for (PRUint32 childIndex = 0; childIndex < numChildren; childIndex++)
     {
@@ -897,7 +897,7 @@ void nsMsgHdr::ReparentInThread(nsIMsgThread *thread)
     // we didn't find it. So either the root header is our parent,
     // or we're the root.
     PRInt32 rootIndex;
-    nsCOMPtr <nsIMsgDBHdr> rootHdr;
+    nsCOMPtr<nsIMsgDBHdr> rootHdr;
     thread->GetRootHdr(&rootIndex, getter_AddRefs(rootHdr));
     NS_ASSERTION(rootHdr, "thread has no root hdr - shouldn't happen");
     if (rootHdr)
@@ -925,7 +925,9 @@ PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
     {
       // isKilled is false by virtue of the enclosing if statement
       NS_ERROR("Thread is parent of itself, please fix!");
-
+      nsCOMPtr<nsIMsgThread> thread;
+      (void) m_mdb->GetThreadContainingMsgHdr(this, getter_AddRefs(thread));
+      ReparentInThread(thread);
       // Something's wrong, but the problem happened some time ago, so erroring
       // out now is probably not a good idea. Ergo, we'll pretend to be OK, show
       // the user the thread (err on the side of caution), and let the assertion
@@ -934,7 +936,7 @@ PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
     }
     if (threadParent != nsMsgKey_None)
     {
-      nsCOMPtr <nsIMsgDBHdr> parentHdr;
+      nsCOMPtr<nsIMsgDBHdr> parentHdr;
       (void) m_mdb->GetMsgHdrForKey(threadParent, getter_AddRefs(parentHdr));
 
       if (parentHdr)

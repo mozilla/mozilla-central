@@ -920,6 +920,16 @@ nsresult nsMsgThread::ReparentMsgsWithInvalidParent(PRUint32 numChildren, nsMsgK
         GetChild(parentKey, getter_AddRefs(parent));
         if (!parent)
           curChild->SetThreadParent(threadParentKey);
+        else
+        {
+          nsMsgKey childKey;
+          curChild->GetMessageKey(&childKey);
+          // can't be your own parent; set parent to thread parent,
+          // or make ourselves the root if we are the root.
+          if (childKey == parentKey)
+            curChild->SetThreadParent(m_threadRootKey == childKey ? 
+                                      nsMsgKey_None : m_threadRootKey);
+        }
       }
     }
   }
@@ -936,8 +946,15 @@ NS_IMETHODIMP nsMsgThread::GetRootHdr(PRInt32 *resultIndex, nsIMsgDBHdr **result
   {
     nsresult rv = GetChildHdrForKey(m_threadRootKey, result, resultIndex);
     if (NS_SUCCEEDED(rv) && *result)
-      return rv;
-#ifdef DEBUG_bienvenu
+    {
+      // check that we're really the root key.
+      nsMsgKey parentKey;
+      (*result)->GetThreadParent(&parentKey);
+      if (parentKey == nsMsgKey_None)
+        return rv;
+      NS_RELEASE(*result);
+    }
+#ifdef DEBUG_David_Bienvenu
     printf("need to reset thread root key\n");
 #endif
     PRUint32 numChildren;
@@ -955,8 +972,12 @@ NS_IMETHODIMP nsMsgThread::GetRootHdr(PRInt32 *resultIndex, nsIMsgDBHdr **result
         curChild->GetThreadParent(&parentKey);
         if (parentKey == nsMsgKey_None)
         {
-          NS_ASSERTION(!(*result), "two top level msgs, not good");
           curChild->GetMessageKey(&threadParentKey);
+          if (*result)
+          {
+            NS_WARNING("two top level msgs, not good");
+            continue;
+          }
           SetThreadRootKey(threadParentKey);
           if (resultIndex)
             *resultIndex = childIndex;
@@ -1054,8 +1075,16 @@ nsresult nsMsgThread::GetChildHdrForKey(nsMsgKey desiredKey, nsIMsgDBHdr **resul
           PRUint32 msgSize;
           (*result)->GetMessageSize(&msgSize);
           if (msgSize == 0) // this is a phantom message - let's get rid of it.
+          {
             RemoveChild(msgKey);
-          rv = NS_ERROR_UNEXPECTED;
+            rv = NS_ERROR_UNEXPECTED;
+          }
+          else
+          {
+            // otherwise, this message really appears to be in this
+            // thread, so fix up its thread id.
+            (*result)->SetThreadId(threadKey);
+          }
         }
         break;
       }
