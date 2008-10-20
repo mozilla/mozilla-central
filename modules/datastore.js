@@ -2856,7 +2856,7 @@ var GlodaDatastore = {
   createContact: function gloda_ds_createContact(aDirectoryUUID, aContactUUID,
       aName, aPopularity, aFrecency) {
     let contactID = this._nextContactId++;
-
+    this._log.debug("createContact: " + contactID + ": " + aName);
     let contact = new GlodaContact(this, contactID,
                                    aDirectoryUUID, aContactUUID, aName,
                                    aPopularity, aFrecency);
@@ -2883,6 +2883,7 @@ var GlodaDatastore = {
       ics.bindNullParameter(6);
 
     ics.executeAsync(this.trackAsync());
+    this._log.debug("insertContact: " + aContact.id + ":" + aContact.name);
 
     // XXX caching-notifications-post-refactoring
     GlodaCollectionManager.itemsAdded(aContact.NOUN_ID, [aContact]);

@@ -1064,7 +1064,7 @@ var GlodaIndexer = {
           }
         }
         catch (ex) {
-          this._log.debug("Bailing on job (at " + ex.fileName + ":" +
+          this._log.warn("Bailing on job (at " + ex.fileName + ":" +
               ex.lineNumber + ") because: " + ex);
           this._indexerLeaveFolder(true);
           this._curIndexingJob = null;
@@ -2170,7 +2170,7 @@ var GlodaIndexer = {
     
     if (isNew) {
       curMsg._subject = aMsgHdr.subject;
-      curMsg._body = aMimeMsg.body;
+      curMsg._body = aMimeMsg && aMimeMsg.body;
       curMsg._attachmentNames = attachmentNames;
     }
     
