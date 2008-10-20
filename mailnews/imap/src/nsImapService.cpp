@@ -1182,6 +1182,8 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
   nsMsgKey key;
   
   nsresult rv = DecomposeImapURI(nsDependentCString(aMessageURI), getter_AddRefs(folder), msgKey);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   if (msgKey.IsEmpty())
     return NS_MSG_MESSAGE_NOT_FOUND;
   rv = nsParseImapMessageURI(aMessageURI, folderURI, &key, getter_Copies(mimePart));
@@ -1203,16 +1205,11 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
       rv = AddImapFetchToUrl(url, folder, msgKey, aAdditionalHeader);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      PRBool shouldStoreMsgOffline = PR_FALSE;
-      
       nsCOMPtr<nsIMsgIncomingServer> aMsgIncomingServer;
       
       msgurl->SetMsgWindow(aMsgWindow);
       
       rv = msgurl->GetServer(getter_AddRefs(aMsgIncomingServer));
- 
-      if (folder)
-        folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
 
       // Try to check if the message is offline
       PRBool hasMsgOffline = PR_FALSE;
@@ -1236,6 +1233,9 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
 
       imapUrl->SetFetchPartsOnDemand(PR_FALSE);
       msgurl->SetAddToMemoryCache(PR_TRUE);
+
+      PRBool shouldStoreMsgOffline = PR_FALSE;
+      folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
       if (imapMessageSink)
         imapMessageSink->SetNotifyDownloadedLines(shouldStoreMsgOffline);
       
