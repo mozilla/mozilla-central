@@ -356,7 +356,7 @@ function XMLFormatter() {}
 XMLFormatter.prototype = {
   format: function XF_format(message) {
     let cdataEscapedMessage = message.message.replace(CDATA_END,
-                                                      CDATA_ESCAPED_END);
+                                                      CDATA_ESCAPED_END, "g");
     return "<log4j:event logger='" + message.loggerName + "' " +
                         "level='" + message.levelDesc + "' thread='unknown' " +
                         "timestamp='" + message.time + "'>" +
