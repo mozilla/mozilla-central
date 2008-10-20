@@ -40,7 +40,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
  * Custom nsIMimeEmitter to build a sub-optimal javascript representation of a
@@ -67,8 +67,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
  */
 function MimeMessageEmitter() {
   this._mimeMsg = {};
-  Components.utils.import("resource://gloda/modules/mimemsg.js",
-                          this._mimeMsg);
+  Cu.import("resource://gloda/modules/mimemsg.js", this._mimeMsg);
 
   this._url = null;
   this._channel = null;
