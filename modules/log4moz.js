@@ -577,8 +577,10 @@ SocketAppender.prototype = {
         null); // no proxy
       this._transport.setTimeout(Ci.nsISocketTransport.TIMEOUT_CONNECT,
                                  this._timeout_delay);
-      this._transport.setTimeout(Ci.nsISocketTransport.TIMEOUT_READ_WRITE,
-                                 this._timeout_delay);
+      // do not set a timeout for TIMEOUT_READ_WRITE. The timeout is not
+      //  entirely intuitive; your socket will time out if no one reads or
+      //  writes to the socket within the timeout.  That, as you can imagine,
+      //  is not what we want.
       this._transport.setEventSink(this, this._mainThread);
   
       this.__nos = this._transport.openOutputStream(
