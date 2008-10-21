@@ -258,9 +258,11 @@ var MigrationWizard = {
     this._wiz.canRewind = false;
     this._wiz.canAdvance = false;
 
-    // When automigrating, show all of the data that can be received from this source.
-    if (this._autoMigrate)
-      this._itemsFlags = this._migrator.getMigrateData(this._selectedProfile, this._autoMigrate);
+    // When automigrating or migrating all, show all of the data that can
+    // be received from this source.
+    if (this._autoMigrate || this._itemsFlags == kIMig.ALL)
+      this._itemsFlags = this._migrator.getMigrateData(this._selectedProfile,
+                                                       this._autoMigrate);
 
     this._listItems("migratingItems");
     setTimeout(this.onMigratingMigrate, 0, this);
