@@ -21,9 +21,9 @@
  * Contributor(s): Garth Smedley <garths@oeone.com>
  *                 Mike Potter <mikep@oeone.com>
  *                 Colin Phillips <colinp@oeone.com>
- *                 Karl Guertin <grayrest@grayrest.com> 
+ *                 Karl Guertin <grayrest@grayrest.com>
  *                 Mike Norton <xor@ivwnet.com>
- *                 ArentJan Banck <ajbanck@planet.nl> 
+ *                 ArentJan Banck <ajbanck@planet.nl>
  *                 Eric Belhaire <belhaire@ief.u-psud.fr>
  *                 Matthew Willis <lilmatt@mozilla.com>
  *                 Joey Minta <jminta@gmail.com>
@@ -44,36 +44,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/***** calendar
-* AUTHOR
-*   Garth Smedley
-*
-* NOTES
-*   Code for the calendar.
-*
-*   What is in this file:
-*     - Global variables and functions - Called directly from the XUL
-*     - Several classes:
-*  
-* IMPLEMENTATION NOTES 
-*
-**********
-*/
-
-// single global instance of CalendarWindow
-var gCalendarWindow;
-
-/*-----------------------------------------------------------------
- *  G L O B A L     C A L E N D A R      F U N C T I O N S
- */
-
-/** 
+/**
  * Called from calendar.xul window onload.
  */
 function calendarInit() {
-    // set up the CalendarWindow instance
-    gCalendarWindow = new CalendarWindow();
-
     // Take care of common initialization
     commonInitCalendar();
 
@@ -129,15 +103,15 @@ function handleCommandLine(aComLine) {
         }
     }
 
-    //Look for arguments without a flag.
-    //This is needed to handle double-click on Windows and Linux.
+    // Look for arguments without a flag.
+    // This is needed to handle double-click on Windows and Linux.
     if (comLine.length >= 1) {
         for (var i = 0; i < comLine.length; i++) {
             if (!comLine.getArgument(i).match(/^-/) &&
                 !comLine.getArgument(i).match(/^\s/)) {
                 calurl.push( comLine.getArgument(i) );
             } else {
-            comLine.removeArguments(i, i);
+                comLine.removeArguments(i, i);
             }
         }
     }
@@ -176,7 +150,7 @@ function refreshUIBits() {
     scheduleMidnightUpdate(refreshUIBits);
 }
 
-/** 
+/**
  * Steps to be taken when the sunbird calendar window is unloaded.
  */
 function calendarFinish() {
@@ -191,8 +165,7 @@ function calendarFinish() {
     commonFinishCalendar();
 }
 
-function closeCalendar()
-{
+function closeCalendar() {
     self.close();
 }
 
@@ -218,13 +191,13 @@ function openPreferences() {
     }
 }
 
-function CalendarCustomizeToolbar()
-{
+function CalendarCustomizeToolbar() {
   // Disable the toolbar context menu items
   var menubar = document.getElementById("main-menubar");
-  for (var i = 0; i < menubar.childNodes.length; ++i)
+  for (var i = 0; i < menubar.childNodes.length; ++i) {
     menubar.childNodes[i].setAttribute("disabled", true);
-    
+  }
+
   var cmd = document.getElementById("cmd_CustomizeToolbars");
   cmd.setAttribute("disabled", "true");
 
@@ -232,15 +205,55 @@ function CalendarCustomizeToolbar()
                     "chrome,all,dependent", document.getElementById("calendar-toolbox"));
 }
 
-function CalendarToolboxCustomizeDone(aToolboxChanged)
-{
+function CalendarToolboxCustomizeDone(aToolboxChanged) {
   // Re-enable parts of the UI we disabled during the dialog
   var menubar = document.getElementById("main-menubar");
-  for (var i = 0; i < menubar.childNodes.length; ++i)
+  for (var i = 0; i < menubar.childNodes.length; ++i) {
     menubar.childNodes[i].setAttribute("disabled", false);
+  }
   var cmd = document.getElementById("cmd_CustomizeToolbars");
   cmd.removeAttribute("disabled");
 
   // XXX Shouldn't have to do this, but I do
   window.focus();
+}
+
+function changeNumberOfWeeks(menuitem) {
+  currentView().weeksInView = menuitem.value;
+}
+
+function pickAndGoToDate() {
+  var initialDate = currentView().selectedDay.getInTimezone(floating()).jsDate;
+  var callback = function receiveAndGoToDate(pickedDate) {
+    currentView().goToDay(jsDateToDateTime(pickedDate));
+    getMinimonth().value = pickedDate;
+  };
+  openDialog("chrome://sunbird/content/calendar-gotodate-dialog.xul",
+             "calendar-gotodate-dialog",
+             "chrome,modal",
+             {callback: callback, date: initialDate});
+}
+
+function minimonthPick(newDate) {
+  var cdt = jsDateToDateTime(newDate, currentView().timezone);
+  cdt.isDate = true;
+  currentView().goToDay(cdt);
+}
+
+function sbSwitchToView(newView) {
+  var mwWeeksCommand = document.getElementById("menu-numberofweeks-inview");
+  if (newView == "multiweek") {
+      mwWeeksCommand.removeAttribute("disabled");
+  } else {
+      mwWeeksCommand.setAttribute("disabled", true);
+  }
+
+  // Call the common view switching code in calendar-views.js
+  switchToView(newView);
+
+  var labelAttribute = "label-" + newView + "-view";
+  var prevCommand = document.getElementById("calendar-go-menu-previous");
+  prevCommand.setAttribute("label", prevCommand.getAttribute(labelAttribute));
+  var nextCommand = document.getElementById("calendar-go-menu-next");
+  nextCommand.setAttribute("label", nextCommand.getAttribute(labelAttribute));
 }

@@ -252,7 +252,7 @@ var calendarViewController = {
  */
 function showCalendarView(type) {
     if (isSunbird()) {
-        gCalendarWindow.switchToView(type);
+        sbSwitchToView(type);
     } else {
         ltnShowCalendarView(type);
     }
@@ -264,7 +264,7 @@ function showCalendarView(type) {
  */
 function selectCalendarView(type) {
     if (isSunbird()) {
-        gCalendarWindow.switchToView(type);
+        sbSwitchToView(type);
     } else {
         ltnSelectCalendarView(type);
     }

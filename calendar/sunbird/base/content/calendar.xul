@@ -172,7 +172,7 @@
               <minimonth id="calMinimonth"
                          maxheight="300"
                          freebusy="true"
-                         onchange="gCalendarWindow.goToDay( this.value );"/>
+                         onchange="minimonthPick(this.value);"/>
               <spacer id="spacebelowleftminimonth" flex="1" orient="vertical"/>
             </vbox>
           </tabpanel>

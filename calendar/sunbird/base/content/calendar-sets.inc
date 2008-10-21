@@ -67,7 +67,7 @@
   <!-- Sunbird specific commands -->
   <command id="open_local_calendar_command" oncommand="openLocalCalendar()"/>
 
-  <command id="go_date_command" oncommand="gCalendarWindow.pickAndGoToDate()"/>
+  <command id="go_date_command" oncommand="pickAndGoToDate()"/>
   <command id="cmd_quitApplication"     oncommand="goQuitApplication()"/>
 	
   <command id="close_calendar_command" oncommand="closeCalendar()"/>

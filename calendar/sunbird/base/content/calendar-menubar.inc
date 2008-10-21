@@ -291,7 +291,7 @@
            <menu id="menu-numberofweeks-inview"
                  label="&sunbird.menu.numberofweeks.label;"
                  accesskey="&sunbird.menu.numberofweeks.accesskey;"
-                 oncommand="gCalendarWindow.currentView.changeNumberOfWeeks(event.target)"
+                 oncommand="changeNumberOfWeeks(event.target)"
                  disabled="true">
            <menupopup>
              <menuitem type="radio"
@@ -341,7 +341,7 @@
                      observes="go_date_command"/>
            <menuseparator/>
            <!-- Label is set appropriate to the variable newView in 
-                switchToView(newView) of calendarWindow.js -->
+                sbSwitchToView(newView) of calendar.js -->
            <menuitem id="calendar-go-menu-previous"
                      label=""
                      label-day-view="&goPreviousCmd.day.label;"

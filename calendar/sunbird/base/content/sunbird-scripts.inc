@@ -47,7 +47,6 @@
 #endif
 
   <script type="application/javascript" src="chrome://calendar/content/calendar.js"/>
-  <script type="application/javascript" src="chrome://calendar/content/calendarWindow.js"/>
   <script type="application/javascript" src="chrome://sunbird/content/calendar-offline.js"/>
   <script type="application/javascript" src="chrome://calendar/content/migration.js"/>
 
