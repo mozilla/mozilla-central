@@ -667,7 +667,10 @@ nsresult nsImapMailFolder::GetDatabase(nsIMsgWindow *aMsgWindow)
       UpdateNewMessages();
       if(mAddListener)
         mDatabase->AddListener(this);
+      // UpdateSummaryTotals can null mDatabase during initialization, so we save a local copy
+      nsCOMPtr<nsIMsgDatabase> database(mDatabase);
       UpdateSummaryTotals(PR_TRUE);
+      mDatabase = database;
     }
   }
   return folderOpen;
