@@ -7,9 +7,9 @@
 +   locale/branding/brand.properties             (%chrome/branding/brand.properties)
 #endif
 
-calendar-@AB_CD@.jar:
-% locale calendar @AB_CD@ %locale/@AB_CD@/calendar/
-*   locale/@AB_CD@/calendar/aboutDialog.dtd      (%chrome/calendar/aboutDialog.dtd)
+sunbird-@AB_CD@.jar:
+% locale sunbird @AB_CD@ %locale/@AB_CD@/sunbird/
+    locale/@AB_CD@/sunbird/aboutDialog.dtd       (%chrome/sunbird/aboutDialog.dtd)
 
 # Extra l10n files for documentation and such
 #includesubst @LOCALE_SRCDIR@/extra-jar.mn

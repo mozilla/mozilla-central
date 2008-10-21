@@ -69,20 +69,19 @@
   padding: 0px !important;
   min-width: 0;
   background-color: transparent;
-  list-style-image: url('chrome://calendar/skin/Throbber.png');
+  list-style-image: url("chrome://global/skin/icons/notloading_16.png");
 }
 
 #navigator-throbber[busy="true"] {
-  list-style-image: url('chrome://calendar/skin/Throbber.gif');
-  opacity: 0.5;
+  list-style-image: url("chrome://global/skin/icons/loading_16.gif");
 }
 
 toolbar[iconsize="small"] #navigator-throbber {
-  list-style-image: url('chrome://global/skin/throbber/Throbber-small.png');
+  list-style-image: url("chrome://global/skin/icons/notloading_16.png");
 }
 
 toolbar[iconsize="small"] #navigator-throbber[busy="true"] {
-  list-style-image: url('chrome://global/skin/throbber/Throbber-small.gif');
+  list-style-image: url("chrome://global/skin/icons/loading_16.gif");
 }
 
 /*--------------------------------------------------------------------
@@ -97,7 +96,7 @@ toolbar[printpreview="true"] {
  *-------------------------------------------------------------------*/
 
 #offline-status {
-    list-style-image: url(chrome://calendar/skin/offline-online.png);
+    list-style-image: url(chrome://sunbird/skin/offline-online.png);
     -moz-image-region: rect(0px, 28px, 14px, 14px);
     padding: 0px 2px;
 }

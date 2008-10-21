@@ -1,23 +1,26 @@
-calendar.jar:
-% content calendar %content/calendar/
-*  content/calendar/aboutDialog.css              (content/aboutDialog.css)
-*  content/calendar/aboutDialog.js               (content/aboutDialog.js)
-*  content/calendar/aboutDialog.xul              (content/aboutDialog.xul)
-*  content/calendar/calendar.xul                 (content/calendar.xul)
-   content/calendar/calendar-gotodate-dialog.xul (content/calendar-gotodate-dialog.xul)
-   content/calendar/calendar-offline.js          (content/calendar-offline.js)
-*  content/calendar/credits.xhtml                (content/credits.xhtml)
-   content/calendar/applicationUtil.js           (content/applicationUtil.js)
-% style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar.css
+#filter substitution
+sunbird.jar:
+% content sunbird %content/sunbird/
+% style chrome://global/content/customizeToolbar.xul chrome://sunbird/skin/calendar.css
 % style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-toolbar.css
-*  content/calendar/hiddenWindow.xul             (content/hiddenWindow.xul)
-*  content/calendar/hiddenWindow.js              (content/hiddenWindow.js)
+*   content/sunbird/aboutDialog.css                        (content/aboutDialog.css)
+    content/sunbird/aboutDialog.js                         (content/aboutDialog.js)
+*   content/sunbird/aboutDialog.xul                        (content/aboutDialog.xul)
+    content/sunbird/applicationUtil.js                     (content/applicationUtil.js)
+*   content/sunbird/calendar.xul                           (content/calendar.xul)
+    content/sunbird/calendar-gotodate-dialog.xul           (content/calendar-gotodate-dialog.xul)
+    content/sunbird/calendar-offline.js                    (content/calendar-offline.js)
+    content/sunbird/credits.xhtml                          (content/credits.xhtml)
+*   content/sunbird/hiddenWindow.xul                       (content/hiddenWindow.xul)
+*   content/sunbird/hiddenWindow.js                        (content/hiddenWindow.js)
+% skin sunbird classic/1.0 %skin/sunbird/
+    skin/sunbird/calendar.css                              (themes/@THEME@/calendar.css)
+    skin/sunbird/offline-online.png                        (themes/@THEME@/offline-online.png)
 #ifdef MOZ_USE_GENERIC_BRANDING
-#   NOTE: xpcnativewrappers=yes became the default in Gecko 1.8.1
-% content branding %content/branding/ xpcnativewrappers=yes
-    content/branding/about.png                   (branding/about.png)
-    content/branding/aboutCredits.png            (branding/aboutCredits.png)
-    content/branding/aboutFooter.png             (branding/aboutFooter.png)
-    content/branding/icon64.png                  (branding/icon64.png)
-    content/branding/icon48.png                  (branding/icon48.png)
+% content branding %content/branding/
+    content/branding/about.png                             (branding/about.png)
+    content/branding/aboutCredits.png                      (branding/aboutCredits.png)
+    content/branding/aboutFooter.png                       (branding/aboutFooter.png)
+    content/branding/icon64.png                            (branding/icon64.png)
+    content/branding/icon48.png                            (branding/icon48.png)
 #endif

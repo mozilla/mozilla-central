@@ -44,7 +44,7 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS = base themes locales app
+DIRS = base locales app
 
 ifeq ($(OS_ARCH),WINNT)
 ifdef MOZ_INSTALLER

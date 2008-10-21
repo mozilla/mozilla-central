@@ -43,16 +43,16 @@
 
 #ifdef XP_MACOSX
   <!-- Needed for Mac OS X "Window" menu -->
-  <script type="application/javascript" src="chrome://calendar/content/hiddenWindow.js"/>
+  <script type="application/javascript" src="chrome://sunbird/content/hiddenWindow.js"/>
 #endif
 
   <script type="application/javascript" src="chrome://calendar/content/calendar.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calendarWindow.js"/>
-  <script type="application/javascript" src="chrome://calendar/content/calendar-offline.js"/>
+  <script type="application/javascript" src="chrome://sunbird/content/calendar-offline.js"/>
   <script type="application/javascript" src="chrome://calendar/content/migration.js"/>
 
   <!-- NEEDED FOR APPLICATION SUPPORT -->
-  <script type="application/javascript" src="chrome://calendar/content/applicationUtil.js"/>
+  <script type="application/javascript" src="chrome://sunbird/content/applicationUtil.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calApplicationUtils.js"/>
   <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
   <script type="application/javascript" src="chrome://global/content/printUtils.js"/>

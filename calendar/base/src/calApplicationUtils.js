@@ -43,7 +43,7 @@ function openAboutDialog()
   var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
                           .getService(Components.interfaces.nsIXULAppInfo);
   var url = (appInfo.ID == SUNBIRD_ID) ?
-    "chrome://calendar/content/aboutDialog.xul" :
+    "chrome://sunbird/content/aboutDialog.xul" :
     "chrome://messenger/content/aboutDialog.xul" ;
   var name = "About";
 #ifdef XP_MACOSX

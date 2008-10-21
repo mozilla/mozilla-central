@@ -69,7 +69,7 @@ function switchPage(aEvent)
 
   var iframe = document.getElementById("creditsIframe");
   if (gSelectedPage == 0) { 
-    iframe.setAttribute("src", "chrome://calendar/content/credits.xhtml");
+    iframe.setAttribute("src", "chrome://sunbird/content/credits.xhtml");
     button.setAttribute("label", document.documentElement.getAttribute("aboutlabel"));
     button.setAttribute("accesskey", document.documentElement.getAttribute("aboutaccesskey"));
     gSelectedPage = 1;

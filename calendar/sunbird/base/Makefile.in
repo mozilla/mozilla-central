@@ -43,7 +43,21 @@ VPATH   = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 APP_VERSION = $(shell cat $(srcdir)/../config/version.txt)
-DEFINES += -DAPP_VERSION="$(APP_VERSION)"
+
+# Select a theme from which to pull our skin goodness
+# OS X: pinstripe
+# Others: winstripe
+
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+THEME = pinstripe
+else
+THEME = winstripe
+endif
+
+DEFINES += \
+    -DAPP_VERSION="$(APP_VERSION)" \
+    -DTHEME=$(THEME) \
+    $(NULL)
 
 include $(topsrcdir)/config/config.mk
 
@@ -52,4 +66,3 @@ include $(topsrcdir)/config/rules.mk
 ifndef MOZ_BRANDING_DIRECTORY
 DEFINES += -DMOZ_USE_GENERIC_BRANDING
 endif
-

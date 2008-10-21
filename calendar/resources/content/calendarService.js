@@ -125,7 +125,7 @@ CLineService.prototype = {
             // just pass all arguments on to the Sunbird window
             wwatch = Components.classes[WINDOWWATCHER_CONTRACTID]
                                .getService(nsIWindowWatcher);
-            wwatch.openWindow(null, "chrome://calendar/content/",
+            wwatch.openWindow(null, "chrome://sunbird/content/calendar.xul",
                                   "_blank", "chrome,dialog=no,all", cmdLine);
             cmdLine.preventDefault = true;
         }
@@ -198,7 +198,7 @@ function(aContentType, aWindowTarget, aRequest)
 
         var args = new Object ();
         args.channel = channel;
-        w.openDialog("chrome://calendar/content/calendar.xul", "calendar", "chrome,menubar,resizable,scrollbars,status,toolbar,dialog=no", args);
+        w.openDialog("chrome://sunbird/content/calendar.xul", "calendar", "chrome,menubar,resizable,scrollbars,status,toolbar,dialog=no", args);
     }
 }
 

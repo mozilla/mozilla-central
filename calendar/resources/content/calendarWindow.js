@@ -58,7 +58,7 @@ CalendarWindow.prototype.pickAndGoToDate = function calWin_pickAndGoToDate() {
     currentView().goToDay(jsDateToDateTime(pickedDate));
     getMinimonth().value = pickedDate;
   };
-  openDialog("chrome://calendar/content/calendar-gotodate-dialog.xul",
+  openDialog("chrome://sunbird/content/calendar-gotodate-dialog.xul",
              "calendar-gotodate-dialog",
              "chrome,modal",
              {callback: callback, date: initialDate});

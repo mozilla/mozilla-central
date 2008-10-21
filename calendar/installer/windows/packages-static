@@ -17,6 +17,8 @@ bin\chrome\@AB_CD@.jar
 bin\chrome\@AB_CD@.manifest
 bin\chrome\calendar-@AB_CD@.jar
 bin\chrome\calendar-@AB_CD@.manifest
+bin\chrome\sunbird-@AB_CD@.jar
+bin\chrome\sunbird-@AB_CD@.manifest
 bin\defaults\pref\sunbird-l10n.js
 bin\defaults\profile\prefs.js
 bin\defaults\profile\chrome\*
@@ -264,6 +266,8 @@ bin\modules\*
 ; [Calendar Chrome Files]
 bin\chrome\calendar.jar
 bin\chrome\calendar.manifest
+bin\chrome\sunbird.jar
+bin\chrome\sunbird.manifest
 bin\chrome\classic.jar
 bin\chrome\classic.manifest
 bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\install.rdf
