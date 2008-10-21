@@ -1019,6 +1019,8 @@ nsPop3Protocol::WaitForResponse(nsIInputStream* inputStream, PRUint32 length)
 PRInt32
 nsPop3Protocol::Error(PRInt32 err_code)
 {
+    PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS, ("ERROR: %d", err_code));
+
     // the error code is just the resource id for the error string...
     // so print out that error message!
     nsresult rv = NS_OK;
