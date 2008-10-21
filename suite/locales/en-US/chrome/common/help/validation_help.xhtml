@@ -73,38 +73,34 @@
   Certificate Manager to perform an online check of a certificate&apos;s
   validity each time the certificate is viewed or used. This process involves
   checking the certificate against a certificate revocation list (CRL)
-  maintained at a specified website. Your computer must be online for OCSP to
+  maintained at a specified server. Your computer must be online for OCSP to
   work.</p>
 
 <p>To specify how Certificate Manager uses OCSP, choose one of these settings
   in the OCSP section of Validation Settings:</p>
 
 <ul>
-  <li><strong>Do not use OCSP for certificate verification</strong>: Select
-    this setting if you don&apos;t want Certificate Manager to perform an
-    online status check each time it verifies a certificate. Instead, whenever
-    Certificate Manager performs
-    <a href="glossary.xhtml#certificate_verification">certificate
-    verification</a>, it only confirms the certificate&apos;s validity period
-    and that it is correctly signed by a CA whose own CA certificate is both
-    listed under the CA Certificates tab (in the main Certificate Manager
-    window) and marked as trusted for issuing that kind of certificate.</li>
-  <li><strong>Use OCSP to verify only certificates that specify an OCSP service
-    URL</strong>: Select this setting if you want Certificate Manager perform
-    an online status check each time it verifies a certificate that specifies a
-    URL for the purpose of performing such a check. If a URL is specified by
-    the certificate, Certificate Manager makes sure that the certificate is
-    listed there as valid and checks the validity period and trust
-    settings.</li>
-  <li><strong>Use OCSP to verify all certificates, using the URL and signer
-    specified here</strong>: Select this setting if you want Certificate
-    Manager to perform an online status check each time it verifies any
-    certificate. If you select this setting, you should also choose the
-    certificate from the Response Signer pop-up menu that identifies the signer
-    of the OCSP responses. With this setting, the only certificates Certificate
-    Manager recognizes are those that can be verified by an OCSP response
-    signed with the Response Signer certificate (or signed using a certificate
-    that chains to it).
+  <li><strong>Use the Online Certificate Status Protocol (OCSP) to confirm the
+    current validity of certificates</strong>: Select this setting if you want
+    Certificate Manager to perform an online status check each time it verifies
+    a certificate. If this setting is off, Certificate Manager will only
+    confirm the certificate&apos;s validity period and that it is correctly
+    signed by a CA whose own CA certificate is both listed under the CA
+    Certificates tab (in the main Certificate Manager window) and marked as
+    trusted for issuing that kind of certificate.</li>
+  <li><strong>Validate a certificate if it specifies a OCSP server</strong>:
+    Select this setting for online validation of certificates that provides a
+    validation service address (Service URL). Certificate Manager makes sure
+    that the certificate is listed as valid at the URL and checks validity
+    period and trust settings.</li>
+  <li><strong>Validate all certificates using the following OSCP
+    server</strong>: Select this setting if you want to specify a OCSP server
+    for the validation of all certificates. If you select this setting, you
+    should also choose the certificate from the Response Signer pop-up menu
+    that identifies the signer of the OCSP responses. With this setting, the
+    only certificates Certificate Manager recognizes are those that can be
+    verified by an OCSP response signed with the Response Signer certificate
+    (or signed using a certificate that chains to it).
 
     <p>When you choose a Response Signer certificate from the pop-up menu,
       Certificate Manager fills in the Service URL (if available) for that
@@ -112,6 +108,9 @@
       you must provide it yourself; ask your system administrator for
       details.</p>
   </li>
+  <li><strong>When an OCSP server connection fails, treat the certificate as
+    invalid</strong>: Select this if you want the validation to fail if a
+    connection to the OCSP server can&apos;t be established.</li>
 </ul>
 
 <h2 id="manage_crls">Manage CRLs</h2>
