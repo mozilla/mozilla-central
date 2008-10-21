@@ -627,7 +627,7 @@ NS_IMETHODIMP ImportEudoraMailImpl::GetImportProgress( PRUint32 *pDoneSoFar)
 NS_IMETHODIMP ImportEudoraMailImpl::TranslateFolderName(const nsAString & aFolderName, nsAString & _retval)
 {
   if (aFolderName.Equals(NS_LITERAL_STRING("Out"), nsCaseInsensitiveStringComparator()))
-    _retval = NS_LITERAL_STRING(kDestUnsentMessagesFolderName);
+    _retval = NS_LITERAL_STRING(kDestSentFolderName);
   else if (aFolderName.Equals(NS_LITERAL_STRING("In"), nsCaseInsensitiveStringComparator()))
     _retval = NS_LITERAL_STRING(kDestInboxFolderName);
   else

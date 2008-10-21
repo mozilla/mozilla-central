@@ -877,18 +877,19 @@ ImportMailThread( void *stuff)
       else
         lastName.AssignLiteral("Unknown!");
 
-            // translate the folder name if we are doing migration
-            if (pData->performingMigration)
-                pData->mailImport->TranslateFolderName(lastName, lastName);
+      // translate the folder name if we are doing migration, but
+      // only for special folders which are at the root level
+      if (pData->performingMigration && depth == 1)
+        pData->mailImport->TranslateFolderName(lastName, lastName);
 
       exists = PR_FALSE;
       rv = curProxy->ContainsChildNamed( lastName, &exists);
 
-            // If we are performing profile migration (as opposed to importing) then we are starting
-            // with empty local folders. In that case, always choose to over-write the existing local folder
-            // with this name. Don't create a unique subfolder name. Otherwise you end up with "Inbox, Inbox0"
-            // or "Unsent Folders, UnsentFolders0"
-            if (exists && !pData->performingMigration) {
+      // If we are performing profile migration (as opposed to importing) then we are starting
+      // with empty local folders. In that case, always choose to over-write the existing local folder
+      // with this name. Don't create a unique subfolder name. Otherwise you end up with "Inbox, Inbox0"
+      // or "Unsent Folders, UnsentFolders0"
+      if (exists && !pData->performingMigration) {
         nsString subName;
         curProxy->GenerateUniqueSubfolderName( lastName, nsnull, subName);
         if (!subName.IsEmpty())
@@ -896,13 +897,13 @@ ImportMailThread( void *stuff)
       }
 
       IMPORT_LOG1("ImportMailThread: Creating new import folder '%s'.", NS_ConvertUTF16toUTF8(lastName).get());
-            curProxy->CreateSubfolder( lastName, nsnull); // this may fail if the folder already exists..that's ok
+      curProxy->CreateSubfolder( lastName, nsnull); // this may fail if the folder already exists..that's ok
 
-        rv = curProxy->GetChildNamed(lastName, getter_AddRefs(newFolder));
-        if (NS_SUCCEEDED(rv))
-          newFolder->GetFilePath(getter_AddRefs(outBox));
-        else
-          IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder '%s' after it's been created.", lastName.get());
+      rv = curProxy->GetChildNamed(lastName, getter_AddRefs(newFolder));
+      if (NS_SUCCEEDED(rv))
+        newFolder->GetFilePath(getter_AddRefs(outBox));
+      else
+        IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder '%s' after it's been created.", lastName.get());
 
       if (NS_FAILED( rv)) {
         nsImportGenericMail::ReportError(IMPORT_ERROR_MB_CREATE, lastName.get(), &error, pBundle);
