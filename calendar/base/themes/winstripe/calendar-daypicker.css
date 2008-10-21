@@ -51,8 +51,7 @@ daypicker[mode="monthly-days"] {
   height: 15px;
 }
 
-daypicker:hover,
-daypicker[buttonover="true"] {
+daypicker:hover {
   -moz-image-region: rect(0px 62px 30px 31px);
   cursor: pointer;
 }
@@ -66,7 +65,6 @@ daypicker[open="true"] {
 daypicker[disabled="true"],
 daypicker[disabled="true"][checked="true"],
 daypicker[disabled="true"]:hover,
-daypicker[disabled="true"][buttonover="true"],
 daypicker[disabled="true"]:hover:active,
 daypicker[disabled="true"][open="true"] {
   -moz-image-region: rect(0px 31px 30px 0px);
