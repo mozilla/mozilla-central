@@ -167,3 +167,14 @@ function resetFolder(folder) {
     db.DeleteHeader(header, null, true, false);
   }
 }
+
+function do_check_transaction(real, expected) {
+  // real.them may have an extra QUIT on the end, where the stream is only
+  // closed after we have a chance to process it and not them. We therefore
+  // excise this from the list
+  if (real.them[real.them.length-1] == "QUIT")
+    real.them.pop();
+
+  do_check_eq(real.them.join(","), expected.join(","));
+  dump("Passed test " + test + "\n");
+}

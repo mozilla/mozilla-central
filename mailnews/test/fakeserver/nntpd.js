@@ -1,3 +1,4 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 // This file implements test NNTP servers
 
 function nntpDaemon(flags) {
@@ -140,6 +141,7 @@ function NNTP_RFC977_handler(daemon) {
   this.closing = false;
   this.group = null;
   this.articleKey = null;
+  this.extraCommands = "";
 }
 NNTP_RFC977_handler.prototype = {
   ARTICLE : function (args) {
@@ -202,6 +204,7 @@ NNTP_RFC977_handler.prototype = {
     response += "\tPOST\n";
     response += "\tQUIT\n";
     response += "\tSTAT\n";
+    response += this.extraCommands;
     response += ".";
     return response;
   },
@@ -442,5 +445,60 @@ subclass(NNTP_Giganews_handler, NNTP_RFC2980_handler, {
       return this.parent.XHDR(args);
     }
     return "503 unsupported header field";
+  }
+});
+
+function NNTP_RFC4643_extension(daemon) {
+  subconstructor(this, NNTP_RFC977_handler, daemon);
+
+  this.extraCommands += "\tAUTHINFO USER\n";
+  this.extraCommands += "\tAUTHINFO PASS\n";
+}
+subclass(NNTP_RFC4643_extension, NNTP_RFC977_handler, {
+  expectedUsername : "testnews",
+  expectedPassword : "newstest",
+  requireBoth : true,
+  authenticated: false,
+  usernameReceived: false,
+
+  AUTHINFO : function (args) {
+    if (this.authenticated)
+      return "502 Command unavailable";
+
+    var argSplit = args.split(" ");
+    var action = argSplit[0];
+    var param = argSplit[1];
+
+    if (action == "user") {
+      if (this.usernameReceived)
+        return "502 Command unavailable";
+
+      if (param != this.expectedUsername)
+        return "481 Authentication failed";
+
+      this.usernameReceived = true;
+      if (this.requireBoth)
+        return "381 Password required";
+
+      this.authenticated = true;
+      return "281 Authentication Accepted";
+    }
+    else if (action == "pass") {
+      if (!this.requireBoth || !this.usernameReceived)
+        return "482 Authetication commands issued out of sequence";
+
+      if (param != this.expectedPassword)
+        return "481 Authentication failed";
+
+      this.authenticated = true;
+      return "281 Authentication Accepted";
+    }
+    return "502 Invalid Command";
+  },
+  LIST : function (args) {
+    if (this.authenticated) {
+      return this.parent.LIST(args);
+    }
+    return "480 Authentication required";
   }
 });

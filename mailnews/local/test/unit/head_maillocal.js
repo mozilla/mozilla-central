@@ -9,11 +9,14 @@ do_import_script("../mailnews/test/fakeserver/pop3d.js")
 const POP3_PORT = 1024+110;
 
 // Setup the daemon and server
-function setupServerDaemon() {
+// If the debugOption is set, then it will be applied to the server.
+function setupServerDaemon(debugOption) {
   var daemon = new pop3Daemon();
   var handler = new POP3_RFC1939_handler(daemon);
   var server = new nsMailServer(handler);
-  return [daemon, server];
+  if (debugOption)
+    server.setDebugLevel(debugOption);
+  return [daemon, server, handler];
 }
 
 function createPop3ServerAndLocalFolders() {

@@ -75,15 +75,17 @@ function POP3_RFC1939_handler(daemon) {
   this.closing = false;
 }
 POP3_RFC1939_handler.prototype = {
+  expectedUsername: "fake",
+  expectedPassword: "server",
   _state: kStateAuthAwaitingUser,
 
   USER: function (args) {
     if (this._state != kStateAuthAwaitingUser)
       return "-ERR invalid state";
 
-    if (args == "fake") {
+    if (args == this.expectedUsername) {
       this._state = kStateAuthAwaitingPassword;
-      return "+OK user recongnized";
+      return "+OK user recognized";
     }
 
     return "-ERR sorry, no such mailbox";
@@ -92,7 +94,7 @@ POP3_RFC1939_handler.prototype = {
     if (this._state != kStateAuthAwaitingPassword)
       return "-ERR invalid state";
 
-    if (args == "server") {
+    if (args == this.expectedPassword) {
       this._state = kStateTransaction;
       return "+OK maildrop locked and ready";
     }
