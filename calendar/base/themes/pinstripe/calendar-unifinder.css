@@ -52,10 +52,6 @@
     border-bottom: 1px dotted #AAA;
 }
 
-#unifinder-search-results-tree > treechildren::-moz-tree-cell-text(selected) {
-    color: HighlightText;
-}
-
 /* workaround to avoid Window Flick */
 #unifinder-search-results-tree {
    /* increased to display scrollbar and at least 2 lines */
