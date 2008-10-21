@@ -276,12 +276,12 @@
           <xul:label anonid="fgdragbox-endlabel" class="fgdragbox-label"/>
         </xul:box>
       </xul:stack>
-      <xul:calendar-event-box anonid="config-box" hidden="true" xbl:inherits="orient"/>      
+      <xul:calendar-event-box anonid="config-box" hidden="true" xbl:inherits="orient"/>
     </content>
 
     <implementation>
       <constructor><![CDATA[
-        this.mEvents = Array();
+        this.mEventInfos = Array();
         this.mTimezone = UTC();
       ]]></constructor>
 
@@ -291,7 +291,15 @@
       <field name="mEndMin">24*60</field>
       <field name="mDayStartMin">8*60</field>
       <field name="mDayEndMin">17*60</field>
-      <field name="mEvents">new Array()</field>
+      an Array of objects that contain information about the events that are to be
+      displayed. The contained fields are:
+      event:        The event that is to be displayed in a 'calendar-event-box'
+      layoutStart:  The 'start'-datetime object of the event in the timezone of the view
+      layoutEnd:    The 'end'-datetime object of the event in the timezone of the view.
+                    The 'layoutEnd' may be different from the real 'end' time of the
+                    event because it considers a certain minimum duration of the event
+                    that is basically dependent of the font-size of the event-box label
+      <field name="mEventInfos">new Array()</field>
       <field name="mEventMap">null</field>
       <field name="mCalendarView">null</field>
       <field name="mDate">null</field>
@@ -425,7 +433,7 @@
         ]]></setter>
       </property>
 
-      <!-- mEvents -->
+      <!-- mEventInfos -->
       <field name="mSelectedChunks">[]</field>
 
       <method name="selectOccurrence">
@@ -507,8 +515,8 @@
         <body><![CDATA[
            var itemIndex = -1;
            var occ;
-           for (var i in this.mEvents) {
-               occ = this.mEvents[i].event;
+           for (var i in this.mEventInfos) {
+               occ = this.mEventInfos[i].event;
                if (occ.hashId == aOccurrence.hashId)
                {
                    itemIndex = i;
@@ -523,7 +531,7 @@
                }
                this.mSelectedChunks = this.mSelectedChunks.filter(isNotItem);
 
-               this.mEvents.splice(itemIndex, 1);
+               this.mEventInfos.splice(itemIndex, 1);
                return true;
            } else {
                return false;
@@ -533,7 +541,7 @@
 
       <method name="recalculateStartEndMinutes">
         <body><![CDATA[
-          for each (var chunk in this.mEvents) {
+          for each (var chunk in this.mEventInfos) {
               var mins = this.getStartEndMinutesForOccurrence(chunk.event);
               chunk.startMinute = mins.start;
               chunk.endMinute = mins.end;
@@ -600,7 +608,7 @@
            this.internalDeleteEvent(aOccurrence);
 
            var chunk = this.createChunk(aOccurrence);
-           this.mEvents.push(chunk);
+           this.mEventInfos.push(chunk);
            if (this.mEventMapTimeout) {
                clearTimeout(this.mEventMapTimeout);
            }
@@ -648,9 +656,9 @@
           // also be used for all-day events.
           var otherorient = getOtherOrientation(orient);
           var configBox = document.getAnonymousElementByAttribute(this, "anonid", "config-box");
-          configBox.removeAttribute("hidden");          
+          configBox.removeAttribute("hidden");
           var minSize = configBox.getOptimalMinSize();
-          configBox.setAttribute("hidden", "true");          
+          configBox.setAttribute("hidden", "true");
           this.mMinDuration = Components.classes["@mozilla.org/calendar/duration;1"]
                                             .createInstance(Components.interfaces.calIDuration);
           this.mMinDuration.minutes = parseInt(minSize/this.mPixPerMin);
@@ -870,34 +878,36 @@
            */
           var blobs = new Array();
           var currentBlob = new Array();
-          function sortByStart(a, b) {
-              function assureFloating(aDateTime) {
-                  if (aDateTime.timezone.isFloating) {
-                      aDateTime = aDateTime.getInTimezone(self.mTimezone);
-                  }
-                  return aDateTime;
-              }
+          function sortByStart(aEventInfo, bEventInfo) {
               // If you pass in tasks without both entry and due dates, I will
               // kill you
-              var aStart = a.event.startDate || a.event.entryDate;
-              aStart = assureFloating(aStart);
-              var bStart = b.event.startDate || b.event.entryDate;
-              bStart = assureFloating(bStart);
-              var startComparison = aStart.compare(bStart);
+              var startComparison = aEventInfo.layoutStart.compare(bEventInfo.layoutStart);
               if (startComparison != 0) {
                   return startComparison;
               } else {
-                  var aEnd = a.event.endDate || a.event.dueDate;
-                  aEnd = assureFloating(aEnd);
-                  var bEnd = b.event.endDate || b.event.dueDate;
-                  bEnd = assureFloating(bEnd);
                   // If the items start at the same time, return the longer one
                   // first
-                  return bEnd.compare(aEnd);
+                  return bEventInfo.layoutEnd.compare(aEventInfo.layoutEnd);
               }
           }
           var self = this;
-          this.mEvents.sort(sortByStart);
+          this.mEventInfos.forEach(function(aEventInfo) {
+              let item = aEventInfo.event.clone();
+              let start = item.startDate || item.entryDate;
+              start = start.getInTimezone(self.mTimezone);
+              aEventInfo.layoutStart = start;
+              let end = item.endDate || item.dueDate
+              end = end.getInTimezone(self.mTimezone);
+              let secEnd = start.clone();
+              secEnd.addDuration(self.mMinDuration);
+              if (secEnd.nativeTime > end.nativeTime) {
+                   aEventInfo.layoutEnd = secEnd;
+              } else {
+                   aEventInfo.layoutEnd = end;
+              }
+              return aEventInfo;
+          });
+          this.mEventInfos.sort(sortByStart);
 
           // The end time of the last ending event in the entire blob
           var latestItemEnd;
@@ -916,15 +926,15 @@
            *
            * (The steps are explained in more detail as we come to them)
            */
-          for (var i in this.mEvents) {
-              var item = this.mEvents[i].event;
-              var itemStart, itemEnd;
-              [itemStart, itemEnd] = this.getLayoutEnd(item);
+          for (var i in this.mEventInfos) {
+              var curItemInfo = {event: this.mEventInfos[i].event,
+                                 layoutStart: this.mEventInfos[i].layoutStart,
+                                 layoutEnd: this.mEventInfos[i].layoutEnd};
               if (!latestItemEnd) {
-                 latestItemEnd = itemEnd;
+                 latestItemEnd = curItemInfo.layoutEnd;
               }
               if (currentBlob.length && latestItemEnd &&
-                  itemStart.compare(latestItemEnd) != -1) {
+                  curItemInfo.layoutStart.compare(latestItemEnd) != -1) {
                   // We're done with this current blob because item starts
                   // after the last event in the current blob ended.
                   blobs.push({blob: currentBlob, totalCols: colEndArray.length});
@@ -954,35 +964,35 @@
               // Remember that any time we're starting a new blob, colEndArray
               // will be empty, but that's ok.
               for (var ii = 0; ii < colEndArray.length; ++ii) {
-                  var colStart, colEnd;
-                  [colStart, colEnd] = this.getLayoutEnd(colEndArray[ii]);
-                  if (colEnd.compare(itemStart) != 1) {
+                  var colStart = colEndArray[ii].layoutStart;
+                  var colEnd = colEndArray[ii].layoutEnd;
+                  if (colEnd.compare(curItemInfo.layoutStart) != 1) {
                       // Yay, we can jump into this column
-                      colEndArray[ii] = item;
+                      colEndArray[ii] = curItemInfo;
 
                       // Check and see if there are any adjacent columns we can
                       // jump into as well.
                       var lastCol = Number(ii) + 1;
                       while (lastCol < colEndArray.length) {
-                          var nextColStart, nextColEnd;
-                          [nextColStart, nextColEnd] = this.getLayoutEnd(colEndArray[lastCol]);
+                          var nextColStart = colEndArray[lastCol].layoutStart;
+                          var nextColEnd = colEndArray[lastCol].layoutEnd;
                           // If the next column's item ends after we start, we
                           // can't expand any further
-                          if (nextColEnd.compare(itemStart) == 1) {
+                          if (nextColEnd.compare(curItemInfo.layoutStart) == 1) {
                               break;
                           }
-                          colEndArray[lastCol] = item;
+                          colEndArray[lastCol] = curItemInfo;
                           lastCol++;
                       }
                       // Now construct the info we need to push into the blob
-                      currentBlob.push({item: item,
+                      currentBlob.push({itemInfo: curItemInfo,
                                         startCol: ii,
                                         colSpan: lastCol - ii});
 
                       // Update latestItemEnd
                       if (latestItemEnd &&
-                          itemEnd.compare(latestItemEnd) == 1) {
-                          latestItemEnd = itemEnd;
+                          curItemInfo.layoutEnd.compare(latestItemEnd) == 1) {
+                          latestItemEnd = curItemInfo.layoutEnd;
                       }
                       placedItem = true;
                       break; // Stop iterating through colEndArray
@@ -1011,30 +1021,30 @@
               //       |      |      |      |   in column #3
               //
               for (var jj=1; jj<colEndArray.length; ++jj) {
-                  if (colEndArray[jj].hashId == colEndArray[jj-1].hashId) {
+                  if (colEndArray[jj].event.hashId == colEndArray[jj-1].event.hashId) {
                       // Good we found a item that spanned multiple columns.
                       // Find it in the blob so we can modify its properties
                       for (var kk in currentBlob) {
-                          if (currentBlob[kk].item.hashId == colEndArray[jj].hashId) {
+                          if (currentBlob[kk].itemInfo.event.hashId == colEndArray[jj].event.hashId) {
                               // Take all but the first spot that the item spanned
                               var spanOfShrunkItem = currentBlob[kk].colSpan;
-                              currentBlob.push({item: item,
+                              currentBlob.push({itemInfo: curItemInfo,
                                                 startCol: Number(currentBlob[kk].startCol) + 1,
                                                 colSpan: spanOfShrunkItem - 1});
 
                               // Update colEndArray
                               for (var ll = jj; ll < jj + spanOfShrunkItem - 1; ll++) {
-                                  colEndArray[ll] = item;
+                                  colEndArray[ll] = curItemInfo;
                               }
 
                               // Modify the data on the old item
-                              currentBlob[kk] = {item: currentBlob[kk].item,
+                              currentBlob[kk] = {itemInfo: currentBlob[kk].itemInfo,
                                                  startCol: currentBlob[kk].startCol,
                                                  colSpan: 1};
                               // Update latestItemEnd
                               if (latestItemEnd &&
-                                  itemEnd.compare(latestItemEnd) == 1) {
-                                  latestItemEnd = itemEnd;
+                                  curItemInfo.layoutEnd.compare(latestItemEnd) == 1) {
+                                  latestItemEnd = curItemInfo.layoutEnd;
                               }
                               break; // Stop iterating through currentBlob
                           }
@@ -1062,56 +1072,32 @@
               //   the start of any possible conflicts.
               var lastColNum = colEndArray.length;
               for (var mm in currentBlob) {
-                  var mmStart, mmEnd;
-                  [mmStart, mmEnd] = this.getLayoutEnd(currentBlob[mm].item);
+                  var mmStart = currentBlob[mm].itemInfo.layoutStart;
+                  var mmEnd = currentBlob[mm].itemInfo.layoutEnd;
                   if (currentBlob[mm].startCol + currentBlob[mm].colSpan == lastColNum &&
-                      mmEnd.compare(itemStart) != 1) {
-                      currentBlob[mm] = {item: currentBlob[mm].item,
+                      mmEnd.compare(curItemInfo.layoutStart) != 1) {
+                      currentBlob[mm] = {itemInfo: currentBlob[mm].itemInfo,
                                          startCol: currentBlob[mm].startCol,
                                          colSpan: currentBlob[mm].colSpan + 1};
                   }
               }
-              currentBlob.push({item: item,
+              currentBlob.push({itemInfo: curItemInfo,
                                 startCol: colEndArray.length,
                                 colSpan: 1});
-              colEndArray.push(item);
+              colEndArray.push(curItemInfo);
 
               // Update latestItemEnd
-              if (latestItemEnd && itemEnd.compare(latestItemEnd) == 1) {
-                  latestItemEnd = itemEnd;
+              if (latestItemEnd && curItemInfo.layoutEnd.compare(latestItemEnd) == 1) {
+                  latestItemEnd = curItemInfo.layoutEnd;
               }
               // Go get the next item
           }
           // Add the last blob
           blobs.push({blob: currentBlob,
                       totalCols: colEndArray.length});
-
           return this.setupBoxStructure(blobs);
         ]]></body>
       </method>
-
-      <method name="getLayoutEnd">
-        <parameter name="aItem"/>
-        <body><![CDATA[
-          var item = aItem.clone();
-          var start = item.startDate || item.entryDate;
-          if (!compareObjects(start.timezone, this.mTimezone)) {
-              start = start.getInTimezone(this.mTimezone);
-          }
-          var end = item.endDate || item.dueDate
-          if (!compareObjects(end.timezone, this.mTimezone)) {
-              end = end.getInTimezone(this.mTimezone);
-          }
-          var secEnd = start.clone();
-          secEnd.addDuration(this.mMinDuration);
-          if (secEnd.nativeTime > end.nativeTime) {
-               return [start, secEnd];
-          } else {
-               return [start, end];
-          }
-        ]]></body>
-      </method>
-
       <method name="setupBoxStructure">
         <parameter name="aBlobs"/>
         <body><![CDATA[
@@ -1189,8 +1175,8 @@
                   // take into account that items can span several days.
                   // that's why i'm clipping the start- and end-time to the
                   // timespan of this column.
-                  var start, end;
-                  [start, end] = this.getLayoutEnd(data.item);
+                  var start = data.itemInfo.layoutStart;
+                  var end = data.itemInfo.layoutEnd;
                   if (start.year  != this.date.year ||
                       start.month != this.date.month ||
                       start.day   != this.date.day) {
@@ -1237,7 +1223,7 @@
                   }
                   var floatend = end.clone();
                   floatend.timezone = floating();
-                  col.push({event: data.item,
+                  col.push({event: data.itemInfo.event,
                             endDate: end,
                             duration: floatend.subtractDate(floatstart)});
               }
@@ -3149,7 +3135,7 @@
               if (this.getAttribute("orient") != aVal)
                   needsreorient = true;
           }
-          
+
           if (aAttr == "context" || aAttr == "item-context")
               needsrelayout = true;
 
@@ -3349,7 +3335,7 @@
               if (counter < dayboxkids.length) {
                   dayEventsBox = dayboxkids[counter];
                   dayEventsBox.removeAttribute("relation");
-                  dayEventsBox.mEvents = new Array();
+                  dayEventsBox.mEventInfos = new Array();
               } else {
                   dayEventsBox = createXULElement("calendar-event-column");
                   dayEventsBox.setAttribute("flex", "1");
