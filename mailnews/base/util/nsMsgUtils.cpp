@@ -1425,7 +1425,7 @@ PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
   return domainIsTrusted;
 }
 
-nsresult MsgMailboxGetURI(nsILocalFile *aLocalPath, nsACString &mailboxUri)
+nsresult FolderUriFromDirInProfile(nsILocalFile *aLocalPath, nsACString &mailboxUri)
 {
 
   nsresult rv;
@@ -1468,12 +1468,21 @@ nsresult MsgMailboxGetURI(nsILocalFile *aLocalPath, nsACString &mailboxUri)
       while((sbdIndex = pathStr.Find(".sbd", PR_TRUE)) != -1)
         pathStr.Cut(sbdIndex, 4);
 
-      nsCString escapedPathStr;
-      MsgEscapeURL(pathStr, nsINetUtil::ESCAPE_URL_MINIMAL, escapedPathStr);
-
       mailboxUri = serverURI;
       mailboxUri.Append('/');
-      mailboxUri.Append(escapedPathStr);
+
+      // If it's a local folder, escape the folder name
+      nsCAutoString localStoreType;
+      server->GetLocalStoreType(localStoreType);
+      if (localStoreType.Equals(NS_LITERAL_CSTRING("mailbox")))
+      {
+        nsCAutoString escapedPathStr;
+        MsgEscapeURL(pathStr, nsINetUtil::ESCAPE_URL_MINIMAL, escapedPathStr);
+        mailboxUri.Append(escapedPathStr);
+      }
+      else
+        mailboxUri.Append(pathStr);
+
       break;
     }
   }

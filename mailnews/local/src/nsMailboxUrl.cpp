@@ -192,7 +192,7 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
       nsCAutoString baseUri;
       // we blow off errors here so that we can open attachments
       // in .eml files.
-      (void) MsgMailboxGetURI(m_filePath, baseUri);
+      (void) FolderUriFromDirInProfile(m_filePath, baseUri);
       if (baseUri.IsEmpty())
         m_baseURL->GetSpec(baseUri);
       nsCString baseMessageURI;

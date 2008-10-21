@@ -340,30 +340,30 @@ nsMessengerBootstrap::HandleIndexerResult(const nsString &aPath)
   // parse file name - get path to containing folder, and message-id of message we're looking for
   // Then, open that message (in a 3-pane window?)
   PRInt32 mozmsgsIndex = aPath.Find(NS_LITERAL_STRING(".mozmsgs"));
-  nsString folderPath;
-  aPath.Left(folderPath, mozmsgsIndex);
-  nsCOMPtr<nsILocalFile> msgFolder;
+  nsString folderPathStr;
+  aPath.Left(folderPathStr, mozmsgsIndex);
+  nsCOMPtr<nsILocalFile> folderPath;
 
 #ifdef XP_MACOSX
   // We're going to have a native path file url:
   // file://<folder path>.mozmsgs/<message-id>.mozeml
   // need to convert to 8 bit chars...i.e., a local path.
   nsCString nativeArg;
-  NS_CopyUnicodeToNative(folderPath, nativeArg);
+  NS_CopyUnicodeToNative(folderPathStr, nativeArg);
 
   // Get the nsILocalFile for this file:// URI.
-  rv = MsgGetLocalFileFromURI(nativeArg, getter_AddRefs(msgFolder));
+  rv = MsgGetLocalFileFromURI(nativeArg, getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, rv);
 #endif
 #ifdef XP_WIN
   // get the nsILocalFile for this path
-  msgFolder = do_CreateInstance("@mozilla.org/file/local;1");
-  rv = msgFolder->InitWithPath(folderPath);
+  folderPath = do_CreateInstance("@mozilla.org/file/local;1");
+  rv = folderPath->InitWithPath(folderPathStr);
   NS_ENSURE_SUCCESS(rv, rv);
 #endif
 
   nsCString folderUri;
-  rv = MsgMailboxGetURI(msgFolder, folderUri);
+  rv = FolderUriFromDirInProfile(folderPath, folderUri);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsAutoString unicodeMessageId;
