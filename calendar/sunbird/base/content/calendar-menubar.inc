@@ -222,8 +222,8 @@
                <menuseparator/>
                <menuitem id="calendar-view-menu-customize"
                          observes="cmd_CustomizeToolbars"
-                         label="&calendar.menu.customize.label;"
-                         accesskey="&calendar.menu.customize.accesskey;"/>
+                         label="&sunbird.menu.customize.label;"
+                         accesskey="&sunbird.menu.customize.accesskey;"/>
              </menupopup>
            </menu>
            <menuitem id="menu_showStatusBar"
@@ -243,29 +243,29 @@
                      type="radio"
                      name="calendarMenuViews"
                      key="calendar-day-view-key"
-                     label="&calendar.flat.topbar.dayview;"
-                     accesskey="&calendar.dayview.accesskey;"
+                     label="&sunbird.flat.topbar.dayview;"
+                     accesskey="&sunbird.dayview.accesskey;"
                      observes="calendar_day-view_command"/>
            <menuitem id="calendar-view-menu-week"
                      type="radio"
                      name="calendarMenuViews"
                      key="calendar-week-view-key"
-                     label="&calendar.flat.topbar.weekview;"
-                     accesskey="&calendar.weekview.accesskey;"
+                     label="&sunbird.flat.topbar.weekview;"
+                     accesskey="&sunbird.weekview.accesskey;"
                      observes="calendar_week-view_command"/>
            <menuitem id="calendar-view-menu-multiweek"
                      type="radio"
                      name="calendarMenuViews"
                      key="calendar-multiweek-view-key"
-                     label="&calendar.flat.topbar.multiweekview;"
-                     accesskey="&calendar.multiweekview.accesskey;"
+                     label="&sunbird.flat.topbar.multiweekview;"
+                     accesskey="&sunbird.multiweekview.accesskey;"
                      observes="calendar_multiweek-view_command"/>
            <menuitem id="calendar-view-menu-month"
                      type="radio"
                      name="calendarMenuViews"
                      key="calendar-month-view-key"
-                     label="&calendar.flat.topbar.monthview;"
-                     accesskey="&calendar.monthview.accesskey;"
+                     label="&sunbird.flat.topbar.monthview;"
+                     accesskey="&sunbird.monthview.accesskey;"
                      observes="calendar_month-view_command"/>
            <menuseparator/>
            <menuitem id="calendar_view_orientation"
@@ -289,31 +289,31 @@
                      accesskey="&calendar.completedtasks.checkbox.accesskey;"
                      observes="calendar_toggle_show_completed_in_view_command"/>
            <menu id="menu-numberofweeks-inview"
-                 label="&calendar.menu.numberofweeks.label;"
-                 accesskey="&calendar.menu.numberofweeks.accesskey;"
+                 label="&sunbird.menu.numberofweeks.label;"
+                 accesskey="&sunbird.menu.numberofweeks.accesskey;"
                  oncommand="gCalendarWindow.currentView.changeNumberOfWeeks(event.target)"
                  disabled="true">
            <menupopup>
              <menuitem type="radio"
                        value="2"
                        name="menunbofweeks"
-                       label="&calendar.menu.numberofweeks.2;"/>
+                       label="&sunbird.menu.numberofweeks.2;"/>
              <menuitem type="radio"
                        value="3"
                        name="menunbofweeks"
-                       label="&calendar.menu.numberofweeks.3;"/>
+                       label="&sunbird.menu.numberofweeks.3;"/>
              <menuitem type="radio"
                        value="4"
                        name="menunbofweeks"
-                       label="&calendar.menu.numberofweeks.4;"/>
+                       label="&sunbird.menu.numberofweeks.4;"/>
              <menuitem type="radio"
                        value="5"
                        name="menunbofweeks"
-                       label="&calendar.menu.numberofweeks.5;"/>
+                       label="&sunbird.menu.numberofweeks.5;"/>
              <menuitem type="radio"
                        value="6"
                        name="menunbofweeks"
-                       label="&calendar.menu.numberofweeks.6;"/>
+                       label="&sunbird.menu.numberofweeks.6;"/>
            </menupopup>
            </menu>
            <menuseparator/>
@@ -459,8 +459,8 @@
 #endif
          <menupopup id="menu_HelpPopup" onpopupshowing="sbUpdateItem();">
            <!-- XXX lilmatt: Finish this!  oncommand="openTopWin('&helpURL;');" -->
-           <menuitem label="&calendar.help.label;"
-                     accesskey="&calendar.help.accesskey;"
+           <menuitem label="&sunbird.help.label;"
+                     accesskey="&sunbird.help.accesskey;"
                      disabled="true"/>
            <menuitem accesskey="&releaseCmd.accesskey;"
                      label="&releaseCmd.label;"

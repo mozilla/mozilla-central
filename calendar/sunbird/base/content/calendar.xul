@@ -51,6 +51,7 @@
 <?xml-stylesheet href="chrome://global/skin/toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://sunbird/skin/calendar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar-toolbar.css" type="text/css"?>
+<?xml-stylesheet href="chrome://sunbird/skin/toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar-views.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/widgets/minimonth.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/widgets/calendar-widgets.css" type="text/css"?>
@@ -103,8 +104,8 @@
   <popup id="toolbar-context-menu">
     <menuitem command="cmd_CustomizeToolbars"
               id="toolbar-context-menu-customize"
-              label="&calendar.context.customize.label;"
-              accesskey="&calendar.context.customize.accesskey;"/>
+              label="&sunbird.context.customize.label;"
+              accesskey="&sunbird.context.customize.accesskey;"/>
   </popup>
 </popupset>
 
@@ -140,7 +141,7 @@
            iconsize="large"
            defaultset="calendar-new-event-button,calendar-new-task-button,calendar-edit-button,calendar-delete-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,spring,throbber-box"
            customizable="true" mode="full"
-           toolbarname="&calendar.maintoolbar.name;" accesskey="&calendar.maintoolbar.accesskey;"
+           toolbarname="&sunbird.maintoolbar.name;" accesskey="&sunbird.maintoolbar.accesskey;"
            context="toolbar-context-menu"/>
   <toolbarset id="customToolbars" context="toolbar-context-menu"/>
 </toolbox>
@@ -161,8 +162,8 @@
     <vbox id="left-hand-content" persist="width">
       <tabbox id="tablist" persist="selectedIndex" flex="1">
         <tabs>
-          <tab label="&calendar.calendartab.label;"/>
-          <tab label="&calendar.listofcalendarstab.label;"/>
+          <tab label="&sunbird.calendartab.label;"/>
+          <tab label="&sunbird.listofcalendarstab.label;"/>
         </tabs>
         <tabpanels flex="1">
           <tabpanel>

@@ -84,7 +84,7 @@
   <key id="modify_event_key"     key="&event.edit.event.key;"            observes="calendar_modify_event_command"  modifiers="accel"/>
   <key id="new_calendar_key"     key="&calendar.new.server.key;"         observes="calendar_new_calendar_command"  modifiers="accel"/>
   <key id="open_calendar_key"    key="&calendar.open.file.key;"          observes="open_local_calendar_command" modifiers="accel"/>
-  <key id="key_close"            key="&calendar.menu.options.close.key;" observes="close_calendar_command"      modifiers="accel"/>
+  <key id="key_close"            key="&sunbird.close.key;"               observes="close_calendar_command"      modifiers="accel"/>
   <key id="print_key"            key="&calendar.print.key;"              observes="cmd_print"                   modifiers="accel"/>
 
   <key id="undo_key"             key="&calendar.undo.key;"               observes="cmd_undo"                    modifiers="accel"/>
@@ -105,7 +105,7 @@
   <key id="reload_server_key"    key="&calendar.reloadserver.key;"       observes="calendar_reload_remote_calendars"     modifiers="accel"/>
 
   <key id="find_key"
-       key="&calendar.find.key;"
+       key="&sunbird.find.key;"
        modifiers="accel"
        oncommand="focusSearch();"/>
 

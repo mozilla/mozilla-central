@@ -1,0 +1,179 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Sun Microsystems code.
+ *
+ * The Initial Developer of the Original Code is
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/*--------------------------------------------------------------------
+ *   Cut button
+ *-------------------------------------------------------------------*/
+
+#calendar-cut-button {
+        -moz-image-region: rect(0px 192px 24px 168px);
+}
+#calendar-cut-button[disabled="true"],
+#calendar-cut-button[disabled="true"]:hover,
+#calendar-cut-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(48px 192px 72px 168px);
+}
+#calendar-cut-button:hover {
+        -moz-image-region: rect(24px 192px 48px 168px);
+}
+#calendar-cut-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Cut button - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] #calendar-cut-button {
+        -moz-image-region: rect(0px 128px 16px 112px);
+}
+toolbar[iconsize="small"] #calendar-cut-button[disabled="true"],
+toolbar[iconsize="small"] #calendar-cut-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #calendar-cut-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(32px 128px 48px 112px);
+}
+toolbar[iconsize="small"] #calendar-cut-button:hover {
+        -moz-image-region: rect(16px 128px 32px 112px);
+}
+toolbar[iconsize="small"] #calendar-cut-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Copy button
+ *-------------------------------------------------------------------*/
+
+#calendar-copy-button {
+        -moz-image-region: rect(0px 216px 24px 192px);
+}
+#calendar-copy-button[disabled="true"],
+#calendar-copy-button[disabled="true"]:hover,
+#calendar-copy-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(48px 216px 72px 192px);
+}
+#calendar-copy-button:hover {
+        -moz-image-region: rect(24px 216px 48px 192px);
+}
+#calendar-copy-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Copy button - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] #calendar-copy-button {
+        -moz-image-region: rect(0px 144px 16px 128px);
+}
+toolbar[iconsize="small"] #calendar-copy-button[disabled="true"],
+toolbar[iconsize="small"] #calendar-copy-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #calendar-copy-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(32px 144px 48px 128px);
+}
+toolbar[iconsize="small"] #calendar-copy-button:hover {
+        -moz-image-region: rect(16px 144px 32px 128px);
+}
+toolbar[iconsize="small"] #calendar-copy-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Paste button
+ *-------------------------------------------------------------------*/
+
+#calendar-paste-button {
+        -moz-image-region: rect(0px 240px 24px 216px);
+}
+#calendar-paste-button[disabled="true"],
+#calendar-paste-button[disabled="true"]:hover,
+#calendar-paste-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(48px 240px 72px 216px);
+}
+#calendar-paste-button:hover {
+        -moz-image-region: rect(24px 240px 48px 216px);
+}
+#calendar-paste-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Paste button - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] #calendar-paste-button {
+        -moz-image-region: rect(0px 160px 16px 144px);
+}
+toolbar[iconsize="small"] #calendar-paste-button[disabled="true"],
+toolbar[iconsize="small"] #calendar-paste-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #calendar-paste-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(32px 160px 48px 144px);
+}
+toolbar[iconsize="small"] #calendar-paste-button:hover {
+        -moz-image-region: rect(16px 160px 32px 144px);
+}
+toolbar[iconsize="small"] #calendar-paste-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Choose date button
+ *-------------------------------------------------------------------*/
+
+#calendar-choose-date-button {
+        -moz-image-region: rect(0px 432px 24px 408px);
+}
+#calendar-choose-date-button[disabled="true"],
+#calendar-choose-date-button[disabled="true"]:hover,
+#calendar-choose-date-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(48px 432px 72px 408px);
+}
+#calendar-choose-date-button:hover {
+        -moz-image-region: rect(24px 432px 48px 408px);
+}
+#calendar-choose-date-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Choose date button - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] #calendar-choose-date-button {
+        -moz-image-region: rect(0px 288px 16px 272px);
+}
+toolbar[iconsize="small"] #calendar-choose-date-button[disabled="true"],
+toolbar[iconsize="small"] #calendar-choose-date-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #calendar-choose-date-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(32px 288px 48px 272px);
+}
+toolbar[iconsize="small"] #calendar-choose-date-button:hover {
+        -moz-image-region: rect(16px 288px 32px 272px);
+}
+toolbar[iconsize="small"] #calendar-choose-date-button:hover:active {
+}

@@ -40,10 +40,7 @@
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/datetimepickers/datetimepickers.css" type="text/css"?>
 
-<!DOCTYPE dialog [
-  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
-  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
-]>
+<!DOCTYPE dialog SYSTEM "chrome://sunbird/locale/sunbird.dtd" >
 
 <!-- When opening calendar-gotodate-dialog.xul, you can supply an object argument
      that contains following named keys:
@@ -51,7 +48,7 @@
                   when clicking OK button
      * date (optional) - initially selected date in datepicker -->
 <dialog id="calendar-gotodate-dialog"
-        title="&calendar.flat.topbar.choosedate;"
+        title="&sunbird.flat.topbar.choosedate;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onload="document.getElementById('datepicker').value = window.arguments[0].date || new Date();"
         buttons="accept,cancel"
@@ -59,7 +56,7 @@
         ondialogcancel="return true;">
   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
   <hbox align="center">
-    <label control="datepicker">&calendar.flat.topbar.choosedate;</label>
+    <label control="datepicker">&sunbird.flat.topbar.choosedate;</label>
     <datepicker id="datepicker"/>
   </hbox>
 </dialog>

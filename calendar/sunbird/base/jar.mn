@@ -15,6 +15,7 @@ sunbird.jar:
 *   content/sunbird/hiddenWindow.js                        (content/hiddenWindow.js)
 % skin sunbird classic/1.0 %skin/sunbird/
     skin/sunbird/calendar.css                              (themes/@THEME@/calendar.css)
+    skin/sunbird/toolbar.css                               (themes/@THEME@/toolbar.css)
     skin/sunbird/offline-online.png                        (themes/@THEME@/offline-online.png)
 #ifdef MOZ_USE_GENERIC_BRANDING
 % content branding %content/branding/

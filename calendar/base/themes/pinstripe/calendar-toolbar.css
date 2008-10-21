@@ -210,30 +210,6 @@ toolbar[iconsize="small"] #calendar-unifinder-button[disabled="true"] {
 }
 
 /*--------------------------------------------------------------------
- *   Button: "Choose Date"
- *-------------------------------------------------------------------*/
-
-#calendar-choose-date-button {
-        -moz-image-region: rect(0px 576px 32px 544px);
-}
-#calendar-choose-date-button:active {
-        -moz-image-region: rect(32px 576px 64px 544px);
-}
-#calendar-choose-date-button[disabled="true"] {
-        -moz-image-region: rect(64px 576px 96px 544px);
-}
-
-toolbar[iconsize="small"] #calendar-choose-date-button {
-        -moz-image-region: rect(0px 432px 24px 408px);
-}
-toolbar[iconsize="small"] #calendar-choose-date-button:active {
-        -moz-image-region: rect(24px 432px 48px 408px);
-}
-toolbar[iconsize="small"] #calendar-choose-date-button[disabled="true"] {
-        -moz-image-region: rect(48px 432px 72px 408px);
-}
-
-/*--------------------------------------------------------------------
  *   Button: "Multiweek"
  *-------------------------------------------------------------------*/
 
@@ -337,78 +313,6 @@ toolbar[iconsize="small"] #calendar-day-view-button:active {
 toolbar[iconsize="small"] #calendar-day-view-button:hover:active,
 toolbar[iconsize="small"] #calendar-day-view-button[checked="true"] {
     -moz-image-region: rect(72px 96px 96px 72px);
-}
-
-/*--------------------------------------------------------------------
- *   Button: "Cut"
- *-------------------------------------------------------------------*/
-
-#calendar-cut-button {
-        -moz-image-region: rect(0px 256px 32px 224px);
-}
-#calendar-cut-button:active {
-        -moz-image-region: rect(32px 256px 64px 224px);
-}
-#calendar-cut-button[disabled="true"] {
-        -moz-image-region: rect(64px 256px 96px 224px);
-}
-
-toolbar[iconsize="small"] #calendar-cut-button {
-        -moz-image-region: rect(0px 192px 24px 168px);
-}
-toolbar[iconsize="small"] #calendar-cut-button:active {
-        -moz-image-region: rect(24px 192px 48px 168px);
-}
-toolbar[iconsize="small"] #calendar-cut-button[disabled="true"] {
-        -moz-image-region: rect(48px 192px 72px 168px);
-}
-
-/*--------------------------------------------------------------------
- *   Button: "Copy"
- *-------------------------------------------------------------------*/
-
-#calendar-copy-button {
-        -moz-image-region: rect(0px 288px 32px 256px);
-}
-#calendar-copy-button:active {
-        -moz-image-region: rect(32px 288px 64px 256px);
-}
-#calendar-copy-button[disabled="true"] {
-        -moz-image-region: rect(64px 288px 96px 256px);
-}
-
-toolbar[iconsize="small"] #calendar-copy-button {
-        -moz-image-region: rect(0px 216px 24px 192px);
-}
-toolbar[iconsize="small"] #calendar-copy-button:active {
-        -moz-image-region: rect(24px 216px 48px 192px);
-}
-toolbar[iconsize="small"] #calendar-copy-button[disabled="true"] {
-        -moz-image-region: rect(48px 216px 72px 192px);
-}
-
-/*--------------------------------------------------------------------
- *   Button: "Paste"
- *-------------------------------------------------------------------*/
-
-#calendar-paste-button {
-        -moz-image-region: rect(0px 320px 32px 288px);
-}
-#calendar-paste-button:active {
-        -moz-image-region: rect(32px 320px 64px 288px);
-}
-#calendar-paste-button[disabled="true"] {
-        -moz-image-region: rect(64px 320px 96px 288px);
-}
-
-toolbar[iconsize="small"] #calendar-paste-button {
-        -moz-image-region: rect(0px 240px 24px 216px);
-}
-toolbar[iconsize="small"] #calendar-paste-button:active {
-        -moz-image-region: rect(24px 240px 48px 216px);
-}
-toolbar[iconsize="small"] #calendar-paste-button[disabled="true"] {
-        -moz-image-region: rect(48px 240px 72px 216px);
 }
 
 /*--------------------------------------------------------------------
