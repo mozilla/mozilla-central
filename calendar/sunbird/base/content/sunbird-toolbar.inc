@@ -74,3 +74,8 @@
                label="&sunbird.choosedate.button.label;"
                tooltiptext="&sunbird.choosedate.button.tooltip;"
                observes="go_date_command"/>
+<toolbarbutton id="calendar-go-to-today-button"
+               class="cal-toolbarbutton-1"
+               label="&calendar.today.button.label;"
+               tooltiptext="&calendar.today.button.tooltip;"
+               observes="calendar_go_to_today_command"/>

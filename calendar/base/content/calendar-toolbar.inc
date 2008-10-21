@@ -98,12 +98,6 @@
                label="&calendar.print.button.label;"
                tooltiptext="&calendar.print.button.tooltip;"
                observes="cmd_print"/>
-<toolbarbutton id="calendar-go-to-today-button"
-               mode="calendar"
-               class="cal-toolbarbutton-1"
-               label="&calendar.today.button.label;"
-               tooltiptext="&calendar.today.button.tooltip;"
-               observes="calendar_go_to_today_command"/>
 <toolbarbutton id="calendar-import-button"
                mode="calendar"
                class="cal-toolbarbutton-1"
