@@ -310,9 +310,6 @@ function filterByText(aItem) {
     }
 
     const fieldsToSearch = ["SUMMARY", "DESCRIPTION", "LOCATION", "URL"];
-    if (!fixAlldayDates(aItem)) {
-        return false;
-    }
 
     for each (var field in fieldsToSearch) {
         var val = aItem.getProperty(field);
