@@ -815,7 +815,6 @@
         <rdf:li><rdf:Description ID="using-priv-help-cookies-site" nc:name="Managing Cookies Site-By-Site" nc:link="using_priv_help.xhtml#managing_cookies_site-by-site"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-cookies-view" nc:name="Viewing Cookies" nc:link="using_priv_help.xhtml#viewing_cookies"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-cookies-remove" nc:name="Removing Cookies" nc:link="using_priv_help.xhtml#removing_cookies"/> </rdf:li>
-        <rdf:li><rdf:Description ID="using-priv-help-cookies-policies" nc:name="Setting Privacy Levels" nc:link="using_priv_help.xhtml#setting_privacy_levels"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-cookies-settings" nc:name="Cookie Manager Settings" nc:link="using_priv_help.xhtml#cookie_manager_settings"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
@@ -827,7 +826,6 @@
         <rdf:li><rdf:Description ID="cookies_prefs" nc:name="Cookie Preferences" nc:link="using_priv_help.xhtml#cookies"/> </rdf:li>
         <rdf:li><rdf:Description ID="cookies_stored" nc:name="Stored Cookies" nc:link="using_priv_help.xhtml#stored_cookies"/> </rdf:li>
         <rdf:li><rdf:Description ID="cookie_sites" nc:name="Cookie Sites" nc:link="using_priv_help.xhtml#cookie_sites"/> </rdf:li>
-        <rdf:li><rdf:Description ID="privacy_levels" nc:name="Privacy Settings" nc:link="using_priv_help.xhtml#privacy_settings"/> </rdf:li>
         <rdf:li><rdf:Description ID="cookie_notify" nc:name="Cookie Notification" nc:link="using_priv_help.xhtml#cookie_notification"/> </rdf:li>
 
       </rdf:Seq>
@@ -877,7 +875,6 @@
         <rdf:li><rdf:Description ID="using-priv-help-forms-notify" nc:name="Turning off Form Manager Notification" nc:link="using_priv_help.xhtml#turning_off_form_manager_notification"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-forms-view-edit" nc:name="Managing Stored Form Data" nc:link="using_priv_help.xhtml#managing_stored_form_data"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-sites-view-edit" nc:name="Editing Stored Site Information" nc:link="using_priv_help.xhtml#editing_stored_site_information"/> </rdf:li>
-        <rdf:li><rdf:Description ID="using-priv-help-forms-forms" nc:name="Viewing Privacy Policies" nc:link="using_priv_help.xhtml#viewing_privacy_policies"/> </rdf:li>
         <rdf:li><rdf:Description ID="form_settings" nc:name="Form Settings" nc:link="using_priv_help.xhtml#form_settings"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>

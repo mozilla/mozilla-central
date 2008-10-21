@@ -71,7 +71,6 @@
         <rdf:li> <rdf:Description nc:name="object signing" nc:link="glossary.xhtml#object_signing"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="object-signing certificate" nc:link="glossary.xhtml#object-signing_certificate"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="OCSP" nc:link="glossary.xhtml#ocsp"/> </rdf:li>
-        <rdf:li> <rdf:Description nc:name="P3P" nc:link="glossary.xhtml#p3p"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="password-based authentication" nc:link="glossary.xhtml#password-based_authentication"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="Password Manager" nc:link="glossary.xhtml#password_manager"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="Personal Toolbar" nc:link="glossary.xhtml#personal_toolbar"/> </rdf:li>

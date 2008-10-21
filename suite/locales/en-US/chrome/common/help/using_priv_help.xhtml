@@ -41,7 +41,6 @@
       Site-By-Site</a></li>
     <li><a href="#viewing_cookies">Viewing Cookies</a></li>
     <li><a href="#removing_cookies">Removing Cookies</a></li>
-    <li><a href="#setting_privacy_levels">Setting Privacy Levels</a></li>
     <li><a href="#cookie_manager_settings">Cookie Manager Settings</a></li>
   </ul>
 </div>
@@ -172,81 +171,6 @@
 
 <p>[<a href="#using_the_cookie_manager">Return to beginning of section</a>]</p>
 
-<h2 id="setting_privacy_levels">Setting Privacy Levels</h2>
-
-<p>Many sites develop and publish their privacy policies based on the
-  Platform for Privacy Preferences (P3P) standard. The information that follows
-  applies only to sites that post a privacy policy based on the P3P standard
-  and the browser&apos;s implementation of that standard. The browser&apos;s
-  implementation may not be, in all cases, identical to the standard published
-  by the World Wide Web Consortium.</p>
-
-<p>A site&apos;s P3P privacy policy describes, in a standardized way, what
-  kind of information the site collects, to whom it gives that information, and
-  how it uses the information. For information about viewing a site&apos;s
-  privacy policy, see <a href="#viewing_privacy_policies">Viewing Privacy
-  Policies</a>.</p>
-
-<p>&brandShortName;&apos;s implementation of the P3P standard defines three
-  levels of privacy: low, medium, and high (the default is medium). You can
-  select one of these predefined privacy levels, or you can specify your own
-  custom privacy settings in detail. Once you have set your preferred privacy
-  level, your browser can compare your preferences with the site&apos;s P3P
-  policy (if any) and accept or reject cookies accordingly.</p>
-
-<p>For example, your privacy settings may require the browser to reject cookies
-  that collect personal information without informing you. Alternatively, you
-  can adjust your privacy settings so that the browser simply warns you when a
-  cookie is used in this way, while allowing the action to take place.</p>
-
-<p>To control the privacy settings you want your browser to enforce for all
-  sites:</p>
-
-<ol>
-  <li>Open the <span class="mac">&brandShortName;</span>
-    <span class="noMac">Edit</span> menu and choose Preferences.</li> 
-  <li>Under the Privacy &amp; Security category, click Cookies. (If no
-    subcategories are visible, double-click Privacy &amp; Security to expand
-    the list.)</li>
-  <li>Select the option labeled <q>Allow cookies based on privacy
-    settings</q>.</li>
-  <li>Click View.</li>
-  <li>In the Privacy Settings dialog box, select the level of privacy you want,
-    or select <q>custom</q> and specify your own privacy settings as
-    discussed below.</li>
-  <li>Click OK to confirm your settings.</li>
-</ol>
-
-<p>Your browser handles cookies according to the settings you select. If you do
-  not select a preferred setting, the browser defaults to medium. The low,
-  medium, and high options are predefined by &brandShortName;. For more
-  information about these predefined options, see
-  <a href="#privacy_settings">Privacy Settings</a>.</p>
-
-<p>When the <q>custom</q> option is selected, you can specify your own
-  privacy settings in detail. Depending on the P3P policy of the site setting
-  the cookie, and depending on whether or not the site setting the cookie is
-  the one you are viewing, you can select whether you want the Cookie Manager
-  to accept the cookie, reject it, accept it just for the current session (that
-  is, until you exit the browser), or flag it.</p>
-
-<p>If you choose Reject, Flag, or Session for a given category of cookies, the
-  Cookie Manager displays the cookie notification icon
-  (<img alt="cookie notification icon"
-  src="chrome://communicator/skin/permissions/taskbar-cookie.gif"/>)
-  near the lower-right corner of the browser window whenever a site that
-  fits the category sets a cookie. When this icon is displayed, you can click
-  it to get information about the affected cookies.</p>
-
-<p><q>First party cookies</q> are cookies set by the site you are
-  visiting. <q>Third-party cookies</q>, also known as
-  <a href="privacy_help.xhtml#what_are_third-party_cookies">foreign cookies</a>,
-  are set by sites other than the one you are viewing.</p>
-
-<p>For more details, see <a href="#privacy_settings">Privacy Settings</a>.</p>
-
-<p>[<a href="#using_the_cookie_manager">Return to beginning of section</a>]</p>
-
 <h1 id="cookie_manager_settings">Cookie Manager Settings</h1>
 
 <p>This section describes how to set your Cookies preferences and control other
@@ -261,7 +185,6 @@
       Cookies</a></li>
     <li><a href="#stored_cookies">Stored Cookies</a></li>
     <li><a href="#cookie_sites">Cookie Sites</a></li>
-    <li><a href="#privacy_settings">Privacy Settings</a></li>
     <li><a href="#cookie_notification">Cookie Notification</a></li>
   </ul>
 </div>
@@ -295,10 +218,6 @@
     this option if you don&apos;t want to accept or return
     <a href="privacy_help.xhtml#what_are_third-party_cookies">foreign
     cookies</a>.</li>
-  <li><strong>Allow cookies based on privacy settings</strong>: Select this
-    option if you handle cookies based on your privacy settings. If you select
-    this option, click the View Privacy Settings button to confirm or modify
-    your privacy settings.</li>
   <li><strong>Allow all cookies</strong>: This is the default option. Select
     this option to permit all sites not explicitly blocked to set cookies on
     your computer.</li>
@@ -336,7 +255,7 @@
 <p>You can also get more information about your stored cookies:</p>
 
 <ul>
-  <li><strong>Manage Stored Cookies</strong>: Click this button to view
+  <li><strong>Cookie Manager</strong>: Click this button to view
     information about the cookies currently stored on your computer and which
     sites are allowed to set them.</li>
 </ul>
@@ -354,11 +273,6 @@
 
 <p>The Stored Cookies tab lists all the cookies stored on your computer, the
   sites they belong to, and their current status.</p>
-
-<p>If you can&apos;t see the Status column, click the icon in the upper-right
-  corner of the table and select Status. This column indicates which cookies
-  have been flagged or accepted according to your
-  <a href="#privacy_settings">Privacy Settings</a>.</p>
 
 <p>When you select a cookie in this list, the following information about that
   cookie appears in the bottom portion of the tab:</p>
@@ -494,165 +408,6 @@
   nothing about it. If the <q>Ask for each cookie</q> option is selected in
   the Cookies preferences panel, you will be warned when any site not in this
   list requests permission to set a cookie.</p>
-
-<h2 id="privacy_settings">Privacy Settings</h2>
-
-<p>This section describes how to use the Privacy Settings window. If
-  you&apos;re not already viewing it, follow these steps:</p>
-
-<ol>
-  <li>Open the <span class="mac">&brandShortName;</span>
-    <span class="noMac">Edit</span> menu and choose Preferences.</li>
-  <li>Under the Privacy &amp; Security category, click Cookies. (If no
-    subcategories are visible, double-click Privacy &amp; Security to expand
-    the list.)</li>
-  <li>Select the radio button labeled <q>Allow cookies based on privacy
-    settings</q>.</li>
-  <li>Click View Privacy Settings.</li>
-</ol>
-
-<p>For more information about using privacy settings, see
-  <a href="#setting_privacy_levels">Setting Privacy Levels</a>.</p>
-
-<div class="contentsBox">In this section:
-  <ul>
-    <li><a href="#level_of_privacy">Level of Privacy</a></li>
-    <li><a href="#cookie_acceptance_policy">Cookie Acceptance Policy</a></li>
-  </ul>
-</div>
-
-<h3 id="level_of_privacy">Level of Privacy</h3>
-
-<p>The level of privacy you set here determines how your browser treats cookies
-  according to privacy policies based on the P3P standard that published by
-  some sites and on the settings displayed under Cookie Acceptance Policy
-  for first-party and third-party cookies.</p>
-
-<p><q>First party cookies</q> are cookies set by the site you are
-  visiting. <q>Third-party cookies</q>, also known as
-  <a href="privacy_help.xhtml#what_are_third-party_cookies">foreign
-  cookies</a>, are set by sites other than the one you are viewing.</p>
-
-<p>You can select one of the following privacy levels:</p>
-
-<ul>
-  <li><strong>low</strong>: Select this if you want to accept all first-party
-    cookies without regard to a site&apos;s privacy policy. 
-
-    <p>When this setting is selected, the browser accepts all third-party
-      cookies, but <strong>flags</strong> third-party cookies from sites that
-      indicate they may collect personally identifiable information without
-      your consent. Flagged cookies are listed as <q>flagged</q> in the
-      status column of the Cookie Manager&apos;s
-      <a href="#stored_cookies">Stored Cookies</a> tab.</p>
-
-    <p>When a cookie is first flagged, the Cookie Manager displays the cookie
-      notification icon (<img alt="cookie notification icon"
-      src="chrome://communicator/skin/permissions/taskbar-cookie.gif"/>) near
-      the lower-right corner of the browser window (if it&apos;s not already
-      present). You can click the cookie notification icon to see more detailed
-      information about the flagged cookies.</p>
-
-  </li>
-  <li><strong>medium</strong>: Select this if you want to accept and flag both
-    first-party and third-party cookies set by sites that may be collecting
-    personally identifiable information without your consent. This is the
-    default setting.</li>
-  <li><strong>high</strong>: Select this if you want the same settings as
-    medium, with the following differences:
-    <ul>
-      <li>Reject third-party cookies set by sites that may be collecting
-        information without your consent that can be used to identify you.</li>
-      <li>Accept, for the current session only, third-party cookies that may be
-        collecting information without your consent that can be used to
-        identify you, but also provide a web page or some other mechanism that
-        allows you to withhold your consent.</li>
-    </ul>
-  </li>
-  <li><strong>custom</strong>: Select this if you want to set your own custom
-    Cookie Acceptance Policy. The default settings for <q>custom</q> are
-    whatever they happened to be just before you select this option. You can
-    modify them by selecting from the drop-down menus in the Cookie Acceptance
-    Policy portion of the dialog box.</li>
-</ul>
-
-<p>To see the exact effect of each privacy-level setting, select it and then
-  examine the Cookie Acceptance Policy settings.</p>
-
-<h3 id="cookie_acceptance_policy">Cookie Acceptance Policy</h3>
-
-<p>If you select the <strong>custom</strong> option in the top portion of the
-  Privacy Settings dialog box, you can choose one of four settings from the
-  drop-down list in each of the eight categories shown in the bottom portion.
-  These settings cause Cookie Manager to perform the following actions:</p>
-
-<ul>
-  <li><strong>Accept</strong>: Accept all cookies in the category.</li>
-  <li><strong>Session</strong>: Accept all cookies in the category for the
-    current session only&mdash;that is, until you exit the browser.</li>
-  <li><strong>Reject</strong>: Reject all cookies in the category.</li>
-  <li><strong>Flag</strong>: Lists the cookie&apos;s status as
-    <q>flagged</q> in the status column of the Cookie Manager&apos;s
-    <a href="#stored_cookies">Stored Cookies</a> tab and display the cookie
-    notification icon.</li>
-</ul>
-
-<p>The cookie notification icon (<img alt="cookie notification icon"
-  src="chrome://communicator/skin/permissions/taskbar-cookie.gif"/>) appears
-  near the lower-right corner of the browser window. You can click it to get
-  information about the affected cookies or modify your privacy settings.</p>
-
-<p>Sites are classified in four categories for each of the two types
-  (first-party and third-party) of cookies:</p>
-
-<ul>
-  <li><strong>Site has no privacy policy</strong>: Site does not publish any
-    kind of privacy policy. There is no way of knowing what kinds of
-    information such sites collect or what they do with it.</li>
-  <li><strong>Site collects personally identifiable information without your
-    consent</strong>: Site publishes a privacy policy, but does not ask your
-    permission when it collects personally identifiable information.</li>
-  <li><strong>Site collects personally identifiable information with only your
-    implicit consent</strong>: Site collects information about you unless you
-    go to a web page (or use some other designated mechanism) to explicitly
-    withhold your consent (opt-out).</li>
-  <li><strong>Site does not collect personally identifiable information without
-    your explicit consent</strong>: Sites will not collect personally
-    identifiable information unless you have explicitly agreed (opt-in).</li>
-</ul>
-
-<h2 id="cookie_notification">Cookie Notification</h2>
-
-<p>The cookie notification icon (<img alt="cookie notification icon"
-  src="chrome://communicator/skin/permissions/taskbar-cookie.gif"/>) is
-  displayed in the status bar near the lower-right corner of the browser
-  window. It appears when a site has used a cookie in a way that requires you
-  to be notified according to your current <a href="#privacy_settings">Privacy
-  Settings</a>.</p>
-
-<p>This section describes how to use the Cookie Notification dialog box, which
-  appears when you click the Cookie Notification icon. You can take the
-  following actions from this dialog box:</p>
-
-<ul>
-  <li><strong>Turn Off Privacy Settings</strong>: Click this button to disable
-    your Privacy Settings. This has the same effect as selecting <q>Enable
-    all cookies</q> in <a href="#cookies">Privacy &amp; Security
-    Preferences - Cookies</a>. After you take this action, your browser will
-    accept all cookies.</li>
-  <li><strong>View Cookie Manager</strong>: Click this button to open the
-    Cookie Manager, where you can view the current status of all your cookies
-    and identify the cookies that caused the notification icon to appear.</li>
-  <li><strong>View Privacy Settings</strong>: Click this button to open the
-    Privacy Settings dialog box. The settings in this dialog box determine how
-    sites can use cookies on your computer and what actions cause the cookie
-    notification icon to be displayed.</li>
-  <li><strong>Close</strong>: Click this button to exit the Cookie Notification
-    dialog box without taking any action.</li>
-</ul>
-
-<p>For more information about using privacy settings, see
-  <a href="#setting_privacy_levels">Setting Privacy Levels</a>.</p>
 
 <h1 id="using_the_password_manager">Using the Password Manager</h1>
 
@@ -849,7 +604,6 @@
     <li><a href="#managing_stored_form_data">Managing Stored Form Data</a></li>
     <li><a href="#editing_stored_site_information">Editing Stored Site
       Information</a></li>
-    <li><a href="#viewing_privacy_policies">Viewing Privacy Policies</a></li>
     <li><a href="#form_settings">Form Settings</a></li>
   </ul>
 </div>
@@ -1072,69 +826,6 @@
 <p>To remove a site from either list and thus restore the default behavior,
   select the site and click Remove. For more details, see
   <a href="#form_manager_sites">Form Manager - Sites</a>.</p>
-
-<p>[<a href="#using_the_form_manager">Return to beginning of section</a>]</p>
-
-<h2 id="viewing_privacy_policies">Viewing Privacy Policies</h2>
-
-<p>When you provide personal information such as your name, phone number, or
-  email address to a site, or when the site collects personal information in
-  other ways, the site can use the information for its own purposes (such as
-  shipping you a product or customizing your browsing experience) and can
-  potentially share it with others.</p>
-
-<p>Before providing personal information on an online form, you must decide
-  whether or not you trust the site&mdash;just as you judge whether or not
-  you trust a catalog company before you provide your credit card number on the
-  company&apos;s order form.</p>
-
-<p>One way to evaluate a site&apos;s trustworthiness is to examine its
-  published privacy policy. Sites publish privacy statements online, and
-  some of them publish such statements based on the Platform for Privacy
-  Preferences (P3P) standard and the browser&apos;s implementation of that
-  standard.</p>
-
-<p>A site&apos;s privacy policy describes what kind of information the site
-  collects, to whom it gives that information, and how it uses the information.
-  Sites publish privacy policies in both human-readable form and as a file
-  that can be interpreted by the browser according to your
-  <a href="#privacy_settings">Privacy Settings</a>.</p>
-
-<p>To view a site&apos;s privacy policy, browse to the site and follow these
-  steps:</p>
-
-<ul>
-  <li>Open the View menu and choose Page Info. The Page Info window
-    appears.</li>
-  <li>Click the Privacy tab.</li>
-  <li>Click these buttons to see the corresponding information:
-    <ul>
-      <li><strong>Policy</strong>: Click this button to view the site&apos;s
-        published privacy policy on the web.</li>
-      <li><strong>Summary</strong>: Click this button to view a summary of the
-        site&apos;s built-in XML policy file, which defines the site&apos;s
-        policies in detail.</li>
-      <li><strong>Options</strong>: Click this button to view a web page
-        provided by the site where you can choose to withhold or grant your
-        consent to certain kinds of information gathering.</li>
-    </ul>
-  </li>
-</ul>
-
-<p>Many web pages are made up of a variety of text, images, advertisements, and
-  other elements, some of which may be controlled by different companies.</p>
-
-<p>To view the same information for any individual element of the web page:</p>
-
-<ol>
-  <li>Double-click the categories to see addresses for individual
-    components.</li>
-  <li>Select the component whose privacy policy you want to examine.</li>
-  <li>Click the buttons as described above.</li>
-</ol>
-
-<p>For more information on controlling your privacy, see
-  <a href="#setting_privacy_levels">Setting Privacy Levels</a>.</p>
 
 <p>[<a href="#using_the_form_manager">Return to beginning of section</a>]</p>
 
