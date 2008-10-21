@@ -291,14 +291,14 @@
       <field name="mEndMin">24*60</field>
       <field name="mDayStartMin">8*60</field>
       <field name="mDayEndMin">17*60</field>
-      an Array of objects that contain information about the events that are to be
+      <!--an array of objects that contain information about the events that are to be
       displayed. The contained fields are:
       event:        The event that is to be displayed in a 'calendar-event-box'
       layoutStart:  The 'start'-datetime object of the event in the timezone of the view
       layoutEnd:    The 'end'-datetime object of the event in the timezone of the view.
                     The 'layoutEnd' may be different from the real 'end' time of the
                     event because it considers a certain minimum duration of the event
-                    that is basically dependent of the font-size of the event-box label
+                    that is basically dependent of the font-size of the event-box label -->
       <field name="mEventInfos">new Array()</field>
       <field name="mEventMap">null</field>
       <field name="mCalendarView">null</field>
