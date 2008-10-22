@@ -165,7 +165,7 @@
               persist="state"
               class="chromeclass-extrachrome sidebar-splitter"
               orient="vertical"
-              onmouseup="setTimeout('refreshEventTree();', 10 );">
+              onmouseup="setTimeout(refreshEventTree, 10);">
       <grippy class="sidebar-splitter-grippy"/>
     </splitter>
   </vbox>
