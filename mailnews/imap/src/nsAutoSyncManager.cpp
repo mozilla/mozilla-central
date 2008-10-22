@@ -39,6 +39,7 @@
 #include "nsIIdleService.h"
 #include "nsImapMailFolder.h"
 #include "nsMsgImapCID.h"
+#include "nsIObserverService.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgIncomingServer.h"
@@ -190,17 +191,18 @@ nsAutoSyncManager::nsAutoSyncManager()
   mIdleService = do_GetService("@mozilla.org/widget/idleservice;1", &rv);
   if (mIdleService)
     mIdleService->AddIdleObserver(this, kIdleTimeInSec);
- 
-  NS_ASSERTION(NS_SUCCEEDED(rv), "Failed to get subscribed to the idle service");
+   
+  // Observe xpcom-shutdown event
+  nsCOMPtr<nsIObserverService> observerService =
+         do_GetService("@mozilla.org/observer-service;1", &rv);
+         
+  rv = observerService->AddObserver(this,
+                                    NS_XPCOM_SHUTDOWN_OBSERVER_ID,
+                                    PR_FALSE);
 }
 
 nsAutoSyncManager::~nsAutoSyncManager()
 {
-  if (mTimer)
-    mTimer->Cancel();
-  
-  if (mIdleService)
-    mIdleService->RemoveIdleObserver(this, kIdleTimeInSec);
 }
 
 void nsAutoSyncManager::InitTimer()
@@ -467,6 +469,26 @@ NS_IMETHODIMP nsAutoSyncManager::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCo
 
 NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const PRUnichar *aSomeData)
 {
+  if (!PL_strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID)) 
+  {
+    nsCOMPtr<nsIObserverService> observerService = 
+      do_GetService("@mozilla.org/observer-service;1");
+    if (observerService) 
+      observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
+      
+    // cancel and release the timer
+    if (mTimer)
+    {
+     mTimer->Cancel();
+     mTimer = nsnull;
+    }
+    // unsubscribe from idle service
+    if (mIdleService)
+     mIdleService->RemoveIdleObserver(this, kIdleTimeInSec);
+     
+    return NS_OK;
+  }
+
   // Check topic here, idle or back
   if (PL_strcmp(aTopic, "idle") != 0)
   {
