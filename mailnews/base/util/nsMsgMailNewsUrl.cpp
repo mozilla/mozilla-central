@@ -890,12 +890,10 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
 
 nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, PRBool addDummyEnvelope)
 {
-  nsresult rv = NS_ERROR_FAILURE;
-
   // If the file already exists, delete it, but do this before
   // getting the outputstream.
-  // Due to bug 328027, the nsSaveMsgListener created in 
-  // nsMessenger::SaveAs now opens the stream on the nsIFileSpec
+  // Due to bug 328027, the nsSaveMsgListener created in
+  // nsMessenger::SaveAs now opens the stream on the nsIFile
   // object, thus creating an empty file. Actual save operations for
   // IMAP and NNTP use this nsMsgSaveAsListener here, though, so we
   // have to close the stream before deleting the file, else data
@@ -904,32 +902,31 @@ nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, PRBool addDumm
   aFile->Remove(PR_FALSE);
 
   nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(aFile);
-  rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream), localFile, -1, 00600);
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream),
+                                            localFile, -1, 00600);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (m_outputStream && addDummyEnvelope)
   {
     nsCAutoString result;
-    char *ct;
     PRUint32 writeCount;
-    time_t now = time ((time_t*) 0);
-    ct = ctime(&now);
-    ct[24] = 0;
+
+    time_t now = time((time_t*) 0);
+    char *ct = ctime(&now);
+    // Remove the ending new-line character.
+    ct[24] = '\0';
     result = "From - ";
     result += ct;
     result += MSG_LINEBREAK;
-    
-    m_outputStream->Write(result.get(), result.Length(),
-                               &writeCount);
+    m_outputStream->Write(result.get(), result.Length(), &writeCount);
+
     result = "X-Mozilla-Status: 0001";
     result += MSG_LINEBREAK;
-    m_outputStream->Write(result.get(), result.Length(),
-                               &writeCount);
-    result =  "X-Mozilla-Status2: 00000000";
+    result += "X-Mozilla-Status2: 00000000";
     result += MSG_LINEBREAK;
-    m_outputStream->Write(result.get(), result.Length(),
-                               &writeCount);
+    m_outputStream->Write(result.get(), result.Length(), &writeCount);
   }
+
   return rv;
 }
 
