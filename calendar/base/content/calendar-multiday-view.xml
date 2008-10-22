@@ -266,7 +266,7 @@
     <content>
       <xul:stack anonid="boxstack" flex="1" style="min-width: 1px; min-height: 1px">
         <xul:box anonid="bgbox" flex="1" style="min-width: 1px; min-height: 1px"/>
-        <xul:box xbl:inherits="context" anonid="topbox" flex="1" equalsize="always" style="min-width: 1px; min-height: 1px"/>
+        <xul:box xbl:inherits="context" anonid="topbox" flex="1" equalsize="always" style="min-width: 1px; min-height: 1px" mousethrough="always"/>
         <xul:box anonid="fgbox" flex="1" class="fgdragcontainer" style="min-width: 1px; min-height: 1px; overflow:hidden;">
           <xul:box anonid="fgdragspacer" style="display: inherit; overflow: hidden;">
             <xul:spacer flex="1"/>
@@ -1948,7 +1948,7 @@
      -  An individual event box, to be inserted into a column.
     -->
   <binding id="calendar-event-box" extends="chrome://calendar/content/calendar-view-core.xml#calendar-editable-item">
-    <content tooltip="itemTooltip">
+    <content tooltip="itemTooltip" mousethrough="never">
         <xul:box xbl:inherits="orient,width,height" flex="1">
           <xul:box anonid="event-container"
                    class="calendar-color-box"
