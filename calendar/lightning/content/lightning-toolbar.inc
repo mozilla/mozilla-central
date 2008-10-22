@@ -38,12 +38,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-<toolbarbutton id="calendar-delete-button"
-               mode="calendar"
-               class="cal-toolbarbutton-1"
-               label="&calendar.delete.button.label;"
-               tooltiptext="&calendar.delete.button.tooltip;"
-               observes="lightning_delete_item_command"/>
 <toolbarbutton id="calendar-edit-button"
                mode="calendar"
                class="cal-toolbarbutton-1"
@@ -93,28 +87,3 @@
                observes="calendar_general-priority_command">
         <menupopup type="task-priority"/>
 </toolbarbutton>
-<toolbarbutton id="task-delete-button"
-               mode="task"
-               class="cal-toolbarbutton-1"
-               label="&calendar.delete.button.label;"
-               tooltiptext="&calendar.task.delete.button.tooltip;"
-               command="calendar_delete_event_command"
-               observes="calendar_delete_event_command"/>
-<toolbarbutton id="task-print-button"
-               mode="task"
-               class="cal-toolbarbutton-1"
-               label="&calendar.print.button.label;"
-               tooltiptext="&calendar.print.button.tooltip;"
-               observes="cmd_print"/>
-<toolbarbutton id="task-remote-reload-button"
-               mode="task"
-               class="cal-toolbarbutton-1"
-               label="&calendar.remotereload.button.label;"
-               tooltiptext="&calendar.remotereload.button.tooltip;"
-               observes="calendar_reload_remote_calendars"/>
-<toolbarbutton id="task-button-address"
-               mode="task"
-               class="cal-toolbarbutton-1"
-               label="&addressBookButton.label;"
-               oncommand="toAddressBook();"
-               tooltiptext="&addressBookButton.tooltip;"/>

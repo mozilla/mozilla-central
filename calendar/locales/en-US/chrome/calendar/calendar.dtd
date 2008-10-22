@@ -53,7 +53,6 @@
 
 <!ENTITY calendar.newtask.button.tooltip          "Create a new task" >
 <!ENTITY calendar.newevent.button.tooltip         "Create a new event" >
-<!ENTITY calendar.delete.button.tooltip           "Delete selected event" >
 <!ENTITY calendar.edit.button.tooltip             "Edit selected event" >
 
 <!ENTITY calendar.unifinder.todoitems.label       "Tasks" >
@@ -105,12 +104,7 @@
 
 <!ENTITY calendar.newtask.button.label          "New Task" >
 <!ENTITY calendar.newevent.button.label         "New Event" >
-<!ENTITY calendar.delete.button.label           "Delete" >
 <!ENTITY calendar.edit.button.label             "Edit" >
-
-
-<!ENTITY calendar.print.button.tooltip          "Print calendar" >
-
 <!ENTITY calendar.print.button.label            "Print" >
 
 <!ENTITY calendar.import.button.tooltip            "Import events from a local file" >
@@ -125,9 +119,6 @@
 <!ENTITY calendar.subscribe.button.label           "Subscribe" >
 <!ENTITY calendar.publish.button.label             "Publish" >
 <!ENTITY calendar.unifinder.button.label           "Find Events" >
-
-<!ENTITY calendar.remotereload.button.label   "Reload" >
-<!ENTITY calendar.remotereload.button.tooltip   "Reload all remote calendars" >
 
 <!ENTITY calendar.day.button.label              "Day" >
 <!ENTITY calendar.week.button.label             "Week" >
@@ -176,7 +167,6 @@
 <!ENTITY calendar.task.category.button.tooltip  "Categorize tasks">
 <!ENTITY calendar.task.complete.button.tooltip  "Mark selected tasks completed">
 <!ENTITY calendar.task.priority.button.tooltip  "Change the priority">
-<!ENTITY calendar.task.delete.button.tooltip    "Delete the selected task">
 
 <!-- Statusbar -->
 <!ENTITY statusText.label            "Document: Done">

@@ -376,7 +376,6 @@
     <command id="calendar-delete-command" oncommand="ltnDeleteSelectedItem()" disabledwhennoeventsselected="true"/>
     <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
 
-    <command id="lightning_delete_item_command" oncommand="goDoCommand('lightning_delete_item_command');"/>
     <command id="lightning_modify_item_command" oncommand="goDoCommand('lightning_modify_item_command');"/>
   </commandset>
 

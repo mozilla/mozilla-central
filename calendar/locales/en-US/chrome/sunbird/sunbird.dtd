@@ -34,15 +34,20 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
+<!ENTITY sunbird.choosedate.button.tooltip                 "Choose date to go to" >
 <!ENTITY sunbird.cut.button.tooltip                        "Cut" >
 <!ENTITY sunbird.copy.button.tooltip                       "Copy" >
 <!ENTITY sunbird.paste.button.tooltip                      "Paste" >
+<!ENTITY sunbird.print.button.tooltip                      "Print calendar" >
+<!ENTITY sunbird.delete.button.tooltip                     "Delete selected event" >
+<!ENTITY sunbird.remotereload.button.tooltip               "Reload all remote calendars" >
 
 <!ENTITY sunbird.choosedate.button.label                   "Choose Date" >
-<!ENTITY sunbird.choosedate.button.tooltip                 "Choose date to go to" >
 <!ENTITY sunbird.cut.button.label                          "Cut" >
 <!ENTITY sunbird.copy.button.label                         "Copy" >
 <!ENTITY sunbird.paste.button.label                        "Paste" >
+<!ENTITY sunbird.delete.button.label                       "Delete" >
+<!ENTITY sunbird.remotereload.button.label                 "Reload" >
 
 <!ENTITY sunbird.flat.topbar.choosedate                    "Go to Date" >
 <!ENTITY sunbird.flat.topbar.dayview                       "Day View" >

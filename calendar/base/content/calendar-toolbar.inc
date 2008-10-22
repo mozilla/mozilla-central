@@ -92,12 +92,6 @@
                label="&calendar.month.button.label;"
                tooltiptext="&calendar.month.button.tooltip;"
                observes="calendar_month-view_command"/>
-<toolbarbutton id="calendar-print-button"
-               mode="calendar"
-               class="cal-toolbarbutton-1"
-               label="&calendar.print.button.label;"
-               tooltiptext="&calendar.print.button.tooltip;"
-               observes="cmd_print"/>
 <toolbarbutton id="calendar-import-button"
                mode="calendar"
                class="cal-toolbarbutton-1"
@@ -122,12 +116,6 @@
                label="&calendar.publish.button.label;"
                tooltiptext="&calendar.publish.button.tooltip;"
                observes="calendar_publish_calendar_command"/>
-<toolbarbutton id="calendar-remote-reload-button"
-               mode="calendar"
-               class="cal-toolbarbutton-1"
-               label="&calendar.remotereload.button.label;"
-               tooltiptext="&calendar.remotereload.button.tooltip;"
-               observes="calendar_reload_remote_calendars"/>
 <toolbarbutton id="calendar-unifinder-button"
                mode="calendar"
                class="cal-toolbarbutton-1"

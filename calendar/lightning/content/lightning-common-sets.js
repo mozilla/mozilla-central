@@ -37,7 +37,6 @@
 var lightningCommandController = {
 
     commands: {
-        "lightning_delete_item_command": true,
         "lightning_modify_item_command": true
     },
 
@@ -55,10 +54,6 @@ var lightningCommandController = {
 
     isCommandEnabled: function lCC_isCommandEnabled(aCommand) {
         switch (aCommand) {
-            case "lightning_delete_item_command":
-                return this.callFunctionByMode(calendarController.isCommandEnabled,
-                                               "calendar_delete_todo_command",
-                                               "calendar_delete_event_command");
             case "lightning_modify_item_command":
                 return this.callFunctionByMode(calendarController.isCommandEnabled,
                                                "calendar_modify_todo_command",
@@ -69,13 +64,6 @@ var lightningCommandController = {
 
     doCommand: function lCC_doCommand(aCommand) {
         switch (aCommand) {
-            // In Lightning, the delete item command either deletes an event or
-            // a todo, depending on if we are in calendar or task mode.
-            case "lightning_delete_item_command":
-                this.callFunctionByMode(calendarController.doCommand,
-                                        "calendar_delete_todo_command",
-                                        "calendar_delete_event_command");
-                break;
             case "lightning_modify_item_command":
                 this.callFunctionByMode(calendarController.doCommand,
                                         "calendar_modify_todo_command",

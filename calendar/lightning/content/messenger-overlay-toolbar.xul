@@ -124,7 +124,7 @@
              context="calendar-toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
-             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,separator,calendar-delete-button,calendar-print-button,separator,calendar-remote-reload-button,spring"
+             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,spring"
              persist="collapsedinMode"/>
     <toolbar id="task-toolbar"
              class="chromeclass-toolbar"
@@ -132,7 +132,7 @@
              context="calendar-toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
-             defaultset="task-new-event-button,task-new-task-button,task-button-address,separator,task-category-button,task-progress-button,task-priority-button,separator,task-delete-button,task-print-button,separator,task-remote-reload-button,spring"
+             defaultset="task-new-event-button,task-new-task-button,separator,task-category-button,task-progress-button,task-priority-button,separator,spring"
              persist="collapsedinMode"/>
     <toolbarset id="calendar-custom-toolbars"/>
   </toolbox>

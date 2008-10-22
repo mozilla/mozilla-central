@@ -129,3 +129,77 @@ toolbar[iconsize="small"] #calendar-choose-date-button:active {
 toolbar[iconsize="small"] #calendar-choose-date-button[disabled="true"] {
         -moz-image-region: rect(48px 432px 72px 408px);
 }
+
+/*--------------------------------------------------------------------
+ *   Button: "Delete"
+ *-------------------------------------------------------------------*/
+
+#calendar-delete-button {
+    -moz-image-region: rect(0px 96px 32px 64px);
+}
+#calendar-delete-button:active {
+    -moz-image-region: rect(32px 96px 64px 64px);
+}
+#calendar-delete-button[disabled="true"] {
+    -moz-image-region: rect(64px 96px 96px 64px);
+}
+
+toolbar[iconsize="small"] #calendar-delete-button {
+    -moz-image-region: rect(0px 72px 24px 48px);
+}
+toolbar[iconsize="small"] #calendar-delete-button:active {
+    -moz-image-region: rect(24px 72px 48px 48px);
+}
+toolbar[iconsize="small"] #calendar-delete-button[disabled="true"] {
+    -moz-image-region: rect(48px 72px 72px 48px);
+}
+
+/*--------------------------------------------------------------------
+ *   Go To Today button
+ *-------------------------------------------------------------------*/
+
+#calendar-go-to-today-button {
+        -moz-image-region: rect(0px 544px 32px 512px);
+}
+#calendar-go-to-today-button:active {
+        -moz-image-region: rect(32px 544px 64px 512px);
+}
+#calendar-go-to-today-button[disabled="true"] {
+        -moz-image-region: rect(64px 544px 96px 512px);
+}
+
+toolbar[iconsize="small"] #calendar-go-to-today-button {
+        -moz-image-region: rect(0px 408px 24px 384px);
+}
+toolbar[iconsize="small"] #calendar-go-to-today-button:active {
+        -moz-image-region: rect(24px 408px 48px 384px);
+}
+toolbar[iconsize="small"] #calendar-go-to-today-button[disabled="true"] {
+        -moz-image-region: rect(48px 408px 72px 384px);
+}
+
+/*--------------------------------------------------------------------
+ *   Button: (Remote) "Reload"
+ *-------------------------------------------------------------------*/
+
+#calendar-remote-reload-button {
+    -moz-image-region: rect(0px 640px 32px 608px);
+}
+#calendar-remote-reload-button:active {
+    -moz-image-region: rect(32px 640px 64px 608px);
+}
+#calendar-remote-reload-button[disabled="true"] {
+    -moz-image-region: rect(64px 640px 96px 608px);
+}
+
+toolbar[iconsize="small"] #calendar-remote-reload-button {
+    -moz-image-region: rect(0px 480px 24px 456px);
+}
+
+toolbar[iconsize="small"] #calendar-remote-reload-button:active {
+    -moz-image-region: rect(24px 480px 48px 456px);
+}
+
+toolbar[iconsize="small"] #calendar-remote-reload-button[disabled="true"] [
+    -moz-image-region: rect(48px 480px 72px 456px);
+}

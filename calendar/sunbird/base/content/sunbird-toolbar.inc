@@ -51,8 +51,8 @@
                observes="calendar_modify_event_command"/>
 <toolbarbutton class="cal-toolbarbutton-1"
                id="calendar-delete-button"
-               label="&calendar.delete.button.label;"
-               tooltiptext="&calendar.delete.button.tooltip;"
+               label="&sunbird.delete.button.label;"
+               tooltiptext="&sunbird.delete.button.tooltip;"
                observes="calendar_delete_event_command"/>
 <toolbarbutton class="cal-toolbarbutton-1"
                id="calendar-cut-button"
@@ -79,3 +79,13 @@
                label="&calendar.today.button.label;"
                tooltiptext="&calendar.today.button.tooltip;"
                observes="calendar_go_to_today_command"/>
+<toolbarbutton id="calendar-print-button"
+               class="cal-toolbarbutton-1"
+               label="&calendar.print.button.label;"
+               tooltiptext="&sunbird.print.button.tooltip;"
+               observes="cmd_print"/>
+<toolbarbutton id="calendar-remote-reload-button"
+               class="cal-toolbarbutton-1"
+               label="&sunbird.remotereload.button.label;"
+               tooltiptext="&sunbird.remotereload.button.tooltip;"
+               observes="calendar_reload_remote_calendars"/>
