@@ -822,7 +822,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
   
   PRUint32 readCount, maxReadCount = SAVE_BUF_SIZE - m_leftOver;
   PRUint32 writeCount;
-  char *start, *end;
+  char *start, *end, lastCharInPrevBuf = '\0';
   PRUint32 linebreak_len = 0;
 
   while (count > 0)
@@ -854,6 +854,10 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
           // must be a very very long line; sorry cannot handle it
           return NS_ERROR_FAILURE;
 
+      // make sure we don't insert another LF, accidentally
+      if (lastCharInPrevBuf == '\r' && *start == '\n')
+          start++;
+
       while (start && end)
       {
           if (PL_strncasecmp(start, "X-Mozilla-Status:", 17) &&
@@ -882,6 +886,8 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
           }
       }
       if (NS_FAILED(rv)) return rv;
+      if (end)
+          lastCharInPrevBuf = *end;
   }
   return rv;
   
