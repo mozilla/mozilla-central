@@ -53,16 +53,15 @@ toolbarbutton.bookmark-item {
 
 toolbarbutton.bookmark-item:not([container="true"]) {
   -moz-appearance: none;
+}
+
+toolbarbutton.bookmark-item:not([container="true"]):not([disabled="true"]) {
   cursor: pointer;
 }
 
-toolbarbutton.bookmark-item:not([container="true"]):hover {
+toolbarbutton.bookmark-item:not([container="true"]):not([disabled="true"]):hover {
   text-decoration: underline;
   color: #0000FF;
-}
-
-toolbarbutton.bookmark-item:not([container="true"]):hover:active {
-  color: #0000FF !important;
 }
 
 toolbarbutton.bookmark-item[disabled="true"],
@@ -75,14 +74,7 @@ toolbarbutton.bookmark-item:not([container="true"]):hover:active {
   background: transparent !important;
 }
 
-toolbarbutton.bookmark-item[disabled="true"],
-toolbarbutton.bookmark-item[disabled="true"]:hover:active {
-  color: GrayText !important;
-}
-
 toolbarbutton.bookmark-item[disabled="true"] {
-  cursor: default !important;
-  text-decoration: none !important;
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item-dis.png") !important;
 }
 
