@@ -294,12 +294,6 @@
                 label="&calendar.tasks.view.calendarlist.label;"
                 accesskey="&calendar.tasks.view.calendarlist.accesskey;"
                 command="calendar_toggle_calendarlist_command"/>
-      <menuitem id="view-invitations"
-                type="checkbox"
-                mode="mail,calendar,task"
-                label="&lightning.sidebar.invitations.label;"
-                accesskey="&lightning.sidebar.invitations.accesskey;"
-                command="calendar_toggle_invitations_command"/>
       <menuseparator id="before-today-pane"/>
       <menu id="today-pane-menu"
             label="&calendar.context.button.label;"
@@ -537,14 +531,6 @@
             </modevbox>
         </modevbox>
         </vbox>
-        <modehbox id="invitations-pane" mode="calendar,task"
-              broadcaster="modeBroadcaster" refcontrol="calendar_toggle_invitations_command">
-      <label id="invitations"
-             class="text-link calendar-invitations-sidebar-label"
-             value="&lightning.sidebar.invitations.label;"
-             onclick="openInvitationsDialog();"/>
-      <spacer flex="1"/>
-    </modehbox>
   </vbox>
 
       <splitter id="calsidebar_splitter" collapse="before" persist="state"/>
@@ -591,6 +577,16 @@
                      tooltiptext="&calendar.todaypane.button.tooltip;"
                      observes="calendar_toggle_todaypane_command"
                      command="calendar_toggle_todaypane_command"/>
+    </statusbarpanel>
+    <statusbarpanel id="calendar-invitations-panel"
+                    insertbefore="unreadMessageCount,totalMessageCount"
+                    oncommand="openInvitationsDialog()">
+      <label id="calendar-invitations-label"
+             class="text-link"
+             onclick="openInvitationsDialog()"
+             onkeypress="if (event.keyCode == event.VK_ENTER ||
+                             event.keyCode == event.VK_RETURN) {
+                             openInvitationsDialog()"/>
     </statusbarpanel>
   </statusbar>
 </overlay>

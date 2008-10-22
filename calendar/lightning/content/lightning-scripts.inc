@@ -54,5 +54,4 @@
     var messagemenuaccesskey = "&msgMenu.accesskey;";
     var tasksmenulabel = "&lightning.tasks.label;";
     var tasksmenuaccesskey = "&lightning.tasks.accesskey;";
-    var invitationsLabel = "&lightning.sidebar.invitations.label;";
 </script>

@@ -222,11 +222,11 @@ InvitationsManager.prototype = {
         args.invitationsManager = this;
         // the dialog will reset this to auto when it is done loading
         window.setCursor("wait");
-        // open the dialog modally
+        // open the dialog
         window.openDialog(
             "chrome://calendar/content/calendar-invitations-dialog.xul",
             "_blank",
-            "chrome,titlebar,modal,resizable",
+            "chrome,titlebar,resizable",
             args);
     },
 

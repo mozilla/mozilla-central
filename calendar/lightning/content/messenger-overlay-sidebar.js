@@ -612,13 +612,12 @@ var gInvitationsOperationListener = {
                                                            aOperationType,
                                                            aId,
                                                            aDetail) {
+        let invitationsBox = document.getElementById("calendar-invitations-panel");
         if (Components.isSuccessCode(aStatus)) {
-            var invitationsBox = document.getElementById("invitations");
-            var value = invitationsLabel + " (" + this.mCount + ")"; // XXX l10n-unfriendly
-            invitationsBox.setAttribute("value", value);
-            invitationsBox.removeAttribute("hidden");
+            let value = ltnGetString("lightning", "invitationsLink.label", [this.mCount]);
+            document.getElementById("calendar-invitations-label").value = value;
+            setElementValue(invitationsBox, this.mCount < 1 && "true", "hidden");
         } else {
-            var invitationsBox = document.getElementById("invitations");
             invitationsBox.setAttribute("hidden", "true");
         }
         this.mCount = 0;

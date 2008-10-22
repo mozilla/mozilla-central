@@ -109,7 +109,6 @@
     <command id="calendar_toggle_filter_command" oncommand="document.getElementById('task-filter-pane').togglePane(event)"/>
     <command id="calendar_toggle_todaypane_command"
              oncommand="document.getElementById('today-pane-panel').togglePane(event); TodayPane.setTodayHeader()"/>
-    <command id="calendar_toggle_invitations_command" oncommand="document.getElementById('invitations-pane').togglePane(event)"/>
     <command id="calendar_view_next_command" oncommand="moveView(1)"/>
     <command id="calendar_view_prev_command" oncommand="moveView(-1)"/>
 

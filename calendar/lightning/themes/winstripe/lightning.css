@@ -109,16 +109,6 @@ radio[pane=paneLightning] {
   background-color: -moz-field;  
 }
 
-#invitations-pane {
-  border-top: 1px solid ThreeDShadow !important;
-  background-color: -moz-dialog;  
-}
-
-.calendar-invitations-sidebar-label {
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
 /* Today pane button in status bar */
 #calendar-status-todaypane-button,
 #calendar-status-todaypane-button[checked="true"] {
