@@ -127,6 +127,6 @@
     -moz-image-region: rect(0 91px 13px 78px);
 }
 
-.calendar-task-tree > treechildren::-moz-tree-cell-text(selected) {
+.calendar-task-tree > treechildren::-moz-tree-cell-text(selected, focus) {
     color: HighlightText;
 }
