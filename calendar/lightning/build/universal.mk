@@ -60,7 +60,7 @@ postflight_all:
 	mkdir -p $(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components; \
 	cp $(DIST_X86)/xpi-stage/lightning/components/*.dylib \
 		$(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components
-	$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/merge-installrdf.py \
+	$(PYTHON) $(TOPSRCDIR)/build/merge-installrdf.py \
 		$(DIST_PPC)/xpi-stage/lightning \
 		$(DIST_X86)/xpi-stage/lightning \
 		> $(DIST_UNI)/xpi-stage/lightning/install.rdf

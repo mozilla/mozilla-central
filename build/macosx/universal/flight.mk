@@ -92,9 +92,27 @@ postflight_all:
 	rm -f $(DIST_X86)/universal
 	ln -s $(DIST_UNI) $(DIST_X86)/universal
 	rm -rf $(DIST_UNI)/$(MOZ_PKG_APPNAME)/$(APPNAME)
+ifdef MOZ_CALENDAR
+ifndef DISABLE_LIGHTNING_INSTALL
+ifndef MOZ_SUNBIRD
+# workaround for different platforms in lightning installrdf
+	$(PYTHON) $(TOPSRCDIR)/build/merge-installrdf.py $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\} $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\} > $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf_
+	mv $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf_ $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf
+	cp $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf
+endif
+endif
+endif
 	$(TOPSRCDIR)/mozilla/build/macosx/universal/unify \
 	  $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME) \
 	  $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME) \
 	  $(DIST_UNI)/$(MOZ_PKG_APPNAME)/$(APPNAME)
+ifdef MOZ_CALENDAR
+ifndef DISABLE_LIGHTNING_INSTALL
+ifndef MOZ_SUNBIRD
+	rm $(DIST_PPC)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf \
+      $(DIST_X86)/$(MOZ_PKG_APPNAME)/$(APPNAME)/Contents/MacOS/extensions/\{e2fda1a4-762b-4020-b5ad-a41df1933103\}/install.rdf
+endif
+endif
+endif
 # A universal .dmg can now be produced by making in either architecture's
 # INSTALLER_DIR.
