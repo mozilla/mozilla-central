@@ -357,44 +357,6 @@
 { 0x00e89c82, 0x1dd2, 0x11b2, \
   { 0x9a, 0x1c, 0xe7, 0x59, 0x95, 0xd7, 0xd5, 0x95}} 
 
-#ifndef MOZ_THUNDERBIRD
-//
-// delegate factory
-//
-
-/* c6584cee-8ee8-4b2c-8dbe-7dfcb55c9c61 */
-#define NS_MSGFILTERDELEGATEFACTORY_CID \
-  {0xc6584cee, 0x8ee8, 0x4b2c, \
-    { 0x8d, 0xbe, 0x7d, 0xfc, 0xb5, 0x5c, 0x9c, 0x61 }}
-
-#define NS_MSGFILTERDELEGATEFACTORY_CONTRACTID_PREFIX \
-  NS_RDF_DELEGATEFACTORY_CONTRACTID_PREFIX "filter" "&scheme="   
-
-// Note: the above CID should live in base, but each protocol
-// should be creating the ContractID themselves. for now we'll
-// do it for news/imap/local mail
-
-#define NS_MSGFILTERDELEGATEFACTORY_MAILBOX_CONTRACTID \
-  NS_MSGFILTERDELEGATEFACTORY_CONTRACTID_PREFIX "mailbox"
-
-#define NS_MSGFILTERDELEGATEFACTORY_NEWS_CONTRACTID \
-  NS_MSGFILTERDELEGATEFACTORY_CONTRACTID_PREFIX "news"
-
-#define NS_MSGFILTERDELEGATEFACTORY_IMAP_CONTRACTID \
-  NS_MSGFILTERDELEGATEFACTORY_CONTRACTID_PREFIX "imap"
-
-//
-// nsMsgFilterDataSource
-//
-#define NS_MSGFILTERDATASOURCE_CONTRACTID \
-  NS_RDF_DATASOURCE_CONTRACTID_PREFIX "msgfilters"
-
-/* d97edfb5-bcbe-4a15-a4fb-fbf2f958b388 */
-#define NS_MSGFILTERDATASOURCE_CID \
-  {0xd97edfb5, 0xbcbe, 0x4a15, \
-    { 0xa4, 0xfb, 0xfb, 0xf2, 0xf9, 0x58, 0xb3, 0x88 }}
-#endif
-
 #define NS_MSGLOCALFOLDERCOMPACTOR_CONTRACTID \
   "@mozilla.org/messenger/localfoldercompactor;1"
 

@@ -83,13 +83,6 @@ CPPSRCS		= \
 		nsMsgSearchNews.cpp \
 		$(NULL)
 
-ifndef MOZ_THUNDERBIRD
-CPPSRCS		+= \
-		nsMsgFilterDataSource.cpp \
-		nsMsgFilterDelegateFactory.cpp \
-		$(NULL)
-endif
-
 EXPORT_RESOURCE_FILES	= \
 				  SpamAssassin.sfd \
 				  SpamPal.sfd \

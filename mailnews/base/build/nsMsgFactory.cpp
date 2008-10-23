@@ -81,10 +81,6 @@
 #include "nsMsgStatusFeedback.h"
 
 #include "nsMsgFilterService.h"
-#ifndef MOZ_THUNDERBIRD
-#include "nsMsgFilterDataSource.h"
-#include "nsMsgFilterDelegateFactory.h"
-#endif
 #include "nsMsgWindow.h"
 
 #include "nsMsgServiceProvider.h"
@@ -147,10 +143,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgSearchSession)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgSearchTerm)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgSearchValidityManager)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgFilterService)
-#ifndef MOZ_THUNDERBIRD
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgFilterDataSource)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgFilterDelegateFactory)
-#endif
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgBiffManager, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgPurgeService)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsStatusBarBiffManager, Init)
@@ -368,27 +360,6 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_MSGFILTERSERVICE_CONTRACTID,
       nsMsgFilterServiceConstructor,
     },
-#ifndef MOZ_THUNDERBIRD
-    { "Message Filter Datasource", NS_MSGFILTERDATASOURCE_CID,
-      NS_MSGFILTERDATASOURCE_CONTRACTID,
-      nsMsgFilterDataSourceConstructor,
-    },
-    // XXX temporarily do all the protocols here
-    { "Message Filter Delegate Factory", NS_MSGFILTERDELEGATEFACTORY_CID,
-      NS_MSGFILTERDELEGATEFACTORY_IMAP_CONTRACTID,
-      nsMsgFilterDelegateFactoryConstructor,
-    },
-    { "Message Filter Delegate Factory", NS_MSGFILTERDELEGATEFACTORY_CID,
-      NS_MSGFILTERDELEGATEFACTORY_MAILBOX_CONTRACTID,
-      nsMsgFilterDelegateFactoryConstructor,
-    },
-    { "Message Filter Delegate Factory", NS_MSGFILTERDELEGATEFACTORY_CID,
-      NS_MSGFILTERDELEGATEFACTORY_NEWS_CONTRACTID,
-      nsMsgFilterDelegateFactoryConstructor,
-    },
-    // XXX done temporary registration
-#endif
-
     { "Messenger Biff Manager", NS_MSGBIFFMANAGER_CID,
       NS_MSGBIFFMANAGER_CONTRACTID,
       nsMsgBiffManagerConstructor,
