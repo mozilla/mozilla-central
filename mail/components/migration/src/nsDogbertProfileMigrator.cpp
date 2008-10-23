@@ -46,6 +46,7 @@
 #include "nsIRelativeFilePref.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsVoidArray.h"
+#include "prprf.h"
 #include "prmem.h"
 #include "prenv.h"
 #include "NSReg.h"
