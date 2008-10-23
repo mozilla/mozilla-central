@@ -281,9 +281,6 @@ nsresult nsImapMailFolder::AddDirectorySeparator(nsILocalFile *path)
   else
   {
     // see if there's a dir with the same name ending with .sbd
-    // unfortunately we can't just say:
-    //          path += sep;
-    // here because of the way nsFileSpec concatenates
     nsAutoString leafName;
     path->GetLeafName(leafName);
     leafName.Append(NS_LITERAL_STRING(FOLDER_SUFFIX));
@@ -7535,7 +7532,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
   rv = CreateFileForDB(proposedDBName, pathFile, getter_AddRefs(dbFile));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  // it's OK to use openMailDBFromFileSpec and not OpenFolderDB here, since we don't use the DB.
+  // Use openMailDBFromFile() and not OpenFolderDB() here, since we don't use the DB.
   rv = msgDBService->OpenMailDBFromFile(dbFile, PR_TRUE, PR_TRUE, (nsIMsgDatabase **) getter_AddRefs(unusedDB));
   if (NS_SUCCEEDED(rv) && unusedDB)
   {
