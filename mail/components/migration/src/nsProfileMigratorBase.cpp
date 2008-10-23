@@ -37,18 +37,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMailProfileMigratorUtils.h"
-#include "nsDirectoryServiceDefs.h"
-#include "nsIObserverService.h"
-#include "nsIPasswordManagerInternal.h"
-#include "nsIPrefLocalizedString.h"
-#include "nsIPrefService.h"
-#include "nsIServiceManager.h"
 #include "nsISupportsPrimitives.h"
-#include "nsNetCID.h"
-#include "nsNetUtil.h"
 #include "nsProfileMigratorBase.h"
-#include "nsIProfileMigrator.h"
-#include "nsVoidArray.h"
 #include "nsIMailProfileMigrator.h"
 
 #include "nsIImportSettings.h"
