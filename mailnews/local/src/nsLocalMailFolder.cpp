@@ -1104,8 +1104,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
   if (count > 0)
     rv = CreateDirectoryForFolder(getter_AddRefs(dirFile));
 
-  // convert from PRUnichar* to char* due to not having Rename(PRUnichar*)
-  // function in nsIFileSpec
+  // Convert from nsAString to nsCAutoString, as we will call moveToNative(),
+  // not moveTo().
 
   nsAutoString safeName(aNewName);
   NS_MsgHashIfNecessary(safeName);
