@@ -190,6 +190,7 @@ description.error {
   background-image: url("chrome://global/skin/icons/autoscroll.png");
   background-color: transparent;
   -moz-appearance: none;
+  -moz-window-shadow: none;
 }
 
 #autoscroller[scrolldir="NS"] {
