@@ -75,7 +75,6 @@ NO_PKG_FILES = \
 	res/loading-image.gif \
 	res/rdf \
 	res/viewer.properties \
-	res/viewsource.css \
 	chrome/chromelist.txt \
 	chrome/embed-sample.jar \
 	PalmSyncInstall.exe \
