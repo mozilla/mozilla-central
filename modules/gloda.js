@@ -560,6 +560,11 @@ var Gloda = {
    */
   NOUN_FULLTEXT: 20,
   /**
+   * Represents a MIME Type.  We currently lack any human-intelligible
+   *  descriptions of mime types.
+   */
+  NOUN_MIME_TYPE: 40, 
+  /**
    * Captures a message tag as well as when the tag's presence was observed,
    *  hoping to approximate when the tag was applied.  It's a somewhat dubious
    *  attempt to not waste our opporunity to store a value along with the tag.
@@ -709,6 +714,7 @@ var Gloda = {
     aNounDef.actions = [];
     
     this._attrProviderOrderByNoun[aNounDef.id] = [];
+    this._attrOptimizerOrderByNoun[aNounDef.id] = [];
     this._attrProvidersByNoun[aNounDef.id] = {};
   },
 
@@ -784,6 +790,8 @@ var Gloda = {
 
   /** Attribute providers in the sequence to process them. */
   _attrProviderOrderByNoun: {},
+  /** Attribute providers that provide optimizers, in the sequence to proc. */
+  _attrOptimizerOrderByNoun: {},
   /** Maps attribute providers to the list of attributes they provide */
   _attrProviders: {},
   /**
@@ -843,7 +851,7 @@ var Gloda = {
       allowsArbitraryAttrs: false,
       toParamAndValue: function(aFolderOrGlodaFolder) {
         if (aFolderOrGlodaFolder instanceof GlodaFolder)
-          return [null, aFolderOrURI.id];
+          return [null, aFolderOrGlodaFolder.id];
         else
           return [null, GlodaDatastore._mapFolder(aFolderOrGlodaFolder).id];
       }}, this.NOUN_FOLDER);
@@ -953,7 +961,7 @@ var Gloda = {
         if (aJsonValues.length == 0)
           return false;
       
-        let nounIdentityDef = Gloda._nounIDToDef[this.NOUN_IDENTITY]
+        let nounIdentityDef = Gloda._nounIDToDef[Gloda.NOUN_IDENTITY]
         let references = aReferencesByNounID[nounIdentityDef.id];
         if (references === undefined)
           references = aReferencesByNounID[nounIdentityDef.id] = {};
@@ -971,7 +979,7 @@ var Gloda = {
       resolveObjDependencies: function(aJsonValues, aReferencesByNounID,
           aInverseReferencesByNounID) {
         let references =
-          aReferencesByNounID[this.NOUN_IDENTITY];
+          aReferencesByNounID[Gloda.NOUN_IDENTITY];
         
         let results = [];
         for each (let [, tupe] in Iterator(aJsonValues)) {
@@ -981,6 +989,9 @@ var Gloda = {
         }
         
         return results;
+      },
+      toJSON: function (aIdentityTuple) {
+        return [aIdentityTuple[0].id, aIdentityTuple[1].id];
       },
       toParamAndValue: function(aIdentityTuple) {
         return [aIdentityTuple[0].id, aIdentityTuple[1].id];
@@ -1173,6 +1184,8 @@ var Gloda = {
       if (this._attrProviderOrderByNoun[subjectType]
               .indexOf(aAttrDef.provider) == -1) {
         this._attrProviderOrderByNoun[subjectType].push(aAttrDef.provider);
+        if (aAttrDef.provider.optimize)
+          this._attrOptimizerOrderByNoun[subjectType].push(aAttrDef.provider);
         this._attrProvidersByNoun[subjectType][aAttrDef.provider] = [];
       }
       this._attrProvidersByNoun[subjectType][aAttrDef.provider].push(aAttrDef);
@@ -1328,7 +1341,7 @@ var Gloda = {
     let itemNounDef = this._nounIDToDef[aItem.NOUN_ID];
     let attribsByBoundName = itemNounDef.attribsByBoundName;
     
-    this._log.debug("grokNounItem: " + itemNounDef.name);
+    this._log.info(" ** grokNounItem: " + itemNounDef.name);
     
     let addDBAttribs = [];
     let removeDBAttribs = [];
@@ -1348,13 +1361,21 @@ var Gloda = {
     // Have the attribute providers directly set properties on the aItem
     let attrProviders = this._attrProviderOrderByNoun[aItem.NOUN_ID];
     for (let iProvider = 0; iProvider < attrProviders.length; iProvider++) {
-      this._log.debug("  provider: " + attrProviders[iProvider].providerName);
+      this._log.info("  * provider: " + attrProviders[iProvider].providerName);
       yield aCallbackHandle.pushAndGo(
         attrProviders[iProvider].process(aItem, aRawReps, aIsNew,
                                          aCallbackHandle));
     }
     
-    this._log.debug(" done with providers.");
+    let attrOptimizers = this._attrOptimizerOrderByNoun[aItem.NOUN_ID];
+    for (let iProvider = 0; iProvider < attrOptimizers.length; iProvider++) {
+      this._log.info("  * optimizer: " + attrOptimizers[iProvider].providerName);
+      yield aCallbackHandle.pushAndGo(
+        attrOptimizers[iProvider].optimize(aItem, aRawReps, aIsNew,
+                                           aCallbackHandle));
+    }
+    
+    this._log.info(" ** done with providers.");
   
     // Iterate over the attributes on the item
     for each (let [key, value] in Iterator(aItem)) {
@@ -1394,10 +1415,15 @@ var Gloda = {
       if (oldValue !== undefined) {
         // in the singular case if they don't match, it's one add and one remove
         if (attrib.singular) {
-          if (value != oldValue) {
-            addDBAttribs.push(attribDB.convertValuesToDBAttributes(value)[0]);
+          // test for identicality, failing that, see if they have explicit
+          //  equals support.
+          if ((value !== oldValue) &&
+              (!value.equals || !value.equals(oldValue))) {
+            this._log.debug("%% want to add1 " + value + " which map to " + attribDB.convertValuesToDBAttributes([value]));
+            this._log.debug("%% want to rem1 " + oldValue + " which map to " + attribDB.convertValuesToDBAttributes([oldValue]));
+            addDBAttribs.push(attribDB.convertValuesToDBAttributes([value])[0]);
             removeDBAttribs.push(
-              attribDB.convertValuesToDBAttributes(oldValue)[0]);
+              attribDB.convertValuesToDBAttributes([oldValue])[0]);
           }
         }
         // in the plural case, we have to figure the deltas accounting for
@@ -1409,6 +1435,8 @@ var Gloda = {
           let [valuesAdded, valuesRemoved] = 
             objectNounDef.computeDelta(value, oldValue);
           // convert the values to database-style attribute rows
+          this._log.debug("%% want to add " + valuesAdded + " which map to " + attribDB.convertValuesToDBAttributes(valuesAdded));
+          this._log.debug("%% want to rem " + valuesRemoved + " which map to " + attribDB.convertValuesToDBAttributes(valuesRemoved));
           addDBAttribs.push.apply(addDBAttribs,
             attribDB.convertValuesToDBAttributes(valuesAdded));
           removeDBAttribs.push.apply(removeDBAttribs,
@@ -1433,6 +1461,8 @@ var Gloda = {
           // anything still on oldValueMap was removed.
           let valuesRemoved = [val for (val in Iterator(oldValueMap, true))];
           // convert the values to database-style attribute rows
+          this._log.debug("%% want to add " + valuesAdded + " which map to " + attribDB.convertValuesToDBAttributes(valuesAdded));
+          this._log.debug("%% want to rem " + valuesRemoved + " which map to " + attribDB.convertValuesToDBAttributes(valuesRemoved));
           addDBAttribs.push.apply(addDBAttribs,
             attribDB.convertValuesToDBAttributes(valuesAdded));
           removeDBAttribs.push.apply(removeDBAttribs,
@@ -1444,6 +1474,9 @@ var Gloda = {
       }
       // no old value, all attributes are new
       else {
+        if (attrib.singular)
+          value = [value];
+        this._log.debug("%% want to add " + value + " which map to " + attribDB.convertValuesToDBAttributes(value));
         addDBAttribs.push.apply(addDBAttribs,
                                 attribDB.convertValuesToDBAttributes(value));
       }
@@ -1458,10 +1491,11 @@ var Gloda = {
         continue;
       // find the attribute definition that corresponds to this key
       let attrib = attribsByBoundName[key];
+      let attribDB = attrib.dbDef;
       // if there's no attribute, that's not good, but not horrible.
       if (attrib === undefined)
         continue;
-      
+      this._log.debug("%% want to remove " + value + " which map to " + attribDB.convertValuesToDBAttributes(value));
       removeDBAttribs.push.apply(removeDBAttribs,
                                  attribDB.convertValuesToDBAttributes(value));
     }

@@ -84,5 +84,7 @@ function loadModule(aModuleURI, aNSContrib) {
 loadModule("resource://gloda/modules/fundattr.js", "GlodaFundAttr");
 loadModule("resource://gloda/modules/explattr.js", "GlodaExplicitAttr");
 
+loadModule("resource://gloda/modules/noun_tag.js");
 loadModule("resource://gloda/modules/noun_freetag.js");
+loadModule("resource://gloda/modules/noun_mimetype.js");
 loadModule("resource://gloda/modules/index_ab.js", "GlodaABAttrs");

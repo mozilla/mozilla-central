@@ -187,6 +187,8 @@ const MAX_POPULAR_CONTACTS = 200;
 function ContactIdentityCompleter() {
   // get all the contacts
   let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
+dump("cq.ob: " + contactQuery.orderBy + "\n");
+dump("cq.limit: " + contactQuery.limit + "\n");
   contactQuery.orderBy("-popularity").limit(MAX_POPULAR_CONTACTS);
   this.contactCollection = contactQuery.getCollection(this, null);
 }
@@ -377,13 +379,16 @@ MessageTagCompleter.prototype = {
 function nsAutoCompleteGloda() {
   this.wrappedJSObject = this;
 
+dump("imports...\n");
   // set up our awesome globals!
   if (Gloda === null) {
     let loadNS = {};
 
+dump("  public...\n");
     Cu.import("resource://gloda/modules/public.js", loadNS);
     Gloda = loadNS.Gloda;
 
+dump("  utils...\n");
     Cu.import("resource://gloda/modules/utils.js", loadNS);
     GlodaUtils = loadNS.GlodaUtils;
     Cu.import("resource://gloda/modules/suffixtree.js", loadNS);
@@ -401,8 +406,16 @@ function nsAutoCompleteGloda() {
   
   this.curResult = null;
 
+dump("init CIC\n");
+  LOG.debug("initializing ContactIdentityCompleter");
+  try {
   this.completers.push(new ContactIdentityCompleter());
+  } catch (ex) {dump("CICEX: " + ex.fileName + ":" + ex.lineNumber + ": " + ex);}
+dump("init CTC\n");
+  LOG.debug("initializing ContactTagCompleter");
   this.completers.push(new ContactTagCompleter());
+dump("init MTC\n");
+  LOG.debug("initializing MessageTagCompleter");
   this.completers.push(new MessageTagCompleter());
   
   LOG.debug("initialized completers");

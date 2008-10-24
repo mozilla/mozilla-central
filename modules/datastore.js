@@ -91,6 +91,8 @@ MessagesByMessageIdCallback.prototype = {
   }
 };
 
+let PCH_LOG = Log4Moz.Service.getLogger("gloda.ds.pch");
+
 function PostCommitHandler(aCallbacks) {
   this.callbacks = aCallbacks;
 }
@@ -100,6 +102,7 @@ PostCommitHandler.prototype = {
   },
   
   handleError: function gloda_ds_pch_handleError(aError) {
+    PCH_LOG.error("database error:" + aError)
   },
   
   handleCompletion: function gloda_ds_pch_handleCompletion(aReason) {
@@ -141,7 +144,7 @@ let QueryFromQueryResolver = {
 
     if (originColl.pendingItems) {
       for (let [, item] in Iterator(originColl.pendingItems)) {
-        QFQ_LOG.debug("QFQR: loading deferred " + item.NOUN_ID + ":" + item.id);
+        //QFQ_LOG.debug("QFQR: loading deferred " + item.NOUN_ID + ":" + item.id);
         GlodaDatastore.loadNounDeferredDeps(item, referencesByNounID,
             inverseReferencesByNounID);
       }
@@ -224,8 +227,8 @@ QueryFromQueryCallback.prototype = {
       // try and replace the item with one from the cache, if we can
       let cachedItem = GlodaCollectionManager.cacheLookupOne(nounID, item.id,
                                                              false);
-      QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
-          this.selfReferences[item.id] + " cached: " + cachedItem);
+      //QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
+      //    this.selfReferences[item.id] + " cached: " + cachedItem);
       if (cachedItem)
         item = cachedItem;
       // we may already have been loaded by this process
@@ -239,9 +242,8 @@ QueryFromQueryCallback.prototype = {
           this.needsLoads;
       
       // add ourself to the references by our id
-QFQ_LOG.debug("saving item " + nounDef.id + ":" + item.id + " to self-refs");
+//QFQ_LOG.debug("saving item " + nounDef.id + ":" + item.id + " to self-refs");
       this.selfReferences[item.id] = item;
-QFQ_LOG.info("self-refs: "+ Log4Moz.enumerateProperties(this.selfReferences).join(","));
       
       // if we're tracking it, add ourselves to our parent's list of children
       //  too
@@ -359,16 +361,19 @@ QFQ_LOG.info("self-refs: "+ Log4Moz.enumerateProperties(this.selfReferences).joi
                   " resolved: " + this.collection.resolvedCount);
     
     // process immediately and kick-up to the master collection...
-    if (this.collection.deferredCount <= 0) {
-      // this guy will resolve everyone using referencesByNounID and issue the
-      //  call to this.collection._onItemsAdded to propagate things to the
-      //  next concerned subCollection or the actual listener if this is the
-      //  master collection.  (Also, call _onQueryCompleted).
-      QueryFromQueryResolver.onItemsAdded(null, {data: this.collection}, true);
-      QueryFromQueryResolver.onQueryCompleted({data: this.collection});
+    try {
+      if (this.collection.deferredCount <= 0) {
+        // this guy will resolve everyone using referencesByNounID and issue the
+        //  call to this.collection._onItemsAdded to propagate things to the
+        //  next concerned subCollection or the actual listener if this is the
+        //  master collection.  (Also, call _onQueryCompleted).
+        QueryFromQueryResolver.onItemsAdded(null, {data: this.collection}, true);
+        QueryFromQueryResolver.onQueryCompleted({data: this.collection});
+      }
     }
-
-    GlodaDatastore._asyncCompleted();
+    finally {
+      GlodaDatastore._asyncCompleted();
+    }
   }
 };
 
@@ -854,12 +859,12 @@ var GlodaDatastore = {
    *  we don't want to have to parse the column names out.
    */
   createTableIfNotExists: function gloda_ds_createTableIfNotExists(aTableDef) {
-    aTableDef._realName = "plugin_" + aTableDef.name;
+    aTableDef._realName = "ext_" + aTableDef.name;
 
     // first, check if the table exists
-    if (!this.syncConnection.tableExists(aTableDef._realName)) {
+    if (!this.asyncConnection.tableExists(aTableDef._realName)) {
       try {
-        this.syncConnection.createTable(aTableDef._realName,
+        this.asyncConnection.createTable(aTableDef._realName,
           [coldef.join(" ") for each
            ([i, coldef] in Iterator(aTableDef.columns))].join(", "));
       }
@@ -875,7 +880,7 @@ var GlodaDatastore = {
         try {
           let indexSql = "CREATE INDEX " + indexName + " ON " +
             aTableDef._realName + " (" + indexColumns.join(", ") + ")";
-          this.syncConnection.executeSimpleSQL(indexSql);
+          this.asyncConnection.executeSimpleSQL(indexSql);
         }
         catch (ex) {
           this._log.error("Problem creating index " + indexName + " for " +
@@ -1097,7 +1102,7 @@ var GlodaDatastore = {
           this._commitTransactionStatement.executeAsync(
             new PostCommitHandler(this._pendingPostCommitCallbacks));
         else
-          this._rollbackTransaction.executeAsync(this.trackAsync());
+          this._rollbackTransactionStatement.executeAsync(this.trackAsync());
       }
       catch (ex) {
         this._log.error("Commit problem: " + ex);
@@ -2668,8 +2673,8 @@ var GlodaDatastore = {
     let deps = aItem._deps || {};
     let hasDeps = false;
     
-    this._log.debug("  hadDeps: " + hadDeps + " deps: " + 
-        Log4Moz.enumerateProperties(deps).join(","));
+    //this._log.debug("  hadDeps: " + hadDeps + " deps: " + 
+    //    Log4Moz.enumerateProperties(deps).join(","));
     
     for each (let [, attrib] in Iterator(aItem.NOUN_DEF.specialLoadAttribs)) {
       let objectNounDef = attrib.objectNounDef;
@@ -2680,7 +2685,7 @@ var GlodaDatastore = {
           invReferences = aInverseReferencesByNounID[objectNounDef.id] = {};
         // only contribute if it's not already pending or there
         if (!(attrib.id in deps) && aItem[attrib.storageAttributeName] == null){
-          this._log.debug("   Adding inv ref for: " + aItem.id);
+          //this._log.debug("   Adding inv ref for: " + aItem.id);
           if (!(aItem.id in invReferences))
             invReferences[aItem.id] = null;
           deps[attrib.id] = null;
@@ -2697,8 +2702,8 @@ var GlodaDatastore = {
           let parentID = aItem[attrib.idStorageAttributeName];
           if (!(parentID in references))
             references[parentID] = null;
-          this._log.debug("   Adding parent ref for: " +
-            aItem[attrib.idStorageAttributeName]);
+          //this._log.debug("   Adding parent ref for: " +
+          //  aItem[attrib.idStorageAttributeName]);
           deps[attrib.id] = null;
           hasDeps = true;
         }
@@ -2798,24 +2803,20 @@ var GlodaDatastore = {
       if (attrib.special) {
         if (attrib.special === this.kSpecialColumnChildren) {
           let inverseReferences = aInverseReferencesByNounID[objectNounDef.id];
-          this._log.info("inverse assignment: " + objectNounDef.id +
-              " of " + aItem.id +
-              " inverse refs: " + Log4Moz.enumerateProperties(inverseReferences).join(","))
+          //this._log.info("inverse assignment: " + objectNounDef.id +
+          //    " of " + aItem.id)
           aItem[attrib.storageAttributeName] = inverseReferences[aItem.id];
         }
         else if (attrib.special === this.kSpecialColumnParent) {
-          this._log.info("parent column load: " + objectNounDef.id +
-              " storage value: " + aItem[attrib.idStorageAttributeName] +
-              " refs: " + references[aItem[attrib.idStorageAttributeName]]);
-          this._log.info("references: "+ Log4Moz.enumerateProperties(references).join(","));
+          //this._log.info("parent column load: " + objectNounDef.id +
+          //    " storage value: " + aItem[attrib.idStorageAttributeName]);
           aItem[attrib.valueStorageAttributeName] =
             references[aItem[attrib.idStorageAttributeName]];
         }
       }
       else if (objectNounDef.tableName) {
-        this._log.info("trying to load: " + objectNounDef.id + " refs: " +
-            jsonValue + ": " + Log4Moz.enumerateProperties(jsonValue).join(","));
-        this._log.info("references: "+ Log4Moz.enumerateProperties(references).join(","));
+        //this._log.info("trying to load: " + objectNounDef.id + " refs: " +
+        //    jsonValue + ": " + Log4Moz.enumerateProperties(jsonValue).join(","));
         if (attrib.singular)
           aItem[attrib.boundName] = references[jsonValue];
         else

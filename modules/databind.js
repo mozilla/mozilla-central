@@ -44,6 +44,36 @@ const Cu = Components.utils;
 
 Cu.import("resource://gloda/modules/log4moz.js");
 
+function DatabindCallback(aDatabind, aCallbackThis, aCallback, aOneShot) {
+  this._databind = aDatabind;
+  this._callbackThis = aCallbackThis;
+  this._callback = aCallback;
+  this._oneShot = aOneShot;
+}
+DatabindCallback.prototype = {
+  handleResult: function (aResultSet) {
+    let rows = [];
+    let rowResult;
+    let getVariant = this._databind._datastore._getVariant;
+    while (rowResult = aResultSet.getNextRow()) {
+      let row = {};
+      for each (let [iCol, colDef] in
+                Iterator(this._databind._tableDef.columns)) {
+        let colName = colDef[0];
+        row[colName] = getVariant(rowResult, iCol);
+      }
+      rows.push(row);
+    }
+    this._callback.call(this._callbackThis, rows, false);
+  },
+  handleError: function (aError) {
+  },
+  handleCompletion: function () {
+    this._callback.call(this._callbackThis, [], true);
+    this._databind._datastore._asyncCompleted();
+  },
+}
+
 function GlodaDatabind(aTableDef, aDatastore) {
   this._tableDef = aTableDef;
   this._datastore = aDatastore;
@@ -57,13 +87,13 @@ function GlodaDatabind(aTableDef, aDatastore) {
      ([i, coldef] in Iterator(this._tableDef.columns))].join(", ") +
     ")";
   
-  this._insertStmt = aDatastore._createStatement(insertSql);
+  this._insertStmt = aDatastore._createAsyncStatement(insertSql);
   
   this._stmtCache = {};
 }
 
 GlodaDatabind.prototype = {
-  
+  /*
   getHighId: function(aLessThan) {
     let sql = "select MAX(id) AS m_id FROM " + this._tableDef._realName;
     if (aLessThan !== undefined)
@@ -80,37 +110,37 @@ GlodaDatabind.prototype = {
     
     return highId;
   },
-  
-  selectOne: function(aColName, aColValue) {
+  */
+    
+  select: function(aColName, aColValue, aCallbackThis, aCallback) {
     let stmt;
     if (!(aColName in this._stmtCache)) {
-      stmt = this._datastore._createStatement("SELECT * FROM " +
-        this._tableDef._realName + " WHERE " + aColName + " = :value");
+      let sqlString = "SELECT * FROM " + this._tableDef._realName;
+      if (aColName)
+        sqlString += " WHERE " + aColName + " = :value";
+      stmt = this._datastore._createAsyncStatement(sqlString);
       this._stmtCache[aColName] = stmt;
     }
     else
       stmt = this._stmtCache[aColName];
     
+    if (aColName)
+      this._datastore._bindVariant(stmt, 0, aColValue);
     // so, we're tricky-like and lazy and actually return the row, so we don't
     //  want to reset until the user tries to use the statement again, as I
     //  fear we would otherwise lose our awesome row binding (and have to copy
     //  it, etc.)
-    stmt.reset();
-    
-    stmt.params.value = aColValue;
-    let row = null;
-    if (stmt.step())
-      row = stmt.row;
-    
-    return row;
+    stmt.executeAsync(new DatabindCallback(this, aCallbackThis, aCallback));
   },
   
-  insert: function(aValueDict) {
+  insert: function(aValueDicts) {
     let stmt = this._insertStmt;
-    for each (let [iColDef, colDef] in Iterator(this._tableDef.columns)) {
-      this._log.debug("insert arg: " + colDef[0] + "=" + aValueDict[colDef[0]]);
-      stmt.params[colDef[0]] = aValueDict[colDef[0]];
+    for each (let [,valueDict] in Iterator(aValueDicts)) {
+      for each (let [iColDef, colDef] in Iterator(this._tableDef.columns)) {
+        this._log.debug("insert arg: " + colDef[0] + "=" + valueDict[colDef[0]]);
+        stmt.params[colDef[0]] = valueDict[colDef[0]];
+      }
+      stmt.executeAsync(this._datastore.trackAsync());
     }
-    stmt.execute();
   }
 };

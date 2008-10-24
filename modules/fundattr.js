@@ -48,6 +48,9 @@ Cu.import("resource://gloda/modules/utils.js");
 Cu.import("resource://gloda/modules/gloda.js");
 Cu.import("resource://gloda/modules/datastore.js");
 
+Cu.import("resource://gloda/modules/noun_mimetype.js");
+
+
 /**
  * @namespace The Gloda Fundamental Attribute provider is a special attribute
  *  provider; it provides attributes that the rest of the providers should be
@@ -201,6 +204,17 @@ var GlodaFundAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_DATE,
                         }); // tested-by: test_attributes_fundamental
+    
+    // Attachment MIME Types
+    this._attrAttachmentTypes = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "attachmentTypes",
+      singular: false,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_MIME_TYPE,
+      });
 
     // --- Optimization
     // Involves.  Means any of from/to/cc.  The queries get ugly enough without
@@ -225,7 +239,7 @@ var GlodaFundAttr = {
       attributeName: "fromMeTo",
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
-      objectNoun: Gloda.NOUN_IDENTITY,
+      objectNoun: Gloda.NOUN_PARAM_IDENTITY,
       }); // not-tested
     // From Me Cc
     this._attrFromMeCc = Gloda.defineAttribute({
@@ -235,7 +249,7 @@ var GlodaFundAttr = {
       attributeName: "fromMeCc",
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
-      objectNoun: Gloda.NOUN_IDENTITY,
+      objectNoun: Gloda.NOUN_PARAM_IDENTITY,
       }); // not-tested
     // To Me
     this._attrToMe = Gloda.defineAttribute({
@@ -245,7 +259,7 @@ var GlodaFundAttr = {
       attributeName: "toMe",
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
-      objectNoun: Gloda.NOUN_IDENTITY,
+      objectNoun: Gloda.NOUN_PARAM_IDENTITY,
       }); // not-tested
     // Cc Me
     this._attrCcMe = Gloda.defineAttribute({
@@ -255,7 +269,7 @@ var GlodaFundAttr = {
       attributeName: "ccMe",
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
-      objectNoun: Gloda.NOUN_IDENTITY,
+      objectNoun: Gloda.NOUN_PARAM_IDENTITY,
       }); // not-tested
 
 
@@ -302,32 +316,6 @@ var GlodaFundAttr = {
     let aMsgHdr = aRawReps.header;
     let aMimeMsg = aRawReps.mime;
     
-    let involvedIdentities = {};
-    
-    let involved = aGlodaMessage.involved;
-    if (involved === undefined)
-      involved = aGlodaMessage.involved = [];
-    let to = aGlodaMessage.to;
-    if (to === undefined)
-      to = aGlodaMessage.to = [];
-    let cc = aGlodaMessage.cc;
-    if (cc === undefined)
-      cc = aGlodaMessage.cc = [];
-    
-    // me specialization optimizations
-    let toMe = aGlodaMessage.toMe;
-    if (toMe === undefined)
-      toMe = aGlodaMessage.toMe = [];
-    let fromMeTo = aGlodaMessage.fromMeTo;
-    if (fromMeTo === undefined)
-      fromMeTo = aGlodaMessage.fromMeTo = [];
-    let ccMe = aGlodaMessage.ccMe;
-    if (ccMe === undefined)
-      ccMe = aGlodaMessage.ccMe = [];
-    let fromMeCc = aGlodaMessage.fromMeCc;
-    if (fromMeCc === undefined)
-      fromMeCc = aGlodaMessage.fromMeCc = [];
-    
     // -- From
     // Let's use replyTo if available.
     // er, since we are just dealing with mailing lists for now, forget the
@@ -357,22 +345,55 @@ var GlodaFundAttr = {
     }
     let authorIdentity = authorIdentities[0];
     aGlodaMessage.from = authorIdentity;
-    involved.push(authorIdentity);
-    involvedIdentities[authorIdentity.id] = true;
-    
-    let myIdentities = Gloda.myIdentities; // needless optimization?
-    let isFromMe = authorIdentity.id in myIdentities;
-    
+
     // -- To, Cc
-    // TODO: handle mailing list semantics (use my visterity logic as a first
-    //  pass.)
-    for (let iTo = 0; iTo < toIdentities.length; iTo++) {
-      let toIdentity = toIdentities[iTo];
-      to.push(toIdentity);
-      if (!(toIdentity.id in involvedIdentities)) {
-        involved.push(toIdentity);
-        involvedIdentities[toIdentity.id] = true;
+    aGlodaMessage.to = toIdentities;
+    aGlodaMessage.cc = ccIdentities;
+    
+    // -- Attachments
+    let attachmentTypes = [];
+    for each (let attachment in aMimeMsg.allAttachments) {
+      if (attachment.isRealAttachment) {
+        attachmentTypes.push(MimeTypeNoun.getMimeType(attachment.contentType));
       }
+    }
+    if (attachmentTypes.length) {
+      aGlodaMessage.attachmentTypes = attachmentTypes;
+    }
+    
+    // TODO: deal with mailing lists, including implicit-to.  this will require
+    //  convincing the indexer to pass us in the previous message if it is
+    //  available.  (which we'll simply pass to everyone... it can help body
+    //  logic for quoting purposes, etc. too.)
+    
+    yield Gloda.kWorkDone;
+  },
+  
+  optimize: function gloda_fundattr_process(aGlodaMessage, aRawReps,
+      aIsNew, aCallbackHandle) {
+
+    let involvesIdentities = {};
+    let involves = aGlodaMessage.involves || [];
+    
+    // me specialization optimizations
+    let toMe = aGlodaMessage.toMe || [];
+    let fromMeTo = aGlodaMessage.fromMeTo || [];
+    let ccMe = aGlodaMessage.ccMe || [];
+    let fromMeCc = aGlodaMessage.fromMeCc || [];
+
+    let myIdentities = Gloda.myIdentities; // needless optimization?
+    let authorIdentity = aGlodaMessage.from;
+    let isFromMe = authorIdentity.id in myIdentities;
+
+    involves.push(authorIdentity);
+    involvesIdentities[authorIdentity.id] = true;
+    
+    for each (let [,toIdentity] in Iterator(aGlodaMessage.to)) {
+      if (!(toIdentity.id in involvesIdentities)) {
+        involves.push(toIdentity);
+        involvesIdentities[toIdentity.id] = true;
+      }
+      
       // optimization attribute to-me ('I' am the parameter)
       if (toIdentity.id in myIdentities) {
         toMe.push([toIdentity, authorIdentity]);
@@ -387,12 +408,10 @@ var GlodaFundAttr = {
           toIdentity.contact.popularity += this.POPULARITY_FROM_ME_TO;
       }
     }
-    for (let iCc = 0; iCc < ccIdentities.length; iCc++) {
-      let ccIdentity = ccIdentities[iCc];
-      cc.push(ccIdentity);
-      if (!(ccIdentity.id in involvedIdentities)) {
-        involved.push(ccIdentity);
-        involvedIdentities[ccIdentity.id] = true;
+    for each (let [,ccIdentity] in Iterator(aGlodaMessage.cc)) {
+      if (!(ccIdentity.id in involvesIdentities)) {
+        involves.push(ccIdentity);
+        involvesIdentities[ccIdentity.id] = true;
       }
       // optimization attribute cc-me ('I' am the parameter)
       if (ccIdentity.id in myIdentities) {
@@ -409,11 +428,16 @@ var GlodaFundAttr = {
       }
     }
     
-    // TODO: deal with mailing lists, including implicit-to.  this will require
-    //  convincing the indexer to pass us in the previous message if it is
-    //  available.  (which we'll simply pass to everyone... it can help body
-    //  logic for quoting purposes, etc. too.)
-    
+    aGlodaMessage.involves = involves;
+    if (toMe.length)
+      aGlodaMessage.toMe = toMe;
+    if (fromMeTo.length)
+      aGlodaMessage.fromMeTo = fromMeTo;
+    if (ccMe.length)
+      aGlodaMessage.ccMe = ccMe;
+    if (fromMeCc.length)
+      aGlodaMessage.fromMeCc = fromMeCc;
+
     yield Gloda.kWorkDone;
   },
 };

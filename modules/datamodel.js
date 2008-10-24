@@ -123,13 +123,13 @@ GlodaAttributeDBDef.prototype = {
     else {
       let dbAttributes = [];
       if (nounDef.usesParameter) {
-        for each (let [iValue, instanceValue] in Iterator(aInstanceValues)) {
+        for each (let [, instanceValue] in Iterator(aInstanceValues)) {
           let [param, dbValue] = nounDef.toParamAndValue(aInstanceValues);
           dbAttributes.push([this.bindParameter(param), dbValue]);
         }
       }
       else {
-        for each (let [iValue, instanceValue] in Iterator(aInstanceValues)) {
+        for each (let [, instanceValue] in Iterator(aInstanceValues)) {
           dbAttributes.push([this._id,
                              nounDef.toParamAndValue(instanceValue)[1]]);
         }
@@ -200,7 +200,7 @@ GlodaConversation.prototype = {
   getMessagesCollection: function gloda_conversation_getMessagesCollection(
     aListener, aData) {
     let query = new GlodaMessage.prototype.NOUN_DEF.queryClass();
-    query.conversation(this._id);
+    query.conversation(this._id).orderBy("date");
     return query.getCollection(aListener, aData);
   },
 

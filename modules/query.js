@@ -90,10 +90,12 @@ GlodaQueryClass.prototype = {
       let arg = arguments[iArg];
       this._order.push(arg);
     }
+    return this;
   },
   
   limit: function gloda_query_limit(aLimit) {
     this._limit = aLimit;
+    return this;
   },
   
   /**

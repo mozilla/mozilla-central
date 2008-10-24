@@ -68,6 +68,9 @@ function range(begin, end) {
   }
 }
 
+const GFI = Log4Moz.Service.getLogger("gloda.fixiterator");
+
+
 // FROM STEEL (a la Joey Minta/jminta)
 // (and to go away when STEEL is checked in, although we may also want to
 //  consider just specializing the code in the few places this method is used.)
@@ -113,6 +116,7 @@ function fixIterator(aEnum, aIface) {
           aEnum.next();
         } catch(ex) {
           done = true;
+          GFI.error(face + " => " + ex.fileName + ":" + ex.lineNumber + ": " + ex)
         }
       }
     };
@@ -710,7 +714,6 @@ var GlodaIndexer = {
         
       let prettyName = (this._indexingFolder !== null) ?
                        this._indexingFolder.prettiestName : null;
-      status = status + " " + prettyName;
 
       jobIndex = this._indexingJobCount-1;
       jobTotal = this._indexingJobGoal;
@@ -1066,9 +1069,12 @@ var GlodaIndexer = {
         catch (ex) {
           this._log.warn("Bailing on job (at " + ex.fileName + ":" +
               ex.lineNumber + ") because: " + ex);
+          // make sure we no longer have a current folder
           this._indexerLeaveFolder(true);
           this._curIndexingJob = null;
+          // clear out our current generators and our related data
           this._callbackHandle.cleanup();
+          this._workBatchData = undefined;
         }
       }
       
@@ -2057,9 +2063,9 @@ var GlodaIndexer = {
             conversationID = ancestor.conversationID;
           else if (conversationID != ancestor.conversationID)
             this._log.error("Inconsistency in conversations invariant on " +
-                            ancestor.messageID + ".  It has conv id " +
+                            ancestor.headerMessageID + ".  It has conv id " +
                             ancestor.conversationID + " but expected " + 
-                            conversationID);
+                            conversationID + ". ID: " + ancestor.id);
         }
       }
     }
