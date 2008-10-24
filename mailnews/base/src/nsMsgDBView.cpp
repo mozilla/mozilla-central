@@ -2620,14 +2620,8 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
       addFlags = PR_FALSE;
       break;
     case nsMsgViewCommandType::toggleMessageRead:
-      {
-        flags |= kImapMsgSeenFlag;
-        m_db->IsRead(GetAt(indices[0]), &isRead);
-        if (isRead)
-          addFlags = PR_TRUE;
-        else
-          addFlags = PR_FALSE;
-      }
+      flags |= kImapMsgSeenFlag;
+      addFlags = m_flags[indices[0]] & MSG_FLAG_READ;
       break;
     case nsMsgViewCommandType::flagMessages:
       flags |= kImapMsgFlaggedFlag;
