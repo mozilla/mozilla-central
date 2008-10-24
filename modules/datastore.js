@@ -2586,7 +2586,7 @@ var GlodaDatastore = {
           boundArgs.push(matchStr);
         }
         
-        if (curConstraintIsSpecial && lastConstraintWasSpecial) {
+        if (curConstraintIsSpecial && lastConstraintWasSpecial && test) {
           selects[selects.length-1] += " AND " + test;
         }
         else if (select)

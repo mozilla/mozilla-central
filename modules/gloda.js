@@ -1017,7 +1017,17 @@ var Gloda = {
     if (aSubjectNounDef.queryClass !== undefined) {
       let constrainer;
       // non-strings can use IN
-      if (aAttrDef.special != this.kSpecialString) {
+      if (aAttrDef.special == this.kSpecialFulltext) {
+        constrainer = function() {
+          let constraint = [GlodaDatastore.kConstraintFulltext, aAttrDef];
+          for (let iArg = 0; iArg < arguments.length; iArg++) {
+            constraint.push(arguments[iArg]);
+          }
+          this._constraints.push(constraint);
+          return this;
+        };
+      }
+      else if (aAttrDef.special != this.kSpecialString) {
         constrainer = function() {
           let constraint = [GlodaDatastore.kConstraintIn, aAttrDef];
           for (let iArg = 0; iArg < arguments.length; iArg++) {
