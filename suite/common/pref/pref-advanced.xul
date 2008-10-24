@@ -78,7 +78,7 @@
                 preference="config.use_system_prefs"/>
     </groupbox>
 
-    <groupbox id="checkDefault">
+    <groupbox id="checkDefault" hidden="true">
       <caption label="&prefCheckDefault.caption;"/>
       <checkbox id="checkDefaultClient"
                 label="&prefCheckDefaultClient.label;"

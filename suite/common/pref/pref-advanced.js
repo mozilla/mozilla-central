@@ -40,6 +40,7 @@
 function Startup()
 {
   SysPrefCheck();
+  ShellServiceCheck();
 }
 
 /**
@@ -52,4 +53,12 @@ function SysPrefCheck()
   let visible = kPrefService in Components.classes &&
     Components.classes[kPrefService].getService() instanceof Components.interfaces.nsIPrefBranch;
   document.getElementById("systemPrefs").hidden = !visible;
+}
+
+function ShellServiceCheck()
+{
+  const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
+
+  if (NS_SHELLSERVICE_CID in Components.classes)
+    document.getElementById("checkDefault").hidden = false;
 }
