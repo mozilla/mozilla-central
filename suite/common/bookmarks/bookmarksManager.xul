@@ -239,13 +239,13 @@
       <toolbarbutton id="delete" label="&command.delete.label;"
                      accesskey="&button.delete.accesskey;"
                      command="cmd_bm_delete"/>
-    </toolbar>
-
-    <toolbar id="bookmarks-search" align="center"
-             grippytooltiptext="&bookmarksSearch.tooltip;">
-      <label value="&search.label;" accesskey="&search.accesskey;" control="search-box"/>
-      <textbox id="search-box" flex="1" type="search" clickSelectsAll="true"
-               oncommand="document.getElementById('bookmarks-view').searchBookmarks(this.value)"/>
+      <toolbarspring/>
+      <toolbaritem id="bookmarks-search-box" align="center">
+        <label value="&search.label;" accesskey="&search.accesskey;"
+               control="search-box"/>
+        <textbox id="search-box" type="search" clickSelectsAll="true"
+                 oncommand="document.getElementById('bookmarks-view').searchBookmarks(this.value)"/>
+      </toolbaritem>
     </toolbar>
   </toolbox>
 
