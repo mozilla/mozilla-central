@@ -147,7 +147,60 @@ SuiteGlue.prototype = {
   ]
 }
 
+function GeolocationPrompt() {}
+
+GeolocationPrompt.prototype = {
+  classDescription: "Geolocation Prompting Component",
+  classID:          Components.ID("{450a13bd-0d07-4e5d-a9f0-448c201728b1}"),
+  contractID:       "@mozilla.org/geolocation/prompt;1",
+
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIGeolocationPrompt]),
+
+  prompt: function(aRequest)
+  {
+    var notificationBox =
+        aRequest.requestingWindow
+                .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                .getInterface(Components.interfaces.nsIWebNavigation)
+                .QueryInterface(Components.interfaces.nsIDocShell)
+                .chromeEventHandler.parentNode.wrappedJSObject;
+
+    var notification = notificationBox.getNotificationWithValue("geolocation");
+    if (!notification) {
+      var notificationBundle =
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://communicator/locale/notification.properties");
+
+      var buttons =
+        [{
+          label: notificationBundle.GetStringFromName("geolocation.exactLocation"),
+          accessKey: notificationBundle.GetStringFromName("geolocation.exactLocationKey"),
+          callback: function() { aRequest.allow() },
+        }, {
+          label: notificationBundle.GetStringFromName("geolocation.neighborhoodLocation"),
+          accessKey: notificationBundle.GetStringFromName("geolocation.neighborhoodLocationKey"),
+          callback: function() { aRequest.allowButFuzz() },
+        }, {
+          label: notificationBundle.GetStringFromName("geolocation.nothingLocation"),
+          accessKey: notificationBundle.GetStringFromName("geolocation.nothingLocationKey"),
+          callback: function() { aRequest.cancel() },
+        }];
+
+      var message =
+          notificationBundle.formatStringFromName("geolocation.requestMessage",
+                                                  [aRequest.requestingURI.spec], 1);
+      notificationBox.appendNotification(message,
+                                         "geolocation",
+                                         "chrome://global/skin/information-16.png",
+                                         notificationBox.PRIORITY_INFO_HIGH,
+                                         buttons);
+
+    }
+  },
+};
+
 //module initialization
 function NSGetModule(aCompMgr, aFileSpec) {
-  return XPCOMUtils.generateModule([SuiteGlue]);
+  return XPCOMUtils.generateModule([SuiteGlue, GeolocationPrompt]);
 }
