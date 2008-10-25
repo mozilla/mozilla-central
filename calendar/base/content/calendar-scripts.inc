@@ -65,8 +65,5 @@
   <script type="application/javascript" src="chrome://calendar/content/calendar-statusbar.js"/>
   <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
-  <!-- NEEDED FOR MINIMONTH BUSY HIGHLIGHT -->
-  <script type="application/javascript" src="chrome://calendar/content/calendar-minimonth-busy.js"/>
-
   <!-- NEEDED FOR TASK VIEW/LIST SUPPORT -->
   <script type="application/javascript" src="chrome://calendar/content/calendar-task-editing.js"/>
