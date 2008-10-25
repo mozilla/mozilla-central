@@ -64,6 +64,7 @@ function calICSCalendar() {
     this.unmappedComponents = [];
     this.unmappedProperties = [];
     this.queue = new Array();
+    this.mModificationActions = [];
 }
 
 calICSCalendar.prototype = {
@@ -278,7 +279,7 @@ calICSCalendar.prototype = {
             // makeBackup will call doWriteICS
             this.makeBackup(this.doWriteICS);
         } catch (exc) {
-            this.unlock();
+            this.unlock(calIErrors.MODIFICATION_FAILED);
             throw exc;
         }
     },
@@ -328,7 +329,7 @@ calICSCalendar.prototype = {
                                                 ex.result, "The calendar could not be saved; there " +
                                                 "was a failure: 0x" + ex.result.toString(16));
                     savedthis.mObserver.onError(savedthis.superCalendar, calIErrors.MODIFICATION_FAILED, "");
-                    savedthis.unlock();
+                    savedthis.unlock(calIErrors.MODIFICATION_FAILED);
                 }
             },
             onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems)
@@ -372,6 +373,9 @@ calICSCalendar.prototype = {
         } catch(e) {
         }
 
+        let appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
+                                   .getService(Components.interfaces.nsIAppStartup);
+
         if ((channel && !channel.requestSucceeded) ||
             (!channel && !Components.isSuccessCode(request.status))) {
             ctxt.mObserver.onError(this.superCalendar,
@@ -381,14 +385,18 @@ calICSCalendar.prototype = {
                                    "Publishing the calendar file failed\n" +
                                        "Status code: "+request.status.toString(16)+"\n");
             ctxt.mObserver.onError(this.superCalendar, calIErrors.MODIFICATION_FAILED, "");
+
+            // the PUT has failed, refresh, and signal error to all modifying operations:
+            this.refresh();
+            ctxt.unlock(calIErrors.MODIFICATION_FAILED);
+            appStartup.exitLastWindowClosingSurvivalArea();
+            return;
         }
 
         // Allow the hook to grab data of the channel, like the new etag
         ctxt.mHooks.onAfterPut(channel,
                                function() {
                                    ctxt.unlock();
-                                   var appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                                       .getService(Components.interfaces.nsIAppStartup);
                                    appStartup.exitLastWindowClosingSurvivalArea();
                                });
     },
@@ -440,22 +448,35 @@ calICSCalendar.prototype = {
     {
         if (this.isLocked())
             return;
+
+        function modListener(action) {
+            this.mAction = action;
+        }
+        modListener.prototype = {
+            onGetResult: function() {},
+            onOperationComplete: function() {
+                this.mAction.opCompleteArgs = arguments;
+            }
+        };
+
         var a;
         var writeICS = false;
         var refreshAction = null;
         while ((a = this.queue.shift())) {
             switch (a.action) {
                 case 'add':
-                    this.mMemoryCalendar.addItem(a.item, a.listener);
+                    this.mMemoryCalendar.addItem(a.item, new modListener(a));
+                    this.mModificationActions.push(a);
                     writeICS = true;
                     break;
                 case 'modify':
-                    this.mMemoryCalendar.modifyItem(a.newItem, a.oldItem,
-                                                    a.listener);
+                    this.mMemoryCalendar.modifyItem(a.newItem, a.oldItem, new modListener(a));
+                    this.mModificationActions.push(a);
                     writeICS = true;
                     break;
                 case 'delete':
-                    this.mMemoryCalendar.deleteItem(a.item, a.listener);
+                    this.mMemoryCalendar.deleteItem(a.item, new modListener(a));
+                    this.mModificationActions.push(a);
                     writeICS = true;
                     break;
                 case 'get_item':
@@ -494,7 +515,25 @@ calICSCalendar.prototype = {
         this.locked = true;
     },
 
-    unlock: function () {
+    unlock: function (errCode) {
+        ASSERT(this.locked, "unexpected!");
+
+        this.mModificationActions.forEach(
+            function(action) {
+                let args = action.opCompleteArgs;
+                ASSERT(args, "missing onOperationComplete call!");
+                let listener = action.listener;
+                if (listener) {
+                    if (Components.isSuccessCode(args[1]) &&
+                        errCode && !Components.isSuccessCode(errCode)) {
+                        listener.onOperationComplete(args[0], errCode, args[2], args[3], null);
+                    } else {
+                        listener.onOperationComplete.apply(listener, args);
+                    }
+                }
+            });
+        this.mModificationActions = [];
+
         this.locked = false;
         this.processQueue();
     },
