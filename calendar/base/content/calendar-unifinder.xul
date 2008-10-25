@@ -91,7 +91,7 @@
         </box>
         <box align="center" flex="1">
           <label control="unifinder-search-field" value="&calendar.search.options.searchfor;"/>
-          <textbox id="unifinder-search-field" type="search" oncommand="searchKeyPress( this, event )" flex="1"/>
+          <textbox id="unifinder-search-field" type="search" oncommand="refreshEventTree();" flex="1"/>
         </box>
         <toolbarbutton id="unifinder-closer"
                        class="unifinder-closebutton"

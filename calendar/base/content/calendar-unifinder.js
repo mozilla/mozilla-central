@@ -294,33 +294,6 @@ function formatUnifinderEventDateTime(aDatetime) {
 }
 
 /**
- *  This is called from the unifinder when a key is pressed in the search field
- */
-var gSearchTimeout = null;
-
-function searchKeyPress(searchTextItem, event) {
-    // 13 == return
-    if (event && event.keyCode == 13) {
-        clearSearchTimer();
-        refreshEventTree();
-        return;
-    }
-
-    // Always clear the old one first
-    clearSearchTimer();
-
-    // Make a new timer
-    gSearchTimeout = setTimeout(refreshEventTree, 400);
-}
-
-function clearSearchTimer() {
-   if (gSearchTimeout) {
-      clearTimeout(gSearchTimeout);
-      gSearchTimeout = null;
-   }
-}
-
-/**
  * Unifinder event handlers (click,select,etc)
  */
 function unifinderDoubleClick(event) {
