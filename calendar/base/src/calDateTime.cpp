@@ -594,7 +594,7 @@ calDateTime::Compare(calIDateTime * aOther, PRInt32 * aResult)
     }
 
     if (mIsDate || otherIsDate) {
-        *aResult = icaltime_compare_date_only(a, b, cal::getIcalTimezone(mTimezone));
+        *aResult = icaltime_compare_date_only_tz(a, b, cal::getIcalTimezone(mTimezone));
     } else {
         *aResult = icaltime_compare(a, b);
     }

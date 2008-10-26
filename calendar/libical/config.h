@@ -14,3 +14,7 @@
 #define NO_WARN_DEPRECATED
 
 #define PACKAGE_DATA_DIR
+
+/* Define if you DO NOT WANT to use any zones.tab, neither builtin nor system.
+   Only UTC will be available then. */
+#define NO_ZONES_TAB

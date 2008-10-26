@@ -322,13 +322,9 @@ void icalrecur_add_byrules(struct icalrecur_parser *parser, short *array,
  * function sorts the days taking into account the first day of week.
  */
 static void
-sort_bydayrules(struct icalrecur_parser *parser)
+sort_bydayrules(short * array, int week_start)
 {
-    short *array;
-    int week_start, one, two, i, j;
-
-    array = parser->rt.by_day;
-    week_start = parser->rt.week_start;
+    int one, two, i, j;
 
     for (i=0;
 	 i<ICAL_BY_DAY_SIZE && array[i] != ICAL_RECURRENCE_ARRAY_MAX;
@@ -406,7 +402,7 @@ void icalrecur_add_bydayrules(struct icalrecur_parser *parser, const char* vals)
 
     free(vals_copy);
 
-    sort_bydayrules(parser);
+    sort_bydayrules(parser->rt.by_day, parser->rt.week_start);
 }
 
 
@@ -448,14 +444,20 @@ struct icalrecurrencetype icalrecurrencetype_from_string(const char* str)
 	if (strcasecmp(name,"FREQ") == 0){
 	    parser.rt.freq = icalrecur_string_to_freq(value);
 	} else if (strcasecmp(name,"COUNT") == 0){
-	    parser.rt.count = atoi(value);
+	    int v = atoi(value);
+	    if (v >= 0) {
+	    parser.rt.count = v;
+	    }
 	} else if (strcasecmp(name,"UNTIL") == 0){
 	    parser.rt.until = icaltime_from_string(value);
 	} else if (strcasecmp(name,"INTERVAL") == 0){
-	    parser.rt.interval = (short)atoi(value);
+	    int v = atoi(value);
+	    if (v > 0 && v <= SHRT_MAX) {
+	    parser.rt.interval = (short) v;
+	    }
 	} else if (strcasecmp(name,"WKST") == 0){
 	    parser.rt.week_start = icalrecur_string_to_weekday(value);
-	    sort_bydayrules(&parser);
+        sort_bydayrules(parser.rt.by_day, parser.rt.week_start);
 	} else if (strcasecmp(name,"BYSECOND") == 0){
 	    icalrecur_add_byrules(&parser,parser.rt.by_second,
 				  ICAL_BY_SECOND_SIZE,value);
@@ -1553,6 +1555,7 @@ static int next_month(icalrecur_iterator* impl)
       if ( day > days_in_month){
           impl->last.day = 1;
           increment_month(impl);
+          impl->last.day--; /* Go back one day, so searches next month start at day 1 */
           data_valid = 0; /* signal that impl->last is invalid */
       }
 
@@ -1674,6 +1677,10 @@ static int next_weekday_by_week(icalrecur_iterator* impl)
   if(!has_by_data(impl,BY_DAY)){
       return 1;
   }
+
+  /* this call to 'sort_bydayrules' assures that the occurrences for
+     weekly recurrences will be generated in a strict linear order. */
+  sort_bydayrules(BYDAYPTR, impl->rule.week_start);
 
   /* If we get here, we need to step to tne next day */
 
@@ -2300,11 +2307,6 @@ struct icaltimetype icalrecur_iterator_next(icalrecur_iterator *impl)
                 return icaltime_null_time();
 	    }
 	}    
-	
-	if(impl->last.year >= 2038 ){
-	    /* HACK */
-	    return icaltime_null_time();
-	}
 	
     } while(!check_contracting_rules(impl) 
 	    || icaltime_compare(impl->last,impl->dtstart) < 0
