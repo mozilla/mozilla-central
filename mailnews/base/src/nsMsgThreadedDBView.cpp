@@ -644,10 +644,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
             level = m_levels[parentIndex] + 1;
             insertIndex = GetInsertInfoForNewHdr(newHdr, parentIndex, level);
           }
-          m_keys.InsertElementAt(insertIndex, newKey);
-          m_flags.InsertElementAt(insertIndex, newFlags);
-          m_levels.InsertElementAt(insertIndex, level);
-
+          InsertMsgHdrAt(insertIndex, newHdr, newKey, newFlags, level);
           // the call to NoteChange() has to happen after we add the key
           // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
           NoteChange(insertIndex, 1, nsMsgViewNotificationCode::insertOrDelete);

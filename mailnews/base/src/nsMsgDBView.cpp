@@ -1484,6 +1484,22 @@ nsresult nsMsgDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDBHdr **
   return rv;
 }
 
+void nsMsgDBView::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,
+                              nsMsgKey msgKey, PRUint32 flags, PRUint32 level)
+{
+  m_keys.InsertElementAt(index, msgKey);
+  m_flags.InsertElementAt(index, flags);
+  m_levels.InsertElementAt(index, level);
+}
+
+void nsMsgDBView::SetMsgHdrAt(nsIMsgDBHdr *hdr, nsMsgViewIndex index, 
+                              nsMsgKey msgKey, PRUint32 flags, PRUint32 level)
+{
+  m_keys[index] = msgKey;
+  m_flags[index] = flags;
+  m_levels[index] = level;
+}
+
 nsresult nsMsgDBView::GetFolderForViewIndex(nsMsgViewIndex index, nsIMsgFolder **aFolder)
 {
   NS_IF_ADDREF(*aFolder = m_folder);
@@ -1708,16 +1724,9 @@ void nsMsgDBView::GetCurCustomColumn(nsString &colID)
 }
 nsIMsgCustomColumnHandler* nsMsgDBView::GetColumnHandler(const PRUnichar *colID)
 {
-  nsIMsgCustomColumnHandler* columnHandler = nsnull;
-
   PRInt32 index = m_customColumnHandlerIDs.IndexOf(nsDependentString(colID));
-
-  if (index > -1)
-    columnHandler = m_customColumnHandlers[index];
-
-  return columnHandler;
+  return (index > -1) ? m_customColumnHandlers[index] : nsnull;
 }
-
 
 NS_IMETHODIMP nsMsgDBView::GetColumnHandler(const nsAString& aColID, nsIMsgCustomColumnHandler** aHandler)
 {
@@ -4418,7 +4427,6 @@ nsresult nsMsgDBView::CollapseAll()
 
 nsresult nsMsgDBView::CollapseByIndex(nsMsgViewIndex index, PRUint32 *pNumCollapsed)
 {
-  nsMsgKey    firstIdInThread;
   nsresult  rv;
   PRInt32  flags = m_flags[index];
   PRInt32  threadCount = 0;
@@ -4430,15 +4438,6 @@ nsresult nsMsgDBView::CollapseByIndex(nsMsgViewIndex index, PRUint32 *pNumCollap
   if (index > m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
 
-  firstIdInThread = m_keys[index];
-  nsCOMPtr <nsIMsgDBHdr> msgHdr;
-  rv = m_db->GetMsgHdrForKey(firstIdInThread, getter_AddRefs(msgHdr));
-  if (NS_FAILED(rv) || msgHdr == nsnull)
-  {
-    NS_ASSERTION(PR_FALSE, "error collapsing thread");
-    return NS_MSG_MESSAGE_NOT_FOUND;
-  }
-
   m_flags[index] = flags;
   NoteChange(index, 1, nsMsgViewNotificationCode::changed);
 
@@ -4448,9 +4447,7 @@ nsresult nsMsgDBView::CollapseByIndex(nsMsgViewIndex index, PRUint32 *pNumCollap
     PRInt32 numRemoved = threadCount; // don't count first header in thread
     NoteStartChange(index + 1, -numRemoved, nsMsgViewNotificationCode::insertOrDelete);
     // start at first id after thread.
-    m_keys.RemoveElementsAt(index + 1, threadCount);
-    m_flags.RemoveElementsAt(index + 1, threadCount);
-    m_levels.RemoveElementsAt(index + 1, threadCount);
+    RemoveRows(index + 1, threadCount);
     if (pNumCollapsed != nsnull)
       *pNumCollapsed = numRemoved;
     NoteEndChange(index + 1, -numRemoved, nsMsgViewNotificationCode::insertOrDelete);
@@ -4761,9 +4758,7 @@ nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex)
 
     if (m_sortOrder == nsMsgViewSortOrder::ascending)
     {
-      m_keys.AppendElement(msgKey);
-      m_flags.AppendElement(flags);
-      m_levels.AppendElement(levelToAdd);
+      InsertMsgHdrAt(GetSize(), msgHdr, msgKey, flags, levelToAdd);
       if (resultIndex)
         *resultIndex = GetSize() - 1;
 
@@ -4773,9 +4768,7 @@ nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex)
     }
     else
     {
-      m_keys.InsertElementAt(0, msgKey);
-      m_flags.InsertElementAt(0, flags);
-      m_levels.InsertElementAt(0, levelToAdd);
+      InsertMsgHdrAt(0, msgHdr, msgKey, flags, levelToAdd);
       if (resultIndex)
         *resultIndex = 0;
 
@@ -4787,13 +4780,9 @@ nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex)
   }
   else
   {
-    m_keys.InsertElementAt(insertIndex, msgKey);
-    m_flags.InsertElementAt(insertIndex, flags);
-    PRInt32 level = 0;
-    m_levels.InsertElementAt(insertIndex, level);
+    InsertMsgHdrAt(insertIndex, msgHdr, msgKey, flags, 0);
     if (resultIndex)
       *resultIndex = insertIndex;
-
     // the call to NoteChange() has to happen after we add the key
     // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
     NoteChange(insertIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
@@ -4875,11 +4864,7 @@ nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey par
       msgHdr->GetMessageKey(&msgKey);
       msgHdr->GetFlags(&msgFlags);
       AdjustReadFlag(msgHdr, &msgFlags);
-      m_keys[*viewIndex] = msgKey;
-      // ### TODO - how about hasChildren flag?
-      m_flags[*viewIndex] = msgFlags & ~MSG_VIEW_FLAGS;
-      // ### TODO this is going to be tricky - might use enumerators
-      m_levels[*viewIndex] = level;
+      SetMsgHdrAt(msgHdr, *viewIndex, msgKey, msgFlags & ~MSG_VIEW_FLAGS, level);
       // turn off thread or elided bit if they got turned on (maybe from new only view?)
       msgHdr->AndFlags(~(MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED), &newFlags);
       (*pNumListed)++;
@@ -4888,6 +4873,20 @@ nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey par
     }
   }
   return rv; // we don't want to return the rv from the enumerator when it reaches the end, do we?
+}
+
+PRBool nsMsgDBView::InsertEmptyRows(nsMsgViewIndex viewIndex, PRInt32 numRows)
+{
+  return m_keys.InsertElementsAt(viewIndex, numRows, 0) &&
+         m_flags.InsertElementsAt(viewIndex, numRows, 0) && 
+         m_levels.InsertElementsAt(viewIndex, numRows, 1); 
+}
+
+void nsMsgDBView::RemoveRows(nsMsgViewIndex viewIndex, PRInt32 numRows)
+{
+  m_keys.RemoveElementsAt(viewIndex, numRows);
+  m_flags.RemoveElementsAt(viewIndex, numRows);
+  m_levels.RemoveElementsAt(viewIndex, numRows);
 }
 
 nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, PRUint32 *pNumListed)
@@ -4906,9 +4905,8 @@ nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex st
     return NS_OK;
 
   numChildren--; // account for the existing thread root
-  m_keys.InsertElementsAt(viewIndex, numChildren, 0);
-  m_flags.InsertElementsAt(viewIndex, numChildren, 0);
-  m_levels.InsertElementsAt(viewIndex, numChildren, 1); // default unthreaded level
+  if (!InsertEmptyRows(viewIndex, numChildren))
+    return NS_ERROR_OUT_OF_MEMORY;
 
   // ### need to rework this when we implemented threading in group views.
   if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay && ! (m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
@@ -4943,8 +4941,7 @@ nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex st
         msgHdr->GetMessageKey(&msgKey);
         msgHdr->GetFlags(&msgFlags);
         AdjustReadFlag(msgHdr, &msgFlags);
-        m_keys[viewIndex] = msgKey;
-        m_flags[viewIndex] = msgFlags & ~MSG_VIEW_FLAGS;
+        SetMsgHdrAt(msgHdr, viewIndex, msgKey, msgFlags & ~MSG_VIEW_FLAGS, 1);
         // here, we're either flat, or we're grouped - in either case, level is 1
         // turn off thread or elided bit if they got turned on (maybe from new only view?)
         if (i > 0)
@@ -5044,21 +5041,14 @@ nsresult nsMsgDBView::ListUnreadIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIn
       msgHdr->GetMessageKey(&msgKey);
       msgHdr->GetFlags(&msgFlags);
       PRBool isRead = AdjustReadFlag(msgHdr, &msgFlags);
-      // determining the level is going to be tricky, since we're not storing the
-      // level in the db anymore. It will mean looking up the view for each of the
-      // ancestors of the current msg until we find one in the view. I guess we could
-      // check each ancestor to see if it's unread before looking for it in the view.
       if (!isRead)
       {
-        PRUint8 levelToAdd;
         // just make sure flag is right in db.
         m_db->MarkHdrRead(msgHdr, PR_FALSE, nsnull);
         if (msgKey != topLevelMsgKey)
         {
-          m_keys.InsertElementAt(viewIndex, msgKey);
-          m_flags.InsertElementAt(viewIndex, msgFlags);
-          levelToAdd = FindLevelInThread(msgHdr, startOfThreadViewIndex, viewIndex);
-          m_levels.InsertElementAt(viewIndex, levelToAdd);
+          InsertMsgHdrAt(viewIndex, msgHdr, msgKey, msgFlags,
+                FindLevelInThread(msgHdr, startOfThreadViewIndex, viewIndex));
           viewIndex++;
           (*pNumListed)++;
         }

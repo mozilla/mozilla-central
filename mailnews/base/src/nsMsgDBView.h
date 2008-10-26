@@ -229,6 +229,12 @@ protected:
   virtual nsresult GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDBHdr **msgHdr);
   nsMsgViewIndex FindIndexForThread(nsIMsgDBHdr *msgHdr, PRBool newThread);
 
+  virtual void InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,
+                              nsMsgKey msgKey, PRUint32 flags, PRUint32 level);
+  virtual void SetMsgHdrAt(nsIMsgDBHdr *hdr, nsMsgViewIndex index, 
+                              nsMsgKey msgKey, PRUint32 flags, PRUint32 level);
+  virtual PRBool InsertEmptyRows(nsMsgViewIndex viewIndex, PRInt32 numRows);
+  virtual void RemoveRows(nsMsgViewIndex viewIndex, PRInt32 numRows);
   nsresult ToggleExpansion(nsMsgViewIndex index, PRUint32 *numChanged);
   nsresult ExpandByIndex(nsMsgViewIndex index, PRUint32 *pNumExpanded);
   nsresult CollapseByIndex(nsMsgViewIndex index, PRUint32 *pNumCollapsed);
