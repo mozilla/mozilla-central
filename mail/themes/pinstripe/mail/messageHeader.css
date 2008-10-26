@@ -57,7 +57,9 @@
 #expandedHeaderView {
   color: #2e3436;
   font-size: 100%;
-  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 14em;
 }
 
 #variousHeadersBox{
