@@ -148,7 +148,7 @@
         <tabpanel orient="vertical">
           <label control="tagList">&displayTagsText.label;</label>
           <hbox>
-            <listbox id="tagList" flex="1" rows="10"/>
+            <listbox id="tagList" flex="1" rows="10" ondblclick="gDisplayPane.editTag();"/>
             <vbox>
               <button label="&addTagButton.label;" accesskey="&addTagButton.accesskey;"
                       oncommand="gDisplayPane.addTag();"/>
