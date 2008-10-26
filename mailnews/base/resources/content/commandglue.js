@@ -709,23 +709,6 @@ function CreateDBView(msgFolder, viewType, viewFlags, sortType, sortOrder)
   ObserverService.notifyObservers(msgFolder, "MsgCreateDBView", viewType + ":" + viewFlags);
 }
 
-//------------------------------------------------------------
-// Sets the column header sort icon based on the requested
-// column and direction.
-//
-// Notes:
-// (1) This function relies on the first part of the
-//     <treecell id> matching the <treecol id>.  The treecell
-//     id must have a "Header" suffix.
-// (2) By changing the "sortDirection" attribute, a different
-//     CSS style will be used, thus changing the icon based on
-//     the "sortDirection" parameter.
-//------------------------------------------------------------
-function UpdateSortIndicator(column,sortDirection)
-{
-  // this is obsolete
-}
-
 function GetSelectedFolderResource()
 {
     var folderTree = GetFolderTree();
