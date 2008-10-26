@@ -511,13 +511,27 @@ GlodaCollection.prototype = {
         this._idMap[item.id] = item;
       }
     }
-    if (this._listener)
-      this._listener.onItemsAdded(aItems, this);
+    if (this._listener) {
+      try {
+        this._listener.onItemsAdded(aItems, this);
+      }
+      catch (ex) {
+        LOG.error("caught exception from listener in onItemsAdded: " + 
+            ex.fileName + ":" + ex.lineNumber + ": " + ex);
+      }
+    }
   },
   
   _onItemsModified: function gloda_coll_onItemsModified(aItems) {
-    if (this._listener)
-      this._listener.onItemsModified(aItems, this);
+    if (this._listener) {
+      try {
+        this._listener.onItemsModified(aItems, this);
+      }
+      catch (ex) {
+        LOG.error("caught exception from listener in onItemsModified: " + 
+            ex.fileName + ":" + ex.lineNumber + ": " + ex);
+      }
+    }
   },
   
   /**
@@ -547,8 +561,15 @@ GlodaCollection.prototype = {
     }
     items.slice(iWrite);
     
-    if (this._listener)
-      this._listener.onItemsRemoved(aItems, this);
+    if (this._listener) {
+      try {
+        this._listener.onItemsRemoved(aItems, this);
+      }
+      catch (ex) {
+        LOG.error("caught exception from listener in onItemsRemoved: " + 
+            ex.fileName + ":" + ex.lineNumber + ": " + ex);
+      }
+    }
   },
 
   _onQueryCompleted: function gloda_coll_onQueryCompleted() {

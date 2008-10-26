@@ -1839,6 +1839,10 @@ var GlodaIndexer = {
   _folderListener: {
     indexer: null,
     _kFolderLoadedAtom: null,
+    _kKeywordsAtom: null,
+    _kStatusAtom: null,
+    _kFlaggedAtom: null,
+    _kJunkStatusChangedAtom: null,
     
     _init: function gloda_indexer_fl_init(aIndexer) {
       this.indexer = aIndexer;
@@ -1847,6 +1851,7 @@ var GlodaIndexer = {
       this._kFolderLoadedAtom = atomService.getAtom("FolderLoaded");
       // we explicitly know about these things rather than bothering with some
       //  form of registration scheme because these aren't going to change much.
+      this._kKeywordsAtom = atomService.getAtom("Keywords");
       this._kStatusAtom = atomService.getAtom("Status");
       this._kFlaggedAtom = atomService.getAtom("Flagged");
       this._kJunkStatusChangedAtom = atomService.getAtom("JunkStatusChanged");
@@ -1915,7 +1920,8 @@ var GlodaIndexer = {
      */
     OnItemPropertyFlagChanged: function gloda_indexer_OnItemPropertyFlagChanged(
                                 aMsgHdr, aProperty, aOldValue, aNewValue) {
-      if (aProperty == this._kStatusAtom ||
+      if (aProperty == this._kKeywordsAtom ||
+          aProperty == this._kStatusAtom ||
           aProperty == this._kFlaggedAtom ||
           aProperty == this._kJunkStatusChangedAtom) {
         if (this.indexer.enabled) {
