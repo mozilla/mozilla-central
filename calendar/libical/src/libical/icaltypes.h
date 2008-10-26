@@ -4,7 +4,8 @@
  CREATOR: eric 20 March 1999
 
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -77,6 +78,7 @@ struct icalreqstattype {
 
 struct icalreqstattype icalreqstattype_from_string(const char* str);
 const char* icalreqstattype_as_string(struct icalreqstattype);
+char* icalreqstattype_as_string_r(struct icalreqstattype);
 
 
 

@@ -2,7 +2,7 @@
   FILE: icalcomponent.c
   CREATOR: eric 28 April 1999
   
-  $Id: icalcomponent.c,v 1.60 2007/11/30 22:32:08 dothebart Exp $
+  $Id: icalcomponent.c,v 1.64 2008-01-30 20:28:42 dothebart Exp $
 
  (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
 
@@ -46,11 +46,6 @@
 #include <stdio.h> /* for fprintf */
 #include <string.h> /* for strdup */
 #include <limits.h> /* for INT_MAX */
-
-#ifdef WIN32
-#define strncasecmp      strnicmp
-#endif
-
 
 struct icalcomponent_impl 
 {
@@ -173,7 +168,7 @@ icalcomponent_vanew (icalcomponent_kind kind, ...)
 
 /** @brief Constructor
  */
-icalcomponent* icalcomponent_new_from_string(char* str)
+icalcomponent* icalcomponent_new_from_string(const char* str)
 {
     return icalparser_parse_string(str);
 }
@@ -289,28 +284,27 @@ icalcomponent_free (icalcomponent* c)
     }
 }
 
+
 char*
 icalcomponent_as_ical_string (icalcomponent* impl)
 {
-   char* buf, *out_buf;
-   const char* tmp_buf;
+	char *buf;
+	buf = icalcomponent_as_ical_string_r(impl);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
+
+char*
+icalcomponent_as_ical_string_r (icalcomponent* impl)
+{
+   char* buf;
+   char* tmp_buf;
    size_t buf_size = 1024;
    char* buf_ptr = 0;
     pvl_elem itr;
-
-/* RFC 2445 explicitly says that the newline is *ALWAYS* a \r\n (CRLF)!!!! */
-
-/* WIN32 automatically adds the \r, Anybody else need it?
-   well, the spec says \r\n is a MUST
-
-#ifdef ICAL_UNIX_NEWLINE    
-    char newline[] = "\n";
-#else
-*/
-    char newline[] = "\r\n";
-/*
-#endif
-*/
+   /* RFC 2445 explicitly says that the newline is *ALWAYS* a \r\n (CRLF)!!!! */
+   const char newline[] = "\r\n";
    
    icalcomponent *c;
    icalproperty *p;
@@ -345,9 +339,10 @@ icalcomponent_as_ical_string (icalcomponent* impl)
 	p = (icalproperty*)pvl_data(itr);
 	
 	icalerror_assert((p!=0),"Got a null property");
-	tmp_buf = icalproperty_as_ical_string(p);
+	tmp_buf = icalproperty_as_ical_string_r(p);
 	
 	icalmemory_append_string(&buf, &buf_ptr, &buf_size, tmp_buf);
+	free(tmp_buf);
     }
    
    
@@ -357,9 +352,10 @@ icalcomponent_as_ical_string (icalcomponent* impl)
    {	
        c = (icalcomponent*)pvl_data(itr);
        
-       tmp_buf = icalcomponent_as_ical_string(c);
+       tmp_buf = icalcomponent_as_ical_string_r(c);
        
        icalmemory_append_string(&buf, &buf_ptr, &buf_size, tmp_buf);
+       free(tmp_buf);
        
    }
    
@@ -368,10 +364,7 @@ icalcomponent_as_ical_string (icalcomponent* impl)
 			    icalcomponent_kind_to_string(kind));
    icalmemory_append_string(&buf, &buf_ptr, &buf_size, newline);
 
-   out_buf = icalmemory_tmp_copy(buf);
-   free(buf);
-
-   return out_buf;
+   return buf;
 }
 
 
@@ -880,8 +873,8 @@ int icalproperty_recurrence_is_excluded(icalcomponent *comp,
 
   /** Now test against the EXRULEs **/
   for (exrule = icalcomponent_get_first_property(comp,ICAL_EXRULE_PROPERTY);
-       exdate != NULL;
-       exdate = icalcomponent_get_next_property(comp,ICAL_EXRULE_PROPERTY)) {
+       exrule != NULL;
+       exrule = icalcomponent_get_next_property(comp,ICAL_EXRULE_PROPERTY)) {
 	 
     struct icalrecurrencetype recur = icalproperty_get_exrule(exrule);
     icalrecur_iterator *exrule_itr  = icalrecur_iterator_new(recur, *dtstart);
@@ -1052,7 +1045,7 @@ void icalcomponent_foreach_recurrence(icalcomponent* comp,
     struct icaltimetype rrule_time = icalrecur_iterator_next(rrule_itr);
     /** note that icalrecur_iterator_next always returns dtstart
 	the first time.. **/
-    
+
     while (1) {
       rrule_time = icalrecur_iterator_next(rrule_itr);
 
@@ -1289,9 +1282,10 @@ static const struct icalcomponent_kind_map component_map[] =
     { ICAL_VSCHEDULE_COMPONENT, "SCHEDULE" },
 
     /* CAP components */
-    { ICAL_VQUERY_COMPONENT, "VQUERY" },  
     { ICAL_VCAR_COMPONENT, "VCAR" },  
     { ICAL_VCOMMAND_COMPONENT, "VCOMMAND" },  
+    { ICAL_VQUERY_COMPONENT, "VQUERY" },  
+    { ICAL_VREPLY_COMPONENT, "VREPLY" },
 
     /* libical private components */
     { ICAL_XLICINVALID_COMPONENT, "X-LIC-UNKNOWN" },  
@@ -1517,7 +1511,7 @@ icalproperty_method icalcomponent_get_method(icalcomponent* comp)
  */
 void icalcomponent_set_dtstart(icalcomponent* comp, struct icaltimetype v)
 {
-    char *tzid;
+    const char *tzid;
     ICALSETUPSET(ICAL_DTSTART_PROPERTY);
 
     if (prop == 0){
@@ -1546,6 +1540,7 @@ void icalcomponent_set_dtstart(icalcomponent* comp, struct icaltimetype v)
 static struct icaltimetype
 icalcomponent_get_datetime(icalcomponent *comp, icalproperty *prop) {
 
+    icalcomponent      *c;
     icalparameter      *param;
     struct icaltimetype	ret;
 
@@ -1554,11 +1549,19 @@ icalcomponent_get_datetime(icalcomponent *comp, icalproperty *prop) {
     if ((param = icalproperty_get_first_parameter(prop, ICAL_TZID_PARAMETER))
 	!= NULL) {
 	const char     *tzid = icalparameter_get_tzid(param);
-	icaltimezone   *tz;
+	icaltimezone   *tz = NULL;
 
-	if ((tz = icalcomponent_get_timezone(comp, tzid)) != NULL) {
-	    icaltime_set_timezone(&ret, tz);
+	for (c = comp; c != NULL; c = icalcomponent_get_parent(c)) {
+	    tz = icalcomponent_get_timezone(c, tzid);
+	    if (tz != NULL)
+		break;
 	}
+
+	if (tz == NULL)
+	    tz = icaltimezone_get_builtin_timezone_from_tzid(tzid);
+
+	if (tz != NULL)
+	    ret = icaltime_set_timezone(&ret, tz);
     }
 
     return ret;
@@ -1635,7 +1638,7 @@ struct icaltimetype icalcomponent_get_dtend(icalcomponent* comp)
  */
 void icalcomponent_set_dtend(icalcomponent* comp, struct icaltimetype v)
 {
-    char *tzid;
+    const char *tzid;
     ICALSETUPSET(ICAL_DTEND_PROPERTY);
 
     if (icalcomponent_get_first_property(inner,ICAL_DURATION_PROPERTY)
@@ -2068,6 +2071,10 @@ icalcomponent* icalcomponent_new_vquery()
 {
     return icalcomponent_new(ICAL_VQUERY_COMPONENT);
 }
+icalcomponent* icalcomponent_new_vreply()
+{
+    return icalcomponent_new(ICAL_VREPLY_COMPONENT);
+}
 
 /*
  * Timezone stuff.
@@ -2084,7 +2091,7 @@ void icalcomponent_merge_component(icalcomponent* comp,
 {
   icalcomponent *subcomp, *next_subcomp;
   icalarray *tzids_to_rename;
-  int i;
+  unsigned int i;
 
   /* Check that both components are VCALENDAR components. */
   assert (icalcomponent_isa(comp) == ICAL_VCALENDAR_COMPONENT);
@@ -2204,6 +2211,7 @@ icalcomponent_handle_conflicting_vtimezones (icalcomponent *comp,
   int i, suffix, max_suffix = 0, num_elements;
   unsigned int tzid_len;
   char *tzid_copy, *new_tzid, suffix_buf[32];
+  (void)tzid_prop; /* hack to stop unused variable warning */
 
   /* Find the length of the TZID without any trailing digits. */
   tzid_len = icalcomponent_get_tzid_prefix_len (tzid);
@@ -2218,7 +2226,8 @@ icalcomponent_handle_conflicting_vtimezones (icalcomponent *comp,
   num_elements = comp->timezones ? comp->timezones->num_elements : 0;
   for (i = 0; i < num_elements; i++) {
     icaltimezone *zone;
-    char *existing_tzid, *existing_tzid_copy;
+    const char *existing_tzid;
+    const char *existing_tzid_copy;
     unsigned int existing_tzid_len;
 
     zone = icalarray_element_at (comp->timezones, i);
@@ -2315,7 +2324,7 @@ static void icalcomponent_rename_tzids_callback(icalparameter *param, void *data
 
     /* Step through the rename table to see if the current TZID matches
        any of the ones we want to rename. */
-    for (i = 0; i < rename_table->num_elements - 1; i += 2) {
+    for (i = 0; (unsigned int)i < rename_table->num_elements - 1; i += 2) {
         if (!strcmp (tzid, icalarray_element_at (rename_table, i))) {
 	    icalparameter_set_tzid (param, icalarray_element_at (rename_table, i + 1));
 	    break;
@@ -2372,7 +2381,7 @@ icaltimezone* icalcomponent_get_timezone(icalcomponent* comp, const char *tzid)
 {
     icaltimezone *zone;
     int lower, upper, middle, cmp;
-    char *zone_tzid;
+    const char *zone_tzid;
 
     if (!comp->timezones)
 	return NULL;
@@ -2464,13 +2473,13 @@ static int icalcomponent_compare_vtimezones (icalcomponent	*vtimezone1,
     icalproperty_set_tzid (prop2, tzid1);
 
     /* Now convert both VTIMEZONEs to strings and compare them. */
-    string1 = icalcomponent_as_ical_string (vtimezone1);
+    string1 = icalcomponent_as_ical_string_r (vtimezone1);
     if (!string1) {
 	free (tzid2_copy);
 	return -1;
     }
 
-    string2 = icalcomponent_as_ical_string (vtimezone2);
+    string2 = icalcomponent_as_ical_string_r (vtimezone2);
     if (!string2) {
 	free (string1);
 	free (tzid2_copy);

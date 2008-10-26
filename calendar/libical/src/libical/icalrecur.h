@@ -4,7 +4,8 @@
  CREATOR: eric 20 March 2000
 
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -114,7 +115,7 @@ enum {
  * Recurrence type routines
  */
 
-/* See RFC 2445 Section 4.3.10, RECUR Value, for an explanation of
+/* See RFC 2445 Section 4.3.10, RECUR Value, for an explaination of
    the values and fields in struct icalrecurrencetype */
 
 #define ICAL_BY_SECOND_SIZE 61
@@ -179,12 +180,14 @@ enum icalrecurrencetype_weekday icalrecurrencetype_day_day_of_week(short day);
 /** 0 == any of day of week. 1 == first, 2 = second, -2 == second to last, etc */
 int icalrecurrencetype_day_position(short day);
 
+icalrecurrencetype_weekday icalrecur_string_to_weekday(const char* str);
 
 /** Recurrance rule parser */
 
 /** Convert between strings and recurrencetype structures. */
 struct icalrecurrencetype icalrecurrencetype_from_string(const char* str);
 char* icalrecurrencetype_as_string(struct icalrecurrencetype *recur);
+char* icalrecurrencetype_as_string_r(struct icalrecurrencetype *recur);
 
 
 /** Recurrence iteration routines */

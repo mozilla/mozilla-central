@@ -3,10 +3,11 @@
   FILE: icalenum.c
   CREATOR: eric 29 April 1999
   
-  $Id: icalenums.c,v 1.15 2007/05/25 02:57:04 artcancro Exp $
+  $Id: icalenums.c,v 1.16 2008-01-15 23:17:40 dothebart Exp $
 
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -101,9 +102,18 @@ const char* icalenum_reqstat_desc(icalrequeststatus stat)
     return 0;
 }
 
+char* icalenum_reqstat_code(icalrequeststatus stat)
+{
+	char *buf;
+	buf = icalenum_reqstat_code_r(stat);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
+
 /*** @brief Return the code for a request status
  */
-char* icalenum_reqstat_code(icalrequeststatus stat)
+char* icalenum_reqstat_code_r(icalrequeststatus stat)
 {
     int i, major, minor;
     char tmpbuf[36];
@@ -113,7 +123,7 @@ char* icalenum_reqstat_code(icalrequeststatus stat)
 	    major = request_status_map[i].major;
 	    minor = request_status_map[i].minor;
 	    snprintf(tmpbuf, sizeof(tmpbuf), "%i.%i", major, minor);
-	    return icalmemory_tmp_copy(tmpbuf);
+	    return icalmemory_strdup(tmpbuf);
 	}
     }
     return NULL;

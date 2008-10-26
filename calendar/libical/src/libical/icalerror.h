@@ -3,10 +3,11 @@
   FILE: icalerror.h
   CREATOR: eric 09 May 1999
   
-  $Id: icalerror.h,v 1.16 2007/05/25 02:57:04 artcancro Exp $
+  $Id: icalerror.h,v 1.17 2008-01-15 23:17:40 dothebart Exp $
 
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -92,6 +93,7 @@ typedef enum icalerrorstate {
 
 const char* icalerror_strerror(icalerrorenum e);
 const char* icalerror_perror();
+void ical_bt(void);
 void icalerror_set_error_state( icalerrorenum error, icalerrorstate);
 icalerrorstate icalerror_get_error_state( icalerrorenum error);
 
@@ -102,8 +104,9 @@ if(icalerror_get_error_state(x)==ICAL_ERROR_FATAL || \
    (icalerror_get_error_state(x)==ICAL_ERROR_DEFAULT && \
     icalerror_errors_are_fatal == 1 )){ \
    icalerror_warn(icalerror_strerror(x)); \
+   ical_bt(); \
    assert(0); \
-} 
+} }
 #else
 void icalerror_set_errno(icalerrorenum x); 
 #endif

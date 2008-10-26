@@ -4,10 +4,11 @@
  CREATOR: eric 26 Jan 2001
 
 
- $Id: icalperiod.h,v 1.5 2007/04/30 13:57:48 artcancro Exp $
+ $Id: icalperiod.h,v 1.6 2008-01-15 23:17:41 dothebart Exp $
  $Locker:  $
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -42,6 +43,7 @@ struct icalperiodtype
 struct icalperiodtype icalperiodtype_from_string (const char* str);
 
 const char* icalperiodtype_as_ical_string(struct icalperiodtype p);
+char* icalperiodtype_as_ical_string_r(struct icalperiodtype p);
 
 struct icalperiodtype icalperiodtype_null_period(void);
 

@@ -3,11 +3,12 @@
   FILE: icaltypes.c
   CREATOR: eric 16 May 1999
   
-  $Id: icaltypes.c,v 1.16 2007/04/30 13:57:48 artcancro Exp $
+  $Id: icaltypes.c,v 1.18 2008-01-15 23:17:42 dothebart Exp $
   $Locker:  $
     
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -77,7 +78,7 @@ struct icaltriggertype icaltriggertype_from_string(const char* str)
 
     
     struct icaltriggertype tr, null_tr;
-    icalerrorstate es;
+    icalerrorstate es = ICAL_ERROR_DEFAULT;
     icalerrorenum e;
 
     tr.time= icaltime_null_time();
@@ -85,10 +86,10 @@ struct icaltriggertype icaltriggertype_from_string(const char* str)
 
     null_tr = tr;
 
-    if(str == 0) goto error;
 
     /* Suppress errors so a failure in icaltime_from_string() does not cause an abort */
     es = icalerror_get_error_state(ICAL_MALFORMEDDATA_ERROR);
+    if(str == 0) goto error;
     icalerror_set_error_state(ICAL_MALFORMEDDATA_ERROR,ICAL_ERROR_NONFATAL);
     e = icalerrno;
     icalerror_set_errno(ICAL_NO_ERROR);
@@ -166,9 +167,18 @@ struct icalreqstattype icalreqstattype_from_string(const char* str)
 
 const char* icalreqstattype_as_string(struct icalreqstattype stat)
 {
+	char *buf;
+	buf = icalreqstattype_as_string_r(stat);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
+
+char* icalreqstattype_as_string_r(struct icalreqstattype stat)
+{
   char *temp;
 
-  temp = (char*)icalmemory_tmp_buffer(TEMP_MAX);
+  temp = (char*)icalmemory_new_buffer(TEMP_MAX);
 
   icalerror_check_arg_rz((stat.code != ICAL_UNKNOWN_STATUS),"Status");
   

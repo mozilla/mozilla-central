@@ -3,7 +3,7 @@
  FILE: icaltimezone.c
  CREATOR: Damon Chaplin 15 March 2001
 
- $Id: icaltimezone.c,v 1.37 2007/12/01 11:14:00 dothebart Exp $
+ $Id: icaltimezone.c,v 1.44 2008-02-03 16:10:46 dothebart Exp $
  $Locker:  $
 
  (C) COPYRIGHT 2001, Damon Chaplin
@@ -30,34 +30,38 @@
 #include "config.h"
 #endif
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "icalproperty.h"
 #include "icalarray.h"
 #include "icalerror.h"
 #include "icalparser.h"
 #include "icaltimezone.h"
+#include "icaltz-util.h"
+
+#include <sys/stat.h>
 
 #ifdef WIN32
-#define strcasecmp stricmp
-#define PACKAGE_DATA_DIR "/Projects/libical"
-#else
-#ifdef XP_MAC
-#define PACKAGE_DATA_DIR "/Projects/libical"
-#else
-#ifndef PACKAGE_DATA_DIR
-#define PACKAGE_DATA_DIR "/usr/share/libical"
-#endif
-#endif
+#include <mbstring.h>
+#include <windows.h>
+/* Undef the similar macro from pthread.h, it doesn't check if
+ * gmtime() returns NULL.
+ */
+#undef gmtime_r
+
+/* The gmtime() in Microsoft's C library is MT-safe */
+#define gmtime_r(tp,tmp) (gmtime(tp)?(*(tmp)=*gmtime(tp),(tmp)):0)
 #endif
 
 /** This is the toplevel directory where the timezone data is installed in. */
 #define ZONEINFO_DIRECTORY	PACKAGE_DATA_DIR "/zoneinfo"
 
 /** The prefix we use to uniquely identify TZIDs. */
-#define TZID_PREFIX		"/softwarestudio.org/"
-#define TZID_PREFIX_LEN		20
+#define TZID_PREFIX		"/citadel.org/"
+#define TZID_PREFIX_LEN		13
 
 /** This is the filename of the file containing the city names and
     coordinates of all the builtin timezones. */
@@ -74,7 +78,7 @@
 struct _icaltimezone {
     char		*tzid;
     /**< The unique ID of this timezone,
-       e.g. "/softwarestudio.org/Olson_20010601_1/Africa/Banjul".
+       e.g. "/citadel.org/Olson_20010601_1/Africa/Banjul".
        This should only be used to identify a VTIMEZONE. It is not
        meant to be displayed to the user in any form. */
 
@@ -151,7 +155,7 @@ static icaltimezone utc_timezone = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 static char* zone_files_directory = NULL;
 
-static void  icaltimezone_reset			(icaltimezone   *zone);
+static void  icaltimezone_reset			(icaltimezone *zone);
 static char* icaltimezone_get_location_from_vtimezone (icalcomponent *component);
 static char* icaltimezone_get_tznames_from_vtimezone (icalcomponent *component);
 static void  icaltimezone_expand_changes	(icaltimezone	*zone,
@@ -162,7 +166,7 @@ static void  icaltimezone_expand_vtimezone	(icalcomponent	*comp,
 static int   icaltimezone_compare_change_fn	(const void	*elem1,
 						 const void	*elem2);
 
-static int   icaltimezone_find_nearby_change	(icaltimezone	*zone,
+static int   icaltimezone_find_nearby_change	(icaltimezone *zone,
 						 icaltimezonechange *change);
 
 static void  icaltimezone_adjust_change		(icaltimezonechange *tt,
@@ -171,18 +175,18 @@ static void  icaltimezone_adjust_change		(icaltimezonechange *tt,
 						 int		 minutes,
 						 int		 seconds);
 
-static void  icaltimezone_init			(icaltimezone	*zone);
+static void  icaltimezone_init			(icaltimezone *zone);
 
 /** Gets the TZID, LOCATION/X-LIC-LOCATION, and TZNAME properties from the
    VTIMEZONE component and places them in the icaltimezone. It returns 1 on
    success, or 0 if the TZID can't be found. */
-static int   icaltimezone_get_vtimezone_properties (icaltimezone  *zone,
+static int   icaltimezone_get_vtimezone_properties (icaltimezone *zone,
 						    icalcomponent *component);
 
 
-static void  icaltimezone_load_builtin_timezone	(icaltimezone	*zone);
+static void  icaltimezone_load_builtin_timezone	(icaltimezone *zone);
 
-static void  icaltimezone_ensure_coverage	(icaltimezone	*zone,
+static void  icaltimezone_ensure_coverage	(icaltimezone *zone,
 						 int		 end_year);
 
 
@@ -190,15 +194,15 @@ static void  icaltimezone_init_builtin_timezones(void);
 
 static void  icaltimezone_parse_zone_tab	(void);
 
+#ifdef USE_BUILTIN_TZDATA
 static char* icaltimezone_load_get_line_fn	(char		*s,
 						 size_t		 size,
 						 void		*data);
+#endif
 
 static void  format_utc_offset			(int		 utc_offset,
 						 char		*buffer);
-
-static char* get_zone_directory(void);
-
+static const char* get_zone_directory(void);
 
 /** Creates a new icaltimezone. */
 icaltimezone*
@@ -217,6 +221,25 @@ icaltimezone_new			(void)
     return zone;
 }
 
+icaltimezone *
+icaltimezone_copy			(icaltimezone *originalzone)
+{
+    icaltimezone *zone;
+
+    zone = (icaltimezone*) malloc (sizeof (icaltimezone));
+    if (!zone) {
+	icalerror_set_errno (ICAL_NEWFAILED_ERROR);
+	return NULL;
+    }
+
+    memcpy (zone, originalzone, sizeof (icaltimezone));
+    if (zone->location != NULL) 
+	zone->location = strdup (zone->location);
+    if (zone->tznames != NULL)
+	zone->tznames = strdup (zone->tznames);
+
+    return zone;
+}
 
 /** Frees all memory used for the icaltimezone. */
 void
@@ -270,11 +293,11 @@ icaltimezone_init			(icaltimezone	*zone)
    it expects the zone to be initialized or reset - it doesn't free
    any old values. */
 static int
-icaltimezone_get_vtimezone_properties	(icaltimezone	*zone,
+icaltimezone_get_vtimezone_properties	(icaltimezone *zone,
 					 icalcomponent	*component)
 {
     icalproperty *prop;
-    const char *tzid;
+    const char *tzid, *tzname;
  
     prop = icalcomponent_get_first_property (component, ICAL_TZID_PROPERTY);
     if (!prop)
@@ -285,6 +308,13 @@ icaltimezone_get_vtimezone_properties	(icaltimezone	*zone,
     if (!tzid)
 	return 0;
 
+    prop = icalcomponent_get_first_property (component, ICAL_TZNAME_PROPERTY);
+    if (prop) {
+	tzname = icalproperty_get_tzname (prop);
+	zone->tznames = strdup(tzname);	
+    } else
+	zone->tznames = NULL;
+    
     zone->tzid = strdup (tzid);
     zone->component = component;
 	if ( zone->location != 0 ) free ( zone->location );
@@ -442,7 +472,7 @@ icaltimezone_get_tznames_from_vtimezone (icalcomponent *component)
 
 
 static void
-icaltimezone_ensure_coverage		(icaltimezone	*zone,
+icaltimezone_ensure_coverage		(icaltimezone *zone,
 					 int		 end_year)
 {
     /* When we expand timezone changes we always expand at least up to this
@@ -474,7 +504,7 @@ icaltimezone_ensure_coverage		(icaltimezone	*zone,
 
 
 static void
-icaltimezone_expand_changes		(icaltimezone	*zone,
+icaltimezone_expand_changes		(icaltimezone *zone,
 					 int		 end_year)
 {
     icalarray *changes;
@@ -701,8 +731,8 @@ icaltimezone_compare_change_fn		(const void	*elem1,
     const icaltimezonechange *change1, *change2;
     int retval;
 
-    change1 = elem1;
-    change2 = elem2;
+    change1 = (const icaltimezonechange *)elem1;
+    change2 = (const icaltimezonechange *)elem2;
 
     if (change1->year < change2->year)
 	retval = -1;
@@ -744,8 +774,8 @@ icaltimezone_compare_change_fn		(const void	*elem1,
 
 void
 icaltimezone_convert_time		(struct icaltimetype *tt,
-					 icaltimezone	*from_zone,
-					 icaltimezone	*to_zone)
+					 icaltimezone *from_zone,
+					 icaltimezone *to_zone)
 {
     int utc_offset, is_daylight;
 
@@ -872,7 +902,7 @@ icaltimezone_get_utc_offset		(icaltimezone	*zone,
 	if (change_num < 0)
 	    return 0;
 
-	if (change_num >= zone->changes->num_elements)
+	if ((unsigned int)change_num >= zone->changes->num_elements)
 	    break;
 
 	zone_change = icalarray_element_at (zone->changes, change_num);
@@ -1007,7 +1037,7 @@ icaltimezone_get_utc_offset_of_utc_time	(icaltimezone	*zone,
 	if (change_num < 0)
 	    return 0;
 
-	if (change_num >= zone->changes->num_elements)
+	if ((unsigned int)change_num >= zone->changes->num_elements)
 	    break;
 
 	zone_change = icalarray_element_at (zone->changes, change_num);
@@ -1030,7 +1060,7 @@ icaltimezone_get_utc_offset_of_utc_time	(icaltimezone	*zone,
 /** Returns the index of a timezone change which is close to the time
    given in change. */
 static int
-icaltimezone_find_nearby_change		(icaltimezone		*zone,
+icaltimezone_find_nearby_change		(icaltimezone	*zone,
 					 icaltimezonechange	*change)
 {
     icaltimezonechange *zone_change;
@@ -1131,8 +1161,8 @@ icaltimezone_adjust_change		(icaltimezonechange *tt,
 }
 
 
-char*
-icaltimezone_get_tzid			(icaltimezone	*zone)
+const char*
+icaltimezone_get_tzid			(icaltimezone *zone)
 {
     /* If this is a floating time, without a timezone, return NULL. */
     if (!zone)
@@ -1145,8 +1175,8 @@ icaltimezone_get_tzid			(icaltimezone	*zone)
 }
 
 
-char*
-icaltimezone_get_location		(icaltimezone	*zone)
+const char*
+icaltimezone_get_location		(icaltimezone *zone)
 {
     /* If this is a floating time, without a timezone, return NULL. */
     if (!zone)
@@ -1158,8 +1188,8 @@ icaltimezone_get_location		(icaltimezone	*zone)
 }
 
 
-char*
-icaltimezone_get_tznames		(icaltimezone	*zone)
+const char*
+icaltimezone_get_tznames		(icaltimezone *zone)
 {
     /* If this is a floating time, without a timezone, return NULL. */
     if (!zone)
@@ -1174,7 +1204,7 @@ icaltimezone_get_tznames		(icaltimezone	*zone)
 
 /** Returns the latitude of a builtin timezone. */
 double
-icaltimezone_get_latitude		(icaltimezone	*zone)
+icaltimezone_get_latitude		(icaltimezone *zone)
 {
     /* If this is a floating time, without a timezone, return 0. */
     if (!zone)
@@ -1188,7 +1218,7 @@ icaltimezone_get_latitude		(icaltimezone	*zone)
 
 /** Returns the longitude of a builtin timezone. */
 double
-icaltimezone_get_longitude		(icaltimezone	*zone)
+icaltimezone_get_longitude		(icaltimezone *zone)
 {
     /* If this is a floating time, without a timezone, return 0. */
     if (!zone)
@@ -1202,7 +1232,7 @@ icaltimezone_get_longitude		(icaltimezone	*zone)
 
 /** Returns the VTIMEZONE component of a timezone. */
 icalcomponent*
-icaltimezone_get_component		(icaltimezone	*zone)
+icaltimezone_get_component		(icaltimezone *zone)
 {
     /* If this is a floating time, without a timezone, return NULL. */
     if (!zone)
@@ -1219,11 +1249,48 @@ icaltimezone_get_component		(icaltimezone	*zone)
    tzid, location & tzname fields. It returns 1 on success or 0 on
    failure, i.e.  no TZID was found. */
 int
-icaltimezone_set_component		(icaltimezone	*zone,
+icaltimezone_set_component		(icaltimezone *zone,
 					 icalcomponent	*comp)
 {
     icaltimezone_reset (zone);
     return icaltimezone_get_vtimezone_properties (zone, comp);
+}
+
+
+/* Returns the timezone name to display to the user. We prefer to use the
+   Olson city name, but fall back on the TZNAME, or finally the TZID. We don't
+   want to use "" as it may be wrongly interpreted as a floating time.
+   Do not free the returned string. */
+const char*
+icaltimezone_get_display_name		(icaltimezone	*zone)
+{
+	const char *display_name;
+
+	display_name = icaltimezone_get_location (zone);
+	if (!display_name)
+		display_name = icaltimezone_get_tznames (zone);
+	if (!display_name) {
+		display_name = icaltimezone_get_tzid (zone);
+		/* Outlook will strip out X-LIC-LOCATION property and so all
+		   we get back in the iTIP replies is the TZID. So we see if
+		   this is one of our TZIDs and if so we jump to the city name
+		   at the end of it. */
+		if (display_name
+		    && !strncmp (display_name, TZID_PREFIX, TZID_PREFIX_LEN)) {
+		    /* Get the location, which is after the 3rd '/' char. */
+		    const char *p;
+		    int num_slashes = 0;
+		    for (p = display_name; *p; p++) {
+			if (*p == '/') {
+			    num_slashes++;
+			    if (num_slashes == 3)
+				return p + 1;
+			}
+		    }
+		}
+	}
+
+	return display_name;
 }
 
 
@@ -1254,7 +1321,7 @@ icaltimezone_array_free			(icalarray	*timezones)
 
 	if ( timezones )
 	{
-		for (i = 0; i < timezones->num_elements; i++) {
+	    for (i = 0; (unsigned int)i < timezones->num_elements; i++) {
 		zone = icalarray_element_at (timezones, i);
 		icaltimezone_free (zone, 0);
 		}
@@ -1295,8 +1362,8 @@ icaltimezone*
 icaltimezone_get_builtin_timezone	(const char *location)
 {
     icaltimezone *zone;
-    int lower, upper, middle, cmp;
-    char *zone_location;
+    int lower;
+    const char *zone_location;
 
     if (!location || !location[0])
 	return NULL;
@@ -1306,7 +1373,8 @@ icaltimezone_get_builtin_timezone	(const char *location)
 
     if (!strcmp (location, "UTC"))
 	return &utc_timezone;
-
+    
+#if 0
     /* Do a simple binary search. */
     lower = middle = 0;
     upper = builtin_timezones->num_elements;
@@ -1323,10 +1391,88 @@ icaltimezone_get_builtin_timezone	(const char *location)
 	else
 	    lower = middle + 1;
     }
+#endif
+
+    /* The zones from the system are not stored in alphabetical order,
+       so we just do a sequential search */
+    for (lower = 0; lower < builtin_timezones->num_elements; lower++) {
+	zone = icalarray_element_at (builtin_timezones, lower);
+	zone_location = icaltimezone_get_location (zone);
+	if (strcmp (location, zone_location) == 0)
+		return zone;
+    }
 
     return NULL;
 }
 
+static struct icaltimetype
+tm_to_icaltimetype (struct tm *tm)
+{
+	struct icaltimetype itt;
+
+	memset (&itt, 0, sizeof (struct icaltimetype));
+
+	itt.second = tm->tm_sec;
+	itt.minute = tm->tm_min;
+	itt.hour = tm->tm_hour;
+
+	itt.day = tm->tm_mday;
+	itt.month = tm->tm_mon + 1;
+	itt.year = tm->tm_year+ 1900;
+    
+	itt.is_utc = 0;
+	itt.is_date = 0; 
+	
+	return itt;
+}
+
+static int
+get_offset (icaltimezone *zone)
+{
+    struct tm local;
+    struct icaltimetype tt;
+    int offset;
+    time_t now = time(NULL);
+	
+    gmtime_r ((const time_t *) &now, &local);
+    tt = tm_to_icaltimetype (&local);
+    offset = icaltimezone_get_utc_offset(zone, &tt, NULL);
+
+    return offset;
+}
+
+/** Returns a single builtin timezone, given its offset from UTC */
+icaltimezone*
+icaltimezone_get_builtin_timezone_from_offset	(int offset, const char *tzname)
+{
+    icaltimezone *zone=NULL;
+    int count, i;
+    
+    if (!builtin_timezones)
+	icaltimezone_init_builtin_timezones ();
+
+    if (offset==0)
+	return &utc_timezone;
+
+    if (!tzname)
+	return NULL;
+
+    count = builtin_timezones->num_elements;
+
+    for (i=0; i<count; i++) {
+	int z_offset;
+	zone = icalarray_element_at (builtin_timezones, i);
+	if (!zone->component)
+	    icaltimezone_load_builtin_timezone (zone);
+	
+	z_offset = get_offset(zone);
+
+	if (z_offset == offset && zone->tznames && !strcmp(tzname, zone->tznames))
+	    return zone;
+    }
+    
+    return NULL;
+}
 
 /** Returns a single builtin timezone, given its TZID. */
 icaltimezone*
@@ -1393,11 +1539,76 @@ static void
 icaltimezone_init_builtin_timezones	(void)
 {
     /* Initialize the special UTC timezone. */
-    utc_timezone.tzid = "UTC";
+    utc_timezone.tzid = (char *)"UTC";
 
     icaltimezone_parse_zone_tab ();
 }
 
+static int
+parse_coord			(char		*coord,
+				 int		 len,
+				 int		*degrees, 
+				 int 		*minutes,
+				 int 		*seconds)
+{
+	if (len == 5)
+		sscanf (coord + 1, "%2d%2d", degrees, minutes);
+	else if (len == 6)
+		sscanf (coord + 1, "%3d%2d", degrees, minutes);
+	else if (len == 7)
+		sscanf (coord + 1, "%2d%2d%2d", degrees, minutes, seconds);
+	else if (len == 8)
+		sscanf (coord + 1, "%3d%2d%2d", degrees, minutes, seconds);
+	else {
+		fprintf (stderr, "Invalid coordinate: %s\n", coord);
+		return 1;
+	}
+
+	if (coord [0] == '-')
+		*degrees = -*degrees;
+	return 0;
+}
+static int
+fetch_lat_long_from_string  (const char *str, int *latitude_degrees, int *latitude_minutes, int *latitude_seconds,
+		int *longitude_degrees, int *longitude_minutes, int *longitude_seconds, char *location)
+{
+	size_t len;
+	char *sptr, *lat, *lon, *loc, *temp;
+
+	/* We need to parse the latitude/longitude co-ordinates and location fields  */
+	sptr = (char *) str;
+	while (*sptr != '\t')
+		sptr++;
+	temp = ++sptr;
+	while (*sptr != '\t')
+		sptr++;
+	len = sptr-temp;
+	lat = (char *) malloc (len + 1);
+	lat = strncpy (lat, temp, len);
+	lat [len] = '\0';
+	while (*sptr != '\t')
+		sptr++;
+	
+	loc = ++sptr;
+	while (!isspace (*sptr))
+		sptr++;
+	len = sptr - loc;
+	location = strncpy (location, loc, len);
+	location [len] = '\0';
+	
+	lon = lat + 1;
+	while (*lon != '+' && *lon != '-')
+		lon++;
+
+	if (parse_coord (lat, lon - lat, latitude_degrees, latitude_minutes, latitude_seconds) == 1 ||
+		       	parse_coord (lon, strlen (lon), longitude_degrees, longitude_minutes, longitude_seconds) 
+			== 1)
+			return 1;
+	
+	free (lat);
+
+	return 0;
+}
 
 /** This parses the zones.tab file containing the names and locations
    of the builtin timezones. It creates the builtin_timezones array
@@ -1414,8 +1625,8 @@ icaltimezone_parse_zone_tab		(void)
     char buf[1024];  /* Used to store each line of zones.tab as it is read. */
     char location[1024]; /* Stores the city name when parsing buf. */
     unsigned int filename_len;
-    int latitude_degrees, latitude_minutes, latitude_seconds;
-    int longitude_degrees, longitude_minutes, longitude_seconds;
+    int latitude_degrees = 0, latitude_minutes = 0, latitude_seconds = 0;
+    int longitude_degrees = 0, longitude_minutes = 0, longitude_seconds = 0;
     icaltimezone zone;
 
     icalerror_assert (builtin_timezones == NULL,
@@ -1423,17 +1634,26 @@ icaltimezone_parse_zone_tab		(void)
 
     builtin_timezones = icalarray_new (sizeof (icaltimezone), 32);
 
+#ifndef USE_BUILTIN_TZDATA
+    filename_len = strlen ((char *) icaltzutil_get_zone_directory()) + strlen (ZONES_TAB_SYSTEM_FILENAME)
+	+ 2;
+#else    
     filename_len = strlen (get_zone_directory()) + strlen (ZONES_TAB_FILENAME)
 	+ 2;
+#endif    
 
     filename = (char*) malloc (filename_len);
     if (!filename) {
 	icalerror_set_errno(ICAL_NEWFAILED_ERROR);
 	return;
     }
-
+#ifndef USE_BUILTIN_TZDATA
+    snprintf (filename, filename_len, "%s/%s", icaltzutil_get_zone_directory (),
+	      ZONES_TAB_SYSTEM_FILENAME);
+#else    
     snprintf (filename, filename_len, "%s/%s", get_zone_directory(),
 	      ZONES_TAB_FILENAME);
+#endif    
 
     fp = fopen (filename, "r");
     free (filename);
@@ -1445,6 +1665,7 @@ icaltimezone_parse_zone_tab		(void)
     while (fgets (buf, sizeof(buf), fp)) {
 	if (*buf == '#') continue;
 
+#ifdef USE_BUILTIN_TZDATA	
 	/* The format of each line is: "latitude longitude location". */
 	if (sscanf (buf, "%4d%2d%2d %4d%2d%2d %s",
 		    &latitude_degrees, &latitude_minutes,
@@ -1455,6 +1676,15 @@ icaltimezone_parse_zone_tab		(void)
 	    fprintf (stderr, "Invalid timezone description line: %s\n", buf);
 	    continue;
 	}
+#else 
+	if (fetch_lat_long_from_string (buf, &latitude_degrees, &latitude_minutes, 
+				&latitude_seconds,
+				&longitude_degrees, &longitude_minutes, &longitude_seconds,
+				location)) {
+	    fprintf (stderr, "Invalid timezone description line: %s\n", buf);
+	    continue;
+	}
+#endif 	
 
 	icaltimezone_init (&zone);
 	zone.location = strdup (location);
@@ -1483,7 +1713,6 @@ icaltimezone_parse_zone_tab		(void)
 	printf ("Found zone: %s %f %f\n",
 		location, zone.latitude, zone.longitude);
 #endif
-	free (zone.location);
     }
 
     fclose (fp);
@@ -1492,24 +1721,34 @@ icaltimezone_parse_zone_tab		(void)
 void
 icaltimezone_release_zone_tab		(void)
 {
+    int i;
     icalarray *mybuiltin_timezones = builtin_timezones;
+
+    if (builtin_timezones == NULL)
+	return;
     builtin_timezones = NULL;
+    for (i = 0; i < mybuiltin_timezones->num_elements; i++)
+	free ( ((icaltimezone*)icalarray_element_at(mybuiltin_timezones, i))->location);
     icalarray_free (mybuiltin_timezones);
 }
 
 /** Loads the builtin VTIMEZONE data for the given timezone. */
 static void
-icaltimezone_load_builtin_timezone	(icaltimezone	*zone)
+icaltimezone_load_builtin_timezone	(icaltimezone *zone)
 {
-    char *filename;
-    unsigned int filename_len;
-    FILE *fp;
-    icalparser *parser;
-    icalcomponent *comp, *subcomp;
+    icalcomponent *subcomp;
 
 	    /* If the location isn't set, it isn't a builtin timezone. */
     if (!zone->location || !zone->location[0])
 	return;
+
+#ifdef USE_BUILTIN_TZDATA
+    {
+    char *filename;
+    icalcomponent *comp;
+    unsigned int filename_len;
+    FILE *fp;
+    icalparser *parser;
 
     filename_len = strlen (get_zone_directory()) + strlen (zone->location) + 6;
 
@@ -1541,11 +1780,13 @@ icaltimezone_load_builtin_timezone	(icaltimezone	*zone)
     icalparser_free (parser);
 	fclose (fp);
 
-	
-	
     /* Find the VTIMEZONE component inside the VCALENDAR. There should be 1. */
     subcomp = icalcomponent_get_first_component (comp,
 						 ICAL_VTIMEZONE_COMPONENT);
+#else
+	subcomp = icaltzutil_fetch_timezone (zone->location);
+#endif	
+
     if (!subcomp) {
 	icalerror_set_errno(ICAL_PARSE_ERROR);
 	return;
@@ -1553,22 +1794,25 @@ icaltimezone_load_builtin_timezone	(icaltimezone	*zone)
 
     icaltimezone_get_vtimezone_properties (zone, subcomp);
 
-	icalcomponent_remove_component(comp,subcomp);
-
-	icalcomponent_free(comp);
+#ifdef USE_BUILTIN_TZDATA
+    icalcomponent_remove_component(comp,subcomp);
+    icalcomponent_free(comp);
+    }
+#endif    
 
 }
 
 
+#ifdef USE_BUILTIN_TZDATA
 /** Callback used from icalparser_parse() */
 static char *
 icaltimezone_load_get_line_fn		(char		*s,
 					 size_t		 size,
 					 void		*data)
 {
-    return fgets (s, size, (FILE*) data);
+    return fgets (s, (int)size, (FILE*) data);
 }
-
+#endif
 
 
 
@@ -1592,11 +1836,11 @@ icaltimezone_load_get_line_fn		(char		*s,
  * to add to UTC to get local time.
  */
 int
-icaltimezone_dump_changes		(icaltimezone	*zone,
+icaltimezone_dump_changes		(icaltimezone *zone,
 					 int		 max_year,
 					 FILE		*fp)
 {
-    static char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    static const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 			      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
     icaltimezonechange *zone_change;
     int change_num;
@@ -1610,7 +1854,7 @@ icaltimezone_dump_changes		(icaltimezone	*zone,
 #endif
 
     change_num = 0;
-    for (change_num = 0; change_num < zone->changes->num_elements; change_num++) {
+    for (change_num = 0; (unsigned int)change_num < zone->changes->num_elements; change_num++) {
 	zone_change = icalarray_element_at (zone->changes, change_num);
 
 	if (zone_change->year > max_year)
@@ -1638,7 +1882,7 @@ static void
 format_utc_offset			(int		 utc_offset,
 					 char		*buffer)
 {
-  char *sign = "+";
+  const char *sign = "+";
   int hours, minutes, seconds;
 
   if (utc_offset < 0) {
@@ -1665,9 +1909,98 @@ format_utc_offset			(int		 utc_offset,
     snprintf (buffer, sizeof(buffer), "%s%02i%02i%02i", sign, hours, minutes, seconds);
 }
 
-static char* get_zone_directory(void)
+static const char* get_zone_directory(void)
 {
+#ifndef WIN32
 	return zone_files_directory == NULL ? ZONEINFO_DIRECTORY : zone_files_directory;
+#else
+	wchar_t wbuffer[1000];
+	char buffer[1000], zoneinfodir[1000], dirname[1000];
+	int used_default;
+	static char *cache = NULL;
+	char *dirslash, *zislash;
+	struct stat st;
+
+	if (zone_files_directory)
+	    return zone_files_directory;
+
+	if (cache)
+	    return cache;
+
+	/* Get the filename of the application */
+	if (!GetModuleFileNameW (NULL, wbuffer, sizeof (wbuffer) / sizeof (wbuffer[0])))
+	    return ZONEINFO_DIRECTORY;
+
+	/* Convert to system codepage */
+	if (!WideCharToMultiByte (CP_ACP, 0, wbuffer, -1, buffer, sizeof (buffer),
+				  NULL, &used_default) ||
+	    used_default) {
+	    /* Failed, try 8.3 format */
+	    if (!GetShortPathNameW (wbuffer, wbuffer,
+				    sizeof (wbuffer) / sizeof (wbuffer[0])) ||
+		!WideCharToMultiByte (CP_ACP, 0, wbuffer, -1, buffer, sizeof (buffer),
+				      NULL, &used_default) ||
+		used_default)
+		return ZONEINFO_DIRECTORY;
+	}
+	/* Look for the zoneinfo directory somewhere in the path where
+	 * the app is installed. If the path to the app is
+	 *
+	 *	C:\opt\evo-2.6\bin\evolution-2.6.exe 
+	 *
+	 * and the compile-time ZONEINFO_DIRECTORY is
+	 *
+	 *	C:/devel/target/evo/share/evolution-data-server-1.6/zoneinfo,
+	 *
+	 * we check the pathnames:
+	 *
+	 *	C:\opt\evo-2.6/devel/target/evo/share/evolution-data-server-1.6/zoneinfo
+	 *	C:\opt\evo-2.6/target/evo/share/evolution-data-server-1.6/zoneinfo
+	 *	C:\opt\evo-2.6/evo/share/evolution-data-server-1.6/zoneinfo
+	 *	C:\opt\evo-2.6/share/evolution-data-server-1.6/zoneinfo		<===
+	 *	C:\opt\evo-2.6/evolution-data-server-1.6/zoneinfo
+	 *	C:\opt\evo-2.6/zoneinfo
+	 *	C:\opt/devel/target/evo/share/evolution-data-server-1.6/zoneinfo
+	 *	C:\opt/target/evo/share/evolution-data-server-1.6/zoneinfo
+	 *	C:\opt/evo/share/evolution-data-server-1.6/zoneinfo
+	 *	C:\opt/share/evolution-data-server-1.6/zoneinfo
+	 *	C:\opt/evolution-data-server-1.6/zoneinfo
+	 *	C:\opt/zoneinfo
+	 *	C:/devel/target/evo/share/evolution-data-server-1.6/zoneinfo
+	 *	C:/target/evo/share/evolution-data-server-1.6/zoneinfo
+	 *	C:/evo/share/evolution-data-server-1.6/zoneinfo
+	 *	C:/share/evolution-data-server-1.6/zoneinfo
+	 *	C:/evolution-data-server-1.6/zoneinfo
+	 *	C:/zoneinfo
+	 *
+	 * In Evolution's case, we would get a match already at the
+	 * fourth pathname check.
+	 */
+
+	/* Strip away basename of app .exe first */
+	dirslash = _mbsrchr (buffer, '\\');
+	if (dirslash)
+	    *dirslash = '\0';
+
+	while ((dirslash = _mbsrchr (buffer, '\\'))) {
+	    /* Strip one more directory from app .exe location */
+	    *dirslash = '\0';
+	    
+	    strcpy (zoneinfodir, ZONEINFO_DIRECTORY);
+	    while ((zislash = _mbschr (zoneinfodir, '/'))) {
+		*zislash = '.';
+		strcpy (dirname, buffer);
+		strcat (dirname, "/");
+		strcat (dirname, zislash + 1);
+		if (stat (dirname, &st) == 0 &&
+		    S_ISDIR (st.st_mode)) {
+		    cache = strdup (dirname);
+		    return cache;
+		}
+	    }
+	}
+	return ZONEINFO_DIRECTORY;
+#endif
 }
 
 void set_zone_directory(char *path)

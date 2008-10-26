@@ -4,10 +4,11 @@
  CREATOR: eric 26 Jan 2001
 
 
- $Id: icalduration.h,v 1.4 2007/04/30 13:57:48 artcancro Exp $
+ $Id: icalduration.h,v 1.5 2008-01-15 23:17:40 dothebart Exp $
  $Locker:  $
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -45,6 +46,7 @@ struct icaldurationtype icaldurationtype_from_int(int t);
 struct icaldurationtype icaldurationtype_from_string(const char*);
 int icaldurationtype_as_int(struct icaldurationtype duration);
 char* icaldurationtype_as_ical_string(struct icaldurationtype d);
+char* icaldurationtype_as_ical_string_r(struct icaldurationtype d);
 struct icaldurationtype icaldurationtype_null_duration(void);
 struct icaldurationtype icaldurationtype_bad_duration(void);
 int icaldurationtype_is_null_duration(struct icaldurationtype d);

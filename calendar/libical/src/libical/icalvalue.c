@@ -4,10 +4,11 @@
   FILE: icalvalue.c
   CREATOR: eric 02 May 1999
   
-  $Id: icalvalue.c,v 1.42 2007/05/25 02:57:04 artcancro Exp $
+  $Id: icalvalue.c,v 1.44 2008-01-15 23:17:43 dothebart Exp $
 
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -23,7 +24,7 @@
   The original code is icalvalue.c
 
   Contributions from:
-     Graham Davison (g.m.davison@computer.org)
+     Graham Davison <g.m.davison@computer.org>
 
 
 ======================================================================*/
@@ -46,6 +47,7 @@
 #include <time.h> /* for mktime */
 #include <stdlib.h> /* for atoi and atof */
 #include <limits.h> /* for SHRT_MAX */         
+#include <locale.h>
 #include <ctype.h> /* for isspace and isdigit */
 
 #ifdef WIN32
@@ -287,6 +289,75 @@ icalvalue* icalvalue_new_enum(icalvalue_kind kind, int x_type, const char* str)
     return value;
 }
 
+/**
+ * Transforms a simple float number string into a double.
+ * The decimal separator (if any) of the double has to be '.'
+ * The code is locale *independant* and does *not* change the locale.
+ * It should be thread safe.
+ * If you want a code that that does the same job with a decimal separator
+ * dependant on the current locale, then use strtof() from libc.
+ */
+int simple_str_to_float(const char* from,
+                        float *result,
+                        char** to)
+{
+#define TMP_NUM_SIZE 100
+    char *start=NULL, *end=NULL, *cur=(char*)from ;
+    char tmp_buf[TMP_NUM_SIZE+1] ; /*hack*/
+    struct lconv *loc_data = localeconv () ;
+    int i=0 ;
+
+    /*sanity checks*/
+    if (!from || !result) {
+        return 1 ;
+    }
+
+    /*skip the white spaces at the beginning*/
+    while (cur && isspace (*cur))
+        cur++ ;
+
+    start = cur ;
+    /*
+     * copy the part that looks like a double into tmp_buf
+     * so that we can call strtof() on it.
+     * during the copy, we give ourselves a chance to convert the '.'
+     * into the decimal separator of the current locale.
+     */
+    while (cur && (isdigit (*cur) ||
+                   *cur == '.'    ||
+                   *cur == '+'    ||
+                   *cur == '-')){
+        ++cur ;
+    }
+    end = cur ;
+    if (end - start + 1> 100) {
+        /*huh hoh, number is too big. getting out*/
+        return 1 ;
+    }
+    memset(tmp_buf, 0, TMP_NUM_SIZE+1) ;
+    i=0 ;
+    /*
+     * copy the float number string into tmp_buf, and take
+     * care to have the (optional) decimal separator be the one
+     * of the current locale.
+     */
+    for (i=0 ; i < end - from ;++i) {
+        if (start[i] == '.'
+            && loc_data
+            && loc_data->decimal_point
+            && loc_data->decimal_point[0]
+            && loc_data->decimal_point[0] != '.') {
+            /*replace '.' by the digit separator of the current locale*/
+            tmp_buf[i] = loc_data->decimal_point[0] ;
+        } else {
+            tmp_buf[i] = start[i] ;
+        }
+    }
+    if (to)
+        *to = end ;
+    *result = atof(tmp_buf) ;
+    return 0 ;
+}
 
 icalvalue* icalvalue_new_from_string_with_error(icalvalue_kind kind,const char* str,icalproperty** error)
 {
@@ -315,6 +386,15 @@ icalvalue* icalvalue_new_from_string_with_error(icalvalue_kind kind,const char* 
 	}
 
     case ICAL_BINARY_VALUE:
+    {
+        icalattach *attach;
+        attach = icalattach_new_from_data ((unsigned char*)str, 0, 0);
+        if ( !attach )
+          break;
+        value = icalvalue_new_attach (attach);
+        icalattach_unref (attach);
+        break;
+    }
     case ICAL_BOOLEAN_VALUE:
         {
             /* HACK */
@@ -354,7 +434,15 @@ icalvalue* icalvalue_new_from_string_with_error(icalvalue_kind kind,const char* 
     case ICAL_CLASS_VALUE:
         value = icalvalue_new_enum(kind, (int)ICAL_CLASS_X,str);
         break;
-
+    case ICAL_CMD_VALUE:
+        value = icalvalue_new_enum(kind, ICAL_CMD_X,str);
+        break;
+    case ICAL_QUERYLEVEL_VALUE:
+        value = icalvalue_new_enum(kind, ICAL_QUERYLEVEL_X,str);
+        break;
+    case ICAL_CARLEVEL_VALUE:
+        value = icalvalue_new_enum(kind, ICAL_CARLEVEL_X,str);
+        break;
 
     case ICAL_INTEGER_VALUE:
 	    value = icalvalue_new_integer(atoi(str));
@@ -403,21 +491,51 @@ icalvalue* icalvalue_new_from_string_with_error(icalvalue_kind kind,const char* 
 	    break;
         
     case ICAL_GEO_VALUE:
-	    value = 0;
-	    /* HACK */
-            
-	    if (error != 0){
-		char temp[TMP_BUF_SIZE];
-		strcpy(temp,"GEO Values are not implemented");
-		*error = icalproperty_vanew_xlicerror( 
-		    temp, 
-		    icalparameter_new_xlicerrortype( 
-			ICAL_XLICERRORTYPE_VALUEPARSEERROR), 
-		    0); 
-	    }
+    {
+        char *cur=NULL ;
+        struct icalgeotype geo = {0.0, 0.0};
+  
+        if (simple_str_to_float (str, &geo.lat, &cur)) {
+            goto geo_parsing_error ;
+        }
+  
+        /*skip white spaces*/
+        while (cur && isspace (*cur)) {
+            ++cur ;
+        }
 
-	    /*icalerror_warn("Parsing GEO properties is unimplmeneted");*/
+        /*there is a ';' between the latitude and longitude parts*/
+        if (!cur || *cur != ';') {
+            goto geo_parsing_error ;
+        }
 
+        ++cur ;
+        if (!cur)
+            goto geo_parsing_error ;
+
+        /*skip white spaces*/
+        while (cur && isspace (*cur)) {
+            ++cur ;
+        }
+
+        if (simple_str_to_float (cur, &geo.lon, &cur)) {
+            goto geo_parsing_error ;
+        }
+        value = icalvalue_new_geo (geo) ;
+        break ;
+
+geo_parsing_error:
+        if (error != 0){
+            char temp[TMP_BUF_SIZE];
+            sprintf(temp, "Could not parse %s as a %s property",
+                    str, icalvalue_kind_to_string(kind));
+            *error = icalproperty_vanew_xlicerror(
+                                   temp,
+                                   icalparameter_new_xlicerrortype(
+                                        ICAL_XLICERRORTYPE_VALUEPARSEERROR),
+                                   0);
+        }
+    }
 	    break;
         
     case ICAL_RECUR_VALUE:
@@ -629,7 +747,7 @@ icalvalue_is_valid (const icalvalue* value)
     return 1;
 }
 
-static char* icalvalue_binary_as_ical_string(const icalvalue* value) {
+static char* icalvalue_binary_as_ical_string_r(const icalvalue* value) {
 
     const char* data;
     char* str;
@@ -637,8 +755,8 @@ static char* icalvalue_binary_as_ical_string(const icalvalue* value) {
 
     data = icalvalue_get_binary(value);
 
-    str = (char*)icalmemory_tmp_buffer(60);
-    strcpy(str,"icalvalue_binary_as_ical_string is not implemented yet");
+    str = (char*)icalmemory_new_buffer(60);
+    snprintf(str, 60,"icalvalue_binary_as_ical_string is not implemented yet");
 
     return str;
 }
@@ -646,9 +764,9 @@ static char* icalvalue_binary_as_ical_string(const icalvalue* value) {
 
 #define MAX_INT_DIGITS 12 /* Enough for 2^32 + sign*/ 
     
-static char* icalvalue_int_as_ical_string(const icalvalue* value) {
+static char* icalvalue_int_as_ical_string_r(const icalvalue* value) {
     int data;
-    char* str = (char*)icalmemory_tmp_buffer(MAX_INT_DIGITS); 
+    char* str = (char*)icalmemory_new_buffer(MAX_INT_DIGITS); 
 
     icalerror_check_arg_rz( (value!=0),"value");
 
@@ -659,11 +777,12 @@ static char* icalvalue_int_as_ical_string(const icalvalue* value) {
     return str;
 }
 
-static char* icalvalue_utcoffset_as_ical_string(const icalvalue* value)
+
+static char* icalvalue_utcoffset_as_ical_string_r(const icalvalue* value)
 {    
     int data,h,m,s;
     char sign;
-    char* str = (char*)icalmemory_tmp_buffer(9);
+    char* str = (char*)icalmemory_new_buffer(9);
 
     icalerror_check_arg_rz( (value!=0),"value");
 
@@ -687,14 +806,14 @@ static char* icalvalue_utcoffset_as_ical_string(const icalvalue* value)
     return str;
 }
 
-static char* icalvalue_string_as_ical_string(const icalvalue* value) {
+static char* icalvalue_string_as_ical_string_r(const icalvalue* value) {
 
     const char* data;
     char* str = 0;
     icalerror_check_arg_rz( (value!=0),"value");
     data = value->data.v_string;
 
-    str = (char*)icalmemory_tmp_buffer(strlen(data)+1);   
+    str = (char*)icalmemory_new_buffer(strlen(data)+1);   
 
     strcpy(str,data);
 
@@ -702,11 +821,10 @@ static char* icalvalue_string_as_ical_string(const icalvalue* value) {
 }
 
 
-static char* icalvalue_recur_as_ical_string(const icalvalue* value) 
+static char* icalvalue_recur_as_ical_string_r(const icalvalue* value) 
 {
     struct icalrecurrencetype *recur = value->data.v_recur;
-
-    return icalrecurrencetype_as_string(recur);
+    return icalrecurrencetype_as_string_r(recur);
 }
 
  /* @todo This is not RFC2445 compliant.
@@ -715,10 +833,9 @@ static char* icalvalue_recur_as_ical_string(const icalvalue* value)
  * As such, \t\r\b\f are not allowed, not even escaped
  */
 
-static char* icalvalue_text_as_ical_string(const icalvalue* value) {
+static char* icalvalue_text_as_ical_string_r(const icalvalue* value) {
     char *str;
     char *str_p;
-    char *rtrn;
     const char *p;
     size_t buf_sz;
 
@@ -776,17 +893,21 @@ static char* icalvalue_text_as_ical_string(const icalvalue* value) {
 
 
     icalmemory_append_char(&str,&str_p,&buf_sz,'\0');
-
-    rtrn = icalmemory_tmp_copy(str);
-
-    icalmemory_free_buffer(str);
-
-    return rtrn;
+    return str;
 }
 
 
+static char* icalvalue_text_as_ical_string(const icalvalue* value) {
+	char *buf;
+	buf = icalvalue_text_as_ical_string_r(value);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
+
+
 static char* 
-icalvalue_attach_as_ical_string(const icalvalue* value) 
+icalvalue_attach_as_ical_string_r(const icalvalue* value) 
 {
     icalattach *a;
     char * str;
@@ -799,23 +920,30 @@ icalvalue_attach_as_ical_string(const icalvalue* value)
 	const char *url;
 
 	url = icalattach_get_url (a);
-	str = icalmemory_tmp_buffer (strlen (url) + 1);
+	str = icalmemory_new_buffer (strlen (url) + 1);
 	strcpy (str, url);
 	return str;
-    } else
-	return icalvalue_binary_as_ical_string (value);
+    } else {
+      const char *data = 0;
+      data = (const char*)icalattach_get_data(a);
+      str = icalmemory_new_buffer (strlen (data) + 1);
+      strcpy (str, data);
+      return str;
+}
 }
 
 
-static char* icalvalue_duration_as_ical_string(const icalvalue* value) {
+static char* icalvalue_duration_as_ical_string_r(const icalvalue* value) {
 
     struct icaldurationtype data;
 
     icalerror_check_arg_rz( (value!=0),"value");
     data = icalvalue_get_duration(value);
 
-    return icaldurationtype_as_ical_string(data);
+    return icaldurationtype_as_ical_string_r(data);
 }
+
+
 
 void print_time_to_string(char* str, const struct icaltimetype *data)
 {
@@ -840,14 +968,14 @@ void print_date_to_string(char* str,  const struct icaltimetype *data)
     strcat(str,temp);
 }
 
-static char* icalvalue_date_as_ical_string(const icalvalue* value) {
+static char* icalvalue_date_as_ical_string_r(const icalvalue* value) {
 
     struct icaltimetype data;
     char* str;
     icalerror_check_arg_rz( (value!=0),"value");
     data = icalvalue_get_date(value);
 
-    str = (char*)icalmemory_tmp_buffer(9);
+    str = (char*)icalmemory_new_buffer(9);
  
     str[0] = 0;
     print_date_to_string(str,&data);
@@ -864,7 +992,8 @@ void print_datetime_to_string(char* str,  const struct icaltimetype *data)
     }
 }
 
-static const char* icalvalue_datetime_as_ical_string(const icalvalue* value) {
+
+static char* icalvalue_datetime_as_ical_string_r(const icalvalue* value) {
     
     struct icaltimetype data;
     char* str;
@@ -881,7 +1010,7 @@ static const char* icalvalue_datetime_as_ical_string(const icalvalue* value) {
 
     data = icalvalue_get_datetime(value);
 
-    str = (char*)icalmemory_tmp_buffer(20);
+    str = (char*)icalmemory_new_buffer(20);
  
     str[0] = 0;
 
@@ -891,21 +1020,22 @@ static const char* icalvalue_datetime_as_ical_string(const icalvalue* value) {
 
 }
 
-static char* icalvalue_float_as_ical_string(const icalvalue* value) {
+static char* icalvalue_float_as_ical_string_r(const icalvalue* value) {
 
     float data;
     char* str;
     icalerror_check_arg_rz( (value!=0),"value");
     data = icalvalue_get_float(value);
 
-    str = (char*)icalmemory_tmp_buffer(40);
+    str = (char*)icalmemory_new_buffer(40);
 
     snprintf(str,40,"%f",data);
 
     return str;
 }
 
-static char* icalvalue_geo_as_ical_string(const icalvalue* value) {
+
+static char* icalvalue_geo_as_ical_string_r(const icalvalue* value) {
 
     struct icalgeotype data;
     char* str;
@@ -913,35 +1043,38 @@ static char* icalvalue_geo_as_ical_string(const icalvalue* value) {
 
     data = icalvalue_get_geo(value);
 
-    str = (char*)icalmemory_tmp_buffer(80);
+    str = (char*)icalmemory_new_buffer(80);
 
     snprintf(str,80,"%f;%f",data.lat,data.lon);
 
     return str;
 }
 
-static const char* icalvalue_datetimeperiod_as_ical_string(const icalvalue* value) {
+
+static char* icalvalue_datetimeperiod_as_ical_string_r(const icalvalue* value) {
     struct icaldatetimeperiodtype dtp = icalvalue_get_datetimeperiod(value);
 
     icalerror_check_arg_rz( (value!=0),"value");
 
     if(!icaltime_is_null_time(dtp.time)){
-	return icaltime_as_ical_string(dtp.time);
+	return icaltime_as_ical_string_r(dtp.time);
     } else {
-	return icalperiodtype_as_ical_string(dtp.period);
+	return icalperiodtype_as_ical_string_r(dtp.period);
     }
 }
 
-static const char* icalvalue_period_as_ical_string(const icalvalue* value) {
+
+static char* icalvalue_period_as_ical_string_r(const icalvalue* value) {
     struct icalperiodtype data;
     icalerror_check_arg_rz( (value!=0),"value");
     data = icalvalue_get_period(value);
 
-    return icalperiodtype_as_ical_string(data);
+    return icalperiodtype_as_ical_string_r(data);
 
 }
 
-static const char* icalvalue_trigger_as_ical_string(const icalvalue* value) {
+
+static char* icalvalue_trigger_as_ical_string_r(const icalvalue* value) {
 
     struct icaltriggertype data;
 
@@ -949,15 +1082,25 @@ static const char* icalvalue_trigger_as_ical_string(const icalvalue* value) {
     data = icalvalue_get_trigger(value);
 
     if(!icaltime_is_null_time(data.time)){
-	return icaltime_as_ical_string(data.time);
+	return icaltime_as_ical_string_r(data.time);
     } else {
-	return icaldurationtype_as_ical_string(data.duration);
+	return icaldurationtype_as_ical_string_r(data.duration);
     }   
 
 }
 
 const char*
 icalvalue_as_ical_string(const icalvalue* value)
+{
+	char *buf;
+	buf = icalvalue_as_ical_string_r(value);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
+
+char*
+icalvalue_as_ical_string_r(const icalvalue* value)
 {
     if(value == 0){
 	return 0;
@@ -966,70 +1109,73 @@ icalvalue_as_ical_string(const icalvalue* value)
     switch (value->kind){
 
     case ICAL_ATTACH_VALUE:
-        return icalvalue_attach_as_ical_string(value);
+        return icalvalue_attach_as_ical_string_r(value);
         
     case ICAL_BINARY_VALUE:
-        return icalvalue_binary_as_ical_string(value);
+        return icalvalue_binary_as_ical_string_r(value);
         
     case ICAL_BOOLEAN_VALUE:
     case ICAL_INTEGER_VALUE:
-        return icalvalue_int_as_ical_string(value);                  
+        return icalvalue_int_as_ical_string_r(value);                  
         
     case ICAL_UTCOFFSET_VALUE:
-        return icalvalue_utcoffset_as_ical_string(value);                  
+        return icalvalue_utcoffset_as_ical_string_r(value);                  
         
     case ICAL_TEXT_VALUE:
-        return icalvalue_text_as_ical_string(value);
+        return icalvalue_text_as_ical_string_r(value);
         
     case ICAL_QUERY_VALUE:
-        return icalvalue_string_as_ical_string(value);
+        return icalvalue_string_as_ical_string_r(value);
         
     case ICAL_STRING_VALUE:
     case ICAL_URI_VALUE:
     case ICAL_CALADDRESS_VALUE:
-        return icalvalue_string_as_ical_string(value);
+        return icalvalue_string_as_ical_string_r(value);
         
     case ICAL_DATE_VALUE:
-        return icalvalue_date_as_ical_string(value);
+        return icalvalue_date_as_ical_string_r(value);
     case ICAL_DATETIME_VALUE:
-        return icalvalue_datetime_as_ical_string(value);
+        return icalvalue_datetime_as_ical_string_r(value);
     case ICAL_DURATION_VALUE:
-        return icalvalue_duration_as_ical_string(value);
+        return icalvalue_duration_as_ical_string_r(value);
         
     case ICAL_PERIOD_VALUE:
-        return icalvalue_period_as_ical_string(value);
+        return icalvalue_period_as_ical_string_r(value);
     case ICAL_DATETIMEPERIOD_VALUE:
-        return icalvalue_datetimeperiod_as_ical_string(value);
+        return icalvalue_datetimeperiod_as_ical_string_r(value);
         
     case ICAL_FLOAT_VALUE:
-        return icalvalue_float_as_ical_string(value);
+        return icalvalue_float_as_ical_string_r(value);
         
     case ICAL_GEO_VALUE:
-        return icalvalue_geo_as_ical_string(value);
+        return icalvalue_geo_as_ical_string_r(value);
         
     case ICAL_RECUR_VALUE:
-        return icalvalue_recur_as_ical_string(value);
+        return icalvalue_recur_as_ical_string_r(value);
         
     case ICAL_TRIGGER_VALUE:
-        return icalvalue_trigger_as_ical_string(value);
+        return icalvalue_trigger_as_ical_string_r(value);
 
     case ICAL_REQUESTSTATUS_VALUE:
-        return icalreqstattype_as_string(value->data.v_requeststatus);
+        return icalreqstattype_as_string_r(value->data.v_requeststatus);
         
     case ICAL_ACTION_VALUE:
+    case ICAL_CMD_VALUE:
+    case ICAL_QUERYLEVEL_VALUE:
+    case ICAL_CARLEVEL_VALUE:
     case ICAL_METHOD_VALUE:
     case ICAL_STATUS_VALUE:
     case ICAL_TRANSP_VALUE:
     case ICAL_CLASS_VALUE:
         if(value->x_value !=0){
-            return icalmemory_tmp_copy(value->x_value);
+            return icalmemory_strdup(value->x_value);
         }
 
-        return icalproperty_enum_to_string(value->data.v_enum);
+        return icalproperty_enum_to_string_r(value->data.v_enum);
         
     case ICAL_X_VALUE: 
 	if (value->x_value != 0)
-            return icalmemory_tmp_copy(value->x_value);
+            return icalmemory_strdup(value->x_value);
 
     /* FALLTHRU */
 
@@ -1183,9 +1329,12 @@ icalvalue_compare(const icalvalue* a, const icalvalue *b)
 	case ICAL_RECUR_VALUE:
 	{
 	    int r;
-
-	    r =  strcmp(icalvalue_as_ical_string(a),
-			  icalvalue_as_ical_string(b));
+	    char *temp1, *temp2;
+	    temp1 = icalvalue_as_ical_string_r(a);
+	    temp2 = icalvalue_as_ical_string_r(b);
+	    r =  strcmp(temp1, temp2);
+	    free(temp1);
+	    free(temp2);
 
 	    if (r > 0) { 	
 		return ICAL_XLICCOMPARETYPE_GREATER;
@@ -1291,22 +1440,63 @@ int icalvalue_encode_ical_string(const char *szText, char *szEncText, int nMaxBu
     if (value == 0)
         return 0;
     
-    ptr = icalvalue_text_as_ical_string(value);
+    ptr = icalvalue_text_as_ical_string_r(value);
     if (ptr == 0)
         return 0;
     
     if ((int)strlen(ptr) >= nMaxBufferLen)
         {
             icalvalue_free (value);
+	    free(ptr);
             return 0;
         }
 
     strcpy(szEncText, ptr);
+    free(ptr);
 
     icalvalue_free ((icalvalue*)value);
 
     return 1;
 }
+
+int icalvalue_decode_ical_string(const char *szText, char *szDecText, int nMaxBufferLen)
+{
+    char *str, *str_p;
+    const char *p;
+    size_t buf_sz;
+
+    if ((szText == 0) || (szDecText == 0))
+        return 0;
+	
+    buf_sz = strlen(szText);
+    str_p = str = (char*)icalmemory_new_buffer(buf_sz + 1);
+
+    if (str_p == 0){
+        return 0;
+    }
+
+    for (p=szText; *p!=0; p++) {
+	if (*p == '\\') {
+	    icalmemory_append_char (&str,&str_p,&buf_sz,*(p+1));
+	    p++;
+	}	    
+	else
+            icalmemory_append_char (&str,&str_p,&buf_sz,*p);
+    }	    
+    
+    icalmemory_append_char(&str,&str_p,&buf_sz,'\0');
+
+    if ((int)strlen(str) > nMaxBufferLen) {
+    	icalmemory_free_buffer(str);	
+        return 0;
+    }
+
+    strcpy(szDecText, str);
+
+    icalmemory_free_buffer(str);	
+    return 1;
+}
+
 
 /* The remaining interfaces are 'new', 'set' and 'get' for each of the value
    types */

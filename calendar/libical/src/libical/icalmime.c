@@ -4,7 +4,7 @@
  CREATOR: eric 26 July 2000
 
 
- $Id: icalmime.c,v 1.11 2007/05/31 21:26:14 artcancro Exp $
+ $Id: icalmime.c,v 1.14 2008-01-29 22:25:05 dothebart Exp $
  $Locker:  $
 
  (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
@@ -73,9 +73,11 @@ void* icalmime_text_new_part()
 }
 void icalmime_text_add_line(void *part, 
 			    struct sspm_header *header, 
-			    char* line, size_t size)
+			    const char* line, size_t size)
 {
     struct text_part* impl = (struct text_part*) part;
+    (void)header;
+    (void)size;
 
     icalmemory_append_string(&(impl->buf),&(impl->buf_pos),
 			     &(impl->buf_size),line);
@@ -95,17 +97,25 @@ void* icalmime_textcalendar_end_part(void* part)
 
 }
 
-void* icalmime_text_end_part(void* part)
+void* icalmime_text_end_part_r(void* part)
 {
     char *buf;
     struct text_part* impl = ( struct text_part*) part;
 
-    icalmemory_add_tmp_buffer(impl->buf);
     buf = impl->buf;
     free(impl);
 
     return buf;
 }
+
+void* icalmime_text_end_part(void* part)
+{
+	void *buf;
+	buf = icalmime_text_end_part_r(part);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
 
 void icalmime_text_free_part(void *part)
 {
@@ -120,21 +130,23 @@ void* icalmime_attachment_new_part()
     return 0;
 }
 void icalmime_attachment_add_line(void *part, struct sspm_header *header, 
-				  char* line, size_t size)
+				  const char* line, size_t size)
 {
-    part = part;
-    header = header;
-    line = line;
-    size = size;
+    (void)part;
+    (void)header;
+    (void)line;
+    (void)size;
 }
 
 void* icalmime_attachment_end_part(void* part)
 {
+    (void)part;
     return 0;
 }
 
 void icalmime_attachment_free_part(void *part)
 {
+    (void)part;
 }
 
 
@@ -143,8 +155,8 @@ void icalmime_attachment_free_part(void *part)
 static const struct sspm_action_map icalmime_local_action_map[] = 
 {
     {SSPM_TEXT_MAJOR_TYPE,SSPM_CALENDAR_MINOR_TYPE,icalmime_text_new_part,icalmime_text_add_line,icalmime_textcalendar_end_part,icalmime_text_free_part},
-    {SSPM_TEXT_MAJOR_TYPE,SSPM_ANY_MINOR_TYPE,icalmime_text_new_part,icalmime_text_add_line,icalmime_text_end_part,icalmime_text_free_part},
-    {SSPM_TEXT_MAJOR_TYPE,SSPM_PLAIN_MINOR_TYPE,icalmime_text_new_part,icalmime_text_add_line,icalmime_text_end_part,icalmime_text_free_part},
+    {SSPM_TEXT_MAJOR_TYPE,SSPM_ANY_MINOR_TYPE,icalmime_text_new_part,icalmime_text_add_line,icalmime_text_end_part_r,icalmime_text_free_part},
+    {SSPM_TEXT_MAJOR_TYPE,SSPM_PLAIN_MINOR_TYPE,icalmime_text_new_part,icalmime_text_add_line,icalmime_text_end_part_r,icalmime_text_free_part},
     {SSPM_APPLICATION_MAJOR_TYPE,SSPM_CALENDAR_MINOR_TYPE,icalmime_attachment_new_part,icalmime_attachment_add_line,icalmime_attachment_end_part,icalmime_attachment_free_part},
     {SSPM_IMAGE_MAJOR_TYPE,SSPM_CALENDAR_MINOR_TYPE,icalmime_attachment_new_part,icalmime_attachment_add_line,icalmime_attachment_end_part,icalmime_attachment_free_part},
     {SSPM_AUDIO_MAJOR_TYPE,SSPM_CALENDAR_MINOR_TYPE,icalmime_attachment_new_part,icalmime_attachment_add_line,icalmime_attachment_end_part,icalmime_attachment_free_part},
@@ -193,8 +205,8 @@ icalcomponent* icalmime_parse(char* (*get_string)(char *s, size_t size,
 
 #define TMPSZ 1024
 	char mimetype[TMPSZ];			       
-	char* major = sspm_major_type_string(parts[i].header.major);
-	char* minor = sspm_minor_type_string(parts[i].header.minor);
+	const char* major = sspm_major_type_string(parts[i].header.major);
+	const char* minor = sspm_minor_type_string(parts[i].header.minor);
 
 	if(parts[i].header.minor == SSPM_UNKNOWN_MINOR_TYPE ){
 	    assert(parts[i].header.minor_text !=0);
@@ -213,6 +225,9 @@ icalcomponent* icalmime_parse(char* (*get_string)(char *s, size_t size,
 	if(parts[i].header.error!=SSPM_NO_ERROR){
 	    const char *str="Unknown error";
 	    char temp[256];
+	    if(parts[i].header.error==SSPM_MALFORMED_HEADER_ERROR){
+		str = "Malformed header, possibly due to input not in MIME format";
+	    }
 
 	    if(parts[i].header.error==SSPM_UNEXPECTED_BOUNDARY_ERROR){
 		str = "Got an unexpected boundary, possibly due to a MIME header for a MULTIPART part that is missing the Content-Type line";
@@ -376,8 +391,8 @@ int icalmime_test(char* (*get_string)(char *s, size_t size, void *d),
    for(i = 0; i <NUM_PARTS && parts[i].header.major != SSPM_NO_MAJOR_TYPE ; 
        i++){
        if(parts[i].header.minor == SSPM_CALENDAR_MINOR_TYPE){
-	   parts[i].data = icalmemory_strdup(
-	       icalcomponent_as_ical_string((icalcomponent*)parts[i].data));
+	   parts[i].data =
+	       icalcomponent_as_ical_string_r((icalcomponent*)parts[i].data);
        }
    }
 

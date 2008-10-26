@@ -16,22 +16,24 @@ if ($opt_i) {
 
   while(<IN>){
 
+    if (/<insert_code_here>/){
+      insert_code();
+    }
+
     if (/Do not edit/){
       last;
     }
 
     print;
 
-  }    
-
-  print "/* Everything below this line is machine generated. Do not edit. */\n";
-
+  }
 
   close IN;
 }
 
+sub insert_code {
 # First build the property restriction table 
-print "icalrestriction_property_record icalrestriction_property_records[] = {\n";
+print "static const icalrestriction_property_record icalrestriction_property_records[] = {\n";
 
 while(<F>)
 {
@@ -62,7 +64,7 @@ print "    {ICAL_METHOD_NONE,ICAL_NO_COMPONENT,ICAL_NO_PROPERTY,ICAL_RESTRICTION
 
 print "};\n";
 
-print "icalrestriction_component_record icalrestriction_component_records[] = {\n";
+print "static const icalrestriction_component_record icalrestriction_component_records[] = {\n";
 
 
 # Go back through the entire file and build the component restriction table
@@ -96,3 +98,5 @@ while(<F>)
 # print the terminating line 
 print "    {ICAL_METHOD_NONE,ICAL_NO_COMPONENT,ICAL_NO_COMPONENT,ICAL_RESTRICTION_NONE}\n";
 print "};\n";
+}
+

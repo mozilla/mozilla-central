@@ -3,11 +3,12 @@
   FILE: icalrecur.c
   CREATOR: eric 16 May 2000
   
-  $Id: icalrecur.c,v 1.68 2007/05/31 21:26:14 artcancro Exp $
+  $Id: icalrecur.c,v 1.71 2008-02-03 16:10:46 dothebart Exp $
   $Locker:  $
     
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -160,6 +161,9 @@ typedef long intptr_t;
 #include <string.h> /* for strdup and strchr*/
 #include <assert.h>
 #include <stddef.h> /* For offsetof() macro */
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 
 #include "pvl.h"
 
@@ -312,6 +316,38 @@ void icalrecur_add_byrules(struct icalrecur_parser *parser, short *array,
 
 }
 
+/*
+ * Days in the BYDAY rule are expected by the code to be sorted, and while
+ * this may be the common case, the RFC doesn't actually mandate it. This
+ * function sorts the days taking into account the first day of week.
+ */
+static void
+sort_bydayrules(struct icalrecur_parser *parser)
+{
+    short *array;
+    int week_start, one, two, i, j;
+
+    array = parser->rt.by_day;
+    week_start = parser->rt.week_start;
+
+    for (i=0;
+	 i<ICAL_BY_DAY_SIZE && array[i] != ICAL_RECURRENCE_ARRAY_MAX;
+	 i++) {
+	for (j=0; j<i; j++) {
+	    one = icalrecurrencetype_day_day_of_week(array[j]) - week_start;
+	    if (one < 0) one += 7;
+	    two = icalrecurrencetype_day_day_of_week(array[i]) - week_start;
+	    if (two < 0) two += 7;
+
+	    if (one > two) {
+		short tmp = array[j];
+		array[j] = array[i];
+		array[i] = tmp;
+	    }
+	}
+    }
+}
+
 void icalrecur_add_bydayrules(struct icalrecur_parser *parser, const char* vals)
 {
 
@@ -370,6 +406,7 @@ void icalrecur_add_bydayrules(struct icalrecur_parser *parser, const char* vals)
 
     free(vals_copy);
 
+    sort_bydayrules(parser);
 }
 
 
@@ -411,19 +448,14 @@ struct icalrecurrencetype icalrecurrencetype_from_string(const char* str)
 	if (strcasecmp(name,"FREQ") == 0){
 	    parser.rt.freq = icalrecur_string_to_freq(value);
 	} else if (strcasecmp(name,"COUNT") == 0){
-	    int v = atoi(value);
-	    if (v >= 0) {
-	    parser.rt.count = v;
-	    }
+	    parser.rt.count = atoi(value);
 	} else if (strcasecmp(name,"UNTIL") == 0){
 	    parser.rt.until = icaltime_from_string(value);
 	} else if (strcasecmp(name,"INTERVAL") == 0){
-	    int v = atoi(value);
-	    if (v > 0 && v <= SHRT_MAX) {
-	    parser.rt.interval = (short) v;
-	    }
+	    parser.rt.interval = (short)atoi(value);
 	} else if (strcasecmp(name,"WKST") == 0){
 	    parser.rt.week_start = icalrecur_string_to_weekday(value);
+	    sort_bydayrules(&parser);
 	} else if (strcasecmp(name,"BYSECOND") == 0){
 	    icalrecur_add_byrules(&parser,parser.rt.by_second,
 				  ICAL_BY_SECOND_SIZE,value);
@@ -465,7 +497,7 @@ struct icalrecurrencetype icalrecurrencetype_from_string(const char* str)
 
 }
 
-static struct { char* str;size_t offset; int limit;  } recurmap[] = 
+static struct {const char* str;size_t offset; int limit;  } recurmap[] = 
 {
     {";BYSECOND=",offsetof(struct icalrecurrencetype,by_second),ICAL_BY_SECOND_SIZE - 1},
     {";BYMINUTE=",offsetof(struct icalrecurrencetype,by_minute),ICAL_BY_MINUTE_SIZE - 1},
@@ -485,6 +517,15 @@ void print_datetime_to_string(char* str,  struct icaltimetype *data);
 
 char* icalrecurrencetype_as_string(struct icalrecurrencetype *recur)
 {
+	char *buf;
+	buf = icalrecurrencetype_as_string_r(recur);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
+
+char* icalrecurrencetype_as_string_r(struct icalrecurrencetype *recur)
+{
     char* str;
     char *str_p;
     size_t buf_sz = 200;
@@ -495,7 +536,7 @@ char* icalrecurrencetype_as_string(struct icalrecurrencetype *recur)
 	return 0;
     }
 
-    str = (char*)icalmemory_tmp_buffer(buf_sz);
+    str = (char*)icalmemory_new_buffer(buf_sz);
     str_p = str;
 
     icalmemory_append_string(&str,&str_p,&buf_sz,"FREQ=");
@@ -714,7 +755,7 @@ static int icalrecur_one_byrule(icalrecur_iterator* impl,enum byrule one)
 
     return passes;
 } 
-
+/*
 static int count_byrules(icalrecur_iterator* impl)
 {
     int count = 0;
@@ -728,7 +769,7 @@ static int count_byrules(icalrecur_iterator* impl)
 
     return count;
 }
-
+*/
 
 static void setup_defaults(icalrecur_iterator* impl, 
 		    enum byrule byrule, icalrecurrencetype_frequency req,
@@ -926,18 +967,19 @@ icalrecur_iterator* icalrecur_iterator_new(struct icalrecurrencetype rule,
 	     monday. Otherwise, jumping to the next week ( jumping 7
 	     days ahead ) will skip over some occurrences in the
 	     second week. */
-	  
-	  /* This is probably a HACK. There should be some more
-             general way to solve this problem */
 
+	  /* This depends on impl->by_ptrs[BY_DAY] being correctly sorted by
+	   * day. This should probably be abstracted to make such assumption
+	   * more explicit. */
 	  short dow = (short)(impl->by_ptrs[BY_DAY][0]-icaltime_day_of_week(impl->last));
 
-	  if(dow < 0) {
-	      /* initial time is after first day of BY_DAY data */
-
-	      impl->last.day += dow;
-	      impl->last = icaltime_normalize(impl->last);
+	  if((icaltime_day_of_week(impl->last) < impl->by_ptrs[BY_DAY][0] && dow >= 0) || dow < 0)
+	  {
+		/* initial time is after first day of BY_DAY data */
+		impl->last.day += dow;
+		impl->last = icaltime_normalize(impl->last);
 	  }
+
       }
       
 
@@ -1015,6 +1057,8 @@ icalrecur_iterator* icalrecur_iterator_new(struct icalrecurrencetype rule,
 	    return 0;
 	}
 	
+    } else if (has_by_data(impl,BY_MONTH_DAY)) {
+	impl->last = icaltime_normalize(impl->last);
     }
 
 
@@ -1346,7 +1390,7 @@ static int next_day(icalrecur_iterator* impl)
 
 }
 
-
+/*
 static int next_yearday(icalrecur_iterator* impl)
 {
 
@@ -1379,7 +1423,7 @@ static int next_yearday(icalrecur_iterator* impl)
   return end_of_data;
 
 }
-
+*/
 
 /* Returns the day of the month for the current month of t that is the
    pos'th instance of the day-of-week dow */
@@ -1509,7 +1553,6 @@ static int next_month(icalrecur_iterator* impl)
       if ( day > days_in_month){
           impl->last.day = 1;
           increment_month(impl);
-          impl->last.day--; /* Go back one day, so searches next month start at day 1 */
           data_valid = 0; /* signal that impl->last is invalid */
       }
 
@@ -1563,7 +1606,7 @@ static int next_month(icalrecur_iterator* impl)
        */
 
   } else if (has_by_data(impl,BY_MONTH_DAY)) {
-      int day;
+      int day, days_in_month;
 
       assert( BYMDPTR[0]!=ICAL_RECURRENCE_ARRAY_MAX);
 
@@ -1576,16 +1619,41 @@ static int next_month(icalrecur_iterator* impl)
           increment_month(impl);          
       }
       
+      days_in_month = icaltime_days_in_month(impl->last.month,
+                                                   impl->last.year);
+
       day = BYMDPTR[BYMDIDX];
       
       if (day < 0) {
           day = icaltime_days_in_month(impl->last.month, impl->last.year) + day + 1;
       }
-      
+
+      if ( day > days_in_month){
+          impl->last.day = 1;
+
+          /* Did moving to the next month put us on a valid date? if
+             so, note that the new data is valid, if, not, mark it
+             invalid */
+
+          if(is_day_in_byday(impl,impl->last)){
+              data_valid = 1;
+          } else {
+              data_valid = 0; /* signal that impl->last is invalid */
+          }
+      }
+
       impl->last.day = day;
 
   } else {
+      int days_in_month;
+
       increment_month(impl);
+
+      days_in_month = icaltime_days_in_month(impl->last.month,
+                                                   impl->last.year);
+      if (impl->last.day > days_in_month){
+          data_valid = 0; /* signal that impl->last is invalid */
+      }
   }
 
   return data_valid;
@@ -2232,6 +2300,11 @@ struct icaltimetype icalrecur_iterator_next(icalrecur_iterator *impl)
                 return icaltime_null_time();
 	    }
 	}    
+	
+	if(impl->last.year >= 2038 ){
+	    /* HACK */
+	    return icaltime_null_time();
+	}
 	
     } while(!check_contracting_rules(impl) 
 	    || icaltime_compare(impl->last,impl->dtstart) < 0

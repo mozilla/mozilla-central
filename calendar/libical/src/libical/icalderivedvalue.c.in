@@ -3,7 +3,7 @@
   FILE: icalvalue.c
   CREATOR: eric 02 May 1999
   
-  $Id: icalderivedvalue.c.in,v 1.15 2007/04/30 13:57:48 artcancro Exp $
+  $Id: icalderivedvalue.c.in,v 1.15 2007-04-30 13:57:48 artcancro Exp $
 
 
  (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
@@ -45,8 +45,8 @@
 #include <errno.h>
 #include <time.h> /* for mktime */
 #include <stdlib.h> /* for atoi and atof */
-#include <limits.h> /* for SHRT_MAX */         
-
+#include <limits.h> /* for SHRT_MAX */ 
+        
 #ifdef WIN32
 #define strcasecmp      stricmp
 #endif

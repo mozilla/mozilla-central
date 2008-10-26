@@ -4,10 +4,11 @@
   FILE: icalproperty.c
   CREATOR: eric 28 April 1999
   
-  $Id: icalproperty.c,v 1.41 2007/11/30 22:32:10 dothebart Exp $
+  $Id: icalproperty.c,v 1.44 2008-01-30 20:28:42 dothebart Exp $
 
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -25,7 +26,7 @@
 ======================================================================*/
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
 #include "icalproperty.h"
@@ -311,7 +312,6 @@ get_next_line_start (char *line_start, int chars_left)
  *  It returns a tmp buffer.  NOTE: I'm not sure if it matters if we
  *  split a line in the middle of a UTF-8 character. It probably won't
  *  look nice in a text editor. 
- *  This will add the trailing newline as well
  */
 static char*
 fold_property_line (char *text)
@@ -358,14 +358,7 @@ fold_property_line (char *text)
 	line_start = next_line_start;
     }
 
-    icalmemory_append_string (&buf, &buf_ptr, &buf_size, "\r\n");
-
-    /* Copy it to a temporary buffer, and then free it. */
-    out_buf = icalmemory_tmp_buffer (strlen (buf) + 1);
-    strcpy (out_buf, buf);
-    icalmemory_free_buffer (buf);
-
-    return out_buf;
+    return buf;
 }
 
 
@@ -390,15 +383,16 @@ icalproperty_get_value_kind(icalproperty *prop)
 	    =  icalproperty_kind_to_value_kind(prop->kind);
 
 	if(orig_val_param){
-	    orig_kind = (icalvalue_kind)icalparameter_get_value(orig_val_param);
+	    orig_kind = icalparameter_value_to_value_kind( icalparameter_get_value(orig_val_param) );
 	}
 
 	if(value != 0){
 	    this_kind = icalvalue_isa(value);
 	}
 	
-	
-	if(this_kind == default_kind &&
+    if ( orig_kind != ICAL_NO_VALUE ) {
+      kind_string = icalvalue_kind_to_string( orig_kind );
+    } else if(this_kind == default_kind &&
 	   orig_kind != ICAL_NO_VALUE){
 	    /* The kind is the default, so it does not need to be
                included, but do it anyway, since it was explicit in
@@ -419,14 +413,22 @@ icalproperty_get_value_kind(icalproperty *prop)
 
 const char*
 icalproperty_as_ical_string (icalproperty* prop)
+{
+	char *buf;
+	buf = icalproperty_as_ical_string_r(prop);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
+   
+char*
+icalproperty_as_ical_string_r(icalproperty* prop)
 {   
     icalparameter *param;
 
     /* Create new buffer that we can append names, parameters and a
-       value to, and reallocate as needed. Later, this buffer will be
-       copied to a icalmemory_tmp_buffer, which is managed internally
-       by libical, so it can be given to the caller without fear of
-       the caller forgetting to free it */
+     * value to, and reallocate as needed.
+     */
 
     const char* property_name = 0; 
     size_t buf_size = 1024;
@@ -435,8 +437,7 @@ icalproperty_as_ical_string (icalproperty* prop)
     icalvalue* value;
     char *out_buf;
     const char* kind_string = 0;
-
-    char newline[] = "\r\n";
+    const char newline[] = "\r\n";
 
     
     icalerror_check_arg_rz( (prop!=0),"prop");
@@ -471,11 +472,7 @@ icalproperty_as_ical_string (icalproperty* prop)
 	param = icalproperty_get_next_parameter(prop,ICAL_ANY_PARAMETER)) {
 
 	icalparameter_kind kind = icalparameter_isa(param);
-	kind_string = icalparameter_as_ical_string(param); 
-
-	if(kind==ICAL_VALUE_PARAMETER){
-	    continue;
-	}
+	kind_string = icalparameter_as_ical_string_r(param); 
 
 	if (kind_string == 0 ) {
 	  icalerror_warn("Got a parameter of unknown kind for the following property");
@@ -484,8 +481,14 @@ icalproperty_as_ical_string (icalproperty* prop)
 	    continue;
 	}
 
+	if (kind==ICAL_VALUE_PARAMETER) {
+		free ((char *) kind_string);
+		continue;
+	}
+
 	icalmemory_append_string(&buf, &buf_ptr, &buf_size, ";");
     	icalmemory_append_string(&buf, &buf_ptr, &buf_size, kind_string);
+	free((char *)kind_string);
     }    
 
     /* Append value */
@@ -495,16 +498,16 @@ icalproperty_as_ical_string (icalproperty* prop)
     value = icalproperty_get_value(prop);
 
     if (value != 0){
-	const char *str = icalvalue_as_ical_string(value);
+	char *str = icalvalue_as_ical_string_r(value);
 	icalerror_assert((str !=0),"Could not get string representation of a value");
 	icalmemory_append_string(&buf, &buf_ptr, &buf_size, str);
+	free(str);
     } else {
 	icalmemory_append_string(&buf, &buf_ptr, &buf_size,"ERROR: No Value"); 
 	
     }
     
-    /* Now, copy the buffer to a tmp_buffer, which is safe to give to
-       the caller without worring about de-allocating it. */
+    icalmemory_append_string(&buf, &buf_ptr, &buf_size, newline);
 
     /* We now use a function to fold the line properly every 75 characters.
        That function also adds the newline for us. */
@@ -605,10 +608,20 @@ void icalproperty_set_parameter_from_string(icalproperty* prop,
 const char* icalproperty_get_parameter_as_string(icalproperty* prop,
                                                  const char* name)
 {
+	char *buf;
+	buf = icalproperty_get_parameter_as_string_r(prop, name);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
+
+char* icalproperty_get_parameter_as_string_r(icalproperty* prop,
+                                                 const char* name)
+{
     icalparameter_kind kind;
     icalparameter *param;
     char* str;
-    char* pv;
+    char *pv, *t;
     char* pvql;
     char* pvqr;
 
@@ -639,28 +652,40 @@ const char* icalproperty_get_parameter_as_string(icalproperty* prop,
     }
 
 
-    str = icalparameter_as_ical_string(param);
+    str = icalparameter_as_ical_string_r(param);
 
-    pv = strchr(str,'=');
+    t = strchr(str,'=');
 
-    if(pv == 0){
+    if (t == 0) {
         icalerror_set_errno(ICAL_INTERNAL_ERROR);
+	free(str);
         return 0;
     }
 
-    // see if this string is quoted, immediately return if not
-    // otherwise removed the quotes from the string.
-    ++pv;
-    pvql = strchr(pv,'"');
-    if(pvql == 0)
-        return pv;
-    pvqr = strrchr(pvql,'"');
-    if(pvqr == 0){
+    /* Strip the property name and the equal sign */
+    pv = icalmemory_strdup(t+1);
+    free(str);
+
+    /* Is the string quoted? */
+    pvql = strchr(pv, '"');
+    if (pvql == 0) {
+	return(pv);		/* No quotes?  Return it immediately. */
+    }
+
+    /* Strip everything up to the first quote */
+    str = icalmemory_strdup(pvql+1);
+    free(pv);
+
+    /* Search for the end quote */	
+    pvqr = strrchr(str, '"');
+    if (pvqr == 0) {
         icalerror_set_errno(ICAL_INTERNAL_ERROR);
+	free(str);
         return 0;
     }
+
     *pvqr = '\0';
-    return pvql+1;
+    return str;
 }
 
 /** @see icalproperty_remove_parameter_by_kind() 
@@ -709,7 +734,7 @@ icalproperty_remove_parameter_by_kind(icalproperty* prop, icalparameter_kind kin
  *  @param prop   A valid icalproperty.
  *  @param name   The name of the parameter to remove
  *
- *  This function removes paramters with the given name.  The name
+ *  This function removes parameters with the given name.  The name
  *  corresponds to either a built-in name (TZID, etc.) or the name of
  *  an extended parameter (X-FOO)
  *
@@ -918,13 +943,22 @@ icalproperty_get_value(const icalproperty* prop)
 
 const char* icalproperty_get_value_as_string(const icalproperty* prop)
 {
+	char *buf;
+	buf = icalproperty_get_value_as_string_r(prop);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
+}
+
+
+char* icalproperty_get_value_as_string_r(const icalproperty* prop)
+{
     icalvalue *value;
     
     icalerror_check_arg_rz( (prop!=0),"prop");
 
     value = prop->value; 
 
-    return icalvalue_as_ical_string(value);
+    return icalvalue_as_ical_string_r(value);
 }
 
 
@@ -951,16 +985,16 @@ const char* icalproperty_get_x_name(icalproperty* prop){
     return prop->x_name;
 }
 
-
-const char* icalproperty_get_name(const icalproperty* prop)
+const char* icalproperty_get_property_name(const icalproperty* prop)
 {
-#ifndef NO_WARN_DEPRECATED
-	icalerror_warn("icalproperty_get_name() is DEPRECATED, please use icalproperty_get_property_name() instead.");
-#endif
-	return icalproperty_get_property_name(prop);
+	char *buf;
+	buf = icalproperty_get_property_name_r(prop);
+	icalmemory_add_tmp_buffer(buf);
+	return buf;
 }
 
-const char* icalproperty_get_property_name(const icalproperty* prop)
+
+char* icalproperty_get_property_name_r(const icalproperty* prop)
 {
 
     const char* property_name = 0;
@@ -985,10 +1019,6 @@ const char* icalproperty_get_property_name(const icalproperty* prop)
            property_name is longer than the initial buffer size */
         icalmemory_append_string(&buf, &buf_ptr, &buf_size, property_name);
     }
- 
-    /* Add the buffer to the temporary buffer ring -- the caller will
-       not have to free the memory. */
-    icalmemory_add_tmp_buffer(buf);
  
     return buf;
 }

@@ -5,7 +5,8 @@
 
  
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -21,7 +22,7 @@
   The original code is icalenums.h
 
   Contributions from:
-     Graham Davison (g.m.davison@computer.org)
+     Graham Davison <g.m.davison@computer.org>
 
 ======================================================================*/
 
@@ -56,6 +57,7 @@ typedef enum icalcomponent_kind {
     ICAL_X_COMPONENT,
     ICAL_VSCHEDULE_COMPONENT,
     ICAL_VQUERY_COMPONENT,
+    ICAL_VREPLY_COMPONENT,
     ICAL_VCAR_COMPONENT,
     ICAL_VCOMMAND_COMPONENT,
     ICAL_XLICINVALID_COMPONENT,
@@ -118,6 +120,7 @@ short icalenum_reqstat_major(icalrequeststatus stat);
 short icalenum_reqstat_minor(icalrequeststatus stat);
 icalrequeststatus icalenum_num_to_reqstat(short major, short minor);
 char* icalenum_reqstat_code(icalrequeststatus stat);
+char* icalenum_reqstat_code_r(icalrequeststatus stat);
 
 /***********************************************************************
  * Conversion functions

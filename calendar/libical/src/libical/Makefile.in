@@ -58,6 +58,7 @@ CSRCS =				\
 	icalderivedproperty.c	\
 	icalrestriction.c	\
 	icalderivedvalue.c	\
+	\
 	icalarray.c		\
 	icalattach.c		\
 	icalcomponent.c		\
@@ -77,9 +78,9 @@ CSRCS =				\
 	icalvalue.c		\
 	pvl.c			\
 	sspm.c			\
-	icallangbind.c		\
-	caldate.c		\
 	vsnprintf.c		\
+	icallangbind.c 		\
+	caldate.c 		\
         $(NULL)
 
 DEFINES += -DHAVE_CONFIG_H
@@ -147,8 +148,10 @@ BUILT_SOURCES =			\
 
 GARBAGE += $(BUILT_SOURCES)
 
-ical.h: $(COMBINEDHEADERS) Makefile
-	echo '#ifdef __cplusplus'         >  ical.h
+ical.h: $(COMBINEDHEADERS)
+	echo '#ifndef LIBICAL_ICAL_H'     >  ical.h
+	echo '#define LIBICAL_ICAL_H'     >> ical.h
+	echo '#ifdef __cplusplus'         >> ical.h
 	echo 'extern "C" {'               >> ical.h
 	echo '#endif'                     >> ical.h
 	echo '/*'                         >> ical.h
@@ -162,85 +165,68 @@ ical.h: $(COMBINEDHEADERS) Makefile
 	echo '#ifdef __cplusplus'         >> ical.h
 	echo '}'                          >> ical.h
 	echo '#endif'                     >> ical.h
+	echo '#endif'                     >> ical.h
 
 GARBAGE += ical.h
 
-#
 # parameters
-#
 
 PARAMETERDEPS =	\
-	$(ICALSCRIPTS)/mkderivedparameters.pl	\
-	$(DESIGNDATA)/parameters.csv		\
-	icalderivedparameter.c.in		\
+	$(ICALSCRIPTS)/mkderivedparameters.pl \
+	$(DESIGNDATA)/parameters.csv	\
+	icalderivedparameter.c.in \
 	icalderivedparameter.h.in
 
 icalderivedparameter.h: $(PARAMETERDEPS) 
-	$(PERL) -I $(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedparameters.pl	\
-                 -i $(srcdir)/icalderivedparameter.h.in			\
-                 -h $(DESIGNDATA)/parameters.csv > icalderivedparameter.h 
+	$(PERL) -I $(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedparameters.pl -i $(srcdir)/icalderivedparameter.h.in -h $(DESIGNDATA)/parameters.csv > icalderivedparameter.h 
 
 icalderivedparameter.c: $(PARAMETERDEPS) $(BUILT_COMBINEDHEADERS)
-	$(PERL) -I $(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedparameters.pl \
-                  -i $(srcdir)/icalderivedparameter.c.in		\
-                  -c $(DESIGNDATA)/parameters.csv > icalderivedparameter.c
+	$(PERL) -I $(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedparameters.pl -i $(srcdir)/icalderivedparameter.c.in -c $(DESIGNDATA)/parameters.csv > icalderivedparameter.c
 
-#
 # properties
-#
 
 PROPERTYDEPS =					\
-        $(ICALSCRIPTS)/mkderivedproperties.pl   \
-        $(DESIGNDATA)/properties.csv            \
-        $(DESIGNDATA)/value-types.csv           \
+	$(ICALSCRIPTS)/mkderivedproperties.pl	\
+	$(DESIGNDATA)/properties.csv		\
+	$(DESIGNDATA)/value-types.csv		\
 	icalderivedproperty.c.in		\
 	icalderivedproperty.h.in
 
-icalderivedproperty.h: $(PROPERTYDEPS) Makefile
-	$(PERL) -I$(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedproperties.pl	\
-		 -i $(srcdir)/icalderivedproperty.h.in			\
-                 -h $(DESIGNDATA)/properties.csv			\
-		 ${DESIGNDATA}/value-types.csv > icalderivedproperty.h 
 
+icalderivedproperty.h: $(PROPERTYDEPS)
+	$(PERL)  -I$(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedproperties.pl \
+		-i $(srcdir)/icalderivedproperty.h.in -h $(DESIGNDATA)/properties.csv\
+		${DESIGNDATA}/value-types.csv > icalderivedproperty.h 
 
-icalderivedproperty.c: $(PROPERTYDEPS) $(BUILT_COMBINEDHEADERS) Makefile
-	$(PERL) -I$(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedproperties.pl	\
-		 -i $(srcdir)/icalderivedproperty.c.in			\
-                 -c $(DESIGNDATA)/properties.csv			\
-		 ${DESIGNDATA}/value-types.csv > icalderivedproperty.c
+icalderivedproperty.c: $(PROPERTYDEPS) $(BUILT_COMBINEDHEADERS)
+	$(PERL)  -I$(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedproperties.pl \
+		-i $(srcdir)/icalderivedproperty.c.in -c $(DESIGNDATA)/properties.csv \
+		${DESIGNDATA}/value-types.csv > icalderivedproperty.c
 
-#
 # restrictions
-#
 
 RESTRICTIONDEPS =				\
-	$(ICALSCRIPTS)/mkrestrictiontable.pl    \
-        $(DESIGNDATA)/restrictions.csv          \
-	$(srcdir)/icalrestriction.c.in
+	$(ICALSCRIPTS)/mkrestrictiontable.pl	\
+	$(DESIGNDATA)/restrictions.csv		\
+	icalrestriction.c.in
 
-icalrestriction.c: $(RESTRICTIONDEPS) Makefile
-	$(PERL) $(ICALSCRIPTS)/mkrestrictiontable.pl			\
-                 -i $(srcdir)/icalrestriction.c.in			\
-		 $(DESIGNDATA)/restrictions.csv > icalrestriction.c
+icalrestriction.c: $(RESTRICTIONDEPS)
+	$(PERL) $(ICALSCRIPTS)/mkrestrictiontable.pl  -i $(srcdir)/icalrestriction.c.in \
+		$(DESIGNDATA)/restrictions.csv > icalrestriction.c
 
-#
 # values
-#
 
 VALUEDEPS =					\
-        $(ICALSCRIPTS)/mkderivedvalues.pl       \
-        $(DESIGNDATA)/value-types.csv           \
-	$(srcdir)/icalderivedvalue.c.in		\
-	$(srcdir)/icalderivedvalue.h.in
+	$(ICALSCRIPTS)/mkderivedvalues.pl  	\
+	$(DESIGNDATA)/value-types.csv		\
+	icalderivedvalue.c.in				\
+	icalderivedvalue.h.in
 
-icalderivedvalue.h: $(VALUEDEPS) Makefile
-	$(PERL) -I$(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedvalues.pl	\
-                 -i $(srcdir)/icalderivedvalue.h.in			\
-                 -h $(DESIGNDATA)/value-types.csv > icalderivedvalue.h
+icalderivedvalue.h: $(VALUEDEPS)
+	$(PERL) -I$(ICALSCRIPTS)  $(ICALSCRIPTS)/mkderivedvalues.pl \
+	         -i $(srcdir)/icalderivedvalue.h.in -h $(DESIGNDATA)/value-types.csv > icalderivedvalue.h
 
-icalderivedvalue.c: $(VALUEDEPS) $(BUILT_COMBINEDHEADERS) Makefile
-	$(PERL) -I$(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedvalues.pl	\
-		-i $(srcdir)/icalderivedvalue.c.in			\
-                -c $(DESIGNDATA)/value-types.csv > icalderivedvalue.c
-
+icalderivedvalue.c: $(VALUEDEPS) $(BUILT_COMBINEDHEADERS)
+	$(PERL)  -I$(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedvalues.pl \
+		-i $(srcdir)/icalderivedvalue.c.in -c $(DESIGNDATA)/value-types.csv > icalderivedvalue.c
 

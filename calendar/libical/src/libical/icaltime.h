@@ -4,10 +4,11 @@
  CREATOR: eric 02 June 2000
 
 
- $Id: icaltime.h,v 1.26 2007/04/30 13:57:48 artcancro Exp $
+ $Id: icaltime.h,v 1.28 2008-01-15 23:17:42 dothebart Exp $
  $Locker:  $
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -64,7 +65,7 @@
  *	- icaltime_set_timezone(struct icaltimetype t, const icaltimezone *zone)
  *	- icaltime_day_of_year(struct icaltimetype t)
  *	- icaltime_day_of_week(struct icaltimetype t)
- *	- icaltime_start_doy_of_week(struct icaltimetype t)
+ *	- icaltime_start_doy_of_week(struct icaltimetype t, int fdow)
  *	- icaltime_week_number(struct icaltimetype t)
  *
  *	Query methods include:
@@ -82,7 +83,7 @@
  *      - icaltime_compare_with_zone(struct icaltimetype a,struct icaltimetype b)
  *	- icaltime_compare(struct icaltimetype a,struct icaltimetype b)
  *	- icaltime_compare_date_only(struct icaltimetype a,
- *		struct icaltimetype b, icaltimezone *tz)
+ *		struct icaltimetype b)
  *	- icaltime_adjust(struct icaltimetype *tt, int days, int hours,
  *		int minutes, int seconds);
  *	- icaltime_normalize(struct icaltimetype t);
@@ -180,15 +181,15 @@ time_t icaltime_as_timet(const struct icaltimetype);
 time_t icaltime_as_timet_with_zone(const struct icaltimetype tt,
 	const icaltimezone *zone);
 
-/** Return a string represention of the time, in RFC2445 format. The
-   string is owned by libical */
+/** Return a string represention of the time, in RFC2445 format. */
 const char* icaltime_as_ical_string(const struct icaltimetype tt);
+char* icaltime_as_ical_string_r(const struct icaltimetype tt);
 
 /** @brief Return the timezone */
 const icaltimezone *icaltime_get_timezone(const struct icaltimetype t);
 
 /** @brief Return the tzid, or NULL for a floating time */
-char *icaltime_get_tzid(const struct icaltimetype t);
+const char *icaltime_get_tzid(const struct icaltimetype t);
 
 /** @brief Set the timezone */
 struct icaltimetype icaltime_set_timezone(struct icaltimetype *t,
@@ -203,6 +204,10 @@ int icaltime_day_of_week(const struct icaltimetype t);
 /** Return the day of the year for the Sunday of the week that the
    given time is within. */
 int icaltime_start_doy_of_week(const struct icaltimetype t);
+
+/** Return the day of the year for the first day of the week that the
+   given time is within. */
+int icaltime_start_doy_week(const struct icaltimetype t, int fdow);
 
 /** Return the week number for the week the given time is within */
 int icaltime_week_number(const struct icaltimetype t);
@@ -234,6 +239,10 @@ int icaltime_compare(const struct icaltimetype a,
 
 /** like icaltime_compare, but only use the date parts. */
 int icaltime_compare_date_only(const struct icaltimetype a,
+	const struct icaltimetype b);
+
+/** like icaltime_compare, but only use the date parts. */
+int icaltime_compare_date_only_tz(const struct icaltimetype a,
 	const struct icaltimetype b, icaltimezone *tz);
 
 /** Adds or subtracts a number of days, hours, minutes and seconds. */
@@ -251,6 +260,11 @@ struct icaltimetype icaltime_convert_to_zone(const struct icaltimetype tt,
 /** Return the number of days in the given month */
 int icaltime_days_in_month(const int month, const int year);
 
+/** Return whether you've specified a leapyear or not. */
+int icaltime_is_leap_year (const int year);
+
+/** Return the number of days in this year */
+int icaltime_days_in_year (const int year);
 
 /** @brief calculate an icaltimespan given a start and end time. */
 struct icaltime_span icaltime_span_new(struct icaltimetype dtstart,

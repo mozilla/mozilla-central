@@ -4,10 +4,11 @@
   CREATOR: eric 20 March 1999
 
 
-  $Id: icalvalue.h,v 1.8 2007/04/30 13:57:48 artcancro Exp $
+  $Id: icalvalue.h,v 1.10 2008-01-15 23:17:43 dothebart Exp $
   $Locker:  $
 
- (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
+ (C) COPYRIGHT 2000, Eric Busboom <eric@softwarestudio.org>
+     http://www.softwarestudio.org
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of either: 
@@ -51,6 +52,7 @@ void icalvalue_free(icalvalue* value);
 int icalvalue_is_valid(const icalvalue* value);
 
 const char* icalvalue_as_ical_string(const icalvalue* value);
+char* icalvalue_as_ical_string_r(const icalvalue* value);
 
 icalvalue_kind icalvalue_isa(const icalvalue* value);
 
@@ -84,5 +86,8 @@ int icalvalue_kind_is_valid(const icalvalue_kind kind);
 
 /** Encode a character string in ical format, esacpe certain characters, etc. */
 int icalvalue_encode_ical_string(const char *szText, char *szEncText, int MaxBufferLen);
+
+/** Extract the original character string encoded by the above function **/
+int icalvalue_decode_ical_string(const char *szText, char *szDecText, int nMaxBufferLen);
 
 #endif /*ICALVALUE_H*/
