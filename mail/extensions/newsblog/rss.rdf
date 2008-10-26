@@ -13,7 +13,7 @@
         <!-- server info -->
         <NC:incomingServer>
           <NC:nsIMsgIncomingServer>
-            <NC:hostName>&rss.hostName;</NC:hostName>
+            <NC:hostName>Feeds</NC:hostName>
             <NC:type>rss</NC:type>
             <NC:biffMinutes>100</NC:biffMinutes>
             <NC:username>nobody</NC:username>
@@ -26,9 +26,9 @@
           </NC:nsIMsgIdentity>
         </NC:identity>
 
-	<NC:wizardAutoGenerateUniqueHostname>true</NC:wizardAutoGenerateUniqueHostname>
+        <NC:wizardAutoGenerateUniqueHostname>true</NC:wizardAutoGenerateUniqueHostname>
         <NC:wizardHideIncoming>true</NC:wizardHideIncoming>
-	      <NC:wizardAccountName>&rss.accountName;</NC:wizardAccountName>
+        <NC:wizardAccountName>&rss.accountName;</NC:wizardAccountName>
         <NC:wizardSkipPanels>identitypage,serverpage,loginpage</NC:wizardSkipPanels>
         <NC:wizardShortName>&rss.wizardShortName;</NC:wizardShortName>
         <NC:wizardLongName>&rss.wizardLongName;</NC:wizardLongName>

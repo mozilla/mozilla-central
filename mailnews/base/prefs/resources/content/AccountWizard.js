@@ -736,17 +736,10 @@ function setDefaultCopiesAndFoldersPrefs(identity, server, accountData)
 function AccountExists(userName,hostName,serverType)
 {
   var accountExists = false;
-  var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-  try {
-        var server = accountManager.findRealServer(userName,hostName,serverType,0);
-        if (server) {
-                accountExists = true;
-        }
-  }
-  catch (ex) {
-        accountExists = false;
-  }
-  return accountExists;
+  var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                                 .getService(Components.interfaces.nsIMsgAccountManager);
+
+  return accountManager.findRealServer(userName, hostName, serverType, 0);
 }
 
 function getFirstInvalidAccount()

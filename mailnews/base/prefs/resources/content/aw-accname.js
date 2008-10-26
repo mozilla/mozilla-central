@@ -64,11 +64,10 @@ function acctNamePageUnload() {
     var userName = parent.getCurrentUserName(pageData);
     var hostName = parent.getCurrentHostname(pageData);
     var hostNamePref = hostName;
-    var i = 1;
+    var i = 2;
     while (parent.AccountExists(userName, hostName, serverType)) 
     {
-      // if "News & Blogs" exists, try
-      // "News & Blogs-1", then "News & Blogs-2", etc.
+      // If "Feeds" exists, try "Feeds-2", then "Feeds-3", etc.
       hostName = hostNamePref + "-" + i;
       i++;
     }
@@ -90,7 +89,7 @@ function acctNamePageInit()
         var pageData = parent.GetPageData();
         var type = parent.getCurrentServerType(pageData);
         var accountName;
-        
+
         if (gCurrentAccountData && gCurrentAccountData.wizardAccountName)
             accountName = gCurrentAccountData.wizardAccountName;
         else if (type == "nntp") 

@@ -62,15 +62,15 @@ function serverPageValidate()
   var canAdvance = true;
 
   if (gOnMailServersPage) {
-    var incomingServerName = document.getElementById("incomingServer");
-    var smtpserver = document.getElementById("smtphostname");
-    if ((!gHideIncoming && hostnameIsIllegal(incomingServerName.value)) ||
-        hostnameIsIllegal(smtpserver.value))
+    var incomingServerName = document.getElementById("incomingServer").value;
+    var smtpserver = document.getElementById("smtphostname").value;
+    if ((!gHideIncoming && hostnameIsIllegal(incomingServerName)) ||
+        hostnameIsIllegal(smtpserver))
       canAdvance = false;
   }
   if (gOnNewsServerPage) {
-    var newsServerName = document.getElementById("newsServer");
-    if (hostnameIsIllegal(newsServerName.value))
+    var newsServerName = document.getElementById("newsServer").value;
+    if (hostnameIsIllegal(newsServerName))
       canAdvance = false;
   }
   if (canAdvance && gProtocolInfo && !gProtocolInfo.requiresUsername) {
