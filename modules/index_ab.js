@@ -76,6 +76,7 @@ var GlodaABIndexer = {
   },
   
   _worker_index_card: function(aJob, aCallbackHandle) {
+    let card = aJob.id;
     // load the identity
     let query = Gloda.newQuery(Gloda.NOUN_IDENTITY);
     query.kind("email");
@@ -83,7 +84,7 @@ var GlodaABIndexer = {
     let identityCollection = query.getCollection(aCallbackHandle);
     yield Gloda.kWorkAsync;
     
-    if (identityCollection.length) {
+    if (identityCollection.items.length) {
       let identity = identityCollection.items[0];
 
       this._log.debug("Found identity, processing card.");

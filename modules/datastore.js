@@ -144,7 +144,7 @@ let QueryFromQueryResolver = {
 
     if (originColl.pendingItems) {
       for (let [, item] in Iterator(originColl.pendingItems)) {
-        //QFQ_LOG.debug("QFQR: loading deferred " + item.NOUN_ID + ":" + item.id);
+        QFQ_LOG.debug("QFQR: loading deferred " + item.NOUN_ID + ":" + item.id);
         GlodaDatastore.loadNounDeferredDeps(item, referencesByNounID,
             inverseReferencesByNounID);
       }
@@ -227,8 +227,8 @@ QueryFromQueryCallback.prototype = {
       // try and replace the item with one from the cache, if we can
       let cachedItem = GlodaCollectionManager.cacheLookupOne(nounID, item.id,
                                                              false);
-      //QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
-      //    this.selfReferences[item.id] + " cached: " + cachedItem);
+      QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
+          this.selfReferences[item.id] + " cached: " + cachedItem);
       if (cachedItem)
         item = cachedItem;
       // we may already have been loaded by this process
@@ -1753,7 +1753,7 @@ var GlodaDatastore = {
 
     // In completely abstract theory, this is where we would call
     //  GlodaCollectionManager.itemsModified, except that the attributes may
-    //  also have changed, so it's out of our hands.  (Gloda.processMessage
+    //  also have changed, so it's out of our hands.  (Gloda.grokNoun
     //  handles it.)
   },
 
@@ -2202,6 +2202,7 @@ var GlodaDatastore = {
       this._commitTransaction();
     }
     catch (ex) {
+      this._log.error("adjustMessageAttributes:" + ex.lineNumber + ": " + eX);
       this._rollbackTransaction();
       throw ex;
     }
@@ -2333,6 +2334,7 @@ var GlodaDatastore = {
       this._commitTransaction();
     }
     catch (ex) {
+      this._log.error("adjustAttributes:" + ex.lineNumber + ": " + eX);
       this._rollbackTransaction();
       throw ex;
     }
@@ -2371,7 +2373,9 @@ var GlodaDatastore = {
     if (!aAttrDef.usesParameter) {
       let dbValues = [];
       for (let iValue = 0; iValue < aValues.length; iValue++) {
-        dbValues.push(objectNounDef.toParamAndValue(aValues[iValue])[1]);
+        let dbValue = objectNounDef.toParamAndValue(aValues[iValue])[1];
+        if (dbValue != null)
+          dbValues.push(dbValue);
       }
       yield [aAttrDef.special ? undefined : aAttrDef.id, dbValues];
       return;
@@ -2384,16 +2388,23 @@ var GlodaDatastore = {
       if (curParam === undefined) {
         curParam = dbParam;
         attrID = attrDBDef.bindParameter(curParam);
-        dbValues = [dbValue];
+        if (dbValue != null)
+          dbValues = [dbValue];
+        else
+          dbValues = [];
       }
       else if (curParam == dbParam) {
-        dbValues.push(dbValue);
+        if (dbValue != null)
+          dbValues.push(dbValue);
       }
       else {
         yield [attrID, dbValues];
         curParam = dbParam;
         attrID = attrDBDef.bindParameter(curParam);
-        dbValues = [dbValue];
+        if (dbValue != null)
+          dbValues = [dbValue];
+        else
+          dbValues = [];
       }
     }
     if (dbValues !== undefined)
@@ -2528,13 +2539,17 @@ var GlodaDatastore = {
           for each ([attrID, values] in
               this._convertToDBValuesAndGroupByAttributeID(attrDef,
                                                            constraintValues)) {
+            let clausePart;
             if (attrID !== undefined)
-              clauses.push("(attributeID = " + attrID +
-                  " AND " + valueColumnName + " IN (" +
-                  values.join(",") + "))");
+              clausePart = "(attributeID = " + attrID +
+                (values.length ? " AND " : "");
             else
-              clauses.push("(" + valueColumnName + " IN (" +
-                  values.join(",") + "))");
+              clausePart = "(";
+            if (values.length)
+              clausePart += valueColumnName + " IN (" + values.join(",") + "))";
+            else
+              clausePart += ")";
+            clauses.push(clausePart);
           }
           test = clauses.join(" OR ");
         }
@@ -2886,8 +2901,6 @@ var GlodaDatastore = {
     ics.executeAsync(this.trackAsync());
     this._log.debug("insertContact: " + aContact.id + ":" + aContact.name);
 
-    // XXX caching-notifications-post-refactoring
-    GlodaCollectionManager.itemsAdded(aContact.NOUN_ID, [aContact]);
     return aContact;
   },
 

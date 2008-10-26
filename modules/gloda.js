@@ -895,7 +895,7 @@ var Gloda = {
       tableName: "contacts",
       attrTableName: "contactAttributes", attrIDColumnName: "contactID",
       datastore: GlodaDatastore, objFromRow: GlodaDatastore._contactFromRow,
-      dbAttribAdjuster: GlodaDatastore.adjustMessageAttributes,
+      dbAttribAdjuster: GlodaDatastore.adjustAttributes,
       objInsert: GlodaDatastore.insertContact,
       objUpdate: GlodaDatastore.updateContact,
       toParamAndValue: function(aContact) {
@@ -1076,7 +1076,7 @@ var Gloda = {
           for (let iArg = 0; iArg < arguments.length; iArg++) {
             constraint.push(arguments[iArg]);
           }
-          this._constraints.push(constraints);
+          this._constraints.push(constraint);
           return this;
         }
 
@@ -1347,7 +1347,7 @@ var Gloda = {
    * - JSON-able representation.
    */
   grokNounItem: function gloda_ns_grokNounItem(aItem, aRawReps, aIsNew,
-      aCallbackHandle) {
+      aCallbackHandle, aDoCache) {
     let itemNounDef = this._nounIDToDef[aItem.NOUN_ID];
     let attribsByBoundName = itemNounDef.attribsByBoundName;
     
@@ -1397,8 +1397,10 @@ var Gloda = {
       // find the attribute definition that corresponds to this key
       let attrib = attribsByBoundName[key];
       // if there's no attribute, that's not good, but not horrible.
-      if (attrib === undefined)
+      if (attrib === undefined) {
+        this._log.warn("new proc ignoring attrib: " + key);
         continue;
+      }
 
       let attribDB = attrib.dbDef;
       let objectNounDef = attrib.objectNounDef;
@@ -1445,8 +1447,8 @@ var Gloda = {
           let [valuesAdded, valuesRemoved] = 
             objectNounDef.computeDelta(value, oldValue);
           // convert the values to database-style attribute rows
-          this._log.debug("%% want to add " + valuesAdded + " which map to " + attribDB.convertValuesToDBAttributes(valuesAdded));
-          this._log.debug("%% want to rem " + valuesRemoved + " which map to " + attribDB.convertValuesToDBAttributes(valuesRemoved));
+          this._log.debug("%% cdelta want to add " + valuesAdded + " which map to " + attribDB.convertValuesToDBAttributes(valuesAdded));
+          this._log.debug("%% cdelta want to rem " + valuesRemoved + " which map to " + attribDB.convertValuesToDBAttributes(valuesRemoved));
           addDBAttribs.push.apply(addDBAttribs,
             attribDB.convertValuesToDBAttributes(valuesAdded));
           removeDBAttribs.push.apply(removeDBAttribs,
@@ -1457,19 +1459,23 @@ var Gloda = {
           //  we see them so that we will know what old values are no longer
           //  present in the current set of values.
           let oldValueMap = {};
-          for each (let [iAnOldValue, anOldValue] in Iterator(oldValue)) {
-            oldValueMap[anOldValue] = true;
+          for each (let [, anOldValue] in Iterator(oldValue)) {
+this._log.debug("  old traverse: " + anOldValue);
+            // remember, the key is just the toString'ed value, so we need to
+            //  store and use the actual value as the value!
+            oldValueMap[anOldValue] = anOldValue;
           }
           // traverse the current values...
           let valuesAdded = [];
-          for each (let [iCurValue, curValue] in Iterator(value)) {
+          for each (let [, curValue] in Iterator(value)) {
+this._log.debug("  new traverse: " + curValue);
             if (curValue in oldValueMap)
               delete oldValueMap[curValue];
             else
               valuesAdded.push(curValue);
           }
           // anything still on oldValueMap was removed.
-          let valuesRemoved = [val for (val in Iterator(oldValueMap, true))];
+          let valuesRemoved = [val for each (val in oldValueMap)];
           // convert the values to database-style attribute rows
           this._log.debug("%% want to add " + valuesAdded + " which map to " + attribDB.convertValuesToDBAttributes(valuesAdded));
           this._log.debug("%% want to rem " + valuesRemoved + " which map to " + attribDB.convertValuesToDBAttributes(valuesRemoved));
@@ -1479,14 +1485,19 @@ var Gloda = {
             attribDB.convertValuesToDBAttributes(valuesRemoved));
         }
       
-        // delete the old values to mark that we have processed them
-        delete aOldItem[key];
+        // replace the old value with the new values... (the 'old' item is
+        //  canonical)
+        aOldItem[key] = value; 
       }
-      // no old value, all attributes are new
+      // no old value, all values are new
       else {
+        // the 'old' item is still the canonical one; update it
+        if (!aIsNew)
+          aOldItem[key] = value;
+        // add the db reps on the new values
         if (attrib.singular)
           value = [value];
-        this._log.debug("%% want to add " + value + " which map to " + attribDB.convertValuesToDBAttributes(value));
+        this._log.debug("%% no old, want to add " + value + " which map to " + attribDB.convertValuesToDBAttributes(value));
         addDBAttribs.push.apply(addDBAttribs,
                                 attribDB.convertValuesToDBAttributes(value));
       }
@@ -1499,15 +1510,24 @@ var Gloda = {
       //  the object implementation.)
       if (key[0] == "_")
         continue;
+      // ignore things we saw in the new guy
+      if (key in aItem)
+        continue;
+      
       // find the attribute definition that corresponds to this key
       let attrib = attribsByBoundName[key];
-      let attribDB = attrib.dbDef;
       // if there's no attribute, that's not good, but not horrible.
-      if (attrib === undefined)
+      if (attrib === undefined) {
+        this._log.warn("old proc ignoring attrib: " + key);
         continue;
+      }
+      let attribDB = attrib.dbDef;
       this._log.debug("%% want to remove " + value + " which map to " + attribDB.convertValuesToDBAttributes(value));
       removeDBAttribs.push.apply(removeDBAttribs,
                                  attribDB.convertValuesToDBAttributes(value));
+      // delete these from the old item, as the old item is canonical, and
+      //  should no longer have these values
+      delete aOldItem[key];
     }
     
     aItem._jsonText = this._json.encode(jsonDict);
@@ -1522,9 +1542,18 @@ var Gloda = {
       itemNounDef.objUpdate.call(itemNounDef.datastore, aItem);
     }
     
-    this._log.debug(" adjusting attributes");
+    this._log.debug(" adjusting attributes, add: " + addDBAttribs + " rem: " +
+        removeDBAttribs);
     itemNounDef.dbAttribAdjuster.call(itemNounDef.datastore, aItem,
       addDBAttribs, removeDBAttribs);
+    
+    // Cache ramifications...
+    if (aDoCache === undefined || aDoCache) {
+      if (aIsNew)
+        GlodaCollectionManager.itemsAdded(aItem.NOUN_ID, [aItem]);
+      else
+        GlodaCollectionManager.itemsModified(aOldItem.NOUN_ID, [aOldItem]);
+    }
     
     this._log.debug(" done grokking.");
     

@@ -138,7 +138,7 @@ var GlodaExplicitAttr = {
                                            aCallbackHandle) {
     let aMsgHdr = aRawReps.header;
     
-    aGlodaMessage.flagged = aMsgHdr.isFlagged;
+    aGlodaMessage.starred = aMsgHdr.isFlagged;
     aGlodaMessage.read = aMsgHdr.isRead;
     
     let tags = aGlodaMessage.tags = [];

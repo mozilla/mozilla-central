@@ -72,11 +72,11 @@ function ResultRowMulti(aNounID, aCriteriaType, aCriteria, aQuery) {
 ResultRowMulti.prototype = {
   multi: true,
   onItemsAdded: function(aItems) {
-    LOG.debug("onItemsAdded");
+    LOG.debug("RRM onItemsAdded: " + aItems.length + ": " + aItems);
     if (this.renderer) {
-      LOG.debug("rendering...");
+      LOG.debug("RRM rendering...");
       for each (let [iItem, item] in Iterator(aItems)) {
-        LOG.debug(" ..." + item);
+        LOG.debug("RRM ..." + item);
         this.renderer.renderItem(item);
       }
     }
@@ -199,8 +199,10 @@ ContactIdentityCompleter.prototype = {
       return false;
 
     let matches;
-    if (this.suffixTree)
+    if (this.suffixTree) {
       matches = this.suffixTree.findMatches(aString.toLowerCase());
+      LOG.debug("CIC: Suffix Tree found " + matches.length + " matches.")
+    }
     else
       matches = [];
 
@@ -228,13 +230,15 @@ ContactIdentityCompleter.prototype = {
     // - match against database contacts / identities
     let pending = {contactToThing: contactToThing, pendingCount: 2};
     
+    LOG.debug("CIC: issuing contact LIKE query");
     let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
-    contactQuery.nameLike([contactQuery.WILD, aString, contactQuery.WILD]);
+    contactQuery.nameLike(contactQuery.WILD, aString, contactQuery.WILD);
     pending.contactColl = contactQuery.getCollection(this, aResult);
 
+    LOG.debug("CIC: issuing identity LIKE query");
     let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
-    identityQuery.kind("email").valueLike([identityQuery.WILD, aString,
-        identityQuery.WILD]);
+    identityQuery.kind("email").valueLike(identityQuery.WILD, aString,
+        identityQuery.WILD);
     pending.identityColl = identityQuery.getCollection(this, aResult);
     
     aResult._contactCompleterPending = pending;
@@ -250,6 +254,7 @@ ContactIdentityCompleter.prototype = {
   onQueryCompleted: function(aCollection) {
     // handle the initial setup case...
     if (aCollection.data == null) {
+      LOG.debug("CIC: Initial query found " + aCollection.items.length);
       // cheat and explicitly add our own contact...
       if (!(Gloda.myContact.id in this.contactCollection._idMap))
         this.contactCollection._onItemsAdded([Gloda.myContact]);
@@ -269,6 +274,8 @@ ContactIdentityCompleter.prototype = {
       
       return;
     }
+    
+    LOG.debug("CIC: LIKE query found " + aCollection.items.length);
     
     // handle the completion case
     let result = aCollection.data;
@@ -314,6 +321,9 @@ ContactIdentityCompleter.prototype = {
       delete pending.contactColl.data;
       // the result object no longer needs us or our data
       delete result._contactCompleterPending;
+    }
+    else {
+      LOG.debug("ignoring... pending is still: " + pending.pendingCount);
     }
   }
 };
