@@ -467,6 +467,16 @@ NS_IMETHODIMP nsMsgNewsFolder::SetNewsrcHasChanged(PRBool newsrcHasChanged)
   return nntpServer->SetNewsrcHasChanged(newsrcHasChanged);
 }
 
+nsresult nsMsgNewsFolder::CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder)
+{
+  nsMsgNewsFolder *newFolder = new nsMsgNewsFolder;
+  if (!newFolder)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(*folder = newFolder);
+  newFolder->Init(uri.get());
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgNewsFolder::CreateSubfolder(const nsAString& newsgroupName,
                                                nsIMsgWindow *msgWindow)
 {

@@ -72,13 +72,6 @@ nsMovemailIncomingServer::GetIsSecureServer(PRBool *aIsSecureServer)
     return NS_OK;
 }
 
-nsresult
-nsMovemailIncomingServer::GetLocalStoreType(nsACString &type)
-{
-    type.AssignLiteral("mailbox");
-    return NS_OK;
-}
-
 NS_IMETHODIMP 
 nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
 {

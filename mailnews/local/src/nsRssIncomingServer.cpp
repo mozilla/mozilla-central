@@ -214,12 +214,6 @@ NS_IMETHODIMP nsRssIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlLi
   return NS_OK;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::GetLocalStoreType(nsACString& type)
-{
-  type.AssignLiteral("mailbox");
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsRssIncomingServer::GetAccountManagerChrome(nsAString& aResult)
 {
   aResult.AssignLiteral("am-newsblog.xul");

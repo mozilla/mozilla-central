@@ -275,6 +275,16 @@ nsMsgLocalMailFolder::CreateSubFolders(nsIFile *path)
   return rv;
 }
 
+nsresult nsMsgLocalMailFolder::CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder)
+{
+  nsMsgLocalMailFolder *newFolder = new nsMsgLocalMailFolder;
+  if (!newFolder)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(*folder = newFolder);
+  newFolder->Init(uri.get());
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgLocalMailFolder::AddSubfolder(const nsAString &name,
                                                  nsIMsgFolder **child)
 {

@@ -350,6 +350,7 @@ public:
 protected:
   // Helper methods
 
+  virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder);
   void FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
     &keysToFetch, PRUint32 &numNewUnread, nsIImapFlagAndUidState *flagState);
   void FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>

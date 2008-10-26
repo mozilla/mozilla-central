@@ -198,6 +198,7 @@ public:
   NS_IMETHOD RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords);
 
 protected:
+  nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder);
   nsresult CopyFolderAcrossServer(nsIMsgFolder *srcFolder, nsIMsgWindow *msgWindow,nsIMsgCopyServiceListener* listener);
 
   nsresult CreateSubFolders(nsIFile *path);

@@ -302,6 +302,16 @@ nsShouldIgnoreFile(nsString& name)
   return PR_TRUE;
 }
 
+nsresult nsImapMailFolder::CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder)
+{
+  nsImapMailFolder *newFolder = new nsImapMailFolder;
+  if (!newFolder)
+    return NS_ERROR_OUT_OF_MEMORY;
+  newFolder->Init(uri.get());
+  NS_ADDREF(*folder = newFolder);
+  return NS_OK;
+}
+
 // this is only called for virtual folders, currently.
 NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolder** aChild)
 {

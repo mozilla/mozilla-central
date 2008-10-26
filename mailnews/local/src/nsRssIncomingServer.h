@@ -41,11 +41,12 @@
 #include "nsILocalMailIncomingServer.h"
 #include "nsMsgIncomingServer.h"
 #include "nsIFolderListener.h"
+#include "nsMailboxServer.h"
 
-class nsRssIncomingServer : public nsMsgIncomingServer,
-                                 public nsIRssIncomingServer,
-                                 public nsILocalMailIncomingServer,
-                                 public nsIFolderListener
+class nsRssIncomingServer : public nsMailboxServer,
+                            public nsIRssIncomingServer,
+                            public nsILocalMailIncomingServer,
+                            public nsIFolderListener
 
 {
 public:
@@ -54,7 +55,6 @@ public:
     NS_DECL_NSILOCALMAILINCOMINGSERVER
     NS_DECL_NSIFOLDERLISTENER
 
-    NS_IMETHOD GetLocalStoreType(nsACString& type);
     NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
     NS_IMETHOD GetSupportsDiskSpace(PRBool *aSupportsDiskSpace);
     NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);

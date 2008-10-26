@@ -1,5 +1,5 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
+/**
+ * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -12,11 +12,11 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Mailnews code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ *   David Bienvenu <bienvenu@nventure.com>
+ * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -35,34 +35,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __nsNoIncomingServer_h
-#define __nsNoIncomingServer_h
+#ifndef nsMailboxServer_h__
+#define nsMailboxServer_h__
 
-#include "msgCore.h"
-#include "nsINoIncomingServer.h"
-#include "nsILocalMailIncomingServer.h"
 #include "nsMsgIncomingServer.h"
-#include "nsMailboxServer.h"
 
-/* get some implementation from nsMsgIncomingServer */
-class nsNoIncomingServer : public nsMailboxServer,
-                           public nsINoIncomingServer,
-                           public nsILocalMailIncomingServer
-
+class nsMailboxServer : public nsMsgIncomingServer
 {
 public:
-  NS_DECL_ISUPPORTS_INHERITED
-  NS_DECL_NSINOINCOMINGSERVER
-  NS_DECL_NSILOCALMAILINCOMINGSERVER
-
-  nsNoIncomingServer();
-  virtual ~nsNoIncomingServer();
-
   NS_IMETHOD GetLocalStoreType(nsACString& type);
-  NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
-  NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
-  NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
+protected:
+  virtual nsresult CreateRootFolderFromUri(const nsCString &serverUri,
+                                           nsIMsgFolder **rootFolder);
 };
-
 
 #endif

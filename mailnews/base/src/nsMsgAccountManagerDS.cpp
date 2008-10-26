@@ -774,11 +774,10 @@ nsMsgAccountManagerDataSource::createSettingsResources(nsIRDFResource *aSource,
     return NS_OK;
 
   nsCOMPtr<nsIMsgIncomingServer> server;
-  nsresult rv = getServerForFolderNode(aSource, getter_AddRefs(server));
-  NS_ENSURE_SUCCESS(rv, rv);
+  getServerForFolderNode(aSource, getter_AddRefs(server));
   if (server) {
     PRBool hasIdentities;
-    rv = serverHasIdentities(server, &hasIdentities);
+    nsresult rv = serverHasIdentities(server, &hasIdentities);
 
     if (hasIdentities) {
       aNodeArray->AppendElement(kNC_PageTitleServer);

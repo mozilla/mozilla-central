@@ -119,6 +119,7 @@ protected:
   nsresult CreateSubFolders(nsILocalFile *path);
   nsresult AddDirectorySeparator(nsILocalFile *path);
   nsresult GetDatabase(nsIMsgWindow *aMsgWindow);
+  virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder);
 
   nsresult LoadNewsrcFileAndCreateNewsgroups();
   PRInt32 RememberLine(const nsACString& line);

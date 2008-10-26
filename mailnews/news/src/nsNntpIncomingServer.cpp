@@ -41,7 +41,7 @@
 #include "nsNntpIncomingServer.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
-#include "nsIMsgNewsFolder.h"
+#include "nsNewsFolder.h"
 #include "nsIMsgFolder.h"
 #include "nsILocalFile.h"
 #include "nsCOMPtr.h"
@@ -152,6 +152,18 @@ NS_IMPL_SERVERPREF_BOOL(nsNntpIncomingServer, Abbreviate, "abbreviate")
 NS_IMPL_SERVERPREF_BOOL(nsNntpIncomingServer, PushAuth, "always_authenticate")
 NS_IMPL_SERVERPREF_BOOL(nsNntpIncomingServer, SingleSignon, "singleSignon")
 NS_IMPL_SERVERPREF_INT(nsNntpIncomingServer, MaxArticles, "max_articles")
+
+nsresult
+nsNntpIncomingServer::CreateRootFolderFromUri(const nsCString &serverUri,
+                                              nsIMsgFolder **rootFolder)
+{
+  nsMsgNewsFolder *newRootFolder = new nsMsgNewsFolder;
+  if (!newRootFolder)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(*rootFolder = newRootFolder);
+  newRootFolder->Init(serverUri.get());
+  return NS_OK;
+}
 
 NS_IMETHODIMP
 nsNntpIncomingServer::GetNewsrcFilePath(nsILocalFile **aNewsrcFilePath)

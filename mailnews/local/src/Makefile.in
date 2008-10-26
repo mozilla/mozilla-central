@@ -80,6 +80,7 @@ CPPSRCS		= \
 		nsLocalMailFolder.cpp \
 		nsMailboxService.cpp \
 		nsPop3Service.cpp \
+		nsMailboxServer.cpp \
 		nsPop3IncomingServer.cpp \
 		nsLocalUtils.cpp \
 		nsLocalUndoTxn.cpp \

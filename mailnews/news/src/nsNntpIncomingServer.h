@@ -100,6 +100,8 @@ public:
     nsresult AppendIfSearchMatch(nsCString& newsgroupName);
 
 protected:
+   virtual nsresult CreateRootFolderFromUri(const nsCString &serverUri,
+                                            nsIMsgFolder **rootFolder);
     nsresult CreateProtocolInstance(nsINNTPProtocol ** aNntpConnection, nsIURI *url,
                                              nsIMsgWindow *window);
     PRBool ConnectionTimeOut(nsINNTPProtocol* aNntpConnection);

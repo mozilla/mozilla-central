@@ -101,6 +101,8 @@ public:
 
 protected:
   nsresult GetFolder(const nsACString& name, nsIMsgFolder** pFolder);
+  virtual nsresult CreateRootFolderFromUri(const nsCString &serverUri,
+                                           nsIMsgFolder **rootFolder);
   nsresult ResetFoldersToUnverified(nsIMsgFolder *parentFolder);
   void GetUnverifiedSubFolders(nsIMsgFolder *parentFolder,
                                nsCOMArray<nsIMsgImapMailFolder> &aFoldersArray);

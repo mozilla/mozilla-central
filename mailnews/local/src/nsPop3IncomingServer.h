@@ -44,9 +44,10 @@
 #include "nsMsgIncomingServer.h"
 #include "nsIPop3Protocol.h"
 #include "nsIMsgWindow.h"
+#include "nsMailboxServer.h"
 
 /* get some implementation from nsMsgIncomingServer */
-class nsPop3IncomingServer : public nsMsgIncomingServer,
+class nsPop3IncomingServer : public nsMailboxServer,
                              public nsIPop3IncomingServer,
                              public nsILocalMailIncomingServer
 
@@ -59,7 +60,6 @@ public:
   nsPop3IncomingServer();
   virtual ~nsPop3IncomingServer();
 
-  NS_IMETHOD GetLocalStoreType(nsACString& type);
   NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
   NS_IMETHOD GetDownloadMessagesAtStartup(PRBool *getMessages);
   NS_IMETHOD GetCanBeDefaultServer(PRBool *canBeDefaultServer);

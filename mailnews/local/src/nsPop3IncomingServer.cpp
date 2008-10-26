@@ -234,13 +234,6 @@ nsPop3IncomingServer::SetPop3CapabilityFlags(PRUint32 flags)
   return NS_OK;
 }
 
-nsresult
-nsPop3IncomingServer::GetLocalStoreType(nsACString& type)
-{
-  type.AssignLiteral("mailbox");
-  return NS_OK;
-}
-
 NS_IMETHODIMP
 nsPop3IncomingServer::GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder)
 {

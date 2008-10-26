@@ -63,7 +63,7 @@
 #include "plstr.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgWindow.h"
-#include "nsIMsgImapMailFolder.h"
+#include "nsImapMailFolder.h"
 #include "nsImapUtils.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
@@ -1071,6 +1071,18 @@ NS_IMETHODIMP nsImapIncomingServer::GetSentMailPFC(PRBool createIfMissing, nsIMs
 {
   NS_ENSURE_ARG_POINTER(aFolder);
   return GetPFCForStringId(createIfMissing, IMAP_PFC_SENT_MAIL, aFolder);
+}
+
+nsresult
+nsImapIncomingServer::CreateRootFolderFromUri(const nsCString &serverUri,
+                                              nsIMsgFolder **rootFolder)
+{
+  nsImapMailFolder *newRootFolder = new nsImapMailFolder;
+  if (!newRootFolder)
+    return NS_ERROR_OUT_OF_MEMORY;
+  newRootFolder->Init(serverUri.get());
+  NS_ADDREF(*rootFolder = newRootFolder);
+  return NS_OK;
 }
 
 // nsIImapServerSink impl

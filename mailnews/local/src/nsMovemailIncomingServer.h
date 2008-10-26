@@ -42,10 +42,10 @@
 #include "msgCore.h"
 #include "nsIMovemailIncomingServer.h"
 #include "nsILocalMailIncomingServer.h"
-#include "nsMsgIncomingServer.h"
+#include "nsMailboxServer.h"
 
 /* get some implementation from nsMsgIncomingServer */
-class nsMovemailIncomingServer : public nsMsgIncomingServer,
+class nsMovemailIncomingServer : public nsMailboxServer,
                                  public nsIMovemailIncomingServer,
                                  public nsILocalMailIncomingServer
 
@@ -59,7 +59,6 @@ public:
     virtual ~nsMovemailIncomingServer();
     
     NS_IMETHOD GetIsSecureServer(PRBool *aIsSecureServer);
-    NS_IMETHOD GetLocalStoreType(nsACString &type);
     NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
     NS_IMETHOD GetDownloadMessagesAtStartup(PRBool *getMessages);
     NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
