@@ -42,6 +42,8 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://gloda/modules/log4moz.js");
+
 Cu.import("resource://gloda/modules/gloda.js");
 
 function FreeTag(aTagName) {
@@ -59,9 +61,12 @@ FreeTag.prototype = {
  *  parameter, we are an odd case and semantically confused.
  */
 var FreeTagNoun = {
+  _log: Log4Moz.Service.getLogger("gloda.noun.freetag"),
+
   name: "freetag",
   class: FreeTag,
   allowsArbitraryAttrs: false,
+  usesParameter: true,
   
   _listeners: [],
   addListener: function(aListener) {
@@ -86,10 +91,6 @@ var FreeTagNoun = {
 
   toParamAndValue: function gloda_noun_freetag_toParamAndValue(aTag) {
     return [aTag.name, null];
-  },
-  fromParamAndValue: function gloda_noun_freetag_fromParameterValue(aTagName,
-                                                                    aIgnored) {
-    return this.getFreeTag(aTagName);
   },
   
   toJSON: function gloda_noun_freetag_toJSON(aTag) {

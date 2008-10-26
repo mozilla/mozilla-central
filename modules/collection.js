@@ -449,6 +449,8 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener,
     this._onItemsAdded(aItems);
   
   this.query = aQuery || null;
+  if (this.query)
+    this.query.collection = this;
   this._listener = aListener || null;
   
   this.deferredCount = 0;

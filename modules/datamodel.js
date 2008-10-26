@@ -110,7 +110,6 @@ GlodaAttributeDBDef.prototype = {
   convertValuesToDBAttributes:
       function gloda_attr_convertValuesToDBAttributes(aInstanceValues) {
     let nounDef = this.attrDef.objectNounDef;
-    
     if (this._singular) {
       if (nounDef.usesParameter) {
         let [param, dbValue] = nounDef.toParamAndValue(aInstanceValues);
@@ -124,7 +123,7 @@ GlodaAttributeDBDef.prototype = {
       let dbAttributes = [];
       if (nounDef.usesParameter) {
         for each (let [, instanceValue] in Iterator(aInstanceValues)) {
-          let [param, dbValue] = nounDef.toParamAndValue(aInstanceValues);
+          let [param, dbValue] = nounDef.toParamAndValue(instanceValue);
           dbAttributes.push([this.bindParameter(param), dbValue]);
         }
       }

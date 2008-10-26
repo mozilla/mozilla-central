@@ -50,6 +50,7 @@ Cu.import("resource://gloda/modules/gloda.js");
 var TagNoun = {
   name: "tag",
   class: Ci.nsIMsgTag,
+  usesParameter: true,
   allowsArbitraryAttrs: false,
   _msgTagService: null,
   _tagMap: null,

@@ -2370,7 +2370,7 @@ var GlodaDatastore = {
     function gloda_ds__convertToDBValuesAndGroupByAttributeID(aAttrDef,
                                                               aValues) {
     let objectNounDef = aAttrDef.objectNounDef;
-    if (!aAttrDef.usesParameter) {
+    if (!objectNounDef.usesParameter) {
       let dbValues = [];
       for (let iValue = 0; iValue < aValues.length; iValue++) {
         let dbValue = objectNounDef.toParamAndValue(aValues[iValue])[1];
@@ -2415,7 +2415,7 @@ var GlodaDatastore = {
     function gloda_ds__convertRangesToDBStringsAndGroupByAttributeID(aAttrDef,
       aValues, aValueColumnName) {
     let objectNounDef = aAttrDef.objectNounDef;
-    if (!aAttrDef.usesParameter) {
+    if (!objectNounDef.usesParameter) {
       let dbStrings = [];
       for (let iValue = 0; iValue < aValues.length; iValue++) {
         let [lowerVal, upperVal] = aValues[iValue];
