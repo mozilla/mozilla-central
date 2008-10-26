@@ -1118,28 +1118,15 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 		}
 			
 	    if (vcount == 0){
-		char temp[200]; /* HACK */
-		
-		icalproperty_kind prop_kind = icalproperty_isa(prop);
 		icalcomponent *tail = pvl_data(pvl_tail(parser->components));
 		
-		snprintf(temp,sizeof(temp),"No value for %s property. Removing entire property",
-			icalproperty_kind_to_string(prop_kind));
-
-		insert_error(tail, str, temp,
-			     ICAL_XLICERRORTYPE_VALUEPARSEERROR);
-
-		/* Remove the troublesome property */
+		/* Remove the empty property */
 		icalcomponent_remove_property(tail,prop);
 		icalproperty_free(prop);
-		prop = 0;
-		tail = 0;
-		parser->state = ICALPARSER_ERROR;
-		return 0;
-	    } else {
-
-		break;
+		prop = NULL;
 	    }
+
+        break;
 	}
     }
 	
