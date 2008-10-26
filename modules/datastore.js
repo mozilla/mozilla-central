@@ -1252,9 +1252,12 @@ var GlodaDatastore = {
       // if the parameter is null, the id goes on the attribute def, otherwise
       //  it is a parameter binding and goes in the binding map.
       if (rowParameter == null) {
+        this._log.debug(compoundName + " primary: " + rowId);
         attrib._id = rowId;
         idToAttribAndParam[rowId] = [attrib, null];
       } else {
+        this._log.debug(compoundName + " binding: " + rowParameter +
+            " = " + rowId);
         attrib._parameterBindings[rowParameter] = rowId;
         idToAttribAndParam[rowId] = [attrib, rowParameter];
       }

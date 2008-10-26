@@ -58,13 +58,12 @@ Cu.import("resource://gloda/modules/utils.js");
  *  parameterized attribute.
  */
 function GlodaAttributeDBDef(aDatastore, aID, aCompoundName, aAttrType,
-                           aPluginName, aNounName, aAttrName) {
+                           aPluginName, aAttrName) {
   this._datastore = aDatastore;
   this._id = aID;
   this._compoundName = aCompoundName;
   this._attrType = aAttrType;
   this._pluginName = aPluginName;
-  this._nounName = aNounName;
   this._attrName = aAttrName;
   
   this.attrDef = null;
