@@ -48,10 +48,11 @@ var LOG = null;
 var Gloda = null;
 var GlodaUtils = null;
 var MultiSuffixTree = null;
+var TagNoun = null;
 var FreeTagNoun = null;
 
-function ResultRowSingle(aItem, aCriteriaType, aCriteria) {
-  this.nounID = aItem.NOUN_ID;
+function ResultRowSingle(aItem, aCriteriaType, aCriteria, aExplicitNounID) {
+  this.nounID = aExplicitNounID || aItem.NOUN_ID;
   this.nounDef = Gloda._nounIDToDef[this.nounID];
   this.criteriaType = aCriteriaType;
   this.criteria = aCriteria;
@@ -187,8 +188,6 @@ const MAX_POPULAR_CONTACTS = 200;
 function ContactIdentityCompleter() {
   // get all the contacts
   let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
-dump("cq.ob: " + contactQuery.orderBy + "\n");
-dump("cq.limit: " + contactQuery.limit + "\n");
   contactQuery.orderBy("-popularity").limit(MAX_POPULAR_CONTACTS);
   this.contactCollection = contactQuery.getCollection(this, null);
 }
@@ -332,6 +331,7 @@ ContactIdentityCompleter.prototype = {
  * Complete tags that are used on contacts.
  */
 function ContactTagCompleter() {
+  FreeTagNoun.populateKnownFreeTags();
   this._buildSuffixTree();
   FreeTagNoun.addListener(this);
 }
@@ -341,6 +341,7 @@ ContactTagCompleter.prototype = {
     for (let [tagName, tag] in Iterator(FreeTagNoun.knownFreeTags)) {
       tagNames.push(tagName.toLowerCase());
       tags.push(tag);
+      LOG.debug("contact tag: " + tagName);
     }
     this._suffixTree = new MultiSuffixTree(tagNames, tags);
     this._suffixTreeDirty = false;
@@ -356,13 +357,13 @@ ContactTagCompleter.prototype = {
     if (aString.length < 2)
       return false; // no async mechanism that will add new rows
     
-    LOG.debug("Completing on tags...");
+    LOG.debug("Completing on contact tags...");
     
     tags = this._suffixTree.findMatches(aString.toLowerCase());
     let rows = [];
     for each (let [iTag, tag] in Iterator(tags)) {
       let query = Gloda.newQuery(Gloda.NOUN_CONTACT);
-      LOG.debug("  checking for tag: " + tag.name);
+      LOG.debug("  checking for contact tag: " + tag.name);
       query.freeTags(tag);
       let resRow = new ResultRowMulti(Gloda.NOUN_CONTACT, "tag", tag.name,
                                       query);
@@ -378,31 +379,56 @@ ContactTagCompleter.prototype = {
  * Complete tags that are used on messages
  */
 function MessageTagCompleter() {
-
+  this._buildSuffixTree();
 }
 MessageTagCompleter.prototype = {
+  _buildSuffixTree: function MessageTagCompleter__buildSufficeTree() {
+    let tagNames = [], tags = [];
+    let tagArray = TagNoun.getAllTags();
+    for (let iTag = 0; iTag < tagArray.length; iTag++) {
+      let tag = tagArray[iTag];
+      tagNames.push(tag.tag.toLowerCase());
+      tags.push(tag);
+      LOG.debug("message tag: " + tag.tag);
+    }
+    this._suffixTree = new MultiSuffixTree(tagNames, tags);
+    this._suffixTreeDirty = false;
+  },
   complete: function MessageTagCompleter_complete(aResult, aString) {
-    return false;
+    if (aString.length < 2)
+      return false;
+    
+    LOG.debug("Completing on message tags...");
+    
+    tags = this._suffixTree.findMatches(aString.toLowerCase());
+    let rows = [];
+    for each (let [, tag] in Iterator(tags)) {
+      LOG.debug(" found message tag: " + tag.tag);
+      let resRow = new ResultRowSingle(tag, "tag", tag.tag, TagNoun.id);
+      rows.push(resRow);
+    }
+    aResult.addRows(rows);
+    
+    return false; // no async mechanism that will add new rows
   }
 };
 
 function nsAutoCompleteGloda() {
   this.wrappedJSObject = this;
 
-dump("imports...\n");
   // set up our awesome globals!
   if (Gloda === null) {
     let loadNS = {};
 
-dump("  public...\n");
     Cu.import("resource://gloda/modules/public.js", loadNS);
     Gloda = loadNS.Gloda;
 
-dump("  utils...\n");
     Cu.import("resource://gloda/modules/utils.js", loadNS);
     GlodaUtils = loadNS.GlodaUtils;
     Cu.import("resource://gloda/modules/suffixtree.js", loadNS);
     MultiSuffixTree = loadNS.MultiSuffixTree;
+    Cu.import("resource://gloda/modules/noun_tag.js", loadNS);
+    TagNoun = loadNS.TagNoun;
     Cu.import("resource://gloda/modules/noun_freetag.js", loadNS);
     FreeTagNoun = loadNS.FreeTagNoun;
 
@@ -426,7 +452,9 @@ dump("init CTC\n");
   this.completers.push(new ContactTagCompleter());
 dump("init MTC\n");
   LOG.debug("initializing MessageTagCompleter");
+  try {
   this.completers.push(new MessageTagCompleter());
+  } catch (ex) {dump("MTCEX: " + ex.fileName + ":" + ex.lineNumber + ": " + ex);}
   
   LOG.debug("initialized completers");
 }

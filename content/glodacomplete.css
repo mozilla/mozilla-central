@@ -16,6 +16,11 @@ panel[type="glodacomplete-richlistbox"] {
   overflow-x: hidden !important;
 }
 
+.autocomplete-richlistitem[type="gloda-single-tag"] {
+  -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-single-tag-item");
+  overflow: -moz-hidden-unscrollable;
+}
+
 .autocomplete-richlistitem[type="gloda-single-identity"] {
   -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-single-identity-item");
   -moz-box-orient: vertical;

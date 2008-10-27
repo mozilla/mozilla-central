@@ -61,6 +61,10 @@ var TagNoun = {
     this._updateTagMap();
   },
   
+  getAllTags: function gloda_noun_tag_getAllTags() {
+    return this._msgTagService.getAllTags({});
+  },
+  
   _updateTagMap: function gloda_noun_tag_updateTagMap() {
     this._tagMap = {};
     let tagArray = this._msgTagService.getAllTags({});

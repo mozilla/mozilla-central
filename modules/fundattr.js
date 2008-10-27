@@ -297,7 +297,7 @@ var GlodaFundAttr = {
                         bindName: "mailingLists",
                         singular: false,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
-                        objectNoun: Gloda.NOUN_DATE,
+                        objectNoun: Gloda.NOUN_IDENTITY,
                         }); // not-tested, not-implemented
   },
   

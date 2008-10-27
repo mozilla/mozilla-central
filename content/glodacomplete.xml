@@ -336,6 +336,36 @@
     </implementation>
   </binding>
 
+  <binding id="gloda-single-tag-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
+    <content orient="vertical">
+      <xul:description anonid="explanation"/>
+    </content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+            this._explanation = document.getAnonymousElementByAttribute(this, "anonid", "explanation");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            return "tag " + this.row.item.tag;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          this._explanation.value = "messages tagged " + this.row.item.tag;
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
 
   <binding id="gloda-single-identity-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
     <content>

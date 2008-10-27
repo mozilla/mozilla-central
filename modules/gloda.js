@@ -709,6 +709,8 @@ var Gloda = {
     }
     aNounDef.attribsByBoundName = {};
     
+    aNounDef.objectNounOfAttributes = [];
+
     this._nounNameToNounID[aNounDef.name] = aNounID;
     this._nounIDToDef[aNounID] = aNounDef;
     aNounDef.actions = [];
@@ -733,6 +735,14 @@ var Gloda = {
                  (propName in this._nounNameToNounID)].join(", "));
   },
 
+  /**
+   * Lookup a noun def given a name.
+   */
+  lookupNounDef: function gloda_ns_lookupNoun(aNounName) {
+    return this._nounIDToDef[this.lookupNoun(aNounName)];
+  },
+
+  
   /**
    * Define an action on a noun.  During the prototype stage, this was conceived
    *  of as a way to expose all the constraints possible given a noun.  For
@@ -1183,6 +1193,7 @@ var Gloda = {
       aAttrDef.boundName = aAttrDef.attributeName;
     
     aAttrDef.objectNounDef = this._nounIDToDef[aAttrDef.objectNoun];
+    aAttrDef.objectNounDef.objectNounOfAttributes.push(aAttrDef);
 
     for (let iSubject = 0; iSubject < aAttrDef.subjectNouns.length;
            iSubject++) {

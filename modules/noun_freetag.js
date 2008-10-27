@@ -78,6 +78,15 @@ var FreeTagNoun = {
       this._listeners.splice(index, 1);
   },
   
+  populateKnownFreeTags: function() {
+    for each (let [,attr] in Iterator(this.objectNounOfAttributes)) {
+      let attrDB = attr.dbDef;
+      for (let param in attrDB.parameterBindings) {
+        this.getFreeTag(param);
+      }
+    }
+  },
+  
   knownFreeTags: {},
   getFreeTag: function(aTagName) {
     let tag = this.knownFreeTags[aTagName];
