@@ -139,7 +139,7 @@ let QueryFromQueryResolver = {
     
     // bail if we are still pending on some other load completion
     if (originColl.deferredCount > 0) {
-      QFQ_LOG.debug("QFQR: bailing " + originColl._nounDef.name);
+      //QFQ_LOG.debug("QFQR: bailing " + originColl._nounDef.name);
       return;
     }
     
@@ -149,7 +149,7 @@ let QueryFromQueryResolver = {
 
     if (originColl.pendingItems) {
       for (let [, item] in Iterator(originColl.pendingItems)) {
-        QFQ_LOG.debug("QFQR: loading deferred " + item.NOUN_ID + ":" + item.id);
+        //QFQ_LOG.debug("QFQR: loading deferred " + item.NOUN_ID + ":" + item.id);
         GlodaDatastore.loadNounDeferredDeps(item, referencesByNounID,
             inverseReferencesByNounID);
       }
@@ -163,8 +163,8 @@ let QueryFromQueryResolver = {
       // just directly tell the collection about the items.  we know the query
       //  matches (at least until we introduce predicates that we cannot express
       //  in SQL.)
-      QFQ_LOG.debug(" QFQR: about to trigger listener: " + originColl._listener +
-          "with collection: " + originColl._nounDef.name);
+      //QFQ_LOG.debug(" QFQR: about to trigger listener: " + originColl._listener +
+      //    "with collection: " + originColl._nounDef.name);
       originColl._onItemsAdded(originColl.pendingItems);
       delete originColl.pendingItems;
       delete originColl._pendingIdMap;
@@ -177,8 +177,8 @@ let QueryFromQueryResolver = {
   onQueryCompleted: function(aCollection) {
     let originColl = aCollection.completionShifter ?
       aCollection.completionShifter.shift() : aCollection.data;
-    QFQ_LOG.debug(" QFQR about to trigger completion with collection: " +
-      originColl._nounDef.name);
+    //QFQ_LOG.debug(" QFQR about to trigger completion with collection: " +
+    //  originColl._nounDef.name);
     if (originColl.deferredCount <= 0) {
       originColl._onQueryCompleted();
     }
@@ -194,7 +194,7 @@ function QueryFromQueryCallback(aStatement, aNounDef, aCollection) {
   this.nounDef = aNounDef;
   this.collection = aCollection;
   
-  QFQ_LOG.debug("Creating QFQCallback for noun: " + aNounDef.name);
+  //QFQ_LOG.debug("Creating QFQCallback for noun: " + aNounDef.name);
   
   // the master collection holds the referencesByNounID
   this.referencesByNounID = {};
@@ -242,8 +242,8 @@ QueryFromQueryCallback.prototype = {
       if (item.id in pendingIdMap)
         continue;
       
-      QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
-          this.selfReferences[item.id] + " cached: " + cachedItem);
+      //QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
+      //    this.selfReferences[item.id] + " cached: " + cachedItem);
       if (cachedItem)
         item = cachedItem;
       // we may already have been loaded by this process
@@ -257,7 +257,7 @@ QueryFromQueryCallback.prototype = {
           this.needsLoads;
       
       // add ourself to the references by our id
-//QFQ_LOG.debug("saving item " + nounDef.id + ":" + item.id + " to self-refs");
+      // QFQ_LOG.debug("saving item " + nounDef.id + ":" + item.id + " to self-refs");
       this.selfReferences[item.id] = item;
       
       // if we're tracking it, add ourselves to our parent's list of children
@@ -284,14 +284,14 @@ QueryFromQueryCallback.prototype = {
     this.statement.finalize();
     this.statement = null;
     
-    QFQ_LOG.debug("handleCompletion: " + this.collection._nounDef.name);
+    //QFQ_LOG.debug("handleCompletion: " + this.collection._nounDef.name);
     
     if (this.needsLoads) {
       for each (let [nounID, references] in Iterator(this.referencesByNounID)) {
         if (nounID == this.nounDef.id)
           continue;
         let nounDef = GlodaDatastore._nounIDToDef[nounID];
-        QFQ_LOG.debug("  have references for noun: " + nounDef.name);
+        //QFQ_LOG.debug("  have references for noun: " + nounDef.name);
         // try and load them out of the cache/existing collections.  items in the
         //  cache will be fully formed, which is nice for us.
         // XXX this mechanism will get dubious when we have multiple paths to a
@@ -331,7 +331,7 @@ QueryFromQueryCallback.prototype = {
           }
         }
         
-        QFQ_LOG.debug("  found: " + foundCount + " not found: " + notFoundCount);
+        //QFQ_LOG.debug("  found: " + foundCount + " not found: " + notFoundCount);
         if (notFoundCount === 0) {
           this.collection.resolvedCount++;
         }
@@ -354,7 +354,7 @@ QueryFromQueryCallback.prototype = {
         this.collection.deferredCount++;
         let nounDef = GlodaDatastore._nounIDToDef[nounID];
         
-        QFQ_LOG.debug("Want to load inverse via " + nounDef.parentColumnAttr.boundName);
+        //QFQ_LOG.debug("Want to load inverse via " + nounDef.parentColumnAttr.boundName);
   
         let query = new nounDef.queryClass();
         // we want to constrain using the parent column
@@ -373,8 +373,8 @@ QueryFromQueryCallback.prototype = {
       this.collection.resolvedCount++;
     }
     
-    QFQ_LOG.debug("  defer: " + this.collection.deferredCount +
-                  " resolved: " + this.collection.resolvedCount);
+    //QFQ_LOG.debug("  defer: " + this.collection.deferredCount +
+    //              " resolved: " + this.collection.resolvedCount);
     
     // process immediately and kick-up to the master collection...
     try {
@@ -2713,8 +2713,8 @@ var GlodaDatastore = {
     let deps = aItem._deps || {};
     let hasDeps = false;
     
-    this._log.debug("  hadDeps: " + hadDeps + " deps: " + 
-        Log4Moz.enumerateProperties(deps).join(","));
+    //this._log.debug("  hadDeps: " + hadDeps + " deps: " + 
+    //    Log4Moz.enumerateProperties(deps).join(","));
     
     for each (let [, attrib] in Iterator(aItem.NOUN_DEF.specialLoadAttribs)) {
       let objectNounDef = attrib.objectNounDef;
@@ -2762,7 +2762,7 @@ var GlodaDatastore = {
       return hasDeps;
     }
 
-    this._log.debug(" load json: " + aItem._jsonText);
+    //this._log.debug(" load json: " + aItem._jsonText);
     let jsonDict = this._json.decode(aItem._jsonText);
     delete aItem._jsonText;
     
@@ -2832,8 +2832,8 @@ var GlodaDatastore = {
     if (aItem._deps === undefined)
       return;
 
-    this._log.debug("  loading deferred, deps: " + 
-        Log4Moz.enumerateProperties(aItem._deps).join(","));
+    //this._log.debug("  loading deferred, deps: " + 
+    //    Log4Moz.enumerateProperties(aItem._deps).join(","));
 
     
     let attribIDToDBDefAndParam = this._attributeIDToDBDefAndParam;
