@@ -127,6 +127,8 @@ protected:
   nsresult CreateCollationKey(const nsString &aSource,  PRUint8 **aKey, PRUint32 *aLength);
 
 protected:
+  // all children will override this to create the right class of object.
+  virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder) = 0;
   virtual nsresult ReadDBFolderInfo(PRBool force);
   virtual nsresult FlushToFolderCache();
   virtual nsresult GetDatabase(nsIMsgWindow *aMsgWindow) = 0;
