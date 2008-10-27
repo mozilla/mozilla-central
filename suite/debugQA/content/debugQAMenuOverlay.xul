@@ -173,16 +173,18 @@
         <menuitem label="Show Build Configuration"
                   oncommand="openTopWin('about:buildconfig');"/>
 
-        <menuseparator/>
+        <menuseparator id="bloatAndLeakSeparator" hidden="true"/>
 
-        <menuitem label="Bloat: Dump New Stats"
-                  oncommand="openTopWin('about:bloat?new');"/>
-        <menuitem label="Bloat: Dump All Stats"
-                  oncommand="openTopWin('about:bloat');"/>
-        <menuitem label="Bloat: Clear Stats"
-                  oncommand="openTopWin('about:bloat?clear');"/>
-
-        <menuseparator id="leakSeparator" hidden="true"/>
+        <menu id="bloatMenu" label="Bloat Stats" hidden="true">
+          <menupopup>
+            <menuitem label="Bloat: Dump New Stats"
+                      oncommand="openTopWin('about:bloat?new');"/>
+            <menuitem label="Bloat: Dump All Stats"
+                      oncommand="openTopWin('about:bloat');"/>
+            <menuitem label="Bloat: Clear Stats"
+                      oncommand="openTopWin('about:bloat?clear');"/>
+          </menupopup>
+        </menu>
 
         <menu id="leakMenu" label="Leak Detector" hidden="true">
           <menupopup>

@@ -42,12 +42,26 @@
 var gLeakDetector = null;
 var gLeakDetectorVerbose = false;
 
+// "about:bloat" is available only when
+// (the application is) compiled with |--enable-logrefcnt|.
+if ("@mozilla.org/network/protocol/about;1?what=bloat" in Components.classes)
+  window.addEventListener("load", onLoadBloat, false);
+
 // The Leak Detector (class) can be undefined in a given (application) build.
 if ("@mozilla.org/xpcom/leakdetector;1" in Components.classes)
   window.addEventListener("load", onLoadLeakDetector, false);
 
+// Unhide the Bloat menu and its associated (shared) separator.
+function onLoadBloat()
+{
+  window.removeEventListener("load", onLoadBloat, false);
+
+  document.getElementById("bloatAndLeakSeparator").hidden = false;
+  document.getElementById("bloatMenu").hidden = false;
+}
+
 // Initialize the Leak Detector,
-// and unhide its menu and its associated separator.
+// and unhide its menu and its associated (shared) separator.
 function onLoadLeakDetector()
 {
   window.removeEventListener("load", onLoadLeakDetector, false);
@@ -55,7 +69,7 @@ function onLoadLeakDetector()
   gLeakDetector = Components.classes["@mozilla.org/xpcom/leakdetector;1"]
                             .createInstance(Components.interfaces.nsILeakDetector);
 
-  document.getElementById("leakSeparator").hidden = false;
+  document.getElementById("bloatAndLeakSeparator").hidden = false;
   document.getElementById("leakMenu").hidden = false;
 }
 
