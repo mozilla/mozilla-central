@@ -43,12 +43,3 @@
 <!ENTITY antiVirus.intro      "&brandShortName; can make it easy for anti-virus software to analyze incoming mail messages for viruses before they are stored locally.">
 <!ENTITY antiVirus.label      "Allow anti-virus clients to quarantine individual incoming messages">
 <!ENTITY antiVirus.accesskey  "l">
-
-<!-- Extra strings we might use after the l10n string freeze in the preferences dialog -->
-<!ENTITY antiVirusCaption.label "Anti-Virus">
-<!ENTITY paswords.label         "Passwords">
-<!ENTITY emailScams.label       "Email Scams">
-<!ENTITY junkMail.label         "Junk Mail">
-<!ENTITY itemIntrusions.label   "Intrusions">
-<!ENTITY itemIntrusionsAndPasswords.label  "Intrusions &amp; Passwords">
-<!ENTITY itemJunkMail.label     "Junk Mail">

@@ -54,7 +54,6 @@
 <!ENTITY messageIdField2.label "message-id ">
 <!ENTITY inReplyToField2.label "in-reply-to ">
 <!ENTITY originalWebsite2.label "website ">
-<!ENTITY saveAll.label "Save All…">
 
 <!ENTITY editMessageDescription.label "This is a draft message">
 <!ENTITY editMessageButton.label "Edit…">

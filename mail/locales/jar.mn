@@ -78,7 +78,6 @@
   locale/@AB_CD@/messenger/importMsgs.properties                        (%chrome/messenger/importMsgs.properties)
   locale/@AB_CD@/messenger/importDialog.dtd                             (%chrome/messenger/importDialog.dtd)
   locale/@AB_CD@/messenger/fieldMapImport.dtd                           (%chrome/messenger/fieldMapImport.dtd)
-  locale/@AB_CD@/messenger/fieldMapExport.dtd                           (%chrome/messenger/fieldMapExport.dtd)
   locale/@AB_CD@/messenger/textImportMsgs.properties                    (%chrome/messenger/textImportMsgs.properties)
   locale/@AB_CD@/messenger/appleMailImportMsgs.properties               (%chrome/messenger/appleMailImportMsgs.properties)
   locale/@AB_CD@/messenger/comm4xMailImportMsgs.properties              (%chrome/messenger/comm4xMailImportMsgs.properties)

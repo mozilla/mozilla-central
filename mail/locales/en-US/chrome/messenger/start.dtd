@@ -28,5 +28,3 @@
 <!ENTITY startpage.pageURL "http://www.mozilla.org/products/thunderbird/">
 
 <!ENTITY startpage.extra "">
-
-<!ENTITY startpage.poweredByGecko "Powered by Gecko.">

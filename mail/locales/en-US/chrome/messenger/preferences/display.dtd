@@ -1,8 +1,6 @@
 <!ENTITY itemFormatting.label             "Formatting">
 <!ENTITY itemTags.label                   "Tags">
-<!ENTITY itemFonts.label                  "Fonts">
 
-<!ENTITY textBegin.label                  "Quoted plain text appearance">
 <!ENTITY style.label                      "Style:">
 <!ENTITY style.accesskey                  "y">
 <!ENTITY regularStyle.label               "Regular">
@@ -19,12 +17,10 @@
 <!ENTITY displayWidth.label               "Plain Text Messages">
 <!ENTITY plainText.label                  "Use the following font:">
 <!ENTITY displayText.label                "When displaying quoted plain text messages:">
-<!ENTITY viewingPlainText.label            "When displaying plain text messages:">
 <!ENTITY fixedWidth.label                 "Fixed width font">
 <!ENTITY fixedWidth.accesskey             "x">
 <!ENTITY variableWidth.label              "Variable width font">
 <!ENTITY variableWidth.accesskey          "V">
-<!ENTITY readingMessagesHeader.label      "For incoming messages">
 <!ENTITY colors.label                     "Colors">
 <!ENTITY overrideColors.label             "When displaying messages, use the following colors:">
 <!ENTITY textColor.label                  "Text Color:">

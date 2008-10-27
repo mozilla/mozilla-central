@@ -19,5 +19,3 @@
 <!ENTITY  chooseFolder.accesskey              "w">
 <!ENTITY  saveToAskMe.label                   "ask me where to save the file">
 <!ENTITY  saveToAskMe.accesskey               "a">
-<!ENTITY  usePlugin.label                     "Use this Plugin:">
-<!ENTITY  usePlugin.accesskey                 "P">

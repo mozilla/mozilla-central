@@ -36,14 +36,5 @@
  ***** END LICENSE BLOCK ***** -->
 
 <!-- Labels -->
-<!ENTITY subscribechoosethis.label      "choose this news server">
-<!ENTITY subscribeclickhere.label      "click here to choose a news server">
 <!ENTITY newfolderchoosethis.label      "choose this for the parent">
-<!ENTITY newfolderclickhere.label      "Click here to select">
-<!ENTITY renamefolderchoosethis.label      "choose this folder">
-<!ENTITY renamefolderclickhere.label      "click here to choose a folder">
-<!ENTITY filemessageschoosethis.label      "choose this folder">
-<!ENTITY filemessagesclickhere.label      "click here to choose a folder">
-<!ENTITY chooseaccountclickhere.label      "Click here to select an account">
-<!ENTITY choosefolderclickhere.label      "Click here to select a folder">
-<!ENTITY chooseserverToDeferTo.label      "click here to select an account to use for storing messages">
+<!ENTITY filemessageschoosethis.label   "choose this folder">

@@ -25,7 +25,6 @@
 <!ENTITY pasteCmd.key            "V">
 <!ENTITY pasteCmd.accesskey          "p">
 <!ENTITY deleteCmd.label          "Delete">
-<!ENTITY deleteCmd.key            "D">
 <!ENTITY deleteCmd.accesskey        "d">
 <!ENTITY selectAllCmd.label          "Select All">
 <!ENTITY selectAllCmd.key          "A">
@@ -35,9 +34,6 @@
 <!ENTITY preferencesCmdUnix.label       "Preferences">
 <!ENTITY preferencesCmdUnix.accesskey     "n">
 
-<!ENTITY findTypeTextCmd.label "Find Text As You Type">
-<!ENTITY findTypeTextCmd.accesskey "x">
-
 <!ENTITY viewMenu.label          "View">
 <!ENTITY viewMenu.accesskey        "v">
 <!ENTITY viewToolbarsMenu.label        "Toolbars">
@@ -45,18 +41,8 @@
 <!ENTITY showTaskbarCmd.label          "Status Bar">
 <!ENTITY showTaskbarCmd.accesskey        "S">
 
-<!ENTITY direct.label                                   "Online (proxy: none)">
-<!ENTITY direct.accesskey                               "n">
-<!ENTITY manual.label                                   "Online (proxy: manual)">
-<!ENTITY manual.accesskey                               "m">
-<!ENTITY pac.label                                      "Online (proxy: auto)">
-<!ENTITY pac.accesskey                                  "a">
-
 <!ENTITY proxy.label                                    "Proxy Configuration…">
 <!ENTITY proxy.accesskey                                "C">
-
-<!ENTITY findTypeTextCmd.key        "/">
-<!ENTITY findTypeLinksCmd.key       "'">
 
 <!ENTITY closeCmd.label      "Close">
 <!ENTITY closeCmd.key      "W">

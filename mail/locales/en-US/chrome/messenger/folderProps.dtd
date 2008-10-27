@@ -52,7 +52,6 @@
 <!ENTITY retention.label "Retention Policy">
 <!ENTITY retentionUseDefault.label  "Use server defaults">
 <!ENTITY retentionUseDefault.accesskey "d">
-<!ENTITY days.label "days">
 <!ENTITY daysOld.label "days old">
 <!ENTITY message.label "messages">
 <!ENTITY retentionCleanup.label "To recover disk space, old messages can be permanently deleted">
@@ -76,18 +75,15 @@
 
 <!ENTITY selectofflineNewsgroup.check.label      "Select this newsgroup for offline use">
 <!ENTITY selectofflineNewsgroup.check.accesskey  "o">
-<!ENTITY UseDefaultofflineNewsgroup.check.label  "Use the default from account settings ">
 <!ENTITY offlineNewsgroup.button.label           "Download Now">
 <!ENTITY offlineNewsgroup.button.accesskey       "D">
 
-<!ENTITY folderProps.information.label           "Information:">
 <!ENTITY folderProps.name.label                  "Name:">
 <!ENTITY folderProps.name.accesskey              "N">
 <!ENTITY folderProps.location.label              "Location:">
 <!ENTITY folderProps.location.accesskey          "L">
 
 <!ENTITY folderSharingTab.label                  "Sharing">
-<!ENTITY privilegesDesc.label                    "Share this and other folders with network users and display and set access privileges">
 <!ENTITY privileges.button.label                 "Privileges…">
 <!ENTITY privileges.button.accesskey             "P">
 <!ENTITY permissionsDesc.label                   "You have the following permissions:">

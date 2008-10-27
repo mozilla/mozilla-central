@@ -14,10 +14,6 @@
 <!ENTITY  autoTypeRadio.accesskey       "A">
 <!ENTITY  reload.label                  "Reload">
 <!ENTITY  reload.accesskey              "l">
-<!ENTITY  ftp.label                     "FTP Proxy:">
-<!ENTITY  ftp.accesskey                 "f">
-<!ENTITY  gopher.label                  "Gopher Proxy:">
-<!ENTITY  gopher.accesskey              "g">
 <!ENTITY  http.label                    "HTTP Proxy:">
 <!ENTITY  http.accesskey                "h">
 <!ENTITY  ssl.label                     "SSL Proxy:">

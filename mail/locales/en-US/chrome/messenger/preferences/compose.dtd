@@ -1,9 +1,7 @@
 <!ENTITY itemGeneral.label                   "General">
 <!ENTITY itemAutoComplete.label              "Addressing">
 <!ENTITY itemSpellCheck.label                "Spelling">
-<!ENTITY itemSendFormat.label                "Send Format">
 
-<!ENTITY forwardReply.label                   "Forwarding Messages">
 <!ENTITY forwardMsg.label                     "Forward messages:">
 <!ENTITY forwardMsg.accesskey                 "w">
 <!ENTITY inline.label                         "Inline">
@@ -25,7 +23,6 @@
 <!ENTITY restoreHTMLDefaults.label            "Restore Defaults">
 <!ENTITY restoreHTMLDefaults.accesskey        "R">
 
-<!ENTITY sendingMessagesHeader.label          "Composing Messages">
 <!ENTITY spellCheck.label                     "Check spelling before sending">
 <!ENTITY spellCheck.accesskey                 "C">
 <!ENTITY spellCheckInline.label               "Enable spell check as you type">
@@ -51,10 +48,7 @@
 <!ENTITY directoriesNone.label                 "None">
 <!ENTITY editDirectories.label                 "Edit Directories…">
 <!ENTITY editDirectories.accesskey             "E">
-<!ENTITY matchText.label                       "If there is a match in your local address books:">
-<!ENTITY skipDirectory.label                   "Do not search in the directory">
 
-<!ENTITY sendOptionsCaption.label              "Send and HTML Options">
 <!ENTITY sendOptionsDescription.label          "Configure text format behavior">
 <!ENTITY sendOptions.label                     "Send Options…">
 <!ENTITY sendOptions.accesskey                 "S">
