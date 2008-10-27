@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ['MsgHdrToMimeMessage',
-                    'MimeMessage', 'MimeContainer', 'MimeUnknown',
+                    'MimeMessage', 'MimeContainer', 'MimeBody', 'MimeUnknown',
                     'MimeMessageAttachment'];
 
 const Cc = Components.classes;
@@ -170,7 +170,17 @@ MsgHdrToMimeMessage.RESULT_RENDEVOUZ = {};
  *     its first child's first child is "1.1.1", etc.
  * @ivar headers Maps lower-cased header field names to a list of the values
  *     seen for the given header.  Use get or getAll as convenience helpers.
- * @ivar body The body of the message.
+ * @ivar bodyParts A list of the MimeBody instances that belong to this message.
+ *     If there are nested messages, any bodies under the nested messages will
+ *     belong to those messages.
+ * @ivar bodyPartsPlain A list of the MimeBody instances with a content type of
+ *     text/plain.
+ * @ivar bodyPlain The concatenation of all of the bodyPartsPlain bodies into a
+ *     single string.
+ * @ivar bodyPartsHTML A list of the MimeBody instances with a content type of
+ *     text/html.
+ * @ivar bodyHTML The concatentation of all of the bodyPartsHTML bodies into a
+ *     single string. 
  * @ivar messages A list of the sub-message children of this message.  Strict
  *     MIME part hierarchy is not maintained; a sub-message's parent is the
  *     closest sub-message above it.  Sub-messages can also be found in the
@@ -185,7 +195,8 @@ MsgHdrToMimeMessage.RESULT_RENDEVOUZ = {};
 function MimeMessage() {
   this.partName = null;
   this.headers = {};
-  this.body = "";
+  
+  this.bodyParts = [];
 
   this.messages = [];
   this.attachments = [];
@@ -253,6 +264,38 @@ MimeMessage.prototype = {
     }
     return results;
   },
+  
+  /**
+   * @return a list of all of the plaintext body parts of this message.
+   */
+  get bodyPartsPlain() {
+    return [part for each ([, part] in Iterator(this.bodyParts)) if
+            (part.contentType == "text/plain")];
+  },
+  /**
+   * @return all of the plaintext body parts of this message, concatenated
+   *  together into a single string.
+   */
+  get bodyPlain() {
+    return [bodyPart.body for each
+            ([, bodyPart] in Iterator(this.bodyPartsPlain))].join("");
+  },
+  /**
+   * @return a list of all of the HTML body parts of this message.
+   */
+  get bodyPartsHTML() {
+    return [part for each ([, part] in Iterator(this.bodyParts)) if
+        (part.contentType == "text/html")];
+  },
+  /**
+   * @return all of the HTML body parts of this message, concatenated together
+   *  into a single string.
+   */
+  get bodyHTML() {
+    return [bodyPart.body for each
+            ([, bodyPart] in Iterator(this.bodyPartsHTML))].join("");
+  },
+  
   /**
    * Convert the message and its hierarchy into a "pretty string".  The message
    *  and each MIME part get their own line.  The string never ends with a
@@ -278,8 +321,14 @@ MimeMessage.prototype = {
   },
 };
 
-function MimeContainer(aPartName) {
-  this.partName = aPartName;
+/**
+ * @ivar contentType The content-type of this container.
+ * @ivar parts The parts held by this container.  These can be instances of any
+ *      of the classes found in this file.
+ */
+function MimeContainer(aContentType) {
+  this.partName = null;
+  this.contentType = aContentType;
   this.parts = [];
 }
 
@@ -295,7 +344,7 @@ MimeContainer.prototype = {
   prettyString: function MimeContainer_prettyString(aIndent) {
     let nextIndent = aIndent + "  ";
   
-    let s = "Container";
+    let s = "Container: " + this.contentType;
     
     for (let iPart = 0; iPart < this.parts.length; iPart++) {
       let part = this.parts[iPart];
@@ -304,10 +353,53 @@ MimeContainer.prototype = {
     
     return s;
   },
+  toString: function MimeContainer_toString() {
+    return "Container: " + this.contentType;
+  }
 }
 
-function MimeUnknown(aPartName) {
-  this.partName = aPartName;
+/**
+ * @class Represents a body portion that we understand and do not believe to be
+ *  a proper attachment.  This means text/plain or text/html and it has no
+ *  filename.  (A filename suggests an attachment.)
+ *  
+ * @ivar contentType The content type of this body materal; text/plain or
+ *     text/html.
+ * @ivar body The actual body content.
+ */
+function MimeBody(aContentType, aIsPart) {
+  this.partName = null;
+  this.contentType = aContentType;
+  this.isPart = aIsPart;
+  this.body = "";
+}
+
+MimeBody.prototype = {
+  get allAttachments() {
+    return []; // we are a leaf
+  },
+  prettyString: function MimeBody_prettyString(aIndent) {
+    return "Body: " + this.contentType + " (" + this.body.length + " bytes)";
+  },
+  toString: function MimeBody_toString() {
+    return "Body: " + this.contentType + " (" + this.body.length + " bytes)";
+  }
+}
+
+/**
+ * @class A MIME Leaf node that doesn't have a filename so we assume it's not
+ *  intended to be an attachment proper.  This is probably meant for inline
+ *  display or is the result of someone amusing themselves by composing messages
+ *  by hand or a bad client.  This class should probably be renamed or we should
+ *  introduce a better named class that we try and use in preference to this
+ *  class.
+ * 
+ * @ivar contentType The content type of this part.
+ */
+function MimeUnknown(aContentType, aIsPart) {
+  this.partName = null;
+  this.contentType = aContentType;
+  this.isPart = aIsPart;
 }
 
 MimeUnknown.prototype = {
@@ -315,10 +407,21 @@ MimeUnknown.prototype = {
     return []; // we are a leaf
   },
   prettyString: function MimeUnknown_prettyString(aIndent) {
-    return "Unknown";
+    return "Unknown: " + this.contentType;
   },
+  toString: function MimeUnknown_toString() {
+    return "Unknown: " + this.contentType;
+  }
 }
 
+/**
+ * @class An attachment proper.  We think it's an attachment because it has a
+ *  filename that libmime was able to figure out.
+ * 
+ * @ivar contentType The MIME content type of this part.
+ * @ivar The filename of this attachment.
+ * @ivar The URL to stream if you want the contents of this part.
+ */
 function MimeMessageAttachment(aPartName, aName, aContentType, aUrl,
                                aIsExternal) {
   this.partName = aPartName;

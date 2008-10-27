@@ -2018,7 +2018,7 @@ var GlodaIndexer = {
     let [,aMimeMsg] = yield this.kWorkAsync;
 
     if (aMimeMsg)
-      this._log.debug("  * Got Body! Length: " + aMimeMsg.body.length);
+      this._log.debug("  * Got Mime Message!");
     else
       this._log.debug("  * Did not get body!");
 
@@ -2158,8 +2158,6 @@ var GlodaIndexer = {
     
     let isNew;
     if (curMsg === null) {
-      this._log.debug("...creating new message.  body length: " +
-                      (aMimeMsg ? aMimeMsg.body.length : null));
       curMsg = this._datastore.createMessage(aMsgHdr.folder,
                                              aMsgHdr.messageKey,                
                                              conversationID,
@@ -2182,7 +2180,7 @@ var GlodaIndexer = {
     
     if (isNew) {
       curMsg._subject = aMsgHdr.subject;
-      curMsg._body = aMimeMsg && aMimeMsg.body;
+      curMsg._body = aMimeMsg && aMimeMsg.bodyPlain;
       curMsg._attachmentNames = attachmentNames;
     }
     

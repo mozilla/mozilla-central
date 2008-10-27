@@ -42,6 +42,11 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
+const kStateUnknown = 0;
+const kStateInHeaders = 1;
+const kStateInBody = 2;
+const kStateInAttachment = 3;
+
 /**
  * Custom nsIMimeEmitter to build a sub-optimal javascript representation of a
  *  MIME message.  The intent is that a better mechanism than is evolved to
@@ -84,6 +89,12 @@ function MimeMessageEmitter() {
   
   this._messageIndex = 0;
   this._allSubMessages = [];
+  
+  this._partMap = {};
+  this._curPart = null;
+  this._curBodyPart = null;
+  
+  this._state = kStateUnknown;
 }
 
 MimeMessageEmitter.prototype = {
@@ -104,6 +115,8 @@ MimeMessageEmitter.prototype = {
   initialize: function mime_emitter_initialize(aUrl, aChannel, aFormat) {
     this._url = aUrl;
     this._curMsg = this._parentMsg = this._rootMsg = new this._mimeMsg.MimeMessage();
+    this._curMsg.partName = "";
+    this._partMap[""] = this._curMsg;
     
     this._mimeMsg.MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aUrl.spec] =
       this._rootMsg;
@@ -112,7 +125,7 @@ MimeMessageEmitter.prototype = {
   },
   
   complete: function mime_emitter_complete() {
-    // null out everything we can.  secretive cycles are eating us alive.
+    // dump("!!!!\n!!!!\n!!!!\n" + this._rootMsg.prettyString() + "\n");
     this._url = null;
     this._channel = null;
     
@@ -124,6 +137,10 @@ MimeMessageEmitter.prototype = {
     this._curMsg = this._parentMsg = this._messageStack = this._rootMsg = null;
     this._messageIndex = null;
     this._allSubMessages = null;
+    
+    this._partMap = null;
+    this._curPart = null;
+    this._curBodyPart = null;
   },
   
   setPipe: function mime_emitter_setPipe(aInputStream, aOutputStream) {
@@ -137,21 +154,71 @@ MimeMessageEmitter.prototype = {
     return this._outputListener;
   }, 
   
+  _beginPayload: function mime_emitter__beginPayload(aContentType, aIsPart) {
+    aContentType = aContentType.toLowerCase();
+    if (aContentType == "text/plain" || aContentType == "text/html") {
+      this._curBodyPart = new this._mimeMsg.MimeBody(aContentType, aIsPart);
+      this._parentMsg.bodyParts.push(this._curBodyPart);
+      this._curPart = aIsPart ? this._curBodyPart : null;
+    }
+    else if (aContentType == "message/rfc822") {
+      // startBody will take care of this
+      this._curPart = this._curBodyPart = null;
+    }
+    // this is going to fall-down with TNEF encapsulation and such, we really
+    //  need to just be consuming the object model.
+    else if (aContentType.indexOf("multipart/") == 0) {
+      this._curBodyPart = null;
+      // alternatives are always parts for part numbering purposes
+      this._curPart = aIsPart ? new this._mimeMsg.MimeContainer(aContentType)
+                              : null;
+    }
+    else {
+      this._curBodyPart = null;
+      this._curPart = aIsPart ?
+        new this._mimeMsg.MimeUnknown(aContentType, aIsPart) : null;
+    }
+  },
+  
   // ----- Header Routines
   startHeader: function mime_emitter_startHeader(aIsRootMailHeader,
       aIsHeaderOnly, aMsgID, aOutputCharset) {
-    
+    this._state = kStateInHeaders;
     if (aIsRootMailHeader) {
       this.updateCharacterSet(aOutputCharset);
       // nothing to do curMsg-wise, already initialized.
     }
     else {
       this._curMsg = new this._mimeMsg.MimeMessage();
+      
+      this._curMsg.partName = this._savedPartPath;
+      this._placePart(this._curMsg);
+      delete this._savedPartPath;
+      
       this._parentMsg.messages.push(this._curMsg);
       this._allSubMessages.push(this._curMsg);
     }
   },
   addHeaderField: function mime_emitter_addHeaderField(aField, aValue) {
+    if (this._state == kStateInBody) {
+      aField = aField.toLowerCase();
+      let indexSemi = aValue.indexOf(";");
+      if (indexSemi >= 0)
+        aValue = aValue.substring(0, indexSemi);
+      if (aField == "content-type")
+        this._beginPayload(aValue, true);
+      else if (aField == "x-jsemitter-part-path") {
+        if (this._curPart) {
+          this._curPart.partName = aValue;
+          this._placePart(this._curPart);
+        }
+        else
+          this._savedPartPath = aValue;
+      }
+      return;
+    }
+    if (this._state != kStateInHeaders)
+      return;
     let lowerField = aField.toLowerCase();
     if (lowerField in this._curMsg.headers)
       this._curMsg.headers[lowerField].push(aValue);
@@ -201,6 +268,47 @@ MimeMessageEmitter.prototype = {
   },
   
   /**
+   * Place a part in its proper location.  We know that we are called as a
+   *  result of in-order traversal, so this is wildly easy to deal with.
+   */
+  _placePart: function(aPart) {
+    let partName = aPart.partName;
+    this._partMap[partName] = aPart;
+    let parentName = partName.substring(0, partName.lastIndexOf("."));
+    let parentPart = this._partMap[parentName];
+    parentPart.parts.push(aPart);
+  },
+  
+  /**
+   * In the case of attachments, we need to replace an existing part with a
+   *  more representative part...
+   */
+  _replacePart: function(aPart) {
+    let partName = aPart.partName;
+    this._partMap[partName] = aPart;
+    
+    let parentName = partName.substring(0, partName.lastIndexOf("."));
+    let parentPart = this._partMap[parentName];
+    
+    let childNamePart = partName.substring(partName.lastIndexOf(".")+1);
+    let childIndex = parseInt(childNamePart) - 1;
+    
+    let oldPart = parentPart.parts[childIndex];
+    parentPart.parts[childIndex] = aPart;
+    aPart.parts = oldPart.parts;
+
+    // - remove it if it was a body part.  This can happen for text/plain
+    //  attachments.  Like patches.
+    // (climb the parents until we find a message/bodyparts holder...)
+    while (parentPart.partName && !parentPart.bodyParts) {
+      parentName = parentName.substring(0, parentName.lastIndexOf("."));
+      parentPart = this._partMap[parentName];
+    }
+    if (parentPart.bodyParts && parentPart.bodyParts.indexOf(oldPart) >= 0)
+      parentPart.bodyParts.splice(parentPart.bodyParts.indexOf(oldPart), 1);
+  },
+  
+  /**
    * Put a part at its proper location.  We rely on this method to be called
    *  in the the sequence generated by StartAttachment (an in-order traversal
    *  of the MIME structure).
@@ -219,9 +327,17 @@ MimeMessageEmitter.prototype = {
     let newPathSoFar = aPathSoFar + "." + curPath;
     let curIndex = parseInt(curPath) - 1;
 
-    // add MimeUnknowns for parts that should already exist
+    // for parts that should exist, try and find them in the part map, otherwise
+    //  create MimeUnknowns
     while (curIndex > aParent.parts.length) {
-      aParent.parts.push(new this._mimeMsg.MimeUnknown(newPathSoFar));
+      let tempPath = aPathSoFar + "." + aParent.parts.length;
+      if (tempPath in this._partMap)
+        aParent.parts.push(this._partMap[tempPath]);
+      else {
+        let newPart = new this._mimeMsg.MimeUnknown("unknown/unknown", true);
+        newPart.partName = tempPath;
+        aParent.parts.push(newPart);
+      }
     }
     
     // are we a leaf?
@@ -229,7 +345,14 @@ MimeMessageEmitter.prototype = {
       // no, we are not a leaf
       if (curIndex == aParent.parts.length) {
         // and we need to add a container
-        aParent.parts.push(new this._mimeMsg.MimeContainer(newPathSoFar));
+        if (newPathSoFar in this._partMap)
+          aParent.parts.push(this._partMap[newPathSoFar]);
+        else {
+          let newPart = new this._mimeMsg.MimeContainer("multipart/unknown",
+                                                        true);
+          newPart.partName = newPathSoFar;
+          aParent.parts.push(newPart);
+        }
       }
       this._putPart(remPath, newPathSoFar, aPart, aParent.parts[curIndex]);
     }
@@ -246,7 +369,7 @@ MimeMessageEmitter.prototype = {
   //  each leaf object or sub-message.
   startAttachment: function mime_emitter_startAttachment(aName, aContentType,
       aUrl, aNotDownloaded) {
-    
+    this._state = kStateInAttachment;
     // we need to strip our magic flags from the URL
     aURl = aUrl.replace("header=filter&emitter=js&", "");
     
@@ -257,10 +380,8 @@ MimeMessageEmitter.prototype = {
 
     let part;
     if (aContentType == "message/rfc822") {
-      // since we are assuming an in-order traversal, it's safe to assume that
-      //  we will see the messages in the same order we previously saw them.
-      part = this._allSubMessages[this._messageIndex++];
-      part.partName = partName;
+      // we already have all we need to know about the message, ignore it
+      return;
     }
     else {
       // create the attachment
@@ -268,8 +389,10 @@ MimeMessageEmitter.prototype = {
           aName, aContentType, aUrl, aNotDownloaded);
     }
     
-    this._putPart(part.partName.substring(2), "1",
-                  part, this._rootMsg);
+    if (part.isRealAttachment) {
+      // replace the existing part with the attachment...
+      this._replacePart(part);
+    }
   },
   addAttachmentField: function mime_emitter_addAttachmentField(aField, aValue) {
     // this only gives us X-Mozilla-PartURL, which is the same as aUrl we
@@ -284,12 +407,27 @@ MimeMessageEmitter.prototype = {
   
   // ----- Body Routines
   startBody: function mime_emitter_startBody(aIsBodyOnly, aMsgID, aOutCharset) {
+    this._state = kStateInBody;
+    
     this._messageStack.push(this._curMsg);
     this._parentMsg = this._curMsg;
+
+    // begin payload processing
+    let contentType = this._curMsg.get("content-type", "text/plain");
+    let indexSemi = contentType.indexOf(";");
+    if (indexSemi >= 0)
+      contentType = contentType.substring(0, indexSemi);
+    this._beginPayload(contentType, true);
+    if (this._parentMsg.partName == "")
+      this._curPart.partName = "1";
+    else
+      this._curPart.partName = this._curMsg.partName + ".1";
+    this._placePart(this._curPart);
   },
   
   writeBody: function mime_emitter_writeBody(aBuf, aSize, aOutAmountWritten) {
-    this._curMsg.body += aBuf;
+    if (this._curBodyPart)
+      this._curBodyPart.body += aBuf;
   },
   
   endBody: function mime_emitter_endBody() {
