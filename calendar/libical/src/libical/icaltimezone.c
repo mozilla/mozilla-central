@@ -56,6 +56,9 @@
 
 /* The gmtime() in Microsoft's C library is MT-safe */
 #define gmtime_r(tp,tmp) (gmtime(tp)?(*(tmp)=*gmtime(tp),(tmp)):0)
+
+#define snprintf _snprintf
+#define strcasecmp stricmp
 #endif
 
 /** This is the toplevel directory where the timezone data is installed in. */
@@ -1366,6 +1369,7 @@ icaltimezone_get_builtin_timezone	(const char *location)
     icaltimezone *zone;
     unsigned int lower;
     const char *zone_location;
+    icalarray * builtin_timezones;
 
     if (!location || !location[0])
 	return NULL;
@@ -1373,7 +1377,7 @@ icaltimezone_get_builtin_timezone	(const char *location)
     if (!strcmp (location, "UTC"))
 	return &utc_timezone;
     
-    icalarray * builtin_timezones = icaltimezone_get_builtin_timezones();
+    builtin_timezones = icaltimezone_get_builtin_timezones();
     if (!builtin_timezones) {
 	return NULL;
     }
@@ -1451,14 +1455,15 @@ icaltimezone_get_builtin_timezone_from_offset	(int offset, const char *tzname)
 {
     icaltimezone *zone=NULL;
     int count, i;
-    
+    icalarray * builtin_timezones;
+
     if (offset==0)
 	return &utc_timezone;
 
     if (!tzname)
 	return NULL;
 
-    icalarray * builtin_timezones = icaltimezone_get_builtin_timezones();
+    builtin_timezones = icaltimezone_get_builtin_timezones();
     if (!builtin_timezones) {
 	return NULL;
     }

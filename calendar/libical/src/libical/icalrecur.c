@@ -148,7 +148,8 @@ typedef long intptr_t;
 #endif
 
 #ifdef WIN32
-#define strcasecmp      stricmp
+#define snprintf _snprintf
+#define strcasecmp stricmp
 #endif
 
 #include "icalrecur.h"

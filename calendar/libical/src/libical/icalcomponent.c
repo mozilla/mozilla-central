@@ -46,6 +46,10 @@
 #include <stdio.h> /* for fprintf */
 #include <string.h> /* for strdup */
 #include <limits.h> /* for INT_MAX */
+#ifdef WIN32
+#define snprintf _snprintf
+#define strncasecmp strnicmp
+#endif
 
 struct icalcomponent_impl 
 {
