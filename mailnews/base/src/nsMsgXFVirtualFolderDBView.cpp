@@ -195,7 +195,7 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdr
   return NS_OK;
 }
 
-nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsISupports *folder)
+nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder)
 {
   nsMsgViewIndex insertIndex = GetInsertIndex(msgHdr);
   if (insertIndex == nsMsgViewIndex_None)
@@ -207,7 +207,7 @@ nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, ns
   msgHdr->GetFlags(&msgFlags);
   m_keys.InsertElementAt(insertIndex, msgKey);
   m_flags.InsertElementAt(insertIndex, msgFlags);
-  m_folders->InsertElementAt(folder, insertIndex);
+  m_folders.InsertObjectAt(folder, insertIndex);
   m_levels.InsertElementAt(insertIndex, 0);
 
   // the call to NoteChange() has to happen after we add the key
@@ -277,24 +277,23 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsg
   }
 }
 NS_IMETHODIMP
-nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *folder)
+nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *aFolder)
 {
   NS_ENSURE_ARG(aMsgHdr);
-  NS_ENSURE_ARG(folder);
+  NS_ENSURE_ARG(aFolder);
 
-  nsCOMPtr <nsISupports> supports = do_QueryInterface(folder);
   nsCOMPtr<nsIMsgDatabase> dbToUse;
   nsCOMPtr<nsIDBFolderInfo> folderInfo;
-  folder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(dbToUse));
+  aFolder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(dbToUse));
 
-  if (m_curFolderGettingHits != folder && m_doingSearch)
+  if (m_curFolderGettingHits != aFolder && m_doingSearch)
   {
     m_curFolderHasCachedHits = PR_FALSE;
     // since we've gotten a hit for a new folder, the searches for
     // any previous folders are done, so deal with stale cached hits
     // for those folders now.
-    UpdateCacheAndViewForPrevSearchedFolders(folder);
-    m_curFolderGettingHits = folder;
+    UpdateCacheAndViewForPrevSearchedFolders(aFolder);
+    m_curFolderGettingHits = aFolder;
     m_hdrHits.Clear();
     m_curFolderStartKeyIndex = m_keys.Length();
   }
@@ -305,9 +304,9 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *fold
   if (!m_doingSearch || !m_curFolderHasCachedHits || !hdrInCache)
   {
     if (m_sortValid)
-      InsertHdrFromFolder(aMsgHdr, supports);
+      InsertHdrFromFolder(aMsgHdr, aFolder);
     else
-      AddHdrFromFolder(aMsgHdr, supports);
+      AddHdrFromFolder(aMsgHdr, aFolder);
   }
   m_hdrHits.AppendObject(aMsgHdr);
 
@@ -325,11 +324,11 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   //message after deletion will happen before deleting the message and search scope
   //can change with every search.
   mDeleteModel = nsMsgImapDeleteModels::MoveToTrash;  //set to default in case it is non-imap folder
-  nsCOMPtr <nsIMsgFolder> curFolder = do_QueryElementAt(m_folders, 0);
+  nsCOMPtr <nsIMsgFolder> curFolder = m_folders.SafeObjectAt(0);
   if (curFolder)
     GetImapDeleteModel(curFolder);
 
-    nsCOMPtr <nsIMsgDatabase> virtDatabase;
+  nsCOMPtr <nsIMsgDatabase> virtDatabase;
   nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
   nsresult rv = m_viewFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -364,7 +363,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
 
   m_doingSearch = PR_TRUE;
 
-  m_folders->Clear();
+  m_folders.Clear();
   m_keys.Clear();
   m_levels.Clear();
   m_flags.Clear();
@@ -421,7 +420,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
                 pHeader->GetMessageKey(&msgKey);
                 NS_ASSERTION(prevKey == nsMsgKey_None || msgKey > prevKey, "cached Hits not sorted");
                 prevKey = msgKey;
-                AddHdrFromFolder(pHeader, searchFolder); // need to QI to nsISupports?
+                AddHdrFromFolder(pHeader, searchFolder);
               }
               else
                 break;

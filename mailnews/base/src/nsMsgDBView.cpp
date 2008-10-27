@@ -3193,8 +3193,7 @@ void nsMsgDBView::ReverseSort()
 {
     PRUint32 topIndex = GetSize();
 
-    nsCOMPtr <nsISupportsArray> folders;
-    GetFolders(getter_AddRefs(folders));
+    nsCOMArray<nsIMsgFolder> *folders = GetFolders();
 
     // go up half the array swapping values
     for (PRUint32 bottomIndex = 0; bottomIndex < --topIndex; bottomIndex++) 
@@ -3213,34 +3212,15 @@ void nsMsgDBView::ReverseSort()
         {
             // swap folders --
             // needed when search is done across multiple folders
-            nsCOMPtr<nsISupports> tmpSupports = dont_AddRef(folders->ElementAt(bottomIndex));
-            nsCOMPtr<nsISupports> topSupports = dont_AddRef(folders->ElementAt(topIndex));
-            folders->SetElementAt(bottomIndex, topSupports);
-            folders->SetElementAt(topIndex, tmpSupports);
+            nsIMsgFolder *bottomFolder = folders->ObjectAt(bottomIndex);
+            nsIMsgFolder *topFolder = folders->ObjectAt(topIndex);
+            folders->ReplaceObjectAt(topFolder, bottomIndex);
+            folders->ReplaceObjectAt(bottomFolder, topIndex);
         }
         // no need to swap elements in m_levels; since we only call
         // ReverseSort in non-threaded mode, m_levels are all the same.
     }
 }
-
-struct IdDWord
-{
-    nsMsgKey    id;
-    PRUint32    bits;
-    PRUint32    dword;
-    nsIMsgFolder* folder;
-};
-
-struct IdKey : public IdDWord
-{
-    PRUint8     key[1];
-};
-
-struct IdKeyPtr : public IdDWord
-{
-    PRUint8     *key;
-};
-
 int PR_CALLBACK
 nsMsgDBView::FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData)
 {
@@ -3292,10 +3272,10 @@ nsMsgDBView::FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privat
 }
 
 int PR_CALLBACK
-nsMsgDBView::FnSortIdDWord(const void *pItem1, const void *pItem2, void *privateData)
+nsMsgDBView::FnSortIdUint32(const void *pItem1, const void *pItem2, void *privateData)
 {
-  IdDWord** p1 = (IdDWord**)pItem1;
-  IdDWord** p2 = (IdDWord**)pItem2;
+  IdUint32** p1 = (IdUint32**)pItem1;
+  IdUint32** p2 = (IdUint32**)pItem2;
   viewSortInfo* sortInfo = (viewSortInfo *) privateData;
 
   if ((*p1)->dword > (*p2)->dword)
@@ -3762,7 +3742,7 @@ PRInt32  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
         EntryInfo1.dword = EntryInfo1.id;
       else
         GetLongField(hdr1, sortType, &EntryInfo1.dword, colHandler);
-      comparisonFun = FnSortIdDWord;
+      comparisonFun = FnSortIdUint32;
       break;
     default:
       return 0;
@@ -3855,8 +3835,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
   if (!arraySize)
     return NS_OK;
 
-  nsCOMPtr <nsISupportsArray> folders;
-  GetFolders(getter_AddRefs(folders));
+  nsCOMArray<nsIMsgFolder> *folders = GetFolders();
 
   IdKey** pPtrBase = (IdKey**)PR_Malloc(arraySize * sizeof(IdKey*));
   NS_ASSERTION(pPtrBase, "out of memory, can't sort");
@@ -3959,19 +3938,12 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
     info->bits = m_flags[numSoFar];
     info->dword = longValue;
     //info->pad = 0;
-
-    if (folders)
-    {
-      nsCOMPtr<nsIMsgFolder> curFolder = do_QueryElementAt(folders, numSoFar);
-      info->folder = curFolder;
-    }
-    else
-      info->folder = m_folder;
+    info->folder = folders ? folders->ObjectAt(numSoFar) : m_folder.get();
 
     memcpy(info->key, keyValue, actualFieldLen);
     //In order to align memory for systems that require it, such as HP-UX
     //calculate the correct value to pad the actualFieldLen value
-    const PRUint32 align = sizeof(IdKey) - sizeof(IdDWord) - 1;
+    const PRUint32 align = sizeof(IdKey) - sizeof(IdUint32) - 1;
     actualFieldLen = (actualFieldLen + align) & ~align;
 
     pTemp += keyOffset + actualFieldLen;
@@ -3998,7 +3970,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
         NS_QuickSort(pPtrBase, numSoFar, sizeof(IdKey*), FnSortIdKey, &qsPrivateData);
         break;
       case kU32:
-        NS_QuickSort(pPtrBase, numSoFar, sizeof(IdKey*), FnSortIdDWord, &qsPrivateData);
+        NS_QuickSort(pPtrBase, numSoFar, sizeof(IdKey*), FnSortIdUint32, &qsPrivateData);
         break;
       default:
         NS_ASSERTION(0, "not supposed to get here");
@@ -4013,7 +3985,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
     m_flags[i] = pPtrBase[i]->bits;
 
     if (folders)
-      folders->SetElementAt(i, pPtrBase[i]->folder);
+      folders->ReplaceObjectAt(pPtrBase[i]->folder, i);
   }
 
   m_sortType = sortType;
@@ -4372,9 +4344,6 @@ nsresult nsMsgDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThrea
 nsresult nsMsgDBView::ExpandByIndex(nsMsgViewIndex index, PRUint32 *pNumExpanded)
 {
   PRUint32      flags = m_flags[index];
-  nsMsgKey    firstIdInThread;
-  //nsMsgKey        startMsg = nsMsgKey_None;
-  nsresult    rv = NS_OK;
   PRUint32      numExpanded = 0;
 
   NS_ASSERTION(flags & MSG_FLAG_ELIDED, "can't expand an already expanded thread");
@@ -4383,7 +4352,7 @@ nsresult nsMsgDBView::ExpandByIndex(nsMsgViewIndex index, PRUint32 *pNumExpanded
   if ((PRUint32) index > m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
 
-  firstIdInThread = m_keys[index];
+  nsMsgKey firstIdInThread = m_keys[index];
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   nsCOMPtr <nsIMsgThread> pThread;
   m_db->GetMsgHdrForKey(firstIdInThread, getter_AddRefs(msgHdr));
@@ -4392,7 +4361,7 @@ nsresult nsMsgDBView::ExpandByIndex(nsMsgViewIndex index, PRUint32 *pNumExpanded
     NS_ASSERTION(PR_FALSE, "couldn't find message to expand");
     return NS_MSG_MESSAGE_NOT_FOUND;
   }
-  rv = GetThreadContainingMsgHdr(msgHdr, getter_AddRefs(pThread));
+  nsresult rv = GetThreadContainingMsgHdr(msgHdr, getter_AddRefs(pThread));
   NS_ENSURE_SUCCESS(rv, rv);
   m_flags[index] = flags;
   NoteChange(index, 1, nsMsgViewNotificationCode::changed);
@@ -4569,7 +4538,7 @@ nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *msgHdr)
         EntryInfo2.dword = EntryInfo2.id;
       else
         GetLongField(tryHdr, m_sortType, &EntryInfo2.dword, colHandler);
-      retStatus = FnSortIdDWord(&pValue1, &pValue2, &comparisonContext);
+      retStatus = FnSortIdUint32(&pValue1, &pValue2, &comparisonContext);
     }
     if (retStatus == 0)
     {
@@ -4596,6 +4565,7 @@ nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *msgHdr)
 }
 
 nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<nsMsgKey> &keys,
+                                                 nsCOMArray<nsIMsgFolder> *folders,
                                                  nsMsgViewSortOrderValue sortOrder, nsMsgViewSortTypeValue sortType)
 {
   nsMsgViewIndex highIndex = keys.Length();
@@ -4610,14 +4580,11 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
   rv = GetFieldTypeAndLenForSort(sortType, &maxLen, &fieldType);
   const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
 
-  EntryInfo1.folder = m_folder;
-  nsCOMPtr <nsISupportsArray> folders;
-  GetFolders(getter_AddRefs(folders));
-  
   int (* PR_CALLBACK comparisonFun) (const void *pItem1, const void *pItem2, void *privateData) = nsnull;
   int retStatus = 0;
   msgHdr->GetMessageKey(&EntryInfo1.id);
-
+  msgHdr->GetFolder(&EntryInfo1.folder);
+  EntryInfo1.folder->Release();
   //check if a custom column handler exists. If it does then grab it and pass it in
   //to either GetCollationKey or GetLongField
   nsIMsgCustomColumnHandler* colHandler = GetCurColumnHandlerFromDBInfo();
@@ -4639,7 +4606,7 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
         EntryInfo1.dword = EntryInfo1.id;
       else
         GetLongField(msgHdr, sortType, &EntryInfo1.dword, colHandler);
-      comparisonFun = FnSortIdDWord;
+      comparisonFun = FnSortIdUint32;
       break;
     default:
       return highIndex;
@@ -4648,16 +4615,11 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
   {
     nsMsgViewIndex tryIndex = (lowIndex + highIndex - 1) / 2;
     EntryInfo2.id = keys[tryIndex];
-    if (folders)
-    {
-      nsCOMPtr<nsIMsgFolder> curFolder = do_QueryElementAt(folders, tryIndex);
-      EntryInfo2.folder = curFolder;
-    }
-    else
-       EntryInfo2.folder = m_folder;
+    EntryInfo2.folder = folders ? folders->ObjectAt(tryIndex) : m_folder.get();
     
     nsCOMPtr <nsIMsgDBHdr> tryHdr;
     nsCOMPtr <nsIMsgDatabase> db;
+    // ### this should get the db from the folder...
     GetDBForViewIndex(tryIndex, getter_AddRefs(db));
     if (db)
       rv = db->GetMsgHdrForKey(EntryInfo2.id, getter_AddRefs(tryHdr));
@@ -4710,7 +4672,7 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndex(nsIMsgDBHdr *msgHdr)
         && m_sortOrder != nsMsgViewSortType::byId)
     return GetIndexForThread(msgHdr);
 
-  return GetInsertIndexHelper(msgHdr, m_keys, m_sortOrder, m_sortType);
+  return GetInsertIndexHelper(msgHdr, m_keys, GetFolders(), m_sortOrder, m_sortType);
 }
 
 nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex)
@@ -5352,13 +5314,16 @@ nsresult nsMsgDBView::MarkThreadRead(nsIMsgThread *threadHdr, nsMsgViewIndex thr
 
 PRBool nsMsgDBView::AdjustReadFlag(nsIMsgDBHdr *msgHdr, PRUint32 *msgFlags)
 {
+  // if we're a cross-folder view, just bail on this.
+  if (GetFolders())
+    return *msgFlags & MSG_FLAG_READ;
   PRBool isRead = PR_FALSE;
   nsMsgKey msgKey;
   msgHdr->GetMessageKey(&msgKey);
   m_db->IsRead(msgKey, &isRead);
     // just make sure flag is right in db.
-#ifdef DEBUG_bienvenu
-  NS_ASSERTION(isRead == (*msgFlags & MSG_FLAG_READ != 0), "msgFlags out of sync");
+#ifdef DEBUG_David_Bienvenu
+  NS_ASSERTION(isRead == ((*msgFlags & MSG_FLAG_READ) != 0), "msgFlags out of sync");
 #endif
   if (isRead)
     *msgFlags |= MSG_FLAG_READ;
@@ -6343,12 +6308,9 @@ nsMsgDBView::GetKeyForFirstSelectedMessage(nsMsgKey *key)
   return NS_OK;
 }
 
-nsresult nsMsgDBView::GetFolders(nsISupportsArray **aFolders)
+nsCOMArray<nsIMsgFolder>* nsMsgDBView::GetFolders()
 {
-    NS_ENSURE_ARG_POINTER(aFolders);
-    *aFolders = nsnull;
-
-    return NS_OK;
+  return nsnull;
 }
 
 nsresult nsMsgDBView::AdjustRowCount(PRInt32 rowCountBeforeSort, PRInt32 rowCountAfterSort)

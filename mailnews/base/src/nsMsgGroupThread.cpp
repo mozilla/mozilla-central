@@ -186,7 +186,7 @@ nsresult nsMsgGroupThread::AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView 
         && sortOrder == nsMsgViewSortOrder::descending) ? 
           nsMsgViewSortOrder::descending : nsMsgViewSortOrder::ascending;
     // sort by date within group
-    insertIndex = view->GetInsertIndexHelper(child, m_keys, threadSortOrder, nsMsgViewSortType::byDate);
+    insertIndex = view->GetInsertIndexHelper(child, m_keys, nsnull, threadSortOrder, nsMsgViewSortType::byDate);
   }
   m_keys.InsertElementAt(insertIndex, newHdrKey);
   if (!insertIndex)

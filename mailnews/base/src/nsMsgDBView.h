@@ -67,7 +67,7 @@
 #include "nsCOMArray.h"
 #include "nsTArray.h"
 #include "nsIMsgCustomColumnHandler.h"
-
+#include "nsAutoPtr.h"
 #define MESSENGER_STRING_URL       "chrome://messenger/locale/messenger.properties"
 
 typedef nsAutoTArray<nsMsgViewIndex, 1> nsMsgViewIndexArray;
@@ -105,6 +105,26 @@ public:
 #define LABEL_COLOR_STRING "lc-"
 #define LABEL_COLOR_WHITE_STRING "#FFFFFF"
 
+struct IdUint32
+{
+  nsMsgKey    id;
+  PRUint32    bits;
+  PRUint32    dword;
+  nsIMsgFolder* folder;
+};
+
+struct IdKey : public IdUint32
+{
+  // actually a variable length array, whose actual size is determined
+  // when the struct is allocated.
+  PRUint8     key[1];
+};
+
+struct IdKeyPtr : public IdUint32
+{
+  PRUint8     *key;
+};
+
 // This is an abstract implementation class.
 // The actual view objects will be instances of sub-classes of this class
 class nsMsgDBView : public nsIMsgDBView, public nsIDBChangeListener,
@@ -122,6 +142,7 @@ public:
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
 
   nsMsgViewIndex GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<nsMsgKey> &keys,
+                                      nsCOMArray<nsIMsgFolder> *folders,
                                         nsMsgViewSortOrderValue sortOrder,
                                         nsMsgViewSortTypeValue sortType);
   PRInt32  SecondarySort(nsMsgKey key1, nsISupports *folder1, nsMsgKey key2, nsISupports *folder2,
@@ -264,10 +285,10 @@ protected:
                       {return m_keys.SafeElementAt(index, nsMsgKey_None);}
   nsMsgViewIndex	FindViewIndex(nsMsgKey  key) 
 					  {return FindKey(key, PR_FALSE);}
-  nsMsgViewIndex        FindHdr(nsIMsgDBHdr *msgHdr);
+  virtual nsMsgViewIndex        FindHdr(nsIMsgDBHdr *msgHdr);
   virtual nsMsgViewIndex	FindKey(nsMsgKey key, PRBool expand);
   virtual nsresult GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDatabase **db);
-  virtual nsresult GetFolders(nsISupportsArray **folders);
+  virtual nsCOMArray<nsIMsgFolder>* GetFolders();
   virtual nsresult GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFolder);
 
   virtual nsresult ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex viewIndex, PRUint32 *pNumListed);
@@ -324,7 +345,7 @@ protected:
                           nsIMsgCustomColumnHandler* colHandler = nsnull);
   static int PR_CALLBACK FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData);
   static int PR_CALLBACK FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privateData);
-  static int PR_CALLBACK FnSortIdDWord(const void *pItem1, const void *pItem2, void *privateData);
+  static int PR_CALLBACK FnSortIdUint32(const void *pItem1, const void *pItem2, void *privateData);
 
   nsresult GetStatusSortValue(nsIMsgDBHdr *msgHdr, PRUint32 *result);
   nsresult GetLocationCollationKey(nsIMsgDBHdr *msgHdr, PRUint8 **result, PRUint32 *len);

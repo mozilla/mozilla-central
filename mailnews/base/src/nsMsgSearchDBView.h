@@ -73,12 +73,12 @@ public:
 
   NS_IMETHOD OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator);
 
-  virtual nsresult GetFolders(nsISupportsArray **aFolders);
+  virtual nsCOMArray<nsIMsgFolder>* GetFolders();
   virtual nsresult GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFolder);
 
 protected:
   nsresult FetchLocation(PRInt32 aRow, nsAString& aLocationString);
-  virtual nsresult AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsISupports *folder);
+  virtual nsresult AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder);
   virtual nsresult GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDatabase **db);
   virtual nsresult RemoveByIndex(nsMsgViewIndex index);
   virtual nsresult CopyMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool isMove, nsIMsgFolder *destFolder);
@@ -89,10 +89,10 @@ protected:
   virtual nsresult ApplyCommandToIndicesWithFolder(nsMsgViewCommandTypeValue command, nsMsgViewIndex* indices,
                     PRInt32 numIndices, nsIMsgFolder *destFolder);
   
-  nsCOMPtr <nsISupportsArray> m_folders; // maybe we should store ranges, or the actual headers instead.
+  nsCOMArray<nsIMsgFolder> m_folders;
   nsCOMPtr <nsISupportsArray> m_hdrsForEachFolder;
   nsCOMPtr <nsISupportsArray> m_copyListenerList;
-  nsCOMPtr <nsISupportsArray> m_uniqueFoldersSelected;
+  nsCOMArray<nsIMsgFolder> m_uniqueFoldersSelected;
   PRInt32 mCurIndex;
 
   nsMsgViewIndex* mIndicesForChainedDeleteAndFile;

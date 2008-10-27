@@ -67,7 +67,7 @@ public:
   virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, PRBool ensureListed);
   NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
                                  nsIDBChangeListener * aInstigator);
-  virtual nsresult InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsISupports *folder);
+  virtual nsresult InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder);
   NS_IMETHOD GetMsgFolder(nsIMsgFolder **aMsgFolder);
   void UpdateCacheAndViewForPrevSearchedFolders(nsIMsgFolder *curSearchFolder);
   void UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, PRUint32 numNewHits);
