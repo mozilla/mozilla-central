@@ -439,6 +439,7 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener,
     this._uniqueValueMap = {};
 
   this.pendingItems = [];
+  this._pendingIdMap = {};
   this.items = [];
   this._idMap = {};
   

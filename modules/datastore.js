@@ -125,7 +125,12 @@ let QFQ_LOG = Log4Moz.Service.getLogger("gloda.ds.qfq");
 
 let QueryFromQueryResolver = {
   onItemsAdded: function(aIgnoredItems, aCollection, aFake) {
-    let originColl = aCollection.data;
+    let originColl = aCollection.dataStack ? aCollection.dataStack.pop()
+                                           : aCollection.data;
+    if (aCollection.completionShifter)
+      aCollection.completionShifter.push(originColl);
+    else
+      aCollection.completionShifter = [originColl];
 
     if (!aFake) {
       originColl.deferredCount--;
@@ -162,6 +167,7 @@ let QueryFromQueryResolver = {
           "with collection: " + originColl._nounDef.name);
       originColl._onItemsAdded(originColl.pendingItems);
       delete originColl.pendingItems;
+      delete originColl._pendingIdMap;
     }
   },
   onItemsModified: function() {
@@ -169,7 +175,10 @@ let QueryFromQueryResolver = {
   onItemsRemoved: function() {
   },
   onQueryCompleted: function(aCollection) {
-    let originColl = aCollection.data;
+    let originColl = aCollection.completionShifter ?
+      aCollection.completionShifter.shift() : aCollection.data;
+    QFQ_LOG.debug(" QFQR about to trigger completion with collection: " +
+      originColl._nounDef.name);
     if (originColl.deferredCount <= 0) {
       originColl._onQueryCompleted();
     }
@@ -219,6 +228,7 @@ function QueryFromQueryCallback(aStatement, aNounDef, aCollection) {
 QueryFromQueryCallback.prototype = {
   handleResult: function gloda_ds_qfq_handleResult(aResultSet) {
     let pendingItems = this.collection.pendingItems;
+    let pendingIdMap = this.collection._pendingIdMap;
     let row;
     let nounDef = this.nounDef;
     let nounID = nounDef.id;
@@ -227,6 +237,11 @@ QueryFromQueryCallback.prototype = {
       // try and replace the item with one from the cache, if we can
       let cachedItem = GlodaCollectionManager.cacheLookupOne(nounID, item.id,
                                                              false);
+      
+      // if we already have a copy in the pending id map, skip it
+      if (item.id in pendingIdMap)
+        continue;
+      
       QFQ_LOG.debug("loading item " + nounDef.id + ":" + item.id + " existing: " +
           this.selfReferences[item.id] + " cached: " + cachedItem);
       if (cachedItem)
@@ -256,6 +271,7 @@ QueryFromQueryCallback.prototype = {
       }
       
       pendingItems.push(item);
+      pendingIdMap[item.id] = item;
     }
   },
 
@@ -2672,6 +2688,12 @@ var GlodaDatastore = {
       if (aListenerData !== undefined)
         collection.data = aListenerData;
     }
+    if (aListenerData) {
+      if (collection.dataStack)
+        collection.dataStack.push(aListenerData)
+      else
+        collection.dataStack = [aListenerData];
+    }
 
     statement.executeAsync(new QueryFromQueryCallback(statement, aNounDef,
       collection));
@@ -2691,8 +2713,8 @@ var GlodaDatastore = {
     let deps = aItem._deps || {};
     let hasDeps = false;
     
-    //this._log.debug("  hadDeps: " + hadDeps + " deps: " + 
-    //    Log4Moz.enumerateProperties(deps).join(","));
+    this._log.debug("  hadDeps: " + hadDeps + " deps: " + 
+        Log4Moz.enumerateProperties(deps).join(","));
     
     for each (let [, attrib] in Iterator(aItem.NOUN_DEF.specialLoadAttribs)) {
       let objectNounDef = attrib.objectNounDef;
@@ -2809,6 +2831,10 @@ var GlodaDatastore = {
       aReferencesByNounID, aInverseReferencesByNounID) {
     if (aItem._deps === undefined)
       return;
+
+    this._log.debug("  loading deferred, deps: " + 
+        Log4Moz.enumerateProperties(aItem._deps).join(","));
+
     
     let attribIDToDBDefAndParam = this._attributeIDToDBDefAndParam;
 
