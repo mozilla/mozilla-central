@@ -90,6 +90,8 @@ protected:
   nsresult GetDeferredServers(nsIMsgIncomingServer *server, nsISupportsArray **_retval);
 
   nsresult CreateRootFolder();
+  virtual nsresult CreateRootFolderFromUri(const nsCString &serverUri,
+                                           nsIMsgFolder **rootFolder) = 0;
 
   nsresult InternalSetHostName(const nsACString& aHostname, const char * prefName);
 
