@@ -361,13 +361,18 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 
         // If "multipart/alternative" or the first part is a message body
         // then we should check for a charset and notify the emitter  
-        // if one exists.                                                     
-        if (obj->options && ((isAlternative && mult->state != MimeMultipartSkipPartLine) || isBody))
+        // if one exists.
+        if (obj->options &&
+            ((isAlternative && mult->state != MimeMultipartSkipPartLine) ||
+             isBody || obj->options->notify_nested_bodies))
         {
           {
-           char *ct = MimeHeaders_get(mult->hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
-           if (ct)
-           {
+            char *ct = MimeHeaders_get(mult->hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+            if (ct)
+            {
+              if (obj->options->notify_nested_bodies)
+                mimeEmitterAddHeaderField(obj->options, HEADER_CONTENT_TYPE,
+                                          ct);
              char *cset = MimeHeaders_get_parameter (ct, "charset", NULL, NULL);
              if (cset)
              {
@@ -379,6 +384,24 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 
               PR_FREEIF(ct);
               PR_FREEIF(cset);
+            }
+            // no content type means text/plain.
+            else if (obj->options->notify_nested_bodies)
+            {
+              mimeEmitterAddHeaderField(obj->options, HEADER_CONTENT_TYPE,
+                                        "text/plain");
+            }
+            if (obj->options->notify_nested_bodies && container->nchildren)
+            {
+              MimeObject *kid = container->children[container->nchildren-1];
+              char *part_path = mime_part_address(kid);
+              if (part_path)
+              {
+                mimeEmitterAddHeaderField(obj->options,
+                                          "x-jsemitter-part-path",
+                                          part_path);
+                PR_Free(part_path);
+              }
             }
           }
         }
