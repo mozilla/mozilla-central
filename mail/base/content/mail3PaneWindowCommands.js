@@ -49,6 +49,7 @@ var FolderPaneController =
     switch ( command )
     {
       case "cmd_delete":
+      case "cmd_shiftDelete":
       case "button_delete":
         // Even if the folder pane has focus, don't do a folder delete if
         // we have a selected message, but do a message delete instead.
@@ -78,6 +79,7 @@ var FolderPaneController =
       case "cmd_paste":
         return false;
       case "cmd_delete":
+      case "cmd_shiftDelete":
       case "button_delete":
         // Make sure the button doesn't show "Undelete" for folders.
         UpdateDeleteToolbarButton();
@@ -115,6 +117,7 @@ var FolderPaneController =
     switch ( command )
     {
       case "cmd_delete":
+      case "cmd_shiftDelete":
       case "button_delete":
         MsgDeleteFolder();
         break;
