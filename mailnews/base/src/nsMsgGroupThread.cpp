@@ -124,6 +124,14 @@ NS_IMETHODIMP nsMsgGroupThread::GetNumUnreadChildren (PRUint32 *aNumUnreadChildr
   *aNumUnreadChildren = m_numUnreadChildren;
   return NS_OK;
 }
+
+void nsMsgGroupThread::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr)
+{
+  nsMsgKey msgKey;
+  hdr->GetMessageKey(&msgKey);
+  m_keys.InsertElementAt(index, msgKey);
+}
+
 #if 0
 nsresult nsMsgGroupThread::RerootThread(nsIMsgDBHdr *newParentOfOldRoot, nsIMsgDBHdr *oldRoot, nsIDBChangeAnnouncer *announcer)
 {
@@ -167,9 +175,8 @@ NS_IMETHODIMP nsMsgGroupThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inRepl
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-nsresult nsMsgGroupThread::AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView *view)
+nsMsgViewIndex nsMsgGroupThread::AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView *view)
 {
-  nsresult ret = NS_OK;
   nsMsgKey newHdrKey;
   child->GetMessageKey(&newHdrKey);
   PRUint32 insertIndex = 0;
@@ -185,13 +192,21 @@ nsresult nsMsgGroupThread::AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView 
       (sortType == nsMsgViewSortType::byDate
         && sortOrder == nsMsgViewSortOrder::descending) ? 
           nsMsgViewSortOrder::descending : nsMsgViewSortOrder::ascending;
-    // sort by date within group
-    insertIndex = view->GetInsertIndexHelper(child, m_keys, nsnull, threadSortOrder, nsMsgViewSortType::byDate);
+    // sort by date within group.
+    insertIndex = GetInsertIndexFromView(view, child, threadSortOrder);
   }
   m_keys.InsertElementAt(insertIndex, newHdrKey);
   if (!insertIndex)
     m_threadRootKey = newHdrKey;
-  return ret;
+  return insertIndex;
+}
+
+nsMsgViewIndex 
+nsMsgGroupThread::GetInsertIndexFromView(nsMsgDBView *view, 
+                                          nsIMsgDBHdr *child, 
+                                          nsMsgViewSortOrderValue threadSortOrder)
+{
+   return view->GetInsertIndexHelper(child, m_keys, nsnull, threadSortOrder, nsMsgViewSortType::byDate);
 }
 
 nsresult nsMsgGroupThread::AddChildFromGroupView(nsIMsgDBHdr *child, nsMsgDBView *view)
@@ -848,7 +863,15 @@ nsMsgXFGroupThread::~nsMsgXFGroupThread()
 NS_IMETHODIMP nsMsgXFGroupThread::GetNumChildren(PRUint32 *aNumChildren)
 {
   NS_ENSURE_ARG_POINTER(aNumChildren);
-  *aNumChildren = m_hdrs.Count();
+  *aNumChildren = m_folders.Count();
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgXFGroupThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
+{
+  if (aIndex >= m_folders.Count())
+    return NS_MSG_MESSAGE_NOT_FOUND;
+  m_folders.ObjectAt(aIndex)->GetMessageHeader(m_keys[aIndex], aResult);
   return NS_OK;
 }
 
@@ -856,5 +879,29 @@ NS_IMETHODIMP nsMsgXFGroupThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResul
 {
   NS_ASSERTION(PR_FALSE, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+void nsMsgXFGroupThread::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr)
+{
+  nsCOMPtr<nsIMsgFolder> folder;
+  hdr->GetFolder(getter_AddRefs(folder));
+  m_folders.InsertObjectAt(folder, index);
+  nsMsgGroupThread::InsertMsgHdrAt(index, hdr);
+}
+
+nsMsgViewIndex nsMsgXFGroupThread::AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView *view)
+{
+  nsMsgViewIndex insertIndex = nsMsgGroupThread::AddMsgHdrInDateOrder(child, view);
+  nsCOMPtr<nsIMsgFolder> folder;
+  child->GetFolder(getter_AddRefs(folder));
+  m_folders.InsertObjectAt(folder, insertIndex);
+  return insertIndex;
+}
+nsMsgViewIndex 
+nsMsgXFGroupThread::GetInsertIndexFromView(nsMsgDBView *view, 
+                                          nsIMsgDBHdr *child, 
+                                          nsMsgViewSortOrderValue threadSortOrder)
+{
+   return view->GetInsertIndexHelper(child, m_keys, &m_folders, threadSortOrder, nsMsgViewSortType::byDate);
 }
 
