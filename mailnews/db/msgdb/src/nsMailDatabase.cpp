@@ -366,11 +366,11 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
 #endif
       PR_ASSERT(PR_FALSE);
     }
+    if (!m_folderStream)
+      *ppFileStream = fileStream; // This tells the caller that we opened the file, and please to close it.
+    else if (!m_ownFolderStream)
+      seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, folderStreamPos);
   }
-  if (!m_folderStream)
-    *ppFileStream = fileStream; // This tells the caller that we opened the file, and please to close it.
-  else if (!m_ownFolderStream)
-    seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, folderStreamPos);
 }
 
 PRUint32 nsMailDatabase::GetMailboxModDate()
