@@ -40,7 +40,7 @@
 }
 
 .calendar-invitations-updating-icon {
-  list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif");
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
   opacity: 0.5;
 }
 

@@ -76,9 +76,9 @@ calendar-subscriptions-richlistitem[selected="true"] {
 }
 
 .calendar-subscriptions-status-icon {
-  list-style-image: url("chrome://global/skin/throbber/Throbber-small.png");
+  list-style-image: url("chrome://global/skin/icons/notloading_16.png");
 }
 
 .calendar-subscriptions-status-icon[busy="true"] {
-  list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif");
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }
