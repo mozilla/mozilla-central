@@ -123,6 +123,7 @@ nsIAtom* nsMsgDBFolder::kNameAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kSynchronizeAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kOpenAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kIsDeferred=nsnull;
+nsIAtom* nsMsgDBFolder::kKeywords=nsnull;
 
 nsICollation * nsMsgDBFolder::gCollationKeyGenerator = nsnull;
 
@@ -158,7 +159,8 @@ const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
   { "Flagged", &nsMsgDBFolder::kFlaggedAtom },
   { "Synchronize", &nsMsgDBFolder::kSynchronizeAtom },
   { "open", &nsMsgDBFolder::kOpenAtom },
-  { "isDeferred", &nsMsgDBFolder::kIsDeferred }
+  { "isDeferred", &nsMsgDBFolder::kIsDeferred },
+  { "Keywords", &nsMsgDBFolder::kKeywords }
 };
 
 nsMsgDBFolder::nsMsgDBFolder(void)
@@ -4980,6 +4982,7 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsIArray *aMessages, const ns
       message->GetStringProperty("keywords", getter_Copies(keywords));
       nsCStringArray keywordArray;
       keywordArray.ParseString(nsCString(aKeywords).get(), " ");
+      PRUint32 addCount = 0;
       for (PRInt32 j = 0; j < keywordArray.Count(); j++)
       {
         PRInt32 start, length;
@@ -4988,12 +4991,16 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsIArray *aMessages, const ns
           if (!keywords.IsEmpty())
             keywords.Append(' ');
           keywords.Append(keywordArray[j]->get());
+          addCount++;
         }
       }
       // avoid using the message key to set the string property, because
       // in the case of filters running on incoming pop3 mail with quarantining
       // turned on, the message key is wrong.
       mDatabase->SetStringPropertyByHdr(message, "keywords", keywords.get());
+      
+      if (addCount)
+        NotifyPropertyFlagChanged(message, kKeywords, 0, addCount);
     }
   }
   return rv;
@@ -5017,8 +5024,10 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
       nsCOMPtr<nsIMsgDBHdr> message = do_QueryElementAt(aMessages, i, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
       rv = message->GetStringProperty("keywords", getter_Copies(keywords));
+      nsCAutoString originalKeywords(keywords);
       nsCStringArray keywordArray;
       keywordArray.ParseString(nsCString(aKeywords).get(), " ");
+      PRUint32 removeCount = 0;
       for (PRInt32 j = 0; j < keywordArray.Count(); j++)
       {
         PRBool keywordIsLabel = (StringBeginsWith(*(keywordArray[j]), NS_LITERAL_CSTRING("$label"))
@@ -5039,11 +5048,15 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
           if (keywords.CharAt(startOffset + length) == ' ')
             length++;
           keywords.Cut(startOffset, length);
+          removeCount++;
           NS_ASSERTION(keywords.IsEmpty() || keywords.CharAt(0) != ' ', "space only keyword");
         }
       }
 
       mDatabase->SetStringPropertyByHdr(message, "keywords", keywords.get());
+
+      if (removeCount)
+        NotifyPropertyFlagChanged(message, kKeywords, removeCount, 0);
     }
   }
   return rv;

@@ -263,6 +263,7 @@ protected:
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kSynchronizeAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kOpenAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kIsDeferred;
+  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kKeywords;
   static NS_MSG_BASE_STATIC_MEMBER_(nsICollation*) gCollationKeyGenerator;
 
 #ifdef MSG_FASTER_URI_PARSING
