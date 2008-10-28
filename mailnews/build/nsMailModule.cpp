@@ -62,8 +62,6 @@
 #include "nsMessengerBootstrap.h"
 #include "nsMessenger.h"
 #include "nsIContentViewer.h"
-#include "nsIUrlListenerManager.h"
-#include "nsUrlListenerManager.h"
 #include "nsMsgMailSession.h"
 #include "nsMsgAccount.h"
 #include "nsMsgAccountManager.h"
@@ -295,7 +293,6 @@
 // mailnews base factories
 ////////////////////////////////////////////////////////////////////////////////
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessengerBootstrap)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsUrlListenerManager)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgMailSession, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessenger)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgAccountManager, Init)
@@ -691,10 +688,6 @@ static const nsModuleComponentInfo gComponents[] = {
     { "Netscape Messenger Window Service", NS_MESSENGERWINDOWSERVICE_CID,
       NS_MESSENGERWINDOWSERVICE_CONTRACTID,
       nsMessengerBootstrapConstructor,
-    },
-    { "UrlListenerManager", NS_URLLISTENERMANAGER_CID,
-      NS_URLLISTENERMANAGER_CONTRACTID,
-      nsUrlListenerManagerConstructor,
     },
     { "Mail Session", NS_MSGMAILSESSION_CID,
       NS_MSGMAILSESSION_CONTRACTID,

@@ -58,8 +58,6 @@
 
 /* Include all of the interfaces our factory can generate components for */
 
-#include "nsIUrlListenerManager.h"
-#include "nsUrlListenerManager.h"
 #include "nsMsgMailSession.h"
 #include "nsMsgAccount.h"
 #include "nsMsgAccountManager.h"
@@ -128,7 +126,6 @@
 // private factory declarations for each component we know how to produce
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessengerBootstrap)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsUrlListenerManager)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgMailSession, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessenger)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgAccountManager, Init)
@@ -295,10 +292,6 @@ static const nsModuleComponentInfo gComponents[] = {
       nsMessengerBootstrapConstructor,
       RegisterCommandLineHandler,
       UnregisterCommandLineHandler,
-    },
-    { "UrlListenerManager", NS_URLLISTENERMANAGER_CID,
-      NS_URLLISTENERMANAGER_CONTRACTID,
-      nsUrlListenerManagerConstructor,
     },
     { "Mail Session", NS_MSGMAILSESSION_CID,
       NS_MSGMAILSESSION_CONTRACTID,

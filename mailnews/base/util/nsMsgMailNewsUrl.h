@@ -42,7 +42,7 @@
 #include "nscore.h"
 #include "nsISupports.h"
 #include "nsIUrlListener.h"
-#include "nsIUrlListenerManager.h"
+#include "nsTObserverArray.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsCOMPtr.h"
@@ -106,8 +106,7 @@ protected:
   // asks us for it, we'll return the right value.
   nsCString mAttachmentFileName;
 
-  // manager of all of current url listeners....
-  nsCOMPtr<nsIUrlListenerManager> m_urlListeners;
+  nsTObserverArray<nsCOMPtr<nsIUrlListener> > mUrlListeners;
 };
 
 #undef  IMETHOD_VISIBILITY

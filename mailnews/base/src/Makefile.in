@@ -94,7 +94,6 @@ REQUIRES	= xpcom \
 CPPSRCS		= \
 		nsMessenger.cpp \
 		nsMessengerBootstrap.cpp \
-		nsUrlListenerManager.cpp \
 		nsMsgMailSession.cpp \
 		nsMsgAccountManager.cpp \
 		nsMsgAccount.cpp \

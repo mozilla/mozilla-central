@@ -254,17 +254,6 @@
 	{ 0x8d, 0x76, 0x00, 0x80, 0xf5, 0x8a, 0x66, 0x17 } }
 
 //
-// nsUrlListenerManager
-//
-#define NS_URLLISTENERMANAGER_CONTRACTID \
-  "@mozilla.org/messenger/urlListenerManager;1"
-
-/* B1AA0820-D04B-11d2-8069-006008128C4E */
-#define NS_URLLISTENERMANAGER_CID \
-{ 0xb1aa0820, 0xd04b, 0x11d2, \
-  {0x80, 0x69, 0x0, 0x60, 0x8, 0x12, 0x8c, 0x4e} }
-
-//
 // nsMessengerBootstrap
 //
 #define NS_MESSENGERBOOTSTRAP_CONTRACTID \

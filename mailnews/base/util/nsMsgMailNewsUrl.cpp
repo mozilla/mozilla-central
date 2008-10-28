@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -67,9 +67,17 @@ nsMsgMailNewsUrl::nsMsgMailNewsUrl()
   m_msgIsInLocalCache = PR_FALSE;
   m_suppressErrorMsgs = PR_FALSE;
   
-  m_urlListeners = do_CreateInstance(NS_URLLISTENERMANAGER_CONTRACTID);
   m_baseURL = do_CreateInstance(NS_STANDARDURL_CONTRACTID);
 }
+
+#define NOTIFY_URL_LISTENERS(propertyfunc_, params_)                   \
+  PR_BEGIN_MACRO                                                       \
+  nsTObserverArray<nsCOMPtr<nsIUrlListener> >::ForwardIterator iter(mUrlListeners); \
+  while (iter.HasMore()) {                                             \
+    nsCOMPtr<nsIUrlListener> listener = iter.GetNext();                \
+    listener->propertyfunc_ params_;                                   \
+  }                                                                    \
+  PR_END_MACRO
 
 nsMsgMailNewsUrl::~nsMsgMailNewsUrl()
 {
@@ -117,35 +125,39 @@ nsresult nsMsgMailNewsUrl::SetUrlState(PRBool aRunningUrl, nsresult aExitCode)
       statusFeedback->StopMeteors();
     }
   }
-  if (m_urlListeners)
+  
+  if (m_runningUrl)
   {
-    if (m_runningUrl)
-    {
-      m_urlListeners->OnStartRunningUrl(this);
-    }
-    else
-    {
-      m_urlListeners->OnStopRunningUrl(this, aExitCode);
-      m_urlListeners = nsnull;
-    }
+    NOTIFY_URL_LISTENERS(OnStartRunningUrl, (this));
   }
   else
-    printf("no listeners in set url state\n");
+  {
+    NOTIFY_URL_LISTENERS(OnStopRunningUrl, (this, aExitCode));
+    mUrlListeners.Clear();
+  }
   
   return NS_OK;
 }
 
-nsresult nsMsgMailNewsUrl::RegisterListener (nsIUrlListener * aUrlListener)
+NS_IMETHODIMP nsMsgMailNewsUrl::RegisterListener(nsIUrlListener *aUrlListener)
 {
-  if (m_urlListeners)
-    m_urlListeners->RegisterListener(aUrlListener);
+  NS_ENSURE_ARG_POINTER(aUrlListener);
+  mUrlListeners.AppendElement(aUrlListener);
   return NS_OK;
 }
 
-nsresult nsMsgMailNewsUrl::UnRegisterListener (nsIUrlListener * aUrlListener)
+nsresult nsMsgMailNewsUrl::UnRegisterListener(nsIUrlListener *aUrlListener)
 {
-  if (m_urlListeners)
-    m_urlListeners->UnRegisterListener(aUrlListener);
+  NS_ENSURE_ARG_POINTER(aUrlListener);
+
+  PRInt32 index = mUrlListeners.IndexOf(aUrlListener);
+  // Due to the way mailnews is structured, some listeners attempt to remove
+  // themselves twice. This may in fact be an error in the coding, however
+  // if they didn't do it as they do currently, then they could fail to remove
+  // their listeners.
+  if (index != -1)
+    mUrlListeners.RemoveElementAt(index);
+
   return NS_OK;
 }
 
