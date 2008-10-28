@@ -1315,7 +1315,8 @@ function CreateToolbarTooltip(document, event)
 function DisplayFolderAndThreadPane(show)
 {
   var collapse = !show;
-  if (pref.getIntPref("mail.pane_config.dynamic") == kWidePaneConfig)
+  var layout = pref.getIntPref("mail.pane_config.dynamic");
+  if (layout == kWidePaneConfig)
   {
     document.getElementById("messengerBox").collapsed = collapse;
     // if opening a standalone message, need to give the messagepanebox flex.
@@ -1323,7 +1324,11 @@ function DisplayFolderAndThreadPane(show)
       document.getElementById("messagepanebox").flex = 1;
   }
 
-  document.getElementById("displayDeck").collapsed = collapse;
+  if (layout == kVerticalPaneConfig)
+    document.getElementById("threadTree").collapsed = collapse;
+  else
+    document.getElementById("displayDeck").collapsed = collapse;
+
   document.getElementById("threadpane-splitter").collapsed = collapse;
   document.getElementById("folderpane_splitter").collapsed = collapse;
   document.getElementById("folderPaneBox").collapsed = collapse;
