@@ -1568,8 +1568,6 @@ nsSaveMsgListener::nsSaveMsgListener(nsIFile* aFile, nsMessenger *aMessenger, ns
   mCanceled = PR_FALSE;
   m_outputFormat = eUnknown;
   mInitialized = PR_FALSE;
-  if (m_file)
-    NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream), m_file, -1, 00600);
   m_dataBuffer = new char[FOUR_K];
 }
 
@@ -1777,6 +1775,8 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRInt32 aB
 NS_IMETHODIMP
 nsSaveMsgListener::OnStartRequest(nsIRequest* request, nsISupports* aSupport)
 {
+  if (m_file)
+    NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream), m_file, -1, 00600);
   if (!m_outputStream)
   {
     mCanceled = PR_TRUE;
