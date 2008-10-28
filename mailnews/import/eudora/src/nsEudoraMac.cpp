@@ -61,12 +61,9 @@
 #include "nsNetUtil.h"
 #include "EudoraDebugLog.h"
 
-#include <Resources.h>
-#include <Files.h>
-#include <TextUtils.h>
-
 #include "nsILocalFileMac.h"
-#include "MoreFilesX.h"
+
+#include <Carbon/Carbon.h>
 
 static NS_DEFINE_IID(kISupportsIID,      NS_ISUPPORTS_IID);
 

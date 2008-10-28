@@ -121,10 +121,7 @@ EXPORTS		= \
 		nsComposeStrings.h \
 		$(NULL)
 
-# MacOSX requires the MoreFiles module
 ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
-REQUIRES += macmorefiles \
-		$(NULL)
 CPPSRCS += nsMsgAppleDoubleEncode.cpp \
 		nsMsgAppleEncode.cpp \
 		$(NULL)

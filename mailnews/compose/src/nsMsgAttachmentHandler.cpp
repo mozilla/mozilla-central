@@ -77,7 +77,6 @@
 extern void         MacGetFileType(nsILocalFile *fs, PRBool *useDefault, char **type, char **encoding);
 
 #include "nsIInternetConfigService.h"
-#include "MoreFilesX.h"
 #include "nsILocalFileMac.h"
 
 /* static */

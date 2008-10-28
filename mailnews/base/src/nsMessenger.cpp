@@ -55,7 +55,6 @@
 #ifdef XP_MACOSX
 #include "nsIAppleFileDecoder.h"
 #include "nsILocalFileMac.h"
-#include "MoreFilesX.h"
 #endif
 #include "nsNativeCharsetUtils.h"
 #include "nsIMutableArray.h"

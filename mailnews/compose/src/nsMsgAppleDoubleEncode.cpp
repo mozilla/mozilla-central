@@ -59,7 +59,23 @@
 #include "nsNetUtil.h"
 
 #if defined(XP_MACOSX)
-#include "MoreFilesX.h"
+#include <Carbon/Carbon.h>
+
+OSStatus
+PathToSpec(const UInt8 *path, FSSpec *spec)
+{
+  if (!spec)
+    return -1;
+
+  // convert POSIX path to FSRef
+  FSRef ref;
+  OSStatus result = FSPathMakeRef(path, &ref, NULL);
+  if (result != noErr)
+    return result;
+
+  // convert FSRef to FSSpec
+  return FSGetCatalogInfo(&ref, kFSCatInfoNone, NULL, NULL, spec, NULL);
+}
 
 void	
 MacGetFileType(nsILocalFile   *fs, 
@@ -83,7 +99,7 @@ MacGetFileType(nsILocalFile   *fs,
   FSSpec fsSpec;
   nsCString nativePath;
   fs->GetNativePath(nativePath);
-  FSPathMakeFSSpec((UInt8 *)nativePath.get(), &fsSpec, NULL);
+  PathToSpec((UInt8 *)nativePath.get(), &fsSpec);
   OSErr err = FSpGetFInfo (&fsSpec, &fndrInfo);
 
   if ( (err != noErr) || (fndrInfo.fdType == 'TEXT') )
@@ -135,7 +151,7 @@ int ap_encode_init( appledouble_encode_object *p_ap_encode_obj,
   if (myFile && NS_SUCCEEDED(myFile->Exists(&exists)) && !exists)
     return -1;
 
-	FSPathMakeFSSpec((const UInt8 *)fname, &fspec, NULL);
+	PathToSpec((const UInt8 *)fname, &fspec);
 	memset(p_ap_encode_obj, 0, sizeof(appledouble_encode_object));
 	
 	/*

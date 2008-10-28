@@ -84,7 +84,6 @@ CPPSRCS += nsEudoraWin32.cpp
 endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-REQUIRES += macmorefiles
 CPPSRCS += nsEudoraMac.cpp
 endif
 

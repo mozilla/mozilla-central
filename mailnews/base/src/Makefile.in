@@ -134,9 +134,7 @@ CPPSRCS		= \
 		nsMailDirProvider.cpp\
 		$(NULL)
 
-# MacOSX requires the MoreFiles module
 ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
-REQUIRES	+= macmorefiles
 CPPSRCS		+= nsMessengerOSXIntegration.cpp
 endif
 
