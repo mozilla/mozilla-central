@@ -447,10 +447,11 @@ nsImapIncomingServer::GetImapConnectionAndLoadUrl(nsIEventTarget * aClientEventT
 }
 
 NS_IMETHODIMP
-nsImapIncomingServer::RetryUrl(nsIImapUrl *aImapUrl)
+nsImapIncomingServer::RetryUrl(nsIImapUrl *aImapUrl, nsIImapMockChannel *aChannel)
 {
   nsresult rv;
   // Get current thread envent queue
+  aImapUrl->SetMockChannel(aChannel);
   nsCOMPtr <nsIImapProtocol> protocolInstance;
   nsImapProtocol::LogImapUrl("creating protocol instance to retry queued url", aImapUrl);
   rv = GetImapConnection(NS_GetCurrentThread(), aImapUrl, getter_AddRefs(protocolInstance));

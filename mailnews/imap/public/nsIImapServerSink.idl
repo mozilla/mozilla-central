@@ -42,8 +42,9 @@ interface nsIMsgWindow;
 interface nsIMsgMailNewsUrl;
 interface nsIImapProtocol;
 interface nsIImapUrl;
+interface nsIImapMockChannel;
 
-[scriptable, uuid(8255E06F-C296-40d0-B924-ECAE5F5291C6)]
+[scriptable, uuid(1851b9f0-f1b3-4f01-b1ba-9525997cf7ca)]
 interface nsIImapServerSink : nsISupports {
   /* returns true if it's a new mailbox */
   boolean possibleImapMailbox(in ACString folderPath, in wchar hierarchyDelim, in long boxFlags);
@@ -60,7 +61,13 @@ interface nsIImapServerSink : nsISupports {
 
   void setCapability(in unsigned long capability);
   boolean loadNextQueuedUrl(in nsIImapProtocol aProtocol);
-  void retryUrl(in nsIImapUrl aImapUrl);
+  /*
+   * Retry the current url
+   * 
+   * @param  aImapUrl - url to retry
+   * @param  aChannel - channel to associate with the url 
+   */
+  void retryUrl(in nsIImapUrl aImapUrl, in nsIImapMockChannel aChannel);
   // if previous url failed, this gives server chance to abort urls with same mock channel
   void abortQueuedUrls(); 
   AString getImapStringByID(in long aMsgId);

@@ -1661,17 +1661,17 @@ PRBool nsImapProtocol::ProcessCurrentURL()
 
 PRBool nsImapProtocol::RetryUrl()
 {
+  nsAutoCMonitor mon(this);
   nsCOMPtr <nsIImapUrl> kungFuGripImapUrl = m_runningUrl;
   nsCOMPtr <nsIImapMockChannel> saveMockChannel;
   m_runningUrl->GetMockChannel(getter_AddRefs(saveMockChannel));
   ReleaseUrlState(PR_TRUE);
   nsresult rv;
   nsCOMPtr<nsIImapIncomingServer> imapServer  = do_QueryReferent(m_server, &rv);
-  kungFuGripImapUrl->SetMockChannel(saveMockChannel);
   if (NS_SUCCEEDED(rv))
     imapServer->RemoveConnection(this);
   if (m_imapServerSink)
-    m_imapServerSink->RetryUrl(kungFuGripImapUrl);
+    m_imapServerSink->RetryUrl(kungFuGripImapUrl, saveMockChannel);
   return (m_imapServerSink != nsnull); // we're running a url (the same url)
 }
 
