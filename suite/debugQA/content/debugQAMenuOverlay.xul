@@ -175,7 +175,7 @@
 
         <menuseparator id="bloatAndLeakSeparator" hidden="true"/>
 
-        <menu id="bloatMenu" label="Bloat Stats" hidden="true">
+        <menu id="bloatMenu" label="Bloat Stats" hidden="true" disabled="true">
           <menupopup>
             <menuitem label="Bloat: Dump New Stats"
                       oncommand="openTopWin('about:bloat?new');"/>

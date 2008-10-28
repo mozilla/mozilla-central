@@ -51,10 +51,19 @@ if ("@mozilla.org/network/protocol/about;1?what=bloat" in Components.classes)
 if ("@mozilla.org/xpcom/leakdetector;1" in Components.classes)
   window.addEventListener("load", onLoadLeakDetector, false);
 
-// Unhide the Bloat menu and its associated (shared) separator.
+// Unhide (and enable) the Bloat menu and its associated (shared) separator.
 function onLoadBloat()
 {
   window.removeEventListener("load", onLoadBloat, false);
+
+  // Enable the menu, only if its feature is currently active.
+  var envSvc = Components.classes["@mozilla.org/process/environment;1"]
+                         .getService(Components.interfaces.nsIEnvironment);
+  // Checking the environment variables is good enough,
+  // as the Bloat service doesn't report the status of its statistics feature.
+  if (envSvc.exists("XPCOM_MEM_BLOAT_LOG") ||
+      envSvc.exists("XPCOM_MEM_LEAK_LOG"))
+    document.getElementById("bloatMenu").disabled = false;
 
   document.getElementById("bloatAndLeakSeparator").hidden = false;
   document.getElementById("bloatMenu").hidden = false;
