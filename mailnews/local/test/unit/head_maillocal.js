@@ -34,6 +34,11 @@ function createPop3ServerAndLocalFolders() {
 }
 
 function do_check_transaction(real, expected) {
+  // If we don't spin the event loop before starting the next test, the readers
+  // aren't expired. In this case, the "real" real transaction is the last one.
+  if (real instanceof Array)
+    real = real[real.length - 1];
+
   // real.them may have an extra QUIT on the end, where the stream is only
   // closed after we have a chance to process it and not them. We therefore
   // excise this from the list

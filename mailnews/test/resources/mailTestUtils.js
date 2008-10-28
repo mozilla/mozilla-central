@@ -58,6 +58,113 @@ function loadLocalMailAccount()
   var folderName = gLocalInboxFolder.prettiestName;
 }
 
+/**
+ * Converts a base64-encoded to a string with the octet data.
+ *
+ * The extra parameters are optional arguments that are used to override the
+ * official base64 characters for values 62 and 63. If not specified, they
+ * default to '+' and '/'.
+ *
+ * No unicode translation is performed during the conversion.
+ *
+ * @param str    A string argument representing the encoded data
+ * @param c62    The (optional) character for the value 62
+ * @param c63    The (optional) character for the value 63
+ * @return       An string with the data
+ */
+function atob(str, c62, c63) {
+  var result = [];
+  var bits = [];
+  c62 = c62 ? c62.charCodeAt(0) : 43;
+  c63 = c63 ? c63.charCodeAt(0) : 47;
+  for (var i=0;i<str.length;i++) {
+    let c = str.charCodeAt(i);
+    let val = 0;
+    if (65 <= c && c <= 90) // A-Z
+      val = c-65;
+    else if (97 <= c && c <= 122) // a-z
+      val = c-97+26;
+    else if (48 <= c && c <= 57) // 0-9
+      val = c-48+52;
+    else if (c == c62)
+      value = 62;
+    else if (c == c63)
+      value = 63;
+    else if (c == 61) {
+      for (var q=i+1;q<str.length;q++)
+        if (str[q] != '=')
+          throw "Character after =: "+str[q];
+      break;
+    } else
+      throw "Illegal character in input: "+c;
+    bits.push((val >> 5) & 1);
+    bits.push((val >> 4) & 1);
+    bits.push((val >> 3) & 1);
+    bits.push((val >> 2) & 1);
+    bits.push((val >> 1) & 1);
+    bits.push((val >> 0) & 1);
+    if (bits.length >= 8)
+      result.push(bits.splice(0, 8).reduce(function (form, bit) {
+        return (form << 1) | bit;
+      }, 0));
+  }
+  return result.reduce(function (str, c) { return str+c }, "");
+}
+
+/**
+ * Converts a string or array of octets to a base64-encoded string.
+ *
+ * The extra parameters are optional arguments that are used to override the
+ * official base64 characters for values 62 and 63. If not specified, they
+ * default to '+' and '/'.
+ *
+ * Data is treated as if it were modulo 256.
+ *
+ * @param str    A string or array with the data to be encoded
+ * @param c62    The (optional) character for the value 62
+ * @param c63    The (optional) character for the value 63
+ * @return       An string with the encoded data
+ */
+function btoa(arr, c62, c63) {
+  if (typeof arr == "string")
+    arr = arr.split("").map(function (e) { return e.charCodeAt(0); });
+  if (!c62) c62 = "+";
+  if (!c63) c63 = "/";
+
+  var bits = [];
+  for each (var octet in arr) {
+    bits.push((octet >> 7) & 1);
+    bits.push((octet >> 6) & 1);
+    bits.push((octet >> 5) & 1);
+    bits.push((octet >> 4) & 1);
+    bits.push((octet >> 3) & 1);
+    bits.push((octet >> 2) & 1);
+    bits.push((octet >> 1) & 1);
+    bits.push((octet >> 0) & 1);
+  }
+  while (bits.length % 6 != 0)
+    bits.push(0);
+  var result = "";
+  while (bits.length > 0) {
+    let code = bits.splice(0, 6).reduce(function (form, bit) {
+        return (form << 1) | bit;
+    });
+    if (code <= 25)
+      result += String.fromCharCode(code+65);
+    else if (code <= 51)
+      result += String.fromCharCode(code-26+97);
+    else if (code <= 61)
+      result += String.fromCharCode(code-52+48);
+    else if (code == 62)
+      result += c62;
+    else if (code == 63)
+      result += c63;
+  }
+  while (result.length % 4 != 0)
+    result += "=";
+  return result;
+}
+
 // Loads a file to a string
 // If aCharset is specified, treats the file as being of that charset
 function loadFileToString(aFile, aCharset) {

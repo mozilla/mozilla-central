@@ -112,25 +112,8 @@ function nsMailServer(handler) {
   this._socketClosed = true;
 
   this._handler = handler;
-  this._reader = null;
+  this._readers = [];
   this._test = false;
-  this.observer = {
-    server : this,
-    forced : false,
-    notify : function (timer) {
-      this.forced = true;
-      this.server.stopTest();
-      this.server.stop();
-    },
-    QueryInterface : function (iid) {
-      if (iid.equals(Ci.nsITimerCallback) || iid.equals(Ci.nsISupports))
-        return this;
-
-      throw Cr.NS_ERROR_NO_INTERFACE;
-    }
-  };
-  this.timer = Cc["@mozilla.org/timer;1"].createInstance()
-                                         .QueryInterface(Ci.nsITimer);
 }
 nsMailServer.prototype = {
   onSocketAccepted : function (socket, trans) {
@@ -139,15 +122,14 @@ nsMailServer.prototype = {
     var input = trans.openInputStream(0, SEGMENT_SIZE, SEGMENT_COUNT)
                      .QueryInterface(Ci.nsIAsyncInputStream);
 
-    this._reader = new nsMailReader(this, this._handler, trans);
+    var reader = new nsMailReader(this, this._handler, trans);
+    this._readers.push(reader);
 
     // Note: must use main thread here, or we might get a GC that will cause
     //       threadsafety assertions.  We really need to fix XPConnect so that
     //       you can actually do things in multi-threaded JS.  :-(
-    input.asyncWait(this._reader, 0, 0, gThreadManager.mainThread);
+    input.asyncWait(reader, 0, 0, gThreadManager.mainThread);
     this._test = true;
-    this.timer.initWithCallback(this.observer, TIMEOUT,
-                                Ci.nsITimer.TYPE_ONE_SHOT);
   },
 
   onStopListening : function (socket, status) {
@@ -176,7 +158,7 @@ nsMailServer.prototype = {
     this._socket.close();
     this._socket = null;
 
-    if (this.observer.forced) {
+    if (this._readers.some(function (e) { return e.observer.forced })) {
       do_test_finished();
       return;
     }
@@ -219,17 +201,19 @@ nsMailServer.prototype = {
   /**
    * Runs the test. It will not exit until the test has finished.
    */
-  performTest : function () {
+  performTest : function (watchWord) {
+    this._watchWord = watchWord;
+
     var thread = gThreadManager.currentThread;
     while (!this.isTestFinished())
-      thread.processNextEvent(true);
+      thread.processNextEvent(false);
   },
 
   /**
    * Returns true if the current processing test has finished.
    */
   isTestFinished : function() {
-    return this._reader && !this._test;
+    return this._readers.length > 0 && !this._test;
   },
 
   /**
@@ -238,15 +222,21 @@ nsMailServer.prototype = {
    * are arrays returning the commands given by each server.
    */
   playTransaction : function() {
-    if (this.observer.forced)
+    if (this._readers.some(function (e) { return e.observer.forced; }))
       throw "Server timed out!";
-    return this._reader.transaction;
+    if (this._readers.length == 1)
+      return this._readers[0].transaction;
+    else
+      return this._readers.map(function (e) { return e.transaction; });
   },
 
   /**
    * Prepares for the next test.
    */
   resetTest : function() {
+    this._readers = this._readers.filter(function (reader) {
+      return reader._isRunning;
+    });
     this._test = true;
   }
 };
@@ -292,7 +282,7 @@ function nsMailReader(server, handler, transport) {
 
   // Send response line
   var response = this._handler.onStartup();
-  response = response.replace(/([^\r])\n/,"$1\r\n");
+  response = response.replace(/([^\r])\n/g,"$1\r\n");
   if (response.charAt(response.length-1) != '\n')
     response = response + "\r\n";
   this.transaction.us.push(response);
@@ -302,6 +292,26 @@ function nsMailReader(server, handler, transport) {
   this._multiline = false;
 
   this._isRunning = true;
+  
+  this.observer = {
+    server : server,
+    forced : false,
+    notify : function (timer) {
+      this.forced = true;
+      this.server.stopTest();
+      this.server.stop();
+    },
+    QueryInterface : function (iid) {
+      if (iid.equals(Ci.nsITimerCallback) || iid.equals(Ci.nsISupports))
+        return this;
+
+      throw Cr.NS_ERROR_NO_INTERFACE;
+    }
+  };
+  this.timer = Cc["@mozilla.org/timer;1"].createInstance()
+                                         .QueryInterface(Ci.nsITimer);
+  this.timer.initWithCallback(this.observer, TIMEOUT,
+                              Ci.nsITimer.TYPE_ONE_SHOT);
 }
 nsMailReader.prototype = {
   _findLines : function () {
@@ -322,16 +332,16 @@ nsMailReader.prototype = {
   },
 
   onInputStreamReady : function (stream) {
-    if (this._server.observer.forced)
+    if (this.observer.forced)
       return;
 
-    this._server.timer.cancel();
+    this.timer.cancel();
     try {
       var bytes = stream.available();
     } catch (e) {
       // Someone, not us, has closed the stream. This means we can't get any
       // more data from the stream, so we'll just go and close our socket.
-      this.closeSocket();
+      this._realCloseSocket();
       return;
     }
     readTo(stream, bytes, this._buffer);
@@ -341,45 +351,66 @@ nsMailReader.prototype = {
       var line = this._lines.shift();
 
       var response;
-      if (this._multiline) {
-        response = this._handler.onMultiline(line);
+      try {
+        if (this._multiline) {
+          response = this._handler.onMultiline(line);
 
-        if (response === undefined)
-          continue;
-      } else {
-        // Record the transaction
-        this.transaction.them.push(line);
+          if (response === undefined)
+            continue;
+        } else {
+          // Record the transaction
+          this.transaction.them.push(line);
 
-        // Find the command and splice it out...
-        var splitter = line.indexOf(" ");
-        var command = splitter == -1 ? line : line.substring(0,splitter);
-        var args = splitter == -1 ? "" : line.substring(splitter+1);
+          // Find the command and splice it out...
+          var splitter = line.indexOf(" ");
+          var command = splitter == -1 ? line : line.substring(0,splitter);
+          var args = splitter == -1 ? "" : line.substring(splitter+1);
 
-        // By convention, commands are uppercase
-        command = command.toUpperCase();
-        if (command in this._handler)
-          response = this._handler[command](args);
-        else
-          response = this._handler.onError(command, args);
+          // By convention, commands are uppercase
+          command = command.toUpperCase();
+          if (command in this._handler)
+            response = this._handler[command](args);
+          else
+            response = this._handler.onError(command, args);
+        }
+
+        this._preventLFMunge = false;
+        this._handler.postCommand(this);
+      } catch (e) {
+        response = this._handler.onServerFault();
+        if (e instanceof Error) {
+          dump(e.name + ": " + e.message + '\n');
+          dump("File: " + e.fileName + " Line: " + e.lineNumber + '\n');
+          dump('Stack trace:\n' + e.stack);
+        } else {
+          dump("Exception caught: " + e + '\n');
+        }
       }
-      response = response.replace(/([^\r])\n/,"$1\r\n");
+
+      if (!this._preventLFMunge)
+        response = response.replace(/([^\r])\n/g,"$1\r\n");
+
       if (response.charAt(response.length-1) != '\n')
-        response = response + "\r\n";
+       response = response + "\r\n";
       this.transaction.us.push(response);
       this._output.write(response, response.length);
       this._output.flush();
 
-      this._handler.postCommand(this);
+      if (this._signalStop)
+        this._realCloseSocket();
     }
 
     if (this._isRunning) {
       stream.asyncWait(this, 0, 0, gThreadManager.currentThread);
-      this._server.timer.initWithCallback(this._server.observer, TIMEOUT,
-                                          Ci.nsITimer.TYPE_ONE_SHOT);
+      this.timer.initWithCallback(this.observer, TIMEOUT,
+                                  Ci.nsITimer.TYPE_ONE_SHOT);
     }
   },
 
   closeSocket : function () {
+    this._signalStop = true;
+  },
+  _realCloseSocket : function () {
     this._isRunning = false;
     this._transport.close(Cr.NS_OK);
     this._server.stopTest();
@@ -387,6 +418,18 @@ nsMailReader.prototype = {
 
   setMultiline : function (multi) {
     this._multiline = multi;
+  },
+
+  preventLFMunge : function () {
+    this._preventLFMunge = true;
+  },
+
+  get watchWord () {
+    return this._server._watchWord;
+  },
+
+  stopTest : function () {
+    this._server.stopTest();
   },
 
   QueryInterface : function (iid) {
