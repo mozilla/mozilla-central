@@ -3150,45 +3150,49 @@ nsresult nsMsgDatabase::RowCellColumnToMime2DecodedString(nsIMdbRow *row, mdb_to
 
 nsresult nsMsgDatabase::RowCellColumnToAddressCollationKey(nsIMdbRow *row, mdb_token colToken, PRUint8 **result, PRUint32 *len)
 {
-  const char *cSender;
+  const char *cSender = nsnull;
   nsCString name;
 
-  nsresult ret = RowCellColumnToConstCharPtr(row, colToken, &cSender);
-  if (NS_SUCCEEDED(ret))
+  nsresult rv = RowCellColumnToConstCharPtr(row, colToken, &cSender);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Just in case this is null
+  if (!cSender)
+    return NS_ERROR_FAILURE;
+
+  nsIMsgHeaderParser *headerParser = GetHeaderParser();
+  if (!headerParser)
+    return NS_ERROR_FAILURE;
+
+  // apply mime decode
+  nsIMimeConverter *converter = GetMimeConverter();
+  if (!converter)
+    return NS_ERROR_FAILURE;
+
+  nsCString resultStr;
+  nsCString charset;
+  PRBool characterSetOverride;
+  m_dbFolderInfo->GetCharacterSetOverride(&characterSetOverride);
+  rv = RowCellColumnToCharPtr(row, m_messageCharSetColumnToken, getter_Copies(charset));
+  if (NS_FAILED(rv) || charset.IsEmpty() || charset.Equals("us-ascii") ||
+      characterSetOverride)
   {
-    nsIMsgHeaderParser *headerParser = GetHeaderParser();
-    if (headerParser)
-    {
-      // apply mime decode
-      nsIMimeConverter *converter = GetMimeConverter();
-
-      if (NS_SUCCEEDED(ret) && nsnull != converter)
-      {
-        nsCString resultStr;
-        nsCString charset;
-        PRBool characterSetOverride;
-        m_dbFolderInfo->GetCharacterSetOverride(&characterSetOverride);
-        ret = RowCellColumnToCharPtr(row, m_messageCharSetColumnToken, getter_Copies(charset));
-        if (NS_FAILED(ret) || charset.IsEmpty() || charset.Equals("us-ascii") ||
-            characterSetOverride)
-        {
-          m_dbFolderInfo->GetEffectiveCharacterSet(charset);
-        }
-
-        ret = converter->DecodeMimeHeaderToCharPtr(cSender, charset.get(),
-          characterSetOverride, PR_TRUE, getter_Copies(resultStr));
-        if (NS_SUCCEEDED(ret) && !resultStr.IsEmpty())
-          ret = headerParser->ExtractHeaderAddressName(resultStr.get(),
-                                                       getter_Copies(name));
-        else
-          ret = headerParser->ExtractHeaderAddressName(cSender,
-                                                       getter_Copies(name));
-      }
-    }
+    m_dbFolderInfo->GetEffectiveCharacterSet(charset);
   }
-  if (NS_SUCCEEDED(ret))
-    ret = CreateCollationKey(NS_ConvertUTF8toUTF16(name), result, len);
-  return ret;
+
+  rv = converter->DecodeMimeHeaderToCharPtr(cSender, charset.get(),
+                                            characterSetOverride, PR_TRUE,
+                                            getter_Copies(resultStr));
+  if (NS_SUCCEEDED(rv) && !resultStr.IsEmpty())
+    rv = headerParser->ExtractHeaderAddressName(resultStr, name);
+  else
+    rv = headerParser->ExtractHeaderAddressName(nsDependentCString(cSender),
+                                                     name);
+
+  if (NS_SUCCEEDED(rv))
+    return CreateCollationKey(NS_ConvertUTF8toUTF16(name), result, len);
+
+  return rv;
 }
 
 nsresult nsMsgDatabase::GetCollationKeyGenerator()

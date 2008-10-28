@@ -93,7 +93,6 @@ public:
   int                   FinalizeHeaders();
   int                   ParseEnvelope (const char *line, PRUint32 line_size);
   int                   InternSubject (struct message_header *header);
-  nsresult  InternRfc822 (struct message_header *header, char **ret_name);
 
   static PRBool  IsEnvelopeLine(const char *buf, PRInt32 buf_size);
   static int  msg_UnHex(char C);

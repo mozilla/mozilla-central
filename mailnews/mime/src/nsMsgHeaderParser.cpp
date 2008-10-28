@@ -70,8 +70,6 @@ static int msg_parse_Header_addresses(const char *line, char **names, char **add
                                       PRBool first_only_p = PR_FALSE);
 static int msg_quote_phrase_or_addr(char *address, PRInt32 length, PRBool addr_p);
 static nsresult msg_unquote_phrase_or_addr(const char *line, PRBool strict, char **lineout);
-static char *msg_extract_Header_address_names(const char *line);
-static char *msg_extract_Header_address_name(const char *line);
 #if 0
 static char *msg_format_Header_addresses(const char *addrs, int count,
                                          PRBool wrap_lines_p);
@@ -196,22 +194,6 @@ nsMsgHeaderParser::ParseHeaderAddresses(const char *aLine, char **aNames,
 {
   NS_ENSURE_ARG_POINTER(aNumAddresses);
   *aNumAddresses = msg_parse_Header_addresses(aLine, aNames, aAddresses);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsMsgHeaderParser::ExtractHeaderAddressNames(const char *aLine, char **aNames)
-{
-  NS_ENSURE_ARG_POINTER(aNames);
-  *aNames = msg_extract_Header_address_names(aLine);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsMsgHeaderParser::ExtractHeaderAddressName(const char *aLine, char **aName)
-{
-  NS_ENSURE_ARG_POINTER(aName);
-  *aName = msg_extract_Header_address_name(aLine);
   return NS_OK;
 }
 
@@ -1113,7 +1095,7 @@ nsMsgHeaderParser::ExtractHeaderAddressMailboxes(const nsACString &aLine,
   int status = msg_parse_Header_addresses(PromiseFlatCString(aLine).get(),
                                           NULL, &addrs);
   if (status <= 0)
-    return NS_ERROR_FAILURE;
+    return NS_ERROR_OUT_OF_MEMORY;
 
   char *s = addrs;
   PRUint32 i, size = 0;
@@ -1122,10 +1104,9 @@ nsMsgHeaderParser::ExtractHeaderAddressMailboxes(const nsACString &aLine,
   {
     PRUint32 j = strlen(s);
     s += j + 1;
+    size += j;
     if ((int)(i + 1) < status)
-      size += j + 2;
-    else
-      size += j;
+      size += 2;
   }
 
   nsCString result;
@@ -1151,8 +1132,7 @@ nsMsgHeaderParser::ExtractHeaderAddressMailboxes(const nsACString &aLine,
 }
 
 
-/* msg_extract_Header_address_names
- *
+/**
  * Given a string which contains a list of Header addresses, returns a
  * comma-separated list of just the `user name' portions.  If any of
  * the addresses doesn't have a name, then the mailbox is used instead.
@@ -1160,17 +1140,26 @@ nsMsgHeaderParser::ExtractHeaderAddressMailboxes(const nsACString &aLine,
  * The names are *unquoted* and therefore cannot be re-parsed in any way.
  * They are, however, nice and human-readable.
  */
-static char *
-msg_extract_Header_address_names(const char *line)
+NS_IMETHODIMP
+nsMsgHeaderParser::ExtractHeaderAddressNames(const nsACString &aLine,
+                                             nsACString &aResult)
 {
+  if (aLine.IsEmpty())
+  {
+    aResult.Truncate();
+    return NS_OK;
+  }
+
   char *names = 0;
   char *addrs = 0;
-  char *result, *s1, *s2, *out;
-  PRUint32 i, size = 0;
-  int status = msg_parse_Header_addresses(line, &names, &addrs);
+  int status = msg_parse_Header_addresses(PromiseFlatCString(aLine).get(),
+                                          &names, &addrs);
   if (status <= 0)
-    return 0;
+    return NS_ERROR_FAILURE;
+
   PRUint32 len1, len2;
+  char *s1, *s2, *out;
+  PRUint32 i, size = 0;
 
   s1 = names;
   s2 = addrs;
@@ -1180,18 +1169,15 @@ msg_extract_Header_address_names(const char *line)
     len2 = strlen(s2);
     s1 += len1 + 1;
     s2 += len2 + 1;
-    size += (len1 ? len1 : len2) + 2;
+    size += (len1 ? len1 : len2);
+    if ((int)(i + 1) < status)
+      size += 2;
   }
 
-  result = (char *)PR_Malloc(size + 1);
-  if (!result)
-  {
-    PR_Free(names);
-    PR_Free(addrs);
-    return 0;
-  }
+  nsCString result;
+  result.SetLength(size);
 
-  out = result;
+  out = result.BeginWriting();
   s1 = names;
   s2 = addrs;
   for (i = 0; (int)i < status; i++)
@@ -1210,7 +1196,7 @@ msg_extract_Header_address_names(const char *line)
       out += len2;
     }
 
-    if ((int)(i+1) < status)
+    if ((int)(i + 1) < status)
     {
       *out++ = ',';
       *out++ = ' ';
@@ -1218,11 +1204,11 @@ msg_extract_Header_address_names(const char *line)
     s1 += len1 + 1;
     s2 += len2 + 1;
   }
-  *out = 0;
 
   PR_Free(names);
   PR_Free(addrs);
-  return result;
+  aResult = result;
+  return NS_OK;
 }
 
 /* msg_extract_Header_address_name
@@ -1230,14 +1216,23 @@ msg_extract_Header_address_names(const char *line)
  * Like MSG_ExtractHeaderAddressNames(), but only returns the first name
  * in the list, if there is more than one.
  */
-static char *
-msg_extract_Header_address_name(const char *line)
+NS_IMETHODIMP
+nsMsgHeaderParser::ExtractHeaderAddressName(const nsACString &aLine,
+                                            nsACString &aResult)
 {
+  if (aLine.IsEmpty())
+  {
+    aResult.Truncate();
+    return NS_OK;
+  }
+
   char *name = 0;
   char *addr = 0;
-  int status = msg_parse_Header_addresses(line, &name, &addr, PR_FALSE, PR_FALSE, PR_TRUE);
+  int status = msg_parse_Header_addresses(PromiseFlatCString(aLine).get(),
+                                          &name, &addr, PR_FALSE, PR_FALSE,
+                                          PR_TRUE);
   if (status <= 0)
-    return 0;
+    return NS_ERROR_FAILURE;
 
   /* This can happen if there is an address like "From: foo bar" which
    * we parse as two addresses (that's a syntax error.)  In that case,
@@ -1245,16 +1240,11 @@ msg_extract_Header_address_name(const char *line)
    *
    * NS_ASSERTION(status == 1);
    */
-  if (name && *name)
-  {
-    FREEIF(addr);
-    return name;
-  }
-  else
-  {
-    FREEIF(name);
-    return addr;
-  }
+  aResult = (name && *name) ? name : addr;
+
+  PR_Free(name);
+  PR_Free(addr);
+  return NS_OK;
 }
 
 /* msg_format_Header_addresses

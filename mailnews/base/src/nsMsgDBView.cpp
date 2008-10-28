@@ -385,7 +385,8 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aSenderString)
   if (mHeaderParser)
   {
     nsCString name;
-    rv = mHeaderParser->ExtractHeaderAddressName(NS_ConvertUTF16toUTF8(unparsedAuthor).get(), getter_Copies(name));
+    rv = mHeaderParser->ExtractHeaderAddressName(NS_ConvertUTF16toUTF8(unparsedAuthor),
+                                                 name);
     if (NS_SUCCEEDED(rv) && !name.IsEmpty())
     {
       CopyUTF8toUTF16(name, aSenderString);
@@ -435,7 +436,8 @@ nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipients
   if (mHeaderParser)
   {
     nsCString names;
-    rv = mHeaderParser->ExtractHeaderAddressNames(NS_ConvertUTF16toUTF8(unparsedRecipients).get(), getter_Copies(names));
+    rv = mHeaderParser->ExtractHeaderAddressNames(NS_ConvertUTF16toUTF8(unparsedRecipients),
+                                                  names);
     if (NS_SUCCEEDED(rv) && !names.IsEmpty())
     {
       CopyUTF8toUTF16(names, aRecipientsString);

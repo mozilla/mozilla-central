@@ -1168,32 +1168,6 @@ int nsParseMailMessageState::InternSubject (struct message_header *header)
   return 0;
 }
 
-/* Like mbox_intern() but for headers which contain email addresses:
-we extract the "name" component of the first address, and discard
-the rest. */
-nsresult nsParseMailMessageState::InternRfc822 (struct message_header *header,
-                                                char **ret_name)
-{
-  char  *s;
-  nsresult ret=NS_OK;
-
-  if (!header || header->length == 0)
-    return NS_OK;
-
-  NS_ASSERTION (header->length == (short) strlen (header->value), "invalid message_header");
-  NS_ASSERTION (ret_name != nsnull, "null ret_name");
-
-  if (m_HeaderAddressParser)
-  {
-    ret = m_HeaderAddressParser->ExtractHeaderAddressName(header->value, &s);
-    if (! s)
-      return NS_ERROR_OUT_OF_MEMORY;
-
-    *ret_name = s;
-  }
-  return ret;
-}
-
 // we've reached the end of the envelope, and need to turn all our accumulated message_headers
 // into a single nsIMsgDBHdr to store in a database.
 int nsParseMailMessageState::FinalizeHeaders()

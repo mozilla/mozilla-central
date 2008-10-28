@@ -49,7 +49,7 @@ interface nsISimpleEnumerator;
 /* 
  * nsIMsgRFCParser Interface declaration 
  */ 
-[scriptable, uuid(96502670-07dd-4dd3-987a-ee6cafa8afa3)]
+[scriptable, uuid(392ba09d-5a3a-4f24-bd15-782cab25fdb2)]
 interface nsIMsgHeaderParser : nsISupports {
 
   void parseHeadersWithArray(in wstring aLine, 
@@ -99,16 +99,17 @@ interface nsIMsgHeaderParser : nsISupports {
    * @return               A comma-separated list of just the name parts
    *                       of the addresses.
    */
-  [noscript] string extractHeaderAddressNames(in string aLine);
+  AUTF8String extractHeaderAddressNames(in AUTF8String aLine);
 
   /*
    * Like extractHeaderAddressNames, but only returns the first name in the
-   * header if there is one.
+   * header if there is one. This function will return unquoted strings suitable
+   * for display.
    *
    * @param aLine          The header line to parse.
    * @return               The first name found in the list.
    */
-  [noscript] string extractHeaderAddressName(in string aLine);
+  AUTF8String extractHeaderAddressName(in AUTF8String aLine);
 
   /**
    * Given a string which contains a list of Header addresses, returns a new

@@ -2283,8 +2283,9 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
         if (parser)
         {
           nsCString authorName;
-          rv = parser->ExtractHeaderAddressName(!decodedCString.IsEmpty() ? decodedCString.get() : author.get(),
-                                                getter_Copies(authorName));
+          rv = parser->ExtractHeaderAddressName(!decodedCString.IsEmpty() ?
+                                                decodedCString : author,
+                                                authorName);
           // take care "%s wrote"
           PRUnichar *formatedString = nsnull;
           if (NS_SUCCEEDED(rv) && !authorName.IsEmpty())
