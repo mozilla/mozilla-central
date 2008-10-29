@@ -282,8 +282,14 @@ function ComposeMessage(type, format, folder, messageArray)
         uri += messageUri;
       }
     }
+    // If we have more than one ForwardAsAttachment then pass null instead
+    // of the header to tell the compose service to work out the attachment
+    // subjects from the URIs.
     if (type == msgComposeType.ForwardAsAttachment && uri)
-      msgComposeService.OpenComposeWindow(null, hdr, uri, type, format, identity, msgWindow);
+      msgComposeService.OpenComposeWindow(null,
+                                          messageArray.length > 1 ? null : hdr,
+                                          uri, type, format,
+                                          identity, msgWindow);
   }
   else
     dump("### nodeList is invalid\n");
