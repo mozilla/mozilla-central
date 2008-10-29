@@ -48,9 +48,6 @@ nsIPrefBranch.setIntPref("mailnews.bayesian_spam_filter.junk_maxtokens", 77);
 
 const nsIJunkMailPlugin = Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
                             .getService(Ci.nsIJunkMailPlugin);
-const nsIIOService = Cc["@mozilla.org/network/io-service;1"]
-                       .getService(Ci.nsIIOService);
-
 // local constants
 const kUnclassified = nsIJunkMailPlugin.UNCLASSIFIED;
 const kJunk = nsIJunkMailPlugin.JUNK;
@@ -148,12 +145,4 @@ function checkToken(aToken, aGoodCount, aJunkCount)
   if (!junkCount) junkCount = 0;
   do_check_eq(goodCount, aGoodCount);
   do_check_eq(junkCount, aJunkCount);
-}
-
-function getSpec(aFileName)
-{
-  var file = do_get_file("../mailnews/extensions/bayesian-spam-filter/test/resources/" + aFileName);
-  var uri = nsIIOService.newFileURI(file).QueryInterface(Ci.nsIURL);
-  uri.query = "type=application/x-message-display";
-  return uri.spec;
 }

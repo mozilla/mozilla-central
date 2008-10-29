@@ -113,18 +113,49 @@ struct BaseToken : public PLDHashEntryHdr
 };
 
 // token for a particular message
+// mCount, mAnalysisLink are initialized to zero by the hash code
 struct Token : public BaseToken {
     PRUint32 mCount;
-    double mProbability;        // TODO:  cache probabilities
-    double mDistance;
+    PRUint32 mAnalysisLink; // index in mAnalysisStore of the AnalysisPerToken
+                            // object for the first trait for this token
 };
 
 // token stored in a training file for a group of messages
+// mTraitLink is initialized to 0 by the hash code
 struct CorpusToken : public BaseToken
 {
-    PRUint32 mJunkCount;
-    PRUint32 mGoodCount;
+    PRUint32 mTraitLink;    // index in mTraitStore of the TraitPerToken
+                            // object for the first trait for this token
 };
+
+// set the value of a TraitPerToken object
+TraitPerToken::TraitPerToken(PRUint32 aTraitId, PRUint32 aCount)
+  :  mId(aTraitId), mCount(aCount), mNextLink(0)
+{
+}
+
+// shorthand representations of trait ids for junk and good
+static const PRUint32 kJunkTrait = nsIJunkMailPlugin::JUNK_TRAIT;
+static const PRUint32 kGoodTrait = nsIJunkMailPlugin::GOOD_TRAIT;
+
+// set the value of an AnalysisPerToken object
+AnalysisPerToken::AnalysisPerToken(
+  PRUint32 aTraitIndex, double aDistance, double aProbability) :
+    mTraitIndex(aTraitIndex),
+    mDistance(aDistance),
+    mProbability(aProbability),
+    mNextLink(0)
+{
+}
+
+// the initial size of the AnalysisPerToken linked list storage
+const PRUint32 kAnalysisStoreCapacity = 2048;
+
+// the initial size of the TraitPerToken linked list storage
+const PRUint32 kTraitStoreCapacity = 16384;
+
+// Size of Auto arrays representing per trait information
+const PRUint32 kTraitAutoCapacity = 10;
 
 TokenEnumeration::TokenEnumeration(PLDHashTable* table)
     :   mEntrySize(table->entrySize),
@@ -307,7 +338,7 @@ Token* Tokenizer::add(const char* word, PRUint32 count)
          word, count));
 
   Token* token = static_cast<Token*>(TokenHash::add(word));
-  if (token) 
+  if (token)
   {
     token->mCount += count; // hash code initializes this to zero
     PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
@@ -949,6 +980,7 @@ NS_IMETHODIMP TokenStreamListener::OnStopRequest(nsIRequest *aRequest, nsISuppor
 }
 
 /* Implementation file */
+
 NS_IMPL_ISUPPORTS2(nsBayesianFilter, nsIMsgFilterPlugin, nsIJunkMailPlugin)
 
 nsBayesianFilter::nsBayesianFilter()
@@ -963,7 +995,7 @@ nsBayesianFilter::nsBayesianFilter()
     if (pPrefBranch)
       pPrefBranch->GetIntPref("mail.adaptivefilters.junk_threshold", &junkThreshold);
 
-    mJunkProbabilityThreshold = ((double) junkThreshold) / 100;
+    mJunkProbabilityThreshold = (static_cast<double>(junkThreshold)) / 100.0;
     if (mJunkProbabilityThreshold == 0 || mJunkProbabilityThreshold >= 1)
       mJunkProbabilityThreshold = kDefaultJunkThreshold;
 
@@ -996,6 +1028,15 @@ nsBayesianFilter::nsBayesianFilter()
     // the timer is not used on object construction, since for
     // the time being there are no dirying messages
 
+    // give a default capacity to the memory structure used to store
+    // per-message/per-trait token data
+    mAnalysisStore.SetCapacity(kAnalysisStoreCapacity);
+
+    // dummy 0th element. Index 0 means "end of list" so we need to
+    // start from 1
+    AnalysisPerToken analysisPT(0, 0.0, 0.0);
+    mAnalysisStore.AppendElement(analysisPT);
+    mNextAnalysisIndex = 1;
 }
 
 void
@@ -1026,16 +1067,50 @@ nsBayesianFilter::~nsBayesianFilter()
 // It's going to hold a reference to itself, basically, to stay in memory.
 class MessageClassifier : public TokenAnalyzer {
 public:
-    MessageClassifier(nsBayesianFilter* aFilter, nsIJunkMailClassificationListener* aListener,
-      nsIMsgWindow *aMsgWindow,
-      PRUint32 aNumMessagesToClassify, const char **aMessageURIs)
-        :   mFilter(aFilter), mSupports(aFilter), mListener(aListener), mMsgWindow(aMsgWindow)
+    // full classifier with arbitrary traits
+    MessageClassifier(nsBayesianFilter* aFilter,
+                      nsIJunkMailClassificationListener* aJunkListener,
+                      nsIMsgTraitClassificationListener* aTraitListener,
+                      nsTArray<PRUint32>& aProTraits,
+                      nsTArray<PRUint32>& aAntiTraits,
+                      nsIMsgWindow *aMsgWindow,
+                      PRUint32 aNumMessagesToClassify,
+                      const char **aMessageURIs)
+    :   mFilter(aFilter),
+        mSupports(aFilter),
+        mJunkListener(aJunkListener),
+        mTraitListener(aTraitListener),
+        mProTraits(aProTraits),
+        mAntiTraits(aAntiTraits),
+        mMsgWindow(aMsgWindow)
     {
       mCurMessageToClassify = 0;
       mNumMessagesToClassify = aNumMessagesToClassify;
       mMessageURIs = (char **) nsMemory::Alloc(sizeof(char *) * aNumMessagesToClassify);
       for (PRUint32 i = 0; i < aNumMessagesToClassify; i++)
         mMessageURIs[i] = PL_strdup(aMessageURIs[i]);
+
+    }
+
+    // junk-only classifier
+    MessageClassifier(nsBayesianFilter* aFilter,
+                      nsIJunkMailClassificationListener* aJunkListener,
+                      nsIMsgWindow *aMsgWindow,
+                      PRUint32 aNumMessagesToClassify,
+                      const char **aMessageURIs)
+    :   mFilter(aFilter),
+        mSupports(aFilter),
+        mJunkListener(aJunkListener),
+        mTraitListener(nsnull),
+        mMsgWindow(aMsgWindow)
+    {
+      mCurMessageToClassify = 0;
+      mNumMessagesToClassify = aNumMessagesToClassify;
+      mMessageURIs = (char **) nsMemory::Alloc(sizeof(char *) * aNumMessagesToClassify);
+      for (PRUint32 i = 0; i < aNumMessagesToClassify; i++)
+        mMessageURIs[i] = PL_strdup(aMessageURIs[i]);
+      mProTraits.AppendElement(kJunkTrait);
+      mAntiTraits.AppendElement(kGoodTrait);
 
     }
 
@@ -1048,7 +1123,12 @@ public:
     }
     virtual void analyzeTokens(Tokenizer& tokenizer)
     {
-        mFilter->classifyMessage(tokenizer, mTokenSource.get(), mListener);
+        mFilter->classifyMessage(tokenizer,
+                                 mTokenSource.get(),
+                                 mProTraits,
+                                 mAntiTraits,
+                                 mJunkListener,
+                                 mTraitListener);
         tokenizer.clearTokens();
         classifyNextMessage();
     }
@@ -1070,7 +1150,10 @@ public:
 private:
     nsBayesianFilter* mFilter;
     nsCOMPtr<nsISupports> mSupports;
-    nsCOMPtr<nsIJunkMailClassificationListener> mListener;
+    nsCOMPtr<nsIJunkMailClassificationListener> mJunkListener;
+    nsCOMPtr<nsIMsgTraitClassificationListener> mTraitListener;
+    nsTArray<PRUint32> mProTraits;
+    nsTArray<PRUint32> mAntiTraits;
     nsCOMPtr<nsIMsgWindow> mMsgWindow;
     PRInt32 mNumMessagesToClassify;
     PRInt32 mCurMessageToClassify; // 0-based index
@@ -1090,12 +1173,29 @@ nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow
                                      NS_LITERAL_CSTRING("filter"), PR_FALSE, nsnull);
 }
 
-static int compareTokens(const void* p1, const void* p2, void* /* data */)
+// a TraitAnalysis is the per-token representation of the statistical
+// calculations, basically created to group information that is then
+// sorted by mDistance
+struct TraitAnalysis
 {
-    Token *t1 = (Token*) p1, *t2 = (Token*) p2;
-    double delta = t1->mDistance - t2->mDistance;
-    return (delta == 0.0 ? 0 : (delta > 0.0 ? 1 : -1));
-}
+  PRUint32 mTokenIndex;
+  double mDistance;
+  double mProbability;
+};
+
+// comparator required to sort an nsTArray
+class compareTraitAnalysis
+{
+public:
+  PRBool Equals(const TraitAnalysis& a, const TraitAnalysis& b) const
+  {
+    return a.mDistance == b.mDistance;
+  }
+  PRBool LessThan(const TraitAnalysis& a, const TraitAnalysis& b) const
+  {
+    return a.mDistance < b.mDistance;
+  }
+};
 
 inline double dmax(double x, double y) { return (x > y ? x : y); }
 inline double dmin(double x, double y) { return (x < y ? x : y); }
@@ -1124,129 +1224,217 @@ static inline double chi2P (double chi2, double nu, PRInt32 *error)
     return nsIncompleteGammaP (nu/2.0, chi2/2.0, error);
 }
 
-void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* messageURI,
-                                       nsIJunkMailClassificationListener* listener)
+void nsBayesianFilter::classifyMessage(
+  Tokenizer& tokenizer,
+  const char* messageURI,
+  nsTArray<PRUint32>& aProTraits,
+  nsTArray<PRUint32>& aAntiTraits,
+  nsIJunkMailClassificationListener* listener,
+  nsIMsgTraitClassificationListener* aTraitListener)
 {
     Token* tokens = tokenizer.copyTokens();
     if (!tokens) return;
-
-    // the algorithm in "A Plan For Spam" assumes that you have a large good
-    // corpus and a large junk corpus.
-    // that won't be the case with users who first use the junk mail feature
-    // so, we do certain things to encourage them to train.
-    //
-    // if there are no good tokens, assume the message is junk
-    // this will "encourage" the user to train
-    // and if there are no bad tokens, assume the message is not junk
-    // this will also "encourage" the user to train
-    // see bug #194238
-    if (listener && !mCorpus.mGoodMessageCount)
+    if (aProTraits.Length() != aAntiTraits.Length())
     {
-      PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("no good tokens, assume junk"));
-      listener->OnMessageClassified(messageURI, nsMsgJunkStatus(nsIJunkMailPlugin::JUNK),
-        nsIJunkMailPlugin::IS_SPAM_SCORE);
-      return;
-    }
-    if (listener && !mCorpus.mJunkMessageCount)
-    {
-      PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("no bad tokens, assume good"));
-      listener->OnMessageClassified(messageURI, nsMsgJunkStatus(nsIJunkMailPlugin::GOOD),
-        nsIJunkMailPlugin::IS_HAM_SCORE);
+      NS_ERROR("Each Pro trait needs a matching Anti trait");
       return;
     }
 
     /* this part is similar to the Graham algorithm with some adjustments. */
-    PRUint32 i, goodclues=0, count = tokenizer.countTokens();
-    double ngood = mCorpus.mGoodMessageCount,
-           nbad = mCorpus.mJunkMessageCount, prob;
+    PRUint32 tokenCount = tokenizer.countTokens();
+    PRUint32 traitCount = aProTraits.Length();
 
-    for (i = 0; i < count; ++i)
+    // pro message counts per trait index
+    nsAutoTArray<PRUint32, kTraitAutoCapacity> numProMessages;
+    // anti message counts per trait index
+    nsAutoTArray<PRUint32, kTraitAutoCapacity> numAntiMessages;
+    // construct the outgoing listener arrays
+    nsAutoTArray<PRUint32, kTraitAutoCapacity> traits;
+    nsAutoTArray<PRUint32, kTraitAutoCapacity> percents;
+    if (traitCount > kTraitAutoCapacity)
+    {
+      traits.SetCapacity(traitCount);
+      percents.SetCapacity(traitCount);
+      numProMessages.SetCapacity(traitCount);
+      numAntiMessages.SetCapacity(traitCount);
+    }
+
+    for (PRUint32 traitIndex = 0; traitIndex < traitCount; traitIndex++)
+    {
+      numProMessages.AppendElement(
+        mCorpus.getMessageCount(aProTraits[traitIndex]));
+      numAntiMessages.AppendElement(
+        mCorpus.getMessageCount(aAntiTraits[traitIndex]));
+    }
+
+    for (PRUint32 i = 0; i < tokenCount; ++i)
     {
       Token& token = tokens[i];
-      CorpusToken *t = mCorpus.get(token.mWord);
-      double hamcount = ((t != nsnull) ? t->mGoodCount : 0);
-      double spamcount = ((t != nsnull) ? t->mJunkCount : 0);
-
-      // if hamcount and spam count are both 0, we could end up with a divide by 0 error,
-      // tread carefully here. (Bug #240819)
-      double probDenom = (hamcount *nbad + spamcount*ngood);
-      if (probDenom == 0.0) // nGood and nbad are known to be non zero or we wouldn't be here
-        probDenom = nbad + ngood; // error case use a value of 1 for hamcount and spamcount if they are both zero.
-
-      prob = (spamcount * ngood)/probDenom;
-       double n = hamcount + spamcount;
-       prob =  (0.225 + n * prob) / (.45 + n);
-       double distance = PR_ABS(prob - 0.5);
-       if (distance >= .1)
-       {
-         goodclues++;
-         token.mDistance = distance;
-         token.mProbability = prob;
-        }
-      else
-        token.mDistance = -1; //ignore clue
-    }
-
-    // sort the array by the token distances
-    NS_QuickSort(tokens, count, sizeof(Token), compareTokens, NULL);
-    PRUint32 first, last = count;
-    first = (goodclues > 150) ? count - 150 : 0;
-
-    double H = 1.0, S = 1.0;
-    PRInt32 Hexp = 0, Sexp = 0;
-    goodclues=0;
-    int e;
-
-    for (i = first; i < last; ++i)
-    {
-      if (tokens[i].mDistance != -1)
+      CorpusToken* t = mCorpus.get(token.mWord);
+      if (!t)
+        continue;
+      for (PRUint32 traitIndex = 0; traitIndex < traitCount; traitIndex++)
       {
-        goodclues++;
-        double value = tokens[i].mProbability;
-        S *= (1.0 - value);
-        H *= value;
-        if ( S < 1e-200 )
+        double proCount =
+          static_cast<double>(mCorpus.getTraitCount(t, aProTraits[traitIndex]));
+        double antiCount =
+          static_cast<double>(mCorpus.getTraitCount(t, aAntiTraits[traitIndex]));
+
+        // if proCount and antiCount are both 0, we could end up with a
+        // divide by 0 error, tread carefully here. (Bug #240819)
+        double probDenom = (proCount * numAntiMessages[traitIndex] +
+                            antiCount * numProMessages[traitIndex]);
+        if (probDenom != 0.0)
         {
-          S = frexp(S, &e);
-          Sexp += e;
+          double prob = (proCount * numAntiMessages[traitIndex])/probDenom;
+          double n = proCount + antiCount;
+          prob =  (0.225 + n * prob) / (.45 + n);
+          double distance = PR_ABS(prob - 0.5);
+          if (distance >= .1)
+          {
+            nsresult rv = setAnalysis(token, traitIndex, distance, prob);
+            NS_ASSERTION(NS_SUCCEEDED(rv), "Problem in setAnalysis");
+          }
         }
-        if ( H < 1e-200 )
-        {
-          H = frexp(H, &e);
-          Hexp += e;
-    }
-        PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("token.mProbability (%s) is %f", tokens[i].mWord, tokens[i].mProbability));
-    }
+      }
     }
 
-    S = log(S) + Sexp * M_LN2;
-    H = log(H) + Hexp * M_LN2;
-
-    if (goodclues > 0)
+    for (PRUint32 traitIndex = 0; traitIndex < traitCount; traitIndex++)
     {
-        PRInt32 chi_error;
-        S = chi2P(-2.0 * S, 2.0 * goodclues, &chi_error);
-        if (!chi_error)
-            H = chi2P(-2.0 * H, 2.0 * goodclues, &chi_error);
-        // if any error toss the entire calculation
-        if (!chi_error)
-            prob = (S-H +1.0) / 2.0;
-        else
-            prob = 0.5;
-    }
-    else
-        prob = 0.5;
+      nsAutoTArray<TraitAnalysis, 1024> traitAnalyses;
+      // copy valid tokens into an array to sort
+      for (PRUint32 tokenIndex = 0; tokenIndex < tokenCount; tokenIndex++)
+      {
+        PRUint32 storeIndex = getAnalysisIndex(tokens[tokenIndex], traitIndex);
+        if (storeIndex)
+        {
+          TraitAnalysis ta =
+            {tokenIndex,
+             mAnalysisStore[storeIndex].mDistance,
+             mAnalysisStore[storeIndex].mProbability};
+          traitAnalyses.AppendElement(ta);
+        }
+      }
 
-    PRBool isJunk = (prob >= mJunkProbabilityThreshold);
-    PRUint32 junkPercent = static_cast<PRUint32>(prob*100. + .5);
-    PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("%s is junk probability = (%f)  HAM SCORE:%f SPAM SCORE:%f", messageURI, prob,H,S));
+      // sort the array by the distances
+      traitAnalyses.Sort(compareTraitAnalysis());
+      PRUint32 count = traitAnalyses.Length();
+      PRUint32 first, last = count;
+      first = ( count > 150) ? count - 150 : 0;
+
+      double H = 1.0, S = 1.0;
+      PRInt32 Hexp = 0, Sexp = 0;
+      PRUint32 goodclues=0;
+      int e;
+
+      for (PRUint32 i = first; i < last; ++i)
+      {
+        TraitAnalysis& ta = traitAnalyses[i];
+        if (ta.mDistance > 0.0)
+        {
+          goodclues++;
+          double value = ta.mProbability;
+          S *= (1.0 - value);
+          H *= value;
+          if ( S < 1e-200 )
+          {
+            S = frexp(S, &e);
+            Sexp += e;
+          }
+          if ( H < 1e-200 )
+          {
+            H = frexp(H, &e);
+            Hexp += e;
+          }
+          PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING,
+                 ("token probability (%s) is %f",
+                  tokens[ta.mTokenIndex].mWord, ta.mProbability));
+        }
+      }
+
+      S = log(S) + Sexp * M_LN2;
+      H = log(H) + Hexp * M_LN2;
+
+      double prob;
+      if (goodclues > 0)
+      {
+          PRInt32 chi_error;
+          S = chi2P(-2.0 * S, 2.0 * goodclues, &chi_error);
+          if (!chi_error)
+              H = chi2P(-2.0 * H, 2.0 * goodclues, &chi_error);
+          // if any error toss the entire calculation
+          if (!chi_error)
+              prob = (S-H +1.0) / 2.0;
+          else
+              prob = 0.5;
+      }
+      else
+          prob = 0.5;
+
+      PRUint32 proPercent = static_cast<PRUint32>(prob*100. + .5);
+
+      // directly classify junk to maintain backwards compatibility
+      if (aProTraits[traitIndex] == kJunkTrait)
+      {
+        PRBool isJunk = (prob >= mJunkProbabilityThreshold);
+        PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS,
+               ("%s is junk probability = (%f)  HAM SCORE:%f SPAM SCORE:%f",
+                messageURI, prob,H,S));
+
+        // the algorithm in "A Plan For Spam" assumes that you have a large good
+        // corpus and a large junk corpus.
+        // that won't be the case with users who first use the junk mail trait
+        // so, we do certain things to encourage them to train.
+        //
+        // if there are no good tokens, assume the message is junk
+        // this will "encourage" the user to train
+        // and if there are no bad tokens, assume the message is not junk
+        // this will also "encourage" the user to train
+        // see bug #194238
+
+        if (listener && !mCorpus.getMessageCount(kGoodTrait))
+          isJunk = PR_TRUE;
+        else if (listener && !mCorpus.getMessageCount(kJunkTrait))
+          isJunk = PR_FALSE;
+
+        if (listener)
+          listener->OnMessageClassified(messageURI, isJunk ?
+            nsMsgJunkStatus(nsIJunkMailPlugin::JUNK) :
+            nsMsgJunkStatus(nsIJunkMailPlugin::GOOD), proPercent);
+      }
+
+      if (aTraitListener)
+      {
+        traits.AppendElement(aProTraits[traitIndex]);
+        percents.AppendElement(proPercent);
+      }
+    }
+
+    if (aTraitListener)
+      aTraitListener->OnMessageTraitsClassified(messageURI,
+          traits.Length(), traits.Elements(), percents.Elements());
 
     delete[] tokens;
+    // reuse mAnalysisStore without clearing memory
+    mNextAnalysisIndex = 1;
+    // but shrink it back to the default size
+    if (mAnalysisStore.Length() > kAnalysisStoreCapacity)
+      mAnalysisStore.RemoveElementsAt(kAnalysisStoreCapacity,
+          mAnalysisStore.Length() - kAnalysisStoreCapacity);
+    mAnalysisStore.Compact();
+}
 
-    if (listener)
-        listener->OnMessageClassified(messageURI, isJunk ?
-          nsMsgJunkStatus(nsIJunkMailPlugin::JUNK) : nsMsgJunkStatus(nsIJunkMailPlugin::GOOD),
-          junkPercent);
+void nsBayesianFilter::classifyMessage(
+  Tokenizer& tokens,
+  const char* messageURI,
+  nsIJunkMailClassificationListener* aJunkListener)
+{
+  nsAutoTArray<PRUint32, 1> proTraits;
+  nsAutoTArray<PRUint32, 1> antiTraits;
+  proTraits.AppendElement(kJunkTrait);
+  antiTraits.AppendElement(kGoodTrait);
+  classifyMessage(tokens, messageURI, proTraits, antiTraits,
+    aJunkListener, nsnull);
 }
 
 /* void shutdown (); */
@@ -1284,7 +1472,8 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyMessage(const char *aMessageURL, nsIMsgW
 NS_IMETHODIMP nsBayesianFilter::ClassifyMessages(PRUint32 aCount, const char **aMsgURLs, nsIMsgWindow *aMsgWindow, nsIJunkMailClassificationListener *aListener)
 {
     TokenAnalyzer* analyzer = new MessageClassifier(this, aListener, aMsgWindow, aCount, aMsgURLs);
-    if (!analyzer) return NS_ERROR_OUT_OF_MEMORY;
+    if (!analyzer)
+      return NS_ERROR_OUT_OF_MEMORY;
     TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
     if (!tokenListener)
       return NS_ERROR_OUT_OF_MEMORY;
@@ -1292,40 +1481,184 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyMessages(PRUint32 aCount, const char **a
     return tokenizeMessage(aMsgURLs[0], aMsgWindow, analyzer);
 }
 
+nsresult nsBayesianFilter::setAnalysis(Token& token, PRUint32 aTraitIndex,
+  double aDistance, double aProbability)
+{
+  PRUint32 nextLink = token.mAnalysisLink;
+  PRUint32 lastLink = 0;
+  PRUint32 linkCount = 0, maxLinks = 100;
+
+  // try to find an existing element. Limit the search to maxLinks
+  // as a precaution
+  for (linkCount = 0; nextLink && linkCount < maxLinks; linkCount++)
+  {
+    AnalysisPerToken &rAnalysis = mAnalysisStore[nextLink];
+    if (rAnalysis.mTraitIndex == aTraitIndex)
+    {
+      rAnalysis.mDistance = aDistance;
+      rAnalysis.mProbability = aProbability;
+      return NS_OK;
+    }
+    lastLink = nextLink;
+    nextLink = rAnalysis.mNextLink;
+  }
+  if (linkCount >= maxLinks)
+    return NS_ERROR_FAILURE;
+
+  // trait does not exist, so add it
+
+  AnalysisPerToken analysis(aTraitIndex, aDistance, aProbability);
+  if (mAnalysisStore.Length() == mNextAnalysisIndex)
+    mAnalysisStore.InsertElementAt(mNextAnalysisIndex, analysis);
+  else if (mAnalysisStore.Length() > mNextAnalysisIndex)
+    mAnalysisStore.ReplaceElementsAt(mNextAnalysisIndex, 1, analysis);
+  else // we can only insert at the end of the array
+    return NS_ERROR_FAILURE;
+
+  if (lastLink)
+    // the token had at least one link, so update the last link to point to
+    // the new item
+    mAnalysisStore[lastLink].mNextLink = mNextAnalysisIndex;
+  else
+    // need to update the token's first link
+    token.mAnalysisLink = mNextAnalysisIndex;
+  mNextAnalysisIndex++;
+  return NS_OK;
+}
+
+PRUint32 nsBayesianFilter::getAnalysisIndex(Token& token, PRUint32 aTraitIndex)
+{
+  PRUint32 nextLink;
+  PRUint32 linkCount = 0, maxLinks = 100;
+  for (nextLink = token.mAnalysisLink; nextLink && linkCount < maxLinks; linkCount++)
+  {
+    AnalysisPerToken &rAnalysis = mAnalysisStore[nextLink];
+    if (rAnalysis.mTraitIndex == aTraitIndex)
+      return nextLink;
+    nextLink = rAnalysis.mNextLink;
+  }
+  NS_ASSERTION(linkCount < maxLinks, "corrupt analysis store");
+
+  // Trait not found, indicate by zero
+  return 0;
+}
+
+NS_IMETHODIMP nsBayesianFilter::ClassifyTraitsInMessage(
+  const char *aMsgURI,
+  PRUint32 aTraitCount,
+  PRUint32 *aProTraits,
+  PRUint32 *aAntiTraits,
+  nsIMsgTraitClassificationListener *aTraitListener,
+  nsIMsgWindow *aMsgWindow,
+  nsIJunkMailClassificationListener *aJunkListener)
+{
+  return ClassifyTraitsInMessages(1, &aMsgURI, aTraitCount, aProTraits,
+    aAntiTraits, aTraitListener, aMsgWindow, aJunkListener);
+}
+
+NS_IMETHODIMP nsBayesianFilter::ClassifyTraitsInMessages(
+  PRUint32 aCount,
+  const char **aMsgURIs,
+  PRUint32 aTraitCount,
+  PRUint32 *aProTraits,
+  PRUint32 *aAntiTraits,
+  nsIMsgTraitClassificationListener *aTraitListener,
+  nsIMsgWindow *aMsgWindow,
+  nsIJunkMailClassificationListener *aJunkListener)
+{
+  nsAutoTArray<PRUint32, kTraitAutoCapacity> proTraits;
+  nsAutoTArray<PRUint32, kTraitAutoCapacity> antiTraits;
+  if (aTraitCount > kTraitAutoCapacity)
+  {
+    proTraits.SetCapacity(aTraitCount);
+    antiTraits.SetCapacity(aTraitCount);
+  }
+  proTraits.AppendElements(aProTraits, aTraitCount);
+  antiTraits.AppendElements(aAntiTraits, aTraitCount);
+
+  MessageClassifier* analyzer = new MessageClassifier(this, aJunkListener,
+    aTraitListener, proTraits, antiTraits, aMsgWindow, aCount, aMsgURIs);
+  if (!analyzer)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
+  if (!tokenListener)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  analyzer->setTokenListener(tokenListener);
+  return tokenizeMessage(aMsgURIs[0], aMsgWindow, analyzer);
+}
+
 class MessageObserver : public TokenAnalyzer {
 public:
-    MessageObserver(nsBayesianFilter* filter,
-                    nsMsgJunkStatus oldClassification,
-                    nsMsgJunkStatus newClassification,
-                    nsIJunkMailClassificationListener* listener)
-        :   mFilter(filter), mSupports(filter), mListener(listener),
-            mOldClassification(oldClassification),
-            mNewClassification(newClassification)
-    {
-    }
+  MessageObserver(nsBayesianFilter* filter,
+                  nsTArray<PRUint32>& aOldClassifications,
+                  nsTArray<PRUint32>& aNewClassifications,
+                  nsIJunkMailClassificationListener* aJunkListener,
+                  nsIMsgTraitClassificationListener* aTraitListener)
+      :   mFilter(filter), mSupports(filter), mJunkListener(aJunkListener),
+          mTraitListener(aTraitListener),
+          mOldClassifications(aOldClassifications),
+          mNewClassifications(aNewClassifications)
+  {
+  }
 
-    virtual void analyzeTokens(Tokenizer& tokenizer)
-    {
-        mFilter->observeMessage(tokenizer, mTokenSource.get(), mOldClassification,
-                                mNewClassification, mListener);
-        // release reference to listener, which will allow us to go away as well.
-        mTokenListener = nsnull;
-
-    }
+  virtual void analyzeTokens(Tokenizer& tokenizer)
+  {
+    mFilter->observeMessage(tokenizer, mTokenSource.get(), mOldClassifications,
+                            mNewClassifications, mJunkListener, mTraitListener);
+    // release reference to listener, which will allow us to go away as well.
+    mTokenListener = nsnull;
+  }
 
 private:
-    nsBayesianFilter* mFilter;
-    nsCOMPtr<nsISupports> mSupports;
-    nsCOMPtr<nsIJunkMailClassificationListener> mListener;
-    nsMsgJunkStatus mOldClassification;
-    nsMsgJunkStatus mNewClassification;
+  nsBayesianFilter* mFilter;
+  nsCOMPtr<nsISupports> mSupports;
+  nsCOMPtr<nsIJunkMailClassificationListener> mJunkListener;
+  nsCOMPtr<nsIMsgTraitClassificationListener> mTraitListener;
+  nsTArray<PRUint32> mOldClassifications;
+  nsTArray<PRUint32> mNewClassifications;
 };
 
-void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageURL,
-                                      nsMsgJunkStatus oldClassification, nsMsgJunkStatus newClassification,
-                                      nsIJunkMailClassificationListener* listener)
+NS_IMETHODIMP nsBayesianFilter::SetMsgTraitClassification(
+    const char *aMsgURI,
+    PRUint32 aOldCount,
+    PRUint32 *aOldTraits,
+    PRUint32 aNewCount,
+    PRUint32 *aNewTraits,
+    nsIMsgTraitClassificationListener *aTraitListener,
+    nsIMsgWindow *aMsgWindow,
+    nsIJunkMailClassificationListener *aJunkListener)
 {
-    PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("observeMessage(%s) old=%d new=%d", messageURL, oldClassification, newClassification));
+  nsAutoTArray<PRUint32, kTraitAutoCapacity> oldTraits;
+  nsAutoTArray<PRUint32, kTraitAutoCapacity> newTraits;
+  if (aOldCount > kTraitAutoCapacity)
+    oldTraits.SetCapacity(aOldCount);
+  if (aNewCount > kTraitAutoCapacity)
+    newTraits.SetCapacity(aNewCount);
+  oldTraits.AppendElements(aOldTraits, aOldCount);
+  newTraits.AppendElements(aNewTraits, aNewCount);
+
+  MessageObserver* analyzer = new MessageObserver(this, oldTraits,
+    newTraits, aJunkListener, aTraitListener);
+  if (!analyzer)
+    return NS_ERROR_OUT_OF_MEMORY;
+  TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
+  if (!tokenListener)
+    return NS_ERROR_OUT_OF_MEMORY;
+  analyzer->setTokenListener(tokenListener);
+  return tokenizeMessage(aMsgURI, aMsgWindow, analyzer);
+}
+
+// set new message classifications for a message
+void nsBayesianFilter::observeMessage(
+    Tokenizer& tokenizer,
+    const char* messageURL,
+    nsTArray<PRUint32>& oldClassifications,
+    nsTArray<PRUint32>& newClassifications,
+    nsIJunkMailClassificationListener* aJunkListener,
+    nsIMsgTraitClassificationListener* aTraitListener)
+{
 
     PRBool trainingDataWasDirty = mTrainingDataDirty;
     TokenEnumeration tokens = tokenizer.getTokens();
@@ -1336,50 +1669,69 @@ void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageU
     // What can we do here? Well we can skip the token removal step if the classifications are the same and assume the user is
     // just re-training. But this then allows users to re-classify the same message on the same training set over and over again
     // leading to data skew. But that's all I can think to do right now to address this.....
-    if (oldClassification != newClassification)
+    PRUint32 oldLength = oldClassifications.Length();
+    for (PRUint32 index = 0; index < oldLength; index++)
     {
+      PRUint32 trait = oldClassifications.ElementAt(index);
+      // skip removing if trait is also in the new set
+      if (newClassifications.Contains(trait))
+        continue;
       // remove the tokens from the token set it is currently in
-    switch (oldClassification) {
-    case nsIJunkMailPlugin::JUNK:
-        // remove tokens from junk corpus.
-        if (mCorpus.mJunkMessageCount > 0) {
-            --mCorpus.mJunkMessageCount;
-            mCorpus.forgetTokens(tokens, 1, 0);
-            mTrainingDataDirty = PR_TRUE;
-        }
-        break;
-    case nsIJunkMailPlugin::GOOD:
-        // remove tokens from good corpus.
-        if (mCorpus.mGoodMessageCount > 0) {
-            --mCorpus.mGoodMessageCount;
-            mCorpus.forgetTokens(tokens, 0, 1);
-            mTrainingDataDirty = PR_TRUE;
-        }
-        break;
-    }
-    }
-
-
-    PRUint32 junkPercent;
-    switch (newClassification) {
-    case nsIJunkMailPlugin::JUNK:
-        // put tokens into junk corpus.
-        ++mCorpus.mJunkMessageCount;
-        mCorpus.rememberTokens(tokens, 1, 0);
+      PRUint32 messageCount;
+      messageCount = mCorpus.getMessageCount(trait);
+      if (messageCount > 0)
+      {
+        mCorpus.setMessageCount(trait, messageCount - 1);
+        mCorpus.forgetTokens(tokens, trait, 1);
         mTrainingDataDirty = PR_TRUE;
-        junkPercent = nsIJunkMailPlugin::IS_SPAM_SCORE;
-        break;
-    case nsIJunkMailPlugin::GOOD:
-        // put tokens into good corpus.
-        ++mCorpus.mGoodMessageCount;
-        mCorpus.rememberTokens(tokens, 0, 1);
-        mTrainingDataDirty = PR_TRUE;
-        junkPercent = nsIJunkMailPlugin::IS_HAM_SCORE;
-        break;
+      }
     }
 
-    if (listener)
-        listener->OnMessageClassified(messageURL, newClassification, junkPercent);
+    nsMsgJunkStatus newClassification = nsIJunkMailPlugin::UNCLASSIFIED;
+    PRUint32 junkPercent = 0; // 0 here is no possibility of meeting the classification
+    PRUint32 newLength = newClassifications.Length();
+    for (PRUint32 index = 0; index < newLength; index++)
+    {
+      PRUint32 trait = newClassifications.ElementAt(index);
+      mCorpus.setMessageCount(trait, mCorpus.getMessageCount(trait) + 1);
+      mCorpus.rememberTokens(tokens, trait, 1);
+      mTrainingDataDirty = PR_TRUE;
+
+      if (aJunkListener)
+      {
+        if (trait == kJunkTrait)
+        {
+          junkPercent = nsIJunkMailPlugin::IS_SPAM_SCORE;
+          newClassification = nsIJunkMailPlugin::JUNK;
+        }
+        else if (trait == kGoodTrait)
+        {
+          junkPercent = nsIJunkMailPlugin::IS_HAM_SCORE;
+          newClassification = nsIJunkMailPlugin::GOOD;
+        }
+      }
+    }
+
+    if (aJunkListener)
+      aJunkListener->OnMessageClassified(messageURL, newClassification, junkPercent);
+
+    if (aTraitListener)
+    {
+      // construct the outgoing listener arrays
+      nsAutoTArray<PRUint32, kTraitAutoCapacity> traits;
+      nsAutoTArray<PRUint32, kTraitAutoCapacity> percents;
+      PRUint32 newLength = newClassifications.Length();
+      if (newLength > kTraitAutoCapacity)
+      {
+        traits.SetCapacity(newLength);
+        percents.SetCapacity(newLength);
+      }
+      traits.AppendElements(newClassifications);
+      for (PRUint32 index = 0; index < newLength; index++)
+        percents.AppendElement(100); // This is 100 percent, or certainty
+      aTraitListener->OnMessageTraitsClassified(messageURL,
+          traits.Length(), traits.Elements(), percents.Elements());
+    }
 
     if (mTrainingDataDirty && !trainingDataWasDirty && ( mTimer != nsnull ))
     {
@@ -1394,22 +1746,35 @@ void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageU
 
 NS_IMETHODIMP nsBayesianFilter::GetUserHasClassified(PRBool *aResult)
 {
-  *aResult = ((mCorpus.mGoodMessageCount + mCorpus.mJunkMessageCount) &&
-              mCorpus.countTokens());
+  *aResult = (  (mCorpus.getMessageCount(kGoodTrait) +
+                 mCorpus.getMessageCount(kJunkTrait)) &&
+                 mCorpus.countTokens());
   return NS_OK;
 }
 
-/* void setMessageClassification (in string aMsgURL,
-   in long aOldClassification, in long aNewClassification); */
+// Set message classification (only allows junk and good)
 NS_IMETHODIMP nsBayesianFilter::SetMessageClassification(
-                const char *aMsgURL,
-                nsMsgJunkStatus aOldClassification,
-                nsMsgJunkStatus aNewClassification,
-                nsIMsgWindow *aMsgWindow,
-                nsIJunkMailClassificationListener *aListener)
+    const char *aMsgURL,
+    nsMsgJunkStatus aOldClassification,
+    nsMsgJunkStatus aNewClassification,
+    nsIMsgWindow *aMsgWindow,
+    nsIJunkMailClassificationListener *aListener)
 {
-  MessageObserver* analyzer = new MessageObserver(this, 
-      aOldClassification, aNewClassification, aListener);
+  nsAutoTArray<PRUint32, 1> oldClassifications;
+  nsAutoTArray<PRUint32, 1> newClassifications;
+
+  // convert between classifications and trait
+  if (aOldClassification == nsIJunkMailPlugin::JUNK)
+    oldClassifications.AppendElement(kJunkTrait);
+  else if (aOldClassification == nsIJunkMailPlugin::GOOD)
+    oldClassifications.AppendElement(kGoodTrait);
+  if (aNewClassification == nsIJunkMailPlugin::JUNK)
+    newClassifications.AppendElement(kJunkTrait);
+  else if (aNewClassification == nsIJunkMailPlugin::GOOD)
+    newClassifications.AppendElement(kGoodTrait);
+
+  MessageObserver* analyzer = new MessageObserver(this, oldClassifications,
+    newClassifications, aListener, nsnull);
   if (!analyzer)
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -1440,12 +1805,26 @@ NS_IMETHODIMP nsBayesianFilter::ResetTrainingData()
     [number bad tokens]
     [count][length of word]word
     ...
- */
+
+     Format of the trait file for version 1:
+    [0xFCA93601]  (the 01 is the version)
+    [number of traits to write]
+    [id of first trait to write]
+    for each trait to write
+      [number of messages per trait]
+      for each token with non-zero count
+        [count]
+        [length of word]word
+*/
 
 CorpusStore::CorpusStore() :
-  TokenHash(sizeof(CorpusToken)), mGoodMessageCount(0), mJunkMessageCount(0)
+  TokenHash(sizeof(CorpusToken)),
+  mNextTraitIndex(1) // skip 0 since index=0 will mean end of linked list
 {
   getTrainingFile(getter_AddRefs(mTrainingFile));
+  mTraitStore.SetCapacity(kTraitStoreCapacity);
+  TraitPerToken traitPT(0, 0);
+  mTraitStore.AppendElement(traitPT); // dummy 0th element
 }
 
 CorpusStore::~CorpusStore()
@@ -1468,7 +1847,7 @@ inline int readUInt32(FILE* stream, PRUint32* value)
 }
 
 void CorpusStore::forgetTokens(TokenEnumeration tokens,
-                    PRUint32 aJunkCount, PRUint32 aGoodCount)
+                    PRUint32 aTraitId, PRUint32 aCount)
 {
   // if we are forgetting the tokens for a message, should only
   // subtract 1 from the occurrence count for that token in the training set
@@ -1477,12 +1856,12 @@ void CorpusStore::forgetTokens(TokenEnumeration tokens,
   while (tokens.hasMoreTokens())
   {
     CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-    remove(token->mWord, aJunkCount, aGoodCount);
+    remove(token->mWord, aTraitId, aCount);
   }
 }
 
 void CorpusStore::rememberTokens(TokenEnumeration tokens,
-                    PRUint32 aJunkCount, PRUint32 aGoodCount)
+                    PRUint32 aTraitId, PRUint32 aCount)
 {
   while (tokens.hasMoreTokens())
   {
@@ -1492,29 +1871,26 @@ void CorpusStore::rememberTokens(TokenEnumeration tokens,
       NS_ERROR("null token");
       continue;
     }
-    add(token->mWord, aJunkCount, aGoodCount);
+    add(token->mWord, aTraitId, aCount);
   }
 }
 
-PRBool CorpusStore::writeTokens(FILE* stream, PRBool shrink, PRBool aIsJunk)
+PRBool CorpusStore::writeTokens(FILE* stream, PRBool shrink, PRUint32 aTraitId)
 {
   PRUint32 tokenCount = countTokens();
   PRUint32 newTokenCount = 0;
+
+  // calculate the tokens for this trait to write
+
   TokenEnumeration tokens = getTokens();
-
-  // Shrinking the token database is accomplished by dividing all token
-  // counts by 2. If shrinking, recalculate the shrunk token count,
-  // keeping tokens with a count > 1. Otherwise, keep tokens with
-  // count > 0
-
   for (PRUint32 i = 0; i < tokenCount; ++i)
   {
     CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-    {
-      PRUint32 count = aIsJunk ? token->mJunkCount : token->mGoodCount;
-      if (count > 1 || (!shrink && count == 1))
-        newTokenCount++;
-    }
+    PRUint32 count = getTraitCount(token, aTraitId);
+    // Shrinking the token database is accomplished by dividing all token counts by 2.
+    // If shrinking, we'll ignore counts < 2, otherwise only ignore counts of < 1
+    if ((shrink && count > 1) || (!shrink && count))
+      newTokenCount++;
   }
 
   if (writeUInt32(stream, newTokenCount) != 1)
@@ -1526,7 +1902,7 @@ PRBool CorpusStore::writeTokens(FILE* stream, PRBool shrink, PRBool aIsJunk)
     for (PRUint32 i = 0; i < tokenCount; ++i)
     {
       CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-      PRUint32 wordCount = aIsJunk ? token->mJunkCount : token->mGoodCount;
+      PRUint32 wordCount = getTraitCount(token, aTraitId);
       if (shrink)
         wordCount /= 2;
       if (!wordCount)
@@ -1543,7 +1919,7 @@ PRBool CorpusStore::writeTokens(FILE* stream, PRBool shrink, PRBool aIsJunk)
   return PR_TRUE;
 }
 
-PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize, PRBool isJunk)
+PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize, PRUint32 aTraitId)
 {
     PRUint32 tokenCount;
     if (readUInt32(stream, &tokenCount) != 1)
@@ -1583,17 +1959,13 @@ PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize, PRBool isJunk)
             break;
         fpos += size;
         buffer[size] = '\0';
-        if (isJunk)
-          add(buffer, count, 0);
-        else
-          add(buffer, 0, count);
+        add(buffer, aTraitId, count);
     }
 
     delete[] buffer;
 
     return PR_TRUE;
 }
-
 
 nsresult CorpusStore::getTrainingFile(nsILocalFile ** aTrainingFile)
 {
@@ -1608,13 +1980,35 @@ nsresult CorpusStore::getTrainingFile(nsILocalFile ** aTrainingFile)
   return profileDir->QueryInterface(NS_GET_IID(nsILocalFile), (void **) aTrainingFile);
 }
 
+nsresult CorpusStore::getTraitFile(nsILocalFile ** aTraitFile)
+{
+  // should we cache the profile manager's directory?
+  nsCOMPtr<nsIFile> profileDir;
+
+  nsresult rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = profileDir->Append(NS_LITERAL_STRING("traits.dat"));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return profileDir->QueryInterface(NS_GET_IID(nsILocalFile), (void **) aTraitFile);
+}
+
 static const char kMagicCookie[] = { '\xFE', '\xED', '\xFA', '\xCE' };
+
+// random string used to identify trait file and version (last byte is version)
+static const char kTraitCookie[] = { '\xFC', '\xA9', '\x36', '\x01' };
 
 void CorpusStore::writeTrainingData(PRInt32 aMaximumTokenCount)
 {
   PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("writeTrainingData() entered"));
   if (!mTrainingFile)
     return;
+
+  /*
+   * For backwards compatibility, write the good and junk tokens to
+   * training.dat; additional traits are added to a different file
+   */
 
   // open the file, and write out training data
   FILE* stream;
@@ -1635,10 +2029,10 @@ void CorpusStore::writeTrainingData(PRInt32 aMaximumTokenCount)
   PRUint32 shrinkFactor = shrink ? 2 : 1;
 
   if (!((fwrite(kMagicCookie, sizeof(kMagicCookie), 1, stream) == 1) &&
-         writeUInt32(stream, mGoodMessageCount / shrinkFactor) &&
-         writeUInt32(stream, mJunkMessageCount / shrinkFactor) &&
-         writeTokens(stream, shrink, PR_FALSE) &&
-         writeTokens(stream, shrink, PR_TRUE)))
+      (writeUInt32(stream, getMessageCount(kGoodTrait) / shrinkFactor)) &&
+      (writeUInt32(stream, getMessageCount(kJunkTrait) / shrinkFactor)) &&
+       writeTokens(stream, shrink, kGoodTrait) &&
+       writeTokens(stream, shrink, kJunkTrait)))
   {
     NS_WARNING("failed to write training data.");
     fclose(stream);
@@ -1648,26 +2042,81 @@ void CorpusStore::writeTrainingData(PRInt32 aMaximumTokenCount)
   else
   {
     fclose(stream);
+  }
 
-    if (shrink) {
+  /*
+   * Write the remaining data to a second file traits.dat
+   */
 
-      // We'll clear the tokens, and read them back in from the file.
-      // Yes this is slower than in place, but this is a rare event.
+  if (!mTraitFile)
+  {
+    getTraitFile(getter_AddRefs(mTraitFile));
+    if (!mTraitFile)
+     return;
+  }
 
-      if (countTokens())
-      {
-        clearTokens();
-        mGoodMessageCount = 0;
-        mJunkMessageCount = 0;
-      }
+  // open the file, and write out training data
+  rv = mTraitFile->OpenANSIFileDesc("wb", &stream);
+  if (NS_FAILED(rv))
+    return;
 
-      readTrainingData();
+  PRUint32 numberOfTraits = mMessageCounts.Length();
+  PRUint32 firstTraitToWrite = 3;  // Traits 1 and 2 are in training.dat
+  PRUint32 numberOfTraitsToWrite = numberOfTraits >= firstTraitToWrite ?
+                                     numberOfTraits - firstTraitToWrite + 1: 0;
+  PRBool error;
+  while (1) // break on error or done
+  {
+    if (error = (fwrite(kTraitCookie, sizeof(kTraitCookie), 1, stream) != 1))
+      break;
+
+    if (error = (writeUInt32(stream, numberOfTraitsToWrite) != 1))
+      break;
+
+    if (error = (writeUInt32(stream, firstTraitToWrite) != 1))
+      break;
+
+    for (PRUint32 trait = firstTraitToWrite; trait <= numberOfTraits; trait++)
+    {
+      if (error = (writeUInt32(stream, getMessageCount(trait) / shrinkFactor) != 1))
+        break;
+      if (error = !writeTokens(stream, shrink, trait))
+        break;
     }
+    break;
+  }
+
+  fclose(stream);
+  if (error)
+  {
+    NS_WARNING("failed to write trait data.");
+    // delete the trait data file, since it is probably corrupt.
+    mTraitFile->Remove(PR_FALSE);
+  }
+
+  if (shrink)
+  {
+    // We'll clear the tokens, and read them back in from the file.
+    // Yes this is slower than in place, but this is a rare event.
+
+    if (countTokens())
+    {
+      clearTokens();
+      for (PRUint32 trait = 1; trait <= numberOfTraits; trait++)
+        setMessageCount(trait, 0);
+    }
+
+  readTrainingData();
   }
 }
 
 void CorpusStore::readTrainingData()
 {
+
+  /*
+   * To maintain backwards compatibility, good and junk traits
+   * are stored in a file "training.dat"
+   */
   if (!mTrainingFile)
     return;
 
@@ -1688,17 +2137,82 @@ void CorpusStore::readTrainingData()
 
   // FIXME:  should make sure that the tokenizers are empty.
   char cookie[4];
+  PRUint32 goodMessageCount, junkMessageCount;
   if (!((fread(cookie, sizeof(cookie), 1, stream) == 1) &&
         (memcmp(cookie, kMagicCookie, sizeof(cookie)) == 0) &&
-        (readUInt32(stream, &mGoodMessageCount) == 1) &&
-        (readUInt32(stream, &mJunkMessageCount) == 1) &&
-         readTokens(stream, fileSize, PR_FALSE) &&
-         readTokens(stream, fileSize, PR_TRUE))) {
+        (readUInt32(stream, &goodMessageCount) == 1) &&
+        (readUInt32(stream, &junkMessageCount) == 1) &&
+         readTokens(stream, fileSize, kGoodTrait) &&
+         readTokens(stream, fileSize, kJunkTrait))) {
       NS_WARNING("failed to read training data.");
       PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("failed to read training data."));
   }
+  setMessageCount(kGoodTrait, goodMessageCount);
+  setMessageCount(kJunkTrait, junkMessageCount);
 
   fclose(stream);
+
+  /*
+   * Additional traits are stored in traits.dat
+   */
+
+  if (!mTraitFile)
+  {
+    getTraitFile(getter_AddRefs(mTraitFile));
+    if (!mTraitFile)
+     return;
+  }
+
+  rv = mTraitFile->Exists(&exists);
+  if (NS_FAILED(rv) || !exists)
+    return;
+
+  rv = mTraitFile->OpenANSIFileDesc("rb", &stream);
+  if (NS_FAILED(rv))
+    return;
+
+  rv = mTraitFile->GetFileSize(&fileSize);
+  if (NS_FAILED(rv))
+    return;
+
+  PRUint32 numberOfTraitsToWrite, firstTraitToWrite;
+  PRBool error;
+
+  while(1) // break on error or done
+  {
+    if (error = (fread(cookie, sizeof(cookie), 1, stream) != 1))
+      break;
+
+    if (error = memcmp(cookie, kTraitCookie, sizeof(cookie)))
+      break;
+
+    if (error = (readUInt32(stream, &numberOfTraitsToWrite) != 1))
+      break;
+
+    if (error = (readUInt32(stream, &firstTraitToWrite) != 1))
+      break;
+
+    for (PRUint32 trait = firstTraitToWrite;
+         trait < numberOfTraitsToWrite + firstTraitToWrite;
+         trait++)
+    {
+      PRUint32 count;
+      if (error = (readUInt32(stream, &count) != 1))
+        break;
+
+      setMessageCount(trait, count);
+
+      if (error = !readTokens(stream, fileSize, trait))
+        break;
+    }
+    break;
+  }
+  if (error)
+  {
+    NS_WARNING("failed to read training data.");
+    PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("failed to read training data."));
+  }
+  return;
 }
 
 nsresult CorpusStore::resetTrainingData()
@@ -1707,57 +2221,123 @@ nsresult CorpusStore::resetTrainingData()
   if (countTokens())
     clearTokens();
 
-  mGoodMessageCount = 0;
-  mJunkMessageCount = 0;
+  PRUint32 length = mMessageCounts.Length();
+  for (PRUint32 trait = 1 ; trait <= length; trait++)
+    setMessageCount(trait, 0);
 
   if (mTrainingFile)
     mTrainingFile->Remove(PR_FALSE);
+  if (mTraitFile)
+    mTraitFile->Remove(PR_FALSE);
   return NS_OK;
 }
 
 inline CorpusToken* CorpusStore::get(const char* word)
 {
-    return static_cast<CorpusToken*>(TokenHash::get(word));
+  return static_cast<CorpusToken*>(TokenHash::get(word));
 }
 
-CorpusToken* CorpusStore::add(const char* word, PRUint32 aJunkCount,
-                              PRUint32 aGoodCount)
+nsresult CorpusStore::updateTrait(CorpusToken* token, PRUint32 aTraitId,
+                                  PRInt32 aCountChange)
 {
-  PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
-         ("add word: %s (aJunkCount=%d) (aGoodCount=%d)", word, aJunkCount,
-         aGoodCount));
-  CorpusToken* token = static_cast<CorpusToken*>(TokenHash::add(word));
-  if (token)
+  NS_ENSURE_ARG_POINTER(token);
+  PRUint32 nextLink = token->mTraitLink;
+  PRUint32 lastLink = 0;
+
+  PRUint32 linkCount, maxLinks = 100; //sanity check
+  for (linkCount = 0; nextLink && linkCount < maxLinks; linkCount++)
   {
-    token->mJunkCount += aJunkCount;
-    token->mGoodCount += aGoodCount;
+    TraitPerToken& traitPT = mTraitStore[nextLink];
+    if (traitPT.mId == aTraitId)
+    {
+      // be careful with signed versus unsigned issues here
+      if (static_cast<PRInt32>(traitPT.mCount) + aCountChange > 0)
+        traitPT.mCount += aCountChange;
+      else
+        traitPT.mCount = 0;
+      // we could delete zero count traits here, but let's not. It's rare anyway.
+      return NS_OK;
+    }
+    lastLink = nextLink;
+    nextLink = traitPT.mNextLink;
   }
-  PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
-         ("adding word to corpus store: %s (junkCount=%d) (goodCount=%d)",
-         word, token->mJunkCount, token->mGoodCount));
-  return token;
+  if (linkCount >= maxLinks)
+    return NS_ERROR_FAILURE;
+
+  // trait does not exist, so add it
+
+  if (aCountChange > 0) // don't set a negative count
+  {
+    TraitPerToken traitPT(aTraitId, aCountChange);
+    if (mTraitStore.Length() == mNextTraitIndex)
+      mTraitStore.InsertElementAt(mNextTraitIndex, traitPT);
+    else if (mTraitStore.Length() > mNextTraitIndex)
+      mTraitStore.ReplaceElementsAt(mNextTraitIndex, 1, traitPT);
+    else
+      return NS_ERROR_FAILURE;
+    if (lastLink)
+      // the token had a parent, so update it
+      mTraitStore[lastLink].mNextLink = mNextTraitIndex;
+    else
+      // need to update the token's root link
+      token->mTraitLink = mNextTraitIndex;
+    mNextTraitIndex++;
+  }
+  return NS_OK;
 }
 
-void CorpusStore::remove(const char* word, PRUint32 aJunkCount,
-                         PRUint32 aGoodCount)
+PRUint32 CorpusStore::getTraitCount(CorpusToken* token, PRUint32 aTraitId)
+{
+  PRUint32 nextLink;
+  if (!token || !(nextLink = token->mTraitLink))
+    return 0;
+
+  PRUint32 linkCount, maxLinks = 100; //sanity check
+  for (linkCount = 0; nextLink && linkCount < maxLinks; linkCount++)
+  {
+    TraitPerToken& traitPT = mTraitStore[nextLink];
+    if (traitPT.mId == aTraitId)
+      return traitPT.mCount;
+    nextLink = traitPT.mNextLink;
+  }
+  NS_ASSERTION(linkCount < maxLinks, "Corrupt trait count store");
+
+  // trait not found (or error), so count is zero
+  return 0;
+}
+
+CorpusToken* CorpusStore::add(const char* word, PRUint32 aTraitId, PRUint32 aCount)
+{
+  CorpusToken* token = static_cast<CorpusToken*>(TokenHash::add(word));
+  if (token) {
+    PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
+           ("adding word to corpus store: %s (Trait=%d) (deltaCount=%d)",
+            word, aTraitId, aCount));
+    updateTrait(token, aTraitId, aCount);
+  }
+  return token;
+ }
+
+void CorpusStore::remove(const char* word, PRUint32 aTraitId, PRUint32 aCount)
 {
   PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
-         ("remove word: %s (junkCount=%d) (goodCount=%d)",
-         word, aJunkCount, aGoodCount));
+         ("remove word: %s (TraitId=%d) (Count=%d)",
+         word, aTraitId, aCount));
   CorpusToken* token = get(word);
   if (token)
-  {
-    if (token->mJunkCount >= aJunkCount)
-      token->mJunkCount -= aJunkCount;
-    else
-      token->mJunkCount = 0;
+    updateTrait(token, aTraitId, -static_cast<PRInt32>(aCount));
+}
 
-    if (token->mGoodCount >= aGoodCount)
-      token->mGoodCount -= aGoodCount;
-    else
-      token->mGoodCount = 0;
+PRUint32 CorpusStore::getMessageCount(PRUint32 aTraitId)
+{
+  // TraitIds start at 1
+  return mMessageCounts.SafeElementAt(aTraitId - 1, 0);
+}
 
-    if (token->mGoodCount == 0 && token->mJunkCount == 0)
-      PL_DHashTableRawRemove(&mTokenTable, token);
-  }
+void CorpusStore::setMessageCount(PRUint32 aTraitId, PRUint32 aCount)
+{
+  while (mMessageCounts.Length() < aTraitId)
+    mMessageCounts.AppendElement(0);
+  // TraitIds start at 1
+  mMessageCounts.ReplaceElementsAt(aTraitId - 1, 1, aCount);
 }
