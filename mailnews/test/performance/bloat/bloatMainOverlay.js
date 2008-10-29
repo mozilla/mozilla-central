@@ -48,13 +48,11 @@ const kMailClose = 8000;
 
 const kMailWaitTotal = kMailStartup + kMailClose;
 
-var gCurrentTimeout;
-
 function startMainTest()
 {
   removeEventListener("load", startMainTest, false);
 
-  gCurrentTimeout = setTimeout(shutdownMainWindow, kMailWaitTotal);
+  setTimeout(shutdownMainWindow, kMailWaitTotal);
 
   // First thing to do is to start the address book and compose windows
   toOpenWindowByType("mail:addressbook",
@@ -65,6 +63,20 @@ function startMainTest()
 
 function shutdownMainWindow()
 {
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator);
+
+  var window = wm.getMostRecentWindow("msgcompose");
+
+  // Double-check because of bug 321783
+  if (window)
+  {
+    // It hasn't shutdown yet, reset the timeout
+    dump("XXX Trying to quit too early, delaying shutdown to stop bug 321783 affecting us\n");
+    setTimeout(shutdownMainWindow, kMailWaitTotal);
+    return;
+  }
+
   goQuitApplication();
 }
 

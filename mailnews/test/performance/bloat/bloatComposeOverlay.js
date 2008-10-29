@@ -55,7 +55,7 @@ function startComposeTest()
 function handleComposeTest()
 {
   // Call the correct close compose window function, this also skips the
-  // are you sure you want to close it prompt.
+  // are you sure you want to close it prompt (bug 321783).
   MsgComposeCloseWindow(true);
 }
 
