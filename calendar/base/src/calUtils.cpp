@@ -35,10 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsComponentManagerUtils.h"
-#include "nsServiceManagerUtils.h"
 #include "nsIScriptError.h"
 
-#include "calBaseCID.h"
 #include "calUtils.h"
 
 extern "C" {
@@ -112,55 +110,9 @@ nsresult log(PRUnichar const* msg) {
     return getConsoleService()->LogStringMessage(msg);
 }
 
-nsCOMPtr<nsIConsoleService> const& getConsoleService() {
-    static nsCOMPtr<nsIConsoleService> sObj;
-    if (!sObj) {
-        sObj = do_GetService("@mozilla.org/consoleservice;1");
-        NS_ASSERTION(sObj, "Could not get console service!");
-    }
-    return sObj;
-}
-
-nsCOMPtr<calIICSService> const& getICSService() {
-    static nsCOMPtr<calIICSService> sIcsService;
-    if (!sIcsService) {
-        sIcsService = do_GetService(CAL_ICSSERVICE_CONTRACTID);
-        NS_ASSERTION(sIcsService, "Could not init ics service! Will crash now...");
-    }
-    return sIcsService;
-}
-
-nsCOMPtr<calITimezoneService> const& getTimezoneService() {
-    static nsCOMPtr<calITimezoneService> sTzService;
-    if (!sTzService) {
-        sTzService = do_GetService(CAL_TIMEZONESERVICE_CONTRACTID);
-        NS_ASSERTION(sTzService, "Could not init timezone service! Will crash now...");
-    }
-    return sTzService;
-}
-
-nsCOMPtr<calITimezone> const& floating() {
-    static nsCOMPtr<calITimezone> sFloating;
-    if (!sFloating) {
-        getTimezoneService()->GetFloating(getter_AddRefs(sFloating));
-    }
-    return sFloating;
-}
-
-nsCOMPtr<calITimezone> const& UTC() {
-    static nsCOMPtr<calITimezone> sUTC;
-    if (!sUTC) {
-        getTimezoneService()->GetUTC(getter_AddRefs(sUTC));
-    }
-    return sUTC;
-}
-
 nsCOMPtr<calITimezone> detectTimezone(icaltimetype const& icalt,
                                       calITimezoneProvider * tzProvider)
 {
-    if (!tzProvider) {
-        tzProvider = getTimezoneService();
-    }
     if (icalt.is_utc) {
         return UTC();
     }
@@ -168,7 +120,11 @@ nsCOMPtr<calITimezone> detectTimezone(icaltimetype const& icalt,
         char const* const tzid = icaltimezone_get_tzid(const_cast<icaltimezone *>(icalt.zone));
         if (tzid) {
             nsCOMPtr<calITimezone> tz;
-            tzProvider->GetTimezone(nsDependentCString(tzid), getter_AddRefs(tz));
+            if (tzProvider) {
+                tzProvider->GetTimezone(nsDependentCString(tzid), getter_AddRefs(tz));
+            } else {
+                getTimezoneService()->GetTimezone(nsDependentCString(tzid), getter_AddRefs(tz));
+            }
             if (tz) {
                 return tz;
             }

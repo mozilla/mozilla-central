@@ -54,7 +54,10 @@
 #include "calITimezoneProvider.h"
 #include "calIICSService.h"
 #include "nsIConsoleService.h"
+#include "nsServiceManagerUtils.h"
 #include "nsCOMPtr.h"
+
+#include "calBaseCID.h"
 
 #define CAL_STRLEN_ARGS(x) x, sizeof(x)-1
 #define CAL_ENSURE_MEMORY(p) NS_ENSURE_TRUE(p, NS_ERROR_OUT_OF_MEMORY)
@@ -63,6 +66,27 @@ typedef struct _icaltimezone icaltimezone;
 typedef struct icaltimetype icaltimetype;
 
 namespace cal {
+
+/**
+ * Gets the global console service.
+ */
+inline nsCOMPtr<nsIConsoleService> getConsoleService() {
+    return do_GetService("@mozilla.org/consoleservice;1");
+}
+
+/**
+ * Gets the global ICS service.
+ */
+inline nsCOMPtr<calIICSService> getICSService() {
+    return do_GetService(CAL_ICSSERVICE_CONTRACTID);
+}
+
+/**
+ * Gets the global timezone service.
+ */
+inline nsCOMPtr<calITimezoneService> getTimezoneService() {
+    return do_GetService(CAL_TIMEZONESERVICE_CONTRACTID);
+}
 
 /**
  * Creates a UTF8 string enumerator.
@@ -107,33 +131,25 @@ inline nsresult log(nsACString const& msg) {
     return log(NS_ConvertASCIItoUTF16(msg).get());
 }
 
-// some static timezone helpers, we leak those, but this is ok since the
-// underlying service leaks those anyway until process termination
-
-/**
- * Gets the global console service.
- */
-nsCOMPtr<nsIConsoleService> const& getConsoleService();
-
-/**
- * Gets the global ICS service.
- */
-nsCOMPtr<calIICSService> const& getICSService();
-
-/**
- * Gets the global timezone service.
- */
-nsCOMPtr<calITimezoneService> const& getTimezoneService();
-
-/**
- * Gets the "floating" timezone
- */
-nsCOMPtr<calITimezone> const& floating();
+// some timezone helpers
 
 /**
  * Gets the "UTC" timezone.
  */
-nsCOMPtr<calITimezone> const& UTC();
+inline nsCOMPtr<calITimezone> UTC() {
+    nsCOMPtr<calITimezone> tz;
+    getTimezoneService()->GetUTC(getter_AddRefs(tz));
+    return tz;
+}
+
+/**
+ * Gets the "floating" timezone
+ */
+inline nsCOMPtr<calITimezone> floating() {
+    nsCOMPtr<calITimezone> tz;
+    getTimezoneService()->GetFloating(getter_AddRefs(tz));
+    return tz;
+}
 
 /**
  * Returns the libical VTIMEZONE component, null if floating.

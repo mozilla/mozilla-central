@@ -136,7 +136,7 @@ calDateTime::Reset()
     mWeekday = 4;
     mYearday = 1;
     mIsDate = PR_FALSE;
-    cal::getTimezoneService()->GetUTC(getter_AddRefs(mTimezone));
+    mTimezone = cal::UTC();
     mNativeTime = 0;
     mIsValid = PR_TRUE;
     return NS_OK;
@@ -178,7 +178,10 @@ calDateTime::GetTimezoneOffset(PRInt32 *aResult)
 NS_IMETHODIMP
 calDateTime::SetNativeTime(PRTime aNativeTime)
 {
-    return SetTimeInTimezone(aNativeTime, cal::UTC());
+    icaltimetype icalt;
+    PRTimeToIcaltime(aNativeTime, PR_FALSE, icaltimezone_get_utc_timezone(), &icalt);
+    FromIcalTime(&icalt, cal::UTC());
+    return NS_OK;
 }
 
 NS_IMETHODIMP
