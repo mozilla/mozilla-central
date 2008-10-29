@@ -44,7 +44,6 @@ var gAdvancedPane = {
   {
     this.mPane = document.getElementById("paneAdvanced");
     this.updateMarkAsReadOptions(document.getElementById("automaticallyMarkAsRead").checked);
-    this.updateMarkAsReadTextbox(false);
 
     if ("arguments" in window && window.arguments[1] && document.getElementById(window.arguments[1]))
       document.getElementById("advancedPrefs").selectedTab = document.getElementById(window.arguments[1]);
@@ -243,7 +242,9 @@ var gAdvancedPane = {
   {
     document.getElementById('markAsReadAutoPreferences').disabled = !enableRadioGroup;
     // ... and the extras!
-    document.getElementById('markAsReadDelay').disabled = !enableRadioGroup;
+    document.getElementById('markAsReadDelay').disabled =
+      (!enableRadioGroup ||
+       !document.getElementById("mailnews.mark_message_read.delay").value);
     document.getElementById('secondsLabel').disabled = !enableRadioGroup;
   },
 
