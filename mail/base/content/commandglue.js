@@ -43,6 +43,8 @@
  * Command-specific code. This stuff should be called by the widgets
  */
 
+Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
+
 //NOTE: gMessengerBundle and gBrandBundle must be defined and set
 //      for this Overlay to work properly
 
