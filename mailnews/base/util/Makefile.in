@@ -136,5 +136,7 @@ endif
 
 DEFINES		+= -D_IMPL_NS_MSG_BASE
 
+EXTRA_JS_MODULES = iteratorUtils.jsm
+
 include $(topsrcdir)/config/rules.mk
 
