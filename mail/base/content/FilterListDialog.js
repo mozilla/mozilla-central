@@ -155,6 +155,11 @@ function setFolder(msgFolder)
    var filterList = msgFolder.getFilterList(gFilterListMsgWindow);
    rebuildFilterList(filterList);
 
+   // Select the first item in the list, if there is one.
+   var list = document.getElementById("filterList");
+   if (list.getRowCount())
+     list.selectItem(list.getItemAtIndex(0));
+
    // root the folder picker to this server
    var runMenu = document.getElementById("runFiltersPopup");
    runMenu._teardown();
