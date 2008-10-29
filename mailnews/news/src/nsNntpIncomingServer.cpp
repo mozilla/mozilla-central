@@ -443,7 +443,10 @@ nsNntpIncomingServer::CloseCachedConnections()
     if (connection)
     {
       rv = connection->CloseConnection();
-      mConnectionCache.RemoveObjectAt(0);
+      // We need to do this instead of RemoveObjectAt(0) because the
+      // above call will likely cause the object to be removed from the
+      // array anyway
+      mConnectionCache.RemoveObject(connection);
     }
   }
 
