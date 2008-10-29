@@ -349,7 +349,7 @@ calItipEmailTransport.prototype = {
                     mailText += ("Content-class: urn:content-classes:calendarmessage\r\n" +
                                  "Content-type: text/calendar; method=" + aItem.responseMethod + "; charset=UTF-8\r\n" +
                                  "Content-transfer-encoding: 8BIT\r\n" +
-                                 "\r\n\r\n" +
+                                 "\r\n" +
                                  utf8CalText +
                                  "\r\n");
                     break;
