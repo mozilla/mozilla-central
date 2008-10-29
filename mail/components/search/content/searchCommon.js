@@ -52,6 +52,8 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
+Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
+
 var gCurrentFolderToIndex;
 var gLastFolderIndexedUri = ""; // this is stored in a pref
 var gHeaderEnumerator;
@@ -102,22 +104,21 @@ function FindNextFolderToIndex()
   var foundFolder = false;
   var useNextFolder = false;
 
-  for (var i = 0; i < servers.Count() && !foundFolder; i++)
+  for each (var server in fixIterator(servers, Ci.nsIMsgIncomingServer))
   {
-    var server = servers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
     var rootFolder = server.rootFolder;
     var allFolders = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
     rootFolder.ListDescendents(allFolders);
     var numFolders = allFolders.Count();
     SIDump("in find next folder, gLastFolderIndexedUri = " + gLastFolderIndexedUri + "\n");
-    for (var folderIndex = 0; folderIndex < numFolders && !foundFolder; folderIndex++)
+    for each (var folder in fixIterator(allFolders, Ci.nsIMsgFolder))
     {
-      var folder = allFolders.GetElementAt(folderIndex).QueryInterface(Ci.nsIMsgFolder);
       // if no folder was indexed (or the pref's not set), just use the first folder
       if (!gLastFolderIndexedUri.length || useNextFolder)
       {
         gCurrentFolderToIndex = folder;
         foundFolder = true;
+        break;
       }
       else
       {
