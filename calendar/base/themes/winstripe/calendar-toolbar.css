@@ -121,54 +121,6 @@ toolbar[iconsize="small"] .cal-toolbarbutton-1 {
 }
 
 /*--------------------------------------------------------------------
- *   new event button
- *-------------------------------------------------------------------*/
-
- #calendar-new-event-button,
- #task-new-event-button {
-    -moz-image-region: rect(0px 24px 24px 0px);
-}
-#calendar-new-event-button[disabled="true"],
-#calendar-new-event-button[disabled="true"]:hover,
-#calendar-new-event-button[disabled="true"]:hover:active,
-#task-new-event-button[disabled="true"],
-#task-new-event-button[disabled="true"]:hover,
-#task-new-event-button[disabled="true"]:hover:active {
-    -moz-image-region: rect(48px 24px 72px 0px);
-}
-#calendar-new-event-button:hover,
-#task-new-event-button:hover {
-    -moz-image-region: rect(24px 24px 48px 0px);
-}
-#calendar-new-event-button:hover:active,
-#task-new-event-button:hover:active {
-}
-
-/*--------------------------------------------------------------------
- *   new event button - small
- *-------------------------------------------------------------------*/
-
-toolbar[iconsize="small"] #calendar-new-event-button,
-toolbar[iconsize="small"] #task-new-event-button {
-    -moz-image-region: rect(0px 16px 16px 0px);
-}
-toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"],
-toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"]:hover:active,
-toolbar[iconsize="small"] #task-new-event-button[disabled="true"],
-toolbar[iconsize="small"] #task-new-event-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #task-new-event-button[disabled="true"]:hover:active {
-    -moz-image-region: rect(32px 16px 48px 0px);
-}
-toolbar[iconsize="small"] #calendar-new-event-button:hover,
-toolbar[iconsize="small"] #task-new-event-button:hover {
-    -moz-image-region: rect(16px 16px 32px 0px);
-}
-toolbar[iconsize="small"] #calendar-new-event-button:hover:active,
-toolbar[iconsize="small"] #task-new-event-button:hover:active {
-}
-
-/*--------------------------------------------------------------------
  *   edit event button
  *-------------------------------------------------------------------*/
 
@@ -628,52 +580,4 @@ toolbar[iconsize="small"] #task-priority-button:hover {
         -moz-image-region: rect(16px 400px 32px 384px);
 }
 toolbar[iconsize="small"] #task-priority-button:hover:active {
-}
-
-/*--------------------------------------------------------------------
- *   New Task button
- *-------------------------------------------------------------------*/
-
-#calendar-new-task-button,
-#task-new-task-button {
-        -moz-image-region: rect(0px 384px 24px 360px);
-}
-#calendar-new-task-button[disabled="true"],
-#calendar-new-task-button[disabled="true"]:hover,
-#calendar-new-task-button[disabled="true"]:hover:active,
-#task-new-task-button[disabled="true"],
-#task-new-task-button[disabled="true"]:hover,
-#task-new-task-button[disabled="true"]:hover:active {
-        -moz-image-region: rect(48px 384px 72px 360px);
-}
-#calendar-new-task-button:hover,
-#task-new-task-button:hover {
-        -moz-image-region: rect(24px 384px 48px 360px);
-}
-#calendar-new-task-button:hover:active,
-#task-new-task-button:hover:active {
-}
-
-/*--------------------------------------------------------------------
- *   New Task button - small
- *-------------------------------------------------------------------*/
-
-toolbar[iconsize="small"] #calendar-new-task-button,
-toolbar[iconsize="small"] #task-new-task-button {
-        -moz-image-region: rect(0px 256px 16px 240px);
-}
-toolbar[iconsize="small"] #calendar-new-task-button[disabled="true"],
-toolbar[iconsize="small"] #calendar-new-task-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-new-task-button[disabled="true"]:hover:active,
-toolbar[iconsize="small"] #task-new-task-button[disabled="true"],
-toolbar[iconsize="small"] #task-new-task-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #task-new-task-button[disabled="true"]:hover:active {
-        -moz-image-region: rect(32px 256px 48px 240px);
-}
-toolbar[iconsize="small"] #calendar-new-task-button:hover,
-toolbar[iconsize="small"] #task-new-task-button:hover {
-        -moz-image-region: rect(16px 256px 32px 240px);
-}
-toolbar[iconsize="small"] #calendar-new-task-button:hover:active,
-toolbar[iconsize="small"] #task-new-task-button:hover:active {
 }

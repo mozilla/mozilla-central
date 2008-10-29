@@ -44,6 +44,10 @@
 <!DOCTYPE overlay [
   <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
   %messengerDTD;
+  <!ENTITY % mailOverlayDTD SYSTEM "chrome://messenger/locale/mailOverlay.dtd">
+  %mailOverlayDTD;
+  <!ENTITY % lightningDTD SYSTEM "chrome://lightning/locale/lightning.dtd">
+  %lightningDTD;
   <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" >
   %calendarDTD;
 ]>
@@ -124,7 +128,7 @@
              context="calendar-toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
-             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,spring"
+             defaultset="calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,spring"
              persist="collapsedinMode"/>
     <toolbar id="task-toolbar"
              class="chromeclass-toolbar"
@@ -132,9 +136,28 @@
              context="calendar-toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
-             defaultset="task-new-event-button,task-new-task-button,separator,task-category-button,task-progress-button,task-priority-button,separator,spring"
+             defaultset="task-category-button,task-progress-button,task-priority-button,separator,spring"
              persist="collapsedinMode"/>
     <toolbarset id="calendar-custom-toolbars"/>
   </toolbox>
 
+  <toolbarbutton id="button-newmsg"
+                 type="menu-button">
+    <menupopup id="button-newmsg-menupopup">
+      <menuitem id="newMsgButton-mail-menuitem"
+                label="&newMessageCmd.label;"
+                class="menuitem-iconic"
+                oncommand="MsgNewMessage(event)"/>
+      <menuitem id="newMsgButton-calendar-menuitem"
+                label="&lightning.toolbar.newevent.label;"
+                class="menuitem-iconic"
+                command="calendar_new_event_command"
+                observes="calendar_new_event_command"/>
+      <menuitem id="newMsgButton-task-menuitem"
+                label="&lightning.toolbar.newtask.label;"
+                class="menuitem-iconic"
+                command="calendar_new_todo_command"
+                observes="calendar_new_todo_command"/>
+    </menupopup>
+  </toolbarbutton>
 </overlay>

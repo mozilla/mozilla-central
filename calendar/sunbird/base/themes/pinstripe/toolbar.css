@@ -131,6 +131,54 @@ toolbar[iconsize="small"] #calendar-choose-date-button[disabled="true"] {
 }
 
 /*--------------------------------------------------------------------
+ *   Button: "New Event"
+ *-------------------------------------------------------------------*/
+
+#calendar-new-event-button {
+    -moz-image-region: rect(0px 32px 32px 0px);
+}
+#calendar-new-event-button:active {
+    -moz-image-region: rect(32px 32px 64px 0px);
+}
+#calendar-new-event-button[disabled="true"] {
+    -moz-image-region: rect(64px 32px 96px 0px);
+}
+
+toolbar[iconsize="small"] #calendar-new-event-button {
+    -moz-image-region: rect(0px 24px 24px 0px);
+}
+toolbar[iconsize="small"] #calendar-new-event-button:active {
+    -moz-image-region: rect(24px 24px 48px 0px);
+}
+toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"] {
+    -moz-image-region: rect(48px 24px 72px 0px);
+}
+
+/*--------------------------------------------------------------------
+ *   Button: "New Task"
+ *-------------------------------------------------------------------*/
+
+#calendar-new-task-button {
+    -moz-image-region: rect(0px 512px 32px 480px);
+}
+#calendar-new-task-button:active {
+    -moz-image-region: rect(32px 512px 64px 480px);
+}
+#calendar-new-task-button[disabled="true"] {
+    -moz-image-region: rect(64px 512px 96px 480px);
+}
+
+toolbar[iconsize="small"] #calendar-new-task-button {
+    -moz-image-region: rect(0px 384px 24px 360px);
+}
+toolbar[iconsize="small"] #calendar-new-task-button:active {
+    -moz-image-region: rect(24px 384px 48px 360px);
+}
+toolbar[iconsize="small"] #calendar-new-task-button[disabled="true"] {
+    -moz-image-region: rect(48px 384px 72px 360px);
+}
+
+/*--------------------------------------------------------------------
  *   Button: "Delete"
  *-------------------------------------------------------------------*/
 

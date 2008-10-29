@@ -48,18 +48,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-<toolbarbutton id="calendar-new-event-button"
-               mode="calendar"
-               class="cal-toolbarbutton-1"
-               label="&calendar.newevent.button.label;"
-               tooltiptext="&calendar.newevent.button.tooltip;"
-               observes="calendar_new_event_command"/>
-<toolbarbutton id="calendar-new-task-button"
-               mode="calendar"
-               class="cal-toolbarbutton-1"
-               label="&calendar.newtask.button.label;"
-               tooltiptext="&calendar.newtask.button.tooltip;"
-               observes="calendar_new_todo_command"/>
 <toolbarbutton id="calendar-day-view-button"
                mode="calendar"
                type="radio"

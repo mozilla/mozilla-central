@@ -75,6 +75,10 @@
 <!ENTITY lightning.toolbar.task.label         "Tasks">
 <!ENTITY lightning.toolbar.task.accesskey     "T">
 
+<!-- Toolbar write button -->
+<!ENTITY lightning.toolbar.newevent.label     "Event">
+<!ENTITY lightning.toolbar.newtask.label      "Task">
+
 <!-- Messenger Toolbar -->
 <!ENTITY lightning.toolbar.day.label                 "Day">
 <!ENTITY lightning.toolbar.day.accesskey             "D">

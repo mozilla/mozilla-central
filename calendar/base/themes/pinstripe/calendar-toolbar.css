@@ -78,36 +78,6 @@ toolbar[iconsize="small"] .cal-toolbarbutton-1 {
 }
 
 /*--------------------------------------------------------------------
- *   Button: "New Event"
- *-------------------------------------------------------------------*/
-
- #calendar-new-event-button,
- #task-new-event-button {
-  -moz-image-region: rect(0px 32px 32px 0px);
-}
-#calendar-new-event-button:active,
-#task-new-event-button:active {
-    -moz-image-region: rect(32px 32px 64px 0px);
-}
-#calendar-new-event-button[disabled="true"],
-#task-new-event-button[disabled="true"] {
-    -moz-image-region: rect(64px 32px 96px 0px);
-}
-
-toolbar[iconsize="small"] #calendar-new-event-button,
-toolbar[iconsize="small"] #task-new-event-button {
-    -moz-image-region: rect(0px 24px 24px 0px);
-}
-toolbar[iconsize="small"] #calendar-new-event-button:active,
-toolbar[iconsize="small"] #task-new-event-button:active {
-    -moz-image-region: rect(24px 24px 48px 0px);
-}
-toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"],
-toolbar[iconsize="small"] #task-new-event-button[disabled="true"] {
-    -moz-image-region: rect(48px 24px 72px 0px);
-}
-
-/*--------------------------------------------------------------------
  *   Button: "Edit"
  *-------------------------------------------------------------------*/
 
@@ -444,35 +414,4 @@ toolbar[iconsize="small"] #task-priority-button:active {
 }
 toolbar[iconsize="small"] #task-priority-button[disabled="true"] {
         -moz-image-region: rect(48px 600px 72px 576px);
-
-}
-
-/*--------------------------------------------------------------------
- *   Button: "New Task"
- *-------------------------------------------------------------------*/
-
-#calendar-new-task-button,
-#task-new-task-button {
-        -moz-image-region: rect(0px 512px 32px 480px);
-}
-#calendar-new-task-button:active,
-#task-new-task-button:active {
-        -moz-image-region: rect(32px 512px 64px 480px);
-}
-#calendar-new-task-button[disabled="true"],
-#task-new-task-button[disabled="true"] {
-        -moz-image-region: rect(64px 512px 96px 480px);
-}
-
-toolbar[iconsize="small"] #calendar-new-task-button,
-toolbar[iconsize="small"] #task-new-task-button {
-        -moz-image-region: rect(0px 384px 24px 360px);
-}
-toolbar[iconsize="small"] #calendar-new-task-button:active,
-toolbar[iconsize="small"] #task-new-task-button:active {
-        -moz-image-region: rect(24px 384px 48px 360px);
-}
-toolbar[iconsize="small"] #calendar-new-task-button[disabled="true"],
-toolbar[iconsize="small"] #task-new-task-button[disabled="true"] {
-        -moz-image-region: rect(48px 384px 72px 360px);
 }

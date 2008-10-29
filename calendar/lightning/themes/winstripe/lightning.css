@@ -109,6 +109,22 @@ radio[pane=paneLightning] {
   background-color: -moz-field;  
 }
 
+/* Write button */
+#newMsgButton-mail-menuitem {
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
+  -moz-image-region: rect(0px 48px 24px 24px);
+}
+
+#newMsgButton-calendar-menuitem {
+  list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+
+#newMsgButton-task-menuitem {
+  list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+  -moz-image-region: rect(0px 256px 16px 240px);
+}
+
 /* Today pane button in status bar */
 #calendar-status-todaypane-button,
 #calendar-status-todaypane-button[checked="true"] {

@@ -44,6 +44,16 @@
 #
 # ***** END LICENSE BLOCK *****
 
+<toolbarbutton id="calendar-new-event-button"
+               class="cal-toolbarbutton-1"
+               label="&calendar.newevent.button.label;"
+               tooltiptext="&calendar.newevent.button.tooltip;"
+               observes="calendar_new_event_command"/>
+<toolbarbutton id="calendar-new-task-button"
+               class="cal-toolbarbutton-1"
+               label="&calendar.newtask.button.label;"
+               tooltiptext="&calendar.newtask.button.tooltip;"
+               observes="calendar_new_todo_command"/>
 <toolbarbutton class="cal-toolbarbutton-1"
                id="calendar-edit-button"
                label="&calendar.edit.button.label;"
