@@ -68,7 +68,7 @@ function fixIterator(aEnum, aIface) {
     let iter = function() {
       let count = aEnum.Count();
       for (let i = 0; i < count; i++)
-        yield aEnum.QetElementAt(i, face);
+        yield aEnum.QueryElementAt(i, face);
     }
     return { __iterator__: iter };
   }
