@@ -36,8 +36,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
-
 var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                       .getService(Components.interfaces.nsIPromptService);
 
@@ -62,6 +60,8 @@ function getBestIdentity(identities, optionalHint)
 {
   var identity = null;
 
+  var identitiesCount = identities.Count();
+
   try
   {
     // if we have more than one identity and a hint to help us pick one
@@ -73,9 +73,9 @@ function getBestIdentity(identities, optionalHint)
       // iterate over all of the identities
       var tempID;
 
-      const nsIMsgIdentity = Components.interfaces.nsIMsgIdentity;
       var lengthOfLongestMatchingEmail = 0;
-      for each (var tempID in fixIterator(identities, nsIMsgIdentity)) {
+      for (id = 0; id < identitiesCount; ++id) {
+        tempID = identities.GetElementAt(id).QueryInterface(Components.interfaces.nsIMsgIdentity);
         if (optionalHint.indexOf(tempID.email.toLowerCase()) >= 0) {
           // Be careful, the user can have several adresses with the same
           // postfix e.g. aaa.bbb@ccc.ddd and bbb@ccc.ddd. Make sure we get the
@@ -96,7 +96,8 @@ function getBestIdentity(identities, optionalHint)
       // as one of your multiple identities.
 
       if (!identity) {
-        for each (var tempID in fixIterator(identities, nsIMsgIdentity)) {
+        for (id = 0; id < identitiesCount; ++id) {
+          tempID = identities.GetElementAt(id).QueryInterface(Components.interfaces.nsIMsgIdentity);
           // extract out the partial domain
           var start = tempID.email.lastIndexOf("@"); // be sure to include the @ sign in our search to reduce the risk of false positives
           if (optionalHint.search(tempID.email.slice(start).toLowerCase()) >= 0) {
@@ -497,8 +498,10 @@ function deleteAllInFolder(commandName)
                   .createInstance(Components.interfaces.nsIMutableArray);
   
   // Delete messages.
-  var messages = [m for each (m in fixIterator(folder.getMessages(msgWindow)))];
-  var children = toXPCOMArray(messages, Components.interfaces.nsISupportsArray);
+  iter = folder.getMessages(msgWindow);
+  while (iter.hasMoreElements()) {
+    children.appendElement(iter.getNext(), false);
+  }
   folder.deleteMessages(children, msgWindow, true, false, null, false); 
   children.clear();                                       
 }
