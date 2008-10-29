@@ -99,8 +99,6 @@ var gGeneralPane = {
   {
     var startPage = document.getElementById("mailnews.start_page.url");
     startPage.value = startPage.defaultValue;
-    if (startPage.hasUserValue)
-      startPage.reset();
   },
   
   /**
