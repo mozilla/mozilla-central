@@ -74,8 +74,8 @@ interface calIDateTime : nsISupports
    * nativeTime contains this instance's PRTime value relative
    * to the UTC epoch, regardless of the timezone that's set
    * on this instance.  If nativeTime is set, the given UTC PRTime
-   * value is exploded into year/month/etc, taking into account
-   * the timezone setting.
+   * value is exploded into year/month/etc, forcing the timezone
+   * setting to UTC.
    *
    * @warning: When the timezone is set to 'floating', this will return
    * the nativeTime as-if the timezone was UTC. Take this into account
