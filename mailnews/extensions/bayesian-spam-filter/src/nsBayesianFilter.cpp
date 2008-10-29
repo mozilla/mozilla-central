@@ -164,8 +164,8 @@ struct VisitClosure {
     void* data;
 };
 
-static PLDHashOperator PR_CALLBACK VisitEntry(PLDHashTable* table, PLDHashEntryHdr* entry,
-                                              PRUint32 number, void* arg)
+static PLDHashOperator VisitEntry(PLDHashTable* table, PLDHashEntryHdr* entry,
+                                  PRUint32 number, void* arg)
 {
     VisitClosure* closure = reinterpret_cast<VisitClosure*>(arg);
     BaseToken* token = static_cast<BaseToken*>(entry);
@@ -1090,7 +1090,7 @@ nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow
                                      NS_LITERAL_CSTRING("filter"), PR_FALSE, nsnull);
 }
 
-PR_STATIC_CALLBACK(int) compareTokens(const void* p1, const void* p2, void* /* data */)
+static int compareTokens(const void* p1, const void* p2, void* /* data */)
 {
     Token *t1 = (Token*) p1, *t2 = (Token*) p2;
     double delta = t1->mDistance - t2->mDistance;

@@ -185,7 +185,7 @@ calRecurrenceDateSet::AddDate(calIDateTime *aDate)
     return NS_OK;
 }
 
-static int PR_CALLBACK
+static int
 calDateTimeComparator (calIDateTime *aElement1,
                        calIDateTime *aElement2,
                        void *aData)

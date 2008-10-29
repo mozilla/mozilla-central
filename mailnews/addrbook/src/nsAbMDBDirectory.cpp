@@ -422,7 +422,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
   return NS_NewArrayEnumerator(aResult, mSubDirectories);
 }
 
-PR_STATIC_CALLBACK(PLDHashOperator) 
+static PLDHashOperator 
 enumerateSearchCache(nsISupports *aKey, nsCOMPtr<nsIAbCard> &aData, void* aClosure)
 {
   nsIMutableArray* array = static_cast<nsIMutableArray*>(aClosure);

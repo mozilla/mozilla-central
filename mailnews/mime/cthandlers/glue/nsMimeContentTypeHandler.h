@@ -54,8 +54,8 @@
 #include "nsIMimeContentTypeHandler.h"
 
 typedef MimeObjectClass  *
-(* PR_CALLBACK MCTHCreateCTHClass)(const char *content_type, 
-                                   contentTypeHandlerInitStruct *initStruct);
+(* MCTHCreateCTHClass)(const char *content_type, 
+                       contentTypeHandlerInitStruct *initStruct);
 
 class nsMimeContentTypeHandler : public nsIMimeContentTypeHandler {
 public: 

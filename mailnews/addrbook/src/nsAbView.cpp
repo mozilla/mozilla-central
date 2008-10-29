@@ -598,7 +598,7 @@ typedef struct SortClosure
   nsAbView *abView;
 } SortClosure;
 
-static int PR_CALLBACK
+static int
 inplaceSortCallback(const void *data1, const void *data2, void *privateData)
 {
   AbCard *card1 = (AbCard *)data1;

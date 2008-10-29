@@ -126,7 +126,7 @@ mime_ReBuffer (const char *net_buffer, PRInt32 net_buffer_size,
 
 static int
 convert_and_send_buffer(char* buf, int length, PRBool convert_newlines_p,
-              PRInt32 (*PR_CALLBACK per_line_fn) (char *line,
+              PRInt32 (* per_line_fn) (char *line,
                           PRUint32 line_length,
                           void *closure),
               void *closure)
@@ -188,7 +188,7 @@ extern "C" int
 mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
         char **bufferP, PRInt32 *buffer_sizeP, PRUint32 *buffer_fpP,
         PRBool convert_newlines_p,
-        PRInt32 (*PR_CALLBACK per_line_fn) (char *line, PRUint32 line_length,
+        PRInt32 (* per_line_fn) (char *line, PRUint32 line_length,
                     void *closure),
         void *closure)
 {

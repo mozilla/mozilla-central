@@ -438,7 +438,7 @@ dummy_file_write( char *buf, PRInt32 size, void *fileHandle )
   return (int) bytesWritten;
 }
 
-static int PR_CALLBACK
+static int
 mime_parse_stream_write ( nsMIMESession *stream, const char *buf, PRInt32 size )
 {
   struct mime_draft_data *mdd = (struct mime_draft_data *) stream->data_object;
@@ -1203,7 +1203,7 @@ mime_insert_forwarded_message_headers(char            **body,
   }
 }
 
-static void PR_CALLBACK
+static void
 mime_parse_stream_complete (nsMIMESession *stream)
 {
   struct mime_draft_data *mdd = (struct mime_draft_data *) stream->data_object;
@@ -1655,7 +1655,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
   mime_free_attach_data(newAttachData);
 }
 
-static void PR_CALLBACK
+static void
 mime_parse_stream_abort (nsMIMESession *stream, int status )
 {
   struct mime_draft_data *mdd = (struct mime_draft_data *) stream->data_object;

@@ -271,7 +271,7 @@ struct GetDirectories
   DIR_Server* mServer;
 };
 
-PR_STATIC_CALLBACK(PLDHashOperator)
+static PLDHashOperator
 GetDirectories_getDirectory(nsISupports *aKey, DIR_Server* aData, void* aClosure)
 {
   GetDirectories* getDirectories = (GetDirectories*)aClosure;

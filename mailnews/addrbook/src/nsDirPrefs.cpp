@@ -719,7 +719,7 @@ static void DIR_DeleteServerList(nsVoidArray *wholeList)
  * Functions for managing JavaScript prefs for the DIR_Servers 
  */
 
-PR_STATIC_CALLBACK(int)
+static int
 comparePrefArrayMembers(const void* aElement1, const void* aElement2, void* aData)
 {
     const char* element1 = *static_cast<const char* const *>(aElement1);

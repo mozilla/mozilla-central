@@ -2133,7 +2133,7 @@ NS_IMETHODIMP nsMsgDBView::GetUsingLines(PRBool * aUsingLines)
   return NS_OK;
 }
 
-int PR_CALLBACK CompareViewIndices (const void *v1, const void *v2, void *)
+int CompareViewIndices (const void *v1, const void *v2, void *)
 {
   nsMsgViewIndex i1 = *(nsMsgViewIndex*) v1;
   nsMsgViewIndex i2 = *(nsMsgViewIndex*) v2;
@@ -3223,7 +3223,7 @@ void nsMsgDBView::ReverseSort()
         // ReverseSort in non-threaded mode, m_levels are all the same.
     }
 }
-int PR_CALLBACK
+int
 nsMsgDBView::FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData)
 {
     PRInt32 retVal = 0;
@@ -3248,7 +3248,7 @@ nsMsgDBView::FnSortIdKey(const void *pItem1, const void *pItem2, void *privateDa
     // here we'd use the secondary sort
 }
 
-int PR_CALLBACK
+int
 nsMsgDBView::FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privateData)
 {
   PRInt32 retVal = 0;
@@ -3273,7 +3273,7 @@ nsMsgDBView::FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privat
     return sortInfo->view->SecondarySort((*p1)->id, (*p1)->folder, (*p2)->id, (*p2)->folder, sortInfo);
 }
 
-int PR_CALLBACK
+int
 nsMsgDBView::FnSortIdUint32(const void *pItem1, const void *pItem2, void *privateData)
 {
   IdUint32** p1 = (IdUint32**)pItem1;
@@ -3719,7 +3719,7 @@ PRInt32  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
   rv = GetFieldTypeAndLenForSort(sortType, &maxLen, &fieldType);
   const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
   
-  int (* PR_CALLBACK comparisonFun) (const void *pItem1, const void *pItem2, void *privateData) = nsnull;
+  int (* comparisonFun) (const void *pItem1, const void *pItem2, void *privateData) = nsnull;
   int retStatus = 0;
   hdr1->GetMessageKey(&EntryInfo1.id);
   hdr2->GetMessageKey(&EntryInfo2.id);
@@ -4582,7 +4582,7 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
   rv = GetFieldTypeAndLenForSort(sortType, &maxLen, &fieldType);
   const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
 
-  int (* PR_CALLBACK comparisonFun) (const void *pItem1, const void *pItem2, void *privateData) = nsnull;
+  int (* comparisonFun) (const void *pItem1, const void *pItem2, void *privateData) = nsnull;
   int retStatus = 0;
   msgHdr->GetMessageKey(&EntryInfo1.id);
   msgHdr->GetFolder(&EntryInfo1.folder);

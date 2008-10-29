@@ -66,7 +66,7 @@ static const nsModuleComponentInfo msgDB_components[] = {
    { "Msg DB Service", NS_MSGDB_SERVICE_CID, NS_MSGDB_SERVICE_CONTRACTID, nsMsgDBServiceConstructor }
 };
 
-PR_STATIC_CALLBACK(void)
+static void
 msgDBModuleDtor(nsIModule* self)
 {
     nsMsgDatabase::CleanupCache();

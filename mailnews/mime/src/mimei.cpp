@@ -135,7 +135,7 @@ nsVoidArray         *ctHandlerList = NULL;
 PRBool              foundIt = PR_FALSE;
 PRBool              force_display = PR_FALSE;
 
-PRBool PR_CALLBACK
+PRBool
 EnumFunction(void* aElement, void *aData)
 {
   cthandler_struct    *ptr = (cthandler_struct *) aElement;
@@ -1805,7 +1805,7 @@ MimeObject_output_init(MimeObject *obj, const char *content_type)
     // Set the charset on the channel we are dealing with so people know
     // what the charset is set to. Do this for quoting/Printing ONLY!
     //
-    extern void   PR_CALLBACK ResetChannelCharset(MimeObject *obj);
+    extern void   ResetChannelCharset(MimeObject *obj);
     if ( (obj->options) &&
          ( (obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting) ||
            (obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting) ||

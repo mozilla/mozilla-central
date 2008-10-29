@@ -299,13 +299,13 @@ protected:
   void          ClearCachedObjects(PRBool dbGoingAway);
   // all instantiated headers, but doesn't hold refs. 
   PLDHashTable  *m_headersInUse;
-  static PLDHashNumber PR_CALLBACK HashKey(PLDHashTable* aTable, const void* aKey);
-  static PRBool PR_CALLBACK MatchEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aEntry, const void* aKey);
-  static void PR_CALLBACK MoveEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aFrom, PLDHashEntryHdr* aTo);
-  static void PR_CALLBACK ClearEntry(PLDHashTable* aTable, PLDHashEntryHdr* aEntry);
-  static PLDHashOperator PR_CALLBACK HeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
+  static PLDHashNumber HashKey(PLDHashTable* aTable, const void* aKey);
+  static PRBool MatchEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aEntry, const void* aKey);
+  static void MoveEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aFrom, PLDHashEntryHdr* aTo);
+  static void ClearEntry(PLDHashTable* aTable, PLDHashEntryHdr* aEntry);
+  static PLDHashOperator HeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
                                PRUint32 number, void *arg);
-  static PLDHashOperator PR_CALLBACK ClearHeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
+  static PLDHashOperator ClearHeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
                                PRUint32 number, void *arg);
   static PLDHashTableOps gMsgDBHashTableOps;
   struct MsgHdrHashElement {

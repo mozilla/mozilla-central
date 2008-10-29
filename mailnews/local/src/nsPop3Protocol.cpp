@@ -86,7 +86,7 @@
 static PRLogModuleInfo *POP3LOGMODULE = nsnull;
 
 
-static PRIntn PR_CALLBACK
+static PRIntn
 net_pop3_remove_messages_marked_delete(PLHashEntry* he,
                                        PRIntn msgindex,
                                        void *arg)
@@ -129,7 +129,7 @@ put_hash(PLHashTable* table, const char* key, char value, PRUint32 dateReceived)
   }
 }
 
-static PRIntn PR_CALLBACK
+static PRIntn
 net_pop3_copy_hash_entries(PLHashEntry* he, PRIntn msgindex, void *arg)
 {
   Pop3UidlEntry *uidlEntry = (Pop3UidlEntry *) he->value;
@@ -137,25 +137,25 @@ net_pop3_copy_hash_entries(PLHashEntry* he, PRIntn msgindex, void *arg)
   return HT_ENUMERATE_NEXT;
 }
 
-static void * PR_CALLBACK
+static void *
 AllocUidlTable(void * /* pool */, PRSize size)
 {
   return PR_MALLOC(size);
 }
 
-static void PR_CALLBACK
+static void
 FreeUidlTable(void * /* pool */, void *item)
 {
     PR_Free(item);
 }
 
-static PLHashEntry * PR_CALLBACK
+static PLHashEntry *
 AllocUidlInfo(void *pool, const void *key)
 {
     return PR_NEWZAP(PLHashEntry);
 }
 
-static void PR_CALLBACK
+static void
 FreeUidlInfo(void * /* pool */, PLHashEntry *he, PRUintn flag)
 {
   if (flag == HT_FREE_ENTRY)
@@ -304,7 +304,7 @@ net_pop3_load_state(const char* searchhost,
   return result;
 }
 
-static PRIntn PR_CALLBACK
+static PRIntn
 hash_clear_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
 {
   Pop3UidlEntry *uidlEntry = (Pop3UidlEntry *) he->value;
@@ -315,7 +315,7 @@ hash_clear_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
   return HT_ENUMERATE_REMOVE;
 }
 
-static PRIntn PR_CALLBACK
+static PRIntn
 hash_empty_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
 {
   *((PRBool*) arg) = PR_FALSE;
@@ -331,7 +331,7 @@ hash_empty(PLHashTable* hash)
 }
 
 
-static PRIntn PR_CALLBACK
+static PRIntn
 net_pop3_write_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
 {
   nsIOutputStream* file = (nsIOutputStream*) arg;
@@ -349,7 +349,7 @@ net_pop3_write_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
   return HT_ENUMERATE_NEXT;
 }
 
-static PRIntn PR_CALLBACK
+static PRIntn
 net_pop3_delete_old_msgs_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
 {
   PRTime cutOffDate = (PRTime) arg;

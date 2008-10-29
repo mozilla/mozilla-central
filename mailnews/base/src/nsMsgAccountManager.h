@@ -139,7 +139,7 @@ private:
   nsresult notifyDefaultServerChange(nsIMsgAccount *aOldAccount,
                                      nsIMsgAccount *aNewAccount);
     
-  PR_STATIC_CALLBACK(PLDHashOperator) hashUnloadServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure);
+  static PLDHashOperator hashUnloadServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure);
 
   //
   // account enumerators

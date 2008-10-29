@@ -312,7 +312,7 @@ nsresult nsMsgDatabase::AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key) // do we w
 }
 
 
-/* static */PLDHashOperator PR_CALLBACK nsMsgDatabase::HeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
+/* static */PLDHashOperator nsMsgDatabase::HeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
                                PRUint32 number, void *arg)
 {
 
@@ -321,7 +321,7 @@ nsresult nsMsgDatabase::AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key) // do we w
   return PL_DHASH_NEXT;
 }
 
-/* static */PLDHashOperator PR_CALLBACK nsMsgDatabase::ClearHeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
+/* static */PLDHashOperator nsMsgDatabase::ClearHeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
                                PRUint32 number, void *arg)
 {
 
@@ -466,20 +466,20 @@ PLDHashTableOps nsMsgDatabase::gMsgDBHashTableOps =
 
 // HashKey is supposed to maximize entropy in the low order bits, and the key
 // as is, should do that.
-PLDHashNumber PR_CALLBACK
+PLDHashNumber
 nsMsgDatabase::HashKey(PLDHashTable* aTable, const void* aKey)
 {
   return PLDHashNumber(NS_PTR_TO_INT32(aKey));
 }
 
-PRBool PR_CALLBACK
+PRBool
 nsMsgDatabase::MatchEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aEntry, const void* aKey)
 {
   const MsgHdrHashElement* hdr = reinterpret_cast<const MsgHdrHashElement*>(aEntry);
   return aKey == (const void *) hdr->mKey; // ### or get the key from the hdr...
 }
 
-void PR_CALLBACK
+void
 nsMsgDatabase::MoveEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aFrom, PLDHashEntryHdr* aTo)
 {
   const MsgHdrHashElement* from = reinterpret_cast<const MsgHdrHashElement*>(aFrom);
@@ -488,7 +488,7 @@ nsMsgDatabase::MoveEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aFrom, PLD
   *to = *from;
 }
 
-void PR_CALLBACK
+void
 nsMsgDatabase::ClearEntry(PLDHashTable* aTable, PLDHashEntryHdr* aEntry)
 {
   MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(aEntry);

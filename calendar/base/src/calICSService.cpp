@@ -490,7 +490,7 @@ calIcalComponent::AddTimezoneReference(calITimezone *aTimezone)
     return NS_OK;
 }
 
-PR_STATIC_CALLBACK(PLDHashOperator)
+static PLDHashOperator
 TimezoneHashToTimezoneArray(nsACString const& /*tzid*/, calITimezone * tz, void * arg)
 {
     calITimezone *** const arrayPtr = static_cast<calITimezone ***>(arg);
@@ -962,7 +962,7 @@ void calIcalComponent::ClearAllProperties(icalproperty_kind kind)
     }
 }
 
-PR_STATIC_CALLBACK(PLDHashOperator)
+static PLDHashOperator
 AddTimezoneComponentToIcal(nsACString const& /*tzid*/, calITimezone * tz, void * arg)
 {
     icalcomponent * const comp = static_cast<icalcomponent *>(arg);

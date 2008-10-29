@@ -281,7 +281,7 @@ MimeObject_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
   return mime_LineBuffer (buffer, size,
              &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
              PR_TRUE,
-             ((int (*PR_CALLBACK) (char *, PRInt32, void *))
+             ((int (*) (char *, PRInt32, void *))
               /* This cast is to turn void into MimeObject */
               obj->clazz->parse_line),
              obj);

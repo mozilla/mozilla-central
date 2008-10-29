@@ -64,7 +64,7 @@
 #include "nsXPCOMCIDInternal.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
-PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff);
+static void ImportAddressThread( void *stuff);
 
 
 class AddressThreadData;
@@ -951,7 +951,7 @@ void nsImportGenericAddressBooks::ReportError(const PRUnichar *pName,
   pStream->AppendLiteral(MSG_LINEBREAK);
 }
 
-PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff)
+static void ImportAddressThread( void *stuff)
 {
   IMPORT_LOG0( "In Begin ImportAddressThread\n");
 

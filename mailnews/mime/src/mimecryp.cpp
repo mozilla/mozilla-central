@@ -338,7 +338,7 @@ MimeHandleDecryptedOutput (const char *buf, PRInt32 buf_size,
   return mime_LineBuffer (buf, buf_size,
              &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
              PR_TRUE,
-             ((int (*PR_CALLBACK) (char *, PRInt32, void *))
+             ((int (*) (char *, PRInt32, void *))
               /* This cast is to turn void into MimeObject */
               MimeHandleDecryptedOutputLine),
              obj);

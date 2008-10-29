@@ -57,9 +57,9 @@ class nsLDAPMessage : public nsILDAPMessage
     friend class nsLDAPOperation;
     friend class nsLDAPConnection;
     friend class nsLDAPConnectionLoop;
-    friend PRBool PR_CALLBACK CheckLDAPOperationResult(nsHashKey *aKey, 
-                                                       void *aData,
-                                                       void* aClosure);
+    friend PRBool CheckLDAPOperationResult(nsHashKey *aKey,
+                                           void *aData,
+                                           void* aClosure);
 
   public:       
 

@@ -211,7 +211,7 @@ nsAbSimpleProperty::GetValue(nsIVariant* *aValue)
     return NS_OK;
 }
 
-PR_STATIC_CALLBACK(PLDHashOperator)
+static PLDHashOperator
 PropertyHashToArrayFunc (const nsACString &aKey, nsIVariant* aData, void *userArg)
 {
   nsCOMArray<nsIProperty>* propertyArray = static_cast<nsCOMArray<nsIProperty> *>(userArg);

@@ -171,7 +171,7 @@ protected:
 
     nsresult getLocaleString(const char *key, nsString &str);
 
-    static int PR_CALLBACK
+    static int
     Compare(const void* aElement1, const void* aElement2, void* aData);
 
     nsresult

@@ -1954,7 +1954,7 @@ nsImapMailFolder::BuildIdsAndKeyArray(nsIArray* messages,
   return AllocateUidStringFromKeys(keyArray.Elements(), keyArray.Length(), msgIds);
 }
 
-static int PR_CALLBACK CompareKey (const void *v1, const void *v2, void *)
+static int CompareKey (const void *v1, const void *v2, void *)
 {
   // QuickSort callback to compare array values
   nsMsgKey i1 = *(nsMsgKey *)v1;

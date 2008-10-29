@@ -589,9 +589,9 @@ nsLDAPConnectionLoop::Init()
 }
 
 // typedef PRBool
-// (*PR_CALLBACK nsHashtableEnumFunc)
+// (* nsHashtableEnumFunc)
 //      (nsHashKey *aKey, void *aData, void* aClosure);
-PRBool PR_CALLBACK
+PRBool
 CheckLDAPOperationResult(nsHashKey *aKey, void *aData, void* aClosure)
 {
     int lderrno;

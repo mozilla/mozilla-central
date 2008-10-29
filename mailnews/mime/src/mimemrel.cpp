@@ -205,7 +205,7 @@ MimeMultipartRelated_initialize(MimeObject* obj)
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->initialize(obj);
 }
 
-static PRIntn PR_CALLBACK
+static PRIntn
 mime_multipart_related_nukehash(PLHashEntry *table,
                                        PRIntn indx, void *arg)
 {

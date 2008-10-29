@@ -54,7 +54,7 @@ extern "C" int mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
                char **bufferP, PRInt32 *buffer_sizeP,
                PRInt32 *buffer_fpP,
                PRBool convert_newlines_p,
-               PRInt32 (*PR_CALLBACK per_line_fn) (char *line, PRInt32
+               PRInt32 (* per_line_fn) (char *line, PRInt32
                          line_length, void *closure),
                void *closure);
 

@@ -402,7 +402,7 @@ static const nsModuleComponentInfo components[] =
 };
 
 
-PR_STATIC_CALLBACK(void)
+static void
 msgAbModuleDtor(nsIModule* self)
 {
     nsAddrDatabase::CleanupCache();

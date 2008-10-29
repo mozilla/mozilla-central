@@ -71,8 +71,8 @@ nsCOMPtr<nsIStringBundle> nsMsgComposeSecure::mSMIMEBundle = nsnull;
 
 static void mime_crypto_write_base64 (void *closure, const char *buf,
               unsigned long size);
-static nsresult PR_CALLBACK mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure);
-static nsresult PR_CALLBACK mime_nested_encoder_output_fn (const char *buf, PRInt32 size, void *closure);
+static nsresult mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure);
+static nsresult mime_nested_encoder_output_fn (const char *buf, PRInt32 size, void *closure);
 static int make_multipart_signed_header_string(PRBool outer_p,
                   char **header_return,
                   char **boundary_return);
@@ -87,7 +87,7 @@ static char *mime_make_separator(const char *prefix);
 #include "nsIMimeConverter.h"
 
 MimeEncoderData *
-MIME_B64EncoderInit(nsresult (*PR_CALLBACK output_fn) (const char *buf, PRInt32 size, void *closure), void *closure) 
+MIME_B64EncoderInit(nsresult (* output_fn) (const char *buf, PRInt32 size, void *closure), void *closure) 
 {
   MimeEncoderData *returnEncoderData = nsnull;
   nsIMimeConverter *converter;
@@ -101,7 +101,7 @@ MIME_B64EncoderInit(nsresult (*PR_CALLBACK output_fn) (const char *buf, PRInt32 
 }
 
 MimeEncoderData * 
-MIME_QPEncoderInit(nsresult (*PR_CALLBACK output_fn) (const char *buf, PRInt32 size, void *closure), void *closure) 
+MIME_QPEncoderInit(nsresult (* output_fn) (const char *buf, PRInt32 size, void *closure), void *closure) 
 {
   MimeEncoderData *returnEncoderData = nsnull;
   nsIMimeConverter *converter;

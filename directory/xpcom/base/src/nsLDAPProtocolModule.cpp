@@ -128,7 +128,7 @@ static const nsModuleComponentInfo components[] =
       "@mozilla.org/network/ldap-control;1", nsLDAPControlConstructor}
 };
 
-PR_STATIC_CALLBACK(nsresult)
+static nsresult
 nsLDAPInitialize(nsIModule *aSelf)
 {
 #ifdef PR_LOGGING

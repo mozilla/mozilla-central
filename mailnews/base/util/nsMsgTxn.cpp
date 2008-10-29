@@ -137,7 +137,7 @@ NS_IMETHODIMP nsSimpleProperty::GetValue(nsIVariant* *aValue)
 
 // end nsSimpleProperty
 
-PR_STATIC_CALLBACK(PLDHashOperator)
+static PLDHashOperator
 PropertyHashToArrayFunc (const nsAString &aKey,
                          nsIVariant* aData,
                          void *userArg)

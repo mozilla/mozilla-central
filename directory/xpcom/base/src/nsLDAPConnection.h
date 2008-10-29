@@ -72,9 +72,9 @@ class nsLDAPConnection : public nsILDAPConnection,
     friend class nsLDAPOperation;
     friend class nsLDAPMessage;
     friend class nsLDAPConnectionLoop;
-    friend PRBool PR_CALLBACK CheckLDAPOperationResult(nsHashKey *aKey, 
-                                                       void *aData,
-                                                       void* aClosure);
+    friend PRBool CheckLDAPOperationResult(nsHashKey *aKey,
+                                           void *aData,
+                                           void* aClosure);
 
   public:
     NS_DECL_ISUPPORTS

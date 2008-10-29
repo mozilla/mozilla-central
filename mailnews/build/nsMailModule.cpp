@@ -1272,7 +1272,7 @@ static const nsModuleComponentInfo gComponents[] = {
 #endif
 };
 
-PR_STATIC_CALLBACK(void) nsMailModuleDtor(nsIModule* self)
+static void nsMailModuleDtor(nsIModule* self)
 {
     nsAddrDatabase::CleanupCache();
     nsMsgDatabase::CleanupCache();

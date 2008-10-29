@@ -79,7 +79,7 @@
 
 ////////////////////////////////////////////////////////////////////////
 
-PR_STATIC_CALLBACK( void) ImportMailThread( void *stuff);
+static void ImportMailThread( void *stuff);
 
 class ImportThreadData;
 
@@ -729,7 +729,7 @@ void ImportThreadData::DriverAbort()
 
 
 
-PR_STATIC_CALLBACK( void)
+static void
 ImportMailThread( void *stuff)
 {
   ImportThreadData *pData = (ImportThreadData *)stuff;

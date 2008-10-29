@@ -315,7 +315,7 @@ static const nsModuleComponentInfo components[] = {
 };
 
 
-PR_STATIC_CALLBACK(void) importModuleDtor(nsIModule* self)
+static void importModuleDtor(nsIModule* self)
 {
 #if defined(XP_WIN) || defined(XP_MACOSX)
     nsEudoraStringBundle::Cleanup();

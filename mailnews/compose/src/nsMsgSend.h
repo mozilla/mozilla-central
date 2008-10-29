@@ -428,7 +428,7 @@ private:
 //
 extern nsresult mime_write_message_body(nsIMsgSend *state, const char *buf, PRInt32 size);
 extern char   *mime_get_stream_write_buffer(void);
-extern nsresult PR_CALLBACK mime_encoder_output_fn (const char *buf, PRInt32 size, void *closure);
+extern nsresult mime_encoder_output_fn (const char *buf, PRInt32 size, void *closure);
 extern PRBool UseQuotedPrintable(void);
 
 #endif /*  __MSGSEND_H__ */

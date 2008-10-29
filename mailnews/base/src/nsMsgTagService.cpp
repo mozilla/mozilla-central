@@ -60,14 +60,14 @@
 static PRBool gMigratingKeys = PR_FALSE;
 
 // comparison functions for nsQuickSort
-PR_STATIC_CALLBACK(int)
+static int
 CompareMsgTagKeys(const void* aTagPref1, const void* aTagPref2, void* aData)
 {
   return strcmp(*static_cast<const char* const*>(aTagPref1),
                 *static_cast<const char* const*>(aTagPref2));
 }
 
-PR_STATIC_CALLBACK(int)
+static int
 CompareMsgTags(const void* aTagPref1, const void* aTagPref2, void* aData)
 {
   // Sort nsMsgTag objects by ascending order, using their ordinal or key.

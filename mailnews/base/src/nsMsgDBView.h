@@ -343,9 +343,9 @@ protected:
                           PRUint32 *len, nsIMsgCustomColumnHandler* colHandler = nsnull);
   nsresult GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortType, PRUint32 *result, 
                           nsIMsgCustomColumnHandler* colHandler = nsnull);
-  static int PR_CALLBACK FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData);
-  static int PR_CALLBACK FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privateData);
-  static int PR_CALLBACK FnSortIdUint32(const void *pItem1, const void *pItem2, void *privateData);
+  static int FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData);
+  static int FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privateData);
+  static int FnSortIdUint32(const void *pItem1, const void *pItem2, void *privateData);
 
   nsresult GetStatusSortValue(nsIMsgDBHdr *msgHdr, PRUint32 *result);
   nsresult GetLocationCollationKey(nsIMsgDBHdr *msgHdr, PRUint8 **result, PRUint32 *len);
