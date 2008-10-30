@@ -161,9 +161,6 @@
           </menupopup>
         </menu>
 
-        <menuitem label="Form Manager Samples"
-                  oncommand="openTopWin('http://www.mozilla.org/wallet/samples/wallet.html');"/>
-
         <menuitem label="chofmann's Browser Buster"
                   oncommand="openTopWin('http://webtools.mozilla.org/buster/');"/>
         <menuitem label="Composer (with test page)"
