@@ -58,6 +58,7 @@ Cu.import("resource://gloda/modules/utils.js");
 Cu.import("resource://gloda/modules/datastore.js");
 Cu.import("resource://gloda/modules/gloda.js");
 Cu.import("resource://gloda/modules/collection.js");
+Cu.import("resource://gloda/modules/connotent.js");
 
 Cu.import("resource://gloda/modules/mimemsg.js");
 
@@ -2177,16 +2178,39 @@ var GlodaIndexer = {
       //  associated with the id is still exactly the same.  It is conceivable
       //  that there are cases where this is not true.
     }
+
+    if (aMimeMsg) {
+      let bodyPlain = aMimeMsg.bodyPlain;
+      if (bodyPlain) {
+        curMsg._bodyLines = bodyPlain.split(/\r?\n/);
+        curMsg._content = new GlodaContent();
+      }
+      else {
+        this._log.warn("Have aMimeMsg but not bodyPlain?");
+      }
+    }
+    else {
+      this._log.warn("aMimeMsg went away?");
+    }
     
     if (isNew) {
-      curMsg._subject = aMsgHdr.subject;
-      curMsg._body = aMimeMsg && aMimeMsg.bodyPlain;
+      curMsg._isNew = true;
+      curMsg._subject = aMsgHdr.mime2DecodedSubject;
       curMsg._attachmentNames = attachmentNames;
     }
     
     yield aCallbackHandle.pushAndGo(
-        Gloda.grokNounItem(curMsg, {header: aMsgHdr, mime: aMimeMsg}, isNew,
+        Gloda.grokNounItem(curMsg,
+            {header: aMsgHdr, mime: aMimeMsg,
+             bodyLines: curMsg._bodyLines, content: curMsg._content},
+            isNew,
             aCallbackHandle));
+    
+    delete curMsg._bodyLines;
+    delete curMsg._content;
+    delete curMsg._isNew;
+    delete curMsg._subject;
+    delete curMsg._attachmentNames;
     
     // we want to update the header for messages only after the transaction
     //  irrevocably hits the disk.  otherwise we could get confused if the

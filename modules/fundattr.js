@@ -437,7 +437,108 @@ var GlodaFundAttr = {
       aGlodaMessage.ccMe = ccMe;
     if (fromMeCc.length)
       aGlodaMessage.fromMeCc = fromMeCc;
+    
+    if (aRawReps.bodyLines &&
+        this.contentWhittle(aGlodaMessage, {}, aRawReps.bodyLines,
+                            aRawReps.content)) {
+      // we were going to do something here?
+    }
 
     yield Gloda.kWorkDone;
+  },
+  
+  _countQuoteDepthAndNormalize:
+    function gloda_fundattr__countQuoteDepthAndNormalize(aLine) {
+    let count = 0;
+    let lastStartOffset = 0;
+    
+    for (let i = 0; i < aLine.length; i++) {
+      let c = aLine[i];
+      if (c == ">") {
+        count++;
+        lastStartOffset = i+1;
+      }
+      else if (c == " ") {
+      }
+      else {
+        return [count,
+                lastStartOffset ? aLine.substring(lastStartOffset) : aLine];
+      }
+    }
+    
+    return [count, lastStartOffset ? aLine.substring(lastStartOffset) : aLine];
+  },
+  
+  /**
+   * Attempt to understand simple quoting constructs that use ">" with
+   * obvious phrases to enter the quoting block.  No support for other types
+   * of quoting at this time.  Also no support for piercing the wrapper of
+   * forwarded messages to actually be the content of the forwarded message.
+   */
+  contentWhittle: function gloda_fundattr_contentWhittle(aGlodaMessage,
+      aMeta, aBodyLines, aContent) {
+    if (!aContent.volunteerContent(aContent.kPriorityBase))
+      return false;
+    
+    // duplicate the list; we mutate somewhat...
+    let bodyLines = aBodyLines.concat();
+    
+    let rangeStart = 0, lastNonBlankLine = null;
+    let inQuoteDepth = 0;
+    for each (let [iLine, line] in Iterator(bodyLines)) {
+      if (!line)
+        continue;
+      
+      if (line[0] == ">") {
+        if (!inQuoteDepth) {
+          let rangeEnd = iLine - 1;
+          let quoteRangeStart = iLine;
+          // see if the last non-blank-line was a lead-in...
+          if (lastNonBlankLine != null) {
+            if (aBodyLines[lastNonBlankLine].indexOf("wrote") >= 0) {
+              quoteRangeStart = lastNonBlankLine;
+              rangeEnd = lastNonBlankLine - 1;
+            }
+          }
+          if (rangeEnd >= rangeStart)
+            aContent.content(aBodyLines.slice(rangeStart, rangeEnd+1));
+          
+          [inQuoteDepth, line] = this._countQuoteDepthAndNormalize(line);
+          bodyLines[iLine] = line;
+          rangeStart = quoteRangeStart;
+        }
+        else {
+          let curQuoteDepth;
+          [curQuoteDepth, line] = this._countQuoteDepthAndNormalize(line);
+          bodyLines[iLine] = line;
+          
+          if (curQuoteDepth != inQuoteDepth) {
+            // we could do some "wrote" compensation here, but it's not really
+            //  as important.  let's wait for a more clever algorithm.
+            aContent.quoted(aBodyLines.slice(rangeStart, iLine), inQuoteDepth);
+            inQuoteDepth = curQuoteDepth;
+            rangeStart = iLine;
+          }
+        }
+      }
+      else {
+        if (inQuoteDepth) {
+          aContent.quoted(aBodyLines.slice(rangeStart, iLine), inQuoteDepth);
+          inQuoteDepth = 0;
+          rangeStart = iLine;
+        }
+      }
+      
+      lastNonBlankLine = iLine;
+    }
+    
+    if (inQuoteDepth) {
+      aContent.quoted(aBodyLines.slice(rangeStart), inQuoteDepth);
+    }
+    else {
+      aContent.content(aBodyLines.slice(rangeStart));
+    }
+    
+    return true;
   },
 };

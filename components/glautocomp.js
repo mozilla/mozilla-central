@@ -260,13 +260,17 @@ ContactIdentityCompleter.prototype = {
         
       // the set of identities owned by the contacts is automatically loaded as part
       //  of the contact loading...
+      // (but only if we actually have any contacts)
       this.identityCollection =
         this.contactCollection.subCollections[Gloda.NOUN_IDENTITY];
 
       let contactNames = [(c.name.replace(" ", "").toLowerCase() || "x") for each
                           ([, c] in Iterator(this.contactCollection.items))];
-      let identityMails = [i.value.toLowerCase() for each
-                           ([, i] in Iterator(this.identityCollection.items))];
+      // if we had no contacts, we will have no identity collection!
+      let identityMails;
+      if (this.identityCollection)
+        identityMails = [i.value.toLowerCase() for each
+                         ([, i] in Iterator(this.identityCollection.items))];
 
       this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
         this.contactCollection.items.concat(this.identityCollection.items));

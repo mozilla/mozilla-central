@@ -164,6 +164,15 @@ let GlodaHasAttributesMixIn = {
       }
     }
   },
+  
+  domContribute: function gloda_attrix_domContribute(aDomNode) {
+    let nounDef = this.NOUN_DEF;
+    for each (let [attrName, attr] in
+        Iterator(nounDef.domExposeAttribsByBoundName)) {
+      if (this[attrName])
+        aDomNode.setAttribute(attr.domExpose, this[attrName]);
+    }
+  },
 };
 
 function MixIn(aConstructor, aMixIn) {

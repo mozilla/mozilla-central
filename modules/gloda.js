@@ -47,6 +47,7 @@ Cu.import("resource://gloda/modules/log4moz.js");
 Cu.import("resource://gloda/modules/datastore.js");
 Cu.import("resource://gloda/modules/datamodel.js");
 Cu.import("resource://gloda/modules/collection.js");
+Cu.import("resource://gloda/modules/connotent.js");
 Cu.import("resource://gloda/modules/query.js");
 Cu.import("resource://gloda/modules/utils.js");
 
@@ -237,6 +238,33 @@ var Gloda = {
     return query.getCollection(aListener, aData);
   },
   
+  getMessageContent: function gloda_ns_getMessageContent(aGlodaMessage,
+      aMimeMsg) {
+    let content = new GlodaContent();
+    
+    let meta = {subject: aMimeMsg.get("subject")};
+    
+    let bodyLines = aMimeMsg.bodyPlain.split(/\r?\n/);
+    
+    // get the provider list in reverse order, mainly because we want more
+    //  specific content processors to get a chance before the default one
+    let attributeProviders =
+      this._attrProviderOrderByNoun[this.NOUN_MESSAGE].concat().reverse();
+    for each (let [, attrProvider] in Iterator(attributeProviders)) {
+      if (attrProvider.contentWhittle) {
+        try {
+          attrProvider.contentWhittle(aGlodaMessage, meta, bodyLines, content);
+        }
+        catch (ex) {
+          this._log.warn("Content whittler exception " + ex.fileName + ":" +
+            ex.lineNumber + ": " + ex);
+        }
+      }
+    }
+    
+    return content;
+  },
+  
   getFolderForFolder: function gloda_ns_getFolderForFolder(aMsgFolder) {
     return GlodaDatastore._mapFolder(aMsgFolder);
   },
@@ -299,6 +327,12 @@ var Gloda = {
       //  where we batch all the GUIDs for an async query)
       // XXX when the address book supports multiple e-mail addresses, we
       //  should also just create identities for any that don't yet exist
+      
+      // if there is no name, just use the e-mail (the ab indexer actually
+      //  processes the card's displayName for synchronization, so we don't
+      //  need to do that.)
+      if (!name)
+        name = address;
 
       let contact = GlodaDatastore.createContact(null, null, name, 0, 0);
 
@@ -708,6 +742,7 @@ var Gloda = {
         GlodaCollectionManager.defineCache(aNounDef, cacheSize);
     }
     aNounDef.attribsByBoundName = {};
+    aNounDef.domExposeAttribsByBoundName = {};
     
     aNounDef.objectNounOfAttributes = [];
 
@@ -1212,6 +1247,9 @@ var Gloda = {
       this._attrProvidersByNoun[subjectType][aAttrDef.provider].push(aAttrDef);
       
       subjectNounDef.attribsByBoundName[aAttrDef.boundName] = aAttrDef;
+      if (aAttrDef.domExpose)
+        subjectNounDef.domExposeAttribsByBoundName[aAttrDef.boundName] =
+          aAttrDef;
       
       if (aAttrDef.special & this.kSpecialColumn)
         subjectNounDef.specialLoadAttribs.push(aAttrDef);

@@ -1679,20 +1679,22 @@ var GlodaDatastore = {
     // we only create the full-text row if the body is non-null.
     // so, even though body might be null, we still want to create the
     //  full-text search row
-    if (aMessage._body) {
+    if (aMessage._bodyLines) {
+      let bodyText;
+      if (aMessage._content && aMessage._content.hasContent())
+        bodyText = aMessage._content.getContentString(true);
+      else
+        bodyText = aMessage._bodyLines.join("\n");
+      
       let imts = this._insertMessageTextStatement;
       imts.bindInt64Parameter(0, aMessage.id);
       imts.bindStringParameter(1, aMessage._subject);
-      imts.bindStringParameter(2, aMessage._body);
+      imts.bindStringParameter(2, bodyText);
       if (aMessage._attachmentNames === null)
         imts.bindNullParameter(3);
       else
         imts.bindStringParameter(3, aMessage._attachmentNames);
       
-      delete aMessage._subject;
-      delete aMessage._body;
-      delete aMessage._attachmentNames;
-
       try {
          imts.executeAsync(this.trackAsync());
       }
@@ -1746,19 +1748,21 @@ var GlodaDatastore = {
 
     ums.executeAsync(this.trackAsync());
 
-    if (aMessage._body) {
+    if (aMessage._isNew && aMessage._bodyLines) {
+      let bodyText;
+      if (aMessage._content && aMessage._content.hasContent())
+        bodyText = aMessage._content.getContentString(true);
+      else
+        bodyText = aMessage._bodyLines.join("\n");
+      
       let imts = this._insertMessageTextStatement;
       imts.bindInt64Parameter(0, aMessage.id);
       imts.bindStringParameter(1, aMessage._subject);
-      imts.bindStringParameter(2, aMessage._body);
+      imts.bindStringParameter(2, bodyText);
       if (aMessage._attachmentNames === null)
         imts.bindNullParameter(3);
       else
         imts.bindStringParameter(3, aMessage._attachmentNames);
-      
-      delete aMessage._subject;
-      delete aMessage._body;
-      delete aMessage._attachmentNames;
       
       try {
          imts.executeAsync(this.trackAsync());
