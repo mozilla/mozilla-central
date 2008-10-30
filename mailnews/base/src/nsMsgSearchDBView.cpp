@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -50,23 +50,40 @@
 #include "nsIMsgMessageService.h"
 #include "nsAutoPtr.h"
 #include "nsIMutableArray.h"
+#include "nsMsgGroupThread.h"
+#include "nsIPrefService.h"
+#include "nsIPrefBranch.h"
+
+static PRBool gReferenceOnlyThreading;
 
 nsMsgSearchDBView::nsMsgSearchDBView()
 {
   // don't try to display messages for the search pane.
   mSuppressMsgDisplay = PR_TRUE;
+  m_threadsTable.Init();
+  m_hdrsTable.Init();
 }
 
 nsMsgSearchDBView::~nsMsgSearchDBView()
 {	
 }
 
-NS_IMPL_ISUPPORTS_INHERITED3(nsMsgSearchDBView, nsMsgDBView, nsIMsgDBView, nsIMsgCopyServiceListener, nsIMsgSearchNotify)
+NS_IMPL_ISUPPORTS_INHERITED3(nsMsgSearchDBView, nsMsgDBView, nsIMsgDBView, 
+                             nsIMsgCopyServiceListener, nsIMsgSearchNotify)
 
-NS_IMETHODIMP nsMsgSearchDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount)
+NS_IMETHODIMP nsMsgSearchDBView::Open(nsIMsgFolder *folder, 
+                                      nsMsgViewSortTypeValue sortType, 
+                                      nsMsgViewSortOrderValue sortOrder, 
+                                      nsMsgViewFlagsTypeValue viewFlags, 
+                                      PRInt32 *pCount)
 {
-    nsresult rv = nsMsgDBView::Open(folder, sortType, sortOrder, viewFlags, pCount);
+  nsresult rv = nsMsgDBView::Open(folder, sortType, sortOrder, 
+                                    viewFlags, pCount);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
+  prefBranch->GetBoolPref("mail.strict_threading", &gReferenceOnlyThreading);
 
     if (pCount)
       *pCount = 0;
@@ -74,11 +91,28 @@ NS_IMETHODIMP nsMsgSearchDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeVal
     return rv;
 }
 
+
+PLDHashOperator
+nsMsgSearchDBView::ThreadTableCloner(const nsAString &aKey, nsIMsgThread* aThread, void* aArg)
+{
+  nsMsgSearchDBView* view = static_cast<nsMsgSearchDBView*>(aArg);
+  nsresult rv = view->m_threadsTable.Put(aKey, aThread);
+  return NS_SUCCEEDED(rv) ? PL_DHASH_NEXT : PL_DHASH_STOP;
+}
+
+PLDHashOperator
+nsMsgSearchDBView::MsgHdrTableCloner(const nsAString &aKey, nsIMsgDBHdr* aMsgHdr, void* aArg)
+{
+  nsMsgSearchDBView* view = static_cast<nsMsgSearchDBView*>(aArg);
+  nsresult rv = view->m_hdrsTable.Put(aKey, aMsgHdr);
+  return NS_SUCCEEDED(rv) ? PL_DHASH_NEXT : PL_DHASH_STOP;
+}
+
 NS_IMETHODIMP
 nsMsgSearchDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance, 
                                        nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater)
 {
-  nsMsgDBView::CopyDBView(aNewMsgDBView, aMessengerInstance, aMsgWindow, aCmdUpdater);
+  nsMsgGroupView::CopyDBView(aNewMsgDBView, aMessengerInstance, aMsgWindow, aCmdUpdater);
   nsMsgSearchDBView* newMsgDBView = (nsMsgSearchDBView *) aNewMsgDBView;
 
   // now copy all of our private member data
@@ -103,7 +137,12 @@ nsMsgSearchDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMesseng
     // register the new view with the database so it gets notifications
     m_dbToUseList[i]->AddListener(newMsgDBView);
   }
-
+  if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+  {
+    // We need to clone the thread and msg hdr hash tables.
+    m_threadsTable.EnumerateRead(ThreadTableCloner, newMsgDBView);
+    m_hdrsTable.EnumerateRead(MsgHdrTableCloner, newMsgDBView);
+  }
   return NS_OK;
 }
 
@@ -116,17 +155,18 @@ NS_IMETHODIMP nsMsgSearchDBView::Close()
 
   m_dbToUseList.Clear();
 
-  return nsMsgDBView::Close();
+  return nsMsgGroupView::Close();
 }
 
 NS_IMETHODIMP nsMsgSearchDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
 {
   const PRUnichar* colID;
   aCol->GetIdConst(&colID);
-  if (colID[0] == 'l' && colID[1] == 'o') // location, need to check for "lo" not just "l" to avoid "label" column
+  // location, need to check for "lo" not just "l" to avoid "label" column
+  if (colID[0] == 'l' && colID[1] == 'o') 
     return FetchLocation(aRow, aValue);
   else
-    return nsMsgDBView::GetCellText(aRow, aCol, aValue);
+    return nsMsgGroupView::GetCellText(aRow, aCol, aValue);
 }
 
 nsresult nsMsgSearchDBView::FetchLocation(PRInt32 aRow, nsAString& aLocationString)
@@ -137,12 +177,123 @@ nsresult nsMsgSearchDBView::FetchLocation(PRInt32 aRow, nsAString& aLocationStri
   return folder->GetPrettiestName(aLocationString);
 }
 
-nsresult nsMsgSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool /*ensureListed*/)
+nsresult nsMsgSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey,
+                                        PRBool /*ensureListed*/)
 {
    return NS_OK;
 }
 
-nsresult nsMsgSearchDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDBHdr **msgHdr)
+NS_IMETHODIMP 
+nsMsgSearchDBView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, 
+                                PRInt32 aFlags, nsIDBChangeListener *aInstigator)
+{
+  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+    return nsMsgGroupView::OnHdrDeleted(aHdrDeleted, aParentKey, 
+                                        aFlags, aInstigator);
+  if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+  {
+    nsMsgViewIndex deletedIndex = FindHdr(aHdrDeleted);
+    PRUint32 savedFlags = 0;
+    if (deletedIndex != nsMsgViewIndex_None)
+    {
+      savedFlags = m_flags[deletedIndex];
+      RemoveByIndex(deletedIndex);
+    }
+
+    nsCOMPtr<nsIMsgThread> thread;
+    GetXFThreadFromMsgHdr(aHdrDeleted, getter_AddRefs(thread));
+    if (thread)
+    {
+      nsMsgXFViewThread *viewThread = static_cast<nsMsgXFViewThread*>(thread.get());
+      viewThread->RemoveChildHdr(aHdrDeleted, nsnull);
+      if (deletedIndex == nsMsgViewIndex_None && viewThread->MsgCount() == 1)
+      {
+        // remove the last child of a collapsed thread. Need to find the root,
+        // and remove the thread flags on it.
+        nsCOMPtr<nsIMsgDBHdr> rootHdr;
+        thread->GetRootHdr(nsnull, getter_AddRefs(rootHdr));
+        if (rootHdr)
+        {
+          nsMsgViewIndex threadIndex = GetThreadRootIndex(rootHdr);
+          if (threadIndex != nsMsgViewIndex_None)
+            AndExtraFlag(threadIndex, ~(MSG_VIEW_FLAG_ISTHREAD | 
+                                        MSG_FLAG_ELIDED | 
+                                        MSG_VIEW_FLAG_HASCHILDREN));
+        }
+      }
+      else if (savedFlags & MSG_VIEW_FLAG_HASCHILDREN)
+{
+        if (savedFlags & MSG_FLAG_ELIDED)
+        {
+          nsCOMPtr<nsIMsgDBHdr> rootHdr;
+          nsresult rv = thread->GetRootHdr(nsnull, getter_AddRefs(rootHdr));
+          NS_ENSURE_SUCCESS(rv, rv);
+          nsMsgKey msgKey;
+          PRUint32 msgFlags;
+          rootHdr->GetMessageKey(&msgKey);
+          rootHdr->GetFlags(&msgFlags);
+          // promote the new thread root
+          if (viewThread->MsgCount() > 1)
+            msgFlags |= MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED | 
+                        MSG_VIEW_FLAG_HASCHILDREN;
+          InsertMsgHdrAt(deletedIndex, rootHdr, msgKey, msgFlags, 0);
+          NoteChange(deletedIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
+        }
+        else if (viewThread->MsgCount() > 1)
+        {
+          OrExtraFlag(deletedIndex, MSG_VIEW_FLAG_ISTHREAD |
+                                    MSG_VIEW_FLAG_HASCHILDREN);
+        }
+      }
+    }
+  }
+  else
+  {
+    return nsMsgDBView::OnHdrDeleted(aHdrDeleted, aParentKey, 
+                                        aFlags, aInstigator);
+  }
+   return NS_OK;
+}
+
+void nsMsgSearchDBView::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,
+                              nsMsgKey msgKey, PRUint32 flags, PRUint32 level)
+{
+  m_keys.InsertElementAt(index, msgKey);
+  m_flags.InsertElementAt(index, flags);
+  m_levels.InsertElementAt(index, level);
+  nsCOMPtr<nsIMsgFolder> folder;
+  hdr->GetFolder(getter_AddRefs(folder));
+  m_folders.InsertObjectAt(folder, index);
+}
+
+void nsMsgSearchDBView::SetMsgHdrAt(nsIMsgDBHdr *hdr, nsMsgViewIndex index, 
+                              nsMsgKey msgKey, PRUint32 flags, PRUint32 level)
+{
+  m_keys[index] = msgKey;
+  m_flags[index] = flags;
+  m_levels[index] = level;
+  nsCOMPtr<nsIMsgFolder> folder;
+  hdr->GetFolder(getter_AddRefs(folder));
+  m_folders.ReplaceObjectAt(folder, index);
+}
+
+PRBool nsMsgSearchDBView::InsertEmptyRows(nsMsgViewIndex viewIndex, PRInt32 numRows)
+{
+  for (PRInt32 i = 0; i < numRows; i++)
+    if (!m_folders.InsertObjectAt(nsnull, viewIndex + i))
+      return PR_FALSE;
+  return nsMsgDBView::InsertEmptyRows(viewIndex, numRows);
+}
+
+void nsMsgSearchDBView::RemoveRows(nsMsgViewIndex viewIndex, PRInt32 numRows)
+{
+  nsMsgDBView::RemoveRows(viewIndex, numRows);
+  for (PRInt32 i = 0; i < numRows; i++)
+    m_folders.RemoveObjectAt(viewIndex);
+}
+
+nsresult nsMsgSearchDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index, 
+                                                  nsIMsgDBHdr **msgHdr)
 {
   nsresult rv = NS_MSG_INVALID_DBVIEW_INDEX;
   if (index == nsMsgViewIndex_None || index > (PRUint32) m_folders.Count())
@@ -179,10 +330,134 @@ nsresult nsMsgSearchDBView::GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDataba
 
 nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder)
 {
-  m_folders.AppendObject(folder);
+  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+    return nsMsgGroupView::OnNewHeader(msgHdr, nsMsgKey_None, PR_TRUE);
   nsMsgKey msgKey;
   PRUint32 msgFlags;
   msgHdr->GetMessageKey(&msgKey);
+  msgHdr->GetFlags(&msgFlags);
+
+  if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+  {
+    nsCOMPtr<nsIMsgThread> thread;
+    nsCOMPtr<nsIMsgDBHdr> threadRoot;
+    // if we find an xf thread in the hash table corresponding to the new msg's
+    // message id, a previous header must be a reference child of the new 
+    // message, which means we need to reparent later.
+    PRBool msgIsReferredTo;
+    GetXFThreadFromMsgHdr(msgHdr, getter_AddRefs(thread), &msgIsReferredTo);
+    PRBool newThread = !thread;
+    nsMsgXFViewThread *viewThread;
+    if (!thread)
+    {
+      viewThread = new nsMsgXFViewThread(this);
+      if (!viewThread)
+        return NS_ERROR_OUT_OF_MEMORY;
+      thread = do_QueryInterface(viewThread);
+    }
+    else
+    {
+      viewThread = static_cast<nsMsgXFViewThread*>(thread.get());
+      thread->GetChildAt(0, getter_AddRefs(threadRoot));
+    }
+
+    AddMsgToHashTables(msgHdr, thread);
+    nsCOMPtr<nsIMsgDBHdr> parent;
+    PRUint32 posInThread;
+    // We need to move threads in order to keep ourselves sorted
+    // correctly.  We want the index of the original thread...we can do this by
+    // getting the root header before we add the new header, and finding that.
+    if (newThread || !viewThread->MsgCount())
+    {
+      viewThread->AddHdr(msgHdr, PR_FALSE, posInThread,
+                         getter_AddRefs(parent));
+      nsMsgViewIndex insertIndex = GetIndexForThread(msgHdr);
+      NS_ASSERTION(insertIndex == m_levels.Length() || !m_levels[insertIndex],
+                    "inserting into middle of thread");
+      if (insertIndex == nsMsgViewIndex_None)
+        return NS_ERROR_FAILURE;
+      if (!(m_viewFlags & nsMsgViewFlagsType::kExpandAll))
+        msgFlags |= MSG_FLAG_ELIDED;
+      InsertMsgHdrAt(insertIndex, msgHdr, msgKey, msgFlags, 0);
+      NoteChange(insertIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
+    }
+    else
+    {
+      // get the thread root index before we add the header, because adding
+      // the header can change the sort position.
+      nsMsgViewIndex threadIndex = GetThreadRootIndex(threadRoot);
+      NS_ASSERTION(!m_levels[threadIndex], "threadRoot incorrect, or level incorrect");
+      viewThread->AddHdr(msgHdr, msgIsReferredTo, posInThread,
+                         getter_AddRefs(parent));
+
+      PRBool moveThread = PR_FALSE;
+      if (m_sortType == nsMsgViewSortType::byDate)
+      {
+        PRUint32 newestMsgInThread = 0, msgDate = 0;
+        viewThread->GetNewestMsgDate(&newestMsgInThread);
+        msgHdr->GetDateInSeconds(&msgDate);
+        moveThread = (msgDate == newestMsgInThread);
+      }
+      OrExtraFlag(threadIndex, MSG_VIEW_FLAG_HASCHILDREN | MSG_VIEW_FLAG_ISTHREAD);
+      if (!(m_flags[threadIndex] & MSG_FLAG_ELIDED))
+      {
+        if (parent)
+        {
+          // since we know posInThread, we just want to insert the new hdr
+          // at threadIndex + posInThread, and then rebuild the view until we
+          // get to a sibling of the new hdr.
+          PRUint8 newMsgLevel = viewThread->ChildLevelAt(posInThread);
+          InsertMsgHdrAt(threadIndex + posInThread, msgHdr, msgKey, msgFlags,
+                         newMsgLevel);
+
+          NoteChange(threadIndex + posInThread, 1, nsMsgViewNotificationCode::insertOrDelete);
+          for (nsMsgViewIndex viewIndex = threadIndex + ++posInThread;
+               posInThread < viewThread->MsgCount() && 
+               viewThread->ChildLevelAt(posInThread) > newMsgLevel; viewIndex++)
+          {
+            m_levels[viewIndex] = viewThread->ChildLevelAt(posInThread++);
+          }
+
+        }
+        else // The new header is the root, so we need to adjust 
+             // all the children.
+        {
+          InsertMsgHdrAt(threadIndex, msgHdr, msgKey, msgFlags, 0);
+
+          NoteChange(threadIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
+          nsMsgViewIndex i;
+          for (i = threadIndex + 1; 
+               i < m_keys.Length() && (i == threadIndex + 1 || m_levels[i]); i++)
+            m_levels[i] = m_levels[i] + 1;
+          // turn off thread flags on old root.
+          AndExtraFlag(threadIndex + 1, ~(MSG_VIEW_FLAG_ISTHREAD | 
+                                          MSG_FLAG_ELIDED | 
+                                          MSG_VIEW_FLAG_HASCHILDREN));
+
+          NoteChange(threadIndex + 1, i - threadIndex + 1, 
+                     nsMsgViewNotificationCode::changed);
+        }
+      }
+      else if (!parent)
+      {
+        // new parent came into collapsed thread
+        nsCOMPtr<nsIMsgFolder> msgFolder;
+        msgHdr->GetFolder(getter_AddRefs(msgFolder));
+        m_keys[threadIndex] = msgKey;
+        m_folders.ReplaceObjectAt(msgFolder, threadIndex);
+        m_flags[threadIndex] = msgFlags | MSG_VIEW_FLAG_ISTHREAD | 
+                                          MSG_FLAG_ELIDED | 
+                                          MSG_VIEW_FLAG_HASCHILDREN;
+        NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
+
+      }
+      if (moveThread)
+        MoveThreadAt(threadIndex);
+    }
+  }
+  else
+  {
+    m_folders.AppendObject(folder);
   // nsMsgKey_None means it's not a valid hdr.
   if (msgKey != nsMsgKey_None)
   {
@@ -190,13 +465,91 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
     m_keys.AppendElement(msgKey);
     m_levels.AppendElement(0);
     m_flags.AppendElement(msgFlags);
-    
-    // this needs to be called after we add the key, since RowCountChanged() will call our GetRowCount()
-    if (mTree)
-      mTree->RowCountChanged(GetSize() - 1, 1);
+      NoteChange(GetSize() - 1, 1, nsMsgViewNotificationCode::insertOrDelete);
+    }
   }
   return NS_OK;
   }
+
+// This method removes the thread at threadIndex from the view 
+// and puts it back in its new position, determined by the sort order.
+// And, if the selection is affected, save and restore the selection.
+void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
+{
+  PRBool updatesSuppressed = mSuppressChangeNotification;
+  // Turn off tree notifications so that we don't reload the current message.
+  if (!updatesSuppressed)
+    DisableChangeUpdates();
+
+  nsCOMPtr<nsIMsgDBHdr> threadHdr;
+  GetMsgHdrForViewIndex(threadIndex, getter_AddRefs(threadHdr));
+
+  PRUint32 saveFlags = m_flags[threadIndex];
+  PRBool threadIsExpanded = !(saveFlags & MSG_FLAG_ELIDED);
+  PRInt32 childCount = 0;
+  nsMsgKey preservedKey;
+  nsAutoTArray<nsMsgKey, 1> preservedSelection;
+  PRInt32 selCount;
+
+  SaveAndClearSelection(&preservedKey, preservedSelection);
+  if (threadIsExpanded)
+  {
+    ExpansionDelta(threadIndex, &childCount);
+    childCount = -childCount;
+  }
+  nsTArray<nsMsgKey> threadKeys;
+  nsTArray<PRUint32> threadFlags;
+  nsTArray<PRUint8> threadLevels;
+  nsCOMArray<nsIMsgFolder> threadFolders;
+
+  if (threadIsExpanded)
+  {
+    threadKeys.SetCapacity(childCount);
+    threadFlags.SetCapacity(childCount);
+    threadLevels.SetCapacity(childCount);
+    threadFolders.SetCapacity(childCount);
+    for (nsMsgViewIndex index = threadIndex + 1; 
+        index < (nsMsgViewIndex) GetSize() && m_levels[index]; index++)
+    {
+      threadKeys.AppendElement(m_keys[index]);
+      threadFlags.AppendElement(m_flags[index]);
+      threadLevels.AppendElement(m_levels[index]);
+      threadFolders.AppendObject(m_folders[index]);
+    }
+    PRUint32 collapseCount;
+    CollapseByIndex(threadIndex, &collapseCount);
+  }
+  nsMsgDBView::RemoveByIndex(threadIndex);
+  m_folders.RemoveObjectAt(threadIndex);
+  nsMsgViewIndex newIndex = GetIndexForThread(threadHdr);
+  NS_ASSERTION(newIndex == m_levels.Length() || !m_levels[newIndex],
+                "inserting into middle of thread");
+  if (newIndex == nsMsgViewIndex_None)
+    newIndex = 0;
+  nsMsgKey msgKey;
+  PRUint32 msgFlags;
+  threadHdr->GetMessageKey(&msgKey);
+  threadHdr->GetFlags(&msgFlags);
+  InsertMsgHdrAt(newIndex, threadHdr, msgKey, msgFlags, 0);
+
+  if (threadIsExpanded)
+  {
+    m_keys.InsertElementsAt(newIndex + 1, threadKeys);
+    m_flags.InsertElementsAt(newIndex + 1, threadFlags);
+    m_levels.InsertElementsAt(newIndex + 1, threadLevels);
+    m_folders.InsertObjectsAt(threadFolders, newIndex + 1);
+  }
+  m_flags[newIndex] = saveFlags;
+  // unfreeze selection.
+  RestoreSelection(preservedKey, preservedSelection);
+
+  if (!updatesSuppressed)
+    EnableChangeUpdates();
+  nsMsgViewIndex lowIndex = threadIndex < newIndex ? threadIndex : newIndex;
+  nsMsgViewIndex highIndex = lowIndex == threadIndex ? newIndex : threadIndex;
+  NoteChange(lowIndex, highIndex - lowIndex + childCount, 
+              nsMsgViewNotificationCode::changed);
+}
 
 NS_IMETHODIMP
 nsMsgSearchDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *folder)
@@ -294,15 +647,17 @@ nsMsgSearchDBView::DoCommandWithFolder(nsMsgViewCommandTypeValue command, nsIMsg
 {
     mCommand = command;
     mDestFolder = destFolder;
-
     return nsMsgDBView::DoCommandWithFolder(command, destFolder);
 }
 
 NS_IMETHODIMP nsMsgSearchDBView::DoCommand(nsMsgViewCommandTypeValue command)
 {
   mCommand = command;
-  if (command == nsMsgViewCommandType::deleteMsg || command == nsMsgViewCommandType::deleteNoTrash
-    || command == nsMsgViewCommandType::selectAll)
+  if (command == nsMsgViewCommandType::deleteMsg || 
+      command == nsMsgViewCommandType::deleteNoTrash ||
+      command == nsMsgViewCommandType::selectAll || 
+      command ==nsMsgViewCommandType::expandAll ||
+      command == nsMsgViewCommandType::collapseAll)
     return nsMsgDBView::DoCommand(command);
   nsresult rv = NS_OK;
   nsMsgViewIndexArray selection;
@@ -328,15 +683,55 @@ NS_IMETHODIMP nsMsgSearchDBView::DoCommand(nsMsgViewCommandTypeValue command)
   return rv;
 }
 
-// This method just removes the specified line from the view. It does
-// NOT delete it from the database.
+// This method removes the specified line from the view, and adjusts the
+// various flags and levels of affected messages.
 nsresult nsMsgSearchDBView::RemoveByIndex(nsMsgViewIndex index)
 {
     if (!IsValidIndex(index))
         return NS_MSG_INVALID_DBVIEW_INDEX;
 
-    m_folders.RemoveObjectAt(index);
+  if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+  {
+    nsCOMPtr<nsIMsgDBHdr> msgHdr;
+    nsCOMPtr<nsIMsgThread> thread;
+    nsresult rv = GetMsgHdrForViewIndex(index, getter_AddRefs(msgHdr));
+    NS_ENSURE_SUCCESS(rv, rv);
     
+    GetXFThreadFromMsgHdr(msgHdr, getter_AddRefs(thread));
+    if (thread)
+    {
+      nsMsgXFViewThread *viewThread = static_cast<nsMsgXFViewThread*>(thread.get());
+      if (viewThread->MsgCount() == 2)
+      {
+        // if we removed the next to last message in the thread,
+        // we need to adjust the flags on the first message in the thread.
+        nsMsgViewIndex threadIndex = m_levels[index] ? index -1 : index;
+        if (threadIndex != nsMsgViewIndex_None)
+        {
+          AndExtraFlag(threadIndex, ~(MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED |
+                                      MSG_VIEW_FLAG_HASCHILDREN));
+          m_levels[threadIndex] = 0;
+          NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
+        }
+      }
+      // Bump up the level of all the descendents of the message
+      // that was removed, if the thread was expanded.
+      PRUint8 removedLevel = m_levels[index];
+      nsMsgViewIndex i = index + 1;
+      if (i < m_levels.Length() && m_levels[i] > removedLevel)
+      {
+        // promote the child of the removed message.
+        PRUint8 promotedLevel = m_levels[i];
+        m_levels[i] = promotedLevel - 1;
+        i++;
+        // now promote all the children of the promoted message.
+        for (; i < m_levels.Length() && 
+              m_levels[i] > promotedLevel; i++)
+          m_levels[i] = m_levels[i] - 1;
+      }
+    }
+  }
+  m_folders.RemoveObjectAt(index);
     return nsMsgDBView::RemoveByIndex(index);
 }
 
@@ -367,12 +762,8 @@ nsresult nsMsgSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex 
 nsresult 
 nsMsgSearchDBView::CopyMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool isMove, nsIMsgFolder *destFolder)
 {
-    nsresult rv;
     GetFoldersAndHdrsForSelection(indices, numIndices);
-
-    rv = ProcessRequestsInOneFolder(window);
-
-    return rv;
+    return ProcessRequestsInOneFolder(window);
 }
 
 nsresult
@@ -569,18 +960,26 @@ nsresult nsMsgSearchDBView::ProcessRequestsInAllFolders(nsIMsgWindow *window)
 
 NS_IMETHODIMP nsMsgSearchDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder)
 {
-    nsresult rv;
     PRInt32 rowCountBeforeSort = GetSize();
 
     if (!rowCountBeforeSort)
         return NS_OK;
 
+    if (m_viewFlags & (nsMsgViewFlagsType::kThreadedDisplay |
+                      nsMsgViewFlagsType::kGroupBySort))
+    {
+      // ### This forgets which threads were expanded, and is sub-optimal
+      // since it rebuilds the thread objects.  
+      m_sortType = sortType;
+      m_sortOrder = sortOrder;
+      return RebuildView();
+    }
+
     nsMsgKey preservedKey;
     nsAutoTArray<nsMsgKey, 1> preservedSelection;
     SaveAndClearSelection(&preservedKey, preservedSelection);
 
-    rv = nsMsgDBView::Sort(sortType,sortOrder);
-
+    nsresult rv = nsMsgDBView::Sort(sortType,sortOrder);
     // the sort may have changed the number of rows
     // before we restore the selection, tell the tree
     // do this before we call restore selection
@@ -593,7 +992,6 @@ NS_IMETHODIMP nsMsgSearchDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgView
     NS_ENSURE_SUCCESS(rv,rv);
     return rv;
 }
-
 
 // if nothing selected, return an NS_ERROR
 NS_IMETHODIMP
@@ -623,3 +1021,285 @@ nsMsgSearchDBView::GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFold
   return msgHdr->GetFolder(aFolder);
 }
 
+nsMsgViewIndex nsMsgSearchDBView::FindHdr(nsIMsgDBHdr *msgHdr)
+{
+  nsCOMPtr<nsIMsgDBHdr> curHdr;
+  PRInt32 index;
+  // it would be nice to take advantage of sorted views when possible.
+  for (index = 0; index < GetSize(); index++)
+  {
+    GetMsgHdrForViewIndex(index, getter_AddRefs(curHdr));
+    if (curHdr == msgHdr && (!(m_flags[index] & MSG_VIEW_FLAG_DUMMY) ||
+        (m_flags[index] & MSG_FLAG_ELIDED)))
+      break;
+  }
+  return index < GetSize() ? index : nsMsgViewIndex_None;
+}
+
+// This method looks for the XF thread that corresponds to this message hdr,
+// first by looking up the message id, then references, and finally, if subject
+// threading is turned on, the subject.
+nsresult nsMsgSearchDBView::GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr, 
+                                                  nsIMsgThread **pThread,
+                                                  PRBool *foundByMessageId)
+{
+  nsAutoString hashKey;
+  nsCAutoString messageId;
+  msgHdr->GetMessageId(getter_Copies(messageId));
+  CopyASCIItoUTF16(messageId, hashKey);
+  *pThread = nsnull;
+  m_threadsTable.Get(hashKey, pThread);
+  // The caller may want to know if we found the thread by the msgHdr's
+  // messageId
+  if (foundByMessageId)
+    *foundByMessageId = *pThread != nsnull;
+  if (!*pThread)
+  {
+    PRUint16 numReferences = 0;
+    msgHdr->GetNumReferences(&numReferences);
+    for (PRInt32 i = numReferences - 1; i >= 0  && !*pThread; i--)
+    {
+      nsCAutoString reference;
+      
+      msgHdr->GetStringReference(i, reference);
+      if (reference.IsEmpty())
+        break;
+
+      CopyASCIItoUTF16(reference, hashKey);
+      m_threadsTable.Get(hashKey, pThread);
+    }
+  }
+  // if we're threading by subject, and we couldn't find the thread by ref,
+  // just treat subject as an other ref.
+  if (!*pThread && !gReferenceOnlyThreading)
+  {
+    nsCString subject;
+    msgHdr->GetSubject(getter_Copies(subject));
+    // this is the raw rfc822 subject header, so this is OK
+    CopyASCIItoUTF16(subject, hashKey);
+    m_threadsTable.Get(hashKey, pThread);
+  }
+  return (*pThread) ? NS_OK : NS_ERROR_FAILURE;
+}
+
+nsresult nsMsgSearchDBView::GetMsgHdrFromHash(nsCString &reference, nsIMsgDBHdr **hdr)
+{
+  nsString hashKey;
+  CopyASCIItoUTF16(reference, hashKey);
+  return m_hdrsTable.Get(hashKey, hdr);
+}
+
+nsresult nsMsgSearchDBView::GetThreadFromHash(nsCString &reference, 
+                                              nsIMsgThread **thread)
+{
+  nsString hashKey;
+  CopyASCIItoUTF16(reference, hashKey);
+  return m_threadsTable.Get(hashKey, thread);
+}
+
+nsresult nsMsgSearchDBView::AddRefToHash(nsCString &reference, 
+                                         nsIMsgThread *thread)
+{
+  nsString hashKey;
+  CopyASCIItoUTF16(reference, hashKey);
+  // Check if this reference is already is associated with a thread;
+  // If so, don't overwrite that association.
+  nsCOMPtr<nsIMsgThread> oldThread;
+  m_threadsTable.Get(hashKey, getter_AddRefs(oldThread));
+  if (oldThread)
+    return NS_OK;
+
+  return m_threadsTable.Put(hashKey, thread);
+}
+
+nsresult nsMsgSearchDBView::AddMsgToHashTables(nsIMsgDBHdr *msgHdr,
+                                               nsIMsgThread *thread)
+{
+  PRUint16 numReferences = 0;
+  nsresult rv;
+
+  msgHdr->GetNumReferences(&numReferences);
+  for (PRInt32 i = 0; i < numReferences; i++)
+  {
+    nsCAutoString reference;
+    
+    msgHdr->GetStringReference(i, reference);
+    if (reference.IsEmpty())
+      break;
+
+    rv = AddRefToHash(reference, thread);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  nsCString messageId;
+  msgHdr->GetMessageId(getter_Copies(messageId));
+  nsString hashKey;
+  CopyASCIItoUTF16(messageId, hashKey);
+  m_hdrsTable.Put(hashKey, msgHdr);
+  if (!gReferenceOnlyThreading)
+  {
+    nsCString subject;
+    msgHdr->GetSubject(getter_Copies(subject));
+    // if we're threading by subject, just treat subject as an other ref.
+    AddRefToHash(subject, thread);
+  }
+  return AddRefToHash(messageId, thread);
+}
+
+nsresult nsMsgSearchDBView::RemoveRefFromHash(nsCString &reference)
+{
+  nsString hashKey;
+  CopyASCIItoUTF16(reference, hashKey);
+  m_threadsTable.Remove(hashKey);
+  return NS_OK;
+}
+
+nsresult nsMsgSearchDBView::RemoveMsgFromHashTables(nsIMsgDBHdr *msgHdr)
+{
+  PRUint16 numReferences = 0;
+  nsresult rv = NS_OK;
+
+  msgHdr->GetNumReferences(&numReferences);
+
+  for (PRInt32 i = 0; i < numReferences; i++)
+  {
+    nsCAutoString reference;
+    msgHdr->GetStringReference(i, reference);
+    if (reference.IsEmpty())
+      break;
+
+    rv = RemoveRefFromHash(reference);
+    if (NS_FAILED(rv))
+      break;
+  }
+  nsCString messageId;
+  msgHdr->GetMessageId(getter_Copies(messageId));
+  nsString hashKey;
+  CopyASCIItoUTF16(messageId, hashKey);
+  m_hdrsTable.Remove(hashKey);
+  RemoveRefFromHash(messageId);
+  if (!gReferenceOnlyThreading)
+  {
+    nsCString subject;
+    msgHdr->GetSubject(getter_Copies(subject));
+    // if we're threading by subject, just treat subject as an other ref.
+    RemoveRefFromHash(subject);
+  }
+  return rv;
+}
+
+nsMsgGroupThread *nsMsgSearchDBView::CreateGroupThread(nsIMsgDatabase * /* db */)
+{
+  return new nsMsgXFGroupThread();
+}
+
+nsresult nsMsgSearchDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, 
+                                                      nsIMsgThread **pThread)
+{
+  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+    return nsMsgGroupView::GetThreadContainingMsgHdr(msgHdr, pThread);
+  else if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+    return GetXFThreadFromMsgHdr(msgHdr, pThread);
+
+  // if not threaded, use the real thread. 
+  nsCOMPtr<nsIMsgFolder> folder;
+  nsresult rv = msgHdr->GetFolder(getter_AddRefs(folder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgDatabase> msgDB;
+  rv = folder->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return msgDB->GetThreadContainingMsgHdr(msgHdr, pThread);
+}
+
+nsresult 
+nsMsgSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, 
+                                   nsMsgViewIndex startOfThreadViewIndex, 
+                                   PRUint32 *pNumListed)
+{
+  NS_ENSURE_ARG(threadHdr);
+  // these children ids should be in thread order.
+  PRUint32 i;
+  nsMsgViewIndex viewIndex = startOfThreadViewIndex + 1;
+  *pNumListed = 0;
+
+  PRUint32 numChildren;
+  threadHdr->GetNumChildren(&numChildren);
+  NS_ASSERTION(numChildren, "Empty thread in view/db");
+  if (!numChildren)
+    return NS_OK;
+
+  numChildren--; // account for the existing thread root
+  if (!InsertEmptyRows(viewIndex, numChildren))
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  PRBool threadedView = m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay &&
+    !(m_viewFlags & nsMsgViewFlagsType::kGroupBySort);
+  nsMsgXFViewThread *viewThread;
+  if (threadedView)
+    viewThread = static_cast<nsMsgXFViewThread*>(threadHdr);
+
+  for (i = 1; i <= numChildren; i++)
+  {
+    nsCOMPtr<nsIMsgDBHdr> msgHdr;
+    threadHdr->GetChildHdrAt(i, getter_AddRefs(msgHdr));
+
+    if (msgHdr)
+    {
+      nsMsgKey msgKey;
+      PRUint32 msgFlags;
+      msgHdr->GetMessageKey(&msgKey);
+      msgHdr->GetFlags(&msgFlags);
+      PRUint8 level = (threadedView) ? viewThread->ChildLevelAt(i) : 1;
+      SetMsgHdrAt(msgHdr, viewIndex, msgKey, msgFlags & ~MSG_VIEW_FLAGS, 
+                  level);
+      (*pNumListed)++;
+      viewIndex++;
+    }
+  }
+  return NS_OK;
+}
+
+nsresult nsMsgSearchDBView::RebuildView()
+{
+  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+    return nsMsgGroupView::RebuildView();
+
+  nsCOMPtr<nsISimpleEnumerator> headers;
+  if (NS_SUCCEEDED(GetMessageEnumerator(getter_AddRefs(headers))))
+  {
+    PRInt32 count;
+    // ### we need to be remembering headers, not keys.
+    nsAutoTArray<nsMsgKey, 1> preservedSelection;
+    nsMsgKey curSelectedKey;
+    SaveAndClearSelection(&curSelectedKey, preservedSelection);
+    InternalClose();
+    PRInt32 oldSize = GetSize();
+    // this is important, because the tree will ask us for our
+    // row count, which get determine from the number of keys.
+    m_keys.Clear();
+    // be consistent
+    m_flags.Clear();
+    m_levels.Clear();
+    m_folders.Clear();
+    m_threadsTable.Clear();
+    m_hdrsTable.Clear();
+
+    // this needs to happen after we remove all the keys, since RowCountChanged() will call our GetRowCount()
+    if (mTree)
+      mTree->RowCountChanged(0, -oldSize);
+    DisableChangeUpdates();
+    nsresult rv = OpenWithHdrs(headers, m_sortType, m_sortOrder, m_viewFlags, &count);
+    EnableChangeUpdates();
+    if (mTree)
+      mTree->RowCountChanged(0, GetSize());
+
+    NS_ENSURE_SUCCESS(rv,rv);
+
+    // now, restore our desired selection
+    nsAutoTArray<nsMsgKey, 1> keyArray;
+    keyArray.AppendElement(curSelectedKey);
+
+    return RestoreSelection(curSelectedKey, keyArray);
+  }
+  return NS_OK;
+}

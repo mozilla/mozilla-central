@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -60,7 +60,11 @@ nsMsgXFVirtualFolderDBView::~nsMsgXFVirtualFolderDBView()
 {
 }
 
-NS_IMETHODIMP nsMsgXFVirtualFolderDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount)
+NS_IMETHODIMP nsMsgXFVirtualFolderDBView::Open(nsIMsgFolder *folder, 
+                                               nsMsgViewSortTypeValue sortType, 
+                                               nsMsgViewSortOrderValue sortOrder, 
+                                               nsMsgViewFlagsTypeValue viewFlags, 
+                                               PRInt32 *pCount)
 {
   m_viewFolder = folder;
   return nsMsgSearchDBView::Open(folder, sortType, sortOrder, viewFlags, pCount);
@@ -111,7 +115,6 @@ nsMsgXFVirtualFolderDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger 
   newMsgDBView->m_searchSession = m_searchSession;
   return NS_OK;
 }
-
 
 NS_IMETHODIMP nsMsgXFVirtualFolderDBView::GetViewType(nsMsgViewTypeValue *aViewType)
 {
@@ -205,10 +208,7 @@ nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, ns
   PRUint32 msgFlags;
   msgHdr->GetMessageKey(&msgKey);
   msgHdr->GetFlags(&msgFlags);
-  m_keys.InsertElementAt(insertIndex, msgKey);
-  m_flags.InsertElementAt(insertIndex, msgFlags);
-  m_folders.InsertObjectAt(folder, insertIndex);
-  m_levels.InsertElementAt(insertIndex, 0);
+  InsertMsgHdrAt(insertIndex, msgHdr, msgKey, msgFlags, 0);
 
   // the call to NoteChange() has to happen after we add the key
   // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
@@ -230,12 +230,16 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForFolder(nsIMsgFolder *folde
                      &numBadHits, &badHits);
     if (NS_SUCCEEDED(rv))
     {
+      nsCOMPtr<nsIMsgDBHdr> badHdr;
       for (PRUint32 badHitIndex = 0; badHitIndex < numBadHits; badHitIndex++)
       {
-        // of course, this isn't quite right
-        nsMsgViewIndex staleHitIndex = FindKey(badHits[badHitIndex], PR_TRUE);
-        if (staleHitIndex != nsMsgViewIndex_None)
-          RemoveByIndex(staleHitIndex);
+        // ### of course, this isn't quite right, since we should be 
+        // using FindHdr, and we shouldn't be expanding the threads.
+        db->GetMsgHdrForKey(badHits[badHitIndex], getter_AddRefs(badHdr));
+        // let nsMsgSearchDBView decide what to do about this header
+        // getting removed.
+        if (badHdr)
+          OnHdrDeleted(badHdr, nsMsgKey_None, 0, this);
       }
       delete [] badHits;
     }
@@ -303,7 +307,9 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *aFol
   dbToUse->HdrIsInCache(searchUri.get(), aMsgHdr, &hdrInCache);
   if (!m_doingSearch || !m_curFolderHasCachedHits || !hdrInCache)
   {
-    if (m_sortValid)
+    if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+      nsMsgGroupView::OnNewHeader(aMsgHdr, nsMsgKey_None, PR_TRUE);
+    else if (m_sortValid)
       InsertHdrFromFolder(aMsgHdr, aFolder);
     else
       AddHdrFromFolder(aMsgHdr, aFolder);
@@ -324,7 +330,7 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   //message after deletion will happen before deleting the message and search scope
   //can change with every search.
   mDeleteModel = nsMsgImapDeleteModels::MoveToTrash;  //set to default in case it is non-imap folder
-  nsCOMPtr <nsIMsgFolder> curFolder = m_folders.SafeObjectAt(0);
+  nsIMsgFolder *curFolder = m_folders.SafeObjectAt(0);
   if (curFolder)
     GetImapDeleteModel(curFolder);
 
@@ -335,15 +341,34 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   // count up the number of unread and total messages from the view, and set those in the
   // folder - easier than trying to keep the count up to date in the face of
   // search hits coming in while the user is reading/deleting messages.
-  PRInt32 numUnread = 0;
+  PRUint32 numUnread = 0;
+  PRUint32 numTotal = 0;
   for (PRUint32 i = 0; i < m_flags.Length(); i++)
+    if (m_flags[i] & MSG_FLAG_ELIDED)
+    {
+      nsCOMPtr<nsIMsgThread> thread;
+      GetThreadContainingIndex(i, getter_AddRefs(thread));
+      if (thread)
+      {
+        PRUint32 totalInThread, unreadInThread;
+        thread->GetNumUnreadChildren(&unreadInThread);
+        thread->GetNumChildren(&totalInThread);
+        numTotal += totalInThread;
+        numUnread += unreadInThread;
+      }
+    }
+    else
+    {
+      numTotal++;
     if (!(m_flags[i] & MSG_FLAG_READ))
       numUnread++;
+    }
   dbFolderInfo->SetNumUnreadMessages(numUnread);
-  dbFolderInfo->SetNumMessages(GetSize());
+  dbFolderInfo->SetNumMessages(numTotal);
   m_viewFolder->UpdateSummaryTotals(true); // force update from db.
   virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
-  if (!m_sortValid && m_sortType != nsMsgViewSortType::byThread)
+  if (!m_sortValid && m_sortType != nsMsgViewSortType::byThread && 
+      !(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
   {
     m_sortValid = PR_FALSE;       //sort the results
     Sort(m_sortType, m_sortOrder);
@@ -441,13 +466,14 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   // if we have cached hits, sort them.
   if (GetSize() > 0)
   {
-    if (m_sortType != nsMsgViewSortType::byThread)
+    // currently, we keep threaded views sorted while we build them.
+    if (m_sortType != nsMsgViewSortType::byThread &&
+      !(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
     {
       m_sortValid = PR_FALSE;       //sort the results
       Sort(m_sortType, m_sortOrder);
     }
   }
-//    mSearchResults->Clear();
     return NS_OK;
 }
 
@@ -464,4 +490,56 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::GetMsgFolder(nsIMsgFolder **aMsgFolder
   NS_ENSURE_ARG_POINTER(aMsgFolder);
   NS_IF_ADDREF(*aMsgFolder = m_viewFolder);
   return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgXFVirtualFolderDBView::SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags)
+{
+  nsMsgViewFlagsTypeValue saveViewFlags = m_viewFlags;
+  nsresult rv =  nsMsgDBView::SetViewFlags(aViewFlags);
+  // if the grouping/threading has changed, rebuild the view
+  if ((saveViewFlags & (nsMsgViewFlagsType::kGroupBySort |
+                      nsMsgViewFlagsType::kThreadedDisplay)) !=
+      (aViewFlags & (nsMsgViewFlagsType::kGroupBySort |
+                     nsMsgViewFlagsType::kThreadedDisplay)))
+    RebuildView();
+
+  return rv;
+}
+
+NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgViewSortTypeValue aSortType,
+                                        nsMsgViewSortOrderValue aSortOrder, nsMsgViewFlagsTypeValue aViewFlags,
+                                        PRInt32 *aCount)
+{
+  if (aViewFlags & nsMsgViewFlagsType::kGroupBySort)
+    return nsMsgGroupView::OpenWithHdrs(aHeaders, aSortType, aSortOrder, 
+                                        aViewFlags, aCount);
+
+  m_sortType = aSortType;
+  m_sortOrder = aSortOrder;
+  m_viewFlags = aViewFlags;
+
+  PRBool hasMore;
+  nsCOMPtr<nsISupports> supports;
+  nsCOMPtr<nsIMsgDBHdr> msgHdr;
+  nsCOMPtr<nsIMsgFolder> folder;
+  nsresult rv = NS_OK;
+  while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(rv = aHeaders->HasMoreElements(&hasMore)) && hasMore)
+  {
+    rv = aHeaders->GetNext(getter_AddRefs(supports));
+    if (NS_SUCCEEDED(rv) && supports)
+    {
+      msgHdr = do_QueryInterface(supports);
+      msgHdr->GetFolder(getter_AddRefs(folder));
+      AddHdrFromFolder(msgHdr, folder); 
+    }
+  }
+  *aCount = m_keys.Length();
+  return rv;
+}
+
+
+nsresult 
+nsMsgXFVirtualFolderDBView::GetMessageEnumerator(nsISimpleEnumerator **enumerator)
+{
+  return GetViewEnumerator(enumerator);
 }

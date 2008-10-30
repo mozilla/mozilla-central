@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -132,42 +132,6 @@ void nsMsgGroupThread::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr)
   m_keys.InsertElementAt(index, msgKey);
 }
 
-#if 0
-nsresult nsMsgGroupThread::RerootThread(nsIMsgDBHdr *newParentOfOldRoot, nsIMsgDBHdr *oldRoot, nsIDBChangeAnnouncer *announcer)
-{
-  nsCOMPtr <nsIMsgDBHdr> ancestorHdr = newParentOfOldRoot;
-  nsMsgKey newRoot;
-  newParentOfOldRoot->GetMessageKey(&newRoot);
-
-  nsMsgKey newHdrAncestor;
-  nsresult rv = NS_OK;
-  // loop trying to find the oldest ancestor of this msg
-  // that is a parent of the root. The oldest ancestor will
-  // become the root of the thread.
-  do 
-  {
-    ancestorHdr->GetThreadParent(&newHdrAncestor);
-    if (newHdrAncestor != nsMsgKey_None && newHdrAncestor != m_threadRootKey && newHdrAncestor != newRoot)
-    {
-      newRoot = newHdrAncestor;
-      rv = m_db->GetMsgHdrForKey(newRoot, getter_AddRefs(ancestorHdr));
-    }
-  }
-  while (NS_SUCCEEDED(rv) && ancestorHdr && newHdrAncestor != nsMsgKey_None && newHdrAncestor != m_threadRootKey
-    && newHdrAncestor != newRoot);
-  m_threadRootKey = newRoot;
-//  ReparentNonReferenceChildrenOf(oldRoot, newRoot, announcer);
-  if (ancestorHdr)
-  {
-    // move the  root hdr to pos 0 by removing it and adding it at 0.
-    m_keys.RemoveElement(newRoot);
-    m_keys.InsertElementAt(0, newRoot);
-    ancestorHdr->SetThreadParent(nsMsgKey_None);
-  }
-  return rv;
-}
-#endif
-
 NS_IMETHODIMP nsMsgGroupThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, PRBool threadInThread, 
                                     nsIDBChangeAnnouncer *announcer)
 {
@@ -240,35 +204,6 @@ nsresult nsMsgGroupThread::AddChildFromGroupView(nsIMsgDBHdr *child, nsMsgDBView
 nsresult nsMsgGroupThread::ReparentNonReferenceChildrenOf(nsIMsgDBHdr *topLevelHdr, nsMsgKey newParentKey,
                                                             nsIDBChangeAnnouncer *announcer)
 {
-#if 0
-  nsCOMPtr <nsIMsgDBHdr> curHdr;
-  PRUint32 numChildren;
-  PRUint32 childIndex = 0;
-  
-  GetNumChildren(&numChildren);
-  for (childIndex = 0; childIndex < numChildren; childIndex++)
-  {
-    nsMsgKey msgKey;
-    
-    topLevelHdr->GetMessageKey(&msgKey);
-    nsresult ret = GetChildHdrAt(childIndex, getter_AddRefs(curHdr));
-    if (NS_SUCCEEDED(ret) && curHdr)
-    {
-      nsMsgKey oldThreadParent, curHdrKey;
-      nsIMsgDBHdr *curMsgHdr = curHdr;
-      curHdr->GetThreadParent(&oldThreadParent);
-      curHdr->GetMessageKey(&curHdrKey);
-      if (oldThreadParent == msgKey && curHdrKey != newParentKey && topLevelMsgHdr->IsParentOf(curHdr))
-      {
-        curHdr->GetThreadParent(&oldThreadParent);
-        curHdr->SetThreadParent(newParentKey);
-        // OK, this is a reparenting - need to send notification
-        if (announcer)
-          announcer->NotifyParentChangedAll(curHdrKey, oldThreadParent, newParentKey, nsnull);
-      }
-    }
-  }
-#endif
   return NS_OK;
 }
 

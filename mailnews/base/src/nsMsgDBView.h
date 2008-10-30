@@ -220,6 +220,12 @@ protected:
   nsresult FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount);
   nsresult CycleThreadedColumn(nsIDOMElement * aElement);
 
+  // The default enumerator is over the db, but things like
+  // quick search views will enumerate just the displayed messages.
+  virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
+  // this is a message enumerator that enumerates based on the view contents
+  virtual nsresult GetViewEnumerator(nsISimpleEnumerator **enumerator);
+
   // Save and Restore Selection are a pair of routines you should
   // use when performing an operation which is going to change the view
   // and you want to remember the selection. (i.e. for sorting). 
@@ -246,9 +252,11 @@ protected:
   virtual nsresult OnNewHeader(nsIMsgDBHdr *aNewHdr, nsMsgKey parentKey, PRBool ensureListed);
   virtual nsMsgViewIndex GetInsertIndex(nsIMsgDBHdr *msgHdr);
   nsMsgViewIndex GetIndexForThread(nsIMsgDBHdr *hdr);
+  nsMsgViewIndex GetThreadRootIndex(nsIMsgDBHdr *msgHdr);
   virtual nsresult GetThreadContainingIndex(nsMsgViewIndex index, nsIMsgThread **thread);
   virtual nsresult GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDBHdr **msgHdr);
-  nsMsgViewIndex FindIndexForThread(nsIMsgDBHdr *msgHdr, PRBool newThread);
+  // given a view index, return the index of the top-level msg in the thread.
+  nsMsgViewIndex GetThreadIndex(nsMsgViewIndex msgIndex);
 
   virtual void InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,
                               nsMsgKey msgKey, PRUint32 flags, PRUint32 level);
@@ -264,13 +272,17 @@ protected:
   nsresult ExpandAndSelectThread();
 
   // helper routines for thread expanding and collapsing.
-  nsresult		GetThreadCount(nsMsgKey messageKey, PRUint32 *pThreadCount);
+  nsresult GetThreadCount(nsMsgViewIndex viewIndex, PRUint32 *pThreadCount);
   nsMsgViewIndex GetIndexOfFirstDisplayedKeyInThread(nsIMsgThread *threadHdr);
   virtual nsresult GetFirstMessageHdrToDisplayInThread(nsIMsgThread *threadHdr, nsIMsgDBHdr **result);
   virtual nsMsgViewIndex ThreadIndexOfMsg(nsMsgKey msgKey, 
 				  nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
 				  PRInt32 *pThreadCount = nsnull,
 				  PRUint32 *pFlags = nsnull);
+  nsMsgViewIndex ThreadIndexOfMsgHdr(nsIMsgDBHdr *msgHdr, 
+                                 nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
+                                 PRInt32 *pThreadCount = nsnull,
+                                 PRUint32 *pFlags = nsnull);
   virtual nsresult GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
   nsMsgKey GetKeyOfFirstMsgInThread(nsMsgKey key);
   PRInt32 CountExpandedThread(nsMsgViewIndex index);
@@ -462,6 +474,10 @@ protected:
   nsIMsgCustomColumnHandler* GetColumnHandler(const PRUnichar*);
   nsIMsgCustomColumnHandler* GetCurColumnHandlerFromDBInfo();
   void GetCurCustomColumn(nsString &colID);
+#ifdef DEBUG_David_Bienvenu
+void InitEntryInfoForIndex(nsMsgViewIndex i, IdKeyPtr &EntryInfo);
+void ValidateSort();
+#endif
 
 protected:
   static nsresult   InitDisplayFormats();
@@ -475,6 +491,21 @@ private:
   nsresult PerformActionsOnJunkMsgs();
   nsresult DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* markingJunkMessagesRead, nsIMsgFolder** junkTargetFolder);
 
+  class nsMsgViewHdrEnumerator : public nsISimpleEnumerator 
+  {
+  public:
+    NS_DECL_ISUPPORTS
+
+    // nsISimpleEnumerator methods:
+    NS_DECL_NSISIMPLEENUMERATOR
+
+    // nsMsgThreadEnumerator methods:
+    nsMsgViewHdrEnumerator(nsMsgDBView *view);
+    ~nsMsgViewHdrEnumerator();
+
+    nsRefPtr <nsMsgDBView> m_view;
+    nsMsgViewIndex m_curHdrIndex;
+  };
 };
 
 #endif

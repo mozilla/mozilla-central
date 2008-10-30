@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -555,6 +555,9 @@ void nsMsgThreadedDBView::ClearPrevIdArray()
 
 nsresult nsMsgThreadedDBView::InitSort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder)
 {
+  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+    return NS_OK; // nothing to do.
+
   if (sortType == nsMsgViewSortType::byThread)
   {
     nsMsgDBView::Sort(nsMsgViewSortType::byId, sortOrder); // sort top level threads by id.
@@ -582,6 +585,9 @@ nsresult nsMsgThreadedDBView::InitSort(nsMsgViewSortTypeValue sortType, nsMsgVie
 
 nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool ensureListed)
 {
+  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+    return nsMsgGroupView::OnNewHeader(newHdr, aParentKey, ensureListed);
+
   nsresult rv = NS_OK;
   nsMsgKey newKey;
   newHdr->GetMessageKey(&newKey);
@@ -949,13 +955,5 @@ nsMsgThreadedDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow 
   NS_ENSURE_SUCCESS(rv,rv);
 
   NS_IF_ADDREF(*_retval = newMsgDBView);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsMsgThreadedDBView::GetSupportsThreading(PRBool *aResult)
-{
-  NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = PR_TRUE;
   return NS_OK;
 }

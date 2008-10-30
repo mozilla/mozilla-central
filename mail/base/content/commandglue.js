@@ -368,43 +368,46 @@ function SwitchView(command)
   // when switching thread views, we might be coming out of quick search
   // or a message view.
   // first set view picker to all
-  ViewChangeByValue(kViewItemAll);
+  if (gCurrentViewValue != kViewItemAll)
+    ViewChangeByValue(kViewItemAll);
 
   // clear the QS text, if we need to
   ClearQSIfNecessary();
   
+  var oldSortType, oldSortOrder, viewFlags, viewType, db;
   // now switch views
-  var oldSortType = gDBView ? gDBView.sortType : nsMsgViewSortType.byThread;
-  var oldSortOrder = gDBView ? gDBView.sortOrder : nsMsgViewSortOrder.ascending;
-  var viewFlags = gDBView ? gDBView.viewFlags : gCurViewFlags;
-
-  // close existing view.
-  if (gDBView) {
+  if (gDBView) 
+  {
+    oldSortType = gDBView.sortType;
+    oldSortOrder = gDBView.sortOrder;
+    viewFlags = gDBView.viewFlags;
+    viewType = gDBView.viewType;
+    db = gDBView.db;
     gDBView.close();
     gDBView = null; 
   }
-
+  else
+  {
+    oldSortType = nsMsgViewSortType.byThread;
+    oldSortOrder = nsMsgViewSortOrder.ascending;
+    viewFlags = gCurViewFlags;
+    viewType = nsMsgViewType.eShowAllThreads;
+    db = null;
+  }
   switch(command)
   {
     // "All" threads and "Unread" threads don't change threading state
     case "cmd_viewAllMsgs":
       viewFlags = viewFlags & ~nsMsgViewFlagsType.kUnreadOnly;
-      CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowAllThreads, viewFlags,
-            oldSortType, oldSortOrder);
       break;
     case "cmd_viewUnreadMsgs":
       viewFlags = viewFlags | nsMsgViewFlagsType.kUnreadOnly;
-      CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowAllThreads, viewFlags,
-            oldSortType, oldSortOrder );
       break;
     // "Threads with Unread" and "Watched Threads with Unread" force threading
-    case "cmd_viewThreadsWithUnread":
-      CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowThreadsWithUnread, nsMsgViewFlagsType.kThreadedDisplay,
-            oldSortType, oldSortOrder);
-      break;
     case "cmd_viewWatchedThreadsWithUnread":
-      CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowWatchedThreadsWithUnread, nsMsgViewFlagsType.kThreadedDisplay,
-            oldSortType, oldSortOrder);
+    case "cmd_viewThreadsWithUnread":
+      viewType = nsMsgViewType.eShowThreadsWithUnread;
+      viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
       break;
     // "Ignored Threads" toggles 'ignored' inclusion --
     //   but it also resets 'With Unread' views to 'All'
@@ -413,12 +416,23 @@ function SwitchView(command)
         viewFlags = viewFlags & ~nsMsgViewFlagsType.kShowIgnored;
       else
         viewFlags = viewFlags | nsMsgViewFlagsType.kShowIgnored;
-      CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowAllThreads, viewFlags,
-            oldSortType, oldSortOrder);
       break;
   }
 
+  if (db && viewType == nsMsgViewType.eShowVirtualFolderResults)
+  {
+      db.dBFolderInfo.viewFlags = viewFlags;
+      gMsgFolderSelected = null;
+      msgWindow.openFolder = null;
+      FolderPaneSelectionChange();
+      LoadCurrentlyDisplayedMessage();
+  }
+  else
+  {
+    CreateDBView(msgWindow.openFolder, viewType, viewFlags, oldSortType,
+                 oldSortOrder);
   RerootThreadPane();
+  }
 }
 
 function SetSentFolderColumns(isSentFolder)

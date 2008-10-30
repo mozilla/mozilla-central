@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -38,12 +38,9 @@
 #ifndef _nsMsgThreadedDBView_H_
 #define _nsMsgThreadedDBView_H_
 
-#include "nsMsgDBView.h"
+#include "nsMsgGroupView.h"
 
-// this class should probably inherit from the class that
-// implements the tree. Since I don't know what that is yet,
-// I'll just make it inherit from nsMsgDBView for now.
-class nsMsgThreadedDBView : public nsMsgDBView
+class nsMsgThreadedDBView : public nsMsgGroupView
 {
 public:
   nsMsgThreadedDBView();
@@ -55,8 +52,6 @@ public:
   virtual nsresult AddKeys(nsMsgKey *pKeys, PRInt32 *pFlags, const char *pLevels, nsMsgViewSortTypeValue sortType, PRInt32 numKeysToAdd);
   NS_IMETHOD Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder);
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
-  NS_IMETHOD GetSupportsThreading(PRBool *aResult);
-
   NS_IMETHOD OnParentChanged (nsMsgKey aKeyChanged, nsMsgKey oldParent, nsMsgKey newParent, nsIDBChangeListener *aInstigator);
 
 protected:

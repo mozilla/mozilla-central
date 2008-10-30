@@ -254,12 +254,9 @@ function InitViewSortByMenu()
   sortThreadedMenuItem.setAttribute("checked", threaded);
   sortUnthreadedMenuItem.setAttribute("checked", !threaded && !grouped);
 
-  sortThreadedMenuItem.setAttribute("disabled", !gDBView.supportsThreading);
-  sortUnthreadedMenuItem.setAttribute("disabled", !gDBView.supportsThreading);
-
   var groupBySortOrderMenuItem = document.getElementById("groupBySort");
 
-  groupBySortOrderMenuItem.setAttribute("disabled", !gDBView.supportsThreading || !sortTypeSupportsGrouping);
+  groupBySortOrderMenuItem.setAttribute("disabled", !sortTypeSupportsGrouping);
   groupBySortOrderMenuItem.setAttribute("checked", grouped);
 }
 

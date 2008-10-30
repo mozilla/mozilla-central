@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -79,6 +79,10 @@ NS_IMETHODIMP nsMsgGroupView::Open(nsIMsgFolder *aFolder, nsMsgViewSortTypeValue
 
 void nsMsgGroupView::InternalClose()
 {
+  // nothing to do if we're not grouped.
+  if (!(m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
+    return;
+
   PRBool rcvDate = PR_FALSE;
 
   if (m_sortType == nsMsgViewSortType::byReceived)
@@ -116,7 +120,7 @@ void nsMsgGroupView::InternalClose()
 NS_IMETHODIMP nsMsgGroupView::Close()
 {
   InternalClose();
-  return nsMsgThreadedDBView::Close();
+  return nsMsgDBView::Close();
 }
 
 // Set rcvDate to PR_TRUE to get the Received: date instead of the Date: date.
@@ -289,6 +293,11 @@ nsresult nsMsgGroupView::HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey)
   return rv;
 }
 
+nsMsgGroupThread *nsMsgGroupView::CreateGroupThread(nsIMsgDatabase *db)
+{
+  return new nsMsgGroupThread(db);
+}
+
 nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pNewThread)
 {
   nsMsgKey msgKey;
@@ -311,7 +320,7 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
   nsMsgGroupThread *foundThread = static_cast<nsMsgGroupThread *>(msgThread.get());
   if (!foundThread)
   {
-    foundThread = new nsMsgGroupThread(m_db);
+    foundThread = CreateGroupThread(m_db);
     msgThread = do_QueryInterface(foundThread);
     m_groupsTable.Put(hashKey, msgThread);
     if (GroupViewUsesDummyRow())
@@ -323,13 +332,13 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
     nsMsgViewIndex insertIndex = GetInsertIndex(msgHdr);
     if (insertIndex == nsMsgViewIndex_None)
       insertIndex = m_keys.Length();
-    m_keys.InsertElementAt(insertIndex, msgKey);
-    m_flags.InsertElementAt(insertIndex, msgFlags | MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED);
-    m_levels.InsertElementAt(insertIndex, 0);
+    InsertMsgHdrAt(insertIndex, msgHdr, msgKey, 
+                  msgFlags | MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED, 0);
     // if grouped by date, insert dummy header for "age"
     if (GroupViewUsesDummyRow())
     {
-      foundThread->m_keys.InsertElementAt(0, msgKey /* nsMsgKey_None */);
+      // this needs to do something different for xf groups
+      foundThread->InsertMsgHdrAt(0, msgHdr);
       // the previous code made it look like hashKey in this case was always an integer
       foundThread->m_threadKey = atoi(NS_LossyConvertUTF16toASCII(hashKey).get());
     }
@@ -356,6 +365,7 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
 {
   nsresult rv = NS_OK;
 
+  m_groupsTable.Clear();
   if (aSortType == nsMsgViewSortType::byThread || aSortType == nsMsgViewSortType::byId
     || aSortType == nsMsgViewSortType::byNone || aSortType == nsMsgViewSortType::bySize)
     return NS_ERROR_INVALID_ARG;
@@ -416,11 +426,21 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
   return rv;
 }
 
-// if the day has changed, we need to close and re-open the view.
-nsresult nsMsgGroupView::HandleDayChange()
+// we wouldn't need this if we never instantiated this directly,
+// but instead used nsMsgThreadedDBView with the grouping flag set.
+// Or, we could get rid of the nsMsgThreadedDBView impl of this method.
+NS_IMETHODIMP nsMsgGroupView::GetViewType(nsMsgViewTypeValue *aViewType)
+{
+    NS_ENSURE_ARG_POINTER(aViewType);
+    *aViewType = nsMsgViewType::eShowAllThreads; 
+    return NS_OK;
+}
+
+// E.g., if the day has changed, we need to close and re-open the view.
+nsresult nsMsgGroupView::RebuildView()
 {
   nsCOMPtr <nsISimpleEnumerator> headers;
-  if (NS_SUCCEEDED(m_db->EnumerateMessages(getter_AddRefs(headers))))
+  if (NS_SUCCEEDED(GetMessageEnumerator(getter_AddRefs(headers))))
   {
     PRInt32 count;
     m_dayChanged = PR_FALSE;
@@ -456,13 +476,15 @@ nsresult nsMsgGroupView::HandleDayChange()
   return NS_OK;
 }
 
-nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool /*ensureListed*/)
+nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool ensureListed)
 {
+  if (!(m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
+    return nsMsgDBView::OnNewHeader(newHdr, aParentKey, ensureListed);
 
   // check if we're adding a header, and the current day has changed. If it has, we're just going to
   // close and re-open the view so things will be correctly categorized.
   if (m_dayChanged)
-    return HandleDayChange();
+    return RebuildView();
 
   PRBool newThread;
   nsMsgGroupThread *thread = AddHdrToThread(newHdr, &newThread);
@@ -473,7 +495,7 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
     newHdr->GetMessageKey(&msgKey);
     newHdr->GetFlags(&msgFlags);
 
-    nsMsgViewIndex threadIndex = ThreadIndexOfMsg(msgKey);
+    nsMsgViewIndex threadIndex = ThreadIndexOfMsgHdr(newHdr);
     PRInt32 numRowsInserted = 1;
     if (newThread && GroupViewUsesDummyRow())
       numRowsInserted++;
@@ -511,17 +533,11 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
             msgIndexInThread++;
             msgKey = thread->m_keys[msgIndexInThread];
           }
-
-          m_keys.InsertElementAt(threadIndex + msgIndexInThread, msgKey);
-          m_flags.InsertElementAt(threadIndex + msgIndexInThread, msgFlags);
-          if (msgIndexInThread > 0)
-          {
-            m_levels.InsertElementAt(threadIndex + msgIndexInThread, 1);
-          }
-          else // insert new header at level 0, and bump old level 0 to 1
-          {
-            m_levels.InsertElementAt(threadIndex + 1, 1);
-          }
+          InsertMsgHdrAt(threadIndex + msgIndexInThread, newHdr, msgKey,
+                         msgFlags, msgIndexInThread ? 1 : 0);
+          // if we inserted new header at level 0, bump old level 0 to 1
+          if (!msgIndexInThread)
+            m_levels[threadIndex + 1] = 1;
         }
         // the call to NoteChange() has to happen after we add the key
         // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
@@ -539,12 +555,16 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
 NS_IMETHODIMP nsMsgGroupView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags,
                                       PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
+  if (!(m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
+    return nsMsgDBView::OnHdrFlagsChanged(aHdrChanged, aOldFlags, aNewFlags,
+                                          aInstigator);
+
   nsCOMPtr <nsIMsgThread> thread;
 
   // check if we're adding a header, and the current day has changed. If it has, we're just going to
   // close and re-open the view so things will be correctly categorized.
   if (m_dayChanged)
-    return HandleDayChange();
+    return RebuildView();
 
   nsresult rv = GetThreadContainingMsgHdr(aHdrChanged, getter_AddRefs(thread));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -558,10 +578,13 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint
 NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, PRInt32 aFlags,
                             nsIDBChangeListener *aInstigator)
 {
+  if (!(m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
+    return nsMsgDBView::OnHdrDeleted(aHdrDeleted, aParentKey, aFlags, aInstigator);
+
   // check if we're adding a header, and the current day has changed. If it has, we're just going to
   // close and re-open the view so things will be correctly categorized.
   if (m_dayChanged)
-    return HandleDayChange();
+    return RebuildView();
 
   nsCOMPtr <nsIMsgThread> thread;
   nsMsgKey keyDeleted;
@@ -584,13 +607,14 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
       thread->RemoveChildAt(0); // get rid of dummy
       if (viewIndexOfThread != nsMsgKey_None)
       {
-        nsMsgDBView::RemoveByIndex(viewIndexOfThread - 1);
+        RemoveByIndex(viewIndexOfThread - 1);
         if (m_deletingRows)
           mIndicesToNoteChange.AppendElement(viewIndexOfThread - 1);
       }
     }
     else if (rootDeleted && viewIndexOfThread > 0)
     {
+      // ### what about cross-folder views?
       m_keys[viewIndexOfThread - 1] = m_keys[viewIndexOfThread];
       OrExtraFlag(viewIndexOfThread - 1, MSG_VIEW_FLAG_DUMMY | MSG_VIEW_FLAG_ISTHREAD);
     }
@@ -770,7 +794,6 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
 
 NS_IMETHODIMP nsMsgGroupView::LoadMessageByViewIndex(nsMsgViewIndex aViewIndex)
 {
-
   if (m_flags[aViewIndex] & MSG_VIEW_FLAG_DUMMY)
   {
     // if we used to have one item selected, and now we have more than one, we should clear the message pane.
@@ -788,6 +811,9 @@ NS_IMETHODIMP nsMsgGroupView::LoadMessageByViewIndex(nsMsgViewIndex aViewIndex)
 
 nsresult nsMsgGroupView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread)
 {
+  if (!(m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
+    return nsMsgDBView::GetThreadContainingMsgHdr(msgHdr, pThread);
+
   nsString hashKey;
   nsresult rv = HashHdr(msgHdr, hashKey);
   *pThread = nsnull;

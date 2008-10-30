@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -45,6 +45,7 @@
 #include "nsImapCore.h"
 #include "nsIMsgHdr.h"
 #include "nsIDBFolderInfo.h"
+#include "nsArrayEnumerator.h"
 
 nsMsgQuickSearchDBView::nsMsgQuickSearchDBView()
 {
@@ -120,6 +121,13 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::GetViewType(nsMsgViewTypeValue *aViewType)
     return NS_OK;
 }
 
+nsresult nsMsgQuickSearchDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex)
+{
+  return (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+          ? nsMsgGroupView::OnNewHeader(msgHdr, nsMsgKey_None, PR_TRUE)
+          : nsMsgDBView::AddHdr(msgHdr, resultIndex);
+}
+
 nsresult nsMsgQuickSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool ensureListed)
 {
   if (newHdr)
@@ -146,7 +154,7 @@ nsresult nsMsgQuickSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aPare
 NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
                                        PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
-  nsresult rv = nsMsgDBView::OnHdrFlagsChanged(aHdrChanged, aOldFlags, aNewFlags, aInstigator);
+  nsresult rv = nsMsgGroupView::OnHdrFlagsChanged(aHdrChanged, aOldFlags, aNewFlags, aInstigator);
 
   if (m_viewFolder && (aOldFlags & MSG_FLAG_READ) != (aNewFlags & MSG_FLAG_READ))
   {
@@ -263,10 +271,15 @@ nsMsgQuickSearchDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *folder)
   m_hdrHits.AppendObject(aMsgHdr);
   nsMsgKey key;
   aMsgHdr->GetMessageKey(&key);
+  // put the new header in m_origKeys, so that expanding a thread will
+  // show the newly added header.
+  nsMsgViewIndex insertIndex = GetInsertIndexHelper(aMsgHdr, m_origKeys, nsnull,
+                  nsMsgViewSortOrder::ascending, nsMsgViewSortType::byId);
+  m_origKeys.InsertElementAt(insertIndex, key);
   // is FindKey going to be expensive here? A lot of hits could make
   // it a little bit slow to search through the view for every hit.
   if (m_cacheEmpty || FindKey(key, PR_FALSE) == nsMsgViewIndex_None)
-  return AddHdr(aMsgHdr); 
+    return AddHdr(aMsgHdr); 
   else
     return NS_OK;
 }
@@ -312,7 +325,6 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
   if (m_viewFolder)
     SetMRUTimeForFolder(m_viewFolder);
 
-  m_hdrHits.Clear();
   return NS_OK;
 }
 
@@ -435,10 +447,9 @@ nsresult nsMsgQuickSearchDBView::GetFirstMessageHdrToDisplayInThread(nsIMsgThrea
 
 nsresult nsMsgQuickSearchDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder)
 {
-  // we don't handle grouping in quick search views yet.
+  // don't need to sort by threads for group view.
   if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
     return NS_OK;
-
   // iterate over the messages in the view, getting the thread id's
   // sort m_keys so we can quickly find if a key is in the view. 
   m_keys.Sort();
@@ -524,6 +535,8 @@ nsresult  nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsg
   *pNumListed = 0;
   GetMsgHdrForViewIndex(startOfThreadViewIndex, getter_AddRefs(rootHdr));
   rootHdr->GetMessageKey(&rootKey);
+  // group threads can have the root key twice, one for the dummy row.
+  PRBool rootKeySkipped = PR_FALSE;
   for (i = 0; i < numChildren; i++)
   {
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
@@ -532,7 +545,7 @@ nsresult  nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsg
     {
       nsMsgKey msgKey;
       msgHdr->GetMessageKey(&msgKey);
-      if (msgKey != rootKey)
+      if (msgKey != rootKey || (GroupViewUsesDummyRow() && rootKeySkipped))
       {
         nsMsgViewIndex threadRootIndex = m_origKeys.BinaryIndexOf(msgKey);
         // if this hdr is in the original view, add it to new view.
@@ -540,19 +553,18 @@ nsresult  nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsg
         {
           PRUint32 childFlags;
           msgHdr->GetFlags(&childFlags);
-          PRUint8 levelToAdd;
-          m_keys.InsertElementAt(viewIndex, msgKey);
-          m_flags.InsertElementAt(viewIndex, childFlags);
+          InsertMsgHdrAt(viewIndex, msgHdr, msgKey, childFlags, 
+                        FindLevelInThread(msgHdr, startOfThreadViewIndex, viewIndex));
           if (! (rootFlags & MSG_VIEW_FLAG_HASCHILDREN))
-          {
-            rootFlags |= MSG_VIEW_FLAG_HASCHILDREN;
-            m_flags[startOfThreadViewIndex] = rootFlags;
-          }
-          levelToAdd = FindLevelInThread(msgHdr, startOfThreadViewIndex, viewIndex);
-          m_levels.InsertElementAt(viewIndex, levelToAdd);
+            m_flags[startOfThreadViewIndex] = rootFlags | MSG_VIEW_FLAG_HASCHILDREN;
+
           viewIndex++;
           (*pNumListed)++;
         }
+      }
+      else
+      {
+        rootKeySkipped = PR_TRUE;
       }
     }
   }
@@ -578,4 +590,56 @@ nsresult nsMsgQuickSearchDBView::ExpansionDelta(nsMsgViewIndex index, PRInt32 *e
   *expansionDelta = (flags & MSG_FLAG_ELIDED) ? 
                     numChildren - 1 : - (PRInt32) (numChildren - 1);
   return NS_OK;
+}
+
+NS_IMETHODIMP 
+nsMsgQuickSearchDBView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, 
+                                     nsMsgViewSortTypeValue aSortType,
+                                     nsMsgViewSortOrderValue aSortOrder, 
+                                     nsMsgViewFlagsTypeValue aViewFlags,
+                                     PRInt32 *aCount)
+{
+  if (aViewFlags & nsMsgViewFlagsType::kGroupBySort)
+    return nsMsgGroupView::OpenWithHdrs(aHeaders, aSortType, aSortOrder, 
+                                        aViewFlags, aCount);
+
+  m_sortType = aSortType;
+  m_sortOrder = aSortOrder;
+  m_viewFlags = aViewFlags;
+
+  PRBool hasMore;
+  nsCOMPtr<nsISupports> supports;
+  nsCOMPtr<nsIMsgDBHdr> msgHdr;
+  nsresult rv = NS_OK;
+  while (NS_SUCCEEDED(rv = aHeaders->HasMoreElements(&hasMore)) && hasMore)
+  {
+    rv = aHeaders->GetNext(getter_AddRefs(supports));
+    if (NS_SUCCEEDED(rv) && supports)
+    {
+      msgHdr = do_QueryInterface(supports);
+      AddHdr(msgHdr); 
+    }
+    else
+      break;
+  }
+  *aCount = m_keys.Length();
+  return rv;
+}
+
+NS_IMETHODIMP nsMsgQuickSearchDBView::SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags)
+{
+  nsMsgViewFlagsTypeValue saveViewFlags = m_viewFlags;
+  nsresult rv = nsMsgDBView::SetViewFlags(aViewFlags);
+  // if the grouping has changed, rebuild the view
+  if (saveViewFlags & nsMsgViewFlagsType::kGroupBySort ^
+      (aViewFlags & nsMsgViewFlagsType::kGroupBySort))
+    RebuildView();
+
+  return rv;
+}
+
+nsresult 
+nsMsgQuickSearchDBView::GetMessageEnumerator(nsISimpleEnumerator **enumerator)
+{
+  return GetViewEnumerator(enumerator);
 }

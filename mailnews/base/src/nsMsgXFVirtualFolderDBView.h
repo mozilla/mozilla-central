@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -44,6 +44,8 @@
 #include "nsIMsgSearchNotify.h"
 #include "nsCOMArray.h"
 
+class nsMsgGroupThread;
+
 class nsMsgXFVirtualFolderDBView : public nsMsgSearchDBView
 {
 public:
@@ -57,6 +59,11 @@ public:
   virtual const char * GetViewName(void) {return "XFVirtualFolderView"; }
   NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, 
         nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount);
+  NS_IMETHOD OpenWithHdrs(nsISimpleEnumerator *aHeaders, 
+                          nsMsgViewSortTypeValue aSortType,
+                          nsMsgViewSortOrderValue aSortOrder, 
+                          nsMsgViewFlagsTypeValue aViewFlags,
+                          PRInt32 *aCount);
   NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, 
                          nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval);
   NS_IMETHOD CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance, 
@@ -64,16 +71,20 @@ public:
   NS_IMETHOD Close();
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD DoCommand(nsMsgViewCommandTypeValue command);
-  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, PRBool ensureListed);
+  NS_IMETHOD SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags);
   NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
                                  nsIDBChangeListener * aInstigator);
-  virtual nsresult InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder);
   NS_IMETHOD GetMsgFolder(nsIMsgFolder **aMsgFolder);
+
+  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, PRBool ensureListed);
+  virtual nsresult InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder);
   void UpdateCacheAndViewForPrevSearchedFolders(nsIMsgFolder *curSearchFolder);
   void UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, PRUint32 numNewHits);
   void RemovePendingDBListeners();
 
 protected:
+
+  virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
 
   PRUint32 m_cachedFolderArrayIndex; // array index of next folder with cached hits to deal with.
   nsCOMArray<nsIMsgFolder> m_foldersSearchingOver;

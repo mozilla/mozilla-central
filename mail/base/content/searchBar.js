@@ -177,11 +177,7 @@ function createQuickSearchView()
       var saveViewSearchListener = gDBView.QueryInterface(Components.interfaces.nsIMsgSearchNotify);
       gSearchSession.unregisterListener(saveViewSearchListener);
     }
-    // if grouped by sort, turn that off, as well as threaded, since we don't
-    // group quick search results yet.
     var viewFlags = gDBView.viewFlags;
-    if (viewFlags & nsMsgViewFlagsType.kGroupBySort)
-      viewFlags &= ~(nsMsgViewFlagsType.kGroupBySort | nsMsgViewFlagsType.kThreadedDisplay);
     CreateDBView(gDBView.msgFolder, (gXFVirtualFolderTerms) ? nsMsgViewType.eShowVirtualFolderResults : nsMsgViewType.eShowQuickSearchResults, viewFlags, gDBView.sortType, gDBView.sortOrder);
   }
 }

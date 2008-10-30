@@ -175,9 +175,6 @@ function HandleColumnClick(columnID)
   catch (ex) {
   }
   if (sortType == "byThread") {
-    if (!dbview.supportsThreading)
-      return;
-
     if (simpleColumns)
       MsgToggleThreaded();
     else if (dbview.viewFlags & nsMsgViewFlagsType.kThreadedDisplay)
@@ -237,8 +234,6 @@ function ThreadPaneKeyPress(event)
 function MsgSortByThread()
 {
   var dbview = GetDBView();
-  if(dbview && !dbview.supportsThreading)
-    return;
   dbview.viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
   dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
   MsgSortThreadPane('byDate');
@@ -249,14 +244,8 @@ function MsgSortThreadPane(sortName)
   var sortType = nsMsgViewSortType[sortName];
   var dbview = GetDBView();
 
-  if (dbview.viewFlags & nsMsgViewFlagsType.kGroupBySort)
-  {
-    dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-    dbview.sortType = sortType; // save sort in current view
-    viewDebug("switching view to all msgs\n");
-    SwitchView("cmd_viewAllMsgs");
-    return;
-  }
+  // turn off grouping
+  dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
 
   dbview.sort(sortType, nsMsgViewSortOrder.ascending);
   UpdateSortIndicators(sortType, nsMsgViewSortOrder.ascending);
@@ -276,15 +265,9 @@ function MsgReverseSortThreadPane()
 function MsgToggleThreaded()
 {
     var dbview = GetDBView();
-
-    dbview.viewFlags ^= nsMsgViewFlagsType.kThreadedDisplay;
-    if (dbview.viewFlags & nsMsgViewFlagsType.kGroupBySort)
-    {
-      dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-      viewDebug("switching view to all msgs\n");
-      SwitchView("cmd_viewAllMsgs");
-      return;
-    }
+    var newViewFlags = dbview.viewFlags ^ nsMsgViewFlagsType.kThreadedDisplay;
+    newViewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
+    dbview.viewFlags = newViewFlags;
 
     dbview.sort(dbview.sortType, dbview.sortOrder);
     UpdateSortIndicators(dbview.sortType, dbview.sortOrder);
@@ -294,13 +277,12 @@ function MsgSortThreaded()
 {
     var dbview = GetDBView();
     var viewFlags = dbview.viewFlags;
-
-    if (viewFlags & nsMsgViewFlagsType.kGroupBySort)
-    {
-      dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-      viewDebug("switching view to all msgs\n");
+    let wasGrouped = viewFlags & nsMsgViewFlagsType.kGroupBySort;
+    dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
+    // if we were grouped, and not a saved search, just rebuild the view
+    if (wasGrouped && !(gMsgFolderSelected.flags & 
+                       Components.interfaces.nsMsgFolderFlags.Virtual))
       SwitchView("cmd_viewAllMsgs");
-    }
     // Toggle if not already threaded.
     else if ((viewFlags & nsMsgViewFlagsType.kThreadedDisplay) == 0)
         MsgToggleThreaded();
@@ -322,17 +304,24 @@ function MsgGroupBySort()
          || sortType == nsMsgViewSortType.byAccount || sortType == nsMsgViewSortType.byFlagged
          || sortType == nsMsgViewSortType.byAttachments);
 
-  if (!dbview.supportsThreading || !sortTypeSupportsGrouping)
+  if (!sortTypeSupportsGrouping)
     return; // we shouldn't be trying to group something we don't support grouping for...
 
   viewFlags |= nsMsgViewFlagsType.kThreadedDisplay | nsMsgViewFlagsType.kGroupBySort;
+  if (gDBView &&
+      gMsgFolderSelected.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
+  {
+    gDBView.viewFlags = viewFlags;
+    UpdateSortIndicators(sortType, nsMsgViewSortOrder.ascending);
+    return;
+  }
   // null this out, so we don't try sort.
   if (gDBView) {
     gDBView.close();
     gDBView = null;
   }
-  var dbviewContractId = "@mozilla.org/messenger/msgdbview;1?type=group";
-  gDBView = Components.classes[dbviewContractId].createInstance(Components.interfaces.nsIMsgDBView);
+  gDBView = Components.classes["@mozilla.org/messenger/msgdbview;1?type=group"]
+                                .createInstance(Components.interfaces.nsIMsgDBView);
 
   if (!gThreadPaneCommandUpdater)
     gThreadPaneCommandUpdater = new nsMsgDBViewCommandUpdater();

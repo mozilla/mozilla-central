@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef _nsMsgQuickSearchDBViewsH_
+#ifndef _nsMsgQuickSearchDBView_H_
 #define _nsMsgQuickSearchDBView_H_
 
 #include "nsMsgThreadedDBView.h"
@@ -59,8 +59,14 @@ public:
   NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, 
                   nsMsgViewSortOrderValue sortOrder, 
                   nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount);
+  NS_IMETHOD OpenWithHdrs(nsISimpleEnumerator *aHeaders, 
+                          nsMsgViewSortTypeValue aSortType, 
+                          nsMsgViewSortOrderValue aSortOrder, 
+                          nsMsgViewFlagsTypeValue aViewFlags, 
+                          PRInt32 *aCount);
   NS_IMETHOD DoCommand(nsMsgViewCommandTypeValue aCommand);
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
+  NS_IMETHOD SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags);
   NS_IMETHOD SetSearchSession(nsIMsgSearchSession *aSearchSession);
   NS_IMETHOD GetSearchSession(nsIMsgSearchSession* *aSearchSession);
   NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
@@ -74,12 +80,14 @@ protected:
   PRBool    m_usingCachedHits;
   PRBool    m_cacheEmpty;
   nsCOMArray <nsIMsgDBHdr> m_hdrHits;
+  virtual nsresult AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex = nsnull);
   virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool ensureListed);
   virtual nsresult DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage);
   virtual nsresult SortThreads(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder);
   virtual nsresult GetFirstMessageHdrToDisplayInThread(nsIMsgThread *threadHdr, nsIMsgDBHdr **result);
   virtual nsresult ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDelta);
   virtual nsresult ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, PRUint32 *pNumListed);
+  virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
   void      SavePreSearchInfo();
   void      ClearPreSearchInfo();
 

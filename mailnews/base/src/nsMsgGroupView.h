@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -36,13 +36,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsMsgThreadedDBView.h"
+#ifndef _nsMsgGroupView_H_
+#define _nsMsgGroupView_H_
+
+#include "nsMsgDBView.h"
 #include "nsInterfaceHashtable.h"
 
 class nsIMsgThread;
 class nsMsgGroupThread;
 
-class nsMsgGroupView : public nsMsgThreadedDBView
+// Please note that if you override a method of nsMsgDBView,
+// you will most likely want to check the m_viewFlags to see if
+// we're grouping, and if not, call the base class implementation.
+class nsMsgGroupView : public nsMsgDBView
 {
 public:
   nsMsgGroupView();
@@ -52,6 +58,7 @@ public:
   NS_IMETHOD OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgViewSortTypeValue aSortType, 
                                         nsMsgViewSortOrderValue aSortOrder, nsMsgViewFlagsTypeValue aViewFlags, 
                                         PRInt32 *aCount);
+  NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD Close();
   NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, PRInt32 aFlags, 
                             nsIDBChangeListener *aInstigator);
@@ -77,7 +84,8 @@ protected:
                                             PRUint32 *pFlags = NULL);
 
   PRBool GroupViewUsesDummyRow(); // returns true if we are grouped by a sort attribute that uses a dummy row
-  nsresult HandleDayChange();
+  virtual nsresult RebuildView();
+  virtual nsMsgGroupThread *CreateGroupThread(nsIMsgDatabase *db);
 
   nsInterfaceHashtable <nsStringHashKey, nsIMsgThread> m_groupsTable;
   PRExplodedTime m_lastCurExplodedTime;
@@ -90,4 +98,6 @@ private:
   nsString m_kTwoWeeksAgoString;
   nsString m_kOldMailString;
 };
+
+#endif
 

@@ -409,8 +409,6 @@ var DefaultController =
         if (GetNumSelectedMessages() <= 0) return false;
       case "cmd_expandAllThreads":
       case "cmd_collapseAllThreads":
-        if (!gDBView || !gDBView.supportsThreading) 
-          return false;
         return (gDBView.viewFlags & nsMsgViewFlagsType.kThreadedDisplay);
         break;
       case "cmd_nextFlaggedMsg":
@@ -418,10 +416,12 @@ var DefaultController =
         return IsViewNavigationItemEnabled();
       case "cmd_viewAllMsgs":
       case "cmd_viewUnreadMsgs":
-      case "cmd_viewThreadsWithUnread":
-      case "cmd_viewWatchedThreadsWithUnread":
       case "cmd_viewIgnoredThreads":
         return gDBView;
+      case "cmd_viewThreadsWithUnread":
+      case "cmd_viewWatchedThreadsWithUnread":
+        return gDBView && !(GetSelectedMsgFolders()[0].flags & 
+                            MSG_FOLDER_FLAG_VIRTUAL);
       case "cmd_stop":
         return true;
       case "cmd_undo":
