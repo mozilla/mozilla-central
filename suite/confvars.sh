@@ -48,6 +48,6 @@ MOZ_SUITE=1
 MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version.txt`
 SEAMONKEY_VERSION=$MOZ_APP_VERSION
 MOZ_NO_XPCOM_OBSOLETE=1
-MOZ_EXTENSIONS_DEFAULT=" wallet venkman inspector irc typeaheadfind gnomevfs reporter"
+MOZ_EXTENSIONS_DEFAULT=" wallet venkman inspector irc gnomevfs reporter"
 MOZ_UPDATER=1
 MOZ_HELP_VIEWER=1
