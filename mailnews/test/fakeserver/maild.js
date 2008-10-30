@@ -47,6 +47,10 @@ var CC = Components.Constructor;
 /** The XPCOM thread manager. */
 var gThreadManager = null;
 
+const fsDebugNone = 0;
+const fsDebugRecv = 1;
+const fsDebugRecvSend = 2;
+const fsDebugAll = 3;
 
 /**
  * JavaScript constructors for commonly-used classes; precreating these is a
@@ -99,6 +103,8 @@ function nsMailServer(handler) {
   if (!gThreadManager)
     gThreadManager = Cc["@mozilla.org/thread-manager;1"].getService();
 
+  this._debug = fsDebugNone;
+
   /** The port on which this server listens. */
   this._port = undefined;
 
@@ -117,12 +123,15 @@ function nsMailServer(handler) {
 }
 nsMailServer.prototype = {
   onSocketAccepted : function (socket, trans) {
+    if (this._debug != fsDebugNone)
+      print("Received Connection from " + trans.host + ":" + trans.port);
+
     const SEGMENT_SIZE = 1024;
     const SEGMENT_COUNT = 1024;
     var input = trans.openInputStream(0, SEGMENT_SIZE, SEGMENT_COUNT)
                      .QueryInterface(Ci.nsIAsyncInputStream);
 
-    var reader = new nsMailReader(this, this._handler, trans);
+    var reader = new nsMailReader(this, this._handler, trans, this._debug);
     this._readers.push(reader);
 
     // Note: must use main thread here, or we might get a GC that will cause
@@ -133,7 +142,16 @@ nsMailServer.prototype = {
   },
 
   onStopListening : function (socket, status) {
+    if (this._debug != fsDebugNone)
+      print("Connection Lost " + status);
+
     this._socketClosed = true;
+  },
+
+  setDebugLevel : function (debug) {
+    this._debug = debug;
+    if (this._reader)
+      this._reader.setDebugLevel(debug);
   },
 
   start : function (port) {
@@ -270,7 +288,8 @@ function readTo(input, count, arr) {
  * closeSocket  Performs a server-side socket closing
  * setMultiline Sets the multiline mode based on the argument
  *****************************************************************************/
-function nsMailReader(server, handler, transport) {
+function nsMailReader(server, handler, transport, debug) {
+  this._debug = debug;
   this._server = server;
   this._buffer = [];
   this._lines = [];
@@ -350,6 +369,9 @@ nsMailReader.prototype = {
     while (this._lines.length > 0) {
       var line = this._lines.shift();
 
+      if (this._debug == fsDebugAll)
+        print("RECV: " + line);
+
       var response;
       try {
         if (this._multiline) {
@@ -368,6 +390,10 @@ nsMailReader.prototype = {
 
           // By convention, commands are uppercase
           command = command.toUpperCase();
+
+          if (this._debug == fsDebugRecv || this._debug == fsDebugRecvSend)
+            print("RECV: " + command);
+
           if (command in this._handler)
             response = this._handler[command](args);
           else
@@ -392,6 +418,15 @@ nsMailReader.prototype = {
 
       if (response.charAt(response.length-1) != '\n')
        response = response + "\r\n";
+
+      if (this._debug == fsDebugRecvSend) {
+        print("SEND: " + response.split(" ", 1)[0]);
+      }
+      else if (this._debug == fsDebugAll) {
+        var responses = response.split("\n");
+        responses.forEach(function (line) { print("SEND: " + line); });
+      }
+
       this.transaction.us.push(response);
       this._output.write(response, response.length);
       this._output.flush();
@@ -418,6 +453,10 @@ nsMailReader.prototype = {
 
   setMultiline : function (multi) {
     this._multiline = multi;
+  },
+
+  setDebugLevel : function (debug) {
+    this._debug = debug;
   },
 
   preventLFMunge : function () {
