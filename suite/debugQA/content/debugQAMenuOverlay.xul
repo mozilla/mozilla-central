@@ -50,7 +50,7 @@
   <!-- Menu -->
   <menubar id="main-menubar">
     <!-- Menu for testing. -->
-    <menu id="debugMenu" accesskey="U" label="Debug" insertafter="menu_Help">
+    <menu id="debugMenu" accesskey="U" label="Debug" insertbefore="menu_Help">
       <menupopup id="menu_Debug_Popup">
         <menu label="Verification">
           <menupopup>
@@ -195,7 +195,7 @@
       </menupopup>
     </menu>
 
-    <menu id="qaMenu" accesskey="Q" label="QA">
+    <menu id="qaMenu" accesskey="Q" label="QA" insertbefore="menu_Help">
       <menupopup id="qaMenuPopup">
         <menuitem label="Getting Involved"
                   oncommand="openTopWin('http://www.seamonkey-project.org/start/');"/>
