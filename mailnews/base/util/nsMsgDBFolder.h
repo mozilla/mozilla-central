@@ -102,6 +102,8 @@ public:
   void ChangeNumPendingTotalMessages(PRInt32 delta);
 
   nsresult CreateDirectoryForFolder(nsILocalFile **result);
+  nsresult CreateBackupDirectory(nsILocalFile **result);
+  nsresult GetBackupSummaryFile(nsILocalFile **result, const nsACString& newName);
   nsresult GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputStream *stream);
 protected:
   
@@ -165,6 +167,7 @@ protected:
 
 protected:
   nsCOMPtr<nsIMsgDatabase> mDatabase;
+  nsCOMPtr<nsIMsgDatabase> mBackupDatabase;
   nsCString mCharset;
   PRBool mCharsetOverride;
   PRBool mAddListener;

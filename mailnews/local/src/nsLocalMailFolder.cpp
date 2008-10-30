@@ -520,7 +520,19 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
           dbFolderInfo->GetTransferInfo(getter_AddRefs(transferInfo));
         }
         dbFolderInfo = nsnull;
-        mDatabase->ForceClosed();
+
+        // A backup message database might have been created earlier, for example
+        // if the user requested a reindex. We'll use the earlier one if we can,
+        // otherwise we'll try to backup at this point.
+        if (NS_FAILED(OpenBackupMsgDatabase()))
+        {
+          CloseAndBackupFolderDB(EmptyCString());
+          if (NS_FAILED(OpenBackupMsgDatabase()))
+            mBackupDatabase = nsnull;
+        }
+        else
+          mDatabase->ForceClosed();
+
         mDatabase = nsnull;
       }
       nsCOMPtr <nsILocalFile> summaryFile;

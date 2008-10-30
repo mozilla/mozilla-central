@@ -1221,7 +1221,7 @@ NS_IMETHODIMP nsMsgDatabase::ForceClosed()
     m_dbFolderInfo->ReleaseExternalReferences();
   NS_IF_RELEASE(m_dbFolderInfo);
 
-  err = CloseMDB(PR_FALSE);  // since we're about to delete it, no need to commit.
+  err = CloseMDB(PR_TRUE);  // Backup DB will try to recover info, so commit
   ClearCachedObjects(PR_TRUE);
   if (m_mdbAllMsgHeadersTable)
   {
@@ -4048,9 +4048,13 @@ NS_IMETHODIMP nsMsgDatabase::GetMsgHdrForMessageID(const char *msgID, nsIMsgDBHd
 
   nsIMdbRow *hdrRow;
   mdbOid outRowId;
-  mdb_err result = GetStore()->FindRow(GetEnv(), m_hdrRowScopeToken,
-    m_messageIdColumnToken, &messageIdYarn,  &outRowId,
-    &hdrRow);
+  mdb_err result;
+  if (m_mdbStore)
+    result = m_mdbStore->FindRow(GetEnv(), m_hdrRowScopeToken,
+      m_messageIdColumnToken, &messageIdYarn,  &outRowId,
+      &hdrRow);
+  else
+    return NS_ERROR_FAILURE;
   if (NS_SUCCEEDED(result) && hdrRow)
   {
     //Get key from row

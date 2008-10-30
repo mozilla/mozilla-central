@@ -101,6 +101,7 @@ public:
 
   nsCOMPtr<nsIMsgDBHdr> m_newMsgHdr; /* current message header we're building */
   nsCOMPtr<nsIMsgDatabase>  m_mailDB;
+  nsCOMPtr<nsIMsgDatabase> m_backupMailDB;
 
   nsMailboxParseState   m_state;
   PRUint32              m_position;

@@ -163,6 +163,15 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStartRequest(nsIRequest *request, nsISupport
                     m_mailDB->AddListener(this);
             }
             NS_ASSERTION(m_mailDB, "failed to open mail db parsing folder");
+
+            // try to get a backup message database
+            nsresult rvignore = folder->GetBackupMsgDatabase(
+                getter_AddRefs(m_backupMailDB));
+
+            // We'll accept failures and move on, as we're dealing with some
+            // sort of unknown problem to begin with.
+            if (NS_FAILED(rvignore))
+              m_backupMailDB = nsnull;
         }
     }
 
@@ -339,6 +348,15 @@ void nsMsgMailboxParser::DoneParsingFolder(nsresult status)
     UpdateDBFolderInfo();
   else if (m_mailDB)
     m_mailDB->SetSummaryValid(PR_FALSE);
+
+  // remove the backup database
+  if (m_backupMailDB)
+  {
+    nsCOMPtr<nsIMsgFolder> folder = do_QueryReferent(m_folder);
+    if (folder)
+      folder->RemoveBackupMsgDatabase();
+    m_backupMailDB = nsnull;
+  }
 
   //  if (m_folder != nsnull)
   //    m_folder->SummaryChanged();
@@ -652,6 +670,12 @@ PRInt32 nsParseMailMessageState::ParseFolderLine(const char *line, PRUint32 line
 NS_IMETHODIMP nsParseMailMessageState::SetMailDB(nsIMsgDatabase *mailDB)
 {
   m_mailDB = mailDB;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsParseMailMessageState::SetBackupMailDB(nsIMsgDatabase *aBackupMailDB)
+{
+  m_backupMailDB = aBackupMailDB;
   return NS_OK;
 }
 
@@ -1264,7 +1288,37 @@ int nsParseMailMessageState::FinalizeHeaders()
 
   if (!(flags & MSG_FLAG_EXPUNGED))  // message was deleted, don't bother creating a hdr.
   {
-    nsresult ret = m_mailDB->CreateNewHdr(m_envelope_pos, getter_AddRefs(m_newMsgHdr));
+    // We'll need the message id first to recover data from the backup database
+    nsCAutoString rawMsgId;
+    /* Take off <> around message ID. */
+    if (id)
+    {
+      if (id->value[0] == '<')
+        id->value++, id->length--;
+      if (id->value[id->length - 1] == '>')
+        /* generate a new null-terminated string without the final > */
+        rawMsgId.Assign(id->value, id->length - 1);
+      else
+        rawMsgId.Assign(id->value);
+    }
+
+    /*
+     * Try to copy the data from the backup database, referencing the MessageID
+     * If that fails, just create a new header
+     */
+    nsCOMPtr<nsIMsgDBHdr> oldHeader;
+    nsresult ret = NS_ERROR_FAILURE;
+
+    if (m_backupMailDB && !rawMsgId.IsEmpty())
+      ret = m_backupMailDB->GetMsgHdrForMessageID(
+              rawMsgId.get(), getter_AddRefs(oldHeader));
+
+    if (NS_SUCCEEDED(ret) && oldHeader)
+        ret = m_mailDB->CopyHdrFromExistingHdr(m_envelope_pos,
+                oldHeader, PR_FALSE, getter_AddRefs(m_newMsgHdr));
+    else
+      ret = m_mailDB->CreateNewHdr(m_envelope_pos, getter_AddRefs(m_newMsgHdr));
+
     if (NS_SUCCEEDED(ret) && m_newMsgHdr)
     {
       PRUint32 origFlags;
@@ -1388,18 +1442,10 @@ int nsParseMailMessageState::FinalizeHeaders()
           id = &md5_header;
         }
 
-        /* Take off <> around message ID. */
-        if (id->value[0] == '<')
-          id->value++, id->length--;
-
-        if (id->value[id->length-1] == '>') {
-          /* generate a new null-terminated string without the final > */
-          nsCAutoString rawMsgId;
-          rawMsgId.Assign(id->value, id->length - 1);
+        if (!rawMsgId.IsEmpty())
           m_newMsgHdr->SetMessageId(rawMsgId.get());
-        } else {
+        else
           m_newMsgHdr->SetMessageId(id->value);
-        }
 
         if (!mozstatus && statush)
         {
@@ -1482,7 +1528,26 @@ int nsParseMailMessageState::FinalizeHeaders()
         else if (priorityFlags == nsMsgPriority::notSet)
           m_newMsgHdr->SetPriority(nsMsgPriority::none);
         if (keywords)
-          m_newMsgHdr->SetStringProperty("keywords", keywords->value);
+        {
+          // When there are many keywords, some may not have been written
+          // to the message file, so add extra keywords from the backup
+          nsCAutoString oldKeywords;
+          m_newMsgHdr->GetStringProperty("keywords", getter_Copies(oldKeywords));
+          nsCStringArray newKeywordArray, oldKeywordArray;
+          newKeywordArray.ParseString(keywords->value, " ");
+          oldKeywordArray.ParseString(oldKeywords.get(), " ");
+          for (PRInt32 i = 0; i < oldKeywordArray.Count(); i++)
+            if (newKeywordArray.IndexOf(*oldKeywordArray.CStringAt(i)) < 0)
+              newKeywordArray.AppendCString(*oldKeywordArray.CStringAt(i));
+          nsCAutoString newKeywords;
+          for (PRInt32 i = 0; i < newKeywordArray.Count(); i++)
+          {
+            if (i)
+              newKeywords.Append(" ");
+            newKeywords.Append(*newKeywordArray.CStringAt(i));
+          }
+          m_newMsgHdr->SetStringProperty("keywords", newKeywords.get());
+        }
         for (PRInt32 i = 0; i < m_customDBHeaders.Count(); i++)
         {
           if (m_customDBHeaderValues[i].length)
@@ -1613,6 +1678,8 @@ nsParseNewMailState::~nsParseNewMailState()
 {
   if (m_mailDB)
     m_mailDB->Close(PR_TRUE);
+  if (m_backupMailDB)
+    m_backupMailDB->ForceClosed();
 #ifdef DOING_JSFILTERS
   JSFilter_cleanup();
 #endif

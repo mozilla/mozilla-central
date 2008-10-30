@@ -48,11 +48,18 @@ interface nsIOutputStream;
 
 typedef long nsMailboxParseState;
 
-[scriptable, uuid(BE2B880F-B696-46FB-B78A-18FB3C795AEB)]
+[scriptable, uuid(9BE9B91D-5D5B-4e85-84B2-79FBFF56F5D4)]
 interface nsIMsgParseMailMsgState : nsISupports {
 
     attribute unsigned long envelopePos;
     void SetMailDB(in nsIMsgDatabase aDatabase);
+    /*
+     * Set a backup mail database, whose data will be read during parsing to
+     * attempt to recover message metadata
+     *
+     * @param aDatabase   the backup database
+     */
+    void SetBackupMailDB(in nsIMsgDatabase aDatabase);
     void setDBFolderStream(in nsIOutputStream fileStream);
     void Clear();
 

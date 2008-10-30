@@ -91,6 +91,7 @@
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 #include "nsIMimeHeaders.h"
+#include "nsDirectoryServiceDefs.h"
 
 #define oneHour 3600000000U
 #include "nsMsgUtils.h"
@@ -223,7 +224,11 @@ NS_IMETHODIMP nsMsgDBFolder::Shutdown(PRBool shutdownChildren)
     mDatabase->RemoveListener(this);
     mDatabase->Close(PR_TRUE);
     mDatabase = nsnull;
-
+    if (mBackupDatabase)
+    {
+      mBackupDatabase->ForceClosed();
+      mBackupDatabase = nsnull;
+    }
   }
 
   if(shutdownChildren)
@@ -264,6 +269,124 @@ NS_IMETHODIMP nsMsgDBFolder::ForceDBClosed()
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgDBFolder::CloseAndBackupFolderDB(const nsACString& newName)
+{
+  ForceDBClosed();
+
+  // We only support backup for mail at the moment
+  if ( !(mFlags & nsMsgFolderFlags::Mail))
+    return NS_OK;
+
+  nsCOMPtr<nsILocalFile> folderPath;
+  nsresult rv = GetFilePath(getter_AddRefs(folderPath));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> dbFile;
+  rv = GetSummaryFileLocation(folderPath, getter_AddRefs(dbFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> backupDir;
+  rv = CreateBackupDirectory(getter_AddRefs(backupDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> backupDBFile;
+  rv = GetBackupSummaryFile(getter_AddRefs(backupDBFile), newName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (mBackupDatabase)
+  {
+    mBackupDatabase->ForceClosed();
+    mBackupDatabase = nsnull;
+  }
+
+  backupDBFile->Remove(PR_FALSE);
+  PRBool backupExists;
+  backupDBFile->Exists(&backupExists);
+  NS_ASSERTION(!backupExists, "Couldn't delete database backup");
+  if (backupExists)
+    return NS_ERROR_FAILURE;
+
+  if (!newName.IsEmpty())
+  {
+    nsCAutoString backupName;
+    rv = backupDBFile->GetNativeLeafName(backupName);
+    NS_ENSURE_SUCCESS(rv, rv);
+    return dbFile->CopyToNative(backupDir, backupName);
+  }
+  else
+    return dbFile->CopyToNative(backupDir, EmptyCString());
+}
+
+NS_IMETHODIMP nsMsgDBFolder::OpenBackupMsgDatabase()
+{
+  if (mBackupDatabase)
+    return NS_OK;
+  nsCOMPtr<nsILocalFile> folderPath;
+  nsresult rv = GetFilePath(getter_AddRefs(folderPath));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsAutoString folderName;
+  rv = folderPath->GetLeafName(folderName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> backupDir;
+  rv = CreateBackupDirectory(getter_AddRefs(backupDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // We use a dummy message folder file so we can use
+  // GetSummaryFileLocation to get the db file name
+  nsCOMPtr<nsILocalFile> backupDBDummyFolder;
+  rv = CreateBackupDirectory(getter_AddRefs(backupDBDummyFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = backupDBDummyFolder->Append(folderName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  mBackupDatabase = do_CreateInstance(NS_MAILBOXDB_CONTRACTID, &rv);
+  nsCOMPtr<nsIMsgDBService> msgDBService =
+      do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+  rv = msgDBService->OpenMailDBFromFile(
+      backupDBDummyFolder, PR_FALSE, PR_TRUE, getter_AddRefs(mBackupDatabase));
+
+  if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
+    // this is normal in reparsing
+    rv = NS_OK;
+  return rv;
+}
+
+NS_IMETHODIMP nsMsgDBFolder::RemoveBackupMsgDatabase()
+{
+  nsCOMPtr<nsILocalFile> folderPath;
+  nsresult rv = GetFilePath(getter_AddRefs(folderPath));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsAutoString folderName;
+  rv = folderPath->GetLeafName(folderName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> backupDir;
+  rv = CreateBackupDirectory(getter_AddRefs(backupDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // We use a dummy message folder file so we can use
+  // GetSummaryFileLocation to get the db file name
+  nsCOMPtr<nsILocalFile> backupDBDummyFolder;
+  rv = CreateBackupDirectory(getter_AddRefs(backupDBDummyFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = backupDBDummyFolder->Append(folderName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> backupDBFile;
+  rv = GetSummaryFileLocation(backupDBDummyFolder, getter_AddRefs(backupDBFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (mBackupDatabase)
+  {
+    mBackupDatabase->ForceClosed();
+    mBackupDatabase = nsnull;
+  }
+
+  return backupDBFile->Remove(PR_FALSE);
+}  
 
 NS_IMETHODIMP nsMsgDBFolder::StartFolderLoading(void)
 {
@@ -776,6 +899,19 @@ nsMsgDBFolder::SetMsgDatabase(nsIMsgDatabase *aMsgDatabase)
 
   if (aMsgDatabase)
     aMsgDatabase->AddListener(this);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgDBFolder::GetBackupMsgDatabase(nsIMsgDatabase** aMsgDatabase)
+{
+  NS_ENSURE_ARG_POINTER(aMsgDatabase);
+  nsresult rv = OpenBackupMsgDatabase();
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (!mBackupDatabase)
+    return NS_ERROR_FAILURE;
+
+  NS_ADDREF(*aMsgDatabase = mBackupDatabase);
   return NS_OK;
 }
 
@@ -3117,6 +3253,76 @@ nsresult nsMsgDBFolder::CreateDirectoryForFolder(nsILocalFile **resultFile)
   if (NS_SUCCEEDED(rv))
     path.swap(*resultFile);
   return rv;
+}
+
+/* Finds the backup directory associated with this folder, stored on the temp
+   drive. If that path doesn't currently exist then it will create it. Path is
+   strictly an out parameter.
+  */
+nsresult nsMsgDBFolder::CreateBackupDirectory(nsILocalFile **resultFile)
+{
+  nsCOMPtr<nsIFile> pathIFile;
+  nsresult rv = NS_GetSpecialDirectory(NS_OS_TEMP_DIR,
+                                       getter_AddRefs(pathIFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> path = do_QueryInterface(pathIFile, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = path->Append(NS_LITERAL_STRING("MozillaMailnews"));
+  PRBool pathIsDirectory;
+  path->IsDirectory(&pathIsDirectory);
+
+  // If that doesn't exist, then we have to create this directory
+  if (!pathIsDirectory)
+  {
+    PRBool pathExists;
+    path->Exists(&pathExists);
+    // If for some reason there's a file with the directory separator
+    // then we are going to fail.
+    rv = pathExists ? NS_MSG_COULD_NOT_CREATE_DIRECTORY :
+                      path->Create(nsIFile::DIRECTORY_TYPE, 0700);
+  }
+  if (NS_SUCCEEDED(rv))
+    path.swap(*resultFile);
+  return rv;
+}
+
+nsresult nsMsgDBFolder::GetBackupSummaryFile(nsILocalFile **aBackupFile, const nsACString& newName)
+{
+  nsCOMPtr<nsILocalFile> backupDir;
+  nsresult rv = CreateBackupDirectory(getter_AddRefs(backupDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // We use a dummy message folder file so we can use
+  // GetSummaryFileLocation to get the db file name
+  nsCOMPtr<nsILocalFile> backupDBDummyFolder;
+  rv = CreateBackupDirectory(getter_AddRefs(backupDBDummyFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!newName.IsEmpty())
+  {
+    rv = backupDBDummyFolder->AppendNative(newName);
+  }
+  else // if newName is null, use the folder name
+  {
+    nsCOMPtr<nsILocalFile> folderPath;
+    rv = GetFilePath(getter_AddRefs(folderPath));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCAutoString folderName;
+    rv = folderPath->GetNativeLeafName(folderName);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = backupDBDummyFolder->AppendNative(folderName);
+  }
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> backupDBFile;
+  rv = GetSummaryFileLocation(backupDBDummyFolder, getter_AddRefs(backupDBFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  backupDBFile.swap(*aBackupFile);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msgWindow)

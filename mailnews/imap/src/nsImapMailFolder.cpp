@@ -1546,7 +1546,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameLocal(const nsACString& newName, nsIMsgFol
       leafname.Cut(0, leafpos+1);
   m_msgParser = nsnull;
   PrepareToRename();
-  ForceDBClosed();
+  CloseAndBackupFolderDB(leafname);
 
   nsresult rv = NS_OK;
   nsCOMPtr<nsILocalFile> oldPathFile;
@@ -2507,10 +2507,22 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     nsCOMPtr <nsIDBFolderInfo> transferInfo;
     if (dbFolderInfo)
       dbFolderInfo->GetTransferInfo(getter_AddRefs(transferInfo));
+
+    // A backup message database might have been created earlier, for example
+    // if the user requested a reindex. We'll use the earlier one if we can,
+    // otherwise we'll try to backup at this point.
+    nsresult rvbackup = OpenBackupMsgDatabase();
     if (mDatabase)
     {
       dbFolderInfo = nsnull;
-      mDatabase->ForceClosed();
+      if (NS_FAILED(rvbackup))
+      {
+        CloseAndBackupFolderDB(EmptyCString());
+        if (NS_FAILED(OpenBackupMsgDatabase()))
+          mBackupDatabase = nsnull;
+      }
+      else
+        mDatabase->ForceClosed();
     }
     mDatabase = nsnull;
 
@@ -2741,6 +2753,8 @@ nsresult nsImapMailFolder::SetupHeaderParseStream(PRUint32 aSize,
     m_msgParser->Clear();
 
   m_msgParser->SetMailDB(mDatabase);
+  if (mBackupDatabase)
+    m_msgParser->SetBackupMailDB(mBackupDatabase);
   return m_msgParser->SetState(nsIMsgParseMailMsgState::ParseHeadersState);
 }
 
@@ -5031,6 +5045,9 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
   nsCOMPtr <nsIMsgWindow> msgWindow; // we might need this for the filter plugins.
   if (mDatabase)
     mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+  if (mBackupDatabase)
+    RemoveBackupMsgDatabase();
+
   SetSizeOnDisk(mFolderSize);
   PRInt32 numNewBiffMsgs = 0;
   if (m_performingBiff)
