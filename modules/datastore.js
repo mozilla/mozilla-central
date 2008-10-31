@@ -95,6 +95,7 @@ let PCH_LOG = Log4Moz.Service.getLogger("gloda.ds.pch");
 
 function PostCommitHandler(aCallbacks) {
   this.callbacks = aCallbacks;
+  GlodaDatastore._pendingAsyncStatements++;
 }
 
 PostCommitHandler.prototype = {
@@ -747,7 +748,7 @@ var GlodaDatastore = {
     }
 
     this.syncConnection = dbConnection;
-    this.asyncConnection = dbService.openUnsharedDatabase(dbFile);
+    this.asyncConnection = dbConnection;
 
     this._log.debug("Initializing folder mappings.");
     this._getAllFolderMappings();
@@ -785,13 +786,10 @@ var GlodaDatastore = {
 
     function finish_cleanup() {
       datastore._cleanupAsyncStatements();
-      datastore._log.info("Closing async connection");
+      datastore._cleanupSyncStatements();
+      datastore._log.info("Closing db connection");
       datastore.asyncConnection.close();
       datastore.asyncConnection = null;
-
-      datastore._cleanupSyncStatements();
-      datastore._log.info("Closing sync connection");
-      datastore.syncConnection.close();
       datastore.syncConnection = null;
 
       if (aCallback) {
@@ -804,6 +802,7 @@ var GlodaDatastore = {
       return false;
     }
     else {
+      this._log.debug("There are no pending async statements, finishing now.");
       aCallback = null;
       finish_cleanup();
       return true;

@@ -49,6 +49,7 @@ function DatabindCallback(aDatabind, aCallbackThis, aCallback, aOneShot) {
   this._callbackThis = aCallbackThis;
   this._callback = aCallback;
   this._oneShot = aOneShot;
+  this._databind._datastore._pendingAsyncStatements++;
 }
 DatabindCallback.prototype = {
   handleResult: function (aResultSet) {

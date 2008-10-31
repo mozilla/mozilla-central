@@ -320,9 +320,13 @@ var GlodaIndexer = {
     this.enabled = eventDrivenEnabled;
   },
   
+  /**
+   * @returns true on full and immediate shutdown, false if we need to pend on
+   *     something asynchronous.
+   */
   _shutdown: function gloda_index_shutdown(aUrlListener) {
     if (!this.enabled)
-      return;
+      return true;
     
     this._log.info("Shutting Down");
 
