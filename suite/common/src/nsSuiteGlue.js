@@ -174,16 +174,16 @@ GeolocationPrompt.prototype = {
 
       var buttons =
         [{
-          label: notificationBundle.GetStringFromName("geolocation.exactLocation"),
-          accessKey: notificationBundle.GetStringFromName("geolocation.exactLocationKey"),
+          label: notificationBundle.GetStringFromName("geolocation.exactLocation.label"),
+          accessKey: notificationBundle.GetStringFromName("geolocation.exactLocation.accesskey"),
           callback: function() { aRequest.allow() },
         }, {
-          label: notificationBundle.GetStringFromName("geolocation.neighborhoodLocation"),
-          accessKey: notificationBundle.GetStringFromName("geolocation.neighborhoodLocationKey"),
+          label: notificationBundle.GetStringFromName("geolocation.neighborhoodLocation.label"),
+          accessKey: notificationBundle.GetStringFromName("geolocation.neighborhoodLocation.accesskey"),
           callback: function() { aRequest.allowButFuzz() },
         }, {
-          label: notificationBundle.GetStringFromName("geolocation.nothingLocation"),
-          accessKey: notificationBundle.GetStringFromName("geolocation.nothingLocationKey"),
+          label: notificationBundle.GetStringFromName("geolocation.nothingLocation.label"),
+          accessKey: notificationBundle.GetStringFromName("geolocation.nothingLocation.accesskey"),
           callback: function() { aRequest.cancel() },
         }];
 
