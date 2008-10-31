@@ -2075,7 +2075,15 @@ calStorageCalendar.prototype = {
 
         a.id = row.attendee_id;
         a.commonName = row.common_name;
-        a.rsvp = (row.rsvp != 0);
+        switch (row.rsvp) {
+            case 0:
+                a.rsvp = "FALSE";
+                break;
+            case 1:
+                a.rsvp = "TRUE";
+                break;
+            // default: keep undefined
+        }
         a.role = row.role;
         a.participationStatus = row.status;
         a.userType = row.type;
@@ -2277,7 +2285,17 @@ calStorageCalendar.prototype = {
                 this.setDateParamHelper(ap, "recurrence_id", item.recurrenceId);
                 ap.attendee_id = att.id;
                 ap.common_name = att.commonName;
-                ap.rsvp = att.rsvp;
+                switch (att.rsvp) {
+                    case "FALSE":
+                        ap.rsvp = 0;
+                        break;
+                    case "TRUE":
+                        ap.rsvp = 1;
+                        break;
+                    default:
+                        ap.rsvp = 2;
+                        break;
+                }
                 ap.role = att.role;
                 ap.status = att.participationStatus;
                 ap.type = att.userType;

@@ -50,7 +50,7 @@ function run_test() {
     // Testing attendee set/get.
     var properties = ["id", "commonName", "rsvp", "role", "participationStatus",
                       "userType"];
-    var values = ["myid", "mycn", true, attendeeIID.ROLE_CHAIR,
+    var values = ["myid", "mycn", "TRUE", attendeeIID.ROLE_CHAIR,
                   attendeeIID.PARTSTAT_DECLINED,
                   attendeeIID.CUTYPE_RESOURCE];
     // Make sure test is valid

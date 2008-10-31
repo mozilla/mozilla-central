@@ -825,7 +825,7 @@
         <body><![CDATA[
           var attendee = createAttendee();
           attendee.id = "";
-          attendee.rsvp = true;
+          attendee.rsvp = "TRUE";
           attendee.role = "REQ-PARTICIPANT";
           attendee.participationStatus = "NEEDS-ACTION";
           return attendee;

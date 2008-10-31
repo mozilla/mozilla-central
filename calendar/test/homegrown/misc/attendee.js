@@ -11,7 +11,7 @@ var a1 = attendeeClass.createInstance(attendeeIID);
 dump("* Testing attendee set/get.\n");
 var properties = ["id", "commonName", "rsvp", "role", "participationStatus",
 		  "userType"];
-var values = ["myid", "mycn", true, attendeeIID.ROLE_CHAIR,
+var values = ["myid", "mycn", "TRUE", attendeeIID.ROLE_CHAIR,
 	      attendeeIID.PARTSTAT_DECLINED,
 	      attendeeIID.CUTYPE_RESOURCE];
 if (properties.length != values.length)

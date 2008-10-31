@@ -53,7 +53,7 @@ function calWcapCalendar_encodeAttendee(att) {
         }
         return params;
     }
-    var params = encodeAttr(att.rsvp ? "TRUE" : "FALSE", "RSVP", "");
+    let params = encodeAttr(att.rsvp, "RSVP", "");
     params = encodeAttr(att.participationStatus, "PARTSTAT", params);
     params = encodeAttr(att.role, "ROLE", params);
     var cn = att.commonName;

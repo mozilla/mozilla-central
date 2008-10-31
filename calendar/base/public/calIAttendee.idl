@@ -54,7 +54,7 @@ interface calIAttendee : nsISupports
 
   attribute AUTF8String id;
   attribute AUTF8String commonName;
-  attribute boolean     rsvp;
+  attribute AUTF8String rsvp;
 
   /** 
    * If true, indicates that this is not a standard attendee, but rather this

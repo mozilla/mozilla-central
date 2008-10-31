@@ -60,7 +60,7 @@ var itemConversion = {
                 attendee.commonName = names.value[i];
                 attendee.role = "REQ-PARTICIPANT";
                 attendee.participationStatus = "NEEDS-ACTION";
-                attendee.rsvp = true;
+                attendee.rsvp = "TRUE";
                 aItem.addAttendee(attendee);
             }
         }

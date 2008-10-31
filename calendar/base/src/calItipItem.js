@@ -285,28 +285,12 @@ calItipItem.prototype = {
         for each (var item in this.mItemList) {
             var attendee = item.getAttendeeById(aAttendeeId);
             if (attendee) {
+                // Replies should not have the RSVP property.
                 // XXX BUG 351589: workaround for updating an attendee
                 item.removeAttendee(attendee);
-
-                // Replies should not have the RSVP property.
-                // Since attendee.deleteProperty("RSVP") doesn't work, we must
-                // create a new attendee from scratch WITHOUT the RSVP
-                // property and copy in the other relevant data.
-                // XXX use deleteProperty after bug 358498 is fixed.
-                newAttendee = Components.classes["@mozilla.org/calendar/attendee;1"].
-                              createInstance(Components.interfaces.calIAttendee);
-                if (attendee.commonName) {
-                    newAttendee.commonName = attendee.commonName;
-                }
-                if (attendee.role) {
-                    newAttendee.role = attendee.role;
-                }
-                if (attendee.userType) {
-                    newAttendee.userType = attendee.userType;
-                }
-                newAttendee.id = attendee.id;
-                newAttendee.participationStatus = aStatus;
-                item.addAttendee(newAttendee);
+                attendee = attendee.clone();
+                attendee.rsvp = null;
+                item.addAttendee(attendee);
             }
         }
     }

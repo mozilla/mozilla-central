@@ -585,7 +585,7 @@ function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
             attendee = attendee.clone();
             attendee.role = "REQ-PARTICIPANT";
             attendee.participationStatus = "NEEDS-ACTION";
-            attendee.rsvp = true;
+            attendee.rsvp = "TRUE";
             requestItem.addAttendee(attendee);
             recipients.push(attendee);
         }

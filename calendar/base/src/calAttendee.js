@@ -114,7 +114,7 @@ calAttendee.prototype = {
     // XXX enforce legal values for our properties;
 
     icalAttendeePropMap: [
-    { cal: "mRsvp",               ics: "RSVP" },
+    { cal: "rsvp",                ics: "RSVP" },
     { cal: "commonName",          ics: "CN" },
     { cal: "participationStatus", ics: "PARTSTAT" },
     { cal: "userType",            ics: "CUTYPE" },
@@ -123,14 +123,6 @@ calAttendee.prototype = {
     mIsOrganizer: false,
     get isOrganizer() { return this.mIsOrganizer; },
     set isOrganizer(bool) { this.mIsOrganizer = bool; },
-
-    get rsvp() {
-        return this.mRsvp == "TRUE";
-    },
-    set rsvp(aValue) {
-        this.modify();
-        this.mRsvp = (aValue ? "TRUE" : "FALSE");
-    },
 
     // icalatt is a calIcalProperty of type attendee
     set icalProperty (icalatt) {
@@ -186,7 +178,11 @@ calAttendee.prototype = {
     },
     setProperty: function (aName, aValue) {
         this.modify();
-        this.mProperties.setProperty(aName.toUpperCase(), aValue);
+        if (aValue || !isNaN(parseInt(aValue, 10))) {
+            this.mProperties.setProperty(aName.toUpperCase(), aValue);
+        } else {
+            this.mProperties.deleteProperty(aName.toUpperCase());
+        }
     },
     deleteProperty: function (aName) {
         this.modify();
@@ -215,6 +211,7 @@ calAttendee.prototype = {
 var makeMemberAttr;
 if (makeMemberAttr) {
     makeMemberAttr(calAttendee, "mCommonName", null, "commonName");
+    makeMemberAttr(calAttendee, "mRsvp", null, "rsvp");
     makeMemberAttr(calAttendee, "mRole", null, "role");
     makeMemberAttr(calAttendee, "mParticipationStatus", "NEEDS-ACTION",
                    "participationStatus");
