@@ -398,13 +398,18 @@ function SwitchView(command)
   {
     // "All" threads and "Unread" threads don't change threading state
     case "cmd_viewAllMsgs":
+      viewType = nsMsgViewType.eShowAllThreads;
       viewFlags = viewFlags & ~nsMsgViewFlagsType.kUnreadOnly;
       break;
     case "cmd_viewUnreadMsgs":
+      viewType = nsMsgViewType.eShowAllThreads;
       viewFlags = viewFlags | nsMsgViewFlagsType.kUnreadOnly;
       break;
     // "Threads with Unread" and "Watched Threads with Unread" force threading
     case "cmd_viewWatchedThreadsWithUnread":
+      viewType = nsMsgViewType.eShowWatchedThreadsWithUnread;
+      viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
+      break;
     case "cmd_viewThreadsWithUnread":
       viewType = nsMsgViewType.eShowThreadsWithUnread;
       viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
@@ -412,6 +417,7 @@ function SwitchView(command)
     // "Ignored Threads" toggles 'ignored' inclusion --
     //   but it also resets 'With Unread' views to 'All'
     case "cmd_viewIgnoredThreads":
+      viewType = nsMsgViewType.eShowAllThreads;
       if (viewFlags & nsMsgViewFlagsType.kShowIgnored)
         viewFlags = viewFlags & ~nsMsgViewFlagsType.kShowIgnored;
       else
