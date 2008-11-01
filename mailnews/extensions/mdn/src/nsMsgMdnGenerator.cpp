@@ -643,7 +643,7 @@ report-type=disposition-notification;\r\n\tboundary=\"%s\"" CRLF CRLF,
         break;
     case nsIMsgMdnGenerator::eDispatched:
         rv = GetStringFromName(
-            NS_LITERAL_STRING("MsgMdnDisptched").get(),
+            NS_LITERAL_STRING("MsgMdnDispatched").get(),
             getter_Copies(firstPart2));
         break;
     case nsIMsgMdnGenerator::eProcessed:
