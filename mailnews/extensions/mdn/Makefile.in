@@ -44,8 +44,6 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgmdn
 
-PACKAGE_VARS = MOZ_STATIC_MAIL_BUILD
-
 DIRS		= src
 
 ifndef MOZ_STATIC_MAIL_BUILD

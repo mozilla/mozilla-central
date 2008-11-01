@@ -43,10 +43,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE       = mailnews
-PACKAGE_VARS += \
-		MOZ_MOVEMAIL \
-		MOZ_STATIC_MAIL_BUILD \
-		$(NULL)
 
 DIRS		= base db/msgdb news local mime compose imap addrbook import extensions
 
