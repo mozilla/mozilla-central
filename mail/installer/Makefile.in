@@ -63,6 +63,7 @@ NO_PKG_FILES = \
 	shlibsign* \
 	winEmbed.exe \
 	xpcshell* \
+	js \
 	xpidl* \
 	xpt_dump* \
 	xpt_link* \
