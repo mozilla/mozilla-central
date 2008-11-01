@@ -115,12 +115,12 @@
       } catch(ex) { dump("Cannot Send Link: " + ex + "\n"); }
     }
 
-    function sendImage(imageURL)
+    function sendMedia(mediaURL)
     {
       try {
         var charset =  getCharsetforSave(null);
-        openComposeWindow(imageURL, null, 2, charset);
-      } catch(ex) { dump("Cannot Send Image: " + ex + "\n"); }
+        openComposeWindow(mediaURL, null, 2, charset);
+      } catch(ex) { dump("Cannot Send Media: " + ex + "\n"); }
     }
 
     function sendPage(aDocument)
@@ -136,8 +136,8 @@
 
     function initMailContextMenuItems(aEvent)
     {
-      var shouldShowSendPage = !(gContextMenu.onTextInput || 
-                               gContextMenu.isContentSelected) && 
+      var shouldShowSendPage = !(gContextMenu.onTextInput || gContextMenu.isContentSelected ||
+                               gContextMenu.onVideo || gContextMenu.onAudio) &&
                                !(gContextMenu.onLink && gContextMenu.onImage) &&
                                gHasIntegratedMailClient;
       gContextMenu.showItem("context-sendpage", shouldShowSendPage);
@@ -216,8 +216,18 @@
     <menuitem id="context-sendimage"
               label="&contextSendImage.label;"
               accesskey="&contextSendImage.accesskey;"
-              oncommand="sendImage(gContextMenu.imageURL);"
+              oncommand="sendMedia(gContextMenu.mediaURL);"
               insertafter="context-saveimage"/>
+    <menuitem id="context-sendvideo"
+              label="&contextSendVideo.label;"
+              accesskey="&contextSendVideo.accesskey;"
+              oncommand="sendMedia(gContextMenu.mediaURL);"
+              insertafter="context-savevideo"/>
+    <menuitem id="context-sendaudio"
+              label="&contextSendAudio.label;"
+              accesskey="&contextSendAudio.accesskey;"
+              oncommand="sendMedia(gContextMenu.mediaURL);"
+              insertafter="context-saveaudio"/>
     <menuitem id="context-sendlink"
               label="&contextSendThisLink.label;"
               accesskey="&contextSendThisLink.accesskey;"

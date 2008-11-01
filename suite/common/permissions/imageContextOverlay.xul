@@ -61,7 +61,7 @@
 
         const uri = Components.classes["@mozilla.org/network/io-service;1"]
                               .getService(Components.interfaces.nsIIOService)
-                              .newURI(gContextMenu.imageURL, null, null);
+                              .newURI(gContextMenu.mediaURL, null, null);
         if (aBlock)
           permissionmanager.add(uri, "image",
                                 nsIPermissionManager.DENY_ACTION);
@@ -80,7 +80,7 @@
         if (gContextMenu.onImage) {
           var IOService = Components.classes["@mozilla.org/network/io-service;1"]
                                     .getService(Components.interfaces.nsIIOService);
-          var uri = IOService.newURI(gContextMenu.imageURL, null, null);
+          var uri = IOService.newURI(gContextMenu.mediaURL, null, null);
           try {
             var serverLabel = uri.host;
             if (serverLabel) {
