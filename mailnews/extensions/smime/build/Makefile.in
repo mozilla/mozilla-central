@@ -51,8 +51,6 @@ IS_COMPONENT	= 1
 MODULE_NAME	= nsMsgSMIMEModule
 MOZILLA_INTERNAL_API = 1
 
-PACKAGE_FILE = smime.pkg
-
 REQUIRES	= xpcom \
 		  string \
 		  mime \

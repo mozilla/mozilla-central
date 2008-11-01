@@ -55,8 +55,6 @@ MOZILLA_INTERNAL_API = 1
 
 META_COMPONENT = mail
 
-PACKAGE_FILE = msgbaseutil.pkg
-
 REQUIRES	= xpcom \
 		  string \
 		  msgbase \

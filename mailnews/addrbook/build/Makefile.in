@@ -51,8 +51,6 @@ IS_COMPONENT	= 1
 MODULE_NAME	= nsAbModule
 MOZILLA_INTERNAL_API = 1
 
-PACKAGE_FILE = addrbook.pkg
-
 REQUIRES	= xpcom \
 		  string \
 		  necko \

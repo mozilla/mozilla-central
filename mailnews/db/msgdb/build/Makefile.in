@@ -50,8 +50,6 @@ IS_COMPONENT	= 1
 MODULE_NAME	= nsMsgDBModule
 MOZILLA_INTERNAL_API = 1
 
-PACKAGE_FILE = msgdb.pkg
-
 REQUIRES	= xpcom \
 		  string \
 		  locale \

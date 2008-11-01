@@ -43,7 +43,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= importOE
-PACKAGE_FILE = importoe.pkg
 LIBRARY_NAME   = importOE_s
 MOZILLA_INTERNAL_API = 1
 META_COMPONENT	= mail

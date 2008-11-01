@@ -43,7 +43,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= impEudra
-PACKAGE_FILE = importeudora.pkg
 LIBRARY_NAME   = impEudra_s
 META_COMPONENT	= mail
 MOZILLA_INTERNAL_API = 1

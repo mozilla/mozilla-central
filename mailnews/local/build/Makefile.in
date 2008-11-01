@@ -52,8 +52,6 @@ MODULE_NAME	= local_mail_services
 MOZILLA_INTERNAL_API = 1
 LOCAL_INCLUDES += -I$(srcdir)/../src
 
-PACKAGE_FILE = msglocal.pkg
-
 REQUIRES	= xpcom \
 		  string \
 		  msgbase \

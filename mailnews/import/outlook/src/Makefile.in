@@ -43,7 +43,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= impOutlk
-PACKAGE_FILE = importoutlook.pkg
 LIBRARY_NAME   = impOutlk_s
 META_COMPONENT	= mail
 MOZILLA_INTERNAL_API = 1

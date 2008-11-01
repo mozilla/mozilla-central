@@ -44,7 +44,6 @@ include $(DEPTH)/config/autoconf.mk
 MODULE				= impapplemail
 LIBRARY_NAME	= applmail_s
 
-PACKAGE_FILE = importapplemail.pkg
 MOZILLA_INTERNAL_API = 1
 
 META_COMPONENT = mail

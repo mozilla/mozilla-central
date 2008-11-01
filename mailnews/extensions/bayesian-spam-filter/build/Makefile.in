@@ -51,8 +51,6 @@ IS_COMPONENT	= 1
 MODULE_NAME	= nsBayesianFilterModule
 MOZILLA_INTERNAL_API = 1
 
-PACKAGE_FILE = bayesian.pkg
-
 REQUIRES	= xpcom \
 		  msgbase \
 		  lwbrk \

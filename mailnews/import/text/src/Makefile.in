@@ -43,7 +43,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= impText
-PACKAGE_FILE = importtext.pkg
 
 LIBRARY_NAME   = imptext_s
 

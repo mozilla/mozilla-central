@@ -50,8 +50,6 @@ IS_COMPONENT	= 1
 MODULE_NAME	= nsMsgNewsModule
 MOZILLA_INTERNAL_API = 1
 
-PACKAGE_FILE = msgnews.pkg
-
 REQUIRES	= xpcom \
 		  string \
 		  msgbase \

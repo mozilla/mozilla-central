@@ -51,8 +51,6 @@ IS_COMPONENT	= 1
 MODULE_NAME	= IMAP_factory
 MOZILLA_INTERNAL_API = 1
 
-PACKAGE_FILE = msgimap.pkg
-
 REQUIRES	= xpcom \
 		  string \
 		  msgbase \

@@ -55,8 +55,6 @@ XPIDL_MODULE	= msgcompo
 endif
 MOZILLA_INTERNAL_API = 1
 
-PACKAGE_FILE = msgcompose.pkg
-
 REQUIRES	= xpcom \
 		  string \
 		  msgbase \

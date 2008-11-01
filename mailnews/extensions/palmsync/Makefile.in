@@ -65,8 +65,6 @@ XULAPP_DEFINES = \
 
 ifdef PALM_CDK_DIR
 DIRS		+= conduit
-
-PACKAGE_FILE = palmsync.pkg
 else
 libs::
 	@echo " "

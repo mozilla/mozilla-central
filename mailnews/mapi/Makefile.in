@@ -43,7 +43,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE = msgMapi
-PACKAGE_FILE = mapi.pkg
 
 DIRS	= mapiDll mapihook
 
