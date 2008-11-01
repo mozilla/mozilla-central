@@ -51,8 +51,6 @@ IS_COMPONENT	= 1
 MODULE_NAME	= nsLDAPProtocolModule
 MOZILLA_INTERNAL_API = 1
 
-PACKAGE_FILE = mozldap.pkg
-
 REQUIRES	= xpcom \
 		  string \
 		  necko \
