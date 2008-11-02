@@ -49,6 +49,7 @@
 
 <!-- Edit menu items -->
 <!ENTITY editRewrapCmd.label "Rewrap">
+<!ENTITY editRewrapCmd.key "R">
 <!ENTITY editRewrapCmd.accesskey  "w">
 <!ENTITY findCmd.label "Find and Replace…">
 <!ENTITY findCmd.key "F">
