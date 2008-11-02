@@ -919,48 +919,6 @@ void nsMsgDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
   NS_IF_ADDREF(*aMdbFactory = mMdbFactory);
 }
 
-#if defined(XP_WIN) || defined(XP_OS2)
-// this code is stolen from nsFileSpecWin. Since MDB requires a native path, for
-// the time being, we'll just take the Unix/Canonical form and munge it
-void nsMsgDatabase::UnixToNative(char*& ioPath)
-// This just does string manipulation.  It doesn't check reality, or canonify, or
-// anything
-//----------------------------------------------------------------------------------------
-{
-  // Allow for relative or absolute.  We can do this in place, because the
-  // native path is never longer.
-
-  if (!ioPath || !*ioPath)
-    return;
-
-  char* src = ioPath;
-  if (*ioPath == '/')
-  {
-    // Strip initial slash for an absolute path
-    src++;
-  }
-
-  // Convert the vertical slash to a colon
-  char* cp = src + 1;
-
-  // If it was an absolute path, check for the drive letter
-  if (*ioPath == '/' && strstr(cp, "|/") == cp)
-    *cp = ':';
-
-  // Convert '/' to '\'.
-  while (*++cp)
-  {
-    if (*cp == '/')
-      *cp = '\\';
-  }
-
-  if (*ioPath == '/') {
-    for (cp = ioPath; *cp; ++cp)
-      *cp = *(cp + 1);
-  }
-}
-#endif /* XP_WIN || XP_OS2 */
-
 // caller passes in leaveInvalidDB==PR_TRUE if they want back a db even if the db is out of date.
 // If so, they'll extract out the interesting info from the db, close it, delete it, and
 // then try to open the db again, prior to reparsing.

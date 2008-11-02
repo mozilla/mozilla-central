@@ -200,10 +200,6 @@ protected:
   static int    FindInCache(nsMsgDatabase* pMessageDB);
   PRBool  MatchDbName(nsILocalFile *dbName);  // returns TRUE if they match
   
-#if defined(XP_WIN) || defined(XP_OS2) // this should go away when we can provide our own file stream to MDB/Mork
-  static void    UnixToNative(char*& ioPath);
-#endif
-  
   // Flag handling routines
   virtual nsresult SetKeyFlag(nsMsgKey key, PRBool set, PRUint32 flag,
                               nsIDBChangeListener *instigator = NULL);
