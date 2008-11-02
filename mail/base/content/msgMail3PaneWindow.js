@@ -678,7 +678,7 @@ function UpdateMailPaneConfig(aMsgWindowInitialized) {
     // re-insert the messagePaneBox back into the document.
     // But the dtor doesn't fire when the element is removed from the document.
     // Manually call destroy here to avoid a nasty leak.
-    getMessageBrowser().destroy();
+    document.getElementById("messagepane").destroy();
     desiredParent.appendChild(messagePaneSplitter);
     desiredParent.appendChild(messagePane);
     messagePaneSplitter.orient = desiredParent.orient;

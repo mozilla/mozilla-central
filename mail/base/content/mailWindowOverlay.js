@@ -1144,12 +1144,6 @@ function MsgCreateFilter()
     top.MsgFilters(emailAddress, null);
 }
 
-
-function MsgHome(url)
-{
-  window.open(url, "_blank", "chrome,dependent=yes,all");
-}
-
 function MsgNewFolder(callBackFunctionName)
 {
     var preselectedFolder = GetFirstSelectedMsgFolder();
@@ -1268,11 +1262,6 @@ function MsgSaveAsTemplate()
   var folder = GetLoadedMsgFolder();
   if (GetNumSelectedMessages() == 1)
     SaveAsTemplate(GetFirstSelectedMessage(), folder);
-}
-
-function MsgOpenNewWindowForMsgHdr(hdr)
-{
-  MsgOpenNewWindowForFolder(hdr.folder.URI, hdr.messageKey);
 }
 
 function MsgOpenNewWindowForFolder(uri, key)
@@ -1723,12 +1712,6 @@ function MsgOpenNewWindowForMessage(messageUri, folderUri)
     }
 }
 
-function CloseMailWindow()
-{
-  //dump("\nClose from XUL\nDo something...\n");
-  window.close();
-}
-
 function MsgJunk()
 {
   MsgJunkMailInfo(true);
@@ -1775,38 +1758,6 @@ function MsgMarkAllRead()
 
     if (folder)
       folder.markAllMessagesRead();
-}
-
-function MsgDownloadFlagged()
-{
-  gDBView.doCommand(nsMsgViewCommandType.downloadFlaggedForOffline);
-}
-
-function MsgDownloadSelected()
-{
-  gDBView.doCommand(nsMsgViewCommandType.downloadSelectedForOffline);
-}
-
-function MsgMarkThreadAsRead()
-{
-  ClearPendingReadTimer();
-  gDBView.doCommand(nsMsgViewCommandType.markThreadRead);
-}
-
-function MsgViewPageSource()
-{
-    var messages = GetSelectedMessages();
-    ViewPageSource(messages);
-}
-
-function MsgFind()
-{
-  document.getElementById("FindToolbar").onFindCommand();
-}
-
-function MsgFindAgain(reverse)
-{
-  document.getElementById("FindToolbar").onFindAgainCommand(reverse);
 }
 
 function MsgFilters(emailAddress, folder)
@@ -2006,15 +1957,6 @@ function ToggleInlineAttachment(target)
     ReloadMessage();
 }
 
-function MsgSendUnsentMsgs()
-{
-  // if offline, prompt for sendUnsentMessages
-  if (MailOfflineMgr.isOnline())
-    SendUnsentMessages();
-  else
-    MailOfflineMgr.goOnlineToSendMessages(msgWindow);
-}
-
 function PrintEnginePrintInternal(messageList, numMessages, doPrintPreview, msgType)
 {
     if (numMessages == 0) {
@@ -2061,17 +2003,6 @@ function IsMailFolderSelected()
     else return true;
 }
 
-function IsGetNewMessagesEnabled()
-{
-  // users don't like it when the "Get Msgs" button is disabled
-  // so let's never do that. 
-  // we'll just handle it as best we can in GetFolderMessages()
-  // when they click "Get Msgs" and
-  // Local Folders or a news server is selected
-  // see bugs #89404 and #111102
-  return true;
-}
-
 function IsGetNextNMessagesEnabled()
 {
     var selectedFolders = GetSelectedMsgFolders();
@@ -2100,13 +2031,6 @@ function IsGetNextNMessagesEnabled()
     return false;
 }
 
-function IsEmptyTrashEnabled()
-{
-  var folderURI = GetSelectedFolderURI();
-  var server = GetServer(folderURI);
-  return (server && server.canEmptyTrashOnExit?IsMailFolderSelected():false);
-}
-
 function IsCompactFolderEnabled()
 {
   var server = GetServer(GetSelectedFolderURI());
@@ -2116,50 +2040,17 @@ function IsCompactFolderEnabled()
       isCommandEnabled("cmd_compactFolder"));   // checks e.g. if IMAP is offline
 }
 
-var gDeleteButton = null;
-var gMarkButton = null;
-
 function SetUpToolbarButtons(uri)
 {
-    //dump("SetUpToolbarButtons("+uri+")\n");
+  var deleteButton = document.getElementById("button-delete");
 
-    // eventually, we might want to set up the toolbar differently for imap,
-    // pop, and news.  for now, just tweak it based on if it is news or not.
-    var forNews = isNewsURI(uri);
-
-    if(!gDeleteButton) gDeleteButton = document.getElementById("button-delete");
-
-    var buttonToHide = null;
-    var buttonToShow = null;
-
-    if (forNews) {
-        buttonToHide = gDeleteButton;
-    }
-    else {
-        buttonToShow = gDeleteButton;
-    }
-
-    if (buttonToHide) {
-        buttonToHide.setAttribute('hidden',true);
-    }
-    if (buttonToShow) {
-        buttonToShow.removeAttribute('hidden');
-    }
-}
-
-var gMessageBrowser;
-
-function getMessageBrowser()
-{
-  if (!gMessageBrowser)
-    gMessageBrowser = document.getElementById("messagepane");
-
-  return gMessageBrowser;
-}
-
-function getMarkupDocumentViewer()
-{
-  return getMessageBrowser().markupDocumentViewer;
+  // eventually, we might want to set up the toolbar differently for imap,
+  // pop, and news.  for now, just tweak it based on if it is news or not.
+  if (isNewsURI(uri)) {
+    deleteButton.setAttribute('hidden', true);
+  } else {
+    deleteButton.removeAttribute('hidden');
+  }
 }
 
 function MsgSynchronizeOffline()
@@ -2671,7 +2562,7 @@ function OnMsgParsed(aUrl)
   observerService.notifyObservers(msgWindow.msgHeaderSink, "MsgMsgDisplayed", msgURI);
 
   // scale any overflowing images
-  var doc = getMessageBrowser().contentDocument;
+  var doc = document.getElementById("messagepane").contentDocument;
   var imgs = doc.getElementsByTagName("img");
   for each (var img in imgs)
   {

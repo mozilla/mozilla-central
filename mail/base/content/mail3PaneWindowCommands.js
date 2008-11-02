@@ -428,11 +428,14 @@ var DefaultController =
       case "button_getNewMessages":
       case "cmd_getNewMessages":
       case "cmd_getMsgsForAuthAccounts":
-        return IsGetNewMessagesEnabled();
+        // GetMsgs should always be enabled, see bugs 89404 and 111102.
+        return true;
       case "cmd_getNextNMessages":
         return IsGetNextNMessagesEnabled();
       case "cmd_emptyTrash":
-        return IsEmptyTrashEnabled();
+        var folder = GetSelectedMsgFolders()[0];
+        return folder && folder.server.canEmptyTrashOnExit ?
+                         IsMailFolderSelected() : false;
       case "button_compact":
       case "cmd_compactFolder":
         return IsCompactFolderEnabled();
@@ -465,7 +468,7 @@ var DefaultController =
     switch ( command )
     {
       case "cmd_close":
-        CloseMailWindow();
+        window.close();
         break;
       case "button_getNewMessages":
       case "cmd_getNewMessages":
@@ -590,7 +593,11 @@ var DefaultController =
         MsgRenameFolder();
         return;
       case "cmd_sendUnsentMsgs":
-        MsgSendUnsentMsgs();
+        // if offline, prompt for sendUnsentMessages
+        if (MailOfflineMgr.isOnline())
+          SendUnsentMessages();
+        else
+          MailOfflineMgr.goOnlineToSendMessages(msgWindow);
         return;
       case "cmd_openMessage":
         MsgOpenSelectedMessages();
@@ -611,7 +618,7 @@ var DefaultController =
         MsgSaveAsTemplate();
         return;
       case "cmd_viewPageSource":
-        MsgViewPageSource();
+        ViewPageSource(GetSelectedMessages());
         return;
       case "cmd_setFolderCharset":
         MsgFolderProperties();
@@ -620,22 +627,22 @@ var DefaultController =
         ReloadMessage();
         return;
       case "cmd_find":
-        // make sure the message pane has focus before we start a find since we only support searching
-        // within the message body. Do it here and not in MsgFind() which can be called from standalone where we don't want to set focus
+        // Make sure the message pane has focus before we start a find since we
+        // only support searching within the message body.
         SetFocusMessagePane();
-        MsgFind();
+        document.getElementById("FindToolbar").onFindCommand();
         return;
       case "cmd_findAgain":
-        // make sure the message pane has focus before we start a find since we only support searching
-        // within the message body. Do it here and not in MsgFind() which can be called from standalone where we don't want to set focus
+        // Make sure the message pane has focus before we start a find since we
+        // only support searching within the message body.
         SetFocusMessagePane();
-        MsgFindAgain(false);
+        document.getElementById("FindToolbar").onFindAgainCommand(false);
         return;
       case "cmd_findPrevious":
-        // make sure the message pane has focus before we start a find since we only support searching
-        // within the message body. Do it here and not in MsgFind() which can be called from standalone where we don't want to set focus
+        // Make sure the message pane has focus before we start a find since we
+        // only support searching within the message body.
         SetFocusMessagePane();
-        MsgFindAgain(true);
+        document.getElementById("FindToolbar").onFindAgainCommand(true);
         return;
       case "cmd_markReadByDate":
         MsgMarkReadByDate();
@@ -651,7 +658,8 @@ var DefaultController =
         MsgMarkMsgAsRead(null);
         return;
       case "cmd_markThreadAsRead":
-        MsgMarkThreadAsRead();
+        ClearPendingReadTimer();
+        gDBView.doCommand(nsMsgViewCommandType.markThreadRead);
         return;
       case "cmd_markAllRead":
         gDBView.doCommand(nsMsgViewCommandType.markAllRead);
@@ -696,10 +704,10 @@ var DefaultController =
         MsgCompactFolder(false);
         return;
       case "cmd_downloadFlagged":
-          MsgDownloadFlagged();
+          gDBView.doCommand(nsMsgViewCommandType.downloadFlaggedForOffline);
           break;
       case "cmd_downloadSelected":
-          MsgDownloadSelected();
+          gDBView.doCommand(nsMsgViewCommandType.downloadSelectedForOffline);
           break;
       case "cmd_synchronizeOffline":
           MsgSynchronizeOffline();

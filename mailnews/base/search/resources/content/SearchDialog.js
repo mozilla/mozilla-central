@@ -755,7 +755,8 @@ function MoveMessageInSearch(destFolder)
 
 function GoToFolder()
 {
-  MsgOpenNewWindowForMsgHdr(gSearchView.hdrForFirstSelectedMessage);
+  var hdr = gSearchView.hdrForFirstSelectedMessage;
+  MsgOpenNewWindowForFolder(hdr.folder.URI, hdr.messageKey);
 }
 
 function BeginDragThreadPane(event)

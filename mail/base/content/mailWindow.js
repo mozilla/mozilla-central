@@ -609,7 +609,7 @@ function HidingThreadPane()
 // the find toolbar needs a method called getBrowser
 function getBrowser()
 {
-  return getMessageBrowser();
+  return document.getElementById("messagepane");
 }
 
 var gCurrentDisplayDeckId = "";

@@ -895,7 +895,8 @@ var MessageWindowController =
       case "cmd_getNewMessages":
       case "button_getNewMessages":
       case "cmd_getMsgsForAuthAccounts":
-        return IsGetNewMessagesEnabled();
+        // GetMsgs should always be enabled, see bugs 89404 and 111102.
+        return true;
       case "cmd_getNextNMessages":
         return IsGetNextNMessagesEnabled();
       case "cmd_downloadFlagged":
@@ -958,7 +959,7 @@ var MessageWindowController =
   switch ( command )
   {
     case "cmd_close":
-      CloseMailWindow();
+      window.close();
       break;
     case "cmd_getNewMessages":
       MsgGetMessage();
@@ -1039,19 +1040,19 @@ var MessageWindowController =
         MsgSaveAsTemplate();
         break;
       case "cmd_viewPageSource":
-        MsgViewPageSource();
+        ViewPageSource(GetSelectedMessages());
         break;
       case "cmd_reload":
         ReloadMessage();
         break;
       case "cmd_find":
-        MsgFind();
+        document.getElementById("FindToolbar").onFindCommand();
         break;
       case "cmd_findAgain":
-        MsgFindAgain(false);
+        document.getElementById("FindToolbar").onFindAgainCommand(false)
         break;
       case "cmd_findPrevious":
-        MsgFindAgain(true);
+        document.getElementById("FindToolbar").onFindAgainCommand(true)
         break;
       case "cmd_search":
         MsgSearchMessages();
@@ -1061,7 +1062,8 @@ var MessageWindowController =
         MsgMarkMsgAsRead(null);
         return;
       case "cmd_markThreadAsRead":
-        MsgMarkThreadAsRead();
+        ClearPendingReadTimer();
+        gDBView.doCommand(nsMsgViewCommandType.markThreadRead);
         return;
       case "cmd_markAllRead":
         MsgMarkAllRead();
@@ -1082,10 +1084,10 @@ var MessageWindowController =
         analyzeMessagesForJunk();
         return;
       case "cmd_downloadFlagged":
-        MsgDownloadFlagged();
+        gDBView.doCommand(nsMsgViewCommandType.downloadFlaggedForOffline);
         return;
       case "cmd_downloadSelected":
-        MsgDownloadSelected();
+        gDBView.doCommand(nsMsgViewCommandType.downloadSelectedForOffline);
         return;
       case "cmd_synchronizeOffline":
         MsgSynchronizeOffline();
