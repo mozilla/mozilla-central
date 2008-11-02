@@ -465,9 +465,10 @@ calDavCalendar.prototype = {
         addListener.onStreamComplete =
             function onPutComplete(aLoader, aContext, aStatus, aResultLength,
                                    aResult) {
-            var status;
+            let request = aLoader.request;
+            let status;
             try {
-                status = aContext.responseStatus;
+                status = request.responseStatus;
             } catch (ex) {
                 status = Components.interfaces.calIErrors.DAV_PUT_ERROR;
             }
@@ -568,9 +569,10 @@ calDavCalendar.prototype = {
             // 200 = HTTP "OK"
             // 204 = HTTP "No Content"
             //
-            var status;
+            let request = aLoader.request;
+            let status;
             try {
-                status = aContext.responseStatus;
+                status = request.responseStatus;
             } catch (ex) {
                 status = Components.interfaces.calIErrors.DAV_PUT_ERROR;
             }
@@ -662,9 +664,10 @@ calDavCalendar.prototype = {
 
         delListener.onStreamComplete =
         function caldav_dDI_del_onStreamComplete(aLoader, aContext, aStatus, aResultLength, aResult) {
-            var status;
+            let request = aLoader.request;
+            let status;
             try {
-                status = aContext.responseStatus;
+                status = request.responseStatus;
             } catch (ex) {
                 status = Components.interfaces.calIErrors.DAV_REMOVE_ERROR;
             }
@@ -705,8 +708,9 @@ calDavCalendar.prototype = {
         var delListener2 = {};
         delListener2.onStreamComplete =
         function caldav_dDI_del2_onStreamComplete(aLoader, aContext, aStatus, aResultLength, aResult) {
-            var status2 = aContext.responseStatus;
-            if (status2 == 404) {
+            let request = aLoader.request;
+            let status = request.responseStatus;
+            if (status == 404) {
                 // someone else already deleted it
                 return;
             } else {
@@ -840,8 +844,9 @@ calDavCalendar.prototype = {
         var streamListener = {};
         streamListener.onStreamComplete =
             function safeRefresh_safeRefresh_onStreamComplete(aLoader, aContext, aStatus, aResultLength, aResult) {
+            let request = aLoader.request;
             try {
-                LOG("CalDAV: Status " + aContext.responseStatus +
+                LOG("CalDAV: Status " + request.responseStatus +
                     " checking ctag for calendar " + thisCalendar.name);
             } catch (ex) {
                 LOG("CalDAV: Error without status on checking ctag for calendar " +
@@ -959,11 +964,12 @@ calDavCalendar.prototype = {
         etagListener.onStreamComplete =
             function getUpdatedItems_getetag_onStreamComplete(aLoader, aContext, aStatus,
                                                               aResultLength, aResult) {
-            var responseStatus;
+            let responseStatus;
+            let request = aLoader.request;
             try {
-                LOG("CalDAV: Status " + aContext.responseStatus +
+                LOG("CalDAV: Status " + request.responseStatus +
                     " on getetag for calendar " + thisCalendar.name);
-                responseStatus = aContext.responseStatus;
+                responseStatus = request.responseStatus;
             } catch (ex) {
                 LOG("CalDAV: Error without status on getetag for calendar " +
                     thisCalendar.name);
@@ -995,7 +1001,7 @@ calDavCalendar.prototype = {
                     }
                     // end Scalix workaround
                     if (contenttype.toString().substr(0, 13) != "text/calendar") {
-                          continue;
+                        continue;
                     }
                     var href = response..D::["href"];
                     var resourcePath = thisCalendar.ensurePath(href);
@@ -1110,7 +1116,7 @@ calDavCalendar.prototype = {
         };
 
         if (this.verboseLogging()) {
-            LOG("CalDAV: send: " + queryString);
+            LOG("CalDAV: send(" + aUri.spec + "): " + queryString);
         }
 
         var httpchannel = calPrepHttpChannel(aUri,
@@ -1134,16 +1140,17 @@ calDavCalendar.prototype = {
         caldataListener.onStreamComplete =
             function getCalendarData_gCD_onStreamComplete(aLoader, aContext, aStatus,
                                                           aResultLength, aResult) {
+            let request = aLoader.request;
+            let responseStatus;
             try {
-                LOG("CalDAV: Status " + aContext.responseStatus +
+                LOG("CalDAV: Status " + request.responseStatus +
                     " fetching calendar-data for calendar " + thisCalendar.name);
-                responseStatus = aContext.responseStatus;
+                responseStatus = request.responseStatus;
             } catch (ex) {
                 LOG("CalDAV: Error without status fetching calendar-data for calendar " +
                     thisCalendar.name);
                 responseStatus = "none";
             }
-            responseStatus = aContext.responseStatus;
             if (responseStatus != 207) {
                 LOG("error: got status " + responseStatus + " fetching calendar data");
                 if (thisCalendar.isCached && aChangeLogListener)
@@ -1340,8 +1347,9 @@ calDavCalendar.prototype = {
 
         streamListener.onStreamComplete =
             function checkDavResourceType_oSC(aLoader, aContext, aStatus, aResultLength, aResult) {
+            let request = aLoader.request;
             try {
-                LOG("CalDAV: Status " + aContext.responseStatus +
+                LOG("CalDAV: Status " + request.responseStatus +
                     " on initial PROPFIND for calendar " + thisCalendar.name);
             } catch (ex) {
                 LOG("CalDAV: Error without status on initial PROPFIND for calendar " +
@@ -1349,7 +1357,7 @@ calDavCalendar.prototype = {
             }
             var wwwauth;
             try {
-                wwwauth = aContext.getRequestHeader("Authorization");
+                wwwauth = request.getRequestHeader("Authorization");
                 thisCalendar.mAuthScheme = wwwauth.split(" ")[0];
             } catch (ex) {
                 // no auth header could mean a public calendar
@@ -1467,14 +1475,17 @@ calDavCalendar.prototype = {
         streamListener.onStreamComplete =
             function checkServerCaps_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
-            var dav = null;
+            let request = aLoader.request;
+            let dav = null;
             try {
-                dav = aContext.getResponseHeader("DAV");
+                dav = request.getResponseHeader("DAV");
                 if (thisCalendar.verboseLogging()) {
                     LOG("CalDAV: DAV header: " + dav);
                 }
             } catch (ex) {
-                LOG("CalDAV: Error getting DAV header, status " + aContext.responseStatus);
+                LOG("CalDAV: Error getting DAV header, status " + request.responseStatus +
+                    ", data: " + convertByteArray(aResult, aResultLength));
+            
             }
             // Google does not yet support OPTIONS but does support scheduling
             // so we'll spoof the DAV header until Google gets fixed
@@ -1558,8 +1569,9 @@ calDavCalendar.prototype = {
         streamListener.onStreamComplete =
             function findInOutBoxes_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
-            if (aContext.responseStatus != 207) {
-                LOG("CalDAV: Unexpected status " + aContext.responseStatus +
+            let request = aLoader.request;
+            if (request.responseStatus != 207) {
+                LOG("CalDAV: Unexpected status " + request.responseStatus +
                     " while querying principal namespace");
                 thisCalendar.completeCheckServerInfo(aChangeLogListener,
                                                      Components.results.NS_ERROR_FAILURE);
@@ -1696,9 +1708,9 @@ calDavCalendar.prototype = {
                 LOG("CalDAV: recv: " + str);
             }
 
-            if (aContext.responseStatus != 207) {
+            if (aLoader.request.responseStatus != 207) {
                 LOG("CalDAV: Bad response to in/outbox query, status " +
-                    aContext.responseStatus);
+                    aLoader.request.responseStatus);
                 doesntSupportScheduling();
                 return;
             }
@@ -1937,14 +1949,15 @@ calDavCalendar.prototype = {
         streamListener.onStreamComplete =
             function caldav_GFBI_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
-            var str = convertByteArray(aResult, aResultLength);
+            let request = aLoader.request;
+            let str = convertByteArray(aResult, aResultLength);
             if (!str) {
                 LOG("CalDAV: Failed to parse freebusy response");
             } else if (thisCalendar.verboseLogging()) {
                 LOG("CalDAV: recv: " + str);
             }
 
-            if (aContext.responseStatus == 200) {
+            if (request.responseStatus == 200) {
                 var periodsToReturn = [];
                 var CalPeriod = new Components.Constructor("@mozilla.org/calendar/period;1",
                                                            "calIPeriod");
@@ -2023,7 +2036,7 @@ calDavCalendar.prototype = {
 
                 aListener.onResult(null, periodsToReturn);
             } else {
-                LOG("CalDAV: Received status " + aContext.responseStatus + " from freebusy query");
+                LOG("CalDAV: Received status " + request.responseStatus + " from freebusy query");
                 aListener.onResult(null, null);
             }
         };
@@ -2183,9 +2196,10 @@ calDavCalendar.prototype = {
             var streamListener = {
                 onStreamComplete: function caldav_sendItems_oSC(aLoader, aContext, aStatus,
                                                                 aResultLength, aResult) {
-                    var status;
+                    let request = aLoader.request;
+                    let status;
                     try {
-                        status = aContext.responseStatus;
+                        status = request.responseStatus;
                     } catch (ex) {
                         status = Components.interfaces.calIErrors.DAV_POST_ERROR;
                         LOG("CalDAV: no response status when sending iTIP.");
@@ -2270,7 +2284,50 @@ calDavCalendar.prototype = {
 
     // nsIChannelEventSink implementation
     onChannelRedirect: function caldav_onChannelRedirect(aOldChannel, aNewChannel, aFlags) {
-        // TODO We might need to re-prepare the new channel here
+
+        let uploadData;
+        let uploadContent;
+        if (aOldChannel instanceof Components.interfaces.nsIUploadChannel &&
+            aOldChannel.uploadStream) {
+            uploadData = aOldChannel.uploadStream;
+            uploadContent = aOldChannel.getRequestHeader("Content-Type");
+        }
+
+        calPrepHttpChannel(null,
+                           uploadData,
+                           uploadContent,
+                           this,
+                           aNewChannel);
+
+        // Make sure we can get/set headers on both channels.
+        aNewChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
+        aOldChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
+
+
+        function copyHeader(aHdr) {
+            try {
+                let hdrValue = aOldChannel.getRequestHeader(aHdr);
+                if (hdrValue) {
+                    aNewChannel.setRequestHeader(aHdr, hdrValue, false);
+                }
+            } catch(e) {
+                if (e.code != Components.results.NS_ERROR_NOT_AVAILIBLE) {
+                    // The header could possibly not be availible, ignore that
+                    // case but throw otherwise
+                    throw e;
+               }
+            }
+        }
+
+        // If any other header is used, it should be added here. We might want
+        // to just copy all headers over to the new channel.
+        copyHeader("Depth");
+        copyHeader("Originator");
+        copyHeader("Recipient");
+        copyHeader("If-None-Match");
+        copyHeader("If-Match");
+
+        aNewChannel.requestMethod = aOldChannel.requestMethod;
     }
 };
 

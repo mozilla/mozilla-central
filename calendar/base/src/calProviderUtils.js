@@ -44,15 +44,20 @@
  * Prepare HTTP channel with standard request headers and upload
  * data/content-type if needed
  *
- * @param arUri                      channel Uri
- * @param aUploadData                data to be uploaded, if any
- * @param aContentType               value for Content-Type header, if any
- * @param aNotificationCallbacks     calendar using channel
+ * @param arUri                      Channel Uri, will only be used for a new
+ *                                     channel.
+ * @param aUploadData                Data to be uploaded, if any. This may be a
+ *                                     nsIInputStream or string data. In the
+ *                                     latter case the string will be converted
+ *                                     to an input stream.
+ * @param aContentType               Value for Content-Type header, if any
+ * @param aNotificationCallbacks     Calendar using channel
+ * @param aExisting                  An existing channel to modify (optional)
  */
-function calPrepHttpChannel(aUri, aUploadData, aContentType, aNotificationCallbacks) {
-    var ioService = getIOService();
-    var channel = ioService.newChannelFromURI(aUri);
-    var httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
+function calPrepHttpChannel(aUri, aUploadData, aContentType, aNotificationCallbacks, aExisting) {
+    let ioService = getIOService();
+    let channel = aExisting || ioService.newChannelFromURI(aUri);
+    let httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
     httpchannel.setRequestHeader("Accept", "text/xml", false);
     httpchannel.setRequestHeader("Accept-Charset", "utf-8,*;q=0.1", false);
@@ -61,12 +66,19 @@ function calPrepHttpChannel(aUri, aUploadData, aContentType, aNotificationCallba
 
     if (aUploadData) {
         httpchannel = httpchannel.QueryInterface(Components.interfaces.nsIUploadChannel);
-
-        var converter =
-            Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
-                      .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-        converter.charset = "UTF-8";
-        var stream = converter.convertToInputStream(aUploadData);
+        let stream;
+        if (aUploadData instanceof Components.interfaces.nsIInputStream) {
+            // Make sure the stream is reset
+            stream = aUploadData.QueryInterface(Components.interfaces.nsISeekableStream);
+            stream.seek(Components.interfaces.nsISeekableStream.NS_SEEK_SET, 0);
+        } else {
+            // Otherwise its something that should be a string, convert it.
+            let converter =
+                Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                          .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+            converter.charset = "UTF-8";
+            stream = converter.convertToInputStream(aUploadData.toString());
+        }
 
         httpchannel.setUploadStream(stream, aContentType, -1);
     }
