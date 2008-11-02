@@ -855,11 +855,8 @@ calDavCalendar.prototype = {
                 LOG("CalDAV: recv: " + str);
             }
 
-            if (str.substr(0,6) == "<?xml ") {
-                    str = str.substring(str.indexOf('<', 2));
-            }
             try {
-                var multistatus = new XML(str);
+                var multistatus = safeNewXML(str);
             } catch (ex) {
                 LOG("CalDAV: Failed to get ctag from server");
                 return;
@@ -983,12 +980,8 @@ calDavCalendar.prototype = {
                     LOG("CalDAV: recv: " + str);
                 }
 
-                if (str.substr(0,6) == "<?xml ") {
-                    str = str.substring(str.indexOf('<', 2));
-                }
-                var multistatus = new XML(str);
-                for (var i = 0; i < multistatus.*.length(); i++) {
-                    var response = new XML(multistatus.*[i]);
+                var multistatus = safeNewXML(str);
+                for each (let response in multistatus.*::response) {
                     var etag = response..D::["getetag"];
                     if (etag.length() == 0) {
                         continue;
@@ -1169,23 +1162,17 @@ calDavCalendar.prototype = {
             } else if (thisCalendar.verboseLogging()) {
                 LOG("CalDAV: recv: " + str);
             }
-            if (str.substr(0,6) == "<?xml ") {
-                str = str.substring(str.indexOf('<', 2));
-            }
-
             if (thisCalendar.isCached) {
                 thisCalendar.superCalendar.startBatch();
             }
             try {
-                var multistatus = new XML(str);
-                for (var j = 0; j < multistatus.*.length(); j++) {
-                    var response = new XML(multistatus.*[j]);
+                var multistatus = safeNewXML(str);
+                for each (let response in multistatus.*::response) {
 
                     var hasNon200 = false;
                     var non200Statuses = [];
-                    for (var k = 0; k < response..D::["status"].*.length(); k++) {
-                      var itemStatus = "" + response..D::["status"].*[k];
-                      var status = itemStatus.split(" ")[1];
+                    for each (let itemStatus in response..D::["status"]) {
+                      var status = itemStatus.toString().split(" ")[1];
                       if (status != 200) {
                           hasNon200 = true;
                           if (non200Statuses.indexOf(status) < 0) {
@@ -1391,11 +1378,8 @@ calDavCalendar.prototype = {
                 LOG("CalDAV: recv: " + str);
             }
 
-            if (str.substr(0,6) == "<?xml ") {
-                str = str.substring(str.indexOf('<', 2));
-            }
             try {
-                var multistatus = new XML(str);
+                var multistatus = safeNewXML(str);
             } catch (ex) {
                 thisCalendar.completeCheckServerInfo(aChangeLogListener,
                                                      Components.interfaces.calIErrors.DAV_NOT_DAV);
@@ -1592,10 +1576,7 @@ calDavCalendar.prototype = {
                 LOG("CalDAV: recv: " + str);
             }
 
-            if (str.substr(0,6) == "<?xml ") {
-                str = str.substring(str.indexOf('<', 2));
-            }
-            var multistatus = new XML(str);
+            var multistatus = safeNewXML(str);
             var pcs = multistatus..D::["principal-collection-set"]..D::href;
             var nsList = [];
             for (var ns in pcs) {
@@ -1722,14 +1703,10 @@ calDavCalendar.prototype = {
                 return;
             }
 
-            if (str.substr(0,6) == "<?xml ") {
-                    str = str.substring(str.indexOf('<', 2));
-            }
-            var multistatus = new XML(str);
-            var multistatusLength = multistatus.*.length();
+            var multistatus = safeNewXML(str);
+            var multistatusLength = multistatus.*::response.length();
 
-            for (var i = 0; i < multistatusLength; i++) {
-                var response = multistatus.*[i];
+            for each (let response in multistatus.*::response) {
 
                 var responseCHS = response..C::["calendar-home-set"]..D::href[0];
                 if (!responseCHS) {
@@ -1756,9 +1733,9 @@ calDavCalendar.prototype = {
                     addrHrefs =
                         response..D::propstat..D::["calendar-user-address-set"]..D::href;
                 }
-                for (var j = 0; j < addrHrefs.*.length(); j++) {
-                    if (addrHrefs[j].substr(0,7).toLowerCase() == "mailto:") {
-                        thisCalendar.mCalendarUserAddress = addrHrefs[j].toString();
+                for each (let addrHref in addrHrefs) {
+                    if (addrHref.toString().substr(0,7).toLowerCase() == "mailto:") {
+                        thisCalendar.mCalendarUserAddress = addrHref.toString();
                     }
                 }
                 var ibUrl = thisCalendar.mUri.clone();
@@ -1979,11 +1956,7 @@ calDavCalendar.prototype = {
                 var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
                 var D = new Namespace("D", "DAV:");
 
-                if (str.substr(0,6) == "<?xml ") {
-                    str = str.substring(str.indexOf('<', 2));
-                }
-
-                var response = new XML(str);
+                var response = safeNewXML(str);
                 var status = response..C::response..C::["request-status"];
                 if (status.substr(0,1) != 2) {
                     LOG("CalDAV: Got status " + status + " in response to freebusy query");
@@ -2230,17 +2203,13 @@ calDavCalendar.prototype = {
                     } else {
                         LOG("CalDAV: Failed to parse iTIP response.");
                     }
-                    if (str.substr(0,6) == "<?xml ") {
-                        str = str.substring(str.indexOf('<', 2));
-                    }
 
                     var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
                     var D = new Namespace("D", "DAV:");
-                    var responseXML = new XML(str);
+                    var responseXML = safeNewXML(str);
 
                     var remainingAttendees = [];
-                    for (var i = 0; i < responseXML.*.length(); i++) {
-                        var response = new XML(responseXML.*[i]);
+                    for each (let response in responseXML.*::response) {
                         var recip = response..C::recipient..D::href;
                         var status = response..C::["request-status"];
                         if (status.substr(0, 1) != "2") {

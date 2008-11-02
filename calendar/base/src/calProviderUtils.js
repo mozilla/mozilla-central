@@ -105,6 +105,12 @@ function convertByteArray(aResult, aResultLength, aCharset, aThrow) {
     return null;
 }
 
+function safeNewXML(aStr) {
+    // Strip <?xml and surrounding whitespaces
+    return new XML(aStr.replace(/(^\s*(<\?xml[^>]*>)?\s*|\s+$)/g, ""));
+}
+    
+
 /**
  * getInterface method for providers. This should be called in the context of
  * the respective provider, i.e
