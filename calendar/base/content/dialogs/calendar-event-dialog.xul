@@ -234,10 +234,12 @@
              modifiers="accel"
              key="P"
              command="cmd_print"/>
+#ifdef XP_UNIX
         <key id="exit-key"
              modifiers="accel"
              key="Q"
              command="cmd_file_exit"/>
+#endif
         <key id="undo-key"
              modifiers="accel"
              key="Z"
@@ -335,7 +337,9 @@
                     <menuitem id="file-exit-menuitem"
                               label="&event.menu.file.exit.label;"
                               accesskey="&event.menu.file.exit.accesskey;"
+#ifdef XP_UNIX
                               key="exit-key"
+#endif
                               command="cmd_file_exit"
                               disable-on-readonly="true"/>
                 </menupopup>
