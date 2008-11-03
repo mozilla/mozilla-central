@@ -100,8 +100,6 @@ var gHaveLoadedMessage;
 
 var gDisplayStartupPage = false;
 
-var gNotifyDefaultInboxLoadedOnStartup = false;
-
 function SelectAndScrollToKey(aMsgKey)
 {
   // select the desired message
@@ -249,17 +247,6 @@ var folderListener = {
             if (!scrolled && !(gMsgFolderSelected.flags & MSG_FOLDER_FLAG_VIRTUAL))
               ScrollToMessageAfterFolderLoad(msgFolder);
             SetBusyCursor(window, false);
-          }
-          if (gNotifyDefaultInboxLoadedOnStartup && (folder.flags & 0x1000))
-          {
-            var defaultAccount = accountManager.defaultAccount;
-            defaultServer = defaultAccount.incomingServer;
-            var inboxFolder = GetInboxFolder(defaultServer);
-            if (inboxFolder && inboxFolder.URI == folder.URI)
-            {
-              NotifyObservers(null,"defaultInboxLoadedOnStartup",null);
-              gNotifyDefaultInboxLoadedOnStartup = false;
-            }
           }
           // Folder loading is over,
           // now issue quick search if there is an email address.
@@ -809,7 +796,9 @@ function LoadPostAccountWizard()
 #endif
 
     // All core modal dialogs are done, the user can now interact with the 3-pane window
-    NotifyObservers(window, "mail-startup-done", null);
+    var obs = Components.classes["@mozilla.org/observer-service;1"]
+                        .getService(Components.interfaces.nsIObserverService);
+    obs.notifyObservers(window, "mail-startup-done", null);
   }
 
   setTimeout(showDefaultClientDialog, 0);
@@ -818,8 +807,6 @@ function LoadPostAccountWizard()
   OnLoadMsgHeaderPane();
 
   gHaveLoadedMessage = false;
-
-  gNotifyDefaultInboxLoadedOnStartup = true;
 
   //Set focus to the Thread Pane the first time the window is opened.
   SetFocusThreadPane();
@@ -851,12 +838,6 @@ function OnUnloadMessenger()
   UnloadPanes();
 
   OnMailWindowUnload();
-}
-
-function NotifyObservers(aSubject, aTopic, aData)
-{
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(aSubject, aTopic, aData);
 }
 
 function loadStartFolder(initialUri)
