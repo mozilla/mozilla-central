@@ -631,7 +631,6 @@ calItemBase.prototype = {
         "SUMMARY": true,
         "PRIORITY": true,
         "STATUS": true,
-        "CLASS": true,
         "DTSTAMP": true,
         "RRULE": true,
         "EXDATE": true,
@@ -651,7 +650,6 @@ calItemBase.prototype = {
     { cal: "SUMMARY", ics: "summary" },
     { cal: "PRIORITY", ics: "priority" },
     { cal: "STATUS", ics: "status" },
-    { cal: "CLASS", ics: "icalClass" },
     { cal: "RECURRENCE-ID", ics: "recurrenceId" } ],
 
     mapPropsFromICS: function(icalcomp, propmap) {

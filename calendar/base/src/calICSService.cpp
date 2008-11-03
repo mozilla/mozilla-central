@@ -552,31 +552,6 @@ calIcalComponent::SetProperty(icalproperty_kind kind, icalproperty *prop)
     return NS_OK;
 }
 
-#define COMP_STRING_TO_GENERAL_ENUM_ATTRIBUTE(Attrname, ICALNAME, lcname) \
-NS_IMETHODIMP                                                           \
-calIcalComponent::Get##Attrname(nsACString &str)                        \
-{                                                                       \
-    PRInt32 val;                                                        \
-    nsresult rv = GetIntProperty(ICAL_##ICALNAME##_PROPERTY, &val);     \
-    if (NS_FAILED(rv))                                                  \
-        return rv;                                                      \
-    if (val == -1) {                                                    \
-        str.Truncate();                                                 \
-        str.SetIsVoid(PR_TRUE);                                         \
-    } else {                                                            \
-        str.Assign(icalproperty_enum_to_string(val));                   \
-    }                                                                   \
-    return NS_OK;                                                       \
-}                                                                       \
-                                                                        \
-NS_IMETHODIMP                                                           \
-calIcalComponent::Set##Attrname(const nsACString &str)                  \
-{                                                                       \
-    int val = icalproperty_string_to_enum(PromiseFlatCString(str).get()); \
-    icalvalue *ival = icalvalue_new_##lcname((icalproperty_##lcname)val); \
-    return SetPropertyValue(ICAL_##ICALNAME##_PROPERTY, ival);          \
-}                                                                       \
-
 #define COMP_STRING_TO_ENUM_ATTRIBUTE(Attrname, ICALNAME, lcname)       \
 NS_IMETHODIMP                                                           \
 calIcalComponent::Get##Attrname(nsACString &str)                        \
@@ -606,7 +581,7 @@ calIcalComponent::Set##Attrname(const nsACString &str)                  \
             return NS_ERROR_OUT_OF_MEMORY; /* XXX map errno */          \
     }                                                                   \
     return SetProperty(ICAL_##ICALNAME##_PROPERTY, prop);               \
-}                                                                       \
+}
 
 #define COMP_GENERAL_STRING_ATTRIBUTE(Attrname, ICALNAME)       \
 NS_IMETHODIMP                                                   \
@@ -647,7 +622,7 @@ NS_IMETHODIMP                                                   \
 calIcalComponent::Set##Attrname(PRInt32 val)                    \
 {                                                               \
     return SetIntProperty(ICAL_##ICALNAME##_PROPERTY, val);     \
-}                                                               \
+}
 
 #define COMP_ENUM_ATTRIBUTE(Attrname, ICALNAME, lcname)         \
 NS_IMETHODIMP                                                   \
@@ -662,7 +637,7 @@ calIcalComponent::Set##Attrname(PRInt32 val)                    \
     icalproperty *prop =                                        \
       icalproperty_new_##lcname((icalproperty_##lcname)val);    \
     return SetProperty(ICAL_##ICALNAME##_PROPERTY, prop);       \
-}                                                               \
+}
 
 #define COMP_INT_ATTRIBUTE(Attrname, ICALNAME, lcname)          \
 NS_IMETHODIMP                                                   \
@@ -676,7 +651,7 @@ calIcalComponent::Set##Attrname(PRInt32 val)                    \
 {                                                               \
     icalproperty *prop = icalproperty_new_##lcname(val);        \
     return SetProperty(ICAL_##ICALNAME##_PROPERTY, prop);       \
-}                                                               \
+}
 
 nsresult calIcalComponent::GetStringProperty(icalproperty_kind kind, nsACString &str)
 {
@@ -933,14 +908,12 @@ COMP_STRING_ATTRIBUTE(Prodid, PRODID, prodid)
 COMP_STRING_ATTRIBUTE(Version, VERSION, version)
 COMP_STRING_TO_ENUM_ATTRIBUTE(Method, METHOD, method)
 COMP_STRING_TO_ENUM_ATTRIBUTE(Status, STATUS, status)
-COMP_STRING_TO_GENERAL_ENUM_ATTRIBUTE(Transp, TRANSP, transp)
 COMP_STRING_ATTRIBUTE(Summary, SUMMARY, summary)
 COMP_STRING_ATTRIBUTE(Description, DESCRIPTION, description)
 COMP_STRING_ATTRIBUTE(Location, LOCATION, location)
 COMP_STRING_ATTRIBUTE(Categories, CATEGORIES, categories)
 COMP_STRING_ATTRIBUTE(URL, URL, url)
 COMP_INT_ATTRIBUTE(Priority, PRIORITY, priority)
-COMP_STRING_TO_GENERAL_ENUM_ATTRIBUTE(IcalClass, CLASS, class)
 RO_COMP_DURATION_ATTRIBUTE(Duration, DURATION)
 COMP_DATE_ATTRIBUTE(StartTime, DTSTART)
 COMP_DATE_ATTRIBUTE(EndTime, DTEND)

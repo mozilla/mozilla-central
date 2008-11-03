@@ -95,11 +95,6 @@ interface calIIcalComponent : nsISupports
      */
     attribute AUTF8String status;
 
-    /**
-     * OPAQUE, TRANSPARENT, etc.
-     */
-    attribute AUTF8String transp;
-
     attribute AUTF8String summary;
     attribute AUTF8String description;
     attribute AUTF8String location;
@@ -107,11 +102,6 @@ interface calIIcalComponent : nsISupports
     attribute AUTF8String URL;
 
     attribute PRInt32 priority;
-
-    /**
-     * PUBLIC, PRIVATE, CONFIDENTIAL, etc.
-     */
-    attribute AUTF8String icalClass;
 
     attribute calIDateTime startTime;
     attribute calIDateTime endTime;
