@@ -372,7 +372,7 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       BYTE * pPort = nsOERegUtil::GetValueBytes( hKey, "IMAP Port");
       if (pPort)
       {
-        in->SetPort(atoi((const char *) pPort));
+        in->SetPort(*(PRInt32 *) pPort);
         nsOERegUtil::FreeValueBytes(pPort);
       }
 			
@@ -440,7 +440,7 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       BYTE * pPort = nsOERegUtil::GetValueBytes( hKey, "POP3 Port");
       if (pPort)
       {
-        in->SetPort(atoi((const char *) pPort));
+        in->SetPort(*(PRInt32 *) pPort));
         nsOERegUtil::FreeValueBytes(pPort);
       }
 
