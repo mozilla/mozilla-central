@@ -200,7 +200,7 @@ function test_recur(event, expected, ignoreNextOccCheck) {
 }
 
 function test_interface() {
-    var RRULE = "RRULE:FREQ=WEEKLY;COUNT=6;INTERVAL=1;BYDAY=TU,WE\r\n";
+    var RRULE = "RRULE:FREQ=WEEKLY;COUNT=6;BYDAY=TU,WE\r\n";
     var EXDATE = "EXDATE:20020403T114500Z\r\n"
     var RDATE = "RDATE;VALUE=DATE-TIME:20020401T114500Z\r\n";
 
