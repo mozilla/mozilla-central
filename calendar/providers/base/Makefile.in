@@ -44,11 +44,11 @@ include $(DEPTH)/config/autoconf.mk
 EXTRA_SCRIPTS = calProviderBase.js
 
 libs:: $(EXTRA_SCRIPTS)
-	if test ! -d $(FINAL_TARGET)/js; then $(NSINSTALL) -D $(FINAL_TARGET)/js; fi
-	$(INSTALL) $^ $(FINAL_TARGET)/js
+	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi
+	$(INSTALL) $^ $(FINAL_TARGET)/calendar-js
 
 # The install target must use SYSINSTALL, which is NSINSTALL in copy mode.
 install:: $(EXTRA_SCRIPTS)
-	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/js
+	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/calendar-js
 
 include $(topsrcdir)/config/rules.mk

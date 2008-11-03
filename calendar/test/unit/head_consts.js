@@ -41,13 +41,17 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-function loadChromeScript(aPath) {
-    var loader = Cc["@mozilla.org/moz/jssubscript-loader;1"]
-                 .getService(Ci.mozIJSSubScriptLoader);
-    loader.loadSubScript("chrome://" + aPath);
-}
+let protHandler = Components.classes["@mozilla.org/network/io-service;1"]
+                            .getService(Components.interfaces.nsIIOService2)
+                            .getProtocolHandler("resource")
+                            .QueryInterface(Components.interfaces.nsIResProtocolHandler);
+protHandler.setSubstitution("calendar", protHandler.getSubstitution("gre"));
 
-loadChromeScript("calendar/content/calUtils.js");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
+// we might want to use calUtils.jsm only in the future throughout all tests,
+// but for now source in good old calUtils.js:
+cal.loadScripts(["calUtils.js"], protHandler.__parent__);
 
 function createDate(aYear, aMonth, aDay, aHasTime, aHour, aMinute, aSecond, aTimezone) {
     var cd = Cc["@mozilla.org/calendar/datetime;1"]

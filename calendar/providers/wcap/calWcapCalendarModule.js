@@ -207,23 +207,13 @@ var calWcapCalendarModule = { // nsIModule:
     m_scriptsLoaded: false,
     getClassObject: function calWcapCalendarModule_getClassObject(compMgr, cid, iid) {
         if (!this.m_scriptsLoaded) {
-            // loading extra scripts from ../js:
-            const scripts = ["calUtils.js", "calAuthUtils.js",
+            Components.utils.import("resource://calendar/modules/calUtils.jsm");
+            cal.loadScripts(["calUtils.js", "calAuthUtils.js",
                              "calProviderUtils.js", "calProviderBase.js", "calProviderUtils.js",
                              "calWcapUtils.js", "calWcapErrors.js",
                              "calWcapRequest.js", "calWcapSession.js",
-                             "calWcapCalendar.js", "calWcapCalendarItems.js"];
-            var scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-                                         .createInstance(Components.interfaces.mozIJSSubScriptLoader);
-            var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                      .getService(Components.interfaces.nsIIOService);
-            var baseDir = __LOCATION__.parent.parent;
-            baseDir.append("js");
-            for each (var script in scripts) {
-                var scriptFile = baseDir.clone();
-                scriptFile.append(script);
-                scriptLoader.loadSubScript(ioService.newFileURI(scriptFile).spec, null);
-            }
+                             "calWcapCalendar.js", "calWcapCalendarItems.js"],
+                            this.__parent__);
             initWcapProvider();
             this.m_scriptsLoaded = true;
         }

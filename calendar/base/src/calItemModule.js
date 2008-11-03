@@ -227,53 +227,16 @@ var calItemModule = {
         if (this.mScriptsLoaded)
             return;
 
-        const jssslContractID = "@mozilla.org/moz/jssubscript-loader;1";
-        const jssslIID = Components.interfaces.mozIJSSubScriptLoader;
-
-        const dirsvcContractID = "@mozilla.org/file/directory_service;1";
-        const propsIID = Components.interfaces.nsIProperties;
-
-        const iosvcContractID = "@mozilla.org/network/io-service;1";
-        const iosvcIID = Components.interfaces.nsIIOService;
-
-        var loader = Components.classes[jssslContractID].getService(jssslIID);
-        var dirsvc = Components.classes[dirsvcContractID].getService(propsIID);
-        var iosvc = Components.classes[iosvcContractID].getService(iosvcIID);
-
-        // Note that unintuitively, __LOCATION__.parent == .
-        // We expect to find the subscripts in ./../js
-        let appdir = __LOCATION__.parent.parent.clone();
-
         // Register our alias here: this code always needs to run first (triggered by app-startup)
-        let modulesDir = appdir.clone();
-        modulesDir.append("modules");
-        modulesDir = iosvc.newFileURI(modulesDir);
-        // bug 459196:
-        // we need to cut/hack around the trailing slash, otherwise our modules won't be found
-        // when loaded like "resource://calendar/modules/calUtils.jsm"
-        modulesDir.spec = modulesDir.spec.replace(/\/$/, "");
-        iosvc.getProtocolHandler("resource")
-             .QueryInterface(Components.interfaces.nsIResProtocolHandler)
-             .setSubstitution("calendar", modulesDir);
+        let ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                  .getService(Components.interfaces.nsIIOService2);
+        ioService.getProtocolHandler("resource")
+                 .QueryInterface(Components.interfaces.nsIResProtocolHandler)
+                 .setSubstitution("calendar", ioService.newFileURI(__LOCATION__.parent.parent));
 
-        appdir.append("js");
-
-        for (var i = 0; i < componentData.length; i++) {
-            var scriptName = componentData[i].script;
-            if (!scriptName)
-                continue;
-
-            var f = appdir.clone();
-            f.append(scriptName);
-
-            try {
-                var fileurl = iosvc.newFileURI(f);
-                loader.loadSubScript(fileurl.spec, null);
-            } catch (e) {
-                dump("Error while loading " + fileurl.spec + "\n");
-                throw e;
-            }
-        }
+        Components.utils.import("resource://calendar/modules/calUtils.jsm");
+        cal.loadScripts(componentData.map(function(entry) { return entry.script; }),
+                        this.__parent__);
 
         this.mScriptsLoaded = true;
     },

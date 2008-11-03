@@ -261,19 +261,10 @@ var myModule = {
     mScriptsLoaded: false,
     getClassObject: function GCO(aCompMgr, aCid, aIid) {
         if (!this.mScriptsLoaded) {
-            // loading extra scripts from ../js:
-            const scripts = [ "calUtils.js" ];
-            var scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-                                         .createInstance(Components.interfaces.mozIJSSubScriptLoader);
-            var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                      .getService(Components.interfaces.nsIIOService);
-            var baseDir = __LOCATION__.parent.parent;
-            baseDir.append("js");
-            for each (var script in scripts) {
-                var scriptFile = baseDir.clone();
-                scriptFile.append(script);
-                scriptLoader.loadSubScript(ioService.newFileURI(scriptFile).spec, null);
-            }
+
+            Components.utils.import("resource://calendar/modules/calUtils.jsm");
+            cal.loadScripts(["calUtils.js"], this.__parent__);
+
             this.mScriptsLoaded = true;
         }
 

@@ -47,6 +47,35 @@ let cal = {
                                           Components.interfaces.nsIIOService2),
 
     /**
+     * Loads an array of calendar scripts into the passed scope.
+     *
+     * @param scriptNames an array of calendar script names
+     * @param scope       scope to load into
+     * @param baseDir     base dir; defaults to calendar-js/
+     */
+    loadScripts: function cal_loadScripts(scriptNames, scope, baseDir) {
+        let scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+                                     .createInstance(Components.interfaces.mozIJSSubScriptLoader);
+        let ioService = cal.getIOService();
+
+        if (!baseDir) {
+            baseDir = __LOCATION__.parent.parent;
+        }
+        baseDir = baseDir.clone();
+        baseDir.append("calendar-js");
+
+        for each (let script in scriptNames) {
+            let scriptFile = baseDir.clone();
+            scriptFile.append(script);
+            try {
+                scriptLoader.loadSubScript(ioService.newFileURI(scriptFile).spec, scope);
+            } catch (exc) {
+                Components.utils.reportError(exc);
+            }
+        }
+    },
+
+    /**
      * Checks whether a timezone lacks a definition.
      */
     isPhantomTimezone: function cal_isPhantomTimezone(tz) {
@@ -233,10 +262,4 @@ function generateServiceAccessor(id, iface) {
 // Interim import of all symbols into cal:
 // This should serve as a clean start for new code, e.g. new code could use
 // cal.createDatetime instead of plain createDatetime NOW.
-let calUtils = __LOCATION__.parent.parent.clone();
-calUtils.append("js");
-calUtils.append("calUtils.js");
-Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-          .getService(Components.interfaces.mozIJSSubScriptLoader)
-          .loadSubScript(cal.getIOService().newFileURI(calUtils).spec, cal);
-
+cal.loadScripts(["calUtils.js"], cal);
