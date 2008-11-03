@@ -317,8 +317,19 @@ var nsMailDefaultHandler = {
     }
 
     if (uri) {
-      openURI(cmdLine.resolveURI(uri));
-      // XXX: add error-handling here! (error dialog, if nothing else)
+      if (/^feed:/i.test(uri)) {
+        try {
+          Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
+                    .getService(Components.interfaces.nsINewsBlogFeedDownloader)
+                    .subscribeToFeed(uri, null, null);
+        }
+        catch (e) {
+          // If feed handling is not installed, do nothing
+        }
+      } else {
+        openURI(cmdLine.resolveURI(uri));
+        // XXX: add error-handling here! (error dialog, if nothing else)
+      }
     } else {
       var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                              .getService(nsIWindowWatcher);

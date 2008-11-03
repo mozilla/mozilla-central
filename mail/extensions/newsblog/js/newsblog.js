@@ -105,6 +105,34 @@ var nsNewsBlogFeedDownloader =
 
   subscribeToFeed: function(aUrl, aFolder, aMsgWindow)
   {
+    if (!aMsgWindow)
+    {
+      var wmed = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                           .getService(Components.interfaces.nsIWindowMediator);
+
+      var wlist = wmed.getEnumerator("mail:3pane");
+      if (wlist.hasMoreElements())
+      {
+        var win = wlist.getNext()
+                       .QueryInterface(Components.interfaces.nsIDOMWindow);
+        win.focus();
+        aMsgWindow = win.msgWindow;
+      }
+      else
+      {
+        // If there are no open windows, open one, pass it the URL, and
+        // during opening it will subscribe to the feed.
+        var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                           .getService(Components.interfaces.nsIWindowWatcher);
+        var arg = Components.classes["@mozilla.org/supports-string;1"]
+                            .createInstance(Components.interfaces.nsISupportsString);
+        arg.data = aUrl;
+        ww.openWindow(null, "chrome://messenger/content/", "_blank",
+                      "chrome,dialog=no,all", arg);
+        return;
+      }
+    }
+
     if (!gExternalScriptsLoaded)
       loadScripts();
 
@@ -136,15 +164,12 @@ var nsNewsBlogFeedDownloader =
     if (!aFolder)
       return;
 
-    // if aUrl is a feed url, then it is of the form: feed:http://somesite/feed.xml or 
-    // feed://http://somesite/feed.xml
-    // Strip off the feed: part so we can subscribe to the contained URL.
-    if (/^feed:/i.test(aUrl))
-    {
-      aUrl = aUrl.replace(/^feed:/i, '');
-      // Strip off the optional forward slashes if we were given feed://
-      aUrl = aUrl.replace(/^\x2f\x2f/, '');
-    }
+    // If aUrl is a feed url, then it is either of the form
+    // feed://example.org/feed.xml or feed:https://example.org/feed.xml.
+    // Replace feed:// with http:// per the spec, then strip off feed:
+    // for the second case.
+    aUrl = aUrl.replace(/^feed:\x2f\x2f/i, "http://");
+    aUrl = aUrl.replace(/^feed:/i, "");
 
     // make sure we aren't already subscribed to this feed before we attempt to subscribe to it.
     if (feedAlreadyExists(aUrl, aFolder.server))
@@ -238,52 +263,6 @@ var nsNewsBlogAcctMgrExtension =
   }  
 }
 
-var nsFeedCommandLineHandler = 
-{
-  /* nsISupports */
-  QueryInterface : function(aIID) 
-  {
-    if (!aIID.equals(Components.interfaces.nsISupports) &&
-        !aIID.equals(Components.interfaces.nsICommandLineHandler))
-      throw Components.results.NS_ERROR_NO_INTERFACE;
-    return this;
-  },
-
-  /* nsICommandLineHandler */
-  handle : function(cmdLine) 
-  {
-    // we only care about "-mail someurl" where someurl is a feed: url
-    // we also don't want to remove the parameter in case we don't end up handling it...
-
-    var mailPos = cmdLine.findFlag("mail", false);
-    if (mailPos != -1 && cmdLine.length >= mailPos )
-    { 
-      var uriStr = cmdLine.getArgument(mailPos + 1);
-      if (/^feed:/i.test(uriStr))
-      {
-        var mailWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService()
-                         .QueryInterface(Components.interfaces.nsIWindowMediator).getMostRecentWindow("mail:3pane");
-                 
-        // if we don't have a 3 pane window visible already, then we can optimize and do nothing here,
-        // that will let the default command line handler create a 3pane window for us using the feed
-        // URL as an argument to that window when it gets constructed...so we only care about the
-        // case where we want to re-use an existing 3 pane to subscribe to the feed url
-        if (mailWindow)
-        {
-          cmdLine.handleFlagWithParam("mail", false); // eat up the arguments we are now handling
-          cmdLine.preventDefault = true; // prevent the default cmd line handler from doing anything
-
-          var feedHandler = Components.classes["@mozilla.org/newsblog-feed-downloader;1"].getService(Components.interfaces.nsINewsBlogFeedDownloader);
-          if (feedHandler)
-            feedHandler.subscribeToFeed(uriStr, null, mailWindow.msgWindow);
-        }        
-      }
-    }
-  },
-
-  helpInfo : ""
-};
-
 var nsNewsBlogFeedDownloaderModule =
 {
   getClassObject: function(aCompMgr, aCID, aIID)
@@ -340,28 +319,7 @@ var nsNewsBlogFeedDownloaderModule =
           return nsNewsBlogAcctMgrExtension.QueryInterface(aIID);
         }       
       } // factory
-    }, // account manager extension
-
-    nsFeedCommandLineHandler: 
-    {
-      CID: Components.ID("{0E377BF7-E4FE-4c94-804C-0C33D49F883E}"),
-      contractID: "@mozilla.org/newsblog-feed-downloader/clh;1",
-      className: "Feed CommandLine Handler",
-      factory: 
-      {
-        createInstance: function (aOuter, aIID) 
-        {
-          if (aOuter != null)
-            throw Components.results.NS_ERROR_NO_AGGREGATION;
-          if (!aIID.equals(Components.interfaces.nsICommandLineHandler) &&
-              !aIID.equals(Components.interfaces.nsISupports))
-            throw Components.results.NS_ERROR_INVALID_ARG;
-
-          // return the singleton
-          return nsFeedCommandLineHandler.QueryInterface(aIID);
-        }       
-      } // factory
-    }
+    } // account manager extension
   },
 
   registerSelf: function(aCompMgr, aFileSpec, aLocation, aType)
@@ -378,9 +336,6 @@ var nsNewsBlogFeedDownloaderModule =
     catman.addCategoryEntry("mailnews-accountmanager-extensions",
                             "newsblog account manager extension",
                             "@mozilla.org/accountmanager/extension;1?name=newsblog", true, true);
-    catman.addCategoryEntry("command-line-handler",
-                            "l-feed",
-                            "@mozilla.org/newsblog-feed-downloader/clh;1", true, true);
   },
 
   unregisterSelf: function(aCompMgr, aFileSpec, aLocation)
@@ -396,8 +351,6 @@ var nsNewsBlogFeedDownloaderModule =
     catman = Components.classes["@mozilla.org/categorymanager;1"].getService(Components.interfaces.nsICategoryManager);
     catman.deleteCategoryEntry("mailnews-accountmanager-extensions",
                                "@mozilla.org/accountmanager/extension;1?name=newsblog", true);
-    catMan.addCategoryEntry("command-line-handler",
-                            "@mozilla.org/newsblog-feed-downloader/clh;1", true);
   },
 
   canUnload: function(aCompMgr)
