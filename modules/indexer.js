@@ -313,10 +313,13 @@ var GlodaIndexer = {
     // figure out if event-driven indexing should be enabled...
     let prefService = Cc["@mozilla.org/preferences-service;1"].
                         getService(Ci.nsIPrefService);
-    let branch = prefService.getBranch("mailnews.database.global.indexer");
-    let eventDrivenEnabled = true; // default
-    if (branch.prefHasUserValue("enabled"))
+    let branch = prefService.getBranch("mailnews.database.global.indexer.");
+    let eventDrivenEnabled = false; // default
+    try {
       eventDrivenEnabled = branch.getBoolPref("enabled");
+    } catch (ex) {
+      dump("%%% annoying exception on pref access: " + ex);
+    }
     this.enabled = eventDrivenEnabled;
   },
   

@@ -168,26 +168,46 @@ var Gloda = {
     let root = Log4Moz.Service.rootLogger;
     root.level = Log4Moz.Level.Debug;
 
-    let capp = new Log4Moz.ConsoleAppender(formatter);
-    capp.level = Log4Moz.Level.Warn;
-    root.addAppender(capp);
+    let enableConsoleLogging = false;
+    let enableDumpLogging = false;
+    let considerNetLogging = false;
 
-    let dapp = new Log4Moz.DumpAppender(formatter);
-    dapp.level = Log4Moz.Level.All;
-    root.addAppender(dapp);
+    try {
+      // figure out if event-driven indexing should be enabled...
+      let prefService = Cc["@mozilla.org/preferences-service;1"].
+                          getService(Ci.nsIPrefService);
+      let branch = prefService.getBranch("mailnews.database.global.logging.");
+      enableConsoleLogging = branch.getBoolPref("console");
+      enableDumpLogging = branch.getBoolPref("dump");
+      enableNetLogging = branch.getBoolPref("net");
+    } catch (ex) {}
+
+    if (enableConsoleLogging) {
+      let capp = new Log4Moz.ConsoleAppender(formatter);
+      capp.level = Log4Moz.Level.Warn;
+      root.addAppender(capp);
+    }
+
+    if (enableDumpLogging) {
+      let dapp = new Log4Moz.DumpAppender(formatter);
+      dapp.level = Log4Moz.Level.All;
+      root.addAppender(dapp);
+    }
     
-    let file = Cc["@mozilla.org/file/directory_service;1"]
-                  .getService(Ci.nsIProperties)
-                  .get("TmpD", Ci.nsIFile);
-    file.append("chainsaw.ptr");
-    if (file.exists()) {
-      let data = GlodaUtils.loadFileToString(file);
-      data = data.trim();
-      let [host, port] = data.split(":");
-      let xf = new Log4Moz.XMLFormatter();
-      let sapp = new Log4Moz.SocketAppender(host, Number(port), xf);
-      sapp.level = Log4Moz.Level.All;
-      root.addAppender(sapp);
+    if (considerNetLogging) {
+      let file = Cc["@mozilla.org/file/directory_service;1"]
+                    .getService(Ci.nsIProperties)
+                    .get("TmpD", Ci.nsIFile);
+      file.append("chainsaw.ptr");
+      if (file.exists()) {
+        let data = GlodaUtils.loadFileToString(file);
+        data = data.trim();
+        let [host, port] = data.split(":");
+        let xf = new Log4Moz.XMLFormatter();
+        let sapp = new Log4Moz.SocketAppender(host, Number(port), xf);
+        sapp.level = Log4Moz.Level.All;
+        root.addAppender(sapp);
+      }
     }
 
     this._log = Log4Moz.Service.getLogger("gloda.NS");
