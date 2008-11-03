@@ -489,10 +489,14 @@ void OutlookSettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *
         id->SetFullName(name);
         id->SetIdentityName(name);
       }
-      rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
-        nsDependentCString(pOrgName), organization);
-      if (NS_SUCCEEDED(rv))
-        id->SetOrganization(organization);
+
+      if (pOrgName) {
+        rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
+          nsDependentCString(pOrgName), organization);
+        if (NS_SUCCEEDED(rv))
+          id->SetOrganization(organization);
+      }
+
       id->SetEmail(nsDependentCString(pEmail));
       if (pReply)
         id->SetReplyTo(nsDependentCString(pReply));
