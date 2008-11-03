@@ -408,9 +408,6 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRI
     return( NS_OK);
 
   nsresult  rv;
-  nsCOMPtr<nsILocalFile>  compositionFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
-  if (NS_FAILED( rv))
-    return( rv);
 
   nsOutlookCompose    compose;
   SimpleBufferTonyRCopiedTwice      copy;
@@ -431,6 +428,10 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRI
   nsCString  fromLine;
   int      fromLen;
   PRBool    lostAttach = PR_FALSE;
+
+  nsCOMPtr<nsIOutputStream> destOutputStream;
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(destOutputStream), pDest, -1, 0600);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   while (!done) {
     if (!contents.GetNext( &cbEid, &lpEid, &oType, &done)) {
@@ -453,10 +454,6 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRI
         IMPORT_LOG1( "*** Error opening messages in mailbox: %S\n", pName);
         return( NS_ERROR_FAILURE);
       }
-
-      nsCOMPtr <nsIOutputStream> destOutputStream;
-      rv = NS_NewLocalFileOutputStream(getter_AddRefs(destOutputStream), pDest, -1, 0600);
-      NS_ENSURE_SUCCESS(rv, rv);
 
       CMapiMessage  msg( lpMsg);
 
@@ -507,7 +504,8 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRI
       if (msg.GetHeaderLen()) {
         nsCAutoString cType;
         SetDefaultContentType(msg, cType);
-        rv = compose.SendTheMessage( compositionFile, mode, cType);
+        nsCOMPtr<nsIFile> compositionFile;
+        rv = compose.SendTheMessage(mode, cType, getter_AddRefs(compositionFile));
         if (NS_SUCCEEDED( rv)) {
           rv = compose.CopyComposedMessage( fromLine, compositionFile, destOutputStream, copy);
           DeleteFile( compositionFile);

@@ -129,7 +129,7 @@ public:
   nsOutlookCompose();
   ~nsOutlookCompose();
 
-  nsresult  SendTheMessage( nsIFile *pMsg, nsMsgDeliverMode mode, nsCString &useThisCType);
+  nsresult  SendTheMessage(nsMsgDeliverMode mode, nsCString &useThisCType, nsIFile **pMsg);
 
   void    SetBody( const char *pBody) { m_Body = pBody;}
   void    SetHeaders( const char *pHeaders) { m_Headers = pHeaders;}

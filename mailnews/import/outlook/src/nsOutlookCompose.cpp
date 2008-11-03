@@ -576,7 +576,7 @@ nsMsgAttachedFile * nsOutlookCompose::GetLocalAttachments( void)
 }
 
 // Test a message send????
-nsresult nsOutlookCompose::SendTheMessage( nsIFile *pMsg, nsMsgDeliverMode mode, nsCString &useThisCType)
+nsresult nsOutlookCompose::SendTheMessage(nsMsgDeliverMode mode, nsCString &useThisCType, nsIFile **pMsg)
 {
   nsresult rv = CreateComponents();
   NS_ENSURE_SUCCESS(rv, rv);
@@ -712,7 +712,7 @@ nsresult nsOutlookCompose::SendTheMessage( nsIFile *pMsg, nsMsgDeliverMode mode,
     NS_Free( pMimeType);
 
   if (pListen->m_location) {
-                pListen->m_location->Clone(&pMsg);
+    pListen->m_location->Clone(pMsg);
     rv = NS_OK;
   }
   else {
