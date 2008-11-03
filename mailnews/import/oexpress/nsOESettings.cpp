@@ -440,7 +440,7 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       BYTE * pPort = nsOERegUtil::GetValueBytes( hKey, "POP3 Port");
       if (pPort)
       {
-        in->SetPort(*(PRInt32 *) pPort));
+        in->SetPort(*(PRInt32 *) pPort);
         nsOERegUtil::FreeValueBytes(pPort);
       }
 
