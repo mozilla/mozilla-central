@@ -41,7 +41,7 @@
 
 #include "nsIAbCard.h"
 #include "nsAbBaseCID.h"
-#include "nsAbAddressCollecter.h"
+#include "nsAbAddressCollector.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch2.h"
 #include "nsIMsgHeaderParser.h"
@@ -53,15 +53,15 @@
 #include "nsComponentManagerUtils.h"
 #include "nsIAbMDBDirectory.h"
 
-NS_IMPL_ISUPPORTS2(nsAbAddressCollecter, nsIAbAddressCollecter, nsIObserver)
+NS_IMPL_ISUPPORTS2(nsAbAddressCollector, nsIAbAddressCollector, nsIObserver)
 
 #define PREF_MAIL_COLLECT_ADDRESSBOOK "mail.collect_addressbook"
 
-nsAbAddressCollecter::nsAbAddressCollecter()
+nsAbAddressCollector::nsAbAddressCollector()
 {
 }
 
-nsAbAddressCollecter::~nsAbAddressCollecter()
+nsAbAddressCollector::~nsAbAddressCollector()
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch2> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -69,7 +69,7 @@ nsAbAddressCollecter::~nsAbAddressCollecter()
     pPrefBranchInt->RemoveObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this);
 }
 
-NS_IMETHODIMP nsAbAddressCollecter::GetCardFromAttribute(const nsACString &aName, const nsACString &aValue, nsIAbCard **aCard)
+NS_IMETHODIMP nsAbAddressCollector::GetCardFromAttribute(const nsACString &aName, const nsACString &aValue, nsIAbCard **aCard)
 {
   NS_ENSURE_ARG_POINTER(aCard);
   if (m_database)
@@ -84,7 +84,7 @@ NS_IMETHODIMP nsAbAddressCollecter::GetCardFromAttribute(const nsACString &aName
 }
 
 NS_IMETHODIMP
-nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
+nsAbAddressCollector::CollectAddress(const nsACString &aAddresses,
                                      PRBool aCreateCard,
                                      PRUint32 aSendFormat)
 {
@@ -136,7 +136,7 @@ nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
 }
 
 NS_IMETHODIMP
-nsAbAddressCollecter::CollectSingleAddress(const nsACString &aEmail,
+nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
                                            const nsACString &aDisplayName,
                                            PRBool aCreateCard,
                                            PRUint32 aSendFormat,
@@ -214,7 +214,7 @@ nsAbAddressCollecter::CollectSingleAddress(const nsACString &aEmail,
 
 // Works out the screen name to put on the card for some well-known addresses
 void
-nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard,
+nsAbAddressCollector::AutoCollectScreenName(nsIAbCard *aCard,
                                             const nsACString &aEmail)
 {
   if (!aCard)
@@ -239,7 +239,7 @@ nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard,
 
 // Returns true if the card was modified successfully.
 PRBool
-nsAbAddressCollecter::SetNamesForCard(nsIAbCard *aSenderCard,
+nsAbAddressCollector::SetNamesForCard(nsIAbCard *aSenderCard,
                                       const nsACString &aFullName)
 {
   nsCString firstName;
@@ -265,7 +265,7 @@ nsAbAddressCollecter::SetNamesForCard(nsIAbCard *aSenderCard,
 
 // Splits the first and last name based on the space between them.
 void
-nsAbAddressCollecter::SplitFullName(const nsCString &aFullName, nsCString &aFirstName,
+nsAbAddressCollector::SplitFullName(const nsCString &aFullName, nsCString &aFirstName,
                                     nsCString &aLastName)
 {
   int index = aFullName.RFindChar(' ');
@@ -277,7 +277,7 @@ nsAbAddressCollecter::SplitFullName(const nsCString &aFullName, nsCString &aFirs
 }
 
 // Observes the collected address book pref in case it changes.
-NS_IMETHODIMP nsAbAddressCollecter::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
+NS_IMETHODIMP nsAbAddressCollector::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
 {
   nsCOMPtr<nsIPrefBranch2> pPrefBranchInt = do_QueryInterface(aSubject);
   if (!pPrefBranchInt) {
@@ -294,8 +294,8 @@ NS_IMETHODIMP nsAbAddressCollecter::Observe(nsISupports *aSubject, const char *a
   return NS_OK;
 }
 
-// Initialises the collecter with the required items.
-nsresult nsAbAddressCollecter::Init(void)
+// Initialises the collector with the required items.
+nsresult nsAbAddressCollector::Init(void)
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch2> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -310,9 +310,9 @@ nsresult nsAbAddressCollecter::Init(void)
   return SetAbURI(prefVal);
 }
 
-// Performs the necessary changes to set up the collecter for the specified
+// Performs the necessary changes to set up the collector for the specified
 // collected address book.
-nsresult nsAbAddressCollecter::SetAbURI(nsCString &aURI)
+nsresult nsAbAddressCollector::SetAbURI(nsCString &aURI)
 {
   if (aURI.IsEmpty())
     aURI.AssignLiteral(kPersonalAddressbookUri);

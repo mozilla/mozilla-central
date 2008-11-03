@@ -56,7 +56,7 @@ XPIDLSRCS	= \
 		nsIAddrDBListener.idl \
 		nsIAddrDatabase.idl \
 		nsIAbManager.idl \
-		nsIAbAddressCollecter.idl \
+		nsIAbAddressCollector.idl \
 		nsIAddbookUrl.idl \
 		nsIAbDirFactory.idl	\
 		nsIAbDirFactoryService.idl	\

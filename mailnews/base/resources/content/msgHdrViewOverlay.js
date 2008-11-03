@@ -53,7 +53,7 @@
 ////////////////////////////////////////////////////////////////////////////////////
 
 const msgHeaderParserContractID      = "@mozilla.org/messenger/headerparser;1";
-const abAddressCollectorContractID   = "@mozilla.org/addressbook/services/addressCollecter;1";
+const abAddressCollectorContractID   = "@mozilla.org/addressbook/services/addressCollector;1";
 
 var gViewAllHeaders = false;
 var gShowOrganization = false;
@@ -432,7 +432,7 @@ var messageHeaderSink = {
               {
                 if (!abAddressCollector)
                   abAddressCollector = Components.classes[abAddressCollectorContractID]
-                                                 .getService(Components.interfaces.nsIAbAddressCollecter);
+                                                 .getService(Components.interfaces.nsIAbAddressCollector);
 
                 gCollectAddress = header.headerValue;
                 // collect, add card if doesn't exist and gCollectOutgoing is set, 

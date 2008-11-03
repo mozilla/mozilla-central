@@ -1,9 +1,9 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
- * Test suite for the Address Collecter Service.
+ * Test suite for the Address Collector Service.
  *
  * XXX Todo: May still need to add test for
- * nsIAbAddressCollecter::getCardFromAttribute if its kept.
+ * nsIAbAddressCollector::getCardFromAttribute if its kept.
  */
 
 const nsIAbPMF = Components.interfaces.nsIAbPreferMailFormat;
@@ -268,8 +268,8 @@ function run_test()
 
   // Get the actual collecter
   collectChecker.addressCollect =
-    Components.classes["@mozilla.org/addressbook/services/addressCollecter;1"]
-              .getService(Components.interfaces.nsIAbAddressCollecter);
+    Components.classes["@mozilla.org/addressbook/services/addressCollector;1"]
+              .getService(Components.interfaces.nsIAbAddressCollector);
 
   // Test - Addition of header without email address.
 

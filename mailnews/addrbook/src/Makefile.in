@@ -80,7 +80,7 @@ CPPSRCS		= \
 		nsDirPrefs.cpp \
 		nsAddrDatabase.cpp \
 		nsAbDirProperty.cpp \
-		nsAbAddressCollecter.cpp \
+		nsAbAddressCollector.cpp \
 		nsAddbookProtocolHandler.cpp  \
 		nsAbMDBDirProperty.cpp \
 		nsAbMDBDirectory.cpp \

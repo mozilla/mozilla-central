@@ -42,12 +42,12 @@
 interface nsIAbCard;
 
 /**
- * nsIAbAddressCollecter is the interface to the address collecter service.
+ * nsIAbAddressCollector is the interface to the address collecter service.
  * It will save and update the supplied addresses into the address book
  * specified by the "mail.collect_addressbook" pref.
  */
 [scriptable, uuid(db4eb202-5dec-48d5-b853-b46d8d5bb055)]
-interface nsIAbAddressCollecter : nsISupports {
+interface nsIAbAddressCollector : nsISupports {
   /**
    * Collects email addresses into the address book.
    * If a card already exists for the email, the first/last/display names

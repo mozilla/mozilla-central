@@ -169,14 +169,14 @@
 }
 
 //
-// nsAbAddressCollecter
+// nsAbAddressCollector
 //
-#define NS_ABADDRESSCOLLECTER_CONTRACTID \
-  "@mozilla.org/addressbook/services/addressCollecter;1"
-#define NS_ABADDRESSCOLLECTER_CID \
-{	/* fe04c8e6-501e-11d3-a527-0060b0fc04b7 */		\
-	0xfe04c8e6, 0x501e, 0x11d3,						\
-	{0xa5, 0x27, 0x0, 0x60, 0xb0, 0xfc, 0x4, 0xb7}	\
+#define NS_ABADDRESSCOLLECTOR_CONTRACTID \
+  "@mozilla.org/addressbook/services/addressCollector;1"
+#define NS_ABADDRESSCOLLECTOR_CID \
+{	/* e7702d5a-99d8-4648-bab7-919ea29f30b6 */ \
+	0xe7702d5a, 0x99d8, 0x4648,	\
+	{0xba, 0xb7, 0x91, 0x9e, 0xa2, 0x9f, 0x30, 0xb6}	\
 }
 
 //

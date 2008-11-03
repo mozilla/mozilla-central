@@ -59,7 +59,7 @@
 #include "nsAbManager.h"
 #include "nsAbContentHandler.h"
 #include "nsAbDirProperty.h"
-#include "nsAbAddressCollecter.h"
+#include "nsAbAddressCollector.h"
 #include "nsAddbookProtocolHandler.h"
 #include "nsAddbookUrl.h"
 #include "nsCURILoader.h"
@@ -108,7 +108,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbBSDirectory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBDirectory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBCard)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddrDatabase)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbAddressCollecter,Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbAddressCollector,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddbookUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirFactoryService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBDirFactory)
@@ -228,9 +228,9 @@ static const nsModuleComponentInfo components[] =
     NS_ABDIRPROPERTY_CONTRACTID,
     nsAbDirPropertyConstructor },
   { "Address Book Address Collector",
-    NS_ABADDRESSCOLLECTER_CID,
-    NS_ABADDRESSCOLLECTER_CONTRACTID,
-    nsAbAddressCollecterConstructor },
+    NS_ABADDRESSCOLLECTOR_CID,
+    NS_ABADDRESSCOLLECTOR_CONTRACTID,
+    nsAbAddressCollectorConstructor },
   { "The addbook URL Interface", 
     NS_ADDBOOKURL_CID,
     NS_ADDBOOKURL_CONTRACTID,

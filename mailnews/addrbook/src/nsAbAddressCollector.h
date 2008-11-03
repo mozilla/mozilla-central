@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -36,25 +36,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef _nsAbAddressCollecter_H_
-#define _nsAbAddressCollecter_H_
+#ifndef _nsAbAddressCollector_H_
+#define _nsAbAddressCollector_H_
 
-#include "nsIAbAddressCollecter.h"
+#include "nsIAbAddressCollector.h"
 #include "nsCOMPtr.h"
 #include "nsIAddrDatabase.h"
 #include "nsIAbDirectory.h"
 #include "nsIAbCard.h"
 #include "nsIObserver.h"
 
-class nsAbAddressCollecter : public nsIAbAddressCollecter,
+class nsAbAddressCollector : public nsIAbAddressCollector,
                              public nsIObserver
 {
 public:
-  nsAbAddressCollecter();
-  virtual ~nsAbAddressCollecter();
+  nsAbAddressCollector();
+  virtual ~nsAbAddressCollector();
 
   NS_DECL_ISUPPORTS
-  NS_DECL_NSIABADDRESSCOLLECTER
+  NS_DECL_NSIABADDRESSCOLLECTOR
   NS_DECL_NSIOBSERVER
 
   nsresult Init();
@@ -70,5 +70,5 @@ private:
   nsCString m_abURI;
 };
 
-#endif  // _nsAbAddressCollecter_H_
+#endif  // _nsAbAddressCollector_H_
 

@@ -75,7 +75,7 @@
 #include "nsIDocument.h"
 #include "nsIDOMDocument.h"
 #include "nsMsgCompCID.h"
-#include "nsIAbAddressCollecter.h"
+#include "nsIAbAddressCollector.h"
 #include "nsAbBaseCID.h"
 #include "nsCOMPtr.h"
 #include "mozITXTToHTMLConv.h"
@@ -3513,10 +3513,10 @@ nsMsgComposeAndSend::DeliverFileAsMail()
   if (pPrefBranch)
     pPrefBranch->GetBoolPref(PREF_MAIL_COLLECT_EMAIL_ADDRESS_OUTGOING, &collectOutgoingAddresses);
 
-  nsCOMPtr<nsIAbAddressCollecter> addressCollecter =
-           do_GetService(NS_ABADDRESSCOLLECTER_CONTRACTID);
+  nsCOMPtr<nsIAbAddressCollector> addressCollector =
+           do_GetService(NS_ABADDRESSCOLLECTOR_CONTRACTID);
 
-  PRBool collectAddresses = (collectOutgoingAddresses && addressCollecter);
+  PRBool collectAddresses = (collectOutgoingAddresses && addressCollector);
   PRUint32 sendFormat = nsIAbPreferMailFormat::unknown;
 
   // this code is not ready yet
@@ -3551,22 +3551,22 @@ nsMsgComposeAndSend::DeliverFileAsMail()
   if (mCompFields->GetTo() && *mCompFields->GetTo())
   {
     PL_strcat (buf2, mCompFields->GetTo());
-    if (addressCollecter)
-      addressCollecter->CollectAddress(nsCString(mCompFields->GetTo()), 
+    if (addressCollector)
+      addressCollector->CollectAddress(nsCString(mCompFields->GetTo()), 
             collectAddresses /* create card if one doesn't exist */, sendFormat);
   }
   if (mCompFields->GetCc() && *mCompFields->GetCc()) {
     if (*buf2) PL_strcat (buf2, ",");
       PL_strcat (buf2, mCompFields->GetCc());
-    if (addressCollecter)
-      addressCollecter->CollectAddress(nsCString(mCompFields->GetCc()), 
+    if (addressCollector)
+      addressCollector->CollectAddress(nsCString(mCompFields->GetCc()), 
             collectAddresses /* create card if one doesn't exist */, sendFormat);
   }
   if (mCompFields->GetBcc() && *mCompFields->GetBcc()) {
     if (*buf2) PL_strcat (buf2, ",");
       PL_strcat (buf2, mCompFields->GetBcc());
-    if (addressCollecter)
-      addressCollecter->CollectAddress(nsCString(mCompFields->GetBcc()), 
+    if (addressCollector)
+      addressCollector->CollectAddress(nsCString(mCompFields->GetBcc()), 
             collectAddresses /* create card if one doesn't exist */, sendFormat);
   }
 

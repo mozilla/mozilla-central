@@ -131,7 +131,7 @@
 #include "nsAbManager.h"
 #include "nsAbContentHandler.h"
 #include "nsAbDirProperty.h"
-#include "nsAbAddressCollecter.h"
+#include "nsAbAddressCollector.h"
 #include "nsAddbookProtocolHandler.h"
 #include "nsAddbookUrl.h"
 
@@ -366,7 +366,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbBSDirectory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBDirectory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBCard)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddrDatabase)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbAddressCollecter,Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbAddressCollector,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddbookUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirFactoryService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBDirFactory)
@@ -935,8 +935,8 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_ABCARDPROPERTY_CONTRACTID, nsAbCardPropertyConstructor },
     { "Address Book Directory Property", NS_ABDIRPROPERTY_CID,
       NS_ABDIRPROPERTY_CONTRACTID, nsAbDirPropertyConstructor },
-    { "Address Book Address Collector", NS_ABADDRESSCOLLECTER_CID,
-      NS_ABADDRESSCOLLECTER_CONTRACTID, nsAbAddressCollecterConstructor },
+    { "Address Book Address Collector", NS_ABADDRESSCOLLECTOR_CID,
+      NS_ABADDRESSCOLLECTOR_CONTRACTID, nsAbAddressCollectorConstructor },
     { "The addbook URL Interface", NS_ADDBOOKURL_CID,
       NS_ADDBOOKURL_CONTRACTID, nsAddbookUrlConstructor },
     { "The addbook Protocol Handler", NS_ADDBOOK_HANDLER_CID,

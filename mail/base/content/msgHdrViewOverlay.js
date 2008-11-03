@@ -1235,8 +1235,8 @@ function AddContact(emailAddressNode)
     emailAddressNode.setAttribute("updatingUI", true);
 
     // Just save the new node straight away
-    Components.classes["@mozilla.org/addressbook/services/addressCollecter;1"]
-      .getService(Components.interfaces.nsIAbAddressCollecter)
+    Components.classes["@mozilla.org/addressbook/services/addressCollector;1"]
+      .getService(Components.interfaces.nsIAbAddressCollector)
       .collectSingleAddress(emailAddressNode.getAttribute("emailAddress"),
                             emailAddressNode.getAttribute("displayName"), true,
                             Components.interfaces.nsIAbPreferMailFormat.unknown,
