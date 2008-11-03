@@ -159,7 +159,10 @@ nsMsgCreateTempFileName(const char *tFileName)
   return tString;
 }
 
-static PRBool mime_headers_use_quoted_printable_p = PR_FALSE;
+// This is the value a caller will Get if they don't Set first (like MDN
+// sending a return receipt), so init to the default value of the
+// mail.strictly_mime_headers preference.
+static PRBool mime_headers_use_quoted_printable_p = PR_TRUE;
 
 PRBool
 nsMsgMIMEGetConformToStandard (void)
