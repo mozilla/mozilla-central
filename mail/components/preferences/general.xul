@@ -71,7 +71,6 @@
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
 
 #ifdef HAVE_SHELL_SERVICE
-    <stringbundle id="bundleShell" src="chrome://messenger/locale/shellservice.properties"/>
     <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
 
     <groupbox id="systemDefaultsGroup" orient="vertical">

@@ -67,15 +67,15 @@ var gGeneralPane = {
     if (shellSvc.isDefaultClient(false, nsIShellService.MAIL | nsIShellService.NEWS | nsIShellService.RSS))
     {
       var brandBundle = document.getElementById("bundleBrand");
-      var shellBundle = document.getElementById("bundleShell");
+      var preferencesBundle = document.getElementById("bundlePreferences");
       var brandShortName = brandBundle.getString("brandShortName");
-      var promptTitle = shellBundle.getString("alreadyDefaultClientTitle");
+      var promptTitle = preferencesBundle.getString("alreadyDefaultClientTitle");
       var promptMessage;
       const IPS = Components.interfaces.nsIPromptService;
       var psvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                            .getService(IPS);
 
-        promptMessage = shellBundle.getFormattedString("alreadyDefault", [brandShortName]);
+        promptMessage = preferencesBundle.getFormattedString("alreadyDefault", [brandShortName]);
         psvc.alert(window, promptTitle, promptMessage);
     }
     else

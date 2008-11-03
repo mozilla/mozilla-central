@@ -493,7 +493,7 @@ nsContextMenu.prototype = {
       // Format "Search for <selection>" string to show in menu.
       var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
                           .getService(Components.interfaces.nsIStringBundleService);
-      var bundle = sbs.createBundle("chrome://communicator/locale/contentAreaCommands.properties");
+      var bundle = sbs.createBundle("chrome://messenger/locale/messenger.properties");
       searchSelectText = bundle.formatStringFromName("searchText",
                                                      [searchSelectText], 1);
       this.setItemAttr("context-searchselect", "label", searchSelectText);
