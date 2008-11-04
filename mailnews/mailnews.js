@@ -629,6 +629,10 @@ pref("mail.biff.play_sound.url", "");
 pref("mail.biff.show_alert", true);
 pref("mail.biff.show_tray_icon", true); // currently Windows-only
 pref("mail.biff.animate_dock_icon", false);
+
+// add jitter to biff interval
+pref("mail.biff.add_interval_jitter", true);
+
 #ifdef MOZ_SUITE
 // if true, check for new mail even when opening non-mail windows
 pref("mail.biff.on_new_window", true);

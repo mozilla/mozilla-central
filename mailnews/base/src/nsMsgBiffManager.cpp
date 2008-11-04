@@ -46,6 +46,11 @@
 #include "nsStatusBarBiffManager.h"
 #include "nsCOMArray.h"
 #include "prlog.h"
+#include "nspr.h"
+#include "nsIPrefService.h"
+#include "nsIPrefBranch.h"
+
+#define PREF_BIFF_JITTER "mail.biff.add_interval_jitter"
 
 static NS_DEFINE_CID(kStatusBarBiffManagerCID, NS_STATUSBARBIFFMANAGER_CID);
 
@@ -69,7 +74,7 @@ nsMsgBiffManager::~nsMsgBiffManager()
 {
   if (mBiffTimer)
     mBiffTimer->Cancel();
-  
+
   if (!mHaveShutdown)
     Shutdown();
 }
@@ -81,7 +86,7 @@ NS_IMETHODIMP nsMsgBiffManager::Init()
 
   mInited = PR_TRUE;
   nsresult rv;
-  
+
   nsCOMPtr<nsIMsgAccountManager> accountManager = 
   do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv))
@@ -93,11 +98,11 @@ NS_IMETHODIMP nsMsgBiffManager::Init()
     mHaveShutdown = PR_FALSE;
     return NS_OK;
   }
-  
+
   // Ensure status bar biff service has started
   nsCOMPtr<nsIFolderListener> statusBarBiffService = 
     do_GetService(kStatusBarBiffManagerCID, &rv);
-  
+
   if (!MsgBiffLogModule)
     MsgBiffLogModule = PR_NewLogModule("MsgBiff");
 
@@ -117,7 +122,7 @@ NS_IMETHODIMP nsMsgBiffManager::Shutdown()
     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv))
     accountManager->RemoveIncomingServerListener(this);
-  
+
   mHaveShutdown = PR_TRUE;
   mInited = PR_FALSE;
   return NS_OK;
@@ -126,11 +131,11 @@ NS_IMETHODIMP nsMsgBiffManager::Shutdown()
 NS_IMETHODIMP nsMsgBiffManager::AddServerBiff(nsIMsgIncomingServer *server)
 {
   PRInt32 biffMinutes;
-  
+
   nsresult rv = server->GetBiffMinutes(&biffMinutes);
   if (NS_FAILED(rv))
     return rv;
-  
+
   // Don't add if biffMinutes isn't > 0
   if (biffMinutes > 0)
   {
@@ -144,7 +149,7 @@ NS_IMETHODIMP nsMsgBiffManager::AddServerBiff(nsIMsgIncomingServer *server)
       rv = SetNextBiffTime(biffEntry, currentTime);
       if (NS_FAILED(rv))
         return rv;
-      
+
       AddBiffEntry(biffEntry);
       SetupNextBiff();
     }
@@ -157,7 +162,7 @@ NS_IMETHODIMP nsMsgBiffManager::RemoveServerBiff(nsIMsgIncomingServer *server)
   PRInt32 pos = FindServer(server);
   if (pos != -1)
     mBiffArray.RemoveElementAt(pos);
-  
+
   // Should probably reset biff time if this was the server that gets biffed
   // next.
 	return NS_OK;
@@ -228,17 +233,39 @@ nsresult nsMsgBiffManager::SetNextBiffTime(nsBiffEntry &biffEntry, nsTime startT
 
   if (!server)
     return NS_ERROR_FAILURE;
-  
+
   PRInt32 biffInterval;
   nsresult rv = server->GetBiffMinutes(&biffInterval);
   if (NS_FAILED(rv))
     return rv;
+
   //Add 60 secs/minute in microseconds to current time. biffEntry->nextBiffTime's
   //constructor makes it the current time.
   nsInt64 chosenTimeInterval = biffInterval;
   chosenTimeInterval *= 60000000;
+
   biffEntry.nextBiffTime = startTime;
   biffEntry.nextBiffTime += chosenTimeInterval;
+
+  // Check if we should jitter.
+  nsCOMPtr<nsIPrefBranch> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
+  if (prefs)
+  {
+    PRBool shouldUseBiffJitter = PR_FALSE;
+    prefs->GetBoolPref(PREF_BIFF_JITTER, &shouldUseBiffJitter);
+    if (shouldUseBiffJitter)
+    {
+      // Calculate a jitter of +/-5% on biffInterval
+      // - minimum 1 second (to avoid a modulo with 0)
+      // - maximum 30 seconds (to avoid problems when biffInterval is very large)
+      PRInt64 jitter = (PRInt64)(chosenTimeInterval) * 0.05;
+      jitter = PR_MAX(1000000, PR_MIN(30000000, jitter));
+      jitter = ((rand() % 2) ? 1 : -1) * (rand() % jitter);
+
+      biffEntry.nextBiffTime += jitter;
+    }
+  }
+
   return NS_OK;
 }
 
@@ -251,10 +278,11 @@ nsresult nsMsgBiffManager::SetupNextBiff()
     nsTime currentTime;
     nsInt64 biffDelay;
     nsInt64 ms(1000);
+
     if (currentTime > biffEntry.nextBiffTime)
     {
       PRInt64 microSecondsPerSecond;
-  
+
       LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
       LL_MUL(biffDelay, 30, microSecondsPerSecond); //let's wait 30 seconds before firing biff again
     }
