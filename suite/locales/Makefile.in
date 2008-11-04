@@ -161,10 +161,6 @@ include $(call EXPAND_MOZLOCALE_SRCDIR,toolkit/locales)/installer/windows/charse
 
 repackage-win32-installer: WIN32_INSTALLER_OUT=$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
-ifneq (en-US,$(AB_CD))
-	@echo "Verifying $(AB_CD) installer variable usage"
-	@$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer
-endif
 	@echo "Repackaging $(WIN32_INSTALLER_IN) into $(WIN32_INSTALLER_OUT)."
 	$(MAKE) -C ../installer/windows export
 	if test ! -d $(dir $(WIN32_INSTALLER_OUT)); then \
