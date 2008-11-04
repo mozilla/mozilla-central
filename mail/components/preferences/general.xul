@@ -88,7 +88,7 @@
       <caption label="&messengerStartPage.label;"/>
         <hbox align="start">
           <checkbox id="mailnewsStartPageEnabled" label="&enableStartPage.label;"
-                    preference="mailnews.start_page.enabled" oncommand="gGeneralPane.startPageCheck();"
+                    preference="mailnews.start_page.enabled"
                     accesskey="&enableStartPage.accesskey;"/>
         </hbox>
         <hbox align="center">

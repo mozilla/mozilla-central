@@ -975,15 +975,13 @@ function FolderPaneSelectionChange()
       ClearThreadPane();
     }
 
-    if (gAccountCentralLoaded)
-      UpdateMailToolbar("gAccountCentralLoaded");
-
-    if (gDisplayStartupPage)
+    var startpageenabled = gPrefBranch.getBoolPref("mailnews.start_page.enabled");
+    if (gDisplayStartupPage && startpageenabled)
     {
       loadStartPage();
       gDisplayStartupPage = false;
-      UpdateMailToolbar("gDisplayStartupPage");
-    }  
+    }
+    UpdateMailToolbar("FolderPaneSelectionChange");
 }
 
 function ClearThreadPane()

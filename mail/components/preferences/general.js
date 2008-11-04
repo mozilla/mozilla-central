@@ -43,7 +43,6 @@ var gGeneralPane = {
   init: function ()
   {
     this.mPane = document.getElementById("paneGeneral");
-    this.startPageCheck();
     
     this.updatePlaySound();
   },
@@ -86,11 +85,6 @@ var gGeneralPane = {
     }
   },
 #endif
-
-  startPageCheck: function() 
-  {
-    document.getElementById("mailnewsStartPageUrl").disabled = !document.getElementById("mailnewsStartPageEnabled").checked;
-  },
   
   /**
    * Restores the default start page as the user's start page
