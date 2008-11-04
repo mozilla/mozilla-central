@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+ xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>gloda@mozillamessaging.com</em:id>
+    <em:name>Global Database</em:name>
+    <em:version>0.0.1</em:version>
+    <em:creator>Mozilla Messaging, Inc.</em:creator>
+    <em:contributor>Andrew Sutherland &lt;asutherland@asutherland.org&gt;</em:contributor>
+    <em:description>Adds a global database to Thunderbird</em:description>
+    <em:optionsURL>chrome://gloda/content/options.xul</em:optionsURL>
+    <em:targetApplication>
+      <Description>
+        <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id> <!-- thunderbird -->
+        <em:minVersion>3.0a2pre</em:minVersion>
+        <em:maxVersion>3.0.*</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+  </Description>
+</RDF>

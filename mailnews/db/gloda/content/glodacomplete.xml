@@ -1,0 +1,624 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is mozilla.org browser.
+   -
+   - The Initial Developer of the Original Code is
+   - Joe Hewitt.
+   - Portions created by the Initial Developer are Copyright (C) 2003
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   - Pierre Chanial (p_ch@verizon.net)
+   - Dean Tessman   (dean_tessman@hotmail.com)
+   - Masayuki Nakano (masayuki@d-toybox.com)
+   - Pamela Greene (pamg.bugs@gmail.com)
+   - Edward Lee (edward.lee@engineering.uiuc.edu)
+   - Andrew Sutherland (asutherland@asutherland.org)
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<bindings id="autocompleteBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:html="http://www.w3.org/1999/xhtml"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="glodacomplete-rich-result-popup" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-rich-result-popup">
+    <implementation implements="nsIAutoCompletePopup">
+      <method name="_appendCurrentResult">
+        <body>
+          <![CDATA[
+          var controller = this.mInput.controller;
+
+          // Process maxRows per chunk to improve performance and user experience
+          for (let i = 0; i < this.maxRows; i++) {
+            if (this._currentIndex >= this._matchCount)
+              return;
+
+            var existingItemsCount = this.richlistbox.childNodes.length;
+            var item;
+
+            // trim the leading/trailing whitespace
+            var trimmedSearchString = controller.searchString.replace(/^\s+/, "").replace(/\s+$/, "");
+
+            // Unescape the URI spec for showing as an entry in the popup
+            let url = Components.classes["@mozilla.org/intl/texttosuburi;1"].
+              getService(Components.interfaces.nsITextToSubURI).
+              unEscapeURIForUI("UTF-8", controller.getValueAt(this._currentIndex));
+
+            if (this._currentIndex < existingItemsCount) {
+              // re-use the existing item
+              item = this.richlistbox.childNodes[this._currentIndex];
+
+              // Completely re-use the existing richlistitem if it's the same
+              if (item.getAttribute("text") == trimmedSearchString &&
+                  item.getAttribute("url") == url) {
+                item.collapsed = false;
+                this._currentIndex++;
+                continue;
+              }
+            }
+            else {
+              // need to create a new item
+              item = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "richlistitem");
+            }
+            
+            var glodaCompleter =  Components.
+              classes["@mozilla.org/autocomplete/search;1?name=gloda"].
+              getService(). //Components.interfaces.nsIAutoCompleteSearch)
+              wrappedJSObject;
+            var result = glodaCompleter.curResult;
+
+            // set these attributes before we set the class
+            // so that we can use them from the contructor
+            var row = result.getObjectAt(this._currentIndex);
+            var obj = row.item;
+            item.setAttribute("text", trimmedSearchString);
+            item.setAttribute("type", result.getStyleAt(this._currentIndex));
+
+            item.row = row;
+
+            if (this._currentIndex < existingItemsCount) {
+              // re-use the existing item
+              item._adjustAcItem();
+              item.collapsed = false;
+            }
+            else {
+              // set the class at the end so we can use the attributes
+              // in the xbl constructor
+              item.className = "autocomplete-richlistitem";
+              this.richlistbox.appendChild(item);
+            }
+
+            this._currentIndex++;
+          }
+
+          // yield after each batch of items so that typing the url bar is responsive
+          setTimeout(function (self) { self._appendCurrentResult(); }, 0, this);
+        ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <!-- This is autocomplete.xml's autocomplete-richlistitem duplicated and
+       modified to include its useful helper functions, but eliminating anything
+       that assumes specific content sub-items.  Namely, url/title/etc.  -->
+  <binding id="glodacomplete-base-richlistitem" extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <field name="_boundaryCutoff">null</field>
+
+      <property name="boundaryCutoff" readonly="true">
+        <getter>
+          <![CDATA[
+          if (!this._boundaryCutoff) {
+            this._boundaryCutoff =
+              Components.classes["@mozilla.org/preferences-service;1"].
+              getService(Components.interfaces.nsIPrefBranch).
+              getIntPref("toolkit.autocomplete.richBoundaryCutoff");
+          }
+          return this._boundaryCutoff;
+          ]]>
+        </getter>
+      </property>
+
+      <method name="_getBoundaryIndices">
+        <parameter name="aText"/>
+        <parameter name="aSearchTokens"/>
+        <body>
+          <![CDATA[
+          // Short circuit for empty search ([""] == "")
+          if (aSearchTokens == "")
+            return [0, aText.length];
+
+          // Find which regions of text match the search terms
+          let regions = [];
+          for each (let search in aSearchTokens) {
+            let matchIndex;
+            let startIndex = 0;
+            let searchLen = search.length;
+
+            // Find all matches of the search terms, but stop early for perf
+            let lowerText = aText.toLowerCase().substr(0, this.boundaryCutoff);
+            while ((matchIndex = lowerText.indexOf(search, startIndex)) >= 0) {
+              // Start the next search from where this one finished
+              startIndex = matchIndex + searchLen;
+              regions.push([matchIndex, startIndex]);
+            }
+          }
+
+          // Sort the regions by start position then end position
+          regions = regions.sort(function(a, b) let (start = a[0] - b[0])
+            start == 0 ? a[1] - b[1] : start);
+
+          // Generate the boundary indices from each region
+          let start = 0;
+          let end = 0;
+          let boundaries = [];
+          let len = regions.length;
+          for (let i = 0; i < len; i++) {
+            // We have a new boundary if the start of the next is past the end
+            let region = regions[i];
+            if (region[0] > end) {
+              // First index is the beginning of match
+              boundaries.push(start);
+              // Second index is the beginning of non-match
+              boundaries.push(end);
+
+              // Track the new region now that we've stored the previous one
+              start = region[0];
+            }
+
+            // Push back the end index for the current or new region
+            end = Math.max(end, region[1]);
+          }
+
+          // Add the last region
+          boundaries.push(start);
+          boundaries.push(end);
+
+          // Put on the end boundary if necessary
+          if (end < aText.length)
+            boundaries.push(aText.length);
+
+          // Skip the first item because it's always 0
+          return boundaries.slice(1);
+          ]]>
+        </body>
+      </method>
+
+      <method name="_getSearchTokens">
+        <parameter name="aSearch"/>
+        <body>
+          <![CDATA[
+          let search = aSearch.toLowerCase();
+          return search.split(/\s+/);
+          ]]>
+        </body>
+      </method>
+
+      <method name="_needsAlternateEmphasis">
+        <parameter name="aText"/>
+        <body>
+          <![CDATA[
+          for (let i = aText.length; --i >= 0; ) {
+            let charCode = aText.charCodeAt(i);
+            // Arabic, Syriac, Indic languages are likely to have ligatures
+            // that are broken when using the main emphasis styling
+            if (0x0600 <= charCode && charCode <= 0x109F)
+              return true;
+          }
+
+          return false;
+          ]]>
+        </body>
+      </method>
+
+      <method name="_setUpDescription">
+        <parameter name="aDescriptionElement"/>
+        <parameter name="aText"/>
+        <body>
+          <![CDATA[
+          // Get rid of all previous text
+          while (aDescriptionElement.hasChildNodes())
+            aDescriptionElement.removeChild(aDescriptionElement.firstChild);
+
+          // Get the indices that separate match and non-match text
+          let search = this.getAttribute("text");
+          let tokens = this._getSearchTokens(search);
+          let indices = this._getBoundaryIndices(aText, tokens);
+
+          // If we're searching for something that needs alternate emphasis,
+          // we'll need to check the text that we match
+          let checkAlt = this._needsAlternateEmphasis(search);
+
+          let next;
+          let start = 0;
+          let len = indices.length;
+          // Even indexed boundaries are matches, so skip the 0th if it's empty
+          for (let i = indices[0] == 0 ? 1 : 0; i < len; i++) {
+            next = indices[i];
+            let text = aText.substr(start, next - start);
+            start = next;
+
+            if (i % 2 == 0) {
+              // Emphasize the text for even indices
+              let span = aDescriptionElement.appendChild(
+                document.createElementNS("http://www.w3.org/1999/xhtml", "span"));
+              span.className = checkAlt && this._needsAlternateEmphasis(text) ?
+                "ac-emphasize-alt" : "ac-emphasize-text";
+              span.textContent = text;
+            } else {
+              // Otherwise, it's plain text
+              aDescriptionElement.appendChild(document.createTextNode(text));
+            }
+          }
+          ]]>
+        </body>
+      </method>
+
+      <method name="_setUpOverflow">
+        <parameter name="aParentBox"/>
+        <parameter name="aEllipsis"/>
+        <body>
+          <![CDATA[
+          // Hide the ellipsis incase there's just enough to not underflow
+          aEllipsis.hidden = true;
+
+          // Start with the parent's width and subtract off its children
+          let tooltip = [];
+          let children = aParentBox.childNodes;
+          let widthDiff = aParentBox.boxObject.width;
+
+          for (let i = 0; i < children.length; i++) {
+            // Only consider a child if it actually takes up space
+            let childWidth = children[i].boxObject.width;
+            if (childWidth > 0) {
+              // Subtract a little less to account for subpixel rounding
+              widthDiff -= childWidth - .5;
+
+              // Add to the tooltip if it's not hidden and has text
+              let childText = children[i].textContent;
+              if (childText)
+                tooltip.push(childText);
+            }
+          }
+
+          // If the children take up more space than the parent.. overflow!
+          if (widthDiff < 0) {
+            // Re-show the ellipsis now that we know it's needed
+            aEllipsis.hidden = false;
+
+            // Separate text components with a ndash --
+            aParentBox.tooltipText = tooltip.join(" \u2013 ");
+          }
+          ]]>
+        </body>
+      </method>
+
+      <method name="_doUnderflow">
+        <parameter name="aName"/>
+        <body>
+          <![CDATA[
+          // Hide the ellipsis right when we know we're underflowing instead of
+          // waiting for the timeout to trigger the _setUpOverflow calculations
+          this[aName + "Box"].tooltipText = "";
+          this[aName + "OverflowEllipsis"].hidden = true;
+          ]]>
+        </body>
+      </method>
+
+    </implementation>
+  </binding>
+
+  <binding id="gloda-single-tag-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
+    <content orient="vertical">
+      <xul:description anonid="explanation"/>
+    </content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+            this._explanation = document.getAnonymousElementByAttribute(this, "anonid", "explanation");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            return "tag " + this.row.item.tag;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          this._explanation.value = "messages tagged " + this.row.item.tag;
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="gloda-single-identity-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
+    <content>
+      <xul:hbox>
+	    <xul:image anonid="picture"/>
+	    <xul:vbox>
+	      <xul:hbox>
+	        <xul:hbox anonid="name-box" class="ac-title" flex="1"
+	                  onunderflow="_doUnderflow('_name');">
+	          <xul:description anonid="name" class="ac-normal-text ac-comment"
+	                           xbl:inherits="selected"/>
+	        </xul:hbox>
+	        <xul:label anonid="name-overflow-ellipsis" xbl:inherits="selected"
+	                   class="ac-ellipsis-after ac-comment" hidden="true"/>
+	      </xul:hbox>
+	      <xul:hbox>
+	        <xul:hbox anonid="identity-box" class="ac-url" flex="1"
+	                  onunderflow="_doUnderflow('_identity');">
+	          <xul:description anonid="identity" class="ac-normal-text ac-url-text"
+	                           xbl:inherits="selected"/>
+	        </xul:hbox>
+	        <xul:label anonid="identity-overflow-ellipsis" xbl:inherits="selected"
+	                   class="ac-ellipsis-after ac-url-text" hidden="true"/>
+	        <xul:image anonid="type-image" class="ac-type-icon"/>
+	      </xul:hbox>
+	    </xul:vbox>
+	  </xul:hbox>
+    </content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+            let ellipsis = "\u2026";
+            try {
+              ellipsis = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch).
+                getComplexValue("intl.ellipsis",
+                  Components.interfaces.nsIPrefLocalizedString).data;
+            } catch (ex) {
+              // Do nothing.. we already have a default
+            }
+
+            this._identityOverflowEllipsis = document.getAnonymousElementByAttribute(this, "anonid", "identity-overflow-ellipsis");
+            this._nameOverflowEllipsis = document.getAnonymousElementByAttribute(this, "anonid", "name-overflow-ellipsis");
+
+            this._identityOverflowEllipsis.value = ellipsis;
+            this._nameOverflowEllipsis.value = ellipsis;
+
+            this._typeImage = document.getAnonymousElementByAttribute(this, "anonid", "type-image");
+
+            this._identityBox = document.getAnonymousElementByAttribute(this, "anonid", "identity-box");
+            this._identity = document.getAnonymousElementByAttribute(this, "anonid", "identity");
+
+            this._nameBox = document.getAnonymousElementByAttribute(this, "anonid", "name-box");
+            this._name = document.getAnonymousElementByAttribute(this, "anonid", "name");
+            
+            this._picture = document.getAnonymousElementByAttribute(this, "anonid", "picture");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            var identity = this.row.item;
+            return identity.accessibleLabel;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          var identity = this.row.item;
+          
+          if (identity == null)
+            return;
+          
+          // I guess we should get the picture size from CSS or something?
+          this._picture.src = identity.pictureURL(32);
+          
+          // Emphasize the matching search terms for the description
+          this._setUpDescription(this._name, identity.contact.name);
+          this._setUpDescription(this._identity, identity.value);
+
+          // Set up overflow on a timeout because the contents of the box
+          // might not have a width yet even though we just changed them
+          setTimeout(this._setUpOverflow, 0, this._nameBox, this._nameOverflowEllipsis);
+          setTimeout(this._setUpOverflow, 0, this._identityBox, this._identityOverflowEllipsis);
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="gloda-contact-chunk" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
+    <content orient="horizontal">
+      <xul:image anonid="picture"/>
+      <xul:vbox>
+        <xul:hbox>
+          <xul:hbox anonid="name-box" class="ac-title" flex="1"
+                    onunderflow="_doUnderflow('_name');">
+            <xul:description anonid="name" class="ac-normal-text ac-comment"
+                             xbl:inherits="selected"/>
+          </xul:hbox>
+          <xul:label anonid="name-overflow-ellipsis" xbl:inherits="selected"
+                     class="ac-ellipsis-after ac-comment" hidden="true"/>
+        </xul:hbox>
+        <xul:hbox>
+          <xul:hbox anonid="identity-box" class="ac-url" flex="1"
+                    onunderflow="_doUnderflow('_identity');">
+            <xul:description anonid="identity" class="ac-normal-text ac-url-text"
+                             xbl:inherits="selected"/>
+          </xul:hbox>
+          <xul:label anonid="identity-overflow-ellipsis" xbl:inherits="selected"
+                     class="ac-ellipsis-after ac-url-text" hidden="true"/>
+          <xul:image anonid="type-image" class="ac-type-icon"/>
+        </xul:hbox>
+      </xul:vbox>
+    </content>
+    <implementation>
+      <constructor>
+        <![CDATA[
+            let ellipsis = "\u2026";
+            try {
+              ellipsis = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch).
+                getComplexValue("intl.ellipsis",
+                  Components.interfaces.nsIPrefLocalizedString).data;
+            } catch (ex) {
+              // Do nothing.. we already have a default
+            }
+
+            this._identityOverflowEllipsis = document.getAnonymousElementByAttribute(this, "anonid", "identity-overflow-ellipsis");
+            this._nameOverflowEllipsis = document.getAnonymousElementByAttribute(this, "anonid", "name-overflow-ellipsis");
+
+            this._identityOverflowEllipsis.value = ellipsis;
+            this._nameOverflowEllipsis.value = ellipsis;
+
+            this._typeImage = document.getAnonymousElementByAttribute(this, "anonid", "type-image");
+
+            this._identityBox = document.getAnonymousElementByAttribute(this, "anonid", "identity-box");
+            this._identity = document.getAnonymousElementByAttribute(this, "anonid", "identity");
+
+            this._nameBox = document.getAnonymousElementByAttribute(this, "anonid", "name-box");
+            this._name = document.getAnonymousElementByAttribute(this, "anonid", "name");
+            
+            this._picture = document.getAnonymousElementByAttribute(this, "anonid", "picture");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            var identity = this.obj;
+            return identity.accessibleLabel;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          var contact = this.obj;
+          
+          if (contact == null)
+            return;
+          
+          var identity = contact.identities[0];
+          
+          // I guess we should get the picture size from CSS or something?
+          this._picture.src = identity.pictureURL(32);
+          
+          // Emphasize the matching search terms for the description
+          this._setUpDescription(this._name, contact.name);
+          this._setUpDescription(this._identity, identity.value);
+
+          // Set up overflow on a timeout because the contents of the box
+          // might not have a width yet even though we just changed them
+          setTimeout(this._setUpOverflow, 0, this._nameBox, this._nameOverflowEllipsis);
+          setTimeout(this._setUpOverflow, 0, this._identityBox, this._identityOverflowEllipsis);
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="gloda-multi-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
+    <content orient="vertical">
+      <xul:description anonid="explanation"/>
+      <xul:hbox anonid="identity-holder" flex="1">
+      </xul:hbox>
+    </content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+            this._explanation = document.getAnonymousElementByAttribute(this, "anonid", "explanation");
+            this._identityHolder = document.getAnonymousElementByAttribute(this, "anonid", "identity-holder");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            return this._explanation.value;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="renderItem">
+        <parameter name="aObj"/>
+        <body>
+          var node = document.createElementNS(
+            "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
+            "richlistitem");
+          
+          node.obj = aObj;
+          node.setAttribute("type",
+                            "gloda-" + this.row.nounDef.name + "-chunk");
+          
+          this._identityHolder.appendChild(node);
+        </body>
+      </method>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          // clear out any lingering children
+          while (this._identityHolder.hasChildNodes())
+            this._identityHolder.removeChild(this._identityHolder.firstChild);
+          
+          var row = this.row;
+          if (row == null)
+            return;
+          
+          this._explanation.value = row.nounDef.name + "s " +
+            row.criteriaType + "ed " + row.criteria;
+          
+          // render anyone already in there
+          for each (let item in row.collection.items) {
+            this.renderItem(item);
+          }
+          // listen up, yo.
+          row.renderer = this;
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+
+</bindings>

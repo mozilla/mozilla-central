@@ -1,0 +1,6 @@
+<!ENTITY glodaIndexEverything.label "Index Everything">
+<!ENTITY glodaIndexAddressBook.label "Index Addressbook">
+<!ENTITY folderContextGlodaIndex.label "Gloda Index">
+<!ENTITY folderContextGlodaIndex.accesskey "x">
+<!ENTITY threadContextGlodaIndex.label "Gloda Index">
+<!ENTITY threadContextGlodaIndex.accesskey "x">
