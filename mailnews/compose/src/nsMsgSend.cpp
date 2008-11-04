@@ -3055,6 +3055,9 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
 
   AddDefaultCustomHeaders();
 
+  AddMailFollowupToHeader();
+  AddMailReplyToHeader();
+
   pStr = fields->GetPriority();
   if (pStr)
     mCompFields->SetPriority((char *) pStr);
@@ -3154,6 +3157,173 @@ nsMsgComposeAndSend::AddDefaultCustomHeaders() {
   return rv;
 }
 
+// Add Mail-Followup-To header
+// See bug #204339 and http://cr.yp.to/proto/replyto.html for details
+nsresult
+nsMsgComposeAndSend::AddMailFollowupToHeader() {
+  nsresult rv;
+
+  // Get OtherRandomHeaders...
+  nsDependentCString customHeaders(mCompFields->GetOtherRandomHeaders());
+  // ...and look for MFT-Header.  Stop here if MFT is already set.
+  NS_NAMED_LITERAL_CSTRING(mftHeaderLabel, "Mail-Followup-To: ");
+  if ((StringHead(customHeaders, mftHeaderLabel.Length()) == mftHeaderLabel) ||
+      (customHeaders.Find(NS_LITERAL_CSTRING("\r\n") + mftHeaderLabel) != -1))
+    return NS_OK;
+
+  // Get list of subscribed mailing lists
+  nsCAutoString mailing_lists;
+  rv = mUserIdentity->GetCharAttribute("subscribed_mailing_lists", mailing_lists);
+  // Stop here if this list is missing or empty
+  if (NS_FAILED(rv) || mailing_lists.IsEmpty())
+    return NS_OK;
+
+  // Get a list of all recipients excluding bcc
+  nsDependentCString to(mCompFields->GetTo());
+  nsDependentCString cc(mCompFields->GetCc());
+  nsCAutoString recipients;
+
+  if (to.IsEmpty() && cc.IsEmpty())
+    // We have bcc recipients only, so we don't add the Mail-Followup-To header
+    return NS_OK;
+
+  if (!to.IsEmpty() && cc.IsEmpty())
+    recipients = to;
+  else if (to.IsEmpty() && !cc.IsEmpty())
+    recipients = cc;
+  else
+  {
+    recipients.Assign(to);
+    recipients.AppendLiteral(", ");
+    recipients.Append(cc);
+  }
+
+  // Create nsIMsgHeaderParser object
+  nsCOMPtr<nsIMsgHeaderParser> headerParser =
+    do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Remove duplicate addresses in recipients
+  nsCAutoString recipients_no_dups;
+  rv = headerParser->RemoveDuplicateAddresses(recipients.get(),
+    nsnull, PR_FALSE, getter_Copies(recipients_no_dups));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Remove subscribed mailing lists from recipients...
+  nsCAutoString recipients_without_mailing_lists;
+  rv = headerParser->RemoveDuplicateAddresses(recipients_no_dups.get(),
+    mailing_lists.get(), PR_FALSE, getter_Copies(recipients_without_mailing_lists));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // ... If the result is equal to the input, we don't write to a subscribed
+  // mailing list and therefore we don't add Mail-Followup-To
+  if (recipients_no_dups == recipients_without_mailing_lists)
+    return NS_OK;
+
+  // Set Mail-Followup-To
+  char * mimeHeader = nsMsgI18NEncodeMimePartIIStr(recipients.get(), PR_TRUE,
+      mCompFields->GetCharacterSet(), mftHeaderLabel.Length(), PR_TRUE);
+  if (!mimeHeader)
+    return NS_ERROR_FAILURE;
+
+  customHeaders.Append(mftHeaderLabel);
+  customHeaders.Append(mimeHeader);
+  customHeaders.AppendLiteral("\r\n");
+  mCompFields->SetOtherRandomHeaders(customHeaders.get());
+  PR_Free(mimeHeader);
+  return NS_OK;
+}
+
+// Add Mail-Reply-To header
+// See bug #204339 and http://cr.yp.to/proto/replyto.html for details
+nsresult
+nsMsgComposeAndSend::AddMailReplyToHeader() {
+  nsresult rv;
+
+  // Get OtherRandomHeaders...
+  nsDependentCString customHeaders(mCompFields->GetOtherRandomHeaders());
+  // ...and look for MRT-Header.  Stop here if MRT is already set.
+  NS_NAMED_LITERAL_CSTRING(mrtHeaderLabel, "Mail-Reply-To: ");
+  if ((StringHead(customHeaders, mrtHeaderLabel.Length()) == mrtHeaderLabel) ||
+      (customHeaders.Find(NS_LITERAL_CSTRING("\r\n") + mrtHeaderLabel) != -1))
+    return NS_OK;
+
+  // Get list of reply-to mangling mailing lists
+  nsCAutoString mailing_lists;
+  rv = mUserIdentity->GetCharAttribute("replyto_mangling_mailing_lists", mailing_lists);
+  // Stop here if this list is missing or empty
+  if (NS_FAILED(rv) || mailing_lists.IsEmpty())
+    return NS_OK;
+
+  // MRT will be set if the recipients of the message contains at least one
+  // of the addresses in mailing_lists or if mailing_lists has '*' as first
+  // character.  The latter case gives the user an easy way to always set
+  // the MRT header.  Notice that this behaviour wouldn't make sense for MFT
+  // in AddMailFollowupToHeader() above.
+
+  if (mailing_lists[0] != '*') {
+    // Get a list of all recipients excluding bcc
+    nsDependentCString to(mCompFields->GetTo());
+    nsDependentCString cc(mCompFields->GetCc());
+    nsCAutoString recipients;
+
+    if (to.IsEmpty() && cc.IsEmpty())
+      // We have bcc recipients only, so we don't add the Mail-Reply-To header
+      return NS_OK;
+
+    if (!to.IsEmpty() && cc.IsEmpty())
+      recipients = to;
+    else if (to.IsEmpty() && !cc.IsEmpty())
+      recipients = cc;
+    else
+    {
+      recipients.Assign(to);
+      recipients.AppendLiteral(", ");
+      recipients.Append(cc);
+    }
+
+    // Create nsIMsgHeaderParser object
+    nsCOMPtr<nsIMsgHeaderParser> headerParser =
+      do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Remove duplicate addresses in recipients
+    nsCAutoString recipients_no_dups;
+    rv = headerParser->RemoveDuplicateAddresses(recipients.get(),
+      nsnull, PR_FALSE, getter_Copies(recipients_no_dups));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Remove reply-to mangling mailing lists from recipients...
+    nsCAutoString recipients_without_mailing_lists;
+    rv = headerParser->RemoveDuplicateAddresses(recipients_no_dups.get(),
+      mailing_lists.get(), PR_FALSE, getter_Copies(recipients_without_mailing_lists));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // ... If the result is equal to the input, none of the recipients
+    // occure in the MRT addresses and therefore we stop here.
+    if (recipients_no_dups == recipients_without_mailing_lists)
+      return NS_OK;
+  }
+
+  // Set Mail-Reply-To
+  nsCAutoString replyTo, mailReplyTo;
+  replyTo = mCompFields->GetReplyTo();
+  if (replyTo.IsEmpty())
+    mailReplyTo = mCompFields->GetFrom();
+  else
+    mailReplyTo = replyTo;
+  char * mimeHeader = nsMsgI18NEncodeMimePartIIStr(mailReplyTo.get(), PR_TRUE,
+    mCompFields->GetCharacterSet(), mrtHeaderLabel.Length(), PR_TRUE);
+  if (!mimeHeader)
+    return NS_ERROR_FAILURE;
+
+  customHeaders.Append(mrtHeaderLabel);
+  customHeaders.Append(mimeHeader);
+  customHeaders.AppendLiteral("\r\n");
+  mCompFields->SetOtherRandomHeaders(customHeaders.get());
+  PR_Free(mimeHeader);
+  return NS_OK;
+}
 
 nsresult
 nsMsgComposeAndSend::SnarfAndCopyBody(const char  *attachment1_body,

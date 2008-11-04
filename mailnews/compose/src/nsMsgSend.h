@@ -419,6 +419,10 @@ private:
   // add default custom headers to the message
   nsresult AddDefaultCustomHeaders();
 
+  // add Mail-Followup-To and Mail-Reply-To header
+  nsresult AddMailFollowupToHeader();
+  nsresult AddMailReplyToHeader();
+
   nsCOMPtr<nsIMsgSendReport>  mSendReport;
   nsCString                   mSmtpPassword;            // store the smtp Password use during a send
 };
