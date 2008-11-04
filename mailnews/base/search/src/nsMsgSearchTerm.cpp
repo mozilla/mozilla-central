@@ -125,15 +125,23 @@ nsresult NS_MsgGetAttributeFromString(const char *string, PRInt16 *attrib)
   NS_ENSURE_ARG_POINTER(attrib);
 
   PRBool found = PR_FALSE;
-  for (int idxAttrib = 0; idxAttrib < (int)(sizeof(SearchAttribEntryTable) / sizeof(nsMsgSearchAttribEntry)); idxAttrib++)
+  // custom headers have a leading quote
+  if (*string != '"')
   {
-    if (!PL_strcasecmp(string, SearchAttribEntryTable[idxAttrib].attribName))
+    for (int idxAttrib = 0; idxAttrib < (int)(sizeof(SearchAttribEntryTable) /
+         sizeof(nsMsgSearchAttribEntry)); idxAttrib++)
     {
-      found = PR_TRUE;
-      *attrib = SearchAttribEntryTable[idxAttrib].attrib;
-      break;
+      if (!PL_strcasecmp(string, SearchAttribEntryTable[idxAttrib].attribName))
+      {
+        found = PR_TRUE;
+        *attrib = SearchAttribEntryTable[idxAttrib].attrib;
+        break;
+      }
     }
   }
+  else // remove the leading quote
+    string++;
+
   if (!found)
   {
     nsresult rv;
@@ -637,16 +645,18 @@ nsMsgSearchTerm::ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib)
     while (isspace(*inStream))
         inStream++;
 
-    // if we are dealing with an arbitrary header, it may be quoted....
+    // if we are dealing with an arbitrary header, it will be quoted....
+    // it seems like a kludge, but to distinguish arbitrary headers from
+    // standard headers with the same name, like "Date", we'll use the
+    // presence of the quote to recognize arbitrary headers. We leave the
+    // leading quote as a flag, but remove the trailing quote.
     PRBool quoteVal = PR_FALSE;
     if (*inStream == '"')
-    {
         quoteVal = PR_TRUE;
-        inStream++;
-    }
 
-    // arbitrary headers are quoted
-    char *separator = strchr(inStream, quoteVal ? '"' : ',');
+    // arbitrary headers are quoted. Skip first character, which will be the
+    // first quote for arbitrary headers
+    char *separator = strchr(inStream + 1, quoteVal ? '"' : ',');
 
     if (separator)
         *separator = '\0';
@@ -659,7 +669,7 @@ nsMsgSearchTerm::ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib)
 
     if (*attrib > nsMsgSearchAttrib::OtherHeader && *attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)  // if we are dealing with an arbitrary header....
     {
-      m_arbitraryHeader = inStream;
+      m_arbitraryHeader = inStream + 1; // remove the leading quote
       ToLowerCaseExceptSpecials(m_arbitraryHeader);
     }
     return rv;
