@@ -12,6 +12,7 @@
 #ifdef MOZ_PSM
 % locale messenger-smime @AB_CD@ %locale/@AB_CD@/messenger-smime/
 #endif
+% locale messenger-newsblog @AB_CD@ %locale/@AB_CD@/messenger-newsblog/
 % locale mozldap @AB_CD@ %locale/@AB_CD@/mozldap/
 % locale navigator @AB_CD@ %locale/@AB_CD@/navigator/
 % locale navigator-platform @AB_CD@ %locale/@AB_CD@/navigator-platform/
@@ -314,6 +315,11 @@
   locale/@AB_CD@/messenger-smime/msgReadSMIMEOverlay.properties             (%chrome/mailnews/smime/msgReadSMIMEOverlay.properties)
   locale/@AB_CD@/messenger-smime/msgSecurityInfo.properties                 (%chrome/mailnews/smime/msgSecurityInfo.properties)
 #endif
+  locale/@AB_CD@/messenger-newsblog/newsblog.properties                     (%chrome/mailnews/newsblog/newsblog.properties)
+  locale/@AB_CD@/messenger-newsblog/feed-subscriptions.dtd                  (%chrome/mailnews/newsblog/feed-subscriptions.dtd)
+  locale/@AB_CD@/messenger-newsblog/feed-properties.dtd                     (%chrome/mailnews/newsblog/feed-properties.dtd)
+  locale/@AB_CD@/messenger-newsblog/am-newsblog.properties                  (%chrome/mailnews/newsblog/am-newsblog.properties)
+  locale/@AB_CD@/messenger-newsblog/am-newsblog.dtd                         (%chrome/mailnews/newsblog/am-newsblog.dtd)
   locale/@AB_CD@/mozldap/ldap.properties                                    (%chrome/mozldap/ldap.properties)
   locale/@AB_CD@/navigator/linkToolbar.dtd                                  (%chrome/browser/linkToolbar.dtd)
   locale/@AB_CD@/navigator/mailNavigatorOverlay.dtd                         (%chrome/browser/mailNavigatorOverlay.dtd)

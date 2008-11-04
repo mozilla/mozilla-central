@@ -301,6 +301,7 @@ typedef enum {
 #define CLS_EML "SeaMonkeyEML"
 #define CLS_MAILTOURL "SeaMonkeyCOMPOSE"
 #define CLS_NEWSURL "SeaMonkeyNEWS"
+#define CLS_FEEDURL "SeaMonkeyFEED"
 #define SMI "SOFTWARE\\Clients\\StartMenuInternet\\"
 #define MAILCLIENTS "SOFTWARE\\Clients\\Mail\\"
 #define NEWSCLIENTS "SOFTWARE\\Clients\\News\\"
@@ -492,6 +493,14 @@ static SETTING gBrowserSettings[] = {
      "",
      "\"%APPPATH%\" -mail",
      APP_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
+};
+
+ static SETTING gFeedSettings[] = {
+   // Protocol Handler Class - for Vista and above
+   { MAKE_KEY_NAME1(CLS_FEEDURL, SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION },
+
+   // Protocol Handlers
+   { MAKE_KEY_NAME1("feed", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION },
 };
 
 /* helper routine. Iterate over the passed in settings object,
@@ -701,6 +710,9 @@ nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRB
     *aIsDefaultClient &= TestForDefault(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING));
   if (aApps & nsIShellService::NEWS)
     *aIsDefaultClient &= TestForDefault(gNewsSettings, sizeof(gNewsSettings)/sizeof(SETTING));
+  // RSS / feed protocol shell integration is to be completed in bug 453797.
+  // if (aApps & nsIShellService::RSS)
+  //  *aIsDefaultClient &= TestForDefault(gFeedSettings, sizeof(gFeedSettings)/sizeof(SETTING));
 #endif
 
   // If this is the first application window, maintain internal state that we've

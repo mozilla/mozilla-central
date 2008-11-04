@@ -868,9 +868,13 @@ function GetInboxFolder(server)
 
 function GetMessagesForInboxOnServer(server)
 {
-  dump ("GetMessagesForInboxOnServer uri = " + server.serverURI + "\n");
   var inboxFolder = GetInboxFolder(server);
-  if (!inboxFolder) return;
+
+  // If the server doesn't support an inbox it could be an RSS server or
+  // some other server type, just use the root folder and the server
+  // implementation can figure out what to do.
+  if (!inboxFolder)
+    inboxFolder = server.rootFolder;
 
   GetNewMessages([inboxFolder], server);
 }
@@ -1211,8 +1215,12 @@ function getDestinationFolder(preselectedFolder, server)
 
 function MsgSubscribe()
 {
-    var preselectedFolder = GetFirstSelectedMsgFolder();
-    Subscribe(preselectedFolder);
+  var preselectedFolder = GetFirstSelectedMsgFolder();
+
+  if (preselectedFolder && preselectedFolder.server.type == "rss")
+    openSubscriptionsDialog(preselectedFolder); // open feed subscription dialog
+  else
+    Subscribe(preselectedFolder); // open imap/nntp subscription dialog
 }
 
 function ConfirmUnsubscribe(folder)
@@ -1887,6 +1895,12 @@ function MsgAddAllToAddressBook() {}
 function SpaceHit(event)
 {
   var contentWindow = window.top.content;
+  var rssiframe = contentWindow.document.getElementById('_mailrssiframe');
+
+  // If we are displaying an RSS article, we really want to scroll
+  // the nested iframe.
+  if (rssiframe)
+    contentWindow = rssiframe.contentWindow;
 
   if (event && event.shiftKey) {
     // if at the start of the message, go to the previous one

@@ -116,6 +116,7 @@ mailnews/extensions/mailviews/src/Makefile
 mailnews/extensions/mailviews/build/Makefile
 mailnews/extensions/mailviews/resources/Makefile
 mailnews/extensions/mailviews/resources/content/Makefile
+mailnews/extensions/newsblog/Makefile
 mailnews/extensions/offline-startup/Makefile
 mailnews/mapi/Makefile
 "

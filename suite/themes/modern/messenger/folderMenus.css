@@ -51,6 +51,11 @@
   list-style-image: url("chrome://messenger/skin/icons/folder-open.gif");
 }
 
+.folderMenuItem[ServerType="rss"],
+.folderMenuItem[ServerType="nntp"] {
+  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.gif");
+}
+
 /* ..... special folders ..... */
 
 .folderMenuItem[SpecialFolder="Inbox"] {
@@ -123,16 +128,14 @@
   list-style-image: url("chrome://messenger/skin/icons/server-local.gif");
 }
 
-/* ..... newsgroups ..... */
+.folderMenuItem[IsServer="true"][ServerType="nntp"] {
+  list-style-image: url("chrome://messenger/skin/icons/server-news.gif");
+}
 
 .folderMenuItem[IsServer="true"][ServerType="nntp"][IsSecure="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server-news-lock.gif");
 }
 
-.folderMenuItem[IsServer="true"][ServerType="nntp"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-news.gif");
-}
-
-.folderMenuItem[ServerType="nntp"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.gif");
+.folderMenuItem[IsServer="true"][ServerType="rss"] {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
 }

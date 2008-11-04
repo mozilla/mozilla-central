@@ -51,7 +51,8 @@
  
   <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
   <script type="application/x-javascript" src="chrome://messenger-newsblog/content/am-newsblog.js"/>
-    
+  <script type="application/x-javascript" src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
+
   <dialogheader title="&newsblogTitle.label;"/>
   
     <hbox align="center">
@@ -83,9 +84,13 @@
               prefstring="mail.server.%serverkey%.login_at_startup"/>
 
     <checkbox wsm_persist="true"
-              id="useQuickMode"
+              genericattr="true"
+              id="server.quickMode"
               label="&useQuickMode.label;"
-              accesskey="&useQuickMode.accesskey;"/>
+              accesskey="&useQuickMode.accesskey;"
+              preftype="bool"
+              prefattribute="value"
+              prefstring="mail.server.%serverkey%.quickMode"/>
 
     <checkbox wsm_persist="true" id="server.emptyTrashOnExit"
               label="&emptyTrashOnExit.label;"
@@ -97,7 +102,8 @@
 
     <hbox align="center">
       <spacer flex="1"/>
-      <button label="&manageSubscriptions.label;" oncommand="manageSubscriptions();"
+      <button label="&manageSubscriptions.label;"
+              oncommand="openSubscriptionsDialog(null, gIncomingServer);"
               accesskey="&manageSubscriptions.accesskey;"/>
     </hbox>
 </page>

@@ -4,6 +4,7 @@ classic.jar:
 % skin global classic/1.0 %skin/classic/global/
 % skin messenger classic/1.0 %skin/classic/messenger/
 % skin navigator classic/1.0 %skin/classic/navigator/
+% skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/
   skin/classic/communicator/tasksOverlay.css                            (communicator/tasksOverlay.css)
 #ifdef XP_MACOSX
   skin/classic/communicator/button.css                                  (communicator/mac/button.css)
@@ -291,6 +292,7 @@ classic.jar:
   skin/classic/messenger/smime/icons/hdrSignNotOk.gif                   (messenger/smime/icons/hdrSignNotOk.gif)
   skin/classic/messenger/smime/icons/hdrCryptoOk.gif                    (messenger/smime/icons/hdrCryptoOk.gif)
   skin/classic/messenger/smime/icons/hdrCryptoNotOk.gif                 (messenger/smime/icons/hdrCryptoNotOk.gif)
+  skin/classic/messenger-newsblog/feed-subscriptions.css                (messenger/newsblog/feed-subscriptions.css)
   skin/classic/navigator/navigator.css                                  (navigator/navigator.css)
   skin/classic/navigator/linkToolbar.css                                (navigator/linkToolbar.css)
   skin/classic/navigator/pageInfo.css                                   (navigator/pageInfo.css)

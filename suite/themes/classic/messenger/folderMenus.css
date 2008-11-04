@@ -52,6 +52,11 @@
 list-style-image: url("chrome://messenger/skin/icons/folder-open.png");
 }
 
+.folderMenuItem[ServerType="rss"],
+.folderMenuItem[ServerType="nntp"] {
+  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
+}
+
 /* ..... special folders ..... */
 
 .folderMenuItem[SpecialFolder="Inbox"] {
@@ -106,6 +111,8 @@ list-style-image: url("chrome://messenger/skin/icons/folder-open.png");
   list-style-image: url("chrome://messenger/skin/icons/folder-search.png");
 }
 
+/* ..... servers ..... */
+
 .folderMenuItem[IsServer="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
 }
@@ -114,31 +121,26 @@ list-style-image: url("chrome://messenger/skin/icons/folder-open.png");
   list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
 }
 
-/* IMAP folders */
 .folderMenuItem[IsServer="true"][ServerType="imap"][IsSecure="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server-remote-lock.png");
 }
 
-/* POP3 folders */
 .folderMenuItem[IsServer="true"][ServerType="pop3"][IsSecure="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server-remote-lock.png");
 }
 
-/* Local Servers */
 .folderMenuItem[IsServer="true"][ServerType="none"] {
   list-style-image: url("chrome://messenger/skin/icons/server-local.png");
-}
-
-/* News folders */
-.folderMenuItem[ServerType="nntp"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
-}
-
-.folderMenuItem[IsServer="true"][ServerType="nntp"][IsSecure="true"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-news-lock.png");
 }
 
 .folderMenuItem[IsServer="true"][ServerType="nntp"] {
   list-style-image: url("chrome://messenger/skin/icons/server-news.png");
 }
 
+.folderMenuItem[IsServer="true"][ServerType="nntp"][IsSecure="true"] {
+  list-style-image: url("chrome://messenger/skin/icons/server-news-lock.png");
+}
+
+.folderMenuItem[IsServer="true"][ServerType="rss"] {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
+}

@@ -53,7 +53,6 @@ classic.jar:
     skin/classic/messenger/messengercompose/format-buttons.png  (compose/format-buttons.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/
     skin/classic/messenger-newsblog/feed-subscriptions.css      (newsblog/feed-subscriptions.css)
-    skin/classic/messenger-newsblog/newsBlogOverlay.css         (newsblog/newsBlogOverlay.css)
     skin/classic/messenger-newsblog/icons/rss-feed.png          (newsblog/rss-feed.png)
     skin/classic/messenger-newsblog/icons/server-rss.png        (newsblog/server-rss.png)
 *   skin/classic/messenger/preferences/preferences.css          (preferences/preferences.css)

@@ -501,6 +501,9 @@ bin\components\msgMapi.dll
 bin\components\mapihook.xpt
 bin\components\mdn-service.js
 bin\components\offlineStartup.js
+bin\chrome\newsblog.jar
+bin\chrome\newsblog.manifest
+bin\components\newsblog.js
 
 [chatzilla]
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\components\chatzilla-service.js

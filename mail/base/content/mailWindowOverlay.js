@@ -1217,8 +1217,7 @@ function MsgSubscribe()
 {
   var preselectedFolder = GetFirstSelectedMsgFolder();
 
-  var server = (preselectedFolder) ? preselectedFolder.server : null;
-  if (server && server.type == "rss")
+  if (preselectedFolder && preselectedFolder.server.type == "rss")
     openSubscriptionsDialog(preselectedFolder); // open feed subscription dialog
   else
     Subscribe(preselectedFolder); // open imap/nntp subscription dialog

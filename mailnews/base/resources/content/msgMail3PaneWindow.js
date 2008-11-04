@@ -730,8 +730,21 @@ function OnLoadMessenger()
   // argument[2] --> optional email address; // Will come from aim; needs to show msgs from buddy's email address.
   if ("arguments" in window)
   {
-    gStartFolderUri = (window.arguments.length > 0) ? window.arguments[0]
-                                                    : null;
+    // filter our any feed urls that came in as arguments to the new window...
+    if (window.arguments.length && /^feed:/i.test(window.arguments[0]))
+    {
+      var feedHandler =
+        Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
+                  .getService(Components.interfaces.nsINewsBlogFeedDownloader);
+      if (feedHandler)
+        feedHandler.subscribeToFeed(window.arguments[0], null, msgWindow);
+      gStartFolderUri = null;
+    }
+    else
+    {
+      gStartFolderUri = (window.arguments.length > 0) ? window.arguments[0]
+                                                      : null;
+    }
     gStartMsgKey = (window.arguments.length > 1) ? window.arguments[1]
                                                  : nsMsgKey_None;
     gSearchEmailAddress = (window.arguments.length > 2) ? window.arguments[2]

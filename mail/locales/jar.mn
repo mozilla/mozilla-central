@@ -132,7 +132,6 @@
 % locale messenger-mapi @AB_CD@ %locale/@AB_CD@/messenger-mapi/
   locale/@AB_CD@/messenger-mapi/mapi.properties                         (%chrome/messenger-mapi/mapi.properties)
 % locale messenger-newsblog @AB_CD@ %locale/@AB_CD@/messenger-newsblog/
-  locale/@AB_CD@/messenger-newsblog/newsblog.dtd                        (%chrome/messenger-newsblog/newsblog.dtd)
   locale/@AB_CD@/messenger-newsblog/newsblog.properties                 (%chrome/messenger-newsblog/newsblog.properties)
   locale/@AB_CD@/messenger-newsblog/feed-subscriptions.dtd              (%chrome/messenger-newsblog/feed-subscriptions.dtd)
   locale/@AB_CD@/messenger-newsblog/feed-properties.dtd                 (%chrome/messenger-newsblog/feed-properties.dtd)

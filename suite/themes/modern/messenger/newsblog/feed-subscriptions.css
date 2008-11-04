@@ -36,26 +36,32 @@
  *
  * ***** END LICENSE BLOCK ****** */
 
-/* ::::: Folder Pane icons :::::: */
-.tabmail-tab[type="folder"][ServerType="rss"] .tab-icon-image ,
-treechildren::-moz-tree-image(folderNameCol, serverType-rss),
-.folderMenuItem[ServerType="rss"] {
-  list-style-image: url("chrome://messenger/skin/icons/message-news.png");
+/* ::::: Feed Subscription UI icons :::::: */
+
+#contentPane {
+  padding: 14px;
 }
 
-treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-rss),
-.folderMenuItem[IsServer="true"][ServerType="rss"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-newsblog.png");
+#subscriptionChildren::-moz-tree-image(folderNameCol) {
+  margin-right: 2px;
+  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.gif");
 }
 
-.tabmail-tab[type="folder"][SpecialFolder="Trash"][ServerType="rss"] .tab-icon-image ,
-treechildren::-moz-tree-image(folderNameCol, specialFolder-Trash),
-.folderMenuItem[SpecialFolder="Trash"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
+#subscriptionChildren::-moz-tree-image(folderNameCol, container) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-closed.gif");
 }
 
-/* ..... Saved Search Folder, Hack to force the saved search artwork to show up for virtual folders in RSS accounts ..... */
-.tabmail-tab[type="folder"][SpecialFolder="Virtual"][ServerType="rss"] .tab-icon-image ,
-treechildren::-moz-tree-image(folderNameCol, serverType-rss, specialFolder-Virtual) {
-  list-style-image: url("chrome://messenger-newsblog/skin/icons/folder-search-rss.png");
+#subscriptionChildren::-moz-tree-image(folderNameCol, container, open) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-open.gif");
+}
+
+#rssFeedInfoBox {
+  border: 1px solid #2D3B49;
+  -moz-border-radius: 0px;
+  margin: 4px;
+  padding: 0px;
+}
+
+#backgroundBox {
+  background-color: #BBC6D1;
 }

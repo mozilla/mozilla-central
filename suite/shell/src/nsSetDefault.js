@@ -40,6 +40,8 @@
  * This component handles the startup command line arguments of the form:
  *   -setDefaultBrowser
  *   -setDefaultMail
+ *   -setDefaultNews
+ *   -setDefaultFeed
  */
 
 const nsIShellService = Components.interfaces.nsIShellService;
@@ -66,11 +68,17 @@ nsSetDefault.prototype = {
                             .getService(nsIShellService);
       shell.setDefaultClient(true, true, nsIShellService.NEWS);
     }
+    else if (aCmdline.handleFlag("setDefaultFeed", false)) {
+      var shell = Components.classes["@mozilla.org/browser/shell-service;1"]
+                            .getService(nsIShellService);
+      shell.setDefaultClient(true, true, nsIShellService.RSS);
+    }
   },
 
   helpInfo: "  -setDefaultBrowser   Set this app as the default browser client.\n" +
             "  -setDefaultMail      Set this app as the default mail client.\n" +
-            "  -setDefaultNews      Set this app as the default newsreader.\n",
+            "  -setDefaultNews      Set this app as the default newsreader.\n" +
+            "  -setDefaultFeed      Set this app as the default feedreader.\n",
 
   classDescription: "Set Default Suite Cmdline Handler",
   contractID: "@mozilla.org/suite/default-browser-clh;1",

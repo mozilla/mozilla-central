@@ -83,7 +83,6 @@ classic.jar:
      skin/classic/messenger/messengercompose/small-button-pressed.png         (compose/small-button-pressed.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/
      skin/classic/messenger-newsblog/feed-subscriptions.css         (newsblog/feed-subscriptions.css)
-     skin/classic/messenger-newsblog/newsBlogOverlay.css            (newsblog/newsBlogOverlay.css)
      skin/classic/messenger-newsblog/icons/folder-search-rss.png    (newsblog/folder-search-rss.png)
      skin/classic/messenger/preferences/preferences.css             (preferences/preferences.css)
      skin/classic/messenger/preferences/mail-options.png            (preferences/mail-options.png)

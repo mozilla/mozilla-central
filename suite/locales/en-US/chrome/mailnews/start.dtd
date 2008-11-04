@@ -45,6 +45,7 @@ client, supporting advanced junk mail detection and other useful features.">
 <!ENTITY features.title "Features">
 <!ENTITY feat_multiacc.label "Support for multiple accounts">
 <!ENTITY feat_junk.label "Junk Mail detection">
+<!ENTITY feat_rss.label "RSS Reader">
 <!ENTITY feat_filters.label "Message Filters">
 <!ENTITY feat_htmlmsg.label "HTML message support">
 <!ENTITY feat_abook.label "Address Book">

@@ -290,11 +290,16 @@ function fillFolderPaneContextMenu()
   var isServer = GetFolderAttribute(folderTree, folderResource, "IsServer") == 'true';
   var serverType = GetFolderAttribute(folderTree, folderResource, "ServerType");
   var specialFolder = GetFolderAttribute(folderTree, folderResource, "SpecialFolder");
-  var canSubscribeToFolder = (serverType == "nntp") || (serverType == "imap");
+  var canSubscribeToFolder = (serverType == "nntp") ||
+                             (serverType == "imap") ||
+                             (serverType == "rss");
   var isNewsgroup = !isServer && serverType == 'nntp';
   var isMailFolder = !isServer && serverType != 'nntp';
   var isVirtualFolder = (specialFolder == "Virtual");
-  var canGetMessages =  (isServer && (serverType != "nntp") && (serverType !="none")) || isNewsgroup;
+  var canGetMessages =
+    (isServer && (serverType != "nntp") && (serverType != "none")) ||
+    isNewsgroup ||
+    ((serverType == "rss") && (specialFolder != 'Trash'));
 
   if (!isServer)
   {
@@ -308,6 +313,14 @@ function fillFolderPaneContextMenu()
     ShowMenuItem("folderPaneContext-settings", true);
     EnableMenuItem("folderPaneContext-settings", true);
   }
+
+  if ((numSelected <= 1) && canGetMessages)
+    if (isServer)
+      SetMenuItemLabel("folderPaneContext-getMessages",
+                       gMessengerBundle.getString("getMessagesFor"));
+    else
+      SetMenuItemLabel("folderPaneContext-getMessages",
+                       gMessengerBundle.getString("getMessages"));
 
   ShowMenuItem("folderPaneContext-getMessages", (numSelected <= 1) && canGetMessages);
   EnableMenuItem("folderPaneContext-getMessages", true);

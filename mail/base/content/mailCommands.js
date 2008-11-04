@@ -255,10 +255,8 @@ function ComposeMessage(type, format, folder, messageArray)
 
       var hdr = messenger.msgHdrFromURI(messageUri);
       identity = getIdentityForHeader(hdr, type);
-      var messageID = hdr.messageId;
-      var messageIDScheme = messageID ? messageID.split(":")[0] : "";
-      if (messageIDScheme && (messageIDScheme == 'http' || messageIDScheme == 'https') &&  "openComposeWindowForRSSArticle" in this)
-        openComposeWindowForRSSArticle(messageID, hdr, type);
+      if (/^https?:/.test(hdr.messageId))
+        openComposeWindowForRSSArticle(hdr, type);
       else if (type == msgComposeType.Reply ||
                type == msgComposeType.ReplyAll ||
                type == msgComposeType.ReplyToList ||

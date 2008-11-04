@@ -242,16 +242,18 @@ function ComposeMessage(type, format, folder, messageArray)
         }
       }
 
-      if (type == msgComposeType.Reply ||
-        type == msgComposeType.ReplyAll ||
-        type == msgComposeType.ReplyToList ||
-        type == msgComposeType.ForwardInline ||
-        type == msgComposeType.ReplyToGroup ||
-        type == msgComposeType.ReplyToSender ||
-        type == msgComposeType.ReplyToSenderAndGroup ||
-        type == msgComposeType.Template ||
-        type == msgComposeType.Redirect ||
-        type == msgComposeType.Draft)
+      if (/^https?:/.test(hdr.messageId))
+        openComposeWindowForRSSArticle(hdr, type);
+      else if (type == msgComposeType.Reply ||
+               type == msgComposeType.ReplyAll ||
+               type == msgComposeType.ReplyToList ||
+               type == msgComposeType.ForwardInline ||
+               type == msgComposeType.ReplyToGroup ||
+               type == msgComposeType.ReplyToSender ||
+               type == msgComposeType.ReplyToSenderAndGroup ||
+               type == msgComposeType.Template ||
+               type == msgComposeType.Redirect ||
+               type == msgComposeType.Draft)
       {
         msgComposeService.OpenComposeWindow(null, hdr, messageUri, type, format, identity, msgWindow);
         // Limit the number of new compose windows to 8. Why 8 ? I like that number :-)

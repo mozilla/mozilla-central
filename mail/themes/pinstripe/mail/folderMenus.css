@@ -47,6 +47,16 @@
   list-style-image: url("chrome://messenger/skin/icons/folder-closed.png");
 }
 
+/* News folders */
+.folderMenuItem[ServerType="nntp"] {
+  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
+}
+
+/* Feed folders */
+.folderMenuItem[ServerType="rss"] {
+  list-style-image: url("chrome://messenger/skin/icons/message-news.png");
+}
+
 /* ..... special folders ..... */
 
 .folderMenuItem[SpecialFolder="Inbox"] {
@@ -56,7 +66,6 @@
 .folderMenuItem[SpecialFolder="Sent"] {
   list-style-image: url("chrome://messenger/skin/icons/folder-sent.png");
 }
-
 
 .folderMenuItem[SpecialFolder="Drafts"] {
   list-style-image: url("chrome://messenger/skin/icons/folder-draft.png");
@@ -74,6 +83,8 @@
   list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
 }
 
+/* ..... servers ..... */
+
 .folderMenuItem[IsServer="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
 }
@@ -82,12 +93,12 @@
   list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
 }
 
-/* IMAP folders */
+/* IMAP servers */
 .folderMenuItem[IsServer="true"][ServerType="imap"][IsSecure="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server-remote-lock.png");
 }
 
-/* POP3 folders */
+/* POP3 servers */
 .folderMenuItem[IsServer="true"][ServerType="pop3"][IsSecure="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server-remote-lock.png");
 }
@@ -97,16 +108,16 @@
   list-style-image: url("chrome://messenger/skin/icons/server-local.png");
 }
 
-/* News folders */
-.folderMenuItem[ServerType="nntp"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
+/* News servers */
+.folderMenuItem[IsServer="true"][ServerType="nntp"] {
+  list-style-image: url("chrome://messenger/skin/icons/server-news.png");
 }
 
 .folderMenuItem[IsServer="true"][ServerType="nntp"][IsSecure="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server-news-lock.png");
 }
 
-.folderMenuItem[IsServer="true"][ServerType="nntp"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-news.png");
+/* Feed servers */
+.folderMenuItem[IsServer="true"][ServerType="rss"] {
+  list-style-image: url("chrome://messenger/skin/icons/server-newsblog.png");
 }
-

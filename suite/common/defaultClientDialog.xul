@@ -59,10 +59,11 @@
   <script type="application/x-javascript" src="chrome://communicator/content/defaultClientDialog.js"/>
   
   <description>&defaultClient.intro;</description>
-  <listbox rows="3" id="defaultList">
+  <listbox rows="4" id="defaultList">
     <listitem value="BROWSER" type="checkbox" label="&browser.label;"/>
     <listitem value="MAIL" type="checkbox" label="&email.label;"/>
     <listitem value="NEWS" type="checkbox" label="&newsgroups.label;"/>
+    <listitem value="RSS" type="checkbox" label="&rss.label;"/>
   </listbox>
 
   <separator class="thin"/>

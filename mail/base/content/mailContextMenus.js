@@ -507,10 +507,15 @@ function fillFolderPaneContextMenu()
   var isServer = folder.isServer;
   var serverType = folder.server.type;
   var specialFolder = getSpecialFolderString(folder);
-  var canSubscribeToFolder = (serverType == "nntp") || (serverType == "imap");
+  var canSubscribeToFolder = (serverType == "nntp") ||
+                             (serverType == "imap") ||
+                             (serverType == "rss");
   var isNewsgroup = !isServer && serverType == 'nntp';
   var isMailFolder = !isServer && serverType != 'nntp';
-  var canGetMessages = (isServer && serverType != "none") || isNewsgroup || (serverType == "rss");
+  var canGetMessages =
+    (isServer && (serverType != "nntp") && (serverType != "none")) ||
+    isNewsgroup ||
+    ((serverType == "rss") && (specialFolder != 'Trash'));
 
   if (!isServer)
   {
@@ -545,11 +550,7 @@ function fillFolderPaneContextMenu()
     EnableMenuItem("folderPaneContext-sendUnsentMessages", IsSendUnsentMsgsEnabled(folder));
 
   ShowMenuItem("folderPaneContext-subscribe", (numSelected <= 1) && canSubscribeToFolder && !isVirtualFolder);
-  EnableMenuItem("folderPaneContext-subscribe", !isVirtualFolder);
-
-  // XXX: Hack for RSS servers...
-  ShowMenuItem("folderPaneContext-rssSubscribe", (numSelected <= 1) && (serverType == "rss"));
-  EnableMenuItem("folderPaneContext-rssSubscribe", true);
+  EnableMenuItem("folderPaneContext-subscribe", true);
 
   // News folder context menu =============================================
   ShowMenuItem("folderPaneContext-newsUnsubscribe", (numSelected <= 1) && canSubscribeToFolder && isNewsgroup);

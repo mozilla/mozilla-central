@@ -36,37 +36,32 @@
  *
  * ***** END LICENSE BLOCK ****** */
 
-/* ::::: Folder Pane icons :::::: */
-.tabmail-tab[type="folder"][ServerType="rss"] .tab-icon-image ,
-treechildren::-moz-tree-image(folderNameCol, serverType-rss),
-.folderMenuItem[ServerType="rss"] {
-  list-style-image: url("chrome://messenger-newsblog/skin/icons/rss-feed.png");
-  -moz-image-region: rect(0 16px 16px 0);
+/* ::::: Feed Subscription UI icons :::::: */
+
+#contentPane {
+  padding: 14px;
 }
 
-treechildren::-moz-tree-image(folderNameCol, serverType-rss, newMessages-true) {
-  -moz-image-region: rect(16px 16px 32px 0);
+#subscriptionChildren::-moz-tree-image(folderNameCol) {
+  margin-right: 2px;
+  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
 }
 
-treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-rss),
-.folderMenuItem[IsServer="true"][ServerType="rss"] {
-  list-style-image: url("chrome://messenger-newsblog/skin/icons/server-rss.png");
+#subscriptionChildren::-moz-tree-image(folderNameCol, container) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-closed.png");
 }
 
-.tabmail-tab[type="folder"][SpecialFolder="Trash"][ServerType="rss"] .tab-icon-image ,
-treechildren::-moz-tree-image(folderNameCol, specialFolder-Trash),
-.folderMenuItem[SpecialFolder="Trash"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder.png");
-  -moz-image-region: rect(0 144px 16px 128px);
+#subscriptionChildren::-moz-tree-image(folderNameCol, container, open) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-open.png");
 }
 
-/* ..... Saved Search Folder, Hack to force the saved search artwork to show up for virtual folders in RSS accounts ..... */
-.tabmail-tab[type="folder"][SpecialFolder="Virtual"][ServerType="rss"] .tab-icon-image ,
-treechildren::-moz-tree-image(folderNameCol, serverType-rss, specialFolder-Virtual) {
-  list-style-image: url("chrome://messenger/skin/icons/folder.png");
-  -moz-image-region: rect(0 176px 16px 160px);
+#rssFeedInfoBox {
+  border: 1px solid ThreeDShadow;
+  -moz-border-radius: 0px;
+  margin: 4px;
+  padding: 0px;
 }
 
-treechildren::-moz-tree-image(folderNameCol, serverType-rss, specialFolder-Virtual, newMessages-true) {
-  -moz-image-region: rect(16px 176px 32px 160px);
+#backgroundBox {
+  background-color: ThreeDLightShadow;
 }

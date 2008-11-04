@@ -67,6 +67,7 @@ MOZ_NONLOCALIZED_PKG_LIST = \
 	xpcom \
 	browser \
 	mail \
+	newsblog \
 	reporter \
 	$(NULL)
 

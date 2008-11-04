@@ -52,6 +52,23 @@
   -moz-image-region: rect(0 32px 16px 16px);
 }
 
+/* Newsgroup */
+.folderMenuItem[ServerType="nntp"] {
+  -moz-image-region: rect(0 160px 16px 144px);
+}
+
+/* Feed */
+.folderMenuItem[ServerType="rss"] {
+  list-style-image: url("chrome://messenger-newsblog/skin/icons/rss-feed.png");
+  -moz-image-region: rect(0 16px 16px 0);
+}
+
+/* Resets list-style-image for Feed Trash and Virtual folders */
+.folderMenuItem[ServerType="rss"][SpecialFolder="Trash"],
+.folderMenuItem[ServerType="rss"][SpecialFolder="Virtual"] {
+  list-style-image: url("chrome://messenger/skin/icons/folder.png");
+}
+
 /* ..... special folders ..... */
 
 .folderMenuItem[SpecialFolder="Inbox"] {
@@ -86,6 +103,8 @@
   -moz-image-region: rect(0 176px 16px 160px);
 }
 
+/* ..... servers ..... */
+
 .folderMenuItem[IsServer="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server.png");
   -moz-image-region: rect(0 16px 16px 0);
@@ -110,7 +129,7 @@
   -moz-image-region: rect(0 80px 16px 64px) !important;
 }
 
-/* Newsgroup */
-.folderMenuItem[ServerType="nntp"] {
-  -moz-image-region: rect(0 160px 16px 144px);
+/* Feed server */
+.folderMenuItem[IsServer="true"][ServerType="rss"] {
+  list-style-image: url("chrome://messenger-newsblog/skin/icons/server-rss.png");
 }

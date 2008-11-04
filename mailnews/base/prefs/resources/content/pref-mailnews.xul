@@ -81,6 +81,8 @@
                   name="system.windows.lock_ui.defaultMailClient" type="bool"/>
       <preference id="system.windows.lock_ui.defaultNewsClient" readonly="true"
                   name="system.windows.lock_ui.defaultNewsClient" type="bool"/>
+      <preference id="system.windows.lock_ui.defaultFeedClient" readonly="true"
+                  name="system.windows.lock_ui.defaultFeedClient" type="bool"/>
     </preferences>
 
     <groupbox>
@@ -115,6 +117,11 @@
           <button id="setDefaultNews" accesskey="&setDefaultNews.accesskey;"
                   label="&setDefaultNews.label;" oncommand="onSetDefaultNews();"
                   preference="system.windows.lock_ui.defaultNewsClient"/>
+          <button id="setDefaultFeed"
+                  accesskey="&setDefaultFeed.accesskey;"
+                  label="&setDefaultFeed.label;"
+                  oncommand="onSetDefaultFeed();"
+                  preference="system.windows.lock_ui.defaultFeedClient"/>
         </hbox>
       </vbox>
     </groupbox>

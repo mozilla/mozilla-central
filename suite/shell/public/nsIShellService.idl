@@ -50,6 +50,7 @@ interface nsIShellService : nsISupports
   const unsigned short BROWSER = 0x0001;
   const unsigned short MAIL    = 0x0002;
   const unsigned short NEWS    = 0x0004;
+  const unsigned short RSS     = 0x0008;
 
   /**
    * Determines whether or not SeaMonkey is the "Default Client" for the
@@ -61,7 +62,7 @@ interface nsIShellService : nsISupports
    * @param aStartupCheck true if this is the check being performed
    *                      by the first window at startup,
    *                      false otherwise.
-   * @param aApps the application types being tested (Browser, Mail, News)
+   * @param aApps the application types being tested (Browser, Mail, News, RSS)
    */
   boolean isDefaultClient(in boolean aStartupCheck, in unsigned short aApps);
 
@@ -75,7 +76,7 @@ interface nsIShellService : nsISupports
    * @param aClaimAllTypes Register SeaMonkey as the handler for
    *                       additional protocols (ftp, chrome etc)
    *                       and web documents (.html, .xhtml etc).
-   * @param aApps the application types being tested (Mail, News, Browser)
+   * @param aApps the application types being tested (Mail, News, Browser, RSS)
    */
   void setDefaultClient(in boolean aForAllUsers, in boolean aClaimAllTypes, in unsigned short aApps);
 

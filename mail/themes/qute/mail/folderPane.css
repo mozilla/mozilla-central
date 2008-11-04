@@ -27,7 +27,36 @@ treechildren::-moz-tree-image(folderNameCol, selected, open, newMessages-true) {
   -moz-image-region: rect(16px 32px 32px 16px);
 }
 
+/* ..... Newsgroup ..... */
+
+.tabmail-tab[type="folder"][ServerType="nntp"] .tab-icon-image ,
+treechildren::-moz-tree-image(folderNameCol, serverType-nntp) {
+  -moz-image-region: rect(0 160px 16px 144px);
+}
+
+/* ..... Feed ..... */
+
+.tabmail-tab[type="folder"][ServerType="rss"] .tab-icon-image ,
+treechildren::-moz-tree-image(folderNameCol, serverType-rss) {
+  list-style-image: url("chrome://messenger-newsblog/skin/icons/rss-feed.png");
+  -moz-image-region: rect(0 16px 16px 0);
+}
+
+treechildren::-moz-tree-image(folderNameCol, serverType-rss, newMessages-true) {
+  -moz-image-region: rect(16px 16px 32px 0);
+}
+
+/* Resets list-style-image for Feed Trash and Virtual folders */
+
+.tabmail-tab[type="folder"][SpecialFolder="Trash"][ServerType="rss"] .tab-icon-image ,
+.tabmail-tab[type="folder"][SpecialFolder="Virtual"][ServerType="rss"] .tab-icon-image ,
+treechildren::-moz-tree-image(folderNameCol, serverType-rss, specialFolder-Trash),
+treechildren::-moz-tree-image(folderNameCol, serverType-rss, specialFolder-Virtual) {
+  list-style-image: url("chrome://messenger/skin/icons/folder.png");
+}
+
 /* ..... Inbox ..... */
+
 .tabmail-tab[type="folder"][SpecialFolder="Inbox"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Inbox) {
   -moz-image-region: rect(0 48px 16px 32px);
@@ -38,36 +67,42 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Inbox, newMessages-tr
 }
 
 /* ..... Sent ..... */
+
 .tabmail-tab[type="folder"][SpecialFolder="Sent"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Sent) {
   -moz-image-region: rect(0 64px 16px 48px);
 }
 
 /* ..... Unsent ..... */
+
 .tabmail-tab[type="folder"][SpecialFolder="Unsent Messages"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Unsent Messages) {
   -moz-image-region: rect(0 80px 16px 64px);
 }
 
 /* ..... Drafts ..... */
+
 .tabmail-tab[type="folder"][SpecialFolder="Drafts"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Drafts) {
   -moz-image-region: rect(0 96px 16px 80px);
 }
 
 /* ..... Templates ..... */
+
 .tabmail-tab[type="folder"][SpecialFolder="Templates"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Templates) {
   -moz-image-region: rect(0 112px 16px 96px);
 }
 
 /* ..... Junk ..... */
+
 .tabmail-tab[type="folder"][SpecialFolder="Junk"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Junk) {
   -moz-image-region: rect(0 128px 16px 112px);
 }
 
 /* ..... Trash ..... */
+
 .tabmail-tab[type="folder"][SpecialFolder="Trash"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Trash) {
   -moz-image-region: rect(0 144px 16px 128px);
@@ -82,6 +117,7 @@ treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
 */ 
 
 /* ..... Saved Search Folder ..... */
+
 .tabmail-tab[type="folder"][SpecialFolder="Virtual"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Virtual) {
   -moz-image-region: rect(0 176px 16px 160px);
@@ -89,6 +125,11 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Virtual) {
 
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Virtual, newMessages-true) {
   -moz-image-region: rect(16px 176px 32px 160px);
+}
+
+treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true),
+treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessages-true) {
+  font-weight: bold;
 }
 
 /* ..... Mail server  ..... */
@@ -100,11 +141,6 @@ treechildren::-moz-tree-image(folderNameCol, isServer-true) {
 
 treechildren::-moz-tree-image(folderNameCol, biffState-NewMail, isServer-true) {
   -moz-image-region: rect(16px 16px 32px 0);
-}
-
-treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true),
-treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessages-true) {
-  font-weight: bold;
 }
 
 /* ..... Secure mail server ..... */
@@ -138,10 +174,11 @@ treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-nntp, isS
   -moz-image-region: rect(0 80px 16px 64px) !important;
 }
 
-/* ..... Newsgroup ..... */
-.tabmail-tab[type="folder"][ServerType="nntp"] .tab-icon-image ,
-treechildren::-moz-tree-image(folderNameCol, serverType-nntp) {
-  -moz-image-region: rect(0 160px 16px 144px);
+/* ..... Feed server ..... */
+
+treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-rss) {
+  list-style-image: url("chrome://messenger-newsblog/skin/icons/server-rss.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }
 
 /* ::::: All Servers ::::: */

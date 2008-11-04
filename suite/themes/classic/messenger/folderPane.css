@@ -56,6 +56,18 @@ treechildren::-moz-tree-image(folderNameCol, newMessages-true) {
   list-style-image: url("chrome://messenger/skin/icons/folder-new.png");
 }
 
+/* ..... News and Feeds ..... */
+
+treechildren::-moz-tree-image(folderNameCol, serverType-nntp),
+treechildren::-moz-tree-image(folderNameCol, serverType-rss) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
+}
+
+treechildren::-moz-tree-image(folderNameCol, serverType-nntp, newMessages-true),
+treechildren::-moz-tree-image(folderNameCol, serverType-rss, newMessages-true) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup-new.png");
+}
+
 /* ..... Inbox ..... */
 
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Inbox) {
@@ -108,14 +120,6 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Virtual) {
   list-style-image: url("chrome://messenger/skin/icons/folder-search.png");
 }
 
-treechildren::-moz-tree-image(folderNameCol, isServer-true) {
-  list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
-}
-
-treechildren::-moz-tree-image(folderNameCol, biffState-NewMail, isServer-true) {
-  list-style-image: url("chrome://messenger/skin/icons/server-mail-new.png");
-}
-
 treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true),
 treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessages-true) {
   font-weight: bold;
@@ -125,8 +129,15 @@ treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
   list-style-image: url("chrome://messenger/skin/icons/folder-share.png");
 }
 
-
 /* ..... Server Folders ..... */
+
+treechildren::-moz-tree-image(folderNameCol, isServer-true) {
+  list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
+}
+
+treechildren::-moz-tree-image(folderNameCol, biffState-NewMail, isServer-true) {
+  list-style-image: url("chrome://messenger/skin/icons/server-mail-new.png");
+}
 
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-pop3, isSecure-true) {
   list-style-image: url("chrome://messenger/skin/icons/server-remote-lock.png");
@@ -144,18 +155,16 @@ treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-none) {
   list-style-image: url("chrome://messenger/skin/icons/server-local.png");
 }
 
-/* ..... News Folders ..... */
-
-treechildren::-moz-tree-image(folderNameCol, serverType-nntp) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
-}
-
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-nntp) {
   list-style-image: url("chrome://messenger/skin/icons/server-news.png");
 }
 
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-nntp, isSecure-true) {
   list-style-image: url("chrome://messenger/skin/icons/server-news-lock.png");
+}
+
+treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-rss) {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
 }
 
 /* ::::: All Servers ::::: */

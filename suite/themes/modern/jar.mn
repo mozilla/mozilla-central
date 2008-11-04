@@ -5,6 +5,7 @@ modern.jar:
 % skin help modern/1.0 %skin/modern/help/
 % skin messenger modern/1.0 %skin/modern/messenger/
 % skin navigator modern/1.0 %skin/modern/navigator/
+% skin messenger-newsblog modern/1.0 %skin/modern/messenger-newsblog/
   skin/modern/communicator/brand.css                               (communicator/brand.css)
   skin/modern/communicator/prefpanels.css                          (communicator/prefpanels.css)
   skin/modern/communicator/preferences.css                         (communicator/preferences.css)
@@ -442,6 +443,7 @@ modern.jar:
   skin/modern/messenger/smime/icons/hdrSignNotOk.gif               (messenger/smime/icons/hdrSignNotOk.gif)
   skin/modern/messenger/smime/icons/hdrCryptoOk.gif                (messenger/smime/icons/hdrCryptoOk.gif)
   skin/modern/messenger/smime/icons/hdrCryptoNotOk.gif             (messenger/smime/icons/hdrCryptoNotOk.gif)
+  skin/modern/messenger-newsblog/feed-subscriptions.css            (messenger/newsblog/feed-subscriptions.css)
   skin/modern/navigator/linkToolbar.css                            (navigator/linkToolbar.css)
   skin/modern/navigator/navigator.css                              (navigator/navigator.css)
   skin/modern/navigator/pageInfo.css                               (navigator/pageInfo.css)

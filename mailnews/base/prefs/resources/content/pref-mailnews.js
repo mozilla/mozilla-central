@@ -73,6 +73,9 @@ function defaultClientSetup()
     document.getElementById("setDefaultNews").disabled =
       shellService.isDefaultClient(false, nsIShellService.NEWS);
 
+    document.getElementById("setDefaultFeed").disabled =
+      shellService.isDefaultClient(false, nsIShellService.RSS);
+
     document.getElementById("defaultMailPrefs").hidden = false;
   }
 }
@@ -97,4 +100,15 @@ function onSetDefaultNews()
   shellService.shouldBeDefaultClientFor |= nsIShellService.NEWS;
 
   document.getElementById("setDefaultNews").disabled = true;
+}
+
+function onSetDefaultFeed()
+{
+  var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
+                               .getService(nsIShellService);
+
+  shellService.setDefaultClient(false, false, nsIShellService.RSS);
+  shellService.shouldBeDefaultClientFor |= nsIShellService.RSS;
+
+  document.getElementById("setDefaultFeed").disabled = true;
 }
