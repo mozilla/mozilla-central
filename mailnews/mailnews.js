@@ -789,3 +789,13 @@ pref("mail.compose.max_recycled_windows", 0);
 // For the Empty Junk/Trash confirmation dialogs.
 pref("mailnews.emptyJunk.dontAskAgain", false);
 pref("mailnews.emptyTrash.dontAskAgain", false);
+
+// -- Global Database (gloda) options
+// Should the indexer be enabled?
+pref("mailnews.database.global.indexer.enabled", false);
+// Should we output warnings and errors to the "error console"?
+pref("mailnews.database.global.logging.console", false);
+// Should we output all output levels to stdout via dump?
+pref("mailnews.database.global.logging.dump", false);
+// Should we consider outputting all levels via the network?
+pref("mailnews.database.global.logging.net", false);
