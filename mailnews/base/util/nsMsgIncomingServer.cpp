@@ -1526,16 +1526,22 @@ nsMsgIncomingServer::GetSearchScope(nsMsgSearchScopeValue *searchScope)
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::GetIsSecure(PRBool* aIsSecure)
+nsMsgIncomingServer::GetIsSecure(PRBool *aIsSecure)
 {
-  return GetBoolValue("isSecure", aIsSecure);
+  NS_ENSURE_ARG_POINTER(aIsSecure);
+  PRInt32 socketType;
+  nsresult rv = GetSocketType(&socketType);
+  NS_ENSURE_SUCCESS(rv,rv);
+  *aIsSecure = (socketType == nsIMsgIncomingServer::alwaysUseTLS ||
+                socketType == nsIMsgIncomingServer::useSSL);
 }
 
 NS_IMETHODIMP
 nsMsgIncomingServer::SetIsSecure(PRBool aIsSecure)
 {
   PRBool isSecure;
-  GetBoolValue("isSecure", &isSecure);
+  nsresult rv = GetIsSecure(&isSecure);
+  NS_ENSURE_SUCCESS(rv,rv);
   if (isSecure != aIsSecure) {
     SetBoolValue("isSecure", aIsSecure);
     if (m_rootFolder)

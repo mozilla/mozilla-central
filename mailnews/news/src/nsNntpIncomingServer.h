@@ -77,7 +77,7 @@ public:
 
     nsNntpIncomingServer();
     virtual ~nsNntpIncomingServer();
-    
+
     NS_IMETHOD GetLocalStoreType(nsACString& type);
     NS_IMETHOD CloseCachedConnections();
     NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
@@ -96,6 +96,8 @@ public:
     NS_IMETHOD GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServer);
     NS_IMETHOD GetFilterScope(nsMsgSearchScopeValue *filterScope);
     NS_IMETHOD GetSearchScope(nsMsgSearchScopeValue *searchScope);
+
+    NS_IMETHOD GetIsSecure(PRBool *aIsSecure); // override nsMsgIncomingServer impl
 
     nsresult AppendIfSearchMatch(nsCString& newsgroupName);
 

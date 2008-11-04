@@ -2058,6 +2058,12 @@ nsNntpIncomingServer::GetSearchScope(nsMsgSearchScopeValue *searchScope)
 }
 
 NS_IMETHODIMP
+nsNntpIncomingServer::GetIsSecure(PRBool* aIsSecure)
+{
+  return GetBoolValue("isSecure", aIsSecure);
+}
+
+NS_IMETHODIMP
 nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName)
 {
   nsresult rv;

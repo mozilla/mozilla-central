@@ -629,22 +629,8 @@
             }
           }
 
-          // IsServer is simple
           aMenuNode.setAttribute("IsServer", aFolder.isServer);
-
-          // We have to work a bit for IsSecure.  This sucks
-          var server = aFolder.server;
-          if (server instanceof Ci.nsINntpIncomingServer) {
-            aMenuNode.setAttribute("IsSecure", server.isSecure);
-          } else {
-            // If it's not a news-server, apparently we look at the socket type
-            var sock = server.socketType;
-            var isSecure = (sock == Ci.nsIMsgIncomingServer.alwaysUseTLS ||
-                            sock == Ci.nsIMsgIncomingServer.useSSL);
-            aMenuNode.setAttribute("IsSecure", isSecure);
-          }
-
-          // the ServerType attribute
+          aMenuNode.setAttribute("IsSecure", aFolder.server.isSecure);
           aMenuNode.setAttribute("ServerType", aFolder.server.type);
         ]]></body>
       </method>
