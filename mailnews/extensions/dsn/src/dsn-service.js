@@ -54,8 +54,8 @@ DSNService.prototype.chromePackageName = "messenger";
 DSNService.prototype.showPanel =
 function (server)
 {
-  // don't show the panel for news accounts
-  return (server.type != "nntp");
+  // don't show the panel for news, rss, or local accounts
+  return (server.type != "nntp" && server.type != "rss" && server.type != "none");
 }
 
 /* factory for command line handler service (DSNService) */

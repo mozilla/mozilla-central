@@ -53,7 +53,8 @@ function onInit(aPageId, aServerId)
     onCheckItem("nntp.maxArticles", "nntp.limitArticles");
     setupMailOnServerUI();
     setupFixedUI();
-    setupImapDeleteUI(aServerId);
+    if (document.getElementById("server.type").getAttribute("value") == "imap")
+      setupImapDeleteUI(aServerId);
 }
 
 function onPreInit(account, accountValues)
@@ -341,7 +342,8 @@ function getFolderPathFromRoot(folder)
     path = parentFolder.name + "/" + path;
     parentFolder = parentFolder.parent;
   }
-  return path;
+  // IMAP Inbox URI's start with INBOX, not Inbox.
+  return path.replace(/^Inbox/, "INBOX");
 }
 
 // Get trash_folder_name from prefs

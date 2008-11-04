@@ -36,7 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
 var gFccRadioElemChoice, gDraftsRadioElemChoice, gTmplRadioElemChoice;
 var gFccRadioElemChoiceLocked, gDraftsRadioElemChoiceLocked, gTmplRadioElemChoiceLocked;
 var gDefaultPickerMode = "1";
@@ -340,12 +339,13 @@ function SetPickerEnabling(enablePickerId, disablePickerId)
 // Set radio element choices and picker states
 function setPickersState(enablePickerId, disablePickerId, event)
 {
+    const Ci = Components.interfaces;
     SetPickerEnabling(enablePickerId, disablePickerId);
 
     var selectedElementUri;
     var radioElemValue = event.target.value;
 
-    var account = getAccountForFolderPickerState();
+    var account = currentAccount;
     if (!account) return;
 
     var server = account.incomingServer;
@@ -354,7 +354,9 @@ function setPickersState(enablePickerId, disablePickerId, event)
     // if special folders are not to be made on the server, 
     // then Local Folders is the home for it's special folders
     if (!server.defaultCopiesAndFoldersPrefsToServer) {
-        selectedElementUri = parent.accountManager.localFoldersServer.serverURI;
+        var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                           .getService(Ci.nsIMsgAccountManager);
+        selectedElementUri = am.localFoldersServer.serverURI;
     }        
     else
         selectedElementUri = serverId;

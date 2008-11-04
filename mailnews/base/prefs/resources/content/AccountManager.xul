@@ -15,6 +15,7 @@
         persist="screenX screenY"
         buttons="accept,cancel"
         onload="onLoad(event);"
+        onunload="onUnload();"
         ondialogaccept="return onAccept();">
 <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
 <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
@@ -26,30 +27,12 @@
 
   <hbox flex="1">
     <vbox style="&accountTree.width;">
-      <tree datasources="rdf:msgaccountmanager" flex="1"
-            containment="http://home.netscape.com/NC-rdf#Settings"
-            onselect="onAccountClick(event.target)" id="accounttree"
-            seltype="single"
-            sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-            sortDirection="ascending"
-            ref="msgaccounts:/" hidecolumnpicker="true">
+      <tree flex="1" onselect="onAccountTreeSelect()" id="accounttree"
+            seltype="single" hidecolumnpicker="true">
         <treecols>
           <treecol id="AccountCol" flex="1" primary="true" hideheader="true"/>
         </treecols>
-        <template>
-          <rule>
-            <treechildren>
-              <treeitem uri="..." open="true"
-                        PageTag="rdf:http://home.netscape.com/NC-rdf#PageTag">
-                <treerow>
-                  <treecell class="treecell-indent"
-                            properties="isDefaultServer-rdf:http://home.netscape.com/NC-rdf#IsDefaultServer"
-                            label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                </treerow>
-              </treeitem>
-            </treechildren>
-          </rule>
-        </template>
+        <treechildren id="account-tree-children"/>
       </tree>
       
       <button label="&addAccountButton.label;" oncommand="onAddAccount(event);" id="addAccountButton"

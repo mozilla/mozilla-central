@@ -228,10 +228,8 @@ function MsgAccountManager(selectPage)
     if (existingAccountManager)
         existingAccountManager.focus();
     else {
-        var server;
         try {
-            var folderURI = GetSelectedFolderURI();
-            server = GetServer(folderURI);
+            var server = GetSelectedMsgFolders()[0].server;
         } catch (ex) { /* functions might not be defined */}
         
         window.openDialog("chrome://messenger/content/AccountManager.xul",

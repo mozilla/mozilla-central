@@ -47,13 +47,15 @@ function onInit(aPageId, aServerId)
     document.getElementById('server.spamLevel').value > 0;
     
   var spamActionTargetAccount = document.getElementById('server.spamActionTargetAccount').value;
+  var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                     .getService(Components.interfaces.nsIMsgAccountManager);
   if (!spamActionTargetAccount)
   {
     var server = GetMsgFolderFromUri(aServerId, false).server;
     if (server.canCreateFoldersOnServer && server.canSearchMessages)
       spamActionTargetAccount = aServerId;
     else
-      spamActionTargetAccount = parent.accountManager.localFoldersServer.serverURI;
+      spamActionTargetAccount = am.localFoldersServer.serverURI;
     document.getElementById('server.spamActionTargetAccount').value = spamActionTargetAccount;
   }
   document.getElementById("actionAccountPopup")
@@ -61,7 +63,7 @@ function onInit(aPageId, aServerId)
   var spamActionTargetFolder = document.getElementById('server.spamActionTargetFolder').value;
   if (!spamActionTargetFolder)
   {
-    spamActionTargetFolder = parent.accountManager.localFoldersServer.serverURI + "/Junk";
+    spamActionTargetFolder = am.localFoldersServer.serverURI + "/Junk";
     document.getElementById('server.spamActionTargetFolder').value = spamActionTargetFolder;
   }
 

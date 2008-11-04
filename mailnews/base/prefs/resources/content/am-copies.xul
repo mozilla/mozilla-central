@@ -9,14 +9,6 @@
       onload="parent.onPanelLoaded('am-copies.xul');">
 
   <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/x-javascript">
-    <![CDATA[
-      function getAccountForFolderPickerState()
-      { 
-        return parent.getAccountFromServerId(gCurrentServerId);
-      }
-    ]]>
-  </script>
   
   <dialogheader title="&copyAndFolderTitle.label;"/>
   <vbox id="copiesAndFolders"/>
