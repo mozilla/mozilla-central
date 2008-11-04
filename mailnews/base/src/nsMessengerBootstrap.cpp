@@ -296,7 +296,7 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
       nsCOMPtr <nsIMsgFolder> folder;
       rv = GetExistingFolder(nsDependentCString(aFolderURI), getter_AddRefs(folder));
       NS_ENSURE_SUCCESS(rv, rv);
-      nsXPIDLCString msgUri;
+      nsCAutoString msgUri;
       folder->GetBaseMessageURI(msgUri);
 
       nsCOMPtr<nsISupportsCString> scriptableMsgURI (do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID));
