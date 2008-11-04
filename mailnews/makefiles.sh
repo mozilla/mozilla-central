@@ -53,6 +53,7 @@ mailnews/base/search/public/Makefile
 mailnews/base/search/src/Makefile
 mailnews/build/Makefile
 mailnews/db/Makefile
+mailnews/db/gloda/Makefile
 mailnews/db/msgdb/Makefile
 mailnews/db/msgdb/public/Makefile
 mailnews/db/msgdb/src/Makefile

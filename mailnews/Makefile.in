@@ -44,7 +44,7 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE       = mailnews
 
-DIRS		= base db/msgdb news local mime compose imap addrbook import extensions
+DIRS		= base db/msgdb db/gloda news local mime compose imap addrbook import extensions
 
 ifeq ($(OS_ARCH),WINNT)
 ifndef GNU_CC

@@ -42,7 +42,7 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS		= msgdb
+DIRS		= msgdb gloda
 
 include $(topsrcdir)/config/rules.mk
 
