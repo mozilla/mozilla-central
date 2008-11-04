@@ -199,9 +199,7 @@ bin/components/libsuite.so
 bin/components/suitebrowser.xpt
 bin/components/suitecommon.xpt
 bin/components/suitemigration.xpt
-bin/components/suitetypeaheadfind.xpt
 bin/components/libsystem-pref.so
-bin/components/libsuitetypeaheadfind.so
 bin/components/libtkautocomplete.so
 bin/components/libtoolkitcomps.so
 bin/components/toolkitprofile.xpt

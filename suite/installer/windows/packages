@@ -247,8 +247,6 @@ bin\components\zipwriter.dll
 bin\plugins\npnul32.dll
 bin\components\helperAppDlg.xpt
 bin\AccessibleMarshal.dll
-bin\components\suitetypeaheadfind.xpt
-bin\components\suitetypeaheadfind.dll
 bin\sqlite3.dll
 
 ; JavaScript components

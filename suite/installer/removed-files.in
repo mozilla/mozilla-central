@@ -79,6 +79,8 @@ components/progressDlg.xpt
 components/search.xpt
 components/sidebar.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
+components/suitetypeaheadfind.xpt
+components/@DLL_PREFIX@suitetypeaheadfind@DLL_SUFFIX@
 components/urlwidgt.xpt
 components/util.xpt
 components/venkman-service.js

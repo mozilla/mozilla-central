@@ -6,8 +6,7 @@ LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6_RTM'
 CHATZILLA_CO_TAG = 'HEAD'
 VENKMAN_CO_TAG = 'HEAD'
 
-EXTENSION_DIRS = ('extensions/typeaheadfind',
-                  'extensions/wallet',)
+EXTENSION_DIRS = ('extensions/wallet',)
 LDAPCSDK_DIRS = ('directory/c-sdk',)
 
 CHATZILLA_DIRS = ('extensions/irc',)
