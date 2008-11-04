@@ -272,10 +272,12 @@ pref("offline.send.unsent_messages",            0);
 // 2 Never synchronize the offline store when going offline
 pref("offline.download.download_messages",  0);
 
-#ifdef XP_WIN
-pref("offline.autoDetect", true); // automatically move the user offline or online based on the network connection
-#else
+#ifdef XP_UNIX
 pref("offline.autoDetect", false);
+#else
+// Windows and Mac can automatically move the user offline or online based on 
+// the network connection.
+pref("offline.autoDetect", true); 
 #endif
 
 // Expose only select protocol handlers. All others should go
