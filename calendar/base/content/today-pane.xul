@@ -184,11 +184,10 @@
                   ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
                   ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);">
               <toolbar id="agenda-toolbar" iconsize="small">
-                <toolbarbutton id="calendar-new-event-button"
+                <toolbarbutton id="todaypane-new-event-button"
                                mode="mail"
                                iconsize="small"
                                orient="horizontal"
-                               class="cal-toolbarbutton-1"
                                label="&calendar.newevent.button.label;"
                                tooltiptext="&calendar.newevent.button.tooltip;"
                                oncommand="agendaListbox.createNewEvent(event)"/>

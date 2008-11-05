@@ -166,12 +166,23 @@
   padding: 1px;
 }
 
-#calendar-new-event-button {
+#todaypane-new-event-button {
   -moz-user-focus: normal;
 }
 
-#calendar-new-event-button > .toolbarbutton-text {
+#todaypane-new-event-button > .toolbarbutton-text {
  -moz-padding-start: 5px;
+}
+
+#todaypane-new-event-button {
+  list-style-image: url("chrome://calendar/skin/toolbar-small.png");
+  -moz-image-region: rect(0px 24px 24px 0px);
+}
+#todaypane-new-event-button:active {
+  -moz-image-region: rect(24px 24px 48px 0px);
+}
+#todaypane-new-event-button[disabled="true"] {
+  -moz-image-region: rect(48px 24px 72px 0px);
 }
 
 #agenda-listbox {
