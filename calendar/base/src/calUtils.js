@@ -993,16 +993,15 @@ function ASSERT(aCondition, aMessage, aCritical) {
 
 /**
  * Uses the prompt service to display an error message.
+ * This function cannot be migrated into a module file, because it relies on an outer window object.
  *
  * @param aMsg The message to be shown
  */
 function showError(aMsg) {
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+    ASSERT(window, "missing window!");
+    let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                   .getService(Components.interfaces.nsIPromptService);
-
-    promptService.alert(window,
-                        calGetString("calendar", "errorTitle"),
-                        aMsg);
+    promptService.alert(window, calGetString("calendar", "genericErrorTitle"), aMsg);
 }
 
 /**

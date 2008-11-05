@@ -232,9 +232,9 @@ calItipEmailTransport.prototype = {
                 var prefCompatMode = getPrefSafe("calendar.itip.compatSendMode", 0);
                 var inoutCheck = { value: (prefCompatMode == 1) };
                 if (!promptService.confirmCheck(null,
-                                                calGetString("lightning", "imipSendMailTitle", null, "lightning"),
-                                                calGetString("lightning", "imipSendMail", null, "lightning"),
-                                                calGetString("lightning", "imipSendMailOutlook2000CompatMode", null, "lightning"),
+                                                calGetString("lightning", "imipSendMail.title", null, "lightning"),
+                                                calGetString("lightning", "imipSendMail.text", null, "lightning"),
+                                                calGetString("lightning", "imipSendMail.Outlook2000CompatMode.text", null, "lightning"),
                                                 inoutCheck)) {
                     break;
                 } // else go on with auto sending for now
