@@ -85,6 +85,9 @@ pref("calendar.itip.compatSendMode", 0);
 // whether "notify" is checked by default when creating new events/todos with attendees
 pref("calendar.itip.notify", true);
 
+// whether the organizer propagates replies of attendees to all attendees
+pref("calendar.itip.notify-replies", false);
+
 // whether CalDAV (experimental) scheduling is enabled or not.
 pref("calendar.caldav.sched.enabled", false);
 

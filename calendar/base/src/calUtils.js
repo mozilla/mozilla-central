@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/debug.js");
+
 /* This file contains commonly used functions in a centralized place so that
  * various components (and other js scopes) don't need to replicate them. Note
  * that loading this file twice in the same scope will throw errors.
@@ -915,6 +917,7 @@ function LOG(aArg) {
         string = aArg;
     }
 
+    // xxx todo consider using function debug()
     dump(string + '\n');
     getConsoleService().logStringMessage(string);
 }
@@ -985,12 +988,11 @@ function ASSERT(aCondition, aMessage, aCritical) {
         return;
     }
 
-    var string = "Assert failed: " + aMessage + '\n' + STACK(null, 1);
+    NS_ASSERT(aCondition, aMessage);
     if (aCritical) {
+        let string = "Assert failed: " + aMessage + '\n' + STACK(null, 1);
         throw new Components.Exception(string,
                                        aCritical === true ? Components.results.NS_ERROR_UNEXPECTED : aCritical);
-    } else {
-        Components.utils.reportError(string);
     }
 }
 
@@ -1408,16 +1410,24 @@ function sameDay(date1, date2) {
 /**
  * Iterates all components inside the passed ical component and calls the passed function.
  * If the called function returns false, iteration is stopped.
+ *
+ * @param icalComp an ICS component
+ * @param func functor that will be executed on sub components
+ * @param compType optional component type to filter, defaults to "ANY"
  */
-function calIterateIcalComponent(icalComp, func) {
+function calIterateIcalComponent(icalComp, func, compType) {
     if (icalComp) {
-        if (icalComp.componentType != "VCALENDAR") {
-            return func(icalComp);
+        if (!compType) {
+            compType = "ANY";
+        }
+        var ctype = icalComp.componentType;
+        if (ctype != "VCALENDAR") {
+            return (ctype == compType ? func(icalComp) : true);
         }
         for (var subComp = icalComp.getFirstSubcomponent("ANY");
              subComp;
              subComp = icalComp.getNextSubcomponent("ANY")) {
-            if (!calIterateIcalComponent(subComp, func)) {
+            if (!calIterateIcalComponent(subComp, func, compType)) {
                 return false;
             }
         }
@@ -1866,6 +1876,56 @@ function binaryInsert(itemArray, item, comptor, discardDuplicates) {
         itemArray.splice(newIndex, 0, item);
     }
     return newIndex;
+}
+
+/**
+ * Read default alarm settings from user preferences and apply them to
+ * the event/todo passed in.
+ *
+ * @param aItem   The event or todo the settings should be applied to.
+ */
+function setDefaultAlarmValues(aItem)
+{
+    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                .getService(Components.interfaces.nsIPrefService);
+    var alarmsBranch = prefService.getBranch("calendar.alarms.");
+
+    if (isEvent(aItem)) {
+        try {
+            if (alarmsBranch.getIntPref("onforevents") == 1) {
+                var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
+                                            .createInstance(Components.interfaces.calIDuration);
+                var units = alarmsBranch.getCharPref("eventalarmunit");
+                alarmOffset[units] = alarmsBranch.getIntPref("eventalarmlen");
+                alarmOffset.isNegative = true;
+                aItem.alarmOffset = alarmOffset;
+                aItem.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
+            }
+        } catch (ex) {
+            Components.utils.reportError(
+                "Failed to apply default alarm settings to event: " + ex);
+        }
+    } else if (isToDo(aItem)) {
+        try {
+            if (alarmsBranch.getIntPref("onfortodos") == 1) {
+                // You can't have an alarm if the entryDate doesn't exist.
+                if (!aItem.entryDate) {
+                    aItem.entryDate = getSelectedDay() &&
+                                      getSelectedDay().clone() || now();
+                }
+                var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
+                                            .createInstance(Components.interfaces.calIDuration);
+                var units = alarmsBranch.getCharPref("todoalarmunit");
+                alarmOffset[units] = alarmsBranch.getIntPref("todoalarmlen");
+                alarmOffset.isNegative = true;
+                aItem.alarmOffset = alarmOffset;
+                aItem.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
+            }
+        } catch (ex) {
+            Components.utils.reportError(
+                "Failed to apply default alarm settings to task: " + ex);
+        }
+    }
 }
 
 function getCompositeCalendar() {

@@ -134,29 +134,6 @@ interface calIItipItem : nsISupports
                      [retval, array, size_is(itemCount)] out calIItemBase items);
 
     /**
-     * Get the first item from the iTIP message
-     * Bug XXX 351761: Need to find a way to make this use an nsISimpleEnumerator
-     * @return calIItemBase
-     
-    calIItemBase getFirstItem();
-*/
-    /**
-     * Get next item from the iTIP message. If there is no next item then it
-     * returns NULL
-     * @return calIItemBase
-     
-    calIItemBase getNextItem();
-*/
-    /**
-     * Modifies a calIItemBase that is in the component list. Internally, the
-     * interface will update the proper component. It does this via the
-     * UID of the component by calling hasSameIds().
-     * @param in parameter - item to modify
-     * @return returns the new calIItemBase object for convienence
-     */
-    calIItemBase modifyItem(in calIItemBase item);
-
-    /**
      * Modifies the state of the given attendee in the item's ics
      * @param attendeeId - AString containing attendee address
      * @param status - AString containing the new attendee status

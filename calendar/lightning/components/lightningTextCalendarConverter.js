@@ -200,23 +200,24 @@ ltnMimeConverter.prototype = {
     },
 
     convertToHTML: function lmcCTH(contentType, data) {
+        var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                               .createInstance(Components.interfaces.calIIcsParser);
+        parser.parseString(data, null);
         var event = null;
-        calIterateIcalComponent(getIcsService().parseICS(data, null),
-                                function(icalComp) {
-                                    if (icalComp.componentType == "VEVENT") {
-                                        event = createEvent();
-                                        event.icalComponent = icalComp;
-                                    }
-                                    return (icalComp.componentType != "VEVENT");
-                                });
+        for each (var item in parser.getItems({})) {
+            if (isEvent(item)) {
+                event = item;
+                break;
+            }
+        }
         if (!event) {
             return;
         }
         var html = createHtml(event);
 
         try {
-            var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"].
-                           createInstance(Components.interfaces.calIItipItem);
+            var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
+                                     .createInstance(Components.interfaces.calIItipItem);
             itipItem.init(data);
 
             // this.mUri is the message URL that we are processing.

@@ -43,11 +43,13 @@
  */
 function calItipItem() {
     this.wrappedJSObject = this;
-    this.mIsInitialized = false;
     this.mCurrentItemIndex = 0;
 }
 
 calItipItem.prototype = {
+    mIsInitialized: false,
+
+    // nsIClassInfo:
     getInterfaces: function ciiGI(count) {
         var ifaces = [
             Components.interfaces.nsIClassInfo,
@@ -68,13 +70,8 @@ calItipItem.prototype = {
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: 0,
 
-    QueryInterface: function ciiQI(aIid) {
-        if (!aIid.equals(Components.interfaces.nsISupports) &&
-            !aIid.equals(Components.interfaces.calIItipItem)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
+    QueryInterface: function ciiQI(aIID) {
+        return doQueryInterface(this, calItipItem.prototype, aIID, null, this);
     },
 
     mIsSend: false,
@@ -85,7 +82,7 @@ calItipItem.prototype = {
         return (this.mIsSend = aValue);
     },
 
-    mReceivedMethod: null,
+    mReceivedMethod: "REQUEST",
     get receivedMethod() {
         return this.mReceivedMethod;
     },
@@ -93,43 +90,15 @@ calItipItem.prototype = {
         return (this.mReceivedMethod = aMethod.toUpperCase());
     },
 
-    mResponseMethod: null,
+    mResponseMethod: "REPLY",
     get responseMethod() {
-        if (this.mIsInitialized) {
-            var method = null;
-            for each (var prop in this.mPropertiesList) {
-                if (prop.propertyName == "METHOD") {
-                    method = prop.value;
-                    break;
-                }
-            }
-            return method;
-        } else {
-            throw Components.results.NS_ERROR_NOT_INITIALIZED;
-        }
-    },
-    set responseMethod(aMethod) {
-        this.mResponseMethod = aMethod.toUpperCase();
-        // Setting this also sets the global method attribute inside the
-        // encapsulated VCALENDAR.
-        if (this.mIsInitialized) {
-            var methodExists = false;
-            for each (var prop in this.mPropertiesList) {
-                if (prop.propertyName == "METHOD") {
-                    methodExists = true;
-                    prop.value = this.mResponseMethod;
-                }
-            }
-
-            if (!methodExists) {
-                var newProp = { propertyName: "METHOD",
-                                value: this.mResponseMethod };
-                this.mPropertiesList.push(newProp);
-            }
-        } else {
+        if (!this.mIsInitialized) {
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
         }
         return this.mResponseMethod;
+    },
+    set responseMethod(aMethod) {
+        return (this.mResponseMethod = aMethod.toUpperCase());
     },
 
     mAutoResponse: null,
@@ -164,32 +133,56 @@ calItipItem.prototype = {
         return (this.mLocalStatus = aValue);
      },
 
-    modifyItem: function ciiMI(item) {
-        // Bug 348666: This will be used when we support delegation and COUNTER.
-        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-    },
-
-    mItemList: null,
-    mPropertiesList: null,
+    mItemList: {},
 
     init: function ciiI(aIcalString) {
-        var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"].
-                     createInstance(Components.interfaces.calIIcsParser);
+        let parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                               .createInstance(Components.interfaces.calIIcsParser);
         parser.parseString(aIcalString, null);
-        this.mItemList = parser.getItems({});
-        this.mPropertiesList = parser.getProperties({});
 
-        // User specific alarms as well as X-MOZ- properties are irrelevant w.r.t. iTIP messages,
-        // should not be sent out and should not be relevant for incoming messages,
+        // - User specific alarms as well as X-MOZ- properties are irrelevant w.r.t. iTIP messages,
+        //   should not be sent out and should not be relevant for incoming messages
+        // - faked master items
         // so clean them out:
-        for each (var item in this.mItemList) {
+
+        function cleanItem(item) {
+            // the following changes will bump LAST-MODIFIED/DTSTAMP, we want to preserve the originals:
+            let stamp = item.stampTime;
+            let lastModified = item.lastModifiedTime;
             item.alarmOffset = null;
-            var propEnum = item.propertyEnumerator;
+            item.alarmLastAck = null;
+            item.deleteProperty("RECEIVED-SEQUENCE");
+            item.deleteProperty("RECEIVED-DTSTAMP");
+            let propEnum = item.propertyEnumerator;
             while (propEnum.hasMoreElements()) {
-                var prop = propEnum.getNext().QueryInterface(Components.interfaces.nsIProperty);
-                if (prop.name.substr(0, "X-MOZ-".length) == "X-MOZ-") {
+                let prop = propEnum.getNext().QueryInterface(Components.interfaces.nsIProperty);
+                let pname = prop.name;
+                if (pname != "X-MOZ-FAKED-MASTER" && pname.substr(0, "X-MOZ-".length) == "X-MOZ-") {
                     item.deleteProperty(prop.name);
                 }
+            }
+            // never publish an organizer's RECEIVED params:
+            item.getAttendees({}).forEach(
+                function(att) {
+                    att.deleteProperty("RECEIVED-SEQUENCE");
+                    att.deleteProperty("RECEIVED-DTSTAMP");
+                });
+            item.setProperty("DTSTAMP", stamp);
+            item.setProperty("LAST-MODIFIED", lastModified); // need to be last to undirty the item
+        }
+
+        this.mItemList = [];
+        for each (let item in cal.itemIterator(parser.getItems({}))) {
+            cleanItem(item);
+            // only push non-faked master items or
+            // the overridden instances of faked master items
+            // to the list:
+            if (item == item.parentItem) {
+                if (!item.hasProperty("X-MOZ-FAKED-MASTER")) {
+                    this.mItemList.push(item);
+                }
+            } else if (item.parentItem.hasProperty("X-MOZ-FAKED-MASTER")) {
+                this.mItemList.push(item);
             }
         }
 
@@ -198,44 +191,28 @@ calItipItem.prototype = {
         // method is (using user feedback, prefs, etc.) for the given
         // receivedMethod.  The RFC tells us to treat items without a METHOD
         // as if they were METHOD:REQUEST.
-        var method;
-        for each (var prop in this.mPropertiesList) {
+        for each (var prop in parser.getProperties({})) {
             if (prop.propertyName == "METHOD") {
-                method = prop.value;
+                this.mReceivedMethod = prop.value;
+                this.mResponseMethod = prop.value;
                 break;
             }
         }
-        this.mReceivedMethod = method;
-        this.mResponseMethod = method;
 
         this.mIsInitialized = true;
     },
 
     clone: function ciiC() {
-        // Iterate through all the calItems in the original calItipItem to
-        // concatenate all the calItems' icalStrings.
-        var icalString = "";
-
-        var itemList = this.getItemList({ });
-        for (var i = 0; i < itemList.length; i++) {
-            icalString += itemList[i].icalString;
-        }
-
-        // Create a new calItipItem and initialize it using the icalString
-        // from above.
-        var newItem = Components.classes["@mozilla.org/calendar/itip-item;1"].
-                      createInstance(Components.interfaces.calIItipItem);
-        newItem.init(icalString);
-
-        // Copy over the exposed attributes.
-        newItem.receivedMethod = this.receivedMethod;
-        newItem.responseMethod = this.responseMethod;
-        newItem.autoResponse = this.autoResponse;
-        newItem.targetCalendar = this.targetCalendar;
-        newItem.identity = this.identity;
-        newItem.localStatus = this.localStatus;
-        newItem.isSend = this.isSend;
-
+        let newItem = new calItipItem();
+        newItem.mItemList = this.mItemList.map(function(item) { return item.clone(); });
+        newItem.mReceivedMethod = this.mReceivedMethod;
+        newItem.mResponseMethod = this.mResponseMethod;
+        newItem.mAutoResponse = this.mAutoResponse;
+        newItem.mTargetCalendar = this.mTargetCalendar;
+        newItem.mIdentity = this.mIdentity;
+        newItem.mLocalStatus = this.mLocalStatus;
+        newItem.mIsSend = this.mIsSend;
+        newItem.mIsInitialized = this.mIsInitialized;
         return newItem;
     },
 
@@ -244,32 +221,12 @@ calItipItem.prototype = {
      * call it is: var itemArray = itipItem.getItemList({ });
      */
     getItemList: function ciiGIL(itemCountRef) {
-        if (!this.mIsInitialized || (this.mItemList.length == 0)) {
+        if (!this.mIsInitialized) {
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
         }
         itemCountRef.value = this.mItemList.length;
         return this.mItemList;
     },
-
-    /*getFirstItem: function ciiGFI() {
-        if (!this.mIsInitialized || (this.mItemList.length == 0)) {
-            throw Components.results.NS_ERROR_NOT_INITIALIZED;
-        }
-        this.mCurrentItemIndex = 0;
-        return this.mItemList[0];
-    },
-
-    getNextItem: function ciiGNI() {
-        if (!this.mIsInitialized || (this.mItemList.length == 0)) {
-            throw Components.results.NS_ERROR_NOT_INITIALIZED;
-        }
-        ++this.mCurrentItemIndex;
-        if (this.mCurrentItemIndex < this.mItemList.length) {
-            return this.mItemList[this.mCurrentItemIndex];
-        } else {
-            return null;
-        }
-    },*/
 
     /**
      * Note that this code forces the user to respond to all items in the same
@@ -278,7 +235,7 @@ calItipItem.prototype = {
     setAttendeeStatus: function ciiSAS(aAttendeeId, aStatus) {
         // Append "mailto:" to the attendee if it is missing it.
         aAttendeeId = aAttendeeId.toLowerCase();
-        if (!aAttendeeId.match(/mailto:/i)) {
+        if (!aAttendeeId.match(/^mailto:/i)) {
             aAttendeeId = ("mailto:" + aAttendeeId);
         }
 

@@ -153,13 +153,19 @@ calTransaction.prototype = {
                                                          aOperationType,
                                                          aId,
                                                          aDetail) {
-        if (aStatus == Components.results.NS_OK &&
-            (aOperationType == Components.interfaces.calIOperationListener.ADD ||
-             aOperationType == Components.interfaces.calIOperationListener.MODIFY)) {
-            if (this.mIsDoTransaction) {
-                this.mItem = aDetail;
-            } else {
-                this.mOldItem = aDetail;
+        if (Components.isSuccessCode(aStatus)) {
+
+            cal.itip.checkAndSend(aOperationType,
+                                  aDetail,
+                                  this.mIsDoTransaction ? this.mOldItem : this.mItem);
+
+            if (aOperationType == Components.interfaces.calIOperationListener.ADD ||
+                aOperationType == Components.interfaces.calIOperationListener.MODIFY) {
+                if (this.mIsDoTransaction) {
+                    this.mItem = aDetail;
+                } else {
+                    this.mOldItem = aDetail;
+                }
             }
         }
         if (this.mListener) {
@@ -199,7 +205,7 @@ calTransaction.prototype = {
                     this.mOldCalendar.deleteItem(this.mOldItem, this);
                     this.mCalendar.addItem(this.mItem, this);
                 } else {
-                    this.mCalendar.modifyItem(this.mItem,
+                    this.mCalendar.modifyItem(cal.itip.prepareSequence(this.mItem, this.mOldItem),
                                               this.mOldItem,
                                               this);
                 }
@@ -225,7 +231,8 @@ calTransaction.prototype = {
                     this.mCalendar.deleteItem(this.mItem, this);
                     this.mOldCalendar.addItem(this.mOldItem, this);
                 } else {
-                    this.mCalendar.modifyItem(this.mOldItem, this.mItem, this);
+                    this.mCalendar.modifyItem(cal.itip.prepareSequence(this.mOldItem, this.mItem),
+                                              this.mItem, this);
                 }
                 break;
             case 'delete':

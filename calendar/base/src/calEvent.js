@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -51,7 +50,6 @@ function calEvent() {
     this.eventPromotedProps = {
         "DTSTART": true,
         "DTEND": true,
-        "DTSTAMP": true,
         __proto__: this.itemBasePromotedProps
     }
 }
@@ -174,6 +172,7 @@ calEvent.prototype = {
                 throw Components.results.NS_ERROR_INVALID_ARG;
         }
 
+        // xxx todo: Bug 463195 make sure object is properly reset
         this.setItemBaseFromICS(event);
         this.mapPropsFromICS(event, this.icsEventPropMap);
 

@@ -71,7 +71,6 @@ XPIDLSRCS = calIAlarm.idl \
             calIImportExport.idl \
             calIItemBase.idl \
             calIItipItem.idl \
-            calIItipProcessor.idl \
             calIItipTransport.idl \
             calIOperation.idl \
             calIPeriod.idl \

@@ -37,7 +37,7 @@
 
 // New code must not load/import calUtils.js, but should use calUtils.jsm.
 
-var EXPORTED_SYMBOLS = ["cal"];
+EXPORTED_SYMBOLS = ["cal"];
 let cal = {
     // new code should land here,
     // and more code should be moved from calUtils.js into this object to avoid
@@ -45,6 +45,8 @@ let cal = {
 
     getIOService: generateServiceAccessor("@mozilla.org/network/io-service;1",
                                           Components.interfaces.nsIIOService2),
+    getObserverService: generateServiceAccessor("@mozilla.org/observer-service;1",
+                                                Components.interfaces.nsIObserverService),
 
     /**
      * Loads an array of calendar scripts into the passed scope.
@@ -59,8 +61,7 @@ let cal = {
         let ioService = cal.getIOService();
 
         if (!baseDir) {
-            baseDir = __LOCATION__.parent.parent;
-            baseDir = baseDir.clone();
+            baseDir = __LOCATION__.parent.parent.clone();
             baseDir.append("calendar-js");
         }
 
@@ -80,6 +81,64 @@ let cal = {
      */
     isPhantomTimezone: function cal_isPhantomTimezone(tz) {
         return (!tz.icalComponent && !tz.isUTC && !tz.isFloating);
+    },
+
+    /**
+     * Iterates an array of items, i.e. the passed item including all
+     * overridden instances of a recurring series.
+     *
+     * @param items array of items
+     */
+    itemIterator: function cal_itemIterator(items) {
+        return {
+            __iterator__: function itemIterator_() {
+                for each (let item in items) {
+                    yield item;
+                    let rec = item.recurrenceInfo;
+                    if (rec) {
+                        for each (let exid in rec.getExceptionIds({})) {
+                            yield rec.getExceptionFor(exid, false);
+                        }
+                    }
+                }
+            }
+        };
+    },
+
+    /**
+     * Shortcut function to serialize an item (including all overridden items).
+     */
+    getSerializedItem: function cal_getSerializedItem(aItem) {
+        let serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
+                                   .createInstance(Components.interfaces.calIIcsSerializer);
+        serializer.addItems([aItem], 1);
+        return serializer.serializeToString();
+    },
+
+    /**
+     * Shortcut function to check whether an item is an invitation copy.
+     */
+    isInvitation: function cal_isInvitation(aItem) {
+        let isInvitation = false;
+        let calendar = aItem.calendar;
+        if (cal.calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
+            isInvitation = calendar.isInvitation(aItem);
+        }
+        return isInvitation;
+    },
+
+    /**
+     * Shortcut function to get the invited attendee of an item.
+     */
+    getInvitedAttendee: function cal_getInvitedAttendee(aItem, aCalendar) {
+        if (!aCalendar) {
+            aCalendar = aItem.calendar;
+        }
+        let invitedAttendee = null;
+        if (cal.calInstanceOf(aCalendar, Components.interfaces.calISchedulingSupport)) {
+            invitedAttendee = aCalendar.getInvitedAttendee(aItem);
+        }
+        return invitedAttendee;
     },
 
     // The below functions will move to some different place once the
@@ -245,7 +304,6 @@ let cal = {
         aStringArray.sort(compare);
         return aStringArray;
     }
-
 };
 
 // local to this module;

@@ -213,23 +213,9 @@ calItipEmailTransport.prototype = {
                 WARN("No email identity configured for calendar " + aItem.targetCalendar.name);
             }
         }
-        if (!identity) {
-            if (aItem.identity) {
-                // try to find proper identity/account for the itipItem's identity:
-                var itipIdentity = aItem.identity.toLowerCase();
-                calIterateEmailIdentities(
-                    function(identity_, account_) {
-                        if (identity_.email.toLowerCase() == itipIdentity) {
-                            identity = identity_;
-                            account = account_;
-                            return false;
-                        }
-                        return true;
-                    });
-            } else { // use some default identity/account:
-                identity = this.mDefaultIdentity;
-                account = this.mDefaultAccount;
-            }
+        if (!identity) { // use some default identity/account:
+            identity = this.mDefaultIdentity;
+            account = this.mDefaultAccount;
         }
 
         var compatMode = 0;
@@ -343,7 +329,7 @@ calItipEmailTransport.prototype = {
                              ? "Return-path: " + aIdentity.replyTo + "\r\n" : "") +
                             "From: " + aIdentity.email + "\r\n" +
                             "To: " + aToList + "\r\n" +
-                            encodeMimeHeader("Subject: " + aSubject) + "\r\n");
+                            encodeMimeHeader("Subject: " + aSubject.replace(/(\n|\r\n)/, "|")) + "\r\n");
             switch (compatMode) {
                 case 1:
                     mailText += ("Content-class: urn:content-classes:calendarmessage\r\n" +

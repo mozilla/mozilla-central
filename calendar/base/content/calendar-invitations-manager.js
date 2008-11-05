@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
+
 var gInvitationsRequestManager = {
     mRequestStatusList: {},
 
@@ -246,7 +248,7 @@ InvitationsManager.prototype = {
                                            aDetail) {
                 if (Components.isSuccessCode(aStatus) &&
                     aOperationType == Components.interfaces.calIOperationListener.MODIFY) {
-                    checkAndSendItipMessage(aDetail, aOperationType, this.mOldItem);
+                    cal.itip.checkAndSend(aOperationType, aDetail, this.mOldItem);
                     this.mInvitationsManager.deleteItem(aDetail);
                     this.mInvitationsManager.addItem(aDetail);
                 }

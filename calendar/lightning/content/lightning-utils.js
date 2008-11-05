@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 /**
  * Gets the value of a string in a .properties file from the lightning bundle
  *
@@ -47,26 +49,7 @@
  * @param aParams      optional array of parameters to format the string
  */
 function ltnGetString(aBundleName, aStringName, aParams) {
-    if (ltnGetString.mSBS === undefined) {
-        ltnGetString.mSBS = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                            .getService(Components.interfaces.nsIStringBundleService);
-    }
-
-    try {
-        var propName = "chrome://lightning/locale/"+aBundleName+".properties";
-        var props = ltnGetString.mSBS.createBundle(propName);
-
-        if (aParams && aParams.length) {
-            return props.formatStringFromName(aStringName, aParams, aParams.length);
-        } else {
-            return props.GetStringFromName(aStringName);
-        }
-    } catch (ex) {
-        var s = "Failed to read '" + aStringName + "' from " +
-                "'chrome://lightning/locale/" + aBundleName + ".properties'.";
-        Components.utils.reportError(s + " Error: " + ex);
-        return s;
-    }
+    return cal.calGetString(aBundleName, aStringName, aParams, "lightning");
 }
 
 // shared by lightning-calendar-properties.js and lightning-calendar-creation.js:

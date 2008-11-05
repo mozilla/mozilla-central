@@ -749,7 +749,6 @@ calRecurrenceInfo.prototype = {
         } else {
             itemtoadd = anItem.cloneShallow(this.mBaseItem);
         }
-        itemtoadd.makeImmutable();
 
         // we're going to assume that the recurrenceId is valid here,
         // because presumably the item came from one of our functions

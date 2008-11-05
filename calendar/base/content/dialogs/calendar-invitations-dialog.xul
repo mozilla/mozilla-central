@@ -56,9 +56,7 @@
 
   <!-- Javascript includes -->
   <script type="application/javascript" src="chrome://calendar/content/calendar-invitations-dialog.js"/>
-  <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
-  <script type="application/javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
 
   <script type="application/javascript" >
     var invitationsText = "&calendar.invitations.dialog.invitations.text;";

@@ -94,7 +94,6 @@ EXTRA_SCRIPTS = \
     calIcsSerializer.js \
     calItemBase.js \
     calItipItem.js \
-    calItipProcessor.js \
     calProtocolHandler.js \
     calRecurrenceInfo.js \
     calRelation.js \
@@ -107,10 +106,6 @@ EXTRA_SCRIPTS = \
     calFreeBusyService.js \
     calCalendarSearchService.js \
     calTimezoneService.js \
-    $(NULL)
-
-EXTRA_JS_MODULES = \
-    calUtils.jsm \
     $(NULL)
 
 # Use NSINSTALL to make the directory, as there's no mtime to preserve.

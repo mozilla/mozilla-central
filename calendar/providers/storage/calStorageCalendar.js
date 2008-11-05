@@ -408,13 +408,6 @@ calStorageCalendar.prototype = {
                                          "Calendar is readonly");
             return;
         }
-        // Ensure that we're looking at the base item
-        // if we were given an occurrence.  Later we can
-        // optimize this.
-        if (aItem.parentItem != aItem) {
-            aItem.parentItem.recurrenceInfo.modifyException(aItem, false);
-        }
-        aItem = aItem.parentItem;
 
         if (aItem.id == null) {
             // is this an error?  Or should we generate an IID?
@@ -436,10 +429,11 @@ calStorageCalendar.prototype = {
             }
         }
 
-        aItem.calendar = this.superCalendar;
-        aItem.makeImmutable();
+        let parentItem = aItem.parentItem;
+        parentItem.calendar = this.superCalendar;
+        parentItem.makeImmutable();
 
-        this.flushItem (aItem, null);
+        this.flushItem(parentItem, null);
 
         // notify the listener
         this.notifyOperationComplete(aListener,
@@ -2259,9 +2253,10 @@ calStorageCalendar.prototype = {
         ip.priority = item.getProperty("PRIORITY");
         ip.privacy = item.getProperty("CLASS");
         ip.ical_status = item.getProperty("STATUS");
-
-        if (!item.parentItem)
-            ip.event_stamp = item.stampTime.nativeTime;
+        tmp = item.stampTime;
+        if (tmp) {
+            ip.event_stamp = tmp.nativeTime;
+        }
 
         if (item.alarmOffset) {
             ip.alarm_offset = item.alarmOffset.inSeconds;

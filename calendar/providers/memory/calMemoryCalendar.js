@@ -152,10 +152,11 @@ calMemoryCalendar.prototype = {
             }
         }
 
-        aItem.calendar = this.superCalendar;
+        let parentItem = aItem.parentItem
+        parentItem.calendar = this.superCalendar;
 
-        aItem.makeImmutable();
-        this.mItems[aItem.id] = aItem;
+        parentItem.makeImmutable();
+        this.mItems[aItem.id] = parentItem;
 
         // notify the listener
         this.notifyOperationComplete(aListener,

@@ -1,5 +1,4 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -57,8 +56,8 @@ function QueryInterface(aIID) {
 
 calIcsParser.prototype.parseString =
 function ip_parseString(aICSString, aTzProvider) {
-    var rootComp = getIcsService().parseICS(aICSString, aTzProvider);
-    var calComp;
+    let rootComp = getIcsService().parseICS(aICSString, aTzProvider);
+    let calComp;
     // libical returns the vcalendar component if there is just one vcalendar.
     // If there are multiple vcalendars, it returns an xroot component, with
     // those vcalendar children. We need to handle both.
@@ -68,9 +67,9 @@ function ip_parseString(aICSString, aTzProvider) {
         calComp = rootComp.getFirstSubcomponent('VCALENDAR');
     }
 
-    var unexpandedItems = [];
-    var uid2parent = {};
-    var excItems = [];
+    let uid2parent = {};
+    let excItems = [];
+    let fakedParents = {};
 
     let tzErrors = {};
     function checkTimezone(item, dt) {
@@ -95,7 +94,7 @@ function ip_parseString(aICSString, aTzProvider) {
     while (calComp) {
 
         // Get unknown properties
-        var prop = calComp.getFirstProperty("ANY");
+        let prop = calComp.getFirstProperty("ANY");
         while (prop) {
             if (prop.propertyName != "VERSION" &&
                 prop.propertyName != "PRODID") {
@@ -104,15 +103,15 @@ function ip_parseString(aICSString, aTzProvider) {
             prop = calComp.getNextProperty("ANY");
         }
 
-        var prodId = calComp.getFirstProperty("PRODID");
-        var isFromOldSunbird;
+        let prodId = calComp.getFirstProperty("PRODID");
+        let isFromOldSunbird;
         if (prodId) {
             isFromOldSunbird = prodId.value == "-//Mozilla.org/NONSGML Mozilla Calendar V1.0//EN";
         }
 
-        var subComp = calComp.getFirstSubcomponent("ANY");
+        let subComp = calComp.getFirstSubcomponent("ANY");
         while (subComp) {
-            var item = null;
+            let item = null;
             switch (subComp.componentType) {
             case "VEVENT":
                 item = cal.createEvent();
@@ -144,9 +143,9 @@ function ip_parseString(aICSString, aTzProvider) {
                     item = fixOldSunbirdExceptions(item);
                 }
 
-                var rid = item.recurrenceId;
+                let rid = item.recurrenceId;
                 if (!rid) {
-                    unexpandedItems.push(item);
+                    this.mItems.push(item);
                     if (item.recurrenceInfo) {
                         uid2parent[item.id] = item;
                     }
@@ -162,19 +161,31 @@ function ip_parseString(aICSString, aTzProvider) {
     }
 
     // tag "exceptions", i.e. items with rid:
-    for each (var item in excItems) {
-        var parent = uid2parent[item.id];
-        if (parent) {
-            parent.recurrenceInfo.modifyException(item, true);
-        } else { // a parentless one
+    for each (let item in excItems) {
+        let parent = uid2parent[item.id];
+
+        if (!parent) { // a parentless one, fake a master and override it's occurrence
+            parent = isEvent(item) ? createEvent() : createTodo();
+            parent.id = item.id;
+            parent.setProperty("DTSTART", item.recurrenceId);
+            parent.setProperty("X-MOZ-FAKED-MASTER", "1"); // this tag might be useful in the future
+            parent.recurrenceInfo = cal.createRecurrenceInfo(parent);
+            fakedParents[item.id] = true;
+            uid2parent[item.id] = parent;
+            this.mItems.push(parent);
+        }
+        if (item.id in fakedParents) { 
+            let rdate = Components.classes["@mozilla.org/calendar/recurrence-date;1"]
+                                  .createInstance(Components.interfaces.calIRecurrenceDate);
+            rdate.date = item.recurrenceId;
+            parent.recurrenceInfo.appendRecurrenceItem(rdate);
+            // we'll keep the parentless-API until we switch over using itip-process for import (e.g. in dnd code)
             this.mParentlessItems.push(item);
         }
+
+        parent.recurrenceInfo.modifyException(item, true);
     }
     
-    for each (var item in unexpandedItems) {
-        this.mItems.push(item);
-    }
-
     for (let e in tzErrors) { // if any error has occurred
         // Use an alert rather than a prompt because problems may appear in
         // remote subscribed calendars the user cannot change.

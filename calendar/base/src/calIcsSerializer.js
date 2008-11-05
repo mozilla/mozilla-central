@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// Import
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 function calIcsSerializer() {
     this.wrappedJSObject = this;
@@ -102,6 +102,9 @@ function is_getIcalComponent() {
     var calComp = getIcsService().createIcalComponent("VCALENDAR");
     calSetProdidVersion(calComp);
 
+    // xxx todo: think about that the below code doesn't clone the properties/components,
+    //           thus ownership is moved to returned VCALENDAR...
+
     for each (var prop in this.mProperties) {
         calComp.addProperty(prop);
     }
@@ -109,18 +112,9 @@ function is_getIcalComponent() {
         calComp.addSubcomponent(comp);
     }
 
-    for each (var item in this.mItems) {
+    for each (let item in cal.itemIterator(this.mItems)) {
         calComp.addSubcomponent(item.icalComponent);
-        var rec = item.recurrenceInfo;
-        if (rec != null) {
-            var exceptions = rec.getExceptionIds({});
-            for each (var exid in exceptions) {
-                var ex = rec.getExceptionFor(exid, false);
-                if (ex != null) {
-                    calComp.addSubcomponent(ex.icalComponent);
-                }
-            }
-        }
     }
+
     return calComp;
 }

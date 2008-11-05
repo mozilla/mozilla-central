@@ -456,7 +456,8 @@ calDavCalendar.prototype = {
             return;
         }
 
-        var locationPath = this.getItemLocationPath(aItem);
+        let parentItem = aItem.parentItem;
+        var locationPath = this.getItemLocationPath(parentItem);
         var itemUri = this.makeUri(locationPath);
         LOG("CalDAV: itemUri.spec = " + itemUri.spec);
 
@@ -486,7 +487,7 @@ calDavCalendar.prototype = {
                 // for instance) so we'd best re-fetch in order to know
                 // the current state of the item
                 // Observers will be notified in getUpdatedItem()
-                thisCalendar.getUpdatedItem(aItem, aListener);
+                thisCalendar.getUpdatedItem(parentItem, aListener);
             } else {
                 if (status > 999) {
                     status = "0x" + status.toString(16);
@@ -496,8 +497,7 @@ calDavCalendar.prototype = {
             }
         };
 
-        aItem.calendar = this.superCalendar;
-        aItem.generation = 1;
+        parentItem.calendar = this.superCalendar;
 
         var httpchannel = calPrepHttpChannel(itemUri,
                                              this.getSerializedItem(aItem),

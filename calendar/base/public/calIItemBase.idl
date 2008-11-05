@@ -114,9 +114,6 @@ interface calIItemBase : nsISupports
   // last time a "significant change" was made to this item
   readonly attribute calIDateTime stampTime;
 
-  // indicate such a "significant change"
-  void updateStampTime();
-
   // the calICalendar to which this event belongs
   attribute calICalendar calendar;
 

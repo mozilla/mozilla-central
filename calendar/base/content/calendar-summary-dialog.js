@@ -36,6 +36,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
+
 function onLoad() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
@@ -74,8 +77,8 @@ function onLoad() {
         var attendee = calendar.getInvitedAttendee(item);
         if (attendee) {
             // if this is an unresponded invitation, preset our default alarm values:
-            if (attendee.participationStatus == "NEEDS-ACTION") {
-                setDefaultAlarmValues(item);
+            if (!item.alarmOffset && (attendee.participationStatus == "NEEDS-ACTION")) {
+                cal.setDefaultAlarmValues(item);
             }
 
             window.attendee = attendee.clone();

@@ -351,16 +351,16 @@ function loadDialog(item) {
     // figure out what the title of the dialog should be and set it
     updateTitle();
 
-    var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
+    let notifyCheckbox = document.getElementById("notify-attendees-checkbox");
     if (canNotifyAttendees(item.calendar, item)) {
         // visualize that the server will send out mail:
-        sendInvitesCheckbox.checked = true;
+        notifyCheckbox.checked = true;
     } else {
-        var itemProp = item.getProperty("X-MOZ-SEND-INVITATIONS");
-        sendInvitesCheckbox.checked = (item.calendar.getProperty("imip.identity") &&
-                                       ((itemProp === null)
-                                        ? getPrefSafe("calendar.itip.notify", true)
-                                        : (itemProp == "TRUE")));
+        let itemProp = item.getProperty("X-MOZ-SEND-INVITATIONS");
+        notifyCheckbox.checked = (item.calendar.getProperty("imip.identity") &&
+                                  ((itemProp === null)
+                                   ? getPrefSafe("calendar.itip.notify", true)
+                                   : (itemProp == "TRUE")));
     }
 
     updateAttendees();
@@ -1539,9 +1539,9 @@ function updateCalendar() {
     gIsReadOnly = calendar.readOnly;
 
     if (!canNotifyAttendees(calendar, item) && calendar.getProperty("imip.identity")) {
-        enableElement("send-invitations-checkbox");
+        enableElement("notify-attendees-checkbox");
     } else {
-        disableElement("send-invitations-checkbox");
+        disableElement("notify-attendees-checkbox");
     }
 
     // update the accept button
@@ -1889,11 +1889,11 @@ function saveItem() {
            item.addAttendee(attendee);
         }
 
-        var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
-        if (sendInvitesCheckbox.disabled || document.getElementById("event-grid-attendee-row-2").collapsed) {
+        let notifyCheckbox = document.getElementById("notify-attendees-checkbox");
+        if (notifyCheckbox.disabled || document.getElementById("event-grid-attendee-row-2").collapsed) {
             item.deleteProperty("X-MOZ-SEND-INVITATIONS");
         } else {
-            item.setProperty("X-MOZ-SEND-INVITATIONS", sendInvitesCheckbox.checked ? "TRUE" : "FALSE");
+            item.setProperty("X-MOZ-SEND-INVITATIONS", notifyCheckbox.checked ? "TRUE" : "FALSE");
         }
     }
 

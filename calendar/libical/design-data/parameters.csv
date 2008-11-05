@@ -18,6 +18,8 @@
 "ROLE","icalparameter_role","CHAIR;REQ-PARTICIPANT;OPT-PARTICIPANT;NON-PARTICIPANT"
 "RSVP","icalparameter_rsvp","TRUE;FALSE"
 "SENT-BY","const char*",
+"RECEIVED-SEQUENCE","const char*",
+"RECEIVED-DTSTAMP","const char*",
 "TZID","const char*",
 "VALUE","icalparameter_value","BINARY;BOOLEAN;DATE;DURATION;FLOAT;INTEGER;PERIOD;RECUR;TEXT;URI;ERROR;DATE-TIME;UTC-OFFSET;CAL-ADDRESS"
 "X","const char*",

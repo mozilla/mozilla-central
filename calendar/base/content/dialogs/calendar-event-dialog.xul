@@ -701,7 +701,7 @@
             </row>
             <row id="event-grid-attendee-row-2" align="center">
               <spacer/>
-              <checkbox id="send-invitations-checkbox"
+              <checkbox id="notify-attendees-checkbox"
                         class="lightning-only"
                         label="&newevent.attendees.notify.label;"
                         pack="start"/>

@@ -69,6 +69,12 @@ pref("calendar.previousweeks.inview", 0);
 // default transparency of allday items; could be switched to e.g. "OPAQUE":
 pref("calendar.allday.defaultTransparency", "TRANSPARENT");
 
+// whether "notify" is checked by default when creating new events/todos with attendees
+pref("calendar.itip.notify", true);
+
+// whether the organizer propagates replies of attendees
+pref("calendar.itip.notify-replies", false);
+
 // whether CalDAV (experimental) scheduling is enabled or not.
 pref("calendar.caldav.sched.enabled", false);
 

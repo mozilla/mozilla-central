@@ -184,11 +184,6 @@ const componentData =
      script: "calItipItem.js",
      constructor: "calItipItem"},
 
-    {cid: Components.ID("{9787876b-0780-4464-8282-b7f86fb221e8}"),
-     contractid: "@mozilla.org/calendar/itip-processor;1",
-     script: "calItipProcessor.js",
-     constructor: "calItipProcessor"},
-
     {cid: Components.ID("{1e2fc0e2-bf5f-4d60-9f1e-5e92cf517c0b}"),
      contractid: "@mozilla.org/network/protocol;1?name=webcal",
      script: "calProtocolHandler.js",

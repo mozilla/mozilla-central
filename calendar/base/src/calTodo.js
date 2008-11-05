@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -51,7 +50,6 @@ function calTodo() {
     this.todoPromotedProps = {
         "DTSTART": true,
         "DTEND": true,
-        "DTSTAMP": true,
         "DUE": true,
         "COMPLETED": true,
         __proto__: this.itemBasePromotedProps
@@ -202,6 +200,7 @@ calTodo.prototype = {
                 throw Components.results.NS_ERROR_INVALID_ARG;
         }
 
+        // xxx todo: Bug 463195 make sure object is properly reset
         this.setItemBaseFromICS(todo);
         this.mapPropsFromICS(todo, this.icsEventPropMap);
         this.mIsAllDay = this.mStartDate && this.mStartDate.isDate;

@@ -35,6 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 function onLoad() {
     var operationListener = {
         onOperationComplete: function oL_onOperationComplete(aCalendar,
@@ -114,8 +116,8 @@ function fillJobQueue(queue) {
             var newCalendarItem = oldCalendarItem.clone();
 
             // set default alarm on unresponded items that have not been declined:
-            if (oldStatus == "NEEDS-ACTION" && newStatus != "DECLINED") {
-                setDefaultAlarmValues(newCalendarItem);
+            if (!newCalendarItem.alarmOffset && (oldStatus == "NEEDS-ACTION") && (newStatus != "DECLINED")) {
+                cal.setDefaultAlarmValues(newCalendarItem);
             }
 
             richListItem.setCalendarItemParticipationStatus(newCalendarItem,

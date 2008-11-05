@@ -293,8 +293,10 @@ calProviderBase.prototype = {
     // nsIVariant getProperty(in AUTF8String aName);
     getProperty: function cPB_getProperty(aName) {
         switch (aName) {
-            case "itip.transport": // itip/imip default:
+            case "itip.transport": // iTIP/iMIP default:
                 return calGetImipTransport(this);
+            case "itip.notify-replies": // iTIP/iMIP default:
+                 return getPrefSafe("calendar.itip.notify-replies", false);
             // temporary hack to get the uncached calendar instance:
             case "cache.uncachedCalendar":
                 return this;

@@ -236,7 +236,6 @@ bin\calendar-js\calIcsParser.js
 bin\calendar-js\calIcsSerializer.js
 bin\calendar-js\calItemBase.js
 bin\calendar-js\calItipItem.js
-bin\calendar-js\calItipProcessor.js
 bin\calendar-js\calListFormatter.js
 bin\calendar-js\calMemoryCalendar.js
 bin\calendar-js\calMonthGridPrinter.js

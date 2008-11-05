@@ -37,35 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function opCompleteListener(aOriginalItem, aOuterListener) {
-    this.mOriginalItem = aOriginalItem;
-    this.mOuterListener = aOuterListener;
-}
-
-opCompleteListener.prototype = {
-    mOriginalItem: null,
-    mOuterListener: null,
-
-    onOperationComplete: function oCL_onOperationComplete(aCalendar, aStatus, aOpType, aId, aItem) {
-        if (Components.isSuccessCode(aStatus)) {
-            // we may optionally shift the whole check and send mail messages to
-            // calProviderBase.notifyOperationComplete (with adding an oldItem parameter).
-            // I am not yet sure what to do for mixed mode invitations, e.g.
-            // some users on the attendee list are caldav users and get REQUESTs into their inbox,
-            // other get emailed... For now let's do both.
-            checkAndSendItipMessage(aItem, aOpType, this.mOriginalItem);
-        }
-        if (this.mOuterListener) {
-            this.mOuterListener.onOperationComplete.apply(this.mOuterListener,
-                                                          arguments);
-        }
-    },
-
-    onGetItem: function oCL_onGetResult(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
-
-    }
-};
-
 /* all params are optional */
 function createEventWithDialog(calendar, startDate, endDate, summary, event, aForceAllday) {
     const kDefaultTimezone = calendarDefaultTimezone();
@@ -376,56 +347,6 @@ function promptOccurrenceModification(aItem, aNeedsFuture, aAction) {
     return [pastItem, futureItem, type];
 }
 
-/**
- * Read default alarm settings from user preferences and apply them to
- * the event/todo passed in.
- *
- * @param aItem   The event or todo the settings should be applied to.
- */
-function setDefaultAlarmValues(aItem)
-{
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefService);
-    var alarmsBranch = prefService.getBranch("calendar.alarms.");
-
-    if (isEvent(aItem)) {
-        try {
-            if (alarmsBranch.getIntPref("onforevents") == 1) {
-                var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
-                                            .createInstance(Components.interfaces.calIDuration);
-                var units = alarmsBranch.getCharPref("eventalarmunit");
-                alarmOffset[units] = alarmsBranch.getIntPref("eventalarmlen");
-                alarmOffset.isNegative = true;
-                aItem.alarmOffset = alarmOffset;
-                aItem.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
-            }
-        } catch (ex) {
-            Components.utils.reportError(
-                "Failed to apply default alarm settings to event: " + ex);
-        }
-    } else if (isToDo(aItem)) {
-        try {
-            if (alarmsBranch.getIntPref("onfortodos") == 1) {
-                // You can't have an alarm if the entryDate doesn't exist.
-                if (!aItem.entryDate) {
-                    aItem.entryDate = getSelectedDay() &&
-                                      getSelectedDay().clone() || now();
-                }
-                var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
-                                            .createInstance(Components.interfaces.calIDuration);
-                var units = alarmsBranch.getCharPref("todoalarmunit");
-                alarmOffset[units] = alarmsBranch.getIntPref("todoalarmlen");
-                alarmOffset.isNegative = true;
-                aItem.alarmOffset = alarmOffset;
-                aItem.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
-            }
-        } catch (ex) {
-            Components.utils.reportError(
-                "Failed to apply default alarm settings to task: " + ex);
-        }
-    }
-}
-
 // Undo/Redo code
 function getTransactionMgr() {
     return Components.classes["@mozilla.org/calendar/transactionmanager;1"]
@@ -433,12 +354,11 @@ function getTransactionMgr() {
 }
 
 function doTransaction(aAction, aItem, aCalendar, aOldItem, aListener) {
-    var innerListener = new opCompleteListener(aOldItem, aListener);
     getTransactionMgr().createAndCommitTxn(aAction,
                                            aItem,
                                            aCalendar,
                                            aOldItem,
-                                           innerListener);
+                                           aListener ? aListener : null);
     updateUndoRedoMenu();
 }
 
@@ -478,171 +398,3 @@ function updateUndoRedoMenu() {
     goUpdateCommand("cmd_undo");
     goUpdateCommand("cmd_redo");
 }
-
-/**
- * Checks to see if the attendees were added or changed between the original
- * and new item.  If there is a change, it launches the calIItipTransport
- * service and sends the invitations
- */
-function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
-    var transport = aItem.calendar.getProperty("itip.transport");
-    if (!transport) { // Only send if there's a transport for the calendar
-        return;
-    }
-    transport = transport.QueryInterface(Components.interfaces.calIItipTransport);
-
-    var invitedAttendee = ((calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport) &&
-                            aItem.calendar.isInvitation(aItem))
-                           ? aItem.calendar.getInvitedAttendee(aItem) : null);
-    if (invitedAttendee) { // actually is an invitation copy, fix attendee list to send REPLY
-        if (aItem.calendar.canNotify("REPLY", aItem)) {
-            return; // provider does that
-        }
-
-        var origInvitedAttendee = (aOriginalItem && aOriginalItem.getAttendeeById(invitedAttendee.id));
-
-        if (aOpType == Components.interfaces.calIOperationListener.DELETE) {
-            // in case the attendee has just deleted the item, we want to send out a DECLINED REPLY:
-            origInvitedAttendee = invitedAttendee;
-            invitedAttendee = invitedAttendee.clone();
-            invitedAttendee.participationStatus = "DECLINED";
-        }
-
-        // has this been a PARTSTAT change?
-        if (aItem.organizer &&
-            (!origInvitedAttendee ||
-             (origInvitedAttendee.participationStatus != invitedAttendee.participationStatus))) {
-
-            aItem = aItem.clone();
-            aItem.removeAllAttendees();
-            aItem.addAttendee(invitedAttendee);
-
-            var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
-                                     .createInstance(Components.interfaces.calIItipItem);
-            itipItem.init(calGetSerializedItem(aItem));
-            itipItem.targetCalendar = aItem.calendar;
-            itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
-            itipItem.responseMethod = "REPLY";
-            transport.sendItems(1, [aItem.organizer], itipItem);
-        }
-        return;
-    }
-
-    if (aItem.getProperty("X-MOZ-SEND-INVITATIONS") != "TRUE") { // Only send invitations/cancellations
-                                                                 // if the user checked the checkbox
-        return;
-    }
-
-    if (aOpType == Components.interfaces.calIOperationListener.DELETE) {
-        calSendItipMessage(transport, aItem, "CANCEL", aItem.getAttendees({}));
-        return;
-    } // else ADD, MODIFY:
-
-    var originalAtt = (aOriginalItem ? aOriginalItem.getAttendees({}) : []);
-    var itemAtt = aItem.getAttendees({});
-    var canceledAttendees = [];
-
-    if (itemAtt.length > 0 || originalAtt.length > 0) {
-        var attMap = {};
-        for each (var att in originalAtt) {
-            attMap[att.id.toLowerCase()] = att;
-        }
-
-        for each (var att in itemAtt) {
-            if (att.id.toLowerCase() in attMap) {
-                // Attendee was in original item.
-                delete attMap[att.id.toLowerCase()];
-            }
-        }
-
-        for each (var cancAtt in attMap) {
-            canceledAttendees.push(cancAtt);
-        }
-    }
-
-    var autoResponse = false; // confirm to send email
-
-    // Check to see if some part of the item was updated, if so, re-send invites
-    if (!aOriginalItem || aItem.generation != aOriginalItem.generation) { // REQUEST
-        var requestItem = aItem.clone();
-
-        if (!requestItem.organizer) {
-            var organizer = Components.classes["@mozilla.org/calendar/attendee;1"]
-                                      .createInstance(Components.interfaces.calIAttendee);
-            organizer.id = requestItem.calendar.getProperty("organizerId");
-            organizer.commonName = requestItem.calendar.getProperty("organizerCN");
-            organizer.role = "REQ-PARTICIPANT";
-            organizer.participationStatus = "ACCEPTED";
-            organizer.isOrganizer = true;
-            requestItem.organizer = organizer;
-        }
-
-        // Fix up our attendees for invitations using some good defaults
-        var recipients = [];
-        var itemAtt = requestItem.getAttendees({});
-        requestItem.removeAllAttendees();
-        for each (var attendee in itemAtt) {
-            attendee = attendee.clone();
-            attendee.role = "REQ-PARTICIPANT";
-            attendee.participationStatus = "NEEDS-ACTION";
-            attendee.rsvp = "TRUE";
-            requestItem.addAttendee(attendee);
-            recipients.push(attendee);
-        }
-
-        if (recipients.length > 0) {
-            calSendItipMessage(transport, requestItem, "REQUEST", recipients, autoResponse);
-            autoResponse = true; // don't ask again
-        }
-    }
-
-    // Cancel the event for all canceled attendees
-    if (canceledAttendees.length > 0) {
-        var cancelItem = aOriginalItem.clone();
-        cancelItem.removeAllAttendees();
-        for each (var att in canceledAttendees) {
-            cancelItem.addAttendee(att);
-        }
-        calSendItipMessage(transport, cancelItem, "CANCEL", canceledAttendees, autoResponse);
-    }
-}
-
-function calSendItipMessage(aTransport, aItem, aMethod, aRecipientsList, autoResponse) {
-    if (aRecipientsList.length == 0) {
-        return;
-    }
-    if (calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport) &&
-        aItem.calendar.canNotify(aMethod, aItem)) {
-        return; // provider will handle that
-    }
-
-    var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
-                             .createInstance(Components.interfaces.calIItipItem);
-
-    // We have to modify our item a little, so we clone it.
-    var item = aItem.clone();
-
-    // We fake Sequence ID support.
-    item.setProperty("SEQUENCE", item.generation);
-
-    // Initialize and set our properties on the item
-    itipItem.init(calGetSerializedItem(item));
-    itipItem.responseMethod = aMethod;
-    itipItem.targetCalendar = item.calendar;
-    itipItem.autoResponse = (autoResponse
-                             ? Components.interfaces.calIItipItem.AUTO
-                             : Components.interfaces.calIItipItem.USER);
-    // XXX I don't know whether the below are used at all, since we don't use the itip processor
-    itipItem.isSend = true;
-
-    // Send it!
-    aTransport.sendItems(aRecipientsList.length, aRecipientsList, itipItem);
-}
-
-function calGetSerializedItem(aItem) {
-    var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
-                               .createInstance(Components.interfaces.calIIcsSerializer);
-    serializer.addItems([aItem], 1);
-    return serializer.serializeToString();
-}
-

@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -137,15 +136,17 @@ calItemBase.prototype = {
     },
 
     ensureNotDirty: function() {
-        if (!this.mDirty)
+        if (!this.mDirty) {
             return;
-
+        }
         if (this.mImmutable) {
             dump ("### Something tried to undirty a dirty immutable event!\n");
             throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
         }
 
-        this.setProperty("LAST-MODIFIED", jsDateToDateTime(new Date()));
+        var now = jsDateToDateTime(new Date());
+        this.setProperty("LAST-MODIFIED", now);
+        this.setProperty("DTSTAMP", now.clone());
         this.mDirty = false;
     },
 
@@ -202,9 +203,7 @@ calItemBase.prototype = {
         this.mProperties = new calPropertyBag();
         this.mPropertyParams = {};
 
-        this.setProperty("CREATED", now.clone());
-        this.setProperty("LAST-MODIFIED", now.clone());
-        this.setProperty("DTSTAMP", now);
+        this.setProperty("CREATED", now);
 
         this.mAttendees = null;
 
@@ -222,8 +221,6 @@ calItemBase.prototype = {
     // for subclasses to use; copies the ItemBase's values
     // into m. aNewParent is optional
     cloneItemBaseInto: function (m, aNewParent) {
-        this.ensureNotDirty();
-
         m.mImmutable = false;
         m.mIsProxy = this.mIsProxy;
         m.mParentItem = (calTryWrappedJSObject(aNewParent) || this.mParentItem);
@@ -269,8 +266,6 @@ calItemBase.prototype = {
             }
         }
 
-        m.mDirty = false;
-
         if (this.mAttachments) {
             m.mAttachments = this.mAttachments.concat([]);
         }
@@ -295,6 +290,8 @@ calItemBase.prototype = {
             m.alarmLastAck = null;
         }
         m.alarmRelated = this.alarmRelated;
+
+        m.mDirty = this.mDirty;
 
         return m;
     },
@@ -331,19 +328,8 @@ calItemBase.prototype = {
     },
 
     get stampTime() {
-        var prop = this.getProperty("DTSTAMP");
-        if (prop && prop.isValid)
-            return prop;
-        return this.getProperty("LAST-MODIFIED");
-    },
-
-    updateStampTime: function() {
-        // can't update the stamp time on an immutable event
-        if (this.mImmutable)
-            return;
-
-        this.modify();
-        this.setProperty("DTSTAMP", jsDateToDateTime(new Date()));
+        this.ensureNotDirty();
+        return this.getProperty("DTSTAMP");
     },
 
     get propertyEnumerator() {
@@ -410,26 +396,28 @@ calItemBase.prototype = {
     },
 
     setProperty: function (aName, aValue) {
-        if (aName == "LAST-MODIFIED") {
-            this.mDirty = false;
-        } else {
-            this.modify();
-        }
+        this.modify();
+        aName = aName.toUpperCase();
         if (aValue || !isNaN(parseInt(aValue, 10))) {
-            this.mProperties.setProperty(aName.toUpperCase(), aValue);
+            this.mProperties.setProperty(aName, aValue);
         } else {
             this.deleteProperty(aName);
+        }
+        if (aName == "LAST-MODIFIED") {
+            // setting LAST-MODIFIED cleans/undirties the item, we use this for preserving DTSTAMP
+            this.mDirty = false;
         }
     },
 
     deleteProperty: function (aName) {
         this.modify();
+        aName = aName.toUpperCase();
         if (this.mIsProxy) {
             // deleting a proxy's property will mark the bag's item as null, so we could
             // distinguish it when enumerating/getting properties from the undefined ones.
-            this.mProperties.setProperty(aName.toUpperCase(), null);
+            this.mProperties.setProperty(aName, null);
         } else {
-            this.mProperties.deleteProperty(aName.toUpperCase());
+            this.mProperties.deleteProperty(aName);
         }
     },
 
@@ -639,7 +627,8 @@ calItemBase.prototype = {
         "ATTACH": true,
         "CATEGORIES": true,
         "ORGANIZER": true,
-        "RECURRENCE-ID": true
+        "RECURRENCE-ID": true,
+        "X-MOZ-LASTACK": true
     },
 
     icsBasePropMap: [
@@ -823,8 +812,6 @@ calItemBase.prototype = {
     },
 
     fillIcalComponentFromBase: function (icalcomp) {
-        // Make sure that the LMT and ST are updated
-        this.updateStampTime();
         this.ensureNotDirty();
 
         this.mapPropsToICS(icalcomp, this.icsBasePropMap);
