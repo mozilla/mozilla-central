@@ -53,10 +53,6 @@ const calIOperationListener = Components.interfaces.calIOperationListener;
 const calICalendar = Components.interfaces.calICalendar;
 const calIErrors = Components.interfaces.calIErrors;
 
-var appInfo = Components.classes["@mozilla.org/xre/app-info;1"].
-                         getService(Components.interfaces.nsIXULAppInfo);
-var isOnBranch = appInfo.platformVersion.indexOf("1.8") == 0;
-
 function calICSCalendar() {
     this.initProviderBase();
     this.initICSCalendar();
@@ -173,12 +169,8 @@ calICSCalendar.prototype = {
         this.lock();
 
         try {
-            if (isOnBranch) {
-                streamLoader.init(channel, this, this);
-            } else {
-                streamLoader.init(this);
-                channel.asyncOpen(streamLoader, this);
-            }
+            streamLoader.init(this);
+            channel.asyncOpen(streamLoader, this);
         } catch(e) {
             // File not found: a new calendar. No problem.
             this.unlock();

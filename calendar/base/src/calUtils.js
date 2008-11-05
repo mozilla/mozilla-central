@@ -682,24 +682,19 @@ function calGetStringArray(aBundleName, aStringNames, aParams, aComponent) {
     return retArray;
 }
 
-
-/** Returns a best effort at making a UUID.  If we have the UUIDGenerator
- * service available, we'll use that.  If we're somewhere where it doesn't
- * exist, like Lightning in TB 1.5, we'll just use the current time.
+/**
+ * Make a UUID using the UUIDGenerator service available, we'll use that.
  */
 function getUUID() {
-    if ("@mozilla.org/uuid-generator;1" in Components.classes) {
-        var uuidGen = Components.classes["@mozilla.org/uuid-generator;1"].
-                      getService(Components.interfaces.nsIUUIDGenerator);
-        // generate uuids without braces to avoid problems with
-        // CalDAV servers that don't support filenames with {}
-        return uuidGen.generateUUID().toString().replace(/[{}]/g, '');
-    }
-    // No uuid service (we're on the 1.8.0 branch)
-    return "uuid" + (new Date()).getTime();
+    var uuidGen = Components.classes["@mozilla.org/uuid-generator;1"]
+                  .getService(Components.interfaces.nsIUUIDGenerator);
+    // generate uuids without braces to avoid problems with
+    // CalDAV servers that don't support filenames with {}
+    return uuidGen.generateUUID().toString().replace(/[{}]/g, '');
 }
 
-/** Due to a bug in js-wrapping, normal == comparison can fail when we
+/**
+ * Due to a bug in js-wrapping, normal == comparison can fail when we
  * have 2 objects.  Use these functions to force them both to get wrapped
  * the same way, allowing for normal comparison.
  */
