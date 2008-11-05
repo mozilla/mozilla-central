@@ -22,8 +22,8 @@
  Contributor(s):
 
  Alternatively, the contents of this file may be used under the terms of
- either of the GNU General Public License Version 2 or later (the "GPL"),
- or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ either the GNU General Public License Version 2 or later (the "GPL"), or
+ the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  in which case the provisions of the GPL or the LGPL are applicable instead
  of those above. If you wish to allow use of your version of this file only
  under the terms of either the GPL or the LGPL, and not to allow others to
@@ -73,17 +73,21 @@
 <!ENTITY SecondEmail.label              "Additional Email:">
 <!ENTITY SecondEmail.accesskey          "i">
 <!ENTITY PreferMailFormat.label         "Prefers to receive messages formatted as:">
-<!ENTITY PreferMailFormat.accesskey     "r">
+<!ENTITY PreferMailFormat.accesskey     "v">
 <!ENTITY PlainText.label                "Plain Text">
 <!ENTITY HTML.label                     "HTML">
 <!ENTITY Unknown.label                  "Unknown">
 <!ENTITY ScreenName.label               "Screen Name:">
 <!ENTITY ScreenName.accesskey           "S">
 
-<!ENTITY allowRemoteContent.label       "Allow remote images in HTML mail.">
-<!ENTITY allowRemoteContent.accesskey   "w">
+<!ENTITY allowRemoteContent.label       "Allow remote images.">
+<!ENTITY allowRemoteContent.accesskey   "r">
+<!ENTITY allowRemoteContent.tooltip     "In HTML messages it is possible to
+embed images from remote sources. Opening such a message will open a
+connection to this external source. This may allow tracking of the
+message being read. Checking this box will allow such external embedded
+images in HTML messages from this contact.">
 
-<!ENTITY Phones.box                     "Phones">
 <!ENTITY WorkPhone.label                "Work:">
 <!ENTITY WorkPhone.accesskey            "k">
 <!ENTITY HomePhone.label                "Home:">
@@ -91,15 +95,14 @@
 <!ENTITY FaxNumber.label                "Fax:">
 <!ENTITY FaxNumber.accesskey            "x">
 <!ENTITY PagerNumber.label              "Pager:">
-<!ENTITY PagerNumber.accesskey          "P">
+<!ENTITY PagerNumber.accesskey          "g">
 <!ENTITY CellularNumber.label           "Mobile:">
 <!ENTITY CellularNumber.accesskey       "M">
 
-<!ENTITY Address.tab                    "Address">
-<!ENTITY Address.accesskey              "A">
-<!ENTITY Home.box                       "Home">
+<!ENTITY Home.tab                       "Private">
+<!ENTITY Home.accesskey                 "P">
 <!ENTITY HomeAddress.label              "Address:">
-<!ENTITY HomeAddress.accesskey          "d">
+<!ENTITY HomeAddress.accesskey          "A">
 <!ENTITY HomeAddress2.label             "">
 <!ENTITY HomeAddress2.accesskey         "">
 <!ENTITY HomeCity.label                 "City:">
@@ -111,28 +114,30 @@
 <!ENTITY HomeCountry.label              "Country:">
 <!ENTITY HomeCountry.accesskey          "u">
 <!ENTITY HomeWebPage.label              "Web Page:">
-<!ENTITY HomeWebPage.accesskey          "W">
-<!ENTITY Work.box                       "Work">
+<!ENTITY HomeWebPage.accesskey          "e">
+
+<!ENTITY Work.tab                       "Work">
+<!ENTITY Work.accesskey                 "W">
 <!ENTITY JobTitle.label                 "Title:">
-<!ENTITY JobTitle.accesskey             "e">
+<!ENTITY JobTitle.accesskey             "i">
 <!ENTITY Department.label               "Department:">
 <!ENTITY Department.accesskey           "m">
 <!ENTITY Company.label                  "Organization:">
 <!ENTITY Company.accesskey              "O">
 <!ENTITY WorkAddress.label              "Address:">
-<!ENTITY WorkAddress.accesskey          "r">
+<!ENTITY WorkAddress.accesskey          "A">
 <!ENTITY WorkAddress2.label             "">
 <!ENTITY WorkAddress2.accesskey         "">
 <!ENTITY WorkCity.label                 "City:">
-<!ENTITY WorkCity.accesskey             "i">
+<!ENTITY WorkCity.accesskey             "y">
 <!ENTITY WorkState.label                "State/Province:">
-<!ENTITY WorkState.accesskey            "v">
+<!ENTITY WorkState.accesskey            "S">
 <!ENTITY WorkZipCode.label              "ZIP/Postal Code:">
-<!ENTITY WorkZipCode.accesskey          "P">
+<!ENTITY WorkZipCode.accesskey          "Z">
 <!ENTITY WorkCountry.label              "Country:">
-<!ENTITY WorkCountry.accesskey          "n">
+<!ENTITY WorkCountry.accesskey          "u">
 <!ENTITY WorkWebPage.label              "Web Page:">
-<!ENTITY WorkWebPage.accesskey          "b">
+<!ENTITY WorkWebPage.accesskey          "e">
 
 <!ENTITY Other.tab                      "Other">
 <!ENTITY Other.accesskey                "h">
@@ -149,5 +154,5 @@
 <!ENTITY Custom3.accesskey              "3">
 <!ENTITY Custom4.label                  "Custom 4:">
 <!ENTITY Custom4.accesskey              "4">
-<!ENTITY Notes.box                      "Notes">
+<!ENTITY Notes.label                    "Notes:">
 <!ENTITY Notes.accesskey                "N">

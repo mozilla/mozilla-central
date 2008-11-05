@@ -47,21 +47,27 @@
 /* ::::: Card Edit dialog ::::: */
 
 .CardEditWidth {
-  width: 25em;
+  width: 42ch;
 }
 
-.CardEditLabel {
-  padding: 0px;
-  margin-top: 3px;
+.PhoneEditWidth {
+  width: 24ch;
 }
 
-.alignBoxWithFieldset {
-  -moz-margin-start: 6px;
-  -moz-margin-end: 5px;
+.AddressCardEditWidth {
+  width: 72ch;
+}
+
+.YearWidth {
+  width: 8ch;
 }
 
 .stateZipSpacer {
-  width: 3em;
+  width: 6ch;
+}
+
+.ZipWidth {
+  width: 14ch;
 }
 
 /* ::::: List dialogs ::::: */
