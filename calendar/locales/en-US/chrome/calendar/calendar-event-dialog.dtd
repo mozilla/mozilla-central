@@ -385,6 +385,7 @@
 <!ENTITY read.only.reply.label           "Reply:">
 <!ENTITY read.only.accept.label          "I will attend">
 <!ENTITY read.only.decline.label         "I will not attend">
+<!ENTITY read.only.tentative.label       "I might attend">
 <!ENTITY read.only.needs.action.label    "I will confirm later">
 <!ENTITY read.only.reminder.label        "Reminder:">
 <!ENTITY read.only.attendees.label       "Attendees">

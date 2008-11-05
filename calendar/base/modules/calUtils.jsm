@@ -128,6 +128,22 @@ let cal = {
     },
 
     /**
+     * Shortcut function to check whether an item is an invitation copy and
+     * has a participation status of either NEEDS-ACTION or TENTATIVE.
+     */
+    isOpenInvitation: function cal_isOpenInvitation(aItem) {
+        let att = cal.getInvitedAttendee(aItem);
+        if (att) {
+            switch (att.participationStatus) {
+                case "NEEDS-ACTION":
+                case "TENTATIVE":
+                    return true;
+            }
+        }
+        return false;
+    },
+
+    /**
      * Shortcut function to get the invited attendee of an item.
      */
     getInvitedAttendee: function cal_getInvitedAttendee(aItem, aCalendar) {

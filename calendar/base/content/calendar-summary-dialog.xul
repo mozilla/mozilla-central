@@ -132,6 +132,7 @@
             <menulist id="item-participation" oncommand="updateInvitation()">
               <menupopup>
                 <menuitem label="&read.only.accept.label;" value="ACCEPTED"/>
+                <menuitem label="&read.only.tentative.label;" value="TENTATIVE"/>
                 <menuitem label="&read.only.decline.label;" value="DECLINED"/>
                 <menuitem label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
               </menupopup>

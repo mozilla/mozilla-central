@@ -36,6 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
 
 var gInvitationsRequestManager = {
@@ -300,7 +301,7 @@ InvitationsManager.prototype = {
 
     addItem: function IM_addItem(item) {
         var recInfo = item.recurrenceInfo;
-        if (recInfo && this.getParticipationStatus(item) != "NEEDS-ACTION") {
+        if (recInfo && !cal.isOpenInvitation(item)) {
             // scan exceptions:
             var ids = recInfo.getExceptionIds({});
             for each (var id in ids) {
@@ -350,17 +351,8 @@ InvitationsManager.prototype = {
             !item.calendar.isInvitation(item)) {
             return false; // exclude if organizer has invited himself
         }
-        var participationStatus = this.getParticipationStatus(item);
         var start = item[calGetStartDateProp(item)] || item[calGetEndDateProp(item)];
-        return (participationStatus == "NEEDS-ACTION" &&
+        return (cal.isOpenInvitation(item) &&
                 start.compare(this.mStartDate) >= 0);
-    },
-
-    getParticipationStatus: function IM_getParticipationStatus(item) {
-        var attendee;
-        if (calInstanceOf(item.calendar, Components.interfaces.calISchedulingSupport)) {
-            var attendee = item.calendar.getInvitedAttendee(item);
-        }
-        return (attendee ? attendee.participationStatus : null);
     }
 };
