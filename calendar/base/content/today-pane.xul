@@ -190,7 +190,9 @@
                                orient="horizontal"
                                label="&calendar.newevent.button.label;"
                                tooltiptext="&calendar.newevent.button.tooltip;"
-                               oncommand="agendaListbox.createNewEvent(event)"/>
+                               oncommand="agendaListbox.createNewEvent(event)">
+                  <observes element="calendar_new_event_command" attribute="disabled"/>
+                </toolbarbutton>
              </toolbar>
              <popup id="agenda-menu" onpopupshowing="if (event.target == event.currentTarget) { agendaListbox.buildAgendaPopupMenu(this) }"/>
              <vbox id="agenda-menu-box" hidden="true">
