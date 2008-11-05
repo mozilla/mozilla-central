@@ -59,6 +59,7 @@
 #include "nsDateTimeFormatCID.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "nsIMsgFilterService.h"
 #include "prmem.h"
 
 static const char *kImapPrefix = "//imap:";
@@ -161,6 +162,44 @@ NS_IMETHODIMP
 nsMsgRuleAction::GetStrValue(nsACString &aStrValue)
 {
   aStrValue = m_strValue;
+  return NS_OK;
+}
+
+/* attribute ACString customId; */
+NS_IMETHODIMP nsMsgRuleAction::GetCustomId(nsACString & aCustomId)
+{
+  aCustomId = m_customId;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgRuleAction::SetCustomId(const nsACString & aCustomId)
+{
+  m_customId = aCustomId;
+  return NS_OK;
+}
+
+// this can only be called after the customId is set
+NS_IMETHODIMP nsMsgRuleAction::GetCustomAction(nsIMsgFilterCustomAction **aCustomAction)
+{
+  NS_ENSURE_ARG_POINTER(aCustomAction);
+  if (!m_customAction)
+  {
+    if (m_customId.IsEmpty())
+    {
+      NS_ERROR("Need to set CustomId");
+      return NS_ERROR_NOT_INITIALIZED;
+    }
+    nsresult rv;
+    nsCOMPtr<nsIMsgFilterService> filterService =
+        do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = filterService->GetCustomAction(m_customId, getter_AddRefs(m_customAction));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  // found the correct custom action
+  NS_ADDREF(*aCustomAction = m_customAction);
   return NS_OK;
 }
 
@@ -538,6 +577,19 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
 
       buffer += NS_ConvertUTF16toUTF8(logMoveStr);
     }
+    else if (actionType == nsMsgFilterAction::Custom)
+    {
+      nsCOMPtr<nsIMsgFilterCustomAction> customAction;
+      nsAutoString filterActionName;
+      rv = aFilterAction->GetCustomAction(getter_AddRefs(customAction));
+      if (NS_SUCCEEDED(rv) && customAction)
+        customAction->GetName(filterActionName);
+      if (filterActionName.IsEmpty())
+        bundle->GetStringFromName(
+                  NS_LITERAL_STRING("filterMissingCustomAction").get(),
+                  getter_Copies(filterActionName));
+      buffer += NS_ConvertUTF16toUTF8(filterActionName);
+    }
     else
     {
       nsString actionValue;
@@ -808,6 +860,20 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
         err = filterList->WriteStrAttr(nsIMsgFilterList::attribActionValue, strValue.get(), aStream);
       }
       break;
+      case nsMsgFilterAction::Custom:
+      {
+        nsCAutoString id;
+        action->GetCustomId(id);
+        err = filterList->WriteStrAttr(nsIMsgFilterList::attribCustomId, id.get(), aStream);
+        nsCAutoString strValue;
+        action->GetStrValue(strValue);
+        if (strValue.Length())
+          err = filterList->WriteWstrAttr(nsIMsgFilterList::attribActionValue,
+                                          NS_ConvertUTF8toUTF16(strValue).get(),
+                                          aStream);
+      }
+      break;
+
       default:
         break;
     }
@@ -887,6 +953,7 @@ static struct RuleActionsTableEntry ruleActionsTable[] =
   { nsMsgFilterAction::JunkScore,               "JunkScore"},
   { nsMsgFilterAction::FetchBodyFromPop3Server, "Fetch body from Pop3Server"},
   { nsMsgFilterAction::AddTag,                  "AddTag"},
+  { nsMsgFilterAction::Custom,                  "Custom"},
 };
 
 const char *nsMsgFilter::GetActionStr(nsMsgRuleActionType action)

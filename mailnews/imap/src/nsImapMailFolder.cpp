@@ -124,6 +124,7 @@
 #include "nsArrayUtils.h"
 #include "nsArrayEnumerator.h"
 #include "nsAutoSyncManager.h"
+#include "nsIMsgFilterCustomAction.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
@@ -3336,6 +3337,25 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         {
           // don't apply any more filters
           *applyMore = PR_FALSE;
+        }
+        break;
+
+        case nsMsgFilterAction::Custom:
+        {
+          nsCOMPtr<nsIMsgFilterCustomAction> customAction;
+          rv = filterAction->GetCustomAction(getter_AddRefs(customAction));
+          NS_ENSURE_SUCCESS(rv, rv);
+
+          nsCAutoString value;
+          filterAction->GetStrValue(value);
+
+          nsCOMPtr<nsIMutableArray> messageArray(
+              do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+          NS_ENSURE_TRUE(messageArray, rv);
+          messageArray->AppendElement(msgHdr, PR_FALSE);
+
+          customAction->Apply(messageArray, value, nsnull,
+                              nsMsgFilterType::InboxRule, msgWindow);
         }
         break;
 

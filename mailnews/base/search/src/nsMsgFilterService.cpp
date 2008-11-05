@@ -71,6 +71,8 @@
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 #include "nsCOMArray.h"
+#include "nsIMsgFilterCustomAction.h"
+#include "nsArrayEnumerator.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgFilterService, nsIMsgFilterService)
 
@@ -752,6 +754,24 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
       }
       break;
 
+      case nsMsgFilterAction::Custom:
+      {
+        nsCOMPtr<nsIMsgFilterCustomAction> customAction;
+        rv = filterAction->GetCustomAction(getter_AddRefs(customAction));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsCAutoString value;
+        filterAction->GetStrValue(value);
+        customAction->Apply(m_searchHitHdrs, value, this,
+                            nsMsgFilterType::Manual, m_msgWindow);
+
+        PRBool isAsync = PR_FALSE;
+        customAction->GetIsAsync(&isAsync);
+        if (isAsync)
+          return NS_OK;
+      }
+      break;
+
       default:
         break;
       }
@@ -784,6 +804,35 @@ NS_IMETHODIMP nsMsgFilterService::ApplyFiltersToFolders(nsIMsgFilterList *aFilte
     return NS_ERROR_OUT_OF_MEMORY;
 }
 
+NS_IMETHODIMP nsMsgFilterService::AddCustomAction(nsIMsgFilterCustomAction *aAction)
+{
+  mCustomActions.AppendObject(aAction);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgFilterService::GetCustomActions(nsISimpleEnumerator** aResult)
+{
+  return NS_NewArrayEnumerator(aResult, mCustomActions);
+}
+
+NS_IMETHODIMP 
+nsMsgFilterService::GetCustomAction(const nsACString & aId,
+                                    nsIMsgFilterCustomAction** aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  for (PRInt32 i = 0; i < mCustomActions.Count(); i++)
+  {
+    nsCAutoString id;
+    nsresult rv = mCustomActions[i]->GetId(id);
+    if (NS_SUCCEEDED(rv) && aId.Equals(id))
+    {
+      NS_ADDREF(*aResult = mCustomActions[i]);
+      return NS_OK;
+    }
+  }
+  aResult = nsnull;
+  return NS_ERROR_FAILURE;
+}
 
 // nsMsgApplyFiltersToMessages overrides nsMsgFilterAfterTheFact in order to
 // apply filters to a list of messages, rather than an entire folder

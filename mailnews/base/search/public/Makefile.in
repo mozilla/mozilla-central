@@ -71,6 +71,7 @@ XPIDLSRCS	= \
 		nsIMsgSearchValidityManager.idl \
 		nsMsgFilterCore.idl \
 		nsMsgSearchCore.idl \
+		nsIMsgFilterCustomAction.idl \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

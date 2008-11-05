@@ -412,7 +412,8 @@ static FilterFileAttribEntry FilterFileAttribTable[] =
   {nsIMsgFilterList::attribScriptFile,  "scriptName"},
   {nsIMsgFilterList::attribAction,    "action"},
   {nsIMsgFilterList::attribActionValue,  "actionValue"},
-  {nsIMsgFilterList::attribCondition,    "condition"}
+  {nsIMsgFilterList::attribCondition,    "condition"},
+  {nsIMsgFilterList::attribCustomId,  "customId"},
 };
 
 // If we want to buffer file IO, wrap it in here.
@@ -716,8 +717,10 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
 #endif
             currentFilterAction->SetJunkScore(junkScore);
         }
-        else if (type == nsMsgFilterAction::Forward || type == nsMsgFilterAction::Reply
-          || type == nsMsgFilterAction::AddTag)
+        else if (type == nsMsgFilterAction::Forward ||
+                 type == nsMsgFilterAction::Reply ||
+                 type == nsMsgFilterAction::AddTag ||
+                 type == nsMsgFilterAction::Custom)
         {
           currentFilterAction->SetStrValue(value);
         }
@@ -744,6 +747,14 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         NS_ENSURE_SUCCESS(err, err);
       }
       break;
+    case nsIMsgFilterList::attribCustomId:
+      if (m_curFilter && currentFilterAction)
+      {
+        err = currentFilterAction->SetCustomId(value);
+        NS_ENSURE_SUCCESS(err, err);
+      }
+      break;
+
     }
   } while (NS_SUCCEEDED(aStream->Available(&bytesAvailable)));
 

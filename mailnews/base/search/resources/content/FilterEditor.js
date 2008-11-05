@@ -24,6 +24,7 @@
  *   Håkan Waara <hwaara@chello.se>
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Mark Banner <mark@standard8.demon.co.uk>
+ *   Kent James <kent@caspia.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -55,6 +56,8 @@ var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
 var gPrefBranch;
 var gMailSession = null;
 var gFilterActionList;
+var gCustomActions = null;
+var gFilterType;
 
 var gFilterActionStrings = ["none", "movemessage", "setpriorityto", "deletemessage", 
                             "markasread", "ignorethread", "watchthread", "markasflagged",
@@ -69,6 +72,7 @@ var gFilterEditorMsgWindow = null;
 
 function filterEditorOnLoad()
 {
+  getCustomActions();
   initializeSearchWidgets();
   initializeFilterWidgets();
 
@@ -113,7 +117,9 @@ function filterEditorOnLoad()
         // the default action for news filters is Delete
         // for everything else, it's MoveToFolder
         var filterAction = gFilter.createAction();
-        filterAction.type = (getScopeFromFilterList(gFilterList) == Components.interfaces.nsMsgSearchScope.newsFilter) ? nsMsgFilterAction.Delete : nsMsgFilterAction.MoveToFolder;
+        filterAction.type = (getScopeFromFilterList(gFilterList) ==
+            Components.interfaces.nsMsgSearchScope.newsFilter) ?
+            nsMsgFilterAction.Delete : nsMsgFilterAction.MoveToFolder;
         gFilter.appendAction(filterAction);
         initializeDialog(gFilter);
       }
@@ -124,9 +130,6 @@ function filterEditorOnLoad()
       }
     }
   }
-
-  // in the case of a new filter, we may not have an action row yet.
-  ensureActionRow();
 
   if (!gFilter)
   {
@@ -141,7 +144,12 @@ function filterEditorOnLoad()
       name = stub + " " + count.toString();
     }
     gFilterNameElement.value = name;
+    gFilterContext.selectedIndex = 2; // both
   }
+
+  // in the case of a new filter, we may not have an action row yet.
+  ensureActionRow();
+  updateFilterType();
 
   gFilterNameElement.select();
   // This call is required on mac and linux.  It has no effect under win32.  See bug 94800.
@@ -252,7 +260,9 @@ function initializeDialog(filter)
     newActionRow.setAttribute('initialActionIndex', actionIndex);
     newActionRow.className = 'ruleaction';
     gFilterActionList.appendChild(newActionRow);
-    newActionRow.setAttribute('value', gFilterActionStrings[filterAction.type]);    
+    newActionRow.setAttribute('value',
+        filterAction.type == Components.interfaces.nsMsgFilterAction.Custom ?
+        filterAction.customId : gFilterActionStrings[filterAction.type]);
   }
 
   var scope = getScope(filter);
@@ -277,7 +287,6 @@ function saveFilter()
 {
   var isNewFilter;
   var filterAction; 
-  var targetUri;
 
   var filterName= gFilterNameElement.value;
   if (!filterName || filterName == "") 
@@ -337,23 +346,7 @@ function saveFilter()
   for (index = 0; index < gFilterActionList.getRowCount(); index++)
     gFilterActionList.getItemAtIndex(index).saveToFilter(gFilter);
 
-  var contextIndex = gFilterContext.selectedIndex;
-  if (contextIndex < 0 || contextIndex == 1)
-  {
-    gFilter.filterType = Components.interfaces.nsMsgFilterType.None;
-  }
-  else
-  {
-    if (getScope(gFilter) == Components.interfaces.nsMsgSearchScope.newsFilter)
-      gFilter.filterType = Components.interfaces.nsMsgFilterType.NewsRule;
-    else
-      gFilter.filterType = Components.interfaces.nsMsgFilterType.InboxRule;
-  }
-  if (contextIndex > 0)
-    gFilter.filterType |= Components.interfaces.nsMsgFilterType.Manual;
-  if (gFilter.filterType == Components.interfaces.nsMsgFilterType.None)
-    gFilter.enabled = false;
-
+  updateFilterType();
   saveSearchTerms(gFilter.searchTerms, gFilter);
 
   if (isNewFilter) 
@@ -455,3 +448,48 @@ function doHelpButton()
   openHelp("mail-filters");
 }
 
+function getCustomActions()
+{
+  if (!gCustomActions)
+  {
+    gCustomActions = [];
+    var filterService = Components.classes[
+                        "@mozilla.org/messenger/services/filters;1"]
+                        .getService(Components.interfaces.nsIMsgFilterService);
+
+    var customActionsEnum = filterService.getCustomActions();
+    while (customActionsEnum.hasMoreElements())
+      gCustomActions.push(customActionsEnum.getNext().QueryInterface(
+                           Components.interfaces.nsIMsgFilterCustomAction));
+  }
+}
+
+function updateFilterType()
+{
+  var contextIndex = gFilterContext.selectedIndex;
+  if (contextIndex < 0 || contextIndex == 1)
+  {
+    gFilterType = Components.interfaces.nsMsgFilterType.None;
+  }
+  else
+  {
+    if (getScopeFromFilterList(gFilterList) == Components.interfaces.nsMsgSearchScope.newsFilter)
+      gFilterType = Components.interfaces.nsMsgFilterType.NewsRule;
+    else
+      gFilterType = Components.interfaces.nsMsgFilterType.InboxRule;
+  }
+  if (contextIndex > 0)
+    gFilterType |= Components.interfaces.nsMsgFilterType.Manual;
+
+  if (gFilter)
+  {
+    gFilter.filterType = gFilterType;
+    if (gFilter.filterType == Components.interfaces.nsMsgFilterType.None)
+      gFilter.enabled = false;
+  }
+
+  // set valid actions
+  var ruleActions = gFilterActionList.getElementsByAttribute('class', 'ruleaction');
+  for (var i = 0; i < ruleActions.length; i++)
+    ruleActions[i].mRuleActionType.hideInvalidActions();
+}

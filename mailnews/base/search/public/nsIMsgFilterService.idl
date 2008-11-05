@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *     Jeff Beckley <beckley@qualcomm.com>
+ *     Kent James <kent@caspia.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -41,7 +42,10 @@
 #include "nsIMsgFilterList.idl"
 #include "nsIMsgWindow.idl"
 
-[scriptable, uuid(6f9cecfb-ee4d-42fa-836f-a3a1da8d40a9)]
+interface nsIMsgFilterCustomAction;
+interface nsISimpleEnumerator;
+
+[scriptable, uuid(5D7DF40A-CD9C-4729-A715-D5666C3AA713)]
 interface nsIMsgFilterService : nsISupports {
 
     nsIMsgFilterList OpenFilterList(in nsILocalFile filterFile, in nsIMsgFolder rootFolder, in nsIMsgWindow msgWindow);
@@ -65,4 +69,27 @@ interface nsIMsgFilterService : nsISupports {
                       in nsIArray aMsgHdrList,
                       in nsIMsgFolder aFolder,
                       in nsIMsgWindow aMsgWindow);
+
+    /**
+     * add a custom filter action
+     *
+     * @param  aAction   the custom action to add
+     */
+    void addCustomAction(in nsIMsgFilterCustomAction aAction);
+
+    /**
+     * get the list of custom actions
+     *
+     * @return   enumerator of nsIMsgFilterCustomAction objects
+     */
+    nsISimpleEnumerator getCustomActions();
+
+    /**
+     * lookup a custom action given its id
+     *
+     * @param  id  unique identifier for a particular custom action
+     *
+     * @return     the custom action, or null if not found
+     */
+    nsIMsgFilterCustomAction getCustomAction(in ACString id);
 };

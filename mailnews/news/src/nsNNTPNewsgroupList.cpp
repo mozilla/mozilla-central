@@ -92,6 +92,7 @@
 #include "nsIDocShell.h"
 #include "nsIMutableArray.h"
 #include "nsIMsgFolderNotificationService.h"
+#include "nsIMsgFilterCustomAction.h"
 
 // update status on header download once per second
 #define MIN_STATUS_UPDATE_INTERVAL PR_USEC_PER_SEC
@@ -739,6 +740,25 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
       {
         // don't apply any more filters
         *aApplyMore = PR_FALSE;
+      }
+      break;
+
+      case nsMsgFilterAction::Custom:
+      {
+        nsCOMPtr<nsIMsgFilterCustomAction> customAction;
+        rv = filterAction->GetCustomAction(getter_AddRefs(customAction));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsCAutoString value;
+        filterAction->GetStrValue(value);
+
+        nsCOMPtr<nsIMutableArray> messageArray(
+            do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+        NS_ENSURE_TRUE(messageArray, rv);
+        messageArray->AppendElement(m_newMsgHdr, PR_FALSE);
+
+        customAction->Apply(messageArray, value, nsnull,
+                            nsMsgFilterType::NewsRule, aMsgWindow);
       }
       break;
 

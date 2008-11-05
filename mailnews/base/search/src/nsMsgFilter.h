@@ -47,6 +47,7 @@
 #include "nsIMsgSearchScopeTerm.h"
 #include "nsMsgSearchBoolExpression.h"
 #include "nsIDateTimeFormat.h"
+#include "nsIMsgFilterCustomAction.h"
 
 class nsMsgRuleAction : public nsIMsgRuleAction
 {
@@ -67,6 +68,8 @@ private:
     PRInt32             m_junkScore;  /* junk score (or arbitrary int value?) */
     // arbitrary string value. Currently, email address to forward to
     nsCString           m_strValue;
+    nsCString           m_customId;
+    nsCOMPtr<nsIMsgFilterCustomAction> m_customAction;
 } ;
 
 

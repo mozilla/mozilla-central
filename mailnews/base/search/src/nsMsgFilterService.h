@@ -39,6 +39,7 @@
 #define _nsMsgFilterService_H_
 
 #include "nsIMsgFilterService.h"
+#include "nsCOMArray.h"
 
 class nsIMsgWindow;
 class nsIStringBundle;
@@ -65,6 +66,9 @@ public:
   nsresult ThrowAlertMsg(const char*aMsgName, nsIMsgWindow *aMsgWindow);
   nsresult GetStringFromBundle(const char *aMsgName, PRUnichar **aResult);
   nsresult GetFilterStringBundle(nsIStringBundle **aBundle);
+
+protected:
+  nsCOMArray<nsIMsgFilterCustomAction> mCustomActions; // defined custom action list
 
 };
 

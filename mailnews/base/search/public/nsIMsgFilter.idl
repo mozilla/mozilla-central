@@ -21,6 +21,8 @@
  *
  * Contributor(s):
  *
+ *   Kent James <kent@caspia.com>
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -44,8 +46,9 @@
 #include "nsISupportsArray.idl"
 
 interface nsOutputStream;
+interface nsIMsgFilterCustomAction;
 
-[scriptable, uuid(FFC5D40D-7527-4286-9765-136617D32624)]
+[scriptable, uuid(190A2A18-D245-473a-A402-9F0814598C7F)]
 interface nsIMsgRuleAction : nsISupports {
 
   attribute nsMsgRuleActionType type;
@@ -61,8 +64,15 @@ interface nsIMsgRuleAction : nsISupports {
 
   attribute long junkScore; 
 
-  attribute ACString strValue;
+  attribute AUTF8String strValue;
 
+  // action id if type is Custom
+  attribute ACString customId;
+
+  // custom action associated with customId
+  // (which must be set prior to reading this attribute)
+  readonly attribute nsIMsgFilterCustomAction customAction;
+  
 };
 
 [scriptable, uuid(346C8CC6-35EA-4F44-B348-94E84D7C03E0)]

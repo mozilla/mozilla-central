@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Seth Spitzer <sspitzer@netscape.com>
+ *   Kent James <kent@caspia.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -66,6 +67,7 @@ interface nsIMsgFilterList : nsISupports {
     const nsMsgFilterFileAttribValue attribAction = 8; 
     const nsMsgFilterFileAttribValue attribActionValue = 9; 
     const nsMsgFilterFileAttribValue attribCondition = 10;
+    const nsMsgFilterFileAttribValue attribCustomId = 11;
 
     attribute nsIMsgFolder folder;
     readonly attribute short version;

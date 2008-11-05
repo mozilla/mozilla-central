@@ -83,14 +83,14 @@
              accesskey="&contextDesc.accesskey;"
              control="contextMenuList"/>
       <menulist id="contextMenuList"
-                value="&contextBoth.label;">
+                value="both" oncommand="updateFilterType();">
         <menupopup>
           <menuitem label="&contextIncoming.label;"
-                    value="&contextIncoming.label;"/>
+                    value="incoming"/>
           <menuitem label="&contextManual.label;"
-                    value="&contextManual.label;"/>
+                    value="manual"/>
           <menuitem label="&contextBoth.label;"
-                    value="&contextBoth.label;"/>
+                    value="both"/>
         </menupopup>
       </menulist>
     </hbox>

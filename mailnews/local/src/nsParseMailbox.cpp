@@ -93,6 +93,7 @@
 #include "nsIMsgFilterPlugin.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
+#include "nsIMsgFilterCustomAction.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -2136,6 +2137,26 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         *applyMore = PR_FALSE;
       }
       break;
+
+      case nsMsgFilterAction::Custom:
+      {
+        nsCOMPtr<nsIMsgFilterCustomAction> customAction;
+        rv = filterAction->GetCustomAction(getter_AddRefs(customAction));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsCAutoString value;
+        filterAction->GetStrValue(value);
+
+        nsCOMPtr<nsIMutableArray> messageArray(
+            do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+        NS_ENSURE_TRUE(messageArray, rv);
+        messageArray->AppendElement(msgHdr, PR_FALSE);
+
+        customAction->Apply(messageArray, value, nsnull,
+                            nsMsgFilterType::InboxRule, msgWindow);
+      }
+      break;
+
 
       default:
         break;

@@ -22,6 +22,7 @@
    -
    - Contributor(s):
    -    Karsten Düsterloh <mnyromyr@tprac.de>
+   -    Kent James <kent@caspia.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,11 +38,14 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!-- 
+<!--
   This file has the following external dependencies:
       -gFilterActionStrings from FilterEditor.js
       -gFilterList from FilterEditor.js
+      -gFilter from FilterEditor.js
       -gPromptService from FilterEditor.js
+      -gCustomActions from FilterEditor.js
+      -gFilterType from FilterEditor.js
       -gMessengerBundle from msgFolderPickerOverlay.js
       -GetMsgFolderFromUri, SetFolderPickerElement from msgFolderPickerOverlay.js
 -->
@@ -67,7 +71,7 @@
             <xul:menuitem label="&copyMessage.label;" value="copymessage"/>
             <xul:menuseparator enablefornews="false"/>
             <xul:menuitem label="&forwardTo.label;" value="forwardmessage" enablefornews="false"/>
-            <xul:menuitem label="&replyWithTemplate.label;" value="replytomessage" enablefornews="false"/>         
+            <xul:menuitem label="&replyWithTemplate.label;" value="replytomessage" enablefornews="false"/>
             <xul:menuseparator/>
             <xul:menuitem label="&markMessageRead.label;" value="markasread"/>
             <xul:menuitem label="&markMessageStarred.label;" value="markasflagged"/>
@@ -91,11 +95,12 @@
     <implementation>
       <constructor>
         <![CDATA[
+          this.addCustomActions();
           this.hideInvalidActions();
           // differentiate between creating a new, next available action,
           // and creating a row which will be initialized with an action
-          if (!this.parentNode.hasAttribute('initialActionIndex')) 
-          {        
+          if (!this.parentNode.hasAttribute('initialActionIndex'))
+          {
             var unavailableActions = this.usedActionsList();
             // select the first one that's not in the list
             for (var index = 0; index < this.menuitems.length; index++)
@@ -111,7 +116,7 @@
           }
           else
           {
-            this.parentNode.mActionTypeInitialized = true; 
+            this.parentNode.mActionTypeInitialized = true;
             this.parentNode.clearInitialActionIndex();
           }
         ]]>
@@ -127,22 +132,49 @@
             var scope = getScopeFromFilterList(gFilterList);
 
             // walk through the list of filter actions and hide any actions which aren't valid
-            // for our given scope (news, imap, pop, etc)
+            // for our given scope (news, imap, pop, etc) and context
             var elements, i;
 
             // disable / enable all elements in the "filteractionlist"
             // based on the scope and the "enablefornews" attribute
             elements = menupopup.getElementsByAttribute("enablefornews", "true");
-            for (i = 0; i < elements.length; i++) 
+            for (i = 0; i < elements.length; i++)
               elements[i].hidden = scope != Components.interfaces.nsMsgSearchScope.newsFilter;
 
             elements = menupopup.getElementsByAttribute("enablefornews", "false");
-            for (i = 0; i < elements.length; i++) 
+            for (i = 0; i < elements.length; i++)
               elements[i].hidden = scope == Components.interfaces.nsMsgSearchScope.newsFilter;
 
             elements = menupopup.getElementsByAttribute("enableforpop3", "true");
             for (i = 0; i < elements.length; i++)
               elements[i].hidden = scope != Components.interfaces.nsMsgSearchScope.offlineMailFilter;
+
+            elements = menupopup.getElementsByAttribute("isCustom", "true");
+            // Note there might be an additional element here as a placeholder
+            // for a missing action, so we iterate over the known actions
+            // instead of the elements
+            for (i = 0; i < gCustomActions.length; i++)
+              elements[i].hidden = !gCustomActions[i]
+                                     .isValidForType(gFilterType, scope);
+          ]]>
+        </body>
+      </method>
+
+      <method name="addCustomActions">
+        <body>
+          <![CDATA[
+            var menupopup = this.menulist.menupopup;
+            for (var i = 0; i < gCustomActions.length; i++)
+            {
+              var customAction = gCustomActions[i];
+              var menuitem = document.createElementNS(
+                "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
+                "xul:menuitem");
+              menuitem.setAttribute("label", customAction.name);
+              menuitem.setAttribute("value", customAction.id);
+              menuitem.setAttribute("isCustom", "true");
+              menupopup.appendChild(menuitem);
+            }
           ]]>
         </body>
       </method>
@@ -157,9 +189,9 @@
                 numVisibleActions++;
             return numVisibleActions;
           ]]>
-        </body>       
+        </body>
       </method>
-      
+
       <!-- returns a hash containing all of the filter actions which are currently being used by other filteractionrows -->
       <method name="usedActionsList">
         <body>
@@ -175,14 +207,27 @@
               {
                 var actionValue = filterActionRow.getAttribute('value');
 
+                // let custom actions decide if dups are allowed
+                var isCustom = false;
+                for (var i = 0; i < gCustomActions.length; i++)
+                {
+                  if (gCustomActions[i].id == actionValue)
+                  {
+                    isCustom = true;
+                    if (!gCustomActions[i].allowDuplicates)
+                      usedActions[actionValue] = true;
+                    break;
+                  }
+                }
+
                 // don't add the tag action, several tags can be set
-                if (actionValue != 'addtagtomessage')
+                if (!isCustom && actionValue != 'addtagtomessage')
                   usedActions[actionValue] = true;
               }
             }
             return usedActions;
           ]]>
-        </body>       
+        </body>
       </method>
     </implementation>
 
@@ -200,7 +245,7 @@
           {
             var menu = this.menuitems[index];
             menu.setAttribute('disabled', menu.value in unavailableActions);
-          }   
+          }
         ]]>
       </handler>
     </handlers>
@@ -223,15 +268,16 @@
       <field name="mRemoveButton">document.getAnonymousElementByAttribute(this, "anonid", "removeButton")</field>
       <field name="mActionTypeInitialized">false</field>
       <field name="mRuleActionTargetInitialized">false</field>
+      <field name="mRuleActionType">document.getAnonymousNodes(this)[0]</field>
 
       <method name="clearInitialActionIndex">
         <body>
           <![CDATA[
             // we should only remove the initialActionIndex after we have been told that
-            // both the rule action type and the rule action target hvae both been built since they both need 
+            // both the rule action type and the rule action target have both been built since they both need
             // this piece of information. This complication arises because both of these child elements are getting
             // bound asynchronously after the search row has been constructed
-            
+
             if (this.mActionTypeInitialized && this.mRuleActionTargetInitialized)
               this.removeAttribute('initialActionIndex');
           ]]>
@@ -242,36 +288,78 @@
         <parameter name="aFilterAction"/>
         <body>
           <![CDATA[
-            var filterActionStr = gFilterActionStrings[aFilterAction.type];
-            document.getAnonymousNodes(document.getAnonymousNodes(this)[0])[0].value = filterActionStr;
+            var filterActionStr;
             var actionTarget = document.getAnonymousNodes(this)[1];
-            switch (gFilterActionStrings[aFilterAction.type])
+            var actionItem = document.getAnonymousNodes(actionTarget);
+            var nsMsgFilterAction = Components.interfaces.nsMsgFilterAction;
+            switch (aFilterAction.type)
             {
-              case "movemessage":
-              case "copymessage":
-                SetFolderPickerElement(aFilterAction.targetFolderUri, actionTarget.menulist);
+              case nsMsgFilterAction.Custom:
+                filterActionStr = aFilterAction.customId;
+                if (actionItem)
+                  actionItem[0].value = aFilterAction.strValue;
+
+                // Make sure the custom action has been added. If not, it
+                // probably was from an extension that has been removed. We'll
+                // show a dummy menuitem to warn the user.
+                var needCustomLabel = true;
+                for (var i = 0; i < gCustomActions.length; i++)
+                {
+                  if (gCustomActions[i].id == filterActionStr)
+                  {
+                    needCustomLabel = false;
+                    break;
+                  }
+                }
+                if (needCustomLabel)
+                {
+                  var menuitem = document.createElementNS(
+                      "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
+                      "xul:menuitem");
+                  menuitem.setAttribute("label",
+                      gFilterBundle.getString("filterMissingCustomAction"));
+                  menuitem.setAttribute("value", filterActionStr);
+                  menuitem.disabled = true;
+                  this.mRuleActionType.menulist.menupopup.appendChild(menuitem);
+                  var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
+                      .getService(Components.interfaces.nsIConsoleService);
+                  var scriptError = Components.classes["@mozilla.org/scripterror;1"]
+                      .createInstance(Components.interfaces.nsIScriptError);
+                  scriptError.init("Missing custom action " + filterActionStr,
+                      null, null, 0, 0,
+                      Components.interfaces.nsIScriptError.errorFlag,
+                      "component javascript");
+                  consoleService.logMessage(scriptError);
+                }
                 break;
-              case "replytomessage":
-              case "forwardmessage":
-                document.getAnonymousNodes(actionTarget)[0].value = aFilterAction.strValue; 
+              case nsMsgFilterAction.MoveToFolder:
+              case nsMsgFilterAction.CopyToFolder:
+                actionItem[0].value = aFilterAction.targetFolderUri;
                 break;
-              case "labelmessageas":
-                document.getAnonymousNodes(actionTarget)[0].value = aFilterAction.label;
+              case nsMsgFilterAction.Reply:
+              case nsMsgFilterAction.Forward:
+                actionItem[0].value = aFilterAction.strValue;
                 break;
-              case "setpriorityto":
-                document.getAnonymousNodes(actionTarget)[0].value = aFilterAction.priority;
+              case nsMsgFilterAction.Label:
+                actionItem[0].value = aFilterAction.label;
                 break;
-              case "setjunkscore":
-                document.getAnonymousNodes(actionTarget)[0].value = aFilterAction.junkScore;
+              case nsMsgFilterAction.ChangePriority:
+                actionItem[0].value = aFilterAction.priority;
                 break;
-              case "addtagtomessage":
-                document.getAnonymousNodes(actionTarget)[0].value = aFilterAction.strValue;
+              case nsMsgFilterAction.JunkScore:
+                actionItem[0].value = aFilterAction.junkScore;
+                break;
+              case nsMsgFilterAction.Tag:
+                actionItem[0].value = aFilterAction.strValue;
                 break;
               default:
                 break;
             }
-
-            this.mRuleActionTargetInitialized = true; 
+            if (aFilterAction.type != nsMsgFilterAction.Custom)
+              filterActionStr = gFilterActionStrings[aFilterAction.type];
+            document.getAnonymousNodes(this.mRuleActionType)[0]
+                    .value = filterActionStr;
+            this.mRuleActionTargetInitialized = true;
             this.clearInitialActionIndex();
           ]]>
         </body>
@@ -284,18 +372,18 @@
             // This routine also prompts the user.
             var filterActionString = this.getAttribute('value');
             var actionTarget = document.getAnonymousNodes(this)[1];
-            var errorString;
+            var errorString, customError;
 
             switch (filterActionString)
             {
               case "movemessage":
               case "copymessage":
                 var msgFolder = actionTarget.uri ? GetMsgFolderFromUri(actionTarget.uri) : null;
-                if (!msgFolder || !msgFolder.canFileMessages) 
+                if (!msgFolder || !msgFolder.canFileMessages)
                   errorString = "mustSelectFolder";
                 break;
               case "forwardmessage":
-                if (document.getAnonymousNodes(actionTarget)[0].value.length < 3 || 
+                if (document.getAnonymousNodes(actionTarget)[0].value.length < 3 ||
                     document.getAnonymousNodes(actionTarget)[0].value.indexOf('@') < 1)
                   errorString = "enterValidEmailAddress";
                 break;
@@ -304,13 +392,32 @@
                    errorString = "pickTemplateToReplyWith";
                 break;
               default:
+                // some custom actions have no action value node
+                if (!document.getAnonymousNodes(actionTarget))
+                  return true;
+                // locate the correct custom action, and check validity
+                for (var i = 0; i < gCustomActions.length; i++)
+                  if (gCustomActions[i].id == filterActionString)
+                  {
+                    customError = 
+                        gCustomActions[i].validateActionValue(
+                          document.getAnonymousNodes(actionTarget)[0].value,
+                          gFilterList.folder, gFilterType);
+                    break;
+                  }
                 break;
             }
 
-            if (errorString && gPromptService)
-              gPromptService.alert(window, null, gFilterBundle.getString(errorString));
-              
-            return !errorString;              
+            if (gPromptService)
+            {
+              errorString = errorString ?
+                              gFilterBundle.getString(errorString) :
+                              customError;
+              if (errorString)
+                gPromptService.alert(window, null, errorString);
+            }
+
+            return !errorString;
           ]]>
         </body>
       </method>
@@ -324,30 +431,31 @@
             var filterActionString = this.getAttribute('value');
             filterAction.type = gFilterActionStrings.indexOf(filterActionString);
             var actionTarget = document.getAnonymousNodes(this)[1];
-
-            switch (filterActionString)
+            var actionItem = document.getAnonymousNodes(actionTarget);
+            var nsMsgFilterAction = Components.interfaces.nsMsgFilterAction;
+            switch (filterAction.type)
             {
-              case "labelmessageas":              
-                filterAction.label = document.getAnonymousNodes(actionTarget)[0].getAttribute("value");
+              case nsMsgFilterAction.Label:
+                filterAction.label = actionItem[0].getAttribute("value");
                 break;
-              case "setpriorityto":
-                filterAction.priority = document.getAnonymousNodes(actionTarget)[0].getAttribute("value");   
+              case nsMsgFilterAction.ChangePriority:
+                filterAction.priority = actionItem[0].getAttribute("value");
                 break;
-              case "movemessage":
-              case "copymessage":
+              case nsMsgFilterAction.MoveToFolder:
+              case nsMsgFilterAction.CopyToFolder:
                 filterAction.targetFolderUri = actionTarget.uri;
                 break;
-              case "setjunkscore":
-                filterAction.junkScore = document.getAnonymousNodes(actionTarget)[0].value;    
+              case nsMsgFilterAction.JunkScore:
+                filterAction.junkScore = actionItem[0].value;
                 break;
-              case "addtagtomessage":
-              case "replytomessage":
-              case "forwardmessage":
-                filterAction.strValue = document.getAnonymousNodes(actionTarget)[0].value; 
-                break;
+              case nsMsgFilterAction.Custom:
+                filterAction.customId = filterActionString;
+                // fall through to set the value
               default:
+                if (actionItem)
+                  filterAction.strValue = actionItem[0].value;
                 break;
-            }
+              }
             aFilter.appendAction(filterAction);
           ]]>
         </body>
@@ -357,9 +465,9 @@
         <body>
           <![CDATA[
             if (this.mListBox.getRowCount() < document.getAnonymousNodes(this)[0].numVisibleActions())
-            {             
+            {
               var listItem = document.createElement('listitem');
-              listItem.className = 'ruleaction';             
+              listItem.className = 'ruleaction';
               this.mListBox.insertBefore(listItem, this.nextSibling);
               this.mListBox.ensureElementIsVisible(listItem);
 
@@ -373,10 +481,12 @@
       <method name="removeRow">
         <body>
           <![CDATA[
-            if (this.mListBox.getRowCount() > 1)
-              this.mListBox.removeChild(this);
+            // this.mListBox will fail after the row is removed, so save
+            var listBox = this.mListBox;
+            if (listBox.getRowCount() > 1)
+              listBox.removeChild(this);
             // if we only have one row left, then disable the remove button for that row
-            this.mListBox.getItemAtIndex(0).mRemoveButton.disabled = this.mListBox.getRowCount() == 1;
+            listBox.getItemAtIndex(0).mRemoveButton.disabled = listBox.getRowCount() == 1;
           ]]>
         </body>
       </method>
@@ -386,7 +496,7 @@
   <binding id="ruleactiontarget-base">
     <implementation>
       <constructor>
-        <![CDATA[                    
+        <![CDATA[
           if (this.parentNode.hasAttribute('initialActionIndex'))
           {
             var actionIndex = this.parentNode.getAttribute('initialActionIndex');
@@ -411,7 +521,7 @@
         <![CDATA[
             var menuPopup = document.getAnonymousNodes(this)[0].menupopup;
             var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                                       .getService(Components.interfaces.nsIMsgTagService); 
+                                       .getService(Components.interfaces.nsIMsgTagService);
             var tagArray = tagService.getAllTags({});
             for (var i = 0; i < tagArray.length; ++i)
             {
@@ -491,7 +601,7 @@
               }
             }
         ]]>
-      </constructor>      
+      </constructor>
     </implementation>
   </binding>
 
@@ -504,16 +614,25 @@
   <binding id="ruleactiontarget-folder" extends="chrome://messenger/content/searchWidgets.xml#ruleactiontarget-base">
     <content>
       <xul:menulist class="ruleactionitem">
-        <xul:menupopup class="folderTargetPopup" oncommand="SetFolderPickerElement(this.getAttribute('uri'), this.parentNode);"/>
+        <xul:menupopup class="folderTargetPopup"
+                       oncommand="SetFolderPickerElement(
+                                    this.getAttribute('uri'), this.parentNode);
+                                  this.parentNode.setAttribute(
+                                    'value', this.getAttribute('uri'));"/>
       </xul:menulist>
     </content>
 
     <implementation>
-      
+
       <constructor>
         <![CDATA[
           if (!this.uri)
-            SetFolderPickerElement(this.menulist.firstChild.tree.builderView.getResourceAtIndex(0).Value, this.menulist);
+          {
+            if (!this.menulist.value)
+              this.menulist.value = this.menulist.firstChild.tree.builderView
+                                        .getResourceAtIndex(0).Value;
+            SetFolderPickerElement(this.menulist.value, this.menulist);
+          }
         ]]>
       </constructor>
 
@@ -521,4 +640,5 @@
       <field name="menulist">document.getAnonymousNodes(this)[0]</field>
     </implementation>
   </binding>
+
 </bindings>
