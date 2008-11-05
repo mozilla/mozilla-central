@@ -60,9 +60,9 @@ let cal = {
 
         if (!baseDir) {
             baseDir = __LOCATION__.parent.parent;
+            baseDir = baseDir.clone();
+            baseDir.append("calendar-js");
         }
-        baseDir = baseDir.clone();
-        baseDir.append("calendar-js");
 
         for each (let script in scriptNames) {
             let scriptFile = baseDir.clone();
