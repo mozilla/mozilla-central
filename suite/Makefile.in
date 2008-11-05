@@ -44,29 +44,30 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 # XXX Disable for release builds
-DIRS += debugQA
+PARALLEL_DIRS = debugQA
 
-# if you add DIRS here, care that app is always at the bottom of the list
-# as it packages up the built files on mac...
-DIRS		+= \
+PARALLEL_DIRS	+= \
 		branding \
 		browser \
 		common \
 		locales \
 		modules \
-		themes \
+		themes/classic \
+		themes/modern \
 		profile \
 		security \
-		shell \
-		build \
-		app \
+		shell/public \
 		$(NULL)
 
 ifeq ($(OS_ARCH),WINNT)
+PARALLEL_DIRS += shell/src
 ifdef MOZ_INSTALLER
-DIRS += installer/windows
+PARALLEL_DIRS += installer/windows
 endif
 endif
+
+# app is always last as it packages up the built files on mac
+DIRS = build app
 
 include $(topsrcdir)/config/rules.mk
 

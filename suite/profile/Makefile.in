@@ -42,7 +42,7 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS		= migration
+PARALLEL_DIRS	= migration/public migration/src
 
 MODULE		= suiteprofile
 LIBRARY_NAME	= suiteprofile_s
