@@ -546,7 +546,7 @@
         while (current.compare(end) < compareResult) {
             var box = this.getBoxForDate(current.jsDate);
             if (box) {
-                var n = parseInt(box.getAttribute("busy") || 0) +
+                var n = parseInt(box.getAttribute("busy") || 0, 10) +
                         (aState ? 1 : -1);
                 if (n > 0) {
                     box.setAttribute("busy", n);
@@ -740,8 +740,11 @@
               aDate = new Date(aDate);
             }
             aDate.setDate(1);
-            aDate.setHours(0);
-            aDate.setMinutes(0);
+            // We set the hour and minute to something highly unlikely to be the
+            // exact change point of DST, so timezones like America/Sao Paulo
+            // don't display some days twice.
+            aDate.setHours(12);
+            aDate.setMinutes(34);
             aDate.setSeconds(0);
             aDate.setMilliseconds(0);
             // Don't fire onmonthchange event upon initialization
