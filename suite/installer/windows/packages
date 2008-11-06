@@ -462,6 +462,7 @@ bin\updater.exe
 ; MOZ_XUL_APP=1 addition
 bin\components\mail.dll
 
+bin\isp\rss.rdf
 bin\isp\SpamAssassin.sfd
 bin\isp\SpamPal.sfd
 

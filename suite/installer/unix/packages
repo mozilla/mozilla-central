@@ -497,8 +497,12 @@ bin/components/nsAbLDAPAttributeMap.js
 bin/components/smime-service.js
 bin/components/mdn-service.js
 bin/components/offlineStartup.js
+bin/chrome/newsblog.jar
+bin/chrome/newsblog.manifest
+bin/components/newsblog.js
 
 bin/isp/movemail.rdf
+bin/isp/rss.rdf
 bin/isp/SpamAssassin.sfd
 bin/isp/SpamPal.sfd
 
