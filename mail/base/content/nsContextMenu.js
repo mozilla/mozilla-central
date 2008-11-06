@@ -57,7 +57,7 @@ function nsContextMenu(aXulMenu) {
   this.linkProtocol   = null;
   this.inFrame        = false;
   this.hasBGImage     = false;
-  this.isTextSelected = false;
+  this.isContentSelected = false;
   this.inDirList      = false;
   this.shouldDisplay  = true;
 
@@ -75,7 +75,7 @@ nsContextMenu.prototype = {
 
     // Get contextual info.
     this.setTarget(document.popupNode);
-    this.isTextSelected = this.isTextSelection();
+    this.isContentSelected = this.isContentSelection();
 
     this.initItems();
   },
@@ -94,7 +94,7 @@ nsContextMenu.prototype = {
 
     goUpdateGlobalEditMenuItems();
 
-    this.showItem("messagePaneContext-copy", this.isTextSelected || this.onTextInput);
+    this.showItem("messagePaneContext-copy", this.isContentSelected || this.onTextInput);
     this.showItem("messagePaneContext-selectall", true);
     this.showItem("messagePaneContext-copyemail", this.onMailtoLink);
     this.showItem("messagePaneContext-copylink", this.onLink);
@@ -475,44 +475,11 @@ nsContextMenu.prototype = {
   },
 
   /**
-   * Determines whether the focused window has selected text, and if so
-   * formats the first 15 characters for the label of the context-searchselect
-   * element according to the searchText string.
-   * @return true if there is selected text, false if not
+   * Determines whether the focused window has something selected.
+   * @return true if there is a selection, false if not
    */
-  isTextSelection : function CM_isTextSelection() {
-    var result = false;
-    var selection = this.searchSelected();
-
-    if (selection != "") {
-      var searchSelectText = selection.toString();
-      if (searchSelectText.length > 15)
-        searchSelectText = searchSelectText.substr(0,15) + "...";
-      result = true;
-
-      // Format "Search for <selection>" string to show in menu.
-      var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                          .getService(Components.interfaces.nsIStringBundleService);
-      var bundle = sbs.createBundle("chrome://messenger/locale/messenger.properties");
-      searchSelectText = bundle.formatStringFromName("searchText",
-                                                     [searchSelectText], 1);
-      this.setItemAttr("context-searchselect", "label", searchSelectText);
-    }
-    return result;
-  },
-
-  /**
-   * Get the currently selected text, with whitespace trimmed and
-   * newlines and tabs converted to spaces.
-   * @return the selection as a searchable string
-   */
-  searchSelected : function CM_searchSelected() {
-    var focusedWindow = document.commandDispatcher.focusedWindow;
-    var searchStr = focusedWindow.getSelection();
-    searchStr = searchStr.toString();
-    searchStr = searchStr.replace(/(\n|\r|\t)+/g, " ");
-    searchStr = searchStr.trim();
-    return searchStr;
+  isContentSelection : function CM_isContentSelection() {
+    return !document.commandDispatcher.focusedWindow.getSelection().isCollapsed;
   },
 
   /**
