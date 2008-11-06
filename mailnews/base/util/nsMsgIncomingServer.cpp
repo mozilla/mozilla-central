@@ -1534,6 +1534,7 @@ nsMsgIncomingServer::GetIsSecure(PRBool *aIsSecure)
   NS_ENSURE_SUCCESS(rv,rv);
   *aIsSecure = (socketType == nsIMsgIncomingServer::alwaysUseTLS ||
                 socketType == nsIMsgIncomingServer::useSSL);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
