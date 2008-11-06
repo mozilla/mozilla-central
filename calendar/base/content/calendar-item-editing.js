@@ -321,7 +321,7 @@ function promptOccurrenceModification(aItem, aNeedsFuture, aAction) {
         // use rv to pass our return value.
         var rv = { value: CANCEL, item: aItem, action: aAction};
         window.openDialog("chrome://calendar/content/calendar-occurrence-prompt.xul",
-                          "prompt-occurrence-modification",
+                          "PromptOccurrenceModification",
                           "centerscreen,chrome,modal,titlebar",
                           rv);
         type = rv.value;
