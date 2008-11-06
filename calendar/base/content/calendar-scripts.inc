@@ -46,7 +46,7 @@
   <script type="application/javascript" src="chrome://calendar/content/calendar-management.js"/>
 
   <!-- NEEDED FOR CLIPBOARD SUPPORT -->
-  <script type="application/javascript" src="chrome://calendar/content/clipboard.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-clipboard.js"/>
 
   <!-- NEEDED FOR IMPORT / EXPORT SUPPORT -->
   <script type="application/javascript" src="chrome://calendar/content/import-export.js"/>

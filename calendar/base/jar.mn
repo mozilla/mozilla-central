@@ -12,6 +12,7 @@ calendar.jar:
     content/calendar/calendar-bindings.css                 (content/calendar-bindings.css)
     content/calendar/calendar-calendars-list.xul           (content/calendar-calendars-list.xul)
     content/calendar/calendar-chrome-startup.js            (content/calendar-chrome-startup.js)
+    content/calendar/calendar-clipboard.js                 (content/calendar-clipboard.js)
     content/calendar/calendar-common-sets.xul              (content/calendar-common-sets.xul)
     content/calendar/calendar-common-sets.js               (content/calendar-common-sets.js)
     content/calendar/calendar-creation.js                  (content/calendar-creation.js)
