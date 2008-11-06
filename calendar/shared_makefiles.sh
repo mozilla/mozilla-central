@@ -40,7 +40,6 @@ calendar/resources/Makefile
 calendar/libical/Makefile
 calendar/libical/src/Makefile
 calendar/libical/src/libical/Makefile
-calendar/libical/src/libicalss/Makefile
 calendar/base/Makefile
 calendar/base/public/Makefile
 calendar/base/src/Makefile
