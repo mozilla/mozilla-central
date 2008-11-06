@@ -402,7 +402,7 @@ var DefaultController =
         if (GetNumSelectedMessages() <= 0) return false;
       case "cmd_expandAllThreads":
       case "cmd_collapseAllThreads":
-        return (gDBView.viewFlags & nsMsgViewFlagsType.kThreadedDisplay);
+        return gDBView && (gDBView.viewFlags & nsMsgViewFlagsType.kThreadedDisplay);
       case "cmd_nextFlaggedMsg":
       case "cmd_previousFlaggedMsg":
         return IsViewNavigationItemEnabled();
@@ -655,7 +655,7 @@ var DefaultController =
         return;
       case "button_mark":
       case "cmd_markAsRead":
-        MsgMarkMsgAsRead(null);
+        MsgMarkMsgAsRead();
         return;
       case "cmd_markThreadAsRead":
         ClearPendingReadTimer();
@@ -671,7 +671,7 @@ var DefaultController =
         msgWindow.StopUrls();
         return;
       case "cmd_markAsFlagged":
-        MsgMarkAsFlagged(null);
+        MsgMarkAsFlagged();
         return;
       case "cmd_markAsJunk":
         JunkSelectedMessages(true);

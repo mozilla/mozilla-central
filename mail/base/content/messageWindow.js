@@ -938,7 +938,11 @@ var MessageWindowController =
       case "cmd_redo":
         return SetupUndoRedoCommand(command);
       case "cmd_moveToFolderAgain":
-        return (pref.getCharPref("mail.last_msg_movecopy_target_uri"));
+        var loadedFolder = GetLoadedMsgFolder();
+        if (!loadedFolder || (pref.getBoolPref("mail.last_msg_movecopy_was_move") &&
+            !loadedFolder.canDeleteMessages))
+          return false;
+        return pref.getCharPref("mail.last_msg_movecopy_target_uri");
       case "cmd_applyFilters":
       case "cmd_runJunkControls":
       case "cmd_deleteJunk":
@@ -1059,7 +1063,7 @@ var MessageWindowController =
         break;
       case "button_mark":
       case "cmd_markAsRead":
-        MsgMarkMsgAsRead(null);
+        MsgMarkMsgAsRead();
         return;
       case "cmd_markThreadAsRead":
         ClearPendingReadTimer();
@@ -1072,7 +1076,7 @@ var MessageWindowController =
         MsgMarkReadByDate();
         return;
       case "cmd_markAsFlagged":
-        MsgMarkAsFlagged(null);
+        MsgMarkAsFlagged();
         return;
       case "cmd_markAsJunk":
         JunkSelectedMessages(true);

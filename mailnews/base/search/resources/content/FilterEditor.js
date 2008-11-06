@@ -21,7 +21,7 @@
  *
  * Contributor(s):
  *   Alec Flett <alecf@netscape.com>
- *   Håkan Waara <hwaara@chello.se>
+ *   HÃ¥kan Waara <hwaara@chello.se>
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Mark Banner <mark@standard8.demon.co.uk>
  *   Kent James <kent@caspia.com>
@@ -78,7 +78,7 @@ function filterEditorOnLoad()
 
   gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
   gFilterBundle = document.getElementById("bundle_filter");
-  InitMessageMark();
+
   if ("arguments" in window && window.arguments[0]) 
   {
     var args = window.arguments[0];
