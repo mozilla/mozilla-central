@@ -115,6 +115,11 @@ images in HTML messages from this contact.">
 <!ENTITY HomeCountry.accesskey          "u">
 <!ENTITY HomeWebPage.label              "Web Page:">
 <!ENTITY HomeWebPage.accesskey          "e">
+<!ENTITY Birthday.label                 "Birthday:">
+<!ENTITY Birthday.accesskey             "B">
+<!ENTITY Year.emptytext                 "Year">
+<!ENTITY Or.value                       "or">
+<!ENTITY Age.emptytext                  "Age">
 
 <!ENTITY Work.tab                       "Work">
 <!ENTITY Work.accesskey                 "W">
@@ -141,11 +146,6 @@ images in HTML messages from this contact.">
 
 <!ENTITY Other.tab                      "Other">
 <!ENTITY Other.accesskey                "h">
-<!ENTITY Birthday.label                 "Birthday:">
-<!ENTITY Birthday.accesskey             "B">
-<!ENTITY Year.emptytext                 "Year">
-<!ENTITY Or.value                       "or">
-<!ENTITY Age.emptytext                  "Age">
 <!ENTITY Custom1.label                  "Custom 1:">
 <!ENTITY Custom1.accesskey              "1">
 <!ENTITY Custom2.label                  "Custom 2:">
