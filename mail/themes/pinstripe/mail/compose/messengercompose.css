@@ -381,7 +381,7 @@ treechildren::-moz-tree-cell-text(default-match) {
 
 treechildren::-moz-tree-image(local-abook) {
   margin: 2px -1px 2px 4px;
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-sidebar.png");
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addrbook.png");
 }
 
 treechildren::-moz-tree-image(remote-abook) {

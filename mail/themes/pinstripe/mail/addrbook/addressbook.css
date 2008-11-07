@@ -291,7 +291,7 @@ toolbar[iconsize="small"] #button-abdelete[disabled] {
 
 treechildren::-moz-tree-image(DirCol) {
   margin-right: 2px;
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-sidebar.png");
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addrbook.png");
 }
 
 treechildren::-moz-tree-image(DirCol, IsMailList-true) {
