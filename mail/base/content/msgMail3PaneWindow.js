@@ -27,6 +27,7 @@
 #   Seth Spitzer <sspitzer@netscape.com>
 #   David Bienvenu <bienvenu@nventure.com>
 #   Jeremy Morton <bugzilla@game-point.net>
+#   Steffen Wilberg <steffen.wilberg@web.de>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -732,6 +733,8 @@ function OnLoadMessenger()
   // verifyAccounts returns true if the callback won't be called
   if (verifyAccounts(LoadPostAccountWizard))
     LoadPostAccountWizard();
+
+  window.addEventListener("AppCommand", HandleAppCommandEvent, true);
 }
 
 function LoadPostAccountWizard()
@@ -819,6 +822,32 @@ function LoadPostAccountWizard()
   toolbox.toolbarset = toolbarset;
 
   loadStartFolder(gStartFolderUri);
+}
+
+function HandleAppCommandEvent(evt)
+{
+  evt.stopPropagation();
+  switch (evt.command) {
+    case "Back":
+      goDoCommand('cmd_goBack');
+      break;
+    case "Forward":
+      goDoCommand('cmd_goForward');
+      break;
+    case "Stop":
+      msgWindow.StopUrls();
+      break;
+    case "Search":
+      goDoCommand('cmd_search');
+      break;
+    case "Bookmarks":
+      toAddressBook();
+      break;
+    case "Home":
+    case "Reload":
+    default:
+      break;
+  }
 }
 
 function OnUnloadMessenger()
