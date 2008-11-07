@@ -1,8 +1,0 @@
-<!ENTITY prefwindow.title "Global Database Has No Preferences">
-<!ENTITY pane1.title "Global Database Has No Preferences">
-<!ENTITY checkboolpref.label "I like cookies">
-<!ENTITY checkboolpref.accesskey "l">
-<!ENTITY intpref.label "I would eat this many cookies">
-<!ENTITY intpref.accesskey "e">
-<!ENTITY stringpref.label "Name of my favorite cookie">
-<!ENTITY stringpref.accesskey "f">

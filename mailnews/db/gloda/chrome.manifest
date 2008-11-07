@@ -1,5 +1,0 @@
-content	gloda	content/
-locale	gloda	en-US	locale/en-US/
-skin	gloda	classic/1.0	skin/
-overlay	chrome://messenger/content/messenger.xul	chrome://gloda/content/thunderbirdOverlay.xul
-resource gloda ./
