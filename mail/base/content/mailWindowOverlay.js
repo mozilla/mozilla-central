@@ -1922,6 +1922,8 @@ function IsCompactFolderEnabled()
 function SetUpToolbarButtons(uri)
 {
   var deleteButton = document.getElementById("button-delete");
+  if (!deleteButton)
+    return;
 
   // Eventually, we might want to set up the toolbar differently for imap,
   // pop, and news.  For now, just tweak it based on if it is news or not.
