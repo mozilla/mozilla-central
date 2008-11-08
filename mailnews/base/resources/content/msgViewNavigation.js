@@ -237,7 +237,7 @@ function CrossFolderNavigation(type)
           var promptText = gMessengerBundle.getFormattedString("advanceNextPrompt", [ folder.name ], 1); 
           var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                         .getService(Components.interfaces.nsIPromptService);
-          if (!promptService.confirmEx(window, promptText, promptText, 
+          if (!promptService.confirmEx(window, null, promptText, 
                                        promptService.STD_YES_NO_BUTTONS, 
                                        null, null, null, null, {}))
           {
