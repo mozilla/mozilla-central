@@ -169,7 +169,7 @@ PRBool nsOEScanBoxes::GetMailboxes( nsIFile *pWhere, nsISupportsArray **pArray)
   }
 
   nsCOMPtr <nsIFile> location;
-        pWhere->Clone(getter_AddRefs(location));
+  pWhere->Clone(getter_AddRefs(location));
   // 1. Look for 5.0 folders.dbx
   // 2. Look for 3.x & 4.x folders.nch
   // 3. Look for 5.0 *.dbx mailboxes
@@ -179,20 +179,21 @@ PRBool nsOEScanBoxes::GetMailboxes( nsIFile *pWhere, nsISupportsArray **pArray)
 
   location->AppendNative(NS_LITERAL_CSTRING("folders.dbx"));
   if (Find50MailBoxes(location)) {
-    result = GetMailboxList( location, pArray);
+    result = GetMailboxList(pWhere, pArray);
   }
   else {
     // 2. Look for 4.x mailboxes
+    pWhere->Clone(getter_AddRefs(location));
     location->AppendNative(NS_LITERAL_CSTRING("folders.nch"));
 
     if (FindMailBoxes(location)) {
-      result = GetMailboxList( location, pArray);
+      result = GetMailboxList(pWhere, pArray);
     }
     else {
       // 3 & 4, look for the specific mailbox files.
-                  pWhere->Clone(getter_AddRefs(location));
-      ScanMailboxDir( location);
-      result = GetMailboxList( location, pArray);
+      pWhere->Clone(getter_AddRefs(location));
+      ScanMailboxDir(location);
+      result = GetMailboxList(pWhere, pArray);
     }
   }
 
