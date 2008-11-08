@@ -57,10 +57,6 @@
   display: none;
 }
 
-#addAccountButton, #setDefaultButton, #removeButton {
-  min-height: 19px; /* aqua size for small buttons */
-}
-
 .dialog-button[dlgtype="help"] {
   display: none;
 }
@@ -69,7 +65,7 @@
   margin-right: 8px;
 }
 
-page button {
+button:not(.spinbuttons-button):not(.dialog-button) {
   min-height: 19px; /* aqua size for small buttons */
 }
 
