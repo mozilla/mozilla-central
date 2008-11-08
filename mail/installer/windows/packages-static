@@ -92,6 +92,12 @@ bin\chrome\icons\default\messengerWindow.ico
 bin\chrome\icons\default\msgcomposeWindow.ico
 bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\install.rdf
 
+; Gloda
+bin\chrome\gloda.jar
+bin\chrome\gloda.manifest
+bin\components\glautocomp.js
+bin\components\jsmimeemitter.js
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Mail Extensions (smime, etc.)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -101,6 +107,7 @@ bin\components\mapihook.xpt
 bin\components\nsSetDefaultMail.js
 bin\components\offlineStartup.js
 bin\components\nsMailDefaultHandler.js
+
 
 bin\components\mdn-service.js
 

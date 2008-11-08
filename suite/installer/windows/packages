@@ -506,6 +506,12 @@ bin\chrome\newsblog.jar
 bin\chrome\newsblog.manifest
 bin\components\newsblog.js
 
+; Gloda
+bin\chrome\gloda.jar
+bin\chrome\gloda.manifest
+bin\components\glautocomp.js
+bin\components\jsmimeemitter.js
+
 [chatzilla]
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\components\chatzilla-service.js
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\chrome\chatzilla.jar

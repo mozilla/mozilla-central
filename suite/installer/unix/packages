@@ -501,6 +501,12 @@ bin/chrome/newsblog.jar
 bin/chrome/newsblog.manifest
 bin/components/newsblog.js
 
+; Gloda
+bin/chrome/gloda.jar
+bin/chrome/gloda.manifest
+bin/components/glautocomp.js
+bin/components/jsmimeemitter.js
+
 bin/isp/movemail.rdf
 bin/isp/rss.rdf
 bin/isp/SpamAssassin.sfd
