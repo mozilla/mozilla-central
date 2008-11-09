@@ -514,7 +514,7 @@
 
   <menu id="windowMenu"/>
   
-  <menu accesskey="&helpMenuCmd.accesskey;" id="menu_Help"/>
+  <menu id="menu_Help"/>
 </menubar>
 
 </overlay>
