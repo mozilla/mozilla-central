@@ -195,6 +195,7 @@
     <mail-messageids-headerfield id="expandedin-reply-toBox" label="&inReplyToField.label;" collapsed="true"/>
     <mail-messageids-headerfield id="expandedreferencesBox" label="&referencesField.label;" collapsed="true"/>
     <mail-tagfield id="expandedtagsBox" label="&tagsHdr.label;" collapsed="true"/>
+    <mail-urlfield id="expandedcontent-baseBox" label="&originalWebsite.label;" collapsed="true"/>
     <mail-headerfield keywordrelated="true" id="expandeduser-agentBox"  label="&userAgentField.label;"  collapsed="true"/>
   </vbox>
 

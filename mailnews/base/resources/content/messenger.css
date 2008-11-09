@@ -83,6 +83,10 @@ mail-headerfield {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#mail-headerfield");
 }
 
+mail-urlfield {
+  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#mail-urlfield");
+}
+
 mail-tagfield {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#mail-headerfield-tags");
 }

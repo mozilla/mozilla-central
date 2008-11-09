@@ -126,6 +126,7 @@ var gExpandedHeaderList = [ {name:"subject"},
                             {name:"newsgroups", outputFunction:OutputNewsgroups},
                             {name:"references", outputFunction:OutputMessageIds},
                             {name:"followup-to", outputFunction:OutputNewsgroups},
+                            {name:"content-base"},
                             {name:"tags"}];
 
 // Now, for each view the message pane can generate, we need a global table of headerEntries. These
