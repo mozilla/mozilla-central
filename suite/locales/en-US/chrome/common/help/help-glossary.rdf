@@ -43,7 +43,6 @@
         <rdf:li> <rdf:Description nc:name="fingerprint" nc:link="glossary.xhtml#fingerprint"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="FIPS PUBS 140-1" nc:link="glossary.xhtml#fips_pubs_140-1"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="foreign cookie" nc:link="glossary.xhtml#foreign_cookie"/> </rdf:li>
-        <rdf:li> <rdf:Description nc:name="Form Manager" nc:link="glossary.xhtml#form_manager"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="frame" nc:link="glossary.xhtml#frame"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="FTP" nc:link="glossary.xhtml#ftp"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="Gopher" nc:link="glossary.xhtml#gopher"/> </rdf:li>

@@ -665,71 +665,6 @@
        <rdf:Description ID="font_changing_in_composer"
          nc:name="Font changing in Composer"
          nc:link="composer_help.xhtml#changing_text_color_style_and_font"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Form_Manager"
-         nc:name="Form Manager"
-         nc:link="using_priv_help.xhtml#using_the_form_manager"/>
-     </rdf:li></rdf:Seq>
-   </nc:subheadings>
-</rdf:Description>
-
-<rdf:Description about="#Form_Manager">
-   <nc:subheadings>
-     <rdf:Seq><rdf:li>
-       <rdf:Description ID="Form_Manager:encrypting_stored_information"
-         nc:name="encrypting stored information"
-         nc:link="using_priv_help.xhtml#encrypting_stored_sensitive_information"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Form_Manager:preferences"
-         nc:name="form manager preferences"
-         nc:link="using_priv_help.xhtml#forms"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Form_Manager:settings"
-         nc:name="form manager settings"
-         nc:link="using_priv_help.xhtml#form_settings"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Form_Manager:using"
-         nc:name="using the form manager"
-         nc:link="using_priv_help.xhtml#using_the_form_manager"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="forms"
-         nc:name="forms"
-         nc:link="using_priv_help.xhtml#encrypting_stored_sensitive_information"/>
-     </rdf:li></rdf:Seq>
-   </nc:subheadings>
-</rdf:Description>
-
-<rdf:Description about="#forms">
-   <nc:subheadings>
-     <rdf:Seq><rdf:li>
-       <rdf:Description ID="forms:encrypting_stored_information"
-         nc:name="encrypting stored information"
-         nc:link="using_priv_help.xhtml#encrypting_stored_sensitive_information"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="forms:filling_out_automatically"
-         nc:name="filling out automatically"
-         nc:link="using_priv_help.xhtml#filling_out_forms_automatically"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="forms:preferences"
-         nc:name="form preferences"
-         nc:link="using_priv_help.xhtml#forms"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="forms:saving_data"
-         nc:name="saving data from forms"
-         nc:link="using_priv_help.xhtml#saving_form_data"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="forms:storing_data_from"
-         nc:name="storing data from forms"
-         nc:link="using_priv_help.xhtml#managing_stored_form_data"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -1530,11 +1465,6 @@
        <rdf:Description ID="preferences:fonts"
          nc:name="fonts preferences"
          nc:link="cs_nav_prefs_appearance.xhtml#fonts"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="preferences:forms"
-         nc:name="form preferences"
-         nc:link="using_priv_help.xhtml#forms"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="preferences:helper_applications"
