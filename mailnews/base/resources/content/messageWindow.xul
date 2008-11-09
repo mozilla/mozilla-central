@@ -120,6 +120,8 @@
 
   <popup id="attachmentListContext"/>
 
+  <popup id="copyUrlPopup"/>
+
   <toolbox id="mail-toolbox">
     <menubar id="mail-menubar"/>
   </toolbox>

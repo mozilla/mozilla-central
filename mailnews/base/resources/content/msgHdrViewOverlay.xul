@@ -126,6 +126,10 @@
     accesskey="&deleteAllAttachmentsCmd.accesskey;" oncommand="HandleMultipleAttachments('deleteAttachment', currentAttachments);" />
 </popup>
 
+<popup id="copyUrlPopup">
+  <menuitem label="&copyLinkCmd.label;" accesskey="&copyLinkCmd.accesskey;" oncommand="CopyWebsiteAddress(document.popupNode)"/>
+</popup>
+
 <hbox id="msgHeaderView" keywordrelated="true" originalclass="none" persist="state">
 
 <grid id="collapsedHeaderView" class="header-part1" keywordrelated="true" originalclass="header-part1" flex="1" collapsed="true">
