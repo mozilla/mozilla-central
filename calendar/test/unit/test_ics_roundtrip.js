@@ -140,6 +140,14 @@ function run_test() {
     };
 
     checkRoundtrip(expectedProps, event);
+
+    // check folding
+    const id = "loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong-id-provoking-folding";
+    let todo = cal.createTodo(), todo_ = cal.createTodo();
+    todo.id = id;
+    todo_.icalString = todo.icalString;
+    do_check_eq(todo.id, todo_.id);
+    do_check_eq(todo_.icalComponent.getFirstProperty("UID").value, id);
 }
 
 function checkProps(expectedProps, obj) {

@@ -273,16 +273,6 @@ get_next_line_start (char *line_start, int chars_left)
         return line_start + chars_left;
     } 
 
-    /* Now we jump to the last possible character of the line, and step back
-       trying to find a ';' ':' or ' '. If we find one, we return the character
-       after it. */
-    pos = line_start + MAX_LINE_LEN - 2;
-    while (pos > line_start) {
-        if (*pos == ';' || *pos == ':' || *pos == ' ') {
-	    return pos + 1;
-	}
-	pos--;
-    }
     /* Now try to split on a UTF-8 boundary defined as a 7-bit
        value or as a byte with the two high-most bits set:
        11xxxxxx.  See http://czyborra.com/utf/ */
