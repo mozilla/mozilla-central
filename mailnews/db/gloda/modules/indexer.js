@@ -2111,6 +2111,7 @@ var GlodaIndexer = {
                                                      null, // no subject
                                                      null, // no body
                                                      null); // no attachments
+        this._datastore.insertMessage(ancestor);
         ancestorLists[iAncestor].push(ancestor);
       }
     }

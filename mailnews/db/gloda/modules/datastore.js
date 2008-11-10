@@ -506,7 +506,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 10,
+  _schemaVersion: 11,
   _schema: {
     tables: {
 
@@ -930,7 +930,9 @@ var GlodaDatastore = {
     // - removes contactAttribFetch index from contactAttributes
     // - adds jsonAttributes column to messages table
     // - adds jsonAttributes column to contacts table
-    if (aCurVersion < 10) {
+    // version 11:
+    // we, uh, had a bad conversation invariant bug. reindexing required.
+    if (aCurVersion < 11) {
       aDBConnection.close();
       aDBFile.remove(false);
       this._log.warn("Global database has been purged due to schema change.");
