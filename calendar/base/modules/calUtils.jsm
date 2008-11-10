@@ -337,3 +337,6 @@ function generateServiceAccessor(id, iface) {
 // This should serve as a clean start for new code, e.g. new code could use
 // cal.createDatetime instead of plain createDatetime NOW.
 cal.loadScripts(["calUtils.js"], cal);
+// Some functions in calUtils.js refer to other in the same file, thus include
+// the code in global scope (although only visible to this module file), too:
+cal.loadScripts(["calUtils.js"], cal.__parent__);

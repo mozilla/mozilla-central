@@ -35,6 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
+
 function calTransactionManager() {
     if (!this.transactionManager) {
         this.transactionManager =
