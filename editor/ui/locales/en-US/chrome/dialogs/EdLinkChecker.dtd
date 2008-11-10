@@ -20,7 +20,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
-   -   Charles Manxke (cmanske@netscape.com)
+   -   Charles Manske (cmanske@netscape.com)
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -38,9 +38,6 @@
 
 <!-- Window title -->
 <!ENTITY windowTitle.label     "Check Image and Link Locations">
-<!ENTITY urlsNotFound.label    "The following image or link locations were not found:">
-<!ENTITY notFoundKey.label     "(&quot;X&quot; = file not found, &quot;?&quot; = timed-out attempting to connect.)">
-<!ENTITY changeUrlButton.label "Change Location of Selected Item">
 <!ENTITY succeeded.label       "Succeeded">
 <!ENTITY failed.label          "Failed">
 <!ENTITY closeButton.label     "Close">

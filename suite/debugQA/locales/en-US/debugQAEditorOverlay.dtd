@@ -1,3 +1,8 @@
+<!-- WARNING! This file contains UTF-8 encoded characters!
+   - If this ==> … <== doesn't look like an ellipsis (three dots in a row),
+   - your editor isn't using UTF-8 encoding and may munge up the document!
+  -->
+
 <!-- Debug menu items -->
 <!ENTITY debugMenu.label "Debug">
 <!ENTITY newEditorTestPage.label "Composer with Test Page">
@@ -21,4 +26,32 @@
 <!ENTITY setFocusCmd.label "Set Focus">
 
 <!-- Text editor values -->
-<!ENTITY textEditorWindow.titlemodifier "Text Editor"> 
+<!ENTITY textEditorWindow.titlemodifier "Text Editor">
+
+<!ENTITY statusText.label "Done loading page">
+<!ENTITY editStripQuotesCmd.label "Strip Quotes">
+<!ENTITY editRewrapCmd.label "Rewrap">
+<!ENTITY checkLinksCmd.label "Check Links">
+<!ENTITY insertFormMenu.label "Form">
+<!ENTITY insertFormMenu.accesskey "F">
+<!ENTITY insertFormCmd.label "Define Form…">
+<!ENTITY insertFormCmd.accesskey "D">
+<!ENTITY insertInputTagCmd.label "Form Field…">
+<!ENTITY insertInputTagCmd.accesskey "e">
+<!ENTITY insertInputImageCmd.label "Form Image…">
+<!ENTITY insertInputImageCmd.accesskey "I">
+<!ENTITY insertTextAreaCmd.label "Text Area…">
+<!ENTITY insertTextAreaCmd.accesskey "T">
+<!ENTITY insertSelectCmd.label "Selection List…">
+<!ENTITY insertSelectCmd.accesskey "S">
+<!ENTITY insertButtonCmd.label "Define Button…">
+<!ENTITY insertButtonCmd.accesskey "B">
+<!ENTITY insertLabelCmd.label "Define Label">
+<!ENTITY insertLabelCmd.accesskey "L">
+<!ENTITY insertFieldSetCmd.label "Define Field Set…">
+<!ENTITY insertFieldSetCmd.accesskey "F">
+<!ENTITY insertIsIndexCmd.label "Index Search">
+<!ENTITY insertIsIndexCmd.accesskey "x">
+
+<!ENTITY pasteAsQuotationCmd.label "Paste As Quotation">
+<!ENTITY pasteAsQuotationCmd.accesskey "Q">

@@ -79,9 +79,6 @@
 <!ENTITY sendPageCmd.accesskey "d">
 <!ENTITY printSetupCmd.label "Page Setup…">
 <!ENTITY printSetupCmd.accesskey "u">
-<!ENTITY printPreviewCmd.label "Print Preview">
-<!ENTITY printPreviewCmd.accesskey "v">
-<!ENTITY printButtonCmd.label "Print…">
 <!ENTITY printCmd.label "Print…">
 <!ENTITY printCmd.accesskey "P">
 <!ENTITY printCmd.key "P">
@@ -99,29 +96,8 @@
 <!ENTITY pasteAs.accesskey "a">
 <!ENTITY publishSettings.label "Publishing Site Settings…">
 <!ENTITY publishSettings.accesskey "b">
-
-<!-- For a "Paste" submenu when more than 1 
-     clipboard formats are available -->
-<!ENTITY pasteHTMLCmd.label "HTML">
-<!ENTITY pasteHTMLCmd.accesskey "H">
-<!ENTITY pasteTextCmd.label "Text">
-<!ENTITY pasteTextCmd.accesskey "T">
-<!ENTITY pasteImageCmd.label "Image">
-<!ENTITY pasteImageCmd.accesskey "I">
-<!ENTITY pasteRowsCmd.label "Rows">
-<!ENTITY pasteRowsCmd.accesskey "R">
-<!ENTITY pasteColumnsCmd.label "Columns">
-<!ENTITY pasteColumnsCmd.accesskey "C">
-<!-- LOCALIZATION NOTE: Text for menu item is in editor.properties
-     Set to: "Table" or "Nested Table" depending on context 
-     This accesskey must be in both strings -->
-<!ENTITY pasteTableCmd.accesskey "a">
-<!ENTITY pasteLinkCmd.label "Link">
-<!ENTITY pasteLinkCmd.accesskey "L">
 <!ENTITY pasteAsQuotationCmd.label "Paste As Quotation">
 <!ENTITY pasteAsQuotationCmd.accesskey "Q">
-<!ENTITY editStripQuotesCmd.label "Strip Quotes">
-<!ENTITY editRewrapCmd.label "Rewrap">
 <!ENTITY findCmd.label "Find and Replace…">
 <!ENTITY findCmd.accesskey "F">
 <!ENTITY findCmd.key "F">
@@ -141,13 +117,6 @@
 <!ENTITY checkSpellingCmd.key "K">
 <!ENTITY validateCmd.label "Validate HTML">
 <!ENTITY validateCmd.accesskey "V">
-<!ENTITY checkLinksCmd.label "Check Links">
-
-<!-- View menu items -->
-<!ENTITY viewPageSource.label "Page Source">
-<!ENTITY viewPageSource.accesskey "S">
-<!ENTITY viewParagraphMarks.label "Paragraph Marks">
-<!ENTITY viewParagraphMarks.accesskey "P">
 
 <!-- Insert menu items -->
 <!ENTITY insertMenu.label "Insert">
@@ -159,41 +128,16 @@
 <!ENTITY insertAnchorCmd.accesskey "A">
 <!ENTITY insertImageCmd.label "Image…">
 <!ENTITY insertImageCmd.accesskey "I">
-<!ENTITY insertImageMapCmd.label "Image Map…">
 <!ENTITY insertHLineCmd.label "Horizontal Line">
 <!ENTITY insertHLineCmd.accesskey "o">
 <!ENTITY insertTableCmd.label "Table…">
 <!ENTITY insertTableCmd.accesskey "T">
-<!ENTITY insertFormMenu.label "Form">
-<!ENTITY insertFormMenu.accesskey "F">
 <!ENTITY insertHTMLCmd.label "HTML…">
 <!ENTITY insertHTMLCmd.accesskey "H">
 <!ENTITY insertCharsCmd.label "Characters and Symbols…">
 <!ENTITY insertCharsCmd.accesskey "C">
-<!ENTITY insertBreakCmd.label "Line Break">
-<!ENTITY insertBreakCmd.accesskey "B">
 <!ENTITY insertBreakAllCmd.label "Break Below Image(s)">
 <!ENTITY insertBreakAllCmd.accesskey "k">
-
-<!-- Insert form menu items -->
-<!ENTITY insertFormCmd.label "Define Form…">
-<!ENTITY insertFormCmd.accesskey "D">
-<!ENTITY insertInputTagCmd.label "Form Field…">
-<!ENTITY insertInputTagCmd.accesskey "e">
-<!ENTITY insertInputImageCmd.label "Form Image…">
-<!ENTITY insertInputImageCmd.accesskey "I">
-<!ENTITY insertTextAreaCmd.label "Text Area…">
-<!ENTITY insertTextAreaCmd.accesskey "T">
-<!ENTITY insertSelectCmd.label "Selection List…">
-<!ENTITY insertSelectCmd.accesskey "S">
-<!ENTITY insertButtonCmd.label "Define Button…">
-<!ENTITY insertButtonCmd.accesskey "B">
-<!ENTITY insertLabelCmd.label "Define Label">
-<!ENTITY insertLabelCmd.accesskey "L">
-<!ENTITY insertFieldSetCmd.label "Define Field Set…">
-<!ENTITY insertFieldSetCmd.accesskey "F">
-<!ENTITY insertIsIndexCmd.label "Index Search">
-<!ENTITY insertIsIndexCmd.accesskey "x">
 
 <!-- Used just in context popup. -->
 <!ENTITY spellCheckNoSuggestions.label "(No Suggestions Found)">
@@ -238,8 +182,6 @@
 <!ENTITY fontTimes.accesskey "T">
 <!ENTITY fontCourier.label "Courier">
 <!ENTITY fontCourier.accesskey "C">
-<!ENTITY localfontfaceMenu.label "Local Fonts">
-<!ENTITY localfontfaceMenu.accesskey "F">
 
 <!-- Font Size SubMenu -->
 <!ENTITY FontSizeSelect.tooltip "Choose a font size">
@@ -361,18 +303,6 @@
 <!ENTITY advancedPropertiesCmd.label "Advanced Properties">
 <!ENTITY advancedPropertiesCmd.accesskey "v">
 
-<!ENTITY NormalAbbr.label "Text">
-<!ENTITY ParagraphAbbr.label "P">  
-<!ENTITY Heading1Abbr.label "H1">
-<!ENTITY Heading2Abbr.label "H2">
-<!ENTITY Heading3Abbr.label "H3">
-<!ENTITY Heading4Abbr.label "H4">
-<!ENTITY Heading5Abbr.label "H5">
-<!ENTITY Heading6Abbr.label "H6">
-<!ENTITY BlockquoteAbbr.label "BQ">
-<!ENTITY AddressAbbr.label "Addr.">
-<!ENTITY PreformatAbbr.label "Pre.">
-
 <!-- Align menu items -->
 <!ENTITY alignMenu.label "Align">
 <!ENTITY alignMenu.accesskey "A">
@@ -458,8 +388,6 @@
 <!ENTITY tableDeleteMenu.label "Delete">
 <!ENTITY tableDeleteMenu.accesskey "D">
 
-<!ENTITY tableFix.label "Fix Table Layout">
-<!ENTITY tableFix.accesskey "F">
 <!-- text for "Join Cells" is in editor.properties 
      ("JoinSelectedCells" and "JoinCellToRight")
      the access key must exist in both of those strings
@@ -501,7 +429,6 @@
 <!ENTITY linkToolbarCmd.tooltip "Insert new link or edit selected link's properties">
 <!ENTITY anchorToolbarCmd.label "Anchor">
 <!ENTITY anchorToolbarCmd.tooltip "Insert new named anchor or edit selected anchor's properties">
-<!ENTITY textColorCaption.label "Text Color">
 <!ENTITY TextColorButton.tooltip "Choose color for text">
 <!ENTITY BackgroundColorButton.tooltip "Choose color for background">
 <!ENTITY throbber.tooltip "Go to the &vendorShortName; home page">
@@ -523,17 +450,6 @@
 <!ENTITY alignCenterButton.tooltip "Align text centered">
 <!ENTITY alignRightButton.tooltip "Align text along right margin">
 <!ENTITY alignjustifyButton.tooltip "Align text along left and right margins">
-
-<!-- Formatting toolbar not used, but may be in future -->
-<!ENTITY formatToolbar.boldChar "B">
-<!ENTITY formatToolbar.italicChar "I">
-<!ENTITY formatToolbar.underlineChar "U">
-
-<!-- Used with color pickers in Format toolbar and Format Menu -->
-<!ENTITY colorPicker.default.label "Reader's default color">
-<!ENTITY colorPicker.default.accesskey "r">
-<!ENTITY colorLabel.label "Color:">
-<!ENTITY ok.label "OK">
 
 <!-- Display Mode toolbar and View menu items -->
 <!ENTITY NormalModeTab.label "Normal">

@@ -43,8 +43,6 @@
 <!DOCTYPE overlay [
 <!ENTITY % debugQAEditorOverlayDTD SYSTEM "chrome://debugqa/locale/debugQAEditorOverlay.dtd">
 %debugQAEditorOverlayDTD;
-<!ENTITY % editorOverlayDTD SYSTEM "chrome://editor/locale/editorOverlay.dtd">
-%editorOverlayDTD;
 ]>
 
 <overlay id="debugQAEditorOverlay"

@@ -37,7 +37,6 @@
 
 <!ENTITY Window.title        "Table of Contents">
 <!ENTITY buildToc.label      "Build table of contents from:">
-<!ENTITY style.label         "Style:">
 <!ENTITY tag.label           "Tag:">
 <!ENTITY class.label         "Class:">
 <!ENTITY header1.label       "Level 1">

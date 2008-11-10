@@ -58,7 +58,6 @@
     <!-- defined in globalOverlay -->
     <key id="key_newNavigator"/>
     <key id="key_newBlankPage"/>
-
     <key id="openeditorkb"   key="&openFileCmd.key;"          observes="cmd_open"  modifiers="accel"/>
     <key id="openremoteeditorkb"  key="&openRemoteCmd.key;"   observes="cmd_openRemote"  modifiers="accel,shift"/>
     <key id="savekb"         key="&saveCmd.key;"              observes="cmd_save"   modifiers="accel"/>
@@ -87,8 +86,7 @@
          key="&checkSpellingCmd.key;"
          observes="cmd_spelling"
          modifiers="&accel.emacs_conflict;"
-         disabled="true"
-    />
+         disabled="true"/>
 
     <key id="boldkb"         key="&styleBoldCmd.key;"       observes="cmd_bold" modifiers="accel"/>
     <key id="italickb"       key="&styleItalicCmd.key;"     observes="cmd_italic" modifiers="accel"/>
@@ -114,24 +112,19 @@
   <commandset id="commonEditorMenuItems"
           commandupdater="true"
           events="create"
-          oncommandupdate="goUpdateComposerMenuItems(this)"
-  >
+          oncommandupdate="goUpdateComposerMenuItems(this)">
     <command id="cmd_open"                                          oncommand="goDoCommand('cmd_open')"/>
     <command id="cmd_openRemote"   label="&openRemoteCmd.label;"    oncommand="goDoCommand('cmd_openRemote')"/>
     <command id="cmd_close"        label="&closeCmd.label;"         oncommand="goDoCommand('cmd_close')"/>
     <command id="cmd_printSetup"   oncommand="goDoCommand('cmd_printSetup')"/>
-<!--
-    <command id="cmd_printPreview" label="&printPreviewCmd.label;"  oncommand="goDoCommand('cmd_printPreview')"/>
--->
-    <command id="cmd_print"                                         oncommand="goDoCommand('cmd_print')"/>
+    <command id="cmd_print"        oncommand="goDoCommand('cmd_print')"/>
     <command id="cmd_quit"         oncommand="goDoCommand('cmd_quit')"/>
   </commandset>
 
   <commandset id="composerMenuItems"
           commandupdater="true"
           events="create, mode_switch"
-          oncommandupdate="goUpdateComposerMenuItems(this)"
-  >
+          oncommandupdate="goUpdateComposerMenuItems(this)">
     <!-- format menu -->
     <command id="cmd_listProperties"  oncommand="goDoCommand('cmd_listProperties')"/>
     <command id="cmd_pageProperties"  oncommand="goDoCommand('cmd_pageProperties')"/>
@@ -154,7 +147,6 @@
     <command id="cmd_objectProperties" oncommand="goDoCommand('cmd_objectProperties')"/>
     <command id="cmd_insertChars"      oncommand="goDoCommand('cmd_insertChars')"    label="&insertCharsCmd.label;"/>
     <command id="cmd_insertHTMLWithDialog" oncommand="goDoCommand('cmd_insertHTMLWithDialog')"  label="&insertHTMLCmd.label;"/>
-
     <command id="cmd_insertBreak"      oncommand="goDoCommand('cmd_insertBreak')"/>
     <command id="cmd_insertBreakAll"   oncommand="goDoCommand('cmd_insertBreakAll')"/>
     <command id="cmd_NormalMode"       oncommand="goDoCommand('cmd_NormalMode')"     label="&NormalMode.label;"/>
@@ -172,8 +164,7 @@
   <commandset id="composerSaveMenuItems"
           commandupdater="true"
           events="create, save"
-          oncommandupdate="goUpdateComposerMenuItems(this)"
-  >
+          oncommandupdate="goUpdateComposerMenuItems(this)">
     <command id="cmd_save"           label="&saveCmd.label;"           oncommand="goDoCommand('cmd_save')"/>
     <command id="cmd_saveAs"         label="&saveAsCmd.label;"         oncommand="goDoCommand('cmd_saveAs')"/>
     <command id="cmd_exportToText"   label="&exportToTextCmd.label;"   oncommand="goDoCommand('cmd_exportToText')"/>
@@ -186,13 +177,11 @@
                                      accesskey="&sendPageCmd.accesskey;"  oncommand="goDoCommand('cmd_editSendPage')"/>
   </commandset>
 
-
   <!-- edit menu commands. These get updated by code in globalOverlay.js -->
   <commandset id="composerEditMenuItems"
           commandupdater="true"
           events="create, mode_switch"
-          oncommandupdate="goUpdateComposerMenuItems(this)"
-  >
+          oncommandupdate="goUpdateComposerMenuItems(this)">
     <command id="cmd_undo"/>
     <command id="cmd_redo"/>
     <command id="cmd_cut"/>
@@ -217,19 +206,16 @@
   <commandset id="composerStyleMenuItems"
           commandupdater="true"
           events="create, style, mode_switch"
-          oncommandupdate="goUpdateComposerMenuItems(this)"
-  >
+          oncommandupdate="goUpdateComposerMenuItems(this)">
     <command id="cmd_bold"          state="false"     oncommand="doStyleUICommand('cmd_bold')"/>
     <command id="cmd_italic"        state="false"     oncommand="doStyleUICommand('cmd_italic')"/>
     <command id="cmd_underline"     state="false"     oncommand="doStyleUICommand('cmd_underline')"/>
     <command id="cmd_tt"            state="false"     oncommand="doStyleUICommand('cmd_tt')"/>
     <command id="cmd_smiley"/>
-
     <command id="cmd_strikethrough" state="false"     oncommand="doStyleUICommand('cmd_strikethrough');"/>
     <command id="cmd_superscript"   state="false"     oncommand="doStyleUICommand('cmd_superscript');"/>
     <command id="cmd_subscript"     state="false"     oncommand="doStyleUICommand('cmd_subscript');"/>
     <command id="cmd_nobreak"       state="false"     oncommand="doStyleUICommand('cmd_nobreak');"/>
-
     <command id="cmd_em"            state="false"     oncommand="doStyleUICommand('cmd_em')"/>
     <command id="cmd_strong"        state="false"     oncommand="doStyleUICommand('cmd_strong')"/>
     <command id="cmd_cite"          state="false"     oncommand="doStyleUICommand('cmd_cite')"/>
@@ -238,10 +224,8 @@
     <command id="cmd_code"          state="false"     oncommand="doStyleUICommand('cmd_code')"/>
     <command id="cmd_samp"          state="false"     oncommand="doStyleUICommand('cmd_samp')"/>
     <command id="cmd_var"           state="false"     oncommand="doStyleUICommand('cmd_var')"/>
-
     <command id="cmd_ul"            state="false"     oncommand="doStyleUICommand('cmd_ul')"/>
     <command id="cmd_ol"            state="false"     oncommand="doStyleUICommand('cmd_ol')"/>
-
     <command id="cmd_indent"                          oncommand="goDoCommand('cmd_indent')"/>
     <command id="cmd_outdent"                         oncommand="goDoCommand('cmd_outdent')"/>
 
@@ -253,19 +237,14 @@
     <command id="cmd_fontColor"       state=""/>
     <command id="cmd_backgroundColor" state=""/>
     <command id="cmd_highlight"       state="transparent"  oncommand="EditorSelectColor('Highlight', event);"/>
-
     <command id="cmd_fontSize"                         oncommand="goDoCommand('cmd_fontSize')"/>
     <command id="cmd_align"           state=""/>
-
     <command id="cmd_absPos"          state=""        oncommand="goDoCommand('cmd_absPos')"/>
     <command id="cmd_increaseZIndex"  state=""        oncommand="goDoCommand('cmd_increaseZIndex')"/>
     <command id="cmd_decreaseZIndex"  state=""        oncommand="goDoCommand('cmd_decreaseZIndex')"/>
-
     <command id="cmd_advancedProperties"              oncommand="goDoCommand('cmd_advancedProperties')"/>
-
     <command id="cmd_increaseFont"                    oncommand="goDoCommand('cmd_increaseFont')"/>
     <command id="cmd_decreaseFont"                    oncommand="goDoCommand('cmd_decreaseFont')"/>
-    
     <command id="cmd_removeStyles"                    oncommand="goDoCommand('cmd_removeStyles')"/>
     <command id="cmd_removeLinks"                     oncommand="goDoCommand('cmd_removeLinks')"/>
     <command id="cmd_removeNamedAnchors"              oncommand="goDoCommand('cmd_removeNamedAnchors')"/>
@@ -321,7 +300,6 @@
     <command id="cmd_newEditor"/>
     <command id="cmd_newEditorTemplate"/>
     <command id="cmd_newEditorDraft"/>
-
     <command id="cmd_viewCompToolbar"     oncommand="goToggleToolbar('EditToolbar','cmd_viewCompToolbar');"         checked="true"/>
     <command id="cmd_viewFormatToolbar"   oncommand="goToggleToolbar('FormatToolbar','cmd_viewFormatToolbar');"     checked="true"/>
     <command id="cmd_viewEditModeToolbar" oncommand="goToggleToolbar('EditModeToolbar','cmd_viewEditModeToolbar');" checked="true"/>
@@ -426,19 +404,6 @@
       <menuitem id="menu_paste"/>
       <menuitem id="menu_pasteNoFormatting" key="pastenoformattingkb"
                 observes="cmd_pasteNoFormatting"/>
-
-<!-- PasteAs not implemented yet
-      <menu id="menu_pasteAs" label="&pasteAs.label;" accesskey="&pasteAs.accesskey;">
-        <menupopup onpopupshowing="InitPasteAsMenu();">
-          <menuitem id="menu_pasteText"    label="&pasteTextCmd.label;"     accesskey="&pasteTextCmd.accesskey;"/>
-          <menuitem id="menu_pasteImage"   label="&pasteImageCmd.label;"    accesskey="&pasteImageCmd.accesskey;"/>
-          <menuseparator/>
-          <menuitem id="menu_pasteRows"    label="&pasteRowsCmd.label;"     accesskey="&pasteRowsCmd.accesskey;"/>
-          <menuitem id="menu_pasteColumns" label="&pasteColumnsCmd.label;"  accesskey="&pasteColumnsCmd.accesskey;"/>
-          <menuitem id="menu_pasteTable"                                    accesskey="&pasteTableCmd.accesskey;"/>
-        </menupopup>
-      </menu>
--->
       <menuitem id="menu_delete"/>
       <menuseparator id="edEditMenuSep2" />
       <menuitem id="menu_selectAll"/>
@@ -548,12 +513,6 @@
         </menupopup>
       </menu>
       <menuseparator id="insertMenuSeparator"/>
-<!-- Activate this after Enter key inserts P tag and not BR
-      <menuitem id="insertBreak"
-                label="&insertBreakCmd.label;"
-                accesskey="&insertBreakCmd.accesskey;"
-                observes="cmd_insertBreak"/>
--->
       <menuitem id="insertBreakAll" accesskey="&insertBreakAllCmd.accesskey;"   observes="cmd_insertBreakAll"   label="&insertBreakAllCmd.label;"/>
     </menupopup>
   </menu>
@@ -639,13 +598,6 @@
                 type="radio"
                 name="1" key="increasefontsizekb"/>
         <menuseparator id="fontSizeMenuAfterIncreaseFontSizeSeparator"/>
-<!-- Not supported in current font size implementation
-        <menuitem id="menu_xx-small"
-                  label="&size-xx-smallCmd.label;"
-                  accesskey="&size-xx-smallCmd.accesskey;"
-                  oncommand="EditorSetFontSize('xx-small')"
-                  type="radio" name="2"/>
--->
         <menuitem id="menu_x-small"
                   label="&size-x-smallCmd.label;"
                   accesskey="&size-x-smallCmd.accesskey;"

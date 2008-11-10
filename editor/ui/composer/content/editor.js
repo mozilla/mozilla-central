@@ -1998,18 +1998,6 @@ function EditorToggleParagraphMarks()
   }
 }
 
-function InitPasteAsMenu()
-{
-  var menuItem = document.getElementById("menu_pasteTable")
-  if(menuItem)
-  {
-    menuItem.IsInTable  
-    menuItem.setAttribute("label", GetString(IsInTable() ? "NestedTable" : "Table"));
-   // menuItem.setAttribute("accesskey",GetString("ObjectPropertiesAccessKey"));
-  }
-  // TODO: Do enabling based on what is in the clipboard
-}
-
 function UpdateWindowTitle()
 {
   try {

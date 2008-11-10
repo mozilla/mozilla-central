@@ -76,10 +76,13 @@
           <columns><column/><column/><column/></columns>
           <rows>
             <row align="center">
-              <label value="&siteList.label;"/>
+              <label value="&siteList.label;"
+                     accesskey="&siteList.accesskey;"
+                     control="SiteList"/>
               <!-- Contents filled in at runtime -->
               <menulist id="SiteList" 
                 style="min-width:18em; max-width:18em;" crop="right"
+                tooltiptext="&siteList.tooltip;"
                 oncommand="SelectSiteList();"/>
               <hbox>
                 <button label="&newSiteButton.label;"
@@ -106,7 +109,9 @@
           </rows>
         </grid>
         <spacer class="spacer"/>
-        <label value="&docDirList.label;"/>
+        <label value="&docDirList.label;"
+               accesskey="&docDirList.accesskey;"
+               control="DocDirList"/>
         <hbox align="center">
           <!-- Contents filled in at runtime -->
           <menulist id="DocDirList" class="minWidth20 uri-element" editable="true"  flex="1"

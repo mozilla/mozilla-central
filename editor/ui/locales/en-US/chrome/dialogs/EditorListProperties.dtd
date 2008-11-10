@@ -47,7 +47,6 @@
 <!ENTITY bulletList.value "Bullet (Unnumbered) List">
 <!ENTITY numberList.value "Numbered List">
 <!ENTITY definitionList.value "Definition List">
-<!ENTITY changeListMsg.label "When changing list type:">
 <!ENTITY changeEntireListRadio.label "Change entire list">
 <!ENTITY changeEntireListRadio.accessKey "C">
 <!ENTITY changeSelectedRadio.label "Change just selected items">

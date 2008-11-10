@@ -82,7 +82,8 @@
                  control="PasswordInput"/>
           <hbox>
             <textbox id="PasswordInput" type="password" class="MinWidth5em" 
-                     oninput="onInputSettings();"/>
+                     oninput="onInputSettings();"
+                     tooltiptext="&password.tooltip;"/>
             <checkbox id="SavePassword" label="&savePassword.label;"
                       accesskey="&savePassword.accesskey;" 
                       tooltiptext="&savePassword.tooltip;"

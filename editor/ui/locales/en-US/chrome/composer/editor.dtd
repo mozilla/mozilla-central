@@ -55,11 +55,3 @@
 <!-- Format menu items -->
 <!ENTITY formatMenu.label "Format">
 <!ENTITY formatMenu.accesskey "o">
-
-<!ENTITY helpMenu.label "Help">
-<!ENTITY aboutCmd.label ".About">
-
-<!-- Display Mode Toolbar -->
-<!ENTITY editMode.label "Edit Mode:">
-
-<!ENTITY statusText.label "Done loading page">

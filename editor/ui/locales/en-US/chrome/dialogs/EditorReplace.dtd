@@ -58,4 +58,3 @@
 <!ENTITY replaceAllButton.label "Replace All">
 <!ENTITY replaceAllButton.accesskey "A">
 <!ENTITY closeButton.label "Close">
-<!ENTITY notFoundWarning.label "The text you entered was not found.">

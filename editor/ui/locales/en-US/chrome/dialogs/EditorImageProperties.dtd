@@ -41,7 +41,6 @@
 <!ENTITY windowTitle.label "Image Properties">
 
 <!ENTITY pixelsPopup.value "pixels">
-<!ENTITY percentPopup.value "percent">
 
 <!-- These are in the Location tab panel -->
 <!ENTITY locationEditField.label "Image Location:">
@@ -57,7 +56,6 @@
 <!ENTITY noAltText.accessKey "D">
 
 <!ENTITY previewBox.label "Image Preview">
-<!ENTITY MoreFewerButton.tooltip "Display more or fewer properties to edit">
 
 <!-- These controls are in the Dimensions tab panel -->
 <!-- actualSize.label should be same as actualSizeRadio.label + ":" -->
@@ -93,7 +91,6 @@
 
 <!-- These controls are in the Spacing Box -->
 <!ENTITY spacingBox.label "Spacing">
-<!ENTITY spacingBox.tooltip "Type a number for the amount of space around image">
 <!ENTITY leftRightEditField.label "Left and Right:">
 <!ENTITY leftRightEditField.accessKey "L">
 <!ENTITY topBottomEditField.label "Top and Bottom:">
@@ -104,12 +101,6 @@
 <!-- These controls are in the Link Box -->
 <!ENTITY showImageLinkBorder.label "Show border around linked image">
 <!ENTITY showImageLinkBorder.accessKey "B">
-
-<!-- These controls may be added some day; currently not used -->
-<!ENTITY makePageBackgroundCheckbox.label "Make Page Background">
-<!ENTITY makePageBackgroundCheckbox.tooltip "Use image as background for your page">
-<!ENTITY editImageButton.label "Edit Image">
-<!ENTITY editImageButton.tooltip "Edit image file in another program">
 
 <!-- These tabs are currently used in the image input dialog -->
 <!ENTITY imageInputTab.label "Form">
