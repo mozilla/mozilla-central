@@ -81,7 +81,8 @@
       </listbox>
       
       <hbox>
-        <button id="add-button" oncommand="return AddEngine()" label="&add.label;" />
+        <button id="add-button" oncommand="return AddEngine()"
+                label="&add.label;" accesskey="&add.accesskey;"/>
       </hbox>
     </vbox>
     
@@ -89,7 +90,7 @@
         
     <vbox flex="1">
       <hbox align="center">
-        <label value="&category.label;" control="categoryList"/>
+        <label value="&category.label;" accesskey="&category.accesskey;" control="categoryList"/>
         <menulist id="categoryList" ref="NC:SearchCategoryRoot" datasources="rdf:null" flex="1">
           <template>
             <menupopup>
@@ -103,9 +104,12 @@
       </hbox>
       
       <hbox>
-        <button id="new-category-button" oncommand="NewCategory()" label="&new.category.label;" flex="1"/>
-        <button id="rename-category-button" oncommand="RenameCategory()" label="&rename.category.label;" flex="1"/>
-        <button id="remove-category.buttom" oncommand="RemoveCategory()" label="&remove.category.label;" flex="1"/>
+        <button id="new-category-button" oncommand="NewCategory()"
+                label="&new.category.label;" accesskey="&new.category.accesskey;" flex="1"/>
+        <button id="rename-category-button" oncommand="RenameCategory()"
+                label="&rename.category.label;" accesskey="&rename.category.accesskey;" flex="1"/>
+        <button id="remove-category.buttom" oncommand="RemoveCategory()"
+                label="&remove.category.label;" accesskey="&remove.category.accesskey;" flex="1"/>
       </hbox>
       
       <separator class="thin"/>
@@ -138,7 +142,8 @@
         </vbox>
       </hbox>          
       <hbox>
-        <button id="remove-button" oncommand="return RemoveEngine()" label="&remove.label;" />
+        <button id="remove-button" oncommand="return RemoveEngine()"
+                label="&remove.label;" accesskey="&remove.accesskey;"/>
       </hbox>    
       
     </vbox>

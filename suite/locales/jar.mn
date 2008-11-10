@@ -40,7 +40,6 @@
   locale/@AB_CD@/communicator/bookmarks/bm-props.dtd                        (%chrome/common/bookmarks/bm-props.dtd)
   locale/@AB_CD@/communicator/bookmarks/bookmarks.dtd                       (%chrome/common/bookmarks/bookmarks.dtd)
   locale/@AB_CD@/communicator/bookmarks/bookmarks.properties                (%chrome/common/bookmarks/bookmarks.properties)
-  locale/@AB_CD@/communicator/bookmarks/bookmarksOverlay.dtd                (%chrome/common/bookmarks/bookmarksOverlay.dtd)
   locale/@AB_CD@/communicator/bookmarks/findBookmark.dtd                    (%chrome/common/bookmarks/findBookmark.dtd)
   locale/@AB_CD@/communicator/bookmarks/sortFolder.dtd                      (%chrome/common/bookmarks/sortFolder.dtd)
   locale/@AB_CD@/communicator/directory/directory.dtd                       (%chrome/common/directory/directory.dtd)

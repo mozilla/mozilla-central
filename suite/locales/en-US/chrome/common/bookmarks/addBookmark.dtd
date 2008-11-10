@@ -44,7 +44,6 @@
 <!ENTITY shortcutURL.label          "Keyword:">
 <!ENTITY shortcutURL.accesskey      "K">
 <!ENTITY destination.label          "Destination:">
-<!ENTITY destination.accesskey      "D">
 <!ENTITY newFolder.label            "New Folder…">
 <!ENTITY newFolder.accesskey        "w">
 <!ENTITY addGroup.label             "Bookmark this group of tabs">

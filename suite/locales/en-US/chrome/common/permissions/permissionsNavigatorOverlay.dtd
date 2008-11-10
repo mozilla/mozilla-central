@@ -34,9 +34,6 @@
 <!ENTITY cookieManagePopups.label                    "Manage Popups">
 <!ENTITY cookieManagePopups.accesskey                "M">
 
-<!ENTITY cookieTutorialCmd.label "Understanding Privacy">
-<!ENTITY cookieTutorialCmd.accesskey "u">
-
 <!ENTITY cookieCookieManager.label "Cookie Manager">
 <!ENTITY cookieCookieManager.accesskey "c">
 <!ENTITY cookieImageManager.label "Image Manager">

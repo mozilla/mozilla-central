@@ -2,8 +2,6 @@
 
 <!ENTITY pref.popups.caption            "Popup Windows">
 
-<!ENTITY popupDesc.label                "Specify how to handle popup windows that appear on top of or under the current browser window:">
-
 <!ENTITY popupBlock.label               "Block unrequested popup windows">
 <!ENTITY popupBlock.accesskey           "B">
 

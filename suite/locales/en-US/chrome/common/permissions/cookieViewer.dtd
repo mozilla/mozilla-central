@@ -35,8 +35,5 @@
 <!ENTITY     removeallpermissions.label     "Remove All Sites">
 <!ENTITY     removeallpermissions.accesskey "e">
 
-<!ENTITY     canSet.label                   "can set cookies">
-<!ENTITY     cannotSet.label                "cannot set cookies">
-
 <!ENTITY     futureCookies.label            "Don't allow sites that set removed cookies to set future cookies">
 <!ENTITY     futureCookies.accesskey        "D">

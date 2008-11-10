@@ -114,13 +114,13 @@
           <menu id="menu_New">
             <menupopup>
               <menuitem label="&menuitem.newBookmark.label;"
-                        accesskey="&command.newBookmark.accesskey;"
+                        accesskey="&menuitem.newBookmark.accesskey;"
                         observes="cmd_bm_newbookmark"/>
               <menuitem label="&menuitem.newFolder.label;"
-                        accesskey="&command.newFolder.accesskey;"
+                        accesskey="&menuitem.newFolder.accesskey;"
                         observes="cmd_bm_newfolder"/>
               <menuitem label="&menuitem.newSeparator.label;"
-                        accesskey="&command.newSeparator.accesskey;"
+                        accesskey="&menuitem.newSeparator.accesskey;"
                         observes="cmd_bm_newseparator"/>
             </menupopup>
           </menu>
@@ -152,8 +152,8 @@
                     label="&selectAllCmd.label;" accesskey="&selectAllCmd.accesskey;"
                     key="key_selectAll" command="cmd_bm_selectAll"/>
           <menuseparator/>
-          <menuitem label="&command.moveBookmark.label;"
-                    accesskey="&command.moveBookmark.accesskey;"
+          <menuitem label="&menuitem.moveBookmark.label;"
+                    accesskey="&menuitem.moveBookmark.accesskey;"
                     command="cmd_bm_movebookmark"/>
           <menuseparator/>
           <menuitem label="&command.sortFolder.label;"
@@ -164,8 +164,8 @@
                     accesskey="&command.sortFolderByName.accesskey;"
                     command="cmd_bm_sortfolderbyname"/>
           <menuseparator/>
-          <menuitem label="&command.properties.label;"
-                    accesskey="&command.properties.accesskey;"
+          <menuitem label="&menuitem.properties.label;"
+                    accesskey="&menuitem.properties.accesskey;"
                     key="bm_key_properties"
                     command="cmd_bm_properties" />
         </menupopup>
@@ -226,17 +226,17 @@
                      accesskey="&button.newSeparator.accesskey;"
                      command="cmd_bm_newseparator"/>
       <toolbarseparator/>
-      <toolbarbutton id="moveBookmark" label="&command.moveBookmarkShort.label;"
-                     accesskey="&command.moveBookmark.accesskey;"
+      <toolbarbutton id="moveBookmark" label="&button.moveBookmark.label;"
+                     accesskey="&button.moveBookmark.accesskey;"
                      command="cmd_bm_movebookmark"/>
       <toolbarseparator/>
-      <toolbarbutton id="properties" label="&command.properties.label;"
+      <toolbarbutton id="properties" label="&button.properties.label;"
                      accesskey="&button.properties.accesskey;"
                      command="cmd_bm_properties"/>
-      <toolbarbutton id="rename" label="&command.rename.label;"
+      <toolbarbutton id="rename" label="&button.rename.label;"
                      accesskey="&button.rename.accesskey;"
                      command="cmd_bm_rename"/>
-      <toolbarbutton id="delete" label="&command.delete.label;"
+      <toolbarbutton id="delete" label="&button.delete.label;"
                      accesskey="&button.delete.accesskey;"
                      command="cmd_bm_delete"/>
       <toolbarspring/>

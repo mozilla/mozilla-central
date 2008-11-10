@@ -40,12 +40,7 @@
 
  ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay [
-<!ENTITY % utilDTD SYSTEM "chrome://communicator/locale/bookmarks/bookmarksOverlay.dtd" >
-%utilDTD;
-<!ENTITY % bmDTD SYSTEM "chrome://communicator/locale/bookmarks/bookmarks.dtd">
-%bmDTD;
-]>
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/bookmarks/bookmarks.dtd">
 
 <overlay id="bookmarksOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -105,15 +100,15 @@
     <key id="key_delete2"/>
 
     <key id="bm_key_find"
-         key="&edit.find.keybinding;"
+         key="&menuitem.find.find.key;"
          command="cmd_bm_find" modifiers="accel"/>
 
     <key id="bm_key_sortFolder"
-         key="&edit.sortFolder.keybinding;"
+         key="&command.sortFolder.key;"
          command="cmd_bm_sortfolder" modifiers="accel"/>
 
     <key id="bm_key_properties"
-         key="&edit.properties.keybinding;"
+         key="&menuitem.properties.key;"
          command="cmd_bm_properties" modifiers="accel"/>
   </keyset>
 
