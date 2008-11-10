@@ -44,11 +44,11 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE       = mailnews
 
-DIRS		= base db/msgdb db/gloda news local mime compose imap addrbook import extensions
+PARALLEL_DIRS	= base/search/src db/msgdb db/gloda news local mime compose imap addrbook import extensions
 
 ifeq ($(OS_ARCH),WINNT)
 ifndef GNU_CC
-DIRS		+= mapi
+PARALLEL_DIRS	+= mapi/mapiDLL mapi/mapihook
 endif
 endif
 
@@ -61,7 +61,9 @@ endif
 
 
 ifdef MOZ_STATIC_MAIL_BUILD
-DIRS += build
+DIRS = build
+else
+DIRS = base/build
 endif
 
 PREF_JS_EXPORTS = $(srcdir)/mailnews.js

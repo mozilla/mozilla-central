@@ -46,10 +46,10 @@ ifdef MOZ_PSM
 BUILD_SMIME=1
 endif
 
-DIRS = glue vcard
+PARALLEL_DIRS = glue vcard
 
 ifndef BUILD_SMIME
-DIRS += smimestub
+PARALLEL_DIRS += smimestub
 endif
 
 include $(topsrcdir)/config/rules.mk

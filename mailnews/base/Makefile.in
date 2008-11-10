@@ -43,15 +43,14 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgbase
-DIRS		= public src util search ispdata
 
-ifndef MOZ_STATIC_MAIL_BUILD
-DIRS += build
-endif
+PARALLEL_DIRS	= public src util ispdata
 
 ifdef ENABLE_TESTS
-DIRS += test
+PARALLEL_DIRS += test
 endif
+
+DIRS		= search/public
 
 include $(topsrcdir)/config/rules.mk
 

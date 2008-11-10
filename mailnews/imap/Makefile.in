@@ -43,10 +43,11 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgimap
-DIRS		= public src
+
+PARALLEL_DIRS	= public src
 
 ifndef MOZ_STATIC_MAIL_BUILD
-DIRS += build
+DIRS = build
 endif
 
 ifdef ENABLE_TESTS

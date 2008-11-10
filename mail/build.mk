@@ -67,6 +67,7 @@ tier_app_dirs += mail/branding/nightly
 endif
 
 tier_app_dirs += \
+	mailnews/base \
 	mailnews \
 	$(NULL)
 

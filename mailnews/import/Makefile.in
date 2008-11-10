@@ -44,23 +44,23 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= import
 
-DIRS		= public src text comm4x
+PARALLEL_DIRS	= public src text/src comm4x/public comm4x/src
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-DIRS		+= eudora applemail
+PARALLEL_DIRS	+= eudora/src applemail/src
 endif
 
 ifeq ($(OS_ARCH),WINNT)
-DIRS		+= eudora
+PARALLEL_DIRS	+= eudora/src
 ifndef GNU_CC
-DIRS		+= oexpress outlook
+PARALLEL_DIRS	+= oexpress outlook/src
 endif
 endif
-
-DIRS += build
 
 ifdef ENABLE_TESTS
-DIRS		+= test
+PARALLEL_DIRS	+= test
 endif
+
+DIRS = build
 
 include $(topsrcdir)/config/rules.mk

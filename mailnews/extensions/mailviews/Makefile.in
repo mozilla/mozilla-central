@@ -44,10 +44,10 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= mailview
 
-DIRS		= public src resources
+PARALLEL_DIRS	= public src resources/content
 
 ifndef MOZ_STATIC_MAIL_BUILD
-DIRS += build
+DIRS = build
 endif
 
 include $(topsrcdir)/config/rules.mk
