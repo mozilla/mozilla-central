@@ -35,90 +35,28 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* components defined in this file */
-const DSN_EXTENSION_SERVICE_CONTRACTID =
-    "@mozilla.org/accountmanager/extension;1?name=dsn";
-const DSN_EXTENSION_SERVICE_CID =
-    Components.ID("{849dab91-9bc9-4508-a0ee-c2453e7c092d}");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-/* interfaces used in this file */
-const nsIMsgAccountManagerExtension  = Components.interfaces.nsIMsgAccountManagerExtension;
-const nsICategoryManager = Components.interfaces.nsICategoryManager;
-const nsISupports = Components.interfaces.nsISupports;
+function DSNService() {}
 
-function DSNService()
-{}
+DSNService.prototype = {
+  name: "dsn",
+  chromePackageName: "messenger",
+  showPanel: function(server) {
+    // don't show the panel for news, rss, or local accounts
+    return (server.type != "nntp" && server.type != "rss" &&
+            server.type != "none");
+  },
 
-DSNService.prototype.name = "dsn";
-DSNService.prototype.chromePackageName = "messenger";
-DSNService.prototype.showPanel =
-function (server)
-{
-  // don't show the panel for news, rss, or local accounts
-  return (server.type != "nntp" && server.type != "rss" && server.type != "none");
-}
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIMsgAccountManagerExtension]),
+  classDescription: "DSN Account Manager Extension Service",
+  classID: Components.ID("{849dab91-9bc9-4508-a0ee-c2453e7c092d}"),
+  contractID: "@mozilla.org/accountmanager/extension;1?name=dsn",
 
-/* factory for command line handler service (DSNService) */
-var DSNFactory = new Object();
+  _xpcom_categories: [{category: "mailnews-accountmanager-extensions",
+                       entry: "dsn account manager extension"}]
+};
 
-DSNFactory.createInstance =
-function (outer, iid) {
-  if (outer != null)
-    throw Components.results.NS_ERROR_NO_AGGREGATION;
-
-  if (!iid.equals(nsIMsgAccountManagerExtension) && !iid.equals(nsISupports))
-    throw Components.results.NS_ERROR_INVALID_ARG;
-
-  return new DSNService();
-}
-
-var DSNModule = new Object();
-
-DSNModule.registerSelf =
-function (compMgr, fileSpec, location, type)
-{
-  debug("*** Registering dsn account manager extension.\n");
-  compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-  compMgr.registerFactoryLocation(DSN_EXTENSION_SERVICE_CID,
-                                  "DSN Account Manager Extension Service",
-                                  DSN_EXTENSION_SERVICE_CONTRACTID,
-                                  fileSpec,
-                                  location,
-                                  type);
-  catman = Components.classes["@mozilla.org/categorymanager;1"].getService(nsICategoryManager);
-  catman.addCategoryEntry("mailnews-accountmanager-extensions",
-                          "dsn account manager extension",
-                          DSN_EXTENSION_SERVICE_CONTRACTID, true, true);
-}
-
-DSNModule.unregisterSelf =
-function(compMgr, fileSpec, location)
-{
-  compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-  compMgr.unregisterFactoryLocation(DSN_EXTENSION_SERVICE_CID, fileSpec);
-  catman = Components.classes["@mozilla.org/categorymanager;1"].getService(nsICategoryManager);
-  catman.deleteCategoryEntry("mailnews-accountmanager-extensions",
-                             DSN_EXTENSION_SERVICE_CONTRACTID, true);
-}
-
-DSNModule.getClassObject =
-function (compMgr, cid, iid) {
-  if (cid.equals(DSN_EXTENSION_SERVICE_CID))
-    return DSNFactory;
-
-  if (!iid.equals(Components.interfaces.nsIFactory))
-    throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-
-  throw Components.results.NS_ERROR_NO_INTERFACE;
-}
-
-DSNModule.canUnload =
-function(compMgr)
-{
-  return true;
-}
-
-/* entrypoint */
 function NSGetModule(compMgr, fileSpec) {
-  return DSNModule;
+  return XPCOMUtils.generateModule([DSNService]);
 }

@@ -36,97 +36,28 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-/* components defined in this file */
-const SMIME_EXTENSION_SERVICE_CONTRACTID =
-    "@mozilla.org/accountmanager/extension;1?name=smime";
-const SMIME_EXTENSION_SERVICE_CID =
-    Components.ID("{f2809796-1dd1-11b2-8c1b-8f15f007c699}");
+function SMIMEService() {}
 
-/* interafces used in this file */
-const nsIMsgAccountManagerExtension  = Components.interfaces.nsIMsgAccountManagerExtension;
-const nsICategoryManager = Components.interfaces.nsICategoryManager;
-const nsISupports        = Components.interfaces.nsISupports;
+SMIMEService.prototype = {
+  name: "smime",
+  chromePackageName: "messenger",
+  showPanel: function(server) {
+    // don't show the panel for news, rss, or local accounts
+    return (server.type != "nntp" && server.type != "rss" &&
+            server.type != "none");
+  },
 
-function SMIMEService()
-{}
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIMsgAccountManagerExtension]),
+  classDescription: "SMIME Account Manager Extension Service",
+  classID: Components.ID("{f2809796-1dd1-11b2-8c1b-8f15f007c699}"),
+  contractID: "@mozilla.org/accountmanager/extension;1?name=smime",
 
-SMIMEService.prototype.name = "smime";
-SMIMEService.prototype.chromePackageName = "messenger";
-SMIMEService.prototype.showPanel =
+  _xpcom_categories: [{category: "mailnews-accountmanager-extensions",
+                       entry: "smime account manager extension"}]
+};
 
-function (server)
-
-{
-  // don't show the S/MIME panel for news, rss, or local accounts
-  return (server.type != "nntp" && server.type != "rss" && server.type != "none");
-}
-
-/* factory for command line handler service (SMIMEService) */
-var SMIMEFactory = new Object();
-
-SMIMEFactory.createInstance =
-function (outer, iid) {
-  if (outer != null)
-    throw Components.results.NS_ERROR_NO_AGGREGATION;
-
-  if (!iid.equals(nsIMsgAccountManagerExtension) && !iid.equals(nsISupports))
-    throw Components.results.NS_ERROR_INVALID_ARG;
-
-  return new SMIMEService();
-}
-
-
-var SMIMEModule = new Object();
-
-SMIMEModule.registerSelf =
-function (compMgr, fileSpec, location, type)
-{
-  debug("*** Registering smime account manager extension.\n");
-  compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-  compMgr.registerFactoryLocation(SMIME_EXTENSION_SERVICE_CID,
-                                  "SMIME Account Manager Extension Service",
-                                  SMIME_EXTENSION_SERVICE_CONTRACTID, 
-                                  fileSpec,
-                                  location, 
-                                  type);
-  catman = Components.classes["@mozilla.org/categorymanager;1"].getService(nsICategoryManager);
-  catman.addCategoryEntry("mailnews-accountmanager-extensions",
-                            "smime account manager extension",
-                            SMIME_EXTENSION_SERVICE_CONTRACTID, true, true);
-}
-
-SMIMEModule.unregisterSelf =
-function(compMgr, fileSpec, location)
-{
-  compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-  compMgr.unregisterFactoryLocation(SMIME_EXTENSION_SERVICE_CID, fileSpec);
-  catman = Components.classes["@mozilla.org/categorymanager;1"].getService(nsICategoryManager);
-  catman.deleteCategoryEntry("mailnews-accountmanager-extensions",
-                             SMIME_EXTENSION_SERVICE_CONTRACTID, true);
-}
-
-SMIMEModule.getClassObject =
-function (compMgr, cid, iid) {
-  if (cid.equals(SMIME_EXTENSION_SERVICE_CID))
-    return SMIMEFactory;
-
-
-  if (!iid.equals(Components.interfaces.nsIFactory))
-    throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-
-  throw Components.results.NS_ERROR_NO_INTERFACE;    
-}
-
-SMIMEModule.canUnload =
-function(compMgr)
-{
-  return true;
-}
-
-/* entrypoint */
 function NSGetModule(compMgr, fileSpec) {
-  return SMIMEModule;
+  return XPCOMUtils.generateModule([SMIMEService]);
 }
-
-
