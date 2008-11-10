@@ -130,11 +130,15 @@ let cal = {
     /**
      * Shortcut function to check whether an item is an invitation copy and
      * has a participation status of either NEEDS-ACTION or TENTATIVE.
+     *
+     * @param aItem either calIAttendee or calIItemBase 
      */
     isOpenInvitation: function cal_isOpenInvitation(aItem) {
-        let att = cal.getInvitedAttendee(aItem);
-        if (att) {
-            switch (att.participationStatus) {
+        if (!cal.calInstanceOf(aItem, Components.interfaces.calIAttendee)) {
+            aItem = cal.getInvitedAttendee(aItem);
+        }
+        if (aItem) {
+            switch (aItem.participationStatus) {
                 case "NEEDS-ACTION":
                 case "TENTATIVE":
                     return true;

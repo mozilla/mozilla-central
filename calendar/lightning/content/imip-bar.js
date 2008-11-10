@@ -245,6 +245,8 @@ function ltnExecAction(partStat) {
     switch (gActionFunc.method) {
         // methods that don't require the calendar chooser:
         case "REFRESH":
+        case "REQUEST:UPDATE":
+        case "REQUEST:UPDATE-MINOR":
         case "PUBLISH:UPDATE":
         case "REPLY":
         case "CANCEL":

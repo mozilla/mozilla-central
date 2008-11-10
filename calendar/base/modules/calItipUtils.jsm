@@ -58,7 +58,7 @@ cal.itip = {
      getSequence: function cal_itip_getSequence(item) {
         let seq = null;
 
-        if (item instanceof Components.interfaces.calIAttendee) {
+        if (cal.calInstanceOf(item, Components.interfaces.calIAttendee)) {
             seq = item.getProperty("RECEIVED-SEQUENCE");
         } else if (item) {
             // Unless the below is standardized, we store the last original
@@ -92,7 +92,7 @@ cal.itip = {
     getStamp: function cal_itip_getStamp(item) {
         let dtstamp = null;
 
-        if (item instanceof Components.interfaces.calIAttendee) {
+        if (cal.calInstanceOf(item, Components.interfaces.calIAttendee)) {
             let st = item.getProperty("RECEIVED-DTSTAMP");
             if (st) {
                 dtstamp = cal.createDateTime(st);
@@ -268,7 +268,7 @@ cal.itip = {
 
             // check whether it's a simple UPDATE (no SEQUENCE change) or real (RE)REQUEST,
             // in case of time or location/description change.
-            let isUpdate = (aOriginalItem && (cal.itip.getSequence(aItem) == cal.itip.getSequence(aOriginalItem)));
+            let isMinorUpdate = (aOriginalItem && (cal.itip.getSequence(aItem) == cal.itip.getSequence(aOriginalItem)));
 
             if (!requestItem.organizer) {
                 let organizer = createAttendee();
@@ -283,11 +283,11 @@ cal.itip = {
             // Fix up our attendees for invitations using some good defaults
             let recipients = [];
             let itemAtt = requestItem.getAttendees({});
-            if (!isUpdate) {
+            if (!isMinorUpdate) {
                 requestItem.removeAllAttendees();
             }
             for each (let attendee in itemAtt) {
-                if (!isUpdate) {
+                if (!isMinorUpdate) {
                     attendee = attendee.clone();
                     attendee.role = "REQ-PARTICIPANT";
                     attendee.participationStatus = "NEEDS-ACTION";
@@ -393,13 +393,13 @@ cal.itip = {
  * @param itipItemItem received iTIP item
  */
 function setReceivedInfo(item, itipItemItem) {
-    item.setProperty((item instanceof Components.interfaces.calIAttendee) ? "RECEIVED-SEQUENCE"
-                                                                          : "X-MOZ-RECEIVED-SEQUENCE",
+    item.setProperty(cal.calInstanceOf(item, Components.interfaces.calIAttendee) ? "RECEIVED-SEQUENCE"
+                                                                                 : "X-MOZ-RECEIVED-SEQUENCE",
                      String(cal.itip.getSequence(itipItemItem)));
     let dtstamp = cal.itip.getStamp(itipItemItem);
     if (dtstamp) {
-        item.setProperty((item instanceof Components.interfaces.calIAttendee) ? "RECEIVED-DTSTAMP"
-                                                                              : "X-MOZ-RECEIVED-DTSTAMP",
+        item.setProperty(cal.calInstanceOf(item, Components.interfaces.calIAttendee) ? "RECEIVED-DTSTAMP"
+                                                                                     : "X-MOZ-RECEIVED-DTSTAMP",
                          dtstamp.getInTimezone(cal.UTC()).icalString);
     }
 }
@@ -616,9 +616,11 @@ ItipFindItemListener.prototype = {
                                         }
                                         if (att) {
                                             let action = function(opListener, partStat) {
-                                                if (partStat) {
-                                                    att.participationStatus = partStat;
+                                                if (!partStat) { // keep PARTSTAT
+                                                    let att_ = cal.getInvitedAttendee(item);
+                                                    partStat = (att_ ? att_.participationStatus : "NEEDS-ACTION");
                                                 }
+                                                att.participationStatus = partStat;
                                                 return newItem.calendar.modifyItem(
                                                     newItem, item, new ItipOpListener(opListener, item));
                                             };
