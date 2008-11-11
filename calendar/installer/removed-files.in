@@ -419,3 +419,7 @@ js/calWcapSession.js
 js/calWcapUtils.js
 js/calWeekInfoService.js
 js/calWeekPrinter.js
+
+# Bug 463716 - Default theme images now included in extensions\<theme-id>\
+chrome/classic.jar
+chrome/classic.manifest
