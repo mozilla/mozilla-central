@@ -468,11 +468,15 @@ function ShowResults(doesWantProgress, result)
 
 function ShowImportResults(good, module)
 {
+  // String keys for ImportSettingsSuccess, ImportSettingsFailed,
+  // ImportMailSuccess, ImportMailFailed, ImportAddressSuccess,
+  // ImportAddressFailed, ImportFiltersSuccess, and ImportFiltersFailed.
+  var modSuccess = 'Import' + module + 'Success';
+  var modFailed = 'Import' + module + 'Failed';
+
   // The callers seem to set 'good' to true even if there's something
   // in the error log. So we should only make it a success case if
   // error log/str is empty.
-  var modSuccess = 'Import' + module + 'Success';
-  var modFailed = 'Import' + module + 'Failed';
   var results, title;
   if (good && !errorStr.data) {
     title = gImportMsgsBundle.getFormattedString(modSuccess, [ selectedModuleName ? selectedModuleName : '' ]);
