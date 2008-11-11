@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -114,9 +114,7 @@ static void openMailWindow(const nsACString& aFolderUri)
 nsMessengerOSXIntegration::nsMessengerOSXIntegration()
 {
   mBiffStateAtom = do_GetAtom("BiffState");
-
   mBiffIconVisible = PR_FALSE;
-  mSuppressBiffIcon = PR_FALSE;
   mAlertInProgress = PR_FALSE;
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
 }
@@ -300,6 +298,8 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
   if (mAlertInProgress)
     return NS_OK;
 
+  mAlertInProgress = PR_TRUE;
+
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -309,6 +309,7 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
 
   if (showAlert)
   {
+    // Use growl if installed
     nsCOMPtr<nsIAlertsService> alertsService (do_GetService(NS_ALERTSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv))
     {
@@ -317,15 +318,27 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
       if (bundle)
       { 
         nsString growlNotification;
-        bundle->GetStringFromName(NS_LITERAL_STRING("growlNotification").get(), getter_Copies(growlNotification));
-        rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(kNewMailAlertIcon), aAlertTitle,
-                                                  aAlertText, PR_TRUE, NS_ConvertASCIItoUTF16(aFolderURI),
-                                                  this, growlNotification);
-        mAlertInProgress = PR_TRUE;
+        bundle->GetStringFromName(NS_LITERAL_STRING("growlNotification").get(), 
+                                  getter_Copies(growlNotification));
+        rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(kNewMailAlertIcon), 
+                                                  aAlertTitle,
+                                                  aAlertText, 
+                                                  PR_TRUE, 
+                                                  NS_ConvertASCIItoUTF16(aFolderURI),
+                                                  this, 
+                                                  growlNotification);
       }
     }
+    
+    PRBool bounceDockIcon = PR_FALSE; 
+    prefBranch->GetBoolPref("mail.biff.animate_dock_icon", &bounceDockIcon);
+
+    if (bounceDockIcon)
+      BounceDockIcon();
   }
-   
+
+  BadgeDockIcon();
+
   if (!showAlert || NS_FAILED(rv))
     OnAlertFinished(nsnull);
 
@@ -410,155 +423,156 @@ nsMessengerOSXIntegration::OnAlertClicked()
 nsresult
 nsMessengerOSXIntegration::OnAlertFinished(const PRUnichar * aAlertCookie)
 {
-  nsresult rv;
-  nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  PRBool bounceDockIcon = PR_FALSE; 
-  prefBranch->GetBoolPref("mail.biff.animate_dock_icon", &bounceDockIcon);
+  mAlertInProgress = PR_FALSE;
+  return NS_OK;
+}
 
-  // This will call GetAttention(), which will bounce the dock icon.
-  if (!mSuppressBiffIcon)
+nsresult
+nsMessengerOSXIntegration::BounceDockIcon()
+{
+  nsCOMPtr<nsIWindowMediator> mediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
+  if (mediator)
   {
-    nsCOMPtr<nsIWindowMediator> mediator (do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
-    if (bounceDockIcon && mediator)
+    nsCOMPtr<nsIDOMWindowInternal> domWindow;
+    mediator->GetMostRecentWindow(NS_LITERAL_STRING("mail:3pane").get(), getter_AddRefs(domWindow));
+    if (domWindow)
     {
-      nsCOMPtr<nsIDOMWindowInternal> domWindow;
-      mediator->GetMostRecentWindow(NS_LITERAL_STRING("mail:3pane").get(), getter_AddRefs(domWindow));
-      if (domWindow)
-	  {
-        nsCOMPtr<nsIDOMChromeWindow> chromeWindow(do_QueryInterface(domWindow));
-        chromeWindow->GetAttention();
-	  }
+      nsCOMPtr<nsIDOMChromeWindow> chromeWindow(do_QueryInterface(domWindow));
+      chromeWindow->GetAttention();
     }
+  }
+  return NS_OK;
+}
 
-    // This will change the dock icon.     
-    // If we want to overlay the number of new messages on top of
-    // the icon ...
+nsresult
+nsMessengerOSXIntegration::BadgeDockIcon()
+{
+  // This will change the dock icon. If we want to overlay the number of
+  // new messages on top of the icon use OverlayApplicationDockTileImage
+  // you'll have to pass it a CGImage, and somehow we have to/ create
+  // the CGImage with the numbers. tricky    
+  PRInt32 totalNewMessages = CountNewMessages();
+  CGContextRef context = ::BeginCGContextForApplicationDockTile();
     
-    // use OverlayApplicationDockTileImage
-    // -- you'll have to pass it a CGImage, and somehow we have to
-    // create the CGImage with the numbers. tricky    
-    PRInt32 totalNewMessages = CountNewMessages();
-    CGContextRef context = ::BeginCGContextForApplicationDockTile();
-    
-    // Draw a circle.
-    ::CGContextBeginPath(context);
-    ::CGContextAddArc(context, 95.0, 95.0, 25.0, 0.0, 2 * M_PI, true);
-    ::CGContextClosePath(context);
+  // Draw a circle.
+  ::CGContextBeginPath(context);
+  ::CGContextAddArc(context, 95.0, 95.0, 25.0, 0.0, 2 * M_PI, true);
+  ::CGContextClosePath(context);
 
-    // use #2fc600 for the color.
-    ::CGContextSetRGBFillColor(context, 0.184, 0.776, 0.0, 1);
+  // use #2fc600 for the color.
+  ::CGContextSetRGBFillColor(context, 0.184, 0.776, 0.0, 1);
+  ::CGContextFillPath(context);
 
-    //::CGContextSetRGBFillColor(context, 1.0, 1.0, 1.0, 0.7);
-    ::CGContextFillPath(context);
+  // Draw the number.
+  nsAutoString total;
+  total.AppendInt(totalNewMessages);
 
-    // Draw the number.
-    nsAutoString total;
-    total.AppendInt(totalNewMessages);
+  // Use a system font (kThemeUtilityWindowTitleFont)
+  ScriptCode sysScript = ::GetScriptManagerVariable(smSysScript);
 
-    // Use a system font (kThemeUtilityWindowTitleFont)
-    ScriptCode sysScript = ::GetScriptManagerVariable(smSysScript);
+  Str255 fontName;
+  SInt16 fontSize;
+  Style fontStyle;
+  ::GetThemeFont(kThemeSmallEmphasizedSystemFont, sysScript, fontName,
+                 &fontSize, &fontStyle);
 
-    Str255 fontName;
-    SInt16 fontSize;
-    Style fontStyle;
-    ::GetThemeFont(kThemeSmallEmphasizedSystemFont, sysScript, fontName,
-                   &fontSize, &fontStyle);
+  FMFontFamily family = ::FMGetFontFamilyFromName(fontName);
+  FMFont fmFont;
 
-    FMFontFamily family = ::FMGetFontFamilyFromName(fontName);
-    FMFont fmFont;
-    OSStatus err = ::FMGetFontFromFontFamilyInstance(family, fontStyle, &fmFont,
-                                                     nsnull);
-    if (err != noErr) 
-	{
-	  NS_WARNING("FMGetFontFromFontFamilyInstance failed");
-	  ::EndCGContextForApplicationDockTile(context);
-	  return NS_ERROR_FAILURE;
-    }
-
-    ATSUStyle style;
-    err = ::ATSUCreateStyle(&style);
-    if (err != noErr) 
-	{
-      NS_WARNING("ATSUCreateStyle failed");
-	  ::EndCGContextForApplicationDockTile(context);
-      return NS_ERROR_FAILURE;
-	}
-        
-    Fixed size = Long2Fix(24);
-    RGBColor white = { 0xFFFF, 0xFFFF, 0xFFFF };
-    
-    ATSUAttributeTag tags[3] = { kATSUFontTag, kATSUSizeTag, kATSUColorTag };
-    ByteCount valueSizes[3] = { sizeof(ATSUFontID), sizeof(Fixed),
-                                sizeof(RGBColor) };
-    ATSUAttributeValuePtr values[3] = { &fmFont, &size, &white };
-
-    err = ::ATSUSetAttributes(style, 3, tags, valueSizes, values);
-    if (err != noErr) {
-      NS_WARNING("ATSUSetAttributes failed");
-      ::ATSUDisposeStyle(style);
-      ::EndCGContextForApplicationDockTile(context);
-      return NS_ERROR_FAILURE;
-    }
-
-    UniCharCount runLengths = kATSUToTextEnd;
-    ATSUTextLayout textLayout;
-    err = ::ATSUCreateTextLayoutWithTextPtr(total.get(),
-                                            kATSUFromTextBeginning,
-                                            kATSUToTextEnd, total.Length(), 1,
-                                            &runLengths, &style, &textLayout);
-    if (err != noErr) 
-	{
-      NS_WARNING("ATSUCreateTextLayoutWithTextPtr failed");
-      ::ATSUDisposeStyle(style);
-      ::EndCGContextForApplicationDockTile(context);
-      return NS_ERROR_FAILURE;
-    }
-
-    ATSUAttributeTag layoutTags[1] = { kATSUCGContextTag };
-    ByteCount layoutValueSizes[1] = { sizeof(CGContextRef) };
-    ATSUAttributeValuePtr layoutValues[1] = { &context };
-
-    err = ::ATSUSetLayoutControls(textLayout, 1, layoutTags, layoutValueSizes,
-                                  layoutValues);
-    if (err != noErr) 
-	{
-      NS_WARNING("ATSUSetLayoutControls failed");
-      ::ATSUDisposeStyle(style);
-      ::EndCGContextForApplicationDockTile(context);
-      return NS_ERROR_FAILURE;
-    }
-
-    Rect boundingBox;
-    err = ::ATSUMeasureTextImage(textLayout, kATSUFromTextBeginning,
-                                 kATSUToTextEnd, Long2Fix(0), Long2Fix(0),
-                                 &boundingBox);
-    if (err != noErr) 
-	{
-      NS_WARNING("ATSUMeasureTextImage failed");
-      ::ATSUDisposeStyle(style);
-      ::EndCGContextForApplicationDockTile(context);
-      return NS_ERROR_FAILURE;
-    }
-
-    // Center text inside circle
-    err = ::ATSUDrawText(textLayout, kATSUFromTextBeginning, kATSUToTextEnd,
-                         Long2Fix(90 - (boundingBox.right - boundingBox.left) / 2),
-                         Long2Fix(95 - (boundingBox.bottom - boundingBox.top) / 2));
-
-    ::ATSUDisposeStyle(style);
-    ::ATSUDisposeTextLayout(textLayout);
-
-    ::CGContextFlush(context);
-
+  if (::FMGetFontFromFontFamilyInstance(family,
+                                        fontStyle,
+                                        &fmFont,
+                                        nsnull) != noErr)
+  {
+    NS_WARNING("FMGetFontFromFontFamilyInstance failed");
     ::EndCGContextForApplicationDockTile(context);
-    mBiffIconVisible = PR_TRUE;
+    return NS_ERROR_FAILURE;
   }
 
-  mSuppressBiffIcon = PR_FALSE;
-  mAlertInProgress = PR_FALSE;
-  return rv; // was NS_OK;
+  ATSUStyle style;
+  if (::ATSUCreateStyle(&style) != noErr) 
+  {
+    NS_WARNING("ATSUCreateStyle failed");
+    ::EndCGContextForApplicationDockTile(context);
+    return NS_ERROR_FAILURE;
+  }
+        
+  Fixed size = Long2Fix(24);
+  RGBColor white = { 0xFFFF, 0xFFFF, 0xFFFF };
+    
+  ATSUAttributeTag tags[3] = { kATSUFontTag, kATSUSizeTag, kATSUColorTag };
+  ByteCount valueSizes[3] = { sizeof(ATSUFontID), sizeof(Fixed),
+                              sizeof(RGBColor) };
+  ATSUAttributeValuePtr values[3] = { &fmFont, &size, &white };
+
+  if (::ATSUSetAttributes(style, 3, tags, valueSizes, values) != noErr) 
+  {
+    NS_WARNING("ATSUSetAttributes failed");
+    ::ATSUDisposeStyle(style);
+    ::EndCGContextForApplicationDockTile(context);
+    return NS_ERROR_FAILURE;
+  }
+
+  UniCharCount runLengths = kATSUToTextEnd;
+  ATSUTextLayout textLayout;
+  if (::ATSUCreateTextLayoutWithTextPtr(total.get(), 
+                                        kATSUFromTextBeginning, 
+                                        kATSUToTextEnd, 
+                                        total.Length(), 
+                                        1, 
+                                        &runLengths, 
+                                        &style, 
+                                        &textLayout) != noErr) 
+  {
+    NS_WARNING("ATSUCreateTextLayoutWithTextPtr failed");
+    ::ATSUDisposeStyle(style);
+    ::EndCGContextForApplicationDockTile(context);
+    return NS_ERROR_FAILURE;
+  }
+
+  ATSUAttributeTag layoutTags[1] = { kATSUCGContextTag };
+  ByteCount layoutValueSizes[1] = { sizeof(CGContextRef) };
+  ATSUAttributeValuePtr layoutValues[1] = { &context };
+
+  if (::ATSUSetLayoutControls(textLayout, 
+                              1, 
+                              layoutTags, 
+                              layoutValueSizes, 
+                              layoutValues) != noErr) 
+  {
+    NS_WARNING("ATSUSetLayoutControls failed");
+    ::ATSUDisposeStyle(style);
+    ::EndCGContextForApplicationDockTile(context);
+    return NS_ERROR_FAILURE;
+  }
+
+  Rect boundingBox;
+  if (::ATSUMeasureTextImage(textLayout, 
+                             kATSUFromTextBeginning,
+                             kATSUToTextEnd,
+                             Long2Fix(0),
+                             Long2Fix(0),
+                             &boundingBox) != noErr) 
+  {
+    NS_WARNING("ATSUMeasureTextImage failed");
+    ::ATSUDisposeStyle(style);
+    ::EndCGContextForApplicationDockTile(context);
+    return NS_ERROR_FAILURE;
+  }
+
+  // Center text inside circle
+  ::ATSUDrawText(textLayout, kATSUFromTextBeginning, kATSUToTextEnd,
+                 Long2Fix(90 - (boundingBox.right - boundingBox.left) / 2),
+                 Long2Fix(95 - (boundingBox.bottom - boundingBox.top) / 2));
+
+  ::ATSUDisposeStyle(style);
+  ::ATSUDisposeTextLayout(textLayout);
+
+  ::CGContextFlush(context);
+  ::EndCGContextForApplicationDockTile(context);
+
+  mBiffIconVisible = PR_TRUE;
+  return NS_OK;
 }
 
 NS_IMETHODIMP

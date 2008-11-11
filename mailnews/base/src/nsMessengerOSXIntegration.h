@@ -81,9 +81,10 @@ private:
   nsresult GetStringBundle(nsIStringBundle **aBundle);
   void FillToolTipInfo();
   nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
+  nsresult BadgeDockIcon();
+  nsresult BounceDockIcon();
 
   PRPackedBool mBiffIconVisible;
-  PRPackedBool mSuppressBiffIcon;
   PRPackedBool mAlertInProgress;
 };
 
