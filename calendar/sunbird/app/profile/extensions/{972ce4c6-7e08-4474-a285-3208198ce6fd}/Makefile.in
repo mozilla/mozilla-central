@@ -46,8 +46,20 @@ include $(topsrcdir)/config/rules.mk
 
 DEFINES += -DSUNBIRD_VERSION=$(SUNBIRD_VERSION)
 
+# Select a theme from which to pull our skin goodness
+# OS X: pinstripe
+# Others: winstripe
+
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+THEME = pinstripe
+else
+THEME = winstripe
+endif
+
 FILES := \
 	install.rdf \
+	$(srcdir)/../../../../base/themes/$(THEME)/preview.png \
+	$(srcdir)/../../../../base/themes/$(THEME)/icon.png \
 	$(NULL)
 
 libs::
