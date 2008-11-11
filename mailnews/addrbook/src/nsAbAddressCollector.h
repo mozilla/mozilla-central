@@ -41,10 +41,11 @@
 
 #include "nsIAbAddressCollector.h"
 #include "nsCOMPtr.h"
-#include "nsIAddrDatabase.h"
 #include "nsIAbDirectory.h"
 #include "nsIAbCard.h"
 #include "nsIObserver.h"
+
+class nsIPrefBranch;
 
 class nsAbAddressCollector : public nsIAbAddressCollector,
                              public nsIObserver
@@ -60,14 +61,16 @@ public:
   nsresult Init();
 
 private:
+  nsIAbCard* GetCardFromProperty(const char *aName, const nsACString &aValue,
+                                 nsIAbDirectory **aDirectory);
+
   void AutoCollectScreenName(nsIAbCard *aCard, const nsACString &aEmail);
   PRBool SetNamesForCard(nsIAbCard *aSenderCard, const nsACString &aFullName);
   void SplitFullName(const nsCString &aFullName, nsCString &aFirstName,
                      nsCString &aLastName);
-  nsresult SetAbURI(nsCString &aURI);
-  nsCOMPtr <nsIAddrDatabase> m_database;
-  nsCOMPtr <nsIAbDirectory> m_directory;
-  nsCString m_abURI;
+  void SetUpAbFromPrefs(nsIPrefBranch *aPrefBranch);
+  nsCOMPtr <nsIAbDirectory> mDirectory;
+  nsCString mABURI;
 };
 
 #endif  // _nsAbAddressCollector_H_

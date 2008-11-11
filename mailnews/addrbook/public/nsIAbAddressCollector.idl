@@ -46,7 +46,7 @@ interface nsIAbCard;
  * It will save and update the supplied addresses into the address book
  * specified by the "mail.collect_addressbook" pref.
  */
-[scriptable, uuid(db4eb202-5dec-48d5-b853-b46d8d5bb055)]
+[scriptable, uuid(069d3fba-37d4-4158-b401-a8efaeea0b66)]
 interface nsIAbAddressCollector : nsISupports {
   /**
    * Collects email addresses into the address book.
@@ -89,9 +89,4 @@ interface nsIAbAddressCollector : nsISupports {
                             in boolean aCreateCard,
                             in unsigned long aSendFormat,
                             [optional] in boolean aSkipCheckExisting);
-
-  /**
-   * Get the first card with this name / value in the collected ab.
-   */
-  nsIAbCard getCardFromAttribute(in ACString aName, in ACString aValue);
 };

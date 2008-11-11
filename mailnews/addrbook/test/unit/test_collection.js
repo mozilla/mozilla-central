@@ -2,8 +2,10 @@
 /*
  * Test suite for the Address Collector Service.
  *
- * XXX Todo: May still need to add test for
- * nsIAbAddressCollector::getCardFromAttribute if its kept.
+ * This tests the main collection functions for adding new cards and modifying
+ * existing ones.
+ *
+ * Tests against cards in different ABs are done in test_collection_2.js.
  */
 
 const nsIAbPMF = Components.interfaces.nsIAbPreferMailFormat;

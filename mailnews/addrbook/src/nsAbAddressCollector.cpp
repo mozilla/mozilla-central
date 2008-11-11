@@ -51,7 +51,7 @@
 #include "prmem.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
-#include "nsIAbMDBDirectory.h"
+#include "nsIAbManager.h"
 
 NS_IMPL_ISUPPORTS2(nsAbAddressCollector, nsIAbAddressCollector, nsIObserver)
 
@@ -65,22 +65,50 @@ nsAbAddressCollector::~nsAbAddressCollector()
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch2> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if(NS_SUCCEEDED(rv))
+  if (NS_SUCCEEDED(rv))
     pPrefBranchInt->RemoveObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this);
 }
 
-NS_IMETHODIMP nsAbAddressCollector::GetCardFromAttribute(const nsACString &aName, const nsACString &aValue, nsIAbCard **aCard)
+nsIAbCard*
+nsAbAddressCollector::GetCardFromProperty(const char *aName,
+                                          const nsACString &aValue,
+                                          nsIAbDirectory **aDirectory)
 {
-  NS_ENSURE_ARG_POINTER(aCard);
-  if (m_database)
-    // Please DO NOT change the 3rd param of GetCardFromAttribute() call to 
-    // PR_TRUE (i.e. case insensitive) without reading bugs #128535 and #121478.
-    return m_database->GetCardFromAttribute(m_directory.get(),
-                                            PromiseFlatCString(aName).get(),
-                                            aValue, PR_FALSE /* retain case */,
-                                            aCard);
+  nsresult rv;
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
-  return NS_ERROR_FAILURE;
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  rv = abManager->GetDirectories(getter_AddRefs(enumerator));
+  NS_ENSURE_SUCCESS(rv, nsnull);
+
+  PRBool hasMore;
+  nsCOMPtr<nsISupports> supports;
+  nsCOMPtr<nsIAbDirectory> directory;
+  nsIAbCard *result = nsnull;
+  while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
+  {
+    rv = enumerator->GetNext(getter_AddRefs(supports));
+    NS_ENSURE_SUCCESS(rv, nsnull);
+
+    directory = do_QueryInterface(supports, &rv);
+    if (NS_FAILED(rv))
+      continue;
+
+    // Some implementations may return NS_ERROR_NOT_IMPLEMENTED here,
+    // so just catch the value and continue.
+    if (NS_FAILED(directory->GetCardFromProperty(aName, aValue, PR_TRUE,
+                                                 &result)))
+      continue;
+
+    if (result)
+    {
+      if (aDirectory)
+        directory.swap(*aDirectory);
+      return result;
+    }
+  }
+  return nsnull;
 }
 
 NS_IMETHODIMP
@@ -88,6 +116,10 @@ nsAbAddressCollector::CollectAddress(const nsACString &aAddresses,
                                      PRBool aCreateCard,
                                      PRUint32 aSendFormat)
 {
+  // If we've not got a valid directory, no point in going any further
+  if (!mDirectory)
+    return NS_OK;
+
   // note that we're now setting the whole recipient list,
   // not just the pretty name of the first recipient.
   PRUint32 numAddresses;
@@ -142,20 +174,25 @@ nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
                                            PRUint32 aSendFormat,
                                            PRBool aSkipCheckExisting)
 {
+  if (!mDirectory)
+    return NS_OK;
+
   nsresult rv;
   nsCOMPtr<nsIAbCard> card;
   PRBool emailAddressIn2ndEmailColumn = PR_FALSE;
 
+  nsCOMPtr<nsIAbDirectory> originDirectory;
+
   if (!aSkipCheckExisting)
   {
-    rv = GetCardFromAttribute(NS_LITERAL_CSTRING(kPriEmailProperty),
-                              aEmail, getter_AddRefs(card));
+    card = GetCardFromProperty(kPriEmailProperty, aEmail,
+                               getter_AddRefs(originDirectory));
     // We've not found a card, but is this address actually in the additional
     // email column?
     if (!card)
     {
-      rv = GetCardFromAttribute(NS_LITERAL_CSTRING(k2ndEmailProperty),
-                                aEmail, getter_AddRefs(card));
+      card = GetCardFromProperty(k2ndEmailProperty, aEmail,
+                                 getter_AddRefs(originDirectory));
       if (card)
         emailAddressIn2ndEmailColumn = PR_TRUE;
     }
@@ -164,7 +201,7 @@ nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
   if (!card && (aCreateCard || aSkipCheckExisting))
   {
     card = do_CreateInstance(NS_ABCARDPROPERTY_CONTRACTID, &rv);
-    if (NS_SUCCEEDED(rv) && card && m_directory)
+    if (NS_SUCCEEDED(rv) && card)
     {
       // Set up the fields for the new card.
       SetNamesForCard(card, aDisplayName);
@@ -175,13 +212,22 @@ nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
         card->SetPropertyAsUint32(kPreferMailFormatProperty, aSendFormat);
 
         nsCOMPtr<nsIAbCard> addedCard;
-        rv = m_directory->AddCard(card, getter_AddRefs(addedCard));
+        rv = mDirectory->AddCard(card, getter_AddRefs(addedCard));
         NS_ASSERTION(NS_SUCCEEDED(rv), "failed to add card");
       }
     }
   }
-  else if (card && !emailAddressIn2ndEmailColumn)
+  else if (card && !emailAddressIn2ndEmailColumn && originDirectory)
   {
+    // It could be that the origin directory is read-only, so don't try and
+    // write to it if it is.
+    PRBool readOnly;
+    rv = originDirectory->GetReadOnly(&readOnly);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (readOnly)
+      return NS_OK;
+
     // address is already in the AB, so update the names
     PRBool modifiedCard = PR_FALSE;
 
@@ -205,8 +251,8 @@ nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
         modifiedCard = PR_TRUE;
     }
 
-    if (modifiedCard && m_directory)
-      m_directory->ModifyCard(card);
+    if (modifiedCard)
+      originDirectory->ModifyCard(card);
   }
 
   return NS_OK;
@@ -277,69 +323,71 @@ nsAbAddressCollector::SplitFullName(const nsCString &aFullName, nsCString &aFirs
 }
 
 // Observes the collected address book pref in case it changes.
-NS_IMETHODIMP nsAbAddressCollector::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
+NS_IMETHODIMP
+nsAbAddressCollector::Observe(nsISupports *aSubject, const char *aTopic,
+                              const PRUnichar *aData)
 {
-  nsCOMPtr<nsIPrefBranch2> pPrefBranchInt = do_QueryInterface(aSubject);
-  if (!pPrefBranchInt) {
-    NS_ASSERTION(pPrefBranchInt, "failed to get prefs");
+  nsCOMPtr<nsIPrefBranch2> prefBranch = do_QueryInterface(aSubject);
+  if (!prefBranch) {
+    NS_ASSERTION(prefBranch, "failed to get prefs");
     return NS_OK;
   }
 
-  nsresult rv;
-  nsCString prefVal;
-  pPrefBranchInt->GetCharPref(PREF_MAIL_COLLECT_ADDRESSBOOK,
-                              getter_Copies(prefVal));
-  rv = SetAbURI(prefVal);
-  NS_ASSERTION(NS_SUCCEEDED(rv),"failed to change collected ab");
+  SetUpAbFromPrefs(prefBranch);
   return NS_OK;
 }
 
 // Initialises the collector with the required items.
-nsresult nsAbAddressCollector::Init(void)
+nsresult
+nsAbAddressCollector::Init(void)
 {
   nsresult rv;
-  nsCOMPtr<nsIPrefBranch2> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  nsCOMPtr<nsIPrefBranch2> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID,
+                                                    &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = pPrefBranchInt->AddObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this, PR_FALSE);
+  rv = prefBranch->AddObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this, PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCString prefVal;
-  pPrefBranchInt->GetCharPref(PREF_MAIL_COLLECT_ADDRESSBOOK,
-                              getter_Copies(prefVal));
-  return SetAbURI(prefVal);
+  SetUpAbFromPrefs(prefBranch);
+  return NS_OK;
 }
 
 // Performs the necessary changes to set up the collector for the specified
 // collected address book.
-nsresult nsAbAddressCollector::SetAbURI(nsCString &aURI)
+void
+nsAbAddressCollector::SetUpAbFromPrefs(nsIPrefBranch *aPrefBranch)
 {
-  if (aURI.IsEmpty())
-    aURI.AssignLiteral(kPersonalAddressbookUri);
+  nsCString abURI;
+  aPrefBranch->GetCharPref(PREF_MAIL_COLLECT_ADDRESSBOOK,
+                           getter_Copies(abURI));
 
-  if (aURI == m_abURI)
-    return NS_OK;
+  if (abURI.IsEmpty())
+    abURI.AssignLiteral(kPersonalAddressbookUri);
 
-  m_database = nsnull;
-  m_directory = nsnull;
-  m_abURI = aURI;
+  if (abURI == mABURI)
+    return;
+
+  mDirectory = nsnull;
+  mABURI = abURI;
 
   nsresult rv;
-  nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, );
 
-  nsCOMPtr<nsIRDFResource> resource;
-  rv = rdfService->GetResource(m_abURI, getter_AddRefs(resource));
-  NS_ENSURE_SUCCESS(rv, rv);
+  rv = abManager->GetDirectory(mABURI, getter_AddRefs(mDirectory));
+  NS_ENSURE_SUCCESS(rv, );
 
-  m_directory = do_QueryInterface(resource, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool readOnly;
+  rv = mDirectory->GetReadOnly(&readOnly);
+  NS_ENSURE_SUCCESS(rv, );
 
-  nsCOMPtr<nsIAbMDBDirectory> mdbDir(do_QueryInterface(m_directory, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = mdbDir->GetDatabase(getter_AddRefs(m_database));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return rv;
+  // If the directory is read-only, we can't write to it, so just blank it out
+  // here, and warn because we shouldn't hit this (UI is wrong).
+  if (readOnly)
+  {
+    NS_ERROR("Address Collection book preferences is set to a read-only book. "
+             "Address collection will not take place.");
+    mDirectory = nsnull;
+  }
 }
