@@ -243,17 +243,19 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
     return NS_OK;
   }
 
-  // if aRequestingLocation is chrome, resource or about,  allow
+  // if aRequestingLocation is chrome, resource about or file, allow
   // aContentLocation to load
   PRBool isChrome;
   PRBool isRes;
   PRBool isAbout;
+  PRBool isFile;
 
   rv = aRequestingLocation->SchemeIs("chrome", &isChrome);
   rv |= aRequestingLocation->SchemeIs("resource", &isRes);
   rv |= aRequestingLocation->SchemeIs("about", &isAbout);
+  rv |= aRequestingLocation->SchemeIs("file", &isFile);
 
-  if (NS_SUCCEEDED(rv) && (isChrome || isRes || isAbout))
+  if (NS_SUCCEEDED(rv) && (isChrome || isRes || isAbout || isFile))
     return rv;
 
   // Now default to reject so early returns via NS_ENSURE_SUCCESS 
@@ -288,10 +290,13 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
     isExposedProtocol = PR_TRUE;
 #endif
 
+  PRBool isData;
+
   rv = aContentLocation->SchemeIs("chrome", &isChrome);
   rv |= aContentLocation->SchemeIs("resource", &isRes);
+  rv |= aContentLocation->SchemeIs("data", &isData);
 
-  if (isExposedProtocol || (NS_SUCCEEDED(rv) && (isChrome || isRes)))
+  if (isExposedProtocol || (NS_SUCCEEDED(rv) && (isChrome || isRes || isData)))
   {
     *aDecision = nsIContentPolicy::ACCEPT;
     return NS_OK;
@@ -301,7 +306,6 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
   // Protocols like ftp, gopher are always blocked.
   PRBool isHttp;
   PRBool isHttps;
-  PRBool isFile;
   rv = aContentLocation->SchemeIs("http", &isHttp);
   rv |= aContentLocation->SchemeIs("https", &isHttps);
   rv |= aContentLocation->SchemeIs("file", &isFile);
