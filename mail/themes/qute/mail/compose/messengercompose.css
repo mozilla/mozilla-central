@@ -296,12 +296,8 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 /* ::::: special toolbar colors ::::: */
 
-#content-frame {
-  border-left: 1px solid ThreeDDarkShadow;
-  border-right: 1px solid ThreeDLightShadow;
-}
-
 #appcontent {
+  border-top: 1px solid ThreeDShadow;
   border-left: 1px solid ThreeDShadow;
   border-right: 1px solid ThreeDHighlight;
 }

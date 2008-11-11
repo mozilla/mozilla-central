@@ -229,6 +229,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 #attachmentView
 {
+  border-top: 1px solid ThreeDShadow;
   min-height: 30px;
 }
 
