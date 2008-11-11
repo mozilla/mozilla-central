@@ -494,15 +494,14 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::GetMsgFolder(nsIMsgFolder **aMsgFolder
 
 NS_IMETHODIMP nsMsgXFVirtualFolderDBView::SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags)
 {
-  nsMsgViewFlagsTypeValue saveViewFlags = m_viewFlags;
-  nsresult rv =  nsMsgDBView::SetViewFlags(aViewFlags);
+  nsresult rv = NS_OK;
   // if the grouping/threading has changed, rebuild the view
-  if ((saveViewFlags & (nsMsgViewFlagsType::kGroupBySort |
+  if ((m_viewFlags & (nsMsgViewFlagsType::kGroupBySort |
                       nsMsgViewFlagsType::kThreadedDisplay)) !=
       (aViewFlags & (nsMsgViewFlagsType::kGroupBySort |
                      nsMsgViewFlagsType::kThreadedDisplay)))
-    RebuildView();
-
+    rv = RebuildView(aViewFlags);
+  nsMsgDBView::SetViewFlags(aViewFlags);
   return rv;
 }
 

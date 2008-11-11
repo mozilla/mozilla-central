@@ -79,7 +79,6 @@ public:
   virtual nsresult GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDBHdr **msgHdr);
   virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, PRBool ensureListed);
   NS_IMETHOD GetFolderForViewIndex(nsMsgViewIndex index, nsIMsgFolder **folder);
-  virtual nsresult RebuildView();
 
   NS_IMETHOD OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator);
 
@@ -87,6 +86,7 @@ public:
   virtual nsresult GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFolder);
 
 protected:
+  virtual void InternalClose();
   virtual nsresult ListIdsInThread(nsIMsgThread *threadHdr, 
                                    nsMsgViewIndex startOfThreadViewIndex, 
                                    PRUint32 *pNumListed);

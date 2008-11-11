@@ -158,6 +158,13 @@ NS_IMETHODIMP nsMsgSearchDBView::Close()
   return nsMsgGroupView::Close();
 }
 
+void nsMsgSearchDBView::InternalClose()
+{
+  m_threadsTable.Clear();
+  m_hdrsTable.Clear();
+  return nsMsgGroupView::InternalClose();
+}
+
 NS_IMETHODIMP nsMsgSearchDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
 {
   const PRUnichar* colID;
@@ -972,7 +979,7 @@ NS_IMETHODIMP nsMsgSearchDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgView
       // since it rebuilds the thread objects.  
       m_sortType = sortType;
       m_sortOrder = sortOrder;
-      return RebuildView();
+      return RebuildView(m_viewFlags);
     }
 
     nsMsgKey preservedKey;
@@ -1259,47 +1266,3 @@ nsMsgSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr,
   return NS_OK;
 }
 
-nsresult nsMsgSearchDBView::RebuildView()
-{
-  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
-    return nsMsgGroupView::RebuildView();
-
-  nsCOMPtr<nsISimpleEnumerator> headers;
-  if (NS_SUCCEEDED(GetMessageEnumerator(getter_AddRefs(headers))))
-  {
-    PRInt32 count;
-    // ### we need to be remembering headers, not keys.
-    nsAutoTArray<nsMsgKey, 1> preservedSelection;
-    nsMsgKey curSelectedKey;
-    SaveAndClearSelection(&curSelectedKey, preservedSelection);
-    InternalClose();
-    PRInt32 oldSize = GetSize();
-    // this is important, because the tree will ask us for our
-    // row count, which get determine from the number of keys.
-    m_keys.Clear();
-    // be consistent
-    m_flags.Clear();
-    m_levels.Clear();
-    m_folders.Clear();
-    m_threadsTable.Clear();
-    m_hdrsTable.Clear();
-
-    // this needs to happen after we remove all the keys, since RowCountChanged() will call our GetRowCount()
-    if (mTree)
-      mTree->RowCountChanged(0, -oldSize);
-    DisableChangeUpdates();
-    nsresult rv = OpenWithHdrs(headers, m_sortType, m_sortOrder, m_viewFlags, &count);
-    EnableChangeUpdates();
-    if (mTree)
-      mTree->RowCountChanged(0, GetSize());
-
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    // now, restore our desired selection
-    nsAutoTArray<nsMsgKey, 1> keyArray;
-    keyArray.AppendElement(curSelectedKey);
-
-    return RestoreSelection(curSelectedKey, keyArray);
-  }
-  return NS_OK;
-}

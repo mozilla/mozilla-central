@@ -79,6 +79,7 @@ NS_IMETHODIMP nsMsgGroupView::Open(nsIMsgFolder *aFolder, nsMsgViewSortTypeValue
 
 void nsMsgGroupView::InternalClose()
 {
+  m_groupsTable.Clear();
   // nothing to do if we're not grouped.
   if (!(m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
     return;
@@ -114,7 +115,6 @@ void nsMsgGroupView::InternalClose()
       dbFolderInfo->SetUint32Property("dateGroupFlags", expandFlags);
     }
   }
-  m_groupsTable.Clear();
 }
 
 NS_IMETHODIMP nsMsgGroupView::Close()
@@ -436,8 +436,35 @@ NS_IMETHODIMP nsMsgGroupView::GetViewType(nsMsgViewTypeValue *aViewType)
     return NS_OK;
 }
 
+PLDHashOperator
+nsMsgGroupView::GroupTableCloner(const nsAString &aKey, nsIMsgThread* aGroupThread, void* aArg)
+{
+  nsMsgGroupView* view = static_cast<nsMsgGroupView*>(aArg);
+  nsresult rv = view->m_groupsTable.Put(aKey, aGroupThread);
+  return NS_SUCCEEDED(rv) ? PL_DHASH_NEXT : PL_DHASH_STOP;
+}
+
+
+NS_IMETHODIMP
+nsMsgGroupView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance, 
+                                       nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater)
+{
+  nsMsgDBView::CopyDBView(aNewMsgDBView, aMessengerInstance, aMsgWindow, aCmdUpdater);
+  nsMsgGroupView* newMsgDBView = (nsMsgGroupView *) aNewMsgDBView;
+
+  // If grouped, we need to clone the group thread hash table.
+  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+    m_groupsTable.EnumerateRead(GroupTableCloner, newMsgDBView);
+  return NS_OK;
+}
+
 // E.g., if the day has changed, we need to close and re-open the view.
-nsresult nsMsgGroupView::RebuildView()
+// Or, if we're switching between grouping and threading in a cross-folder
+// saved search. In that case, we needed to build an enumerator based on the
+// old view type, and internally close the view based on its old type, but
+// rebuild the new view based on the new view type. So we pass the new
+// view flags to OpenWithHdrs.
+nsresult nsMsgGroupView::RebuildView(nsMsgViewFlagsTypeValue newFlags)
 {
   nsCOMPtr <nsISimpleEnumerator> headers;
   if (NS_SUCCEEDED(GetMessageEnumerator(getter_AddRefs(headers))))
@@ -460,7 +487,7 @@ nsresult nsMsgGroupView::RebuildView()
     if (mTree)
       mTree->RowCountChanged(0, -oldSize);
     DisableChangeUpdates();
-    nsresult rv = OpenWithHdrs(headers, m_sortType, m_sortOrder, m_viewFlags, &count);
+    nsresult rv = OpenWithHdrs(headers, m_sortType, m_sortOrder, newFlags, &count);
     EnableChangeUpdates();
     if (mTree)
       mTree->RowCountChanged(0, GetSize());
@@ -484,7 +511,7 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
   // check if we're adding a header, and the current day has changed. If it has, we're just going to
   // close and re-open the view so things will be correctly categorized.
   if (m_dayChanged)
-    return RebuildView();
+    return RebuildView(m_viewFlags);
 
   PRBool newThread;
   nsMsgGroupThread *thread = AddHdrToThread(newHdr, &newThread);
@@ -564,7 +591,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint
   // check if we're adding a header, and the current day has changed. If it has, we're just going to
   // close and re-open the view so things will be correctly categorized.
   if (m_dayChanged)
-    return RebuildView();
+    return RebuildView(m_viewFlags);
 
   nsresult rv = GetThreadContainingMsgHdr(aHdrChanged, getter_AddRefs(thread));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -584,7 +611,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
   // check if we're adding a header, and the current day has changed. If it has, we're just going to
   // close and re-open the view so things will be correctly categorized.
   if (m_dayChanged)
-    return RebuildView();
+    return RebuildView(m_viewFlags);
 
   nsCOMPtr <nsIMsgThread> thread;
   nsMsgKey keyDeleted;

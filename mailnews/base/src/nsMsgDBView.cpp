@@ -4636,11 +4636,7 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
     EntryInfo2.folder = folders ? folders->ObjectAt(tryIndex) : m_folder.get();
     
     nsCOMPtr <nsIMsgDBHdr> tryHdr;
-    nsCOMPtr <nsIMsgDatabase> db;
-    // ### this should get the db from the folder...
-    GetDBForViewIndex(tryIndex, getter_AddRefs(db));
-    if (db)
-      rv = db->GetMsgHdrForKey(EntryInfo2.id, getter_AddRefs(tryHdr));
+    EntryInfo2.folder->GetMessageHeader(EntryInfo2.id, getter_AddRefs(tryHdr));
     if (!tryHdr)
       break;
     if (fieldType == kCollationKey)
@@ -6822,6 +6818,11 @@ NS_IMETHODIMP nsMsgDBView::nsMsgViewHdrEnumerator::GetNext(nsISupports **aItem)
 
   if (m_curHdrIndex >= m_view->GetSize())
     return NS_ERROR_FAILURE;
+
+  // Ignore dummy header. We won't have empty groups, so
+  // we know the view index is good.
+  if (m_view->m_flags[m_curHdrIndex] & MSG_VIEW_FLAG_DUMMY)
+    ++m_curHdrIndex;
 
   nsCOMPtr<nsIMsgDBHdr> nextHdr;
 

@@ -123,9 +123,20 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::GetViewType(nsMsgViewTypeValue *aViewType)
 
 nsresult nsMsgQuickSearchDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex)
 {
-  return (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
-          ? nsMsgGroupView::OnNewHeader(msgHdr, nsMsgKey_None, PR_TRUE)
-          : nsMsgDBView::AddHdr(msgHdr, resultIndex);
+  nsMsgKey msgKey;
+  msgHdr->GetMessageKey(&msgKey);
+  nsMsgViewIndex insertIndex = GetInsertIndexHelper(msgHdr, m_origKeys, nsnull,
+                  nsMsgViewSortOrder::ascending, nsMsgViewSortType::byId);
+  m_origKeys.InsertElementAt(insertIndex, msgKey);
+  if (m_viewFlags & (nsMsgViewFlagsType::kGroupBySort|
+                     nsMsgViewFlagsType::kThreadedDisplay))
+  {
+    nsMsgKey parentKey;
+    msgHdr->GetThreadParent(&parentKey);
+    return nsMsgThreadedDBView::OnNewHeader(msgHdr, parentKey, PR_TRUE);
+  }
+  else
+    return nsMsgDBView::AddHdr(msgHdr, resultIndex);
 }
 
 nsresult nsMsgQuickSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool ensureListed)
@@ -478,7 +489,6 @@ nsresult nsMsgQuickSearchDBView::SortThreads(nsMsgViewSortTypeValue sortType, ns
       threadRootIds.InsertElementAt(threadRootIndex, rootKey);
     }
   }
-  m_origKeys.SwapElements(m_keys);
   // need to sort the top level threads now by sort order, if it's not by id.
   if (sortType != nsMsgViewSortType::byId)
   {
@@ -519,7 +529,6 @@ nsresult nsMsgQuickSearchDBView::SortThreads(nsMsgViewSortTypeValue sortType, ns
       }
     }
   }
-  NS_ASSERTION(m_origKeys.Length() == m_keys.Length(), "problem threading quick search");
   return NS_OK;
 }
 
@@ -628,12 +637,12 @@ nsMsgQuickSearchDBView::OpenWithHdrs(nsISimpleEnumerator *aHeaders,
 
 NS_IMETHODIMP nsMsgQuickSearchDBView::SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags)
 {
-  nsMsgViewFlagsTypeValue saveViewFlags = m_viewFlags;
-  nsresult rv = nsMsgDBView::SetViewFlags(aViewFlags);
+  nsresult rv = NS_OK;
   // if the grouping has changed, rebuild the view
-  if (saveViewFlags & nsMsgViewFlagsType::kGroupBySort ^
+  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort ^
       (aViewFlags & nsMsgViewFlagsType::kGroupBySort))
-    RebuildView();
+    rv = RebuildView(aViewFlags);
+  nsMsgDBView::SetViewFlags(aViewFlags);
 
   return rv;
 }

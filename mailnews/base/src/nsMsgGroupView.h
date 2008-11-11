@@ -59,6 +59,8 @@ public:
                                         nsMsgViewSortOrderValue aSortOrder, nsMsgViewFlagsTypeValue aViewFlags, 
                                         PRInt32 *aCount);
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
+  NS_IMETHOD CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance,
+                        nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater);
   NS_IMETHOD Close();
   NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, PRInt32 aFlags, 
                             nsIDBChangeListener *aInstigator);
@@ -71,7 +73,7 @@ public:
   NS_IMETHOD GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue);
 
 protected:
-  void InternalClose();
+  virtual void InternalClose();
   nsMsgGroupThread *AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pNewThread);
   nsresult HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey);
   nsresult GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket, PRBool rcvDate = PR_FALSE); // helper function to get the age bucket for a hdr, useful when grouped by date
@@ -84,8 +86,11 @@ protected:
                                             PRUint32 *pFlags = NULL);
 
   PRBool GroupViewUsesDummyRow(); // returns true if we are grouped by a sort attribute that uses a dummy row
-  virtual nsresult RebuildView();
+  virtual nsresult RebuildView(nsMsgViewFlagsTypeValue newFlags);
   virtual nsMsgGroupThread *CreateGroupThread(nsIMsgDatabase *db);
+  PR_STATIC_CALLBACK(PLDHashOperator) GroupTableCloner(const nsAString &aKey,
+                                                       nsIMsgThread* aGroupThread,
+                                                       void* aArg);
 
   nsInterfaceHashtable <nsStringHashKey, nsIMsgThread> m_groupsTable;
   PRExplodedTime m_lastCurExplodedTime;

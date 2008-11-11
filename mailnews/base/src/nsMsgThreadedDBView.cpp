@@ -746,7 +746,9 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   // reload the current message.
   // We also need to invalidate the range between where the thread was
   // and where it ended up.
-  DisableChangeUpdates();
+  PRBool changesDisabled = mSuppressChangeNotification;
+  if (!changesDisabled)
+    DisableChangeUpdates();
 
   nsCOMPtr <nsIMsgDBHdr> threadHdr;
 
@@ -797,7 +799,8 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   // unfreeze selection.
   RestoreSelection(preservedKey, preservedSelection);
 
-  EnableChangeUpdates();
+  if (!changesDisabled)
+    EnableChangeUpdates();
   nsMsgViewIndex lowIndex = threadIndex < newIndex ? threadIndex : newIndex;
   nsMsgViewIndex highIndex = lowIndex == threadIndex ? newIndex : threadIndex;
   NoteChange(lowIndex, highIndex - lowIndex + childCount, 
@@ -813,7 +816,7 @@ nsresult nsMsgThreadedDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, n
     PRBool msgKilled;
     msgHdr->GetIsKilled(&msgKilled);
     if (!msgKilled)
-      rv = AddHdr(msgHdr);
+      rv = nsMsgDBView::AddHdr(msgHdr);
   }
   return rv;
 }
