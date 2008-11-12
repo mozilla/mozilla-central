@@ -110,22 +110,9 @@ DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
 GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
 DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 
-# Get all directories in /l10n/*, that contain a calendar subdir.
-calendar_locales := $(subst /calendar,,$(subst $(topsrcdir)/../l10n/,,$(wildcard $(topsrcdir)/../l10n/*/calendar)))
-# Now make sure those dirs are in shipped-locales
-shipped_locales :=$(shell cat $(topsrcdir)/calendar/locales/shipped-locales)
-locales_to_build :=$(foreach locale,$(calendar_locales),$(if $(filter $(locale),$(shipped_locales)),$(locale)))
-
-ifneq ($(strip $(locales_to_build)),)
-# The l10n directory is checked out and contains supported locales, start building our locales
-
-libs:: $(addprefix libs-,$(locales_to_build))
 libs-%:
-	@echo - locales to build -- $(locales_to_build)
 	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
 	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
-
-endif
 
 # xxx todo: unless our packaging story is revised (bug 406579) we package up timezones.sqlite
 libs::

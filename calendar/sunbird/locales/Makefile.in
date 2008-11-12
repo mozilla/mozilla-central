@@ -80,6 +80,9 @@ ifeq ($(OS_ARCH),WINNT)
  	  iconv -f UTF-8 -t $(WIN_INSTALLER_CHARSET) > $(FINAL_TARGET)/updater.ini
 else
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+	if test ! -d $(FINAL_TARGET)/updater.app/Contents/MacOS; then \
+	  mkdir -p $(FINAL_TARGET)/updater.app/Contents/MacOS; \
+	fi
 	cat $< $(srcdir)/updater_append.ini | \
 	  sed -e "s/%AB_CD%/$(AB_CD)/" > $(FINAL_TARGET)/updater.app/Contents/MacOS/updater.ini
 else

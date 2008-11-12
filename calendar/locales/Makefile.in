@@ -91,7 +91,9 @@ include $(topsrcdir)/config/rules.mk
 
 libs-%:
 	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$*
+ifdef MOZ_SUNBIRD
 	@$(MAKE) -C ../sunbird/locales libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
+endif
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
 ifdef MOZ_BRANDING_DIRECTORY
 	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales AB_CD=$* XPI_NAME=locale-$*
@@ -127,7 +129,7 @@ endif
 	$(RM) -rf $(DIST)/xpi-stage/locale-$(AB_CD)
 	$(RM) -rf $(DIST)/xpi-stage/calendar-timezones
 	$(MAKE) libs-$(AB_CD)
-	$(MAKE) -C ../timezones libs
+	$(MAKE) -C ../timezones libs-$(AB_CD) USE_EXTENSION_MANIFEST=1
 	mv $(DIST)/xpi-stage/locale-$(AB_CD) l10n-stage/localized
 	mv $(DIST)/xpi-stage/calendar-timezones/chrome l10n-stage/nonlocalized/extensions/calendar-timezones@mozilla.org
 	mv $(DIST)/xpi-stage/calendar-timezones/chrome.manifest l10n-stage/nonlocalized/extensions/calendar-timezones@mozilla.org
@@ -164,6 +166,8 @@ repackage-zip: $(ZIP_IN)
 	  $(STAGEDIST)/chrome/en-US.manifest \
 	  $(STAGEDIST)/chrome/calendar-en-US.jar \
 	  $(STAGEDIST)/chrome/calendar-en-US.manifest \
+	  $(STAGEDIST)/chrome/sunbird-en-US.jar \
+	  $(STAGEDIST)/chrome/sunbird-en-US.manifest \
 	  $(STAGEDIST)/defaults/pref/sunbird-l10n.js
 	$(RM) -rf $(STAGEDIST)/extensions/calendar-timezones@mozilla.org/chrome
 	$(RM) $(STAGEDIST)/extensions/calendar-timezones@mozilla.org/chrome.manifest
@@ -173,7 +177,7 @@ repackage-zip: $(ZIP_IN)
 	$(RM) -rf $(DIST)/xpi-stage/locale-$(AB_CD)
 	$(RM) -rf $(DIST)/xpi-stage/calendar-timezones
 	$(MAKE) libs-$(AB_CD)
-	$(MAKE) -C ../timezones libs
+	$(MAKE) -C ../timezones libs-$(AB_CD) USE_EXTENSION_MANIFEST=1
 ifeq (WINNT,$(OS_ARCH))
 	$(RM) -r $(STAGEDIST)/uninstall
 	$(NSINSTALL) -D $(STAGEDIST)/uninstall
@@ -205,9 +209,13 @@ langpack-%:
 	$(NSINSTALL) -D $(DIST)/install
 	@$(RM) -rf $(DIST)/xpi-stage/locale-$(AB_CD)
 	@$(MAKE) libs-$(AB_CD) USE_EXTENSION_MANIFEST=1
+	@$(MAKE) -C ../timezones/locales libs AB_CD=$* XPI_NAME=calendar-timezones USE_EXTENSION_MANIFEST=1
 	$(PERL) $(MOZILLA_SRCDIR)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) -I$(call EXPAND_MOZLOCALE_SRCDIR,toolkit/locales)/defines.inc -I$(LOCALE_SRCDIR)/defines.inc $(srcdir)/generic/install.rdf > $(FINAL_TARGET)/install.rdf
+	cd $(DIST)/xpi-stage/calendar-timezones/chrome && \
+	  tar $(TAR_CREATE_FLAGS) - * | ( cd $(_ABS_DIST)/xpi-stage/locale-$(AB_CD)/chrome && tar -xf - )
+	cat $(DIST)/xpi-stage/calendar-timezones/chrome.manifest >> $(_ABS_DIST)/xpi-stage/locale-$(AB_CD)/chrome.manifest
 	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
-	  $(ZIP) -r9D $(LANGPACK_FILE) install.rdf chrome chrome.manifest
+	  $(ZIP) -r9D $(LANGPACK_FILE) install.rdf chrome chrome.manifest extensions
 
 # This is a generic target that will make a langpack, repack ZIP (+tarball)
 # builds, and repack an installer if applicable. It is called from the
