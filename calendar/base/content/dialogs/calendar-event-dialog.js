@@ -1933,17 +1933,6 @@ function onCommandSave(aIsClosing) {
 
 }
 
-function onCommandExit() {
-    // the correct way would be to hook 'onCancel' to the
-    // 'tryToClose' attribute, but if the user wants to save
-    // the changes we're running into trouble since the calendar
-    // engine won't exit any longer, which results in dataloss.
-    // window.tryToClose = onCancel;
-    if (onCancel()) {
-        goQuitApplication()
-    }
-}
-
 function onCommandViewToolbar(aToolbarId, aMenuItemId) {
     var toolbar = document.getElementById(aToolbarId);
     var menuItem = document.getElementById(aMenuItemId);
