@@ -52,7 +52,6 @@
 <!ENTITY newVirtualFolderCmd.accesskey "S">
 <!ENTITY newAccountCmd.label "Account…">
 <!ENTITY newAccountCmd.accesskey "A">
-<!ENTITY openMessageMenu.label "Open">
 <!ENTITY openMessageFileCmd.label "Open File…">
 <!ENTITY openMessageFileCmd.accesskey "O">
 <!ENTITY openAttachmentCmd.label "Attachments">
@@ -77,7 +76,6 @@
 <!ENTITY getNextNMsgCmd.accesskey "t">
 <!ENTITY sendUnsentCmd.label "Send Unsent Messages">
 <!ENTITY sendUnsentCmd.accesskey "d">
-<!ENTITY loadFirstDraft.label			"Load First Draft Message">
 <!ENTITY subscribeCmd.label "Subscribe…">
 <!ENTITY subscribeCmd.accesskey "b">
 <!ENTITY renameFolder.label "Rename Folder…">
@@ -101,7 +99,6 @@
 <!ENTITY printCmd.key "p">
 <!ENTITY printPreviewCmd.label "Print Preview">
 <!ENTITY printPreviewCmd.accesskey "v">
-<!ENTITY printPreviewCmd.key "v">
 <!ENTITY printSetupCmd.label "Page Setup…">
 <!ENTITY printSetupCmd.accesskey "u">
 
@@ -129,8 +126,6 @@
 <!ENTITY selectThreadCmd.key "a">
 <!ENTITY selectFlaggedCmd.label "Flagged Messages">
 <!ENTITY selectFlaggedCmd.accesskey "F">
-<!ENTITY selectInvertCmd.label ".Invert Selection">
-<!ENTITY selectInvertCmd.accesskey "I">
 <!ENTITY folderPropsCmd.label "Properties…">
 <!ENTITY folderPropsFolderCmd.label "Folder Properties…">
 <!ENTITY folderPropsNewsgroupCmd.label "Newsgroup Properties…">
@@ -145,14 +140,10 @@
 <!ENTITY redoCopyMsgCmd.label "Redo Copy Message">
 <!ENTITY undoDefaultCmd.label "Undo">
 <!ENTITY redoDefaultCmd.label "Redo">
-<!ENTITY editDraftCmd.label "Edit Draft">
-<!ENTITY editDraftCmd.accesskey "f">
 
 <!-- View Menu -->
 <!ENTITY showMessengerToolbarCmd.label		"Mail Toolbar">
 <!ENTITY showMessengerToolbarCmd.accesskey	"o">
-<!ENTITY customizeToolbar.label                 "Customize…">
-<!ENTITY customizeToolbar.accesskey             "C">
  
 <!-- showSearchToolbarCmd is also used by addressbook -->
 <!ENTITY showSearchToolbarCmd.label		"Search Bar">
@@ -222,8 +213,6 @@
 <!ENTITY threads.accesskey "e">
 <!ENTITY allMsgsCmd.label "All">
 <!ENTITY allMsgsCmd.accesskey "A">
-<!ENTITY expandOrCollapseMenu.label "Expand/Collapse">
-<!ENTITY expandOrCollapseMenu.accesskey "x">
 <!ENTITY expandAllThreadsCmd.label "Expand All Threads">
 <!ENTITY expandAllThreadsCmd.accesskey "E">
 <!ENTITY expandAllThreadsCmd.key "*">
@@ -244,8 +233,6 @@
 <!ENTITY headersAllCmd.accesskey "A">
 <!ENTITY headersNormalCmd.label "Normal">
 <!ENTITY headersNormalCmd.accesskey "N">
-<!ENTITY headersBriefCmd.label ".Brief">
-<!ENTITY headersBriefCmd.accesskey "B">
 <!ENTITY bodyMenu.label "Message Body As">
 <!ENTITY bodyMenu.accesskey "B">
 <!ENTITY bodyAllowHTML.label "Original HTML">
@@ -263,12 +250,6 @@
 <!ENTITY pageSourceCmd.label "Message Source">
 <!ENTITY pageSourceCmd.accesskey "o">
 <!ENTITY pageSourceCmd.key "u">
-<!ENTITY translateMenu.label ".Translate">
-
-<!-- Search Menu -->
-<!-- searchMenu is also used by addressbook -->
-<!ENTITY searchMenu.label "Search">
-<!ENTITY searchMenu.accesskey "S">
 
 <!ENTITY findCmd.label "Find in This Message…">
 <!ENTITY findCmd.accesskey "F">
@@ -281,24 +262,11 @@
 <!ENTITY findPrevCmd.accesskey "v">
 <!ENTITY findPrevCmd.key "g">
 <!ENTITY findPrevCmd.key2 "VK_F3">
-<!-- LOCALIZATION NOTE (searchCurrentCmd.label) : Do not translate "&lt;" and "&gt;" in below line. -->
-<!ENTITY searchCurrentCmd.label ".Search in &lt;current&gt;">
-<!ENTITY searchCurrentCmd.accesskey "">
-<!-- LOCALIZATION NOTE (searchParentCmd.label) : Do not translate "&lt;" and "&gt;" in below line. -->
-<!ENTITY searchParentCmd.label ".Search in &lt;parent&gt;">
-<!ENTITY searchParentCmd.accesskey "">
-<!-- LOCALIZATION NOTE (searchParentParentCmd.label) : Do not translate "&lt;" and "&gt;" in below line. -->
-<!ENTITY searchParentParentCmd.label ".Search in &lt;parent parent&gt;">
-<!ENTITY searchParentParentCmd.accesskey "">
 
 <!-- Go Menu -->
 
 <!ENTITY goMenu.label "Go">
 <!ENTITY goMenu.accesskey "G">
-<!ENTITY firstUnreadMsgCmd.label ".First Unread Message">
-<!ENTITY firstUnreadMsgCmd.accesskey "U">
-<!ENTITY firstFlaggedMsgCmd.label ".First Flagged Message">
-<!ENTITY firstFlaggedMsgCmd.accesskey "F">
 <!ENTITY nextMenu.label "Next">
 <!ENTITY nextMenu.accesskey "N">
 <!ENTITY nextMsgCmd.label "Message">
@@ -309,7 +277,6 @@
 <!ENTITY nextUnreadMsgCmd.key "n">
 <!ENTITY nextFlaggedMsgCmd.label "Flagged Message">
 <!ENTITY nextFlaggedMsgCmd.accesskey "F">
-<!ENTITY nextUnflaggedMsgCmd.label "Unflagged Message">
 <!ENTITY nextUnreadThread.label "Unread Thread">
 <!ENTITY nextUnreadThread.accesskey "T">
 <!ENTITY nextUnreadThread.key "t">
@@ -327,10 +294,6 @@
 <!ENTITY goForwardCmd.commandKey "]">
 <!ENTITY prevFlaggedMsgCmd.label "Flagged Message">
 <!ENTITY prevFlaggedMsgCmd.accesskey "F">
-<!ENTITY backCmd.label ".Back">
-<!ENTITY backCmd.accesskey "B">
-<!ENTITY forwardCmd.label ".Forward">
-<!ENTITY forwardCmd.accesskey "F">
 <!ENTITY startPageCmd.label "Mail Start Page">
 <!ENTITY startPageCmd.accesskey "S">
 <!ENTITY msgMenu.label "Message">
@@ -388,10 +351,6 @@
 <!ENTITY fileHereMenu.accesskey "F">
 <!ENTITY copyHereMenu.label "Copy Here">
 <!ENTITY copyHereMenu.accesskey "C">
-<!ENTITY addSenderToAddressBookCmd.label ".Add Sender to Address Book">
-<!ENTITY addSenderToAddressBookCmd.accesskey "S">
-<!ENTITY addAllToAddressBookCmd.label ".Add All to Address Book">
-<!ENTITY addAllToAddressBookCmd.accesskey "A">
 <!ENTITY tagMenu.label "Tag">
 <!ENTITY tagMenu.accesskey "g">
 <!ENTITY tagCustomize.label "Customize…">
@@ -411,8 +370,6 @@
 <!ENTITY markAsReadCmd.label "As Read">
 <!ENTITY markAsReadCmd.accesskey "R">
 <!ENTITY markAsReadCmd.key "m">
-<!ENTITY markAsUnreadCmd.label "As Unread">
-<!ENTITY markAsUnreadCmd.accesskey "U">
 <!ENTITY markThreadAsReadCmd.label "Thread As Read">
 <!ENTITY markThreadAsReadCmd.accesskey "T">
 <!ENTITY markThreadAsReadCmd.key "r">
@@ -511,8 +468,6 @@
 
 <!-- Statusbar -->
 <!ENTITY  statusText.label "Done">
-<!ENTITY  unreadCountText.label "Unread: ">
-<!ENTITY  totalCountText.label " Total: ">
 
 <!-- Thread Pane Context Menu -->
 <!ENTITY contextOpenNewWindow.label "Open Message in New Window">

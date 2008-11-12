@@ -27,7 +27,6 @@
 <!ENTITY attachMenu.label "Attach">
 <!ENTITY attachMenu.accesskey "t">
 <!ENTITY attachFileCmd.label "File(s)…">
-<!ENTITY attachFileCmd.key "">
 <!ENTITY attachFileCmd.accesskey "F">
 <!ENTITY attachPageCmd.label "Web Page…">
 <!ENTITY attachPageCmd.accesskey "W">
@@ -45,7 +44,6 @@
 <!ENTITY printCmd.label "Print…">
 <!ENTITY printCmd.key "P">
 <!ENTITY printCmd.accesskey "P">
-<!ENTITY closeCmd.label "Close">
 
 <!-- Edit menu items -->
 <!ENTITY editRewrapCmd.label "Rewrap">
@@ -70,32 +68,6 @@
 <!ENTITY showComposeToolbarCmd.accesskey "o">
 <!ENTITY showFormatToolbarCmd.label "Formatting Toolbar">
 <!ENTITY showFormatToolbarCmd.accesskey "F">
-<!ENTITY showParagraphMarksCmd.label ".Show Paragraph Marks">
-<!ENTITY pageSourceCmd.label ".Page Source">
-<!ENTITY pageSourceCmd.accesskey "u">
-<!ENTITY pageInfoCmd.label ".Page Info">
-<!ENTITY pageInfoCmd.accesskey "I">
-<!ENTITY dcharMenu.label "Character Set">
-<!ENTITY dcharIso1Cmd.label "Western (ISO-8859-1)">
-<!ENTITY dcharIso2Cmd.label "Central European (ISO-8859-2)">
-<!ENTITY dcharIso3Cmd.label "South European (ISO-8859-3)">
-<!ENTITY dcharIso4Cmd.label "Baltic (ISO-8859-4)">
-<!ENTITY dcharIso9Cmd.label "Turkish (ISO-8859-9)">
-<!ENTITY dcharIso10Cmd.label "Nordic (ISO-8859-10)">
-<!ENTITY dcharIso14Cmd.label "Celtic (ISO-8859-14)">
-<!ENTITY dcharIso15Cmd.label "Western (ISO-8859-15)">
-<!ENTITY dcharJapanCmd.label "Japanese (ISO-2022-JP)">
-<!ENTITY dcharTradChiBigCmd.label "Chinese Traditional (Big5)">
-<!ENTITY dcharSimpChiGbCmd.label "Chinese Simplified (GB2312)">
-<!ENTITY dcharKoreanCmd.label "Korean (EUC-KR)">
-<!ENTITY dcharUtf8Cmd.label "Unicode (UTF-8)">
-<!ENTITY dcharRusCmd.label "Cyrillic (KOI8-R)">
-<!ENTITY dcharUkrCmd.label "Cyrillic/Ukrainian (KOI8-U)">
-<!ENTITY dcharIsoGreekCmd.label "Greek (ISO-8859-7)">
-<!ENTITY dcharVietViCmd.label "Vietnamese (VISCII)">
-<!ENTITY dcharThaiCmd.label "Thai (TIS-620)">
-<!ENTITY dcharArmCmd.label "Armenian (ARMSCII-8)">
-<!ENTITY dcharDEFAULT.label "Set Default Mail Send Character Set">
 
 <!-- Format menu items -->
 <!ENTITY formatMenu.label "Format">
@@ -104,11 +76,6 @@
 <!-- Options menu items -->
 <!ENTITY optionsMenu.label "Options">
 <!ENTITY optionsMenu.accesskey "p">
-
-<!ENTITY doNotCompleteAddrCmd.label ".Do Not Complete Address">
-<!ENTITY showMatchingAddrCmd.label ".Show Matching Address">
-
-<!ENTITY addSignatureCmd.label ".Add Signature File">
 
 <!ENTITY quoteCmd.label "Quote Message">
 <!ENTITY quoteCmd.accesskey "Q">
@@ -148,33 +115,13 @@
 <!ENTITY bothFormatCmd.label "Plain and Rich (HTML) Text">
 <!ENTITY bothFormatCmd.accesskey "l">
 
-<!ENTITY UuencodeAttachmentCmd.label "Uuencode instead of MIME for Attachments">
-
-
 <!ENTITY fileCarbonCopyCmd.label "Send a Copy To">
 <!ENTITY fileCarbonCopyCmd.accesskey "d">
 <!ENTITY fileHereMenu.label "File Here">
 
-<!--LOCALIZATION NOTE Debug Menu Don't translate anything in the Debug menu section -->
-<!-- Debug Menu, imported from editorAppShell.dtd -->
-<!ENTITY debugMenu.label "Debug">
-<!ENTITY outputTextCmd.label "Output Text">
-<!ENTITY outputHTMLCmd.label "Output HTML">
-<!ENTITY insertTextCmd.label "Insert Text">
-<!ENTITY testSelectionCmd.label "Test Selection">
-<!ENTITY testTableLayoutCmd.label "Test Table Layout">
-<!ENTITY testDocumentCmd.label "Test Document">
-<!ENTITY showEmbeddedCmd.label "Show Embedded Objects">
-<!ENTITY dumpContentCmd.label "Dump Content Tree">
-<!ENTITY runUnitTestsCmd.label "Run Unit Tests">
-<!ENTITY startLogCmd.label "Start Log">
-<!ENTITY stopLogCmd.label "Stop Log">
-<!ENTITY runLogCmd.label "Run Log">
-
 <!--LOCALIZATION NOTE Toolbar items Don't change any "chrome://" URLs -->
 <!-- Toolbar items -->
 <!ENTITY sendButton.label "Send">
-<!ENTITY quoteButton.label "Quote">
 <!ENTITY addressButton.label "Address">
 <!ENTITY attachButton.label "Attach">
 <!ENTITY spellingButton.label "Spelling">
@@ -187,17 +134,10 @@
 <!ENTITY formatToolbar.tooltip "Formatting Toolbar">
 <!ENTITY sendButton.tooltip "Send this message now"> 
 <!ENTITY sendlaterButton.tooltip "Send this message later"> 
-<!ENTITY quoteButton.tooltip "Quote the previous message"> 
 <!ENTITY addressButton.tooltip "Select a recipient from an Address Book"> 
 <!ENTITY attachButton.tooltip "Include an attachment"> 
 <!ENTITY saveButton.tooltip "Save this message"> 
 <!ENTITY stopButton.tooltip "Stop the current transfer"> 
-
-<!-- Toolbar items, imported from editorAppShell.xul -->
-<!--LOCALIZATION NOTE formatToolbar. Don't change any of these Style Characters -->
-<!ENTITY formatToolbar.boldChar "B">
-<!ENTITY formatToolbar.italicChar "I">
-<!ENTITY formatToolbar.underlineChar "U">
 
 <!-- context menu items -->
 <!ENTITY spellCheckNoSuggestions.label "(No Suggestions Found)">

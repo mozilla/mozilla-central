@@ -49,8 +49,6 @@
 <!ENTITY newListCmd.accesskey                           "L">  
 <!ENTITY newAddressBookCmd.label                        "Address Book…"> 
 <!ENTITY newAddressBookCmd.accesskey                    "o">  
-<!ENTITY renameAddressBookCmd.label                     "Rename Address Book…"> 
-<!ENTITY renameAddressBookCmd.accesskey                 "R">  
 <!ENTITY newLDAPDirectoryCmd.label                      "LDAP Directory…">
 <!-- LOCALIZATION NOTE (newLDAPDirectoryCmd.accesskey) : DONT_TRANSLATE -->
 <!ENTITY newLDAPDirectoryCmd.accesskey                  "D">
@@ -106,8 +104,6 @@
 <!ENTITY allowOnlineCheck.label                         "Check online presence (AOL)">
 <!ENTITY allowOnlineCheck.accesskey                     "C">
 
-<!ENTITY stopSearchingCmd.label                         ".Stop Searching"> 
-
 <!-- Toolbar and Popup items -->  
 <!ENTITY newcardButton.label                            "New Card">  
 <!ENTITY newcardButton.accesskey                        "C">  
@@ -121,9 +117,6 @@
 <!ENTITY deleteButton.accesskey                         "D">  
 <!ENTITY newimButton.label                              "Instant Message">  
 <!ENTITY newimButton.accesskey                          "I">  
-<!ENTITY stopButton.label                               ".Stop">  
-<!ENTITY searchButton.label                             ".Search">  
-<!ENTITY showNames.label                                "Show names containing:">  
 
 <!-- Tooltips -->
 <!ENTITY addressbookToolbar.tooltip                     "Address Book Toolbar">
@@ -133,10 +126,7 @@
 <!ENTITY newmsgButton.tooltip                           "Send a mail message"> 
 <!ENTITY newIM.tooltip                                  "Send an instant message or chat"> 
 <!ENTITY deleteButton.tooltip                           "Delete selected card or address book"> 
-<!ENTITY stopButton.tooltip                             "Stop the current transfer"> 
-<!ENTITY searchButton.tooltip                           "Search the selected address book"> 
 <!ENTITY throbber.tooltip                               "Go to the &vendorShortName; home page">
-<!ENTITY clearButton.tooltip                            "Clear the search criteria and show all entries">
 <!ENTITY advancedButton.tooltip                         "Advanced address search">
 
 <!-- Status Bar -->  

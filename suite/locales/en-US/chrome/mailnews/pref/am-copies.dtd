@@ -6,13 +6,9 @@
 <!ENTITY fccMailFolder.accesskey "P">
 <!ENTITY fccReplyFollowsParent.label "Place replies in the folder of the message being replied to">
 <!ENTITY fccReplyFollowsParent.accesskey "c">
-<!ENTITY chooseFolderButton.label "Choose Folder…">
 <!-- LOCALIZATION NOTE (bccAddress.label): do not translate "Bcc" in below line -->
 <!ENTITY bccAddress.label "Bcc these email addresses:">
 <!ENTITY bccAddress.accesskey "B">
-<!ENTITY specialFolderTitle.label "Special Folders">
-<!ENTITY draftMailFolder.label "Keep message drafts in:">
-<!ENTITY templateMailFolder.label "Keep message templates in:">
 <!ENTITY saveMessageDlg.label "Show confirmation dialog when messages are saved">
 <!ENTITY saveMessageDlg.accesskey "w">
 <!-- LOCALIZATION NOTE (sentFolderOn.label): OK to translate this, bug #57440 -->

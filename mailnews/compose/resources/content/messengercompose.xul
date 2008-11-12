@@ -408,12 +408,8 @@
             </template>
           </menu>
 
-          <!--menuseparator/>
-          <menuitem label="&addSignatureCmd.label;" disabled="true" oncommand=""/>
-          <menuitem label="&attachVCardCmd.label;" disabled="true" accesskey="&attachVCardCmd.accesskey;" oncommand="AttachVCard()"/-->
         </menupopup>
       </menu>
-      <!--menu id="debugMenu"/-->
       <menu id="tasksMenu"/>
       <menu id="windowMenu"/>
       <menu id="menu_Help"/>

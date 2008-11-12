@@ -38,6 +38,3 @@
 <!ENTITY unreadColumn.label "Unread"> 
 <!ENTITY totalColumn.label "Total"> 
 <!ENTITY folderSizeColumn.label "Size"> 
-<!ENTITY accounts.label "Accounts">
-<!-- LOCALIZATION NOTE (accounts.img) : DONT_TRANSLATE -->
-<!ENTITY accounts.img "chrome://messenger/skin/local-mailhost.gif">

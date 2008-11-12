@@ -37,7 +37,6 @@
  ***** END LICENSE BLOCK ***** -->
 
 <!ENTITY pref.formatting.title        "Send Format">
-<!ENTITY sendMail.label               "Send Format">
 <!ENTITY sendMaildesc.label           "When sending formatted (HTML) messages and one or more recipients are not listed as being able to receive HTML:">
 <!ENTITY askMe.label                  "Ask me what to do (Mail prompts you to choose a format)">
 <!ENTITY askMe.accesskey              "k">
@@ -48,7 +47,6 @@
 <!ENTITY sendBoth.label               "Send the message in both plain text and HTML (larger message size)">
 <!ENTITY sendBoth.accesskey           "n">
 <!ENTITY override.label               "You can override these settings for individual messages by using the Options menu while composing a message.">
-<!ENTITY receiveHTML.label            "If you know a particular recipient can receive HTML mail, uncheck the 'Send email as plain text (no HTML)' checkbox on the recipient's Address Book card.">
 
 <!-- Html and Plain Text Domains  -->
 <!ENTITY domain.title                 "HTML and Plain Text Domains">
