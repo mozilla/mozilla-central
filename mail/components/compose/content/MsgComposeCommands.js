@@ -2498,24 +2498,24 @@ function SetLastAttachDirectory(attachedLocalFile)
 
 function AttachFile()
 {
-  var attachments;
-  
   //Get file using nsIFilePicker and convert to URL
   var fp = Components.classes["@mozilla.org/filepicker;1"]
                      .createInstance(nsIFilePicker);
   var bundle = document.getElementById("bundle_composeMsgs");
   fp.init(window, bundle.getString("chooseFileToAttach"),
           nsIFilePicker.modeOpenMultiple);
-      
+
   var lastDirectory = GetLastAttachDirectory();
   if (lastDirectory)
     fp.displayDirectory = lastDirectory;
 
   fp.appendFilters(nsIFilePicker.filterAll);
-  if (fp.show() == nsIFilePicker.returnOK) {
-    attachments = fp.files;
-  }
+  if (fp.show() == nsIFilePicker.returnOK)
+    AttachFiles(fp.files);
+}
 
+function AttachFiles(attachments)
+{
   if (!attachments || !attachments.hasMoreElements())
     return;
 
