@@ -40,31 +40,4 @@
 <overlay id="gloda-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script src="overlay.js"/>
-  <stringbundleset id="stringbundleset">
-    <stringbundle id="gloda-strings" src="chrome://gloda/locale/gloda.properties"/>
-  </stringbundleset>
-
-  <menupopup id="taskPopup">
-    <menuitem id="gloda-hello" label="&glodaIndexEverything.label;" 
-              oncommand="gloda.onIndexEverythingCommand(event);"/>
-    <menuitem id="gloda-hello" label="&glodaIndexAddressBook.label;" 
-              oncommand="gloda.onIndexAddressBookCommand(event);"/>
-  </menupopup>
-  
-  <popup id="folderPaneContext">
-    <menuseparator id="folderPaneContext-sep-gloda"/>
-    <menuitem id="folderPaneContext-gloda-index"
-              label="&folderContextGlodaIndex.label;"
-              accesskey="&folderContextGlodaIndex.accesskey;"
-              oncommand="GlodaIndexer.indexFolderByURI(GetSelectedFolderURI());"/>
-  </popup>
-
-  <popup id="threadPaneContext">
-    <menuseparator id="threadPaneContext-sep-gloda"/>
-    <menuitem id="threadPaneContext-gloda-index"
-              label="&threadContextGlodaIndex.label;"
-              accesskey="&threadContextGlodaIndex.accesskey;"
-              oncommand="gloda.indexSelectedMessages();"/>
-  </popup>
-
 </overlay>

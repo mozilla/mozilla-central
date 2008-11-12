@@ -22,6 +22,7 @@
  *   Michael Buettner <michael.buettner@sun.com>
  *   Stefan Sitter <ssitter@gmail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -170,7 +171,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     if (rule.interval == 1) {
                         ruleString = calGetString(
                           "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly1",
+                          "repeatDetailsRuleMonthly",
                           [ ordinal_string, day_string ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
@@ -186,41 +187,61 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                 } else if (checkRecurrenceRule(rule, ['BYMONTHDAY'])) {
                     var component = rule.getComponent("BYMONTHDAY", {});
 
-                    var day_string = "";
-                    for (var i = 0; i < component.length; i++) {
-                        // TODO: we also need to handle BYMONTHDAY rules with
-                        // negative array elements, but we're currently in string
-                        // freeze for 0.7 so I can't add the necessary bits and
-                        // pieces.
-                        if (component[i] < 0) {
+                    // First, find out if the 'BYMONTHDAY' component contains
+                    // any elements with a negative value. If so we currently
+                    // don't support anything but the 'last day of the month' rule.
+                    if (component.some(function(element, index, array) {
+                                           return element < 0;
+                                       })) {
+                        if (component.length == 1 && component[0] == -1) {
+                            if (rule.interval == 1) {
+                                ruleString = calGetString(
+                                  "calendar-event-dialog",
+                                  "repeatDetailsRuleMonthly7");
+                            } else if (rule.interval == 2) {
+                                ruleString = calGetString(
+                                  "calendar-event-dialog",
+                                  "repeatDetailsRuleMonthly8");
+                            } else {
+                                ruleString = calGetString(
+                                  "calendar-event-dialog",
+                                  "repeatDetailsRuleMonthly9",
+                                  [ rule.interval ]);
+                            }
+                        } else {
+                            // we don't support any other combination for now...
                             return null;
                         }
-                        day_string += component[i];
-                        if (component.length > 1 &&
-                            i == (component.length - 2)) {
-                            day_string += ' ' +calGetString(
-                                "calendar-event-dialog",
-                                "repeatDetailsAnd") + ' ';
-                        } else if (i < component.length-1) {
-                            day_string += ', ';
-                        }
-                    }
-
-                    if (rule.interval == 1) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly4",
-                          [ day_string ]);
-                    } else if (rule.interval == 2) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly5",
-                          [ day_string ]);
                     } else {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly6",
-                          [ day_string, rule.interval ]);
+                        var day_string = "";
+                        for (var i = 0; i < component.length; i++) {
+                            day_string += component[i];
+                            if (component.length > 1 &&
+                                i == (component.length - 2)) {
+                                day_string += ' ' + calGetString(
+                                    "calendar-event-dialog",
+                                    "repeatDetailsAnd") + ' ';
+                            } else if (i < component.length-1) {
+                                day_string += ', ';
+                            }
+                        }
+
+                        if (rule.interval == 1) {
+                            ruleString = calGetString(
+                              "calendar-event-dialog",
+                              "repeatDetailsRuleMonthly4",
+                              [ day_string ]);
+                        } else if (rule.interval == 2) {
+                            ruleString = calGetString(
+                              "calendar-event-dialog",
+                              "repeatDetailsRuleMonthly5",
+                              [ day_string ]);
+                        } else {
+                            ruleString = calGetString(
+                              "calendar-event-dialog",
+                              "repeatDetailsRuleMonthly6",
+                              [ day_string, rule.interval ]);
+                        }
                     }
                 } else {
                     if (rule.interval == 1) {
@@ -362,14 +383,14 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                               dateFormatter.formatDateShort(startDate),
                               dateFormatter.formatDateShort(untilDate) ]);
                     }
-                  } else {
-                      detailsString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsInfiniteAllDay",
-                          [ ruleString,
-                            dateFormatter.formatDateShort(startDate) ]);
-                  }
-              } else {
+                } else {
+                    detailsString = calGetString(
+                        "calendar-event-dialog",
+                        "repeatDetailsInfiniteAllDay",
+                        [ ruleString,
+                          dateFormatter.formatDateShort(startDate) ]);
+                }
+            } else {
                 if (rule.isFinite) {
                     if (rule.isByCount) {
                         detailsString = calGetString(
@@ -802,7 +823,7 @@ function updateLink() {
                         !itemUrlString.length && "true",
                         "disabled");
     }
-        
+
     if ((linkCommand && linkCommand.getAttribute("checked") != "true") ||
         !itemUrlString.length) {
         // Hide if there is no url, or the menuitem was chosen so that the url

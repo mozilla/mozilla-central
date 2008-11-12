@@ -1,6 +1,5 @@
 <!ENTITY serverAdvanced.label "Advanced Account Settings">
 <!-- LOCALIZATION NOTE (serverDirectory.label): DONT_TRANSLATE "IMAP" -->
-<!ENTITY imapAdvanced.label "Advanced IMAP Server Settings">
 <!ENTITY serverDirectory.label "IMAP server directory:">
 <!ENTITY serverDirectory.accesskey "d">
 <!ENTITY usingSubscription.label "Show only subscribed folders">
@@ -22,7 +21,6 @@
 <!ENTITY overrideNamespaces.label "Allow server to override these namespaces">
 <!ENTITY overrideNamespaces.accesskey "A">
 <!ENTITY pop3Desc.label "When downloading pop mail for this server, use the following folder for new mail:" >
-<!ENTITY folderStorage.label "Where to store mail">
 <!ENTITY globalInbox.label "Global Inbox (Local Folders Account)">
 <!ENTITY globalInbox.accesskey "G">
 <!ENTITY accountDirectory.label "Inbox for this server's account">

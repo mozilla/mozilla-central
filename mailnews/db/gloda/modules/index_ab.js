@@ -120,11 +120,9 @@ GlodaIndexer.registerIndexer(GlodaABIndexer);
 var GlodaABAttrs = {
   providerName: "gloda.ab_attr",
   _log: null,
-  _strBundle: null,
 
-  init: function(aStrBundle) {
+  init: function() {
     this._log =  Log4Moz.Service.getLogger("gloda.abattrs");
-    this._strBundle = aStrBundle;
     
     try {
       this.defineAttributes();

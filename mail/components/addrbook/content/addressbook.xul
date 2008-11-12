@@ -155,9 +155,7 @@
 
   <key id="key_printCard" key="&printCardViewCmd.key;" command="cmd_printcard" modifiers="accel"/>
   <key id="key_close" key="&closeCmd.key;" modifiers="accel" oncommand="AbClose()"/>
-#ifdef XP_UNIX
-  <key id="key_quit" key="&quitApplicationCmd.key;" modifiers="accel" oncommand="goQuitApplication()"/>
-#endif
+
   <!-- Edit Menu -->
   <key id="key_undo" key="&undoCmd.key;" modifiers="accel"/>
   <key id="key_redo" key="&redoCmd.key;" modifiers="accel"/>
@@ -277,7 +275,6 @@
                       <menuitem label="&newMessageCmd.label;" id="menu_newMessage" key="key_newMessage" accesskey="&newMessageCmd.accesskey;" oncommand="AbNewMessage()"/>
                     </menupopup>
                 </menu>
-                <menuitem id="menu_close" label="&closeCmd.label;" key="key_close" accesskey="&closeCmd.accesskey;" oncommand="AbClose()"/>
                 <menuseparator/>
 #ifdef XP_MACOSX
                 <menuitem id="menu_osxAddressBook"
@@ -285,7 +282,7 @@
                           accesskey="&osxAddressBook.accesskey;"
                           oncommand="AbShowHideOSXAddressBook();"
                           checked="true" type="checkbox"/>
-		<menuseparator/>
+                <menuseparator/>
 #endif
                 <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" oncommand="PrintUtils.showPageSetup()"/>
 #ifndef XP_MACOSX
@@ -294,17 +291,12 @@
 #endif
                 <menuitem id="printMenuItem" label="&printCardViewCmd.label;" accesskey="&printCardViewCmd.accesskey;" key="key_printCard" command="cmd_printcard"/>
                 <menuitem id="printAddressBook" label="&printAddressBook.label;" accesskey="&printAddressBook.accesskey;" oncommand="AbPrintAddressBook()"/>
-                <menuseparator id="menu_FileQuitSeparator"/>
-                <menuitem id="menu_FileQuitItem" 
-#ifdef XP_WIN
-                label="&quitApplicationCmdWin.label;" accesskey="&quitApplicationCmdWin.accesskey;" 
-#else
-                label="&quitApplicationCmd.label;" accesskey="&quitApplicationCmd.accesskey;" 
-#endif
-#ifdef XP_UNIX
-                key="key_quit"
-#endif
-                oncommand="goQuitApplication()"/>
+                <menuseparator id="menu_FileCloseSeparator"/>
+                <menuitem id="menu_close"
+                          label="&closeCmd.label;"
+                          key="key_close"
+                          accesskey="&closeCmd.accesskey;"
+                          oncommand="AbClose()"/>
             </menupopup>
         </menu>
         

@@ -61,11 +61,9 @@ Cu.import("resource://gloda/modules/noun_mimetype.js");
 var GlodaFundAttr = {
   providerName: "gloda.fundattr",
   _log: null,
-  _strBundle: null,
 
-  init: function gloda_explattr_init(aStrBundle) {
+  init: function gloda_explattr_init() {
     this._log =  Log4Moz.Service.getLogger("gloda.fundattr");
-    this._strBundle = aStrBundle;
   
     try {
       this.defineAttributes();

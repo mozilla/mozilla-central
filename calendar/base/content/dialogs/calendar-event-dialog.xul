@@ -123,8 +123,6 @@
         <command id="cmd_print"
                  disabled="true"
                  oncommand="calPrint()"/>
-        <command id="cmd_file_exit"
-                 oncommand="onCommandExit()"/>
 
         <!-- Edit menu -->
         <command id="cmd_undo"
@@ -234,12 +232,6 @@
              modifiers="accel"
              key="P"
              command="cmd_print"/>
-#ifdef XP_UNIX
-        <key id="exit-key"
-             modifiers="accel"
-             key="Q"
-             command="cmd_file_exit"/>
-#endif
         <key id="undo-key"
              modifiers="accel"
              key="Z"
@@ -310,12 +302,6 @@
                                       class="lightning-only"/>
                         </menupopup>
                     </menu>
-                    <menuitem id="file-close-menuitem"
-                              label="&event.menu.file.close.label;"
-                              accesskey="&event.menu.file.close.accesskey;"
-                              key="close-key"
-                              command="cmd_file_close"
-                              disable-on-readonly="true"/>
                     <menuseparator id="file-menuseparator1"/>
                     <menuitem id="file-save-menuitem"
                               label="&event.menu.file.save.label;"
@@ -334,13 +320,11 @@
                               command="cmd_print"
                               disable-on-readonly="true"/>
                     <menuseparator id="file-menuseparator1"/>
-                    <menuitem id="file-exit-menuitem"
-                              label="&event.menu.file.exit.label;"
-                              accesskey="&event.menu.file.exit.accesskey;"
-#ifdef XP_UNIX
-                              key="exit-key"
-#endif
-                              command="cmd_file_exit"
+                    <menuitem id="file-close-menuitem"
+                              label="&event.menu.file.close.label;"
+                              accesskey="&event.menu.file.close.accesskey;"
+                              key="close-key"
+                              command="cmd_file_close"
                               disable-on-readonly="true"/>
                 </menupopup>
             </menu>

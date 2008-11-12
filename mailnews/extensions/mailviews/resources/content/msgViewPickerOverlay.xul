@@ -47,7 +47,8 @@
   
   <hbox id="searchBox">
     <hbox id="viewPickerBox" insertbefore="searchCriteria" align="center">
-      <label value="&viewPicker.label;" control="viewPicker"/>
+      <label value="&viewPicker.label;" accesskey="&viewPicker.accesskey;"
+             control="viewPicker"/>
       <menulist id="viewPicker" oncommand="ViewChangeByMenuitem(event.target);">
         <menupopup id="viewPickerPopup" onpopupshowing="RefreshViewPopup(this, true);">
           <menuitem id="viewPickerAll"    value="0" label="&viewAll.label;"/>

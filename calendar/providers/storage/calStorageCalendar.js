@@ -848,7 +848,7 @@ calStorageCalendar.prototype = {
         this.mDB.executeSimpleSQL("INSERT INTO cal_calendar_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
     },
 
-    DB_SCHEMA_VERSION: 14,
+    DB_SCHEMA_VERSION: 15,
 
     /** 
      * @return      db schema version
@@ -1239,6 +1239,21 @@ calStorageCalendar.prototype = {
             }
         }
 
+        if (oldVersion < 15) {
+            this.mDB.beginTransaction();
+            try {
+                addColumn(this.mDB, "cal_todos", "todo_stamp", "INTEGER");
+                // update schema
+                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 15;");
+                this.mDB.commitTransaction();
+                oldVersion = 15;
+            } catch (e) {
+                ERROR("Upgrade failed! DB Error: " + this.mDB.lastErrorString);
+                this.mDB.rollbackTransaction();
+                throw e;
+            }
+        }
+
         if (oldVersion != this.DB_SCHEMA_VERSION) {
             dump ("#######!!!!! calStorageCalendar Schema Update failed -- db version: " + oldVersion + " this version: " + this.DB_SCHEMA_VERSION + "\n");
             throw Components.results.NS_ERROR_FAILURE;
@@ -1550,13 +1565,13 @@ calStorageCalendar.prototype = {
             "INSERT INTO cal_todos " +
             "  (cal_id, id, time_created, last_modified, " +
             "   title, priority, privacy, ical_status, flags, " +
-            "   todo_entry, todo_entry_tz, todo_due, todo_due_tz, todo_completed, " +
-            "   todo_completed_tz, todo_complete, " +
+            "   todo_entry, todo_entry_tz, todo_due, todo_due_tz, todo_stamp, " +
+            "   todo_completed, todo_completed_tz, todo_complete, " +
             "   alarm_time, alarm_time_tz, recurrence_id, recurrence_id_tz, " +
             "   alarm_offset, alarm_related, alarm_last_ack)" +
             "VALUES (" + this.mCalId + ", :id, :time_created, :last_modified, " +
             "        :title, :priority, :privacy, :ical_status, :flags, " +
-            "        :todo_entry, :todo_entry_tz, :todo_due, :todo_due_tz, " +
+            "        :todo_entry, :todo_entry_tz, :todo_due, :todo_due_tz, :todo_stamp, " +
             "        :todo_completed, :todo_completed_tz, :todo_complete, " +
             "        :alarm_time, :alarm_time_tz, :recurrence_id, :recurrence_id_tz," + 
             "        :alarm_offset, :alarm_related, :alarm_last_ack)"
@@ -1839,6 +1854,8 @@ calStorageCalendar.prototype = {
             item.entryDate = newDateTime(row.todo_entry, row.todo_entry_tz);
         if (row.todo_due)
             item.dueDate = newDateTime(row.todo_due, row.todo_due_tz);
+        if (row.todo_stamp)
+            item.setProperty("DTSTAMP", newDateTime(row.todo_stamp, "UTC"));
         if (row.todo_completed)
             item.completedDate = newDateTime(row.todo_completed, row.todo_completed_tz);
         if (row.todo_complete)
@@ -2209,6 +2226,10 @@ calStorageCalendar.prototype = {
 
         this.setDateParamHelper(ip, "event_start", item.startDate);
         this.setDateParamHelper(ip, "event_end", item.endDate);
+        let dtstamp = item.stampTime;
+        if (dtstamp) {
+            ip.event_stamp = dtstamp.nativeTime;
+        }
 
         if (item.startDate.isDate)
             flags |= CAL_ITEM_FLAG_EVENT_ALLDAY;
@@ -2226,6 +2247,10 @@ calStorageCalendar.prototype = {
 
         this.setDateParamHelper(ip, "todo_entry", item.entryDate);
         this.setDateParamHelper(ip, "todo_due", item.dueDate);
+        let dtstamp = item.stampTime;
+        if (dtstamp) {
+            ip.todo_stamp = dtstamp.nativeTime;
+        }
         this.setDateParamHelper(ip, "todo_completed", item.getProperty("COMPLETED"));
 
         ip.todo_complete = item.getProperty("PERCENT-COMPLETED");
@@ -2253,10 +2278,6 @@ calStorageCalendar.prototype = {
         ip.priority = item.getProperty("PRIORITY");
         ip.privacy = item.getProperty("CLASS");
         ip.ical_status = item.getProperty("STATUS");
-        tmp = item.stampTime;
-        if (tmp) {
-            ip.event_stamp = tmp.nativeTime;
-        }
 
         if (item.alarmOffset) {
             ip.alarm_offset = item.alarmOffset.inSeconds;
@@ -2681,6 +2702,7 @@ var sqlTables = {
     /*  date the todo is due */
     "   todo_due        INTEGER," +
     "   todo_due_tz     TEXT," +
+    "   todo_stamp      INTEGER," +
     /*  date the todo is completed */
     "   todo_completed  INTEGER," +
     "   todo_completed_tz TEXT," +

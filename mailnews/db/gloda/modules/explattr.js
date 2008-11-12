@@ -69,12 +69,10 @@ const FA_READ = "READ";
 var GlodaExplicitAttr = {
   providerName: "gloda.explattr",
   _log: null,
-  _strBundle: null,
   _msgTagService: null,
 
-  init: function gloda_explattr_init(aStrBundle) {
+  init: function gloda_explattr_init() {
     this._log =  Log4Moz.Service.getLogger("gloda.explattr");
-    this._strBundle = aStrBundle;
 
     this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
                           getService(Ci.nsIMsgTagService);

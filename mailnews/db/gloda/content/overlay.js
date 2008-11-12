@@ -37,32 +37,3 @@
 
 // get the core
 Components.utils.import("resource://gloda/modules/public.js");
-
-var gloda = {
-  _mimeMsg: {},
-  
-  onLoad: function() {
-    // initialization code
-    this.initialized = true;
-    this.strings = document.getElementById("gloda-strings");
-  },
-  onIndexEverythingCommand: function(e) {
-    GlodaIndexer.indexEverything();
-  },
-  onIndexAddressBookCommand: function(e) {
-    // TODO support address-book indexing or something.
-  },  
-  indexSelectedMessages: function () {
-    var dbView = GetDBView();
-    var indices = GetSelectedIndices(dbView);
-    var toindex = [];
-    for (var iIndex=0; iIndex < indices.length; iIndex++) {
-      var actualIndex = indices[iIndex];
-      var folder = dbView.getFolderForViewIndex(actualIndex);
-      var msgKey = dbView.getKeyAt(actualIndex);
-      toindex.push([folder, msgKey]);
-    }
-    GlodaIndexer.indexMessages(toindex);
-  },
-};
-window.addEventListener("load", function(e) { gloda.onLoad(e); }, false);

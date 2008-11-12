@@ -46,16 +46,8 @@ Cu.import("resource://gloda/modules/log4moz.js");
 const LOG = Log4Moz.Service.getLogger("gloda.everybody");
 
 var importNS = {};
-var strtab = null;
 
 function loadModule(aModuleURI, aNSContrib) {
-  if (strtab === null) {
-    let bundleService = Cc["@mozilla.org/intl/stringbundle;1"].
-                        getService(Ci.nsIStringBundleService);
-    strtab = bundleService.createBundle("chrome://gloda/locale/gloda.properties");
-    LOG.debug("string bundle: " + strtab);
-  }
-
   try {
     LOG.info("... loading " + aModuleURI);
     Cu.import(aModuleURI, importNS);
@@ -69,7 +61,7 @@ function loadModule(aModuleURI, aNSContrib) {
 
   if (aNSContrib) {
     try {  
-      importNS[aNSContrib].init(strtab);
+      importNS[aNSContrib].init();
     }
     catch (ex) {
       LOG.error("!!! error initializing " + aModuleURI);

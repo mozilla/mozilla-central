@@ -394,15 +394,7 @@
         <toolbarbutton class="toolbarbutton-1" id="button-newim" label="&newIM.label;" tooltiptext="&newIM.tooltip;" command="cmd_newim"/>
         <toolbarbutton class="toolbarbutton-1" id="button-delete" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" command="button_delete"/>
 
-        <vbox flex="1">
-          <spacer flex="1"/> 
-          <!--html id="searchlabel">&showNames.label;</html>
-          <textbox id="searchtext" type="text" align="bottom"/> 
-          <spacer flex="1"/--> 
-        </vbox>
-
-        <!--button id="button_stop" class="other28" align="top" label="&stopButton.label;" tooltiptext="&stopButton.tooltip;" disabled="true" oncommand="AbStop()"/>
-        <button id="button_search" class="other28" align="top" label="&searchButton.label;" disabled="true" tooltiptext="&searchButton.tooltip;" oncommand="AbSearch()"/-->
+        <spacer flex="1"/>
 
      <hbox id="throbber-box" align="center">
       <button id="navigator-throbber" oncommand="goClickThrobber('addressbook.throbber.url')" tooltiptext="&throbber.tooltip;">

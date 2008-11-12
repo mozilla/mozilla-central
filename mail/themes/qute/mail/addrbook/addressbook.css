@@ -390,10 +390,6 @@ html|p {
   list-style-image: url("moz-icon://stock/gtk-new?size=menu");
 }
 
-#menu_FileQuitItem {
-  list-style-image: url("moz-icon://stock/gtk-quit?size=menu");
-}
-
 #menu_search_addresses {
   list-style-image: url("moz-icon://stock/gtk-find?size=menu");
 }

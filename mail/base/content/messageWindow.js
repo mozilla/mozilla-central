@@ -546,6 +546,11 @@ function HideMenus()
   var goStartPage = document.getElementById('goStartPage');
   if (goStartPage)
    goStartPage.hidden = true;
+
+  var menuFileClose = document.getElementById('menu_close');
+  var menuFileQuit = document.getElementById('menu_FileQuitItem');
+  if (menuFileClose && menuFileQuit)
+    menuFileQuit.parentNode.replaceChild(menuFileClose, menuFileQuit);
 }
 
 function OnUnloadMessageWindow()

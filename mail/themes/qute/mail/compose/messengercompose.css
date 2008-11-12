@@ -690,10 +690,6 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   list-style-image: url("moz-icon://stock/gtk-save-as?size=menu");
 }
 
-#menu_FileQuitItem {
-  list-style-image: url("moz-icon://stock/gtk-quit?size=menu");
-}
-
 #menu_checkspelling {
   list-style-image: url("moz-icon://stock/gtk-spell-check?size=menu");
 }
