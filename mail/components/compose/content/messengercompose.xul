@@ -199,9 +199,6 @@
   <key id="key_send" keycode="&sendCmd.keycode;" observes="cmd_sendWithCheck" modifiers="accel"/>
   <key id="key_sendLater" keycode="&sendLaterCmd.keycode;" observes="cmd_sendLater" modifiers="accel, shift"/>
   <key id="key_print" key="&printCmd.key;" command="cmd_print" modifiers="accel"/>
-#ifdef XP_UNIX
-  <key id="key_quit" oncommand="goQuitApplication();"  key="&quitApplicationCmd.key;" modifiers="accel"/>
-#endif
 
   <!-- Edit Menu -->
   <key id="key_undo" key="&undoCmd.key;" modifiers="accel"/>
@@ -337,7 +334,6 @@
               <menuitem type="checkbox" label="&attachVCardCmd.label;" accesskey="&attachVCardCmd.accesskey;" command="cmd_attachVCard"/>
             </menupopup>
           </menu>
-          <menuitem id="menu_close" label="&closeCmd.label;" key="key_close" accesskey="&closeCmd.accesskey;" command="cmd_close"/>
           <menuseparator/>
           <menuitem id="menu_SaveCmd" label="&saveCmd.label;" accesskey="&saveCmd.accesskey;"
                     key="key_save" command="cmd_saveDefault"/>
@@ -357,20 +353,12 @@
           <menuseparator/>
           <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" command="cmd_printSetup"/>
           <menuitem id="printMenuItem" label="&printCmd.label;" accesskey="&printCmd.accesskey;" key="key_print" command="cmd_print"/>
-          <menuseparator id="menu_FileQuitSeparator"/>
-
-          <menuitem  id="menu_FileQuitItem"
-#ifdef XP_WIN
-          label="&quitApplicationCmdWin.label;"
-          accesskey="&quitApplicationCmdWin.accesskey;"
-#else
-          label="&quitApplicationCmd.label;"
-          accesskey="&quitApplicationCmd.accesskey;"
-#endif
-#ifdef XP_UNIX
-          key="key_quit"
-#endif
-          oncommand="goQuitApplication();"/>
+          <menuseparator id="menu_FileCloseSeparator"/>
+          <menuitem id="menu_close"
+                    label="&closeCmd.label;"
+                    key="key_close"
+                    accesskey="&closeCmd.accesskey;"
+                    command="cmd_close"/>
         </menupopup>
       </menu>
 
