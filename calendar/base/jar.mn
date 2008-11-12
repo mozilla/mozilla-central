@@ -63,7 +63,7 @@ calendar.jar:
     content/calendar/today-pane.js                         (content/today-pane.js)
     content/calendar/calendar-event-dialog.css             (content/dialogs/calendar-event-dialog.css)
     content/calendar/calendar-event-dialog.js              (content/dialogs/calendar-event-dialog.js)
-*   content/calendar/calendar-event-dialog.xul             (content/dialogs/calendar-event-dialog.xul)
+    content/calendar/calendar-event-dialog.xul             (content/dialogs/calendar-event-dialog.xul)
     content/calendar/calendar-event-dialog-attendees.xml   (content/dialogs/calendar-event-dialog-attendees.xml)
     content/calendar/calendar-event-dialog-freebusy.xml    (content/dialogs/calendar-event-dialog-freebusy.xml)
     content/calendar/calendar-event-dialog-recurrence.xul  (content/dialogs/calendar-event-dialog-recurrence.xul)
