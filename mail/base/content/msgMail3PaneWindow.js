@@ -1256,6 +1256,11 @@ function SetNextMessageAfterDelete()
     gNextMessageViewIndexAfterDelete = treeSelection.currentIndex;
 }
 
+function SelectFolder(folderUri)
+{
+  gFolderTreeView.selectFolder(GetMsgFolderFromUri(folderUri));
+}
+
 function SelectMessage(messageUri)
 {
   var msgHdr = messenger.messageServiceFromURI(messageUri).messageURIToMsgHdr(messageUri);
