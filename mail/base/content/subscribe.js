@@ -249,12 +249,8 @@ function SubscribeOnLoad()
   }
 
   gServerURI = null;
-  if (window.arguments[0].preselectedURI) {
-    var uri = window.arguments[0].preselectedURI;
-    //dump("subscribe: got a uri," + uri + "\n");
-    var folder = GetMsgFolderFromUri(uri, true);
-    //dump("folder="+folder+"\n");
-    //dump("folder.server="+folder.server+"\n");
+  let folder = window.arguments[0].folder;
+  if (folder && folder.server instanceof Components.interfaces.nsISubscribableServer) {
     var serverMenu = document.getElementById("serverMenu");
     serverMenu.menupopup.selectFolder(folder.server.rootMsgFolder);
     try {
