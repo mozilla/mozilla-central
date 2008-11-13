@@ -454,7 +454,6 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
             params += ("&summary=" + encodeURIComponent(val));
         }
 
-        params += "&categories=";
         var categories = item.getCategories({});
         if (categories.length > 0) {
             function encodeCategories(cats) {
@@ -464,8 +463,10 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
             }
             var catParam = encodeCategories(categories);
             if (!oldItem || catParam != encodeCategories(oldItem.getCategories({}))) {
-                params += catParam;
+                params += ("&categories=" + catParam);
             }
+        } else {
+            params += "&categories=";
         }
 
         val = diffProperty(item, oldItem, "DESCRIPTION");
