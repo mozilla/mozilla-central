@@ -58,7 +58,7 @@ class nsIMsgFolder;
  */
 class nsDefaultAutoSyncMsgStrategy : public nsIAutoSyncMsgStrategy
 {
-  enum { kFirstPassMessageSize = 10U*1024U*1024U }; // 10MB
+  static const PRUint32 kFirstPassMessageSize = 60U*1024U; // 60K
   
   public:
     NS_DECL_ISUPPORTS
