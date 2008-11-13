@@ -95,7 +95,7 @@ mailnews/import/oexpress/Makefile
 mailnews/import/outlook/src/Makefile
 mailnews/import/comm4x/public/Makefile
 mailnews/import/comm4x/src/Makefile
-mailnews/import/applemail/src/Makefile.in
+mailnews/import/applemail/src/Makefile
 mailnews/extensions/Makefile
 mailnews/extensions/smime/Makefile
 mailnews/extensions/smime/build/Makefile
