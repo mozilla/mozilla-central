@@ -3020,10 +3020,10 @@ NS_IMETHODIMP nsMsgDatabase::CopyHdrFromExistingHdr(nsMsgKey key, nsIMsgDBHdr *e
     nsMsgHdr* sourceMsgHdr = static_cast<nsMsgHdr*>(existingHdr);      // closed system, cast ok
     nsMsgHdr *destMsgHdr = nsnull;
     CreateNewHdr(key, (nsIMsgDBHdr **) &destMsgHdr);
-    if (!destMsgHdr)
+    nsIMdbRow  *sourceRow = sourceMsgHdr->GetMDBRow();
+    if (!destMsgHdr || !sourceRow)
       return NS_MSG_MESSAGE_NOT_FOUND;
 
-    nsIMdbRow  *sourceRow = sourceMsgHdr->GetMDBRow() ;
     nsIMdbRow  *destRow = destMsgHdr->GetMDBRow();
     err = destRow->SetRow(GetEnv(), sourceRow);
     if (NS_SUCCEEDED(err))
@@ -3464,6 +3464,7 @@ nsresult nsMsgDatabase::SetUint32Property(nsIMdbRow *row, const char *propertyNa
   yarn.mYarn_Size = sizeof(int32StrBuf);
   yarn.mYarn_Fill = sizeof(int32StrBuf);
 
+  NS_ENSURE_STATE(m_mdbStore); // db might have been closed out from under us.
   if (!row)
     return NS_ERROR_NULL_POINTER;
 
