@@ -424,6 +424,7 @@ function editStartTimezone() {
 
     var self = this;
     var args = new Object();
+    args.calendar = window.arguments[0].calendar;
     args.time = gStartDate.getInTimezone(gStartTimezone);
     args.onOk = function(datetime) {
         var equalTimezones = false;
@@ -454,6 +455,7 @@ function editEndTimezone() {
 
     var self = this;
     var args = new Object();
+    args.calendar = window.arguments[0].calendar;
     args.time = gEndTime.getInTimezone(gEndTimezone);
     args.onOk = function(datetime) {
         if (gStartTimezone && gEndTimezone &&
