@@ -669,7 +669,7 @@ function OnLoadMessenger()
   // verifyAccounts returns true if the callback won't be called
   if (verifyAccounts(LoadPostAccountWizard))
     LoadPostAccountWizard();
-
+       
   window.addEventListener("AppCommand", HandleAppCommandEvent, true);
 }
 
@@ -934,50 +934,70 @@ function UpgradeThreadPaneUI()
 
     threadPaneUIVersion = gPrefBranch.getIntPref("mailnews.ui.threadpane.version");
 
-    // Note: threadTree._reorderColumn will throw an ERROR if the columns specified are already in the same order!
-
-    if (threadPaneUIVersion < 6)
+    if (threadPaneUIVersion < 7)
     {
-      var threadTree = document.getElementById("threadTree");
-      var dateCol = document.getElementById("dateCol");
-      var receivedCol = document.getElementById("receivedCol");
-      var junkCol = document.getElementById("junkStatusCol");
-
-      if (threadPaneUIVersion < 5)
+      // Mark all imap folders as offline at the very first run of TB v3
+      // We use the threadpane ui version to determine TB profile version
+      let servers = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                      .getService(Components.interfaces.nsIMsgAccountManager).allServers;
+      
+      for each (let server in fixIterator(servers, Components.interfaces.nsIMsgIncomingServer))
       {
-        if (threadPaneUIVersion < 4)
+        if (server.type != "imap")
+          continue;
+        
+        let allFolders = Components.classes["@mozilla.org/supports-array;1"]
+                          .createInstance(Components.interfaces.nsISupportsArray);
+        server.rootFolder.ListDescendents(allFolders);
+        for each (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder))
+          folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
+      }
+      
+      // Note: threadTree._reorderColumn will throw an ERROR if the columns specified are already in the same order!
+      if (threadPaneUIVersion < 6)
+      {
+        var threadTree = document.getElementById("threadTree");
+        var dateCol = document.getElementById("dateCol");
+        var receivedCol = document.getElementById("receivedCol");
+        var junkCol = document.getElementById("junkStatusCol");
+  
+        if (threadPaneUIVersion < 5)
         {
-          if (threadPaneUIVersion < 3)
+          if (threadPaneUIVersion < 4)
           {
-
-            // in thunderbird, we are inserting the junk column just before the
-            // date column.
-            threadTree._reorderColumn(junkCol, dateCol, true);
-          }
-
-          var senderCol = document.getElementById("senderCol");
-          var recipientCol = document.getElementById("recipientCol");
-          threadTree._reorderColumn(recipientCol, junkCol, true);
-          threadTree._reorderColumn(senderCol, recipientCol, true);
-
-        } // version 4 upgrades
-
-        // version 5 adds a new column called attachments
-        var attachmentCol = document.getElementById("attachmentCol");
-        var subjectCol = document.getElementById("subjectCol");
-
-        threadTree._reorderColumn(attachmentCol, subjectCol, true);
-
-      } // version 5 upgrades
-
-      if (dateCol)
-        threadTree._reorderColumn(receivedCol, dateCol, true);
-      else
-        threadTree._reorderColumn(receivedCol, junkCol, false);
-
-      gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 6);
-
-    } // version 6 upgrades
+            if (threadPaneUIVersion < 3)
+            {
+  
+              // in thunderbird, we are inserting the junk column just before the
+              // date column.
+              threadTree._reorderColumn(junkCol, dateCol, true);
+            }
+  
+            var senderCol = document.getElementById("senderCol");
+            var recipientCol = document.getElementById("recipientCol");
+            threadTree._reorderColumn(recipientCol, junkCol, true);
+            threadTree._reorderColumn(senderCol, recipientCol, true);
+  
+          } // version 4 upgrades
+  
+          // version 5 adds a new column called attachments
+          var attachmentCol = document.getElementById("attachmentCol");
+          var subjectCol = document.getElementById("subjectCol");
+  
+          threadTree._reorderColumn(attachmentCol, subjectCol, true);
+  
+        } // version 5 upgrades
+  
+        if (dateCol)
+          threadTree._reorderColumn(receivedCol, dateCol, true);
+        else
+          threadTree._reorderColumn(receivedCol, junkCol, false);
+   
+      } // version 6 upgrades
+      
+      gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 7);
+ 
+    } // version 7 upgrades
   }
   catch (ex) {
     dump("UpgradeThreadPane: ex = " + ex + "\n");
