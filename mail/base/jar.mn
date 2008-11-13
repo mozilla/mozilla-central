@@ -35,6 +35,7 @@ messenger.jar:
 *   content/messenger/aboutDialog.js                (content/aboutDialog.js)
 *   content/messenger/defaultClientDialog.xul       (content/defaultClientDialog.xul)
 *   content/messenger/defaultClientDialog.js        (content/defaultClientDialog.js)
+    content/messenger/folderPane.js                 (content/folderPane.js)
 *   content/messenger/msgSelectOffline.xul          (content/msgSelectOffline.xul)
 *   content/messenger/msgPrintEngine.xul            (content/msgPrintEngine.xul)
 *   content/messenger/searchBar.js                  (content/searchBar.js)

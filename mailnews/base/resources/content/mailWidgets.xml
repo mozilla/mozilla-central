@@ -1858,12 +1858,21 @@
     <handlers>
       <handler event="popupshowing">
         <![CDATA[
-          var folderTree = GetFolderTree();
-          var row = folderTree.treeBoxObject.getRowAt(event.clientX, event.clientY);
-          if (row == -1)
-            return false;
-
-          var msgFolder = GetFolderResource(folderTree, row).QueryInterface(Components.interfaces.nsIMsgFolder);
+          var msgFolder;
+          // Allow for differences between Thunderbird and SeaMonkey folder pane
+          if ("gFolderTreeView" in window) {
+            msgFolder = gFolderTreeView.getFolderAtCoords(event.clientX,
+                                                          event.clientY);
+            if (!msgFolder)
+              return false;
+          } else {
+            var folderTree = GetFolderTree();
+            var row = folderTree.treeBoxObject.getRowAt(event.clientX,
+                                                        event.clientY);
+            if (row == -1)
+              return false;
+            msgFolder = GetFolderResource(folderTree, row).QueryInterface(Components.interfaces.nsIMsgFolder);
+          }
           if (!msgFolder || msgFolder.isServer)
             return false;
           var asyncResults = {};

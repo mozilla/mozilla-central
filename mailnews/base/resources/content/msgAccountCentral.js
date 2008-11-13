@@ -221,9 +221,7 @@ function CollapseSectionSeparators(separatorBaseId)
 // From the current folder tree, return the selected server
 function GetSelectedServer()
 {
-    var folderURI = window.parent.GetSelectedFolderURI();
-    var server = GetServer(folderURI);
-    return server;
+  return GetSelectedMsgFolder().server;
 }
 
 // From the current folder tree, return the selected folder

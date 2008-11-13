@@ -52,12 +52,6 @@ var gBrandBundle;
 
 var gContextMenu;
 
-var accountManagerDataSource;
-var folderDataSource;
-var unreadFolderDataSource;
-var favoriteFoldersDataSource;
-var recentFoldersDataSource;
-
 var gAccountCentralLoaded = true;
 
 var gAutoSyncManager;
@@ -269,20 +263,6 @@ function CreateMailWindowGlobals()
 
   gMessengerBundle = document.getElementById("bundle_messenger");
   gBrandBundle = document.getElementById("bundle_brand");
-
-  //Create datasources
-  var prefix = "@mozilla.org/rdf/datasource;1?name=";
-  accountManagerDataSource = Components.classes[prefix + "msgaccountmanager"]
-                                       .getService();
-  folderDataSource = Components.classes[prefix + "mailnewsfolders"]
-                               .getService();
-  unreadFolderDataSource = Components.classes[prefix + "mailnewsunreadfolders"]
-                                     .getService();
-  favoriteFoldersDataSource = Components.classes[prefix + "mailnewsfavefolders"]
-                                        .getService();
-  recentFoldersDataSource = Components.classes[prefix + "mailnewsrecentfolders"]
-                                      .getService();
-                                      
   gAutoSyncManager = Components.classes["@mozilla.org/imap/autosyncmgr;1"]
                                        .getService(Components.interfaces.nsIAutoSyncManager);
   gAutoSyncMonitor.msgWindow = msgWindow;
@@ -304,12 +284,6 @@ function InitMsgWindow()
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
   // Ensure we don't load xul error pages into the main window
   msgWindow.rootDocShell.useErrorPages = false;
-}
-
-function AddDataSources()
-{
-  accountManagerDataSource = accountManagerDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
-  folderDataSource = folderDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
 }
 
 // We're going to implement our status feedback for the mail window in JS now.
@@ -497,7 +471,7 @@ nsMsgWindowCommands.prototype =
 
   selectFolder: function(folderUri)
   {
-    SelectFolder(folderUri);
+    gFolderTreeView.selectFolder(GetMsgFolderFromUri(folderUri));
   },
 
   selectMessage: function(messageUri)
@@ -628,8 +602,8 @@ function ObserveDisplayDeckChange(event)
       HidingThreadPane();
 
     if (nowSelected == "accountCentralBox") {
-      if (!IsFolderPaneCollapsed())
-        GetFolderTree().focus();
+      if (!document.getElementById("folderPaneBox").collapsed)
+        document.getElementById("folderTree").focus();
 
       gAccountCentralLoaded = true;
     } else
@@ -643,19 +617,12 @@ function ObserveDisplayDeckChange(event)
 // prompt if offline.
 function OpenInboxForServer(server)
 {
-  try {
-    ShowThreadPane();
-    var inboxFolder = GetInboxFolder(server);
-    SelectFolder(inboxFolder.URI);
+  ShowThreadPane();
+  gFolderTreeView.selectFolder(GetInboxFolder(server));
 
-    if (MailOfflineMgr.isOnline() || MailOfflineMgr.getNewMail())  {
-      if (server.type != "imap")
-        GetMessagesForInboxOnServer(server);
-    }
-  }
-  catch (ex) {
-      dump("Error opening inbox for server -> " + ex + "\n");
-      return;
+  if (MailOfflineMgr.isOnline() || MailOfflineMgr.getNewMail()) {
+    if (server.type != "imap")
+      GetMessagesForInboxOnServer(server);
   }
 }
 

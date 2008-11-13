@@ -743,8 +743,9 @@ function UpdateDeleteToolbarButton()
 
   // Never show "Undelete" in the 3-pane for folders, when delete would
   // apply to the selected folder.
-  if (this.WhichPaneHasFocus && WhichPaneHasFocus() == GetFolderTree()
-      && GetNumSelectedMessages() == 0)
+  if (this.WhichPaneHasFocus &&
+      WhichPaneHasFocus() == document.getElementById("folderTree") &&
+      GetNumSelectedMessages() == 0)
     deleteButtonDeck.selectedIndex = 0;
   else
     deleteButtonDeck.selectedIndex = SelectedMessagesAreDeleted() ? 1 : 0;
@@ -1190,12 +1191,12 @@ function MsgOpenNewWindowForFolder(uri, key)
   var keyToSelect = key;
 
   if (!uriToOpen)
-    // use GetSelectedFolderURI() to find out which message to open instead of
+    // use GetSelectedMsgFolders() to find out which folder to open instead of
     // GetLoadedMsgFolder().URI. This is required because on a right-click, the
     // currentIndex value will be different from the actual row that is
-    // highlighted. GetSelectedFolderURI() will return the message that is
+    // highlighted. GetSelectedMsgFolders() will return the folder that is
     // highlighted.
-    uriToOpen = GetSelectedFolderURI();
+    uriToOpen = GetSelectedMsgFolders()[0].URI;
 
   if (uriToOpen)
     window.openDialog("chrome://messenger/content/", "_blank", "chrome,all,dialog=no", uriToOpen, keyToSelect);
@@ -1240,9 +1241,6 @@ function DisplayFolderAndThreadPane(show)
   document.getElementById("folderPaneBox").collapsed = collapse;
   try {
     document.getElementById("search-container").collapsed = collapse;
-  } catch (ex) {}
-  try {
-    document.getElementById("folder-location-container").collapsed = collapse;
   } catch (ex) {}
   try {
     document.getElementById("mailviews-container").collapsed = collapse;
@@ -1326,15 +1324,16 @@ let mailTabType = {
     // new tab needs to have SelectFolder think the selection has changed.
     // We also need to clear these globals to subvert the code that prevents
     // folder loads when things haven't changed.
-    GetFolderTree().view.selection.clearSelection();
-    GetFolderTree().view.selection.currentIndex = -1;
+    var folderTree = document.getElementById("folderTree");
+    folderTree.view.selection.clearSelection();
+    folderTree.view.selection.currentIndex = -1;
     gMsgFolderSelected = null;
     msgWindow.openFolder = null;
 
     // Clear thread pane selection - otherwise, the tree tries to impose the
-    // current selection on the new view.
-    gDBView = null; // Clear gDBView so we won't try to close it.
-    SelectFolder(aTab.uriToOpen);
+    // the current selection on the new view.
+    gDBView = null; // clear gDBView so we won't try to close it.
+    gFolderTreeView.selectFolder(GetMsgFolderFromUri(aTab.uriToOpen));
     aTab.dbView = gDBView;
   },
 
@@ -1391,11 +1390,10 @@ let mailTabType = {
     // restore view state if we had one
     if (gDBView)
     {
-      var folderTree = GetFolderTree();
-      var row = EnsureFolderIndex(folderTree.builderView, gDBView.msgFolder);
+      var row = gFolderTreeView.getIndexOfFolder(gDBView.msgFolder);
 
-      var folderTreeBoxObj = folderTree.treeBoxObject;
-      var folderTreeSelection = folderTreeBoxObj.view.selection;
+      var treeBoxObj = document.getElementById("folderTree").treeBoxObject;
+      var folderTreeSelection = treeBoxObj.view.selection;
       // make sure that row.value is valid so that it doesn't mess up
       // the call to ensureRowIsVisible().
       if ((row >= 0) && !folderTreeSelection.isSelected(row))
@@ -1403,7 +1401,7 @@ let mailTabType = {
         gMsgFolderSelected = gDBView.msgFolder;
         folderTreeSelection.selectEventsSuppressed = true;
         folderTreeSelection.select(row);
-        folderTreeBoxObj.ensureRowIsVisible(row);
+        treeBoxObj.ensureRowIsVisible(row);
         folderTreeSelection.selectEventsSuppressed = false;
       }
       // This sets the thread pane tree's view to the gDBView view.
@@ -1462,14 +1460,14 @@ function MsgOpenNewTabForFolder(uri, key)
   var keyToSelect = key;
 
   if (!uriToOpen)
-    // Use GetSelectedFolderURI() to find out which message to open instead of
+    // Use GetSelectedMsgFolders() to find out which folder to open instead of
     // GetLoadedMsgFolder().URI. This is required because on a right-click, the
     // currentIndex value will be different from the actual row that is
-    // highlighted. GetSelectedFolderURI() will return the message that is
+    // highlighted. GetSelectedMsgFolders() will return the message that is
     // highlighted.
-    uriToOpen = GetSelectedFolderURI();
-
-  // Set up the first tab, which was previously invisible.
+    uriToOpen = GetSelectedMsgFolders()[0].URI;
+  
+  // set up the first tab, which was previously invisible.
   // This assumes the first tab is always a 3-pane ui, which
   // may not be right, especially if we have the ability
   // to persist your tab setup.
@@ -1615,14 +1613,14 @@ function MsgOpenNewWindowForMessage(messageUri, folderUri)
     // highlighted.
     messageUri = GetFirstSelectedMessage();
 
-  if (!folderUri)
-    // Use GetSelectedFolderURI() to find out which message to open
-    // instead of gDBView.getURIForViewIndex(currentIndex). This is
-    // required because on a right-click, the currentIndex value will be
-    // different from the actual row that is highlighted.
-    // GetSelectedFolderURI() will return the message that is
-    // highlighted.
-    folderUri = GetSelectedFolderURI();
+    if (!folderUri)
+      // Use GetSelectedMsgFolders() to find out which message to open
+      // instead of gDBView.getURIForViewIndex(currentIndex).  This is
+      // required because on a right-click, the currentIndex value will be
+      // different from the actual row that is highlighted.
+      // GetSelectedMsgFolders() will return the message that is
+      // highlighted.
+      folderUri = GetSelectedMsgFolders()[0].URI;
 
   // be sure to pass in the current view....
   if (messageUri && folderUri) {
@@ -1669,7 +1667,7 @@ function MsgMarkReadByDate()
 
 function MsgMarkAllRead()
 {
-  var folder = GetMsgFolderFromUri(GetSelectedFolderURI(), true);
+  var folder = GetSelectedMsgFolders()[0];
 
   if (folder)
     folder.markAllMessagesRead();
@@ -1912,7 +1910,10 @@ function IsGetNextNMessagesEnabled()
 
 function IsCompactFolderEnabled()
 {
-  var server = GetServer(GetSelectedFolderURI());
+  var folder = GetSelectedMsgFolders()[0];
+  if (!folder)
+    return;
+  let server = folder.server;
   return (server &&
       (server.type != 'nntp') && // compact news folder is not supported
       ((server.type != 'imap') || server.canCompactFoldersOnServer) &&

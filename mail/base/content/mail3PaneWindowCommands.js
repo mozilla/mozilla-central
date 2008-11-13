@@ -44,7 +44,7 @@ var gMessengerBundle = document.getElementById("bundle_messenger");
 // Controller object for folder pane
 var FolderPaneController =
 {
-   supportsCommand: function(command)
+  supportsCommand: function(command)
   {
     switch ( command )
     {
@@ -119,10 +119,18 @@ var FolderPaneController =
       case "cmd_delete":
       case "cmd_shiftDelete":
       case "button_delete":
-        MsgDeleteFolder();
+        // Even if the folder pane has focus, don't do a folder delete if
+        // we have a selected message, but delete the message instead.
+        if (GetNumSelectedMessages() == 0)
+          gFolderTreeController.deleteFolder();
+        else
+          DefaultController.doCommand(command);
+        break;
+      case "cmd_deleteFolder":
+        gFolderTreeController.deleteFolder();
         break;
       case "button_compact":
-        MsgCompactFolder(false);
+        gFolderTreeController.compactFolder(false);
         break;
     }
   },
@@ -590,7 +598,7 @@ var DefaultController =
         gDBView.doCommand(nsMsgViewCommandType.collapseAll);
         break;
       case "cmd_renameFolder":
-        MsgRenameFolder();
+        gFolderTreeController.renameFolder();
         return;
       case "cmd_sendUnsentMsgs":
         // if offline, prompt for sendUnsentMessages
@@ -621,7 +629,7 @@ var DefaultController =
         ViewPageSource(GetSelectedMessages());
         return;
       case "cmd_setFolderCharset":
-        MsgFolderProperties();
+        gFolderTreeController.editFolder();
         return;
       case "cmd_reload":
         ReloadMessage();
@@ -648,7 +656,7 @@ var DefaultController =
         MsgMarkReadByDate();
         return;
       case "cmd_properties":
-        MsgFolderProperties();
+        gFolderTreeController.editFolder();
         return;
       case "cmd_search":
         MsgSearchMessages();
@@ -695,13 +703,13 @@ var DefaultController =
         deleteJunkInFolder();
         return;
       case "cmd_emptyTrash":
-        MsgEmptyTrash();
+        gFolderTreeController.emptyTrash();
         return;
       case "cmd_compactFolder":
-        MsgCompactFolder(true);
+        gFolderTreeController.compactFolder(true);
         return;
       case "button_compact":
-        MsgCompactFolder(false);
+        gFolderTreeController.compactFolder(false);
         return;
       case "cmd_downloadFlagged":
           gDBView.doCommand(nsMsgViewCommandType.downloadFlaggedForOffline);
@@ -754,12 +762,7 @@ var DefaultController =
 
 function GetNumSelectedMessages()
 {
-    try {
-        return gDBView.numSelected;
-    }
-    catch (ex) {
-        return 0;
-    }
+  return gDBView ? gDBView.numSelected : 0;
 }
 
 var gLastFocusedElement=null;
@@ -794,18 +797,14 @@ function FocusRingUpdate_Mail()
 
 function WhichPaneHasFocus()
 {
-  var threadTree = GetThreadTree();
-  var folderTree = GetFolderTree();
-  var messagePane = GetMessagePane();
-
   if (top.document.commandDispatcher.focusedWindow == GetMessagePaneFrame())
-    return messagePane;
+    return GetMessagePane();
 
   var currentNode = top.document.commandDispatcher.focusedElement;
   while (currentNode) {
-    if (currentNode === threadTree ||
-        currentNode === folderTree ||
-        currentNode === messagePane)
+    if (currentNode === document.getElementById('threadTree') ||
+        currentNode === document.getElementById("folderTree") ||
+        currentNode === document.getElementById("messagepanebox"))
       return currentNode;
 
     currentNode = currentNode.parentNode;
@@ -816,7 +815,7 @@ function WhichPaneHasFocus()
 function SetupCommandUpdateHandlers()
 {
   // folder pane
-  var widget = GetFolderTree();
+  var widget = document.getElementById("folderTree");
   if ( widget )
     widget.controllers.appendController(FolderPaneController);
 
@@ -880,11 +879,10 @@ function IsRenameFolderEnabled()
 
 function IsCanSearchMessagesEnabled()
 {
-  var folderURI = GetSelectedFolderURI();
-  if (!folderURI)
+  var folder = GetSelectedMsgFolders()[0];
+  if (!folder)
     return false;
-  var server = GetServer(folderURI);
-  return server.canSearchMessages;
+  return folder.server.canSearchMessages;
 }
 function IsFolderCharsetEnabled()
 {
@@ -923,62 +921,6 @@ function IsMessageDisplayedInMessagePane()
   return (!IsMessagePaneCollapsed() && (GetNumSelectedMessages() > 0));
 }
 
-function MsgDeleteFolder()
-{
-    var folderTree = GetFolderTree();
-    var selectedFolders = GetSelectedMsgFolders();
-    for (var i = 0; i < selectedFolders.length; i++)
-    {
-        var selectedFolder = selectedFolders[i];
-        var specialFolder = getSpecialFolderString(selectedFolder);
-        if (specialFolder != "Inbox" && specialFolder != "Trash")
-        {
-            var folder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
-            if (folder.flags & MSG_FOLDER_FLAG_VIRTUAL)
-            {
-                if (gCurrentVirtualFolderUri == selectedFolder.URI)
-                  gCurrentVirtualFolderUri = null;
-                var array = Components.classes["@mozilla.org/array;1"]
-                                      .createInstance(Components.interfaces.nsIMutableArray);
-                array.appendElement(folder, false);
-                folder.parent.deleteSubFolders(array, msgWindow);
-                continue;
-            }
-            var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + selectedFolder.server.type].getService(Components.interfaces.nsIMsgProtocolInfo);
-
-            // do not allow deletion of special folders on imap accounts
-            if ((specialFolder == "Sent" ||
-                specialFolder == "Drafts" ||
-                specialFolder == "Templates" ||
-                (specialFolder == "Junk" && !CanRenameDeleteJunkMail(GetSelectedFolderURI()))) &&
-                !protocolInfo.specialFoldersDeletionAllowed)
-            {
-                var errorMessage = gMessengerBundle.getFormattedString("specialFolderDeletionErr",
-                                                    [specialFolder]);
-                var specialFolderDeletionErrTitle = gMessengerBundle.getString("specialFolderDeletionErrTitle");
-                var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                              .getService(Components.interfaces.nsIPromptService);
-
-                promptService.alert(window, specialFolderDeletionErrTitle, errorMessage);
-                continue;
-            }
-            else if (isNewsURI(selectedFolder.URI))
-            {
-                var unsubscribe = ConfirmUnsubscribe(selectedFolder);
-                if (unsubscribe)
-                    UnSubscribe(selectedFolder);
-            }
-            else
-            {
-                var array = Components.classes["@mozilla.org/array;1"]
-                                      .createInstance(Components.interfaces.nsIMutableArray);
-                array.appendElement(selectedFolder, false);
-                selectedFolder.parent.deleteSubFolders(array, msgWindow);
-            }
-        }
-    }
-}
-
 function SetFocusThreadPaneIfNotOnMessagePane()
 {
   var focusedElement = WhichPaneHasFocus();
@@ -991,9 +933,11 @@ function SetFocusThreadPaneIfNotOnMessagePane()
 // 3pane related commands.  Need to go in own file.  Putting here for the moment.
 function SwitchPaneFocus(event)
 {
-  var folderTree = GetFolderTree();
+  var folderTree = document.getElementById("folderTree");
   var threadTree = GetThreadTree();
   var messagePane = GetMessagePane();
+
+  var folderPaneCollapsed = document.getElementById("folderPaneBox").collapsed;
 
   var focusedElement = WhichPaneHasFocus();
   if (focusedElement == null)       // focus not on one of the main three panes (probably toolbar)
@@ -1002,7 +946,7 @@ function SwitchPaneFocus(event)
   if (event && event.shiftKey)
   {
     // Reverse traversal: Message -> Thread -> Folder -> Message
-    if (focusedElement == threadTree && !IsFolderPaneCollapsed())
+    if (focusedElement == threadTree && !folderPaneCollapsed)
       folderTree.focus();
     else if (focusedElement != messagePane && !IsMessagePaneCollapsed())
       SetFocusMessagePane();
@@ -1014,7 +958,7 @@ function SwitchPaneFocus(event)
     // Forward traversal: Folder -> Thread -> Message -> Folder
     if (focusedElement == threadTree && !IsMessagePaneCollapsed())
       SetFocusMessagePane();
-    else if (focusedElement != folderTree && !IsFolderPaneCollapsed())
+    else if (focusedElement != folderTree && !folderPaneCollapsed)
       folderTree.focus();
     else
       threadTree.focus();

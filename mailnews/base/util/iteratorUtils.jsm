@@ -39,7 +39,7 @@
  * and enumerators) in js-friendly ways.
  */
 
-var EXPORTED_SYMBOLS = ["fixIterator", "toXPCOMIterator"];
+var EXPORTED_SYMBOLS = ["fixIterator", "toXPCOMArray"];
 
 let Ci = Components.interfaces;
 
@@ -100,7 +100,7 @@ function fixIterator(aEnum, aIface) {
 }
 
 /**
- * This function takes a javascript Array object and returns an xpcom iterator
+ * This function takes a javascript Array object and returns an xpcom array
  * of the desired type. It will *not* work if you extend Array.prototype.
  *
  * @param aArray      the array to convert to an xpcom array
@@ -110,7 +110,7 @@ function fixIterator(aEnum, aIface) {
  *       js array after a call to this function will not be reflected in the
  *       xpcom array.
  */
-function toXPCOMIterator(aArray, aInterface) {
+function toXPCOMArray(aArray, aInterface) {
   if (aInterface.equals(Ci.nsISupportsArray)) {
     let supportsArray = Components.classes["@mozilla.org/supports-array;1"]
                                   .createInstance(Ci.nsISupportsArray);

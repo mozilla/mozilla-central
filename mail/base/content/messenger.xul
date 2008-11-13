@@ -84,9 +84,9 @@
 <script type="application/x-javascript" src="chrome://global/content/contentAreaUtils.js"/>
 <script type="application/x-javascript" src="chrome://communicator/content/nsContextMenu.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mailContextMenus.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/messengerdnd.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/accountUtils.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/searchBar.js"/>
+<script type="application/x-javascript" src="chrome://messenger/content/folderPane.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/phishingDetector.js"/>
 <script type="application/x-javascript" src="chrome://communicator/content/contentAreaClick.js"/>
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
@@ -184,100 +184,20 @@
         <label id="folderpane-title"/>
         <spacer flex="1"/>
         <toolbarbutton id="folderview-cycler-left"  class="folderview-cycler"
-                       onclick="CycleFolderView(false);"/>
+                       onclick="gFolderTreeView.cycleMode(false);"/>
         <toolbarbutton id="folderview-cycler-right" class="folderview-cycler"
-                       onclick="CycleFolderView(true);"/>
+                       onclick="gFolderTreeView.cycleMode(true);"/>
       </sidebarheader>
 
-      <tree id="folderTree"
-            class="plain focusring"
+      <tree id="folderTree" class="plain focusring" flex="1"
             treelines="true"
-            flex="1"
+            hidecolumnpicker="true" persist="mode" mode="all"
             context="folderPaneContext"
             disableKeyNavigation="true"
-            datasources="rdf:null"
-            statedatasource="rdf:mailnewsfolders"
-            flags="dont-build-content"
-            ondraggesture="BeginDragFolderTree(event);"
+            ondraggesture="gFolderTreeView._onDragStart(event);"
+            ondragover="gFolderTreeView._onDragOver(event);"
+            ondblclick="gFolderTreeView.onDoubleClick(event);"
             onselect="FolderPaneSelectionChange();">
-        <treechildren tooltip="folderpopup"/>
-        <template>
-          <rule>
-            <conditions>
-              <content uri="?container"/>
-              <member container="?container" child="?member" />
-              <triple subject="?member" predicate="http://home.netscape.com/NC-rdf#IsDeferred" object="false"/>
-            </conditions>
-
-            <bindings>
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#FolderTreeName"
-                       object="?folderTreeName" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#FolderTreeName?sort=true"
-                       object="?folderTreeNameSort" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#FolderTreeSimpleName"
-                       object="?folderTreeSimpleName" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#SpecialFolder"
-                       object="?specialFolder" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#BiffState"
-                       object="?biffState" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#IsServer"
-                       object="?isServer" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#NewMessages"
-                       object="?newMessages" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#HasUnreadMessages"
-                       object="?hasUnreadMessages" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#SubfoldersHaveUnreadMessages"
-                       object="?subfoldersHaveUnreadMessages" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#IsSecure"
-                       object="?isSecure" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#ServerType"
-                       object="?serverType" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#NoSelect"
-                       object="?noSelect" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#ImapShared"
-                       object="?imapShared" />
-              <binding subject="?member"
-                 predicate="http://home.netscape.com/NC-rdf#TotalUnreadMessages"
-                 object="?unreadCount" />
-              <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#TotalMessages"
-                       object="?totalCount" />
-              <binding subject="?member"
-                     predicate="http://home.netscape.com/NC-rdf#FolderSize"
-                     object="?folderSize" />
-     </bindings>
-
-            <action>
-              <treechildren>
-                <treeitem uri="?member">
-                  <treerow>
-                    <treecell id="folderNameCell"
-                              label="?folderTreeName"
-                              properties="specialFolder-?specialFolder biffState-?biffState isServer-?isServer newMessages-?newMessages hasUnreadMessages-?hasUnreadMessages subfoldersHaveUnreadMessages-?subfoldersHaveUnreadMessages isSecure-?isSecure serverType-?serverType noSelect-?noSelect imapShared-?imapShared"/>
-                    <treecell label="?unreadCount"
-                                  properties="hasUnreadMessages-?hasUnreadMessages subfoldersHaveUnreadMessages-?subfoldersHaveUnreadMessages"/>
-                    <treecell label="?totalCount"
-                                  properties="hasUnreadMessages-?hasUnreadMessages subfoldersHaveUnreadMessages-?subfoldersHaveUnreadMessages"/>
-                    <treecell label="?folderSize"/>
-                  </treerow>
-                </treeitem>
-              </treechildren>
-            </action>
-          </rule>
-        </template>
         <treecols>
           <treecol id="folderNameCol"
                    flex="5"
@@ -286,31 +206,10 @@
                    hideheader="true"
                    ignoreincolumnpicker="true"
                    primary="true"
-                   sort="?folderTreeNameSort"
                    sortActive="true"
                    sortDirection="ascending"/>
-          <splitter class="tree-splitter"/>
-          <treecol id="folderUnreadCol"
-                       persist="hidden width"
-                       hidden="true"
-                       flex="1"
-                       label="&unreadColumn.label;"
-                       selectable="false"/>
-          <splitter class="tree-splitter"/>
-          <treecol id="folderTotalCol"
-                       persist="hidden width"
-                       hidden="true"
-                       flex="1"
-                       label="&totalColumn.label;"
-                       selectable="false"/>
-          <splitter class="tree-splitter"/>
-          <treecol id="folderSizeCol"
-                       persist="hidden width"
-                       hidden="true"
-                       flex="1"
-                       label="&folderSizeColumn.label;"
-                       selectable="false"/>
         </treecols>
+        <treechildren tooltip="folderpopup"/>
       </tree>
     </vbox>
 
@@ -404,7 +303,7 @@
                <treecol id="idCol" persist="hidden ordinal width" flex="1" hidden="true"
                         label="&idColumn.label;" tooltiptext="&idColumn.tooltip;"/>
               </treecols>
-            <treechildren ondraggesture="BeginDragThreadPane(event);"/>
+            <treechildren ondraggesture="threadPaneOnDragStart(event);"/>
           </tree>
         </hbox>
         <!-- extensions may overlay in additional panels; don't assume that there are only 2! -->

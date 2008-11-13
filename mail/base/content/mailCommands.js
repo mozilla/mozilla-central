@@ -74,8 +74,7 @@ function getBestIdentity(identities, optionalHint)
       var tempID;
 
       var lengthOfLongestMatchingEmail = 0;
-      for (id = 0; id < identitiesCount; ++id) {
-        tempID = identities.GetElementAt(id).QueryInterface(Components.interfaces.nsIMsgIdentity);
+      for each (var tempID in fixIterator(identities, nsIMsgIdentity)) {
         if (optionalHint.indexOf(tempID.email.toLowerCase()) >= 0) {
           // Be careful, the user can have several adresses with the same
           // postfix e.g. aaa.bbb@ccc.ddd and bbb@ccc.ddd. Make sure we get the
@@ -502,10 +501,8 @@ function deleteAllInFolder(commandName)
                   .createInstance(Components.interfaces.nsIMutableArray);
   
   // Delete messages.
-  iter = folder.getMessages(msgWindow);
-  while (iter.hasMoreElements()) {
-    children.appendElement(iter.getNext(), false);
-  }
+  var messages = [m for each (m in fixIterator(folder.getMessages(msgWindow)))];
+  var children = toXPCOMArray(messages, Components.interfaces.nsISupportsArray);
   folder.deleteMessages(children, msgWindow, true, false, null, false); 
   children.clear();                                       
 }

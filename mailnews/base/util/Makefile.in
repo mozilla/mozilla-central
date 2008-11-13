@@ -115,6 +115,10 @@ EXPORTS		= \
 		nsImapMoveCoalescer.h \
 		$(NULL)
 
+EXTRA_JS_MODULES = \
+		folderUtils.jsm \
+		iteratorUtils.jsm
+					
 ifndef MOZ_STATIC_MAIL_BUILD
 
 EXTRA_DSO_LDOPTS = \
@@ -133,8 +137,6 @@ endif
 
 
 DEFINES		+= -D_IMPL_NS_MSG_BASE
-
-EXTRA_JS_MODULES = iteratorUtils.jsm
 
 include $(topsrcdir)/config/rules.mk
 

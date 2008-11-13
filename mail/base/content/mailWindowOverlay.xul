@@ -641,20 +641,20 @@
     <menuitem id="folderPaneContext-new"
               label="&folderContextNew.label;"
               accesskey="&folderContextNew.accesskey;"
-              oncommand="MsgNewFolder(NewFolder);"/>
+              oncommand="gFolderTreeController.newFolder();"/>
     <menuitem id="folderPaneContext-remove"
               label="&folderContextRemove.label;"
               accesskey="&folderContextRemove.accesskey;"
-              oncommand="MsgDeleteFolder();"/>
+              oncommand="gFolderTreeController.deleteFolder();"/>
     <menuitem id="folderPaneContext-rename"
               label="&folderContextRename.label;"
               accesskey="&folderContextRename.accesskey;"
-              oncommand="MsgRenameFolder();"/>
+              oncommand="gFolderTreeController.renameFolder();"/>
     <menuseparator id="folderPaneContext-sep2"/>
     <menuitem id="folderPaneContext-compact"
               label="&folderContextCompact.label;"
               accesskey="&folderContextCompact.accesskey;"
-              oncommand="MsgCompactFolder(false);"/>
+              oncommand="gFolderTreeController.compactFolder(false);"/>
     <menuitem id="folderPaneContext-markMailFolderAllRead"
               label="&folderContextMarkMailFolderRead.label;"
               accesskey="&folderContextMarkMailFolderRead.accesskey;"
@@ -666,11 +666,11 @@
     <menuitem id="folderPaneContext-emptyTrash"
               label="&folderContextEmptyTrash.label;"
               accesskey="&folderContextEmptyTrash.accesskey;"
-              oncommand="MsgEmptyTrash();"/>
+              oncommand="gFolderTreeController.emptyTrash();"/>
     <menuitem id="folderPaneContext-emptyJunk"
               label="&folderContextEmptyJunk.label;"
               accesskey="&folderContextEmptyJunk.accesskey;"
-              oncommand="deleteAllInFolder('emptyJunk');"/>
+              oncommand="gFolderTreeController.emptyJunk();"/>
     <menuitem id="folderPaneContext-sendUnsentMessages"
               label="&folderContextSendUnsentMessages.label;"
               accesskey="&folderContextSendUnsentMessages.accesskey;"
@@ -685,11 +685,11 @@
     <menuitem id="folderPaneContext-properties"
               label="&folderContextProperties.label;"
               accesskey="&folderContextProperties.accesskey;"
-              oncommand="MsgFolderProperties();"/>
+              oncommand="gFolderTreeController.editFolder();"/>
     <menuitem id="folderPaneContext-settings"
               label="&folderContextSettings.label;"
               accesskey="&folderContextSettings.accesskey;"
-              oncommand="MsgFolderProperties();"/>
+              oncommand="gFolderTreeController.editFolder();"/>
   </popup>
 
   <popup id="messagePaneContext"
@@ -902,10 +902,10 @@
                         key="key_newMessage2"
                         oncommand="MsgNewMessage(null);"/>
               <menuitem id="menu_newFolder" label="&newFolderCmd.label;"
-                         oncommand="MsgNewFolder(NewFolder);"
+                         oncommand="gFolderTreeController.newFolder();"
                          accesskey="&newFolderCmd.accesskey;"/>
               <menuitem id="menu_newVirtualFolder" label="&newVirtualFolderCmd.label;"
-                         oncommand="MsgVirtualFolderProperties(false);"
+                         oncommand="gFolderTreeController.newVirtualFolder();"
                          accesskey="&newVirtualFolderCmd.accesskey;"/>
               <menuitem id="newAccountMenuItem" label="&newAccountCmd.label;"
                          accesskey="&newAccountCmd.accesskey;"
@@ -1097,13 +1097,17 @@
         <menu id="menu_FolderViews" label="&folderView.label;" accesskey="&folderView.accesskey;">
           <menupopup id="menu_FolderViewsPopup" onpopupshowing="InitViewFolderViewsMenu(event)">
             <menuitem id="menu_allFolders"      label="&allFolders.label;" accesskey="&allFolders.accesskey;"
-                      type="radio" name="viewmessages" oncommand="loadFolderView(0);"/>
+                      type="radio" name="viewmessages"
+                      oncommand="gFolderTreeView.mode = 'all';"/>
             <menuitem id="menu_unreadFolders"   label="&unreadFolders.label;" accesskey="&unreadFolders.accesskey;"
-                      type="radio" name="viewmessages" oncommand="loadFolderView(1);"/>
+                      type="radio" name="viewmessages"
+                      oncommand="gFolderTreeView.mode = 'unread';"/>
             <menuitem id="menu_favoriteFolders" label="&favoriteFolders.label;" accesskey="&favoriteFolders.accesskey;"
-                      type="radio" name="viewmessages" oncommand="loadFolderView(2);"/>
+                      type="radio" name="viewmessages"
+                      oncommand="gFolderTreeView.mode = 'favorite';"/>
             <menuitem id="menu_recentFolders"   label="&recentFolders.label;" accesskey="&recentFolders.accesskey;"
-                      type="radio" name="viewmessages" oncommand="loadFolderView(3);"/>
+                      type="radio" name="viewmessages"
+                      oncommand="gFolderTreeView.mode = 'recent';"/>
           </menupopup>
         </menu>
         <menuseparator id="viewSortMenuSeparator"/>
@@ -1890,7 +1894,7 @@
                        mode="normal"
                        value="0" />
         <label id="quotaLabel"
-               onclick="MsgFolderProperties('QuotaTab');" />
+               onclick="gFolderTreeController.editFolder('QuotaTab');" />
       </stack>
     </statusbarpanel>
   </hbox>

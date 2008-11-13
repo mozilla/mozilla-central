@@ -402,7 +402,7 @@ function OpenMessageByHeader(messageHeader, openInNewWindow)
   else
   {
     if (msgWindow.openFolder != folderURI)
-      SelectFolder(folderURI);
+      gFolderTreeView.selectFolder(folder);
 
     var tree = null;
     var wintype = document.documentElement.getAttribute('windowtype');
@@ -491,7 +491,7 @@ function CheckForMessageIdInFolder(folder, messageId)
 
 function folderPaneOnPopupHiding()
 {
-  RestoreSelectionWithoutContentLoad(GetFolderTree());
+  RestoreSelectionWithoutContentLoad(document.getElementById("folderTree"));
 }
 
 function fillFolderPaneContextMenu()

@@ -43,6 +43,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
+Components.utils.import("resource://gre/modules/folderUtils.jsm");
+
 /* This is where functions related to the 3 pane window are kept */
 
 // from MailNewsTypes.h
@@ -59,7 +61,6 @@ const kNumFolderViews = 4; // total number of folder views
 // from nsMsgFolderFlags.h
 const MSG_FOLDER_FLAG_ELIDED = 0x10;
 
-var gFolderTree;
 var gMessagePane;
 var gThreadTree;
 var gSearchInput;
@@ -171,8 +172,6 @@ var folderListener = {
       if (item == gMsgFolderSelected) {
         if(property.toString() == "TotalMessages" || property.toString() == "TotalUnreadMessages") {
           UpdateStatusMessageCounts(gMsgFolderSelected);
-          item = item.QueryInterface(Components.interfaces.nsIRDFResource);
-          UpdateFolderLocationPicker(item);
         }
       }
     },
@@ -245,7 +244,8 @@ var folderListener = {
             gCurrentLoadingFolderURI = "";
             // Scroll to message for virtual folders is done in
             // gSearchNotificationListener.OnSearchDone (see searchBar.js).
-            if (!scrolled && !(gMsgFolderSelected.flags & MSG_FOLDER_FLAG_VIRTUAL))
+            if (!scrolled && gMsgFolderSelected &&
+                !(gMsgFolderSelected.flags & MSG_FOLDER_FLAG_VIRTUAL))
               ScrollToMessageAfterFolderLoad(msgFolder);
             SetBusyCursor(window, false);
           }
@@ -331,72 +331,11 @@ var folderListener = {
         HandleCompactCompleted(folder);
       }
       else if (eventType == "RenameCompleted") {
-        SelectFolder(folder.URI);
+        gFolderTreeView.selectFolder(folder);
       }
       else if (eventType == "JunkStatusChanged") {
         HandleJunkStatusChanged(folder);
       }
-    }
-}
-
-var folderObserver = {
-    canDrop: function(index, orientation)
-    {
-        return CanDropOnFolderTree(index, orientation);
-    },
-
-    onDrop: function(row, orientation)
-    {
-        DropOnFolderTree(row, orientation);
-    },
-
-    onToggleOpenState: function(index)
-    {
-      var folderTree = GetFolderTree();
-
-      // Nothing to do when collapsing an item.
-      if (folderTree.view.isContainerOpen(index))
-        return;
-
-      var folderResource = GetFolderResource(folderTree, index);
-
-      if (folderTree.view.getLevel(index) == 0)
-      {
-        // (Imap/Nntp/Pop) Account item.
-
-        folderResource.QueryInterface(Components.interfaces.nsIMsgFolder)
-                      .server.performExpand(msgWindow);
-      }
-      else if (folderResource instanceof Components.interfaces.nsIMsgImapMailFolder)
-      {
-        // Imap message folder item.
-
-        folderResource.performExpand(msgWindow);
-      }
-    },
-
-    onCycleHeader: function(colID, elt)
-    {
-    },
-
-    onCycleCell: function(row, colID)
-    {
-    },
-
-    onSelectionChanged: function()
-    {
-    },
-
-    onPerformAction: function(action)
-    {
-    },
-
-    onPerformActionOnRow: function(action, row)
-    {
-    },
-
-    onPerformActionOnCell: function(action, row, col)
-    {
     }
 }
 
@@ -605,7 +544,7 @@ function ServerContainsFolder(server, folder)
 
 function SelectServer(server)
 {
-  SelectFolder(server.rootFolder.URI);
+  gFolderTreeView.selectFolder(server.rootFolder);
 }
 
 // we have this incoming server listener in case we need to
@@ -687,8 +626,6 @@ const MailPrefObserver = {
     {
       if (prefName == "mail.pane_config.dynamic")
         UpdateMailPaneConfig(true);
-      else if (prefName == "mail.showFolderPaneColumns")
-        UpdateFolderColumnVisibility();
     }
   }
 };
@@ -725,7 +662,6 @@ function OnLoadMessenger()
 
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
-  gPrefBranch.addObserver("mail.showFolderPaneColumns", MailPrefObserver, false);
 
   MailOfflineMgr.init();
   CreateMailWindowGlobals();
@@ -742,7 +678,6 @@ function LoadPostAccountWizard()
   InitMsgWindow();
   messenger.setWindow(window, msgWindow);
 
-  InitializeDataSources();
   InitPanes();
   MigrateAttachmentDownloadStore();
   MigrateJunkMailSettings();
@@ -856,7 +791,6 @@ function OnUnloadMessenger()
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
-  gPrefBranch.removeObserver("mail.showFolderPaneColumns", MailPrefObserver);
   document.getElementById('tabmail').closeTabs();
 
   gPhishingDetector.shutdown();
@@ -871,7 +805,6 @@ function OnUnloadMessenger()
 
 function loadStartFolder(initialUri)
 {
-    var folderTree = GetFolderTree();
     var defaultServer = null;
     var startFolder;
     var isLoginAtStartUpEnabled = false;
@@ -926,7 +859,7 @@ function loadStartFolder(initialUri)
             defaultServer.rootFolder == defaultServer.rootMsgFolder)
           defaultServer.performBiff(msgWindow);
 
-        SelectFolder(startFolder.URI);
+        gFolderTreeView.selectFolder(startFolder);
     }
     catch(ex)
     {
@@ -968,165 +901,23 @@ function AddToSession()
 
 function InitPanes()
 {
-  OnLoadFolderPane();
+  gFolderTreeView.load(document.getElementById("folderTree"),
+                       "folderTree.json");
+  var folderTree = document.getElementById("folderTree");
+  folderTree.addEventListener("click",FolderPaneOnClick,true);
+  folderTree.addEventListener("mousedown",TreeOnMouseDown,true);
+                       
   OnLoadThreadPane();
   SetupCommandUpdateHandlers();
 }
 
 function UnloadPanes()
 {
-  OnUnloadFolderPane();
-  UnloadCommandUpdateHandlers();
-}
-
-function InitializeDataSources()
-{
-  //Setup common mailwindow stuff.
-  AddDataSources();
-}
-
-function OnFolderUnreadColAttrModified(event)
-{
-  if (event.attrName == "hidden")
-  {
-    var folderNameCell = document.getElementById("folderNameCell");
-    var label = {"true": "?folderTreeName", "false": "?folderTreeSimpleName"};
-    folderNameCell.setAttribute("label", label[event.newValue]);
-  }
-}
-
-function UpdateFolderColumnVisibility()
-{
-  var folderNameCol = document.getElementById("folderNameCol");
-  var showColumns = gPrefBranch.getBoolPref("mail.showFolderPaneColumns");
-  var folderUnreadCol = document.getElementById("folderUnreadCol");
-  var folderColumnLabel = document.getElementById("folderColumnLabel");
-  if (!showColumns)
-  {
-    var folderTotalCol = document.getElementById("folderTotalCol");
-    var folderSizeCol = document.getElementById("folderSizeCol");
-    folderUnreadCol.setAttribute("hidden", "true");
-    folderTotalCol.setAttribute("hidden", "true");
-    folderSizeCol.setAttribute("hidden", "true");
-    folderNameCol.removeAttribute("label");
-  }
-  else
-  {
-    folderNameCol.setAttribute("label", folderColumnLabel.value);
-  }
-
-  folderNameCol.setAttribute("hideheader", showColumns ? "false" : "true");
   var folderTree = document.getElementById("folderTree");
-  folderTree.setAttribute("hidecolumnpicker", showColumns ? "false" : "true");
-  var hidden = folderUnreadCol.getAttribute("hidden");
-  if (hidden != "true")
-  {
-    var folderNameCell = document.getElementById("folderNameCell");
-    folderNameCell.setAttribute("label", "?folderTreeSimpleName");
-  }
-}
-
-// loadFolderViewForTree -- a helper routine split away from
-// loadFolderView.
-// returns a localized string corresponding to the name of the new view
-function loadFolderViewForTree(aNewFolderView, aFolderTree)
-{
-  var folderPaneHeader = document.getElementById('folderpane-title');
-  var database = aFolderTree.database;
-  var nsIRDFDataSource = Components.interfaces.nsIRDFDataSource;
-
-  // Each folder pane view has the following properties:
-  // ref-> the ref attribute for the folderTree
-  // label -> the UI label associated with the folder view
-  // datasources -> array of the data sources associated with the view
-
-  var folderViews = [
-                      {ref:"msgaccounts:/",           label:"folderPaneHeader",           dataSources: [accountManagerDataSource.QueryInterface(nsIRDFDataSource),
-                                                                                                        folderDataSource.QueryInterface(nsIRDFDataSource)] },
-                      {ref:"mailnewsunreadfolders:/", label:"folderPaneHeader_unread",    dataSources: [unreadFolderDataSource.QueryInterface(nsIRDFDataSource)]},
-                      {ref:"mailnewsfavefolders:/",   label:"folderPaneHeader_favorites", dataSources: [favoriteFoldersDataSource.QueryInterface(nsIRDFDataSource)]},
-                      {ref:"mailnewsrecentfolders:/", label:"folderPaneHeader_recent",    dataSources: [recentFoldersDataSource.QueryInterface(nsIRDFDataSource)]},
-                    ];
-
-  // unload the current data sources
-  if (gCurrentFolderView != undefined)
-  {
-    var dataSourcesToUnload = folderViews[gCurrentFolderView].dataSources;
-    for (index in dataSourcesToUnload)
-      database.RemoveDataSource(dataSourcesToUnload[index]);
-  }
-
-  // add the new data sources
-  var dataSourcesToAdd = folderViews[aNewFolderView].dataSources;
-  for (index in dataSourcesToAdd)
-  {
-    database.AddDataSource(dataSourcesToAdd[index]);
-  }
-
-  aFolderTree.setAttribute('ref', folderViews[aNewFolderView].ref);
-  return gMessengerBundle.getString(folderViews[aNewFolderView].label);
-}
-
-function loadFolderView(aNewFolderView)
-{
-  if (gCurrentFolderView && (gCurrentFolderView == aNewFolderView))
-    return;
-
-  var folderTree = GetFolderTree();
-
-  var folderPaneHeader = document.getElementById('folderpane-title');
-  var folderTree = GetFolderTree();
-  var database = GetFolderDatasource();
-
-  // load the folder view into the folder pane
-  folderPaneHeader.value = loadFolderViewForTree(aNewFolderView, GetFolderTree());
-
-  // if the folder location picker is visible, load the folder view into the location
-  // picker as well.
-  var folderLocationPicker = document.getElementById('folder-location-container');
-  if (folderLocationPicker)
-    loadFolderViewForTree(aNewFolderView, document.getElementById('folderLocationPopup').tree);
-
-  // now reflect the new value back into prefs
-  gPrefBranch.setIntPref('mail.ui.folderpane.view', gCurrentFolderView = aNewFolderView);
-}
-
-// we can cycle the folder view forward or backwards
-function CycleFolderView(aCycleForward)
-{
-  // pass the call onto loadFolderView...
-  var offset = aCycleForward ? 1 : kNumFolderViews - 1;
-  loadFolderView((gCurrentFolderView + offset) % kNumFolderViews);
-}
-
-function OnLoadFolderPane()
-{
-  // want to start up showing the folder pane, in case we shut down
-  // with the 3-pane showing a single message.
-  document.getElementById("folderpane_splitter").collapsed = false;
-  document.getElementById("folderPaneBox").collapsed = false;
-  UpdateFolderColumnVisibility();
-  var folderUnreadCol = document.getElementById("folderUnreadCol");
-  folderUnreadCol.addEventListener("DOMAttrModified", OnFolderUnreadColAttrModified, false);
-
-  loadFolderView(gPrefBranch.getIntPref('mail.ui.folderpane.view'));
-
-  var folderTree = GetFolderTree();
-  var folderTreeBuilder = folderTree.builder.QueryInterface(Components.interfaces.nsIXULTreeBuilder);
-  folderTreeBuilder.addObserver(folderObserver);
-  folderTree.addEventListener("click",FolderPaneOnClick,true);
-  folderTree.addEventListener("mousedown",TreeOnMouseDown,true);
-}
-
-function OnUnloadFolderPane()
-{
-  var folderTree = GetFolderTree();
-  var folderTreeBuilder = folderTree.builder.QueryInterface(Components.interfaces.nsIXULTreeBuilder);
-  folderTreeBuilder.removeObserver(folderObserver);
-  var folderUnreadCol = document.getElementById("folderUnreadCol");
-  folderUnreadCol.removeEventListener("DOMAttrModified", OnFolderUnreadColAttrModified, false);
   folderTree.removeEventListener("click",FolderPaneOnClick,true);
   folderTree.removeEventListener("mousedown",TreeOnMouseDown,true);
+  gFolderTreeView.unload("folderTree.json");
+  UnloadCommandUpdateHandlers();
 }
 
 // builds prior to 12-08-2001 did not have the labels column
@@ -1198,71 +989,7 @@ function OnLoadThreadPane()
   UpgradeThreadPaneUI();
 }
 
-// folderLocationPickerOnLoad can be called multiple times
-// and it can be called when the location picker isn't in the toolbar
-function folderLocationPickerOnLoad()
-{
-  var folderLocationPicker = document.getElementById('folder-location-container');
-  if (!folderLocationPicker)
-    return;
-
-  var locationTree = document.getElementById('folderLocationPopup').tree;
-  locationTree.database.AddDataSource(accountManagerDataSource);
-  locationTree.database.AddDataSource(folderDataSource);
-  locationTree.setAttribute("ref", "msgaccounts:/");
-}
-
-function OnLocationTreeSelect(menulist)
-{
-  SelectFolder(menulist.getAttribute('uri'));
-}
-
-function UpdateFolderLocationPicker(resource)
-{
-  var folderLocationPicker = document.getElementById('folder-location-container');
-  if (!folderLocationPicker)
-    return;
-
-  var tree = GetFolderTree();
-  var folders = document.getElementById('locationFolders');
-  var properties = ['BiffState', 'NewMessages', 'HasUnreadMessages',
-                    'SpecialFolder', 'IsServer', 'IsSecure', 'ServerType', 'NoSelect'];
-  var folder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-  var label = folder.prettyName;
-  folders.setAttribute("label", label);
-
-  var rdfService = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                             .getService(Components.interfaces.nsIRDFService);
-  function GetFolderAttribute(tree, source, attribute) {
-    var property = rdfService.GetResource("http://home.netscape.com/NC-rdf#" + attribute);
-    var target = tree.database.GetTarget(source, property, true);
-    if (target)
-      target = target.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
-    return target;
-  }
-  for (var i in properties)
-  {
-    var property = properties[i];
-    var value = GetFolderAttribute(tree, resource, property);
-    folders.setAttribute(property, value);
-  }
-  folders.setAttribute('uri', resource.Value);
-}
-
-function GetFolderDatasource()
-{
-  var folderTree = GetFolderTree();
-  return folderTree.database;
-}
-
 /* Functions for accessing particular parts of the window*/
-function GetFolderTree()
-{
-  if (!gFolderTree)
-    gFolderTree = document.getElementById("folderTree");
-  return gFolderTree;
-}
-
 function GetSearchInput()
 {
   if (!gSearchInput)
@@ -1327,11 +1054,6 @@ function GetTotalCountElement()
 function IsMessagePaneCollapsed()
 {
   return GetMessagePane().collapsed;
-}
-
-function IsFolderPaneCollapsed()
-{
-  return GetFolderTree().parentNode.collapsed;
 }
 
 function ClearThreadPaneSelection()
@@ -1411,7 +1133,7 @@ function FolderPaneOnClick(event)
     if (event.button != 0)
         return;
 
-    var folderTree = GetFolderTree();
+    var folderTree = document.getElementById("folderTree");
     var row = {};
     var col = {};
     var elt = {};
@@ -1427,63 +1149,11 @@ function FolderPaneOnClick(event)
              (event.originalTarget.localName == "scrollbarbutton")) {
       event.stopPropagation();
     }
-    else if ((event.detail == 2) && (elt.value != "twisty") &&
-             (folderTree.view.getLevel(row.value) != 0)) {
-      FolderPaneDoubleClick(row.value, event);
-    }
-}
-
-function FolderPaneDoubleClick(folderIndex, event)
-{
-    if (!gPrefBranch.getBoolPref("mailnews.reuse_thread_window2"))
-    {
-      var folderResource = GetFolderResource(GetFolderTree(), folderIndex);
-      // Open a new msg window only if we are double clicking on
-      // folders or newsgroups.
-      MsgOpenNewWindowForFolder(folderResource.Value, -1 /* key */);
-
-      // double clicking should not toggle the open / close state of the
-      // folder.  this will happen if we don't prevent the event from
-      // bubbling to the default handler in tree.xml
-      event.stopPropagation();
-    }
-}
-
-function ChangeSelection(tree, newIndex)
-{
-    if(newIndex >= 0)
-    {
-        tree.view.selection.select(newIndex);
-        tree.treeBoxObject.ensureRowIsVisible(newIndex);
-    }
-}
-
-//xxx this function should go away
-function GetSelectedFolders()
-{
-    return GetSelectedMsgFolders();
 }
 
 function GetSelectedMsgFolders()
 {
-    var folderArray = [];
-    var folderTree = GetFolderTree();
-    var rangeCount = folderTree.view.selection.getRangeCount();
-
-    for (var i = 0; i < rangeCount; i++)
-    {
-        var startIndex = {};
-        var endIndex = {};
-        folderTree.view.selection.getRangeAt(i, startIndex, endIndex);
-        for (var j = startIndex.value; j <= endIndex.value; j++)
-        {
-          var folderResource = GetFolderResource(folderTree, j);
-          var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-          folderArray.push(msgFolder);
-        }
-    }
-
-    return folderArray;
+  return gFolderTreeView.getSelectedFolders();
 }
 
 function GetFirstSelectedMessage()
@@ -1586,30 +1256,6 @@ function SetNextMessageAfterDelete()
     gNextMessageViewIndexAfterDelete = treeSelection.currentIndex;
 }
 
-function EnsureFolderIndex(builder, msgFolder)
-{
-  // try to get the index of the folder in the tree
-  var index = builder.getIndexOfResource(msgFolder);
-  if (index == -1) {
-    // if we couldn't find the folder, open the parent
-    builder.toggleOpenState(EnsureFolderIndex(builder, msgFolder.parent));
-    index = builder.getIndexOfResource(msgFolder);
-  }
-  return index;
-}
-
-function SelectFolder(folderUri)
-{
-  var folderTree = GetFolderTree();
-  var msgFolder = GetMsgFolderFromUri(folderUri);
-
-  // Before we can select a folder, we need to make sure it is "visible"
-  // in the tree. To do that, we need to ensure that all its
-  // ancestors are expanded.
-  var folderIndex = EnsureFolderIndex(folderTree.builderView, msgFolder);
-  ChangeSelection(folderTree, folderIndex);
-}
-
 function SelectMessage(messageUri)
 {
   var msgHdr = messenger.messageServiceFromURI(messageUri).messageURIToMsgHdr(messageUri);
@@ -1625,11 +1271,6 @@ function ReloadMessage()
 function GetDBView()
 {
   return gDBView;
-}
-
-function GetFolderResource(tree, index)
-{
-  return tree.builderView.getResourceAtIndex(index);
 }
 
 function LoadNavigatedToMessage(msgHdr, folder, folderUri)
@@ -1721,29 +1362,17 @@ function MigrateAttachmentDownloadStore()
   }
 }
 
-/**
- * Returns a string representation of a folder's specialFolder attribute.
- *
- * @param aFolder  the folder whose specialFolder attribute to return
- */
-function getSpecialFolderString(aFolder) {
-  if (aFolder.flags & 0x1000) // MSG_FOLDER_FLAG_INBOX
-    return "Inbox";
-  else if (aFolder.flags & 0x0100) // MSG_FOLDER_FLAG_TRASH
-    return "Trash";
-  else if (aFolder.flags & 0x0800) // MSG_FOLDER_FLAG_QUEUE
-    return "Unsent Messages";
-  else if (aFolder.flags & 0x0200) // MSG_FOLDER_FLAG_SENTMAIL
-    return "Sent";
-  else if (aFolder.flags & 0x0400) // MSG_FOLDER_FLAG_DRAFTS
-    return "Drafts";
-  else if (aFolder.flags & 0x400000) // MSG_FOLDER_FLAG_TEMPLATES
-    return "Templates";
-  else if (aFolder.flags & 0x40000000) // MSG_FOLDER_FLAG_JUNK
-    return "Junk";
-  else if (aFolder.flags & 0x0020) // MSG_FOLDER_FLAG_VIRTUAL
-    return "Virtual";
-  else
-    return "none";
-}
+function threadPaneOnDragStart(aEvent) {
+  if (aEvent.originalTarget.localName != "treechildren")
+    return;
 
+  var messages = GetSelectedMessages();
+  if (!messages)
+    return;
+
+  SetNextMessageAfterDelete()
+  for (let i in messages)
+    aEvent.dataTransfer.mozSetDataAt("text/x-moz-message", messages[i], i);
+  aEvent.dataTransfer.effectAllowed = "copyMove";
+  aEvent.dataTransfer.addElement(aEvent.originalTarget);
+}
