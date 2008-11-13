@@ -233,7 +233,7 @@ function calWcapCalendar_isInvitation(item) {
     }
     var calId = this.calId;
     var orgCalId = getCalId(item.organizer);
-    if (orgCalId == calId) {
+    if (!orgCalId || (orgCalId == calId)) {
         return false;
     }
     return (this.getInvitedAttendee(item) != null);
