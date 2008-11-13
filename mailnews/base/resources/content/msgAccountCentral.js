@@ -227,9 +227,7 @@ function GetSelectedServer()
 // From the current folder tree, return the selected folder
 function GetSelectedMsgFolder()
 {
-    var folderURI = window.parent.GetSelectedFolderURI();
-    var msgFolder = window.parent.GetMsgFolderFromUri(folderURI, true);
-    return msgFolder;
+  return window.parent.GetSelectedMsgFolders()[0];
 }
 
 // Open Inbox for selected server.
