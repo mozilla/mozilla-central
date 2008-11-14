@@ -786,8 +786,13 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
     CollapseByIndex(threadIndex, &collapseCount);
   }
   nsMsgDBView::RemoveByIndex(threadIndex);
-  nsMsgViewIndex newIndex;
+  nsMsgViewIndex newIndex = nsMsgViewIndex_None;
   AddHdr(threadHdr, &newIndex);
+
+  // AddHdr doesn't always set newIndex, and getting it to do so
+  // is going to require some refactoring.
+  if (newIndex == nsMsgViewIndex_None)
+    newIndex = FindHdr(threadHdr);
 
   if (threadIsExpanded)
   {
