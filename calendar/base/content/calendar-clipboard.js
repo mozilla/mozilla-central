@@ -90,11 +90,7 @@ function copyToClipboard(calendarItemArray) {
     cal.calSetProdidVersion(calComp);
 
     for each (let item in calendarItemArray) {
-        // If we copy an item and paste it again, it will have the same ID as
-        // the original. Therefore, give every item a new ID.
-        let newItem = item.clone();
-        newItem.id = cal.getUUID();
-        calComp.addSubcomponent(newItem.icalComponent);
+        calComp.addSubcomponent(item.icalComponent);
     }
 
     // XXX This might not be enough to be Outlook compatible
@@ -226,6 +222,9 @@ function pasteFromClipboard() {
             startBatchTransaction();
             for each (let item in items) {
                 let newItem = item.clone();
+                // Set new UID to allow multiple paste actions of the same
+                // clipboard content.
+                newItem.id = cal.getUUID();
                 if (item.startDate) {
                     newItem.startDate.addDuration(offset);
                     newItem.endDate.addDuration(offset);
