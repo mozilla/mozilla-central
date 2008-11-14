@@ -89,8 +89,7 @@ function toggleAffectedChrome(aHide)
     gChromeState = new Object;
 
   var statusbar = document.getElementById("status-bar");
-  var navToolbox = document.getElementById("navigator-toolbox");
-  navToolbox.hidden = aHide;
+  getNavToolbox().hidden = aHide; 
   var theTabbrowser = document.getElementById("content"); 
   var notificationBox = gBrowser.getNotificationBox();
 
@@ -165,7 +164,9 @@ function onExitPrintPreview()
 
 function getNavToolbox()
 {
-  return document.getElementById("navigator-toolbox");
+  if (!gNavToolbox)
+    gNavToolbox = document.getElementById("navigator-toolbox");
+  return gNavToolbox;
 }
 
 function getPPBrowser()

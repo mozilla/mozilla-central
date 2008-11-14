@@ -1993,8 +1993,16 @@
 <spacer flex="100%"/>
 </menubar>
 
-<toolbox id="mail-toolbox">
-  <toolbar class="toolbar-primary chromeclass-toolbar" id="msgToolbar" persist="collapsed" grippytooltiptext="&mailToolbar.tooltip;">
+<toolbox id="mail-toolbox" mode="full" defaultmode="full">
+  <toolbar class="toolbar-primary chromeclass-toolbar"
+           id="msgToolbar"
+           persist="collapsed"
+           grippytooltiptext="&mailToolbar.tooltip;"
+           toolbarname="&showMessengerToolbarCmd.label;"
+           accesskey="&showMessengerToolbarCmd.accesskey;"
+           customizable="true"
+           togglemenuitem="menu_showMessengerToolbar"
+           context="toolbar-context-menu">
       <toolbarbutton type="menu-button" id="button-getmsg"
                      class="toolbarbutton-1"
                      label="&getMsgButton.label;"

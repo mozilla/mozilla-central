@@ -70,6 +70,43 @@
               oncommand="goPreferences('proxies_pane');"/>
   </popup>
 
+  <popup id="toolbar-context-menu"
+         onpopupshowing="onViewToolbarsPopupShowing(event);"
+         oncommand="onViewToolbarCommand(event);">
+    <menuseparator id="toolbarmode-sep"/>
+    <menu id="toolbarmode-context-menu"
+          label="&customizeToolbar.toolbarmode.label;"
+          accesskey="&customizeToolbar.toolbarmode.accesskey;">
+      <menupopup id="toolbarmodePopup"
+                 onpopupshowing="event.stopPropagation();"
+                 oncommand="goSetToolbarState(event);">
+        <menuitem type="radio" name="mode" value="icons"
+                  label="&customizeToolbar.icons.label;"
+                  accesskey="&customizeToolbar.icons.accesskey;"/>
+        <menuitem type="radio" name="mode" value="full"
+                  label="&customizeToolbar.iconsAndText.label;"
+                  accesskey="&customizeToolbar.iconsAndText.accesskey;"/>
+        <menuitem type="radio" name="mode" value="text"
+                  label="&customizeToolbar.text.label;"
+                  accesskey="&customizeToolbar.text.accesskey;"/>
+        <menuseparator/>
+        <menuitem id="toolbarmode-smallicons"
+                  type="checkbox" value="smallicons"
+                  label="&customizeToolbar.useSmallIcons.label;"
+                  accesskey="&customizeToolbar.useSmallIcons.accesskey;"/>
+        <menuitem id="toolbarmode-labelalign"
+                  type="checkbox" value="end"
+                  label="&customizeToolbar.labelAlignEnd.label;"
+                  accesskey="&customizeToolbar.labelAlignEnd.accesskey;"/>
+        <menuseparator/>
+        <menuitem id="toolbarmode-default"
+                  type="checkbox" value="default"
+                  label="&customizeToolbar.useDefault.label;"
+                  accesskey="&customizeToolbar.useDefault.label;"/>
+      </menupopup>
+    </menu>
+  </popup>
+
   <statusbarpanel id="offline-status" context="networkProperties"
                   observes="Communicator:WorkMode"/>
 

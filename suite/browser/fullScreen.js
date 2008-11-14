@@ -50,12 +50,48 @@ var FullScreen =
   {
     var XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
     var els = document.getElementsByTagNameNS(XULNS, aTag);
-    
+
     var i;
     for (i = 0; i < els.length; ++i) {
       // XXX don't interfere with previously collapsed toolbars
       if (els[i].getAttribute("fullscreentoolbar") == "true") {
-        this.setToolbarButtonMode(els[i], aShow ? "" : "small");
+        if (!aShow) {
+          var toolbarMode = els[i].getAttribute("mode");
+          if (toolbarMode != "text") {
+            els[i].setAttribute("saved-mode", toolbarMode);
+            els[i].setAttribute("saved-iconsize",
+                                els[i].getAttribute("iconsize"));
+            els[i].setAttribute("mode", "icons");
+            els[i].setAttribute("iconsize", "small");
+          }
+
+          // XXX See bug 202978: we disable the context menu
+          // to prevent customization while in fullscreen, which
+          // causes menu breakage.
+          els[i].setAttribute("saved-context",
+                              els[i].getAttribute("context"));
+          els[i].removeAttribute("context");
+
+          // Set the inFullscreen attribute to allow specific styling
+          // in fullscreen mode
+          els[i].setAttribute("inFullscreen", true);
+        }
+        else {
+          function restoreAttr(attrName) {
+            var savedAttr = "saved-" + attrName;
+            if (els[i].hasAttribute(savedAttr)) {
+              var savedValue = els[i].getAttribute(savedAttr);
+              els[i].setAttribute(attrName, savedValue);
+              els[i].removeAttribute(savedAttr);
+            }
+          }
+
+          restoreAttr("mode");
+          restoreAttr("iconsize");
+          restoreAttr("context"); // XXX see above
+
+          els[i].removeAttribute("inFullscreen");
+        }
       } else {
         // use moz-collapsed so it doesn't persist hidden/collapsed,
         // so that new windows don't have missing toolbars
@@ -65,28 +101,16 @@ var FullScreen =
           els[i].setAttribute("moz-collapsed", "true");
       }
     }
-    
+
+    var toolbox = getNavToolbox();
+    if (aShow)
+      toolbox.removeAttribute("inFullscreen");
+    else
+      toolbox.setAttribute("inFullscreen", true);
+
     var controls = document.getElementsByAttribute("fullscreencontrol", "true");
     for (i = 0; i < controls.length; ++i)
       controls[i].hidden = aShow;
-  },
-  
-  setToolbarButtonMode: function(aToolbar, aMode)
-  {
-    aToolbar.setAttribute("toolbarmode", aMode);
-    this.setToolbarButtonModeFor(aToolbar, "toolbarbutton", aMode);
-    this.setToolbarButtonModeFor(aToolbar, "button", aMode);
-    this.setToolbarButtonModeFor(aToolbar, "textbox", aMode);
-  },
-  
-  setToolbarButtonModeFor: function(aToolbar, aTag, aMode)
-  {
-    var XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-    var els = aToolbar.getElementsByTagNameNS(XULNS, aTag);
-
-    for (var i = 0; i < els.length; ++i) {
-      els[i].setAttribute("toolbarmode", aMode);
-    }
   }
-  
+
 };

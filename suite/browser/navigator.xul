@@ -109,15 +109,17 @@
     <!-- <command id="cmd_pageSetup"/> -->
     <command id="toggleSidebar"/>
   </commandset>
-    
+
   <!-- broadcasters are appended from the overlay -->
   <broadcasterset id="navBroadcasters"/>
-   
+  <broadcasterset id="mainBroadcasterSet"/> <!-- Firefox extension compatibility -->
+
   <!-- keys are appended from the overlay -->
   <keyset id="navKeys">
     <key id="showHideSidebar"/>
   </keyset>
-  
+  <keyset id="mainKeyset"/> <!-- Firefox extension compatibility -->
+
   <popup id="backMenu" position="after_start" onpopupshowing="return BrowserBackMenu(event);" oncommand="gotoHistoryIndex(event);"/>
   <popup id="forwardMenu" position="after_start" onpopupshowing="return BrowserForwardMenu(event);" oncommand="gotoHistoryIndex(event);"/>
   <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
@@ -126,7 +128,11 @@
   <popupset id="bookmarksPopupset"/>
   <tooltip  id="btTooltip"/>
   <template id="bookmarksMenuTemplate"/>
- 
+
+  <popupset id="mainPopupSet"/> <!-- Firefox extension compatibility -->
+
+  <popup id="toolbar-context-menu"/>
+
   <!-- context menu -->
   <popupset id="contentAreaContextSet"/>
 
@@ -135,13 +141,18 @@
          oncommand="loadURI(event.target.statusText, gBrowser.currentURI);"/>
   <panel type="autocomplete" id="PopupAutoComplete" level="top"/>
 
-  <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true">
+  <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true"
+           mode="full" defaultmode="full">
     <!-- Menu -->
     <menubar id="main-menubar" persist="collapsed" grippytooltiptext="&menuBar.tooltip;"/>
 
     <toolbar class="toolbar-primary chromeclass-toolbar" id="nav-bar" persist="collapsed" 
              grippytooltiptext="&navigationToolbar.tooltip;"
-             fullscreentoolbar="true">
+             fullscreentoolbar="true" customizable="true"
+             mode="full"
+             toolbarname="&navbarCmd.label;" accesskey="&navbarCmd.accesskey;"
+             togglemenuitem="cmd_viewnavbar"
+             context="toolbar-context-menu">
         <toolbarbutton id="back-button" type="menu-button"
                        class="toolbarbutton-1 chromeclass-toolbar-additional"
                        label="&backButton.label;"
@@ -150,7 +161,7 @@
                        tooltiptext="&backButton.tooltip;">
           <menupopup context="" onpopupshowing="BrowserBackMenu(event);"/>
         </toolbarbutton>
-        
+
         <toolbarbutton id="forward-button" type="menu-button"
                        class="toolbarbutton-1 chromeclass-toolbar-additional"
                        label="&forwardButton.label;"
@@ -159,19 +170,19 @@
                        tooltiptext="&forwardButton.tooltip;">
           <menupopup context="" onpopupshowing="BrowserForwardMenu(event);"/>
         </toolbarbutton>
-        
+
         <toolbarbutton id="reload-button"
                        class="toolbarbutton-1 chromeclass-toolbar-additional"
                        label="&reloadButton.label;"
                        oncommand="if (event.shiftKey) BrowserReloadSkipCache(); else BrowserReload();"  
                        tooltiptext="&reloadButton.tooltip;"/>
-                       
+
         <toolbarbutton id="stop-button"
                        class="toolbarbutton-1 chromeclass-toolbar-additional"
                        label="&stopButton.label;"
                        oncommand="BrowserStop();" observes="canStop"  
                        tooltiptext="&stopButton.tooltip;"/>
- 
+
       <hbox id="nav-bar-inner" flex="1">
         <!-- Need hidden label on textbox for accessibility, because what 
              receives focus needs a text name -->
@@ -241,28 +252,34 @@
         </menupopup>
       </toolbarbutton>
 
-      <hbox id="throbber-box" align="center">
+      <toolbaritem id="throbber-box" align="center">
         <button id="navigator-throbber" oncommand="goClickThrobber('browser.throbber.url')"
                 tooltiptext="&throbber.tooltip;"/>
-      </hbox>
-      
+      </toolbaritem>
+
       <hbox id="window-controls" hidden="true" fullscreencontrol="true">
-        <toolbarbutton id="minimize-button" class="toolbarbutton-1"
+        <toolbarbutton id="minimize-button"
                        tooltiptext="&minimizeButton.tooltip;"
                        oncommand="window.minimize();"/>
 
-        <toolbarbutton id="restore-button" class="toolbarbutton-1"
+        <toolbarbutton id="restore-button"
                        tooltiptext="&restoreButton.tooltip;"
                        oncommand="BrowserFullScreen();"/>
 
-        <toolbarbutton id="close-button" class="toolbarbutton-1"
+        <toolbarbutton id="close-button"
                        tooltiptext="&closeWindow.label;"
                        oncommand="BrowserTryToCloseWindow();"/>
       </hbox>
     </toolbar>
-  
+
     <toolbar id="PersonalToolbar" class="chromeclass-directories" persist="collapsed" 
              grippytooltiptext="&personalToolbar.tooltip;"
+             toolbarname="&personalbarCmd.label;" accesskey="&personalbarCmd.accesskey;"
+             customizable="true"
+             mode="full" iconsize="small" labelalign="end"
+             defaultmode="full" defaulticonsize="small" defaultlabelalign="end"
+             togglemenuitem="cmd_viewpersonaltoolbar"
+             context="toolbar-context-menu"
              onmouseover="BookmarksToolbar.autoOpenMenu(event.target);"
              onpopupshowing="BookmarksToolbar.onMenuOpen(event.target);"
              onpopuphidden="BookmarksToolbar.onMenuClose(event.target);"
@@ -275,7 +292,7 @@
       <tooltip id="home-button-tooltip" noautohide="true">
         <vbox id="home-button-tooltip-inner" flex="1"/>
       </tooltip>
-      <toolbarbutton id="home-button" class="bookmark-item"
+      <toolbarbutton id="home-button" class="toolbarbutton-1"
                      label="&homeButton.label;"
                      oncommand="BrowserHome(event);"
                      onclick="if (event.button == 1) BrowserHome(event);"

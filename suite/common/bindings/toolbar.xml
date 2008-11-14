@@ -171,6 +171,8 @@
     <implementation implements="nsIObserver">
       <constructor>
         <![CDATA[
+          if (this.hasAttribute("customizable"))
+            return;
           this.prefs.addObserver(this.domain, this, false);
           if (this.prefs.getIntPref(this.domain) != 2)
             this.observe(this.prefs, "nsPref:changed", this.domain);

@@ -53,8 +53,8 @@
     <content>
       <xul:toolbargrippy xbl:inherits="last-toolbar"
           tbattr="toolbar-grippy" class="toolbar-primary-grippy"/>
-      <xul:hbox class="toolbar-holder toolbar-primary-holder" flex="1" xbl:inherits="mode">
-        <xul:image class="toolbar-primary-icon" xbl:inherits="mode"/>
+      <xul:hbox class="toolbar-holder toolbar-primary-holder" flex="1" xbl:inherits="mode,iconsize,labelalign">
+        <xul:image class="toolbar-primary-icon" xbl:inherits="mode,iconsize,labelalign"/>
         <xul:hbox class="toolbar-button-box" flex="1">
           <children/>
         </xul:hbox>

@@ -276,6 +276,117 @@ function goToggleToolbar( id, elementID )
   }
 }
 
+function onViewToolbarsPopupShowing(aEvent)
+{
+  var popup = aEvent.target;
+
+  // Empty the menu
+  var deadItems = popup.getElementsByAttribute("toolbarid", "*");
+  for (let i = deadItems.length - 1; i >= 0; --i)
+    popup.removeChild(deadItems[i]);
+
+  var firstMenuItem = popup.firstChild;
+
+  var toolbar = document.popupNode;
+  while (toolbar.localName != "toolbar")
+    toolbar = toolbar.parentNode;
+  var toolbox = toolbar.parentNode;
+
+  for (let i = 0; i < toolbox.childNodes.length; ++i) {
+    var bar = toolbox.childNodes[i];
+    var toolbarName = bar.getAttribute("toolbarname");
+    if (toolbarName) {
+      var menuItem = document.createElement("menuitem");
+      menuItem.setAttribute("toolbarid", bar.id);
+      menuItem.setAttribute("type", "checkbox");
+      menuItem.setAttribute("label", toolbarName);
+      menuItem.setAttribute("accesskey", bar.getAttribute("accesskey"));
+      menuItem.setAttribute("checked", !bar.hidden);
+      popup.insertBefore(menuItem, firstMenuItem);
+    }
+  }
+
+  var mode = toolbar.getAttribute("mode") || "full";
+  var modePopup = document.getElementById("toolbarmodePopup");
+  var radio = modePopup.getElementsByAttribute("value", mode);
+  radio[0].setAttribute("checked", "true");
+
+  var small = toolbar.getAttribute("iconsize") == "small";
+  var smallicons = document.getElementById("toolbarmode-smallicons");
+  smallicons.setAttribute("checked", small);
+  smallicons.setAttribute("disabled", mode == "text");
+
+  var end = toolbar.getAttribute("labelalign") == "end";
+  var labelalign = document.getElementById("toolbarmode-labelalign");
+  labelalign.setAttribute("checked", end);
+  labelalign.setAttribute("disabled", mode != "full");
+
+  var custommode = (toolbar.getAttribute("mode") || "full") !=
+                   (toolbar.getAttribute("defaultmode") ||
+                    toolbox.getAttribute("mode") ||
+                    "full");
+  var customicon = (toolbar.getAttribute("iconsize") || "large") !=
+                   (toolbar.getAttribute("defaulticonsize") ||
+                    toolbox.getAttribute("iconsize") ||
+                    "large");
+  var customalign = (toolbar.getAttribute("labelalign") || "bottom") !=
+                    (toolbar.getAttribute("defaultlabelalign") ||
+                     toolbox.getAttribute("labelalign") ||
+                     "bottom");
+  var custom = custommode || customicon || customalign;
+
+  var defmode = document.getElementById("toolbarmode-default");
+  defmode.setAttribute("checked", !custom);
+  defmode.setAttribute("disabled", !custom);
+}
+
+function onViewToolbarCommand(aEvent)
+{
+  var toolbar = aEvent.originalTarget.getAttribute("toolbarid");
+  var menuitem = document.getElementById(toolbar).getAttribute("togglemenuitem");
+  goToggleToolbar(toolbar, menuitem);
+}
+
+function goSetToolbarState(aEvent)
+{
+  aEvent.stopPropagation();
+  var toolbar = document.popupNode;
+  while (toolbar.localName != "toolbar")
+    toolbar = toolbar.parentNode;
+  var toolbox = toolbar.parentNode;
+
+  var target = aEvent.originalTarget;
+  var mode = target.value;
+  var radiogroup = target.getAttribute("name");
+
+  switch (mode) {
+    case "smallicons":
+      var size = target.getAttribute("checked") == "true" ? "small" : "large";
+      toolbar.setAttribute("iconsize", size);
+      break;
+
+    case "end":
+      var align = target.getAttribute("checked") == "true" ? "end" : "bottom";
+      toolbar.setAttribute("labelalign", align);
+      break;
+
+    case "default":
+      toolbar.setAttribute("mode", toolbar.getAttribute("defaultmode") ||
+                                   toolbox.getAttribute("mode"));
+      toolbar.setAttribute("iconsize", toolbar.getAttribute("defaulticonsize") ||
+                                       toolbox.getAttribute("iconsize"));
+      toolbar.setAttribute("labelalign", toolbar.getAttribute("defaultlabelalign") ||
+                                         toolbox.getAttribute("labelalign"));
+      break;
+
+    default:
+      toolbar.setAttribute("mode", mode);
+      break;
+  }
+  document.persist(toolbar.id, "mode");
+  document.persist(toolbar.id, "iconsize");
+  document.persist(toolbar.id, "labelalign");
+}
 
 function goClickThrobber( urlPref )
 {

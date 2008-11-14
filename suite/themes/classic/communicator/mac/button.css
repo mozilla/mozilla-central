@@ -61,13 +61,26 @@
 }
 
 toolbar[mode="icons"] .toolbarbutton-1,
-toolbar[mode="icons"] .toolbarbutton-menubutton-button {
+toolbar[mode="icons"] .toolbarbutton-menubutton-button,
+toolbar[iconsize="small"] .toolbarbutton-1,
+toolbar[iconsize="small"] .toolbarbutton-menubutton-button {
   min-width: 0px;
 }
 
 toolbar[mode="icons"] .toolbarbutton-text,
 toolbar[mode="text"] .toolbarbutton-icon {
   display: none;
+}
+
+toolbar[mode="text"] .toolbarbutton-1,
+toolbar[mode="text"] .toolbarbutton-1 > .toolbarbutton-menubutton-button {
+ -moz-box-orient: horizontal;
+}
+
+toolbar[labelalign="end"] .toolbarbutton-1,
+toolbar[labelalign="end"] .toolbarbutton-1 > .toolbarbutton-menubutton-button,
+toolbar[labelalign="end"] .toolbarbutton-1 > hbox > vbox {
+  -moz-box-orient: horizontal;
 }
 
 /* ::::: standard toolbar buttons ::::: */

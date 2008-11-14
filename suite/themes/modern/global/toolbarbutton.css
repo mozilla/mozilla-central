@@ -137,14 +137,17 @@ toolbarbutton[checked="true"]:hover:active {
   -moz-image-region: auto; /* cut off inheritance */
 }
 
+toolbarbutton:hover > .toolbarbutton-menubutton-dropmarker,
 toolbarbutton:hover > stack > .toolbarbutton-menubutton-dropmarker {
   list-style-image: url("chrome://global/skin/button/tbmbtn-arrow-hov.gif");
 }
 
+toolbarbutton[open="true"] > .toolbarbutton-menubutton-dropmarker,
 toolbarbutton[open="true"] > stack > .toolbarbutton-menubutton-dropmarker {
   list-style-image: url("chrome://global/skin/button/tbmbtn-arrow-act.gif");
 }
 
+toolbarbutton[disabled="true"] > .toolbarbutton-menubutton-dropmarker,
 toolbarbutton[disabled="true"] > stack > .toolbarbutton-menubutton-dropmarker,
 toolbarbutton[disabled="true"]:hover > stack > .toolbarbutton-menubutton-dropmarker
 {

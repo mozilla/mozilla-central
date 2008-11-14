@@ -50,18 +50,30 @@
   font-size: smaller;
 }
 
+toolbar[mode="text"] .toolbarbutton-1,
+toolbar[labelalign="end"] .toolbarbutton-1 {
+  color: inherit;
+  font-size: 100%;
+  padding: 0px 2px !important;
+}
+
+toolbar[iconsize="small"] .toolbarbutton-1 {
+  border: 1px solid transparent !important;
+}
+
 .toolbarbutton-1,
 .toolbarbutton-1[type="menu-button"] > .toolbarbutton-menubutton-stack 
-  > .toolbarbutton-menubutton-button
+  > .toolbarbutton-menubutton-button,
+.toolbarbutton-1[type="menu-button"] > .toolbarbutton-menubutton-button
 {
   -moz-box-orient: vertical;
-  -moz-box-pack: start;
+  -moz-box-pack: center;
   border: none !important;
   padding: 0px !important;
 }
 
-.toolbarbutton-1 > .toolbarbutton-text {
-  min-width: 50px;
+.toolbarbutton-1 .toolbarbutton-text {
+  min-width: 33px;
 }
 
 .toolbarbutton-1:hover:active {
@@ -74,6 +86,8 @@
 
 .toolbarbutton-1 > .toolbarbutton-icon,
 .toolbarbutton-1[type="menu-button"] > .toolbarbutton-menubutton-stack 
+  > .toolbarbutton-menubutton-button > .toolbarbutton-icon,
+.toolbarbutton-1[type="menu-button"]
   > .toolbarbutton-menubutton-button > .toolbarbutton-icon {
   margin-bottom: 2px;
 }
@@ -86,6 +100,15 @@ toolbar[mode="text"] .toolbarbutton-1 {
   min-width: 46px;
 }
 
+toolbar[mode="text"] .toolbarbutton-1,
+toolbar[mode="text"] .toolbarbutton-1[type="menu-button"]
+  > .toolbarbutton-menubutton-button,
+toolbar[labelalign="end"] .toolbarbutton-1,
+toolbar[labelalign="end"] .toolbarbutton-1[type="menu-button"]
+  > .toolbarbutton-menubutton-button {
+  -moz-box-orient: horizontal;
+}
+
 toolbar[mode="icons"] .toolbarbutton-text,
 toolbar[mode="text"] .toolbarbutton-icon {
   display: none;
@@ -95,8 +118,18 @@ toolbar[mode="icons"] .toolbarbutton-menubutton-dropmarker {
   margin: 20px 0px 0px 40px;
 }
 
-toolbar[mode="text"] .toolbarbutton-menubutton-dropmarker {
-  margin: 8px 0px 0px 40px;
+toolbar[mode="text"] .toolbarbutton-menubutton-dropmarker,
+toolbar[labelalign="end"]:not([mode="icons"])
+  .toolbarbutton-menubutton-dropmarker {
+  margin: 0px 2px !important;
+}
+
+toolbar[iconsize="small"] .toolbarbutton-menubutton-dropmarker {
+  margin: 0px 0px 2px 14px;
+}
+
+toolbar[iconsize=small][mode="icons"] .toolbarbutton-menubutton-dropmarker {
+  margin: 8px 0px 0px 14px;
 }
 
 /* ::::: standard toolbar buttons ::::: */

@@ -138,6 +138,8 @@
 
 <popup id="messagePaneContext"/>
 
+<popup id="toolbar-context-menu"/>
+
   <toolbox id="mail-toolbox" class="toolbox-top">
     <menubar id="mail-menubar"/>
     <toolbar id="msgToolbar"/>
