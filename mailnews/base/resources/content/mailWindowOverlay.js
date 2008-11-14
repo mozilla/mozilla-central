@@ -945,8 +945,7 @@ function MsgDeleteMessage(reallyDelete)
 {
     // if the user deletes a message before its mark as read timer goes off, we should mark it as read
     // this ensures that we clear the biff indicator from the system tray when the user deletes the new message
-    if (gMarkViewedMessageAsReadTimer)
-      MarkCurrentMessageAsRead();
+    MarkSelectedMessagesRead(true);
     SetNextMessageAfterDelete();
     if (reallyDelete)
       gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
