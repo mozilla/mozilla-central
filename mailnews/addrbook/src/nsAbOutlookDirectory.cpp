@@ -1339,13 +1339,22 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
 {
   NS_ENSURE_ARG_POINTER(aModifiedCard);
 
-  nsresult retCode = NS_OK;
   nsString *properties = nsnull;
   nsAutoString utility;
   nsAbWinHelperGuard mapiAddBook(mAbWinType);
 
   if (!mapiAddBook->IsOK())
     return NS_ERROR_FAILURE;
+
+  nsCString entry;
+  nsresult retCode = ExtractCardEntry(aModifiedCard, entry);
+  NS_ENSURE_SUCCESS(retCode, retCode);
+  // If we don't have the card entry, we can't work.
+  if (entry.IsEmpty())
+    return NS_ERROR_FAILURE;
+
+  nsMapiEntry mapiData;
+  mapiData.Assign(entry);
 
   // First, all the standard properties in one go
   properties = new nsString[index_LastProp];
@@ -1400,7 +1409,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   aModifiedCard->GetPropertyAsAString(kWorkWebPageProperty, properties[index_WorkWebPage]);
   aModifiedCard->GetPropertyAsAString(kHomeWebPageProperty, properties[index_HomeWebPage]);
   aModifiedCard->GetPropertyAsAString(kNotesProperty, properties[index_Comments]);
-  if (!mapiAddBook->SetPropertiesUString(*mMapiData, OutlookCardMAPIProps,
+  if (!mapiAddBook->SetPropertiesUString(mapiData, OutlookCardMAPIProps,
                                          index_LastProp, properties)) {
     PRINTF(("Cannot set general properties.\n")) ;
   }
@@ -1420,7 +1429,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     utility.AppendLiteral("\r\n");
 
   utility.Append(unichar2.get());
-  if (!mapiAddBook->SetPropertyUString(*mMapiData, PR_HOME_ADDRESS_STREET_W, utility.get())) {
+  if (!mapiAddBook->SetPropertyUString(mapiData, PR_HOME_ADDRESS_STREET_W, utility.get())) {
     PRINTF(("Cannot set home address.\n")) ;
   }
 
@@ -1434,7 +1443,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     utility.AppendLiteral("\r\n");
 
   utility.Append(unichar2.get());
-  if (!mapiAddBook->SetPropertyUString(*mMapiData, PR_BUSINESS_ADDRESS_STREET_W, utility.get())) {
+  if (!mapiAddBook->SetPropertyUString(mapiData, PR_BUSINESS_ADDRESS_STREET_W, utility.get())) {
     PRINTF(("Cannot set work address.\n")) ;
   }
 
@@ -1447,7 +1456,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   unichar.Truncate();
   aModifiedCard->GetPropertyAsAString(kBirthDayProperty, unichar);
   UnicodeToWord(unichar.get(), day);
-  if (!mapiAddBook->SetPropertyDate(*mMapiData, PR_BIRTHDAY, year, month, day)) {
+  if (!mapiAddBook->SetPropertyDate(mapiData, PR_BIRTHDAY, year, month, day)) {
     PRINTF(("Cannot set date.\n")) ;
   }
 
