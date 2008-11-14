@@ -476,7 +476,11 @@ var DefaultController =
     switch ( command )
     {
       case "cmd_close":
-        window.close();
+        let tabmail = document.getElementById('tabmail');
+        if (tabmail.tabInfo.length == 1)
+          window.close();
+        else
+          tabmail.removeCurrentTab();
         break;
       case "button_getNewMessages":
       case "cmd_getNewMessages":
