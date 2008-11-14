@@ -587,7 +587,13 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
     
     if (!type.EqualsLiteral("imap"))
       continue;
-    
+
+    // if we haven't logged onto this server yet, then skip this server.
+    PRBool passwordRequired;
+    incomingServer->GetServerRequiresPasswordForBiff(&passwordRequired);
+    if (passwordRequired)
+      continue;
+
     nsCOMPtr<nsIMsgFolder> rootFolder;
     nsCOMPtr<nsISupportsArray> allDescendents;
     
