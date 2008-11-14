@@ -56,6 +56,10 @@ function onLoadBloat()
 {
   window.removeEventListener("load", onLoadBloat, false);
 
+  // Ignore windows which don't get the Debug menu, like 'View Source'.
+  if (!document.getElementById("debugMenu"))
+    return;
+
   // Enable the menu, only if its feature is currently active.
   var envSvc = Components.classes["@mozilla.org/process/environment;1"]
                          .getService(Components.interfaces.nsIEnvironment);
@@ -74,6 +78,10 @@ function onLoadBloat()
 function onLoadLeakDetector()
 {
   window.removeEventListener("load", onLoadLeakDetector, false);
+
+  // Ignore windows which don't get the Debug menu, like 'View Source'.
+  if (!document.getElementById("debugMenu"))
+    return;
 
   gLeakDetector = Components.classes["@mozilla.org/xpcom/leakdetector;1"]
                             .createInstance(Components.interfaces.nsILeakDetector);
