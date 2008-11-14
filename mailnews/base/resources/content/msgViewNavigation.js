@@ -297,15 +297,8 @@ function ScrollToMessage(type, wrap, selectMessage)
 
 function GoNextMessage(type, startFromBeginning)
 {
-  try {
-    var succeeded = ScrollToMessage(type, startFromBeginning, true);
-    if (!succeeded) {
-      CrossFolderNavigation(type);
-    }
-  }
-  catch (ex) {
-    dump("GoNextMessage ex = " + ex + "\n");
-  }
+  if (!ScrollToMessage(type, startFromBeginning, true))
+    CrossFolderNavigation(type);
 
   SetFocusThreadPaneIfNotOnMessagePane();
 }
