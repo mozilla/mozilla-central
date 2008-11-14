@@ -349,7 +349,7 @@
               case nsMsgFilterAction.JunkScore:
                 actionItem[0].value = aFilterAction.junkScore;
                 break;
-              case nsMsgFilterAction.Tag:
+              case nsMsgFilterAction.AddTag:
                 actionItem[0].value = aFilterAction.strValue;
                 break;
               default:
