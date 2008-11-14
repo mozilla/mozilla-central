@@ -178,10 +178,6 @@ GeolocationPrompt.prototype = {
           accessKey: notificationBundle.GetStringFromName("geolocation.exactLocation.accesskey"),
           callback: function() { aRequest.allow() },
         }, {
-          label: notificationBundle.GetStringFromName("geolocation.neighborhoodLocation.label"),
-          accessKey: notificationBundle.GetStringFromName("geolocation.neighborhoodLocation.accesskey"),
-          callback: function() { aRequest.allowButFuzz() },
-        }, {
           label: notificationBundle.GetStringFromName("geolocation.nothingLocation.label"),
           accessKey: notificationBundle.GetStringFromName("geolocation.nothingLocation.accesskey"),
           callback: function() { aRequest.cancel() },
