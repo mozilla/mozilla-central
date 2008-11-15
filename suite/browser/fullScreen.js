@@ -40,10 +40,21 @@ var FullScreen =
 {
   toggle: function()
   {
+    var show = window.fullScreen;
     // show/hide all menubars, toolbars, and statusbars (except the full screen toolbar)
-    this.showXULChrome("menubar", window.fullScreen);
-    this.showXULChrome("toolbar", window.fullScreen);
-    this.showXULChrome("statusbar", window.fullScreen);
+    this.showXULChrome("menubar", show);
+    this.showXULChrome("toolbar", show);
+    this.showXULChrome("statusbar", show);
+
+    var toolbox = getNavToolbox();
+    if (show)
+      toolbox.removeAttribute("inFullscreen");
+    else
+      toolbox.setAttribute("inFullscreen", true);
+
+    var controls = document.getElementsByAttribute("fullscreencontrol", "true");
+    for (let i = 0; i < controls.length; ++i)
+      controls[i].hidden = show;
   },
   
   showXULChrome: function(aTag, aShow)
@@ -101,16 +112,6 @@ var FullScreen =
           els[i].setAttribute("moz-collapsed", "true");
       }
     }
-
-    var toolbox = getNavToolbox();
-    if (aShow)
-      toolbox.removeAttribute("inFullscreen");
-    else
-      toolbox.setAttribute("inFullscreen", true);
-
-    var controls = document.getElementsByAttribute("fullscreencontrol", "true");
-    for (i = 0; i < controls.length; ++i)
-      controls[i].hidden = aShow;
   }
 
 };

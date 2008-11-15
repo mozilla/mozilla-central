@@ -43,6 +43,7 @@ var gPrintSettingsAreGlobal = true;
 var gSavePrintSettings = true;
 var gChromeState = null; // chrome state before we went into print preview
 var gInPrintPreviewMode = false;
+var gNavToolbox = null;
 
 function getWebNavigation()
 {
