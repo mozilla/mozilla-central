@@ -6,6 +6,8 @@
 
 <!-- General Settings -->
 
+<!ENTITY enableGloda.label             "Enable Message Indexer">
+<!ENTITY enableGloda.accesskey         "i">
 <!ENTITY showCondensedAddresses.label  "Show only display name for people in my address book">
 <!ENTITY showCondensedAddresses.accesskey "p">
 
