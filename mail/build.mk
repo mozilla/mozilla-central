@@ -92,3 +92,6 @@ package-compare:
 
 install::
 	@$(MAKE) -C mail/installer install
+
+source-package::
+	@$(MAKE) -C mail/installer source-package

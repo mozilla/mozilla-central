@@ -90,6 +90,9 @@ package-compare:
 install::
 	@$(MAKE) -C suite/installer install
 
+source-package::
+	@$(MAKE) -C suite/installer source-package
+
 ifndef COMM_BUILD
 # mochitests need to be run from the Mozilla build system
 ifdef ENABLE_TESTS
