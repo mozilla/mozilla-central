@@ -439,10 +439,18 @@ let gFolderTreeView = {
   },
 
   /**
-   * If the next item in our list has the same level as us, it's a sibling
+   * Check whether there are any more rows with our level before the next row
+   * at our parent's level
    */
   hasNextSibling: function ftv_hasNextSibling(aIndex, aNextIndex) {
-    return this._rowMap[aIndex].level == this._rowMap[aNextIndex].level;
+    var currentLevel = this._rowMap[aIndex].level;
+    for (var i = aNextIndex + 1; i < this._rowMap.length; i++) {
+      if (this._rowMap[i].level == currentLevel)
+        return true;
+      if (this._rowMap[i].level < currentLevel)
+        return false;
+    }
+    return false;
   },
 
   /**
