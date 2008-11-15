@@ -2090,7 +2090,7 @@
 
           var gripbar = document.getAnonymousElementByAttribute(this, "anonid", "gripbar1").boxObject.height;
           var height = document.getAnonymousElementByAttribute(this, "anonid", "eventbox").boxObject.height;
-          evl.setAttribute("style", "max-height: " + (height-gripbar*2) + "px");
+          evl.setAttribute("style", "max-height: " + Math.max(0, height-gripbar*2) + "px");
         ]]></body>
       </method>
     </implementation>
