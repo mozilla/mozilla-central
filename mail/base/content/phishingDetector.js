@@ -159,8 +159,6 @@ var gPhishingDetector = {
     if (hrefURL.schemeIs('http') || hrefURL.schemeIs('https'))
     {
       var linkTextURL = {};
-      var unobscuredHostName = {};
-      unobscuredHostName.value = hrefURL.host;
 
       // The link is not suspicious if the visible text is the same as the URL,
       // even if the URL is an IP address. URLs are commonly surrounded by
@@ -168,11 +166,22 @@ var gPhishingDetector = {
       if (aLinkText)
         aLinkText = aLinkText.replace(/^<(.+)>$|^"(.+)"$/, "$1$2");
 
-      var failsStaticTests = (aLinkText != aUrl) &&
-         ((this.mCheckForIPAddresses && this.hostNameIsIPAddress(hrefURL.host, unobscuredHostName) &&
-           !this.isLocalIPAddress(unobscuredHostName)) ||
-          (this.mCheckForMismatchedHosts && aLinkText &&
-           this.misMatchedHostWithLinkText(hrefURL, aLinkText, linkTextURL)));
+      var failsStaticTests = false;
+      if (aLinkText != aUrl)
+      {
+        if (this.mCheckForIPAddresses)
+        {
+          var unobscuredHostNameValue = this.hostNameIsIPAddress(hrefURL.host);
+          if (unobscuredHostNameValue)
+            failsStaticTests = !this.isLocalIPAddress(unobscuredHostNameValue);
+        }
+
+        if (!failsStaticTests && this.mCheckForMismatchedHosts)
+        {
+          failsStaticTests = (aLinkText &&
+            this.misMatchedHostWithLinkText(hrefURL, aLinkText, linkTextURL))
+        }
+      }
 
       // Lookup the url against our local list. We want to do this even if the url fails our static
       // test checks because the url might be in the white list.
@@ -259,24 +268,38 @@ var gPhishingDetector = {
   },
 
   /**
-   * Private helper method to determine if aHostName is an obscured IP address 
-   * @return unobscured host name (if there is one)
-   * @return true if aHostName is an IP address
+   * Helper method to determine if aHostName is an IP address.
+   * @return the unobscured host name (if there is one)
    */
-  hostNameIsIPAddress: function(aHostName, aUnobscuredHostName)
+  hostNameIsIPAddress: function(aHostName)
   {
-    // TODO: Add Support for IPv6
-    var index;
+    return this.isIPv4HostName(aHostName) || this.isIPv6HostName(aHostName);
+  },
 
-    // scammers frequently obscure the IP address by encoding each component as octal, hex
-    // or in some cases a mix match of each. The IP address could also be represented as a DWORD.
+  /**
+   * Check if a host name is an IPv4 host name.
+   * @return Unobscured host name if aHostName is an IPv4 address.
+   *         Returns false if it's not.
+   */
+  isIPv4HostName: function(aHostName)
+  {
+    // Scammers frequently obscure the IP address by encoding each component as
+    // octal, hex or in some cases a mix match of each. The IP address could
+    // also be represented as a DWORD.
 
-    // break the IP address down into individual components.
+    // Break the IP address down into individual components.
     var ipComponents = aHostName.split(".");
 
-    // if we didn't find at least 4 parts to our IP address it either isn't a numerical IP
-    // or it is encoded as a dword
-    if (ipComponents.length < 4)
+    if (ipComponents.length == 4)
+    {
+      for (var i = 0; i < ipComponents.length; i++)
+      {
+        // By leaving the radix parameter blank, we can handle IP addresses
+        // where one component is hex, another is octal, etc.
+        ipComponents[i] = parseInt(ipComponents[i]);
+      }
+    }
+    else
     {
       // Convert to a binary to test for possible DWORD.
       var binaryDword = parseInt(aHostName).toString(2);
@@ -290,56 +313,142 @@ var gPhishingDetector = {
       ipComponents[2] = (aHostName >>  8) & 255;
       ipComponents[3] = (aHostName & 255);
     }
-    else
-    {
-      for (index = 0; index < ipComponents.length; ++index)
-      {
-        // by leaving the radix parameter blank, we can handle IP addresses
-        // where one component is hex, another is octal, etc.
-        ipComponents[index] = parseInt(ipComponents[index]);
-      }
-    }
 
-    // make sure each part of the IP address is in fact a number
-    for (index = 0; index < ipComponents.length; ++index)
-      if (isNaN(ipComponents[index])) // if any part of the IP address is not a number, then we can safely return
+    // Make sure each part of the IP address is in fact a number, and that
+    // each part isn't larger than 255.
+    for (var i = 0; i < ipComponents.length; i++)
+    {
+      // If any part of the IP address is not a number, or longer than 255,
+      // then we can safely return.
+      if (isNaN(ipComponents[i]) || ipComponents[i] > 255)
         return false;
-
-    var hostName = ipComponents[0] + '.' +  ipComponents[1] + '.' + ipComponents[2] + '.' + ipComponents[3];
-
-    // only set aUnobscuredHostName if we are looking at an IPv4 host name
-    if (this.isIPv4HostName(hostName))
-    {
-      aUnobscuredHostName.value = hostName;
-      return true;
     }
-    return false;
+
+    var hostName = ipComponents.join(".");
+    // Treat 0.0.0.0 as an invalid IPv4 address.
+    return (hostName != "0.0.0.0") ? hostName : false;
   },
 
   /**
-   * Private helper method.
-   * @return true if aHostName is an IPv4 address
+   * Check if the given host name is an IPv6 address.
+   * @return the full IPv6 address if aHostName is an IPv6 address.
    */
-  isIPv4HostName: function(aHostName)
-  {
-    var ipv4HostRegExp = new RegExp(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/);  // IPv4
-    // treat 0.0.0.0 as an invalid IP address
-    return ipv4HostRegExp.test(aHostName) && aHostName != '0.0.0.0';
+  isIPv6HostName: function(aHostName) {
+    // Break the IP address down into individual components.
+    var ipComponents = aHostName.split(":");
+
+    // Make sure there are at least 3 components.
+    if (ipComponents.length < 3)
+      return false;
+
+    // Take care if the last part is written in decimal using dots as separators.
+    var lastPart = ipComponents[ipComponents.length - 1];
+    if (lastPart)
+    {
+      var lastPartComponents = lastPart.split(".");
+      if (lastPartComponents.length == 4)
+      {
+        // Make sure each part is a number and not larger then 0xff.
+        for (var i = 0; i < lastPartComponents.length; i++)
+        {
+          lastPartComponents[i] = parseInt(lastPartComponents[i]);
+          if (isNaN(lastPartComponents[i]) || lastPartComponents[i] > 0xff)
+            return false;
+        }
+
+        // Convert it into standard IPv6 components.
+        ipComponents[ipComponents.length - 1] =
+          ((lastPartComponents[0] << 8) | lastPartComponents[1]).toString(16);
+        ipComponents[ipComponents.length] =
+          ((lastPartComponents[2] << 8) | lastPartComponents[3]).toString(16);
+      }
+    }
+
+    // Make sure that there is only one empty component.
+    var emptyIndex;
+    for (var i = 1; i < ipComponents.length - 1; i++)
+    {
+      if (ipComponents[i] == "")
+      {
+        // If we already found an empty component return false.
+        if (emptyIndex)
+          return false;
+
+        emptyIndex = i;
+      }
+    }
+
+    // If we found an empty component, extend it.
+    if (emptyIndex)
+    {
+      ipComponents[emptyIndex] = 0;
+
+      // Add components so we have a total of 8.
+      for (var count = ipComponents.length; count < 8; count++)
+        ipComponents.splice(emptyIndex, 0, 0);
+    }
+
+    // Make sure there are 8 components.
+    if (ipComponents.length != 8)
+      return false;
+
+    // Format all components to 4 character hex value.
+    for (var i = 0; i < ipComponents.length; i++)
+    {
+      if (ipComponents[i] == "")
+        ipComponents[i] = 0;
+      // Make sure the component is a number and it isn't larger then 0xffff.
+      ipComponents[i] = parseInt(ipComponents[i], 16);
+      if (isNaN(ipComponents[i]) || ipComponents[i] > 0xffff)
+        return false;
+
+      // Pad the component with 0:s.
+      ipComponents[i] = ("0000"+ ipComponents[i].toString(16)).substr(-4);
+    }
+
+    var hostName = ipComponents.join(":");
+    // Treat 0000:0000:0000:0000:0000:0000:0000:0000 as an invalid IPv6 address.
+    return (hostName != "0000:0000:0000:0000:0000:0000:0000:0000") ?
+              hostName : false;
   },
 
-  /** 
-   * Private helper method.
+  /**
+   * Check if the given host name is a local IP address.
    * @return true if unobscuredHostName is a local IP address.
    */
-  isLocalIPAddress: function(unobscuredHostName)
+  isLocalIPAddress: function(unobscuredHostNameValue)
   {
-    var ipComponents = unobscuredHostName.value.split(".");
+    var ipComponents = unobscuredHostNameValue.split(".");
+    if (ipComponents.length == 4)
+    {
+       // Check if it's a local IPv4 address.
+      return ipComponents[0] == 10 ||
+            ipComponents[0] == 127 || // loopback address
+            (ipComponents[0] == 192 && ipComponents[1] == 168) ||
+            (ipComponents[0] == 169 && ipComponents[1] == 254) ||
+            (ipComponents[0] == 172 && ipComponents[1] >= 16 && ipComponents[1] < 32);
+    }
 
-    return ipComponents[0] == 10 ||
-           ipComponents[0] == 127 || // loopback address
-           (ipComponents[0] == 192 && ipComponents[1] == 168) ||
-           (ipComponents[0] == 169 && ipComponents[1] == 254) ||
-           (ipComponents[0] == 172 && ipComponents[1] >= 16 && ipComponents[1] < 32);
+    // IPv6 address?
+    ipComponents = unobscuredHostNameValue.split(":");
+    if (ipComponents.length == 8)
+    {
+      // ::1/128 - localhost
+      if (ipComponents[0] == "0000" && ipComponents[1] == "0000" &&
+          ipComponents[2] == "0000" && ipComponents[3] == "0000" &&
+          ipComponents[4] == "0000" && ipComponents[5] == "0000" &&
+          ipComponents[6] == "0000" && ipComponents[7] == "0001")
+        return true;
+
+      // fe80::/10 - link local addresses
+      if (ipComponents[0] == "fe80")
+        return true;
+
+      // TODO: also detect fc00::/7 - unique local addresses
+
+      return false;
+    }
+    return false;
   },
 
   /** 
@@ -368,14 +477,13 @@ var gPhishingDetector = {
     if (hrefURL.schemeIs('http') || hrefURL.schemeIs('https'))
     {
       // unobscure the host name in case it's an encoded ip address..
-      var unobscuredHostName = {};
-      unobscuredHostName.value = hrefURL.host;
-      this.hostNameIsIPAddress(hrefURL.host, unobscuredHostName);
+      var unobscuredHostNameValue = this.hostNameIsIPAddress(hrefURL.host)
+        || hrefURL.host;
 
       var brandShortName = gBrandBundle.getString("brandShortName");
       var titleMsg = gMessengerBundle.getString("confirmPhishingTitle");
       var dialogMsg = gMessengerBundle.getFormattedString("confirmPhishingUrl", 
-                        [brandShortName, unobscuredHostName.value], 2);
+                        [brandShortName, unobscuredHostNameValue], 2);
 
       const nsIPS = Components.interfaces.nsIPromptService;
       var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(nsIPS);
