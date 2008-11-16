@@ -542,8 +542,11 @@ let gFolderTreeView = {
             count++;
             var index = Number(aNewIndex) + Number(i) + 1;
             tree._rowMap.splice(index, 0, child);
+
+            let kidsAdded = recursivelyAddToMap(child, index);
+            count += kidsAdded;
             // Somehow the aNewIndex turns into a string without this
-            aNewIndex = Number(aNewIndex) + recursivelyAddToMap(child, index);
+            aNewIndex = Number(aNewIndex) + kidsAdded;
           }
         }
         return count;
