@@ -1999,30 +1999,38 @@ NS_IMETHODIMP nsAddrDatabase::ContainsCard(nsIAbCard *card, PRBool *hasCard)
     return err;
 }
 
-NS_IMETHODIMP nsAddrDatabase::DeleteMailList(nsIAbDirectory *mailList, PRBool notify)
+NS_IMETHODIMP nsAddrDatabase::DeleteMailList(nsIAbDirectory *aMailList,
+                                             nsIAbDirectory *aParent)
 {
-  if (!mailList || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
+  if (!aMailList || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
 
   nsresult err = NS_OK;
 
   // get the row
-  nsIMdbRow* pListRow = nsnull;
+  nsCOMPtr<nsIMdbRow> pListRow;
   mdbOid rowOid;
   rowOid.mOid_Scope = m_ListRowScopeToken;
 
-  nsCOMPtr<nsIAbMDBDirectory> dbmailList(do_QueryInterface(mailList,&err));
+  nsCOMPtr<nsIAbMDBDirectory> dbmailList(do_QueryInterface(aMailList, &err));
   NS_ENSURE_SUCCESS(err, err);
   dbmailList->GetDbRowID((PRUint32*)&rowOid.mOid_Id);
 
-  err = m_mdbStore->GetRow(m_mdbEnv, &rowOid, &pListRow);
+  err = m_mdbStore->GetRow(m_mdbEnv, &rowOid, getter_AddRefs(pListRow));
   NS_ENSURE_SUCCESS(err,err);
 
   if (!pListRow)
     return NS_OK;
 
+  nsCOMPtr<nsIAbCard> card;
+  err = CreateABListCard(pListRow, getter_AddRefs(card));
+  NS_ENSURE_SUCCESS(err, err);
+
   err = DeleteRow(m_mdbPabTable, pListRow);
-  NS_RELEASE(pListRow);
+
+  if (NS_SUCCEEDED(err) && aParent)
+    NotifyCardEntryChange(AB_NotifyDeleted, card, aParent);
+
   return err;
 }
 

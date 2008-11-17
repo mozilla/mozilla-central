@@ -56,7 +56,6 @@
 // Forward declares
 class QuotingOutputStreamListener;
 class nsMsgComposeSendListener;
-class nsIAddrDatabase;
 class nsIEditorMailSupport;
 class nsIRDFService;
 class nsIArray;

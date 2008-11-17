@@ -82,7 +82,7 @@ public:
   NS_IMETHOD DeleteCard(nsIAbCard *newCard, PRBool notify, nsIAbDirectory *parent);
   NS_IMETHOD EditCard(nsIAbCard *card, PRBool notify, nsIAbDirectory *parent);
   NS_IMETHOD ContainsCard(nsIAbCard *card, PRBool *hasCard);
-  NS_IMETHOD DeleteMailList(nsIAbDirectory *mailList, PRBool notify);
+  NS_IMETHOD DeleteMailList(nsIAbDirectory *aMailList, nsIAbDirectory *aParent);
   NS_IMETHOD EditMailList(nsIAbDirectory *mailList, nsIAbCard *listCard, PRBool notify);
   NS_IMETHOD ContainsMailList(nsIAbDirectory *mailList, PRBool *hasCard);
   NS_IMETHOD DeleteCardFromMailList(nsIAbDirectory *mailList, nsIAbCard *card, PRBool aNotify);

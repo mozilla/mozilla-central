@@ -78,7 +78,6 @@
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "nsAbBaseCID.h"
-#include "nsIAddrDatabase.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsCExternalHandlerService.h"
 #include "nsIMIMEService.h"

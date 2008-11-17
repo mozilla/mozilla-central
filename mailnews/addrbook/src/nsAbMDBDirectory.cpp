@@ -226,7 +226,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
   nsresult rv = GetDatabase(getter_AddRefs(database));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = database->DeleteMailList(directory, PR_TRUE);
+  rv = database->DeleteMailList(directory, this);
 
   if (NS_SUCCEEDED(rv))
     database->Commit(nsAddrDBCommitType::kLargeCommit);

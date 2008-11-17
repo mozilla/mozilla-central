@@ -81,7 +81,7 @@ interface nsAddrDBCommitType
   const long kCompressCommit = 3;
 };
 
-[scriptable, uuid(f7dd1984-59ae-4a52-9ae5-e7c4b996bcd0)]
+[scriptable, uuid(9e9e715c-b932-4163-879f-4c52fa926c10)]
 interface nsIAddrDatabase : nsIAddrDBAnnouncer {
 
   /**
@@ -184,7 +184,17 @@ interface nsIAddrDatabase : nsIAddrDBAnnouncer {
    */
   void editCard(in nsIAbCard aCard, in boolean aNotify, in nsIAbDirectory aParent);
   boolean containsCard(in nsIAbCard card);
-  void deleteMailList(in nsIAbDirectory mailList, in boolean aNotify);
+  /**
+   * Deletes a mailing list from the directory
+   *
+   * @param aMailList         The nsIAbDirectory implementation of the mailing
+   *                          list that is to be deleted.
+   * @param aParent           The parent of the mailing list that is being
+   *                          deleted. If this is supplied, then a notification
+   *                          of card entry change in the database will be made.
+   */
+  void deleteMailList(in nsIAbDirectory aMailList,
+                      [optional] in nsIAbDirectory aParent);
   void editMailList(in nsIAbDirectory mailList, in nsIAbCard listCard, in boolean aNotify);
   boolean containsMailList(in nsIAbDirectory mailList);
   void deleteCardFromMailList(in nsIAbDirectory mailList, in nsIAbCard card, in boolean aNotify);
