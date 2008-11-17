@@ -131,7 +131,7 @@ LIBIDL_VERSION=0.6.3
 PERL_VERSION=5.006
 LIBART_VERSION=2.3.4
 CAIRO_VERSION=1.6.0
-PANGO_VERSION=1.10.0
+PANGO_VERSION=1.14.0
 GTK2_VERSION=2.10.0
 MAKE_VERSION=3.78
 WINDRES_VERSION=2.14.90
@@ -143,7 +143,7 @@ LIBGNOME_VERSION=2.0
 STARTUP_NOTIFICATION_VERSION=0.8
 DBUS_VERSION=0.60
 LCMS_VERSION=1.17
-SQLITE_VERSION=3.5.4
+SQLITE_VERSION=3.6.4
 
 MSMANIFEST_TOOL=
 
@@ -1159,7 +1159,7 @@ CYGWIN32_NT|CYGWIN_NT*|MINGW*_NT*)
     ;;
 AIX)
     OS_RELEASE=`uname -v`.`uname -r`
-    OS_TEST=`uname -p`
+    OS_TEST=${target_cpu}
     ;;
 BSD_386)
     OS_ARCH=BSD
@@ -1261,7 +1261,7 @@ case "$OS_TEST" in
     CPU_ARCH=x86
     ;;
 
-powerpc* | ppc)
+powerpc* | ppc | rs6000)
     CPU_ARCH=ppc
     ;;
 
@@ -1306,6 +1306,7 @@ if test "$GNU_CC"; then
     WARNINGS_AS_ERRORS='-Werror'
     DSO_CFLAGS=''
     DSO_PIC_CFLAGS='-fPIC'
+    ASFLAGS="$ASFLAGS -fPIC"
     _MOZ_RTTI_FLAGS_ON=${_COMPILER_PREFIX}-frtti
     _MOZ_RTTI_FLAGS_OFF=${_COMPILER_PREFIX}-fno-rtti
     _MOZ_EXCEPTIONS_FLAGS_ON='-fhandle-exceptions'
@@ -1633,15 +1634,15 @@ case "$target" in
         if test "$COMPILE_ENVIRONMENT"; then
             AC_LANG_SAVE
             AC_LANG_CPLUSPLUS
-            AC_MSG_CHECKING([for VisualAge C++ compiler version >= 5.0.2.0])
+            AC_MSG_CHECKING([for VisualAge C++ compiler version >= 6.0.0.3])
             AC_TRY_COMPILE([],
-                [#if (__IBMCPP__ < 502)
+                [#if (__IBMCPP__ < 600)
                  #error "Bad compiler"
                  #endif],
                 _BAD_COMPILER=,_BAD_COMPILER=1)
             if test -n "$_BAD_COMPILER"; then
                 AC_MSG_RESULT([no])    
-                AC_MSG_ERROR([VisualAge C++ version 5.0.2.0 or higher is required to build.])
+                AC_MSG_ERROR([VisualAge C++ version 6.0.0.3 or higher is required to build.])
             else
                 AC_MSG_RESULT([yes])    
             fi
@@ -1866,8 +1867,7 @@ case "$target" in
         MOZ_ENABLE_OLD_ABI_COMPAT_WRAPPERS=1
     ;;
     mips*)
-        CFLAGS="$CFLAGS -Wa,-xgot"
-        CXXFLAGS="$CXXFLAGS -Wa,-xgot"
+        MOZ_DEBUG_FLAGS="-g" # We want inlining
     ;;
     esac
     ;;
@@ -1906,8 +1906,8 @@ case "$target" in
 	MOZ_OPTIMIZE_FLAGS='-O1'
     AR_FLAGS='-NOLOGO -OUT:"$@"'
     ASM_SUFFIX=asm
-    CFLAGS="$CFLAGS -W3 -Gy -Fd\$(PDBFILE)"
-    CXXFLAGS="$CXXFLAGS -W3 -Gy -Fd\$(PDBFILE)"
+    CFLAGS="$CFLAGS -W3 -Gy -Fd\$(COMPILE_PDBFILE)"
+    CXXFLAGS="$CXXFLAGS -W3 -Gy -Fd\$(COMPILE_PDBFILE)"
     DLL_PREFIX=
     DOXYGEN=:
     DSO_LDOPTS=-SUBSYSTEM:WINDOWSCE
@@ -2008,13 +2008,13 @@ case "$target" in
         DLL_PREFIX=
         LIB_PREFIX=
         IMPORT_LIB_SUFFIX=lib
-        MKSHLIB='$(LD) -NOLOGO -DLL -OUT:$@ -PDB:$(PDBFILE) $(DSO_LDOPTS)'
-        MKCSHLIB='$(LD) -NOLOGO -DLL -OUT:$@ -PDB:$(PDBFILE) $(DSO_LDOPTS)'
+        MKSHLIB='$(LD) -NOLOGO -DLL -OUT:$@ -PDB:$(LINK_PDBFILE) $(DSO_LDOPTS)'
+        MKCSHLIB='$(LD) -NOLOGO -DLL -OUT:$@ -PDB:$(LINK_PDBFILE) $(DSO_LDOPTS)'
         MKSHLIB_FORCE_ALL=
         MKSHLIB_UNFORCE_ALL=
         DSO_LDOPTS=-SUBSYSTEM:WINDOWS
-        CFLAGS="$CFLAGS -W3 -Gy -Fd\$(PDBFILE)"
-        CXXFLAGS="$CXXFLAGS -W3 -Gy -Fd\$(PDBFILE)"
+        CFLAGS="$CFLAGS -W3 -Gy -Fd\$(COMPILE_PDBFILE)"
+        CXXFLAGS="$CXXFLAGS -W3 -Gy -Fd\$(COMPILE_PDBFILE)"
         LIBS="$LIBS kernel32.lib user32.lib gdi32.lib winmm.lib wsock32.lib advapi32.lib"
         MOZ_DEBUG_FLAGS='-Zi'
         MOZ_DEBUG_LDFLAGS='-DEBUG -DEBUGTYPE:CV'
@@ -7389,8 +7389,6 @@ elif test "$OS_ARCH" != "WINNT" -a "$OS_ARCH" != "OS2" -a "$OS_ARCH" != "WINCE";
   MOZ_MOVEMAIL=1
 fi
 AC_SUBST(MOZ_MOVEMAIL)
-
-AC_DEFINE(JS_THREADSAFE)
 
 if test "$MOZ_DEBUG"; then
     AC_DEFINE(MOZ_REFLOW_PERF)
