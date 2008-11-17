@@ -117,7 +117,6 @@ ifeq ($(OS_ARCH),WINNT)
 ifndef GNU_CC
 
 CPPSRCS		+= \
-		nsAbOutlookCard.cpp \
 		nsAbOutlookDirFactory.cpp \
 		nsAbOutlookDirectory.cpp \
 		nsAbWinHelper.cpp \

@@ -240,18 +240,6 @@
 }
 
 //
-// nsAbOutlookCard
-//
-#define NS_ABOUTLOOKCARD_CONTRACTID \
-  "@mozilla.org/addressbook/moz-aboutlookcard"
-
-#define NS_ABOUTLOOKCARD_CID                                    \
-{ /* {32cf9734-4ee8-4f5d-acfc-71b75eee1819}*/           \
-        0x32cf9734, 0x4ee8, 0x4f5d,                     \
-        {0xac, 0xfc, 0x71, 0xb7, 0x5e, 0xee, 0x18, 0x19}        \
-}
-
-//
 // Outlook directory factory
 //
 #define NS_ABOUTLOOKDIRFACTORY_CONTRACTID \

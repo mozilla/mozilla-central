@@ -90,7 +90,6 @@
 #if defined(XP_WIN) && !defined(__MINGW32__)
 #include "nsAbOutlookDirFactory.h"
 #include "nsAbOutlookDirectory.h"
-#include "nsAbOutlookCard.h"
 #endif
 
 #ifdef XP_MACOSX
@@ -116,7 +115,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddbookProtocolHandler)
 
 #if defined(XP_WIN) && !defined(__MINGW32__)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbOutlookDirectory)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbOutlookCard)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbOutlookDirFactory)
 #endif
 
@@ -266,11 +264,6 @@ static const nsModuleComponentInfo components[] =
     NS_ABOUTLOOKDIRECTORY_CID,
     NS_ABOUTLOOKDIRECTORY_CONTRACTID,
     nsAbOutlookDirectoryConstructor },
-
-  { "Address OUTLOOK Book Card",
-    NS_ABOUTLOOKCARD_CID,
-    NS_ABOUTLOOKCARD_CONTRACTID,
-    nsAbOutlookCardConstructor },
 
   { "The outlook factory Interface", 
     NS_ABOUTLOOKDIRFACTORY_CID,

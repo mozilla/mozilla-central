@@ -43,7 +43,6 @@
 
 #include "nsAbBaseCID.h"
 #include "nsIAbCard.h"
-#include "nsAbOutlookCard.h"
 #include "nsStringGlue.h"
 #include "nsAbDirectoryQuery.h"
 #include "nsIAbBooleanExpression.h"
@@ -315,12 +314,16 @@ static nsresult ExtractEntryFromUri(nsIRDFResource *aResource, nsCString &aEntry
 static nsresult ExtractCardEntry(nsIAbCard *aCard, nsCString& aEntry)
 {
     aEntry.Truncate() ;
-    nsresult retCode = NS_OK ;
-    nsCOMPtr<nsIRDFResource> resource (do_QueryInterface(aCard, &retCode)) ;
-    
-    // Receiving a non-RDF card is accepted
-    if (NS_FAILED(retCode)) { return NS_OK ; }
-    return ExtractEntryFromUri(resource, aEntry, kOutlookCardScheme) ;
+
+    nsCString uri;
+    aCard->GetPropertyAsAUTF8String("OutlookEntryURI", uri);
+
+    // If we don't have a URI, uri will be empty. getAbWinType doesn't set
+    // aEntry to anything if uri is empty, so it will be truncated, allowing us
+    // to accept cards not initialized by us.
+    nsCAutoString stub;
+    getAbWinType(kOutlookCardScheme, uri.get(), stub, aEntry);
+    return NS_OK;
 }
 
 static nsresult ExtractDirectoryEntry(nsIAbDirectory *aDirectory, nsCString& aEntry)
@@ -1094,7 +1097,6 @@ nsresult nsAbOutlookDirectory::GetChildCards(nsIMutableArray *aCards,
 
   nsCAutoString entryId;
   nsCAutoString uriName;
-  nsCOMPtr<nsIRDFResource> resource;
   nsCOMPtr<nsIAbCard> childCard;
   nsresult rv;
 
@@ -1103,13 +1105,7 @@ nsresult nsAbOutlookDirectory::GetChildCards(nsIMutableArray *aCards,
     buildAbWinUri(kOutlookCardScheme, mAbWinType, uriName);
     uriName.Append(entryId);
 
-    childCard = do_CreateInstance(NS_ABOUTLOOKCARD_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    resource = do_QueryInterface(childCard, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = resource->Init(uriName.get());
+    rv = OutlookCardForURI(uriName, getter_AddRefs(childCard));
     NS_ENSURE_SUCCESS(rv, rv);
 
     aCards->AppendElement(childCard, PR_FALSE);
@@ -1301,14 +1297,11 @@ nsresult nsAbOutlookDirectory::CreateCard(nsIAbCard *aData, nsIAbCard **aNewCard
 
     buildAbWinUri(kOutlookCardScheme, mAbWinType, uri) ;
     uri.Append(entryString) ;
-    nsCOMPtr<nsIRDFResource> resource ;
     
-    nsCOMPtr<nsIAbCard> newCard = do_CreateInstance(NS_ABOUTLOOKCARD_CONTRACTID, &retCode);
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    resource = do_QueryInterface(newCard, &retCode) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    retCode = resource->Init(uri.get()) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
+    nsCOMPtr<nsIAbCard> newCard;
+    retCode = OutlookCardForURI(uri, getter_AddRefs(newCard));
+    NS_ENSURE_SUCCESS(retCode, retCode);
+
     if (!didCopy) {
         retCode = newCard->Copy(aData) ;
         NS_ENSURE_SUCCESS(retCode, retCode) ;
@@ -1334,6 +1327,7 @@ static void UnicodeToWord(const PRUnichar *aUnicode, WORD& aWord)
 }
 
 #define PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST "mail.addr_book.lastnamefirst"
+
 
 NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
 {
@@ -1472,4 +1466,122 @@ NS_IMETHODIMP nsAbOutlookDirectory::OnQueryResult(PRInt32 aResult,
                                                   PRInt32 aErrorCode)
 {
   return OnSearchFinished(aResult, EmptyString());
+}
+
+static void splitString(nsString& aSource, nsString& aTarget)
+{
+  aTarget.Truncate();
+  PRInt32 offset = aSource.FindChar('\n');
+
+  if (offset >= 0)
+  {
+    const PRUnichar *source = aSource.get() + offset + 1;
+    while (*source)
+    {
+      if (*source == '\n' || *source == '\r')
+        aTarget.Append(PRUnichar(' '));
+      else
+        aTarget.Append(*source);
+      ++source;
+    }
+    aSource.SetLength(offset);
+  }
+}
+
+nsresult OutlookCardForURI(const nsACString &aUri, nsIAbCard **newCard)
+{
+  NS_ENSURE_ARG_POINTER(newCard);
+
+  nsCAutoString entry;
+  nsCAutoString stub;
+  PRUint32 abWinType = getAbWinType(kOutlookCardScheme,
+    PromiseFlatCString(aUri).get(), stub, entry);
+  if (abWinType == nsAbWinType_Unknown)
+  {
+    PRINTF(("Huge problem URI=%s.\n", PromiseFlatCString(aUri).get()));
+    return NS_ERROR_INVALID_ARG;
+  }
+
+  nsAbWinHelperGuard mapiAddBook(abWinType);
+  if (!mapiAddBook->IsOK())
+    return NS_ERROR_FAILURE;
+
+  nsresult rv;
+  nsCOMPtr<nsIAbCard> card = do_CreateInstance(NS_ABCARDPROPERTY_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  card->SetPropertyAsAUTF8String("OutlookEntryURI", aUri);
+
+  nsMapiEntry mapiData;
+  mapiData.Assign(entry);
+
+  nsStringArray unichars;
+  if (mapiAddBook->GetPropertiesUString(mapiData, OutlookCardMAPIProps,
+                                        index_LastProp, unichars))
+  {
+    card->SetFirstName(*unichars[index_FirstName]);
+    card->SetLastName(*unichars[index_LastName]);
+    card->SetDisplayName(*unichars[index_DisplayName]);
+    card->SetPrimaryEmail(*unichars[index_EmailAddress]);
+    card->SetPropertyAsAString(kNicknameProperty, *unichars[index_NickName]);
+    card->SetPropertyAsAString(kWorkPhoneProperty, *unichars[index_WorkPhoneNumber]);
+    card->SetPropertyAsAString(kHomePhoneProperty, *unichars[index_HomePhoneNumber]);
+    card->SetPropertyAsAString(kFaxProperty, *unichars[index_WorkFaxNumber]);
+    card->SetPropertyAsAString(kPagerProperty, *unichars[index_PagerNumber]);
+    card->SetPropertyAsAString(kCellularProperty, *unichars[index_MobileNumber]);
+    card->SetPropertyAsAString(kHomeCityProperty, *unichars[index_HomeCity]);
+    card->SetPropertyAsAString(kHomeStateProperty, *unichars[index_HomeState]);
+    card->SetPropertyAsAString(kHomeZipCodeProperty, *unichars[index_HomeZip]);
+    card->SetPropertyAsAString(kHomeCountryProperty, *unichars[index_HomeCountry]);
+    card->SetPropertyAsAString(kWorkCityProperty, *unichars[index_WorkCity]);
+    card->SetPropertyAsAString(kWorkStateProperty, *unichars[index_WorkState]);
+    card->SetPropertyAsAString(kWorkZipCodeProperty, *unichars[index_WorkZip]);
+    card->SetPropertyAsAString(kWorkCountryProperty, *unichars[index_WorkCountry]);
+    card->SetPropertyAsAString(kJobTitleProperty, *unichars[index_JobTitle]);
+    card->SetPropertyAsAString(kDepartmentProperty, *unichars[index_Department]);
+    card->SetPropertyAsAString(kCompanyProperty, *unichars[index_Company]);
+    card->SetPropertyAsAString(kWorkWebPageProperty, *unichars[index_WorkWebPage]);
+    card->SetPropertyAsAString(kHomeWebPageProperty, *unichars[index_HomeWebPage]);
+    card->SetPropertyAsAString(kNotesProperty, *unichars[index_Comments]);
+  }
+
+  ULONG cardType = 0;
+  if (mapiAddBook->GetPropertyLong(mapiData, PR_OBJECT_TYPE, cardType))
+  {
+    card->SetIsMailList(cardType == MAPI_DISTLIST);
+    if (cardType == MAPI_DISTLIST)
+    {
+      nsCAutoString normalChars;
+      buildAbWinUri(kOutlookDirectoryScheme, abWinType, normalChars);
+      normalChars.Append(entry);
+      card->SetMailListURI(normalChars.get());
+    }
+  }
+
+  nsAutoString unichar;
+  nsAutoString unicharBis;
+  if (mapiAddBook->GetPropertyUString(mapiData, PR_HOME_ADDRESS_STREET_W, unichar))
+  {
+    splitString(unichar, unicharBis);
+    card->SetPropertyAsAString(kHomeAddressProperty, unichar);
+    card->SetPropertyAsAString(kHomeAddress2Property, unicharBis);
+  }
+  if (mapiAddBook->GetPropertyUString(mapiData, PR_BUSINESS_ADDRESS_STREET_W,
+                                      unichar))
+  {
+    splitString(unichar, unicharBis);
+    card->SetPropertyAsAString(kWorkAddressProperty, unichar);
+    card->SetPropertyAsAString(kWorkAddress2Property, unicharBis);
+  }
+
+  WORD year = 0, month = 0, day = 0;
+  if (mapiAddBook->GetPropertyDate(mapiData, PR_BIRTHDAY, year, month, day))
+  {
+    card->SetPropertyAsUint32(kBirthYearProperty, year);
+    card->SetPropertyAsUint32(kBirthMonthProperty, month);
+    card->SetPropertyAsUint32(kBirthDayProperty, day);
+  }
+
+  card.swap(*newCard);
+  return NS_OK;
 }
