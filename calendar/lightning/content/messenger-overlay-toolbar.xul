@@ -147,7 +147,7 @@
       <menuitem id="newMsgButton-mail-menuitem"
                 label="&newMessageCmd.label;"
                 class="menuitem-iconic"
-                oncommand="MsgNewMessage(event)"/>
+                oncommand="event.stopPropagation(); MsgNewMessage(event)"/>
       <menuitem id="newMsgButton-calendar-menuitem"
                 label="&lightning.toolbar.newevent.label;"
                 class="menuitem-iconic"
