@@ -48,38 +48,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-<toolbarbutton id="calendar-day-view-button"
-               mode="calendar"
-               type="radio"
-               group="calendarViews"
-               class="cal-toolbarbutton-1"
-               label="&calendar.day.button.label;"
-               tooltiptext="&calendar.day.button.tooltip;"
-               observes="calendar_day-view_command"/>
-<toolbarbutton id="calendar-week-view-button"
-               mode="calendar"
-               type="radio"
-               group="calendarViews"
-               class="cal-toolbarbutton-1"
-               label="&calendar.week.button.label;"
-               tooltiptext="&calendar.week.button.tooltip;"
-               observes="calendar_week-view_command"/>
-<toolbarbutton id="calendar-multiweek-view-button"
-               mode="calendar"
-               type="radio"
-               group="calendarViews"
-               class="cal-toolbarbutton-1"
-               label="&calendar.multiweek.button.label;"
-               tooltiptext="&calendar.multiweek.button.tooltip;"
-               observes="calendar_multiweek-view_command"/>
-<toolbarbutton id="calendar-month-view-button"
-               mode="calendar"
-               type="radio"
-               group="calendarViews"
-               class="cal-toolbarbutton-1"
-               label="&calendar.month.button.label;"
-               tooltiptext="&calendar.month.button.tooltip;"
-               observes="calendar_month-view_command"/>
 <toolbarbutton id="calendar-import-button"
                mode="calendar"
                class="cal-toolbarbutton-1"

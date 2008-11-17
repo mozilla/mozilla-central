@@ -499,7 +499,8 @@ function createXULElement(el) {
 /**
  * A helper function to calculate and add up certain css-values of a box.
  * It is required, that all css values can be converted to integers
- *
+ * see also 
+ * http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSview-getComputedStyle
  * @param aXULElement   The xul element to be inspected.
  * @param aStyleProps   The css style properties for which values are to be retrieved
  *                        e.g. 'font-size', 'min-width" etc.

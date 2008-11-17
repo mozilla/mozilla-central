@@ -322,7 +322,7 @@ calendar-day-label[orient="vertical"] {
 /* Month View */
 calendar-month-view {
     background-color: #FFFFFF;
-    padding: 2px;
+    padding: 0px 2px 2px 2px;
 }
 
 .calendar-month-view-grid-column {
@@ -556,22 +556,7 @@ calendar-event-box[readonly="true"]:hover .calendar-event-box-grippy-bottom {
     list-style-image: url(chrome://calendar/skin/alarm-suppressed.png);
 }
 
-/* Navigation controls for the views */
-calendar-navigation-buttons {
-    padding-top: 8px;
-    padding-bottom: 4px;
-    background-color: white;
-}
 
-.view-header {
-    font-weight: bold;
-    font-size: 14px;
-    color: #2E4E73;
-}
-
-.view-header[type="end"] {
-    text-align: right;
-}
 
 /* tooltips */
 vbox.tooltipBox {
@@ -641,4 +626,103 @@ calendar-event-box[invitation-status="DECLINED"],
 calendar-editable-item[invitation-status="DECLINED"],
 calendar-month-day-box-item[invitation-status="DECLINED"] {
     opacity: 0.3;
+}
+
+/* Navigation controls for the views */
+calendar-navigation-buttons {
+    background-color: white;
+}
+
+.tabs-left,
+.tabs-right {
+    border-bottom: 2px solid #D2D2D2;
+}
+
+tab[calview] {
+    -moz-appearance: none;
+    background-image: url("chrome://calendar/skin/calendar-day-label-back-vertical.png");
+    background-color: #F2F2F2;
+    color: #2E4E73;
+    border-bottom: 1px solid #D2D2D2;
+    -moz-border-radius-topleft: 4px;
+    -moz-border-radius-topright: 4px;  
+    -moz-border-right-colors: #D2D2D2 transparent;
+    -moz-border-left-colors: transparent #D2D2D2;  
+    font-size: 14px;
+    margin-top: 0px;
+    -moz-user-focus: normal;  
+}
+
+tab[calview][selected="true"],
+tab[calview][selected="true"]:hover {
+    font-weight: bold;
+    background-color: #FFFFFF;
+    margin-bottom: 0px;
+    border-bottom: none;
+}
+
+tab[calview]:hover {
+    background-color: #F6F6F6;    
+}
+
+.tab-text {
+    text-align: center;
+}
+
+.view-header {
+    font-weight: normal;
+    font-size: 14px;
+    color: #2E4E73;
+    padding-top: 5px;
+    margin-top: 5px;
+}
+
+.view-header[type="end"] {
+    text-align: right;
+    -moz-margin-end: 6px;
+}
+
+.navigation-inner-box {
+    -moz-padding-start: 6px;
+    -moz-padding-end: 6px;
+    border-bottom: 1px solid #D2D2D2;
+    padding-bottom: 1px;
+}
+.navigation-bottombox {
+    min-height: 4px;
+    max-height: 4px;
+}
+
+.navigation-bottombox[type="end"] {
+    border-right: 1px solid #D2D2D2;
+}
+
+.view-navigation-button {
+    -moz-user-focus: normal;      
+    -moz-appearance: none;
+    margin-top: 3px;
+    -moz-margin-start: 3px;
+    -moz-margin-end: 3px;
+    margin-bottom: 2px;
+}
+
+.today-navigation-button {
+    -moz-user-focus: normal;      
+    -moz-appearance: none;
+    margin-top: 2px;
+    -moz-margin-start: 2px;
+    -moz-margin-end: 2px;
+    margin-bottom: 0px;
+    color: #2E4E73;
+}
+.view-navigation-button > .toolbarbutton-text {
+  display: none;
+}
+
+.view-navigation-button > .toolbarbutton-icon {
+  margin: 1px;
+}
+
+.today-navigation-button > .toolbarbutton-icon {
+  display: none;
 }

@@ -248,6 +248,6 @@ toolbar[iconsize="small"] #calendar-remote-reload-button:active {
     -moz-image-region: rect(24px 480px 48px 456px);
 }
 
-toolbar[iconsize="small"] #calendar-remote-reload-button[disabled="true"] [
+toolbar[iconsize="small"] #calendar-remote-reload-button[disabled="true"] {
     -moz-image-region: rect(48px 480px 72px 456px);
 }

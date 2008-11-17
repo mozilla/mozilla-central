@@ -250,11 +250,11 @@ var calendarViewController = {
  * again calls the common switchToView function. They should be consolidated in
  * a different bug.
  */
-function showCalendarView(type) {
+function showCalendarView(type, event) {
     if (isSunbird()) {
-        sbSwitchToView(type);
+        sbSwitchToView(type, event);
     } else {
-        ltnShowCalendarView(type);
+        ltnShowCalendarView(type, event);
     }
 }
 

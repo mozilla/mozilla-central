@@ -159,3 +159,7 @@ radio[pane=paneLightning] {
 #calendar-status-todaypane-button[checked="true"] > .toolbarbutton-icon-end {
   list-style-image: url(chrome://global/skin/icons/expand.png);
 }  
+
+#calMinimonthBox {
+    margin-top: 3px;
+}

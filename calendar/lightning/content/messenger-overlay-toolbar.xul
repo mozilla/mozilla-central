@@ -128,7 +128,7 @@
              context="calendar-toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
-             defaultset="calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,spring"
+             defaultset="calendar-unifinder-button,spring"
              persist="collapsedinMode"/>
     <toolbar id="task-toolbar"
              class="chromeclass-toolbar"

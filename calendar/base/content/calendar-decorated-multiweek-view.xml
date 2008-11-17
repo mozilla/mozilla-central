@@ -49,7 +49,7 @@
     <binding id="calendar-decorated-multiweek-view" extends="chrome://calendar/content/calendar-decorated-base.xml#calendar-decorated-base-view">
         <content>
              <xul:vbox anonid="main-box" flex="1">
-                <xul:calendar-navigation-buttons anonid="nav-control"/>
+                <xul:calendar-navigation-buttons anonid="nav-control" selectedIndex="2"/>
                 <xul:box style="overflow: auto;" flex="1">
                     <xul:calendar-month-view anonid="view-element" flex="1" xbl:inherits="context,item-context"/>
                 </xul:box>

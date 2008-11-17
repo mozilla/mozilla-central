@@ -139,7 +139,7 @@
   </toolbarpalette>
   <toolbar class="toolbar-primary chromeclass-toolbar" id="calendar-bar"
            iconsize="large"
-           defaultset="calendar-new-event-button,calendar-new-task-button,calendar-edit-button,calendar-delete-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,spring,throbber-box"
+           defaultset="calendar-new-event-button,calendar-new-task-button,calendar-edit-button,calendar-delete-button,separator,calendar-go-to-today-button,separator,calendar-unifinder-button,spring,throbber-box"
            customizable="true" mode="full"
            toolbarname="&sunbird.maintoolbar.name;" accesskey="&sunbird.maintoolbar.accesskey;"
            context="toolbar-context-menu"/>
