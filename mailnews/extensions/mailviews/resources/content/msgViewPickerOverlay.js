@@ -125,8 +125,19 @@ function ViewChangeByMenuitem(aMenuitem)
 
 function ViewChangeByValue(aValue)
 {
+  ViewChange(aValue, GetLabelForValue(aValue));
+}
+
+function ViewChangeByFolder(aFolder)
+{
+  var result = GetMailViewForFolder(aFolder);
+  ViewChangeByValue(result);
+}
+
+function GetLabelForValue(aValue)
+{
   var label = "";
-  var viewPickerPopup = document.getElementById("viewPickerPopup");
+  let viewPickerPopup = document.getElementById("viewPickerPopup");
   if (viewPickerPopup)
   {
     // grab the label for the menulist from one of its menuitems
@@ -139,16 +150,13 @@ function ViewChangeByValue(aValue)
     }
     label = selectedItems && selectedItems.length && selectedItems.item(0).label;
   }
-  ViewChange(aValue, label);
+  return label;
 }
 
-
-function ViewChangeByFolder(aFolder)
+function UpdateViewPickerByValue(aValue)
 {
-  var result = GetMailViewForFolder(aFolder);
-  ViewChangeByValue(result);
+  UpdateViewPicker(aValue, GetLabelForValue(aValue));
 }
-
 
 function UpdateViewPicker(aValue, aLabel)
 {
@@ -159,7 +167,6 @@ function UpdateViewPicker(aValue, aLabel)
     viewPicker.setAttribute("label", aLabel);
   }
 }
-
 
 function GetFolderInfo(aFolder)
 {

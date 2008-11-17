@@ -1348,7 +1348,7 @@ let mailTabType = {
     aTab.messenger = messenger;
     aTab.dbView = gDBView;
     aTab.searchSession = gSearchSession;
-
+    aTab.msgSelectedFolder = gMsgFolderSelected;
     if (!gDBView)
       return;
 
@@ -1358,18 +1358,16 @@ let mailTabType = {
       {
         var curMsgHdr = gDBView.hdrForFirstSelectedMessage;
         aTab.selectedMsgId = curMsgHdr.messageId;
-        aTab.msgSelectedFolder = curMsgHdr.folder;
       }
-      catch (ex)
-      {
-        aTab.msgSelectedFolder = gMsgFolderSelected
-      }
+      catch (ex) {}
     }
     else
     {
       aTab.selectedMsgId = null;
-      aTab.msgSelectedFolder = null;
+      aTab.msgSelectedFolder = gDBView.msgFolder;
     }
+    if (aTab.msgSelectedFolder)
+      aTab.mailView = GetMailViewForFolder(aTab.msgSelectedFolder);
   },
 
   _folderAndThreadPaneVisible: true,
@@ -1387,26 +1385,32 @@ let mailTabType = {
     gDBView = aTab.dbView;
     gSearchSession = aTab.searchSession;
 
+    // restore selection in folder pane;
+    let folderToSelect = gDBView ? gDBView.msgFolder : aTab.msgSelectedFolder;
     // restore view state if we had one
+    var row = gFolderTreeView.getIndexOfFolder(folderToSelect);
+
+    var treeBoxObj = document.getElementById("folderTree").treeBoxObject;
+    var folderTreeSelection = treeBoxObj.view.selection;
+    // make sure that row.value is valid so that it doesn't mess up
+    // the call to ensureRowIsVisible().
+    if ((row >= 0) && !folderTreeSelection.isSelected(row))
+    {
+      gMsgFolderSelected = folderToSelect;
+      folderTreeSelection.selectEventsSuppressed = true;
+      folderTreeSelection.select(row);
+      treeBoxObj.ensureRowIsVisible(row);
+      folderTreeSelection.selectEventsSuppressed = false;
+    }
     if (gDBView)
     {
-      var row = gFolderTreeView.getIndexOfFolder(gDBView.msgFolder);
-
-      var treeBoxObj = document.getElementById("folderTree").treeBoxObject;
-      var folderTreeSelection = treeBoxObj.view.selection;
-      // make sure that row.value is valid so that it doesn't mess up
-      // the call to ensureRowIsVisible().
-      if ((row >= 0) && !folderTreeSelection.isSelected(row))
-      {
-        gMsgFolderSelected = gDBView.msgFolder;
-        folderTreeSelection.selectEventsSuppressed = true;
-        folderTreeSelection.select(row);
-        treeBoxObj.ensureRowIsVisible(row);
-        folderTreeSelection.selectEventsSuppressed = false;
-      }
       // This sets the thread pane tree's view to the gDBView view.
       UpdateSortIndicators(gDBView.sortType, gDBView.sortOrder);
       RerootThreadPane();
+      // Only refresh the view picker if the views toolbar is visible.
+      if (document.getElementById("mailviews-container")) 
+        UpdateViewPickerByValue(aTab.mailView);
+
       // We need to restore the selection to what it was when we switched away
       // from this tab. We need to remember the selected keys, instead of the
       // selected indices, since the view might have changed. But maybe the
@@ -1434,14 +1438,13 @@ let mailTabType = {
         // existing API call that accomplishes it.
       }
       catch (ex) {dump(ex);}
+      ShowThreadPane();
     }
-    // make sure the folder tree knows that we don't have a view
-    else
+    else if (gMsgFolderSelected.isServer)
     {
-      var tree = GetThreadTree();
-      tree.boxObject.QueryInterface(Components.interfaces.nsITreeBoxObject)
-          .view = null;
-      ClearMessagePane();
+      UpdateStatusQuota(null);
+      // Load AccountCentral page here.
+      ShowAccountCentral();
     }
   }
 };
