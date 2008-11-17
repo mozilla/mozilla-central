@@ -40,6 +40,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 //
 // calItemBase.js
 //
@@ -166,14 +169,10 @@ calItemBase.prototype = {
                 this.mAttendees[i].makeImmutable();
         }
 
-        var e = this.mProperties.enumerator;
-        while (e.hasMoreElements()) {
-            var prop = e.getNext();
-            var val = prop.value;
-
-            if (prop.value instanceof Components.interfaces.calIDateTime) {
-                if (prop.value.isMutable)
-                    prop.value.makeImmutable();
+        for each (let [propKey, propValue] in this.mProperties) {
+            if (propValue instanceof Components.interfaces.calIDateTime &&
+                propValue.isMutable) {
+                propValue.makeImmutable();
             }
         }
 
@@ -244,22 +243,17 @@ calItemBase.prototype = {
             m.mAttendees = null;
 
         m.mProperties = new calPropertyBag();
-        var e = this.mProperties.enumerator;
-        while (e.hasMoreElements()) {
-            var prop = e.getNext();
-            var name = prop.name;
-            var val = prop.value;
-
-            if (val instanceof Components.interfaces.calIDateTime) {
-                val = val.clone();
+        for each (let [name, value] in this.mProperties) {
+            if (value instanceof Components.interfaces.calIDateTime) {
+                value = value.clone();
             }
 
-            m.mProperties.setProperty(name, val);
+            m.mProperties.setProperty(name, value);
 
-            var propBucket = this.mPropertyParams[name];
+            let propBucket = this.mPropertyParams[name];
             if (propBucket) {
-                var newBucket = {};
-                for (var param in propBucket) {
+                let newBucket = {};
+                for (let param in propBucket) {
                     newBucket[param] = propBucket[param];
                 }
                 m.mPropertyParams[name] = newBucket;
@@ -664,65 +658,50 @@ calItemBase.prototype = {
 
         this.mapPropsFromICS(icalcomp, this.icsBasePropMap);
 
-        for (var attprop = icalcomp.getFirstProperty("ATTENDEE");
-             attprop;
-             attprop = icalcomp.getNextProperty("ATTENDEE")) {
-
-            var att = new CalAttendee();
+        for (let attprop in cal.ical.propertyIterator(icalcomp, "ATTENDEE")) {
+            let att = new calAttendee();
             att.icalProperty = attprop;
             this.addAttendee(att);
         }
 
-        for (var attprop = icalcomp.getFirstProperty("ATTACH");
-             attprop;
-             attprop = icalcomp.getNextProperty("ATTACH")) {
-
-            var att = createAttachment();
+        for (let attprop in cal.ical.propertyIterator(icalcomp, "ATTACH")) {
+            let att = new calAttachment();
             att.icalProperty = attprop;
             this.addAttachment(att);
         }
 
-        for (var relprop = icalcomp.getFirstProperty("RELATED-TO");
-             relprop;
-             relprop = icalcomp.getNextProperty("RELATED-TO")) {
 
-            var rel = createRelation();
+        for (let relprop in cal.ical.propertyIterator(icalcomp, "RELATED-TO")) {
+            let rel = new calRelation();
             rel.icalProperty = relprop;
             this.addRelation(rel);
         }
 
-        var orgprop = icalcomp.getFirstProperty("ORGANIZER");
+        let orgprop = icalcomp.getFirstProperty("ORGANIZER");
         if (orgprop) {
-            var org = new CalAttendee();
+            let org = new calAttendee();
             org.icalProperty = orgprop;
             org.isOrganizer = true;
             this.mOrganizer = org;
         }
 
-        this.mCategories = [];
-        for (var catprop = icalcomp.getFirstProperty("CATEGORIES");
-             catprop;
-             catprop = icalcomp.getNextProperty("CATEGORIES")) {
-            this.mCategories.push(catprop.value);
-        }
+        this.mCategories = [ catprop.value for (catprop in cal.ical.propertyIterator(icalcomp, "CATEGORIES")) ];
 
         // find recurrence properties
-        var rec = null;
-        for (var recprop = icalcomp.getFirstProperty("ANY");
-             recprop;
-             recprop = icalcomp.getNextProperty("ANY"))
-        {
-            var ritem = null;
-            if (recprop.propertyName == "RRULE" ||
-                recprop.propertyName == "EXRULE")
-            {
-                ritem = new CalRecurrenceRule();
-            } else if (recprop.propertyName == "RDATE" ||
-                       recprop.propertyName == "EXDATE")
-            {
-                ritem = new CalRecurrenceDate();
-            } else {
-                continue;
+        let rec = null;
+        for (let recprop in cal.ical.propertyIterator(icalcomp)) {
+            let ritem = null;
+            switch (recprop.propertyName) {
+                case "RRULE":
+                case "EXRULE":
+                    ritem = new CalRecurrenceRule();
+                    break;
+                case "RDATE":
+                case "EXDATE":
+                    ritem = new CalRecurrenceDate();
+                    break;
+                default:
+                    continue;
             }
 
             ritem.icalProperty = recprop;
@@ -736,53 +715,46 @@ calItemBase.prototype = {
         }
         this.mRecurrenceInfo = rec;
 
-        var alarmComp = icalcomp.getFirstSubcomponent("VALARM");
+        let alarmComp = icalcomp.getFirstSubcomponent("VALARM");
         if (alarmComp) {
-            var triggerProp = alarmComp.getFirstProperty("TRIGGER");
-            // Really, really old Sunbird/Calendar versions didn't give us a
-            // trigger.
-            if (!triggerProp) {
-                Components.utils.reportError("No trigger property for alarm on item: "+this.id);
-                // No parsing happens after alarms, so just return
-                return;
+            let triggerProp = alarmComp.getFirstProperty("TRIGGER");
+            if (triggerProp) {
+                this.alarmOffset = cal.createDuration(triggerProp.valueAsIcalString);
+
+                let related = triggerProp.getParameter("RELATED");
+                if (related && related == "END") {
+                    this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_END;
+                } else {
+                    this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
+                }
+
+                let email = alarmComp.getFirstProperty("X-EMAILADDRESS");
+                if (email) {
+                    this.setProperty("alarmEmailAddress", email.value);
+                }
+            } else {
+                // Really, really old Sunbird/Calendar versions didn't give us a
+                // trigger.
+                cal.ERROR("No trigger property for alarm on item: " + this.id);
             }
-            var duration = Components.classes["@mozilla.org/calendar/duration;1"]
-                                     .createInstance(Components.interfaces.calIDuration);
-            duration.icalString = triggerProp.valueAsIcalString;
-            this.alarmOffset = duration;
-
-            var related = triggerProp.getParameter("RELATED");
-            if (related && related == "END")
-                this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_END;
-            else
-                this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
-
-            var email = alarmComp.getFirstProperty("X-EMAILADDRESS");
-            if (email)
-                this.setProperty("alarmEmailAddress", email.value);
         }
 
-        var lastAck = icalcomp.getFirstProperty("X-MOZ-LASTACK");
+        let lastAck = icalcomp.getFirstProperty("X-MOZ-LASTACK");
         if (lastAck) {
-            var lastAckTime = createDateTime();
-            lastAckTime.icalString = lastAck.value;
-            this.alarmLastAck = lastAckTime;
+            this.alarmLastAck = cal.createDateTime(lastAck.value);
         }
     },
 
     importUnpromotedProperties: function (icalcomp, promoted) {
-        for (var prop = icalcomp.getFirstProperty("ANY");
-             prop;
-             prop = icalcomp.getNextProperty("ANY")) {
-            if (!promoted[prop.propertyName]) {
-                this.setProperty(prop.propertyName, prop.value);
-                var param = prop.getFirstParameterName();
-                while (param) {
-                    if (!(prop.propertyName in this.mPropertyParams)) {
-                        this.mPropertyParams[prop.propertyName] = {};
+        for (let prop in cal.ical.propertyIterator(icalcomp)) {
+            let propName = prop.propertyName;
+            if (!promoted[propName]) {
+                this.setProperty(propName, prop.value);
+                for each (let [paramName, paramValue] in cal.ical.paramIterator(prop)) {
+                    if (!(propName in this.mPropertyParams)) {
+                        this.mPropertyParams[propName] = {};
                     }
-                    this.mPropertyParams[prop.propertyName][param] = prop.getParameter(param);
-                    param = prop.getNextParameterName();
+                    this.mPropertyParams[propName][paramName] = paramValue;
                 }
             }
         }

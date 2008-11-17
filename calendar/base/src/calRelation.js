@@ -34,6 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 //
 // calRelation.js
 //
@@ -115,11 +117,8 @@ calRelation.prototype = {
             icalatt.setParameter("RELTYPE", this.mType);
         }
 
-        var outKeys = {};
-        var outValues = {};
-        this.mProperties.getAllProperties(outKeys, outValues);
-        for (var i = 0; i < outKeys.value.length; i++) {
-            icalatt.setParameter(outKeys.value[i], outValues.value[i]);
+        for each (let [key, value] in this.mProperties) {
+            icalatt.setParameter(key, value);
         }
         return icalatt;
     },
@@ -128,16 +127,13 @@ calRelation.prototype = {
         if (attProp.value) {
             this.mId = attProp.value;
         }
-
-        for (var paramname = attProp.getFirstParameterName();
-             paramname;
-             paramname = attProp.getNextParameterName()) {
-            if (paramname == "RELTYPE") {
-                this.mType = attProp.getParameter("RELTYPE");
+        for each (let [name, value] in cal.ical.paramIterator(attProp)) {
+            if (name == "RELTYPE") {
+                this.mType = value;
                 continue;
             }
 
-            this.setProperty(paramname, attProp.getParameter(paramname));
+            this.setProperty(name, value);
         }
     },
 

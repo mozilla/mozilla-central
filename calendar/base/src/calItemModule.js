@@ -58,7 +58,6 @@ var CalRecurrenceDateSet = null;
 var CalRecurrenceDate = null;
 var CalDateTime = null;
 var CalDuration = null;
-var CalAttendee = null;
 var CalItipItem = null;
 
 var componentInitRun = false;
@@ -73,8 +72,6 @@ function initBaseComponent()
                                              Components.interfaces.calIDateTime);
     CalDuration = new Components.Constructor("@mozilla.org/calendar/duration;1",
                                              Components.interfaces.calIDateTime);
-    CalAttendee = new Components.Constructor("@mozilla.org/calendar/attendee;1",
-                                             Components.interfaces.calIAttendee);
     CalItipItem = new Components.Constructor("@mozilla.org/calendar/itip-item;1",
                                              Components.interfaces.calIItipItem);
 }

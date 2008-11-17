@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -36,6 +35,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
 //
 // calAttachment.js
@@ -130,11 +131,8 @@ calAttachment.prototype = {
             icalatt.setParameter("ENCODING", this.mEncoding);
         }
 
-        var outKeys = {};
-        var outValues = {};
-        this.mProperties.getAllProperties(outKeys, outValues);
-        for (var i = 0; i < outKeys.value.length; i++) {
-            icalatt.setParameter(outKeys.value[i], outValues.value[i]);
+        for each (let [key, value] in this.mProperties) {
+            icalatt.setParameter(key, value);
         }
         return icalatt;
     },
@@ -146,20 +144,18 @@ calAttachment.prototype = {
             this.mUri = makeURL(attProp.value);
         }
 
-        for (var paramname = attProp.getFirstParameterName();
-             paramname;
-             paramname = attProp.getNextParameterName()) {
-            if (paramname == "FMTTYPE") {
-                this.mType = attProp.getParameter("FMTTYPE");
-                continue;
+        for each (let [name, value] in cal.ical.paramIterator(attProp)) {
+            switch (name) {
+                case "FMTTYPE":
+                    this.mType = value;
+                    break;
+                case "ENCODING":
+                    this.mEncoding = value;
+                    break;
+                default:
+                    this.setProperty(name, value);
+                    break;
             }
-
-            if (paramname == "ENCODING") {
-                this.mEncoding = attProp.getParameter("ENCODING");
-                continue;
-            }
-
-            this.setProperty(paramname, attProp.getParameter(paramname));
         }
     },
 

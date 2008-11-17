@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 function calAttendee() {
     this.wrappedJSObject = this;
     this.mProperties = new calPropertyBag();
@@ -98,15 +100,14 @@ calAttendee.prototype = {
             a.isOrganizer = true;
         }
 
-        var allProps = ["id", "commonName", "rsvp", "role", "participationStatus",
-                        "userType"];
-        for (var i in allProps)
-            a[allProps[i]] = this[allProps[i]];
+        const allProps = ["id", "commonName", "rsvp", "role",
+                          "participationStatus", "userType"];
+        for each (let prop in allProps) {
+            a[prop] = this[prop];
+        }
 
-        var bagenum = this.propertyEnumerator;
-        while (bagenum.hasMoreElements()) {
-            var iprop = bagenum.getNext().QueryInterface(Components.interfaces.nsIProperty);
-            a.setProperty(iprop.name, iprop.value);
+        for each (let [key, value] in this.mProperties) {
+            a.setProperty(key, value);
         }
 
         return a;
@@ -136,12 +137,10 @@ calAttendee.prototype = {
             promotedProps[prop.ics] = true;
         }
 
-        for (var paramname = icalatt.getFirstParameterName();
-             paramname;
-             paramname = icalatt.getNextParameterName()) {
-            if (promotedProps[paramname])
-                continue;
-            this.setProperty(paramname, icalatt.getParameter(paramname));
+        for each (let [name, value] in cal.ical.paramIterator(icalatt)) {
+            if (!promotedProps[name]) {
+                this.setProperty(name, value);
+            }
         }
     },
 
@@ -162,10 +161,8 @@ calAttendee.prototype = {
             if (this[prop.cal])
                 icalatt.setParameter(prop.ics, this[prop.cal]);
         }
-        var bagenum = this.mProperties.enumerator;
-        while (bagenum.hasMoreElements()) {
-            var iprop = bagenum.getNext();
-            icalatt.setParameter(iprop.name, iprop.value);
+        for each (let [key, value] in this.mProperties) {
+            icalatt.setParameter(key, value);
         }
         return icalatt;
     },

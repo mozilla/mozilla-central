@@ -35,6 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
 function calIcsParser() {
     this.wrappedJSObject = this;
@@ -94,45 +95,36 @@ function ip_parseString(aICSString, aTzProvider) {
     while (calComp) {
 
         // Get unknown properties
-        let prop = calComp.getFirstProperty("ANY");
-        while (prop) {
-            if (prop.propertyName != "VERSION" &&
-                prop.propertyName != "PRODID") {
-                this.mProperties.push(prop);
-            }
-            prop = calComp.getNextProperty("ANY");
-        }
+        this.mProperties = [ prop for (prop in cal.ical.propertyIterator(calComp))
+                                  if (prop.propertyName != "VERSION" &&
+                                      prop.propertyName != "PRODID") ];
 
         let prodId = calComp.getFirstProperty("PRODID");
-        let isFromOldSunbird;
-        if (prodId) {
-            isFromOldSunbird = prodId.value == "-//Mozilla.org/NONSGML Mozilla Calendar V1.0//EN";
-        }
+        let isFromOldSunbird = (prodId && prodId.value == "-//Mozilla.org/NONSGML Mozilla Calendar V1.0//EN");
 
-        let subComp = calComp.getFirstSubcomponent("ANY");
-        while (subComp) {
+        for (let subComp in cal.ical.subcomponentIterator(calComp)) {
             let item = null;
             switch (subComp.componentType) {
-            case "VEVENT":
-                item = cal.createEvent();
-                item.icalComponent = subComp;
-                checkTimezone(item, item.startDate);
-                checkTimezone(item, item.endDate);
-                break;
-            case "VTODO":
-                item = cal.createTodo();
-                item.icalComponent = subComp;
-                checkTimezone(item, item.entryDate);
-                checkTimezone(item, item.dueDate);
-                // completed is defined to be in UTC
-                break;
-            case "VTIMEZONE":
-                // this should already be attached to the relevant
-                // events in the calendar, so there's no need to
-                // do anything with it here.
-                break;
-            default:
-                this.mComponents.push(subComp);
+                case "VEVENT":
+                    item = cal.createEvent();
+                    item.icalComponent = subComp;
+                    checkTimezone(item, item.startDate);
+                    checkTimezone(item, item.endDate);
+                    break;
+                case "VTODO":
+                    item = cal.createTodo();
+                    item.icalComponent = subComp;
+                    checkTimezone(item, item.entryDate);
+                    checkTimezone(item, item.dueDate);
+                    // completed is defined to be in UTC
+                    break;
+                case "VTIMEZONE":
+                    // this should already be attached to the relevant
+                    // events in the calendar, so there's no need to
+                    // do anything with it here.
+                    break;
+                default:
+                    this.mComponents.push(subComp);
             }
 
             if (item) {
@@ -155,7 +147,6 @@ function ip_parseString(aICSString, aTzProvider) {
                     excItems.push(item);
                 }
             }
-            subComp = calComp.getNextSubcomponent("ANY");
         }
         calComp = rootComp.getNextSubcomponent("VCALENDAR");
     }

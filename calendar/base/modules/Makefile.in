@@ -46,6 +46,7 @@ MODULE = calbase
 
 EXTRA_JS_MODULES = \
     calUtils.jsm \
+    calIteratorUtils.jsm \
     calItipUtils.jsm \
     $(NULL)
 

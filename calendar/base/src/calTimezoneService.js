@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 var g_stringBundle = null;
 
 function calIntrinsicTimezone(tzid, component, latitude, longitude) {
@@ -496,9 +498,7 @@ function guessSystemTimezone() {
         // Each period is marked by a DTSTART.
         // Find the currently applicable period: has most recent DTSTART
         // not later than today and no UNTIL, or UNTIL is greater than today.
-        for (var period = subComp.getFirstSubcomponent(standardOrDaylight);
-             period;
-             period = subComp.getNextSubcomponent(standardOrDaylight)) {
+        for (let period in cal.ical.subcomponentIterator(subComp, standardOrDayLight)) {
             periodStartCalDate.icalString = getIcalString(period, "DTSTART");
             periodStartCalDate.timezone = tz;
             if (oneYrUTC.nativeTime < periodStartCalDate.nativeTime) {
@@ -533,8 +533,9 @@ function guessSystemTimezone() {
                         periodCalRule.getNextOccurrence(periodStartCalDate,
                                                         todayUTC);
                     // make sure rule doesn't end before next transition date.
-                    if (nextTransitionDate)
+                    if (nextTransitionDate) {
                         return nextTransitionDate.jsDate;
+                    }
                 }
             }
         }

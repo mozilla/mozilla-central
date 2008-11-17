@@ -43,6 +43,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 //
 // calDavCalendar.js
 //
@@ -1982,10 +1985,11 @@ calDavCalendar.prototype = {
 
                 var caldata = response..C::response..C::["calendar-data"];
                 try {
-                    function iterFunc(fbComp) {
-                        var interval;
+                    let calComp = getIcsService().parseICS(caldata, null);
+                    for (let fbComp in cal.ical.calendarComponentIterator(calComp)) {
+                        let interval;
 
-                        var replyRangeStart = fbComp.startTime;
+                        let replyRangeStart = fbComp.startTime;
                         if (replyRangeStart && (aRangeStart.compare(replyRangeStart) == -1)) {
                             interval = new calFreeBusyInterval(aCalId,
                                                                calIFreeBusyInterval.UNKNOWN,
@@ -1993,7 +1997,7 @@ calDavCalendar.prototype = {
                                                                replyRangeStart);
                             periodsToReturn.push(interval);
                         }
-                        var replyRangeEnd = fbComp.endTime;
+                        let replyRangeEnd = fbComp.endTime;
                         if (replyRangeEnd && (aRangeEnd.compare(replyRangeEnd) == 1)) {
                             interval = new calFreeBusyInterval(aCalId,
                                                                calIFreeBusyInterval.UNKNOWN,
@@ -2002,25 +2006,22 @@ calDavCalendar.prototype = {
                             periodsToReturn.push(interval);
                         }
 
-                        for (var fbProp = fbComp.getFirstProperty("FREEBUSY");
-                             fbProp;
-                             fbProp = fbComp.getNextProperty("FREEBUSY")) {
-
-                            var fbType = fbProp.getParameter("FBTYPE");
+                        for (let fbProp in cal.ical.propertyIterator(fbComp, "FREEBUSY")) {
+                            let fbType = fbProp.getParameter("FBTYPE");
                             if (fbType) {
                                 fbType = fbTypeMap[fbType];
                             } else {
                                 fbType = calIFreeBusyInterval.UNKNOWN;
                             }
-                            var parts = fbProp.value.split("/");
-                            var begin = createDateTime(parts[0]);
-                            var end;
+                            let parts = fbProp.value.split("/");
+                            let begin = cal.createDateTime(parts[0]);
+                            let end;
                             if (parts[1].charAt(0) == "P") { // this is a duration
                                 end = begin.clone();
-                                end.addDuration(createDuration(parts[1]))
+                                end.addDuration(cal.createDuration(parts[1]))
                             } else {
                                 // This is a date string
-                                end = createDateTime(parts[1]);
+                                end = cal.createDateTime(parts[1]);
                             }
                             interval = new calFreeBusyInterval(aCalId,
                                                                fbType,
@@ -2029,7 +2030,6 @@ calDavCalendar.prototype = {
                             periodsToReturn.push(interval);
                         }
                     }
-                    calIterateIcalComponent(getIcsService().parseICS(caldata, null), iterFunc);
                 } catch (exc) {
                     LOG("Error parsing free-busy info.");
                 }

@@ -40,6 +40,7 @@
 
 Components.utils.import("resource://gre/modules/debug.js");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
 /*
  * Scheduling and iTIP helper code;
@@ -333,40 +334,24 @@ cal.itip = {
 
         function hashMajorProps(aItem) {
             let propStrings = [];
-            function addProps(item) {
-                if (item) {
-                    const majorProps = {
-                        DTSTART: true,
-                        DTEND: true,
-                        DURATION: true,
-                        DUE: true,
-                        RDATE: true,
-                        RRULE: true,
-                        EXDATE: true,
-                        STATUS: true,
-                        LOCATION: true
-                    };
-                    cal.calIterateIcalComponent(
-                        item.icalComponent,
-                        function(subComp) {
-                            for (let prop = subComp.getFirstProperty("ANY");
-                                 prop;
-                                 prop = subComp.getNextProperty("ANY")) {
-                                if (majorProps[prop.propertyName]) {
-                                    propStrings.push(item.recurrenceId + "#" + prop.icalString);
-                                }
-                            }
-                        },
-                        cal.isEvent(item) ? "VEVENT" : "VTODO");
+            const majorProps = {
+                DTSTART: true,
+                DTEND: true,
+                DURATION: true,
+                DUE: true,
+                RDATE: true,
+                RRULE: true,
+                EXDATE: true,
+                STATUS: true,
+                LOCATION: true
+            };
+
+            for (let item in cal.itemIterator(aItem)) {
+                for (let prop in cal.ical.propertyIterator(item.icalComponent)) {
+                    if (prop.propertyName in majorProps) {
+                        propStrings.push(item.recurrenceId + "#" + prop.icalString);
+                    }
                 }
-            }
-            addProps(aItem);
-            let rec = (aItem && aItem.recurrenceInfo);
-            if (rec) {
-                rec.getExceptionIds({}).forEach(
-                    function(rid) {
-                        addProps(rec.getExceptionFor(rid, false));
-                    });
             }
             propStrings.sort();
             return propStrings.join("");

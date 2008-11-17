@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 function calWcapTimezone(tzProvider, tzid_, component_) {
     this.wrappedJSObject = this;
     this.provider = tzProvider;
@@ -683,16 +685,14 @@ calWcapSession.prototype = {
                 if (err) {
                     throw err;
                 }
-                forEachIcalComponent(
-                    data, "VTIMEZONE",
-                    function eachComp(subComp) {
-                        try {
-                            var tzid = subComp.getFirstProperty("TZID").value;
-                            this_.m_serverTimezones[tzid] = new calWcapTimezone(this_, tzid, subComp);
-                        } catch (exc) { // ignore but errors:
-                            logError(exc, this_);
-                        }
-                    });
+                for (let subComp in cal.ical.calendarComponentIterator(data, "VTIMEZONE")) {
+                    try {
+                        let tzid = subComp.getFirstProperty("TZID").value;
+                        this_.m_serverTimezones[tzid] = new calWcapTimezone(this_, tzid, subComp);
+                    } catch (exc) { // ignore but errors:
+                        logError(exc, this_);
+                    }
+                }
                 log("installed timezones.", this_);
             },
             stringToIcal, "get_all_timezones", "&fmt-out=text%2Fcalendar",

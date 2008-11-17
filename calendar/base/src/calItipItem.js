@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 /**
  * Constructor of calItipItem object
  */
@@ -172,7 +174,7 @@ calItipItem.prototype = {
         }
 
         this.mItemList = [];
-        for each (let item in cal.itemIterator(parser.getItems({}))) {
+        for (let item in cal.itemIterator(parser.getItems({}))) {
             cleanItem(item);
             // only push non-faked master items or
             // the overridden instances of faked master items

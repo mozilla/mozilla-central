@@ -983,11 +983,12 @@ function ASSERT(aCondition, aMessage, aCritical) {
         return;
     }
 
-    NS_ASSERT(aCondition, aMessage);
+    let string = "Assert failed: " + aMessage + '\n' + STACK(0, 1);
     if (aCritical) {
-        let string = "Assert failed: " + aMessage + '\n' + STACK(null, 1);
         throw new Components.Exception(string,
                                        aCritical === true ? Components.results.NS_ERROR_UNEXPECTED : aCritical);
+    } else {
+        Components.utils.reportError(string);
     }
 }
 
@@ -1402,34 +1403,6 @@ function sameDay(date1, date2) {
 }
 
 /**
- * Iterates all components inside the passed ical component and calls the passed function.
- * If the called function returns false, iteration is stopped.
- *
- * @param icalComp an ICS component
- * @param func functor that will be executed on sub components
- * @param compType optional component type to filter, defaults to "ANY"
- */
-function calIterateIcalComponent(icalComp, func, compType) {
-    if (icalComp) {
-        if (!compType) {
-            compType = "ANY";
-        }
-        var ctype = icalComp.componentType;
-        if (ctype != "VCALENDAR") {
-            return (ctype == compType ? func(icalComp) : true);
-        }
-        for (var subComp = icalComp.getFirstSubcomponent("ANY");
-             subComp;
-             subComp = icalComp.getNextSubcomponent("ANY")) {
-            if (!calIterateIcalComponent(subComp, func, compType)) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-/**
  * Centralized funtions for accessing prodid and version
  */
 function calGetProductId() {
@@ -1725,17 +1698,16 @@ calPropertyBag.prototype = {
     },
     get enumerator() {
         return new calPropertyBagEnumerator(this);
+    },
+    __iterator__: function cpb_iterator(aWantKeys) {
+        return Iterator(this.mData, aWantKeys);
     }
 };
 // implementation part of calPropertyBag
 function calPropertyBagEnumerator(bag) {
     this.mIndex = 0;
     this.mBag = bag;
-    var keys = [];
-    for (var key in bag.mData) {
-        keys.push(key);
-    }
-    this.mKeys = keys;
+    this.mKeys = [ key for (key in bag.mData) ];
 }
 calPropertyBagEnumerator.prototype = {
     mIndex: 0,

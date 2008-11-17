@@ -872,12 +872,12 @@ calWcapCalendar.prototype.patchTimezone = function calWcapCalendar_patchTimezone
 
 calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
     icalRootComp, itemFilter, maxResults, rangeStart, rangeEnd, bLeaveMutable) {
-    var items = [];
-    var unexpandedItems = [];
-    var uid2parent = {};
-    var excItems = [];
+    let items = [];
+    let unexpandedItems = [];
+    let uid2parent = {};
+    let excItems = [];
 
-    var componentType = "ANY";
+    let componentType = "ANY";
     switch (itemFilter & calICalendar.ITEM_FILTER_TYPE_ALL) {
         case calICalendar.ITEM_FILTER_TYPE_TODO:
             componentType = "VTODO";
@@ -889,93 +889,94 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
 
     var recurrenceBound = this.session.recurrenceBound;
 
-    var this_ = this;
-    forEachIcalComponent(
-        icalRootComp, componentType,
-        function(subComp) {
-            var organizer = subComp.getFirstProperty("ORGANIZER");
-            if (organizer && organizer.getParameter("SENT-BY")) { // has SENT-BY
-                // &emailorcalid=1 sets wrong email, workaround setting calid...
-                var id = organizer.getParameter("X-S1CS-CALID");
-                if (id) {
-                    organizer.value = id;
+    let count = 0;
+    for (let subComp in cal.ical.calendarComponentIterator(icalRootComp, componentType)) {
+        if (++count > maxResults) {
+            break;
+        }
+
+        let organizer = subComp.getFirstProperty("ORGANIZER");
+        if (organizer && organizer.getParameter("SENT-BY")) { // has SENT-BY
+            // &emailorcalid=1 sets wrong email, workaround setting calid...
+            let id = organizer.getParameter("X-S1CS-CALID");
+            if (id) {
+                organizer.value = id;
+            }
+        }
+
+        let dtstart = this.patchTimezone(subComp, "startTime", "X-NSCP-DTSTART-TZID");
+
+        let item = null;
+        switch (subComp.componentType) {
+            case "VEVENT": {
+                this.patchTimezone(subComp, "endTime", dtstart ? dtstart.timezone : "X-NSCP-DTEND-TZID");
+                item = createEvent();
+                item.icalComponent = subComp;
+                break;
+            }
+            case "VTODO": {
+                this.patchTimezone(subComp, "dueTime", dtstart ? dtstart.timezone : "X-NSCP-DUE-TZID");
+                item = createTodo();
+                item.icalComponent = subComp;
+                switch (itemFilter & calICalendar.ITEM_FILTER_COMPLETED_ALL) {
+                    case calICalendar.ITEM_FILTER_COMPLETED_YES:
+                        if (!item.isCompleted) {
+                            delete item;
+                            item = null;
+                        }
+                        break;
+                    case calICalendar.ITEM_FILTER_COMPLETED_NO:
+                        if (item.isCompleted) {
+                            delete item;
+                            item = null;
+                        }
+                        break;
+                }
+                break;
+            }
+        }
+        if (item) {
+            if (!item.title) {
+                // assumed to look at a subscribed calendar,
+                // so patch title for private items:
+                switch (item.privacy) {
+                    case "PRIVATE":
+                        item.title = g_privateItemTitle;
+                        break;
+                    case "CONFIDENTIAL":
+                        item.title = g_confidentialItemTitle;
+                        break;
                 }
             }
 
-            var dtstart = this_.patchTimezone(subComp, "startTime", "X-NSCP-DTSTART-TZID");
+            item.calendar = this.superCalendar;
+            var rid = item.recurrenceId;
+            if (rid) {
+                rid = rid.getInTimezone(dtstart.timezone);
+                item.recurrenceId = rid;
+                item.recurrenceInfo = null;
+                if (LOG_LEVEL > 1) {
+                    log("exception item: " + item.title +
+                        "\nrid=" + getIcalUTC(rid) +
+                        "\nitem.id=" + item.id, this);
+                }
+                excItems.push(item);
 
-            var item = null;
-            switch (subComp.componentType) {
-                case "VEVENT": {
-                    this_.patchTimezone(subComp, "endTime", dtstart ? dtstart.timezone : "X-NSCP-DTEND-TZID");
-                    item = createEvent();
-                    item.icalComponent = subComp;
-                    break;
+            } else if (item.recurrenceInfo) {
+                unexpandedItems.push(item);
+                uid2parent[item.id] = item;
+            } else if ((maxResults == 0 || items.length < maxResults) &&
+                       checkIfInRange(item, rangeStart, rangeEnd)) {
+                if (LOG_LEVEL > 2) {
+                    log("item: " + item.title + "\n" + item.icalString, this);
                 }
-                case "VTODO": {
-                    this_.patchTimezone(subComp, "dueTime", dtstart ? dtstart.timezone : "X-NSCP-DUE-TZID");
-                    item = createTodo();
-                    item.icalComponent = subComp;
-                    switch (itemFilter & calICalendar.ITEM_FILTER_COMPLETED_ALL) {
-                        case calICalendar.ITEM_FILTER_COMPLETED_YES:
-                            if (!item.isCompleted) {
-                                delete item;
-                                item = null;
-                            }
-                            break;
-                        case calICalendar.ITEM_FILTER_COMPLETED_NO:
-                            if (item.isCompleted) {
-                                delete item;
-                                item = null;
-                            }
-                            break;
-                    }
-                    break;
+                if (!bLeaveMutable) {
+                    item.makeImmutable();
                 }
+                items.push(item);
             }
-            if (item) {
-                if (!item.title) {
-                    // assumed to look at a subscribed calendar,
-                    // so patch title for private items:
-                    switch (item.privacy) {
-                        case "PRIVATE":
-                            item.title = g_privateItemTitle;
-                            break;
-                        case "CONFIDENTIAL":
-                            item.title = g_confidentialItemTitle;
-                            break;
-                    }
-                }
-
-                item.calendar = this_.superCalendar;
-                var rid = item.recurrenceId;
-                if (rid) {
-                    rid = rid.getInTimezone(dtstart.timezone);
-                    item.recurrenceId = rid;
-                    item.recurrenceInfo = null;
-                    if (LOG_LEVEL > 1) {
-                        log("exception item: " + item.title +
-                            "\nrid=" + getIcalUTC(rid) +
-                            "\nitem.id=" + item.id, this_);
-                    }
-                    excItems.push(item);
-
-                } else if (item.recurrenceInfo) {
-                    unexpandedItems.push(item);
-                    uid2parent[item.id] = item;
-                } else if ((maxResults == 0 || items.length < maxResults) &&
-                           checkIfInRange(item, rangeStart, rangeEnd)) {
-                    if (LOG_LEVEL > 2) {
-                        log("item: " + item.title + "\n" + item.icalString, this_);
-                    }
-                    if (!bLeaveMutable) {
-                        item.makeImmutable();
-                    }
-                    items.push(item);
-                }
-            }
-        },
-        maxResults);
+        }
+    }
 
     // tag "exceptions", i.e. items with rid:
     for each (var item in excItems) {

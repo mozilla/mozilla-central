@@ -68,10 +68,11 @@ let cal = {
         for each (let script in scriptNames) {
             let scriptFile = baseDir.clone();
             scriptFile.append(script);
+            let scriptUrlSpec = ioService.newFileURI(scriptFile).spec;
             try {
-                scriptLoader.loadSubScript(ioService.newFileURI(scriptFile).spec, scope);
+                scriptLoader.loadSubScript(scriptUrlSpec, scope);
             } catch (exc) {
-                Components.utils.reportError(exc);
+                Components.utils.reportError(exc + " (" + scriptUrlSpec + ")");
             }
         }
     },
@@ -81,28 +82,6 @@ let cal = {
      */
     isPhantomTimezone: function cal_isPhantomTimezone(tz) {
         return (!tz.icalComponent && !tz.isUTC && !tz.isFloating);
-    },
-
-    /**
-     * Iterates an array of items, i.e. the passed item including all
-     * overridden instances of a recurring series.
-     *
-     * @param items array of items
-     */
-    itemIterator: function cal_itemIterator(items) {
-        return {
-            __iterator__: function itemIterator_() {
-                for each (let item in items) {
-                    yield item;
-                    let rec = item.recurrenceInfo;
-                    if (rec) {
-                        for each (let exid in rec.getExceptionIds({})) {
-                            yield rec.getExceptionFor(exid, false);
-                        }
-                    }
-                }
-            }
-        };
     },
 
     /**

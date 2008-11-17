@@ -168,8 +168,7 @@ function pasteFromClipboard() {
             }
 
             let calComp = cal.getIcsService().parseICS(data, null);
-            let subComp = calComp.getFirstSubcomponent("ANY");
-            while (subComp) {
+            for (let subComp in cal.ical.calendarComponentIterator(calComp)) {
                 switch (subComp.componentType) {
                     case "VEVENT":
                         let event = cal.createEvent();
@@ -184,7 +183,6 @@ function pasteFromClipboard() {
                     default:
                         break;
                 }
-                subComp = calComp.getNextSubcomponent("ANY");
             }
 
             // If there are multiple items on the clipboard, the earliest

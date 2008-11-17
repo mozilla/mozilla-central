@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
 function calIcsSerializer() {
     this.wrappedJSObject = this;
@@ -112,7 +113,7 @@ function is_getIcalComponent() {
         calComp.addSubcomponent(comp);
     }
 
-    for each (let item in cal.itemIterator(this.mItems)) {
+    for (let item in cal.itemIterator(this.mItems)) {
         calComp.addSubcomponent(item.icalComponent);
     }
 

@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 var g_bShutdown = false;
 
 function initLogging() {
@@ -200,27 +202,6 @@ function isParent(item) {
         throw new Components.Exception("proxy has different id than its parent!");
     }
     return (!item.recurrenceId);
-}
-
-function forEachIcalComponent(icalRootComp, componentType, func, maxResults) {
-    var itemCount = 0;
-    // libical returns the vcalendar component if there is just
-    // one vcalendar. If there are multiple vcalendars, it returns
-    // an xroot component, with those vcalendar childs. We need to
-    // handle both.
-    for (var calComp = (icalRootComp.componentType == "VCALENDAR"
-                        ? icalRootComp : icalRootComp.getFirstSubcomponent("VCALENDAR"));
-         calComp != null && (!maxResults || itemCount < maxResults);
-         calComp = icalRootComp.getNextSubcomponent("VCALENDAR")) {
-
-        for (var subComp = calComp.getFirstSubcomponent(componentType);
-             subComp != null && (!maxResults || itemCount < maxResults);
-             subComp = calComp.getNextSubcomponent(componentType)) {
-
-            func(subComp);
-            ++itemCount;
-        }
-    }
 }
 
 function filterXmlNodes(name, rootNode) {
