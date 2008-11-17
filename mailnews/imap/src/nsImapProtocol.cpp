@@ -373,6 +373,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_hostSessionList = nsnull;
   m_flagState = nsnull;
   m_fetchBodyIdList = nsnull;
+  m_authLogin = PR_TRUE;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   NS_ASSERTION(prefBranch, "FAILED to create the preference service");
@@ -495,24 +496,29 @@ nsresult nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList, n
   NS_PRECONDITION(aSinkEventTarget && aHostSessionList,
              "oops...trying to initialize with a null sink event target!");
   if (!aSinkEventTarget || !aHostSessionList || !aServer)
-        return NS_ERROR_NULL_POINTER;
+    return NS_ERROR_NULL_POINTER;
 
-   nsresult rv = m_downloadLineCache->GrowBuffer(kDownLoadCacheSize);
-   NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv = m_downloadLineCache->GrowBuffer(kDownLoadCacheSize);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-   m_flagState = new nsImapFlagAndUidState(kImapFlagAndUidStateSize, PR_FALSE);
-   if (!m_flagState)
-     return NS_ERROR_OUT_OF_MEMORY;
+  m_flagState = new nsImapFlagAndUidState(kImapFlagAndUidStateSize, PR_FALSE);
+  if (!m_flagState)
+    return NS_ERROR_OUT_OF_MEMORY;
 
-   aServer->GetUseIdle(&m_useIdle);
-   aServer->GetUseCondStore(&m_useCondStore);
-   NS_ADDREF(m_flagState);
+  aServer->GetUseIdle(&m_useIdle);
+  aServer->GetUseCondStore(&m_useCondStore);
+  NS_ADDREF(m_flagState);
 
-    m_sinkEventTarget = aSinkEventTarget;
-    m_hostSessionList = aHostSessionList; // no ref count...host session list has life time > connection
-    m_parser.SetHostSessionList(aHostSessionList);
-    m_parser.SetFlagState(m_flagState);
+  m_sinkEventTarget = aSinkEventTarget;
+  m_hostSessionList = aHostSessionList; // no ref count...host session list has life time > connection
+  m_parser.SetHostSessionList(aHostSessionList);
+  m_parser.SetFlagState(m_flagState);
 
+  // one of the initializations that should be done in UI thread
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  if (NS_SUCCEEDED(rv) && prefBranch)
+    prefBranch->GetBoolPref("mail.auth_login", &m_authLogin);
+    
   // Now initialize the thread for the connection and create appropriate monitors
   if (m_thread == nsnull)
   {
@@ -7682,19 +7688,13 @@ PRBool nsImapProtocol::TryToLogon()
       PRBool imapPasswordIsNew = PR_FALSE;
       if (!userName.IsEmpty())
       {
-      PRBool prefBool = PR_TRUE;
-
       PRBool lastReportingErrors = GetServerStateParser().GetReportingErrors();
       GetServerStateParser().SetReportingErrors(PR_FALSE);  // turn off errors - we'll put up our own.
-
-      nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-      if (NS_SUCCEEDED(rv) && prefBranch)
-        prefBranch->GetBoolPref("mail.auth_login", &prefBool);
 
       if (GetServerStateParser().GetCapabilityFlag() == kCapabilityUndefined)
         Capability();
 
-      if (prefBool)
+      if (m_authLogin)
       {
         // If secure auth is configured, don't proceed unless the server
         // supports it. This avoids fallback to insecure login in case

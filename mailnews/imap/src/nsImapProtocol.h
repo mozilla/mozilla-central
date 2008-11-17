@@ -344,6 +344,7 @@ private:
   PRUint32        m_totalDataSize; // total data size
   PRUint32        m_curReadIndex;  // current read index
   nsCString       m_trashFolderName;
+  PRBool          m_authLogin;
 
   // Ouput stream for writing commands to the socket
   nsCOMPtr<nsISocketTransport>  m_transport;
