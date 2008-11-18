@@ -74,6 +74,20 @@
 #define kNewMailAlertIcon "chrome://messenger/skin/icons/new-mail-alert.png"
 #define kBiffShowAlertPref "mail.biff.show_alert"
 
+// HACK: Limitations in Focus/SetFocus on Mac (see bug 465446)
+nsresult FocusAppNative()
+{
+  ProcessSerialNumber psn;
+
+  if (::GetCurrentProcess(&psn) != 0)
+   return NS_ERROR_FAILURE;
+
+  if (::SetFrontProcess(&psn) != 0)
+   return NS_ERROR_FAILURE;
+
+  return NS_OK;
+}
+
 static void openMailWindow(const nsACString& aFolderUri)
 {
   nsresult rv;
@@ -93,6 +107,7 @@ static void openMailWindow(const nsACString& aFolderUri)
         windowCommands->SelectFolder(aFolderUri);
     }
     
+    FocusAppNative();
     nsCOMPtr<nsIDOMWindowInternal> domWindow;
     topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
     domWindow->Focus();
@@ -395,26 +410,10 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
 nsresult
 nsMessengerOSXIntegration::OnAlertClicked()
 {
-#ifdef MOZ_THUNDERBIRD
-  nsresult rv;
-  nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-  
-  nsCOMPtr<nsIMsgWindow> topMostMsgWindow;
-  rv = mailSession->GetTopmostMsgWindow(getter_AddRefs(topMostMsgWindow));
-  if (topMostMsgWindow)
-  {
-    nsCOMPtr<nsIDOMWindowInternal> domWindow;
-    rv = topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    domWindow->Focus();
-  }
-#else
   nsCString folderURI;
   GetFirstFolderWithNewMail(folderURI);
   openMailWindow(folderURI);
-#endif
+
   return NS_OK;
 }
 
