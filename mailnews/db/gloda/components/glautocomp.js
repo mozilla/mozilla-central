@@ -68,6 +68,7 @@ function ResultRowMulti(aNounID, aCriteriaType, aCriteria, aQuery) {
   this.criteriaType = aCriteriaType;
   this.criteria = aCriteria;
   this.collection = aQuery.getCollection(this);
+  this.collection.becomeExplicit();
   this.renderer = null;
 }
 ResultRowMulti.prototype = {
@@ -190,6 +191,7 @@ function ContactIdentityCompleter() {
   let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
   contactQuery.orderBy("-popularity").limit(MAX_POPULAR_CONTACTS);
   this.contactCollection = contactQuery.getCollection(this, null);
+  this.contactCollection.becomeExplicit();
 }
 ContactIdentityCompleter.prototype = {
   _popularitySorter: function(a, b){ return b.popularity - a.popularity; },
@@ -233,12 +235,14 @@ ContactIdentityCompleter.prototype = {
     let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
     contactQuery.nameLike(contactQuery.WILD, aString, contactQuery.WILD);
     pending.contactColl = contactQuery.getCollection(this, aResult);
+    pending.contactColl.becomeExplicit();
 
     LOG.debug("CIC: issuing identity LIKE query");
     let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
     identityQuery.kind("email").valueLike(identityQuery.WILD, aString,
         identityQuery.WILD);
     pending.identityColl = identityQuery.getCollection(this, aResult);
+    pending.identityColl.becomeExplicit();
     
     aResult._contactCompleterPending = pending;
 

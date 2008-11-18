@@ -485,6 +485,22 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener,
 GlodaCollection.prototype = {
   get listener() { return this._listener; },
   set listener(aListener) { this._listener = aListener; },
+
+  /**
+   * If this collection still has a query associated with it, drop the query
+   *  and replace it with an 'explicit query'.  This means that the Collection
+   *  Manager will not attempt to match new items indexed to the system against
+   *  our query criteria.
+   * Once you call this method, your collection's listener will no longer
+   *  receive onItemsAdded notifications that are not the result of your
+   *  initial database query.  It will, however, receive onItemsModified
+   *  notifications if items in the collection are re-indexed.
+   */
+  becomeExplicit: function gloda_coll_becomeExplicit() {
+    if (!(this.query instanceof this._nounDef.explicitQueryClass)) {
+      this.query = new this._nounDef.explicitQueryClass();
+    }
+  },
   
   /**
    * Clear the contents of this collection.  This only makes sense for explicit

@@ -128,6 +128,7 @@ let QueryFromQueryResolver = {
   onItemsAdded: function(aIgnoredItems, aCollection, aFake) {
     let originColl = aCollection.dataStack ? aCollection.dataStack.pop()
                                            : aCollection.data;
+    //QFQ_LOG.debug("QFQR: originColl: " + originColl);
     if (aCollection.completionShifter)
       aCollection.completionShifter.push(originColl);
     else
@@ -346,7 +347,8 @@ QueryFromQueryCallback.prototype = {
               this.collection,
               // we fully expect/allow for there being no such subcollection yet.
               this.collection.masterCollection.subCollections[nounDef.id],
-              this.collection.masterCollection);
+              this.collection.masterCollection,
+              /* become explicit */ true);
         }
       }
       
@@ -366,7 +368,8 @@ QueryFromQueryCallback.prototype = {
             this.collection,
             // we fully expect/allow for there being no such subcollection yet.
             this.collection.masterCollection.subCollections[nounDef.id],
-            this.collection.masterCollection);
+            this.collection.masterCollection,
+            /* become explicit */ true);
       }
     }
     else {
@@ -2509,7 +2512,7 @@ var GlodaDatastore = {
    *  getCollection (asynchronous).
    */
   queryFromQuery: function gloda_ds_queryFromQuery(aQuery, aListener,
-      aListenerData, aExistingCollection, aMasterCollection) {
+      aListenerData, aExistingCollection, aMasterCollection, aBecomeExplicit) {
     // when changing this method, be sure that GlodaQuery's testMatch function
     //  likewise has its changes made.
     let nounDef = aQuery._nounDef;
@@ -2668,6 +2671,14 @@ var GlodaDatastore = {
 
     this._log.debug("QUERY FROM QUERY: " + sqlString + " ARGS: " + boundArgs);
     
+    // if we want to become explicit, replace the query (which has already
+    //  provided our actual SQL query) with an explicit query.  This will be
+    //  what gets attached to the collection in the event we create a new
+    //  collection.  If we are reusing one, we assume that the explicitness,
+    //  if desired, already happened.
+    if (aBecomeExplicit)
+      aQuery = new nounDef.explicitQueryClass();
+
     return this._queryFromSQLString(sqlString, boundArgs, nounDef, aQuery,
         aListener, aListenerData, aExistingCollection, aMasterCollection);
   },
