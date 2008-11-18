@@ -74,10 +74,14 @@ ifndef DISABLE_LIGHTNING_INSTALL
 INSTALL_EXTENSION_ID = calendar-timezones@mozilla.org
 endif
 
+THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version.txt)
+SEAMONKEY_VERSION := $(shell cat $(topsrcdir)/suite/config/version.txt)
 CALENDAR_VERSION := $(shell cat $(topsrcdir)/calendar/sunbird/config/version.txt)
 TIMEZONES_VERSION := $(shell cat $(srcdir)/config/version.txt)
 
 DEFINES += -DAB_CD=$(AB_CD) \
+           -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
+           -DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION) \
            -DCALENDAR_VERSION=$(CALENDAR_VERSION) \
            -DTIMEZONES_VERSION=$(TIMEZONES_VERSION) \
            $(NULL)
@@ -85,7 +89,6 @@ DEFINES += -DAB_CD=$(AB_CD) \
 TIMEZONES_SQLITE =  $(srcdir)/timezones.sqlite
 
 ifneq ($(strip $(update)),)
-# xxx todo: update script depends on bug 435474
 libs::
 	echo 'SELECT * FROM tz_data ORDER BY tzid;' | sqlite3 $(TIMEZONES_SQLITE) > $(srcdir)/timezones_before_update.dump
 	$(DIST)/bin/xpcshell -s -w $(srcdir)/update.js $(update) $(srcdir)/$(DEPTH) $(TIMEZONES_VERSION)

@@ -107,9 +107,6 @@ DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
            -DTHEME=$(THEME) \
            $(NULL)
 
-GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
-DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
-
 libs-%:
 	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
 	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
