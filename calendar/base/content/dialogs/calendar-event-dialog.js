@@ -1884,7 +1884,7 @@ function saveItem() {
     }
 
     item.removeAllAttendees();
-    if (window.attendees) {
+    if (window.attendees && (window.attendees.length > 0)) {
         for each (var attendee in window.attendees) {
            item.addAttendee(attendee);
         }
