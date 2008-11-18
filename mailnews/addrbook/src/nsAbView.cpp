@@ -880,11 +880,29 @@ NS_IMETHODIMP nsAbView::OnItemRemoved(nsISupports *parentDir, nsISupports *item)
   nsCOMPtr <nsIAbDirectory> directory = do_QueryInterface(parentDir,&rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  if (directory.get() == mDirectory.get()) {
-    rv = RemoveCardAndSelectNextCard(item);
-    NS_ENSURE_SUCCESS(rv,rv);
-  }
-  return rv;
+  if (directory.get() == mDirectory.get())
+    return RemoveCardAndSelectNextCard(item);
+
+  // The pointers aren't the same, are the URI strings similar? This is most
+  // likely the case if the current directory is a search on a directory.
+  nsCString currentURI;
+  rv = mDirectory->GetURI(currentURI);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // If it is a search, it will have something like ?(or(PrimaryEmail...
+  // on the end of the string, so remove that before comparing
+  PRInt32 pos = currentURI.FindChar('?');
+  if (pos != -1)
+    currentURI.SetLength(pos);
+
+  nsCString notifiedURI;
+  rv = directory->GetURI(notifiedURI);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (currentURI.Equals(notifiedURI))
+    return RemoveCardAndSelectNextCard(item);
+
+  return NS_OK;
 }
 
 nsresult nsAbView::RemoveCardAndSelectNextCard(nsISupports *item)
