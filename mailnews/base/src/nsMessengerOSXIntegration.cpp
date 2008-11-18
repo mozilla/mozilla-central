@@ -255,21 +255,19 @@ nsMessengerOSXIntegration::GetStringBundle(nsIStringBundle **aBundle)
 }
 
 void
-nsMessengerOSXIntegration::FillToolTipInfo()
+nsMessengerOSXIntegration::FillToolTipInfo(nsIMsgFolder *aFolder)
 {
-  nsCOMPtr<nsIWeakReference> weakReference = do_QueryElementAt(mFoldersWithNewMail, 0);
-  nsCOMPtr<nsIMsgFolder> folder = do_QueryReferent(weakReference);
-  if (folder)
+  if (aFolder)
   {
     nsString accountName;
-    folder->GetPrettiestName(accountName);
+    aFolder->GetPrettiestName(accountName);
 
     nsCOMPtr<nsIStringBundle> bundle; 
     GetStringBundle(getter_AddRefs(bundle));
     if (bundle)
     { 
       PRInt32 numNewMessages = 0;   
-      folder->GetNumNewMessages(PR_TRUE, &numNewMessages);
+      aFolder->GetNumNewMessages(PR_TRUE, &numNewMessages);
       nsAutoString numNewMsgsText;     
       numNewMsgsText.AppendInt(numNewMessages);
 
@@ -376,7 +374,7 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
       if (mFoldersWithNewMail->IndexOf(weakFolder) == kNotFound)
           mFoldersWithNewMail->AppendElement(weakFolder);
 
-      FillToolTipInfo();
+      FillToolTipInfo(aFolder);
     }
     else if (aNewValue == nsIMsgFolder::nsMsgBiffState_NoMail)
     {

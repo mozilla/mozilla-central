@@ -79,7 +79,7 @@ private:
   nsresult OnAlertFinished(const PRUnichar * aAlertCookie);
   nsresult OnAlertClicked();
   nsresult GetStringBundle(nsIStringBundle **aBundle);
-  void FillToolTipInfo();
+  void FillToolTipInfo(nsIMsgFolder *aFolder);
   nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
   nsresult BadgeDockIcon();
   nsresult BounceDockIcon();
