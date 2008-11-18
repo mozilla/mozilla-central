@@ -47,11 +47,11 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://gloda/modules/log4moz.js");
+Cu.import("resource://app/modules/gloda/log4moz.js");
 
-Cu.import("resource://gloda/modules/datamodel.js");
-Cu.import("resource://gloda/modules/databind.js");
-Cu.import("resource://gloda/modules/collection.js");
+Cu.import("resource://app/modules/gloda/datamodel.js");
+Cu.import("resource://app/modules/gloda/databind.js");
+Cu.import("resource://app/modules/gloda/collection.js");
 
 let MBM_LOG = Log4Moz.Service.getLogger("gloda.ds.mbm");
 

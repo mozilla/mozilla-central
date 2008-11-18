@@ -42,13 +42,13 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://gloda/modules/log4moz.js");
+Cu.import("resource://app/modules/gloda/log4moz.js");
 
-Cu.import("resource://gloda/modules/utils.js");
-Cu.import("resource://gloda/modules/gloda.js");
-Cu.import("resource://gloda/modules/datastore.js");
+Cu.import("resource://app/modules/gloda/utils.js");
+Cu.import("resource://app/modules/gloda/gloda.js");
+Cu.import("resource://app/modules/gloda/datastore.js");
 
-Cu.import("resource://gloda/modules/noun_mimetype.js");
+Cu.import("resource://app/modules/gloda/noun_mimetype.js");
 
 
 /**

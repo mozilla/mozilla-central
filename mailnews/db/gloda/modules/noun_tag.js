@@ -42,7 +42,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://gloda/modules/gloda.js");
+Cu.import("resource://app/modules/gloda/gloda.js");
 
 /**
  * @namespace Tag noun provider.

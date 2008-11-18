@@ -42,14 +42,14 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://gloda/modules/log4moz.js");
+Cu.import("resource://app/modules/gloda/log4moz.js");
 
-Cu.import("resource://gloda/modules/datastore.js");
-Cu.import("resource://gloda/modules/datamodel.js");
-Cu.import("resource://gloda/modules/collection.js");
-Cu.import("resource://gloda/modules/connotent.js");
-Cu.import("resource://gloda/modules/query.js");
-Cu.import("resource://gloda/modules/utils.js");
+Cu.import("resource://app/modules/gloda/datastore.js");
+Cu.import("resource://app/modules/gloda/datamodel.js");
+Cu.import("resource://app/modules/gloda/collection.js");
+Cu.import("resource://app/modules/gloda/connotent.js");
+Cu.import("resource://app/modules/gloda/query.js");
+Cu.import("resource://app/modules/gloda/utils.js");
 
 /**
  * Provides the user-visible (and extension visible) global database

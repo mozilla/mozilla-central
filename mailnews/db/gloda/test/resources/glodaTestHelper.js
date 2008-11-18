@@ -35,22 +35,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// -- Create the "resource" for "gloda" so our imports work.
-var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
-var resProt = ioService.getProtocolHandler("resource")
-                       .QueryInterface(Components.interfaces.nsIResProtocolHandler);
-var glodaFile = do_get_file("../mailnews/db/global");
-
-var aliasURI = ioService.newFileURI(glodaFile);
-resProt.setSubstitution("gloda", aliasURI);
-
 // -- Pull in the POP3 fake-server / local account helper code
 do_import_script("../mailnews/local/test/unit/head_maillocal.js");
 
-// -- Use our newfound imports
-Components.utils.import("resource://gloda/modules/public.js");
-Components.utils.import("resource://gloda/modules/indexer.js");
+// -- Import our modules
+Components.utils.import("resource://app/modules/gloda/public.js");
+Components.utils.import("resource://app/modules/gloda/indexer.js");
 
 /** Inject messages using a POP3 fake-server. */
 const INJECT_FAKE_SERVER = 1;

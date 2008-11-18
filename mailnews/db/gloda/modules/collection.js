@@ -42,7 +42,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://gloda/modules/log4moz.js");
+Cu.import("resource://app/modules/gloda/log4moz.js");
 
 const LOG = Log4Moz.Service.getLogger("gloda.collection");
 

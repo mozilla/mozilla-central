@@ -281,6 +281,7 @@ bin/components/txEXSLTRegExFunctions.js
 
 ; Modules
 bin/modules/*
+bin/modules/gloda/*
 
 ; Safe Browsing
 

@@ -30,6 +30,7 @@ bin\msvcr80.dll
 
 ; Modules
 bin\modules\*
+bin\modules\gloda\*
 
 ; Optional RSS extension
 [newsblog]

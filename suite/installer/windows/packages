@@ -282,6 +282,7 @@ bin\components\nsWebHandlerApp.js
 
 ; Modules
 bin\modules\*
+bin\modules\gloda\*
 
 ; NegotiateAuth
 bin\components\auth.dll

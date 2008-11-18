@@ -52,15 +52,15 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-Cu.import("resource://gloda/modules/log4moz.js");
+Cu.import("resource://app/modules/gloda/log4moz.js");
 
-Cu.import("resource://gloda/modules/utils.js");
-Cu.import("resource://gloda/modules/datastore.js");
-Cu.import("resource://gloda/modules/gloda.js");
-Cu.import("resource://gloda/modules/collection.js");
-Cu.import("resource://gloda/modules/connotent.js");
+Cu.import("resource://app/modules/gloda/utils.js");
+Cu.import("resource://app/modules/gloda/datastore.js");
+Cu.import("resource://app/modules/gloda/gloda.js");
+Cu.import("resource://app/modules/gloda/collection.js");
+Cu.import("resource://app/modules/gloda/connotent.js");
 
-Cu.import("resource://gloda/modules/mimemsg.js");
+Cu.import("resource://app/modules/gloda/mimemsg.js");
 
 // for list comprehension fun
 function range(begin, end) {

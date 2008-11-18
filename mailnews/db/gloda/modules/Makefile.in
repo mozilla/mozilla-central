@@ -45,6 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = mailnewsglobaldb
 
-EXTRA_JS_MODULES = $(wildcard $(srcdir)/*.js)
+libs:: $(wildcard $(srcdir)/*.js)
+	$(INSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/modules/gloda
 
 include $(topsrcdir)/config/rules.mk

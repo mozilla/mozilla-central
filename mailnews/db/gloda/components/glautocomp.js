@@ -424,19 +424,19 @@ function nsAutoCompleteGloda() {
   if (Gloda === null) {
     let loadNS = {};
 
-    Cu.import("resource://gloda/modules/public.js", loadNS);
+    Cu.import("resource://app/modules/gloda/public.js", loadNS);
     Gloda = loadNS.Gloda;
 
-    Cu.import("resource://gloda/modules/utils.js", loadNS);
+    Cu.import("resource://app/modules/gloda/utils.js", loadNS);
     GlodaUtils = loadNS.GlodaUtils;
-    Cu.import("resource://gloda/modules/suffixtree.js", loadNS);
+    Cu.import("resource://app/modules/gloda/suffixtree.js", loadNS);
     MultiSuffixTree = loadNS.MultiSuffixTree;
-    Cu.import("resource://gloda/modules/noun_tag.js", loadNS);
+    Cu.import("resource://app/modules/gloda/noun_tag.js", loadNS);
     TagNoun = loadNS.TagNoun;
-    Cu.import("resource://gloda/modules/noun_freetag.js", loadNS);
+    Cu.import("resource://app/modules/gloda/noun_freetag.js", loadNS);
     FreeTagNoun = loadNS.FreeTagNoun;
 
-    Cu.import("resource://gloda/modules/log4moz.js", loadNS);
+    Cu.import("resource://app/modules/gloda/log4moz.js", loadNS);
     LOG = loadNS["Log4Moz"].Service.getLogger("gloda.autocomp");
   }
 

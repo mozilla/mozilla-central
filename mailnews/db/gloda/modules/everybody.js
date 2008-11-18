@@ -42,7 +42,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://gloda/modules/log4moz.js");
+Cu.import("resource://app/modules/gloda/log4moz.js");
 const LOG = Log4Moz.Service.getLogger("gloda.everybody");
 
 var importNS = {};
@@ -73,10 +73,10 @@ function loadModule(aModuleURI, aNSContrib) {
   return true;
 }
 
-loadModule("resource://gloda/modules/fundattr.js", "GlodaFundAttr");
-loadModule("resource://gloda/modules/explattr.js", "GlodaExplicitAttr");
+loadModule("resource://app/modules/gloda/fundattr.js", "GlodaFundAttr");
+loadModule("resource://app/modules/gloda/explattr.js", "GlodaExplicitAttr");
 
-loadModule("resource://gloda/modules/noun_tag.js");
-loadModule("resource://gloda/modules/noun_freetag.js");
-loadModule("resource://gloda/modules/noun_mimetype.js");
-loadModule("resource://gloda/modules/index_ab.js", "GlodaABAttrs");
+loadModule("resource://app/modules/gloda/noun_tag.js");
+loadModule("resource://app/modules/gloda/noun_freetag.js");
+loadModule("resource://app/modules/gloda/noun_mimetype.js");
+loadModule("resource://app/modules/gloda/index_ab.js", "GlodaABAttrs");

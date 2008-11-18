@@ -72,7 +72,7 @@ const kStateInAttachment = 3;
  */
 function MimeMessageEmitter() {
   this._mimeMsg = {};
-  Cu.import("resource://gloda/modules/mimemsg.js", this._mimeMsg);
+  Cu.import("resource://app/modules/gloda/mimemsg.js", this._mimeMsg);
 
   this._url = null;
   this._channel = null;

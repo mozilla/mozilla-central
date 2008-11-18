@@ -7,9 +7,9 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://gloda/modules/gloda.js");
-Cu.import("resource://gloda/modules/everybody.js");
-Cu.import("resource://gloda/modules/indexer.js");
+Cu.import("resource://app/modules/gloda/gloda.js");
+Cu.import("resource://app/modules/gloda/everybody.js");
+Cu.import("resource://app/modules/gloda/indexer.js");
 
 // an initial sweep is required.  this will not actually trigger anything if
 //  things are disabled, of course.
