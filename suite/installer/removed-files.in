@@ -113,6 +113,7 @@ modules/fundattr.js
 modules/gloda.js
 modules/index_ab.js
 modules/indexer.js
+modules/JSON.jsm
 modules/log4moz.js
 modules/mimemsg.js
 modules/noun_freetag.js

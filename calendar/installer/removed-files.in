@@ -419,3 +419,6 @@ js/calWcapSession.js
 js/calWcapUtils.js
 js/calWeekInfoService.js
 js/calWeekPrinter.js
+
+# Bug 462773 drop JSON.jsm
+modules/JSON.jsm
