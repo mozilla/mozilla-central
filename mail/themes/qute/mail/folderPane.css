@@ -123,6 +123,38 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Virtual) {
   -moz-image-region: rect(0 176px 16px 160px);
 }
 
+/* ..... Account nodes ..... */
+.tabmail-tab[type="folder"][IsServer="true"] .tab-icon-image {
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 16px 16px 0);
+}
+
+/* ..... Secure IMAP/POP account nodes ..... */
+.tabmail-tab[type="folder"][IsServer="true"][ServerType="imap"][IsSecure="true"] .tab-icon-image,
+.tabmail-tab[type="folder"][IsServer="true"][ServerType="pop3"][IsSecure="true"] .tab-icon-image {
+  -moz-image-region: rect(0 32px 16px 16px);
+}
+
+/* ..... Local folders ..... */
+.tabmail-tab[type="folder"][IsServer="true"][ServerType="none"] .tab-icon-image {
+  -moz-image-region: rect(0 48px 16px 32px);
+}
+
+/* ..... News server ..... */
+.tabmail-tab[type="folder"][IsServer="true"][ServerType="nntp"] .tab-icon-image {
+  -moz-image-region: rect(0 64px 16px 48px);
+}
+
+/* ..... Secure news server ..... */
+.tabmail-tab[type="folder"][IsServer="true"][ServerType="nntp"][IsSecure="true"] .tab-icon-image {
+  -moz-image-region: rect(0 80px 16px 64px);
+}
+
+/* .....  Newsgroup .....  */
+.tabmail-tab[type="folder"][ServerType="nntp"] .tab-icon-image {
+  -moz-image-region: rect(0 160px 16px 144px);
+}
+
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Virtual, newMessages-true) {
   -moz-image-region: rect(16px 176px 32px 160px);
 }

@@ -1271,13 +1271,21 @@ let mailTabType = {
         this.showTab(aTab);
       },
       onTitleChanged: function(aTab, aTabNode) {
-        if (!gMsgFolderSelected)
+        if (!gMsgFolderSelected) {
+          // Don't show "undefined" as title when there is no account.
+          aTab.title = "";
           return;
+        }
         aTab.title = gMsgFolderSelected.prettyName;
-        // the user may have changed folders, triggering our onTitleChanged callback.
-        // update the appropriate attributes on the tab.
+        if (!gMsgFolderSelected.isServer && this._getNumberOfRealAccounts() > 1)
+          aTab.title += " - " + gMsgFolderSelected.server.prettyName;
+
+        // The user may have changed folders, triggering our onTitleChanged callback.
+        // Update the appropriate attributes on the tab.
         aTabNode.setAttribute('SpecialFolder', getSpecialFolderString(gMsgFolderSelected));
         aTabNode.setAttribute('ServerType', gMsgFolderSelected.server.type);
+        aTabNode.setAttribute('IsServer', gMsgFolderSelected.isServer);
+        aTabNode.setAttribute('IsSecure', gMsgFolderSelected.server.isSecure);
       }
     },
     message: {
@@ -1286,7 +1294,15 @@ let mailTabType = {
         aTab.uriToOpen = aFolderUri;
         aTab.hdr = aMsgHdr;
 
-        aTab.title = aTab.hdr.mime2DecodedSubject;
+        aTab.title = "";
+        if(aTab.hdr.flags & MSG_FLAG_HAS_RE)
+          aTab.title = "Re: ";
+        if (aTab.hdr.mime2DecodedSubject)
+          aTab.title += aTab.hdr.mime2DecodedSubject;
+
+        aTab.title += " - " + aTab.hdr.folder.prettyName;
+        if (this._getNumberOfRealAccounts() > 1)
+          aTab.title += " - " + aTab.hdr.folder.server.prettyName;
 
         this.openTab(aTab); // call superclass logic
 
@@ -1304,6 +1320,15 @@ let mailTabType = {
       }
     }
   },
+
+  _getNumberOfRealAccounts : function() {
+    let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                        .getService(Components.interfaces.nsIMsgAccountManager);
+    let accountCount = mgr.accounts.Count();
+    // If we have an account, we also always have a "Local Folders" account.
+    return accountCount > 0 ? (accountCount - 1) : 0;
+  },
+
   /**
    * Create the new tab's state, which engenders some side effects.  Part of our
    *  contract is that we leave the tab in the selected state.

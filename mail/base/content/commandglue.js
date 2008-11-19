@@ -22,7 +22,7 @@
 #
 # Contributor(s):
 #   Jan Varga <varga@nixcorp.com>
-#   Håkan Waara (hwaara@chello.se)
+#   HÃ¥kan Waara (hwaara@chello.se)
 #   David Bienvenu (bienvenu@nventure.com)
 #   Jeremy Morton (bugzilla@game-point.net)
 #
@@ -95,16 +95,10 @@ function setTitleFromFolder(msgfolder, subject)
             end = server.hostName;
         }
         else {
-            var identity;
-            try {
-                var identities = accountManager.GetIdentitiesForServer(server);
-
-                identity = identities.QueryElementAt(0, Components.interfaces.nsIMsgIdentity);
-                // <folder> - <server.prettyName>
-                middle = "-";
-                end = server.prettyName;
-          } catch (ex) {}
-            }
+          // <folder> - <server.prettyName>
+          middle = "-";
+          end = server.prettyName;
+        }
         if (middle) title += " " + middle;
         if (end) title += " " + end;
       }
