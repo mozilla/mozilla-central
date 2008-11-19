@@ -322,6 +322,19 @@ NS_IMETHODIMP nsMsgWindow::SetDomWindow(nsIDOMWindowInternal * aWindow)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgWindow::SetNotificationCallbacks(nsIInterfaceRequestor * aNotificationCallbacks)
+{
+  mNotificationCallbacks = aNotificationCallbacks;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgWindow::GetNotificationCallbacks(nsIInterfaceRequestor **aNotificationCallbacks)
+{
+  NS_ENSURE_ARG_POINTER(aNotificationCallbacks);
+  NS_IF_ADDREF(*aNotificationCallbacks = mNotificationCallbacks);
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgWindow::StopUrls()
 {
   m_stopped = PR_TRUE;

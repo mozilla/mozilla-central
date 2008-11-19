@@ -80,6 +80,7 @@
 #include "nsISSLSocketControl.h"
 #include "nsILineInputStream.h"
 #include "nsLocalStrings.h"
+#include "nsIInterfaceRequestor.h"
 
 #define EXTRA_SAFETY_SPACE 3096
 
@@ -541,6 +542,14 @@ nsresult nsPop3Protocol::Initialize(nsIURI * aURL)
         nsCOMPtr<nsIDocShell> docshell;
         msgwin->GetRootDocShell(getter_AddRefs(docshell));
         ir = do_QueryInterface(docshell);
+        nsCOMPtr<nsIInterfaceRequestor> notificationCallbacks;
+        msgwin->GetNotificationCallbacks(getter_AddRefs(notificationCallbacks));
+        if (notificationCallbacks)
+        {
+          nsCOMPtr<nsIInterfaceRequestor> aggregrateIR;
+          NS_NewInterfaceRequestorAggregation(notificationCallbacks, ir, getter_AddRefs(aggregrateIR));
+          ir = aggregrateIR;
+        }
       }
     }
 

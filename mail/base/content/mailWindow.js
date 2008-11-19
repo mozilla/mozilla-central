@@ -267,6 +267,8 @@ function CreateMailWindowGlobals()
                                        .getService(Components.interfaces.nsIAutoSyncManager);
   gAutoSyncMonitor.msgWindow = msgWindow;
   gAutoSyncManager.addListener(gAutoSyncMonitor);
+
+  msgWindow.notificationCallbacks = new BadCertHandler();
 }
 
 function InitMsgWindow()
@@ -638,4 +640,47 @@ function GetSearchSession()
 function UpdateFullZoomMenu() {
   var menuItem = document.getElementById("menu_fullZoomToggle");
   menuItem.setAttribute("checked", !ZoomManager.useFullZoom);
+}
+
+/**
+ * This class implements nsIBadCertListener2.  Its job is to prevent "bad cert"
+ * security dialogs from being shown to the user.  Currently it puts up the
+ * cert override dialog, though we'd like to give the user more detailed
+ * information in the future.
+ */
+function BadCertHandler() {
+}
+
+BadCertHandler.prototype = {
+  // Suppress any certificate errors
+  notifyCertProblem: function(socketInfo, status, targetSite) {
+    if (!status)
+      return true;
+
+    setTimeout(InformUserOfCertError, 0, socketInfo, targetSite);
+    return true;
+  },
+
+  // nsIInterfaceRequestor
+  getInterface: function(iid) {
+    return this.QueryInterface(iid);
+  },
+
+  // nsISupports
+  QueryInterface: function(iid) {
+    if (!iid.equals(Components.interfaces.nsIBadCertListener2) &&
+      !iid.equals(Components.interfaces.nsIInterfaceRequestor) &&
+      !iid.equals(Components.interfaces.nsISupports))
+      throw Components.results.NS_ERROR_NO_INTERFACE;
+    return this;
+  }
+};
+
+function InformUserOfCertError(socketInfo, targetSite)
+{
+  var params = { exceptionAdded : false };
+  params.prefetchCert = true;
+  params.location = targetSite;
+  window.openDialog('chrome://pippki/content/exceptionDialog.xul',
+                  '','chrome,centerscreen,modal', params);
 }

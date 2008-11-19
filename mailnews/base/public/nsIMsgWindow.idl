@@ -44,6 +44,7 @@ interface nsIDocShell;
 interface nsIDOMWindowInternal;
 interface nsIMsgHeaderSink;
 interface nsIPrompt;
+interface nsIInterfaceRequestor;
 
 [scriptable, uuid(7B8F4A65-CFC4-4b3f-BF5C-152AA8D5CD10)]
 interface nsIMsgWindowCommands : nsISupports {
@@ -52,7 +53,7 @@ interface nsIMsgWindowCommands : nsISupports {
   void clearMsgPane();
 };
 
-[scriptable, uuid(35A79B64-F3DA-40e8-8A6F-4FCCF8FD7DB0)]
+[scriptable, uuid(7e8fbaaa-d2f1-4751-af8e-8213fdb60a02)]
 interface nsIMsgWindow : nsISupports {
   attribute nsIMsgStatusFeedback statusFeedback;
   attribute nsIMsgWindowCommands windowCommands;
@@ -60,6 +61,12 @@ interface nsIMsgWindow : nsISupports {
   attribute nsITransactionManager transactionManager;
   attribute nsIMsgFolder openFolder;
   attribute nsIDocShell rootDocShell;
+  /**
+   * These are currently used to set notification callbacks on
+   * protocol channels to handle things like bad cert exceptions.
+   */
+  attribute nsIInterfaceRequestor notificationCallbacks;
+  
   void displayHTMLInMessagePane(in AString title, in AString body, in boolean clearMsgHdr);
 
   readonly attribute nsIPrompt promptDialog;

@@ -393,9 +393,15 @@ nsresult nsMsgComposeAndSend::GetNotificationCallbacks(nsIInterfaceRequestor** a
     nsCOMPtr<nsIDocShell> docShell;
     msgWindow->GetRootDocShell(getter_AddRefs(docShell));
     nsCOMPtr<nsIInterfaceRequestor> ir(do_QueryInterface(docShell));
+    nsCOMPtr<nsIInterfaceRequestor> notificationCallbacks;
+    msgWindow->GetNotificationCallbacks(getter_AddRefs(notificationCallbacks));
+    if (notificationCallbacks) {
+      nsCOMPtr<nsIInterfaceRequestor> aggregrateIR;
+      NS_NewInterfaceRequestorAggregation(notificationCallbacks, ir, getter_AddRefs(aggregrateIR));
+      ir = aggregrateIR;
+    }
     if (ir) {
-      *aCallbacks = ir;
-      NS_ADDREF(*aCallbacks);
+      NS_ADDREF(*aCallbacks = ir);
       return NS_OK;
     }
   }

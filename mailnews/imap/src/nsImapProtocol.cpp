@@ -94,6 +94,8 @@
 #include "nsIWindowWatcher.h"
 #include "nsCOMPtr.h"
 #include "nsMimeTypes.h"
+#include "nsIInterfaceRequestor.h"
+
 PRLogModuleInfo *IMAP;
 
 // netlib required files
@@ -752,6 +754,14 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
       if (channelListener) // only over-ride if we have a non null channel listener
         aRealStreamListener = channelListener;
       m_mockChannel->GetChannelContext(getter_AddRefs(m_channelContext));
+      nsCOMPtr<nsIMsgWindow> msgWindow;
+      GetMsgWindow(getter_AddRefs(msgWindow));
+      if (msgWindow)
+      {
+        nsCOMPtr<nsIInterfaceRequestor> interfaceRequestor;
+        msgWindow->GetNotificationCallbacks(getter_AddRefs(interfaceRequestor));
+        m_mockChannel->SetNotificationCallbacks(interfaceRequestor);
+      }
     }
 
     // since we'll be making calls directly from the imap thread to the channel listener,

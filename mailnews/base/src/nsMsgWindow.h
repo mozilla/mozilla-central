@@ -46,7 +46,7 @@
 #include "nsIURIContentListener.h"
 #include "nsIMimeMiscStatus.h"
 #include "nsWeakReference.h"
-
+#include "nsIInterfaceRequestor.h"
 #include "nsCOMPtr.h"
 
 class nsMsgWindow : public nsIMsgWindow,
@@ -70,6 +70,9 @@ protected:
   nsCOMPtr<nsITransactionManager> mTransactionManager;
   nsCOMPtr<nsIMsgFolder> mOpenFolder;
   nsCOMPtr<nsIMsgWindowCommands> mMsgWindowCommands;
+  // These are used by the backend protocol code to attach
+  // notification callbacks to channels, e.g., nsIBadCertListner2.
+  nsCOMPtr<nsIInterfaceRequestor> mNotificationCallbacks;
 
   // let's not make this a strong ref - we don't own it.
   nsWeakPtr mRootDocShellWeak;
