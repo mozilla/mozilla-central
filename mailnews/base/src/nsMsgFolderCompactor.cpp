@@ -332,7 +332,13 @@ NS_IMETHODIMP nsFolderCompactState::OnStopRunningUrl(nsIURI *url, nsresult statu
       CompactNextFolder();
   }
   else if (m_compactAll) // this should be the imap case only
+  {
+    nsCOMPtr <nsIMsgFolder> prevFolder = do_QueryElementAt(m_folderArray,
+                                                           m_folderIndex);
+    if (prevFolder)
+      prevFolder->SetMsgDatabase(nsnull);
     CompactNextFolder();
+  }
   return NS_OK;
 }
 
