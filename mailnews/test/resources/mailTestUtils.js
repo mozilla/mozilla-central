@@ -204,3 +204,53 @@ function loadFileToString(aFile, aCharset) {
 
   return data;
 }
+
+/**
+ * Ensure the given nsIMsgFolder's database is up-to-date, calling the provided
+ *  callback once the folder has been loaded.  (This may be instantly or
+ *  after a re-parse.)
+ * 
+ * @param aFolder The nsIMsgFolder whose database you want to ensure is
+ *     up-to-date.
+ * @param aCallback The callback function to invoke once the folder has been
+ *     loaded.
+ * @param aCallbackThis The 'this' to use when calling the callback.  Pass null
+ *     if your callback does not rely on 'this'.
+ * @param aCallbackArgs A list of arguments to pass to the callback via apply.
+ *     If you provide [1,2,3], we will effectively call:
+ *     aCallbackThis.aCallback(1,2,3);
+ */
+function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
+    aCallbackArgs) {
+  // register for the folder loaded notification ahead of time... even though
+  //  we may not need it...
+  let mailSession = Cc["@mozilla.org/messenger/services/session;1"]
+                      .getService(Ci.nsIMsgMailSession);
+  let atomService = Cc["@mozilla.org/atom-service;1"]
+                      .getService(Ci.nsIAtomService);
+  let kFolderLoadedAtom = atomService.getAtom("FolderLoaded");
+
+  let folderListener = {
+    OnItemEvent: function (aEventFolder, aEvent) {
+      if (aEvent == kFolderLoadedAtom && aFolder.URI == aEventFolder.URI) {
+        mailSession.RemoveFolderListener(this);
+        aCallback.apply(aCallbackThis, aCallbackArgs);
+      }
+    }
+  };
+
+  mailSession.AddFolderListener(folderListener, Ci.nsIFolderListener.event);
+
+  let needToWait = false;
+  try {
+    aFolder.updateFolder(null);
+  }
+  catch (e if e.result == Cr.NS_ERROR_NOT_INITIALIZED) {
+    needToWait = true;
+  }
+
+  if (!needToWait) {
+    mailSession.RemoveFolderListener(folderListener);
+    aCallback.apply(aCallbackThis, aCallbackArgs);
+  }
+}

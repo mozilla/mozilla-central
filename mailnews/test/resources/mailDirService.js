@@ -53,11 +53,17 @@ function initializeDirServer() {
             processDir.append("mailtest");
 
             return processDir;
-          } else if (prop == "TmpD") {
-            throw Components.results.NS_ERROR_FAILURE;
-          } else {
-            dump("Wants directory: "+prop+"\n");
           }
+          if (prop == "resource:app") {
+            // app should return the same as gre...
+            return dirSvc.get("GreD", Ci.nsIFile);
+          }
+          if (prop == "TmpD") {
+            throw Components.results.NS_ERROR_FAILURE;
+          }
+
+          dump("Directory request for: " + prop + " that we (mailDirService.js)" +
+               " are not handling, leaving it to another handler.\n");
           throw Components.results.NS_ERROR_FAILURE;
         },
 
@@ -72,8 +78,9 @@ function initializeDirServer() {
   // If there's no location registered for the profile directory, register one
   var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
                  .getService(Ci.nsIProperties);
+  var profileDir;
   try {
-    var profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
+    profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
   } catch (e) { }
 
   if (!profileDir) {

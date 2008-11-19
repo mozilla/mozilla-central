@@ -38,6 +38,12 @@
 // -- Pull in the POP3 fake-server / local account helper code
 do_import_script("../mailnews/local/test/unit/head_maillocal.js");
 
+// enable the gloda prefs
+const gPrefs = Cc["@mozilla.org/preferences-service;1"]
+                 .getService(Ci.nsIPrefBranch);
+gPrefs.setBoolPref("mailnews.database.global.indexer.enabled", true);
+gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
+
 // -- Import our modules
 Components.utils.import("resource://app/modules/gloda/public.js");
 Components.utils.import("resource://app/modules/gloda/indexer.js");

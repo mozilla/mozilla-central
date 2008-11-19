@@ -47,8 +47,7 @@ DIRS		= modules components
 #DIRS        = components
 
 ifdef ENABLE_TESTS
-#turn off tests for now
-#DIRS += test
+DIRS += test
 endif
 
 include $(topsrcdir)/config/rules.mk

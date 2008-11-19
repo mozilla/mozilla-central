@@ -37,17 +37,29 @@ pop3Daemon.prototype = {
   _messages: null,
   _totalMessageSize: 0,
 
+  /**
+   * Set the messages that the POP3 daemon will provide to its clients.
+   * 
+   * @param messages An array of either 1) strings that are filenames whose
+   *     contents will be loaded from the files or 2) objects with a "fileData"
+   *     attribute whose value is the content of the file.
+   */
   setMessages: function(messages) {
     this._messages = [];
     this._totalMessageSize = 0;
 
     function addMessage(element) {
-      this._messages.push( { fileData: readFile(element), size: -1 });
+      // if it's a string, then it's a file-name.
+      if (typeof element == "string")
+        this._messages.push( { fileData: readFile(element), size: -1 });
+      // otherwise it's an object as dictionary already
+      else
+        this._messages.push(element);
     }
     messages.forEach(addMessage, this);
 
     for (var i = 0; i < this._messages.length; ++i) {
-      this._messages[i].size = this._messages[i].length;
+      this._messages[i].size = this._messages[i].fileData.length;
       this._totalMessageSize += this._messages[i].size;
     }
   },
