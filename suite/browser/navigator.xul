@@ -136,9 +136,10 @@
   <!-- context menu -->
   <popupset id="contentAreaContextSet"/>
 
+  <!-- XXXCallek this should be loadURI rather than subscribe* here -->
   <popup id="feedsPopup" popupanchor="bottomright" popupalign="topright"
          onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
-         oncommand="loadURI(event.target.statusText, gBrowser.currentURI);"/>
+         oncommand="subscribeToFeed('feed:' + event.target.statusText /*, gBrowser.currentURI*/);"/>
   <panel type="autocomplete" id="PopupAutoComplete" level="top"/>
 
   <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true"

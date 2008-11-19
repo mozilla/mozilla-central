@@ -1089,3 +1089,12 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
   w.content.focus();
   return w;
 }
+
+//XXXCallek only used until we implement Feed Preview
+// uri is a string!
+function subscribeToFeed(uri)
+{
+  Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
+            .getService(Components.interfaces.nsINewsBlogFeedDownloader)
+            .subscribeToFeed(uri, null, null);
+}

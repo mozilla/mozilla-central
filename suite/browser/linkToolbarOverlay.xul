@@ -199,7 +199,8 @@
           type="menu"
           container="true"
           label="&feedButton.label;" disabled="true">
-        <menupopup id="link-feed-popup"/>
+        <!-- XXXCallek oncommand temporary until feed Preview works -->
+        <menupopup id="link-feed-popup" oncommand="event.stopPropagation(); return subscribeToFeed('feed:' + event.target.getAttribute('href');"/>
       </toolbarbutton>
     </toolbar>
   </toolbox>

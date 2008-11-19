@@ -76,7 +76,7 @@ function initFeedTab()
 function onSubscribeFeed()
 {
   var listbox = document.getElementById("feedListbox");
-  openTopWin(listbox.selectedItem.getAttribute("feedURL"));
+  subscribeToFeed('feed:' + listbox.selectedItem.getAttribute("feedURL"));
 }
 
 function addRow(name, type, url)
