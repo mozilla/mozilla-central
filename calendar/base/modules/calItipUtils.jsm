@@ -346,7 +346,7 @@ cal.itip = {
                 LOCATION: true
             };
 
-            for (let item in cal.itemIterator(aItem)) {
+            for (let item in cal.itemIterator([aItem])) {
                 for (let prop in cal.ical.propertyIterator(item.icalComponent)) {
                     if (prop.propertyName in majorProps) {
                         propStrings.push(item.recurrenceId + "#" + prop.icalString);
