@@ -276,8 +276,16 @@ ContactIdentityCompleter.prototype = {
         identityMails = [i.value.toLowerCase() for each
                          ([, i] in Iterator(this.identityCollection.items))];
 
+      // The suffix tree takes two parallel lists; the first contains strings
+      //  while the second contains objects that correspond to those strings.
+      // In the degenerate case where identityCollection does not exist, it will
+      //  be undefined.  Calling concat with an argument of undefined simply
+      //  duplicates the list we called concat on, and is thus harmless.  Our
+      //  use of && on identityCollection allows its undefined value to be
+      //  passed through to concat.  identityMails will likewise be undefined.
       this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
-        this.contactCollection.items.concat(this.identityCollection.items));
+        this.contactCollection.items.concat(this.identityCollection &&
+          this.identityCollection.items));
       
       return;
     }
