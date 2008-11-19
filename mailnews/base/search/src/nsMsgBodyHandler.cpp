@@ -270,9 +270,17 @@ PRInt32 nsMsgBodyHandler::ApplyTransformations (const nsCString &line, PRInt32 l
     {
       Base64Decode(buf);
       // Work on the parsed string
-      ApplyTransformations(buf, buf.Length(), eatThisLine, buf);
-      // Avoid spurious failures
-      eatThisLine = PR_FALSE;
+      if (!buf.Length())
+      {
+        NS_WARNING("Trying to transform an empty buffer");
+        eatThisLine = PR_TRUE;
+      }
+      else
+      {
+        ApplyTransformations(buf, buf.Length(), eatThisLine, buf);
+        // Avoid spurious failures
+        eatThisLine = PR_FALSE;
+      }
     }
     else
     {
