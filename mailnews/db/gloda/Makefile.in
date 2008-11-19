@@ -47,7 +47,9 @@ DIRS		= modules components
 #DIRS        = components
 
 ifdef ENABLE_TESTS
+ifneq ($(OS_ARCH),WINNT)
 DIRS += test
+endif
 endif
 
 include $(topsrcdir)/config/rules.mk
