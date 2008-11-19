@@ -1685,29 +1685,34 @@ NS_MSG_BASE nsresult MsgEscapeURL(const nsACString &aStr, PRUint32 aFlags,
 
 NS_MSG_BASE char *MsgEscapeHTML(const char *string)
 {
+  char *rv = nsnull;
   /* XXX Hardcoded max entity len. The +1 is for the trailing null. */
-  char *rv = (char *) nsMemory::Alloc(strlen(string) * 6 + 1);
+  PRUint32 len = PL_strlen(string);
+  if (len >= (PR_UINT32_MAX / 6))
+    return nsnull;
+
+  rv = (char *)NS_Alloc( (6 * len) + 1 );
   char *ptr = rv;
 
-  if(rv)
+  if (rv)
   {
     for(; *string != '\0'; string++)
     {
-      if(*string == '<')
+      if (*string == '<')
       {
         *ptr++ = '&';
         *ptr++ = 'l';
         *ptr++ = 't';
         *ptr++ = ';';
       }
-      else if(*string == '>')
+      else if (*string == '>')
       {
         *ptr++ = '&';
         *ptr++ = 'g';
         *ptr++ = 't';
         *ptr++ = ';';
       }
-      else if(*string == '&')
+      else if (*string == '&')
       {
         *ptr++ = '&';
         *ptr++ = 'a';
@@ -1723,7 +1728,7 @@ NS_MSG_BASE char *MsgEscapeHTML(const char *string)
         *ptr++ = 'o';
         *ptr++ = 't';
         *ptr++ = ';';
-      }      
+      }
       else if (*string == '\'')
       {
         *ptr++ = '&';
@@ -1739,7 +1744,6 @@ NS_MSG_BASE char *MsgEscapeHTML(const char *string)
     }
     *ptr = '\0';
   }
-
   return(rv);
 }
 
@@ -1752,8 +1756,13 @@ NS_MSG_BASE PRUnichar *MsgEscapeHTML(const PRUnichar *aSourceBuffer,
   }
 
   /* XXX Hardcoded max entity len. */
+  if (aSourceBufferLen >=
+    ((PR_UINT32_MAX - sizeof(PRUnichar)) / (6 * sizeof(PRUnichar))) )
+      return nsnull;
+
   PRUnichar *resultBuffer = (PRUnichar *)nsMemory::Alloc(aSourceBufferLen *
                             6 * sizeof(PRUnichar) + sizeof(PRUnichar('\0')));
+                                                        
   PRUnichar *ptr = resultBuffer;
 
   if (resultBuffer) {
