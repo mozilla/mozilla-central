@@ -1334,6 +1334,18 @@ void nsImapProtocol::HandleIdleResponses()
 
 void nsImapProtocol::EstablishServerConnection()
 {
+#define ESC_LENGTH(x) (sizeof(x) - 1)
+#define ESC_OK                      "* OK"
+#define ESC_OK_LEN                  ESC_LENGTH(ESC_OK)
+#define ESC_PREAUTH                 "* PREAUTH"
+#define ESC_PREAUTH_LEN             ESC_LENGTH(ESC_PREAUTH)
+#define ESC_CAPABILITY_STAR         "* "
+#define ESC_CAPABILITY_STAR_LEN     ESC_LENGTH(ESC_CAPABILITY_STAR)
+#define ESC_CAPABILITY_OK           "* OK ["
+#define ESC_CAPABILITY_OK_LEN       ESC_LENGTH(ESC_CAPABILITY_OK)
+#define ESC_CAPABILITY_GREETING     (ESC_CAPABILITY_OK "CAPABILITY")
+#define ESC_CAPABILITY_GREETING_LEN ESC_LENGTH(ESC_CAPABILITY_GREETING)
+
   char * serverResponse = CreateNewLineFromSocket(); // read in the greeting
 
   // record the fact that we've received a greeting for this connection so we don't ever
@@ -1341,11 +1353,33 @@ void nsImapProtocol::EstablishServerConnection()
   if (serverResponse)
     SetFlag(IMAP_RECEIVED_GREETING);
 
-  if (!PL_strncasecmp(serverResponse, "* OK", 4))
+  if (!PL_strncasecmp(serverResponse, ESC_OK, ESC_OK_LEN))
   {
     SetConnectionStatus(0);
+
+    if (!PL_strncasecmp(serverResponse, ESC_CAPABILITY_GREETING, ESC_CAPABILITY_GREETING_LEN))
+    {
+      nsCAutoString tmpstr(serverResponse);
+      PRInt32 endIndex = tmpstr.FindChar(']', ESC_CAPABILITY_GREETING_LEN);
+      if (endIndex >= 0)
+      {
+        // Allocate the new buffer here. This buffer will be passed to
+        // ParseIMAPServerResponse() where it will be used to fill the
+        // fCurrentLine field and will be freed by the next call to
+        // ResetLexAnalyzer().
+        char *fakeServerResponse = (char*)PR_Malloc(PL_strlen(serverResponse));
+        // Munge the greeting into something that would pass for an IMAP
+        // server's response to a "CAPABILITY" command.
+        strcpy(fakeServerResponse, ESC_CAPABILITY_STAR);
+        strcat(fakeServerResponse, serverResponse + ESC_CAPABILITY_OK_LEN);
+        fakeServerResponse[endIndex - ESC_CAPABILITY_OK_LEN + ESC_CAPABILITY_STAR_LEN] = '\0';
+        // Tell the response parser that we just issued a "CAPABILITY" and
+        // got the following back.
+        GetServerStateParser().ParseIMAPServerResponse("1 CAPABILITY", PR_TRUE, fakeServerResponse);
+      }
+    }
   }
-  else if (!PL_strncasecmp(serverResponse, "* PREAUTH", 9))
+  else if (!PL_strncasecmp(serverResponse, ESC_PREAUTH, ESC_PREAUTH_LEN))
   {
     // we've been pre-authenticated.
     // we can skip the whole password step, right into the
@@ -1373,6 +1407,18 @@ void nsImapProtocol::EstablishServerConnection()
   }
 
   PR_Free(serverResponse); // we don't care about the greeting yet...
+
+#undef ESC_LENGTH
+#undef ESC_OK
+#undef ESC_OK_LEN
+#undef ESC_PREAUTH
+#undef ESC_PREAUTH_LEN
+#undef ESC_CAPABILITY_STAR
+#undef ESC_CAPABILITY_STAR_LEN
+#undef ESC_CAPABILITY_OK
+#undef ESC_CAPABILITY_OK_LEN
+#undef ESC_CAPABILITY_GREETING
+#undef ESC_CAPABILITY_GREETING_LEN
 }
 
 // returns PR_TRUE if another url was run, PR_FALSE otherwise.

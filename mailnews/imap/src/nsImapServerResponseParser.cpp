@@ -170,12 +170,14 @@ void nsImapServerResponseParser::InitializeState()
 //           response-data = "*" SP (resp-cond-state / resp-cond-bye /
 //                           mailbox-data / message-data / capability-data) CRLF
 //           continue-req    = "+" SP (resp-text / base64) CRLF
-void nsImapServerResponseParser::ParseIMAPServerResponse(const char *currentCommand, PRBool aIgnoreBadAndNOResponses)
+void nsImapServerResponseParser::ParseIMAPServerResponse(const char *aCurrentCommand,
+                                                         PRBool aIgnoreBadAndNOResponses,
+                                                         char *aGreetingWithCapability)
 {
   
-  NS_ASSERTION(currentCommand && *currentCommand != '\r' && 
-    *currentCommand != '\n' && *currentCommand != ' ', "Invailid command string");
-  PRBool sendingIdleDone = !strcmp(currentCommand, "DONE"CRLF);
+  NS_ASSERTION(aCurrentCommand && *aCurrentCommand != '\r' && 
+    *aCurrentCommand != '\n' && *aCurrentCommand != ' ', "Invailid command string");
+  PRBool sendingIdleDone = !strcmp(aCurrentCommand, "DONE"CRLF);
   if (sendingIdleDone)
     fWaitingForMoreClientInput = PR_FALSE;
 
@@ -190,7 +192,7 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *currentComm
   fNumberOfTaggedResponsesExpected = 1;
   int numberOfTaggedResponsesReceived = 0;
   
-  nsCString copyCurrentCommand(currentCommand);
+  nsCString copyCurrentCommand(aCurrentCommand);
   if (!fServerConnection.DeathSignalReceived())
   {
     char *placeInTokenString = nsnull;
@@ -215,12 +217,18 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *currentComm
     }
     
     if (commandToken && ContinueParse())
-      PreProcessCommandToken(commandToken, currentCommand);
+      PreProcessCommandToken(commandToken, aCurrentCommand);
     
     if (ContinueParse())
     {
       ResetLexAnalyzer();
-      
+
+      if (aGreetingWithCapability)
+      {
+        PR_FREEIF(fCurrentLine);
+        fCurrentLine = aGreetingWithCapability;
+      }
+
       do {
         AdvanceToNextToken();
 
@@ -232,7 +240,7 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *currentComm
           {
             if (!fAtEndOfLine)
               SetSyntaxError(PR_TRUE);
-            else if (!inIdle && !fCurrentCommandFailed)
+            else if (!inIdle && !fCurrentCommandFailed && !aGreetingWithCapability)
               AdvanceToNextToken();
           }
         }
@@ -269,7 +277,8 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *currentComm
       {
         fWaitingForMoreClientInput = PR_TRUE;
       }
-      else if (!fWaitingForMoreClientInput) // if we aren't still waiting for more input....
+      // if we aren't still waiting for more input....
+      else if (!fWaitingForMoreClientInput && !aGreetingWithCapability)
       {
         if (ContinueParse())
           response_done();

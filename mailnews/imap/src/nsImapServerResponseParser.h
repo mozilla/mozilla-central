@@ -69,7 +69,9 @@ public:
   // aignoreBadAndNOResponses --> don't throw a error dialog if this command results in a NO or Bad response
   // from the server..in other words the command is "exploratory" and we don't really care if it succeeds or fails.
   // This value is typically FALSE for almost all cases.
-  virtual void ParseIMAPServerResponse(const char *currentCommand, PRBool aIgnoreBadAndNOResponses);
+  virtual void ParseIMAPServerResponse(const char *aCurrentCommand,
+                                       PRBool aIgnoreBadAndNOResponses,
+                                       char *aGreetingWithCapability = NULL);
   virtual void InitializeState();
   PRBool  CommandFailed();
 
