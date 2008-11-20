@@ -748,7 +748,7 @@ function saveDialog(item) {
         if (status != "COMPLETED") {
             item.completedDate = null;
         }
-        setItemProperty(item, "STATUS",   status);
+        setItemProperty(item, "STATUS", (status != "NONE") ? status : null);
     }
 
     // set the "PRIORITY" property if a valid priority has been
