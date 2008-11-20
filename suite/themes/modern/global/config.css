@@ -48,13 +48,14 @@
 
 #warningScreen
 {
-  background: #FFF;
+  background-color: #FFF;
 }
 
 #warningBox
 {
-  background: #C7D0D9;
-  border: 1px solid ThreeDShadow;
+  background-color: #C7D0D9;
+  color: #22262F;
+  border: 1px solid #494F5D;
   -moz-border-radius: 10px;
   padding: 3em;
   -moz-padding-start: 30px;
@@ -64,14 +65,14 @@
 
 #warningInnerBox
 {
- max-width: 50em;
+  max-width: 50em;
 }
 
 #warningTitle
 {
   margin: 0 0 .6em 0;
   font-size: 160%;
-  border-bottom: 1px solid ThreeDShadow
+  border-bottom: 1px solid #7A8490;
 }
 
 #warningText
@@ -92,6 +93,8 @@
 
 #exclam
 {
+  width: 46px;
+  height: 39px;
   list-style-image: url("chrome://global/skin/icons/alert-exclam.gif");
   margin-right: 3em;
 }
