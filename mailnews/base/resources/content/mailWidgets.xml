@@ -194,8 +194,8 @@
       <xul:hbox class="headerNameBox" align="start">
         <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
       </xul:hbox>
-      <xul:label onclick="if (!event.button) messenger.launchExternalURL(event.target.value);"
-                 class="headerValue plain headerValueUrl"
+      <xul:label onclick="if (event.button != 2) openUILink(event.target.value, event);"
+                 class="headerValue plain text-link headerValueUrl"
                  anonid="headerValue" flex="1" readonly="true" context="copyUrlPopup"/>
     </content>
   </binding>

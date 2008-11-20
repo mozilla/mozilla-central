@@ -273,3 +273,13 @@ function buildHelpMenu()
   else
     checkForUpdates.removeAttribute("loading");
 }
+
+// openUILink handles clicks on UI elements that cause URLs to load.
+// Firefox and SeaMonkey have a function with the same name,
+// so extensions can use this everywhere to open links.
+// We currently only react to left click in Thunderbird.
+function openUILink(url, event)
+{
+  if (!event.button)
+    messenger.launchExternalURL(url);
+}
