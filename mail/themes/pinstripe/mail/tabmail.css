@@ -32,200 +32,170 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
-.tabmail-tab:not([selected="true"]):hover {
-  background: url("chrome://messenger/skin/icons/tabmail-tabs-bkgnd.png") repeat-x;
-}
 
-.tabmail-tab:hover > .tab-image-middle > .tab-icon > .tab-extra-status {
-  background: none;
-}
+/* ::::: tabmail ::::: */
 
-.tab-icon-image {
-  width: 16px;
-  height: 16px;
-  list-style-image: url("chrome://global/skin/icons/small-globe-sunken.png");
-}
-
-.tab-icon {
-  padding-top: 1px;
-  margin: 2px 0px 1px 0px;
-}
-
-.tab-text {
-  font: icon;
-  padding-top: 1px;
-  margin-top: 2px !important;
-}
-
-.tabmail-tab[busy] > .tab-icon-image,
-.tabmail-tab[busy] > .tab-image-middle > .tab-icon > .tab-icon-image {
- list-style-image: url("chrome://global/skin/icons/loading_16_grey.gif") !important; 
-}
+/* bring in the proper bindings on OS X */
 
 .tabmail-tab {
   -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tab") !important;
+}
+
+.tabmail-tabs {
+  -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tabs") !important;
+}
+
+#messengerWindow:not([active="true"]) .tabmail-strip {
+  background-color: #e2e2e2;
+}
+
+#messengerWindow:not([active="true"]) .tabmail-tab {
+  color: #575757;
+}
+
+#messengerWindow:not([active="true"]) .tabmail-tab[selected="true"] {
+  background-color: -moz-mac-chrome-inactive;
+}
+
+.tab-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+
+.tabmail-tab[selected="true"] > .tab-icon {
+  list-style-image: url("chrome://global/skin/tree/item.png");
+}
+
+.tabmail-tab[busy] > .tab-icon {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+}
+
+.tabmail-tab:hover > .tab-icon,
+.tabmail-tab[selected="true"] > .tab-icon {
+  opacity: 1;
+}
+
+.tab-text {
+  margin-top: 3px !important;
+  margin-bottom: 0 !important;
+  font: message-box;
+  font-weight: bold;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.tabmail-tab {
   -moz-appearance: none;
-  color: #383838;
+  -moz-border-radius: 0 0 6px 6px;
+  color: #222;
   -moz-box-pack: center;
-  margin: 2px 0px 3px 0px;
-  padding: 0px;
-  border: none !important;
-  height: 22px !important;
+  -moz-box-align: center;
+  margin-bottom: 1px;
+  -moz-margin-end: 1px;
+  padding: 0 5px;
+  border-style: none solid solid;
+  border-width: 3px;
+  -moz-border-right-colors: rgba(0, 0, 0, .08) rgba(0, 0, 0, .17) rgba(180, 180, 180, .29);
+  -moz-border-bottom-colors: rgba(0, 0, 0, .08) rgba(0, 0, 0, .17) rgba(180, 180, 180, .29);
+  -moz-border-left-colors: rgba(0, 0, 0, .08) rgba(0, 0, 0, .17) rgba(180, 180, 180, .29);
+  -moz-background-clip: padding;
   min-width: 1px !important;
   text-align: center;
+  height: 24px;
+}
+
+.tabmail-tab:not([selected="true"]) {
+  background-image: url(chrome://messenger/skin/tabs/tab-bkgnd.png);
 }
 
 .tabmail-tab[selected="true"] {
   -moz-user-focus: normal;
+  padding: 0 6px 1px;
+  border-width: 2px;
+  -moz-border-left-colors: rgba(0, 0, 0, .1) rgba(0, 0, 0, .2);
+  -moz-border-bottom-colors: rgba(0, 0, 0, .1) rgba(0, 0, 0, .2);
+  -moz-border-right-colors: rgba(0, 0, 0, .1) rgba(0, 0, 0, .2);
+  background-color: -moz-mac-chrome-active;
 }
 
-.tabmail-tab > .tab-image-middle > .tab-text {
-  border: 1.4pt solid transparent;
+.tabmail-tab[selected="true"]:focus > .tab-text {
+  outline: 2px solid #4F8EC9;
+  outline-offset: -2px;
+  -moz-outline-radius: 3px;
 }
 
-.tabmail-tab:focus > .tab-image-middle > .tab-text {
-  border: 1.4pt solid -moz-mac-focusring;
-}
-
-.tabmail-tab[selected="true"], .tabmail-tab:hover {
+.tabmail-tab[selected="true"],
+.tabmail-tab:hover {
   color: #000000;
 }
 
-.tabmail-tab[first-tab="true"] > .tab-image-left {
-  margin-left: 3px !important;
-}
-
-.tab-image-left, .tab-image-right {
-  width: 8px;
-  margin: 0px;
-  padding: 0px;
-}
-
-.tabmail-tab > .tab-image-right {
-  background: url("chrome://messenger/skin/icons/tab-right.png") no-repeat;
-}
-
-.tabmail-tab:not([selected="true"]) > .tab-image-right {
-  background: url("chrome://messenger/skin/icons/tab-right-bkgnd.png") no-repeat;
-  margin-bottom: 1px;
-}
-
-.tabmail-tab:hover:not([selected="true"]) > .tab-image-right {
-  background: url("chrome://messenger/skin/icons/tab-right-hover.png") no-repeat;
-}
-
-.tabmail-tab > .tab-image-left {
-  background: url("chrome://messenger/skin/icons/tab-left.png") no-repeat;
-}
-
-.tabmail-tab:not([selected="true"]) > .tab-image-left {
-  background: url("chrome://messenger/skin/icons/tab-left-bkgnd.png") no-repeat;
-  margin-bottom: 1px;
-}
-
-.tabmail-tab:hover:not([selected="true"]) > .tab-image-left {
-  background: url("chrome://messenger/skin/icons/tab-left-hover.png") no-repeat;
-}
-
-.tabmail-tab > .tab-image-middle {
-  background: url("chrome://messenger/skin/icons/tab-middle.png") repeat-x;
-  -moz-box-flex: 0 !important;
-}
-
-.tabmail-tab:not([selected="true"]) > .tab-image-middle {
-  background: url("chrome://messenger/skin/icons/tab-middle-bkgnd.png");
-  margin-bottom: 1px;
-}
-
-.tabmail-tab:hover:not([selected="true"]) > .tab-image-middle {
-  background: url("chrome://messenger/skin/icons/tab-middle-hover.png");
-}
-
-.tabmail-tab:not([selected="true"]) > .tab-image-middle > .tab-icon > .tab-icon-image  {
-  list-style-image: url("chrome://global/skin/icons/small-globe-sunken-grey.png");
-}
-
-.tabs-closebutton {
-  padding: 0px 4px 2px 0px;
-  margin: 0px;
-  list-style-image: url("chrome://global/skin/icons/closetab.png") !important;
-  border: none !important;
-}
-
-.tabs-closebutton:hover {
-  list-style-image: url("chrome://global/skin/icons/closetab-hover.png") !important;
-  border: none !important;
-}
-
-.tabs-closebutton:hover:active {
-  list-style-image: url("chrome://global/skin/icons/closetab-active.png") !important;
-  border: none !important;
-}
-
 .tabmail-strip {
-  -moz-box-orient: vertical !important;
-  -moz-appearance: dialog;
+  margin-top: -1px;
+  border-bottom: 1px solid #404040;
+  background-color: #9B9B9B;
 }
 
 .tabmail-tabs {
-  -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tabs");
   border: none;
-  padding: 0;
-  margin: 0;
   -moz-box-pack: center;
   -moz-box-align: center;
-  background: url("chrome://messenger/skin/icons/tabmail-tabs-bkgnd.png") repeat-x;
+  background: url("chrome://messenger/skin/tabs/tabbrowser-tabs-bkgnd.png") repeat-x;
+  height: 25px;
+  margin-bottom: 0;
 }
 
-.tab-image-right, .tab-image-left {
-  height: 18px !important;
+.tabs-left {
+  display: -moz-box;
+  width: 3px;
 }
 
-.tabs-bottom {
-  border: none;
-  height: 4px !important;
-  background: url("chrome://messenger/skin/icons/tabs-bottom-bg.png") repeat !important;
-  margin: 0px !important;
+.tabmail-tabs[overflow="true"] .tabs-left {
+  display: none;
 }
 
 tabmail > tabbox > tabpanels {
   -moz-appearance: none !important;
 }
 
+
+/**
+ * Tab Drag and Drop
+ */
+
 .tab-drop-indicator-bar {
-   visibility: hidden;
-   height: 9px;
-   margin-top: -9px;
-   position: relative;
+  height: 10px;
+  margin-top: -10px;
+  position: relative;
+  /* set -moz-margin-start to -1/2 indicator width: */
+  -moz-margin-start: -4px;
 }
 
 .tab-drop-indicator {
-   height: 9px;
-   width: 9px;
-   margin-bottom: -5px;
-   position: relative;
-   background: url('chrome://messenger/skin/icons/tabDragIndicator.png') 50% 50% no-repeat;
-}
-
-.tab-drop-indicator-bar[dragging="true"] {
-   visibility: visible;
+  height: 33px;
+  width: 10px;
+  margin-bottom: -24px;
+  position: relative;
+  background: url('chrome://messenger/skin/tabs/tabDragIndicator.png') 50% 40% no-repeat;
 }
 
 /**
  * In-tab close button
  */
+
 .tab-close-button > .toolbarbutton-icon {
   -moz-margin-end: 0px !important;
-  margin-top: 2px;
+  margin-top: 1px;
+  padding: 0;
 }
 
 .tab-close-button {
   list-style-image: url("chrome://global/skin/icons/closetab.png");
   -moz-appearance: none;
   border: none !important;
-  padding: 0px;
-  background: inherit;
+  padding: 0;
+  margin: 1px 0 0;
+  background: none;
   cursor: default;
 }
 
@@ -239,144 +209,110 @@ tabmail > tabbox > tabpanels {
   list-style-image: url("chrome://global/skin/icons/closetab-active.png");
 }
 
-.tabmail-tab > .tab-close-button {
-  background-image: url("chrome://messenger/skin/icons/tab-middle.png");
-  background-repeat: repeat-x;
-  -moz-margin-start: -5px;
-  -moz-margin-end: -1px;
-  -moz-padding-end: 0px;
-}
-
 .tabmail-tab[selected="true"] > .tab-close-button {
   /* Make this button focusable so clicking on it will not focus the tab while
      it's getting closed */
   -moz-user-focus: normal;
 }
 
-.tabmail-tab:not([selected="true"]) > .tab-close-button {
-  background-image: url("chrome://messenger/skin/icons/tab-middle-bkgnd.png");
-  margin-bottom: 1px;
+.tabmail-arrowscrollbox > .scrollbutton-up,
+.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[chromedir="rtl"] {
+  border: 0;
+  border-right: 2px solid;
+  -moz-border-right-colors: rgba(0,0,0,0.25) rgba(255,255,255,0.15);
+  list-style-image: url("chrome://messenger/skin/tabs/tab-arrow-start.png");
+  -moz-image-region: rect(0px, 7px, 11px, 0px);
+  padding: 0;
+  width: 16px;
+  margin: 0;
 }
 
-.tabmail-tab:not([selected="true"]):hover > .tab-close-button {
-  background-image: url("chrome://messenger/skin/icons/tab-middle-hover.png");
+.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[chromedir="rtl"] {
+  -moz-border-end: none;
 }
 
-/**
- * Tab Scrollbox Arrow Buttons
- */
-
-.tabmail-arrowscrollbox > .scrollbutton-up {
-  width: 18px;
-  height: 18px;
-  margin: 2px 0px 3px 0px;
-  padding-left: 0;
-  padding-right: 0;
-  border: none;
-  list-style-image: url("chrome://messenger/skin/icons/tab-arrow-start.png");
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd.png");
-  background-repeat: no-repeat;
-  -moz-image-region: rect(0, 11px, 14px, 0);
-  opacity: 0.65;
+.tabmail-arrowscrollbox > .scrollbutton-up:hover {
+  background-color: rgba(0,0,0,0.10);
 }
 
-.tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"] {
-  -moz-image-region: rect(0, 33px, 14px, 22px);
+.tabmail-arrowscrollbox > .scrollbutton-up:hover:active {
+  background-color: rgba(0,0,0,0.20);
 }
 
-.tabmail-arrowscrollbox > .scrollbutton-up:not([disabled="true"]):hover {
-  -moz-image-region: rect(0, 22px, 14px, 11px);
-  opacity: 1.0;
-}
- 
-.tabmail-arrowscrollbox > .scrollbutton-up:not([disabled="true"]):hover:active {
-  -moz-image-region: rect(0, 44px, 14px, 33px);
+.tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"],
+.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[disabled="true"][chromedir="rtl"] {
+  -moz-image-region: rect(0px, 28px, 11px, 21px);
+  background-color: transparent !important; 
 }
 
-.tabmail-arrowscrollbox > .scrollbutton-up > .toolbarbutton-icon {
-  margin-top: 4px;
+.tabmail-arrowscrollbox .scrollbutton-down,
+.tabmail-arrowscrollbox > .scrollbutton-up[chromedir="rtl"] {
+  border-left: 2px solid;
+  -moz-border-left-colors: rgba(0,0,0,0.25) rgba(255,255,255,0.15);
+  list-style-image: url("chrome://messenger/skin/tabs/tab-arrow-end.png");
+  -moz-image-region: rect(0px, 44px, 11px, 37px);
+  -moz-padding-start: 2px;
+  -moz-padding-end: 0;
+  width: 16px;
+  margin: 0;
 }
 
-.tabmail-arrowscrollbox > stack > .scrollbutton-down-box {
-  margin: 2px 0px 3px 0px;
-  width: 18px;
-  height: 18px;
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd.png") !important;
-  background-repeat: no-repeat;
-  opacity: 0.65;
+.tabmail-arrowscrollbox > .scrollbutton-up[chromedir="rtl"] {
+  -moz-border-start: none;
 }
 
-.tabmail-arrowscrollbox > stack > .scrollbutton-down-box-animate {
-  margin: 2px 0px 3px 0px;
-  width: 18px;
-  height: 18px;
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-animate.png") !important;
-  background-repeat: no-repeat;
-  opacity: 0.0;
+.tabmail-arrowscrollbox .scrollbutton-down:hover {
+  background-color: rgba(0,0,0,0.10);
 }
 
-.tabmail-arrowscrollbox > stack > .scrollbutton-down {
-  margin: 2px 0px 3px 0px;
-  width: 18px;
-  height: 18px;
-  padding-left: 0;
-  padding-right: 0;
-  border: none;
-  list-style-image: url("chrome://messenger/skin/icons/tab-arrow-end.png") !important;
-  -moz-image-region: rect(0, 11px, 14px, 0);
+.tabmail-arrowscrollbox .scrollbutton-down:hover:active {
+  background-color: rgba(0,0,0,0.20);
 }
 
-.tabmail-arrowscrollbox > stack > .scrollbutton-down[disabled="true"] {
-  -moz-image-region: rect(0, 33px, 14px, 22px);
+.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[disabled="true"],
+.tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"][chromedir="rtl"] {
+  -moz-image-region: rect(0px, 23px, 11px, 16px);
+  background-color: transparent !important;
 }
 
-.tabmail-arrowscrollbox > stack > .scrollbutton-down:not([disabled="true"]):hover {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd.png") !important;
-  background-repeat: no-repeat;
-  -moz-image-region: rect(0, 22px, 14px, 11px);
-}
-
-.tabmail-arrowscrollbox > stack > .scrollbutton-down:not([disabled="true"]):hover:active {
-  -moz-image-region: rect(0, 44px, 14px, 33px);
-}
-
-.tabmail-arrowscrollbox > stack > .scrollbutton-down > .toolbarbutton-icon {
-  margin-top: 4px;
-  -moz-margin-start: 1px;
-}
 
 /**
- * All Tabs Button
+ * New Tab & All Tabs Buttons
  */
 
 .tabs-alltabs-box {
-  margin: 2px 0px 3px 0px;
-  width: 16px;
-  height: 18px;
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-bkgnd.png");
-  background-repeat: no-repeat;
-  opacity: 0.65;
+  margin: 0;
 }
 
-.tabmail-tabs[overflow="true"] .tabs-alltabs-box {
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-bkgnd.png");
-}
-
+.tabs-newtab-button ,
 .tabs-alltabs-button {
-  margin: 2px 0px 3px 0px;
-  width: 16px;
-  height: 18px;
-  padding-left: 0;
-  padding-right: 0;
-  border: none;
+  -moz-border-start: 2px solid;
+  -moz-border-end: none;
+  -moz-border-left-colors: rgba(0,0,0,0.25) rgba(255,255,255,0.15);
+  -moz-border-right-colors: rgba(0,0,0,0.25) rgba(255,255,255,0.15);
+  margin: 0;
+  padding: 0 4px;
+}
+.tabs-newtab-button {
+  list-style-image: url(chrome://messenger/skin/tabs/newtab.png);
+}
+.tabs-alltabs-button {
+  padding-top: 2px;
+  list-style-image: url(chrome://messenger/skin/tabs/alltabs-box-bkgnd-icon.png);
+}
+.tabs-newtab-button:hover ,
+.tabs-alltabs-button:hover {
+  background-color: rgba(0,0,0,0.10);
+}
+.tabs-newtab-button:hover:active,
+.tabs-alltabs-button:hover:active,
+.tabs-alltabs-button[open="true"] {
+  background-color: rgba(0,0,0,0.20);
 }
 
-.tabs-alltabs-button  > .toolbarbutton-menu-dropmarker {
-  margin-right: 2px;
-  margin-top: 4px;
-}
-
-.tabs-alltabs-button  > .toolbarbutton-text {
+.tabs-newtab-button > .toolbarbutton-text ,
+.tabs-alltabs-button > .toolbarbutton-menu-dropmarker ,
+.tabs-alltabs-button > .toolbarbutton-text {
   display: none;
 }
 
@@ -384,22 +320,10 @@ tabmail > tabbox > tabpanels {
   -moz-margin-end: 2px;
 }
 
-.tabs-alltabs-button:hover {
-  margin: 2px 0px 3px 0px;
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-bkgnd.png");
-  background-repeat: no-repeat;
-  opacity: 1.0;
-}
-
-.tabmail-tabs[overflow="true"] .tabs-alltabs-button:hover {
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-bkgnd.png");
-}
-
 .tabs-alltabs-box-animate {
-  margin: 2px 0px 3px 0px;
-  width: 16px;
-  height: 18px;
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-bkgnd-animate.png");
+  margin: 1px 0px 0px 0px;
+  width: 25px;
+  background-image: url("chrome://messenger/skin/tabs/alltabs-box-overflow-bkgnd-animate.png");
   background-repeat: no-repeat;
   opacity: 0.0;
 }
@@ -409,7 +333,7 @@ tabmail > tabbox > tabpanels {
  */
 
 .alltabs-item > .menu-iconic-left > .menu-iconic-icon {
-  list-style-image: url("chrome://global/skin/icons/small-globe-sunken.png");
+  list-style-image: url("chrome://global/skin/tree/item.png");
 }
 
 .alltabs-item[selected="true"] {
@@ -417,5 +341,25 @@ tabmail > tabbox > tabpanels {
 }
 
 .alltabs-item[busy] > .menu-iconic-left > .menu-iconic-icon {
-  list-style-image: url("chrome://global/skin/icons/loading_16_grey.gif") !important;
+  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+}
+
+.tabs-closebutton {
+  padding-right: 4px;
+  list-style-image: url("chrome://global/skin/icons/closetab.png") !important;
+  list-style-image: none;
+  border: none;
+  -moz-box-align: stretch;
+}
+
+.tabs-closebutton:hover > .toolbarbutton-icon {
+  background-image: none !important;
+}
+
+.tabs-closebutton:hover:active {
+  list-style-image: url("chrome://global/skin/icons/closetab-active.png") !important;
+}
+
+tabpanels.plain {
+  background-color: #fff !important;
 }
