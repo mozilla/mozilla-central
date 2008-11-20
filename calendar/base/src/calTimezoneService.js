@@ -498,7 +498,7 @@ function guessSystemTimezone() {
         // Each period is marked by a DTSTART.
         // Find the currently applicable period: has most recent DTSTART
         // not later than today and no UNTIL, or UNTIL is greater than today.
-        for (let period in cal.ical.subcomponentIterator(subComp, standardOrDayLight)) {
+        for (let period in cal.ical.subcomponentIterator(subComp, standardOrDaylight)) {
             periodStartCalDate.icalString = getIcalString(period, "DTSTART");
             periodStartCalDate.timezone = tz;
             if (oneYrUTC.nativeTime < periodStartCalDate.nativeTime) {
