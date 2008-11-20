@@ -150,6 +150,8 @@ MOZ_WINCONSOLE = 0
 endif
 endif
 
+# This switches $(INSTALL) to copy mode, like $(SYSINSTALL), so things that
+# shouldn't get 755 perms need $(IFLAGS1) for either way of calling nsinstall.
 NSDISTMODE = copy
 
 include $(topsrcdir)/config/config.mk
@@ -281,10 +283,10 @@ DESKTOP_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(DESKTOP_ICONS) $(DESKTOP_ICON
 BRANDED_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(BRANDED_ICONS) $(BRANDED_ICONS_SMALL))
 
 libs:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
-	$(INSTALL) $^ $(DIST)/bin/chrome/icons/default
+	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/chrome/icons/default
 
 libs:: $(addprefix $(DIST)/branding/,$(BRANDED_ICON_FILES))
-	$(INSTALL) $^ $(DIST)/bin/chrome/icons/default
+	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/chrome/icons/default
 
 install:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/chrome/icons/default
@@ -295,7 +297,7 @@ endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
 libs::
-	$(INSTALL) $(DIST)/branding/default.xpm $(DIST)/bin/chrome/icons/default
+	$(INSTALL) $(IFLAGS1) $(DIST)/branding/default.xpm $(DIST)/bin/chrome/icons/default
 
 install::
 	$(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/default.xpm $(DESTDIR)$(mozappdir)/chrome/icons/default
@@ -324,7 +326,7 @@ ICON_FILES	= \
 		$(NULL)
 
 libs::
-	$(INSTALL) $(ICON_FILES) $(DIST)/bin/icons
+	$(INSTALL) $(IFLAGS1) $(ICON_FILES) $(DIST)/bin/icons
 
 install::
 	$(SYSINSTALL) $(IFLAGS1) $(ICON_FILES) $(DESTDIR)$(mozappdir)/icons
@@ -380,7 +382,7 @@ else
 endif
 
 libs:: $(srcdir)/profile/prefs.js
-	$(INSTALL) $^ $(DIST)/bin/defaults/profile
+	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/defaults/profile
 
 install:: $(srcdir)/profile/prefs.js
 	$(SYSINSTALL) $(IFLAGS1) $^  $(DESTDIR)$(mozappdir)/defaults/profile
