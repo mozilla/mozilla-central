@@ -858,8 +858,14 @@ function loadStartFolder(initialUri)
             && !defaultServer.isDeferredTo &&
             defaultServer.rootFolder == defaultServer.rootMsgFolder)
           defaultServer.performBiff(msgWindow);
-
-        gFolderTreeView.selectFolder(startFolder);
+        try {
+          gFolderTreeView.selectFolder(startFolder);
+        } catch(ex) {
+          // This means we tried to select a folder that isn't in the current
+          // view. Just select the first one in the view then.
+          if (gFolderTreeView._rowMap.length)
+            gFolderTreeView.selectFolder(gFolderTreeView._rowMap[0]._folder);
+         }
     }
     catch(ex)
     {

@@ -252,10 +252,13 @@ let gFolderTreeView = {
       }
 
       // not found, so open the parent
-      openIfNot(aFolderToOpen.parent);
+      if (aFolderToOpen.parent)
+        openIfNot(aFolderToOpen.parent);
 
       // now our parent is open, so we can open ourselves
-      tree._toggleRow(tree.getIndexOfFolder(aFolderToOpen), false);
+      index = tree.getIndexOfFolder(aFolderToOpen);
+      if (index)
+        tree._toggleRow(index, false);
     }
     if (aFolder.parent)
       openIfNot(aFolder.parent);
