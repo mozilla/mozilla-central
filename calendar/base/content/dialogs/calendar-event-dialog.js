@@ -209,7 +209,8 @@ function onCommandCancel() {
                     getElementValue("item-description"));
     setElementValue("item-description", newItem.getProperty("DESCRIPTION"));
 
-    if (compareItemContent(newItem, oldItem)) {
+    if ((newItem.calendar.id == oldItem.calendar.id) &&
+        compareItemContent(newItem, oldItem)) {
         return true;
     }
 
