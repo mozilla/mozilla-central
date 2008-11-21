@@ -76,7 +76,7 @@ function cutToClipboard(/* calendarItemArray */) {
 /**
  * Copy iCalendar data to the Clipboard. The data is copied to both
  * text/calendar and text/unicode.
- **/
+ */
 function copyToClipboard(calendarItemArray) {
     if (!calendarItemArray) {
         calendarItemArray = currentView().getSelectedItems({});
@@ -86,15 +86,10 @@ function copyToClipboard(calendarItemArray) {
         return false;
     }
 
-    let calComp = cal.getIcsService().createIcalComponent("VCALENDAR");
-    cal.calSetProdidVersion(calComp);
-
-    for each (let item in calendarItemArray) {
-        calComp.addSubcomponent(item.icalComponent);
-    }
-
-    // XXX This might not be enough to be Outlook compatible
-    let sTextiCalendar = calComp.serializeToICS();
+    let icsSerializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
+                                  .createInstance(Components.interfaces.calIIcsSerializer);
+    icsSerializer.addItems(calendarItemArray, calendarItemArray.length);
+    let icsString = icsSerializer.serializeToString();
 
     let clipboard = getClipboard();
     let trans = Components.classes["@mozilla.org/widget/transferable;1"]
@@ -106,19 +101,19 @@ function copyToClipboard(calendarItemArray) {
         trans.addDataFlavor("text/unicode");
 
         // Create the data objects
-        let icalWrapper = Components.classes["@mozilla.org/supports-string;1"]
-                                    .createInstance(Components.interfaces.nsISupportsString);
-        icalWrapper.data = sTextiCalendar;
+        let icsWrapper = Components.classes["@mozilla.org/supports-string;1"]
+                                   .createInstance(Components.interfaces.nsISupportsString);
+        icsWrapper.data = icsString;
 
         // Add data objects to transferable
         // Both Outlook 2000 client and Lotus Organizer use text/unicode
         // when pasting iCalendar data.
         trans.setTransferData("text/calendar",
-                              icalWrapper,
-                              icalWrapper.data.length * 2); // double byte data
+                              icsWrapper,
+                              icsWrapper.data.length * 2); // double byte data
         trans.setTransferData("text/unicode",
-                              icalWrapper,
-                              icalWrapper.data.length * 2);
+                              icsWrapper,
+                              icsWrapper.data.length * 2);
 
         clipboard.setData(trans,
                           null,
@@ -158,7 +153,6 @@ function pasteFromClipboard() {
     let data = {};
     trans.getAnyTransferData(flavor, data, {});
     data = data.value.QueryInterface(Components.interfaces.nsISupportsString).data;
-    let items = new Array();
     switch (flavor.value) {
         case "text/calendar":
         case "text/unicode":
@@ -167,22 +161,15 @@ function pasteFromClipboard() {
                 return;
             }
 
-            let calComp = cal.getIcsService().parseICS(data, null);
-            for (let subComp in cal.ical.calendarComponentIterator(calComp)) {
-                switch (subComp.componentType) {
-                    case "VEVENT":
-                        let event = cal.createEvent();
-                        event.icalComponent = subComp;
-                        items.push(event);
-                        break;
-                    case "VTODO":
-                        let todo = cal.createTodo();
-                        todo.icalComponent = subComp;
-                        items.push(todo);
-                        break;
-                    default:
-                        break;
-                }
+            let icsParser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                                      .createInstance(Components.interfaces.calIIcsParser);
+            try {
+                icsParser.parseString(data, null);
+            } catch(e) {}
+            
+            let items = icsParser.getItems({});
+            if (items.length == 0) {
+                return;
             }
 
             // If there are multiple items on the clipboard, the earliest
