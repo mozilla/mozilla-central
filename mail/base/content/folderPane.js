@@ -1259,13 +1259,13 @@ let gFolderTreeController = {
    */
   compactFolder: function ftc_compactFolder(aCompactAll, aFolder) {
     let folder = aFolder || gFolderTreeView.getSelectedFolders()[0];
-
+    let isImapFolder = folder.server.type == "imap";
     // Can't compact folders that have just been compacted
-    if (!folder.expungedBytes && !aCompactAll)
+    if (!isImapFolder && !folder.expungedBytes && !aCompactAll)
       return;
 
     // reset thread pane for non-imap folders.
-    if (!folder.server.type == "imap" && (gDBView.msgFolder == folder || aCompactAll))
+    if (!isImapFolder && (gDBView.msgFolder == folder || aCompactAll))
       this._resetThreadPane();
 
     if (aCompactAll)
