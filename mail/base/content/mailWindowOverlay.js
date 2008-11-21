@@ -1673,13 +1673,12 @@ function MsgJunk()
 
 function UpdateJunkButton()
 {
-  var hdr = gDBView.hdrForFirstSelectedMessage;
-
-  var junkScore = hdr.getStringProperty("junkscore");
-  var isJunk = (junkScore == "") || (junkScore == "0");
+  let hdr = gDBView.hdrForFirstSelectedMessage;
+  let junkScore = hdr.getStringProperty("junkscore");
+  let hideJunk = (junkScore != "") && (junkScore != "0");
   if (isNewsURI(hdr.folder.URI))
-    isJunk = true;
-  document.getElementById('junkButton').disabled = isJunk;
+    hideJunk = true;
+  document.getElementById('junkButton').disabled = hideJunk;
 }
 
 function MsgMarkMsgAsRead()
