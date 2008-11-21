@@ -366,18 +366,56 @@ GlodaNullQueryClass.prototype = {
 
 /**
  * @class A query that only 'tests' for already belonging to the collection.
+ * 
+ * This type of collection is useful for when you (or rather your listener)
+ *  are interested in hearing about modifications to your collection or removals
+ *  from your collection because of deletion, but do not want to be notified
+ *  about newly indexed items matching your normal query constraints. 
+ * 
+ * @param aCollection The collection this query belongs to.  This needs to be
+ *     passed-in here or the collection should set the attribute directly when
+ *     the query is passed in to a collection's constructor.
  */
-function GlodaExplicitQueryClass() {
+function GlodaExplicitQueryClass(aCollection) {
+  this.collection = aCollection;
 }
 
 GlodaExplicitQueryClass.prototype = {
-  // don't let people try and mess with us
-  or: function() { return null; },
-  // don't let people try and query on us (until we have a real use case for
-  //  that...)
-  getCollection: function() { return null; },
   /**
-   * Matches only items that are already in the collection (by id).
+   * Since our query is intended to only match the contents of our collection,
+   *  it doesn't make sense to let someone attempt to construct a boolean OR
+   *  involving us.
+   *  
+   * @returns null
+   */
+  or: function() {
+    return null;
+  },
+
+  /**
+   * Return nothing (null) because it does not make sense to create a collection
+   *  based on an explicit query.  This method is normally used (on a normal
+   *  query) to return a collection populated by the constraints of the query.
+   *  In the case of an explicit query, we expect it will be associated with
+   *  either a hand-created collection or the results of a normal query that is
+   *  immediately converted into an explicit query.  In all likelihood, calling
+   *  this method on an instance of this type is an error, so it is helpful to
+   *  return null because people will error hard.
+   *  
+   * @returns null  
+   */
+  getCollection: function() {
+    return null;
+  },
+  
+  /**
+   * Matches only items that are already in the collection associated with this
+   *  query (by id).
+   * 
+   * @param aObj The object/item to test for already being in the associated
+   *     collection.
+   * @returns true when the object is in the associated collection, otherwise
+   *     false.
    */
   test: function gloda_query_explicit_test(aObj) {
     return (aObj.id in this.collection._idMap);

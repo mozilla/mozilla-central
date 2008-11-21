@@ -502,7 +502,7 @@ GlodaCollection.prototype = {
    */
   becomeExplicit: function gloda_coll_becomeExplicit() {
     if (!(this.query instanceof this._nounDef.explicitQueryClass)) {
-      this.query = new this._nounDef.explicitQueryClass();
+      this.query = new this._nounDef.explicitQueryClass(this);
     }
   },
   

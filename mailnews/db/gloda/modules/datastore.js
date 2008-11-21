@@ -2678,6 +2678,9 @@ var GlodaDatastore = {
     //  what gets attached to the collection in the event we create a new
     //  collection.  If we are reusing one, we assume that the explicitness,
     //  if desired, already happened.
+    // (we do not need to pass an argument to the explicitQueryClass constructor
+    //  because it will be passed in to the collection's constructor, which will
+    //  ensure that the collection attribute gets set.)
     if (aBecomeExplicit)
       aQuery = new nounDef.explicitQueryClass();
 
