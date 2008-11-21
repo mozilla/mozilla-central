@@ -162,7 +162,8 @@ void nsMsgSearchDBView::InternalClose()
 {
   m_threadsTable.Clear();
   m_hdrsTable.Clear();
-  return nsMsgGroupView::InternalClose();
+  nsMsgGroupView::InternalClose();
+  m_folders.Clear();
 }
 
 NS_IMETHODIMP nsMsgSearchDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
