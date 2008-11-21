@@ -46,46 +46,7 @@ var gGeneralPane = {
     
     this.updatePlaySound();
   },
-  
-#ifdef HAVE_SHELL_SERVICE
-  /**
-   * Checks whether Thunderbird is currently registered with the operating
-   * system as the default app for mail, rss and news.  If Thunderbird is not currently the
-   * default app, the user is given the option of making it the default for each type;
-   * otherwise, the user is informed that Thunderbird is already the default.
-   */
-  checkDefaultNow: function (aAppType) 
-  {   
-    var nsIShellService = Components.interfaces.nsIShellService;
-    var shellSvc;
-    try {
-      shellSvc = Components.classes["@mozilla.org/mail/shell-service;1"].getService(nsIShellService);
-    } catch (ex) { return; }
     
-    // if we are already the default for all the types we handle, then alert the user.
-    if (shellSvc.isDefaultClient(false, nsIShellService.MAIL | nsIShellService.NEWS | nsIShellService.RSS))
-    {
-      var brandBundle = document.getElementById("bundleBrand");
-      var preferencesBundle = document.getElementById("bundlePreferences");
-      var brandShortName = brandBundle.getString("brandShortName");
-      var promptTitle = preferencesBundle.getString("alreadyDefaultClientTitle");
-      var promptMessage;
-      const IPS = Components.interfaces.nsIPromptService;
-      var psvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                           .getService(IPS);
-
-        promptMessage = preferencesBundle.getFormattedString("alreadyDefault", [brandShortName]);
-        psvc.alert(window, promptTitle, promptMessage);
-    }
-    else
-    {
-      // otherwise, bring up the default client dialog
-      window.openDialog("chrome://messenger/content/defaultClientDialog.xul", "Default Client", 
-                        "modal,centerscreen,chrome,resizable=no");
-    }
-  },
-#endif
-  
   /**
    * Restores the default start page as the user's start page
    */

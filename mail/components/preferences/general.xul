@@ -51,16 +51,12 @@
     <script type="application/x-javascript" src="chrome://messenger/content/preferences/general.js"/>
 
     <preferences>
-      <preference id="mail.shell.checkDefaultClient" name="mail.shell.checkDefaultClient" type="bool"/>
       <preference id="mail.pane_config.dynamic" name="mail.pane_config.dynamic" type="int"/>
       <preference id="mailnews.reuse_message_window" name="mailnews.reuse_message_window" type="bool"/>
       <preference id="mailnews.start_page.enabled" name="mailnews.start_page.enabled" type="bool"/>
       <preference id="mailnews.start_page.url" name="mailnews.start_page.url" type="string"/>
       <preference id="mail.biff.show_alert" name="mail.biff.show_alert" type="bool"/>
       <preference id="mail.biff.play_sound" name="mail.biff.play_sound" type="bool"/>
-      <preference id="pref.general.disable_button.default_mail"
-                  name="pref.general.disable_button.default_mail"
-                  type="bool"/>
       <preference id="mail.biff.play_sound.type" name="mail.biff.play_sound.type" type="int"/>
       <preference id="mail.biff.play_sound.url" name="mail.biff.play_sound.url" type="string"/>      
 #ifdef XP_MACOSX
@@ -70,20 +66,6 @@
 
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
 
-#ifdef HAVE_SHELL_SERVICE
-    <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
-
-    <groupbox id="systemDefaultsGroup" orient="vertical">
-      <caption label="&systemDefaults.label;"/>
-      <hbox id="checkDefaultBox" align="center" flex="1">
-        <checkbox id="alwaysCheckDefault" preference="mail.shell.checkDefaultClient"
-                  label="&alwaysCheckDefault.label;" accesskey="&alwaysCheckDefault.accesskey;"
-                  flex="1" style="height: &alwaysCheckDefault.height;"/>
-        <button id="checkDefaultButton" label="&checkNow.label;" accesskey="&checkNow.accesskey;"
-                oncommand="gGeneralPane.checkDefaultNow();" preference="pref.general.disable_button.default_mail"/>
-      </hbox>
-    </groupbox>
-#endif
     <groupbox>
       <caption label="&messengerStartPage.label;"/>
         <hbox align="start">
