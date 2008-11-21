@@ -39,7 +39,6 @@
  
 #include "nscore.h"
 #include "nsMessengerOSXIntegration.h"
-#include "nsIMsgAccountManager.h"
 #include "nsIMsgMailSession.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsIMsgIdentity.h"
@@ -162,14 +161,6 @@ nsMessengerOSXIntegration::Init()
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
   if (NS_SUCCEEDED(rv))
     observerService->AddObserver(this, "before-growl-registration", PR_FALSE);
-
-  nsCOMPtr <nsIMsgAccountManager> accountManager = 
-    do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  // because we care if the default server changes
-  rv = accountManager->AddRootFolderListener(this);
-  NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
