@@ -1504,17 +1504,23 @@ function MsgOpenNewTabForFolder(uri, key)
 
 function MsgOpenNewTabForMessage(messageKey, folderUri)
 {
-  if (!messageKey)
-    messageKey = gDBView.keyForFirstSelectedMessage;
+  var hdr;
 
-  var hdr = gDBView.hdrForFirstSelectedMessage;
-  if (!folderUri)
+  // messageKey can be 0 for an actual message (first message in the folder)  
+  if (folderUri)
+  {
+    hdr = GetMsgFolderFromUri(folderUri).GetMessageHeader(messageKey);
+  }
+  else
+  {
+    hdr = gDBView.hdrForFirstSelectedMessage;
     // Use the header's folder - this will open a msg in a virtual folder view
     // in its real folder, which is needed if the msg wouldn't be in a new
     // view with the same terms - e.g., it's read and the view is unread only.
     // If we cloned the view, we wouldn't have to do this.
     folderUri = hdr.folder.URI;
-
+  }
+  
   // Fix it so we won't try to load the previously loaded message.
   hdr.folder.lastMessageLoaded = nsMsgKey_None;
 
