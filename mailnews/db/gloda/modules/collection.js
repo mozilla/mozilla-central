@@ -374,7 +374,11 @@ var GlodaCollectionManager = {
           // currently in... but should it still be there?
           if (collection.query.test(item))
             modified.push(item); // yes, keep it
-          else
+          // oy, so null queries really don't want any notifications, and they
+          //  sorta fit into our existing model, except for the removal bit.
+          //  so we need a specialized check for them, and we're using the
+          //  frozen attribute to this end.
+          else if (!collection.query.frozen)
             removed.push(item); // no, bin it
         }
         else if (collection.query.test(item)) // not in, should it be?

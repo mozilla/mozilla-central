@@ -734,8 +734,8 @@ var Gloda = {
     aNounDef.id = aNounID;
     // if it has a table, you can query on it.  seems straight-forward.
     if (aNounDef.tableName) {
-      [aNounDef.queryClass, aNounDef.explicitQueryClass,
-       aNounDef.wildcardQueryClass] =
+      [aNounDef.queryClass, aNounDef.nullQueryClass,
+       aNounDef.explicitQueryClass, aNounDef.wildcardQueryClass] =
           GlodaQueryClassFactory(aNounDef);
       aNounDef._dbMeta = {};
       aNounDef.class.prototype.NOUN_DEF = aNounDef;

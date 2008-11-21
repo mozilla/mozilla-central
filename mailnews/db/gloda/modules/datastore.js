@@ -2012,7 +2012,9 @@ var GlodaDatastore = {
     let nounDef = GlodaMessage.prototype.NOUN_DEF;
     let listener = new MessagesByMessageIdCallback(msgIDToIndex, results,
         aCallback, aCallbackThis);
-    let query = new nounDef.explicitQueryClass();
+    // Use a null query because we don't want any update notifications about our
+    //  collection.  They would just confuse and anger the listener. 
+    let query = new nounDef.nullQueryClass();
     return this._queryFromSQLString(sqlString, [], nounDef,
         query, listener);
   },

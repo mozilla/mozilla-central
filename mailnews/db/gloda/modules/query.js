@@ -295,6 +295,76 @@ GlodaQueryClass.prototype = {
 };
 
 /**
+ * @class A query that never matches anything.
+ * 
+ * Collections corresponding to this query are intentionally frozen in time and
+ *  do not want to be notified of any updates.  We need the collection to be
+ *  registered with the collection manager so that the noun instances in the
+ *  collection are always 'reachable' via the collection for as long as we might
+ *  be handing out references to the instances.  (The other way to avoid updates
+ *  would be to not register the collection, but then items might not be
+ *  reachable.)
+ * This is intended to be used in implementation details behind the gloda
+ *  abstraction barrier.  For example, the message indexer likes to be able
+ *  to represent 'ghost' and deleted messages, but these should never be exposed
+ *  to the user.  For code simplicity, it wants to be able to use the query
+ *  mechanism.  But it doesn't want updates that are effectively
+ *  nonsensical.  For example, a ghost message that is reused by message
+ *  indexing may already be present in a collection; when the collection manager
+ *  receives an itemsAdded event, a GlodaExplicitQueryClass would result in
+ *  an item added notification in that case, which would wildly not be desired.
+ */
+function GlodaNullQueryClass() {
+}
+
+GlodaNullQueryClass.prototype = {
+  /**
+   * Provide a duck-typing way of indicating to GlodaCollectionManager that our
+   *  associated collection just doesn't want anything to change.  Our test
+   *  function is able to convey most of it, but special-casing has to happen
+   *  somewhere, so it happens here.
+   */
+  frozen: true,
+  
+  /**
+   * Since our query never matches anything, it doesn't make sense to let
+   *  someone attempt to construct a boolean OR involving us.
+   *  
+   * @returns null
+   */
+  or: function() {
+    return null;
+  },
+  
+  /**
+   * Return nothing (null) because it does not make sense to create a collection
+   *  based on a null query.  This method is normally used (on a normal query)
+   *  to return a collection populated by the constraints of the query.  We
+   *  match nothing, so we should return nothing.  More importantly, you are
+   *  currently doing something wrong if you try and do this, so null is
+   *  appropriate.  It may turn out that it makes sense for us to return an
+   *  empty collection in the future for sentinel value purposes, but we'll
+   *  cross that bridge when we come to it.
+   *  
+   * @returns null  
+   */
+  getCollection: function() {
+    return null;
+  },
+  
+  /**
+   * Never matches anything.
+   * 
+   * @param aObj The object someone wants us to test for relevance to our
+   *     associated collection.  But we don't care!  Not a fig!
+   * @returns false
+   */
+  test: function gloda_query_null_test(aObj) {
+    return false;
+  }
+};
+
+/**
  * @class A query that only 'tests' for already belonging to the collection.
  */
 function GlodaExplicitQueryClass() {
@@ -337,18 +407,26 @@ GlodaWildcardQueryClass.prototype = {
 
 /**
  * Factory method to effectively create per-noun subclasses of GlodaQueryClass,
- *  GlodaExplicitQueryClas, and GlodaWildcardQueryClass.  For GlodaQueryClass
- *  this allows us to add per-noun helpers.  For the others, this is merely a
- *  means of allowing us to attach the (per-noun) nounDef to the 'class'.
+ *  GlodaNullQueryClass, GlodaExplicitQueryClass, and GlodaWildcardQueryClass.
+ *  For GlodaQueryClass this allows us to add per-noun helpers.  For the others,
+ *  this is merely a means of allowing us to attach the (per-noun) nounDef to
+ *  the 'class'.
  */
 function GlodaQueryClassFactory(aNounDef) {
   let newQueryClass = function() {
     GlodaQueryClass.call(this);
   }; 
-  
   newQueryClass.prototype = new GlodaQueryClass();
   newQueryClass.prototype._queryClass = newQueryClass;
   newQueryClass.prototype._nounDef = aNounDef;
+
+  let newNullClass = function(aCollection) {
+    GlodaNullQueryClass.call(this);
+    this.collection = aCollection;
+  };
+  newNullClass.prototype = new GlodaNullQueryClass();
+  newNullClass.prototype._queryClass = newNullClass;
+  newNullClass.prototype._nounDef = aNounDef;
   
   let newExplicitClass = function(aCollection) {
     GlodaExplicitQueryClass.call(this);
@@ -366,5 +444,5 @@ function GlodaQueryClassFactory(aNounDef) {
   newWildcardClass.prototype._queryClass = newWildcardClass;
   newWildcardClass.prototype._nounDef = aNounDef;
   
-  return [newQueryClass, newExplicitClass, newWildcardClass];
+  return [newQueryClass, newNullClass, newExplicitClass, newWildcardClass];
 }
