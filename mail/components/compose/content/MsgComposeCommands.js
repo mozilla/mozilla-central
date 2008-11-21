@@ -255,7 +255,11 @@ var stateListener = {
     ComposeFieldsReady();
   },
 
-  NotifyComposeBodyReady: function() {},
+  NotifyComposeBodyReady: function() {
+    if (gMsgCompose.composeHTML)
+      loadHTMLMsgPrefs();
+    AdjustFocus();
+  },
 
   ComposeProcessDone: function(aResult) {
     gWindowLocked = false;
@@ -1135,13 +1139,7 @@ function ComposeFieldsReady()
   }
   CompFields2Recipients(gMsgCompose.compFields);
   SetComposeWindowTitle();
-
-  // need timeout for reply to work
-  if (gMsgCompose.composeHTML)
-    setTimeout(loadHTMLMsgPrefs, 0);
-
   enableEditableFields();
-  AdjustFocus();
 }
 
 // checks if the passed in string is a mailto url, if it is, generates nsIMsgComposeParams
