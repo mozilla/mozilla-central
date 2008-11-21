@@ -38,10 +38,15 @@
 // -- Pull in the POP3 fake-server / local account helper code
 do_import_script("../mailnews/local/test/unit/head_maillocal.js");
 
-// enable the gloda prefs
+// -- Set the gloda prefs
 const gPrefs = Cc["@mozilla.org/preferences-service;1"]
                  .getService(Ci.nsIPrefBranch);
+// yes to indexing
 gPrefs.setBoolPref("mailnews.database.global.indexer.enabled", true);
+// no to a sweep we don't control
+gPrefs.setBoolPref("mailnews.database.global.indexer.perform_initial_sweep",
+    false);
+// yes to debug output
 gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
 
 // -- Import our modules

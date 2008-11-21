@@ -288,6 +288,12 @@ var GlodaIndexer = {
    *  intermittently.  The timer always exists but may not always be active.
    */
   _timer: null,
+  /**
+   * Our nsITimer that we use to schedule events in the "far" future.  For now,
+   *  this means not compelling an initial indexing sweep until some number of
+   *  seconds after startup. 
+   */
+  _longTimer: null,
 
   _inited: false,
   /**
@@ -308,18 +314,28 @@ var GlodaIndexer = {
     
     // create the timer that drives our intermittent indexing
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-
+    // create the timer for larger offsets independent of indexing
+    this._longTimer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 
     // figure out if event-driven indexing should be enabled...
     let prefService = Cc["@mozilla.org/preferences-service;1"].
                         getService(Ci.nsIPrefService);
     let branch = prefService.getBranch("mailnews.database.global.indexer.");
     let eventDrivenEnabled = false; // default
+    let performInitialSweep = true; // default
     try {
       eventDrivenEnabled = branch.getBoolPref("enabled");
     } catch (ex) {
       dump("%%% annoying exception on pref access: " + ex);
     }
+    // this is a secret preference mainly intended for testing purposes.
+    try {
+      performInitialSweep = branch.getBoolPref("perform_initial_sweep");
+    } catch (ex) {}
+    // pretend we have already performed an initial sweep...
+    if (!performInitialSweep)
+      this._initialSweepPerformed = true;
+
     this.enabled = eventDrivenEnabled;
   },
   
@@ -328,6 +344,16 @@ var GlodaIndexer = {
    *     something asynchronous.
    */
   _shutdown: function gloda_index_shutdown(aUrlListener) {
+    // no more timer events, please
+    try {
+      this._timer.cancel();
+    } catch (ex) {}
+    this._timer = null;
+    try {
+      this._longTimer.cancel();
+    } catch (ex) {}
+    this._longTimer = null;
+    
     if (!this.enabled)
       return true;
     
@@ -424,6 +450,11 @@ var GlodaIndexer = {
         this._indexingDesired = false; // it's edge-triggered for now
         this.indexing = true;
       }
+      
+      // if we have not done an initial sweep, schedule scheduling one.
+      if (!this._initialSweepPerformed)
+        this._longTimer.initWithCallback(this._scheduleInitialSweep,
+          this._initialSweepDelay, Ci.nsITimer.TYPE_ONE_SHOT);
     }
     else if (this._enabled && !aEnable) {
       for each (let [iIndexer, indexer] in Iterator(this._otherIndexers)) {
@@ -524,6 +555,20 @@ var GlodaIndexer = {
     }
   },
 
+  /**
+   * Our timer-driven callback to schedule our first initial indexing sweep.
+   *  Because it is invoked by an nsITimer it operates without the benefit of
+   *  a 'this' context and must use GlodaIndexer instead of this.
+   * Since an initial sweep could have been performed before we get invoked,
+   *  we need to check whether an initial sweep is still desired before trying
+   *  to schedule one.  We don't need to worry about whether one is active
+   *  because the indexingSweepNeeded takes care of that.  
+   */
+  _scheduleInitialSweep: function gloda_index_scheduleInitialSweep() {
+    if (!GlodaIndexer._initialSweepPerformed)
+      GlodaIndexer.indexingSweepNeeded = true;
+  },
+  
   _initialSweepPerformed: false,
   _indexingSweepActive: false,
   /**
@@ -627,6 +672,11 @@ var GlodaIndexer = {
    *  indexing.
    */
   _indexIdleThresholdSecs: 15,
+  
+  /**
+   * The time delay in milliseconds before we should schedule our initial sweep.
+   */
+  _initialSweepDelay: 10000,
   
   /**
    * The time interval, in milliseconds between performing indexing work.
