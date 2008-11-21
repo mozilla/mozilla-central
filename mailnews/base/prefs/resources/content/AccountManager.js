@@ -1050,6 +1050,8 @@ var gAccountTree = {
                         .getService(Components.interfaces.nsIMsgAccountManager);
 
     var accounts = [a for each (a in fixIterator(mgr.accounts, Ci.nsIMsgAccount))];
+    // Stupid bug 41133 hack. Grr...
+    accounts = accounts.filter(function fix(a) { return a.incomingServer; });
 
     function sortAccounts(a, b) {
       if (a.key == mgr.defaultAccount.key)
