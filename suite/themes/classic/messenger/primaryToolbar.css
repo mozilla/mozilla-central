@@ -298,8 +298,8 @@ toolbar[iconsize="small"] > #button-getmsg:hover {
   -moz-image-region: rect(60px 39px 79px 20px);
 }
 
-#button-getmsg:hover:active {
-  -moz-image-region: rect(60px 59px 59px 40px);
+toolbar[iconsize="small"] > #button-getmsg:hover:active {
+  -moz-image-region: rect(60px 59px 79px 40px);
 }
 
 toolbar[iconsize="small"] > #button-getmsg[disabled] {
