@@ -138,6 +138,10 @@ calAttachment.prototype = {
     },
 
     set icalProperty cA_set_icalProperty(attProp) {
+        // Reset the property bag for the parameters, it will be re-initialized
+        // from the ical property.
+        this.mProperties = new calPropertyBag();
+
         //TODO: handle local uris in a sensible way
         // handle the VALUE = BINARY parameter
         if (attProp.value) {
@@ -153,7 +157,7 @@ calAttachment.prototype = {
                     this.mEncoding = value;
                     break;
                 default:
-                    this.setProperty(name, value);
+                    this.setParameter(name, value);
                     break;
             }
         }

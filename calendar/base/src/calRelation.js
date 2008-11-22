@@ -124,6 +124,10 @@ calRelation.prototype = {
     },
 
     set icalProperty cR_set_icalProperty(attProp) {
+        // Reset the property bag for the parameters, it will be re-initialized
+        // from the ical property.
+        this.mProperties = new calPropertyBag();
+
         if (attProp.value) {
             this.mId = attProp.value;
         }
@@ -133,7 +137,7 @@ calRelation.prototype = {
                 continue;
             }
 
-            this.setProperty(name, value);
+            this.setParameter(name, value);
         }
     },
 

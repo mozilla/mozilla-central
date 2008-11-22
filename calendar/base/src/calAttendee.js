@@ -129,13 +129,17 @@ calAttendee.prototype = {
     set icalProperty (icalatt) {
         this.modify();
         this.id = icalatt.valueAsIcalString;
-        var promotedProps = { };
-        for (var i = 0; i < this.icalAttendeePropMap.length; i++) {
-            var prop = this.icalAttendeePropMap[i];
+
+        let promotedProps = { };
+        for each (let prop in this.icalAttendeePropMap) {
             this[prop.cal] = icalatt.getParameter(prop.ics);
             // Don't copy these to the property bag.
             promotedProps[prop.ics] = true;
         }
+
+        // Reset the property bag for the parameters, it will be re-initialized
+        // from the ical property.
+        this.mProperties = new calPropertyBag();
 
         for each (let [name, value] in cal.ical.paramIterator(icalatt)) {
             if (!promotedProps[name]) {

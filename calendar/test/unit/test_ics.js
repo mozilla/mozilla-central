@@ -36,7 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 function run_test() {
-    var ics_xmas =
+    test_folding();
+    test_icalProps();
+    test_roundtrip();
+}
+
+function test_roundtrip() {
+    let ics_xmas =
         "BEGIN:VCALENDAR\n" +
         "PRODID:-//ORACLE//NONSGML CSDK 9.0.5 - CalDAVServlet 9.0.5//EN\n" +
         "VERSION:2.0\n" +
@@ -104,9 +110,8 @@ function run_test() {
         "END:VEVENT\n" +
         "END:VCALENDAR\n\n";
 
-    var event = createEventFromIcalString(ics_xmas);
-
-    var expectedProps = {
+    let event = createEventFromIcalString(ics_xmas);
+    let expectedProps = {
         title: "Christmas",
         id: "20041119T052239Z-1000472-1-5c0746bb-Oracle",
         priority: 0,
@@ -127,7 +132,7 @@ function run_test() {
     checkProps(expectedProps, event.endDate);
 
     // Test for roundtrip of x-properties
-    var ics_xprop = "BEGIN:VEVENT\n" +
+    let ics_xprop = "BEGIN:VEVENT\n" +
                     "UID:1\n" +
                     "DTSTART:20070521T100000Z\n" +
                     "X-MAGIC:mymagicstring\n" +
@@ -141,6 +146,9 @@ function run_test() {
 
     checkRoundtrip(expectedProps, event);
 
+}
+
+function test_folding() {
     // check folding
     const id = "loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong-id-provoking-folding";
     let todo = cal.createTodo(), todo_ = cal.createTodo();
@@ -150,16 +158,48 @@ function run_test() {
     do_check_eq(todo_.icalComponent.getFirstProperty("UID").value, id);
 }
 
+
+function test_icalProps() {
+    checkIcalProp("ATTACH", cal.createAttachment());
+    checkIcalProp("ATTENDEE", cal.createAttendee());
+    checkIcalProp("RELATED-TO", cal.createRelation());
+}
+
+/*
+ * Helper functions
+ */
+
+function checkIcalProp(aPropName, aObj) {
+    let icssvc = cal.getIcsService();
+    let prop1 = icssvc.createIcalProperty(aPropName);
+    let prop2 = icssvc.createIcalProperty(aPropName);
+    prop1.value = "foo";
+    prop2.value = "bar";
+    prop1.setParameter("X-FOO", "BAR");
+
+    if (aObj.setParameter) {
+        aObj.icalProperty = prop1;
+        do_check_eq(aObj.getParameter("X-FOO"), "BAR");
+        aObj.icalProperty = prop2;
+        do_check_eq(aObj.getParameter("X-FOO"), null);
+    } else if (aObj.setProperty) {
+        aObj.icalProperty = prop1;
+        do_check_eq(aObj.getProperty("X-FOO"), "BAR");
+        aObj.icalProperty = prop2;
+        do_check_eq(aObj.getProperty("X-FOO"), null);
+    }
+}
+
 function checkProps(expectedProps, obj) {
-    for (var key in expectedProps) {
+    for (let key in expectedProps) {
         do_check_eq(obj[key], expectedProps[key]);
     }
 }
 
 function checkRoundtrip(expectedProps, obj) {
-    for (var key in expectedProps) {
+    for (let key in expectedProps) {
         // Need translation
-        var icskey = key;
+        let icskey = key;
         switch (key) {
             case "id":
                 icskey = "uid";
