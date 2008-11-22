@@ -44,6 +44,8 @@ const Cu = Components.utils;
 
 Cu.import("resource://app/modules/gloda/log4moz.js");
 
+let DBC_LOG = Log4Moz.Service.getLogger("gloda.ds.dbc");
+
 function DatabindCallback(aDatabind, aCallbackThis, aCallback, aOneShot) {
   this._databind = aDatabind;
   this._callbackThis = aCallbackThis;
@@ -53,25 +55,37 @@ function DatabindCallback(aDatabind, aCallbackThis, aCallback, aOneShot) {
 }
 DatabindCallback.prototype = {
   handleResult: function (aResultSet) {
-    let rows = [];
-    let rowResult;
-    let getVariant = this._databind._datastore._getVariant;
-    while (rowResult = aResultSet.getNextRow()) {
-      let row = {};
-      for each (let [iCol, colDef] in
-                Iterator(this._databind._tableDef.columns)) {
-        let colName = colDef[0];
-        row[colName] = getVariant(rowResult, iCol);
+    try {
+      let rows = [];
+      let rowResult;
+      let getVariant = this._databind._datastore._getVariant;
+      while (rowResult = aResultSet.getNextRow()) {
+        let row = {};
+        for each (let [iCol, colDef] in
+                  Iterator(this._databind._tableDef.columns)) {
+          let colName = colDef[0];
+          row[colName] = getVariant(rowResult, iCol);
+        }
+        rows.push(row);
       }
-      rows.push(row);
+      this._callback.call(this._callbackThis, rows, false);
     }
-    this._callback.call(this._callbackThis, rows, false);
+    catch (e) {
+      DBC_LOG.error("Exception in handleResult: " + e);
+    }
   },
   handleError: function (aError) {
+    DBC_LOG.error("got error in DatabindCallback.handleError(): " +
+                    aError.result + ": " + aError.message);
   },
   handleCompletion: function () {
-    this._callback.call(this._callbackThis, [], true);
-    this._databind._datastore._asyncCompleted();
+    try {
+      this._callback.call(this._callbackThis, [], true);
+      this._databind._datastore._asyncCompleted();
+    }
+    catch (e) {
+      DBC_LOG.error("Exception in handleCompletion: " + e);
+    }
   },
 }
 
