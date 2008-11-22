@@ -198,7 +198,7 @@
             ondragover="gFolderTreeView._onDragOver(event);"
             ondblclick="gFolderTreeView.onDoubleClick(event);"
             onselect="FolderPaneSelectionChange();">
-        <treecols>
+        <treecols id="folderPaneCols">
           <treecol id="folderNameCol"
                    flex="5"
                    crop="center"
