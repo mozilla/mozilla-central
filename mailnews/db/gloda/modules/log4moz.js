@@ -102,6 +102,7 @@ let Log4Moz = {
   get FileAppender() { return FileAppender; },
   get SocketAppender() { return SocketAppender; },
   get RotatingFileAppender() { return RotatingFileAppender; },
+  get ThrowingAppender() { return ThrowingAppender; },
 
   // Logging helper:
   // let logger = Log4Moz.Service.getLogger("foo");
@@ -636,6 +637,27 @@ SocketAppender.prototype = {
   
 };
 SocketAppender.prototype.__proto__ = new Appender();
+
+
+/**
+ * Throws an exception whenever it gets a message.  Intended to be used in
+ * automated testing situations where the code would normally log an error but
+ * not die in a fatal manner. 
+ */
+function ThrowingAppender(thrower) {
+  this._name = "ThrowingAppender";
+  // the default BasicFormatter we end up inheriting is fine
+  this._thrower = thrower;
+}
+ThrowingAppender.prototype = {
+  doAppend: function TApp_doAppend(message) {
+    if (this._thrower)
+      this._thrower(message);
+    else
+      throw message;
+  }
+};
+ThrowingAppender.prototype.__proto__ = new Appender();
 
 
 /*

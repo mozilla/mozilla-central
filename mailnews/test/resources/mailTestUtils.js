@@ -34,7 +34,10 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
+// we would like for everyone to have fixIterator and toXPComArray
+Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
+
 // Local Mail Folders. Requires prior setup of profile directory
 
 var gLocalIncomingServer;

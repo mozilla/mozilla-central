@@ -134,8 +134,9 @@ function test_attributes_explicit() {
 }
 
 function do_moveMessage(aMsgHdr, aDestFolder) {
-  gCopyService.CopyMessages(aMsgHdr.folder, toXPArray(aMsgHdr),
-                            aDestFolder, true, null, null, true);
+  gCopyService.CopyMessages(aMsgHdr.folder,
+    toXPCOMArray(aMsgHdr, Components.interfaces.nsIMutableArray),
+    aDestFolder, true, null, null, true);
 }
 
 function verify_messageLocation(aMsgHdr, aMessage, aDestFolder) {

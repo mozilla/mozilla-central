@@ -179,11 +179,19 @@ SyntheticMessage.prototype = {
   }
 }
 
-function writeMessagesToMbox (aMessages, aBaseDir, aRelPath) {
+/**
+ * Write a list of messages in mbox format to a file 
+ * 
+ * @param aMessages The list of SyntheticMessages instances to write.
+ * @param aBaseDir The base directory to start from.
+ * @param ... Zero or more relative paths to join to the base directory.
+ */
+function writeMessagesToMbox (aMessages, aBaseDir) {
   let targetFile = Cc["@mozilla.org/file/local;1"]
                      .createInstance(Ci.nsILocalFile);
   targetFile.initWithFile(aBaseDir);
-  targetFile.appendRelativePath(aRelPath);
+  for (let iArg = 2; iArg < arguments.length; iArg++)
+    targetFile.appendRelativePath(arguments[iArg]);
 
   let ostream = Cc["@mozilla.org/network/file-output-stream;1"]
                   .createInstance(Ci.nsIFileOutputStream);

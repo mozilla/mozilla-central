@@ -53,6 +53,12 @@ gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
 Components.utils.import("resource://app/modules/gloda/public.js");
 Components.utils.import("resource://app/modules/gloda/indexer.js");
 
+// -- Add a logger listener that throws when we give it a warning/error.
+Components.utils.import("resource://app/modules/gloda/log4moz.js");
+let throwingAppender = new Log4Moz.ThrowingAppender(do_throw);
+throwingAppender.level = Log4Moz.Level.Warn;
+Log4Moz.Service.rootLogger.addAppender(throwingAppender);
+
 /** Inject messages using a POP3 fake-server. */
 const INJECT_FAKE_SERVER = 1;
 /** Inject messages using freshly created mboxes. */
@@ -141,7 +147,7 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
   else if (ims.injectMechanism == INJECT_MBOX) {
     ims.mboxName = "injecty" + ims.nextMboxNumber++;
     writeMessagesToMbox(aSynthMessages, gProfileDir,
-                        "Mail/Local Folders/" + ims.mboxName);
+                        "Mail", "Local Folders", ims.mboxName);
 
     let rootFolder = gLocalIncomingServer.rootMsgFolder;
     let subFolder = rootFolder.addSubfolder(ims.mboxName);
@@ -497,19 +503,23 @@ function permute(aArray, aPermutationId) {
   return out;
 }
 
-// TODO: FIXME: XXX: this should go away, I put it in mailTestUtils.js, but
-//  for the sanity of people trying to use this code who might not have my
-//  other patches, I have left it here for now.
-function toXPArray(aItems) {
-  var array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
-  aItems.forEach(function (item) {
-    array.appendElement(item, false);
-  });
-  return array;
-}
-
 /**
- *
+ * Given a SyntheticMessage instance, index it, and then process the contents
+ *  of aActionsAndTests which provide "twiddle" functions that mutate the
+ *  message and "test" functions that verify that the gloda message is
+ *  accordingly updated to reflect the change.
+ * This method automatically calls next_test when aActionsAndTests has been
+ *  fully processed.
+ * 
+ * @param aSynthMsg The synthetic message to index for testing.
+ * @param aActionAndTests A list, where each sub-list is of the form [twiddle
+ *     function, test function, twiddleValue, optionalTestValue].  The twiddle
+ *     function is called with the nsIMsgDBHdr as its first argument and the
+ *     twiddleValue as its second argument.  The test function is called with
+ *     the synthetic message as its first argument, the gloda message as its
+ *     second argument, and optionalTestValue as its third argument.  If the
+ *     list did not contain an optionalTestValue (indicated by only having
+ *     three elements in the list), then twiddleValue is passed instead.
  */
 function twiddleAndTest(aSynthMsg, aActionsAndTests) {
   let iTwiddling = 0;
@@ -523,12 +533,14 @@ function twiddleAndTest(aSynthMsg, aActionsAndTests) {
     // prepare 
     expectModifiedMessages([gmsg.folderMessage], verify_next_attr);
     // tell the function to perform its mutation to the desired state
+    dump("twiddling: " + twiddleFunc.name + ": " + desiredState + "\n");
     twiddleFunc(gmsg.folderMessage, desiredState);
   }
   function verify_next_attr(smsg, gmsg) {
     let curTwiddling = aActionsAndTests[iTwiddling];
     let verifyFunc = curTwiddling[1];
     let expectedVal = curTwiddling[curTwiddling.length == 3 ? 2 : 3];
+    dump("verifying: " + verifyFunc.name + ": " + expectedVal + "\n");
     verifyFunc(smsg, gmsg, expectedVal);
     
     if (++iTwiddling < aActionsAndTests.length)
