@@ -5,6 +5,7 @@
  *  Original styling by William Price <bugzilla@mob.rice.edu>
  *  Updated by: Steven Garrity <steven@silverorange.com>
  *              Henrik Skupin  <mozilla@hskupin.info>
+ *              Akihiro Misaki <spitfire.kuden@gmail.com>
  */
 
 html {
@@ -20,7 +21,7 @@ body {
 
 h1 {
   margin: 0 0 .6em 0;
-  border-bottom: 1px solid ThreeDShadow;
+  border-bottom: 1px solid #7A8490;
   font-size: 160%;
 }
 
@@ -43,12 +44,16 @@ ul {
   min-width: 13em;
   max-width: 52em;
   margin: 4em auto;
-  border: 1px solid rgb(73, 79, 93);
+  border: 1px solid #494F5D;
   -moz-border-radius: 10px;
   padding: 3em;
   -moz-padding-start: 30px;
   background: url("chrome://global/skin/icons/alert-exclam.gif") left 0 no-repeat #C7D0D9;
   -moz-background-origin: content;
+}
+
+#errorPageContainer.certerror {
+  background-image: url("chrome://global/skin/icons/alert-security.gif");
 }
 
 body[dir="rtl"] #errorPageContainer {
@@ -65,9 +70,10 @@ body[dir="rtl"] #errorPageContainer {
 
 #errorShortDesc > p {
   overflow: auto;
-  border-bottom: 1px solid ThreeDShadow;
+  border-bottom: 1px solid #7A8490;
   padding-bottom: 1em;
   font-size: 130%;
+  white-space: pre-wrap;
 }
 
 #errorLongDesc {
@@ -75,12 +81,9 @@ body[dir="rtl"] #errorPageContainer {
   font-size: 110%;
 }
 
-#errorLongDesc > p {
-}
-
 #errorTryAgain {
-  margin-top: 2em !important;
-  -moz-margin-start: 80px !important;
+  margin-top: 2em;
+  -moz-margin-start: 80px;
 }
 
 #brand {
@@ -105,11 +108,12 @@ body[dir="rtl"] #brand {
 }
 
 #securityOverrideDiv {
-  padding-top: 1em;
+  padding-top: 10px;
 }
 
 #securityOverrideContent {
-  background-color: #E8DB99;
+  background-color: #FFFFE7;
+  color: #000000;
   padding: 10px;
   -moz-border-radius: 10px;
 }
