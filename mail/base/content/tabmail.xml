@@ -1131,33 +1131,6 @@
         tabcontainer.mTabstrip.removeEventListener("scroll", this, false);
         document.getBindingParent(tabcontainer).removeEventListener("TabOpen", this, false);
       ]]></handler>
-
-      <handler event="DOMMenuItemActive">
-      <![CDATA[
-        if (!this._xulWindow || !this._xulWindow.XULBrowserWindow)
-          return;
-
-        var tab = event.target.tab;
-        if (tab) {
-          var statusText = tab.linkedBrowser.currentURI.spec;
-          if (statusText == "about:blank") {
-            // XXXhack: Passing a space here (and not "")
-            // to make sure the the browser implementation would
-            // still consider it a hovered link.
-            statusText = " ";
-          }
-
-          this._xulWindow.XULBrowserWindow.setOverLink(statusText, null);
-        }
-      ]]></handler>
-
-      <handler event="DOMMenuItemInactive">
-      <![CDATA[
-        if (!this._xulWindow || !this._xulWindow.XULBrowserWindow)
-          return;
-
-        this._xulWindow.XULBrowserWindow.setOverLink("", null);
-      ]]></handler>
     </handlers>
   </binding>
   <!-- close-tab-button binding
