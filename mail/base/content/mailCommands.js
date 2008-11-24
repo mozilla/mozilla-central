@@ -74,7 +74,8 @@ function getBestIdentity(identities, optionalHint)
       var tempID;
 
       var lengthOfLongestMatchingEmail = 0;
-      for each (var tempID in fixIterator(identities, nsIMsgIdentity)) {
+      for each (var tempID in fixIterator(identities,
+                                          Components.interfaces.nsIMsgIdentity)) {
         if (optionalHint.indexOf(tempID.email.toLowerCase()) >= 0) {
           // Be careful, the user can have several adresses with the same
           // postfix e.g. aaa.bbb@ccc.ddd and bbb@ccc.ddd. Make sure we get the
