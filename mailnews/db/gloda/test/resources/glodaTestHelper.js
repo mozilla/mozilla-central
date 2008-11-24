@@ -323,18 +323,19 @@ function killFakeServer() {
  */
 var messageCollectionListener = {
   onItemsAdded: function(aItems) {
-    dump("onItemsAdded\n");
+    dump("@@@ messageCollectionListener.onItemsAdded\n");
     let ims = indexMessageState;
     ims.glodaMessages = ims.glodaMessages.concat(aItems);
   },
   
   onItemsModified: function(aItems) {
-    dump("onItemsModified\n");
+    dump("@@@ messageCollectionListener.onItemsModified\n");
     let ims = indexMessageState;
     ims.glodaMessages = ims.glodaMessages.concat(aItems);
   },
   
   onItemsRemoved: function(aItems) {
+    dump("!!! messageCollectionListener.onItemsRemoved\n");
   }
 };
 
@@ -351,29 +352,59 @@ var messageIndexerListener = {
       let ims = indexMessageState;
       
       // this is just the synthetic notification if inputMessages is null
-      if (ims.inputMessages === null)
-       return;
+      if (ims.inputMessages === null) {
+        dump("((( ignoring indexing notification, assuming synthetic " +
+             "notification.\n");
+        return;
+      }
 
       // if we haven't seen all the messages we should see, assume that the
       //  rest are on their way, and are just coming in a subsequent job...
       // (Also, the first time we register our listener, we will get a synthetic
       //  idle status; at least if the indexer is idle.)
       if (ims.glodaMessages.length < ims.inputMessages.length) {
+        dump("((( indexing is no longer indexing, but we're still expecting " +
+             "more results, ignoring.\n");
         return;
       }
+      
+      dump("((( indexer notification (" + ims.glodaMessages.length + 
+           " messages) about to verify: " +
+           (ims.verifier ? ims.verifier.name : "none") + " and complete: " +
+           (ims.onDone ? ims.onDone.name : "none") + "\n");
     
       // call the verifier.  (we expect them to generate an exception if the
       //  verification fails, using do_check_*/do_throw; we don't care about
       //  the return value except to propagate forward to subsequent calls.)
       for (let iMessage=0; iMessage < ims.inputMessages.length; iMessage++) {
-        if (ims.verifier)
-          ims.previousValue = ims.verifier(ims.inputMessages[iMessage],
-                                           ims.glodaMessages[iMessage],
-                                           ims.previousValue);
+        if (ims.verifier) {
+          try {
+            ims.previousValue = ims.verifier(ims.inputMessages[iMessage],
+                                             ims.glodaMessages[iMessage],
+                                             ims.previousValue);
+          }
+          catch (ex) {
+            do_throw("Exception during verification via " + ims.verifier.name +
+                " on message index: " + iMessage + " previous value: " +
+                ims.previousValue + " gloda message: " +
+                ims.glodaMessages[iMessage] + "\nexception: " + ex);
+          }
+        }
       }
 
-      if (ims.onDone)
-        ims.onDone();
+      if (ims.onDone) {
+        try {
+          ims.onDone();
+        }
+        catch (ex) {
+          do_throw("Exception calling ims.onDone (" + ims.onDone.name + "): " + 
+              ex);
+        }
+      }
+    }
+    else {
+      dump("((( gloda indexing listener notification. indexing: " +
+           GlodaIndexer.indexing + " status: " + aStatus + "\n");
     }
   }
 };

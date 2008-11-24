@@ -795,9 +795,16 @@ var GlodaIndexer = {
     }
   },
   
-  _indexingFolderID: null,
+  /** The GlodaFolder corresponding to the folder we are indexing. */
+  _indexingGlodaFolder: null,
+  /** The nsIMsgFolder we are currently indexing. */
   _indexingFolder: null,
+  /** The nsIMsgDatabase we are currently indexing. */
   _indexingDatabase: null,
+  /**
+   * The iterator we are using to iterate over the headers in
+   *  this._indexingDatabase.
+   */
   _indexingIterator: null,
   
   /** folder whose entry we are pending on */
@@ -822,15 +829,9 @@ var GlodaIndexer = {
       this._indexingDatabase.RemoveListener(this._databaseAnnouncerListener);
     }
     
-    let glodaFolder = GlodaDatastore._mapFolderID(aFolderID);
-  
-    let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
-                     getService(Ci.nsIRDFService);
-    let folder = rdfService.GetResource(glodaFolder.uri);
-    folder.QueryInterface(Ci.nsIMsgFolder); // (we want to explode in the try
-    // if this guy wasn't what we wanted)
-    this._indexingFolder = folder;
-    this._indexingFolderID = aFolderID;
+    this._indexingGlodaFolder = GlodaDatastore._mapFolderID(aFolderID);
+    this._indexingFolder = this._indexingGlodaFolder.getXPCOMFolder(
+                             this._indexingGlodaFolder.kActivityIndexing);
 
     try {
       // The msf may need to be created or otherwise updated for local folders.
@@ -847,8 +848,11 @@ var GlodaIndexer = {
         // this means that we need to pend on the update.
         this._log.debug("Pending on folder load...");
         this._pendingFolderEntry = this._indexingFolder;
+        // do not set _indexingGlodaFolder.indexing to false at this point,
+        //  because it might decide to sever the nsIMsgFolder's reference to the
+        //  database which would, at the very least, confuse things.
         this._indexingFolder = null;
-        this._indexingFolderID = null;
+        this._indexingGlodaFolder = null;
         this._indexingDatabase = null;
         this._indexingIterator = null;
         return this.kWorkAsync;
@@ -857,17 +861,20 @@ var GlodaIndexer = {
       //  explicitly inherits from nsIDBChangeAnnouncer, which has the
       //  AddListener call we want.
       if (this._indexingDatabase == null)
-        this._indexingDatabase = folder.getMsgDatabase(null);
+        this._indexingDatabase = this._indexingFolder.getMsgDatabase(null);
       if (aNeedIterator)
         this._indexerGetIterator();
       this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
     }
     catch (ex) {
       this._log.error("Problem entering folder: " +
-                      folder.prettiestName + ", skipping.");
+                      (this._indexingFolder ?
+                         this._indexingFolder.prettiestName : "unknown") + 
+                      ", skipping.");
       this._log.error("Error was: " + ex);
+      this._indexingGlodaFolder.indexing = false;
       this._indexingFolder = null;
-      this._indexingFolderID = null;
+      this._indexingGlodaFolder = null;
       this._indexingDatabase = null;
       this._indexingIterator = null;
       
@@ -887,11 +894,14 @@ var GlodaIndexer = {
   
   _indexerLeaveFolder: function gloda_index_indexerLeaveFolder(aExpected) {
     if (this._indexingFolder !== null) {
+      this._indexingDatabase.Commit(Ci.nsMsgDBCommitType.kLargeCommit);
       // remove our listener!
       this._indexingDatabase.RemoveListener(this._databaseAnnouncerListener);
+      // let the gloda folder know we are done indexing
+      this._indexingGlodaFolder.indexing = false;
       // null everyone out
       this._indexingFolder = null;
-      this._indexingFolderID = null;
+      this._indexingGlodaFolder = null;
       this._indexingDatabase = null;
       this._indexingIterator = null;
       // ...including the active job:
@@ -1419,7 +1429,8 @@ var GlodaIndexer = {
       //                [folder ID, message ID]
 
       // get in the folder
-      if (this._indexingFolderID != item[0])
+      if (!this._indexingGlodaFolder ||
+          this._indexingGlodaFolder.id != item[0])
         yield this._indexerEnterFolder(item[0], false);
 
       let msgHdr;
@@ -2184,7 +2195,7 @@ var GlodaIndexer = {
           curMsg = candMsg;
           break;
         }
-        // if we are in the same folder and the candidate message has a null
+        // if (we are in the same folder and) the candidate message has a null
         //  message key, we treat it as our best option unless we find an exact
         //  key match. (this would happen because the 'move' notification case
         //  has to deal with not knowing the target message key.  this case
@@ -2192,11 +2203,12 @@ var GlodaIndexer = {
         //  this path which mandates re-indexing of the message in its entirety)
         if (candMsg.messageKey === null)
           curMsg = candMsg;
-        // if we are in the same folder and the candidate message's underlying
+        // if (we are in the same folder and) the candidate message's underlying
         //  message no longer exists/matches, we'll assume we are the same but
         //  were betrayed by a re-indexing or something, but we have to make
         //  sure a perfect match doesn't turn up.
-        else if ((curMsg === null) && (candMsg.folderMessage === null))
+        else if ((curMsg === null) &&
+                 (aMsgHdr.folder.GetMessageHeader(candMsg.messageKey) === null))
           curMsg = candMsg;
       }
       // our choice of last resort, but still okay, is a ghost message

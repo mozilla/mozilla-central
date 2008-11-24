@@ -222,10 +222,14 @@ function GlodaFolder(aDatastore, aID, aURI, aDirtyStatus, aPrettyName) {
   this._uri = aURI;
   this._dirtyStatus = aDirtyStatus;
   this._prettyName = aPrettyName;
+  this._xpcomFolder = null;
+  this._activeIndexing = false;
+  this._activeHeaderRetrievalLastStamp = 0;
 }
 
 GlodaFolder.prototype = {
   NOUN_ID: 100,
+  
   /** The folder is believed to be up-to-date */
   kFolderClean: 0,
   /** The folder has some un-indexed or dirty messages */
@@ -233,6 +237,7 @@ GlodaFolder.prototype = {
   /** The folder needs to be entirely re-indexed, regardless of the flags on
    * the messages in the folder. This state will be downgraded to dirty */
   kFolderFilthy: 2,
+  
   get id() { return this._id; },
   get uri() { return this._uri; },
   get dirtyStatus() { return this._dirtyStatus; },
@@ -245,7 +250,116 @@ GlodaFolder.prototype = {
   get name() { return this._prettyName; },
   toString: function gloda_folder_toString() {
     return "Folder:" + this._id;
-  }
+  },
+
+  /** We are going to index this folder. */
+  kActivityIndexing: 0,
+  /** Asking for the folder to perform header retrievals. */
+  kActivityHeaderRetrieval: 1,
+  
+  /** Is this folder known to be actively used for indexing? */
+  _activeIndexing: false,
+  /** Get our indexing status. */
+  get indexing() {
+    return this._activeIndexing;
+  },
+  /**
+   * Set our indexing status.  Normally, this will be enabled through passing
+   *  an activity type of kActivityIndexing (which will set us), but we will
+   *  still need to be explicitly disabled by the indexing code.
+   * When disabling indexing, we will call forgetFolderIfUnused to take care of
+   *  shutting things down.
+   * We are not responsible for committing changes to the message database!
+   *  That is on you! 
+   */
+  set indexing(aIndexing) {
+    this._activeIndexing = aIndexing;
+    if (!aIndexing)
+      this.forgetFolderIfUnused();
+  },
+  /** When was this folder last used for header retrieval purposes? */
+  _activeHeaderRetrievalLastStamp: 0,
+  
+  /**
+   * Retrieve the nsIMsgFolder instance corresponding to this folder, providing
+   *  an explanation of why you are requesting it for tracking/cleanup purposes.
+   * 
+   * @param aActivity One of the kActivity* constants.  If you pass
+   *     kActivityIndexing, we will set indexing for you, but you will need to
+   *     clear it when you are done.
+   * @return The nsIMsgFolder if available, null on failure.
+   */
+  getXPCOMFolder: function gloda_folder_getXPCOMFolder(aActivity) {
+    if (!this._xpcomFolder) {
+      let rdfService = Cc['@mozilla.org/rdf/rdf-service;1']
+                         .getService(Ci.nsIRDFService);
+      this._xpcomFolder = rdfService.GetResource(this.uri)
+                                    .QueryInterface(Ci.nsIMsgFolder);
+    }
+    switch (aActivity) {
+      case this.kActivityIndexing:
+        // mark us as indexing, but don't bother with live tracking.  we do
+        //  that independently and only for header retrieval.
+        this.indexing = true;
+        break;
+      case this.kActivityHeaderRetrieval:
+        if (this._activeHeaderRetrievalLastStamp === 0)
+          this._datastore.markFolderLive(this);
+        this._activeHeaderRetrievalLastStamp = Date.now();
+        break;
+    }
+    
+    return this._xpcomFolder;
+  },
+  
+  /**
+   * How many milliseconds must a folder have not had any header retrieval
+   *  activity before it's okay to lose the database reference?
+   */
+  ACCEPTABLY_OLD_THRESHOLD: 10000,
+  
+  /**
+   * Cleans up our nsIMsgFolder reference if we have one and it's not "in use".
+   * In use, from our perspective, means that it is not being used for indexing
+   *  and some arbitrary interval of time has elapsed since it was last
+   *  retrieved for header retrieval reasons.  The time interval is because if
+   *  we have one GlodaMessage requesting a header, there's a high probability
+   *  that another message will request a header in the near future.
+   * Because setting indexing to false disables us, we are written in an
+   *  idempotent fashion.  (It is possible for disabling indexing's call to us
+   *  to cause us to return true but for the datastore's timer call to have not
+   *  yet triggered.)
+   * 
+   * @returns true if we are cleaned up and can be considered 'dead', false if
+   *     we should still be considered alive and this method should be called
+   *     again in the future.
+   */
+  forgetFolderIfUnused: function gloda_folder_forgetFolderIfUnused() {
+    // we are not cleaning/cleaned up if we are indexing
+    if (this._activeIndexing)
+      return false;
+    
+    // set a point in the past as the threshold.  the timestamp must be older
+    //  than this to be eligible for cleanup.
+    let acceptablyOld = Date.now() - this.ACCEPTABLY_OLD_THRESHOLD;
+    // we are not cleaning/cleaned up if we have retrieved a header more
+    //  recently than the acceptably old threshold.
+    if (this._activeHeaderRetrievalLastStamp > acceptablyOld)
+      return false;
+    
+    if (this._xpcomFolder) {
+      // This is the key action we take; the nsIMsgFolder will continue to
+      //  exist, but we want it to forget about its database so that it can
+      //  be closed and its memory can be reclaimed.
+      this._xpcomFolder.setMsgDatabase(null);
+      this._xpcomFolder = null;
+      // since the last retrieval time tracks whether we have marked live or
+      //  not, this needs to be reset to 0 too.
+      this._activeHeaderRetrievalLastStamp = 0;
+    }
+    
+    return true;
+  },
 }
 
 /**
@@ -283,6 +397,12 @@ GlodaMessage.prototype = {
   get date() { return this._date; },
   set date(aNewDate) { this._date = aNewDate; },
 
+  get folder() {
+    if (this._folderID != null)
+      return this._datastore._mapFolderID(this._folderID);
+    else
+      return null;    
+  },
   get folderURI() {
     if (this._folderID != null)
       return this._datastore._mapFolderID(this._folderID).uri;
@@ -323,17 +443,30 @@ GlodaMessage.prototype = {
 
   /**
    * Return the underlying nsIMsgDBHdr from the folder storage for this, or
-   *  null if the message does not exist for one reason or another.
-   * This method no longer caches the result, so it's up to you.
+   *  null if the message does not exist for one reason or another.  We may log
+   *  to our logger in the failure cases.
+   *  
+   * This method no longer caches the result, so if you need to hold onto it,
+   *  hold onto it.
+   *
+   * In the process of retrieving the underlying message header, we may have to
+   *  open the message header database associated with the folder.  This may
+   *  result in blocking while the load happens, so you may want to try and find
+   *  an alternate way to initiate the load before calling us.
+   * We provide hinting to the GlodaDatastore via the GlodaFolder so that it
+   *  knows when it's a good time for it to go and detach from the database.
+   * 
+   * @returns The nsIMsgDBHdr associated with this message if available, null on
+   *     failure.
    */
   get folderMessage() {
     if (this._folderID === null || this._messageKey === null)
       return null;
-    let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
-                     getService(Ci.nsIRDFService);
-    let folder = rdfService.GetResource(
-                   this._datastore._mapFolderID(this._folderID).uri);
-    if (folder instanceof Ci.nsIMsgFolder) {
+    
+    let glodaFolder = this._datastore._mapFolderID(this._folderID);
+    let folder = glodaFolder.getXPCOMFolder(
+                   glodaFolder.kActivityHeaderRetrieval);
+    if (folder) {
       let folderMessage = folder.GetMessageHeader(this._messageKey);
       if (folderMessage !== null) {
         // verify the message-id header matches what we expect...
