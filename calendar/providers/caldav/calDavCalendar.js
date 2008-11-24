@@ -59,8 +59,8 @@ function calDavCalendar() {
     this.mItemInfoCache = {};
     this.mDisabled = false;
     this.mCalHomeSet = null;
-    this.mInBoxUrl = null;
-    this.mOutBoxUrl = null;
+    this.mInboxUrl = null;
+    this.mOutboxUrl = null;
     this.mCalendarUserAddress = null;
     this.mPrincipalUrl = null;
     this.mSenderAddress = null;
@@ -288,14 +288,14 @@ calDavCalendar.prototype = {
         this.mCalHomeSet = calUri;
     },
 
-    mOutBoxUrl:  null,
-    get outBoxUrl caldav_get_outBoxUrl() {
-        return this.mOutBoxUrl;
+    mOutboxUrl:  null,
+    get outboxUrl caldav_get_outboxUrl() {
+        return this.mOutboxUrl;
     },
 
-    mInBoxUrl: null,
-    get inBoxUrl caldav_get_inBoxUrl() {
-        return this.mInBoxUrl;
+    mInboxUrl: null,
+    get inboxUrl caldav_get_inboxUrl() {
+        return this.mInboxUrl;
     },
 
     mHaveScheduling: false,
@@ -546,10 +546,10 @@ calDavCalendar.prototype = {
             return;
         }
 
-        var wasInBoxItem = false;
-        if (this.mItemInfoCache[aNewItem.id].isInBoxItem) {
+        var wasInboxItem = false;
+        if (this.mItemInfoCache[aNewItem.id].isInboxItem) {
             aIgnoreEtag = true;
-            wasInBoxItem = true;
+            wasInboxItem = true;
         }
 
         var newItem_ = aNewItem;
@@ -592,7 +592,7 @@ calDavCalendar.prototype = {
                 thisCalendar.getUpdatedItem(aNewItem, aListener);
                 // SOGo has calendarUri == inboxUri so we need to be careful
                 // about deletions
-                if (wasInBoxItem && thisCalendar.mShouldPollInbox) {
+                if (wasInboxItem && thisCalendar.mShouldPollInbox) {
                     thisCalendar.doDeleteItem(aNewItem, null, true, true, null);
                 }
             } else if (status == 412) {
@@ -639,9 +639,9 @@ calDavCalendar.prototype = {
      * @param aItem       item to delete
      * @param aListener   listener for method completion
      * @param aIgnoreEtag ignore item etag
-     * @param aFromInBox  delete from inbox rather than calendar
+     * @param aFromInbox  delete from inbox rather than calendar
      * @param aUri        uri of item to delete     */
-    doDeleteItem: function caldav_doDeleteItem(aItem, aListener, aIgnoreEtag, aFromInBox, aUri) {
+    doDeleteItem: function caldav_doDeleteItem(aItem, aListener, aIgnoreEtag, aFromInbox, aUri) {
 
         if (aItem.id == null) {
             this.notifyOperationComplete(aListener,
@@ -655,8 +655,8 @@ calDavCalendar.prototype = {
         var eventUri;
         if (aUri) {
             eventUri = aUri;
-        } else if (aFromInBox || this.mItemInfoCache[aItem.id].isInBoxItem) {
-            eventUri = makeURL(this.mInBoxUrl.spec + this.mItemInfoCache[aItem.id].locationPath);
+        } else if (aFromInbox || this.mItemInfoCache[aItem.id].isInboxItem) {
+            eventUri = makeURL(this.mInboxUrl.spec + this.mItemInfoCache[aItem.id].locationPath);
         } else {
             eventUri = this.makeUri(this.mItemInfoCache[aItem.id].locationPath);
         }
@@ -678,7 +678,7 @@ calDavCalendar.prototype = {
             // 204 = HTTP "No content"
             //
             if (status == 204 || status == 200) {
-                if (!aFromInBox) {
+                if (!aFromInbox) {
                     if (thisCalendar.isCached) {
                         // the item is deleted in the storage calendar from calCachedCalendar
                         realListener.onOperationComplete(thisCalendar, status,
@@ -887,7 +887,7 @@ calDavCalendar.prototype = {
                 }
                 // we may still need to poll the inbox
                 if (thisCalendar.firstInRealm()) {
-                    thisCalendar.pollInBox();
+                    thisCalendar.pollInbox();
                 }
             }
         };
@@ -1061,9 +1061,9 @@ calDavCalendar.prototype = {
                                                               aCount,
                                                               aItems) {
                             var itemToDelete = aItems[0];
-                            var wasInBoxItem = thisCalendar.mItemInfoCache[itemToDelete.id].isInBoxItem;
-                            if ((wasInBoxItem && thisCalendar.isInBox(aUri.spec)) ||
-                                (wasInBoxItem === false && !thisCalendar.isInBox(aUri.spec))) {
+                            var wasInboxItem = thisCalendar.mItemInfoCache[itemToDelete.id].isInboxItem;
+                            if ((wasInboxItem && thisCalendar.isInbox(aUri.spec)) ||
+                                (wasInboxItem === false && !thisCalendar.isInbox(aUri.spec))) {
                                 delete thisCalendar.mItemInfoCache[itemToDelete.id];
                                 thisCalendar.mTargetCalendar.deleteItem(itemToDelete,
                                                                         getItemListener);
@@ -1098,8 +1098,8 @@ calDavCalendar.prototype = {
                 }
                 // but do poll the inbox;
                 if (thisCalendar.hasScheduling &&
-                    !thisCalendar.isInBox(aUri.spec)) {
-                    thisCalendar.pollInBox();
+                    !thisCalendar.isInbox(aUri.spec)) {
+                    thisCalendar.pollInbox();
                 }
                 return;
             }
@@ -1226,7 +1226,7 @@ calDavCalendar.prototype = {
                     }
 
                     item.calendar = thisCalendar.superCalendar;
-                    if (isReply && thisCalendar.isInBox(aUri.spec)) {
+                    if (isReply && thisCalendar.isInbox(aUri.spec)) {
                         if (thisCalendar.hasScheduling) {
                             thisCalendar.processItipReply(item, resourcePath);
                         }
@@ -1235,14 +1235,14 @@ calDavCalendar.prototype = {
 
                     var pathLength = decodeURIComponent(aUri.path).length;
                     var locationPath = decodeURIComponent(resourcePath).substr(pathLength);
-                    var isInboxItem = thisCalendar.isInBox(aUri.spec);
+                    var isInboxItem = thisCalendar.isInbox(aUri.spec);
                     if (thisCalendar.mItemInfoCache[item.id]) {
                         thisCalendar.mItemInfoCache[item.id].isNew = false;
                     } else {
                         thisCalendar.mItemInfoCache[item.id] = { isNew: true };
                     }
                     thisCalendar.mItemInfoCache[item.id].locationPath = locationPath;
-                    thisCalendar.mItemInfoCache[item.id].isInBoxItem = isInboxItem;
+                    thisCalendar.mItemInfoCache[item.id].isInboxItem = isInboxItem;
 
                     var hrefPath = thisCalendar.ensurePath(href);
                     thisCalendar.mHrefIndex[hrefPath] = item.id;
@@ -1279,8 +1279,8 @@ calDavCalendar.prototype = {
                             .apply(thisCalendar.mTargetCalendar, query);
             }
             if (thisCalendar.hasScheduling &&
-                !thisCalendar.isInBox(aUri.spec)) {
-                thisCalendar.pollInBox();
+                !thisCalendar.isInbox(aUri.spec)) {
+                thisCalendar.pollInbox();
             }
         };
 
@@ -1570,7 +1570,7 @@ calDavCalendar.prototype = {
 
         var streamListener = {};
         streamListener.onStreamComplete =
-            function findInOutBoxes_oSC(aLoader, aContext, aStatus,
+            function findInOutboxes_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
             let request = aLoader.request;
             if (request.responseStatus != 207) {
@@ -1623,8 +1623,8 @@ calDavCalendar.prototype = {
         var thisCalendar = this;
         function doesntSupportScheduling() {
             thisCalendar.hasScheduling = false;
-            thisCalendar.mInBoxUrl = null;
-            thisCalendar.mOutBoxUrl = null;
+            thisCalendar.mInboxUrl = null;
+            thisCalendar.mOutboxUrl = null;
             thisCalendar.completeCheckServerInfo(aChangeLogListener);
         }
 
@@ -1742,7 +1742,7 @@ calDavCalendar.prototype = {
                 }
                 let ibUrl = thisCalendar.mUri.clone();
                 ibUrl.path = thisCalendar.ensurePath(response..*::["schedule-inbox-URL"]..*::href[0].toString());
-                thisCalendar.mInBoxUrl = ibUrl;
+                thisCalendar.mInboxUrl = ibUrl;
                 if (thisCalendar.calendarUri.spec == ibUrl.spec) {
                     // If the inbox matches the calendar uri (i.e SOGo), then we
                     // don't need to poll the inbox.
@@ -1751,12 +1751,12 @@ calDavCalendar.prototype = {
 
                 let obUrl = thisCalendar.mUri.clone();
                 obUrl.path = thisCalendar.ensurePath(response..*::["schedule-outbox-URL"]..*::href[0].toString());
-                thisCalendar.mOutBoxUrl = obUrl;
+                thisCalendar.mOutboxUrl = obUrl;
             }
 
             if (!thisCalendar.calendarUserAddress ||
-                !thisCalendar.mInBoxUrl ||
-                !thisCalendar.mOutBoxUrl) {
+                !thisCalendar.mInboxUrl ||
+                !thisCalendar.mOutboxUrl) {
                 if (aNameSpaceList.length) {
                     // Check the next namespace to find the info we need.
                     thisCalendar.checkPrincipalsNameSpace(aNameSpaceList, aChangeLogListener);
@@ -1853,7 +1853,7 @@ calDavCalendar.prototype = {
 
         // We explicitly don't check for hasScheduling here to allow free-busy queries
         // even in case sched is turned off.
-        if (!this.outBoxUrl || !this.calendarUserAddress) {
+        if (!this.outboxUrl || !this.calendarUserAddress) {
             LOG("CalDAV: Server does not support scheduling; freebusy query not possible");
             aListener.onResult(null, null);
             return;
@@ -1916,7 +1916,7 @@ calDavCalendar.prototype = {
                     ",Recipient=" + mailto_aCalId + "): " + fbQuery);
         }
 
-        var httpchannel = calPrepHttpChannel(this.outBoxUrl,
+        var httpchannel = calPrepHttpChannel(this.outboxUrl,
                                              fbQuery,
                                              "text/calendar; charset=utf-8",
                                              this);
@@ -2030,16 +2030,16 @@ calDavCalendar.prototype = {
         return aString;
     },
 
-    isInBox: function caldav_isInBox(aString) {
-        return (this.hasScheduling && this.mInBoxUrl &&
-                aString.indexOf(this.mInBoxUrl.spec) == 0);
+    isInbox: function caldav_isInbox(aString) {
+        return (this.hasScheduling && this.mInboxUrl &&
+                aString.indexOf(this.mInboxUrl.spec) == 0);
     },
 
     /**
      * Query contents of scheduling inbox
      *
      */
-    pollInBox: function caldav_pollInBox() {
+    pollInbox: function caldav_pollInbox() {
         // If polling the inbox was switched off, no need to poll the inbox.
         // Also, if we have more than one calendar in this CalDAV account, we
         // want only one of them to be checking the inbox.
@@ -2047,7 +2047,7 @@ calDavCalendar.prototype = {
             return;
         }
 
-        this.getUpdatedItems(this.mInBoxUrl, null);
+        this.getUpdatedItems(this.mInboxUrl, null);
     },
 
     //
@@ -2159,7 +2159,7 @@ calDavCalendar.prototype = {
             serializer.addProperty(methodProp);
             var uploadData = serializer.serializeToString();
 
-            var httpchannel = calPrepHttpChannel(this.outBoxUrl,
+            var httpchannel = calPrepHttpChannel(this.outboxUrl,
                                                  uploadData,
                                                  "text/calendar; charset=utf-8",
                                                  this);
