@@ -85,7 +85,7 @@ cal.ical = {
     calendarComponentIterator: function cal_ical_calendarComponentIterator(aComponent, aCompType) {
         let compType = (aCompType || "ANY");
         if (aComponent && aComponent.componentType == "VCALENDAR") {
-            return cal.ical.subcompentIterator(aComponent, compType);
+            return cal.ical.subcomponentIterator(aComponent, compType);
         } else if (aComponent && aComponent.componentType == "XROOT") {
             function calVCALENDARIterator(aWantKeys) {
                 cal.ASSERT(aWantKeys, "Please use for() on the calendar component iterator");

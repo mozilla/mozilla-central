@@ -891,9 +891,6 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
 
     let count = 0;
     for (let subComp in cal.ical.calendarComponentIterator(icalRootComp, componentType)) {
-        if (++count > maxResults) {
-            break;
-        }
 
         let organizer = subComp.getFirstProperty("ORGANIZER");
         if (organizer && organizer.getParameter("SENT-BY")) { // has SENT-BY
