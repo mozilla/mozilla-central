@@ -461,7 +461,7 @@ nsMsgAccountManager::GetIncomingServer(const nsACString& key,
   rv = m_prefs->GetCharPref(serverPref.get(), getter_Copies(hostname));
   NS_ENSURE_SUCCESS(rv, NS_ERROR_NOT_INITIALIZED);
 
-    // the server type doesn't exist. That's bad.
+  // the server type doesn't exist. That's bad.
   return createKeyedServer(key, username, hostname, serverType, _retval);
 }
 
@@ -538,10 +538,17 @@ nsMsgAccountManager::createKeyedServer(const nsACString& key,
            do_CreateInstance(serverContractID.get(), &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  PRInt32 port;
+  nsCOMPtr <nsIMsgIncomingServer> existingServer;
   server->SetKey(key);
   server->SetType(type);
   server->SetUsername(username);
   server->SetHostName(hostname);
+  server->GetPort(&port);
+  FindRealServer(username, hostname, type, port, getter_AddRefs(existingServer));
+  // don't allow duplicate servers.
+  if (existingServer)
+    return NS_ERROR_FAILURE;
 
   m_incomingServers.Put(key, server);
 
@@ -1296,9 +1303,7 @@ nsMsgAccountManager::LoadAccounts()
   nsCOMPtr<nsIMsgAccount> account;
   char *newStr = accountList.BeginWriting();
   nsCAutoString str;
-  for (char *token = NS_strtok(",", &newStr);
-  token;
-  token = NS_strtok(",", &newStr))
+  for (char *token = NS_strtok(",", &newStr); token; token = NS_strtok(",", &newStr))
   {
     str = token;
     str.StripWhitespace();
@@ -1316,6 +1321,9 @@ nsMsgAccountManager::LoadAccounts()
 
     nsCOMPtr<nsIMsgIncomingServer> server;
     account->GetIncomingServer(getter_AddRefs(server));
+    // if no server, we should get rid of the account.
+    if (!server)
+      RemoveAccount(account);
   }
 
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
