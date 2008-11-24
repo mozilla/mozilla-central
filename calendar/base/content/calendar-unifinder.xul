@@ -161,12 +161,9 @@
     </vbox>
     <splitter id="calendar-view-splitter"
               insertbefore="view-deck"
-              collapse="before"
               persist="state"
               class="chromeclass-extrachrome sidebar-splitter"
               orient="vertical"
-              onmouseup="setTimeout(refreshEventTree, 10);">
-      <grippy class="sidebar-splitter-grippy"/>
-    </splitter>
+              onmouseup="setTimeout(refreshEventTree, 10);"/>
   </vbox>
 </overlay>
