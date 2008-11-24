@@ -1722,16 +1722,9 @@ calDavCalendar.prototype = {
             var multistatusLength = multistatus.*::response.length();
 
             for each (let response in multistatus.*::response) {
-
-                var responseCHS = response..C::["calendar-home-set"]..D::href[0];
-                if (!responseCHS) {
-                    responseCHS = response..D::["calendar-home-set"]..D::href[0];
-                }
-
+                let responseCHS = null;
                 try {
-                    if (responseCHS.charAt(responseCHS.toString().length -1) != "/") {
-                        responseCHS += "/";
-                    }
+                    responseCHS = response..*::["calendar-home-set"]..*::href[0].toString().replace(/([^/])$/, "$1/");
                 } catch (ex) {}
 
                 if (multistatusLength > 1 &&
@@ -1742,24 +1735,13 @@ calDavCalendar.prototype = {
                     // correct one, even if the home set doesn't quite match.
                     continue;
                 }
-                var addrHrefs =
-                    response..C::["calendar-user-address-set"]..D::href;
-                if (!addrHrefs.toString().length) {
-                    addrHrefs =
-                        response..D::propstat..D::["calendar-user-address-set"]..D::href;
-                }
-                for each (let addrHref in addrHrefs) {
-                    if (addrHref.toString().substr(0,7).toLowerCase() == "mailto:") {
+                for each (let addrHref in response..*::["calendar-user-address-set"]..*::href) {
+                    if (addrHref.toString().substr(0, 7).toLowerCase() == "mailto:") {
                         thisCalendar.mCalendarUserAddress = addrHref.toString();
                     }
                 }
-                var ibUrl = thisCalendar.mUri.clone();
-                var ibPath =
-                    response..C::["schedule-inbox-URL"]..D::href[0];
-                if (!ibPath) {
-                    var ibPath = response..D::["schedule-inbox-URL"]..D::href[0];
-                }
-                ibUrl.path = thisCalendar.ensurePath(ibPath);
+                let ibUrl = thisCalendar.mUri.clone();
+                ibUrl.path = thisCalendar.ensurePath(response..*::["schedule-inbox-URL"]..*::href[0].toString());
                 thisCalendar.mInBoxUrl = ibUrl;
                 if (thisCalendar.calendarUri.spec == ibUrl.spec) {
                     // If the inbox matches the calendar uri (i.e SOGo), then we
@@ -1767,13 +1749,8 @@ calDavCalendar.prototype = {
                     thisCalendar.mShouldPollInbox = false;
                 }
 
-                var obUrl = thisCalendar.mUri.clone();
-                var obPath =
-                    response..C::["schedule-outbox-URL"]..D::href[0];
-                if (!obPath) {
-                    var obPath = response..D::["schedule-outbox-URL"]..D::href[0];
-                }
-                obUrl.path = thisCalendar.ensurePath(obPath);
+                let obUrl = thisCalendar.mUri.clone();
+                obUrl.path = thisCalendar.ensurePath(response..*::["schedule-outbox-URL"]..*::href[0].toString());
                 thisCalendar.mOutBoxUrl = obUrl;
             }
 
