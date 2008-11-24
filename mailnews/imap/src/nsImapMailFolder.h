@@ -220,7 +220,8 @@ class nsImapMailFolder :  public nsMsgDBFolder,
                           public nsIImapMessageSink,
                           public nsICopyMessageListener,
                           public nsIMsgFilterHitNotify,
-                          public nsIJunkMailClassificationListener
+                          public nsIJunkMailClassificationListener,
+                          public nsIMsgTraitClassificationListener
 {
  static const PRUint32 PLAYBACK_TIMER_INTERVAL_IN_MS = 500; 
 public:
@@ -327,6 +328,7 @@ public:
 
   NS_DECL_NSIMSGFILTERHITNOTIFY
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
+  NS_DECL_NSIMSGTRAITCLASSIFICATIONLISTENER
 
   NS_IMETHOD IsCommandEnabled(const nsACString& command, PRBool *result);
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aMsgFilterList);

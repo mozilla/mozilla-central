@@ -138,4 +138,18 @@ typedef PRInt32 MsgFlags;
 /* The list of all message flags to not write to disk. */
 #define MSG_FLAG_RUNTIME_ONLY   (MSG_FLAG_ELIDED)
 
+/* Definitions of processing flags. These flags are not saved to the database.
+ * They are used to define states for message processing. Any changes
+ * to these flags need to be supported in the key sets in nsMsgDBFolder
+ */
+ 
+/* If set, message needs junk classification */
+#define MSG_PROCESSING_FLAG_CLASSIFY_JUNK             0x00000001
+
+/* If set, message needs traits classification */
+#define MSG_PROCESSING_FLAG_CLASSIFY_TRAITS           0x00000002
+
+/* number of processing flags */
+#define MSG_NUMBER_OF_PROCESSING_FLAGS 2
+
 #endif

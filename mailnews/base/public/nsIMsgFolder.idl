@@ -67,7 +67,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(EAE4729C-4CC1-4167-8E00-0C159DA05FD2)]
+[scriptable, uuid(1A293A14-3ACA-44de-BD7B-93F26BD2309D)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -638,4 +638,27 @@ interface nsIMsgFolder : nsISupports {
   // associate an identity with a particular newsgroup, or for IMAP shared folders in
   // the other users namespace, you might want to create a delegated identity
   readonly attribute nsIMsgIdentity customIdentity;
+
+  /**
+   * @{
+   * Processing flags, used to manage message processing.
+   *
+   * @param msgKey   message key
+   * @return         processing flags
+   */
+  unsigned long getProcessingFlags(in nsMsgKey msgKey);
+
+  /**
+   * @param msgKey   message key
+   * @param mask     mask to OR into the flags
+   */
+  void orProcessingFlags(in nsMsgKey msgKey, in unsigned long mask);
+
+  /**
+   * @param msgKey   message key
+   * @param mask     mask to AND into the flags
+   */
+  void andProcessingFlags(in nsMsgKey msgKey, in unsigned long mask);
+  /** @} */
+
 };

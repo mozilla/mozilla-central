@@ -83,6 +83,10 @@ CPPSRCS		= \
 		nsMsgSearchNews.cpp \
 		$(NULL)
 
+EXTRA_COMPONENTS += \
+		nsMsgTraitService.js \
+		$(NULL)
+ 
 EXPORT_RESOURCE_FILES	= \
 				  SpamAssassin.sfd \
 				  SpamPal.sfd \

@@ -110,6 +110,7 @@
 #include "nsReadLine.h"
 #include "nsLocalStrings.h"
 #include "nsArrayUtils.h"
+#include "nsIMsgTraitService.h"
 
 static NS_DEFINE_CID(kMailboxServiceCID,          NS_MAILBOXSERVICE_CID);
 
@@ -166,11 +167,12 @@ nsMsgLocalMailFolder::~nsMsgLocalMailFolder(void)
 {
 }
 
-NS_IMPL_ISUPPORTS_INHERITED3(nsMsgLocalMailFolder,
+NS_IMPL_ISUPPORTS_INHERITED4(nsMsgLocalMailFolder,
                              nsMsgDBFolder,
                              nsICopyMessageListener,
                              nsIMsgLocalMailFolder,
-                             nsIJunkMailClassificationListener)
+                             nsIJunkMailClassificationListener,
+                             nsIMsgTraitClassificationListener)
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -3471,8 +3473,21 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Shutdown(PRBool shutdownChildren)
 nsresult
 nsMsgLocalMailFolder::SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin)
 {
+  nsresult rv;
+  nsCOMPtr<nsIMsgTraitService> traitService(do_GetService("@mozilla.org/msg-trait-service;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 count;
+  PRUint32 *proIndices;
+  PRUint32 *antiIndices;
+  rv = traitService->GetEnabledIndices(&count, &proIndices, &antiIndices);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   ++mNumFilterClassifyRequests;
-  return aJunkMailPlugin->ClassifyMessage(aURI, aMsgWindow, this);
+  rv = aJunkMailPlugin->ClassifyTraitsInMessage(aURI, count, proIndices, antiIndices, this, aMsgWindow, this);
+  NS_Free(proIndices);
+  NS_Free(antiIndices);
+  return rv;
 }
 
 nsresult
@@ -3480,9 +3495,22 @@ nsMsgLocalMailFolder::SpamFilterClassifyMessages(const char **aURIArray, PRUint3
 {
   NS_ASSERTION(!mNumFilterClassifyRequests, "shouldn't call this when already classifying messages");
   mNumFilterClassifyRequests = aURICount;
-  return aJunkMailPlugin->ClassifyMessages(aURICount, aURIArray, aMsgWindow, this);
-}
+  nsresult rv;
+  nsCOMPtr<nsIMsgTraitService> traitService(do_GetService("@mozilla.org/msg-trait-service;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
+  PRUint32 count;
+  PRUint32 *proIndices;
+  PRUint32 *antiIndices;
+  rv = traitService->GetEnabledIndices(&count, &proIndices, &antiIndices);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = aJunkMailPlugin->ClassifyTraitsInMessages(aURICount, aURIArray, count,
+      proIndices, antiIndices, this, aMsgWindow, this);
+  NS_Free(proIndices);
+  NS_Free(antiIndices);
+  return rv;
+}
 
 NS_IMETHODIMP
 nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
@@ -3496,6 +3524,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsresult rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   rv = GetMsgDBHdrFromURI(aMsgURI, getter_AddRefs(msgHdr));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -3504,78 +3533,84 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
   rv = msgHdr->GetMessageKey(&msgKey);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString msgJunkScore;
-  msgJunkScore.AppendInt(aClassification == nsIJunkMailPlugin::JUNK ?
-        nsIJunkMailPlugin::IS_SPAM_SCORE:
-        nsIJunkMailPlugin::IS_HAM_SCORE);
-  mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
-  mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");
-
-  char* strScore = PR_smprintf("%u", aJunkPercent);
-  mDatabase->SetStringProperty(msgKey, "junkpercent", strScore);
-  PR_smprintf_free(strScore);
-
   nsCOMPtr<nsISpamSettings> spamSettings;
-  PRBool moveOnSpam = PR_FALSE;
-
-  rv = GetServer(getter_AddRefs(server));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   rv = server->GetSpamSettings(getter_AddRefs(spamSettings));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (aClassification == nsIJunkMailPlugin::JUNK)
+  // check if this message needs junk classification
+  PRUint32 processingFlags;
+  GetProcessingFlags(msgKey, &processingFlags);
+
+  if (processingFlags & MSG_PROCESSING_FLAG_CLASSIFY_JUNK)
   {
-    PRBool markAsReadOnSpam;
-    (void)spamSettings->GetMarkAsReadOnSpam(&markAsReadOnSpam);
-    if (markAsReadOnSpam)
-    {
-      rv = mDatabase->MarkRead(msgKey, true, this);
-        if (!NS_SUCCEEDED(rv))
-          NS_WARNING("failed marking spam message as read");
-    }
+    AndProcessingFlags(msgKey, ~MSG_PROCESSING_FLAG_CLASSIFY_JUNK);
 
-    PRBool willMoveMessage = PR_FALSE;
+    nsCAutoString msgJunkScore;
+    msgJunkScore.AppendInt(aClassification == nsIJunkMailPlugin::JUNK ?
+          nsIJunkMailPlugin::IS_SPAM_SCORE:
+          nsIJunkMailPlugin::IS_HAM_SCORE);
+    mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
+    mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");
 
-    // don't do the move when we are opening up
-    // the junk mail folder or the trash folder
-    // or when manually classifying messages in those folders
-    if (!(mFlags & nsMsgFolderFlags::Junk || mFlags & nsMsgFolderFlags::Trash))
+    nsCAutoString strPercent;
+    strPercent.AppendInt(aJunkPercent);
+    mDatabase->SetStringProperty(msgKey, "junkpercent", strPercent.get());
+
+    PRBool moveOnSpam = PR_FALSE;
+
+    if (aClassification == nsIJunkMailPlugin::JUNK)
     {
-      rv = spamSettings->GetMoveOnSpam(&moveOnSpam);
-      NS_ENSURE_SUCCESS(rv,rv);
-      if (moveOnSpam)
+      PRBool markAsReadOnSpam;
+      (void)spamSettings->GetMarkAsReadOnSpam(&markAsReadOnSpam);
+      if (markAsReadOnSpam)
       {
-        nsCString uriStr;
-        rv = spamSettings->GetSpamFolderURI(getter_Copies(uriStr));
-        NS_ENSURE_SUCCESS(rv,rv);
-        mSpamFolderURI = uriStr;
+        rv = mDatabase->MarkRead(msgKey, true, this);
+          if (!NS_SUCCEEDED(rv))
+            NS_WARNING("failed marking spam message as read");
+      }
 
-        nsCOMPtr<nsIMsgFolder> folder;
-        rv = GetExistingFolder(mSpamFolderURI, getter_AddRefs(folder));
-        if (NS_SUCCEEDED(rv) && folder)
+      PRBool willMoveMessage = PR_FALSE;
+
+      // don't do the move when we are opening up
+      // the junk mail folder or the trash folder
+      // or when manually classifying messages in those folders
+      if (!(mFlags & nsMsgFolderFlags::Junk || mFlags & nsMsgFolderFlags::Trash))
+      {
+        rv = spamSettings->GetMoveOnSpam(&moveOnSpam);
+        NS_ENSURE_SUCCESS(rv,rv);
+        if (moveOnSpam)
         {
-          rv = folder->SetFlag(nsMsgFolderFlags::Junk);
+          nsCString uriStr;
+          rv = spamSettings->GetSpamFolderURI(getter_Copies(uriStr));
           NS_ENSURE_SUCCESS(rv,rv);
-          mSpamKeysToMove.AppendElement(msgKey);
-          willMoveMessage = PR_TRUE;
-        }
-        else
-        {
-          // XXX TODO
-          // JUNK MAIL RELATED
-          // the listener should do
-          // rv = folder->SetFlag(nsMsgFolderFlags::Junk);
-          // NS_ENSURE_SUCCESS(rv,rv);
-          // mSpamKeysToMove.AppendElement(msgKey);
-          // willMoveMessage = PR_TRUE;
-          rv = GetOrCreateFolder(mSpamFolderURI, nsnull /* aListener */);
-          NS_ASSERTION(NS_SUCCEEDED(rv), "GetOrCreateFolder failed");
+          mSpamFolderURI = uriStr;
+
+          nsCOMPtr<nsIMsgFolder> folder;
+          rv = GetExistingFolder(mSpamFolderURI, getter_AddRefs(folder));
+          if (NS_SUCCEEDED(rv) && folder)
+          {
+            rv = folder->SetFlag(nsMsgFolderFlags::Junk);
+            NS_ENSURE_SUCCESS(rv,rv);
+            mSpamKeysToMove.AppendElement(msgKey);
+            willMoveMessage = PR_TRUE;
+          }
+          else
+          {
+            // XXX TODO
+            // JUNK MAIL RELATED
+            // the listener should do
+            // rv = folder->SetFlag(nsMsgFolderFlags::Junk);
+            // NS_ENSURE_SUCCESS(rv,rv);
+            // mSpamKeysToMove.AppendElement(msgKey);
+            // willMoveMessage = PR_TRUE;
+            rv = GetOrCreateFolder(mSpamFolderURI, nsnull /* aListener */);
+            NS_ASSERTION(NS_SUCCEEDED(rv), "GetOrCreateFolder failed");
+          }
         }
       }
+      rv = spamSettings->LogJunkHit(msgHdr, willMoveMessage);
+      NS_ENSURE_SUCCESS(rv,rv);
     }
-    rv = spamSettings->LogJunkHit(msgHdr, willMoveMessage);
-    NS_ENSURE_SUCCESS(rv,rv);
   }
 
   if (mNumFilterClassifyRequests == 0)
@@ -3618,6 +3653,45 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
     // check if this is the inbox first...
     if (mFlags & nsMsgFolderFlags::Inbox)
       PerformBiffNotifications();
+  }
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgLocalMailFolder::OnMessageTraitsClassified(
+    const char *aMsgURI, PRUint32 aTraitCount,
+    PRUint32 *aTraits, PRUint32 *aPercents)
+{
+  nsresult rv;
+  nsCOMPtr <nsIMsgDBHdr> msgHdr;
+  rv = GetMsgDBHdrFromURI(aMsgURI, getter_AddRefs(msgHdr));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsMsgKey msgKey;
+  rv = msgHdr->GetMessageKey(&msgKey);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 processingFlags;
+  GetProcessingFlags(msgKey, &processingFlags);
+  if (!(processingFlags & MSG_PROCESSING_FLAG_CLASSIFY_TRAITS))
+    return NS_OK;
+
+  AndProcessingFlags(msgKey, ~MSG_PROCESSING_FLAG_CLASSIFY_TRAITS);
+
+  nsCOMPtr<nsIMsgTraitService> traitService;
+  traitService = do_GetService("@mozilla.org/msg-trait-service;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  for (PRUint32 i = 0; i < aTraitCount; i++)
+  {
+    if (aTraits[i] == nsIJunkMailPlugin::JUNK_TRAIT)
+      continue; // junk is processed by the junk listener
+    nsCAutoString traitId;
+    rv = traitService->GetId(aTraits[i], traitId);
+    traitId.Insert(NS_LITERAL_CSTRING("bayespercent/"), 0);
+    nsCAutoString strPercent;
+    strPercent.AppendInt(aPercents[i]);
+    mDatabase->SetStringPropertyByHdr(msgHdr, traitId.get(), strPercent.get());
   }
   return NS_OK;
 }

@@ -1,0 +1,175 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Kent James <kent@caspia.com>.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+ /**
+  * This interface provides management of traits that are used to categorize
+  * messages. A trait is some characteristic of a message, such as being "junk"
+  * or "personal", that may be discoverable by analysis of the message.
+  *
+  * Traits are described by a universal identifier "id" as a string, as well
+  * as a local integer identifer "index". One purpose of this service is to
+  * provide the mapping between those forms.
+  *
+  * Recommended (but not required) format for id:
+  * "extensionName@example.org#traitName"
+  */
+
+#include "nsISupports.idl"
+
+[scriptable, uuid(e3e47690-a676-12d6-81c9-00308646b737)]
+interface nsIMsgTraitService : nsISupports
+{
+  /**
+   *  the highest ever index for a registered trait. The first trait is 1,
+   *  == 0 means no traits are defined
+   */
+  readonly attribute long lastIndex;
+
+  /**
+   * Register a trait. May be called multiple times, but subsequent
+   * calls do not register the trait
+   *
+   * @param id   the trait universal identifier
+   *
+   * @return     the internal index for the registered trait if newly
+   *             registered, else 0
+   */
+  unsigned long registerTrait(in ACString id);
+
+  /**
+   * Unregister a trait.
+   *
+   * @param id   the trait universal identifier
+   */
+  void unRegisterTrait(in ACString id);
+
+  /**
+   * is a trait registered?
+   *
+   * @param id   the trait universal identifier
+   *
+   * @return     true if registered
+   */
+  boolean isRegistered(in ACString id);
+
+  /**
+   * set the trait name, which is an optional short description of the trait
+   *
+   * @param id     the trait universal identifier
+   * @param name   description of the trait.
+   */
+  void setName(in ACString id, in ACString name);
+
+  /**
+   * get the trait name, which is an optional short description of the trait
+   *
+   * @param id   the trait universal identifier
+   *
+   * @return     description of the trait
+   */
+  ACString getName(in ACString id);
+
+  /**
+   * get the internal index number for the trait.
+   *
+   * @param id   the trait universal identifier
+   *
+   * @return     internal index number for the trait
+   */
+  unsigned long getIndex(in ACString id);
+
+  /**
+   * get the trait universal identifier for an internal trait index
+   *
+   * @param index   the internal identifier for the trait
+   *
+   * @return        trait universal identifier
+   */
+  ACString getId(in unsigned long index);
+
+  /**
+   * enable the trait for analysis. Each enabled trait will be analyzed by
+   * the bayesian code. The enabled trait is the "pro" trait that represents
+   * messages matching the trait. Each enabled trait also needs a corresponding
+   * anti trait defined, which represents messages that do not match the trait.
+   * The anti trait does not need to be enabled
+   *
+   * @param id        the trait universal identifier
+   * @param enabled   should this trait be processed by the bayesian analyzer?
+   */
+  void setEnabled(in ACString id, in boolean enabled);
+
+  /**
+   * Should this trait be processed by the bayes analyzer?
+   *
+   * @param id   the trait universal identifier
+   *
+   * @return     true if this is a "pro" trait to process
+   */
+  boolean getEnabled(in ACString id);
+
+  /**
+   * set the anti trait, which indicates messages that have been marked as
+   * NOT matching a particular trait.
+   *
+   * @param id      the trait universal identifier
+   * @param antiId  trait id for messages marked as not matching the trait
+   */
+  void setAntiId(in ACString id, in ACString antiId);
+
+  /**
+   * get the id of traits that do not match a particular trait
+   *
+   * @param id   the trait universal identifier for a "pro" trait
+   *
+   * @return     universal trait identifier for an "anti" trait that does not
+   *             match the "pro" trait messages
+   */
+  ACString getAntiId(in ACString id);
+
+  /**
+   * get an array of traits to be analyzed by the bayesian code. This is
+   * a pair of traits: a "pro" trait of messages that match the trait (and is
+   * set enabled) and an "anti" trait of messages that do not match the trait.
+   *
+   * @param count        length of proIndices and antiIndices arrays
+   * @param proIndices   trait internal index for "pro" trait to analyze
+   * @param antiIndices  trait internal index for corresponding "anti" traits
+   */
+  void getEnabledIndices(out unsigned long count,
+                         [array, size_is(count)] out unsigned long proIndices,
+                         [array, size_is(count)] out unsigned long antiIndices);
+};

@@ -304,6 +304,8 @@ protected:
                                            // TraitPerToken
     nsTArray<PRUint32> mMessageCounts;     // count of messages per trait
                                            // represented in the store
+    nsTArray<PRUint32> mMessageCountsId;   // Parallel array to mMessageCounts, with
+                                           // the corresponding trait ID
 };
 
 class nsBayesianFilter : public nsIJunkMailPlugin {

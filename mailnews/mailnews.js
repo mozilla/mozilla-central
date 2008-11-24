@@ -527,6 +527,18 @@ pref("mail.spam.manualMarkMode", 0); // 0 == "move to junk folder", 1 == "delete
 // the number of allowed bayes tokens before the database is shrunk
 pref("mailnews.bayesian_spam_filter.junk_maxtokens", 100000);
 
+// set default traits for junk and good. Index should match the values in nsIJunkMailPlugin
+pref("mailnews.traits.id.1", "mailnews@mozilla.org#good");
+pref("mailnews.traits.name.1", "Good");
+pref("mailnews.traits.enabled.1", false);
+pref("mailnews.traits.id.2", "mailnews@mozilla.org#junk");
+pref("mailnews.traits.name.2", "Junk");
+pref("mailnews.traits.enabled.2", true);
+pref("mailnews.traits.antiId.2", "mailnews@mozilla.org#good");
+// traits 3 - 1000 are reserved for use by mailnews@mozilla.org
+// the first externally defined trait will have index 1001
+pref("mailnews.traits.lastIndex", 1000);
+
 pref("mail.autoComplete.highlightNonMatches", true);
 
 // if true, we'll use the password from an incoming server with

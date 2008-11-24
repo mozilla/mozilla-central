@@ -115,7 +115,8 @@ struct nsLocalFolderScanState
 class nsMsgLocalMailFolder : public nsMsgDBFolder,
                              public nsIMsgLocalMailFolder,
                              public nsICopyMessageListener,
-                             public nsIJunkMailClassificationListener
+                             public nsIJunkMailClassificationListener,
+                             public nsIMsgTraitClassificationListener
 {
 public:
   nsMsgLocalMailFolder(void);
@@ -123,6 +124,7 @@ public:
   NS_DECL_NSICOPYMESSAGELISTENER
   NS_DECL_NSIMSGLOCALMAILFOLDER
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
+  NS_DECL_NSIMSGTRAITCLASSIFICATIONLISTENER
   NS_DECL_ISUPPORTS_INHERITED
   // nsIRDFResource methods:
   NS_IMETHOD Init(const char *aURI);

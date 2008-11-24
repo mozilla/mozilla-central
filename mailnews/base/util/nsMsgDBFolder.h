@@ -58,9 +58,12 @@
 #include "nsIStringBundle.h"
 #include "nsTObserverArray.h"
 #include "nsCOMArray.h"
+#include "nsMsgKeySet.h"
+#include "nsMsgMessageFlags.h"
 class nsIMsgFolderCacheElement;
 class nsIJunkMailPlugin;
 class nsICollation;
+class nsMsgKeySetU;
 
  /* 
   * nsMsgDBFolder
@@ -276,6 +279,34 @@ protected:
 #endif
 
   static const NS_MSG_BASE_STATIC_MEMBER_(nsStaticAtom) folder_atoms[];
+
+  // store of keys that have a processing flag set
+  struct
+  {
+    PRUint32 bit;
+    nsMsgKeySetU* keys;
+  } mProcessingFlag[MSG_NUMBER_OF_PROCESSING_FLAGS];
+};
+
+// This class is a kludge to allow nsMsgKeySet to be used with PRUint32 keys
+class nsMsgKeySetU
+{
+public:
+    // Creates an empty set.
+  static nsMsgKeySetU* Create();
+  ~nsMsgKeySetU();
+  // IsMember() returns whether the given key is a member of this set.
+  PRBool IsMember(PRUint32 key);
+  // Add() adds the given key to the set.  (Returns 1 if a change was
+  // made, 0 if it was already there, and negative on error.)
+  int Add(PRUint32 key);
+  // Remove() removes the given article from the set. 
+  int Remove(PRUint32 key);
+
+protected:
+  nsMsgKeySetU();
+  nsMsgKeySet* loKeySet;
+  nsMsgKeySet* hiKeySet;
 };
 
 #undef  IMETHOD_VISIBILITY

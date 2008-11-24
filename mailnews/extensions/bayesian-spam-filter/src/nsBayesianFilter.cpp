@@ -1808,9 +1808,8 @@ NS_IMETHODIMP nsBayesianFilter::ResetTrainingData()
 
      Format of the trait file for version 1:
     [0xFCA93601]  (the 01 is the version)
-    [number of traits to write]
-    [id of first trait to write]
     for each trait to write
+      [id of trait to write] (0 means end of list)
       [number of messages per trait]
       for each token with non-zero count
         [count]
@@ -2061,30 +2060,28 @@ void CorpusStore::writeTrainingData(PRInt32 aMaximumTokenCount)
     return;
 
   PRUint32 numberOfTraits = mMessageCounts.Length();
-  PRUint32 firstTraitToWrite = 3;  // Traits 1 and 2 are in training.dat
-  PRUint32 numberOfTraitsToWrite = numberOfTraits >= firstTraitToWrite ?
-                                     numberOfTraits - firstTraitToWrite + 1: 0;
   PRBool error;
   while (1) // break on error or done
   {
     if (error = (fwrite(kTraitCookie, sizeof(kTraitCookie), 1, stream) != 1))
       break;
 
-    if (error = (writeUInt32(stream, numberOfTraitsToWrite) != 1))
-      break;
-
-    if (error = (writeUInt32(stream, firstTraitToWrite) != 1))
-      break;
-
-    for (PRUint32 trait = firstTraitToWrite; trait <= numberOfTraits; trait++)
+    for (PRUint32 index = 0; index < numberOfTraits; index++)
     {
-      if (error = (writeUInt32(stream, getMessageCount(trait) / shrinkFactor) != 1))
+      PRUint32 trait = mMessageCountsId[index];
+      if (trait == 1 || trait == 2)
+        continue; // junk traits are stored in training.dat
+      if (error = (writeUInt32(stream, trait) != 1))
+        break;
+      if (error = (writeUInt32(stream, mMessageCounts[index] / shrinkFactor) != 1))
         break;
       if (error = !writeTokens(stream, shrink, trait))
         break;
     }
     break;
   }
+  // we add a 0 at the end to represent end of trait list
+  error = writeUInt32(stream, 0) != 1;
 
   fclose(stream);
   if (error)
@@ -2102,8 +2099,8 @@ void CorpusStore::writeTrainingData(PRInt32 aMaximumTokenCount)
     if (countTokens())
     {
       clearTokens();
-      for (PRUint32 trait = 1; trait <= numberOfTraits; trait++)
-        setMessageCount(trait, 0);
+      for (PRUint32 index = 0; index < numberOfTraits; index++)
+        mMessageCounts[index] = 0;
     }
 
   readTrainingData();
@@ -2175,7 +2172,6 @@ void CorpusStore::readTrainingData()
   if (NS_FAILED(rv))
     return;
 
-  PRUint32 numberOfTraitsToWrite, firstTraitToWrite;
   PRBool error;
 
   while(1) // break on error or done
@@ -2186,15 +2182,8 @@ void CorpusStore::readTrainingData()
     if (error = memcmp(cookie, kTraitCookie, sizeof(cookie)))
       break;
 
-    if (error = (readUInt32(stream, &numberOfTraitsToWrite) != 1))
-      break;
-
-    if (error = (readUInt32(stream, &firstTraitToWrite) != 1))
-      break;
-
-    for (PRUint32 trait = firstTraitToWrite;
-         trait < numberOfTraitsToWrite + firstTraitToWrite;
-         trait++)
+    PRUint32 trait;
+    while ( !(error = (readUInt32(stream, &trait) != 1)) && trait)
     {
       PRUint32 count;
       if (error = (readUInt32(stream, &count) != 1))
@@ -2222,8 +2211,8 @@ nsresult CorpusStore::resetTrainingData()
     clearTokens();
 
   PRUint32 length = mMessageCounts.Length();
-  for (PRUint32 trait = 1 ; trait <= length; trait++)
-    setMessageCount(trait, 0);
+  for (PRUint32 index = 0 ; index < length; index++)
+    mMessageCounts[index] = 0;
 
   if (mTrainingFile)
     mTrainingFile->Remove(PR_FALSE);
@@ -2330,14 +2319,24 @@ void CorpusStore::remove(const char* word, PRUint32 aTraitId, PRUint32 aCount)
 
 PRUint32 CorpusStore::getMessageCount(PRUint32 aTraitId)
 {
-  // TraitIds start at 1
-  return mMessageCounts.SafeElementAt(aTraitId - 1, 0);
+  const PRUint32 kNoIndex = PRUint32(-1);
+  PRUint32 index = mMessageCountsId.IndexOf(aTraitId);
+  if (index == kNoIndex)
+    return 0;
+  return mMessageCounts.ElementAt(index);
 }
 
 void CorpusStore::setMessageCount(PRUint32 aTraitId, PRUint32 aCount)
 {
-  while (mMessageCounts.Length() < aTraitId)
-    mMessageCounts.AppendElement(0);
-  // TraitIds start at 1
-  mMessageCounts.ReplaceElementsAt(aTraitId - 1, 1, aCount);
+  const PRUint32 kNoIndex = PRUint32(-1);
+  PRUint32 index = mMessageCountsId.IndexOf(aTraitId);
+  if (index == kNoIndex)
+  {
+    mMessageCounts.AppendElement(aCount);
+    mMessageCountsId.AppendElement(aTraitId);
+  }
+  else
+  {
+    mMessageCounts[index] = aCount;
+  }
 }

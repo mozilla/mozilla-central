@@ -92,6 +92,7 @@
 #include "nsArrayUtils.h"
 #include "nsIMimeHeaders.h"
 #include "nsDirectoryServiceDefs.h"
+#include "nsIMsgTraitService.h"
 
 #define oneHour 3600000000U
 #include "nsMsgUtils.h"
@@ -195,10 +196,18 @@ nsMsgDBFolder::nsMsgDBFolder(void)
 #endif
     LL_I2L(gtimeOfLastPurgeCheck, 0);
   }
+
+  mProcessingFlag[0].bit = MSG_PROCESSING_FLAG_CLASSIFY_JUNK;
+  mProcessingFlag[1].bit = MSG_PROCESSING_FLAG_CLASSIFY_TRAITS;
+  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+    mProcessingFlag[i].keys = nsMsgKeySetU::Create();
 }
 
 nsMsgDBFolder::~nsMsgDBFolder(void)
 {
+  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+    delete mProcessingFlag[i].keys;
+
   if (--mInstanceCount == 0) {
     NS_IF_RELEASE(gCollationKeyGenerator);
     NS_Free(kLocalizedInboxName);
@@ -1926,6 +1935,17 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   nsCString serverType;
   server->GetType(serverType);
 
+  rv = server->GetSpamSettings(getter_AddRefs(spamSettings));
+  nsCOMPtr <nsIMsgFilterPlugin> filterPlugin;
+  server->GetSpamFilterPlugin(getter_AddRefs(filterPlugin));
+  if (!filterPlugin) // it's not an error not to have the filter plugin.
+    return NS_OK;
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr <nsIJunkMailPlugin> junkMailPlugin = do_QueryInterface(filterPlugin);
+  if (!junkMailPlugin) // we currently only support the junk mail plugin
+    return NS_OK;
+  
   // if this is the junk folder, or the trash folder
   // don't analyze for spam, because we don't care
   //
@@ -1936,41 +1956,30 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   // if it's a public imap folder, or another users
   // imap folder, don't analyze for spam, because
   // it's not ours to analyze
+  //
+  // We'll use the same folder logic for traits as well. Maybe we'll
+  // reconsider that later.
+
   if (serverType.EqualsLiteral("rss") ||
-       (mFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash |
-               nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Queue |
-               nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
-               nsMsgFolderFlags::ImapPublic | nsMsgFolderFlags::ImapOtherUser)
-       && !(mFlags & nsMsgFolderFlags::Inbox)))
+     (mFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash |
+             nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Queue |
+             nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
+             nsMsgFolderFlags::ImapPublic | nsMsgFolderFlags::ImapOtherUser)
+     && !(mFlags & nsMsgFolderFlags::Inbox)))
     return NS_OK;
 
-  rv = server->GetSpamSettings(getter_AddRefs(spamSettings));
-  nsCOMPtr <nsIMsgFilterPlugin> filterPlugin;
-  server->GetSpamFilterPlugin(getter_AddRefs(filterPlugin));
-  if (!filterPlugin) // it's not an error not to have the filter plugin.
-    return NS_OK;
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr <nsIJunkMailPlugin> junkMailPlugin = do_QueryInterface(filterPlugin);
-
-  if (junkMailPlugin)
-  {
-    PRBool userHasClassified = PR_FALSE;
-    // if the user has not classified any messages yet, then we shouldn't bother
-    // running the junk mail controls. This creates a better first use experience.
-    // See Bug #250084.
-    junkMailPlugin->GetUserHasClassified(&userHasClassified);
-    if (!userHasClassified)
-      return NS_OK;
-  }
+  PRBool filterForJunk = PR_TRUE;
+  PRBool userHasClassified = PR_FALSE;
+  // if the user has not classified any messages yet, then we shouldn't bother
+  // running the junk mail controls. This creates a better first use experience.
+  // See Bug #250084.
+  junkMailPlugin->GetUserHasClassified(&userHasClassified);
+  if (!userHasClassified)
+    filterForJunk = PR_FALSE;
 
   spamSettings->GetLevel(&spamLevel);
   if (!spamLevel)
-    return NS_OK;
-
-  nsCOMPtr<nsIMsgMailSession> mailSession =
-      do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    filterForJunk = PR_FALSE;
 
   if (!mDatabase)
   {
@@ -1978,6 +1987,29 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
+  // check if trait processing needed
+
+  nsCOMPtr<nsIMsgTraitService> traitService(
+      do_GetService("@mozilla.org/msg-trait-service;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 count, *proIndices, *antiIndices;
+  rv = traitService->GetEnabledIndices(&count, &proIndices, &antiIndices);
+  PRBool filterForOther = PR_FALSE;
+  for (PRUint32 i = 0; i < count; ++i)
+  {
+    if (proIndices[i] != nsIJunkMailPlugin::JUNK_TRAIT)
+    {
+      filterForOther = PR_TRUE;
+      break;
+    }
+  }
+  NS_Free(proIndices);
+  NS_Free(antiIndices);
+  
+  if (!filterForOther && !filterForJunk)
+    return NS_OK;
+  
   // get the list of new messages
   //
   PRUint32 numNewKeys;
@@ -2040,44 +2072,46 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   PRUint32 numNewMessages = newMessageKeys.Length();
   for ( PRUint32 i=0 ; i < numNewMessages ; ++i )
   {
-    nsCString junkScore;
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
     nsMsgKey msgKey = newMessageKeys[i];
     rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
     if (!NS_SUCCEEDED(rv))
       continue;
-    nsCString author;
-    nsCString authorEmailAddress;
-    if (whiteListDirArray.Count() != 0 || !trustedMailDomains.IsEmpty())
+    // per-message junk tests.
+    PRBool filterMessageForJunk = PR_FALSE;
+    while (filterForJunk)  // we'll break from this at the end
     {
-      msgHdr->GetAuthor(getter_Copies(author));
-      rv = headerParser->ExtractHeaderAddressMailboxes(author, authorEmailAddress);
-    }
-
-    if (!trustedMailDomains.IsEmpty())
-    {
-      nsCAutoString domain;
-      PRInt32 atPos = authorEmailAddress.FindChar('@');
-      if (atPos >= 0)
-        domain = Substring(authorEmailAddress, atPos + 1);
-      if (!domain.IsEmpty() && MsgHostDomainIsTrusted(domain, trustedMailDomains))
+      nsCString junkScore;
+      nsCString author;
+      nsCString authorEmailAddress;
+      if (whiteListDirArray.Count() != 0 || !trustedMailDomains.IsEmpty())
       {
-        // mark this msg as non-junk, because we whitelisted it.
-
-        nsCAutoString msgJunkScore;
-        msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
-        mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
-        mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
-        continue; // skip this msg since it's in the white list
+        msgHdr->GetAuthor(getter_Copies(author));
+        rv = headerParser->ExtractHeaderAddressMailboxes(author, authorEmailAddress);
       }
-    }
-    msgHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
-    if (!junkScore.IsEmpty()) // ignore already scored messages.
-      continue;
-    // check whitelist first:
-    if (whiteListDirArray.Count() != 0)
-    {
-      if (NS_SUCCEEDED(rv))
+
+      if (!trustedMailDomains.IsEmpty())
+      {
+        nsCAutoString domain;
+        PRInt32 atPos = authorEmailAddress.FindChar('@');
+        if (atPos >= 0)
+          domain = Substring(authorEmailAddress, atPos + 1);
+        if (!domain.IsEmpty() && MsgHostDomainIsTrusted(domain, trustedMailDomains))
+        {
+          // mark this msg as non-junk, because we whitelisted it.
+
+          nsCAutoString msgJunkScore;
+          msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
+          mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
+          mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
+          break; // skip this msg since it's in the white list
+        }
+      }
+      msgHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
+      if (!junkScore.IsEmpty()) // ignore already scored messages.
+        break;
+      // check whitelist first:
+      if (NS_SUCCEEDED(rv) && whiteListDirArray.Count() != 0)
       {
         nsIAbCard* cardForAddress = nsnull;
         // don't want to abort the rest of the scoring.
@@ -2091,13 +2125,24 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         {
           NS_RELEASE(cardForAddress);
           // mark this msg as non-junk, because we whitelisted it.
-          mDatabase->SetStringProperty(msgKey, "junkscore", "0");
+          nsCAutoString msgJunkScore;
+          msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
+          mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
           mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
-          continue; // skip this msg since it's in the white list
-        }
+          break; // skip this msg since it's in the white list
+          }
       }
+      filterMessageForJunk = PR_TRUE;
+      break;
     }
-    keysToClassify.AppendElement(newMessageKeys[i]);
+    if (filterMessageForJunk || filterForOther)
+    {
+      keysToClassify.AppendElement(newMessageKeys[i]);
+      if (filterMessageForJunk)
+        OrProcessingFlags(msgKey, MSG_PROCESSING_FLAG_CLASSIFY_JUNK);
+      if (filterForOther)
+        OrProcessingFlags(msgKey, MSG_PROCESSING_FLAG_CLASSIFY_TRAITS);
+    }
   }
 
   if (!keysToClassify.IsEmpty())
@@ -5271,4 +5316,78 @@ NS_IMETHODIMP nsMsgDBFolder::GetCustomIdentity(nsIMsgIdentity **aIdentity)
   NS_ENSURE_ARG_POINTER(aIdentity);
   *aIdentity = nsnull;
   return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDBFolder::GetProcessingFlags(nsMsgKey aKey, PRUint32 *aFlags)
+{
+  NS_ENSURE_ARG_POINTER(aFlags);
+  *aFlags = 0;
+  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+    if (mProcessingFlag[i].keys && mProcessingFlag[i].keys->IsMember(aKey))
+      *aFlags |= mProcessingFlag[i].bit;
+  return NS_OK;
+}  
+
+NS_IMETHODIMP nsMsgDBFolder::OrProcessingFlags(nsMsgKey aKey, PRUint32 mask)
+{
+  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+    if (mProcessingFlag[i].bit & mask && mProcessingFlag[i].keys)
+      mProcessingFlag[i].keys->Add(aKey);
+  return NS_OK;
+}  
+
+NS_IMETHODIMP nsMsgDBFolder::AndProcessingFlags(nsMsgKey aKey, PRUint32 mask)
+{
+  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+    if (!(mProcessingFlag[i].bit & mask) && mProcessingFlag[i].keys)
+      mProcessingFlag[i].keys->Remove(aKey);
+  return NS_OK;
+}
+
+/* static */ nsMsgKeySetU* nsMsgKeySetU::Create()
+{
+  nsMsgKeySetU* set = new nsMsgKeySetU;
+  if (set)
+  {
+    set->loKeySet = nsMsgKeySet::Create();
+    set->hiKeySet = nsMsgKeySet::Create();
+  }
+  if (!(set && set->loKeySet && set->hiKeySet))
+    delete set;
+  return set;
+}
+
+nsMsgKeySetU::nsMsgKeySetU()
+{ }
+
+nsMsgKeySetU::~nsMsgKeySetU()
+{
+  delete loKeySet;
+  delete hiKeySet;
+}
+
+const PRUint32 kLowerBits = 0x7fffffff;
+
+int nsMsgKeySetU::Add(PRUint32 aKey)
+{
+  PRInt32 intKey = static_cast<PRInt32>(aKey);
+  if (intKey >= 0)
+    return loKeySet->Add(intKey);
+  return hiKeySet->Add(intKey & kLowerBits);
+}
+
+int nsMsgKeySetU::Remove(PRUint32 aKey)
+{
+  PRInt32 intKey = static_cast<PRInt32>(aKey);
+  if (intKey >= 0)
+    return loKeySet->Remove(intKey);
+  return hiKeySet->Remove(intKey & kLowerBits);
+}
+
+PRBool nsMsgKeySetU::IsMember(PRUint32 aKey)
+{
+  PRInt32 intKey = static_cast<PRInt32>(aKey);
+  if (intKey >= 0)
+    return loKeySet->IsMember(intKey);
+  return hiKeySet->IsMember(intKey & kLowerBits);
 }

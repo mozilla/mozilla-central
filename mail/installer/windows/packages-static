@@ -188,6 +188,9 @@ bin\components\nsWinSearchIntegration.js
 bin\components\mailwinsearch.xpt
 bin\WSEnable.exe
 
+; Bayesian trait analysis
+bin\components\nsMsgTraitService.js
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Base Package Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
