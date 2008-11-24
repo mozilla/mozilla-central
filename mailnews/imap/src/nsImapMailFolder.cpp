@@ -2134,8 +2134,8 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
           }
           mDatabase->DeleteMessages(&srcKeyArray,nsnull);
           EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_TRUE /*dbBatching*/);
-          NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
         }
+        NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
       }
     }
     return rv;
@@ -4689,10 +4689,6 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                 }
               }
             }
-            // see bug #188051
-            // only send the folder event only if we are deleting
-            // (and not for other flag changes)
-            NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
           }
         }
         break;
