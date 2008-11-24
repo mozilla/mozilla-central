@@ -185,13 +185,17 @@
       </tabbox>
 
       <splitter id="calendar-todo-splitter" collapse="before"
-                persist="state,collapsed" orient="vertical"/>
+                persist="state,collapsed" orient="vertical">
+        <grippy/>
+      </splitter>
 
       <vbox id="todo-tab-panel" persist="height,collapsed" flex="1"/>
     </vbox>
 
-    <splitter id="calendar-splitter" collapse="before" persist="state"
-              class="chromeclass-extrachrome sidebar-splitter" orient="horizontal"/>
+    <splitter id="calendar-splitter" collapse="before" 
+              persist="state" orient="horizontal">
+      <grippy/>
+    </splitter>
          
     <vbox id="calendar-view-box" flex="1">
       <deck id="view-deck" flex="1" persist="selectedIndex">
