@@ -636,6 +636,10 @@ calendar-navigation-buttons {
     border-bottom: 2px solid #D2D2D2;
 }
 
+.calview-tabs {
+    margin-bottom: 0;
+}
+
 tab[calview] {
     -moz-appearance: none;
     background-image: url("chrome://calendar/skin/calendar-day-label-back-vertical.png");
@@ -646,7 +650,6 @@ tab[calview] {
     -moz-border-radius-topright: 4px;  
     -moz-border-right-colors: #D2D2D2 transparent;
     -moz-border-left-colors: transparent #D2D2D2;  
-    font-size: 14px;
     margin-top: 0px;
     -moz-user-focus: normal;  
 }
@@ -665,6 +668,7 @@ tab[calview]:hover {
 
 .tab-text {
     text-align: center;
+    font-size: 14px;
 }
 
 .view-header {
@@ -672,7 +676,7 @@ tab[calview]:hover {
     font-size: 14px;
     color: #2E4E73;
     padding-top: 5px;
-    margin-top: 5px;
+    margin-top: 3px;
 }
 
 .view-header[type="end"] {
@@ -701,7 +705,7 @@ tab[calview]:hover {
     margin-top: 3px;
     -moz-margin-start: 3px;
     -moz-margin-end: 3px;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .today-navigation-button {
@@ -712,7 +716,9 @@ tab[calview]:hover {
     -moz-margin-end: 2px;
     margin-bottom: 0px;
     color: #2E4E73;
+    font-size: 14px;
 }
+
 .view-navigation-button > .toolbarbutton-text {
   display: none;
 }

@@ -78,6 +78,7 @@
          </xul:vbox>
          <xul:vbox pack="end">
              <xul:tabs anonid="view-tabs"
+                       class="calview-tabs"
                        setfocus="true">
                <xul:tab anonid="calendar-day-view-button"
                         label="&calendar.day.button.label;"
@@ -100,24 +101,24 @@
                         calview="month"
                         observes="calendar_month-view_command"/>
              </xul:tabs>
-           <xul:box flex="1" class="navigation-bottombox" type="end"/>
+           <xul:box class="navigation-bottombox" type="end"/>
          </xul:vbox>
-         <xul:scrollbar style="visibility: hidden" orient="vertical"/>
-        </content>
+         <xul:vbox>
+           <xul:scrollbar style="visibility:hidden;max-height:1px;height:1px" orient="vertical"/>
+         </xul:vbox> 
+       </content>
         <implementation>
             <field name="mStartDate"/>
             <field name="mEndDate"/>
             <field name="mToolTipTexts"/>
             <field name="mDecoratedView"/>
             <constructor><![CDATA[
-                let button = document.getAnonymousElementByAttribute(this, 'anonid', 'calendar-day-view-button')
-                button.setAttribute("style", "min-width: " + button.label.length + "em;");
-                button = document.getAnonymousElementByAttribute(this, 'anonid', 'calendar-week-view-button')
-                button.setAttribute("style", "min-width: " + button.label.length + "em;");
-                button = document.getAnonymousElementByAttribute(this, 'anonid', 'calendar-multiweek-view-button')
-                button.setAttribute("style", "min-width: " + button.label.length + "em;");
-                button = document.getAnonymousElementByAttribute(this, 'anonid', 'calendar-month-view-button')
-                button.setAttribute("style", "min-width: " + button.label.length + "em;");
+                for (let i = 0; i < views.childNodes.length; i++) {
+                    let node = views.childNodes[i];
+                    if (node.localName == "tab") {
+                        node.setAttribute("style", "min-width: " + node.label.length + "em;");
+                    }
+                }
             ]]></constructor>
             <property name="views"
                       readonly="true"
