@@ -74,5 +74,9 @@
     <em:name>Timezone Definitions for Mozilla Calendar</em:name>
     <em:description>Timezone definitions required by Sunbird and Lightning</em:description>
     <em:creator>Mozilla Calendar Project</em:creator>
+    <em:iconURL>chrome://calendar-timezones/skin/addon-icon32.png</em:iconURL>
+#if 0
+    <em:homepageURL>https://addons.mozilla.org/en-US/thunderbird/addon/xxx todo</em:homepageURL>
+#endif
   </Description>
 </RDF>

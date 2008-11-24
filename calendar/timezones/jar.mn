@@ -1,0 +1,5 @@
+#filter substitution
+
+calendar-timezones.jar:
+% skin calendar-timezones classic/1.0 %skin/
+    skin/addon-icon32.png                                   (addon-icon32.png)
