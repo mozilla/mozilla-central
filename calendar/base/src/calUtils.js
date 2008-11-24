@@ -1645,6 +1645,16 @@ function setItemProperty(item, propertyName, aValue, aCapability) {
                 item.isCompleted = value;
             }
             break;
+        case "PERCENT-COMPLETE": {
+            let perc = parseInt(item.getProperty(propertyName), 10);
+            if (isNaN(perc)) {
+                perc = 0;
+            }
+            if (perc != value) {
+                item.setProperty(propertyName, value);
+            }
+            break;
+        }
         case "title":
             if (value != item.title) {
                 item.title = value;
