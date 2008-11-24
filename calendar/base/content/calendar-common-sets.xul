@@ -116,7 +116,7 @@
   </commandset>
 
   <keyset id="calendar-keys">
-  #ifdef XP_MACOSX
+#ifdef XP_MACOSX
     // The following Mac specific code-lines are necessary, because you can't 
     // just use the OPTION key on Mac OSX. So we will use SHIFT+OPTION on the 
     // Mac, but just ALT on all other platforms. See bug 448946.
@@ -124,12 +124,12 @@
     <key id="calendar-week-view-key" key="&calendar.weekView.key;" observes="calendar_week-view_command" modifiers="shift alt"/>
     <key id="calendar-multiweek-view-key" key="&calendar.multiweekView.key;" observes="calendar_multiweek-view_command" modifiers="shift alt"/>
     <key id="calendar-month-view-key" key="&calendar.monthView.key;" observes="calendar_month-view_command" modifiers="shift alt"/>
-  #else
+#else
     <key id="calendar-day-view-key" key="&calendar.dayView.key;" observes="calendar_day-view_command" modifiers="alt"/>
     <key id="calendar-week-view-key" key="&calendar.weekView.key;" observes="calendar_week-view_command" modifiers="alt"/>
     <key id="calendar-multiweek-view-key" key="&calendar.multiweekView.key;" observes="calendar_multiweek-view_command" modifiers="alt"/>
     <key id="calendar-month-view-key" key="&calendar.monthView.key;" observes="calendar_month-view_command" modifiers="alt"/>
-  #endif
+#endif
     <key id="calendar-go-to-today-key" keycode="VK_DOWN" observes="calendar_go_to_today_command" modifiers="accel"/>
     <key id="calendar-delete-item-key" keycode="VK_DELETE" observes="calendar_delete_event_command"/>
     <key id="calendar-delete-todo-key" keycode="VK_DELETE" observes="calendar_delete_todo_command"/>
