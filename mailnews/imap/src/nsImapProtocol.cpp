@@ -876,12 +876,15 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
     {
       m_transport->SetTimeout(nsISocketTransport::TIMEOUT_CONNECT, gResponseTimeout + 60);
       PRInt32 readWriteTimeout = gResponseTimeout;
-      m_runningUrl->GetImapAction(&m_imapAction);
-      // this is a silly hack, but the default of 100 seconds is way too long
-      // for things like APPEND, which should come back immediately.
-      if (m_imapAction == nsIImapUrl::nsImapAppendMsgFromFile ||
-          m_imapAction == nsIImapUrl::nsImapAppendDraftFromFile)
-        readWriteTimeout = 20;
+      if (m_runningUrl)
+      {
+        m_runningUrl->GetImapAction(&m_imapAction);
+        // this is a silly hack, but the default of 100 seconds is way too long
+        // for things like APPEND, which should come back immediately.
+        if (m_imapAction == nsIImapUrl::nsImapAppendMsgFromFile ||
+            m_imapAction == nsIImapUrl::nsImapAppendDraftFromFile)
+          readWriteTimeout = 20;
+      }
       m_transport->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, readWriteTimeout);
       // set the security info for the mock channel to be the security status for our underlying transport.
       nsCOMPtr<nsISupports> securityInfo;
