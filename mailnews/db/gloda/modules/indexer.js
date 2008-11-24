@@ -822,16 +822,17 @@ var GlodaIndexer = {
    */
   _indexerEnterFolder: function gloda_index_indexerEnterFolder(aFolderID,
                                                                aNeedIterator) {
-    // if leave folder was't cleared first, remove the listener; everyone else
-    //  will be nulled out in the exception handler below if things go south
-    //  on this folder.
+    // leave the folder if we haven't explicitly left it.
     if (this._indexingFolder !== null) {
-      this._indexingDatabase.RemoveListener(this._databaseAnnouncerListener);
+      this._indexerLeaveFolder();
     }
     
     this._indexingGlodaFolder = GlodaDatastore._mapFolderID(aFolderID);
     this._indexingFolder = this._indexingGlodaFolder.getXPCOMFolder(
                              this._indexingGlodaFolder.kActivityIndexing);
+    
+    if (this._indexingFolder)
+      this._log.debug("Entering folder: " + this._indexingFolder.URI);
 
     try {
       // The msf may need to be created or otherwise updated for local folders.
@@ -894,9 +895,11 @@ var GlodaIndexer = {
   
   _indexerLeaveFolder: function gloda_index_indexerLeaveFolder(aExpected) {
     if (this._indexingFolder !== null) {
-      this._indexingDatabase.Commit(Ci.nsMsgDBCommitType.kLargeCommit);
-      // remove our listener!
-      this._indexingDatabase.RemoveListener(this._databaseAnnouncerListener);
+      if (this._indexingDatabase) {
+        this._indexingDatabase.Commit(Ci.nsMsgDBCommitType.kLargeCommit);
+        // remove our listener!
+        this._indexingDatabase.RemoveListener(this._databaseAnnouncerListener);
+      }
       // let the gloda folder know we are done indexing
       this._indexingGlodaFolder.indexing = false;
       // null everyone out
@@ -904,8 +907,6 @@ var GlodaIndexer = {
       this._indexingGlodaFolder = null;
       this._indexingDatabase = null;
       this._indexingIterator = null;
-      // ...including the active job:
-      this._curIndexingJob = null;
     }
   },
   
@@ -1256,10 +1257,6 @@ var GlodaIndexer = {
     {
       let server = servers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
       let rootFolder = server.rootFolder;
-
-      // ignore news accounts for now.
-      if (rootFolder.URI.indexOf('news://') == 0)
-        continue;
       
       let allFolders = Cc["@mozilla.org/supports-array;1"].
                          createInstance(Ci.nsISupportsArray);
@@ -1269,6 +1266,10 @@ var GlodaIndexer = {
       {
         let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
                                                             Ci.nsIMsgFolder);
+
+        if (!this.shouldIndexFolder(folder))
+          continue;
+        
         // we could also check nsMsgFolderFlags.Mail conceivably...
         let isLocal = folder instanceof Ci.nsIMsgLocalMailFolder;
         // we only index local folders or IMAP folders that are marked offline.
@@ -1335,6 +1336,10 @@ var GlodaIndexer = {
    */
   _worker_folderIndex: function gloda_worker_folderIndex(aJob) {
     yield this._indexerEnterFolder(aJob.id, true);
+    
+    if (!this.shouldIndexFolder(this._indexingFolder))
+      yield this.kWorkDone;
+    
     aJob.goal = this._indexingFolder.getTotalMessages(false);
     
     // there is of course a cost to all this header investigation even if we
@@ -1430,8 +1435,13 @@ var GlodaIndexer = {
 
       // get in the folder
       if (!this._indexingGlodaFolder ||
-          this._indexingGlodaFolder.id != item[0])
+          this._indexingGlodaFolder.id != item[0]) {
         yield this._indexerEnterFolder(item[0], false);
+
+        // stay out of folders we should not be in!
+        if (!this.shouldIndexFolder(this._indexingFolder))
+          continue;
+      }
 
       let msgHdr;
       if (typeof item[1] == "number")
@@ -1481,6 +1491,21 @@ var GlodaIndexer = {
   },
 
   /**
+   * Determine whether a folder is suitable for indexing.
+   * 
+   * @param aMsgFolder An nsIMsgFolder you want to see if we should index.
+   * 
+   * @returns true if we want to index messages in this type of folder, false if
+   *     we do not.
+   */
+  shouldIndexFolder: function(aMsgFolder) {
+    let folderFlags = aMsgFolder.flags;
+    // only index mail folders but stay out of virtual folders
+    return ((folderFlags & Ci.nsMsgFolderFlags.Mail) &&
+            !(folderFlags & Ci.nsMsgFolderFlags.Virtual));
+  },
+  
+  /**
    * Queue all of the folders of all of the accounts of the current profile
    *  for indexing.  We traverse all folders and queue them immediately to try
    *  and have an accurate estimate of the number of folders that need to be
@@ -1507,12 +1532,18 @@ var GlodaIndexer = {
     if (rootFolder instanceof Ci.nsIMsgFolder) {
       this._log.info("Queueing account folders for indexing: " + aAccount.key);
 
-      GlodaDatastore._beginTransaction();
-      let folderJobs =
-              [new IndexingJob("folder", 1,
-                               GlodaDatastore._mapFolder(folder).id) for each
-              (folder in fixIterator(rootFolder.subFolders, Ci.nsIMsgFolder))];
-      GlodaDatastore._commitTransaction();
+      let allFolders = Cc["@mozilla.org/supports-array;1"]
+                         .createInstance(Ci.nsISupportsArray);
+      rootFolder.ListDescendents(allFolders);
+      let numFolders = allFolders.Count();
+      let folderJobs = [];
+      for (let folderIndex = 0; folderIndex < numFolders; folderIndex++) {
+        let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
+                                                            Ci.nsIMsgFolder);
+        if (this.shouldIndexFolder(folder))
+          folderJobs.push(
+            new IndexingJob("folder", 1, GlodaDatastore._mapFolder(folder).id));
+      }
       
       this._indexingJobGoal += folderJobs.length;
       this._indexQueue = this._indexQueue.concat(folderJobs);
@@ -1621,7 +1652,7 @@ var GlodaIndexer = {
     msgAdded: function gloda_indexer_msgAdded(aMsgHdr) {
       // make sure the message is eligible for indexing...
       let msgFolder = aMsgHdr.folder;
-      if (msgFolder.URI.indexOf("news://") == 0)
+      if (!this.indexer.shouldIndexFolder(msgFolder))
         return;
       let isFolderLocal = msgFolder instanceof Ci.nsIMsgLocalMailFolder;
       if (!isFolderLocal && !(msgFolder.flags&Ci.nsMsgFolderFlags.Offline))
@@ -1937,7 +1968,7 @@ var GlodaIndexer = {
         aMsgHdr) {
       // make sure the message is eligible for indexing...
       let msgFolder = aMsgHdr.folder;
-      if (msgFolder.URI.indexOf("news://") == 0)
+      if (!this.indexer.shouldIndexFolder(msgFolder))
         return;
       let isFolderLocal = msgFolder instanceof Ci.nsIMsgLocalMailFolder;
       if (!isFolderLocal && !(msgFolder.flags&Ci.nsMsgFolderFlags.Offline))

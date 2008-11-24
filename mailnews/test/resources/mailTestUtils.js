@@ -56,6 +56,8 @@ function loadLocalMailAccount()
   // Note: Inbox is not created automatically when there is no deferred server,
   // so we need to create it.
   gLocalInboxFolder = rootFolder.addSubfolder("Inbox");
+  // a local inbox should have a Mail flag!
+  gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
 
   // Force an initialization of the Inbox folder database.
   var folderName = gLocalInboxFolder.prettiestName;

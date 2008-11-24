@@ -151,9 +151,11 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
 
     let rootFolder = gLocalIncomingServer.rootMsgFolder;
     let subFolder = rootFolder.addSubfolder(ims.mboxName);
-
     // we need to explicitly kick off indexing...
     updateFolderAndNotify(subFolder, function() {
+      // this flag gets lost for reasons I am not entirely clear on, but gloda
+      //  really wants it to be there.
+      subFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
       GlodaIndexer.indexFolder(subFolder);
     });
   }
