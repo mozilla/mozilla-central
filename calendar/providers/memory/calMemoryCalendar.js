@@ -152,7 +152,11 @@ calMemoryCalendar.prototype = {
             }
         }
 
-        let parentItem = aItem.parentItem
+        let parentItem = aItem.parentItem;
+        if (parentItem != aItem) {
+            parentItem = parentItem.clone();
+            parentItem.recurrenceInfo.modifyException(aItem, true);
+        }
         parentItem.calendar = this.superCalendar;
 
         parentItem.makeImmutable();

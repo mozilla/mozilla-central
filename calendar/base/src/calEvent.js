@@ -22,6 +22,7 @@
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Mike Shaver <shaver@off.net>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,9 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//
-// calEvent.js
-//
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 //
 // constructor
@@ -86,20 +85,25 @@ calEvent.prototype = {
     },
 
     cloneShallow: function (aNewParent) {
-        var m = new calEvent();
+        let m = new calEvent();
         this.cloneItemBaseInto(m, aNewParent);
-
         return m;
     },
 
-    createProxy: function () {
-        if (this.mIsProxy) {
-            calDebug("Tried to create a proxy for an existing proxy!\n");
-            throw Components.results.NS_ERROR_UNEXPECTED;
-        }
+    createProxy: function calEvent_createProxy(aRecurrenceId) {
+        cal.ASSERT(!this.mIsProxy, "Tried to create a proxy for an existing proxy!", true);
 
-        var m = new calEvent();
-        m.initializeProxy(this);
+        let m = new calEvent();
+
+        // override proxy's DTSTART/DTEND/RECURRENCE-ID
+        // before master is set (and item might get immutable):
+        let endDate = aRecurrenceId.clone();
+        endDate.addDuration(this.duration);
+        m.endDate = endDate;
+        m.startDate = aRecurrenceId;
+
+        m.initializeProxy(this, aRecurrenceId);
+        m.mDirty = false;
 
         return m;
     },
@@ -171,7 +175,7 @@ calEvent.prototype = {
                 throw Components.results.NS_ERROR_INVALID_ARG;
         }
 
-        // xxx todo: Bug 463195 make sure object is properly reset
+        this.mEndDate = undefined;
         this.setItemBaseFromICS(event);
         this.mapPropsFromICS(event, this.icsEventPropMap);
 
@@ -216,10 +220,7 @@ calEvent.prototype = {
                 var dur = this.getProperty("DURATION");
                 if (dur) {
                     // If there is a duration set on the event, calculate the right end time.
-                    var icalDur = Components.classes["@mozilla.org/calendar/duration;1"]
-                                            .createInstance(Components.interfaces.calIDuration);
-                    icalDur.icalString = dur;
-                    endDate.addDuration(icalDur);
+                    endDate.addDuration(cal.createDuration(dur));
                 } else {
                     // If the start time is a date-time the event ends on the same calendar
                     // date and time of day. If the start time is a date the events

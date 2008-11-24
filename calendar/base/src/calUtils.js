@@ -37,8 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://gre/modules/debug.js");
-
 /* This file contains commonly used functions in a centralized place so that
  * various components (and other js scopes) don't need to replicate them. Note
  * that loading this file twice in the same scope will throw errors.
@@ -955,7 +953,7 @@ function ERROR(aMessage) {
  * @param aSkip  (optional) Number of frames to skip
  */
 function STACK(aDepth, aSkip) {
-    let depth = aDepth || 5;
+    let depth = aDepth || 10;
     let skip = aSkip || 0;
     let stack = "";
     let frame = Components.stack.caller;
@@ -1869,9 +1867,8 @@ function setDefaultAlarmValues(aItem)
     if (isEvent(aItem)) {
         try {
             if (alarmsBranch.getIntPref("onforevents") == 1) {
-                var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
-                                            .createInstance(Components.interfaces.calIDuration);
-                var units = alarmsBranch.getCharPref("eventalarmunit");
+                let alarmOffset = createDuration();
+                let units = alarmsBranch.getCharPref("eventalarmunit");
                 alarmOffset[units] = alarmsBranch.getIntPref("eventalarmlen");
                 alarmOffset.isNegative = true;
                 aItem.alarmOffset = alarmOffset;
@@ -1889,9 +1886,8 @@ function setDefaultAlarmValues(aItem)
                     aItem.entryDate = getSelectedDay() &&
                                       getSelectedDay().clone() || now();
                 }
-                var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
-                                            .createInstance(Components.interfaces.calIDuration);
-                var units = alarmsBranch.getCharPref("todoalarmunit");
+                let alarmOffset = createDuration();
+                let units = alarmsBranch.getCharPref("todoalarmunit");
                 alarmOffset[units] = alarmsBranch.getIntPref("todoalarmlen");
                 alarmOffset.isNegative = true;
                 aItem.alarmOffset = alarmOffset;

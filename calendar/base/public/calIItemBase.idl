@@ -209,8 +209,25 @@ interface calIItemBase : nsISupports
   // do access control on set/delete to have control over mutability.
   readonly attribute nsISimpleEnumerator propertyEnumerator;
   boolean hasProperty(in AString name);
+
+  /**
+   * Gets a particular property.
+   * Objects passed back are still owned by the item, e.g. if callers need to
+   * store or modify a calIDateTime they must clone it.
+   */
   nsIVariant getProperty(in AString name);
+
+  /**
+   * Sets a particular property.
+   * Ownership of objects gets passed to the item, e.g. callers must not
+   * modify a calIDateTime after it's been passed to an item.
+   *
+   * @warning this reflects the current implementation
+   *          xxx todo: rethink whether it's more sensible to store
+   *                    clones in calItemBase.
+   */
   void setProperty(in AString name, in nsIVariant value);
+
   // will not throw an error if you delete a property that doesn't exist
   void deleteProperty(in AString name);
 

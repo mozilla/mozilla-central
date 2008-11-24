@@ -635,29 +635,9 @@ calRecurrenceInfo.prototype = {
     },
 
     getOccurrenceFor: function cRI_getOccurrenceFor(aRecurrenceId) {
-        var proxy = this.getExceptionFor(aRecurrenceId, false);
+        let proxy = this.getExceptionFor(aRecurrenceId);
         if (!proxy) {
-            var duration = null;
-
-            var name = "DTEND";
-            if (isToDo(this.mBaseItem))
-                name = "DUE";
-
-            if (this.mBaseItem.hasProperty(name)) {
-                duration = this.mBaseItem.duration;
-            }
-
-            proxy = this.mBaseItem.createProxy();
-            proxy.recurrenceId = aRecurrenceId;
-            proxy.setProperty("DTSTART", aRecurrenceId.clone());
-            if (duration) {
-                var enddate = aRecurrenceId.clone();
-                enddate.addDuration(duration);
-                proxy.setProperty(name, enddate);
-            }
-            if (!this.mBaseItem.isMutable) {
-                proxy.makeImmutable();
-            }
+            return this.item.createProxy(aRecurrenceId);
         }
         return proxy;
     },
@@ -757,56 +737,9 @@ calRecurrenceInfo.prototype = {
         this.mExceptionMap[exKey] = itemtoadd;
     },
 
-    createExceptionFor: function cRI_createExceptionFor(aRecurrenceId) {
+    getExceptionFor: function cRI_getExceptionFor(aRecurrenceId) {
         this.ensureBaseItem();
-
-        // XX should it be an error to createExceptionFor
-        // an already-existing recurrenceId?
-        var existing = this.getExceptionFor(aRecurrenceId, false);
-        if (existing)
-            return existing;
-
-        // check if aRecurrenceId is valid.
-
-        // this is a bit of a hack; we know that ranges are defined as [start, end),
-        // so we do a search on aRecurrenceId and aRecurrenceId.seconds + 1.
-        var rangeStart = aRecurrenceId;
-        var rangeEnd = aRecurrenceId.clone();
-        rangeEnd.second += 1;
-
-        var dates = this.getOccurrenceDates(rangeStart, rangeEnd, 1, {});
-        var found = false;
-        for each (d in dates) {
-            if (d.compare(aRecurrenceId) == 0) {
-                found = true;
-                break;
-            }
-        }
-
-        // not found; the recurrence id is invalid
-        if (!found)
-            throw Components.results.NS_ERROR_INVALID_ARG;
-
-        var rid = aRecurrenceId.clone();
-        rid.makeImmutable();
-
-        var newex = this.mBaseItem.createProxy();
-        newex.recurrenceId = rid;
-        this.mExceptionMap[getRidKey(rid)] = newex;
-
-        return newex;
-    },
-
-    getExceptionFor: function cRI_getExceptionFor(aRecurrenceId, aCreate) {
-        this.ensureBaseItem();
-
-        var exc = this.mExceptionMap[getRidKey(aRecurrenceId)];
-        if (exc) {
-            return exc;
-        } else if (aCreate) {
-            return this.createExceptionFor(aRecurrenceId);
-        }
-        return null;
+        return this.mExceptionMap[getRidKey(aRecurrenceId)];
     },
 
     removeExceptionFor: function cRI_removeExceptionFor(aRecurrenceId) {
@@ -886,7 +819,7 @@ calRecurrenceInfo.prototype = {
         var exceptions = this.getExceptionIds({});
         var modifiedExceptions = [];
         for each (var exid in exceptions) {
-            var ex = this.getExceptionFor(exid, false);
+            let ex = this.getExceptionFor(exid);
             if (ex) {
                 ex = ex.clone();
                 // track RECURRENCE-IDs in DTSTART's or RDATE's timezone,

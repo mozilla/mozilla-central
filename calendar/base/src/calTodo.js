@@ -37,9 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//
-// calTodo.js
-//
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 //
 // constructor
@@ -88,20 +86,28 @@ calTodo.prototype = {
     },
 
     cloneShallow: function (aNewParent) {
-        var m = new calTodo();
+        let m = new calTodo();
         this.cloneItemBaseInto(m, aNewParent);
-
         return m;
     },
 
-    createProxy: function () {
-        if (this.mIsProxy) {
-            calDebug("Tried to create a proxy for an existing proxy!\n");
-            throw Components.results.NS_ERROR_UNEXPECTED;
-        }
+    createProxy: function calTodo_createProxy(aRecurrenceId) {
+        cal.ASSERT(!this.mIsProxy, "Tried to create a proxy for an existing proxy!", true);
 
-        var m = new calTodo();
-        m.initializeProxy(this);
+        let m = new calTodo();
+
+        // override proxy's DTSTART/DUE/RECURRENCE-ID
+        // before master is set (and item might get immutable):
+        let duration = this.duration;
+        if (duration) {
+            let dueDate = aRecurrenceId.clone();
+            dueDate.addDuration(duration);
+            m.dueDate = dueDate;
+        }
+        m.entryDate = aRecurrenceId;
+
+        m.initializeProxy(this, aRecurrenceId);
+        m.mDirty = false;
 
         return m;
     },
@@ -199,10 +205,9 @@ calTodo.prototype = {
                 throw Components.results.NS_ERROR_INVALID_ARG;
         }
 
-        // xxx todo: Bug 463195 make sure object is properly reset
+        this.mDueDate = undefined;
         this.setItemBaseFromICS(todo);
         this.mapPropsFromICS(todo, this.icsEventPropMap);
-        this.mIsAllDay = this.mStartDate && this.mStartDate.isDate;
 
         this.importUnpromotedProperties(todo, this.todoPromotedProps);
         // Importing didn't really change anything
@@ -245,10 +250,7 @@ calTodo.prototype = {
                 if (entryDate && dur) {
                     // If there is a duration set on the todo, calculate the right end time.
                     dueDate = entryDate.clone();
-                    var icalDur = Components.classes["@mozilla.org/calendar/duration;1"]
-                                            .createInstance(Components.interfaces.calIDuration);
-                    icalDur.icalString = dur;
-                    dueDate.addDuration(icalDur);
+                    dueDate.addDuration(cal.createDuration(dur));
                 }
             }
             this.mDueDate = dueDate;

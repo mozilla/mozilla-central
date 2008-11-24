@@ -359,7 +359,7 @@ function test_clone() {
     for (var prop in propMap) {
         switch (prop) {
             case "item":
-                do_check_eq(alarm.item.getProperty("CREATED").icalString, newAlarm.item.getProperty("CREATED").icalString)
+                do_check_eq(alarm.item.icalString, newAlarm.item.icalString)
                 break;
             case "icalString":
             case "icalComponent":

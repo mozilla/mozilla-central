@@ -42,6 +42,7 @@
 #include "nsISupports.idl"
 
 interface calIItemBase;
+interface calIDateTime;
 
 [scriptable, uuid(1903648f-a0ee-4ae1-84b0-d8e8d0b10506)]
 interface calIInternalShallowCopy : nsISupports
@@ -49,8 +50,10 @@ interface calIInternalShallowCopy : nsISupports
   /**
    * create a proxy for this item; the returned item
    * proxy will have parentItem set to this instance.
+   *
+   * @param aRecurrenceId RECURRENCE-ID of the proxy to be created 
    */
-  calIItemBase createProxy();
+  calIItemBase createProxy(in calIDateTime aRecurrenceId);
 
   // used by recurrenceInfo when cloning proxy objects to
   // avoid an infinite loop.  aNewParent is optional, and is

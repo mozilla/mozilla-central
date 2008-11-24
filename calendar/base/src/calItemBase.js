@@ -48,12 +48,20 @@ Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 //
 
 function calItemBase() {
-    ASSERT(false, "Inheriting objects call initItemBase!");
+    cal.ASSERT(false, "Inheriting objects call initItemBase()!");
 }
 
 calItemBase.prototype = {
     mPropertyParams: null,
     mIsProxy: false,
+
+    // initialize this class's members
+    initItemBase: function cib_initItemBase() {
+        this.wrappedJSObject = this;
+        this.mProperties = new calPropertyBag();
+        this.mPropertyParams = {};
+        this.mProperties.setProperty("CREATED", jsDateToDateTime(new Date()));
+    },
 
     QueryInterface: function (aIID) {
         return doQueryInterface(this, calItemBase.prototype, aIID,
@@ -77,7 +85,6 @@ calItemBase.prototype = {
         return this.getProperty("UID");
     },
     set id(uid) {
-        this.modify();
         this.mHashId = null; // recompute hashId
         return this.setProperty("UID", uid);
     },
@@ -86,7 +93,6 @@ calItemBase.prototype = {
         return this.getProperty("RECURRENCE-ID");
     },
     set recurrenceId(rid) {
-        this.modify();
         this.mHashId = null; // recompute hashId
         return this.setProperty("RECURRENCE-ID", rid);
     },
@@ -101,10 +107,7 @@ calItemBase.prototype = {
 
     mParentItem: null,
     get parentItem() {
-        if (this.mParentItem)
-            return this.mParentItem;
-        else
-            return this;
+        return (this.mParentItem || this);
     },
     set parentItem(value) {
         if (this.mImmutable)
@@ -112,17 +115,15 @@ calItemBase.prototype = {
         return (this.mParentItem = calTryWrappedJSObject(value));
     },
 
-    initializeProxy: function (aParentItem) {
-        if (this.mImmutable)
-            throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
-
-        if (this.mParentItem != null)
-            throw Components.results.NS_ERROR_FAILURE;
+    initializeProxy: function cib_initializeProxy(aParentItem, aRecurrenceId) {
+        this.mIsProxy = true;
 
         aParentItem = calTryWrappedJSObject(aParentItem);
         this.mParentItem = aParentItem;
         this.mCalendar = aParentItem.mCalendar;
-        this.mIsProxy = true;
+        this.recurrenceId = aRecurrenceId;
+
+        this.mImmutable = aParentItem.mImmutable;
     },
 
     //
@@ -139,18 +140,12 @@ calItemBase.prototype = {
     },
 
     ensureNotDirty: function() {
-        if (!this.mDirty) {
-            return;
+        if (this.mDirty) {
+            let now = jsDateToDateTime(new Date());
+            this.setProperty("LAST-MODIFIED", now);
+            this.setProperty("DTSTAMP", now);
+            this.mDirty = false;
         }
-        if (this.mImmutable) {
-            dump ("### Something tried to undirty a dirty immutable event!\n");
-            throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
-        }
-
-        var now = jsDateToDateTime(new Date());
-        this.setProperty("LAST-MODIFIED", now);
-        this.setProperty("DTSTAMP", now.clone());
-        this.mDirty = false;
     },
 
     makeItemBaseImmutable: function() {
@@ -176,11 +171,11 @@ calItemBase.prototype = {
             }
         }
 
-        if (this.alarmOffset) {
-            this.alarmOffset.makeImmutable();
+        if (this.mAlarmOffset) {
+            this.mAlarmOffset.makeImmutable();
         }
-        if (this.alarmLastAck) {
-            this.alarmLastAck.makeImmutable();
+        if (this.mAlarmLastAck) {
+            this.mAlarmLastAck.makeImmutable();
         }
 
         this.ensureNotDirty();
@@ -192,25 +187,6 @@ calItemBase.prototype = {
                 (this.recurrenceId == that.recurrenceId || // both null
                  (this.recurrenceId && that.recurrenceId &&
                   this.recurrenceId.compare(that.recurrenceId) == 0)));
-    },
-
-    // initialize this class's members
-    initItemBase: function () {
-        this.wrappedJSObject = this;
-        var now = jsDateToDateTime(new Date());
-
-        this.mProperties = new calPropertyBag();
-        this.mPropertyParams = {};
-
-        this.setProperty("CREATED", now);
-
-        this.mAttendees = null;
-
-        this.mRecurrenceInfo = null;
-
-        this.mAttachments = null;
-
-        this.mRelations = null;
     },
 
     clone: function () {
@@ -230,17 +206,16 @@ calItemBase.prototype = {
             m.mRecurrenceInfo.item = m;
         }
 
-        if (this.mOrganizer) {
-            m.mOrganizer = this.mOrganizer.clone();
+        let org = this.organizer;
+        if (org) {
+            org = org.clone();
         }
+        m.mOrganizer = org;
 
-        if (this.mAttendees) {
-            m.mAttendees = new Array(this.mAttendees.length);
-            for (var i = 0; i < this.mAttendees.length; i++)
-                m.mAttendees[i] = this.mAttendees[i].clone();
+        m.mAttendees = [];
+        for each (let att in this.getAttendees({})) {
+            m.mAttendees.push(att.clone());
         }
-        else
-            m.mAttendees = null;
 
         m.mProperties = new calPropertyBag();
         for each (let [name, value] in this.mProperties) {
@@ -260,29 +235,27 @@ calItemBase.prototype = {
             }
         }
 
-        if (this.mAttachments) {
-            m.mAttachments = this.mAttachments.concat([]);
-        }
+        // xxx todo: the below two need proper cloning,
+        //           calIAttachment::item, calIRelation::item are wrong
+        //           bug 466439
+        m.mAttachments = this.getAttachments({});
+        m.mRelations = this.getRelations({});
 
-        if (this.mRelations) {
-            m.mRelations = this.mRelations.concat([]);
-        }
-
-        if (this.mCategories) {
-            m.mCategories = this.mCategories.concat([]);
-        }
+        m.mCategories = this.getCategories({});
 
         // Clone any alarm info that exists, set it to null if it doesn't
-        if (this.alarmOffset) {
-            m.alarmOffset = this.alarmOffset.clone();
-        } else {
-            m.alarmOffset = null;
+        let alarmOffset = this.alarmOffset;
+        if (alarmOffset) {
+            alarmOffset = alarmOffset.clone();
         }
-        if (this.alarmLastAck) {
-            m.alarmLastAck = this.alarmLastAck.clone();
-        } else {
-            m.alarmLastAck = null;
+        m.mAlarmOffset = alarmOffset;
+
+        let alarmLastAck = this.alarmLastAck;
+        if (alarmLastAck) {
+            alarmLastAck = alarmLastAck.clone();
         }
+        m.mAlarmLastAck = alarmLastAck;
+
         m.alarmRelated = this.alarmRelated;
 
         m.mDirty = this.mDirty;
@@ -328,7 +301,7 @@ calItemBase.prototype = {
 
     get propertyEnumerator() {
         if (this.mIsProxy) {
-            ASSERT(this.parentItem != this);
+            cal.ASSERT(this.parentItem != this);
             return { // nsISimpleEnumerator:
                 mProxyEnum: this.mProperties.enumerator,
                 mParentEnum: this.mParentItem.propertyEnumerator,
@@ -362,7 +335,7 @@ calItemBase.prototype = {
 
                 getNext: function cib_pe_getNext() {
                     if (!this.hasMoreElements()) { // hasMoreElements is called by intention to skip yet deleted properties
-                        ASSERT(false, Components.results.NS_ERROR_UNEXPECTED);
+                        cal.ASSERT(false, Components.results.NS_ERROR_UNEXPECTED);
                         throw Components.results.NS_ERROR_UNEXPECTED;
                     }
                     var ret = this.mCurrentProp;
@@ -420,7 +393,7 @@ calItemBase.prototype = {
     },
 
     getAttendees: function (countObj) {
-        if (!this.mAttendees && this.mIsProxy && this.mParentItem) {
+        if (!this.mAttendees && this.mIsProxy) {
             this.mAttendees = this.mParentItem.getAttendees(countObj);
         }
         if (this.mAttendees) {
@@ -477,7 +450,7 @@ calItemBase.prototype = {
     },
 
     getAttachments: function cIB_getAttachments(aCount) {
-        if (!this.mAttachments && this.mIsProxy && this.mParentItem) {
+        if (!this.mAttachments && this.mIsProxy) {
             this.mAttachments = this.mParentItem.getAttachments(aCount);
         }
         if (this.mAttachments) {
@@ -513,6 +486,9 @@ calItemBase.prototype = {
     },
 
     getRelations: function cIB_getRelations(aCount) {
+        if (!this.mRelations && this.mIsProxy) {
+            this.mRelations = this.mParentItem.getRelations(aCount);
+        }
         if (this.mRelations) {
             aCount.value = this.mRelations.length;
             return this.mRelations.concat([]);
@@ -563,13 +539,12 @@ calItemBase.prototype = {
         this.mCalendar = v;
     },
 
-    mOrganizer: null,
     get organizer() {
-        if (!this.mOrganizer && this.mIsProxy && this.mParentItem) {
+        if (this.mIsProxy && (this.mOrganizer === undefined)) {
             return this.mParentItem.organizer;
-        }
-        else
+        } else {
             return this.mOrganizer;
+        }
     },
 
     set organizer(v) {
@@ -578,7 +553,7 @@ calItemBase.prototype = {
     },
 
     getCategories: function cib_getCategories(aCount) {
-        if (!this.mCategories && this.mIsProxy && this.mParentItem) {
+        if (!this.mCategories && this.mIsProxy) {
             this.mCategories = this.mParentItem.getCategories(aCount);
         }
         if (this.mCategories) {
@@ -656,76 +631,86 @@ calItemBase.prototype = {
     setItemBaseFromICS: function (icalcomp) {
         this.modify();
 
+        // re-initializing from scratch -- no light proxy anymore:
+        this.mIsProxy = false;
+        this.mProperties = new calPropertyBag();
+        this.mPropertyParams = {};
+
         this.mapPropsFromICS(icalcomp, this.icsBasePropMap);
 
+        this.mAttendees = []; // don't inherit anything from parent
         for (let attprop in cal.ical.propertyIterator(icalcomp, "ATTENDEE")) {
             let att = new calAttendee();
             att.icalProperty = attprop;
             this.addAttendee(att);
         }
 
+        this.mAttachments = []; // don't inherit anything from parent
         for (let attprop in cal.ical.propertyIterator(icalcomp, "ATTACH")) {
             let att = new calAttachment();
             att.icalProperty = attprop;
             this.addAttachment(att);
         }
 
-
+        this.mRelations = []; // don't inherit anything from parent
         for (let relprop in cal.ical.propertyIterator(icalcomp, "RELATED-TO")) {
             let rel = new calRelation();
             rel.icalProperty = relprop;
             this.addRelation(rel);
         }
 
+        let org = null;
         let orgprop = icalcomp.getFirstProperty("ORGANIZER");
         if (orgprop) {
-            let org = new calAttendee();
+            org = new calAttendee();
             org.icalProperty = orgprop;
             org.isOrganizer = true;
-            this.mOrganizer = org;
         }
+        this.mOrganizer = org;
 
         this.mCategories = [ catprop.value for (catprop in cal.ical.propertyIterator(icalcomp, "CATEGORIES")) ];
 
         // find recurrence properties
         let rec = null;
-        for (let recprop in cal.ical.propertyIterator(icalcomp)) {
-            let ritem = null;
-            switch (recprop.propertyName) {
-                case "RRULE":
-                case "EXRULE":
-                    ritem = new CalRecurrenceRule();
-                    break;
-                case "RDATE":
-                case "EXDATE":
-                    ritem = new CalRecurrenceDate();
-                    break;
-                default:
-                    continue;
+        if (!this.recurrenceId) {
+            for (let recprop in cal.ical.propertyIterator(icalcomp)) {
+                let ritem = null;
+                switch (recprop.propertyName) {
+                    case "RRULE":
+                    case "EXRULE":
+                        ritem = new CalRecurrenceRule();
+                        break;
+                    case "RDATE":
+                    case "EXDATE":
+                        ritem = new CalRecurrenceDate();
+                        break;
+                    default:
+                        continue;
+                }
+                ritem.icalProperty = recprop;
+
+                if (!rec) {
+                    rec = new calRecurrenceInfo();
+                    rec.item = this;
+                }
+                rec.appendRecurrenceItem(ritem);
             }
-
-            ritem.icalProperty = recprop;
-
-            if (!rec) {
-                rec = new calRecurrenceInfo();
-                rec.item = this;
-            }
-
-            rec.appendRecurrenceItem(ritem);
         }
         this.mRecurrenceInfo = rec;
+
+        this.mAlarmOffset = null;
+        this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
+        this.mAlarmLastAck = null;
 
         let alarmComp = icalcomp.getFirstSubcomponent("VALARM");
         if (alarmComp) {
             let triggerProp = alarmComp.getFirstProperty("TRIGGER");
             if (triggerProp) {
-                this.alarmOffset = cal.createDuration(triggerProp.valueAsIcalString);
+                this.mAlarmOffset = cal.createDuration(triggerProp.valueAsIcalString);
 
                 let related = triggerProp.getParameter("RELATED");
                 if (related && related == "END") {
                     this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_END;
-                } else {
-                    this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
                 }
 
                 let email = alarmComp.getFirstProperty("X-EMAILADDRESS");
@@ -737,12 +722,14 @@ calItemBase.prototype = {
                 // trigger.
                 cal.ERROR("No trigger property for alarm on item: " + this.id);
             }
+
+            let lastAck = icalcomp.getFirstProperty("X-MOZ-LASTACK");
+            if (lastAck) {
+                this.mAlarmLastAck = cal.createDateTime(lastAck.value);
+            }
         }
 
-        let lastAck = icalcomp.getFirstProperty("X-MOZ-LASTACK");
-        if (lastAck) {
-            this.alarmLastAck = cal.createDateTime(lastAck.value);
-        }
+        this.mDirty = false;
     },
 
     importUnpromotedProperties: function (icalcomp, promoted) {
@@ -770,17 +757,11 @@ calItemBase.prototype = {
     },
 
     get generation() {
-        if (this.mGeneration === undefined) {
-            var gen = this.getProperty("X-MOZ-GENERATION");
-            this.mGeneration = (gen ? parseInt(gen) : 0);
-        }
-        return this.mGeneration;
+        let gen = this.getProperty("X-MOZ-GENERATION");
+        return (gen ? parseInt(gen, 10) : 0);
     },
     set generation(aValue) {
-        this.modify();
-        this.mGeneration = aValue;
-        this.setProperty("X-MOZ-GENERATION", String(aValue));
-        return aValue;
+        return this.setProperty("X-MOZ-GENERATION", String(aValue));
     },
 
     fillIcalComponentFromBase: function (icalcomp) {
@@ -788,59 +769,61 @@ calItemBase.prototype = {
 
         this.mapPropsToICS(icalcomp, this.icsBasePropMap);
 
-        if (this.mOrganizer)
-            icalcomp.addProperty(this.mOrganizer.icalProperty);
-        var attendees = this.getAttendees({});
-        if (attendees.length > 0) {
-          for (var i = 0; i < attendees.length; i++) {
-            icalcomp.addProperty(attendees[i].icalProperty);
-          }
+        let org = this.organizer;
+        if (org) {
+            icalcomp.addProperty(org.icalProperty);
         }
 
-        for each (var att in this.mAttachments) {
-            icalcomp.addProperty(att.icalProperty);
+        for each (let attendee in this.getAttendees({})) {
+            icalcomp.addProperty(attendee.icalProperty);
         }
 
-        for (var relIndex in this.mRelations) {
-            icalcomp.addProperty(this.mRelations[relIndex].icalProperty);
+        for each (let attachment in this.getAttachments({})) {
+            icalcomp.addProperty(attachment.icalProperty);
+        }
+
+        for each (let relation in this.getRelations({})) {
+            icalcomp.addProperty(relation.icalProperty);
         }
 
         if (this.mRecurrenceInfo) {
-            var ritems = this.mRecurrenceInfo.getRecurrenceItems({});
-            for (i in ritems) {
-                icalcomp.addProperty(ritems[i].icalProperty);
+            for each (let ritem in this.mRecurrenceInfo.getRecurrenceItems({})) {
+                icalcomp.addProperty(ritem.icalProperty);
             }
         }
 
-        for each (var cat in this.getCategories({})) {
-            var catprop = getIcsService().createIcalProperty("CATEGORIES");
+        for each (let cat in this.getCategories({})) {
+            let catprop = getIcsService().createIcalProperty("CATEGORIES");
             catprop.value = cat;
             icalcomp.addProperty(catprop);
         }
 
-        if (this.alarmOffset) {
-            var icssvc = getIcsService();
-            var alarmComp = icssvc.createIcalComponent("VALARM");
+        let alarmOffset = this.alarmOffset;
+        if (alarmOffset) {
+            let icssvc = cal.getIcsService();
+            let alarmComp = icssvc.createIcalComponent("VALARM");
 
-            var triggerProp = icssvc.createIcalProperty("TRIGGER");
-            triggerProp.valueAsIcalString = this.alarmOffset.icalString;
+            let triggerProp = icssvc.createIcalProperty("TRIGGER");
+            triggerProp.valueAsIcalString = alarmOffset.icalString;
 
-            if (this.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_END)
+            if (this.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_END) {
                 triggerProp.setParameter("RELATED", "END");
+            }
 
             alarmComp.addProperty(triggerProp);
 
             // We don't use this, but the ics-spec requires it
-            var descProp = icssvc.createIcalProperty("DESCRIPTION");
+            let descProp = icssvc.createIcalProperty("DESCRIPTION");
             descProp.value = "Mozilla Alarm: "+ this.title;
             alarmComp.addProperty(descProp);
 
-            var actionProp = icssvc.createIcalProperty("ACTION");
+            let actionProp = icssvc.createIcalProperty("ACTION");
             actionProp.value = "DISPLAY";
 
-            if (this.getProperty("alarmEmailAddress")) {
-                var emailProp = icssvc.createIcalProperty("X-EMAILADDRESS");
-                emailProp.value = this.getProperty("alarmEmailAddress");
+            let alarmEmailAddress = this.getProperty("alarmEmailAddress");
+            if (alarmEmailAddress) {
+                let emailProp = icssvc.createIcalProperty("X-EMAILADDRESS");
+                emailProp.value = alarmEmailAddress;
                 actionProp.value = "EMAIL";
                 alarmComp.addProperty(emailProp);
             }
@@ -850,10 +833,11 @@ calItemBase.prototype = {
             icalcomp.addSubcomponent(alarmComp);
         }
 
-        if (this.alarmLastAck) {
-            var lastAck = getIcsService().createIcalProperty("X-MOZ-LASTACK");
+        let alarmLastAck = this.alarmLastAck;
+        if (alarmLastAck) {
+            let lastAck = cal.getIcsService().createIcalProperty("X-MOZ-LASTACK");
             // - should we further ensure that those are UTC or rely on calAlarmService doing so?
-            lastAck.value = this.alarmLastAck.icalString;
+            lastAck.value = alarmLastAck.icalString;
             icalcomp.addProperty(lastAck);
         }
     },

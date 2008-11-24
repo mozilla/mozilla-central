@@ -305,7 +305,7 @@ InvitationsManager.prototype = {
             // scan exceptions:
             var ids = recInfo.getExceptionIds({});
             for each (var id in ids) {
-                var ex = recInfo.getExceptionFor(id, false);
+                var ex = recInfo.getExceptionFor(id);
                 if (ex && this.validateItem(ex) && !this.hasItem(ex)) {
                     this.mItemList.push(ex);
                 }

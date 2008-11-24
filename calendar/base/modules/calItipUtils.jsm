@@ -38,7 +38,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://gre/modules/debug.js");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
@@ -264,7 +263,7 @@ cal.itip = {
         }
 
         // Check to see if some part of the item was updated, if so, re-send REQUEST
-        if (!aOriginalItem || aItem.generation != aOriginalItem.generation) { // REQUEST
+        if (!aOriginalItem || (cal.itip.compare(aItem, aOriginalItem) > 0)) { // REQUEST
             let requestItem = aItem.clone();
 
             // check whether it's a simple UPDATE (no SEQUENCE change) or real (RE)REQUEST,
@@ -272,7 +271,7 @@ cal.itip = {
             let isMinorUpdate = (aOriginalItem && (cal.itip.getSequence(aItem) == cal.itip.getSequence(aOriginalItem)));
 
             if (!requestItem.organizer) {
-                let organizer = createAttendee();
+                let organizer = cal.createAttendee();
                 organizer.id = requestItem.calendar.getProperty("organizerId");
                 organizer.commonName = requestItem.calendar.getProperty("organizerCN");
                 organizer.role = "REQ-PARTICIPANT";
@@ -333,7 +332,6 @@ cal.itip = {
         }
 
         function hashMajorProps(aItem) {
-            let propStrings = [];
             const majorProps = {
                 DTSTART: true,
                 DTEND: true,
@@ -346,6 +344,7 @@ cal.itip = {
                 LOCATION: true
             };
 
+            let propStrings = [];
             for (let item in cal.itemIterator([aItem])) {
                 for (let prop in cal.ical.propertyIterator(item.icalComponent)) {
                     if (prop.propertyName in majorProps) {
@@ -387,6 +386,23 @@ function setReceivedInfo(item, itipItemItem) {
                                                                                      : "X-MOZ-RECEIVED-DTSTAMP",
                          dtstamp.getInTimezone(cal.UTC()).icalString);
     }
+}
+
+/** local to this module file
+ * Takes over relevant item information from iTIP item and sets received info.
+ *
+ * @param item   the stored calendar item to update
+ * @param itipItemItem the received item
+ */
+function updateItem(item, itipItemItem) {
+    let newItem = item.clone();
+    newItem.icalComponent = itipItemItem.icalComponent;
+    setReceivedInfo(newItem, itipItemItem);
+    newItem.generation = item.generation;
+    newItem.alarmOffset = item.alarmOffset;
+    newItem.alarmRelated = item.alarmRelated;
+    newItem.alarmLastAck = item.alarmLastAck;
+    return newItem;
 }
 
 /** local to this module file
@@ -512,7 +528,7 @@ ItipFindItemListener.prototype = {
         let operations = [];
 
         if (this.mFoundItems.length > 0) {
-            cal.LOG("iTIP on " + method + ": found items.");
+            cal.LOG("iTIP on " + method + ": found " + this.mFoundItems.length + " items.");
             switch (method) {
                 // XXX todo: there's still a potential flaw, if multiple PUBLISH/REPLY/REQUEST on
                 //           occurrences happen at once; those lead to multiple
@@ -528,19 +544,14 @@ ItipFindItemListener.prototype = {
                     for each (let itipItemItem in this.mItipItem.getItemList({})) {
                         for each (let item in this.mFoundItems) {
                             let rid = itipItemItem.recurrenceId; //  XXX todo support multiple
-                            if (rid) { // actually a REPLY to single occurrence(s)
+                            if (rid) { // actually applies to individual occurrence(s)
                                 if (item.recurrenceInfo) {
                                     item = item.recurrenceInfo.getOccurrenceFor(rid);
                                     if (!item) {
                                         continue;
                                     }
-                                } else if (item.recurrenceId && (item.recurrenceId.compare(rid) != 0)) {
-                                    // filter out non-parentless occurrences (future)
-                                    continue;
-                                }
-                                if (!itipItemItem.parentItem) { // install parent, if known from previous
-                                                                // REQUEST/PUBLISH messages
-                                    itipItemItem.parentItem = newItem.parentItem;
+                                } else { // the item has been rescheduled with master:
+                                    itipItemItem = itipItemItem.parentItem;
                                 }
                             }
                             switch (method) {
@@ -567,13 +578,7 @@ ItipFindItemListener.prototype = {
                                                "invalid number of attendees in PUBLISH!");
                                     if (item.calendar.getProperty("itip.disableRevisionChecks") ||
                                         cal.itip.compare(itipItemItem, item) > 0) {
-                                        let newItem = itipItemItem.clone(); // xxx todo, this is dirty
-                                        setReceivedInfo(newItem, itipItemItem);
-                                        newItem.calendar = item.calendar;
-                                        newItem.generation = item.generation;
-                                        newItem.alarmOffset = item.alarmOffset;
-                                        newItem.alarmRelated = item.alarmRelated;
-                                        newItem.alarmLastAck = item.alarmLastAck;
+                                        let newItem = updateItem(newItem, itipItemItem);
                                         let action = function(opListener) {
                                             return newItem.calendar.modifyItem(newItem, item, opListener);
                                         };
@@ -584,28 +589,24 @@ ItipFindItemListener.prototype = {
                                 case "REQUEST":
                                     if (item.calendar.getProperty("itip.disableRevisionChecks") ||
                                         cal.itip.compare(itipItemItem, item) > 0) {
-                                        let newItem = itipItemItem.clone(); // xxx todo, this is dirty
-                                        setReceivedInfo(newItem, itipItemItem);
-                                        newItem.calendar = item.calendar;
-                                        newItem.generation = item.generation;
-                                        newItem.alarmOffset = item.alarmOffset;
-                                        newItem.alarmRelated = item.alarmRelated;
-                                        newItem.alarmLastAck = item.alarmLastAck;
+                                        let newItem = updateItem(item, itipItemItem);
                                         let att = cal.getInvitedAttendee(newItem);
                                         if (!att) { // fall back to using configured organizer
                                             att = createOrganizer(newItem.calendar);
                                             if (att) {
                                                 att.isOrganizer = false;
-                                                newItem.addAttendee(att);
                                             }
                                         }
                                         if (att) {
+                                            newItem.removeAttendee(att);
+                                            att = att.clone();
                                             let action = function(opListener, partStat) {
                                                 if (!partStat) { // keep PARTSTAT
                                                     let att_ = cal.getInvitedAttendee(item);
                                                     partStat = (att_ ? att_.participationStatus : "NEEDS-ACTION");
                                                 }
                                                 att.participationStatus = partStat;
+                                                newItem.addAttendee(att);
                                                 return newItem.calendar.modifyItem(
                                                     newItem, item, new ItipOpListener(opListener, item));
                                             };
@@ -697,7 +698,7 @@ ItipFindItemListener.prototype = {
                         let action = function(opListener, partStat) {
                             let newItem = itipItemItem.clone();
                             setReceivedInfo(newItem, itipItemItem);
-                            newItem.calendar = this_.mItipItem.targetCalendar;
+                            newItem.parentItem.calendar = this_.mItipItem.targetCalendar;
                             if (partStat) {
                                 if (partStat != "DECLINED") {
                                     cal.setDefaultAlarmValues(newItem);
@@ -714,7 +715,7 @@ ItipFindItemListener.prototype = {
                                     att.participationStatus = partStat;
                                 } else {
                                     cal.ASSERT(att, "no attendee to reply REQUEST!");
-                                    return;
+                                    return null;
                                 }
                             } else {
                                 cal.ASSERT(itipItemItem.getAttendees({}).length == 0,

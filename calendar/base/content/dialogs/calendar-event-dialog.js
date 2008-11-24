@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 // the following variables are constructed if the jsContext this file
 // belongs to gets constructed. all those variables are meant to be accessed
 // from within this file only.
@@ -155,14 +157,21 @@ function onLoad() {
         }
     }
 
-    // we store the organizer of the item in the window.
-    // TODO: we clone the object since foreign X-props get lost
-    // during the roundtrip. In order to detect whether or not
-    // the item has been changed by the dialog we clone the organizer
-    // in any case to get rid of the X-props.
-    window.organizer = item.organizer && item.organizer.clone();
-
-    window.isOccurrence = (item != item.parentItem);
+    if (item.organizer) {
+        window.organizer = item.organizer.clone();
+    } else if (item.getAttendees({}).length > 0) {
+        // previous versions of calendar may have filled ORGANIZER correctly on overridden instances:
+        let orgId = item.calendar.getProperty("organizerId");
+        if (orgId) {
+            let organizer = cal.createAttendee();
+            organizer.id = orgId;
+            organizer.commonName = item.calendar.getProperty("organizerCN");
+            organizer.role = "REQ-PARTICIPANT";
+            organizer.participationStatus = "ACCEPTED";
+            organizer.isOrganizer = true;
+            window.organizer = organizer;
+        }
+    }
 
     // we store the recurrence info in the window so it
     // can be accessed from any location. since the recurrence
@@ -1871,18 +1880,14 @@ function saveItem() {
     var item = originalItem.clone();
 
     // override item's recurrenceInfo *before* serializing date/time-objects.
-    if (!window.isOccurrence) {
+    if (!item.recurrenceId) {
         item.recurrenceInfo = window.recurrenceInfo;
     }
 
     // serialize the item
     saveDialog(item);
 
-    // we set the organizer of this item only if
-    // it is a stand-alone instance [not an occurrence].
-    if (!window.isOccurrence) {
-        item.organizer = window.organizer;
-    }
+    item.organizer = window.organizer;
 
     item.removeAllAttendees();
     if (window.attendees && (window.attendees.length > 0)) {

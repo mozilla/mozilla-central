@@ -430,6 +430,10 @@ calStorageCalendar.prototype = {
         }
 
         let parentItem = aItem.parentItem;
+        if (parentItem != aItem) {
+            parentItem = parentItem.clone();
+            parentItem.recurrenceInfo.modifyException(aItem, true);
+        }
         parentItem.calendar = this.superCalendar;
         parentItem.makeImmutable();
 
@@ -499,6 +503,9 @@ calStorageCalendar.prototype = {
                 return reportError("generation too old for for modifyItem");
             }
 
+            // xxx todo: this only modified master item's generation properties
+            //           I start asking myself why we need a separate X-MOZ-GENERATION.
+            //           Just for the sake of checking inconsistencies of modifyItem calls?
             if (aOldItem.generation == modifiedItem.generation) { // has been cloned and modified
                 // Only take care of incrementing the generation if relaxed mode is
                 // off. Users of relaxed mode need to take care of this themselves.
@@ -2458,7 +2465,7 @@ calStorageCalendar.prototype = {
                 // event/todo; setupItemBase will handle
                 // writing the recurrenceId for us
                 for each (exid in exceptions) {
-                    var ex = rec.getExceptionFor(exid, false);
+                    let ex = rec.getExceptionFor(exid);
                     if (!ex)
                         throw Components.results.NS_ERROR_UNEXPECTED;
                     this.writeItem(ex, null);

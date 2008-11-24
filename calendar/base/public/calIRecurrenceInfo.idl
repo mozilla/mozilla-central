@@ -124,10 +124,9 @@ interface calIRecurrenceInfo : nsISupports
 
   /**
    * Return an existing exception item for the given recurrence ID.
-   * If an exception does not exist, and aCreate is set, a new one
-   * is created and returned.  Otherwise, null is returned.
+   * If an exception does not exist, null is returned.
    */
-  calIItemBase getExceptionFor(in calIDateTime aRecurrenceId, in boolean aCreate);
+  calIItemBase getExceptionFor(in calIDateTime aRecurrenceId);
 
   /**
    * Removes an exception item for the given recurrence ID, if

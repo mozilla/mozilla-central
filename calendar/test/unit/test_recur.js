@@ -283,7 +283,7 @@ function test_interface() {
     var occ =  rinfo.getOccurrenceFor(occDate);
     occ.startDate = createDate(2002,3,1,true,11,45,0);
     rinfo.modifyException(occ, true);
-    do_check_true(rinfo.getExceptionFor(occDate, false) != null);
+    do_check_true(rinfo.getExceptionFor(occDate) != null);
 
     // getExceptionIds
     var ids = rinfo.getExceptionIds({});
@@ -292,5 +292,5 @@ function test_interface() {
 
     // removeExceptionFor
     rinfo.removeExceptionFor(occDate);
-    do_check_true(rinfo.getExceptionFor(occDate, false) == null);
+    do_check_true(rinfo.getExceptionFor(occDate) == null);
 }

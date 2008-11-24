@@ -310,8 +310,7 @@ function promptOccurrenceModification(aItem, aNeedsFuture, aAction) {
     // Check if this actually is an instance of a recurring event
     if (aItem == aItem.parentItem) {
         type = MODIFY_PARENT;
-    } else if (aItem.parentItem.recurrenceInfo
-                    .getExceptionFor(aItem.recurrenceId, false) != null) {
+    } else if (aItem.parentItem.recurrenceInfo.getExceptionFor(aItem.recurrenceId)) {
         // If the user wants to edit an occurrence which is already an exception
         // always edit this single item.
         // XXX  Why? I think its ok to ask also for exceptions.

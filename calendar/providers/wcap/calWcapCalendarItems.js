@@ -689,9 +689,6 @@ function calWcapCalendar_adoptItem(item, listener) {
         log("adoptItem() call: " + item.title, this));
 
     try {
-        if (!isParent(item)) {
-            logError("adoptItem(): unexpected proxy!", this);
-        }
         this.storeItem(true /* bAddItem */, item, null, request);
     } catch (exc) {
         request.execRespFunc(exc);
@@ -775,7 +772,7 @@ function calWcapCalendar_modifyItem(newItem, oldItem, listener) {
                 return request;
             }
 
-        } else if (oldItem && !oldItem.parentItem.recurrenceInfo.getExceptionFor(newItem.recurrenceId, false)) {
+        } else if (oldItem && !oldItem.parentItem.recurrenceInfo.getExceptionFor(newItem.recurrenceId)) {
             // pass null for oldItem when creating new exceptions, write whole item:
             oldItem_ = null;
         }
@@ -876,6 +873,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
     let unexpandedItems = [];
     let uid2parent = {};
     let excItems = [];
+    let fakedParents = {};
 
     let componentType = "ANY";
     switch (itemFilter & calICalendar.ITEM_FILTER_TYPE_ALL) {
@@ -887,7 +885,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
             break;
     }
 
-    var recurrenceBound = this.session.recurrenceBound;
+    let recurrenceBound = this.session.recurrenceBound;
 
     let count = 0;
     for (let subComp in cal.ical.calendarComponentIterator(icalRootComp, componentType)) {
@@ -947,11 +945,10 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
             }
 
             item.calendar = this.superCalendar;
-            var rid = item.recurrenceId;
+            let rid = item.recurrenceId;
             if (rid) {
                 rid = rid.getInTimezone(dtstart.timezone);
                 item.recurrenceId = rid;
-                item.recurrenceInfo = null;
                 if (LOG_LEVEL > 1) {
                     log("exception item: " + item.title +
                         "\nrid=" + getIcalUTC(rid) +
@@ -976,46 +973,50 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
     }
 
     // tag "exceptions", i.e. items with rid:
-    for each (var item in excItems) {
-        var parent = uid2parent[item.id];
-        if (parent) {
-            var recStartDate = parent.recurrenceStartDate;
-            if (recStartDate && recStartDate.isDate && !item.recurrenceId.isDate) {
-                // cs ought to return proper all-day RECURRENCE-ID!
-                // get into startDate's timezone before cutting:
-                var rid = item.recurrenceId.getInTimezone(recStartDate.timezone);
-                rid.isDate = true;
-                item.recurrenceId = rid;
-            }
-            parent.recurrenceInfo.modifyException(item, true);
-        } else {
-            logError("parseItems(): no parent item for " + item.title +
-                     ", rid=" + getIcalUTC(item.recurrenceId) +
-                     ", item.id=" + item.id, this);
-            // due to a server bug, in some scenarions the returned
-            // data is lacking the parent item, leave parentItem open then
-            if ((itemFilter & calICalendar.ITEM_FILTER_CLASS_OCCURRENCES) == 0) {
-                item.recurrenceId = null;
-            }
-            if (!bLeaveMutable) {
-                item.makeImmutable();
-            }
-            items.push(item);
+    for each (let item in excItems) {
+        let parent = uid2parent[item.id];
+
+        if (!parent) { // a parentless one, fake a master and override it's occurrence
+            parent = isEvent(item) ? createEvent() : createTodo();
+            parent.id = item.id;
+            parent.setProperty("DTSTART", item.recurrenceId);
+            parent.setProperty("X-MOZ-FAKED-MASTER", "1"); // this tag might be useful in the future
+            parent.recurrenceInfo = createRecurrenceInfo(parent);
+            fakedParents[item.id] = true;
+            uid2parent[item.id] = parent;
+            items.push(parent);
         }
+        if (item.id in fakedParents) { 
+            let rdate = Components.classes["@mozilla.org/calendar/recurrence-date;1"]
+                                  .createInstance(Components.interfaces.calIRecurrenceDate);
+            rdate.date = item.recurrenceId;
+            parent.recurrenceInfo.appendRecurrenceItem(rdate);
+        }
+
+        let recStartDate = parent.recurrenceStartDate;
+        if (recStartDate && recStartDate.isDate && !item.recurrenceId.isDate) {
+            // cs ought to return proper all-day RECURRENCE-ID!
+            // get into startDate's timezone before cutting:
+            let rid = item.recurrenceId.getInTimezone(recStartDate.timezone);
+            rid.isDate = true;
+            item.recurrenceId = rid;
+        }
+
+        parent.recurrenceInfo.modifyException(item, true);
     }
 
     if (itemFilter & calICalendar.ITEM_FILTER_CLASS_OCCURRENCES) {
-        for each (var item in unexpandedItems) {
+        for each (let item in unexpandedItems) {
             if (maxResults != 0 && items.length >= maxResults) {
                 break;
             }
 
-            var recStartDate = item.recurrenceStartDate;
+            let recStartDate = item.recurrenceStartDate;
             if (recStartDate && !recStartDate.isDate) {
                 recStartDate = null;
             }
-            var recItems = item.recurrenceInfo.getRecurrenceItems({});
-            for each (var recItem in recItems) {
+            let recItems = item.recurrenceInfo.getRecurrenceItems({});
+            for each (let recItem in recItems) {
                 // cs bug: workaround missing COUNT
                 if (calInstanceOf(recItem, Components.interfaces.calIRecurrenceRule)) {
                     if (!recItem.isFinite && !recItem.isNegative) {
@@ -1025,7 +1026,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                            calInstanceOf(recItem, Components.interfaces.calIRecurrenceDate)) {
                     // cs bug: always uses DATE-TIME even though the master item is all-day DATE:
                     //         get into startDate's timezone before cutting:
-                    var date = recItem.date.getInTimezone(recStartDate.timezone);
+                    let date = recItem.date.getInTimezone(recStartDate.timezone);
                     date.isDate = true;
                     recItem.date = date;
                 }
@@ -1034,14 +1035,14 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
             if (!bLeaveMutable) {
                 item.makeImmutable();
             }
-            var occurrences = item.recurrenceInfo.getOccurrences(rangeStart, rangeEnd,
+            let occurrences = item.recurrenceInfo.getOccurrences(rangeStart, rangeEnd,
                                                                  maxResults == 0 ? 0 : maxResults - items.length,
                                                                  {});
             if (LOG_LEVEL > 1) {
                 log("item: " + item.title + " has " + occurrences.length.toString() + " occurrences.", this);
                 if (LOG_LEVEL > 2) {
                     log("master item: " + item.title + "\n" + item.icalString, this);
-                    for each (var occ in occurrences) {
+                    for each (let occ in occurrences) {
                         log("item: " + occ.title + "\n" + occ.icalString, this);
                     }
                 }
@@ -1056,12 +1057,12 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
             unexpandedItems.length = (maxResults - items.length);
         }
         if (!bLeaveMutable) {
-            for each (var item in unexpandedItems) {
+            for each (let item in unexpandedItems) {
                 item.makeImmutable();
             }
         }
         if (LOG_LEVEL > 2) {
-            for each (var item in unexpandedItems) {
+            for each (let item in unexpandedItems) {
                 log("item: " + item.title + "\n" + item.icalString, this);
             }
         }

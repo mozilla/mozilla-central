@@ -53,7 +53,7 @@ cal.itemIterator = function cal_itemIterator(items) {
                 let rec = item.recurrenceInfo;
                 if (rec) {
                     for each (let exid in rec.getExceptionIds({})) {
-                        yield rec.getExceptionFor(exid, false);
+                        yield rec.getExceptionFor(exid);
                     }
                 }
             }

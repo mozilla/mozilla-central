@@ -142,8 +142,6 @@ function ip_parseString(aICSString, aTzProvider) {
                         uid2parent[item.id] = item;
                     }
                 } else {
-                    // force no recurrence info:
-                    item.recurrenceInfo = null;
                     excItems.push(item);
                 }
             }
