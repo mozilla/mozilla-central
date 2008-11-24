@@ -4475,12 +4475,10 @@ NS_IMETHODIMP nsMsgDBFolder::EnableNotifications(PRInt32 notificationType, PRBoo
 NS_IMETHODIMP nsMsgDBFolder::GetMessageHeader(nsMsgKey msgKey, nsIMsgDBHdr **aMsgHdr)
 {
   NS_ENSURE_ARG_POINTER(aMsgHdr);
-  nsresult rv;
   nsCOMPtr <nsIMsgDatabase> database;
-  rv = GetMsgDatabase(nsnull, getter_AddRefs(database));
-  if (NS_SUCCEEDED(rv) && database) // did we get a db back?
-    rv = database->GetMsgHdrForKey(msgKey, aMsgHdr);
-  return NS_OK;
+  nsresult rv = GetMsgDatabase(nsnull, getter_AddRefs(database));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return (database) ? database->GetMsgHdrForKey(msgKey, aMsgHdr) : NS_ERROR_FAILURE;
 }
 
 // this gets the deep sub-folders too, e.g., the children of the children
