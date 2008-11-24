@@ -102,6 +102,75 @@ var gHaveLoadedMessage;
 
 var gDisplayStartupPage = false;
 
+/**
+ * Tests whether the application has been upgraded
+ * or not. Updates the pref with the latest version,
+ * returns true if upgraded, false otherwise.
+ * 
+ */ 
+function IsApplicationUpgraded()
+{
+  let savedAppVersion = null;
+  try {
+    savedAppVersion = pref.getCharPref("mailnews.start_page_override.mstone");
+  } catch (ex) {}
+
+  if (savedAppVersion != "ignore")
+  {
+    let currentApplicationVersion =
+      Components.classes["@mozilla.org/xre/app-info;1"]
+                .getService(Components.interfaces.nsIXULAppInfo).version;
+    pref.setCharPref("mailnews.start_page_override.mstone", currentApplicationVersion);
+           
+    if (currentApplicationVersion != savedAppVersion)
+      return true;
+  }
+  return false;
+}
+
+const URI_UPDATES_PROPERTIES = "chrome://mozapps/locale/update/updates.properties";
+
+//a tab to show the "what's new" page to the user
+// at the very first start of upgraded TB 
+var whatsnewTabType = {
+  name: "whatsNew",
+  perTabPanel: "iframe",
+  modes: {
+    whatsNew: {
+      type: "whatsNew",    
+      maxTabs: 1
+    }
+  },
+  openTab: function onTabOpened (aTab) {
+    let startpage = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                              .getService(Components.interfaces.nsIURLFormatter)
+                              .formatURLPref("mailnews.start_page.override_url");
+    aTab.panel.setAttribute("src", startpage);
+    
+    try {
+      // Note: "updateType_major" is a temporary solution until we add
+      // tab title string into messenger string bundle. When done,
+      // final code will look like something like that;
+      //let msgBundle = document.getElementById("bundle_messenger");
+      //aTab.title = msgBundle.getString("whatsNew");
+      
+      let updateBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                                   .getService(Components.interfaces.nsIStringBundleService)
+                                  .createBundle(URI_UPDATES_PROPERTIES);
+      aTab.title = updateBundle.GetStringFromName("updateType_major");
+    }
+    catch(e) {
+      aTab.title = "What's New";
+    }
+  },
+  closeTab: function onTabClosed (aTab) {
+  },
+  saveTabState: function onSaveTabState (aTab) {
+  },
+  showTab: function onShowTab (aTab) {
+  }
+};
+
 function SelectAndScrollToKey(aMsgKey)
 {
   // select the desired message
@@ -669,7 +738,22 @@ function OnLoadMessenger()
   // verifyAccounts returns true if the callback won't be called
   if (verifyAccounts(LoadPostAccountWizard))
     LoadPostAccountWizard();
-       
+
+  // initialize tabmail system
+  let tabmail = document.getElementById('tabmail');
+  if (tabmail)
+  {
+    tabmail.registerTabType(mailTabType);
+    tabmail.openFirstTab();
+  }
+
+  // Show the "what's new" tab to the user
+  // if upgraded
+  if (IsApplicationUpgraded())
+  {
+    tabmail.registerTabType(whatsnewTabType);
+    tabmail.openTab("whatsNew");
+  }
   window.addEventListener("AppCommand", HandleAppCommandEvent, true);
 }
 

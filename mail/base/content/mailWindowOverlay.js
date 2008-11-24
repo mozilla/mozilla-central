@@ -1473,14 +1473,6 @@ let mailTabType = {
     }
   }
 };
-window.addEventListener("load", function(e) {
-    let tabmail = document.getElementById('tabmail');
-    if (tabmail) {
-      tabmail.registerTabType(mailTabType);
-      tabmail.openFirstTab();
-    }
-  }, false
-);
 
 function MsgOpenNewTabForFolder(uri, key)
 {

@@ -504,17 +504,8 @@ function startPageUrlPref()
     savedVersion = pref.getCharPref("mailnews.start_page_override.mstone");
   } catch (ex) {}
 
-  if (savedVersion != "ignore")
-  {
-    var currentPlatformVersion = Components.classes["@mozilla.org/xre/app-info;1"].
-                                            getService(Components.interfaces.nsIXULAppInfo).platformVersion;
-    pref.setCharPref("mailnews.start_page_override.mstone", currentPlatformVersion);
-    // Use the welcome URL the first time we run
-    if (!savedVersion)
-      prefForStartPageUrl = "mailnews.start_page.welcome_url";
-    else if (currentPlatformVersion != savedVersion)
-      prefForStartPageUrl = "mailnews.start_page.override_url";
-  }
+  if (!savedVersion && savedVersion != "ignore")
+    prefForStartPageUrl = "mailnews.start_page.welcome_url";
 
   return prefForStartPageUrl;
 }
