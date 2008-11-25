@@ -355,8 +355,8 @@ let gFolderTreeView = {
                       .getService(Ci.nsIDragService).getCurrentSession()
                       .dragAction == Ci.nsIDragService.DRAGDROP_ACTION_MOVE;
 
-      pref.setCharPref("last_msg_movecopy_target_uri", targetFolder.URI);
-      pref.setBoolPref("last_msg_movecopy_was_move", isMove);
+      prefBranch.setCharPref("last_msg_movecopy_target_uri", targetFolder.URI);
+      prefBranch.setBoolPref("last_msg_movecopy_was_move", isMove);
       // ### ugh, so this won't work with cross-folder views. We would
       // really need to partition the messages by folder.
       cs.CopyMessages(sourceFolder, array, targetFolder, isMove, null,
