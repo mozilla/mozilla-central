@@ -838,7 +838,8 @@ nsresult nsAbView::AddCard(AbCard *abcard, PRBool selectCardAfterAdding, PRInt32
   if (mTree)
     rv = mTree->RowCountChanged(*index, 1);
 
-  if (selectCardAfterAdding && mTreeSelection) {
+  // Checking for mTree here works around core bug 399227
+  if (selectCardAfterAdding && mTreeSelection && mTree) {
     mTreeSelection->SetCurrentIndex(*index);
     mTreeSelection->RangedSelect(*index, *index, PR_FALSE /* augment */);
   }
