@@ -1729,6 +1729,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   //char *hdr_value = NULL;
   char *parm_value = NULL;
   PRBool needURL = PR_FALSE;
+  PRBool creatingMsgBody = PR_TRUE;
   PRBool bodyPart = PR_FALSE;
 
   NS_ASSERTION (mdd && headers, "null mime draft data and/or headers");
@@ -1774,6 +1775,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     if (!mdd->messageBody)
       return MIME_OUT_OF_MEMORY;
     newAttachment = mdd->messageBody;
+    creatingMsgBody = PR_TRUE;
     bodyPart = PR_TRUE;
   }
   else
@@ -1913,8 +1915,9 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   if (NS_FAILED(rv))
     return MIME_UNABLE_TO_OPEN_TMP_FILE;
 
-  // body parts will already be decoded, I believe, so don't decode them twice.
-  if (!bodyPart)
+  // For now, we are always going to decode all of the attachments
+  // for the message. This way, we have native data
+  if (creatingMsgBody)
   {
     MimeDecoderData *(*fn) (nsresult (*) (const char*, PRInt32, void*), void*) = 0;
 
