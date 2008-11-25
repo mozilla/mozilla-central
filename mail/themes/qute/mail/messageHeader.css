@@ -49,15 +49,17 @@
 /* ::::: msg header toolbars ::::: */
 
 #collapsedHeaderView {
-  padding: .5em;
   min-width: 1px;
+  margin-left: 0.5em;
   color: black;
-  font-size: 125%;
+  font-size: 110%;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
 }
 
 #expandedHeaderView {
   color: #2e3436;
-  font-size: 100%;
+  padding-top: 0.5em;
   overflow-y: auto;
   overflow-x: hidden;
   max-height: 14em;
@@ -75,7 +77,6 @@
 .headerContainer
 {
   min-width: 1px;
-  background-color: transparent;
 }
 
 #otherActionsButton {
@@ -124,18 +125,24 @@
   border: 2px solid #C0C3C6;
 }
 
-
 #collapsedsubjectValue {
+  margin-left: 3px !important;
   -moz-box-align: stretch;
   font-weight: bold;
 }
 
+#collapseddateValue {
+  -moz-box-align: stretch;
+  text-align: right;
+  padding-right: 0.5em !important;
+}
 
 #showDetailsButton {
   -moz-appearance: none !important;
   border: 2px solid transparent;
   background-color: transparent;
   width: 22px;
+  padding-bottom: 0px !important;
   height: 22px;
   background-image: url("chrome://messenger/skin/icons/chevron.png");
   background-repeat: no-repeat;
@@ -147,11 +154,6 @@
   border: 2px solid #C0C3C6;
 }
 
-#trashButton {
-  -moz-box-orient: vertical;
- list-style-image: url("chrome://messenger/skin/icons/folder.png");
-  -moz-image-region: rect(0 144px 16px 128px);
-}
 
 /* ::::: expanded header pane ::::: */
 
@@ -161,7 +163,7 @@
 }
 
 #expandedfromBox {
-  padding-top: .5em;
+  padding-top: 0.5em;
 }
 /* ::::: edit message bar ::::: */
 
@@ -254,7 +256,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 .msgHeaderView-button {
-  min-width: 1px;
+  min-width: 1px !important;
   -moz-appearance: none;
   font-size: 95%;
   color: black;
@@ -272,6 +274,14 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-border-left-colors: none;
 }
 
+/* had to set a silly attribute on the XUL element to make it so that this
+  rule overrides the rule above.  Better fix wanted! */
+.hdrTrashButton[trash="true"] { 
+  -moz-box-orient: vertical !important;
+  list-style-image: url("chrome://messenger/skin/icons/folder.png") !important;
+  -moz-image-region: rect(1px 142px 15px 126px);
+}
+
 .msgHeaderView-button[secondary="true"] {
   background: none;
 }
@@ -286,35 +296,48 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   border: 2px solid #B0B3B6;
 }
 
-.msgHeaderView-button {
-  min-width: 1px !important;
-}
-
 .headerNameBox {
   width: 7.7em;
   background-color: transparent;
 }
 
 .headerName {
-  margin: 0 .5em 5px 0;
-  text-align: right;
   color: #888a85; /* lower contrast */
+  text-align: right;
   background-color: transparent;
-}
-
-.headerValue {
-  margin: 0;
-  min-width: 50px;
-  white-space: normal;
-  background-color: transparent;
-  color: black !important;
+  padding: 0px;
+  margin-top: 0;
+  margin-right: 0;
 }
 
 .headerValueBox {
-  margin: 0 0 5px 0; /* XXX needed?*/
+  overflow:visible;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.headerValue {
+  min-width: 50px;
+  white-space: normal;
+  color: black !important;
+  line-height: 1.4em;
+
+  -moz-appearance: none !important;
+  -moz-appearance: none;
+
+  padding: 0px !important;
+  margin: 0px !important;
+  margin-left: 3px !important;
+  border: none !important;
+  background-color: transparent;
+}
+
+.headerValue[containsEmail="true"] {
+  margin-left: 0px !important;
 }
 
 .headerValueBox[singleline="true"] {
+  height: 1.8em;
   overflow: hidden;
 }
 
@@ -324,16 +347,52 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   text-decoration: underline;
 }
 
+.headerValueUrl:hover {
+  color: red;
+}
+
+.headerField {
+  color: inherit;
+}
+
 #collapsedsubjectBox {
   margin: 0px;
   padding: 0px;
+}
+
+#collapsedfromBox {
+  padding-top: 0.5em;
 }
 
 #collapsedfromValue > .headerNameBox {
   display: none;
 }
 
-#junkButton[disabled="true"] {
+#collapsedtoCcBccValue > .headerNameBox {
+  display: none;
+}
+
+#collapsedtoCcBccValue > .headerValueBox[singleline] {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+#collapsedtoCcBccValue > .headerValueBox:not([singleline]) {
+  padding-top: 0.5em;
+  padding-bottom: 0;
+}
+
+.moreIndicator {
+  font-weight: bold;
+  font-size: small;
+}
+
+.moreIndicator:hover {
+  text-decoration: underline;
+  color: darkred;
+}
+
+.hdrJunkButton[disabled="true"] {
   background: none;
   opacity: 0;
 }
@@ -371,31 +430,61 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 /* ::::: msg header email addresses ::::: */
 
 .emailDisplayButton {
-  cursor: pointer;
   margin: 0;
+  padding-left: 3px !important;
+  padding-right: 3px !important;
+  padding-top: .1em;
+  padding-bottom: .1em;
+  margin-bottom: 3px !important;
   background-color: transparent;
 }
 
-.headerValueUrl:hover,
 .emailDisplayButton:hover {
-  color: #2A46C7;
+  cursor: pointer;
+  -moz-border-radius: 2px;
+  background-color: #729fcf; /* tango blue */
 }
 
-.headerValueUrl:hover {
-  background: url("chrome://messenger/skin/icons/arrow-dn-blue.png") no-repeat center right;
+mail-emailaddress[selected="true"] .emailDisplayButton{
+  /* when an email address context menu is selected,
+    make sure that the email bubble stays displayed, and
+    tweak the bottom to blend in more w/ the menu */
+  cursor: pointer;
+  -moz-border-radius: 3px;
+  background-color: #729fcf; /* tango orange */
+  -moz-border-radius-bottomleft: 0;
+  -moz-border-radius-bottomright: 0;
 }
 
-.emailDisplayButton:focus, .emailStar:focus, .emailPopup:focus {
+.emailSeparator {
+  /* this is for the comma in between email addresses */
+  -moz-margin-start: -6px; /* squeeze it inside the bubble, by the star */
+}
+
+.emailDisplayButton:focus {
+  border: 1px dotted #729fcf; /* tango blue */
+}
+
+.emailStar:focus {
   border: 1px dotted;
+}
+
+.emaillabel {
+  padding: 0px !important;  /* override <label> defaults */
+  margin: 0px !important;  /* override <label> defaults */
+  overflow: hidden;
 }
 
 .emailStar {
   max-width: 1em;
   max-height: 1em;
+  -moz-appearance: none;
+  -moz-box-orient: vertical;
   padding: 0px;
-  margin: 0px 2px;
+  -moz-margin-start: -2px !important;
+  /*margin: 0px 2px;*/
   list-style-image: url("chrome://messenger/skin/starContact.png");
-  -moz-image-region:rect(0px 16px 16px 0px);
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
 
 .emailStar:hover {
@@ -424,7 +513,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 /* ::::: email address twisty ::::: */
 
 .addresstwisty {
-  -moz-padding-end: 5px;
+  -moz-padding-end: 0px;
   padding-top: 4px;
   list-style-image:url("chrome://messenger/skin/icons/arrow/arrow-right-dim.png");
 }
@@ -451,23 +540,8 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   list-style-image: url("chrome://global/skin/tree/twisty-clsd.png");
 }
 
-/* ::::: collapsed view styles ::::: */
-
-#collapseddateValue {
-  margin: 0 .5em;
-  text-align: right;
-  background-color: transparent;
-  color: inherit;
-  padding-right: .5em !important;
-}
-
-.collapsedHeaderDisplayName { 
-  min-height: 16px;
-  background-color: transparent;
-}
-
-.collapsedHeaderValue {
+mail-multi-emailHeaderField,
+mail-headerfield {
   margin: 0;
-  color: inherit;
-  background-color: transparent;
+  padding: 0;
 }

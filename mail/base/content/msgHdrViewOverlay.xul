@@ -103,36 +103,39 @@
   <deck id="msgHeaderViewDeck" persist="selectedIndex" selectedIndex="1" flex="1">
     <!-- the message pane consists of 4 'boxes'. Box #1 is a grid, showing a brief view of the headers -->
     <vbox id="collapsedHeaderView" class="header-part1 headerContainer" flex="1" pack="start">
-      <hbox flex="1">
-        <hbox id="collapsedfromBox" align="baseline">
-          <hbox>
+      <hbox align="baseline">
+        <hbox id="collapsedfromBox" align="baseline" flex="1">
             <mail-multi-emailHeaderField id="collapsedfromValue"
                                          pack="start"
                                          class="collapsedHeaderDisplayName"
                                          label="&fromField2.label;"/>
-          </hbox>
         </hbox>
-        <spacer flex="1"/>
-        <hbox id="collapseddateBox">
-          <hbox>
-            <textbox id="collapseddateValue" class="collapsedHeaderValue plain" readonly="true"/>
-          </hbox>
+        <header-view-button-box id="collapsedButtonBox"/>
+      </hbox>
+
+      <hbox align="baseline">
+        <hbox id="collapsedsubjectBox" flex="1">
+          <textbox id="collapsedsubjectValue" flex="1" readonly="true"
+                   class="collapsedHeaderValue plain"/>
+        </hbox>
+        <hbox id="collapseddateBox" flex="0">
+          <textbox id="collapseddateValue" class="plain collapsedHeaderValue"
+                   flex="0" readonly="true"/>
         </hbox>
       </hbox>
-      <hbox align="baseline" flex="1">
-        <hbox id="collapsedsubjectBox" flex="1">
-          <hbox flex="1" align="center">
-            <textbox flex="1" id="collapsedsubjectValue"
-                     class="collapsedHeaderValue plain" readonly="true"/>
-          </hbox>
-          <vbox>
-            <button align="center"
-                    id="showDetailsButton"
-                    tooltiptext="&showDetailsButton.label;"
-                    onclick="ToggleHeaderView();"
-                    class="msgHeaderView-button"/>
-          </vbox>
+
+      <hbox flex="1" align="center">
+        <hbox id="collapsedtoCcBccBox"
+              align="center" flex="1">
+          <mail-multi-emailHeaderField id="collapsedtoCcBccValue"
+                                       flex="1"
+                                       align="baseline"
+                                       class="collapsedHeaderDisplayName"/>
         </hbox>
+        <button id="showDetailsButton"
+                tooltiptext="&showDetailsButton.label;"
+                onclick="ToggleHeaderView();"
+                class="msgHeaderView-button"/>
       </hbox>
     </vbox>
 
@@ -146,76 +149,66 @@
 
         <hbox id="expandedHeadersTopBox" flex="1">
 
-          <hbox flex="1" align="end">
+          <hbox flex="1">
             <mail-multi-emailHeaderField id="expandedfromBox"
                                          label="&fromField2.label;"
+                                         align="baseline"
                                          collapsed="false"
                                          flex="1"/>
           </hbox>
-          <!-- This might want to become a customizable toolbar at some
-               point -->
-          <hbox id="expandedHeadersButtonBox" align="start">
-
-            <!-- XXXdmose need to move these commands to a controller, either
-                 on the header view, the message pane, or the default
-                 controller
-                 -->
-
-            <!-- XXXdmose need to audit our shortcut/a11y setup and make sure
-                 these buttons are doing the right thing -->
-
-            <button id="replyButton" label="&replyButton.label;"
-                    oncommand="MsgReplyMessage(event);" observes="button_reply"
-                    class="msgHeaderView-button"/>
-            <button id="forwardButton" label="&forwardButton.label;"
-                    oncommand="MsgForwardMessage(event);"
-                    observes="button_forward" class="msgHeaderView-button"/>
-            <button id="junkButton" label="&junkButton.label;"
-                    observes="button_junk" class="msgHeaderView-button"
-                    oncommand="goDoCommand('button_junk')"/>
-            <button id="trashButton" tooltiptext="&trashButton.tooltiptext;"
-                    class="msgHeaderView-button" observes="button_delete"
-                    oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
-           </hbox>
+          <header-view-button-box id="expandedButtonBox"/>
         </hbox>
 
         <hbox id="otherHeadersAndButtonsBox" flex="1">
           <vbox id="variousHeadersBox" flex="1">
             <mail-headerfield id="expandedsubjectBox" label="&subjectField2.label;"
+                              align="baseline"
                               collapsed="false"/>
             <mail-headerfield id="expandedorganizationBox"
                               label="&organizationField2.label;"
+                              align="baseline"
                               collapsed="true"/>
             <mail-emailheaderfield id="expandedsenderBox"
+                                   align="baseline"
                                    label="&senderField2.label;"
                                    collapsed="true"/>
             <mail-multi-emailHeaderField id="expandedreply-toBox"
                                          label="&replyToField2.label;"
+                                         align="baseline"
                                          collapsed="true"/>
             <mail-multi-emailHeaderField id="expandedtoBox"
                                          label="&toField2.label;"
+                                         align="baseline"
                                          collapsed="true"/>
             <mail-multi-emailHeaderField id="expandedccBox"
                                          label="&ccField2.label;"
+                                         align="baseline"
                                          collapsed="true"/>
             <mail-multi-emailHeaderField id="expandedbccBox" 
                                          label="&bccField2.label;"
+                                         align="baseline"
                                          collapsed="true"/>
             <mail-headerfield id="expandednewsgroupsBox"
                               label="&newsgroupsField2.label;"
+                              align="baseline"
                               collapsed="true"/>
             <mail-headerfield id="expandedfollowup-toBox"
                               label="&followupToField2.label;"
+                              align="baseline"
                               collapsed="true"/>
             <mail-headerfield id="expandeddateBox" label="&dateField2.label;"
+                              align="baseline"
                               collapsed="true"/>
             <mail-messageids-headerfield id="expandedmessage-idBox"
+                              align="baseline"
                                          label="&messageIdField2.label;"
                                          collapsed="true"/>
             <mail-messageids-headerfield id="expandedin-reply-toBox"
+                              align="baseline"
                                          label="&inReplyToField2.label;"
                                          collapsed="true"/>
             <mail-messageids-headerfield id="expandedreferencesBox"
+                              align="baseline"
                                          label="&referencesField2.label;"
                                          collapsed="true"/>
             <mail-tagfield id="expandedtagsBox" label="&tagsHdr2.label;"
@@ -229,6 +222,7 @@
 
           <!-- perhaps this should be a customizable toolbar too -->
           <vbox id="hideDetailsBox" align="end">
+            <spacer flex="1"/>
             <button type="menu" id="otherActionsButton"
                     label="&otherActionsButton.label;"
                     class="msgHeaderView-button">

@@ -1670,7 +1670,12 @@ function UpdateJunkButton()
   let hideJunk = (junkScore != "") && (junkScore != "0");
   if (isNewsURI(hdr.folder.URI))
     hideJunk = true;
-  document.getElementById('junkButton').disabled = hideJunk;
+  // which DOM node is the current junk button in the
+  // message reader depends on whether it's the collapsed or
+  // expanded header
+  let buttonBox = document.getElementById(gCollapsedHeaderViewMode ?
+                     "collapsedButtonBox" : "expandedButtonBox");
+  buttonBox.getButton('hdrJunkButton').disabled = hideJunk;
 }
 
 function MsgMarkMsgAsRead()

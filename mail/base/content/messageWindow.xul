@@ -115,31 +115,32 @@
 
   <popupset>
     <panel id="editContactPanel"/>
-    <popup id="emailAddressPopup" popupanchor="bottomleft"
-           onpopupshowing="setupEmailAddressPopup(document.popupNode.parentNode); goUpdateCommand('cmd_createFilterFromPopup')">
+    <popup id="emailAddressPopup" class="emailAddressPopup" position="after_start"
+           onpopupshowing="setupEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
+           onpopuphiding="hideEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))">
       <menuitem id="emailAddressPlaceHolder" label=""
                 disabled="true"/>
       <menuseparator/>
       <menuitem id="addToAddressBookItem"
                 label="&AddDirectlyToAddressBook.label;"
                 accesskey="&AddDirectlyToAddressBook.accesskey;"
-                oncommand="AddContact(document.popupNode.parentNode)"/>
+                oncommand="AddContact(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
       <menuitem id="editContactItem" label="&EditContact.label;" hidden="true"
                 accesskey="&EditContact.accesskey;"
-                oncommand="EditContact(document.popupNode.parentNode)"/>
+                oncommand="EditContact(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
       <menuitem id="viewContactItem" label="&ViewContact.label;" hidden="true"
                 accesskey="&ViewContact.accesskey;"
-                oncommand="EditContact(document.popupNode.parentNode)"/>
+                oncommand="EditContact(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
       <menuitem id="sendMailToItem" label="&SendMailTo.label;"
                 accesskey="&SendMailTo.accesskey;"
-                oncommand="SendMailToNode(document.popupNode.parentNode)"/>
+                oncommand="SendMailToNode(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
       <menuitem id="copyEmailAddressItem" label="&CopyEmailAddress.label;"
                 accesskey="&CopyEmailAddress.accesskey;"
-                oncommand="CopyEmailAddress(document.popupNode.parentNode)"/>
+                oncommand="CopyEmailAddress(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
       <menuseparator/>
       <menuitem id="createFilterFromItem" label="&CreateFilterFrom.label;"
                 accesskey="&CreateFilterFrom.accesskey;"
-                oncommand="CreateFilter(document.popupNode.parentNode)"
+                oncommand="CreateFilter(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"
                 observes="cmd_createFilterFromPopup"/>
     </popup>
 

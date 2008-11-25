@@ -1,5 +1,12 @@
 <?xml version="1.0"?>
 
+<!DOCTYPE bindings [
+<!ENTITY % msgHdrViewOverlayDTD SYSTEM "chrome://messenger/locale/msgHdrViewOverlay.dtd" >
+%msgHdrViewOverlayDTD;
+<!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
+%messengerDTD;
+]>
+
 <bindings   id="mailBindings"
             xmlns="http://www.mozilla.org/xbl"
             xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -155,17 +162,18 @@
 
   <!-- Message Pane Widgets -->
 
-  <!-- mail-toggle-headerfield: non email addrss headers which have a toggle associated with them (i.e. the subject).
-       use label to set the header name.
-       use headerValue to set the header value. -->
+  <!-- mail-toggle-headerfield: Non-email addrs headers which have a toggle
+       associated with them (i.e. the subject).
+         Use label to set the header name.
+         Use headerValue to set the header value. -->
   <binding id="mail-toggle-headerfield">
     <content>
-      <xul:hbox class="headerNameBox" align="start">
+      <xul:hbox class="headerNameBox" align="baseline">
         <xul:image class="expandHeaderViewButton" xbl:inherits="onclick=ontwistyclick"/>
         <xul:spacer flex="1"/>
         <xul:label class="headerName" xbl:inherits="value=label" control="headerValue"/>
       </xul:hbox>
-      <xul:textbox class="headerValue plain" anonid="headerValue" flex="1" readonly="true"/>
+      <xul:textbox class="headerValue" anonid="headerValue" flex="1" readonly="true"/>
     </content>
 
     <implementation>
@@ -178,10 +186,10 @@
        use headerValue to set the header value. -->
   <binding id="mail-headerfield">
     <content>
-      <xul:hbox class="headerNameBox" align="start">
+      <xul:hbox class="headerNameBox" align="baseline">
         <xul:label class="headerName" xbl:inherits="value=label" control="headerValue" flex="1"/>
       </xul:hbox>
-      <xul:textbox class="headerValue plain" anonid="headerValue" flex="1" readonly="true"/>
+      <xul:textbox class="headerValue" anonid="headerValue" flex="1" readonly="true"/>
     </content>
 
     <implementation>
@@ -195,7 +203,7 @@
         <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
       </xul:hbox>
       <xul:label onclick="if (event.button != 2) openUILink(event.target.value, event);"
-                 class="headerValue plain text-link headerValueUrl"
+                 class="headerValue text-link headerValueUrl"
                  anonid="headerValue" flex="1" readonly="true" context="copyUrlPopup"/>
     </content>
   </binding>
@@ -205,7 +213,8 @@
       <xul:hbox class="headerNameBox" align="start">
         <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
       </xul:hbox>
-      <xul:mail-emailaddress class="headerValue" anonid="emailAddressNode"/>
+      <xul:mail-emailaddress class="headerValue" containsEmail="true"
+                             anonid="emailAddressNode"/>
     </content>
 
     <implementation>
@@ -217,17 +226,22 @@
   <!-- multi-emailHeaderField: presents multiple emailheaderfields with a toggle -->
   <binding id="mail-multi-emailHeaderField">
     <content>
-      <xul:hbox class="headerNameBox" align="start" pack="end">
-        <xul:image class="addresstwisty" anonid="toggleIcon"
-                   collapsed="true" onclick="toggleWrap();"/>
-        <xul:label class="headerName" xbl:inherits="value=label"/>
-      </xul:hbox>
+        <xul:hbox class="headerNameBox" align="baseline" pack="end">
+          <xul:label class="headerName" xbl:inherits="value=label"/>
+        </xul:hbox>
 
-      <xul:hbox class="headerValueBox" anonid="longEmailAddresses" flex="1"
-                onoverflow="if (event.detail != 1) this.parentNode.toggleIcon.collapsed = false;"
-                onunderflow="if (event.detail != 1) this.parentNode.toggleIcon.collapsed = true;">
-        <xul:description class="headerValue" anonid="emailAddresses" flex="1"/>
-      </xul:hbox>
+        <xul:hbox class="headerValueBox" anonid="longEmailAddresses" flex="1"
+                  singleline="true"
+                  align="baseline"
+                  onoverflow="this.parentNode.overflow(event)"
+                  onunderflow="this.parentNode.underflow(event)">
+          <xul:description class="headerValue" containsEmail="true"
+                           anonid="emailAddresses" flex="1"
+                           orient="vertical" pack="start" />
+          <xul:label class="moreIndicator" value="&more.label;" anonid="more"
+                     collapsed="true"
+                     onclick="this.parentNode.parentNode.toggleWrap()"/>
+        </xul:hbox>
     </content>
 
     <implementation>
@@ -236,6 +250,25 @@
           this.mAddresses = new Array;
         ]]>
       </constructor>
+
+
+      <method name="overflow">
+        <parameter name="event"/>
+        <body>
+        <![CDATA[
+        if (event.detail != 1) this.more.collapsed = false;
+        ]]>
+        </body>
+      </method>
+
+      <method name="underflow">
+        <parameter name="event"/>
+        <body>
+        <![CDATA[
+          if (event.detail != 1) this.more.collapsed = true;
+        ]]>
+        </body>
+      </method>
 
       <field name="mAddresses"/>
       <!-- as a perf optimization we are going to keep a cache of email address nodes which we've
@@ -282,7 +315,7 @@
             }
             catch(ex)
             {
-              dump("AddExtraAddressProcessing failed: " + ex);
+              dump("AddExtraAddressProcessing failed: " + ex + "\n");
             }
           ]]>
         </body>
@@ -357,7 +390,7 @@
               if (index)
               {
                 var textNode = document.createElement("text");
-                textNode.setAttribute("value", ", ");
+                textNode.setAttribute("value", ",");
                 textNode.setAttribute("class", "emailSeparator");
                 aAddressesNode.appendChild(textNode);
               }
@@ -374,7 +407,7 @@
         readonly="true"/>
       <property name="longEmailAddresses" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'longEmailAddresses');"
         readonly="true"/>
-      <property name="toggleIcon" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'toggleIcon');"
+      <property name="more" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'more');"
         readonly="true"/>
 
       <!-- buildView: public method used by callers when they are done adding all the email addresses to the widget
@@ -413,13 +446,8 @@
       <method name="toggleWrap">
         <body>
           <![CDATA[
-            if (this.toggleIcon.hasAttribute("open")) {
-              this.toggleIcon.removeAttribute("open");
-              this.longEmailAddresses.setAttribute("singleline", "true");
-            } else {
-              this.toggleIcon.setAttribute("open", "true");
-              this.longEmailAddresses.removeAttribute("singleline");
-            }
+            this.more.collapsed = true;
+            this.longEmailAddresses.removeAttribute("singleline");
           ]]>
         </body>
       </method>
@@ -449,10 +477,6 @@
           <![CDATA[
             // clear out our local state
             this.mAddresses = new Array;
-            if (this.toggleIcon.hasAttribute("open"))
-              // no automatic overflow tracking in this case
-              this.toggleIcon.collapsed = true;
-            this.toggleIcon.removeAttribute("open");
             this.longEmailAddresses.setAttribute("singleline", "true");
             // remove anything inside of each of our labels....
             this.clearChildNodes(this.emailAddresses);
@@ -465,23 +489,25 @@
   <binding id="mail-emailaddress">
 #ifndef MOZ_THUNDERBIRD
     <content popup="emailAddressPopup" context="emailAddressPopup">
-      <xul:description anonid="emailValue" class="emailDisplayButton plain"
+      <xul:description anonid="emailValue" class="emailDisplayButton"
                  xbl:inherits="xbl:text=label,crop" flex="1"/>
       <xul:image class="emailDisplayImage" anonid="emailImage"
                  xbl:inherits="src=image"/>
     </content>
 #else
     <content>
-      <xul:description anonid="emailValue" class="emailDisplayButton plain"
+      <xul:description anonid="emailValue" class="emailDisplayButton"
+                       xbl:inherits="hascard"
                        context="emailAddressPopup" popup="emailAddressPopup"
-                       xbl:inherits="xbl:text=label,crop" flex="1"/>
-      <xul:image class="emailStar" anonid="emailStar"
-                 context="emailAddressPopup"
-                 onclick="onClickEmailStar(event, this.parentNode);"
-                 xbl:inherits="hascard,tooltiptext=tooltipstar"/>
-      <xul:image class="emailPopup" anonid="emailPopup"
-                 context="emailAddressPopup" popup="emailAddressPopup"
-                 xbl:inherits="hascard"/>
+                       flex="1">
+        <xul:label class="emaillabel" anonid="emaillabel"
+                   xbl:inherits="value=label,crop"/>
+        <xul:image class="emailStar" anonid="emailStar"
+                   context="emailAddressPopup"
+                   onmousedown="event.preventDefault();"
+                   onclick="onClickEmailStar(event, this.parentNode.parentNode);"
+                   xbl:inherits="hascard,tooltiptext=tooltipstar"/>
+      </xul:description>
     </content>
 #endif
 
@@ -654,7 +680,7 @@
 
   <binding id="mail-messageid">
     <content context="messageIdContext" onclick="MessageIdClick(this, event);">
-      <xul:label anonid="messageIdValue" class="messageIdDisplayButton plain"
+      <xul:label anonid="messageIdValue" class="messageIdDisplayButton"
                  xbl:inherits="value=label"/>
       <xul:image class="messageIdDisplayImage" anonid="messageIdImage"/>
     </content>
@@ -678,7 +704,7 @@
       <xul:hbox class="headerNameBox" align="start">
         <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
       </xul:hbox>
-      <xul:label class="headerValue plain" anonid="headerValue" flex="1"/>
+      <xul:label class="headerValue" anonid="headerValue" flex="1"/>
     </content>
 
     <implementation>
@@ -2083,5 +2109,45 @@
         ]]>
       </handler>
     </handlers>
+  </binding>
+
+  <binding id="header-view-button-box">
+    <content>
+      <!-- It might be nice to allow a UI for customization of these buttons -->
+      <xul:hbox align="start">
+
+        <!-- XXXdmose need to move these commands to a controller, either
+             on the header view, the message pane, or the default
+             controller -->
+
+        <!-- XXXdmose need to audit our shortcut/a11y setup and make sure
+             these buttons are doing the right thing -->
+
+       <xul:button anonid="hdrReplyButton" label="&replyButton.label;"
+                   oncommand="MsgReplyMessage(event);" observes="button_reply"
+                   class="msgHeaderView-button hdrReplyButton"/>
+       <xul:button anonid="hdrForwardButton" label="&forwardButton.label;"
+                   oncommand="MsgForwardMessage(event);"
+                   observes="button_forward" class="msgHeaderView-button hdrForwardButton"/>
+       <xul:button anonid="hdrJunkButton" label="&junkButton.label;"
+                   observes="button_junk" class="msgHeaderView-button hdrJunkButton"
+                   oncommand="goDoCommand('button_junk')"/>
+       <xul:button anonid="hdrTrashButton" tooltiptext="&trashButton.tooltiptext;"
+                   observes="button_delete" trash="true"
+                   class="msgHeaderView-button hdrTrashButton" 
+                   oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+      <method name="getButton">
+        <parameter name="id"/>
+        <body>
+          <![CDATA[
+          return document.getAnonymousElementByAttribute(this, 'anonid', id);
+          ]]>
+        </body>
+      </method>
+    </implementation>
   </binding>
 </bindings>

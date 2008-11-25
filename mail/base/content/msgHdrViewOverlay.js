@@ -94,7 +94,10 @@ var gMessageListeners = new Array();
 // fields.
 var gCollapsedHeaderList = [ {name:"subject", outputFunction:updateHeaderValueInTextNode},
                              {name:"from", useToggle:true, useShortView:true, outputFunction:OutputEmailAddresses},
-                             {name:"date", outputFunction:updateHeaderValueInTextNode}];
+                             {name:"toCcBcc", useToggle:true,
+                              useShortView:true,
+                              outputFunction: OutputEmailAddresses},
+                             {name:"date", outputFunction:OutputDate}];
 
 // We also have an expanded header view. This shows many of your more common (and useful) headers.
 var gExpandedHeaderList = [ {name:"subject"},
@@ -121,7 +124,7 @@ var extraExpandedHeaderList = [ {name:"sender", outputFunction:OutputEmailAddres
 // These are all the items that use a mail-multi-emailHeaderField widget and
 // therefore may require updating if the address book changes.
 const gEmailAddressHeaderNames = ["from", "reply-to",
-                                  "to", "cc", "bcc"];
+                                  "to", "cc", "bcc", "toCcBcc"];
 
 // Now, for each view the message pane can generate, we need a global table of headerEntries. These
 // header entry objects are generated dynamically based on the static date in the header lists (see above)
@@ -776,7 +779,7 @@ function updateHeaderViews()
       EnsureMinimumNumberOfHeaders(gExpandedHeaderView);
     showHeaderView(gExpandedHeaderView);
   }
-
+  UpdateJunkButton();
   displayAttachmentsForExpandedView();
 }
 
@@ -804,11 +807,7 @@ function updateHeaderValue(headerEntry, headerValue)
 
 function updateHeaderValueInTextNode(headerEntry, headerValue)
 {
-  try {
-      headerEntry.textNode.value = headerValue;
-  } catch (e) {
-    dump("headerEntry = " + headerEntry + " and headerValue = " + headerValue + '\n')
-  }
+  headerEntry.textNode.value = headerValue;
 }
 
 function createNewHeaderView(headerName, label)
@@ -866,8 +865,10 @@ function UpdateMessageHeaders()
 
     if (gCollapsedHeaderViewMode && !gBuiltCollapsedView)
     {
-      if (headerName in gCollapsedHeaderView)
-      headerEntry = gCollapsedHeaderView[headerName];
+      if (headerName == "cc" || headerName == "to" || headerName == "bcc")
+        headerEntry = gCollapsedHeaderView["toCcBcc"];
+      else if (headerName in gCollapsedHeaderView)
+        headerEntry = gCollapsedHeaderView[headerName];
     }
     else if (!gCollapsedHeaderViewMode && !gBuiltExpandedView)
     {
@@ -973,6 +974,17 @@ function OutputMessageIds(headerEntry, headerValue)
   headerEntry.enclosingBox.fillMessageIdNodes();
 }
 
+function OutputDate(headerEntry, headerValue)
+{
+  headerEntry.textNode.value = headerValue;
+  // The date field is a textbox, and we want it to be as small as possible to
+  // not take space from the subject textbox. This is a bit bigger than
+  // necessary, but guaranteed to fit. We should move to not using textboxes
+  // because of these sizing problems, and instead figure out selectable
+  // labels.
+  headerEntry.textNode.setAttribute("size", Math.round(headerValue.length * 1.2));
+}
+
 // OutputEmailAddresses --> knows how to take a comma separated list of email addresses,
 // extracts them one by one, linkifying each email address into a mailto url.
 // Then we add the link-ified email address to the parentDiv passed in.
@@ -1034,17 +1046,27 @@ function AddExtraAddressProcessing(emailAddress, documentNode)
     documentNode.setAttribute("hascard", "false");
     documentNode.setAttribute("tooltipstar",
       document.getElementById("addToAddressBookItem").label);
-    return;
   }
-
-  documentNode.setAttribute("hascard", "true");
-  documentNode.setAttribute("tooltipstar",
-    document.getElementById("editContactItem").label);
+  else {
+    documentNode.setAttribute("hascard", "true");
+    documentNode.setAttribute("tooltipstar",
+      document.getElementById("editContactItem").label);
+  }
 
   if (!gShowCondensedEmailAddresses)
     return;
 
-  var displayName = cardDetails.card.displayName;
+  var displayName;
+  var identity = getBestIdentity(accountManager.allIdentities);
+  if (emailAddress == identity.email) {
+    displayName = gMessengerBundle.getString("headerFieldYou");
+  }
+  else
+  {
+    if (!cardDetails.card)
+      return;
+    displayName = cardDetails.card.displayName;
+  }
 
   if (!displayName)
     return;
@@ -1112,7 +1134,7 @@ function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
       else
         aDocumentNode.setAttribute("label",
                                    aDocumentNode.getAttribute("fullAddress") ||
-                                   aDocumentNode.getAttriubte("displayName"));
+                                   aDocumentNode.getAttribute("displayName"));
     }
     break;
   case nsIAbListener.itemAdded:
@@ -1154,11 +1176,35 @@ function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
   }
 }
 
+function findEmailNodeFromPopupNode(elt, popup)
+{
+  // This annoying little function is needed because in the binding for
+  // mail-emailaddress, we set the context on the <description>, but that if
+  // the user clicks on the label, then popupNode is set to it, rather than
+  // the description.  So we have walk up the parent until we find the
+  // element with the popup set, and then return its parent.
+  
+  while (elt.getAttribute("popup") != popup)
+  {
+    elt = elt.parentNode;
+    if (elt == null)
+      return null;
+  }
+  return elt.parentNode;
+}
+
+function hideEmailAddressPopup(emailAddressNode)
+{
+  // highlight the emailBox
+  emailAddressNode.removeAttribute('selected');
+}
+
 function setupEmailAddressPopup(emailAddressNode)
 {
+    dump("emailAddressNode.tagName = " + emailAddressNode.tagName + '\n');
   var emailAddressPlaceHolder = document.getElementById('emailAddressPlaceHolder');
-  var emailAddress = emailAddressNode.getAttribute('emailAddress');
-
+  var emailAddress = emailAddressNode.getPart('emaillabel').value;
+  emailAddressNode.setAttribute('selected', 'true');
   emailAddressPlaceHolder.setAttribute('label', emailAddress);
 
   if (emailAddressNode.cardDetails.card) {
@@ -1914,3 +1960,4 @@ nsDummyMsgHeader.prototype =
   accountKey : "",
   folder : null
 };
+

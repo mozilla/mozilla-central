@@ -206,6 +206,11 @@ folderSummaryMessage
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#folderSummary-message");
 }
 
+header-view-button-box
+{
+  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#header-view-button-box");
+}
+
 .foldersTree
 {
   margin: 0px;
