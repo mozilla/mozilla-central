@@ -199,8 +199,7 @@ pref("accessibility.typeaheadfind.flashBar", 1);
 
 /////////////////////////////////////////////////////////////////
 // Overrides of the seamonkey suite mailnews.js prefs
-///////////////////////////////////////////////////////////////// 
-pref("mail.showFolderPaneColumns", false); // setting to true will allow total/unread/size columns
+/////////////////////////////////////////////////////////////////
 pref("mail.showCondensedAddresses", true); // show the friendly display name for people I know
 
 // hidden pref for changing how we present attachments in the message pane

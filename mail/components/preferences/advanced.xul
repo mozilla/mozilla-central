@@ -76,7 +76,6 @@
                   onchange="gAdvancedPane.updateMarkAsReadTextbox(this.value);"/>
       <preference id="mailnews.mark_message_read.delay.interval"
                   name="mailnews.mark_message_read.delay.interval" type="int"/>
-      <preference id="mail.showFolderPaneColumns" name="mail.showFolderPaneColumns" type="bool"/>
       <preference id="mailnews.reuse_message_window" name="mailnews.reuse_message_window" type="bool"/>
       <!-- Network tab -->
       <preference id="mail.prompt_purge_threshhold"          name="mail.prompt_purge_threshhold"    type="bool"/>
@@ -230,14 +229,6 @@
                         accesskey="&showCondensedAddresses.accesskey;"
                         preference="mail.showCondensedAddresses"/>
             </hbox>
-
-            <hbox>
-              <checkbox id="showFolderPaneColumns"
-                        label="&showFolderColumns.label;"
-                        accesskey="&showFolderColumns.accesskey;"
-                        preference="mail.showFolderPaneColumns"/>
-            </hbox>
-
           </groupbox>
 
         </tabpanel>
