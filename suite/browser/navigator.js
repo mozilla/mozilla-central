@@ -844,29 +844,13 @@ function BrowserBack()
 
 function BrowserHandleBackspace()
 {
-  // The order of seeing keystrokes is this:
-  // 1) Chrome, 2) Typeahead, 3) [platform]HTMLBindings.xml
-  // Rather than have typeaheadfind responsible for making VK_BACK 
-  // go back in history, we handle backspace it here as follows:
-  // When backspace is pressed, it might mean back
-  // in typeaheadfind if that's active, or it might mean back in history
-
-  var typeAhead = null;
-  const TYPE_AHEAD_FIND_CONTRACTID = "@mozilla.org/suitetypeaheadfind;1";
-  if (TYPE_AHEAD_FIND_CONTRACTID in Components.classes) {
-    typeAhead = Components.classes[TYPE_AHEAD_FIND_CONTRACTID]
-                .getService(Components.interfaces.nsISuiteTypeAheadFind);
-  }
-  
-  if (!typeAhead || !typeAhead.backOneChar()) {
-    switch (pref.getIntPref("browser.backspace_action")) {
+  switch (pref.getIntPref("browser.backspace_action")) {
     case 0:
       BrowserBack();
       break;
     case 1:
       goDoCommand("cmd_scrollPageUp");
       break;
-    }
   }
 }
 
@@ -887,12 +871,12 @@ function BrowserUp()
 function BrowserHandleShiftBackspace()
 {
   switch (pref.getIntPref("browser.backspace_action")) {
-  case 0:
-    BrowserForward();
-    break;
-  case 1:
-    goDoCommand("cmd_scrollPageDown");
-    break;
+    case 0:
+      BrowserForward();
+      break;
+    case 1:
+      goDoCommand("cmd_scrollPageDown");
+      break;
   } 
 }
 

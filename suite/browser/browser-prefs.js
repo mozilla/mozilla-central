@@ -207,6 +207,9 @@ pref("layout.spellcheckDefault", 1);
 
 // special TypeAheadFind settings
 pref("accessibility.typeaheadfind.flashBar", 0);
+#ifndef XP_UNIX
+pref("accessibility.typeaheadfind.soundURL", "default");
+#endif
 
 #ifdef XP_WIN
 pref("browser.preferences.instantApply", false);

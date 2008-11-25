@@ -44,8 +44,10 @@ include $(DEPTH)/config/autoconf.mk
 
 PARALLEL_DIRS = public src
 
-EXTRA_COMPONENTS = nsBrowserContentHandler.js \
+EXTRA_COMPONENTS = \
 	nsAboutAbout.js \
+	nsBrowserContentHandler.js \
+	nsTypeAheadFind.js \
 	$(NULL)
 
 PREF_JS_EXPORTS = $(srcdir)/browser-prefs.js \
