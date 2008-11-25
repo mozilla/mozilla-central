@@ -74,6 +74,7 @@
 #include "nsIDocShellTreeNode.h"
 #include "nsContentPolicyUtils.h"
 #include "nsIDOMHTMLImageElement.h"
+#include "nsILoadContext.h"
 
 static const char kBlockRemoteImages[] = "mailnews.message_display.disable_remote_image";
 static const char kAllowPlugins[] = "mailnews.message_display.allow.plugins";
@@ -627,23 +628,23 @@ NS_IMETHODIMP nsMsgCookiePolicy::CanAccess(nsIURI         *aURI,
   *aResult = ACCESS_DENY;
   NS_ENSURE_ARG_POINTER(aChannel);
   
-  nsCOMPtr<nsIDocShellTreeItem> docShellTreeItem;
-  NS_QueryNotificationCallbacks(aChannel, docShellTreeItem);
+  nsCOMPtr<nsILoadContext> loadContext;
+  NS_QueryNotificationCallbacks(aChannel, loadContext);
 
-  NS_ENSURE_TRUE(docShellTreeItem, NS_OK);
-  PRInt32 itemType;
-  docShellTreeItem->GetItemType(&itemType);
+  NS_ENSURE_TRUE(loadContext, NS_OK);
+  PRBool isContent;
+  loadContext->GetIsContent(&isContent);
 
-  // allow chrome docshells to set cookies
-  if (itemType == nsIDocShellTreeItem::typeChrome)
+  // allow chrome to set cookies
+  if (!isContent)
     *aResult = ACCESS_DEFAULT;
   else // allow RSS articles in content to access cookies
   {
-  NS_ENSURE_TRUE(aURI, NS_OK);  
-  PRBool isRSS = PR_FALSE;
-  IsRSSArticle(aURI, &isRSS);
-  if (isRSS)
-    *aResult = ACCESS_DEFAULT;
+    NS_ENSURE_TRUE(aURI, NS_OK);  
+    PRBool isRSS = PR_FALSE;
+    IsRSSArticle(aURI, &isRSS);
+    if (isRSS)
+      *aResult = ACCESS_DEFAULT;
   }
 
   return NS_OK;
