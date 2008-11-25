@@ -869,6 +869,26 @@ function HandleAppCommandEvent(evt)
   }
 }
 
+/**
+ * Returns true if the user has a master password set and false otherwise.
+ * Shamelessly stolen from FF - browser/components/preferences/security.js
+ */
+function masterPasswordSet()
+{
+  const Ci = Components.interfaces;
+  let slot = Components.classes["@mozilla.org/security/pkcs11moduledb;1"]
+                   .getService(Ci.nsIPKCS11ModuleDB).findSlotByName("");
+  if (slot) {
+    let status = slot.status;
+    return status != Ci.nsIPKCS11Slot.SLOT_UNINITIALIZED
+                  && status != Ci.nsIPKCS11Slot.SLOT_READY;
+  } 
+  else {
+    // XXX I have no bloody idea what this means
+    return false;
+  }
+}
+
 function OnUnloadMessenger()
 {
   OnLeavingFolder(gMsgFolderSelected);  // mark all read in current folder
@@ -935,6 +955,29 @@ function loadStartFolder(initialUri)
         // the folder. i.e. the user just clicked on a news folder they aren't subscribed to from a browser
         // the news url comes in here.
 
+        if (isLoginAtStartUpEnabled && masterPasswordSet()) {
+          let passwordMgr = Components.classes["@mozilla.org/passwordmanager;1"]
+                              .getService(Components.interfaces.nsIPasswordManagerInternal);
+          if (passwordMgr)
+          {
+            let hostFound = new Object;
+            let userNameFound = new Object;
+            let passwordFound = new Object;
+
+            // Get password entry corresponding to the default server.
+            // This will block the UI until the use enters something.
+            // This throws an exception if the user cancels. For now, I'm
+            // just letting everything proceed as before, but conceivably,
+            // we could loop waiting for the user to enter the right password,
+            // and exit the app if they don't. But this assumes the
+            // default server password is stored.
+            try {
+                passwordMgr.findPasswordEntry(defaultServer.serverURI, "", "",
+                                           hostFound, userNameFound, 
+                                           passwordFound);
+            } catch(ex) {};
+          }
+        }
         // Perform biff on the server to check for new mail, except for imap
         // or a pop3 account that is deferred or deferred to,
         // or the case where initialUri is non-null (non-startup)
@@ -949,7 +992,7 @@ function loadStartFolder(initialUri)
           // view. Just select the first one in the view then.
           if (gFolderTreeView._rowMap.length)
             gFolderTreeView.selectFolder(gFolderTreeView._rowMap[0]._folder);
-         }
+        }
     }
     catch(ex)
     {
