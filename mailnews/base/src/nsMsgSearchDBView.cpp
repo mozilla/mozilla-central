@@ -263,6 +263,35 @@ nsMsgSearchDBView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey,
    return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags,
+                                      PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
+{
+  // defer to base class if we're grouped or not threaded at all
+  if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort ||
+      !(m_viewFlags && nsMsgViewFlagsType::kThreadedDisplay))
+    return nsMsgGroupView::OnHdrFlagsChanged(aHdrChanged, aOldFlags, 
+                                             aNewFlags, aInstigator);
+
+  nsCOMPtr <nsIMsgThread> thread;
+  PRBool foundMessageId;
+  // check if the hdr that changed is in a xf thread, and if the read flag
+  // changed, update the thread unread count. GetXFThreadFromMsgHdr returns
+  // the thread the header does or would belong to, so we need to also
+  // check that the header is actually in the thread.
+  GetXFThreadFromMsgHdr(aHdrChanged, getter_AddRefs(thread), &foundMessageId);
+  if (foundMessageId)
+  {
+    nsMsgXFViewThread *viewThread = static_cast<nsMsgXFViewThread*>(thread.get());
+    if (viewThread->HdrIndex(aHdrChanged) != -1)
+    {
+      PRUint32 deltaFlags = (aOldFlags ^ aNewFlags);
+      if (deltaFlags & MSG_FLAG_READ)
+        thread->MarkChildRead(aNewFlags & MSG_FLAG_READ);
+    }
+  }
+  return NS_OK;
+}
+
 void nsMsgSearchDBView::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,
                               nsMsgKey msgKey, PRUint32 flags, PRUint32 level)
 {
