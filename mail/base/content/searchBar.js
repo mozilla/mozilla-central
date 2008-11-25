@@ -633,7 +633,8 @@ function changeQuickSearchMode(aMenuItem)
 
 function saveViewAsVirtualFolder()
 {
-  openNewVirtualFolderDialogWithArgs(gSearchInput.value, gSearchSession.searchTerms);
+  gFolderTreeController.newVirtualFolder(gSearchInput.value,
+                                         gSearchSession.searchTerms);
 }
 
 function InitQuickSearchPopup()
