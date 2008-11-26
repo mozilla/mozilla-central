@@ -343,7 +343,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 
 .headerValueBox[singleline="true"] {
-  height: 1.8em;
+  height: 1.9em;
   overflow: hidden;
 }
 
