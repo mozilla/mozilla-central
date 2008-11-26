@@ -337,7 +337,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 .headerValueBox[singleline="true"] {
-  height: 1.8em;
+  height: 1.9em;
   overflow: hidden;
 }
 
@@ -384,7 +384,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .moreIndicator {
   font-weight: bold;
-  font-size: small;
 }
 
 .moreIndicator:hover {
@@ -458,7 +457,7 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 
 .emailSeparator {
   /* this is for the comma in between email addresses */
-  -moz-margin-start: -6px; /* squeeze it inside the bubble, by the star */
+  -moz-margin-start: -4px; /* squeeze it inside the bubble, by the star */
 }
 
 .emailDisplayButton:focus {

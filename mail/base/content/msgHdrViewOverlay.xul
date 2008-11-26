@@ -35,7 +35,7 @@
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
    - ***** END LICENSE BLOCK ***** -->
-
+  
 <!DOCTYPE overlay SYSTEM "chrome://messenger/locale/msgHdrViewOverlay.dtd">
 
 <?xml-stylesheet href="chrome://messenger/skin/messageHeader.css" type="text/css"?>
@@ -149,7 +149,7 @@
 
         <hbox id="expandedHeadersTopBox" flex="1">
 
-          <hbox flex="1">
+          <hbox flex="1" align="center">
             <mail-multi-emailHeaderField id="expandedfromBox"
                                          label="&fromField2.label;"
                                          align="baseline"
