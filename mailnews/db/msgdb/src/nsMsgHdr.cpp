@@ -329,16 +329,18 @@ NS_IMETHODIMP nsMsgHdr::GetNumReferences(PRUint16 *result)
 
 nsresult nsMsgHdr::ParseReferences(const char *references)
 {
-	const char *startNextRef = references;
-	nsCAutoString resultReference;
+  const char *startNextRef = references;
+  nsCAutoString resultReference;
 
-	while (startNextRef && *startNextRef)
-	{
-		startNextRef = GetNextReference(startNextRef, resultReference);
-		m_references.AppendCString(resultReference);
-	}
+  while (startNextRef && *startNextRef)
+  {
+    startNextRef = GetNextReference(startNextRef, resultReference,
+                                    startNextRef == references);
+    if (!resultReference.IsEmpty())
+      m_references.AppendCString(resultReference);
+  }
   m_numReferences = m_references.Count();
-	return NS_OK;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgHdr::GetStringReference(PRInt32 refNum, nsACString& resultReference)
@@ -405,6 +407,7 @@ NS_IMETHODIMP nsMsgHdr::SetReferences(const char *references)
     m_numReferences = 0;
   }
   else {
+    m_references.Clear();
     ParseReferences(references);
   }
 
@@ -770,39 +773,103 @@ nsresult nsMsgHdr::GetUInt32Column(mdb_token token, PRUint32 *pvalue, PRUint32 d
   return m_mdb->RowCellColumnToUInt32(GetMDBRow(), token, pvalue, defaultValue);
 }
 
-// get the next <> delimited reference from nextRef and copy it into reference,
-const char *nsMsgHdr::GetNextReference(const char *startNextRef, nsCString &reference)
+/**
+ * Roughly speaking, get the next message-id (starts with a '<' ends with a
+ *  '>').  Except, we also try to handle the case where your reference is of
+ *  a prehistoric vintage that just stuck any old random junk in there.  Our
+ *  old logic would (unintentionally?) just trim the whitespace off the front
+ *  and hand you everything after that.  We change things at all because that
+ *  same behaviour does not make sense if we have already seen a proper message
+ *  id.  We keep the old behaviour at all because it would seem to have
+ *  benefits.  (See jwz's non-zero stats: http://www.jwz.org/doc/threading.html) 
+ * So, to re-state, if there is a valid message-id in there at all, we only
+ *  return valid message-id's (sans bracketing '<' and '>').  If there isn't,
+ *  our result (via "references") is a left-trimmed copy of the string.  If
+ *  there is nothing in there, our result is an empty string.)  We do require
+ *  that you pass allowNonDelimitedReferences what it demands, though.
+ * For example: "<valid@stuff> this stuff is invalid" would net you
+ *  "valid@stuff" and "this stuff is invalid" as results.  We now only would
+ *  provide "valid-stuff" and an empty string (which you should ignore) as
+ *  results.  However "this stuff is invalid" would return itself, allowing
+ *  anything relying on that behaviour to keep working.
+ * 
+ * Note: We accept anything inside the '<' and '>'; technically, we should want
+ *  at least a '@' in there (per rfc 2822).  But since we're going out of our
+ *  way to support weird things...
+ * 
+ * @param startNextRef The position to start at; this should either be the start
+ *     of your references string or our return value from a previous call.
+ * @param reference You pass a nsCString by reference, we put the reference we
+ *     find in it, if we find one.  It may be empty!  Beware!
+ * @param allowNonDelimitedReferences Should we support the
+ *     pre-reasonable-standards form of In-Reply-To where it could be any
+ *     arbitrary string and our behaviour was just to take off leading
+ *     whitespace.  It only makes sense to pass true for your first call to this
+ *     function, as if you are around to make a second call, it means we found
+ *     a properly formatted message-id and so we should only look for more
+ *     properly formatted message-ids.
+ * @returns The next starting position of this routine, which may be pointing at
+ *     a nul '\0' character to indicate termination.
+ */ 
+const char *nsMsgHdr::GetNextReference(const char *startNextRef,
+                                       nsCString &reference,
+                                       PRBool acceptNonDelimitedReferences)
 {
   const char *ptr = startNextRef;
+  const char *whitespaceEndedAt = nsnull;
+  const char *firstMessageIdChar = nsnull;
 
+  // make the reference result string empty by default; we will set it to
+  //  something valid if the time comes.
   reference.Truncate();
-  while ((*ptr == '<' || *ptr == ' ' || *ptr == '\r' || *ptr == '\n' || *ptr == '\t') && *ptr)
-    ptr++;
 
-  for (int i = 0; *ptr && *ptr != '>'; i++)
-    reference += *ptr++;
+  // walk until we find a '<', but keep track of the first point we found that
+  //  was not whitespace (as defined by previous versions of this code.)
+  for (PRBool foundLessThan = PR_FALSE; !foundLessThan; ptr++)
+  {
+    switch (*ptr)
+    {
+      case '\0':
+        // if we are at the end of the string, we found some non-whitespace, and
+        //  the caller requested that we accept non-delimited whitespace,
+        //  give them that as their reference.  (otherwise, leave it empty)
+        if (acceptNonDelimitedReferences && whitespaceEndedAt)
+          reference = whitespaceEndedAt;
+        return ptr;
+      case ' ':
+      case '\r':
+      case '\n':
+      case '\t':
+        // do nothing, make default case mean you didn't get whitespace
+        break;
+      case '<':
+        firstMessageIdChar = ++ptr; // skip over the '<'
+        foundLessThan = PR_TRUE; // (flag to stop)
+        // intentional fallthrough so whitespaceEndedAt will definitely have
+        //  a non-NULL value, just in case the message-id is not valid (no '>')
+        //  and the old-school support is desired.
+      default:
+        if (!whitespaceEndedAt)
+            whitespaceEndedAt = ptr;
+        break;
+    }
+  }
 
-  if (*ptr == '>')
-    ptr++;
-  return ptr;
-}
-// Get previous <> delimited reference - used to go backwards through the
-// reference string. Caller will need to make sure that prevRef is not before
-// the start of the reference string when we return.
-const char *nsMsgHdr::GetPrevReference(const char *prevRef, nsCString &reference)
-{
-  const char *ptr = prevRef;
+  // keep going until we hit a '>' or hit the end of the string 
+  for(; *ptr ; ptr++)
+  {
+    if (*ptr == '>')
+    {
+      // it's valid, update reference, making sure to stop before the '>'
+      reference.Assign(firstMessageIdChar, ptr - firstMessageIdChar);
+      // and return a start point just after the '>'
+      return ++ptr;
+    }
+  }
 
-  while ((*ptr == '>' || *ptr == ' ') && *ptr)
-    ptr--;
-
-  // scan back to '<'
-  for (int i = 0; *ptr && *ptr != '<' ; i++)
-    ptr--;
-
-  GetNextReference(ptr, reference);
-  if (*ptr == '<')
-    ptr--;
+  // we did not have a fully-formed, valid message-id, so consider falling back
+  if (acceptNonDelimitedReferences && whitespaceEndedAt)
+    reference = whitespaceEndedAt;
   return ptr;
 }
 

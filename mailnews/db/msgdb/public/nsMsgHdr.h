@@ -77,8 +77,8 @@ protected:
 
     // reference and threading stuff.
     nsresult	ParseReferences(const char *references);
-    const char*	GetNextReference(const char *startNextRef, nsCString &reference);
-    const char* GetPrevReference(const char *prevRef, nsCString &reference);
+    const char* GetNextReference(const char *startNextRef, nsCString &reference,
+                                 PRBool acceptNonDelimitedReferences);
 
     nsMsgKey	m_threadId; 
     nsMsgKey	m_messageKey; 	//news: article number, mail mbox offset, imap uid...
