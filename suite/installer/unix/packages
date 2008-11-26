@@ -271,6 +271,7 @@ bin/components/nsProgressDialog.js
 bin/components/nsProxyAutoConfig.js
 bin/components/nsSidebar.js
 bin/components/nsSuiteGlue.js
+bin/components/nsTypeAheadFind.js
 bin/components/nsTryToClose.js
 bin/components/nsUpdateService.js
 bin/components/nsURLFormatter.js

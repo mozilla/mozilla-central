@@ -270,6 +270,7 @@ bin\components\nsProxyAutoConfig.js
 bin\components\nsSetDefault.js
 bin\components\nsSidebar.js
 bin\components\nsSuiteGlue.js
+bin\components\nsTypeAheadFind.js
 bin\components\nsUpdateService.js
 bin\components\nsURLFormatter.js
 bin\components\pluginGlue.js
