@@ -180,6 +180,9 @@ const MSG_FLAG_EXPUNGED = 0x08;
  *     This number may increase during the life of the job, but should not
  *     decrease.  This is used by the status notification code in conjunction
  *     with the goal.
+ * @ivar recoverable Integer indicating if this job is recoverable, and how
+ *     many failures we should allow for before we give up.  By default, this is
+ *     set to 10, but your job should choose a more appopriate number itself.
  *
  * @constructor
  */
@@ -190,6 +193,7 @@ function IndexingJob(aJobType, aDeltaType, aID) {
   this.items = [];
   this.offset = 0;
   this.goal = null;
+  this.recoverable = 10;
 }
 
 /**
@@ -1055,8 +1059,10 @@ var GlodaIndexer = {
      * Someone propagated an exception and we need to clean-up all the active
      *  logic as best we can.  Which is not really all that well.
      */
-    cleanup: function gloda_index_callbackhandle_cleanup() {
-      while (this.activeIterator !== null) {
+    cleanup: function gloda_index_callbackhandle_cleanup(aOptionalStopAtDepth) {
+      if (aOptionalStopAtDepth === undefined)
+        aOptionalStopAtDepth = 0;
+      while (this.activeStack.length > aOptionalStopAtDepth) {
         this.pop();
       }
     },
@@ -1138,14 +1144,29 @@ var GlodaIndexer = {
           }
         }
         catch (ex) {
-          this._log.warn("Bailing on job (at " + ex.fileName + ":" +
-              ex.lineNumber + ") because: " + ex);
-          // make sure we no longer have a current folder
-          this._indexerLeaveFolder(true);
-          this._curIndexingJob = null;
-          // clear out our current generators and our related data
-          this._callbackHandle.cleanup();
-          this._workBatchData = undefined;
+          // Try and recover if the job is recoverable and the iterator that
+          //  experienced the problem wasn't the job worker.  (If it was the
+          //  job worker, we can't rely on its state to be intact.) 
+          if (this._curIndexingJob.recoverable > 0 &&
+              this._callbackHandle.activeStack.length > 1) {
+            this._curIndexingJob.recoverable--;
+            this._log.warn("Problem during job, trying to recover.  Problem " +
+              "was at " + ex.fileName + ":" + ex.lineNumber + ": " + ex);
+            // cleanup but leave the job's iterator intact.
+            this._callbackHandle.cleanup(1);
+            // the data must now be invalid
+            this._workBatchData = undefined;
+          }
+          else {
+            this._log.warn("Bailing on job (at " + ex.fileName + ":" +
+                ex.lineNumber + ") because: " + ex);
+            // make sure we no longer have a current folder
+            this._indexerLeaveFolder(true);
+            this._curIndexingJob = null;
+            // clear out our current generators and our related data
+            this._callbackHandle.cleanup();
+            this._workBatchData = undefined;
+          }
         }
       }
       
