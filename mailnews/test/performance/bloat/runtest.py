@@ -40,15 +40,55 @@
 Runs the Bloat test harness
 """
 
+import optparse
 import sys
 import os
 import shutil
 
-if len(sys.argv) < 2:
-  print "Usage: $0 objdir"
+class BloatRunTestOptions(optparse.OptionParser):
+    """Parses Bloat runtest.py commandline options."""
+    def __init__(self, **kwargs):
+        optparse.OptionParser.__init__(self, **kwargs)
+        defaults = {}
+
+        self.add_option("--objdir",
+                        action = "store", type = "string", dest = "objdir",
+                        help = "object directory of build to run")
+        defaults["objdir"] = "objdir-tb"
+
+        self.add_option("--bin",
+                        action = "store", type = "string", dest = "bin",
+                        help = "application binary name")
+        defaults["bin"] = "thunderbird"
+
+        self.add_option("--brand",
+                        action = "store", type = "string", dest = "brand",
+                        help = "The current branding, including Debug if necessary")
+        defaults["brand"] = "Shredder"
+
+        self.add_option("--release",
+                        action = "store_false", dest = "debug",
+                        help = "Specify if the build is a release build")
+
+        defaults["debug"] = True
+
+        self.set_defaults(**defaults);
+
+        usage = """\
+Usage instructions for runtest.py.
+All arguments must be specified.
+"""
+        self.set_usage(usage)
+
+
+parser = BloatRunTestOptions()
+options, args = parser.parse_args()
+
+if options.objdir == "" or options.bin == "" or options.brand == "":
+  parser.print_help()
   sys.exit(1)
 
-OBJDIR = os.path.abspath(os.path.realpath(sys.argv[1]))
+OBJDIR = os.path.abspath(os.path.realpath(options.objdir))
 AUTOMATION_DIR = os.path.join(OBJDIR, 'mozilla', 'build')
 sys.path.append(AUTOMATION_DIR)
 import automation
@@ -57,14 +97,19 @@ CWD = os.getcwd()
 SCRIPTDIR = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
 
 if automation.IS_MAC:
-  BINDIR = os.path.join(OBJDIR, 'mozilla', 'dist', 'ShredderDebug.app', 'Contents', 'MacOS')
+  if options.debug:
+    APPBUNDLE = options.brand + 'Debug.app'
+  else:
+    APPBUNDLE = options.brand + '.app'
+
+  BINDIR = os.path.join(OBJDIR, 'mozilla', 'dist', APPBUNDLE, 'Contents', 'MacOS')
 else:
   BINDIR = os.path.join(OBJDIR, 'mozilla', 'dist', 'bin')
 
 if automation.IS_MAC:
-  EXECUTABLE = 'thunderbird-bin'
+  EXECUTABLE = options.bin + '-bin'
 else:
-  EXECUTABLE = 'thunderbird'
+  EXECUTABLE = options.bin
 BIN = os.path.join(BINDIR, EXECUTABLE)
 PROFILE = os.path.join(OBJDIR, 'mozilla', '_leaktest', 'leakprofile')
 
