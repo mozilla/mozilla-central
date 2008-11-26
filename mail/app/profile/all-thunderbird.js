@@ -168,12 +168,6 @@ pref("mail.biff.alert.show_preview", true);
 pref("mail.biff.alert.show_subject", true);
 pref("mail.biff.alert.show_sender",  true);
 
-// Folder Pane View
-// 0 == All Folders
-// 1 == Unread Folders
-// 2 == Favorite Folders
-// 3 == Most Recently Used Folders
-pref("mail.ui.folderpane.view", 0);
 pref("mail.folder.views.version", 0);
 
 // target folder URI used for the last move or copy
