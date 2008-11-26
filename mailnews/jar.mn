@@ -161,7 +161,6 @@ messenger.jar:
     content/messenger/mailMessengerOverlay.xul                                 (base/resources/content/mailMessengerOverlay.xul)
     content/messenger/mailMessengerComposeOverlay.xul                          (base/resources/content/mailMessengerComposeOverlay.xul)
     content/messenger/mailOverlay.xul                                          (base/resources/content/mailOverlay.xul)
-*   content/messenger/mailWidgets.xml                                          (base/resources/content/mailWidgets.xml)
 *   content/messenger/junkMailInfo.xul                                         (base/resources/content/junkMailInfo.xul)
     content/messenger/phishingDetector.js                                      (base/resources/content/phishingDetector.js)
     content/messenger/junkCommands.js                                          (base/resources/content/junkCommands.js)

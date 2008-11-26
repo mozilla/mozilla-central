@@ -1,3 +1,4 @@
+#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -11,15 +12,15 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is the SeaMonkey code.
+# The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
-# The SeaMonkey project at mozilla.org.
-# Portions created by the Initial Developer are Copyright (C) 2007
+# the mozilla.org SeaMonkey project.
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Robert Kaiser <kairo@kairo.at>
+#   Robert Kaiser <kairo@kairo.at>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,33 +36,9 @@
 #
 # ***** END LICENSE BLOCK *****
 
-if [ "$COMM_BUILD" ]; then
-add_makefiles "
-  suite/Makefile
-  suite/app/Makefile
-  suite/branding/Makefile
-  suite/browser/Makefile
-  suite/browser/public/Makefile
-  suite/browser/src/Makefile
-  suite/build/Makefile
-  suite/debugQA/Makefile
-  suite/debugQA/locales/Makefile
-  suite/common/Makefile
-  suite/common/public/Makefile
-  suite/common/src/Makefile
-  suite/common/tests/Makefile
-  suite/installer/Makefile
-  suite/installer/windows/Makefile
-  suite/locales/Makefile
-  suite/mailnews/Makefile
-  suite/modules/Makefile
-  suite/modules/test/Makefile
-  suite/profile/Makefile
-  suite/profile/migration/public/Makefile
-  suite/profile/migration/src/Makefile
-  suite/shell/public/Makefile
-  suite/shell/src/Makefile
-  suite/themes/modern/Makefile
-  suite/themes/classic/Makefile
-"
-fi
+DEPTH=../..
+topsrcdir=@top_srcdir@
+srcdir=@srcdir@
+VPATH=@srcdir@
+
+include $(topsrcdir)/config/rules.mk

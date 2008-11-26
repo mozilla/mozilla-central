@@ -66,6 +66,10 @@ PARALLEL_DIRS += installer/windows
 endif
 endif
 
+ifdef MOZ_MAIL_NEWS
+PARALLEL_DIRS += mailnews
+endif
+
 # app is always last as it packages up the built files on mac
 DIRS = build app
 
