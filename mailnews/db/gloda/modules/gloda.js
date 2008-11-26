@@ -1508,8 +1508,6 @@ var Gloda = {
           //  equals support.
           if ((value !== oldValue) &&
               (!value.equals || !value.equals(oldValue))) {
-            this._log.debug("%% want to add1 " + value + " which map to " + attribDB.convertValuesToDBAttributes([value]));
-            this._log.debug("%% want to rem1 " + oldValue + " which map to " + attribDB.convertValuesToDBAttributes([oldValue]));
             addDBAttribs.push(attribDB.convertValuesToDBAttributes([value])[0]);
             removeDBAttribs.push(
               attribDB.convertValuesToDBAttributes([oldValue])[0]);
@@ -1524,8 +1522,6 @@ var Gloda = {
           let [valuesAdded, valuesRemoved] = 
             objectNounDef.computeDelta(value, oldValue);
           // convert the values to database-style attribute rows
-          this._log.debug("%% cdelta want to add " + valuesAdded + " which map to " + attribDB.convertValuesToDBAttributes(valuesAdded));
-          this._log.debug("%% cdelta want to rem " + valuesRemoved + " which map to " + attribDB.convertValuesToDBAttributes(valuesRemoved));
           addDBAttribs.push.apply(addDBAttribs,
             attribDB.convertValuesToDBAttributes(valuesAdded));
           removeDBAttribs.push.apply(removeDBAttribs,
@@ -1537,7 +1533,6 @@ var Gloda = {
           //  present in the current set of values.
           let oldValueMap = {};
           for each (let [, anOldValue] in Iterator(oldValue)) {
-this._log.debug("  old traverse: " + anOldValue);
             // remember, the key is just the toString'ed value, so we need to
             //  store and use the actual value as the value!
             oldValueMap[anOldValue] = anOldValue;
@@ -1545,7 +1540,6 @@ this._log.debug("  old traverse: " + anOldValue);
           // traverse the current values...
           let valuesAdded = [];
           for each (let [, curValue] in Iterator(value)) {
-this._log.debug("  new traverse: " + curValue);
             if (curValue in oldValueMap)
               delete oldValueMap[curValue];
             else
@@ -1554,8 +1548,6 @@ this._log.debug("  new traverse: " + curValue);
           // anything still on oldValueMap was removed.
           let valuesRemoved = [val for each (val in oldValueMap)];
           // convert the values to database-style attribute rows
-          this._log.debug("%% want to add " + valuesAdded + " which map to " + attribDB.convertValuesToDBAttributes(valuesAdded));
-          this._log.debug("%% want to rem " + valuesRemoved + " which map to " + attribDB.convertValuesToDBAttributes(valuesRemoved));
           addDBAttribs.push.apply(addDBAttribs,
             attribDB.convertValuesToDBAttributes(valuesAdded));
           removeDBAttribs.push.apply(removeDBAttribs,
@@ -1574,7 +1566,6 @@ this._log.debug("  new traverse: " + curValue);
         // add the db reps on the new values
         if (attrib.singular)
           value = [value];
-        this._log.debug("%% no old, want to add " + value + " which map to " + attribDB.convertValuesToDBAttributes(value));
         addDBAttribs.push.apply(addDBAttribs,
                                 attribDB.convertValuesToDBAttributes(value));
       }
@@ -1595,11 +1586,9 @@ this._log.debug("  new traverse: " + curValue);
       let attrib = attribsByBoundName[key];
       // if there's no attribute, that's not good, but not horrible.
       if (attrib === undefined) {
-        this._log.warn("old proc ignoring attrib: " + key);
         continue;
       }
       let attribDB = attrib.dbDef;
-      this._log.debug("%% want to remove " + value + " which map to " + attribDB.convertValuesToDBAttributes(value));
       removeDBAttribs.push.apply(removeDBAttribs,
                                  attribDB.convertValuesToDBAttributes(value));
       // delete these from the old item, as the old item is canonical, and
