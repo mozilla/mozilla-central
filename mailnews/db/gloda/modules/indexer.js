@@ -2132,10 +2132,12 @@ var GlodaIndexer = {
     let candidateCurMsgs = ancestorLists.pop();
     
     let conversationID = null;
+    let conversation = null;
     // -- figure out the conversation ID
     // if we have a clone/already exist, just use his conversation ID
     if (candidateCurMsgs.length > 0) {
       conversationID = candidateCurMsgs[0].conversationID;
+      conversation = candidateCurMsgs[0].conversation;
     }
     // otherwise check out our ancestors
     else {
@@ -2149,8 +2151,10 @@ var GlodaIndexer = {
           //  able to guarantee the invariant that all messages with the same
           //  message id belong to the same conversation. 
           let ancestor = ancestorList[0];
-          if (conversationID === null)
+          if (conversationID === null) {
             conversationID = ancestor.conversationID;
+            conversation = ancestor.conversation;
+          }
           else if (conversationID != ancestor.conversationID)
             this._log.error("Inconsistency in conversations invariant on " +
                             ancestor.headerMessageID + ".  It has conv id " +
@@ -2160,7 +2164,6 @@ var GlodaIndexer = {
       }
     }
     
-    let conversation = null;
     // nobody had one?  create a new conversation
     if (conversationID === null) {
       // (the create method could issue the id, making the call return

@@ -59,6 +59,132 @@ let throwingAppender = new Log4Moz.ThrowingAppender(do_throw);
 throwingAppender.level = Log4Moz.Level.Warn;
 Log4Moz.Service.rootLogger.addAppender(throwingAppender);
 
+/**
+ * davida's patented dump function for what ails you. 
+ */
+function ddumpObject(obj, name, maxDepth, curDepth)
+{
+  if (curDepth == undefined)
+    curDepth = 0;
+  if (maxDepth != undefined && curDepth > maxDepth)
+    return;
+
+  var i = 0;
+  for (prop in obj)
+  {
+    i++;
+    try {
+      if (typeof(obj[prop]) == "object")
+      {
+        if (obj[prop] && obj[prop].length != undefined)
+          ddump(name + "." + prop + "=[probably array, length "
+                + obj[prop].length + "]");
+        else
+          ddump(name + "." + prop + "=[" + typeof(obj[prop]) + "] (" +
+                obj[prop] + ")");
+        ddumpObject(obj[prop], name + "." + prop, maxDepth, curDepth+1);
+      }
+      else if (typeof(obj[prop]) == "function")
+        ddump(name + "." + prop + "=[function]");
+      else
+        ddump(name + "." + prop + "=" + obj[prop]);
+    } catch (e) {
+      ddump(name + "." + prop + "-> Exception(" + e + ")");
+    }
+  }
+  if (!i)
+    ddump(name + " is empty");
+}
+/** its kid brother */
+function ddump(text)
+{
+    dump(text + "\n");
+}
+
+function dumpExc(e, message) {
+  var objDump = getObjectTree(e,1);
+  if (typeof(e) == 'object' && 'stack' in e)
+      objDump += e.stack;
+  if (typeof(message)=='undefined' || !message)
+      message='';
+  dump(message+'\n-- EXCEPTION START --\n'+objDump+'-- EXCEPTION END --\n');
+}
+
+function getObjectTree(o, recurse, compress, level)
+{
+    var s = "";
+    var pfx = "";
+
+    if (typeof recurse == "undefined")
+        recurse = 0;
+    if (typeof level == "undefined")
+        level = 0;
+    if (typeof compress == "undefined")
+        compress = true;
+
+    for (var i = 0; i < level; i++)
+        pfx += (compress) ? "| " : "|  ";
+
+    var tee = (compress) ? "+ " : "+- ";
+
+    if (typeof(o) != 'object') {
+        s += pfx + tee + i + " (" + typeof(o) + ") " + o + "\n";
+    } else
+    for (i in o)
+    {
+        var t;
+        try
+        {
+            t = typeof o[i];
+
+            switch (t)
+            {
+                case "function":
+                    var sfunc = String(o[i]).split("\n");
+                    if (sfunc[2] == "    [native code]")
+                        sfunc = "[native code]";
+                    else
+                        sfunc = sfunc.length + " lines";
+                    s += pfx + tee + i + " (function) " + sfunc + "\n";
+                    break;
+
+                case "object":
+                    s += pfx + tee + i + " (object) " + o[i] + "\n";
+                    if (!compress)
+                        s += pfx + "|\n";
+                    if ((i != "parent") && (recurse))
+                        s += getObjectTree(o[i], recurse - 1,
+                                             compress, level + 1);
+                    break;
+
+                case "string":
+                    if (o[i].length > 200)
+                        s += pfx + tee + i + " (" + t + ") " +
+                            o[i].length + " chars\n";
+                    else
+                        s += pfx + tee + i + " (" + t + ") '" + o[i] + "'\n";
+                    break;
+
+                default:
+                    s += pfx + tee + i + " (" + t + ") " + o[i] + "\n";
+            }
+        }
+        catch (ex)
+        {
+            s += pfx + tee + i + " (exception) " + ex + "\n";
+        }
+
+        if (!compress)
+            s += pfx + "|\n";
+
+    }
+
+    s += pfx + "*\n";
+
+    return s;
+}
+
+
 /** Inject messages using a POP3 fake-server. */
 const INJECT_FAKE_SERVER = 1;
 /** Inject messages using freshly created mboxes. */
@@ -585,6 +711,152 @@ function twiddleAndTest(aSynthMsg, aActionsAndTests) {
   indexMessages([aSynthMsg], twiddle_next_attr);
 }
 
+_defaultExpectationExtractors = {};
+_defaultExpectationExtractors[Gloda.NOUN_MESSAGE] = [
+  function expectExtract_message_gloda(aGlodaMessage) {
+    return aGlodaMessage.headerMessageID;
+  },
+  function expectExtract_message_synth(aSynthMessage) {
+    return aSynthMessage.messageId;
+  }
+];
+_defaultExpectationExtractors[Gloda.NOUN_CONTACT] = [
+  function expectExtract_contact_gloda(aGlodaContact) {
+    return aGlodaContact.name;
+  },
+  function expectExtract_contact_name(aName) {
+    return aName;
+  }
+];
+_defaultExpectationExtractors[Gloda.NOUN_IDENTITY] = [
+  function expectExtract_identity_gloda(aGlodaIdentity) {
+    return aGlodaIdentity.value;
+  },
+  function expectExtract_identity_address(aAddress) {
+    return aAddress;
+  }
+];
+
+function expectExtract_default_toString(aThing) {
+  return aThing.toString();
+}
+
+function QueryExpectationListener(aExpectedSet, aGlodaExtractor) {
+  this.expectedSet = aExpectedSet;
+  this.glodaExtractor = aGlodaExtractor;
+  this.completed = false;
+}
+
+QueryExpectationListener.prototype = {
+  onItemsAdded: function query_expectation_onItemsAdded(aItems, aCollection) {
+    for each (let [, item] in Iterator(aItems)) {
+      let glodaStringRep;
+      try {
+        glodaStringRep = this.glodaExtractor(item);
+      }
+      catch (ex) {
+        do_throw("Gloda extractor threw during query expectation for item: " +
+                 item + " exception: " + ex);
+      }
+      
+      // make sure we were expecting this guy
+      if (glodaStringRep in this.expectedSet)
+        delete this.expectedSet[glodaStringRep];
+      else {
+        ddumpObject(item, "item", 0);
+        ddumpObject(this.expectedSet, "expectedSet", 1);
+        do_throw("Query returned unexpected result! gloda rep:" +
+                 glodaStringRep);
+      }
+      
+      // make sure the query's test method agrees with the database about this
+      if (!aCollection.query.test(item))
+        do_throw("Query test returned false when it should have been true on " +
+                 "extracted: " + glodaStringRep + " item: " + item);
+    }
+  },
+  onItemsModified: function query_expectation_onItemsModified(aItems,
+      aCollection) {
+  },
+  onItemsRemoved: function query_expectation_onItemsRemoved(aItems,
+      aCollection) {
+  },
+  onQueryCompleted: function query_expectation_onQueryCompleted(aCollection) {
+    // we may continue to match newly added items if we leave our query as it
+    //  is, so let's become explicit to avoid related troubles.
+    aCollection.becomeExplicit();
+    
+    // expectedSet should now be empty
+    for each (let [key, value] in this.expectedSet) {
+      do_throw("Query should have returned " + key + "(" + value + ")");
+    }
+    
+    next_test();
+  },
+}
+
+/**
+ * Execute the given query, verifying that the result set contains exactly the
+ *  contents of the expected set; no more, no less.  Since we expect that the
+ *  query will result in gloda objects, but your expectations will not be posed
+ *  in terms of gloda objects (though they could be), we rely on extractor
+ *  functions to take the gloda result objects and the expected result objects
+ *  into the same string.
+ * If you don't provide extractor functions, we will use our defaults (based on
+ *  the query noun type) if available, or assume that calling toString is
+ *  sufficient.
+ * Calls next_test automatically once the query completes and the results are
+ *  checked.
+ * 
+ * @param aQuery The query to execute.
+ * @param aExpectedSet The list of expected results from the query.
+ * @param aGlodaExtractor The extractor function to take an instance of the
+ *     gloda representation and return a string for comparison/equivalence
+ *     against that returned by the expected extractor (against the input
+ *     instance in aExpectedSet.)  The value returned must be unique for all
+ *     of the expected gloda representations of the expected set.  If omitted,
+ *     the default extractor for the gloda noun type is used.
+ * @param aExpectedExtractor The extractor function to take an instance from the
+ *     values in the aExpectedSet and return a string for comparison/equivalence
+ *     against that returned by the gloda extractor.  The value returned must
+ *     be unique for all of the values in the expected set.  If omitted, the
+ *     default extractor for the presumed input type based on the gloda noun
+ *     type used for the query is used.
+ * @returns The collection created from the query.
+ */
+function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
+    aExpectedExtractor) {
+  // - set extractor functions to defaults if omitted
+  if (aGlodaExtractor == null) {
+    if (_defaultExpectationExtractors[aQuery._nounDef.id] !== undefined)
+      aGlodaExtractor = _defaultExpectationExtractors[aQuery._nounDef.id][0];
+    else
+      aGlodaExtractor = expectExtract_default_toString;
+  }
+  if (aExpectedExtractor == null) {
+    if (_defaultExpectationExtractors[aQuery._nounDef.id] !== undefined)
+      aExpectedExtractor = _defaultExpectationExtractors[aQuery._nounDef.id][1];
+    else
+      aExpectedExtractor = expectExtract_default_toString;
+  }
+  
+  // - build the expected set
+  let expectedSet = {};
+  for each (let [, item] in Iterator(aExpectedSet)) {
+    try {
+      expectedSet[aExpectedExtractor(item)] = item;
+    }
+    catch (ex) {
+      do_throw("Expected extractor threw during query expectation for item: " +
+               item + " exception: " + ex);
+    }
+  }
+  
+  // - create the listener...
+  return aQuery.getCollection(new QueryExpectationListener(expectedSet,
+                                                           aGlodaExtractor));
+}
+
 var glodaHelperTests = [];
 var glodaHelperIterator = null;
 
@@ -609,8 +881,23 @@ function _gh_test_iterator() {
   yield null;
 }
 
+var _next_test_currently_in_test = false;
 function next_test() {
-  glodaHelperIterator.next();
+  // to avoid crazy messed up stacks, use a time-out to get us to our next thing
+  if (_next_test_currently_in_test) {
+    do_timeout(0, "next_test()");
+    return;
+  }
+  
+  _next_test_currently_in_test = true;
+  try {
+    glodaHelperIterator.next();
+  }
+  catch (ex) {
+    dumpExc(ex);
+    do_throw("Caught an exception during execution of next_test: " + ex);
+  }
+  _next_test_currently_in_test = false;
 }
 
 function glodaHelperRunTests(aTests) {

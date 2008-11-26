@@ -44,6 +44,10 @@ const Cu = Components.utils;
 
 Cu.import("resource://app/modules/gloda/log4moz.js");
 
+// GlodaDatastore has some constants we need, and oddly enough, there was no
+//  load dependency preventing us from doing this.
+Cu.import("resource://app/modules/gloda/datastore.js");
+
 /**
  * @class Query class core; each noun gets its own sub-class where attributes
  *  have helper methods bound.
@@ -129,15 +133,15 @@ GlodaQueryClass.prototype = {
         let constraint = curQuery._constraints[iConstraint];
         let [constraintType, attrDef] = constraint;
         let constraintValues = constraint.slice(2);
-        
-        if (constraintType === this.kConstraintIdIn) {
+
+        if (constraintType === GlodaDatastore.kConstraintIdIn) {
           if (constraintValues.indexOf(aObj.id) == -1) {
             querySatisfied = false;
             break;
           }
         }
-        else if ((constraintType === this.kConstraintIn) ||
-                 (constraintType === this.kConstraintEquals)) {
+        else if ((constraintType === GlodaDatastore.kConstraintIn) ||
+                 (constraintType === GlodaDatastore.kConstraintEquals)) {
           let objectNounDef = attrDef.objectNounDef;
           
           // if they provide an equals comparator, use that.
@@ -184,7 +188,7 @@ GlodaQueryClass.prototype = {
               let [aParam, aValue] = objectNounDef.toParamAndValue(testValue);
               for each (let [,value] in Iterator(constraintValues)) {
                 let [bParam, bValue] = objectNounDef.toParamAndValue(value);
-                if (aParam == bParam && aVAlue == bValue) {
+                if (aParam == bParam && aValue == bValue) {
                   foundMatch = true;
                   break;
                 }
@@ -198,7 +202,9 @@ GlodaQueryClass.prototype = {
             }
           }
         }
-        else if (constraintType === this.kConstraintRanges) {
+        else if (constraintType === GlodaDatastore.kConstraintRanges) {
+          let objectNounDef = attrDef.objectNounDef;
+          
           let testValues;
           if (attrDef.singular)
             testValues = [aObj[attrDef.boundName]];
@@ -209,8 +215,8 @@ GlodaQueryClass.prototype = {
           for each (let [,testValue] in Iterator(testValues)) {
             let [tParam, tValue] = objectNounDef.toParamAndValue(testValue);
             for each (let [,rangeTuple] in Iterator(constraintValues)) {
-              let [lowRValue, upperRValue] = rangeTuple;
-              if (lowRValue == null) {
+              let [lowerRValue, upperRValue] = rangeTuple;
+              if (lowerRValue == null) {
                 let [upperParam, upperValue] =
                   objectNounDef.toParamAndValue(upperRValue);
                 if (tParam == upperParam && tValue <= upperValue) {
@@ -246,7 +252,7 @@ GlodaQueryClass.prototype = {
             break;
           }
         }
-        else if (constraintType === this.kConstraintStringLike) {
+        else if (constraintType === GlodaDatastore.kConstraintStringLike) {
           let curIndex = 0;
           let value = aObj[attrDef.boundName];
           // the attribute must be singular, we don't support arrays of strings.
@@ -277,7 +283,7 @@ GlodaQueryClass.prototype = {
           if (querySatisfied && curIndex !== null && curIndex != value.length)
             querySatisfied = false;
         }
-        else if (constraintType === this.kConstraintFulltext) {
+        else if (constraintType === GlodaDatastore.kConstraintFulltext) {
           // this is beyond our powers.  don't match.
           querySatisfied = false;
         }
@@ -289,7 +295,6 @@ GlodaQueryClass.prototype = {
       if (querySatisfied)
         return true;
     }
-    
     return false;
   },
 };

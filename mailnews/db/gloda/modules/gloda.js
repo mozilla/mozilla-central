@@ -977,6 +977,8 @@ var Gloda = {
       attrTableName: "messageAttributes", attrIDColumnName: "messageID",
       datastore: GlodaDatastore, objFromRow: GlodaDatastore._messageFromRow,
       dbAttribAdjuster: GlodaDatastore.adjustMessageAttributes,
+      dbQueryValidityConstraintSuffix:
+        " AND deleted = 0 AND folderID IS NOT NULL AND messageKey IS NOT NULL",
       objInsert: GlodaDatastore.insertMessage,
       objUpdate: GlodaDatastore.updateMessage,
       toParamAndValue: function(aMessage) {
@@ -1157,7 +1159,7 @@ var Gloda = {
           for (let iArg = 0; iArg < arguments.length; iArg++ ) {
             constraint.push(arguments[iArg]);
           }
-          this._constraints.push(constraints);
+          this._constraints.push(constraint);
           return this;
         }
 

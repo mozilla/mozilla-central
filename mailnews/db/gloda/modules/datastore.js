@@ -2677,6 +2677,14 @@ var GlodaDatastore = {
     let whereClauses = [];
     let unionQueries = [aQuery].concat(aQuery._unions);
     let boundArgs = [];
+    
+    // Use the dbQueryValidityConstraintSuffix to provide constraints that
+    //  filter items down to those that are valid for the query mechanism to
+    //  return.  For example, in the case of messages, deleted or ghost
+    //  messages should not be returned by this query layer.  We require
+    //  hand-rolled SQL to do that for now.
+    let validityConstraintSuffix  =
+      nounDef.dbQueryValidityConstraintSuffix || "";
 
     for (let iUnion = 0; iUnion < unionQueries.length; iUnion++) {
       let curQuery = unionQueries[iUnion];
@@ -2803,7 +2811,8 @@ var GlodaDatastore = {
       }
 
       if (selects.length)
-        whereClauses.push("id IN (" + selects.join(" INTERSECT ") + ")");
+        whereClauses.push("id IN (" + selects.join(" INTERSECT ") + ")" +
+                          validityConstraintSuffix);
     }
 
     let sqlString = "SELECT * FROM " + nounDef.tableName;
