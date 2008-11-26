@@ -501,7 +501,15 @@ var Gloda = {
     }
 
     this.myContact = myContact;
-    this.myIdentities = myContact._identities = myIdentities;
+    this.myIdentities = myIdentities;
+    myContact._identities = [identity for each (identity in myIdentities)];
+    
+    // we need contacts to make these objects reachable via the collection
+    //  manager.
+    this._myContactCollection = this.explicitCollection(this.NOUN_CONTACT,
+                                                        [this.myContact]);
+    this._myIdentitiesCollection =
+      this.explicitCollection(this.NOUN_IDENTITY, this.myContact._identities);
   },
 
   /**
