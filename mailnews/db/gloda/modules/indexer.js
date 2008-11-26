@@ -267,11 +267,6 @@ function IndexingJob(aJobType, aDeltaType, aID) {
  *  efficient for anyone.  Also, I think we probably screw this up now that we
  *  have object identity support.  Uh, so, this should be improved, but
  *  certainly works.
- *  
- * We are not sufficiently good at detaching our listeners so as to avoid
- *  crashes.  We want to hook the shutdown notification, but we don't.  We do
- *  try to hook database-is-going-away notifications, but it's really not
- *  tested.  We definitely do crash sometimes when you're shutting down.
  * 
  */
 var GlodaIndexer = {
@@ -308,7 +303,6 @@ var GlodaIndexer = {
     // initialize our listeners' this pointers
     this._databaseAnnouncerListener.indexer = this;
     this._msgFolderListener.indexer = this;
-    this._shutdownTask.indexer = this;
     
     this._callbackHandle.init();
     
@@ -340,10 +334,20 @@ var GlodaIndexer = {
   },
   
   /**
+   * When shutdown, indexing immediately ceases and no further progress should
+   *  be made.  This flag goes true once, and never returns to false.  Being
+   *  in this state is a destructive thing from whence we cannot recover.
+   */
+  _indexerIsShutdown: false,
+  
+  /**
+   * Shutdown the indexing process and datastore as quickly as possible in
+   *  a synchronous fashion.
+   * 
    * @returns true on full and immediate shutdown, false if we need to pend on
    *     something asynchronous.
    */
-  _shutdown: function gloda_index_shutdown(aUrlListener) {
+  _shutdown: function gloda_index_shutdown() {
     // no more timer events, please
     try {
       this._timer.cancel();
@@ -354,6 +358,8 @@ var GlodaIndexer = {
     } catch (ex) {}
     this._longTimer = null;
     
+    this._indexerIsShutdown = true;
+    
     if (!this.enabled)
       return true;
     
@@ -361,14 +367,11 @@ var GlodaIndexer = {
 
     this.suppressIndexing = true;
     this._indexerLeaveFolder(); // nop if we aren't "in" a folder
+    this._callbackHandle.cleanup();
+    this._workBatchData = undefined;
     this.enabled = false;
 
-    // if the datastore can't stop immediately, it will call the provided
-    //  callback.
-    return GlodaDatastore.shutdown(function () {
-      if (aUrlListener)
-        aUrlListener.OnStopRunningUrl(null, Cr.NS_OK);
-    });
+    GlodaDatastore.shutdown();
   },
   
   _otherIndexers: [],
@@ -418,10 +421,6 @@ var GlodaIndexer = {
       let observerService = Cc["@mozilla.org/observer-service;1"].
                               getService(Ci.nsIObserverService);
       observerService.addObserver(this, "network:offline-status-changed", false);
-      // sign up for the nsIMsgShutdownService's scheme...
-      observerService.addObserver(this._shutdownTask, "msg-shutdown", false);
-      // ...which isn't fool-proof, so sign up for quit-application too
-      // (msg-shutdown depends on quit-application-request which is optional)
       observerService.addObserver(this, "quit-application", false);
   
       // register for idle notification
@@ -469,7 +468,6 @@ var GlodaIndexer = {
       let observerService = Cc["@mozilla.org/observer-service;1"].
                               getService(Ci.nsIObserverService);
       observerService.removeObserver(this, "network:offline-status-changed");
-      observerService.removeObserver(this._shutdownTask, "msg-shutdown");
       observerService.removeObserver(this, "quit-application");
   
       // remove idle
@@ -955,6 +953,10 @@ var GlodaIndexer = {
    *  know enough to deal with our (current) asynchronous nature.)
    */
   callbackDriver: function gloda_index_callbackDriver() {
+    // just bail if we are shutdown
+    if (this._indexerIsShutdown)
+      return;
+    
     // it is conceivable that someone we call will call something that in some
     //  cases might be asynchronous, and in other cases immediately generate
     //  events without returning.  In the interest of (stack-depth) sanity,
@@ -2069,46 +2071,6 @@ var GlodaIndexer = {
     onHdrPropertyChanged: function (aHdrToChange, aPreChange, aStatus,
                                     aInstigator) {},
   },
-  
-  /* ***** MailNews Shutdown ***** */
-  /**
-   * The shutdown task exists because shutdown may entail waiting for the
-   *  datastore to ensure that all async statements have completed execution.
-   *  Merely observing on 'quit-application' is insufficient because that would
-   *  not allow us to ensure that Thunderbird doesn't quit/teardown XPCOM before
-   *  we finish shutting down.
-   *
-   * We implement nsIMsgShutdownTask, served up by nsIMsgShutdownService.  We
-   *  offer our services by registering ourselves as a "msg-shutdown" observer
-   *  with the observer service.
-   */
-  _shutdownTask: {
-    QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgShutdownTask]),
-  
-    indexer: null,
-    
-    /**
-     * Indicate that we need to run, because if anyone knows about us, we
-     *  clearly are active and need to perform a shutdown.
-     */
-    get needsToRunTask() {
-      return true;
-    },
-    
-    /**
-     * Tell the indexer shutdown logic to happen.  The indexer's shutdown
-     *  returns true on complete shutdown, or false on async pending.  This
-     *  is the opposite of our nsIMsgShutdownTask behaviour, so we invert it.
-     */
-    doShutdownTask: function gloda_indexer_doShutdownTask(aUrlListener,
-                                                          aMsgWingow) {
-      return !this.indexer._shutdown(aUrlListener);
-    },
-    
-    getCurrentTaskName: function gloda_indexer_getCurrentTaskName() {
-      return "Global Database Indexer"; // L10n-me
-    },
-  }, 
   
   _indexMessage: function gloda_indexMessage(aMsgHdr, aCallbackHandle) {
     this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +

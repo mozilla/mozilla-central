@@ -76,6 +76,10 @@ function MessagesByMessageIdCallback(aMsgIDToIndex, aResults,
 
 MessagesByMessageIdCallback.prototype = {
   onItemsAdded: function gloda_ds_mbmi_onItemsAdded(aItems, aCollection) {
+    // just outright bail if we are shutdown
+    if (GlodaDatastore.datastoreIsShutdown)
+      return;
+
     MBM_LOG.debug("getting results...");
     for each (let [, message] in Iterator(aItems)) {
       this.results[this.msgIDToIndex[message.headerMessageID]].push(message);
@@ -84,6 +88,10 @@ MessagesByMessageIdCallback.prototype = {
   onItemsModified: function () {},
   onItemsRemoved: function () {},
   onQueryCompleted: function gloda_ds_mbmi_onQueryCompleted(aCollection) {
+    // just outright bail if we are shutdown
+    if (GlodaDatastore.datastoreIsShutdown)
+      return;
+    
     MBM_LOG.debug("query completed, notifying... " + this.results);
     // we no longer need to unify; it is done for us.
 
@@ -107,6 +115,10 @@ PostCommitHandler.prototype = {
   },
   
   handleCompletion: function gloda_ds_pch_handleCompletion(aReason) {
+    // just outright bail if we are shutdown
+    if (GlodaDatastore.datastoreIsShutdown)
+      return;
+
     if (aReason == Ci.mozIStorageStatementCallback.REASON_FINISHED) {
       for each (let [iCallback, callback] in Iterator(this.callbacks)) {
         try {
@@ -236,6 +248,10 @@ function QueryFromQueryCallback(aStatement, aNounDef, aCollection) {
 QueryFromQueryCallback.prototype = {
   handleResult: function gloda_ds_qfq_handleResult(aResultSet) {
     try {
+      // just outright bail if we are shutdown
+      if (GlodaDatastore.datastoreIsShutdown)
+        return;
+
       let pendingItems = this.collection.pendingItems;
       let pendingIdMap = this.collection._pendingIdMap;
       let row;
@@ -298,6 +314,10 @@ QueryFromQueryCallback.prototype = {
       try {
         this.statement.finalize();
         this.statement = null;
+        
+        // just outright bail if we are shutdown
+        if (GlodaDatastore.datastoreIsShutdown)
+          return;
         
         //QFQ_LOG.debug("handleCompletion: " + this.collection._nounDef.name);
         
@@ -789,54 +809,71 @@ var GlodaDatastore = {
     this._log.debug("Completed datastore initialization.");
   },
 
+  datastoreIsShutdown: false,
+  
   /**
-   * Initiate database shutdown; because this might requiring waiting for
-   *  outstanding synchronous events to drain, we allow the caller to pass in
-   *  a callback to invoke if we are unable to complete shutdown within this
-   *  call.
-   * @return true if we were able to shutdown fully, false if we were not.  The
-   *   callback, if provided, will be notified if we return false.  It will
-   *   not be called if we return true.
+   * Perform datastore shutdown.
    */
-  shutdown: function gloda_ds_shutdown(aCallback, aCallbackThis) {
-    // clear out any transaction
+  shutdown: function gloda_ds_shutdown() {
+    // clear out any pending transaction by committing it.
+    // Although you might worry that this is potentially an arbitrary and
+    //  inconsistent point to issue a commit, it is not.  Because we are going
+    //  to be called from the main/UI thread, that means the indexer cannot be
+    //  active on the thread at the time.  The indexer only yields at times
+    //  when the database state AS ISSUED is coherent.  As noted below, the
+    //  async execution queue will actually be drained to completion.
     while (this._transactionDepth) {
       this._log.info("Closing pending transaction out for shutdown.");
       // just schedule this function to be run again once the transaction has
       //  been closed out.
       this._commitTransaction();
     }
+    
+    this.datastoreIsShutdown = true;
 
     // shutdown our folder cleanup timer, if active and null it out.
     if (this._folderCleanupActive)
       this._folderCleanupTimer.cancel();
     this._folderCleanupTimer = null;
+
+    this._log.info("Closing db connection");
     
-    let datastore = this;
-
-    function finish_cleanup() {
-      datastore._cleanupAsyncStatements();
-      datastore._cleanupSyncStatements();
-      datastore._log.info("Closing db connection");
-      datastore.asyncConnection.close();
-      datastore.asyncConnection = null;
-      datastore.syncConnection = null;
-
-      if (aCallback) {
-        aCallback.call(aCallbackThis);
-      }
+    // we do not expect exceptions, but it's a good idea to avoid having our
+    //  shutdown process explode.
+    try {
+      this._cleanupAsyncStatements();
+      this._cleanupSyncStatements();
+    }
+    catch (ex) {
+      this._log.debug("Unexpected exception during statement cleanup: " + ex);
+    }
+    
+    // it's conceivable we might get a spurious exception here, but we really
+    //  shouldn't get one.  again, we want to ensure shutdown runs to completion
+    //  and doesn't break our caller.
+    try {
+      // This currently causes all pending asynchronous operations to be run to
+      //  completion.  this simplifies things from a correctness perspective,
+      //  and, honestly, is a lot easier than us tracking all of the async
+      //  event tasks so that we can explicitly cancel them.
+      // This is a reasonable thing to do because we don't actually ever have
+      //  a huge number of statements outstanding.  The indexing process needs
+      //  to issue async requests periodically, so the most we have in-flight
+      //  from a write perspective is strictly less than the work required to
+      //  update the database state for a single message.
+      // However, the potential for multiple pending expensive queries does
+      //  exist, and it may be advisable to attempt to track and cancel those.
+      //  For simplicity we don't currently do this, and I expect this should
+      //  not pose a major problem, but those are famous last words.
+      this.asyncConnection.close();
+    }
+    catch (ex) {
+      this._log.debug("Potentially expected exception during connection " + 
+                      "closure: " + ex);
     }
 
-    if (this._pendingAsyncStatements) {
-      this._pendingAsyncCompletedListener = finish_cleanup;
-      return false;
-    }
-    else {
-      this._log.debug("There are no pending async statements, finishing now.");
-      aCallback = null;
-      finish_cleanup();
-      return true;
-    }
+    this.asyncConnection = null;
+    this.syncConnection = null;
   },
 
   /**

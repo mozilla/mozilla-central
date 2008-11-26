@@ -59,10 +59,43 @@ let dumbUrlListener = {
   },
 };
 
-let gCallbacks = {};
+/**
+ * Maintain a list of all active stream listeners so that we can cancel them all
+ *  during shutdown.  If we don't cancel them, we risk calls into javascript
+ *  from C++ after the various XPConnect contexts have already begun their
+ *  teardown process.
+ */
+let activeStreamListeners = [];
+
+let shutdownCleanupObserver = {
+  _initialized: false,
+  ensureInitialized: function mimemsg_shutdownCleanupObserver_init() {
+    if (this._initialized)
+      return;
+    
+    Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
+      .addObserver(this, "quit-application", false);
+
+    this._initialized = true;
+  },
+  
+  observe: function mimemsg_shutdownCleanupObserver_observe(
+      aSubject, aTopic, aData) {
+    if (aTopic == "quit-application") {
+      Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
+        .removeObserver(this, "quit-application");
+      
+      for each (let [, streamListener] in
+                Iterator(activeStreamListeners.concat())) {
+        streamListener._request.cancel(Cr.NS_BINDING_ABORTED);
+      }
+    }
+  }
+}
 
 function CallbackStreamListener(aMsgHdr, aCallbackThis, aCallback) {
   this._msgHdr = aMsgHdr;
+  this._request = null;
   this._stream = null;
   if (aCallback === undefined) {
     this._callbackThis = null;
@@ -79,8 +112,12 @@ CallbackStreamListener.prototype = {
 
   // nsIRequestObserver part
   onStartRequest: function (aRequest, aContext) {
+    this._request = aRequest;
+    activeStreamListeners.push(this);
   },
   onStopRequest: function (aRequest, aContext, aStatusCode) {
+    activeStreamListeners.splice(activeStreamListeners.indexOf(this), 1);
+    
     aContext.QueryInterface(Ci.nsIURI);
     let message = MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
     if (message === undefined)
@@ -93,8 +130,8 @@ CallbackStreamListener.prototype = {
     else
       this._callback.call(null, this._msgHdr, message);
     
-    // null everyone out, we are getting hosed by some secretive horrible cycles
     this._msgHdr = null;
+    this._request = null;
     this._stream = null;
     this._callbackThis = null;
     this._callback = null;
@@ -132,6 +169,8 @@ let gMessenger = Cc["@mozilla.org/messenger;1"].
  *     instance resulting from the processing on success, and null on failure. 
  */
 function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
+  shutdownCleanupObserver.ensureInitialized();
+  
   let msgURI = aMsgHdr.folder.getUriForMsg(aMsgHdr);
   let msgService = gMessenger.messageServiceFromURI(msgURI);
   
