@@ -3831,6 +3831,8 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
       if (!needFullFolderSync && !GetShowDeletedMessages() && UseCondStore())
         PR_snprintf(fetchModifier, sizeof(fetchModifier), " (CHANGEDSINCE %llu)",
                     mFolderLastModSeq);
+      else
+        m_flagState->SetPartialUIDFetch(PR_FALSE);
 
       FetchMessage(idsToFetch, kFlags, fetchModifier);
       // lets see if we should expunge during a full sync of flags.
