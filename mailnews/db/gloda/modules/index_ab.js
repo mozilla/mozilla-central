@@ -77,20 +77,23 @@ var GlodaABIndexer = {
   
   _worker_index_card: function(aJob, aCallbackHandle) {
     let card = aJob.id;
-    // load the identity
-    let query = Gloda.newQuery(Gloda.NOUN_IDENTITY);
-    query.kind("email");
-    query.value(card.primaryEmail);
-    let identityCollection = query.getCollection(aCallbackHandle);
-    yield Gloda.kWorkAsync;
     
-    if (identityCollection.items.length) {
-      let identity = identityCollection.items[0];
-
-      this._log.debug("Found identity, processing card.");
-      yield aCallbackHandle.pushAndGo(
-          Gloda.grokNounItem(identity.contact, card, false, aCallbackHandle));
-      this._log.debug("Done processing card.");
+    if (card.primaryEmail) {
+      // load the identity
+      let query = Gloda.newQuery(Gloda.NOUN_IDENTITY);
+      query.kind("email");
+      query.value(card.primaryEmail);
+      let identityCollection = query.getCollection(aCallbackHandle);
+      yield Gloda.kWorkAsync;
+      
+      if (identityCollection.items.length) {
+        let identity = identityCollection.items[0];
+  
+        this._log.debug("Found identity, processing card.");
+        yield aCallbackHandle.pushAndGo(
+            Gloda.grokNounItem(identity.contact, card, false, aCallbackHandle));
+        this._log.debug("Done processing card.");
+      }
     }
     
     yield GlodaIndexer.kWorkDone;

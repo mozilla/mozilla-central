@@ -290,15 +290,33 @@ var Gloda = {
   },
   
   /**
-   * Given one or more full mail addresses (ex: "Bob Smith" <bob@smith.com>),
-   *  return a list of the identities that corresponds to each mail address,
-   *  creating them as required.
+   * Takes one or more strings containing lists of comma-delimited e-mail
+   *  addresses with optional display names, and returns a list of sub-lists of
+   *  identities, where each sub-list corresponds to each of the strings passed
+   *  as arguments.  These identities are loaded from the database if they
+   *  already exist, or created if they do not yet exist.
+   * If the identities need to be created, they will also result in the
+   *  creation of a gloda contact.  If a display name was provided with the
+   *  e-mail address, it will become the name of the gloda contact.  If a
+   *  display name was not provided, the e-mail address will also serve as the
+   *  contact name.
+   * This method uses the indexer's callback handle mechanism, and does not
+   *  obey traditional return semantics.
+   * 
+   * @param ... One or more strings.  Each string can contain zero or more
+   *   e-mail addresses with display name.  If more than one address is given,
+   *   they should be comma-delimited.  For example
+   *   '"Bob Smith" <bob@smith.com>' is an address with display name.
+   * @returns via the callback handle mechanism, a list containing one sub-list
+   *   for each string argument passed.  Each sub-list containts zero or more
+   *   GlodaIdentity instances corresponding to the addresses provided.
    */
   getOrCreateMailIdentities:
       function gloda_ns_getOrCreateMailIdentities(aCallbackHandle) {
     let addresses = {};
     let resultLists = [];
     
+    // parse the strings 
     for (let iArg = 1; iArg < arguments.length; iArg++) {
       let aMailAddresses = arguments[iArg];
       let parsed = GlodaUtils.parseMailAddresses(aMailAddresses);
@@ -315,10 +333,17 @@ var Gloda = {
           addresses[address] = [parsed.names[iAddress], resultList];
       }
     }
+    
+    let addressList = [address for (address in addresses)];
+    if (addressList.length == 0) {
+      yield aCallbackHandle.doneWithResult(resultLists);
+      // we should be stopped before we reach this point, but safety first.
+      return;
+    }
 
     let query = this.newQuery(this.NOUN_IDENTITY);
     query.kind("email");
-    query.value.apply(query, [address for (address in addresses)]);
+    query.value.apply(query, addressList);
     let collection = query.getCollection(aCallbackHandle);
     yield this.kWorkAsync;
 
