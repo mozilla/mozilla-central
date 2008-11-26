@@ -129,6 +129,33 @@ var GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_NUMBER,
       }); // tested-by: test_attributes_fundamental
+
+    // -- fulltext search helpers
+    // fulltextMatches.  Match over message subject, body, and attachments
+    this._attrFulltext = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "fulltextMatches",
+      singular: true,
+      special: Gloda.kSpecialFulltext,
+      specialColumnName: "messagesText",
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_FULLTEXT,
+      }); // not-tested
+
+    // subjectMatches.  Fulltext match on subject
+    this._attrSubjectText = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "subjectMatches",
+      singular: true,
+      special: Gloda.kSpecialFulltext,
+      specialColumnName: "subject",
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_FULLTEXT,
+      }); // not-tested
     
     // bodyMatches. super-synthetic full-text matching...
     this._attrBody = Gloda.defineAttribute({
@@ -143,6 +170,20 @@ var GlodaFundAttr = {
       objectNoun: Gloda.NOUN_FULLTEXT,
       }); // not-tested
     
+    // attachmentNamesMatch
+    this._attrAttachmentNames = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "attachmentNamesMatch",
+      singular: true,
+      special: Gloda.kSpecialFulltext,
+      specialColumnName: "attachmentNames",
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_FULLTEXT,
+      }); // not-tested
+
+    // --- synthetic stuff for some reason
     // conversation
     this._attrConversation = Gloda.defineAttribute({
       provider: this,
