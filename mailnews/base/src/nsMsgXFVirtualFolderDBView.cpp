@@ -360,8 +360,8 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
     else
     {
       numTotal++;
-    if (!(m_flags[i] & MSG_FLAG_READ))
-      numUnread++;
+      if (!(m_flags[i] & MSG_FLAG_READ))
+        numUnread++;
     }
   dbFolderInfo->SetNumUnreadMessages(numUnread);
   dbFolderInfo->SetNumMessages(numTotal);

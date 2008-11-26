@@ -895,6 +895,9 @@ nsMessengerWinIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom
   // if we got new mail show a icon in the system tray
   if (mBiffStateAtom == aProperty && mFoldersWithNewMail)
   {
+    nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem);
+    PRInt32 indexInNewArray = mFoldersWithNewMail->IndexOf(weakFolder);
+
     if (!mBiffIconInitialized)
       InitializeBiffStatusIcon();
 
@@ -912,10 +915,8 @@ nsMessengerWinIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom
         if (!performingBiff)
           return NS_OK; // kick out right now...
       }
-      nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem);
-
-      if (mFoldersWithNewMail->IndexOf(weakFolder) == -1)
-        mFoldersWithNewMail->AppendElement(weakFolder);
+      if (indexInNewArray == -1)
+        mFoldersWithNewMail->InsertElementAt(weakFolder, 0);
       // now regenerate the tooltip
       FillToolTipInfo();
     }
@@ -930,7 +931,8 @@ nsMessengerWinIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom
       if (mAlertInProgress)
         mSuppressBiffIcon = PR_TRUE;
 
-      mFoldersWithNewMail->Clear();
+      if (indexInNewArray != -1)
+        mFoldersWithNewMail->RemoveElementAt(indexInNewArray);
       if (mBiffIconVisible)
       {
         mBiffIconVisible = PR_FALSE;
