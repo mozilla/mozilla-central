@@ -1691,16 +1691,8 @@ var GlodaIndexer = {
       
       // mark the folder dirty so we know to look in it, but there is no need
       //  to mark the message because it will lack a gloda-id anyways.
-      // (but don't mark it if it's already marked, as it could result in 
-      //  useless commits.)
-      // XXX if we used our own folder rep here, this would be much cheaper...
-      let folderAlreadyDirty = true;
-      try {
-        folderAlreadyDirty = msgFolder.getStringProperty(
-          this.indexer.GLODA_DIRTY_PROPERTY) != "0";
-      } catch (ex) {}
-      if (!folderAlreadyDirty)
-        msgFolder.setStringProperty(this.indexer.GLODA_DIRTY_PROPERTY, "1");
+      let glodaFolder = GlodaDatastore._mapFolder(msgFolder);
+      glodaFolder.dirtyStatus = true;
 
       if (this.indexer._pendingAddJob === null) {
         this.indexer._pendingAddJob = new IndexingJob("message", 1, null);
@@ -1711,8 +1703,7 @@ var GlodaIndexer = {
       if (this.indexer._pendingAddJob.items.length <
           this.indexer._indexMaxEventQueueMessages) {
         this.indexer._pendingAddJob.items.push(
-          [GlodaDatastore._mapFolder(aMsgHdr.folder).id,
-           aMsgHdr.messageKey]);
+          [glodaFolder.id, aMsgHdr.messageKey]);
         this.indexer.indexing = true;
         this.indexer._log.debug("msgAdded notification, event indexing");
       }
@@ -1849,7 +1840,8 @@ var GlodaIndexer = {
        // copy case
         else {
           // mark the folder as dirty; we'll get to it later.
-          aDestFolder.setStringProperty(this.indexer.GLODA_DIRTY_PROPERTY, "1");
+          let destGlodaFolder = GlodaDatastore._mapFolder(aDestFolder);
+          destGlodaFolder.dirtyStatus = true;
           this.indexer.indexingSweepNeeded = true;
         }
       } catch (ex) {
@@ -2011,7 +2003,8 @@ var GlodaIndexer = {
       //  not sure whether it is worth the high-probability exception cost.) 
       aMsgHdr.setUint32Property(this.indexer.GLODA_DIRTY_PROPERTY, 1);
       // mark the folder dirty too, so we know to look inside
-      msgFolder.setStringProperty(this.indexer.GLODA_DIRTY_PROPERTY, "1");
+      let glodaFolder = GlodaDatastore._mapFolder(msgFolder);
+      glodaFolder.dirtyStatus = true;
       
       if (this.indexer._pendingAddJob === null) {
         this.indexer._pendingAddJob = new IndexingJob("message", 1, null);
