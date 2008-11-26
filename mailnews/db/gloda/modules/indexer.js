@@ -1430,6 +1430,7 @@ var GlodaIndexer = {
    *  event-notification hints.
    */
   _worker_messageIndex: function gloda_worker_messageAdd(aJob) {
+    let folderIsLocal = false;
     for (; aJob.offset < aJob.items.length; aJob.offset++) {
       let item = aJob.items[aJob.offset];
       // item is either [folder ID, message key] or
@@ -1443,6 +1444,9 @@ var GlodaIndexer = {
         // stay out of folders we should not be in!
         if (!this.shouldIndexFolder(this._indexingFolder))
           continue;
+        
+        folderIsLocal =
+          this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
       }
 
       let msgHdr;
@@ -1453,7 +1457,11 @@ var GlodaIndexer = {
         // TODO fixme to not assume singular message-id's.
         msgHdr = this._indexingDatabase.getMsgHdrForMessageID(item[1]);
       
-      if (msgHdr && !(msgHdr.flags&MSG_FLAG_EXPUNGED))
+      // it needs a header, the header needs to not be expunged, plus, the
+      //  message needs to be considered offline.
+      if (msgHdr &&
+          !(msgHdr.flags&MSG_FLAG_EXPUNGED) &&
+          (folderIsLocal || (msgHdr.flags & MSG_FLAG_OFFLINE)))
         yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
             this._callbackHandle));
       else
