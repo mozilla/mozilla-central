@@ -39,6 +39,8 @@
 
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 var g_stringBundle = null;
 
 function calIntrinsicTimezone(tzid, component, latitude, longitude) {
@@ -69,8 +71,9 @@ calIntrinsicTimezone.prototype = {
             try {
                 this.mDisplayName = g_stringBundle.GetStringFromName("pref.timezone." + this.tzid.replace(/\//g, "."));
             } catch (exc) {
-                ASSERT(false, exc);
-                this.mDisplayName = null;
+                // don't assert here, but gracefully fall back to TZID:
+                cal.LOG("Timezone property lookup failed! Falling back to " + this.tzid + "\n" + exc);
+                this.mDisplayName = this.tzid;
             }
         }
         return this.mDisplayName;
@@ -168,7 +171,7 @@ calTimezoneService.prototype = {
 
             try {
                 sqlTzFile.append("timezones.sqlite");
-                LOG("using " + sqlTzFile.path);
+                cal.LOG("[calTimezoneService] using " + sqlTzFile.path);
                 var dbService = Components.classes["@mozilla.org/storage/service;1"]
                                           .getService(Components.interfaces.mozIStorageService);
                 this.mDb = dbService.openDatabase(sqlTzFile);
@@ -182,7 +185,7 @@ calTimezoneService.prototype = {
                 } finally {
                     selectVersion.reset();
                 }
-                LOG("timezones version: " + this.mVersion);
+                cal.LOG("[calTimezoneService] timezones version: " + this.mVersion);
 
                 g_stringBundle = calGetStringBundle(bundleURL);
             } catch (exc) {

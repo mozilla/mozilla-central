@@ -80,7 +80,7 @@ interface calITimezone : nsISupports
     readonly attribute AUTF8String longitude;
 
     /**
-     * Localized name of the timezone or void/null if unknown.
+     * Localized name of the timezone; falls back to TZID if unknown.
      */
     readonly attribute AString displayName;
 
