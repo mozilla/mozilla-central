@@ -502,18 +502,13 @@ nsFolderCompactState::CompactNextFolder()
    NS_ENSURE_SUCCESS(rv,rv);
    if (m_folderIndex == cnt)
    {
-     if (m_compactOfflineAlso && !m_compactingOfflineFolders)
+     if (m_compactOfflineAlso)
      {
        m_compactingOfflineFolders = PR_TRUE;
        nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(m_folderArray,
                                                          m_folderIndex-1, &rv);
        if (NS_SUCCEEDED(rv) && folder)
-       {
-         if (!m_offlineFolderArray)
-           m_folderArray->Clone(getter_AddRefs(m_offlineFolderArray));
-
          folder->CompactAllOfflineStores(m_window, m_offlineFolderArray);
-       }
      }
      else
      {
