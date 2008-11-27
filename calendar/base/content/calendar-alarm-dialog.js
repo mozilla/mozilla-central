@@ -41,6 +41,9 @@
  *
  * @return The alarm service component
  */
+
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+
 function getAlarmService() {
     if (!window.mAlarmService) {
         window.mAlarmService = Components.classes["@mozilla.org/calendar/alarm-service;1"]
@@ -213,7 +216,8 @@ function setupTitle() {
     var alarmRichlist = document.getElementById("alarm-richlist");
     var reminders = alarmRichlist.childNodes.length;
 
-    document.title = calGetString("calendar", "alarmWindowTitle", [reminders]);
+    let title = PluralForm.get(reminders, calGetString("calendar", "alarmWindowTitle.label")); 
+    document.title = title.replace("#1", reminders);
 }
 
 /**
