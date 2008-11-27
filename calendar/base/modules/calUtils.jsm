@@ -302,8 +302,48 @@ let cal = {
         function compare(a, b) { return localeCollator.compareString(0, a, b); }
         aStringArray.sort(compare);
         return aStringArray;
-    }
+    },
+
+    /**
+     * Due to wrapped js objects, some objects may have cyclic references.
+     * You can register properties of objects to be cleaned up on xpcom-shutdown.
+     *
+     * @param obj    object
+     * @param prop   property to be deleted on shutdown
+     *               (if null, |object| will be deleted)
+     */
+    registerForShutdownCleanup: shutdownCleanup
 };
+
+// local to this module;
+// will be used to clean up global objects on shutdown
+// some objects have cyclic references due to wrappers
+function shutdownCleanup(obj, prop) {
+    if (!shutdownCleanup.mObserver) {
+        shutdownCleanup.mEntries = [];
+        shutdownCleanup.mObserver = { // nsIObserver:
+            observe: function shutdownCleanup_observe(subject, topic, data) {
+                if (topic == "xpcom-shutdown") {
+                    Components.classes["@mozilla.org/observer-service;1"]
+                              .getService(Components.interfaces.nsIObserverService)
+                              .removeObserver(this, "xpcom-shutdown");
+                    for each (let entry in shutdownCleanup.mEntries) {
+                        if (entry.mProp) {
+                            delete entry.mObj[entry.mProp];
+                        } else {
+                            delete entry.mObj;
+                        }
+                    }
+                    delete shutdownCleanup.mEntries;
+                }
+            }
+        };
+        Components.classes["@mozilla.org/observer-service;1"]
+                  .getService(Components.interfaces.nsIObserverService)
+                  .addObserver(shutdownCleanup.mObserver, "xpcom-shutdown", false /* don't hold weakly */);
+    }
+    shutdownCleanup.mEntries.push({ mObj: obj, mProp: prop });
+}
 
 // local to this module;
 // will be used to generate service accessor functions, getIOService()
@@ -311,6 +351,7 @@ function generateServiceAccessor(id, iface) {
     return function this_() {
         if (this_.mService === undefined) {
             this_.mService = Components.classes[id].getService(iface);
+            shutdownCleanup(this_, "mService");
         }
         return this_.mService;
     };

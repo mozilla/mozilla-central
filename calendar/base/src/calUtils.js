@@ -123,93 +123,62 @@ function createLocaleCollator() {
  
 /* Shortcut to the console service */
 function getConsoleService() {
-    if (getConsoleService.mObject === undefined) {
-        getConsoleService.mObject = Components.classes["@mozilla.org/consoleservice;1"]
-                                              .getService(Components.interfaces.nsIConsoleService);
-    }
-    return getConsoleService.mObject;
+    return Components.classes["@mozilla.org/consoleservice;1"]
+                     .getService(Components.interfaces.nsIConsoleService);
 }
 
 /* Shortcut to the account manager service */
 function getAccountManager() {
-    if (getAccountManager.mObject === undefined) {
-        getAccountManager.mObject = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                                              .getService(Components.interfaces.nsIMsgAccountManager);
-    }
-    return getAccountManager.mObject;
+    return Components.classes["@mozilla.org/messenger/account-manager;1"]
+                     .getService(Components.interfaces.nsIMsgAccountManager);
 }
 
 /* Shortcut to the IO service */
 function getIOService() {
-    if (getIOService.mObject === undefined) {
-        getIOService.mObject = Components.classes["@mozilla.org/network/io-service;1"]
-                                         .getService(Components.interfaces.nsIIOService2);
-    }
-    return getIOService.mObject;
+    return Components.classes["@mozilla.org/network/io-service;1"]
+                     .getService(Components.interfaces.nsIIOService2);
 }
 
 /* Shortcut to the calendar-manager service */
 function getCalendarManager() {
-    if (getCalendarManager.mObject === undefined) {
-        getCalendarManager.mObject = Components.classes["@mozilla.org/calendar/manager;1"]
-                                               .getService(Components.interfaces.calICalendarManager);
-    }
-    return getCalendarManager.mObject;
+    return Components.classes["@mozilla.org/calendar/manager;1"]
+                     .getService(Components.interfaces.calICalendarManager);
 }
 
 /* Shortcut to the ICS service */
 function getIcsService() {
-    if (getIcsService.mObject === undefined) {
-        getIcsService.mObject = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                                          .getService(Components.interfaces.calIICSService);
-    }
-    return getIcsService.mObject;
+    return Components.classes["@mozilla.org/calendar/ics-service;1"]
+                     .getService(Components.interfaces.calIICSService);
 }
 
 /* Shortcut to the timezone service */
 function getTimezoneService() {
-    if (getTimezoneService.mObject === undefined) {
-        getTimezoneService.mObject = Components.classes["@mozilla.org/calendar/timezone-service;1"]
-                                               .getService(Components.interfaces.calITimezoneService);
-    }
-    return getTimezoneService.mObject;
+    return Components.classes["@mozilla.org/calendar/timezone-service;1"]
+                     .getService(Components.interfaces.calITimezoneService);
 }
 
 /* Shortcut to calendar search service */
 function getCalendarSearchService() {
-    if (getCalendarSearchService.mObject === undefined) {
-        getCalendarSearchService.mObject = Components.classes["@mozilla.org/calendar/calendarsearch-service;1"]
-                                                     .getService(Components.interfaces.calICalendarSearchProvider);
-    }
-    return getCalendarSearchService.mObject;
+    return Components.classes["@mozilla.org/calendar/calendarsearch-service;1"]
+                     .getService(Components.interfaces.calICalendarSearchProvider);
 }
 
 /* Shortcut to the freebusy service */
 function getFreeBusyService() {
-    if (getFreeBusyService.mObject === undefined) {
-        getFreeBusyService.mObject =
-            Components.classes["@mozilla.org/calendar/freebusy-service;1"]
-                      .getService(Components.interfaces.calIFreeBusyService);
-    }
-    return getFreeBusyService.mObject;
+    return Components.classes["@mozilla.org/calendar/freebusy-service;1"]
+                     .getService(Components.interfaces.calIFreeBusyService);
 }
 
 /* Shortcut to week info service */
 function getWeekInfoService() {
-    if (getWeekInfoService.mObject === undefined) {
-        getWeekInfoService.mObject = Components.classes["@mozilla.org/calendar/weekinfo-service;1"]
-                                               .getService(Components.interfaces.calIWeekInfoService);
-    }
-    return getWeekInfoService.mObject;
+    return Components.classes["@mozilla.org/calendar/weekinfo-service;1"]
+                     .getService(Components.interfaces.calIWeekInfoService);
 }
 
 /* Shortcut to date formatter service */
 function getDateFormatter() {
-    if (getDateFormatter.mObject === undefined) {
-        getDateFormatter.mObject = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                             .getService(Components.interfaces.calIDateTimeFormatter);
-    }
-    return getDateFormatter.mObject;
+    return Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                     .getService(Components.interfaces.calIDateTimeFormatter);
 }
 
 /// @return the UTC timezone.
@@ -626,11 +595,9 @@ function categoriesArrayToString(aSortedCategoriesArray) {
  * @return string bundle
  */
 function calGetStringBundle(bundleURL) {
-    if (calGetStringBundle.mService === undefined) {
-        calGetStringBundle.mService = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                                .getService(Components.interfaces.nsIStringBundleService);
-    }
-    return calGetStringBundle.mService.createBundle(bundleURL);
+    let service = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                            .getService(Components.interfaces.nsIStringBundleService);
+    return service.createBundle(bundleURL);
 }
 
 /**
