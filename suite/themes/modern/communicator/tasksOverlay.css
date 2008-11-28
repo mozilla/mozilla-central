@@ -55,8 +55,7 @@
 }
 
 .icon-navigator16 {
-  list-style-image: url("chrome://communicator/skin/taskbar/taskmenu.png");
-  -moz-image-region: rect(0 16px 16px 0);
+  list-style-image: url("chrome://communicator/skin/taskbar/taskmenu-browser.png");
 }
 
 #mini-mail {
@@ -78,8 +77,7 @@
 }
 
 .icon-mail16 {
-  list-style-image: url("chrome://communicator/skin/taskbar/taskmenu.png");
-  -moz-image-region: rect(0 32px 16px 16px);
+  list-style-image: url("chrome://communicator/skin/taskbar/taskmenu-mailnews.png");
 }
 
 #mini-addr {
@@ -92,8 +90,7 @@
 }
 
 .icon-addressbook16 {
-  list-style-image: url("chrome://communicator/skin/taskbar/taskmenu.png");
-  -moz-image-region: rect(0 64px 16px 48px);
+  list-style-image: url("chrome://communicator/skin/taskbar/taskmenu-abook.png");
 }
 
 #mini-comp {
@@ -106,8 +103,7 @@
 }
 
 .icon-composer16 {
-  list-style-image: url("chrome://communicator/skin/taskbar/taskmenu.png");
-  -moz-image-region: rect(0 48px 16px 32px);
+  list-style-image: url("chrome://communicator/skin/taskbar/taskmenu-composer.png");
 }
 
 /* ::::: component bar ::::: */
