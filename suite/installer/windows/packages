@@ -252,6 +252,7 @@ bin\sqlite3.dll
 ; JavaScript components
 bin\components\FeedProcessor.js
 bin\components\jsconsole-clhandler.js
+bin\components\nsAboutCertError.js
 bin\components\nsAddonRepository.js
 bin\components\nsAxSecurityPolicy.js
 bin\components\nsBadCertHandler.js

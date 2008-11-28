@@ -45,6 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= suitecommon
 
 EXTRA_COMPONENTS = \
+	nsAboutCertError.js \
 	nsSuiteGlue.js \
 	$(NULL)
 

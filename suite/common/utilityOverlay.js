@@ -766,7 +766,8 @@ function BrowserOnCommand(event)
   const ownerDoc = ot.ownerDocument;
   // If the event came from an ssl error page, it is probably either the "Add
   // Exception" or "Get Me Out Of Here" button
-  if (/^about:neterror\?e=nssBadCert/.test(ownerDoc.documentURI)) {
+  if (/^about:neterror\?e=nssBadCert/.test(ownerDoc.documentURI) ||
+      /^about:certerror\?/.test(ownerDoc.documentURI)) {
     if (ot.id == 'exceptionDialogButton') {
       var params = { location : ownerDoc.location.href,
                      exceptionAdded : false };

@@ -1,5 +1,5 @@
 comm.jar:
-% content communicator %content/communicator/ xpcnativewrappers=yes
+% content communicator %content/communicator/ xpcnativewrappers=yes contentaccessible=yes
 % override chrome://global/content/license.html chrome://communicator/content/license.html
 % override chrome://mozapps/content/profile/profileSelection.xul chrome://communicator/content/profile/profileSelection.xul
 % overlay chrome://communicator/content/contentAreaContextOverlay.xul chrome://communicator/content/permissions/imageContextOverlay.xul
@@ -48,6 +48,7 @@ comm.jar:
    content/communicator/askViewZoom.xul
    content/communicator/askViewZoom.js
    content/communicator/browserBindings.xul
+   content/communicator/certError.xhtml
    content/communicator/communicator.css
    content/communicator/consoleOverlay.xul
    content/communicator/contentAreaUtils.js

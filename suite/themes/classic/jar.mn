@@ -12,6 +12,7 @@ classic.jar:
   skin/classic/communicator/button.css                                  (communicator/win/button.css)
 #endif
   skin/classic/communicator/brand.css                                   (communicator/brand.css)
+  skin/classic/communicator/certError.css                               (communicator/certError.css)
   skin/classic/communicator/dialogs.css                                 (communicator/dialogs.css)
   skin/classic/communicator/communicator.css                            (communicator/communicator.css)
   skin/classic/communicator/communicatorBindings.xml                    (communicator/communicatorBindings.xml)

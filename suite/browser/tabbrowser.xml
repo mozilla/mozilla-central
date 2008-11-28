@@ -973,7 +973,9 @@
               // error pages can load their favicon, to be on the safe side,
               // only allow chrome:// favicons
               const aboutNeterr = /^about:neterror\?/;
-              if (!aboutNeterr.test(targetDoc.documentURI) ||
+              const aboutCerterr = /^about:certerror\?/;
+              if (!(aboutNeterr.test(targetDoc.documentURI) ||
+                    aboutCerterr.test(targetDoc.documentURI)) ||
                   !uri.schemeIs("chrome")) {
 
                 const secMan =

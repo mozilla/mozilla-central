@@ -7,6 +7,7 @@ modern.jar:
 % skin navigator modern/1.0 %skin/modern/navigator/
 % skin messenger-newsblog modern/1.0 %skin/modern/messenger-newsblog/
   skin/modern/communicator/brand.css                               (communicator/brand.css)
+  skin/modern/communicator/certError.css                           (communicator/certError.css)
   skin/modern/communicator/prefpanels.css                          (communicator/prefpanels.css)
   skin/modern/communicator/preferences.css                         (communicator/preferences.css)
   skin/modern/communicator/tasksOverlay.css                        (communicator/tasksOverlay.css)

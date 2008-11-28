@@ -251,6 +251,7 @@ bin/components/libzipwriter.so
 bin/components/FeedProcessor.js
 bin/components/jsconsole-clhandler.js
 bin/components/nsAboutAbout.js
+bin/components/nsAboutCertError.js
 bin/components/nsAddonRepository.js
 bin/components/nsBadCertHandler.js
 bin/components/nsBlocklistService.js

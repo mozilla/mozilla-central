@@ -3,7 +3,6 @@
 @AB_CD@.jar:
 % locale branding @AB_CD@ %locale/@AB_CD@/branding/
 % locale communicator @AB_CD@ %locale/@AB_CD@/communicator/
-% override chrome://global/locale/netErrorApp.dtd chrome://communicator/locale/overrides/netErrorApp.dtd
 % locale communicator-platform @AB_CD@ %locale/@AB_CD@/communicator-platform/
 % locale communicator-region @AB_CD@ %locale/@AB_CD@/communicator-region/
 % locale messenger @AB_CD@ %locale/@AB_CD@/messenger/
@@ -20,6 +19,7 @@
   locale/@AB_CD@/branding/brand.dtd                                         (%chrome/branding/brand.dtd)
   locale/@AB_CD@/branding/brand.properties                                  (%chrome/branding/brand.properties)
   locale/@AB_CD@/communicator/askViewZoom.dtd                               (%chrome/common/askViewZoom.dtd)
+  locale/@AB_CD@/communicator/certError.dtd                                 (%chrome/common/certError.dtd)
   locale/@AB_CD@/communicator/consoleOverlay.dtd                            (%chrome/common/consoleOverlay.dtd)
   locale/@AB_CD@/communicator/contentAreaCommands.dtd                       (%chrome/common/contentAreaCommands.dtd)
   locale/@AB_CD@/communicator/contentAreaCommands.properties                (%chrome/common/contentAreaCommands.properties)
@@ -126,7 +126,6 @@
   locale/@AB_CD@/communicator/history/findHistory.dtd                       (%chrome/common/history/findHistory.dtd)
   locale/@AB_CD@/communicator/migration/migration.dtd                       (%chrome/common/migration/migration.dtd)
   locale/@AB_CD@/communicator/migration/migration.properties                (%chrome/common/migration/migration.properties)
-  locale/@AB_CD@/communicator/overrides/netErrorApp.dtd                     (%chrome/common/overrides/netErrorApp.dtd)
   locale/@AB_CD@/communicator/permissions/cookieViewer.properties           (%chrome/common/permissions/cookieViewer.properties)
   locale/@AB_CD@/communicator/permissions/cookieViewer.dtd                  (%chrome/common/permissions/cookieViewer.dtd)
   locale/@AB_CD@/communicator/permissions/permissionsManager.dtd            (%chrome/common/permissions/permissionsManager.dtd)
