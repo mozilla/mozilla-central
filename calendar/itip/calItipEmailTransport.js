@@ -306,9 +306,15 @@ calItipEmailTransport.prototype = {
                 return convertFromUnicode("UTF-8", text).replace(/(\r\n)|\n/g, "\r\n");
             }
             function encodeMimeHeader(header) {
-                var mimeConverter = Components.classes["@mozilla.org/messenger/mimeconverter;1"]
+                let mimeConverter = Components.classes["@mozilla.org/messenger/mimeconverter;1"]
                                               .createInstance(Components.interfaces.nsIMimeConverter);
-                return mimeConverter.encodeMimePartIIStr(encodeUTF8(header), false, "UTF-8", header.indexOf(":") + 2, 72);
+                let fieldNameLen = (header.indexOf(": ") + 2);
+                return (header.substring(0, fieldNameLen) +
+                        mimeConverter.encodeMimePartIIStr_UTF8(header.substring(fieldNameLen),
+                                                               false,
+                                                               "UTF-8",
+                                                               fieldNameLen,
+                                                               72 - fieldNameLen));
             }
 
             var itemList = aItem.getItemList({});
