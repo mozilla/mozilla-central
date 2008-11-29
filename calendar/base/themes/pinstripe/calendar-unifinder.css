@@ -54,10 +54,12 @@
 
 /* workaround to avoid Window Flick */
 #unifinder-search-results-tree {
-   /* increased to display scrollbar and at least 2 lines */
-   min-height : 92px ;
-   /* remove margin to match Thunderbird's layout */
-   margin: 0px;
+    -moz-appearance: none;
+    background-color: -moz-Field;
+    color: -moz-FieldText;
+    min-height: 92px;
+    border: 0;
+    margin: 0;
 }
 
 /* restyle splitter-border to match Thunderbird's layout */
@@ -79,17 +81,17 @@
 }
 
 .unifinder-closebutton {
-  list-style-image: url("chrome://global/skin/icons/closetab.png");
+    list-style-image: url("chrome://global/skin/icons/closetab.png");
 }
 
 .unifinder-closebutton:hover {
-  list-style-image: url("chrome://global/skin/icons/closetab-hover.png");
+    list-style-image: url("chrome://global/skin/icons/closetab-hover.png");
 }
 
 .unifinder-closebutton:hover:active {
-  list-style-image: url("chrome://global/skin/icons/closetab-active.png");
+    list-style-image: url("chrome://global/skin/icons/closetab-active.png");
 }
 
 .unifinder-closebutton > .toolbarbutton-text {
-   display: none;
+    display: none;
 }

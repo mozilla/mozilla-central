@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 .calendar-task-tree {
-    -moz-appearance:  none;
+    -moz-appearance: none;
     background-color: -moz-Field;
     color: -moz-FieldText;
     border: none;

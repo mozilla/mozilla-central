@@ -54,10 +54,12 @@
 
 /* workaround to avoid Window Flick */
 #unifinder-search-results-tree {
-   /* increased to display scrollbar and at least 2 lines */
-   min-height : 92px ;
-   /* remove margin to match Thunderbird's layout */
-   margin: 0px;
+   -moz-appearance: none;
+   background-color: -moz-Field;
+   color: -moz-FieldText;
+   min-height: 92px;
+   border: 0;
+   margin: 0;
 }
 
 /* restyle splitter-border to match Thunderbird's layout */
@@ -78,19 +80,23 @@
     background-color: transparent;
 }
 
+#bottom-events-box {
+    border-left: 1px solid ThreeDShadow;
+}
+
 .unifinder-closebutton {
-  list-style-image: url("chrome://global/skin/icons/close.png");
-  -moz-image-region: rect(0 14px 14px 0);
-  -moz-appearance: none;
-  border: none;
-  padding: 2px;
-  background: transparent;
+    list-style-image: url("chrome://global/skin/icons/close.png");
+    -moz-image-region: rect(0 14px 14px 0);
+    -moz-appearance: none;
+    border: none;
+    padding: 2px;
+    background: transparent;
 }
 
 .unifinder-closebutton:hover {
-  -moz-image-region: rect(0 28px 14px 14px);
+    -moz-image-region: rect(0 28px 14px 14px);
 }
 
 .unifinder-closebutton:hover:active {
-  -moz-image-region: rect(0 42px 14px 28px);
+    -moz-image-region: rect(0 42px 14px 28px);
 }
