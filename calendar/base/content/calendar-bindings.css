@@ -49,7 +49,11 @@ calendar-navigation-buttons {
   -moz-binding: url(chrome://calendar/content/calendar-decorated-base.xml#calendar-navigation-buttons);
 }
 
-calendar-decorated-month-view { 
+calendar-decorated-month-view-parent {
+  -moz-binding: url(chrome://calendar/content/calendar-decorated-month-view.xml#calendar-decorated-month-view-parent);
+}
+
+calendar-decorated-month-view {
   -moz-binding: url(chrome://calendar/content/calendar-decorated-month-view.xml#calendar-decorated-month-view);
 }
 

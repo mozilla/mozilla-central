@@ -22,6 +22,7 @@
    -
    - Contributor(s):
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,7 +46,7 @@
     xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:xbl="http://www.mozilla.org/xbl">
 
-    <binding id="calendar-decorated-month-view" extends="chrome://calendar/content/calendar-decorated-base.xml#calendar-decorated-base-view">
+    <binding id="calendar-decorated-month-view" extends="chrome://calendar/content/calendar-decorated-month-view.xml#calendar-decorated-month-view-parent">
         <content>
              <xul:vbox anonid="main-box" flex="1">
                 <xul:calendar-navigation-buttons anonid="nav-control" selectedIndex="3"/>
@@ -56,26 +57,112 @@
         </content>
 
         <implementation implements="calIDecoratedView">
-	    <constructor><![CDATA[
+
+            <property name="observerID">
+                <getter><![CDATA[
+                    return "month-view-observer";
+                ]]></getter>
+            </property>
+
+            <!--Public methods-->
+            <method name="goToDay">
+                <parameter name="aDate"/>
+                <body><![CDATA[
+                    let viewElement = this.viewElem;
+                    viewElement.displayDaysOff = !this.mWorkdaysOnly;
+
+                    aDate = aDate.getInTimezone(viewElement.timezone);
+                    let toolTips = calGetStringArray("calendar",
+                                                      ["oneMonthBack", "gotoToday", "oneMonthForward"]);
+                    this.setDateRange(aDate.startOfMonth, aDate.endOfMonth, toolTips);
+                    viewElement.showDate(aDate);
+                ]]></body>
+            </method>
+            <method name="getRangeDescription">
+                <body><![CDATA[
+                    let monthName = calGetString("dateFormat", "month." + (this.rangeStartDate.month + 1) + ".name");
+                    return calGetString("calendar", "monthInYear", [monthName, this.rangeStartDate.year]);
+                ]]></body>
+            </method>
+            <method name="moveView">
+                <parameter name="aNumber"/>
+                <body><![CDATA[
+                    let monthViewElement = this.viewElem;
+                    let dates = monthViewElement.getDateList({});
+                    monthViewElement.displayDaysOff = !this.mWorkdaysOnly;
+
+                    if (!aNumber) {
+                        let date = now();
+                        this.goToDay(date);
+                        monthViewElement.selectedDay = date;
+                    } else {
+                        // The first few dates in this list are likely in the month
+                        // prior to the one actually being shown (since the month
+                        // probably doesn't start on a Sunday).  The 7th item must
+                        // be in correct month though.
+                        let date = dates[6].clone();
+
+                        date.month += aNumber;
+                        // Need to store this before we move
+                        let oldSelectedDay = this.selectedDay;
+
+                        this.goToDay(date);
+
+                        // Most of the time we want to select the date with the
+                        // same day number in the next month
+                        let newSelectedDay = oldSelectedDay.clone();
+                        newSelectedDay.month += aNumber;
+                        // correct for accidental rollover into the next month
+                        if ((newSelectedDay.month - aNumber + 12) % 12 != oldSelectedDay.month) {
+                            newSelectedDay.month -= 1;
+                            newSelectedDay.day = newSelectedDay.endOfMonth.day;
+                        }
+
+                        monthViewElement.selectedDay = newSelectedDay;
+                    }
+                ]]></body>
+            </method>
+            <method name="updateDaysOffPrefs">
+                <body><![CDATA[
+                    const weekPrefix = "calendar.week.";
+                    const prefNames = ["d0sundaysoff", "d1mondaysoff", "d2tuesdaysoff",
+                                       "d3wednesdaysoff", "d4thursdaysoff",
+                                       "d5fridaysoff", "d6saturdaysoff"];
+                    const defaults = ["true", "false", "false", "false",
+                                      "false", "false", "true"];
+                    let daysOff = new Array();
+                    for (let i in prefNames) {
+                        if (getPrefSafe(weekPrefix + prefNames[i])) {
+                            daysOff.push(Number(i));
+                        }
+                    }
+                    this.viewElem.daysOffArray = daysOff;
+                ]]></body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="calendar-decorated-month-view-parent" extends="chrome://calendar/content/calendar-decorated-base.xml#calendar-decorated-base-view">
+        <implementation>
+            <constructor><![CDATA[
                 // Set the preference for the default start of the week
                 this.viewElem.weekStartOffset = getPrefSafe("calendar.week.start", 0);
 
                 this.updateDaysOffPrefs();
 
                 // add a preference observer to monitor changes
-                var pb2 = Components.classes["@mozilla.org/preferences-service;1"].
+                let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
                           getService(Components.interfaces.nsIPrefBranch2);
                 pb2.addObserver("calendar.", this.mPrefObserver, false);
                 return;
             ]]></constructor>
 
             <destructor><![CDATA[
-                var pb2 = Components.classes["@mozilla.org/preferences-service;1"].
+                let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
                           getService(Components.interfaces.nsIPrefBranch2);
                 pb2.removeObserver("calendar.", this.mPrefObserver);
                 return;
             ]]></destructor>
-
             <field name="mPrefObserver"><![CDATA[
             ({ calView: this,
                observe: function calDecWeekViewPrefChange(subj, topic, pref) {
@@ -119,6 +206,15 @@
                        // Refresh the view so the settings take effect
                        this.calView.goToDay(this.calView.selectedDay);
                        break;
+
+                   case "calendar.weeks.inview":
+                       this.calView.weeksInView = subj.getIntPref(pref);
+                       break;
+
+                   case "calendar.previousweeks.inview":
+                       this.refresh();
+                       break;
+
                    case "calendar.timezone.local":
                        this.calView.viewElem.timezone = calendarDefaultTimezone();
                        if (!this.calView.startDay || !this.calView.endDay) {
@@ -142,73 +238,26 @@
                    return;
                }
             })
-	    ]]></field>
-
-            <property name="observerID">
+            ]]></field>
+            <!-- this property may be overridden by the
+                descendent classes if neeeded  -->
+            <property name="weeksInView">
                 <getter><![CDATA[
-                    return "month-view-observer";
+                    return 0;
                 ]]></getter>
+                <setter><![CDATA[
+                    return val;
+                ]]></setter>
             </property>
 
-            <!--Public methods-->
-            <method name="goToDay">
-                <parameter name="aDate"/>
+            <!-- this methody may be overridden by the
+                descendent classes if neeeded  -->
+           <method name="refreshView">
                 <body><![CDATA[
-                    var viewElement = this.viewElem;
-                    viewElement.displayDaysOff = !this.mWorkdaysOnly;
-
-                    aDate = aDate.getInTimezone(viewElement.timezone);
-                    var toolTips = calGetStringArray("calendar",
-                                                      ["oneMonthBack", "gotoToday", "oneMonthForward"]);
-                    this.setDateRange(aDate.startOfMonth, aDate.endOfMonth, toolTips);
-                    viewElement.showDate(aDate);
                 ]]></body>
             </method>
-            <method name="getRangeDescription">
-                <body><![CDATA[
-                    var monthName = calGetString("dateFormat", "month." + (this.rangeStartDate.month + 1) + ".name");
-                    return calGetString("calendar", "monthInYear", [monthName, this.rangeStartDate.year]);
-                ]]></body>
-            </method>
-            <method name="moveView">
-                <parameter name="aNumber"/>
-                <body><![CDATA[
-                    var monthViewElement = this.viewElem;
-                    var dates = monthViewElement.getDateList({});
-                    monthViewElement.displayDaysOff = !this.mWorkdaysOnly;
 
-                    if (!aNumber) {
-                        var date = now();
-                        this.goToDay(date);
-                        monthViewElement.selectedDay = date;
-                    } else {
-                        // The first few dates in this list are likely in the month
-                        // prior to the one actually being shown (since the month
-                        // probably doesn't start on a Sunday).  The 7th item must
-                        // be in correct month though.
-                        var date = dates[6].clone();
-
-                        date.month += aNumber;
-                        // Need to store this before we move
-                        var oldSelectedDay = this.selectedDay;
-
-                        this.goToDay(date);
-
-                        // Most of the time we want to select the date with the
-                        // same day number in the next month
-                        var newSelectedDay = oldSelectedDay.clone();
-                        newSelectedDay.month += aNumber;
-                        // correct for accidental rollover into the next month
-                        if ((newSelectedDay.month - aNumber + 12)%12 != oldSelectedDay.month) {
-                            newSelectedDay.month -= 1;
-                            newSelectedDay.day = newSelectedDay.endOfMonth.day;
-                        }
-
-                        monthViewElement.selectedDay = newSelectedDay;
-                    }
-                ]]></body>
-            </method>
-            <method name="updateDaysOffPrefs">
+           <method name="updateDaysOffPrefs">
                 <body><![CDATA[
                     const weekPrefix = "calendar.week.";
                     const prefNames = ["d0sundaysoff", "d1mondaysoff", "d2tuesdaysoff",
@@ -216,8 +265,8 @@
                                        "d5fridaysoff", "d6saturdaysoff"];
                     const defaults = ["true", "false", "false", "false",
                                       "false", "false", "true"];
-                    var daysOff = new Array();
-                    for (var i in prefNames) {
+                    let daysOff = new Array();
+                    for (let i in prefNames) {
                         if (getPrefSafe(weekPrefix+prefNames[i])) {
                             daysOff.push(Number(i));
                         }
@@ -226,6 +275,7 @@
                 ]]></body>
             </method>
         </implementation>
+
         <handlers>
             <handler event="DOMMouseScroll"><![CDATA[
               if (!event.ctrlKey &&
