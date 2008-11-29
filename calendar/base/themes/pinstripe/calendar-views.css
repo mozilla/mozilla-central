@@ -666,7 +666,7 @@ tab[calview]:hover {
     background-color: #F6F6F6;    
 }
 
-.tab-text {
+tab[calview] > .tab-middle {
     text-align: center;
     font-size: 14px;
 }
