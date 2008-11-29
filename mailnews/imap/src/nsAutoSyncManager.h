@@ -53,6 +53,59 @@ class nsIMsgDBHdr;
 class nsIIdleService;
 class nsIMsgFolder;
 
+/* Auto-Sync
+ *
+ * Background:
+ *  it works only with offline imap folders. "autosync_offline_stores" pref
+ *  enables/disables auto-sync mechanism. Note that setting "autosync_offline_stores"
+ *  to false, or setting folder to not-offline doesn't stop synchronization
+ *  process for already queued folders.
+ *
+ * Auto-Sync policy:
+ *  o It kicks in during system idle time, and tries to download as much messages
+ *    as possible based on given folder and message prioritization strategies/rules.
+ *    Default folder prioritization strategy dictates to sort the folders based on the
+ *    following order:  INBOX > DRAFTS > SUBFOLDERS > TRASH.
+ *    Similarly, default message prioritization strategy dictates to download the most
+ *    recent and smallest message first. Also, by sorting the messages by size in the 
+ *    queue, it tries to maximize the number of messages downloaded.
+ *  o It downloads the messages in groups. Default groups size is defined by |kDefaultGroupSize|. 
+ *  o It downloads the messages larger than the group size one-by-one.
+ *  o If new messages arrive when not idle, it downloads the messages that do fit into
+ *    |kFirstGroupSizeLimit| size limit immediately, without waiting for idle time.
+ *  o If new messages arrive when idle, it downloads all the messages without any restriction.
+ *  o If new messages arrive into a folder while auto-sync is downloading other messages of the
+ *    same folder, it simply puts the new messages into the folder's download queue, and
+ *    re-prioritize the messages. That behavior makes sure that the high priority
+ *    (defined by the message strategy) get downloaded first always.
+ *  o If new messages arrive into a folder while auto-sync is downloading messages of a lower
+ *    priority folder, auto-sync switches the folders in the queue and starts downloading the
+ *    messages of the higher priority folder next time it downloads a message group.
+ *  o Currently there is no way to stop/pause/cancel a message download. The smallest
+ *    granularity is the message group size.
+ *  o Auto-Sync manager periodically (kAutoSyncFreq) checks folder for existing messages
+ *    w/o bodies. It persists the last time the folder is checked in the local database of the
+ *    folder. We call this process 'Discovery'. This process is asynchronous and processes
+ *    |kNumberOfHeadersToProcess| number of headers at each cycle. Since it works on local data,
+ *    it doesn't consume lots of system resources, it does its job fast.
+ *  o Discovery is necessary especially when the user makes a transition from not-offline 
+ *    to offline mode.
+ *  o Update frequency is defined by nsMsgIncomingServer::BiffMinutes.
+ *
+ * Error Handling:
+ *  o if the user moves/deletes/filters all messages of a folder already queued, auto-sync
+ *    deals with that situation by skipping the folder in question, and continuing with the
+ *    next in chain.
+ *  o If the message size is zero, auto-sync ignores the message.
+ *  o If the download of the message group fails for some reason, auto-sync tries to
+ *    download the same group |kGroupRetryCount| times. If it still fails, continues with the
+ *    next group of messages.
+ *
+ * Download Model:
+ *  Parallel model should be used with the imap servers that do not have any session-limit-per-IP
+ *  limit, and when the bandwidth is significantly large.
+ */
+ 
 /**
  * Default strategy implementation to prioritize messages in the download queue.   
  */
@@ -124,7 +177,7 @@ class nsAutoSyncManager : public nsIObserver,
     nsresult AutoUpdateFolders(); 
     void ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAutoSyncStateObj);
     nsresult DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj, PRUint32 aSizeLimit = 0);
-    nsresult HandleDownloadErrorFor(nsIAutoSyncState *aAutoSyncStateObj);
+    nsresult HandleDownloadErrorFor(nsIAutoSyncState *aAutoSyncStateObj, const nsresult error);
     
     // Helper methods for priority Q operations
     static
@@ -191,7 +244,7 @@ it turns out that there are pending messages on the server, it adds them into
 nsAutoSyncState's download queue.
 
 2) nsAutoSyncState::ProcessExistingHeaders: is triggered for every imap folder 
-every hour or so. nsAutoSyncManager uses an internal queue called Discovery 
+every hour or so (see kAutoSyncFreq). nsAutoSyncManager uses an internal queue called Discovery 
 queue to keep track of this task. The purpose of ProcessExistingHeaders() 
 method is to check existing headers of a given folder in batches and discover 
 the messages without bodies, in asynchronous fashion. This process is 
@@ -221,7 +274,7 @@ this switch at worst.
 
 And finally, Update queue helps nsAutoSyncManager to keep track of folders 
 waiting to be updated. With the latest change, we update one and only one
-folder at any given time. Frequency of updating is 5 min. We add folders into
-the update queue during idle time, if they are not in mPriorityQ already.
+folder at any given time. Default frequency of updating is 10 min (kDefaultUpdateInterval). 
+We add folders into the update queue during idle time, if they are not in mPriorityQ already.
 
 */

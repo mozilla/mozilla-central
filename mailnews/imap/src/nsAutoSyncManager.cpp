@@ -526,6 +526,10 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
     queue = &chainedQ;
   }
   
+  // to store the folders that should be removed from the priority
+  // queue at the end of the iteration.
+  nsCOMArray<nsIAutoSyncState> foldersToBeRemoved;
+  
   // process folders in the priority queue 
   PRInt32 elemCount = queue->Count();
   for (PRInt32 idx = 0; idx < elemCount; idx++)
@@ -542,13 +546,43 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
     
     if (state != nsAutoSyncState::stReadyToDownload)
       continue;
-    else
+    
+    nsresult rv = DownloadMessagesForOffline(autoSyncStateObj);
+    if (NS_FAILED(rv))
     {
-      if (NS_FAILED(DownloadMessagesForOffline(autoSyncStateObj)))
-        HandleDownloadErrorFor(autoSyncStateObj);
-    }
+      // special case: this folder does not have any message to download
+      // (see bug 457342), remove it explicitly from the queue when iteration
+      // is over.
+      // Note that in normal execution flow, folders are removed from priority
+      // queue only in OnDownloadCompleted when all messages are downloaded
+      // successfully. This is the only place we change this flow.
+      if (NS_ERROR_NOT_AVAILABLE == rv)
+        foldersToBeRemoved.AppendObject(autoSyncStateObj);
+      
+      HandleDownloadErrorFor(autoSyncStateObj, rv);
+    }// endif
   }//endfor
   
+  // remove folders with no pending messages from the priority queue
+  elemCount = foldersToBeRemoved.Count();
+  for (PRInt32 idx = 0; idx < elemCount; idx++)
+  {
+    nsCOMPtr<nsIAutoSyncState> autoSyncStateObj(foldersToBeRemoved[idx]);
+    if (!autoSyncStateObj)
+      continue;
+    
+    nsCOMPtr<nsIMsgFolder> folder;
+    autoSyncStateObj->GetOwnerFolder(getter_AddRefs(folder));
+    if (folder)
+      NOTIFY_LISTENERS(OnDownloadCompleted, (folder));
+
+    autoSyncStateObj->SetState(nsAutoSyncState::stCompletedIdle);
+
+    if (mPriorityQ.RemoveObject(autoSyncStateObj))
+      NOTIFY_LISTENERS(OnFolderRemovedFromQ,
+                      (nsIAutoSyncMgrListener::PriorityQueue, folder));
+  }
+    
   return AutoUpdateFolders();
 }
 
@@ -773,17 +807,28 @@ nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSy
   
   PRInt32 count;
   nsresult rv = aAutoSyncStateObj->GetPendingMessageCount(&count);
-  // TODO: right thing to do here is to return an error to the caller saying that do not
-  // try again. Not sure how to do it using nserror mechanism.
-  // Note that we can't return success in case of 0 == count here since
-  // we only remove the object from the queue in the OnDownloadCompleted method
-  if (NS_FAILED(rv) || !count)
-    return NS_ERROR_FAILURE; 
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // special case: no more message to download for this folder:
+  // see HandleDownloadErrorFor for recovery policy
+  if (!count)
+    return NS_ERROR_NOT_AVAILABLE;
  
   nsCOMPtr<nsIMutableArray> messagesToDownload;
   PRUint32 totalSize = 0;
   rv = aAutoSyncStateObj->GetNextGroupOfMessages(mGroupSize, &totalSize, getter_AddRefs(messagesToDownload));
   NS_ENSURE_SUCCESS(rv,rv);
+  
+  // there are pending messages but the cumulative size is zero:
+  // treat as special case.
+  // Note that although it shouldn't happen, we know that sometimes
+  // imap servers manifest messages as zero length. By returning
+  // NS_ERROR_NOT_AVAILABLE we cause this folder to be removed from
+  // the priority queue temporarily (until the next idle or next update)
+  // in an effort to prevent it blocking other folders of the same account
+  // being synced.
+  if (!totalSize)
+    return NS_ERROR_NOT_AVAILABLE;
   
   // ensure that we don't exceed the given size limit for this particular group
   if (aSizeLimit && aSizeLimit < totalSize)
@@ -811,21 +856,35 @@ nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSy
  *  - rollback the message offset so we can try the same group again (unless the retry
  *     count is reached to the given limit)
  *  - if parallel model is active, wait to be resumed by the next idle
- *  - if chained model is active, searche the priority queue to find a sibling to continue with.
+ *  - if chained model is active, search the priority queue to find a sibling to continue 
+ *    with.
  */
-nsresult nsAutoSyncManager::HandleDownloadErrorFor(nsIAutoSyncState *aAutoSyncStateObj)
+nsresult nsAutoSyncManager::HandleDownloadErrorFor(nsIAutoSyncState *aAutoSyncStateObj,
+                                                   const nsresult error)
 {
   if (!aAutoSyncStateObj)
     return NS_ERROR_INVALID_ARG;
   
-  // force the auto-sync state to try downloading the same group at least
-  // kGroupRetryCount times before it moves to the next one
-  aAutoSyncStateObj->TryCurrentGroupAgain(kGroupRetryCount);
-  
-  nsCOMPtr<nsIMsgFolder> folder;
-  aAutoSyncStateObj->GetOwnerFolder(getter_AddRefs(folder));
-  if (folder)
-    NOTIFY_LISTENERS(OnDownloadError, (folder));
+  // ensure that an error occured
+  if (NS_SUCCEEDED(error))
+    return NS_OK;
+    
+  // NS_ERROR_NOT_AVAILABLE is a special case/error happens when the queued folder
+  // doesn't have any message to download (see bug 457342). In such case we shouldn't
+  // retry the current message group, nor notify listeners. Simply continuing with the
+  // next sibling in the priority queue would suffice.
+    
+  if (NS_ERROR_NOT_AVAILABLE != error)
+  {
+    // force the auto-sync state to try downloading the same group at least
+    // kGroupRetryCount times before it moves to the next one
+    aAutoSyncStateObj->TryCurrentGroupAgain(kGroupRetryCount);
+    
+    nsCOMPtr<nsIMsgFolder> folder;
+    aAutoSyncStateObj->GetOwnerFolder(getter_AddRefs(folder));
+    if (folder)
+      NOTIFY_LISTENERS(OnDownloadError, (folder));
+  }
   
   // if parallel model, don't do anything else
   
@@ -837,8 +896,13 @@ nsresult nsAutoSyncManager::HandleDownloadErrorFor(nsIAutoSyncState *aAutoSyncSt
     while ( (nextAutoSyncStateObj = GetNextSibling(mPriorityQ, autoSyncStateObj)) )
     {
       autoSyncStateObj = nextAutoSyncStateObj;
-      if (NS_SUCCEEDED(DownloadMessagesForOffline(autoSyncStateObj)))
+      nsresult rv = DownloadMessagesForOffline(autoSyncStateObj);
+      if (NS_SUCCEEDED(rv))
         break;
+      else if (rv == NS_ERROR_NOT_AVAILABLE)
+        // next folder in the chain also doesn't have any message to download
+        // switch to next one if any
+        continue;
       else
         autoSyncStateObj->TryCurrentGroupAgain(kGroupRetryCount);
     }
@@ -1035,7 +1099,7 @@ nsAutoSyncManager::OnDownloadCompleted(nsIAutoSyncState *aAutoSyncStateObj, nsre
     {
       rv = DownloadMessagesForOffline(autoSyncStateObj);
       if (NS_FAILED(rv))
-        rv = HandleDownloadErrorFor(autoSyncStateObj);
+        rv = HandleDownloadErrorFor(autoSyncStateObj, rv);
     }
     return rv;
   }
@@ -1084,8 +1148,7 @@ nsAutoSyncManager::OnDownloadCompleted(nsIAutoSyncState *aAutoSyncStateObj, nsre
     nsCOMPtr<nsIMsgFolder> folder;
     nsresult rv = autoSyncStateObj->GetOwnerFolder(getter_AddRefs(folder));
     
-    mPriorityQ.RemoveObject(autoSyncStateObj);
-    if (NS_SUCCEEDED(rv))
+    if (NS_SUCCEEDED(rv) && mPriorityQ.RemoveObject(autoSyncStateObj))
       NOTIFY_LISTENERS(OnFolderRemovedFromQ, (nsIAutoSyncMgrListener::PriorityQueue, folder));
 
     //find the next folder owned by the same server in the queue and continue downloading
@@ -1099,7 +1162,7 @@ nsAutoSyncManager::OnDownloadCompleted(nsIAutoSyncState *aAutoSyncStateObj, nsre
   {
     rv = DownloadMessagesForOffline(nextFolderToDownload);
     if (NS_FAILED(rv))
-      rv = HandleDownloadErrorFor(nextFolderToDownload);
+      rv = HandleDownloadErrorFor(nextFolderToDownload, rv);
   }
 
   return rv;

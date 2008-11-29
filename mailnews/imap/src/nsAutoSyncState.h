@@ -79,9 +79,7 @@ class MsgStrategyComparatorAdaptor
  */
 class nsAutoSyncState : public nsIAutoSyncState, public nsIUrlListener
 {
-  static const PRInt32 kFirstPassMsgKeyCount = 500;
-  
- public: 
+ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIAUTOSYNCSTATE
   NS_DECL_NSIURLLISTENER
