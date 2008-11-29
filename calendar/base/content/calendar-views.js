@@ -253,7 +253,7 @@ var calendarViewController = {
 function showCalendarView(type, event) {
     if (isSunbird()) {
         sbSwitchToView(type, event);
-    } else {
+    } else if (document.getElementById('switch2calendar').getAttribute('checked')) {
         ltnShowCalendarView(type, event);
     }
 }
