@@ -258,7 +258,6 @@ treecol.junkStatusHeader {
   list-style-image: url("chrome://messenger/skin/icons/junk-column-header.png");
   padding-right: 3px;
   padding-left: 2px;
-  padding-top: 1px;
 }
 
 /* "unknown" now looks like "not junk".  see bug #182386 */

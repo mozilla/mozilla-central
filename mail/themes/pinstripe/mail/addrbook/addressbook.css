@@ -266,6 +266,7 @@ toolbar[iconsize="small"] #button-abdelete[disabled] {
 
 #abDirTreeHeader {
   -moz-appearance: treeheadercell;
+  height: 16px;
 }
 
 #dirTree {
