@@ -160,6 +160,7 @@ calendar-alarm-widget[selected="true"] .alarm-calendar-image {
 .custom-menupopup-ok-button,
 .custom-menupopup-cancel-button {
     list-style-image: url(chrome://calendar/skin/ok-cancel.png);
+    background-color: transparent;
     border: 0;
     padding: 0;
     margin: 2px;
