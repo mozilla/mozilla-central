@@ -703,8 +703,18 @@ let gFolderTreeView = {
       }
       accounts.sort(sortAccounts);
       // force each root folder to do its local subfolder discovery.
-      for each (acct in accounts)
-        acct.incomingServer.rootFolder.subFolders;
+      for each (acct in accounts) {
+	// Bug 466311 Sometimes this can through file not found, we're unsure
+	// why, but catch it and log the fact.
+	try {
+	  acct.incomingServer.rootFolder.subFolders;
+	}
+	catch (ex) {
+	  Components.classes["@mozilla.org/consoleservice;1"]
+                    .getService(Components.interfaces.nsIConsoleService)
+                    .logStringMessage("Discovering folders for account failed with exception: " + ex);
+	}
+      }
         
       return [new ftvItem(acct.incomingServer.rootFolder)
               for each (acct in accounts)];
