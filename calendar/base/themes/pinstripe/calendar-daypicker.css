@@ -38,7 +38,7 @@
 
 daypicker {
   -moz-binding: url(chrome://calendar/content/calendar-daypicker.xml#daypicker);
-  list-style-image: url("chrome://calendar/skin/datepicker-background.png");
+  list-style-image: url("chrome://calendar/skin/daypicker-background.png");
   -moz-image-region: rect(0px 31px 30px 0px);
   border-top: 1px solid #808080;
   border-left: 1px solid #808080;
