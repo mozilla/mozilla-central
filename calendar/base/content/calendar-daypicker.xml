@@ -21,6 +21,7 @@
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
    -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -268,7 +269,8 @@
               }
           }
           for (i = 0; i < val.length; i++) {
-              days[val[i]-1].setAttribute("checked", "true");
+              let index = (val[i] < 0 ? val[i] + days.length : val[i] - 1);
+              days[index].setAttribute("checked", "true");
           }
           return val;
         ]]></setter>
