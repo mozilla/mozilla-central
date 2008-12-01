@@ -202,6 +202,8 @@ function CreateMailWindowGlobals()
   //Create datasources
   accountManagerDataSource = Components.classes[accountManagerDSContractID].getService();
   folderDataSource         = Components.classes[folderDSContractID].getService();
+
+  msgWindow.notificationCallbacks = new nsMsgBadCertHandler();
 }
 
 function InitMsgWindow()
@@ -802,5 +804,3 @@ const gMailToolBarPrefListener =
     document.getElementById("button-" + prefName.substr(this.domain.length+1)).hidden = !(pref.getBoolPref(prefName));
   }
 };
-
-

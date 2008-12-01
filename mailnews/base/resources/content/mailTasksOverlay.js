@@ -249,5 +249,47 @@ function MailTasksOnUnload(aEvent)
   observerService.removeObserver(biffObserver, BIFF_TOPIC);
 }
 
+/**
+ * This class implements nsIBadCertListener2.  Its job is to prevent "bad cert"
+ * security dialogs from being shown to the user.  Currently it puts up the
+ * cert override dialog, though we'd like to give the user more detailed
+ * information in the future.
+ */
+function nsMsgBadCertHandler() {
+}
+
+nsMsgBadCertHandler.prototype = {
+  // Suppress any certificate errors
+  notifyCertProblem: function(socketInfo, status, targetSite) {
+    if (!status)
+      return true;
+
+    setTimeout(InformUserOfCertError, 0, targetSite);
+    return true;
+  },
+
+  // nsIInterfaceRequestor
+  getInterface: function(iid) {
+    return this.QueryInterface(iid);
+  },
+
+  // nsISupports
+  QueryInterface: function(iid) {
+    if (!iid.equals(Components.interfaces.nsIBadCertListener2) &&
+        !iid.equals(Components.interfaces.nsIInterfaceRequestor) &&
+        !iid.equals(Components.interfaces.nsISupports))
+      throw Components.results.NS_ERROR_NO_INTERFACE;
+    return this;
+  }
+};
+
+function InformUserOfCertError(targetSite)
+{
+  var params = { exceptionAdded : false,
+                 prefetchCert : true,
+                 location : targetSite };
+  window.openDialog('chrome://pippki/content/exceptionDialog.xul',
+                  '','chrome,centerscreen,modal', params);
+}
 
 addEventListener("load", MailTasksOnLoad, false);
