@@ -14,7 +14,7 @@ VENKMAN_DIRS = ('extensions/venkman',)
 
 DEFAULT_COMM_REV = "tip"
 # URL of the default hg repository to clone for Mozilla.
-DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/mozilla-central/'
+DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/releases/mozilla-1.9.1/'
 DEFAULT_MOZILLA_REV = "tip"
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
