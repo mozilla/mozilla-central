@@ -61,7 +61,7 @@
 <!ENTITY pref.calendar.view.visiblehours.accesskey "o">
 <!ENTITY pref.calendar.view.visiblehoursend.label "hours at a time">
 
-<!ENTITY pref.numberofweeks.label "Default weeks to show (including previous weeks):">
+<!ENTITY pref.numberofweeks.label "Number of weeks to show (including previous weeks):">
 <!ENTITY pref.numberofweeks.accesskey "e">
 <!ENTITY pref.numberofpreviousweeks.label "Previous weeks to show:">
 <!ENTITY pref.numberofpreviousweeks.accesskey "P">

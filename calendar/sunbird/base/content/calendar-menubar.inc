@@ -293,26 +293,36 @@
                  accesskey="&sunbird.menu.numberofweeks.accesskey;"
                  oncommand="changeNumberOfWeeks(event.target)"
                  disabled="true">
-           <menupopup>
+           <menupopup onpopupshowing="this.childNodes.item(currentView().weeksInView - 1).setAttribute('checked', true);">
+             <menuitem type="radio"
+                       value="1"
+                       name="menunbofweeks"
+                       accesskey="1"
+                       label="&sunbird.menu.numberofweeks.1;"/>
              <menuitem type="radio"
                        value="2"
                        name="menunbofweeks"
+                       accesskey="2"
                        label="&sunbird.menu.numberofweeks.2;"/>
              <menuitem type="radio"
                        value="3"
                        name="menunbofweeks"
+                       accesskey="3"
                        label="&sunbird.menu.numberofweeks.3;"/>
              <menuitem type="radio"
                        value="4"
                        name="menunbofweeks"
+                       accesskey="4"
                        label="&sunbird.menu.numberofweeks.4;"/>
              <menuitem type="radio"
                        value="5"
                        name="menunbofweeks"
+                       accesskey="5"
                        label="&sunbird.menu.numberofweeks.5;"/>
              <menuitem type="radio"
                        value="6"
                        name="menunbofweeks"
+                       accesskey="6"
                        label="&sunbird.menu.numberofweeks.6;"/>
            </menupopup>
            </menu>
