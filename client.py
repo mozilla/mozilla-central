@@ -12,10 +12,10 @@ LDAPCSDK_DIRS = ('directory/c-sdk',)
 CHATZILLA_DIRS = ('extensions/irc',)
 VENKMAN_DIRS = ('extensions/venkman',)
 
-DEFAULT_COMM_REV = "tip"
+DEFAULT_COMM_REV = "default"
 # URL of the default hg repository to clone for Mozilla.
 DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/releases/mozilla-1.9.1/'
-DEFAULT_MOZILLA_REV = "tip"
+DEFAULT_MOZILLA_REV = "default"
 
 # REGEX to match against, $1 should refer to protocol scheme
 MOZILLA_TRUNK_REPO_REGEXP = "(ssh|http|https):\/\/hg\.mozilla\.org\/mozilla-central\/$"
@@ -23,7 +23,7 @@ MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
 
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
-DEFAULT_INSPECTOR_REV = "tip"
+DEFAULT_INSPECTOR_REV = "default"
 
 import os
 import sys
