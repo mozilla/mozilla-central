@@ -275,11 +275,15 @@ function RebuildSummaryFile(msgFolder)
     // In a failure, proceed anyway since we're dealing with problems
     msgFolder.ForceDBClosed();
   }
-
   // these two lines will cause the thread pane to get reloaded
-  // when the download/reparse are finised.
-  gRerootOnFolderLoad = true;
-  gCurrentFolderToReroot = msgFolder.URI;
+  // when the download/reparse is finished. Only do this
+  // if the selected folder is loaded (i.e., not thru the
+  // context menu on a non-loaded folder).
+  if (msgFolder == GetLoadedMsgFolder())
+  {
+    gRerootOnFolderLoad = true;
+    gCurrentFolderToReroot = msgFolder.URI;
+  }
   msgFolder.updateFolder(msgWindow);
 }
 
