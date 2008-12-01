@@ -2083,7 +2083,10 @@ NS_IMETHODIMP nsMsgAccountManager::GetLocalFoldersServer(nsIMsgIncomingServer **
   if (NS_SUCCEEDED(rv) && !serverKey.IsEmpty())
   {
     rv = GetIncomingServer(serverKey, aServer);
-    return rv;
+    if (NS_SUCCEEDED(rv))
+      return rv;
+    // otherwise, we're going to fall through to looking for an existing local
+    // folders account, because now we fail creating one if one already exists.
   }
 
   // try ("nobody","Local Folders","none"), and work down to any "none" server.
