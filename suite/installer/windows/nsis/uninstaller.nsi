@@ -524,6 +524,7 @@ Function un.preFinish
         !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "cancelenabled" "0"
       ${EndIf}
     ${EndIf}
+  ${EndUnless}
 FunctionEnd
 !endif
 
