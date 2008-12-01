@@ -12,10 +12,10 @@ LDAPCSDK_DIRS = ('directory/c-sdk',)
 CHATZILLA_DIRS = ('extensions/irc',)
 VENKMAN_DIRS = ('extensions/venkman',)
 
-DEFAULT_COMM_REV = "tip"
+DEFAULT_COMM_REV = "COMM_20081201_RELBRANCH"
 # URL of the default hg repository to clone for Mozilla.
 DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/releases/mozilla-1.9.1/'
-DEFAULT_MOZILLA_REV = "tip"
+DEFAULT_MOZILLA_REV = "COMM_20081201_RELBRANCH"
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
 DEFAULT_INSPECTOR_REV = "tip"
