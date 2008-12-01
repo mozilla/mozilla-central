@@ -67,29 +67,13 @@ public:
   NS_DECL_NSISHELLSERVICE
 
 protected:
-  PRBool IsDefaultClientVista(PRBool aStartupCheck,
-                              PRUint16 aApps, PRBool* aIsDefaultClient);
+  PRBool IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient);
   PRBool SetDefaultClientVista(PRUint16 aApps);
-  void   setKeysForSettings(SETTING aSettings[], PRInt32 aSize);
-  void   SetRegKey(const nsString& aKeyName,
-                   const nsString& aValueName,
-                   const nsString& aValue, PRBool aHKLMOnly);
   PRBool TestForDefault(SETTING aSettings[], PRInt32 aSize);
-
-  nsresult setDefaultBrowser();
-#ifdef MOZ_MAIL_NEWS
-  nsresult setDefaultMail();
-  nsresult setDefaultNews();
-#endif
 
 private:
   PRBool mCheckedThisSessionClient;
-  nsString mAppFolder;
   nsString mAppLongPath;
   nsString mAppShortPath;
-  nsString mMapiDLLPath;
-  nsString mUninstallPath;
-  nsString mBrandFullName;
-  nsString mBrandShortName;
 };
 

@@ -61,11 +61,9 @@
 #include "nsIServiceManager.h"
 #include "nsServiceManagerUtils.h"
 #include "nsAppDirectoryServiceDefs.h"
+#include "nsDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsCOMPtr.h"
-#ifdef MOZ_MAIL_NEWS
-#include "nsIMapiSupport.h"
-#endif
 #include <mbstring.h>
 
 #ifdef _WIN32_WINNT
@@ -91,45 +89,28 @@
 NS_IMPL_ISUPPORTS1(nsWindowsShellService, nsIShellService)
 
 static nsresult
-OpenUserKeyForReading(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey)
+OpenKeyForReading(HKEY aKeyRoot, const PRUnichar* aKeyName, HKEY* aKey)
 {
-  DWORD res = ::RegOpenKeyExW(aStartKey, aKeyName, 0, KEY_READ, aKey);
+  const nsString &flatName = PromiseFlatString(aKeyName);
 
-  if (res == ERROR_FILE_NOT_FOUND && aStartKey != HKEY_LOCAL_MACHINE) {
-    // retry with HKEY_LOCAL_MACHINE
-    res = ::RegOpenKeyExW(HKEY_LOCAL_MACHINE, aKeyName, 0, KEY_READ, aKey);
+  DWORD res = ::RegOpenKeyExW(aKeyRoot, flatName.get(), 0, KEY_READ, aKey);
+  switch (res) {
+  case ERROR_SUCCESS:
+   break;
+  case ERROR_ACCESS_DENIED:
+    return NS_ERROR_FILE_ACCESS_DENIED;
+  case ERROR_FILE_NOT_FOUND:
+    return NS_ERROR_NOT_AVAILABLE;
   }
 
-  return REG_FAILED(res) ? NS_ERROR_FILE_ACCESS_DENIED : NS_OK;  
-}
-
-// Sets the default registry keys for Windows versions prior to Vista.
-// Try to open / create the key in HKLM and if that fails try to do the same
-// in HKCU. Though this is not strictly the behavior I would expect it is the
-// same behavior that SeaMonkey and IE have when setting the default browser
-// previous to Vista.
-static nsresult
-OpenKeyForWriting(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey,
-                  PRBool aHKLMOnly)
-{
-  DWORD dwDisp = 0;
-  DWORD res = ::RegCreateKeyExW(aStartKey, aKeyName, 0, NULL,
-                                0, KEY_READ | KEY_WRITE, NULL, aKey,
-                                &dwDisp);
-  
-  if (REG_FAILED(res) && !aHKLMOnly) {
-    // fallback to HKCU immediately on error since we won't be able
-    // to create the key.
-    res = ::RegCreateKeyExW(HKEY_CURRENT_USER, aKeyName, 0, NULL, 0,
-                            KEY_READ | KEY_WRITE, NULL, aKey, &dwDisp);
-  }
-
-  return REG_FAILED(res) ? NS_ERROR_FILE_ACCESS_DENIED : NS_OK;
+  return NS_OK;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Default SeaMonkey OS integration Registry Settings
 // Note: Some settings only exist when using the installer!
+//       The setting of SeaMonkey as default application is made by a helper
+//       application since writing those values may require elevation.
 //
 // Default Browser settings:
 // - File Extension Mappings
@@ -144,11 +125,7 @@ OpenKeyForWriting(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey,
 //
 //   HKCU\SOFTWARE\Classes\SeaMonkeyHTML\
 //     DefaultIcon                      (default)         REG_SZ     <appfolder>\chrome\icons\default\html-file.ico
-//     shell\open\command               (default)         REG_SZ     <apppath> -requestPending -osint -url "%1"
-//     shell\open\ddeexec               (default)         REG_SZ     "%1",,0,0,,,,
-//     shell\open\ddeexec               NoActivateHandler REG_SZ
-//                       \Application   (default)         REG_SZ     SeaMonkey
-//                       \Topic         (default)         REG_SZ     WWW_OpenURL
+//     shell\open\command               (default)         REG_SZ     <apppath> -url "%1"
 //
 // - Windows Vista Protocol Handler
 //
@@ -170,7 +147,7 @@ OpenKeyForWriting(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey,
 //
 //   HKCU\SOFTWARE\Classes\<protocol>\
 //     DefaultIcon                      (default)         REG_SZ     <apppath>,0
-//     shell\open\command               (default)         REG_SZ     <apppath> -requestPending -url "%1"
+//     shell\open\command               (default)         REG_SZ     <apppath> -requestPending -osint -url "%1"
 //     shell\open\ddeexec               (default)         REG_SZ     "%1",,0,0,,,,
 //     shell\open\ddeexec               NoActivateHandler REG_SZ
 //                       \Application   (default)         REG_SZ     SeaMonkey
@@ -276,18 +253,9 @@ OpenKeyForWriting(HKEY aStartKey, LPCWSTR aKeyName, HKEY* aKey,
 ///////////////////////////////////////////////////////////////////////////////
 
 
-
 typedef enum {
-  NO_SUBSTITUTION           = 0x000,
-  APP_PATH_SUBSTITUTION     = 0x001,
-  EXE_NAME_SUBSTITUTION     = 0x002,
-  UNINST_PATH_SUBSTITUTION  = 0x004,
-  MAPIDLL_PATH_SUBSTITUTION = 0x008,
-  HKLM_ONLY                 = 0x010,
-  USE_FOR_DEFAULT_TEST      = 0x020,
-  NON_ESSENTIAL             = 0x040,
-  APP_NAME_SUBSTITUTION     = 0x080,
-  APP_FOLDER_SUBSTITUTION   = 0x100
+  NO_SUBSTITUTION           = 0x00,
+  APP_PATH_SUBSTITUTION     = 0x01
 } SettingFlags;
 
 #define APP_REG_NAME L"SeaMonkey"
@@ -295,7 +263,6 @@ typedef enum {
 // AppRegNameMail and AppRegNameNews in the installer file: defines.nsi.in
 #define APP_REG_NAME_MAIL L"SeaMonkey (Mail)"
 #define APP_REG_NAME_NEWS L"SeaMonkey (News)"
-#define CLS "SOFTWARE\\Classes\\"
 #define CLS_HTML "SeaMonkeyHTML"
 #define CLS_URL "SeaMonkeyURL"
 #define CLS_EML "SeaMonkeyEML"
@@ -303,34 +270,17 @@ typedef enum {
 #define CLS_NEWSURL "SeaMonkeyNEWS"
 #define CLS_FEEDURL "SeaMonkeyFEED"
 #define SMI "SOFTWARE\\Clients\\StartMenuInternet\\"
-#define MAILCLIENTS "SOFTWARE\\Clients\\Mail\\"
-#define NEWSCLIENTS "SOFTWARE\\Clients\\News\\"
-#define MOZ_CLIENT_MAIL_KEY "Software\\Clients\\Mail"
-#define MOZ_CLIENT_NEWS_KEY "Software\\Clients\\News"
 #define DI "\\DefaultIcon"
 #define II "\\InstallInfo"
 #define SOP "\\shell\\open\\command"
-#define DDE "\\shell\\open\\ddeexec\\"
-#define DDE_NAME "SeaMonkey" // Keep in sync with app name from nsXREAppData
-#define DDE_COMMAND "\"%1\",,0,0,,,,"
-// For the InstallInfo HideIconsCommand, ShowIconsCommand, and ReinstallCommand
-// registry keys. This must be kept in sync with the uninstaller.
-#define UNINSTALL_EXE "\\uninstall\\helper.exe"
 
 #define VAL_ICON "%APPPATH%,0"
-#define VAL_HTML_ICON "%APPFOLDER%\\chrome\\icons\\default\\html-file.ico"
-#define VAL_MISC_ICON "%APPFOLDER%\\chrome\\icons\\default\\misc-file.ico"
+#define VAL_HTML_OPEN "\"%APPPATH%\" -url \"%1\""
 #define VAL_URL_OPEN "\"%APPPATH%\" -requestPending -osint -url \"%1\""
 #define VAL_MAIL_OPEN "\"%APPPATH%\" \"%1\""
 
 #define MAKE_KEY_NAME1(PREFIX, MID) \
   PREFIX MID
-
-#define MAKE_KEY_NAME2(PREFIX, MID, SUFFIX) \
-  PREFIX MID SUFFIX
-
-#define MAKE_KEY_NAME3(PREFIX, MID, MID2, SUFFIX) \
-  PREFIX MID MID2 SUFFIX
 
 // The DefaultIcon registry key value should never be used (e.g. NON_ESSENTIAL)
 // when checking if SeaMonkey is the default browser since other applications
@@ -338,161 +288,45 @@ typedef enum {
 // Handlers.
 // see http://msdn2.microsoft.com/en-us/library/aa969357.aspx for more info.
 static SETTING gBrowserSettings[] = {
-  // File Extension Aliases
-  { MAKE_KEY_NAME1(CLS, ".htm"),    "", CLS_HTML, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME1(CLS, ".html"),   "", CLS_HTML, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME1(CLS, ".shtml"),  "", CLS_HTML, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME1(CLS, ".xht"),    "", CLS_HTML, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME1(CLS, ".xhtml"),  "", CLS_HTML, NO_SUBSTITUTION },
-
   // File Extension Class - as of 1.8.1.2 the value for VAL_URL_OPEN is also
   // checked for CLS_HTML since SeaMonkey should also own opening local files
   // when set as the default browser.
-  { MAKE_KEY_NAME2(CLS, CLS_HTML, DI),  "", VAL_HTML_ICON, APP_FOLDER_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, CLS_HTML, SOP), "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
+  { MAKE_KEY_NAME1(CLS_HTML, SOP), "", VAL_HTML_OPEN, APP_PATH_SUBSTITUTION },
 
   // Protocol Handler Class - for Vista and above
-  { MAKE_KEY_NAME2(CLS, CLS_URL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, CLS_URL, SOP), "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
+  { MAKE_KEY_NAME1(CLS_URL, SOP), "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION },
 
   // Protocol Handlers
-  { MAKE_KEY_NAME2(CLS, "HTTP", DI),    "", VAL_ICON, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
-  { MAKE_KEY_NAME2(CLS, "HTTP", SOP),   "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
-  { MAKE_KEY_NAME2(CLS, "HTTPS", DI),   "", VAL_ICON, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
-  { MAKE_KEY_NAME2(CLS, "HTTPS", SOP),  "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST },
-  { MAKE_KEY_NAME2(CLS, "FTP", DI),     "", VAL_ICON, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, "FTP", SOP),    "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, "GOPHER", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, "GOPHER", SOP), "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION },
-
-  // DDE settings
-  { MAKE_KEY_NAME2(CLS, CLS_HTML, DDE), "", DDE_COMMAND, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, CLS_HTML, DDE, "Application"), "", DDE_NAME, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, CLS_HTML, DDE, "Topic"), "", "WWW_OpenURL", NO_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, CLS_URL, DDE), "", DDE_COMMAND, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, CLS_URL, DDE, "Application"), "", DDE_NAME, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, CLS_URL, DDE, "Topic"), "", "WWW_OpenURL", NO_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, "HTTP", DDE), "", DDE_COMMAND, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, "HTTP", DDE, "Application"), "", DDE_NAME, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, "HTTP", DDE, "Topic"), "", "WWW_OpenURL", NO_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, "HTTPS", DDE), "", DDE_COMMAND, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, "HTTPS", DDE, "Application"), "", DDE_NAME, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, "HTTPS", DDE, "Topic"), "", "WWW_OpenURL", NO_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, "FTP", DDE), "", DDE_COMMAND, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, "FTP", DDE, "Application"), "", DDE_NAME, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, "FTP", DDE, "Topic"), "", "WWW_OpenURL", NO_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, "GOPHER", DDE), "", DDE_COMMAND, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, "GOPHER", DDE, "Application"), "", DDE_NAME, NO_SUBSTITUTION },
-  { MAKE_KEY_NAME3(CLS, "GOPHER", DDE, "Topic"), "", "WWW_OpenURL", NO_SUBSTITUTION },
-
-  // Windows XP Start Menu
-  { MAKE_KEY_NAME2(SMI, "%APPEXE%", DI),
-    "",
-    "%APPPATH%,0",
-    APP_PATH_SUBSTITUTION | EXE_NAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(SMI, "%APPEXE%", II),
-    "HideIconsCommand",
-    "\"%UNINSTPATH%\" /HideShortcuts",
-    UNINST_PATH_SUBSTITUTION | EXE_NAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(SMI, "%APPEXE%", II),
-    "ReinstallCommand",
-    "\"%UNINSTPATH%\" /SetAsDefaultAppGlobal",
-    UNINST_PATH_SUBSTITUTION | EXE_NAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(SMI, "%APPEXE%", II),
-    "ShowIconsCommand",
-    "\"%UNINSTPATH%\" /ShowShortcuts",
-    UNINST_PATH_SUBSTITUTION | EXE_NAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME2(SMI, "%APPEXE%", SOP),
-    "",
-    "%APPPATH%",
-    APP_PATH_SUBSTITUTION | EXE_NAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME1(SMI, "%APPEXE%\\shell\\properties\\command"),
-    "",
-    "\"%APPPATH%\" -preferences",
-    APP_PATH_SUBSTITUTION | EXE_NAME_SUBSTITUTION | HKLM_ONLY },
-  { MAKE_KEY_NAME1(SMI, "%APPEXE%\\shell\\safemode\\command"),
-    "",
-    "\"%APPPATH%\" -safe-mode",
-    APP_PATH_SUBSTITUTION | EXE_NAME_SUBSTITUTION | HKLM_ONLY }
+  { MAKE_KEY_NAME1("HTTP", DI),    "", VAL_ICON, APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME1("HTTP", SOP),   "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME1("HTTPS", DI),   "", VAL_ICON, APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME1("HTTPS", SOP),  "", VAL_URL_OPEN, APP_PATH_SUBSTITUTION }
 
   // These values must be set by hand, since they contain localized strings.
   //   seamonkey.exe\shell\properties   (default)   REG_SZ  SeaMonkey &Preferences
   //   seamonkey.exe\shell\safemode     (default)   REG_SZ  SeaMonkey &Safe Mode
 };
 
-
  static SETTING gMailSettings[] = {
    // File Extension Aliases
-   { MAKE_KEY_NAME1(CLS, ".eml"),    "", CLS_EML, NO_SUBSTITUTION },
+   { ".eml", "", CLS_EML, NO_SUBSTITUTION },
    // File Extension Class
-   { MAKE_KEY_NAME2(CLS, CLS_EML, DI),  "",  VAL_MISC_ICON, APP_FOLDER_SUBSTITUTION },
-   { MAKE_KEY_NAME2(CLS, CLS_EML, SOP), "",  VAL_MAIL_OPEN, APP_PATH_SUBSTITUTION},
+   { MAKE_KEY_NAME1(CLS_EML, SOP), "",  VAL_MAIL_OPEN, APP_PATH_SUBSTITUTION},
 
    // Protocol Handler Class - for Vista and above
-   { MAKE_KEY_NAME2(CLS, CLS_MAILTOURL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
-   { MAKE_KEY_NAME2(CLS, CLS_MAILTOURL, SOP), "", "\"%APPPATH%\" -osint -compose \"%1\"", APP_PATH_SUBSTITUTION },
+   { MAKE_KEY_NAME1(CLS_MAILTOURL, SOP), "", "\"%APPPATH%\" -osint -compose \"%1\"", APP_PATH_SUBSTITUTION },
 
    // Protocol Handlers
-   { MAKE_KEY_NAME2(CLS, "mailto", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-   { MAKE_KEY_NAME2(CLS, "mailto", SOP), "", "\"%APPPATH%\" -osint -compose \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST}, 
-
-   // Mail Client Keys
-   { MAKE_KEY_NAME1(MAILCLIENTS, "%APPNAME%"),
-     "DLLPath",
-     "%MAPIDLLPATH%",
-     MAPIDLL_PATH_SUBSTITUTION | HKLM_ONLY | APP_NAME_SUBSTITUTION },
-   { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", II),
-     "HideIconsCommand",
-     "\"%UNINSTPATH%\" /HideShortcuts",
-     UNINST_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
-   { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", II),
-     "ReinstallCommand",
-     "\"%UNINSTPATH%\" /SetAsDefaultAppGlobal",
-     UNINST_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
-   { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", II),
-     "ShowIconsCommand",
-     "\"%UNINSTPATH%\" /ShowShortcuts",
-     UNINST_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
-   { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", DI),
-     "",
-     "%APPPATH%,0",
-     APP_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
-   { MAKE_KEY_NAME2(MAILCLIENTS, "%APPNAME%", SOP),
-     "",
-     "\"%APPPATH%\" -mail",
-     APP_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
-   { MAKE_KEY_NAME1(MAILCLIENTS, "%APPNAME%\\shell\\properties\\command"),
-     "",
-     "\"%APPPATH%\" -preferences",
-     APP_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
+   { MAKE_KEY_NAME1("mailto", SOP), "", "\"%APPPATH%\" -osint -compose \"%1\"", APP_PATH_SUBSTITUTION }
  };
  
  static SETTING gNewsSettings[] = {
     // Protocol Handler Class - for Vista and above
-   { MAKE_KEY_NAME2(CLS, CLS_NEWSURL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
-   { MAKE_KEY_NAME2(CLS, CLS_NEWSURL, SOP), "", "\"%APPPATH%\" -osint -news \"%1\"", APP_PATH_SUBSTITUTION },
+   { MAKE_KEY_NAME1(CLS_NEWSURL, SOP), "", "\"%APPPATH%\" -osint -news \"%1\"",  APP_PATH_SUBSTITUTION },
  
    // Protocol Handlers
-   { MAKE_KEY_NAME2(CLS, "news", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-   { MAKE_KEY_NAME2(CLS, "news", SOP), "", "\"%APPPATH%\" -osint -news \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
-   { MAKE_KEY_NAME2(CLS, "nntp", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-   { MAKE_KEY_NAME2(CLS, "nntp", SOP), "", "\"%APPPATH%\" -osint -news \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST}, 
-   { MAKE_KEY_NAME2(CLS, "snews", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-   { MAKE_KEY_NAME2(CLS, "snews", SOP), "", "\"%APPPATH%\" -osint -news \"%1\"", APP_PATH_SUBSTITUTION}, 
- 
-   // News Client Keys
-   { MAKE_KEY_NAME1(NEWSCLIENTS, "%APPNAME%"),
-     "DLLPath",
-     "%MAPIDLLPATH%",
-     MAPIDLL_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
-   { MAKE_KEY_NAME2(NEWSCLIENTS, "%APPNAME%", DI),
-     "",
-     "%APPPATH%,0",
-     APP_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
-   { MAKE_KEY_NAME2(NEWSCLIENTS, "%APPNAME%", SOP),
-     "",
-     "\"%APPPATH%\" -mail",
-     APP_PATH_SUBSTITUTION | APP_NAME_SUBSTITUTION | HKLM_ONLY },
+   { MAKE_KEY_NAME1("news", SOP), "", "\"%APPPATH%\" -osint -news \"%1\"", APP_PATH_SUBSTITUTION },
+   { MAKE_KEY_NAME1("nntp", SOP), "", "\"%APPPATH%\" -osint -news \"%1\"", APP_PATH_SUBSTITUTION },
 };
 
  static SETTING gFeedSettings[] = {
@@ -504,128 +338,72 @@ static SETTING gBrowserSettings[] = {
 };
 
 /* helper routine. Iterate over the passed in settings object,
-   testing each key with the USE_FOR_DEFAULT_TEST to see if
-   we are handling it.
+   testing each key to see if we are handling it.
 */
 PRBool
 nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
 {
-  nsCOMPtr<nsILocalFile> lf;
-  nsresult rv = NS_NewLocalFile(mAppShortPath, PR_TRUE,
-                                getter_AddRefs(lf));
-
-  if (NS_FAILED(rv))
-    return PR_FALSE;
-
-  nsAutoString exeName;
-  rv = lf->GetLeafName(exeName);
-  if (NS_FAILED(rv))
-    return PR_FALSE;
-  ToUpperCase(exeName);
- 
   PRUnichar currValue[MAX_BUF];
   SETTING* end = aSettings + aSize;
   for (SETTING * settings = aSettings; settings < end; ++settings) {
-    if (settings->flags & USE_FOR_DEFAULT_TEST) {
-      NS_ConvertUTF8toUTF16 dataLongPath(settings->valueData);
-      NS_ConvertUTF8toUTF16 dataShortPath(settings->valueData);
-      NS_ConvertUTF8toUTF16 key(settings->keyName);
-      NS_ConvertUTF8toUTF16 value(settings->valueName);
-      if (settings->flags & APP_PATH_SUBSTITUTION) {
-        PRInt32 offset = dataLongPath.Find("%APPPATH%");
-        dataLongPath.Replace(offset, 9, mAppLongPath);
-        // Remove the quotes around %APPPATH% in VAL_OPEN for short paths
-        PRInt32 offsetQuoted = dataShortPath.Find("\"%APPPATH%\"");
-        if (offsetQuoted != -1)
-          dataShortPath.Replace(offsetQuoted, 11, mAppShortPath);
-        else
-          dataShortPath.Replace(offset, 9, mAppShortPath);
-      }
-      if (settings->flags & APP_NAME_SUBSTITUTION) {
-        PRInt32 offset = key.Find("%APPNAME%");
-        key.Replace(offset, 9, mBrandFullName);
-      }
-      if (settings->flags & EXE_NAME_SUBSTITUTION) {
-        PRInt32 offset = key.Find("%APPEXE%");
-        key.Replace(offset, 8, exeName);
-      }
-
-      ::ZeroMemory(currValue, sizeof(currValue));
-      HKEY theKey;
-      nsresult rv = OpenUserKeyForReading(HKEY_CURRENT_USER, key.get(), &theKey);
-      if (NS_SUCCEEDED(rv)) {
-        DWORD len = sizeof currValue;
-        DWORD res = ::RegQueryValueExW(theKey, value.get(),
-                                       NULL, NULL, (LPBYTE)currValue, &len);
-        // Close the key we opened.
-        ::RegCloseKey(theKey);
-        if (REG_FAILED(res) ||
-            !dataLongPath.Equals(currValue, CaseInsensitiveCompare) &&
-            !dataShortPath.Equals(currValue, CaseInsensitiveCompare)) {
-          // Key wasn't set, or was set to something else (something else became the default client)
-          return PR_FALSE;
-        }
-      }
+    NS_ConvertUTF8toUTF16 dataLongPath(settings->valueData);
+    NS_ConvertUTF8toUTF16 dataShortPath(settings->valueData);
+    NS_ConvertUTF8toUTF16 key(settings->keyName);
+    NS_ConvertUTF8toUTF16 value(settings->valueName);
+    if (settings->flags & APP_PATH_SUBSTITUTION) {
+      PRInt32 offset = dataLongPath.Find("%APPPATH%");
+      dataLongPath.Replace(offset, 9, mAppLongPath);
+      // Remove the quotes around %APPPATH% in VAL_OPEN for short paths
+      PRInt32 offsetQuoted = dataShortPath.Find("\"%APPPATH%\"");
+      if (offsetQuoted != -1)
+        dataShortPath.Replace(offsetQuoted, 11, mAppShortPath);
+      else
+        dataShortPath.Replace(offset, 9, mAppShortPath);
     }
-  }  // for each registry key we want to look at
+
+    ::ZeroMemory(currValue, sizeof(currValue));
+    HKEY theKey;
+    nsresult rv = OpenKeyForReading(HKEY_CLASSES_ROOT, key.get(), &theKey);
+    if (NS_FAILED(rv))
+      // Key does not exist
+      return PR_FALSE;
+
+    DWORD len = sizeof currValue;
+    DWORD res = ::RegQueryValueExW(theKey, value.get(),
+                                   NULL, NULL, (LPBYTE)currValue, &len);
+    // Close the key we opened.
+    ::RegCloseKey(theKey);
+    if (REG_FAILED(res) ||
+        !dataLongPath.Equals(currValue, CaseInsensitiveCompare) &&
+        !dataShortPath.Equals(currValue, CaseInsensitiveCompare)) {
+      // Key wasn't set, or was set to something else (something else became the default client)
+      return PR_FALSE;
+    }
+  }
 
   return PR_TRUE;
 }
 
 nsresult nsWindowsShellService::Init()
 {
-  nsresult rv;
-
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  nsCOMPtr<nsIStringBundle> brandBundle;
-  rv = bundleService->CreateBundle(BRAND_PROPERTIES, getter_AddRefs(brandBundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  brandBundle->GetStringFromName(NS_LITERAL_STRING("brandFullName").get(),
-                                 getter_Copies(mBrandFullName));
-  brandBundle->GetStringFromName(NS_LITERAL_STRING("brandShortName").get(),
-                                 getter_Copies(mBrandShortName));
-
   PRUnichar appPath[MAX_BUF];
   if (!::GetModuleFileNameW(0, appPath, MAX_BUF))
     return NS_ERROR_FAILURE;
 
   mAppLongPath = appPath;
 
-  nsCOMPtr<nsILocalFile> lf;
-  rv = NS_NewLocalFile(mAppLongPath, PR_TRUE,
-                       getter_AddRefs(lf));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIFile> appDir;
-  rv = lf->GetParent(getter_AddRefs(appDir));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  appDir->GetPath(mAppFolder);
-
-  mUninstallPath = mAppFolder;
-  mUninstallPath.AppendLiteral(UNINSTALL_EXE);
-
   // Support short path to the exe so if it is already set the user is not
   // prompted to set the default mail client again.
   if (!::GetShortPathNameW(appPath, appPath, MAX_BUF))
     return NS_ERROR_FAILURE;
 
-  ToUpperCase(mAppShortPath = appPath);
+  mAppShortPath = appPath;
 
-  rv = NS_NewLocalFile(mAppLongPath, PR_TRUE, getter_AddRefs(lf));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = lf->SetLeafName(NS_LITERAL_STRING("mozMapi32.dll"));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return lf->GetPath(mMapiDLLPath);
+  return NS_OK;
 }
 
 PRBool
-nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps, PRBool* aIsDefaultClient)
+nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient)
 {
 #if !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
   IApplicationAssociationRegistration* pAAR;
@@ -650,13 +428,7 @@ nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps
 #endif
 
     *aIsDefaultClient = isDefaultBrowser && isDefaultNews && isDefaultMail;
-    
-    // If this is the first application window, maintain internal state that we've
-    // checked this session (so that subsequent window opens don't show the default
-    // client dialog).
-    if (aStartupCheck)
-      mCheckedThisSessionClient = PR_TRUE;
-    
+
     pAAR->Release();
     return PR_TRUE;
   }
@@ -696,114 +468,41 @@ nsWindowsShellService::SetDefaultClientVista(PRUint16 aApps)
 NS_IMETHODIMP
 nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBool *aIsDefaultClient)
 {
-  if (IsDefaultClientVista(aStartupCheck, aApps, aIsDefaultClient))
-    return NS_OK;
-
-  *aIsDefaultClient = PR_TRUE;
-
-  // for each type, check if it is the default app
-  // browser check needs to be at the top
-  if (aApps & nsIShellService::BROWSER)
-    *aIsDefaultClient &= TestForDefault(gBrowserSettings, sizeof(gBrowserSettings)/sizeof(SETTING));
-#ifdef MOZ_MAIL_NEWS
-  if (aApps & nsIShellService::MAIL)
-    *aIsDefaultClient &= TestForDefault(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING));
-  if (aApps & nsIShellService::NEWS)
-    *aIsDefaultClient &= TestForDefault(gNewsSettings, sizeof(gNewsSettings)/sizeof(SETTING));
-  // RSS / feed protocol shell integration is to be completed in bug 453797.
-  // if (aApps & nsIShellService::RSS)
-  //  *aIsDefaultClient &= TestForDefault(gFeedSettings, sizeof(gFeedSettings)/sizeof(SETTING));
-#endif
-
   // If this is the first application window, maintain internal state that we've
   // checked this session (so that subsequent window opens don't show the
   // default client dialog).
   if (aStartupCheck)
     mCheckedThisSessionClient = PR_TRUE;
 
+  *aIsDefaultClient = PR_TRUE;
+
+  // for each type, check if it is the default app
+  // browser check needs to be at the top
+  if (aApps & nsIShellService::BROWSER) {
+    *aIsDefaultClient &= TestForDefault(gBrowserSettings, sizeof(gBrowserSettings)/sizeof(SETTING));
+    // Only check if this app is default on Vista if the previous checks
+    // indicate that this app is the default.
+    if (*aIsDefaultClient)
+      IsDefaultClientVista(nsIShellService::BROWSER, aIsDefaultClient);
+  }
+#ifdef MOZ_MAIL_NEWS
+  if (aApps & nsIShellService::MAIL) {
+    *aIsDefaultClient &= TestForDefault(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING));
+    // Only check if this app is default on Vista if the previous checks
+    // indicate that this app is the default.
+    if (*aIsDefaultClient)
+      IsDefaultClientVista(nsIShellService::MAIL, aIsDefaultClient);
+  }
+  if (aApps & nsIShellService::NEWS) {
+    *aIsDefaultClient &= TestForDefault(gNewsSettings, sizeof(gNewsSettings)/sizeof(SETTING));
+    // Only check if this app is default on Vista if the previous checks
+    // indicate that this app is the default.
+    if (*aIsDefaultClient)
+      IsDefaultClientVista(nsIShellService::NEWS, aIsDefaultClient);
+  }
+#endif
+
   return NS_OK;
-}
-
-static DWORD
-DeleteRegKeyDefaultValue(HKEY baseKey, LPCWSTR keyName)
-{
-  HKEY key;
-  DWORD res = ::RegOpenKeyExW(baseKey, keyName,
-                              0, KEY_WRITE, &key);
-  if (res == ERROR_SUCCESS) {
-    res = ::RegDeleteValueW(key, NULL);
-    ::RegCloseKey(key);
-  }
-  return res;
-}
-
-// Utility function to delete a registry subkey.
-static DWORD
-DeleteRegTree(HKEY baseKey, LPCWSTR keyName)
-{
-  // Make sure input subkey isn't null.
-  if (!keyName || !*keyName)
-    return ERROR_BADKEY;
-
-  // Open subkey.
-  HKEY key;
-  DWORD res = ::RegOpenKeyExW(baseKey, keyName, 0,
-                              KEY_ENUMERATE_SUB_KEYS | DELETE, &key);
- 
-  // Continue till we get an error or are done.
-  while (res == ERROR_SUCCESS) {
-    PRUnichar subkeyName[_MAX_PATH];
-    DWORD len = sizeof subkeyName;
-    // Get first subkey name.  Note that we always get the
-    // first one, then delete it.  So we need to get
-    // the first one next time, also.
-    res = ::RegEnumKeyExW(key, 0, subkeyName, &len, NULL, NULL,
-                          NULL, NULL);
-    if (res == ERROR_NO_MORE_ITEMS) {
-      // No more subkeys.  Delete the main one.
-      res = ::RegDeleteKeyW(baseKey, keyName);
-      break;
-    }
-    // If we find another subkey, delete it, recursively.
-    if (res == ERROR_SUCCESS) {
-      // Another subkey, delete it, recursively.
-      res = DeleteRegTree(key, subkeyName);
-    }
-  }
- 
-  // Close the key we opened.
-  ::RegCloseKey(key);
-  return res;
-}
-
-void
-nsWindowsShellService::SetRegKey(const nsString& aKeyName,
-                                 const nsString& aValueName,
-                                 const nsString& aValue,
-                                 PRBool aHKLMOnly)
-{
-  PRUnichar buf[MAX_BUF];
-  DWORD len = sizeof buf;
-
-  HKEY theKey;
-  nsresult rv = OpenKeyForWriting(HKEY_LOCAL_MACHINE, aKeyName.get(), &theKey,
-                                  aHKLMOnly);
-  if (NS_FAILED(rv))
-    return;
-
-  // Get the old value
-  DWORD res = ::RegQueryValueExW(theKey, aValueName.get(),
-                                 NULL, NULL, (LPBYTE)buf, &len);
-
-  // Set the new value
-  if (REG_FAILED(res) || !aValue.Equals(buf, CaseInsensitiveCompare)) {
-    ::RegSetValueExW(theKey, aValueName.get(), 
-                     0, REG_SZ, (const BYTE *)aValue.get(),
-                     (aValue.Length() + 1) * sizeof(PRUnichar));
-  }
-
-  // Close the key we opened.
-  ::RegCloseKey(theKey);
 }
 
 
@@ -811,89 +510,52 @@ NS_IMETHODIMP
 nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers,
                                         PRBool aClaimAllTypes, PRUint16 aApps)
 {
-  // Delete the protocol and file handlers under HKCU if they exist. This way
-  // the HKCU registry is cleaned up when HKLM is writeable or if it isn't
-  // the values will then be added under HKCU.
-  if (aApps & nsIShellService::BROWSER) {
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\http\\shell\\open");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\http\\DefaultIcon");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\https\\shell\\open");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\https\\DefaultIcon");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\ftp\\shell\\open");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\ftp\\DefaultIcon");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\gopher\\shell\\open");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\gopher\\DefaultIcon");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\SeaMonkeyURL");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\SeaMonkeyHTML");
+  nsresult rv;
+  nsCOMPtr<nsIProperties> directoryService = 
+    do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    (void)DeleteRegKeyDefaultValue(HKEY_CURRENT_USER,
-      L"Software\\Classes\\.htm");
-    (void)DeleteRegKeyDefaultValue(HKEY_CURRENT_USER,
-      L"Software\\Classes\\.html");
-    (void)DeleteRegKeyDefaultValue(HKEY_CURRENT_USER,
-      L"Software\\Classes\\.shtml");
-    (void)DeleteRegKeyDefaultValue(HKEY_CURRENT_USER,
-      L"Software\\Classes\\.xht");
-    (void)DeleteRegKeyDefaultValue(HKEY_CURRENT_USER,
-      L"Software\\Classes\\.xhtml");
-  }
+  nsCOMPtr<nsILocalFile> appHelper;
+  rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(appHelper));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-#ifdef MOZ_MAIL_NEWS
-  if (aApps & nsIShellService::MAIL) {
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\SeaMonkeyEML");
-    (void)DeleteRegKeyDefaultValue(HKEY_CURRENT_USER,
-      L"Software\\Classes\\.eml");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\mailto\\shell\\open");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\mailto\\DefaultIcon");
-  }
+  rv = appHelper->AppendNative(NS_LITERAL_CSTRING("uninstall"));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (aApps & nsIShellService::NEWS) {
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\news\\shell\\open");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\news\\DefaultIcon");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\snews\\shell\\open");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\snews\\DefaultIcon");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\nntp\\shell\\open");
-    (void)DeleteRegTree(HKEY_CURRENT_USER,
-      L"Software\\Classes\\nntp\\DefaultIcon");
-  }
-#endif
+  rv = appHelper->AppendNative(NS_LITERAL_CSTRING("helper.exe"));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (!aForAllUsers && SetDefaultClientVista(aApps))
-    return NS_OK;
+  nsAutoString appHelperPath;
+  rv = appHelper->GetPath(appHelperPath);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  if (aForAllUsers)
+    appHelperPath.AppendLiteral(" /SetAsDefaultAppGlobal");
+  else {
+    appHelperPath.AppendLiteral(" /SetAsDefaultAppUser");
+    if (aApps & nsIShellService::BROWSER)
+      appHelperPath.AppendLiteral(" Browser");
+    
+    if (aApps & nsIShellService::MAIL)
+      appHelperPath.AppendLiteral(" Mail");
 
-  nsresult rv = NS_OK;
-  if (aApps & nsIShellService::BROWSER)
-    rv |= setDefaultBrowser();
+    if (aApps & nsIShellService::NEWS)
+      appHelperPath.AppendLiteral(" News");
+   }
 
-#ifdef MOZ_MAIL_NEWS
-  if (aApps & nsIShellService::MAIL)
-    rv |= setDefaultMail();
+  STARTUPINFOW si = {sizeof(si), 0};
+  PROCESS_INFORMATION pi = {0};
 
-  if (aApps & nsIShellService::NEWS)
-    rv |= setDefaultNews();
-#endif
+  BOOL ok = CreateProcessW(NULL, (LPWSTR)appHelperPath.get(), NULL, NULL,
+                           FALSE, 0, NULL, NULL, &si, &pi);
 
-  // Refresh the Shell
-  SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, 0, 0);
-  return rv;
+  if (!ok)
+    return NS_ERROR_FAILURE;
+
+  CloseHandle(pi.hProcess);
+  CloseHandle(pi.hThread);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -940,178 +602,6 @@ nsWindowsShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
   NS_ENSURE_SUCCESS(rv, rv);
   return prefs->SetIntPref("shell.checkDefaultApps", aApps);
 }
-
-
-nsresult
-nsWindowsShellService::setDefaultBrowser()
-{
-  SETTING* settings;
-  SETTING* end = gBrowserSettings + sizeof(gBrowserSettings)/sizeof(SETTING);
-
-  nsCOMPtr<nsILocalFile> lf;
-  nsresult rv = NS_NewLocalFile(mAppLongPath, PR_TRUE,
-                                getter_AddRefs(lf));
-  if (NS_FAILED(rv))
-    return rv;
-
-  nsAutoString exeName;
-  rv = lf->GetLeafName(exeName);
-  if (NS_FAILED(rv))
-    return rv;
-  ToUpperCase(exeName);
-
-  nsCOMPtr<nsIFile> appDir;
-  rv = lf->GetParent(getter_AddRefs(appDir));
-  if (NS_FAILED(rv))
-    return rv;
-
-  nsAutoString uninstLongPath;
-  appDir->GetPath(uninstLongPath);
-  uninstLongPath.AppendLiteral(UNINSTALL_EXE);
-
-  for (settings = gBrowserSettings; settings < end; ++settings) {
-    NS_ConvertUTF8toUTF16 dataLongPath(settings->valueData);
-    NS_ConvertUTF8toUTF16 key(settings->keyName);
-    NS_ConvertUTF8toUTF16 value(settings->valueName);
-    if (settings->flags & APP_FOLDER_SUBSTITUTION) {
-      PRInt32 offset = dataLongPath.Find("%APPFOLDER%");
-      dataLongPath.Replace(offset, 11, mAppFolder);
-    }
-    if (settings->flags & APP_PATH_SUBSTITUTION) {
-      PRInt32 offset = dataLongPath.Find("%APPPATH%");
-      dataLongPath.Replace(offset, 9, mAppLongPath);
-    }
-    if (settings->flags & UNINST_PATH_SUBSTITUTION) {
-      PRInt32 offset = dataLongPath.Find("%UNINSTPATH%");
-      dataLongPath.Replace(offset, 12, uninstLongPath);
-    }
-    if (settings->flags & EXE_NAME_SUBSTITUTION) {
-      PRInt32 offset = key.Find("%APPEXE%");
-      key.Replace(offset, 8, exeName);
-    }
-
-    SetRegKey(key, value, dataLongPath,
-              (settings->flags & HKLM_ONLY));
-  }
-
-  // Select the Default Browser for the Windows XP Start Menu
-  SetRegKey(NS_LITERAL_STRING(SMI), EmptyString(), exeName, PR_TRUE);
-
-  nsCOMPtr<nsIStringBundleService>
-    bundleService(do_GetService("@mozilla.org/intl/stringbundle;1"));
-  if (!bundleService)
-    return NS_ERROR_FAILURE;
-
-  nsCOMPtr<nsIStringBundle> bundle, brandBundle;
-  rv = bundleService->CreateBundle(SHELLSERVICE_PROPERTIES, getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = bundleService->CreateBundle(BRAND_PROPERTIES, getter_AddRefs(brandBundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // Create the Start Menu item if it doesn't exist
-  nsString brandFullName;
-  brandBundle->GetStringFromName(NS_LITERAL_STRING("brandFullName").get(),
-                                 getter_Copies(brandFullName));
-
-  nsAutoString key1(NS_LITERAL_STRING(SMI));
-  key1.Append(exeName);
-  key1.AppendLiteral("\\");
-  SetRegKey(key1, EmptyString(), brandFullName, PR_TRUE);
-
-  // Set the Preferences and Safe Mode start menu context menu item labels
-  nsAutoString preferencesKey(NS_LITERAL_STRING(SMI));
-  preferencesKey.Append(exeName);
-  preferencesKey.AppendLiteral("\\shell\\properties");
-
-  nsAutoString safeModeKey(NS_LITERAL_STRING(SMI));
-  safeModeKey.Append(exeName);
-  safeModeKey.AppendLiteral("\\shell\\safemode");
-
-  nsString brandShortName;
-  brandBundle->GetStringFromName(NS_LITERAL_STRING("brandShortName").get(),
-                                 getter_Copies(brandShortName));
-
-  const PRUnichar* brandNameStrings[] = { brandShortName.get() };
-
-  // Set the Preferences menu item
-  nsString preferencesTitle;
-  bundle->FormatStringFromName(NS_LITERAL_STRING("preferencesLabel").get(),
-                               brandNameStrings, 1,
-                               getter_Copies(preferencesTitle));
-  // Set the Safe Mode menu item
-  nsString safeModeTitle;
-  bundle->FormatStringFromName(NS_LITERAL_STRING("safeModeLabel").get(),
-                               brandNameStrings, 1,
-                               getter_Copies(safeModeTitle));
-
-  SetRegKey(preferencesKey, EmptyString(), preferencesTitle, PR_TRUE);
-  SetRegKey(safeModeKey, EmptyString(), safeModeTitle, PR_TRUE);
-  return NS_OK;
-  }
-
-#ifdef MOZ_MAIL_NEWS
-nsresult
-nsWindowsShellService::setDefaultMail()
-{
-  nsresult rv;
-  setKeysForSettings(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING));
-
-  // at least for now, this key needs to be written to HKLM instead of HKCU
-  // which is where the windows operating system looks (at least on Win XP and
-  // earlier)
-  SetRegKey(NS_LITERAL_STRING(MOZ_CLIENT_MAIL_KEY), EmptyString(), mBrandFullName, PR_TRUE);
-
-  nsAutoString key1(NS_LITERAL_STRING(MAILCLIENTS));
-  key1.Append(mBrandFullName);
-  key1.AppendLiteral("\\");
-  SetRegKey(key1, EmptyString(), mBrandFullName, PR_TRUE);
-
-  // Set the Preferences and Safe Mode start menu context menu item labels
-  nsCOMPtr<nsIStringBundle> bundle;
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = bundleService->CreateBundle(SHELLSERVICE_PROPERTIES, getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsAutoString preferencesKey(NS_LITERAL_STRING(MAILCLIENTS));
-  preferencesKey.AppendLiteral("%APPNAME%\\shell\\properties");
-  PRInt32 offset = preferencesKey.Find("%APPNAME%");
-  preferencesKey.Replace(offset, 9, mBrandFullName);
-
-  const PRUnichar* brandNameStrings[] = { mBrandShortName.get() };
-
-  // Set the Preferences menu item
-  nsString preferencesTitle;
-  bundle->FormatStringFromName(NS_LITERAL_STRING("preferencesLabel").get(),
-                               brandNameStrings, 1, getter_Copies(preferencesTitle));
-  // Set the registry keys
-  SetRegKey(preferencesKey, EmptyString(), preferencesTitle, PR_TRUE);
-#ifndef __MINGW32__
-  // Tell the MAPI Service to register the mapi proxy dll now that we are the default mail application
-  nsCOMPtr<nsIMapiSupport> mapiService (do_GetService(NS_IMAPISUPPORT_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-  return mapiService->RegisterServer();
-#else
-  return NS_OK;
-#endif
-}
-
-nsresult
-nsWindowsShellService::setDefaultNews()
-{
-  setKeysForSettings(gNewsSettings, sizeof(gNewsSettings)/sizeof(SETTING));
-
-  // at least for now, this key needs to be written to HKLM instead of HKCU
-  // which is where the windows operating system looks (at least on Win XP and earlier)
-  SetRegKey(NS_LITERAL_STRING(MOZ_CLIENT_NEWS_KEY), EmptyString(), mBrandFullName, PR_TRUE);
-
-  nsAutoString key1(NS_LITERAL_STRING(NEWSCLIENTS));
-  key1.Append(mBrandFullName);
-  key1.AppendLiteral("\\");
-  SetRegKey(key1, EmptyString(), mBrandFullName, PR_TRUE);
-  return NS_OK;
-}
-#endif
 
 static nsresult
 WriteBitmap(nsIFile* aFile, gfxIImageFrame* aImage)
@@ -1344,52 +834,5 @@ nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
   // Close the key we opened.
   ::RegCloseKey(key);
   return NS_OK;
-}
-
-
-/* helper routine. Iterate over the passed in settings array, setting each key
- * in the windows registry.
-*/
-
-void
-nsWindowsShellService::setKeysForSettings(SETTING aSettings[], PRInt32 aSize)
-{
-  SETTING* settings;
-  SETTING* end = aSettings + aSize;
-  PRInt32 offset;
-
-  for (settings = aSettings; settings < end; ++settings)
-  {
-    NS_ConvertUTF8toUTF16 data(settings->valueData);
-    NS_ConvertUTF8toUTF16 key(settings->keyName);
-    NS_ConvertUTF8toUTF16 value(settings->valueName);
-    if (settings->flags & APP_FOLDER_SUBSTITUTION)
-    {
-      offset = data.Find("%APPFOLDER%");
-      data.Replace(offset, 11, mAppFolder);
-    }
-    if (settings->flags & APP_PATH_SUBSTITUTION)
-    {
-      offset = data.Find("%APPPATH%");
-      data.Replace(offset, 9, mAppLongPath);
-    }
-    if (settings->flags & MAPIDLL_PATH_SUBSTITUTION)
-    {
-      offset = data.Find("%MAPIDLLPATH%");
-      data.Replace(offset, 13, mMapiDLLPath);
-    }
-    if (settings->flags & APP_NAME_SUBSTITUTION)
-    {
-      offset = key.Find("%APPNAME%");
-      key.Replace(offset, 9, mBrandFullName);
-    }
-    if (settings->flags & UNINST_PATH_SUBSTITUTION)
-    {
-      offset = data.Find("%UNINSTPATH%");
-      data.Replace(offset, 12, mUninstallPath);
-    }
-
-    SetRegKey(key, value, data, settings->flags & HKLM_ONLY);
-  }
 }
 
