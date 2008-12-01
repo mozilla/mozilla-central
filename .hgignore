@@ -15,6 +15,9 @@
 ^config\.log$
 ^ID$
 
+#treestate
+^.treestate$
+
 # Build directories
 ^obj-
 ^objdir-
@@ -22,3 +25,4 @@
 # directories we check out from other repositories
 ^directory/c-sdk$
 ^mozilla$
+^.mozilla-trunk$

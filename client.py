@@ -14,8 +14,13 @@ VENKMAN_DIRS = ('extensions/venkman',)
 
 DEFAULT_COMM_REV = "tip"
 # URL of the default hg repository to clone for Mozilla.
-DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/mozilla-central/'
+DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/releases/mozilla-1.9.1/'
 DEFAULT_MOZILLA_REV = "tip"
+
+# REGEX to match against, $1 should refer to protocol scheme
+MOZILLA_TRUNK_REPO_REGEXP = "(ssh|http|https):\/\/hg\.mozilla\.org\/mozilla-central\/$"
+MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
+
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
 DEFAULT_INSPECTOR_REV = "tip"
@@ -28,6 +33,8 @@ from optparse import OptionParser
 topsrcdir = os.path.dirname(__file__)
 if topsrcdir == '':
     topsrcdir = '.'
+
+TREE_STATE_FILE = os.path.join(topsrcdir, '.treestate')
 
 try:
     from subprocess import check_call
@@ -44,6 +51,67 @@ except ImportError:
 def check_call_noisy(cmd, *args, **kwargs):
     print "Executing command:", cmd
     check_call(cmd, *args, **kwargs)
+
+def repo_config():
+    import ConfigParser
+    config = ConfigParser.ConfigParser()
+    config.read([TREE_STATE_FILE])
+    if not config.has_section('default'):
+      config.add_section('default')
+    config.set('default', 'src_update_version', '1')
+
+    # Write this file out
+    f = open(TREE_STATE_FILE, 'w')
+    try:
+      config.write(f)
+    finally:
+      f.close()
+
+def move_to_stable():
+    mozilla_path = os.path.join(topsrcdir, 'mozilla')
+    if not os.path.exists(mozilla_path):
+      return
+    if os.path.exists(TREE_STATE_FILE):
+      return
+
+    import ConfigParser, re
+    config = ConfigParser.ConfigParser()
+    config.read([os.path.join(mozilla_path, '.hg', 'hgrc')])
+
+    if not config.has_option('paths', 'default'):
+      return
+
+    #Compile the m-c regex
+    m_c_regex = re.compile(MOZILLA_TRUNK_REPO_REGEXP, re.I)
+    match = m_c_regex.match(config.get('paths', 'default'))
+    if not match:
+      return # We are not pulling from m-c, do nothing
+
+    config.set('paths', 'default',
+               "%s://hg.mozilla.org/releases/mozilla-1.9.1/" % match.group(1) )
+
+    if config.has_option('paths', 'default-push'):
+      match = m_c_regex.match(config.get('paths', 'default-push'))
+      if match: # failure is ok
+        config.set('paths', 'default-push',
+                   "%s://hg.mozilla.org/releases/mozilla-1.9.1/" % match.group(1) )
+
+    hgopts = []
+    if options.hgopts:
+        hgopts = options.hgopts.split()
+
+    mozilla_trunk_path = os.path.join(topsrcdir, '.mozilla-trunk')
+    print "Moving mozilla to .mozilla-trunk..."
+    os.rename(mozilla_path, mozilla_trunk_path)
+    check_call_noisy([options.hg, 'clone', '-r', MOZILLA_BASE_REV] + hgopts + [mozilla_trunk_path, mozilla_path])
+
+    #Rewrite hgrc for new local mozilla repo based on pre-existing hgrc
+    # but with new values
+    f = open(os.path.join(topsrcdir, 'mozilla', '.hg', 'hgrc'), 'w')
+    try:
+      config.write(f)
+    finally:
+      f.close()
 
 def do_hg_pull(dir, repository, hg, rev):
     fulldir = os.path.join(topsrcdir, dir)
@@ -176,6 +244,9 @@ try:
 except ValueError:
     o.print_help()
     sys.exit(2)
+
+move_to_stable()
+repo_config()
 
 fixup_repo_options(options)
 
