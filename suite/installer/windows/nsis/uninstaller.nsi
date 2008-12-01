@@ -36,7 +36,10 @@
 # ***** END LICENSE BLOCK *****
 
 # Also requires:
-# ShellLink plugin http://nsis.sourceforge.net/ShellLink_plug-in
+# AppAssocReg http://nsis.sourceforge.net/Application_Association_Registration_plug-in
+# ShellLink   http://nsis.sourceforge.net/ShellLink_plug-in
+# UAC         http://nsis.sourceforge.net/UAC_plug-in
+
 
 ; Set verbosity to 3 (e.g. no script) to lessen the noise in the build logs
 !verbose 3
@@ -47,7 +50,12 @@ SetDatablockOptimize on
 SetCompress off
 CRCCheck on
 
+RequestExecutionLevel user
+
 !addplugindir ./
+
+; USE_UAC_PLUGIN is temporary until other apps have been updated to use the UAC plugin
+!define USE_UAC_PLUGIN
 
 ; prevents compiling of the reg write logging.
 !define NO_LOG
@@ -58,19 +66,19 @@ Var TmpVal
 ; The following includes are provided by NSIS.
 !include FileFunc.nsh
 !include LogicLib.nsh
+!include MUI.nsh
 !include TextFunc.nsh
 !include WinMessages.nsh
+!include WinVer.nsh
 !include WordFunc.nsh
-!include MUI.nsh
 
 !insertmacro GetOptions
 !insertmacro GetParameters
+!insertmacro GetParent
 !insertmacro StrFilter
 !insertmacro WordFind
-!insertmacro WordReplace
 
-!insertmacro un.LineFind
-!insertmacro un.TrimNewLines
+!insertmacro un.GetParent
 
 ; The following includes are custom.
 !include branding.nsi
@@ -82,22 +90,43 @@ Var TmpVal
 ; This is named BrandShortName helper because we use this for software update
 ; post update cleanup.
 VIAddVersionKey "FileDescription" "${BrandShortName} Helper"
+VIAddVersionKey "OriginalFilename" "helper.exe"
 
+!insertmacro AddDDEHandlerValues
+!insertmacro AddHandlerValues
+!insertmacro CleanVirtualStore
 !insertmacro GetLongPath
 !insertmacro GetPathFromString
-!insertmacro AddHandlerValues
+!insertmacro IsHandlerForInstallDir
 !insertmacro RegCleanMain
 !insertmacro RegCleanUninstall
-!insertmacro WriteRegStr2
+!insertmacro UnloadUAC
+!insertmacro WordReplace
 !insertmacro WriteRegDWORD2
+!insertmacro WriteRegStr2
 
+!insertmacro un.ChangeMUIHeaderImage
+!insertmacro un.CheckForFilesInUse
+!insertmacro un.CleanUpdatesDir
+!insertmacro un.CleanVirtualStore
 !insertmacro un.GetLongPath
-!insertmacro un.RegCleanMain
-!insertmacro un.RegCleanUninstall
-!insertmacro un.CloseApp
 !insertmacro un.GetSecondInstallPath
+!insertmacro un.ManualCloseAppPrompt
+!insertmacro un.ParseUninstallLog
+!insertmacro un.RegCleanAppHandler
+!insertmacro un.RegCleanFileHandler
+!insertmacro un.RegCleanMain
+!insertmacro un.RegCleanProtocolHandler
+!insertmacro un.RegCleanUninstall
+!insertmacro un.RemoveQuotesFromPath
 
 !include shared.nsh
+
+; Helper macros for ui callbacks. Insert these after shared.nsh
+!insertmacro OnEndCommon
+!insertmacro UninstallOnInitCommon
+
+!insertmacro un.OnEndCommon
 
 Name "${BrandFullName}"
 OutFile "helper.exe"
@@ -127,28 +156,30 @@ ShowUnInstDetails nevershow
  * Uninstall Pages
  */
 ; Welcome Page
+!define MUI_PAGE_CUSTOMFUNCTION_PRE un.preWelcome
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE un.leaveWelcome
 !insertmacro MUI_UNPAGE_WELCOME
 
 ; Uninstall Confirm Page
-!insertmacro MUI_UNPAGE_CONFIRM
+UninstPage custom un.preConfirm un.leaveConfirm
 
 ; Remove Files Page
-!define MUI_PAGE_CUSTOMFUNCTION_PRE un.preInstFiles
 !insertmacro MUI_UNPAGE_INSTFILES
 
-; Finish Page
+; Don't setup the survey controls, functions, etc. when the application has
+; defined NO_UNINSTALL_SURVEY
+!ifndef NO_UNINSTALL_SURVEY
 !define MUI_PAGE_CUSTOMFUNCTION_PRE un.preFinish
 !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
 !define MUI_FINISHPAGE_SHOWREADME ""
-
-; Setup the survey controls, functions, etc. except when the application has
-; defined NO_UNINSTALL_SURVEY
-!ifndef NO_UNINSTALL_SURVEY
 !define MUI_FINISHPAGE_SHOWREADME_TEXT $(SURVEY_TEXT)
 !define MUI_FINISHPAGE_SHOWREADME_FUNCTION un.Survey
 !endif
 
 !insertmacro MUI_UNPAGE_FINISH
+
+; Use the default dialog for IDD_VERIFY for a simple Banner
+ChangeUI IDD_VERIFY "${NSISDIR}\Contrib\UIs\default.exe"
 
 ################################################################################
 # Install Sections
@@ -164,16 +195,66 @@ Section "Uninstall"
   DetailPrint $(STATUS_UNINSTALL_MAIN)
   SetDetailsPrint none
 
-  ; Remove registry entries for non-existent apps and for apps that point to our
-  ; install location in the Software\Mozilla key and uninstall registry entries
-  ; that point to our install location for both HKCU and HKLM.
-  SetShellVarContext current  ; Sets SHCTX to HKCU
+  ; Delete the app exe to prevent launching the app while we are uninstalling.
+  ClearErrors
+  ${DeleteFile} "$INSTDIR\${FileMainEXE}"
+  ${If} ${Errors}
+    ; If the user closed the application it can take several seconds for it to
+    ; shut down completely. If the application is being used by another user we
+    ; can still delete the files when the system is restarted.
+    Sleep 5000
+    ${DeleteFile} "$INSTDIR\${FileMainEXE}"
+    ClearErrors
+  ${EndIf}
+
+  SetShellVarContext current  ; Set SHCTX to HKCU
   ${un.RegCleanMain} "Software\Mozilla"
   ${un.RegCleanUninstall}
 
-  SetShellVarContext all  ; Sets SHCTX to HKLM
-  ${un.RegCleanMain} "Software\Mozilla"
-  ${un.RegCleanUninstall}
+  ClearErrors
+  WriteRegStr HKLM "Software\Mozilla" "${BrandShortName}InstallerTest" "Write Test"
+  ${If} ${Errors}
+    StrCpy $TmpVal "HKCU" ; used primarily for logging
+  ${Else}
+    SetShellVarContext all  ; Set SHCTX to HKLM
+    DeleteRegValue HKLM "Software\Mozilla" "${BrandShortName}InstallerTest"
+    StrCpy $TmpVal "HKLM" ; used primarily for logging
+    ${un.RegCleanMain} "Software\Mozilla"
+    ${un.RegCleanUninstall}
+  ${EndIf}
+
+  ${un.RegCleanAppHandler} "SeaMonkeyURL"
+  ${un.RegCleanAppHandler} "SeaMonkeyHTML"
+  ${un.RegCleanAppHandler} "SeaMonkeyMAIL"
+  ${un.RegCleanAppHandler} "SeaMonkeyNEWS"
+  ${un.RegCleanAppHandler} "SeaMonkeyEML"
+  ${un.RegCleanProtocolHandler} "http"
+  ${un.RegCleanProtocolHandler} "https"
+  ${un.RegCleanProtocolHandler} "ftp"
+  ${un.RegCleanProtocolHandler} "mailto"
+  ${un.RegCleanProtocolHandler} "news"
+  ${un.RegCleanProtocolHandler} "nntp"
+  ${un.RegCleanProtocolHandler} "snews"
+
+  ClearErrors
+  ReadRegStr $R9 HKCR "SeaMonkeyEML" ""
+  ; Don't clean up the file handlers if the SeaMonkeyEML key still exists since
+  ; there could be a second installation that may be the default file handler
+  ${If} ${Errors}
+    ${un.RegCleanFileHandler}  ".eml"   "SeaMonkeyEML"
+  ${EndIf}
+
+  ClearErrors
+  ReadRegStr $R9 HKCR "SeaMonkeyHTML" ""
+  ; Don't clean up the file handlers if the SeaMonkeyHTML key still exists since
+  ; there could be a second installation that may be the default file handler
+  ${If} ${Errors}
+    ${un.RegCleanFileHandler}  ".htm"   "SeaMonkeyHTML"
+    ${un.RegCleanFileHandler}  ".html"  "SeaMonkeyHTML"
+    ${un.RegCleanFileHandler}  ".shtml" "SeaMonkeyHTML"
+    ${un.RegCleanFileHandler}  ".xht"   "SeaMonkeyHTML"
+    ${un.RegCleanFileHandler}  ".xhtml" "SeaMonkeyHTML"
+  ${EndIf}
 
   SetShellVarContext all  ; Set SHCTX to HKLM
   ${un.GetSecondInstallPath} "Software\Mozilla" $R9
@@ -183,13 +264,9 @@ Section "Uninstall"
   ${EndIf}
 
   StrCpy $0 "Software\Clients\StartMenuInternet\${FileMainEXE}\shell\open\command"
-  ReadRegStr $1 HKLM "$0" ""
-  Push $1
-  ${GetPathFromRegStr}
-  Pop $R0
-  Push $R0
-  ${GetParentDir}
-  Pop $R1
+  ReadRegStr $R1 HKLM "$0" ""
+  ${un.RemoveQuotesFromPath} "$R1" $R1
+  ${un.GetParent} "$R1" $R1
 
   ; Only remove the StartMenuInternet key if it refers to this install location.
   ; The StartMenuInternet registry key is independent of the default browser
@@ -199,21 +276,14 @@ Section "Uninstall"
   ; default browser. Now the key is always updated on install but it is only
   ; removed if it refers to this install location.
   ${If} "$INSTDIR" == "$R1"
-    ; XXXrstrong - if there is another installation of the same app ideally we
-    ; would just modify these values. The GetSecondInstallPath macro could be
-    ; made to provide enough information to do this.
     DeleteRegKey HKLM "Software\Clients\StartMenuInternet\${FileMainEXE}"
     DeleteRegValue HKLM "Software\RegisteredApplications" "${AppRegName}"
   ${EndIf}
 
   StrCpy $0 "Software\Clients\Mail\${BrandFullNameInternal}\shell\open\command"
-  ReadRegStr $1 HKLM "$0" ""
-  Push $1
-  ${GetPathFromRegStr}
-  Pop $R0
-  Push $R0
-  ${GetParentDir}
-  Pop $R1
+  ReadRegStr $R1 HKLM "$0" ""
+  ${un.RemoveQuotesFromPath} "$R1" $R1
+  ${un.GetParent} "$R1" $R1
 
   ; Only remove the Clients\Mail and Clients\News key if it refers to this
   ; install location. The Clients\Mail & Clients\News keys are independent
@@ -224,9 +294,6 @@ Section "Uninstall"
   ; updated on install but are only removed if they refer to this install
   ; location.
   ${If} "$INSTDIR" == "$R1"
-    ; XXXrstrong - if there is another installation of the same app ideally we
-    ; would just modify these values. The GetSecondInstallPath macro could be
-    ; made to provide enough information to do this.
     DeleteRegKey HKLM "Software\Clients\Mail\${BrandFullNameInternal}"
     DeleteRegKey HKLM "Software\Clients\News\${BrandFullNameInternal}"
     DeleteRegValue HKLM "Software\RegisteredApplications" "${AppRegNameMail}"
@@ -241,149 +308,72 @@ Section "Uninstall"
     DeleteRegKey HKLM "$0"
     DeleteRegKey HKCU "$0"
   ${Else}
-    ReadRegStr $1 HKLM "$0" ""
-    Push $1
-    ${GetPathFromRegStr}
-    Pop $R0
-    Push $R0
-    ${GetParentDir}
-    Pop $R1
+    ReadRegStr $R1 HKLM "$0" ""
+    ${un.RemoveQuotesFromPath} "$R1" $R1
+    ${un.GetParent} "$R1" $R1
     ${If} "$INSTDIR" == "$R1"
       WriteRegStr HKLM "$0" "" "$R9"
-      Push $R9
-      ${GetParentDir}
-      Pop $R1
+      ${un.GetParent} "$R9" $R1
       WriteRegStr HKLM "$0" "Path" "$R1"
     ${EndIf}
   ${EndIf}
 
-  ; Remove files. If we don't have a log file skip
-  ${If} ${FileExists} "$INSTDIR\uninstall\uninstall.log"
-    ; Copy the uninstall log file to a temporary file
-    GetTempFileName $TmpVal
-    CopyFiles "$INSTDIR\uninstall\uninstall.log" "$TmpVal"
-
-    ; Unregister DLL's
-    ${un.LineFind} "$TmpVal" "/NUL" "1:-1" "un.UnRegDLLsCallback"
-
-    ; Delete files
-    ${un.LineFind} "$TmpVal" "/NUL" "1:-1" "un.RemoveFilesCallback"
-
-    ; Remove directories we always control
-    RmDir /r "$INSTDIR\uninstall"
-    RmDir /r "$INSTDIR\updates"
-    RmDir /r "$INSTDIR\defaults\shortcuts"
-
-    ; Remove empty directories
-    ${un.LineFind} "$TmpVal" "/NUL" "1:-1" "un.RemoveDirsCallback"
-
-    ; Delete the temporary uninstall log file
-    ${DeleteFile} "$TmpVal"
-
-    ; Remove the installation directory if it is empty
-    ${RemoveDir} "$INSTDIR"
+  ; Remove directories and files we always control before parsing the uninstall
+  ; log so empty directories can be removed.
+  ${If} ${FileExists} "$INSTDIR\updates"
+    RmDir /r /REBOOTOK "$INSTDIR\updates"
+  ${EndIf}
+  ${If} ${FileExists} "$INSTDIR\defaults\shortcuts"
+    RmDir /r /REBOOTOK "$INSTDIR\defaults\shortcuts"
+  ${EndIf}
+  ${If} ${FileExists} "$INSTDIR\distribution"
+    RmDir /r /REBOOTOK "$INSTDIR\distribution"
+  ${EndIf}
+  ${If} ${FileExists} "$INSTDIR\removed-files"
+    Delete /REBOOTOK "$INSTDIR\removed-files"
   ${EndIf}
 
+  ; Remove the updates directory for Vista and above
+  ${un.CleanUpdatesDir} "Mozilla\SeaMonkey"
+
+  ; Remove files that may be left behind by the application in the
+  ; VirtualStore directory.
+  ${un.CleanVirtualStore}
+
+  ; Parse the uninstall log to unregister dll's and remove all installed
+  ; files / directories this install is responsible for.
+  ${un.ParseUninstallLog}
+
+  ; Remove the uninstall directory that we control
+  RmDir /r /REBOOTOK "$INSTDIR\uninstall"
+
+  ; Remove the installation directory if it is empty
+  ${RemoveDir} "$INSTDIR"
+
+  ; If seamonkey.exe was successfully deleted yet we still need to restart to
+  ; remove other files create a dummy seamonkey.exe.moz-delete to prevent the
+  ; installer from allowing an install without restart when it is required
+  ; to complete an uninstall.
+  ${If} ${RebootFlag}
+    ${Unless} ${FileExists} "$INSTDIR\${FileMainEXE}.moz-delete"
+      FileOpen $0 "$INSTDIR\${FileMainEXE}.moz-delete" w
+      FileWrite $0 "Will be deleted on restart"
+      Delete /REBOOTOK "$INSTDIR\${FileMainEXE}.moz-delete"
+      FileClose $0
+    ${EndUnless}
+  ${EndIf}
+
+
   ; Refresh desktop icons otherwise the start menu internet item won't be
-  ; removed and other ugly things will happen like recreation of the registry
-  ; key by the OS under some conditions.
+  ; removed and other ugly things will happen like recreation of the app's
+  ; clients registry key by the OS under some conditions.
   System::Call "shell32::SHChangeNotify(i, i, i, i) v (0x08000000, 0, 0, 0)"
 SectionEnd
 
 ################################################################################
 # Helper Functions
 
-Function un.RemoveFilesCallback
-  ${un.TrimNewLines} "$R9" "$R9"
-  StrCpy $R1 "$R9" 5
-  ${If} $R1 == "File:"
-    StrCpy $R9 "$R9" "" 6
-    StrCpy $R0 "$R9" 1
-    ; If the path is relative prepend the install directory
-    ${If} $R0 == "\"
-      StrCpy $R0 "$INSTDIR$R9"
-    ${Else}
-      StrCpy $R0 "$R9"
-    ${EndIf}
-    ${If} ${FileExists} "$R0"
-      ${DeleteFile} "$R0"
-    ${EndIf}
-  ${EndIf}
-  ClearErrors
-  Push 0
-FunctionEnd
-
-; Using locate will leave file handles open to some of the directories which
-; will prevent the deletion of these directories. This parses the uninstall.log
-; and uses the file entries to find / remove empty directories.
-Function un.RemoveDirsCallback
-  ${un.TrimNewLines} "$R9" "$R9"
-  StrCpy $R1 "$R9" 5
-  ${If} $R1 == "File:"
-    StrCpy $R9 "$R9" "" 6
-    StrCpy $R1 "$R9" 1
-    ${If} $R1 == "\"
-      StrCpy $R2 "$INSTDIR"
-      StrCpy $R1 "$INSTDIR$R9"
-    ${Else}
-      StrCpy $R2 ""
-      StrCpy $R1 "$R9"
-    ${EndIf}
-    loop:
-      Push $R1
-      ${GetParentDir}
-      Pop $R0
-      GetFullPathName $R1 "$R0"
-      ; We only try to remove empty directories but the Desktop, StartMenu, and
-      ; QuickLaunch directories can be empty so guard against removing them.
-      ${If} "$R2" != "$INSTDIR"
-        SetShellVarContext all
-        ${If} $R1 == "$DESKTOP"
-        ${OrIf} $R1 == "$STARTMENU"
-          GoTo end
-        ${EndIf}
-        SetShellVarContext current
-        ${If} $R1 == "$QUICKLAUNCH"
-        ${OrIf} $R1 == "$DESKTOP"
-        ${OrIf} $R1 == "$STARTMENU"
-          GoTo end
-        ${EndIf}
-      ${ElseIf} "$R1" == "$INSTDIR"
-        GoTo end
-      ${EndIf}
-      ${If} ${FileExists} "$R1"
-        RmDir "$R1"
-      ${EndIf}
-      ${If} ${Errors}
-      ${OrIf} "$R2" != "$INSTDIR"
-        GoTo end
-      ${EndIf}
-      GoTo loop
-  ${EndIf}
-
-  end:
-    ClearErrors
-    Push 0
-FunctionEnd
-
-Function un.UnRegDLLsCallback
-  ${un.TrimNewLines} "$R9" "$R9"
-  StrCpy $R1 "$R9" 7
-  ${If} $R1 == "DLLReg:"
-    StrCpy $R9 "$R9" "" 8
-    StrCpy $R1 "$R9" 1
-    ${If} $R1 == "\"
-      StrCpy $R1 "$INSTDIR$R9"
-    ${Else}
-      StrCpy $R1 "$R9"
-    ${EndIf}
-    UnRegDLL $R1
-  ${EndIf}
-  ClearErrors
-  Push 0
-FunctionEnd
-
-; Setup the survey controls, functions, etc. except when the application has
+; Don't setup the survey controls, functions, etc. when the application has
 ; defined NO_UNINSTALL_SURVEY
 !ifndef NO_UNINSTALL_SURVEY
 Function un.Survey
@@ -406,41 +396,112 @@ FunctionEnd
 BrandingText " "
 
 ################################################################################
-# Page pre and leave functions
+# Page pre, show, and leave functions
 
-; Checks if the app being uninstalled is running.
-Function un.preInstFiles
-  ; Try to delete the app executable and if we can't delete it try to close the
-  ; app. This allows running an instance that is located in another directory.
-  ClearErrors
-  ${If} ${FileExists} "$INSTDIR\${FileMainEXE}"
-    ${DeleteFile} "$INSTDIR\${FileMainEXE}"
+Function un.preWelcome
+  ${If} ${FileExists} "$INSTDIR\distribution\modern-wizard.bmp"
+    Delete "$PLUGINSDIR\modern-wizard.bmp"
+    CopyFiles /SILENT "$INSTDIR\distribution\modern-wizard.bmp" "$PLUGINSDIR\modern-wizard.bmp"
   ${EndIf}
-  ${If} ${Errors}
-    ClearErrors
-    ${un.CloseApp} "true" $(WARN_APP_RUNNING_UNINSTALL)
-    ; Delete the app exe to prevent launching the app while we are uninstalling.
-    ClearErrors
-    ${DeleteFile} "$INSTDIR\${FileMainEXE}"
-    ${If} ${Errors}
-      ClearErrors
-      ${un.CloseApp} "true" $(WARN_APP_RUNNING_UNINSTALL)
-      ClearErrors
-      ${DeleteFile} "$INSTDIR\${FileMainEXE}"
+FunctionEnd
+
+Function un.leaveWelcome
+  ${If} ${FileExists} "$INSTDIR\${FileMainEXE}"
+    Banner::show /NOUNLOAD "$(BANNER_CHECK_EXISTING)"
+
+    ${If} "$TmpVal" == "FoundMessageWindow"
+      Sleep 5000
+    ${EndIf}
+
+    ${PushFilesToCheck}
+
+    ${un.CheckForFilesInUse} $TmpVal
+
+    Banner::destroy
+
+    ${If} "$TmpVal" == "true"
+      StrCpy $TmpVal "FoundMessageWindow"
+      ${un.ManualCloseAppPrompt} "${WindowClass}" "$(WARN_MANUALLY_CLOSE_APP_UNINSTALL)"
+      StrCpy $TmpVal "true"
     ${EndIf}
   ${EndIf}
 FunctionEnd
 
-; When we add an optional action to the finish page the cancel button is
-; enabled. This disables it and leaves the finish button as the only choice.
-Function un.preFinish
-  !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "cancelenabled" "0"
+Function un.preConfirm
+  ${If} ${FileExists} "$INSTDIR\distribution\modern-header.bmp"
+  ${AndIf} $hHeaderBitmap == ""
+    Delete "$PLUGINSDIR\modern-header.bmp"
+    CopyFiles /SILENT "$INSTDIR\distribution\modern-header.bmp" "$PLUGINSDIR\modern-header.bmp"
+    ${un.ChangeMUIHeaderImage} "$PLUGINSDIR\modern-header.bmp"
+  ${EndIf}
 
-  ; Setup the survey controls, functions, etc. except when the application has
-  ; defined NO_UNINSTALL_SURVEY
-  !ifdef NO_UNINSTALL_SURVEY
-    !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "NumFields" "3"
-  !else
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Settings" NumFields "3"
+
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 1" Type   "label"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 1" Text   "$(UN_CONFIRM_UNINSTALLED_FROM)"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 1" Left   "0"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 1" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 1" Top    "5"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 1" Bottom "15"
+
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 2" Type   "text"
+  ; The contents of this control must be set as follows in the pre function
+  ; ${MUI_INSTALLOPTIONS_READ} $1 "unconfirm.ini" "Field 2" "HWND"
+  ; SendMessage $1 ${WM_SETTEXT} 0 "STR:$INSTDIR"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 2" State  ""
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 2" Left   "0"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 2" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 2" Top    "17"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 2" Bottom "30"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 2" flags  "READONLY"
+
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Type   "label"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Text   "$(UN_CONFIRM_CLICK)"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Left   "0"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Top    "130"
+  WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 3" Bottom "150"
+
+  ${If} "$TmpVal" == "true"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Type   "label"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Text   "$(SUMMARY_REBOOT_REQUIRED_UNINSTALL)"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Left   "0"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Right  "-1"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Top    "35"
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Field 4" Bottom "45"
+
+    WriteINIStr "$PLUGINSDIR\unconfirm.ini" "Settings" NumFields "4"
+  ${EndIf}
+
+  !insertmacro MUI_HEADER_TEXT "$(UN_CONFIRM_PAGE_TITLE)" "$(UN_CONFIRM_PAGE_SUBTITLE)"
+  ; The Summary custom page has a textbox that will automatically receive
+  ; focus. This sets the focus to the Install button instead.
+  !insertmacro MUI_INSTALLOPTIONS_INITDIALOG "unconfirm.ini"
+  GetDlgItem $0 $HWNDPARENT 1
+  System::Call "user32::SetFocus(i r0, i 0x0007, i,i)i"
+  ${MUI_INSTALLOPTIONS_READ} $1 "unconfirm.ini" "Field 2" "HWND"
+  SendMessage $1 ${WM_SETTEXT} 0 "STR:$INSTDIR"
+  !insertmacro MUI_INSTALLOPTIONS_SHOW
+FunctionEnd
+
+Function un.leaveConfirm
+  ; Try to delete the app executable and if we can't delete it try to find the
+  ; app's message window and prompt the user to close the app. This allows
+  ; running an instance that is located in another directory. If for whatever
+  ; reason there is no message window we will just rename the app's files and
+  ; then remove them on restart if they are in use.
+  ClearErrors
+  ${DeleteFile} "$INSTDIR\${FileMainEXE}"
+  ${If} ${Errors}
+    ${un.ManualCloseAppPrompt} "${WindowClass}" "$(WARN_MANUALLY_CLOSE_APP_UNINSTALL)"
+  ${EndIf}
+FunctionEnd
+
+!ifndef NO_UNINSTALL_SURVEY
+Function un.preFinish
+  ; Do not modify the finish page if there is a reboot pending
+  ${Unless} ${RebootFlag}
+    ; Setup the survey controls, functions, etc.
     StrCpy $TmpVal "SOFTWARE\Microsoft\IE Setup\Setup"
     ClearErrors
     ReadRegStr $0 HKLM $TmpVal "Path"
@@ -456,95 +517,42 @@ Function un.preFinish
       GetFullPathName $TmpVal $0
       ${If} ${Errors}
         !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "NumFields" "3"
+      ${Else}
+        ; When we add an optional action to the finish page the cancel button
+        ; is enabled. This disables it and leaves the finish button as the
+        ; only choice.
+        !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "cancelenabled" "0"
       ${EndIf}
     ${EndIf}
-  !endif
 FunctionEnd
+!endif
 
 ################################################################################
 # Initialization Functions
 
 Function .onInit
-  GetFullPathName $INSTDIR "$EXEDIR\.."
-  ${Unless} ${FileExists} "$INSTDIR\${FileMainEXE}"
-    Abort
-  ${EndUnless}
-  ${GetParameters} $R0
-
-  ${Switch} $R0
-    ${Case} "/HideShortcuts"
-      ${HideShortcuts}
-      StrCpy $R1 "true"
-      ${Break}
-    ${Case} "/ShowShortcuts"
-      ${ShowShortcuts}
-      StrCpy $R1 "true"
-      ${Break}
-    ${Case} "/SetAsDefaultAppUser"
-      ${SetAsDefaultAppUser}
-      StrCpy $R1 "true"
-      ${Break}
-    ${Case} "/SetAsDefaultAppGlobal"
-      ${SetAsDefaultAppGlobal}
-      StrCpy $R1 "true"
-      ${Break}
-    ${Default}
-      ClearErrors
-      ${Unless} "$R0" == ""
-        ${WordReplace} "$R0" "$\"" "" "+" $R0
-        ClearErrors
-        ${GetOptions} "$R0" "/PostUpdate" $R2
-        ${Unless} ${Errors}
-          ${PostUpdate}
-          ClearErrors
-          ${GetOptions} "$R0" "/UninstallLog=" $R2
-          ${Unless} ${Errors}
-            ${Unless} "$R2" == ""
-              GetFullPathName $R3 "$R2"
-              ${If} ${FileExists} "$R3"
-                Delete "$INSTDIR\uninstall\*wizard*"
-                Delete "$INSTDIR\uninstall\uninstall.log"
-                CopyFiles /SILENT "$R3" "$INSTDIR\uninstall\"
-                Push $R3
-                ${GetParentDir}
-                Pop $R4
-                Delete "$R3"
-                RmDir "$R4"
-              ${EndIf}
-            ${EndUnless}
-          ${EndUnless}
-          StrCpy $R1 "true"
-        ${EndUnless}
-      ${EndUnless}
-      ${Break}
-  ${EndSwitch}
-
-  ${If} $R1 == "true"
-    System::Call "shell32::SHChangeNotify(i, i, i, i) v (0x08000000, 0, 0, 0)"
-    Quit
-  ${EndIf}
-
-  ; If we made it this far then this installer is being used as an uninstaller.
-  WriteUninstaller "$EXEDIR\uninstaller.exe"
-
-  ${If} $R0 == "/S"
-    StrCpy $TmpVal "$\"$EXEDIR\uninstaller.exe$\" /S"
-  ${Else}
-    StrCpy $TmpVal "$\"$EXEDIR\uninstaller.exe$\""
-  ${EndIf}
-
-  ; When the uninstaller is launched it copies itself to the temp directory so
-  ; it won't be in use so it can delete itself.
-  ExecWait $TmpVal
-  ${DeleteFile} "$EXEDIR\uninstaller.exe"
-  SetErrorLevel 0
-  Quit
+  ${UninstallOnInitCommon}
 FunctionEnd
 
 Function un.onInit
   GetFullPathName $INSTDIR "$INSTDIR\.."
+  ${un.GetLongPath} "$INSTDIR" $INSTDIR
   ${Unless} ${FileExists} "$INSTDIR\${FileMainEXE}"
     Abort
   ${EndUnless}
+
   StrCpy $LANGUAGE 0
+
+  ; Initialize $hHeaderBitmap to prevent redundant changing of the bitmap if
+  ; the user clicks the back button
+  StrCpy $hHeaderBitmap ""
 FunctionEnd
+
+Function .onGUIEnd
+  ${OnEndCommon}
+FunctionEnd
+
+Function un.onGUIEnd
+  ${un.OnEndCommon}
+FunctionEnd
+

@@ -76,13 +76,13 @@
       ${GetSize} "$EXEDIR\optional\extensions\langpack-${AB_CD}@chatzilla.mozilla.org" "/S=0K" $1 $8 $9
       IntOp $0 $0 + $1
     ${EndIf}
-    SectionSetSize 1 $0
+    SectionSetSize ${CZ_IDX} $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4
     IntOp $R3 $R3 + $R4
   ${Else}
     ; Hide ChatZilla in the components page if it isn't available.
-    SectionSetText 1 ""
+    SectionSetText ${CZ_IDX} ""
   ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
@@ -96,13 +96,13 @@
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" State  "1"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Flags  "GROUP"
     ${GetSize} "$EXEDIR\optional\extensions\inspector@mozilla.org" "/S=0K" $0 $8 $9
-    SectionSetSize 2 $0
+    SectionSetSize ${DOMI_IDX} $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4
     IntOp $R3 $R3 + $R4
   ${Else}
     ; Hide DOMi in the components page if it isn't available.
-    SectionSetText 2 ""
+    SectionSetText ${DOMI_IDX} ""
   ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
@@ -115,13 +115,13 @@
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" State  "1"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Flags  "GROUP"
     ${GetSize} "$EXEDIR\optional\extensions\debugQA@mozilla.org" "/S=0K" $0 $8 $9
-    SectionSetSize 3 $0
+    SectionSetSize ${DEBUG_IDX} $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4
     IntOp $R3 $R3 + $R4
   ${Else}
     ; Hide debugQA in the components page if it isn't available.
-    SectionSetText 3 ""
+    SectionSetText ${DEBUG_IDX} ""
   ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
@@ -134,13 +134,13 @@
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" State  "1"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Flags  "GROUP"
     ${GetSize} "$EXEDIR\optional\extensions\p@m" "/S=0K" $0 $8 $9
-    SectionSetSize 4 $0
+    SectionSetSize ${PALM_IDX} $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4
     IntOp $R3 $R3 + $R4
   ${Else}
     ; Hide Palm Sync in the components page if it isn't available.
-    SectionSetText 4 ""
+    SectionSetText ${PALM_IDX} ""
   ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
@@ -157,13 +157,13 @@
       ${GetSize} "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org" "/S=0K" $1 $8 $9
       IntOp $0 $0 + $1
     ${EndIf}
-    SectionSetSize 5 $0
+    SectionSetSize ${VENKMAN_IDX} $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4
     IntOp $R3 $R3 + $R4
   ${Else}
     ; Hide Venkman in the components page if it isn't available.
-    SectionSetText 5 ""
+    SectionSetText ${VENKMAN_IDX} ""
   ${EndIf}
 
   ; Set new values for the top and bottom of labels
