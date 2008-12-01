@@ -363,3 +363,9 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   list-style-image: url("chrome://messenger/skin/icons/server.png");
   -moz-image-region: rect(0 16px 16px 0);
 }
+
+/* ..... tabs ..... */
+
+tabpanels#tabpanelcontainer {
+  -moz-appearance: none;
+}
