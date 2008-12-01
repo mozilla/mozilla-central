@@ -56,9 +56,9 @@ def repo_config():
     import ConfigParser
     config = ConfigParser.ConfigParser()
     config.read([TREE_STATE_FILE])
-    if not config.has_section('default'):
-      config.add_section('default')
-    config.set('default', 'src_update_version', '1')
+    if not config.has_section('treestate'):
+      config.add_section('treestate')
+    config.set('treestate', 'src_update_version', '1')
 
     # Write this file out
     f = open(TREE_STATE_FILE, 'w')
