@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -546,6 +547,55 @@ calTaskButtonDNDObserver.prototype = {
         createTodoWithDialog(null, null, null, todo);
     }
 };
+
+function invokeEventDragSession(aItem, aXULBox) {
+    let transfer = Components.classes["@mozilla.org/widget/transferable;1"].
+                   createInstance(Components.interfaces.nsITransferable);
+    transfer.addDataFlavor("text/calendar");
+
+    let flavourProvider = {
+        QueryInterface: function(aIID) {
+            return doQueryInterface(aXULBox, null, aIID, [Components.interfaces.nsIFlavorDataProvider]);
+        },
+        item: aItem,
+
+        getFlavorData: function(aInTransferable, aInFlavor, aOutData, aOutDataLen) {
+            if ((aInFlavor == "application/vnd.x-moz-cal-event") ||
+                (aInFlavor == "application/vnd.x-moz-cal-task")) {
+                aOutData.value = aItem;
+                aOutDataLen.value = 1;
+            } else {
+                ASSERT(false, "error:" + aInFlavor);
+            }
+        }
+    };
+
+    if (isEvent(aItem)) {
+      transfer.addDataFlavor("application/vnd.x-moz-cal-event");
+      transfer.setTransferData("application/vnd.x-moz-cal-event", flavourProvider, 0);
+    } else if (isToDo(aItem)) {
+      transfer.addDataFlavor("application/vnd.x-moz-cal-task");
+      transfer.setTransferData("application/vnd.x-moz-cal-task", flavourProvider, 0);
+    }
+
+    // Also set some normal data-types, in case we drag into another app
+    let serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
+                               .createInstance(Components.interfaces.calIIcsSerializer);
+    serializer.addItems([aItem], 1);
+
+    let supportsString = Components.classes["@mozilla.org/supports-string;1"]
+                         .createInstance(Components.interfaces.nsISupportsString);
+    supportsString.data = serializer.serializeToString();
+    transfer.setTransferData("text/calendar", supportsString, supportsString.data.length * 2);
+    transfer.setTransferData("text/unicode", supportsString, supportsString.data.length * 2);
+
+    let action = Components.interfaces.nsIDragService.DRAGDROP_ACTION_MOVE;
+    let supArray = Components.classes["@mozilla.org/supports-array;1"]
+                   .createInstance(Components.interfaces.nsISupportsArray);
+    supArray.AppendElement(transfer);
+
+    cal.getDragService().invokeDragSession(aXULBox, supArray, null, action);
+}
 
 var calendarViewDNDObserver = new calViewDNDObserver();
 var calendarMailButtonDNDObserver = new calMailButtonDNDObserver();

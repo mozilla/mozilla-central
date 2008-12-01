@@ -277,6 +277,11 @@
                     this.viewElem.centerSelectedItems();
                 ]]></body>
             </method>
+            <method name="removeDropShadows">
+                <body><![CDATA[
+                    this.viewElem.removeDropShadows();
+                ]]></body>
+            </method>
 
             <property name="selectedDay">
                 <getter><![CDATA[

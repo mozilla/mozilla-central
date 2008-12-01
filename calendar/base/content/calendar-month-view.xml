@@ -110,7 +110,7 @@
         <setter><![CDATA[
           ASSERT(!this.mOccurrence, "Code changes needed to set the occurrence twice", true);
           this.mOccurrence = val;
-          var icon = document.getAnonymousElementByAttribute(this,"anonid","item-icon");                                                              
+          let icon = document.getAnonymousElementByAttribute(this, "anonid", "item-icon");
           if (isEvent(val)) {
             icon.setAttribute("type", "event");
             if (!val.startDate.isDate) {
@@ -155,132 +155,29 @@
                 onget="return this.mParentBox;"
                 onset="this.mParentBox = val;"/>
     </implementation>
-
-    <handlers>
-      <handler event="draggesture"><![CDATA[
-        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
-                          getService(Components.interfaces.nsIDragService);
-        var transfer = Components.classes["@mozilla.org/widget/transferable;1"].
-                       createInstance(Components.interfaces.nsITransferable);
-        transfer.addDataFlavor("text/calendar");
-
-        var item = this.occurrence;
-        if (!isCalendarWritable(item.calendar)) {
-            return;
-        }
-
-        var flavourProvider = {
-            QueryInterface: function(aIID) {
-                return doQueryInterface(this, null, aIID, [Components.interfaces.nsIFlavorDataProvider]);
-            },
-            item: item,
-
-            getFlavorData: function(aInTransferable, aInFlavor, aOutData, aOutDataLen) {
-                if ((aInFlavor == "application/vnd.x-moz-cal-event") ||
-                    (aInFlavor == "application/vnd.x-moz-cal-task")) {
-                    aOutData.value = this.item;
-                    aOutDataLen.value = 1;
-                } else {
-                    ASSERT(false, "error:"+aInFlavor);
-                }
-            }
-        };
-
-        if (isEvent(item)) {
-          transfer.addDataFlavor("application/vnd.x-moz-cal-event");
-          transfer.setTransferData("application/vnd.x-moz-cal-event", flavourProvider, 0);
-        } else if (isToDo(item)) {
-          transfer.addDataFlavor("application/vnd.x-moz-cal-task");
-          transfer.setTransferData("application/vnd.x-moz-cal-task", flavourProvider, 0);
-        }
-
-        // Also set some normal data-types, in case we drag into another app
-        var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"].
-                                    createInstance(Components.interfaces.calIIcsSerializer);
-        serializer.addItems([item], 1);
-
-        var supportsString = Components.classes["@mozilla.org/supports-string;1"].
-                             createInstance(Components.interfaces.nsISupportsString);
-        supportsString.data = serializer.serializeToString();
-        transfer.setTransferData("text/calendar", supportsString, supportsString.data.length*2);
-        transfer.setTransferData("text/unicode", supportsString, supportsString.data.length*2);
-
-        var action = dragService.DRAGDROP_ACTION_MOVE;
-        var supArray = Components.classes["@mozilla.org/supports-array;1"].
-                       createInstance(Components.interfaces.nsISupportsArray);
-        supArray.AppendElement(transfer);
-
-        // OK, now that the data is all set up, start playing with the shadows
-        this.parentBox.monthView.doDeleteItem(item);
-
-        // Figure out how many shadows we're going to need, and how they should
-        // be oriented from the mouse's position
-        var boxes = this.parentBox.monthView.findBoxesForItem(item);
-        this.parentBox.monthView.mShadowLength = boxes.length;
-        for (var i in boxes) {
-            if (boxes[i].box == this.parentBox) {
-                this.parentBox.monthView.mShadowIndex = i;
-                break;
-            }
-        }
-        this.parentBox.addDropShadows();
-
-        // Mozilla doesn't provide any generic way for us to listen for the
-        // drag-end.  Add this listener for a best approximation of listening
-        // for that case.
-        var monthbox = this.parentBox;
-        monthbox.monthView.dropListener = function checkStillDragging() {
-            var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
-                              getService(Components.interfaces.nsIDragService);
-            var session;
-            try {
-                session = dragService.getCurrentSession();
-            } catch (ex) {}
-            if (!session) {
-                monthbox.removeDropShadows();
-                monthbox.addItem(item);
-                window.removeEventListener("mouseover",
-                                           monthbox.monthView.dropListener,
-                                           true);
-            }
-        };
-        window.addEventListener("mouseover",
-                                monthbox.monthView.dropListener, true);
-
-        dragService.invokeDragSession(this, supArray, null, action);
-      ]]></handler>
-    </handlers>
   </binding>
 
-  <binding id="calendar-month-day-box">
+  <binding id="calendar-month-day-box" extends="chrome://calendar/content/widgets/calendar-widgets.xml#dragndropContainer">
     <content orient="vertical">
       <xul:label anonid="day-label" 
-                 crop="end" 
+                 crop="end"
+                 mousethrough="always"
                  class="calendar-month-day-box-date-label" 
-                 xbl:inherits="relation,selected"/>
-      <xul:vbox anonid="day-items" class="calendar-month-day-box-items-box" flex="1"/>
+                 xbl:inherits="relation,selected,value"/>
+      <xul:vbox anonid="day-items" class="calendar-month-day-box-items-box" flex="1">
+        <children/>
+      </xul:vbox>
     </content>
 
     <implementation>
       <field name="mDate">null</field>
       <!-- mItemData will always be kept sorted in display order -->
       <field name="mItemData">[]</field>
-      <field name="mMonthView">null</field>
       <field name="mShowMonthLabel">false</field>
 
       <property name="date">
         <getter>return this.mDate;</getter>
         <setter>this.setDate(val); return val;</setter>
-      </property>
-
-      <property name="monthView">
-        <getter><![CDATA[
-          return this.mMonthView;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mMonthView = val;
-          return val;
-        ]]></setter>
       </property>
 
       <property name="selected">
@@ -318,18 +215,16 @@
           if (!this.mDate) {
             return val;
           }
-          var daylabel = document.getAnonymousElementByAttribute(this, "anonid", "day-label");
-
           if (val) {
-            var monthName = calGetString("dateFormat", "month." + (this.mDate.month+1) + ".Mmm");
-            daylabel.setAttribute("value", this.mDate.day + " " + monthName);
+            let monthName = calGetString("dateFormat", "month." + (this.mDate.month + 1) + ".Mmm");
+            this.setAttribute("value", this.mDate.day + " " + monthName);
           } else {
-            daylabel.setAttribute("value", this.mDate.day);
+            this.setAttribute("value", this.mDate.day);
           }
           return val;
         ]]></setter>
       </property>
-
+      
       <method name="setDate">
         <parameter name="aDate"/>
         <body><![CDATA[
@@ -338,22 +233,20 @@
 
           // Remove all the old events
           this.mItemData = new Array();
-          while(this.dayitems.hasChildNodes()) {
-                this.dayitems.removeChild(this.dayitems.lastChild);
+          while(this.hasChildNodes()) {
+              this.removeChild(this.lastChild);
           }
 
           if (this.mDate && this.mDate.compare(aDate) == 0)
             return;
 
           this.mDate = aDate;
-          var daylabel = document.getAnonymousElementByAttribute(this, "anonid", "day-label");
 
-          if (this.mShowMonthLabel)
-          {
-            var monthName = calGetString("dateFormat", "month." + (aDate.month+1) + ".Mmm");
-            daylabel.setAttribute("value", aDate.day + " " + monthName);
+         if (this.mShowMonthLabel) {
+             var monthName = calGetString("dateFormat", "month." + (aDate.month+1) + ".Mmm");
+             this.setAttribute("value", aDate.day + " " + monthName);
           } else {
-            daylabel.setAttribute("value", aDate.day);
+             this.setAttribute("value", aDate.day);
           }
         ]]></body>
       </method>
@@ -466,7 +359,7 @@
           if (deleted.length > 0) {
             for each (itd in deleted) {
               if (itd.box)
-                this.dayitems.removeChild(itd.box);
+                this.removeChild(itd.box);
             }
             // no need to relayout; all we did was delete
             //this.relayout();
@@ -489,9 +382,9 @@
               box.setAttribute("context", this.getAttribute("item-context") || this.getAttribute("context"));
               box.setAttribute("item-calendar", itd.item.calendar.uri.spec);
 
-              this.dayitems.insertBefore(box, before);
+              this.insertBefore(box, before);
 
-              box.calendarView = this.monthView;
+              box.calendarView = this.calendarView;
               box.item = itd.item;
               box.parentBox = this;
               box.occurrence = itd.item;
@@ -500,188 +393,27 @@
           }
         ]]></body>
       </method>
-
-      <!-- While you might expect 'dragexit' to be fired when we drag outside
-         - the node in question, this isn't actually the case.  So, we need 
-         - to keep track of these shadows on the month-view itself, so they can
-         - be properly removed.
-        -->
-      <method name="addDropShadows">
+      <method name="onDropItem">
+        <parameter name="aItem"/>      
         <body><![CDATA[
-#ifdef XP_UNIX
-         var self = this;
-         setTimeout(function addDropShadows2() { self.addDropShadows2(); }, 10);
-#else
-         this.addDropShadows2();
-#endif
-          
+          return cal.moveItem(aItem, this.mDate);
         ]]></body>
       </method>
-        
-      <method name="addDropShadows2">
-        <body><![CDATA[
-              // Only allow one set of drop-boxes
-              if (this.monthView.mDropShadows) {
-                  return;
-              }
 
-              this.monthView.mDropShadows = [];
-              var shadowStart = this.mDate.clone();
-              shadowStart.day -= this.monthView.mShadowIndex;
-              for (var i = 0; i < this.monthView.mShadowLength; i++) {
-                  var dropbox =  document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "box");
-                  dropbox.setAttribute("dropbox", "true");
-
-                  var box = this.monthView.findBoxForDate(shadowStart);
-                  if (!box) {
-                      // Dragging to the end of a view
-                      shadowStart.day += 1;
-                      continue;
-                  }
-                  box.box.dayitems.insertBefore(dropbox, box.box.dayitems.firstChild);
-                  this.monthView.mDropShadows.push(dropbox);
-
-                  shadowStart.day += 1;
-              }
-        ]]></body>
-      </method>
-      
-      <method name="removeDropShadows">
-        <body><![CDATA[
-#ifdef XP_UNIX
-         var self = this;
-         setTimeout(function removeDropShadows2() { self.removeDropShadows2(); }, 10);
-#else
-         this.removeDropShadows2();
-#endif
-        ]]></body>
-      </method>
-      
-      <method name="removeDropShadows2">
-        <body><![CDATA[
-          if (!this.monthView.mDropShadows) {
-              return;
-          }
-
-          for each (shadow in this.monthView.mDropShadows) {
-              shadow.parentNode.removeChild(shadow);
-          }
-
-          this.monthView.mDropShadows = null;
-        ]]></body>
-      </method>
     </implementation>
 
     <handlers>
       <handler event="mousedown"><![CDATA[
         event.stopPropagation();
-
         if (this.mDate)
-          this.monthView.selectedDay = this.mDate;
+          this.calendarView.selectedDay = this.mDate;
       ]]></handler>
       <handler event="dblclick"><![CDATA[
         event.stopPropagation();
-        this.monthView.controller.createNewEvent();
+        this.calendarView.controller.createNewEvent();
       ]]></handler>
-      <handler event="dragenter"><![CDATA[
-        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
-                          getService(Components.interfaces.nsIDragService);
-        var session = dragService.getCurrentSession();
-        if (session) {
-            session.canDrop = true;
-            this.removeDropShadows();
-            this.addDropShadows();
-        }
-      ]]></handler>
-
-      <handler event="dragover"><![CDATA[
-        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
-                          getService(Components.interfaces.nsIDragService);
-        var session = dragService.getCurrentSession();
-        session.canDrop = true;
-      ]]></handler>
-      <handler event="dragexit"><![CDATA[
-        if (event.originalTarget != this) {
-            return;
-        }
-        this.removeDropShadows();
-        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
-                          getService(Components.interfaces.nsIDragService);
-        var session = dragService.getCurrentSession();
-        session.canDrop = false;
-      ]]></handler>
-
-      <handler event="dragdrop"><![CDATA[
-         var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
-                           getService(Components.interfaces.nsIDragService);
-         var session = dragService.getCurrentSession();
-
-         var transfer = Components.classes["@mozilla.org/widget/transferable;1"].
-                        createInstance(Components.interfaces.nsITransferable);
-         transfer.addDataFlavor("application/x-moz-cal-event");
-         session.getData(transfer, 0);
-         var flavor = {};
-         var data = {};
-
-         // nsITransferable sucks when it comes to trying to add extra flavors.
-         // This will throw NS_ERROR_FAILURE, so as a workaround, we use the 
-         // sourceNode property and get the event that way
-         //transfer.getAnyTransferData(flavor, data, {});
-
-         var newStart;
-         var newEnd;
-
-         var boxDate = this.mDate;
-
-         if (!session.sourceNode || !session.sourceNode.occurrence) {
-             return;
-         }
-
-         event.stopPropagation();
-         var item = session.sourceNode.occurrence;
-         var beginMove = session.sourceNode.mParentBox.date;
-         var duration = boxDate.subtractDate(beginMove);
-
-         // Since both boxDate and beginMove are dates (note datetimes),
-         // subtractDate will only give us a non-zero number of hours on DST
-         // changes. While strictly speaking, subtractDate's behavior is 
-         // correct, we need to move the event a discrete number of days here.
-         if (duration.hours == 23) {
-             // crossing DT/DST border (spring)
-             duration.hours++;
-             duration.normalize();
-         } else if (duration.hours == 1) {
-            // crossing DST/DT border (autumn)
-            duration.hours--;
-         }
-
-        if (isEvent(item)) {
-            newStart = item.startDate.clone();
-            newStart.addDuration(duration);
-            newEnd = item.endDate.clone();
-            newEnd.addDuration(duration);
-         } else if (isToDo(item)) {
-             if (item.entryDate) {
-                 newStart = item.entryDate.clone();
-                 newStart.addDuration(duration);
-             }
-             if (item.dueDate) {
-                 newEnd = item.dueDate.clone();
-                 newEnd.addDuration(duration);
-             }
-         }
-
-         this.removeDropShadows();
-
-         window.removeEventListener("mouseover",
-                                   this.monthView.dropListener,
-                                   true);
-
-         this.monthView.controller.modifyOccurrence(item, newStart, newEnd);
-      ]]></handler>
-
       <handler event="click" button="0"><![CDATA[
-        this.monthView.setSelectedItems(0, []);
+        this.calendarView.setSelectedItems(0, []);
       ]]></handler>
       <handler event="DOMMouseScroll"><![CDATA[
         if (event.originalTarget.getAttribute("anonid") != "day-label") {
@@ -855,7 +587,6 @@
       <field name="mWeekStartOffset">0</field>
       <field name="mDaysOffArray">[0,6]</field>
       <field name="mDisplayDaysOff">true</field>
-      <field name="mDropShadows">null</field>
       <field name="mShadowIndex">0</field>
       <field name="mFlashingEvents">new Object()</field>
 
@@ -1000,9 +731,9 @@
         <body><![CDATA[
           if (this.mSelectedItems.length) {
               for each (var item in this.mSelectedItems) {
-                  var oldboxes = this.findBoxesForItem(item);
+                  let oldboxes = this.findDayBoxesForItem(item);
                   for each (oldbox in oldboxes) {
-                      oldbox.box.unselectItem(item);
+                      oldbox.unselectItem(item);
                   }
               }
           }
@@ -1011,9 +742,9 @@
 
           if (this.mSelectedItems.length) {
               for each (var item in this.mSelectedItems) {
-                  var newboxes = this.findBoxesForItem(item);
+                  let newboxes = this.findDayBoxesForItem(item);
                   for each (newbox in newboxes) {
-                      newbox.box.selectItem(item);
+                      newbox.selectItem(item);
                   }
               }
           }
@@ -1038,16 +769,16 @@
         ]]></getter>
         <setter><![CDATA[
           if (this.mSelectedDayBox)
-            this.mSelectedDayBox.box.selected = false;
+            this.mSelectedDayBox.selected = false;
 
           var realVal = val;
           if (!realVal.isDate) {
             realVal = val.clone();
             realVal.isDate = true;
           }
-          var box = this.findBoxForDate(realVal);
+          let box = this.findDayBoxForDate(realVal);
           if (box) {
-            box.box.selected = true;
+            box.selected = true;
             this.mSelectedDayBox = box;
           }
           this.fireEvent("dayselect", realVal);
@@ -1210,6 +941,16 @@
         ]]></body>
       </method>
 
+      <method name="removeDropShadows">
+        <body><![CDATA[
+            let dropbox = document.getAnonymousElementByAttribute(this, "dropbox", "true");
+            if (dropbox && dropbox !== undefined) {
+                dropbox.setAttribute("dropbox", "false");
+            }
+        ]]></body>
+      </method>
+
+
       <method name="relayout">
 	<body><![CDATA[
           // Adjust headers based on the starting day of the week, if necessary
@@ -1229,7 +970,7 @@
 	  
           // Clear out the old selection, since it won't be valid after relayout
           if (this.mSelectedDayBox) {
-            this.mSelectedDayBox.box.selected = false;
+            this.mSelectedDayBox.selected = false;
           }
 
           if (!this.mStartDate || !this.mEndDate) {
@@ -1311,16 +1052,10 @@
               } else {
                 daybox.showMonthLabel = false;
               }
-              daybox.monthView = this;
-
-              // add the box and its data to our stored array
-              var boxdata = {
-                date: date,
-                row: row,
-                box: daybox
-              };
-
-              dateBoxes.push(boxdata);
+              daybox.calendarView = this;
+              
+              daybox.date = date;
+              dateBoxes.push(daybox);
 
               // If we've now assigned all of our dates, set this to true so we
               // know we can just collapse the rest of the rows.
@@ -1333,8 +1068,8 @@
           // If we're not showing a full month, then add a few extra labels to
           // help the user orient themselves in the view.
           if (!this.mShowFullMonth) {
-            dateBoxes[0].box.showMonthLabel = true;
-            dateBoxes[dateBoxes.length-1].box.showMonthLabel = true;
+            dateBoxes[0].showMonthLabel = true;
+            dateBoxes[dateBoxes.length - 1].showMonthLabel = true;
           }
 
           // Store these, so that we can access them later
@@ -1344,7 +1079,7 @@
           // Highlight today, if it's in the range of the view
           if (today.compare(dateList[0]) != -1 &&
               today.compare(dateList[dateList.length-1]) != 1) {
-              this.findBoxForDate(today).box.setAttribute("today", "true");
+              this.findDayBoxForDate(today).setAttribute("today", "true");
           }
           this.fireEvent("relayouted");
         ]]></body>
@@ -1363,18 +1098,18 @@
         ]]></body>
       </method>
 
-      <method name="findBoxForDate">
+      <method name="findDayBoxForDate">
         <parameter name="aDate"/>
         <body><![CDATA[
           for each (box in this.mDateBoxes) {
-            if (box.date.compare(aDate) == 0)
+            if (box.mDate.compare(aDate) == 0)
               return box;
           }
           return null;
         ]]></body>
       </method>
 
-      <method name="findBoxesForItem">
+      <method name="findDayBoxesForItem">
         <parameter name="aItem"/>
         <body><![CDATA[
           var targetDate = null;
@@ -1398,7 +1133,7 @@
             return boxes;
 
           if (!finishDate) {
-            var maybeBox = this.findBoxForDate(targetDate);
+            let maybeBox = this.findDayBoxForDate(targetDate);
             if (maybeBox) {
               boxes.push(maybeBox);
             }
@@ -1414,14 +1149,14 @@
 
           if (targetDate.compare(finishDate) == 0) {
               // Zero length events are silly, but we have to handle them
-              var box = this.findBoxForDate(targetDate);
+              let box = this.findDayBoxForDate(targetDate);
               if (box) {
                   boxes.push(box);
               }
           }
 
           while (targetDate.compare(finishDate) == -1) {
-            var box = this.findBoxForDate(targetDate);
+            let box = this.findDayBoxForDate(targetDate);
 
             // This might not exist, if the event spans the view start or end
             if (box) {
@@ -1437,13 +1172,13 @@
       <method name="doAddItem">
         <parameter name="aItem"/>
         <body><![CDATA[
-          var boxes = this.findBoxesForItem(aItem);
+          let boxes = this.findDayBoxesForItem(aItem);
 
           if (!boxes.length)
             return;
 
           for each (box in boxes) {
-            box.box.addItem(aItem);
+            box.addItem(aItem);
           }
         ]]></body>
       </method>
@@ -1451,7 +1186,7 @@
       <method name="doDeleteItem">
         <parameter name="aItem"/>
         <body><![CDATA[
-          var boxes = this.findBoxesForItem(aItem);
+          let boxes = this.findDayBoxesForItem(aItem);
 
           if (!boxes.length)
             return;
@@ -1463,7 +1198,7 @@
           this.mSelectedItems = this.mSelectedItems.filter(isNotItem);
 
           for each (box in boxes) {
-            box.box.deleteItem(aItem);
+            box.deleteItem(aItem);
           }
 
           // If a deleted event was selected, we need to announce that the
@@ -1570,6 +1305,7 @@
               this.calView.doAddItem(occ);
           },
           onModifyItem: function (aNewItem, aOldItem) {
+
             if (this.mBatchCount) {
                 return;
             }
@@ -1699,9 +1435,9 @@
 
           // Make sure the flashing attribute is set or reset on all visible
           // boxes.
-          var boxes = this.findBoxesForItem(aAlarmItem);
+          let boxes = this.findDayBoxesForItem(aAlarmItem);
           for each (var box in boxes) {
-            for each (var itemData in box.box.mItemData) {
+            for each (var itemData in box.mItemData) {
               if (itemData.item.hasSameIds(aAlarmItem)) {
                 if (aStop) {
                   itemData.box.removeAttribute("flashing");

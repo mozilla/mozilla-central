@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -47,6 +48,8 @@ let cal = {
                                           Components.interfaces.nsIIOService2),
     getObserverService: generateServiceAccessor("@mozilla.org/observer-service;1",
                                                 Components.interfaces.nsIObserverService),
+    getDragService: generateServiceAccessor("@mozilla.org/widget/dragservice;1",
+                                                Components.interfaces.nsIDragService),
 
     /**
      * Loads an array of calendar scripts into the passed scope.
@@ -302,6 +305,107 @@ let cal = {
         function compare(a, b) { return localeCollator.compareString(0, a, b); }
         aStringArray.sort(compare);
         return aStringArray;
+    },
+
+    /**
+     * moves an item to another startDate
+     *
+     * @param aOldItem             The Item to be modified
+     * @param aNewDate             The date at which the new item is going to start
+     * @return                     The modified item
+     */
+    moveItem: function cal_moveItem(aOldItem, aNewDate) {
+        let newItem = aOldItem.clone();
+        let start = (aOldItem[calGetStartDateProp(aOldItem)] || aOldItem[calGetEndDateProp(aOldItem)]).clone();
+        let isDate = start.isDate;
+        start.resetTo(aNewDate.year, aNewDate.month, aNewDate.day,
+                      start.hour, start.minute, start.second,
+                      start.timezone);
+        start.isDate = isDate;
+        if (newItem[calGetStartDateProp(newItem)]) {
+            newItem[calGetStartDateProp(newItem)] = start;
+            let oldDuration = aOldItem.duration;
+            if (oldDuration) {
+                newItem[calGetEndDateProp(newItem)] = start.clone().addDuration(oldDuration);
+            }
+        } else if (newItem[calGetEndDateProp(newItem)]) {
+            newItem[calGetEndDateProp(newItem)] = start;
+        }
+        return newItem;
+    },
+
+    /**
+     * sets the 'isDate' property of an item
+     *
+     * @param aItem         The Item to be modified
+     * @param aIsDate       True or false indicating the new value of 'isDate'
+     * @return              The modified item
+     */
+    setItemToAllDay: function cal_setItemToAllDay(aItem, aIsDate){
+        let start = aItem[calGetStartDateProp(aItem)];
+        let end = aItem[calGetEndDateProp(aItem)];
+        if (start || end) {
+            let item = aItem.clone();
+            if (start && (start.isDate != aIsDate)) {
+               start = start.clone();
+               start.isDate = aIsDate;
+               item[calGetStartDateProp(item)] = start;
+            }
+            if (end && (end.isDate != aIsDate)) {
+               end = end.clone();
+               end.isDate = aIsDate;
+               item[calGetEndDateProp(item)] = end;
+            }
+            return item;
+        } else {
+            return aItem;
+        }
+    },
+
+    /**
+     * checks if the mousepointer of an event resides over a XULBox during an event
+     *
+     * @param aMouseEvent   The event eg. a 'mouseout' or 'mousedown' event
+     * @param aXULBox       The xul element
+     * @return              true or false depending on whether the mouse pointer
+     *                      resides over the xulelement
+     */
+    isMouseOverBox: function cal_isMouseOverBox(aMouseEvent, aXULElement) {
+        let boxObject = aXULElement.boxObject;
+        let boxWidth = boxObject.width;
+        let boxHeight = boxObject.height;
+        let boxScreenX = boxObject.screenX;
+        let boxScreenY = boxObject.screenY;
+        let mouseX = aMouseEvent.screenX;
+        let mouseY = aMouseEvent.screenY;
+        let xIsWithin = (mouseX >= boxScreenX) &&
+                        (mouseX <= (boxScreenX + boxWidth));
+        let yIsWithin = (mouseY >= boxScreenY) &&
+                        (mouseY <= (boxScreenY + boxHeight));
+        return (xIsWithin && yIsWithin);
+    },
+
+    /**
+     * removes those childnodes from a node that contain a specified attribute
+     * and where the value of this attribute matches a passed value
+     * @param aParentNode   The parent node that contains the child nodes in question
+     * @param aAttribute    The name of the attribute
+     * @param aAttribute    The value of the attribute
+     */
+    removeChildElementsByAttribute: function removeChildElementsByAttribute(aParentNode, aAttribute, aValue) {
+        let childNode = aParentNode.lastChild;
+        while (childNode) {
+            let prevChildNode = childNode.previousSibling;
+            if (!aAttribute || aAttribute === undefined) {
+                aParentNode.removeChild(childNode);
+             } else if (!aValue || aValue === undefined) {
+                aParentNode.removeChild(childNode);
+            } else if (childNode && childNode.hasAttribute(aAttribute)
+                && childNode.getAttribute(aAttribute) == aValue) {
+                aParentNode.removeChild(childNode);
+            }
+            childNode = prevChildNode;
+        };
     },
 
     /**

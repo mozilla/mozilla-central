@@ -157,4 +157,10 @@ interface calICalendarView : nsISupports
    * Setting this does not refresh the view.
    */
   attribute AUTF8String timezone;
+
+  /**
+   * removes the dropshadows that are inserted into childelements during a
+   * drag and drop session
+   */
+  void removeDropShadows();
 };

@@ -72,3 +72,7 @@ minimonth-header {
 minimonth-header[readonly="true"] {
   -moz-binding: url("chrome://calendar/content/widgets/minimonth.xml#minimonth-header");
 }
+
+dragndropContainer {
+   -moz-binding: url(chrome://calendar/content/widgets/calendar-widgets.xml#dragndropContainer);
+}

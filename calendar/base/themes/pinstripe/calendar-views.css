@@ -466,7 +466,7 @@ calendar-editable-item[selected="true"] .calendar-event-selection {
     background-color: #ffdb67 !important;
 }
 
-box[dropbox="true"] {
+.dropshadow {
     background-color: blue !important;
     height: 1.2em;
     margin: 1px;
