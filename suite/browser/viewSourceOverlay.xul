@@ -114,11 +114,21 @@
 
     <!-- Window Menu -->
     <keyset id="tasksKeys"/>
+
+    <!-- Context Menu -->
+    <key keycode="VK_BACK" command="Browser:Back"/>
+    <key keycode="VK_BACK" command="Browser:Forward" modifiers="shift"/>
+    <keyset id="navigationKeys"/>
   </keyset>
 
   <!-- context menu -->
   <popupset id="viewSourceContextSet">
     <popup id="viewSourceContextMenu">
+      <menuitem id="context-back" command="Browser:Back"
+                label="&goBackCmd.label;" accesskey="&goBackCmd.accesskey;"/>
+      <menuitem id="context-forward" command="Browser:Forward"
+                label="&goForwardCmd.label;" accesskey="&goForwardCmd.accesskey;"/>
+      <menuseparator/>
       <menuitem label="&findNextCmd.label;" accesskey="&findNextCmd.accesskey;"  command="Browser:FindAgain"/>
       <menuseparator/>
       <menuitem id="menu_copy_cm" command="cmd_copy"

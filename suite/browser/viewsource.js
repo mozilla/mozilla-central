@@ -64,6 +64,34 @@ var gSelectionListener = {
   }
 }
 
+var gViewSourceProgressListener = {
+  QueryInterface: function (aIID) {
+    if (aIID.equals(Components.interfaces.nsIWebProgressListener) ||
+        aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
+        aIID.equals(Components.interfaces.nsISupports))
+      return this;
+    throw Components.results.NS_NOINTERFACE;
+  },
+
+  onStateChange: function (aWebProgress, aRequest, aStateFlags, aStatus) {
+  },
+
+  onProgressChange: function (aWebProgress, aRequest,
+                              aCurSelfProgress, aMaxSelfProgress,
+                              aCurTotalProgress, aMaxTotalProgress) {
+  },
+
+  onLocationChange: function (aWebProgress, aRequest, aLocationURI) {
+    UpdateBackForwardCommands(getBrowser().webNavigation);
+  },
+
+  onStatusChange: function (aWebProgress, aRequest, aStatus, aMessage) {
+  },
+
+  onSecurityChange: function (aWebProgress, aRequest, aState) {
+  }
+}
+
 function onLoadViewSource() 
 {
   viewSource(window.arguments[0]);
@@ -98,8 +126,15 @@ function viewSource(url)
   if (!url)
     return false; // throw Components.results.NS_ERROR_FAILURE;
 
+  var viewSrcUrl = "view-source:" + url;
+
   getBrowser().addEventListener("unload", onUnloadContent, true);
   getBrowser().addEventListener("load", onLoadContent, true);
+  window.addEventListener("AppCommand", HandleAppCommandEvent, true);
+
+  // Attach the progress listener.
+  getBrowser().addProgressListener(gViewSourceProgressListener,
+      Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
 
   var loadFromURL = true;
   //
@@ -153,6 +188,15 @@ function viewSource(url)
           // possible) rather than the network...
           //
           PageLoader.loadPage(arg, pageLoaderIface.DISPLAY_AS_SOURCE);
+
+          // Record the page load in the session history so <back> will work.
+          var shEntry = Components.classes["@mozilla.org/browser/session-history-entry;1"]
+                                  .createInstance(Components.interfaces.nsISHEntry);
+          shEntry.setURI(makeURI(viewSrcUrl, null, null));
+          shEntry.setTitle(viewSrcUrl);
+          shEntry.loadType = Components.interfaces.nsIDocShellLoadInfo.loadHistory;
+          getBrowser().webNavigation.sessionHistory.addEntry(shEntry, true);
+
           // The content was successfully loaded from the page cookie.
           loadFromURL = false;
         }
@@ -165,16 +209,10 @@ function viewSource(url)
 
   if (loadFromURL) {
     //
-    // We need to set up session history to give us a page descriptor.
-    //
-    var webNavigation = getBrowser().webNavigation;
-    webNavigation.sessionHistory = Components.classes["@mozilla.org/browser/shistory;1"].createInstance();
-    //
     // Currently, an exception is thrown if the URL load fails...
     //
     var loadFlags = Components.interfaces.nsIWebNavigation.LOAD_FLAGS_NONE;
-    var viewSrcUrl = "view-source:" + url;
-    webNavigation.loadURI(viewSrcUrl, loadFlags, null, null, null);
+    getBrowser().webNavigation.loadURI(viewSrcUrl, loadFlags, null, null, null);
   }
 
   //check the view_source.wrap_long_lines pref and set the menuitem's checked attribute accordingly
@@ -225,9 +263,41 @@ function onUnloadContent()
   document.getElementById('cmd_goToLine').setAttribute('disabled', 'true');
 }
 
+function HandleAppCommandEvent(event)
+{
+  event.stopPropagation();
+  switch (event.command) {
+    case "Back":
+      BrowserBack();
+      break;
+    case "Forward":
+      BrowserForward();
+      break;
+    case "Reload":
+      BrowserReload();
+      break;
+  }
+}
+
 function ViewSourceClose()
 {
   window.close();
+}
+
+function BrowserBack() {
+  try {
+    getBrowser().goBack();
+  }
+  catch(ex) {
+  }
+}
+
+function BrowserForward() {
+  try {
+    getBrowser().goForward();
+  }
+  catch(ex) {
+  }
 }
 
 function BrowserReload()
@@ -580,4 +650,26 @@ function updateSavePageItems()
 {
   var autoDownload = gPrefs.getBoolPref("browser.download.autoDownload");
   goSetMenuValue("savepage", autoDownload ? "valueSave" : "valueSaveAs");
+}
+
+function UpdateBackForwardCommands(aWebNavigation) {
+  var backBroadcaster = document.getElementById("Browser:Back");
+  var forwardBroadcaster = document.getElementById("Browser:Forward");
+
+  var backDisabled = backBroadcaster.hasAttribute("disabled");
+  var forwardDisabled = forwardBroadcaster.hasAttribute("disabled");
+
+  if (backDisabled == aWebNavigation.canGoBack) {
+    if (backDisabled)
+      backBroadcaster.removeAttribute("disabled");
+    else
+      backBroadcaster.setAttribute("disabled", true);
+  }
+
+  if (forwardDisabled == aWebNavigation.canGoForward) {
+    if (forwardDisabled)
+      forwardBroadcaster.removeAttribute("disabled");
+    else
+      forwardBroadcaster.setAttribute("disabled", true);
+  }
 }
