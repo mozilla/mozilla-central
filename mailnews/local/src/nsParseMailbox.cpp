@@ -618,10 +618,9 @@ NS_IMETHODIMP nsParseMailMessageState::SetEnvelopePos(PRUint32 aEnvelopePos)
 
 NS_IMETHODIMP nsParseMailMessageState::GetNewMsgHdr(nsIMsgDBHdr ** aMsgHeader)
 {
-  if (aMsgHeader)
-    NS_IF_ADDREF(*aMsgHeader = m_newMsgHdr);
-
-  return NS_OK;
+  NS_ENSURE_ARG_POINTER(aMsgHeader);
+  NS_IF_ADDREF(*aMsgHeader = m_newMsgHdr);
+  return m_newMsgHdr ? NS_OK : NS_ERROR_NULL_POINTER;
 }
 
 NS_IMETHODIMP nsParseMailMessageState::ParseAFolderLine(const char *line, PRUint32 lineLength)
