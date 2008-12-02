@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-EXTENSION_CO_TAG = 'HEAD'
+EXTENSION_CO_TAG = 'SEAMONKEY_2_0a2_RELEASE'
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6_RTM'
 
-CHATZILLA_CO_TAG = 'HEAD'
-VENKMAN_CO_TAG = 'HEAD'
+CHATZILLA_CO_TAG = 'SEAMONKEY_2_0a2_RELEASE'
+VENKMAN_CO_TAG = 'SEAMONKEY_2_0a2_RELEASE'
 
 EXTENSION_DIRS = ('extensions/wallet',)
 LDAPCSDK_DIRS = ('directory/c-sdk',)
@@ -12,10 +12,10 @@ LDAPCSDK_DIRS = ('directory/c-sdk',)
 CHATZILLA_DIRS = ('extensions/irc',)
 VENKMAN_DIRS = ('extensions/venkman',)
 
-DEFAULT_COMM_REV = "default"
+DEFAULT_COMM_REV = "SEAMONKEY_2_0a2_RELEASE"
 # URL of the default hg repository to clone for Mozilla.
 DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/releases/mozilla-1.9.1/'
-DEFAULT_MOZILLA_REV = "default"
+DEFAULT_MOZILLA_REV = "SEAMONKEY_2_0a2_RELEASE"
 
 # REGEX to match against, $1 should refer to protocol scheme
 MOZILLA_TRUNK_REPO_REGEXP = "(ssh|http|https):\/\/hg\.mozilla\.org\/mozilla-central\/$"
@@ -23,7 +23,7 @@ MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
 
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
-DEFAULT_INSPECTOR_REV = "default"
+DEFAULT_INSPECTOR_REV = "SEAMONKEY_2_0a2_RELEASE"
 
 import os
 import sys
