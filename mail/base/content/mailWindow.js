@@ -519,10 +519,16 @@ function loadStartPage()
                               .getService(Components.interfaces.nsIURLFormatter)
                               .formatURLPref(startPageUrlPref());
 
-    // Load about:blank as the start page if we are offline or we don't have
-    // a start page url...
-    GetMessagePaneFrame().location.href = startpage && MailOfflineMgr.isOnline() ?
-                                            startpage : "about:blank";
+    // Load about:blank as the start page if we are offline and uri.scheme
+    // is not http / https or we don't have a start page url...
+    try {
+      var scheme = makeURI(startpage).scheme;
+    } catch (ex) {}
+    if (startpage && (MailOfflineMgr.isOnline() || (!MailOfflineMgr.isOnline()
+                  && scheme != "http" && scheme != "https")))
+      GetMessagePaneFrame().location.href = startpage;
+    else
+      GetMessagePaneFrame().location.href = "about:blank";
     ClearMessageSelection();
   }
   catch (ex)
