@@ -72,6 +72,11 @@ class BloatRunTestOptions(optparse.OptionParser):
 
         defaults["debug"] = True
 
+        self.add_option("--extra-startup-arg",
+                        action = "store", type = "string", dest = "extraArg",
+                        help = "Extra startup argument if required, at the moment this will only support one extra argument with no parameters")
+        defaults["extraArg"] = ""
+
         self.set_defaults(**defaults);
 
         usage = """\
@@ -177,6 +182,9 @@ for cmd in COMMANDS:
   # Copy default args, using the : option.
   args = defaultArgs[:]
   args.extend(cmd['args'])
+
+  if options.extraArg != "":
+    args.append(options.extraArg)
 
   # Different binary implies no default args
   if 'bin' in cmd:
