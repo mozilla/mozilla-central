@@ -217,7 +217,7 @@ function imsInit() {
     ims.catchAllCollection.listener = messageCollectionListener;
     
     // The indexer doesn't need to worry about load; zero his rescheduling time. 
-    GlodaIndexer._indexInterval = 0;
+    //GlodaIndexer._indexInterval = 0;
     
     if (ims.injectMechanism == INJECT_FAKE_SERVER) {
       // set up POP3 fakeserver to feed things in...

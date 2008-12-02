@@ -1222,8 +1222,6 @@ var GlodaIndexer = {
       generator = this._worker_folderIndex(job);
     }
     else if(job.jobType == "message") {
-      // we do not want new work items to be added as we are processing, so
-      //  clear _pendingAddJob.  A new job will be created as needed.
       if (job === this._pendingAddJob)
         this._pendingAddJob = null;
       // update our goal from the items length
@@ -1453,11 +1451,7 @@ var GlodaIndexer = {
    *  event-notification hints.
    */
   _worker_messageIndex: function gloda_worker_messageAdd(aJob) {
-    // if we are already in the correct folder, our "get in the folder" clause
-    //  will not execute, so we need to make sure this value is accurate in
-    //  that case.  (and we want to avoid multiple checks...)
-    let folderIsLocal =
-      this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
+    let folderIsLocal = false;
     for (; aJob.offset < aJob.items.length; aJob.offset++) {
       let item = aJob.items[aJob.offset];
       // item is either [folder ID, message key] or
