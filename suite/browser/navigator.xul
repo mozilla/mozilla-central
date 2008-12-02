@@ -150,7 +150,6 @@
     <toolbar class="toolbar-primary chromeclass-toolbar" id="nav-bar" persist="collapsed" 
              grippytooltiptext="&navigationToolbar.tooltip;"
              fullscreentoolbar="true" customizable="true"
-             mode="full"
              toolbarname="&navbarCmd.label;" accesskey="&navbarCmd.accesskey;"
              togglemenuitem="cmd_viewnavbar"
              context="toolbar-context-menu">

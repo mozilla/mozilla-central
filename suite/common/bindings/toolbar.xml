@@ -171,8 +171,6 @@
     <implementation implements="nsIObserver">
       <constructor>
         <![CDATA[
-          if (this.hasAttribute("customizable"))
-            return;
           this.prefs.addObserver(this.domain, this, false);
           if (this.prefs.getIntPref(this.domain) != 2)
             this.observe(this.prefs, "nsPref:changed", this.domain);
@@ -202,7 +200,10 @@
             if (topic == "nsPref:changed" && name == this.domain) {
               const styles = ["icons", "text", null];
               const style = styles[this.prefs.getIntPref(name)];
-              this.setAttribute("mode", style);
+              this.parentNode.setAttribute("mode", style); // toolbox
+              if (!this.hasAttribute("customizable") ||
+                  !this.hasAttribute("ignoremodepref"))
+                this.setAttribute("mode", style);
             }
           ]]>
         </body>

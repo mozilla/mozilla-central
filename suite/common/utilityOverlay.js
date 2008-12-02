@@ -333,7 +333,8 @@ function onViewToolbarsPopupShowing(aEvent)
                     (toolbar.getAttribute("defaultlabelalign") ||
                      toolbox.getAttribute("labelalign") ||
                      "bottom");
-  var custom = custommode || customicon || customalign;
+  var custom = custommode || customicon || customalign ||
+               toolbar.hasAttribute("ignoremodepref");
 
   var defmode = document.getElementById("toolbarmode-default");
   defmode.setAttribute("checked", !custom);
@@ -358,6 +359,7 @@ function goSetToolbarState(aEvent)
   var target = aEvent.originalTarget;
   var mode = target.value;
   var radiogroup = target.getAttribute("name");
+  var primary = /toolbar-primary/.test(toolbar.getAttribute("class"));
 
   switch (mode) {
     case "smallicons":
@@ -377,15 +379,21 @@ function goSetToolbarState(aEvent)
                                        toolbox.getAttribute("iconsize"));
       toolbar.setAttribute("labelalign", toolbar.getAttribute("defaultlabelalign") ||
                                          toolbox.getAttribute("labelalign"));
+      if (primary)
+        toolbar.removeAttribute("ignoremodepref");
       break;
 
     default:
       toolbar.setAttribute("mode", mode);
+      if (primary)
+        toolbar.setAttribute("ignoremodepref", "true");
       break;
   }
   document.persist(toolbar.id, "mode");
   document.persist(toolbar.id, "iconsize");
   document.persist(toolbar.id, "labelalign");
+  if (primary)
+    document.persist(toolbar.id, "ignoremodepref");
 }
 
 function goClickThrobber( urlPref )
