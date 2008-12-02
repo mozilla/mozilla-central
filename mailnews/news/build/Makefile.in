@@ -86,7 +86,6 @@ EXTRA_DSO_LDOPTS = \
 		-L$(DIST)/lib \
 		$(MOZDEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
 		$(EXTRA_DSO_LIBS) \
-		$(MOZ_JS_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
 		$(MOZ_UNICHARUTIL_LIBS) \
 		$(NULL)
