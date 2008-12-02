@@ -1039,6 +1039,8 @@ function InitPanes()
   var folderTree = document.getElementById("folderTree");
   folderTree.addEventListener("click",FolderPaneOnClick,true);
   folderTree.addEventListener("mousedown",TreeOnMouseDown,true);
+  var threadTree = document.getElementById("threadTree");
+  threadTree.addEventListener("click",ThreadTreeOnClick,true);
                        
   OnLoadThreadPane();
   SetupCommandUpdateHandlers();
@@ -1046,6 +1048,8 @@ function InitPanes()
 
 function UnloadPanes()
 {
+  var threadTree = document.getElementById("threadTree");
+  threadTree.removeEventListener("click",ThreadTreeOnClick,true);
   var folderTree = document.getElementById("folderTree");
   folderTree.removeEventListener("click",FolderPaneOnClick,true);
   folderTree.removeEventListener("mousedown",TreeOnMouseDown,true);
@@ -1271,7 +1275,8 @@ function TreeOnMouseDown(event)
     // Detect right mouse click and change the highlight to the row
     // where the click happened without loading the message headers in
     // the Folder or Thread Pane.
-    if (event.button == 2)
+    // Same for middle click, which will open the folder/message in a tab.
+    if (event.button == 2 || event.button == 1)
     {
       gRightMouseButtonDown = true;
       ChangeSelectionWithoutContentLoad(event, event.target.parentNode);
@@ -1282,11 +1287,16 @@ function TreeOnMouseDown(event)
 
 function FolderPaneOnClick(event)
 {
-    // we only care about button 0 (left click) events
-    if (event.button != 0)
-        return;
-
-    var folderTree = document.getElementById("folderTree");
+  var folderTree = document.getElementById("folderTree");
+  
+  // Middle click on a folder opens the folder in a tab
+  if (event.button == 1)
+  {
+    MsgOpenNewTabForFolder();
+    RestoreSelectionWithoutContentLoad(folderTree);
+  }
+  else if (event.button == 0)
+  {
     var row = {};
     var col = {};
     var elt = {};
@@ -1302,6 +1312,19 @@ function FolderPaneOnClick(event)
              (event.originalTarget.localName == "scrollbarbutton")) {
       event.stopPropagation();
     }
+  }
+}
+
+function ThreadTreeOnClick(event)
+{
+  var threadTree = document.getElementById("threadTree");
+  
+  // Middle click on a message opens the message in a tab
+  if (event.button == 1)
+  {
+    MsgOpenNewTabForMessage();
+    RestoreSelectionWithoutContentLoad(threadTree);
+  }
 }
 
 function GetSelectedMsgFolders()
