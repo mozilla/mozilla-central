@@ -1,92 +1,131 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-.tabbrowser-tabs {
-  padding-top: 1px;
-  margin-bottom: 0;
+tabbrowser {
+  border: 0 !important;
 }
 
-.tabs-left,
-.tabs-right {
-  width: 3px;
+tabbox {
+  margin: 0;
+}
+
+tabpanels {
+  -moz-appearance: none;
 }
 
 .tabs-bottom {
-  -moz-appearance: tabpanels;
-  height: 4px;
+  border-bottom: 3px solid;
+  -moz-border-bottom-colors: #888 rgba(0, 0, 0, 0.08);
+}
+
+.tabbrowser-tabs {
+  font: icon;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0;
+  margin: 0;
+  -moz-box-align: end;
 }
 
 .tabs-stack {
-  border-bottom: 1px solid;
-  -moz-border-bottom-colors: ThreeDShadow;
-}
-
-.tabs-bottom-spacer {
-  height: 2px;
-}
-
-.tab-image-left {
-  width: 11px;
-  height: 25px;
-}
-
-.tab-image-right {
-  width: 12px;
-  height: 25px;
-}
-
-.tab-image-left, .tab-image-right, .tab-image-middle {
-  -moz-appearance: tab-left-edge;
+  margin-top: -1px;
 }
 
 .tab-icon {
-  margin-top: 1px;
   margin-right: 3px;
   width: 16px;
   height: 16px;
 }
 
 .tabbrowser-tab {
-  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png");
-  padding: 0;
   margin: 0;
+  padding: 0;
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png");
+  border: solid transparent;
+  border-width: 0 2px;
+  -moz-appearance: none;
+}
+
+.tabbrowser-tab:not([chromedir="rtl"]),
+.tabbrowser-tab[chromedir="rtl"]:first-child {
+  -moz-border-right-colors: transparent rgba(0, 0, 0, 0.19);
+}
+
+.tabbrowser-tab:not([chromedir="rtl"]):first-child,
+.tabbrowser-tab[chromedir="rtl"] {
+  -moz-border-left-colors: transparent rgba(0, 0, 0, 0.19);
+}
+
+.tabbrowser-tab:not(:first-child) {
+  -moz-margin-start: -3px;
+}
+
+.tab-image-middle {
+  padding: 4px 7px;
+}
+
+.tabbrowser-tab:hover > .tab-image-middle {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .tabbrowser-tab[busy] {
-  list-style-image: url("chrome://communicator/skin/icons/loading.gif");
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }
 
 .tabbrowser-tab[selected="true"] {
+  -moz-border-radius: 2px;
+  border-top-width: 2px;
+  -moz-border-top-colors: rgba(0, 0, 0, 0.1) #888;
+  -moz-border-left-colors: rgba(0, 0, 0, 0.08) #888;
+  -moz-border-right-colors: rgba(0, 0, 0, 0.08) #888;
+  margin-top: 1px;
   -moz-user-focus: normal;
 }
 
 .tabbrowser-tab:focus {
-  outline: 3px solid -moz-mac-focusring;
-  outline-offset: -3px;
-  -moz-outline-radius-topleft:  5px;
-  -moz-outline-radius-topright: 5px;
+  outline: 2px solid -moz-mac-focusring;
+  outline-offset: -2px;
+  -moz-outline-radius: 5px;
+}
+
+.tab-image-middle[selected="true"] {
+  padding: 1px 7px 4px;
+  -moz-appearance: dialog;
+}
+
+.tabbrowser-tab[beforeselected="true"]:not([chromedir="rtl"]) {
+  -moz-border-right-colors: transparent transparent;
+}
+
+.tabbrowser-tab[beforeselected="true"][chromedir="rtl"] {
+  -moz-border-left-colors: transparent transparent;
 }
 
 /* ::::: close button ::::: */
 
 .tabs-closebutton {
   margin: 3px;
-  padding: 2px;
-  list-style-image: url("chrome://communicator/skin/icons/close-button.gif");
+  padding: 1px;
+  list-style-image: url("chrome://global/skin/icons/closetab.png");
 }
 
-.tabs-closebutton > .toolbarbutton-icon {
-  margin: 0px;
+.tabs-closebutton:hover {
+  list-style-image: url("chrome://global/skin/icons/closetab-hover.png");
+}
+
+.tabs-closebutton:active:hover {
+  list-style-image: url("chrome://global/skin/icons/closetab-active.png");
+}
+
+.tabs-closebutton > .toolbarbutton-icon,
+.tabs-closebutton > .toolbarbutton-text {
+  margin: 0 !important;
 }
 
 .tabs-newbutton {
-  margin: 0px;
-  padding: 2px;
+  margin: 0;
+  padding: 1px;
   list-style-image: url("chrome://navigator/skin/icons/tab-new.gif");
-}
-
-.tabs-newbutton > .toolbarbutton-icon {
-  margin-right: 2px;
 }
 
 .tab-drop-indicator-bar {
