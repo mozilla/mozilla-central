@@ -520,7 +520,7 @@ function loadStartPage()
                               .formatURLPref(startPageUrlPref());
 
     // Load about:blank as the start page if we are offline and uri.scheme
-    // is not http / https or we don't have a start page url...
+    // is http / https or we don't have a start page url...
     try {
       var scheme = makeURI(startpage).scheme;
     } catch (ex) {}
