@@ -303,7 +303,7 @@
   ${AddHandlerValues} "$0\SeaMonkeyHTML" "$2" \
                       "$INSTDIR\chrome\icons\default\html-file.ico" \
                       "${AppRegName} Document" "" ""
-  ${AddDDEHandlerValues} "SeaMonkeyURL" "$1" "$8,0" "{AppRegName} URL" "true" \
+  ${AddDDEHandlerValues} "SeaMonkeyURL" "$1" "$8,0" "${AppRegName} URL" "true" \
                          "${DDEApplication}" "$3" "WWW_OpenURL"
 
   ; An empty string is used for the 4th & 5th params because the following
@@ -830,7 +830,8 @@
 
   ; Store the command to open the app with an url in a register for easy access.
   GetFullPathName $8 "$INSTDIR\${FileMainEXE}"
-  StrCpy $1 "$\"$8$\" -url $\"%1$\" -requestPending"
+  StrCpy $1 "$\"$8$\" -requestPending -osint -url $\"%1$\""
+  StrCpy $2 "$\"$8$\" -url $\"%1$\""
 
   ; Always set the file and protocol handlers since they may specify a
   ; different path and the path is used by Vista when setting associations.
@@ -838,7 +839,9 @@
 
   ; An empty string is used for the 5th param because SeaMonkeyHTML is not a
   ; protocol handler
-  ${AddHandlerValues} "$0\SeaMonkeyHTML" "$1" "$8,1" "${AppRegName} Document" "" "true"
+  ${AddHandlerValues} "$0\SeaMonkeyHTML" "$2" \
+                      "$INSTDIR\chrome\icons\default\html-file.ico" \
+                      "${AppRegName} Document" "" ""
 
   ReadRegStr $2 SHCTX "$0\http\shell\open\command" ""
   ClearErrors

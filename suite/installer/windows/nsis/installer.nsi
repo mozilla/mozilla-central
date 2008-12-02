@@ -426,12 +426,14 @@ Section "-Application" APP_IDX
 
   StrCpy $1 "$\"$8$\" -requestPending -osint -url $\"%1$\""
   StrCpy $2 "$\"%1$\",,0,0,,,," 
-  ${GetLongPath} "$INSTDIR\${FileMainEXE}" $8 
+  StrCpy $3 "$\"$8$\"  -url $\"%1$\""
+  ${GetLongPath} "$INSTDIR\${FileMainEXE}" $8
 
-  ${AddDDEHandlerValues} "SeaMonkeyHTML" "$1" \
-                         "$INSTDIR\chrome\icons\default\html-file.ico" \
-                         "${AppRegName} Document" "" "${DDEApplication}" "$3" \
-                         "WWW_OpenURL"
+  ; An empty string is used for the 5th param because SeaMonkeyHTML is not a
+  ; protocol handler
+  ${AddHandlerValues} "SOFTWARE\Classes\SeaMonkeyHTML" "$3" \
+                      "$INSTDIR\chrome\icons\default\html-file.ico" \
+                      "${AppRegName} Document" "" ""
   ${AddDDEHandlerValues} "SeaMonkeyURL" "$1" "$8,0" "${AppRegName} URL" "" \
                          "${DDEApplication}" "$2" "WWW_OpenURL"
 
