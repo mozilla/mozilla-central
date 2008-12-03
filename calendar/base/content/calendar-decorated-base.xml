@@ -147,8 +147,8 @@
                             secondWeekNo = getWeekInfoService().getWeekTitle(this.mEndDate);
                         }
                         if (secondWeekNo == firstWeekNo) {
-                            weekLabel.value = calGetString("calendar", "shortCalendarWeek", [firstWeekNo]);
-                            weekLabel.tooltipText = calGetString("calendar", "longCalendarWeek", [firstWeekNo]);
+                            weekLabel.value = calGetString("calendar", "singleShortCalendarWeek", [firstWeekNo]);
+                            weekLabel.tooltipText = calGetString("calendar", "singleLongCalendarWeek", [firstWeekNo]);
                         } else {
                             weekLabel.value = calGetString("calendar", "severalShortCalendarWeeks", [firstWeekNo, secondWeekNo]);
                             weekLabel.tooltipText = calGetString("calendar", "severalLongCalendarWeeks", [firstWeekNo, secondWeekNo]);
