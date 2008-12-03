@@ -535,7 +535,7 @@ var DefaultController =
         gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
         break;
       case "cmd_deleteFolder":
-        MsgDeleteFolder();
+        gFolderTreeController.deleteFolder();
         break;
       case "cmd_killThread":
         /* kill thread kills the thread and then does a next unread */
