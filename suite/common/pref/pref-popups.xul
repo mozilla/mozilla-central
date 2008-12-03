@@ -77,6 +77,9 @@
       <preference id="privacy.popups.statusbar_icon_enabled"
                   name="privacy.popups.statusbar_icon_enabled"
                   type="bool"/>
+      <preference id="privacy.popups.showBrowserMessage"
+                  name="privacy.popups.showBrowserMessage"
+                  type="bool"/>
       <preference id="privacy.popups.prefill_whitelist"
                   name="privacy.popups.prefill_whitelist"
                   type="bool"/>
@@ -152,6 +155,12 @@
                   label="&displayIcon.label;"
                   accesskey="&displayIcon.accesskey;"
                   preference="privacy.popups.statusbar_icon_enabled"/>
+      </hbox>
+      <hbox>
+        <checkbox id="displayPopupsNotification"
+                  label="&displayNotification.label;"
+                  accesskey="&displayNotification.accesskey;"
+                  preference="privacy.popups.showBrowserMessage"/>
       </hbox>
       <separator class="thin"/>
       <description>&popupNote.description;</description>

@@ -67,6 +67,9 @@
       <preference id="dom.event.contextmenu.enabled"
                   name="dom.event.contextmenu.enabled"
                   type="bool"/>
+      <preference id="plugins.hide_infobar_for_missing_plugin"
+                  name="plugins.hide_infobar_for_missing_plugin"
+                  type="bool" inverted="true"/>
     </preferences>
 
     <groupbox id="javascriptPreferences" flex="1">
@@ -108,6 +111,15 @@
       <caption label="&enablePlugin.label;"/>
       <!-- mailnews will add its checkbox here using overlay (mailPrefOverlay.xul).
       -->
+
+      <separator id="pluginPreferencesSeparator"/>
+
+      <description id="whenPluginsRequired">&whenPluginsRequired.description;</description>
+
+      <checkbox id="displayPluginsNotification"
+                label="&displayNotification.label;"
+                accesskey="&displayNotification.accesskey;"
+                preference="plugins.hide_infobar_for_missing_plugin"/>
     </groupbox>
     
   </prefpane>
