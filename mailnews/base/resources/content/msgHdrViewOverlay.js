@@ -377,17 +377,15 @@ var messageHeaderSink = {
         header.headerValue = headerValueEnumerator.getNext();
         header.headerName = headerNameEnumerator.getNext();
 
-        // for consistancy sake, let's force all header names to be lower case so
-        // we don't have to worry about looking for: Cc and CC, etc.
+        // For consistency's sake, let us force all header names to be lower
+        // case so we don't have to worry about looking for: Cc and CC, etc.
         var lowerCaseHeaderName = header.headerName.toLowerCase();
 
-        // if we have an x-mailer, x-newsreader, or x-mimeole string,
+        // If we have an x-mailer, x-mimeole, or x-newsreader string,
         // put it in the user-agent slot which we know how to handle already.
-        if (lowerCaseHeaderName == "x-mailer" ||
-            lowerCaseHeaderName == "x-newsreader" ||
-            lowerCaseHeaderName == "x-mimeole")
-          lowerCaseHeaderName = "user-agent";          
-        
+        if (/^x-(mailer|mimeole|newsreader)$/.test(lowerCaseHeaderName))
+          lowerCaseHeaderName = "user-agent";
+
         if (this.mDummyMsgHeader)
         {
           if (lowerCaseHeaderName == "from")
