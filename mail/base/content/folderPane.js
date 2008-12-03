@@ -1068,10 +1068,9 @@ let gFolderTreeController = {
     if (folder.server instanceof Components.interfaces.nsIImapIncomingServer)
       dualUseFolders = folder.server.dualUseFolders;
 
-    //xxx useless param
     function newFolderCallback(aName, aFolder) {
       if (aName)
-        folder.createSubfolder(aName, msgWindow);
+        aFolder.createSubfolder(aName, msgWindow);
     }
 
     window.openDialog("chrome://messenger/content/newFolderDialog.xul",
