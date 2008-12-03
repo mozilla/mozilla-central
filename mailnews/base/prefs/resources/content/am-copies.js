@@ -345,7 +345,7 @@ function setPickersState(enablePickerId, disablePickerId, event)
     var selectedElementUri;
     var radioElemValue = event.target.value;
 
-    var account = currentAccount;
+    var account = parent.getCurrentAccount();
     if (!account) return;
 
     var server = account.incomingServer;
