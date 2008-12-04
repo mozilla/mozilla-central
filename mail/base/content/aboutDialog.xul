@@ -74,5 +74,10 @@
       </vbox>
     </deck>
     <separator class="groove" id="groove"/>
-
+#ifdef XP_MACOSX
+    <keyset id="mainKeyset">
+      <key id="key_close" modifiers="accel" key="&cmdCloseMac.commandKey;"
+           oncommand="window.close();"/>
+    </keyset>
+#endif
 </dialog>
