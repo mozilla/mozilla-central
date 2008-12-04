@@ -535,7 +535,6 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
       rv = GetFolderCacheElemFromFile(dbFile, getter_AddRefs(cacheElement));
       if (NS_SUCCEEDED(rv) && cacheElement)
       {
-        nsString unicodeName;
         nsCString onlineFullUtf7Name;
 
         PRUint32 folderFlags;
@@ -552,8 +551,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
         rv = cacheElement->GetStringProperty("onlineName", onlineFullUtf7Name);
         if (NS_SUCCEEDED(rv) && !onlineFullUtf7Name.IsEmpty())
         {
-          currentFolderNameStr.Assign(unicodeName);
-
+          CopyMUTF7toUTF16(onlineFullUtf7Name, currentFolderNameStr);
           PRUnichar delimiter = 0;
           GetHierarchyDelimiter(&delimiter);
           PRInt32 leafPos = currentFolderNameStr.RFindChar(delimiter);
