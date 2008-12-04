@@ -96,7 +96,6 @@ private:
   PRInt32 mMaxRecycledWindows;
   nsMsgCachedWindowInfo *mCachedWindows;
   
-  nsresult OpenWindow( const char *chrome, nsIMsgComposeParams *params);
   void CloseHiddenCachedWindow(nsIDOMWindowInternal *domWindow);
 
   nsresult LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType, 

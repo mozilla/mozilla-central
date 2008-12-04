@@ -256,9 +256,20 @@ void nsMsgComposeService::DeleteCachedWindows()
   }
 }
 
-// Utility function to open a message compose window and pass an nsIMsgComposeParams parameter to it.
-nsresult nsMsgComposeService::OpenWindow(const char *chrome, nsIMsgComposeParams *params)
+// Function to open a message compose window and pass an nsIMsgComposeParams
+// parameter to it.
+NS_IMETHODIMP
+nsMsgComposeService::OpenComposeWindowWithParams(const char *chrome,
+                                                 nsIMsgComposeParams *params)
 {
+  NS_ENSURE_ARG_POINTER(params);
+#ifdef MSGCOMP_TRACE_PERFORMANCE
+  if(mLogComposePerformance)
+  {
+    TimeStamp("Start opening the window", PR_TRUE);
+  }
+#endif
+
   nsresult rv;
 
   NS_ENSURE_ARG_POINTER(params);
@@ -629,7 +640,7 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDB
 #endif
       }//end if(mLogComposePerformance)
 
-      rv = OpenWindow(msgComposeWindowURL, pMsgComposeParams);
+      rv = OpenComposeWindowWithParams(msgComposeWindowURL, pMsgComposeParams);
     }
   }
   return rv;
@@ -760,20 +771,6 @@ NS_IMETHODIMP nsMsgComposeService::OpenComposeWindowWithURI(const char * aMsgCom
   if (NS_SUCCEEDED(rv))
     rv = OpenComposeWindowWithParams(aMsgComposeWindowURL, pMsgComposeParams);
   return rv;
-}
-
-nsresult nsMsgComposeService::OpenComposeWindowWithParams(const char *msgComposeWindowURL,
-                              nsIMsgComposeParams *params)
-{
-  NS_ENSURE_ARG_POINTER(params);
-  if(mLogComposePerformance)
-  {
-#ifdef MSGCOMP_TRACE_PERFORMANCE
-    TimeStamp("Start opening the window", PR_TRUE);
-#endif
-  }//end - if(mLogComposePerformance)
-
-  return OpenWindow(msgComposeWindowURL, params);
 }
 
 NS_IMETHODIMP nsMsgComposeService::InitCompose(nsIDOMWindowInternal *aWindow,
