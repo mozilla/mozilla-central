@@ -48,6 +48,7 @@
 #include "nsIMsgSendLaterListener.h"
 #include "nsIMsgSendLater.h"
 #include "nsIMsgWindow.h"
+#include "nsTObserverArray.h"
 
 ////////////////////////////////////////////////////////////////////////////////////
 // This is the listener class for the send operation. We have to create this class 
@@ -104,11 +105,12 @@ public:
   nsresult                  BuildNewBuffer(const char* aBuf, PRUint32 aCount, PRUint32 *totalBufSize);
 
   // methods for listener array processing...
-  nsresult  NotifyListenersOnStartSending(PRUint32 aTotalMessageCount);
-  nsresult  NotifyListenersOnProgress(PRUint32 aCurrentMessage, PRUint32 aTotalMessage);
-  nsresult  NotifyListenersOnStatus(const PRUnichar *aMsg);
-  nsresult  NotifyListenersOnStopSending(nsresult aStatus, const PRUnichar *aMsg, 
-                                           PRUint32 aTotalTried, PRUint32 aSuccessful);
+  void NotifyListenersOnStartSending(PRUint32 aTotalMessageCount);
+  void NotifyListenersOnProgress(PRUint32 aCurrentMessage,
+                                 PRUint32 aTotalMessage);
+  void NotifyListenersOnStatus(const PRUnichar *aMsg);
+  void NotifyListenersOnStopSending(nsresult aStatus, const PRUnichar *aMsg, 
+                                    PRUint32 aTotalTried, PRUint32 aSuccessful);
 
   // counters and things for enumeration 
   PRUint32                  mTotalSentSuccessfully;
@@ -122,8 +124,7 @@ public:
 private:
   nsresult GetIdentityFromKey(const char *aKey, nsIMsgIdentity **aIdentity);
 
-  nsIMsgSendLaterListener   **mListenerArray;
-  PRInt32                   mListenerArrayCount;
+  nsTObserverArray<nsCOMPtr<nsIMsgSendLaterListener> > mListenerArray;
 
   nsCOMPtr<nsIMsgDBHdr>      mMessage;
 

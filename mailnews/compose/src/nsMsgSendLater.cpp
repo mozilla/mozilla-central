@@ -88,9 +88,6 @@ nsMsgSendLater::nsMsgSendLater()
   mMessage = nsnull;
   mLeftoverBuffer = nsnull;
 
-  mListenerArray = nsnull;
-  mListenerArrayCount = 0;
-
   m_to = nsnull;
   m_bcc = nsnull;
   m_fcc = nsnull;
@@ -1122,93 +1119,54 @@ nsMsgSendLater::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 NS_IMETHODIMP
 nsMsgSendLater::AddListener(nsIMsgSendLaterListener *aListener)
 {
-  if ( (mListenerArrayCount > 0) || mListenerArray )
-  {
-    ++mListenerArrayCount;
-    mListenerArray = (nsIMsgSendLaterListener **) 
-                  PR_Realloc(*mListenerArray, sizeof(nsIMsgSendLaterListener *) * mListenerArrayCount);
-    if (!mListenerArray)
-      return NS_ERROR_OUT_OF_MEMORY;
-    else
-    {
-      mListenerArray[mListenerArrayCount - 1] = aListener;
-      return NS_OK;
-    }
-  }
-  else
-  {
-    mListenerArrayCount = 1;
-    mListenerArray = (nsIMsgSendLaterListener **) PR_Malloc(sizeof(nsIMsgSendLaterListener *) * mListenerArrayCount);
-    if (!mListenerArray)
-      return NS_ERROR_OUT_OF_MEMORY;
-
-    memset(mListenerArray, 0, (sizeof(nsIMsgSendLaterListener *) * mListenerArrayCount));
-  
-    mListenerArray[0] = aListener;
-    NS_ADDREF(mListenerArray[0]);
-    return NS_OK;
-  }
+  NS_ENSURE_ARG_POINTER(aListener);
+  mListenerArray.AppendElement(aListener);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgSendLater::RemoveListener(nsIMsgSendLaterListener *aListener)
 {
-  PRInt32 i;
-  for (i=0; i<mListenerArrayCount; i++)
-    if (mListenerArray[i] == aListener)
-    {
-      NS_RELEASE(mListenerArray[i]);
-      mListenerArray[i] = nsnull;
-      return NS_OK;
-    }
-
-  return NS_ERROR_INVALID_ARG;
+  NS_ENSURE_ARG_POINTER(aListener);
+  return mListenerArray.RemoveElement(aListener) ? NS_OK : NS_ERROR_INVALID_ARG;
 }
 
+#define NOTIFY_LISTENERS(propertyfunc_, params_) \
+  PR_BEGIN_MACRO                                 \
+  nsTObserverArray<nsCOMPtr<nsIMsgSendLaterListener> >::ForwardIterator iter(mListenerArray); \
+  nsCOMPtr<nsIMsgSendLaterListener> listener;    \
+  while (iter.HasMore()) {                       \
+    listener = iter.GetNext();                   \
+    listener->propertyfunc_ params_;             \
+  }                                              \
+  PR_END_MACRO
 
-nsresult
+void
 nsMsgSendLater::NotifyListenersOnStartSending(PRUint32 aTotalMessageCount)
 {
-  PRInt32 i;
-  for (i=0; i<mListenerArrayCount; i++)
-    if (mListenerArray[i] != nsnull)
-      mListenerArray[i]->OnStartSending(aTotalMessageCount);
-
-  return NS_OK;
+  NOTIFY_LISTENERS(OnStartSending, (aTotalMessageCount));
 }
 
-nsresult
-nsMsgSendLater::NotifyListenersOnProgress(PRUint32 aCurrentMessage, PRUint32 aTotalMessage)
+void
+nsMsgSendLater::NotifyListenersOnProgress(PRUint32 aCurrentMessage,
+                                          PRUint32 aTotalMessage)
 {
-  PRInt32 i;
-  for (i=0; i<mListenerArrayCount; i++)
-    if (mListenerArray[i] != nsnull)
-      mListenerArray[i]->OnProgress(aCurrentMessage, aTotalMessage);
-
-  return NS_OK;
+  NOTIFY_LISTENERS(OnProgress, (aCurrentMessage, aTotalMessage));
 }
 
-nsresult
+void
 nsMsgSendLater::NotifyListenersOnStatus(const PRUnichar *aMsg)
 {
-  PRInt32 i;
-  for (i=0; i<mListenerArrayCount; i++)
-    if (mListenerArray[i] != nsnull)
-      mListenerArray[i]->OnStatus(aMsg);
-
-  return NS_OK;
+  NOTIFY_LISTENERS(OnStatus, (aMsg));
 }
 
-nsresult
-nsMsgSendLater::NotifyListenersOnStopSending(nsresult aStatus, const PRUnichar *aMsg, 
-                                             PRUint32 aTotalTried, PRUint32 aSuccessful)
+void
+nsMsgSendLater::NotifyListenersOnStopSending(nsresult aStatus,
+                                             const PRUnichar *aMsg,
+                                             PRUint32 aTotalTried,
+                                             PRUint32 aSuccessful)
 {
-  PRInt32 i;
-  for (i=0; i<mListenerArrayCount; i++)
-    if (mListenerArray[i] != nsnull)
-      mListenerArray[i]->OnStopSending(aStatus, aMsg, aTotalTried, aSuccessful);
-
-  return NS_OK;
+  NOTIFY_LISTENERS(OnStopSending, (aStatus, aMsg, aTotalTried, aSuccessful));
 }
 
 // XXX todo
