@@ -187,21 +187,26 @@ SyntheticMessage.prototype = {
  * @param ... Zero or more relative paths to join to the base directory.
  */
 function writeMessagesToMbox (aMessages, aBaseDir) {
-  let targetFile = Cc["@mozilla.org/file/local;1"]
-                     .createInstance(Ci.nsILocalFile);
-  targetFile.initWithFile(aBaseDir);
-  for (let iArg = 2; iArg < arguments.length; iArg++)
-    targetFile.appendRelativePath(arguments[iArg]);
-
-  let ostream = Cc["@mozilla.org/network/file-output-stream;1"]
-                  .createInstance(Ci.nsIFileOutputStream);
-  ostream.init(targetFile, -1, -1, 0);
+  try {
+    let targetFile = Cc["@mozilla.org/file/local;1"]
+                       .createInstance(Ci.nsILocalFile);
+    targetFile.initWithFile(aBaseDir);
+    for (let iArg = 2; iArg < arguments.length; iArg++)
+      targetFile.appendRelativePath(arguments[iArg]);
   
-  for (let iMessage = 0; iMessage < aMessages.length; iMessage++) {
-    aMessages[iMessage].writeToMboxStream(ostream);
+    let ostream = Cc["@mozilla.org/network/file-output-stream;1"]
+                    .createInstance(Ci.nsIFileOutputStream);
+    ostream.init(targetFile, -1, -1, 0);
+    
+    for (let iMessage = 0; iMessage < aMessages.length; iMessage++) {
+      aMessages[iMessage].writeToMboxStream(ostream);
+    }
+    
+    ostream.close();
   }
-  
-  ostream.close();
+  catch (ex) {
+    do_throw(ex);
+  }
 }
 
 function MessageGenerator() {
