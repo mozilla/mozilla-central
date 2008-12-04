@@ -273,8 +273,7 @@ nsAbLDAPAttributeMapService.prototype = {
         iid.equals(Components.interfaces.nsISupports))
       return this;
 
-    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-    return null;
+    throw Components.results.NS_ERROR_NO_INTERFACE;
   } 
 }
 

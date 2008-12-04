@@ -108,8 +108,7 @@ msl.prototype = {
         iid.equals(Ci.nsISupports))
       return this;
 
-    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-    return null;
+    throw Components.results.NS_ERROR_NO_INTERFACE;
   }
 }
 

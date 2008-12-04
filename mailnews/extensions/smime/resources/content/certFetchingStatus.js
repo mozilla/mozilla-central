@@ -244,8 +244,7 @@ boundListener.prototype.QueryInterface =
         iid.equals(Components.interfaces.nsILDAPMessageListener))
         return this;
 
-    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-    return null;
+    throw Components.results.NS_ERROR_NO_INTERFACE;
   }
 
 boundListener.prototype.onLDAPMessage =
@@ -267,8 +266,7 @@ ldapMessageListener.prototype.QueryInterface =
         iid.equals(Components.interfaces.nsILDAPMessageListener))
         return this;
 
-    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-    return null;
+    throw Components.results.NS_ERROR_NO_INTERFACE;
   }
 
 ldapMessageListener.prototype.onLDAPMessage =

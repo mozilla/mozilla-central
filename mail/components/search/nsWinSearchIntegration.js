@@ -235,8 +235,7 @@ QueryInterface: function(aIId, instance) {
   if (aIId.equals(Ci.nsIStreamListener) || aIId.equals(Ci.nsISupports))
     return this;
 
-  Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-  return null;
+  throw Components.results.NS_ERROR_NO_INTERFACE;
 },
 
 onStartRequest: function(request, context) {
