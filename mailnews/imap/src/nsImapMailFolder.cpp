@@ -8087,7 +8087,7 @@ nsImapMailFolder::OnMessageTraitsClassified(
 
   PRUint32 processingFlags;
   GetProcessingFlags(msgKey, &processingFlags);
-  if (! processingFlags & MSG_PROCESSING_FLAG_CLASSIFY_TRAITS)
+  if (!(processingFlags & MSG_PROCESSING_FLAG_CLASSIFY_TRAITS))
     return NS_OK;
 
   AndProcessingFlags(msgKey, ~MSG_PROCESSING_FLAG_CLASSIFY_TRAITS);
