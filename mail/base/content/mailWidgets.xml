@@ -487,14 +487,6 @@
   </binding>
 
   <binding id="mail-emailaddress">
-#ifndef MOZ_THUNDERBIRD
-    <content popup="emailAddressPopup" context="emailAddressPopup">
-      <xul:description anonid="emailValue" class="emailDisplayButton"
-                 xbl:inherits="xbl:text=label,crop" flex="1"/>
-      <xul:image class="emailDisplayImage" anonid="emailImage"
-                 xbl:inherits="src=image"/>
-    </content>
-#else
     <content>
       <xul:description anonid="emailValue" class="emailDisplayButton"
                        xbl:inherits="hascard"
@@ -509,7 +501,6 @@
                    xbl:inherits="hascard,tooltiptext=tooltipstar"/>
       </xul:description>
     </content>
-#endif
 
     <implementation>
       <property name="label"      onset="this.getPart('emailValue').setAttribute('label',val); return val;"
@@ -518,12 +509,6 @@
                                   onget="return this.getPart('emailValue').getAttribute('crop');"/>
       <property name="disabled"   onset="this.getPart('emailValue').setAttribute('disabled',val); return val;"
                                   onget="return this.getPart('emailValue').getAttribute('disabled');"/>
-#ifndef MOZ_THUNDERBIRD
-      <property name="src"        onset="this.getPart('emailImage').setAttribute('src',val); return val;"
-                                  onget="return this.getPart('emailImage').getAttribute('src');"/>
-      <property name="imgalign"   onset="this.getPart('emailImage').setAttribute('imgalign',val); return val;"
-                                  onget="return this.getPart('emailImage').getAttribute('imgalign');"/>
-#endif
 
       <method name="getPart">
         <parameter name="aPartId"/>
@@ -742,9 +727,6 @@
               // now create a label for the tag name, and set the color
               var label = document.createElement("label");
               label.setAttribute('value', tagName);
-#ifndef MOZ_THUNDERBIRD
-              label.style.color = color;
-#endif
               label.className = "tagvalue blc-" + color.substr(1);
               headerValueNode.appendChild(label);
             }
@@ -1884,21 +1866,8 @@
     <handlers>
       <handler event="popupshowing">
         <![CDATA[
-          var msgFolder;
-          // Allow for differences between Thunderbird and SeaMonkey folder pane
-          if ("gFolderTreeView" in window) {
-            msgFolder = gFolderTreeView.getFolderAtCoords(event.clientX,
-                                                          event.clientY);
-            if (!msgFolder)
-              return false;
-          } else {
-            var folderTree = GetFolderTree();
-            var row = folderTree.treeBoxObject.getRowAt(event.clientX,
-                                                        event.clientY);
-            if (row == -1)
-              return false;
-            msgFolder = GetFolderResource(folderTree, row).QueryInterface(Components.interfaces.nsIMsgFolder);
-          }
+          var msgFolder = gFolderTreeView.getFolderAtCoords(event.clientX,
+                                                            event.clientY);
           if (!msgFolder || msgFolder.isServer)
             return false;
           var asyncResults = {};
