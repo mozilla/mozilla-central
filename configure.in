@@ -4272,7 +4272,6 @@ MOZ_BRANDING_DIRECTORY=
 MOZ_CALENDAR=
 MOZ_DBGRINFO_MODULES=
 MOZ_FEEDS=1
-MOZ_IPCD=
 MOZ_JSDEBUGGER=1
 MOZ_JSLOADER=1
 MOZ_LDAP_XPCOM=
@@ -4293,7 +4292,6 @@ MOZ_PLAINTEXT_EDITOR_ONLY=
 MOZ_PLUGINS=1
 MOZ_PREF_EXTENSIONS=1
 MOZ_PROFILELOCKING=1
-MOZ_PROFILESHARING=1
 MOZ_PSM=1
 MOZ_RDF=1
 MOZ_REFLOW_PERF=
@@ -4388,7 +4386,6 @@ basic)
 #  MOZ_PLUGINS=
   MOZ_PREF_EXTENSIONS=
   MOZ_PROFILELOCKING=
-  MOZ_PROFILESHARING=
   MOZ_SPELLCHECK=
   MOZ_UNIVERSALCHARDET=
   MOZ_UPDATER=
@@ -4427,7 +4424,6 @@ minimal)
   MOZ_PLUGINS=
   MOZ_PREF_EXTENSIONS=
   MOZ_PROFILELOCKING=
-  MOZ_PROFILESHARING=
   MOZ_SPELLCHECK=
   MOZ_STORAGE=1
   MOZ_PLACES=
@@ -4533,7 +4529,6 @@ AC_SUBST(MOZ_SUNBIRD)
 AC_DEFINE_UNQUOTED(MOZ_BUILD_APP,$MOZ_BUILD_APP)
 
 if test "$MOZ_XUL_APP"; then
-  MOZ_PROFILESHARING=
   AC_DEFINE(MOZ_XUL_APP)
 fi
 
@@ -6991,26 +6986,6 @@ fi
 AC_SUBST(MOZ_XUL)
 
 dnl ========================================================
-dnl disable profile sharing
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(profilesharing,
-[  --disable-profilesharing           Disable profile sharing],
-    MOZ_PROFILESHARING=,
-    MOZ_PROFILESHARING=1 )
-if test "$MOZ_PROFILESHARING"; then
-  MOZ_IPCD=1
-  AC_DEFINE(MOZ_PROFILESHARING)
-fi
-
-dnl ========================================================
-dnl enable ipc/ipcd
-dnl ========================================================
-MOZ_ARG_ENABLE_BOOL(ipcd,
-[  --enable-ipcd                      Enable IPC daemon],
-    MOZ_IPCD=1,
-    MOZ_IPCD= )
-
-dnl ========================================================
 dnl disable profile locking
 dnl   do no use this in applications that can have more than
 dnl   one process accessing the profile directory.
@@ -7144,10 +7119,7 @@ AC_SUBST(MOZ_STORAGE)
 AC_SUBST(MOZ_FEEDS)
 AC_SUBST(NS_PRINTING)
 
-AC_SUBST(MOZ_PROFILESHARING)
 AC_SUBST(MOZ_PROFILELOCKING)
-
-AC_SUBST(MOZ_IPCD)
 
 AC_SUBST(HAVE_XIE)
 AC_SUBST(MOZ_XIE_LIBS)
