@@ -43,9 +43,7 @@
 %editContactOverlayDTD;
 ]>
 
-<?xml-stylesheet href="chrome://messenger/skin/"?>
 <?xml-stylesheet href="chrome://messenger/skin/editContactOverlay.css"?>
-<?xml-stylesheet href="chrome://messenger/content/messenger.css"?>
 
 <overlay id="editContactOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
