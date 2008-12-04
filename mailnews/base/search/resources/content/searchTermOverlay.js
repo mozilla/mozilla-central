@@ -295,7 +295,7 @@ function booleanChanged(event) {
     var newBoolValue = (event.target.getAttribute("value") == "and") ? true : false;
     var matchAllValue = (event.target.getAttribute("value") == "matchAll") ? true : false;
     if (document.getElementById("abPopup")) {
-      var selectedAB = document.getElementById("abPopup").selectedItem.id;
+      var selectedAB = document.getElementById("abPopup").selectedItem.value;
       setSearchScope(GetScopeForDirectoryURI(selectedAB));
     }
     for (var i=0; i<gSearchTerms.length; i++) {
