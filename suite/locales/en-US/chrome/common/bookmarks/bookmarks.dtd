@@ -83,8 +83,6 @@
 
 <!ENTITY menuitem.view.command.toolbar.label        "Toolbar">
 <!ENTITY menuitem.view.command.toolbar.accesskey    "t">
-<!ENTITY menuitem.view.command.searchbar.label      "Search bar">
-<!ENTITY menuitem.view.command.searchbar.accesskey  "S">
 <!ENTITY menuitem.view.show_columns.label           "Show columns">
 <!ENTITY menuitem.view.show_columns.accesskey       "c">
 <!ENTITY menuitem.newbookmarkfolder.label           "Set as New Bookmark Folder">

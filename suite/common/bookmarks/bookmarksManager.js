@@ -52,7 +52,7 @@ function Startup()
     var title;
     var uri = window.arguments[0];
     bookmarksView.tree.setAttribute("ref", uri);
-    document.getElementById("bookmarks-search").setAttribute("hidden","true")
+    document.getElementById("bookmarks-search-box").hidden = true;
     if (uri.substring(0,5) == "find:") {
       title = BookmarksUtils.getLocaleString("search_results_title");
       // Update the windowtype so that future searches are directed 
