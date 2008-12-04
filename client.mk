@@ -262,7 +262,6 @@ CONFIG_STATUS_DEPS := \
 	$(TOPSRCDIR)/.mozconfig.mk \
 	$(TOPSRCDIR)/mozilla/allmakefiles.sh \
 	$(wildcard $(TOPSRCDIR)/mozilla/nsprpub/configure) \
-	$(wildcard $(TOPSRCDIR)/mozilla/js/src/configure) \
 	$(wildcard $(TOPSRCDIR)/mozilla/config/milestone.txt) \
 	$(wildcard $(TOPSRCDIR)/directory/c-sdk/configure) \
 	$(wildcard $(addsuffix confvars.sh,$(wildcard $(TOPSRCDIR)/*/))) \
