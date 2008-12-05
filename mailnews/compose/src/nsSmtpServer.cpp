@@ -131,10 +131,13 @@ nsSmtpServer::GetHostname(nsACString &aHostname)
 NS_IMETHODIMP
 nsSmtpServer::SetHostname(const nsACString &aHostname)
 {
-  if (aHostname.IsEmpty())
-    return mPrefBranch->ClearUserPref("hostname");
+  if (!aHostname.IsEmpty())
+    return mPrefBranch->SetCharPref("hostname", PromiseFlatCString(aHostname).get());
 
-  return mPrefBranch->SetCharPref("hostname", PromiseFlatCString(aHostname).get());
+  // If the pref value is already empty, ClearUserPref will return
+  // NS_ERROR_UNEXPECTED, so don't check the rv here.
+  mPrefBranch->ClearUserPref("hostname");
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -313,10 +316,13 @@ nsSmtpServer::GetUsername(nsACString &aUsername)
 NS_IMETHODIMP
 nsSmtpServer::SetUsername(const nsACString &aUsername)
 {
-  if (aUsername.IsEmpty())
-    return mPrefBranch->ClearUserPref("username");
+  if (!aUsername.IsEmpty())
+    return mPrefBranch->SetCharPref("username", PromiseFlatCString(aUsername).get());
 
-  return mPrefBranch->SetCharPref("username", PromiseFlatCString(aUsername).get());
+  // If the pref value is already empty, ClearUserPref will return
+  // NS_ERROR_UNEXPECTED, so don't check the rv here.
+  mPrefBranch->ClearUserPref("username");
+  return NS_OK;
 }
 
 NS_IMETHODIMP
