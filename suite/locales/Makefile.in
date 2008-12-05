@@ -86,11 +86,6 @@ README_FILES = \
 	installer/mac/README.txt \
 	$(NULL)
 else
-ifeq ($(OS_ARCH),OS2)
-README_FILES = \
-	installer/os2/README.txt \
-	$(NULL)
-else
 ifeq ($(OS_ARCH),WINNT)
 README_FILES = \
 	installer/windows/README.txt \
@@ -99,7 +94,6 @@ else
 README_FILES = \
 	installer/unix/README \
 	$(NULL)
-endif
 endif
 endif
 
@@ -120,7 +114,9 @@ ifeq ($(OS_ARCH),WINNT)
 	$(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $$file > $(FINAL_TARGET)/`basename $$file`; \
 	done
 else
+ifneq ($(OS_ARCH),OS2)
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
+endif
 endif
 
 libs:: $(addprefix $(LOCALE_SRCDIR)/profile/,$(PROFILE_FILES))
