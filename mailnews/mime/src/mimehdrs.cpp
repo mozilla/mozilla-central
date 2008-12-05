@@ -589,7 +589,11 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
       hdr_value = Substring(contents, end);
     }
 
-    MimeHeaders_convert_header_value(opt, hdr_value);
+    // MW Fixme: more?
+    if (!(name.LowerCaseEqualsLiteral("to") || name.LowerCaseEqualsLiteral("from") ||
+          name.LowerCaseEqualsLiteral("cc") || name.LowerCaseEqualsLiteral("bcc") ||
+          name.LowerCaseEqualsLiteral("reply-to") || name.LowerCaseEqualsLiteral("sender")))
+          MimeHeaders_convert_header_value(opt, hdr_value);
     // if we're saving as html, we need to convert headers from utf8 to message charset, if any
     if (opt->format_out == nsMimeOutput::nsMimeMessageSaveAs && charset)
     {

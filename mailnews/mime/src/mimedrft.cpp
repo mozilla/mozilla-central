@@ -301,9 +301,7 @@ CreateCompositionFields(const char        *from,
   char *val;
 
   if (from) {
-    val = MIME_DecodeMimeHeader(from, charset, PR_FALSE, PR_TRUE);
-    cFields->SetFrom(NS_ConvertUTF8toUTF16(val ? val : from));
-    PR_FREEIF(val);
+    cFields->SetFrom(NS_ConvertUTF8toUTF16(from));
   }
 
   if (subject) {
@@ -313,27 +311,19 @@ CreateCompositionFields(const char        *from,
   }
 
   if (reply_to) {
-    val = MIME_DecodeMimeHeader(reply_to, charset, PR_FALSE, PR_TRUE);
-    cFields->SetReplyTo(NS_ConvertUTF8toUTF16(val ? val : reply_to));
-    PR_FREEIF(val);
+    cFields->SetReplyTo(NS_ConvertUTF8toUTF16(reply_to));
   }
 
   if (to) {
-    val = MIME_DecodeMimeHeader(to, charset, PR_FALSE, PR_TRUE);
-    cFields->SetTo(NS_ConvertUTF8toUTF16(val ? val : to));
-    PR_FREEIF(val);
+    cFields->SetTo(NS_ConvertUTF8toUTF16(to));
   }
 
   if (cc) {
-    val = MIME_DecodeMimeHeader(cc, charset, PR_FALSE, PR_TRUE);
-    cFields->SetCc(NS_ConvertUTF8toUTF16(val ? val : cc));
-    PR_FREEIF(val);
+    cFields->SetCc(NS_ConvertUTF8toUTF16(cc));
   }
 
   if (bcc) {
-    val = MIME_DecodeMimeHeader(bcc, charset, PR_FALSE, PR_TRUE);
-    cFields->SetBcc(NS_ConvertUTF8toUTF16(val ? val : bcc));
-    PR_FREEIF(val);
+    cFields->SetBcc(NS_ConvertUTF8toUTF16(bcc));
   }
 
   if (fcc) {

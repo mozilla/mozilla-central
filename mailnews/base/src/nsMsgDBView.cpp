@@ -70,6 +70,7 @@
 #include "nsITreeColumns.h"
 #include "nsTextFormatter.h"
 #include "nsIMutableArray.h"
+#include "nsIMimeConverter.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 
@@ -373,28 +374,31 @@ nsresult nsMsgDBView::AppendKeywordProperties(const char *keywords, nsISupportsA
 
 nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aSenderString)
 {
-  nsString unparsedAuthor;
+  nsCString unparsedAuthor;
   if (!mHeaderParser)
     mHeaderParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 
-  nsresult rv = aHdr->GetMime2DecodedAuthor(unparsedAuthor);
+  nsCOMPtr <nsIMimeConverter> mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
+  nsresult rv = aHdr->GetAuthor(getter_Copies(unparsedAuthor));
 
-  // *sigh* how sad, we need to convert our beautiful unicode string to utf8
-  // so we can extract the name part of the address...then convert it back to
-  // unicode again.
   if (mHeaderParser)
   {
     nsCString name;
-    rv = mHeaderParser->ExtractHeaderAddressName(NS_ConvertUTF16toUTF8(unparsedAuthor),
-                                                 name);
+    rv = mHeaderParser->ExtractHeaderAddressName(unparsedAuthor, name);
     if (NS_SUCCEEDED(rv) && !name.IsEmpty())
     {
-      CopyUTF8toUTF16(name, aSenderString);
+      nsCString charset;
+      rv = aHdr->GetCharset(getter_Copies(charset));
+      rv = mimeConverter->DecodeMimeHeader(name.get(),
+                                           charset.get(),
+                                           PR_FALSE,
+                                           PR_TRUE,
+                                           aSenderString);
       return NS_OK;
     }
   }
   // if we got here then just return the original string
-  aSenderString = unparsedAuthor;
+  CopyUTF8toUTF16(unparsedAuthor, aSenderString);
   return NS_OK;
 }
 

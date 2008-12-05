@@ -47,6 +47,8 @@
 #include "nsIFileChannel.h"
 #include "nsIMsgMdnGenerator.h"
 #include "nsServiceManagerUtils.h"
+#include "nsMsgMimeCID.h"
+#include "nsIMimeConverter.h"
 #include "nsArrayEnumerator.h"
 
 /* the following macro actually implement addref, release and query interface for our component. */
@@ -550,6 +552,8 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const nsAString &aRecipients, PRB
   if (NS_SUCCEEDED(rv))
   {
     nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
+    nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
     if (parser)
     {
       nsCAutoString recipientsStr;
@@ -572,9 +576,16 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const nsAString &aRecipients, PRB
         {
           nsCString fullAddress;
           nsAutoString recipient;
-          if (!aEmailAddressOnly)
-            rv = parser->MakeFullAddressString(pNames, pAddresses,
+          if (!aEmailAddressOnly) 
+          {
+            nsCString decodedName;
+            converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(), PR_FALSE, PR_TRUE,
+                                                 getter_Copies(decodedName));
+            rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ? 
+                                                decodedName.get() : pNames), 
+                                               pAddresses, 
                                                getter_Copies(fullAddress));
+          }
           if (NS_SUCCEEDED(rv) && !aEmailAddressOnly)
           {
             rv = ConvertToUnicode("UTF-8", fullAddress, recipient);
@@ -613,6 +624,8 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
   nsCOMPtr<nsIMsgHeaderParser> parser =
     do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString recipientsStr;
   char *names;
@@ -630,7 +643,12 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
     for (PRUint32 i = 0; i < numAddresses; ++i)
     {
       nsCString fullAddress;
-      rv = parser->MakeFullAddressString(pNames, pAddresses,
+      nsCString decodedName;
+      converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(), PR_FALSE, PR_TRUE, 
+                                           getter_Copies(decodedName));
+      rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ? 
+                                          decodedName.get() : pNames), 
+                                         pAddresses, 
                                          getter_Copies(fullAddress));
 
       nsMsgRecipient msgRecipient;
