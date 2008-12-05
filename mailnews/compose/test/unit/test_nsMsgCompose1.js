@@ -151,4 +151,9 @@ function run_test() {
                 "test1@com.invalid,test2@com.invalid,test3@com.invalid",
                 nsIAbPreferMailFormat.unknown,
                 "test5@invalid.com,test1@com.invalid,test2@com.invalid,test3@com.invalid");
+                
+  // test bug 254519 rfc 2047 encoding
+  checkPopulate("=?iso-8859-1?Q?Sure=F6name=2C_Forename__Dr=2E?= <pb@bieringer.de>", "pb@bieringer.de",
+                nsIAbPreferMailFormat.unknown,
+                "\"Sure\u00F6name, Forename  Dr.\" <pb@bieringer.de>");
 };
