@@ -1236,7 +1236,7 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
 
       PRBool shouldStoreMsgOffline = PR_FALSE;
       folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
-      if (imapMessageSink)
+      if (imapMessageSink && !hasMsgOffline)
         imapMessageSink->SetNotifyDownloadedLines(shouldStoreMsgOffline);
       
       rv = GetMessageFromUrl(imapUrl, nsIImapUrl::nsImapMsgFetchPeek, folder,
@@ -3232,6 +3232,7 @@ NS_IMETHODIMP nsImapService::DownloadMessagesForOffline(const nsACString &messag
     nsCOMPtr<nsIURI> runningURI;
     // need to pass in stream listener in order to get the channel created correctly
     nsCOMPtr<nsIImapMessageSink> imapMessageSink(do_QueryInterface(aFolder, &rv));
+    imapMessageSink->SetNotifyDownloadedLines(PR_TRUE);
     rv = FetchMessage(imapUrl, nsImapUrl::nsImapMsgDownloadForOffline,aFolder, imapMessageSink, 
                       aMsgWindow, nsnull, messageIds, PR_FALSE, EmptyCString(), getter_AddRefs(runningURI));
     if (runningURI && aUrlListener)

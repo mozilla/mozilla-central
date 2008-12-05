@@ -3947,7 +3947,6 @@ NS_IMETHODIMP nsImapMailFolder::DownloadMessagesForOffline(nsIArray *messages, n
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  SetNotifyDownloadedLines(PR_TRUE);
   rv = AcquireSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
   if (NS_FAILED(rv))
   {
