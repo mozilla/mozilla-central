@@ -3904,7 +3904,7 @@ nsMsgComposeAndSend::FormatStringWithSMTPHostNameByID(PRInt32 aMsgId, PRUnichar 
   nsCOMPtr<nsISmtpServer> smtpServer;
   rv = smtpService->GetSmtpServerByIdentity(mUserIdentity, getter_AddRefs(smtpServer));
   if (NS_SUCCEEDED(rv))
-    smtpServer->GetHostname(getter_Copies(smtpHostName));
+    smtpServer->GetHostname(smtpHostName);
 
   nsAutoString hostStr;
   CopyASCIItoUTF16(smtpHostName, hostStr);

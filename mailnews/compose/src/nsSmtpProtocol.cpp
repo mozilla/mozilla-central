@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -1046,7 +1046,7 @@ PRInt32 nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 leng
         {
             smtpServer->ForgetPassword();
             if (m_usernamePrompted)
-                smtpServer->SetUsername("");
+              smtpServer->SetUsername(EmptyCString());
 
             // Let's restore the original auth flags from SendEhloResponse
             // so we can try them again with new password and username
@@ -1077,12 +1077,16 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIFirst()
   nsresult rv;
   nsCOMPtr<nsISmtpServer> smtpServer;
   rv = m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
-  if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
+  if (NS_FAILED(rv))
+    return NS_ERROR_FAILURE;
 
-  rv = smtpServer->GetUsername(getter_Copies(userName));
-  if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
-  rv = smtpServer->GetHostname(getter_Copies(hostName));
-  if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
+  rv = smtpServer->GetUsername(userName);
+  if (NS_FAILED(rv))
+    return NS_ERROR_FAILURE;
+
+  rv = smtpServer->GetHostname(hostName);
+  if (NS_FAILED(rv))
+    return NS_ERROR_FAILURE;
 
  service.Append(hostName);
   rv = DoGSSAPIStep1(service.get(), userName.get(), resp);
@@ -1164,10 +1168,10 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   rv = m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
   if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
 
-  rv = smtpServer->GetUsername(getter_Copies(username));
+  rv = smtpServer->GetUsername(username);
   if (username.IsEmpty())
   {
-    rv = GetUsernamePassword(getter_Copies(username), password);
+    rv = GetUsernamePassword(username, password);
     m_usernamePrompted = PR_TRUE;
     if (username.IsEmpty() || password.IsEmpty())
       return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
@@ -1276,7 +1280,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
         if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
 
         nsCString userName;
-        rv = smtpServer->GetUsername(getter_Copies(userName));
+        rv = smtpServer->GetUsername(userName);
 
         PR_snprintf(buffer, sizeof(buffer), "%s %s", userName.get(), encodedDigest.get());
         char *base64Str = PL_Base64Encode(buffer, strlen(buffer), nsnull);
@@ -1892,7 +1896,7 @@ nsSmtpProtocol::GetPassword(nsCString &aPassword)
     NS_ENSURE_SUCCESS(rv,rv);
 
     nsCString username;
-    rv = smtpServer->GetUsername(getter_Copies(username));
+    rv = smtpServer->GetUsername(username);
     NS_ENSURE_SUCCESS(rv, rv);
 
     NS_ConvertASCIItoUTF16 usernameUTF16(username);
@@ -1903,7 +1907,7 @@ nsSmtpProtocol::GetPassword(nsCString &aPassword)
     };
 
     nsCString hostname;
-    rv = smtpServer->GetHostname(getter_Copies(hostname));
+    rv = smtpServer->GetHostname(hostname);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsAutoString hostnameUTF16;
@@ -1952,10 +1956,9 @@ nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpU
 }
 
 nsresult
-nsSmtpProtocol::GetUsernamePassword(char **aUsername, nsACString &aPassword)
+nsSmtpProtocol::GetUsernamePassword(nsACString &aUsername,
+                                    nsACString &aPassword)
 {
-    NS_ENSURE_ARG_POINTER(aUsername);
-
     nsresult rv;
     nsCOMPtr<nsISmtpUrl> smtpUrl = do_QueryInterface(m_runningURL, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1972,19 +1975,15 @@ nsSmtpProtocol::GetUsernamePassword(char **aUsername, nsACString &aPassword)
         rv = smtpServer->GetUsername(aUsername);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        if (*aUsername && **aUsername)
-            return rv;
-
-        // empty username
-        NS_Free(*aUsername);
-        *aUsername = 0;
+        if (!aUsername.IsEmpty())
+          return rv;
     }
     // empty password
 
     aPassword.Truncate();
 
     nsCString hostname;
-    rv = smtpServer->GetHostname(getter_Copies(hostname));
+    rv = smtpServer->GetHostname(hostname);
     NS_ENSURE_SUCCESS(rv, rv);
 
     const PRUnichar *formatStrings[] =

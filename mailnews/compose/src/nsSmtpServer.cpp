@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -116,24 +116,25 @@ nsresult nsSmtpServer::getPrefs()
 }
 
 NS_IMETHODIMP
-nsSmtpServer::GetHostname(char * *aHostname)
+nsSmtpServer::GetHostname(nsACString &aHostname)
 {
-    nsresult rv;
-    NS_ENSURE_ARG_POINTER(aHostname);
-    rv = mPrefBranch->GetCharPref("hostname", aHostname);
-    if (NS_FAILED(rv))
-        *aHostname=nsnull;
-    return NS_OK;
+  nsCString result;
+  nsresult rv = mPrefBranch->GetCharPref("hostname", getter_Copies(result));
+  if (NS_FAILED(rv))
+    aHostname.Truncate();
+  else
+    aHostname = result;
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
-nsSmtpServer::SetHostname(const char * aHostname)
+nsSmtpServer::SetHostname(const nsACString &aHostname)
 {
-    if (aHostname)
-        return mPrefBranch->SetCharPref("hostname", aHostname);
-    else
-        mPrefBranch->ClearUserPref("hostname");
-    return NS_OK;
+  if (aHostname.IsEmpty())
+    return mPrefBranch->ClearUserPref("hostname");
+
+  return mPrefBranch->SetCharPref("hostname", PromiseFlatCString(aHostname).get());
 }
 
 NS_IMETHODIMP
@@ -298,24 +299,24 @@ nsSmtpServer::SetAuthMethod(PRInt32 authMethod)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::GetUsername(char * *aUsername)
+nsSmtpServer::GetUsername(nsACString &aUsername)
 {
-    nsresult rv;
-    NS_ENSURE_ARG_POINTER(aUsername);
-    rv = mPrefBranch->GetCharPref("username", aUsername);
-    if (NS_FAILED(rv))
-        *aUsername = nsnull;
-    return NS_OK;
+  nsCString result;
+  nsresult rv = mPrefBranch->GetCharPref("username", getter_Copies(result));
+  if (NS_FAILED(rv))
+    aUsername.Truncate();
+  else
+    aUsername = result;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
-nsSmtpServer::SetUsername(const char * aUsername)
+nsSmtpServer::SetUsername(const nsACString &aUsername)
 {
-    if (aUsername)
-        return mPrefBranch->SetCharPref("username", aUsername);
-    else
-        mPrefBranch->ClearUserPref("username");
-    return NS_OK;
+  if (aUsername.IsEmpty())
+    return mPrefBranch->ClearUserPref("username");
+
+  return mPrefBranch->SetCharPref("username", PromiseFlatCString(aUsername).get());
 }
 
 NS_IMETHODIMP
@@ -360,8 +361,8 @@ nsSmtpServer::GetPassword(nsACString& aPassword)
           {
             nsCString userName;
             nsCString hostName;
-            GetHostname(getter_Copies(hostName));
-            GetUsername(getter_Copies(userName));
+            GetHostname(hostName);
+            GetUsername(userName);
             if (useMatchingHostNameServer)
               // pass in empty type and port=0, to match imap and pop3.
               accountManager->FindRealServer(userName, hostName, EmptyCString(), 0, getter_AddRefs(incomingServerToUse));
@@ -447,7 +448,7 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
             nsString uniPassword;
             PRBool okayValue = PR_TRUE;
             nsCString serverUri;
-            rv = GetServerURI(getter_Copies(serverUri));
+            rv = GetServerURI(serverUri);
             if (NS_FAILED(rv))
                 return rv;
             nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -485,11 +486,10 @@ NS_IMETHODIMP
 nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
                                 PRUnichar *aPromptTitle,
                                 nsIAuthPrompt* aDialog,
-                                char **aUsername,
+                                nsACString &aUsername,
                                 nsACString &aPassword)
 {
     nsresult rv = NS_OK;
-    NS_ENSURE_ARG_POINTER(aUsername);
 
     if (m_password.IsEmpty()) {
         NS_ENSURE_ARG_POINTER(aDialog);
@@ -500,7 +500,7 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
             nsString uniPassword;
             PRBool okayValue = PR_TRUE;
             nsCString serverUri;
-            rv = GetServerURI(getter_Copies(serverUri));
+            rv = GetServerURI(serverUri);
             if (NS_FAILED(rv))
                 return rv;
             rv = aDialog->PromptUsernameAndPassword(aPromptTitle, aPromptMessage,
@@ -511,16 +511,16 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
 
             if (!okayValue) // if the user pressed cancel, just return NULL;
             {
-                *aUsername = nsnull;
-                aPassword.Truncate();
-                return rv;
+              aUsername.Truncate();
+              aPassword.Truncate();
+              return rv;
             }
 
             // we got a userid and password back...so remember it
             nsCString aCStr;
 
             LossyCopyUTF16toASCII(uniUsername, aCStr);
-            rv = SetUsername(aCStr.get());
+            rv = SetUsername(aCStr);
             if (NS_FAILED(rv))
                 return rv;
 
@@ -545,7 +545,7 @@ nsSmtpServer::ForgetPassword()
     NS_ENSURE_SUCCESS(rv,rv);
 
     nsCString serverUri;
-    rv = GetServerURI(getter_Copies(serverUri));
+    rv = GetServerURI(serverUri);
     if (NS_FAILED(rv))
         return rv;
 
@@ -565,28 +565,27 @@ nsSmtpServer::ForgetPassword()
 }
 
 NS_IMETHODIMP
-nsSmtpServer::GetServerURI(char **aResult)
+nsSmtpServer::GetServerURI(nsACString &aResult)
 {
-    NS_ENSURE_ARG_POINTER(aResult);
     nsresult rv;
     nsCAutoString uri;
 
-    uri += "smtp";
-    uri += "://";
+    uri.AssignLiteral("smtp");
+    uri.AppendLiteral("://");
 
     nsCString username;
-    rv = GetUsername(getter_Copies(username));
+    rv = GetUsername(username);
 
     if (NS_SUCCEEDED(rv) && !username.IsEmpty()) {
         nsCString escapedUsername;
         MsgEscapeString(username, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
         // not all servers have a username
         uri.Append(escapedUsername);
-        uri += '@';
+        uri.AppendLiteral("@");
     }
 
     nsCString hostname;
-    rv = GetHostname(getter_Copies(hostname));
+    rv = GetHostname(hostname);
 
     if (NS_SUCCEEDED(rv) && !hostname.IsEmpty()) {
         nsCString escapedHostname;
@@ -596,7 +595,7 @@ nsSmtpServer::GetServerURI(char **aResult)
         uri.Append(escapedHostname);
     }
 
-    *aResult = ToNewCString(uri);
+    aResult = uri;
     return NS_OK;
 }
 

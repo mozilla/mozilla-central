@@ -178,8 +178,8 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
     PRInt32 smtpPort;
     PRInt32 trySSL;
 
-    aSmtpServer->GetHostname(getter_Copies(smtpHostName));
-    aSmtpServer->GetUsername(getter_Copies(smtpUserName));
+    aSmtpServer->GetHostname(smtpHostName);
+    aSmtpServer->GetUsername(smtpUserName);
     aSmtpServer->GetPort(&smtpPort);
     aSmtpServer->GetTrySSL(&trySSL);
 
@@ -777,12 +777,12 @@ nsSmtpService::findServerByHostname(nsISmtpServer *aServer, void *aData)
   findServerByHostnameEntry *entry = (findServerByHostnameEntry*)aData;
 
   nsCString hostname;
-  nsresult rv = aServer->GetHostname(getter_Copies(hostname));
+  nsresult rv = aServer->GetHostname(hostname);
   if (NS_FAILED(rv))
     return PR_TRUE;
 
   nsCString username;
-  rv = aServer->GetUsername(getter_Copies(username));
+  rv = aServer->GetUsername(username);
   if (NS_FAILED(rv))
     return PR_TRUE;
 

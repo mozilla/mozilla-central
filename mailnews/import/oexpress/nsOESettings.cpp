@@ -615,9 +615,9 @@ void OESettings::SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
     nsCOMPtr<nsISmtpServer> smtpServer;
     rv = smtpService->CreateSmtpServer( getter_AddRefs( smtpServer));
     if (NS_SUCCEEDED( rv) && smtpServer) {
-      smtpServer->SetHostname( pServer);
+      smtpServer->SetHostname(nsDependentCString(pServer));
       if (!user.IsEmpty())
-        smtpServer->SetUsername( user.get());
+        smtpServer->SetUsername(user);
       IMPORT_LOG1( "Created new SMTP server: %s\n", pServer);
     }
   }

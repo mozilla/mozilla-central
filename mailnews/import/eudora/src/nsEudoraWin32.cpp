@@ -1029,9 +1029,9 @@ void nsEudoraWin32::SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pA
     rv = smtpService->CreateSmtpServer( getter_AddRefs( smtpServer));
     if (NS_SUCCEEDED( rv) && smtpServer)
     {
-      smtpServer->SetHostname( pServer);
+      smtpServer->SetHostname(nsDependentCString(pServer));
       if (pUser)
-        smtpServer->SetUsername( pUser);
+        smtpServer->SetUsername(nsDependentCString(pUser));
 
       IMPORT_LOG1( "Created new SMTP server: %s\n", pServer);
     }

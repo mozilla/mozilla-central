@@ -48,7 +48,7 @@ interface nsIUrlListener;
  * Most of the attributes will set/get preferences from the main preferences
  * file.
  */
-[scriptable, uuid(71f5d415-094d-4a32-899b-2256c2de6876)]
+[scriptable, uuid(67725a6a-ddab-4fed-97f1-e58105c23c0e)]
 interface nsISmtpServer : nsISupports {
 
   /// A unique identifier for the server.
@@ -58,13 +58,13 @@ interface nsISmtpServer : nsISupports {
   attribute AUTF8String description;
 
   /// The server's hostname.
-  attribute string hostname;
+  attribute ACString hostname;
 
   /// The server's port.
   attribute PRInt32 port;
 
   /// The username to access the server with (if required)
-  attribute string username;
+  attribute ACString username;
 
   /**
    * The password to access the server with (if required).
@@ -111,7 +111,7 @@ interface nsISmtpServer : nsISupports {
   readonly attribute string helloArgument;
 
   /// Returns the URI of the server (smtp:///)
-  readonly attribute string serverURI;
+  readonly attribute ACString serverURI;
 
   /**
    * Gets a password for this server, using a UI prompt if necessary.
@@ -142,7 +142,7 @@ interface nsISmtpServer : nsISupports {
    *                      obtained).
    */  
   void getUsernamePasswordWithUI(in wstring promptString, in wstring promptTitle,
-                                 in nsIAuthPrompt netPrompt, out string userid,
+                                 in nsIAuthPrompt netPrompt, out ACString userid,
                                  out ACString password);
 
   /**

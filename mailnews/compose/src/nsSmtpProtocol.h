@@ -245,7 +245,7 @@ private:
 
     void AppendHelloArgument(nsACString& aResult);
     nsresult GetPassword(nsCString &aPassword);
-    nsresult GetUsernamePassword(char **aUsername, nsACString &aPassword);
+    nsresult GetUsernamePassword(nsACString &aUsername, nsACString &aPassword);
     nsresult PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpUrl, 
                                const PRUnichar **formatStrings, 
                                nsACString &aPassword);
