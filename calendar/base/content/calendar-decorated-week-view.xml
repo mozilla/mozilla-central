@@ -60,7 +60,6 @@
         <implementation implements="calIDecoratedView">
             <constructor><![CDATA[
                 this.mWeekStartOffset = getPrefSafe("calendar.week.start", 0);
-                return;
             ]]></constructor>
 
             <field name="mWeekStartOffset">0</field>

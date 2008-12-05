@@ -2193,7 +2193,7 @@
                    flex="1" equalsize="always" />
           <xul:box anonid="headerscrollbarspacer"/>
         </xul:box>
-        <xul:scrollbox anonid="childbox" flex="1">
+        <xul:scrollbox anonid="scrollbox" flex="1">
           <!-- the orient of the calendar-time-bar needs to be the opposite of the parent -->
           <xul:calendar-time-bar xbl:inherits="orient" anonid="timebar"/>
           <xul:box anonid="daybox" class="calendar-day-box" flex="1"
@@ -2210,15 +2210,13 @@
         this.mTimezone = UTC();
         this.mResizeHandler = function resizeHandler() { self.onResize(); };
         window.addEventListener("resize", this.mResizeHandler, true);
-        this.mScrollHandler = function scrollHandler() { self.onScroll(); };
-        window.addEventListener("scroll", this.mScrollHandler, true);
 
         // set the flex attribute at the scrollbox-innerbox
         // (this can be removed, after Bug 343555 is fixed)
-        var childbox = document.getAnonymousElementByAttribute(
-                       this, "anonid", "childbox");
+        let scrollbox = document.getAnonymousElementByAttribute(
+                       this, "anonid", "scrollbox");
         document.getAnonymousElementByAttribute(
-            childbox, "class", "box-inherit scrollbox-innerbox").flex = "1";
+            scrollbox, "class", "box-inherit scrollbox-innerbox").flex = "1";
 
         this.reorient();
 
@@ -2232,7 +2230,6 @@
         if (this.mCalendar) {
             this.mCalendar.removeObserver(this.mObserver);
         }
-        window.removeEventListener("scroll", this.mScrollHandler, true);
         window.removeEventListener("resize", this.mResizeHandler, true);
 
         var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
@@ -2254,12 +2251,12 @@
           if (aRealSelf) {
             self = aRealSelf;
           }
-          var childbox = document.getAnonymousElementByAttribute(self, "anonid", "childbox");
+          let scrollbox = document.getAnonymousElementByAttribute(self, "anonid", "scrollbox");
           var size;
           if (self.orient == "horizontal") {
-            size = childbox.boxObject.width;
+            size = scrollbox.boxObject.width;
           } else {
-            size = childbox.boxObject.height;
+            size = scrollbox.boxObject.height;
           }
           var ppm = size / self.mVisibleMinutes;
           ppm = Math.floor(ppm * 1000) / 1000;
@@ -2267,30 +2264,10 @@
             ppm = self.mMinPixelsPerMinute;
           }
           self.pixelsPerMinute = ppm;
-          setTimeout(function(){self.scrollToMinute(self.mFirstVisibleMinute)}, 1);
+          setTimeout(function(){self.scrollToMinute(self.mFirstVisibleMinute)}, 0);
 
           // Fit the weekday labels while scrolling.
           self.adjustWeekdayLength();
-        ]]></body>
-      </method>
-
-      <field name="mScrollHandler">null</field>
-      <method name="onScroll">
-        <body><![CDATA[
-          // workaround: deck changes shouldn't provoke onScroll events...
-          var displayDeck = document.getElementById("calendarDisplayDeck");
-          if (displayDeck && displayDeck.selectedPanel.id != "calendar-view-box") {
-            return;
-          }
-          var panel = this.parentNode.parentNode.parentNode;
-          var deck = panel.parentNode;
-          if (panel.id != deck.selectedPanel.id) {
-            return;
-          }
-          if (deck.style.visibility == "collapse") {
-            return;
-          }
-          this.mFirstVisibleMinute = this.getFirstVisibleMinute();
         ]]></body>
       </method>
 
@@ -3015,17 +2992,17 @@
           var displayDuration = highMinute - lowMinute;
           if (this.mSelectedItems.length &&
               displayDuration >= 0) {
+              let minute;
               if (displayDuration <= this.mVisibleMinutes) {
-                  var minute = lowMinute + (displayDuration - this.mVisibleMinutes) / 2
-                  this.setFirstVisibleMinute(minute);
+                  minute = lowMinute + (displayDuration - this.mVisibleMinutes) / 2
               } else if (this.mSelectedItems.length == 1) {
                   // If the displayDuration doesn't fit into the visible
                   // minutes, but only one event is selected, then go ahead and
                   // center the event start.
 
-                  var minute = Math.max(0, lowMinute - (this.mVisibleMinutes / 2));
-                  this.setFirstVisibleMinute(minute);
+                  minute = Math.max(0, lowMinute - (this.mVisibleMinutes / 2));
               }
+              this.scrollToMinute(minute);
           }
         ]]></body>
       </method>
@@ -3040,8 +3017,20 @@
       </method>
 
       <property name="pixelsPerMinute">
-        <getter>return this.mPixPerMin</getter>
-        <setter>this.setPixelsPerMin(val); return val;</setter>
+        <getter><![CDATA[
+          return this.mPixPerMin
+        ]]></getter>
+        <setter><![CDATA[
+          this.mPixPerMin = val;
+
+          let timebar = document.getAnonymousElementByAttribute(this, "anonid", "timebar");
+          timebar.pixelsPerMinute = val;
+
+          for each (let col in this.mDateColumns) {
+              col.column.pixelsPerMinute = val;
+          }
+          return val;
+        ]]></setter>
       </property>
 
       <!-- private -->
@@ -3107,14 +3096,15 @@
           if (!orient) orient = "horizontal";
           if (orient == "vertical") otherorient = "horizontal";
 
-          if (orient == "horizontal")
-              this.setPixelsPerMin(1.5);
-          else
-              this.setPixelsPerMin(0.6);
+          if (orient == "horizontal") {
+              this.pixelsPerMinute = 1.5;
+          } else {
+              this.pixelsPerMinute = 0.6;
+          }
 
           var normalelems = ['mainbox', 'timebar'];
           var otherelems = ['labelbox', 'labeldaybox', 'headertimespacer',
-                            'headerbox', 'headerdaybox', 'childbox', 'daybox'];
+                            'headerbox', 'headerdaybox', 'scrollbox', 'daybox'];
 
           for each (var id in normalelems) {
               document.getAnonymousElementByAttribute(this, "anonid", id).setAttribute("orient", orient);
@@ -3123,18 +3113,18 @@
               document.getAnonymousElementByAttribute(this, "anonid", id).setAttribute("orient", otherorient);
           }
 
-          var childbox = document.getAnonymousElementByAttribute(
-                         this, "anonid", "childbox");
+          var scrollbox = document.getAnonymousElementByAttribute(
+                         this, "anonid", "scrollbox");
           var mainbox = document.getAnonymousElementByAttribute(
                         this, "anonid", "mainbox");
 
           if (orient == "vertical") {
-              childbox.setAttribute(
+              scrollbox.setAttribute(
                   "style", "overflow-x: hidden; overflow-y: auto;");
               mainbox.setAttribute(
                   "style", "overflow-x: auto; overflow-y: hidden;");
           } else {
-              childbox.setAttribute(
+              scrollbox.setAttribute(
                   "style", "overflow-x: auto; overflow-y: hidden;");
               mainbox.setAttribute(
                   "style", "overflow-x: hidden; overflow-y: auto;");
@@ -3578,20 +3568,6 @@
         ]]></body>
       </method>
 
-      <method name="setPixelsPerMin">
-        <parameter name="pixPerMin"/>
-        <body><![CDATA[
-          this.mPixPerMin = pixPerMin;
-
-          var timebar = document.getAnonymousElementByAttribute(this, "anonid", "timebar");
-          timebar.pixelsPerMinute = pixPerMin;
-
-          for each (var col in this.mDateColumns) {
-              col.column.pixelsPerMinute = pixPerMin;
-          }
-        ]]></body>
-      </method>
-
       <method name="today">
         <body><![CDATA[
           var date = createDateTime();
@@ -3615,21 +3591,22 @@
             // This happens in rotated view. Don't do anything there.
             return;
           }
-/* onoverflow is currently not triggered and we keep this code in comments
-   until we will take care of it...
-          if (labeldayboxkids[0].boxObject.width * this.daysInView > this.mLongWeekdayTotalPixels) {
-            // We have an underflow. Since the boxes all have equal width, we
-            // can use the first boxes' width and multiply bu the number of
-            // days in the view.
-            for (var i = 0; i < labeldayboxkids.length; i++) {
-              labeldayboxkids[i].shortWeekNames = false;
-            }
-          } else {
-            // We have an overflow
-            for (var i = 0; i < labeldayboxkids.length; i++) {
-              labeldayboxkids[i].shortWeekNames = true;
-            }
-          } */
+          /* TODO onoverflow is currently not triggered and we keep this code in
+           * comments until we will take care of it...
+           *    if (labeldayboxkids[0].boxObject.width * this.daysInView > this.mLongWeekdayTotalPixels) {
+           *      // We have an underflow. Since the boxes all have equal width, we
+           *      // can use the first boxes' width and multiply bu the number of
+           *      // days in the view.
+           *      for (var i = 0; i < labeldayboxkids.length; i++) {
+           *        labeldayboxkids[i].shortWeekNames = false;
+           *      }
+           *    } else {
+           *      // We have an overflow
+           *      for (var i = 0; i < labeldayboxkids.length; i++) {
+           *        labeldayboxkids[i].shortWeekNames = true;
+           *      }
+           *    }
+           */
         ]]></body>
       </method>
 
@@ -3643,10 +3620,10 @@
               propertyName = "height";
           }
 
-          // get the width/height of the childbox scrollbar
-          var childbox = document.getAnonymousElementByAttribute(
-                         this, "anonid", "childbox");
-          var propertyValue = childbox.boxObject.firstChild
+          // get the width/height of the scrollbox scrollbar
+          var scrollbox = document.getAnonymousElementByAttribute(
+                         this, "anonid", "scrollbox");
+          var propertyValue = scrollbox.boxObject.firstChild
                               .boxObject[propertyName];
           // Check if we need to show the headerScrollbarSpacer at all
           var headerPropertyValue = propertyValue;
@@ -3677,50 +3654,25 @@
       </method>
 
       <field name="mFirstVisibleMinute">0</field>
-      <method name="getFirstVisibleMinute">
-        <body><![CDATA[
-          var minute = 0;
-          var childbox = document.getAnonymousElementByAttribute(this, "anonid", "childbox");
-          var scrollBoxObject = childbox.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
-          if (scrollBoxObject != null) {
-            var x = {};
-            var y = {};
-            scrollBoxObject.getPosition(x, y);
-            if (childbox.getAttribute("orient") == "horizontal") {
-              minute = Math.round(y.value/this.mPixPerMin);
-            } else {
-              minute = Math.round(x.value/this.mPixPerMin);
-            }
-          }
-          return minute;
-        ]]></body>
-      </method>
-
-      <method name="setFirstVisibleMinute">
-        <parameter name="aMinute"/>
-        <body><![CDATA[
-          this.mFirstVisibleMinute = aMinute;
-          this.scrollToMinute(aMinute);
-          return this.mFirstVisibleMinute;
-        ]]></body>
-      </method>
-
       <method name="scrollToMinute">
         <parameter name="aMinute"/>
         <body><![CDATA[
-          var childbox = document.getAnonymousElementByAttribute(this, "anonid", "childbox");
-          var scrollBoxObject = childbox.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
-          if (scrollBoxObject != null) {
-            var x = {};
-            var y = {};
+          let scrollbox = document.getAnonymousElementByAttribute(this, "anonid", "scrollbox");
+          let scrollBoxObject = scrollbox.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
+          if (scrollBoxObject && scrollbox.scrollHeight > 0) {
+            let x = {}, y = {};
             scrollBoxObject.getPosition(x, y);
-            var pos = Math.round(aMinute * this.mPixPerMin);
-            if (childbox.getAttribute("orient") == "horizontal") {
+            let pos = Math.round(aMinute * this.mPixPerMin);
+            if (scrollbox.getAttribute("orient") == "horizontal") {
               scrollBoxObject.scrollTo(x.value, pos);
             } else {
               scrollBoxObject.scrollTo(pos, y.value);
             }
           }
+
+          // Set the first visible minute in any case, we want to move to the
+          // right minute as soon as possible if we couldn't do so above.
+          this.mFirstVisibleMinute = aMinute;
         ]]></body>
       </method>
 
@@ -3776,6 +3728,22 @@
         // We are taking care of scrolling, so prevent the default
         // action in any case.
         event.preventDefault();
+      ]]></handler>
+
+      <handler event="scroll" phase="bubbling"><![CDATA[
+        let scrollbox = document.getAnonymousElementByAttribute(this, "anonid", "scrollbox");
+        let scrollBoxObject = scrollbox.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
+        if (scrollBoxObject && scrollbox.scrollHeight > 0) {
+            // We need to update the first visible minute, but only if the
+            // scrollbox has been sized.
+            let x = {}, y = {};
+            scrollBoxObject.getPosition(x, y);
+            if (scrollbox.getAttribute("orient") == "horizontal") {
+                this.mFirstVisibleMinute = Math.round(y.value/this.mPixPerMin);
+            } else {
+                this.mFirstVisibleMinute = Math.round(x.value/this.mPixPerMin);
+            }
+        }
       ]]></handler>
     </handlers>
   </binding>

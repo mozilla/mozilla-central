@@ -57,7 +57,7 @@
                                                   this.mDayEndMin);
 
                 // initially scroll to the day start hour in the view
-                viewElement.setFirstVisibleMinute(this.mDayStartMin);
+                viewElement.scrollToMinute(this.mDayStartMin);
 
                 // get visible hours from prefs and set on the view
                 var visibleMinutes = getPrefSafe(
@@ -70,15 +70,12 @@
                 pb2.addObserver("calendar.", this.mPrefObserver, false);
 
                 this.updateDaysOffPrefs();
-
-                return;
             ]]></constructor>
 
             <destructor><![CDATA[
                 var pb2 = Components.classes["@mozilla.org/preferences-service;1"].
                           getService(Components.interfaces.nsIPrefBranch2);
                 pb2.removeObserver("calendar.", this.mPrefObserver);
-                return;
             ]]></destructor>
 
             <field name="mDayStartMin">8*60</field>
