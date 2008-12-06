@@ -416,17 +416,10 @@
         this.calendarView.setSelectedItems(0, []);
       ]]></handler>
       <handler event="DOMMouseScroll"><![CDATA[
-        if (event.originalTarget.getAttribute("anonid") != "day-label") {
-          // Finding out if the box is overflowing is tricky, but fortunately
-          // the height of the boxes is equal.
-          var childHeight = (this.dayitems.firstChild ?
-                             this.dayitems.firstChild.boxObject.height *
-                             this.dayitems.childNodes.length : 0);
-          if (this.dayitems.boxObject.height < childHeight) {
-            // The box is overflowing. Stop propagation and let the default
-            // event handler take care of scrolling
-            event.stopPropagation();
-          }
+        if (getParentNodeOrThisByAttribute(event.originalTarget, "anonid", "day-label") == null) {
+            if (this.dayitems.scrollHeight > this.dayitems.clientHeight) {
+                event.stopPropagation();
+            }
         }
       ]]></handler>
     </handlers>
