@@ -55,4 +55,5 @@
 #endif
     <menu id="helpMenu"/>
   </menubar>
+  <browser id="content" disablehistory="true"/>
 </overlay>
