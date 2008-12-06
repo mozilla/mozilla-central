@@ -165,7 +165,7 @@ var Gloda = {
    */
   _initLogging: function gloda_ns_initLogging() {
     let formatter = new Log4Moz.BasicFormatter();
-    let root = Log4Moz.Service.rootLogger;
+    let root = Log4Moz.repository.rootLogger;
     root.level = Log4Moz.Level.Debug;
 
     let enableConsoleLogging = false;
@@ -210,7 +210,7 @@ var Gloda = {
       }
     }
 
-    this._log = Log4Moz.Service.getLogger("gloda.NS");
+    this._log = Log4Moz.repository.getLogger("gloda.NS");
     this._log.info("Logging Initialized");
   },
 

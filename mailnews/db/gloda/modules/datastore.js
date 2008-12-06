@@ -53,7 +53,7 @@ Cu.import("resource://app/modules/gloda/datamodel.js");
 Cu.import("resource://app/modules/gloda/databind.js");
 Cu.import("resource://app/modules/gloda/collection.js");
 
-let MBM_LOG = Log4Moz.Service.getLogger("gloda.ds.mbm");
+let MBM_LOG = Log4Moz.repository.getLogger("gloda.ds.mbm");
 
 /**
  * @class This callback handles processing the asynchronous query results of
@@ -99,7 +99,7 @@ MessagesByMessageIdCallback.prototype = {
   }
 };
 
-let PCH_LOG = Log4Moz.Service.getLogger("gloda.ds.pch");
+let PCH_LOG = Log4Moz.repository.getLogger("gloda.ds.pch");
 
 function PostCommitHandler(aCallbacks) {
   this.callbacks = aCallbacks;
@@ -140,7 +140,7 @@ PostCommitHandler.prototype = {
   }
 };
 
-let QFQ_LOG = Log4Moz.Service.getLogger("gloda.ds.qfq");
+let QFQ_LOG = Log4Moz.repository.getLogger("gloda.ds.qfq");
 
 let QueryFromQueryResolver = {
   onItemsAdded: function(aIgnoredItems, aCollection, aFake) {
@@ -742,7 +742,7 @@ var GlodaDatastore = {
    *  mapping.
    */
   _init: function gloda_ds_init(aNsJSON, aNounIDToDef) {
-    this._log = Log4Moz.Service.getLogger("gloda.datastore");
+    this._log = Log4Moz.repository.getLogger("gloda.datastore");
     this._log.debug("Beginning datastore initialization.");
     
     this._json = aNsJSON;

@@ -57,7 +57,7 @@ Components.utils.import("resource://app/modules/gloda/indexer.js");
 Components.utils.import("resource://app/modules/gloda/log4moz.js");
 let throwingAppender = new Log4Moz.ThrowingAppender(do_throw);
 throwingAppender.level = Log4Moz.Level.Warn;
-Log4Moz.Service.rootLogger.addAppender(throwingAppender);
+Log4Moz.repository.rootLogger.addAppender(throwingAppender);
 
 /**
  * davida's patented dump function for what ails you. 

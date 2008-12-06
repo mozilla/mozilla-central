@@ -69,7 +69,7 @@ function range(begin, end) {
   }
 }
 
-const GFI = Log4Moz.Service.getLogger("gloda.fixiterator");
+const GFI = Log4Moz.repository.getLogger("gloda.fixiterator");
 
 
 // FROM STEEL (a la Joey Minta/jminta)
@@ -281,7 +281,7 @@ var GlodaIndexer = {
    *  GlodaDatastore.
    */
   _datastore: GlodaDatastore,
-  _log: Log4Moz.Service.getLogger("gloda.indexer"),
+  _log: Log4Moz.repository.getLogger("gloda.indexer"),
   /**
    * Our nsITimer that we use to schedule ourselves on the main thread
    *  intermittently.  The timer always exists but may not always be active.

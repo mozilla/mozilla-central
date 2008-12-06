@@ -61,7 +61,7 @@ FreeTag.prototype = {
  *  parameter, we are an odd case and semantically confused.
  */
 var FreeTagNoun = {
-  _log: Log4Moz.Service.getLogger("gloda.noun.freetag"),
+  _log: Log4Moz.repository.getLogger("gloda.noun.freetag"),
 
   name: "freetag",
   class: FreeTag,

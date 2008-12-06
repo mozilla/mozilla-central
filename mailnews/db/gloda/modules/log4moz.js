@@ -87,11 +87,19 @@ let Log4Moz = {
     }
   },
 
-  get Service() {
-    delete Log4Moz.Service;
-    Log4Moz.Service = new Log4MozService();
-    return Log4Moz.Service;
+  get repository() {
+    delete Log4Moz.repository;
+    Log4Moz.repository = new LoggerRepository();
+    return Log4Moz.repository;
   },
+  set repository(value) {
+    delete Log4Moz.repository;
+    Log4Moz.repository = value;
+  },
+
+  get LogMessage() { return LogMessage; },
+  get Logger() { return Logger; },
+  get LoggerRepository() { return LoggerRepository; },
 
   get Formatter() { return Formatter; },
   get BasicFormatter() { return BasicFormatter; },
@@ -105,9 +113,9 @@ let Log4Moz = {
   get ThrowingAppender() { return ThrowingAppender; },
 
   // Logging helper:
-  // let logger = Log4Moz.Service.getLogger("foo");
+  // let logger = Log4Moz.repository.getLogger("foo");
   // logger.info(Log4Moz.enumerateInterfaces(someObject).join(","));
-  enumerateInterfaces: function(aObject) {
+  enumerateInterfaces: function Log4Moz_enumerateInterfaces(aObject) {
     let interfaces = [];
 
     for (i in Ci) {
@@ -122,9 +130,10 @@ let Log4Moz = {
   },
 
   // Logging helper:
-  // let logger = Log4Moz.Service.getLogger("foo");
+  // let logger = Log4Moz.repository.getLogger("foo");
   // logger.info(Log4Moz.enumerateProperties(someObject).join(","));
-  enumerateProperties: function(aObject, aExcludeComplexTypes) {
+  enumerateProperties: function Log4Moz_enumerateProps(aObject,
+                                                       aExcludeComplexTypes) {
     let properties = [];
 
     for (p in aObject) {
@@ -175,14 +184,24 @@ LogMessage.prototype = {
  */
 
 function Logger(name, repository) {
-  this._name = name;
-  this._repository = repository;
-  this._appenders = [];
+  this._init(name, repository);
 }
 Logger.prototype = {
+  _init: function Logger__init(name, repository) {
+    if (!repository)
+      repository = Log4Moz.repository;
+    this._name = name;
+    this._appenders = [];
+    this._repository = repository;
+  },
+
   QueryInterface: XPCOMUtils.generateQI([Ci.nsISupports]),
 
   parent: null,
+
+  get name() {
+    return this._name;
+  },
 
   _level: null,
   get level() {
@@ -273,7 +292,9 @@ LoggerRepository.prototype = {
     let cur, parent;
 
     // find the closest parent
-    for (let i = 0; i < pieces.length; i++) {
+    // don't test for the logger name itself, as there's a chance it's already
+    // there in this._loggers
+    for (let i = 0; i < pieces.length - 1; i++) {
       if (cur)
         cur += '.' + pieces[i];
       else
@@ -282,24 +303,26 @@ LoggerRepository.prototype = {
         parent = cur;
     }
 
-    // if they are the same it has no parent
-    if (parent == name)
+    // if we didn't assign a parent above, there is no parent
+    if (!parent)
       this._loggers[name].parent = this.rootLogger;
     else
       this._loggers[name].parent = this._loggers[parent];
 
     // trigger updates for any possible descendants of this logger
     for (let logger in this._loggers) {
-      if (logger != name && name.indexOf(logger) == 0)
+      if (logger != name && logger.indexOf(name) == 0)
         this._updateParents(logger);
     }
   },
 
   getLogger: function LogRep_getLogger(name) {
-    if (!(name in this._loggers)) {
-      this._loggers[name] = new Logger(name, this);
-      this._updateParents(name);
-    }
+    if (!name)
+      name = this.getLogger.caller.name;
+    if (name in this._loggers)
+      return this._loggers[name];
+    this._loggers[name] = new Logger(name, this);
+    this._updateParents(name);
     return this._loggers[name];
   }
 };
@@ -323,6 +346,8 @@ function BasicFormatter(dateFormat) {
     this.dateFormat = dateFormat;
 }
 BasicFormatter.prototype = {
+  __proto__: Formatter.prototype,
+
   _dateFormat: null,
 
   get dateFormat() {
@@ -342,7 +367,6 @@ BasicFormatter.prototype = {
       message.message + "\n";
   }
 };
-BasicFormatter.prototype.__proto__ = new Formatter();
 
 /*
  * XMLFormatter
@@ -355,6 +379,8 @@ BasicFormatter.prototype.__proto__ = new Formatter();
 
 function XMLFormatter() {}
 XMLFormatter.prototype = {
+  __proto__: Formatter.prototype,
+
   format: function XF_format(message) {
     let cdataEscapedMessage = message.message.replace(CDATA_END,
                                                       CDATA_ESCAPED_END, "g");
@@ -365,7 +391,6 @@ XMLFormatter.prototype = {
       "</log4j:event>";
   }
 }
-XMLFormatter.prototype.__proto__ = new Formatter();
 
 /*
  * Appenders
@@ -402,14 +427,15 @@ Appender.prototype = {
 
 function DumpAppender(formatter) {
   this._name = "DumpAppender";
-  this._formatter = formatter;
+  this._formatter = formatter? formatter : new BasicFormatter();
 }
 DumpAppender.prototype = {
+  __proto__: Appender.prototype,
+
   doAppend: function DApp_doAppend(message) {
     dump(message);
   }
 };
-DumpAppender.prototype.__proto__ = new Appender();
 
 /*
  * ConsoleAppender
@@ -421,6 +447,8 @@ function ConsoleAppender(formatter) {
   this._formatter = formatter;
 }
 ConsoleAppender.prototype = {
+  __proto__: Appender.prototype,
+
   doAppend: function CApp_doAppend(message) {
     if (message.level > Log4Moz.Level.Warn) {
       Cu.reportError(message);
@@ -430,7 +458,6 @@ ConsoleAppender.prototype = {
       getService(Ci.nsIConsoleService).logStringMessage(message);
   }
 };
-ConsoleAppender.prototype.__proto__ = new Appender();
 
 /*
  * FileAppender
@@ -440,9 +467,11 @@ ConsoleAppender.prototype.__proto__ = new Appender();
 function FileAppender(file, formatter) {
   this._name = "FileAppender";
   this._file = file; // nsIFile
-  this._formatter = formatter;
+  this._formatter = formatter? formatter : new BasicFormatter();
 }
 FileAppender.prototype = {
+  __proto__: Appender.prototype,
+
   __fos: null,
   get _fos() {
     if (!this.__fos)
@@ -483,7 +512,6 @@ FileAppender.prototype = {
     this._file.remove(false);
   }
 };
-FileAppender.prototype.__proto__ = new Appender();
 
 /*
  * RotatingFileAppender
@@ -499,11 +527,13 @@ function RotatingFileAppender(file, formatter, maxSize, maxBackups) {
 
   this._name = "RotatingFileAppender";
   this._file = file; // nsIFile
-  this._formatter = formatter;
+  this._formatter = formatter? formatter : new BasicFormatter();
   this._maxSize = maxSize;
   this._maxBackups = maxBackups;
 }
 RotatingFileAppender.prototype = {
+  __proto__: FileAppender.prototype,
+
   doAppend: function RFApp_doAppend(message) {
     if (message === null || message.length <= 0)
       return;
@@ -535,7 +565,6 @@ RotatingFileAppender.prototype = {
     // Note: this._file still points to the same file
   }
 };
-RotatingFileAppender.prototype.__proto__ = new FileAppender();
 
 /*
  * SocketAppender
@@ -558,6 +587,8 @@ function SocketAppender(host, port, formatter, timeoutDelay) {
     Cc["@mozilla.org/thread-manager;1"].getService().mainThread;
 }
 SocketAppender.prototype = {
+  __proto__: Appender.prototype,
+
   __nos: null,
   get _nos() {
     if (!this.__nos)
@@ -634,10 +665,7 @@ SocketAppender.prototype = {
     if (aStatus == 0x804b0004) // STATUS_CONNECTED_TO is not a constant.
       this._connected = true;
   },
-  
 };
-SocketAppender.prototype.__proto__ = new Appender();
-
 
 /**
  * Throws an exception whenever it gets a message.  Intended to be used in
@@ -650,34 +678,12 @@ function ThrowingAppender(thrower) {
   this._thrower = thrower;
 }
 ThrowingAppender.prototype = {
+  __proto__: Appender.prototype,
+
   doAppend: function TApp_doAppend(message) {
     if (this._thrower)
       this._thrower(message);
     else
       throw message;
-  }
-};
-ThrowingAppender.prototype.__proto__ = new Appender();
-
-
-/*
- * LoggingService
- */
-
-function Log4MozService() {
-  this._repository = new LoggerRepository();
-}
-Log4MozService.prototype = {
-  //classDescription: "Log4moz Logging Service",
-  //contractID: "@mozilla.org/log4moz/service;1",
-  //classID: Components.ID("{a60e50d7-90b8-4a12-ad0c-79e6a1896978}"),
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsISupports]),
-
-  get rootLogger() {
-    return this._repository.rootLogger;
-  },
-
-  getLogger: function LogSvc_getLogger(name) {
-    return this._repository.getLogger(name);
   }
 };

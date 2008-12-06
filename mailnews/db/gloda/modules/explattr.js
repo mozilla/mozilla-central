@@ -72,7 +72,7 @@ var GlodaExplicitAttr = {
   _msgTagService: null,
 
   init: function gloda_explattr_init() {
-    this._log =  Log4Moz.Service.getLogger("gloda.explattr");
+    this._log =  Log4Moz.repository.getLogger("gloda.explattr");
 
     this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
                           getService(Ci.nsIMsgTagService);

@@ -60,7 +60,7 @@ var GlodaABIndexer = {
   name: "ab_indexer",
   enable: function() {
     if (this._log == null)
-      this._log =  Log4Moz.Service.getLogger("gloda.ab_indexer");
+      this._log =  Log4Moz.repository.getLogger("gloda.ab_indexer");
   
     let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
     abManager.addAddressBookListener(this, Ci.nsIAbListener.itemChanged);
@@ -125,7 +125,7 @@ var GlodaABAttrs = {
   _log: null,
 
   init: function() {
-    this._log =  Log4Moz.Service.getLogger("gloda.abattrs");
+    this._log =  Log4Moz.repository.getLogger("gloda.abattrs");
     
     try {
       this.defineAttributes();

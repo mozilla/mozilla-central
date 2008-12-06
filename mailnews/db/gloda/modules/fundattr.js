@@ -63,7 +63,7 @@ var GlodaFundAttr = {
   _log: null,
 
   init: function gloda_explattr_init() {
-    this._log =  Log4Moz.Service.getLogger("gloda.fundattr");
+    this._log =  Log4Moz.repository.getLogger("gloda.fundattr");
   
     try {
       this.defineAttributes();

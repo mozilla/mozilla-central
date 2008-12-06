@@ -44,7 +44,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://app/modules/gloda/log4moz.js");
 
-const LOG = Log4Moz.Service.getLogger("gloda.collection");
+const LOG = Log4Moz.repository.getLogger("gloda.collection");
 
 /**
  * @namespace Central registry and logic for all collections. 

@@ -44,7 +44,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://app/modules/gloda/log4moz.js");
 
-let DBC_LOG = Log4Moz.Service.getLogger("gloda.ds.dbc");
+let DBC_LOG = Log4Moz.repository.getLogger("gloda.ds.dbc");
 
 function DatabindCallback(aDatabind, aCallbackThis, aCallback, aOneShot) {
   this._databind = aDatabind;
@@ -92,7 +92,7 @@ DatabindCallback.prototype = {
 function GlodaDatabind(aTableDef, aDatastore) {
   this._tableDef = aTableDef;
   this._datastore = aDatastore;
-  this._log = Log4Moz.Service.getLogger("gloda.databind." + aTableDef.name);
+  this._log = Log4Moz.repository.getLogger("gloda.databind." + aTableDef.name);
   
   let insertSql = "INSERT INTO " + this._tableDef._realName + " (" +
     [coldef[0] for each

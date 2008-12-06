@@ -45,7 +45,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://app/modules/gloda/log4moz.js");
-const LOG = Log4Moz.Service.getLogger("gloda.datamodel");
+const LOG = Log4Moz.repository.getLogger("gloda.datamodel");
 
 Cu.import("resource://app/modules/gloda/utils.js");
 
