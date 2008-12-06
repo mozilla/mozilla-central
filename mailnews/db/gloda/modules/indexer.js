@@ -873,8 +873,8 @@ var GlodaIndexer = {
       this._log.error("Problem entering folder: " +
                       (this._indexingFolder ?
                          this._indexingFolder.prettiestName : "unknown") + 
-                      ", skipping.");
-      this._log.error("Error was: " + ex);
+                      ", skipping. Error was: " + ex.fileName + ":" +
+                      ex.lineNumber + ": " + ex);
       this._indexingGlodaFolder.indexing = false;
       this._indexingFolder = null;
       this._indexingGlodaFolder = null;
