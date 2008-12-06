@@ -235,6 +235,9 @@ var calendarController = {
             case "calendar_delete_todo_command":
                 deleteToDoCommand();
                 break;
+            case "calendar_modify_todo_command":
+                modifyTaskFromContext();
+                break;
 
             case "calendar_new_calendar_command":
                 openCalendarWizard();
