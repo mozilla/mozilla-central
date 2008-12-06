@@ -165,12 +165,14 @@ var Gloda = {
    */
   _initLogging: function gloda_ns_initLogging() {
     let formatter = new Log4Moz.BasicFormatter();
-    let root = Log4Moz.repository.rootLogger;
-    root.level = Log4Moz.Level.Debug;
+    Log4Moz.repository.rootLogger.level = Log4Moz.Level.Debug;
 
     let enableConsoleLogging = false;
     let enableDumpLogging = false;
     let considerNetLogging = false;
+    
+    let glodaLog = Log4Moz.repository.getLogger("gloda");
+    glodaLog.level = Log4Moz.Level.Debug;
 
     try {
       // figure out if event-driven indexing should be enabled...
@@ -185,13 +187,13 @@ var Gloda = {
     if (enableConsoleLogging) {
       let capp = new Log4Moz.ConsoleAppender(formatter);
       capp.level = Log4Moz.Level.Warn;
-      root.addAppender(capp);
+      glodaLog.addAppender(capp);
     }
 
     if (enableDumpLogging) {
       let dapp = new Log4Moz.DumpAppender(formatter);
       dapp.level = Log4Moz.Level.All;
-      root.addAppender(dapp);
+      glodaLog.addAppender(dapp);
     }
     
     if (considerNetLogging) {
@@ -206,7 +208,7 @@ var Gloda = {
         let xf = new Log4Moz.XMLFormatter();
         let sapp = new Log4Moz.SocketAppender(host, Number(port), xf);
         sapp.level = Log4Moz.Level.All;
-        root.addAppender(sapp);
+        glodaLog.addAppender(sapp);
       }
     }
 

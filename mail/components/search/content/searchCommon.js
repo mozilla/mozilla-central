@@ -51,8 +51,10 @@
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
 
-Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
+Cu.import("resource://gre/modules/iteratorUtils.jsm");
+Cu.import("resource://app/modules/gloda/log4moz.js");
 
 var gCurrentFolderToIndex;
 var gLastFolderIndexedUri = ""; // this is stored in a pref
@@ -64,12 +66,14 @@ var gBackgroundIndexingDone;
 var gPrefBranch = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getBranch(null);
 var gEnabled;
 
+let SearchIntegration = this;
+
 /*
  * Init function -- this should be called from the component's init function
  */
 function InitSupportIntegration(enabled)
 {
-  SIDump("Search integration running in " + (enabled ? "active" : "backoff") + " mode\n");
+  this._log.info("Search integration running in " + (enabled ? "active" : "backoff") + " mode");
   gEnabled = enabled;
 
   gMessenger = Cc["@mozilla.org/messenger;1"].createInstance().QueryInterface(Ci.nsIMessenger);
@@ -110,7 +114,8 @@ function FindNextFolderToIndex()
     var allFolders = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
     rootFolder.ListDescendents(allFolders);
     var numFolders = allFolders.Count();
-    SIDump("in find next folder, gLastFolderIndexedUri = " + gLastFolderIndexedUri + "\n");
+    this._log.debug("in find next folder, gLastFolderIndexedUri = " +
+                    gLastFolderIndexedUri);
     for each (var folder in fixIterator(allFolders, Ci.nsIMsgFolder))
     {
       // if no folder was indexed (or the pref's not set), just use the first folder
@@ -178,7 +183,7 @@ function onTimer()
   }
   if (!msgHdrToIndex)
   {
-    SIDump("reached end of folder\n");
+    SearchIntegration._log.debug("reached end of folder");
     if (gCurrentFolderToIndex)
     {
       gLastFolderIndexedUri = gCurrentFolderToIndex.URI;
@@ -214,7 +219,7 @@ var MsgMsgDisplayedObserver =
     {
     // if the user is reading messages, we're not idle, so restart timer.
     restartTimer(60);
-    SIDump("topic = " + aTopic + " uri = " + aData + "\n");
+    SearchIntegration._log.debug("topic = " + aTopic + " uri = " + aData);
     var msgHdr = gMessenger.msgHdrFromURI(aData);
     var indexed = msgHdr.getUint32Property(gHdrIndexedProperty);
     if (!indexed)
@@ -232,7 +237,7 @@ var MsgMsgDisplayedObserver =
 var gFolderListener = {
   msgAdded: function(aMsg)
   {
-    SIDump("in msgAdded\n");
+    SearchIntegration._log.info("in msgAdded");
     restartTimer(30);
     // The message already being there is an expected case
     var file = GetSupportFileForMsgHdr(aMsg);
@@ -242,7 +247,7 @@ var gFolderListener = {
 
   msgsDeleted: function(aMsgs)
   {
-    SIDump("in msgsDeleted\n");
+    SearchIntegration._log.info("in msgsDeleted");
     // mail getting deleted, we're not idle, so restart timer.
     if (gEnabled)
       restartTimer(60);
@@ -257,7 +262,7 @@ var gFolderListener = {
 
   msgsMoveCopyCompleted: function(aMove, aSrcMsgs, aDestFolder)
   {
-    SIDump("in msgsMoveCopyCompleted\n");
+    SearchIntegration._log.info("in msgsMoveCopyCompleted, aMove = " + aMove);
     var count = aSrcMsgs.length;
     for (var i = 0; i < count; i++)
     {
@@ -274,10 +279,10 @@ var gFolderListener = {
             // create the directory, if it doesn't exist
             destFile.create(Ci.nsIFile.DIRECTORY_TYPE, 0644);
           }
-          catch(ex) {SIDump(ex);}
+          catch(ex) {SearchIntegration._log.warn(ex);}
         }
-        SIDump ("dst file path = " + destFile.path + "\n");
-        SIDump ("src file path = " + srcFile.path + "\n");
+        SearchIntegration._log.debug("dst file path = " + destFile.path);
+        SearchIntegration._log.debug("src file path = " + srcFile.path);
         // We're not going to copy in case we're not in active mode
         if (destFile.exists())
           if (aMove)
@@ -288,12 +293,12 @@ var gFolderListener = {
     }
     if (gEnabled)
       restartTimer(30);
-    SIDump("moveCopyCompleted move = " + aMove + "\n");
   },
 
   folderDeleted: function(aFolder)
   {
-    SIDump("in folderDeleted, folder name = " + aFolder.prettiestName + "\n");
+    SearchIntegration._log.info("in folderDeleted, folder name = " +
+                                aFolder.prettiestName);
     var srcFile = aFolder.filePath;
     srcFile.leafName = srcFile.leafName + ".mozmsgs";
     if (srcFile.exists())
@@ -302,13 +307,13 @@ var gFolderListener = {
 
   folderMoveCopyCompleted: function(aMove, aSrcFolder, aDestFolder)
   {
-    SIDump("in folderMoveCopyCompleted, aMove = " + aMove + "\n");
+    SearchIntegration._log.info("in folderMoveCopyCompleted, aMove = " + aMove);
     var srcFile = aSrcFolder.filePath;
     var destFile = aDestFolder.filePath;
     srcFile.leafName = srcFile.leafName + ".mozmsgs";
     destFile.leafName += ".sbd";
-    SIDump("src file path = " + srcFile.path + "\n");
-    SIDump("dst file path = " + destFile.path + "\n");
+    SearchIntegration._log.debug("src file path = " + srcFile.path);
+    SearchIntegration._log.debug("dst file path = " + destFile.path);
     if (srcFile.exists())
     {
       // We're not going to copy if we aren't in active mode
@@ -321,19 +326,22 @@ var gFolderListener = {
 
   folderRenamed: function(aOrigFolder, aNewFolder)
   {
-    SIDump("in folderRenamed, aOrigFolder = "+aOrigFolder.prettiestName+", aNewFolder = "+aNewFolder.prettiestName+"\n");
+    SearchIntegration._log.info("in folderRenamed, aOrigFolder = " +
+                                aOrigFolder.prettiestName + ", aNewFolder = " +
+                                aNewFolder.prettiestName);
     var srcFile = aOrigFolder.filePath;
     srcFile.leafName = srcFile.leafName + ".mozmsgs";
     var destName = aNewFolder.name + ".mozmsgs";
-    SIDump("src file path = " + srcFile.path + "\n");
-    SIDump("dst name = " + destName + "\n");
+    SearchIntegration._log.debug("src file path = " + srcFile.path);
+    SearchIntegration._log.debug("dst name = " + destName);
     if (srcFile.exists())
       srcFile.moveTo(null, destName);
   },
 
   itemEvent: function(aItem, aEvent, aData)
   {
-    SIDump("in itemEvent, aItem = "+aItem+", aEvent = "+aEvent+", aData = "+aData+"\n");
+    SearchIntegration._log.info("in itemEvent, aItem = " + aItem +
+                                ", aEvent = " + aEvent + ", aData = " + aData);
   }
 };
 
@@ -344,11 +352,12 @@ function QueueMessageToGetIndexed(msgHdr)
 {
   if (gMsgHdrsToIndex.push(msgHdr) == 1)
   {
-    SIDump("generating support file\n");
+    this._log.info("generating support file for id = " + msgHdr.messageId);
     GenerateSupportFile(msgHdr);
   }
   else
-    SIDump("queueing support file generation\n");
+    this._log.info("queueing support file generation for id = " +
+                   msgHdr.messageId);
 }
 
 function GetSupportFileForMsgHdr(msgHdr)
@@ -358,15 +367,13 @@ function GetSupportFileForMsgHdr(msgHdr)
   {
     var messageId = msgHdr.messageId;
     messageId = encodeURIComponent(messageId);
-    SIDump("encoded message id = " + messageId + "\n");
-    // this should work on the trunk, but not in 2.0
-//    messageId = netUtils.escapeString(messageId, 3 /* netUtils.ESCAPE_URL_PATH */);
+    this._log.debug("encoded message id = " + messageId);
     if (folder)
     {
       var file = folder.filePath;
       file.leafName = file.leafName + ".mozmsgs";
       file.appendRelativePath(messageId + gFileExt);
-      SIDump("getting support file path = " + file.path + "\n");
+      this._log.debug("getting support file path = " + file.path);
       return file;
     }
   }
@@ -389,11 +396,11 @@ function GenerateSupportFile(msgHdr)
       messageId = encodeURIComponent(messageId);
       // We don't require the subject for this, keeping it if necessary later.
       // gStreamListener.subject = ((msgHdr.flags & MSG_FLAG_HAS_RE) ? "Re: " : "") + msgHdr.mime2DecodedSubject;
-      SIDump("generate support file, message id = " + messageId + "\n");
+      this._log.info("generating support file, id = " + messageId);
       var file = folder.filePath;
 
       file.leafName = file.leafName + ".mozmsgs";
-      SIDump("file leafname = " + file.leafName + "\n");
+      SearchIntegration._log.debug("file leafname = " + file.leafName);
       if (!file.exists())
       {
         try
@@ -401,13 +408,13 @@ function GenerateSupportFile(msgHdr)
           // create the directory, if it doesn't exist
           file.create(Ci.nsIFile.DIRECTORY_TYPE, 0644);
         }
-        catch(ex) {SIDump(ex);}
+        catch(ex) { this._log.error(ex); }
       }
       gStreamListener.msgHdr = msgHdr;
 
       file.appendRelativePath(messageId + gFileExt);
       //file.leafName = messageId + gFileExt;
-      SIDump("file path = " + file.path + "\n");
+      this._log.debug("file path = " + file.path);
       file.create(0, 0644);
       var uri = folder.getUriForMsg(msgHdr);
       //SIDump("in onItemAdded messenger = " + messenger + "\n");
@@ -423,22 +430,54 @@ function GenerateSupportFile(msgHdr)
       catch (ex)
       {
         // This is an expected case, in case we're offline
-        SIDump("StreamMessage not successful\n");
+        this._log.warn("StreamMessage not successful for id = " + messageId);
         gStreamListener.onDoneStreamingCurMessage(false);
       }
     }
   }
   catch (ex)
   {
-    SIDump(ex);
+    this._log.error(ex);
     gStreamListener.onDoneStreamingCurMessage(false);
   }
 }
 
-/* Debug function */
-var gSIDump = true;
-function SIDump(str)
+/**
+ * Logging functionality, shamelessly ripped from gloda
+ * If enabled, warnings and above are logged to the error console, while dump
+ * gets everything
+ */
+let _log = null;
+function _initLogging()
 {
-  if (gSIDump)
-    dump(str);
+  let formatter = new Log4Moz.BasicFormatter();
+  let root = Log4Moz.repository.rootLogger;
+  root.level = Log4Moz.Level.Debug;
+
+  this._log = Log4Moz.repository.getLogger("SearchInt");
+
+  let enableConsoleLogging = false;
+  let enableDumpLogging = false;
+
+  try
+  {
+    enableConsoleLogging = gPrefBranch.getBoolPref(gPrefBase + ".logging.console");
+    enableDumpLogging = gPrefBranch.getBoolPref(gPrefBase + ".logging.dump");
+  }
+  catch (ex) {}
+
+  if (enableConsoleLogging)
+  {
+    let capp = new Log4Moz.ConsoleAppender(formatter);
+    capp.level = Log4Moz.Level.Warn;
+    this._log.addAppender(capp);
+  }
+  if (enableDumpLogging)
+  {
+    let dapp = new Log4Moz.DumpAppender(formatter);
+    dapp.level = Log4Moz.Level.All;
+    this._log.addAppender(dapp);
+  }
+
+  this._log.info("Logging initialized");
 }

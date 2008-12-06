@@ -57,16 +57,17 @@ var gFoldersInCrawlScope;
 
 var gRegKeysPresent;
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function InitWinSearchIntegration()
 {
+  this._initLogging();
   // We're currently only enabled on Vista and above
   var sysInfo = Cc["@mozilla.org/system-info;1"].getService(Ci.nsIPropertyBag2);
   var windowsVersion = sysInfo.getProperty("version");
   if (parseFloat(windowsVersion) < 6)
   {
-    SIDump("Windows version " + windowsVersion + " < 6.0\n");
+    this._log.fatal("Windows version " + windowsVersion + " < 6.0");
     return;
   }
 
@@ -89,7 +90,7 @@ function InitWinSearchIntegration()
   // If the service isn't running, then we should stay in backoff mode
   if (!serviceRunning)
   {
-    SIDump("Windows Search service not running\n");
+    this._log.fatal("Windows Search service not running");
     InitSupportIntegration(false);
     return;
   }
@@ -102,7 +103,7 @@ function InitWinSearchIntegration()
     return true;
 
   if (enabled)
-    SIDump("Initializing Windows Search integration\n");
+    this._log.info("Initializing Windows Search integration");
   InitSupportIntegration(enabled);
 }
 
@@ -127,7 +128,7 @@ function WinSearchFirstRun(window)
       if (!scope.gWinSearchHelper.isFileAssociationSet)
       {
         try { scope.gWinSearchHelper.setFileAssociation(); }
-        catch (e) { SIDump("File association not set\n"); }
+        catch (e) { SearchIntegration._log.warn("File association not set"); }
       }
       // Also set the FANCI bit to 0 for the profile directory
       scope.gWinSearchHelper.setFANCIBit(Cc["@mozilla.org/file/directory_service;1"]
@@ -295,11 +296,11 @@ onStopRequest: function(request, context, status, errorMsg) {
     msgDB.Commit(MSG_DB_LARGE_COMMIT);
 
     this.message = "";
-    SIDump("Successfully written file\n");
+    SearchIntegration._log.info("Successfully written file");
   }
   catch (ex)
   {
-    SIDump(ex);
+    SearchIntegration._log.error(ex);
     this.onDoneStreamingCurMessage(false);
     return;
   }
@@ -332,7 +333,7 @@ onDataAvailable: function(request, context, inputStream, offset, count) {
   }
   catch (ex)
   {
-    SIDump(ex);
+    SearchIntegration._log.error(ex);
     onDoneStreamingCurMessage(false);
   }
 }
@@ -366,13 +367,15 @@ WinSearchIntegration.prototype = {
         if (InitWinSearchIntegration())
           obsSvc.addObserver(this, "mail-startup-done", false);
       }
-      catch(err) { SIDump("Could not initialize winsearch component"); }
+      catch (err) {
+        SearchIntegration._log.error("Could not initialize winsearch component");
+      }
       break;
     case "mail-startup-done":
       aSubject.QueryInterface(Ci.nsIDOMWindowInternal);
       obsSvc.removeObserver(this, "mail-startup-done");
       try { WinSearchFirstRun(aSubject); }
-      catch(err) { SIDump("First run unsuccessful\n"); }
+      catch(err) { SearchIntegration._log.warn("First run unsuccessful"); }
       break;
     default:
       throw Components.Exception("Unknown topic: " + aTopic);

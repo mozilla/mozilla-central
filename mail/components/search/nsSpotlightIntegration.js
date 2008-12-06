@@ -49,10 +49,11 @@ const gFileExt = ".mozeml";
 // The pref base
 const gPrefBase = "mail.spotlight";
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function InitSpotlightIntegration()
 {
+  this._initLogging();
   var enabled;
   try {
     enabled = gPrefBranch.getBoolPref(gPrefBase + ".enable");
@@ -60,7 +61,7 @@ function InitSpotlightIntegration()
   } catch (ex) {}
 
   if (enabled)
-    SIDump("initializing spotlight integration\n");
+    this._log.info("initializing spotlight integration");
   InitSupportIntegration(enabled);
 }
 
@@ -171,7 +172,7 @@ onStopRequest: function(request, context, status, errorMsg) {
     stringStream.setData(this.message, this.message.length);
     var temp = this.msgHdr.folder.getMsgTextFromStream(stringStream, this.msgHdr.Charset, 20000, 20000, false, true, {});
     temp = xmlEscapeString(temp);
-    SIDump("utf8 text = *****************\n"+ temp + "\n");
+    SearchIntegration._log.debug("utf8 text = *****************\n"+ temp);
     this.outputStream.write(temp, temp.length);
     // close out the content, dict, and plist
     this.outputStream.write("</string>\n</dict>\n</plist>\n", 26);
@@ -243,7 +244,9 @@ SpotlightIntegration.prototype = {
     break;
     case "profile-after-change":
       try { InitSpotlightIntegration(); }
-      catch(err) { SIDump("Could not initialize spotlight component"); }
+      catch(err) {
+        SearchIntegration._log.error("Could not initialize spotlight component");
+      }
     break;
     default:
       throw Components.Exception("Unknown topic: " + aTopic);

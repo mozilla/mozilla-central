@@ -412,3 +412,18 @@ pref("mail.tabs.closeButtons", 1);
 
 // The breakpad report server to link to in about:crashes
 pref("breakpad.reportURL", "http://crash-stats.mozilla.com/report/index/");
+
+// -- Windows Search/Spotlight logging options
+#ifdef XP_WIN
+// Should we output warnings and errors to the "error console"?
+pref("mail.winsearch.logging.console", false);
+// Should we output all output levels to stdout via dump?
+pref("mail.winsearch.logging.dump", false);
+#else
+#ifdef XP_MACOSX
+// Should we output warnings and errors to the "error console"?
+pref("mail.spotlight.logging.console", false);
+// Should we output all output levels to stdout via dump?
+pref("mail.spotlight.logging.dump", false);
+#endif
+#endif
