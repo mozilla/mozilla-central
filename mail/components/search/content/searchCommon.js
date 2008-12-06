@@ -61,12 +61,21 @@ var gLastFolderIndexedUri = ""; // this is stored in a pref
 var gHeaderEnumerator;
 var gMsgHdrsToIndex;
 var gMessenger;
-var gAlarm;
 var gBackgroundIndexingDone;
 var gPrefBranch = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getBranch(null);
 var gEnabled;
 
 let SearchIntegration = this;
+
+/**
+ * Amount of time the user is idle before we (re)start an indexing sweep
+ */
+let _idleThresholdSecs = 30;
+
+/**
+ * Reference to current timer object
+ */
+let _timer = null;
 
 /*
  * Init function -- this should be called from the component's init function
@@ -89,13 +98,17 @@ function InitSupportIntegration(enabled)
     var ObserverService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
     ObserverService.addObserver(MsgMsgDisplayedObserver, "MsgMsgDisplayed", false);
     gMsgHdrsToIndex = new Array();
-
-    restartTimer(60);
+    let idleService = Cc["@mozilla.org/widget/idleservice;1"].
+                          getService(Ci.nsIIdleService);
+    idleService.addIdleObserver(this._idleObserver, this._idleThresholdSecs);
   }
   else
     notificationService.addListener(gFolderListener, notificationService.msgsMoveCopyCompleted |
                                     notificationService.msgsDeleted |
                                     notificationService.allFolderNotifications);
+
+  // Set up the timer, though we'll only init it later when needed
+  this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 }
 
 /*
@@ -156,7 +169,7 @@ function FindNextHdrToIndex()
   return null;
 }
 
-function onTimer()
+function _continueSweep()
 {
   var msgHdrToIndex = null;
 
@@ -195,18 +208,40 @@ function onTimer()
   {
     QueueMessageToGetIndexed(msgHdrToIndex);
   }
-  restartTimer(gMsgHdrsToIndex.length > 1 ? 5 : 1);
+
+  // Restart the timer, and call ourselves
+  try {
+    SearchIntegration._timer.cancel();
+  } catch (ex) {}
+  SearchIntegration._timer
+    .initWithCallback(arguments.callee,
+                      gMsgHdrsToIndex.length > 1 ? 5000 : 1000,
+                      Ci.nsITimer.TYPE_ONE_SHOT);
 }
 
-function restartTimer(seconds)
+/**
+ * Idle observer; starts running through folders when it receives an "idle"
+ * notification, and cancels any timers when it receives a "back" notification.
+ */
+let _idleObserver =
 {
-  if (gAlarm)
-    gAlarm.cancel();
-  var jslib = Cc["@mozilla.org/url-classifier/jslib;1"]
-    .getService().wrappedJSObject;
-
-  gAlarm = new jslib.G_Alarm(onTimer, seconds*1000);
-}
+  observe: function search_idle_observe(aSubject, aTopic, aData)
+  {
+    if (aTopic == "idle")
+    {
+      SearchIntegration._log.debug("Idle detected, continuing sweep")
+      // We call _continueSweep this way to be neater there
+      SearchIntegration._continueSweep();
+    }
+    else if (aTopic == "back")
+    {
+      SearchIntegration._log.debug("Non-idle, so suspending sweep")
+      try {
+        SearchIntegration._timer.cancel();
+      } catch (ex) {}
+    }
+  }
+};
 
 /*
  * This object gets notifications for messages that are read, giving them a
@@ -216,9 +251,7 @@ var MsgMsgDisplayedObserver =
 {
   // Components.interfaces.nsIObserver
   observe: function(aHeaderSink, aTopic, aData)
-    {
-    // if the user is reading messages, we're not idle, so restart timer.
-    restartTimer(60);
+  {
     SearchIntegration._log.debug("topic = " + aTopic + " uri = " + aData);
     var msgHdr = gMessenger.msgHdrFromURI(aData);
     var indexed = msgHdr.getUint32Property(gHdrIndexedProperty);
@@ -238,7 +271,6 @@ var gFolderListener = {
   msgAdded: function(aMsg)
   {
     SearchIntegration._log.info("in msgAdded");
-    restartTimer(30);
     // The message already being there is an expected case
     var file = GetSupportFileForMsgHdr(aMsg);
     if (!file.exists())
@@ -248,9 +280,6 @@ var gFolderListener = {
   msgsDeleted: function(aMsgs)
   {
     SearchIntegration._log.info("in msgsDeleted");
-    // mail getting deleted, we're not idle, so restart timer.
-    if (gEnabled)
-      restartTimer(60);
     var count = aMsgs.length;
     for (var i = 0; i < count; i++)
     {
@@ -291,8 +320,6 @@ var gFolderListener = {
             srcFile.copyTo(destFile, "");
       }
     }
-    if (gEnabled)
-      restartTimer(30);
   },
 
   folderDeleted: function(aFolder)
