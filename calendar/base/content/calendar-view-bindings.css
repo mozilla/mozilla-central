@@ -58,7 +58,6 @@ calendar-time-bar {
 
 calendar-multiday-view { 
   -moz-binding: url(chrome://calendar/content/calendar-multiday-view.xml#calendar-multiday-view);
-  -moz-user-focus: normal;
 }
 
 calendar-day-label {
@@ -72,6 +71,10 @@ calendar-header-container {
 /* Month View */
 calendar-month-view { 
   -moz-binding: url(chrome://calendar/content/calendar-month-view.xml#calendar-month-view);
+}
+
+calendar-base-view {
+  -moz-binding: url(chrome://calendar/content/calendar-base-view.xml#calendar-base-view);
   -moz-user-focus: normal;
 }
 

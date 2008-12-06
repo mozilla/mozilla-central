@@ -32,6 +32,7 @@ calendar.jar:
     content/calendar/calendar-menus.xml                    (content/calendar-menus.xml)
     content/calendar/calendar-month-view.xml               (content/calendar-month-view.xml)
     content/calendar/calendar-multiday-view.xml            (content/calendar-multiday-view.xml)
+    content/calendar/calendar-base-view.xml                (content/calendar-base-view.xml)
     content/calendar/calendar-occurrence-prompt.xul        (content/calendar-occurrence-prompt.xul)
     content/calendar/calendar-properties-dialog.xul        (content/calendar-properties-dialog.xul)
     content/calendar/calendar-properties-dialog.js         (content/calendar-properties-dialog.js)

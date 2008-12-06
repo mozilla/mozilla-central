@@ -458,7 +458,7 @@
     </implementation>
   </binding>
 
-  <binding id="calendar-month-view">
+  <binding id="calendar-month-view" extends="chrome://calendar/content/calendar-base-view.xml#calendar-base-view">
     <content>
       <xul:vbox flex="1">
         <xul:hbox class="headerbox-container" anonid="headerbox" equalsize="always"/>
@@ -545,43 +545,16 @@
             headerbox.appendChild(hdr);
             hdr.index = i;
           }
-
-          this.mTimezone = floating();
-          var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
-                             .getService(Components.interfaces.calIAlarmService);
-          alarmService.addObserver(this.mObserver);
       ]]></constructor>
-
-      <destructor><![CDATA[
-        if (this.mCalendar) {
-            this.mCalendar.removeObserver(this.mObserver);
-        }
-        var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
-                           .getService(Components.interfaces.calIAlarmService);
-        alarmService.removeObserver(this.mObserver);
-      ]]></destructor>
 
       <!-- fields -->
 
-      <field name="mCalendar">null</field>
-      <field name="mController">null</field>
-      <field name="mStartDate">null</field>
-      <field name="mEndDate">null</field>
       <field name="mDateBoxes">null</field>
-      <field name="mTimezone">null</field>
-
-      <field name="mSelectedItems">[]</field>
       <field name="mSelectedDayBox">null</field>
 
       <field name="mShowDaysOutsideMonth">true</field>
-      <field name="mTasksInView">false</field>
-      <field name="mShowCompleted">false</field>
       <field name="mShowFullMonth">true</field>
       <field name="mWeekStartOffset">0</field>
-      <field name="mDaysOffArray">[0,6]</field>
-      <field name="mDisplayDaysOff">true</field>
-      <field name="mShadowIndex">0</field>
-      <field name="mFlashingEvents">new Object()</field>
 
       <!-- other methods -->
       <method name="setAttribute">
@@ -604,23 +577,9 @@
       <!-- calICalendarView -->
 
       <property name="supportsDisjointDates" readonly="true"
-        onget="return false;"/>
+                onget="return false;"/>
       <property name="hasDisjointDates" readonly="true"
-        onget="return false;"/>
-
-      <property name="displayCalendar">
-        <getter><![CDATA[
-           return this.mCalendar;
-        ]]></getter>
-        <setter><![CDATA[
-           if (this.mCalendar != val) {
-             this.mCalendar = val;
-             this.mCalendar.addObserver(this.mObserver);
-             this.refresh();
-           }
-           return val;
-        ]]></setter>
-      </property>
+                onget="return false;"/>
 
       <property name="weekStartOffset">
         <getter><![CDATA[
@@ -632,73 +591,12 @@
         ]]></setter>
       </property>
 
-      <property name="displayDaysOff">
-        <getter><![CDATA[
-           return this.mDisplayDaysOff;
-        ]]></getter>
-        <setter><![CDATA[
-           this.mDisplayDaysOff = val;
-           return val;
-        ]]></setter>
-      </property>
-
-      <property name="daysOffArray">
-        <getter><![CDATA[
-           return this.mDaysOffArray;
-        ]]></getter>
-        <setter><![CDATA[
-           this.mDaysOffArray = val;
-           return val;
-        ]]></setter>
-      </property>
-
-      <property name="controller"
-	onget="return this.mController;"
-	onset="return this.mController = val;"/>
 
       <property name="startDate" readonly="true"
-	onget="return this.mStartDate"/>
+                onget="return this.mStartDate"/>
 
-      <property name="endDate" readonly="true">
-	<getter><![CDATA[
-	  return this.mEndDate;
-	]]></getter>
-      </property>
-
-      <!-- the end date that should be used for getItems and similar queries -->
-      <property name="queryEndDate" readonly="true">
-        <getter><![CDATA[
-	  var end = this.endDate;
-	  if (!end)
-              return null;
-
-          end = end.clone();
-          end.day += 1;
-          end.isDate = true;
-
-          return end;
-        ]]></getter>
-      </property>
-
-      <property name="tasksInView">
-        <getter><![CDATA[
-          return this.mTasksInView;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mTasksInView = val;
-          return val;
-        ]]></setter>
-      </property>
-
-      <property name="showCompleted">
-        <getter><![CDATA[
-          return this.mShowCompleted;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mShowCompleted = val;
-          return val;
-        ]]></setter>
-      </property>
+      <property name="endDate" readonly="true"
+                onget="return this.mEndDate"/>
 
       <property name="showFullMonth">
         <getter><![CDATA[
@@ -779,27 +677,6 @@
         ]]></setter>
       </property>
 
-      <property name="timezone">
-        <getter><![CDATA[
-          return this.mTimezone;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mTimezone = val;
-          return val;
-        ]]></setter>
-      </property>
-
-      <method name="fireEvent">
-        <parameter name="aEventName"/>
-        <parameter name="aEventDetail"/>
-        <body><![CDATA[
-          var event = document.createEvent('Events'); 
-          event.initEvent(aEventName, true, false);
-          event.detail = aEventDetail;
-          this.dispatchEvent(event);
-        ]]></body>
-      </method>
-
       <method name="showDate">
         <parameter name="aDate"/>
         <body><![CDATA[
@@ -866,13 +743,10 @@
       <!-- private properties and methods -->
 
       <property name="monthgrid" readonly="true"
-	onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'monthgrid');"/>
+                onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'monthgrid');"/>
 
       <property name="monthgridrows" readonly="true"
-	onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'monthgridrows');"/>
-
-      <field name="mRefreshQueue">[]</field>
-      <field name="mRefreshPending">null</field>
+                onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'monthgridrows');"/>
 
       <method name="popRefreshQueue">
         <body><![CDATA[
@@ -926,26 +800,8 @@
         ]]></body>
       </method>
 
-      <method name="refresh">
-        <body><![CDATA[
-          var refreshJob = {};
-          this.mRefreshQueue.push(refreshJob);
-          this.popRefreshQueue();
-        ]]></body>
-      </method>
-
-      <method name="removeDropShadows">
-        <body><![CDATA[
-            let dropbox = document.getAnonymousElementByAttribute(this, "dropbox", "true");
-            if (dropbox && dropbox !== undefined) {
-                dropbox.setAttribute("dropbox", "false");
-            }
-        ]]></body>
-      </method>
-
-
       <method name="relayout">
-	<body><![CDATA[
+        <body><![CDATA[
           // Adjust headers based on the starting day of the week, if necessary
           var headerbox = document.getAnonymousElementByAttribute(this, "anonid", "headerbox");
 
@@ -1074,7 +930,6 @@
               today.compare(dateList[dateList.length-1]) != 1) {
               this.findDayBoxForDate(today).setAttribute("today", "true");
           }
-          this.fireEvent("relayouted");
         ]]></body>
       </method>
 
@@ -1199,16 +1054,6 @@
           if (oldLength != this.mSelectedItems.length) {
               this.fireEvent("itemselect", this.mSelectedItems);
           }
-        ]]></body>
-      </method>
-
-      <method name="today">
-        <body><![CDATA[
-          var date = createDateTime();
-          date.jsDate = new Date();
-          date = date.getInTimezone(this.mTimezone);
-          date.isDate = true;
-          return date;
         ]]></body>
       </method>
 

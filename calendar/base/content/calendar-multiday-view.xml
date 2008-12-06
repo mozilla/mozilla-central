@@ -2176,7 +2176,7 @@
     </implementation>
   </binding>
 
-  <binding id="calendar-multiday-view">
+  <binding id="calendar-multiday-view" extends="chrome://calendar/content/calendar-base-view.xml#calendar-base-view">
     <content>
       <xul:box anonid="mainbox" flex="1" onoverflow="adjustWeekdayLength();">
         <!-- these boxes are tricky: width or height in CSS depend on orient -->
@@ -2271,10 +2271,6 @@
         ]]></body>
       </method>
 
-      <field name="mController">null</field>
-      <field name="mCalendar">null</field>
-      <field name="mStartDate">null</field>
-      <field name="mEndDate">null</field>
       <!-- mDateList will always be sorted before being set -->
       <field name="mDateList">null</field>
       <!-- array of { date: calIDatetime, column: colbox, header: hdrbox }  -->
@@ -2283,21 +2279,13 @@
       <field name="mPixPerMin">0.6</field>
       <field name="mMinPixelsPerMinute">0.1</field>
       <field name="mLongWeekdayTotalPixels">0</field>
-      <field name="mSelectedItems">[]</field>
       <field name="mSelectedDayCol">null</field>
       <field name="mSelectedDay">null</field>
-
       <field name="mStartMin">0*60</field>
       <field name="mEndMin">24*60</field>
       <field name="mDayStartMin">0</field>
       <field name="mDayEndMin">0</field>
       <field name="mVisibleMinutes">9*60</field>
-      <field name="mTasksInView">false</field>
-      <field name="mShowCompleted">false</field>
-      <field name="mDisplayDaysOff">true</field>
-      <field name="mDaysOffArray">[0,6]</field>
-      <field name="mTimezone">null</field>
-      <field name="mFlashingEvents">new Object()</field>
 
       <field name="mObserver"><![CDATA[
         // the calIObserver, calICompositeObserver, and calIAlarmServiceObserver
@@ -2571,25 +2559,6 @@
       <property name="hasDisjointDates"
         onget="return (this.mDateList != null);"/>
 
-      <property name="controller"
-        onget="return this.mController;"
-        onset="return (this.mController = val);" />
-
-      <property name="displayCalendar">
-        <getter><![CDATA[
-          return this.mCalendar;
-        ]]></getter>
-        <setter><![CDATA[
-          if (this.mCalendar)
-              this.mCalendar.removeObserver (this.mObserver);
-          this.mCalendar = val;
-          this.mCalendar.addObserver (this.mObserver);
-
-          this.refresh();
-          return val;
-        ]]></setter>
-      </property>
-
       <property name="startDate">
         <getter><![CDATA[
           if (this.mStartDate) return this.mStartDate;
@@ -2605,76 +2574,6 @@
           else return null;
         ]]></getter>
       </property>
-
-      <!-- the end date that should be used for getItems and similar queries -->
-      <property name="queryEndDate" readonly="true">
-        <getter><![CDATA[
-          var end = this.endDate;
-          if (!end)
-              return null;
-
-          end = end.clone();
-          end.day += 1;
-          end.isDate = true;
-
-          return end;
-        ]]></getter>
-      </property>
-
-      <property name="tasksInView">
-        <getter><![CDATA[
-          return this.mTasksInView;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mTasksInView = val;
-          return val;
-        ]]></setter>
-      </property>
-
-      <property name="showCompleted">
-        <getter><![CDATA[
-          return this.mShowCompleted;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mShowCompleted = val;
-          return val;
-        ]]></setter>
-      </property>
-
-      <property name="timezone">
-        <getter><![CDATA[
-          return this.mTimezone;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mTimezone = val;
-          return val;
-        ]]></setter>
-      </property>
-
-      <property name="displayDaysOff"
-                onget="return this.mDisplayDaysOff;"
-                onset="return (this.mDisplayDaysOff = val);"/>
-
-      <property name="daysOffArray">
-        <getter><![CDATA[
-           return this.mDaysOffArray;
-        ]]></getter>
-        <setter><![CDATA[
-           this.mDaysOffArray = val;
-           return val;
-        ]]></setter>
-      </property>
-
-     <method name="fireEvent">
-       <parameter name="aEventName"/>
-       <parameter name="aEventDetail"/>
-       <body><![CDATA[
-         var event = document.createEvent('Events');
-         event.initEvent(aEventName, true, false);
-         event.detail = aEventDetail;
-         this.dispatchEvent(event);
-       ]]></body>
-     </method>
 
       <method name="showDate">
         <parameter name="aDate"/>
@@ -3007,15 +2906,6 @@
         ]]></body>
       </method>
 
-      <method name="removeDropShadows">
-        <body><![CDATA[
-            let dropbox = document.getAnonymousElementByAttribute(this, "dropbox", "true");
-            if (dropbox && dropbox !== undefined) {
-                dropbox.setAttribute("dropbox", "false");
-            }
-        ]]></body>
-      </method>
-
       <property name="pixelsPerMinute">
         <getter><![CDATA[
           return this.mPixPerMin
@@ -3143,8 +3033,6 @@
         ]]></body>
       </method>
 
-      <field name="mRefreshQueue">[]</field>
-      <field name="mRefreshPending">null</field>
 
       <method name="popRefreshQueue">
         <body><![CDATA[
@@ -3200,14 +3088,6 @@
           if (pendingRefresh && pendingRefresh.isPending) { // support for calIOperation
               this.mRefreshPending = pendingRefresh;
           }
-        ]]></body>
-      </method>
-
-      <method name="refresh">
-        <body><![CDATA[
-          var refreshJob = {};
-          this.mRefreshQueue.push(refreshJob);
-          this.popRefreshQueue();
         ]]></body>
       </method>
 
@@ -3368,7 +3248,6 @@
 
           // Adjust scrollbar spacers
           this.adjustScrollBarSpacers();
-          this.fireEvent("relayouted");
         ]]></body>
       </method>
 
@@ -3565,16 +3444,6 @@
           }
 
           this.adjustScrollbarSpacersForAlldayEvents(aEvent);
-        ]]></body>
-      </method>
-
-      <method name="today">
-        <body><![CDATA[
-          var date = createDateTime();
-          date.jsDate = new Date();
-          date = date.getInTimezone(this.mTimezone);
-          date.isDate = true;
-          return date;
         ]]></body>
       </method>
 

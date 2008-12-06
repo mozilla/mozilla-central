@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<!--
+   - ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Berend Cornelius <berend.cornelius@sun.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK *****
+-->
+
+<bindings id="calendar-multiday-view-bindings"
+  xmlns="http://www.mozilla.org/xbl"
+  xmlns:html="http://www.w3.org/1999/xhtml"
+  xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="calendar-base-view">
+    <implementation>
+      <field name="mRefreshQueue">[]</field>
+      <field name="mRefreshPending">null</field>
+      <field name="mCalendar">null</field>
+      <field name="mController">null</field>
+      <field name="mStartDate">null</field>
+      <field name="mEndDate">null</field>
+      <field name="mTasksInView">false</field>
+      <field name="mShowCompleted">false</field>
+      <field name="mDisplayDaysOff">true</field>
+      <field name="mDaysOffArray">[0,6]</field>
+      <field name="mTimezone">null</field>
+      <field name="mFlashingEvents">new Object()</field>
+      <field name="mSelectedItems">[]</field>
+
+      <constructor><![CDATA[
+        this.mTimezone = calendarDefaultTimezone();
+        let alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
+                           .getService(Components.interfaces.calIAlarmService);
+        alarmService.addObserver(this.mObserver);
+      ]]></constructor>
+
+      <destructor><![CDATA[
+        if (this.mCalendar) {
+            this.mCalendar.removeObserver(this.mObserver);
+        }
+        let alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
+                           .getService(Components.interfaces.calIAlarmService);
+        alarmService.removeObserver(this.mObserver);
+      ]]></destructor>
+      <property name="displayDaysOff"
+                onget="return this.mDisplayDaysOff;"
+                onset="return (this.mDisplayDaysOff = val);"/>
+      <property name="controller"
+                onget="return this.mController;"
+                onset="return (this.mController = val);"/>
+      <property name="daysOffArray"
+                onget="return this.mDaysOffArray;"
+                onset="return (this.mDaysOffArray = val);"/>
+      <property name="tasksInView"
+                onget="return this.mTasksInView;"
+                onset="return (this.mTasksInView = val);"/>
+      <property name="showCompleted"
+                onget="return this.mShowCompleted;"
+                onset="return (this.mShowCompleted = val);"/>
+      <property name="timezone"
+                onget="return this.mTimezone;"
+                onset="return (this.mTimezone = val);"/>
+
+      <property name="displayCalendar">
+        <getter><![CDATA[
+          return this.mCalendar;
+        ]]></getter>
+        <setter><![CDATA[
+          if (this.mCalendar)
+              this.mCalendar.removeObserver(this.mObserver);
+          this.mCalendar = val;
+          this.mCalendar.addObserver(this.mObserver);
+          this.refresh();
+          return val;
+        ]]></setter>
+      </property>
+
+      <method name="today">
+        <body><![CDATA[
+          let date = createDateTime();
+          date.jsDate = new Date();
+          date = date.getInTimezone(this.mTimezone);
+          date.isDate = true;
+          return date;
+        ]]></body>
+      </method>
+
+      <method name="refresh">
+        <body><![CDATA[
+          let refreshJob = {};
+          this.mRefreshQueue.push(refreshJob);
+          this.popRefreshQueue();
+        ]]></body>
+      </method>
+
+      <!-- the end date that should be used for getItems and similar queries -->
+      <property name="queryEndDate" readonly="true">
+        <getter><![CDATA[
+          let end = this.endDate;
+          if (!end) {
+              return null;
+          }
+          end = end.clone();
+          end.day += 1;
+          end.isDate = true;
+          return end;
+        ]]></getter>
+      </property>
+
+      <method name="fireEvent">
+        <parameter name="aEventName"/>
+        <parameter name="aEventDetail"/>
+        <body><![CDATA[
+          let event = document.createEvent('Events');
+          event.initEvent(aEventName, true, false);
+          event.detail = aEventDetail;
+          this.dispatchEvent(event);
+        ]]></body>
+      </method>
+
+      <method name="removeDropShadows">
+        <body><![CDATA[
+            let dropbox = document.getAnonymousElementByAttribute(this, "dropbox", "true");
+            if (dropbox && dropbox !== undefined) {
+                dropbox.setAttribute("dropbox", "false");
+            }
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>

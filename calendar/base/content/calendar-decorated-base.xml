@@ -200,25 +200,14 @@
             const kOrientation = "calendar_toggle_orientation_command";
 
             this.workdaysOnly = (document.getElementById(kWorkdaysCommand)
-                                          .getAttribute("checked") == "true");
+                                    .getAttribute("checked") == "true");
             this.tasksInView = (document.getElementById(kTasksInViewCommand)
-                                        .getAttribute("checked") == "true");
+                                    .getAttribute("checked") == "true");
             this.rotated = (document.getElementById(kOrientation)
                                     .getAttribute("checked") == "true");
             this.showCompleted = (document.getElementById(kShowCompleted)
-                                          .getAttribute("checked") == "true");
-
-            this.mRelayoutHandler = {
-                binding: this,
-                handleEvent : function(aEvent, aHandled) {
-                    return this.binding.adjustAlignment(aEvent, this.binding);
-                }
-            };
-            this.viewElem.addEventListener("relayouted", this.mRelayoutHandler, true);
+                                    .getAttribute("checked") == "true");
           ]]></constructor>
-          <destructor><![CDATA[
-            this.viewElem.removeEventListener("relayouted", this.mRelayoutHandler, true);
-          ]]></destructor>
             <field name="mTasksInView">false</field>
             <field name="mShowCompleted">false</field>
             <field name="mWorkdaysOnly">false</field>
@@ -420,37 +409,6 @@
             <method name="getRangeDescription">
                 <body><![CDATA[
                     return getDateFormatter().formatInterval(this.rangeStartDate, this.rangeEndDate);
-                ]]></body>
-            </method>
-            <method name="adjustAlignment">
-                <parameter name="aEvent"/>
-                <parameter name="aBinding"/>
-                <body><![CDATA[
-                    var viewElement = aBinding.viewElem;
-                    var paddingStart = getSummarizedStyleValues(viewElement, ["padding-left"]);
-                    if (viewElement.getAttribute("orient") == "vertical") {
-                        var timebar = document.getAnonymousElementByAttribute(viewElement, "anonid", "timebar");
-                        if (timebar) {
-                            paddingStart += timebar.boxObject.width;
-                        }
-                    } else {
-                        var dayheader = document.getAnonymousElementByAttribute(viewElement, "anonid", "labeldaybox");
-                        if (dayheader) {
-                            paddingStart += dayheader.parentNode.boxObject.width;
-                            var headerbox = document.getAnonymousElementByAttribute(viewElement, "anonid", "headerbox");
-                            if (headerbox) {
-                                paddingStart += headerbox.boxObject.width;
-                            }
-                        }
-                    }
-                    var paddingEnd = getSummarizedStyleValues(viewElement, ["padding-right"]);
-                    if (viewElement.getAttribute("orient") == "vertical") {
-                        var labelScrollBarSpacer = document.getAnonymousElementByAttribute(
-                             viewElement, "anonid", "labelscrollbarspacer");
-                        if (labelScrollBarSpacer) {
-                            paddingEnd += labelScrollBarSpacer.boxObject.width;
-                        }
-                    }
                 ]]></body>
             </method>
         </implementation>
