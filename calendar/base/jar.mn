@@ -91,7 +91,7 @@ calendar.jar:
     content/calendar/preferences/views.js                  (content/preferences/views.js)
     content/calendar/preferences/views.xul                 (content/preferences/views.xul)
     content/calendar/widgets/minimonth.xml                 (content/widgets/minimonth.xml)
-*   content/calendar/widgets/calendar-widgets.xml          (content/widgets/calendar-widgets.xml)
+    content/calendar/widgets/calendar-widgets.xml          (content/widgets/calendar-widgets.xml)
     content/calendar/widgets/calendar-widget-bindings.css  (content/widgets/calendar-widget-bindings.css)
 *   content/calendar/calApplicationUtils.js                (src/calApplicationUtils.js)
     content/calendar/calUtils.js                           (src/calUtils.js)

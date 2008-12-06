@@ -549,8 +549,8 @@ calTaskButtonDNDObserver.prototype = {
 };
 
 function invokeEventDragSession(aItem, aXULBox) {
-    let transfer = Components.classes["@mozilla.org/widget/transferable;1"].
-                   createInstance(Components.interfaces.nsITransferable);
+    let transfer = Components.classes["@mozilla.org/widget/transferable;1"]
+                   .createInstance(Components.interfaces.nsITransferable);
     transfer.addDataFlavor("text/calendar");
 
     let flavourProvider = {

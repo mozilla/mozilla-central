@@ -350,21 +350,9 @@
                   session.canDrop = true;
                   if (aVal == "true") {
                       this.mDropShadows = [session.sourceNode.occurrence];
-// We may run into certain racing conditions under Unix that may lead to the freezing
-// of a complete session. That's why we have to set a timeout for this platform.
-#ifdef XP_UNIX
-                      let self = this;
-                      setTimeout(function addDropShadows() { self.addDropShadows(); }, 0);
-#else
                       this.addDropShadows();
-#endif
                   } else {
-#ifdef XP_UNIX
-                      let self = this;
-                      setTimeout(function removeDropShadows() { self.removeDropShadows(); }, 0);
-#else
                       this.removeDropShadows();
-#endif
                   }
               }
           }
