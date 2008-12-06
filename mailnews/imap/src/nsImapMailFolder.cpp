@@ -3975,6 +3975,7 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
     rv = AcquireSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
     if (NS_FAILED(rv))
     {
+      m_downloadingFolderForOfflineUse = PR_FALSE;
       ThrowAlertMsg("operationFailedFolderBusy", msgWindow);
       return rv;
     }
@@ -5081,25 +5082,34 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
       imapServer->GetAutoSyncOfflineStores(&autoSyncOfflineStores);
       imapServer->GetDownloadBodiesOnGetNewMail(&autoDownloadNewHeaders);
     }
-    
-    if (autoSyncOfflineStores || autoDownloadNewHeaders)
+    if (m_downloadingFolderForOfflineUse || autoSyncOfflineStores ||
+        autoDownloadNewHeaders)
     {
       nsTArray<nsMsgKey> keysToDownload;
       GetBodysToDownload(&keysToDownload);
       if (!keysToDownload.IsEmpty())
       {
         SetNotifyDownloadedLines(PR_TRUE);
-      
-        // create auto-sync state object lazily
-        InitAutoSyncState();
-      
-        // make enough room for new downloads
-        m_autoSyncStateObj->ManageStorageSpace();
+
+        // this is the case when DownloadAllForOffline is called.
+        if (m_downloadingFolderForOfflineUse)
+        {
+          aProtocol->NotifyBodysToDownload(keysToDownload.Elements(), keysToDownload.Length());
+        }
+        else
+        {
+          // create auto-sync state object lazily
+          InitAutoSyncState();
         
-        m_autoSyncStateObj->OnNewHeaderFetchCompleted(keysToDownload);
+          // make enough room for new downloads
+          m_autoSyncStateObj->ManageStorageSpace();
+          
+          m_autoSyncStateObj->OnNewHeaderFetchCompleted(keysToDownload);
+        }
       }
     }
-    aProtocol->NotifyBodysToDownload(nsnull, 0/*keysToFetch.Length() */);
+    if (!m_downloadingFolderForOfflineUse)
+      aProtocol->NotifyBodysToDownload(nsnull, 0/*keysToFetch.Length() */);
    
     nsCOMPtr <nsIURI> runningUri;
     aProtocol->GetRunningUrl(getter_AddRefs(runningUri));
