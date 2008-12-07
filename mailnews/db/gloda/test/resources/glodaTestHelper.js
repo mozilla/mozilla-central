@@ -900,7 +900,22 @@ function next_test() {
   _next_test_currently_in_test = false;
 }
 
-function glodaHelperRunTests(aTests) {
+DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS = 180;
+
+/**
+ * Test driving logic that takes a list of tests to run.  Every completed test
+ *  needs to call (or cause to be called) next_test.
+ * 
+ * @param aTests A list of test functions to call.
+ * @param aLongestTestRunTimeConceivableInSecs Optional parameter 
+ */
+function glodaHelperRunTests(aTests, aLongestTestRunTimeConceivableInSecs) {
+  if (aLongestTestRunTimeConceivableInSecs === undefined)
+    aLongestTestRunTimeConceivableInSecs =
+        DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS;
+  do_timeout(aLongestTestRunTimeConceivableInSecs * 1000,
+      "do_throw('Timeout running test, and we want you to have the log.');");
+  
   imsInit();
   glodaHelperTests = aTests;
   glodaHelperIterator = _gh_test_iterator();
