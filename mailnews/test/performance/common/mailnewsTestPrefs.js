@@ -34,3 +34,6 @@ user_pref("mail.smtpservers", "smtp1");
 user_pref("mail.startup.enabledMailCheckOnce", true);
 user_pref("mailnews.start_page_override.mstone", "1.9pre");
 user_pref("mail.shell.checkDefaultClient", false);
+// Ensure OS X and Outlook/OE books are disabled
+user_pref("ldap_2.servers.osx.position", 0);
+user_pref("ldap_2.servers.oe.position", 0);
