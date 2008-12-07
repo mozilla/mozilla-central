@@ -70,11 +70,6 @@ pref("browser.startup.homepage.count", 1);
 // disable this until it can be disabled on a per-docshell basis (see bug 319368)
 pref("browser.send_pings", false);
 
-pref("browser.urlbar.autoFill", false);
-pref("browser.urlbar.showPopup", true);
-pref("browser.urlbar.showSearch", true);
-pref("browser.urlbar.matchOnlyTyped", false);
-
 pref("browser.chrome.site_icons", true);
 pref("browser.chrome.favicons", false);
 pref("browser.chrome.image_icons.max_size", 1024);
@@ -111,11 +106,88 @@ pref("browser.urlbar.clickSelectsAll", true);
 // when clickSelectsAll=true, does it also apply when the click is past end of text?
 pref("browser.urlbar.clickAtEndSelects", true);
 
+pref("browser.urlbar.autoFill", false);
+pref("browser.urlbar.showPopup", true);
+pref("browser.urlbar.showSearch", true);
+pref("browser.urlbar.matchOnlyTyped", false);
+// 0: Match anywhere (e.g., middle of words)
+// 1: Match on word boundaries and then try matching anywhere
+// 2: Match only on word boundaries (e.g., after / or .)
+// 3: Match at the beginning of the url or title
+pref("browser.urlbar.matchBehavior", 1);
+// 0: Search nothing
+// 1: Search history (visited pages)
+// 2: Search bookmarks
+// 3: Search both history and bookmarks
+pref("browser.urlbar.search.sources", 1);
+pref("browser.urlbar.filter.javascript", true);
+
+// Size of "chunks" affects the number of places to process between each search
+// timeout (ms). Too big and the UI will be unresponsive; too small and we'll
+// be waiting on the timeout too often without many results.
+pref("browser.urlbar.search.chunkSize", 1000);
+pref("browser.urlbar.search.timeout", 100);
+
+// The special characters below can be typed into the urlbar to either restrict
+// the search to visited history, bookmarked, tagged pages; or force a match on
+// just the title text or url.
+pref("browser.urlbar.restrict.history", "^");
+pref("browser.urlbar.restrict.bookmark", "*");
+pref("browser.urlbar.restrict.tag", "+");
+pref("browser.urlbar.match.title", "#");
+pref("browser.urlbar.match.url", "@");
+
 pref("browser.search.param.Google.1.custom", "chrome://navigator/content/searchconfig.properties");
 pref("browser.search.param.Google.1.default", "chrome://navigator/content/searchconfig.properties");
 
 pref("browser.history.grouping", "day");
 pref("browser.sessionhistory.max_entries", 50);
+pref("browser.history_expire_days", 180);
+pref("browser.history_expire_days_min", 90);
+pref("browser.history_expire_sites", 40000);
+
+// the (maximum) number of the recent visits to sample
+// when calculating frecency
+pref("places.frecency.numVisits", 10);
+
+// Number of records to update frecency for when idle.
+pref("places.frecency.numCalcOnIdle", 50);
+
+// Number of records to update frecency for when migrating from
+// a pre-frecency build.
+pref("places.frecency.numCalcOnMigrate", 50);
+
+// Perform frecency recalculation after this amount of idle, repeating.
+// A value of zero disables updating of frecency on idle.
+// Default is 1 minute (60000ms).
+pref("places.frecency.updateIdleTime", 60000);
+
+// buckets (in days) for frecency calculation
+pref("places.frecency.firstBucketCutoff", 4);
+pref("places.frecency.secondBucketCutoff", 14);
+pref("places.frecency.thirdBucketCutoff", 31);
+pref("places.frecency.fourthBucketCutoff", 90);
+
+// weights for buckets for frecency calculations
+pref("places.frecency.firstBucketWeight", 100);
+pref("places.frecency.secondBucketWeight", 70);
+pref("places.frecency.thirdBucketWeight", 50);
+pref("places.frecency.fourthBucketWeight", 30);
+pref("places.frecency.defaultBucketWeight", 10);
+
+// bonus (in percent) for visit transition types for frecency calculations
+pref("places.frecency.embedVisitBonus", 0);
+pref("places.frecency.linkVisitBonus", 100);
+pref("places.frecency.typedVisitBonus", 2000);
+pref("places.frecency.bookmarkVisitBonus", 150);
+pref("places.frecency.downloadVisitBonus", 0);
+pref("places.frecency.permRedirectVisitBonus", 0);
+pref("places.frecency.tempRedirectVisitBonus", 0);
+pref("places.frecency.defaultVisitBonus", 0);
+
+// bonus (in percent) for place types for frecency calculations
+pref("places.frecency.unvisitedBookmarkBonus", 140);
+pref("places.frecency.unvisitedTypedBonus", 200);
 
 // Tabbed browser
 pref("browser.tabs.loadDivertedInBackground", false);
@@ -129,6 +201,8 @@ pref("browser.tabs.autoHide", true);
 pref("browser.tabs.forceHide", false);
 pref("browser.tabs.warnOnClose", true);
 pref("browser.tabs.warnOnCloseOther", true);
+pref("browser.tabs.warnOnOpen", true);
+pref("browser.tabs.maxOpenBeforeWarn", 15);
 // 0 = append, 1 = replace
 pref("browser.tabs.loadGroup", 1);
 

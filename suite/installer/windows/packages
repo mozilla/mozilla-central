@@ -137,7 +137,6 @@ bin\components\find.xpt
 bin\components\gklayout.dll
 bin\components\gkparser.dll
 bin\components\gkplugin.dll
-bin\components\history.xpt
 bin\components\htmlparser.xpt
 bin\components\i18n.dll
 bin\components\imgicon.dll
@@ -263,14 +262,17 @@ bin\components\nsComposerCmdLineHandler.js
 bin\components\nsContentDispatchChooser.js
 bin\components\nsContentPrefService.js
 bin\components\nsExtensionManager.js
+bin\components\nsLivemarkService.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
+bin\components\nsPlacesDBFlush.js
 bin\components\nsPostUpdateWin.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsSetDefault.js
 bin\components\nsSidebar.js
 bin\components\nsSuiteGlue.js
+bin\components\nsTaggingService.js
 bin\components\nsTypeAheadFind.js
 bin\components\nsUpdateService.js
 bin\components\nsURLFormatter.js

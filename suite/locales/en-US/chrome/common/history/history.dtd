@@ -1,35 +1,47 @@
-<!-- extracted from ./history.xul -->
+<!-- history.xul, history-panel.xul, placesOverlay.xul -->
 
-<!ENTITY menuBar.tooltip            "Menu Bar">
-<!ENTITY fileMenu.label             "File">
-<!ENTITY closeCmd.label             "Close">
-<!ENTITY editMenu.label             "Edit"> 
-<!ENTITY undoCmd.label              "Undo">
-<!ENTITY redoCmd.label              "Redo">
-<!ENTITY cutCmd.label               "Cut">
-<!ENTITY copyCmd.label              "Copy">
-<!ENTITY pasteCmd.label             "Paste">
-<!ENTITY deleteCmd.label            "Delete">
-<!ENTITY deleteHostnameCmd.accesskey "H">
-<!ENTITY deleteDomainCmd.accesskey  "s">
-<!ENTITY selAllCmd.label            "Select All">
-<!ENTITY findHisCmd.label           "Search History…">
-<!ENTITY findHisCmd.commandkey      "f">
-<!ENTITY findHisCmd.accesskey       "S">
-<!ENTITY groupBy.label              "Group By">
-<!ENTITY groupBy.accesskey          "G">
-<!ENTITY groupByDay.label           "Day">
-<!ENTITY groupByDay.accesskey       "D">
-<!ENTITY groupBySite.label          "Site">
-<!ENTITY groupBySite.accesskey      "S">
-<!ENTITY groupByNone.label          "None">
-<!ENTITY groupByNone.accesskey      "N">
-<!ENTITY historyWindowTitle.label   "History">
-<!ENTITY menuitem.view.unsorted.label "Unsorted">
-<!ENTITY menuitem.view.unsorted.accesskey "u">
-<!ENTITY sortAscending.label         "Ascending">
-<!ENTITY sortAscending.accesskey     "A">
-<!ENTITY sortDescending.label        "Descending">
-<!ENTITY sortDescending.accesskey    "D">
-<!ENTITY menuitem.view.show_columns.label "Show columns">
-<!ENTITY menuitem.view.show_columns.accesskey "S">
+<!ENTITY historyWindowTitle.label       "History">
+<!ENTITY menuBar.tooltip                "Menu Bar">
+<!ENTITY searchBar.tooltip              "Search Bar">
+
+<!ENTITY search.emptytext               "Search History">
+<!ENTITY search.key                     "f">
+<!ENTITY view.label                     "View">
+<!ENTITY byDate.label                   "By Date">
+<!ENTITY byDate.accesskey               "D">
+<!ENTITY bySite.label                   "By Site">
+<!ENTITY bySite.accesskey               "S">
+<!ENTITY byMostVisited.label            "By Most Visited">
+<!ENTITY byMostVisited.accesskey        "V">
+<!ENTITY byLastVisited.label            "By Last Visited">
+<!ENTITY byLastVisited.accesskey        "L">
+<!ENTITY byDayAndSite.label             "By Date and Site">
+<!ENTITY byDayAndSite.accesskey         "t">
+
+<!ENTITY view.columns.label             "Show Columns">
+<!ENTITY view.columns.accesskey         "C">
+<!ENTITY view.sort.label                "Sort">
+<!ENTITY view.sort.accesskey            "S">
+<!ENTITY view.unsorted.label            "Unsorted">
+<!ENTITY view.unsorted.accesskey        "U">
+<!ENTITY view.sortAscending.label       "A > Z Sort Order">
+<!ENTITY view.sortAscending.accesskey   "A">
+<!ENTITY view.sortDescending.label      "Z > A Sort Order">
+<!ENTITY view.sortDescending.accesskey  "Z">
+
+<!ENTITY cmd.open.label                 "Open">
+<!ENTITY cmd.open.accesskey             "O">
+<!ENTITY cmd.open_window.label          "Open Link in New Window">
+<!ENTITY cmd.open_window.accesskey      "N">
+<!ENTITY cmd.open_tab.label             "Open Link in New Tab">
+<!ENTITY cmd.open_tab.accesskey         "w">
+<!ENTITY cmd.open_all_in_tabs.label     "Open All in Tabs">
+<!ENTITY cmd.open_all_in_tabs.accesskey "O">
+
+<!ENTITY bookmarkCmd.label              "Bookmark This Link…">
+<!ENTITY bookmarkCmd.accesskey          "B">
+
+<!ENTITY col.name.label                 "Title">
+<!ENTITY col.url.label                  "Location">
+<!ENTITY col.lastvisit.label            "Last Visited">
+<!ENTITY col.visitcount.label           "Visit Count">

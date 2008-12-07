@@ -1,157 +1,211 @@
-<?xml version="1.0"?> <!-- -*- Mode: xml; indent-tabs-mode: nil; -*- -->
-<!--
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is mozilla.org code.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 1998
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Blake Ross <blaker@netscape.com> (original history.xul)
+   -   Ben Goodger <beng@google.com> (places organizer)
+   -   Annie Sullivan <annie.sullivan@gmail.com> (places organizer)
+   -   Asaf Romano <mano@mozilla.com> (places organizer)
+   -   Ehsan Akhgari <ehsan.akhgari@gmail.com> (places organizer)
+   -   Dietrich Ayala <dietrich@mozilla.com> (places organizer)
+   -   Robert Kaiser <kairo@kairo.at> (combining history.xul with places)
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
 
- ***** BEGIN LICENSE BLOCK *****
- Version: MPL 1.1/GPL 2.0/LGPL 2.1
-
- The contents of this file are subject to the Mozilla Public License Version
- 1.1 (the "License"); you may not use this file except in compliance with
- the License. You may obtain a copy of the License at
- http://www.mozilla.org/MPL/
-
- Software distributed under the License is distributed on an "AS IS" basis,
- WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- for the specific language governing rights and limitations under the
- License.
-
- The Original Code is mozilla.org code.
-
- The Initial Developer of the Original Code is
- Netscape Communications Corporation.
- Portions created by the Initial Developer are Copyright (C) 1998
- the Initial Developer. All Rights Reserved.
-
- Contributor(s):
-   Blake Ross <blaker@netscape.com>
-
- Alternatively, the contents of this file may be used under the terms of
- either of the GNU General Public License Version 2 or later (the "GPL"),
- or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- in which case the provisions of the GPL or the LGPL are applicable instead
- of those above. If you wish to allow use of your version of this file only
- under the terms of either the GPL or the LGPL, and not to allow others to
- use your version of this file under the terms of the MPL, indicate your
- decision by deleting the provisions above and replace them with the notice
- and other provisions required by the GPL or the LGPL. If you do not delete
- the provisions above, a recipient may use your version of this file under
- the terms of any one of the MPL, the GPL or the LGPL.
-
- ***** END LICENSE BLOCK ***** -->
-
+<?xml-stylesheet href="chrome://communicator/content/history/places.css"?>
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://communicator/skin/history/places.css"?>
 
-<?xul-overlay href="chrome://communicator/content/history/historyTreeOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
+<?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/history/placesOverlay.xul"?>
 
-<!DOCTYPE window SYSTEM "chrome://communicator/locale/history/history.dtd" >
+<!DOCTYPE window [
+<!ENTITY % historyDTD SYSTEM "chrome://communicator/locale/history/history.dtd">
+%historyDTD;
+<!ENTITY % editMenuOverlayDTD SYSTEM "chrome://global/locale/editMenuOverlay.dtd">
+%editMenuOverlayDTD;
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
+]>
 
 <window title="&historyWindowTitle.label;" id="history-window"
-        onload="HistoryCommonInit();"
+        onload="PlacesOrganizer.init();"
+        onunload="PlacesOrganizer.destroy();"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="500" height="400"
         persist="width height screenX screenY sizemode"
         windowtype="history:manager">
 
-  <stringbundle id="historyBundle"
-                src="chrome://communicator/locale/history/history.properties"/>
-  <stringbundle id="sortBundle" src="chrome://global/locale/nsTreeSorting.properties"/>
+  <script type="application/x-javascript"
+          src="chrome://communicator/content/history/places.js"/>
+  <script type="application/x-javascript"
+          src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/x-javascript"
+          src="chrome://communicator/content/history/history.js"/>
+  <script type="application/x-javascript"
+          src="chrome://communicator/content/bookmarks/bookmarks.js"/>
 
-<commandset id="tasksCommands">
-  <commandset id="selectEditMenuItems"/>
-  <commandset id="globalEditMenuItems"/>
-  <commandset id="historyEditMenuItems"
-              commandupdater="true"
-              events="select"
-              oncommandupdate="updateHistoryCommands()"/>
-  <command id="cmd_searchHistory" oncommand="window.openDialog('chrome://communicator/content/history/findHistory.xul', 'FindHistoryWindow', 'dialog=no,centerscreen,resizable=no,chrome,dependent');"/>
+  <commandset id="tasksCommands">
+    <!-- File Menu -->
+    <command id="cmd_close" oncommand="window.close()"/>
+    <command id="cmd_quit"/>
+    <command id="bm_cmd_saveas"/>
+    <!-- Search Box -->
+    <command id="cmd_search_focus"
+             oncommand="PlacesSearchBox.focus();"/>
+  </commandset>
+  <commandset id="editMenuCommands"/>
+  <commandset id="placesCommands"/>
 
-  <!-- File Menu -->
-  <command id="cmd_close" oncommand="window.close()"/>
-  <command id="cmd_quit"/>
-  <command id="bm_cmd_saveas"/>
-  <!-- Edit Menu -->
-  <command id="cmd_deleteByHostname" oncommand="goDoCommand('cmd_deleteByHostname');"/>
-  <command id="cmd_deleteByDomain" oncommand="goDoCommand('cmd_deleteByDomain');"/>
+  <broadcaster id="Communicator:WorkMode"/>
 
-</commandset>
+  <keyset id="tasksKeys">
+    <!-- File Menu -->
+    <key id="key_close"/>
+    <key id="key_quit"/>
+    <!-- Edit Menu -->
+    <key id="key_cut"/>
+    <key id="key_copy"/>
+    <key id="key_delete"/>
+    <key id="key_delete2"/>
+    <key id="key_selectAll"/>
+    <!-- Search Box -->
+    <key id="key_search_focus"
+         command="cmd_search_focus"
+         key="&search.key;"
+         modifiers="accel"/>
+  </keyset>
 
-<broadcaster id="Communicator:WorkMode"/>
+  <popupset id="placesPopupset">
+    <popup id="placesContext"/>
+    <popup id="placesColumnsContext"
+           onpopupshowing="ViewMenu.fillWithColumns(event, null, null, 'checkbox', null);"
+           oncommand="ViewMenu.showHideColumn(event.target); event.stopPropagation();"/>
+  </popupset>
 
-<keyset id="tasksKeys">
-  <!-- File Menu -->
-  <key id="key_close"/>
-  <key id="key_quit"/>
-  <!-- Edit Menu -->
-  <key id="key_cut"/>
-  <key id="key_copy"/>
-  <key id="key_delete"/>
-  <key id="key_delete2"/>
-  <key id="key_selectAll"/>
-  <key id="key_searchHistory" key="&findHisCmd.commandkey;" command="cmd_searchHistory" modifiers="accel"/>
-</keyset>
+  <toolbox id="history-toolbox">
+  <menubar id="history-menu"
+           grippytooltiptext="&menuBar.tooltip;"
+           chromedir="&locale.dir;">
+    <menu id="menu_File">
+      <menupopup id="menu_FilePopup">
+        <menuitem id="menu_close"/>
+      </menupopup>
+    </menu>
 
-<popupset id="historyContextMenu"/>
+    <menu id="menu_Edit">
+      <menupopup>
+        <menuitem id="menu_cut"
+                  selection="separator|link|folder|mixed"/>
+        <menuitem id="menu_copy"
+                  selection="separator|link|folder|mixed"/>
+        <menuitem id="menu_delete"/>
+        <menuseparator/>
+        <menuitem id="cMenu_selectAll"/>
+      </menupopup>
+    </menu>
+    <menu id="menu_View">
+      <menupopup>
+        <menu id="viewColumns"
+              label="&view.columns.label;" accesskey="&view.columns.accesskey;">
+          <menupopup onpopupshowing="ViewMenu.fillWithColumns(event, null, null, 'checkbox', null);"
+                     oncommand="ViewMenu.showHideColumn(event.target); event.stopPropagation();"/>
+        </menu>
+        <menu id="viewSort" label="&view.sort.label;"
+              accesskey="&view.sort.accesskey;">
+          <menupopup onpopupshowing="ViewMenu.populateSortMenu(event);"
+                     oncommand="ViewMenu.setSortColumn(event.target.column, null);">
+            <menuitem id="viewUnsorted" type="radio" name="columns"
+                      label="&view.unsorted.label;" accesskey="&view.unsorted.accesskey;"
+                      oncommand="ViewMenu.setSortColumn(null, null);"/>
+            <menuseparator id="directionSeparator"/>
+            <menuitem id="viewSortAscending" type="radio" name="direction"
+                      label="&view.sortAscending.label;" accesskey="&view.sortAscending.accesskey;"
+                      oncommand="ViewMenu.setSortColumn(null, 'ascending'); event.stopPropagation();"/>
+            <menuitem id="viewSortDescending" type="radio" name="direction"
+                      label="&view.sortDescending.label;" accesskey="&view.sortDescending.accesskey;"
+                      oncommand="ViewMenu.setSortColumn(null, 'descending'); event.stopPropagation();"/>
+          </menupopup>
+        </menu>
+      </menupopup>
+    </menu>
+    <menu id="tasksMenu"/>
+    <menu id="windowMenu"/>
+    <menu id="menu_Help"/>
+  </menubar>
+  <toolbar class="chromeclass-toolbar"
+           id="placesToolbar"
+           align="center"
+           grippytooltiptext="&searchBar.tooltip;"
+           chromedir="&locale.dir;">
+    <textbox id="searchFilter"
+             clickSelectsAll="true"
+             type="search"
+             emptytext="&search.emptytext;"
+             oncommand="PlacesSearchBox.search(this.value);"
+             collection="history">
+    </textbox>
+  </toolbar>
+  </toolbox>
 
-<toolbox id="history-toolbox">
-<menubar id="history-menu" grippytooltiptext="&menuBar.tooltip;">
-  <menu id="menu_File">
-    <menupopup id="menu_FilePopup">
-      <menuitem id="menu_close"/>
-    </menupopup>
-  </menu>
-
-  <menu id="menu_Edit">
-    <menupopup>
-      <menuitem id="menu_cut"/>
-      <menuitem id="menu_copy"/>
-      <menuitem id="menu_delete"/>
-      <menuitem id="menu_deleteByHostname" command="cmd_deleteByHostname"
-                accesskey="&deleteHostnameCmd.accesskey;"/>
-      <menuitem id="menu_deleteByDomain" command="cmd_deleteByDomain"
-                accesskey="&deleteDomainCmd.accesskey;"/>
-      <menuseparator/>
-      <menuitem id="menu_selectAll"/>
-    </menupopup>
-  </menu>
-  <menu id="menu_View">
-    <menupopup onpopupshowing="fillViewMenu(this)">
-      <menu id="groupingMenu" label="&groupBy.label;" accesskey="&groupBy.accesskey;">
-        <menupopup>
-          <menuitem id="groupByDay" label="&groupByDay.label;" accesskey="&groupByDay.accesskey;" type="radio" oncommand="GroupBy('day');"/>
-          <menuitem id="groupBySite" label="&groupBySite.label;" accesskey="&groupBySite.accesskey;" type="radio" oncommand="GroupBy('site');"/>
-          <menuitem id="groupByNone" label="&groupByNone.label;" accesskey="&groupByNone.accesskey;" type="radio" oncommand="GroupBy('none');"/>
-        </menupopup>
-      </menu>
-      <menuitem type="radio" name="sort_column" id="unsorted_menuitem"
-        label="&menuitem.view.unsorted.label;"
-        accesskey="&menuitem.view.unsorted.accesskey;"
-        oncommand="return SortInNewDirection('natural');"/>
-      <menuseparator id="fill_after_this_node"/>
-      <menuseparator id="fill_before_this_node"/>
-      <menuitem type="radio" name="sort_direction" id="sort_ascending"
-        label="&sortAscending.label;"
-        accesskey="&sortAscending.accesskey;"
-        oncommand="return SortInNewDirection('ascending');"/>
-      <menuitem type="radio" name="sort_direction" id="sort_descending"
-        label="&sortDescending.label;"
-        accesskey="&sortDescending.accesskey;"
-        oncommand="return SortInNewDirection('descending');"/>
-    </menupopup>
-  </menu>
-  <menu id="tasksMenu">
-    <menupopup id="taskPopup">
-      <menuitem id="menu_searchHistory" label="&findHisCmd.label;" key="key_searchHistory"
-                accesskey="&findHisCmd.accesskey;" command="cmd_searchHistory"/>
-      <menuseparator/>
-    </menupopup>
-  </menu>
-  <menu id="windowMenu"/>
-  <menu id="menu_Help"/>
-</menubar>
-</toolbox>
-
-  <tree id="historyTree"/>
+  <tree id="placeContent"
+        class="placesTree"
+        context="placesContext"
+        flex="1" type="places"
+        flatList="true"
+        enableColumnDrag="true"
+        onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) PlacesOrganizer.openSelectedNode(event);"
+        ondblclick="PlacesOrganizer.openSelectedNode(event);"
+        onfocus="PlacesOrganizer.onTreeFocus(event);"
+        onclick="PlacesOrganizer.onTreeClick(event);">
+    <treecols id="placeContentColumns" context="placesColumnsContext">
+      <treecol label="&col.name.label;" id="placesContentTitle" anonid="title" flex="5" primary="true" ordinal="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol label="&col.url.label;" id="placesContentUrl" anonid="url" flex="5"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol label="&col.lastvisit.label;" id="placesContentDate" anonid="date" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol label="&col.visitcount.label;" id="placesContentVisitCount" anonid="visitCount" flex="1" hidden="true"
+               persist="width hidden ordinal sortActive sortDirection"/>
+    </treecols>
+    <treechildren flex="1"/>
+  </tree>
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="statusbar-display" flex="1"/>
     <statusbarpanel class="statusbarpanel-iconic" id="offline-status"/>

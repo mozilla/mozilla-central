@@ -21,6 +21,9 @@
  *
  * Contributor(s):
  *   Alec Flett <alecf@netscape.com>
+ *   Seth Spitzer <sspizer@mozilla.org> (port to Places)
+ *   Asaf Romano <mano@mozilla.com>
+ *   Robert Kaiser <kairo@kairo.at>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,509 +38,108 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-// The history window uses JavaScript in bookmarks.js too.
 
 var gHistoryTree;
-var gLastHostname;
-var gLastDomain;
-var gGlobalHistory;
-var gPrefService;
-var gIOService;
-var gDeleteByHostname;
-var gDeleteByDomain;
-var gHistoryBundle;
-var gHistoryStatus;
+var gSearchBox;
 var gHistoryGrouping = "";
+var gSearching = false;
 
-function HistoryCommonInit()
+function HistorySidebarInit()
 {
-    gHistoryTree =  document.getElementById("historyTree");
-    gDeleteByHostname = document.getElementById("menu_deleteByHostname");
-    gDeleteByDomain =   document.getElementById("menu_deleteByDomain");
-    gHistoryBundle =    document.getElementById("historyBundle");
-    gHistoryStatus =    document.getElementById("statusbar-display");
+  gHistoryTree = document.getElementById("historyTree");
+  gSearchBox = document.getElementById("search-box");
 
-    var treeController = new nsTreeController(gHistoryTree);
-    var historyController = new nsHistoryController;
-    gHistoryTree.controllers.appendController(historyController);
+  gHistoryGrouping = document.getElementById("viewButton").
+                              getAttribute("selectedsort");
 
-    gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefBranch);
-    PREF = gPrefService;    // need this for bookmarks.js
+  if (gHistoryGrouping == "site")
+    document.getElementById("bysite").setAttribute("checked", "true");
+  else if (gHistoryGrouping == "visited")
+    document.getElementById("byvisited").setAttribute("checked", "true");
+  else if (gHistoryGrouping == "lastvisited")
+    document.getElementById("bylastvisited").setAttribute("checked", "true");
+  else if (gHistoryGrouping == "dayandsite")
+    document.getElementById("bydayandsite").setAttribute("checked", "true");
+  else
+    document.getElementById("byday").setAttribute("checked", "true");
 
-    if ("arguments" in window && window.arguments[0] && window.arguments.length >= 1) {
-        // We have been supplied a resource URI to root the tree on
-        var uri = window.arguments[0];
-        gHistoryTree.setAttribute("ref", uri);
-        if (uri.substring(0,5) == "find:" &&
-            !(window.arguments.length > 1 && window.arguments[1] == "newWindow")) {
-            // Update the windowtype so that future searches are directed 
-            // there and the window is not re-used for bookmarks. 
-            var windowNode = document.getElementById("history-window");
-            windowNode.setAttribute("windowtype", "history:searchresults");
-            document.title = gHistoryBundle.getString("search_results_title");
-
-        }
-        document.getElementById("groupingMenu").setAttribute("hidden", "true");
-    }
-    else {
-        try {
-            gHistoryGrouping = gPrefService.getCharPref("browser.history.grouping");
-        }
-        catch(e) {
-            gHistoryGrouping = "day";
-        }
-        UpdateTreeGrouping();
-        if (gHistoryStatus) {  // must be the window
-            switch(gHistoryGrouping) {
-            case "none":
-                document.getElementById("groupByNone").setAttribute("checked", "true");
-                break;
-            case "site":
-                document.getElementById("groupBySite").setAttribute("checked", "true");
-                break;
-            case "day":
-            default:
-                document.getElementById("groupByDay").setAttribute("checked", "true");
-            }        
-        }
-        else {  // must be the sidebar panel
-            var pb = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-            var pbi = pb.QueryInterface(Components.interfaces.nsIPrefBranch2);
-            pbi.addObserver("browser.history.grouping", groupObserver, false);
-        }
-    } 
-
-    SortInNewDirection(find_sort_direction(find_sort_column()));
-
-    if (gHistoryStatus)
-        gHistoryTree.focus();
-
-    if (gHistoryTree.view.rowCount > 0)
-        gHistoryTree.view.selection.select(0);
-    else if (gHistoryStatus)
-        updateHistoryCommands();
+  searchHistory("");
 }
 
-function HistoryPanelUnload()
+function GroupBy(groupingType)
 {
-  var pb = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-  var pbi = pb.QueryInterface(Components.interfaces.nsIPrefBranch2);
-  pbi.removeObserver("browser.history.grouping", groupObserver, false);
+  gHistoryGrouping = groupingType;
+  gSearchBox.value = "";
+  searchHistory("");
 }
 
-function updateHistoryCommands()
-{
-    goUpdateCommand("cmd_deleteByHostname");
-    goUpdateCommand("cmd_deleteByDomain");
-}
-
-function historyOnClick(aEvent)
-{
-  // This is kind of a hack but matches the currently implemented behaviour. 
-  // If a status bar is not present, assume we're in sidebar mode, and thus single clicks on containers
-  // will open the container. Single clicks on non-containers are handled below in historyOnSelect.
-  if (gHistoryStatus && aEvent.button == 0)
-    return;
-
-  var target = BookmarksUtils.getBrowserTargetFromEvent(aEvent);
-  if (!target)
-    return;
-
-  var row = { };
-  var col = { };
-  var elt = { };
-  gHistoryTree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, elt);
-  if (row.value >= 0 && col.value) {
-    if (!isContainer(gHistoryTree, row.value))
-      OpenURL(target, aEvent);
-    else if (aEvent.button == 0 && elt.value != "twisty")
-      gHistoryTree.treeBoxObject.view.toggleOpenState(row.value);
-  }
-}
-
-function historyOnSelect()
-{
-    // every time selection changes, save the last hostname
-    gLastHostname = "";
-    gLastDomain = "";
-    var match;
-    var currentIndex = gHistoryTree.currentIndex;
-    var rowIsContainer = currentIndex < 0 || (gHistoryGrouping != "none" && isContainer(gHistoryTree, currentIndex));
-    var col = gHistoryTree.columns["URL"];
-    var url = rowIsContainer ? "" : gHistoryTree.view.getCellText(currentIndex, col);
-
-    if (url) {
-        if (!gIOService)
-            gIOService = Components.classes['@mozilla.org/network/io-service;1']
-                                   .getService(Components.interfaces.nsIIOService);
-        try {
-            gLastHostname = gIOService.newURI(url, null, null).host;
-            // matches the last foo.bar in foo.bar or baz.foo.bar
-            match = gLastHostname.match(/([^.]+\.[^.]+$)/);
-            if (match)
-                gLastDomain = match[1];
-        } catch (e) {}
-    }
-
-    if (gHistoryStatus)
-        gHistoryStatus.label = url;
-
-    document.commandDispatcher.updateCommands("select");
-}
-
-function nsHistoryController()
-{
-}
-
-nsHistoryController.prototype =
-{
-    supportsCommand: function(command)
-    {
-        switch(command) {
-        case "cmd_deleteByHostname":
-        case "cmd_deleteByDomain":
-            return true;
-        default:
-            return false;
-        }
-    },
-
-    isCommandEnabled: function(command)
-    {
-        var enabled = false;
-        var text;
-        switch(command) {
-        case "cmd_deleteByHostname":
-            if (gLastHostname) {
-                text = gHistoryBundle.getFormattedString("deleteHost", [ gLastHostname ]);
-                enabled = true;
-            } else {
-                text = gHistoryBundle.getString("deleteHostNoSelection");
-            }
-
-            gDeleteByHostname.label = text;
-            break;
-        case "cmd_deleteByDomain":
-            if (gLastDomain) {
-                text = gHistoryBundle.getFormattedString("deleteDomain", [ gLastDomain ]);
-                enabled = true;
-            } else {
-                text = gHistoryBundle.getString("deleteDomainNoSelection");
-            }
-
-            gDeleteByDomain.label = text;
-        }
-        return enabled;
-    },
-
-    doCommand: function(command)
-    {
-        switch(command) {
-        case "cmd_deleteByHostname":
-            if (!gGlobalHistory)
-                gGlobalHistory = Components.classes["@mozilla.org/browser/global-history;2"].getService(Components.interfaces.nsIBrowserHistory);
-            gGlobalHistory.removePagesFromHost(gLastHostname, false)
-            return true;
-
-        case "cmd_deleteByDomain":
-            if (!gGlobalHistory)
-                gGlobalHistory = Components.classes["@mozilla.org/browser/global-history;2"].getService(Components.interfaces.nsIBrowserHistory);
-            gGlobalHistory.removePagesFromHost(gLastDomain, true)
-            return true;
-
-        default:
-            return false;
-        }
-    }
-}
-
-var historyDNDObserver = {
-    onDragStart: function (aEvent, aXferData, aDragAction)
-    {
-        var currentIndex = gHistoryTree.currentIndex;
-        if (isContainer(gHistoryTree, currentIndex))
-            return false;
-        var col = gHistoryTree.columns["URL"];
-        var url = gHistoryTree.view.getCellText(currentIndex, col);
-        col = gHistoryTree.columns["Name"];
-        var title = gHistoryTree.view.getCellText(currentIndex, col);
-
-        var htmlString = "<A HREF='" + url + "'>" + title + "</A>";
-        aXferData.data = new TransferData();
-        aXferData.data.addDataForFlavour("text/unicode", url);
-        aXferData.data.addDataForFlavour("text/html", htmlString);
-        aXferData.data.addDataForFlavour("text/x-moz-url", url + "\n" + title);
-        return true;
-    }
-};
-
-function validClickConditions(event)
-{
-  var currentIndex = gHistoryTree.currentIndex;
-  if (currentIndex == -1) return false;
-  var container = isContainer(gHistoryTree, currentIndex);
-  return (event.button == 0 &&
-          event.originalTarget.localName == 'treechildren' &&
-          !container && gHistoryStatus);
-}
-
-function collapseExpand()
-{
-    var currentIndex = gHistoryTree.currentIndex;
-    gHistoryTree.treeBoxObject.view.toggleOpenState(currentIndex);
-}
-
-function OpenURL(aTarget, aEvent)
-{
-    var currentIndex = gHistoryTree.currentIndex;     
-    var builder = gHistoryTree.builder.QueryInterface(Components.interfaces.nsIXULTreeBuilder);
-    var url = builder.getResourceAtIndex(currentIndex).ValueUTF8;
-    if (!gIOService)
-      gIOService = Components.classes['@mozilla.org/network/io-service;1']
-                             .getService(Components.interfaces.nsIIOService);
-    try {
-      var scheme = gIOService.extractScheme(url);
-      if (scheme == "javascript" || scheme == "data") {
-        var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                         .getService(Components.interfaces.nsIStringBundleService);
-        var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                      .getService(Components.interfaces.nsIPromptService);
-        var historyBundle = strBundleService.createBundle("chrome://communicator/locale/history/history.properties");
-        var brandBundle = strBundleService.createBundle("chrome://branding/locale/brand.properties");      
-        var brandStr = brandBundle.GetStringFromName("brandShortName");
-        var errorStr = historyBundle.GetStringFromName("load-js-data-url-error");
-        promptService.alert(window, brandStr, errorStr);
-        return false;
-      }
-    } catch (e) {
-      return false;
-    }
-
-    if (aTarget != "current") {
-      var count = gHistoryTree.view.selection.count;
-      var URLArray = [];
-      if (count == 1) {
-        if (isContainer(gHistoryTree, currentIndex))
-          openDialog("chrome://communicator/content/history/history.xul", 
-                     "", "chrome,all,dialog=no", url, "newWindow");
-        else
-          URLArray.push(url);
-      }
-      else {
-        var col = gHistoryTree.columns["URL"];
-        var min = new Object(); 
-        var max = new Object();
-        var rangeCount = gHistoryTree.view.selection.getRangeCount();
-        for (var i = 0; i < rangeCount; ++i) {
-          gHistoryTree.view.selection.getRangeAt(i, min, max);
-          for (var k = max.value; k >= min.value; --k) {
-            url = gHistoryTree.view.getCellText(k, col);
-            URLArray.push(url);
-          }
-        }
-      }
-      if (aTarget == "window") {
-        for (i = 0; i < URLArray.length; i++) {
-          openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", URLArray[i]);
-        }
-      } else {
-        if (URLArray.length > 0)
-          OpenURLArrayInTabs(URLArray, BookmarksUtils.shouldLoadTabInBackground(aEvent));
-      }
-    }
-    else if (!isContainer(gHistoryTree, currentIndex))
-      openTopWin(url);
-    return true;
-}
-
-// This opens the URLs contained in the given array in new tabs
-// of the most recent window, creates a new window if necessary.
-function OpenURLArrayInTabs(aURLArray, aBackground)
-{
-  var browserWin = getTopWin();
-  if (browserWin) {
-    var browser = browserWin.getBrowser();
-    var tab = browser.addTab(aURLArray[0]);
-    if (!aBackground)
-      browser.selectedTab = tab;
-    for (var i = 1; i < aURLArray.length; ++i)
-      browser.addTab(aURLArray[i]);
-  } else {
-    openTopWin(aURLArray.join("\n")); // Pretend that we're a home page group
-  }
-}
-
-/**
- * Root the tree on a given URI (used for displaying search results)
- */
-function setRoot(root)
-{
-  gHistoryTree.ref = root;
-}
-
-function GroupBy(aGroupingType)
-{
-  gHistoryGrouping = aGroupingType;
-  UpdateTreeGrouping();
-  gPrefService.setCharPref("browser.history.grouping", aGroupingType);
-}
-
-function UpdateTreeGrouping()
-{
-  var tree = document.getElementById("historyTree");
-  switch(gHistoryGrouping) {
-  case "none":
-    tree.setAttribute("ref", "NC:HistoryRoot");
-    break;
-  case "site":
-    tree.setAttribute("ref", "find:datasource=history&groupby=Hostname");
-    break;
-  case "day":
-  default:
-    tree.setAttribute("ref", "NC:HistoryByDate");
-    break;
-  }
-}
-
-var groupObserver = {
-  observe: function(aPrefBranch, aTopic, aPrefName) {
-    try {
-      gHistoryGrouping = gPrefService.getCharPref("browser.history.grouping");
-    }
-    catch(e) {
-      gHistoryGrouping = "day";
-    }
-    UpdateTreeGrouping();
-  }
-}
-
+// we need bookmarks.js to set bookmarks!
 function historyAddBookmarks()
 {
-  var urlCol = gHistoryTree.columns["URL"];
-  var titleCol = gHistoryTree.columns["Name"];
-
+  // if we're not sidebar, the tree ID is "placeContent"
+  if (!gHistoryTree)
+    gHistoryTree = document.getElementById("placeContent");
   var count = gHistoryTree.view.selection.count;
-  var url;
-  var title;
-  if (count == 1) {
-    var currentIndex = gHistoryTree.currentIndex;
-    url = gHistoryTree.treeBoxObject.view.getCellText(currentIndex, urlCol);
-    title = gHistoryTree.treeBoxObject.view.getCellText(currentIndex, titleCol);
-    BookmarksUtils.addBookmark(url, title, null, true);
-  }
+  if (count == 1)
+    BookmarksUtils.addBookmark(gHistoryTree.selectedNode.uri,
+                               gHistoryTree.selectedNode.title, null, true);
   else if (count > 1) {
-    var min = new Object(); 
-    var max = new Object();
-    var rangeCount = gHistoryTree.view.selection.getRangeCount();
     if (!BMSVC) {
       initServices();
       initBMService();
     }
-    for (var i = 0; i < rangeCount; ++i) {
-      gHistoryTree.view.selection.getRangeAt(i, min, max);
-      for (var k = max.value; k >= min.value; --k) {
-        url = gHistoryTree.view.getCellText(k, urlCol);
-        title = gHistoryTree.view.getCellText(k, titleCol);
-        BookmarksUtils.addBookmark(url, title, null, false);
-      }
+    selNodes = gHistoryTree.getSelectionNodes();
+    for (var i = 0; i < selNodes.length; i++) {
+      // skip over separators and folders
+      if (PlacesUtils.nodeIsURI(selNodes[i]))
+        BookmarksUtils.addBookmark(selNodes.uri, selNodes.title, null, false);
     }
   }
 }
 
-
-function updateItems()
+function searchHistory(aInput)
 {
-  var count = gHistoryTree.view.selection.count;
-  var openItem = document.getElementById("miOpen");
-  var bookmarkItem = document.getElementById("miAddBookmark");
-  var copyLocationItem = document.getElementById("miCopyLinkLocation");
-  var sep1 = document.getElementById("pre-bookmarks-separator");
-  var sep2 = document.getElementById("post-bookmarks-separator");
-  var openItemInNewWindow = document.getElementById("miOpenInNewWindow");
-  var openItemInNewTab = document.getElementById("miOpenInNewTab");
-  var collapseExpandItem = document.getElementById("miCollapseExpand");
-  if (count > 1) {
-    var hasContainer = false;
-    if (gHistoryGrouping != "none") {
-      var min = new Object(); 
-      var max = new Object();
-      var rangeCount = gHistoryTree.view.selection.getRangeCount();
-      for (var i = 0; i < rangeCount; ++i) {
-        gHistoryTree.view.selection.getRangeAt(i, min, max);
-        for (var k = max.value; k >= min.value; --k) {
-          if (isContainer(gHistoryTree, k)) {
-            hasContainer = true;
-            break;
-          }
-        }
-      }
-    }
-    collapseExpandItem.hidden = true;
-    openItem.hidden = true;
-    if (hasContainer) {   // several items selected, folder(s) amongst them
-      bookmarkItem.hidden = true;
-      copyLocationItem.hidden = true;
-      sep1.hidden = true;
-      sep2.hidden = true;
-      openItemInNewWindow.hidden = true;
-      openItemInNewTab.hidden = true;
-    }
-    else {                // several items selected, but no folder
-      bookmarkItem.hidden = false;
-      copyLocationItem.hidden = false;
-      sep1.hidden = false;
-      sep2.hidden = false;
-      bookmarkItem.setAttribute("label", document.getElementById('multipleBookmarks').getAttribute("label"));
-      bookmarkItem.setAttribute("accesskey", document.getElementById('multipleBookmarks').getAttribute("accesskey"));
-      openItem.removeAttribute("default");
-      openItemInNewWindow.setAttribute("default", "true");
-      openItemInNewWindow.hidden = false;
-      openItemInNewTab.hidden = false;
-    }
+  var query = PlacesUtils.history.getNewQuery();
+  var options = PlacesUtils.history.getNewQueryOptions();
+
+  const NHQO = Components.interfaces.nsINavHistoryQueryOptions;
+  var sortingMode;
+  var resultType;
+
+  if (aInput) {
+    query.searchTerms = aInput;
+    sortingMode = NHQO.SORT_BY_TITLE_ASCENDING;
+    resultType = NHQO.RESULTS_AS_URI;
   }
   else {
-    openItemInNewWindow.hidden = false;
-    bookmarkItem.setAttribute("label", document.getElementById('oneBookmark').getAttribute("label"));
-    bookmarkItem.setAttribute("accesskey", document.getElementById('oneBookmark').getAttribute("accesskey"));
-    sep2.hidden = false;
-    var currentIndex = gHistoryTree.currentIndex;
-    if (isContainer(gHistoryTree, currentIndex)) {   // one folder selected
-        openItem.hidden = true;
-        openItem.removeAttribute("default");
-        openItemInNewWindow.removeAttribute("default");
-        openItemInNewTab.hidden = true;
-        collapseExpandItem.hidden = false;
-        collapseExpandItem.setAttribute("default", "true");
-        bookmarkItem.hidden = true;
-        copyLocationItem.hidden = true;
-        sep1.hidden = true;
-        if (isContainerOpen(gHistoryTree, currentIndex)) {
-          collapseExpandItem.setAttribute("label", gHistoryBundle.getString("collapseLabel"));
-          collapseExpandItem.setAttribute("accesskey", gHistoryBundle.getString("collapseAccesskey"));
-        }
-        else {
-          collapseExpandItem.setAttribute("label", gHistoryBundle.getString("expandLabel"));
-          collapseExpandItem.setAttribute("accesskey", gHistoryBundle.getString("expandAccesskey"));          
-        }
-        return true;
-    }                                                // one entry selected (not a folder)
-    openItemInNewTab.hidden = false;
-    collapseExpandItem.hidden = true;
-    bookmarkItem.hidden = false;
-    copyLocationItem.hidden = false;
-    sep1.hidden = false;
-    if (!getTopWin()) {
-        openItem.hidden = true;
-        openItem.removeAttribute("default");
-        openItemInNewWindow.setAttribute("default", "true");
-    }
-    else {
-      openItem.hidden = false;
-      if (!openItem.getAttribute("default"))
-        openItem.setAttribute("default", "true");
-      openItemInNewWindow.removeAttribute("default");
+    switch (gHistoryGrouping) {
+      case "visited":
+        resultType = NHQO.RESULTS_AS_URI;
+        sortingMode = NHQO.SORT_BY_VISITCOUNT_DESCENDING;
+        break;
+      case "lastvisited":
+        resultType = NHQO.RESULTS_AS_URI;
+        sortingMode = NHQO.SORT_BY_DATE_DESCENDING;
+        break;
+      case "dayandsite":
+        resultType = NHQO.RESULTS_AS_DATE_SITE_QUERY;
+        break;
+      case "site":
+        resultType = NHQO.RESULTS_AS_SITE_QUERY;
+        sortingMode = NHQO.SORT_BY_TITLE_ASCENDING;
+        break;
+      case "day":
+      default:
+        resultType = NHQO.RESULTS_AS_DATE_QUERY;
+        break;
     }
   }
-  return true;
+
+  options.sortingMode = sortingMode;
+  options.resultType = resultType;
+
+  // call load() on the tree manually
+  // instead of setting the place attribute in history-panel.xul
+  // otherwise, we will end up calling load() twice
+  gHistoryTree.load([query], options);
 }

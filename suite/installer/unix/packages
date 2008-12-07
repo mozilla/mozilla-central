@@ -129,7 +129,6 @@ bin/components/libfileview.so
 bin/components/find.xpt
 bin/components/gfx.xpt
 bin/components/libgkgfxthebes.so
-bin/components/history.xpt
 bin/components/htmlparser.xpt
 bin/components/libgklayout.so
 bin/components/libgkplugin.so
@@ -174,6 +173,8 @@ bin/components/liboji.so
 bin/components/oji.xpt
 bin/components/parentalcontrols.xpt
 bin/components/libpermissions.so
+bin/components/places.xpt
+bin/components/libplaces.so
 bin/components/plugin.xpt
 bin/components/libpref.so
 bin/components/pref.xpt
@@ -263,15 +264,18 @@ bin/components/nsDefaultCLH.js
 bin/components/nsDownloadProgressListener.js
 bin/components/nsExtensionManager.js
 bin/components/nsFilePicker.js
+bin/components/nsLivemarkService.js
 bin/components/nsLoginInfo.js
 bin/components/nsLoginManager.js
 bin/components/nsLoginManagerPrompter.js
 bin/components/nsHandlerService.js
 bin/components/nsHelperAppDlg.js
+bin/components/nsPlacesDBFlush.js
 bin/components/nsProgressDialog.js
 bin/components/nsProxyAutoConfig.js
 bin/components/nsSidebar.js
 bin/components/nsSuiteGlue.js
+bin/components/nsTaggingService.js
 bin/components/nsTypeAheadFind.js
 bin/components/nsTryToClose.js
 bin/components/nsUpdateService.js

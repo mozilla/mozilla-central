@@ -36,6 +36,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-treechildren {
-  cursor: pointer;  
+treechildren::-moz-tree-image(leaf),
+treechildren::-moz-tree-cell(leaf) {
+  cursor: pointer;
+}
+
+treechildren::-moz-tree-cell-text(leaf, hover) {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+treechildren::-moz-tree-cell(separator) {
+  cursor: default;
 }
