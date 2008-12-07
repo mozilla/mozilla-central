@@ -122,5 +122,16 @@
                accesskey="&alwaysEncryptMessage.accesskey;"/>
       </radiogroup>
     </groupbox>
+
+    <!-- Certificate manager -->
+    <groupbox id="smimeCertificateManager" orient="horizontal">
+      <caption label="&certificates.label;"/>
+      <button id="openCertManagerButton" oncommand="openCertManager();"
+              label="&manageCerts.label;" accesskey="&manageCerts.accesskey;"
+              prefstring="security.disable_button.openCertManager"/>
+      <button id="openDeviceManagerButton" oncommand="openDeviceManager();"
+              label="&manageDevices.label;" accesskey="&manageDevices.accesskey;"
+              prefstring="security.disable_button.openDeviceManager"/>
+    </groupbox>
   </vbox>
 </overlay>

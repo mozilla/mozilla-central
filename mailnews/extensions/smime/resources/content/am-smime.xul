@@ -56,4 +56,5 @@
   <dialogheader title="&securityTitle.label;"/>
 
   <vbox flex="1" id="smimeEditing"/>
+
 </page>

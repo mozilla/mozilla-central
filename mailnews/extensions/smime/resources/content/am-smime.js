@@ -446,8 +446,36 @@ function smimeClearCert(smime_cert)
   } else if (smime_cert == kSigningCertPref) {
     enableSigningControls(false);
   }
-  
+
   enableCertSelectButtons();
+}
+
+function openCertManager()
+{
+  // Check for an existing certManager window and focus it; it's not
+  // application modal.
+  var windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                 .getService(Components.interfaces.nsIWindowMediator);
+  var lastCertManager = windowMediator.getMostRecentWindow("mozilla:certmanager");
+  if (lastCertManager)
+    lastCertManager.focus();
+  else
+    window.openDialog("chrome://pippki/content/certManager.xul", "",
+                      "centerscreen,resizable=yes,dialog=no");
+}
+
+function openDeviceManager()
+{
+  // Check for an existing deviceManager window and focus it; it's not
+  // application modal.
+  var windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                 .getService(Components.interfaces.nsIWindowMediator);
+  var lastCertManager = windowMediator.getMostRecentWindow("mozilla:devicemanager");
+  if (lastCertManager)
+    lastCertManager.focus();
+  else
+    window.openDialog("chrome://pippki/content/device_manager.xul", "",
+                      "centerscreen,resizable=yes,dialog=no");
 }
 
 function smimeOnLoadEditor()
