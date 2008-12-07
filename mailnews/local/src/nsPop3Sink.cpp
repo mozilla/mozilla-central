@@ -796,7 +796,11 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
   {
     // PublishMsgHdr clears m_newMsgHdr, so we need a comptr to
     // hold onto it.
-    nsCOMPtr <nsIMsgDBHdr> hdr = m_newMailParser->m_newMsgHdr;
+    nsCOMPtr<nsIMsgDBHdr> hdr = m_newMailParser->m_newMsgHdr;
+    NS_ASSERTION(hdr, "m_newMailParser->m_newMsgHdr wasn't set");
+    if (!hdr)
+      return NS_ERROR_FAILURE;
+
     nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_folder);
     PRBool doSelect = PR_FALSE;
 
