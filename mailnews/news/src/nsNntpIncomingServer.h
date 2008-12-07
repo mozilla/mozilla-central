@@ -97,7 +97,8 @@ public:
     NS_IMETHOD GetFilterScope(nsMsgSearchScopeValue *filterScope);
     NS_IMETHOD GetSearchScope(nsMsgSearchScopeValue *searchScope);
 
-    NS_IMETHOD GetIsSecure(PRBool *aIsSecure); // override nsMsgIncomingServer impl
+    NS_IMETHOD GetSocketType(PRInt32 *aSocketType); // override nsMsgIncomingServer impl
+    NS_IMETHOD SetSocketType(PRInt32 aSocketType); // override nsMsgIncomingServer impl
 
     nsresult AppendIfSearchMatch(nsCString& newsgroupName);
 

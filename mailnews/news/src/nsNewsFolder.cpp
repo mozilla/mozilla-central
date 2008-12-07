@@ -21,7 +21,7 @@
  *
  * Contributor(s):
  *   Seth Spitzer <sspitzer@netscape.com>
- *   Håkan Waara  <hwaara@chello.se>
+ *   HÃ¥kan Waara  <hwaara@chello.se>
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Markus Hossner <markushossner@gmx.de>
  *
@@ -440,13 +440,15 @@ NS_IMETHODIMP nsMsgNewsFolder::GetFolderURL(nsACString& aUrl)
   rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 port;
-  PRBool isSecure = PR_FALSE;
-  rv = server->GetIsSecure(&isSecure);
+  PRInt32 socketType;
+  rv = server->GetSocketType(&socketType);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  PRInt32 port;
   rv = server->GetPort(&port);
   NS_ENSURE_SUCCESS(rv, rv);
-  const char *newsScheme = (isSecure) ? SNEWS_SCHEME : NEWS_SCHEME;
+  const char *newsScheme = (socketType == nsIMsgIncomingServer::useSSL) ?
+                           SNEWS_SCHEME : NEWS_SCHEME;
   nsCString escapedName;
   rv = NS_MsgEscapeEncodeURLPath(groupName, escapedName);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1098,11 +1100,12 @@ nsresult nsMsgNewsFolder::CreateNewsgroupUrlForSignon(const nsACString& inUriStr
     rv = GetServer(getter_AddRefs(server));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool isSecure = PR_FALSE;
-    rv = server->GetIsSecure(&isSecure);
+    PRInt32 socketType;
+    nsresult rv = server->GetSocketType(&socketType);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = url->SetPort((isSecure) ? SECURE_NEWS_PORT: NEWS_PORT);
+    rv = url->SetPort((socketType == nsIMsgIncomingServer::useSSL) ?
+                      SECURE_NEWS_PORT: NEWS_PORT);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 

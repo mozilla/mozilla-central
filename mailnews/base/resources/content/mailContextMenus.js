@@ -829,13 +829,8 @@ function CopyMessageUrl()
     var hdr = gDBView.hdrForFirstSelectedMessage;
     var server = hdr.folder.server;
 
-    var url;
-    if (server.isSecure) {
-      url = "snews://";
-    }
-    else {
-      url = "news://"
-    }
+    var url = (server.socketType == Components.interfaces.nsIMsgIncomingServer.useSSL) ?
+              "snews://" : "news://";
     url += server.hostName;
     url += ":";
     url += server.port;

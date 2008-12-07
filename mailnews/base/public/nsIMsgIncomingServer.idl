@@ -57,7 +57,7 @@ interface nsILocalFile;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(e84541a9-98a7-47b3-8037-2cf83b4c242b)]
+[scriptable, uuid(390a2348-3e04-48ac-b7ca-0534e7803d06)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -174,11 +174,9 @@ interface nsIMsgIncomingServer : nsISupports {
   attribute boolean serverBusy;
 
   /**
-   * Should we use a SSL/TLS?
-   * If not, set this to false and socketType to defaultSocket.
-   * If SSL/TLS, set this to true and socketType to the right SSL type.
+   * Is the server using a secure channel (SSL or STARTTLS).
    */
-  attribute boolean isSecure;
+  readonly attribute boolean isSecure;
 
   /* should we use secure authentication? */
   attribute boolean useSecAuth;

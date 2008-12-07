@@ -296,9 +296,11 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
     rv = folder->GetServer(getter_AddRefs(server));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool isSecure = PR_FALSE;
-    server->GetIsSecure(&isSecure);
-    url->SetPort(isSecure ? SECURE_NEWS_PORT : NEWS_PORT);
+    PRInt32 socketType;
+    nsresult rv = server->GetSocketType(&socketType);
+    NS_ENSURE_SUCCESS(rv, rv);
+    url->SetPort((socketType == nsIMsgIncomingServer::useSSL) ?
+                 SECURE_NEWS_PORT : NEWS_PORT);
 
     folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
 
@@ -1030,7 +1032,8 @@ nsNntpService::ConstructNntpUrl(const char *urlString, nsIUrlListener *aUrlListe
 }
 
 nsresult
-nsNntpService::CreateNewsAccount(const char *aHostname, PRBool aIsSecure, PRInt32 aPort, nsIMsgIncomingServer **aServer)
+nsNntpService::CreateNewsAccount(const char *aHostname, PRBool aUseSSL,
+                                 PRInt32 aPort, nsIMsgIncomingServer **aServer)
 {
   NS_ENSURE_ARG_POINTER(aHostname);
   NS_ENSURE_ARG_POINTER(aServer);
@@ -1047,8 +1050,11 @@ nsNntpService::CreateNewsAccount(const char *aHostname, PRBool aIsSecure, PRInt3
   rv = accountManager->CreateIncomingServer(EmptyCString(), nsDependentCString(aHostname), NS_LITERAL_CSTRING("nntp"), aServer);
   if (NS_FAILED(rv)) return rv;
 
-  rv = (*aServer)->SetIsSecure(aIsSecure);
-  if (NS_FAILED(rv)) return rv;
+  if (aUseSSL)
+  {
+    rv = (*aServer)->SetSocketType(nsIMsgIncomingServer::useSSL);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   rv = (*aServer)->SetPort(aPort);
   if (NS_FAILED(rv)) return rv;
@@ -1115,7 +1121,7 @@ nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTP
   // by looking for a server with hostName
   //
   // xxx todo what if we have two servers on the same host, but different ports?
-  // or no port, but isSecure (snews:// vs news://) is different?
+  // Or no port, but scheme (snews:// vs news://) is different?
   rv = accountManager->FindServerByURI(aUri, PR_FALSE,
                                 getter_AddRefs(server));
 
@@ -1160,14 +1166,14 @@ nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTP
 
   if (NS_FAILED(rv) || !server)
   {
-    PRBool isSecure = PR_FALSE;
+    PRBool useSSL = PR_FALSE;
     if (PL_strcasecmp("snews", scheme.get()) == 0)
     {
-      isSecure = PR_TRUE;
+      useSSL = PR_TRUE;
       if ((port == 0) || (port == -1))
           port = SECURE_NEWS_PORT;
     }
-    rv = CreateNewsAccount(hostName.get(), isSecure, port, getter_AddRefs(server));
+    rv = CreateNewsAccount(hostName.get(), useSSL, port, getter_AddRefs(server));
   }
 
   if (NS_FAILED(rv)) return rv;
@@ -1351,12 +1357,12 @@ NS_IMETHODIMP nsNntpService::AllowPort(PRInt32 port, const char *scheme, PRBool 
 }
 
 NS_IMETHODIMP
-nsNntpService::GetDefaultServerPort(PRBool isSecure, PRInt32 *aDefaultPort)
+nsNntpService::GetDefaultServerPort(PRBool aUseSSL, PRInt32 *aDefaultPort)
 {
     nsresult rv = NS_OK;
 
-    // Return Secure NNTP Port if secure option chosen i.e., if isSecure is TRUE
-    if (isSecure)
+    // Return Secure NNTP Port if secure option chosen i.e., if useSSL is TRUE.
+    if (aUseSSL)
         *aDefaultPort = SECURE_NEWS_PORT;
     else
         rv = GetDefaultPort(aDefaultPort);
@@ -1591,11 +1597,15 @@ nsNntpService::StreamMessage(const char *aMessageURI, nsISupports *aConsumer,
       if (!hasMsgOffline)
       {
         nsCOMPtr<nsIMsgIncomingServer> server;
-        folder->GetServer(getter_AddRefs(server));
-        PRBool isSecure = PR_FALSE;
-        if (server)
-          server->GetIsSecure(&isSecure);
-        url->SetPort(isSecure ? SECURE_NEWS_PORT : NEWS_PORT);
+        rv = folder->GetServer(getter_AddRefs(server));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        PRInt32 socketType;
+        rv = server->GetSocketType(&socketType);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        url->SetPort((socketType == nsIMsgIncomingServer::useSSL) ?
+                     SECURE_NEWS_PORT : NEWS_PORT);
 
         rv = IsMsgInMemCache(url, folder, nsnull, &hasMsgOffline);
         NS_ENSURE_SUCCESS(rv, rv);

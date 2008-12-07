@@ -87,20 +87,17 @@ function onPreInit(account, accountValues)
 function initServerType()
 {
   var serverType = document.getElementById("server.type").getAttribute("value");
-  
   var propertyName = "serverType-" + serverType;
 
   var messengerBundle = document.getElementById("bundle_messenger");
   var verboseName = messengerBundle.getString(propertyName);
   setDivText("servertype.verbose", verboseName);
- 
-  var isSecureSelected;
-  if (document.getElementById("server.isSecure").hidden == true)
-    // if socketType set to alwaysSSL
-    isSecureSelected = document.getElementById("server.socketType").value == 3;
-  else
-    isSecureSelected = document.getElementById("server.isSecure").checked;
-  var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType].getService(Components.interfaces.nsIMsgProtocolInfo);
+
+  var isSecureSelected = (document.getElementById("server.socketType").value ==
+                          Components.interfaces.nsIMsgIncomingServer.useSSL);
+
+  var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType]
+                               .getService(Components.interfaces.nsIMsgProtocolInfo);
   document.getElementById("defaultPort").value = protocolInfo.getDefaultServerPort(isSecureSelected);
 }
 
@@ -170,14 +167,11 @@ function onAdvanced()
 function secureSelect()
 {
     var serverType   = document.getElementById("server.type").getAttribute("value");
-    var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType].getService(Components.interfaces.nsIMsgProtocolInfo);
+    var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType]
+                                 .getService(Components.interfaces.nsIMsgProtocolInfo);
 
-    var isSecureSelected;
-    if (document.getElementById("server.isSecure").hidden == true)
-      // if socketType set to alwaysSSL
-      isSecureSelected = document.getElementById("server.socketType").value == 3;
-    else
-      isSecureSelected = document.getElementById("server.isSecure").checked;
+    var isSecureSelected = (document.getElementById("server.socketType").value ==
+                            Components.interfaces.nsIMsgIncomingServer.useSSL);
 
     var defaultPort = protocolInfo.getDefaultServerPort(false);
     var defaultPortSecure = protocolInfo.getDefaultServerPort(true);
@@ -193,7 +187,7 @@ function secureSelect()
         portDefault.value = defaultPort;
         if (port.value == "" || (port.value == defaultPortSecure && prevDefaultPort != portDefault.value))
           port.value = defaultPort;
-    } 
+    }
 }
 
 function onCheckItem(changeElementId, checkElementId)

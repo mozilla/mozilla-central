@@ -1537,20 +1537,6 @@ nsMsgIncomingServer::GetIsSecure(PRBool *aIsSecure)
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsMsgIncomingServer::SetIsSecure(PRBool aIsSecure)
-{
-  PRBool isSecure;
-  nsresult rv = GetIsSecure(&isSecure);
-  NS_ENSURE_SUCCESS(rv,rv);
-  if (isSecure != aIsSecure) {
-    SetBoolValue("isSecure", aIsSecure);
-    if (m_rootFolder)
-      m_rootFolder->NotifyBoolPropertyChanged(NS_NewAtom("isSecure"), isSecure, aIsSecure);
-  }
-  return NS_OK;
-}
-
 // use the convenience macros to implement the accessors
 NS_IMPL_SERVERPREF_STR(nsMsgIncomingServer, Username, "userName")
 NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, UseSecAuth, "useSecAuth")
@@ -1640,12 +1626,14 @@ NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
     rv = mPrefBranch->GetBoolPref("isSecure", &isSecure);
     if (NS_SUCCEEDED(rv) && isSecure)
     {
-       *aSocketType = nsIMsgIncomingServer::useSSL;
+      *aSocketType = nsIMsgIncomingServer::useSSL;
       // don't call virtual method in case overrides call GetSocketType
       nsMsgIncomingServer::SetSocketType(*aSocketType);
     }
     else
     {
+      if (!mDefPrefBranch)
+        return NS_ERROR_NOT_INITIALIZED;
       rv = mDefPrefBranch->GetIntPref("socketType", aSocketType);
       if (NS_FAILED(rv))
         *aSocketType = nsIMsgIncomingServer::defaultSocket;
@@ -1659,7 +1647,20 @@ NS_IMETHODIMP nsMsgIncomingServer::SetSocketType(PRInt32 aSocketType)
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
 
-  return mPrefBranch->SetIntPref("socketType", aSocketType);
+  PRInt32 socketType = nsIMsgIncomingServer::defaultSocket;
+  mPrefBranch->GetIntPref("socketType", &socketType);
+
+  nsresult rv = mPrefBranch->SetIntPref("socketType", aSocketType);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool isSecureOld = (socketType == nsIMsgIncomingServer::alwaysUseTLS ||
+                        socketType == nsIMsgIncomingServer::useSSL);
+  PRBool isSecureNew = (aSocketType == nsIMsgIncomingServer::alwaysUseTLS ||
+                        aSocketType == nsIMsgIncomingServer::useSSL);
+  if ((isSecureOld != isSecureNew) && m_rootFolder)
+    m_rootFolder->NotifyBoolPropertyChanged(NS_NewAtom("isSecure"),
+                                            isSecureOld, isSecureNew);
+  return NS_OK;
 }
 
 // Check if the password is available and return a boolean indicating whether

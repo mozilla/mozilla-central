@@ -2058,9 +2058,60 @@ nsNntpIncomingServer::GetSearchScope(nsMsgSearchScopeValue *searchScope)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetIsSecure(PRBool* aIsSecure)
+nsNntpIncomingServer::GetSocketType(PRInt32 *aSocketType)
 {
-  return GetBoolValue("isSecure", aIsSecure);
+  NS_ENSURE_ARG_POINTER(aSocketType);
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  nsresult rv = mPrefBranch->GetIntPref("socketType", aSocketType);
+  if (NS_FAILED(rv))
+  {
+    if (!mDefPrefBranch)
+      return NS_ERROR_NOT_INITIALIZED;
+    rv = mDefPrefBranch->GetIntPref("socketType", aSocketType);
+    if (NS_FAILED(rv))
+      *aSocketType = nsIMsgIncomingServer::defaultSocket;
+  }
+
+  // nsMsgIncomingServer::GetSocketType migrates old isSecure to socketType
+  // style for mail. Unfortunately, a bug caused news socketType 0 to be stored
+  // in the prefs even for isSecure true, so the migration wouldn't happen :(
+
+  // Now that we know the socket, make sure isSecure true + socketType 0
+  // doesn't mix. Migrate if that's the case here.
+  if (*aSocketType == nsIMsgIncomingServer::defaultSocket)
+  {
+    PRBool isSecure = PR_FALSE;
+    nsresult rv2 = mPrefBranch->GetBoolPref("isSecure", &isSecure);
+    if (NS_SUCCEEDED(rv2) && isSecure)
+    {
+      *aSocketType = nsIMsgIncomingServer::useSSL;
+      // Don't call virtual method in case overrides call GetSocketType.
+      nsMsgIncomingServer::SetSocketType(*aSocketType);
+    }
+  }
+  return rv;
+}
+
+NS_IMETHODIMP
+nsNntpIncomingServer::SetSocketType(PRInt32 aSocketType)
+{
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+  nsresult rv = nsMsgIncomingServer::SetSocketType(aSocketType);
+  if (NS_SUCCEEDED(rv))
+  {
+    PRBool isSecure = PR_FALSE;
+    if (NS_SUCCEEDED(mPrefBranch->GetBoolPref("isSecure", &isSecure)))
+    {
+      // Must keep isSecure in sync since we migrate based on it... if it's set.
+      rv = mPrefBranch->SetBoolPref("isSecure",
+                                    aSocketType == nsIMsgIncomingServer::useSSL);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+  }
+  return rv;
 }
 
 NS_IMETHODIMP

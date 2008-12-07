@@ -106,17 +106,7 @@ function setPropertyAtoms(aFolder, aProperties) {
       addAtom("biffState-UnknownMail");
   }
 
-  // We have to work a bit for IsSecure.  This sucks
-  let server = aFolder.server;
-  if (server instanceof Ci.nsINntpIncomingServer)
-    addAtom("isSecure-" + server.isSecure);
-  else {
-    // If it's not a news-server, apparently we look at the socket type
-    let sock = server.socketType;
-    let isSecure = (sock == Ci.nsIMsgIncomingServer.alwaysUseTLS ||
-                    sock == Ci.nsIMsgIncomingServer.useSSL);
-    addAtom("isSecure-" + isSecure);
-  }
+  addAtom("isSecure-" + aFolder.server.isSecure);
 
   if (aFolder.hasNewMessages)
     addAtom("newMessages-true");

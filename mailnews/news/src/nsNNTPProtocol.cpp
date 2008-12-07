@@ -387,7 +387,6 @@ void nsNNTPProtocol::Cleanup()  //free char* member variables
 NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv = NS_OK;
-  PRBool isSecure = PR_FALSE;
 
   if (aMsgWindow) {
     m_msgWindow = aMsgWindow;
@@ -425,8 +424,9 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   rv = m_nntpServer->GetMaxArticles(&m_maxArticles);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = server->GetIsSecure(&isSecure);
-  NS_ENSURE_SUCCESS(rv,rv);
+  PRInt32 socketType;
+  rv = server->GetSocketType(&socketType);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   PRInt32 port = 0;
   rv = m_url->GetPort(&port);
@@ -435,12 +435,8 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
     if (NS_FAILED(rv)) return rv;
 
     if (port<=0) {
-      if (isSecure) {
-        port = SECURE_NEWS_PORT;
-      }
-      else {
-        port = NEWS_PORT;
-      }
+      port = (socketType == nsIMsgIncomingServer::useSSL) ?
+             SECURE_NEWS_PORT : NEWS_PORT;
     }
 
     rv = m_url->SetPort(port);
@@ -484,12 +480,12 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
 
   if (!m_socketIsOpen)
   {
-
     // When we are making a secure connection, we need to make sure that we
     // pass an interface requestor down to the socket transport so that PSM can
     // retrieve a nsIPrompt instance if needed.
     nsCOMPtr<nsIInterfaceRequestor> ir;
-    if (isSecure && aMsgWindow) {
+    if (socketType != nsIMsgIncomingServer::defaultSocket && aMsgWindow)
+    {
       nsCOMPtr<nsIDocShell> docShell;
       aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
       ir = do_QueryInterface(docShell);
@@ -501,15 +497,17 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
     PRInt32 port = 0;
     nsCString hostName;
     m_url->GetPort(&port);
-    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_nntpServer);
-    if (server)
-      server->GetRealHostName(hostName);
+
+    rv = server->GetRealHostName(hostName);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIProxyInfo> proxyInfo;
     rv = NS_ExamineForProxy("nntp", hostName.get(), port, getter_AddRefs(proxyInfo));
     if (NS_FAILED(rv)) proxyInfo = nsnull;
 
-    rv = OpenNetworkSocketWithInfo(hostName.get(), port, isSecure ? "ssl" : nsnull, proxyInfo, ir);
+    rv = OpenNetworkSocketWithInfo(hostName.get(), port,
+           (socketType == nsIMsgIncomingServer::useSSL) ? "ssl" : nsnull,
+           proxyInfo, ir);
 
     NS_ENSURE_SUCCESS(rv,rv);
     m_nextState = NNTP_LOGIN_RESPONSE;

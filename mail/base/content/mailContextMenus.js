@@ -827,22 +827,12 @@ function CopyMessageUrl()
     var hdr = gDBView.hdrForFirstSelectedMessage;
     var server = hdr.folder.server;
 
-    var url;
-    if (server.isSecure) {
-      url = "snews://";
-    }
-    else {
-      url = "news://"
-    }
-    url += server.hostName;
-    url += ":";
-    url += server.port;
-    url += "/";
-    url += hdr.messageId;
+    var url = (server.socketType == Components.interfaces.nsIMsgIncomingServer.useSSL) ?
+              "snews://" : "news://";
+    url += server.hostName + ":" + server.port + "/" + hdr.messageId;
 
-    var contractid = "@mozilla.org/widget/clipboardhelper;1";
-    var iid = Components.interfaces.nsIClipboardHelper;
-    var clipboard = Components.classes[contractid].getService(iid);
+    var clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                              .getService(Components.interfaces.nsIClipboardHelper);
     clipboard.copyString(url);
   }
   catch (ex) {
