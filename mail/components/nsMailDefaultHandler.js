@@ -48,6 +48,7 @@ const nsIFactory               = Components.interfaces.nsIFactory;
 const nsIFileURL               = Components.interfaces.nsIFileURL;
 const nsINetUtil               = Components.interfaces.nsINetUtil;
 const nsISupportsString        = Components.interfaces.nsISupportsString;
+const nsIURIFixup              = Components.interfaces.nsIURIFixup;
 const nsIURILoader             = Components.interfaces.nsIURILoader;
 const nsIWindowMediator        = Components.interfaces.nsIWindowMediator;
 const nsIWindowWatcher         = Components.interfaces.nsIWindowWatcher;
