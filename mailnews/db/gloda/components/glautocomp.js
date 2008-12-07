@@ -449,7 +449,7 @@ function nsAutoCompleteGloda() {
     FreeTagNoun = loadNS.FreeTagNoun;
 
     Cu.import("resource://app/modules/gloda/log4moz.js", loadNS);
-    LOG = loadNS["Log4Moz"].Service.getLogger("gloda.autocomp");
+    LOG = loadNS["Log4Moz"].repository.getLogger("gloda.autocomp");
   }
 
   LOG.debug("initializing completers");
