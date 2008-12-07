@@ -130,7 +130,7 @@ onStartRequest: function(request, context) {
       this.unicodeConverter.charset = "UTF-8";
 
     }
-    var utf8Subject  = this.unicodeConverter.ConvertFromUnicode(this.subject);
+    var utf8Subject  = this.unicodeConverter.ConvertFromUnicode(this.msgHdr.mime2DecodedSubject);
     utf8Subject += this.unicodeConverter.Finish();
     utf8Subject = xmlEscapeString(utf8Subject);
     this.outputStream.write(utf8Subject, utf8Subject.length);
