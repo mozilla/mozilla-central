@@ -51,6 +51,11 @@ function test_threading() {
  *  benefit of test_attributes_fundamental_from_disk.
  */
 var fundamentalSyntheticMessage;
+/**
+ * Save the resulting gloda message id corresponding to the
+ *  fundamentalSyntheticMessage.
+ */
+var fundamentalGlodaMessageId;
 
 /**
  * Test that we extract the 'fundamental attributes' of a message properly
@@ -61,17 +66,21 @@ var fundamentalSyntheticMessage;
 function test_attributes_fundamental() {
   // create a synthetic message
   let smsg = msgGen.makeMessage();
-  // save it off for fundamentalSyntheticMessage
+  // save it off for test_attributes_fundamental_from_disk
   fundamentalSyntheticMessage = smsg;
   
   indexMessages([smsg], verify_attributes_fundamental, next_test);
 }
 
 function verify_attributes_fundamental(smsg, gmsg) {
+  // save off the message id for test_attributes_fundamental_from_disk
+  fundamentalGlodaMessageId = gmsg.id;
+  
   do_check_eq(gmsg.folderURI, gLocalInboxFolder.URI);
   
   // -- subject
   do_check_eq(smsg.subject, gmsg.conversation.subject);
+  do_check_eq(smsg.subject, gmsg.subject);
   
   // -- contact/identity information
   // - from
@@ -92,13 +101,17 @@ function verify_attributes_fundamental(smsg, gmsg) {
 /**
  * We want to make sure that all of the fundamental properties also are there
  *  when we load them from disk.  Nuke our cache, query the message back up.
+ *  We previously used getMessagesByMessageID to get the message back, but he
+ *  does not perform a full load-out like a query does, so we need to use our
+ *  query mechanism for this.
  */
 function test_attributes_fundamental_from_disk() {
   nukeGlodaCachesAndCollections();
   
-  GlodaDatastore.getMessagesByMessageID(
-      [fundamentalSyntheticMessage.messageId],
-      verify_attributes_fundamental_from_disk, /* callback this */ null);
+  let query = Gloda.newQuery(Gloda.NOUN_MESSAGE).id(fundamentalGlodaMessageId);
+  queryExpect(query, [fundamentalSyntheticMessage],
+      verify_attributes_fundamental_from_disk,
+      function (smsg) { return smsg.messageId; } );
 }
 
 /**
@@ -107,14 +120,11 @@ function test_attributes_fundamental_from_disk() {
  * 
  * @param aGlodaMessageLists This should be [[theGlodaMessage]].
  */
-function verify_attributes_fundamental_from_disk(aGlodaMessageLists) {
-  do_check_eq(aGlodaMessageLists.length, 1);
-  let glodaMessageList = aGlodaMessageLists[0];
-  do_check_eq(glodaMessageList.length, 1);
-  
+function verify_attributes_fundamental_from_disk(aGlodaMessage) {
+  // return the message id for test_attributes_fundamental_from_disk's benefit
   verify_attributes_fundamental(fundamentalSyntheticMessage,
-                                glodaMessageList[0]);
-  next_test();
+                                aGlodaMessage);
+  return aGlodaMessage.headerMessageID;
 }
 
 /* ===== Explicit Attributes (per explattr.js) ===== */

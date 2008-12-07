@@ -976,6 +976,10 @@ var Gloda = {
       allowsArbitraryAttrs: true,
       cache: true, cacheCost: 2048,
       tableName: "messages",
+      // we will always have a fulltext row, even for messages where we don't
+      //  have the body available.  this is because we want the subject indexed.
+      dbQueryJoinMagic:
+        " INNER JOIN messagesText ON messages.id = messagesText.rowid",
       attrTableName: "messageAttributes", attrIDColumnName: "messageID",
       datastore: GlodaDatastore, objFromRow: GlodaDatastore._messageFromRow,
       dbAttribAdjuster: GlodaDatastore.adjustMessageAttributes,

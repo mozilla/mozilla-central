@@ -2243,12 +2243,9 @@ var GlodaIndexer = {
     
     let attachmentNames = null;
     if (aMimeMsg) {
-      let allAttachmentNames = [att.name for each
-                                ([i, att] in Iterator(aMimeMsg.allAttachments))
-                                if (att.isRealAttachment)];
-      // we need some kind of delimeter for the names.  we use a newline.
-      if (allAttachmentNames)
-        attachmentNames = allAttachmentNames.join("\n");
+      attachmentNames = [att.name for each
+                         ([i, att] in Iterator(aMimeMsg.allAttachments))
+                         if (att.isRealAttachment)];
     } 
     
     let isConceptuallyNew, isRecordNew;
@@ -2290,6 +2287,8 @@ var GlodaIndexer = {
     
     if (isConceptuallyNew) {
       curMsg._isNew = true;
+      // curMsg._indexedBodyText is set by GlodaDatastore.insertMessage or
+      //  GlodaDatastore.updateMessage
       curMsg._subject = aMsgHdr.mime2DecodedSubject;
       curMsg._attachmentNames = attachmentNames;
     }
@@ -2304,8 +2303,6 @@ var GlodaIndexer = {
     delete curMsg._bodyLines;
     delete curMsg._content;
     delete curMsg._isNew;
-    delete curMsg._subject;
-    delete curMsg._attachmentNames;
     
     // we want to update the header for messages only after the transaction
     //  irrevocably hits the disk.  otherwise we could get confused if the

@@ -367,7 +367,8 @@ GlodaFolder.prototype = {
  */
 function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
                       aConversationID, aConversation, aDate,
-                      aHeaderMessageID, aDeleted, aJsonText) {
+                      aHeaderMessageID, aDeleted, aJsonText,
+                      aSubject, aIndexedBodyText, aAttachmentNames) {
   this._datastore = aDatastore;
   this._id = aID;
   this._folderID = aFolderID;
@@ -376,8 +377,10 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   this._conversation = aConversation;
   this._date = aDate;
   this._headerMessageID = aHeaderMessageID;
-  if (aJsonText)
-    this._jsonText = aJsonText;
+  this._jsonText = aJsonText;
+  this._subject = aSubject;
+  this._indexedBodyText = aIndexedBodyText;
+  this._attachmentNames = aAttachmentNames;
 
   // only set _deleted if we're deleted, otherwise the undefined does our
   //  speaking for us.
@@ -393,6 +396,10 @@ GlodaMessage.prototype = {
   get conversationID() { return this._conversationID; },
   // conversation is special
   get headerMessageID() { return this._headerMessageID; },
+  
+  get subject() { return this._subject; },
+  get indexedBodyText() { return this._indexedBodyText; },
+  get attachmentNames() { return this._attachmentNames; },
   
   get date() { return this._date; },
   set date(aNewDate) { this._date = aNewDate; },

@@ -1839,20 +1839,19 @@ var GlodaDatastore = {
     // so, even though body might be null, we still want to create the
     //  full-text search row
     if (aMessage._bodyLines) {
-      let bodyText;
       if (aMessage._content && aMessage._content.hasContent())
-        bodyText = aMessage._content.getContentString(true);
+        aMessage._indexedBodyText = aMessage._content.getContentString(true);
       else
-        bodyText = aMessage._bodyLines.join("\n");
+        aMessage._indexedBodyText = aMessage._bodyLines.join("\n");
       
       let imts = this._insertMessageTextStatement;
       imts.bindInt64Parameter(0, aMessage.id);
       imts.bindStringParameter(1, aMessage._subject);
-      imts.bindStringParameter(2, bodyText);
+      imts.bindStringParameter(2, aMessage._indexedBodyText);
       if (aMessage._attachmentNames === null)
         imts.bindNullParameter(3);
       else
-        imts.bindStringParameter(3, aMessage._attachmentNames);
+        imts.bindStringParameter(3, aMessage._attachmentNames.join("\n"));
       
       try {
          imts.executeAsync(this.trackAsync());
@@ -1908,20 +1907,19 @@ var GlodaDatastore = {
     ums.executeAsync(this.trackAsync());
 
     if (aMessage._isNew && aMessage._bodyLines) {
-      let bodyText;
       if (aMessage._content && aMessage._content.hasContent())
-        bodyText = aMessage._content.getContentString(true);
+        aMessage._indexedBodyText = aMessage._content.getContentString(true);
       else
-        bodyText = aMessage._bodyLines.join("\n");
+        aMessage._indexedBodyText = aMessage._bodyLines.join("\n");
       
       let imts = this._insertMessageTextStatement;
       imts.bindInt64Parameter(0, aMessage.id);
       imts.bindStringParameter(1, aMessage._subject);
-      imts.bindStringParameter(2, bodyText);
+      imts.bindStringParameter(2, aMessage._indexedBodyText);
       if (aMessage._attachmentNames === null)
         imts.bindNullParameter(3);
       else
-        imts.bindStringParameter(3, aMessage._attachmentNames);
+        imts.bindStringParameter(3, aMessage._attachmentNames.join("\n"));
       
       try {
          imts.executeAsync(this.trackAsync());
@@ -2023,7 +2021,8 @@ var GlodaDatastore = {
   },
 
   _messageFromRow: function gloda_ds_messageFromRow(aRow) {
-    let folderId, messageKey, date, jsonText;
+    let folderId, messageKey, date, jsonText, subject, indexedBodyText,
+        attachmentNames;
     if (aRow.getTypeOfIndex(1) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
       folderId = null;
     else
@@ -2040,9 +2039,30 @@ var GlodaDatastore = {
       jsonText = undefined;
     else
       jsonText = aRow.getString(7);
+    // only queryFromQuery queries will have these columns
+    if (aRow.numEntries == 11) {
+      if (aRow.getTypeOfIndex(8) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
+        subject = undefined;
+      else
+        subject = aRow.getString(8);
+      if (aRow.getTypeOfIndex(9) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
+        indexedBodyText = undefined;
+      else
+        indexedBodyText = aRow.getString(9);
+      if (aRow.getTypeOfIndex(10) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
+        attachmentNames = null;
+      else {
+        attachmentNames = aRow.getString(10);
+        if (attachmentNames)
+          attachmentNames = attachmentNames.split("\n");
+        else
+          attachmentNames = null;
+      }
+    }
     return new GlodaMessage(this, aRow.getInt64(0), folderId, messageKey,
                             aRow.getInt64(3), null, date, aRow.getString(5),
-                            aRow.getInt64(6), jsonText);
+                            aRow.getInt64(6), jsonText,
+                            subject, indexedBodyText, attachmentNames);
   },
 
   get _selectMessageByIDStatement() {
@@ -2816,6 +2836,8 @@ var GlodaDatastore = {
     }
 
     let sqlString = "SELECT * FROM " + nounDef.tableName;
+    if (nounDef.dbQueryJoinMagic)
+      sqlString += nounDef.dbQueryJoinMagic;
     if (whereClauses.length)
       sqlString += " WHERE " + whereClauses.join(" OR ");
     
