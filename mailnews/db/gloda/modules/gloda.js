@@ -401,7 +401,7 @@ var Gloda = {
       // (it will fix-up the name based on the card as appropriate)
       if (card)
         yield aCallbackHandle.pushAndGo(
-          Gloda.grokNounItem(contact, card, true, aCallbackHandle));
+          Gloda.grokNounItem(contact, card, true, true, aCallbackHandle));
       else // grokNounItem will issue the insert for us...
         GlodaDatastore.insertContact(contact);
 
@@ -1445,15 +1445,36 @@ var Gloda = {
   /**
    * Populate a gloda representation of an item given the thus-far built
    *  representation, the previous representation, and one or more raw
-   *  representations.
+   *  representations.  The attribute providers/optimizers for the given noun
+   *  type are invoked, allowing them to contribute/alter things.  Following
+   *  that, we build and persist our attribute representations.
    *
    * The result of the processing ends up with attributes in 3 different forms:
    * - Database attribute rows (to be added and removed).
    * - In-memory representation.
    * - JSON-able representation.
+   * 
+   * @param aItem The noun instance you want processed.
+   * @param aRawReps An opaque dictionary that we pass to the attribute
+   *     providers.  There is a(n implied) contract between the caller of
+   *     grokNounItem for a given noun type and the attribute providers for
+   *     that noun type, and we have nothing to do with it.
+   * @param aIsConceptuallyNew Is the item "new" in the sense that it would
+   *     never have been visible from within user code?  This translates into
+   *     whether this should trigger an itemAdded notification or an
+   *     itemModified notification.
+   * @param aIsRecordNew Is the item "new" in the sense that we should INSERT
+   *     a record rather than UPDATE-ing a record.  For example, when dealing
+   *     with messages where we may have a ghost, the ghost message is not a
+   *     new record, but is conceptually new.
+   * @param aCallbackHandle The GlodaIndexer-style callback handle that is being
+   *     used to drive this processing in an async fashion.  (See
+   *     GlodaIndexer._callbackHandle).
+   * @param aDoCache Should we allow this item to be contributed to its noun
+   *     cache?
    */
-  grokNounItem: function gloda_ns_grokNounItem(aItem, aRawReps, aIsNew,
-      aCallbackHandle, aDoCache) {
+  grokNounItem: function gloda_ns_grokNounItem(aItem, aRawReps,
+      aIsConceptuallyNew, aIsRecordNew, aCallbackHandle, aDoCache) {
     let itemNounDef = this._nounIDToDef[aItem.NOUN_ID];
     let attribsByBoundName = itemNounDef.attribsByBoundName;
     
@@ -1465,7 +1486,7 @@ var Gloda = {
     let jsonDict = {};
     
     let aOldItem;
-    if (aIsNew) // there is no old item if we are new.
+    if (aIsConceptuallyNew) // there is no old item if we are new.
       aOldItem = {};
     else {
       aOldItem = aItem;
@@ -1479,7 +1500,7 @@ var Gloda = {
     for (let iProvider = 0; iProvider < attrProviders.length; iProvider++) {
       this._log.info("  * provider: " + attrProviders[iProvider].providerName);
       yield aCallbackHandle.pushAndGo(
-        attrProviders[iProvider].process(aItem, aRawReps, aIsNew,
+        attrProviders[iProvider].process(aItem, aRawReps, aIsConceptuallyNew,
                                          aCallbackHandle));
     }
     
@@ -1487,7 +1508,7 @@ var Gloda = {
     for (let iProvider = 0; iProvider < attrOptimizers.length; iProvider++) {
       this._log.info("  * optimizer: " + attrOptimizers[iProvider].providerName);
       yield aCallbackHandle.pushAndGo(
-        attrOptimizers[iProvider].optimize(aItem, aRawReps, aIsNew,
+        attrOptimizers[iProvider].optimize(aItem, aRawReps, aIsConceptuallyNew,
                                            aCallbackHandle));
     }
     
@@ -1590,7 +1611,7 @@ var Gloda = {
       // no old value, all values are new
       else {
         // the 'old' item is still the canonical one; update it
-        if (!aIsNew)
+        if (!aIsConceptuallyNew)
           aOldItem[key] = value;
         // add the db reps on the new values
         if (attrib.singular)
@@ -1628,7 +1649,7 @@ var Gloda = {
     aItem._jsonText = this._json.encode(jsonDict);
     this._log.debug("  json text: " + aItem._jsonText);
     
-    if (aIsNew) {
+    if (aIsRecordNew) {
       this._log.debug(" inserting item");
       itemNounDef.objInsert.call(itemNounDef.datastore, aItem);
     }
@@ -1644,7 +1665,7 @@ var Gloda = {
     
     // Cache ramifications...
     if (aDoCache === undefined || aDoCache) {
-      if (aIsNew)
+      if (aIsConceptuallyNew)
         GlodaCollectionManager.itemsAdded(aItem.NOUN_ID, [aItem]);
       else
         GlodaCollectionManager.itemsModified(aOldItem.NOUN_ID, [aOldItem]);

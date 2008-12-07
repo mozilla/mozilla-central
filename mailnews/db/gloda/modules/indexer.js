@@ -2251,7 +2251,7 @@ var GlodaIndexer = {
         attachmentNames = allAttachmentNames.join("\n");
     } 
     
-    let isNew;
+    let isConceptuallyNew, isRecordNew;
     if (curMsg === null) {
       curMsg = this._datastore.createMessage(aMsgHdr.folder,
                                              aMsgHdr.messageKey,                
@@ -2259,10 +2259,11 @@ var GlodaIndexer = {
                                              aMsgHdr.date,
                                              aMsgHdr.messageId);
       curMsg._conversation = conversation;
-      isNew = true;
+      isConceptuallyNew = isRecordNew = true;
     }
     else {
-      isNew = (curMsg._folderID === null); // aka was-a-ghost
+      isRecordNew = false;
+      isConceptuallyNew = (curMsg._folderID === null); // aka was-a-ghost
       // (messageKey can be null if it's not new in the move-case)
       curMsg._folderID = this._datastore._mapFolder(aMsgHdr.folder).id;
       curMsg._messageKey = aMsgHdr.messageKey;
@@ -2287,7 +2288,7 @@ var GlodaIndexer = {
       this._log.warn("aMimeMsg went away?");
     }
     
-    if (isNew) {
+    if (isConceptuallyNew) {
       curMsg._isNew = true;
       curMsg._subject = aMsgHdr.mime2DecodedSubject;
       curMsg._attachmentNames = attachmentNames;
@@ -2297,7 +2298,7 @@ var GlodaIndexer = {
         Gloda.grokNounItem(curMsg,
             {header: aMsgHdr, mime: aMimeMsg,
              bodyLines: curMsg._bodyLines, content: curMsg._content},
-            isNew,
+            isConceptuallyNew, isRecordNew,
             aCallbackHandle));
     
     delete curMsg._bodyLines;

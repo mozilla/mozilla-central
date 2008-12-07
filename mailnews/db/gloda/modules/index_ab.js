@@ -91,7 +91,8 @@ var GlodaABIndexer = {
   
         this._log.debug("Found identity, processing card.");
         yield aCallbackHandle.pushAndGo(
-            Gloda.grokNounItem(identity.contact, card, false, aCallbackHandle));
+            Gloda.grokNounItem(identity.contact, card, false, false,
+                               aCallbackHandle));
         this._log.debug("Done processing card.");
       }
     }

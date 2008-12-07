@@ -1228,7 +1228,7 @@ var GlodaDatastore = {
   _asyncTrackerListener: {
     handleResult: function () {},
     handleError: function(aError) {
-        this._log.error("got error in _asyncTrackerListener.handleError(): " +
+        GlodaDatastore._log.error("got error in _asyncTrackerListener.handleError(): " +
                         aError.result + ": " + aError.message);
     },
     handleCompletion: function () {

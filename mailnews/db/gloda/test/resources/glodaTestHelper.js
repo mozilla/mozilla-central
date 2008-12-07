@@ -52,6 +52,8 @@ gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
 // -- Import our modules
 Components.utils.import("resource://app/modules/gloda/public.js");
 Components.utils.import("resource://app/modules/gloda/indexer.js");
+Components.utils.import("resource://app/modules/gloda/datastore.js");
+Components.utils.import("resource://app/modules/gloda/collection.js");
 
 // -- Add a logger listener that throws when we give it a warning/error.
 Components.utils.import("resource://app/modules/gloda/log4moz.js");
@@ -920,4 +922,54 @@ function glodaHelperRunTests(aTests, aLongestTestRunTimeConceivableInSecs) {
   glodaHelperTests = aTests;
   glodaHelperIterator = _gh_test_iterator();
   next_test();
+}
+
+/**
+ * Wipe out almost everything from the clutches of the GlodaCollectionManager.
+ * By default, it is caching things and knows about all the non-GC'ed
+ *  collections.  Tests may want to ensure that their data is loaded from disk
+ *  rather than relying on the cache, and so, we exist.
+ * The exception to everything is that Gloda's concept of myContact and
+ *  myIdentities needs to have its collections still be reachable or invariants
+ *  are in danger of being "de-invarianted".
+ * The other exception to everything are any catch-all-collections used by our
+ *  testing/indexing process.  We don't scan for them, we just hard-code their
+ *  addition if they exist.
+ */
+function nukeGlodaCachesAndCollections() {
+  // explode if the GlodaCollectionManager somehow doesn't work like we think it
+  //  should.  (I am reluctant to put this logic in there, especially because
+  //  knowledge of the Gloda contact/identity collections simply can't be known
+  //  by the colleciton manager.)
+  if ((GlodaCollectionManager._collectionsByNoun === undefined) ||
+      (GlodaCollectionManager._cachesByNoun === undefined))
+    // we don't check the Gloda contact/identities things because they might not
+    //  get initialized if there are no identities, which is the case for our
+    //  unit tests right now...
+    do_throw("Try and remember to update the testing infrastructure when you " +
+             "change things!");
+  
+  // we can just blow away the known collections
+  GlodaCollectionManager._collectionsByNoun = {};
+  // but then we have to put the myContact / myIdentities junk back
+  if (Gloda._myContactCollection) {
+    GlodaCollectionManager.registerCollection(Gloda._myContactCollection);
+    GlodaCollectionManager.registerCollection(Gloda._myIdentitiesCollection);
+  }
+  // don't forget our testing catch-all collection!
+  if (indexMessageState.catchAllCollection) {
+    // empty it out in case it has anything in it
+    indexMessageState.catchAllCollection.clear();
+    // and now we can register it
+    GlodaCollectionManager.registerCollection(
+        indexMessageState.catchAllCollection);
+  }
+  
+  // caches aren't intended to be cleared, but we also don't want to lose our
+  //  caches, so we need to create new ones from the ashes of the old ones.
+  let oldCaches = GlodaCollectionManager._cachesByNoun;
+  GlodaCollectionManager._cachesByNoun = {};
+  for each (let cache in oldCaches) {
+    GlodaCollectionManager.defineCache(cache._nounDef, cache._maxCacheSize);
+  }
 }

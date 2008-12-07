@@ -47,6 +47,12 @@ function test_threading() {
 /* ===== Fundamental Attributes (per fundattr.js) ===== */
 
 /**
+ * Save the synthetic message created in test_attributes_fundamental for the
+ *  benefit of test_attributes_fundamental_from_disk.
+ */
+var fundamentalSyntheticMessage;
+
+/**
  * Test that we extract the 'fundamental attributes' of a message properly
  *  'Fundamental' in this case is talking about the attributes defined/extracted
  *  by gloda's fundattr.js and perhaps the core message indexing logic itself
@@ -55,6 +61,8 @@ function test_threading() {
 function test_attributes_fundamental() {
   // create a synthetic message
   let smsg = msgGen.makeMessage();
+  // save it off for fundamentalSyntheticMessage
+  fundamentalSyntheticMessage = smsg;
   
   indexMessages([smsg], verify_attributes_fundamental, next_test);
 }
@@ -79,6 +87,34 @@ function verify_attributes_fundamental(smsg, gmsg) {
   
   // date
   do_check_eq(smsg.date.valueOf(), gmsg.date.valueOf());
+}
+
+/**
+ * We want to make sure that all of the fundamental properties also are there
+ *  when we load them from disk.  Nuke our cache, query the message back up.
+ */
+function test_attributes_fundamental_from_disk() {
+  nukeGlodaCachesAndCollections();
+  
+  GlodaDatastore.getMessagesByMessageID(
+      [fundamentalSyntheticMessage.messageId],
+      verify_attributes_fundamental_from_disk, /* callback this */ null);
+}
+
+/**
+ * We are just a wrapper around verify_attributes_fundamental, adapting the
+ *  return callback from getMessagesByMessageID.
+ * 
+ * @param aGlodaMessageLists This should be [[theGlodaMessage]].
+ */
+function verify_attributes_fundamental_from_disk(aGlodaMessageLists) {
+  do_check_eq(aGlodaMessageLists.length, 1);
+  let glodaMessageList = aGlodaMessageLists[0];
+  do_check_eq(glodaMessageList.length, 1);
+  
+  verify_attributes_fundamental(fundamentalSyntheticMessage,
+                                glodaMessageList[0]);
+  next_test();
 }
 
 /* ===== Explicit Attributes (per explattr.js) ===== */
@@ -170,6 +206,7 @@ function test_message_deletion() {
 var tests = [
   test_threading,
   test_attributes_fundamental,
+  test_attributes_fundamental_from_disk,
   test_attributes_explicit,
 ];
 
