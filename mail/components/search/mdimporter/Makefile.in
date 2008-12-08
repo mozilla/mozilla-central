@@ -53,8 +53,6 @@ ifeq (,$(findstring pbxbuild,$(PBBUILD)))
     PBBUILD_ARG=$(PBBUILD_SETTINGS)
 endif
 
-TARGET		= "Thunderbird"
-
 BUILDSTYLE = Release
 
 unexport CC CXX
@@ -71,14 +69,10 @@ export::
 	ln -fs $(srcdir)/Info*.plist .
 endif
 
-libs install:: install-mdimporter
-
-install-mdimporter: build-mdimporter
-	$(INSTALL) "$(XCODE_PRODUCT_DIR)/Thunderbird.mdimporter" $(DIST)/bin/Thunderbird.app/Contents/Library/Spotlight
-
-build-mdimporter:
-	$(PBBUILD) $(PROJECT_ARG) -target $(TARGET) -configuration Release $(PBBUILD_ARG)
-#	echo -n NSPLMOSS > "$(XCODE_PRODUCT_DIR)/Default Plugin.plugin/Contents/PkgInfo"
+libs::
+	$(PBBUILD) $(PROJECT_ARG) -target Thunderbird -configuration Release $(PBBUILD_ARG)
+	mkdir -p $(DIST)/package
+	$(INSTALL) "$(XCODE_PRODUCT_DIR)/Thunderbird.mdimporter" $(DIST)/package
 
 clean clobber distclean::
 	rm -rf build
