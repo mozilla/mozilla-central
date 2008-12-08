@@ -121,8 +121,10 @@ function IsApplicationUpgraded()
       Components.classes["@mozilla.org/xre/app-info;1"]
                 .getService(Components.interfaces.nsIXULAppInfo).version;
     pref.setCharPref("mailnews.start_page_override.mstone", currentApplicationVersion);
-           
-    if (currentApplicationVersion != savedAppVersion)
+
+    // Only show if this is actually an upgraded version, not just a new
+    // installation/profile.
+    if (savedAppVersion && currentApplicationVersion != savedAppVersion)
       return true;
   }
   return false;
