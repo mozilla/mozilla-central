@@ -211,12 +211,6 @@ public:
                  dexlate it before sending it.
                */
 
-  PRBool nice_html_only_p;    /* If PR_TRUE, then we only should write html if
-                   it's pretty HTML (stuff that we're willing
-                   to get shipped out in mail messages).  If we
-                   can't generate nice stuff for some part,
-                   then don't say anything at all. */
-
   PRUint32 whattodo ;       /* from the prefs, we'll get if the user wants to do glyph or structure substitutions and set this member variable. */
 
   char *default_charset;  /* If this is non-NULL, then it is the charset to

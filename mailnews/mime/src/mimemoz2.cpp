@@ -1396,8 +1396,6 @@ MimeDisplayOptions::MimeDisplayOptions()
 
   decrypt_p = PR_FALSE;
 
-  nice_html_only_p = PR_FALSE;
-
   whattodo = 0 ;
   default_charset = nsnull;
   override_charset = PR_FALSE;

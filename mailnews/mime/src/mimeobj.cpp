@@ -257,18 +257,6 @@ MimeObject_parse_begin (MimeObject *obj)
     PR_Free(id);
   }
 
-/* Way to destroy any notions of modularity or class hierarchy, Terry! */
-  if (obj->options && obj->options->nice_html_only_p) {
-    if (!mime_subclass_p(obj->clazz,
-               (MimeObjectClass*) &mimeInlineTextHTMLClass) &&
-      !mime_subclass_p(obj->clazz,
-               (MimeObjectClass*) &mimeInlineTextPlainClass) &&
-      !mime_subclass_p(obj->clazz,
-               (MimeObjectClass*) &mimeContainerClass)) {
-      obj->output_p = PR_FALSE;
-    }
-  }
-
   return 0;
 }
 
