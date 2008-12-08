@@ -430,6 +430,10 @@ nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAto
   // if we got new mail show a icon in the system tray
   if (mBiffStateAtom == aProperty && mFoldersWithNewMail)
   {
+
+    nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem);
+    PRInt32 indexInNewArray = mFoldersWithNewMail->IndexOf(weakFolder);
+
     if (aNewValue == nsIMsgFolder::nsMsgBiffState_NewMail) 
     {
       // only show a system tray icon iff we are performing biff
@@ -442,19 +446,15 @@ nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAto
       if (!performingBiff) 
         return NS_OK; // kick out right now...
 
-      nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem); 
-
-      if (mFoldersWithNewMail->IndexOf(weakFolder) == -1)
+      if (indexInNewArray == -1)
         mFoldersWithNewMail->AppendElement(weakFolder);
       // now regenerate the tooltip
       FillToolTipInfo();    
     }
     else if (aNewValue == nsIMsgFolder::nsMsgBiffState_NoMail)
     {
-      // we are always going to remove the icon whenever we get our first no mail
-      // notification. 
-      
-      mFoldersWithNewMail->Clear(); 
+      if (indexInNewArray != -1)
+        mFoldersWithNewMail->RemoveElementAt(indexInNewArray);
     }
   } // if the biff property changed
   return NS_OK;
