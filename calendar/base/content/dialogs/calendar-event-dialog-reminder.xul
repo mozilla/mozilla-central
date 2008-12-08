@@ -95,7 +95,8 @@
             <radio selected="true"/>
             <vbox>
               <hbox>
-                <textbox id="reminder-length" size="1" oninput="updateReminderLength(event)"/>
+                <textbox id="reminder-length" size="5" type="number" max="32767"
+                         oninput="updateReminderLength(event)"/>
                 <menulist id="reminder-unit" oncommand="updateReminder()" flex="1">
                   <menupopup>
                     <menuitem label="&alarm.units.minutes;" value="minutes" selected="true"/>
