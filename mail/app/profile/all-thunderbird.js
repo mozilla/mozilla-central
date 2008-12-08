@@ -413,6 +413,11 @@ pref("mail.tabs.closeButtons", 1);
 // The breakpad report server to link to in about:crashes
 pref("breakpad.reportURL", "http://crash-stats.mozilla.com/report/index/");
 
+// OS Integrated Search and Indexing
+#ifdef XP_MACOSX
+pref("mail.spotlight.enable", false);
+#endif
+
 // -- Windows Search/Spotlight logging options
 #ifdef XP_WIN
 // Should we output warnings and errors to the "error console"?
