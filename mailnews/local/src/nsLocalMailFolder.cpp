@@ -81,7 +81,6 @@
 #include "nsMsgUtils.h"
 #include "nsICopyMsgStreamListener.h"
 #include "nsIMsgCopyService.h"
-#include "nsLocalUndoTxn.h"
 #include "nsMsgTxn.h"
 #include "nsIMessenger.h"
 #include "nsMsgBaseCID.h"
@@ -1745,19 +1744,8 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
   // undo stuff
   if (allowUndo)    //no undo for folder move/copy or or move/copy from search window
   {
-    nsLocalMoveCopyMsgTxn* msgTxn = nsnull;
-    msgTxn = new nsLocalMoveCopyMsgTxn;
+    nsRefPtr<nsLocalMoveCopyMsgTxn> msgTxn = new nsLocalMoveCopyMsgTxn;
     if (msgTxn && NS_SUCCEEDED(msgTxn->Init(srcFolder, this, isMove)))
-      rv = msgTxn->QueryInterface(NS_GET_IID(nsLocalMoveCopyMsgTxn),
-                                  getter_AddRefs(mCopyState->m_undoMsgTxn));
-    else
-    {
-      delete msgTxn;
-      rv = NS_ERROR_OUT_OF_MEMORY;
-    }
-    if (NS_FAILED(rv))
-      (void) OnCopyCompleted(srcSupport, PR_FALSE);
-    else
     {
       msgTxn->SetMsgWindow(msgWindow);
       if (isMove)
@@ -1769,6 +1757,7 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
       }
       else
         msgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
+      msgTxn.swap(mCopyState->m_undoMsgTxn);
     }
   }
 
@@ -2465,11 +2454,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
     return NS_OK;
   }
 
-  nsRefPtr<nsLocalMoveCopyMsgTxn> localUndoTxn;
   PRBool multipleCopiesFinished = (mCopyState->m_curCopyIndex >= mCopyState->m_totalMsgCount);
 
-  if (mCopyState->m_undoMsgTxn)
-    mCopyState->m_undoMsgTxn->QueryInterface(NS_GET_IID(nsLocalMoveCopyMsgTxn), getter_AddRefs(localUndoTxn));
+  nsRefPtr<nsLocalMoveCopyMsgTxn> localUndoTxn = mCopyState->m_undoMsgTxn;
 
   nsCOMPtr <nsISeekableStream> seekableStream;
   if (mCopyState)
@@ -2762,19 +2749,13 @@ NS_IMETHODIMP nsMsgLocalMailFolder::StartMessage()
 // just finished the current message.
 NS_IMETHODIMP nsMsgLocalMailFolder::EndMessage(nsMsgKey key)
 {
-  nsRefPtr<nsLocalMoveCopyMsgTxn> localUndoTxn;
+  nsRefPtr<nsLocalMoveCopyMsgTxn> localUndoTxn = mCopyState->m_undoMsgTxn;
   nsCOMPtr<nsIMsgWindow> msgWindow;
   nsresult rv;
 
-  if (mCopyState->m_undoMsgTxn)
-  {
-    rv = mCopyState->m_undoMsgTxn->QueryInterface(NS_GET_IID(nsLocalMoveCopyMsgTxn), getter_AddRefs(localUndoTxn));
-    if (localUndoTxn)
-      localUndoTxn->GetMsgWindow(getter_AddRefs(msgWindow));
-  }
-
   if (localUndoTxn)
   {
+    localUndoTxn->GetMsgWindow(getter_AddRefs(msgWindow));
     localUndoTxn->AddSrcKey(key);
     localUndoTxn->AddDstKey(mCopyState->m_curDstKey);
   }
@@ -3332,12 +3313,7 @@ nsresult nsMsgLocalMailFolder::DisplayMoveCopyStatusMsg()
       // get msgWindow from undo txn
       nsCOMPtr<nsIMsgWindow> msgWindow;
       if (mCopyState->m_undoMsgTxn)
-      {
-        nsRefPtr<nsLocalMoveCopyMsgTxn> localUndoTxn;
-        rv = mCopyState->m_undoMsgTxn->QueryInterface(NS_GET_IID(nsLocalMoveCopyMsgTxn), getter_AddRefs(localUndoTxn));
-        if (NS_SUCCEEDED(rv))
-          localUndoTxn->GetMsgWindow(getter_AddRefs(msgWindow));
-      }
+        mCopyState->m_undoMsgTxn->GetMsgWindow(getter_AddRefs(msgWindow));
       if (!msgWindow)
         return NS_OK; // not a fatal error.
       msgWindow->GetStatusFeedback(getter_AddRefs(mCopyState->m_statusFeedback));

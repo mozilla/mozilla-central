@@ -55,6 +55,7 @@
 #include "nsIMsgFilterPlugin.h"
 #include "nsISeekableStream.h"
 #include "nsIMutableArray.h"
+#include "nsLocalUndoTxn.h"
 
 #define COPY_BUFFER_SIZE 16384
 
@@ -66,7 +67,7 @@ struct nsLocalMailCopyState
   nsCOMPtr <nsIOutputStream> m_fileStream;
   nsCOMPtr<nsISupports> m_srcSupport;
   nsCOMPtr<nsIArray> m_messages;
-  nsRefPtr<nsMsgTxn> m_undoMsgTxn;
+  nsRefPtr<nsLocalMoveCopyMsgTxn> m_undoMsgTxn;
   nsCOMPtr<nsIMsgDBHdr> m_message; // current copy message
   nsCOMPtr<nsIMsgParseMailMsgState> m_parseMsgState;
   nsCOMPtr<nsIMsgCopyServiceListener> m_listener;

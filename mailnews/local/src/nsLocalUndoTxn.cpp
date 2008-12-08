@@ -57,30 +57,6 @@ nsLocalMoveCopyMsgTxn::~nsLocalMoveCopyMsgTxn()
 {
 }
 
-NS_IMPL_ADDREF_INHERITED(nsLocalMoveCopyMsgTxn, nsMsgTxn)
-NS_IMPL_RELEASE_INHERITED(nsLocalMoveCopyMsgTxn, nsMsgTxn)
-
-NS_IMETHODIMP
-nsLocalMoveCopyMsgTxn::QueryInterface(REFNSIID aIID, void** aInstancePtr)
-{
-    if (!aInstancePtr) return NS_ERROR_NULL_POINTER;
-
-    *aInstancePtr = nsnull;
-
-    if (aIID.Equals(NS_GET_IID(nsLocalMoveCopyMsgTxn))) 
-    {
-        *aInstancePtr = static_cast<nsLocalMoveCopyMsgTxn*>(this);
-    }
-
-    if (*aInstancePtr)
-    {
-        NS_ADDREF_THIS();
-        return NS_OK;
-    }
-
-    return nsMsgTxn::QueryInterface(aIID, aInstancePtr);
-}
-
 nsresult
 nsLocalMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsIMsgFolder* dstFolder,
                             PRBool isMove)

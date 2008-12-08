@@ -48,22 +48,13 @@
 #include "nsIUrlListener.h"
 #include "nsIWeakReference.h"
 
-#define NS_LOCALMOVECOPYMSGTXN_IID \
-{ /* 874363b4-242e-11d3-afad-001083002da8 */ \
-  0x874363b4, 0x242e, 0x11d3, \
-  { 0xaf, 0xad, 0x00, 0x10, 0x83, 0x00, 0x2d, 0xa8 } }
-
 class nsLocalUndoFolderListener;
 
 class nsLocalMoveCopyMsgTxn : public nsMsgTxn
 {
 public:
-    NS_DECLARE_STATIC_IID_ACCESSOR(NS_LOCALMOVECOPYMSGTXN_IID)
-
     nsLocalMoveCopyMsgTxn();
     virtual ~nsLocalMoveCopyMsgTxn();
-
-    NS_DECL_ISUPPORTS_INHERITED
 
     // overloading nsITransaction methods
     NS_IMETHOD UndoTransaction(void);
@@ -96,9 +87,6 @@ private:
     nsTArray<PRUint32> m_dstSizeArray;
     nsLocalUndoFolderListener *mUndoFolderListener;
 };
-
-NS_DEFINE_STATIC_IID_ACCESSOR(nsLocalMoveCopyMsgTxn,
-                              NS_LOCALMOVECOPYMSGTXN_IID)
 
 class nsLocalUndoFolderListener : public nsIFolderListener
 {
