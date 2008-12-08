@@ -178,6 +178,8 @@ bin\components\oji.dll
 bin\components\oji.xpt
 bin\components\parentalcontrols.xpt
 bin\components\perms.dll
+bin\components\places.dll
+bin\components\places.xpt
 bin\components\plugin.xpt
 bin\components\pref.xpt
 bin\components\prefetch.xpt
