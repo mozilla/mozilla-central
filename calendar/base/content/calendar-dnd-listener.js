@@ -46,29 +46,6 @@ var itemConversion = {
         setDefaultStartEndHour(aItem);
         setDefaultAlarmValues(aItem);
 
-        function addAttendees(aEmailAddresses) {
-            var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                                         .getService(Components.interfaces.nsIMsgHeaderParser);
-            var addresses = {};
-            var fullNames = {};
-            var names = {};
-            var numAddresses =  0;
-            numAddresses = headerParser.parseHeadersWithArray(
-                aEmailAddresses, addresses, names, fullNames);
-            for (var i = 0; i < numAddresses; i++) {
-                var attendee = createAttendee();
-                attendee.id = "MAILTO:" + addresses.value[i];
-                attendee.commonName = names.value[i];
-                attendee.role = "REQ-PARTICIPANT";
-                attendee.participationStatus = "NEEDS-ACTION";
-                attendee.rsvp = "TRUE";
-                aItem.addAttendee(attendee);
-            }
-        }
-
-        addAttendees(aMessage.recipients);
-        addAttendees(aMessage.ccList);
-
         // XXX It would be great if nsPlainTextParser could take care of this.
         function htmlToPlainText(html) {
           var texts = html.split(/(<\/?[^>]+>)/);
