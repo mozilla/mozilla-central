@@ -421,7 +421,7 @@ PlacesTreeView.prototype = {
         return this.COLUMN_TYPE_TITLE;
       case "url":
         return this.COLUMN_TYPE_URI;
-      case "date":
+      case "lastvisit":
         return this.COLUMN_TYPE_DATE;
       case "visitCount":
         return this.COLUMN_TYPE_VISITCOUNT;

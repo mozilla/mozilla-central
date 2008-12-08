@@ -325,11 +325,8 @@ var ViewMenu = {
       menuitem.column = column;
       var label = column.getAttribute("label");
       if (propertyPrefix) {
-        var menuitemPrefix = propertyPrefix;
-        // for string properties, use "name" as the id, instead of "title"
-        // see bug #386287 for details
         var columnId = column.getAttribute("anonid");
-        menuitemPrefix += columnId == "title" ? "name" : columnId;
+        var menuitemPrefix = propertyPrefix + columnId;
         label = PlacesUIUtils.getString(menuitemPrefix + ".label");
         var accesskey = PlacesUIUtils.getString(menuitemPrefix + ".accesskey");
         menuitem.setAttribute("accesskey", accesskey);
@@ -467,7 +464,7 @@ var ViewMenu = {
         sortingMode = aDirection == "descending" ?
           NHQO.SORT_BY_URI_DESCENDING : NHQO.SORT_BY_URI_ASCENDING;
         break;
-      case "date":
+      case "lastvisit":
         sortingMode = aDirection == "descending" ?
           NHQO.SORT_BY_DATE_DESCENDING : NHQO.SORT_BY_DATE_ASCENDING;
         break;

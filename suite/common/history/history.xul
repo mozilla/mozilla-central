@@ -192,13 +192,13 @@
         onfocus="PlacesOrganizer.onTreeFocus(event);"
         onclick="PlacesOrganizer.onTreeClick(event);">
     <treecols id="placeContentColumns" context="placesColumnsContext">
-      <treecol label="&col.name.label;" id="placesContentTitle" anonid="title" flex="5" primary="true" ordinal="1"
+      <treecol label="&col.title.label;" id="placesContentTitle" anonid="title" flex="5" primary="true" ordinal="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol label="&col.url.label;" id="placesContentUrl" anonid="url" flex="5"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
-      <treecol label="&col.lastvisit.label;" id="placesContentDate" anonid="date" flex="1"
+      <treecol label="&col.lastvisit.label;" id="placesContentDate" anonid="lastvisit" flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
       <treecol label="&col.visitcount.label;" id="placesContentVisitCount" anonid="visitCount" flex="1" hidden="true"
