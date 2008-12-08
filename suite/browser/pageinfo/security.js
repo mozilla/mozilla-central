@@ -223,7 +223,6 @@ function securityOnLoad() {
   setText("security-privacy-passwords-value",
           realmHasPasswords(info.fullLocation) ? yesStr : noStr);
 
-#ifdef MOZ_PLACES
   var visitCount = previousVisitCount(info.hostName);
   if(visitCount > 1) {
     setText("security-privacy-history-value",
@@ -234,9 +233,8 @@ function securityOnLoad() {
             pageInfoBundle.getString("securityOneVisit"));
   }
   else {
-    setText("security-privacy-history-value", noStr);        
+    setText("security-privacy-history-value", noStr);
   }
-#endif
 
   /* Set the Technical Detail section messages */
   const pkiBundle = document.getElementById("pkiBundle");
@@ -340,7 +338,6 @@ function realmHasPasswords(location) {
   */
 }
 
-#ifdef MOZ_PLACES
 /**
  * Return the number of previous visits recorded for host before today.
  *
@@ -349,13 +346,13 @@ function realmHasPasswords(location) {
 function previousVisitCount(host, endTimeReference) {
   if (!host)
     return false;
-  
+
   var historyService = Components.classes["@mozilla.org/browser/nav-history-service;1"]
                                  .getService(Components.interfaces.nsINavHistoryService);
-    
+
   var options = historyService.getNewQueryOptions();
   options.resultType = options.RESULTS_AS_VISIT;
-  
+
   // Search for visits to this host before today
   var query = historyService.getNewQuery();
   query.endTimeReference = query.TIME_RELATIVE_TODAY;
@@ -366,4 +363,3 @@ function previousVisitCount(host, endTimeReference) {
   result.root.containerOpen = true;
   return result.root.childCount;
 }
-#endif

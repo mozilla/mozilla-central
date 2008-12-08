@@ -506,7 +506,6 @@
               <column flex="1"/>
             </columns>
             <rows>
-#ifdef MOZ_PLACES
               <row><!-- History -->
                 <label id="security-privacy-history-label"
                              control="security-privacy-history-value"
@@ -516,7 +515,6 @@
                          value="&securityView.unknown;"
                          readonly="true"/>
               </row>
-#endif
               <row><!-- Cookies -->
                 <label id="security-privacy-cookies-label"
                              control="security-privacy-cookies-value"
