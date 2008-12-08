@@ -264,41 +264,45 @@ cal.itip = {
 
         // Check to see if some part of the item was updated, if so, re-send REQUEST
         if (!aOriginalItem || (cal.itip.compare(aItem, aOriginalItem) > 0)) { // REQUEST
-            let requestItem = aItem.clone();
 
             // check whether it's a simple UPDATE (no SEQUENCE change) or real (RE)REQUEST,
             // in case of time or location/description change.
             let isMinorUpdate = (aOriginalItem && (cal.itip.getSequence(aItem) == cal.itip.getSequence(aOriginalItem)));
 
-            if (!requestItem.organizer) {
-                let organizer = cal.createAttendee();
-                organizer.id = requestItem.calendar.getProperty("organizerId");
-                organizer.commonName = requestItem.calendar.getProperty("organizerCN");
-                organizer.role = "REQ-PARTICIPANT";
-                organizer.participationStatus = "ACCEPTED";
-                organizer.isOrganizer = true;
-                requestItem.organizer = organizer;
-            }
+            if (!isMinorUpdate || !cal.compareItemContent(stripUserData(aItem), stripUserData(aOriginalItem))) {
 
-            // Fix up our attendees for invitations using some good defaults
-            let recipients = [];
-            let itemAtt = requestItem.getAttendees({});
-            if (!isMinorUpdate) {
-                requestItem.removeAllAttendees();
-            }
-            for each (let attendee in itemAtt) {
-                if (!isMinorUpdate) {
-                    attendee = attendee.clone();
-                    attendee.role = "REQ-PARTICIPANT";
-                    attendee.participationStatus = "NEEDS-ACTION";
-                    attendee.rsvp = "TRUE";
-                    requestItem.addAttendee(attendee);
+                let requestItem = aItem.clone();
+                if (!requestItem.organizer) {
+                    let organizer = cal.createAttendee();
+                    organizer.id = requestItem.calendar.getProperty("organizerId");
+                    organizer.commonName = requestItem.calendar.getProperty("organizerCN");
+                    organizer.role = "REQ-PARTICIPANT";
+                    organizer.participationStatus = "ACCEPTED";
+                    organizer.isOrganizer = true;
+                    requestItem.organizer = organizer;
                 }
-                recipients.push(attendee);
-            }
 
-            if (recipients.length > 0) {
-                sendMessage(requestItem, "REQUEST", recipients, autoResponse);
+                // Fix up our attendees for invitations using some good defaults
+                let recipients = [];
+                let itemAtt = requestItem.getAttendees({});
+                if (!isMinorUpdate) {
+                    requestItem.removeAllAttendees();
+                }
+                for each (let attendee in itemAtt) {
+                    if (!isMinorUpdate) {
+                        attendee = attendee.clone();
+                        attendee.role = "REQ-PARTICIPANT";
+                        attendee.participationStatus = "NEEDS-ACTION";
+                        attendee.rsvp = "TRUE";
+                        requestItem.addAttendee(attendee);
+                    }
+                    recipients.push(attendee);
+                }
+
+                if (recipients.length > 0) {
+                    sendMessage(requestItem, "REQUEST", recipients, autoResponse);
+                }
+
             }
         }
 
@@ -388,6 +392,36 @@ function setReceivedInfo(item, itipItemItem) {
     }
 }
 
+/**
+ * Strips user specific data, e.g. categories and alarm settings and returns the stripped item.
+ */
+function stripUserData(item_) {
+    let item = item_.clone();
+    let stamp = item.stampTime;
+    let lastModified = item.lastModifiedTime;
+    item.alarmOffset = null;
+    item.alarmLastAck = null;
+    item.setCategories(0, []);
+    item.deleteProperty("RECEIVED-SEQUENCE");
+    item.deleteProperty("RECEIVED-DTSTAMP");
+    let propEnum = item.propertyEnumerator;
+    while (propEnum.hasMoreElements()) {
+        let prop = propEnum.getNext().QueryInterface(Components.interfaces.nsIProperty);
+        let pname = prop.name;
+        if (pname.substr(0, "X-MOZ-".length) == "X-MOZ-") {
+            item.deleteProperty(prop.name);
+        }
+    }
+    item.getAttendees({}).forEach(
+        function(att) {
+            att.deleteProperty("RECEIVED-SEQUENCE");
+            att.deleteProperty("RECEIVED-DTSTAMP");
+        });
+    item.setProperty("DTSTAMP", stamp);
+    item.setProperty("LAST-MODIFIED", lastModified); // need to be last to undirty the item
+    return item;
+}
+
 /** local to this module file
  * Takes over relevant item information from iTIP item and sets received info.
  *
@@ -398,10 +432,13 @@ function updateItem(item, itipItemItem) {
     let newItem = item.clone();
     newItem.icalComponent = itipItemItem.icalComponent;
     setReceivedInfo(newItem, itipItemItem);
+    // preserve user settings:
     newItem.generation = item.generation;
     newItem.alarmOffset = item.alarmOffset;
     newItem.alarmRelated = item.alarmRelated;
     newItem.alarmLastAck = item.alarmLastAck;
+    let cats = item.getCategories({});
+    newItem.setCategories(cats.length, cats);
     return newItem;
 }
 
