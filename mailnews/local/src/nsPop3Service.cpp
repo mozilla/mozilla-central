@@ -67,9 +67,6 @@
 #include "nsIPrompt.h"
 #include "nsLocalStrings.h"
 
-#define POP3_PORT 110 // The IANA port for Pop3
-#define SECURE_POP3_PORT 995 // The port for Pop3 over SSL
-
 #define PREF_MAIL_ROOT_POP3 "mail.root.pop3"        // old - for backward compatibility only
 #define PREF_MAIL_ROOT_POP3_REL "mail.root.pop3-rel"
 
@@ -314,7 +311,7 @@ NS_IMETHODIMP nsPop3Service::GetScheme(nsACString &aScheme)
 NS_IMETHODIMP nsPop3Service::GetDefaultPort(PRInt32 *aDefaultPort)
 {
     NS_ENSURE_ARG_POINTER(aDefaultPort);
-    *aDefaultPort = POP3_PORT;
+    *aDefaultPort = nsIPop3URL::DEFAULT_POP3_PORT;
     return NS_OK;
 }
 
@@ -410,7 +407,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
 
     PRInt32 port;
     server->GetPort(&port);
-    if (port == -1) port = POP3_PORT;
+    if (port == -1) port = nsIPop3URL::DEFAULT_POP3_PORT;
 
     // we need to escape the username because it may contain
     // characters like / % or @
@@ -647,7 +644,7 @@ nsPop3Service::GetDefaultServerPort(PRBool isSecure, PRInt32 *aPort)
     nsresult rv = NS_OK;
 
     if (isSecure)
-      *aPort = SECURE_POP3_PORT;
+      *aPort = nsIPop3URL::DEFAULT_POP3S_PORT;
     else
       rv = GetDefaultPort(aPort);
 

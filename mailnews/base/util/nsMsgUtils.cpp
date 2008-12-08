@@ -83,6 +83,7 @@
 #include "nsNetUtil.h"
 #include "nsIMsgDatabase.h"
 #include "nsIMutableArray.h"
+#include "nsIMsgMailNewsUrl.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);

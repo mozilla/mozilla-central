@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -38,9 +38,14 @@
 #include "nsISupports.idl"
 #include "nsIPop3Sink.idl"
 
-[scriptable, uuid(73c043d0-b7e2-11d2-ab5c-00805f8ac968)]
+[scriptable, uuid(5fb87ae7-a3a0-440a-8b49-6bca42fb7ff2)]
 interface nsIPop3URL : nsISupports {
-    attribute nsIPop3Sink pop3Sink;
-    attribute string messageUri;
-};
+  attribute nsIPop3Sink pop3Sink;
+  attribute string messageUri;
 
+  /// Constant for the default POP3 port number
+  const PRInt32 DEFAULT_POP3_PORT = 110;
+
+  /// Constant for the default POP3 over ssl port number
+  const PRInt32 DEFAULT_POP3S_PORT = 995;
+};

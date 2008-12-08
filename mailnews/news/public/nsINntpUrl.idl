@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -38,20 +38,12 @@
 #include "nsISupports.idl"
 #include "MailNewsTypes2.idl"
 
-%{ C++
-#include "nsINNTPNewsgroupPost.h"
-#include "nsIMsgMailNewsUrl.h"
-
-#define NEWS_PORT 119
-#define SECURE_NEWS_PORT 563
-%}
-
 interface nsIMsgDBHdr;
 interface nsINNTPNewsgroupPost;
 
 typedef long nsNewsAction;
 
-[scriptable, uuid(CAB8B3DF-9F66-4B36-838E-BB59950A2349)]
+[scriptable, uuid(b8bb6567-7433-4a52-beae-20e8122deb78)]
 interface nsINntpUrl : nsISupports {
   attribute nsINNTPNewsgroupPost messageToPost;
   attribute nsNewsAction newsAction;
@@ -69,4 +61,10 @@ interface nsINntpUrl : nsISupports {
   const nsNewsAction ActionFetchPart = 9;
   const nsNewsAction ActionAutoSubscribe = 10;
   const nsNewsAction ActionListIds = 11;
+
+  /// Constant for the default NNTP over ssl port number
+  const PRInt32 DEFAULT_NNTP_PORT = 119;
+
+  /// Constant for the default NNTP over ssl port number
+  const PRInt32 DEFAULT_NNTPS_PORT = 563;
 };

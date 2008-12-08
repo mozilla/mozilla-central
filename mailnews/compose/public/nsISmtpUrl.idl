@@ -96,8 +96,11 @@ interface nsISmtpUrl : nsISupports {
   attribute nsISmtpServer smtpServer;
 
   attribute boolean verifyLogon; // we're just verifying the ability to logon
-    
+
+  /// Constant for the default SMTP port number
   const PRInt32 DEFAULT_SMTP_PORT = 25;
+
+  /// Constant for the default SMTP over ssl port number
   const PRInt32 DEFAULT_SMTPS_PORT = 465;
 };
 

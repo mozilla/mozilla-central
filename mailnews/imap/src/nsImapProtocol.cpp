@@ -803,9 +803,9 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
       {
         PRInt32 socketType;
         // Be a bit smarter about setting the default port
-        port = (NS_SUCCEEDED(server->GetSocketType(&socketType))
-                  && socketType == nsIMsgIncomingServer::useSSL)
-           ? SECURE_IMAP_PORT :IMAP_PORT;
+        port = (NS_SUCCEEDED(server->GetSocketType(&socketType)) &&
+                socketType == nsIMsgIncomingServer::useSSL) ?
+               nsIImapUrl::DEFAULT_IMAPS_PORT : nsIImapUrl::DEFAULT_IMAP_PORT;
       }
       nsCAutoString hostName;
       nsCOMPtr<nsISocketTransportService> socketService = 

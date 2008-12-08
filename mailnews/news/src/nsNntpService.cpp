@@ -87,6 +87,7 @@
 #include "nsNetUtil.h"
 #include "nsIWindowWatcher.h"
 #include "nsICommandLine.h"
+#include "nsIMsgMailNewsUrl.h"
 
 #undef GetPort  // XXX Windows!
 #undef SetPort  // XXX Windows!
@@ -300,7 +301,7 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
     nsresult rv = server->GetSocketType(&socketType);
     NS_ENSURE_SUCCESS(rv, rv);
     url->SetPort((socketType == nsIMsgIncomingServer::useSSL) ?
-                 SECURE_NEWS_PORT : NEWS_PORT);
+                 nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT);
 
     folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
 
@@ -1171,7 +1172,7 @@ nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTP
     {
       useSSL = PR_TRUE;
       if ((port == 0) || (port == -1))
-          port = SECURE_NEWS_PORT;
+          port = nsINntpUrl::DEFAULT_NNTPS_PORT;
     }
     rv = CreateNewsAccount(hostName.get(), useSSL, port, getter_AddRefs(server));
   }
@@ -1346,7 +1347,7 @@ NS_IMETHODIMP nsNntpService::GetDefaultDoBiff(PRBool *aDoBiff)
 NS_IMETHODIMP nsNntpService::GetDefaultPort(PRInt32 *aDefaultPort)
 {
     NS_ENSURE_ARG_POINTER(aDefaultPort);
-    *aDefaultPort = NEWS_PORT;
+    *aDefaultPort = nsINntpUrl::DEFAULT_NNTP_PORT;
     return NS_OK;
 }
 
@@ -1363,7 +1364,7 @@ nsNntpService::GetDefaultServerPort(PRBool aUseSSL, PRInt32 *aDefaultPort)
 
     // Return Secure NNTP Port if secure option chosen i.e., if useSSL is TRUE.
     if (aUseSSL)
-        *aDefaultPort = SECURE_NEWS_PORT;
+        *aDefaultPort = nsINntpUrl::DEFAULT_NNTPS_PORT;
     else
         rv = GetDefaultPort(aDefaultPort);
 
@@ -1605,7 +1606,7 @@ nsNntpService::StreamMessage(const char *aMessageURI, nsISupports *aConsumer,
         NS_ENSURE_SUCCESS(rv, rv);
 
         url->SetPort((socketType == nsIMsgIncomingServer::useSSL) ?
-                     SECURE_NEWS_PORT : NEWS_PORT);
+                     nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT);
 
         rv = IsMsgInMemCache(url, folder, nsnull, &hasMsgOffline);
         NS_ENSURE_SUCCESS(rv, rv);

@@ -50,7 +50,7 @@
 #include "MailNewsTypes.h"
 #include "nntpCore.h"
 #include "nsNetUtil.h"
-
+#include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgHdr.h"
 #include "nsNNTPProtocol.h"
 #include "nsINNTPArticleList.h"
@@ -60,7 +60,7 @@
 #include "nsCOMPtr.h"
 #include "nsReadableUtils.h"
 #include "nsMsgI18N.h"
-
+#include "nsINNTPNewsgroupPost.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgNewsCID.h"
 
@@ -436,7 +436,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
 
     if (port<=0) {
       port = (socketType == nsIMsgIncomingServer::useSSL) ?
-             SECURE_NEWS_PORT : NEWS_PORT;
+             nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT;
     }
 
     rv = m_url->SetPort(port);

@@ -1307,13 +1307,13 @@ nsresult nsImapService::CreateStartOfImapUrl(const nsACString &aImapURI,
   if (!username.IsEmpty())
     *((char **)getter_Copies(escapedUsername)) = nsEscape(username.get(), url_XAlphas);
   
-  PRInt32 port = IMAP_PORT;
+  PRInt32 port = nsIImapUrl::DEFAULT_IMAP_PORT;
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = aImapMailFolder->GetServer(getter_AddRefs(server));
   if (NS_SUCCEEDED(rv)) 
   {
     server->GetPort(&port);
-    if (port == -1 || port == 0) port = IMAP_PORT;
+    if (port == -1 || port == 0) port = nsIImapUrl::DEFAULT_IMAP_PORT;
   }
   
   // now we need to create an imap url to load into the connection. The url
@@ -2441,7 +2441,7 @@ NS_IMETHODIMP nsImapService::GetScheme(nsACString &aScheme)
 NS_IMETHODIMP nsImapService::GetDefaultPort(PRInt32 *aDefaultPort)
 {
   NS_ENSURE_ARG_POINTER(aDefaultPort);
-  *aDefaultPort = IMAP_PORT;
+  *aDefaultPort = nsIImapUrl::DEFAULT_IMAP_PORT;
   return NS_OK;
 }
 
@@ -2473,7 +2473,7 @@ NS_IMETHODIMP nsImapService::GetDefaultServerPort(PRBool isSecure, PRInt32 *aDef
   
   // Return Secure IMAP Port if secure option chosen i.e., if isSecure is TRUE
   if (isSecure)
-    *aDefaultPort = SECURE_IMAP_PORT;
+    *aDefaultPort = nsIImapUrl::DEFAULT_IMAPS_PORT;
   else    
     rv = GetDefaultPort(aDefaultPort);
   

@@ -54,7 +54,7 @@
 #include "nsIMsgStatusFeedback.h"
 #include "nsCOMPtr.h"
 #include "nsIDOMWindowInternal.h"
-
+#include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsINntpIncomingServer.h"

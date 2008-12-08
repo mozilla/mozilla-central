@@ -45,7 +45,7 @@
 
 #include "msgCore.h"    // precompiled header...
 #include "nntpCore.h"
-
+#include "nsIMsgMailNewsUrl.h"
 #include "nsNewsFolder.h"
 #include "nsMsgFolderFlags.h"
 #include "prprf.h"
@@ -1105,7 +1105,7 @@ nsresult nsMsgNewsFolder::CreateNewsgroupUrlForSignon(const nsACString& inUriStr
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = url->SetPort((socketType == nsIMsgIncomingServer::useSSL) ?
-                      SECURE_NEWS_PORT: NEWS_PORT);
+                      nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
