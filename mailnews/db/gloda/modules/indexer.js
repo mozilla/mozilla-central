@@ -842,12 +842,19 @@ var GlodaIndexer = {
       try {
         if (this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder) {
           this._indexingDatabase =
-            this._indexingFolder.getDatabaseWithReparse(this._indexingFolder,
+            this._indexingFolder.getDatabaseWithReparse(null,
                                                         null);
         }
         // we need do nothing special for IMAP, news, or other
       }
-      catch ( e if e.result == Cr.NS_ERROR_NOT_INITIALIZED) {
+      // getDatabaseWithReparse can return either NS_ERROR_NOT_INITIALIZED or
+      //  NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE if the net result is that it
+      //  is going to send us a notification when the reparse has completed.
+      // (note that although internally NS_MSG_ERROR_FOLDER_SUMMARY_MISSING
+      //  might get flung around, it won't make it out to us, and will instead
+      //  be permuted into an NS_ERROR_NOT_INITIALIZED.)
+      catch (e if ((e.result == Cr.NS_ERROR_NOT_INITIALIZED) ||
+                   (e.result == Cr.NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE))) {
         // this means that we need to pend on the update.
         this._log.debug("Pending on folder load...");
         this._pendingFolderEntry = this._indexingFolder;

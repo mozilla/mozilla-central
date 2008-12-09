@@ -211,6 +211,33 @@ function loadFileToString(aFile, aCharset) {
 }
 
 /**
+ * A variant of do_timeout that accepts an actual function instead of
+ *  requiring you to pass a string to evaluate.  If the function throws an
+ *  exception when invoked, we will use do_throw to ensure that the test fails.
+ * 
+ * @param aDelayInMS The number of milliseconds to wait before firing the timer. 
+ * @param aFunc The function to invoke when the timer fires.
+ * @param aFuncThis Optional 'this' pointer to use.
+ * @param aFuncArgs Optional list of arguments to pass to the function.
+ */
+function do_timeout_function(aDelayInMS, aFunc, aFuncThis, aFuncArgs) {
+  let timer = Components.classes["@mozilla.org/timer;1"]
+                        .createInstance(Components.interfaces.nsITimer);
+  let wrappedFunc = function() {
+    try {
+      aFunc.apply(aFuncThis, aFuncArgs);
+    }
+    catch (ex) {
+      // we want to make sure that if the thing we call throws an exception,
+      //  that this terminates the test.
+      do_throw(ex);
+    }
+  }
+  timer.initWithCallback(wrappedFunc, aDelayInMS,
+    Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+}
+
+/**
  * Ensure the given nsIMsgFolder's database is up-to-date, calling the provided
  *  callback once the folder has been loaded.  (This may be instantly or
  *  after a re-parse.)
@@ -239,12 +266,13 @@ function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
     OnItemEvent: function (aEventFolder, aEvent) {
       if (aEvent == kFolderLoadedAtom && aFolder.URI == aEventFolder.URI) {
         mailSession.RemoveFolderListener(this);
-        try {
-          aCallback.apply(aCallbackThis, aCallbackArgs);
-        }
-        catch (ex) {
-          do_throw(ex);
-        }
+        // issue a 0-interval timeout to ensure that we don't call this callback
+        //  until after the caller providing us with the FolderLoaded
+        //  notification has fully completed.
+        // this is an action made out of paranoia; a unit test has observed us
+        //  to notify the callback early... we're at least avoiding a class of
+        //  possible sources for this behaviour by doing this.
+        do_timeout_function(0, aCallback, aCallbackThis, aCallbackArgs);
       }
     }
   };
@@ -255,7 +283,10 @@ function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
   try {
     aFolder.updateFolder(null);
   }
-  catch (e if e.result == Cr.NS_ERROR_NOT_INITIALIZED) {
+  // either of the two return values indicate that parsing is underway and we
+  //  can expect a FolderLoaded notification.
+  catch (e if ((e.result == Cr.NS_ERROR_NOT_INITIALIZED) ||
+               (e.result == Cr.NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE))) {
     needToWait = true;
   }
   catch (ex) {
