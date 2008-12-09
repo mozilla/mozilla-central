@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is Mozilla Communicator client code, released
+# March 31, 1998.
+#
+# The Initial Developer of the Original Code is
+# Netscape Communications Corporation.
+# Portions created by the Initial Developer are Copyright (C) 1998-1999
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#   Karsten Düsterloh <mnyromyr@tprac.de>
+#   Simon Paquet <bugzilla@babylonsounds.com>
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+<!DOCTYPE overlay [
+  <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+  %globalDTD;
+  <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
+  %messengerDTD;
+  <!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd" >
+  %msgViewPickerDTD;
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+  %brandDTD;
+]>
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <toolbarpalette id="MailToolbarPalette">
+    <toolbaritem id="search-container" insertafter="button-stop"
+                 title="&searchItem.title;"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <textbox id="searchInput" timeout="800" flex="1"
+               onfocus="onSearchInputFocus(event);"
+               onclick="onSearchInputClick(event);"
+               onmousedown="onSearchInputMousedown(event);"
+               onblur="onSearchInputBlur(event);"
+               oncommand="onEnterInSearchBar();"
+               onkeypress="onSearchKeyPress();"
+               chromedir="&locale.dir;">
+        <button id="quick-search-button" type="menu" chromedir="&locale.dir;">
+          <menupopup id="quick-search-menupopup"
+                     value="2"
+                     persist="value"
+                     onpopupshowing="InitQuickSearchPopup();"
+                     popupalign="topleft"
+                     popupanchor="bottomleft">
+            <!-- The sequence of menu items must have a contiguous strictly
+                 increasing sequence of ordinals starting at 0 (see the
+                 VK_UP/VK_DOWN key handlers in search.xml) -->
+            <menuitem id="searchSubjectMenu"
+                      value="0"
+                      ordinal="0"
+                      label="&searchSubjectMenu.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <menuitem id="searchFromMenu"
+                      value="1"
+                      ordinal="1"
+                      label="&searchFromMenu.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)" />
+            <menuitem id="searchSubjectOrFromMenu"
+                      value="2"
+                      ordinal="2"
+                      label="&searchSubjectOrFromMenu.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <menuitem id="searchRecipient"
+                      value="5"
+                      ordinal="3"
+                      label="&searchRecipient.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <menuitem id="searchSubjectOrRecipient"
+                      value="6"
+                      ordinal="4"
+                      label="&searchSubjectOrRecipientMenu.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <menuitem id="searchMessageBody"
+                      value="3"
+                      ordinal="5"
+                      label="&searchMessageBody.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <!-- The ordinal of that separator must be the biggest ordinal of a
+                 valid quicksearch option, plus one (see the VK_UP / VK_DOWN key
+                 handlers in search.xml). -->
+            <menuseparator id="quickSearchAfterLastOptionSeparator"
+                           ordinal="6"/>
+            <menuitem id="quickSearchSaveAsVirtualFolder"
+                      ordinal="99"
+                      label="&saveAsVirtualFolderMenu.label;"
+                      oncommand="saveViewAsVirtualFolder()"/>
+          </menupopup>
+        </button>
+      </textbox>
+    </toolbaritem>
+    <toolbarbutton id="button-compact" class="toolbarbutton-1"
+                   insertafter="button-mark"
+                   label="&compactButton.label;"
+                   tooltiptext="&compactButton.tooltip;"
+                   oncommand="goDoCommand('button_compact');"
+                   observes="button_compact"/>
+    <toolbaritem id="folder-location-container" insert-after="button-stop"
+                 title="&folderLocationToolbarItem.title;"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <!--XXX The src attribute is there to give the menulist icon horizontal
+          margin (bug 381364). Remove it once bug 381548 is fixed. -->
+      <menulist id="locationFolders"
+                class="folderMenuItem"
+                label=" "
+                src=""
+                context="folderPaneContext"
+                width="170"
+                crop="center">
+        <menupopup id="folderLocationPopup"
+                   class="folderLocationPopup"
+                   height="400"
+                   flex="1"
+                   oncommand="OnLocationTreeSelect(this);"/>
+      </menulist>
+    </toolbaritem>
+    <toolbaritem id="mailviews-container"
+                 title="&mailViewsToolbarItem.title;"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <label id="viewPickerLabel"
+             value="&viewPicker.label;"
+             control="viewPicker"
+             accesskey="&viewPicker.accesskey;"/>
+      <menulist id="viewPicker" oncommand="ViewChangeByMenuitem(event.target);">
+        <menupopup id="viewPickerPopup" onpopupshowing="RefreshViewPopup(this, false);">
+          <menuitem id="viewPickerAll" value="0" label="&viewAll.label;"/>
+          <menuitem id="viewPickerUnread" value="1" label="&viewUnread.label;"/>
+          <menuitem id="viewPickerNotDeleted" value="3" label="&viewNotDeleted.label;"/>
+          <menuseparator id="afterViewPickerUnreadSeparator"/>
+          <menu id="viewPickerTags" label="&viewTags.label;">
+            <menupopup id="viewPickerTagsPopup"
+                       class="menulist-menupopup"
+                       onpopupshowing="RefreshTagsPopup(this, true);"/>
+          </menu>
+          <menu id="viewPickerCustomViews" label="&viewCustomViews.label;">
+            <menupopup id="viewPickerCustomViewsPopup"
+                       class="menulist-menupopup"
+                       onpopupshowing="RefreshCustomViewsPopup(this, true);"/>
+          </menu>
+          <menuseparator id="afterViewPickerCustomViewsSeparator"/>
+          <menuitem id="viewPickerVirtualFolder"
+                    value="7"
+                    label="&viewVirtualFolder.label;"/>
+          <menuitem id="viewPickerCustomize"
+                    value="8"
+                    label="&viewCustomizeView.label;"/>
+        </menupopup>
+      </menulist>
+    </toolbaritem>
+
+  </toolbarpalette>
+</overlay>
