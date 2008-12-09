@@ -1893,12 +1893,17 @@ function MsgAddAllToAddressBook() {}
 
 function SpaceHit(event)
 {
-  var contentWindow = window.top.content;
-  var rssiframe = contentWindow.document.getElementById('_mailrssiframe');
+  var contentWindow = document.commandDispatcher.focusedWindow;
+  if (contentWindow.top == window)
+    contentWindow = content;
+  else if (document.commandDispatcher.focusedElement &&
+           !hrefAndLinkNodeForClickEvent(event))
+    return;
+  var rssiframe = content.document.getElementById('_mailrssiframe');
 
   // If we are displaying an RSS article, we really want to scroll
   // the nested iframe.
-  if (rssiframe)
+  if (contentWindow == content && rssiframe)
     contentWindow = rssiframe.contentWindow;
 
   if (event && event.shiftKey) {
