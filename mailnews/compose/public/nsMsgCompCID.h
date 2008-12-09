@@ -232,15 +232,6 @@
   { 0x8f, 0xf, 0x0, 0xa0, 0x24, 0xa7, 0xd1, 0x44 } }
 
 //
-// nsMsgRecipientArray
-//
-#define NS_MSGRECIPIENTARRAY_CONTRACTID \
-  "@mozilla.org/messengercompose/recipientarray;1"
-#define NS_MSGRECIPIENTARRAY_CID \
-  {0x9d653e00, 0xa1ca, 0x11d3, \
-    { 0xa4, 0x49, 0xf7, 0x9a, 0xb1, 0xc7, 0xd8, 0xfc }}
-
-//
 // nsURLFetcher
 //
 #define NS_URLFETCHER_CONTRACTID  \

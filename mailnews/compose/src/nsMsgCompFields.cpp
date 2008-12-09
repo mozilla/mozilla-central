@@ -39,7 +39,6 @@
 
 #include "nsMsgCompFields.h"
 #include "nsMsgI18N.h"
-#include "nsMsgRecipientArray.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsMsgCompUtils.h"
 #include "nsMsgUtils.h"
@@ -536,81 +535,89 @@ NS_IMETHODIMP nsMsgCompFields::RemoveAttachments()
 
 
 // This method is called during the creation of a new window.
-NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const nsAString &aRecipients, PRBool aEmailAddressOnly, nsIMsgRecipientArray **_retval)
+NS_IMETHODIMP
+nsMsgCompFields::SplitRecipients(const nsAString &aRecipients,
+                                 PRBool aEmailAddressOnly,
+                                 PRUint32 *aLength,
+                                 PRUnichar*** aResult)
 {
-  nsresult rv = NS_OK;
-  
-  if (!_retval)
-    return NS_ERROR_NULL_POINTER;
-  *_retval = nsnull;
-		
-  nsMsgRecipientArray* pAddrArray = new nsMsgRecipientArray;
-  if (! pAddrArray)
-    return NS_ERROR_OUT_OF_MEMORY;
-  
-  rv = pAddrArray->QueryInterface(NS_GET_IID(nsIMsgRecipientArray), (void **)_retval);
+  NS_ENSURE_ARG_POINTER(aLength);
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  *aLength = 0;
+  *aResult = nsnull;
+
+  nsresult rv;
+  nsCOMPtr<nsIMsgHeaderParser> parser =
+    do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMimeConverter> converter =
+    do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  char * names;
+  char * addresses;
+  PRUint32 numAddresses;
+
+  rv = parser->ParseHeaderAddresses(NS_ConvertUTF16toUTF8(aRecipients).get(),
+                                    &names, &addresses, &numAddresses);
   if (NS_SUCCEEDED(rv))
   {
-    nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
-    nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    if (parser)
+    PRUint32 i = 0;
+    char * pNames = names;
+    char * pAddresses = addresses;
+    PRUnichar** result = (PRUnichar**) NS_Alloc(sizeof(PRUnichar*) * numAddresses);
+    if (!result)
+      return NS_ERROR_OUT_OF_MEMORY;
+
+    for (i = 0; i < numAddresses; ++i)
     {
-      nsCAutoString recipientsStr;
-      char * names;
-      char * addresses;
-      PRUint32 numAddresses;
-      
-      CopyUTF16toUTF8(aRecipients, recipientsStr);
-      
-      rv= parser->ParseHeaderAddresses(recipientsStr.get(), &names, 
-                                       &addresses, &numAddresses);
-      if (NS_SUCCEEDED(rv))
+      nsCString fullAddress;
+      nsAutoString recipient;
+      if (!aEmailAddressOnly)
       {
-        PRUint32 i=0;
-        char * pNames = names;
-        char * pAddresses = addresses;
-        PRBool aBool;
-        
-        for (i = 0; i < numAddresses; i ++)
-        {
-          nsCString fullAddress;
-          nsAutoString recipient;
-          if (!aEmailAddressOnly) 
-          {
-            nsCString decodedName;
-            converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(), PR_FALSE, PR_TRUE,
-                                                 getter_Copies(decodedName));
-            rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ? 
-                                                decodedName.get() : pNames), 
-                                               pAddresses, 
-                                               getter_Copies(fullAddress));
-          }
-          if (NS_SUCCEEDED(rv) && !aEmailAddressOnly)
-          {
-            rv = ConvertToUnicode("UTF-8", fullAddress, recipient);
-          }
-          else
-            rv = ConvertToUnicode("UTF-8", nsDependentCString(pAddresses), recipient);
-          if (NS_FAILED(rv))
-            break;
-          
-          rv = pAddrArray->AppendString(recipient.get(), &aBool);
-          if (NS_FAILED(rv))
-            break;
-          
-          pNames += PL_strlen(pNames) + 1;
-          pAddresses += PL_strlen(pAddresses) + 1;
-        }
-        
-        PR_FREEIF(names);
-        PR_FREEIF(addresses);
+        nsCString decodedName;
+        converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(),
+                                             PR_FALSE, PR_TRUE,
+                                             getter_Copies(decodedName));
+        rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ?
+                                            decodedName.get() : pNames),
+                                           pAddresses,
+                                           getter_Copies(fullAddress));
       }
+      if (NS_SUCCEEDED(rv) && !aEmailAddressOnly)
+        rv = ConvertToUnicode("UTF-8", fullAddress, recipient);
+      else
+        rv = ConvertToUnicode("UTF-8", nsDependentCString(pAddresses), recipient);
+      if (NS_FAILED(rv))
+        break;
+
+      result[i] = ToNewUnicode(recipient);
+      if (!result[i])
+      {
+        rv = NS_ERROR_OUT_OF_MEMORY;
+        break;
+      }
+
+      pNames += PL_strlen(pNames) + 1;
+      pAddresses += PL_strlen(pAddresses) + 1;
+    }
+
+    if (NS_FAILED(rv))
+    {
+      NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(i, result);
     }
     else
-      rv = NS_ERROR_FAILURE;
+    {
+      *aResult = result;
+      *aLength = numAddresses;
+    }
+
+    PR_FREEIF(names);
+    PR_FREEIF(addresses);
   }
-		
+
   return rv;
 }
 

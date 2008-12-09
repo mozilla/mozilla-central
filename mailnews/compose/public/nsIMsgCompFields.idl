@@ -37,11 +37,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsIMsgRecipientArray.idl"
 #include "nsIMsgAttachment.idl"
 #include "nsISimpleEnumerator.idl"
 
-[scriptable, uuid(ab598da9-d272-485b-9941-5ce87251a463)]
+[scriptable, uuid(76b9314c-e397-4806-b816-d8531ab02d30)]
 interface nsIMsgCompFields : nsISupports {
 
   attribute AString from;
@@ -95,8 +94,19 @@ interface nsIMsgCompFields : nsISupports {
   void removeAttachment(in nsIMsgAttachment attachment);
   void removeAttachments();
 
-  /* some utility functions */
-  nsIMsgRecipientArray SplitRecipients(in AString aRecipients, in boolean aEmailAddressOnly);    
+  /**
+   * This function will split the recipients into an array.
+   *
+   * @param aRecipients       The recipients list to split.
+   * @param aEmailAddressOnly Set to true to drop display names from the results
+   *                          array.
+   * @param aLength           The length of the aResult array.
+   * @param aResult           An array of the recipients.
+   */
+  void splitRecipients(in AString aRecipients, in boolean aEmailAddressOnly,
+                       out unsigned long aLength,
+                       [array, size_is(aLength), retval] out wstring aResult);
+
   void ConvertBodyToPlainText();
 
   // Check if the composing mail headers can be converted to a mail charset.

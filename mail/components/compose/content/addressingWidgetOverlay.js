@@ -209,22 +209,22 @@ function CompFields2Recipients(msgCompFields)
     var msgFollowupTo = msgCompFields.followupTo;
     var havePrimaryRecipient = false;
     if(msgReplyTo)
-      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgReplyTo, false),
+      awSetInputAndPopupFromArray(msgCompFields.splitRecipients(msgReplyTo, false, {}),
                                   "addr_reply", newListBoxNode, templateNode);
     if(msgTo)
     {
-      var rcp = msgCompFields.SplitRecipients(msgTo, false)
-      if (rcp.count)
+      var rcp = msgCompFields.splitRecipients(msgTo, false, {});
+      if (rcp.length)
       {
         awSetInputAndPopupFromArray(rcp, "addr_to", newListBoxNode, templateNode);
         havePrimaryRecipient = true;
       }
     }
     if(msgCC)
-      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgCC, false),
+      awSetInputAndPopupFromArray(msgCompFields.splitRecipients(msgCC, false, {}),
                                   "addr_cc", newListBoxNode, templateNode);
     if(msgBCC)
-      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgBCC, false),
+      awSetInputAndPopupFromArray(msgCompFields.splitRecipients(msgBCC, false, {}),
                                   "addr_bcc", newListBoxNode, templateNode);
     if(msgRandomHeaders)
       awSetInputAndPopup(msgRandomHeaders, "addr_other", newListBoxNode, templateNode);
@@ -300,18 +300,19 @@ function awSetInputAndPopup(inputValue, popupValue, parentNode, templateNode)
 
 function awSetInputAndPopupFromArray(inputArray, popupValue, parentNode, templateNode)
 {
-  if ( inputArray && popupValue )
+  if (popupValue)
   {
     var recipient;
-    for ( var index = 0; index < inputArray.count; index++ )
+    for (var index = 0; index < inputArray.length; index++)
     {
       recipient = null;
       if (gMimeHeaderParser)
         try {
-          recipient = gMimeHeaderParser.unquotePhraseOrAddrWString(inputArray.StringAt(index), true);
+          recipient =
+            gMimeHeaderParser.unquotePhraseOrAddrWString(inputArray[index], true);
         } catch (ex) {};
       if (!recipient)
-        recipient = inputArray.StringAt(index)
+        recipient = inputArray[index];
       _awSetInputAndPopup(recipient, popupValue, parentNode, templateNode);
     }
   }
@@ -322,18 +323,16 @@ function awRemoveRecipients(msgCompFields, recipientType, recipientsList)
   if (!msgCompFields || !recipientsList)
     return;
 
-  var recipientArray = msgCompFields.SplitRecipients(recipientsList, false);
-  if (! recipientArray)
-    return;
+  var recipientArray = msgCompFields.splitRecipients(recipientsList, false, {});
 
-  for ( var index = 0; index < recipientArray.count; index++ )
+  for (var index = 0; index < recipientArray.length; index++)
     for (var row = 1; row <= top.MAX_RECIPIENTS; row ++)
     {
       var popup = awGetPopupElement(row);
       if (popup.selectedItem.getAttribute("value") == recipientType)
       {
         var input = awGetInputElement(row);
-        if (input.value == recipientArray.StringAt(index))
+        if (input.value == recipientArray[index])
         {
           awSetInputAndPopupValue(input, "", popup, "addr_to", -1);
           break;
@@ -346,12 +345,10 @@ function awAddRecipients(msgCompFields, recipientType, recipientsList)
 {
   if (!msgCompFields || !recipientsList)
     return;
-  var recipientArray = msgCompFields.SplitRecipients(recipientsList, false);
-  if (! recipientArray)
-    return;
+  var recipientArray = msgCompFields.splitRecipients(recipientsList, false, {});
 
-  for ( var index = 0; index < recipientArray.count; index++ )
-    awAddRecipient(recipientType, recipientArray.StringAt(index));
+  for (var index = 0; index < recipientArray.length; index++)
+    awAddRecipient(recipientType, recipientArray[index]);
 }
 
 // this was broken out of awAddRecipients so it can be re-used...adds a new row matching recipientType and

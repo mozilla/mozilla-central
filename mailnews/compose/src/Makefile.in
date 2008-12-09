@@ -112,7 +112,6 @@ CPPSRCS		= \
 		nsMsgComposeContentHandler.cpp \
 		nsMsgCompose.cpp \
 		nsMsgQuote.cpp \
-		nsMsgRecipientArray.cpp \
 		nsURLFetcher.cpp \
 		nsSmtpServer.cpp \
 		$(NULL)
