@@ -814,6 +814,8 @@ var GlodaIndexer = {
   
   /** folder whose entry we are pending on */
   _pendingFolderEntry: null,
+  /** if we are pending on a folder, do we want an iterator too? */
+  _pendingFolderWantsIterator: false,
   
   /**
    * Common logic that we want to deal with the given folder ID.  Besides
@@ -858,16 +860,11 @@ var GlodaIndexer = {
       //  be permuted into an NS_ERROR_NOT_INITIALIZED.)
       catch (e if ((e.result == Cr.NS_ERROR_NOT_INITIALIZED) ||
                    (e.result == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE))) {
-        // this means that we need to pend on the update.
+        // this means that we need to pend on the update; the listener for
+        //  FolderLoaded events will call _indexerCompletePendingFolderEntry.
         this._log.debug("Pending on folder load...");
         this._pendingFolderEntry = this._indexingFolder;
-        // do not set _indexingGlodaFolder.indexing to false at this point,
-        //  because it might decide to sever the nsIMsgFolder's reference to the
-        //  database which would, at the very least, confuse things.
-        this._indexingFolder = null;
-        this._indexingGlodaFolder = null;
-        this._indexingDatabase = null;
-        this._indexingIterator = null;
+        this._pendingFolderWantsIterator = aNeedIterator;
         return this.kWorkAsync;
       }
       // we get an nsIMsgDatabase out of this (unsurprisingly) which
@@ -897,6 +894,27 @@ var GlodaIndexer = {
     }
     
     return this.kWorkSync;
+  },
+  
+  /**
+   * If the folder was still parsing/updating when we tried to enter, then this
+   *  handler will get called by the listener who got the FolderLoaded message.
+   * All we need to do is get the database reference, register a listener on
+   *  the db, and retrieve an iterator if desired.
+   */
+  _indexerCompletePendingFolderEntry:
+      function gloda_indexer_indexerCompletePendingFolderEntry() {
+    this._indexingDatabase = this._indexingFolder.getMsgDatabase(null);
+    if (this._pendingFolderWantsIterator)
+      this._indexerGetIterator();
+    this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
+    this._log.debug("...Folder Loaded!");
+
+    // the load is no longer pending; we certainly don't want more notifications 
+    this._pendingFolderEntry = null;
+    // indexerEnterFolder returned kWorkAsync, which means we need to notify
+    //  the callback driver to get things going again.
+    this.callbackDriver();
   },
   
   _indexerGetIterator: function gloda_indexer_indexerGetIterator() {
@@ -935,11 +953,8 @@ var GlodaIndexer = {
    */
   _onFolderLoaded: function gloda_index_onFolderLoaded(aFolder) {
     if ((this._pendingFolderEntry !== null) &&
-        (aFolder.URI == this._pendingFolderEntry.URI)) {
-      this._log.debug("...Folder Loaded!");
-      this._pendingFolderEntry = null;
-      this.callbackDriver();
-    }
+        (aFolder.URI == this._pendingFolderEntry.URI))
+      this._indexerCompletePendingFolderEntry();
   },
   
   /**
