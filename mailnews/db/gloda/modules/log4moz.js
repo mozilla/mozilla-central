@@ -578,7 +578,7 @@ function SocketAppender(host, port, formatter, timeoutDelay) {
   this._name = "SocketAppender";
   this._host = host;
   this._port = port;
-  this._formatter = formatter;
+  this._formatter = formatter? formatter : new BasicFormatter();
   this._timeout_delay = timeoutDelay || DEFAULT_NETWORK_TIMEOUT_DELAY;
 
   this._socketService = Cc["@mozilla.org/network/socket-transport-service;1"]
@@ -672,9 +672,9 @@ SocketAppender.prototype = {
  * automated testing situations where the code would normally log an error but
  * not die in a fatal manner. 
  */
-function ThrowingAppender(thrower) {
+function ThrowingAppender(thrower, formatter) {
   this._name = "ThrowingAppender";
-  // the default BasicFormatter we end up inheriting is fine
+  this._formatter = formatter? formatter : new BasicFormatter();
   this._thrower = thrower;
 }
 ThrowingAppender.prototype = {
