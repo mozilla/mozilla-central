@@ -1458,7 +1458,7 @@ function MsgMarkAllRead()
     var folder = GetMsgFolderFromUri(GetSelectedFolderURI(), true);
 
     if(folder)
-        folder.markAllMessagesRead();
+        folder.markAllMessagesRead(msgWindow);
 }
 
 function MsgDownloadFlagged()
@@ -2181,20 +2181,24 @@ function SetupUndoRedoCommand(command)
 
     if (canUndoOrRedo)
     {
+        const nsIMessenger = Components.interfaces.nsIMessenger;
         switch (txnType)
         {
         default:
-        case 0:
+        case nsIMessenger.eUnknown:
             goSetMenuValue(command, 'valueDefault');
             break;
-        case 1:
+        case nsIMessenger.eDeleteMsg:
             goSetMenuValue(command, 'valueDeleteMsg');
             break;
-        case 2:
+        case nsIMessenger.eMoveMsg:
             goSetMenuValue(command, 'valueMoveMsg');
             break;
-        case 3:
+        case nsIMessenger.eCopyMsg:
             goSetMenuValue(command, 'valueCopyMsg');
+            break;
+        case nsIMessenger.eMarkAllMsg:
+            goSetMenuValue(command, 'valueUnmarkAllMsgs');
             break;
         }
     }

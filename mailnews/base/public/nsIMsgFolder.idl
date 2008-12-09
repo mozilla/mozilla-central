@@ -67,7 +67,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(1A293A14-3ACA-44de-BD7B-93F26BD2309D)]
+[scriptable, uuid(C5FF3B28-6A48-415A-BFB4-97D9DBE85E3B)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -414,7 +414,7 @@ interface nsIMsgFolder : nsISupports {
                                   in nsMsgDispositionState aDispositionFlag);
 
   void markMessagesRead(in nsIArray messages, in boolean markRead);
-  void markAllMessagesRead();
+  void markAllMessagesRead(in nsIMsgWindow aMsgWindow);
   void markMessagesFlagged(in nsIArray messages, in boolean markFlagged);
   void markThreadRead(in nsIMsgThread thread);
   void setLabelForMessages(in nsIArray messages, in nsMsgLabelValue label);

@@ -138,6 +138,8 @@
 <!ENTITY redoMoveMsgCmd.label "Redo Move Message">
 <!ENTITY undoCopyMsgCmd.label "Undo Copy Message">
 <!ENTITY redoCopyMsgCmd.label "Redo Copy Message">
+<!ENTITY undoMarkAllCmd.label "Undo Mark All Read">
+<!ENTITY redoMarkAllCmd.label "Redo Mark All Read">
 <!ENTITY undoDefaultCmd.label "Undo">
 <!ENTITY redoDefaultCmd.label "Redo">
 

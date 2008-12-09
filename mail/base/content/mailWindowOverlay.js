@@ -1700,7 +1700,7 @@ function MsgMarkAllRead()
   var folder = GetSelectedMsgFolders()[0];
 
   if (folder)
-    folder.markAllMessagesRead();
+    folder.markAllMessagesRead(msgWindow);
 }
 
 function MsgFilters(emailAddress, folder)
@@ -2178,7 +2178,8 @@ function SetupUndoRedoCommand(command)
 
   if (canUndoOrRedo)
   {
-    var commands = ['valueDefault', 'valueDeleteMsg', 'valueMoveMsg', 'valueCopyMsg'];
+    var commands = 
+      ['valueDefault', 'valueDeleteMsg', 'valueMoveMsg', 'valueCopyMsg', 'valueUnmarkAllMsgs'];
     goSetMenuValue(command, commands[txnType]);
   }
   else

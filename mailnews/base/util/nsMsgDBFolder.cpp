@@ -93,6 +93,10 @@
 #include "nsIMimeHeaders.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsIMsgTraitService.h"
+#include "nsIMessenger.h"
+#include "nsITransactionManager.h"
+#include "nsMsgReadStateTxn.h"
+#include "nsAutoPtr.h"
 
 #define oneHour 3600000000U
 #include "nsMsgUtils.h"
@@ -1339,18 +1343,44 @@ nsMsgDBFolder::AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositio
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::MarkAllMessagesRead(void)
+nsMsgDBFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
 {
   // ### fix me need nsIMsgWindow
   nsresult rv = GetDatabase(nsnull);
   m_newMsgs.Clear();
-  if(NS_SUCCEEDED(rv))
+  
+  if (NS_SUCCEEDED(rv))
   {
     EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_TRUE /*dbBatching*/);
-    rv = mDatabase->MarkAllRead(nsnull);
+    nsTArray<nsMsgKey> thoseMarked;
+    rv = mDatabase->MarkAllRead(&thoseMarked);
+    NS_ENSURE_SUCCESS(rv, rv);
     EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_TRUE /*dbBatching*/);
+
+    // Setup a undo-state
+    if (aMsgWindow)
+    {
+      nsRefPtr<nsMsgReadStateTxn> readStateTxn = new nsMsgReadStateTxn();
+      if (!readStateTxn)
+        return NS_ERROR_OUT_OF_MEMORY;
+
+      rv = readStateTxn->Init(this, thoseMarked);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = readStateTxn->SetTransactionType(nsIMessenger::eMarkAllMsg);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCOMPtr<nsITransactionManager> txnMgr;
+      rv = aMsgWindow->GetTransactionManager(getter_AddRefs(txnMgr));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = txnMgr->DoTransaction(readStateTxn);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
   }
+
   SetHasNewMessages(PR_FALSE);
+ 
   return rv;
 }
 

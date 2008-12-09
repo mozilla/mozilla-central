@@ -126,6 +126,8 @@
 #include "nsAutoSyncManager.h"
 #include "nsIMsgFilterCustomAction.h"
 #include "nsIMsgTraitService.h"
+#include "nsMsgReadStateTxn.h"
+
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
@@ -1743,7 +1745,7 @@ nsImapMailFolder::SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabe
 }
 
 NS_IMETHODIMP
-nsImapMailFolder::MarkAllMessagesRead(void)
+nsImapMailFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
 {
   nsresult rv = GetDatabase(nsnull);
   if(NS_SUCCEEDED(rv))
@@ -1757,6 +1759,27 @@ nsImapMailFolder::MarkAllMessagesRead(void)
       rv = StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, thoseMarked.Elements(),
                           thoseMarked.Length(), nsnull);
       mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+      
+      // Setup a undo-state
+      if (aMsgWindow)
+      {
+        nsRefPtr<nsMsgReadStateTxn> readStateTxn = new nsMsgReadStateTxn();    
+        if (!readStateTxn)
+          return NS_ERROR_OUT_OF_MEMORY;
+        
+        rv = readStateTxn->Init(this, thoseMarked);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        rv = readStateTxn->SetTransactionType(nsIMessenger::eMarkAllMsg);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsCOMPtr<nsITransactionManager> txnMgr;
+        rv = aMsgWindow->GetTransactionManager(getter_AddRefs(txnMgr));
+        NS_ENSURE_SUCCESS(rv, rv);
+        
+        rv = txnMgr->DoTransaction(readStateTxn);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
     }
   }
   return rv;

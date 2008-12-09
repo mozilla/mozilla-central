@@ -160,11 +160,13 @@
          valueDeleteMsg="&undoDeleteMsgCmd.label;"
          valueMoveMsg="&undoMoveMsgCmd.label;"
          valueCopyMsg="&undoCopyMsgCmd.label;"
+         valueUnmarkAllMsgs="&undoMarkAllCmd.label;"
          valueDefault="&undoDefaultCmd.label;"/>
   <command id="cmd_redo"
          valueDeleteMsg="&redoDeleteMsgCmd.label;"
          valueMoveMsg="&redoMoveMsgCmd.label;"
          valueCopyMsg="&redoCopyMsgCmd.label;"
+         valueUnmarkAllMsgs="&redoMarkAllCmd.label;"
          valueDefault="&redoDefaultCmd.label;"/>
   <command id="cmd_cut"/>
   <command id="cmd_copy"/>

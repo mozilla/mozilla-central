@@ -98,7 +98,8 @@ CPPSRCS		= \
 		nsMsgTxn.cpp \
 		nsMsgI18N.cpp \
 		nsImapMoveCoalescer.cpp \
-                nsMsgFileStream.cpp \
+		nsMsgFileStream.cpp \
+		nsMsgReadStateTxn.cpp \
 		$(NULL)
 
 EXPORTS		= \
@@ -113,6 +114,7 @@ EXPORTS		= \
 		nsMsgTxn.h \
 		nsMsgI18N.h \
 		nsImapMoveCoalescer.h \
+		nsMsgReadStateTxn.h \
 		$(NULL)
 
 EXTRA_JS_MODULES = \

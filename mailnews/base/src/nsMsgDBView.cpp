@@ -2312,7 +2312,7 @@ NS_IMETHODIMP nsMsgDBView::DoCommand(nsMsgViewCommandTypeValue command)
     break;
   case nsMsgViewCommandType::markAllRead:
     if (m_folder)
-      rv = m_folder->MarkAllMessagesRead();
+      rv = m_folder->MarkAllMessagesRead(msgWindow);
     break;
   case nsMsgViewCommandType::toggleThreadWatched:
     rv = ToggleWatched(indices,  numIndices);

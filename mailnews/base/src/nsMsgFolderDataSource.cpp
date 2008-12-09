@@ -790,7 +790,7 @@ nsMsgFolderDataSource::DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
       }
       else if((aCommand == kNC_MarkAllMessagesRead))
       {
-        rv = folder->MarkAllMessagesRead();
+        rv = folder->MarkAllMessagesRead(window);
       }
       else if ((aCommand == kNC_Compact))
       {

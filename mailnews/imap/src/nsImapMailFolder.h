@@ -268,7 +268,7 @@ public:
 
   NS_IMETHOD AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositionState aDispositionFlag);
   NS_IMETHOD MarkMessagesRead(nsIArray *messages, PRBool markRead);
-  NS_IMETHOD MarkAllMessagesRead(void);
+  NS_IMETHOD MarkAllMessagesRead(nsIMsgWindow *aMsgWindow);
   NS_IMETHOD MarkMessagesFlagged(nsIArray *messages, PRBool markFlagged);
   NS_IMETHOD MarkThreadRead(nsIMsgThread *thread);
   NS_IMETHOD SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabel);

@@ -56,6 +56,7 @@ interface nsIMessenger : nsISupports {
     const long eDeleteMsg = 1;
     const long eMoveMsg = 2;
     const long eCopyMsg = 3;
+    const long eMarkAllMsg = 4;
 
     void setDisplayCharset(in ACString aCharset);
 
