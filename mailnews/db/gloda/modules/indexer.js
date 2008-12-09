@@ -62,6 +62,9 @@ Cu.import("resource://app/modules/gloda/connotent.js");
 
 Cu.import("resource://app/modules/gloda/mimemsg.js");
 
+// Components.results does not have mailnews error codes!
+const NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE = 0x80550005;
+
 // for list comprehension fun
 function range(begin, end) {
   for (let i = begin; i < end; ++i) {
@@ -854,7 +857,7 @@ var GlodaIndexer = {
       //  might get flung around, it won't make it out to us, and will instead
       //  be permuted into an NS_ERROR_NOT_INITIALIZED.)
       catch (e if ((e.result == Cr.NS_ERROR_NOT_INITIALIZED) ||
-                   (e.result == Cr.NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE))) {
+                   (e.result == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE))) {
         // this means that we need to pend on the update.
         this._log.debug("Pending on folder load...");
         this._pendingFolderEntry = this._indexingFolder;

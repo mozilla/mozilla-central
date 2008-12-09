@@ -286,7 +286,11 @@ function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
   // either of the two return values indicate that parsing is underway and we
   //  can expect a FolderLoaded notification.
   catch (e if ((e.result == Cr.NS_ERROR_NOT_INITIALIZED) ||
-               (e.result == Cr.NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE))) {
+               // const NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE = 0x80550005
+               // (The mailnews error codes are not expose in Components.results
+               //  and we do not want to put top-level consts in here that might
+               //  break other things, since this file is not namespaced.)
+               (e.result == 0x80550005))) {
     needToWait = true;
   }
   catch (ex) {
