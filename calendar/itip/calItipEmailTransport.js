@@ -335,6 +335,7 @@ calItipEmailTransport.prototype = {
                              ? "Return-path: " + aIdentity.replyTo + "\r\n" : "") +
                             "From: " + aIdentity.email + "\r\n" +
                             "To: " + aToList + "\r\n" +
+                            "Date: " + (new Date()).toUTCString() + "\r\n" +
                             encodeMimeHeader("Subject: " + aSubject.replace(/(\n|\r\n)/, "|")) + "\r\n");
             switch (compatMode) {
                 case 1:
