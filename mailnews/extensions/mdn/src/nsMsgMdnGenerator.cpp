@@ -389,16 +389,28 @@ nsresult nsMsgMdnGenerator::CreateMdnMsg()
         if (NS_SUCCEEDED(rv))
         {
             nsString wishToSend;
+            nsString ignoreRequest;
+            nsString sendReceipt;
             PRInt32 buttonPressed = 0;
             rv = GetStringFromName(NS_LITERAL_STRING("MsgMdnWishToSend").get(),
                                    getter_Copies(wishToSend));
             NS_ENSURE_SUCCESS(rv, rv);
-            // Default the dialog to "cancel".
-            rv = dialog->ConfirmEx(nsnull, wishToSend.get(),
-                                   nsIPrompt::STD_OK_CANCEL_BUTTONS + nsIPrompt::BUTTON_POS_1_DEFAULT,
-                                   nsnull, nsnull, nsnull, nsnull, nsnull, &buttonPressed);
+            rv = GetStringFromName(NS_LITERAL_STRING("MsgMdnIgnoreRequest").get(), getter_Copies(ignoreRequest));
             NS_ENSURE_SUCCESS(rv, rv);
-            m_reallySendMdn = !buttonPressed; // "ok" is in position 0
+            rv = GetStringFromName(NS_LITERAL_STRING("MsgMdnSendReceipt").get(), getter_Copies(sendReceipt));
+            NS_ENSURE_SUCCESS(rv, rv);
+
+            // Default the dialog to "Ignore Request".
+            rv = dialog->ConfirmEx(nsnull, wishToSend.get(),
+                                   (nsIPrompt::BUTTON_POS_1_DEFAULT) +
+                                   (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
+                                   (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_1),
+                                   sendReceipt.get(), 
+                                   ignoreRequest.get(), 
+                                   nsnull, nsnull, nsnull, &buttonPressed);
+
+            NS_ENSURE_SUCCESS(rv, rv);
+            m_reallySendMdn = !buttonPressed; // "Send Receipt" is in position 0
         }
     }
     if (!m_reallySendMdn)
