@@ -94,8 +94,41 @@ function initializeDirServer() {
 var gProfileDir = initializeDirServer();
 
 // Ensure we start with a clean profile directory for all tests
-if (gProfileDir.exists())
-  gProfileDir.remove(true);
+try {
+  if (gProfileDir.exists())
+    gProfileDir.remove(true);
+}
+catch (e) {
+  // See bug 462017 - nsIFile.remove(true) intermittently fails on Mac
+  // This manual remove will hopefully enable us to debug what is happening.
+  print("Couldn't recursive remove directory: " + e);
+  print("Trying manually...");
 
+  function recursiveRemove(aDirectory) {
+    print ("Processing Directory " + aDirectory.target);
+    let entries = aDirectory.directoryEntries;
+
+    while (entries.hasMoreElements()) {
+      let entry = entries.getNext();
+
+      if (entry instanceof Ci.nsIFile) {
+        if (entry.isDirectory() &&
+            !entry.equals(aDirectory)) {
+          recursiveRemove(entry);
+        }
+
+        print("Removing " + entry.path);
+        entry.remove(false);
+      }
+    }
+  }
+
+  recursiveRemove(gProfileDir);
+  gProfileDir.remove(false);
+
+  print("...manual done");
+  // This throw is so that we know when this bug happens.
+  throw Cr.NS_ERROR_FAILURE;
+}
 // Always ensure the profile directory exists before we start the tests
 gProfileDir.create(Ci.nsIFile.DIRECTORY_TYPE, 0700);
