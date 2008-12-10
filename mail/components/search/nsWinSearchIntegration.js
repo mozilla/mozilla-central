@@ -37,112 +37,21 @@
 # ***** END LICENSE BLOCK *****
 
 #include content/searchCommon.js
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const MSG_DB_LARGE_COMMIT = 1;
 const MSG_FLAG_ATTACHMENT = 0x10000000;
 const CRLF="\r\n";
 
-// The property of the header that's used to check if a message is indexed
-const gHdrIndexedProperty = "wds_indexed";
+/**
+ * Required to access the 64-bit registry, even though we're probably a 32-bit
+ * program
+ */
+const ACCESS_WOW64_64KEY = 0x0100;
 
-// The file extension that is used for support files of this component
-const gFileExt = ".wdseml";
-
-// The pref base
-const gPrefBase = "mail.winsearch";
-
-var gWinSearchHelper;
-
-var gFoldersInCrawlScope;
-
-var gRegKeysPresent;
-
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-
-function InitWinSearchIntegration()
-{
-  this._initLogging();
-  // We're currently only enabled on Vista and above
-  var sysInfo = Cc["@mozilla.org/system-info;1"].getService(Ci.nsIPropertyBag2);
-  var windowsVersion = sysInfo.getProperty("version");
-  if (parseFloat(windowsVersion) < 6)
-  {
-    this._log.fatal("Windows version " + windowsVersion + " < 6.0");
-    return;
-  }
-
-  // enabled === undefined means that the first run hasn't occurred yet (pref isn't present).
-  // false or true means that the first run has occurred, and the user has selected
-  // the corresponding decision.
-  var enabled;
-  try {
-    enabled = gPrefBranch.getBoolPref(gPrefBase + ".enable");
-    gLastFolderIndexedUri = gPrefBranch.getCharPref(gPrefBase + ".lastFolderIndexedUri");
-  } catch (ex) {}
-
-  gWinSearchHelper = Cc["@mozilla.org/mail/windows-search-helper;1"].getService(Ci.nsIMailWinSearchHelper);
-  var serviceRunning = false;
-  try
-  {
-    serviceRunning = gWinSearchHelper.serviceRunning;
-  }
-  catch (e) {}
-  // If the service isn't running, then we should stay in backoff mode
-  if (!serviceRunning)
-  {
-    this._log.fatal("Windows Search service not running");
-    InitSupportIntegration(false);
-    return;
-  }
-
-  gFoldersInCrawlScope = gWinSearchHelper.foldersInCrawlScope;
-  gRegKeysPresent = CheckRegistryKeys();
-
-  if (enabled === undefined)
-    // First run has to be handled after the main mail window is open
-    return true;
-
-  if (enabled)
-    this._log.info("Initializing Windows Search integration");
-  InitSupportIntegration(enabled);
-}
-
-// Handles first run, once the main mail window has popped up.
-function WinSearchFirstRun(window)
-{
-  // If any of the two are not present, we need to elevate.
-  var needsElevation = !gFoldersInCrawlScope || !gRegKeysPresent;
-  var params = {in: {showUAC: needsElevation}};
-  var scope = this;
-
-  params.callback = function(enable)
-  {
-    CheckRegistryKeys();
-    if (enable && needsElevation)
-    {
-      try { scope.gWinSearchHelper.runSetup(true); }
-      catch (e) { enable = false; }
-    }
-    if (enable)
-    {
-      if (!scope.gWinSearchHelper.isFileAssociationSet)
-      {
-        try { scope.gWinSearchHelper.setFileAssociation(); }
-        catch (e) { SearchIntegration._log.warn("File association not set"); }
-      }
-      // Also set the FANCI bit to 0 for the profile directory
-      scope.gWinSearchHelper.setFANCIBit(Cc["@mozilla.org/file/directory_service;1"]
-                                         .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile),
-                                         false, true);
-    }
-    scope.gPrefBranch.setBoolPref(gPrefBase + ".enable", enable);
-    scope.InitSupportIntegration(enable);
-  }
-
-  window.openDialog("chrome://messenger/content/search/searchIntegrationDialog.xul", "",
-                    "chrome, dialog, resizable=no, centerscreen", params).focus();
-}
-
+/**
+ * All the registry keys required for integration
+ */
 const gRegKeys =
 [
   // This is the property handler
@@ -181,162 +90,257 @@ const gRegKeys =
   }
 ];
 
-// Required to access the 64-bit registry, even though we're probably a 32-bit program
-const ACCESS_WOW64_64KEY = 0x0100;
-
-// Check whether the required registry keys exist
-function CheckRegistryKeys()
+/**
+ * @namespace Windows Search-specific desktop search integration functionality
+ */
+let SearchIntegration =
 {
-  for (var i = 0; i < gRegKeys.length; i++)
+  __proto__: SearchSupport,
+
+  /// The property of the header that's used to check if a message is indexed
+  _hdrIndexedProperty: "wds_indexed",
+
+  /// The file extension that is used for support files of this component
+  _fileExt: ".wdseml",
+
+  /// The Windows Search pref base
+  _prefBase: "mail.winsearch.",
+
+  /// Helper (native) component
+  __winSearchHelper: null,
+  get _winSearchHelper()
   {
-    var regKey = Cc["@mozilla.org/windows-registry-key;1"].createInstance(Ci.nsIWindowsRegKey);
-    try {
-      regKey.open(gRegKeys[i].root, gRegKeys[i].key, regKey.ACCESS_READ | ACCESS_WOW64_64KEY);
+    if (!this.__winSearchHelper)
+      this.__winSearchHelper = Cc["@mozilla.org/mail/windows-search-helper;1"]
+                                 .getService(Ci.nsIMailWinSearchHelper);
+    return this.__winSearchHelper;
+  },
+
+  /**
+   * Whether the folders are already in the crawl scope
+   * We'll be optimistic here and assume that once the folders are in the scope,
+   * they won't be removed from it, at least while Thunderbird is open
+   */
+  __foldersInCrawlScope: false,
+  get _foldersInCrawlScope()
+  {
+    if (!this.__foldersInCrawlScope)
+      this.__foldersInCrawlScope = this._winSearchHelper.foldersInCrawlScope;
+    return this.__foldersInCrawlScope;
+  },
+
+  /**
+   * Whether all the required registry keys are present
+   * We'll be optimistic here and assume that once the registry keys have been
+   * added, they won't be removed, at least while Thunderbird is open
+   */
+  __regKeysPresent: false,
+  get _regKeysPresent()
+  {
+    if (!this.__regKeysPresent)
+    {
+      for (let i = 0; i < gRegKeys.length; i++)
+      {
+        let regKey = Cc["@mozilla.org/windows-registry-key;1"]
+                       .createInstance(Ci.nsIWindowsRegKey);
+        try {
+          regKey.open(gRegKeys[i].root, gRegKeys[i].key, regKey.ACCESS_READ |
+                                                         ACCESS_WOW64_64KEY);
+        }
+        catch (e) { return false; }
+        let valuePresent = regKey.hasValue(gRegKeys[i].name) &&
+                           (regKey.readStringValue(gRegKeys[i].name) ==
+                            gRegKeys[i].value);
+        regKey.close();
+        if (!valuePresent)
+          return false;
+      }
+      this.__regKeysPresent = true;
     }
-    catch (e) { return false; }
-    var valuePresent = regKey.hasValue(gRegKeys[i].name) &&
-                        (regKey.readStringValue(gRegKeys[i].name) == gRegKeys[i].value);
-    regKey.close();
-    if (!valuePresent)
-      return false;
-  }
-  return true;
-}
+    return true;
+  },
 
-// The stream listener to read messages
-var gStreamListener = {
-_buffer: "",
-outputFile: null,
-outputStream: null,
-unicodeConverter: null,
-// subject: null,
-message: "",
-msgHdr: null,
-mimeHdrObj: null,
-mimeHdrParamObj: null,
-
-onDoneStreamingCurMessage: function(successful)
-{
-  if (this.outputStream)
-    this.outputStream.close();
-  if (!successful && this.msgHdr)
+  _init: function winsearch_init()
   {
-    var file = GetSupportFileForMsgHdr(this.msgHdr);
-    if (file && file.exists())
-      file.remove(false);
-  }
-  // should we try to delete the file on disk in case not successful?
-  gMsgHdrsToIndex.shift();
+    this._initLogging();
+    // We're currently only enabled on Vista and above
+    let sysInfo = Cc["@mozilla.org/system-info;1"]
+                    .getService(Ci.nsIPropertyBag2);
+    let windowsVersion = sysInfo.getProperty("version");
+    if (parseFloat(windowsVersion) < 6)
+    {
+      this._log.fatal("Windows version " + windowsVersion + " < 6.0");
+      return;
+    }
 
-  if (gMsgHdrsToIndex.length > 0)
-    GenerateSupportFile(gMsgHdrsToIndex[0]);
-},
+    // enabled === undefined means that the first run hasn't occurred yet (pref
+    // isn't present).
+    // false or true means that the first run has occurred, and the user has
+    // made a decision.
+    let enabled;
+    try {
+      enabled = this._prefBranch.getBoolPref("enable");
+    } catch (ex) {}
 
-QueryInterface: function(aIId, instance) {
-  if (aIId.equals(Ci.nsIStreamListener) || aIId.equals(Ci.nsISupports))
-    return this;
+    let serviceRunning = false;
+    try {
+      serviceRunning = this._winSearchHelper.serviceRunning;
+    }
+    catch (e) {}
+    // If the service isn't running, then we should stay in backoff mode
+    if (!serviceRunning)
+    {
+      this._log.info("Windows Search service not running");
+      this._initSupport(false);
+      return;
+    }
 
-  throw Components.results.NS_ERROR_NO_INTERFACE;
-},
+    if (enabled === undefined)
+      // First run has to be handled after the main mail window is open
+      return true;
 
-onStartRequest: function(request, context) {
-  try
+    if (enabled)
+      this._log.info("Initializing Windows Search integration");
+    this._initSupport(enabled);
+  },
+
+  /// Handles first run, once the main mail window has popped up.
+  _firstRun: function winsearch_first_run(window)
   {
-    var outputFileStream =  Cc["@mozilla.org/network/file-output-stream;1"]
-      .createInstance(Ci.nsIFileOutputStream);
-    outputFileStream.init(this.outputFile, -1, -1, 0);
-    this.outputStream = Cc["@mozilla.org/intl/converter-output-stream;1"]
-      .createInstance(Ci.nsIConverterOutputStream);
-    this.outputStream.init(outputFileStream, "UTF-8", 0, 0x0000);
-  }
-  catch (ex)
+    window.openDialog(
+      "chrome://messenger/content/search/searchIntegrationDialog.xul", "",
+      "chrome, dialog, resizable=no, centerscreen", this);
+  },
+
+  /**
+   * Callback from the first run dialog
+   *
+   * @param enable whether the user has chosen to enable integration
+   */
+  callback: function winsearch_first_run_callback(enable)
   {
-    onDoneStreamingCurMessage(false);
+    // If any of the two are not present, we need to elevate.
+    if (enable && (!this._foldersInCrawlScope || !this._regKeysPresent))
+    {
+      try { this._winSearchHelper.runSetup(true); }
+      catch (e) { enable = false; }
+    }
+    if (enable)
+    {
+      if (!this._winSearchHelper.isFileAssociationSet)
+      {
+        try { this._winSearchHelper.setFileAssociation(); }
+        catch (e) { this._log.warn("File association not set"); }
+      }
+      // Also set the FANCI bit to 0 for the profile directory
+      let profD = Cc["@mozilla.org/file/directory_service;1"]
+                    .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
+      this._winSearchHelper.setFANCIBit(profD, false, true);
+    }
+    this._prefBranch.setBoolPref("enable", enable);
+    this._initSupport(enable);
+  },
+
+  /// The stream listener to read messages
+  _streamListener: {
+    __proto__: SearchSupport._streamListenerBase,
+
+    /// Buffer to store the message
+    _message: "",
+
+    onStartRequest: function(request, context) {
+      try {
+        let outputFileStream =  Cc["@mozilla.org/network/file-output-stream;1"]
+                                  .createInstance(Ci.nsIFileOutputStream);
+        outputFileStream.init(this._outputFile, -1, -1, 0);
+        this._outputStream = Cc["@mozilla.org/intl/converter-output-stream;1"]
+                               .createInstance(Ci.nsIConverterOutputStream);
+        this._outputStream.init(outputFileStream, "UTF-8", 0, 0x0000);
+      }
+      catch (ex) { this._onDoneStreaming(false); }
+    },
+
+    onStopRequest: function(request, context, status, errorMsg) {
+      try {
+        // XXX Once the JS emitter gets checked in, this code should probably be
+        // switched over to use that
+        // Decode using getMsgTextFromStream
+        let stringStream = Cc["@mozilla.org/io/string-input-stream;1"]
+                             .createInstance(Ci.nsIStringInputStream);
+        stringStream.setData(this._message, this._message.length);
+        let contentType = {};
+        let folder = this._msgHdr.folder;
+        let text = folder.getMsgTextFromStream(stringStream,
+                                               this._msgHdr.Charset, 65536,
+                                               50000, false, false,
+                                               contentType);
+
+        // To get the Received header, we need to parse the message headers.
+        // We only need the first header, which contains the latest received
+        // date
+        let headers = this._message.split(/\r\n\r\n|\r\r|\n\n/, 1)[0];
+        let mimeHeaders = Cc["@mozilla.org/messenger/mimeheaders;1"]
+                            .createInstance(Ci.nsIMimeHeaders);
+        mimeHeaders.initialize(headers, headers.length);
+        let receivedHeader = mimeHeaders.extractHeader("Received", false);
+
+        this._outputStream.writeString("From: " + this._msgHdr.author + CRLF);
+        // If we're a newsgroup, then add the name of the folder as the
+        // newsgroups header
+        if (folder instanceof Ci.nsIMsgNewsFolder)
+          this._outputStream.writeString("Newsgroups: " + folder.name + CRLF);
+        else
+          this._outputStream.writeString("To: " + this._msgHdr.recipients +
+                                         CRLF);
+        this._outputStream.writeString("CC: " + this._msgHdr.ccList + CRLF);
+        this._outputStream.writeString("Subject: " + this._msgHdr.subject +
+                                       CRLF);
+        if (receivedHeader)
+          this._outputStream.writeString("Received: " + receivedHeader + CRLF);
+        this._outputStream.writeString(
+          "Date: " + new Date(this._msgHdr.date / 1000).toUTCString() + CRLF);
+        this._outputStream.writeString("Content-Type: " + contentType.value +
+                                       "; charset=utf-8" + CRLF + CRLF);
+
+        this._outputStream.writeString(text + CRLF + CRLF);
+
+        this._msgHdr.setUint32Property(SearchIntegration._hdrIndexedProperty,
+                                       1);
+        folder.getMsgDatabase(null).Commit(MSG_DB_LARGE_COMMIT);
+
+        this._message = "";
+        SearchIntegration._log.info("Successfully written file");
+      }
+      catch (ex) {
+        SearchIntegration._log.error(ex);
+        this._onDoneStreaming(false);
+        return;
+      }
+      this._onDoneStreaming(true);
+    },
+
+    onDataAvailable: function(request, context, inputStream, offset, count) {
+      try {
+        let inStream = Cc["@mozilla.org/scriptableinputstream;1"]
+                         .createInstance(Ci.nsIScriptableInputStream);
+        inStream.init(inputStream);
+
+        // It is necessary to read in data from the input stream
+        let inData = inStream.read(count);
+
+        // Ignore stuff after the first 50K or so
+        if (this._message && this._message.length > 50000)
+          return 0;
+
+        this._message += inData;
+        return 0;
+      }
+      catch (ex) {
+        SearchIntegration._log.error(ex);
+        this._onDoneStreaming(false);
+      }
+    }
   }
-},
-
-onStopRequest: function(request, context, status, errorMsg) {
-  try
-  {
-    // XXX Once the JS emitter gets checked in, this code should probably be
-    // switched over to use that
-    // Decode using getMsgTextFromStream
-    var stringStream = Cc["@mozilla.org/io/string-input-stream;1"].
-      createInstance(Ci.nsIStringInputStream);
-    stringStream.setData(this.message, this.message.length);
-    var contentType = {};
-    var folder = this.msgHdr.folder;
-    var text = folder.getMsgTextFromStream(stringStream, this.msgHdr.charset,
-                                           65536, 50000, false, false, contentType);
-
-    // To get the Received header, we need to parse the message headers.
-    // We only need the first header, which contains the latest received date
-    var headers = this.message.split(/\r\n\r\n|\r\r|\n\n/, 1)[0];
-    var mimeHeaders = Cc["@mozilla.org/messenger/mimeheaders;1"].createInstance(Ci.nsIMimeHeaders);
-    mimeHeaders.initialize(headers, headers.length);
-    var receivedHeader = mimeHeaders.extractHeader("Received", false);
-
-    this.outputStream.writeString("From: " + this.msgHdr.author + CRLF);
-    // If we're a newsgroup, then add the name of the folder as the newsgroups header
-    if (folder instanceof Ci.nsIMsgNewsFolder)
-      this.outputStream.writeString("Newsgroups: " + folder.name + CRLF);
-    else
-      this.outputStream.writeString("To: " + this.msgHdr.recipients + CRLF);
-    this.outputStream.writeString("CC: " + this.msgHdr.ccList + CRLF);
-    this.outputStream.writeString("Subject: " + this.msgHdr.subject + CRLF);
-    if (receivedHeader)
-      this.outputStream.writeString("Received: " + receivedHeader + CRLF);
-    this.outputStream.writeString("Date: " + new Date(this.msgHdr.date / 1000).toUTCString() + CRLF);
-    this.outputStream.writeString("Content-Type: " + contentType.value + "; charset=utf-8" + CRLF + CRLF);
-
-    this.outputStream.writeString(text + CRLF + CRLF);
-
-    this.msgHdr.setUint32Property(gHdrIndexedProperty, 1);
-    var msgDB = this.msgHdr.folder.getMsgDatabase(null);
-    msgDB.Commit(MSG_DB_LARGE_COMMIT);
-
-    this.message = "";
-    SearchIntegration._log.info("Successfully written file");
-  }
-  catch (ex)
-  {
-    SearchIntegration._log.error(ex);
-    this.onDoneStreamingCurMessage(false);
-    return;
-  }
-  this.onDoneStreamingCurMessage(true);
-},
-
-onDataAvailable: function(request, context, inputStream, offset, count) {
-  try
-  {
-    var inStream = Cc["@mozilla.org/scriptableinputstream;1"].createInstance(Ci.nsIScriptableInputStream);
-    inStream.init(inputStream);
-
-    // It is necessary to read in data from the input stream
-    var inData = inStream.read(count);
-
-    // If we've already reached the attachments, safely ignore.
-    if (this.filteredAttachments)
-      return 0;
-
-    // Also ignore stuff after the first 50K or so
-    if (this.message && this.message.length > 50000)
-      return 0;
-    var inStream = Cc["@mozilla.org/scriptableinputstream;1"].
-      createInstance(Ci.nsIScriptableInputStream);
-
-    inStream.init(inputStream);
-
-    this.message += inData;
-    return 0;
-  }
-  catch (ex)
-  {
-    SearchIntegration._log.error(ex);
-    onDoneStreamingCurMessage(false);
-  }
-}
 };
 
 /* XPCOM boilerplate code */
@@ -355,7 +359,7 @@ WinSearchIntegration.prototype = {
 
   observe : function(aSubject, aTopic, aData)
   {
-    var obsSvc = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+    let obsSvc = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
     switch(aTopic)
     {
     case "app-startup":
@@ -364,7 +368,7 @@ WinSearchIntegration.prototype = {
     case "profile-after-change":
       try
       {
-        if (InitWinSearchIntegration())
+        if (SearchIntegration._init())
           obsSvc.addObserver(this, "mail-startup-done", false);
       }
       catch (err) {
@@ -374,7 +378,7 @@ WinSearchIntegration.prototype = {
     case "mail-startup-done":
       aSubject.QueryInterface(Ci.nsIDOMWindowInternal);
       obsSvc.removeObserver(this, "mail-startup-done");
-      try { WinSearchFirstRun(aSubject); }
+      try { SearchIntegration._firstRun(aSubject); }
       catch(err) { SearchIntegration._log.warn("First run unsuccessful"); }
       break;
     default:

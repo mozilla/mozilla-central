@@ -39,186 +39,170 @@
 #include content/searchCommon.js
 
 const MSG_DB_LARGE_COMMIT = 1;
-
-// The property of the header that's used to check if a message is indexed
-const gHdrIndexedProperty = "indexed";
-
-// The file extension that is used for support files of this component
-const gFileExt = ".mozeml";
-
-// The pref base
-const gPrefBase = "mail.spotlight";
+const gFileHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.\ncom/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>";
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-function InitSpotlightIntegration()
+let SearchIntegration =
 {
-  this._initLogging();
-  var enabled;
-  try {
-    enabled = gPrefBranch.getBoolPref(gPrefBase + ".enable");
-    gLastFolderIndexedUri = gPrefBranch.getCharPref(gPrefBase + ".lastFolderIndexedUri");
-  } catch (ex) {}
+  __proto__: SearchSupport,
 
-  if (enabled)
-    this._log.info("initializing spotlight integration");
-  InitSupportIntegration(enabled);
-}
+  /// The property of the header that's used to check if a message is indexed
+  _hdrIndexedProperty: "indexed",
 
-function xmlEscapeString(s)
-{
- s = s.replace(/&/g, "&amp;");
- s = s.replace(/>/g, "&gt;");
- s = s.replace(/</g, "&lt;");
- return s;
-}
+  /// The file extension that is used for support files of this component
+  _fileExt: ".mozeml",
 
-var fileHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.\ncom/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>";
+  /// The Spotlight pref base
+  _prefBase: "mail.spotlight.",
 
-var gStreamListener = {
-_buffer: "",
-outputFile: null,
-outputStream: null,
-unicodeConverter: null,
-subject: null,
-message: null,
-msgHdr:null,
-
-onDoneStreamingCurMessage: function(successful)
-{
-  if (!successful && this.msgHdr)
+  _init: function spotlight_init()
   {
-    var file = GetSupportFileForMsgHdr(this.msgHdr);
-    if (file && file.exists())
-      file.remove(false);
-  }
-  // should we try to delete the file on disk in case not successful?
-  gMsgHdrsToIndex.shift();
+    this._initLogging();
 
-  if (gMsgHdrsToIndex.length > 0)
-    GenerateSupportFile(gMsgHdrsToIndex[0]);
-},
+    let enabled;
+    try {
+      enabled = this._prefBranch.getBoolPref("enable");
+    } catch (ex) {}
 
-QueryInterface: function(aIId, instance) {
-  if (aIId.equals(Ci.nsIStreamListener) ||
-      aIId.equals(Ci.nsISupports))
-    return this;
+    if (enabled)
+      this._log.info("Initializing Spotlight integration");
+    this._initSupport(enabled);
+  },
 
-  throw Components.results.NS_ERROR_NO_INTERFACE;
-},
+  /// The stream listener to read messages
+  _streamListener: {
+    __proto__: SearchSupport._streamListenerBase,
 
-onStartRequest: function(request, context) {
-  try
-  {
+    /// Buffer to store the message
+    _message: null,
 
-    var outputFileStream =  Cc["@mozilla.org/network/file-output-stream;1"]
-      .createInstance(Ci.nsIFileOutputStream);
-    outputFileStream.init(this.outputFile, -1, -1, 0);
-    this.outputStream = outputFileStream.QueryInterface(Ci.nsIOutputStream);
-    this.outputStream.write(fileHeader, fileHeader.length);
-    this.outputStream.write("<key>kMDItemLastUsedDate</key><string>", 38);
-    // need to write the date as a string
-    var curTimeStr = new Date().toLocaleString();
-    this.outputStream.write(curTimeStr, curTimeStr.length);
-    // need to write the subject in utf8 as the title
-    this.outputStream.write("</string>\n<key>kMDItemTitle</key>\n<string>", 42);
-
-    if (!this.unicodeConverter)
+    /// Unicode converter -- used to convert strings to UTF-8
+    __unicodeConverter: null,
+    get _unicodeConverter()
     {
-      this.unicodeConverter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
-      .createInstance(Ci.nsIScriptableUnicodeConverter);
-      this.unicodeConverter.charset = "UTF-8";
+      if (!this.__unicodeConverter)
+      {
+        this.__unicodeConverter =
+          Cc["@mozilla.org/intl/scriptableunicodeconverter"]
+            .createInstance(Ci.nsIScriptableUnicodeConverter);
+        this.__unicodeConverter.charset = "UTF-8";
+      }
+      return this.__unicodeConverter;
+    },
 
+    _xmlEscapeString: function spotlight_xml_escape_string(s)
+    {
+      return s.replace(/[<>&]/g, function(s) {
+        switch (s) {
+          case "<": return "&lt;";
+          case ">": return "&gt;";
+          case "&": return "&amp;";
+          default: throw Error("Unexpected match");
+          }
+        }
+      );
+    },
+
+    /// Converts to UTF-8, and encodes reserved XML characters
+    _convertToUTF8: function spotlight_convert_to_utf8(string)
+    {
+      let utf8String = this._unicodeConverter.ConvertFromUnicode(string);
+      utf8String += this._unicodeConverter.Finish();
+      return this._xmlEscapeString(utf8String);
+    },
+
+    onStartRequest: function(request, context) {
+      try {
+        let outputFileStream = Cc["@mozilla.org/network/file-output-stream;1"]
+                               .createInstance(Ci.nsIFileOutputStream);
+        outputFileStream.init(this._outputFile, -1, -1, 0);
+        this._outputStream = outputFileStream.QueryInterface(Ci.nsIOutputStream);
+        this._outputStream.write(gFileHeader, gFileHeader.length);
+        this._outputStream.write("<key>kMDItemLastUsedDate</key><string>", 38);
+        // need to write the date as a string
+        let curTimeStr = new Date().toLocaleString();
+        this._outputStream.write(curTimeStr, curTimeStr.length);
+        // need to write the subject in utf8 as the title
+        this._outputStream.write("</string>\n<key>kMDItemTitle</key>\n<string>",
+                                 42);
+
+        let utf8Subject = this._convertToUTF8(this._msgHdr.mime2DecodedSubject);
+        this._outputStream.write(utf8Subject, utf8Subject.length);
+
+        // need to write the subject in utf8 as the title
+        this._outputStream.write(
+          "</string>\n<key>kMDItemDisplayName</key>\n<string>", 48);
+        this._outputStream.write(utf8Subject, utf8Subject.length);
+
+        this._outputStream.write(
+          "</string>\n<key>kMDItemTextContent</key>\n<string>", 48);
+        let utf8Author = this._convertToUTF8(this._msgHdr.mime2DecodedAuthor);
+        let utf8Recipients = this._convertToUTF8(
+                              this._msgHdr.mime2DecodedRecipients);
+        this._outputStream.write(utf8Author, utf8Author.length);
+        this._outputStream.write(utf8Recipients, utf8Recipients.length);
+
+        this._outputStream.write(utf8Subject, utf8Subject.length);
+        this._outputStream.write(" ", 1);
+      }
+      catch (ex) { this._onDoneStreaming(false); }
+    },
+
+    onStopRequest: function(request, context, status, errorMsg) {
+      try {
+        // we want to write out the from, to, cc, and subject headers into the
+        // Text Content value, so they'll be indexed.
+        let stringStream = Cc["@mozilla.org/io/string-input-stream;1"]
+                             .createInstance(Ci.nsIStringInputStream);
+        stringStream.setData(this._message, this._message.length);
+        let folder = this._msgHdr.folder;
+        let text = folder.getMsgTextFromStream(stringStream,
+                                               this._msgHdr.Charset, 20000,
+                                               20000, false, true, {});
+        text = this._xmlEscapeString(text);
+        SearchIntegration._log.debug("utf8 text = *****************\n"+ text);
+        this._outputStream.write(text, text.length);
+        // close out the content, dict, and plist
+        this._outputStream.write("</string>\n</dict>\n</plist>\n", 26);
+
+        this._msgHdr.setUint32Property(SearchIntegration._hdrIndexedProperty,
+                                       1);
+        folder.getMsgDatabase(null).Commit(MSG_DB_LARGE_COMMIT);
+
+        this._message = "";
+      }
+      catch (ex) {
+        SearchIntegration._log.error(ex);
+        this._onDoneStreaming(false);
+        return;
+      }
+      this._onDoneStreaming(true);
+    },
+
+    onDataAvailable: function(request, context, inputStream, offset, count) {
+      try {
+        let inStream = Cc["@mozilla.org/scriptableinputstream;1"]
+                         .createInstance(Ci.nsIScriptableInputStream);
+        inStream.init(inputStream);
+
+        // It is necessary to read in data from the input stream
+        let inData = inStream.read(count);
+
+        // ignore stuff after the first 20K or so
+        if (this._message && this._message.length > 20000)
+          return 0;
+
+        this._message += inData;
+        return 0;
+      }
+      catch (ex) {
+        SearchIntegration._log.error(ex);
+        this._onDoneStreaming(false);
+      }
     }
-    var utf8Subject  = this.unicodeConverter.ConvertFromUnicode(this.msgHdr.mime2DecodedSubject);
-    utf8Subject += this.unicodeConverter.Finish();
-    utf8Subject = xmlEscapeString(utf8Subject);
-    this.outputStream.write(utf8Subject, utf8Subject.length);
-
-    // need to write the subject in utf8 as the title
-    this.outputStream.write("</string>\n<key>kMDItemDisplayName</key>\n<string>", 48);
-    this.outputStream.write(utf8Subject, utf8Subject.length);
-
-    this.outputStream.write("</string>\n<key>kMDItemTextContent</key>\n<string>", 48);
-    var author = this.msgHdr.mime2DecodedAuthor;
-    var recipients = this.msgHdr.mime2DecodedRecipients;
-
-    var utf8Author = this.unicodeConverter.ConvertFromUnicode(author);
-    utf8Author += this.unicodeConverter.Finish() + " ";
-    utf8Author = xmlEscapeString(utf8Author);
-    var utf8Recipients = this.unicodeConverter.ConvertFromUnicode(recipients);
-    utf8Recipients += this.unicodeConverter.Finish() + " ";
-    utf8Recipients = xmlEscapeString(utf8Recipients);
-    this.outputStream.write(utf8Author, utf8Author.length);
-    this.outputStream.write(utf8Recipients, utf8Recipients.length);
-
-    this.outputStream.write(utf8Subject, utf8Subject.length);
-    this.outputStream.write(" ", 1);
   }
-  catch (ex)
-  {
-    onDoneStreamingCurMessage(false);
-  }
-},
-
-onStopRequest: function(request, context, status, errorMsg) {
-  try
-  {
-    // we want to write out the from, to, cc, and subject headers into the
-    // Text Content value, so they'll be indexed.
-
-    var stringStream = Cc["@mozilla.org/io/string-input-stream;1"].
-      createInstance(Ci.nsIStringInputStream);
-    stringStream.setData(this.message, this.message.length);
-    var temp = this.msgHdr.folder.getMsgTextFromStream(stringStream, this.msgHdr.Charset, 20000, 20000, false, true, {});
-    temp = xmlEscapeString(temp);
-    SearchIntegration._log.debug("utf8 text = *****************\n"+ temp);
-    this.outputStream.write(temp, temp.length);
-    // close out the content, dict, and plist
-    this.outputStream.write("</string>\n</dict>\n</plist>\n", 26);
-
-    this.outputStream.close();
-   // this.outputFile.
-    this.msgHdr.setUint32Property(gHdrIndexedProperty, 1);
-    var msgDB = this.msgHdr.folder.getMsgDatabase(null);
-    msgDB.Commit(MSG_DB_LARGE_COMMIT);
-
-    this.message = "";
-  }
-  catch (ex)
-  {
-    dump(ex);
-    this.onDoneStreamingCurMessage(false);
-    return;
-  }
-  this.onDoneStreamingCurMessage(true);
-},
-
-onDataAvailable: function(request, context, inputStream, offset, count) {
-  try
-  {
-    var inStream = Cc["@mozilla.org/scriptableinputstream;1"]
-      .createInstance(Ci.nsIScriptableInputStream);
-    inStream.init(inputStream);
-
-    // It is necessary to read in data from the input stream
-    var inData = inStream.read(count);
-
-    // ignore stuff after the first 20K or so
-    if (this.message && this.message.length > 20000)
-      return 0;
-
-    this.message += inData;
-    return 0;
-  }
-  catch (ex)
-  {
-    dump(ex);
-    onDoneStreamingCurMessage(false);
-  }
-}
-
-}
+};
 
 /* XPCOM boilerplate code */
 function SpotlightIntegration() { }
@@ -239,11 +223,11 @@ SpotlightIntegration.prototype = {
     switch(aTopic)
     {
     case "app-startup":
-      var obsSvc = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+      let obsSvc = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
       obsSvc.addObserver(this, "profile-after-change", false);
     break;
     case "profile-after-change":
-      try { InitSpotlightIntegration(); }
+      try { SearchIntegration._init(); }
       catch(err) {
         SearchIntegration._log.error("Could not initialize spotlight component");
       }
