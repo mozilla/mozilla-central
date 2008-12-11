@@ -38,7 +38,7 @@
 
 const kNonVcardFields =
         ["nickNameContainer", "secondaryEmailContainer", "screenNameContainer",
-         "homeAddressGroup", "customFields", "allowRemoteContent"];
+         "customFields", "allowRemoteContent"];
 
 const kPhoneticFields =
         ["PhoneticLastName", "PhoneticLabel1", "PhoneticSpacer1",
@@ -477,6 +477,7 @@ function GetCardValues(cardproperty, doc)
 // by vCard so the user does not try to edit them.
 function HideNonVcardFields()
 {
+  document.getElementById("homeTabButton").hidden = true;
   for (var i = kNonVcardFields.length; i-- > 0; )
     document.getElementById(kNonVcardFields[i]).collapsed = true;
 }

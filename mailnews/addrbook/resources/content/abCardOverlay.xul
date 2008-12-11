@@ -54,10 +54,11 @@
 <vbox id="editcard">
   <tabbox>
     <tabs id="abTabs">
-      <tab label="&Contact.tab;" accesskey="&Contact.accesskey;"/>
-      <tab label="&Home.tab;" accesskey="&Home.accesskey;"/>
-      <tab label="&Work.tab;" accesskey="&Work.accesskey;"/>
-      <tab label="&Other.tab;" accesskey="&Other.accesskey;"/>
+      <tab id="contactTabButton" label="&Contact.tab;"
+           accesskey="&Contact.accesskey;"/>
+      <tab id="homeTabButton" label="&Home.tab;" accesskey="&Home.accesskey;"/>
+      <tab id="workTabButton" label="&Work.tab;" accesskey="&Work.accesskey;"/>
+      <tab id="otherTabButton" label="&Other.tab;" accesskey="&Other.accesskey;"/>
     </tabs>
 
     <tabpanels id="abTabPanels" flex="1">
