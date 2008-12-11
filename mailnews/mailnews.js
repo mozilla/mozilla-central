@@ -343,7 +343,7 @@ pref("ldap_2.servers.default.attrmap.PrimaryEmail", "mail");
 pref("ldap_2.servers.default.attrmap.SecondEmail", "mozillaSecondEmail,xmozillasecondemail");
 pref("ldap_2.servers.default.attrmap.WorkPhone", "telephoneNumber");
 pref("ldap_2.servers.default.attrmap.HomePhone", "homePhone");
-pref("ldap_2.servers.default.attrmap.FaxNumber", "fax,facsimiletelephonenumber");
+pref("ldap_2.servers.default.attrmap.FaxNumber", "facsimiletelephonenumber,fax");
 pref("ldap_2.servers.default.attrmap.PagerNumber", "pager,pagerphone");
 pref("ldap_2.servers.default.attrmap.CellularNumber", "mobile,cellphone,carphone");
 pref("ldap_2.servers.default.attrmap.WorkAddress", "street,streetaddress,postOfficeBox");
