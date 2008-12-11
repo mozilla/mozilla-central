@@ -229,10 +229,10 @@ function CompFields2Recipients(msgCompFields)
       }
     }
     if(msgCC)
-      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgCC, false, {}),
+      awSetInputAndPopupFromArray(msgCompFields.splitRecipients(msgCC, false, {}),
                                   "addr_cc", newListBoxNode, templateNode);
     if(msgBCC)
-      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgBCC, false, {}),
+      awSetInputAndPopupFromArray(msgCompFields.splitRecipients(msgBCC, false, {}),
                                   "addr_bcc", newListBoxNode, templateNode);
     if(msgRandomHeaders)
       awSetInputAndPopup(msgRandomHeaders, "addr_other", newListBoxNode, templateNode);
