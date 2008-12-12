@@ -119,6 +119,7 @@ function SetButtons()
   var enable = document.getElementById(prefString).value;
   EnableElementById("exceptionsButton", enable, false);
   EnableElementById("displayIcon", enable, false);
+  EnableElementById("displayPopupsNotification", enable, false);
 
   var element = document.getElementById("playSound");
   EnableElement(element, enable, false);
