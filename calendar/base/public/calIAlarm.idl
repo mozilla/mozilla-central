@@ -42,7 +42,7 @@ interface nsISimpleEnumerator;
 interface calIDateTime;
 interface calIDuration;
 interface calIItemBase;
-interface calIcalComponent;
+interface calIIcalComponent;
 
 [scriptable, uuid(b8db7c7f-c168-4e11-becb-f26c1c4f5f8f)]
 interface calIAlarm : nsISupports
@@ -61,6 +61,11 @@ interface calIAlarm : nsISupports
      * Make a copy of this alarm. The returned alarm will be mutable.
      */
     calIAlarm clone();
+
+    /**
+     * A hash id to uniquely identify the alarm
+     */
+    readonly attribute AUTF8String hashId;
 
     /**
      * The item this alarm is related to
@@ -102,21 +107,21 @@ interface calIAlarm : nsISupports
     attribute unsigned long related;
 
     /**
+     * The alarm is absolute and is therefore not related to either.
+     */
+    const unsigned long ALARM_RELATED_ABSOLUTE = 0;
+
+    /**
      * The alarm's offset should be based off of the startDate or
      * entryDate (for events and tasks, respectively)
      */
-    const unsigned long ALARM_RELATED_START = 0;
+    const unsigned long ALARM_RELATED_START = 1;
 
     /**
      * the alarm's offset should be based off of the endDate or
      * dueDate (for events and tasks, respectively)
      */
-    const unsigned long ALARM_RELATED_END = 1;
-
-    /**
-     * The last time this alarm was fired and acknowledged by the user
-     */
-    attribute calIDateTime lastAck;
+    const unsigned long ALARM_RELATED_END = 2;
 
     /**
      * Times the alarm should be repeated. This value is the number of
@@ -167,6 +172,11 @@ interface calIAlarm : nsISupports
     // TODO void deleteAttachment(in AUTF8String aAttachment);
 
     /**
+     * The human readable representation of this alarm. Uses locale strings.
+     */
+    AUTF8String toString();
+
+    /**
      * The ical representation of this VALARM
      */
     attribute AUTF8String icalString;
@@ -174,7 +184,7 @@ interface calIAlarm : nsISupports
     /**
      * The ical component of this VALARM
      */
-    attribute calIcalComponent icalComponent;
+    attribute calIIcalComponent icalComponent;
 
     // Property bag
     boolean hasProperty(in AUTF8String name);
