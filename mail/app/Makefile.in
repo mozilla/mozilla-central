@@ -304,8 +304,8 @@ install::
 endif
 
 ifneq (,$(filter-out OS2 WINNT Darwin,$(OS_ARCH)))
-thunderbird:: mozilla.in Makefile.in Makefile $(DEPTH)/config/autoconf.mk
-	cat $< | sed -e "s|%MOZAPPDIR%|$(mozappdir)|" \
+thunderbird:: $(topsrcdir)/mozilla/build/unix/mozilla.in Makefile.in Makefile $(DEPTH)/config/autoconf.mk
+	cat $< | sed -e "s|%MOZAPPDIR%|$(installdir)|" \
 		-e "s|%MOZ_APP_DISPLAYNAME%|$(MOZ_APP_DISPLAYNAME)|" > $@
 	chmod +x $@
 
