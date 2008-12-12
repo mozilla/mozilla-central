@@ -258,6 +258,7 @@ protected:
   
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kTotalUnreadMessagesAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kBiffStateAtom;
+  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kNewMailReceivedAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kNewMessagesAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kInVFEditSearchScopeAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) kNumNewBiffMessagesAtom;

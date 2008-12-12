@@ -119,6 +119,7 @@ nsIAtom* nsMsgDBFolder::mJunkStatusChangedAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kTotalMessagesAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kFolderSizeAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kBiffStateAtom=nsnull;
+nsIAtom* nsMsgDBFolder::kNewMailReceivedAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kNewMessagesAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kInVFEditSearchScopeAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kNumNewBiffMessagesAtom=nsnull;
@@ -154,6 +155,7 @@ const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
   { "DeleteOrMoveMsgFailed", &nsMsgDBFolder::mDeleteOrMoveMsgFailedAtom },
   { "JunkStatusChanged", &nsMsgDBFolder::mJunkStatusChangedAtom },
   { "BiffState", &nsMsgDBFolder::kBiffStateAtom },
+  { "NewMailReceived", &nsMsgDBFolder::kNewMailReceivedAtom },
   { "NewMessages", &nsMsgDBFolder::kNewMessagesAtom },
   { "inVFEditSearchScope", &nsMsgDBFolder::kInVFEditSearchScopeAtom },
   { "NumNewBiffMessages", &nsMsgDBFolder::kNumNewBiffMessagesAtom },
@@ -4079,9 +4081,10 @@ NS_IMETHODIMP nsMsgDBFolder::SetBiffState(PRUint32 aBiffState)
   nsresult rv = GetServer(getter_AddRefs(server));
   if (NS_SUCCEEDED(rv) && server)
     rv = server->GetBiffState(&oldBiffState);
-    // Get the server and notify it and not inbox.
+
   if (oldBiffState != aBiffState)
   {
+    // Get the server and notify it and not inbox.
     if (!mIsServer)
     {
       nsCOMPtr<nsIMsgFolder> folder;
@@ -4091,7 +4094,13 @@ NS_IMETHODIMP nsMsgDBFolder::SetBiffState(PRUint32 aBiffState)
     }
     if (server)
       server->SetBiffState(aBiffState);
+
     NotifyIntPropertyChanged(kBiffStateAtom, oldBiffState, aBiffState);
+  }
+  else if (aBiffState == oldBiffState && aBiffState == nsMsgBiffState_NewMail)
+  {
+    // biff is already set, but notify that there is additional new mail for the folder
+    NotifyIntPropertyChanged(kNewMailReceivedAtom, 0, mNumNewBiffMessages);
   }
   else if (aBiffState == nsMsgBiffState_NoMail)
   {
