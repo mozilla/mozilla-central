@@ -147,6 +147,13 @@
         ]]></body>
       </method>
     </implementation>
+    <handlers>
+      <handler event="draggesture" phase="capturing"><![CDATA[
+        invokeEventDragSession(this.mAllDayItem.occurrence.clone(), this);
+        event.stopPropagation();
+        event.preventDefault();
+      ]]></handler>
+    </handlers>
   </binding>
 
   <binding id="agenda-richlist-item"
@@ -200,5 +207,10 @@
         ]]></body>
       </method>
     </implementation>
+    <handlers>
+      <handler event="draggesture"><![CDATA[
+        invokeEventDragSession(this.mOccurrence.clone(), this);
+      ]]></handler>
+    </handlers>
   </binding>
 </bindings>

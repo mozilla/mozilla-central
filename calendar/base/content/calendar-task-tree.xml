@@ -1125,29 +1125,7 @@
           ASSERT(false, "Error while building selection region: " + ex + "\n");
           region = null;
         }
-
-        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
-                          getService(Components.interfaces.nsIDragService);
-        var transfer = Components.classes["@mozilla.org/widget/transferable;1"].
-                       createInstance(Components.interfaces.nsITransferable);
-        transfer.addDataFlavor("text/calendar");
-
-        var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"].
-                                    createInstance(Components.interfaces.calIIcsSerializer);
-        serializer.addItems([item], 1);
-
-        var supportsString = Components.classes["@mozilla.org/supports-string;1"].
-                             createInstance(Components.interfaces.nsISupportsString);
-        supportsString.data = serializer.serializeToString();
-        transfer.setTransferData("text/calendar", supportsString, supportsString.data.length*2);
-        transfer.setTransferData("text/unicode", supportsString, supportsString.data.length*2);
-
-        var action = dragService.DRAGDROP_ACTION_MOVE;
-        var supArray = Components.classes["@mozilla.org/supports-array;1"].
-                       createInstance(Components.interfaces.nsISupportsArray);
-        supArray.AppendElement(transfer);
-
-        dragService.invokeDragSession(event.target, supArray, region, action);
+        invokeEventDragSession(item, event.target);
       ]]></handler>
     </handlers>
 

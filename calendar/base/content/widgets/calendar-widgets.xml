@@ -349,7 +349,7 @@
               if (session) {
                   session.canDrop = true;
                   if (aVal == "true") {
-                      this.mDropShadows = [session.sourceNode.occurrence];
+                      this.mDropShadows = [session.sourceNode.sourceObject];
                       this.addDropShadows();
                   } else {
                       this.removeDropShadows();
@@ -387,7 +387,7 @@
       <handler event="dragdrop"><![CDATA[
          event.stopPropagation();
          let session = cal.getDragService().getCurrentSession();
-         let item = session.sourceNode.occurrence.clone();
+         let item = session.sourceNode.sourceObject.clone();
          this.setAttribute("dropbox", "false");
          let transfer = Components.classes["@mozilla.org/widget/transferable;1"].
                         createInstance(Components.interfaces.nsITransferable);
@@ -404,10 +404,10 @@
          // sourceNode property and get the event that way
          //transfer.getAnyTransferData(flavor, data, {});
 
-         if (!session.sourceNode || !session.sourceNode.occurrence) {
+         if (!session.sourceNode || !session.sourceNode.sourceObject) {
              return;
          }
-         let item = session.sourceNode.occurrence;
+         let item = session.sourceNode.sourceObject;
          let newItem = this.onDropItem(item, session).clone();
          let newStart = newItem.startDate || newItem.entryDate;
          let newEnd = newItem.endDate || newItem.dueDate;
