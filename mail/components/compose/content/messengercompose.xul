@@ -611,7 +611,7 @@
   </toolbarpalette>
   <toolbar id="composeToolbar2" class="toolbar-primary chromeclass-toolbar"
            toolbarname="&showCompositionToolbarCmd.label;"
-           accesskey="&showCompositionToolbarCmd.label;"
+           accesskey="&showCompositionToolbarCmd.accesskey;"
            fullscreentoolbar="true" mode="full"
 #ifdef XP_MACOSX
            defaultset="button-send,separator,button-address,spellingButton,button-attach,button-security,button-save,spring,throbber-box"

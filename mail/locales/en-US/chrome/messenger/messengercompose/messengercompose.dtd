@@ -92,6 +92,7 @@
 <!ENTITY viewToolbarsMenuNew.label "Toolbars"> 
 <!ENTITY viewToolbarsMenuNew.accesskey "T"> 
 <!ENTITY showCompositionToolbarCmd.label "Composition Toolbar">
+<!ENTITY showCompositionToolbarCmd.accesskey "o">
 <!ENTITY showFormattingBarCmd.label "Formatting Bar">
 <!ENTITY showFormattingBarCmd.accesskey "F">
 <!ENTITY showTaskbarCmd.label "Status Bar">
