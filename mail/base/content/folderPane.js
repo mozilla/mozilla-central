@@ -1058,8 +1058,9 @@ let gFolderTreeController = {
     // Make sure we actually can create subfolders
     if (!folder.canCreateSubfolders) {
       // Check if we can create them at the root
-      if (folder.rootMsgFolder.canCreateSubfolders)
-        folder = folder.rootMsgFolder;
+      let rootMsgFolder = folder.server.rootMsgFolder;
+      if (rootMsgFolder.canCreateSubfolders)
+        folder = rootMsgFolder;
       else // just use the default account
         folder = GetDefaultAccountRootFolder();
     }
