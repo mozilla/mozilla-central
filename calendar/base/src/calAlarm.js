@@ -674,35 +674,30 @@ calAlarm.prototype = {
             let localeUnitString = calGetString("calendar-alarms", unit);
             let unitString = PluralForm.get(alarmlen, localeUnitString)
                                        .replace("#1", alarmlen);
+            let originStringName = "reminderCustomOrigin";
 
             // Origin
-            let originString;
             switch (this.related) {
                 case Components.interfaces.calIAlarm.ALARM_RELATED_START:
-                    originString = calGetString("calendar-alarms",
-                                                getItemBundleStringName("reminderCustomOriginBegin"));
+                    originStringName += "Begin";
                     break;
                 case Components.interfaces.calIAlarm.ALARM_RELATED_END:
-                    originString = calGetString("calendar-alarms",
-                                                getItemBundleStringName("reminderCustomOriginEnd"));
-
+                    originStringName += "End";
                     break;
             }
 
-            let relationString;
             if (this.offset.isNegative) {
-                relationString = calGetString("calendar-alarms",
-                                              "reminderCustomRelationBefore");
+                originStringName += "Before";
             } else {
-                relationString = calGetString("calendar-alarms",
-                                              "reminderCustomRelationAfter");
+                originStringName += "After";
             }
 
+            let originString = calGetString("calendar-alarms",
+                                            getItemBundleStringName(originStringName));
             return calGetString("calendar-alarms",
                                 "reminderCustomTitle",
-                                [unitString,
-                                 relationString,
-                                 originString]);
+                                [unitString, originString]);
+                                
         }
     }
 };
