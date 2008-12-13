@@ -103,8 +103,8 @@ function doHelpButton()
 function GetServerType()
 {
   var serverType = null;
-  var idStruct = getServerAndPageIdFromTree();
-  if (idStruct.account)
-    serverType = idStruct.account.incomingServer.type;
+  var currentAccount = parent.getCurrentAccount();
+  if (currentAccount)
+    serverType = currentAccount.incomingServer.type;
   return serverType;
 }
