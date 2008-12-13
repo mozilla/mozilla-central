@@ -274,11 +274,13 @@
             <!-- NOTE: This datepicker is modified.
                  See abCardOverlay.js for details-->
             <datepicker id="Birthday" type="popup"/>
+            <label value="&In.label;"/>
             <textbox id="BirthYear" maxlength="4"
                      emptytext="&Year.emptytext;" class="YearWidth" />
-            <label control="Age" value="&Or.value;" disabled="true"/>
+            <label control="Age" value="&Or.value;"/>
             <textbox id="Age" maxlength="4"
                      emptytext="&Age.emptytext;" class="YearWidth" />
+            <label value="&YearsOld.label;"/>
             <spacer flex="1"/>
           </hbox>
         </hbox>

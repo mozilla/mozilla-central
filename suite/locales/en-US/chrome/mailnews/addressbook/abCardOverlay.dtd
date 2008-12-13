@@ -116,9 +116,11 @@ images in HTML messages from this contact.">
 <!ENTITY HomeWebPage.accesskey          "e">
 <!ENTITY Birthday.label                 "Birthday:">
 <!ENTITY Birthday.accesskey             "B">
+<!ENTITY In.label                       "">
 <!ENTITY Year.emptytext                 "Year">
 <!ENTITY Or.value                       "or">
 <!ENTITY Age.emptytext                  "Age">
+<!ENTITY YearsOld.label                 "">
 
 <!ENTITY Work.tab                       "Work">
 <!ENTITY Work.accesskey                 "W">
