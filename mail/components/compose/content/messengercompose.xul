@@ -322,7 +322,8 @@
                         label="&newMessage.label;" accesskey="&newMessage.accesskey;"
                         key="key_newMessage2" oncommand="goOpenNewMessage();"/>
               <menuseparator/>
-              <menuitem label="&newCard.label;" accesskey="&newCard.accesskey;"
+              <menuitem label="&newContact.label;"
+                        accesskey="&newContact.accesskey;"
                         oncommand="window.openDialog('chrome://messenger/content/addressbook/abNewCardDialog.xul', '', 'chrome,resizable=no,titlebar,modal');"/>
             </menupopup>
           </menu>

@@ -121,8 +121,8 @@
     <command id="cmd_paste" oncommand="goDoCommand('cmd_paste')" disabled="true"/>
     <command id="cmd_delete" oncommand="goDoCommand('cmd_delete')"
              valueAddressBook="&deleteAbCmd.label;"
-             valueCard="&deleteCardCmd.label;"
-             valueCards="&deleteCardsCmd2.label;"
+             valueCard="&deleteContactCmd.label;"
+             valueCards="&deleteContactsCmd.label;"
              valueList="&deleteListCmd.label;"
              valueLists="&deleteListsCmd.label;"
              valueItems="&deleteItemsCmd.label;"
@@ -151,9 +151,11 @@
 #else
   <key id="key_newMessage" key="&newMessageCmd.key;" modifiers="accel" oncommand="AbNewMessage()"/>
 #endif
-  <key id="key_newCard" key="&newCard.key;" modifiers="accel" oncommand="AbNewCard();"/>
+  <key id="key_newCard" key="&newContact.key;" modifiers="accel"
+       oncommand="AbNewCard();"/>
 
-  <key id="key_printCard" key="&printCardViewCmd.key;" command="cmd_printcard" modifiers="accel"/>
+  <key id="key_printCard" key="&printContactCmd.key;" command="cmd_printcard"
+       modifiers="accel"/>
   <key id="key_close" key="&closeCmd.key;" modifiers="accel" oncommand="AbClose()"/>
 
   <!-- Edit Menu -->
@@ -197,30 +199,28 @@
 
 <popup id="dirTreeContext">
   <menuitem id="dirTreeContext-properties"
-            label="&editButton.label;"
-            accesskey="&editButton.accesskey;"
+            label="&editButton2.label;"
+            accesskey="&editButton2.accesskey;"
             oncommand="goDoCommand('button_edit');"/>
   <menuseparator/>
-  <menuitem id="dirTreeContext-newcard"
-            label="&newcardButton.label;"
-            accesskey="&newcardButton.accesskey;"
-            oncommand="AbNewCard();"/>
+  <menuitem id="dirTreeContext-newcard" label="&newContactButton.label;"
+            accesskey="&newContactButton.accesskey;" oncommand="AbNewCard();"/>
   <menuitem id="dirTreeContext-newlist"
             label="&newlistButton.label;"
             accesskey="&newlistButton.accesskey;"
             command="cmd_newlist"/>
   <menuseparator/>
   <menuitem id="dirTreeContext-delete"
-            label="&deleteButton.label;"
-            accesskey="&deleteButton.accesskey;"
+            label="&deleteButton2.label;"
+            accesskey="&deleteButton2.accesskey;"
             observes="button_delete"
             oncommand="goDoCommand('button_delete');"/>
 </popup>
 
 <popup id="abResultsTreeContext">
   <menuitem id="abResultsTreeContext-properties"
-            label="&editButton.label;"
-            accesskey="&editButton.accesskey;"
+            label="&editButton2.label;"
+            accesskey="&editButton2.accesskey;"
             oncommand="goDoCommand('button_edit');"/>
   <menuseparator/>
   <menuitem id="abResultsTreeContext-newmessage"
@@ -233,8 +233,8 @@
             oncommand="AbIMSelected()"/>
   <menuseparator/>
   <menuitem id="abResultsTreeContext-delete"
-            label="&deleteButton.label;"
-            accesskey="&deleteButton.accesskey;"
+            label="&deleteButton2.label;"
+            accesskey="&deleteButton2.accesskey;"
             observes="button_delete"
             oncommand="goDoCommand('button_delete');"/>
 </popup>
@@ -267,7 +267,9 @@
 #endif
                 <menu id="menu_New" label="&newMenu.label;" accesskey="&newMenu.accesskey;">
                     <menupopup id="menu_NewPopup">
-                      <menuitem label="&newCard.label;" accesskey="&newCard.accesskey;" key="key_newCard" oncommand="AbNewCard();"/>
+                      <menuitem label="&newContact.label;"
+                                accesskey="&newContact.accesskey;"
+                                key="key_newCard" oncommand="AbNewCard();"/>
                       <menuitem label="&newListCmd.label;" accesskey="&newListCmd.accesskey;" command="cmd_newlist"/>
                       <menuitem label="&newAddressBookCmd.label;" accesskey="&newAddressBookCmd.accesskey;" oncommand="AbNewAddressBook()"/>
                       <menuitem label="&newLDAPDirectoryCmd.label;" id="addLDAP" accesskey="&newLDAPDirectoryCmd.accesskey;" oncommand="AbNewLDAPDirectory()"/>
@@ -286,10 +288,15 @@
 #endif
                 <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" oncommand="PrintUtils.showPageSetup()"/>
 #ifndef XP_MACOSX
-                <menuitem id="printPreviewMenuItem" label="&printPreviewCardViewCmd.label;" accesskey="&printPreviewCardViewCmd.accesskey;" command="cmd_printcardpreview"/>
+                <menuitem id="printPreviewMenuItem"
+                          label="&printPreviewContactCmd.label;"
+                          accesskey="&printPreviewContactCmd.accesskey;"
+                          command="cmd_printcardpreview"/>
                 <menuitem id="printPreviewAddressBook" label="&printPreviewAddressBook.label;" accesskey="&printPreviewAddressBook.accesskey;" oncommand="AbPrintPreviewAddressBook()"/>
 #endif
-                <menuitem id="printMenuItem" label="&printCardViewCmd.label;" accesskey="&printCardViewCmd.accesskey;" key="key_printCard" command="cmd_printcard"/>
+                <menuitem id="printMenuItem" label="&printContactCmd.label;"
+                          accesskey="&printContactCmd.accesskey;"
+                          key="key_printContact" command="cmd_printcard"/>
                 <menuitem id="printAddressBook" label="&printAddressBook.label;" accesskey="&printAddressBook.accesskey;" oncommand="AbPrintAddressBook()"/>
                 <menuseparator id="menu_FileCloseSeparator"/>
                 <menuitem id="menu_close"
@@ -383,8 +390,8 @@
                           type="checkbox" checked="true"/>
                 <menuseparator id="viewMenuAfterTaskbarSeparator"/>
                 <menuitem id="menu_showCardPane"
-                          label="&showCardPane.label;"
-                          accesskey="&showCardPane.accesskey;"
+                          label="&showContactPane.label;"
+                          accesskey="&showContactPane.accesskey;"
                           oncommand="goToggleSplitter('results-splitter', 'menu_showCardPane')"
                           checked="true" type="checkbox"/>
                 <menuseparator/>
@@ -515,12 +522,20 @@
   </toolbar>
   
   <toolbarpalette id="AddressBookToolbarPalette">
-      <toolbarbutton class="toolbarbutton-1" id="button-newcard" label="&newcardButton.label;" tooltiptext="&newcardButton.tooltip;" oncommand="AbNewCard();"/>
+      <toolbarbutton class="toolbarbutton-1" id="button-newcard"
+                     label="&newContactButton.label;" oncommand="AbNewCard();"
+                     tooltiptext="&newContactButton.tooltip;"/>
       <toolbarbutton class="toolbarbutton-1" id="button-newlist" label="&newlistButton.label;" tooltiptext="&newlistButton.tooltip;" command="cmd_newlist"/>
-      <toolbarbutton class="toolbarbutton-1" id="button-editcard" label="&editButton.label;" tooltiptext="&editButton.tooltip;" oncommand="goDoCommand('button_edit');"/>
+      <toolbarbutton class="toolbarbutton-1" id="button-editcard"
+                     label="&editButton2.label;"
+                     tooltiptext="&editButton2.tooltip;"
+                     oncommand="goDoCommand('button_edit');"/>
       <toolbarbutton class="toolbarbutton-1" id="button-newmessage" label="&newmsgButton.label;" tooltiptext="&newmsgButton.tooltip;" oncommand="AbNewMessage();"/>
       <toolbarbutton class="toolbarbutton-1" id="button-newim" label="&newIM.label;" tooltiptext="&newIM.tooltip;" oncommand="AbIMSelected();"/>
-      <toolbarbutton class="toolbarbutton-1" id="button-abdelete" observes="button_delete" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" oncommand="goDoCommand('button_delete');"/>
+      <toolbarbutton class="toolbarbutton-1" id="button-abdelete"
+                     observes="button_delete" label="&deleteButton2.label;"
+                     tooltiptext="&deleteButton2.tooltip;"
+                     oncommand="goDoCommand('button_delete');"/>
 
       <toolbaritem id="throbber-box" title="&throbberItem.title;" align="center" pack="center">
         <button id="navigator-throbber" disabled="true"/>

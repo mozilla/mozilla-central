@@ -451,7 +451,7 @@ function SetStatusText(total)
       }
     }
     else
-      statusText = gAddressBookBundle.getFormattedString("totalCardStatus", [gAbView.directory.dirName, total]);
+      statusText = gAddressBookBundle.getFormattedString("totalContactStatus", [gAbView.directory.dirName, total]);
 
     gStatusText.setAttribute("label", statusText);
   }
