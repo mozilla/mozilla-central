@@ -109,12 +109,12 @@
 
     <groupbox id="pluginPreferences" hidden="true">
       <caption label="&enablePlugin.label;"/>
-      <!-- mailnews will add its checkbox here using overlay (mailPrefOverlay.xul).
+      <!-- mailnews will add its checkbox here using overlay (mailPrefsOverlay.xul).
       -->
+    </groupbox>
 
-      <separator id="pluginPreferencesSeparator"/>
-
-      <description id="whenPluginsRequired">&whenPluginsRequired.description;</description>
+    <groupbox id="pluginsNotificationPref">
+      <caption label="&whenPluginsRequired.label;"/>
 
       <checkbox id="displayPluginsNotification"
                 label="&displayNotification.label;"

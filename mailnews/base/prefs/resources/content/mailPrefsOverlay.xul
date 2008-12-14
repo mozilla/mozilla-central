@@ -36,7 +36,6 @@
   <!-- plugin toggle for mail/news -->
   <groupbox id="pluginPreferences" hidden="false">
     <checkbox id="pluginAllowMailNews"
-              insertbefore="pluginPreferencesSeparator"
               label="&enbPluginCheckMailNews.label;"
               accesskey="&enbPluginCheckMailNews.accesskey;"
               preference="mailnews.message_display.allow.plugins"/>
