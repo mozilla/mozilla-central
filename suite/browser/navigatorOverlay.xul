@@ -238,26 +238,20 @@
 
   <!-- bookmarks template -->
   <template id="bookmarksMenuTemplate" xmlns:nc="http://home.netscape.com/NC-rdf#">
+    <!-- don't generate children of bookmark group menuitems -->
+    <rule parent="menuitem"/>
     <rule parent="hbox" rdf:type="http://home.netscape.com/NC-rdf#BookmarkSeparator">
-      <toolbarseparator uri="rdf:*"
-                        rdf:type="rdf:http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+      <toolbarseparator uri="rdf:*"/>
     </rule>
-    <!-- yes, the type attribute is necessary otherwise all leaves are 
-         treated as containers for some reason -->
-    <rule parent="hbox" iscontainer="true"
-          nc:FolderGroup="true">
-      <toolbarbutton class="bookmark-item bookmark-group" uri="rdf:*" xulcontentsgenerated="true" 
+    <rule parent="hbox" iscontainer="true" nc:FolderGroup="true">
+      <toolbarbutton class="bookmark-item bookmark-group" uri="rdf:*"
                      group="true"
-                     container="false"
-                     rdf:type="http://home.netscape.com/NC-rdf#Folder"
                      label="rdf:http://home.netscape.com/NC-rdf#Name"/>
     </rule>
-    <rule parent="hbox" iscontainer="true" isempty="true"
-          rdf:type="http://home.netscape.com/NC-rdf#Folder">
+    <rule parent="hbox" iscontainer="true" isempty="true">
       <toolbarbutton type="menu" editable="true" class="bookmark-item"
                      image="rdf:http://home.netscape.com/NC-rdf#Icon"
                      validate="never"
-                     rdf:type="http://home.netscape.com/NC-rdf#Folder"
                      uri="rdf:*" label="rdf:http://home.netscape.com/NC-rdf#Name">
         <menupopup>
           <menuitem label="&emptyItem.label;" disabled="true"/>
@@ -268,7 +262,6 @@
       <toolbarbutton type="menu" class="bookmark-item" uri="rdf:*" editable="true"
                      image="rdf:http://home.netscape.com/NC-rdf#Icon"
                      validate="never"
-                     rdf:type="http://home.netscape.com/NC-rdf#Folder"
                      label="rdf:http://home.netscape.com/NC-rdf#Name">
         <menupopup context="bookmarks-context-menu"/>
       </toolbarbutton>
@@ -278,7 +271,6 @@
                      image="rdf:http://home.netscape.com/NC-rdf#Icon"
                      validate="never"
                      status="rdf:http://home.netscape.com/WEB-rdf#status"
-                     rdf:type="http://home.netscape.com/NC-rdf#Bookmark"
                      statustext="rdf:http://home.netscape.com/NC-rdf#URL"
                      label="rdf:http://home.netscape.com/NC-rdf#Name"/>
     </rule>
@@ -287,12 +279,10 @@
         <menuitem class="menuitem-iconic bookmark-group" 
                   label="rdf:http://home.netscape.com/NC-rdf#Name"
                   group="true"
-                  uri="rdf:*"
-                  xulcontentsgenerated="true"/>
+                  uri="rdf:*"/>
       </menupopup>
     </rule>
-    <rule iscontainer="true" isempty="true"
-          rdf:type="http://home.netscape.com/NC-rdf#Folder">
+    <rule iscontainer="true" isempty="true">
       <menupopup>
         <menu class="menu-iconic bookmark-item" uri="rdf:*" 
               image="rdf:http://home.netscape.com/NC-rdf#Icon"
