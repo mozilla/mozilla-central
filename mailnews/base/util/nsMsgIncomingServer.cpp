@@ -1669,8 +1669,13 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetPasswordPromptRequired(PRBool *aPasswordIsRequired)
 {
   NS_ENSURE_ARG_POINTER(aPasswordIsRequired);
-  nsresult rv = NS_OK;
   *aPasswordIsRequired = PR_TRUE;
+
+  // If the password is not even required for biff we don't need to check any further
+  nsresult rv = GetServerRequiresPasswordForBiff(aPasswordIsRequired);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (!*aPasswordIsRequired)
+    return NS_OK;
 
   // If the password is empty, check to see if it is stored and to be retrieved
   if (m_password.IsEmpty()) {

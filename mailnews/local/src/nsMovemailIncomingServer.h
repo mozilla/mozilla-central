@@ -63,7 +63,6 @@ public:
     NS_IMETHOD GetDownloadMessagesAtStartup(PRBool *getMessages);
     NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
     NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
-    NS_IMETHOD GetPasswordPromptRequired(PRBool *aPasswordIsRequired);
     NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
 };
 

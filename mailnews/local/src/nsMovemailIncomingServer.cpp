@@ -267,14 +267,6 @@ nsMovemailIncomingServer::GetServerRequiresPasswordForBiff(PRBool *aServerRequir
     return NS_OK;
 }
 
-NS_IMETHODIMP
-nsMovemailIncomingServer::GetPasswordPromptRequired(PRBool *aPasswordIsRequired)
-{
-  NS_ENSURE_ARG_POINTER(aPasswordIsRequired);
-  *aPasswordIsRequired = PR_FALSE;
-  return NS_OK;
-}
-
 NS_IMETHODIMP 
 nsMovemailIncomingServer::GetAccountManagerChrome(nsAString& aResult)
 {
