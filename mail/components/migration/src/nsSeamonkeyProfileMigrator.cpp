@@ -361,35 +361,78 @@ nsresult
 nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
 {
   // Find the Seamonkey Registry
-  nsCOMPtr<nsIProperties> fileLocator(do_GetService("@mozilla.org/file/directory_service;1"));
-  nsCOMPtr<nsILocalFile> seamonkeyRegistry;
+  nsCOMPtr<nsIProperties> fileLocator(
+    do_GetService("@mozilla.org/file/directory_service;1"));
+  nsCOMPtr<nsILocalFile> seamonkeyData;
+#undef EXTRA_PREPEND
+
 #ifdef XP_WIN
-  fileLocator->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(seamonkeyRegistry));
-  NS_ENSURE_TRUE(seamonkeyRegistry, NS_ERROR_FAILURE);
+#define REGISTRY_FILE "registry.dat"
+#define OLD_FOLDER "Mozilla"
+#define NEW_FOLDER "SeaMonkey"
+#define EXTRA_PREPEND "Mozilla"
 
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("Mozilla"));
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("registry.dat"));
+  fileLocator->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile),
+                   getter_AddRefs(seamonkeyData));
+  NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
+
 #elif defined(XP_MACOSX)
-  fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(seamonkeyRegistry));
-  NS_ENSURE_TRUE(seamonkeyRegistry, NS_ERROR_FAILURE);
+#define REGISTRY_FILE "Application Registry"
+#define OLD_FOLDER "Mozilla"
+#define NEW_FOLDER "SeaMonkey"
+#define EXTRA_PREPEND "Application Support"
+  fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsILocalFile),
+                   getter_AddRefs(seamonkeyData));
+  NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
 
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("Mozilla"));
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("Application Registry"));
 #elif defined(XP_UNIX)
-  fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(seamonkeyRegistry));
-  NS_ENSURE_TRUE(seamonkeyRegistry, NS_ERROR_FAILURE);
+#define REGISTRY_FILE "appreg"
+#define OLD_FOLDER ".mozilla"
+#define NEW_FOLDER "seamonkey"
+#define EXTRA_PREPEND ".mozilla"
+  fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile),
+                   getter_AddRefs(seamonkeyData));
+  NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
 
-  seamonkeyRegistry->Append(NS_LITERAL_STRING(".mozilla"));
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("appreg"));
 #elif defined(XP_OS2)
-  fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(seamonkeyRegistry));
-  NS_ENSURE_TRUE(seamonkeyRegistry, NS_ERROR_FAILURE);
+#define REGISTRY_FILE "registry.dat"
+#define OLD_FOLDER "Mozilla"
+#define NEW_FOLDER "SeaMonkey"
+#define EXTRA_PREPEND "Mozilla"
 
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("Mozilla"));
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("registry.dat"));
+  fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsILocalFile),
+                   getter_AddRefs(seamonkeyData));
+  NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
+
+#else
+  // On other OS just abort.
+  return NS_ERROR_FAILURE;
 #endif
 
-  return GetProfileDataFromRegistry(seamonkeyRegistry, mProfileNames, mProfileLocations);
+  nsCOMPtr<nsIFile> newSeamonkeyData;
+  seamonkeyData->Clone(getter_AddRefs(newSeamonkeyData));
+  NS_ENSURE_TRUE(newSeamonkeyData, NS_ERROR_FAILURE);
+
+#ifdef EXTRA_PREPEND
+  newSeamonkeyData->Append(NS_LITERAL_STRING(EXTRA_PREPEND));
+#endif
+  newSeamonkeyData->Append(NS_LITERAL_STRING(NEW_FOLDER));
+
+  nsCOMPtr<nsILocalFile> newSmDataLocal(do_QueryInterface(newSeamonkeyData));
+  NS_ENSURE_TRUE(newSmDataLocal, NS_ERROR_FAILURE);
+
+  nsresult rv = GetProfileDataFromProfilesIni(newSmDataLocal,
+                                              mProfileNames,
+                                              mProfileLocations);
+
+  if (rv != NS_ERROR_FILE_NOT_FOUND)
+    return rv;
+
+  seamonkeyData->Append(NS_LITERAL_STRING(OLD_FOLDER));
+  seamonkeyData->Append(NS_LITERAL_STRING(REGISTRY_FILE));
+
+  return GetProfileDataFromRegistry(seamonkeyData, mProfileNames,
+                                    mProfileLocations);
 }
 
 #define F(a) nsSeamonkeyProfileMigrator::a

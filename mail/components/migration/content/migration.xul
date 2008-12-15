@@ -64,7 +64,8 @@
     
     <radiogroup id="importSourceGroup">
  
-      <radio id="seamonkey" label="&importFromSeamonkey.label;" accesskey="&importFromSeamonkey.accesskey;"/>
+      <radio id="seamonkey" label="&importFromSeamonkey2.label;"
+             accesskey="&importFromSeamonkey2.accesskey;"/>
 
 #ifdef XP_WIN
       <radio id="oexpress"  label="&importFromOExpress.label;"  accesskey="&importFromOExpress.accesskey;"/>

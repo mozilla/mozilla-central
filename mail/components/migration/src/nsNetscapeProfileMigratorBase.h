@@ -90,6 +90,9 @@ public:
   nsresult RecursiveCopy(nsIFile* srcDir, nsIFile* destDir); // helper routine
 
 protected:
+  nsresult GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
+                                         nsIMutableArray* aProfileNames,
+                                         nsIMutableArray* aProfileLocations);
   nsresult GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
                                       nsIMutableArray* aProfileNames,
                                       nsIMutableArray* aProfileLocations);

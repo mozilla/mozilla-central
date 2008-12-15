@@ -55,6 +55,7 @@
 #include "prtime.h"
 #include "prprf.h"
 #include "nsVoidArray.h"
+#include "nsINIParser.h"
 
 #define MIGRATION_BUNDLE "chrome://messenger/locale/migration/migration.properties"
 
@@ -88,17 +89,94 @@ regerr2nsresult(REGERR errCode)
 }
 
 nsresult
+nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
+                                                             nsIMutableArray* aProfileNames,
+                                                             nsIMutableArray* aProfileLocations)
+{
+  nsCOMPtr<nsIFile> dataDir;
+  nsresult rv = aDataDir->Clone(getter_AddRefs(dataDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> profileIni(do_QueryInterface(dataDir, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  profileIni->Append(NS_LITERAL_STRING("profiles.ini"));
+
+  // Does it exist?
+  PRBool profileFileExists = PR_FALSE;
+  rv = profileIni->Exists(&profileFileExists);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!profileFileExists)
+    return NS_ERROR_FILE_NOT_FOUND;
+
+  nsINIParser parser;
+  rv = parser.Init(profileIni);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString buffer, filePath;
+  PRBool isRelative;
+
+  // This is an infinite loop that is broken when we no longer find profiles
+  // for profileID with IsRelative option.
+  for (unsigned int c = 0; PR_TRUE; ++c) {
+    nsCAutoString profileID("Profile");
+    profileID.AppendInt(c);
+
+    if (NS_FAILED(parser.GetString(profileID.get(), "IsRelative", buffer)))
+      break;
+
+    isRelative = buffer.EqualsLiteral("1");
+
+    rv = parser.GetString(profileID.get(), "Path", filePath);
+    if (NS_FAILED(rv)) {
+      NS_ERROR("Malformed profiles.ini: Path= not found");
+      continue;
+    }
+
+    rv = parser.GetString(profileID.get(), "Name", buffer);
+    if (NS_FAILED(rv)) {
+      NS_ERROR("Malformed profiles.ini: Name= not found");
+      continue;
+    }
+
+    nsCOMPtr<nsILocalFile> rootDir;
+    rv = NS_NewNativeLocalFile(EmptyCString(), PR_TRUE, getter_AddRefs(rootDir));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = isRelative ? rootDir->SetRelativeDescriptor(aDataDir, filePath) :
+                      rootDir->SetPersistentDescriptor(filePath);
+    if (NS_FAILED(rv))
+      continue;
+
+    PRBool exists = PR_FALSE;
+    rootDir->Exists(&exists);
+
+    if (exists) {
+      aProfileLocations->AppendElement(rootDir, PR_FALSE);
+
+      nsCOMPtr<nsISupportsString> profileNameString(
+        do_CreateInstance("@mozilla.org/supports-string;1"));
+
+      profileNameString->SetData(NS_ConvertUTF8toUTF16(buffer));
+      aProfileNames->AppendElement(profileNameString, PR_FALSE);
+    }
+  }
+  return NS_OK;
+}
+
+nsresult
 nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
                                                           nsIMutableArray* aProfileNames,
                                                           nsIMutableArray* aProfileLocations)
 {
-  nsresult rv;
   REGERR errCode;
 
   // Ensure aRegistryFile exists before opening it
   PRBool regFileExists = PR_FALSE;
-  rv = aRegistryFile->Exists(&regFileExists);
+  nsresult rv = aRegistryFile->Exists(&regFileExists);
   NS_ENSURE_SUCCESS(rv, rv);
+
   if (!regFileExists)
     return NS_ERROR_FILE_NOT_FOUND;
 
@@ -176,14 +254,11 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
     if (exists) {
       aProfileLocations->AppendElement(dir, PR_FALSE);
 
-      // Get the profile name and add it to the names array
-      nsString profileName;
-      CopyUTF8toUTF16(nsDependentCString(profileStr), profileName);
-
+      // Add the profile name to the names array
       nsCOMPtr<nsISupportsString> profileNameString(
         do_CreateInstance("@mozilla.org/supports-string;1"));
 
-      profileNameString->SetData(profileName);
+      profileNameString->SetData(NS_ConvertUTF8toUTF16(profileStr));
       aProfileNames->AppendElement(profileNameString, PR_FALSE);
     }
   }
