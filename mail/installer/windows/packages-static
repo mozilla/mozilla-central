@@ -380,6 +380,9 @@ bin\components\saxparser.xpt
 bin\components\shistory.xpt
 bin\components\zipwriter.xpt
 bin\components\nsBadCertHandler.js
+bin\components\cookie.xpt
+bin\components\places.xpt
+bin\components\prefetch.xpt
 
 bin\res\hiddenWindow.html
 bin\res\ua.css
@@ -394,6 +397,13 @@ bin\res\language.properties
 bin\res\wincharset.properties
 bin\res\entityTables\*
 bin\res\dtd\xhtml11.dtd
+bin\res\arrow.gif
+bin\res\arrowd.gif
+bin\res\broken-image.gif
+bin\res\contenteditable.css
+bin\res\designmode.css
+bin\res\loading-image.gif
+bin\res\html\folder.png
 
 ; editor resource files
 bin\res\EditorOverride.css

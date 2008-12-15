@@ -69,11 +69,7 @@ NO_PKG_FILES = \
 	xpt_link* \
 	dirver* \
 	plugins \
-	res/arrow.gif \
-	res/arrowd.gif \
 	res/bloatcycle.html \
-	res/html \
-	res/loading-image.gif \
 	res/rdf \
 	res/viewer.properties \
 	chrome/chromelist.txt \
