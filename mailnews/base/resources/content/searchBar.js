@@ -374,7 +374,7 @@ function createSearchTerms()
   var selectedFolder = GetThreadPaneFolder();
 
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-  var searchAttrib = (IsSpecialFolder(selectedFolder, nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queye, true)) ? nsMsgSearchAttrib.ToOrCC : nsMsgSearchAttrib.Sender;
+  var searchAttrib = (IsSpecialFolder(selectedFolder, nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue, true)) ? nsMsgSearchAttrib.ToOrCC : nsMsgSearchAttrib.Sender;
   // implement | for QS
   // does this break if the user types "foo|bar" expecting to see subjects with that string?
   // I claim no, since "foo|bar" will be a hit for "foo" || "bar"
