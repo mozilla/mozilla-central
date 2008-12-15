@@ -1480,16 +1480,18 @@ var BookmarksUtils = {
 
   createBookmark: function (aName, aURL, aCharSet, aDefaultName)
   {
-    if (!aName) {
-      // look up in the history ds to retrieve the name
-      var rSource = RDF.GetResource(aURL);
-      var HISTDS  = RDF.GetDataSource("rdf:history");
-      var nameArc = RDF.GetResource(NC_NS+"Name");
-      var rName   = HISTDS.GetTarget(rSource, nameArc, true);
-      aName       = rName ? rName.QueryInterface(kRDFLITIID).Value : aDefaultName;
+    try {
+      var uri = makeURI(aURL);
+      var history =
+          Components.classes["@mozilla.org/browser/nav-history-service;1"]
+                    .getService(Components.interfaces.nsINavHistoryService);
       if (!aName)
-        aName = aURL;
-    }
+        aName = history.getPageTitle(uri);
+      if (!aCharSet)
+        aCharSet = history.getCharsetForURI(uri);
+    } catch (e) {}
+    if (!aName)
+      aName = aDefaultName || aURL;
     if (!aCharSet) {
       var fw = document.commandDispatcher.focusedWindow;
       if (fw)
