@@ -203,7 +203,9 @@ let gFolderTreeView = {
 
   getFolderAtCoords: function ftv_getFolderAtCoords(aX, aY) {
     let row = gFolderTreeView._treeElement.treeBoxObject.getRowAt(aX, aY);
-    return gFolderTreeView._rowMap[row]._folder;
+    if (row in gFolderTreeView._rowMap)
+      return gFolderTreeView._rowMap[row]._folder;
+    return null;
   },
 
   /**
