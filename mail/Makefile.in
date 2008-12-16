@@ -42,7 +42,20 @@ VPATH		= @srcdir@
 
 include $(topsrcdir)/config/config.mk
 
-DIRS		= base locales components extensions themes app 
+DIRS		= base locales components extensions app 
+
+#
+# Theme Selection
+#
+# Windows, GNOME/Linux    Qute
+# MacOS X                 Pinstripe
+#
+
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+DIRS += themes/pinstripe
+else
+DIRS += themes/qute
+endif
 
 include $(topsrcdir)/config/rules.mk
 
