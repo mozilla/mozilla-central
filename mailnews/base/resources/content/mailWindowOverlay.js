@@ -890,7 +890,7 @@ function MsgGetMessage()
 
 function MsgGetMessagesForAllServers(defaultServer)
 {
-  MailTasksGetMessagesForAllServers(msgWindow, defaultServer);
+  MailTasksGetMessagesForAllServers(true, msgWindow, defaultServer);
 }
 
 /**
@@ -901,11 +901,9 @@ function MsgGetMessagesForAllServers(defaultServer)
   */
 function MsgGetMessagesForAllAuthenticatedAccounts()
 {
-  if(CheckOnline())
-    GetMessagesForAllAuthenticatedAccounts();
-  else if (DoGetNewMailWhenOffline())
-      GetMessagesForAllAuthenticatedAccounts();
-    }
+  if (CheckOnline() || DoGetNewMailWhenOffline())
+    MailTasksGetMessagesForAllServers(false, msgWindow, null);
+}
 
 /**
   * Get messages for the account selected from Menu dropdowns.
@@ -2096,47 +2094,6 @@ function SendUnsentMessages()
         }
       }
     } 
-  }
-}
-
-function GetMessagesForAllAuthenticatedAccounts()
-{
-  // now log into any server
-  try
-  {
-    var allServers = accountManager.allServers;
-    var i;
-    // array of isupportsarrays of servers for a particular folder
-    var pop3DownloadServersArray = new Array();
-    // parallel isupports array of folders to download to...
-    var localFoldersToDownloadTo = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-    var pop3Server;
-
-    for (i = 0; i < allServers.Count(); ++i)
-    {
-      var currentServer = allServers.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgIncomingServer);
-      var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + currentServer.type].getService(Components.interfaces.nsIMsgProtocolInfo);
-      if (protocolinfo.canGetMessages && !currentServer.passwordPromptRequired)
-      {
-        if (currentServer.type == "pop3")
-        {
-          CoalesceGetMsgsForPop3ServersByDestFolder(currentServer, pop3DownloadServersArray, localFoldersToDownloadTo);
-          pop3Server = currentServer.QueryInterface(Components.interfaces.nsIPop3IncomingServer);
-        }
-        else
-        // get new messages on the server for imap or rss
-          GetMessagesForInboxOnServer(currentServer);
-      }
-    }
-    for (i = 0; i < pop3DownloadServersArray.length; ++i)
-    {
-      // any ol' pop3Server will do - the serversArray specifies which servers to download from
-      pop3Server.downloadMailFromServers(pop3DownloadServersArray[i], msgWindow, localFoldersToDownloadTo.GetElementAt(i), null);
-    }
-  }
-  catch(ex)
-  {
-      dump(ex + "\n");
   }
 }
 

@@ -111,7 +111,7 @@ function CoalesceGetMsgsForPop3ServersByDestFolder(aCurrentServer,
   aPOP3DownloadServersArray[index].AppendElement(aCurrentServer);
 }
 
-function MailTasksGetMessagesForAllServers(aMsgWindow, aDefaultServer)
+function MailTasksGetMessagesForAllServers(aBiff, aMsgWindow, aDefaultServer)
 {
   // now log into any server
   try
@@ -131,26 +131,47 @@ function MailTasksGetMessagesForAllServers(aMsgWindow, aDefaultServer)
       {
         let protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + currentServer.type]
                                      .getService(Components.interfaces.nsIMsgProtocolInfo);
-        if (protocolinfo.canLoginAtStartUp && currentServer.loginAtStartUp)
+        if (aBiff)
         {
-          if (aDefaultServer &&
-              aDefaultServer.equals(currentServer) && 
-              !aDefaultServer.isDeferredTo &&
-              aDefaultServer.rootFolder == aDefaultServer.rootMsgFolder)
+          if (protocolinfo.canLoginAtStartUp && currentServer.loginAtStartUp)
           {
-            dump(currentServer.serverURI + " ... skipping, already opened\n");
+            if (aDefaultServer &&
+                aDefaultServer.equals(currentServer) && 
+                !aDefaultServer.isDeferredTo &&
+                aDefaultServer.rootFolder == aDefaultServer.rootMsgFolder)
+            {
+              dump(currentServer.serverURI + " ... skipping, already opened\n");
+            }
+            else if (currentServer.type == "pop3" && currentServer.downloadOnBiff)
+            {
+              CoalesceGetMsgsForPop3ServersByDestFolder(currentServer,
+                                                        pop3DownloadServersArray,
+                                                        localFoldersToDownloadTo);
+              pop3Server = currentServer;
+            }
+            else
+            {
+              // check to see if there are new messages on the server
+              currentServer.performBiff(aMsgWindow);
+            }
           }
-          else if (currentServer.type == "pop3" && currentServer.downloadOnBiff)
+        }
+        else
+        {
+          if (protocolinfo.canGetMessages && !currentServer.passwordPromptRequired)
           {
-            CoalesceGetMsgsForPop3ServersByDestFolder(currentServer,
-                                                      pop3DownloadServersArray,
-                                                      localFoldersToDownloadTo);
-            pop3Server = currentServer;
-          }
-          else
-          {
-            // check to see if there are new messages on the server
-            currentServer.performBiff(aMsgWindow);
+            if (currentServer.type == "pop3")
+            {
+              CoalesceGetMsgsForPop3ServersByDestFolder(currentServer,
+                                                        pop3DownloadServersArray,
+                                                        localFoldersToDownloadTo);
+              pop3Server = currentServer;
+            }
+            else
+            {
+              // get new messages on the server for IMAP or RSS
+              GetMessagesForInboxOnServer(currentServer);
+            }
           }
         }
       }
@@ -239,7 +260,7 @@ function MailTasksOnLoad(aEvent)
     return;
 
   // still no excuse to refuse to use this ruse
-  MailTasksGetMessagesForAllServers(null, null);
+  MailTasksGetMessagesForAllServers(true, null, null);
 }
 
 function MailTasksOnUnload(aEvent)
