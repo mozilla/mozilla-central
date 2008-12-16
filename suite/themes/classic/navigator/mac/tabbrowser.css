@@ -60,11 +60,11 @@ tabpanels {
   -moz-margin-start: -3px;
 }
 
-.tab-image-middle {
+.tab-middle {
   padding: 4px 7px;
 }
 
-.tabbrowser-tab:hover > .tab-image-middle {
+.tabbrowser-tab:hover > .tab-middle {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -88,7 +88,7 @@ tabpanels {
   -moz-outline-radius: 5px;
 }
 
-.tab-image-middle[selected="true"] {
+.tab-middle[selected="true"] {
   padding: 1px 7px 4px;
   -moz-appearance: dialog;
 }
