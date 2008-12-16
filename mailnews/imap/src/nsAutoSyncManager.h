@@ -72,7 +72,8 @@ class nsIMsgFolder;
  *  o It downloads the messages in groups. Default groups size is defined by |kDefaultGroupSize|. 
  *  o It downloads the messages larger than the group size one-by-one.
  *  o If new messages arrive when not idle, it downloads the messages that do fit into
- *    |kFirstGroupSizeLimit| size limit immediately, without waiting for idle time.
+ *    |kFirstGroupSizeLimit| size limit immediately, without waiting for idle time, unless there is
+ *    a sibling (a folder owned by the same imap server) in stDownloadInProgress state in the q
  *  o If new messages arrive when idle, it downloads all the messages without any restriction.
  *  o If new messages arrive into a folder while auto-sync is downloading other messages of the
  *    same folder, it simply puts the new messages into the folder's download queue, and
@@ -102,8 +103,8 @@ class nsIMsgFolder;
  *    next group of messages.
  *
  * Download Model:
- *  Parallel model should be used with the imap servers that do not have any session-limit-per-IP
- *  limit, and when the bandwidth is significantly large.
+ *  Parallel model should be used with the imap servers that do not have any "max number of sessions
+ *  per IP" limit, and when the bandwidth is significantly large.
  */
  
 /**
@@ -188,7 +189,8 @@ class nsAutoSyncManager : public nsIObserver,
                           nsIAutoSyncState *aAutoSyncStateObj, PRInt32 aStartIdx, PRInt32 *aIndex = nsnull);
     static
     PRBool DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex = nsnull);
+                          nsIAutoSyncState *aAutoSyncStateObj, const PRInt32 aState, 
+                          PRInt32 *aIndex = nsnull);
     static 
     nsIAutoSyncState* GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
                           nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex = nsnull);

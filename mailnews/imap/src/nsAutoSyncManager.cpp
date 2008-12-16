@@ -432,12 +432,38 @@ nsAutoSyncManager::GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
 
 /** 
  * Checks whether there is another folder in the given q that is owned 
- * by the same imap server or not. 
+ * by the same imap server or not.
+ *
+ * @param aQueue the queue that will be searched for a sibling
+ * @param aAutoSyncStateObj the auto-sync state object that we are looking
+ *                          a sibling for
+ * @param aState the state of the sibling. -1 means "any state"
+ * @param aIndex [out] the index of the found sibling, if it is provided by the
+ *               caller (not null)
+ * @return true if found, false otherwise
  */
 PRBool nsAutoSyncManager::DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex)
+                                                   nsIAutoSyncState *aAutoSyncStateObj,
+                                                   const PRInt32 aState, PRInt32 *aIndex)
 {
-  return (nsnull != SearchQForSibling(aQueue, aAutoSyncStateObj, 0, aIndex));
+  if (aState == -1)
+    return (nsnull != SearchQForSibling(aQueue, aAutoSyncStateObj, 0, aIndex));
+    
+  PRInt32 offset = 0;
+  nsIAutoSyncState *autoSyncState;
+  while (autoSyncState = SearchQForSibling(aQueue, aAutoSyncStateObj, offset, &offset))
+  {
+    PRInt32 state;
+    nsresult rv = autoSyncState->GetState(&state);
+    if (NS_SUCCEEDED(rv) && aState == state)
+      break;
+    else
+      offset++;
+  }
+  if (aIndex)
+    *aIndex = offset;
+    
+  return (nsnull != autoSyncState);
 }
 
 /**
@@ -1049,7 +1075,10 @@ NS_IMETHODIMP nsAutoSyncManager::OnDownloadQChanged(nsIAutoSyncState *aAutoSyncS
     autoSyncStateObj->SetState(nsAutoSyncState::stReadyToDownload);
     ScheduleFolderForOfflineDownload(autoSyncStateObj);
     
-    if (mDownloadModel == dmParallel || !DoesQContainAnySiblingOf(mPriorityQ, autoSyncStateObj))
+    // If we operate in parallel mode or if there is no sibling downloading messages at the moment,
+    // we can download the first group of the messages for this folder
+    if (mDownloadModel == dmParallel ||
+        !DoesQContainAnySiblingOf(mPriorityQ, autoSyncStateObj, nsAutoSyncState::stDownloadInProgress))
     {
       // this will download the first group of messages immediately;
       // to ensure that we don't end up downloading a large single message in not-idle time, 
