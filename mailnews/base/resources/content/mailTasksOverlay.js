@@ -136,7 +136,7 @@ function MailTasksGetMessagesForAllServers(aBiff, aMsgWindow, aDefaultServer)
           if (protocolinfo.canLoginAtStartUp && currentServer.loginAtStartUp)
           {
             if (aDefaultServer &&
-                aDefaultServer.equals(currentServer) && 
+                aDefaultServer.equals(currentServer) &&
                 !aDefaultServer.isDeferredTo &&
                 aDefaultServer.rootFolder == aDefaultServer.rootMsgFolder)
             {

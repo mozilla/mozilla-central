@@ -207,7 +207,7 @@ function InitViewLayoutStyleMenu(event)
   var paneConfig = pref.getIntPref("mail.pane_config.dynamic");
   var layoutStyleMenuitem = event.target.childNodes[paneConfig];
   if (layoutStyleMenuitem)
-    layoutStyleMenuitem.setAttribute("checked", "true"); 
+    layoutStyleMenuitem.setAttribute("checked", "true");
 }
 
 function setSortByMenuItemCheckState(id, value)
