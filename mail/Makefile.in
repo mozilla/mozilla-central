@@ -51,7 +51,7 @@ DIRS		= base locales components extensions app
 # MacOS X                 Pinstripe
 #
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 DIRS += themes/pinstripe
 else
 DIRS += themes/qute
