@@ -42,7 +42,7 @@ VPATH		= @srcdir@
 
 include $(topsrcdir)/config/config.mk
 
-DIRS		= base locales components extensions app 
+DIRS		= base locales components extensions
 
 #
 # Theme Selection
@@ -56,6 +56,9 @@ DIRS += themes/pinstripe
 else
 DIRS += themes/qute
 endif
+
+# app is always last as it packages up the built files on mac
+DIRS += app
 
 include $(topsrcdir)/config/rules.mk
 
