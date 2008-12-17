@@ -331,25 +331,6 @@
       </menu>
    </menupopup>
 
- <menupopup id="view_toolbars_popup">
-   <menuitem id="ltnCalendarToolbar"
-             type="checkbox"
-             label="&calendar.toolbar.label;"
-             accesskey="&calendar.toolbar.accesskey;"
-             mode="calendar"
-             command="cmd_toggleCalendarToolbar"
-             observes="cmd_toggleCalendarToolbar"
-             position="1"/>
-   <menuitem id="ltnTaskToolbar"
-             type="checkbox"
-             label="&task.toolbar.label;"
-             accesskey="&task.toolbar.accesskey;"
-             mode="task"
-             command="cmd_toggleTaskToolbar"
-             observes="cmd_toggleTaskToolbar"
-             position="2"/>
-  </menupopup>
-
 <window id="messengerWindow">
 
   <broadcasterset id="calendar_broadcasters">
@@ -371,12 +352,6 @@
       oncommand="document.getElementById('tabmail').openTab('calendar', document.getElementById('calendar-tab-button').getAttribute('tooltiptext'))"/>
     <command id="new_task_tab"
       oncommand="document.getElementById('tabmail').openTab('tasks', document.getElementById('task-tab-button').getAttribute('tooltiptext'))"/>
-    <command id="cmd_toggleCalendarToolbar" oncommand="toggleControlinMode('cmd_toggleCalendarToolbar', 'calendar-toolbar')"/>
-    <command id="cmd_toggleTaskToolbar" oncommand="toggleControlinMode('cmd_toggleTaskToolbar', 'task-toolbar')"/>
-    <command id="calendar-delete-command" oncommand="ltnDeleteSelectedItem()" disabledwhennoeventsselected="true"/>
-    <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
-
-    <command id="lightning_modify_item_command" oncommand="goDoCommand('lightning_modify_item_command');"/>
   </commandset>
 
   <keyset id="calendar-keys">
@@ -472,7 +447,6 @@
 </box>
 <tabpanels id="tabpanelcontainer">
   <vbox id="calendarTabPanel" orientation="vertical">
-    <toolbox id="calendar-toolbox" class="toolbox-top"/>
     <box id="calendarContent" orientation="horizontal" flex="1">
       <vbox id="ltnSidebar"
             minwidth="100"

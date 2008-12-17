@@ -177,7 +177,7 @@
                      key="modify_event_key"
                      label="&event.edit.event;"
                      accesskey="&event.edit.event.accesskey;"
-                     observes="calendar_modify_event_command"/>
+                     observes="calendar_modify_focused_item_command"/>
            <menuitem id="unifinder-remove-event-menu"
                      label="&event.delete.event;"
                      accesskey="&event.delete.event.accesskey;"

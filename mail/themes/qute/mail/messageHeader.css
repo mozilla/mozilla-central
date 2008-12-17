@@ -80,7 +80,6 @@
 }
 
 #otherActionsButton {
-  -moz-appearance: none;
   margin-bottom: .1em;
   background: none;
   font-weight: normal;
@@ -96,21 +95,24 @@
   border: 2px solid #C0C3C6;
 }
 
-#otherActionsButton > .button-box > .button-menu-dropmarker {
+
+.msgHeaderView-button[type="menu"] > .button-box > .button-menu-dropmarker,
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-dropmarker {
   -moz-appearance: none !important;
 }
 
-#otherActionsButton > .button-box > .button-menu-dropmarker > .dropmarker-icon {
+.msgHeaderView-button[type="menu"] > .button-box > .button-menu-dropmarker > .dropmarker-icon,
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-dropmarker > .dropmarker-icon {
   padding-left: 4px;
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-grey.png");
 }
 
-#otherActionsButton:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon {
+.msgHeaderView-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
+.msgHeaderView-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
 }
 
 #hideDetailsButton {
-  -moz-appearance: none;
   font-weight: normal;
   font-size: 100%;
   background: none;
@@ -154,17 +156,16 @@
   border: 2px solid #C0C3C6;
 }
 
-
 /* ::::: expanded header pane ::::: */
 
-#expandedHeadersButtonBox {
-  padding-top: 0.5em;
-  padding-bottom: 0;
+header-view-button-box {
+  padding: 0.5em 0.5em 0 0;
 }
 
 #expandedfromBox {
   padding-top: 0.5em;
 }
+
 /* ::::: edit message bar ::::: */
 
 #editMessageBox
@@ -260,7 +261,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-appearance: none;
   font-size: 95%;
   color: black;
-  margin-left: 0px;
+  margin: 1px 5px 2px 0;
   padding-left: 3px;
   padding-right: 3px;
   padding-top: 0px;
@@ -272,6 +273,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-border-right-colors: none;
   -moz-border-bottom-colors: none;
   -moz-border-left-colors: none;
+  min-height: 1ex;
 }
 
 /* had to set a silly attribute on the XUL element to make it so that this
@@ -282,8 +284,40 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-image-region: rect(1px 142px 15px 126px);
 }
 
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-button {
+  -moz-appearance: none;
+  background-color: rgb(211,215,207);
+  -moz-border-radius: 0px;
+  border: 0;
+  border-right: 2px solid transparent;
+  padding-right: 0.2em;
+  margin: 0;
+  -moz-border-top-colors: none;
+  -moz-border-right-colors: none;
+  -moz-border-bottom-colors: none;
+  -moz-border-left-colors: none;
+}
+
+.msgHeaderView-button > .button-box,
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-button {
+  /* Needed to make the buttons the same height as the trash icon */
+  min-height: 16px;
+}
+
+.msgHeaderView-button[type="menu-button"]:hover > .button-menubutton-button {
+  background-color: rgb(230,231,227);
+}
+
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-button:hover {
+  border-right: 2px solid #B0B3B6;
+} 
+
 .msgHeaderView-button[secondary="true"] {
   background: none;
+}
+
+.msgHeaderView-button[disabled="true"] {
+  display: none;
 }
 
 .msgHeaderView-button > .toolbarbutton-text {
@@ -406,6 +440,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   padding-top: 1px;
   padding-bottom: 1px;
 }
+
 /* ::::: msg header message ids ::::: */
 
 .messageIdDisplayButton {

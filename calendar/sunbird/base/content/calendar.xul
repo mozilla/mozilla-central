@@ -50,7 +50,6 @@
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://sunbird/skin/calendar.css" type="text/css"?>
-<?xml-stylesheet href="chrome://calendar/skin/calendar-toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://sunbird/skin/toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar-views.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/widgets/minimonth.css" type="text/css"?>
@@ -125,11 +124,6 @@
   </toolbar>
 
   <toolbarpalette id="calendarToolbarPalette">
-<!-- All toolbar buttons that calendar.xul wishes to include *must* go either 
-     into the calendar-toolbar.inc file (all toolbar buttons shared with 
-     Lightning) or sunbird-toolbar.inc file (toolbar buttons relevant 
-     only for Sunbird-only). -->
-#include ../../../base/content/calendar-toolbar.inc
 #include sunbird-toolbar.inc
     <toolbaritem id="throbber-box" align="center" pack="center">
       <button id="navigator-throbber"

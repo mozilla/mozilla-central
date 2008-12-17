@@ -4,7 +4,6 @@ sunbird.jar:
 % style chrome://global/content/customizeToolbar.xul chrome://sunbird/skin/calendar.css
 % style chrome://global/content/customizeToolbar.xul chrome://sunbird/skin/toolbar.css
 % style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-event-dialog.css
-% style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-toolbar.css
 *   content/sunbird/aboutDialog.css                        (content/aboutDialog.css)
     content/sunbird/aboutDialog.js                         (content/aboutDialog.js)
 *   content/sunbird/aboutDialog.xul                        (content/aboutDialog.xul)

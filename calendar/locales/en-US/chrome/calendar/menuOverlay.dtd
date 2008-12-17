@@ -70,11 +70,6 @@
 <!ENTITY calendar.publish.label                 "Publish…">
 <!ENTITY calendar.publish.accesskey             "b">
 
-<!ENTITY calendar.toolbar.label                 "Calendar Toolbar">
-<!ENTITY calendar.toolbar.accesskey             "T">
-<!ENTITY task.toolbar.label                     "Task Toolbar">
-<!ENTITY task.toolbar.accesskey                 "b">
-
 <!ENTITY calendar.menu.customize.label          "Customize…">
 <!ENTITY calendar.menu.customize.accesskey      "C">
 

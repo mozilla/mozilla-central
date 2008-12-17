@@ -66,6 +66,9 @@
     <command id="calendar_modify_todo_command" oncommand="goDoCommand('calendar_modify_todo_command')"/>
     <command id="calendar_delete_todo_command" oncommand="goDoCommand('calendar_delete_todo_command')"/>
 
+    <command id="calendar_modify_focused_item_command" oncommand="goDoCommand('calendar_modify_focused_item_command')"/>
+    <command id="calendar_delete_focused_item_command" oncommand="goDoCommand('calendar_delete_focused_item_command')"/>
+
     <command id="calendar_new_calendar_command" oncommand="goDoCommand('calendar_new_calendar_command')"/>
     <command id="calendar_edit_calendar_command" oncommand="goDoCommand('calendar_edit_calendar_command')"/>
     <command id="calendar_delete_calendar_command" oncommand="goDoCommand('calendar_delete_calendar_command')"/>

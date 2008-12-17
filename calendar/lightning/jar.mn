@@ -20,7 +20,6 @@ lightning.jar:
 % overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/calendar-task-view.xul
 % overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/today-pane.xul
 % overlay chrome://lightning/content/lightning-standalone.xul chrome://lightning/content/messenger-overlay-sidebar.xul
-% overlay chrome://global/content/customizeToolbar.xul chrome://lightning/content/toolkit-overlay-custombar.xul
 % overlay chrome://calendar/content/calendarCreation.xul chrome://lightning/content/lightning-calendar-creation.xul
 % overlay chrome://calendar/content/calendar-properties-dialog.xul chrome://lightning/content/lightning-calendar-properties.xul
 % content lightning %content/lightning/
@@ -30,7 +29,6 @@ lightning.jar:
     content/lightning/lightning-calendar-creation.js       (content/lightning-calendar-creation.js)
     content/lightning/lightning-calendar-properties.xul    (content/lightning-calendar-properties.xul)
     content/lightning/lightning-calendar-properties.js     (content/lightning-calendar-properties.js)
-    content/lightning/lightning-common-sets.js             (content/lightning-common-sets.js)
     content/lightning/lightning-migration.xul              (content/lightning-migration.xul)
     content/lightning/lightning-standalone.xul             (content/lightning-standalone.xul)
     content/lightning/lightning-utils.js                   (content/lightning-utils.js)
@@ -45,7 +43,6 @@ lightning.jar:
     content/lightning/messenger-overlay-preferences.xul    (content/messenger-overlay-preferences.xul)
     content/lightning/messenger-overlay-toolbar.js         (content/messenger-overlay-toolbar.js)
 *   content/lightning/messenger-overlay-toolbar.xul        (content/messenger-overlay-toolbar.xul)
-    content/lightning/toolkit-overlay-custombar.xul        (content/toolkit-overlay-custombar.xul)
 % skin lightning classic/1.0 %skin/lightning/
     skin/lightning/imip.css                                (themes/@THEME@/imip.css)
     skin/lightning/lightning.css                           (themes/@THEME@/lightning.css)

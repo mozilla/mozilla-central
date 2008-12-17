@@ -42,8 +42,6 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE overlay [
-  <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
-  %messengerDTD;
   <!ENTITY % mailOverlayDTD SYSTEM "chrome://messenger/locale/mailOverlay.dtd">
   %mailOverlayDTD;
   <!ENTITY % lightningDTD SYSTEM "chrome://lightning/locale/lightning.dtd">
@@ -52,20 +50,12 @@
   %calendarDTD;
 ]>
 
-<?xml-stylesheet href="chrome://calendar/skin/calendar-toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://lightning/skin/lightning.css" type="text/css"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/javascript"
           src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
-
-  <popup id="toolbar-context-menu">
-    <menuitem id="CustomizeMailToolbar"
-              label="&customizeToolbar.label;"
-              accesskey="&customizeToolbar.accesskey;"
-              oncommand="CustomizeApplicationToolbar('mail-toolbox');"/>
-  </popup>
 
   <popup id="messagePaneContext">
     <menu id="messagePaneContext-calendar-convert-menu"
@@ -101,45 +91,6 @@
       </menupopup>
     </menu>
   </popup>
-
-  <window id="messengerWindow">
-    <popup id="calendar-toolbar-context-menu"
-           onpopupshowing="onViewToolbarsPopupShowing(event, 'calendar-toolbox');">
-      <menuitem id="CustomizeCalendarToolbar"
-                oncommand="CustomizeMailToolbar('calendar-toolbox', 'CustomizeMailToolbar');"
-            label="&customizeToolbar.label;"
-                accesskey="&customizeToolbar.accesskey;"/>
-    </popup>
-  </window>
-
-  <toolbox id="calendar-toolbox">
-    <toolbarpalette id="CalendarToolbarPalette">
-  <!-- All toolbar buttons that messenger-overlay-toolbar.xul wishes to include
-     *must* go either into the calendar-toolbar.inc file (all toolbar buttons
-     shared with Sunbird) or lightning-toolbar.inc file (toolbar buttons
-     relevant only for Lightning). -->
-#include ../../base/content/calendar-toolbar.inc
-#include lightning-toolbar.inc
-  </toolbarpalette>
-  
-    <toolbar id="calendar-toolbar"
-             class="chromeclass-toolbar"
-             customizable="true"
-             context="calendar-toolbar-context-menu"
-             collapsed="true"
-             collapsedinMode="false"
-             defaultset="calendar-unifinder-button,spring"
-             persist="collapsedinMode"/>
-    <toolbar id="task-toolbar"
-             class="chromeclass-toolbar"
-             customizable="true"
-             context="calendar-toolbar-context-menu"
-             collapsed="true"
-             collapsedinMode="false"
-             defaultset="task-category-button,task-progress-button,task-priority-button,separator,spring"
-             persist="collapsedinMode"/>
-    <toolbarset id="calendar-custom-toolbars"/>
-  </toolbox>
 
   <toolbarbutton id="button-newmsg"
                  type="menu-button">

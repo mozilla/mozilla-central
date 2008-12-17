@@ -41,6 +41,12 @@
 <!ENTITY sunbird.print.button.tooltip                      "Print calendar" >
 <!ENTITY sunbird.delete.button.tooltip                     "Delete selected event" >
 <!ENTITY sunbird.remotereload.button.tooltip               "Reload all remote calendars" >
+<!ENTITY sunbird.import.button.tooltip                     "Import events from a local file" >
+<!ENTITY sunbird.export.button.tooltip                     "Export events to a local file" >
+<!ENTITY sunbird.subscribe.button.tooltip                  "Subscribe to a calendar file on a remote machine" >
+<!ENTITY sunbird.publish.button.tooltip                    "Publish events to a remote machine" >
+<!ENTITY sunbird.unifinder.button.tooltip                  "Find and list events" >
+<!ENTITY sunbird.edit.button.tooltip                       "Edit selected event" >
 
 <!ENTITY sunbird.choosedate.button.label                   "Choose Date" >
 <!ENTITY sunbird.cut.button.label                          "Cut" >
@@ -48,6 +54,12 @@
 <!ENTITY sunbird.paste.button.label                        "Paste" >
 <!ENTITY sunbird.delete.button.label                       "Delete" >
 <!ENTITY sunbird.remotereload.button.label                 "Reload" >
+<!ENTITY sunbird.import.button.label                       "Import" >
+<!ENTITY sunbird.export.button.label                       "Export" >
+<!ENTITY sunbird.subscribe.button.label                    "Subscribe" >
+<!ENTITY sunbird.publish.button.label                      "Publish" >
+<!ENTITY sunbird.unifinder.button.label                    "Find Events" >
+<!ENTITY sunbird.edit.button.label                         "Edit" >
 
 <!ENTITY sunbird.flat.topbar.choosedate                    "Go to Date" >
 <!ENTITY sunbird.flat.topbar.dayview                       "Day View" >

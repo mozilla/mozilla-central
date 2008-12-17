@@ -92,11 +92,19 @@
   border: 2px solid #C0C3C6;
 }
 
-#otherActionsButton > .button-box > .button-menu-dropmarker > .dropmarker-icon {
+
+.msgHeaderView-button[type="menu"] > .button-box > .button-menu-dropmarker,
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-dropmarker {
+  -moz-appearance: none !important;
+}
+
+.msgHeaderView-button[type="menu"] > .button-box > .button-menu-dropmarker > .dropmarker-icon,
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-grey.png");
 }
 
-#otherActionsButton:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon {
+.msgHeaderView-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
+.msgHeaderView-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
 }
 
@@ -150,8 +158,8 @@
 
 /* ::::: expanded header pane ::::: */
 
-#expandedHeadersButtonBox {
-  padding-bottom: 0;
+header-view-button-box {
+  padding: 0.5em 0.5em 0 0;
 }
 
 #expandedfromBox {
@@ -268,7 +276,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-appearance: none;
   font-size: 90%;
   color: black;
-  margin-left: 0px;
+  margin: 1px 5px 2px 0;
   padding-left: 3px;
   padding-right: 3px;
   padding-top: 0px;
@@ -276,10 +284,47 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   background-color: rgb(211,215,207);
   border: 2px solid #C0C3C6;
   -moz-border-radius: 4px;
+  -moz-border-top-colors: none;
+  -moz-border-right-colors: none;
+  -moz-border-bottom-colors: none;
+  -moz-border-left-colors: none;
+  min-height: 1ex;
 }
+
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-button {
+  -moz-appearance: none;
+  background-color: rgb(211,215,207);
+  -moz-border-radius: 0px;
+  border: 0;
+  border-right: 2px solid transparent;
+  padding-right: 0.2em;
+  margin: 0;
+  -moz-border-top-colors: none;
+  -moz-border-right-colors: none;
+  -moz-border-bottom-colors: none;
+  -moz-border-left-colors: none;
+}
+
+.msgHeaderView-button > .button-box,
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-button {
+  /* Needed to make the buttons at least the same height as the trash icon */
+  min-height: 16px;
+}
+
+.msgHeaderView-button[type="menu-button"]:hover > .button-menubutton-button {
+  background-color: rgb(230,231,227);
+}
+
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-button:hover {
+  border-right: 2px solid #B0B3B6;
+} 
 
 .msgHeaderView-button[secondary="true"] {
   background: none;
+}
+
+.msgHeaderView-button[disabled="true"] {
+  display: none;
 }
 
 .msgHeaderView-button > .toolbarbutton-text {
@@ -536,7 +581,6 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 .addresstwisty[open]:hover {
   list-style-image:url("chrome://messenger/skin/icons/arrow/arrow-down.png");
 }
-
 
 /* ::::: view expand and collapse twisties  ::::: */
 

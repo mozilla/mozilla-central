@@ -41,6 +41,8 @@
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-task-view.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/calendar-bindings.css"?>
 
+<?xml-stylesheet type="text/css" href="chrome://messenger/skin/messageHeader.css"?>
+
 <!DOCTYPE overlay [
   <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd" > %dtd2;
@@ -57,29 +59,36 @@
   <vbox id="calendarDisplayDeck">
     <vbox id="calendar-task-box" flex="1"
           onselect="taskDetailsView.onSelect(event);">
-      <textbox id="view-task-edit-field"
-               class="task-edit-field"
-               onfocus="taskEdit.onFocus(event)"
-               onblur="taskEdit.onBlur(event)"
-               onkeypress="taskEdit.onKeyPress(event)"/>
+      <hbox id="task-addition-box" align="center">
+        <toolbarbutton id="calendar-add-task-button"
+                       label="&calendar.newtask.button.label;"
+                       tooltiptext="&calendar.newtask.button.tooltip;"
+                       observes="calendar_new_todo_command"/>
+        <textbox id="view-task-edit-field"
+                 flex="1"
+                 class="task-edit-field"
+                 onfocus="taskEdit.onFocus(event)"
+                 onblur="taskEdit.onBlur(event)"
+                 onkeypress="taskEdit.onKeyPress(event)"/>
+      </hbox>
       <vbox flex="1">
         <calendar-task-tree id="calendar-task-tree" flex="1"
                             visible-columns="completed priority title startdate duedate"
                             persist="visible-columns ordinals widths sort-active sort-direction height"
                             context="taskitem-context-menu"/>
         <splitter id="calendar-task-view-splitter" collapse="none" persist="state"/>
-        <vbox id="calendar-task-details-container" flex="1">
+        <vbox id="calendar-task-details-container" class="main-header-area" flex="1">
           <hbox id="calendar-task-details">
-            <grid id="calendar-task-details-grid-left">
-              <columns>
-                <column/>
-                <column/>
+            <grid id="calendar-task-details-grid" flex="1">
+              <columns id="calendar-task-details-columns">
+                <column id="calendar-header-name-column"/>
+                <column id="calendar-header-value-column"/>
               </columns>
-              <rows>
+              <rows id="calendar-task-details-rows">
                 <row id="calendar-task-details-title-row"
                      align="top"
                      hidden="true">
-                  <label value="&calendar.task.details.title.label;"
+                  <label value="&calendar.task-details.title.label;"
                          class="task-details-name"/>
                   <label id="calendar-task-details-title"
                          class="task-details-value"/>
@@ -87,7 +96,7 @@
                 <row id="calendar-task-details-organizer-row"
                      align="top"
                      hidden="true">
-                  <label value="&calendar.task.details.organizer.label;"
+                  <label value="&calendar.task-details.organizer.label;"
                          class="task-details-name"/>
                   <label id="calendar-task-details-organizer"
                          class="task-details-value text-link"
@@ -96,25 +105,25 @@
                 <row id="calendar-task-details-priority-row"
                      align="top"
                      hidden="true">
-                  <label value="&calendar.task.details.priority2.label;"
+                  <label value="&calendar.task-details.priority.label;"
                          class="task-details-name"/>
                   <label id="calendar-task-details-priority-low"
-                         value="&calendar.task.details.priority.low.label;"
+                         value="&calendar.task-details.priority.low.label;"
                          class="task-details-value"
                          hidden="true"/>
                   <label id="calendar-task-details-priority-normal"
-                         value="&calendar.task.details.priority.normal.label;"
+                         value="&calendar.task-details.priority.normal.label;"
                          class="task-details-value"
                          hidden="true"/>
                   <label id="calendar-task-details-priority-high"
-                         value="&calendar.task.details.priority.high.label;"
+                         value="&calendar.task-details.priority.high.label;"
                          class="task-details-value"
                          hidden="true"/>
                 </row>
                 <row id="calendar-task-details-status-row"
                      align="top"
                      hidden="true">
-                  <label value="&calendar.task.details.status.label;"
+                  <label value="&calendar.task-details.status.label;"
                          class="task-details-name"/>
                   <label id="calendar-task-details-status"
                          class="task-details-value"/>
@@ -122,31 +131,58 @@
                 <row id="calendar-task-details-category-row"
                      align="top"
                      hidden="true">
-                  <label value="&calendar.task.details.category.label;"
+                  <label value="&calendar.task-details.category.label;"
                          class="task-details-name"/>
                   <label id="calendar-task-details-category"
                          class="task-details-value"/>
                 </row>
-              </rows>
-            </grid>
-            <grid id="calendar-task-details-grid-right">
-              <columns>
-                <column/>
-                <column/>
-              </columns>
-              <rows>
                 <row class="item-date-row" id="task-start-row" mode="start" align="end"/>
                 <row class="item-date-row" id="task-due-row" mode="end" align="end"/>
                 <row id="calendar-task-details-repeat-row"
                      align="top"
                      hidden="true">
-                  <label value="&calendar.task.details.repeat.label;"
+                  <label value="&calendar.task-details.repeat.label;"
                          class="task-details-name"/>
                   <label id="calendar-task-details-repeat"
                          class="task-details-value"/>
                 </row>
               </rows>
             </grid>
+            <hbox id="other-actions-box" align="top">
+              <button id="task-actions-category"
+                      type="menu"
+                      label="&calendar.unifinder.tree.categories.label;"
+                      tooltiptext="&calendar.task.category.button.tooltip;"
+                      command="calendar_task_category_command"
+                      observes="calendar_task_category_command"
+                      class="msgHeaderView-button">
+                <menupopup id="task-actions-category-menupopup"
+                           onpopupshowing="addCategoryNames(event)"/>
+              </button>
+              <button id="task-actions-markcompleted"
+                      type="menu-button"
+                      label="&calendar.context.markcompleted.label;"
+                      tooltiptext="&calendar.task.complete.button.tooltip;"
+                      command="calendar_percentComplete-100_command2"
+                      observes="calendar_percentComplete-100_command2"
+                      class="msgHeaderView-button">
+                <menupopup id="task-actions-markcompleted-menupopup" type="task-progress"/>
+              </button>
+              <button id="task-actions-priority"
+                      type="menu"
+                      label="&calendar.context.priority.label;"
+                      tooltiptext="&calendar.task.priority.button.tooltip;"
+                      command="calendar_general-priority_command"
+                      observes="calendar_general-priority_command"
+                      class="msgHeaderView-button">
+                <menupopup id="task-actions-priority-menupopup" type="task-priority"/>
+              </button>
+              <button id="calendar-delete-task-button"
+                      class="msgHeaderView-button"
+                      aria-label="&calendar.context.deletetask.label;"
+                      tooltiptext="&calendar.context.deletetask.label;"
+                      observes="calendar_delete_todo_command"/>
+            </hbox>
           </hbox>
           <textbox id="calendar-task-details-description" multiline="true" flex="1"/>
           <hbox id="calendar-task-details-attachment-row"

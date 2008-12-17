@@ -149,14 +149,6 @@ function ltnOnLoad(event) {
     scheduleInvitationsUpdate(FIRST_DELAY_STARTUP);
     getCalendarManager().addObserver(gInvitationsCalendarManagerObserver);
 
-    // set up the calendar toolbox
-    var toolbox = document.getElementById("calendar-toolbox");
-    toolbox.customizeDone = function(aEvent) { MailToolboxCustomizeDone(aEvent, "CustomizeMailToolbar"); };
-
-    var toolbarset = document.getElementById('calendar-custom-toolbars');
-    toolbox.toolbarset = toolbarset;
-
-
     var filter = document.getElementById("task-tree-filtergroup");
     filter.value = filter.value || "all";
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
@@ -343,8 +335,6 @@ function ltnInitializeMenus(){
     ltnRemoveMailOnlyItems(calendarpopuplist, "calendar");
     ltnRemoveMailOnlyItems(taskpopuplist, "task");
     document.getElementById("modeBroadcaster").setAttribute("checked", true);
-    document.getElementById("calendar-toolbar").setAttribute("collapsed", gCurrentMode!="calendar");
-    document.getElementById("task-toolbar").setAttribute("collapsed", gCurrentMode!="task");
 }
 
 function getMenuElementById(aElementId, aMenuPopup) {

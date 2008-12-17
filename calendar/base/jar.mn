@@ -137,7 +137,6 @@ calendar.jar:
     skin/calendar/calendar-subscriptions-dialog.css        (themes/@THEME@/calendar-subscriptions-dialog.css)
     skin/calendar/calendar-task-tree.css                   (themes/@THEME@/calendar-task-tree.css)
     skin/calendar/calendar-task-view.css                   (themes/@THEME@/calendar-task-view.css)
-    skin/calendar/calendar-toolbar.css                     (themes/@THEME@/calendar-toolbar.css)
     skin/calendar/calendar-unifinder.css                   (themes/@THEME@/calendar-unifinder.css)
     skin/calendar/calendar-views.css                       (themes/@THEME@/calendar-views.css)
     skin/calendar/mode-switch-icons.png                    (themes/@THEME@/mode-switch-icons.png)

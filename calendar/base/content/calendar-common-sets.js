@@ -43,6 +43,9 @@ var calendarController = {
         "calendar_modify_event_command": true,
         "calendar_delete_event_command": true,
 
+        "calendar_modify_focused_item_command": true,
+        "calendar_delete_focused_item_command": true,
+
         "calendar_new_todo_command": true,
         "calendar_modify_todo_command": true,
         "calendar_delete_todo_command": true,
@@ -109,8 +112,12 @@ var calendarController = {
         switch (aCommand) {
             case "calendar_new_event_command":
                 return this.writable && this.calendars_support_events;
+            case "calendar_modify_focused_item_command":
+                return this.item_selected;
             case "calendar_modify_event_command":
                 return this.item_selected;
+            case "calendar_delete_focused_item_command":
+                return this.selected_items_writable;
             case "calendar_delete_event_command":
                 return this.selected_items_writable;
             case "calendar_new_todo_command":
@@ -210,14 +217,33 @@ var calendarController = {
             case "calendar_modify_event_command":
                 editSelectedEvents();
                 break;
-            case "calendar_delete_event_command":
-            case "cmd_delete":
-            case "button_delete":
-                var focusedElement = document.commandDispatcher.focusedElement;
+            case "calendar_modify_focused_item_command": {
+                let focusedElement = document.commandDispatcher.focusedElement;
                 if (!focusedElement && this.defaultController && !this.isCalendarInForeground()) {
                     this.defaultController.doCommand(aCommand);
                 } else {
-                    var focusedRichListbox = getParentNodeOrThis(focusedElement, "richlistbox");
+                    let focusedRichListbox = getParentNodeOrThis(focusedElement, "richlistbox");
+                    if (focusedRichListbox && focusedRichListbox.id == "agenda-listbox") {
+                        agendaListbox.editSelectedItem();
+                    } else if (focusedElement.className == "calendar-task-tree") {
+                        modifyTaskFromContext();
+                    } else {
+                        editSelectedEvents();
+                    }
+                }
+                break;
+            }
+            case "calendar_delete_event_command":
+                deleteSelectedEvents();
+                break;
+            case "calendar_delete_focused_item_command":
+            case "cmd_delete":
+            case "button_delete": {
+                let focusedElement = document.commandDispatcher.focusedElement;
+                if (!focusedElement && this.defaultController && !this.isCalendarInForeground()) {
+                    this.defaultController.doCommand(aCommand);
+                } else {
+                    let focusedRichListbox = getParentNodeOrThis(focusedElement, "richlistbox");
                     if (focusedRichListbox && focusedRichListbox.id == "agenda-listbox") {
                         agendaListbox.deleteSelectedItem(false);
                     } else if (focusedElement.className == "calendar-task-tree") {
@@ -229,6 +255,7 @@ var calendarController = {
                     }
                 }
                 break;
+            }
             case "calendar_new_todo_command":
                 createTodoWithDialog(getSelectedCalendar());
                 break;

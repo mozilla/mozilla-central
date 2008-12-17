@@ -40,7 +40,8 @@
     -moz-appearance: none;
     background-color: -moz-Field;
     color: -moz-FieldText;
-    border: none;
+    border: 0;
+    margin: 0;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-cell-text(inprogress) {

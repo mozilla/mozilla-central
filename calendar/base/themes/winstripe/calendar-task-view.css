@@ -36,11 +36,51 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#calendar-task-details-container {
+    border-top: 1px solid ThreeDShadow;
+    border-left: 1px solid ThreeDShadow;
+    border-right: 0px;
+    border-bottom: 0px;
+    overflow: hidden;
+}
+
+#calendar-header-name-column {
+    width: 7.7em;
+}
+
+#calendar-task-details-grid,
+#other-actions-box {
+    padding: 0.5em;
+    padding-left: 0;
+}
+
+#calendar-task-details {
+    min-height: 6ex;
+}
+
+#task-addition-box {
+    border-left: 1px solid ThreeDShadow;
+    border-right: 0px;
+}
+
+#calendar-task-details-description {
+    -moz-appearance: none;
+    border: 0;
+    margin: 0;
+    font-family: serif;
+    font-size: 16px;
+}
+
 .task-details-name {
-    font-weight: bold;
     text-align: right;
+    color: #888a85; /* lower contrast */
     background-color: transparent;
     border: none;
+}
+
+#calendar-task-details-grid > rows > .item-date-row > .headline {
+    font-weight: normal;
+    color: #888a85; /* lower contrast */
 }
 
 #calendar-task-details-attachment,
@@ -48,10 +88,17 @@
     text-align: left;
     background-color: transparent;
     border: none;
+    color: black;
 }
 
 #calendar-task-tree {
     min-height: 98px;
+    -moz-border-left-colors: ThreeDShadow ThreeDDarkShadow;
+    -moz-border-bottom-colors: ThreeDHighlight ThreeDLightShadow;
+    -moz-border-right-colors: ThreeDHighlight ThreeDLightShadow;
+    border-left: 1px solid;
+    border-right: 1px solid;
+    border-bottom: 1px solid;
 }
 
 #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-row {
@@ -75,22 +122,30 @@
     color: GrayText;
 }
 
-#calendar-task-details-grid-right {
-    -moz-margin-start: 3em;
-}
-
 #calendar-task-details-title {
     font-weight: bold;
 }
 
 #unifinder-task-edit-field {
-  margin: 3px;
+    margin: 3px;
 }
 
 #unifinder-todo-tree > .calendar-task-tree {
     margin-bottom: 3px;
 }
 
-#calendar-task-details-container {
-  overflow: hidden;
+#calendar-delete-task-button {
+    -moz-box-orient: vertical;
+    list-style-image: url(chrome://messenger/skin/icons/folder.png);
+    -moz-image-region: rect(0pt, 144px, 16px, 128px);
+}
+
+#calendar-add-task-button {
+    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+    -moz-image-region: rect(0px 16px 16px 0px);
+    -moz-margin-start: 5px;
+}
+
+#calendar-add-task-button > .toolbarbutton-text {
+    -moz-padding-start: 5px;
 }
