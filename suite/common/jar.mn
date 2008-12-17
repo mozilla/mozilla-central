@@ -202,8 +202,6 @@ comm.jar:
    content/communicator/pref/pref-passwords.js                      (pref/pref-passwords.js)
    content/communicator/profile/profileSelection.js                 (profile/profileSelection.js)
    content/communicator/profile/profileSelection.xul                (profile/profileSelection.xul)
-   content/communicator/related/related-panel.js                    (related/related-panel.js)
-   content/communicator/related/related-panel.xul                   (related/related-panel.xul)
    content/communicator/search/internetresults.js                   (search/internetresults.js)
    content/communicator/search/internetresults.xul                  (search/internetresults.xul)
    content/communicator/search/search-editor.js                     (search/search-editor.js)

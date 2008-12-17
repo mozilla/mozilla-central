@@ -37,7 +37,6 @@
 
 <!-- extracted from ./local-panels.rdf -->
 
-<!ENTITY sidebar.whats-related.label  "What's Related">
 <!ENTITY sidebar.search.label         "Search">
 <!ENTITY sidebar.client-bookmarks.label     "Bookmarks">
 <!ENTITY sidebar.client-history.label       "History">

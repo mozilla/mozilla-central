@@ -45,8 +45,6 @@ classic.jar:
   skin/classic/communicator/profile/profile.css                         (communicator/profile/profile.css)
   skin/classic/communicator/profile/profileManager.css                  (communicator/profile/profileManager.css)
   skin/classic/communicator/profile/profileicon-large.gif               (communicator/profile/profileicon-large.gif)
-  skin/classic/communicator/related/related.css                         (communicator/related/related.css)
-  skin/classic/communicator/related/sitemap.gif                         (communicator/related/sitemap.gif)
   skin/classic/communicator/search/category.gif                         (communicator/search/category.gif)
   skin/classic/communicator/search/result.gif                           (communicator/search/result.gif)
   skin/classic/communicator/search/search-editor.css                    (communicator/search/search-editor.css)

@@ -44,17 +44,12 @@
   <rdf:Description about="urn:sidebar:master-panel-list">
     <nc:panel-list>
       <rdf:Seq>
-        <rdf:li resource="urn:sidebar:panel:whats-related"/>
         <rdf:li resource="urn:sidebar:panel:search"/>
         <rdf:li resource="urn:sidebar:panel:bookmarks"/>
         <rdf:li resource="urn:sidebar:panel:history"/>
         <rdf:li resource="urn:sidebar:panel:addressbook"/>
       </rdf:Seq>
     </nc:panel-list>
-  </rdf:Description>
-  <rdf:Description about="urn:sidebar:panel:whats-related">
-    <nc:title>&sidebar.whats-related.label;</nc:title>
-    <nc:content>chrome://communicator/content/related/related-panel.xul</nc:content>
   </rdf:Description>
   <rdf:Description about="urn:sidebar:panel:search">
     <nc:title>&sidebar.search.label;</nc:title>
