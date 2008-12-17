@@ -305,24 +305,24 @@
 
           var t = document.createElementNS(
             "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
-                                             "tab");
-            t.setAttribute("crop", "end");
+            "tab");
+          t.setAttribute("crop", "end");
           t.maxWidth = this.tabContainer.mTabMaxWidth;
           t.minWidth = this.tabContainer.mTabMinWidth;
-            t.width = 0;
-            t.setAttribute("flex", "100");
-            t.setAttribute("validate", "never");
+          t.width = 0;
+          t.setAttribute("flex", "100");
+          t.setAttribute("validate", "never");
           t.className = "tabmail-tab";
-            this.tabContainer.appendChild(t);
-            if (this.tabStrip.collapsed)
-            {
-              this.tabStrip.collapsed = false;
-              this.tabStrip.setAttribute("closebuttons", "alltabs");
-            }
+          this.tabContainer.appendChild(t);
+          if (this.tabStrip.collapsed)
+          {
+            this.tabStrip.collapsed = false;
+            this.tabStrip.setAttribute("closebuttons", "alltabs");
+          }
           
           let oldTab = this.currentTabInfo;
 
-            // the order of the following statements is important
+          // the order of the following statements is important
           this.currentTabInfo = tab;
           this.tabInfo[this.tabContainer.childNodes.length - 1] = tab;
           // this has a side effect of calling updateCurrentTab, but our
@@ -364,7 +364,7 @@
 #endif
           document.title = docTitle;
           
-            // for styling purposes, apply the type to the tab...
+          // for styling purposes, apply the type to the tab...
           t.setAttribute('type', tab.mode.type);
         ]]></body>
       </method>

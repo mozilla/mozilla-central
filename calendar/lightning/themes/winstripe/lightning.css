@@ -72,7 +72,7 @@ radio[pane=paneLightning] {
 }
 
 #task-tab-button {
- list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
+  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
   -moz-image-region: rect(0px 123px 16px 107px);
 }
 

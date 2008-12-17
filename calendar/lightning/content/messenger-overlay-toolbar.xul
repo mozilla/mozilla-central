@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -53,7 +52,6 @@
 <?xml-stylesheet href="chrome://lightning/skin/lightning.css" type="text/css"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
   <script type="application/javascript"
           src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
 
