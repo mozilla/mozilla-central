@@ -41,44 +41,123 @@
 
 var gHistoryTree;
 var gSearchBox;
-var gHistoryGrouping = "";
-var gSearching = false;
+var gPrefService;
+var gHistoryStatus;
+var gHistoryGrouping = "day";
 
-function HistorySidebarInit()
+function HistoryCommonInit()
 {
   gHistoryTree = document.getElementById("historyTree");
+  gHistoryStatus = document.getElementById("statusbar-display");
   gSearchBox = document.getElementById("search-box");
 
-  gHistoryGrouping = document.getElementById("viewButton").
-                              getAttribute("selectedsort");
+  gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
+                           .getService(Components.interfaces.nsIPrefBranch);
+  PREF = gPrefService;    // need this for bookmarks.js
 
-  if (gHistoryGrouping == "site")
-    document.getElementById("bysite").setAttribute("checked", "true");
-  else if (gHistoryGrouping == "visited")
-    document.getElementById("byvisited").setAttribute("checked", "true");
-  else if (gHistoryGrouping == "lastvisited")
-    document.getElementById("bylastvisited").setAttribute("checked", "true");
-  else if (gHistoryGrouping == "dayandsite")
-    document.getElementById("bydayandsite").setAttribute("checked", "true");
-  else
-    document.getElementById("byday").setAttribute("checked", "true");
+  try {
+    gHistoryGrouping = gPrefService.getCharPref("browser.history.grouping");
+  } catch (e) {}
+
+  document.getElementById("GroupBy" + gHistoryGrouping[0].toUpperCase() +
+                                      gHistoryGrouping.slice(1))
+          .setAttribute("checked", "true");
 
   searchHistory("");
+
+  if (gHistoryStatus)
+    gHistoryTree.focus();
+
+  if (gHistoryTree.view.rowCount > 0)
+    gHistoryTree.view.selection.select(0);
+  else if (gHistoryStatus)
+    updateHistoryCommands();
 }
 
-function GroupBy(groupingType)
+function updateHistoryCommands()
 {
-  gHistoryGrouping = groupingType;
+  goUpdateCommand("placesCmd_open");
+  goUpdateCommand("placesCmd_open:window");
+  goUpdateCommand("placesCmd_open:tab");
+}
+
+function historyOnSelect()
+{
+  var selectedNode = gHistoryTree.selectedNode;
+  var url = selectedNode && selectedNode.uri;
+
+  gHistoryStatus.label = url;
+
+  updateHistoryCommands();
+}
+
+function UpdateViewColumns(aMenuItem)
+{
+  while (aMenuItem) {
+    // Each menuitem should be checked if its column is not hidden.
+    var colid = aMenuItem.id.replace(/Toggle/, "");
+    var column = document.getElementById(colid);
+    aMenuItem.setAttribute("checked", !column.hidden);
+    aMenuItem = aMenuItem.nextSibling;
+  }
+}
+
+function UpdateViewSort(aMenuItem)
+{
+  // Note: consider building this by reading the result's sortingMode instead.
+  var unsorted = true;
+  var ascending = true;
+  while (aMenuItem) {
+    switch (aMenuItem.id) {
+      case "": // separator
+        break;
+      case "Unsorted":
+        if (unsorted) // this would work even if Unsorted was last
+          aMenuItem.setAttribute("checked", "true");
+        break;
+      case "SortAscending":
+        aMenuItem.setAttribute("disabled", unsorted);
+        if (ascending)
+          aMenuItem.setAttribute("checked", "true");
+        break;
+      case "SortDescending":
+        aMenuItem.setAttribute("disabled", unsorted);
+        if (!ascending)
+          aMenuItem.setAttribute("checked", "true");
+        break;
+      default:
+        var colid = aMenuItem.id.replace(/SortBy/, "");
+        var column = document.getElementById(colid);
+        var direction = column.getAttribute("sortDirection");
+        if (direction) {
+          // We've found a sorted column. Remember its direction.
+          ascending = direction == "ascending";
+          unsorted = false;
+          aMenuItem.setAttribute("checked", "true");
+        }
+    }
+    aMenuItem = aMenuItem.nextSibling;
+  }
+}
+
+function ToggleColumn(aMenuItem)
+{
+  var colid = aMenuItem.id.replace(/Toggle/, "");
+  var column = document.getElementById(colid);
+  column.setAttribute("hidden", !column.hidden);
+}
+
+function GroupBy(aMenuItem)
+{
   gSearchBox.value = "";
+  gHistoryGrouping = aMenuItem.id.replace(/GroupBy/, "").toLowerCase();
+  gPrefService.setCharPref("browser.history.grouping", gHistoryGrouping);
   searchHistory("");
 }
 
 // we need bookmarks.js to set bookmarks!
 function historyAddBookmarks()
 {
-  // if we're not sidebar, the tree ID is "placeContent"
-  if (!gHistoryTree)
-    gHistoryTree = document.getElementById("placeContent");
   var count = gHistoryTree.view.selection.count;
   if (count == 1)
     BookmarksUtils.addBookmark(gHistoryTree.selectedNode.uri,
@@ -99,47 +178,40 @@ function historyAddBookmarks()
 
 function searchHistory(aInput)
 {
+  var result = gHistoryTree.getResult();
   var query = PlacesUtils.history.getNewQuery();
   var options = PlacesUtils.history.getNewQueryOptions();
 
   const NHQO = Components.interfaces.nsINavHistoryQueryOptions;
-  var sortingMode;
-  var resultType;
+  options.sortingMode = result ? result.sortingMode : NHQO.SORT_BY_NONE;
+  options.queryType = NHQO.QUERY_TYPE_HISTORY;
 
   if (aInput) {
     query.searchTerms = aInput;
-    sortingMode = NHQO.SORT_BY_TITLE_ASCENDING;
-    resultType = NHQO.RESULTS_AS_URI;
+    options.resultType = NHQO.RESULTS_AS_URI;
   }
   else {
     switch (gHistoryGrouping) {
-      case "visited":
-        resultType = NHQO.RESULTS_AS_URI;
-        sortingMode = NHQO.SORT_BY_VISITCOUNT_DESCENDING;
+      case "none":
+        options.resultType = NHQO.RESULTS_AS_URI;
         break;
-      case "lastvisited":
-        resultType = NHQO.RESULTS_AS_URI;
-        sortingMode = NHQO.SORT_BY_DATE_DESCENDING;
-        break;
-      case "dayandsite":
-        resultType = NHQO.RESULTS_AS_DATE_SITE_QUERY;
+      case "both":
+        options.resultType = NHQO.RESULTS_AS_DATE_SITE_QUERY;
         break;
       case "site":
-        resultType = NHQO.RESULTS_AS_SITE_QUERY;
-        sortingMode = NHQO.SORT_BY_TITLE_ASCENDING;
+        options.resultType = NHQO.RESULTS_AS_SITE_QUERY;
         break;
       case "day":
-      default:
-        resultType = NHQO.RESULTS_AS_DATE_QUERY;
+        options.resultType = NHQO.RESULTS_AS_DATE_QUERY;
         break;
     }
   }
 
-  options.sortingMode = sortingMode;
-  options.resultType = resultType;
+  var titleColumn = document.getElementById("Name");
+  if (options.resultType == NHQO.RESULTS_AS_URI)
+    titleColumn.removeAttribute("primary");
+  else
+    titleColumn.setAttribute("primary", "true");
 
-  // call load() on the tree manually
-  // instead of setting the place attribute in history-panel.xul
-  // otherwise, we will end up calling load() twice
   gHistoryTree.load([query], options);
 }

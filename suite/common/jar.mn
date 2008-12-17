@@ -126,7 +126,6 @@ comm.jar:
    content/communicator/history/history.xul                         (history/history.xul)
    content/communicator/history/history-panel.xul                   (history/history-panel.xul)
    content/communicator/history/places.css                          (history/places.css)
-   content/communicator/history/places.js                           (history/places.js)
    content/communicator/history/placesOverlay.xul                   (history/placesOverlay.xul)
    content/communicator/history/sidebarUtils.js                     (history/sidebarUtils.js)
    content/communicator/history/tree.xml                            (history/tree.xml)

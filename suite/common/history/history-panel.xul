@@ -38,10 +38,8 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://communicator/content/history/places.css"?>
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://communicator/skin/sidebar/sidebarListView.css" type="text/css"?>
-<?xml-stylesheet href="chrome://communicator/skin/history/places.css"?>
 
 <?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/history/placesOverlay.xul"?>
@@ -54,16 +52,12 @@
 
 <page id="history-panel" orient="vertical"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="HistorySidebarInit();"
+      onload="HistoryCommonInit();"
       onunload="SidebarUtils.clearURLFromStatusBar();"
       elementtofocus="search-box">
 
   <script type="application/x-javascript"
           src="chrome://communicator/content/history/sidebarUtils.js"/>
-  <script type="application/x-javascript"
-          src="chrome://communicator/content/history/history.js"/>
-  <script type="application/x-javascript"
-          src="chrome://communicator/content/bookmarks/bookmarks.js"/>
 
   <commandset id="editMenuCommands"/>
   <commandset id="placesCommands"/>
@@ -78,29 +72,9 @@
     <textbox id="search-box" flex="1" type="search"
              emptytext="&search.emptytext;"
              oncommand="searchHistory(this.value);"/>
-    <toolbarbutton id="viewButton" type="menu"
-            label="&view.label;"
-            selectedsort="day" persist="selectedsort">
-      <menupopup>
-        <menuitem id="bydayandsite" label="&byDayAndSite.label;"
-                  accesskey="&byDayAndSite.accesskey;" type="radio"
-                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'dayandsite'); GroupBy('dayandsite');"/>
-        <menuitem id="bysite" label="&bySite.label;"
-                  accesskey="&bySite.accesskey;" type="radio"
-                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'site'); GroupBy('site');"/>
-        <menuitem id="byday" label="&byDate.label;"
-                  accesskey="&byDate.accesskey;"
-                  type="radio"
-                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'day'); GroupBy('day');"/>
-        <menuitem id="byvisited" label="&byMostVisited.label;"
-                  accesskey="&byMostVisited.accesskey;"
-                  type="radio"
-                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'visited'); GroupBy('visited');"/>
-        <menuitem id="bylastvisited" label="&byLastVisited.label;"
-                  accesskey="&byLastVisited.accesskey;"
-                  type="radio"
-                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'lastvisited'); GroupBy('lastvisited');"/>
-      </menupopup>
+    <toolbarbutton id="viewButton" type="menu" style="-moz-user-focus: normal;"
+                   label="&view.label;">
+      <menupopup id="viewPopup"/>
     </toolbarbutton>
   </hbox>
 
@@ -109,13 +83,22 @@
         flex="1"
         type="places"
         context="placesContext"
-        hidecolumnpicker="true"
         onkeypress="SidebarUtils.handleTreeKeyPress(event);"
         onclick="SidebarUtils.handleTreeClick(this, event, true);"
         onmousemove="SidebarUtils.handleTreeMouseMove(event);"
         onmouseout="SidebarUtils.clearURLFromStatusBar();">
-    <treecols>
-      <treecol id="title" flex="1" primary="true" hideheader="true"/>
+    <treecols context="">
+      <treecol label="&col.title.label;" id="Name" flex="4"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol label="&col.url.label;" id="URL" flex="4" hidden="true"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol label="&col.lastvisit.label;" id="Date" flex="1" hidden="true"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol label="&col.visitcount.label;" id="VisitCount" flex="1" hidden="true"
+               persist="width hidden ordinal sortActive sortDirection"/>
     </treecols>
     <treechildren class="sidebar-placesTreechildren" flex="1"/>
   </tree>

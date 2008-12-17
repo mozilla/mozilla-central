@@ -7,27 +7,37 @@
 <!ENTITY search.emptytext               "Search History">
 <!ENTITY search.key                     "f">
 <!ENTITY view.label                     "View">
-<!ENTITY byDate.label                   "By Date">
-<!ENTITY byDate.accesskey               "D">
+<!ENTITY byNone.label                   "By None">
+<!ENTITY byNone.accesskey               "N">
+<!ENTITY byDay.label                    "By Day">
+<!ENTITY byDay.accesskey                "D">
 <!ENTITY bySite.label                   "By Site">
 <!ENTITY bySite.accesskey               "S">
-<!ENTITY byMostVisited.label            "By Most Visited">
-<!ENTITY byMostVisited.accesskey        "V">
-<!ENTITY byLastVisited.label            "By Last Visited">
-<!ENTITY byLastVisited.accesskey        "L">
-<!ENTITY byDayAndSite.label             "By Date and Site">
-<!ENTITY byDayAndSite.accesskey         "t">
+<!ENTITY byDayAndSite.label             "By Day and Site">
+<!ENTITY byDayAndSite.accesskey         "B">
 
 <!ENTITY view.columns.label             "Show Columns">
 <!ENTITY view.columns.accesskey         "C">
-<!ENTITY view.sort.label                "Sort">
-<!ENTITY view.sort.accesskey            "S">
+<!ENTITY view.sortBy.label              "Sort by">
+<!ENTITY view.sortBy.accesskey          "S">
+<!ENTITY view.groupBy.label             "Group by">
+<!ENTITY view.groupBy.accesskey         "G">
+
 <!ENTITY view.unsorted.label            "Unsorted">
 <!ENTITY view.unsorted.accesskey        "U">
 <!ENTITY view.sortAscending.label       "A > Z Sort Order">
 <!ENTITY view.sortAscending.accesskey   "A">
 <!ENTITY view.sortDescending.label      "Z > A Sort Order">
 <!ENTITY view.sortDescending.accesskey  "Z">
+
+<!ENTITY view.groupNone.label           "None">
+<!ENTITY view.groupNone.accesskey       "N">
+<!ENTITY view.groupDay.label            "Day">
+<!ENTITY view.groupDay.accesskey        "D">
+<!ENTITY view.groupSite.label           "Site">
+<!ENTITY view.groupSite.accesskey       "S">
+<!ENTITY view.groupDayAndSite.label     "Day and Site">
+<!ENTITY view.groupDayAndSite.accesskey "a">
 
 <!ENTITY cmd.open.label                 "Open">
 <!ENTITY cmd.open.accesskey             "O">
@@ -42,6 +52,10 @@
 <!ENTITY bookmarkCmd.accesskey          "B">
 
 <!ENTITY col.title.label                "Title">
+<!ENTITY col.title.accesskey            "T">
 <!ENTITY col.url.label                  "Location">
+<!ENTITY col.url.accesskey              "L">
 <!ENTITY col.lastvisit.label            "Last Visited">
+<!ENTITY col.lastvisit.accesskey        "V">
 <!ENTITY col.visitcount.label           "Visit Count">
+<!ENTITY col.visitcount.accesskey       "C">

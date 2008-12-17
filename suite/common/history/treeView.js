@@ -37,11 +37,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+function PlacesTreeView() {
+  this._tree = null;
+  this._result = null;
+  this._selection = null;
+  this._visibleElements = [];
+}
+
 PlacesTreeView.prototype = {
   _makeAtom: function PTV__makeAtom(aString) {
-    return  Components.classes["@mozilla.org/atom-service;1"]
-                      .getService(Components.interfaces.nsIAtomService)
-                      .getAtom(aString);
+    return Components.classes["@mozilla.org/atom-service;1"]
+                     .getService(Components.interfaces.nsIAtomService)
+                     .getAtom(aString);
   },
 
   _atoms: [],
@@ -92,48 +99,6 @@ PlacesTreeView.prototype = {
     this._buildVisibleList();
   },
 
-  _computeShowSessions: function PTV__computeShowSessions() {
-    NS_ASSERT(this._result, "Must have a result to show sessions!");
-    this._showSessions = false;
-
-    var options = asQuery(this._result.root).queryOptions;
-    NS_ASSERT(options, "navHistoryResults must have valid options");
-
-    if (!options.showSessions)
-      return; // sessions are off
-
-    var resultType = options.resultType;
-    if (resultType != Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_VISIT &&
-        resultType != Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_FULL_VISIT)
-      return; // not visits
-
-    var sortType = this._result.sortingMode;
-    if (sortType != nsINavHistoryQueryOptions::SORT_BY_DATE_ASCENDING &&
-        sortType != nsINavHistoryQueryOptions::SORT_BY_DATE_DESCENDING)
-      return; // not date sorting
-
-    this._showSessions = true;
-  },
-
-  SESSION_STATUS_NONE: 0,
-  SESSION_STATUS_START: 1,
-  SESSION_STATUS_CONTINUE: 2,
-  _getRowSessionStatus: function PTV__getRowSessionStatus(aRow) {
-    var node = this._visibleElements[aRow].node;
-    if (!PlacesUtils.nodeIsVisit(node) || asVisit(node).sessionId == 0)
-      return this.SESSION_STATUS_NONE;
-
-    if (aRow == 0)
-      return this.SESSION_STATUS_START;
-
-    var previousNode = this._visibleElements[aRow - 1].node;
-    if (!PlacesUtils.nodeIsVisit(previousNode) ||
-        node.sessionId != asVisit(previousNode).sessionId)
-      return this.SESSION_STATUS_START;
-
-    return this.SESSION_STATUS_CONTINUE;
-  },
-
   /**
    * Call to completely rebuild the list of visible items. Note if there is no
    * tree or root this will just clear out the list, so you can also call this
@@ -153,8 +118,6 @@ PlacesTreeView.prototype = {
 
     var rootNode = this._result.root;
     if (rootNode && this._tree) {
-      this._computeShowSessions();
-
       asContainer(rootNode);
       if (!rootNode.containerOpen) {
         // this triggers containerOpened which then builds the visible
@@ -199,7 +162,7 @@ PlacesTreeView.prototype = {
       aVisible.push({ node: curChild, properties: null });
 
       // recursively do containers
-      if (!this._flatList && PlacesUtils.containerTypes.indexOf(curChildType) != -1) {
+      if (PlacesUtils.containerTypes.indexOf(curChildType) != -1) {
         asContainer(curChild);
 
         var resource = this._getResourceForNode(curChild);
@@ -317,22 +280,20 @@ PlacesTreeView.prototype = {
     if (newElements.length)
       this._tree.rowCountChanged(startReplacement, newElements.length);
 
-    if (!this._flatList) {
-      // now, open any containers that were persisted
-      for (var i = 0; i < toOpenElements.length; i++) {
-        var item = toOpenElements[i];
-        var parent = item.parent;
-        // avoid recursively opening containers
-        while (parent) {
-          if (parent.uri == item.uri)
-            break;
-          parent = parent.parent;
-        }
-        // if we don't have a parent, we made it all the way to the root
-        // and didn't find a match, so we can open our item
-        if (!parent && !item.containerOpen)
-          item.containerOpen = true;
+    // now, open any containers that were persisted
+    for (var i = 0; i < toOpenElements.length; i++) {
+      var item = toOpenElements[i];
+      var parent = item.parent;
+      // avoid recursively opening containers
+      while (parent) {
+        if (parent.uri == item.uri)
+          break;
+        parent = parent.parent;
       }
+      // if we don't have a parent, we made it all the way to the root
+      // and didn't find a match, so we can open our item
+      if (!parent && !item.containerOpen)
+        item.containerOpen = true;
     }
 
     this._tree.endUpdateBatch();
@@ -407,50 +368,6 @@ PlacesTreeView.prototype = {
       timeObj.getMinutes(), timeObj.getSeconds()));
   },
 
-  COLUMN_TYPE_UNKNOWN: 0,
-  COLUMN_TYPE_TITLE: 1,
-  COLUMN_TYPE_URI: 2,
-  COLUMN_TYPE_DATE: 3,
-  COLUMN_TYPE_VISITCOUNT: 4,
-
-  _getColumnType: function PTV__getColumnType(aColumn) {
-    var columnType = aColumn.element.getAttribute("anonid") || aColumn.id;
-
-    switch (columnType) {
-      case "title":
-        return this.COLUMN_TYPE_TITLE;
-      case "url":
-        return this.COLUMN_TYPE_URI;
-      case "lastvisit":
-        return this.COLUMN_TYPE_DATE;
-      case "visitCount":
-        return this.COLUMN_TYPE_VISITCOUNT;
-    }
-    return this.COLUMN_TYPE_UNKNOWN;
-  },
-
-  _sortTypeToColumnType: function PTV__sortTypeToColumnType(aSortType) {
-    switch (aSortType) {
-      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_TITLE_ASCENDING:
-        return [this.COLUMN_TYPE_TITLE, false];
-      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_TITLE_DESCENDING:
-        return [this.COLUMN_TYPE_TITLE, true];
-      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_DATE_ASCENDING:
-        return [this.COLUMN_TYPE_DATE, false];
-      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_DATE_DESCENDING:
-        return [this.COLUMN_TYPE_DATE, true];
-      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_URI_ASCENDING:
-        return [this.COLUMN_TYPE_URI, false];
-      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_URI_DESCENDING:
-        return [this.COLUMN_TYPE_URI, true];
-      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_VISITCOUNT_ASCENDING:
-        return [this.COLUMN_TYPE_VISITCOUNT, false];
-      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_VISITCOUNT_DESCENDING:
-        return [this.COLUMN_TYPE_VISITCOUNT, true];
-    }
-    return [this.COLUMN_TYPE_UNKNOWN, false];
-  },
-
   // nsINavHistoryResultViewer
   itemInserted: function PTV_itemInserted(aParent, aItem, aNewIndex) {
     if (!this._tree)
@@ -502,17 +419,6 @@ PlacesTreeView.prototype = {
       this._visibleElements[i].node.viewIndex = i;
     }
     this._tree.rowCountChanged(newViewIndex, 1);
-
-    // Need to redraw the rows around this one because session boundaries
-    // may have changed. For example, if we add a page to a session, the
-    // previous page will need to be redrawn because its session border
-    // will disappear.
-    if (this._showSessions) {
-      if (newViewIndex > 0)
-        this._tree.invalidateRange(newViewIndex - 1, newViewIndex - 1);
-      if (newViewIndex < this._visibleElements.length -1)
-        this._tree.invalidateRange(newViewIndex + 1, newViewIndex + 1);
-    }
 
     if (PlacesUtils.nodeIsContainer(aItem) && asContainer(aItem).containerOpen)
       this._refreshVisibleSection(aItem);
@@ -696,7 +602,6 @@ PlacesTreeView.prototype = {
 
     var oldRowCount = this._visibleElements.length;
 
-    // update flat list to new contents
     this._buildVisibleList();
   },
 
@@ -714,22 +619,31 @@ PlacesTreeView.prototype = {
     if (sortedColumn)
       sortedColumn.element.removeAttribute("sortDirection");
 
-    // set new sorting indicator by looking through all columns for ours
-    if (aSortingMode == Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_NONE)
-      return;
-    var [desiredColumn, desiredIsDescending] =
-      this._sortTypeToColumnType(aSortingMode);
-    var colCount = columns.count;
-    for (var i = 0; i < colCount; i ++) {
-      var column = columns.getColumnAt(i);
-      if (this._getColumnType(column) == desiredColumn) {
-        // found our desired one, set
-        if (desiredIsDescending)
-          column.element.setAttribute("sortDirection", "descending");
-        else
-          column.element.setAttribute("sortDirection", "ascending");
+    switch (aSortingMode) {
+      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_TITLE_ASCENDING:
+        columns.Name.element.setAttribute("sortDirection", "ascending");
         break;
-      }
+      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_TITLE_DESCENDING:
+        columns.Name.element.setAttribute("sortDirection", "descending");
+        break;
+      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_DATE_ASCENDING:
+        columns.Date.element.setAttribute("sortDirection", "ascending");
+        break;
+      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_DATE_DESCENDING:
+        columns.Date.element.setAttribute("sortDirection", "descending");
+        break;
+      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_URI_ASCENDING:
+        columns.URL.element.setAttribute("sortDirection", "ascending");
+        break;
+      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_URI_DESCENDING:
+        columns.URL.element.setAttribute("sortDirection", "descending");
+        break;
+      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_VISITCOUNT_ASCENDING:
+        columns.VisitCount.element.setAttribute("sortDirection", "ascending");
+        break;
+      case Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_VISITCOUNT_DESCENDING:
+        columns.VisitCount.element.setAttribute("sortDirection", "descending");
+        break;
     }
   },
 
@@ -787,67 +701,25 @@ PlacesTreeView.prototype = {
     return this._selection = val;
   },
 
-  getRowProperties: function PTV_getRowProperties(aRow, aProperties) {
-    this._ensureValidRow(aRow);
-
-    // Handle properties for session information.
-    if (!this._showSessions)
-      return;
-
-    var status = this._getRowSessionStatus(aRow);
-    switch (status) {
-      case this.SESSION_STATUS_NONE:
-        break;
-      case this.SESSION_STATUS_START:
-        aProperties.AppendElement(this._getAtomFor("session-start"));
-        break;
-      case this.SESSION_STATUS_CONTINUE:
-        aProperties.AppendElement(this._getAtomFor("session-continue"));
-        break
-    }
-  },
+  getRowProperties: function PTV_getRowProperties(aRow, aProperties) { },
 
   getCellProperties: function PTV_getCellProperties(aRow, aColumn, aProperties) {
     this._ensureValidRow(aRow);
 
-    // for anonid-trees, we need to add the column-type manually
-    var columnType = aColumn.element.getAttribute("anonid");
-    if (columnType)
-      aProperties.AppendElement(this._getAtomFor(columnType));
-    else
-      var columnType = aColumn.id;
-
-    if (columnType != "title")
+    if (aColumn.id != "Name")
       return;
 
     var node = this._visibleElements[aRow].node;
     var properties = this._visibleElements[aRow].properties;
 
     if (!properties) {
-      properties = new Array();
-      var itemId = node.itemId;
-      var nodeType = node.type;
-      if (PlacesUtils.containerTypes.indexOf(nodeType) != -1) {
-        if (nodeType == Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_QUERY) {
-          properties.push(this._getAtomFor("query"));
-          if (PlacesUtils.nodeIsTagQuery(node))
-            properties.push(this._getAtomFor("tagContainer"));
-          else if (PlacesUtils.nodeIsDay(node))
-            properties.push(this._getAtomFor("dayContainer"));
-          else if (PlacesUtils.nodeIsHost(node))
-            properties.push(this._getAtomFor("hostContainer"));
-        }
-
-        if (itemId != -1) {
-          var oqAnno;
-          try {
-            oqAnno = PlacesUtils.annotations
-                                .getItemAnnotation(itemId,
-                                                   ORGANIZER_QUERY_ANNO);
-            properties.push(this._getAtomFor("OrganizerQuery_" + oqAnno));
-          }
-          catch (ex) { /* not a special query */ }
-        }
+      properties = [];
+      if (node.type == Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_QUERY) {
+        properties.push(this._getAtomFor("query"));
+        if (PlacesUtils.nodeIsDay(node))
+          properties.push(this._getAtomFor("dayContainer"));
+        else if (PlacesUtils.nodeIsHost(node))
+          properties.push(this._getAtomFor("hostContainer"));
       }
 
       this._visibleElements[aRow].properties = properties;
@@ -867,11 +739,6 @@ PlacesTreeView.prototype = {
       if (!node.parent)
         return true;
 
-      // Flat-lists may ignore expandQueries and other query options when
-      // they are asked to open a container.
-      if (this._flatList)
-        return true;
-
       // treat non-expandable childless queries as non-containers
       if (PlacesUtils.nodeIsQuery(node)) {
         var parent = node.parent;
@@ -886,9 +753,6 @@ PlacesTreeView.prototype = {
   },
 
   isContainerOpen: function PTV_isContainerOpen(aRow) {
-    if (this._flatList)
-      return false;
-
     this._ensureValidRow(aRow);
     if (!PlacesUtils.nodeIsContainer(this._visibleElements[aRow].node))
       throw Components.results.NS_ERROR_INVALID_ARG;
@@ -897,9 +761,6 @@ PlacesTreeView.prototype = {
   },
 
   isContainerEmpty: function PTV_isContainerEmpty(aRow) {
-    if (this._flatList)
-      return true;
-
     this._ensureValidRow(aRow);
 
     if (!PlacesUtils.nodeIsContainer(this._visibleElements[aRow].node))
@@ -908,25 +769,15 @@ PlacesTreeView.prototype = {
     return !this._visibleElements[aRow].node.hasChildren;
   },
 
-  isSeparator: function PTV_isSeparator(aRow) {
-    this._ensureValidRow(aRow);
-    return PlacesUtils.nodeIsSeparator(this._visibleElements[aRow].node);
-  },
+  isSeparator: function PTV_isSeparator(aRow) { return false; },
 
   isSorted: function PTV_isSorted() {
     return this._result.sortingMode !=
            Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_NONE;
   },
 
-  canDrop: function PTV_canDrop(aRow, aOrientation) {
-    // compat to general places tree, but you can never drop URLs into history
-    return false;
-  },
-
-  drop: function PTV_drop(aRow, aOrientation) {
-    // compat to general places tree, but you can never drop into history
-    return;
-  },
+  canDrop: function PTV_canDrop(aRow, aOrientation) { return false; },
+  drop: function PTV_drop(aRow, aOrientation) { return; },
 
   getParentIndex: function PTV_getParentIndex(aRow) {
     this._ensureValidRow(aRow);
@@ -965,7 +816,7 @@ PlacesTreeView.prototype = {
     this._ensureValidRow(aRow);
 
     // only the title column has an image
-    if (this._getColumnType(aColumn) != this.COLUMN_TYPE_TITLE)
+    if (aColumn.id != "Name")
       return "";
 
     var node = this._visibleElements[aRow].node;
@@ -982,21 +833,18 @@ PlacesTreeView.prototype = {
     this._ensureValidRow(aRow);
 
     var node = this._visibleElements[aRow].node;
-    var columnType = this._getColumnType(aColumn);
-    switch (columnType) {
-      case this.COLUMN_TYPE_TITLE:
+    switch (aColumn.id) {
+      case "Name":
         // normally, this is just the title, but we don't want empty items in
         // the tree view so return a special string if the title is empty.
         // Do it here so that callers can still get at the 0 length title
         // if they go through the "result" API.
         return PlacesUIUtils.getBestTitle(node);
-      case this.COLUMN_TYPE_TAGS:
-        return node.tags;
-      case this.COLUMN_TYPE_URI:
+      case "URL":
         if (PlacesUtils.nodeIsURI(node))
           return node.uri;
         return "";
-      case this.COLUMN_TYPE_DATE:
+      case "Date":
         if (node.time == 0 || !PlacesUtils.nodeIsURI(node)) {
           // hosts and days shouldn't have a value for the date column.
           // Actually, you could argue this point, but looking at the
@@ -1008,8 +856,8 @@ PlacesTreeView.prototype = {
         if (this._getRowSessionStatus(aRow) != this.SESSION_STATUS_CONTINUE)
           return this._convertPRTimeToString(node.time);
         return "";
-      case this.COLUMN_TYPE_VISITCOUNT:
-        return node.accessCount;
+      case "VisitCount":
+        return node.accessCount || "";
     }
     return "";
   },
@@ -1058,34 +906,48 @@ PlacesTreeView.prototype = {
       throw Components.results.NS_ERROR_UNEXPECTED;
 
     var oldSort = this._result.sortingMode;
-    var oldSortingAnnotation = this._result.sortingAnnotation;
-    var newSort;
-    var newSortingAnnotation = "";
     const NHQO = Components.interfaces.nsINavHistoryQueryOptions;
-    var columnType = this._getColumnType(aColumn);
-    switch (columnType) {
-      case this.COLUMN_TYPE_TITLE:
+    var newSort = NHQO.SORT_BY_NONE;
+    switch (aColumn.id) {
+      case "SortAscending":
+        // this bit-twiddling only subtracts one from even numbers
+        newSort = (oldSort - 1) | 1;
+        break;
+
+      case "SortDescending":
+        // add one to odd numbers (ascending sorts are all odd)
+        newSort = oldSort + (oldSort & 1);
+        break;
+
+      case "SortByName":
+      case "Name":
         if (oldSort == NHQO.SORT_BY_TITLE_ASCENDING)
           newSort = NHQO.SORT_BY_TITLE_DESCENDING;
         else
           newSort = NHQO.SORT_BY_TITLE_ASCENDING;
-
         break;
-      case this.COLUMN_TYPE_URI:
+
+      case "SortByURL":
+      case "URL":
         if (oldSort == NHQO.SORT_BY_URI_ASCENDING)
           newSort = NHQO.SORT_BY_URI_DESCENDING;
         else
           newSort = NHQO.SORT_BY_URI_ASCENDING;
-
         break;
-      case this.COLUMN_TYPE_DATE:
-        if (oldSort == NHQO.SORT_BY_DATE_ASCENDING)
-          newSort = NHQO.SORT_BY_DATE_DESCENDING;
-        else
+
+        // date default is unusual because we sort by descending
+        // by default because you are most likely to be looking for
+        // recently visited sites when you click it
+      case "SortByDate":
+      case "Date":
+        if (oldSort == NHQO.SORT_BY_DATE_DESCENDING)
           newSort = NHQO.SORT_BY_DATE_ASCENDING;
-
+        else
+          newSort = NHQO.SORT_BY_DATE_DESCENDING;
         break;
-      case this.COLUMN_TYPE_VISITCOUNT:
+
+      case "SortByVisitCount":
+      case "VisitCount":
         // visit count default is unusual because we sort by descending
         // by default because you are most likely to be looking for
         // highly visited sites when you click it
@@ -1093,52 +955,21 @@ PlacesTreeView.prototype = {
           newSort = NHQO.SORT_BY_VISITCOUNT_ASCENDING;
         else
           newSort = NHQO.SORT_BY_VISITCOUNT_DESCENDING;
-
         break;
+
       default:
-        throw Components.results.NS_ERROR_INVALID_ARG;
+        if (oldSort == newSort)
+          return;
     }
-    this._result.sortingAnnotation = newSortingAnnotation;
     this._result.sortingMode = newSort;
   },
 
-  isEditable: function PTV_isEditable(aRow, aColumn) {
-    // At this point we only support editing the title field.
-    if (aColumn.index != 0)
-      return false;
-
-    var node = this.nodeForTreeIndex(aRow);
-    if (!PlacesUtils.nodeIsReadOnly(node) &&
-        (PlacesUtils.nodeIsFolder(node) ||
-         (PlacesUtils.nodeIsBookmark(node) &&
-          !PlacesUtils.nodeIsLivemarkItem(node))))
-      return true;
-
-    return false;
-  },
-
-  setCellText: function PTV_setCellText(aRow, aColumn, aText) {
-    // we may only get here if the cell is editable
-    var node = this.nodeForTreeIndex(aRow);
-    if (node.title != aText) {
-      var txn = PlacesUIUtils.ptm.editItemTitle(node.itemId, aText);
-      PlacesUIUtils.ptm.doTransaction(txn);
-    }
-  },
-
+  isEditable: function(aRow, aColumn) { return false; },
+  setCellText: function(aRow, aColumn, aText) { },
   selectionChanged: function() { },
-  cycleCell: function PTV_cycleCell(aRow, aColumn) { },
+  cycleCell: function(aRow, aColumn) { },
   isSelectable: function(aRow, aColumn) { return false; },
   performAction: function(aAction) { },
   performActionOnRow: function(aAction, aRow) { },
   performActionOnCell: function(aAction, aRow, aColumn) { }
 };
-
-function PlacesTreeView(aFlatList) {
-  this._tree = null;
-  this._result = null;
-  this._showSessions = false;
-  this._selection = null;
-  this._visibleElements = [];
-  this._flatList = aFlatList;
-}

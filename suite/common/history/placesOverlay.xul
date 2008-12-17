@@ -44,12 +44,21 @@
 %editMenuOverlayDTD;
 ]>
 
+<?xml-stylesheet href="chrome://communicator/content/history/places.css"?>
+<?xml-stylesheet href="chrome://communicator/skin/bookmarks/bookmarks.css"?>
+
 <overlay id="placesOverlay"
          xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/x-javascript"
           src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/x-javascript"
+          src="chrome://communicator/content/bookmarks/bookmarks.js"/>
+  <script type="application/x-javascript"
+          src="chrome://communicator/content/history/history.js"/>
+  <script type="application/x-javascript"
+          src="chrome://communicator/content/history/places.js"/>
   <script type="application/x-javascript"
           src="chrome://communicator/content/history/utils.js"/>
   <script type="application/x-javascript"
@@ -62,15 +71,13 @@
   <commandset id="placesCommands"
               commandupdater="true"
               events="focus,sort"
-              oncommandupdate="goUpdatePlacesCommands();">
+              oncommandupdate="updateHistoryCommands();">
     <command id="placesCmd_open"
              oncommand="goDoCommand('placesCmd_open');"/>
     <command id="placesCmd_open:window"
              oncommand="goDoCommand('placesCmd_open:window');"/>
     <command id="placesCmd_open:tab"
              oncommand="goDoCommand('placesCmd_open:tab');"/>
-    <command id="placesCmd_sortBy:name"
-             oncommand="goDoCommand('placesCmd_sortBy:name');"/>
   </commandset>
 
   <popup id="placesContext"
@@ -127,4 +134,66 @@
               forcehideselection="livemarkChild"/>
   </popup>
 
+  <menupopup id="viewPopup">
+    <menu id="viewColumns"
+          label="&view.columns.label;" accesskey="&view.columns.accesskey;">
+      <menupopup onpopupshowing="UpdateViewColumns(this.firstChild);"
+                 oncommand="ToggleColumn(event.target);">
+        <menuitem id="ToggleName" disabled="true" label="&col.title.label;"
+                  accesskey="&col.title.accesskey;" type="checkbox"/>
+        <menuitem id="ToggleURL" label="&col.url.label;"
+                  accesskey="&col.url.accesskey;" type="checkbox"/>
+        <menuitem id="ToggleDate" label="&col.lastvisit.label;"
+                  accesskey="&col.lastvisit.accesskey;" type="checkbox"/>
+        <menuitem id="ToggleVisitCount" label="&col.visitcount.label;"
+                  accesskey="&col.visitcount.accesskey;" type="checkbox"/>
+      </menupopup>
+    </menu>
+    <menu id="viewSortBy" label="&view.sortBy.label;"
+          accesskey="&view.sortBy.accesskey;">
+      <menupopup onpopupshowing="UpdateViewSort(this.firstChild);"
+                 oncommand="gHistoryTree.view.cycleHeader({id:event.target.id});">
+        <menuitem id="Unsorted" type="radio" name="columns"
+                  label="&view.unsorted.label;"
+                  accesskey="&view.unsorted.accesskey;"/>
+        <menuseparator/>
+        <menuitem id="SortByName" type="radio" name="columns"
+                  label="&col.title.label;"
+                  accesskey="&col.title.accesskey;"/>
+        <menuitem id="SortByURL" type="radio" name="columns"
+                  label="&col.url.label;"
+                  accesskey="&col.url.accesskey;"/>
+        <menuitem id="SortByDate" type="radio" name="columns"
+                  label="&col.lastvisit.label;"
+                  accesskey="&col.lastvisit.accesskey;"/>
+        <menuitem id="SortByVisitCount" type="radio" name="columns"
+                  label="&col.visitcount.label;"
+                  accesskey="&col.visitcount.accesskey;"/>
+        <menuseparator/>
+        <menuitem id="SortAscending" type="radio" name="direction"
+                  label="&view.sortAscending.label;"
+                  accesskey="&view.sortAscending.accesskey;"/>
+        <menuitem id="SortDescending" type="radio" name="direction"
+                  label="&view.sortDescending.label;"
+                  accesskey="&view.sortDescending.accesskey;"/>
+      </menupopup>
+    </menu>
+    <menu id="viewGroupBy" label="&view.groupBy.label;"
+          accesskey="&view.groupBy.accesskey;">
+      <menupopup oncommand="GroupBy(event.target);">
+        <menuitem id="GroupByNone" type="radio" name="group"
+                  label="&view.groupNone.label;"
+                  accesskey="&view.groupNone.accesskey;"/>
+        <menuitem id="GroupByDay" type="radio" name="group"
+                  label="&view.groupDay.label;"
+                  accesskey="&view.groupDay.accesskey;"/>
+        <menuitem id="GroupBySite" type="radio" name="group"
+                  label="&view.groupSite.label;"
+                  accesskey="&view.groupSite.accesskey;"/>
+        <menuitem id="GroupByBoth" type="radio" name="group"
+                  label="&view.groupDayAndSite.label;"
+                  accesskey="&view.groupDayAndSite.accesskey;"/>
+      </menupopup>
+    </menu>
+  </menupopup>
 </overlay>

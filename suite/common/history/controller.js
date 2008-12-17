@@ -633,10 +633,3 @@ PlacesController.prototype = {
     this._removeRowsFromHistory();
   },
 };
-
-function goUpdatePlacesCommands() {
-  goUpdateCommand("placesCmd_open");
-  goUpdateCommand("placesCmd_open:window");
-  goUpdateCommand("placesCmd_open:tab");
-  goUpdateCommand("placesCmd_sortBy:name");
-}

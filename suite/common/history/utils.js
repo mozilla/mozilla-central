@@ -85,15 +85,6 @@ function asQuery(aNode)    {
 }
 
 var PlacesUIUtils = {
-  /**
-   * The Microsummary Service
-   */
-  get microsummaries() {
-    delete this.microsummaries;
-    return this.microsummaries = Components.classes["@mozilla.org/microsummary/service;1"]
-                                           .getService(Components.interfaces.nsIMicrosummaryService);
-  },
-
   get RDF() {
     delete this.RDF;
     return this.RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
@@ -208,17 +199,6 @@ var PlacesUIUtils = {
   },
 
   /**
-   * By calling this before we visit a URL, we will use TRANSITION_BOOKMARK
-   * as the transition for the visit to that URL (if we don't have a referrer).
-   * This is used when visiting pages from the bookmarks menu,
-   * personal toolbar, and bookmarks from within the places organizer.
-   * If we don't call this, we'll treat those visits as TRANSITION_LINK.
-   */
-  markPageAsFollowedBookmark: function PU_markPageAsFollowedBookmark(aURL) {
-    PlacesUtils.history.markPageAsFollowedBookmark(this.createFixedURI(aURL));
-  },
-
-  /**
    * Allows opening of javascript/data URI only if the given node is
    * bookmarked (see bug 224521).
    * @param aURINode
@@ -227,55 +207,21 @@ var PlacesUIUtils = {
    *
    */
   checkURLSecurity: function PU_checkURLSecurity(aURINode) {
-    if (!PlacesUtils.nodeIsBookmark(aURINode)) {
-      var uri = PlacesUtils._uri(aURINode.uri);
-      if (uri.schemeIs("javascript") || uri.schemeIs("data")) {
-        const BRANDING_BUNDLE_URI = "chrome://branding/locale/brand.properties";
-        var brandShortName = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                       .getService(Components.interfaces.nsIStringBundleService)
-                                       .createBundle(BRANDING_BUNDLE_URI)
-                                       .GetStringFromName("brandShortName");
-        var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                      .getService(Components.interfaces.nsIPromptService);
+    var uri = PlacesUtils._uri(aURINode.uri);
+    if (uri.schemeIs("javascript") || uri.schemeIs("data")) {
+      const BRANDING_BUNDLE_URI = "chrome://branding/locale/brand.properties";
+      var brandShortName = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                                     .getService(Components.interfaces.nsIStringBundleService)
+                                     .createBundle(BRANDING_BUNDLE_URI)
+                                     .GetStringFromName("brandShortName");
+      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                    .getService(Components.interfaces.nsIPromptService);
 
-        var errorStr = this.getString("load-js-data-url-error");
-        promptService.alert(window, brandShortName, errorStr);
-        return false;
-      }
+      var errorStr = this.getString("load-js-data-url-error");
+      promptService.alert(window, brandShortName, errorStr);
+      return false;
     }
     return true;
-  },
-
-  /**
-   * Get the description associated with a document, as specified in a <META>
-   * element.
-   * @param   doc
-   *          A DOM Document to get a description for
-   * @returns A description string if a META element was discovered with a
-   *          "description" or "httpequiv" attribute, empty string otherwise.
-   */
-  getDescriptionFromDocument: function PU_getDescriptionFromDocument(doc) {
-    var metaElements = doc.getElementsByTagName("META");
-    for (var i = 0; i < metaElements.length; ++i) {
-      if (metaElements[i].name.toLowerCase() == "description" ||
-          metaElements[i].httpEquiv.toLowerCase() == "description") {
-        return metaElements[i].content;
-      }
-    }
-    return "";
-  },
-
-  /**
-   * Retrieve the description of an item
-   * @param aItemId
-   *        item identifier
-   * @returns the description of the given item, or an empty string if it is
-   * not set.
-   */
-  getItemDescription: function PU_getItemDescription(aItemId) {
-    if (PlacesUtils.annotations.itemHasAnnotation(aItemId, DESCRIPTION_ANNO))
-      return PlacesUtils.annotations.getItemAnnotation(aItemId, DESCRIPTION_ANNO);
-    return "";
   },
 
   /**
@@ -328,18 +274,12 @@ var PlacesUIUtils = {
     var urls = [];
     for (var i = 0; i < aItemsToOpen.length; i++) {
       var item = aItemsToOpen[i];
-      if (item.isBookmark)
-        this.markPageAsFollowedBookmark(item.uri);
-      else
-        this.markPageAsTyped(item.uri);
+      this.markPageAsTyped(item.uri);
 
       urls.push(item.uri);
     }
 
-    var browserWindow = getTopWin();
-    var where = browserWindow ?
-                whereToOpenLink(aEvent, false, true) : "window";
-    openUILinkArrayIn(urls, where);
+    openUILinkArrayIn(urls, whereToOpenLink(aEvent, false, true));
   },
 
   openContainerNodeInTabs: function PU_openContainerInTabs(aNode, aEvent) {
@@ -352,10 +292,10 @@ var PlacesUIUtils = {
 
   openURINodesInTabs: function PU_openURINodesInTabs(aNodes, aEvent) {
     var urlsToOpen = [];
-    for (var i=0; i < aNodes.length; i++) {
+    for (var i = 0; i < aNodes.length; i++) {
       // skip over separators and folders
       if (PlacesUtils.nodeIsURI(aNodes[i]))
-        urlsToOpen.push({uri: aNodes[i].uri, isBookmark: PlacesUtils.nodeIsBookmark(aNodes[i])});
+        urlsToOpen.push({uri: aNodes[i].uri});
     }
     this._openTabset(urlsToOpen, aEvent);
   },
@@ -380,28 +320,14 @@ var PlacesUIUtils = {
    * see also openUILinkIn
    */
   openNodeIn: function PU_openNodeIn(aNode, aWhere) {
-    if (aNode && PlacesUtils.nodeIsURI(aNode) &&
-        this.checkURLSecurity(aNode)) {
-      var isBookmark = PlacesUtils.nodeIsBookmark(aNode);
-
-      if (isBookmark)
-        this.markPageAsFollowedBookmark(aNode.uri);
-      else
+    if (aNode && aWhere) {
+      if (PlacesUtils.nodeIsContainer(aNode)) {
+        if (aWhere != "current")
+          this.openContainerNodeInTabs(aNode, aWhere);
+      } else if (this.checkURLSecurity(aNode)) {
         this.markPageAsTyped(aNode.uri);
-
-      // Check whether the node is a bookmark which should be opened as
-      // a web panel
-      if (aWhere == "current" && isBookmark) {
-        if (PlacesUtils.annotations
-                       .itemHasAnnotation(aNode.itemId, LOAD_IN_SIDEBAR_ANNO)) {
-          var w = getTopWin();
-          if (w) {
-            w.openWebPanel(aNode.title, aNode.uri);
-            return;
-          }
-        }
+        openUILinkIn(aNode.uri, aWhere);
       }
-      openUILinkIn(aNode.uri, aWhere);
     }
   },
 

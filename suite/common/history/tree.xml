@@ -79,7 +79,6 @@
 
       <method name="applyFilter">
         <parameter name="filterString"/>
-        <parameter name="folderRestrict"/>
         <body><![CDATA[
           // preserve grouping
           var queryNode = asQuery(this.getResultNode());
@@ -87,11 +86,6 @@
 
           var query = PlacesUtils.history.getNewQuery();
           query.searchTerms = filterString;
-
-          if (folderRestrict) {
-            query.setFolders(folderRestrict, folderRestrict.length);
-            options.queryType = options.QUERY_TYPE_BOOKMARKS;
-          }
 
           this.load([query], options);
         ]]></body>
@@ -104,46 +98,15 @@
           var result = PlacesUtils.history.executeQueries(queries, queries.length,
                                                           options);
 
-          var treeView = new PlacesTreeView(this.flatList);
+          var treeView = new PlacesTreeView();
           result.viewer = treeView;
           this.view = treeView;
           if (!this._controller) {
             this._controller = new PlacesController(this);
             this.controllers.appendController(this._controller);
           }
-          this._cachedInsertionPoint = undefined;
         ]]></body>
       </method>
-
-      <property name="flatList">
-        <getter><![CDATA[
-          return this.getAttribute("flatList") == "true";
-        ]]></getter>
-        <setter><![CDATA[
-          if (this.flatList != val) {
-            this.setAttribute("flatList", val);
-            // reload with the last place set
-            if (this.place)
-              this.place = this.place;
-          }
-          return val;
-        ]]></setter>
-      </property>
-
-      <property name="onOpenFlatContainer">
-        <getter><![CDATA[
-          return this.getAttribute("onopenflatcontainer");
-        ]]></getter>
-        <setter><![CDATA[
-          if (this.onOpenFlatContainer != val) {
-            this.setAttribute("onopenflatcontainer", val);
-            // reload with the last place set
-            if (this.place)
-              this.place = this.place;
-          }
-          return val;
-        ]]></setter>
-      </property>
 
       <!-- nsIPlacesView -->
       <method name="getResult">
@@ -250,7 +213,7 @@
         <getter><![CDATA[
           // there is no insertion point for history queries
           // so just bail out
-          return this._cachedInsertionPoint = null;
+          return null;
         ]]></getter>
       </property>
 
@@ -327,15 +290,11 @@
     </implementation>
     <handlers>
       <handler event="focus"><![CDATA[
-        this._cachedInsertionPoint = undefined;
-
         // See select handler. We need the sidebar's places commandset to be
         // updated as well
         document.commandDispatcher.updateCommands("focus");
       ]]></handler>
       <handler event="select"><![CDATA[
-        this._cachedInsertionPoint = undefined;
-
         // This additional complexity is here for the sidebars
         var win = window;
         while (true) {

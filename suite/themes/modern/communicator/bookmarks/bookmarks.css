@@ -88,6 +88,11 @@ treechildren::-moz-tree-image(Name, container, group) {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-group.gif");
 }
 
+/* calendar icon for folders grouping items by day */
+treechildren::-moz-tree-image(Name, query, dayContainer) {
+  list-style-image: url("chrome://communicator/skin/history/calendar.png");
+}
+
 treechildren::-moz-tree-image(Name, separator) {
   list-style-image: none;
 }

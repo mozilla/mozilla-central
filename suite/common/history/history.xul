@@ -42,9 +42,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://communicator/content/history/places.css"?>
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://communicator/skin/history/places.css"?>
 
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
@@ -62,21 +60,11 @@
 ]>
 
 <window title="&historyWindowTitle.label;" id="history-window"
-        onload="PlacesOrganizer.init();"
-        onunload="PlacesOrganizer.destroy();"
+        onload="HistoryCommonInit();"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="500" height="400"
         persist="width height screenX screenY sizemode"
         windowtype="history:manager">
-
-  <script type="application/x-javascript"
-          src="chrome://communicator/content/history/places.js"/>
-  <script type="application/x-javascript"
-          src="chrome://global/content/globalOverlay.js"/>
-  <script type="application/x-javascript"
-          src="chrome://communicator/content/history/history.js"/>
-  <script type="application/x-javascript"
-          src="chrome://communicator/content/bookmarks/bookmarks.js"/>
 
   <commandset id="tasksCommands">
     <!-- File Menu -->
@@ -85,7 +73,7 @@
     <command id="bm_cmd_saveas"/>
     <!-- Search Box -->
     <command id="cmd_search_focus"
-             oncommand="PlacesSearchBox.focus();"/>
+             oncommand="gSearchBox.focus();"/>
   </commandset>
   <commandset id="editMenuCommands"/>
   <commandset id="placesCommands"/>
@@ -138,29 +126,7 @@
       </menupopup>
     </menu>
     <menu id="menu_View">
-      <menupopup>
-        <menu id="viewColumns"
-              label="&view.columns.label;" accesskey="&view.columns.accesskey;">
-          <menupopup onpopupshowing="ViewMenu.fillWithColumns(event, null, null, 'checkbox', null);"
-                     oncommand="ViewMenu.showHideColumn(event.target); event.stopPropagation();"/>
-        </menu>
-        <menu id="viewSort" label="&view.sort.label;"
-              accesskey="&view.sort.accesskey;">
-          <menupopup onpopupshowing="ViewMenu.populateSortMenu(event);"
-                     oncommand="ViewMenu.setSortColumn(event.target.column, null);">
-            <menuitem id="viewUnsorted" type="radio" name="columns"
-                      label="&view.unsorted.label;" accesskey="&view.unsorted.accesskey;"
-                      oncommand="ViewMenu.setSortColumn(null, null);"/>
-            <menuseparator id="directionSeparator"/>
-            <menuitem id="viewSortAscending" type="radio" name="direction"
-                      label="&view.sortAscending.label;" accesskey="&view.sortAscending.accesskey;"
-                      oncommand="ViewMenu.setSortColumn(null, 'ascending'); event.stopPropagation();"/>
-            <menuitem id="viewSortDescending" type="radio" name="direction"
-                      label="&view.sortDescending.label;" accesskey="&view.sortDescending.accesskey;"
-                      oncommand="ViewMenu.setSortColumn(null, 'descending'); event.stopPropagation();"/>
-          </menupopup>
-        </menu>
-      </menupopup>
+      <menupopup id="viewPopup"/>
     </menu>
     <menu id="tasksMenu"/>
     <menu id="windowMenu"/>
@@ -171,40 +137,37 @@
            align="center"
            grippytooltiptext="&searchBar.tooltip;"
            chromedir="&locale.dir;">
-    <textbox id="searchFilter"
+    <textbox id="search-box"
              clickSelectsAll="true"
              type="search"
              emptytext="&search.emptytext;"
-             oncommand="PlacesSearchBox.search(this.value);"
-             collection="history">
-    </textbox>
+             oncommand="searchHistory(this.value);"/>
   </toolbar>
   </toolbox>
 
-  <tree id="placeContent"
+  <tree id="historyTree"
         class="placesTree"
         context="placesContext"
         flex="1" type="places"
-        flatList="true"
         enableColumnDrag="true"
-        onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) PlacesOrganizer.openSelectedNode(event);"
-        ondblclick="PlacesOrganizer.openSelectedNode(event);"
-        onfocus="PlacesOrganizer.onTreeFocus(event);"
-        onclick="PlacesOrganizer.onTreeClick(event);">
-    <treecols id="placeContentColumns" context="placesColumnsContext">
-      <treecol label="&col.title.label;" id="placesContentTitle" anonid="title" flex="5" primary="true" ordinal="1"
+        onselect="historyOnSelect();"
+        onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) PlacesUIUtils.openNodeWithEvent(gHistoryTree.selectedNode, event);"
+        ondblclick="if (event.button == 0) PlacesUIUtils.openNodeWithEvent(gHistoryTree.selectedNode, event);"
+        onclick="if (event.button == 1) PlacesUIUtils.openNodeWithEvent(gHistoryTree.selectedNode, event);">
+    <treecols context="">
+      <treecol label="&col.title.label;" id="Name" flex="4"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
-      <treecol label="&col.url.label;" id="placesContentUrl" anonid="url" flex="5"
+      <treecol label="&col.url.label;" id="URL" flex="4"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
-      <treecol label="&col.lastvisit.label;" id="placesContentDate" anonid="lastvisit" flex="1"
+      <treecol label="&col.lastvisit.label;" id="Date" flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>
-      <treecol label="&col.visitcount.label;" id="placesContentVisitCount" anonid="visitCount" flex="1" hidden="true"
+      <treecol label="&col.visitcount.label;" id="VisitCount" flex="1" hidden="true"
                persist="width hidden ordinal sortActive sortDirection"/>
     </treecols>
-    <treechildren flex="1"/>
+    <treechildren/>
   </tree>
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="statusbar-display" flex="1"/>
