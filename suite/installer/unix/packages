@@ -185,7 +185,6 @@ bin/components/libunixproxy.so
 bin/components/libremoteservice.so
 bin/components/librdf.so
 bin/components/rdf.xpt
-bin/components/related.xpt
 bin/components/libsatchel.so
 bin/components/libspellchecker.so
 bin/components/satchel.xpt

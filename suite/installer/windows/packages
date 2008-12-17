@@ -187,7 +187,6 @@ bin\components\profile.xpt
 bin\components\proxyObject.xpt
 bin\components\rdf.dll
 bin\components\rdf.xpt
-bin\components\related.xpt
 bin\components\satchel.dll
 bin\components\satchel.xpt
 bin\components\saxparser.xpt
