@@ -140,7 +140,6 @@
 <!ENTITY calendar.task.filter.open.label            "Incomplete Tasks">
 <!ENTITY calendar.task.filter.open.accesskey        "m">
 
-<!ENTITY calendar.task-details.startdate.label       "title">
 <!ENTITY calendar.task-details.title.label           "title">
 <!ENTITY calendar.task-details.organizer.label       "from">
 <!ENTITY calendar.task-details.priority.label        "priority">
