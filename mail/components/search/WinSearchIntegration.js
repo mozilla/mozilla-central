@@ -1,43 +1,44 @@
-# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is spotlight integration code.
-#
-# The Initial Developer of the Original Code is
-# David Bienvenu <bienvenu@mozilla.com>
-# Portions created by the Initial Developer are Copyright (C) 2007
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#  Siddharth Agarwal <sid1337@gmail.com>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is spotlight integration code.
+ *
+ * The Initial Developer of the Original Code is
+ * David Bienvenu <bienvenu@mozilla.com>
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *  Siddharth Agarwal <sid1337@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 #include content/searchCommon.js
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+var EXPORTED_SYMBOLS = ["SearchIntegration"];
 
 const MSG_DB_LARGE_COMMIT = 1;
 const MSG_FLAG_ATTACHMENT = 0x10000000;
@@ -343,51 +344,32 @@ let SearchIntegration =
   }
 };
 
-/* XPCOM boilerplate code */
-function WinSearchIntegration() { }
-WinSearchIntegration.prototype = {
-  classDescription: "Windows Search Integration",
-  classID: Components.ID("{451a70f0-1b4f-11dd-bd0b-0800200c9a66}"),
-  contractID: "@mozilla.org/windows-search-integration;1",
-
-  _xpcom_categories: [{
-    category: "app-startup",
-    service: true
-  }],
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver, Ci.nsISupports]),
-
-  observe : function(aSubject, aTopic, aData)
+/**
+ * Observer for first run dialog
+ */
+let FirstRunObserver =
+{
+  observe: function(aSubject, aTopic, aData)
   {
-    let obsSvc = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
-    switch(aTopic)
+    if (aTopic == "mail-startup-done")
     {
-    case "app-startup":
-      obsSvc.addObserver(this, "profile-after-change", false);
-      break;
-    case "profile-after-change":
-      try
-      {
-        if (SearchIntegration._init())
-          obsSvc.addObserver(this, "mail-startup-done", false);
-      }
-      catch (err) {
-        SearchIntegration._log.error("Could not initialize winsearch component");
-      }
-      break;
-    case "mail-startup-done":
       aSubject.QueryInterface(Ci.nsIDOMWindowInternal);
-      obsSvc.removeObserver(this, "mail-startup-done");
+      Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
+        .removeObserver(this, "mail-startup-done");
       try { SearchIntegration._firstRun(aSubject); }
-      catch(err) { SearchIntegration._log.warn("First run unsuccessful"); }
-      break;
-    default:
-      throw Components.Exception("Unknown topic: " + aTopic);
+      catch(ex) { SearchIntegration._log.warn("First run unsuccessful"); }
     }
   }
 };
-var components = [WinSearchIntegration];
-function NSGetModule(aCompMgr, aFileSpec)
-{
-  return XPCOMUtils.generateModule(components);
+
+/* Initialize the search integration object */
+try {
+  if (SearchIntegration._init())
+  {
+    Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
+      .addObserver(FirstRunObserver, "mail-startup-done", false);
+  }
+}
+catch (ex) {
+  SearchIntegration._log.error("Could not initialize winsearch component");
 }

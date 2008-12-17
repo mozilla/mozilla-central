@@ -309,3 +309,10 @@ xpicleanup.exe
 #else
 xpicleanup
 #endif
+#ifdef XP_WIN
+components/nsWinSearchIntegration.js
+#else
+#ifdef XP_MACOSX
+components/nsSpotlightIntegration.js
+#endif
+#endif

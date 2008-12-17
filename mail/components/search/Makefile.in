@@ -53,10 +53,10 @@ endif
 #currently, we only build this dir on the mac, but if it gets built on other platforms,
 #make sure we still only build spotlight integration on the mac.
 ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
-EXTRA_PP_COMPONENTS = \
-	nsSpotlightIntegration.js \
+EXTRA_PP_JS_MODULES = \
+	SpotlightIntegration.js \
 	$(NULL)
-endif         
+endif
 
 # If on Windows, build Windows Search integration
 ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
@@ -83,8 +83,8 @@ CPPSRCS = \
 DIRS += public
 
 # Windows Search component
-EXTRA_PP_COMPONENTS = \
-  nsWinSearchIntegration.js \
+EXTRA_PP_JS_MODULES = \
+  WinSearchIntegration.js \
   $(NULL)
 
 FORCE_STATIC_LIB = 1

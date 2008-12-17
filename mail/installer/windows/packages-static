@@ -184,7 +184,7 @@ bin\components\nsAbAutoCompleteMyDomain.js
 bin\components\nsAbAutoCompleteSearch.js
 
 ; Windows Search integration
-bin\components\nsWinSearchIntegration.js
+; the module is included as part of the "Modules" rule
 bin\components\mailwinsearch.xpt
 bin\WSEnable.exe
 
