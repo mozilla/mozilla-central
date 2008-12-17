@@ -62,9 +62,6 @@
 #include "nsIMsgHdr.h"
 #include "nsIFileURL.h"
 
-static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
-static NS_DEFINE_CID(kCPop3ServiceCID, NS_POP3SERVICE_CID);
-
 nsMailboxService::nsMailboxService()
 {
     mPrintingOperation = PR_FALSE;
@@ -81,7 +78,8 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *
   NS_ENSURE_ARG_POINTER(aMailboxPath);
 
   nsresult rv;
-  nsCOMPtr<nsIMailboxUrl> mailboxurl = do_CreateInstance(kCMailboxUrl, &rv);
+  nsCOMPtr<nsIMailboxUrl> mailboxurl =
+    do_CreateInstance(NS_MAILBOXURL_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv) && mailboxurl)
   {
     nsCOMPtr<nsIMsgMailNewsUrl> url = do_QueryInterface(mailboxurl);
@@ -464,7 +462,7 @@ nsresult nsMailboxService::PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsI
                                              nsMailboxAction aMailboxAction, nsIMailboxUrl ** aMailboxUrl,
                                              nsIMsgWindow *msgWindow)
 {
-  nsresult rv = CallCreateInstance(kCMailboxUrl, aMailboxUrl);
+  nsresult rv = CallCreateInstance(NS_MAILBOXURL_CONTRACTID, aMailboxUrl);
   if (NS_SUCCEEDED(rv) && aMailboxUrl && *aMailboxUrl)
   {
     // okay now generate the url string
@@ -525,26 +523,25 @@ NS_IMETHODIMP nsMailboxService::GetScheme(nsACString &aScheme)
 
 NS_IMETHODIMP nsMailboxService::GetDefaultPort(PRInt32 *aDefaultPort)
 {
-  nsresult rv = NS_OK;
-  if (aDefaultPort)
-    *aDefaultPort = -1;  // mailbox doesn't use a port!!!!!
-  else
-    rv = NS_ERROR_NULL_POINTER;
-  return rv;
+  NS_ENSURE_ARG_POINTER(aDefaultPort);
+  *aDefaultPort = -1;  // mailbox doesn't use a port!!!!!
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMailboxService::AllowPort(PRInt32 port, const char *scheme, PRBool *_retval)
 {
-    // don't override anything.
-    *_retval = PR_FALSE;
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(_retval);
+  // don't override anything.
+  *_retval = PR_FALSE;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMailboxService::GetProtocolFlags(PRUint32 *result)
 {
-    *result = URI_STD | URI_FORBIDS_AUTOMATIC_DOCUMENT_REPLACEMENT |
-        URI_DANGEROUS_TO_LOAD;
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(result);
+  *result = URI_STD | URI_FORBIDS_AUTOMATIC_DOCUMENT_REPLACEMENT |
+            URI_DANGEROUS_TO_LOAD;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMailboxService::NewURI(const nsACString &aSpec,
@@ -552,8 +549,10 @@ NS_IMETHODIMP nsMailboxService::NewURI(const nsACString &aSpec,
                                        nsIURI *aBaseURI,
                                        nsIURI **_retval)
 {
+  NS_ENSURE_ARG_POINTER(_retval);
+  *_retval = 0;
   nsresult rv = NS_OK;
-  nsCOMPtr<nsIURI> aMsgUri = do_CreateInstance(kCMailboxUrl, &rv);
+  nsCOMPtr<nsIURI> aMsgUri = do_CreateInstance(NS_MAILBOXURL_CONTRACTID, &rv);
 
   if (NS_SUCCEEDED(rv))
   {
@@ -569,7 +568,7 @@ NS_IMETHODIMP nsMailboxService::NewURI(const nsACString &aSpec,
     {
       aMsgUri->SetSpec(aSpec);
     }
-    NS_ADDREF(*_retval = aMsgUri);
+    aMsgUri.swap(*_retval);
   }
 
   return rv;
@@ -578,6 +577,7 @@ NS_IMETHODIMP nsMailboxService::NewURI(const nsACString &aSpec,
 NS_IMETHODIMP nsMailboxService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 {
   NS_ENSURE_ARG_POINTER(aURI);
+  NS_ENSURE_ARG_POINTER(_retval);
   nsresult rv = NS_OK;
   nsCAutoString spec;
   aURI->GetSpec(spec);
@@ -585,7 +585,7 @@ NS_IMETHODIMP nsMailboxService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
   if (spec.Find("?uidl=") >= 0 || spec.Find("&uidl=") >= 0)
   {
     nsCOMPtr<nsIProtocolHandler> handler =
-             do_GetService(kCPop3ServiceCID, &rv);
+             do_GetService(NS_POP3SERVICE_CONTRACTID1, &rv);
     if (NS_SUCCEEDED(rv))
     {
       nsCOMPtr <nsIURI> pop3Uri;
@@ -604,7 +604,7 @@ NS_IMETHODIMP nsMailboxService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
       delete protocol;
       return rv;
     }
-    rv = protocol->QueryInterface(NS_GET_IID(nsIChannel), (void **) _retval);
+    rv = CallQueryInterface(protocol, _retval);
   }
   else
     rv = NS_ERROR_NULL_POINTER;
