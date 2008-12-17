@@ -61,6 +61,9 @@ EXTRA_DSO_LDOPTS = $(MOZ_COMPONENT_LIBS)
 
 # we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB=1
+# this is a static lib but gets built into libsuite.so later and therefore needs
+# to be compiled using -fPIC
+FORCE_USE_PIC=1
 
 include $(topsrcdir)/config/rules.mk
 

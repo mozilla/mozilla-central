@@ -69,5 +69,7 @@ CPPSRCS = \
 
 # we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB = 1
+# need to force PIC as the static lib gets linked into libsuite.so
+FORCE_USE_PIC=1
 
 include $(topsrcdir)/config/rules.mk
