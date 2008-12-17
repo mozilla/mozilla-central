@@ -7,14 +7,6 @@
 <!ENTITY search.emptytext               "Search History">
 <!ENTITY search.key                     "f">
 <!ENTITY view.label                     "View">
-<!ENTITY byNone.label                   "By None">
-<!ENTITY byNone.accesskey               "N">
-<!ENTITY byDay.label                    "By Day">
-<!ENTITY byDay.accesskey                "D">
-<!ENTITY bySite.label                   "By Site">
-<!ENTITY bySite.accesskey               "S">
-<!ENTITY byDayAndSite.label             "By Day and Site">
-<!ENTITY byDayAndSite.accesskey         "B">
 
 <!ENTITY view.columns.label             "Show Columns">
 <!ENTITY view.columns.accesskey         "C">
