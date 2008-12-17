@@ -853,9 +853,7 @@ PlacesTreeView.prototype = {
           // Only show this for URI-based items.
           return "";
         }
-        if (this._getRowSessionStatus(aRow) != this.SESSION_STATUS_CONTINUE)
-          return this._convertPRTimeToString(node.time);
-        return "";
+        return this._convertPRTimeToString(node.time);
       case "VisitCount":
         return node.accessCount || "";
     }

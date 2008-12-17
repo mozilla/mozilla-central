@@ -84,7 +84,8 @@ function updateHistoryCommands()
 function historyOnSelect()
 {
   var selectedNode = gHistoryTree.selectedNode;
-  var url = selectedNode && selectedNode.uri;
+  var url = selectedNode && PlacesUtils.nodeIsURI(selectedNode) ?
+            selectedNode.uri : null;
 
   gHistoryStatus.label = url;
 
