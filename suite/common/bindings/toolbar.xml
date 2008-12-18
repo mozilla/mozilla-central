@@ -211,6 +211,23 @@
     </implementation>
   </binding>
 
+  <binding id="grippytoolbar-drag"
+           extends="chrome://communicator/content/bindings/toolbar.xml#grippytoolbar">
+    <implementation>
+      <constructor>
+        <![CDATA[
+          try {
+            Components.utils.import("resource://gre/modules/WindowDraggingUtils.jsm");
+            let draggableThis = new WindowDraggingElement(this, window);
+            draggableThis.mouseDownCheck = function(e) {
+              return !this.parentNode.customizing; // Don't move while customizing.
+            }
+          } catch (e) {}
+        ]]>
+      </constructor>
+    </implementation>
+  </binding>
+
   <binding id="grippymenubar" extends="chrome://global/content/bindings/toolbar.xml#menubar">
     <content>
       <xul:hbox flex="1" class="toolbar-box">
