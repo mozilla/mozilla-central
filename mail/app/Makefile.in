@@ -357,6 +357,8 @@ libs:: $(PROGRAM)
 	rsync -aL $(PROGRAM) $(DIST)/$(APP_NAME).app/Contents/MacOS
 	mkdir -p $(DIST)/$(APP_NAME).app/Contents/Plug-Ins
 	rsync -a --copy-unsafe-links $(DIST)/package/PrintPDE.plugin $(DIST)/$(APP_NAME).app/Contents/Plug-Ins
+	mkdir -p $(DIST)/$(APP_NAME).app/Contents/Library/Spotlight
+	rsync -a --copy-unsafe-links $(DIST)/package/Thunderbird.mdimporter $(DIST)/$(APP_NAME).app/Contents/Library/Spotlight
 	cp -RL $(DIST)/branding/thunderbird.icns $(DIST)/$(APP_NAME).app/Contents/Resources/thunderbird.icns
 	echo -n APPLMOZM > $(DIST)/$(APP_NAME).app/Contents/PkgInfo
 #       remove CVS dirs from packaged app
