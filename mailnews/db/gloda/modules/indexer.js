@@ -1824,7 +1824,7 @@ var GlodaIndexer = {
             }
             let glodaIds = [];
             let newMessageKeys = [];
-            for each (let destMsgHdr in fixIterator(aDest.getMessages(null),
+            for each (let destMsgHdr in fixIterator(aDestFolder.getMessages(null),
                                                     Ci.nsIMsgDBHdr)) {
               let destMsgId = destMsgHdr.messageId;
               let matchingSrcHdr = srcMsgIdToHdr[destMsgId];
@@ -1895,10 +1895,10 @@ var GlodaIndexer = {
       this.indexer._log.debug("folderDeleted notification");
       
       delFunc = function(folder) {
-        if (this._datastore._folderKnown(aFolder)) {
+        if (this.indexer._datastore._folderKnown(aFolder)) {
           let folder = GlodaDatastore._mapFolder(aFolder);
-          this._datastore.markMessagesDeletedByID(folder.id);
-          this._datastore.deleteFolderByID(folder.id);
+          this.indexer._datastore.markMessagesDeletedByID(folder.id);
+          this.indexer._datastore.deleteFolderByID(folder.id);
         }
       };
 
