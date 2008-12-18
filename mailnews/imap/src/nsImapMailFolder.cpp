@@ -696,8 +696,15 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   nsresult rv;
   PRBool selectFolder = PR_FALSE;
 
-  if (mFlags & nsMsgFolderFlags::Inbox && !m_filterList)
-    rv = GetFilterList(msgWindow, getter_AddRefs(m_filterList));
+  if (mFlags & nsMsgFolderFlags::Inbox)
+  {
+    if (!m_filterList)
+      rv = GetFilterList(msgWindow, getter_AddRefs(m_filterList));
+    // if there's no msg window, but someone is updating the inbox, we're
+    // doing something biff-like, and may download headers, so make biff notify.
+    if (!msgWindow)
+      SetPerformingBiff(PR_TRUE);
+  }
 
   if (m_filterList)
   {
