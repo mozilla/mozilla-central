@@ -80,6 +80,7 @@ CPPSRCS		= \
 		nsNntpService.cpp \
 		nsNewsFolder.cpp \
 		nsNntpIncomingServer.cpp \
+		nsNntpMockChannel.cpp \
 		nsNewsUtils.cpp \
 		nsNewsDownloadDialogArgs.cpp \
 		nsNewsDownloader.cpp \

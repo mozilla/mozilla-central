@@ -96,6 +96,8 @@ function setupLocalServer(port) {
       if (element[1])
         server.subscribeToNewsgroup(element[0]);
     });
+  // Only allow one connection
+  server.maximumConnectionsNumber = 1;
 
   _server = server;
   
@@ -116,16 +118,12 @@ function setupProtocolTest(port, newsUrl) {
   }
   server = setupLocalServer(port);
   
-  var connection = {};
-  server.getNntpConnection(url, null, connection);
-  connection = connection.value;
-  
   var listener = {
     onStartRequest : function () {},
     onStopRequest : function ()  {
       if (!this.called) {
         this.called = true;
-        connection.CloseConnection();
+        server.closeCachedConnections();
         this.called = false;
       }
     },
@@ -139,9 +137,7 @@ function setupProtocolTest(port, newsUrl) {
     }
   }
   listener.called = false;
-
-  connection.Initialize(url, null);
-  connection.LoadNewsUrl(url, listener);
+  server.loadNewsUrl(url, null, listener);
 }
 
 function create_post(baseURL, file) {

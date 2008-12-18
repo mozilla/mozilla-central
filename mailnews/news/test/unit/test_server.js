@@ -107,6 +107,28 @@ function testRFC977() {
     thread.processNextEvent(true);
 }
 
+function testConnectionLimit() {
+  var handler = new NNTP_RFC977_handler(daemon);
+  var server = new nsMailServer(handler);
+  server.start(NNTP_PORT);
+
+  var prefix = "news://localhost:"+NNTP_PORT+"/";
+  var transaction;
+
+  // To test make connections limit, we run two URIs simultaneously.
+  setupProtocolTest(NNTP_PORT, prefix+"*");
+  setupProtocolTest(NNTP_PORT, prefix+"TSS1@nntp.test");
+  server.performTest();
+  // We should have length one... which means this must be a transaction object,
+  // containing only us and them
+  do_check_true('us' in server.playTransaction());
+  server.stop();
+
+  var thread = gThreadManager.currentThread;
+  while (thread.hasPendingEvents())
+    thread.processNextEvent(true);
+}
 function run_test() {
   testRFC977();
+  testConnectionLimit();
 }

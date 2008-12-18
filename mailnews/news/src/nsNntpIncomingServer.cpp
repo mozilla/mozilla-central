@@ -517,69 +517,137 @@ nsNntpIncomingServer::CreateProtocolInstance(nsINNTPProtocol ** aNntpConnection,
 /* By default, allow the user to open at most this many connections to one news host */
 #define kMaxConnectionsPerHost 2
 
-NS_IMETHODIMP
+nsresult
 nsNntpIncomingServer::GetNntpConnection(nsIURI * aUri, nsIMsgWindow *aMsgWindow,
-                                           nsINNTPProtocol ** aNntpConnection)
+                                        nsINNTPProtocol ** aNntpConnection)
 {
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsINNTPProtocol> connection;
-  nsCOMPtr<nsINNTPProtocol> freeConnection;
-  PRBool isBusy = PR_TRUE;
-
-
+  // Get our maximum connection count. We need at least 1. If the value is 0,
+  // we use the default. If it's negative, we treat that as 1.
   PRInt32 maxConnections = kMaxConnectionsPerHost;
-  rv = GetMaximumConnectionsNumber(&maxConnections);
+  nsresult rv = GetMaximumConnectionsNumber(&maxConnections);
   if (NS_FAILED(rv) || maxConnections == 0)
   {
     maxConnections = kMaxConnectionsPerHost;
-    rv = SetMaximumConnectionsNumber(maxConnections);
+    SetMaximumConnectionsNumber(maxConnections);
   }
   else if (maxConnections < 1)
-  {   // forced to use at least 1
+  {
     maxConnections = 1;
-    rv = SetMaximumConnectionsNumber(maxConnections);
+    SetMaximumConnectionsNumber(maxConnections);
   }
 
-  *aNntpConnection = nsnull;
-  // iterate through the connection cache for a connection that can handle this url.
+  // Find a non-busy connection
+  nsCOMPtr<nsINNTPProtocol> connection;
   PRInt32 cnt = mConnectionCache.Count();
-
-#ifdef DEBUG_seth
-  printf("XXX there are %d nntp connections in the conn cache.\n", (int)cnt);
-#endif
-  for (PRInt32 i = 0; i < cnt && isBusy; i++)
+  for (PRInt32 i = 0; i < cnt; i++)
   {
     connection = mConnectionCache[i];
     if (connection)
-        rv = connection->GetIsBusy(&isBusy);
-    if (NS_FAILED(rv))
     {
-        connection = nsnull;
-        continue;
-    }
-    if (!freeConnection && !isBusy && connection)
-    {
-       freeConnection = connection;
+      PRBool isBusy;
+      connection->GetIsBusy(&isBusy);
+      if (!isBusy)
+        break;
+      connection = nsnull;
     }
   }
 
-  if (ConnectionTimeOut(freeConnection))
-      freeConnection = nsnull;
-
-  // if we got here and we have a connection, then we should return it!
-  if (!isBusy && freeConnection)
+  if (ConnectionTimeOut(connection))
   {
-    *aNntpConnection = freeConnection;
-    freeConnection->SetIsCachedConnection(PR_TRUE);
-    NS_IF_ADDREF(*aNntpConnection);
+    connection = nsnull;
+    // We have one less connection, since we closed this one.
+    --cnt;
   }
-  else // have no queueing mechanism - just create the protocol instance.
+
+  if (connection)
   {
+    NS_IF_ADDREF(*aNntpConnection = connection);
+    connection->SetIsCachedConnection(PR_TRUE);
+  }
+  else if (cnt < maxConnections)
+  {
+    // We have room for another connection. Create this connection and return
+    // it to the caller.
     rv = CreateProtocolInstance(aNntpConnection, aUri, aMsgWindow);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
-  return rv;
+  else
+  {
+    // We maxed out our connection count. The caller must therefore enqueue the
+    // call.
+    *aNntpConnection = nsnull;
+    return NS_OK;
+  }
+
+  // Initialize the URI here and now.
+  return (*aNntpConnection)->Initialize(aUri, aMsgWindow);
 }
 
+NS_IMETHODIMP
+nsNntpIncomingServer::GetNntpChannel(nsIURI *aURI, nsIMsgWindow *aMsgWindow,
+                                     nsIChannel **aChannel)
+{
+  NS_ENSURE_ARG_POINTER(aChannel);
+
+  nsCOMPtr<nsINNTPProtocol> protocol;
+  nsresult rv = GetNntpConnection(aURI, aMsgWindow, getter_AddRefs(protocol));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (protocol)
+    return CallQueryInterface(protocol, aChannel);
+
+  // No protocol? We need our mock channel.
+  nsNntpMockChannel *channel = new nsNntpMockChannel(aURI, aMsgWindow);
+  if (!channel)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(*aChannel = channel);
+
+  m_queuedChannels.AppendElement(channel);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsNntpIncomingServer::LoadNewsUrl(nsIURI *aURI, nsIMsgWindow *aMsgWindow,
+                                  nsISupports *aConsumer)
+{
+  nsCOMPtr<nsINNTPProtocol> protocol;
+  nsresult rv = GetNntpConnection(aURI, aMsgWindow, getter_AddRefs(protocol));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (protocol)
+    return protocol->LoadNewsUrl(aURI, aConsumer);
+
+  // No protocol? We need our mock channel.
+  nsNntpMockChannel *channel = new nsNntpMockChannel(aURI, aMsgWindow,
+                                                     aConsumer);
+  if (!channel)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  m_queuedChannels.AppendElement(channel);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsNntpIncomingServer::PrepareForNextUrl(nsNNTPProtocol *aConnection)
+{
+  NS_ENSURE_ARG(aConnection);
+
+  // Start the connection on the next URL in the queue. If it can't get a URL to
+  // work, drop that URL (the channel will handle failure notification) and move
+  // on.
+  while (m_queuedChannels.Length() > 0)
+  {
+    nsRefPtr<nsNntpMockChannel> channel = m_queuedChannels[0];
+    m_queuedChannels.RemoveElementAt(0);
+    nsresult rv = channel->AttachNNTPConnection(*aConnection);
+    // If this succeeded, the connection is now running the URL.
+    if (NS_SUCCEEDED(rv))
+      return NS_OK;
+  }
+  
+  // No queued uris.
+  return NS_OK;
+}
 
 /* void RemoveConnection (in nsINNTPProtocol aNntpConnection); */
 NS_IMETHODIMP nsNntpIncomingServer::RemoveConnection(nsINNTPProtocol *aNntpConnection)

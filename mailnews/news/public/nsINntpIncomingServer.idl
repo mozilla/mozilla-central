@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,10 +41,12 @@
 interface nsILocalFile;
 interface nsIMsgNewsFolder;
 interface nsINNTPProtocol;
+interface nsNNTPProtocol;
+interface nsIChannel;
 interface nsIURI;
 interface nsIMsgWindow;
 
-[scriptable, uuid(325e8bac-7640-4263-a735-958140dda20b)]
+[scriptable, uuid(113e9e21-3313-4e73-83f1-0d675251b607)]
 interface nsINntpIncomingServer : nsISupports {
     /* the on-disk path to the newsrc file for this server */
     attribute nsILocalFile newsrcFilePath;
@@ -79,6 +82,14 @@ interface nsINntpIncomingServer : nsISupports {
 
     attribute boolean newsrcHasChanged;
 
+    /**
+     * The maximum number of connections to make to the server.
+     *
+     * This preference (internally max_cached_connections) controls how many
+     * connections we can make. A negative connection count is treated as only
+     * one connection, while 0 (the default) loads the default number of
+     * connections, presently 2.
+     */
     attribute long maximumConnectionsNumber;
 
     readonly attribute long numGroupsNeedingCounts;
@@ -89,9 +100,41 @@ interface nsINntpIncomingServer : nsISupports {
                                 in long totalMessages);
 
 
-    void getNntpConnection(in nsIURI url, in nsIMsgWindow window,
-                           out nsINNTPProtocol aNntpConnection);
+    /**
+     * Get a new NNTP channel to run the URI.
+     *
+     * If the server has used up all of its connections, this will place the URI
+     * in the queue to be run when one is freed.
+     *
+     * @param uri    The URI to run.
+     * @param window The standard message window object.
+     */
+    nsIChannel getNntpChannel(in nsIURI uri, in nsIMsgWindow window);
+    /**
+     * Enqueues a URI to be run when we have a free connection.
+     *
+     * If there is one already free, it will be immediately started.
+     *
+     * @param uri      The URI to run.
+     * @param window   The standard message window object.
+     * @param consumer An argument to be passed to nsINNTPProtocol:LoadNewUrl.
+     */
+    void loadNewsUrl(in nsIURI uri, in nsIMsgWindow window,
+                     in nsISupports consumer);
+
+    /**
+     * Remove a connection from our connection cache.
+     *
+     * @param aNntpConnection The connection to be removed.
+     */
     void removeConnection(in nsINNTPProtocol aNntpConnection);
+
+    /**
+     * Load the next URI in the queue to the given connection.
+     *
+     * @param aNntpConnection The newly-freed connection.
+     */
+    [noscript] void prepareForNextUrl(in nsNNTPProtocol aNntpConnection);
 
     /* used for auto subscribing */
     boolean containsNewsgroup(in AUTF8String name);

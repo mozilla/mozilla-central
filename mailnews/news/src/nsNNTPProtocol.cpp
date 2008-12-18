@@ -5256,8 +5256,11 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       if (m_responseCode != MK_NNTP_RESPONSE_ARTICLE_NOTFOUND && m_responseCode != MK_NNTP_RESPONSE_ARTICLE_NONEXIST)
         return CloseConnection();
     case NEWS_FREE:
-      m_lastActiveTimeStamp = PR_Now(); // remmeber when we last used this connection.
-      return CleanupAfterRunningUrl();
+      // Remember when we last used this connection
+      m_lastActiveTimeStamp = PR_Now();
+      CleanupAfterRunningUrl();
+      if (m_nntpServer)
+        m_nntpServer->PrepareForNextUrl(this);
     case NEWS_FINISHED:
       return NS_OK;
       break;

@@ -57,6 +57,9 @@
 #include "nsIAtom.h"
 #include "nsCOMArray.h"
 
+#include "nsNntpMockChannel.h"
+#include "nsAutoPtr.h"
+
 class nsINntpUrl;
 class nsIMsgMailNewsUrl;
 
@@ -105,10 +108,14 @@ public:
 protected:
    virtual nsresult CreateRootFolderFromUri(const nsCString &serverUri,
                                             nsIMsgFolder **rootFolder);
-    nsresult CreateProtocolInstance(nsINNTPProtocol ** aNntpConnection, nsIURI *url,
-                                             nsIMsgWindow *window);
+    nsresult GetNntpConnection(nsIURI *url, nsIMsgWindow *window,
+                               nsINNTPProtocol **aNntpConnection);
+    nsresult CreateProtocolInstance(nsINNTPProtocol **aNntpConnection,
+                                    nsIURI *url, nsIMsgWindow *window);
     PRBool ConnectionTimeOut(nsINNTPProtocol* aNntpConnection);
     nsCOMArray<nsINNTPProtocol> mConnectionCache;
+    nsTArray<nsRefPtr<nsNntpMockChannel> > m_queuedChannels;
+
     NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
     nsresult SetupNewsrcSaveTimer();
     static void OnNewsrcSaveTimer(nsITimer *timer, void *voidIncomingServer);

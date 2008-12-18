@@ -46,7 +46,7 @@
 #include "nsISupportsObsolete.h"
 #include "nsMsgNewsCID.h"
 #include "nsINntpUrl.h"
-#include "nsNNTPProtocol.h"
+#include "nsIMsgNewsFolder.h"
 #include "nsNNTPNewsgroupPost.h"
 #include "nsIMsgMailSession.h"
 #include "nsIMsgIdentity.h"
@@ -1087,7 +1087,7 @@ nsNntpService::CreateNewsAccount(const char *aHostname, PRBool aUseSSL,
 }
 
 nsresult
-nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTPProtocol **aProtocol)
+nsNntpService::GetServerForUri(nsIURI *aUri, nsINntpIncomingServer **aServer)
 {
   nsCAutoString hostName;
   nsCAutoString scheme;
@@ -1185,6 +1185,8 @@ nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTP
   if (!nntpServer || NS_FAILED(rv))
     return rv;
 
+  NS_IF_ADDREF(*aServer = nntpServer);
+
   nsCAutoString spec;
   rv = aUri->GetSpec(spec);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -1224,10 +1226,7 @@ nsNntpService::GetProtocolForUri(nsIURI *aUri, nsIMsgWindow *aMsgWindow, nsINNTP
     }
   }
 
-  rv = nntpServer->GetNntpConnection(aUri, aMsgWindow, aProtocol);
-  if (NS_FAILED(rv) || !*aProtocol)
-    return NS_ERROR_OUT_OF_MEMORY;
-  return rv;
+  return NS_OK;
 }
 
 PRBool nsNntpService::WeAreOffline()
@@ -1251,15 +1250,11 @@ nsNntpService::RunNewsUrl(nsIURI * aUri, nsIMsgWindow *aMsgWindow, nsISupports *
     return NS_MSG_ERROR_OFFLINE;
 
   // almost there...now create a nntp protocol instance to run the url in...
-  nsCOMPtr <nsINNTPProtocol> nntpProtocol;
-  rv = GetProtocolForUri(aUri, aMsgWindow, getter_AddRefs(nntpProtocol));
+  nsCOMPtr<nsINntpIncomingServer> server;
+  rv = GetServerForUri(aUri, getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (NS_SUCCEEDED(rv))
-    rv = nntpProtocol->Initialize(aUri, aMsgWindow);
-  if (NS_FAILED(rv)) return rv;
-
-  rv = nntpProtocol->LoadNewsUrl(aUri, aConsumer);
-  return rv;
+  return server->LoadNewsUrl(aUri, aMsgWindow, aConsumer);
 }
 
 NS_IMETHODIMP nsNntpService::GetNewNews(nsINntpIncomingServer *nntpServer, const char *uri, PRBool aGetOld, nsIUrlListener * aUrlListener, nsIMsgWindow *aMsgWindow, nsIURI **_retval)
@@ -1409,13 +1404,10 @@ NS_IMETHODIMP nsNntpService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 {
   NS_ENSURE_ARG_POINTER(aURI);
   nsresult rv = NS_OK;
-  nsCOMPtr <nsINNTPProtocol> nntpProtocol;
-  rv = GetProtocolForUri(aURI, nsnull, getter_AddRefs(nntpProtocol));
-  if (NS_SUCCEEDED(rv))
-    rv = nntpProtocol->Initialize(aURI, nsnull);
-  if (NS_FAILED(rv)) return rv;
-
-  return CallQueryInterface(nntpProtocol, _retval);
+  nsCOMPtr<nsINntpIncomingServer> server;
+  rv = GetServerForUri(aURI, getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return server->GetNntpChannel(aURI, nsnull, _retval);
 }
 
 NS_IMETHODIMP
@@ -1783,14 +1775,20 @@ nsNntpService::HandleContent(const char * aContentType, nsIInterfaceRequestor* a
     if (uri)
     {
       nsCString uriStr;
-      nsCOMPtr <nsIMsgFolder> msgFolder;
-      nsCOMPtr <nsINNTPProtocol> protocol = do_QueryInterface(aChannel);
-      if (protocol)
-        protocol->GetCurrentFolder(getter_AddRefs(msgFolder));
-      if (msgFolder)
-        msgFolder->GetURI(uriStr);
+      rv = uri->GetSpec(uriStr);
+      NS_ENSURE_SUCCESS(rv, rv);
 
-      if (!uriStr.IsEmpty())
+      PRInt32 cutChar = uriStr.FindChar('?');
+      NS_ASSERTION(cutChar > 0, "No query in the list-ids?");
+      if (cutChar > 0)
+        uriStr.SetLength(cutChar);
+
+      // Try to get a valid folder...
+      nsCOMPtr <nsIMsgFolder> msgFolder;
+      GetFolderFromUri(uriStr.get(), getter_AddRefs(msgFolder));
+
+      // ... and only go on if we have a valid URI (i.e., valid folder)
+      if (msgFolder)
       {
         nsCOMPtr <nsIURI> originalUri;
         aChannel->GetOriginalURI(getter_AddRefs(originalUri));
