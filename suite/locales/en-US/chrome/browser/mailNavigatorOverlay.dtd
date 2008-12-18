@@ -2,8 +2,8 @@
 <!ENTITY newMessageCmd.accesskey         "M">
 <!ENTITY newMessageCmd.key               "M">
 
-<!ENTITY newCardCmd.label                "Address Book Card…">
-<!ENTITY newCardCmd.accesskey            "C">
+<!ENTITY newContactCmd.label             "Contact…">
+<!ENTITY newContactCmd.accesskey         "C">
 
 <!ENTITY sendPage.label                  "Send Page…">
 <!ENTITY sendPage.accesskey              "S">

@@ -290,7 +290,7 @@ function AbDelete()
   {
     var confirmDeleteMessage;
     if (types == kListsAndCards)
-      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteListsAndCards");
+      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteListsAndContacts");
     else if (types == kMultipleListsOnly)
       confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingLists");
     else

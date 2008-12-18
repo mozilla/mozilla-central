@@ -111,8 +111,8 @@
     <command id="cmd_cut"/>
     <command id="cmd_delete"
              valueAddressBook="&deleteAbCmd.label;"
-             valueCard="&deleteCardCmd.label;"
-             valueCards="&deleteCardsCmd.label;"
+             valueCard="&deleteContactCmd.label;"
+             valueCards="&deleteContactsCmd.label;"
              valueList="&deleteListCmd.label;"
              valueLists="&deleteListsCmd.label;"
              valueItems="&deleteItemsCmd.label;"/>
@@ -132,7 +132,8 @@
   <!-- File Menu -->
   <key id="key_newNavigator"/>
   <key id="key_newBlankPage"/>
-  <key id="key_printCard"  key="&printCardViewCmd.key;" command="cmd_printCard"  modifiers="accel"/>
+  <key id="key_printCard" key="&printContactViewCmd.key;"
+       command="cmd_printCard" modifiers="accel"/>
   <key id="key_close"/>
   <key id="key_quit"/>
   <!-- Edit Menu -->
@@ -157,13 +158,13 @@
 
 <popup id="dirTreeContext">
   <menuitem id="dirTreeContext-properties"
-            label="&editButton.label;"
-            accesskey="&editButton.accesskey;"
+            label="&editItemButton.label;"
+            accesskey="&editItemButton.accesskey;"
             command="cmd_properties"/>
   <menuseparator/>
   <menuitem id="dirTreeContext-newcard"
-            label="&newcardButton.label;"
-            accesskey="&newcardButton.accesskey;"
+            label="&newContactButton.label;"
+            accesskey="&newContactButton.accesskey;"
             command="cmd_newcard"/>
   <menuitem id="dirTreeContext-newlist"
             label="&newlistButton.label;"
@@ -171,15 +172,15 @@
             command="cmd_newlist"/>
   <menuseparator/>
   <menuitem id="dirTreeContext-delete"
-            label="&deleteButton.label;"
-            accesskey="&deleteButton.accesskey;"
+            label="&deleteItemButton.label;"
+            accesskey="&deleteItemButton.accesskey;"
             command="button_delete"/>
 </popup>
 
 <popup id="abResultsTreeContext">
   <menuitem id="abResultsTreeContext-properties"
-            label="&editButton.label;"
-            accesskey="&editButton.accesskey;"
+            label="&editItemButton.label;"
+            accesskey="&editItemButton.accesskey;"
             command="cmd_properties"/>
   <menuseparator/>
   <menuitem id="abResultsTreeContext-newmessage"
@@ -192,8 +193,8 @@
             command="cmd_newim"/>
   <menuseparator/>
   <menuitem id="abResultsTreeContext-delete"
-            label="&deleteButton.label;"
-            accesskey="&deleteButton.accesskey;"
+            label="&deleteItemButton.label;"
+            accesskey="&deleteItemButton.accesskey;"
             command="button_delete"/>
 </popup>
 
@@ -203,7 +204,9 @@
             <menupopup id="menu_FilePopup">
                 <menu id="menu_New">
                     <menupopup id="menu_NewPopup">
-                      <menuitem label="&newCard.label;" accesskey="&newCard.accesskey;" oncommand="AbNewCard();"/>
+                      <menuitem label="&newContact.label;"
+                                accesskey="&newContact.accesskey;"
+                                oncommand="AbNewCard();"/>
                       <menuitem label="&newListCmd.label;" accesskey="&newListCmd.accesskey;" command="cmd_newlist"/>
                       <menuitem label="&newAddressBookCmd.label;" accesskey="&newAddressBookCmd.accesskey;" oncommand="AbNewAddressBook()"/>
                       <menuitem label="&newLDAPDirectoryCmd.label;" id="addLDAP" accesskey="&newLDAPDirectoryCmd.accesskey;" oncommand="AbNewLDAPDirectory()"/>
@@ -215,9 +218,14 @@
                 <menuitem id="menu_close"/>
                 <menuseparator/>
         <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" command="cmd_printSetup"/>
-        <menuitem id="printPreviewMenuItem" label="&printPreviewCardViewCmd.label;" accesskey="&printPreviewCardViewCmd.accesskey;" command="cmd_printPreviewCard"/>
+        <menuitem id="printPreviewMenuItem"
+                  label="&printPreviewContactViewCmd.label;"
+                  accesskey="&printPreviewContactViewCmd.accesskey;"
+                  command="cmd_printPreviewCard"/>
         <menuitem id="printPreviewAddressBook" label="&printPreviewAddressBook.label;" accesskey="&printPreviewAddressBook.accesskey;" command="cmd_printPreviewAddressBook"/>
-              <menuitem id="printMenuItem" label="&printCardViewCmd.label;" accesskey="&printCardViewCmd.accesskey;" key="key_printCard" command="cmd_printCard"/>
+              <menuitem id="printMenuItem" label="&printContactViewCmd.label;"
+                        accesskey="&printContactViewCmd.accesskey;"
+                        key="key_printCard" command="cmd_printCard"/>
               <menuitem id="printAddressBook" label="&printAddressBook.label;" accesskey="&printAddressBook.accesskey;" command="cmd_printAddressBook"/>
             </menupopup>
         </menu>
@@ -386,13 +394,19 @@
     
     <!-- toolbar -->
         <toolbar class="chromeclass-toolbar toolbar-primary" id="abToolbar" persist="collapsed" grippytooltiptext="&addressbookToolbar.tooltip;">
-        <toolbarbutton class="toolbarbutton-1" id="button-newcard" label="&newcardButton.label;" tooltiptext="&newcardButton.tooltip;" command="cmd_newcard"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-newcard"
+                       label="&newContactButton.label;" command="cmd_newcard"
+                       tooltiptext="&newContactButton.tooltip;"/>
         <toolbarbutton class="toolbarbutton-1" id="button-newlist" label="&newlistButton.label;" tooltiptext="&newlistButton.tooltip;" command="cmd_newlist"/>
         <toolbarseparator class="toolbarseparator-primary"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-editcard" label="&editButton.label;" tooltiptext="&editButton.tooltip;" command="cmd_properties"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-editcard"
+                       label="&editItemButton.label;" command="cmd_properties"
+                       tooltiptext="&editItemButton.tooltip;"/>
         <toolbarbutton class="toolbarbutton-1" id="button-newmessage" label="&newmsgButton.label;" tooltiptext="&newmsgButton.tooltip;" command="cmd_newmessage"/>
         <toolbarbutton class="toolbarbutton-1" id="button-newim" label="&newIM.label;" tooltiptext="&newIM.tooltip;" command="cmd_newim"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-delete" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" command="button_delete"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-delete"
+                       label="&deleteItemButton.label;" command="button_delete"
+                       tooltiptext="&deleteItemButton.tooltip;"/>
 
         <spacer flex="1"/>
 

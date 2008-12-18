@@ -182,8 +182,8 @@
   <!-- navigator specific UI items -->
   <menupopup id="menu_NewPopup">
     <menuitem id="menu_newCard"
-              label="&newCardCmd.label;"
-              accesskey="&newCardCmd.accesskey;"
+              label="&newContactCmd.label;"
+              accesskey="&newContactCmd.accesskey;"
               command="cmd_newCard"
               insertafter="navBeginGlobalNewItems"/>
     <menuitem id="menu_newMessage"

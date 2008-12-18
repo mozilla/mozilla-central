@@ -104,7 +104,7 @@ function OnLoadNewCard()
     ? window.arguments[0]
     : Components.classes["@mozilla.org/addressbook/cardproperty;1"]
                 .createInstance(Components.interfaces.nsIAbCard);
-  gEditCard.titleProperty = "newCardTitle";
+  gEditCard.titleProperty = "newContactTitle";
   gEditCard.selectedAB = "";
 
   if ("arguments" in window && window.arguments[0])
@@ -242,7 +242,7 @@ function OnLoadEditCard()
 {
   InitEditCard();
 
-  gEditCard.titleProperty = "editCardTitle";
+  gEditCard.titleProperty = "editContactTitle";
 
   if (window.arguments && window.arguments[0])
   {

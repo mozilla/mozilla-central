@@ -41,9 +41,9 @@
 <!-- Menus:  the . means that the menu item isn't implemented yet -->
 
 <!-- File Menu -->
-<!ENTITY newCard.label                                  "Address Book Card…">
-<!-- LOCALIZATION NOTE (newCard.accesskey) : DONT_TRANSLATE -->  
-<!ENTITY newCard.accesskey                              "C">  
+<!ENTITY newContact.label                               "Contact…">
+<!-- LOCALIZATION NOTE (newContact.accesskey) : DONT_TRANSLATE -->
+<!ENTITY newContact.accesskey                           "C">
 <!ENTITY newListCmd.label                               "Mailing List…">
 <!-- LOCALIZATION NOTE (newListCmd.accesskey) : DONT_TRANSLATE -->  
 <!ENTITY newListCmd.accesskey                           "L">  
@@ -53,12 +53,12 @@
 <!-- LOCALIZATION NOTE (newLDAPDirectoryCmd.accesskey) : DONT_TRANSLATE -->
 <!ENTITY newLDAPDirectoryCmd.accesskey                  "D">
 <!ENTITY newIM.label                                    "IM">
-<!ENTITY printCardViewCmd.label                         "Print Card…">
-<!ENTITY printCardViewCmd.accesskey                     "p">
-<!ENTITY printPreviewCardViewCmd.label                  "Print Preview Card">
-<!ENTITY printPreviewCardViewCmd.accesskey              "v">
+<!ENTITY printContactViewCmd.label                      "Print Contact…">
+<!ENTITY printContactViewCmd.accesskey                  "p">
+<!ENTITY printPreviewContactViewCmd.label               "Print Preview Contact">
+<!ENTITY printPreviewContactViewCmd.accesskey           "v">
 <!-- LOCALIZATION NOTE (printCardViewCmd.key) : DONT_TRANSLATE -->  
-<!ENTITY printCardViewCmd.key                           "P">
+<!ENTITY printContactViewCmd.key                        "P">
 <!ENTITY printAddressBook.label                         "Print Address Book…"> 
 <!ENTITY printAddressBook.accesskey                     "A"> 
 <!ENTITY printPreviewAddressBook.label                  "Print Preview Address Book"> 
@@ -68,8 +68,8 @@
 
 <!-- Edit Menu -->
 <!ENTITY deleteAbCmd.label                              "Delete Address Book">  
-<!ENTITY deleteCardCmd.label                            "Delete Card">  
-<!ENTITY deleteCardsCmd.label                           "Delete Selected Cards">  
+<!ENTITY deleteContactCmd.label                         "Delete Contact">
+<!ENTITY deleteContactsCmd.label                        "Delete Selected Contacts">
 <!ENTITY deleteListCmd.label                            "Delete List">
 <!ENTITY deleteListsCmd.label                           "Delete Selected Lists">
 <!ENTITY deleteItemsCmd.label                           "Delete Selected Items">
@@ -105,27 +105,27 @@
 <!ENTITY allowOnlineCheck.accesskey                     "C">
 
 <!-- Toolbar and Popup items -->  
-<!ENTITY newcardButton.label                            "New Card">  
-<!ENTITY newcardButton.accesskey                        "C">  
+<!ENTITY newContactButton.label                         "New Contact">
+<!ENTITY newContactButton.accesskey                     "C">
 <!ENTITY newlistButton.label                            "New List">  
 <!ENTITY newlistButton.accesskey                        "L">  
-<!ENTITY editButton.label                               "Properties">  
-<!ENTITY editButton.accesskey                           "P">  
+<!ENTITY editItemButton.label                           "Properties">
+<!ENTITY editItemButton.accesskey                       "P">
 <!ENTITY newmsgButton.label                             "Compose">  
 <!ENTITY newmsgButton.accesskey                         "C">  
-<!ENTITY deleteButton.label                             "Delete">  
-<!ENTITY deleteButton.accesskey                         "D">  
+<!ENTITY deleteItemButton.label                         "Delete">
+<!ENTITY deleteItemButton.accesskey                     "D">
 <!ENTITY newimButton.label                              "Instant Message">  
 <!ENTITY newimButton.accesskey                          "I">  
 
 <!-- Tooltips -->
 <!ENTITY addressbookToolbar.tooltip                     "Address Book Toolbar">
-<!ENTITY newcardButton.tooltip                          "Create a new address book card"> 
+<!ENTITY newContactButton.tooltip                       "Create a new address book contact">
 <!ENTITY newlistButton.tooltip                          "Create a new list"> 
-<!ENTITY editButton.tooltip                             "Edit the selected card"> 
+<!ENTITY editItemButton.tooltip                         "Edit the selected item">
 <!ENTITY newmsgButton.tooltip                           "Send a mail message"> 
 <!ENTITY newIM.tooltip                                  "Send an instant message or chat"> 
-<!ENTITY deleteButton.tooltip                           "Delete selected card or address book"> 
+<!ENTITY deleteItemButton.tooltip                       "Delete selected item">
 <!ENTITY throbber.tooltip                               "Go to the &vendorShortName; home page">
 <!ENTITY advancedButton.tooltip                         "Advanced address search">
 
