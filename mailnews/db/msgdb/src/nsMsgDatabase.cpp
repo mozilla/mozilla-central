@@ -102,7 +102,9 @@ nsMsgDBService::~nsMsgDBService()
 {
 }
 
-NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate, PRBool aLeaveInvalidDB, nsIMsgDatabase **_retval)
+NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
+                                           PRBool aLeaveInvalidDB,
+                                           nsIMsgDatabase **_retval)
 {
   NS_ENSURE_ARG(aFolder);
   nsMsgDatabase *cacheDB = (nsMsgDatabase *) nsMsgDatabase::FindInCache(aFolder);
@@ -128,10 +130,12 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate
   nsCOMPtr <nsILocalFile> folderPath;
   rv = aFolder->GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = msgDB->Open(folderPath, aCreate, aLeaveInvalidDB);
-  if (NS_FAILED(rv) && (rv != NS_MSG_ERROR_FOLDER_SUMMARY_MISSING
-    && rv != NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE || !aCreate))
+
+  // Don't try to create the database yet--let the createNewDB call do that.
+  rv = msgDB->Open(folderPath, PR_FALSE, aLeaveInvalidDB);
+  if (NS_FAILED(rv) && rv != NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
     return rv;
+
   NS_IF_ADDREF(*_retval = msgDB);
   nsMsgDatabase *msgDatabase = static_cast<nsMsgDatabase *>(*_retval);
   msgDatabase->m_folder = aFolder;
@@ -205,6 +209,44 @@ NS_IMETHODIMP nsMsgDBService::OpenMailDBFromFile(nsILocalFile *aFolderName, PRBo
   if (aCreate && msgDB && rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
     rv = NS_OK;
   return rv;
+}
+
+NS_IMETHODIMP nsMsgDBService::CreateNewDB(nsIMsgFolder *aFolder,
+                                          nsIMsgDatabase **_retval)
+{
+  NS_ENSURE_ARG(aFolder);
+  
+  nsCOMPtr <nsIMsgIncomingServer> incomingServer;
+  nsresult rv = aFolder->GetServer(getter_AddRefs(incomingServer));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCString localStoreType;
+  incomingServer->GetLocalStoreType(localStoreType);
+  nsCAutoString dbContractID(NS_MSGDB_CONTRACTID);
+  dbContractID.Append(localStoreType.get());
+  
+  nsCOMPtr <nsIMsgDatabase> msgDB = do_CreateInstance(dbContractID.get(), &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr <nsILocalFile> folderPath;
+  rv = aFolder->GetFilePath(getter_AddRefs(folderPath));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = msgDB->Open(folderPath, PR_TRUE, PR_TRUE);
+  NS_ENSURE_TRUE(rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING, rv);
+
+  NS_IF_ADDREF(*_retval = msgDB);
+  nsMsgDatabase *msgDatabase = static_cast<nsMsgDatabase *>(*_retval);
+  msgDatabase->m_folder = aFolder;
+
+  // Add all pending listeners to the database
+  for (PRInt32 listenerIndex = 0;
+       listenerIndex < m_foldersPendingListeners.Count(); listenerIndex++)
+  {
+    if (m_foldersPendingListeners[listenerIndex] == aFolder)
+      msgDatabase->AddListener(m_pendingListeners.ObjectAt(listenerIndex));
+  }
+  return NS_OK;
 }
 
 /* void registerPendingListener (in nsIMsgFolder aFolder, in nsIDBChangeListener aListener); */

@@ -390,7 +390,7 @@ nsresult nsMsgFilterAfterTheFact::AdvanceToNextFolder()
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
   rv = m_curFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(m_curFolderDB));
-  if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING || rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
+  if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
   {
     nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_curFolder, &rv);
     if (NS_SUCCEEDED(rv) && localFolder)

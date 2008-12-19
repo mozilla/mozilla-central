@@ -202,7 +202,8 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsg
      rv=localFolder->GetDatabaseWOReparse(getter_AddRefs(db));
      if (NS_FAILED(rv) || !db)
      {
-       if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING || rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
+       if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING ||
+           rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
        {
          m_folder = folder;  //will be used to compact
          m_parsingFolder = PR_TRUE;

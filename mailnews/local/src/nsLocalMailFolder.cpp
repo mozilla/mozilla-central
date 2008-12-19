@@ -463,7 +463,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWOReparse(nsIMsgDatabase **aDatab
   {
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = msgDBService->OpenFolderDB(this, PR_FALSE, PR_TRUE, (nsIMsgDatabase **) getter_AddRefs(mDatabase));
+    
+    rv = msgDBService->OpenFolderDB(this, PR_TRUE, getter_AddRefs(mDatabase));
+
     if (mDatabase && NS_SUCCEEDED(rv))
     {
       mDatabase->AddListener(this);
@@ -501,11 +503,12 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
     NS_ENSURE_SUCCESS(rv,rv);
     if (!exists)
       return NS_ERROR_NULL_POINTER;  //mDatabase will be null at this point.
-    nsresult folderOpen = NS_OK;
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    folderOpen = msgDBService->OpenFolderDB(this, PR_TRUE, PR_TRUE, getter_AddRefs(mDatabase));
-    if(NS_FAILED(folderOpen) && folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
+
+    nsresult folderOpen = msgDBService->OpenFolderDB(this, PR_TRUE,
+                                                     getter_AddRefs(mDatabase));
+    if (folderOpen == NS_ERROR_FILE_TARGET_DOES_NOT_EXIST)
     {
       nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
       nsCOMPtr <nsIDBFolderInfo> transferInfo;
@@ -514,8 +517,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
         mDatabase->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
         if (dbFolderInfo)
         {
-          if (folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
-            dbFolderInfo->SetFlags(mFlags);
           dbFolderInfo->SetNumMessages(0);
           dbFolderInfo->SetNumUnreadMessages(0);
           dbFolderInfo->GetTransferInfo(getter_AddRefs(transferInfo));
@@ -543,14 +544,18 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
       summaryFile->Remove(PR_FALSE);
 
       // if it's out of date then reopen with upgrade.
-      if (NS_FAILED(rv = msgDBService->OpenFolderDB(this, PR_TRUE, PR_TRUE, getter_AddRefs(mDatabase)))
-        && rv != NS_MSG_ERROR_FOLDER_SUMMARY_MISSING && rv != NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
-        return rv;
-      else if (transferInfo && mDatabase)
+      rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      if (transferInfo && mDatabase)
       {
         SetDBTransferInfo(transferInfo);
         mDatabase->SetSummaryValid(PR_FALSE);
       }
+    }
+    else if (folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
+    {
+      msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
     }
 
     if(mDatabase)
@@ -559,8 +564,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
         mDatabase->AddListener(this);
 
       // if we have to regenerate the folder, run the parser url.
-      if(folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING ||
-        folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
+      if (folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING ||
+          folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
       {
         if(NS_FAILED(rv = ParseFolder(aMsgWindow, aReparseUrlListener)))
         {
@@ -776,10 +781,12 @@ nsMsgLocalMailFolder::CreateSubfolder(const nsAString& folderName, nsIMsgWindow 
   if (msgDBService)
   {
     nsCOMPtr<nsIMsgDatabase> unusedDB;
-    rv = msgDBService->OpenFolderDB(child, PR_TRUE, PR_TRUE, getter_AddRefs(unusedDB));
+    rv = msgDBService->OpenFolderDB(child, PR_TRUE, getter_AddRefs(unusedDB));
+    if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
+      rv = msgDBService->CreateNewDB(child, getter_AddRefs(unusedDB));
 
-    if ((NS_SUCCEEDED(rv) || rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING
-      || rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE) && unusedDB)
+    if ((NS_SUCCEEDED(rv) || rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE) &&
+        unusedDB)
     {
       //need to set the folder name
       nsCOMPtr<nsIDBFolderInfo> folderInfo;
@@ -1291,13 +1298,12 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetName(nsAString& aName)
 NS_IMETHODIMP
 nsMsgLocalMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db)
 {
-  nsresult openErr = NS_ERROR_UNEXPECTED;
   if(!db || !folderInfo || !mPath || mIsServer)
     return NS_ERROR_NULL_POINTER;   //ducarroz: should we use NS_ERROR_INVALID_ARG?
 
   nsresult rv;
   if (mDatabase)
-    openErr = NS_OK;
+    rv = NS_OK;
   else
   {
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
@@ -1315,16 +1321,16 @@ nsMsgLocalMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgD
         folderEmpty = !mailboxSize;
     }
 
-    openErr = msgDBService->OpenFolderDB(this, folderEmpty, PR_FALSE, getter_AddRefs(mDatabase));
+    rv = msgDBService->OpenFolderDB(this, PR_FALSE, getter_AddRefs(mDatabase));
     if (folderEmpty)
     {
-      if (openErr == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
+      if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
       {
+        rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
         if (mDatabase)
           mDatabase->SetSummaryValid(PR_TRUE);
-        openErr = NS_OK;
       }
-      else if (NS_FAILED(openErr))
+      else if (NS_FAILED(rv))
         mDatabase = nsnull;
     }
     if (mAddListener && mDatabase)
@@ -1332,9 +1338,9 @@ nsMsgLocalMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgD
   }
 
   NS_IF_ADDREF(*db = mDatabase);
-  if (NS_SUCCEEDED(openErr)&& *db)
-    openErr = (*db)->GetDBFolderInfo(folderInfo);
-  return openErr;
+  if (NS_SUCCEEDED(rv) && *db)
+    rv = (*db)->GetDBFolderInfo(folderInfo);
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgLocalMailFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement *element)

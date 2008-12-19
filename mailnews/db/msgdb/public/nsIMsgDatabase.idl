@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,6 +36,23 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * @defgroup msgdb Mailnews message database
+ * This module is the access point to locally-stored databases.
+ *
+ * These databases are stored in .msf files. Each file contains useful cached
+ * information, like the message id or references, as well as the cc header or
+ * tag information. This cached information is encapsulated in nsIMsgDBHdr.
+ *
+ * Also included is threading information, mostly encapsulated in nsIMsgThread.
+ * The final component is the database folder info, which contains information
+ * on the view and basic information also stored in the folder cache such as the
+ * name or most recent update.
+ *
+ * What this module does not do is access individual messages. Access is
+ * strictly controlled by the nsIMsgFolder objects and their backends.
+ * @{
+ */
 #include "nsISupports.idl"
 #include "MailNewsTypes2.idl"
 #include "nsIDBChangeAnnouncer.idl"
@@ -106,35 +124,106 @@ interface nsMsgDBCommitType
 [ref] native nsMsgKeyArrayRef(nsTArray<nsMsgKey>);
 [ptr] native nsMsgKeyArrayPtr(nsTArray<nsMsgKey>);
 
-[scriptable, uuid(03223c50-1e88-45e8-ba1a-7ce792dc3fc3)]
+/**
+ * A service to open mail databases and manipulate listeners automatically.
+ *
+ * The contract ID for this component is
+ * <tt>\@mozilla.org/msgDatabase/msgDBService;1</tt>.
+ */
+[scriptable, uuid(26cb7242-a4ba-4811-ad7b-ff993450aae3)]
 interface nsIMsgDBService : nsISupports
 {
-    // want to remove this method from nsIMsgDatabase...
-    // if a db is opened on the folder, the listener will automatically be added
-
   /**
-   * Opens a database folder.
+   * Opens a database for a given folder.
    *
-   * @param aFolderName     The name of the folder to create.
-   * @param aCreate         Whether or not the file should be created.
-   * @param aLeaveInvalidDB Set to true if you do not want the database to be
-   *                        deleted if it is invalid.
-   * @return                A new nsIMsgDatabase object representing the
-   *                        folder database that was opened.
+   * This method is preferred over nsIMsgDBService::openMailDBFromFile if the
+   * caller has an actual nsIMsgFolder around. If the database detects that it
+   * is unreadable or out of date (using nsIMsgDatabase::outOfDate) it will
+   * destroy itself and prepare to be rebuilt, unless aLeaveInvalidDB is true.
+   *
+   * If one gets a NS_MSG_ERROR_FOLDER_SUMMARY_MISSING message, then one
+   * should call nsIMsgDBService::createNewDB to create the new database.
+   *
+   * @param aFolder         The folder whose database should be returned.
+   * @param aLeaveInvalidDB Whether or not the database should be deleted if it
+   *                        is invalid.
+   * @return                A new nsIMsgDatabase object representing the folder
+   *                        database that was opened.
    * @exception NS_ERROR_FILE_TARGET_DOES_NOT_EXIST
-   *                        aFolderName doesn't exist and aCreate was false.
+   *                        The file could not be created.
    * @exception NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE
    *                        The database is present (and was opened), but the
    *                        summary file is out of date.
    * @exception NS_MSG_ERROR_FOLDER_SUMMARY_MISSING
-   *                        The database is present (and was opened), but the
-   *                        summary file is missing.
+   *                        The database is present, but the summary file is
+   *                        missing.
+   * @see nsIMsgDatabase::Open
+   * @see nsIMsgDBService::createNewDB
    */
-  nsIMsgDatabase openFolderDB(in nsIMsgFolder aFolder, in boolean aCreate,
+  nsIMsgDatabase openFolderDB(in nsIMsgFolder aFolder,
                               in boolean aLeaveInvalidDB);
-    nsIMsgDatabase openMailDBFromFile(in nsILocalFile aFolderName, in boolean aCreate, in boolean aLeaveInvalidDB);
-    void registerPendingListener(in nsIMsgFolder aFolder, in nsIDBChangeListener aListener);
-    void unregisterPendingListener(in nsIDBChangeListener aListener);
+
+  /**
+   * Creates a new database for the given folder.
+   *
+   * If the database already exists, it will return the database, emit a
+   * warning, but not fully initialize it. For this reason, it should only be
+   * used when it is known that the database does not exist, such as when
+   * nsIMsgDBService::openFolderDB throws an error.
+   *
+   * @see nsIMsgDBService::openFolderDB
+   */
+  nsIMsgDatabase createNewDB(in nsIMsgFolder aFolder);
+
+  /**
+   * Opens or creates a database for a given file.
+   *
+   * This method should only be used if the caller does not have a folder
+   * instance, because the resulting db and message headers retrieved from the
+   * database would not know their owning folder, which limits their usefulness.
+   * For this reason, one should use nsIMsgDBService::openFolderDB instead
+   * except under special circumstances.
+   *
+   * Unlike nsIMsgDBService::openFolderDB, there is no corresponding method to
+   * create a new database if opening the database failed. However, this method
+   * will never throw NS_MSG_ERROR_FOLDER_SUMMARY_MISSING, so no corresponding
+   * method is needed.
+   *
+   * @param aFile           The file for which the database should be returned.
+   * @param aCreate         Whether or not the file should be created.
+   * @param aLeaveInvalidDB Whether or not the database should be deleted if it
+   *                        is invalid.
+   * @return                A new nsIMsgDatabase object encapsulating the file
+   *                        passed in.
+   * @exception NS_ERROR_FILE_TARGET_DOES_NOT_EXIST
+   *                        The file could not be created.
+   * @see nsIMsgDBService::openFolderDB
+   * @see nsIMsgDatabase::Open
+   */
+  nsIMsgDatabase openMailDBFromFile(in nsILocalFile aFile,
+                                    in boolean aCreate,
+                                    in boolean aLeaveInvalidDB);
+  /**
+   * Adds the given listener to the listener set for the folder.
+   *
+   * Since the message database will likely be opened and closed many times, by
+   * registering using this method, one will be guaranteed to see all subsequent
+   * modifications. This will also add the listener to the database if it is
+   * already opened.
+   *
+   * @param aFolder         The folder to add a listener to.
+   * @param aListener       The listener to add the folder to.
+   */
+  void registerPendingListener(in nsIMsgFolder aFolder,
+                               in nsIDBChangeListener aListener);
+  /**
+   * Removes the listener from all folder listener sets.
+   *
+   * @param aListener       The listener to remove.
+   * @exception NS_ERROR_FAILURE
+   *                        The listener is not registered.
+   */
+  void unregisterPendingListener(in nsIDBChangeListener aListener);
 };
 
 [scriptable, uuid(55EEECA9-FCF6-4a94-A9D4-0ECFBAAE8CAA)]
@@ -147,7 +236,7 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
    * @param aLeaveInvalidDB Set to true if you do not want the database to be
    *                        deleted if it is invalid.
    * @exception NS_ERROR_FILE_TARGET_DOES_NOT_EXIST
-   *                        aFolderName doesn't exist and aCreate was false.
+   *                        The file could not be created.
    * @exception NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE
    *                        The database is present (and was opened), but the
    *                        summary file is out of date.
@@ -357,4 +446,4 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   boolean hdrIsInCache(in string aSearchFolderUri, in nsIMsgDBHdr aHdr);
 
 };
-
+/** @} */

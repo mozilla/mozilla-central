@@ -418,6 +418,19 @@ interface nsIMsgFolder : nsISupports {
   void markMessagesFlagged(in nsIArray messages, in boolean markFlagged);
   void markThreadRead(in nsIMsgThread thread);
   void setLabelForMessages(in nsIArray messages, in nsMsgLabelValue label);
+  /**
+   * Gets the message database for the folder.
+   *
+   * Note that if the database is out of date, the implementation MAY choose to
+   * throw an error. For a handle to the database which MAY NOT throw an error,
+   * one can use getDBFolderInfoAndDB.
+   *
+   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_MISSING If the database does not
+   *                         exist.
+   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE If the database contains
+   *                         out of date information.
+   * @see nsIMsgFolder::getDBFolderInfoAndDB.
+   */
   nsIMsgDatabase getMsgDatabase(in nsIMsgWindow msgWindow);
   void setMsgDatabase (in nsIMsgDatabase msgDatabase);
   /**

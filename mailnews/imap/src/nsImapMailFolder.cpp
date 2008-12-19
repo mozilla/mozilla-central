@@ -654,23 +654,18 @@ NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 //returns NS_OK.  Otherwise returns a failure error value.
 nsresult nsImapMailFolder::GetDatabase(nsIMsgWindow *aMsgWindow)
 {
-  nsresult folderOpen = NS_OK;
+  nsresult rv = NS_OK;
   if (!mDatabase)
   {
-    nsresult rv;
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    folderOpen = msgDBService->OpenFolderDB(this, PR_TRUE, PR_FALSE, getter_AddRefs(mDatabase));
+    // Create the database, blowing it away if it needs to be rebuilt
+    rv = msgDBService->OpenFolderDB(this, PR_FALSE, getter_AddRefs(mDatabase));
+    if (NS_FAILED(rv))
+      rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
 
-    if (NS_FAILED(folderOpen) && folderOpen != NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
-      folderOpen = msgDBService->OpenFolderDB(this, PR_TRUE, PR_TRUE, getter_AddRefs(mDatabase));
-
-    if (NS_FAILED(folderOpen) && folderOpen != NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
-      return folderOpen;
-
-    if(folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
-      folderOpen = NS_OK;
+    NS_ENSURE_SUCCESS(rv, rv);
 
     if(mDatabase)
     {
@@ -683,7 +678,7 @@ nsresult nsImapMailFolder::GetDatabase(nsIMsgWindow *aMsgWindow)
       mDatabase = database;
     }
   }
-  return folderOpen;
+  return rv;
 }
 
 NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow * inMsgWindow)
@@ -2559,12 +2554,8 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
 
     // Create a new summary file, update the folder message counts, and
     // Close the summary file db.
-    rv = msgDBService->OpenFolderDB(this, PR_TRUE, PR_TRUE, getter_AddRefs(mDatabase));
-
-    // ********** Important *************
-    // David, help me here I don't know this is right or wrong
-    if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
-      rv = NS_OK;
+    PRBool created;
+    rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
 
     if (NS_FAILED(rv) && mDatabase)
     {

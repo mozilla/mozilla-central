@@ -15,11 +15,11 @@ function run_test() {
                           .getService(Components.interfaces.nsIMsgDBService);
                         
   var folder = root.getChildNamed("dbTest");
-  var db = dbService.openFolderDB(folder, true, true);
+  var db = dbService.openFolderDB(folder, true);
   do_check_neq(db, null);
   db.dBFolderInfo.highWater = 10;
   db.Close(true);
-  db = dbService.openFolderDB(folder, true, true);
+  db = dbService.openFolderDB(folder, true);
   do_check_neq(db, null);
   do_check_eq(db.dBFolderInfo.highWater, 10);
   db.dBFolderInfo.onKeyAdded(15);

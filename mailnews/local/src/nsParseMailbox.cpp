@@ -158,8 +158,14 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStartRequest(nsIRequest *request, nsISupport
             nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
             if (msgDBService)
             {
-                //Use OpenFolderDB to always open the db so that db's m_folder is set correctly.
-                rv = msgDBService->OpenFolderDB(folder, PR_TRUE, PR_TRUE, (nsIMsgDatabase **) getter_AddRefs(m_mailDB));
+                // Use OpenFolderDB to always open the db so that db's m_folder
+                // is set correctly.
+                rv = msgDBService->OpenFolderDB(folder, PR_TRUE,
+                                                getter_AddRefs(m_mailDB));
+                if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
+                  rv = msgDBService->CreateNewDB(folder,
+                                                 getter_AddRefs(m_mailDB));
+
                 if (m_mailDB)
                     m_mailDB->AddListener(this);
             }
@@ -1643,7 +1649,8 @@ nsParseNewMailState::Init(nsIMsgFolder *serverFolder, nsIMsgFolder *downloadFold
   // the OnStartRequest mechanism the mailbox parser uses. So, let's open the db right now.
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   if (msgDBService)
-    rv = msgDBService->OpenFolderDB(downloadFolder, PR_TRUE, PR_FALSE, (nsIMsgDatabase **) getter_AddRefs(m_mailDB));
+    rv = msgDBService->OpenFolderDB(downloadFolder, PR_FALSE,
+                                    getter_AddRefs(m_mailDB));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsIMsgFolder> rootMsgFolder = do_QueryInterface(serverFolder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);

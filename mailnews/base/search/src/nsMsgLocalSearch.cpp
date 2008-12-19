@@ -306,7 +306,6 @@ nsresult nsMsgSearchOfflineMail::OpenSummaryFile ()
     {
         case NS_OK:
             break;
-        case NS_MSG_ERROR_FOLDER_SUMMARY_MISSING:
         case NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE:
           {
             nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(scopeFolder, &err);
