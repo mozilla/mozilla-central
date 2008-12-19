@@ -288,7 +288,8 @@
       </method>
       <method name="openTab">
         <parameter name="aTabModeName"/>
-        <body><![CDATA[
+        <body>
+            <![CDATA[
           let tabMode = this.tabModes[aTabModeName];
           // if we are already at our limit for this mode, show an existing one
           if (tabMode.tabs.length == tabMode.maxTabs) {
@@ -314,12 +315,12 @@
           t.setAttribute("validate", "never");
           t.className = "tabmail-tab";
           this.tabContainer.appendChild(t);
-          if (this.tabStrip.collapsed)
-          {
-            this.tabStrip.collapsed = false;
-            this.tabStrip.setAttribute("closebuttons", "alltabs");
+          this.tabContainer.appendChild(t);
+          if (this.tabContainer.collapsed) {
+            this.tabContainer.collapsed = false;
+            this.tabContainer.adjustTabstrip();
           }
-          
+
           let oldTab = this.currentTabInfo;
 
           // the order of the following statements is important
@@ -420,6 +421,8 @@
               this.panelContainer.removeChild(tab.panel);
               delete tab.panel;
             }
+            if (numTabs == 1 && this.tabContainer.mAutoHide)
+              this.tabContainer.collapsed = true;
           ]]>
         </body>
       </method>
@@ -691,13 +694,19 @@
             this.mCloseButtons = pb2.getIntPref("mail.tabs.closeButtons");
           } catch (e) {
           }
+          try {
+            this.mAutoHide = pb2.getBoolPref("mail.tabs.autoHide");
+          } catch (e) {
+          }
+
+          if (this.mAutoHide)
+            this.collapsed = true;
 
           this.firstChild.minWidth = this.mTabMinWidth;
           this.firstChild.maxWidth = this.mTabMaxWidth;
           this.adjustTabstrip();
 
-          pb2.addObserver("mail.tabs.closeButtons", 
-                          this._prefObserver, false);
+          pb2.addObserver("mail.tabs.", this._prefObserver, false);
 
           window.addEventListener("resize", this, false);
 
@@ -716,7 +725,7 @@
           var pb2 =
               Components.classes['@mozilla.org/preferences-service;1'].
               getService(Components.interfaces.nsIPrefBranch2);
-          pb2.removeObserver("mail.tabs.closeButtons", this._prefObserver);
+          pb2.removeObserver("mail.tabs.", this._prefObserver);
 
           // Release timer to avoid reference cycles.
           if (this._animateTimer) {
@@ -745,11 +754,14 @@
         observe: function(subject, topic, data)
         {
           if (topic == "nsPref:changed") {
+            subject.QueryInterface(Components.interfaces.nsIPrefBranch);
             switch (data) {
             case "mail.tabs.closeButtons":
-              subject.QueryInterface(Components.interfaces.nsIPrefBranch);
               this.tabbox.mCloseButtons = subject.getIntPref("mail.tabs.closeButtons");
               this.tabbox.adjustTabstrip();
+              break;
+            case "mail.tabs.autoHide":
+              this.tabbox.mAutoHide = subject.getBoolPref("mail.tabs.autoHide");
               break;
             }
           }
@@ -768,6 +780,18 @@
       <field name="mTabMaxWidth">250</field>
       <field name="mTabClipWidth">140</field>
       <field name="mCloseButtons">1</field>
+
+      <field name="_mAutoHide">false</field>
+      <property name="mAutoHide" onget="return this._mAutoHide;">
+        <setter><![CDATA[
+          if (val != this._mAutoHide) {
+            if (this.childNodes.length == 1)
+              this.collapsed = val;
+            this._mAutoHide = val;
+          }
+          return val;
+        ]]></setter>
+      </property>
 
       <method name="adjustTabstrip">
         <body><![CDATA[
