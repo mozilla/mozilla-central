@@ -88,6 +88,7 @@
   <script type="application/x-javascript" src="chrome://messenger/content/msgViewNavigation.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/editContactOverlay.js"/>
+  <script type="application/x-javascript" src="chrome://messenger/content/threadPane.js"/>
 
   <commandset id="mailCommands">
     <commandset id="mailFileMenuItems"/>

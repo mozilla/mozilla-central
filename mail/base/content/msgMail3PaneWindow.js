@@ -62,7 +62,6 @@ const kNumFolderViews = 4; // total number of folder views
 const MSG_FOLDER_FLAG_ELIDED = 0x10;
 
 var gMessagePane;
-var gThreadTree;
 var gSearchInput;
 
 var gThreadAndMessagePaneSplitter = null;

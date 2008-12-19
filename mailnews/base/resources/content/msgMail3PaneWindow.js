@@ -49,7 +49,6 @@ const kMailCheckOncePrefName = "mail.startup.enabledMailCheckOnce";
 
 var gFolderTree;
 var gMessagePane;
-var gThreadTree;
 var gSearchInput;
 
 var gThreadAndMessagePaneSplitter = null;

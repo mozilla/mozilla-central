@@ -38,6 +38,7 @@
 
 var gLastMessageUriToLoad = null;
 var gThreadPaneCommandUpdater = null;
+var gThreadTree = null;
 
 function ThreadPaneOnClick(event)
 {
@@ -469,6 +470,9 @@ function RerootThreadPane()
 function ThreadPaneOnLoad()
 {
   var tree = GetThreadTree();
+  // We won't have the tree if we're in a message window, so exit silently
+  if (!tree)
+    return;
 
   tree.addEventListener("click",ThreadPaneOnClick,true);
   
