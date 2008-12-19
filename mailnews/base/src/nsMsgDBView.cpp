@@ -4384,7 +4384,6 @@ nsresult nsMsgDBView::ExpandByIndex(nsMsgViewIndex index, PRUint32 *pNumExpanded
   if ((PRUint32) index > m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
 
-  nsMsgKey firstIdInThread = m_keys[index];
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   nsCOMPtr <nsIMsgThread> pThread;
   nsresult rv = GetThreadContainingIndex(index, getter_AddRefs(pThread));
@@ -6305,7 +6304,8 @@ nsMsgDBView::GetNumSelected(PRUint32 *numSelected)
 
   if (!mTreeSelection)
   {
-    *numSelected = 0;
+    // No tree selection can mean we're in the stand alone mode.
+    *numSelected = (m_currentlyDisplayedMsgKey != nsMsgKey_None) ? 1 : 0;
     return NS_OK;
   }
 
