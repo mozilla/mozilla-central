@@ -6,7 +6,7 @@ function run_test() {
   daemon.createMailbox("Unsubscribed box");
   var server = makeServer(daemon, "");
 
-  var localserver = createLocalServer();
+  var localserver = createLocalIMAPServer();
 
   // Get the server list...
   localserver.performExpand(null);

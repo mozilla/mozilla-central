@@ -26,7 +26,7 @@ function makeServer(daemon, infoString) {
   return server;
 }
 
-function createLocalServer() {
+function createLocalIMAPServer() {
   var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);
   
