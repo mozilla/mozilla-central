@@ -77,6 +77,36 @@
         ]]></setter>
       </property>
 
+      <property name="sortingMode" readonly="true">
+        <getter><![CDATA[
+          try {
+            // If we have a result then simply return its sorting mode.
+            return this.view.QueryInterface(Components.interfaces.nsINavHistoryResultViewer).result.sortingMode;
+          }
+          catch (e) {
+            // Find the sorted column from the persisted attributes.
+            const NHQO = Components.interfaces.nsINavHistoryQueryOptions;
+            var sortedColumn = this.columns.getSortedColumn();
+            if (!sortedColumn)
+              return NHQO.SORT_BY_NONE;
+
+            var sortDescending =
+              sortedColumn.element.getAttribute("sortDirection") != "ascending";
+            switch (sortedColumn.id) {
+              case "Name":
+                return NHQO.SORT_BY_TITLE_ASCENDING + sortDescending;
+              case "URL":
+                return NHQO.SORT_BY_URI_ASCENDING + sortDescending;
+              case "Date":
+                return NHQO.SORT_BY_DATE_ASCENDING + sortDescending;
+              case "VisitCount":
+                return NHQO.SORT_BY_VISITCOUNT_ASCENDING + sortDescending;
+            }
+            return NHQO.SORT_BY_NONE;
+          }
+        ]]></getter>
+      </property>
+
       <method name="applyFilter">
         <parameter name="filterString"/>
         <body><![CDATA[

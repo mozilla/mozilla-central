@@ -179,12 +179,11 @@ function historyAddBookmarks()
 
 function searchHistory(aInput)
 {
-  var result = gHistoryTree.getResult();
   var query = PlacesUtils.history.getNewQuery();
   var options = PlacesUtils.history.getNewQueryOptions();
 
   const NHQO = Components.interfaces.nsINavHistoryQueryOptions;
-  options.sortingMode = result ? result.sortingMode : NHQO.SORT_BY_NONE;
+  options.sortingMode = gHistoryTree.sortingMode;
   options.queryType = NHQO.QUERY_TYPE_HISTORY;
 
   if (aInput) {
