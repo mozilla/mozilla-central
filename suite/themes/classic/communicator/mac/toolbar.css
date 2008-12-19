@@ -45,11 +45,11 @@
 
 /* ::::: toolbar & menubar ::::: */
 
-/* allow toolbar to be striped by removing hardcoded background
-   this is a hack until bug 370426 gets resolved */
 toolbar {
   background: none;
   -moz-appearance: none;
+  border-top: 1px solid rgba(255,255,255,0.45);
+  border-bottom: 1px solid rgba(0,0,0,0.35);
 }
 
 toolbar:not([nowindowdrag="true"]) {
