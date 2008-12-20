@@ -147,22 +147,9 @@ var whatsnewTabType = {
                               .getService(Components.interfaces.nsIURLFormatter)
                               .formatURLPref("mailnews.start_page.override_url");
     aTab.panel.setAttribute("src", startpage);
-    
-    try {
-      // Note: "updateType_major" is a temporary solution until we add
-      // tab title string into messenger string bundle. When done,
-      // final code will look like something like that;
-      //let msgBundle = document.getElementById("bundle_messenger");
-      //aTab.title = msgBundle.getString("whatsNew");
-      
-      let updateBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                   .getService(Components.interfaces.nsIStringBundleService)
-                                  .createBundle(URI_UPDATES_PROPERTIES);
-      aTab.title = updateBundle.GetStringFromName("updateType_major");
-    }
-    catch(e) {
-      aTab.title = "What's New";
-    }
+
+    let msgBundle = document.getElementById("bundle_messenger");
+    aTab.title = msgBundle.getString("whatsNew");
   },
   closeTab: function onTabClosed (aTab) {
   },
