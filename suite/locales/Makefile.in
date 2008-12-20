@@ -140,9 +140,11 @@ install:: $(addsuffix .src,$(SEARCH_PLUGINS)) $(addsuffix .png,$(SEARCH_PLUGINS)
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/searchplugins
 
 tests:
+ifeq (WINNT, $(OS_ARCH))
 ifneq (en-US, $(AB_CD))
-	#@echo "Verifying $(AB_CD) installer variable usage"
-	#@$(PERL) $(MOZ_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer
+	@echo "Verifying $(AB_CD) installer variable usage"
+	@$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer/windows
+endif
 endif
 
 clobber-%:

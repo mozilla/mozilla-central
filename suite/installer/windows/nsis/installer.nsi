@@ -73,23 +73,16 @@ Var AddDesktopSC
 ; The following includes are provided by NSIS.
 !include FileFunc.nsh
 !include LogicLib.nsh
-!include TextFunc.nsh
 !include WinMessages.nsh
 !include WinVer.nsh
 !include WordFunc.nsh
 !include MUI.nsh
 
 !insertmacro StrFilter
-!insertmacro TrimNewLines
 !insertmacro GetOptions
 !insertmacro GetParameters
 !insertmacro GetSize
 !insertmacro WordFind
-
-; NSIS provided macros that we have overridden
-!include overrides.nsh
-!insertmacro LocateNoDetails
-!insertmacro TextCompareNoDetails
 
 ; The following includes are custom.
 !include branding.nsi
@@ -110,16 +103,16 @@ VIAddVersionKey "OrginalFilename" "setup.exe"
 !insertmacro ChangeMUIHeaderImage
 !insertmacro CheckForFilesInUse
 !insertmacro CleanUpdatesDir
-!insertmacro CloseApp
 !insertmacro CreateRegKey
 !insertmacro CopyFilesFromDir
+!insertmacro CreateRegKey
 !insertmacro GetPathFromString
 !insertmacro GetParent
 !insertmacro IsHandlerForInstallDir
 !insertmacro ManualCloseAppPrompt
 !insertmacro RegCleanMain
 !insertmacro RegCleanUninstall
-!insertmacro CreateRegKey
+!insertmacro SetBrandNameVars
 !insertmacro UnloadUAC
 !insertmacro WriteRegStr2
 !insertmacro WriteRegDWORD2
@@ -951,6 +944,9 @@ FunctionEnd
 # Initialization Functions
 
 Function .onInit
+  StrCpy $LANGUAGE 0
+  ${SetBrandNameVars} "$EXEDIR\localized\distribution\setup.ini"
+
   ${InstallOnInitCommon} "$(WARN_UNSUPPORTED_MSG)"
 
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "options.ini"
@@ -1036,8 +1032,6 @@ Function .onInit
   WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" Top    "60"
   WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" Bottom "70"
   WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 4" State  "1"
-
-  StrCpy $LANGUAGE 0
 
   ; There must always be nonlocalized and localized directories.
   ${GetSize} "$EXEDIR\nonlocalized\" "/S=0K" $R5 $R7 $R8

@@ -67,7 +67,6 @@ Var TmpVal
 !include FileFunc.nsh
 !include LogicLib.nsh
 !include MUI.nsh
-!include TextFunc.nsh
 !include WinMessages.nsh
 !include WinVer.nsh
 !include WordFunc.nsh
@@ -100,6 +99,7 @@ VIAddVersionKey "OriginalFilename" "helper.exe"
 !insertmacro IsHandlerForInstallDir
 !insertmacro RegCleanMain
 !insertmacro RegCleanUninstall
+!insertmacro SetBrandNameVars
 !insertmacro UnloadUAC
 !insertmacro WordReplace
 !insertmacro WriteRegDWORD2
@@ -119,6 +119,7 @@ VIAddVersionKey "OriginalFilename" "helper.exe"
 !insertmacro un.RegCleanProtocolHandler
 !insertmacro un.RegCleanUninstall
 !insertmacro un.RemoveQuotesFromPath
+!insertmacro un.SetBrandNameVars
 
 !include shared.nsh
 
@@ -543,6 +544,7 @@ Function un.onInit
   ${EndUnless}
 
   StrCpy $LANGUAGE 0
+  ${un.SetBrandNameVars} "$INSTDIR\distribution\setup.ini"
 
   ; Initialize $hHeaderBitmap to prevent redundant changing of the bitmap if
   ; the user clicks the back button
