@@ -258,6 +258,8 @@ regxpcom.exe
 sunbird.url
 unins000.dat
 unins000.exe
+uninstall/UninstallSunbird.exe
+uninstall/uninst.exe
 xpcom_compat.dll
 components/nsInterfaceInfoToIDL.js
 xpcshell.exe
@@ -278,7 +280,6 @@ components/autocomplete.xpt
 @DLL_PREFIX@zlib@DLL_SUFFIX@
 extensions/inspector@mozilla.org/components/inspector.xpt
 extensions/inspector@mozilla.org/components/@DLL_PREFIX@inspector@DLL_SUFFIX@
-uninstall/UninstallSunbird.exe
 #
 #
 # Clean out obsolete Talkback files

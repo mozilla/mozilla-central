@@ -23,7 +23,7 @@ bin\defaults\pref\sunbird-l10n.js
 bin\defaults\profile\prefs.js
 bin\defaults\profile\chrome\*
 bin\dictionaries\*
-bin\uninstall\uninst.exe
+bin\uninstall\helper.exe
 bin\updater.ini
 
 [xpcom]

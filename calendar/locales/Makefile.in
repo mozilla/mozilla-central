@@ -97,9 +97,13 @@ endif
 include $(topsrcdir)/config/rules.mk
 
 tests:
+ifdef MOZ_SUNBIRD
+ifeq ($(OS_ARCH), WINNT)
 ifneq (en-US, $(AB_CD))
-	#@echo "Verifying $(AB_CD) installer variable usage"
-	#@$(PERL) $(MOZ_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer
+	@echo "Verifying $(AB_CD) installer variable usage $(MOZILLA_SRCDIR)"
+	@$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer
+endif
+endif
 endif
 
 clobber-%:
@@ -117,7 +121,7 @@ ifdef MOZ_BRANDING_DIRECTORY
 endif
 	@$(MAKE) tests AB_CD=$*
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
 MOZ_PKG_MAC_BACKGROUND=$(_ABS_DIST)/branding/background.png
 MOZ_PKG_MAC_ICON=$(_ABS_DIST)/branding/disk.icns
@@ -152,7 +156,7 @@ endif
 	$(MAKE) -C ../installer/windows CONFIG_DIR=l10ngen l10ngen/setup.exe l10ngen/7zSD.sfx
 	cp ../installer/windows/l10ngen/setup.exe l10n-stage
 	$(NSINSTALL) -D l10n-stage/localized/uninstall
-	cp ../installer/windows/l10ngen/uninst.exe l10n-stage/localized/uninstall
+	cp ../installer/windows/l10ngen/helper.exe l10n-stage/localized/uninstall
 	rm -f app.7z
 	cd l10n-stage && \
 	  $(CYGWIN_WRAPPER) 7z a -r -t7z ../app.7z -mx -m0=BCJ2 -m1=LZMA:d24 -m2=LZMA:d19 -m3=LZMA:d19 -mb0:1 -mb0s1:2 -mb0s2:3
@@ -169,7 +173,7 @@ else
 repackage-win32-installer-%: ;
 endif
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 STAGEDIST = $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/MacOS
 else
 STAGEDIST = $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)
@@ -179,7 +183,7 @@ $(STAGEDIST): AB_CD:=en-US
 $(STAGEDIST): UNPACKAGE=$(ZIP_IN)
 $(STAGEDIST): $(ZIP_IN)
 # only mac needs to remove the parent of STAGEDIST...
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	if test -d $(DIST)/l10n-stage; then \
 	  $(RM) -r -v $(DIST)/l10n-stage; \
 	fi
@@ -230,14 +234,14 @@ repackage-zip:
 ifeq (WINNT,$(OS_ARCH))
 	$(RM) -r $(STAGEDIST)/uninstall
 	$(NSINSTALL) -D $(STAGEDIST)/uninstall
-	cp ../installer/windows/l10ngen/uninst.exe $(STAGEDIST)/uninstall
+	cp ../installer/windows/l10ngen/helper.exe $(STAGEDIST)/uninstall
 endif
 	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
 	  tar $(TAR_CREATE_FLAGS) - * | ( cd $(STAGEDIST) && tar -xf - )
 	cd $(DIST)/xpi-stage/calendar-timezones && \
 	  tar $(TAR_CREATE_FLAGS) - * | ( cd $(STAGEDIST)/extensions/calendar-timezones@mozilla.org && tar -xf - )
 ifneq (en,$(AB))
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj
 endif
 endif
@@ -251,7 +255,7 @@ ifdef MOZ_MAKE_COMPLETE_MAR
 endif
 # packaging done, undo l10n stuff
 ifneq (en,$(AB))
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj
 endif
 endif
