@@ -771,6 +771,13 @@ function Shutdown()
   }
   controllers.removeController(BookmarksMenuController);
 
+  // remove the extension manager RDF datasource to prevent 'leaking' it
+  // see bug 391318, the real cause of reporting leaks is probably bug 406914
+  var extDB = document.getElementById('menu_ViewApplyTheme_Popup').database;
+  var extDS = extDB.GetDataSources();
+  while (extDS.hasMoreElements())
+    extDB.RemoveDataSource(extDS.getNext());
+
   window.XULBrowserWindow.destroy();
   window.XULBrowserWindow = null;
   window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)

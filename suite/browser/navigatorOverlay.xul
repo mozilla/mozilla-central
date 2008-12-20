@@ -429,7 +429,9 @@
         <menuitem accesskey="&pageInfoCmd.accesskey;"   label="&pageInfoCmd.label;"   key="key_viewInfo"   command="View:PageInfo"/>
         <menuseparator />
         <menu label="&applyTheme.label;" accesskey="&applyTheme.accesskey;">
-          <menupopup datasources="rdf:extensions" ref="urn:mozilla:item:root" oncommand="applyTheme(event.target);" onpopupshowing="checkTheme(this);"
+          <menupopup id="menu_ViewApplyTheme_Popup"
+                     datasources="rdf:extensions" ref="urn:mozilla:item:root"
+                     oncommand="applyTheme(event.target);" onpopupshowing="checkTheme(this);"
                      sortResource="http://www.mozilla.org/2004/em-rdf#name"
                      sortDirection="ascending">
             <menuitem label="&getNewThemesCmd.label;" accesskey="&getNewThemesCmd.accesskey;" oncommand="getNewThemes();"/>
