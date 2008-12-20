@@ -294,7 +294,6 @@ extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resour
 extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/sort_descending.tiff
 extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/Talkback.icns
 updater.app/Contents/MacOS/updater.ini
-Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter
 #else
 extensions/talkback@mozilla.org/components/talkback/talkback
 extensions/talkback@mozilla.org/components/talkback/XTalkback.ad
