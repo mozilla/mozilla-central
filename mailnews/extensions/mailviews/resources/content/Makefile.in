@@ -45,7 +45,6 @@ include $(DEPTH)/config/autoconf.mk
 MODULE       = mailview
 
 EXPORT_DIR	= $(DIST)/bin/defaults/messenger
-EXPORT_L10N_DIR	= $(EXPORT_DIR)/$(AB_CD)
 
 EXPORT_RESOURCE_FILES	= \
 			mailViews.dat \
@@ -53,14 +52,11 @@ EXPORT_RESOURCE_FILES	= \
 
 include $(topsrcdir)/config/rules.mk
 
-GARBAGE		+= $(addprefix $(EXPORT_DIR)/, $(EXPORT_RESOURCE_FILES)) \
-		$(addprefix $(EXPORT_L10N_DIR)/, $(EXPORT_RESOURCE_FILES))
+GARBAGE		+= $(addprefix $(EXPORT_DIR)/, $(EXPORT_RESOURCE_FILES))
 
 libs:: $(EXPORT_RESOURCE_FILES)
 	$(INSTALL) $^ $(EXPORT_DIR)
-	$(INSTALL) $^ $(EXPORT_L10N_DIR)
 
 install:: $(EXPORT_RESOURCE_FILES)
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/messenger
-	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/messenger/$(AB_CD)
 

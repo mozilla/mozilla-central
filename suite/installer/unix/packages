@@ -15,7 +15,6 @@ bin/.autoreg
 [@AB_CD@]
 bin/chrome/@AB_CD@.jar
 bin/chrome/@AB_CD@.manifest
-bin/defaults/messenger/@AB_CD@/mailViews.dat
 bin/defaults/messenger/mailViews.dat
 bin/defaults/profile/bookmarks.html
 bin/defaults/profile/localstore.rdf
