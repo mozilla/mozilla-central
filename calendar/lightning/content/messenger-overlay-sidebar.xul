@@ -456,12 +456,7 @@
           <modevbox id="minimonth-pane" mode="calendar,task" broadcaster="modeBroadcaster" refcontrol="calendar_toggle_minimonthpane_command">
             <vbox align="center">
               <hbox id="calMinimonthBox" pack="center">
-                <minimonth id="calMinimonth" onchange="ltnMinimonthPick(this);" freebusy="true"/>
-              </hbox>
-              <hbox id="ltnDateTextPickerBox">
-                <spacer flex="1"/>
-                <datepicker id="ltnDateTextPicker" onchange="ltnMinimonthPick(this)"/>
-                <spacer flex="1"/>
+                <minimonth id="calMinimonth" onchange="minimonthPick(this.value);" freebusy="true"/>
               </hbox>
             </vbox>
           </modevbox>

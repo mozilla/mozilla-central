@@ -534,3 +534,12 @@ function setupContextItemType(event, items) {
     }
     return true;
 }
+
+function minimonthPick(aNewDate) {
+  if (isSunbird() || gCurrentMode == "calendar") {
+      let cdt = jsDateToDateTime(aNewDate, currentView().timezone);
+      cdt.isDate = true;
+      currentView().goToDay(cdt);
+  }
+}
+

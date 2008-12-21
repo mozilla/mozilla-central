@@ -234,12 +234,6 @@ function pickAndGoToDate() {
              {callback: callback, date: initialDate});
 }
 
-function minimonthPick(newDate) {
-  var cdt = jsDateToDateTime(newDate, currentView().timezone);
-  cdt.isDate = true;
-  currentView().goToDay(cdt);
-}
-
 function sbSwitchToView(newView) {
   var mwWeeksCommand = document.getElementById("menu-numberofweeks-inview");
   if (newView == "multiweek") {

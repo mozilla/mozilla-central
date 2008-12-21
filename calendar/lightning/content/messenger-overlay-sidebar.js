@@ -53,38 +53,6 @@ function yesterday()
     return d;
 }
 
-function nextMonth(dt)
-{
-    var d = new Date(dt);
-    d.setDate(1); // make sure we avoid "June 31" when we bump the month
-
-    var mo = d.getMonth();
-    if (mo == 11) {
-        d.setMonth(0);
-        d.setYear(d.getYear() + 1);
-    } else {
-        d.setMonth(mo + 1);
-    }
-
-    return d;
-}
-
-var gMiniMonthLoading = false;
-function ltnMinimonthPick(minimonth) {
-    if (gMiniMonthLoading || gCurrentMode != "calendar") {
-        return;
-    }
-    if (document.getElementById("calendarDisplayDeck").selectedPanel !=
-        document.getElementById("calendar-view-box")) {
-        ltnShowCalendarView(gLastShownCalendarView);
-    }
-    var jsDate = minimonth.value;
-    document.getElementById("ltnDateTextPicker").value = jsDate;
-    var cdt = jsDateToDateTime(jsDate, currentView().timezone);
-    cdt.isDate = true;
-    currentView().goToDay(cdt);
-}
-
 var calendarTabType = {
   name: "calendar",
   panelId: "calendarTabPanel",
