@@ -308,7 +308,6 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   border-right: none;
 }
 
-#gray_vertical_splitter,
 #threadpane-splitter {
   border: none;
   min-height: 5px;
