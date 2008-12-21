@@ -138,6 +138,92 @@
     </content>
 
     <implementation>
+      <constructor><![CDATA[
+        Components.utils.import("resource://gre/modules/PluralForm.jsm");
+        let self = this;
+
+        // set up the tree filter
+        this.mFilter = new calFilter();
+
+        // set up the custom tree view
+        let tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
+        this.mTreeView.tree = tree;
+        tree.view = this.mTreeView;
+
+        // set up our calendar event observer
+        let composite = getCompositeCalendar();
+        composite.addObserver(this.mTaskTreeObserver);
+
+        // we want to make several attributes on the column
+        // elements persistent, but unfortunately there's no
+        // relyable way with the 'persist' feature.
+        // that's why we need to store the necessary bits and
+        // pieces at the element this binding is attached to.
+        let names = this.getAttribute("visible-columns").split(' ');
+        let ordinals = this.getAttribute("ordinals").split(' ');
+        let widths = this.getAttribute("widths").split(' ');
+        let sorted = this.getAttribute("sort-active");
+        let sortDirection = this.getAttribute("sort-direction") || "ascending";
+        let tree = document.getAnonymousNodes(this)[0];
+        let treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
+        for (let i = 0; i < treecols.length; i++) {
+            let content = treecols[i].getAttribute("itemproperty");
+            if (names.some(
+                function(element) {
+                    return (element == content);
+                })) {
+                treecols[i].removeAttribute("hidden");
+            } else {
+                treecols[i].setAttribute("hidden","true");
+            }
+            if (ordinals && ordinals.length > 0) {
+               treecols[i].ordinal = Number(ordinals.shift());
+            }
+            if (widths && widths.length > 0) {
+               treecols[i].width = Number(widths.shift());
+            }
+            if (sorted && sorted.length > 0) {
+                if (sorted == content) {
+                    this.mTreeView.sortDirection = sortDirection;
+                    this.mTreeView.selectedColumn = treecols[i];
+                }
+            }
+        }
+      ]]></constructor>
+      <destructor><![CDATA[
+          // remove out calendar event observer
+          let composite = getCompositeCalendar();
+          composite.removeObserver(this.mTaskTreeObserver);
+
+          let widths = "";
+          let ordinals = "";
+          let visible = "";
+          let sorted = this.mTreeView.selectedColumn;
+          let tree = document.getAnonymousNodes(this)[0];
+          let treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
+          for (let i = 0; i < treecols.length; i++) {
+              if (treecols[i].getAttribute("hidden") != "true") {
+                let content = treecols[i].getAttribute("itemproperty");
+                visible += (visible.length > 0) ? " "+content : content;
+              }
+              if(ordinals.length > 0)
+                  ordinals += " ";
+              ordinals += treecols[i].ordinal;
+              if(widths.length > 0)
+                  widths += " ";
+              widths += treecols[i].width || 0;
+          }
+          this.setAttribute("visible-columns",visible);
+          this.setAttribute("ordinals",ordinals);
+          this.setAttribute("widths",widths);
+          if (sorted) {
+              this.setAttribute("sort-active",sorted.getAttribute("itemproperty"));
+              this.setAttribute("sort-direction",this.mTreeView.sortDirection);
+          } else {
+              this.removeAttribute("sort-active");
+              this.removeAttribute("sort-direction");
+          }
+      ]]></destructor>
 
       <field name="mTaskArray">[]</field>
       <field name="mHash2Index"><![CDATA[({})]]></field>
@@ -203,22 +289,13 @@
           if (aTask && aTask.dueDate && aTask.dueDate.isValid){
               var dur = aTask.dueDate.subtractDate(now());
               if (!dur.isNegative) {
-                  // TODO MOZILLA_1_8_BRANCH We should use Pluralform.jsm on
-                  // trunk here to provide better localization. Use different
-                  // strings for 1,2 and N for now.
                   var minutes = Math.ceil(dur.inSeconds / 60);
-                  if (minutes >= 4320) { // 3 days or more
-                      return calGetString("calendar", "dueInDaysN", [dur.days]);
-                  } else if (minutes >= 2880) { // 2 days or more
-                      return calGetString("calendar", "dueInDays2");
-                  } else if (minutes >= 1440) { // 1 day or more
-                      return calGetString("calendar", "dueInDays1");
-                  } else if (minutes >= 180) { // 3 hours or more
-                      return calGetString("calendar", "dueInHoursN", [dur.hours]);
-                  } else if (minutes >= 120) { // 2 hours or more
-                      return calGetString("calendar", "dueInHours2");
+                  if (minutes >= 1440) { // 1 day or more
+                      let dueIn = PluralForm.get(dur.days, calGetString("calendar", "dueInDays"));
+                      return dueIn.replace("#1", dur.days);
                   } else if (minutes >= 60) { // 1 hour or more
-                      return calGetString("calendar", "dueInHours1");
+                      let dueIn = PluralForm.get(dur.hours, calGetString("calendar", "dueInHours"));
+                      return dueIn.replace("#1", dur.hours);
                   } else {
                       // Less than one hour
                       return calGetString("calendar", "dueInLessThanOneHour");
@@ -790,92 +867,6 @@
           onDefaultCalendarChanged: function tTO_onDefaultCalendarChanged(aNewDefaultCalendar) {}
       })
       ]]></field>
-
-      <constructor><![CDATA[
-        let self = this;
-
-        // set up the tree filter
-        this.mFilter = new calFilter();
-
-        // set up the custom tree view
-        let tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
-        this.mTreeView.tree = tree;
-        tree.view = this.mTreeView;
-
-        // set up our calendar event observer
-        let composite = getCompositeCalendar();
-        composite.addObserver(this.mTaskTreeObserver);
-
-        // we want to make several attributes on the column
-        // elements persistent, but unfortunately there's no
-        // relyable way with the 'persist' feature.
-        // that's why we need to store the necessary bits and
-        // pieces at the element this binding is attached to.
-        let names = this.getAttribute("visible-columns").split(' ');
-        let ordinals = this.getAttribute("ordinals").split(' ');
-        let widths = this.getAttribute("widths").split(' ');
-        let sorted = this.getAttribute("sort-active");
-        let sortDirection = this.getAttribute("sort-direction") || "ascending";
-        let tree = document.getAnonymousNodes(this)[0];
-        let treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
-        for (let i = 0; i < treecols.length; i++) {
-            let content = treecols[i].getAttribute("itemproperty");
-            if (names.some(
-                function(element) {
-                    return (element == content);
-                })) {
-                treecols[i].removeAttribute("hidden");
-            } else {
-                treecols[i].setAttribute("hidden","true");
-            }
-            if (ordinals && ordinals.length > 0) {
-               treecols[i].ordinal = Number(ordinals.shift());
-            }
-            if (widths && widths.length > 0) {
-               treecols[i].width = Number(widths.shift());
-            }
-            if (sorted && sorted.length > 0) {
-                if (sorted == content) {
-                    this.mTreeView.sortDirection = sortDirection;
-                    this.mTreeView.selectedColumn = treecols[i];
-                }
-            }
-        }
-      ]]></constructor>
-      <destructor><![CDATA[
-          // remove out calendar event observer
-          let composite = getCompositeCalendar();
-          composite.removeObserver(this.mTaskTreeObserver);
-
-          let widths = "";
-          let ordinals = "";
-          let visible = "";
-          let sorted = this.mTreeView.selectedColumn;
-          let tree = document.getAnonymousNodes(this)[0];
-          let treecols = tree.getElementsByTagNameNS(tree.namespaceURI, "treecol");
-          for (let i = 0; i < treecols.length; i++) {
-              if (treecols[i].getAttribute("hidden") != "true") {
-                let content = treecols[i].getAttribute("itemproperty");
-                visible += (visible.length > 0) ? " "+content : content;
-              }
-              if(ordinals.length > 0)
-                  ordinals += " ";
-              ordinals += treecols[i].ordinal;
-              if(widths.length > 0)
-                  widths += " ";
-              widths += treecols[i].width || 0;
-          }
-          this.setAttribute("visible-columns",visible);
-          this.setAttribute("ordinals",ordinals);
-          this.setAttribute("widths",widths);
-          if (sorted) {
-              this.setAttribute("sort-active",sorted.getAttribute("itemproperty"));
-              this.setAttribute("sort-direction",this.mTreeView.sortDirection);
-          } else {
-              this.removeAttribute("sort-active");
-              this.removeAttribute("sort-direction");
-          }
-      ]]></destructor>
 
       <!-- Called by event observers to update the display -->
       <method name="refresh">
