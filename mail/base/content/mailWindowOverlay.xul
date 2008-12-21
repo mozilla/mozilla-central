@@ -469,7 +469,7 @@
               label="&contextOpenNewWindow.label;"
               accesskey="&contextOpenNewWindow.accesskey;"
               oncommand="MsgOpenNewWindowForMessage();"/>
-    <menuitem id="threadPaneContet-openNewTab"
+    <menuitem id="threadPaneContext-openNewTab"
               label="&contextOpenNewTab.label;"
               accesskey="&contextOpenNewTab.accesskey;"
               oncommand="MsgOpenNewTabForMessage();"/>
