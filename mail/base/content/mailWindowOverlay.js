@@ -1219,34 +1219,6 @@ function CreateToolbarTooltip(document, event)
   return false;
 }
 
-function DisplayFolderAndThreadPane(show)
-{
-  var collapse = !show;
-  var layout = pref.getIntPref("mail.pane_config.dynamic");
-  if (layout == kWidePaneConfig)
-  {
-    document.getElementById("messengerBox").collapsed = collapse;
-    // If opening a standalone message, need to give the messagepanebox flex.
-    if (collapse)
-      document.getElementById("messagepanebox").flex = 1;
-  }
-
-  if (layout == kVerticalPaneConfig)
-    document.getElementById("threadTree").collapsed = collapse;
-  else
-    document.getElementById("displayDeck").collapsed = collapse;
-
-  document.getElementById("threadpane-splitter").collapsed = collapse;
-  document.getElementById("folderpane_splitter").collapsed = collapse;
-  document.getElementById("folderPaneBox").collapsed = collapse;
-  try {
-    document.getElementById("search-container").collapsed = collapse;
-  } catch (ex) {}
-  try {
-    document.getElementById("mailviews-container").collapsed = collapse;
-  } catch (ex) {}
-}
-
 /**
  * mailTabType provides both "folder" and "message" tab modes. Under the
  * previous TabOwner framework, their logic was separated into two 'classes'
@@ -1304,15 +1276,15 @@ let mailTabType = {
         if (this._getNumberOfRealAccounts() > 1)
           aTab.title += " - " + aTab.hdr.folder.server.prettyName;
 
+        // let's try hiding the thread pane and folder pane
+        this.folderAndThreadPaneVisible = false;
+
         this.openTab(aTab); // call superclass logic
 
         gCurrentlyDisplayedMessage = nsMsgViewIndex_None;
         ClearThreadPaneSelection();
         setTimeout(gDBView.selectFolderMsgByKey, 0, aTab.hdr.folder,
                    aTab.hdr.messageKey);
-
-        // let's try hiding the thread pane and folder pane
-        this.folderAndThreadPaneVisible = false;
       },
       showTab: function(aTab) {
         this.folderAndThreadPaneVisible = false;
@@ -1395,11 +1367,52 @@ let mailTabType = {
       aTab.mailView = GetMailViewForFolder(aTab.msgSelectedFolder);
   },
 
+  _lastMessagePaneCollapsed: false,
+
+  _displayFolderAndThreadPane: function(show) {
+    let collapse = !show;
+    let layout = pref.getIntPref("mail.pane_config.dynamic");
+    if (layout == kWidePaneConfig)
+    {
+      document.getElementById("messengerBox").collapsed = collapse;
+      // If opening a standalone message, need to give the messagepanebox flex.
+      if (collapse)
+        document.getElementById("messagepanebox").flex = 1;
+    }
+
+    if (layout == kVerticalPaneConfig)
+      document.getElementById("threadTree").collapsed = collapse;
+    else
+      document.getElementById("displayDeck").collapsed = collapse;
+
+    document.getElementById("threadpane-splitter").collapsed = collapse;
+    document.getElementById("folderpane_splitter").collapsed = collapse;
+    document.getElementById("folderPaneBox").collapsed = collapse;
+
+    // Remember the state of the message pane before going to a message-only
+    // view so that we can restore that state when going back to a normal
+    // 3-pane view.
+    let messagePane = document.getElementById("messagepanebox");
+    if (!show) {
+      this._lastMessagePaneCollapsed = messagePane.collapsed;
+      messagePane.collapsed = false;
+    }
+    else if (this._lastMessagePaneCollapsed)
+      messagePane.collapsed = true;
+
+    try {
+      document.getElementById("search-container").collapsed = collapse;
+    } catch (ex) {}
+    try {
+      document.getElementById("mailviews-container").collapsed = collapse;
+    } catch (ex) {}
+  },
+
   _folderAndThreadPaneVisible: true,
   get folderAndThreadPaneVisible() { return this._folderAndThreadPaneVisible; },
   set folderAndThreadPaneVisible(aDesiredVisible) {
     if (aDesiredVisible != this._folderAndThreadPaneVisible) {
-      DisplayFolderAndThreadPane(aDesiredVisible);
+      this._displayFolderAndThreadPane(aDesiredVisible);
       this._folderAndThreadPaneVisible = aDesiredVisible;
     }
   },
