@@ -123,8 +123,10 @@ var calendarController = {
             case "calendar_new_todo_command":
                 return this.writable && this.calendars_support_tasks;
             case "calendar_modify_todo_command":
-                return this.todo_items_selected &&
-                       this.todo_tasktree_focused;
+                 return this.todo_items_selected;
+                 // This code is temporarily commented out due to
+                 // bug 469684 Unifinder-todo: raising of the context menu fires blur-event
+                 // this.todo_tasktree_focused;
             case "calendar_task_filter_command":
                 return true;
             case "calendar_delete_todo_command":

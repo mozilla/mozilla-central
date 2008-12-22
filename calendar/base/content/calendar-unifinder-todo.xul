@@ -70,8 +70,7 @@
       <calendar-task-tree id="unifinder-todo-tree" flex="1"
                           visible-columns="completed priority title"
                           persist="visible-columns ordinals widths sort-active sort-direction"
-                          context="taskitem-context-menu"
-                          onselect="document.commandDispatcher.updateCommands('calendar_commands');"/>
+                          context="taskitem-context-menu"/>
        <textbox id="unifinder-task-edit-field"
                 class="task-edit-field"
                 onfocus="taskEdit.onFocus(event)"

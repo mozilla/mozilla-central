@@ -265,7 +265,8 @@
       <menuitem id="task-context-menu-modify"
                 label="&calendar.context.modifyorviewtask.label;"
                 accesskey="&calendar.context.modifyorviewtask.accesskey;"
-                command="calendar_modify_todo_command"/>
+                command="calendar_modify_todo_command"
+                observes="calendar_modify_todo_command"/>
       <menuitem id="task-context-menu-new"
                 label="&calendar.context.newtodo.label;"
                 accesskey="&calendar.context.newtodo.accesskey;"
