@@ -59,10 +59,6 @@ function onInit(aPageId, aServerId)
 
 function onPreInit(account, accountValues)
 {
-  // Bug 134238
-  // Make sure server.isSecure will be saved before server.port preference
-  parent.getAccountValue(account, accountValues, "server", "isSecure", null, false);
-
   var type = parent.getAccountValue(account, accountValues, "server", "type", null, false);
   hideShowControls(type);
 
@@ -71,7 +67,7 @@ function onPreInit(account, accountValues)
   gObserver.notifyObservers(null, "charsetmenu-selected", "other");
 
   gServer = account.incomingServer;
-  
+
   if(!account.incomingServer.canEmptyTrashOnExit)
   {
     document.getElementById("server.emptyTrashOnExit").setAttribute("hidden", "true");

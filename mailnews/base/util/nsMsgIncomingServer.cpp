@@ -1282,10 +1282,11 @@ nsMsgIncomingServer::GetPort(PRInt32 *aPort)
   rv = getProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool isSecure = PR_FALSE;
-  // Try this, and if it fails, fall back to the non-secure port
-  GetIsSecure(&isSecure);
-  return protocolInfo->GetDefaultServerPort(isSecure, aPort);
+  PRInt32 socketType;
+  rv = GetSocketType(&socketType);
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool useSSLPort = (socketType == nsIMsgIncomingServer::useSSL);
+  return protocolInfo->GetDefaultServerPort(useSSLPort, aPort);
 }
 
 NS_IMETHODIMP
@@ -1297,11 +1298,13 @@ nsMsgIncomingServer::SetPort(PRInt32 aPort)
   rv = getProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
 
+  PRInt32 socketType;
+  rv = GetSocketType(&socketType);
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool useSSLPort = (socketType == nsIMsgIncomingServer::useSSL);
+
   PRInt32 defaultPort;
-  PRBool isSecure = PR_FALSE;
-  // Try this, and if it fails, fall back to the non-secure port
-  GetIsSecure(&isSecure);
-  protocolInfo->GetDefaultServerPort(isSecure, &defaultPort);
+  protocolInfo->GetDefaultServerPort(useSSLPort, &defaultPort);
   return SetIntValue("port", aPort == defaultPort ? PORT_NOT_SET : aPort);
 }
 
