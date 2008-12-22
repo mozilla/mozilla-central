@@ -59,6 +59,20 @@ function run_test() {
                           "20020404T114500", "20020411T114500", "20020418T114500",
                           "20020425T114500", "20020502T114500", "20020509T114500"]);
 
+    // Bug 469840 -  Recurring Sundays incorrect
+    test_recur(makeEvent("DESCRIPTION:RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=6;BYDAY=WE,SA,SU with DTSTART:20081217T133000\n" +
+                         "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=6;BYDAY=WE,SA,SU\n" +
+                         "DTSTART:20081217T133000\n" +
+                         "DTEND:20081217T143000\n"),
+               ["20081217T133000", "20081220T133000", "20081221T133000",
+                "20081231T133000", "20090103T133000", "20090104T133000"]);
+    test_recur(makeEvent("DESCRIPTION:RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=6;WKST=SU;BYDAY=WE,SA,SU with DTSTART:20081217T133000\n" +
+                         "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=6;WKST=SU;BYDAY=WE,SA,SU\n" +
+                         "DTSTART:20081217T133000\n" +
+                         "DTEND:20081217T143000\n"),
+               ["20081217T133000", "20081220T133000", "20081228T133000",
+                "20081231T133000", "20090103T133000", "20090111T133000"]);
+
     // bug 353797: occurrences for repeating all day events should stay "all-day"
     test_recur(makeEvent("DESCRIPTION:Allday repeat every thursday starting Tue 2nd April 2002\n" +
                          "RRULE:FREQ=WEEKLY;INTERVAL=1;COUNT=3;BYDAY=TH\n" +
