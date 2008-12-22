@@ -67,6 +67,9 @@
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 #include "nsDirectoryServiceUtils.h"
+#include "nsIObserverService.h"
+#include "nsDirPrefs.h"
+#include "nsThreadUtils.h"
 
 struct ExportAttributesTableStruct
 {
@@ -161,6 +164,59 @@ NS_IMPL_THREADSAFE_RELEASE(nsAbManager)
 NS_IMPL_QUERY_INTERFACE2(nsAbManager,
                          nsIAbManager,
                          nsICommandLineHandler)
+
+nsresult nsAbManager::Init()
+{
+  NS_ENSURE_TRUE(NS_IsMainThread(), NS_ERROR_FAILURE);
+
+  nsresult rv;
+  nsCOMPtr<nsIObserverService> observerService =
+    do_GetService("@mozilla.org/observer-service;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = observerService->AddObserver(this, "profile-do-change", PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID,
+                                    PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbManager::Observe(nsISupports *aSubject, const char *aTopic,
+                                   const PRUnichar *someData)
+{
+  // The nsDirPrefs code caches all the directories that it got
+  // from the first profiles prefs.js.
+  // When we profile switch, we need to force it to shut down.
+  // We'll re-load all the directories from the second profiles prefs.js
+  // that happens in nsAbBSDirectory::GetChildNodes()
+  // when we call DIR_GetDirectories().
+  if (!strcmp(aTopic, "profile-do-change"))
+  {
+    DIR_ShutDown();
+    return NS_OK;
+  }
+
+  if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
+  {
+    DIR_ShutDown();
+
+    nsresult rv;
+    nsCOMPtr<nsIObserverService> observerService =
+      do_GetService("@mozilla.org/observer-service;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = observerService->RemoveObserver(this, "profile-do-change");
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  return NS_OK;
+}
 
 //
 // nsIAbManager

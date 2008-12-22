@@ -42,12 +42,14 @@
 #include "nsTObserverArray.h"
 #include "nsCOMPtr.h"
 #include "nsICommandLineHandler.h"
+#include "nsIObserver.h"
 
 class nsIAbDirectory;
 class nsIAbLDAPAttributeMap;
 
 class nsAbManager : public nsIAbManager,
-                    public nsICommandLineHandler
+                    public nsICommandLineHandler,
+                    public nsIObserver
 {
   
 public:
@@ -56,7 +58,10 @@ public:
 
 	NS_DECL_ISUPPORTS
  	NS_DECL_NSIABMANAGER
+  NS_DECL_NSIOBSERVER
   NS_DECL_NSICOMMANDLINEHANDLER
+
+  nsresult Init();
 
 private:
   nsresult ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, PRUint32 aDelimLen, nsILocalFile *aLocalFile);

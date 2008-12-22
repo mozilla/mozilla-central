@@ -355,7 +355,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCookiePolicy)
 ////////////////////////////////////////////////////////////////////////////////
 // addrbook factories
 ////////////////////////////////////////////////////////////////////////////////
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbManager)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbManager,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbContentHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbDirectoryDataSource,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirProperty)

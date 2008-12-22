@@ -101,21 +101,9 @@ nsresult nsAbDirectoryDataSource::Cleanup()
 NS_IMETHODIMP
 nsAbDirectoryDataSource::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
 {
-  if (!strcmp(aTopic,"profile-do-change")) {
-    /* the nsDirPrefs code caches all the directories that it got
-     * from the first profiles prefs.js
-     * When we profile switch, we need to force it to shut down.
-     * we'll re-load all the directories from the second profiles prefs.js
-     * that happens in nsAbBSDirectory::GetChildNodes()
-     * when we call DIR_GetDirectories()
-     */
-    DIR_ShutDown();
-    return NS_OK;
-  }
-  else if (!strcmp(aTopic,NS_XPCOM_SHUTDOWN_OBSERVER_ID)) {
-    DIR_ShutDown();
+  if (!strcmp(aTopic,NS_XPCOM_SHUTDOWN_OBSERVER_ID))
     return Cleanup();
-  }
+
   return NS_OK;
 }
 
@@ -173,8 +161,6 @@ nsAbDirectoryDataSource::Init()
   // since the observer (this) supports weak ref,
   // and we call AddObserver() with PR_TRUE for ownsWeak
   // we don't need to remove our observer from the from the observer service
-  rv = observerService->AddObserver(this, "profile-do-change", PR_TRUE);
-  NS_ENSURE_SUCCESS(rv,rv);
   rv = observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
   NS_ENSURE_SUCCESS(rv,rv);
 
