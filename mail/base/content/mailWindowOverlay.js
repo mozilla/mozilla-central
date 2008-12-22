@@ -1057,6 +1057,16 @@ function MsgEditMessageAsNew()
   composeMsgByType(Components.interfaces.nsIMsgCompType.Template);
 }
 
+function MsgComposeDraftMessage()
+{
+  var loadedFolder = GetLoadedMsgFolder();
+  var messageArray = GetSelectedMessages();
+
+  ComposeMessage(Components.interfaces.nsIMsgCompType.Draft,
+                 Components.interfaces.nsIMsgCompFormat.Default,
+                 loadedFolder, messageArray);
+}
+
 function MsgCreateFilter()
 {
   // retrieve Sender direct from selected message's headers

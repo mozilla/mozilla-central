@@ -1104,12 +1104,21 @@ function MsgForwardAsInline(event)
     loadedFolder, messageArray);  
 }
 
-
 function MsgEditMessageAsNew()
 {
     var loadedFolder = GetLoadedMsgFolder();
     var messageArray = GetSelectedMessages();
     ComposeMessage(msgComposeType.Template, msgComposeFormat.Default, loadedFolder, messageArray);
+}
+
+function MsgComposeDraftMessage()
+{
+  var loadedFolder = GetLoadedMsgFolder();
+  var messageArray = GetSelectedMessages();
+
+  ComposeMessage(Components.interfaces.nsIMsgCompType.Draft,
+                 Components.interfaces.nsIMsgCompFormat.Default,
+                 loadedFolder, messageArray);
 }
 
 function MsgCreateFilter()

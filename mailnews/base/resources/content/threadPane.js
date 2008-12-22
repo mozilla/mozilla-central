@@ -38,7 +38,6 @@
 
 var gLastMessageUriToLoad = null;
 var gThreadPaneCommandUpdater = null;
-var gThreadTree = null;
 
 function ThreadPaneOnClick(event)
 {
@@ -195,16 +194,6 @@ function HandleColumnClick(columnID)
       MsgSortThreadPane(sortType);
     }
   }
-}
-
-function MsgComposeDraftMessage()
-{
-    var loadedFolder = GetLoadedMsgFolder();
-    var messageArray = GetSelectedMessages();
-
-    ComposeMessage(Components.interfaces.nsIMsgCompType.Draft,
-                   Components.interfaces.nsIMsgCompFormat.Default, 
-                   loadedFolder, messageArray);
 }
 
 function ThreadPaneDoubleClick()
@@ -431,9 +420,7 @@ function IsSpecialFolderSelected(flags, checkAncestors)
 
 function GetThreadTree()
 {
-  if (gThreadTree) return gThreadTree;
-	gThreadTree = document.getElementById('threadTree');
-	return gThreadTree;
+  return document.getElementById("threadTree")
 }
 
 function GetThreadPaneFolder()
@@ -475,7 +462,7 @@ function ThreadPaneOnLoad()
     return;
 
   tree.addEventListener("click",ThreadPaneOnClick,true);
-  
+
   // The mousedown event listener below should only be added in the thread
   // pane of the mailnews 3pane window, not in the advanced search window.
   if(tree.parentNode.id == "searchResultListBox")
