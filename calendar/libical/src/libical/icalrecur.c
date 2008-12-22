@@ -362,6 +362,8 @@ void icalrecur_add_bydayrules(struct icalrecur_parser *parser, const char* vals)
     end = (char*)vals_copy+strlen(vals_copy);
     n = vals_copy;
 
+    array[0] = ICAL_RECURRENCE_ARRAY_MAX;
+
     while(n != 0){
 	
 
@@ -396,9 +398,10 @@ void icalrecur_add_bydayrules(struct icalrecur_parser *parser, const char* vals)
 
 	wd = icalrecur_string_to_weekday(t);
 
-	array[i++] = (short)(sign* (wd + 8*weekno));
-	array[i] =  ICAL_RECURRENCE_ARRAY_MAX;
-
+        if (wd != ICAL_NO_WEEKDAY) {
+            array[i++] = (short) (sign * (wd + 8 * weekno));
+            array[i] = ICAL_RECURRENCE_ARRAY_MAX;
+        }
     }
 
     free(vals_copy);
