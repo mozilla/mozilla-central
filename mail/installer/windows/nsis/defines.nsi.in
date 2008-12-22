@@ -14,4 +14,4 @@
 
 !define ClientsRegName        "Mozilla Thunderbird"
 
-!define MinUnsupportedVer     "Microsoft Windows 2000"
+!define MinSupportedVer       "Microsoft Windows 2000"

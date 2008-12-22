@@ -58,7 +58,8 @@ RequestExecutionLevel user
 !system 'echo ; > shortcuts.ini'
 !system 'echo ; > summary.ini'
 
-; USE_UAC_PLUGIN is temporary until other apps have been updated to use the UAC plugin
+; USE_UAC_PLUGIN is temporary until all applications have been updated to use
+; the UAC plugin
 !define USE_UAC_PLUGIN
 
 Var TmpVal
@@ -72,21 +73,15 @@ Var AddDesktopSC
 ; The following includes are provided by NSIS.
 !include FileFunc.nsh
 !include LogicLib.nsh
-!include TextFunc.nsh
+!include MUI.nsh
 !include WinMessages.nsh
 !include WinVer.nsh
 !include WordFunc.nsh
-!include MUI.nsh
 
 !insertmacro GetOptions
 !insertmacro GetParameters
 !insertmacro GetSize
 !insertmacro WordFind
-
-; NSIS provided macros that we have overridden
-!include overrides.nsh
-!insertmacro LocateNoDetails
-!insertmacro TextCompareNoDetails
 
 ; The following includes are custom.
 !include branding.nsi
@@ -105,7 +100,6 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 !insertmacro ChangeMUIHeaderImage
 !insertmacro CheckForFilesInUse
 !insertmacro CleanUpdatesDir
-!insertmacro CloseApp
 !insertmacro CopyFilesFromDir
 !insertmacro GetPathFromString
 !insertmacro GetParent
@@ -723,7 +717,7 @@ Function .onInit
   StrCpy $LANGUAGE 0
   ${SetBrandNameVars} "$EXEDIR\localized\distribution\setup.ini"
 
-  ${InstallOnInitCommon} "$(WARN_UNSUPPORTED_MSG)"
+  ${InstallOnInitCommon} "$(WARN_MIN_SUPPORTED_OS_MSG)"
 
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "options.ini"
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "shortcuts.ini"

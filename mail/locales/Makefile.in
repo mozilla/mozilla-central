@@ -107,9 +107,11 @@ install:: $(addsuffix .rdf,$(ISP_FILES))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/isp/$(AB_CD)
 
 tests:
+ifeq (WINNT,$(OS_ARCH))
 ifneq (en-US, $(AB_CD))
-	#@echo "Verifying $(AB_CD) installer variable usage"
-	#@$(PERL) $(MOZ_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer
+	@echo "Verifying $(AB_CD) installer variable usage"
+	@$(PERL) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/check-locales.pl $(LOCALE_SRCDIR)/installer
+endif
 endif
 
 clobber-%:

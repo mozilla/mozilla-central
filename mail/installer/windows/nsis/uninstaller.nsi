@@ -53,7 +53,8 @@ RequestExecutionLevel user
 
 !addplugindir ./
 
-; USE_UAC_PLUGIN is temporary until Thunderbird has been updated to use the UAC plugin
+; USE_UAC_PLUGIN is temporary until all applications have been updated to use
+; the UAC plugin
 !define USE_UAC_PLUGIN
 
 ; prevents compiling of the reg write logging.
@@ -66,7 +67,6 @@ Var TmpVal
 !include FileFunc.nsh
 !include LogicLib.nsh
 !include MUI.nsh
-!include TextFunc.nsh
 !include WinMessages.nsh
 !include WinVer.nsh
 !include WordFunc.nsh
@@ -477,10 +477,16 @@ FunctionEnd
 Function un.preFinish
   ; Do not modify the finish page if there is a reboot pending
   ${Unless} ${RebootFlag}
-    ; When we add an optional action to the finish page the cancel button
-    ; is enabled. This disables it and leaves the finish button as the
-    ; only choice.
-    !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "cancelenabled" "0"
+    ; Don't display the option to take a survey on the finish page if the OS is
+    ; Vista or above since the process will be running elevated.
+    ${If} ${AtLeastWinVista}
+      !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "NumFields" "3"
+    ${Else}
+      ; When we add an optional action to the finish page the cancel button
+      ; is enabled. This disables it and leaves the finish button as the
+      ; only choice.
+      !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "cancelenabled" "0"
+    ${EndIf}
   ${EndUnless}
 FunctionEnd
 !endif
