@@ -18,7 +18,7 @@ DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/releases/mozilla-1.9.1/'
 DEFAULT_MOZILLA_REV = "default"
 
 # REGEX to match against, $1 should refer to protocol scheme
-MOZILLA_TRUNK_REPO_REGEXP = "(ssh|http|https):\/\/hg\.mozilla\.org\/mozilla-central\/$"
+MOZILLA_TRUNK_REPO_REGEXP = "(ssh|http|https):\/\/hg\.mozilla\.org\/mozilla-central\/?$"
 MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
 
 # URL of the default hg repository to clone for inspector.
