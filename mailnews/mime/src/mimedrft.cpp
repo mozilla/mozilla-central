@@ -979,7 +979,7 @@ mime_insert_normal_headers(char             **body,
       Do not reveal bcc recipients when forwarding a message!
       See http://bugzilla.mozilla.org/show_bug.cgi?id=41150
     */
-    if (newsgroups)
+  if (newsgroups)
     mime_intl_insert_message_header_1(&newBody, &newsgroups, HEADER_NEWSGROUPS,
                       MimeGetNamedString(MIME_MHTML_NEWSGROUPS),
                       mailcharset, htmlEdit);
@@ -991,9 +991,11 @@ mime_insert_normal_headers(char             **body,
                       MimeGetNamedString(MIME_MHTML_FOLLOWUP_TO),
                       mailcharset, htmlEdit);
   }
-  if (references)
+  // only show references for newsgroups
+  if (newsgroups && references)
   {
-    if (htmlEdit) mime_fix_up_html_address(&references);
+    if (htmlEdit) 
+      mime_fix_up_html_address(&references);
     mime_intl_insert_message_header_1(&newBody, &references,
                       HEADER_REFERENCES,
                       MimeGetNamedString(MIME_MHTML_REFERENCES),
