@@ -41,22 +41,28 @@ function GetAbViewListener()
 }
 
 
-function contactsListDoubleClick(event)
+function contactsListOnClick(event)
 {
   // we only care about button 0 (left click) events
   if (event.button != 0)
     return;
 
-  var contactsTree = document.getElementById("abResultsTree");
-  var row = contactsTree.treeBoxObject.getRowAt(event.clientX, event.clientY);
-  if (row == -1 || row > contactsTree.view.rowCount-1 || event.originalTarget.localName != "treechildren") 
-  {
-    // double clicking on a non valid row should not open the edit filter dialog
-    return;
+  var target = event.originalTarget;
+  if (target.localName == "treecol") {
+    var sortDirection = target.getAttribute("sortDirection") == kDefaultDescending ?
+                        kDefaultAscending : kDefaultDescending;
+    SortAndUpdateIndicators(target.id, sortDirection);
   }
+  else if (target.localName == "treechildren" && event.detail == 2) {
+    var contactsTree = document.getElementById("abResultsTree");
+    var row = contactsTree.treeBoxObject.getRowAt(event.clientX, event.clientY);
+    if (row == -1 || row > contactsTree.view.rowCount-1)
+      // double clicking on a non valid row should not add any entry
+      return;
 
-  // ok, go ahead and add the entry
-  addSelectedAddresses('addr_to');  
+    // ok, go ahead and add the entry
+    addSelectedAddresses('addr_to');
+  }
 }
 
 function addSelectedAddresses(recipientType)

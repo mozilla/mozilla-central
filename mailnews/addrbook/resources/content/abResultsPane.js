@@ -94,8 +94,9 @@ function SetAbView(aURI)
   else {
     if (gAbResultsTree.hasAttribute("sortCol"))
       sortColumn = gAbResultsTree.getAttribute("sortCol");
-    if (gAbResultsTree.hasAttribute("sortDirection"))
-      sortDirection = gAbResultsTree.getAttribute("sortDirection");
+    var sortColumnNode = document.getElementById(sortColumn);
+    if (sortColumnNode && sortColumnNode.hasAttribute("sortDirection"))
+      sortDirection = sortColumnNode.getAttribute("sortDirection");
   }
 
   var directory = GetDirectoryFromURI(aURI);

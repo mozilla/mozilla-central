@@ -108,7 +108,8 @@
 
     <separator class="thin"/>
 
-    <tree id="abResultsTree" flex="1" context="cardProperties" class="plain" sortCol="GeneratedName" persist="sortCol" ondblclick="contactsListDoubleClick(event);">
+    <tree id="abResultsTree" flex="1" context="cardProperties" class="plain" sortCol="GeneratedName" persist="sortCol"
+          onclick="contactsListOnClick(event);">
       <treecols>
         <!-- these column ids must match up to the mork column names, see nsIAddrDatabase.idl -->
         <treecol id="GeneratedName" class="sortDirectionIndicator"
