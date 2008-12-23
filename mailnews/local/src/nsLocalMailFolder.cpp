@@ -3768,11 +3768,15 @@ nsMsgLocalMailFolder::AddMessage(const char *aMessage)
 {
   nsCOMPtr<nsILocalFile> path;
   nsresult rv = GetFilePath(getter_AddRefs(path));
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsIOutputStream> outFileStream;
-  MsgGetFileStream(path, getter_AddRefs(outFileStream));
-  nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(outFileStream);
+  rv = MsgGetFileStream(path, getter_AddRefs(outFileStream));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr <nsISeekableStream> seekableStream =
+    do_QueryInterface(outFileStream, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
 
   // create a new mail parser
