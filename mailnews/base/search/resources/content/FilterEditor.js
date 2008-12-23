@@ -105,6 +105,7 @@ function filterEditorOnLoad()
 
         term.attrib = Components.interfaces.nsMsgSearchAttrib.Sender;
         term.op = Components.interfaces.nsMsgSearchOp.Is;
+        term.booleanAnd = gSearchBooleanRadiogroup.value == "and";
 
         var termValue = term.value;
         termValue.attrib = term.attrib;

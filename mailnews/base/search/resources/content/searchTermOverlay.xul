@@ -49,10 +49,10 @@
 
   <vbox id="searchTermListBox">
 
-    <radiogroup id="booleanAndGroup" orient="horizontal"
-                selectedItem="or" oncommand="booleanChanged(event);">
+    <radiogroup id="booleanAndGroup" orient="horizontal" value="and"
+                oncommand="booleanChanged(event);">
       <radio value="and" label="&matchAll.label;" accesskey="&matchAll.accesskey;"/>
-      <radio selected="true" value="or" label="&matchAny.label;" accesskey="&matchAny.accesskey;"/>
+      <radio value="or" label="&matchAny.label;" accesskey="&matchAny.accesskey;"/>
       <radio value="matchAll" id="matchAllItem" label="&matchAllMsgs.label;" accesskey="&matchAllMsgs.accesskey;"/>
     </radiogroup>
     
