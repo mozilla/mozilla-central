@@ -317,7 +317,6 @@ nsresult nsImapMailFolder::CreateChildFromURI(const nsCString &uri, nsIMsgFolder
   return NS_OK;
 }
 
-// this is only called for virtual folders, currently.
 NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolder** aChild)
 {
   NS_ENSURE_ARG_POINTER(aChild);
@@ -373,6 +372,7 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
     imapChild->SetOnlineName(NS_LossyConvertUTF16toASCII(aName));
     imapChild->SetHierarchyDelimiter(m_hierarchyDelimiter);
   }
+  NotifyItemAdded(*aChild);
   return rv;
 }
 
@@ -1117,7 +1117,12 @@ NS_IMETHODIMP nsImapMailFolder::GetHierarchyDelimiter(PRUnichar *aHierarchyDelim
     {
       nsCOMPtr<nsIMsgImapMailFolder> childFolder(do_QueryInterface(mSubFolders[0]));
       if (childFolder)
-        return childFolder->GetHierarchyDelimiter(aHierarchyDelimiter);
+      {
+        nsresult rv = childFolder->GetHierarchyDelimiter(aHierarchyDelimiter);
+        // some code uses m_hierarchyDelimiter directly, so we should set it.
+        m_hierarchyDelimiter = *aHierarchyDelimiter;
+        return rv;
+      }
     }
   }
   ReadDBFolderInfo(PR_FALSE); // update cache first.
