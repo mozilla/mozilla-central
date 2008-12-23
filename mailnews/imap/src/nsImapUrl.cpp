@@ -765,15 +765,19 @@ NS_IMETHODIMP nsImapUrl::AddOnlineDirectoryIfNecessary(const char *onlineMailbox
   nsCAutoString onlineDir;
   LossyCopyUTF16toASCII(onlineDirString, onlineDir);
 
+  nsIMAPNamespace *ns = nsnull;
+  rv = hostSessionList->GetNamespaceForMailboxForHost(m_serverKey.get(),
+                                                      onlineMailboxName, ns);
+  if (!ns)
+    hostSessionList->GetDefaultNamespaceOfTypeForHost(m_serverKey.get(),
+                                                      kPersonalNamespace, ns);
+
+  if (onlineDir.IsEmpty() && ns)
+    onlineDir = ns->GetPrefix();
+
   // If this host has an online server directory configured
   if (onlineMailboxName && !onlineDir.IsEmpty())
   {
-    nsIMAPNamespace *ns = nsnull;
-    rv = hostSessionList->GetNamespaceForMailboxForHost(m_serverKey.get(),
-      onlineMailboxName, ns);
-    if (!ns)
-       hostSessionList->GetDefaultNamespaceOfTypeForHost(m_serverKey.get(), kPersonalNamespace, ns);
-
     if (PL_strcasecmp(onlineMailboxName, "INBOX"))
     {
       NS_ASSERTION(ns, "couldn't find namespace for host");
