@@ -735,10 +735,17 @@ nsMsgNewsFolder::UpdateSummaryFromNNTPInfo(PRInt32 oldest, PRInt32 youngest, PRI
       unread -= deltaInDB;
   }
 
+  PRBool dbWasOpen = mDatabase != nsnull;
   PRInt32 pendingUnreadDelta = unread - mNumUnreadMessages - mNumPendingUnreadMessages;
   PRInt32 pendingTotalDelta = total - mNumTotalMessages - mNumPendingTotalMessages;
   ChangeNumPendingUnread(pendingUnreadDelta);
   ChangeNumPendingTotalMessages(pendingTotalDelta);
+  if (!dbWasOpen && mDatabase)
+  {
+    mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+    mDatabase->RemoveListener(this);
+    mDatabase = nsnull;
+  }
   return NS_OK;
 }
 
