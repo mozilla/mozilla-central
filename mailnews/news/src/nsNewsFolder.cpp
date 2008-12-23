@@ -506,6 +506,9 @@ NS_IMETHODIMP nsMsgNewsFolder::CreateSubfolder(const nsAString& newsgroupName,
 
     child->SetCharset(dataCharset);
     NotifyItemAdded(child);
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    if (notifier)
+      notifier->NotifyFolderAdded(child);
   }
   return rv;
 }

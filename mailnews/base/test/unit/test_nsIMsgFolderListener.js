@@ -20,6 +20,7 @@ const gIndividualFlags =
   nsIMFNService.msgAdded,
   nsIMFNService.msgsDeleted,
   nsIMFNService.msgsMoveCopyCompleted,
+  nsIMFNService.folderAdded,
   nsIMFNService.folderDeleted,
   nsIMFNService.folderMoveCopyCompleted,
   nsIMFNService.folderRenamed,
@@ -61,6 +62,13 @@ gMFListener.prototype =
     this.mReceived |= nsIMFNService.msgsMoveCopyCompleted;
     if (this.mRemoveSelf) gMFNService.removeListener(this);
   },
+  
+  folderAdded: function (aFolder)
+  {
+    do_check_eq(this.mReceived & nsIMFNService.folderAdded, 0);
+    this.mReceived |= nsIMFNService.folderAdded;
+    if (this.mRemoveSelf) gMFNService.removeListener(this);
+  },
 
   folderDeleted: function (aFolder)
   {
@@ -96,6 +104,7 @@ function NotifyMsgFolderListeners()
   gMFNService.notifyMsgAdded(null);
   gMFNService.notifyMsgsDeleted(null);
   gMFNService.notifyMsgsMoveCopyCompleted(null, null, null);
+  gMFNService.notifyFolderAdded(null);
   gMFNService.notifyFolderDeleted(null);
   gMFNService.notifyFolderMoveCopyCompleted(null, null, null);
   gMFNService.notifyFolderRenamed(null, null);

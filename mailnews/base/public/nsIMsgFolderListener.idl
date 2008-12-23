@@ -101,6 +101,13 @@ interface nsIMsgFolderListener : nsISupports {
                              in nsIMsgFolder aDestFolder);
 
   /**
+   * Notified after a folder has been added.
+   *
+   * @param aFolder The folder that has just been added
+   */
+  void folderAdded(in nsIMsgFolder aFolder);
+
+  /**
    * Notified after a folder has been deleted and its corresponding file(s) deleted from disk.
    *
    * @param aFolder The folder that has just been deleted

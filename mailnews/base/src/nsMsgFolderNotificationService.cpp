@@ -153,6 +153,13 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(PRBool
   return NS_OK;
 }
 
+/* void notifyFolderAdded(in nsIMsgFolder aFolder); */
+NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderAdded(nsIMsgFolder *aFolder)
+{
+  NOTIFY_MSGFOLDER_LISTENERS(folderAdded, FolderAdded, (aFolder));
+  return NS_OK;
+}
+
 /* void notifyFolderDeleted(in nsIMsgFolder aFolder); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderDeleted(nsIMsgFolder *aFolder)
 {

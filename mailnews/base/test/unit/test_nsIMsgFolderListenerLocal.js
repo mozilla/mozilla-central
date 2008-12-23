@@ -11,6 +11,7 @@
   * operations.
   *
   * Currently tested:
+  * - Adding new folders
   * - Copy messages from files into the db
   * - Moving and copying one or more messages from one local folder to another
   * - Moving folders, with and without subfolders
@@ -22,9 +23,22 @@ do_import_script("../mailnews/base/test/resources/msgFolderListenerSetup.js");
 
 // Globals
 var gMsgFile1, gMsgFile2, gMsgFile3;
+var gRootFolder;
 var gLocalFolder2;
 var gLocalFolder3;
 var gLocalTrashFolder;
+
+// storeIn takes a string containing the variable to store the new folder in
+function addFolder(parent, folderName, storeIn)
+{
+  gExpectedEvents = [[gMFNService.folderAdded, parent, folderName, storeIn]];
+  // We won't receive a copy listener notification for this
+  gCurrStatus |= kStatus.onStopCopyDone;
+  parent.createSubfolder(folderName, null);
+  gCurrStatus |= kStatus.functionCallDone;
+  if (gCurrStatus == kStatus.everythingDone)
+    resetStatusAndProceed();
+}
 
 function copyFileMessage(file, destFolder, isDraftOrTemplate)
 {
@@ -125,6 +139,12 @@ function deleteFolder(folder)
 // Beware before commenting out a test -- later tests might just depend on earlier ones
 const gTestArray =
 [
+  // Adding folders
+  // Create another folder to move and copy messages around, and force initialization.
+  function addFolder1() { addFolder(gRootFolder, "folder2", "gLocalFolder2"); },
+  // Create a third folder for more testing.
+  function addFolder2() { addFolder(gRootFolder, "folder3", "gLocalFolder3"); },
+
   // Copying messages from files
   function testCopyFileMessage1() { copyFileMessage(gMsgFile1, gLocalInboxFolder, false); },
   function testCopyFileMessage2() { copyFileMessage(gMsgFile2, gLocalInboxFolder, false); },
@@ -194,17 +214,9 @@ function run_test()
   gMsgFile2 = do_get_file("../mailnews/test/data/bugmail11");
   gMsgFile3 = do_get_file("../mailnews/test/data/draft1");
 
-  // Create another folder to move and copy messages around, and force initialization.
-  var rootFolder = gLocalIncomingServer.rootMsgFolder;
-  gLocalFolder2 = rootFolder.addSubfolder("folder2");
-  var folderName = gLocalFolder2.prettiestName;
-
-  // Create a third folder for more testing.
-  gLocalFolder3 = rootFolder.addSubfolder("folder3");
-  folderName = gLocalFolder3.prettiestName;
-
   // "Trash" folder
-  gLocalTrashFolder = rootFolder.getChildNamed("Trash");
+  gRootFolder = gLocalIncomingServer.rootMsgFolder;
+  gLocalTrashFolder = gRootFolder.getChildNamed("Trash");
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of all the operations.
   do_test_pending();

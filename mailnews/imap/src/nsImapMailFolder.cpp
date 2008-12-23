@@ -976,6 +976,9 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
       NotifyItemAdded(child);
       folderCreateAtom = do_GetAtom("FolderCreateCompleted");
       child->NotifyFolderEvent(folderCreateAtom);
+      nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+      if (notifier)
+        notifier->NotifyFolderAdded(child);
     }
     else
     {

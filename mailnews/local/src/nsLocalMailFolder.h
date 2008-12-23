@@ -207,6 +207,11 @@ protected:
   nsresult CreateSubFolders(nsIFile *path);
   nsresult GetTrashFolder(nsIMsgFolder** trashFolder);
   nsresult WriteStartOfNewMessage();
+
+  // CreateSubfolder, but without the nsIMsgFolderListener notification
+  nsresult CreateSubfolderInternal(const nsAString& folderName, nsIMsgWindow *msgWindow,
+                                   nsIMsgFolder **aNewFolder);
+
   nsresult IsChildOfTrash(PRBool *result);
   nsresult RecursiveSetDeleteIsMoveTrash(PRBool bVal);
   nsresult ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow, nsIMsgFolder *aFolder, PRBool *aResult);

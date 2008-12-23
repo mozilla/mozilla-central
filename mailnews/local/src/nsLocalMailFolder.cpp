@@ -730,9 +730,24 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CreateStorageIfMissing(nsIUrlListener* aUrlL
   return rv;
 }
 
+NS_IMETHODIMP
+nsMsgLocalMailFolder::CreateSubfolder(const nsAString& folderName, nsIMsgWindow *msgWindow)
+{
+  nsCOMPtr<nsIMsgFolder> newFolder;
+  nsresult rv = CreateSubfolderInternal(folderName, msgWindow, getter_AddRefs(newFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+  if (notifier)
+    notifier->NotifyFolderAdded(newFolder);
+
+  return NS_OK;
+}
 
 nsresult
-nsMsgLocalMailFolder::CreateSubfolder(const nsAString& folderName, nsIMsgWindow *msgWindow )
+nsMsgLocalMailFolder::CreateSubfolderInternal(const nsAString& folderName,
+                                              nsIMsgWindow *msgWindow,
+                                              nsIMsgFolder **aNewFolder)
 {
   nsresult rv = CheckIfFolderExists(folderName, this, msgWindow);
   if(NS_FAILED(rv))  //we already throw an alert - no need for an assertion
@@ -810,6 +825,8 @@ nsMsgLocalMailFolder::CreateSubfolder(const nsAString& folderName, nsIMsgWindow 
     child->OnFlagChange(mFlags);
     child->SetPrettyName(folderName);  //because empty trash will create a new trash folder
     NotifyItemAdded(child);
+    if (aNewFolder)
+      child.swap(*aNewFolder);
   }
   return rv;
 }
@@ -1810,18 +1827,9 @@ nsMsgLocalMailFolder::CopyFolderAcrossServer(nsIMsgFolder* srcFolder, nsIMsgWind
   nsString folderName;
   srcFolder->GetName(folderName);
 
-  nsresult rv = CreateSubfolder(folderName, msgWindow);
-  if (NS_FAILED(rv)) return rv;
-
-  nsCAutoString escapedFolderName;
-  rv = NS_MsgEscapeEncodeURLPath(folderName, escapedFolderName);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCOMPtr<nsIMsgFolder> newFolder;
   nsCOMPtr<nsIMsgFolder> newMsgFolder;
-
-  rv = FindSubFolder(escapedFolderName, getter_AddRefs(newMsgFolder));
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsresult rv = CreateSubfolderInternal(folderName, msgWindow, getter_AddRefs(newMsgFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISimpleEnumerator> messages;
   rv = srcFolder->GetMessages(msgWindow, getter_AddRefs(messages));

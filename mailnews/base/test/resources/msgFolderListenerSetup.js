@@ -86,6 +86,17 @@ var gMFListener =
         resetStatusAndProceed();
     }
   },
+  
+  folderAdded: function(aFolder)
+  {
+    verify([gMFNService.folderAdded, aFolder]);
+    if (gExpectedEvents.length == 0)
+    {
+      gCurrStatus |= kStatus.notificationsDone;
+      if (gCurrStatus == kStatus.everythingDone)
+        resetStatusAndProceed();
+    }
+  },
 
   folderDeleted: function(aFolder)
   {
@@ -227,6 +238,18 @@ function verify(event)
 
     // Check: destination folder matches.
     do_check_eq(expected[3], event[3]);
+    break;
+  case gMFNService.folderAdded:
+    // Check: parent folder matches
+    do_check_eq(event[1].parent, expected[1]);
+
+    // Check: folder name matches
+    do_check_eq(event[1].prettyName, expected[2]);
+    do_check_eq(event[1].name, expected[2]);
+
+    // Not a check, but if we have to store this folder somewhere, do it
+    if (expected[3])
+      eval(expected[3] + "= event[1]");
     break;
   case gMFNService.folderRenamed:
     // Check: source folder matches

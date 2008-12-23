@@ -139,7 +139,8 @@ let SearchSupport =
     if (aEnable)
     {
       notificationService.addListener(this._msgFolderListener,
-                                      notificationService.all);
+                                      notificationService.all &
+                                      ~notificationService.folderAdded);
       let observerService = Cc["@mozilla.org/observer-service;1"]
                               .getService(Ci.nsIObserverService);
       observerService.addObserver(this, "MsgMsgDisplayed", false);
@@ -153,7 +154,8 @@ let SearchSupport =
       notificationService.addListener(this._msgFolderListener,
                                       notificationService.msgsMoveCopyCompleted |
                                       notificationService.msgsDeleted |
-                                      notificationService.allFolderNotifications);
+                                      (notificationService.allFolderNotifications &
+                                       ~notificationService.folderAdded));
     this._enabled = aEnable;
   },
   get enabled()
