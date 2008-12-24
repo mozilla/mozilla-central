@@ -39,7 +39,7 @@
 #include <windows.h>
 #include "nsNativeAppSupportWin.h"
 
-1 24 "MozillaSunbird.exe.manifest"
+1 24 "sunbird.exe.manifest"
 
 /* SUNBIRD_ICO is defined in ./Makefile for generic vs. official branding */
 IDI_APPICON ICON SUNBIRD_ICO
