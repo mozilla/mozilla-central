@@ -125,19 +125,44 @@ let SearchSupport =
     return this.__timer;
   },
 
+  _cancelTimer: function()
+  {
+    try {
+      this._timer.cancel();
+    }
+    catch (ex) {}
+  },
+
   /**
-   * Right now we only know how to set status to enabled/disabled once -- once
-   * we're set, we're set for this session.
+   * Enabled status.
+   *
+   * When we're enabled, then we get notifications about every message or folder
+   * operation, including "message displayed" operations which we bump up in
+   * priority. We also have a background sweep which we do on idle.
+   *
+   * We aren't fully disabled when we're "disabled", though. We still observe
+   * message and folder moves and deletes, as we don't want to have support
+   * files for non-existent messages.
    */
   _enabled: null,
   set enabled(aEnable)
   {
+    // Nothing to do if there's no change in state
+    if (this._enabled == aEnable)
+      return;
+
+    this._log.info("Enabled status changing from " + this._enabled + " to " +
+                   aEnable);
+
     let notificationService =
       Cc["@mozilla.org/messenger/msgnotificationservice;1"]
         .getService(Ci.nsIMsgFolderNotificationService);
 
+    this._removeObservers();
+
     if (aEnable)
     {
+      // This stuff we always need to do
       notificationService.addListener(this._msgFolderListener,
                                       notificationService.all &
                                       ~notificationService.folderAdded);
@@ -161,6 +186,34 @@ let SearchSupport =
   get enabled()
   {
     return this._enabled;
+  },
+
+  /**
+   * Remove whatever observers are present. This is done while switching states
+   */
+  _removeObservers: function()
+  {
+    if (this.enabled === null)
+      return;
+
+    let notificationService =
+      Cc["@mozilla.org/messenger/msgnotificationservice;1"]
+        .getService(Ci.nsIMsgFolderNotificationService);
+    notificationService.removeListener(this._msgFolderListener);
+
+    if (this.enabled)
+    {
+      let observerService = Cc["@mozilla.org/observer-service;1"]
+                              .getService(Ci.nsIObserverService);
+      observerService.removeObserver(this, "MsgMsgDisplayed", false);
+      let idleService = Cc["@mozilla.org/widget/idleservice;1"]
+                          .getService(Ci.nsIIdleService);
+      idleService.removeIdleObserver(this, this._idleThresholdSecs);
+
+      // in case there's a background sweep going on
+      this._cancelTimer();
+    }
+    // We don't need to do anything extra if we're disabled
   },
 
   /**
@@ -295,9 +348,7 @@ let SearchSupport =
       this._queueMessage(msgHdrToIndex);
 
     // Restart the timer, and call ourselves
-    try {
-      this._timer.cancel();
-    } catch (ex) {}
+    this._cancelTimer();
     this._timer.initWithCallback(this._wrapContinueSweep,
                                  this._msgHdrsToIndex.length > 1 ? 5000 : 1000,
                                  Ci.nsITimer.TYPE_ONE_SHOT);
@@ -327,9 +378,7 @@ let SearchSupport =
     else if (aTopic == "back")
     {
       this._log.debug("Non-idle, so suspending sweep")
-      try {
-        this._timer.cancel();
-      } catch (ex) {}
+      this._cancelTimer();
     }
     else if (aTopic == "MsgMsgDisplayed")
     {
@@ -374,6 +423,10 @@ let SearchSupport =
     msgsMoveCopyCompleted: function(aMove, aSrcMsgs, aDestFolder)
     {
       SearchIntegration._log.info("in msgsMoveCopyCompleted, aMove = " + aMove);
+      // Forget about copies if disabled
+      if (!aMove && !this.enabled)
+        return;
+
       let count = aSrcMsgs.length;
       for (let i = 0; i < count; i++)
       {
@@ -397,7 +450,7 @@ let SearchSupport =
           if (destFile.exists())
             if (aMove)
               srcFile.moveTo(destFile, "");
-            else if (gEnabled)
+            else
               srcFile.copyTo(destFile, "");
         }
       }
@@ -417,6 +470,11 @@ let SearchSupport =
     {
       SearchIntegration._log.info("in folderMoveCopyCompleted, aMove = " +
                                   aMove);
+
+      // Forget about copies if disabled
+      if (!aMove && !this.enabled)
+        return;
+
       let srcFile = aSrcFolder.filePath;
       let destFile = aDestFolder.filePath;
       srcFile.leafName = srcFile.leafName + ".mozmsgs";
@@ -428,7 +486,7 @@ let SearchSupport =
         // We're not going to copy if we aren't in active mode
         if (aMove)
           srcFile.moveTo(destFile, "");
-        else if (gEnabled)
+        else
           srcFile.copyTo(destFile, "");
       }
     },
