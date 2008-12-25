@@ -1836,8 +1836,8 @@ function ShowEditMessageBox()
   {
     return;
   }
-
-  if (IsSpecialFolder(msgHdr.folder, MSG_FOLDER_FLAG_DRAFTS, true))
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+  if (IsSpecialFolder(msgHdr.folder, nsMsgFolderFlags.Drafts, true))
     document.getElementById("editMessageBox").collapsed = false;
 }
 

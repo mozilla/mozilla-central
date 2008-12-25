@@ -480,8 +480,9 @@ function CheckForMessageIdInFolder(folder, messageId)
   var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
                               .getService(Components.interfaces.nsIMsgMailSession);
 
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
   if (!mailSession.IsFolderOpenInWindow(folder) &&
-      !(folder.flags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_INBOX)))
+      !(folder.flags & (nsMsgFolderFlags.Trash | nsMsgFolderFlags.Inbox)))
   {
     folder.setMsgDatabase(null);
   }
@@ -502,7 +503,8 @@ function fillFolderPaneContextMenu()
 
   var numSelected = folders.length;
   var folder = folders[0];
-  var isVirtualFolder = folder ? folder.flags & MSG_FOLDER_FLAG_VIRTUAL : false;
+  const kVirtualFlag = Components.interfaces.nsMsgFolderFlags.Virtual;
+  var isVirtualFolder = folder ? folder.flags & kVirtualFlag : false;
 
   var isServer = folder.isServer;
   var serverType = folder.server.type;
@@ -622,8 +624,9 @@ function SetupRemoveMenuItem(msgFolder, numSelected, isServer, serverType, speci
 
 function SetupCompactMenuItem(folder, numSelected)
 {
-  ShowMenuItem("folderPaneContext-compact", (numSelected <=1) && folder.canCompact && !(folder.flags & MSG_FOLDER_FLAG_VIRTUAL));
-  EnableMenuItem("folderPaneContext-compact", folder.isCommandEnabled("cmd_compactFolder") && !(folder.flags & MSG_FOLDER_FLAG_VIRTUAL));
+  const kVirtualFlag = Components.interfaces.nsMsgFolderFlags.Virtual;
+  ShowMenuItem("folderPaneContext-compact", (numSelected <= 1) && folder.canCompact && !(folder.flags & kVirtualFlag));
+  EnableMenuItem("folderPaneContext-compact", folder.isCommandEnabled("cmd_compactFolder") && !(folder.flags & kVirtualFlag));
 }
 
 function SetupFavoritesMenuItem(folder, numSelected, isServer, menuItemId)
@@ -633,7 +636,11 @@ function SetupFavoritesMenuItem(folder, numSelected, isServer, menuItemId)
 
   // adjust the checked state on the menu
   if (showItem)
-    document.getElementById(menuItemId).setAttribute('checked',folder.getFlag(MSG_FOLDER_FLAG_FAVORITE));
+  {
+    const kFavoriteFlag = Components.interfaces.nsMsgFolderFlags.Favorite;
+    document.getElementById(menuItemId)
+            .setAttribute('checked', folder.getFlag(kFavoriteFlag));
+  }
 }
 
 function ShowMenuItem(id, showItem)

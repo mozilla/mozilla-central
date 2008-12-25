@@ -2418,8 +2418,7 @@ function RemoveDraft()
     var folder = rdf.GetResource(gMsgCompose.savedFolderURI)
                     .QueryInterface(Components.interfaces.nsIMsgFolder);
     try {
-      const MSG_FOLDER_FLAG_DRAFTS = 0x0400;
-      if (folder.flags & MSG_FOLDER_FLAG_DRAFTS)
+      if (folder.flags & Components.interfaces.nsMsgFolderFlags.Drafts)
       {
         var msgs = Components.classes["@mozilla.org/array;1"].
             createInstance(Components.interfaces.nsIMutableArray);

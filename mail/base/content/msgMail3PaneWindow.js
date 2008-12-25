@@ -58,9 +58,6 @@ const kVerticalPaneConfig = 2;
 
 const kNumFolderViews = 4; // total number of folder views
 
-// from nsMsgFolderFlags.h
-const MSG_FOLDER_FLAG_ELIDED = 0x10;
-
 var gMessagePane;
 var gSearchInput;
 
@@ -296,13 +293,14 @@ var folderListener = {
               }
             }
           }
+          const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
           if (uri == gCurrentLoadingFolderURI) {
             viewDebug("uri == current loading folder uri\n");
             gCurrentLoadingFolderURI = "";
             // Scroll to message for virtual folders is done in
             // gSearchNotificationListener.OnSearchDone (see searchBar.js).
             if (!scrolled && gMsgFolderSelected &&
-                !(gMsgFolderSelected.flags & MSG_FOLDER_FLAG_VIRTUAL))
+                !(gMsgFolderSelected.flags & nsMsgFolderFlags.Virtual))
               ScrollToMessageAfterFolderLoad(msgFolder);
             SetBusyCursor(window, false);
           }
@@ -324,7 +322,7 @@ var folderListener = {
               gDBView.viewFolder = gMsgFolderSelected;
               ViewChangeByFolder(gMsgFolderSelected);
             }
-            else if (gMsgFolderSelected.flags & MSG_FOLDER_FLAG_VIRTUAL)
+            else if (gMsgFolderSelected.flags & nsMsgFolderFlags.Virtual)
             {
               viewDebug("selected folder is virtual\n");
               gDefaultSearchViewTerms = null;
@@ -577,7 +575,7 @@ function IsCurrentLoadedFolder(folder)
 {
   var msgfolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
   var currentLoadedFolder = GetThreadPaneFolder();
-  if (currentLoadedFolder.flags & MSG_FOLDER_FLAG_VIRTUAL)
+  if (currentLoadedFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
   {
     var msgDatabase = currentLoadedFolder.getMsgDatabase(msgWindow);
     var dbFolderInfo = msgDatabase.dBFolderInfo;
@@ -932,7 +930,8 @@ function loadStartFolder(initialUri)
             {
                 //now find Inbox
                 var outNumFolders = new Object();
-                var inboxFolder = rootMsgFolder.getFolderWithFlags(0x1000);
+                const kInboxFlag = Components.interfaces.nsMsgFolderFlags.Inbox;
+                var inboxFolder = rootMsgFolder.getFolderWithFlags(kInboxFlag);
                 if (!inboxFolder) return;
 
                 startFolder = inboxFolder;
@@ -1504,7 +1503,7 @@ function MigrateFolderViews()
        {
          inbox = GetInboxFolder(server);
          if (inbox)
-           inbox.setFlag(MSG_FOLDER_FLAG_FAVORITE);
+           inbox.setFlag(Components.interfaces.nsMsgFolderFlags.Favorite);
        }
      }
     gPrefBranch.setIntPref("mail.folder.views.version", 1);

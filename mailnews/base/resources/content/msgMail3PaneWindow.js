@@ -830,7 +830,8 @@ function loadStartFolder(initialUri)
             {
                 //now find Inbox
                 var rootMsgFolder = defaultServer.rootMsgFolder;
-                var inboxFolder = rootMsgFolder.getFolderWithFlags(0x1000);
+                const kInboxFlag = Components.interfaces.nsMsgFolderFlags.Inbox;
+                var inboxFolder = rootMsgFolder.getFolderWithFlags(kInboxFlag);
                 if (inboxFolder)
                   initialUri = inboxFolder.URI;
             }

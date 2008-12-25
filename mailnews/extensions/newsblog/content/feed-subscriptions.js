@@ -36,7 +36,6 @@
 #
 # ***** END LICENSE BLOCK ******
 
-const MSG_FOLDER_FLAG_TRASH = 0x0100;
 const IPS = Components.interfaces.nsIPromptService;
 const nsIDragService = Components.interfaces.nsIDragService;
 const kRowIndexUndefined = -1;
@@ -425,7 +424,7 @@ var gFeedSubscriptionsWindow = {
     {
       var folder = folderEnumerator.getNext()
         .QueryInterface(Components.interfaces.nsIMsgFolder);
-      if (!folder.getFlag(MSG_FOLDER_FLAG_TRASH)) 
+      if (!folder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash))
       {
         this.mFeedContainers.push(this.makeFolderObject(folder, 0));
         numFolders++;
@@ -926,7 +925,7 @@ var gFeedSubscriptionsWindow = {
     {
       var folder = folderEnumerator.getNext()
         .QueryInterface(Components.interfaces.nsIMsgFolder);
-      if (!folder.getFlag(MSG_FOLDER_FLAG_TRASH)) 
+      if (!folder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash))
       {
         var outline;
         if (folder.hasSubFolders)

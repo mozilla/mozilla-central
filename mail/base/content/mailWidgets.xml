@@ -1904,7 +1904,7 @@
             var pref = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
             var showPreviewText = pref.getBoolPref("mail.biff.alert.show_preview");
             var folderArray = new Array;
-            if (aFolder.flags  & MSG_FOLDER_FLAG_VIRTUAL)
+            if (aFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
             {
               var msgDatabase = aFolder.getMsgDatabase(null);
               var dbFolderInfo = msgDatabase.dBFolderInfo;

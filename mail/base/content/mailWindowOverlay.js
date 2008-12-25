@@ -101,7 +101,8 @@ function menu_new_init()
   var isServer = msgFolder.isServer;
   var serverType = msgFolder.server.type;
   var canCreateNew = msgFolder.canCreateSubfolders;
-  var isInbox = IsSpecialFolder(msgFolder, MSG_FOLDER_FLAG_INBOX, false);
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+  var isInbox = IsSpecialFolder(msgFolder, nsMsgFolderFlags.Inbox, false);
   var isIMAPFolder = serverType == "imap";
   var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                             .getService(Components.interfaces.nsIIOService);
@@ -807,7 +808,8 @@ function GetInboxFolder(server)
     var rootMsgFolder = server.rootMsgFolder;
 
     // Now find the Inbox.
-    return rootMsgFolder.getFolderWithFlags(0x1000);
+    const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+    return rootMsgFolder.getFolderWithFlags(nsMsgFolderFlags.Inbox);
   }
   catch (ex) {
     dump(ex + "\n");
@@ -1179,7 +1181,7 @@ function MsgUnsubscribe()
 function ToggleFavoriteFolderFlag()
 {
   var folder = GetFirstSelectedMsgFolder();
-  folder.toggleFlag(MSG_FOLDER_FLAG_FAVORITE);
+  folder.toggleFlag(Components.interfaces.nsMsgFolderFlags.Favorite);
 }
 
 function MsgSaveAsFile()
@@ -2110,7 +2112,8 @@ function CoalesceGetMsgsForPop3ServersByDestFolder(currentServer,
                                                    localFoldersToDownloadTo)
 {
   var outNumFolders = new Object();
-  var inboxFolder = currentServer.rootMsgFolder.getFolderWithFlags(0x1000);
+  const kInboxFlag = Components.interfaces.nsMsgFolderFlags.Inbox;
+  var inboxFolder = currentServer.rootMsgFolder.getFolderWithFlags(kInboxFlag);
   // coalesce the servers that download into the same folder...
   var index = localFoldersToDownloadTo.GetIndexOf(inboxFolder);
   if (index == -1)

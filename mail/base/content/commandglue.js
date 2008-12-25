@@ -56,18 +56,6 @@ var gPrevFolderFlags;
 var gPrevSelectedFolder;
 var gMsgFolderSelected;
 
-/* keep in sync with nsMsgFolderFlags.h */
-var MSG_FOLDER_FLAG_MAIL = 0x0004;
-var MSG_FOLDER_FLAG_VIRTUAL = 0x0020;
-var MSG_FOLDER_FLAG_TRASH = 0x0100;
-var MSG_FOLDER_FLAG_SENTMAIL = 0x0200;
-var MSG_FOLDER_FLAG_DRAFTS = 0x0400;
-var MSG_FOLDER_FLAG_QUEUE = 0x0800;
-var MSG_FOLDER_FLAG_INBOX = 0x1000;
-var MSG_FOLDER_FLAG_TEMPLATES = 0x400000;
-var MSG_FOLDER_FLAG_JUNK = 0x40000000;
-var MSG_FOLDER_FLAG_FAVORITE = 0x80000000;
-
 function setTitleFromFolder(msgfolder, subject)
 {
     var wintype = document.documentElement.getAttribute('windowtype');
@@ -294,7 +282,8 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
 
   // if this is the drafts, sent, or send later folder,
   // we show "Recipient" instead of "Author"
-  SetSentFolderColumns(IsSpecialFolder(newFolder, MSG_FOLDER_FLAG_SENTMAIL | MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_QUEUE, true));
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+  SetSentFolderColumns(IsSpecialFolder(newFolder, nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue, true));
   ShowLocationColumn(viewType == nsMsgViewType.eShowVirtualFolderResults);
   // Only show 'Received' column for e-mails.  For newsgroup messages, the 'Date' header is as reliable as an e-mail's
   // 'Received' header, as it is replaced with the news server's (more reliable) date.
@@ -306,7 +295,7 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
   {
     /* we don't null out the db reference for inbox because inbox is like the "main" folder
                and performance outweighs footprint*/
-    if (!IsSpecialFolder(oldFolder, MSG_FOLDER_FLAG_INBOX, false))
+    if (!IsSpecialFolder(oldFolder, Components.interfaces.nsMsgFolderFlags.Inbox, false))
     {
       if (oldFolder.URI != newFolder.URI)
         oldFolder.setMsgDatabase(null);
@@ -455,9 +444,11 @@ function UpdateReceivedColumn(newFolder)
   // 'Received' header, as it is replaced with the news server's (more reliable) date.
   var receivedColumn = document.getElementById("receivedCol");
 
-  var newFolderShowsRcvd = (newFolder.flags & MSG_FOLDER_FLAG_MAIL) &&
-    !(newFolder.flags & (MSG_FOLDER_FLAG_QUEUE | MSG_FOLDER_FLAG_DRAFTS |
-                         MSG_FOLDER_FLAG_TEMPLATES | MSG_FOLDER_FLAG_SENTMAIL));
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+  var newFolderShowsRcvd = (newFolder.flags & nsMsgFolderFlags.Mail) &&
+    !(newFolder.flags & (nsMsgFolderFlags.Queue | nsMsgFolderFlags.Drafts |
+                         nsMsgFolderFlags.Templates |
+                         nsMsgFolderFlags.SentMail));
     
   var tempHidden = receivedColumn.getAttribute("temphidden") == "true";
   var isHidden = receivedColumn.getAttribute("hidden") == "true";
@@ -818,16 +809,18 @@ function FolderPaneSelectionChange()
         var folderFlags = msgFolder.flags;
         // If this is same folder, and we're not showing a virtual folder
         // then do nothing.
-        if (msgFolder == msgWindow.openFolder && 
-          !(folderFlags & MSG_FOLDER_FLAG_VIRTUAL) && ! (gPrevFolderFlags & MSG_FOLDER_FLAG_VIRTUAL))
+        const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+        if (msgFolder == msgWindow.openFolder &&
+            !(folderFlags & nsMsgFolderFlags.Virtual) &&
+            !(gPrevFolderFlags & nsMsgFolderFlags.Virtual))
         {
             return;
         }
         else
         {
-            const outFolderFlagMask = MSG_FOLDER_FLAG_SENTMAIL |
-              MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_QUEUE |
-              MSG_FOLDER_FLAG_TEMPLATES;
+            const outFolderFlagMask = nsMsgFolderFlags.SentMail |
+              nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue |
+              nsMsgFolderFlags.Templates;
             if (IsSpecialFolder(gMsgFolderSelected, outFolderFlagMask, true))
             {
               if (!gPrevSelectedFolder ||
@@ -864,7 +857,7 @@ function FolderPaneSelectionChange()
                   sortType = dbFolderInfo.sortType;
                   sortOrder = dbFolderInfo.sortOrder;
                   viewFlags = dbFolderInfo.viewFlags;
-                  if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
+                  if (folderFlags & Components.interfaces.nsMsgFolderFlags.Virtual)
                   {
                     viewType = nsMsgViewType.eShowQuickSearchResults;
                     var searchTermString = dbFolderInfo.getCharProperty("searchStr");
@@ -972,7 +965,9 @@ function IsSpecialFolder(msgFolder, flags, checkAncestors)
         // the user can set their INBOX to be their SENT folder.
         // in that case, we want this folder to act like an INBOX, 
         // and not a SENT folder
-        return !((flags & MSG_FOLDER_FLAG_SENTMAIL) && (msgFolder.flags & MSG_FOLDER_FLAG_INBOX));
+        const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+        return !((flags & nsMsgFolderFlags.SentMail) &&
+                 (msgFolder.flags & nsMsgFolderFlags.Inbox));
     }
 }
 
@@ -1018,7 +1013,7 @@ function  CreateVirtualFolder(newName, parentFolder, searchFolderURIs, searchTer
     {
       var newFolder = parentFolder.addSubfolder(newName);
       newFolder.prettyName = newName;
-      newFolder.setFlag(MSG_FOLDER_FLAG_VIRTUAL);
+      newFolder.setFlag(Components.interfaces.nsMsgFolderFlags.Virtual);
       var vfdb = newFolder.getMsgDatabase(msgWindow);
       var searchTermString = getSearchTermString(searchTerms);
       var dbFolderInfo = vfdb.dBFolderInfo;

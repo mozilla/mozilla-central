@@ -220,7 +220,8 @@ function onCancel()
            try
            {
               //now find Inbox
-              var inboxFolder = msgFolder.getFolderWithFlags(0x1000);
+              const kInboxFlag = Components.interfaces.nsMsgFolderFlags.Inbox;
+              var inboxFolder = msgFolder.getFolderWithFlags(kInboxFlag);
               inboxFolder.setFilterList(null);
            }
            catch(ex)

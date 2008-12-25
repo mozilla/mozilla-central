@@ -600,22 +600,21 @@
         <body><![CDATA[
           const Ci = Components.interfaces;
           // First set the SpecialFolder attribute
-          // Sigh... why aren't these in an IDL somewhere public?
-          if (aFolder.flags & 0x1000) // MSG_FOLDER_FLAG_INBOX
+          if (aFolder.flags & Ci.nsMsgFolderFlags.Inbox)
             aMenuNode.setAttribute("SpecialFolder", "Inbox");
-          else if (aFolder.flags & 0x0100) // MSG_FOLDER_FLAG_TRASH
+          else if (aFolder.flags & Ci.nsMsgFolderFlags.Trash)
             aMenuNode.setAttribute("SpecialFolder", "Trash");
-          else if (aFolder.flags & 0x0800) // MSG_FOLDER_FLAG_QUEUE
+          else if (aFolder.flags & Ci.nsMsgFolderFlags.Queue)
             aMenuNode.setAttribute("SpecialFolder", "Unsent Messages");
-          else if (aFolder.flags & 0x0200) // MSG_FOLDER_FLAG_SENTMAIL
+          else if (aFolder.flags & Ci.nsMsgFolderFlags.SentMail)
             aMenuNode.setAttribute("SpecialFolder", "Sent");
-          else if (aFolder.flags & 0x0400) // MSG_FOLDER_FLAG_DRAFTS
+          else if (aFolder.flags & Ci.nsMsgFolderFlags.Drafts)
             aMenuNode.setAttribute("SpecialFolder", "Drafts");
-          else if (aFolder.flags & 0x400000) // MSG_FOLDER_FLAG_TEMPLATES
+          else if (aFolder.flags & Ci.nsMsgFolderFlags.Templates)
             aMenuNode.setAttribute("SpecialFolder", "Templates");
-          else if (aFolder.flags & 0x40000000) // MSG_FOLDER_FLAG_JUNK
+          else if (aFolder.flags & Ci.nsMsgFolderFlags.Junk)
             aMenuNode.setAttribute("SpecialFolder", "Junk");
-          else if (aFolder.flags & 0x0020) // MSG_FOLDER_FLAG_VIRTUAL
+          else if (aFolder.flags & Ci.nsMsgFolderFlags.Virtual)
             aMenuNode.setAttribute("SpecialFolder", "Virtual");
           else
             aMenuNode.setAttribute("SpecialFolder", "none");
