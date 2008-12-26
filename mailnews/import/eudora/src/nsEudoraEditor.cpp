@@ -129,8 +129,8 @@ NS_IMETHODIMP nsEudoraEditor::PostCreate()
 }
 
 
-// void preDestroy ()
-NS_IMETHODIMP nsEudoraEditor::PreDestroy()
+// void preDestroy (in boolean aDestroyingFrames)
+NS_IMETHODIMP nsEudoraEditor::PreDestroy(PRBool aDestroyingFrames)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
