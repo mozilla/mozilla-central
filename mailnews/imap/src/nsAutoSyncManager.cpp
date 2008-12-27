@@ -43,6 +43,7 @@
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgIncomingServer.h"
+#include "nsIMsgMailSession.h"
 #include "nsMsgFolderFlags.h"
 #include "nsImapIncomingServer.h"
 #include "nsMsgUtils.h"
@@ -148,12 +149,38 @@ NS_IMETHODIMP nsDefaultAutoSyncFolderStrategy::Sort(nsIMsgFolder *aFolderA,
   //Follow this order;
   // INBOX > DRAFTS > SUBFOLDERS > TRASH
   
-  if (isInbox2 || (isDrafts2 && !isInbox1) || isTrash1)
-    *aDecision = nsAutoSyncStrategyDecisions::Higher;
-  else if (isInbox1 || (isDrafts1 && !isDrafts2) || isTrash2)
-    *aDecision = nsAutoSyncStrategyDecisions::Lower;
+  // test whether the folder is opened by the user.
+  // we give high priority to the folders explicitly opened by 
+  // the user.
+  nsresult rv;
+  PRBool folderAOpen = PR_FALSE;
+  PRBool folderBOpen = PR_FALSE;
+  nsCOMPtr<nsIMsgMailSession> session =
+           do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv) && session) 
+  {
+    session->IsFolderOpenInWindow(aFolderA, &folderAOpen);
+    session->IsFolderOpenInWindow(aFolderB, &folderBOpen);
+  }
+  //
+      
+  if (folderAOpen == folderBOpen)
+  {
+    // if both of them or none of them are opened by the user 
+    // make your decision based on the folder type
+    if (isInbox2 || (isDrafts2 && !isInbox1) || isTrash1)
+      *aDecision = nsAutoSyncStrategyDecisions::Higher;
+    else if (isInbox1 || (isDrafts1 && !isDrafts2) || isTrash2)
+      *aDecision = nsAutoSyncStrategyDecisions::Lower;
+    else
+      *aDecision = nsAutoSyncStrategyDecisions::Same;
+  }
   else
-    *aDecision = nsAutoSyncStrategyDecisions::Same;
+  {
+    // otherwise give higher priority to opened one
+    *aDecision = folderBOpen ? nsAutoSyncStrategyDecisions::Higher :
+                               nsAutoSyncStrategyDecisions::Lower;
+  }
     
   return NS_OK;
 }
