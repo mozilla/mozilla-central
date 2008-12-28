@@ -78,7 +78,7 @@ var ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
 //                              .getService(Components.interfaces.nsIWebContentConverterService);
 var converterSvc = null;
 #ifdef HAVE_SHELL_SERVICE
-var shellSvc = Components.classes["@mozilla.org/browser/shell-service;1"]
+var shellSvc = Components.classes["@mozilla.org/suite/shell-service;1"]
                          .getService(Components.interfaces.nsIShellService);
 #else
 var shellSvc = null;

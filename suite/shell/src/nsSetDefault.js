@@ -59,17 +59,17 @@ nsSetDefault.prototype = {
       shell.setDefaultClient(true, true, nsIShellService.BROWSER);
     }
     else if (aCmdline.handleFlag("setDefaultMail", false)) {
-      var shell = Components.classes["@mozilla.org/browser/shell-service;1"]
+      var shell = Components.classes["@mozilla.org/suite/shell-service;1"]
                             .getService(nsIShellService);
       shell.setDefaultClient(true, true, nsIShellService.MAIL);
     }
     else if (aCmdline.handleFlag("setDefaultNews", false)) {
-      var shell = Components.classes["@mozilla.org/browser/shell-service;1"]
+      var shell = Components.classes["@mozilla.org/suite/shell-service;1"]
                             .getService(nsIShellService);
       shell.setDefaultClient(true, true, nsIShellService.NEWS);
     }
     else if (aCmdline.handleFlag("setDefaultFeed", false)) {
-      var shell = Components.classes["@mozilla.org/browser/shell-service;1"]
+      var shell = Components.classes["@mozilla.org/suite/shell-service;1"]
                             .getService(nsIShellService);
       shell.setDefaultClient(true, true, nsIShellService.RSS);
     }
