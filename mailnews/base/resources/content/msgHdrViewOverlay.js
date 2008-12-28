@@ -1670,6 +1670,7 @@ nsDummyMsgHeader.prototype =
   mProperties : new Array,
   getStringProperty : function(property) {return this.mProperties[property];},
   setStringProperty : function(property, val) {this.mProperties[property] = val;},
+  markHasAttachments : function(hasAttachments) {},
   messageSize : 0,
   recipients : null,
   from : null,
