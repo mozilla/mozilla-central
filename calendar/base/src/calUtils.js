@@ -289,7 +289,7 @@ function isCalendarWritable(aCalendar) {
  */
 function openCalendarWizard(aCallback) {
     openDialog("chrome://calendar/content/calendarCreation.xul", "caEditServer",
-               "chrome,titlebar,modal", aCallback);
+               "chrome,titlebar,modal,resizable", aCallback);
 }
 
 /**
@@ -300,7 +300,7 @@ function openCalendarWizard(aCallback) {
 function openCalendarProperties(aCalendar) {
     openDialog("chrome://calendar/content/calendar-properties-dialog.xul",
                "calendar-properties-dialog",
-               "chrome,titlebar,modal",
+               "chrome,titlebar,modal,resizable",
                {calendar: aCalendar});
 }
 

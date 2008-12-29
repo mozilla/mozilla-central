@@ -46,13 +46,13 @@
 ]>
 
 <dialog
-    id="calendar-properties-dialog"
+    id="calendar-properties-dialog-2"
     title="&calendar.server.dialog.title.edit;"
     buttons="accept,cancel"
     ondialogaccept="return onAcceptDialog();"
     ondialogcancel="return true;"
     onload="onLoad()"
-    persist="screenX screenY width height"
+    persist="screenX screenY"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     width="500">
 
