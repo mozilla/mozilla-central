@@ -163,22 +163,20 @@ nsSmtpServer::SetDescription(const nsACString &aDescription)
 NS_IMETHODIMP
 nsSmtpServer::GetPort(PRInt32 *aPort)
 {
-    nsresult rv;
-    NS_ENSURE_ARG_POINTER(aPort);
-    rv = mPrefBranch->GetIntPref("port", aPort);
-    if (NS_FAILED(rv))
-        *aPort = 0;
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(aPort);
+  if (NS_FAILED(mPrefBranch->GetIntPref("port", aPort)))
+    *aPort = 0;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsSmtpServer::SetPort(PRInt32 aPort)
 {
-    if (aPort)
-        return mPrefBranch->SetIntPref("port", aPort);
-    else
-        mPrefBranch->ClearUserPref("port");
-    return NS_OK;
+  if (aPort)
+    return mPrefBranch->SetIntPref("port", aPort);
+
+  mPrefBranch->ClearUserPref("port");
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -210,8 +208,9 @@ nsSmtpServer::GetDisplayname(char * *aDisplayname)
 NS_IMETHODIMP
 nsSmtpServer::GetTrySSL(PRInt32 *trySSL)
 {
-    NS_ENSURE_ARG_POINTER(trySSL);
-    return getIntPrefWithDefault("try_ssl", trySSL, 0);
+  NS_ENSURE_ARG_POINTER(trySSL);
+  getIntPrefWithDefault("try_ssl", trySSL, 0);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -272,27 +271,24 @@ nsSmtpServer::GetHelloArgument(char * *aHelloArgument)
 NS_IMETHODIMP
 nsSmtpServer::GetAuthMethod(PRInt32 *authMethod)
 {
-    NS_ENSURE_ARG_POINTER(authMethod);
-    return getIntPrefWithDefault("auth_method", authMethod, 1);
+  NS_ENSURE_ARG_POINTER(authMethod);
+  getIntPrefWithDefault("auth_method", authMethod, 1);
+  return NS_OK;
 }
 
-nsresult
+void
 nsSmtpServer::getIntPrefWithDefault(const char *prefName,
                                     PRInt32 *val,
                                     PRInt32 defVal)
 {
-    nsresult rv = mPrefBranch->GetIntPref(prefName, val);
-    if (NS_SUCCEEDED(rv))
-        return NS_OK;
+  nsresult rv = mPrefBranch->GetIntPref(prefName, val);
+  if (NS_SUCCEEDED(rv))
+    return;
 
-    rv = mDefPrefBranch->GetIntPref(prefName, val);
-
-    if (NS_FAILED(rv))
-    { // last resort
-        *val = defVal;
-    }
-
-    return NS_OK;
+  rv = mDefPrefBranch->GetIntPref(prefName, val);
+  if (NS_FAILED(rv))
+    // last resort
+    *val = defVal;
 }
 
 NS_IMETHODIMP
@@ -573,14 +569,13 @@ nsSmtpServer::ForgetPassword()
 NS_IMETHODIMP
 nsSmtpServer::GetServerURI(nsACString &aResult)
 {
-    nsresult rv;
     nsCAutoString uri;
 
     uri.AssignLiteral("smtp");
     uri.AppendLiteral("://");
 
     nsCString username;
-    rv = GetUsername(username);
+    nsresult rv = GetUsername(username);
 
     if (NS_SUCCEEDED(rv) && !username.IsEmpty()) {
         nsCString escapedUsername;

@@ -60,7 +60,8 @@ private:
     nsCOMPtr<nsIPrefBranch> mDefPrefBranch;
                                                                                                                                                
     nsresult getPrefs();
-    nsresult getIntPrefWithDefault(const char *prefName, PRInt32 *val, PRInt32 defval);
+    void getIntPrefWithDefault(const char *prefName, PRInt32 *val,
+                               PRInt32 defval);
     nsCString m_password;
     PRBool m_logonFailed;
 };
