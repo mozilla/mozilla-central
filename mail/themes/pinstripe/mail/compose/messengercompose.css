@@ -905,10 +905,6 @@ sidebarheader {
   color: #000;
 }
 
-#sidebar-throbber[loading="true"] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png");
-}
-
 #searchInput #sidebar {
   -moz-appearance: textfield !important;
         margin: 3px;

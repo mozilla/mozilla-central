@@ -140,7 +140,6 @@
 
 <broadcasterset id="abBroadcasters">
   <!-- Edit Menu -->
-  <broadcaster id="broadcaster-throbber" busy="false"/>
   <broadcaster id="button_delete" disabled="true"/>
 </broadcasterset>
 
@@ -253,7 +252,7 @@
 #ifdef XP_MACOSX
            defaultset="menubar-items"
 #else
-          defaultset="menubar-items,spring,throbber-box"
+          defaultset="menubar-items,spring"
 #endif
            context="toolbar-context-menu" mode="icons">
 
@@ -537,10 +536,6 @@
                      tooltiptext="&deleteButton2.tooltip;"
                      oncommand="goDoCommand('button_delete');"/>
 
-      <toolbaritem id="throbber-box" title="&throbberItem.title;" align="center" pack="center">
-        <button id="navigator-throbber" disabled="true"/>
-      </toolbaritem>
-
       <toolbaritem id="search-container" title="&searchItem.title;" align="center" class="chromeclass-toolbar-additional">
         <textbox id="searchInput" flex="1" timeout="800"
                  onfocus="onSearchInputFocus(event);"
@@ -563,7 +558,7 @@
            customizable="true"
            context="toolbar-context-menu"
 #ifdef XP_MACOSX
-           defaultset="button-newcard,button-newlist,spacer,button-editcard,button-newmessage,spacer,button-abdelete,spring,search-container,throbber-box">
+           defaultset="button-newcard,button-newlist,spacer,button-editcard,button-newmessage,spacer,button-abdelete,spring,search-container">
 #else
            defaultset="button-newcard,button-newlist,separator,button-editcard,button-newmessage,separator,button-abdelete,spring,search-container">
 #endif

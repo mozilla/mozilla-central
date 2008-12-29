@@ -180,7 +180,6 @@
 </commandset>
 
 <broadcasterset id="composeBroadcasters">
-  <broadcaster id="Editor:Throbber" busy="false"/>
   <broadcaster id="args" value="editorType=default"/>
   <broadcaster id="viewAddressPicker" autoCheck="false" type="checkbox" oncommand="toggleAddressPicker();"/>
 </broadcasterset>
@@ -308,7 +307,7 @@
 #ifdef XP_MACOSX
            defaultset="menubar-items"
 #else
-          defaultset="menubar-items,spring,throbber-box"
+          defaultset="menubar-items,spring"
 #endif
            context="toolbar-context-menu" mode="full">
 
@@ -604,17 +603,13 @@
       </menulist>
     </toolbaritem>
 
-    <toolbaritem id="throbber-box" title="&throbberItem.title;" align="center" pack="center">
-      <button id="navigator-throbber" disabled="true"/>
-    </toolbaritem>
-
   </toolbarpalette>
   <toolbar id="composeToolbar2" class="toolbar-primary chromeclass-toolbar"
            toolbarname="&showCompositionToolbarCmd.label;"
            accesskey="&showCompositionToolbarCmd.accesskey;"
            fullscreentoolbar="true" mode="full"
 #ifdef XP_MACOSX
-           defaultset="button-send,separator,button-address,spellingButton,button-attach,button-security,button-save,spring,throbber-box"
+           defaultset="button-send,separator,button-address,spellingButton,button-attach,button-security,button-save,spring"
 #else
            defaultset="button-send,separator,button-address,spellingButton,button-attach,button-security,button-save"
 #endif
