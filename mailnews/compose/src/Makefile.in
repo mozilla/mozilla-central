@@ -91,6 +91,10 @@ endif
 
 DEFINES += -DMOZ_APP_VERSION="$(MOZ_APP_VERSION)"
 
+EXTRA_COMPONENTS = \
+		nsSMTPProtocolHandler.js \
+		$(NULL)
+
 CPPSRCS		= \
 		nsMsgCompFields.cpp \
 		nsSmtpUrl.cpp \
