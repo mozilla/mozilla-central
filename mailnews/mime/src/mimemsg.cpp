@@ -71,10 +71,6 @@ static char *MimeMessage_partial_message_html(const char *data,
                         void *closure,
                         MimeHeaders *headers);
 
-#ifdef MOZ_SECURITY
-HG56268
-#endif /* MOZ_SECURITY */
-
 #ifdef XP_UNIX
 extern void MimeHeaders_do_unix_display_hook_hack(MimeHeaders *);
 #endif /* XP_UNIX */
@@ -156,10 +152,6 @@ MimeMessage_parse_line (const char *aLine, PRInt32 aLength, MimeObject *obj)
 
   PR_ASSERT(line && *line);
   if (!line || !*line) return -1;
-
-#ifdef MOZ_SECURITY
-  HG11013
-#endif /* MOZ_SECURITY */
 
   if (msg->grabSubject)
   {
@@ -684,10 +676,6 @@ MimeMessage_write_headers_html (MimeObject *obj)
   MimeMessage     *msg = (MimeMessage *) obj;
   int             status;
 
-#ifdef MOZ_SECURITY
-  HG33391
-#endif /* MOZ_SECURITY */
-
   if (!obj->options || !obj->options->output_fn)
     return 0;
 
@@ -766,10 +754,6 @@ MimeMessage_write_headers_html (MimeObject *obj)
   PR_FREEIF(msgID);
   PR_FREEIF(mailCharset);
 
-#ifdef MOZ_SECURITY
-    HG00919
-#endif /* MOZ_SECURITY */
-
   status = MimeHeaders_write_all_headers (msg->hdrs, obj->options, PR_FALSE);
   if (status < 0)
   {
@@ -777,13 +761,7 @@ MimeMessage_write_headers_html (MimeObject *obj)
     return status;
   }
 
-  if (msg->crypto_stamped_p)
-  {
-#ifdef MOZ_SECURITY
-    HG11995
-#endif /* MOZ_SECURITY */
-  }
-  else
+  if (!msg->crypto_stamped_p)
   {
   /* If we're not writing a xlation stamp, and this is the outermost
   message, then now is the time to run the post_header_html_fn.

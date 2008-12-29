@@ -1250,12 +1250,6 @@ mime_parse_stream_complete (nsMIMESession *stream)
 
     //forward_inline = (mdd->format_out != FO_CMDLINE_ATTACHMENTS);
     forward_inline = mdd->forwardInline;
-    if (forward_inline)
-    {
-#ifdef MOZ_SECURITY
-      HG88890
-#endif
-    }
 
     NS_ASSERTION ( mdd->options == mdd->obj->options, "mime draft options not same as obj->options" );
     mime_free (mdd->obj);

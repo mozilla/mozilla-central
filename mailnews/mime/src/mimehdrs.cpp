@@ -620,10 +620,6 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
   return 1;
 }
 
-#ifdef MOZ_SECURITY
-HG99401
-#endif /* MOZ_SECURITY */
-
 /* Strip CR+LF runs within (original).
    Since the string at (original) can only shrink,
    this conversion is done in place. (original)

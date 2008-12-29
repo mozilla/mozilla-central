@@ -54,10 +54,6 @@
      is used to hold the previous part until it is needed.
 */
 
-#ifdef MOZ_SECURITY
-HG37486
-#endif
-
 /* An opaque object used to represent the buffered data.
  */
 typedef struct MimePartBufferData MimePartBufferData;
