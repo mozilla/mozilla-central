@@ -425,20 +425,42 @@ function stripUserData(item_) {
 /** local to this module file
  * Takes over relevant item information from iTIP item and sets received info.
  *
- * @param item   the stored calendar item to update
+ * @param item         the stored calendar item to update
  * @param itipItemItem the received item
  */
 function updateItem(item, itipItemItem) {
+    function updateUserData(newItem, item) {
+        // preserve user settings:
+        newItem.generation = item.generation;
+        newItem.alarmOffset = item.alarmOffset;
+        newItem.alarmRelated = item.alarmRelated;
+        newItem.alarmLastAck = item.alarmLastAck;
+        let cats = item.getCategories({});
+        newItem.setCategories(cats.length, cats);
+    }
+
     let newItem = item.clone();
     newItem.icalComponent = itipItemItem.icalComponent;
     setReceivedInfo(newItem, itipItemItem);
-    // preserve user settings:
-    newItem.generation = item.generation;
-    newItem.alarmOffset = item.alarmOffset;
-    newItem.alarmRelated = item.alarmRelated;
-    newItem.alarmLastAck = item.alarmLastAck;
-    let cats = item.getCategories({});
-    newItem.setCategories(cats.length, cats);
+    updateUserData(newItem, item);
+
+    let recInfo = itipItemItem.recurrenceInfo;
+    if (recInfo) {
+        // keep care of installing all overridden items, and mind existing alarms, categories:
+        for each (let rid in recInfo.getExceptionIds({})) {
+            let excItem = recInfo.getExceptionFor(rid).clone();
+            cal.ASSERT(excItem, "unexpected!");
+            let newExc = newItem.recurrenceInfo.getOccurrenceFor(rid).clone();
+            newExc.icalComponent = excItem.icalComponent;
+            setReceivedInfo(newExc, itipItemItem);
+            let existingExcItem = (item.recurrenceInfo && item.recurrenceInfo.getExceptionFor(rid));
+            if (existingExcItem) {
+                updateUserData(newExc, existingExcItem);
+            }
+            newItem.recurrenceInfo.modifyException(newExc, true);
+        }
+    }
+
     return newItem;
 }
 
