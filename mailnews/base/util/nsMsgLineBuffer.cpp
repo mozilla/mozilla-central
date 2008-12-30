@@ -379,7 +379,8 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
         numFreeBytesInBuffer = m_dataBufferSize - m_numBytesInBuffer;
         //printf("moving data in read line around because buffer filling up\n");
       }
-      else
+      // If we didn't make enough space (or any), grow the buffer
+      if (numBytesInStream >= numFreeBytesInBuffer)
       {
         PRInt32 growBy = (numBytesInStream - numFreeBytesInBuffer) * 2 + 1;
         // try growing buffer by twice as much as we need.
