@@ -121,13 +121,7 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   // should allow us to continue.
   if (NS_SUCCEEDED(exitCode))
   {
-    PRInt32 opCount = m_currentOpsToClear.Count();
-    for (PRInt32 i = 0; i < opCount; i++)
-    {
-      m_currentOpsToClear[i]->SetPlayingBack(PR_FALSE);
-      m_currentOpsToClear[i]->ClearOperation(mCurrentPlaybackOpType);
-    }
-
+    ClearCurrentOps();
     rv = ProcessNextOperation();
   }
   // else if it's a non-stop error, and we're doing multiple folders,
@@ -483,6 +477,15 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
   }
 }
 
+void nsImapOfflineSync::ClearCurrentOps()
+{
+  PRInt32 opCount = m_currentOpsToClear.Count();
+  for (PRInt32 i = 0; i < opCount; i++)
+  {
+    m_currentOpsToClear[i]->SetPlayingBack(PR_FALSE);
+    m_currentOpsToClear[i]->ClearOperation(mCurrentPlaybackOpType);
+  }
+}
 
 void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
 {
@@ -523,60 +526,59 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
   } 
   while (currentOp);
   
-  nsresult rv;
-  
-  nsCOMPtr<nsIRDFResource> res;
-  nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
-  if (NS_FAILED(rv)) return ; // ### return error code.
-  rv = rdf->GetResource(moveDestination, getter_AddRefs(res));
-  if (NS_SUCCEEDED(rv))
+  nsCOMPtr<nsIMsgFolder> destFolder;
+  GetExistingFolder(moveDestination, getter_AddRefs(destFolder));
+  // if the dest folder doesn't really exist, these operations are
+  // going to fail, so clear them out and move on.
+  if (!destFolder)
   {
-    nsCOMPtr<nsIMsgFolder> destFolder(do_QueryInterface(res, &rv));
-    if (NS_SUCCEEDED(rv) && destFolder)
+    NS_ERROR("trying to playing back move to non-existent folder");
+    ClearCurrentOps();
+    ProcessNextOperation();
+    return;
+  }
+  nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
+  if (imapFolder && DestFolderOnSameServer(destFolder))
+  {
+    imapFolder->ReplayOfflineMoveCopy(matchingFlagKeys.Elements(), matchingFlagKeys.Length(), PR_TRUE, destFolder,
+      this, m_window);
+  }
+  else
+  {
+    nsresult rv;
+    nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+    if (NS_SUCCEEDED(rv))
     {
-      nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
-      if (imapFolder && DestFolderOnSameServer(destFolder))
+      for (PRUint32 keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
       {
-        rv = imapFolder->ReplayOfflineMoveCopy(matchingFlagKeys.Elements(), matchingFlagKeys.Length(), PR_TRUE, destFolder,
-          this, m_window);
-      }
-      else
-      {
-        nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
-        if (NS_SUCCEEDED(rv))
+        nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
+        rv = m_currentFolder->GetMessageHeader(matchingFlagKeys.ElementAt(keyIndex), getter_AddRefs(mailHdr));
+        if (NS_SUCCEEDED(rv) && mailHdr)
         {
-          for (PRUint32 keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
+          PRUint32 msgSize;
+          // in case of a move, the header has already been deleted,
+          // so we've really got a fake header. We need to get its flags and
+          // size from the offline op to have any chance of doing the move.
+          mailHdr->GetMessageSize(&msgSize);
+          if (!msgSize)
           {
-            nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
-            rv = m_currentFolder->GetMessageHeader(matchingFlagKeys.ElementAt(keyIndex), getter_AddRefs(mailHdr));
-            if (NS_SUCCEEDED(rv) && mailHdr)
-            {
-              PRUint32 msgSize;
-              // in case of a move, the header has already been deleted,
-              // so we've really got a fake header. We need to get its flags and
-              // size from the offline op to have any chance of doing the move.
-              mailHdr->GetMessageSize(&msgSize);
-              if (!msgSize)
-              {
-                imapMessageFlagsType newImapFlags;
-                PRUint32 msgFlags = 0;
-                op->GetMsgSize(&msgSize);
-                op->GetNewFlags(&newImapFlags);
-                // first three bits are the same
-                msgFlags |= (newImapFlags & 0x07);
-                if (newImapFlags & kImapMsgForwardedFlag)
-                  msgFlags |= MSG_FLAG_FORWARDED;
-                mailHdr->SetFlags(msgFlags);
-                mailHdr->SetMessageSize(msgSize);
-              }
-              messages->AppendElement(mailHdr, PR_FALSE);
-            }
+            imapMessageFlagsType newImapFlags;
+            PRUint32 msgFlags = 0;
+            op->GetMsgSize(&msgSize);
+            op->GetNewFlags(&newImapFlags);
+            // first three bits are the same
+            msgFlags |= (newImapFlags & 0x07);
+            if (newImapFlags & kImapMsgForwardedFlag)
+              msgFlags |= MSG_FLAG_FORWARDED;
+            mailHdr->SetFlags(msgFlags);
+            mailHdr->SetMessageSize(msgSize);
           }
-          nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
-          if (copyService)
-            copyService->CopyMessages(m_currentFolder, messages, destFolder, PR_TRUE, this, m_window, PR_FALSE);
+          messages->AppendElement(mailHdr, PR_FALSE);
         }
       }
+      nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
+      if (copyService)
+        copyService->CopyMessages(m_currentFolder, messages, destFolder, PR_TRUE, this, m_window, PR_FALSE);
     }
   }
 }
@@ -586,8 +588,8 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
 // If there end up to be more places that need this, then we can reconsider.
 PRBool nsImapOfflineSync::DestFolderOnSameServer(nsIMsgFolder *destFolder)
 {
-  nsCOMPtr <nsIMsgIncomingServer> srcServer;
-  nsCOMPtr <nsIMsgIncomingServer> dstServer;
+  nsCOMPtr<nsIMsgIncomingServer> srcServer;
+  nsCOMPtr<nsIMsgIncomingServer> dstServer;
 
   PRBool sameServer = PR_FALSE;
   if (NS_SUCCEEDED(m_currentFolder->GetServer(getter_AddRefs(srcServer))) 
@@ -635,43 +637,41 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
   while (currentOp);
 	
   nsCAutoString uids;
-
-  nsresult rv;
-
-  nsCOMPtr<nsIRDFResource> res;
-  nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
-  if (NS_FAILED(rv)) return ; // ### return error code.
-  rv = rdf->GetResource(copyDestination, getter_AddRefs(res));
-  if (NS_SUCCEEDED(rv))
+  nsCOMPtr<nsIMsgFolder> destFolder;
+  GetExistingFolder(copyDestination, getter_AddRefs(destFolder));
+  // if the dest folder doesn't really exist, these operations are
+  // going to fail, so clear them out and move on.
+  if (!destFolder)
   {
-    nsCOMPtr<nsIMsgFolder> destFolder(do_QueryInterface(res, &rv));
-    if (NS_SUCCEEDED(rv) && destFolder)
+    NS_ERROR("trying to playing back copy to non-existent folder");
+    ClearCurrentOps();
+    ProcessNextOperation();
+    return;
+  }
+  nsresult rv;
+  nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
+  if (imapFolder && DestFolderOnSameServer(destFolder))
+  {
+    rv = imapFolder->ReplayOfflineMoveCopy(matchingFlagKeys.Elements(), matchingFlagKeys.Length(), PR_FALSE, destFolder,
+                   this, m_window);
+  }
+  else
+  {
+    nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+    if (messages && NS_SUCCEEDED(rv))
     {
-      nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
-      if (imapFolder && DestFolderOnSameServer(destFolder))
+      for (PRUint32 keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
       {
-        rv = imapFolder->ReplayOfflineMoveCopy(matchingFlagKeys.Elements(), matchingFlagKeys.Length(), PR_FALSE, destFolder,
-                       this, m_window);
-      }
-      else
-      {
-        nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
-        if (messages && NS_SUCCEEDED(rv))
+        nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
+        rv = m_currentFolder->GetMessageHeader(matchingFlagKeys.ElementAt(keyIndex), getter_AddRefs(mailHdr));
+        if (NS_SUCCEEDED(rv) && mailHdr)
         {
-          for (PRUint32 keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
-          {
-            nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
-            rv = m_currentFolder->GetMessageHeader(matchingFlagKeys.ElementAt(keyIndex), getter_AddRefs(mailHdr));
-            if (NS_SUCCEEDED(rv) && mailHdr)
-            {
-              messages->AppendElement(mailHdr, PR_FALSE);
-            }
-          }
-          nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
-          if (copyService)
-            copyService->CopyMessages(m_currentFolder, messages, destFolder, PR_FALSE, this, m_window, PR_FALSE);
+          messages->AppendElement(mailHdr, PR_FALSE);
         }
       }
+      nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
+      if (copyService)
+        copyService->CopyMessages(m_currentFolder, messages, destFolder, PR_FALSE, this, m_window, PR_FALSE);
     }
   }
 }

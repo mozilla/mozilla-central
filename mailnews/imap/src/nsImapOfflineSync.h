@@ -72,6 +72,7 @@ protected:
   nsresult  AdvanceToNextFolder();
   void	    AdvanceToFirstIMAPFolder();
   void 	    DeleteAllOfflineOpsForCurrentDB();
+  void      ClearCurrentOps();
   
   void      ProcessFlagOperation(nsIMsgOfflineImapOperation *currentOp);
   void      ProcessKeywordOperation(nsIMsgOfflineImapOperation *op);
