@@ -508,7 +508,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
 
     nsresult folderOpen = msgDBService->OpenFolderDB(this, PR_TRUE,
                                                      getter_AddRefs(mDatabase));
-    if (folderOpen == NS_ERROR_FILE_TARGET_DOES_NOT_EXIST)
+    if (folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
     {
       nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
       nsCOMPtr <nsIDBFolderInfo> transferInfo;
