@@ -392,6 +392,7 @@ NS_IMETHODIMP nsAutoSyncState::ProcessExistingHeaders(PRUint32 aNumOfHdrsToProce
     mLastSyncTime = PR_Now();
     mExistingHeadersQ.Clear();
     mProcessPointer = 0;
+    folder->SetMsgDatabase(nsnull);
   }
   
   return rv;
