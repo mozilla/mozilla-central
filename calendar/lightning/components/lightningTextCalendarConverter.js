@@ -200,10 +200,10 @@ ltnMimeConverter.prototype = {
     },
 
     convertToHTML: function lmcCTH(contentType, data) {
-        var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+        let parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                .createInstance(Components.interfaces.calIIcsParser);
         parser.parseString(data, null);
-        var event = null;
+        let event = null;
         for each (var item in parser.getItems({})) {
             if (isEvent(item)) {
                 event = item;
@@ -213,28 +213,36 @@ ltnMimeConverter.prototype = {
         if (!event) {
             return;
         }
-        var html = createHtml(event);
+        let html = createHtml(event);
 
         try {
-            var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
-                                     .createInstance(Components.interfaces.calIItipItem);
-            itipItem.init(data);
-
             // this.mUri is the message URL that we are processing.
             // We use it to get the nsMsgHeaderSink to store the calItipItem.
             if (this.mUri) {
-                var msgUrl = this.mUri.QueryInterface(Components.interfaces.nsIMsgMailNewsUrl);
-                var sinkProps = msgUrl.msgWindow.msgHeaderSink.properties;
-                sinkProps.setPropertyAsInterface("itipItem", itipItem);
+                let msgWindow = null;
+                try {
+                    let msgUrl = this.mUri.QueryInterface(Components.interfaces.nsIMsgMailNewsUrl);
+                    // msgWindow is optional in some scenarios
+                    // (e.g. gloda in action, throws NS_ERROR_INVALID_POINTER then)
+                    msgWindow = msgUrl.msgWindow;
+                } catch (exc) {
+                }
+                if (msgWindow) {
+                    let itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
+                                             .createInstance(Components.interfaces.calIItipItem);
+                    itipItem.init(data);
+
+                    let sinkProps = msgWindow.msgHeaderSink.properties;
+                    sinkProps.setPropertyAsInterface("itipItem", itipItem);
             
-                // Notify the observer that the itipItem is available
-                var observer = Components.classes["@mozilla.org/observer-service;1"].
-                               getService(Components.interfaces.nsIObserverService);
-                observer.notifyObservers(null, "onItipItemCreation", 0);
+                    // Notify the observer that the itipItem is available
+                    let observer = Components.classes["@mozilla.org/observer-service;1"]
+                                             .getService(Components.interfaces.nsIObserverService);
+                    observer.notifyObservers(null, "onItipItemCreation", 0);
+                }
             }
         } catch (e) {
-            Components.utils.reportError("convertToHTML: " +
-                                         "Cannot create itipItem: " + e);
+            Components.utils.reportError("[ltnMimeConverter] convertToHTML: " + e);
         }
 
         return html;
