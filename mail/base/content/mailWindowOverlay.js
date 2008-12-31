@@ -1361,6 +1361,8 @@ let mailTabType = {
     if (!gDBView)
       return;
 
+    aTab.firstVisibleRow = document.getElementById("threadTree").treeBoxObject.getFirstVisibleRow();
+
     if (gDBView.currentlyDisplayedMessage != nsMsgViewIndex_None)
     {
       try // there may not be a selected message.
@@ -1488,6 +1490,8 @@ let mailTabType = {
         // existing API call that accomplishes it.
       }
       catch (ex) {dump(ex);}
+
+      document.getElementById("threadTree").treeBoxObject.scrollToRow(aTab.firstVisibleRow);
       ShowThreadPane();
     }
     else if (gMsgFolderSelected.isServer)
