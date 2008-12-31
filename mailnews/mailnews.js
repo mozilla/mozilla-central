@@ -303,6 +303,7 @@ pref("mailnews.send_default_charset",       "chrome://messenger/locale/messenger
 pref("mailnews.view_default_charset",       "chrome://messenger/locale/messenger.properties");
 pref("mailnews.force_charset_override",     false); // ignore specified MIME encoding and use the default encoding for display
 pref("mailnews.reply_in_default_charset",   false);
+pref("mailnews.localizedRe",                "chrome://messenger-region/locale/region.properties");
 
 pref("mailnews.search_date_format",        "chrome://messenger/locale/messenger.properties");
 pref("mailnews.search_date_separator",     "chrome://messenger/locale/messenger.properties");
