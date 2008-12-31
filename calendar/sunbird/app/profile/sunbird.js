@@ -38,6 +38,11 @@
 
 #filter substitution
 
+// Turns on basic calendar logging.
+pref("calendar.debug.log", false);
+// Turns on verbose calendar logging.
+pref("calendar.debug.log.verbose", false);
+
 // SYNTAX HINTS:  dashes are delimiters.  Use underscores instead.
 //  The first character after a period must be alphabetic.
 

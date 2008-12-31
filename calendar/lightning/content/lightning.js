@@ -39,6 +39,11 @@
 
 // This file contains all of the default preference values for Lightning
 
+// Turns on basic calendar logging.
+pref("calendar.debug.log", false);
+// Turns on verbose calendar logging.
+pref("calendar.debug.log.verbose", false);
+
 // addon description
 pref("extensions.{e2fda1a4-762b-4020-b5ad-a41df1933103}.description",
      "chrome://lightning/locale/lightning.properties");
