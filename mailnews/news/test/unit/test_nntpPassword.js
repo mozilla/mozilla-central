@@ -1,6 +1,9 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /**
  * Authentication tests for NNTP (based on RFC4643).
+ *
+ * Note: Logins for newsgroup servers for 1.8 were stored with either the
+ * default port or the SSL default port. Nothing else!
  */
 
 // The basic daemon to use for testing nntpd.js implementations

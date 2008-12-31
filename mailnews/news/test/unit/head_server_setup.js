@@ -75,6 +75,17 @@ const NNTP_PORT = 1024+119;
 
 var _server = null;
 
+function subscribeServer(incomingServer) {
+  // Subscribe to newsgroups
+  incomingServer.QueryInterface(Ci.nsINntpIncomingServer);
+  groups.forEach(function (element) {
+      if (element[1])
+        incomingServer.subscribeToNewsgroup(element[0]);
+    });
+  // Only allow one connection
+  incomingServer.maximumConnectionsNumber = 1;
+}
+
 // Sets up the client-side portion of fakeserver
 function setupLocalServer(port) {
   if (_server != null)
@@ -90,14 +101,7 @@ function setupLocalServer(port) {
   account.incomingServer = server;
   server.valid = true;
 
-  // Subscribe to certain posts
-  server.QueryInterface(Ci.nsINntpIncomingServer);
-  groups.forEach(function (element) {
-      if (element[1])
-        server.subscribeToNewsgroup(element[0]);
-    });
-  // Only allow one connection
-  server.maximumConnectionsNumber = 1;
+  subscribeServer(server);
 
   _server = server;
   
@@ -109,21 +113,24 @@ const URLCreator = Cc["@mozilla.org/messenger/messageservice;1?type=news"]
                      .QueryInterface(Ci.nsIProtocolHandler);
 
 // Sets up a protocol object and prepares to run the test for the news url
-function setupProtocolTest(port, newsUrl) {
+function setupProtocolTest(port, newsUrl, incomingServer) {
   var url;
   if (newsUrl instanceof Ci.nsIMsgMailNewsUrl) { 
     url = newsUrl;
   } else {
     url = URLCreator.newURI(newsUrl, null, null);
   }
-  server = setupLocalServer(port);
+
+  var newsServer = incomingServer;
+  if (!newsServer)
+    newsServer = setupLocalServer(port);
   
   var listener = {
     onStartRequest : function () {},
     onStopRequest : function ()  {
       if (!this.called) {
         this.called = true;
-        server.closeCachedConnections();
+        newsServer.closeCachedConnections();
         this.called = false;
       }
     },
@@ -137,7 +144,7 @@ function setupProtocolTest(port, newsUrl) {
     }
   }
   listener.called = false;
-  server.loadNewsUrl(url, null, listener);
+  newsServer.loadNewsUrl(url, null, listener);
 }
 
 function create_post(baseURL, file) {
