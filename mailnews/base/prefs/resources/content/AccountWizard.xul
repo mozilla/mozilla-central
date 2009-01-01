@@ -171,8 +171,9 @@
         <vbox id="deferStorageBox">
             <description> &deferStorageDesc.label;</description>
             <hbox>
-              <checkbox id="deferStorage" label="&deferStorage.label;" checked="true"
-                wsm_persist="true" oncommand="setDeferStorage();"/> 
+              <checkbox id="deferStorage" label="&deferStorage.label;"
+                        accesskey="&deferStorage.accesskey;" checked="true"
+                        wsm_persist="true" oncommand="setDeferStorage();"/>
             </hbox>
           <separator/>
         </vbox>
