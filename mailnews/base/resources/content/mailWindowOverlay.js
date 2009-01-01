@@ -858,7 +858,8 @@ function GetInboxFolder(server)
         var rootMsgFolder = server.rootMsgFolder;
 
         //now find Inbox
-        return rootMsgFolder.getFolderWithFlags(0x1000);
+        const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+        return rootMsgFolder.getFolderWithFlags(nsMsgFolderFlags.Inbox);
     }
     catch (ex) {
         dump(ex + "\n");
