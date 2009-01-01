@@ -282,7 +282,7 @@
                         label="&statusColumn.label;" tooltiptext="&statusColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
                <treecol id="sizeCol" persist="hidden ordinal width" flex="1" hidden="true"
-                        label="&sizeColumn.label;" tooltiptext="&sizeColumn.tooltip;" crop="start"/>
+                        label="&sizeColumn.label;" tooltiptext="&sizeColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
                <treecol id="tagsCol" persist="hidden ordinal width" flex="1" hidden="true"
                         label="&tagsColumn.label;" tooltiptext="&tagsColumn.tooltip;"/>
@@ -294,10 +294,10 @@
                         label="&priorityColumn.label;" tooltiptext="&priorityColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
                <treecol id="unreadCol" persist="hidden ordinal width" flex="1" hidden="true"
-                        label="&unreadColumn.label;" tooltiptext="&unreadColumn.tooltip;" crop="start"/>
+                        label="&unreadColumn.label;" tooltiptext="&unreadColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
                <treecol id="totalCol" persist="hidden ordinal width" flex="1" hidden="true"
-                        label="&totalColumn.label;" tooltiptext="&totalColumn.tooltip;" crop="start"/>
+                        label="&totalColumn.label;" tooltiptext="&totalColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
                <treecol id="locationCol" persist="width" flex="1" hidden="true" ignoreincolumnpicker="true"
                         label="&locationColumn.label;" tooltiptext="&locationColumn.tooltip;"/>
