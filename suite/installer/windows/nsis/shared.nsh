@@ -378,9 +378,9 @@
   ; An empty string is used for the 4th & 5th params because the following
   ; protocol handlers already have a display name and additional keys required
   ; for a protocol handler.
-  ${AddHandlerValues} "$0\news"   "$2" "$8,0" "${AppRegNameNews} URL" "true" ""
-  ${AddHandlerValues} "$0\nntp"   "$2" "$8,0" "${AppRegNameNews} URL" "true" ""
-  ${AddHandlerValues} "$0\snews"  "$2" "$8,0" "${AppRegNameNews} URL" "true" ""
+  ${AddHandlerValues} "$0\news"   "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
+  ${AddHandlerValues} "$0\nntp"   "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
+  ${AddHandlerValues} "$0\snews"  "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
 !macroend
 !define SetHandlersNews "!insertmacro SetHandlersNews"
 
@@ -595,7 +595,7 @@
   WriteRegStr HKLM "$0\Capabilities\URLAssociations" "snews" "SeaMonkeyNEWS"
 
   ; Protocols
-  StrCpy $1 "$\"$8$\" -mail $\"%1$\""
+  StrCpy $1 "$\"$8$\" -osint -mail $\"%1$\""
   ${AddHandlerValues} "$0\Protocols\nntp" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
   ${AddHandlerValues} "$0\Protocols\news" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
   ${AddHandlerValues} "$0\Protocols\snews" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
@@ -896,7 +896,7 @@
   StrCpy $1 "$\"$8$\" $\"%1$\""
   ${AddHandlerValues} "$0\SeaMonkeyEML" "$1" "$INSTDIR\chrome\icons\default\misc-file.ico" "${AppRegNameMail} Document" "" ""
 
-  StrCpy $1 "$\"$8$\" -mail $\"%1$\""
+  StrCpy $1 "$\"$8$\" -osint -mail $\"%1$\""
   ${AddHandlerValues} "$0\SeaMonkeyNEWS" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
 
   ReadRegStr $2 SHCTX "$0\news\shell\open\command" ""

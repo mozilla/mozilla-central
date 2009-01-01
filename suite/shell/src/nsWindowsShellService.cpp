@@ -322,11 +322,11 @@ static SETTING gBrowserSettings[] = {
  
  static SETTING gNewsSettings[] = {
     // Protocol Handler Class - for Vista and above
-   { MAKE_KEY_NAME1(CLS_NEWSURL, SOP), "", "\"%APPPATH%\" -osint -news \"%1\"",  APP_PATH_SUBSTITUTION },
+   { MAKE_KEY_NAME1(CLS_NEWSURL, SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"",  APP_PATH_SUBSTITUTION },
  
    // Protocol Handlers
-   { MAKE_KEY_NAME1("news", SOP), "", "\"%APPPATH%\" -osint -news \"%1\"", APP_PATH_SUBSTITUTION },
-   { MAKE_KEY_NAME1("nntp", SOP), "", "\"%APPPATH%\" -osint -news \"%1\"", APP_PATH_SUBSTITUTION },
+   { MAKE_KEY_NAME1("news", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION },
+   { MAKE_KEY_NAME1("nntp", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION },
 };
 
  static SETTING gFeedSettings[] = {
