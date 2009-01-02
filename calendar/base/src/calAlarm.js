@@ -37,6 +37,10 @@
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
+const ALARM_RELATED_ABSOLUTE = Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE;
+const ALARM_RELATED_START = Components.interfaces.calIAlarm.ALARM_RELATED_START;
+const ALARM_RELATED_END = Components.interfaces.calIAlarm.ALARM_RELATED_END;
+
 function calAlarm() {
     this.mProperties = new calPropertyBag();
     this.mPropertyParams = {};
@@ -57,7 +61,6 @@ calAlarm.prototype = {
     mSummary: null,
     mDescription: null,
     mLastAck: null,
-    mItem: null,
     mImmutable: false,
     mRelated: 0,
     mRepeat: 0,
@@ -186,25 +189,22 @@ calAlarm.prototype = {
     },
 
 
-    get hashId cA_get_hashId() {
-        // TODO make the hash a bit more compact
-        return this.mItem.hashId + "#" + this.icalString;
-    },
-
     get related cA_get_related() {
         return this.mRelated;
     },
     set related cA_set_related(aValue) {
         this.ensureMutable();
-        return (this.mRelated = aValue);
-    },
+        switch (aValue) {
+            case ALARM_RELATED_ABSOLUTE:
+                this.mOffset = null;
+                break;
+            case ALARM_RELATED_START:
+            case ALARM_RELATED_END:
+                this.mAbsoluteDate = null;
+                break;
+        }
 
-    get item cA_get_item() {
-        return this.mItem;
-    },
-    set item cA_set_item(val) {
-        this.ensureMutable();
-        return (this.mItem = val);
+        return (this.mRelated = aValue);
     },
 
     get action cA_get_action() {
@@ -236,73 +236,35 @@ calAlarm.prototype = {
     },
     set summary cA_set_summary(aValue) {
         this.ensureMutable();
-        return (this.mSummary= aValue);
-    },
-
-    _getAlarmDate: function cA__getAlarmDate() {
-        let itemAlarmDate;
-        if (isEvent(this.mItem)) {
-            switch (this.related) {
-                case Components.interfaces.calIAlarm.ALARM_RELATED_START:
-                    itemAlarmDate = this.mItem.startDate;
-                    break;
-                case Components.interfaces.calIAlarm.ALARM_RELATED_END:
-                    itemAlarmDate = this.mItem.endDate;
-                    break;
-            }
-        } else if (isToDo(this.mItem)) {
-            switch (this.related) {
-                case Components.interfaces.calIAlarm.ALARM_RELATED_START:
-                    itemAlarmDate = this.mItem.entryDate;
-                    break;
-                case Components.interfaces.calIAlarm.ALARM_RELATED_END:
-                    itemAlarmDate = this.mItem.dueDate;
-                    break;
-            }
-        }
-        return itemAlarmDate;
+        return (this.mSummary = aValue);
     },
 
     get offset cA_get_offset() {
-        if (this.mOffset) {
-            return this.mOffset;
-        } else if (this.mItem && this.mAbsoluteDate) {
-            let itemAlarmDate = this._getAlarmDate();
-            if (itemAlarmDate) {
-                return this.mAbsoluteDate.subtractDate(itemAlarmDate);
-            }
-        }
-        return null;
+        return this.mOffset;
     },
     set offset cA_set_offset(aValue) {
-        this.ensureMutable();
         if (aValue && !(aValue instanceof Components.interfaces.calIDuration)) {
             throw Components.results.NS_ERROR_INVALID_ARG;
         }
-        this.mAbsoluteDate = null;
+        if (this.related != ALARM_RELATED_START &&
+            this.related != ALARM_RELATED_END) {
+            throw Components.results.NS_ERROR_FAILURE;
+        }
+        this.ensureMutable();
         return (this.mOffset = aValue);
     },
 
     get alarmDate cA_get_alarmDate() {
-        if (this.mAbsoluteDate) {
-            return this.mAbsoluteDate;
-        } else if (this.mOffset && this.mItem) {
-            let itemAlarmDate = this._getAlarmDate();
-            if (itemAlarmDate) {
-                itemAlarmDate = itemAlarmDate.clone();
-                itemAlarmDate.addDuration(this.mOffset);
-                return itemAlarmDate;
-            }
-        }
-        return null;
-
+        return this.mAbsoluteDate;
     },
     set alarmDate cA_set_alarmDate(aValue) {
-        this.ensureMutable();
         if (aValue && !(aValue instanceof Components.interfaces.calIDateTime)) {
             throw Components.results.NS_ERROR_INVALID_ARG;
         }
-        this.mOffset = null;
+        if (this.related != ALARM_RELATED_ABSOLUTE) {
+            throw Components.results.NS_ERROR_FAILURE;
+        }
+        this.ensureMutable();
         return (this.mAbsoluteDate = aValue);
     },
 
@@ -341,12 +303,14 @@ calAlarm.prototype = {
     },
 
     get repeatDate cA_get_repeatDate() {
-        let alarmDate = this._getAlarmDate();
-        if (!this.mRepeat || !this.mDuration || !alarmDate) {
+        if (this.related != ALARM_RELATED_ABSOLUTE ||
+            !this.mAbsoluteDate ||
+            !this.mRepeat ||
+            !this.mDuration) {
             return null;
         }
 
-        alarmDate = alarmDate.clone();
+        let alarmDate = this.mAbsoluteDate.clone();
 
         // All Day events are handled as 00:00:00
         alarmDate.isDate = false;
@@ -406,13 +370,11 @@ calAlarm.prototype = {
 
         // Set up trigger (REQUIRED)
         let triggerProp = icssvc.createIcalProperty("TRIGGER");
-        if (this.related == Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE &&
-            this.mAbsoluteDate) {
+        if (this.related == ALARM_RELATED_ABSOLUTE && this.mAbsoluteDate) {
             // Set the trigger to a specific datetime
             triggerProp.setParameter("VALUE", "DATE-TIME");
             triggerProp.valueAsDatetime = this.mAbsoluteDate.getInTimezone(UTC());
-        } else if (this.related != Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE &&
-                   this.mOffset) {
+        } else if (this.related != ALARM_RELATED_ABSOLUTE && this.mOffset) {
             triggerProp.valueAsIcalString = this.mOffset.icalString;
         } else {
             // No offset or absolute date is not valid.
@@ -452,7 +414,7 @@ calAlarm.prototype = {
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
         } */
 
-        for each (let attachment in attachments) {
+        for each (let attachment in this.attachments) {
             let attachmentProp = icssvc.createIcalProperty("ATTACH");
             attachmentProp.value = attachment;
             comp.addProperty(attachmentProp);
@@ -536,9 +498,9 @@ calAlarm.prototype = {
         // Set up alarm relation
         let related = triggerProp.getParameter("RELATED");
         if (related && related == "END") {
-            this.related = Components.interfaces.calIAlarm.ALARM_RELATED_END;
+            this.related = ALARM_RELATED_END;
         } else {
-            this.related = Components.interfaces.calIAlarm.ALARM_RELATED_START;
+            this.related = ALARM_RELATED_START;
         }
 
         if (durationProp && repeatProp) {
@@ -553,13 +515,13 @@ calAlarm.prototype = {
 
         // Set up attendees
         this.attendees = [];
-        for each (let attendee in cal.ical.propertyIterator(aComp, "ATTENDEE")) {
+        for (let attendee in cal.ical.propertyIterator(aComp, "ATTENDEE")) {
             // XXX this.addAttendee(attendee);
         }
 
         // Set up attachments
         this.attachments = [];
-        for each (let attach in cal.ical.propertyIterator(aComp, "ATTACH")) {
+        for (let attach in cal.ical.propertyIterator(aComp, "ATTACH")) {
             // XXX this.addAttachment(attach);
         }
 
@@ -630,18 +592,16 @@ calAlarm.prototype = {
         return this.mProperties.enumerator;
     },
 
-    toString: function cA_toString() {
-        if (this.related == Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE &&
-            this.mAbsoluteDate) {
+    toString: function cA_toString(aItem) {
+        if (this.related == ALARM_RELATED_ABSOLUTE && this.mAbsoluteDate) {
             // this is an absolute alarm
             let formatter = cal.getDateFormatter();
             return formatter.formatDateTime(this.mAbsoluteDate);
-        } else if (this.related != Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE &&
-                   this.mOffset) {
+        } else if (this.related != ALARM_RELATED_ABSOLUTE && this.mOffset) {
             function getItemBundleStringName(aPrefix) {
-                if (!this.mItem || isEvent(this.mItem)) {
+                if (!aItem || isEvent(aItem)) {
                     return aPrefix + "Event";
-                } else if (isToDo(this.mItem)) {
+                } else if (isToDo(aItem)) {
                     return aPrefix + "Task";
                 }
             }
@@ -651,10 +611,10 @@ calAlarm.prototype = {
             if (alarmlen == 0) {
                 // No need to get the other information if the alarm is at the start
                 // of the event/task.
-                if (this.related == Components.interfaces.calIAlarm.ALARM_RELATED_START) {
+                if (this.related == ALARM_RELATED_START) {
                     return calGetString("calendar-alarms",
                                         getItemBundleStringName("reminderTitleAtStart"));
-                } else if (this.related == Components.interfaces.calIAlarm.ALARM_RELATED_END) {
+                } else if (this.related == ALARM_RELATED_END) {
                     return calGetString("calendar-alarms",
                                         getItemBundleStringName("reminderTitleAtEnd"));
                 }
@@ -678,10 +638,10 @@ calAlarm.prototype = {
 
             // Origin
             switch (this.related) {
-                case Components.interfaces.calIAlarm.ALARM_RELATED_START:
+                case ALARM_RELATED_START:
                     originStringName += "Begin";
                     break;
-                case Components.interfaces.calIAlarm.ALARM_RELATED_END:
+                case ALARM_RELATED_END:
                     originStringName += "End";
                     break;
             }

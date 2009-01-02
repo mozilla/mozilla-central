@@ -63,16 +63,6 @@ interface calIAlarm : nsISupports
     calIAlarm clone();
 
     /**
-     * A hash id to uniquely identify the alarm
-     */
-    readonly attribute AUTF8String hashId;
-
-    /**
-     * The item this alarm is related to
-     */
-    attribute calIItemBase item;
-
-    /**
      * How this alarm is shown. Special values as described in rfc2445 are
      * AUDIO, DISPLAY, EMAIL
      * In addition, custom actions may be defined as an X-Prop, i.e
@@ -85,24 +75,18 @@ interface calIAlarm : nsISupports
 
     /**
      * The offset between the item's date and the alarm time.
-     * Setting an offset unsets any specific absolute date set. This means that
-     * the alarmDate attribute will be calculated with the offset and the item's
-     * date and be null if no item is set.
+     * This will be null for absolute alarms.
      */
     attribute calIDuration offset;
 
     /**
-     * The absolute point in time the alarm should fire.
-     * Setting the alarmDate will unset any specific offset. This means that
-     * the offset attribute will be relative to the item this alarm belongs to,
-     * or null if no item is set.
+     * The absolute date and time the alarm should fire.
+     * This will be null for relative alarms.
      */
     attribute calIDateTime alarmDate;
 
     /**
      * One of the ALARM_RELATED constants below.
-     * If an alarmDate was set, changing this influences the offset, and vice
-     * versa.
      */
     attribute unsigned long related;
 
@@ -143,6 +127,7 @@ interface calIAlarm : nsISupports
     /**
      * If repeat is specified, this helper returns the first DATETIME the alarm
      * should be repeated on.
+     * This will be null for relative alarms.
      */
     readonly attribute calIDateTime repeatDate;
 
@@ -173,8 +158,10 @@ interface calIAlarm : nsISupports
 
     /**
      * The human readable representation of this alarm. Uses locale strings.
+     * 
+     * @param aItem     The item to base the string on. Defaults to an event.
      */
-    AUTF8String toString();
+    AUTF8String toString(in calIItemBase aItem);
 
     /**
      * The ical representation of this VALARM
@@ -193,5 +180,4 @@ interface calIAlarm : nsISupports
     void deleteProperty(in AUTF8String name);
 
     readonly attribute nsISimpleEnumerator propertyEnumerator;
-
 };
