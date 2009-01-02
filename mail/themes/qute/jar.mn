@@ -186,9 +186,6 @@ classic.jar:
 % skin editor classic/1.0 %skin/classic/editor/
   skin/classic/editor/editor.css                              (editor/editor.css)
   skin/classic/editor/EditorDialog.css                        (editor/EditorDialog.css)
-  skin/classic/editor/EdImageMapPage.css                      (editor/EdImageMapPage.css)
-  skin/classic/editor/EdImageMap.css                          (editor/EdImageMap.css)
-  skin/classic/editor/textEditor.css                          (editor/textEditor.css)
   skin/classic/editor/icons/img-align-bottom.gif              (editor/img-align-bottom.gif)
   skin/classic/editor/icons/img-align-left.gif                (editor/img-align-left.gif)
   skin/classic/editor/icons/img-align-middle.gif              (editor/img-align-middle.gif)
