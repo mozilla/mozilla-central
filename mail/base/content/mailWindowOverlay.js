@@ -1257,7 +1257,7 @@ let mailTabType = {
       onTitleChanged: function(aTab, aTabNode) {
         if (!gMsgFolderSelected) {
           // Don't show "undefined" as title when there is no account.
-          aTab.title = "";
+          aTab.title = " ";
           return;
         }
         aTab.title = gMsgFolderSelected.prettyName;
