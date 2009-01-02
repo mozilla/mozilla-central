@@ -98,7 +98,7 @@
       <!-- navigator startup / new window / new tab behaviour -->  
       <groupbox flex="1">
         <caption align="center">
-          <label value="&navRadio;" control="selectDisplayOn"/>
+          <label value="&navRadio.label;" accesskey="&navRadio.accesskey;" control="selectDisplayOn"/>
           <menulist id="selectDisplayOn" oncommand="SwitchPage(this.selectedIndex);">
             <menupopup>
               <menuitem label="&navStartPageMenu.label;"/>

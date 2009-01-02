@@ -84,7 +84,8 @@
     <groupbox flex="1">
       <caption label="&langtitle.label;"/>
       <description>&languages.customize.prefLangDescript;</description>
-      <label control="activeLanguages">&languages.customize.active.label;</label>
+      <label accesskey="&languages.customize.active.accesskey;"
+             control="activeLanguages">&languages.customize.active.label;</label>
       <hbox flex="1">
         <listbox id="activeLanguages"
                  flex="1"

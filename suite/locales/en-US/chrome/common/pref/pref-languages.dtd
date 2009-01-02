@@ -1,6 +1,6 @@
 <!-- LOCALIZATION NOTE : FILE 'Languages' preferences dialog -->
 
-<!ENTITY  languages.customize.prefLangDescript          "Web pages are sometimes available in more than one language. Choose languages for displaying web pages, in order of preference.">
+<!ENTITY languages.customize.prefLangDescript           "Web pages are sometimes available in more than one language. Choose languages for displaying web pages, in order of preference.">
 <!ENTITY languages.customize.title                      "Languages">
 <!ENTITY langtitle.label                                "Languages for Web Pages">
 <!ENTITY languages.customize.prefAddLangDescript        "Select the language(s) you would like to add.">
@@ -11,6 +11,7 @@
 <!ENTITY languages.customize.add.title.label            "Add Languages">
 <!ENTITY languages.customize.available.label            "Languages:">
 <!ENTITY languages.customize.active.label               "Languages in order of preference:">
+<!ENTITY languages.customize.active.accesskey           "L">
 <!ENTITY languages.customize.others.label               "Others:">
 <!ENTITY languages.customize.others.accesskey           "O">
 <!ENTITY languages.customize.Charset.grouplabel         "Default Character Encoding">
