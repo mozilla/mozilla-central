@@ -52,7 +52,8 @@
         title="&findBookmark.title;" 
         onload="Startup();"
         ondialogaccept="return find();"
-        buttonlabelaccept="&findButton.label;">
+        buttonlabelaccept="&findButton.label;"
+        buttonaccesskeyaccept="&findButton.accesskey;">
 
   <stringbundle id="bookmarksBundle" src="chrome://communicator/locale/bookmarks/bookmarks.properties"/>
   
@@ -81,6 +82,6 @@
     </menulist>
     <textbox id="searchField" flex="1" oninput="doEnabling();"/>
   </hbox>
-  <checkbox id="saveQuery" label="&save.query.label;" />
+  <checkbox id="saveQuery" label="&save.query.label;" accesskey="&save.query.accesskey;"/>
 </dialog>
 

@@ -93,18 +93,25 @@
 <!ENTITY menuitem.personaltoolbarfolder.accesskey   "p">
 
 <!ENTITY treecol.name.label             "Name">
+<!ENTITY treecol.name.accesskey         "N">
 <!ENTITY treecol.name.tooltip           "Click to sort by name">
 <!ENTITY treecol.url.label              "Location">
+<!ENTITY treecol.url.accesskey          "L">
 <!ENTITY treecol.url.tooltip            "Click to sort by location">
 <!ENTITY treecol.shortcut.label         "Keyword">
+<!ENTITY treecol.shortcut.accesskey     "K">
 <!ENTITY treecol.shortcut.tooltip       "Click to sort by keyword">
 <!ENTITY treecol.description.label      "Description">
+<!ENTITY treecol.description.accesskey  "D">
 <!ENTITY treecol.description.tooltip    "Click to sort by description">
 <!ENTITY treecol.addedon.label          "Added">
+<!ENTITY treecol.addedon.accesskey      "A">
 <!ENTITY treecol.addedon.tooltip        "Click to sort by added">
 <!ENTITY treecol.lastmod.label          "Last Modified">
+<!ENTITY treecol.lastmod.accesskey      "M">
 <!ENTITY treecol.lastmod.tooltip        "Click to sort by last modified">
 <!ENTITY treecol.lastvisit.label        "Last Visited">
+<!ENTITY treecol.lastvisit.accesskey    "V">
 <!ENTITY treecol.lastvisit.tooltip      "Click to sort by last visit">
 
 <!ENTITY bookmarksWindowTitle.label     "Bookmark Manager">

@@ -10,6 +10,8 @@
 <!ENTITY search.contains.label          "contains">
 <!ENTITY search.doesntcontain.label     "doesn't contain">
 <!ENTITY save.query.label               "Save query in bookmarks">
+<!ENTITY save.query.accesskey           "S">
 <!ENTITY search.for.label               "Find Bookmarks whose">
 <!ENTITY findBookmark.title             "Find Bookmarks">
 <!ENTITY findButton.label               "Find">
+<!ENTITY findButton.accesskey           "F">

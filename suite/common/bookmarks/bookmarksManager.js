@@ -97,51 +97,24 @@ function Shutdown()
   win.setAttribute("width", outerWidth);
 }
 
-var gConstructedColumnsMenuItems = false;
-function fillColumnsMenu(aEvent) 
+function UpdateViewColumns()
 {
   var bookmarksView = document.getElementById("bookmarks-view");
   var columns = bookmarksView.columns;
-  var i;
-
-  if (!gConstructedColumnsMenuItems) {
-    for (i = 0; i < columns.length; ++i) {
-      var menuitem = document.createElement("menuitem");
-      menuitem.setAttribute("label", columns[i].label);
-      menuitem.setAttribute("colid", columns[i].id);
-      menuitem.setAttribute("id", "columnMenuItem:" + columns[i].id);
-      menuitem.setAttribute("type", "checkbox");
-      menuitem.setAttribute("checked", columns[i].hidden != "true");
-      //Disable Name column because you cannot hide it
-      if (columns[i].id == "Name")
-        menuitem.setAttribute("disabled", "true");
-      aEvent.target.appendChild(menuitem);
-    }
-
-    gConstructedColumnsMenuItems = true;
+  for (var i = 0; i < columns.length; ++i) {
+    var element = document.getElementById("columnMenuItem:" + columns[i].id);
+    if (element)
+      element.setAttribute("checked", columns[i].hidden != "true");
   }
-  else {
-    for (i = 0; i < columns.length; ++i) {
-      var element = document.getElementById("columnMenuItem:" + columns[i].id);
-      if (element)
-        if (columns[i].hidden == "true")
-          element.setAttribute("checked", "false");
-        else
-          element.setAttribute("checked", "true");
-    }
-  }
-  
-  aEvent.stopPropagation();
 }
 
 function onViewMenuColumnItemSelected(aEvent)
 {
-  var colid = aEvent.target.getAttribute("colid");
+  var colid = aEvent.target.id.replace(/columnMenuItem:/, "");
   if (colid != "") {
     var bookmarksView = document.getElementById("bookmarks-view");
     bookmarksView.toggleColumnVisibility(colid);
   }  
-
   aEvent.stopPropagation();
 }
 

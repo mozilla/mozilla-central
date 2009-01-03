@@ -180,8 +180,23 @@
                     checked="true"/>
           <menu label="&menuitem.view.show_columns.label;"
                 accesskey="&menuitem.view.show_columns.accesskey;">
-            <menupopup id="columnsPopup" onpopupshowing="fillColumnsMenu(event);"
-                       oncommand="onViewMenuColumnItemSelected(event);"/>
+            <menupopup onpopupshowing="UpdateViewColumns();"
+                       oncommand="onViewMenuColumnItemSelected(event);">
+              <menuitem id="columnMenuItem:Name" disabled="true" label="&treecol.name.label;"
+                        accesskey="&treecol.name.accesskey;" type="checkbox"/>
+              <menuitem id="columnMenuItem:URL" label="&treecol.url.label;"
+                        accesskey="&treecol.url.accesskey;" type="checkbox"/>
+              <menuitem id="columnMenuItem:ShortcutURL" label="&treecol.shortcut.label;"
+                        accesskey="&treecol.shortcut.accesskey;" type="checkbox"/>
+              <menuitem id="columnMenuItem:Description" label="&treecol.description.label;"
+                        accesskey="&treecol.description.accesskey;" type="checkbox"/>
+              <menuitem id="columnMenuItem:BookmarkAddDate" label="&treecol.addedon.label;"
+                        accesskey="&treecol.addedon.accesskey;" type="checkbox"/>
+              <menuitem id="columnMenuItem:LastModifiedDate" label="&treecol.lastmod.label;"
+                        accesskey="&treecol.lastmod.accesskey;" type="checkbox"/>
+              <menuitem id="columnMenuItem:LastVisitDate" label="&treecol.lastvisit.label;"
+                        accesskey="&treecol.lastvisit.accesskey;" type="checkbox"/>
+            </menupopup>
           </menu>
           <menuseparator/>
           <menuitem label="&menuitem.newbookmarkfolder.label;"
