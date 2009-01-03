@@ -966,10 +966,8 @@ nsContextMenu.prototype = {
             pattern.test(searchStr);
             searchStr = RegExp.lastMatch;
         }
-        searchStr = searchStr.replace(/^\s+/, "");
-        searchStr = searchStr.replace(/\s+$/, "");
-        searchStr = searchStr.replace(/\s+/g, " ");
-        return searchStr;
+
+        return searchStr.trim().replace(/\s+/g, " ");
     },
 
     // Returns true if anything is selected.

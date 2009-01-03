@@ -232,8 +232,7 @@ function ReadFontSelection(aElement)
 
   for (var i = 0; i < fontNames.length; ++i)
   {
-    var fontName = fontNames[i].replace(/^\s+|\s+$/g, "");
-    fontItems = aElement.getElementsByAttribute("value", fontName);
+    fontItems = aElement.getElementsByAttribute("value", fontNames[i].trim());
     if (fontItems.length)
       return fontItems[0].getAttribute("value");
   }

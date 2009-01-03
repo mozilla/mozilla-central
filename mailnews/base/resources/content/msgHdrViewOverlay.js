@@ -1309,7 +1309,7 @@ function createAttachmentDisplayName(aAttachment)
   // and whitespace from filename extensions). Leading and internal
   // whitespace will be taken care of by the crop="center" attribute.
   // We must not change the actual filename, though.
-  return aAttachment.displayName.replace(/\s+$/, "");
+  return aAttachment.displayName.trimRight();
 }
 
 function displayAttachmentsForExpandedView()
