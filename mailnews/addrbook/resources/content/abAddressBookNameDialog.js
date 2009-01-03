@@ -85,7 +85,7 @@ function abNameOnLoad()
 
 function abNameOKButton()
 {
-  var newName = gNameInput.value.replace(/^\s+|\s+$/g, '');
+  var newName = gNameInput.value.trim();
 
   // Either create a new directory or update an existing one depending on what
   // we were given when we started.

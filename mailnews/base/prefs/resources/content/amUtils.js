@@ -101,5 +101,5 @@ function hostnameIsIllegal(hostname)
 
 function trim(string)
 {
-  return string.replace(/(^\s+)|(\s+$)/g, "");
+  return string.trim();
 }

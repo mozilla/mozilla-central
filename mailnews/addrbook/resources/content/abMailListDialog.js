@@ -80,7 +80,7 @@ function mailingListExists(listname)
 
 function GetListValue(mailList, doAdd)
 {
-  var listname = document.getElementById('ListName').value.replace(/^\s+|\s+$/g, '');
+  var listname = document.getElementById("ListName").value.trim();
 
   if (listname.length == 0)
   {

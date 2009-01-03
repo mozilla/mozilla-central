@@ -64,7 +64,7 @@
             var item;
 
             // trim the leading/trailing whitespace
-            var trimmedSearchString = controller.searchString.replace(/^\s+/, "").replace(/\s+$/, "");
+            var trimmedSearchString = controller.searchString.trim();
 
             // Unescape the URI spec for showing as an entry in the popup
             let url = Components.classes["@mozilla.org/intl/texttosuburi;1"].
