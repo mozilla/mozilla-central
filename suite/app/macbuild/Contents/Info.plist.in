@@ -23,9 +23,9 @@
 	<key>CFBundleShortVersionString</key>
 	<string>@MOZ_APP_VERSION@</string>
 	<key>CFBundleGetInfoString</key>
-	<string>@MOZ_APP_DISPLAYNAME@ @MOZ_APP_VERSION@, Copyright © 1998-2008 Contributors to the Mozilla project</string>
+	<string>@MOZ_APP_DISPLAYNAME@ @MOZ_APP_VERSION@, Copyright © 1998-2009 Contributors to the Mozilla project</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 1998-2008 Contributors to the Mozilla project</string>
+	<string>Copyright © 1998-2009 Contributors to the Mozilla project</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
 	<key>CGDisableCoalescedUpdates</key>
