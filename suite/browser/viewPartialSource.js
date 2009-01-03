@@ -443,10 +443,7 @@ function getOuterMarkup(node, indent) {
     }
     break;
   case Node.TEXT_NODE: // Text
-    var tmp = node.nodeValue;
-    tmp = tmp.replace(/(\n|\r|\t)+/g, " ");
-    tmp = tmp.replace(/^ +/, "");
-    tmp = tmp.replace(/ +$/, "");
+    var tmp = node.nodeValue.replace(/(\n|\r|\t)+/g, " ").trim();
     if (tmp.length != 0) {
       str += '<span class="text">' + unicodeTOentity(tmp) + '</span>';
     }

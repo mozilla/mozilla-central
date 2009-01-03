@@ -151,8 +151,7 @@ function handleHostInput(aSiteField) {
 function trimSpacesAndScheme(aString) {
   if (!aString)
     return "";
-  return aString.replace(/(^\s+)|(\s+$)/g, "")
-                .replace(/([-\w]*:\/+)?/, "");
+  return aString.trim().replace(/([-\w]*:\/+)?/, "");
 }
 
 function btnDisable(aDisabled) {

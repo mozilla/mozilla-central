@@ -1462,10 +1462,8 @@ function loadURI(uri, referrer, flags)
 
 function BrowserLoadURL(aTriggeringEvent)
 {
-  var url = gURLBar.value;
-
   // Remove leading and trailing spaces first
-  url = url.replace(/^\s+/, '').replace(/\s+$/, '');
+  var url = gURLBar.value.trim();
 
   if (url.match(/^view-source:/)) {
     BrowserViewSourceOfURL(url.replace(/^view-source:/, ""), null, null);

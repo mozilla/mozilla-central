@@ -1280,8 +1280,7 @@ function SidebarTogglePanel(panel_menuitem) {
     if (sb_panel_is_excluded(panel_menuitem)) {
       debug("Plucking this component out of the exclude list");
       replace_pat = new RegExp(sidebarObj.component + "\s*");
-      new_exclude = new_exclude.replace(replace_pat,'');
-      new_exclude = new_exclude.replace(/^\s+/,'');
+      new_exclude = new_exclude.replace(replace_pat, "").trimLeft();
       // did_exclude remains false
     } else {
       debug("Adding this component to the exclude list");

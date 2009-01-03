@@ -76,9 +76,7 @@ function sidebar_customize_init()
   debug("Adding observer to all panels database.");
   all_panels.database.AddObserver(panels_observer);
 
-  allPanelsObj.datasources = allPanelsObj.datasources.replace(/^\s+/,'');
-  allPanelsObj.datasources = allPanelsObj.datasources.replace(/\s+$/,'');
-  allPanelsObj.datasources = allPanelsObj.datasources.split(/\s+/);
+  allPanelsObj.datasources = allPanelsObj.datasources.trim().split(/\s+/);
   for (var ii = 0; ii < allPanelsObj.datasources.length; ii++) {
     debug("Init: Adding "+allPanelsObj.datasources[ii]);
 

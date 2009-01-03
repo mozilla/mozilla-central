@@ -242,7 +242,7 @@
   function addToUrlbarHistory(aUrlToAdd)
   {
     // Remove leading and trailing spaces first
-    aUrlToAdd = aUrlToAdd.replace(/^\s+/, '').replace(/\s+$/, '');
+    aUrlToAdd = aUrlToAdd.trim();
 
     if (!aUrlToAdd)
       return;

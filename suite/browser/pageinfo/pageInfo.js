@@ -1147,15 +1147,10 @@ function getAltText(node)
   return "";
 }
 
-// Copied from the Links Panel v2.3, http://segment7.net/mozilla/links/links.html
 // strip leading and trailing whitespace, and replace multiple consecutive whitespace characters with a single space
 function stripWS(text)
 {
-  var middleRE = /\s+/g;
-  var endRE = /(^\s+)|(\s+$)/g;
-
-  text = text.replace(middleRE, " ");
-  return text.replace(endRE, "");
+  return text.trim().replace(/\s+/g, " ");
 }
 
 function setItemValue(id, value)
