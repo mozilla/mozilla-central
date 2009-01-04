@@ -148,7 +148,6 @@ modern.jar:
   skin/modern/global/dropmarker.css                                (global/dropmarker.css)
   skin/modern/global/filepicker.css                                (global/filepicker.css)
   skin/modern/global/findBar.css                                   (/mozilla/toolkit/themes/winstripe/global/findBar.css)
-  skin/modern/global/formatting.css                                (global/formatting.css)
   skin/modern/global/global.css                                    (global/global.css)
   skin/modern/global/groupbox.css                                  (global/groupbox.css)
   skin/modern/global/listbox.css                                   (global/listbox.css)
