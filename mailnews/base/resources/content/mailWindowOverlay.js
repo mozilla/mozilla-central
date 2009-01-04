@@ -2386,10 +2386,17 @@ function checkMsgHdrPropertyIsNot(aProperty, aValue)
   return (msgHdr && msgHdr.getUint32Property(aProperty) != aValue);
 }
 
-function MarkCurrentMessageAsRead()
+/**
+ * Mark a specified message as read.
+ * @param msgHdr header (nsIMsgDBHdr) of the message to mark as read
+ */
+function MarkMessageAsRead(msgHdr)
 {
   ClearPendingReadTimer();
-  gDBView.doCommand(nsMsgViewCommandType.markMessagesRead);
+  var headers = Components.classes["@mozilla.org/array;1"]
+                          .createInstance(Components.interfaces.nsIMutableArray);
+  headers.appendElement(msgHdr, false);
+  msgHdr.folder.markMessagesRead(headers, true);
 }
 
 function ClearPendingReadTimer()
@@ -2461,13 +2468,16 @@ function OnMsgLoaded(aUrl)
         ClearPendingReadTimer();
         let markReadDelayTime = gPrefBranch.getIntPref("mailnews.mark_message_read.delay.interval");
         if (markReadDelayTime == 0)
-          MarkCurrentMessageAsRead();
+          MarkMessageAsRead(msgHdr);
         else
-          gMarkViewedMessageAsReadTimer = setTimeout(MarkCurrentMessageAsRead,
-                                                     markReadDelayTime * 1000);
+          gMarkViewedMessageAsReadTimer = setTimeout(MarkMessageAsRead,
+                                                     markReadDelayTime * 1000,
+                                                     msgHdr);
       }
       else // standalone msg window
-        MarkCurrentMessageAsRead();
+      {
+        MarkMessageAsRead(msgHdr);
+      }
     }
 
     // See if MDN was requested but has not been sent.

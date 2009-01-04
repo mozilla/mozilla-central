@@ -217,8 +217,8 @@ function ThreadPaneDoubleClick()
 
 function ThreadPaneKeyPress(event)
 {
-    if (event.keyCode == 13)
-      ThreadPaneDoubleClick();
+  if (event.keyCode == KeyEvent.DOM_VK_RETURN)
+    ThreadPaneDoubleClick();
 }
 
 function MsgSortByThread()
