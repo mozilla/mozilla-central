@@ -304,7 +304,6 @@ function AccountDataToPageData(accountData, pageData)
     
     setPageData(pageData, "login", "username", server.username);
     setPageData(pageData, "login", "password", server.password);
-    setPageData(pageData, "login", "rememberPassword", server.rememberPassword);
     setPageData(pageData, "accname", "prettyName", server.prettyName);
     setPageData(pageData, "accname", "userset", false);
     setPageData(pageData, "ispdata", "supplied", false);
@@ -371,15 +370,13 @@ function PageDataToAccountData(pageData, accountData)
     }
     if (serverIsNntp(pageData)) {
         // this stuff probably not relevant
-        dump("not setting username/password/rememberpassword/etc\n");
+        dump("not setting username/password/etc\n");
     } else {
         if (pageData.login) {
             if (pageData.login.username)
                 server.username = pageData.login.username.value;
             if (pageData.login.password)
                 server.password = pageData.login.password.value;
-            if (pageData.login.rememberPassword)
-                server.rememberPassword = pageData.login.rememberPassword.value;
             if (pageData.login.smtpusername)
                 smtp.username = pageData.login.smtpusername.value;
         }

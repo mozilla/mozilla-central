@@ -14,7 +14,6 @@
             <NC:prettyName>.Mac</NC:prettyName>
             <NC:hostName>mail.mac.com</NC:hostName>
             <NC:type>imap</NC:type>
-            <NC:rememberPassword>true</NC:rememberPassword>
             <NC:port>993</NC:port>
             <NC:socketType>3</NC:socketType>            
           </NC:nsIMsgIncomingServer>

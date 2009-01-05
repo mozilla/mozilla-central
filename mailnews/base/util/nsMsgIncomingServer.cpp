@@ -677,17 +677,7 @@ nsMsgIncomingServer::ToString(nsAString& aResult)
 NS_IMETHODIMP nsMsgIncomingServer::SetPassword(const nsACString& aPassword)
 {
   m_password = aPassword;
-
-  nsresult rv;
-  PRBool rememberPassword = PR_FALSE;
-
-  rv = GetRememberPassword(&rememberPassword);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (rememberPassword)
-    rv = StorePassword();
-
-  return rv;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgIncomingServer::GetPassword(nsACString& aPassword)
@@ -911,16 +901,6 @@ nsMsgIncomingServer::SetLocalPath(nsILocalFile *aLocalPath)
   return SetFileValue("directory-rel", "directory", aLocalPath);
 }
 
-NS_IMETHODIMP
-nsMsgIncomingServer::SetRememberPassword(PRBool value)
-{
-  if (!value)
-    ForgetPassword();
-  else
-    StorePassword();
-  return SetBoolValue("remember_password", value);
-}
-
 PRBool nsMsgIncomingServer::PasswordProtectLocalCache()
 {
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
@@ -930,13 +910,6 @@ PRBool nsMsgIncomingServer::PasswordProtectLocalCache()
   nsresult rv = prefs->GetBoolPref( "mail.password_protect_local_cache", &passwordProtectLocalCache);
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
   return passwordProtectLocalCache;
-}
-
-NS_IMETHODIMP
-nsMsgIncomingServer::GetRememberPassword(PRBool* aValue)
-{
-  NS_ENSURE_ARG_POINTER(aValue);
-  return GetBoolValue("remember_password", aValue);
 }
 
 NS_IMETHODIMP

@@ -57,7 +57,7 @@ interface nsILocalFile;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(390a2348-3e04-48ac-b7ca-0534e7803d06)]
+[scriptable, uuid(5e1ca141-1bf4-4058-a24a-f83c55c55bf1)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -118,9 +118,6 @@ interface nsIMsgIncomingServer : nsISupports {
   // Perform specific tasks (reset flags, remove files, etc) for account user/server name changes.
   void onUserOrHostNameChanged(in ACString oldName, in ACString newName);
   
-  /* should we remember the password? */
-  attribute boolean rememberPassword;
-
   /* cleartext version of the password */
   attribute ACString password;
 

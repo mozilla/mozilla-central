@@ -23,7 +23,6 @@
               </NC:nsIImapIncomingServer>
             </NC:ServerType-imap>
             <NC:loginAtStartUp>true</NC:loginAtStartUp>
-            <NC:rememberPassword>true</NC:rememberPassword>
             <NC:port>993</NC:port>
             <NC:socketType>3</NC:socketType>
           </NC:nsIMsgIncomingServer>
@@ -82,7 +81,6 @@
             </NC:ServerType-pop3>
             <NC:loginAtStartUp>true</NC:loginAtStartUp>
             <NC:downloadOnBiff>true</NC:downloadOnBiff>
-            <NC:rememberPassword>true</NC:rememberPassword>
             <NC:port>995</NC:port>
             <NC:socketType>3</NC:socketType>
           </NC:nsIMsgIncomingServer>

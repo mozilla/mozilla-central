@@ -152,10 +152,6 @@
               prefattribute="value"
               prefstring="mail.server.%serverkey%.login_at_startup"/>
   </vbox>
-<!--
-  <checkbox wsm_persist="true" id="server.rememberPassword" hidefor="nntp"
-            value="&savePassword.label;"/>
--->
   <hbox align="center">
     <checkbox wsm_persist="true" id="server.doBiff" label="&biffStart.label;"
               accesskey="&biffStart.accesskey;"

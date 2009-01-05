@@ -29,7 +29,6 @@
               </NC:nsIImapIncomingServer>                                       
             </NC:ServerType-imap>                                               
             </NC:type>
-            <NC:rememberPassword>false</NC:rememberPassword>
             <NC:offlineSupportLevel>0</NC:offlineSupportLevel>
             <NC:defaultCopiesAndFoldersPrefsToServer>false</NC:defaultCopiesAndFoldersPrefsToServer>
             <NC:canCreateFoldersOnServer>false</NC:canCreateFoldersOnServer>

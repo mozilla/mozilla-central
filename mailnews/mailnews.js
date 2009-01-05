@@ -176,7 +176,6 @@ pref("mail.pop3_gets_new_mail",             false);
 pref("mail.check_time",                     10);
 pref("mail.pop_name",                       "");
 pref("mail.pop3.deleteFromServerOnMove",    false);
-pref("mail.remember_password",              false);
 pref("mail.pop_password",                   "");
 pref("mail.fixed_width_messages",           true);
 pref("mail.citation_color",                 "#000000"); // quoted color
