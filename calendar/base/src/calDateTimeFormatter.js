@@ -204,6 +204,19 @@ function formatDateTime(aDate) {
 
 calDateTimeFormatter.prototype.formatInterval =
 function formatInterval(aStartDate, aEndDate) {
+    // Check for tasks without start and/or due date 
+    if (aEndDate == null && aStartDate == null ) {
+        return calGetString("calendar", "datetimeIntervalTaskWithoutDate");
+    } else if (aEndDate == null ) {
+        let startDateString = this.formatDate(aStartDate);
+        let startTime = this.formatTime(aStartDate);
+        return calGetString("calendar", "datetimeIntervalTaskWithoutDueDate", [startDateString, startTime]);
+    } else if (aStartDate == null) {
+        let endDateString = this.formatDate(aEndDate);
+        let endTime = this.formatTime(aEndDate);
+        return calGetString("calendar", "datetimeIntervalTaskWithoutStartDate", [endDateString, endTime]);
+    }
+    // Here there are only events or tasks with both start and due date.
     // make sure start and end use the same timezone when formatting intervals:
     var endDate = aEndDate.getInTimezone(aStartDate.timezone);
     var testdate = aStartDate.clone();
@@ -251,14 +264,19 @@ function formatInterval(aStartDate, aEndDate) {
 
 calDateTimeFormatter.prototype.formatItemInterval =
 function formatItemInterval(aItem) {
-    var start = aItem[calGetStartDateProp(aItem)] || aItem[calGetEndDateProp(aItem)];
-    var end = aItem[calGetEndDateProp(aItem)];
-    var kDefaultTimezone = calendarDefaultTimezone();
-    start = start.getInTimezone(kDefaultTimezone);
-    end = end.getInTimezone(kDefaultTimezone);
+    let start = aItem[calGetStartDateProp(aItem)];
+    let end = aItem[calGetEndDateProp(aItem)];
+    let kDefaultTimezone = calendarDefaultTimezone();
+    // Check for tasks without start and/or due date
+    if (start) {
+        start = start.getInTimezone(kDefaultTimezone);
+    }
+    if (end) {
+        end = end.getInTimezone(kDefaultTimezone);
+    }
     // EndDate is exclusive. For all-day events, we ened to substract one day,
     // to get into a format that's understandable.
-    if (start.isDate) {
+    if (start && start.isDate && end) {
         end.day -= 1;
     }
     return this.formatInterval(start, end);
