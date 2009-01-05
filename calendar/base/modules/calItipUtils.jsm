@@ -189,12 +189,47 @@ cal.itip = {
      * deleted and sends out appropriate iTIP messages.
      */
     checkAndSend: function cal_itip_checkAndSend(aOpType, aItem, aOriginalItem) {
-        if (aOriginalItem && aOriginalItem.recurrenceId && !aItem.recurrenceId && aItem.recurrenceInfo) {
-            // sanity check: assure aItem doesn't refer to the master
-            aItem = aItem.recurrenceInfo.getOccurrenceFor(aOriginalItem.recurrenceId);
-            cal.ASSERT(aItem, "unexpected!");
-            if (!aItem) {
-                return;
+
+        // balance out parts of the modification vs delete confusion, deletion of occurrences
+        // are notified as parent modifications and modifications of occurrences are notified
+        // as mixed new-occurrence, old-parent (IIRC).
+        if (aOriginalItem && aItem.recurrenceInfo) {
+            if (aOriginalItem.recurrenceId && !aItem.recurrenceId) {
+                // sanity check: assure aItem doesn't refer to the master
+                aItem = aItem.recurrenceInfo.getOccurrenceFor(aOriginalItem.recurrenceId);
+                cal.ASSERT(aItem, "unexpected!");
+                if (!aItem) {
+                    return;
+                }
+            }
+
+            if (aOriginalItem.recurrenceInfo && aItem.recurrenceInfo) {
+                // check whether the two differ only in EXDATEs
+                let clonedItem = aItem.clone();
+                let exdates = [];
+                for each (let ritem in clonedItem.recurrenceInfo.getRecurrenceItems({})) {
+                    if (ritem.isNegative &&
+                        cal.calInstanceOf(ritem, Components.interfaces.calIRecurrenceDate) &&
+                        !aOriginalItem.recurrenceInfo.getRecurrenceItems({}).some(
+                            function(r) {
+                                return (r.isNegative &&
+                                        cal.calInstanceOf(r, Components.interfaces.calIRecurrenceDate) &&
+                                        r.date.compare(ritem.date) == 0);
+                            })) {
+                        exdates.push(ritem);
+                    }
+                }
+                if (exdates.length > 0) {
+                    // check whether really only EXDATEs have been added:
+                    let recInfo = clonedItem.recurrenceInfo;
+                    exdates.forEach(recInfo.deleteRecurrenceItem, recInfo);
+                    if (cal.compareItemContent(clonedItem, aOriginalItem)) { // transition into "delete occurrence(s)"
+                        // xxx todo: support multiple
+                        aItem = aOriginalItem.recurrenceInfo.getOccurrenceFor(exdates[0].date);
+                        aOriginalItem = null;
+                        aOpType = Components.interfaces.calIOperationListener.DELETE;
+                    }
+                }
             }
         }
 

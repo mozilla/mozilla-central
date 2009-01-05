@@ -1734,17 +1734,23 @@ function calIterateEmailIdentities(func) {
     }
 }
 
+/**
+ * Compare two items by *content*, leaving out any revision information such as
+ * X-MOZ-GENERATION, SEQUENCE, DTSTAMP, LAST-MODIFIED.
+ */
 function compareItemContent(aFirstItem, aSecondItem) {
     function hashItem(aItem) {
-        var icalString = aItem.icalString;
+        let icalString = aItem.icalString;
+        icalString = icalString.replace(/\r\nX-MOZ-GENERATION:.+/, "");
+        icalString = icalString.replace(/\r\nSEQUENCE:.+/, "");
         icalString = icalString.replace(/\r\nLAST-MODIFIED:.+/, "");
         icalString = icalString.replace(/\r\nDTSTAMP:.+/, "");
-        var propStrings = icalString.split("\n");
+        let propStrings = icalString.split("\n");
         propStrings.sort();
         return propStrings.join("\n");
     }
-    var firstIcalString = hashItem(aFirstItem);
-    var secondIcalString = hashItem(aSecondItem);
+    let firstIcalString = hashItem(aFirstItem);
+    let secondIcalString = hashItem(aSecondItem);
     return (firstIcalString == secondIcalString);
 }
 
