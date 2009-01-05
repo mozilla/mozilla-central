@@ -650,7 +650,11 @@ var gThreePaneIncomingServerListener = {
 // aMsgWindowInitialized: false if we are calling from the onload handler, otherwise true
 function UpdateMailPaneConfig(aMsgWindowInitialized) {
   const dynamicIds = ["messagesBox", "mailContent", "threadPaneBox"];
-  var desiredId = dynamicIds[gPrefBranch.getIntPref("mail.pane_config.dynamic")];
+  const layouts = ["standard", "wide", "vertical"];
+  var layoutView = gPrefBranch.getIntPref("mail.pane_config.dynamic");
+  var desiredId = dynamicIds[layoutView];
+  document.getElementById("mailContent")
+          .setAttribute("layout", layouts[layoutView]);
   var messagePane = GetMessagePane();
   if (messagePane.parentNode.id != desiredId) {
     ClearAttachmentList();
