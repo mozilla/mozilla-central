@@ -37,6 +37,10 @@
 #ifndef _NAME_OF_THIS_HEADER_FILE__
 #define _NAME_OF_THIS_HEADER_FILE__
 
+/* Note that the negative values are not actually strings: they are error
+ * codes masquerading as strings. Do not pass them to MimeGetStringByID()
+ * expecting to get anything back for your trouble.
+ */
 #define  MIME_OUT_OF_MEMORY                        -1000
 #define  MIME_UNABLE_TO_OPEN_TMP_FILE              -1001
 #define  MIME_ERROR_WRITING_FILE                   -1002
