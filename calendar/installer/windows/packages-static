@@ -204,7 +204,9 @@ bin\components\nsHelperAppDlg.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\components\nsPostUpdateWin.js
+#endif
 bin\components\nsProgressDialog.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsTryToClose.js

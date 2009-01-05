@@ -161,6 +161,9 @@ components/xpinstall.xpt
 components/xuldoc.xpt
 components/xultmpl.xpt
 components/downloadmanager.xpt
+#ifndef MOZILLA_1_9_1_BRANCH
+components/nsPostUpdateWin.js
+#endif
 #endif
 components/nsUnsetDefaultMail.js
 components/nsBackgroundUpdateService.js

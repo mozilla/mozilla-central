@@ -98,6 +98,9 @@ msvcp80.dll
 msvcr80.dll
 #endif
 xpicleanup.exe
+#ifndef MOZILLA_1_9_1_BRANCH
+components/nsPostUpdateWin.js
+#endif
 #else
 xpicleanup
 #endif

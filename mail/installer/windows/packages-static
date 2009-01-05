@@ -320,7 +320,9 @@ bin\components\nsAddonRepository.js
 bin\components\nsExtensionManager.js
 bin\components\nsBlocklistService.js
 bin\components\nsUpdateService.js
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\components\nsPostUpdateWin.js
+#endif
 bin\components\extensions.xpt
 bin\components\update.xpt
 #ifdef MOZ_WEBSERVICES

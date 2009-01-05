@@ -272,6 +272,12 @@ xpt_link.exe
 components/calAlarmService.js
 js/calWcapCachedCalendar.js
 #
+# Clean out obsolete files from Mozilla 1.9.1
+#
+#ifndef MOZILLA_1_9_1_BRANCH
+components/nsPostUpdateWin.js
+#endif
+#
 #endif
 #
 #ifndef XP_MACOSX
