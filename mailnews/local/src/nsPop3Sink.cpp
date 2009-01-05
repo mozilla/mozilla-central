@@ -319,10 +319,12 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
       rv = tmpDownloadFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);  //need a unique tmp file to prevent dataloss in multiuser environment
       NS_ENSURE_SUCCESS(rv, rv);
 
-      m_tmpDownloadFile = do_QueryInterface(tmpDownloadFile);
+      m_tmpDownloadFile = do_QueryInterface(tmpDownloadFile, &rv);
       if (NS_SUCCEEDED(rv))
+      {
         rv = MsgGetFileStream(m_tmpDownloadFile, getter_AddRefs(m_outFileStream));
-       NS_ENSURE_SUCCESS(rv, rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
     }
     else
     {
@@ -531,7 +533,7 @@ nsPop3Sink::AbortMailDelivery(nsIPop3Protocol *protocol)
     m_outFileStream = 0;
   }
 
-  if (m_downloadingToTempFile)
+  if (m_downloadingToTempFile && m_tmpDownloadFile)
     m_tmpDownloadFile->Remove(PR_FALSE);
 
   /* tell the parser to mark the db valid *after* closing the mailbox.
