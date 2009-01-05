@@ -49,10 +49,12 @@ var TodayPane = {
       this.setShortWeekdays();
       document.getElementById("modeBroadcaster").addEventListener("DOMAttrModified", this.onModeModified, false);
       this.setTodayHeader();
+      document.getElementById("today-splitter").addEventListener("command", onCalendarViewResize, false);
   },
 
   onUnload: function onUnload() {
       document.getElementById("modeBroadcaster").removeEventListener("DOMAttrModified", this.onModeModified, false);
+      document.getElementById("today-splitter").removeEventListener("command", onCalendarViewResize, false);
   },
 
   setTodayHeader: function setTodayHeader() {
@@ -81,6 +83,7 @@ var TodayPane = {
       setBooleanAttribute(todayPaneSplitter, "hidden", (index != 0));
       var todayIsVisible = document.getElementById("today-pane-panel").isVisible();
       this.disableMenuItems(!todayIsVisible || !agendaIsVisible);
+      onCalendarViewResize();
   },
 
   initializeMiniday: function initializeMiniday() {

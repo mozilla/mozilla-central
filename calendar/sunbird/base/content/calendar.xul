@@ -186,12 +186,15 @@
       <vbox id="todo-tab-panel" persist="height,collapsed" flex="1"/>
     </vbox>
 
-    <splitter id="calendar-splitter" collapse="before" 
+    <splitter id="calsidebar_splitter" collapse="before"
               persist="state" orient="horizontal">
       <grippy/>
     </splitter>
          
     <vbox id="calendar-view-box" flex="1">
+      <!-- Note: the "id" attributes of the decorated panes **must** follow the
+           notation 'type + "-" + "view"', where "type" should refer to the
+           displayed time period as described in base/public/calIDecoratedView.idl -->
       <deck id="view-deck" flex="1" persist="selectedIndex">
           <calendar-decorated-day-view id="day-view" flex="1" 
                                        context="calendar-view-context-menu"

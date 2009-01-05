@@ -207,6 +207,7 @@
                                     .getAttribute("checked") == "true");
             this.showCompleted = (document.getElementById(kShowCompleted)
                                     .getAttribute("checked") == "true");
+            this.viewElem.setAttribute("type", this.type);
           ]]></constructor>
             <field name="mTasksInView">false</field>
             <field name="mShowCompleted">false</field>
@@ -220,6 +221,12 @@
                     this.mWorkdaysOnly = val;
                     return val;
                 ]]></setter>
+            </property>
+            <property name="type" readonly="true">
+                <getter><![CDATA[
+                    let typelist = this.id.split("-");
+                    return typelist[0];
+                ]]></getter>
             </property>
 
             <property name="initialized">

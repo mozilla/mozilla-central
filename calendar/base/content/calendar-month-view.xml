@@ -425,43 +425,10 @@
     </handlers>
   </binding>
 
-  <binding id="calendar-month-view-column-header">
-    <content>
-      <xul:hbox class="calendar-month-view-column-header-container" flex="1" pack="center">
-        <xul:label anonid="label" crop="end" class="calendar-month-view-column-header-label"/>
-      </xul:hbox>
-    </content>
-
-    <implementation>
-      <field name="mIndex">-1</field>
-
-      <constructor><![CDATA[
-        if (this.mIndex == -1) {
-          var attrIndex = this.getAttribute("index");
-          if (attrIndex)
-            this.index = parseInt(attrIndex);
-        }
-      ]]></constructor>
-
-      <property name="index">
-        <getter>return this.mIndex;</getter>
-        <setter><![CDATA[
-          this.mIndex = val % 7;
-
-          var label = document.getAnonymousElementByAttribute(this, "anonid", "label");
-          var dayName = calGetString("dateFormat", "day." + (this.mIndex+1) + ".name");
-          label.setAttribute("value", dayName);
-
-          return this.mIndex;
-        ]]></setter>
-      </property>
-    </implementation>
-  </binding>
-
   <binding id="calendar-month-view" extends="chrome://calendar/content/calendar-base-view.xml#calendar-base-view">
     <content>
-      <xul:vbox flex="1">
-        <xul:hbox class="headerbox-container" anonid="headerbox" equalsize="always"/>
+      <xul:vbox anonid="mainbox" flex="1">
+        <xul:hbox class="labeldaybox-container" anonid="labeldaybox" equalsize="always"/>
 
         <xul:grid anonid="monthgrid" flex="1">
           <xul:columns anonid="monthgridcolumns" equalsize="always">
@@ -538,12 +505,11 @@
 
       <!-- constructor -->
       <constructor><![CDATA[
-          var headerbox = document.getAnonymousElementByAttribute(this, "anonid", "headerbox")
           for (var i = 0; i < 7; i++) {
-            var hdr = createXULElement("calendar-month-view-column-header");
-            hdr.setAttribute("flex", "1");
-            headerbox.appendChild(hdr);
-            hdr.index = i;
+              let hdr = createXULElement("calendar-day-label");
+              this.labeldaybox.appendChild(hdr);
+              hdr.weekDay = (i + this.mWeekStartOffset) % 7;
+              hdr.shortWeekNames = false;
           }
       ]]></constructor>
 
@@ -685,6 +651,13 @@
         ]]></body>
       </method>
 
+      <method name="onResize">
+      <parameter name="aBinding"/>
+        <body><![CDATA[
+          aBinding.adjustWeekdayLength();
+        ]]></body>
+      </method>
+
       <method name="setDateRange">
         <parameter name="aStartDate"/>
         <parameter name="aEndDate"/>
@@ -706,21 +679,21 @@
       <method name="getDateList">
         <parameter name="aCount"/>
         <body><![CDATA[
-	  if (!this.mStartDate || !this.mEndDate) {
-	    aCount.value = 0;
-	    return [];
-	  }
+          if (!this.mStartDate || !this.mEndDate) {
+            aCount.value = 0;
+            return [];
+          }
 
-	  var results = [];
-	  var curDate = this.mStartDate.clone();
-	  curDate.isDate = true;
+          let results = [];
+          let curDate = this.mStartDate.clone();
+          curDate.isDate = true;
 
-	  while (curDate.compare(this.mEndDate) <= 0) {
-	    results.push(curDate.clone());
-	    curDate.day += 1;
-	  }
-	  aCount.value = results.length;
-	  return results;
+          while (curDate.compare(this.mEndDate) <= 0) {
+            results.push(curDate.clone());
+            curDate.day += 1;
+          }
+          aCount.value = results.length;
+          return results;
         ]]></body>
       </method>
 
@@ -802,17 +775,6 @@
 
       <method name="relayout">
         <body><![CDATA[
-          // Adjust headers based on the starting day of the week, if necessary
-          var headerbox = document.getAnonymousElementByAttribute(this, "anonid", "headerbox");
-
-          if (headerbox.firstChild.index != this.mWeekStartOffset) {
-              var i = 0;
-              for each(header in headerbox.childNodes) {
-                header.index = (i + this.mWeekStartOffset) % 7;
-                i++;
-              }
-          }
-
           if (this.mSelectedItems.length) {
             this.mSelectedItems = [];
           }
@@ -930,13 +892,14 @@
               today.compare(dateList[dateList.length-1]) != 1) {
               this.findDayBoxForDate(today).setAttribute("today", "true");
           }
+          this.adjustWeekdayLength();
         ]]></body>
       </method>
 
       <method name="hideDaysOff">
         <body><![CDATA[
           var columns = document.getAnonymousElementByAttribute(this, "anonid", "monthgridcolumns").childNodes;
-          var headerkids = document.getAnonymousElementByAttribute(this, "anonid", "headerbox").childNodes;
+          let headerkids = document.getAnonymousElementByAttribute(this, "anonid", "labeldaybox").childNodes;
           for (var i in columns) {
             var dayForColumn = (Number(i) + this.mWeekStartOffset) % 7;
             var dayOff = (this.mDaysOffArray.indexOf(dayForColumn) != -1);

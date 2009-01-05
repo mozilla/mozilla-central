@@ -61,7 +61,11 @@ calendar-multiday-view {
 }
 
 calendar-day-label {
-  -moz-binding: url(chrome://calendar/content/calendar-multiday-view.xml#calendar-day-label);
+  -moz-binding: url(chrome://calendar/content/calendar-base-view.xml#calendar-day-label);
+}
+
+calendar-base-view {
+  -moz-binding: url(chrome://calendar/content/calendar-base-view.xml#calendar-base-view);
 }
 
 calendar-header-container { 

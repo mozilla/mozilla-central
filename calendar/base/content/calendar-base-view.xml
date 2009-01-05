@@ -58,12 +58,20 @@
       <field name="mTimezone">null</field>
       <field name="mFlashingEvents">new Object()</field>
       <field name="mSelectedItems">[]</field>
+      <field name="mLongWeekdayTotalPixels">-1</field>
+      <field name="mResizeHandler">null</field>
+
 
       <constructor><![CDATA[
         this.mTimezone = calendarDefaultTimezone();
         let alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
                            .getService(Components.interfaces.calIAlarmService);
         alarmService.addObserver(this.mObserver);
+        let self = this;
+        this.mResizeHandler = function resizeHandler() {
+         self.onResize(self); };
+        this.viewBroadcaster.addEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
+
       ]]></constructor>
 
       <destructor><![CDATA[
@@ -73,7 +81,14 @@
         let alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
                            .getService(Components.interfaces.calIAlarmService);
         alarmService.removeObserver(this.mObserver);
+        this.viewBroadcaster.removeEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
       ]]></destructor>
+      <property name="viewBroadcaster" readonly="true"
+                onget="return document.getElementById('calendarviewBroadcaster')"/>
+
+      <property name="labeldaybox" readonly="true"
+                onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'labeldaybox')"/>
+
       <property name="displayDaysOff"
                 onget="return this.mDisplayDaysOff;"
                 onset="return (this.mDisplayDaysOff = val);"/>
@@ -106,6 +121,34 @@
           return val;
         ]]></setter>
       </property>
+
+      <!-- This function guarantees that the
+       labels are clipped in the instance that the overflow occurrs,
+       avoiding horizontal scrollbars from showing up for a short period. -->
+      <method name="adjustWeekdayLength">
+        <parameter name="forceShortName"/>
+        <body><![CDATA[
+          let useShortNames = false;
+          let labeldayboxkids = this.labeldaybox.childNodes;
+          if (!labeldayboxkids || !labeldayboxkids[0]) {
+              useShortNames = true;
+          } else if (forceShortName && forceShortName === true) {
+              useShortNames = true;
+          } else {
+              let clientWidth = document.getAnonymousElementByAttribute(this, "anonid", "mainbox").clientWidth;
+              let timespacer = document.getAnonymousElementByAttribute(this, "anonid", "headertimespacer");
+              if (timespacer) {
+                  clientWidth -= timespacer.clientWidth;
+              }
+              if (this.getLongWeekdayTotalPixels() > 0.95 * clientWidth) {
+                  useShortNames = true;
+              }
+          }
+          for (let i = 0; i < labeldayboxkids.length; i++) {
+              labeldayboxkids[i].shortWeekNames = useShortNames;
+          }
+        ]]></body>
+      </method>
 
       <method name="today">
         <body><![CDATA[
@@ -156,6 +199,91 @@
             if (dropbox && dropbox !== undefined) {
                 dropbox.setAttribute("dropbox", "false");
             }
+        ]]></body>
+      </method>
+
+      <method name="getLongWeekdayTotalPixels">
+        <body><![CDATA[
+          if (this.mLongWeekdayTotalPixels <= 0) {
+              let maxDayWidth = 0;
+              for each(label in this.labeldaybox.childNodes) {
+                  if (label.localName == "calendar-day-label") {
+                      label.shortWeekNames = false;
+                      let curPixelLength = label.getLongWeekdayPixels();
+                      maxDayWidth = Math.max(maxDayWidth, curPixelLength);
+                  }
+              }
+              this.mLongWeekdayTotalPixels = (maxDayWidth * this.labeldaybox.childNodes.length) + 10;
+          }
+          return this.mLongWeekdayTotalPixels;
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+  <binding id="calendar-day-label" extends="xul:box">
+    <content flex="1" pack="center">
+      <xul:label anonid="longWeekdayName" class="calendar-day-label-name" xbl:inherits="selected"/>
+      <xul:label anonid="shortWeekdayName" class="calendar-day-label-name" hidden="true" xbl:inherits="selected"/>
+    </content>
+    <implementation>
+      <field name="mWeekday">-1</field>
+      <field name="longWeekdayPixels">0</field>
+      <field name="mDate">null</field>
+      <property name="longName" readonly="true"
+                onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'longWeekdayName');"/>
+      <property name="shortName" readonly="true"
+                onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'shortWeekdayName');"/>
+      <property name="weekDay">
+        <getter>return this.mWeekday;</getter>
+        <setter><![CDATA[
+          this.mWeekday = val % 7;
+          this.longName.value = getDateFormatter().dayName(val);
+          this.shortName.value = getDateFormatter().shortDayName(val);
+          return this.mWeekday;
+        ]]></setter>
+      </property>
+      <property name="date">
+        <getter><![CDATA[
+          return this.mDate;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mDate = val;
+          this.shortName.setAttribute("value", getDateFormatter().shortDayName(val.weekday) + " " +
+                                               getDateFormatter().formatDateWithoutYear(val));
+          this.longName.setAttribute("value", getDateFormatter().dayName(val.weekday) + " " +
+                                              getDateFormatter().formatDateWithoutYear(val));
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="shortWeekNames">
+        <getter><![CDATA[
+        ]]></getter>
+        <setter><![CDATA[
+          // cache before change, in case we are switching to short
+          this.getLongWeekdayPixels();
+          setBooleanAttribute(this.longName, "hidden", val);
+          setBooleanAttribute(this.shortName, "hidden", !val);
+          return val;
+        ]]></setter>
+      </property>
+
+      <method name="getLongWeekdayPixels">
+        <body><![CDATA[
+          // Only do this if the long weekdays are visible and we haven't already cached.
+          let longNameWidth = this.longName.boxObject.width;
+          if (longNameWidth > 0) {
+//              WARN("getting longWeekdayPixels..." + this.longName.boxObject.width);
+              this.longWeekdayPixels = longNameWidth +
+                                       getSummarizedStyleValues(this.longName, ["margin-left", "margin-right"]);
+              this.longWeekdayPixels += getSummarizedStyleValues(this, ["border-left-width",
+                                                                        "padding-left", "padding-right"]);
+              return this.longWeekdayPixels;
+          } else {
+              // in this case the weekdaypixels have not yet been layouted;
+              // by definition 0 is returned
+              return 0;
+          }
         ]]></body>
       </method>
     </implementation>

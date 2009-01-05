@@ -256,6 +256,7 @@ function showCalendarView(type, event) {
     } else if (document.getElementById('switch2calendar').getAttribute('checked')) {
         ltnShowCalendarView(type, event);
     }
+    onCalendarViewResize(event);
 }
 
 /**

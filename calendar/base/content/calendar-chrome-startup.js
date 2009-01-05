@@ -62,6 +62,8 @@ function commonInitCalendar() {
     Components.classes["@mozilla.org/calendar/alarm-service;1"]
               .getService(Components.interfaces.calIAlarmService)
               .startup();
+    document.getElementById("calsidebar_splitter").addEventListener("command", onCalendarViewResize, false);
+    window.addEventListener("resize", onCalendarViewResize, true);
 }
 
 /**
@@ -73,4 +75,14 @@ function commonFinishCalendar() {
 
     // Remove the command controller
     removeCalendarCommandController();
+
+    document.getElementById("calsidebar_splitter").removeEventListener("command", onCalendarViewResize, false);
+    window.removeEventListener("resize", onCalendarViewResize, true);
 }
+
+function onCalendarViewResize(aEvent) {
+    let event = document.createEvent('Events');
+    event.initEvent(currentView().type + "viewresized", true, false);
+    document.getElementById("calendarviewBroadcaster").dispatchEvent(event);
+}
+

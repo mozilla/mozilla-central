@@ -306,15 +306,13 @@ calendar-day-label[selected="true"] {
 
 calendar-day-label[orient="vertical"] {
     background-color: white;
-    min-width: 90px;
+    min-width: 110px;
 }
 
-.calendar-day-label-date,
 .calendar-day-label-name {
     text-align: center;
 }
 
-.calendar-day-label-date[selected="true"],
 .calendar-day-label-name[selected="true"] {
     font-weight: bold;
 }
@@ -445,7 +443,7 @@ calendar-month-view-column-header {
     overflow-x: hidden;
 }
 
-.headerbox-container {
+.labeldaybox-container {
     border-right: 1px solid #D2D2D2;
 }
 

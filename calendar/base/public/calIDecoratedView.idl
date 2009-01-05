@@ -164,4 +164,11 @@ interface calIDecoratedView : nsISupports
    * gets the description of the range displayed by the view
    */
   AString getRangeDescription();
+
+  /**
+   * The type of the view e.g "day", "week", "multiweek" or "month" that refers
+   * to the displayed time period.
+   */
+  readonly attribute string type;
+
 };

@@ -52,6 +52,7 @@
 
   <broadcasterset id="calendar_broadcasters">
     <broadcaster id="modeBroadcaster" mode="calendar"/>
+    <broadcaster id="calendarviewBroadcaster"/>
   </broadcasterset>
 
   <commandset id="calendar_commands"

@@ -636,8 +636,9 @@
               this.bgbox.removeChild(this.bgbox.lastChild);
           while (this.topbox && this.topbox.hasChildNodes())
               this.topbox.removeChild(this.topbox.lastChild);
-          for each (handler in this.mHandlersToRemove)
-              window.removeEventListener("resize", handler, true);
+          for each (handler in this.mHandlersToRemove){
+              this.calendarView.viewBroadcaster.removeEventListener(this.calendarView.getAttribute("type") + "viewresized", handler, true);
+          }
           this.mHandlersToRemove = [];
         ]]></body>
       </method>
@@ -787,7 +788,7 @@
                       }
                       var myResizeHandler = new colResizeHandler(innerColumn, this, column.specialSpan);
                       this.mHandlersToRemove.push(myResizeHandler);
-                      window.addEventListener("resize", myResizeHandler, true);
+                      this.calendarView.viewBroadcaster.addEventListener(this.calendarView.getAttribute("type") + "viewresized", myResizeHandler, true);
                   }
                   innerColumn.setAttribute("style", style);
 
@@ -2115,70 +2116,9 @@
     </handlers>
   </binding>
 
-  <binding id="calendar-day-label" extends="xul:box">
-    <content flex="1" pack="center" xbl:inherits="selected">
-      <xul:label anonid="dateName" class="calendar-day-label-date" xbl:inherits="selected"/>
-    </content>
-    <implementation>
-      <field name="longWeekdayPixels">0</field>
-      <field name="mDate">null</field>
-
-      <property name="date">
-        <getter><![CDATA[
-          return this.mDate;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mDate = val;
-          var day = document.getAnonymousElementByAttribute(this, "anonid", "dateName");
-          var label = getDateFormatter().shortDayName(val.weekday) + " " +
-                      getDateFormatter().formatDateWithoutYear(val);
-          day.setAttribute("value", label);
-          return val;
-        ]]></setter>
-      </property>
-
-      <property name="shortWeekNames">
-        <getter><![CDATA[
-        ]]></getter>
-        <setter><![CDATA[
-          var shortName = document.getAnonymousElementByAttribute(this, "anonid", "dateNameshortWeekdayName");
-          var longName = document.getAnonymousElementByAttribute(this, "anonid", "longWeekdayName");
-
-          // cache before change, in case we are switching to short
-          this.cacheLongWeekdayPixels(longName);
-
-          if (val) {
-            longName.setAttribute("hidden","true");
-            shortName.removeAttribute("hidden");
-          } else {
-            longName.removeAttribute("hidden");
-            shortName.setAttribute("hidden","true");
-          }
-
-          // cache after change, in case we are switching from short
-          this.cacheLongWeekdayPixels(longName);
-
-          return val;
-        ]]></setter>
-      </property>
-
-      <method name="cacheLongWeekdayPixels">
-        <parameter name="longName"/>
-        <body><![CDATA[
-          // Only do this if the long weekdays are visible and we haven't already cached.
-          if (!this.longWeekdayPixels && !longName.hasAttribute("hidden")) {
-            this.longWeekdayPixels = longName.boxObject.width +
-                                     parseInt(document.defaultView.getComputedStyle(longName, null).getPropertyValue("-moz-margin-start")) +
-                                     parseInt(document.defaultView.getComputedStyle(longName, null).getPropertyValue("-moz-margin-end"));
-          }
-        ]]></body>
-      </method>
-    </implementation>
-  </binding>
-
   <binding id="calendar-multiday-view" extends="chrome://calendar/content/calendar-base-view.xml#calendar-base-view">
     <content>
-      <xul:box anonid="mainbox" flex="1" onoverflow="adjustWeekdayLength();">
+      <xul:box anonid="mainbox" flex="1">
         <!-- these boxes are tricky: width or height in CSS depend on orient -->
         <xul:box anonid="labelbox">
           <xul:box anonid="labeltimespacer"/>
@@ -2203,14 +2143,8 @@
     </content>
 
     <implementation implements="calICalendarView">
-
-      <field name="mResizeHandler">null</field>
       <constructor><![CDATA[
         var self = this;
-        this.mTimezone = UTC();
-        this.mResizeHandler = function resizeHandler() { self.onResize(); };
-        window.addEventListener("resize", this.mResizeHandler, true);
-
         // set the flex attribute at the scrollbox-innerbox
         // (this can be removed, after Bug 343555 is fixed)
         let scrollbox = document.getAnonymousElementByAttribute(
@@ -2219,28 +2153,11 @@
             scrollbox, "class", "box-inherit scrollbox-innerbox").flex = "1";
 
         this.reorient();
-
-        var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
-                           .getService(Components.interfaces.calIAlarmService);
-        alarmService.addObserver(this.mObserver);
-
       ]]></constructor>
-
-      <destructor><![CDATA[
-        if (this.mCalendar) {
-            this.mCalendar.removeObserver(this.mObserver);
-        }
-        window.removeEventListener("resize", this.mResizeHandler, true);
-
-        var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
-                           .getService(Components.interfaces.calIAlarmService);
-        alarmService.removeObserver(this.mObserver);
-      ]]></destructor>
 
       <property name="daysInView" readonly="true">
         <getter><![CDATA[
-          var labeldaybox = document.getAnonymousElementByAttribute(this, "anonid", "labeldaybox");
-          return labeldaybox.childNodes && labeldaybox.childNodes.length;
+          return this.labeldaybox.childNodes && this.labeldaybox.childNodes.length;
         ]]></getter>
       </property>
 
@@ -2267,7 +2184,7 @@
           setTimeout(function(){self.scrollToMinute(self.mFirstVisibleMinute)}, 0);
 
           // Fit the weekday labels while scrolling.
-          self.adjustWeekdayLength();
+          self.adjustWeekdayLength(self.getAttribute("orient") == "horizontal");
         ]]></body>
       </method>
 
@@ -2278,7 +2195,6 @@
       <field name="mBatchCount">0</field>
       <field name="mPixPerMin">0.6</field>
       <field name="mMinPixelsPerMinute">0.1</field>
-      <field name="mLongWeekdayTotalPixels">0</field>
       <field name="mSelectedDayCol">null</field>
       <field name="mSelectedDay">null</field>
       <field name="mStartMin">0*60</field>
@@ -3026,7 +2942,7 @@
               setAttributeToChildren(box, "orient", orient);
           }
           var box = document.getAnonymousElementByAttribute(this, "anonid", "labeldaybox");
-          setAttributeToChildren(box, "orient", otherorient);
+          setAttributeToChildren(this.labeldaybox, "orient", otherorient);
 
           // Refresh
           this.refresh();
@@ -3112,7 +3028,6 @@
 
           var daybox = document.getAnonymousElementByAttribute(this, "anonid", "daybox");
           var headerdaybox = document.getAnonymousElementByAttribute(this, "anonid", "headerdaybox");
-          var labeldaybox = document.getAnonymousElementByAttribute(this, "anonid", "labeldaybox");
 
           if (!computedDateList || computedDateList.length == 0)
               return;
@@ -3143,10 +3058,9 @@
           // get today's date
           var today = this.today();
           var counter = 0;
-          var maxDayWidth = 0;
           var dayboxkids = daybox.childNodes;
           var headerboxkids = headerdaybox.childNodes;
-          var labelboxkids = labeldaybox.childNodes;
+          let labelboxkids = this.labeldaybox.childNodes;
 
           for each (var d in computedDateList) {
               var dayEventsBox;
@@ -3192,7 +3106,7 @@
               } else {
                   labelbox = createXULElement("calendar-day-label");
                   labelbox.setAttribute("orient", otherorient);
-                  labeldaybox.appendChild(labelbox);
+                  this.labeldaybox.appendChild(labelbox);
                   labelbox.date = d;
               }
               // Set attributes for date relations.
@@ -3215,9 +3129,6 @@
                           break;
                   }
               }
-
-              maxDayWidth = Math.max(maxDayWidth, labelbox.longWeekdayPixels);
-
               // We don't want to actually mess with our original dates, plus
               // they're likely to be immutable.
               var d2 = d.clone();
@@ -3235,10 +3146,7 @@
           }
           removeExtraKids(daybox);
           removeExtraKids(headerdaybox);
-          removeExtraKids(labeldaybox);
-
-          // Cache weekday length, give a 10 px grace period.
-          this.mLongWeekdayTotalPixels = maxDayWidth * labeldaybox.childNodes.length + 10;
+          removeExtraKids(this.labeldaybox);
 
           // fix pixels-per-minute
           this.onResize();
@@ -3265,8 +3173,7 @@
       <method name="selectColumnHeader">
         <parameter name="aDate"/>
         <body><![CDATA[
-          var labeldaybox = document.getAnonymousElementByAttribute(this, "anonid", "labeldaybox");
-          var child = labeldaybox.firstChild;
+          let child = this.labeldaybox.firstChild;
           while (child) {
               if (child.date.compare(aDate) == 0) {
                   child.setAttribute("selected", "true");
@@ -3444,38 +3351,6 @@
           }
 
           this.adjustScrollbarSpacersForAlldayEvents(aEvent);
-        ]]></body>
-      </method>
-
-      <method name="adjustWeekdayLength">
-        <body><![CDATA[
-          // This function is called from the resize handler and also from the
-          // overflow event of the mainbox. The latter guarantees that the
-          // labels are clipped in the instance that the overflow occurrs,
-          // avoiding horizontal scrollbars from showing up for a short period.
-
-          var labeldaybox = document.getAnonymousElementByAttribute(this, "anonid", "labeldaybox");
-          var labeldayboxkids = labeldaybox.childNodes;
-          if (!labeldayboxkids || !labeldayboxkids[0]) {
-            // This happens in rotated view. Don't do anything there.
-            return;
-          }
-          /* TODO onoverflow is currently not triggered and we keep this code in
-           * comments until we will take care of it...
-           *    if (labeldayboxkids[0].boxObject.width * this.daysInView > this.mLongWeekdayTotalPixels) {
-           *      // We have an underflow. Since the boxes all have equal width, we
-           *      // can use the first boxes' width and multiply bu the number of
-           *      // days in the view.
-           *      for (var i = 0; i < labeldayboxkids.length; i++) {
-           *        labeldayboxkids[i].shortWeekNames = false;
-           *      }
-           *    } else {
-           *      // We have an overflow
-           *      for (var i = 0; i < labeldayboxkids.length; i++) {
-           *        labeldayboxkids[i].shortWeekNames = true;
-           *      }
-           *    }
-           */
         ]]></body>
       </method>
 
