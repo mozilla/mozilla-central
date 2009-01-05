@@ -281,8 +281,6 @@ CreateCompositionFields(const char        *from,
                         const char        *other_random_headers,
                         const char        *priority,
                         const char        *newspost_url,
-                        PRBool            xlate_p,
-                        PRBool            sign_p,
                         char              *charset,
                         nsIMsgCompFields  **_retval)
 {
@@ -384,36 +382,6 @@ CreateCompositionFields(const char        *from,
   NS_IF_ADDREF(*_retval);
 
   return rv;
-}
-
-// RICHIE:
-// Not sure what this preference is in the new world.
-PRBool
-GetMailXlateionPreference(void)
-{
-  nsresult res;
-  PRBool   xlate = PR_FALSE;
-
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &res));
-  if(NS_SUCCEEDED(res))
-    prefBranch->GetBoolPref("mail.unknown", &xlate);
-
-  return xlate;
-}
-
-// RICHIE:
-// Not sure what this preference is in the new world.
-PRBool
-GetMailSigningPreference(void)
-{
-  nsresult  res;
-  PRBool    signit = PR_FALSE;
-
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &res));
-  if(NS_SUCCEEDED(res))
-    prefBranch->GetBoolPref("mail.unknown", &signit);
-
-  return signit;
 }
 
 static int
@@ -1224,8 +1192,6 @@ mime_parse_stream_complete (nsMIMESession *stream)
   char *draftInfo = 0;
   char *identityKey = 0;
 
-  PRBool xlate_p = PR_FALSE;  /* #### how do we determine this? */
-  PRBool sign_p = PR_FALSE;   /* #### how do we determine this? */
   PRBool forward_inline = PR_FALSE;
   PRBool bodyAsAttachment = PR_FALSE;
   PRBool charsetOverride = PR_FALSE;
@@ -1240,9 +1206,6 @@ mime_parse_stream_complete (nsMIMESession *stream)
 
     status = mdd->obj->clazz->parse_eof ( mdd->obj, PR_FALSE );
     mdd->obj->clazz->parse_end( mdd->obj, status < 0 ? PR_TRUE : PR_FALSE );
-
-    xlate_p = mdd->options->decrypt_p;
-    sign_p = mdd->options->signed_p;
 
     // RICHIE
     // We need to figure out how to pass the forwarded flag along with this
@@ -1340,7 +1303,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
 
     CreateCompositionFields( from, repl, to, cc, bcc, fcc, grps, foll,
       org, subj, refs, 0, priority, news_host,
-      xlate_p, sign_p, mdd->mailcharset,
+      mdd->mailcharset,
       getter_AddRefs(fields));
 
     draftInfo = MimeHeaders_get(mdd->headers, HEADER_X_MOZILLA_DRAFT_INFO, PR_FALSE, PR_FALSE);
@@ -1582,8 +1545,6 @@ mime_parse_stream_complete (nsMIMESession *stream)
   {
     CreateCompositionFields( from, repl, to, cc, bcc, fcc, grps, foll,
       org, subj, refs, 0, priority, news_host,
-      GetMailXlateionPreference(),
-      GetMailSigningPreference(),
       mdd->mailcharset,
       getter_AddRefs(fields));
     if (fields)
