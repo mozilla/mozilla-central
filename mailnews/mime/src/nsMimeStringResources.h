@@ -37,6 +37,10 @@
 #ifndef _NAME_OF_THIS_HEADER_FILE__
 #define _NAME_OF_THIS_HEADER_FILE__
 
+/* Note that the negative values are not actually strings: they are error
+ * codes masquerading as strings. Do not pass them to MimeGetStringByID()
+ * expecting to get anything back for your trouble.
+ */
 #define  MIME_OUT_OF_MEMORY                        -1000
 #define  MIME_UNABLE_TO_OPEN_TMP_FILE              -1001
 #define  MIME_ERROR_WRITING_FILE                   -1002
@@ -57,26 +61,11 @@
 #define  MIME_MHTML_NEWSGROUPS                     1014
 #define  MIME_MHTML_FOLLOWUP_TO                    1015
 #define  MIME_MHTML_REFERENCES                     1016
-#define  MIME_MHTML_NAME                           1017
-#define  MIME_MHTML_TYPE                           1018
-#define  MIME_MHTML_ENCODING                       1019
-#define  MIME_MHTML_DESCRIPTION                    1020
 #define  MIME_MHTML_MESSAGE_ID                     1021
-#define  MIME_MHTML_RESENT_MESSAGE_ID              1022
 #define  MIME_MHTML_BCC                            1023
-#define  MIME_MHTML_DOWNLOAD_STATUS_HEADER         1024
-#define  MIME_MHTML_DOWNLOAD_STATUS_NOT_DOWNLOADED 1025
 #define  MIME_MSG_LINK_TO_DOCUMENT                 1026
 #define  MIME_MSG_DOCUMENT_INFO                    1027
 #define  MIME_MSG_ATTACHMENT                       1028
-#define  MIME_FORWARDED_MESSAGE_ATTACHMENT         1029
-#define  MIME_MSG_ADDBOOK_MOUSEOVER_TEXT           1030
-#define  MIME_MSG_XSENDER_INTERNAL                 1031
-#define  MIME_MSG_X_USER_WROTE                     1032
-#define  MIME_MSG_USER_WROTE                       1033
-#define  MIME_MSG_NO_HEADERS                       1034
-#define  MIME_MSG_SHOW_ATTACHMENT_PANE             1035
-#define  MIME_MSG_NOT_DOWNLOADED                   1036
 #define MIME_MSG_PARTIAL_FMT_1                    1037
 #define MIME_MSG_PARTIAL_FMT_2                    1038
 #define MIME_MSG_PARTIAL_FMT_3                    1039
