@@ -100,7 +100,7 @@ try {
   print("Trying manually...");
 
   function recursiveRemove(aDirectory) {
-    print ("Processing Directory " + aDirectory.target);
+    print ("Processing Directory " + aDirectory.path);
     let entries = aDirectory.directoryEntries;
 
     while (entries.hasMoreElements()) {
