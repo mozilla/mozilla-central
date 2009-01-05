@@ -1,6 +1,7 @@
 #filter substitution
 calendar.jar:
 % content calendar %content/calendar/
+% style chrome://calendar/content/calendar-event-dialog.xul chrome://global/skin/toolbar.css
     content/calendar/agenda-listbox.js                     (content/agenda-listbox.js)
     content/calendar/agenda-listbox.xml                    (content/agenda-listbox.xml)
     content/calendar/calErrorPrompt.xul                    (content/calErrorPrompt.xul)
