@@ -84,8 +84,8 @@ nsContextMenu.prototype = {
     this.initClipboardItems();
   },
   initSaveItems : function CM_initSaveItems() {
-    this.showItem("messagePaneContext-savelink", this.onSaveableLink);
-    this.showItem("messagePaneContext-saveimage", this.onLoadedImage);
+    this.showItem("mailContext-savelink", this.onSaveableLink);
+    this.showItem("mailContext-saveimage", this.onLoadedImage);
   },
   initClipboardItems : function CM_initClipboardItems() {
     // Copy depends on whether there is selected text.
@@ -94,11 +94,11 @@ nsContextMenu.prototype = {
 
     goUpdateGlobalEditMenuItems();
 
-    this.showItem("messagePaneContext-copy", this.isContentSelected || this.onTextInput);
-    this.showItem("messagePaneContext-selectall", true);
-    this.showItem("messagePaneContext-copyemail", this.onMailtoLink);
-    this.showItem("messagePaneContext-copylink", this.onLink);
-    this.showItem("messagePaneContext-copyimage", this.onImage);
+    this.showItem("mailContext-copy", this.isContentSelected || this.onTextInput);
+    this.showItem("mailContext-selectall", true);
+    this.showItem("mailContext-copyemail", this.onMailtoLink);
+    this.showItem("mailContext-copylink", this.onLink);
+    this.showItem("mailContext-copyimage", this.onImage);
   },
 
   /**
@@ -375,8 +375,7 @@ nsContextMenu.prototype = {
    */
   showItem : function CM_showItem(aItemOrId, aShow) {
     var item = aItemOrId.constructor == String ? document.getElementById(aItemOrId) : aItemOrId;
-    if (item)
-      item.hidden = !aShow;
+    item.hidden = !aShow;
   },
 
   /**

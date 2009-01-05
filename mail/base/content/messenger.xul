@@ -130,7 +130,7 @@
   <panel id="editContactPanel"/>
 </popupset>
 
-<popup id="threadPaneContext"/>
+<popup id="mailContext"/>
 <popup id="folderPaneContext"/>
 <popup id="attachmentListContext"/>
 <popup id="copyUrlPopup"/>
@@ -170,8 +170,6 @@
 <popup id="messageIdContext"/>
 
 <tooltip id="folderpopup" class="folderSummaryPopup"/>
-
-<popup id="messagePaneContext"/>
 
   <toolbox id="mail-toolbox" class="toolbox-top">
   </toolbox>
@@ -237,7 +235,7 @@
                   class="plain focusring"
                   lastfoldersent="false"
                   disableKeyNavigation="true"
-                  context="threadPaneContext"
+                  context="mailContext"
                   onkeypress="ThreadPaneKeyPress(event);"
                   onselect="ThreadPaneSelectionChanged();">
               <treecols id="threadCols" pickertooltiptext="&columnChooser.tooltip;">
@@ -321,7 +319,7 @@
           <hbox id="msgHeaderView"/>
           <hbox id="editMessageBox"/>
           <deck id="msgNotificationBar"/>
-          <browser id="messagepane" context="messagePaneContext" autofind="false"
+          <browser id="messagepane" context="mailContext" autofind="false"
                    minheight="1" flex="1" name="messagepane"
                    disablehistory="true" type="content-primary" src="about:blank"
                    onresize="return messagePaneOnResize(event);"

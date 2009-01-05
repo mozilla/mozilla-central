@@ -137,21 +137,21 @@ menuitem:not([type]) {
   list-style-image: url("moz-icon://stock/gtk-save-as?size=menu");
 }
 
-#threadPaneContext-saveAs,
-#messagePaneContext-savelink,
-#messagePaneContext-saveimage {
+#mailContext-saveAs,
+#mailContext-savelink,
+#mailContext-saveimage {
   list-style-image: url("moz-icon://stock/gtk-save-as?size=menu");
 }
 
 menuitem[command="cmd_print"],
-#threadPaneContext-print,
-#messagePaneContext-print {
+#mailContext-print,
+#mailContext-print {
   list-style-image: url("moz-icon://stock/gtk-print?size=menu");
 }
 
 menuitem[command="cmd_printpreview"],
-#threadPaneContext-printpreview,
-#messagePaneContext-printpreview {
+#mailContext-printpreview,
+#mailContext-printpreview {
   list-style-image: url("moz-icon://stock/gtk-print-preview?size=menu");
 }
 
@@ -184,15 +184,15 @@ menuitem[command="cmd_cut"][disabled] {
 }
 
 menuitem[command="cmd_copy"],
-#messagePaneContext-copy,
-#messagePaneContext-copyimage,
-#messagePaneContext-copylink,
-#messagePaneContext-copyemail {
+#mailContext-copy,
+#mailContext-copyimage,
+#mailContext-copylink,
+#mailContext-copyemail {
   list-style-image: url("moz-icon://stock/gtk-copy?size=menu");
 }
 
 menuitem[command="cmd_copy"][disabled],
-#messagePaneContext-copy[disabled] {
+#mailContext-copy[disabled] {
   list-style-image: url("moz-icon://stock/gtk-copy?size=menu&state=disabled");
 }
 
@@ -205,13 +205,13 @@ menuitem[command="cmd_paste"][disabled] {
 }
 
 menuitem[command="cmd_delete"],
-#messagePaneContext-delete,
+#mailContext-delete,
 #folderPaneContext-remove {
   list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
 }
 
 menuitem[command="cmd_delete"][disabled],
-#messagePaneContext-delete[disabled] {
+#mailContext-delete[disabled] {
   list-style-image: url("moz-icon://stock/gtk-delete?size=menu&state=disabled");
 }
 
