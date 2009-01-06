@@ -240,7 +240,7 @@ function onOK()
     var rFolder = kRDF.GetResource(gCreateInFolder, true);
     const kRDFCContractID = "@mozilla.org/rdf/container;1";
     const kRDFIID = Components.interfaces.nsIRDFContainer;
-    const kRDFC = Components.classes[kRDFCContractID].getService(kRDFIID);
+    const kRDFC = Components.classes[kRDFCContractID].createInstance(kRDFIID);
     try {
       kRDFC.Init(kBMDS, rFolder);
     }
