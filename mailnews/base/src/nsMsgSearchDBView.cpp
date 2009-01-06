@@ -289,7 +289,8 @@ NS_IMETHODIMP nsMsgSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRU
         thread->MarkChildRead(aNewFlags & MSG_FLAG_READ);
     }
   }
-  return NS_OK;
+  return nsMsgDBView::OnHdrFlagsChanged(aHdrChanged, aOldFlags,
+                                        aNewFlags, aInstigator);
 }
 
 void nsMsgSearchDBView::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,

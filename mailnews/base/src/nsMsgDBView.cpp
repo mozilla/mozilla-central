@@ -3737,7 +3737,8 @@ PRInt32  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
   //to either GetCollationKey or GetLongField - we need the custom column handler for
   // the previous sort, if any.
   nsIMsgCustomColumnHandler* colHandler = nsnull; // GetCurColumnHandlerFromDBInfo();
-  if (sortType == nsMsgViewSortType::byCustom)
+  if (sortType == nsMsgViewSortType::byCustom &&
+      comparisonContext->view->m_sortColumns.Length() > 1)
     colHandler = comparisonContext->view->m_sortColumns[1].mColHandler;
 
   
@@ -5273,7 +5274,7 @@ NS_IMETHODIMP nsMsgDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 
     NS_ENSURE_ARG_POINTER(aHdrChanged);
     nsMsgKey msgKey;
     aHdrChanged->GetMessageKey(&msgKey);
-    nsMsgViewIndex index = FindViewIndex(msgKey);
+    nsMsgViewIndex index = FindHdr(aHdrChanged);
     if (index != nsMsgViewIndex_None)
     {
       PRUint32 viewOnlyFlags = m_flags[index] & (MSG_VIEW_FLAGS | MSG_FLAG_ELIDED);
