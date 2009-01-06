@@ -138,20 +138,20 @@ function GetString(name)
 function TrimStringLeft(string)
 {
   if(!string) return "";
-  return string.replace(/^\s+/, "");
+  return string.trimLeft();
 }
 
 function TrimStringRight(string)
 {
   if (!string) return "";
-  return string.replace(/\s+$/, '');
+  return string.trimRight();
 }
 
 // Remove whitespace from both ends of a string
 function TrimString(string)
 {
   if (!string) return "";
-  return string.replace(/(^\s+)|(\s+$)/g, '')
+  return string.trim();
 }
 
 function IsWhitespace(string)
@@ -166,7 +166,7 @@ function TruncateStringAtWordEnd(string, maxLength, addEllipses)
     return "";
 
   // We assume they probably don't want whitespace at the beginning
-  string = string.replace(/^\s+/, '');
+  string = string.trimLeft();
   if (string.length <= maxLength)
     return string;
 
@@ -188,7 +188,7 @@ function TruncateStringAtWordEnd(string, maxLength, addEllipses)
 //       Use charReplace = "_" when you don't want spaces (like in a URL)
 function ReplaceWhitespace(string, charReplace)
 {
-  return string.replace(/(^\s+)|(\s+$)/g,'').replace(/\s+/g,charReplace)
+  return string.trim().replace(/\s+/g, charReplace);
 }
 
 // Replace whitespace with "_" and allow only HTML CDATA

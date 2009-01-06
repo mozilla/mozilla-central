@@ -151,7 +151,7 @@ function onAccept()
   //str = str.replace(/(<br>)+/g, "<br>");
 
   // Trim leading and trailing spaces
-  str = str.replace(/^\s+|\s+$/, "");
+  str = str.trim();
 
   // Remove all tag contents so we don't replace
   //   separator character within tags
