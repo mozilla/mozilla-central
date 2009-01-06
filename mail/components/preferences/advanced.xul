@@ -40,10 +40,8 @@
 <!DOCTYPE overlay [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
 <!ENTITY % advancedDTD SYSTEM "chrome://messenger/locale/preferences/advanced.dtd">
-<!ENTITY % generalDTD SYSTEM "chrome://messenger/locale/preferences/general.dtd">
 %brandDTD;
 %advancedDTD;
-%generalDTD;
 ]>
 
 <overlay id="AdvancedPaneOverlay"
