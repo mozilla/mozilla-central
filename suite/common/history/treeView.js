@@ -348,10 +348,10 @@ PlacesTreeView.prototype = {
     // checking for today if it's within the last 24 hours, since
     // computing midnight is not really cheap. Sometimes we may get dates
     // in the future, so always show those.
-    var ago = new Date(Date.now() - timeInMilliseconds);
+    var ago = Date.now() - timeInMilliseconds;
     var dateFormat = Components.interfaces.nsIScriptableDateFormat.dateFormatShort;
     if (ago > -10000 && ago < (1000 * 24 * 60 * 60)) {
-      var midnight = new Date(timeInMilliseconds);
+      var midnight = new Date();
       midnight.setHours(0);
       midnight.setMinutes(0);
       midnight.setSeconds(0);
