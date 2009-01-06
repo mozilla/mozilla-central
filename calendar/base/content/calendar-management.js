@@ -460,12 +460,17 @@ var calendarListTreeView = {
 
         switch (aCol.id) {
             case "calendar-list-tree-checkbox":
+            try {
+                composite.startBatch();
                 if (composite.getCalendar(calendar.uri)) {
                     composite.removeCalendar(calendar.uri);
                 } else {
                     composite.addCalendar(calendar);
                 }
-                break;
+            } finally {
+                composite.endBatch();
+            }
+            break;
         }
         this.treebox.invalidateRow(aRow);
     },

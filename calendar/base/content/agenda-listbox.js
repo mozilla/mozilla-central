@@ -440,6 +440,9 @@ function enableAgendaPopupMenu(aPopupMenu){
 
 agendaListbox.refreshCalendarQuery =
 function refreshCalendarQuery(aStart, aEnd) {
+    if (this.mBatchCount > 0) {
+        return;
+    }
     var pendingRefresh = this.pendingRefresh;
     if (pendingRefresh) {
         if (calInstanceOf(pendingRefresh, Components.interfaces.calIOperation)) {

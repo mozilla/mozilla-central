@@ -58,6 +58,7 @@
       <field name="mTimezone">null</field>
       <field name="mFlashingEvents">new Object()</field>
       <field name="mSelectedItems">[]</field>
+      <field name="mBatchCount">0</field>
       <field name="mLongWeekdayTotalPixels">-1</field>
       <field name="mResizeHandler">null</field>
 
@@ -160,11 +161,19 @@
         ]]></body>
       </method>
 
+      <method name="isVisible">
+        <body><![CDATA[
+            return (this.nodeName == currentView().viewElem.nodeName);
+        ]]></body>
+      </method>
+
       <method name="refresh">
         <body><![CDATA[
-          let refreshJob = {};
-          this.mRefreshQueue.push(refreshJob);
-          this.popRefreshQueue();
+          if (this.mBatchCount == 0 && this.isVisible()) {
+              var refreshJob = {};
+              this.mRefreshQueue.push(refreshJob);
+              this.popRefreshQueue();
+          }
         ]]></body>
       </method>
 

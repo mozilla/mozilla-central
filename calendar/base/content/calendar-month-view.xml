@@ -1060,7 +1060,6 @@
         // the calIObserver, calICompositeObserver, calIAlarmServiceObserver
         ({
           calView: this,
-          mBatchCount: 0,
 
           QueryInterface: function (aIID) {
             if (!aIID.equals(Components.interfaces.calIObserver) &&
@@ -1074,11 +1073,11 @@
           },
 
           onStartBatch: function() {
-            this.mBatchCount++;
+            this.calView.mBatchCount++;
           },
           onEndBatch: function() {
-            this.mBatchCount--;
-            if (this.mBatchCount == 0) {
+            this.calView.mBatchCount--;
+            if (this.calView.mBatchCount == 0) {
               this.calView.refresh();
             }
           },
@@ -1086,7 +1085,7 @@
             this.calView.refresh();
           },
           onAddItem: function (aItem) {
-            if (this.mBatchCount) {
+            if (this.calView.mBatchCount) {
                 return;
             }
 
@@ -1107,7 +1106,7 @@
           },
           onModifyItem: function (aNewItem, aOldItem) {
 
-            if (this.mBatchCount) {
+            if (this.calView.mBatchCount) {
                 return;
             }
 
@@ -1138,7 +1137,7 @@
               this.calView.doAddItem(occ);
           },
           onDeleteItem: function (aItem) {
-            if (this.mBatchCount) {
+            if (this.calView.mBatchCount) {
                 return;
             }
 

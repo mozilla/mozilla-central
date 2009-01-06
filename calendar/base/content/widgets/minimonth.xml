@@ -563,11 +563,17 @@
       <method name="onStartBatch">
         <parameter name="aCalendar"/>
         <body><![CDATA[
+            this.mBatchCount++;
         ]]></body>
       </method>
 
       <method name="onEndBatch">
         <parameter name="aCalendar"/>
+          this.mBatchCount--;
+          if (this.mBatchCount == 0) {
+              this.resetAttributesForDate();
+              this.getItems();
+          }
         <body><![CDATA[
         ]]></body>
       </method>
