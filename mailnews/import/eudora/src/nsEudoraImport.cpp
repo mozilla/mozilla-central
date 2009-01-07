@@ -235,8 +235,6 @@ NS_IMETHODIMP nsEudoraImport::GetName( PRUnichar **name)
   if (! name)
     return NS_ERROR_NULL_POINTER;
 
-  // nsString  title = "Outlook Express";
-  // *name = ToNewUnicode(title);
   *name = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NAME);
 
   return NS_OK;
@@ -248,8 +246,6 @@ NS_IMETHODIMP nsEudoraImport::GetDescription( PRUnichar **name)
   if (! name)
     return NS_ERROR_NULL_POINTER;
 
-  // nsString  desc = "Outlook Express mail and address books";
-  // *name = ToNewUnicode(desc);
   *name = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_DESCRIPTION);
 
   return NS_OK;

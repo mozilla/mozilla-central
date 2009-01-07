@@ -60,7 +60,7 @@ private:
 
 
 #define EUDORAIMPORT_NAME                               2000
-#define EUDORAIMPORT_DESCRIPTION                        2001
+#define EUDORAIMPORT_DESCRIPTION                        2029
 #define EUDORAIMPORT_MAILBOX_SUCCESS                    2002
 #define EUDORAIMPORT_MAILBOX_BADPARAM                   2003
 #define EUDORAIMPORT_MAILBOX_BADSOURCEFILE              2004

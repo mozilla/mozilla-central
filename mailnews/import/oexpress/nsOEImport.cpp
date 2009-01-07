@@ -203,8 +203,7 @@ NS_IMPL_ISUPPORTS1(nsOEImport, nsIImportModule)
 NS_IMETHODIMP nsOEImport::GetName( PRUnichar **name)
 {
   NS_ENSURE_ARG_POINTER(name);
-  // nsString  title = "Outlook Express";
-  // *name = ToNewUnicode(title);
+
   *name = nsOEStringBundle::GetStringByID( OEIMPORT_NAME);
 
     return NS_OK;
@@ -214,8 +213,6 @@ NS_IMETHODIMP nsOEImport::GetDescription( PRUnichar **name)
 {
   NS_ENSURE_ARG_POINTER(name);
 
-  // nsString  desc = "Outlook Express mail and address books";
-  // *name = ToNewUnicode(desc);
   *name = nsOEStringBundle::GetStringByID( OEIMPORT_DESCRIPTION);
   return NS_OK;
 }

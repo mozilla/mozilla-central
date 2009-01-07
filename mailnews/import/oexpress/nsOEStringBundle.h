@@ -56,16 +56,16 @@ private:
 
 
 
-#define  OEIMPORT_NAME                                2000
-#define  OEIMPORT_DESCRIPTION                2001
-#define OEIMPORT_MAILBOX_SUCCESS              2002
-#define OEIMPORT_MAILBOX_BADPARAM              2003
-#define OEIMPORT_MAILBOX_BADSOURCEFILE            2004
-#define OEIMPORT_MAILBOX_CONVERTERROR            2005
-#define OEIMPORT_DEFAULT_NAME            2006
-#define OEIMPORT_AUTOFIND               2007
-#define OEIMPORT_ADDRESS_SUCCESS        2008
-#define OEIMPORT_ADDRESS_CONVERTERROR   2009
-#define OEIMPORT_ADDRESS_BADPARAM       2010
+#define OEIMPORT_NAME                     2000
+#define OEIMPORT_DESCRIPTION              2011
+#define OEIMPORT_MAILBOX_SUCCESS          2002
+#define OEIMPORT_MAILBOX_BADPARAM         2003
+#define OEIMPORT_MAILBOX_BADSOURCEFILE    2004
+#define OEIMPORT_MAILBOX_CONVERTERROR     2005
+#define OEIMPORT_DEFAULT_NAME             2006
+#define OEIMPORT_AUTOFIND                 2007
+#define OEIMPORT_ADDRESS_SUCCESS          2008
+#define OEIMPORT_ADDRESS_CONVERTERROR     2009
+#define OEIMPORT_ADDRESS_BADPARAM         2010
 
 #endif /* _nsOEStringBundle_H__ */

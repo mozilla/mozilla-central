@@ -206,8 +206,6 @@ NS_IMETHODIMP nsOutlookImport::GetName( PRUnichar **name)
   if (! name)
     return NS_ERROR_NULL_POINTER;
 
-  // nsString  title = "Outlook Express";
-  // *name = ToNewUnicode(title);
   *name = nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_NAME);
   return NS_OK;
 }
@@ -218,8 +216,6 @@ NS_IMETHODIMP nsOutlookImport::GetDescription( PRUnichar **name)
     if (! name)
         return NS_ERROR_NULL_POINTER;
 
-  // nsString  desc = "Outlook Express mail and address books";
-  // *name = ToNewUnicode(desc);
   *name = nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_DESCRIPTION);
 
     return NS_OK;
