@@ -1110,17 +1110,6 @@ function editAttendees() {
 
 function editPrivacy(target) {
     gPrivacy = target.getAttribute("privacy");
-
-    switch (gPrivacy) {
-        case "PRIVATE":
-            gShowTimeAs = "TRANSPARENT";
-            break;
-        case "CONFIDENTIAL":
-        case "PUBLIC":
-            gShowTimeAs = "OPAQUE";
-            break;
-    }
-
     updateShowTimeAs();
     updatePrivacy();
 }
