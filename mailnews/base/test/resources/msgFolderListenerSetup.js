@@ -55,8 +55,9 @@ var gMFListener =
   msgAdded: function(aMsg)
   {
     verify([gMFNService.msgAdded, aMsg]);
-    var hdr = gHdrsReceived.pop();
-    gMsgHdrs.push({hdr: hdr, ID: hdr.messageId});
+    // We might not actually have a header in gHdrsReceived in the IMAP case,
+    // so use the aMsg we got instead
+    gMsgHdrs.push({hdr: aMsg, ID: aMsg.messageId});
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -86,7 +87,7 @@ var gMFListener =
         resetStatusAndProceed();
     }
   },
-  
+
   folderAdded: function(aFolder)
   {
     verify([gMFNService.folderAdded, aFolder]);
@@ -137,13 +138,16 @@ var copyListener =
 {
   // For CopyFileMessage: this should be the folder the message is being stored to
   mFolderStoredIn: null,
+  mMessageId: "",
   OnStartCopy: function() {},
   OnProgress: function(aProgress, aProgressMax) {},
   SetMessageKey: function(aKey)
   {
     gHdrsReceived.push(this.mFolderStoredIn.GetMessageHeader(aKey));
   },
-  GetMessageId: function(aMessageId) {},
+  GetMessageId: function(aMessageId) {
+    aMessageId = {value: this.mMessageId};
+  },
   OnStopCopy: function(aStatus)
   {
     // Check: message successfully copied.
@@ -166,7 +170,7 @@ function resetStatusAndProceed()
 }
 
 // Checks whether the array returned from a function has exactly these elements.
-Array.prototype.hasExactlyElements = function(elements)
+function hasExactlyElements(array, elements)
 {
   // If an nsIArray (it could also be a single header or a folder)
   if (elements instanceof nsIArray)
@@ -174,7 +178,7 @@ Array.prototype.hasExactlyElements = function(elements)
     var count = elements.length;
 
     // Check: array sizes should be equal.
-    do_check_eq(count, this.length);
+    do_check_eq(count, array.length);
 
     for (var i = 0; i < count; i++)
     {
@@ -192,17 +196,17 @@ Array.prototype.hasExactlyElements = function(elements)
         catch (e) {}
       }
       do_check_neq(currElement, undefined);
-      do_check_neq(this.indexOf(currElement), -1);
+      do_check_neq(array.indexOf(currElement), -1);
     }
   }
   // If a single header or a folder
   else if (elements instanceof nsIMsgDBHdr || elements instanceof nsIMsgFolder)
   {
     // Check: there should be only one element in the array.
-    do_check_eq(this.length, 1);
+    do_check_eq(array.length, 1);
 
     // Check: the element should be present
-    do_check_neq(this.indexOf(elements), -1);
+    do_check_neq(array.indexOf(elements), -1);
   }
   // This shouldn't happen
   else
@@ -223,10 +227,18 @@ function verify(event)
   switch (eventType)
   {
   case gMFNService.msgAdded:
+    // So for IMAP right now, we aren't able to get the actual nsIMsgDBHdr.
+    // Instead, we'll match up message ids as a (poor?) substitute.
+    if (expected[1].expectedMessageId)
+    {
+      do_check_eq(event[1].messageId, expected[1].expectedMessageId);
+      break;
+    }
+    // If we do have a header, fall through to the case below
   case gMFNService.msgsDeleted:
   case gMFNService.folderDeleted:
     // Check: headers match/folder matches.
-    expected[1].hasExactlyElements(event[1]);
+    hasExactlyElements(expected[1], event[1]);
     break;
   case gMFNService.msgsMoveCopyCompleted:
   case gMFNService.folderMoveCopyCompleted:
@@ -234,7 +246,7 @@ function verify(event)
     do_check_eq(expected[1], event[1]);
 
     // Check: headers match/folder matches.
-    expected[2].hasExactlyElements(event[2]);
+    hasExactlyElements(expected[2], event[2]);
 
     // Check: destination folder matches.
     do_check_eq(expected[3], event[3]);
@@ -253,7 +265,7 @@ function verify(event)
     break;
   case gMFNService.folderRenamed:
     // Check: source folder matches
-    expected[1].hasExactlyElements(event[1]);
+    hasExactlyElements(expected[1], event[1]);
 
     // Check: destination folder name matches
     do_check_eq(expected[2], event[2].prettiestName);
