@@ -173,7 +173,7 @@
           <treeitem id="popupsItem"
                     label="&popups.label;"
                     prefpane="popups_pane"
-                    helpTopic="pop_up_blocking"
+                    helpTopic="pop_up_blocking_prefs"
                     url="chrome://communicator/content/pref/pref-popups.xul"/>
           <treeitem id="passwordsItem"
                     label="&passwords.label;"
