@@ -111,10 +111,12 @@
     </menubar>
 
     <toolbar id="ToolbarMode" grippytooltiptext="&modeToolbar.tooltip;">
-      <toolbarbutton id="Console:modeAll" accesskey="&all.accesskey;"/>
-      <toolbarbutton id="Console:modeErrors" accesskey="&errors.accesskey;"/>
-      <toolbarbutton id="Console:modeWarnings" accesskey="&warnings.accesskey;"/>
-      <toolbarbutton id="Console:modeMessages" accesskey="&messages.accesskey;"/>
+      <hbox id="viewGroup">
+        <toolbarbutton id="Console:modeAll" accesskey="&all.accesskey;"/>
+        <toolbarbutton id="Console:modeErrors" accesskey="&errors.accesskey;"/>
+        <toolbarbutton id="Console:modeWarnings" accesskey="&warnings.accesskey;"/>
+        <toolbarbutton id="Console:modeMessages" accesskey="&messages.accesskey;"/>
+      </hbox>
       <toolbarbutton id="Console:clear" accesskey="&clear.accesskey;"/>
     </toolbar>
 
