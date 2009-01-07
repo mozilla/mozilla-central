@@ -61,7 +61,220 @@
       <field name="mBatchCount">0</field>
       <field name="mLongWeekdayTotalPixels">-1</field>
       <field name="mResizeHandler">null</field>
+      <field name="mOperationListener"><![CDATA[
+      ({
+          calView: this,
 
+          onOperationComplete:
+          function onOperationComplete(aCalendar, aStatus, aOperationType,
+                                       aId, aDetail) {
+              // Fire event
+              this.calView.fireEvent('viewloaded', aOperationType);
+
+              // signal that the current operation finished.
+              this.calView.mRefreshPending = null;
+
+              // immediately start the next job on the queue.
+              this.calView.popRefreshQueue();
+          },
+
+          onGetResult:
+          function onGetResult(aCalendar, aStatus, aItemType, aDetail,
+                               aCount, aItems) {
+              if (!Components.isSuccessCode(aStatus)) {
+                  return;
+              }
+              let items = aItems.filter(function(x) !isToDo(x) ||
+                                (x.entryDate && x.dueDate));
+
+              for each (let item in items) {
+                  this.calView.doAddItem(item);
+              }
+          }
+      })
+      ]]></field>
+
+      <field name="mObserver"><![CDATA[
+        // the calIObserver, calICompositeObserver, and calIAlarmServiceObserver
+        ({
+            QueryInterface: function QueryInterface(aIID) {
+                return cal.doQueryInterface(this, null, aIID,
+                                    [Components.interfaces.calIObserver,
+                                     Components.interfaces.calIAlarmServiceObserver,
+                                     Components.interfaces.calICompositeObserver,
+                                     Components.interfaces.nsISupports]);
+            },
+
+            calView: this,
+
+            onStartBatch: function onStartBatch() {
+                this.calView.mBatchCount++;
+            },
+            onEndBatch: function onEndBatch() {
+                this.calView.mBatchCount--;
+                if (this.calView.mBatchCount == 0) {
+                    this.calView.refresh();
+                }
+            },
+
+            onLoad: function onLoad() {
+                this.calView.refresh();
+            },
+
+            onAddItem: function onAddItem(aItem) {
+                if (this.calView.mBatchCount) {
+                    return;
+                }
+
+                if (isToDo(aItem)) {
+                    if (!aItem.entryDate || !aItem.dueDate) {
+                        return;
+                    }
+                    if(!this.calView.mTasksInView){
+                        return;
+                    }
+                    if (aItem.isCompleted && !this.calView.mShowCompleted) {
+                        return;
+                    }
+                }
+
+                let occs = aItem.getOccurrencesBetween(this.calView.startDate,
+                                                       this.calView.queryEndDate,
+                                                       {});
+                for each (let occ in occs) {
+                    this.calView.doAddItem(occ);
+                }
+                return;
+            },
+
+            onModifyItem: function onModifyItem(aNewItem, aOldItem) {
+                if (this.calView.mBatchCount) {
+                    return;
+                }
+
+                if (isToDo(aNewItem) && isToDo(aOldItem) &&
+                    !this.calView.mTasksInView) {
+                    return;
+                }
+                let occs;
+
+                if (!isToDo(aOldItem) ||
+                    (aOldItem.entryDate && aOldItem.dueDate)) {
+                    occs = aOldItem.getOccurrencesBetween(this.calView.startDate,
+                                                          this.calView.queryEndDate,
+                                                          {});
+                    for each (let occ in occs) {
+                        this.calView.doDeleteItem(occ);
+                    }
+                }
+                if (isToDo(aNewItem)) {
+                    if (!aNewItem.entryDate || !aNewItem.dueDate || !this.calView.mTasksInView) {
+                        return;
+                    }
+                    if (aNewItem.isCompleted && !this.calView.mShowCompleted) {
+                        return;
+                    }
+                }
+
+                occs = aNewItem.getOccurrencesBetween(this.calView.startDate,
+                                                      this.calView.queryEndDate,
+                                                      {});
+                for each (let occ in occs) {
+                    this.calView.doAddItem(occ);
+                }
+            },
+
+            onDeleteItem: function onDeleteItem(aItem) {
+                if (this.calView.mBatchCount) {
+                    return;
+                }
+
+                if (isToDo(aItem)) {
+                    if (!this.calView.mTasksInView) {
+                        return;
+                    }
+                    if (!aItem.entryDate || !aItem.dueDate) {
+                        return;
+                    }
+                    if (aItem.isCompleted && !this.calView.mShowCompleted) {
+                        return;
+                    }
+                }
+
+                let occs = aItem.getOccurrencesBetween(this.calView.startDate,
+                                                       this.calView.queryEndDate,
+                                                       {});
+                for each (let occ in occs) {
+                    this.calView.doDeleteItem(occ);
+                }
+            },
+
+            onError: function onError(aCalendar, aErrNo, aMessage) { },
+
+            onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
+                switch (aName) {
+                    case "suppressAlarms":
+                        if (!getPrefSafe("calendar.alarms.indicator.show", true) ||
+                            aCalendar.getProperty("capabilities.alarms.popup.supported") === false ) {
+                            break;
+                        }
+                        // else fall through
+                    case "readOnly":
+                    case "disabled":
+                        // XXXvv we can be smarter about how we handle this stuff
+                        this.calView.refresh();
+                        break;
+                }
+            },
+
+            onPropertyDeleting: function(aCalendar, aName) {
+                // Values are not important here yet.
+                this.onPropertyChanged(aCalendar, aName, null, null);
+            },
+
+            //
+            // calIAlarmServiceObserver stuff
+            //
+            onAlarm: function onAlarm(aAlarmItem) {
+                this.calView.flashAlarm(aAlarmItem, false);
+            },
+
+            onRemoveAlarmsByItem: function onRemoveAlarmsByItem(aItem) {
+                // Stop the flashing for the item.
+                this.calView.flashAlarm(aItem, true);
+            },
+
+            onRemoveAlarmsByCalendar: function onRemoveAlarmsByCalendar(aCalendar) {
+                // Stop the flashing for all items of this calendar
+                for each (let item in this.calView.mFlashingEvents) {
+                    if (item.calendar.id == aCalendar.id) {
+                        this.calView.flashAlarm(item, true);
+                    }
+                }
+            },
+
+            //
+            // calICompositeObserver stuff
+            // XXXvv we can be smarter about how we handle this stuff
+            //
+            onCalendarAdded: function onCalendarAdded(aCalendar) {
+                if (!aCalendar.getProperty("disabled")) {
+                    this.calView.refresh();
+                }
+            },
+
+            onCalendarRemoved: function onCalendarRemoved(aCalendar) {
+                if (!aCalendar.getProperty("disabled")) {
+                    this.calView.refresh();
+                }
+            },
+
+            onDefaultCalendarChanged:
+            function onDefaultCalendarChanged(aNewDefaultCalendar) {
+                // don't care, for now
+            }
+        })
+      ]]></field>
 
       <constructor><![CDATA[
         this.mTimezone = calendarDefaultTimezone();
@@ -72,7 +285,6 @@
         this.mResizeHandler = function resizeHandler() {
          self.onResize(self); };
         this.viewBroadcaster.addEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
-
       ]]></constructor>
 
       <destructor><![CDATA[
@@ -84,6 +296,7 @@
         alarmService.removeObserver(this.mObserver);
         this.viewBroadcaster.removeEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
       ]]></destructor>
+
       <property name="viewBroadcaster" readonly="true"
                 onget="return document.getElementById('calendarviewBroadcaster')"/>
 
@@ -122,6 +335,66 @@
           return val;
         ]]></setter>
       </property>
+
+      <method name="popRefreshQueue">
+        <body><![CDATA[
+          let pendingRefresh = this.mRefreshPending;
+          if (pendingRefresh) {
+              if (calInstanceOf(pendingRefresh, Components.interfaces.calIOperation)) {
+                  this.mRefreshPending = null;
+                  pendingRefresh.cancel(null);
+              } else {
+                  if(this.mRefreshQueue.length > 0) {
+                      this.relayout();
+                  }
+                  return;
+              }
+          }
+
+          let refreshJob = this.mRefreshQueue.pop();
+          if (!refreshJob) {
+            return;
+          }
+
+          if (!this.startDate || !this.endDate) {
+            return;
+          }
+
+          // recreate our columns
+          this.relayout();
+
+          if (!this.mCalendar) {
+              return;
+          }
+
+          // start our items query; for a disjoint date range
+          // we get all the items, and just filter out the ones we don't
+          // care about in addItem
+
+          let filter = this.mCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+          if (this.mShowCompleted) {
+              filter |= this.mCalendar.ITEM_FILTER_COMPLETED_ALL;
+          } else {
+              filter |= this.mCalendar.ITEM_FILTER_COMPLETED_NO;
+          }
+
+          if(this.mTasksInView) {
+              filter |= this.mCalendar.ITEM_FILTER_TYPE_ALL;
+          } else {
+              filter |= this.mCalendar.ITEM_FILTER_TYPE_EVENT;
+          }
+
+          this.mRefreshPending = true;
+          pendingRefresh = this.mCalendar.getItems(filter,
+                                                   0,
+                                                   this.startDate,
+                                                   this.queryEndDate,
+                                                   this.mOperationListener);
+          if (pendingRefresh && pendingRefresh.isPending) { // support for calIOperation
+              this.mRefreshPending = pendingRefresh;
+          }
+        ]]></body>
+      </method>
 
       <!-- This function guarantees that the
        labels are clipped in the instance that the overflow occurrs,
@@ -229,6 +502,7 @@
       </method>
     </implementation>
   </binding>
+
   <binding id="calendar-day-label" extends="xul:box">
     <content flex="1" pack="center">
       <xul:label anonid="longWeekdayName" class="calendar-day-label-name" xbl:inherits="selected"/>
@@ -251,6 +525,7 @@
           return this.mWeekday;
         ]]></setter>
       </property>
+
       <property name="date">
         <getter><![CDATA[
           return this.mDate;
