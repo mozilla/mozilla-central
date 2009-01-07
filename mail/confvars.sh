@@ -52,7 +52,11 @@ fi
 MOZ_STATIC_MAIL_BUILD=1
 MOZ_COMPOSER=1
 MOZ_SAFE_BROWSING=1
-MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version.txt`
+if [ "$MOZILLA_1_9_1_BRANCH" ]; then
+  MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version-191.txt`
+else
+  MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version.txt`
+fi
 THUNDERBIRD_VERSION=$MOZ_APP_VERSION
 MOZ_EXTENSIONS_DEFAULT=" wallet"
 MOZ_NO_XPCOM_OBSOLETE=1

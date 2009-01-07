@@ -1599,6 +1599,7 @@ changequote([,])
 
 MOZILLA_1_9_1_BRANCH=
 
+dnl Set the Gecko 1.9.1 branch version
 if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
     MOZILLA_1_9_1_BRANCH=1
     AC_DEFINE(MOZILLA_1_9_1_BRANCH)
@@ -1607,7 +1608,6 @@ fi
 AC_SUBST(MOZILLA_1_9_1_BRANCH)
 
 dnl Get version of various core apps from the version files.
-THUNDERBIRD_VERSION=`cat $topsrcdir/mail/config/version.txt`
 SUNBIRD_VERSION=`cat $topsrcdir/calendar/sunbird/config/version.txt`
 SEAMONKEY_VERSION=`cat $topsrcdir/suite/config/version.txt`
 
