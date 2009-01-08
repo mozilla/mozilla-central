@@ -97,6 +97,7 @@ function loadCalendarManager() {
         var name = calGetString("calendar", "homeCalendarName");
 
         homeCalendar.name = name;
+        cal.setPref("calendar.list.sortOrder", homeCalendar.id);
         composite.addCalendar(homeCalendar);
 
         // Wrapping this in a try/catch block, as if any of the migration code
@@ -125,7 +126,7 @@ function loadCalendarManager() {
 
     // The calendar manager will not notify for existing calendars. Go through
     // them all and set up manually.
-    for each (var calendar in calendars) {
+    for each (let calendar in sortCalendarArray(calendars)) {
         calendarManagerObserver.initializeCalendar(calendar);
     }
 }
@@ -737,6 +738,11 @@ var calendarManagerObserver = {
 
     // calICalendarManagerObserver
     onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
+        // append by default:
+        let sortOrder = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
+        sortOrder.push(aCalendar.id);
+        cal.setPref("calendar.list.sortOrder", sortOrder.join(" "));
+
         this.initializeCalendar(aCalendar);
         var composite = getCompositeCalendar();
         var inComposite = aCalendar.getProperty(composite.prefPrefix +

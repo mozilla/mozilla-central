@@ -236,6 +236,40 @@ function removeChildren(aElement) {
 }
 
 /**
+ * Sorts a sorted array of calendars by pref |calendar.list.sortOrder|.
+ * Repairs that pref if dangling entries exist.
+ */
+function sortCalendarArray(calendars) {
+    let ret = calendars.concat([]);
+    let sortOrder = {};
+    let sortOrderPref = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
+    for (let i = 0; i < sortOrderPref.length; ++i) {
+        sortOrder[sortOrderPref[i]] = i;
+    }
+    function sortFunc(cal1, cal2) {
+        let i1 = sortOrder[cal1.id] || -1;
+        let i2 = sortOrder[cal2.id] || -1;
+        if (i1 < i2) {
+            return -1;
+        }
+        if (i1 > i2) {
+            return 1;
+        }
+        return 0;
+    }
+    ret.sort(sortFunc);
+
+    // check and repair pref:
+    let sortOrderString = cal.getPrefSafe("calendar.list.sortOrder", "");
+    let wantedOrderString = ret.map(function(c) { return c.id; }).join(" ");
+    if (wantedOrderString != sortOrderString) {
+        cal.setPref("calendar.list.sortOrder", wantedOrderString);
+    }
+
+    return ret;
+}
+
+/**
 * Fills up a menu - either a menupopup or a menulist - with menuitems that refer
 * to calendars.
 *
@@ -249,17 +283,17 @@ function removeChildren(aElement) {
 *                                default-calendar. By default 0 is returned.
 */
 function appendCalendarItems(aItem, aCalendarMenuParent, aCalendarToUse, aOnCommand) {
-    var calendarToUse = aCalendarToUse || aItem.calendar;
-    var calendars = getCalendarManager().getCalendars({});
-    var indexToSelect = 0;
-    var index = -1;
-    for (var i = 0; i < calendars.length; ++i) {
-        var calendar = calendars[i];
+    let calendarToUse = aCalendarToUse || aItem.calendar;
+    let calendars = sortCalendarArray(getCalendarManager().getCalendars({}));
+    let indexToSelect = 0;
+    let index = -1;
+    for (let i = 0; i < calendars.length; ++i) {
+        let calendar = calendars[i];
         if (calendar.id == calendarToUse.id ||
             (calendar &&
              isCalendarWritable(calendar) &&
              isItemSupported(aItem, calendar))) {
-            var menuitem = addMenuItem(aCalendarMenuParent, calendar.name, calendar.name);
+            let menuitem = addMenuItem(aCalendarMenuParent, calendar.name, calendar.name);
             menuitem.calendar = calendar;
             index++;
             if (aOnCommand) {

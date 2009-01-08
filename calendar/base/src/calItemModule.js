@@ -101,8 +101,7 @@ const componentData =
      script: "calCalendarManager.js",
      constructor: "calCalendarManager",
      categories: {"app-startup": "calendar-mananger-startup"},
-     service: true,
-     onComponentLoad: "onCalCalendarManagerLoad()"},
+     service: true},
 
     {cid: Components.ID("{b8db7c7f-c168-4e11-becb-f26c1c4f5f8f}"),
      contractid: "@mozilla.org/calendar/alarm;1",

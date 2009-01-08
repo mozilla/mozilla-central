@@ -240,7 +240,7 @@ calItipEmailTransport.prototype = {
                 } // else go on with auto sending for now
                 compatMode = (inoutCheck.value ? 1 : 0);
                 if (compatMode != prefCompatMode) {
-                    setPref("calendar.itip.compatSendMode", "INT", compatMode);
+                    setPref("calendar.itip.compatSendMode", compatMode);
                 }
             }
             case (Components.interfaces.calIItipItem.AUTO): {

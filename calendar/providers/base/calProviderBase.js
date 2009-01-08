@@ -336,33 +336,16 @@ calProviderBase.prototype = {
                 !calProviderBase.mTransientProperties[aName] &&
                 !this.transientProperties) {
                 if (this.id) {
-                    // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
                     ret = getCalendarManager().getCalendarPref_(this, aName);
                 }
                 if (ret !== null) {
-                    // xxx todo: work around value types here unless we save into the prefs...
                     switch (aName) {
                         case "suppressAlarms":
                             if (this.getProperty("capabilities.alarms.popup.supported") === false) {
                                 // If popup alarms are not supported,
                                 // automatically suppress alarms
                                 ret = true;
-                                break;
                             }
-                            // Otherwise fall through to fix the type
-                        case "readOnly":
-                        case "disabled":
-                        case "auto-enabled":
-                        case "relaxedMode":
-                        case "cache.supported":
-                        case "cache.enabled":
-                        case "calendar-main-in-composite":
-                        case "calendar-main-default":
-                            ret = (ret == "true");
-                            break;
-                        case "backup-time":
-                        case "cache.updateTimer":
-                            ret = Number(ret);
                             break;
                     }
                 }
@@ -389,25 +372,7 @@ calProviderBase.prototype = {
             if (!this.transientProperties &&
                 !calProviderBase.mTransientProperties[aName] &&
                 this.id) {
-                var v = aValue;
-                // xxx todo: work around value types here unless we save into the prefs...
-                switch (aName) {
-                case "readOnly":
-                case "disabled":
-                case "relaxedMode":
-                case "cache.supported":
-                case "cache.enabled":
-                case "suppressAlarms":
-                case "calendar-main-in-composite":
-                case "calendar-main-default":
-                    v = (v ? "true" : "false");
-                    break;
-//                 case "backup-time":
-//                 case "cache.updateTimer":
-//                     break;
-                }
-                // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-                getCalendarManager().setCalendarPref_(this, aName, v);
+                getCalendarManager().setCalendarPref_(this, aName, aValue);
             }
             this.mObservers.notify("onPropertyChanged",
                                    [this.superCalendar, aName, aValue, oldValue]);

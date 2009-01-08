@@ -70,7 +70,7 @@
                 ]]></getter>
                 <setter><![CDATA[
                     this.mWeeksInView = val;
-                    setPref("calendar.weeks.inview", "INT", val);
+                    setPref("calendar.weeks.inview", val);
 
                     if (this.selectedDay) {
                         this.goToDay(this.selectedDay);

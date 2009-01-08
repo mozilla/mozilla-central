@@ -62,22 +62,22 @@ calWcapTimezone.prototype = {
     }
 };
 
-function getWcapSessionFor(cal, uri) {
-    var contextId = cal.getProperty("shared_context");
+function getWcapSessionFor(calendar, uri) {
+    let contextId = calendar.getProperty("shared_context");
     if (!contextId) {
         contextId = getUUID();
-        cal.setProperty("shared_context", contextId);
+        calendar.setProperty("shared_context", contextId);
     }
     if (!getWcapSessionFor.m_sessions) {
         getWcapSessionFor.m_sessions = {};
     }
-    var session = getWcapSessionFor.m_sessions[contextId];
+    let session = getWcapSessionFor.m_sessions[contextId];
     if (!session) {
         session = new calWcapSession(contextId, uri);
         getWcapSessionFor.m_sessions[contextId] = session;
         // install a mandatory default calendar:
-        var defaultCal = cal;
-        for each (var regCal in session.getRegisteredCalendars()) {
+        let defaultCal = calendar;
+        for each (let regCal in session.getRegisteredCalendars()) {
             if (regCal.isDefaultCalendar) {
                 defaultCal = regCal;
                 session.credentials.userId = defaultCal.getProperty("user_id");
@@ -800,12 +800,13 @@ calWcapSession.prototype = {
 
     defaultCalendar: null,
 
-    belongsTo: function calWcapSession_belongsTo(cal) {
+    belongsTo: function calWcapSession_belongsTo(calendar) {
         try {
             // xxx todo hack to get the unwrapped wcap calendar instance:
-            cal = cal.getProperty("cache.uncachedCalendar").QueryInterface(calIWcapCalendar).wrappedJSObject;
-            if (cal && (cal.session.m_contextId == this.m_contextId)) {
-                return cal;
+            calendar = calendar.getProperty("cache.uncachedCalendar")
+                               .QueryInterface(calIWcapCalendar).wrappedJSObject;
+            if (calendar && (calendar.session.m_contextId == this.m_contextId)) {
+                return calendar;
             }
         } catch (exc) {
         }
@@ -813,15 +814,15 @@ calWcapSession.prototype = {
     },
 
     getRegisteredCalendars: function calWcapSession_getRegisteredCalendars(asAssocObj) {
-        var registeredCalendars = (asAssocObj ? {} : []);
-        var cals = getCalendarManager().getCalendars({});
-        for each (var cal in cals) {
-            cal = this.belongsTo(cal);
-            if (cal) {
+        let registeredCalendars = (asAssocObj ? {} : []);
+        let cals = getCalendarManager().getCalendars({});
+        for each (let calendar in cals) {
+            calendar = this.belongsTo(calendar);
+            if (calendar) {
                 if (asAssocObj) {
-                    registeredCalendars[cal.calId] = cal;
+                    registeredCalendars[calendar.calId] = calendar;
                 } else {
-                    registeredCalendars.push(cal);
+                    registeredCalendars.push(calendar);
                 }
             }
         }
@@ -1149,7 +1150,7 @@ function confirmInsecureLogin(uri)
             }
             confirmedEntry = (bConfirmed ? "1" : "0");
             confirmedHttpLogins += (encodedHost + ":" + confirmedEntry);
-            setPref("calendar.wcap.confirmed_http_logins", "CHAR", confirmedHttpLogins);
+            setPref("calendar.wcap.confirmed_http_logins", confirmedHttpLogins);
             getPref("calendar.wcap.confirmed_http_logins"); // log written entry
             confirmInsecureLogin.m_confirmedHttpLogins[encodedHost] = confirmedEntry;
         }

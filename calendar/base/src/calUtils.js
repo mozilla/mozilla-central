@@ -474,17 +474,29 @@ function getPrefSafe(aPrefName, aDefault) {
 }
 
 /**
- * Wrapper for setting prefs of various types
+ * Wrapper for setting prefs of various types.
  *
  * @param aPrefName   the (full) name of preference to set
- * @param aPrefType   the type of preference to set.  Valid valuse are:
-                        BOOL, INT, and CHAR
  * @param aPrefValue  the value to set the pref to
+ * @param aPrefType   (optional) the type of preference to set.
+ *                    Valid values are: BOOL, INT, and CHAR
  */
-function setPref(aPrefName, aPrefType, aPrefValue) {
-    const nsIPrefBranch = Components.interfaces.nsIPrefBranch;
-    const prefB = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(nsIPrefBranch);
+function setPref(aPrefName, aPrefValue, aPrefType) {
+    if (!aPrefType) {
+        switch (typeof(aPrefValue)) {
+            case "boolean":
+                aPrefType = "BOOL";
+                break;
+            case "number": // xxx think: includes non-int numbers, too
+                aPrefType = "INT";
+                break;
+            default:
+                aPrefType = "CHAR";
+                break;
+        }
+    }
+    let prefB = Components.classes["@mozilla.org/preferences-service;1"]
+                          .getService(Components.interfaces.nsIPrefBranch);
     switch (aPrefType) {
         case "BOOL":
             prefB.setBoolPref(aPrefName, aPrefValue);

@@ -130,11 +130,6 @@ function calCachedCalendar(uncachedCalendar) {
                                            updateTimer * 60 * 1000,
                                            Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
     }
-
-    if (!this.getProperty("disabled")) {
-        // Take care of the inital synchronization
-        this.refresh();
-    }
 }
 calCachedCalendar.prototype = {
     QueryInterface: function cCC_QueryInterface(aIID) {
@@ -203,10 +198,14 @@ calCachedCalendar.prototype = {
                         }
                         break;
                     case "storage":
-                        var file = getCalendarDirectory();
+                        let file = getCalendarDirectory();
                         file.append("cache.sqlite");
-                        var uri = getIOService().newFileURI(file);
-                        uri.spec += ("?id=" + this.id);
+                        let uri = getIOService().newFileURI(file);
+                        // use same id as uncached calendar:
+                        let idParam = this.uri.spec.indexOf("?id=");
+                        if (idParam != -1) {
+                            uri.spec += this.uri.spec.substring(idParam);
+                        }
                         cachedCalendar.uri = uri;
                         cachedCalendar.id = this.id;
                         break;

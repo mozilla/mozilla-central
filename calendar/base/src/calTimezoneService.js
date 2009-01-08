@@ -287,7 +287,7 @@ calTimezoneService.prototype = {
             ASSERT(this.mDefaultTimezone, "Timezone not found: " + tzid);
             // Update prefs if necessary:
             if (this.mDefaultTimezone && this.mDefaultTimezone.tzid != prefTzid) {
-                setPref("calendar.timezone.local", "CHAR", this.mDefaultTimezone.tzid);
+                setPref("calendar.timezone.local", this.mDefaultTimezone.tzid);
             }
 
             // We need to observe the timezone preference to update the default

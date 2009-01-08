@@ -53,6 +53,7 @@
         ondialogaccept="return doOK();"
         persist="screenX screenY height width">
 
+    <script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
     <script type="application/javascript"><![CDATA[
         function loadCalendars() {
             const calendarManager = Components.classes["@mozilla.org/calendar/manager;1"]
@@ -67,6 +68,7 @@
             } else {
                 calendars = calendarManager.getCalendars({});
             }
+            calendars = sortCalendarArray(calendars);
 
             for (var i = 0; i < calendars.length; i++) {
                 var cal = calendars[i];

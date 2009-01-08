@@ -23,6 +23,7 @@
  *   Michiel van Leeuwen <mvl@exedo.nl>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,25 +39,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const SUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-const LIGHTNING_UID = "{e2fda1a4-762b-4020-b5ad-a41df1933103}";
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
-const kStorageServiceContractID = "@mozilla.org/storage/service;1";
-const kStorageServiceIID = Components.interfaces.mozIStorageService;
+const REGISTRY_BRANCH = "calendar.registry.";
+const DB_SCHEMA_VERSION = 10;
 
-const kMozStorageStatementWrapperContractID = "@mozilla.org/storage/statement-wrapper;1";
-const kMozStorageStatementWrapperIID = Components.interfaces.mozIStorageStatementWrapper;
-var MozStorageStatementWrapper = null;
-
-function createStatement (dbconn, sql) {
-    var stmt = dbconn.createStatement(sql);
-    var wrapper = MozStorageStatementWrapper();
-    wrapper.initialize(stmt);
-    return wrapper;
+function getPrefBranchFor(id) {
+    return (REGISTRY_BRANCH + id + ".");
 }
 
-function onCalCalendarManagerLoad() {
-    MozStorageStatementWrapper = new Components.Constructor(kMozStorageStatementWrapperContractID, kMozStorageStatementWrapperIID);
+function createStatement(dbconn, sql) {
+    let stmt = dbconn.createStatement(sql);
+    let wrapper = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
+                            .createInstance(Components.interfaces.mozIStorageStatementWrapper);
+    wrapper.initialize(stmt);
+    return wrapper;
 }
 
 function calCalendarManager() {
@@ -118,7 +115,7 @@ calCalendarManager.prototype = {
     },
     
     startup: function ccm_startup() {
-        this.initDB();
+        this.checkAndMigrateDB();
         this.mCache = null;
         this.mCalObservers = null;
         this.mRefreshTimer = null;
@@ -234,213 +231,200 @@ calCalendarManager.prototype = {
 
     },
 
-    DB_SCHEMA_VERSION: 10,
+    //
+    // DB migration code begins here
+    //
 
-    upgradeDB: function (oldVersion) {
+    upgradeDB: function(oldVersion, db) {
         // some common helpers
-        function addColumn(db, tableName, colName, colType) {
-            db.executeSimpleSQL("ALTER TABLE " + tableName + " ADD COLUMN " + colName + " " + colType);
+        function addColumn(db_, tableName, colName, colType) {
+            db_.executeSimpleSQL("ALTER TABLE " + tableName + " ADD COLUMN " + colName + " " + colType);
         }
-
-        // xxx todo: needs to be resolved with
-        //           Bug 377845 - Decouple calendar manager from storage provider
-        //
-        //           This code always runs before the update code of calStorageCalendar which
-        //           needs the old schema version to run.
-        //           So this code just updates its schema without updating the version number.
-        //
-        //           We may run into problems if this code has passed successfully, but the code
-        //           in calStorageCalendar hasn't, because on next startup this code will run
-        //           into the same section again...
 
         if (oldVersion < 6) {
             dump ("**** Upgrading calCalendarManager schema to 6\n");
 
-            this.mDB.beginTransaction();
-            try {
-                // Schema changes in v6:
-                //
-                // - Change all STRING columns to TEXT to avoid SQLite's
-                //   "feature" where it will automatically convert strings to
-                //   numbers (ex: 10e4 -> 10000). See bug 333688.
+            // Schema changes in v6:
+            //
+            // - Change all STRING columns to TEXT to avoid SQLite's
+            //   "feature" where it will automatically convert strings to
+            //   numbers (ex: 10e4 -> 10000). See bug 333688.
 
-                // Create the new tables.
+            // Create the new tables.
 
-                try { 
-                    this.mDB.executeSimpleSQL("DROP TABLE cal_calendars_v6;" +
-                                              "DROP TABLE cal_calendars_prefs_v6;");
-                } catch (e) {
-                    // We should get exceptions for trying to drop tables
-                    // that don't (shouldn't) exist.
-                }
-
-                this.mDB.executeSimpleSQL("CREATE TABLE cal_calendars_v6 " +
-                                          "(id   INTEGER PRIMARY KEY," +
-                                          " type TEXT," +
-                                          " uri  TEXT);");
-
-                this.mDB.executeSimpleSQL("CREATE TABLE cal_calendars_prefs_v6 " +
-                                          "(id       INTEGER PRIMARY KEY," +
-                                          " calendar INTEGER," +
-                                          " name     TEXT," +
-                                          " value    TEXT);");
-
-                // Copy in the data.
-                var calendarCols = ["id", "type", "uri"];
-                var calendarPrefsCols = ["id", "calendar", "name", "value"];
-
-                this.mDB.executeSimpleSQL("INSERT INTO cal_calendars_v6(" + calendarCols.join(",") + ") " +
-                                          "     SELECT " + calendarCols.join(",") +
-                                          "       FROM cal_calendars");
-
-                this.mDB.executeSimpleSQL("INSERT INTO cal_calendars_prefs_v6(" + calendarPrefsCols.join(",") + ") " +
-                                          "     SELECT " + calendarPrefsCols.join(",") +
-                                          "       FROM cal_calendars_prefs");
-
-
-                // Delete each old table and rename the new ones to use the
-                // old tables' names.
-                var tableNames = ["cal_calendars", "cal_calendars_prefs"];
-
-                for (var i in tableNames) {
-                    this.mDB.executeSimpleSQL("DROP TABLE " + tableNames[i] + ";" +
-                                              "ALTER TABLE " + tableNames[i] + "_v6 " + 
-                                              "  RENAME TO " + tableNames[i] + ";");
-                }
-
-                this.mDB.commitTransaction();
-                oldVersion = 8;
+            try { 
+                db.executeSimpleSQL("DROP TABLE cal_calendars_v6; DROP TABLE cal_calendars_prefs_v6;");
             } catch (e) {
-                dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
-                Components.utils.reportError("Upgrade failed! DB Error: " +
-                                             this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
+                // We should get exceptions for trying to drop tables
+                // that don't (shouldn't) exist.
             }
-        } 
-        
-        if (oldVersion < this.DB_SCHEMA_VERSION) {
+
+            db.executeSimpleSQL("CREATE TABLE cal_calendars_v6 " +
+                                "(id   INTEGER PRIMARY KEY," +
+                                " type TEXT," +
+                                " uri  TEXT);");
+
+            db.executeSimpleSQL("CREATE TABLE cal_calendars_prefs_v6 " +
+                                "(id       INTEGER PRIMARY KEY," +
+                                " calendar INTEGER," +
+                                " name     TEXT," +
+                                " value    TEXT);");
+
+            // Copy in the data.
+            var calendarCols = ["id", "type", "uri"];
+            var calendarPrefsCols = ["id", "calendar", "name", "value"];
+
+            db.executeSimpleSQL("INSERT INTO cal_calendars_v6(" + calendarCols.join(",") + ") " +
+                                "     SELECT " + calendarCols.join(",") +
+                                "       FROM cal_calendars");
+
+            db.executeSimpleSQL("INSERT INTO cal_calendars_prefs_v6(" + calendarPrefsCols.join(",") + ") " +
+                                "     SELECT " + calendarPrefsCols.join(",") +
+                                "       FROM cal_calendars_prefs");
+
+            // Delete each old table and rename the new ones to use the
+            // old tables' names.
+            var tableNames = ["cal_calendars", "cal_calendars_prefs"];
+
+            for (var i in tableNames) {
+                db.executeSimpleSQL("DROP TABLE " + tableNames[i] + ";" +
+                                    "ALTER TABLE " + tableNames[i] + "_v6 " + 
+                                    "  RENAME TO " + tableNames[i] + ";");
+            }
+
+            oldVersion = 8;
+        }
+
+        if (oldVersion < DB_SCHEMA_VERSION) {
             dump ("**** Upgrading calCalendarManager schema to 9/10\n");
 
-            this.mDB.beginTransaction();
-            try {
-                if (this.mDB.tableExists("cal_calmgr_schema_version")) {
-                    // Set only once the last time to v10, so the version check works in calendar 0.8.
-                    // In calendar 0.9 and following, the provider itself will check its version
-                    // on initialization and notify the calendar whether it's usable or not.
-                    this.mDB.executeSimpleSQL("UPDATE cal_calmgr_schema_version SET version = " +
-                                              this.DB_SCHEMA_VERSION + ";");
-                } else {
-                    // Schema changes in v9:
-                    //
-                    // - Decouple schema version from storage calendar
-                    // Create the new tables.
-                    this.mDB.executeSimpleSQL("CREATE TABLE cal_calmgr_schema_version " +
-                                              "(version INTEGER);");
-                    this.mDB.executeSimpleSQL("INSERT INTO cal_calmgr_schema_version VALUES(" +
-                                              this.DB_SCHEMA_VERSION + ")");
-                }
-                this.mDB.commitTransaction();
-            } catch (e) {
-                dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
-                Components.utils.reportError("Upgrade failed! DB Error: " +
-                                             this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
+            if (db.tableExists("cal_calmgr_schema_version")) {
+                // Set only once the last time to v10, so the version check works in calendar 0.8.
+                // In calendar 0.9 and following, the provider itself will check its version
+                // on initialization and notify the calendar whether it's usable or not.
+                db.executeSimpleSQL("UPDATE cal_calmgr_schema_version SET version = " + DB_SCHEMA_VERSION + ";");
+            } else {
+                // Schema changes in v9:
+                //
+                // - Decouple schema version from storage calendar
+                // Create the new tables.
+                db.executeSimpleSQL("CREATE TABLE cal_calmgr_schema_version (version INTEGER);");
+                db.executeSimpleSQL("INSERT INTO cal_calmgr_schema_version VALUES(" + DB_SCHEMA_VERSION + ")");
             }
         }
     },
 
-    initDB: function() {
-        var dbService = Components.classes[kStorageServiceContractID]
-                                  .getService(kStorageServiceIID);
-        this.mDB = dbService.openSpecialDatabase("profile");
-
-        var sqlTables = { cal_calendars: "id INTEGER PRIMARY KEY, type TEXT, uri TEXT",
-                          cal_calendars_prefs: "id INTEGER PRIMARY KEY, calendar INTEGER, name TEXT, value TEXT",
-                          cal_calmgr_schema_version: "version INTEGER"
-                        };
-
-        // Should we check the schema version to see if we need to upgrade?
-        var checkSchema = true;
-
-        this.mDB.beginTransactionAs(Components.interfaces.mozIStorageConnection.TRANSACTION_EXCLUSIVE);
+    migrateDB: function calmgr_migrateDB(db) {
+        let selectCalendars = createStatement(db, "SELECT * FROM cal_calendars");
+        let selectPrefs = createStatement(db, "SELECT name, value FROM cal_calendars_prefs WHERE calendar = :calendar");
         try {
-            // Check if the tables exists
-            if (!this.mDB.tableExists("cal_calendars")) {
-                // No table. Initialize the DB
-                for (table in sqlTables) {
-                    this.mDB.createTable(table, sqlTables[table]);
+            let sortOrder = {};
+
+            while (selectCalendars.step()) {
+                let id = cal.getUUID(); // use fresh uuids
+                cal.setPref(getPrefBranchFor(id) + "type", selectCalendars.row.type);
+                cal.setPref(getPrefBranchFor(id) + "uri", selectCalendars.row.uri);
+                // the former id served as sort position:
+                sortOrder[selectCalendars.row.id] = id;
+                // move over prefs:
+                selectPrefs.params.calendar = selectCalendars.row.id;
+                while (selectPrefs.step()) {
+                    let name = selectPrefs.row.name.toLowerCase(); // may come lower case, so force it to be
+                    let value = selectPrefs.row.value;
+                    switch (name) {
+                        case "readonly":
+                            cal.setPref(getPrefBranchFor(id) + "readOnly", value == "true");
+                            break;
+                        case "relaxedmode":
+                            cal.setPref(getPrefBranchFor(id) + "relaxedMode", value == "true");
+                            break;
+                        case "suppressalarms":
+                            cal.setPref(getPrefBranchFor(id) + "suppressAlarms", value == "true");
+                            break;
+                        case "disabled":
+                        case "cache.supported":
+                        case "auto-enabled":
+                        case "cache.enabled":
+                        case "lightning-main-in-composite":
+                        case "calendar-main-in-composite":
+                        case "lightning-main-default":
+                        case "calendar-main-default":
+                            cal.setPref(getPrefBranchFor(id) + name, value == "true");
+                            break;
+                        case "cache.updatetimer":
+                            cal.setPref(getPrefBranchFor(id) + "cache.updateTimer", Number(value));
+                            break;
+                        case "backup-time":
+                        case "uniquenum":
+                            cal.setPref(getPrefBranchFor(id) + name, Number(value));
+                            break;
+                        default: // keep as string
+                            cal.setPref(getPrefBranchFor(id) + name, value);
+                            break;
+                    }
                 }
-                // Store the schema version
-                this.mDB.executeSimpleSQL("INSERT INTO cal_calmgr_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
-                checkSchema = false;
-                this.mDB.commitTransaction();
+                selectPrefs.reset();
+            }
+
+            let sortOrderAr = [];
+            for each (let s in sortOrder) {
+                sortOrderAr.push(s);
+            }
+            cal.setPref("calendar.list.sortOrder", sortOrderAr.join(" "));
+
+        } finally {
+            selectPrefs.reset();
+            selectCalendars.reset();
+        }
+    },
+
+    checkAndMigrateDB: function calmgr_checkAndMigrateDB() {
+        let dbService = Components.classes["@mozilla.org/storage/service;1"]
+                                  .getService(Components.interfaces.mozIStorageService);
+        db = dbService.openSpecialDatabase("profile");
+
+        db.beginTransactionAs(Components.interfaces.mozIStorageConnection.TRANSACTION_EXCLUSIVE);
+        try {
+            if (db.tableExists("cal_calendars")) {
+                // Check if we need to upgrade
+                let version = this.getSchemaVersion(db);
+                //cal.LOG("*** Calendar schema version is: " + version);
+
+                if (version < DB_SCHEMA_VERSION) {
+                    this.upgradeDB(version, db);
+                } else if (version > DB_SCHEMA_VERSION) {
+                    db.rollbackTransaction();
+                    // Schema version is newer than what we know how to deal with.
+                    // Alert the user, and quit the app.
+                    this.alertAndQuit();
+                    return;
+                }
+
+                this.migrateDB(db);
+
+                db.executeSimpleSQL("DROP TABLE cal_calendars; " +
+                                    "DROP TABLE cal_calendars_prefs; " +
+                                    "DROP TABLE cal_calmgr_schema_version;");
+                db.commitTransaction();
             } else {
-                this.mDB.rollbackTransaction();
+                db.rollbackTransaction();
             }
         } catch (exc) {
-            this.mDB.rollbackTransaction();
+            db.rollbackTransaction();
             throw exc;
         }
-
-        if (checkSchema) {
-            // Check if we need to upgrade
-            var version = this.getSchemaVersion();
-            //dump ("*** Calendar schema version is: " + version + "\n");
-
-            if (version < this.DB_SCHEMA_VERSION) {
-                this.upgradeDB(version);
-            } else if (version > this.DB_SCHEMA_VERSION) {
-                // Schema version is newer than what we know how to deal with.
-                // Alert the user, and quit the app.
-                this.alertAndQuit();
-            }
-        }
-
-        this.mSelectCalendars = createStatement (
-            this.mDB,
-            "SELECT oid,* FROM cal_calendars");
-
-        this.mRegisterCalendar = createStatement (
-            this.mDB,
-            "INSERT INTO cal_calendars (type, uri) " +
-            "VALUES (:type, :uri)"
-            );
-
-        this.mUnregisterCalendar = createStatement (
-            this.mDB,
-            "DELETE FROM cal_calendars WHERE id = :id"
-            );
-
-        this.mGetPref = createStatement (
-            this.mDB,
-            "SELECT value FROM cal_calendars_prefs WHERE calendar = :calendar AND name = :name");
-
-        this.mDeletePref = createStatement (
-            this.mDB,
-            "DELETE FROM cal_calendars_prefs WHERE calendar = :calendar AND name = :name");
-
-        this.mInsertPref = createStatement (
-            this.mDB,
-            "INSERT INTO cal_calendars_prefs (calendar, name, value) " +
-            "VALUES (:calendar, :name, :value)");
-
-        this.mDeletePrefs = createStatement (
-            this.mDB,
-            "DELETE FROM cal_calendars_prefs WHERE calendar = :calendar");
     },
 
     /** 
      * @return      db schema version
      * @exception   various, depending on error
      */
-    getSchemaVersion: function calMgrGetSchemaVersion() {
+    getSchemaVersion: function calMgrGetSchemaVersion(db) {
         var stmt;
         var version = null;
 
         var table;
-        if (this.mDB.tableExists("cal_calmgr_schema_version")) {
+        if (db.tableExists("cal_calmgr_schema_version")) {
             table = "cal_calmgr_schema_version";
         } else {
             // Fall back to the old schema table
@@ -448,8 +432,7 @@ calCalendarManager.prototype = {
         }
 
         try {
-            stmt = createStatement(this.mDB,
-                    "SELECT version FROM " + table + " LIMIT 1");
+            stmt = createStatement(db, "SELECT version FROM " + table + " LIMIT 1");
             if (stmt.step()) {
                 version = stmt.row.version;
             }
@@ -463,16 +446,17 @@ calCalendarManager.prototype = {
             if (stmt) {
                 stmt.reset();
             }
-            dump ("++++++++++++ calMgrGetSchemaVersion() error: " +
-                  this.mDB.lastErrorString + "\n");
-            Components.utils.reportError("Error getting calendar " +
-                                         "schema version! DB Error: " + 
-                                         this.mDB.lastErrorString);
+            cal.ERROR("++++++++++++ calMgrGetSchemaVersion() error: " + db.lastErrorString);
+            Components.utils.reportError("Error getting calendar schema version! DB Error: " + db.lastErrorString);
             throw e;
         }
 
         throw table + " SELECT returned no results";
     },
+
+    //
+    // / DB migration code ends here
+    //
 
     alertAndQuit: function cmgr_alertAndQuit() {
         // If we're Lightning, we want to include the extension name
@@ -516,7 +500,7 @@ calCalendarManager.prototype = {
         } else {
             var em = Components.classes["@mozilla.org/extensions/manager;1"]
                                .getService(Components.interfaces.nsIExtensionManager);
-            em.disableItem(LIGHTNING_UID);
+            em.disableItem("{e2fda1a4-762b-4020-b5ad-a41df1933103}"); // i.e. Lightning
             startup.quit(Components.interfaces.nsIAppStartup.eRestart |
                          Components.interfaces.nsIAppStartup.eForceQuit);
         }
@@ -577,23 +561,18 @@ calCalendarManager.prototype = {
 
     registerCalendar: function(calendar) {
         // bail if this calendar (or one that looks identical to it) is already registered
-        if (calendar.id > 0) {
-            dump ("registerCalendar: calendar already registered\n");
-            throw Components.results.NS_ERROR_FAILURE;
-        }
-
+        cal.ASSERT(calendar.id === null, "[calCalendarManager::registerCalendar] calendar already registered!", true);
         this.assureCache();
 
-        var pp = this.mRegisterCalendar.params;
-        pp.type = calendar.type;
-        pp.uri = calendar.uri.spec;
-
-        this.mRegisterCalendar.step();
-        this.mRegisterCalendar.reset();
-        
-        calendar.id = this.mDB.lastInsertRowID;
+        calendar.id = cal.getUUID();
+        cal.setPref(getPrefBranchFor(calendar.id) + "type", calendar.type);
+        cal.setPref(getPrefBranchFor(calendar.id) + "uri", calendar.uri.spec);
 
         this.setupCalendar(calendar);
+
+        if (!calendar.getProperty("disabled") && calendar.canRefresh) {
+            calendar.refresh();
+        }
 
         this.notifyObservers("onCalendarRegistered", [calendar]);
     },
@@ -614,10 +593,6 @@ calCalendarManager.prototype = {
             this.mReadonlyCalendarCount++;
         }
         this.mCalendarCount++;
-
-        if (!calendar.getProperty("disabled") && calendar.canRefresh) {
-            calendar.refresh();
-        }
     },
 
     unregisterCalendar: function(calendar) {
@@ -628,23 +603,14 @@ calCalendarManager.prototype = {
             calendar.wrappedJSObject.onCalendarUnregistering();
         }
 
-        var calendarID = calendar.id;
+        calendar.removeObserver(this.mCalObservers[calendar.id]);
 
-        calendar.removeObserver(this.mCalObservers[calendarID]);
-
-        var pp = this.mUnregisterCalendar.params;
-        pp.id = calendarID;
-        this.mUnregisterCalendar.step();
-        this.mUnregisterCalendar.reset();
-
-        // delete prefs for the calendar too
-        pp = this.mDeletePrefs.params;
-        pp.calendar = calendarID;
-        this.mDeletePrefs.step();
-        this.mDeletePrefs.reset();
+        let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                    .getService(Components.interfaces.nsIPrefBranch);
+        prefService.deleteBranch(getPrefBranchFor(calendar.id));
 
         if (this.mCache) {
-            delete this.mCache[calendarID];
+            delete this.mCache[calendar.id];
         }
 
         if (calendar.readOnly) {
@@ -672,7 +638,7 @@ calCalendarManager.prototype = {
         // providers (storage and memory). Otherwise we may nuke someone's
         // calendar stored on a server when all they really wanted to do was
         // unsubscribe.
-        if (calInstanceOf(calendar, Components.interfaces.calICalendarProvider) &&
+        if (cal.calInstanceOf(calendar, Components.interfaces.calICalendarProvider) &&
             (calendar.type == "storage" || calendar.type == "memory")) {
             try {
                 calendar.deleteCalendar(calendar, null);
@@ -697,106 +663,80 @@ calCalendarManager.prototype = {
             this.mCache = {};
             this.mCalObservers = {};
 
-            var stmt = this.mSelectCalendars;
-            stmt.reset();
-            var newCalendarData = [];
-            while (stmt.step()) {
-                newCalendarData.push( { id: stmt.row.id, type: stmt.row.type, uri: stmt.row.uri } );
+            let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                        .getService(Components.interfaces.nsIPrefBranch);
+            let allCals = {};
+            for each (let key in prefService.getChildList(REGISTRY_BRANCH, {})) { // merge down all keys
+                allCals[key.substring(0, key.indexOf(".", REGISTRY_BRANCH.length))] = true;
             }
-            stmt.reset();
 
-            for each (var caldata in newCalendarData) {
+            for (let calBranch in allCals) {
+                let id = calBranch.substring(REGISTRY_BRANCH.length);
+                let ctype = cal.getPrefSafe(calBranch + ".type", null);
+                let curi = cal.getPrefSafe(calBranch + ".uri", null);
+
                 try {
-                    var cal = this.createCalendar(caldata.type, makeURL(caldata.uri));
-                    if (!cal) {
+                    let calendar = this.createCalendar(ctype, cal.makeURL(curi));
+                    if (!calendar) {
                         continue;
                     }
-                    cal.id = caldata.id;
+                    calendar.id = id;
 
-                    if (cal.getProperty("auto-enabled") === true) {
-                        cal.deleteProperty("disabled");
-                        cal.deleteProperty("auto-enabled");
+                    if (calendar.getProperty("auto-enabled") === true) {
+                        calendar.deleteProperty("disabled");
+                        calendar.deleteProperty("auto-enabled");
                     }
 
-                    if ((cal.getProperty("cache.supported") !== false) && cal.getProperty("cache.enabled")) {
-                        cal = new calCachedCalendar(cal);
+                    if ((calendar.getProperty("cache.supported") !== false) && calendar.getProperty("cache.enabled")) {
+                        calendar = new calCachedCalendar(calendar);
                     }
 
-                    this.setupCalendar(cal);
+                    this.setupCalendar(calendar);
                 } catch (exc) {
-                    Components.utils.reportError(
-                        "Can't create calendar for " + caldata.id +
-                        " (" + caldata.type + ", " + caldata.uri + "): " + exc);
+                    cal.ERROR("Can't create calendar for " + id + " (" + ctype + ", " + curi + "): " + exc);
+                }
+            }
+
+            // do refreshing in a second step, when *all* calendars are already available
+            // via getCalendars():
+            for each (let calendar in this.mCache) {
+                if (!calendar.getProperty("disabled") && calendar.canRefresh) {
+                    calendar.refresh();
                 }
             }
         }
     },
 
     getCalendarPref_: function(calendar, name) {
-        ASSERT(calendar, "Invalid Calendar");
-        ASSERT(calendar.id !== null, "Calendar id needs to be an integer");
-        ASSERT(name && name.length > 0, "Pref Name must be non-empty");
+        cal.ASSERT(calendar, "Invalid Calendar!");
+        cal.ASSERT(calendar.id !== null, "Calendar id needs to be set!");
+        cal.ASSERT(name && name.length > 0, "Pref Name must be non-empty!");
 
-        // pref names must be lower case
-        name = name.toLowerCase();
-
-        var stmt = this.mGetPref;
-        stmt.reset();
-        var pp = stmt.params;
-        pp.calendar = calendar.id;
-        pp.name = name;
-
-        var value = null;
-        if (stmt.step()) {
-            value = stmt.row.value;
-        }
-        stmt.reset();
-        return value;
+        return cal.getPrefSafe(getPrefBranchFor(calendar.id) + name, null);
     },
 
     setCalendarPref_: function(calendar, name, value) {
-        ASSERT(calendar, "Invalid Calendar");
-        ASSERT(calendar.id !== null, "Calendar id needs to be an integer");
-        ASSERT(name && name.length > 0, "Pref Name must be non-empty");
+        cal.ASSERT(calendar, "Invalid Calendar!");
+        cal.ASSERT(calendar.id !== null, "Calendar id needs to be set!");
+        cal.ASSERT(name && name.length > 0, "Pref Name must be non-empty!");
 
-        // pref names must be lower case
-        name = name.toLowerCase();
-       
-        var calendarID = calendar.id;
+        let branch = (getPrefBranchFor(calendar.id) + name);
 
-        this.mDB.beginTransaction();
-
-        var pp = this.mDeletePref.params;
-        pp.calendar = calendarID;
-        pp.name = name;
-        this.mDeletePref.step();
-        this.mDeletePref.reset();
-
-        pp = this.mInsertPref.params;
-        pp.calendar = calendarID;
-        pp.name = name;
-        pp.value = value;
-        this.mInsertPref.step();
-        this.mInsertPref.reset();
-
-        this.mDB.commitTransaction();
+        let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                    .getService(Components.interfaces.nsIPrefBranch);
+        // delete before to allow pref-type changes:
+        prefService.deleteBranch(branch);
+        cal.setPref(branch, value);
     },
 
     deleteCalendarPref_: function(calendar, name) {
-        ASSERT(calendar, "Invalid Calendar");
-        ASSERT(calendar.id !== null, "Calendar id needs to be an integer");
-        ASSERT(name && name.length > 0, "Pref Name must be non-empty");
+        cal.ASSERT(calendar, "Invalid Calendar!");
+        cal.ASSERT(calendar.id !== null, "Calendar id needs to be set!");
+        cal.ASSERT(name && name.length > 0, "Pref Name must be non-empty!");
 
-        // pref names must be lower case
-        name = name.toLowerCase();
-
-        var calendarID = calendar.id;
-
-        var pp = this.mDeletePref.params;
-        pp.calendar = calendarID;
-        pp.name = name;
-        this.mDeletePref.step();
-        this.mDeletePref.reset();
+        let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                    .getService(Components.interfaces.nsIPrefBranch);
+        prefService.deleteBranch(getPrefBranchFor(calendar.id) + name);
     },
     
     mObservers: null,
