@@ -136,6 +136,7 @@
       SetShellVarContext all     ; Set SHCTX to all users (e.g. HKLM)
       ${SetClientsMail}
     ${EndIf}
+    WriteRegStr HKCU "Software\Clients\Mail" "" "${ClientsRegName}"
     ClearErrors
     ${GetOptions} "$R0" "/UAC:" $R1
     ${If} ${Errors}
@@ -173,6 +174,7 @@
       SetShellVarContext all     ; Set SHCTX to all users (e.g. HKLM)
       ${SetClientsNews}
     ${EndIf}
+    WriteRegStr HKCU "Software\Clients\News" "" "${ClientsRegName}"
     ClearErrors
     ${GetOptions} "$R0" "/UAC:" $R1
     ${If} ${Errors}

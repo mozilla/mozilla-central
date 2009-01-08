@@ -180,6 +180,7 @@
       SetShellVarContext all     ; Set SHCTX to all users (e.g. HKLM)
       ${SetClientsMail}
     ${EndIf}
+    WriteRegStr HKCU "Software\Clients\Mail" "" "${BrandFullNameInternal}"
     GetFunctionAddress $0 SetAsDefaultMailAppUser
     UAC::ExecCodeSegment $0
   ${EndUnless}
@@ -210,6 +211,7 @@
       SetShellVarContext all     ; Set SHCTX to all users (e.g. HKLM)
       ${SetClientsNews}
     ${EndIf}
+    WriteRegStr HKCU "Software\Clients\News" "" "${BrandFullNameInternal}"
     GetFunctionAddress $0 SetAsDefaultNewsAppUser
     UAC::ExecCodeSegment $0
   ${EndUnless}
