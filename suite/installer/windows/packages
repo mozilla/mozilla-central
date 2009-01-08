@@ -514,6 +514,7 @@ bin\chrome\newsblog.jar
 bin\chrome\newsblog.manifest
 bin\components\newsblog.js
 bin\components\nsMsgTraitService.js
+bin\components\nsSMTPProtocolHandler.js
 
 ; Gloda
 bin\chrome\gloda.jar

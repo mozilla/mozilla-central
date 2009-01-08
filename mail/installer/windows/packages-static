@@ -161,6 +161,7 @@ bin\components\downloads.xpt
 bin\components\nsContentDispatchChooser.js
 bin\components\nsHandlerService.js
 bin\components\nsWebHandlerApp.js
+bin\components\nsSMTPProtocolHandler.js
 
 ; spellchecker (may not be present)
 bin\components\spellchecker.xpt
