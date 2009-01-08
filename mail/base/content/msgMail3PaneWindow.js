@@ -1,4 +1,4 @@
-# -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -1346,14 +1346,11 @@ function GetSelectedIndices(dbView)
 
 function GetSelectedMessages()
 {
-  try {
-    var messageArray = GetDBView().getURIsForSelection({});
-    return messageArray.length ? messageArray : null;
-  }
-  catch (ex) {
-    dump("ex = " + ex + "\n");
+  if (!gDBView)
     return null;
-  }
+
+  var messageArray = gDBView.getURIsForSelection({});
+  return messageArray.length ? messageArray : null;
 }
 
 function GetLoadedMsgFolder()
