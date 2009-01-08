@@ -666,8 +666,9 @@ mime_decode_filename(char *name, const char *charset,
     return nsnull;
   nsCAutoString result;
   rv = mimehdrpar->DecodeParameter(nsDependentCString(name), charset,
-                                   opt->default_charset,
-                                   opt->override_charset, result);
+                                   opt ? opt->default_charset : nsnull,
+                                   opt ? opt->override_charset : PR_FALSE,
+                                   result);
   return NS_SUCCEEDED(rv) ? PL_strdup(result.get()) : nsnull;
 }
 
