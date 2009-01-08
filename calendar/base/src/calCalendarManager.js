@@ -40,6 +40,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 
 const REGISTRY_BRANCH = "calendar.registry.";
 const DB_SCHEMA_VERSION = 10;
@@ -520,10 +521,6 @@ calCalendarManager.prototype = {
             calendar.uri = uri;
             return calendar;
         } catch (ex) {
-            // XXX todo: bug 439620
-            // In general, we might consider to keep calendars disabled in case they couldn't
-            // be created instead of filtering them out. This leaves the chance to clean up
-            // calendar registration, getting rid of error boxes.
             var rc = ex;
             var message = ex;
             if (ex instanceof Components.interfaces.nsIException) {
@@ -676,21 +673,30 @@ calCalendarManager.prototype = {
                 let curi = cal.getPrefSafe(calBranch + ".uri", null);
 
                 try {
-                    let calendar = this.createCalendar(ctype, cal.makeURL(curi));
-                    if (!calendar) {
-                        continue;
-                    }
-                    calendar.id = id;
-
-                    if (calendar.getProperty("auto-enabled") === true) {
-                        calendar.deleteProperty("disabled");
-                        calendar.deleteProperty("auto-enabled");
-                    }
-
-                    if ((calendar.getProperty("cache.supported") !== false) && calendar.getProperty("cache.enabled")) {
-                        calendar = new calCachedCalendar(calendar);
-                    }
-
+                    let uri = cal.makeURL(curi);
+                    let calendar = this.createCalendar(ctype, uri);
+                    if (calendar) {
+                        calendar.id = id;
+                        if (calendar.getProperty("auto-enabled")) {
+                            calendar.deleteProperty("disabled");
+                            calendar.deleteProperty("auto-enabled");
+                        }
+ 
+                        if ((calendar.getProperty("cache.supported") !== false) &&
+                            calendar.getProperty("cache.enabled")) {
+                            calendar = new calCachedCalendar(calendar);
+                        }
+                    } else { // create dummy calendar that stays disabled for this run:
+                        calendar = new calDummyCalendar(ctype);
+                        calendar.id = id;
+                        calendar.uri = uri;
+                        // try to enable on next startup if calendar has been enabled:
+                        if (!calendar.getProperty("disabled")) {
+                            calendar.setProperty("auto-enabled", true);
+                        }
+                        calendar.setProperty("disabled", true);
+                     }
+ 
                     this.setupCalendar(calendar);
                 } catch (exc) {
                     cal.ERROR("Can't create calendar for " + id + " (" + ctype + ", " + curi + "): " + exc);
@@ -936,4 +942,21 @@ calMgrCalendarObserver.prototype = {
             promptWindow.addEventListener("load", awaitLoad, false);
         }
     }
+};
+
+function calDummyCalendar(type) {
+    this.initProviderBase();
+    this.type = type;
 }
+calDummyCalendar.prototype = {
+    __proto__: cal.ProviderBase.prototype,
+
+    getProperty: function calDummyCalendar_getProperty(aName) {
+        switch (aName) {
+            case "force-disabled":
+                return true;
+            default:
+                return this.__proto__.__proto__.getProperty.apply(this, arguments);
+        }
+    }
+};

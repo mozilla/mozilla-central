@@ -75,8 +75,13 @@ function onLoad() {
         (gCalendar.getProperty("capabilities.alarms.popup.supported") === false);
 
     // Set up the disabled checkbox
-    var calendarDisabled = gCalendar.getProperty("disabled");
-    document.getElementById("calendar-enabled-checkbox").checked = !calendarDisabled;
+    let calendarDisabled = false;
+    if (gCalendar.getProperty("force-disabled")) {
+        document.getElementById("calendar-enabled-checkbox").disabled = true;
+    } else {
+        calendarDisabled = gCalendar.getProperty("disabled");
+        document.getElementById("calendar-enabled-checkbox").checked = !calendarDisabled;
+    }
     setupEnabledCheckbox();
 
     // start focus on title, unless we are disabled
@@ -106,9 +111,11 @@ function onAcceptDialog() {
     // Save cache options
     gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
 
-    // Save disabled option (should do this last), remove auto-enabled
-    gCalendar.setProperty("disabled", !document.getElementById("calendar-enabled-checkbox").checked);
-    gCalendar.deleteProperty("auto-enabled");
+    if (!gCalendar.getProperty("force-disabled")) {
+        // Save disabled option (should do this last), remove auto-enabled
+        gCalendar.setProperty("disabled", !document.getElementById("calendar-enabled-checkbox").checked);
+        gCalendar.deleteProperty("auto-enabled");
+    }
 
     // tell standard dialog stuff to close the dialog
     return true;

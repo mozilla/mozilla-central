@@ -68,8 +68,7 @@ var calMemoryCalendarModule = {
         }
 
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
-        cal.loadScripts(["calUtils.js", "calProviderBase.js", "calProviderUtils.js",
-                         "calMemoryCalendar.js"],
+        cal.loadScripts(["calUtils.js", "calMemoryCalendar.js"],
                         this.__parent__);
 
         this.mUtilsLoaded = true;

@@ -42,7 +42,7 @@ function calWcapCalendar(/*optional*/session, /*optional*/calProps) {
     this.m_calProps = calProps;
 }
 calWcapCalendar.prototype = {
-    __proto__: calProviderBase.prototype,
+    __proto__: cal.ProviderBase.prototype,
 
     // nsISupports:
     QueryInterface: function calWcapCalendar_QueryInterface(iid) {

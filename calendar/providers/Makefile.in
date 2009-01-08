@@ -46,8 +46,7 @@ include $(DEPTH)/config/autoconf.mk
 MODULE = calprovs
 MODULE_NAME = calProviderModule
 
-DIRS = base \
-       caldav \
+DIRS = caldav \
        composite \
        gdata \
        ics \

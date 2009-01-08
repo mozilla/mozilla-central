@@ -129,6 +129,7 @@ interface calICalendar : nsISupports
    * Currently known properties are:
    *   [boolean]  disabled
    *   [boolean]  auto-enabled       If true, the calendar will be enabled on next startup.
+   *   [boolean]  force-disabled     If true, the calendar cannot be enabled (transient).
    *   [boolean]  calendar-main-in-composite
    *   [string]   name
    *   [boolean]  readOnly

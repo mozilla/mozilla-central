@@ -71,9 +71,7 @@ var calICSCalendarModule = {
         }
 
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
-        cal.loadScripts(["calUtils.js", "calAuthUtils.js", "calProviderBase.js",
-                         "calProviderUtils.js", "calICSCalendar.js"],
-                        this.__parent__);
+        cal.loadScripts(["calUtils.js", "calICSCalendar.js"], this.__parent__);
 
         this.mUtilsLoaded = true;
     },

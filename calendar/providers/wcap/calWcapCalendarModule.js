@@ -208,8 +208,9 @@ var calWcapCalendarModule = { // nsIModule:
     getClassObject: function calWcapCalendarModule_getClassObject(compMgr, cid, iid) {
         if (!this.m_scriptsLoaded) {
             Components.utils.import("resource://calendar/modules/calUtils.jsm");
-            cal.loadScripts(["calUtils.js", "calAuthUtils.js",
-                             "calProviderUtils.js", "calProviderBase.js", "calProviderUtils.js",
+            Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
+            Components.utils.import("resource://calendar/modules/calAuthUtils.jsm");
+            cal.loadScripts(["calUtils.js",
                              "calWcapUtils.js", "calWcapErrors.js",
                              "calWcapRequest.js", "calWcapSession.js",
                              "calWcapCalendar.js", "calWcapCalendarItems.js"],

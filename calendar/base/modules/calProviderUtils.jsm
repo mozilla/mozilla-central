@@ -14,12 +14,14 @@
  * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- *   Philipp Kewisch <mozilla@kewis.ch>
- * Portions created by the Initial Developer are Copyright (C) 2007
+ *   Sun Microsystems, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Bruno Browning <browning@uwalumni.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,6 +37,174 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calAuthUtils.jsm");
+
+/*
+ * Provider helper code
+ */
+
+EXPORTED_SYMBOLS = ["cal"]; // even though it's defined in calUtils.jsm, import needs this
+
+/**
+ * Prepare HTTP channel with standard request headers and upload
+ * data/content-type if needed
+ *
+ * @param arUri                      Channel Uri, will only be used for a new
+ *                                     channel.
+ * @param aUploadData                Data to be uploaded, if any. This may be a
+ *                                     nsIInputStream or string data. In the
+ *                                     latter case the string will be converted
+ *                                     to an input stream.
+ * @param aContentType               Value for Content-Type header, if any
+ * @param aNotificationCallbacks     Calendar using channel
+ * @param aExisting                  An existing channel to modify (optional)
+ */
+cal.prepHttpChannel = function calPrepHttpChannel(aUri, aUploadData, aContentType, aNotificationCallbacks, aExisting) {
+    let channel = aExisting || cal.getIOService().newChannelFromURI(aUri);
+    let httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
+
+    httpchannel.setRequestHeader("Accept", "text/xml", false);
+    httpchannel.setRequestHeader("Accept-Charset", "utf-8,*;q=0.1", false);
+    httpchannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
+    httpchannel.notificationCallbacks = aNotificationCallbacks;
+
+    if (aUploadData) {
+        httpchannel = httpchannel.QueryInterface(Components.interfaces.nsIUploadChannel);
+        let stream;
+        if (aUploadData instanceof Components.interfaces.nsIInputStream) {
+            // Make sure the stream is reset
+            stream = aUploadData.QueryInterface(Components.interfaces.nsISeekableStream);
+            stream.seek(Components.interfaces.nsISeekableStream.NS_SEEK_SET, 0);
+        } else {
+            // Otherwise its something that should be a string, convert it.
+            let converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                                      .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+            converter.charset = "UTF-8";
+            stream = converter.convertToInputStream(aUploadData.toString());
+        }
+
+        httpchannel.setUploadStream(stream, aContentType, -1);
+    }
+
+    return httpchannel;
+};
+
+/**
+ * calSendHttpRequest; send prepared HTTP request
+ *
+ * @param aStreamLoader     streamLoader for request
+ * @param aChannel          channel for request
+ * @param aListener         listener for method completion
+ */
+cal.sendHttpRequest = function calSendHttpRequest(aStreamLoader, aChannel, aListener) {
+    aStreamLoader.init(aListener);
+    aChannel.asyncOpen(aStreamLoader, aChannel);
+};
+
+cal.createStreamLoader = function calCreateStreamLoader() {
+    return Components.classes["@mozilla.org/network/stream-loader;1"]
+                     .createInstance(Components.interfaces.nsIStreamLoader);
+};
+
+cal.convertByteArray = function calConvertByteArray(aResult, aResultLength, aCharset, aThrow) {
+    try {
+        let resultConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                                        .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+        resultConverter.charset = aCharset || "UTF-8";
+        return resultConverter.convertFromByteArray(aResult, aResultLength);
+    } catch (e) {
+        if (aThrow) {
+            throw e;
+        }
+    }
+    return null;
+};
+
+cal.safeNewXML = function calSafeNewXML(aStr) {
+    // Strip <?xml and surrounding whitespaces
+    return new XML(aStr.replace(/(^\s*(<\?xml[^>]*>)?\s*|\s+$)/g, ""));
+};
+    
+
+/**
+ * getInterface method for providers. This should be called in the context of
+ * the respective provider, i.e
+ *
+ * return cal.InterfaceRequestor_getInterface.apply(this, arguments);
+ *
+ * or
+ * ...
+ * getInterface: cal.InterfaceRequestor_getInterface,
+ * ...
+ *
+ * @param aIID      The interface ID to return
+ */
+cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterface(aIID) {
+    // Support Auth Prompt Interfaces
+    if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
+        (Components.interfaces.nsIAuthPrompt2 &&
+         aIID.equals(Components.interfaces.nsIAuthPrompt2))) {
+        return new cal.auth.Prompt();
+    } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
+               aIID.equals(Components.interfaces.nsIPrompt)) {
+        return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                         .getService(Components.interfaces.nsIWindowWatcher)
+                         .getNewPrompter(null);
+    }
+
+    try {
+        // Try to query the this object for the requested interface but don't
+        // throw if it fails since that borks the network code.
+        return this.QueryInterface(aIID);
+    } catch (e) {
+        Components.returnCode = e;
+    }
+    return null;
+};
+
+/**
+ * Freebusy interval implementation. All parameters are optional.
+ *
+ * @param aCalId         The calendar id to set up with.
+ * @param aFreeBusyType  The type from calIFreeBusyInterval.
+ * @param aStart         The start of the interval.
+ * @param aEnd           The end of the interval.
+ * @return               The fresh calIFreeBusyInterval.
+ */
+cal.FreeBusyInterval = function calFreeBusyInterval(aCalId, aFreeBusyType, aStart, aEnd) {
+    this.calId = aCalId
+    this.interval = Components.classes["@mozilla.org/calendar/period;1"]
+                              .createInstance(Components.interfaces.calIPeriod);
+    this.interval.start = aStart;
+    this.interval.end = aEnd;
+
+    this.freeBusyType = aFreeBusyType || Components.interfaces.calIFreeBusyInterval.UNKNOWN;
+};
+cal.FreeBusyInterval.prototype = {
+    QueryInterface: function cFBI_QueryInterface(aIID) {
+        return doQueryInterface(this,
+                                cal.FreeBusyInterval.prototype,
+                                aIID,
+                                [Components.interfaces.calIFreeBusyInterval]);
+    },
+
+    calId: null,
+    interval: null,
+    freeBusyType: Components.interfaces.calIFreeBusyInterval.UNKNOWN
+};
+
+/**
+ * Gets the iTIP/iMIP transport if the passed calendar has configured email.
+ */
+cal.getImipTransport = function calGetImipTransport(aCalendar) {
+    // assure an identity is configured for the calendar
+    return (aCalendar.getProperty("imip.identity")
+            ? Components.classes["@mozilla.org/calendar/itip-transport;1?type=email"]
+                        .getService(Components.interfaces.calIItipTransport)
+            : null);
+};
+
 /**
  * Gets the configured identity and account of a particular calendar instance, or null.
  *
@@ -42,18 +212,18 @@
  * @param outAccount    Optional out value for account
  * @return              The configured identity
  */
-function calGetEmailIdentityOfCalendar(aCalendar, outAccount) {
-    ASSERT(aCalendar, "no calendar!", Components.results.NS_ERROR_INVALID_ARG);
-    if (isSunbird()) {
+cal.getEmailIdentityOfCalendar = function calGetEmailIdentityOfCalendar(aCalendar, outAccount) {
+    cal.ASSERT(aCalendar, "no calendar!", Components.results.NS_ERROR_INVALID_ARG);
+    if (cal.isSunbird()) {
         return null;
     }
-    var key = aCalendar.getProperty("imip.identity.key");
+    let key = aCalendar.getProperty("imip.identity.key");
     if (key !== null) {
         if (key.length == 0) { // i.e. "None"
             return null;
         }
-        var identity = null;
-        calIterateEmailIdentities(
+        let identity = null;
+        cal.calIterateEmailIdentities(
             function(identity_, account) {
                 if (identity_.key == key) {
                     identity = identity_;
@@ -65,20 +235,20 @@ function calGetEmailIdentityOfCalendar(aCalendar, outAccount) {
             });
         if (!identity) {
             // dangling identity:
-            WARN("Calendar " + (aCalendar.uri ? aCalendar.uri.spec : aCalendar.id) +
-                 " has a dangling E-Mail identity configured.");
+            cal.WARN("Calendar " + (aCalendar.uri ? aCalendar.uri.spec : aCalendar.id) +
+                     " has a dangling E-Mail identity configured.");
         }
         return identity;
     } else { // take default account/identity:
 
-        var accounts = getAccountManager().accounts;
-        var account = null;
-        var identity = null;
+        let accounts = cal.getAccountManager().accounts;
+        let account = null;
+        let identity = null;
         try {
-            account = getAccountManager().defaultAccount;
+            account = cal.getAccountManager().defaultAccount;
         } catch (exc) {}
 
-        for (var i = 0; accounts && (i < accounts.Count()) && (!account || !identity); ++i) {
+        for (let i = 0; accounts && (i < accounts.Count()) && (!account || !identity); ++i) {
             if (!account) { // Pick an account only if none was set (i.e there is no default account)
                 account = accounts.GetElementAt(i);
                 try {
@@ -109,25 +279,32 @@ function calGetEmailIdentityOfCalendar(aCalendar, outAccount) {
         }
         return null;
     }
-}
+};
 
-function calProviderBase() {
-    ASSERT("This prototype should only be inherited!");
-}
-calProviderBase.mTransientProperties = {};
-["cache.uncachedCalendar", "currentStatus",
- "itip.transport", "imip.identity", "imip.account",
- "imip.identity.disabled", "organizerId", "organizerCN"].forEach(
-    function(prop) {
-        calProviderBase.mTransientProperties[prop] = true;
-    });
-
-calProviderBase.prototype = {
+/**
+ * Base prototype to be used implementing a provider.
+ *
+ * @see e.g. providers/gdata
+ */
+cal.ProviderBase = function calProviderBase() {
+    cal.ASSERT("This prototype should only be inherited!");
+};
+cal.ProviderBase.mTransientProperties = {
+    "cache.uncachedCalendar": true,
+    "currentStatus": true,
+    "itip.transport": true,
+    "imip.identity": true,
+    "imip.account": true,
+    "imip.identity.disabled": true,
+    "organizerId": true,
+    "organizerCN": true
+};
+cal.ProviderBase.prototype = {
     QueryInterface: function cPB_QueryInterface(aIID) {
-        return doQueryInterface(this, calProviderBase.prototype, aIID,
-                                [Components.interfaces.nsISupports,
-                                 Components.interfaces.calICalendar,
-                                 Components.interfaces.calISchedulingSupport]);
+        return cal.doQueryInterface(this, cal.ProviderBase.prototype, aIID,
+                                    [Components.interfaces.nsISupports,
+                                     Components.interfaces.calICalendar,
+                                     Components.interfaces.calISchedulingSupport]);
     },
 
     mID: null,
@@ -137,33 +314,31 @@ calProviderBase.prototype = {
 
     initProviderBase: function cPB_initProviderBase() {
         this.wrappedJSObject = this;
-        this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
+        this.mObservers = new cal.calListenerBag(Components.interfaces.calIObserver);
         this.mProperties = {};
         this.mProperties.currentStatus = Components.results.NS_OK;
     },
 
-    get observers() {
+    get observers cPB_observers_get() {
         return this.mObservers;
     },
 
     // attribute AUTF8String id;
-    get id() {
+    get id cPB_id_get() {
         return this.mID;
     },
-    set id(aValue) {
+    set id cPB_id_set(aValue) {
         if (this.mID) {
             throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
         }
         this.mID = aValue;
 
-//         ASSERT(this.mProperties.toSource() == "({})", "setProperty calls before id has been set!");
+//         cal.ASSERT(this.mProperties.toSource() == "({})", "setProperty calls before id has been set!");
 
-        // xxx todo: move this code hack when migrating storage prefs to moz prefs,
-        //           presumably with bug 378754
-        var calMgr = getCalendarManager();
-        var this_ = this;
+        let calMgr = cal.getCalendarManager();
+        let this_ = this;
         function takeOverIfNotPresent(oldPref, newPref, dontDeleteOldPref) {
-            var val = calMgr.getCalendarPref_(this_, oldPref);
+            let val = calMgr.getCalendarPref_(this_, oldPref);
             if (val !== null) {
                 if (!dontDeleteOldPref) {
                     calMgr.deleteCalendarPref_(this_, oldPref);
@@ -181,41 +356,41 @@ calProviderBase.prototype = {
     },
 
     // attribute AUTF8String name;
-    get name() {
+    get name cPB_name_get() {
         return this.getProperty("name");
     },
-    set name(aValue) {
+    set name cPB_name_set(aValue) {
         return this.setProperty("name", aValue);
     },
 
     // attribute calICalendar superCalendar;
-    get superCalendar() {
+    get superCalendar cPB_superCalendar_get() {
         // If we have a superCalendar, check this calendar for a superCalendar.
         // This will make sure the topmost calendar is returned
         return (this.mSuperCalendar ? this.mSuperCalendar.superCalendar : this);
     },
-    set superCalendar(val) {
+    set superCalendar cPB_superCalendar_set(val) {
         return (this.mSuperCalendar = val);
     },
 
     // attribute nsIURI uri;
-    get uri() {
+    get uri cPB_uri_get() {
         return this.mUri;
     },
-    set uri(aValue) {
+    set uri cPB_uri_set(aValue) {
         return (this.mUri = aValue);
     },
 
     // attribute boolean readOnly;
-    get readOnly() {
+    get readOnly cPB_readOnly_get() {
         return this.getProperty("readOnly");
     },
-    set readOnly(aValue) {
+    set readOnly cPB_readOnly_set(aValue) {
         return this.setProperty("readOnly", aValue);
     },
 
     // readonly attribute boolean canRefresh;
-    get canRefresh() {
+    get canRefresh cPB_canRefresh_get() {
         return false;
     },
 
@@ -233,7 +408,7 @@ calProviderBase.prototype = {
                 this.mObservers.notify("onEndBatch");
             }
         } else {
-            ASSERT(this.mBatchCount > 0, "unexepcted endBatch!");
+            cal.ASSERT(this.mBatchCount > 0, "unexepcted endBatch!");
         }
     },
 
@@ -246,7 +421,7 @@ calProviderBase.prototype = {
             try {
                 aListener.onOperationComplete(this.superCalendar, aStatus, aOperationType, aId, aDetail);
             } catch (exc) {
-                ERROR(exc);
+                cal.ERROR(exc);
             }
         }
         if (aStatus == Components.interfaces.calIErrors.OPERATION_CANCELLED) {
@@ -294,38 +469,38 @@ calProviderBase.prototype = {
     getProperty: function cPB_getProperty(aName) {
         switch (aName) {
             case "itip.transport": // iTIP/iMIP default:
-                return calGetImipTransport(this);
+                return cal.getImipTransport(this);
             case "itip.notify-replies": // iTIP/iMIP default:
-                 return getPrefSafe("calendar.itip.notify-replies", false);
+                 return cal.getPrefSafe("calendar.itip.notify-replies", false);
             // temporary hack to get the uncached calendar instance:
             case "cache.uncachedCalendar":
                 return this;
         }
 
-        var ret = this.mProperties[aName];
+        let ret = this.mProperties[aName];
         if (ret === undefined) {
             ret = null;
             switch (aName) {
                 case "imip.identity": // we want to cache the identity object a little, because
                                       // it is heavily used by the invitation checks
-                    ret = calGetEmailIdentityOfCalendar(this);
+                    ret = cal.getEmailIdentityOfCalendar(this);
                     break;
                 case "imip.account": {
-                    var outAccount = {};
-                    if (calGetEmailIdentityOfCalendar(this, outAccount)) {
+                    let outAccount = {};
+                    if (cal.getEmailIdentityOfCalendar(this, outAccount)) {
                         ret = outAccount.value;
                     }
                     break;
                 }
                 case "organizerId": { // itip/imip default: derived out of imip.identity
-                    var identity = this.getProperty("imip.identity");
+                    let identity = this.getProperty("imip.identity");
                     ret = (identity
                            ? ("mailto:" + identity.QueryInterface(Components.interfaces.nsIMsgIdentity).email)
                            : null);
                     break;
                 }
                 case "organizerCN": { // itip/imip default: derived out of imip.identity
-                    var identity = this.getProperty("imip.identity");
+                    let identity = this.getProperty("imip.identity");
                     ret = (identity
                            ? identity.QueryInterface(Components.interfaces.nsIMsgIdentity).fullName
                            : null);
@@ -333,10 +508,10 @@ calProviderBase.prototype = {
                 }
             }
             if ((ret === null) &&
-                !calProviderBase.mTransientProperties[aName] &&
+                !cal.ProviderBase.mTransientProperties[aName] &&
                 !this.transientProperties) {
                 if (this.id) {
-                    ret = getCalendarManager().getCalendarPref_(this, aName);
+                    ret = cal.getCalendarManager().getCalendarPref_(this, aName);
                 }
                 if (ret !== null) {
                     switch (aName) {
@@ -352,13 +527,13 @@ calProviderBase.prototype = {
             }
             this.mProperties[aName] = ret;
         }
-//         LOG("getProperty(\"" + aName + "\"): " + ret);
+//         cal.LOG("getProperty(\"" + aName + "\"): " + ret);
         return ret;
     },
 
     // void setProperty(in AUTF8String aName, in nsIVariant aValue);
     setProperty: function cPB_setProperty(aName, aValue) {
-        var oldValue = this.getProperty(aName);
+        let oldValue = this.getProperty(aName);
         if (oldValue != aValue) {
             this.mProperties[aName] = aValue;
             switch (aName) {
@@ -370,9 +545,9 @@ calProviderBase.prototype = {
                     break;
             }
             if (!this.transientProperties &&
-                !calProviderBase.mTransientProperties[aName] &&
+                !cal.ProviderBase.mTransientProperties[aName] &&
                 this.id) {
-                getCalendarManager().setCalendarPref_(this, aName, aValue);
+                cal.getCalendarManager().setCalendarPref_(this, aName, aValue);
             }
             this.mObservers.notify("onPropertyChanged",
                                    [this.superCalendar, aName, aValue, oldValue]);
@@ -384,7 +559,7 @@ calProviderBase.prototype = {
     deleteProperty: function cPB_deleteProperty(aName) {
         this.mObservers.notify("onPropertyDeleting", [this.superCalendar, aName]);
         delete this.mProperties[aName];
-        getCalendarManager().deleteCalendarPref_(this, aName);
+        cal.getCalendarManager().deleteCalendarPref_(this, aName);
     },
 
     // calIOperation refresh
@@ -404,9 +579,9 @@ calProviderBase.prototype = {
 
     // calISchedulingSupport: Implementation corresponding to our iTIP/iMIP support
     isInvitation: function cPB_isInvitation(aItem) {
-        var id = this.getProperty("organizerId");
+        let id = this.getProperty("organizerId");
         if (id) {
-            var org = aItem.organizer;
+            let org = aItem.organizer;
             if (!org || (org.id.toLowerCase() == id.toLowerCase())) {
                 return false;
             }
@@ -416,7 +591,7 @@ calProviderBase.prototype = {
     },
 
     getInvitedAttendee: function cPB_getInvitedAttendee(aItem) {
-        var id = this.getProperty("organizerId");
+        let id = this.getProperty("organizerId");
         return (id ? aItem.getAttendeeById(id) : null);
     },
 

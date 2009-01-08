@@ -429,3 +429,8 @@ js/calWeekPrinter.js
 
 # Bug 462773 drop JSON.jsm
 modules/JSON.jsm
+
+# Bug 439620
+calendar-js/calProviderBase.js
+calendar-js/calProviderUtils.js
+calendar-js/calAuthUtils.js

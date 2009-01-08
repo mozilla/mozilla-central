@@ -273,18 +273,18 @@ calWcapSession.prototype = {
 
                 if (outUser.value && !outPW.value) { // lookup pw manager
                     log("looking in pw db for: " + this_.uri.spec, this_);
-                    calPasswordManagerGet(outUser.value, outPW, this_.uri.spec, "wcap login");
+                    cal.auth.passwordManagerGet(outUser.value, outPW, this_.uri.spec, "wcap login");
                 }
 
                 function promptAndLoginLoop_resp(err, sessionId) {
                     if (checkErrorCode(err, calIWcapErrors.WCAP_LOGIN_FAILED)) {
                         log("prompting for [user/]pw...", this_);
-                        if (calGetCredentials(calGetString("wcap", "loginDialog.label"),
-                                              this_.sessionUri.hostPort,
-                                              outUser,
-                                              outPW,
-                                              outSavePW,
-                                              this_.credentials.userId != null)) {
+                        if (cal.auth.getCredentials(calGetString("wcap", "loginDialog.label"),
+                                                    this_.sessionUri.hostPort,
+                                                    outUser,
+                                                    outPW,
+                                                    outSavePW,
+                                                    this_.credentials.userId != null)) {
                             this_.login(request, promptAndLoginLoop_resp,
                                         outUser.value, outPW.value);
                         } else {
@@ -299,7 +299,7 @@ calWcapSession.prototype = {
                     } else {
                         if (outSavePW.value) {
                             // so try to remove old pw from db first:
-                            calPasswordManagerSave(outUser.value, outPW.value, this_.uri.spec, "wcap login");
+                            cal.auth.passwordManagerSave(outUser.value, outPW.value, this_.uri.spec, "wcap login");
                         }
                         this_.credentials.userId = outUser.value;
                         this_.credentials.pw = outPW.value;
@@ -1013,12 +1013,12 @@ calWcapSession.prototype = {
                                 if (!fbType) {
                                     fbType = calIFreeBusyInterval.UNKNOWN;
                                 }
-                                var str = node.textContent;
-                                var slash = str.indexOf('/');
-                                var start =  getDatetimeFromIcalString(str.substr(0, slash));
-                                var end =  getDatetimeFromIcalString(str.substr(slash + 1));
+                                let str = node.textContent;
+                                let slash = str.indexOf('/');
+                                let start = getDatetimeFromIcalString(str.substr(0, slash));
+                                let end = getDatetimeFromIcalString(str.substr(slash + 1));
 
-                                ret.push(new calFreeBusyInterval(calId, fbType, start, end));
+                                ret.push(new cal.FreeBusyInterval(calId, fbType, start, end));
                             }
                         }
                         request.execRespFunc(null, ret);

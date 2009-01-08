@@ -43,6 +43,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
+
 const kStorageServiceContractID = "@mozilla.org/storage/service;1";
 const kStorageServiceIID = Components.interfaces.mozIStorageService;
 
@@ -260,7 +262,7 @@ function calStorageCalendar() {
 }
 
 calStorageCalendar.prototype = {
-    __proto__: calProviderBase.prototype,
+    __proto__: cal.ProviderBase.prototype,
     //
     // private members
     //

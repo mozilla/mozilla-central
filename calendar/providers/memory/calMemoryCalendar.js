@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
+
 //
 // calMemoryCalendar.js
 //
@@ -50,7 +52,7 @@ function calMemoryCalendar() {
 }
 
 calMemoryCalendar.prototype = {
-    __proto__: calProviderBase.prototype,
+    __proto__: cal.ProviderBase.prototype,
 
     //
     // nsISupports interface

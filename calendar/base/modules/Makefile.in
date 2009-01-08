@@ -14,7 +14,7 @@
 # The Original Code is Sun Microsystems code.
 #
 # The Initial Developer of the Original Code is
-# Sun Microsystems, Inc.
+#   Sun Microsystems, Inc.
 # Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
@@ -48,6 +48,8 @@ EXTRA_JS_MODULES = \
     calUtils.jsm \
     calIteratorUtils.jsm \
     calItipUtils.jsm \
+    calProviderUtils.jsm \
+    calAuthUtils.jsm \
     $(NULL)
 
 include $(topsrcdir)/config/rules.mk

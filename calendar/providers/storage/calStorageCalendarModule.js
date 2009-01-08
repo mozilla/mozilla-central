@@ -71,8 +71,7 @@ var calStorageCalendarModule = {
             return;
 
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
-        cal.loadScripts(["calUtils.js", "calProviderBase.js", "calProviderUtils.js",
-                         "calStorageCalendar.js"],
+        cal.loadScripts(["calUtils.js", "calStorageCalendar.js"],
                         this.__parent__);
 
         initCalStorageCalendarComponent();

@@ -39,6 +39,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
+
 //
 // calICSCalendar.js
 //
@@ -64,7 +66,7 @@ function calICSCalendar() {
 }
 
 calICSCalendar.prototype = {
-    __proto__: calProviderBase.prototype,
+    __proto__: cal.ProviderBase.prototype,
 
     mObserver: null,
     locked: false,
@@ -545,9 +547,9 @@ calICSCalendar.prototype = {
 
     /**
      * @see nsIInterfaceRequestor
-     * @see calProviderUtils.js
+     * @see calProviderUtils.jsm
      */
-    getInterface: calInterfaceRequestor_getInterface,
+    getInterface: cal.InterfaceRequestor_getInterface,
 
     /**
      * Make a backup of the (remote) calendar
@@ -937,16 +939,16 @@ httpHooks.prototype = {
                     </D:prop>
                   </D:propfind>;
 
-            var etagChannel = calPrepHttpChannel(aChannel.URI, queryXml,
-                                                 "text/xml; charset=utf-8",
-                                                 this);
+            let etagChannel = cal.prepHttpChannel(aChannel.URI, queryXml,
+                                                  "text/xml; charset=utf-8",
+                                                  this);
             etagChannel.setRequestHeader("Depth", "0", false);
             etagChannel.requestMethod = "PROPFIND";
             var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
                                          .createInstance(Components.interfaces
                                          .nsIStreamLoader);
 
-            calSendHttpRequest(streamLoader, etagChannel, etagListener);
+            cal.sendHttpRequest(streamLoader, etagChannel, etagListener);
         }
         return true;
     },

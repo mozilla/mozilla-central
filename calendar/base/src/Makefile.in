@@ -99,8 +99,6 @@ EXTRA_SCRIPTS = \
     calRelation.js \
     calTodo.js \
     calUtils.js \
-    calAuthUtils.js \
-    calProviderUtils.js \
     calWeekInfoService.js \
     calTransactionManager.js \
     calFreeBusyService.js \
