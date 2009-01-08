@@ -55,34 +55,17 @@
   <script type="application/javascript"
           src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
 
-  <popup id="messagePaneContext">
-    <menu id="messagePaneContext-calendar-convert-menu"
-          insertafter="messagePaneContext-moveMenu"
+  <popup id="mailContext">
+    <menu id="mailContext-calendar-convert-menu"
+          insertafter="mailContext-moveToFolderAgain"
           label="&calendar.context.convertmenu.label;"
           accesskey="&calendar.context.convertmenu.accesskey.mail;">
-      <menupopup id="messagePaneContext-calendar-convert-menupopup">
-        <menuitem id="messagePaneContext-calendar-convert-event-menuitem"
+      <menupopup id="mailContext-calendar-convert-menupopup">
+        <menuitem id="mailContext-calendar-convert-event-menuitem"
                   label="&calendar.context.convertmenu.event.label;"
                   accesskey="&calendar.context.convertmenu.event.accesskey;"
                   oncommand="calendarCalendarButtonDNDObserver.onDropMessage(messenger.msgHdrFromURI(GetFirstSelectedMessage()))"/>
-        <menuitem id="messagePaneContext-calendar-convert-task-menuitem"
-                  label="&calendar.context.convertmenu.task.label;"
-                  accesskey="&calendar.context.convertmenu.task.accesskey;"
-                  oncommand="calendarTaskButtonDNDObserver.onDropMessage(messenger.msgHdrFromURI(GetFirstSelectedMessage()))"/>
-      </menupopup>
-    </menu>
-  </popup>
-  <popup id="threadPaneContext">
-    <menu id="threadPaneContext-calendar-convert-menu"
-          insertafter="threadPaneContext-moveToFolderAgain"
-          label="&calendar.context.convertmenu.label;"
-          accesskey="&calendar.context.convertmenu.accesskey.mail;">
-      <menupopup id="threadPaneContext-calendar-convert-menupopup">
-        <menuitem id="threadPaneContext-calendar-convert-event-menuitem"
-                  label="&calendar.context.convertmenu.event.label;"
-                  accesskey="&calendar.context.convertmenu.event.accesskey;"
-                  oncommand="calendarCalendarButtonDNDObserver.onDropMessage(messenger.msgHdrFromURI(GetFirstSelectedMessage()))"/>
-        <menuitem id="threadPaneContext-calendar-convert-task-menuitem"
+        <menuitem id="mailContext-calendar-convert-task-menuitem"
                   label="&calendar.context.convertmenu.task.label;"
                   accesskey="&calendar.context.convertmenu.task.accesskey;"
                   oncommand="calendarTaskButtonDNDObserver.onDropMessage(messenger.msgHdrFromURI(GetFirstSelectedMessage()))"/>
