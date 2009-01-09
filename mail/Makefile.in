@@ -54,10 +54,12 @@ DIRS		= base locales components extensions
 
 ifneq (,$(filter gtk2 qt,$(MOZ_WIDGET_TOOLKIT)))
 DIRS += themes/gnomestripe
-else ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
+else
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 DIRS += themes/pinstripe
 else
 DIRS += themes/qute
+endif
 endif
 
 # app is always last as it packages up the built files on mac
