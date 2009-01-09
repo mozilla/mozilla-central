@@ -136,7 +136,6 @@ endif
 
 PACKAGER_NO_LIBS = 1
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
-include $(call EXPAND_MOZLOCALE_SRCDIR,toolkit/locales)/installer/windows/charset.mk
 
 repackage-win32-installer: WIN32_INSTALLER_OUT="$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe"
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
@@ -281,8 +280,7 @@ ifdef MOZ_UPDATER
 libs:: $(addprefix $(LOCALE_SRCDIR)/,updater/updater.ini)
 ifeq ($(OS_ARCH),WINNT)
 	cat $< $(srcdir)/updater_append.ini $(srcdir)/../installer/windows/nsis/updater_append.ini | \
-	  sed -e "s/%AB_CD%/$(AB_CD)/" | \
-	  iconv -f UTF-8 -t $(WIN_INSTALLER_CHARSET) > $(FINAL_TARGET)/updater.ini
+	  sed -e "s/%AB_CD%/$(AB_CD)/" > $(FINAL_TARGET)/updater.ini
 else
 	cat $< $(srcdir)/updater_append.ini | \
 	  sed -e "s/%AB_CD%/$(AB_CD)/" > $(FINAL_TARGET)/updater.ini
