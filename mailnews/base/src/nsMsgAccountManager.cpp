@@ -93,6 +93,7 @@
 #include "nsILineInputStream.h"
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
+#include "nsIStringBundle.h"
 
 #define PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS "mail.accountmanager.accounts"
 #define PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT "mail.accountmanager.defaultaccount"
@@ -347,7 +348,6 @@ nsMsgAccountManager::CreateIdentity(nsIMsgIdentity **_retval)
   nsCAutoString key;
   nsCOMPtr<nsIMsgIdentity> identity;
   PRInt32 i = 1;
-  PRBool unique=PR_FALSE;
   do {
     key.AssignLiteral(ID_PREFIX);
     key.AppendInt(i++);
@@ -411,7 +411,6 @@ nsMsgAccountManager::CreateIncomingServer(const nsACString&  username,
   nsCAutoString key;
   nsCOMPtr<nsIMsgIncomingServer> server;
   PRInt32 i = 1;
-  PRBool unique=PR_FALSE;
   do {
     key.AssignLiteral(SERVER_PREFIX);
     key.AppendInt(i++);
@@ -2112,6 +2111,24 @@ NS_IMETHODIMP nsMsgAccountManager::GetLocalFoldersServer(nsIMsgIncomingServer **
   return rv;
 }
 
+nsresult nsMsgAccountManager::GetLocalFoldersPrettyName(nsString &localFoldersName)
+{
+  // we don't want "nobody at Local Folders" to show up in the
+  // folder pane, so we set the pretty name to a localized "Local Folders"
+  nsCOMPtr<nsIStringBundle> bundle;
+  nsresult rv;
+  nsCOMPtr<nsIStringBundleService> sBundleService =
+    do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (sBundleService)
+    rv = sBundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
+                                      getter_AddRefs(bundle));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return bundle->GetStringFromName(NS_LITERAL_STRING("localFolders").get(), getter_Copies(localFoldersName));
+}
+
 NS_IMETHODIMP
 nsMsgAccountManager::CreateLocalMailAccount()
 {
@@ -2122,9 +2139,10 @@ nsMsgAccountManager::CreateLocalMailAccount()
                             NS_LITERAL_CSTRING("none"), getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv,rv);
   
-  // we don't want "nobody at Local Folders" to show up in the
-  // folder pane, so we set the pretty name to "Local Folders"
-  server->SetPrettyName(NS_LITERAL_STRING("Local Folders"));
+  nsString localFoldersName;
+  rv = GetLocalFoldersPrettyName(localFoldersName);
+  NS_ENSURE_SUCCESS(rv, rv);
+  server->SetPrettyName(localFoldersName);
   
   nsCOMPtr<nsINoIncomingServer> noServer;
   noServer = do_QueryInterface(server, &rv);

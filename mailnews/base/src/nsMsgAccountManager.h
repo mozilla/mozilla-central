@@ -129,6 +129,8 @@ private:
   nsresult createKeyedIdentity(const nsACString& key,
                                nsIMsgIdentity **_retval);
 
+  nsresult GetLocalFoldersPrettyName(nsString &localFoldersName);
+
   /* internal destruction routines - fixes prefs */
   nsresult removeKeyedAccount(const nsCString& key);
 
