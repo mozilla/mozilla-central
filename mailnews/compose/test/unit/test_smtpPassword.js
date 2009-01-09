@@ -7,6 +7,9 @@ var server;
 
 const kSender = "from@invalid.com";
 const kTo = "to@invalid.com";
+const kUsername = "testsmtp";
+// This is the same as in the signons file.
+const kPassword = "smtptest";
 
 function run_test() {
   server = setupServerDaemon();
@@ -42,7 +45,7 @@ function run_test() {
     smtpServer.useSecAuth = false;
     smtpServer.trySecAuth = false;
     smtpServer.trySSL = false;
-    smtpServer.username = "testsmtp";
+    smtpServer.username = kUsername;
 
     smtpService.sendMailMessage(testFile, kTo, identity,
                                 null, null, null, null,
@@ -50,10 +53,12 @@ function run_test() {
 
     server.performTest();
 
-    // Auth plain is btoa('\u0000testsmtp\u0000smtptest');
     var transaction = server.playTransaction();
     do_check_transaction(transaction, ["EHLO test",
-                                       "AUTH PLAIN AHRlc3RzbXRwAHNtdHB0ZXN0",
+                                       "AUTH PLAIN " + btoa("\u0000" +
+                                                            kUsername +
+                                                            "\u0000" +
+                                                            kPassword),
                                        "MAIL FROM:<" + kSender + "> SIZE=155",
                                        "RCPT TO:<" + kTo + ">",
                                        "DATA"]);

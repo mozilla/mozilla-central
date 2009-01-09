@@ -12,6 +12,8 @@ var server;
 
 const kSender = "from@invalid.com";
 const kTo = "to@invalid.com";
+const kUsername = "testsmtp";
+const kPassword = "smtptest";
 
 function test_RFC2822() {
   type = "RFC 2822";
@@ -58,8 +60,8 @@ function test_RFC2822() {
     smtpServer.useSecAuth = false;
     smtpServer.trySecAuth = false;
     smtpServer.trySSL = false;
-    smtpServer.username = "test";
-    smtpServer.password = "password";
+    smtpServer.username = kUsername;
+    smtpServer.password = kPassword;
 
     smtpService.sendMailMessage(testFile, kTo, identity,
                                 null, null, null, null,
@@ -69,7 +71,10 @@ function test_RFC2822() {
 
     var transaction = server.playTransaction();
     do_check_transaction(transaction, ["EHLO test",
-                                       "AUTH PLAIN AHRlc3QAcGFzc3dvcmQ=",
+                                       "AUTH PLAIN " + btoa("\u0000" +
+                                                            kUsername +
+                                                            "\u0000" +
+                                                            kPassword),
                                        "MAIL FROM:<" + kSender + "> SIZE=155",
                                        "RCPT TO:<" + kTo + ">",
                                        "DATA"]);

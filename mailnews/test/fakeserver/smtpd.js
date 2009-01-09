@@ -14,16 +14,44 @@ smtpDaemon.prototype = {
 
 
 // This handler implements the bare minimum required by RFC 2822.
-function SMTP_RFC2822_handler(daemon) {
+  function SMTP_RFC2822_handler(daemon, authMechanisms, username, password) {
   this._daemon = daemon;
   this.closing = false;
+  this._authMechanisms = authMechanisms ? authMechanisms : "PLAIN";
+  this._username = username ? username : "testsmtp";
+  this._password = password ? password : "smtptest";
+  // 0 = not logged in, 1 = waiting username, 2 = waiting password,
+  // 3 = logged in
+  this._authState = 0;
+  this._expectPassword = false;
 }
 SMTP_RFC2822_handler.prototype = {
   EHLO: function (args) {
-    return "250-foo.com greets bar.com\n250-8BITMIME\n250-SIZE\n250-AUTH PLAIN\n250 HELP";
+    return "250-foo.com greets bar.com\n250-8BITMIME\n250-SIZE\n250-AUTH " +
+           this._authMechanisms + "\n250 HELP";
   },
   AUTH: function (args) {
-    return "235 authentication successful";
+    var splitArgs = args.split(" ");
+    dump(args + " " + splitArgs[0] + "\n");
+
+    switch (splitArgs[0]) {
+    case "PLAIN": {
+      if (splitArgs[1] != btoa("\u0000" + this._username + "\u0000" + this._password))
+        return "535 authentication failed";
+
+      this._authState = 3;
+
+      return "235 authentication successful";
+    }
+    case "LOGIN": {
+      this._authState = 1;
+      this._expectPassword = true;
+      return "334 " + btoa("Username:");
+    }
+    default:
+      return "504 Invalid authentication mechanism"
+    }
+
   },
   MAIL: function (args) {
     return "250 ok";
@@ -59,6 +87,30 @@ SMTP_RFC2822_handler.prototype = {
     this.closing = false;
     return "220 ok";
   },
+  onPassword: function (line) {
+    this._expectPassword = false;
+
+    switch (this._authState) {
+      case 1: {
+        if (line != btoa(this._username)) {
+          this._authState = 0;
+          return "535 authentication failed";
+        }
+        this._authState = 2;
+        this._expectPassword = true;
+        return "334 " + btoa("Password:");
+      }
+      case 2: {
+        if (line != btoa(this._password)) {
+          this._authState = 0;
+          return "535 authentication failed";
+        }
+        this._authState = 3;
+        return "235 authentication successful";
+      }
+    }
+    return "500 not recognized\n";
+  },
   onError: function (command, args) {
     return "500 not recognized\n";
   },
@@ -82,5 +134,6 @@ SMTP_RFC2822_handler.prototype = {
     if (this.closing)
       obj.closeSocket();
     obj.setMultiline(this.expectingData);
+    obj.setExpectPassword(this._expectPassword);
   }
 }

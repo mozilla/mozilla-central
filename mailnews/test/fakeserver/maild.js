@@ -273,13 +273,16 @@ function readTo(input, count, arr) {
  *               command and rest-of-line as arguments
  * onStartup     Called on initialization with no arguments
  * onMultiline   Called when in multiline with the entire line as an argument
+ * onPassword    Called when a password line is expected as the entire argument
  * postCommand   Called after every command with this reader as the argument
  * [command]     An untranslated command with the rest of the line as the
  *               argument. Defined as everything to the first space
  *
- * All functions, except onMultiline and postCommand, treat the returned value
- * as the text to be sent to the client; a newline at the end may be added if
- * it does not exist, and all lone newlines are converted to CRLF sequences.
+ * All functions, except onMultiline, onPassword and postCommand, treat the
+ * returned value as the text to be sent to the client; a newline at the end
+ * may be added if it does not exist, and all lone newlines are converted to
+ * CRLF sequences.
+ *
  * The return of postCommand is ignored. The return of onMultiline is a bit
  * complicated: it may or may not return a response string (returning one is
  * necessary to trigger the postCommand handler).
@@ -379,6 +382,12 @@ nsMailReader.prototype = {
 
           if (response === undefined)
             continue;
+        } else if (this._expectPassword) {
+          dump("expecting password\n");
+          response = this._handler.onPassword(line);
+
+          if (response == undefined)
+            continue;
         } else {
           // Record the transaction
           this.transaction.them.push(line);
@@ -453,6 +462,10 @@ nsMailReader.prototype = {
 
   setMultiline : function (multi) {
     this._multiline = multi;
+  },
+
+  setExpectPassword : function (expectPassword) {
+    this._expectPassword = expectPassword;
   },
 
   setDebugLevel : function (debug) {

@@ -9,9 +9,9 @@ do_import_script("../mailnews/test/fakeserver/smtpd.js")
 const SMTP_PORT = 1024+120;
 
 // Setup the daemon and server
-function setupServerDaemon() {
-  var daemon = new smtpDaemon();
-  var handler = new SMTP_RFC2822_handler(daemon);
+function setupServerDaemon(handler) {
+  if (!handler)
+    handler = new SMTP_RFC2822_handler(new smtpDaemon());
   var server = new nsMailServer(handler);
   return server;
 }
