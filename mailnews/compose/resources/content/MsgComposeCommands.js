@@ -323,7 +323,7 @@ var progressListener = {
       if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_START)
       {
         document.getElementById('compose-progressmeter').setAttribute( "mode", "undetermined" );
-        document.getElementById('progress-panel').hidden = false;
+        document.getElementById("statusbar-progresspanel").collapsed = false;
       }
 
       if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP)
@@ -331,7 +331,7 @@ var progressListener = {
         gSendOrSaveOperationInProgress = false;
         document.getElementById('compose-progressmeter').setAttribute( "mode", "normal" );
         document.getElementById('compose-progressmeter').setAttribute( "value", 0 );
-        document.getElementById('progress-panel').hidden = true;
+        document.getElementById("statusbar-progresspanel").collapsed = true;
         document.getElementById('statusText').setAttribute('label', '');
       }
     },

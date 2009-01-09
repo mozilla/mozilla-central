@@ -227,7 +227,7 @@
 
   <statusbar class="chromeclass-status" id="status-bar"> 
     <statusbarpanel class="statusbarpanel-iconic" id="offline-status"/>
-    <statusbarpanel class="statusbarpanel-progress" id="progress-panel" hidden="true">
+    <statusbarpanel class="statusbarpanel-progress" id="statusbar-progresspanel" collapsed="true">
       <progressmeter class="progressmeter-statusbar" id="statusbar-icon" mode="normal" value="0"/>
     </statusbarpanel>
     <statusbarpanel id="statusText" crop="right" flex="1"/>

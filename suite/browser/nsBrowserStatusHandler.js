@@ -67,7 +67,7 @@ nsBrowserStatusHandler.prototype =
     this.urlBar          = document.getElementById("urlbar");
     this.throbberElement = document.getElementById("navigator-throbber");
     this.statusMeter     = document.getElementById("statusbar-icon");
-    this.statusPanel     = document.getElementById("progress-panel");
+    this.statusPanel     = document.getElementById("statusbar-progresspanel");
     this.stopButton      = document.getElementById("stop-button");
     this.stopMenu        = document.getElementById("menuitem-stop");
     this.stopContext     = document.getElementById("context-stop");
@@ -210,7 +210,7 @@ nsBrowserStatusHandler.prototype =
         this.startDocumentLoad(aRequest);
 
       // Show the progress meter
-      this.statusPanel.hidden = false;
+      this.statusPanel.collapsed = false;
       // Turn the throbber on.
       this.throbberElement.setAttribute("busy", "true");
 
@@ -264,7 +264,7 @@ nsBrowserStatusHandler.prototype =
       }
 
       // Turn the progress meter and throbber off.
-      this.statusPanel.hidden = true;
+      this.statusPanel.collapsed = true;
       this.statusMeter.value = 0;  // be sure to clear the progress bar
       this.throbberElement.removeAttribute("busy");
 
