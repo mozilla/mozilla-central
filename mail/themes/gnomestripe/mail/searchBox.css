@@ -1,4 +1,4 @@
-#
+/*
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,11 +12,12 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is Mozilla Communicator client code, released
+# March 31, 1998.
 #
 # The Initial Developer of the Original Code is
 # Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+# Portions created by the Initial Developer are Copyright (C) 1998-1999
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -34,51 +35,60 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+*/
 
-DEPTH		= ..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
+/* ..... tree adjustments ..... */
 
-include $(topsrcdir)/config/config.mk
+.quick-search-textbox
+{
+  padding-top: 1px;
+}
 
-DIRS		= base locales components extensions
+#searchInput[searchCriteria="true"]  {
+  color: grey;
+}
 
-#
-# Theme Selection
-#
-# Linux                   Gnomesripe
-# Windows                 Qute
-# MacOS X                 Pinstripe
-#
+#quick-search-button  {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 2px;
 
-ifneq (,$(filter gtk2 qt,$(MOZ_WIDGET_TOOLKIT)))
-DIRS += themes/gnomestripe
-else ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-DIRS += themes/pinstripe
-else
-DIRS += themes/qute
-endif
+}
 
-# app is always last as it packages up the built files on mac
-DIRS += app
+.quick-search-button-image {
+  margin: 0px;
+  list-style-image: url("chrome://messenger/skin/icons/Search-bar.png");
+}
 
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-# though some lasts are more last than others
-DIRS += installer/windows
-endif
-endif
+.quick-search-clearbutton[clearButtonHidden="true"] {
+  visibility: hidden;
+}
 
-include $(topsrcdir)/config/rules.mk
+.quick-search-button-dropmarker {
+  -moz-margin-start: 12px;
+  margin-top: 8px;
+  list-style-image: url("chrome://messenger/skin/icons/search-arrow.gif");
+}
 
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
+.quick-search-clearbutton {
+  list-style-image: url("chrome://messenger/skin/icons/quick-search-clear.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
+  -moz-appearance: none;
+  padding: 0px !important;
+  border: none !important;
+}
 
-# For Windows build the uninstaller during the application build since the
-# uninstaller is included with the application for mar file generation.
-libs::
-	$(MAKE) -C installer/windows uninstaller
+.quick-search-clearbutton > .toolbarbutton-icon {
+  -moz-margin-end: 0px; /* override toolkit's default value */
+}
 
-endif
-endif
+.quick-search-clearbutton:hover {
+  -moz-image-region: rect(0px, 32px, 16px, 16px);
+  padding: 0px !important;
+}
+
+.quick-search-clearbutton:hover:active {
+  -moz-image-region: rect(0px, 48px, 16px, 32px);
+  padding: 0px !important;
+}

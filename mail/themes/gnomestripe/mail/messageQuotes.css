@@ -1,0 +1,48 @@
+/* ===== messageQuotes.css =================================================
+  == Shared styles such as block quote colors and signature style
+  == between the message body during
+  == message display and the mail editor instance for mail compose.
+  ======================================================================= */
+
+/* ::::: signature ::::: */
+
+.moz-txt-sig,
+.moz-signature {
+  color: gray;
+}
+
+.moz-txt-sig > a,
+.moz-signature > a {
+  color: #7777FF; /* light blue */
+}
+
+/* ::::: Turn on borders and padding for quotes. ::::: */
+
+blockquote[type=cite] {
+  padding: 0em 1em .5em;
+  border-right: 2px solid;
+  border-left: 2px solid;
+}
+
+/* ::::: Colorize block quote borders. We only go 5 levels deep. ::::: */
+
+blockquote[type=cite] {
+  border-color: blue;
+}
+
+blockquote[type=cite] blockquote[type=cite] {
+  border-color: maroon;
+}
+
+blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] {
+  border-color: teal;
+}
+
+blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] {
+  border-color: purple;
+}
+
+blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] {
+  border-color: green;
+}
+

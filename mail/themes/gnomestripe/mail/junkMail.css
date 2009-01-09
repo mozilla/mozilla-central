@@ -1,3 +1,4 @@
+/* 
 #
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -12,11 +13,12 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is Mozilla Communicator client code, released
+# March 31, 1998.
 #
 # The Initial Developer of the Original Code is
 # Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+# Portions created by the Initial Developer are Copyright (C) 1998-1999
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -34,51 +36,20 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+*/ 
 
-DEPTH		= ..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
+/*===== junkMail=======.css ==============================================
+  == Styles for the junk mail dialog
+ ======================================================================== */
 
-include $(topsrcdir)/config/config.mk
+@import url("chrome://messenger/skin/");
 
-DIRS		= base locales components extensions
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-#
-# Theme Selection
-#
-# Linux                   Gnomesripe
-# Windows                 Qute
-# MacOS X                 Pinstripe
-#
+/* ::::: account manager :::::: */
 
-ifneq (,$(filter gtk2 qt,$(MOZ_WIDGET_TOOLKIT)))
-DIRS += themes/gnomestripe
-else ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-DIRS += themes/pinstripe
-else
-DIRS += themes/qute
-endif
+.specialFolderPickerGrid {
+  -moz-margin-start: 20px;
+}
 
-# app is always last as it packages up the built files on mac
-DIRS += app
 
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-# though some lasts are more last than others
-DIRS += installer/windows
-endif
-endif
-
-include $(topsrcdir)/config/rules.mk
-
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-
-# For Windows build the uninstaller during the application build since the
-# uninstaller is included with the application for mar file generation.
-libs::
-	$(MAKE) -C installer/windows uninstaller
-
-endif
-endif

@@ -58,6 +58,7 @@ mail/installer/Makefile
 mail/installer/windows/Makefile
 mail/themes/pinstripe/Makefile
 mail/themes/qute/Makefile
+mail/themes/gnomestripe/Makefile
 "
 
 if test -n "$MOZ_BRANDING_DIRECTORY"; then

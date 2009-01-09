@@ -1,0 +1,302 @@
+/* ===== messenger.css ==================================================
+  == Styles shared throughout the Messenger application.
+  ======================================================================= */
+
+@import url("chrome://global/skin/");
+@import url("chrome://messenger/content/messenger.css");
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+description.error {
+  color: #FF0000;
+}
+
+.toolbar-primary {
+  -moz-binding: url("chrome://global/content/bindings/toolbar.xml#toolbar");
+}
+
+toolbar[printpreview="true"] {
+  -moz-binding: url("chrome://global/content/printPreviewBindings.xml#printpreviewtoolbar");
+}
+
+/* ::::: throbber ::::: */
+
+#navigator-throbber {
+  -moz-appearance: none;
+  -moz-user-focus: ignore;
+  margin: 0 !important;
+  border: none !important;
+  padding: 0px !important;
+  min-width: 0;
+  background-color: transparent;
+  list-style-image: url("chrome://global/skin/throbber/Throbber-small.png");
+}
+
+#navigator-throbber[busy="true"] {
+  list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif");
+  opacity: 0.5;
+}
+
+toolbar[iconsize="small"] #navigator-throbber,
+toolbar[mode="text"] #navigator-throbber {
+  list-style-image: url("chrome://global/skin/throbber/Throbber-small.png");
+}
+
+toolbar[iconsize="small"] #navigator-throbber[busy="true"],
+toolbar[mode="text"] #navigator-throbber[busy="true"] {
+list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif");
+  opacity: 0.5;
+}  
+/* ::::: online/offline icons ::::: */
+
+#offline-status {
+  padding: 0 2px;
+}
+
+#offline-status[offline="true"] {
+  list-style-image: url("chrome://messenger/skin/icons/offline.png");
+}
+
+#offline-status {
+  list-style-image: url("chrome://messenger/skin/icons/online.png");
+}
+
+/* ::::: toolbarbutton ::::: */
+
+.toolbarbutton-1,
+.toolbarbutton-menubutton-button {
+  padding-top: 5px;
+  padding-bottom: 6px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 5px;
+}
+
+.toolbarbutton-1:hover:active:not([disabled]),
+.toolbarbutton-1[open="true"],
+.toolbarbutton-menubutton-button:hover:active:not([disabled]),
+.toolbarbutton-menubutton-button[open="true"] {
+  padding-top: 6px;
+  padding-bottom: 5px;
+  -moz-padding-start: 5px;
+  -moz-padding-end: 4px;
+}
+
+.toolbarbutton-1[checked="true"] {
+  padding-top: 6px !important;
+  padding-bottom: 5px !important;
+  -moz-padding-start: 5px !important;
+  -moz-padding-end: 4px !important;
+}
+
+.toolbarbutton-1 .toolbarbutton-icon,
+#FormatToolbar .toolbarbutton-icon {
+  -moz-margin-end: 0px;
+}
+
+.toolbarbutton-menu-dropmarker {
+  -moz-padding-start: 3px;
+}
+
+toolbar[mode="full"] .toolbarbutton-1 {
+  min-width: 55px;
+}
+
+sidebarheader .toolbarbutton-text:not([value]) {
+  display: none;
+}
+
+%ifdef MOZ_WIDGET_GTK2
+/* Stock icons for the menu bar items */
+menuitem:not([type]) {
+  -moz-binding: url("chrome://global/content/bindings/menu.xml#menuitem-iconic");
+}
+
+#menu_New {
+  -moz-binding: url("chrome://global/content/bindings/menu.xml#menu-iconic");
+  list-style-image: url("moz-icon://stock/gtk-new?size=menu");
+}
+
+#newMsgCmd {
+  list-style-image: url("moz-icon://stock/gtk-new?size=menu");
+}
+
+#menu_newFolder {
+  list-style-image: url("moz-icon://stock/gtk-directory?size=menu");
+}
+
+#openMessageFileMenuitem {
+  list-style-image: url("moz-icon://stock/gtk-open?size=menu");
+}
+
+#menu_close {
+  list-style-image: url("moz-icon://stock/gtk-close?size=menu");
+}
+
+#menu_saveAs {
+  -moz-binding: url("chrome://global/content/bindings/menu.xml#menu-iconic");
+  list-style-image: url("moz-icon://stock/gtk-save-as?size=menu");
+}
+
+#mailContext-saveAs,
+#mailContext-savelink,
+#mailContext-saveimage {
+  list-style-image: url("moz-icon://stock/gtk-save-as?size=menu");
+}
+
+menuitem[command="cmd_print"],
+#mailContext-print,
+#mailContext-print {
+  list-style-image: url("moz-icon://stock/gtk-print?size=menu");
+}
+
+menuitem[command="cmd_printpreview"],
+#mailContext-printpreview,
+#mailContext-printpreview {
+  list-style-image: url("moz-icon://stock/gtk-print-preview?size=menu");
+}
+
+menuitem[command="cmd_quit"] {
+  list-style-image: url("moz-icon://stock/gtk-quit?size=menu");
+}
+
+menuitem[command="cmd_undo"] {
+  list-style-image: url("moz-icon://stock/gtk-undo?size=menu");
+}
+
+menuitem[command="cmd_undo"][disabled] {
+  list-style-image: url("moz-icon://stock/gtk-undo?size=menu&state=disabled");
+}
+
+menuitem[command="cmd_redo"] {
+  list-style-image: url("moz-icon://stock/gtk-redo?size=menu");
+}
+
+menuitem[command="cmd_redo"][disabled] {
+  list-style-image: url("moz-icon://stock/gtk-redo?size=menu&state=disabled");
+}
+
+menuitem[command="cmd_cut"] {
+  list-style-image: url("moz-icon://stock/gtk-cut?size=menu");
+}
+
+menuitem[command="cmd_cut"][disabled] {
+  list-style-image: url("moz-icon://stock/gtk-cut?size=menu&state=disabled");
+}
+
+menuitem[command="cmd_copy"],
+#mailContext-copy,
+#mailContext-copyimage,
+#mailContext-copylink,
+#mailContext-copyemail {
+  list-style-image: url("moz-icon://stock/gtk-copy?size=menu");
+}
+
+menuitem[command="cmd_copy"][disabled],
+#mailContext-copy[disabled] {
+  list-style-image: url("moz-icon://stock/gtk-copy?size=menu&state=disabled");
+}
+
+menuitem[command="cmd_paste"]{
+  list-style-image: url("moz-icon://stock/gtk-paste?size=menu");
+}
+
+menuitem[command="cmd_paste"][disabled] {
+  list-style-image: url("moz-icon://stock/gtk-paste?size=menu&state=disabled");
+}
+
+menuitem[command="cmd_delete"],
+#mailContext-delete,
+#folderPaneContext-remove {
+  list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
+}
+
+menuitem[command="cmd_delete"][disabled],
+#mailContext-delete[disabled] {
+  list-style-image: url("moz-icon://stock/gtk-delete?size=menu&state=disabled");
+}
+
+menuitem[command="cmd_selectAll"] {
+  list-style-image: url("moz-icon://stock/gtk-select-all?size=menu");
+}
+
+#menu_find {
+  -moz-binding: url("chrome://global/content/bindings/menu.xml#menu-iconic");
+  list-style-image: url("moz-icon://stock/gtk-find?size=menu");
+}
+
+#folderPaneContext-searchMessages {
+  list-style-image: url("moz-icon://stock/gtk-find?size=menu");
+}
+
+#folderPaneContext-searchMessages[disabled] {
+  list-style-image: url("moz-icon://stock/gtk-find?size=menu&state=disabled");
+}
+
+#folderPaneContext-properties {
+  list-style-image: url("moz-icon://stock/gtk-properties?size=menu");
+}
+
+#menu_preferences {
+  list-style-image: url("moz-icon://stock/gtk-preferences?size=menu");
+}
+
+menuitem[command="cmd_fullZoomEnlarge"] {
+  list-style-image: url("moz-icon://stock/gtk-zoom-in?size=menu");
+}
+
+menuitem[command="cmd_fullZoomReduce"] {
+  list-style-image: url("moz-icon://stock/gtk-zoom-out?size=menu");
+}
+
+menuitem[command="cmd_fullZoomReset"] {
+  list-style-image: url("moz-icon://stock/gtk-zoom-100?size=menu");
+}
+
+menuitem[command="cmd_goBack"] {
+  list-style-image: url("moz-icon://stock/gtk-go-back-ltr?size=menu");
+}
+
+menuitem[key="cmd_goBack"][disabled] {
+  list-style-image: url("moz-icon://stock/gtk-go-back-ltr?size=menu&state=disabled");
+}
+
+menuitem[command="cmd_goBack"][chromedir="rtl"] {
+  list-style-image: url("moz-icon://stock/gtk-go-back-rtl?size=menu");
+}
+
+menuitem[command="cmd_goBack"][disabled][chromedir="rtl"] {
+  list-style-image: url("moz-icon://stock/gtk-go-back-rtl?size=menu&state=disabled");
+}
+
+menuitem[command="cmd_goForward"] {
+  list-style-image: url("moz-icon://stock/gtk-go-forward-ltr?size=menu");
+}
+
+menuitem[command="cmd_goForward"][disabled] {
+  list-style-image: url("moz-icon://stock/gtk-go-forward-ltr?size=menu&state=disabled");
+}
+
+menuitem[command="cmd_goForward"][chromedir="rtl"] {
+  list-style-image: url("moz-icon://stock/gtk-go-forward-rtl?size=menu");
+}
+
+menuitem[command="cmd_goForward"][disabled][chromedir="rtl"] {
+  list-style-image: url("moz-icon://stock/gtk-go-forward-rtl?size=menu&state=disabled");
+}
+
+#goStartPage {
+  list-style-image: url("moz-icon://stock/gtk-home?size=menu");
+}
+
+#menu_openHelp {
+  list-style-image: url("moz-icon://stock/gtk-help?size=menu");
+}
+
+#aboutName {
+  list-style-image: url("moz-icon://stock/gtk-about?size=menu");
+}
+
+#javaScriptConsole {
+  list-style-image: url("chrome://global/skin/console/console.png");
+}
+%endif
