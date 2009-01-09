@@ -52,7 +52,11 @@ fi
 MOZ_STATIC_MAIL_BUILD=1
 MOZ_COMPOSER=1
 MOZ_SAFE_BROWSING=1
-if [ "$MOZILLA_1_9_1_BRANCH" ]; then
+
+# Needed for the mozilla-central build side of the system.
+# Can be dropped when we branch MOZILLA_1_9_1_BRANCH
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/\(^[0-9]\.[0-9]\.[0-9]\).*/\1/;'`
+if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
   MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version-191.txt`
 else
   MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version.txt`
