@@ -47,8 +47,14 @@
             label="&pref.history.title;"
             script="chrome://communicator/content/pref/pref-history.js">
     <preferences id="history_preferences">
+      <preference id="browser.history_expire_days_min"
+                  name="browser.history_expire_days_min"
+                  type="int"/>
       <preference id="browser.history_expire_days"
                   name="browser.history_expire_days"
+                  type="int"/>
+      <preference id="browser.history_expire_sites"
+                  name="browser.history_expire_sites"
                   type="int"/>
       <preference id="pref.browser.history.disable_button.clear_hist"
                   name="pref.browser.history.disable_button.clear_hist"
@@ -63,24 +69,50 @@
 
     <groupbox>
       <caption label="&pref.history.caption;"/>
-      <description>&historyPages.label;</description>
       <hbox align="center">
-        <label value="&pageHis.label;"
-               accesskey="&pageHis.accesskey;"
+        <description flex="1">&historyPages.label;</description>
+        <hbox align="center"
+              pack="end">
+          <button label="&clearHistory.label;"
+                  accesskey="&clearHistory.accesskey;"
+                  oncommand="prefClearGlobalHistory(); this.disabled = true;"
+                  id="browserClearHistory"
+                  preference="pref.browser.history.disable_button.clear_hist"/>
+        </hbox>
+      </hbox>
+      <hbox align="center">
+        <label value="&expireDaysMin1.label;"
+               accesskey="&expireDaysMin1.accesskey;"
+               control="histDayMin"/>
+        <textbox id="histDayMin"
+                 type="number"
+                 size="4"
+                 preference="browser.history_expire_days_min"/>
+        <label value="&expireDaysMin2.label;"/>
+      </hbox>
+      <separator class="thin" />
+      <hbox align="center">
+        <label value="&expireDays1.label;"
+               accesskey="&expireDays1.accesskey;"
                control="histDay"/>
         <textbox id="histDay"
-                 size="3"
+                 type="number"
+                 size="4"
                  preference="browser.history_expire_days"/>
-        <label value="&days.label;"/>
-        <spacer flex="1"/>
-        <button label="&clearHistory.label;"
-                accesskey="&clearHistory.accesskey;"
-                oncommand="prefClearGlobalHistory(); this.disabled = true;"
-                id="browserClearHistory"
-                preference="pref.browser.history.disable_button.clear_hist"/>
+        <label value="&expireDays2.label;"/>
       </hbox>
-    </groupbox>  
-  
+      <hbox align="center">
+        <label value="&expireSites1.label;"
+               accesskey="&expireSites1.accesskey;"
+               control="histSites"/>
+        <textbox id="histSites"
+                 type="number"
+                 size="6"
+                 preference="browser.history_expire_sites"/>
+        <label value="&expireSites2.label;"/>
+      </hbox>
+    </groupbox>
+
     <!-- no honey, I haven't been viewing porn, honest! -->
     <groupbox>
       <caption label="&locationBarHistory.caption;"/>

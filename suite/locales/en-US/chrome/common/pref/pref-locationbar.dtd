@@ -9,7 +9,19 @@
 <!ENTITY autoCompleteShowPopup.label           "Show list of matching results">
 <!ENTITY autoCompleteShowPopup.accesskey       "S">
 <!ENTITY autoCompleteMatchOnlyTyped.label      "Match only websites you've typed previously">
-<!ENTITY autoCompleteMatchOnlyTyped.accesskey  "M">
+<!ENTITY autoCompleteMatchOnlyTyped.accesskey  "o">
+<!ENTITY autoCompleteMatchOnlyURLs.label       "Only match locations, not website titles">
+<!ENTITY autoCompleteMatchOnlyURLs.accesskey   "n">
+<!--LOCALIZATION NOTE (autoCompleteMatch.label): This is the common leading
+  part of the menulist items listed below, mainly to make the control available
+  via the accesskey
+-->
+<!ENTITY autoCompleteMatch.label               "Match">
+<!ENTITY autoCompleteMatch.accesskey           "M">
+<!ENTITY autoCompleteMatchAnywhere             "Anywhere in the location or title">
+<!ENTITY autoCompleteMatchWordsFirst           "Anywhere but preferring word boundaries">
+<!ENTITY autoCompleteMatchWords                "Only on word boundaries">
+<!ENTITY autoCompleteMatchStart                "Only at the beginning of the location or title">
 
 <!ENTITY searchEngine.label                    "Internet Search Engine">
 <!ENTITY showSearchEngine.label                "Show default search engine">

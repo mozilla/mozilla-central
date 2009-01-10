@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+const kBehaviorURL = 16;
+
 function Startup()
 {
   // On systems that has the file view component, autoFill and showPopup will
@@ -57,8 +59,8 @@ function Startup()
 
 function updateDependent(aValue)
 {
-  // The matchOnlyTyped checkbox always depend on autocomplete.enabled.
-  updateMatchOnlyTyped();
+  // The match pref checkboxes always depend on autocomplete.enabled.
+  updateMatchPrefs();
 
   // If autoFill has a class attribute, we don't have the file view component.
   // We then need to update autoFill and showPopup.
@@ -75,16 +77,40 @@ function toggleCheckbox(aCheckbox, aPrefValue)
     document.getElementById(aCheckbox).disabled = !aPrefValue;
 }
 
-function updateMatchOnlyTyped()
+function updateMatchPrefs()
 {
+  // The various match prefs don't make sense if both autoFill and showPopup
+  // prefs are false or if autocomplete is turned off.
+  var autoCompletePref = document.getElementById("browser.urlbar.autocomplete.enabled");
+  var autoFillPref = document.getElementById("browser.urlbar.autoFill");
+  var showPopupPref = document.getElementById("browser.urlbar.showPopup");
+
+  var matchDisabled = (!autoFillPref.value && !showPopupPref.value) ||
+                      !autoCompletePref.value;
+
   if (!document.getElementById("browser.urlbar.matchOnlyTyped").locked)
-  {
-    var autoCompletePref = document.getElementById("browser.urlbar.autocomplete.enabled");
-    var autoFillPref = document.getElementById("browser.urlbar.autoFill");
-    var showPopupPref = document.getElementById("browser.urlbar.showPopup");
-    // matchOnlyTyped doesn't makes sense if both autoFill and showPopup prefs
-    // are false or if autocomplete is turned off.
-    document.getElementById("matchOnlyTyped").disabled =
-      (!autoFillPref.value && !showPopupPref.value) || !autoCompletePref.value;
-  }
+    document.getElementById("matchOnlyTyped").disabled = matchDisabled;
+
+  if (!document.getElementById("browser.urlbar.default.behavior").locked)
+    document.getElementById("matchOnlyURLs").disabled = matchDisabled;
+
+  if (!document.getElementById("browser.urlbar.matchBehavior").locked)
+    document.getElementById("matchBehavior").disabled = matchDisabled;
+}
+
+function ReadDefaultBehavior(aField)
+{
+  var curval = document.getElementById("browser.urlbar.default.behavior").value;
+  // Return the right bit
+  return (curval & kBehaviorURL) != 0;
+}
+
+function WriteDefaultBehavior(aField)
+{
+  var curval = document.getElementById("browser.urlbar.default.behavior").value;
+  // Only care about the bit we have to change
+  if (aField.checked)
+    return curval | kBehaviorURL;
+
+  return curval & ~kBehaviorURL;
 }

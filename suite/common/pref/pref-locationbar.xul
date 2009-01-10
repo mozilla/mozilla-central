@@ -58,14 +58,20 @@
       <preference id="browser.urlbar.matchOnlyTyped"
                   name="browser.urlbar.matchOnlyTyped"
                   type="bool"/>
+      <preference id="browser.urlbar.default.behavior"
+                  name="browser.urlbar.default.behavior"
+                  type="int"/>
+      <preference id="browser.urlbar.matchBehavior"
+                  name="browser.urlbar.matchBehavior"
+                  type="int"/>
       <preference id="browser.urlbar.autoFill"
                   name="browser.urlbar.autoFill"
                   type="bool"
-                  onchange="updateMatchOnlyTyped();"/>
+                  onchange="updateMatchPrefs();"/>
       <preference id="browser.urlbar.showPopup"
                   name="browser.urlbar.showPopup"
                   type="bool"
-                  onchange="updateMatchOnlyTyped();"/>
+                  onchange="updateMatchPrefs();"/>
       <preference id="browser.urlbar.showSearch"
                   name="browser.urlbar.showSearch"
                   type="bool"/>
@@ -88,6 +94,26 @@
                 label="&autoCompleteMatchOnlyTyped.label;"
                 accesskey="&autoCompleteMatchOnlyTyped.accesskey;"
                 preference="browser.urlbar.matchOnlyTyped"/>
+      <checkbox id="matchOnlyURLs"
+                class="indent"
+                label="&autoCompleteMatchOnlyURLs.label;"
+                accesskey="&autoCompleteMatchOnlyURLs.accesskey;"
+                preference="browser.urlbar.default.behavior"
+                onsyncfrompreference="return document.getElementById('locationBar_pane').ReadDefaultBehavior(this);"
+                onsynctopreference="return document.getElementById('locationBar_pane').WriteDefaultBehavior(this);"/>
+      <hbox align="center" class="indent">
+        <label value="&autoCompleteMatch.label;" control="matchBehavior"
+               accesskey="&autoCompleteMatch.accesskey;"/>
+        <menulist id="matchBehavior"
+                  preference="browser.urlbar.matchBehavior">
+          <menupopup>
+            <menuitem value="0" label="&autoCompleteMatchAnywhere;"/>
+            <menuitem value="1" label="&autoCompleteMatchWordsFirst;"/>
+            <menuitem value="2" label="&autoCompleteMatchWords;"/>
+            <menuitem value="3" label="&autoCompleteMatchStart;"/>
+          </menupopup>
+        </menulist>
+      </hbox>
       <checkbox id="autoFill"
                 class="indent"
                 label="&autoCompleteAutoFill.label;"

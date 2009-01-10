@@ -115,11 +115,14 @@ pref("browser.urlbar.matchOnlyTyped", false);
 // 2: Match only on word boundaries (e.g., after / or .)
 // 3: Match at the beginning of the url or title
 pref("browser.urlbar.matchBehavior", 1);
-// 0: Search nothing
-// 1: Search history (visited pages)
-// 2: Search bookmarks
-// 3: Search both history and bookmarks
-pref("browser.urlbar.search.sources", 1);
+
+// The default behavior for the urlbar can be configured to use any combination
+// of the restrict or match filters with each additional filter restricting
+// more (intersection). Add the following values to set the behavior as the
+// default: 1: history, 2: bookmark, 4: tag, 8: title, 16: url
+// E.g., 0 = show all results (no filtering), 1 = only visited pages in history,
+// 2 = only bookmarks, 3 = visited bookmarks, 1+16 = history matching in the url
+pref("browser.urlbar.default.behavior", 1);
 pref("browser.urlbar.filter.javascript", true);
 
 // Size of "chunks" affects the number of places to process between each search

@@ -2,14 +2,19 @@
 
 <!ENTITY  pref.history.caption              "Browsing History">
 <!ENTITY  historyPages.label                "History is a list of previously visited pages.">
-<!ENTITY  pageHis.label                     "Remember visited pages for the last">
-<!ENTITY  pageHis.accesskey                 "a">
-<!ENTITY  days.label                        "days">
+<!ENTITY  expireDaysMin1.label              "Always remember visited pages for at least">
+<!ENTITY  expireDaysMin1.accesskey          "R">
+<!ENTITY  expireDaysMin2.label              "days">
+<!ENTITY  expireDays1.label                 "Remember visited pages for up to">
+<!ENTITY  expireDays1.accesskey             "e">
+<!ENTITY  expireDays2.label                 "days">
+<!ENTITY  expireSites1.label                "Remember up to">
+<!ENTITY  expireSites1.accesskey            "m">
+<!ENTITY  expireSites2.label                "visited pages">
 <!ENTITY  clearHistory.label                "Clear History">
-<!ENTITY  clearHistory.accesskey            "r">
+<!ENTITY  clearHistory.accesskey            "s">
 
 <!ENTITY  locationBarHistory.caption        "Location Bar History">
 <!ENTITY  clearLocationBar.label            "Clear the list of sites stored in the location bar menu.">
 <!ENTITY  clearLocationBarButton.label      "Clear Location Bar">
-<!ENTITY  clearLocationBarButton.accesskey  "b">
-  
+<!ENTITY  clearLocationBarButton.accesskey  "L">
