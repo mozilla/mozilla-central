@@ -37,7 +37,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
+/**
+ * Get this window's currently selected calendar.
+ * 
+ * @return      The currently selected calendar.
+ */
 function getSelectedCalendar() {
     var tree = document.getElementById("calendar-list-tree-widget");
     if (tree) {
@@ -47,6 +51,13 @@ function getSelectedCalendar() {
     }
 }
 
+/**
+ * Deletes the passed calendar, prompting the user if he really wants to do
+ * this. If there is only one calendar left, no calendar is removed and the user
+ * is not prompted.
+ *
+ * @param aCalendar     The calendar to delete.
+ */
 function promptDeleteCalendar(aCalendar) {
     var calendars = getCalendarManager().getCalendars({});
     if (calendars.length <= 1) {
@@ -71,6 +82,9 @@ function promptDeleteCalendar(aCalendar) {
     }
 }
 
+/**
+ * Ensure that the passed calendar is visible to the user in the current window.
+ */
 function ensureCalendarVisible(aCalendar) {
     var composite = getCompositeCalendar();
     if (!composite.getCalendar(aCalendar.uri)) {
@@ -79,7 +93,7 @@ function ensureCalendarVisible(aCalendar) {
 }
 
 /**
- * Calendar manager load/unload functions
+ * Called to initialize the calendar manager for a window.
  */
 function loadCalendarManager() {
     var calMgr = getCalendarManager();
@@ -131,6 +145,9 @@ function loadCalendarManager() {
     }
 }
 
+/**
+ * Called to clean up the calendar manager for a window.
+ */
 function unloadCalendarManager() {
     calendarManagerObserver.unload();
     var calMgr = getCalendarManager();
@@ -147,6 +164,13 @@ function unloadCalendarManager() {
 
 /**
  * Color specific functions
+ */
+/**
+ * Update the calendar-view-bindings.css stylesheet to provide rules for
+ * category colors.
+ *
+ * XXX This doesn't really fit into the calendar manager and is here for
+ * historical reasons.
  */
 var gCachedStyleSheet;
 function calendarListInitCategoryColors() {
@@ -179,10 +203,15 @@ function calendarListInitCategoryColors() {
  * preference.  (For most users who upgrade and do not later add colors with a
  * downgrade version, this should convert any illegal preferences once, so
  * future runs have no illegal preferences.)
- * @param categoryPrefBranch prefBranch for "calendar.category.color."
- * @param coloredCategories array of preference name suffixes under the prefBranch.
- * @return same array with each illegal name replaced with formatted name if
- * it doesn't already exist, or simply removed from array if it does.
+ *
+ * @param categoryPrefBranch        PrefBranch for "calendar.category.color."
+ * @param coloredCategories         Array of preference name suffixes under the
+ *                                    prefBranch.
+ * @return                          Same array with each illegal name replaced
+ *                                    with formatted name if it doesn't already
+ *                                    exist, or simply removed from array if it
+ *                                    does.
+ *
  */
 function calendarConvertObsoleteColorPrefs(categoryPrefBranch, coloredCategories) {
     for (var i in coloredCategories) {
@@ -202,6 +231,12 @@ function calendarConvertObsoleteColorPrefs(categoryPrefBranch, coloredCategories
     return coloredCategories;
 }
 
+/**
+ * Update the cached stylesheet to provide rules for the calendar list's
+ * calendar colors.
+ *
+ * @param aCalendar         The calendar to update rules for.
+ */
 function calendarListUpdateColor(aCalendar) {
     var selectorPrefix = "treechildren::-moz-tree-cell";
     var color = aCalendar.getProperty("color");
@@ -245,6 +280,12 @@ var calendarListTreeView = {
      * High-level calendar tree manipulation
      */
 
+    /**
+     * Find the array index of the passed calendar
+     *
+     * @param aCalendar     The calendar to find an index for.
+     * @return              The array index, or -1 if not found.
+     */
     findIndex: function cLTV_findIndex(aCalendar) {
         for (var i = 0; i < this.mCalendarList.length; i++) {
             if (this.mCalendarList[i].id == aCalendar.id) {
@@ -254,6 +295,12 @@ var calendarListTreeView = {
         return -1;
     },
 
+    /**
+     * Find the array index of a calendar by its uri.
+     *
+     * @param aUri          The uri to find an index for.
+     * @return              The array index, or -1 if not found.
+     */
     findIndexByUri: function cLTV_findIndexByUri(aUri) {
         for (var i = 0; i < this.mCalendarList.length; i++) {
             if (this.mCalendarList[i].uri.equals(aUri)) {
@@ -263,6 +310,11 @@ var calendarListTreeView = {
         return -1;
     },
 
+    /**
+     * Add a calendar to the calendar list
+     * 
+     * @param aCalendar     The calendar to add.
+     */
     addCalendar: function cLTV_addCalendar(aCalendar) {
         var composite = getCompositeCalendar();
         this.mCalendarList.push(aCalendar);
@@ -275,6 +327,11 @@ var calendarListTreeView = {
         }
     },
 
+    /**
+     * Remove a calendar from the calendar list
+     * 
+     * @param aCalendar     The calendar to remove.
+     */
     removeCalendar: function cLTV_removeCalendar(aCalendar) {
         var index = this.findIndex(aCalendar);
         if (index < 0) {
@@ -290,11 +347,24 @@ var calendarListTreeView = {
         this.treebox.rowCountChanged(index, -1);
     },
 
+    /**
+     * Update a calendar's tree row (to refresh the color and such)
+     * 
+     * @param aCalendar     The calendar to update.
+     */
     updateCalendar: function cLTV_updateCalendar(aCalendar) {
         var index = this.findIndex(aCalendar);
         this.treebox.invalidateRow(index);
     },
 
+    /**
+     * Get the calendar from the given DOM event. This can be a Mouse event or a
+     * keyboard event.
+     *
+     * @param event     The DOM event to check
+     * @param aCol      An out-object for the column id.
+     * @param aRow      An out-object for the row index.
+     */
     getCalendarFromEvent: function cLTV_getCalendarFromEvent(event,
                                                              aCol,
                                                              aRow) {
@@ -318,13 +388,12 @@ var calendarListTreeView = {
         return aRow && aRow.value > -1 && this.mCalendarList[aRow.value];
     },
 
-    /**
-     * nsITreeView methods and properties
-     */
-    get rowCount() {
-        return this.mCalendarList.length;
-    },
 
+    /**
+     * Get the calendar from a certain index.
+     * 
+     * @param index     The index to get the calendar for.
+     */
     getCalendar: function cLTV_getCalendar(index) {
         if (index < 0) {
             index = 0;
@@ -332,6 +401,13 @@ var calendarListTreeView = {
             index = (this.mCalendarList.length - 1);
         }
         return this.mCalendarList[index];
+    },
+
+    /**
+     * nsITreeView methods and properties
+     */
+    get rowCount() {
+        return this.mCalendarList.length;
     },
 
     getCellProperties: function cLTV_getCellProperties(aRow, aCol, aProps) {
@@ -567,6 +643,12 @@ var calendarListTreeView = {
         return (tooltipText != false);
     },
 
+    /**
+     * A handler called to set up the context menu on the calendar list.
+     *
+     * @param event         The DOM event that caused the context menu to open.
+     * @return              Returns true if the context menu should be shown.
+     */
     setupContextMenu: function cLTV_setupContextMenu(event) {
         var col = {};
         var row = {};
@@ -627,6 +709,10 @@ var calendarListTreeView = {
     }
 };
 
+/**
+ * An observer of the composite calendar to keep the calendar list in sync.
+ * Implements calICompositeObserver and calIObserver.
+ */
 var calendarManagerCompositeObserver = {
     QueryInterface: function cMCO_QueryInterface(aIID) {
         if (!aIID.equals(Components.interfaces.calICompositeObserver) &&
@@ -685,6 +771,10 @@ var calendarManagerCompositeObserver = {
                                                         aName) {}
 }
 
+/**
+ * An observer for the calendar manager xpcom component, to keep the calendar
+ * list in sync.
+ */
 var calendarManagerObserver = {
     mDefaultCalendarItem: null,
 
@@ -718,6 +808,9 @@ var calendarManagerObserver = {
         document.commandDispatcher.updateCommands("calendar_commands");
     },
 
+    /**
+     * Clean up function to remove observers when closing the window
+     */
     unload: function cMO_unload() {
         var calendars = getCalendarManager().getCalendars({});
         for each (var calendar in calendars) {
@@ -725,6 +818,10 @@ var calendarManagerObserver = {
         }
     },
 
+    /**
+     * Disables all elements with the attribute
+     * 'disable-when-no-writable-calendars' set to 'true'.
+     */
     setupWritableCalendars: function cMO_setupWritableCalendars() {
         var nodes = document.getElementsByAttribute("disable-when-no-writable-calendars", "true");
         for (var i = 0; i < nodes.length; i++) {
@@ -872,6 +969,9 @@ var calendarManagerObserver = {
     }
 };
 
+/**
+ * Opens the subscriptions dialog modally.
+ */
 function openCalendarSubscriptionsDialog() {
     // the dialog will reset this to auto when it is done loading
     window.setCursor("wait");

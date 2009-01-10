@@ -37,6 +37,10 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
+/**
+ * Sets up the invitations dialog from the window arguments, retrieves the
+ * invitations from the invitations manager.
+ */
 function onLoad() {
     var operationListener = {
         onOperationComplete: function oL_onOperationComplete(aCalendar,
@@ -84,11 +88,19 @@ function onLoad() {
     opener.setCursor("auto");
 }
 
+/**
+ * Cleans up the invitations dialog, cancels pending requests.
+ */
 function onUnload() {
     var args = window.arguments[0];
     args.requestManager.cancelPendingRequests();
 }
 
+/**
+ * Handler function to be called when the accept button is pressed.
+ *
+ * @return      Returns true if the window should be closed
+ */
 function onAccept() {
     var args = window.arguments[0];
     fillJobQueue(args.queue);
@@ -96,6 +108,9 @@ function onAccept() {
     return true;
 }
 
+/**
+ * Handler function to be called when the cancel button is pressed.
+ */
 function onCancel() {
     var args = window.arguments[0];
     if (args.finishedCallBack) {
@@ -103,6 +118,12 @@ function onCancel() {
     }
 }
 
+/**
+ * Fills the job queue from the invitations-listbox's items. The job queue
+ * contains objects for all items that have a modified participation status.
+ *
+ * @param queue     The queue to fill.
+ */
 function fillJobQueue(queue) {
     var richListBox = document.getElementById("invitations-listbox");
     var rowCount = richListBox.getRowCount();

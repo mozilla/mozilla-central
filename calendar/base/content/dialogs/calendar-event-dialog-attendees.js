@@ -50,6 +50,9 @@ var gUndoStack = [];
 var gForce24Hours = false;
 var gZoomFactor = 100;
 
+/**
+ * Sets up the attendee dialog
+ */
 function onLoad() {
     // first of all, attach all event handlers
     window.addEventListener("resize", onResize, true);
@@ -139,6 +142,12 @@ function onLoad() {
     self.focus();
 }
 
+/**
+ * This function should be called when the accept button was pressed on the
+ * attendee dialog. Calls the accept function specified in the window arguments.
+ *
+ * @return      Returns true, if the dialog should be closed.
+ */
 function onAccept() {
     var attendees = document.getElementById("attendees-list");
     window.arguments[0].onOk(
@@ -149,14 +158,34 @@ function onAccept() {
     return true;
 }
 
+/**
+ * This function should be called when the cancel button was pressed on the
+ * attendee dialog.
+ *
+ * @return      Returns true, if the dialog should be closed.
+ */
 function onCancel() {
     return true;
 }
 
+/**
+ * Event handler for setting the zoom factor
+ *
+ * @param aValue        The zoom factor to set.
+ *
+ * XXX setZoomFactor should be called directly.
+ */
 function onZoomFactor(aValue) {
     setZoomFactor(parseInt(aValue));
 }
 
+/**
+ * Loads the passed start and end dates, fills global variables that give
+ * information about the state of the dialog.
+ *
+ * @param aStartDate        The date/time the grid should start at.
+ * @param aEndDate          The date/time the grid should end at.
+ */
 function loadDateTime(aStartDate, aEndDate) {
     gDuration = aEndDate.subtractDate(aStartDate);
     var kDefaultTimezone = calendarDefaultTimezone();
@@ -168,6 +197,9 @@ function loadDateTime(aStartDate, aEndDate) {
     gEndDate.makeImmutable();
 }
 
+/**
+ * Sets up the time grid using the global start and end dates.
+ */
 function propagateDateTime() {
     // Fill the controls
     updateDateTime();
@@ -209,14 +241,9 @@ function propagateDateTime() {
 }
 
 /**
- * assumes that gStartDate and gEndDate have been correctly initialized,
- * either by having called loadDateTime() or having read the information
- * from the controls due to recent user input. gStartDate and gEndDate are
- * assumed to always be in the default timezone while the actual timezones
- * are expected at gStartTimezone and gEndTimezone. this function attempts
- * to copy these state related informations to the dialog controls, which
- * makes it read from the variables and write to the controls (i.e. it
- * doesn't change the state).
+ * This function requires gStartDate and gEndDate and the respective timezone
+ * variables to be initialized. It updates the date/time information displayed in
+ * the dialog from the above noted variables.
  */
 function updateDateTime() {
     // Convert to default timezone if the timezone option
@@ -276,14 +303,9 @@ function updateDateTime() {
 }
 
 /**
- * assumes that gStartDate and gEndDate have been correctly initialized,
- * either by having called loadDateTime() or having read the information
- * from the controls due to recent user input. gStartDate and gEndDate are
- * assumed to always be in the default timezone while the actual timezones
- * are expected at gStartTimezone and gEndTimezone. this function attempts
- * to copy these state related informations to the dialog controls, which
- * makes it read from the variables and write to the controls (i.e. it
- * doesn't change the state).
+ * This function requires gStartDate and gEndDate and the respective timezone
+ * variables to be initialized. It updates the timezone information displayed in
+ * the dialog from the above noted variables.
  */
 function updateTimezone() {
     gIgnoreUpdate = true;
@@ -323,6 +345,9 @@ function updateTimezone() {
     gIgnoreUpdate = false;
 }
 
+/**
+ * Updates gStartDate from the start time picker "event-starttime"
+ */
 function updateStartTime() {
     if (gIgnoreUpdate) {
         return;
@@ -353,6 +378,9 @@ function updateStartTime() {
     propagateDateTime();
 }
 
+/**
+ * Updates gEndDate from the end time picker "event-endtime"
+ */
 function updateEndTime() {
     if (gIgnoreUpdate) {
         return;
@@ -416,6 +444,10 @@ function updateEndTime() {
     }
 }
 
+/**
+ * Prompts the user to pick a new timezone for the starttime. The dialog is
+ * opened modally.
+ */
 function editStartTimezone() {
     var tzStart = document.getElementById("timezone-starttime");
     if (tzStart.hasAttribute("disabled")) {
@@ -447,6 +479,10 @@ function editStartTimezone() {
         args);
 }
 
+/**
+ * Prompts the user to pick a new timezone for the endtime. The dialog is
+ * opened modally.
+ */
 function editEndTimezone() {
     var tzStart = document.getElementById("timezone-endtime");
     if (tzStart.hasAttribute("disabled")) {
@@ -474,6 +510,12 @@ function editEndTimezone() {
         args);
 }
 
+/**
+ * Updates the dialog controls in case the window's event is an allday event, or
+ * was set to one in the attendee dialog.
+ *
+ * This for example disables the timepicker since its not needed.
+ */
 function updateAllDay() {
     if (gIgnoreUpdate) {
         return;
@@ -509,6 +551,11 @@ function updateAllDay() {
     }
 }
 
+/**
+ * Changes the global variables to adapt for the change of the allday checkbox.
+ *
+ * XXX Function names are all very similar here. This needs some consistancy!
+ */
 function changeAllDay() {
     var allDayElement = document.getElementById("all-day");
     var allDay = (allDayElement.getAttribute("checked") == "true");
@@ -522,7 +569,7 @@ function changeAllDay() {
     propagateDateTime();
 
     // After propagating the modified times we enforce some constraints
-    // on the zoom-factor. in case this events is now said to be all-day,
+    // on the zoom-factor. In case this events is now said to be all-day,
     // we automatically enforce a 25% zoom-factor and disable the control.
     var zoom = document.getElementById("zoom-menulist");
     if (allDay) {
@@ -535,6 +582,9 @@ function changeAllDay() {
     }
 }
 
+/**
+ * Handler function used when the window is resized.
+ */
 function onResize() {
     // Don't do anything if we haven't been initialized.
     if (!gStartDate || !gEndDate) {
@@ -564,6 +614,11 @@ function onResize() {
     }
 }
 
+/**
+ * Handler function to call when changing the calendar used in this dialog.
+ *
+ * @param calendar      The calendar to change to.
+ */
 function onChangeCalendar(calendar) {
     var args = window.arguments[0];
     var organizer = args.organizer;
@@ -591,6 +646,9 @@ function onChangeCalendar(calendar) {
     freebusy.onChangeCalendar(calendar);
 }
 
+/**
+ * Updates the slot buttons.
+ */
 function updateButtons() {
     var previousButton = document.getElementById("previous-slot");
     if (gUndoStack.length > 0) {
@@ -600,6 +658,9 @@ function updateButtons() {
     }
 }
 
+/**
+ * Handler function called to advance to the next slot.
+ */
 function onNextSlot() {
     // Store the current setting in the undo-stack.
     var currentSlot = {};
@@ -636,6 +697,9 @@ function onNextSlot() {
     updateButtons();
 }
 
+/**
+ * Handler function called to advance to the previous slot.
+ */
 function onPreviousSlot() {
     var previousSlot = gUndoStack.pop();
     if (!previousSlot) {
@@ -665,6 +729,9 @@ function onPreviousSlot() {
     }
 }
 
+/**
+ * Handler function called to zoom out (minus button)
+ */
 function onMinus() {
     var timebar = document.getElementById("timebar");
     var ratio = timebar.scroll;
@@ -677,6 +744,9 @@ function onMinus() {
     scrollbar.setAttribute("curpos", ratio * maxpos);
 }
 
+/**
+ * Handler function called to zoom in (plus button)
+ */
 function onPlus() {
     var timebar = document.getElementById("timebar");
     var ratio = timebar.scroll;
@@ -689,6 +759,10 @@ function onPlus() {
     scrollbar.setAttribute("curpos", ratio * maxpos);
 }
 
+/**
+ * Scrolls the time grid to a position where the time of the item in question is
+ * visible.
+ */
 function scrollToCurrentTime() {
     var timebar = document.getElementById("timebar");
     var ratio = (gStartDate.hour - gStartHour) * timebar.step;
@@ -704,6 +778,12 @@ function scrollToCurrentTime() {
 }
 
 
+/**
+ * Sets the zoom factor for the time grid
+ *
+ * @param aValue        The zoom factor to set.
+ * @return              aValue (for chaining)
+ */
 function setZoomFactor(aValue) {
     if (gZoomFactor == aValue) {
         return aValue;
@@ -735,6 +815,12 @@ function setZoomFactor(aValue) {
     return aValue;
 }
 
+/**
+ * Force the time grid to show 24 hours.
+ *
+ * @param aValue        If true, the view will be forced to 24 hours.
+ * @return              aValue (for chaining)
+ */
 function setForce24Hours(aValue) {
     if (gForce24Hours == aValue) {
       return aValue;
@@ -768,6 +854,10 @@ function setForce24Hours(aValue) {
     return aValue;
 }
 
+/**
+ * Initialize the time range, setting the start and end hours from the prefs, or
+ * to 24 hrs if gForce24Hours is set.
+ */
 function initTimeRange() {
     if (gForce24Hours) {
         gStartHour = 0;
@@ -778,13 +868,26 @@ function initTimeRange() {
     }
 }
 
+/**
+ * Handler function for the "modify" event, emitted from the attendees-list
+ * binding. event.details is an array of objects containing the user's email
+ * (calid) and a flag that tells if the user has entered text before the last
+ * onModify was called (dirty).
+ *
+ * @param event     The DOM event that caused the modification.
+ */
 function onModify(event) {
     onResize();
-    document.getElementById(
-        "freebusy-grid")
-            .onModify(event);
+    document.getElementById("freebusy-grid").onModify(event);
+            
 }
 
+/**
+ * Handler function for the "rowchange" event, emitted from the attendees-list
+ * binding. event.details is the row that was changed to.
+ *
+ * @param event     The DOM event caused by the row change.
+ */
 function onRowChange(event) {
     var scrollbar = document.getElementById("vertical-scrollbar");
     var attendees = document.getElementById("attendees-list");
@@ -794,11 +897,21 @@ function onRowChange(event) {
         event.details / attendees.mMaxAttendees * maxpos);
 }
 
+/**
+ * Handler function to take care of mouse scrolling on the window
+ *
+ * @param event     The DOMMouseScroll event caused by scrolling.
+ */
 function onMouseScroll(event) {
     // ignore mouse scrolling for now...
     event.stopPropagation();
 }
 
+/**
+ * Hanlder function to take care of attribute changes on the window
+ *
+ * @param event     The DOMAttrModified event caused by this change.
+ */
 function onAttrModified(event) {
     if (event.attrName == "width") {
         var selectionbar = document.getElementById("selection-bar");
@@ -846,12 +959,25 @@ function onAttrModified(event) {
     }
 }
 
+/**
+ * Handler function for initializing the selection bar, event usually emitted
+ * from the freebusy-timebar binding.
+ *
+ * @param event     The "timebar" event with details and height property.
+ */
 function onTimebar(event) {
     document.getElementById(
         "selection-bar")
             .init(event.details, event.height);
 }
 
+/**
+ * Handler function to update controls when the time has changed on the
+ * selection bar.
+ *
+ * @param event     The "timechange" event with startDate and endDate
+ *                    properties.
+ */
 function onTimeChange(event) {
     var start = event.startDate.getInTimezone(gStartTimezone);
     var end = event.endDate.getInTimezone(gEndTimezone);

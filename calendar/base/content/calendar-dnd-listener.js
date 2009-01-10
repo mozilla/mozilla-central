@@ -39,6 +39,15 @@
 
 var itemConversion = {
 
+    /**
+     * Converts an email message to a calendar item.
+     *
+     * XXX Currently, only the title is taken from the passed message. Aside
+     * from that, the currently visible message in the preview pane is used.
+     *
+     * @param aItem     The target calIItemBase.
+     * @param aMessage  The message  to convert from
+     */
     calendarItemFromMessage: function iC_calendarItemFromMessage(aItem, aMessage) {
         aItem.calendar = getSelectedCalendar();
         aItem.title = aMessage.mime2DecodedSubject;
@@ -89,6 +98,14 @@ var itemConversion = {
         }
     },
 
+    /**
+     * Copy base item properties from aItem to aTarget. This includes properties
+     * like title, location, description, priority, status, transparency,
+     * attendees, categories, calendar, recurrence and possibly more.
+     *
+     * @param aItem     The item to copy from.
+     * @param aTarget   the item to copy to.
+     */
     copyItemBase: function iC_copyItemBase(aItem, aTarget) {
         const copyProps = ["SUMMARY", "LOCATION", "DESCRIPTION",
                            "URL", "CLASS", "PRIORITY", "STATUS"];
@@ -120,6 +137,13 @@ var itemConversion = {
         }
     },
 
+    /**
+     * Creates a task from the passed event. This function copies the base item
+     * and a few event specific properties (dates, alarms, ...).
+     *
+     * @param aEvent    The event to copy from.
+     * @return          The resulting task.
+     */
     taskFromEvent: function iC_taskFromEvent(aEvent) {
         var item = createTodo();
 
@@ -143,6 +167,14 @@ var itemConversion = {
         return item;
     },
 
+    /**
+     * Creates an event from the passed task. This function copies the base item
+     * and a few task specific properties (dates, alarms, ...). If the task has
+     * no due date, the default event length is used.
+     *
+     * @param aTask     The task to copy from.
+     * @return          The resulting event.
+     */
     eventFromTask: function iC_eventFromTask(aTask) {
         var item = createEvent();
 
@@ -174,6 +206,10 @@ var itemConversion = {
     }
 };
 
+/**
+ * A base class for drag and drop observers
+ * @class calDNDBaseObserver
+ */
 function calDNDBaseObserver() {
     ASSERT(false, "Inheriting objects call calDNDBaseObserver!");
 }
@@ -192,6 +228,10 @@ calDNDBaseObserver.prototype = {
         flavourSet.appendFlavour("application/x-moz-file");
         return flavourSet;
     },
+
+    /**
+     * Action to take when dropping the event.
+     */
 
     onDrop: function calDNDDrop(aEvent, aTransferData, aDragSession) {
         var transferable = Components.classes["@mozilla.org/widget/transferable;1"]
@@ -396,6 +436,8 @@ calMailButtonDNDObserver.prototype = {
      *
      * Gets called in case we're dropping an array of items
      * on the 'mail mode'-button.
+     *
+     * @param aItems        An array of items to handle.
      */
     onDropItems: function(aItems) {
         if (aItems && aItems.length > 0) {
@@ -432,6 +474,8 @@ calMailButtonDNDObserver.prototype = {
      *
      * Gets called in case we're dropping a message
      * on the 'mail mode'-button.
+     *
+     * @param aMessage     The message to handle.
      */
     onDropMessage: function(aMessage) {
     }
@@ -456,6 +500,8 @@ calCalendarButtonDNDObserver.prototype = {
      *
      * Gets called in case we're dropping an array of items
      * on the 'calendar mode'-button.
+     *
+     * @param aItems        An array of items to handle.
      */
     onDropItems: function(aItems) {
         for each (var item in aItems) {
@@ -474,6 +520,8 @@ calCalendarButtonDNDObserver.prototype = {
      * 'calendar mode'-button. In this case we create a new
      * event from the mail. We open the default event dialog
      * and just use the subject of the message as the event title.
+     *
+     * @param aMessage     The message to handle.
      */
     onDropMessage: function(aMessage) {
         var newItem = createEvent();
@@ -501,6 +549,8 @@ calTaskButtonDNDObserver.prototype = {
      *
      * Gets called in case we're dropping an array of items
      * on the 'task mode'-button.
+     *
+     * @param aItems        An array of items to handle.
      */
     onDropItems: function(aItems) {
         for each (var item in aItems) {
@@ -517,6 +567,8 @@ calTaskButtonDNDObserver.prototype = {
      *
      * Gets called in case we're dropping a message
      * on the 'task mode'-button.
+     *
+     * @param aMessage     The message to handle.
      */
     onDropMessage: function(aMessage) {
         var todo = createTodo();
@@ -525,6 +577,13 @@ calTaskButtonDNDObserver.prototype = {
     }
 };
 
+/**
+ * Invoke a drag session for the passed item. The passed box will be used as a
+ * source.
+ *
+ * @param aItem     The item to drag.
+ * @param aXULBox   The XUL box to invoke the drag session from.
+ */
 function invokeEventDragSession(aItem, aXULBox) {
     let transfer = Components.classes["@mozilla.org/widget/transferable;1"]
                    .createInstance(Components.interfaces.nsITransferable);

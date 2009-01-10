@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -39,9 +38,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* dialog stuff */
-function loadCalendarPublishDialog()
-{
+// TODO This file needs cleaning up, the code is quite stale.
+
+/**
+ * Prepares the publish dialog from the window's arguments.
+ */
+function loadCalendarPublishDialog() {
     var calendar = window.arguments[0];
 
     window.calendar = calendar;
@@ -57,9 +59,13 @@ function loadCalendarPublishDialog()
     pathTextbox.focus();
 }
 
-
-function onOKCommand()
-{
+/**
+ * Publishes the calendar using the progress meter. The dialog should not be
+ * closed when this function returns, so false will always be returned.
+ *
+ * @return      Returns false, since the dialog should not be closed.
+ */
+function onOKCommand() {
     var progressMeter = document.getElementById("publish-progressmeter");
     progressMeter.setAttribute("mode", "undetermined");
 
@@ -78,8 +84,10 @@ function onOKCommand()
     return false;
 }
 
-function checkURL()
-{
+/**
+ * Checks if the URL in the publish-remotePath-textbox is valid.
+ */
+function checkURL() {
     var pathTextbox = document.getElementById("publish-remotePath-textbox");
     var publishWindow = document.getElementById("calendar-publishwindow");
 
@@ -89,15 +97,23 @@ function checkURL()
         publishWindow.getButton("accept").setAttribute("disabled", "true");
 }
 
-function closeDialog()
-{
+/**
+ * Close the publish dialog.
+ *
+ * XXX This function may be broken
+ */
+function closeDialog() {
    self.close();
 }
 
-
-
-function publishCalendar(calendar, remotePath)
-{
+/**
+ * Publish a calendar to a remote path. When this has been done, the accept
+ * button changes to a close button.
+ *
+ * @param calendar      The calendar to publish.
+ * @param remotePath    The remote url (as a string).
+ */
+function publishCalendar(calendar, remotePath) {
     var icsURL = makeURL(remotePath);
 
     var calManager = getCalendarManager();
@@ -130,8 +146,14 @@ function publishCalendar(calendar, remotePath)
     appendCalendars(newCalendar, [calendar], getListener);
 }
 
-function appendCalendars(to, froms, listener)
-{
+/**
+ * Appends one or more calendars to a target calendar.
+ *
+ * @param to        The target calendar to write to.
+ * @param froms     An array of source calendars.
+ * @param listener  A calIOperationListener to call when complete.
+ */ 
+function appendCalendars(to, froms, listener) {
     var getListener = {
         onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDetail)
         {
@@ -156,13 +178,8 @@ function appendCalendars(to, froms, listener)
         }
     };
 
-
     for each(var from in froms) {
         from.getItems(Components.interfaces.calICalendar.ITEM_FILTER_TYPE_ALL,
                       0, null, null, getListener);
     }
 }
-
-
-
-

@@ -58,8 +58,7 @@ const MODE_EXCL     = 0x80;
  * @param aCalendar  (optional) If specified, the items will be imported directly
  *                              into the calendar
  */
-function loadEventsFromFile(aCalendar)
-{
+function loadEventsFromFile(aCalendar) {
     const nsIFilePicker = Components.interfaces.nsIFilePicker;
   
     var fp = Components.classes["@mozilla.org/filepicker;1"]
@@ -142,6 +141,14 @@ function loadEventsFromFile(aCalendar)
     }
 }
 
+/**
+ * Put items into a certain calendar, catching errors and showing them to the
+ * user.
+ *
+ * @param destCal       The destination calendar.
+ * @param aItems        An array of items to put into the calendar.
+ * @param aFilePath     The original file path, for error messages.
+ */
 function putItemsIntoCal(destCal, aItems, aFilePath) {
     // Set batch for the undo/redo transaction manager
     startBatchTransaction();
@@ -185,7 +192,7 @@ function putItemsIntoCal(destCal, aItems, aFilePath) {
         }
     }
 
-    for each (item in aItems) {
+    for each (let item in aItems) {
         // XXX prompt when finding a duplicate.
         try {
             destCal.addItem(item, listener);
@@ -213,9 +220,7 @@ function putItemsIntoCal(destCal, aItems, aFilePath) {
  *                                      be saved to file.
  * @param aDefaultFileName   (optional) Initial filename shown in SaveAs dialog.
  */
-
-function saveEventsToFile(calendarEventArray, aDefaultFileName)
-{
+function saveEventsToFile(calendarEventArray, aDefaultFileName) {
    if (!calendarEventArray)
        return;
 
@@ -302,8 +307,11 @@ function saveEventsToFile(calendarEventArray, aDefaultFileName)
    }
 }
 
-/* Exports all the events and tasks in a calendar.  If aCalendar is not specified,
+/**
+ * Exports all the events and tasks in a calendar.  If aCalendar is not specified,
  * the user will be prompted with a list of calendars to choose which one to export.
+ *
+ * @param aCalendar     (optional) A specific calendar to export
  */
 function exportEntireCalendar(aCalendar) {
     var itemArray = [];

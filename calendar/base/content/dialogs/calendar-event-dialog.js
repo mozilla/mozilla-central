@@ -59,6 +59,13 @@ var gLastRepeatSelection = 0;
 var gIgnoreUpdate = false;
 var gShowTimeAs = null;
 
+/**
+ * Checks if the given calendar supports notifying attendees. The item is needed
+ * since calendars may support notifications for only some types of items.
+ *
+ * @param calendar    The calendar to check
+ * @param item        The item to check support for.
+ */
 function canNotifyAttendees(calendar, item) {
     try {
         var cal = calendar.QueryInterface(Components.interfaces.calISchedulingSupport);
@@ -68,7 +75,9 @@ function canNotifyAttendees(calendar, item) {
     }
 }
 
-// update menu items that rely on focus
+/**
+ * Update menu items that rely on focus
+ */
 function goUpdateGlobalEditMenuItems() {
     goUpdateCommand('cmd_undo');
     goUpdateCommand('cmd_redo');
@@ -78,7 +87,9 @@ function goUpdateGlobalEditMenuItems() {
     goUpdateCommand('cmd_selectAll');
 }
 
-// update menu items that rely on the current selection
+/**
+ * Update menu items that rely on the current selection
+ */
 function goUpdateSelectEditMenuItems() {
     goUpdateCommand('cmd_cut');
     goUpdateCommand('cmd_copy');
@@ -86,17 +97,25 @@ function goUpdateSelectEditMenuItems() {
     goUpdateCommand('cmd_selectAll');
 }
 
-// update menu items that relate to undo/redo
+/**
+ * Update menu items that relate to undo/redo
+ */
 function goUpdateUndoEditMenuItems() {
     goUpdateCommand('cmd_undo');
     goUpdateCommand('cmd_redo');
 }
 
-// update menu items that depend on clipboard contents
+/**
+ * Update menu items that depend on clipboard contents
+ */
 function goUpdatePasteMenuItems() {
     goUpdateCommand('cmd_paste');
 }
 
+/**
+ * Sets up the event dialog from the window arguments, also setting up all
+ * dialog controls from the window's item.
+ */
 function onLoad() {
     // first of all retrieve the array of
     // arguments this window has been called with.
@@ -198,12 +217,25 @@ function onLoad() {
     document.getElementById("item-title").select();
 }
 
+/**
+ * Handler function to be called when the accept button is pressed.
+ *
+ * @return      Returns true if the window should be closed
+ */
 function onAccept() {
     dispose();
     onCommandSave(true);
     return true;
 }
 
+/**
+ * Asks the user if the item should be saved and does so if requested. If the
+ * user cancels, the window should stay open.
+ *
+ * XXX Could possibly be consolidated into onCancel()
+ *
+ * @return    Returns true if the window should be closed.
+ */
 function onCommandCancel() {
     // find out if we should bring up the 'do you want to save?' question...
     var newItem = saveItem();
@@ -262,6 +294,10 @@ function onCommandCancel() {
     }
 }
 
+/**
+ * Handler function to be called when the cancel button is pressed.
+ *
+ */
 function onCancel() {
     var result = onCommandCancel();
     if (result == true) {
@@ -270,6 +306,11 @@ function onCancel() {
     return result;
 }
 
+/**
+ * Sets up all dialog controls from the information of the passed item.
+ *
+ * @param item      The item to parse information out of.
+ */
 function loadDialog(item) {
     setElementValue("item-title", item.title);
     setElementValue("item-location", item.getProperty("LOCATION"));
@@ -381,6 +422,11 @@ function loadDialog(item) {
     updateShowTimeAs();
 }
 
+/**
+ * Sets up all date related controls from the passed item
+ *
+ * @param item      The item to parse information out of.
+ */
 function loadDateTime(item) {
     var kDefaultTimezone = calendarDefaultTimezone();
     if (isEvent(item)) {
@@ -439,6 +485,13 @@ function loadDateTime(item) {
 }
 
 
+/**
+ * Handler function to be used when the start time or end time of the event have
+ * changed. If aKeepDuration is true then the end time will be modified so that
+ * the total duration of the item stays the same.
+ *
+ * @param aKeepDuration   If true, the duration will be kept constant.
+ */
 function dateTimeControls2State(aKeepDuration) {
     if (gIgnoreUpdate) {
         return;
@@ -527,6 +580,10 @@ function dateTimeControls2State(aKeepDuration) {
     }
 }
 
+/**
+ * Updates the entry date checkboxes, used for example when choosing an alarm:
+ * the entry date needs to be checked in that case.
+ */
 function updateEntryDate() {
     updateDateCheckboxes(
         "todo-entrydate",
@@ -541,6 +598,9 @@ function updateEntryDate() {
         });
 }
 
+/**
+ * Updates the due date checkboxes.
+ */
 function updateDueDate() {
     updateDateCheckboxes(
         "todo-duedate",
@@ -555,6 +615,15 @@ function updateDueDate() {
         });
 }
 
+/**
+ * Common function used by updateEntryDate and updateDueDate to set up the
+ * checkboxes correctly.
+ *
+ * @param aDatePickerId     The XUL id of the datepicker to update.
+ * @param aCheckboxId       The XUL id of the corresponding checkbox.
+ * @param aDateTime         An object implementing the isValid and setDateTime
+ *                            methods. XXX explain.
+ */
 function updateDateCheckboxes(aDatePickerId, aCheckboxId, aDateTime) {
     if (gIgnoreUpdate) {
         return;
@@ -594,6 +663,12 @@ function updateDateCheckboxes(aDatePickerId, aCheckboxId, aDateTime) {
     updateTimezone();
 }
 
+/**
+ * Update the dialog controls to display the item's recurrence information
+ * nicely.
+ *
+ * @param item    The item to load.
+ */
 function loadRepeat(item) {
     var recurrenceInfo = window.recurrenceInfo;
     setElementValue("item-repeat", "none");
@@ -703,11 +778,19 @@ function loadRepeat(item) {
     }
 }
 
+/**
+ * Update reminder related elements on the dialog.
+ */
 function updateReminder() {
     commonUpdateReminder();
     updateAccept();
 }
 
+/**
+ * Saves all values the user chose on the dialog to the passed item
+ *
+ * @param item    The item to save to.
+ */
 function saveDialog(item) {
     // Calendar
     item.calendar = document.getElementById("item-calendar")
@@ -793,6 +876,11 @@ function saveDialog(item) {
     saveReminder(item);
 }
 
+/**
+ * Save date and time related values from the dialog to the passed item.
+ *
+ * @param item    The item to save to.
+ */
 function saveDateTime(item) {
     var kDefaultTimezone = calendarDefaultTimezone();
     if (isEvent(item)) {
@@ -822,6 +910,10 @@ function saveDateTime(item) {
     }
 }
 
+/**
+ * Updates the dialog title based on item type and if the item is new or to be
+ * modified.
+ */
 function updateTitle() {
     var title = "";
     var isNew = window.calendarItem.isMutable;
@@ -843,6 +935,17 @@ function updateTitle() {
     document.title = title;
 }
 
+/**
+ * Updates the stylesheet to add rules to hide certain aspects (i.e task only
+ * elements when editing an event).
+ *
+ * TODO We can use general rules here, i.e 
+ *      dialog[itemType="task"] .event-only,
+ *      dialog[itemType="event"] .task-only,
+ *      dialog:not([product="lightning"]) .lightning-only {
+ *          display: none;
+ *      }
+ */
 function updateStyle() {
     const kDialogStylesheet = "chrome://calendar/content/calendar-event-dialog.css";
 
@@ -861,6 +964,13 @@ function updateStyle() {
     }
 }
 
+/**
+ * Handler function for showing the options menu
+ *
+ * XXX This function could go away with more general CSS rules?
+ *
+ * @param menuPopup   The menupopup node targetted by the event.
+ */
 function onPopupShowing(menuPopup) {
     if (isToDo(window.calendarItem)) {
         var nodes = menuPopup.childNodes;
@@ -878,6 +988,11 @@ function onPopupShowing(menuPopup) {
     }
 }
 
+/**
+ * Update the disabled status of the accept button. The button is enabled if all
+ * parts of the dialog have options selected that make sense.
+ * constraining factors like
+ */
 function updateAccept() {
     var enableAccept = true;
 
@@ -947,6 +1062,10 @@ function updateAccept() {
     return enableAccept;
 }
 
+/**
+ * Handler function to update controls in consequence of the "all day" checkbox
+ * being clicked.
+ */
 function onUpdateAllDay() {
     if (!isEvent(window.calendarItem)) {
         return;
@@ -959,15 +1078,15 @@ function onUpdateAllDay() {
     updateAllDay();
 }
 
-// this function sets the enabled/disabled
-// state of the following controls:
-// - 'event-starttime'
-// - 'event-endtime'
-// - 'timezone-starttime'
-// - 'timezone-endtime'
-// the state depends on whether or not the
-// event is configured as 'all-day' or not.
-function updateAllDay() {
+/**
+ * This function sets the enabled/disabled state of the following controls:
+ * - 'event-starttime'
+ * - 'event-endtime'
+ * - 'timezone-starttime'
+ * - 'timezone-endtime'
+ * the state depends on whether or not the event is configured as 'all-day' or not.
+ */
+ function updateAllDay() {
     if (gIgnoreUpdate) {
         return;
     }
@@ -993,12 +1112,19 @@ function updateAllDay() {
     updateAccept();
 }
 
+/**
+ * Use the window arguments to cause the opener to create a new event on the
+ * item's calendar
+ */
 function openNewEvent() {
     var item = window.calendarItem;
     var args = window.arguments[0];
     args.onNewEvent(item.calendar);
 }
 
+/**
+ * Open a new Thunderbird compose window.
+ */
 function openNewMessage() {
     var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
                             .getService(Components.interfaces.nsIMsgComposeService);
@@ -1011,6 +1137,9 @@ function openNewMessage() {
                                         null);
 }
 
+/**
+ * Open a new addressbook window
+ */
 function openNewCardDialog() {
     window.openDialog(
         "chrome://messenger/content/addressbook/abNewCardDialog.xul",
@@ -1018,8 +1147,12 @@ function openNewCardDialog() {
         "chrome,resizable=no,titlebar,modal");
 }
 
-// automatically select pref calendar.allday.defaultTransparency if this
-// event is said to be all-day.
+/**
+ * Update the transparency status of this dialog, depending on if the event
+ * is all-day or not.
+ *
+ * @param allDay    If true, the event is all-day
+ */
 function setShowTimeAs(allDay) {
     gShowTimeAs = (allDay ? getPrefSafe("calendar.allday.defaultTransparency", "TRANSPARENT") : "OPAQUE");
     updateShowTimeAs();
@@ -1226,11 +1359,20 @@ function updatePrivacy() {
     }
 }
 
+/**
+ * Handler function to change the priority from the dialog elements
+ *
+ * @param target    A XUL node with a value attribute which should be the new
+ *                    priority.
+ */
 function editPriority(target) {
     gPriority = parseInt(target.getAttribute("value"));
     updatePriority();
 }
 
+/**
+ * Update the dialog controls related related to priority.
+ */
 function updatePriority() {
     // Set up capabilities
     var hasPriority = capSupported("priority");
@@ -1285,11 +1427,20 @@ function updatePriority() {
     }
 }
 
+/**
+ * Handler function to change the status from the dialog elements
+ *
+ * @param target    A XUL node with a value attribute which should be the new
+ *                    status.
+ */
 function editStatus(target) {
     gStatus = target.getAttribute("value");
     updateStatus();
 }
 
+/**
+ * Update the dialog controls related related to status.
+ */
 function updateStatus() {
     [ "cmd_status_none",
       "cmd_status_tentative",
@@ -1304,11 +1455,20 @@ function updateStatus() {
       );
 }
 
+/**
+ * Handler function to change the transparency from the dialog elements
+ *
+ * @param target    A XUL node with a value attribute which should be the new
+ *                    transparency.
+ */
 function editShowTimeAs(target) {
     gShowTimeAs = target.getAttribute("value");
     updateShowTimeAs();
 }
 
+/**
+ * Update the dialog controls related related to transparency.
+ */
 function updateShowTimeAs() {
     var showAsBusy = document.getElementById("cmd_showtimeas_busy");
     var showAsFree = document.getElementById("cmd_showtimeas_free");
@@ -1319,6 +1479,9 @@ function updateShowTimeAs() {
                             gShowTimeAs == "TRANSPARENT" ? "true" : "false");
 }
 
+/**
+ * Prompts the user to attach an url to this item.
+ */
 function attachURL() {
     var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                        .getService(Components.interfaces.nsIPromptService);
@@ -1404,6 +1567,16 @@ function attachFile() {
     } 
 }
 
+/**
+ * Helper function to remember the last directory chosen when attaching files.
+ * XXX This function is currently unused, will be needed when we support
+ * attaching files.
+ *
+ * @param aFileUri    (optional) If passed, the last directory will be set and
+ *                                 returned. If null, the last chosen directory
+ *                                 will be returned.
+ * @return            The last directory that was set with this function.
+ */
 function lastDirectory(aFileUri) {
     if (aFileUri) {
         // Act similar to a setter, save the passed uri.
@@ -1416,6 +1589,14 @@ function lastDirectory(aFileUri) {
     return (lastDirectory.mValue !== undefined ? lastDirectory.mValue : null);
 }
 
+/**
+ * Turns an url into a string that can be used in UI.
+ * - For a file:// url, shows the filename.
+ * - For a http:// url, removes protocol and trailing slash
+ *
+ * @param aUri    The uri to parse.
+ * @return        A string that can be used in UI.
+ */
 function makePrettyName(aUri){
     var name = aUri.spec;
     if (aUri.schemeIs("file")) {
@@ -1426,6 +1607,11 @@ function makePrettyName(aUri){
     return name;
 }
 
+/**
+ * Adds the given attachment to dialog controls.
+ *
+ * @param attachment    The calIAttachment object to add
+ */
 function addAttachment(attachment) {
     if (!attachment ||
         !attachment.uri ||
@@ -1455,6 +1641,11 @@ function addAttachment(attachment) {
     updateAttachment();
 }
 
+/**
+ * Removes the currently selected attachment from the dialog controls.
+ *
+ * XXX This could use a dialog maybe?
+ */
 function deleteAttachment() {
     var documentLink = document.getElementById("attachment-link");
     delete gAttachMap[documentLink.selectedItem.attachment.uri.spec];
@@ -1462,6 +1653,9 @@ function deleteAttachment() {
     updateAttachment();
 }
 
+/**
+ * Removes all attachments from the dialog controls.
+ */
 function deleteAllAttachments() {
     var documentLink = document.getElementById("attachment-link");
     var itemCount = documentLink.getRowCount();
@@ -1491,6 +1685,10 @@ function deleteAllAttachments() {
     updateAttachment();
 }
 
+/**
+ * Opens the selected attachment using the external protocol service.
+ * @see nsIExternalProtocolService
+ */
 function openAttachment() {
     // Only one file has to be selected and we don't handle base64 files at all
     var documentLink = document.getElementById("attachment-link");
@@ -1503,6 +1701,11 @@ function openAttachment() {
     }
 }
 
+/**
+ * Handler function to handle pressing keys in the attachment listbox.
+ *
+ * @param event     The DOM event caused by the key press.
+ */
 function attachmentLinkKeyPress(event) {
     const kKE = Components.interfaces.nsIDOMKeyEvent;
     switch (event.keyCode) {
@@ -1516,6 +1719,11 @@ function attachmentLinkKeyPress(event) {
     }
 }
 
+/**
+ * Handler function to take care of clicking on an attachment
+ *
+ * @param event     The DOM event caused by the clicking.
+ */
 function attachmentLinkClicked(event) {
     event.currentTarget.focus();
 
@@ -1530,6 +1738,9 @@ function attachmentLinkClicked(event) {
     }
 }
 
+/**
+ * Update the dialog controls related related to the item's calendar.
+ */
 function updateCalendar() {
     var item = window.calendarItem;
     var calendar = document.getElementById("item-calendar")
@@ -1629,6 +1840,10 @@ function updateCalendar() {
 
 }
 
+/**
+ * Opens the recurrence dialog modally to allow the user to edit the recurrence
+ * rules.
+ */
 function editRepeat() {
     var args = new Object();
     args.calendarEvent = window.calendarItem;
@@ -1792,6 +2007,12 @@ function updateRepeat() {
     updateAccept();
 }
 
+/**
+ * Updates the UI controls related to a task's completion status.
+ *
+ * @param status                    The item's completion status.
+ * @param passedInCompletedDate     The item's completed date (as a JSDate).
+ */
 function updateToDoStatus(status, passedInCompletedDate) {
   // RFC2445 doesn't support completedDates without the todo's status
   // being "COMPLETED", however twiddling the status menulist shouldn't
@@ -1859,6 +2080,11 @@ function updateToDoStatus(status, passedInCompletedDate) {
   }
 }
 
+/**
+ * Saves all dialog controls back to the item.
+ *
+ * @return      a copy of the original item with changes made.
+ */
 function saveItem() {
     // we need to clone the item in order to apply the changes.
     // it is important to not apply the changes to the original item
@@ -1895,6 +2121,17 @@ function saveItem() {
     return item;
 }
 
+/**
+ * Action to take when the user chooses to save. This can happen either by
+ * saving directly or the user selecting to save after being prompted when
+ * closing the dialog.
+ *
+ * This function also takes care of notifying this dialog's caller that the item
+ * is saved.
+ *
+ * @param aIsClosing            If true, the save action originates from the
+ *                                save prompt just before the window is closing.
+ */
 function onCommandSave(aIsClosing) {
     var originalItem = window.calendarItem;
     var item = saveItem();
@@ -1928,6 +2165,12 @@ function onCommandSave(aIsClosing) {
 
 }
 
+/**
+ * Handler function to toggle toolbar visibility.
+ *
+ * @param aToolbarId        The id of the XUL toolbar node to toggle.
+ * @param aMenuitemId       The corresponding menuitem in the view menu.
+ */
 function onCommandViewToolbar(aToolbarId, aMenuItemId) {
     var toolbar = document.getElementById(aToolbarId);
     var menuItem = document.getElementById(aMenuItemId);
@@ -1952,8 +2195,9 @@ function onCommandViewToolbar(aToolbarId, aMenuItemId) {
  * DialogToolboxCustomizeDone() is called after the customize toolbar dialog
  * has been closed by the user. We need to restore the state of all buttons
  * and commands of all customizable toolbars.
+ *
+ * @param aToolboxChanged       If true, the toolbox has changed.
  */
-
 function DialogToolboxCustomizeDone(aToolboxChanged) {
 
     var menubar = document.getElementById("event-menubar");
@@ -1972,6 +2216,10 @@ function DialogToolboxCustomizeDone(aToolboxChanged) {
     updatePrivacy();
 }
 
+/**
+ * Handler function to start the customize toolbar dialog for the event dialog's
+ * toolbar.
+ */
 function onCommandCustomize() {
     // install the callback that handles what needs to be
     // done after a toolbar has been customized.
@@ -2006,6 +2254,9 @@ function onCommandCustomize() {
     }
 }
 
+/**
+ * Prompts the user to change the start timezone.
+ */
 function editStartTimezone() {
     editTimezone(
         "timezone-starttime",
@@ -2025,6 +2276,9 @@ function editStartTimezone() {
         });
 }
 
+/**
+ * Prompts the user to change the end timezone.
+ */
 function editEndTimezone() {
     editTimezone(
         "timezone-endtime",
@@ -2044,6 +2298,14 @@ function editEndTimezone() {
         });
 }
 
+/**
+ * Common function of edit(Start|End)Timezone() to prompt the user for a
+ * timezone change.
+ *
+ * @param aElementId        The XUL element id of the timezone label.
+ * @param aDateTime         The Date/Time of the time to change zone on.
+ * @param aCallback         What to do when the user has chosen a zone.
+ */
 function editTimezone(aElementId,aDateTime,aCallback) {
     if (document.getElementById(aElementId)
         .hasAttribute("disabled")) {
@@ -2064,28 +2326,30 @@ function editTimezone(aElementId,aDateTime,aCallback) {
         args);
 }
 
-// this function initializes the following controls:
-// - 'event-starttime'
-// - 'event-endtime'
-// - 'event-all-day'
-// - 'todo-has-entrydate'
-// - 'todo-entrydate'
-// - 'todo-has-duedate'
-// - 'todo-duedate'
-// the date/time-objects are either displayed in their repective
-// timezone or in the default timezone. this decision is based
-// on whether or not 'options-timezone-menuitem' is checked.
-// the necessary information is taken from the following variables:
-// - 'gStartTime'
-// - 'gEndTime'
-// - 'window.calendarItem' (used to decide about event/task)
+/**
+ * This function initializes the following controls:
+ * - 'event-starttime'
+ * - 'event-endtime'
+ * - 'event-all-day'
+ * - 'todo-has-entrydate'
+ * - 'todo-entrydate'
+ * - 'todo-has-duedate'
+ * - 'todo-duedate'
+ * The date/time-objects are either displayed in their respective
+ * timezone or in the default timezone. This decision is based
+ * on whether or not 'options-timezone-menuitem' is checked.
+ * the necessary information is taken from the following variables:
+ * - 'gStartTime'
+ * - 'gEndTime'
+ * - 'window.calendarItem' (used to decide about event/task)
+ */
 function updateDateTime() {
     gIgnoreUpdate = true;
 
     var item = window.calendarItem;
     var menuItem = document.getElementById('options-timezone-menuitem');
 
-    // convert to default timezone if the timezone option
+    // Convert to default timezone if the timezone option
     // is *not* checked, otherwise keep the specific timezone
     // and display the labels in order to modify the timezone.
     if (menuItem.getAttribute('checked') == 'true') {
@@ -2095,7 +2359,7 @@ function updateDateTime() {
 
           setElementValue("event-all-day", startTime.isDate, "checked");
 
-          // in the case where the timezones are different but
+          // In the case where the timezones are different but
           // the timezone of the endtime is "UTC", we convert
           // the endtime into the timezone of the starttime.
           if (startTime && endTime) {
@@ -2216,12 +2480,14 @@ function updateDateTime() {
     gIgnoreUpdate = false;
 }
 
-// this function initializes the following controls:
-// - 'timezone-starttime'
-// - 'timezone-endtime'
-// the timezone-links show the corrosponding names of the
-// start/end times. if 'options-timezone-menuitem' is not checked
-// the links will be collapsed.
+/**
+ * This function initializes the following controls:
+ * - 'timezone-starttime'
+ * - 'timezone-endtime'
+ * the timezone-links show the corrosponding names of the
+ * start/end times. if 'options-timezone-menuitem' is not checked
+ * the links will be collapsed.
+ */
 function updateTimezone() {
     var menuItem = document.getElementById('options-timezone-menuitem');
 
@@ -2292,6 +2558,9 @@ function updateTimezone() {
     }
 }
 
+/**
+ * This function updates dialog controls related to item attachments
+ */
 function updateAttachment() {
     var hasAttachments = capSupported("attachments");
     setElementValue("cmd_attach_url", !hasAttachments && "true", "disabled");
@@ -2308,6 +2577,9 @@ function updateAttachment() {
     }
 }
 
+/**
+ * Toggles the visibility of the related link (rfc2445 URL property)
+ */
 function toggleLink() {
     var linkCommand = document.getElementById("cmd_toggle_link");
     var row = document.getElementById("event-grid-link-row");
@@ -2322,6 +2594,9 @@ function toggleLink() {
     updateLink();
 }
 
+/**
+ * This function updates dialog controls related to attendees.
+ */
 function updateAttendees() {
     var attendeeRow = document.getElementById("event-grid-attendee-row");
     var attendeeRow2 = document.getElementById("event-grid-attendee-row-2");
@@ -2365,6 +2640,10 @@ function updateAttendees() {
     }
 }
 
+/**
+ * This function updates dialog controls related to recurrence, in this case the
+ * text describing the recurrence rule.
+ */
 function updateRepeatDetails() {
     // Don't try to show the details text for
     // anything but a custom recurrence rule.

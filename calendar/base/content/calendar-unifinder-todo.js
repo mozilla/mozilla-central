@@ -44,9 +44,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- *   Called when the calendar is loaded
+ * Called when the window is loaded to set up the unifinder-todo.
  */
-
 function prepareCalendarToDoUnifinder() {
     if (isSunbird()) {
         document.getElementById("todo-label").removeAttribute("collapsed");
@@ -55,9 +54,8 @@ function prepareCalendarToDoUnifinder() {
 }
 
 /**
- *   Called by event observers to update the display
+ * Called by event observers to update the task display
  */
-
 function toDoUnifinderRefresh() {
     // Set up hiding completed tasks for the unifinder-todo tree
     var showCompleted = document.getElementById("show-completed-checkbox").checked;

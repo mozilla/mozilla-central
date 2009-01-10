@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * Show the filepicker and create a new calendar with a local file using the ICS
+ * Shows the filepicker and creates a new calendar with a local file using the ICS
  * provider.
  */
 function openLocalCalendar() {

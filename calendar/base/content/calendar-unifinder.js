@@ -52,6 +52,9 @@
  *
  * This is a hacked in interface to the unifinder. We will need to
  * improve this to make it usable in general.
+ *
+ * NOTE: Including this file will cause a load handler to be added to the
+ * window.
  */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
@@ -66,10 +69,20 @@ var gCalendarEventTreeClicked = false;
 var kDefaultTimezone;
 var gUnifinderNeedsRefresh = true;
 
+/**
+ * Checks if the unifinder is hidden
+ *
+ * @return      Returns true if the unifinder is hidden.
+ */
 function isUnifinderHidden() {
     return document.getElementById("bottom-events-box").hidden;
 }
 
+/**
+ * Returns the current filter applied to the unifinder.
+ *
+ * @return      The string name of the applied filter.
+ */
 function getCurrentUnifinderFilter() {
     return document.getElementById("event-filter-menulist").selectedItem.value;
 }
@@ -77,8 +90,10 @@ function getCurrentUnifinderFilter() {
 /**
  * Observer for the calendar event data source. This keeps the unifinder
  * display up to date when the calendar event data is changed
+ *
+ * @see calIObserver
+ * @see calICompositeObserver
  */
-
 var unifinderObserver = {
     mInBatch: false,
 
@@ -137,31 +152,6 @@ var unifinderObserver = {
         }
     },
 
-    // It is safe to call these for any event.  The functions will determine
-    // whether or not anything actually needs to be done to the tree
-    addItemToTree: function uO_addItemToTree(aItem) {
-        var items;
-        var filter = unifinderTreeView.mFilter;
-
-        if (filter.startDate && filter.endDate) {
-            items = aItem.getOccurrencesBetween(filter.startDate, filter.endDate, {});
-        } else {
-            items = [aItem];
-        }
-        unifinderTreeView.addItems(items.filter(filter.isItemInFilters, filter));
-    },
-    removeItemFromTree: function uO_removeItemFromTree(aItem) {
-        var items;
-        var filter = unifinderTreeView.mFilter;
-        if (filter.startDate && filter.endDate && (aItem.parentItem == aItem)) {
-            items = aItem.getOccurrencesBetween(filter.startDate, filter.endDate, {});
-        } else {
-            items = [aItem];
-        }
-        // XXX: do we really still need this, we are always checking it in the refreshInternal
-        unifinderTreeView.removeItems(items.filter(filter.isItemInFilters, filter));
-    },
-
     onError: function uO_onError(aCalendar, aErrNo, aMessage) {},
 
     onPropertyChanged: function uO_onPropertyChanged(aCalendar, aName, aValue, aOldValue) {
@@ -190,11 +180,50 @@ var unifinderObserver = {
         }
     },
 
-    onDefaultCalendarChanged: function uO_onDefaultCalendarChanged(aNewDefaultCalendar) {}
+    onDefaultCalendarChanged: function uO_onDefaultCalendarChanged(aNewDefaultCalendar) {},
+
+    /**
+     * Add an unifinder item to the tree. It is safe to call these for any
+     * event. The functions will determine whether or not anything actually
+     * needs to be done to the tree.
+     *
+     * @return aItem        The item to add to the tree.
+     */
+    addItemToTree: function uO_addItemToTree(aItem) {
+        var items;
+        var filter = unifinderTreeView.mFilter;
+
+        if (filter.startDate && filter.endDate) {
+            items = aItem.getOccurrencesBetween(filter.startDate, filter.endDate, {});
+        } else {
+            items = [aItem];
+        }
+        unifinderTreeView.addItems(items.filter(filter.isItemInFilters, filter));
+    },
+
+    /**
+     * Remove an item from the unifinder tree. It is safe to call these for any
+     * event. The functions will determine whether or not anything actually
+     * needs to be done to the tree.
+     *
+     * @return aItem        The item to remove from the tree.
+     */
+    removeItemFromTree: function uO_removeItemFromTree(aItem) {
+        var items;
+        var filter = unifinderTreeView.mFilter;
+        if (filter.startDate && filter.endDate && (aItem.parentItem == aItem)) {
+            items = aItem.getOccurrencesBetween(filter.startDate, filter.endDate, {});
+        } else {
+            items = [aItem];
+        }
+        // XXX: do we really still need this, we are always checking it in the refreshInternal
+        unifinderTreeView.removeItems(items.filter(filter.isItemInFilters, filter));
+    }
 };
 
 /**
- * Called when the calendar is loaded
+ * Called when the window is loaded to prepare the unifinder. This function is
+ * used to add observers, event listeners, etc.
  */
 function prepareCalendarUnifinder() {
     // Only load once
@@ -247,7 +276,8 @@ function prepareCalendarUnifinder() {
 }
 
 /**
- * Called when the calendar is unloaded
+ * Called when the window is unloaded to clean up any observers and listeners
+ * added.
  */
 function finishCalendarUnifinder() {
     var ccalendar = getCompositeCalendar();
@@ -272,7 +302,7 @@ function finishCalendarUnifinder() {
 }
 
 /**
- * Event listeners for dayselect and itemselect events
+ * Event listener for the view deck's dayselect event.
  */
 function unifinderDaySelect() {
     if (getCurrentUnifinderFilter() == "current") {
@@ -280,12 +310,18 @@ function unifinderDaySelect() {
     }
 }
 
+/**
+ * Event listener for the view deck's itemselect event.
+ */
 function unifinderItemSelect(aEvent) {
     unifinderTreeView.setSelectedItems(aEvent.detail);
 }
 
 /**
- * Helper function to display event datetimes in the unifinder
+ * Helper function to display event datetimes in the unifinder.
+ *
+ * @param aDatetime     A calIDateTime object to format.
+ * @return              The passed date's formatted in the default timezone.
  */
 function formatUnifinderEventDateTime(aDatetime) {
     var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
@@ -294,7 +330,9 @@ function formatUnifinderEventDateTime(aDatetime) {
 }
 
 /**
- * Unifinder event handlers (click,select,etc)
+ * Handler function for double clicking the unifinder.
+ *
+ * @param event         The DOM doubleclick event.
  */
 function unifinderDoubleClick(event) {
     // We only care about button 0 (left click) events
@@ -312,6 +350,11 @@ function unifinderDoubleClick(event) {
     }
 }
 
+/**
+ * Handler function for selection in the unifinder.
+ *
+ * @param event         The DOM selection event.
+ */
 function unifinderSelect(event) {
     var tree = unifinderTreeView.treeElement;
     if (!tree.view.selection || tree.view.selection.getRangeCount() == 0) {
@@ -351,6 +394,11 @@ function unifinderSelect(event) {
     document.getElementById("unifinder-search-results-tree").focus();
 }
 
+/**
+ * Handler function for keypress in the unifinder.
+ *
+ * @param aEvent        The DOM Key event.
+ */
 function unifinderKeyPress(aEvent) {
     const kKE = Components.interfaces.nsIDOMKeyEvent;
     switch (aEvent.keyCode) {
@@ -383,10 +431,16 @@ var unifinderTreeView = {
     mSelectedColumn: null,
     sortDirection: null,
 
+    /**
+     * Returns the currently selected column in the unifinder (used for sorting).
+     */
     get selectedColumn uTV_getSelectedColumn() {
         return this.mSelectedColumn;
     },
-
+    
+    /**
+     * Sets the currently selected column in the unifinder (used for sorting).
+     */
     set selectedColumn uTV_setSelectedColumn(aCol) {
         var tree = document.getElementById("unifinder-search-results-tree");
         var treecols = tree.getElementsByTagName("treecol");
@@ -411,6 +465,12 @@ var unifinderTreeView = {
     eventArray: [],
     eventIndexMap: {},
 
+    /**
+     * Add an item to the unifinder tree.
+     *
+     * @param aItemArray        An array of items to add.
+     * @param aDontSort         If true, the items will only be appended.
+     */
     addItems: function uTV_addItems(aItemArray, aDontSort) {
         this.eventArray = this.eventArray.concat(aItemArray);
         if (this.tree) {
@@ -425,6 +485,11 @@ var unifinderTreeView = {
         }
     },
 
+    /**
+     * Remove items from the unifinder tree.
+     *
+     * @param aItemArray        An array of items to remove.
+     */
     removeItems: function uTV_removeItems(aItemArray) {
         for each (var item in aItemArray) {
             var row = this.getItemRow(item);
@@ -438,6 +503,9 @@ var unifinderTreeView = {
         this.calculateIndexMap();
     },
 
+    /**
+     * Clear all items from the unifinder.
+     */
     clearItems: function uTV_clearItems() {
         var oldCount = this.eventArray.length;
         this.eventArray = [];
@@ -447,6 +515,10 @@ var unifinderTreeView = {
         this.calculateIndexMap();
     },
 
+    /**
+     * Sets the items that should be in the unifinder. This removes all items
+     * that were previously in the unifinder.
+     */
     setItems: function uTV_setItems(aItemArray, aDontSort) {
         var oldCount = this.eventArray.length;
         this.eventArray = aItemArray.slice(0);
@@ -461,6 +533,11 @@ var unifinderTreeView = {
         }
     },
 
+    /**
+     * Recalculate the index map that improves performance when accessing
+     * unifinder items. This is usually done automatically when adding/removing
+     * items.
+     */
     calculateIndexMap: function uTV_calculateIndexMap() {
         this.eventIndexMap = {};
         for (var i = 0 ; i < this.eventArray.length; i++) {
@@ -472,8 +549,11 @@ var unifinderTreeView = {
         }
     },
 
+    /**
+     * Sort the items in the unifinder by the currently selected column.
+     */
     sortItems: function uTV_sortItems() {
-        if( this.selectedColumn) {
+        if (this.selectedColumn) {
             var modifier = (this.sortDirection == "descending" ? -1 : 1);
             var sortKey = unifinderTreeView.selectedColumn.getAttribute("itemproperty");
             var sortType = cal.getSortTypeForSortKey(sortKey);
@@ -487,6 +567,12 @@ var unifinderTreeView = {
         this.calculateIndexMap();
     },
 
+    /**
+     * Get the index of the row associated with the passed item.
+     *
+     * @param item      The item to search for.
+     * @return          The row index of the passed item.
+     */
     getItemRow: function uTV_getItemRow(item) {
         if (this.eventIndexMap[item.hashId] === undefined) {
             return -1;
@@ -494,12 +580,21 @@ var unifinderTreeView = {
         return this.eventIndexMap[item.hashId];
     },
 
+    /**
+     * Get the item at the given row index.
+     *
+     * @param item      The row index to get the item for.
+     * @return          The item at the given row.
+     */
     getItemAt: function uTV_getItemAt(aRow) {
         return this.eventArray[aRow];
     },
 
     /**
-     * Get the calendar item from the given event
+     * Get the calendar item from the given DOM event
+     *
+     * @param event     The DOM mouse event to get the item for.
+     * @return          The item under the mouse position.
      */
     getItemFromEvent: function uTV_getItemFromEvent(event) {
         var row = this.tree.getRowAt(event.clientX, event.clientY);
@@ -510,6 +605,11 @@ var unifinderTreeView = {
         return null;
     },
 
+    /**
+     * Change the selection in the unifinder.
+     *
+     * @param aItemArray        An array of items to select.
+     */
     setSelectedItems: function uTV_setSelectedItems(aItemArray) {
         if (this.doingSelection || !this.tree) {
             return;
@@ -551,6 +651,10 @@ var unifinderTreeView = {
         setTimeout(function() { unifinderTreeView.resetAllowSelection(); }, 1);
     },
 
+    /**
+     * Due to a selection issue described in bug 168211 this method is needed to
+     * re-add the selection listeners selection listeners.
+     */
     resetAllowSelection: function uTV_resetAllowSelection() {
         if (!this.tree) {
             return;
@@ -567,6 +671,7 @@ var unifinderTreeView = {
 
     /**
      * Tree View Implementation
+     * @see nsITreeView
      */
     get rowCount uTV_getRowCount() {
         return this.eventArray.length;
@@ -727,6 +832,10 @@ var unifinderTreeView = {
     outParameter: new Object() // used to obtain dates during sort
 };
 
+/**
+ * Refresh the unifinder tree by getting items from the composite calendar and
+ * applying the current filter.
+ */
 function refreshEventTree() {
     if (isUnifinderHidden()) {
         // If the unifinder is hidden, don't refresh the events to reduce needed
@@ -780,11 +889,16 @@ function refreshEventTree() {
 }
 
 /**
- * Get the dates for a certain filter. This function makes it easy to extend the
- * unifinder. To add a new view, just overwrite this function with your own. Be
- * sure to call this function afterwards though.
+ * EXTENSION_POINTS
+ * Filters the passed event array according to the currently applied filter.
+ * Afterwards, applies the items to the unifinder view.
+ *
+ * If you are implementing a new filter, you can overwrite this function and
+ * filter the items accordingly and afterwards call this function with the
+ * result.
+ *
+ * @param eventArray        The array of items to be set in the unifinder.
  */
-
 function refreshEventTreeInternal(eventArray) {
 
     unifinderTreeView.setItems(eventArray.filter(unifinderTreeView
@@ -799,10 +913,16 @@ function refreshEventTreeInternal(eventArray) {
     unifinderTreeView.setSelectedItems();
 }
 
+/**
+ * Focuses the unifinder search field
+ */
 function focusSearch() {
     document.getElementById("unifinder-search-field").focus();
 }
 
+/**
+ * Toggles the hidden state of the unifinder.
+ */
 function toggleUnifinder() {
     // Toggle the elements
     goToggleToolbar('bottom-events-box', 'calendar_show_unifinder_command');

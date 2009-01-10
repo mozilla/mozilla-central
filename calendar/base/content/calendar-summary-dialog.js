@@ -39,6 +39,10 @@
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
 
+/**
+ * Sets up the summary dialog, setting all needed fields on the dialog from the
+ * item received in the window arguments.
+ */
 function onLoad() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
@@ -172,6 +176,11 @@ function onLoad() {
     opener.setCursor("auto");
 }
 
+/**
+ * Saves any changed information to the item.
+ * 
+ * @return      Returns true if the dialog 
+ */
 function onAccept() {
     dispose();
     if (window.readOnly) {
@@ -187,14 +196,19 @@ function onAccept() {
     return true;
 }
 
+/**
+ * Called when closing the dialog and any changes should be thrown away.
+ */
 function onCancel() {
     dispose();
     return true;
 }
 
+/**
+ * Sets the dialog's invitation status dropdown to the value specified by the
+ * user's invitation status.
+ */
 function updateInvitationStatus() {
-    var item = window.item;
-    var calendar = item.calendar;
     if (!window.readOnly) {
         if (window.attendee) {
             var invitationRow =
@@ -202,11 +216,17 @@ function updateInvitationStatus() {
             invitationRow.removeAttribute("hidden");
             var statusElement =
                 document.getElementById("item-participation");
-            statusElement.value = attendee.participationStatus;
+            statusElement.value = window.attendee.participationStatus;
         }
     }
 }
 
+/**
+ * When the summary dialog is showing an invitation, this function updates the
+ * user's invitation status from the value chosen in the dialog.
+ *
+ * XXX rename me!
+ */
 function updateInvitation() {
   var statusElement = document.getElementById("item-participation");
   if (window.attendee) {
@@ -214,6 +234,10 @@ function updateInvitation() {
   }
 }
 
+/**
+ * Updates the dialog w.r.t recurrence, i.e shows a text describing the item's
+ * recurrence)
+ */
 function updateRepeatDetails() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
@@ -267,6 +291,10 @@ function updateRepeatDetails() {
     }
 }
 
+/**
+ * Updates the attendee listbox, displaying all attendees invited to the
+ * window's item.
+ */
 function updateAttendees() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
@@ -310,10 +338,19 @@ function updateAttendees() {
     }
 }
 
+/**
+ * Updates the reminder, called when a reminder has been selected in the
+ * menulist.
+ */
 function updateReminder() {
     commonUpdateReminder();
 }
 
+/**
+ * Browse the item's attached URL.
+ *
+ * XXX This function is broken, should be fixed in bug 471967
+ */
 function browseDocument() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
@@ -321,6 +358,10 @@ function browseDocument() {
     launchBrowser(url);
 }
 
+/**
+ * Extracts the item's organizer and opens a compose window to send the
+ * organizer an email.
+ */
 function sendMailToOrganizer() {
     var args = window.arguments[0];
     var item = args.calendarEvent;

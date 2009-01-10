@@ -42,7 +42,8 @@
 var gCalendar;
 
 /**
- * To open the window, use an object as argument. The object needs a 'calendar'
+ * This function gets called when the calendar properties dialog gets opened. To
+ * open the window, use an object as argument. The object needs a 'calendar'
  * attribute that passes the calendar in question.
  */
 function onLoad() {
@@ -93,7 +94,9 @@ function onLoad() {
 }
 
 /**
- * Called when the dialog is accepted, to save settings
+ * Called when the dialog is accepted, to save settings.
+ *
+ * @return      Returns true if the dialog should be closed.
  */
 function onAcceptDialog() {
     // Save calendar name

@@ -48,6 +48,9 @@ var agendaListbox = {
     showsToday: false
 };
 
+/**
+ * Initialize the agenda listbox, used on window load.
+ */
 agendaListbox.init =
 function initAgendaListbox() {
     this.agendaListboxControl = document.getElementById("agenda-listbox");
@@ -71,6 +74,9 @@ function initAgendaListbox() {
                             false);
 };
 
+/**
+ * Clean up the agenda listbox, used on window unload.
+ */
 agendaListbox.uninit =
 function uninit() {
     if (this.calendar) {
@@ -87,6 +93,15 @@ function uninit() {
     }
 };
 
+/**
+ * Adds a period item to the listbox. This is a section of the today pane like
+ * "Today", "Tomorrow", and is usually a <agenda-checkbox-richlist-item> tag. A
+ * copy of the template node is made and added to the agenda listbox.
+ *
+ * @param aPeriod       The period item to add.
+ * @param aItemId       The id of an <agenda-checkbox-richlist-item> to add to,
+ *                        without the "-hidden" suffix.
+ */
 agendaListbox.addPeriodListItem =
 function addPeriodListItem(aPeriod, aItemId) {
     aPeriod.listItem = document.getElementById(aItemId + "-hidden").cloneNode(true);
@@ -96,6 +111,10 @@ function addPeriodListItem(aPeriod, aItemId) {
     aPeriod.listItem.getCheckbox().addEventListener("CheckboxStateChange", this.onCheckboxChange, true);
 }
 
+/**
+ * Remove a period item from the agenda listbox.
+ * @see agendaListbox::addPeriodListItem
+ */
 agendaListbox.removePeriodListItem =
 function removePeriodListItem(aPeriod) {
     if (aPeriod.listItem) {
@@ -107,6 +126,11 @@ function removePeriodListItem(aPeriod) {
     }
 }
 
+/**
+ * Handler function called when changing the checkbox state on period items.
+ *
+ * @param event     The DOM event that triggered the checkbox state change.
+ */
 agendaListbox.onCheckboxChange =
 function onCheckboxChange(event) {
     var periodCheckbox = event.target;
@@ -137,6 +161,11 @@ function onCheckboxChange(event) {
     calendarController.onSelectionChanged({detail: []});    
 };
 
+/**
+ * Handler function called when an agenda listbox item is selected
+ *
+ * @param aListItem     The agenda-base-richlist-item that was selected.
+ */
 agendaListbox.onSelect =
 function onSelect(aListItem) {
     var listbox = document.getElementById("agenda-listbox");
@@ -152,6 +181,9 @@ function onSelect(aListItem) {
     calendarController.onSelectionChanged({detail: agendaListbox.getSelectedItems()});
 }
 
+/**
+ * Handler function called when the agenda listbox becomes focused
+ */
 agendaListbox.onFocus =
 function onFocus() {
     var listbox = document.getElementById("agenda-listbox");
@@ -160,6 +192,9 @@ function onFocus() {
     calendarController.onSelectionChanged({detail: agendaListbox.getSelectedItems()});
 }
 
+/**
+ * Handler function called when the agenda listbox loses focus.
+ */
 agendaListbox.onBlur =
 function onBlur() {
     var item  = document.getElementById("agenda-listbox").selectedItem;
@@ -169,6 +204,9 @@ function onBlur() {
     calendarController.onSelectionChanged({detail: []});
 }
 
+/**
+ * Enables all child nodes of the agenda listbox
+ */
 agendaListbox.enableListItems =
 function enableListItems() {
     var childNodes = document.getElementById("agenda-listbox").childNodes;
@@ -178,6 +216,9 @@ function enableListItems() {
     }
 }
 
+/**
+ * Handler function called when a key was pressed on the agenda listbox
+ */
 agendaListbox.onKeyPress =
 function onKeyPress(aEvent) {
     var listItem = aEvent.target;
@@ -206,14 +247,23 @@ function onKeyPress(aEvent) {
     }
 }
 
+/**
+ * Calls the event dialog to edit the currently selected item
+ */
 agendaListbox.editSelectedItem =
-function editSelectedItem(aEvent) {
+function editSelectedItem() {
     var listItem  = document.getElementById("agenda-listbox").selectedItem;
     if (listItem) {
         modifyEventWithDialog(listItem.occurrence, null, true);
     }
 }
 
+/**
+ * Finds the appropriate period for the given item, i.e finds "Tomorrow" if the
+ * item occurrs tomorrow.
+ *
+ * @param aItem     The item to find the period for.
+ */
 agendaListbox.findPeriodsForItem =
 function findPeriodsForItem(aItem) {
     var retPeriods = [];
@@ -227,6 +277,9 @@ function findPeriodsForItem(aItem) {
     return retPeriods;
 };
 
+/**
+ * Gets the start of the earliest period shown in the agenda listbox
+ */
 agendaListbox.getStart =
 function getStart(){
     var retStart = null;
@@ -239,6 +292,9 @@ function getStart(){
     return retStart;
 }
 
+/**
+ * Gets the end of the latest period shown in the agenda listbox
+ */
 agendaListbox.getEnd =
 function getEnd(){
     var retEnd = null;
@@ -251,6 +307,15 @@ function getEnd(){
     return retEnd;
 }
 
+/**
+ * Adds an item to an agenda period before another existing item.
+ *
+ * @param aNewItem      The calIItemBase to add.
+ * @param aAgendaItem   The existing item to insert before.
+ * @param aPeriod       The period to add the item to.
+ * @param visible       If true, the item should be visible.
+ * @return              The newly created XUL element.
+ */
 agendaListbox.addItemBefore =
 function addItemBefore(aNewItem, aAgendaItem, aPeriod, visible) {
     var newelement = null;
@@ -272,6 +337,13 @@ function addItemBefore(aNewItem, aAgendaItem, aPeriod, visible) {
     return newelement;
 }
 
+/**
+ * Adds an item to the agenda listbox. This function finds the correct period
+ * for the item and inserts it correctly so the period stays sorted.
+ *
+ * @param aItem         The calIItemBase to add.
+ * @return              The newly created XUL element.
+ */
 agendaListbox.addItem =
 function addItem(aItem) {
     if (!isEvent(aItem)) {
@@ -320,6 +392,13 @@ function addItem(aItem) {
     return newlistItem;
 };
 
+/**
+ * Checks if the given item happens before the comparation item.
+ *
+ * @param aItem         The item to compare.
+ * @param aCompItem     The item to compare with.
+ * @return              True, if the aItem happens before aCompItem.
+ */
 agendaListbox.isBefore =
 function isBefore(aItem, aCompItem) {
     if (aCompItem.startDate.day == aItem.startDate.day) {
@@ -337,6 +416,13 @@ function isBefore(aItem, aCompItem) {
 }
 
 
+/**
+ * Gets the listitems for a given item, possibly in a given period.
+ *
+ * @param aItem         The item to get the list items for.
+ * @param aPeriod       (optional) the period to search in.
+ * @return              An array of list items for the given item.
+ */
 agendaListbox.getListItems =
 function getListItems(aItem, aPeriod) {
     var retlistItems = new Array();
@@ -363,6 +449,14 @@ function getListItems(aItem, aPeriod) {
     return retlistItems;
 }
 
+/**
+ * Removes the given item from the agenda listbox
+ *
+ * @param aItem             The item to remove.
+ * @param aMoveSelection    If true, the selection will be moved to the next
+ *                            sibling that is not an period item.
+ * @return                  Returns true if the removed item was selected.
+ */
 agendaListbox.deleteItem =
 function deleteItem(aItem, aMoveSelection) {
     var isSelected = false;
@@ -383,12 +477,26 @@ function deleteItem(aItem, aMoveSelection) {
     return isSelected;
 }
 
+/**
+ * Compares two items to see if they have the same id and their start date
+ * matches
+ *
+ * @param aItem         The item to compare.
+ * @param aCompItem     The item to compare with.
+ * @return              True, if the items match with the above noted criteria.
+ */
 agendaListbox.isSameEvent =
 function isSameEvent(aItem, aCompItem) {
     return ((aItem.id == aCompItem.id) &&
             (aItem[calGetStartDateProp(aItem)].compare(aCompItem[calGetStartDateProp(aCompItem)]) == 0));
 }
 
+/**
+ * Checks if the currently selected node in the listbox is an Event item (not a
+ * period item).
+ *
+ * @return              True, if the node is not a period item.
+ */
 agendaListbox.isEventSelected =
 function isEventSelected() {
     var listItem = this.agendaListboxControl.selectedItem;
@@ -398,6 +506,11 @@ function isEventSelected() {
     return false;
 }
 
+/**
+ * Delete the selected item from its calendar (if it is an event item)
+ *
+ * @param aDoNotConfirm     If true, the user will not be prompted.
+ */
 agendaListbox.deleteSelectedItem =
 function deleteSelectedItem(aDoNotConfirm) {
     var listItem = this.agendaListboxControl.selectedItem;
@@ -410,6 +523,12 @@ function deleteSelectedItem(aDoNotConfirm) {
     }
 }
 
+/**
+ * If a Period item is targeted by the passed DOM event, opens the event dialog
+ * with the period's start date prefilled.
+ *
+ * @param aEvent            The DOM event that targets the period.
+ */
 agendaListbox.createNewEvent =
 function createNewEvent(aEvent) {
     if (!this.isEventListItem(aEvent.target)){
@@ -421,8 +540,15 @@ function createNewEvent(aEvent) {
     }
 }
 
+/**
+ * Rebuilds the agenda popup menu from the agenda-menu-box, disabling items if a
+ * period was selected.
+ *
+ * XXX Why is this needed?
+ *
+ */
 agendaListbox.buildAgendaPopupMenu =
-function enableAgendaPopupMenu(aPopupMenu){
+function enableAgendaPopupMenu() {
     var listItem = this.agendaListboxControl.selectedItem;
     var enabled = this.isEventListItem(listItem);
     var popup = document.getElementById("agenda-menu");
@@ -434,10 +560,16 @@ function enableAgendaPopupMenu(aPopupMenu){
         setBooleanAttribute(menuitems[i], "disabled", !enabled);
         popup.appendChild(menuitems[i].cloneNode(true));
     }
-    return true;
 }
 
 
+/**
+ * Refreshes the agenda listbox. If aStart or aEnd is not passed, the agenda
+ * listbox's limiting dates will be used.
+ *
+ * @param aStart        (optional) The start date for the item query.
+ * @param aEnd          (optional) The end date for the item query.
+ */
 agendaListbox.refreshCalendarQuery =
 function refreshCalendarQuery(aStart, aEnd) {
     if (this.mBatchCount > 0) {
@@ -473,6 +605,9 @@ function refreshCalendarQuery(aStart, aEnd) {
     }
 };
 
+/**
+ * Sets up the calendar for the agenda listbox.
+ */
 agendaListbox.setupCalendar =
 function setupCalendar() {
     this.init();
@@ -489,6 +624,15 @@ function setupCalendar() {
     }
 };
 
+/**
+ * Refreshes the period dates, especially when a period is showing "today".
+ * Usually called at midnight to update the agenda pane. Also retrieves the
+ * items from the calendar.
+ *
+ * @see #refreshCalendarQuery
+ * @param newDate       The first date to show if the agenda pane doesn't show
+ *                        today.
+ */
 agendaListbox.refreshPeriodDates =
 function refreshPeriodDates(newDate) {
      this.kDefaultTimezone = calendarDefaultTimezone();
@@ -518,11 +662,23 @@ function refreshPeriodDates(newDate) {
     this.refreshCalendarQuery();
 };
 
+/**
+ * Adds a listener to this agenda listbox.
+ *
+ * @param aListener     The listener to add.
+ */
 agendaListbox.addListener =
 function addListener(aListener) {
     this.mListener = aListener;
 }
 
+/**
+ * Checks if the agenda listbox is showing "today". Without arguments, this
+ * function assumes the today attribute of the agenda listbox.
+ *
+ * @param aStartDate    (optional) The day to check if its "today".
+ * @return              Returns true if today is shown.
+ */
 agendaListbox.showsToday =
 function showsToday(aStartDate) {
     var lstart = aStartDate;
@@ -538,6 +694,10 @@ function showsToday(aStartDate) {
     return lshowsToday;
 };
 
+/**
+ * Moves the selection. Moves down unless the next item is a period item, in
+ * which case the selection moves up.
+ */
 agendaListbox.moveSelection =
 function moveSelection() {
     var selindex = this.agendaListboxControl.selectedIndex;
@@ -548,6 +708,12 @@ function moveSelection() {
     }
 }
 
+/**
+ * Gets an array of selected items. If a period node is selected, it is not
+ * included.
+ *
+ * @return      An array with all selected items.
+ */
 agendaListbox.getSelectedItems =
 function getSelectedItems() {
     var selindex = this.agendaListboxControl.selectedIndex;
@@ -560,6 +726,13 @@ function getSelectedItems() {
     return items;
 }
 
+/**
+ * Checks if the passed node in the listbox is an Event item (not a
+ * period item).
+ *
+ * @param aListItem     The node to check for.
+ * @return              True, if the node is not a period item.
+ */
 agendaListbox.isEventListItem =
 function isEventListItem(aListItem) {
     var isEventListItem = (aListItem != null);
@@ -571,6 +744,9 @@ function isEventListItem(aListItem) {
     return isEventListItem;
 }
 
+/**
+ * Removes all Event items, keeping the period items intact.
+ */
 agendaListbox.removeListItems =
 function removeListItems() {
     var listItem = this.agendaListboxControl.lastChild;
@@ -595,6 +771,11 @@ function removeListItems() {
     }
 }
 
+/**
+ * Gets the list item node by its associated event's hashId.
+ *
+ * @return The XUL node if successful, otherwise null.
+ */
 agendaListbox.getListItemByHashId =
 function getListItemByHashId(ahashId) {
     var listItem = this.agendaListboxControl.firstChild;
@@ -611,10 +792,18 @@ function getListItemByHashId(ahashId) {
     return null;
 }
 
+/**
+ * The operation listener used for calendar queries.
+ * Implements calIOperationListener.
+ */
 agendaListbox.calendarOpListener = {
     agendaListbox : agendaListbox
 };
 
+/**
+ * Called when all items have been retrieved from the calendar.
+ * @see calIOperationListener
+ */
 agendaListbox.calendarOpListener.onOperationComplete =
 function listener_onOperationComplete(calendar, status, optype, id,
                                       detail) {
@@ -623,6 +812,10 @@ function listener_onOperationComplete(calendar, status, optype, id,
     setCurrentEvent();
 };
 
+/**
+ * Called when an item has been retrieved, adds all items to the agenda listbox.
+ * @see calIOperationListener
+ */
 agendaListbox.calendarOpListener.onGetResult =
 function listener_onGetResult(calendar, status, itemtype, detail, count, items) {
     if (!Components.isSuccessCode(status))
@@ -630,8 +823,13 @@ function listener_onGetResult(calendar, status, itemtype, detail, count, items) 
     items.forEach(this.agendaListbox.addItem, this.agendaListbox);
 };
 
+/**
+ * Calendar and composite observer, used to keep agenda listbox up to date.
+ * @see calIObserver
+ * @see calICompositeObserver
+ */
 agendaListbox.calendarObserver = {
-    agendaListbox : agendaListbox
+    agendaListbox: agendaListbox
 };
 
 agendaListbox.calendarObserver.QueryInterface =
@@ -774,6 +972,13 @@ function agenda_calAdd(aCalendar) {
 agendaListbox.calendarObserver.onDefaultCalendarChanged = function(aCalendar) {
 };
 
+/**
+ * Updates the event considered "current". This goes through all "today" items
+ * and sets the "current" attribute on all list items that are currently
+ * occurring.
+ *
+ * @see scheduleNextCurrentEventUpdate
+ */
 function setCurrentEvent() {
     if (agendaListbox.showsToday() && agendaListbox.today.open) {
 
@@ -829,11 +1034,16 @@ function setCurrentEvent() {
 
 var gEventTimer;
 
-/** Creates a timer that will fire after the next event is current.
-    Pass in a function as
- * aRefreshCallback that should be called at that time.
+/**
+ * Creates a timer that will fire after the next event is current.
+ *  Pass in a function as aRefreshCallback that should be called at that time.
+ *
+ * @param aRefreshCallback      The function to call when the next event is
+ *                                current.
+ * @param aMsUntil              The number of milliseconds until the next event
+ *                                is current.
  */
-function scheduleNextCurrentEventUpdate(aRefreshCallback, aMsUntill) {
+function scheduleNextCurrentEventUpdate(aRefreshCallback, aMsUntil) {
 
     // Is an nsITimer/callback extreme overkill here? Yes, but it's necessary to
     // workaround bug 291386.  If we don't, we stand a decent chance of getting
@@ -869,5 +1079,5 @@ function scheduleNextCurrentEventUpdate(aRefreshCallback, aMsUntill) {
     } else {
         gEventTimer.cancel();
     }
-    gEventTimer.initWithCallback(udCallback, aMsUntill, gEventTimer.TYPE_ONE_SHOT);
+    gEventTimer.initWithCallback(udCallback, aMsUntil, gEventTimer.TYPE_ONE_SHOT);
 }

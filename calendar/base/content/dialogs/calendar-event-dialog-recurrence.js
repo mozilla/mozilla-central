@@ -41,6 +41,10 @@ var gIsReadOnly = false;
 var gStartTime = null;
 var gEndTime = null;
 
+/**
+ * Sets up the recurrence dialog from the window arguments. Takes care of filling
+ * the dialog controls with the recurrece information for this window.
+ */
 function onLoad() {
     changeWidgetsOrder();
 
@@ -95,6 +99,11 @@ function onLoad() {
     self.focus();
 }
 
+/**
+ * Initialize the dialog controls according to the passed rule
+ *
+ * @param rule    The recurrence rule to parse.
+ */
 function initializeControls(rule) {
     function getOrdinalAndWeekdayOfRule(aByDayRuleComponent) {
         return {
@@ -218,6 +227,13 @@ function initializeControls(rule) {
     }
 }
 
+/**
+ * Save the recurrence information selected in the dialog back to the given
+ * item.
+ *
+ * @param item    The item to save back to.
+ * @return        The saved recurrence info.
+ */
 function onSave(item) {
     // Always return 'null' if this item is an occurrence.
     if (!item || item.parentItem != item) {
@@ -342,6 +358,11 @@ function onSave(item) {
     return recurrenceInfo;
 }
 
+/**
+ * Handler function to be called when the accept button is pressed.
+ *
+ * @return      Returns true if the window should be closed
+ */
 function onAccept() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
@@ -349,6 +370,15 @@ function onAccept() {
     return true;
 }
 
+/**
+ * Handler function called when the calendar is changed (also for initial
+ * setup).
+ *
+ * XXX we don't change the calendar in this dialog, this function should be
+ * consolidated or renamed.
+ *
+ * @param calendar    The calendar to use for setup.
+ */
 function onChangeCalendar(calendar) {
     var args = window.arguments[0];
     var item = args.calendarEvent;
@@ -369,6 +399,17 @@ function onChangeCalendar(calendar) {
     updateRecurrenceControls();
 }
 
+/**
+ * Disable or enable certain controls based on the given item:
+ * Uses the following attribute:
+ *
+ * - disable-on-occurrence
+ * - disable-on-readonly
+ *
+ * A task without a start time is also considered readonly.
+ *
+ * @param item        The item to check.
+ */
 function disableOrEnable(item) {
     if (item.parentItem != item) {
        disableRecurrenceFields("disable-on-occurrence");
@@ -381,6 +422,12 @@ function disableOrEnable(item) {
     }
 }
 
+/**
+ * Disables all fields that have an attribute that matches the argument and is
+ * set to "true".
+ *
+ * @param aAttributeName    The attribute to search for.
+ */
 function disableRecurrenceFields(aAttributeName) {
     var disableElements = document.getElementsByAttribute(aAttributeName, "true");
     for (var i = 0; i < disableElements.length; i++) {
@@ -388,6 +435,12 @@ function disableRecurrenceFields(aAttributeName) {
     }
 }
 
+/**
+ * Enables all fields that have an attribute that matches the argument and is
+ * set to "true".
+ *
+ * @param aAttributeName    The attribute to search for.
+ */
 function enableRecurrenceFields(aAttributeName) {
     var enableElements = document.getElementsByAttribute(aAttributeName, "true");
     for (var i = 0; i < enableElements.length; i++) {
@@ -395,6 +448,16 @@ function enableRecurrenceFields(aAttributeName) {
     }
 }
 
+/**
+ * Split rules into negative and positive rules.
+ *
+ * XXX This function is duplicate from calendar-dialog-utils.js, which we may
+ * want to include in this dialog.
+ *
+ * @param recurrenceInfo    An item's recurrence info to parse.
+ * @return                  An array with two elements: an array of positive
+ *                            rules and an array of negative rules.
+ */
 function splitRecurrenceRules(recurrenceInfo) {
     var ritems = recurrenceInfo.getRecurrenceItems({});
     var rules = [];
@@ -409,12 +472,20 @@ function splitRecurrenceRules(recurrenceInfo) {
     return [rules, exceptions];
 }
 
+/**
+ * Handler function to update the period-deck when an item from the period-list
+ * is selected. Also updates the controls on that deck.
+ */
 function updateRecurrenceDeck() {
     document.getElementById("period-deck")
             .selectedIndex = Number(getElementValue("period-list"));
     updateRecurrenceControls();
 }
 
+/**
+ * Updates the controls regarding ranged controls (i.e repeat forever, repeat
+ * until, repeat n times...)
+ */
 function updateRecurrenceRange() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
@@ -460,6 +531,9 @@ function updateRecurrenceRange() {
     }
 }
 
+/**
+ * Updates the recurrence preview calendars using the window's item.
+ */
 function updatePreview() {
     var args = window.arguments[0];
     var item = args.calendarEvent;
@@ -468,8 +542,8 @@ function updatePreview() {
     }
 
     // TODO: We should better start the whole dialog with a newly cloned item
-    // and always pump changes immediately into it. this would eliminate the
-    // need to break the encapsulation, as we do it here. but we need the item
+    // and always pump changes immediately into it. This would eliminate the
+    // need to break the encapsulation, as we do it here. But we need the item
     // to contain the startdate in order to calculate the recurrence preview.
     item = item.clone();
     var kDefaultTimezone = calendarDefaultTimezone();
@@ -503,6 +577,9 @@ function updatePreview() {
     preview.updatePreview(recInfo);
 }
 
+/**
+ * Update all recurrence controls on the dialog.
+ */
 function updateRecurrenceControls() {
     updateRecurrencePattern();
     updateRecurrenceRange();
@@ -576,6 +653,9 @@ function updateRecurrencePattern() {
 }
 
 /**
+ * This function changes the order for certain elements using a locale string.
+ * This is needed for some locales that expect a different wording order.
+ *
  * @param aPropKey      The locale property key to get the order from
  * @param aPropParams   An array of ids to be passed to the locale property.
  *                        These should be the ids of the elements to change
@@ -615,7 +695,7 @@ function changeOrderForElements(aPropKey, aPropParams) {
 }
 
 /**
- * Change widget order for Edit Recurrence window
+ * Change locale-specific widget order for Edit Recurrence window
  */
 function changeWidgetsOrder() {
     changeOrderForElements("monthlyOrder",

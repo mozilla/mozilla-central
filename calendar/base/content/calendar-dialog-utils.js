@@ -41,6 +41,12 @@
 /**
  * This function takes the recurrence info passed as argument and creates a
  * literal string representing the repeat pattern in natural language.
+ *
+ * @param recurrenceInfo    An item's recurrence info to parse.
+ * @param startDate         The start date to base rules on.
+ * @param endDate           The end date to base rules on.
+ * @param allDay            If true, the pattern should assume an allday item.
+ * @return                  A human readable string describing the recurrence.
  */
 function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
 
@@ -428,6 +434,13 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
     return null;
 }
 
+/**
+ * Split rules into negative and positive rules.
+ *
+ * @param recurrenceInfo    An item's recurrence info to parse.
+ * @return                  An array with two elements: an array of positive
+ *                            rules and an array of negative rules.
+ */
 function splitRecurrenceRules(recurrenceInfo) {
     var ritems = recurrenceInfo.getRecurrenceItems({});
     var rules = [];
@@ -442,6 +455,14 @@ function splitRecurrenceRules(recurrenceInfo) {
     return [rules, exceptions];
 }
 
+/**
+ * Check if a recurrence rule's component is valid.
+ *
+ * @see                     calIRecurrenceRule
+ * @param aRule             The recurrence rule to check.
+ * @param aArray            An array of component names to check.
+ * @return                  Returns true if the rule is valid.
+ */
 function checkRecurrenceRule(aRule, aArray) {
     for each (var comp in aArray) {
         var ruleComp = aRule.getComponent(comp, {});
@@ -452,6 +473,10 @@ function checkRecurrenceRule(aRule, aArray) {
     return false;
 }
 
+/**
+ * Dispose of controlling operations of this event dialog. Uses
+ * window.arguments[0].job.dispose()
+ */
 function dispose() {
     var args = window.arguments[0];
     if (args.job && args.job.dispose) {
@@ -459,6 +484,10 @@ function dispose() {
     }
 }
 
+/**
+ * Opens the edit reminder dialog modally, setting the custom menuitem's
+ * 'reminder' property when done.
+ */
 function editReminder() {
     var customReminder =
         document.getElementById("reminder-custom-menuitem");
@@ -479,6 +508,11 @@ function editReminder() {
         args);
 }
 
+/**
+ * Update the reminder details from the selected alarm. This shows a string
+ * describing the reminder set, or nothing in case a preselected reminder was
+ * chosen.
+ */
 function updateReminderDetails() {
     // find relevant elements in the document
     var reminderPopup = document.getElementById("item-alarm");
@@ -575,6 +609,11 @@ function updateReminderDetails() {
 
 var gLastAlarmSelection = 0;
 
+/**
+ * Load an item's reminders into the dialog
+ *
+ * @param item      The item to load.
+ */
 function loadReminder(item) {
     // select 'no reminder' by default
     var reminderPopup = document.getElementById("item-alarm");
@@ -673,6 +712,11 @@ function loadReminder(item) {
     gLastAlarmSelection = reminderPopup.selectedIndex;
 }
 
+/**
+ * Save the selected reminder into the passed item.
+ *
+ * @param item      The item save the reminder into.
+ */
 function saveReminder(item) {
     var reminderPopup = document.getElementById("item-alarm");
     if (reminderPopup.value == 'none') {
@@ -712,6 +756,10 @@ function saveReminder(item) {
     }
 }
 
+/**
+ * Common update functions for both event dialogs. Called when a reminder has
+ * been selected from the menulist.
+ */
 function commonUpdateReminder() {
     // if a custom reminder has been selected, we show the appropriate
     // dialog in order to allow the user to specify the details.
@@ -804,6 +852,9 @@ function commonUpdateReminder() {
     updateReminderDetails();
 }
 
+/**
+ * Updates the related link on the dialog
+ */
 function updateLink() {
     var itemUrlString = (window.calendarItem || window.item).getProperty("URL") || "";
     var linkCommand = document.getElementById("cmd_toggle_link");
