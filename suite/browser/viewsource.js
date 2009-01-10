@@ -195,9 +195,12 @@ function viewSource(url)
           shEntry.setURI(makeURI(viewSrcUrl, null, null));
           shEntry.setTitle(viewSrcUrl);
           shEntry.loadType = Components.interfaces.nsIDocShellLoadInfo.loadHistory;
-          getBrowser().webNavigation.sessionHistory.addEntry(shEntry, true);
+          PageLoader.sessionHistory
+                    .QueryInterface(Components.interfaces.nsISHistoryInternal)
+                    .addEntry(shEntry, true);
 
-          // The content was successfully loaded from the page cookie.
+          // The content was successfully loaded from the page cookie and
+          // recorded in session history, so we don't need to load via the URL.
           loadFromURL = false;
         }
       } catch(ex) {
