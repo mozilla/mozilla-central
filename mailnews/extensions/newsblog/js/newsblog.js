@@ -183,7 +183,7 @@ var nsNewsBlogFeedDownloader =
     
     var itemResource = rdf.GetResource(aUrl);
     var feed = new Feed(itemResource, aFolder.server);
-    feed.quickMode = feed.server.getBoolAttribute('quickMode');
+    feed.quickMode = feed.server.getBoolValue('quickMode');
 
     if (!aFolder.isServer) // if the root server, create a new folder for the feed
       feed.folder = aFolder; // user must want us to add this subscription url to an existing RSS folder.

@@ -1548,46 +1548,6 @@ NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, MaxMessageSize, "max_size")
 
 NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, IncomingDuplicateAction, "dup_action")
 
-NS_IMETHODIMP nsMsgIncomingServer::SetUnicharAttribute(const char *aName, const nsAString& val)
-{
-  return SetUnicharValue(aName, val);
-}
-
-NS_IMETHODIMP nsMsgIncomingServer::GetUnicharAttribute(const char *aName, nsAString& val)
-{
-  return GetUnicharValue(aName, val);
-}
-
-NS_IMETHODIMP nsMsgIncomingServer::SetCharAttribute(const char *aName, const nsACString& val)
-{
-  return SetCharValue(aName, val);
-}
-
-NS_IMETHODIMP nsMsgIncomingServer::GetCharAttribute(const char *aName, nsACString& val)
-{
-  return GetCharValue(aName, val);
-}
-
-NS_IMETHODIMP nsMsgIncomingServer::SetBoolAttribute(const char *aName, PRBool val)
-{
-  return SetBoolValue(aName, val);
-}
-
-NS_IMETHODIMP nsMsgIncomingServer::GetBoolAttribute(const char *aName, PRBool *val)
-{
-  return GetBoolValue(aName, val);
-}
-
-NS_IMETHODIMP nsMsgIncomingServer::SetIntAttribute(const char *aName, PRInt32 val)
-{
-  return SetIntValue(aName, val);
-}
-
-NS_IMETHODIMP nsMsgIncomingServer::GetIntAttribute(const char *aName, PRInt32 *val)
-{
-  return GetIntValue(aName, val);
-}
-
 NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
 {
   if (!mPrefBranch)

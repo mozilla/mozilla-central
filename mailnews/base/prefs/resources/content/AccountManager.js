@@ -498,18 +498,16 @@ function saveAccount(accountValues, account)
       if (dest == undefined) continue;
 
       if ((type in gGenericAttributeTypes) && (slot in gGenericAttributeTypes[type])) {
+        var methodName = "get";
         switch (gGenericAttributeTypes[type][slot]) {
           case "int":
-            if (dest.getIntAttribute(slot) != typeArray[slot])
-              dest.setIntAttribute(slot, typeArray[slot]);
+            methodName += "Int";
             break;
           case "wstring":
-            if (dest.getUnicharAttribute(slot) != typeArray[slot])
-              dest.setUnicharAttribute(slot, typeArray[slot]);
+            methodName += "Unichar";
             break;
           case "string":
-            if (dest.getCharAttribute(slot) != typeArray[slot])
-              dest.setCharAttribute(slot, typeArray[slot]);
+            methodName += "Char";
             break;
           case "bool":
             // in some cases
@@ -521,12 +519,16 @@ function saveAccount(accountValues, account)
             else if (typeArray[slot] == "true")
               typeArray[slot] = true;
 
-            if (dest.getBoolAttribute(slot) != typeArray[slot])
-              dest.setBoolAttribute(slot, typeArray[slot]);
+            methodName += "Bool";
             break;
           default:
             dump("unexpected preftype: " + preftype + "\n");
             break;
+        }
+        methodName += ((methodName + "Value") in dest ? "Value" : "Attribute");
+        if (dest[methodName](slot) != typeArray[slot]) {
+          methodName[0] = 's';
+          dest[methodName](slot, typeArray[slot]);
         }
       }
       else {
@@ -785,23 +787,26 @@ function getAccountValue(account, accountValues, type, slot, preftype, isGeneric
 
         // we need the preftype later, for setting when we save.
         gGenericAttributeTypes[type][slot] = preftype;
+        var methodName = "get";
         switch (preftype) {
           case "int":
-            accountValues[type][slot] = source.getIntAttribute(slot);
+            methodName += "Int";
             break;
           case "wstring":
-            accountValues[type][slot] = source.getUnicharAttribute(slot);
+            methodName += "Unichar";
             break;
           case "string":
-            accountValues[type][slot] = source.getCharAttribute(slot);
+            methodName += "Char";
             break;
           case "bool":
-            accountValues[type][slot] = source.getBoolAttribute(slot);
+            methodName += "Bool";
             break;
           default:
             dump("unexpected preftype: " + preftype + "\n");
             break;
         }
+        methodName += ((methodName + "Value") in source ? "Value" : "Attribute");
+        accountValues[type][slot] = source[methodName](slot);
       }
       else if (slot in source) {
         accountValues[type][slot] = source[slot];

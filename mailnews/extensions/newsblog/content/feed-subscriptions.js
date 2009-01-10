@@ -615,11 +615,11 @@ var gFeedSubscriptionsWindow = {
   addFeed: function(aFeedLocation, aRootFolderURI)
   {
     var userAddedFeed = false; 
-    var defaultQuickMode = this.mRSSServer.getBoolAttribute('quickMode');
+    var defaultQuickMode = this.mRSSServer.getBoolValue('quickMode');
     var feedProperties = { feedName: "", feedLocation: aFeedLocation, 
                            serverURI: this.mRSSServer.serverURI, 
                            serverPrettyName: this.mRSSServer.prettyName,  
-                           quickMode: this.mRSSServer.getBoolAttribute('quickMode'), 
+                           quickMode: this.mRSSServer.getBoolValue('quickMode'),
                            newFeed: true,
                            result: userAddedFeed};
 
@@ -1007,13 +1007,13 @@ var gFeedSubscriptionsWindow = {
       {
         var userAddedFeed = false; 
         var newFeedUrl = outline.getAttribute("xmlUrl") || outline.getAttribute("url")
-        var defaultQuickMode = this.mRSSServer.getBoolAttribute('quickMode');
+        var defaultQuickMode = this.mRSSServer.getBoolValue('quickMode');
         var feedProperties = { feedName: this.findOutlineTitle(outline),
                                feedLocation: newFeedUrl, 
                                serverURI: this.mRSSServer.serverURI, 
                                serverPrettyName: this.mRSSServer.prettyName,  
                                folderURI: "", 
-                               quickMode: this.mRSSServer.getBoolAttribute('quickMode')};
+                               quickMode: this.mRSSServer.getBoolValue('quickMode')};
 
         debug("importing feed: "+ feedProperties.feedName);
        

@@ -6681,7 +6681,7 @@ void nsImapProtocol::FindMailboxesIfNecessary()
   {
     PRBool suppressPseudoView = PR_FALSE;
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server);
-    server->GetBoolAttribute("suppresspseudoview", &suppressPseudoView);
+    server->GetBoolValue("suppresspseudoview", &suppressPseudoView);
     if (!suppressPseudoView)
       XAOL_Option("+READMBOX");
   }

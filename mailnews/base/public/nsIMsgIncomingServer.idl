@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Seth Spitzer <sspitzer@netscape.com>
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -57,7 +58,7 @@ interface nsILocalFile;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(5e1ca141-1bf4-4058-a24a-f83c55c55bf1)]
+[scriptable, uuid(b51b27f6-4c36-44ef-8457-52b40d2056ce)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -235,7 +236,23 @@ interface nsIMsgIncomingServer : nsISupports {
   /* ... */
   void shutdown();
 
-  /* access to generic attributes */
+  /**
+   * Get or set the value as determined by the preference tree.
+   *
+   * These methods MUST NOT fail if the preference is not set, and therefore
+   * they MUST have a default value. This default value is provided in practice
+   * by use of a default preference tree. The standard format for the pref
+   * branches are <tt>mail.server.<i>key</i>.</tt> for per-server preferences,
+   * such that the preference is <tt>mail.server.<i>key</i>.<i>attr</i></tt>.
+   *
+   * The attributes are passed in as strings for ease of access by the C++
+   * consumers of this method.
+   *
+   * @param attr  The value for which the preference should be accessed.
+   * @param value The value of the preference to set.
+   * @return      The value of the preference.
+   * @{
+   */
   boolean getBoolValue(in string attr);
   void setBoolValue(in string attr, in boolean value);
 
@@ -247,9 +264,35 @@ interface nsIMsgIncomingServer : nsISupports {
   
   long getIntValue(in string attr);
   void setIntValue(in string attr, in long value);
+  /** @} */
 
+  /**
+   * Get or set the value as determined by the preference tree.
+   *
+   * These methods MUST NOT fail if the preference is not set, and therefore
+   * they MUST have a default value. This default value is provided in practice
+   * by use of a default preference tree. The standard format for the pref
+   * branches are <tt>mail.server.<i>key</i>.</tt> for per-server preferences,
+   * such that the preference is <tt>mail.server.<i>key</i>.<i>attr</i></tt>.
+   *
+   * The attributes are passed in as strings for ease of access by the C++
+   * consumers of this method.
+   *
+   * There are two preference names on here for legacy reasons, where the first
+   * is the name which will be using a (preferred) relative preference and the
+   * second a deprecated absolute preference. Implementations that do not have
+   * to worry about supporting legacy preferences can safely ignore this second
+   * parameter. Callers must still provide a valid value, though.
+   *
+   * @param relpref The name of the relative file preference.
+   * @param absref  The name of the absolute file preference.
+   * @param aValue  The value of the preference to set.
+   * @return        The value of the preference.
+   * @{
+   */
   nsILocalFile getFileValue(in string relpref, in string abspref);
   void setFileValue(in string relpref, in string abspref, in nsILocalFile aValue);
+  /** @} */
 
   /**
    * this is really dangerous. this destroys all pref values
@@ -358,22 +401,6 @@ interface nsIMsgIncomingServer : nsISupports {
 
   /* used for setting up the search UI */
   readonly attribute nsMsgSearchScopeValue searchScope;
-
-  /** 
-   * these generic getter / setters, useful for extending mailnews 
-   * note, these attributes persist across sessions
-   */
-  AString getUnicharAttribute(in string name);
-  void setUnicharAttribute(in string name, in AString value);
-  
-  ACString getCharAttribute(in string name);
-  void setCharAttribute(in string name, in ACString value);
-
-  boolean getBoolAttribute(in string name);
-  void setBoolAttribute(in string name, in boolean value);
-
-  long getIntAttribute(in string name);
-  void setIntAttribute(in string name, in long value);
 
   /** 
    * If the password for the server is available either via authentication 
