@@ -283,6 +283,7 @@ bin\chrome\icons\default\calendar-alarm-dialog.ico
 bin\extensions\calendar-timezones@mozilla.org\install.rdf
 bin\extensions\calendar-timezones@mozilla.org\timezones.sqlite
 bin\extensions\calendar-timezones@mozilla.org\chrome.manifest
+bin\extensions\calendar-timezones@mozilla.org\chrome\calendar-timezones.jar
 bin\extensions\calendar-timezones@mozilla.org\chrome\calendar-timezones-@AB_CD@.jar
 bin\extensions\calendar-timezones@mozilla.org\defaults\preferences\preferences.js
 
