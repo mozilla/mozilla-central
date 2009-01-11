@@ -471,7 +471,7 @@ calDavCalendar.prototype = {
         addListener.onStreamComplete =
             function onPutComplete(aLoader, aContext, aStatus, aResultLength,
                                    aResult) {
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             let status;
             try {
                 status = request.responseStatus;
@@ -573,7 +573,7 @@ calDavCalendar.prototype = {
             // 200 = HTTP "OK"
             // 204 = HTTP "No Content"
             //
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             let status;
             try {
                 status = request.responseStatus;
@@ -667,7 +667,7 @@ calDavCalendar.prototype = {
 
         delListener.onStreamComplete =
         function caldav_dDI_del_onStreamComplete(aLoader, aContext, aStatus, aResultLength, aResult) {
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             let status;
             try {
                 status = request.responseStatus;
@@ -710,7 +710,7 @@ calDavCalendar.prototype = {
         var delListener2 = {};
         delListener2.onStreamComplete =
         function caldav_dDI_del2_onStreamComplete(aLoader, aContext, aStatus, aResultLength, aResult) {
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             let status = request.responseStatus;
             if (status == 404) {
                 // someone else already deleted it
@@ -844,7 +844,7 @@ calDavCalendar.prototype = {
         var streamListener = {};
         streamListener.onStreamComplete =
             function safeRefresh_safeRefresh_onStreamComplete(aLoader, aContext, aStatus, aResultLength, aResult) {
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             try {
                 LOG("CalDAV: Status " + request.responseStatus +
                     " checking ctag for calendar " + thisCalendar.name);
@@ -964,7 +964,7 @@ calDavCalendar.prototype = {
             function getUpdatedItems_getetag_onStreamComplete(aLoader, aContext, aStatus,
                                                               aResultLength, aResult) {
             let responseStatus;
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             try {
                 LOG("CalDAV: Status " + request.responseStatus +
                     " on getetag for calendar " + thisCalendar.name);
@@ -1138,7 +1138,7 @@ calDavCalendar.prototype = {
         caldataListener.onStreamComplete =
             function getCalendarData_gCD_onStreamComplete(aLoader, aContext, aStatus,
                                                           aResultLength, aResult) {
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             let responseStatus;
             try {
                 LOG("CalDAV: Status " + request.responseStatus +
@@ -1344,7 +1344,7 @@ calDavCalendar.prototype = {
 
         streamListener.onStreamComplete =
             function checkDavResourceType_oSC(aLoader, aContext, aStatus, aResultLength, aResult) {
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             try {
                 LOG("CalDAV: Status " + request.responseStatus +
                     " on initial PROPFIND for calendar " + thisCalendar.name);
@@ -1471,7 +1471,7 @@ calDavCalendar.prototype = {
         streamListener.onStreamComplete =
             function checkServerCaps_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             let dav = null;
             try {
                 dav = request.getResponseHeader("DAV");
@@ -1564,7 +1564,7 @@ calDavCalendar.prototype = {
         streamListener.onStreamComplete =
             function findInOutboxes_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             if (request.responseStatus != 207) {
                 LOG("CalDAV: Unexpected status " + request.responseStatus +
                     " while querying principal namespace");
@@ -1693,6 +1693,7 @@ calDavCalendar.prototype = {
         streamListener.onStreamComplete =
             function caldav_cPNS_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             let str = cal.convertByteArray(aResult, aResultLength);
             if (!str) {
                 LOG("CalDAV: Failed to report principals namespace");
@@ -1702,9 +1703,9 @@ calDavCalendar.prototype = {
                 LOG("CalDAV: recv: " + str);
             }
 
-            if (aLoader.request.responseStatus != 207) {
+            if (request.responseStatus != 207) {
                 LOG("CalDAV: Bad response to in/outbox query, status " +
-                    aLoader.request.responseStatus);
+                    request.responseStatus);
                 doesntSupportScheduling();
                 return;
             }
@@ -1715,7 +1716,8 @@ calDavCalendar.prototype = {
             for each (let response in multistatus.*::response) {
                 let responseCHS = null;
                 try {
-                    responseCHS = response..*::["calendar-home-set"]..*::href[0].toString().replace(/([^/])$/, "$1/");
+                    responseCHS = response..*::["calendar-home-set"]..*::href[0]
+                                          .toString().replace(/([^\/])$/, "$1/");
                 } catch (ex) {}
 
                 if (multistatusLength > 1 &&
@@ -1919,7 +1921,7 @@ calDavCalendar.prototype = {
         streamListener.onStreamComplete =
             function caldav_GFBI_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
-            let request = aLoader.request;
+            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             let str = cal.convertByteArray(aResult, aResultLength);
             if (!str) {
                 LOG("CalDAV: Failed to parse freebusy response");
@@ -2162,7 +2164,7 @@ calDavCalendar.prototype = {
             var streamListener = {
                 onStreamComplete: function caldav_sendItems_oSC(aLoader, aContext, aStatus,
                                                                 aResultLength, aResult) {
-                    let request = aLoader.request;
+                    let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
                     let status;
                     try {
                         status = request.responseStatus;
