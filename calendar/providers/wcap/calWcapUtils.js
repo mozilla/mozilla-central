@@ -210,14 +210,10 @@ function filterXmlNodes(name, rootNode) {
         var nodeList = rootNode.getElementsByTagName(name);
         for (var i = 0; i < nodeList.length; ++i) {
             var node = nodeList.item(i);
-            ret.push(trimString(node.textContent));
+            ret.push(node.textContent.trim());
         }
     }
     return ret;
-}
-
-function trimString(str) {
-    return str.replace(/(^\s+|\s+$)/g, "");
 }
 
 function getTime() {

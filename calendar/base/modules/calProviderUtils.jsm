@@ -123,9 +123,8 @@ cal.convertByteArray = function calConvertByteArray(aResult, aResultLength, aCha
 
 cal.safeNewXML = function calSafeNewXML(aStr) {
     // Strip <?xml and surrounding whitespaces
-    return new XML(aStr.replace(/(^\s*(<\?xml[^>]*>)?\s*|\s+$)/g, ""));
+    return new XML(aStr.replace(/^\s*<\?xml[^>]*>/g, "").trimRight());
 };
-    
 
 /**
  * getInterface method for providers. This should be called in the context of
