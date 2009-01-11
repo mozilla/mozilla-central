@@ -564,7 +564,7 @@
    <nc:subheadings>
      <rdf:Seq><rdf:li>
        <rdf:Description ID="Download_Manager:preferences"
-         nc:name="downoad manager preferences"
+         nc:name="download manager preferences"
          nc:link="cs_nav_prefs_navigator.xhtml#downloads"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
