@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
  *   Hubert Gajewski <hubert@hubertgajewski.com>, Aviary.pl
+ *   Simon Vaillancourt <simon.at.orcl@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -168,8 +169,18 @@ timezone-page {
 }
 
 .freebusy-grid[state="busy"] {
-    background-color: #35556B;
-    color: #35556B;
+    background-color: #153E7E;
+    color: #153E7E;
+}
+
+.freebusy-grid[state="busy_tentative"] {
+    background-color: #1589FF;
+    color: #1589FF;
+}
+
+.freebusy-grid[state="busy_unavailable"] {
+    background-color: #4E387E;
+    color: #4E387E;
 }
 
 .freebusy-grid[state="free"] {
@@ -360,8 +371,18 @@ timezone-page {
 }
 
 .legend[status="BUSY"] {
-    background-color: #35556B;
-    color: #35556B;
+    background-color: #153E7E;
+    color: #153E7E;
+}
+
+.legend[status="BUSY_TENTATIVE"] {
+    background-color: #1589FF;
+    color: #1589FF;
+}
+
+.legend[status="BUSY_UNAVAILABLE"] {
+    background-color: #4E387E;
+    color: #4E387E;
 }
 
 .legend[status="UNKNOWN"] {

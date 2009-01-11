@@ -21,6 +21,7 @@
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Simon Vaillancourt <simon.at.orcl@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -729,38 +730,38 @@
 
       <method name="onLoad">
         <body><![CDATA[
-          var numHours = this.mEndHour - this.mStartHour;
+          let numHours = this.mEndHour - this.mStartHour;
           this.mState = new Array(this.mRange * numHours);
-          for (var i = 0; i < this.mState.length; i++) {
-              this.mState[i] = 0;
+          for (let i = 0; i < this.mState.length; i++) {
+              this.mState[i] = Components.interfaces.calIFreeBusyInterval.UNKNOWN;
           }
 
-          var step_in_minutes = Math.floor(60 * this.mZoomFactor / 100);
-          var formatter = Components.classes[
+          let step_in_minutes = Math.floor(60 * this.mZoomFactor / 100);
+          let formatter = Components.classes[
               "@mozilla.org/calendar/datetime-formatter;1"]
                   .getService(
                       Components.interfaces.calIDateTimeFormatter);
-          var date = jsDateToDateTime(new Date());
+          let date = jsDateToDateTime(new Date());
           date.hour = this.mStartHour;
           date.minute = 0;
-          var height = this.parentNode.parentNode.boxObject.height - 1;
-          var hours =
+          let height = this.parentNode.parentNode.boxObject.height - 1;
+          let hours =
               document.getAnonymousElementByAttribute(
                   this, "anonid", "hours");
           if (hours.childNodes.length <= 1) {
-              var template = hours.childNodes[0];
-              var time = formatter.formatTime(date);
+              let template = hours.childNodes[0];
+              let time = formatter.formatTime(date);
               template.setAttribute("value", time);
               date.minute += step_in_minutes;
               // TODO: hardcoded value
-              var num_days = Math.max(2, 4 * this.mZoomFactor / 100);
-              var count = Math.ceil(
+              let num_days = Math.max(2, 4 * this.mZoomFactor / 100);
+              let count = Math.ceil(
                   (this.mEndHour - this.mStartHour) * 60 / step_in_minutes);
-              var remain = count - 1;
-              for (var day = 1; day <= num_days; day++) {
+              let remain = count - 1;
+              for (let day = 1; day <= num_days; day++) {
                   while (remain--) {
-                      var newNode = template.cloneNode(false);
-                      var value = formatter.formatTime(date);
+                      let newNode = template.cloneNode(false);
+                      let value = formatter.formatTime(date);
                       newNode.setAttribute("value", value);
                       hours.appendChild(newNode);
                       date.minute += step_in_minutes;
@@ -799,27 +800,26 @@
               end.timezone = kDefaultTimezone;
 
               // First of all set all state slots to 'free'
-              for (var i = 0; i < this.mState.length; i++) {
-                  this.mState[i] = 1;
+              for (let i = 0; i < this.mState.length; i++) {
+                  this.mState[i] = Components.interfaces.calIFreeBusyInterval.FREE;
               }
 
-              var numHours = this.numHours;
+              let numHours = this.numHours;
 
               // Iterate all incoming freebusy entries
-              for each (var entry in aEntries) {
-                  var rangeStart = entry.interval.start.getInTimezone(kDefaultTimezone);
-                  var rangeEnd = entry.interval.end.getInTimezone(kDefaultTimezone);
-                  var fbState = (entry.freeBusyType == Components.interfaces.calIFreeBusyInterval.UNKNOWN ? 0 : 2);
-
+              for each (let entry in aEntries) {
+                  let rangeStart = entry.interval.start.getInTimezone(kDefaultTimezone);
+                  let rangeEnd = entry.interval.end.getInTimezone(kDefaultTimezone);
+                  
                   if (rangeStart.compare(start) >= 0 &&
                       rangeEnd.compare(end) <= 0) {
-                      var rangeDuration = rangeEnd.subtractDate(rangeStart);
-                      var rangeStartHour = rangeStart.hour;
-                      var rangeEndHour = rangeStartHour + (rangeDuration.inSeconds / 3600);
+                      let rangeDuration = rangeEnd.subtractDate(rangeStart);
+                      let rangeStartHour = rangeStart.hour;
+                      let rangeEndHour = rangeStartHour + (rangeDuration.inSeconds / 3600);
 
                       if ((rangeStartHour < this.mEndHour) &&
                           (rangeEndHour >= this.mStartHour)) {
-                          var dayingrid = start.clone();
+                          let dayingrid = start.clone();
                           dayingrid.year = rangeStart.year;
                           dayingrid.month = rangeStart.month;
                           dayingrid.day = rangeStart.day;
@@ -827,12 +827,12 @@
 
                           // Ok, this is an entry we're interested in. Find out
                           // which hours are actually occupied.
-                          var offset = rangeStart.subtractDate(dayingrid);
+                          let offset = rangeStart.subtractDate(dayingrid);
 
                           // Calculate how many days we're offset from the
                           // start of the grid. Eliminate hours in case
                           // we encounter the daylight-saving hop.
-                          var dayoffset = dayingrid.subtractDate(start);
+                          let dayoffset = dayingrid.subtractDate(start);
                           dayoffset.hours = 0;
 
                           // Add both offsets to find the total offset.
@@ -840,9 +840,9 @@
                           // offset -> offset in hours from start of current day
                           offset.addDuration(dayoffset);
 
-                          var duration = rangeEnd.subtractDate(rangeStart);
-                          var start_in_minutes = Math.floor(offset.inSeconds / 60);
-                          var end_in_minutes = Math.ceil((duration.inSeconds / 60) +
+                          let duration = rangeEnd.subtractDate(rangeStart);
+                          let start_in_minutes = Math.floor(offset.inSeconds / 60);
+                          let end_in_minutes = Math.ceil((duration.inSeconds / 60) +
                                                          (offset.inSeconds / 60));
 
                           function minute2offset(value,
@@ -853,10 +853,10 @@
                               // 'value' is some integer in the interval [0, range * 24 * 60].
                               // we need to map this offset into our array which
                               // holds elements for 'range' days with [start, end] hours each.
-                              var minutes_per_day = 24 * 60;
-                              var day = (value - (value % minutes_per_day)) /
+                              let minutes_per_day = 24 * 60;
+                              let day = (value - (value % minutes_per_day)) /
                                         minutes_per_day;
-                              var minute = Math.floor(
+                              let minute = Math.floor(
                                   value % minutes_per_day) -
                                   (start_hour * 60);
 
@@ -867,24 +867,24 @@
                               }
                               // How to get from minutes to offset?
                               // 60 = 100%, 30 = 50%, 15 = 25%, etc.
-                              var minutes_per_block = 60 * zoomfactor / 100;
+                              let minutes_per_block = 60 * zoomfactor / 100;
 
-                              var block = Math.floor(minute / minutes_per_block);
+                              let block = Math.floor(minute / minutes_per_block);
 
                               return Math.ceil(fNumHours) * day + block;
                           }
 
                           // Number of hours (fractional representation)
-                          var numHours = this.mEndHour - this.mStartHour;
-                          var fNumHours = numHours * 100 / this.mZoomFactor;
+                          let numHours = this.mEndHour - this.mStartHour;
+                          let fNumHours = numHours * 100 / this.mZoomFactor;
 
-                          var start_offset =
+                          let start_offset =
                               minute2offset(start_in_minutes,
                                             fNumHours,
                                             numHours,
                                             this.mStartHour,
                                             this.mZoomFactor);
-                          var end_offset =
+                          let end_offset =
                               minute2offset(end_in_minutes - 1,
                                             fNumHours,
                                             numHours,
@@ -892,16 +892,16 @@
                                             this.mZoomFactor);
 
                           // Set all affected state slots
-                          for (var i = start_offset; i <= end_offset; i++) {
-                              this.mState[i] = fbState;
+                          for (let i = start_offset; i <= end_offset; i++) {
+                              this.mState[i] = entry.freeBusyType;
                           }
                       }
                   }
               }
           } else {
               // First of all set all state slots to 'unknown'
-              for (var i = 0; i < this.mState.length; i++) {
-                  this.mState[i] = 0;
+              for (let i = 0; i < this.mState.length; i++) {
+                  this.mState[i] = Components.interfaces.calIFreeBusyInterval.UNKNOWN;
               }
           }
 
@@ -911,18 +911,26 @@
 
       <method name="showState">
         <body><![CDATA[
-          var hours =
+          let hours =
               document.getAnonymousElementByAttribute(
                   this, "anonid", "hours");
-          for (var i = 0; i < hours.childNodes.length; i++) {
-              var hour = hours.childNodes[i];
-              var state = this.mState[i + this.mOffset];
-              if (state == 0) {
-                  hour.removeAttribute("state");
-              } else if (state == 1) {
-                  hour.setAttribute("state", "free");
-              } else if (state == 2) {
-                  hour.setAttribute("state", "busy");
+          for (let i = 0; i < hours.childNodes.length; i++) {
+              let hour = hours.childNodes[i];
+              switch (this.mState[i + this.mOffset]) {
+                  case Components.interfaces.calIFreeBusyInterval.FREE:
+                      hour.setAttribute("state","free");
+                      break;
+                  case Components.interfaces.calIFreeBusyInterval.BUSY:
+                      hour.setAttribute("state","busy");
+                      break;
+                  case Components.interfaces.calIFreeBusyInterval.BUSY_TENTATIVE:
+                      hour.setAttribute("state","busy_tentative");
+                      break;
+                  case Components.interfaces.calIFreeBusyInterval.BUSY_UNAVAILABLE:
+                      hour.setAttribute("state","busy_unavailable");
+                      break;
+                  default:
+                      hour.removeAttribute("state");
               }
           }
         ]]></body>

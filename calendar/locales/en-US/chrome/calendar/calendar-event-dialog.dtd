@@ -26,6 +26,7 @@
    -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -   Hubert Gajewski <hubert@hubertgajewski.com>, Aviary.pl
    -   Fred Jendrzejewski <fred.jen@web.de>
+   -   Simon Vaillancourt <simon.at.orcl@gmail.com>   
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -358,17 +359,19 @@
 
 
 <!-- Attendees dialog -->
-<!ENTITY invite.title.label              "Invite Attendees">
-<!ENTITY event.organizer.label           "Organizer">
-<!ENTITY event.freebusy.suggest.slot     "Suggest time slot:">
-<!ENTITY event.freebusy.next.slot        "Next slot " >
-<!ENTITY event.freebusy.previous.slot    " Previous slot" >
-<!ENTITY event.freebusy.zoom             "Zoom:">
-<!ENTITY event.freebusy.plus             "Next hour" >
-<!ENTITY event.freebusy.minus            "Previous hour" >
-<!ENTITY event.freebusy.legend.free      "Free" >
-<!ENTITY event.freebusy.legend.busy      "Busy" >
-<!ENTITY event.freebusy.legend.unknown   "No information" >
+<!ENTITY invite.title.label                     "Invite Attendees">
+<!ENTITY event.organizer.label                  "Organizer">
+<!ENTITY event.freebusy.suggest.slot            "Suggest time slot:">
+<!ENTITY event.freebusy.next.slot               "Next slot " >
+<!ENTITY event.freebusy.previous.slot           " Previous slot" >
+<!ENTITY event.freebusy.zoom                    "Zoom:">
+<!ENTITY event.freebusy.plus                    "Next hour" >
+<!ENTITY event.freebusy.minus                   "Previous hour" >
+<!ENTITY event.freebusy.legend.free             "Free" >
+<!ENTITY event.freebusy.legend.busy             "Busy" >
+<!ENTITY event.freebusy.legend.busy_tentative   "Tentative" >
+<!ENTITY event.freebusy.legend.busy_unavailable "Out of Office" >
+<!ENTITY event.freebusy.legend.unknown          "No Information" >
 
 <!-- Timezone dialog -->
 <!ENTITY timezone.title.label            "Please Specify the Timezone">

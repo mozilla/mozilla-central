@@ -20,6 +20,7 @@
    -
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
+   -   Simon Vaillancourt <simon.at.orcl@gmail.com>   
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,12 +46,13 @@
   <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd" > %dtd2;
 ]>
 
-<dialog id="calendar-event-dialog-attendees"
+<dialog id="calendar-event-dialog-attendees-v2"
         title="&invite.title.label;"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();"
-        persist="screenX screenY width height"
+        persist="screenX screenY"
+        orient="vertical"
         style="padding-top: 8px; padding-bottom: 10px; -moz-padding-start: 8px; -moz-padding-end: 10px;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -60,135 +62,144 @@
   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calendar-statusbar.js"/>
 
-  <box orient="vertical" flex="1">
-    <box orient="horizontal" align="center" pack="end">
-      <spacer flex="1"/>
-      <label value="&event.freebusy.suggest.slot;"/>
-      <button label="&event.freebusy.previous.slot;"
-              dir="normal"
-              class="left-icon"
-              id="previous-slot"
-              oncommand="onPreviousSlot();"/>
-      <button label="&event.freebusy.next.slot;"
-              dir="reverse"
-              class="right-icon"
-              id="next-slot"
-              oncommand="onNextSlot();"/>
-      <spacer style="width: 10em"/>
-      <label value="&event.freebusy.zoom;" control="zoom-menulist"/>
-      <image class="zoom-out-icon"/>
-      <menulist id="zoom-menulist"
-                oncommand="onZoomFactor(this.value);">
-        <menupopup>
-          <menuitem label="400%" value="25"/>
-          <menuitem label="200%" value="50"/>
-          <menuitem label="100%" value="100"/>
-          <menuitem label="50%" value="200"/>
-          <menuitem label="25%" value="400"/>
-        </menupopup>
-      </menulist>
-      <image class="zoom-in-icon"/>
-    </box>
-    <box orient="horizontal" flex="1">
-      <box orient="vertical" flex="1">
-        <box class="attendee-spacer-top"/>
-        <attendees-list flex="1" id="attendees-list"/>
-        <box class="attendee-spacer-bottom"/>
-      </box>
-      <splitter id="splitter"/>
-      <box orient="vertical">
-        <stack flex="1">
-          <box orient="vertical" flex="1">
-            <freebusy-timebar id="timebar"
-                              range="16"/>
-            <freebusy-grid flex="1"
-                           id="freebusy-grid"
-                           range="16"/>
-          </box>
-          <selection-bar id="selection-bar"
+  <hbox align="center" pack="end">
+    <spacer flex="1"/>
+    <label value="&event.freebusy.suggest.slot;"/>
+    <button label="&event.freebusy.previous.slot;"
+            dir="normal"
+            class="left-icon"
+            id="previous-slot"
+            oncommand="onPreviousSlot();"/>
+    <button label="&event.freebusy.next.slot;"
+            dir="reverse"
+            class="right-icon"
+            id="next-slot"
+            oncommand="onNextSlot();"/>
+    <spacer style="width: 10em"/>
+    <label value="&event.freebusy.zoom;" control="zoom-menulist"/>
+    <image class="zoom-out-icon"/>
+    <menulist id="zoom-menulist"
+              oncommand="onZoomFactor(this.value);">
+      <menupopup>
+        <menuitem label="400%" value="25"/>
+        <menuitem label="200%" value="50"/>
+        <menuitem label="100%" value="100"/>
+        <menuitem label="50%" value="200"/>
+        <menuitem label="25%" value="400"/>
+      </menupopup>
+    </menulist>
+    <image class="zoom-in-icon"/>
+  </hbox>
+  <hbox flex="1">
+    <vbox flex="1">
+      <box class="attendee-spacer-top"/>
+      <attendees-list flex="1" id="attendees-list"/>
+      <box class="attendee-spacer-bottom"/>
+    </vbox>
+    <splitter id="splitter"/>
+    <vbox>
+      <stack flex="1">
+        <vbox flex="1">
+          <freebusy-timebar id="timebar"
+                            range="16"/>
+          <freebusy-grid flex="1"
+                         id="freebusy-grid"
                          range="16"/>
-        </stack>
-        <scrollbar orient="horizontal"
-                   id="horizontal-scrollbar"
-                   maxpos="100"/>
-      </box>
-      <box orient="vertical"
-           id="vertical-scrollbar-box"
-           collapsed="true">
-        <box class="attendee-spacer-top"/>
-        <scrollbar orient="vertical"
-                   flex="1"
-                   id="vertical-scrollbar"
-                   maxpos="100"/>
-        <box class="attendee-spacer-bottom"/>
-      </box>
-    </box>
-    <box orient="horizontal">
-      <box orient="vertical" flex="1">
-        <box orient="horizontal" align="center">
-          <box class="legend" status="FREE"/>
-          <label value="&event.freebusy.legend.free;"/>
-        </box>
-        <box orient="horizontal" align="center">
-          <box class="legend" status="BUSY"/>
-          <label value="&event.freebusy.legend.busy;"/>
-        </box>
-        <box orient="horizontal" align="center">
-          <box class="legend" status="UNKNOWN"/>
-          <label value="&event.freebusy.legend.unknown;"/>
-        </box>
-        <box orient="horizontal">
-          <button label="&event.freebusy.minus;"
-                  oncommand="onMinus();"/>
-          <button label="&event.freebusy.plus;"
-                  oncommand="onPlus();"/>
-        </box>
-        <box orient="horizontal" collapsed="true">
-          <label value="&event.organizer.label;" disabled="true" control="event-organizer"/>
-          <textbox id="event-organizer"
-                   disabled="true"
-                   flex="true"/>
-        </box>
-      </box>
-      <grid>
-        <columns>
-          <column/>
-          <column flex="1"/>
-        </columns>
-        <rows>
-          <row align="center">
-            <spacer/>
-            <checkbox id="all-day"
-                      oncommand="changeAllDay();"
-                      label="&event.alldayevent.label;"/>
-          </row>
-          <row align="center">
-            <label value="&newevent.from.label;" control="event-starttime"/>
-            <datetimepicker id="event-starttime"
-                            onchange="updateStartTime();"/>
-            <label id="timezone-starttime"
-                   crop="right"
-                   class="text-link"
-                   flex="1"
-                   collapsed="true"
-                   hyperlink="true"
-                   onclick="editStartTimezone()"/>
-          </row>
-          <row align="center">
-            <label value="&newevent.to.label;" control="event-endtime"/>
-            <datetimepicker id="event-endtime"
-                            onchange="updateEndTime();"/>
-            <label id="timezone-endtime"
-                   crop="right"
-                   class="text-link"
-                   flex="1"
-                   collapsed="true"
-                   hyperlink="true"
-                   onclick="editEndTimezone()"/>
-          </row>
-        </rows>
-      </grid>
-    </box>
-    <separator class="groove"/>
-  </box>
+        </vbox>
+        <selection-bar id="selection-bar"
+                       range="16"/>
+      </stack>
+      <scrollbar orient="horizontal"
+                 id="horizontal-scrollbar"
+                 maxpos="100"/>
+    </vbox>
+    <vbox
+         id="vertical-scrollbar-box"
+         collapsed="true">
+      <box class="attendee-spacer-top"/>
+      <scrollbar orient="vertical"
+                 flex="1"
+                 id="vertical-scrollbar"
+                 maxpos="100"/>
+      <box class="attendee-spacer-bottom"/>
+    </vbox>
+  </hbox>
+  <hbox>
+    <vbox>
+      <hbox align="center">
+        <box class="legend" status="FREE"/>
+        <label value="&event.freebusy.legend.free;"/>
+      </hbox>
+      <hbox align="center">
+        <box class="legend" status="BUSY_TENTATIVE"/>
+        <label value="&event.freebusy.legend.busy_tentative;"/>
+      </hbox>        
+      <hbox align="center">
+        <box class="legend" status="BUSY"/>
+        <label value="&event.freebusy.legend.busy;"/>
+      </hbox>
+      <hbox>
+        <button label="&event.freebusy.minus;"
+                oncommand="onMinus();"/>
+        <button label="&event.freebusy.plus;"
+                oncommand="onPlus();"/>
+      </hbox>
+      <hbox collapsed="true">
+        <label value="&event.organizer.label;" disabled="true" control="event-organizer"/>
+        <textbox id="event-organizer"
+                 disabled="true"
+                 flex="true"/>
+      </hbox>
+    </vbox>
+    <vbox>
+      <hbox align="center">
+        <box class="legend" status="BUSY_UNAVAILABLE"/>
+        <label value="&event.freebusy.legend.busy_unavailable;"/>
+      </hbox>
+      <hbox align="center">
+        <box class="legend" status="UNKNOWN"/>
+        <label value="&event.freebusy.legend.unknown;"/>
+      </hbox>
+    </vbox>      
+    <spacer flex="1"/>
+    <grid>
+      <columns>
+        <column/>
+        <column flex="1"/>
+      </columns>
+      <rows>
+        <row align="center">
+          <spacer/>
+          <checkbox id="all-day"
+                    oncommand="changeAllDay();"
+                    label="&event.alldayevent.label;"/>
+        </row>
+        <row align="center">
+          <label value="&newevent.from.label;" control="event-starttime"/>
+          <datetimepicker id="event-starttime"
+                          onchange="updateStartTime();"/>
+          <label id="timezone-starttime"
+                 crop="right"
+                 class="text-link"
+                 flex="1"
+                 collapsed="true"
+                 hyperlink="true"
+                 onclick="editStartTimezone()"/>
+        </row>
+        <row align="center">
+          <label value="&newevent.to.label;" control="event-endtime"/>
+          <datetimepicker id="event-endtime"
+                          onchange="updateEndTime();"/>
+          <label id="timezone-endtime"
+                 crop="right"
+                 class="text-link"
+                 flex="1"
+                 collapsed="true"
+                 hyperlink="true"
+                 onclick="editEndTimezone()"/>
+        </row>
+      </rows>
+    </grid>
+  </hbox>
+  <separator class="groove"/>
 </dialog>
