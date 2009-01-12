@@ -21,6 +21,7 @@
  *   Michael Buettner <michael.buettner@sun.com>
  *   Lars Wohlfahrt <thetux.moz@googlemail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Simon Paquet <bugzilla@babylonsounds.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,12 +45,24 @@
     margin: 0;
 }
 
+.calendar-task-tree > treechildren::-moz-tree-row(selected, focus) {
+    background-color: Highlight;
+}
+
+.calendar-task-tree > treechildren::-moz-tree-cell-text(selected, focus) {
+    color: HighlightText;
+}
+
 .calendar-task-tree > treechildren::-moz-tree-cell-text(inprogress) {
     color: green;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-row(inprogress, selected, focus) {
     background-color: green;
+}
+
+.calendar-task-tree > treechildren::-moz-tree-cell-text(inprogress, selected, focus) {
+    color: HighlightText;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-cell-text(overdue) {
@@ -60,25 +73,47 @@
     background-color: red;
 }
 
+.calendar-task-tree > treechildren::-moz-tree-cell-text(overdue, selected, focus) {
+    color: HighlightText;
+}
+
 .calendar-task-tree > treechildren::-moz-tree-cell-text(duetoday) {
-    color: ActiveCaption;
+    color: WindowText;
+    font-weight: bold;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-row(duetoday, selected, focus) {
-    background-color: Background;
+    background-color: Highlight;
+}
+
+.calendar-task-tree > treechildren::-moz-tree-cell-text(duetoday, selected, focus) {
+    color: HighlightText;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-cell-text(future) {
-    color: InfoText;
+    color: MenuText;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-row(future, selected, focus) {
     background-color: Highlight;
 }
 
+.calendar-task-tree > treechildren::-moz-tree-cell-text(future, selected, focus) {
+    color: HighlightText;
+}
+
 .calendar-task-tree > treechildren::-moz-tree-cell-text(completed) {
     text-decoration: line-through;
-    color: GrayText;
+    font-style: italic;
+    color: MenuText;
+}
+
+.calendar-task-tree > treechildren::-moz-tree-row(completed, selected, focus) {
+    background-color: Highlight;
+}
+
+.calendar-task-tree > treechildren::-moz-tree-cell-text(completed, selected, focus) {
+    color: HighlightText;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-completed, completed),
@@ -126,8 +161,4 @@
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, selected, lowpriority) {
     list-style-image: url(chrome://calendar/skin/unifinder-images.png);
     -moz-image-region: rect(0 91px 13px 78px);
-}
-
-.calendar-task-tree > treechildren::-moz-tree-cell-text(selected, focus) {
-    color: HighlightText;
 }
