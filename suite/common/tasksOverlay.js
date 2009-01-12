@@ -63,10 +63,24 @@ function toDownloadManager()
   }
 }
   
-function toEM()
+function toEM( aPane )
 {
-  toOpenWindowByType("Extension:Manager",
-                     "chrome://mozapps/content/extensions/extensions.xul");
+  var theEM = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                        .getService(Components.interfaces.nsIWindowMediator)
+                        .getMostRecentWindow("Extension:Manager");
+  if (theEM) {
+    theEM.focus();
+    if (aPane)
+      theEM.showView(aPane);
+    return;
+  }
+
+  const EMURL = "chrome://mozapps/content/extensions/extensions.xul";
+  const EMFEATURES = "all,dialog=no";
+  if (aPane)
+    window.openDialog(EMURL, "", EMFEATURES, aPane);
+  else
+    window.openDialog(EMURL, "", EMFEATURES);
 }
 
 function toJavaScriptConsole()
@@ -101,7 +115,7 @@ function toOpenWindow( aWindow )
   }
 }
 
-function toOpenWindowByType( inType, uri )
+function toOpenWindowByType( inType, uri, features )
 {
   // don't do several loads in parallel
   if (uri in window)
@@ -124,12 +138,11 @@ function toOpenWindowByType( inType, uri )
     }
     // remember the newly loading window until it's fully loaded
     // or until the current window passes away
-    window[uri] = window.openDialog(uri, "", "all,dialog=no");
+    window[uri] = window.openDialog(uri, "", features || "all,dialog=no");
     window[uri].addEventListener("load", newWindowLoaded, false);
     window.addEventListener("unload", newWindowLoaded, false);
   }
 }
-
 
 function OpenBrowserWindow()
 {
