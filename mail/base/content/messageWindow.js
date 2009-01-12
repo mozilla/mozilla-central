@@ -777,6 +777,7 @@ var MessageWindowController =
       case "cmd_replyGroup":
       case "cmd_replyall":
       case "button_replyall":
+      case "button_archive":
       case "cmd_forward":
       case "button_forward":
       case "cmd_forwardInline":
@@ -841,6 +842,7 @@ var MessageWindowController =
       case "cmd_replyGroup":
       case "cmd_replyall":
       case "button_replyall":
+      case "button_archive":
       case "cmd_forward":
       case "button_forward":
       case "cmd_forwardInline":

@@ -2098,6 +2098,9 @@
        <xul:button anonid="hdrForwardButton" label="&forwardButton.label;"
                    oncommand="MsgForwardMessage(event);"
                    observes="button_forward" class="msgHeaderView-button hdrForwardButton"/>
+       <xul:button anonid="archiveButton" label="&archiveButton.label;"
+                   oncommand="MsgArchiveSelectedMessages(event);" observes="button_archive"
+                   class="msgHeaderView-button hdrArchiveButton"/>
        <xul:button anonid="hdrJunkButton" label="&junkButton.label;"
                    observes="button_junk" class="msgHeaderView-button hdrJunkButton"
                    oncommand="goDoCommand('button_junk')"/>

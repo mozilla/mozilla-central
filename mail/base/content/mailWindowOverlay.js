@@ -71,6 +71,9 @@ var gMessengerBundle;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                             .getService(Components.interfaces.nsIPrefService)
                             .getBranch(null);
+var gCopyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
+                     .getService(Components.interfaces.nsIMsgCopyService);
+
 // Timer to mark read, if the user has configured the app to mark a message as
 // read if it is viewed for more than n seconds.
 var gMarkViewedMessageAsReadTimer = null;
@@ -1024,6 +1027,170 @@ function MsgReplyToAllMessage(event)
 {
   composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyAll, event);
 }
+
+
+// Message Archive function
+
+function BatchMessageMover()
+{
+  this._batches = {};
+  this._currentKey = null;
+}
+
+BatchMessageMover.prototype = {
+
+  archiveSelectedMessages: function()
+  {
+    // subtle:
+    SetNextMessageAfterDelete(); // we're just pretending
+    this.messageToSelectAfterWereDone = gNextMessageViewIndexAfterDelete;
+    gNextMessageViewIndexAfterDelete = -2;
+
+    let selectedMsgUris = GetSelectedMessages();
+    if (!selectedMsgUris.length)
+      return;
+    
+    let messages = Components.classes["@mozilla.org/array;1"]
+                             .createInstance(Components.interfaces.nsIMutableArray);
+    
+    for (let i = 0; i < selectedMsgUris.length; ++i)
+    {
+      let msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
+  
+      let rootFolder = msgHdr.folder.server.rootFolder;
+  
+      let msgDate = new Date(msgHdr.date / 1000);  // convert date to JS date object
+      let msgYear = msgDate.getFullYear().toString();
+      let monthFolderName = msgDate.toLocaleFormat("%Y-%m")
+      let dstFolderName = monthFolderName;
+
+      let copyBatchKey = msgHdr.folder.URI + '\000' + dstFolderName;
+      if (! (copyBatchKey in this._batches)) {
+        this._batches[copyBatchKey] = [msgHdr.folder, msgYear, dstFolderName];
+      }
+      this._batches[copyBatchKey].push(msgHdr);
+    }
+    // Now we launch the code that will iterate over all of the message copies
+    // one in turn
+    this.processNextBatch();
+  },
+  
+  processNextBatch: function()
+  {
+    for (let key in this._batches)
+    {
+      this._currentKey = key;
+      let batch = this._batches[key];
+      let srcFolder = batch[0];
+      let msgYear = batch[1];
+      let dstFolderName = batch[2];
+      let msgs = batch.slice(3,batch.length);
+      let subfolder;
+
+      let archiveFolderUri =
+        getIdentityForHeader(msgs[0], Components.interfaces.nsIMsgCompType.ReplyAll).archiveFolder;
+
+      let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      if (!archiveFolder.parent)
+      {
+        archiveFolder.createStorageIfMissing(this);
+        return;
+      }
+      if (!archiveFolder.containsChildNamed(msgYear))
+      {
+        subfolder = archiveFolder.addSubfolder(msgYear);
+        subfolder.createStorageIfMissing(this);
+        return;
+      }
+      else
+      {
+        subfolder = archiveFolder.getChildNamed(msgYear);
+      }
+      if (!subfolder.containsChildNamed(dstFolderName))
+      {
+        subfolder = subfolder.addSubfolder(dstFolderName);
+        subfolder.createStorageIfMissing(this);
+        return;
+      }
+      else
+      {
+        dstFolder = subfolder.getChildNamed(dstFolderName);
+      }
+      var mutablearray = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+      msgs.forEach(function (item) {
+        mutablearray.appendElement(item, false);
+      });
+      gCopyService.CopyMessages(srcFolder, mutablearray,
+                                dstFolder, true, this, msgWindow, true);
+      this._currentKey = key;
+      break; // only do one.
+    }
+  },
+
+  OnStartRunningUrl: function(url) {
+  },
+
+  OnStopRunningUrl: function(url, exitCode)
+  {
+    // this will always be a create folder url, afaik.
+    if (exitCode >= 0)
+      this.processNextBatch();
+    else
+      this._batches = null;
+  },
+
+  // also implements nsIMsgCopyServiceListener, but we only care
+  // about the OnStopCopy
+  OnStartCopy: function() {
+  },
+  OnProgress: function(aProgress, aProgressMax) {
+  },
+  SetMessageKey: function(aKey) {
+  },
+  GetMessageId: function() {
+  },
+  OnStopCopy: function(aStatus)
+  {
+    if (aStatus == Components.results.NS_OK) {
+      // remove batch we just finished
+      delete this._batches[this._currentKey];
+      this._currentKey = null;
+
+      // is there a safe way to test whether this._batches is empty?
+      let empty = true;
+      for (let key in this._batches) {
+        empty = false;
+      }
+
+      if (empty)
+      {
+        // we're just going to select the message now
+        var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
+        var treeSelection = treeView.selection;
+        treeSelection.select(this.messageToSelectAfterWereDone);
+        treeView.selectionChanged();
+      }
+      else
+      {
+        this.processNextBatch();
+      }
+    }
+  },
+  QueryInterface: function(iid) {
+    if (!iid.equals(Components.interfaces.nsIUrlListener) &&
+      !iid.equals(Components.interfaces.nsIMsgCopyServiceListener) &&
+      !iid.equals(Components.interfaces.nsISupports))
+      throw Components.results.NS_ERROR_NO_INTERFACE;
+    return this;
+  }
+}
+
+function MsgArchiveSelectedMessages(event)
+{
+  let batchMover = new BatchMessageMover();
+  batchMover.archiveSelectedMessages();
+}
+
 
 function MsgForwardMessage(event)
 {

@@ -228,6 +228,7 @@
             commandupdater="true"
             events="create-menu-message"
             oncommandupdate="goUpdateMailMenuItems(this)">
+  <command id="cmd_archive" oncommand="goDoCommand('cmd_archive')"/>
   <command id="cmd_reply" oncommand="goDoCommand('cmd_reply')"/>
   <command id="cmd_replySender" oncommand="goDoCommand('cmd_replySender')"/>
   <command id="cmd_replyGroup" oncommand="goDoCommand('cmd_replyGroup')"/>
@@ -251,6 +252,7 @@
 
   <command id="button_reply"/>
   <command id="button_replyall"/>
+  <command id="button_archive"/>
   <command id="button_forward"/>
   <command id="button_delete"/>
   <command id="button_mark"/>
@@ -365,6 +367,7 @@
   <key id="key_nextUnreadThread" key="&nextUnreadThread.key;"        oncommand="goDoCommand('cmd_nextUnreadThread')"/>
   <key id="key_previousMsg" key="&prevMsgCmd.key;"                   oncommand="goDoCommand('cmd_previousMsg')"/>
   <key id="key_previousUnreadMsg" key="&prevUnreadMsgCmd.key;"       oncommand="goDoCommand('cmd_previousUnreadMsg')"/>
+  <key id="key_archive" key="&archiveMsgCmd.key;"                    oncommand="goDoCommand('cmd_archive')"/>
   <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward')"/>
   <key id="key_goBack" key="&goBackCmd.commandKey;"                  oncommand="goDoCommand('cmd_goBack')"/>
   <key id="key_reply" key="&replyMsgCmd.key;"                        oncommand="goDoCommand('cmd_reply')" modifiers="accel"/>
@@ -1141,6 +1144,10 @@
               accesskey="&newMsgCmd.accesskey;"
               key="key_newMessage2"
               oncommand="MsgNewMessage(null);"/>
+            <menuitem id="archiveMainMenu" label="&archiveMsgCmd.label;"
+              accesskey="&archiveMsgCmd.accesskey;"
+              key="key_archive"
+              command="cmd_archive"/>
             <menuitem id="replyMainMenu" label="&replyMsgCmd.label;"
               accesskey="&replyMsgCmd.accesskey;"
               key="key_reply"
