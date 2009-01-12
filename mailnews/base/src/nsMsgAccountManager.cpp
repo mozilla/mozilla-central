@@ -1390,6 +1390,18 @@ nsMsgAccountManager::SetSpecialFolders()
             rv = folder->SetFlag(nsMsgFolderFlags::Drafts);
         }
       }
+      thisIdentity->GetArchiveFolder(folderUri);
+      if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+      {
+        folder = do_QueryInterface(res, &rv);
+        nsCOMPtr <nsIMsgFolder> parent;
+        if (folder && NS_SUCCEEDED(rv))
+        {
+          rv = folder->GetParent(getter_AddRefs(parent));
+          if (NS_SUCCEEDED(rv) && parent)
+            rv = folder->SetFlag(nsMsgFolderFlags::Archive);
+        }
+      }
       thisIdentity->GetStationeryFolder(folderUri);
       if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
       {
