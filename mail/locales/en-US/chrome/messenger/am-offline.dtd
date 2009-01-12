@@ -20,6 +20,8 @@
 <!ENTITY retentionKeepNew.accesskey "b">
 <!ENTITY retentionKeepUnread.label "Always delete read messages">
 <!ENTITY retentionKeepUnread.accesskey "w">
+<!ENTITY retentionApplyToFlagged.label "Always keep starred messages">
+<!ENTITY retentionApplyToFlagged.accesskey "e">
 <!ENTITY nntpRemoveBody.label "Only message bodies less than">
 <!ENTITY nntpRemoveBody.accesskey "O">
 <!ENTITY offlineSelectNntp.label "Select newsgroups for offline use…">

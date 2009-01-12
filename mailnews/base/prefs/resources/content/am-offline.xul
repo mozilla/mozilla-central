@@ -137,8 +137,16 @@
     </radiogroup>
 
     <hbox align="center" class="indent">
-        <checkbox wsm_persist="true" id="retention.keepUnread" accesskey="&retentionKeepUnread.accesskey;"
-            label="&retentionKeepUnread.label;" hidefor="" checked="true"/>
+      <vbox>
+        <checkbox id="retention.keepUnread" wsm_persist="true"
+                  label="&retentionKeepUnread.label;"
+                  accesskey="&retentionKeepUnread.accesskey;"
+                  checked="false"/>
+        <checkbox id="retention.applyToFlagged" wsm_persist="true"
+                  label="&retentionApplyToFlagged.label;"
+                  accesskey="&retentionApplyToFlagged.accesskey;"
+                  checked="true"/>
+      </vbox>
     </hbox>
     <hbox align="center" class="indent" hidefor="movemail,pop3,imap,none,rss">
         <checkbox wsm_persist="true" id="nntp.removeBody" accesskey="&nntpRemoveBody.accesskey;"

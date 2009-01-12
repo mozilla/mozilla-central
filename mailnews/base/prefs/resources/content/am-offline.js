@@ -137,6 +137,8 @@ function onPreInit(account, accountValues)
         retentionCheckbox.setAttribute("hidden", "true");
         var retentionLabel = document.getElementById("retentionDescription");
         retentionLabel.setAttribute("hidden", "true");
+        var applyToFlaggedCheckbox = document.getElementById("retention.applyToFlagged");
+        applyToFlaggedCheckbox.setAttribute("hidden", "true");
       }
     }
 }
@@ -231,6 +233,7 @@ function onLockPreference()
       { prefstring:"keepUnreadOnly", id:"retention.keepUnread"},
       { prefstring:"daysToKeepBodies", id:"nntp.removeBodyMin"},
       { prefstring:"cleanupBodies", id:"nntp.removeBody" },
+      { prefstring:"applyToFlagged", id:"retention.applyToFlagged"},
       { prefstring:"disable_button.selectFolder", id:"selectNewsgroupsButton"},
       { prefstring:"disable_button.selectFolder", id:"selectImapFoldersButton"}
     ];

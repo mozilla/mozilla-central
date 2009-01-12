@@ -78,7 +78,7 @@ interface nsILocalFile;
 typedef unsigned long nsMsgRetainByPreference;
 
 
-[scriptable, uuid(063bd2ac-de85-11d4-a5b6-0060b0fc04b7)]
+[scriptable, uuid(b01d6b3b-78c2-4958-b836-2259c76dbc24)]
 
 interface nsIMsgRetentionSettings : nsISupports
 {
@@ -98,7 +98,13 @@ interface nsIMsgRetentionSettings : nsISupports
   // this is for keeping offline bodies.
   attribute boolean cleanupBodiesByDays;
   attribute unsigned long daysToKeepBodies;
-}; 
+
+  /**
+   * Should retention settings be applied to flagged/starred messages?
+   * If false, flagged messages are never automatically deleted.
+   */
+  attribute boolean applyToFlaggedMessages;
+};
 
 [scriptable, uuid(86a9da90-14f1-11d5-a5c0-0060b0fc04b7)]
 interface nsIMsgDownloadSettings : nsISupports

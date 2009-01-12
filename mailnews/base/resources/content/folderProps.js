@@ -370,6 +370,13 @@ function onUseDefaultRetentionSettings()
   document.getElementById('retention.keepMsg').disabled = useDefault;
   document.getElementById('retention.keepNewMsgMinLabel').disabled = useDefault;
   document.getElementById('retention.keepOldMsgMinLabel').disabled = useDefault;
+
+  var keepMsg = document.getElementById("retention.keepMsg").value;
+  const nsIMsgRetentionSettings = Components.interfaces.nsIMsgRetentionSettings;
+  document.getElementById('retention.keepOldMsgMin').disabled =
+    useDefault || (keepMsg != nsIMsgRetentionSettings.nsMsgRetainByAge);
+  document.getElementById('retention.keepNewMsgMin').disabled =
+    useDefault || (keepMsg != nsIMsgRetentionSettings.nsMsgRetainByNumHeaders);
 }
 
 function RebuildSummaryInformation()

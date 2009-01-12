@@ -224,9 +224,13 @@ protected:
   nsCOMPtr <nsIMsgRetentionSettings> m_retentionSettings;
   nsCOMPtr <nsIMsgDownloadSettings> m_downloadSettings;
 
-  nsresult PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs, PRBool keepUnreadMessagesOnly,
+  nsresult PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
+                                  PRBool keepUnreadMessagesOnly,
+                                  PRBool applyToFlaggedMessages,
                                   nsIMutableArray *hdrsToDelete);
-  nsresult PurgeExcessMessages(PRUint32 numHeadersToKeep, PRBool keepUnreadMessagesOnly,
+  nsresult PurgeExcessMessages(PRUint32 numHeadersToKeep,
+                               PRBool keepUnreadMessagesOnly,
+                               PRBool applyToFlaggedMessages,
                                nsIMutableArray *hdrsToDelete);
   
   // mdb bookkeeping stuff
@@ -351,6 +355,7 @@ protected:
   PRBool                  m_useServerDefaults;
   PRBool                  m_cleanupBodiesByDays;
   PRUint32                m_daysToKeepBodies;
+  PRBool                  m_applyToFlaggedMessages;
 };
 
 class nsMsgDownloadSettings : public nsIMsgDownloadSettings

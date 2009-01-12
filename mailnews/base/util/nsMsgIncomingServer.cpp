@@ -1309,6 +1309,7 @@ NS_IMETHODIMP nsMsgIncomingServer::GetRetentionSettings(nsIMsgRetentionSettings 
   PRBool keepUnreadMessagesOnly = PR_FALSE;
   PRInt32 daysToKeepBodies = 0;
   PRBool cleanupBodiesByDays = PR_FALSE;
+  PRBool applyToFlaggedMessages = PR_FALSE;
   nsresult rv = NS_OK;
   if (!m_retentionSettings)
   {
@@ -1316,17 +1317,26 @@ NS_IMETHODIMP nsMsgIncomingServer::GetRetentionSettings(nsIMsgRetentionSettings 
     if (m_retentionSettings)
     {
       rv = GetBoolValue("keepUnreadOnly", &keepUnreadMessagesOnly);
+      NS_ENSURE_SUCCESS(rv, rv);
       rv = GetIntValue("retainBy", (PRInt32*) &retainByPreference);
+      NS_ENSURE_SUCCESS(rv, rv);
       rv = GetIntValue("numHdrsToKeep", &numHeadersToKeep);
+      NS_ENSURE_SUCCESS(rv, rv);
       rv = GetIntValue("daysToKeepHdrs", &daysToKeepHdrs);
+      NS_ENSURE_SUCCESS(rv, rv);
       rv = GetIntValue("daysToKeepBodies", &daysToKeepBodies);
+      NS_ENSURE_SUCCESS(rv, rv);
       rv = GetBoolValue("cleanupBodies", &cleanupBodiesByDays);
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = GetBoolValue("applyToFlaggedMessages", &applyToFlaggedMessages);
+      NS_ENSURE_SUCCESS(rv, rv);
       m_retentionSettings->SetRetainByPreference(retainByPreference);
       m_retentionSettings->SetNumHeadersToKeep((PRUint32) numHeadersToKeep);
       m_retentionSettings->SetKeepUnreadMessagesOnly(keepUnreadMessagesOnly);
       m_retentionSettings->SetDaysToKeepBodies(daysToKeepBodies);
       m_retentionSettings->SetDaysToKeepHdrs(daysToKeepHdrs);
       m_retentionSettings->SetCleanupBodiesByDays(cleanupBodiesByDays);
+      m_retentionSettings->SetApplyToFlaggedMessages(applyToFlaggedMessages);
     }
     else
       rv = NS_ERROR_OUT_OF_MEMORY;
@@ -1345,6 +1355,7 @@ NS_IMETHODIMP nsMsgIncomingServer::SetRetentionSettings(nsIMsgRetentionSettings 
   PRBool keepUnreadMessagesOnly = PR_FALSE;
   PRUint32 daysToKeepBodies = 0;
   PRBool cleanupBodiesByDays = PR_FALSE;
+  PRBool applyToFlaggedMessages = PR_FALSE;
   m_retentionSettings = settings;
   m_retentionSettings->GetRetainByPreference(&retainByPreference);
   m_retentionSettings->GetNumHeadersToKeep(&numHeadersToKeep);
@@ -1352,13 +1363,22 @@ NS_IMETHODIMP nsMsgIncomingServer::SetRetentionSettings(nsIMsgRetentionSettings 
   m_retentionSettings->GetDaysToKeepBodies(&daysToKeepBodies);
   m_retentionSettings->GetDaysToKeepHdrs(&daysToKeepHdrs);
   m_retentionSettings->GetCleanupBodiesByDays(&cleanupBodiesByDays);
+  m_retentionSettings->GetApplyToFlaggedMessages(&applyToFlaggedMessages);
   nsresult rv = SetBoolValue("keepUnreadOnly", keepUnreadMessagesOnly);
+  NS_ENSURE_SUCCESS(rv, rv);
   rv = SetIntValue("retainBy", retainByPreference);
+  NS_ENSURE_SUCCESS(rv, rv);
   rv = SetIntValue("numHdrsToKeep", numHeadersToKeep);
+  NS_ENSURE_SUCCESS(rv, rv);
   rv = SetIntValue("daysToKeepHdrs", daysToKeepHdrs);
+  NS_ENSURE_SUCCESS(rv, rv);
   rv = SetIntValue("daysToKeepBodies", daysToKeepBodies);
+  NS_ENSURE_SUCCESS(rv, rv);
   rv = SetBoolValue("cleanupBodies", cleanupBodiesByDays);
-  return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = SetBoolValue("applyToFlaggedMessages", applyToFlaggedMessages);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
