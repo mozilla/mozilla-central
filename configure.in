@@ -75,7 +75,6 @@ dnl comm-central-specific options
 dnl (MOZILLA_SRCDIR would fit here, but is needed to find autoconf tools)
 COMM_BUILD=1
 AC_SUBST(COMM_BUILD)
-AC_SUBST(MOZILLA_SRCDIR)
 dnl export this, so the var is set for mozilla/configure
 MOZCONFIG=`$_AUTOCONF_TOOLS_DIR/mozconfig-find $topsrcdir`
 export MOZCONFIG
