@@ -70,7 +70,7 @@
 
   <hbox align="center">
     <textbox id="search-box" flex="1" type="search"
-             emptytext="&search.emptytext;"
+             emptytext="&search.emptytext;" clickSelectsAll="true"
              oncommand="searchHistory(this.value);"/>
     <toolbarbutton id="viewButton" type="menu" style="-moz-user-focus: normal;"
                    label="&view.label;">

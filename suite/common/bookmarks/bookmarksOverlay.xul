@@ -101,7 +101,7 @@
 
     <key id="bm_key_find"
          key="&menuitem.find.find.key;"
-         command="cmd_bm_find" modifiers="accel"/>
+         command="cmd_bm_find" modifiers="accel,shift"/>
 
     <key id="bm_key_sortFolder"
          key="&command.sortFolder.key;"

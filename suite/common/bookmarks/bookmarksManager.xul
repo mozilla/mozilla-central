@@ -105,7 +105,10 @@
     <key id="key_close"/>
     <key id="key_quit"/>
   </keyset>
-  <keyset id="bookmarks-tasksKeys"/>
+  <keyset id="bookmarks-tasksKeys">
+    <key key="&search.key;" modifiers="accel"
+         oncommand="document.getElementById('search-box').focus();"/>
+  </keyset>
 
   <toolbox id="bookmarks-toolbox">
     <menubar id="main-menubar" grippytooltiptext="&menuBar.tooltip;">
@@ -251,9 +254,8 @@
                      command="cmd_bm_delete"/>
       <toolbarspring/>
       <toolbaritem id="bookmarks-search-box" align="center">
-        <label value="&search.label;" accesskey="&search.accesskey;"
-               control="search-box"/>
         <textbox id="search-box" type="search" clickSelectsAll="true"
+                 emptytext="&search.emptytext;"
                  oncommand="document.getElementById('bookmarks-view').searchBookmarks(this.value)"/>
       </toolbaritem>
     </toolbar>

@@ -116,5 +116,5 @@
 
 <!ENTITY bookmarksWindowTitle.label     "Bookmark Manager">
 
-<!ENTITY search.label                     "Search">
-<!ENTITY search.accesskey                 "S">
+<!ENTITY search.emptytext               "Search Bookmarks">
+<!ENTITY search.key                     "f">
