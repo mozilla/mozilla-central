@@ -1461,13 +1461,13 @@
     <toolbaritem id="button-delete">
       <deck id="delete-deck" observes="button_delete">
          <toolbarbutton id="button-mark-deleted"
-                        class="toolbarbutton-1"
+                        class="toolbarbutton-1 delete-button"
                         label="&deleteButton.label;"
                         tooltiptext="&deleteButton.tooltip;"
                         observes="button_delete"
                         oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
          <toolbarbutton id="button-mark-undelete"
-                        class="toolbarbutton-1"
+                        class="toolbarbutton-1 delete-button"
                         label="&undeleteButton.label;"
                         tooltiptext="&undeleteButton.tooltip;"
                         observes="button_delete"

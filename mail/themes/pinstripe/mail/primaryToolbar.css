@@ -151,15 +151,15 @@ toolbar[mode="text"] .toolbarbutton-menubutton-button > .toolbarbutton-text {
   -moz-image-region: rect(64px 192px 96px 160px) !important;
 } 
 
-#button-delete {
+.delete-button {
   -moz-image-region: rect(0px 224px 32px 192px);
 }
 
-#button-delete:hover:active {
+.delete-button:hover:active {
   -moz-image-region: rect(32px 224px 64px 192px);
 } 
 
-#button-delete[disabled] {
+.delete-button[disabled] {
   -moz-image-region: rect(64px 224px 96px 192px) !important;
 }
 
@@ -381,15 +381,15 @@ toolbar[iconsize="small"] #button-forward[disabled] {
   -moz-image-region: rect(48px 144px 72px 120px) !important;
 } 
 
-toolbar[iconsize="small"] #button-delete {
+toolbar[iconsize="small"] .delete-button {
   -moz-image-region: rect(0px 168px 24px 144px);
 }
 
-toolbar[iconsize="small"] #button-delete:hover:active {
+toolbar[iconsize="small"] .delete-button:hover:active {
   -moz-image-region: rect(24px 168px 48px 144px);
 } 
 
-toolbar[iconsize="small"] #button-delete[disabled] {
+toolbar[iconsize="small"] .delete-button[disabled] {
   -moz-image-region: rect(48px 168px 72px 144px) !important;
 } 
 
