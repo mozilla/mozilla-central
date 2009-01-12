@@ -69,10 +69,3 @@
 #status-bar[encrypted="notok"] #encrypted-status {
   list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoNotOk.png");
 }
-
-%ifdef MOZ_WIDGET_GTK2
-/* Stock icons for the menu bar items. */
-#menu_securityStatus {
-  list-style-image: url("moz-icon://stock/gtk-info?size=menu");
-}
-%endif

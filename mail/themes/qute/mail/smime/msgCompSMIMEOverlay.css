@@ -97,11 +97,3 @@ toolbar[iconsize="small"] #button-security[disabled] {
   list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoNotOk.png");
   visibility: visible;
 }
-
-%ifdef MOZ_WIDGET_GTK2
-/* Stock icons for the menu bar items. */
-#menu_viewSecurityStatus,
-#menu_securityStatus2 {
-  list-style-image: url("moz-icon://stock/gtk-info?size=menu");
-}
-%endif

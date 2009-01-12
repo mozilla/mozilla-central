@@ -105,7 +105,6 @@ sidebarheader .toolbarbutton-text:not([value]) {
   display: none;
 }
 
-%ifdef MOZ_WIDGET_GTK2
 /* Stock icons for the menu bar items */
 menuitem:not([type]) {
   -moz-binding: url("chrome://global/content/bindings/menu.xml#menuitem-iconic");
@@ -299,4 +298,3 @@ menuitem[command="cmd_goForward"][disabled][chromedir="rtl"] {
 #javaScriptConsole {
   list-style-image: url("chrome://global/skin/console/console.png");
 }
-%endif

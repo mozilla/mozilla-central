@@ -44,11 +44,19 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-#newMailAlertNotification {
+/*
+ * See bug 332160. Apply these rules on #alertContainer instead of on
+ * #newMailAlertNotification like on windows.
+ */
+#alertContainer {
   min-height: 60px;
   border: ridge #5486DA 4px;
   background-color: -moz-Dialog;
   color: -moz-DialogText;
+}
+
+#newMailAlertNotification {
+  border: none; /* See bug 332160. */
 }
 
 #alertImage {

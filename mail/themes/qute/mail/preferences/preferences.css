@@ -40,7 +40,6 @@
 
 /* Global Styles */
 
-%ifndef MOZ_WIDGET_GTK2
 radiogroup.paneSelector {
   background-color: rgb(90, 116, 164);
   color: white;
@@ -70,7 +69,6 @@ radio[pane][selected="true"] {
   background-image: url("chrome://messenger/skin/preferences/selected.png");
   color: black;
 }
-%endif
 
 radio[pane=paneGeneral] {
   list-style-image: url("chrome://messenger/skin/preferences/general.png");

@@ -37,9 +37,6 @@
 # ***** END LICENSE BLOCK *****
 
 <?xml-stylesheet href="chrome://messenger/skin/newmailalert.css" type="text/css"?>
-#ifdef XP_UNIX
-<?xml-stylesheet href="chrome://messenger/skin/newMailAlertUnix.css" type="text/css"?>
-#endif
 
 <window id="newMailAlertNotification"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -47,7 +44,7 @@
         role="alert"
         align="start"
         onload="onAlertLoad()">
-  
+
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   <script type="application/x-javascript" src="chrome://messenger/content/newmailalert.js"/>
 
@@ -70,4 +67,3 @@
     </hbox>
   </stack>
 </window>
-

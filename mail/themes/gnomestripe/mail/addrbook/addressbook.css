@@ -383,7 +383,6 @@ html|p {
   border: none !important;
 }
 
-%ifdef MOZ_WIDGET_GTK2
 /** Stock icons for the menu items. */
 #menu_New {
   -moz-binding: url("chrome://global/content/bindings/menu.xml#menu-iconic");
@@ -407,4 +406,3 @@ html|p {
 #abResultsTreeContext-delete {
   list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
 }
-%endif

@@ -40,38 +40,6 @@
 
 /* Global Styles */
 
-%ifndef MOZ_WIDGET_GTK2
-radiogroup.paneSelector {
-  background-color: rgb(90, 116, 164);
-  color: white;
-  background-image: url("chrome://messenger/skin/preferences/background.png");
-  background-position: center bottom;
-  background-repeat: repeat-x;
-  -moz-padding-start: 0;
-}
-
-radio[pane] {
-  -moz-appearance: none;
-  background-color: transparent;
-  background-position: center bottom;
-  background-repeat: repeat-x;
-  min-width: 80px;
-}
-
-radio[pane]:hover {
-  background-color: rgb(94, 138, 188);
-  background-image: url("chrome://messenger/skin/preferences/hover.png");
-  color: white;
-}
-
-radio[pane][selected="true"] {
-  background-color: rgb(174, 198, 226);
-  background-image: none;
-  background-image: url("chrome://messenger/skin/preferences/selected.png");
-  color: black;
-}
-%endif
-
 radio[pane=paneGeneral] {
   list-style-image: url("chrome://messenger/skin/preferences/general.png");
 }

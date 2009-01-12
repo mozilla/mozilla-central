@@ -678,23 +678,3 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 #sidebar {
   background-color: Window;
 }
-
-%ifdef MOZ_WIDGET_GTK2
-/** Stock icons for the menu items. */
-#menu_SaveCmd {
-  list-style-image: url("moz-icon://stock/gtk-save?size=menu");
-}
-
-#menu_SaveAsCmd {
-  -moz-binding: url("chrome://global/content/bindings/menu.xml#menu-iconic");
-  list-style-image: url("moz-icon://stock/gtk-save-as?size=menu");
-}
-
-#menu_checkspelling {
-  list-style-image: url("moz-icon://stock/gtk-spell-check?size=menu");
-}
-
-#msgIdentityPopup > menuitem {
-  -moz-binding: url("chrome://global/content/bindings/menu.xml#menuitem-iconic-desc-noaccel");
-}
-%endif
