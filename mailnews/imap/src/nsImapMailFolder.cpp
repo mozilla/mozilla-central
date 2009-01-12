@@ -359,6 +359,16 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
 
   flags |= nsMsgFolderFlags::Mail;
 
+  nsCOMPtr<nsIImapIncomingServer> imapServer;
+  GetImapIncomingServer(getter_AddRefs(imapServer));
+  if (imapServer)
+  {
+    PRBool setNewFoldersForOffline = PR_FALSE;
+    rv = imapServer->GetOfflineDownload(&setNewFoldersForOffline);
+    if (NS_SUCCEEDED(rv) && setNewFoldersForOffline)
+      flags |= nsMsgFolderFlags::Offline;
+  }
+
   folder->SetParent(this);
 
   folder->SetFlags(flags);
