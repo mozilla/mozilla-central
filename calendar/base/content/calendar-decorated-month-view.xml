@@ -47,13 +47,8 @@
     xmlns:xbl="http://www.mozilla.org/xbl">
 
     <binding id="calendar-decorated-month-view" extends="chrome://calendar/content/calendar-decorated-month-view.xml#calendar-decorated-month-view-parent">
-        <content>
-             <xul:vbox anonid="main-box" flex="1">
-                <xul:calendar-navigation-buttons anonid="nav-control" selectedIndex="3"/>
-                <xul:box style="overflow: auto;" flex="1">
-                    <xul:calendar-month-view anonid="view-element" flex="1" xbl:inherits="context,item-context"/>
-                </xul:box>
-            </xul:vbox>
+        <content  flex="1" orient="vertical">
+            <xul:calendar-month-view style="overflow: auto;" anonid="view-element" flex="1" xbl:inherits="context,item-context"/>
         </content>
 
         <implementation implements="calIDecoratedView">

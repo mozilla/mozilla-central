@@ -288,6 +288,7 @@ function switchToView(aViewType) {
         var command = document.getElementById(commandId);
         if (view.id == aViewType + "-view") {
             command.setAttribute("checked", "true");
+            document.getElementById("nav-control").setAttribute("selectedIndex", i);
         } else {
             command.removeAttribute("checked");
         }
@@ -332,10 +333,6 @@ function switchToView(aViewType) {
 
     view.goToDay(selectedDay);
     view.setSelectedItems(currentSelection.length, currentSelection);
-}
-
-function moveView(aNumber) {
-    currentView().moveView(aNumber);
 }
 
 /**

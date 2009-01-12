@@ -54,15 +54,15 @@
                   <xul:toolbarbutton anonid="previous-view-button"
                                      class="view-navigation-button"
                                      type="prev"
-                                     oncommand="moveView(-1)"/>
+                                     command="calendar_view_prev_command"/>
                   <xul:toolbarbutton anonid="today-view-button"
                                      class="today-navigation-button"
                                      label="&calendar.today.button.label;"
-                                     oncommand="moveView();"/>
+                                     command="calendar_view_today_command"/>
                   <xul:toolbarbutton anonid="next-view-button"
                                      class="view-navigation-button"
                                      type="next"
-                                     oncommand="moveView(1)"/>
+                                     command="calendar_view_next_command"/>
                   <xul:label anonid="intervalDescription"
                              class="view-header"
                              crop="end"
@@ -409,7 +409,7 @@
                     var viewElement = this.viewElem;
                     viewElement.tasksInView = this.mTasksInView;
                     viewElement.showCompleted = this.mShowCompleted;
-                    document.getAnonymousElementByAttribute(this, "anonid", "nav-control").
+                    document.getElementById("nav-control").
                              setDateRange(this.rangeStartDate, this.rangeEndDate, aToolTipTexts, this);
                 ]]></body>
             </method>

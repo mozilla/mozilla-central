@@ -161,49 +161,6 @@ function ltnSelectCalendarView(type) {
 
 }
 
-function toggleControlDisplay(aCommandId, aControlId) {
-    var control = document.getElementById(aControlId);
-    var command = document.getElementById(aCommandId);
-    if (control.getAttribute("collapsedinMode") == "false") {
-        if (control.hasAttribute("collapsed")) {
-            control.removeAttribute("collapsed");
-            command.setAttribute("checked", "true");
-            return;
-        }
-    }
-    command.setAttribute("checked", "false");
-}
-
-function toggleControlinMode(aCommandId, aControlId) {
-    var control = document.getElementById(aControlId);
-    var command = document.getElementById(aCommandId);
-    if (control.hasAttribute("collapsed")) {
-        control.removeAttribute("collapsed");
-        control.setAttribute("collapsedinMode", "false");
-        command.setAttribute("checked","true");
-    }
-    else {
-        control.setAttribute("collapsed", "true");
-        control.setAttribute("collapsedinMode", "true");
-        command.setAttribute("checked", "false");
-    }
-}
-
-function toggleToolbar(aCommandId, aToolbarId) {
-    var toolBar = document.getElementById(aToolbarId);
-    var command = document.getElementById(aCommandId);
-    if (toolBar.hasAttribute("collapsed")) {
-       toolBar.removeAttribute("collapsed");
-       command.setAttribute("checked", "true");
-    }
-    else {
-       toolBar.setAttribute("collapsed", "true");
-       command.setAttribute("checked", "false");
-    }
- }
-
-
-
 /**
  * Show the calendar view, also switching to calendar mode if in mail mode
  */

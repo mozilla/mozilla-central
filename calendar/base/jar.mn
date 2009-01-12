@@ -31,6 +31,7 @@ calendar.jar:
     content/calendar/calendar-item-bindings.xml            (content/calendar-item-bindings.xml)
     content/calendar/calendar-management.js                (content/calendar-management.js)
     content/calendar/calendar-menus.xml                    (content/calendar-menus.xml)
+    content/calendar/calendar-views.xul                    (content/calendar-views.xul)
     content/calendar/calendar-month-view.xml               (content/calendar-month-view.xml)
     content/calendar/calendar-multiday-view.xml            (content/calendar-multiday-view.xml)
     content/calendar/calendar-base-view.xml                (content/calendar-base-view.xml)

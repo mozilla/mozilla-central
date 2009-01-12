@@ -66,6 +66,7 @@
 
 <?xul-overlay href="chrome://calendar/content/calendar-calendars-list.xul"?>
 <?xul-overlay href="chrome://calendar/content/calendar-common-sets.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-views.xul"?>
 
 <overlay id="ltnSidebarOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -500,32 +501,10 @@
         </vbox>
 
         <splitter id="calsidebar_splitter" collapse="before" persist="state"/>
-        
+
         <deck id="calendarDisplayDeck" flex="1">
-          <vbox id="calendar-view-box" context="calendar-view-context-menu">
-            <deck flex="1"
-                  id="view-deck"
-                  persist="selectedIndex"
-                  ondraggesture="nsDragAndDrop.startDrag(event, calendarViewDNDObserver);"
-                  ondragover="nsDragAndDrop.dragOver(event, calendarViewDNDObserver);"
-                  ondragdrop="nsDragAndDrop.drop(event, calendarViewDNDObserver);">
-              <!-- Note: the "id" attributes of the decorated panes **must** follow the
-                   notation 'type + "-" + "view"', where "type" should refer to the
-                   displayed time period as described in base/public/calIDecoratedView.idl -->
-              <calendar-decorated-day-view id="day-view" flex="1"
-                                                 context="calendar-view-context-menu"
-                                                 item-context="calendar-item-context-menu"/>
-              <calendar-decorated-week-view id="week-view" flex="1"
-                                                 context="calendar-view-context-menu"
-                                                 item-context="calendar-item-context-menu"/>
-              <calendar-decorated-multiweek-view id="multiweek-view" flex="1"
-                                                 context="calendar-view-context-menu"
-                                                 item-context="calendar-item-context-menu"/>
-              <calendar-decorated-month-view id="month-view" flex="1"
-                                                 context="calendar-view-context-menu"
-                                                 item-context="calendar-item-context-menu"/>
-            </deck>
-          </vbox>
+          <!-- vbox "calendar-view-box will be overlayed..." -->
+          <vbox id="calendar-view-box"/>
         </deck>
 
         <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed">

@@ -64,6 +64,7 @@
 <?xul-overlay href="chrome://calendar/content/calendar-unifinder.xul"?>
 <?xul-overlay href="chrome://calendar/content/calendar-unifinder-todo.xul"?>
 <?xul-overlay href="chrome://calendar/content/calendar-common-sets.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-views.xul"?>
 
 <!-- All DTD information is stored in a separate file so that it can be shared by
      hiddenWindow.xul. -->
@@ -190,26 +191,8 @@
               persist="state" orient="horizontal">
       <grippy/>
     </splitter>
-         
-    <vbox id="calendar-view-box" flex="1">
-      <!-- Note: the "id" attributes of the decorated panes **must** follow the
-           notation 'type + "-" + "view"', where "type" should refer to the
-           displayed time period as described in base/public/calIDecoratedView.idl -->
-      <deck id="view-deck" flex="1" persist="selectedIndex">
-          <calendar-decorated-day-view id="day-view" flex="1" 
-                                       context="calendar-view-context-menu"
-                                       item-context="calendar-item-context-menu"/>
-          <calendar-decorated-week-view id="week-view" flex="1" 
-                                        context="calendar-view-context-menu"
-                                        item-context="calendar-item-context-menu"/>
-          <calendar-decorated-multiweek-view id="multiweek-view" flex="1" 
-                                             context="calendar-view-context-menu"
-                                             item-context="calendar-item-context-menu"/>
-          <calendar-decorated-month-view id="month-view" flex="1" 
-                                         context="calendar-view-context-menu"
-                                         item-context="calendar-item-context-menu"/>
-      </deck>
-    </vbox>
+    <!-- vbox "calendar-view-box will be overlayed..." -->
+    <vbox id="calendar-view-box" flex="1"/>
   </hbox> <!-- End: box with unifinder on left, calendar on right -->
 </vbox>
 

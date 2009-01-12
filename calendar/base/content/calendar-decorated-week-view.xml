@@ -48,13 +48,8 @@
 
     <binding id="calendar-decorated-week-view"
              extends="chrome://calendar/content/calendar-decorated-multiday-base-view.xml#calendar-decorated-multiday-base-view">
-        <content>
-             <xul:vbox anonid="main-box" flex="1">
-                <xul:calendar-navigation-buttons anonid="nav-control" selectedIndex="1"/>
-                <xul:box flex="1">
-                    <xul:calendar-multiday-view anonid="view-element" flex="1" orient="vertical" xbl:inherits="context,item-context"/>
-                </xul:box>
-            </xul:vbox>
+        <content flex="1" orient="vertical">
+          <xul:calendar-multiday-view anonid="view-element" flex="1" orient="vertical" xbl:inherits="context,item-context"/>
         </content>
 
         <implementation implements="calIDecoratedView">
