@@ -98,8 +98,8 @@ interface nsMsgFolderFlags {
   const nsMsgFolderFlagType Inbox           = 0x00001000;
   /// Whether this folder on online IMAP
   const nsMsgFolderFlagType ImapBox         = 0x00002000;
-  /// Used to be for category container
-  const nsMsgFolderFlagType Unused3         = 0x00004000;
+  /// Whether this is an archive folder
+  const nsMsgFolderFlagType Archive         = 0x00004000;
   /// This is a virtual newsgroup
   const nsMsgFolderFlagType ProfileGroup    = 0x00008000;
   /// Used to be for categories

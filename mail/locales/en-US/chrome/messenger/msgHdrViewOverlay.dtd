@@ -57,8 +57,9 @@
 
 <!ENTITY editMessageDescription.label "This is a draft message">
 <!ENTITY editMessageButton.label "Edit…">
-<!ENTITY replyButton.label "reply…">
-<!ENTITY forwardButton.label "forward…">
+<!ENTITY archiveButton.label "archive">
+<!ENTITY replyButton.label "reply">
+<!ENTITY forwardButton.label "forward">
 <!ENTITY junkButton.label "mark as junk">
 <!ENTITY trashButton.tooltiptext "delete">
 

@@ -21,11 +21,17 @@
 <!ENTITY draftsFolderOn.accesskey "D">
 <!ENTITY draftInOtherFolder.label "Other:">
 <!ENTITY draftInOtherFolder.accesskey "t">
+<!-- LOCALIZATION NOTE (archivesFolderOn.label): OK to translate this, bug #57440 -->
+<!ENTITY archivesFolderOn.label "&quot;Archives&quot; Folder on:">
+<!ENTITY archivesFolderOn.accesskey "D">
+<!ENTITY archiveInOtherFolder.label "Other:">
+<!ENTITY archiveInOtherFolder.accesskey "t">
 <!-- LOCALIZATION NOTE (templatesFolderOn.label): OK to translate this, bug #57440 -->
 <!ENTITY templatesFolderOn.label "&quot;Templates&quot; Folder on:">
 <!ENTITY templatesFolderOn.accesskey "m">
 <!ENTITY templateInOtherFolder.label "Other:">
 <!ENTITY templateInOtherFolder.accesskey "e">
-<!ENTITY specialFoldersTitle.label "Drafts and Templates">
+<!ENTITY specialFoldersTitle.label "Drafts, Archives, and Templates">
 <!ENTITY keepDrafts.label "Keep message drafts in:">
+<!ENTITY keepArchives.label "Keep message archives in:">
 <!ENTITY keepTempltes.label "Keep message templates in:">

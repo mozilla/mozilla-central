@@ -36,11 +36,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var gFccRadioElemChoice, gDraftsRadioElemChoice, gTmplRadioElemChoice;
-var gFccRadioElemChoiceLocked, gDraftsRadioElemChoiceLocked, gTmplRadioElemChoiceLocked;
+var gFccRadioElemChoice, gDraftsRadioElemChoice, gArchiveRadioElemChoice, gTmplRadioElemChoice;
+var gFccRadioElemChoiceLocked, gDraftsRadioElemChoiceLocked, gArchivesRadioElemChoiceLocked, gTmplRadioElemChoiceLocked;
 var gDefaultPickerMode = "1";
 
-var gFccFolderWithDelim, gDraftsFolderWithDelim, gTemplatesFolderWithDelim;
+var gFccFolderWithDelim, gDraftsFolderWithDelim, gArchivesFolderWithDelim, gTemplatesFolderWithDelim;
 var gCurrentServerId;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
 
@@ -71,15 +71,21 @@ function onInitCopiesAndFolders()
                      "msgFccFolderPicker");
 
     SetFolderDisplay(gDraftsRadioElemChoice, gDraftsRadioElemChoiceLocked, 
-                     "draft", 
-                     "msgDraftsAccountPicker", 
-                     "identity.draftFolder", 
+                     "draft",
+                     "msgDraftsAccountPicker",
+                     "identity.draftFolder",
                      "msgDraftsFolderPicker");
 
-    SetFolderDisplay(gTmplRadioElemChoice, gTmplRadioElemChoiceLocked, 
-                     "tmpl", 
-                     "msgStationeryAccountPicker", 
-                     "identity.stationeryFolder", 
+    SetFolderDisplay(gArchivesRadioElemChoice, gArchivesRadioElemChoiceLocked,
+                     "archive",
+                     "msgArchivesAccountPicker",
+                     "identity.archiveFolder",
+                     "msgArchivesFolderPicker");
+
+    SetFolderDisplay(gTmplRadioElemChoice, gTmplRadioElemChoiceLocked,
+                     "tmpl",
+                     "msgStationeryAccountPicker",
+                     "identity.stationeryFolder",
                      "msgStationeryFolderPicker");
     
     setupBccTextbox();
@@ -101,6 +107,11 @@ function SetGlobalRadioElemChoices()
     gDraftsRadioElemChoiceLocked = pickerModeElement.getAttribute("disabled");
     if (!gDraftsRadioElemChoice) gDraftsRadioElemChoice = gDefaultPickerMode;
 
+    pickerModeElement = document.getElementById("identity.archivesFolderPickerMode");
+    gArchivesRadioElemChoice = pickerModeElement.getAttribute("value");
+    gArchivesRadioElemChoiceLocked = pickerModeElement.getAttribute("disabled");
+    if (!gArchivesRadioElemChoice) gArchivesRadioElemChoice = gDefaultPickerMode;
+    
     pickerModeElement = document.getElementById("identity.tmplFolderPickerMode");
     gTmplRadioElemChoice = pickerModeElement.getAttribute("value");
     gTmplRadioElemChoiceLocked = pickerModeElement.getAttribute("disabled");
@@ -196,6 +207,11 @@ function noteSelectionChange(radioItemId, aEvent)
             picker = document.getElementById("msgDraftsFolderPicker");
             break;
 
+        case "messageArchives" :
+            gArchivesRadioElemChoice = modeValue;
+            picker = document.getElementById("msgArchivesFolderPicker");
+            break;
+
         case "messageTemplates" :
             gTmplRadioElemChoice = modeValue;
             picker = document.getElementById("msgStationeryFolderPicker");
@@ -215,6 +231,7 @@ function SetSpecialFolderNamesWithDelims()
 
     gFccFolderWithDelim = folderDelim + "Sent";
     gDraftsFolderWithDelim = folderDelim + "Drafts";
+    gArchivesFolderWithDelim = folderDelim + "Archives";
     gTemplatesFolderWithDelim = folderDelim + "Templates";
 }
 
@@ -242,6 +259,14 @@ function onSaveCopiesAndFolders()
                         "identity.draftFolder",
                         "identity.draftsFolderPickerMode" );
 
+    SaveFolderSettings(gArchivesRadioElemChoice,
+                        "messageArchives",
+                        gArchivesFolderWithDelim,
+                        "msgArchivesAccountPicker",
+                        "msgArchivesFolderPicker",
+                        "identity.archiveFolder",
+                        "identity.archivesFolderPickerMode");
+                        
     SaveFolderSettings( gTmplRadioElemChoice,
                         "messageTemplates",
                         gTemplatesFolderWithDelim, 
@@ -368,6 +393,9 @@ function setPickersState(enablePickerId, disablePickerId, event)
         case "draft_selectAccount" :
             gDraftsRadioElemChoice = radioElemValue;   
             break;
+        case "archive_selectAccount" :
+            gArchivesRadioElemChoice = radioElemValue;
+            break;
         case "tmpl_selectAccount" :
             gTmplRadioElemChoice = radioElemValue;   
             break;
@@ -378,6 +406,10 @@ function setPickersState(enablePickerId, disablePickerId, event)
         case "draft_selectFolder" :
             gDraftsRadioElemChoice = radioElemValue;   
             selectedElementUri += gDraftsFolderWithDelim;
+            break;
+        case "archive_selectFolder" :
+            gArchivesRadioElemChoice = radioElemValue;
+            selectedElementUri += gArchivesFolderWithDelim;
             break;
         case "tmpl_selectFolder" :
             gTmplRadioElemChoice = radioElemValue;   

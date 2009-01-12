@@ -49,7 +49,7 @@
  */
 
 
-[scriptable, uuid(3038bec6-2a5f-4eba-977d-4e037ae5aba3)]
+[scriptable, uuid(ca17fc07-f842-4ea1-936c-3a2756f99531)]
 interface nsIMsgIdentity : nsISupports {
   /* internal preferences ID */
   attribute ACString key;
@@ -97,12 +97,22 @@ interface nsIMsgIdentity : nsISupports {
   attribute ACString escapedVCard;
 
   attribute boolean doFcc;
+  /// URI for the fcc (Sent) folder
   attribute ACString fccFolder;
-
-  attribute ACString fccFolderPickerMode;
   attribute boolean fccReplyFollowsParent;
+  
+  /**
+   * @{
+   * these attributes control whether the special folder pickers for
+   * fcc, drafts,archives, and templates are set to pick between servers
+   * (e.g., Sent on accountName) or to pick any folder on any account.
+   * "0" means choose between servers; "1" means use the full folder picker.
+   */
+  attribute ACString fccFolderPickerMode;
   attribute ACString draftsFolderPickerMode;
-  attribute ACString tmplFolderPickerMode;  
+  attribute ACString archivesFolderPickerMode;
+  attribute ACString tmplFolderPickerMode;
+  /** @} */
 
   // Don't call bccSelf, bccOthers, and bccList directly, they are 
   // only used for migration and backward compatability. Use doBcc
@@ -114,8 +124,15 @@ interface nsIMsgIdentity : nsISupports {
   attribute boolean doBcc;
   attribute ACString doBccList;
 
+  /**
+   * @{
+   * URIs for the special folders (drafts, templates, archive)
+   */
   attribute ACString draftFolder;
+  attribute ACString archiveFolder;
   attribute ACString stationeryFolder;
+  /** @} */
+  
   attribute boolean showSaveMsgDlg;
   attribute ACString directoryServer;
   attribute boolean overrideGlobalPref;

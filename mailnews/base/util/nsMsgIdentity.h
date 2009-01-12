@@ -57,7 +57,7 @@ private:
   nsCOMPtr<nsIPrefBranch> mDefPrefBranch;
 
 protected:
-  nsresult getFolderPref(const char *pref, nsCString&, PRUint32);
+  nsresult getFolderPref(const char *pref, nsCString&, const char *, PRUint32);
   nsresult setFolderPref(const char *pref, const nsACString&, PRUint32);
 };
 
@@ -110,13 +110,13 @@ nsMsgIdentity::Set##_postfix(PRInt32 value)         \
   return mPrefBranch->SetIntPref(_prefname, value); \
 }
 
-#define NS_IMPL_FOLDERPREF_STR(_postfix, _prefname, _flag)  \
+#define NS_IMPL_FOLDERPREF_STR(_postfix, _prefname, _foldername, _flag)  \
 NS_IMETHODIMP                                               \
 nsMsgIdentity::Get##_postfix(nsACString& retval)            \
 {                                                           \
   nsresult rv;                                              \
   nsCString folderPref;                                     \
-  rv = getFolderPref(_prefname, folderPref, _flag);         \
+  rv = getFolderPref(_prefname, folderPref, _foldername, _flag); \
   retval = folderPref;                                      \
   return rv;                                                \
 }                                                           \

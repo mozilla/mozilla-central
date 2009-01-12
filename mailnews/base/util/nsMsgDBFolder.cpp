@@ -141,6 +141,8 @@ PRUnichar *nsMsgDBFolder::kLocalizedDraftsName;
 PRUnichar *nsMsgDBFolder::kLocalizedTemplatesName;
 PRUnichar *nsMsgDBFolder::kLocalizedUnsentName;
 PRUnichar *nsMsgDBFolder::kLocalizedJunkName;
+PRUnichar *nsMsgDBFolder::kLocalizedArchivesName;
+
 PRUnichar *nsMsgDBFolder::kLocalizedBrandShortName;
 
 nsrefcnt nsMsgDBFolder::mInstanceCount=0;
@@ -223,6 +225,7 @@ nsMsgDBFolder::~nsMsgDBFolder(void)
     NS_Free(kLocalizedTemplatesName);
     NS_Free(kLocalizedUnsentName);
     NS_Free(kLocalizedJunkName);
+    NS_Free(kLocalizedArchivesName);
     NS_Free(kLocalizedBrandShortName);
 #ifdef MSG_FASTER_URI_PARSING
     mParsingURL = nsnull;
@@ -2338,6 +2341,8 @@ nsMsgDBFolder::initializeStrings()
                             &kLocalizedJunkName);
   bundle->GetStringFromName(NS_LITERAL_STRING("outboxFolderName").get(),
                             &kLocalizedUnsentName);
+  bundle->GetStringFromName(NS_LITERAL_STRING("archivesFolderName").get(),
+                            &kLocalizedArchivesName);
 
   nsCOMPtr<nsIStringBundle> brandBundle;
   rv = bundleService->CreateBundle("chrome://branding/locale/brand.properties", getter_AddRefs(bundle));
@@ -2787,7 +2792,7 @@ nsMsgDBFolder::GetCanRename(PRBool *aResult)
   // if otherwise, override it.
   //
   // check if the folder is a special folder
-  // (Trash, Drafts, Unsent Messages, Inbox, Sent, Templates, Junk)
+  // (Trash, Drafts, Unsent Messages, Inbox, Sent, Templates, Junk, Archives)
   // if it is, don't allow the user to rename it
   // (which includes dnd moving it with in the same server)
   //
@@ -2802,6 +2807,7 @@ nsMsgDBFolder::GetCanRename(PRBool *aResult)
            mFlags & nsMsgFolderFlags::Inbox ||
            mFlags & nsMsgFolderFlags::SentMail ||
            mFlags & nsMsgFolderFlags::Templates ||
+           mFlags & nsMsgFolderFlags::Archive ||
            mFlags & nsMsgFolderFlags::Junk));
   return NS_OK;
 }
@@ -2844,6 +2850,8 @@ NS_IMETHODIMP nsMsgDBFolder::SetPrettyName(const nsAString& name)
     rv = SetName(nsDependentString(kLocalizedUnsentName));
   else if (mFlags & nsMsgFolderFlags::Junk && name.LowerCaseEqualsLiteral("junk"))
     rv = SetName(nsDependentString(kLocalizedJunkName));
+  else if (mFlags & nsMsgFolderFlags::Archive && name.LowerCaseEqualsLiteral("archives"))
+    rv = SetName(nsDependentString(kLocalizedArchivesName));
   else
     rv = SetName(name);
   return rv;
@@ -3149,6 +3157,8 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
       uri += "Sent";
     else if (escapedName.LowerCaseEqualsLiteral("templates"))
       uri +="Templates";
+    else if (escapedName.LowerCaseEqualsLiteral("archives"))
+      uri += "Archives";
     else
       uri += escapedName.get();
 #else
@@ -3164,6 +3174,8 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
       uri += "Sent";
     else if (escapedName.Equals("templates", CaseInsensitiveCompare))
       uri +="Templates";
+    else if (escapedName.Equals("archives", CaseInsensitiveCompare))
+      uri +="Archives";
     else
       uri += escapedName.get();
 #endif
@@ -3741,6 +3753,13 @@ NS_IMETHODIMP nsMsgDBFolder::SetPrefFlag()
       folder = do_QueryInterface(res, &rv);
       if (NS_SUCCEEDED(rv))
         rv = folder->SetFlag(nsMsgFolderFlags::Drafts);
+    }
+    identity->GetArchiveFolder(folderUri);
+    if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+    {
+      folder = do_QueryInterface(res, &rv);
+      if (NS_SUCCEEDED(rv))
+        rv = folder->SetFlag(nsMsgFolderFlags::Archive);
     }
     identity->GetStationeryFolder(folderUri);
     if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))

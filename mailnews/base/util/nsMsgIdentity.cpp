@@ -183,10 +183,11 @@ NS_IMPL_IDPREF_INT(SignatureDate,"sig_date")
 
 NS_IMPL_IDPREF_BOOL(DoFcc, "fcc")
 
-NS_IMPL_FOLDERPREF_STR(FccFolder, "fcc_folder", nsMsgFolderFlags::SentMail)
+NS_IMPL_FOLDERPREF_STR(FccFolder, "fcc_folder", "Sent", nsMsgFolderFlags::SentMail)
 NS_IMPL_IDPREF_STR(FccFolderPickerMode, "fcc_folder_picker_mode")
 NS_IMPL_IDPREF_BOOL(FccReplyFollowsParent, "fcc_reply_follows_parent")
 NS_IMPL_IDPREF_STR(DraftsFolderPickerMode, "drafts_folder_picker_mode")
+NS_IMPL_IDPREF_STR(ArchivesFolderPickerMode, "archives_folder_picker_mode")
 NS_IMPL_IDPREF_STR(TmplFolderPickerMode, "tmpl_folder_picker_mode")
 
 NS_IMPL_IDPREF_BOOL(BccSelf, "bcc_self")
@@ -259,8 +260,9 @@ nsMsgIdentity::SetDoBccList(const nsACString& aValue)
   return SetCharAttribute("doBccList", aValue);
 }
 
-NS_IMPL_FOLDERPREF_STR(DraftFolder, "draft_folder", nsMsgFolderFlags::Drafts)
-NS_IMPL_FOLDERPREF_STR(StationeryFolder, "stationery_folder", nsMsgFolderFlags::Templates)
+NS_IMPL_FOLDERPREF_STR(DraftFolder, "draft_folder", "Drafts", nsMsgFolderFlags::Drafts)
+NS_IMPL_FOLDERPREF_STR(ArchiveFolder, "archive_folder", "Archives", nsMsgFolderFlags::Archive)
+NS_IMPL_FOLDERPREF_STR(StationeryFolder, "stationery_folder", "Templates", nsMsgFolderFlags::Templates)
 
 NS_IMPL_IDPREF_BOOL(ShowSaveMsgDlg, "showSaveMsgDlg")
 NS_IMPL_IDPREF_STR (DirectoryServer, "directoryServer")
@@ -270,7 +272,8 @@ NS_IMPL_IDPREF_BOOL(AutocompleteToMyDomain, "autocompleteToMyDomain")
 NS_IMPL_IDPREF_BOOL(Valid, "valid")
 
 nsresult
-nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval, PRUint32 folderflag)
+nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
+                             const char *folderName, PRUint32 folderflag)
 {
   nsresult rv = mPrefBranch->GetCharPref(prefname, getter_Copies(retval));
   if (NS_SUCCEEDED(rv) && !retval.IsEmpty()) {
@@ -300,8 +303,37 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval, PRUint32 f
   // if the server doesn't exist, fall back to the default pref.
   rv = mDefPrefBranch->GetCharPref(prefname, getter_Copies(retval));
   if (NS_SUCCEEDED(rv) && !retval.IsEmpty())
-    rv = setFolderPref(prefname, retval, folderflag);
-  return rv;
+    return setFolderPref(prefname, retval, folderflag);
+
+  // here I think we need to create a uri for the folder on the
+  // default server for this identity.
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
+  do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+  
+  nsCOMPtr<nsISupportsArray> servers;
+  rv = accountManager->GetServersForIdentity(this, getter_AddRefs(servers));
+  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIMsgIncomingServer> server(do_QueryElementAt(servers, 0, &rv));
+  if (NS_SUCCEEDED(rv))
+  {
+    PRBool defaultToServer;
+    server->GetDefaultCopiesAndFoldersPrefsToServer(&defaultToServer);
+    // if we should default to special folders on the server,
+    // use the local folders server
+    if (!defaultToServer)
+    {
+      rv = accountManager->GetLocalFoldersServer(getter_AddRefs(server));
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+    rv = server->GetServerURI(retval);
+    NS_ENSURE_SUCCESS(rv, rv);
+    retval.Append('/');
+    retval.Append(folderName);
+    return setFolderPref(prefname, retval, folderflag);
+  }
+  // if there are no servers for this identity, return generic failure.
+  return NS_ERROR_FAILURE;
 }
 
 nsresult
@@ -505,6 +537,7 @@ nsMsgIdentity::Copy(nsIMsgIdentity *identity)
     COPY_IDENTITY_WSTR_VALUE(identity,GetFullName,SetFullName)
     COPY_IDENTITY_WSTR_VALUE(identity,GetOrganization,SetOrganization)
     COPY_IDENTITY_STR_VALUE(identity,GetDraftFolder,SetDraftFolder)
+    COPY_IDENTITY_STR_VALUE(identity,GetArchiveFolder,SetArchiveFolder)
     COPY_IDENTITY_STR_VALUE(identity,GetFccFolder,SetFccFolder)
     COPY_IDENTITY_BOOL_VALUE(identity,GetFccReplyFollowsParent,
                              SetFccReplyFollowsParent)

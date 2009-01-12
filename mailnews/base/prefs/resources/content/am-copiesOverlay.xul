@@ -66,6 +66,9 @@
     <label hidden="true" wsm_persist="true" id="identity.draftFolder"
                   pref="true" preftype="string" prefattribute="value"
                   prefstring="mail.identity.%identitykey%.draft_folder"/>
+    <label hidden="true" wsm_persist="true" id="identity.archiveFolder"
+                  pref="true" preftype="string" prefattribute="value"
+                  prefstring="mail.identity.%identitykey%.archive_folder"/>
     <label hidden="true" wsm_persist="true" id="identity.stationeryFolder"
                   pref="true" preftype="string" prefattribute="value"
                   prefstring="mail.identity.%identitykey%.stationary_folder"/>
@@ -76,6 +79,9 @@
     <label hidden="true" wsm_persist="true" id="identity.draftsFolderPickerMode"
                   pref="true" preftype="int" prefattribute="value"
                   prefstring="mail.identity.%identitykey%.drafts_folder_picker_mode"/>
+    <label hidden="true" wsm_persist="true" id="identity.archivesFolderPickerMode"
+                  pref="true" preftype="int" prefattribute="value"
+                  prefstring="mail.identity.%identitykey%.archives_folder_picker_mode"/>
     <label hidden="true" wsm_persist="true" id="identity.tmplFolderPickerMode"
                   pref="true" preftype="int" prefattribute="value"
                   prefstring="mail.identity.%identitykey%.tmpl_folder_picker_mode"/> 
@@ -193,6 +199,46 @@
           </rows>
         </grid>
       </radiogroup>
+
+      <hbox align="center">
+        <label value="&keepArchives.label;" control="messageArchives"/>
+      </hbox>
+    
+      <radiogroup id="messageArchives">
+        <grid class="specialFolderPickerGrid">
+          <columns>
+            <column/>
+            <column flex="1"/>
+          </columns>
+          <rows>
+            <row align="center">
+              <radio id="archive_selectAccount"
+                     oncommand="setPickersState('msgArchivesAccountPicker', 'msgArchivesFolderPicker', event)"
+                     value="0" label="&archivesFolderOn.label;"
+                     accesskey="&archivesFolderOn.accesskey;"/>
+                <menulist id="msgArchivesAccountPicker"
+	                aria-labelledby="archive_selectAccount">
+                <menupopup id="msgArchivesAccountPopup" type="folder" mode="filing"
+                           expandFolders="false"/>
+              </menulist>
+            </row>
+            <row align="center">
+              <radio id="archive_selectFolder"
+                     oncommand="setPickersState('msgArchivesFolderPicker', 'msgArchivesAccountPicker', event)"
+                     value="1" label="&archiveInOtherFolder.label;"
+                     accesskey="&archiveInOtherFolder.accesskey;"/>
+                <menulist id="msgArchivesFolderPicker"
+                        aria-labelledby="archive_selectFolder"
+                        oncommand="noteSelectionChange('archive_selectFolder', event)">
+                <menupopup id="msgArchivesFolderPopup" type="folder" mode="filing"
+                           showFileHereLabel="true"
+                           fileHereLabel="&filemessageschoosethis.label;"/>
+              </menulist>
+            </row>
+          </rows>
+        </grid>
+      </radiogroup>
+      
       <hbox align="center">
         <label value="&keepTempltes.label;" control="messageTemplates"/>
       </hbox>

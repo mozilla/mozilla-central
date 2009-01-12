@@ -165,7 +165,7 @@ pref("mail.imap.expunge_threshold_number",  20);
 // is acting as a delegate for that folder, and wishes to use the other users
 // identity when acting on messages in other users folders.
 pref("mail.imap.delegateOtherUsersFolders", false);
-pref("mail.thread_without_re",              true); // if false, only thread by subject if Re:
+pref("mail.thread_without_re",              false); // if false, only thread by subject if Re:
 pref("mail.strict_threading",               false); // if true, don't thread by subject at all
 pref("mail.correct_threading",              false); // if true, makes sure threading works correctly always (see bug 181446)
 pref("mail.leave_on_server",                false);
@@ -429,6 +429,10 @@ pref("mail.identity.default.overrideGlobal_Pref", false);
 pref("mail.identity.default.auto_quote", true);
 pref("mail.identity.default.reply_on_top", 0); // 0=bottom 1=top 2=select
 pref("mail.identity.default.sig_bottom", true); // true=below quoted false=above quoted
+
+// default to archives folder on same server.
+pref("mail.identity.default.archives_folder_picker_mode", "0");
+
 // Headers to always add to outgoing mail
 // examples: "header1,header2"
 // pref("mail.identity.id1.headers", "header1");
