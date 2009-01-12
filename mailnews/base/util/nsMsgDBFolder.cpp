@@ -1711,27 +1711,35 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
            nsString dialogTitle;
            nsString confirmString;
            nsString checkboxText;
+           nsString buttonCompactNowText;
            rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAllFoldersTitle").get(), getter_Copies(dialogTitle));
            NS_ENSURE_SUCCESS(rv, rv);
            rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAllFolders").get(), getter_Copies(confirmString));
            NS_ENSURE_SUCCESS(rv, rv);
-           rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAllFoldersCheckbox").get(), getter_Copies(checkboxText));
+           rv = bundle->GetStringFromName(NS_LITERAL_STRING("autoCompactAlwaysAskCheckbox").get(),
+                                                            getter_Copies(checkboxText));
            NS_ENSURE_SUCCESS(rv, rv);
-
-           PRBool checkValue = PR_FALSE;
+           rv = bundle->GetStringFromName(NS_LITERAL_STRING("compactNowButton").get(),
+                                                            getter_Copies(buttonCompactNowText));
+           NS_ENSURE_SUCCESS(rv, rv);
+           PRBool alwaysAsk = PR_TRUE; // "Always ask..." - checked by default.
            PRInt32 buttonPressed = 0;
 
            nsCOMPtr<nsIPrompt> dialog;
            rv = aWindow->GetPromptDialog(getter_AddRefs(dialog));
            NS_ENSURE_SUCCESS(rv, rv);
 
-           rv = dialog->ConfirmEx(dialogTitle.get(), confirmString.get(), nsIPrompt::STD_YES_NO_BUTTONS,
-                                  nsnull, nsnull, nsnull, checkboxText.get(), &checkValue, &buttonPressed);
+          const PRUint32 buttonFlags =
+            (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
+            (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
+           rv = dialog->ConfirmEx(dialogTitle.get(), confirmString.get(), buttonFlags,
+                                  buttonCompactNowText.get(), nsnull, nsnull,
+                                  checkboxText.get(), &alwaysAsk, &buttonPressed);
            NS_ENSURE_SUCCESS(rv, rv);
            if (!buttonPressed)
            {
              okToCompact = PR_TRUE;
-             if (checkValue)
+             if (!alwaysAsk) // [ ] Always ask me before compacting folders automatically
                branch->SetBoolPref(PREF_MAIL_PURGE_ASK, PR_FALSE);
            }
          }
