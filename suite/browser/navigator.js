@@ -462,7 +462,7 @@ function HandleAppCommandEvent(aEvent)
       BrowserSearchInternet();
       break;
     case "Bookmarks":
-      BrowserEditBookmarks();
+      toBookmarksManager();
       break;
     case "Home":
       BrowserHome(null);
@@ -1344,11 +1344,6 @@ function BrowserOpenFileWindow()
   try {
     openTopWin(selectFileToOpen("openFile", "browser.open.").spec);
   } catch (e) {}
-}
-
-function BrowserEditBookmarks()
-{
-  toOpenWindowByType("bookmarks:manager", "chrome://communicator/content/bookmarks/bookmarksManager.xul");
 }
 
 function updateCloseItems()

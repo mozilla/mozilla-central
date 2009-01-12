@@ -89,7 +89,7 @@
     <toolbarbutton id="btnAddBookmark" label="&command.addBookmark.label;"
             oncommand="addBookmark();"/>
     <toolbarbutton id="btnManageBookmarks" label="&command.manageBookmarks.label;"
-            oncommand="manageBookmarks();"/>
+            oncommand="toBookmarksManager();"/>
     <spacer flex="1"/>
     <toolbarseparator/>
     <toolbarbutton id="btnFindBookmarks" label="&command.findBookmarks.label;"

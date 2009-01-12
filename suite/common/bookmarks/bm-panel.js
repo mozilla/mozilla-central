@@ -54,10 +54,6 @@ function Startup()
   bookmarksView.tree.view.selection.select(0);
 }
 
-function manageBookmarks() {
-  openDialog("chrome://communicator/content/bookmarks/bookmarksManager.xul", "", "chrome,dialog=no,resizable=yes");
-}
-
 function addBookmark() {
   var contentArea = top.document.getElementById('content');                   
   if (contentArea) {

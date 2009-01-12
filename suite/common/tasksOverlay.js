@@ -83,6 +83,12 @@ function toEM( aPane )
     window.openDialog(EMURL, "", EMFEATURES);
 }
 
+function toBookmarksManager()
+{
+  toOpenWindowByType("bookmarks:manager",
+                     "chrome://communicator/content/bookmarks/bookmarksManager.xul");
+}
+
 function toJavaScriptConsole()
 {
     toOpenWindowByType("global:console", "chrome://global/content/console.xul");

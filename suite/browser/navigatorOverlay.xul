@@ -191,7 +191,7 @@
              accesskey="&addCurTabsAsCmd.accesskey;"
              oncommand="addGroupmarkAs(); event.stopPropagation();"/>
     <command id="Browser:ManageBookmark" label="&manBookmarksCmd.label;" accesskey="&manBookmarksCmd.accesskey;" 
-             oncommand="BrowserEditBookmarks();" />
+             oncommand="toBookmarksManager();"/>
   
     <!-- Go Menu -->  
     <command id="Browser:Home"    oncommand="BrowserHome(event);"/>
