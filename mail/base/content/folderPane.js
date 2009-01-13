@@ -73,15 +73,20 @@ let gFolderTreeView = {
       let prefB = Cc["@mozilla.org/preferences-service;1"]
                      .getService(Ci.nsIPrefBranch);
       let modeIndex = prefB.getIntPref("mail.ui.folderpane.view");
-      this._mode = this.modeNames[modeIndex];
+      this._mode = this._modeNames[modeIndex];
       prefB.deleteBranch("mail.ui.folderpane");
     } catch(ex) {
       // This is ok.  If we've already migrated we'll end up here
     }
 
     if (document.getElementById('folderpane-title')) {
-      let key = "folderPaneHeader_" + this.mode;
-      let string = document.getElementById("bundle_messenger").getString(key);
+      let string;
+        if (this._mode in this._modeDisplayNames)
+          string = this._modeDisplayNames;
+        else {
+          let key = "folderPaneHeader_" + this.mode;
+          string = document.getElementById("bundle_messenger").getString(key);
+        }
       document.getElementById('folderpane-title').value = string;
     }
 
@@ -160,11 +165,34 @@ let gFolderTreeView = {
   },
 
   /**
-   * This is an array of all possible modes for the folder tree.  Extensions are
-   * free to add to this pane, but you must make a corresponding addition to the
-   * _mapGenerators object.
+   * Extensions can use this function to add a new mode to the folder pane.
+   *
+   * @param aCommonName  an internal name to identify this mode. Must be unique
+   * @param aGenerator  a function that will return objects corresponding to the
+   *                    the rows that will be displayed. See ftvItem for more
+   *                    info on how these row-objects should look. See this
+   *                    object's _mapGenerators for examples.
+   * @param aDisplayName  a localized name for this mode
    */
-  modeNames: ["all", "unread", "favorite", "recent"],
+  registerMode: function ftv_registerMode(aCommonName, aGenerator, aDisplayName) {
+    this._modeNames.push(aCommonName);
+    this._mapGenerators[aCommonName] = aGenerator;
+    this._modeDisplayNames[aCommonName] = aDisplayName;
+  },
+
+  /**
+   * Unregisters a previously registered mode. Since common-names must be unique
+   * this is all that need be provided to unregister.
+   * @param aCommonName  the common-name with which the mode was previously
+   *                     registered
+   */
+  unregisterMode: function ftv_unregisterMode(aCommonName) {
+    this._modeNames.splice(this._modeNames.indexOf(aCommonName), 1);
+    delete this._mapGenerators[aCommonName];
+    delete this._modeDisplayNames[aCommonName];
+    if (this._mode == aCommonName)
+      this.mode = "all";
+  },
 
   /**
    * Called to move to the next/prev folder-mode in the list
@@ -172,11 +200,11 @@ let gFolderTreeView = {
    * @param aForward  whether or not we should move forward in the list
    */
   cycleMode: function ftv_cycleMode(aForward) {
-    let index = this.modeNames.indexOf(this.mode);
-    let offset = aForward ? 1 : this.modeNames.length - 1;
-    index = (index + offset) % this.modeNames.length;
+    let index = this._modeNames.indexOf(this.mode);
+    let offset = aForward ? 1 : this._modeNames.length - 1;
+    index = (index + offset) % this._modeNames.length;
 
-    this.mode = this.modeNames[index];
+    this.mode = this._modeNames[index];
   },
 
   /**
@@ -221,12 +249,12 @@ let gFolderTreeView = {
   set mode(aMode) {
     this._mode = aMode;
 
-    var string;
-    try {
+    let string;
+    if (this._mode in this._modeDisplayNames)
+      string = this._modeDisplayNames[this._mode];
+    else {
       let key = "folderPaneHeader_" + aMode;
       string = document.getElementById("bundle_messenger").getString(key);
-    } catch(ex) {
-      string = aMode;
     }
     document.getElementById('folderpane-title').value = string;
 
@@ -593,7 +621,14 @@ let gFolderTreeView = {
 
   //
   // WARNING: Everything below this point is considered private.  Touch at your
-  //          own risk (Other than plugging into mapGenerators).
+  //          own risk.
+
+  /**
+   * This is an array of all possible modes for the folder tree. You should not
+   * modify this directly, but rather use registerMode.
+   */
+  _modeNames: ["all", "unread", "favorite", "recent"],
+  _modeDisplayNames: {},
 
   /**
    * This is a javaascript map of which folders we had open, so that we can
