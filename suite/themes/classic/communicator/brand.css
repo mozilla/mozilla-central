@@ -51,24 +51,24 @@
   border: none;
   padding: 1px;
   min-width: 0;
-  list-style-image: url("chrome://communicator/skin/brand/throbber-single.gif");
+  list-style-image: url("chrome://communicator/skin/brand/throbber-single.png");
   background-color: transparent;
   -moz-appearance:none !important;
 }
 
 #navigator-throbber[busy="true"] {
-  list-style-image: url("chrome://communicator/skin/brand/throbber-anim.gif");
+  list-style-image: url("chrome://communicator/skin/brand/throbber-anim.png");
 }
-  
+
 window[chromehidden~="toolbar"] #navigator-throbber,
 toolbar[mode="text"] #navigator-throbber,
 toolbar[iconsize="small"] #navigator-throbber {
   margin: 0 5px;
-  list-style-image: url("chrome://communicator/skin/brand/throbber16-single.gif");
+  list-style-image: url("chrome://communicator/skin/brand/throbber16-single.png");
 }
 
 window[chromehidden~="toolbar"] #navigator-throbber[busy="true"],
 toolbar[mode="text"] #navigator-throbber[busy="true"],
 toolbar[iconsize="small"] #navigator-throbber[busy="true"] {
-  list-style-image: url("chrome://communicator/skin/brand/throbber16-anim.gif");
+  list-style-image: url("chrome://communicator/skin/brand/throbber16-anim.png");
 }
