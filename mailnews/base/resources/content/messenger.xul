@@ -152,6 +152,7 @@
       <vbox id="folderPaneBox" minwidth="100" width="200" persist="collapsed width">
         <tree id="folderTree"
               treelines="true"
+              keepcurrentinview="true"
               flex="1"
               context="folderPaneContext"
               class="window-focusborder"
@@ -175,6 +176,7 @@
           <hbox id="threadPaneBox">
             <tree id="threadTree"
                   treelines="true"
+                  keepcurrentinview="true"
                   flex="1"
                   minwidth="100"
                   width="100"
