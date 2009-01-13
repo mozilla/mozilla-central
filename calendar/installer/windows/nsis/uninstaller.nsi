@@ -52,10 +52,6 @@ RequestExecutionLevel user
 
 !addplugindir ./
 
-; USE_UAC_PLUGIN is temporary until all applications have been updated to use
-; the UAC plugin
-!define USE_UAC_PLUGIN
-
 ; prevents compiling of the reg write logging.
 !define NO_LOG
 
@@ -88,7 +84,11 @@ Var TmpVal
 VIAddVersionKey "FileDescription"  "${BrandShortName} Helper"
 VIAddVersionKey "OriginalFilename" "helper.exe"
 
+; Most commonly used macros for managing shortcuts
+!insertmacro _LoggingShortcutsCommon
+
 !insertmacro CleanVirtualStore
+!insertmacro FindSMProgramsDir
 !insertmacro GetLongPath
 !insertmacro RegCleanMain
 !insertmacro RegCleanUninstall
@@ -101,6 +101,7 @@ VIAddVersionKey "OriginalFilename" "helper.exe"
 !insertmacro un.CheckForFilesInUse
 !insertmacro un.CleanUpdatesDir
 !insertmacro un.CleanVirtualStore
+!insertmacro un.DeleteShortcuts
 !insertmacro un.GetLongPath
 !insertmacro un.GetSecondInstallPath
 !insertmacro un.ManualCloseAppPrompt
@@ -202,6 +203,7 @@ Section "Uninstall"
   SetShellVarContext current  ; Set SHCTX to HKCU
   ${un.RegCleanMain} "Software\Mozilla"
   ${un.RegCleanUninstall}
+  ${un.DeleteShortcuts}
 
   ClearErrors
   WriteRegStr HKLM "Software\Mozilla" "${BrandShortName}InstallerTest" "Write Test"
@@ -213,6 +215,7 @@ Section "Uninstall"
     StrCpy $TmpVal "HKLM" ; used primarily for logging
     ${un.RegCleanMain} "Software\Mozilla"
     ${un.RegCleanUninstall}
+    ${un.DeleteShortcuts}
   ${EndIf}
 
   SetShellVarContext all  ; Set SHCTX to HKLM
@@ -453,6 +456,8 @@ Function un.onInit
   ; Initialize $hHeaderBitmap to prevent redundant changing of the bitmap if
   ; the user clicks the back button
   StrCpy $hHeaderBitmap ""
+
+  !insertmacro InitInstallOptionsFile "unconfirm.ini"
 FunctionEnd
 
 Function .onGUIEnd
