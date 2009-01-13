@@ -62,6 +62,11 @@
 //
 #define INVOKE_LDAP_CALLBACKS_ON_MAIN_THREAD 0
 
+// {97cce72b-8ce9-466e-b21d-05da7c1e02a6}
+#define NS_LDAPCHANNEL_CID \
+  { 0x97cce72b, 0x8ce9, 0x466e, \
+      { 0xb2, 0x1d, 0x05, 0xda, 0x7c, 0x1e, 0x02, 0xa6 } }
+
 class nsLDAPChannel : public nsIChannel, public nsILDAPMessageListener
 {
   public:

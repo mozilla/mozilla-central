@@ -46,8 +46,13 @@
 #include "nsIProxyObjectManager.h"
 #include "nsILDAPMessage.h"
 #include "nsILDAPErrors.h"
+#ifdef USE_TK_LOGIN_MANAGER
+#include "nsILoginManager.h"
+#include "nsILoginInfo.h"
+#else
 #include "nsCategoryManagerUtils.h"
 #include "nsComponentManagerUtils.h"
+#endif
 #include "nsServiceManagerUtils.h"
 #include "nsXPCOMCIDInternal.h"
 
@@ -323,6 +328,44 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
     if (errCode == nsILDAPErrors::INAPPROPRIATE_AUTH ||
         errCode == nsILDAPErrors::INVALID_CREDENTIALS)
     {
+#ifdef USE_TK_LOGIN_MANAGER
+      // Login failed, so try again - but first remove the existing login(s)
+      // so that the user gets prompted. This may not be the best way of doing
+      // things, we need to review that later.
+
+      nsCOMPtr<nsILoginManager> loginMgr =
+        do_GetService(NS_LOGINMANAGER_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCString spec;
+      rv = mDirectoryUrl->GetSpec(spec);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCString prePath;
+      rv = mDirectoryUrl->GetPrePath(prePath);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      PRUint32 count;
+      nsILoginInfo** logins;
+
+      rv = loginMgr->FindLogins(&count, NS_ConvertUTF8toUTF16(prePath),
+                                EmptyString(),
+                                NS_ConvertUTF8toUTF16(spec), &logins);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      // Typically there should only be one-login stored for this url, however,
+      // just in case there isn't.
+      for (PRUint32 i = 0; i < count; ++i)
+      {
+        rv = loginMgr->RemoveLogin(logins[i]);
+        if (NS_FAILED(rv))
+        {
+          NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
+          return rv;
+        }
+      }
+      NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
+#else
       // make sure the wallet service has been created, and in doing so,
       // pass in a login-failed message to tell it to forget this passwd.
       //
@@ -342,7 +385,10 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
         // this password in the password manager.
         return rv;
       }
+
       // Login failed, so try again
+#endif
+
       // XXX We should probably pop up an error dialog telling
       // the user that the login failed here, rather than just bringing 
       // up the password dialog again, which is what calling OnLDAPInit()

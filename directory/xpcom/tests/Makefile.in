@@ -43,10 +43,19 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= rdfldapds
+# Module name for xpcshell tests.
+MODULE		= test_ldapxpcom
+
+XPCSHELL_TESTS	= unit
 
 include $(topsrcdir)/config/rules.mk
 
+# Note that for the time being "ldapshell" requires LDAP Experimental
+#
+
+ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
+
+DEFINES += -DMOZ_LDAP_XPCOM_EXPERIMENTAL
 
 ifeq ($(OS_ARCH),WINNT)
 # need this because xpcshell built with readline won't work in cygwin shells
@@ -62,3 +71,4 @@ ldapshell:
 	$(CYGWIN_WRAPPER) $(RUN) $(XPCSHELL) \
 		-f $(srcdir)/ldapshell.js \
 		-f -
+endif

@@ -67,7 +67,7 @@ interface nsIAbCard;
  * draft-joslin-config-schema-11.txt), we can simplify this and other
  * code and only allow a property to map to a single attribute.
  */
-[scriptable, uuid(bc543118-db5d-4616-b2d4-9a8667609a7c)]
+[scriptable, uuid(dbfb9974-45ee-41c3-a005-2e8f002c1c9f)]
 interface nsIAbLDAPAttributeMap : nsISupports
 {
   /**
@@ -139,11 +139,12 @@ interface nsIAbLDAPAttributeMap : nsISupports
    * property map (used for passing to to an LDAP search when you want
    * everything that could be in a card returned).
    *
-   * @return                      a comma-separated list of attribute names
+   * @return                      an array of attribute names
    *
    * @exception NS_ERROR_FAILURE  there are no attributes in this property map
    */
-  ACString getAllCardAttributes();
+  void getAllCardAttributes(out unsigned long aCount,
+                            [retval, array, size_is(aCount)] out string aAttrs);
   
   /**
    * Get all properties that may be used in an addressbook card via this

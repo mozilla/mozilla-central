@@ -52,8 +52,33 @@
  * they can only be of a limited subset of ASCII (see RFC 2251).
  */
 
-[scriptable, uuid(7310562d-1567-43c7-a123-633c1ba3663e)]
+[scriptable, uuid(1018ee06-f708-4bd7-b7df-11285332a404)]
 interface nsILDAPURL : nsIURI {
+    /**
+     * Initialize an LDAP URL
+     *
+     * @param aUrlType       - one of the URLTYPE_ flags @seealso nsIStandardURL
+     * @param aDefaultPort   - if the port parsed from the URL string matches
+     *                         this port, then the port will be removed from the
+     *                         canonical form of the URL.
+     * @param aSpec          - URL string.
+     * @param aOriginCharset - the charset from which this URI string
+     *                         originated.  this corresponds to the charset
+     *                         that should be used when communicating this
+     *                         URI to an origin server, for example.  if
+     *                         null, then provide aBaseURI implements this
+     *                         interface, the origin charset of aBaseURI will
+     *                         be assumed, otherwise defaulting to UTF-8 (i.e.,
+     *                         no charset transformation from aSpec).
+     * @param aBaseURI       - if null, aSpec must specify an absolute URI.
+     *                         otherwise, aSpec will be resolved relative
+     *                         to aBaseURI.
+     */
+    void init(in unsigned long aUrlType,
+              in long aDefaultPort,
+              in AUTF8String aSpec,
+              in string aOriginCharset,
+              in nsIURI aBaseURI);
 
     /**
      * The distinguished name of the URL (ie the base DN for the search).
@@ -151,5 +176,4 @@ interface nsILDAPURL : nsIURI {
      * If this is set/true, this is an ldaps: URL, not an ldap: URL
      */
     const unsigned long OPT_SECURE = 0x01;
-
 };

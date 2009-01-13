@@ -52,7 +52,6 @@
 #include "nsLDAPBERValue.h"
 #include "nsLDAPBERElement.h"
 #include "nsLDAPControl.h"
-#include "nsLDAPProtocolHandler.h"
 
 #include "ldappr.h"
 
@@ -67,12 +66,14 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPOperation)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPMessage)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsLDAPModification, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPServer)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsLDAPURL, Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPURL)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsLDAPService, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPBERValue)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPBERElement)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPControl)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPProtocolHandler)
+#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPChannel)
+#endif
 
 NS_DECL_CLASSINFO(nsLDAPMessage)
 NS_DECL_CLASSINFO(nsLDAPOperation)
@@ -115,15 +116,16 @@ static const nsModuleComponentInfo components[] =
           "@mozilla.org/network/ldap-server;1", nsLDAPServerConstructor },
     { "LDAP Service", NS_LDAPSERVICE_CID,
           "@mozilla.org/network/ldap-service;1", nsLDAPServiceConstructor },
-    { "LDAP Protocol Handler", NS_LDAPPROTOCOLHANDLER_CID, 
-          NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "ldap", 
-          nsLDAPProtocolHandlerConstructor },   
     { "LDAP URL", NS_LDAPURL_CID,
           "@mozilla.org/network/ldap-url;1", nsLDAPURLConstructor },
     { "LDAP BER Value", NS_LDAPBERVALUE_CID,
       "@mozilla.org/network/ldap-ber-value;1", nsLDAPBERValueConstructor },
     { "LDAP BER Element", NS_LDAPBERELEMENT_CID,
       "@mozilla.org/network/ldap-ber-element;1", nsLDAPBERElementConstructor },
+#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
+    { "LDAP Channel", NS_LDAPCHANNEL_CID,
+      "@mozilla.org/network/ldap-channel;1", nsLDAPChannelConstructor },
+#endif
     { "LDAP Control", NS_LDAPCONTROL_CID,
       "@mozilla.org/network/ldap-control;1", nsLDAPControlConstructor}
 };

@@ -188,7 +188,6 @@ function fillSettings()
     document.getElementById("results").value = gCurrentDirectory.maxHits;
     document.getElementById("login").value = gCurrentDirectory.authDn;
     document.getElementById("hostname").value = ldapUrl.host;
-    document.getElementById("port").value = ldapUrl.port;
     document.getElementById("basedn").value = ldapUrl.dn;
     document.getElementById("search").value = ldapUrl.filter;
 
@@ -201,9 +200,16 @@ function fillSettings()
       sub.radioGroup.selectedItem = sub;
       break;
     }
-    
-    if (ldapUrl.options & ldapUrl.OPT_SECURE)
+
+    var secure = ldapUrl.options & ldapUrl.OPT_SECURE
+    if (secure)
       document.getElementById("secure").setAttribute("checked", "true");
+
+    if (ldapUrl.port == -1)
+      document.getElementById("port").value =
+        (secure ? kDefaultSecureLDAPPort : kDefaultLDAPPort);
+    else
+      document.getElementById("port").value = ldapUrl.port;
   }
 
   // check if any of the preferences for this server are locked.
@@ -285,10 +291,6 @@ function onAccept()
     var pref_string_content = "";
     var pref_string_title = "";
 
-    var ldapUrl = Components.classes["@mozilla.org/network/ldap-url;1"];
-    ldapUrl = ldapUrl.createInstance().
-      QueryInterface(Components.interfaces.nsILDAPURL);
-
     var description = document.getElementById("description").value;
     var hostname = document.getElementById("hostname").value;
     var port = document.getElementById("port").value;
@@ -305,29 +307,29 @@ function onAccept()
     else if (results && hasCharacters(results))
       errorValue = "invalidResults";
     if (!errorValue) {
+      // XXX Due to the LDAP c-sdk pass a dummy url to the IO service, then
+      // update the parts (bug 473351).
+      var ldapUrl = Components.classes["@mozilla.org/network/io-service;1"]
+        .getService(Components.interfaces.nsIIOService)
+        .newURI((secure.checked ? "ldaps://" : "ldap://") + "localhost/dc=???",
+                null, null)
+        .QueryInterface(Components.interfaces.nsILDAPURL);
+
       ldapUrl.host = hostname;
+      ldapUrl.port = port ? port :
+                            (secure.checked ? kDefaultSecureLDAPPort :
+                                              kDefaultLDAPPort);
       ldapUrl.dn = document.getElementById("basedn").value;
+      ldapUrl.scope = document.getElementById("one").selected ?
+                      Components.interfaces.nsILDAPURL.SCOPE_ONELEVEL :
+                      Components.interfaces.nsILDAPURL.SCOPE_SUBTREE;
+
       ldapUrl.filter = document.getElementById("search").value;
-      if (!port) {
-        if (secure.checked)
-          ldapUrl.port = kDefaultSecureLDAPPort;
-        else
-          ldapUrl.port = kDefaultLDAPPort;
-      } else {
-        ldapUrl.port = port;
-      }
-      if (document.getElementById("one").selected) {
-        ldapUrl.scope = Components.interfaces.nsILDAPURL.SCOPE_ONELEVEL;
-      } else {
-        ldapUrl.scope = Components.interfaces.nsILDAPURL.SCOPE_SUBTREE;
-      }
-      if (secure.checked)
-        ldapUrl.options |= ldapUrl.OPT_SECURE;
 
       // check if we are modifying an existing directory or adding a new directory
       if (gCurrentDirectory) {
         gCurrentDirectory.dirName = description;
-        gCurrentDirectory.lDAPURL = ldapUrl;
+        gCurrentDirectory.lDAPURL = ldapUrl.QueryInterface(Components.interfaces.nsILDAPURL);
         window.opener.gNewServerString = gCurrentDirectory.dirPrefId;
       }
       else { // adding a new directory

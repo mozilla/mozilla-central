@@ -426,17 +426,15 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
       }
     }
   }
-  
-  // Now formulate the search string
-  
-  // Get the scope
-  nsCAutoString scope;
-  PRBool doSubDirectories;
-  rv = aArguments->GetQuerySubDirectories (&doSubDirectories);
-  NS_ENSURE_SUCCESS(rv, rv);
-  scope = (doSubDirectories) ? "sub" : "one";
 
-  // Get the return attributes
+  nsCOMPtr<nsIURI> uri;
+  rv = mDirectoryUrl->Clone(getter_AddRefs(uri));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILDAPURL> url(do_QueryInterface(uri, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Get/Set the return attributes
   nsCOMPtr<nsISupports> iSupportsMap;
   rv = aArguments->GetTypeSpecificArg(getter_AddRefs(iSupportsMap));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -445,13 +443,21 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Require all attributes that are mapped to card properties
-  nsCAutoString returnAttributes;
-  rv = map->GetAllCardAttributes(returnAttributes);
-  NS_ASSERTION(NS_SUCCEEDED(rv), "GetAllCardAttributes failed");
+  PRUint32 returnAttrsCount;
+  char** returnAttrsArray;
+  rv = map->GetAllCardAttributes(&returnAttrsCount, &returnAttrsArray);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = url->SetAttributes(returnAttrsCount,
+                          const_cast<const char**>(returnAttrsArray));
+  // First free the array
+  NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(returnAttrsCount, returnAttrsArray);
+  // Now do the error check
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // Also require the objectClass attribute, it is used by
   // nsAbLDAPCard::SetMetaProperties
-  returnAttributes.AppendLiteral(",objectClass");
+  rv = url->AddAttribute("objectClass");
 
   // Get the filter
   nsCOMPtr<nsISupports> supportsExpression;
@@ -479,27 +485,11 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
    * central to the makeup of the mozilla ldap address book 
    * entries.
    */
-  if(filter.IsEmpty())
+  if (filter.IsEmpty())
   {
     filter.AssignLiteral("(objectclass=inetorgperson)");
   }
-  
-  nsCAutoString host;
-  rv = mDirectoryUrl->GetAsciiHost(host);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  PRInt32 port;
-  rv = mDirectoryUrl->GetPort(&port);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  nsCAutoString dn;
-  rv = mDirectoryUrl->GetDn(dn);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  PRUint32 options;
-  rv = mDirectoryUrl->GetOptions(&options);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
+
   // get the directoryFilter from the directory url and merge it with the user's
   // search filter
   nsCAutoString urlFilter;
@@ -532,28 +522,20 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   else
     searchFilter = filter;
 
-  nsCString ldapSearchUrlString;
-  char* _ldapSearchUrlString = 
-    PR_smprintf("ldap%s://%s:%d/%s?%s?%s?%s",
-                (options & nsILDAPURL::OPT_SECURE) ? "s" : "",
-                host.get(),
-                port,
-                dn.get(),
-                returnAttributes.get(),
-                scope.get(),
-                searchFilter.get());
-
-  if (!_ldapSearchUrlString)
-    return NS_ERROR_OUT_OF_MEMORY;
-
-  ldapSearchUrlString = _ldapSearchUrlString;
-  PR_smprintf_free(_ldapSearchUrlString);
-
-  nsCOMPtr<nsILDAPURL> url;
-  url = do_CreateInstance(NS_LDAPURL_CONTRACTID, &rv);
+  rv = url->SetFilter(searchFilter);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = url->SetSpec(ldapSearchUrlString);
+  // Now formulate the search string
+  
+  // Get the scope
+  PRInt32 scope;
+  PRBool doSubDirectories;
+  rv = aArguments->GetQuerySubDirectories (&doSubDirectories);
+  NS_ENSURE_SUCCESS(rv, rv);
+  scope = doSubDirectories ? nsILDAPURL::SCOPE_SUBTREE :
+                             nsILDAPURL::SCOPE_ONELEVEL;
+
+  rv = url->SetScope(scope);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // too soon? Do we need a new listener?

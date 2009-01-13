@@ -12,12 +12,7 @@ function run_test() {
   var abManager = Components.classes["@mozilla.org/abmanager;1"]
                             .getService(Components.interfaces.nsIAbManager);
 
-  var ldapUrl = Components.classes["@mozilla.org/network/ldap-url;1"]
-                          .createInstance(Components.interfaces.nsILDAPURL);
-
-  ldapUrl.spec = kLDAPTestSpec;
-
-  var abUri = abManager.newAddressBook("test", ldapUrl.spec, kLDAPDirectory);
+  var abUri = abManager.newAddressBook("test", kLDAPTestSpec, kLDAPDirectory);
 
   // Test - Check we have the directory.
   var abDir = abManager.getDirectory(kLDAPUriPrefix + abUri)

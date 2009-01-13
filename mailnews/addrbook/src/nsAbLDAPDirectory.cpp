@@ -210,19 +210,15 @@ NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, PRBool* hasCard)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** url)
+NS_IMETHODIMP nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** aResult)
 {
-  NS_ENSURE_ARG_POINTER(url);
-
-  nsresult rv;
-  nsCOMPtr<nsILDAPURL> result = do_CreateInstance(NS_LDAPURL_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_ARG_POINTER(aResult);
 
   // Rather than using GetURI here we call GetStringValue directly so
   // we can handle the case where the URI isn't specified (see comments
   // below)
   nsCAutoString URI;
-  rv = GetStringValue("uri", EmptyCString(), URI);
+  nsresult rv = GetStringValue("uri", EmptyCString(), URI);
   if (NS_FAILED(rv) || URI.IsEmpty())
   {
     /*
@@ -243,20 +239,19 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** url)
      * case where it is not a preference, we need to replace the
      * "moz-abldapdirectory".
      */
-    nsCAutoString tempLDAPURL(mURINoQuery);
-    if (StringBeginsWith(tempLDAPURL, NS_LITERAL_CSTRING(kLDAPDirectoryRoot)))
-      tempLDAPURL.Replace(0, kLDAPDirectoryRootLen, NS_LITERAL_CSTRING("ldap://"));
+    URI = mURINoQuery;
+    if (StringBeginsWith(URI, NS_LITERAL_CSTRING(kLDAPDirectoryRoot)))
+      URI.Replace(0, kLDAPDirectoryRootLen, NS_LITERAL_CSTRING("ldap://"));
+  }
 
-    rv = result->SetSpec(tempLDAPURL);
-  }
-  else
-  {
-    rv = result->SetSpec(URI);
-  }
+  nsCOMPtr<nsIIOService> ioService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  result.swap(*url);
-  return rv;
+  nsCOMPtr<nsIURI> result;
+  rv = ioService->NewURI(URI, nsnull, nsnull, getter_AddRefs(result));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return CallQueryInterface(result, aResult);
 }
 
 NS_IMETHODIMP nsAbLDAPDirectory::SetLDAPURL(nsILDAPURL *aUrl)

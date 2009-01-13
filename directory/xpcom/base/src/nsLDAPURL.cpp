@@ -43,329 +43,357 @@
 #include "netCore.h"
 #include "plstr.h"
 #include "nsCOMPtr.h"
+#include "nsNetCID.h"
+#include "nsComponentManagerUtils.h"
+#include "nsIStandardURL.h"
 
 // The two schemes we support, LDAP and LDAPS
 //
-static const char kLDAPScheme[] = "ldap";
-static const char kLDAPSSLScheme[] = "ldaps";
+NS_NAMED_LITERAL_CSTRING(LDAP_SCHEME, "ldap");
+NS_NAMED_LITERAL_CSTRING(LDAP_SSL_SCHEME, "ldaps");
 
-// Constructor and destructor
-//
 NS_IMPL_THREADSAFE_ISUPPORTS2(nsLDAPURL, nsILDAPURL, nsIURI)
 
 nsLDAPURL::nsLDAPURL()
-    : mPort(0),
-      mScope(SCOPE_BASE),
-      mOptions(0),
-      mAttributes(0)
+    : mScope(SCOPE_BASE),
+      mOptions(0)
 {
 }
 
 nsLDAPURL::~nsLDAPURL()
 {
-    // Delete the array of attributes
-    delete mAttributes;
 }
 
 nsresult
-nsLDAPURL::Init()
+nsLDAPURL::Init(PRUint32 aUrlType, PRInt32 aDefaultPort,
+                const nsACString &aSpec, const char* aOriginCharset,
+                nsIURI *aBaseURI)
 {
-    if (!mAttributes) {
-        mAttributes = new nsCStringArray();
-        if (!mAttributes) {
-            NS_ERROR("nsLDAPURL::Init: out of memory ");
-            return NS_ERROR_OUT_OF_MEMORY;
-        }
+  if (!mBaseURL)
+  {
+    mBaseURL = do_CreateInstance(NS_STANDARDURL_CONTRACTID);
+    if (!mBaseURL)
+      return NS_ERROR_OUT_OF_MEMORY;
+  }
+
+  nsresult rv;
+  nsCOMPtr<nsIStandardURL> standardURL(do_QueryInterface(mBaseURL, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = standardURL->Init(aUrlType, aDefaultPort, aSpec, aOriginCharset,
+                         aBaseURI);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Now get the spec from the mBaseURL in case it was a relative one
+  nsCString spec;
+  rv = mBaseURL->GetSpec(spec);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return SetSpec(spec);
+}
+
+void
+nsLDAPURL::GetPathInternal(nsCString &aPath)
+{
+  aPath.Assign('/');
+
+  if (!mDN.IsEmpty())
+    aPath.Append(mDN);
+
+  PRUint32 count = mAttributes.Count();
+  if (count)
+  {
+    aPath.Append('?');
+    PRUint32 index = 0;
+
+    while (index < count)
+    {
+      aPath.Append(*(mAttributes.CStringAt(index++)));
+      if (index < count)
+        aPath.Append(',');
+    }
+  }
+
+  if (mScope || !mFilter.IsEmpty())
+  {
+    aPath.Append((count ? "?" : "??"));
+    if (mScope)
+    {
+      if (mScope == SCOPE_ONELEVEL)
+        aPath.Append("one");
+      else if (mScope == SCOPE_SUBTREE)
+        aPath.Append("sub");
+    }
+    if (!mFilter.IsEmpty())
+    {
+      aPath.Append('?');
+      aPath.Append(mFilter);
+    }
+  }
+}
+
+nsresult
+nsLDAPURL::SetPathInternal(const nsCString &aPath)
+{
+  PRUint32 rv, count;
+  LDAPURLDesc *desc;
+  nsCString str;
+  char **attributes;
+
+  // This is from the LDAP C-SDK, which currently doesn't
+  // support everything from RFC 2255... :(
+  //
+  rv = ldap_url_parse(aPath.get(), &desc);
+  switch (rv) {
+  case LDAP_SUCCESS:
+    // The base URL can pick up the host & port details and deal with them
+    // better than we can
+    mDN = desc->lud_dn;
+    mScope = desc->lud_scope;
+    mFilter = desc->lud_filter;
+    mOptions = desc->lud_options;
+
+    // Set the attributes array, need to count it first.
+    //
+    count = 0;
+    attributes = desc->lud_attrs;
+    while (attributes && *attributes++)
+      count++;
+
+    if (count) {
+      rv = SetAttributes(count, const_cast<const char **>(desc->lud_attrs));
+      // This error could only be out-of-memory, so pass it up
+      //
+      if (NS_FAILED(rv)) {
+        return rv;
+      }
+    } else {
+      mAttributes.Clear();
     }
 
+    ldap_free_urldesc(desc);
     return NS_OK;
+
+  case LDAP_URL_ERR_NOTLDAP:
+  case LDAP_URL_ERR_NODN:
+  case LDAP_URL_ERR_BADSCOPE:
+    return NS_ERROR_MALFORMED_URI;
+
+  case LDAP_URL_ERR_MEM:
+    NS_ERROR("nsLDAPURL::SetSpec: out of memory ");
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  case LDAP_URL_ERR_PARAM: 
+    return NS_ERROR_INVALID_POINTER;
+  }
+
+  // This shouldn't happen...
+  return NS_ERROR_UNEXPECTED;
 }
 
 // A string representation of the URI. Setting the spec 
 // causes the new spec to be parsed, initializing the URI. Setting
 // the spec (or any of the accessors) causes also any currently
 // open streams on the URI's channel to be closed.
-//
-// attribute string spec;
-//
+
 NS_IMETHODIMP 
 nsLDAPURL::GetSpec(nsACString &_retval)
 {
-    nsCAutoString spec;
-    PRUint32 count;
-    
-    spec = ((mOptions & OPT_SECURE) ? kLDAPSSLScheme : kLDAPScheme);
-    spec.Append("://");
-    if (!mHost.IsEmpty()) {
-        spec.Append(mHost);
-    }
-    if (mPort > 0) {
-        spec.Append(':');
-        spec.AppendInt(mPort);
-    }
-    spec.Append('/');
-    if (!mDN.IsEmpty()) {
-        spec.Append(mDN);
-    }
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    if ((count = mAttributes->Count())) {
-        PRUint32 index = 0;
-
-        spec.Append('?');
-        while (index < count) {
-            spec.Append(*(mAttributes->CStringAt(index++)));
-            if (index < count) {
-                spec.Append(',');
-            }
-        }
-    }
-
-    if (mScope || !mFilter.IsEmpty()) {
-        spec.Append((count ? "?" : "??"));
-        if (mScope) {
-            if (mScope == SCOPE_ONELEVEL) {
-                spec.Append("one");
-            } else if (mScope == SCOPE_SUBTREE) {
-                spec.Append("sub");
-            }
-        }
-        if (!mFilter.IsEmpty()) {
-            spec.Append('?');
-            spec.Append(mFilter);
-        }
-    }
-
-    _retval = spec;
-    return NS_OK;
+  return mBaseURL->GetSpec(_retval);
 }
+
 NS_IMETHODIMP 
 nsLDAPURL::SetSpec(const nsACString &aSpec)
 {
-    PRUint32 rv, count;
-    LDAPURLDesc *desc;
-    nsCString str;
-    char **attributes;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    // This is from the LDAP C-SDK, which currently doesn't
-    // support everything from RFC 2255... :(
-    //
-    rv = ldap_url_parse(PromiseFlatCString(aSpec).get(), &desc);
-    switch (rv) {
-    case LDAP_SUCCESS:
-        mHost = desc->lud_host;
-        mPort = desc->lud_port;
-        mDN = desc->lud_dn;
-        mScope = desc->lud_scope;
-        mFilter = desc->lud_filter;
-        mOptions = desc->lud_options;
+  // Cache the original spec in case we don't like what we've been passed and
+  // need to reset ourselves.
+  nsCString originalSpec;
+  nsresult rv = mBaseURL->GetSpec(originalSpec);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-        // Set the attributes array, need to count it first.
-        //
-        count = 0;
-        attributes = desc->lud_attrs;
-        while (attributes && *attributes++) {
-            count++;
-        }
-        if (count) {
-            rv = SetAttributes(count,
-                               const_cast<const char **>(desc->lud_attrs));
-            // This error could only be out-of-memory, so pass it up
-            //
-            if (NS_FAILED(rv)) {
-                return rv;
-            }
-        } else {
-            mAttributes->Clear();
-        }
+  rv = mBaseURL->SetSpec(aSpec);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-        ldap_free_urldesc(desc);
-        return NS_OK;
+  rv = SetPathInternal(nsPromiseFlatCString(aSpec));
+  if (NS_FAILED(rv))
+    mBaseURL->SetSpec(originalSpec);
 
-    case LDAP_URL_ERR_NOTLDAP:
-    case LDAP_URL_ERR_NODN:
-    case LDAP_URL_ERR_BADSCOPE:
-        return NS_ERROR_MALFORMED_URI;
-
-    case LDAP_URL_ERR_MEM:
-        NS_ERROR("nsLDAPURL::SetSpec: out of memory ");
-        return NS_ERROR_OUT_OF_MEMORY;
-
-    case LDAP_URL_ERR_PARAM: 
-        return NS_ERROR_INVALID_POINTER;
-    }
-
-    // This shouldn't happen...
-    return NS_ERROR_UNEXPECTED;
+  return rv;
 }
 
-// attribute string prePath;
-//
 NS_IMETHODIMP nsLDAPURL::GetPrePath(nsACString &_retval)
 {
-    _retval.Truncate();
-    return NS_OK;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  return mBaseURL->GetPrePath(_retval);
 }
 
-// attribute string scheme;
-//
 NS_IMETHODIMP nsLDAPURL::GetScheme(nsACString &_retval)
 {
-    _retval = (mOptions & OPT_SECURE) ? kLDAPSSLScheme : kLDAPScheme;
-    return NS_OK;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  return mBaseURL->GetScheme(_retval);
 }
+
 NS_IMETHODIMP nsLDAPURL::SetScheme(const nsACString &aScheme)
 {
-    if (aScheme.Equals(kLDAPScheme, nsCaseInsensitiveCStringComparator())) {
-        mOptions ^= OPT_SECURE;
-    } else if (aScheme.Equals(kLDAPSSLScheme, nsCaseInsensitiveCStringComparator())) {
-        mOptions |= OPT_SECURE;
-    } else {
-        return NS_ERROR_MALFORMED_URI;
-    }
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    return NS_OK;
+  if (aScheme.Equals(LDAP_SCHEME, nsCaseInsensitiveCStringComparator()))
+    mOptions &= !OPT_SECURE;
+  else if (aScheme.Equals(LDAP_SSL_SCHEME,
+                          nsCaseInsensitiveCStringComparator()))
+    mOptions |= OPT_SECURE;
+  else
+    return NS_ERROR_MALFORMED_URI;
+
+  return mBaseURL->SetScheme(aScheme);
 }
 
-// attribute string userPass;
-//
 NS_IMETHODIMP 
 nsLDAPURL::GetUserPass(nsACString &_retval)
 {
-    _retval.Truncate();
-    return NS_OK;
-}
-NS_IMETHODIMP
-nsLDAPURL::SetUserPass(const nsACString &aPreHost)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
+  _retval.Truncate();
+  return NS_OK;
 }
 
-// attribute string username
-//
+NS_IMETHODIMP
+nsLDAPURL::SetUserPass(const nsACString &aUserPass)
+{
+  return NS_OK;
+}
+
 NS_IMETHODIMP
 nsLDAPURL::GetUsername(nsACString &_retval)
 {
-    _retval.Truncate();
-    return NS_OK;
+  _retval.Truncate();
+  return NS_OK;
 }
+
 NS_IMETHODIMP
 nsLDAPURL::SetUsername(const nsACString &aUsername)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_OK;
 }
 
-// attribute string password;
-//
 NS_IMETHODIMP 
 nsLDAPURL::GetPassword(nsACString &_retval)
 {
-    _retval.Truncate();
-    return NS_OK;
+  _retval.Truncate();
+  return NS_OK;
 }
+
 NS_IMETHODIMP 
 nsLDAPURL::SetPassword(const nsACString &aPassword)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_OK;
 }
 
-// attribute string hostPort;
-//
 NS_IMETHODIMP 
 nsLDAPURL::GetHostPort(nsACString &_retval)
 {
-  nsCString result(mHost);
-  result.AppendLiteral(":");
-  if (mPort)
-    result.AppendInt(mPort);
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-  _retval.Assign(result);
-
-  return NS_OK;
+  return mBaseURL->GetHostPort(_retval);
 }
+
 NS_IMETHODIMP 
 nsLDAPURL::SetHostPort(const nsACString &aHostPort)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  return mBaseURL->SetHostPort(aHostPort);
 }
 
-// attribute string host;
-//
 NS_IMETHODIMP 
 nsLDAPURL::GetHost(nsACString &_retval)
 {
-    _retval = mHost;
-    return NS_OK;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  return mBaseURL->GetHost(_retval);
 }
+
 NS_IMETHODIMP 
 nsLDAPURL::SetHost(const nsACString &aHost)
 {
-    mHost = aHost;
-    return NS_OK;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  return mBaseURL->SetHost(aHost);
 }
 
-// C-SDK URL parser defaults port 389 as "0", while nsIURI
-// specifies the default to be "-1", hence the translations.
-//
-// attribute long port;
-//
 NS_IMETHODIMP 
 nsLDAPURL::GetPort(PRInt32 *_retval)
 {
-    if (!_retval) {
-        NS_ERROR("nsLDAPURL::GetPort: null pointer ");
-        return NS_ERROR_NULL_POINTER;
-    }
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    if (!mPort) {
-        *_retval = -1;
-    } else {
-        *_retval = mPort;
-    }
-        
-    return NS_OK;
+  return mBaseURL->GetPort(_retval);
 }
+
 NS_IMETHODIMP 
 nsLDAPURL::SetPort(PRInt32 aPort)
 {
-    if (aPort == -1) {
-        mPort = 0;
-    } else if (aPort >= 0) {
-        mPort = aPort;
-    } else {
-        return NS_ERROR_MALFORMED_URI;
-    }
-    
-    return NS_OK;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  return mBaseURL->SetPort(aPort);
 }
 
-// attribute string path;
-// XXXleif: For now, these are identical to SetDn()/GetDn().
 NS_IMETHODIMP nsLDAPURL::GetPath(nsACString &_retval)
 {
-    _retval = mDN;
-    return NS_OK;
-}
-NS_IMETHODIMP nsLDAPURL::SetPath(const nsACString &aPath)
-{
-    mDN = aPath;
-    return NS_OK;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  return mBaseURL->GetPath(_retval);
 }
 
-// attribute string specA
+NS_IMETHODIMP nsLDAPURL::SetPath(const nsACString &aPath)
+{
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  nsresult rv = SetPathInternal(nsPromiseFlatCString(aPath));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return mBaseURL->SetPath(aPath);
+}
+
 NS_IMETHODIMP nsLDAPURL::GetAsciiSpec(nsACString &_retval)
 {
-    return GetSpec(_retval);
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  // XXX handle extra items?
+  return mBaseURL->GetAsciiSpec(_retval);
 }
-// attribute string hostA
+
 NS_IMETHODIMP nsLDAPURL::GetAsciiHost(nsACString &_retval)
 {
-    return GetHost(_retval);
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  return mBaseURL->GetAsciiHost(_retval);
 }
 
 NS_IMETHODIMP nsLDAPURL::GetOriginCharset(nsACString &result)
 {
-    result.Truncate();
-    return NS_OK;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  return mBaseURL->GetOriginCharset(result);
 }
 
 // boolean equals (in nsIURI other)
@@ -400,23 +428,36 @@ NS_IMETHODIMP nsLDAPURL::Equals(nsIURI *other, PRBool *_retval)
 
 // boolean schemeIs(in const char * scheme);
 //
-NS_IMETHODIMP nsLDAPURL::SchemeIs(const char *i_Scheme, PRBool *o_Equals)
+NS_IMETHODIMP nsLDAPURL::SchemeIs(const char *aScheme, PRBool *aEquals)
 {
-    if (!i_Scheme) return NS_ERROR_INVALID_ARG;
-    if (*i_Scheme == 'l' || *i_Scheme == 'L') {
-        *o_Equals = PL_strcasecmp("ldap", i_Scheme) ? PR_FALSE : PR_TRUE;
-    } else {
-        *o_Equals = PR_FALSE;
-    }
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    return NS_OK;
+  return mBaseURL->SchemeIs(aScheme, aEquals);
 }
 
 // nsIURI clone ();
 //
-NS_IMETHODIMP nsLDAPURL::Clone(nsIURI **_retval)
+NS_IMETHODIMP nsLDAPURL::Clone(nsIURI **aResult)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  nsLDAPURL *clone;
+  NS_NEWXPCOM(clone, nsLDAPURL);
+  if (!clone)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  clone->mDN = mDN;
+  clone->mScope = mScope;
+  clone->mFilter = mFilter;
+  clone->mOptions = mOptions;
+  clone->mAttributes = mAttributes;
+
+  nsresult rv = mBaseURL->Clone(getter_AddRefs(clone->mBaseURL));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  NS_ADDREF(*aResult = clone);
+  return NS_OK;
 }
 
 // string resolve (in string relativePath);
@@ -424,7 +465,7 @@ NS_IMETHODIMP nsLDAPURL::Clone(nsIURI **_retval)
 NS_IMETHODIMP nsLDAPURL::Resolve(const nsACString &relativePath,
                                  nsACString &_retval)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // The following attributes come from nsILDAPURL
@@ -438,8 +479,17 @@ NS_IMETHODIMP nsLDAPURL::GetDn(nsACString& _retval)
 }
 NS_IMETHODIMP nsLDAPURL::SetDn(const nsACString& aDn)
 {
-    mDN.Assign(aDn);
-    return NS_OK;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  mDN.Assign(aDn);
+
+  // Now get the current path
+  nsCString newPath;
+  GetPathInternal(newPath);
+
+  // and update the base url
+  return mBaseURL->SetPath(newPath);
 }
 
 // void getAttributes (out unsigned long aCount, 
@@ -447,6 +497,9 @@ NS_IMETHODIMP nsLDAPURL::SetDn(const nsACString& aDn)
 //
 NS_IMETHODIMP nsLDAPURL::GetAttributes(PRUint32 *aCount, char ***_retval)
 {
+    NS_ENSURE_ARG_POINTER(aCount);
+    NS_ENSURE_ARG_POINTER(_retval);
+
     PRUint32 index = 0;
     PRUint32 count;
     char **cArray = nsnull;
@@ -456,7 +509,7 @@ NS_IMETHODIMP nsLDAPURL::GetAttributes(PRUint32 *aCount, char ***_retval)
         return NS_ERROR_NULL_POINTER;
     }
 
-    count = mAttributes->Count();
+    count = mAttributes.Count();
     if (count > 0) {
         cArray = static_cast<char **>(nsMemory::Alloc(count * sizeof(char *)));
         if (!cArray) {
@@ -467,7 +520,7 @@ NS_IMETHODIMP nsLDAPURL::GetAttributes(PRUint32 *aCount, char ***_retval)
         // Loop through the string array, and build up the C-array.
         //
         while (index < count) {
-            if (!(cArray[index] = ToNewCString(*(mAttributes->CStringAt(index))))) {
+            if (!(cArray[index] = ToNewCString(*(mAttributes.CStringAt(index))))) {
                 NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(index, cArray);
                 NS_ERROR("nsLDAPURL::GetAttributes: out of memory ");
                 return NS_ERROR_OUT_OF_MEMORY;
@@ -484,97 +537,107 @@ NS_IMETHODIMP nsLDAPURL::GetAttributes(PRUint32 *aCount, char ***_retval)
 //                     [array, size_is (aCount)] in string aAttrs); */
 NS_IMETHODIMP nsLDAPURL::SetAttributes(PRUint32 count, const char **aAttrs)
 {
-    PRUint32 index = 0;
-    nsCString str;
-    
-    mAttributes->Clear();
-    while (index < count) {
-        // Have to assign the str into this temporary nsCString, to make
-        // the compilers happy...
-        //
-        str = nsDependentCString(aAttrs[index]);
-        if (!mAttributes->InsertCStringAt(str, index++)) {
-            NS_ERROR("nsLDAPURL::SetAttributes: out of memory ");
-            return NS_ERROR_OUT_OF_MEMORY;
-        }
-    }
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    return NS_OK;
+  if (count)
+    NS_ENSURE_ARG_POINTER(aAttrs);
+
+  mAttributes.Clear();
+  for (PRUint32 i = 0; i < count; ++i)
+  {
+    if (!mAttributes.AppendCString(nsDependentCString(aAttrs[i])))
+    {
+      NS_ERROR("nsLDAPURL::SetAttributes: out of memory ");
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+  }
+
+  // Now get the current path
+  nsCString newPath;
+  GetPathInternal(newPath);
+
+  // and update the base url
+  return mBaseURL->SetPath(newPath);
 }
-// void addAttribute (in string aAttribute);
-//
+
 NS_IMETHODIMP nsLDAPURL::AddAttribute(const char *aAttribute)
 {
-    nsCString str;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    str = nsDependentCString(aAttribute);
-    if (mAttributes->IndexOfIgnoreCase(str) >= 0) {
-        return NS_OK;
-    }
+  NS_ENSURE_ARG_POINTER(aAttribute);
 
-    if (!mAttributes->InsertCStringAt(str, mAttributes->Count())) {
-        NS_ERROR("nsLDAPURL::AddAttribute: out of memory ");
-        return NS_ERROR_OUT_OF_MEMORY;
-    }
+  nsDependentCString str(aAttribute);
 
+  if (mAttributes.IndexOfIgnoreCase(str) >= 0)
     return NS_OK;
+
+  if (!mAttributes.AppendCString(str)) {
+    NS_ERROR("nsLDAPURL::AddAttribute: out of memory ");
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
+
+  // Now get the current path
+  nsCString newPath;
+  GetPathInternal(newPath);
+
+  // and update the base url
+  return mBaseURL->SetPath(newPath);
 }
-// void removeAttribute (in string aAttribute);
-//
+
 NS_IMETHODIMP nsLDAPURL::RemoveAttribute(const char *aAttribute)
 {
-    nsCString str;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    str = nsDependentCString(aAttribute);
-    mAttributes->RemoveCString(str);
+  NS_ENSURE_ARG_POINTER(aAttribute);
+  mAttributes.RemoveCString(nsDependentCString(aAttribute));
 
-    return NS_OK;
+  // Now get the current path
+  nsCString newPath;
+  GetPathInternal(newPath);
+
+  // and update the base url
+  return mBaseURL->SetPath(newPath);
 }
-// boolean hasAttribute (in string aAttribute);
-//
+
 NS_IMETHODIMP nsLDAPURL::HasAttribute(const char *aAttribute, PRBool *_retval)
 {
-    nsCString str;
+  NS_ENSURE_ARG_POINTER(aAttribute);
+  NS_ENSURE_ARG_POINTER(_retval);
 
-    if (!_retval) {
-        NS_ERROR("nsLDAPURL::HasAttribute: null pointer ");
-        return NS_ERROR_NULL_POINTER;
-    }
-
-    str = nsDependentCString(aAttribute);
-    *_retval = mAttributes->IndexOfIgnoreCase(str) >= 0;
-    
-    return NS_OK;
+  *_retval = mAttributes.IndexOfIgnoreCase(nsDependentCString(aAttribute)) >= 0;
+  return NS_OK;
 }
 
-// attribute long scope;
-//
 NS_IMETHODIMP nsLDAPURL::GetScope(PRInt32 *_retval)
 {
-    if (!_retval) {
-        NS_ERROR("nsLDAPURL::GetScope: null pointer ");
-        return NS_ERROR_NULL_POINTER;
-    }
-
-    *_retval = mScope;
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(_retval);
+  *_retval = mScope;
+  return NS_OK;
 }
+
 NS_IMETHODIMP nsLDAPURL::SetScope(PRInt32 aScope)
 {
-    // Only allow scopes supported by the C-SDK
-    if ((aScope != SCOPE_BASE) &&
-        (aScope != SCOPE_ONELEVEL) &&
-        (aScope != SCOPE_SUBTREE)) {
-        return NS_ERROR_MALFORMED_URI;
-    }
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    mScope = aScope;
+  // Only allow scopes supported by the C-SDK
+  if ((aScope != SCOPE_BASE) && (aScope != SCOPE_ONELEVEL) &&
+      (aScope != SCOPE_SUBTREE))
+    return NS_ERROR_MALFORMED_URI;
 
-    return NS_OK;
+  mScope = aScope;
+
+  // Now get the current path
+  nsCString newPath;
+  GetPathInternal(newPath);
+
+  // and update the base url
+  return mBaseURL->SetPath(newPath);
 }
 
-// attribute string filter;
-//
 NS_IMETHODIMP nsLDAPURL::GetFilter(nsACString& _retval)
 {
     _retval.Assign(mFilter);
@@ -582,24 +645,39 @@ NS_IMETHODIMP nsLDAPURL::GetFilter(nsACString& _retval)
 }
 NS_IMETHODIMP nsLDAPURL::SetFilter(const nsACString& aFilter)
 {
-    mFilter.Assign(aFilter);
-    return NS_OK;
+  if (!mBaseURL)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  mFilter.Assign(aFilter);
+
+  if (mFilter.IsEmpty())
+    mFilter.AssignLiteral("(objectclass=*)");
+
+  // Now get the current path
+  nsCString newPath;
+  GetPathInternal(newPath);
+
+  // and update the base url
+  return mBaseURL->SetPath(newPath);
 }
 
-// attribute unsigned long options;
-//
 NS_IMETHODIMP nsLDAPURL::GetOptions(PRUint32 *_retval)
 {
-    if (!_retval) {
-        NS_ERROR("nsLDAPURL::GetOptions: null pointer ");
-        return NS_ERROR_NULL_POINTER;
-    }
-
-    *_retval = mOptions;
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(_retval);
+  *_retval = mOptions;
+  return NS_OK;
 }
+
 NS_IMETHODIMP nsLDAPURL::SetOptions(PRUint32 aOptions)
 {
-    mOptions = aOptions;
+  // Secure is the only option supported at the moment
+  if (mOptions & OPT_SECURE == aOptions & OPT_SECURE)
     return NS_OK;
+
+  mOptions = aOptions;
+
+  if (aOptions & OPT_SECURE == OPT_SECURE)
+    return SetScheme(LDAP_SSL_SCHEME);
+
+  return SetScheme(LDAP_SCHEME);
 }

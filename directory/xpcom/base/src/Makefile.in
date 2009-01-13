@@ -56,6 +56,9 @@ REQUIRES	= xpcom \
 		  necko \
 		  $(NULL)
 
+EXTRA_PP_COMPONENTS = \
+		nsLDAPProtocolHandler.js \
+		$(NULL)
 
 CPPSRCS		= \
 		nsLDAPProtocolModule.cpp \
@@ -69,7 +72,6 @@ CPPSRCS		= \
 		nsLDAPControl.cpp \
 		nsLDAPBERElement.cpp \
 		nsLDAPModification.cpp \
-		nsLDAPProtocolHandler.cpp \
 		$(NULL)
 
 ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL

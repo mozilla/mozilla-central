@@ -119,7 +119,7 @@ nsAbLDAPAttributeMap.prototype = {
     return this.mAttrMap[aAttribute];
   },
 
-  getAllCardAttributes: function getAllCardAttributes() {
+  getAllCardAttributes: function getAllCardAttributes(aCount) {
     var attrs = [];
     for each (var prop in this.mPropertyMap) {
       attrs.push(prop);
@@ -129,7 +129,8 @@ nsAbLDAPAttributeMap.prototype = {
       throw Components.results.NS_ERROR_FAILURE;
     }
 
-    return attrs.join(",");
+    aCount.value = attrs.length;
+    return attrs;
   },
   
   getAllCardProperties: function getAllCardProperties(aCount) {

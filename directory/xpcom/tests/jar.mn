@@ -1,3 +1,5 @@
+#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
 comm.jar:
     content/communicator/ldapviewer/example.xul
     content/communicator/ldapviewer/example.rdf
+#endif

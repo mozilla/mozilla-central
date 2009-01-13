@@ -70,6 +70,7 @@ REQUIRES	= xpcom \
 		  windowwatcher \
 		  uriloader \
 		  embed_base \
+		  loginmgr \
 		  $(NULL)
 
 CPPSRCS		= \
