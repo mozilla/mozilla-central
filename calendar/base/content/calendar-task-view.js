@@ -37,10 +37,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+
 var taskDetailsView = {
 
     /**
      * Task Details Events
+     *
+     * XXXberend Please document this function, possibly also consolidate since
+     * its the only function in taskDetailsView.
      */
     onSelect: function tDV_onSelect(event) {
 
@@ -123,7 +127,7 @@ var taskDetailsView = {
                         statusDetails.value = calGetString(
                             "calendar",
                             "taskDetailsStatusCancelled");
-                        break; 
+                        break;
                     default:
                         displayElement("calendar-task-details-status-row", false);
                         break;
@@ -164,6 +168,13 @@ var taskDetailsView = {
     }
 };
 
+
+/**
+ * Updates the currently applied filter for the task view and refreshes the task
+ * tree.
+ *
+ * @param filter        The filter name to set.
+ */
 function taskViewUpdate(filter) {
     document.getElementById("filterBroadcaster").setAttribute("value", filter);
 
@@ -172,10 +183,17 @@ function taskViewUpdate(filter) {
     // set the filters
     tree.mFilter.propertyFilter  = filter;
     tree.mFilter.setDateFilter(filter);
-    
+
     tree.refresh();
 }
 
+/**
+ * Prepares a dialog to send an email to the organizer of the currently selected
+ * task in the task view.
+ *
+ * XXX We already have a function with this name in the event dialog. Either
+ * consolidate or make name more clear.
+ */
 function sendMailToOrganizer() {
     var item = document.getElementById("calendar-task-tree").currentTask;
     if (item != null) {
@@ -203,6 +221,13 @@ function sendMailToOrganizer() {
     }
 }
 
+/**
+ * Handler function to observe changing of the calendar display deck. Updates
+ * the task tree if the task view was selected.
+ *
+ * TODO Consolidate this function and anything connected, its still from times
+ * before we had view tabs.
+ */
 function taskViewObserveDisplayDeckChange(event) {
     var deck = event.target;
 
@@ -225,6 +250,7 @@ function taskViewObserveDisplayDeckChange(event) {
     }
 }
 
+// Install event listeners for the display deck change.
 document.addEventListener("load", function () {
   document.getElementById("calendarDisplayDeck").
     addEventListener("select", taskViewObserveDisplayDeckChange, true);

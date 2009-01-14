@@ -44,11 +44,18 @@
  */
 
 var taskEdit = {
+    /**
+     * Get the currently observed calendar.
+     */
     mObservedCalendar: null,
     get observedCalendar tE_get_observedCalendar() {
         return this.mObservedCalendar;
     },
 
+    /**
+     * Set the currently observed calendar, removing listeners to any old
+     * calendar set and adding listeners to the new one.
+     */
     set observedCalendar tE_set_observedCalendar(v) {
         if (this.mObservedCalendar) {
             this.mObservedCalendar.removeObserver(this.calendarObserver);
@@ -62,12 +69,25 @@ var taskEdit = {
         return this.mObservedCalendar;
     },
 
+    /**
+     * Helper function to set readonly and aria-disabled states and the value
+     * for a given target.
+     *
+     * @param aTarget   The ID or XUL node to set the value
+     * @param aDisable  A boolean if the target should be disabled.
+     * @param aValue    The value that should be set on the target.
+     */
     setupTaskField: function tE_setupTaskField(aTarget, aDisable, aValue) {
         aTarget.value = aValue;
         setElementValue(aTarget, aDisable && "true", "readonly");
         setElementValue(aTarget, aDisable && "true", "aria-disabled");
     },
 
+    /**
+     * Handler function to call when the quick-add textbox gains focus.
+     *
+     * @param aEvent    The DOM focus event
+     */
     onFocus: function tE_onFocus(aEvent) {
         var edit = aEvent.target;
         if (edit.localName == "input") {
@@ -93,6 +113,11 @@ var taskEdit = {
         }
     },
 
+    /**
+     * Handler function to call when the quick-add textbox loses focus.
+     *
+     * @param aEvent    The DOM blur event
+     */
     onBlur: function tE_onBlur(aEvent) {
         var edit = aEvent.target;
         if (edit.localName == "input") {
@@ -123,6 +148,11 @@ var taskEdit = {
         edit.showsInstructions = true;
     },
 
+    /**
+     * Handler function to call on keypress for the quick-add textbox.
+     *
+     * @param aEvent    The DOM keypress event
+     */
     onKeyPress: function tE_onKeyPress(aEvent) {
         if (aEvent.keyCode == Components.interfaces.nsIDOMKeyEvent.DOM_VK_RETURN) {
             var edit = aEvent.target;
@@ -137,8 +167,13 @@ var taskEdit = {
         }
     },
 
+    /**
+     * Window load function to set up all quick-add textboxes. The texbox must
+     * have the class "task-edit-field".
+     */
     onLoad: function tE_onLoad(aEvent) {
         window.removeEventListener("load", taskEdit.onLoad, false);
+        // TODO use getElementsByClassName
         var taskEditFields = document.getElementsByAttribute("class", "task-edit-field");
         for (var i = 0; i < taskEditFields.length; i++) {
             taskEdit.onBlur({ target: taskEditFields[i] });
@@ -148,11 +183,20 @@ var taskEdit = {
         taskEdit.observedCalendar = getSelectedCalendar();
     },
 
+    /**
+     * Window load function to clean up all quick-add fields.
+     */
     onUnload: function tE_onUnload() {
         getCompositeCalendar().removeObserver(taskEdit.compositeObserver);
         taskEdit.observedCalendar = null;
     },
 
+    /**
+     * Observer to watch for readonly, disabled and capability changes of the
+     * observed calendar.
+     *
+     * @see calIObserver
+     */
     calendarObserver: {
         QueryInterface: function tE_calObs_QueryInterface(aIID) {
             return doQueryInterface(this, null, aIID,
@@ -196,6 +240,13 @@ var taskEdit = {
         }
     },
 
+    /**
+     * Observer to watch for changes to the selected calendar.
+     *
+     * XXX I think we don't need to implement calIObserver here.
+     *
+     * @see calICompositeObserver
+     */
     compositeObserver: {
         QueryInterface: function tE_compObs_QueryInterface(aIID) {
             return doQueryInterface(this, null, aIID,

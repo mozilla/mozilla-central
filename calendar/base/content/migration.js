@@ -154,6 +154,9 @@ var gMigrateWizard = {
         getNextMigrator();
    },
 
+    /**
+     * Makes sure the wizard "back" button can not be pressed.
+     */
     setCanRewindFalse: function gmw_finish() {
         document.getElementById('migration-wizard').canRewind = false;
     }
@@ -162,6 +165,16 @@ var gMigrateWizard = {
 //
 // The more back-end data detection bits
 //
+
+
+/**
+ * A data migrator prototype, holding the information for migration
+ *
+ * @class
+ * @param aTitle    The title of the migrator
+ * @param aMigrateFunction    The function to call when migrating
+ * @param aArguments          The arguments to pass in.
+ */
 function dataMigrator(aTitle, aMigrateFunction, aArguments) {
     this.title = aTitle;
     this.migrate = aMigrateFunction;
@@ -176,7 +189,7 @@ var gDataMigrator = {
     mIoService: null,
 
     /**
-     * Properly caches the service so that it doesn't load on startup
+     * Cached getter for the directory service.
      */
     get dirService() {
         if (!this.mDirService) {
@@ -186,6 +199,10 @@ var gDataMigrator = {
         return this.mDirService;
     },
 
+    /**
+     * Cached getter for the IO Service
+     * XXX replace with cal.getIOService()
+     */
     get ioService() {
         if (!this.mIoService) {
             this.mIoService = Components.classes["@mozilla.org/network/io-service;1"]
@@ -198,6 +215,8 @@ var gDataMigrator = {
      * Gets the value for mIsLightning, and sets it if this.mIsLightning is
      * not initialized. This is used by objects outside gDataMigrator to
      * access the mIsLightning member.
+     *
+     * XXX replace with !cal.isSunbird()
      */
     isLightning: function is_ltn() {
         if (this.mIsLightning == null) {
@@ -574,6 +593,11 @@ var gDataMigrator = {
         return (evoDir.exists() ? [new dataMigrator("Evolution", evoMigrate, [evoDir])] : []);
     },
 
+    /**
+     * Creates and registers a storage calendar and imports the given ics file into it.
+     *
+     * @param icsFile     The nsI(Local)File to import.
+     */
     importICSToStorage: function migrateIcsStorage(icsFile) {
         var calManager = getCalendarManager();
         var uris = [];
@@ -643,6 +667,9 @@ var gDataMigrator = {
         return this.getNormalProfile("Firefox");
     },
 
+    /**
+     * @see getFirefoxProfile
+     */
     getThunderbirdProfile: function gdm_getTB() {
         var localFile;
         var profileRoot = this.dirService.get("DefProfRt", Components.interfaces.nsILocalFile);
@@ -667,10 +694,17 @@ var gDataMigrator = {
         return localFile.exists() ? localFile : null;
     },
 
+    /**
+     * @see getFirefoxProfile
+     */
     getSunbirdProfile: function gdm_getSB() {
         return this.getNormalProfile("Sunbird");
     },
 
+    /**
+     * Common function to retrieve the profile directory for a given app.
+     * @see getFirefoxProfile
+     */
     getNormalProfile: function gdm_getNorm(aAppName) {
         var localFile;
         var profileRoot = this.dirService.get("DefProfRt", Components.interfaces.nsILocalFile);
@@ -717,6 +751,14 @@ var gDataMigrator = {
     }
 };
 
+/**
+ * logs to system and error console, depending on the calendar.migration.log
+ * preference.
+ *
+ * XXX Consolidate with calUtils' LOG().
+ *
+ * @param aString   The string to log
+ */
 function LOG(aString) {
     if (!getPrefSafe("calendar.migration.log", false)) {
         return;

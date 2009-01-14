@@ -34,6 +34,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Command controller to execute calendar specific commands
+ * @see nsICommandController
+ */
 var calendarController = {
     defaultController: null,
 
@@ -205,7 +209,7 @@ var calendarController = {
                 if (aCommand in this.commands) {
                     // All other commands we support should be enabled by default
                     return true;
-                }            
+                }
         }
         return false;
     },
@@ -308,7 +312,7 @@ var calendarController = {
                     // continue.
                     this.defaultController.doCommand(aCommand);
                     return;
-                }                
+                }
                 switch (aCommand) {
                     // These commands are overridden in lightning and native in sunbird.
                     case "cmd_cut":
@@ -361,7 +365,7 @@ var calendarController = {
     onSelectionChanged: function cC_onSelectionChanged(aEvent) {
         var selectedItems = aEvent.detail;
         calendarController.item_selected = selectedItems && (selectedItems.length > 0);
-        
+
         var selLength = (selectedItems === undefined ? 0 : selectedItems.length);
         var selected_events_readonly = 0;
         var selected_events_requires_network = 0;
@@ -386,44 +390,68 @@ var calendarController = {
             document.commandDispatcher.updateCommands('mail-toolbar');
         }
     },
-    
+
     /**
      * Condition Helpers
      */
 
-    // This will be set up manually.
+    // These attributes will be set up manually.
     item_selected: false,
     selected_events_readonly: false,
     selected_events_requires_network: false,
 
+    /**
+     * Returns a boolean indicating if its possible to write items to any
+     * calendar.
+     */
     get writable() {
         return !this.all_readonly &&
                (!this.offline || (this.has_local_calendars &&
                !this.all_local_calendars_readonly));
     },
 
+    /**
+     * Returns a boolean indicating if the application is currently in offline
+     * mode.
+     */
     get offline() {
         return getIOService().offline;
     },
 
+    /**
+     * Returns a boolean indicating if all calendars are readonly.
+     */
     get all_readonly () {
         var calMgr = getCalendarManager();
         return (calMgr.readOnlyCalendarCount == calMgr.calendarCount);
     },
 
+    /**
+     * Returns a boolean indicating if all calendars are local
+     */
     get no_network_calendars() {
         return (getCalendarManager().networkCalendarCount == 0);
     },
 
+    /**
+     * Returns a boolean indicating if there are calendars that don't require
+     * network access.
+     */
     get has_local_calendars() {
         var calMgr = getCalendarManager();
         return (calMgr.networkCalendarCount < calMgr.calendarCount);
     },
 
+    /**
+     * Returns a boolean indicating that there is only one calendar left.
+     */
     get last_calendar() {
         return (getCalendarManager().calendarCount < 2);
     },
 
+    /**
+     * Returns a boolean indicating that all local calendars are readonly
+     */
     get all_local_calendars_readonly() {
         // We might want to speed this part up by keeping track of this in the
         // calendar manager.
@@ -437,6 +465,10 @@ var calendarController = {
         return (count == 0);
     },
 
+    /**
+     * Returns a boolean indicating if the items selected in the current view
+     * all have writable calendars.
+     */
     get selected_items_writable() {
         return this.writable &&
                this.item_selected &&
@@ -444,6 +476,10 @@ var calendarController = {
                (!this.offline || !this.selected_events_requires_network);
     },
 
+    /**
+     * Returns a boolean indicating that at least one of the calendars supports
+     * tasks.
+     */
     get calendars_support_tasks() {
         // XXX We might want to cache this
         var calendars = getCalendarManager().getCalendars({});
@@ -457,6 +493,11 @@ var calendarController = {
         return false;
     },
 
+
+    /**
+     * Returns a boolean indicating that at least one of the calendars supports
+     * events.
+     */
     get calendars_support_events() {
         // XXX We might want to cache this
         var calendars = getCalendarManager().getCalendars({});
@@ -470,11 +511,18 @@ var calendarController = {
         return false;
     },
 
+    /**
+     * Returns a boolean indicating that tasks are selected.
+     */
     get todo_items_selected cC_todo_items_selected() {
         var selectedTasks = getSelectedTasks();
         return (selectedTasks.length > 0);
     },
 
+    /**
+     * Returns a boolean indicating that at least one task in the selection is
+     * on a calendar that is writable.
+     */
     get todo_items_writable cC_todo_items_writable() {
         var selectedTasks = getSelectedTasks();
         for each (var task in selectedTasks) {
@@ -486,6 +534,11 @@ var calendarController = {
     }
 };
 
+/**
+ * Inserts the command controller into the document. On Lightning, also make
+ * sure that it is inserted before the conflicting thunderbird command
+ * controller.
+ */
 function injectCalendarCommandController() {
     if (!isSunbird()) {
         // We need to put our new command controller *before* the one that
@@ -508,19 +561,31 @@ function injectCalendarCommandController() {
     document.commandDispatcher.updateCommands("calendar_commands");
 }
 
+/**
+ * Remove the calendar command controller from the document.
+ */
 function removeCalendarCommandController() {
     top.controllers.removeController(calendarController);
 }
 
-function adaptModificationMenuItem(aMenuItemId, aItemType) {
-    var menuItem = document.getElementById(aMenuItemId);
-    if (menuItem) {
-        menuItem.setAttribute("label", calGetString("calendar", "delete" + aItemType + "Label"));
-        menuItem.setAttribute("accesskey", calGetString("calendar", "delete" + aItemType + "Accesskey"));
-    }
-}
-
+/**
+ * Handler function to set up the item context menu, depending on the given
+ * items. Changes the delete menuitem to fit the passed items.
+ *
+ * @param event         The DOM popupshowing event that is triggered by opening
+ *                        the context menu.
+ * @param items         An array of items (usually the selected items) to adapt
+ *                        the context menu for.
+ * @return              True, to show the popup menu.
+ */
 function setupContextItemType(event, items) {
+    function adaptModificationMenuItem(aMenuItemId, aItemType) {
+        let menuItem = document.getElementById(aMenuItemId);
+        if (menuItem) {
+            menuItem.setAttribute("label", calGetString("calendar", "delete" + aItemType + "Label"));
+            menuItem.setAttribute("accesskey", calGetString("calendar", "delete" + aItemType + "Accesskey"));
+        }
+    }
     if (items.some(isEvent) && items.some(isToDo)) {
         event.target.setAttribute("type", "mixed");
         adaptModificationMenuItem("calendar-item-context-menu-delete-menuitem", "Item");
@@ -537,6 +602,14 @@ function setupContextItemType(event, items) {
     return true;
 }
 
+/**
+ * Shows the given date in the current view, if in calendar mode.
+ *
+ * XXX This function is misplaced, should go to calendar-views.js or a minimonth
+ * specific js file.
+ *
+ * @param aNewDate      The new date as a JSDate.
+ */
 function minimonthPick(aNewDate) {
   if (isSunbird() || gCurrentMode == "calendar") {
       let cdt = jsDateToDateTime(aNewDate, currentView().timezone);
@@ -544,4 +617,3 @@ function minimonthPick(aNewDate) {
       currentView().goToDay(cdt);
   }
 }
-

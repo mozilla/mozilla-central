@@ -37,7 +37,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* all params are optional */
+/**
+ * Creates an event with the calendar event dialog.
+ *
+ * @param calendar      (optional) The calendar to create the event in
+ * @param startDate     (optional) The event's start date.
+ * @param endDate       (optional) The event's end date.
+ * @param summary       (optional) The event's title.
+ * @param event         (optional) A template event to show in the dialog
+ * @param aForceAllDay  (optioanl) Make sure the event shown in the dialog is an
+ *                                   allday event.
+ */
 function createEventWithDialog(calendar, startDate, endDate, summary, event, aForceAllday) {
     const kDefaultTimezone = calendarDefaultTimezone();
 
@@ -129,6 +139,14 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event, aFo
     openEventDialog(event, calendar, "new", onNewEvent, null);
 }
 
+/**
+ * Creates a task with the calendar event dialog.
+ *
+ * @param calendar      (optional) The calendar to create the task in
+ * @param dueDate       (optional) The task's due date.
+ * @param summary       (optional) The task's title.
+ * @param todo          (optional) A template task to show in the dialog.
+ */
 function createTodoWithDialog(calendar, dueDate, summary, todo) {
     const kDefaultTimezone = calendarDefaultTimezone();
 
@@ -172,6 +190,16 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
 }
 
 
+
+/**
+ * Modifies the passed event in the event dialog.
+ *
+ * @param aItem                 The item to modify.
+ * @param job                   (optional) The job object that controlls this
+ *                                           modification.
+ * @param aPromptOccurrence     If the user should be prompted to select if the
+ *                                parent item or occurrence should be modified.
+ */
 function modifyEventWithDialog(aItem, job, aPromptOccurrence) {
     var onModifyItem = function(item, calendar, originalItem, listener) {
         doTransaction('modify', item, calendar, originalItem, listener);
@@ -191,6 +219,15 @@ function modifyEventWithDialog(aItem, job, aPromptOccurrence) {
     }
 }
 
+/**
+ * Opens the event dialog with the given item (task OR event)
+ *
+ * @param calendarItem      The item to open the dialog with
+ * @param calendar          The calendar to open the dialog with.
+ * @param mode              The operation the dialog should do ("new", "modify")
+ * @param callback          The callback to call when the dialog has completed.
+ * @param job               (optional) The job object for the modification.
+ */
 function openEventDialog(calendarItem, calendar, mode, callback, job) {
     // Set up some defaults
     mode = mode || "new";
@@ -347,11 +384,29 @@ function promptOccurrenceModification(aItem, aNeedsFuture, aAction) {
 }
 
 // Undo/Redo code
+
+/**
+ * Helper to return the transaction manager service.
+ *
+ * @return      The calITransactionManager service.
+ */
 function getTransactionMgr() {
     return Components.classes["@mozilla.org/calendar/transactionmanager;1"]
                      .getService(Components.interfaces.calITransactionManager);
 }
 
+
+/**
+ * Create and commit a transaction with the given arguments to the transaction
+ * manager. Also updates the undo/redo menu.
+ *
+ * @see                 calITransactionManager
+ * @param aAction       The action to do.
+ * @param aItem         The new item to add/modify/delete
+ * @param aCalendar     The calendar to do the transaction on
+ * @param aOldItem      (optional) some actions require an old item
+ * @param aListener     (optional) the listener to call when complete.
+ */
 function doTransaction(aAction, aItem, aCalendar, aOldItem, aListener) {
     getTransactionMgr().createAndCommitTxn(aAction,
                                            aItem,
@@ -361,6 +416,9 @@ function doTransaction(aAction, aItem, aCalendar, aOldItem, aListener) {
     updateUndoRedoMenu();
 }
 
+/**
+ * Undo the last operation done through the transaction manager.
+ */
 function undo() {
     if (canUndo()) {
         getTransactionMgr().undo();
@@ -368,6 +426,9 @@ function undo() {
     }
 }
 
+/**
+ * Redo the last undone operation in the transaction manager.
+ */
 function redo() {
     if (canRedo()) {
         getTransactionMgr().redo();
@@ -375,23 +436,41 @@ function redo() {
     }
 }
 
+/**
+ * Start a batch transaction on the transaction manager. Can be called multiple
+ * times, which nests transactions.
+ */
 function startBatchTransaction() {
     getTransactionMgr().beginBatch();
 }
+
+/**
+ * End a previously started batch transaction. NOTE: be sure to call this in a
+ * try-catch-finally-block in case you have code that could fail between
+ * startBatchTransaction and this call.
+ */
 function endBatchTransaction() {
     getTransactionMgr().endBatch();
     updateUndoRedoMenu();
 }
 
+/**
+ * Checks if the last operation can be undone (or if there is a last operation
+ * at all).
+ */
 function canUndo() {
     return getTransactionMgr().canUndo();
 }
+
+/**
+ * Checks if the last undone operation can be redone.
+ */
 function canRedo() {
     return getTransactionMgr().canRedo();
 }
 
 /**
- * Update the undo and redo menu items
+ * Update the undo and redo commands.
  */
 function updateUndoRedoMenu() {
     goUpdateCommand("cmd_undo");

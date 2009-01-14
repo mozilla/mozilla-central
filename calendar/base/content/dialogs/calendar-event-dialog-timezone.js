@@ -35,6 +35,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Sets up the timezone dialog from the window arguments, also setting up all
+ * dialog controls from the window's dates.
+ */
 function onLoad() {
     var args = window.arguments[0];
     window.time = args.time;
@@ -89,6 +93,12 @@ function onLoad() {
     opener.setCursor("auto");
 }
 
+/**
+ * Find the index of the timezone menuitem corresponding to the given timezone.
+ *
+ * @param timezone      The calITimezone to look for.
+ * @return              The index of the childnode below "timezone-menulist"
+ */
 function findTimezone(timezone) {
     var tzid = timezone.tzid;
     var menulist = document.getElementById("timezone-menulist");
@@ -102,6 +112,10 @@ function findTimezone(timezone) {
     return -1;
 }
 
+/**
+ * Handler function to call when the timezone selection has changed. Updates the
+ * timezone-time field and the timezone-stack.
+ */
 function updateTimezone() {
     var menulist = document.getElementById("timezone-menulist");
     var menuitem = menulist.selectedItem;
@@ -142,6 +156,11 @@ function updateTimezone() {
     }
 }
 
+/**
+ * Handler function to be called when the accept button is pressed.
+ *
+ * @return      Returns true if the window should be closed
+ */
 function onAccept() {
     var menulist = document.getElementById("timezone-menulist");
     var menuitem = menulist.selectedItem;
@@ -152,5 +171,9 @@ function onAccept() {
     return true;
 }
 
+/**
+ * Handler function to be called when the cancel button is pressed.
+ *
+ */
 function onCancel() {
 }

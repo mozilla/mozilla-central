@@ -39,6 +39,11 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
+/**
+ * Gets the clipboard service.
+ * @see nsIClipboard
+ * @return          The clipboard service.
+ */
 function getClipboard() {
     return Components.classes["@mozilla.org/widget/clipboard;1"]
                      .getService(Components.interfaces.nsIClipboard);
@@ -48,6 +53,8 @@ function getClipboard() {
  * Test if a writable calendar is selected, and if the clipboard has items that
  * can be pasted into Calendar. The data must be of type "text/calendar" or
  * "text/unicode".
+ *
+ * @return          If true, pasting is currently possible.
  */
 function canPaste() {
     let selectedCal = getSelectedCalendar();
@@ -62,10 +69,10 @@ function canPaste() {
 }
 
 /**
- * Copy iCalendar data to the Clipboard, and delete the selected items. Does
- * not use calendarItemArray parameter, because selected items are deleted.
+ * Copy the ics data of the current view's selected events to the clipboard and
+ * deletes the events on success
  */
-function cutToClipboard(/* calendarItemArray */) {
+function cutToClipboard() {
     let calendarItemArray = currentView().getSelectedItems({});
 
     if (copyToClipboard(calendarItemArray)) {
@@ -74,8 +81,13 @@ function cutToClipboard(/* calendarItemArray */) {
 }
 
 /**
- * Copy iCalendar data to the Clipboard. The data is copied to both
- * text/calendar and text/unicode.
+ * Copy the ics data of the items in calendarItemArray to the clipboard. Fills
+ * both text/unicode and text/calendar mime types.
+ *
+ * @param calendarItemArray     (optional) an array of items to copy. If not
+ *                                passed, the current view's selected items will
+ *                                be used.
+ * @return                      A boolean indicating if the operation succeeded.
  */
 function copyToClipboard(calendarItemArray) {
     if (!calendarItemArray) {
@@ -125,8 +137,8 @@ function copyToClipboard(calendarItemArray) {
 }
 
 /**
- * Paste iCalendar data from the clipboard, or paste clipboard text into
- * description of new item.
+ * Reads ics data from the clipboard, parses it into items and inserts the items
+ * into the currently selected calendar.
  */
 function pasteFromClipboard() {
     if (!canPaste()) {
@@ -166,7 +178,7 @@ function pasteFromClipboard() {
             try {
                 icsParser.parseString(data, null);
             } catch(e) {}
-            
+
             let items = icsParser.getItems({});
             if (items.length == 0) {
                 return;

@@ -80,9 +80,14 @@ function commonFinishCalendar() {
     window.removeEventListener("resize", onCalendarViewResize, true);
 }
 
+/**
+ * Handler function to create |viewtype + "viewresized"| events that are
+ * dispatched through the calendarviewBroadcaster.
+ *
+ * XXX this has nothing to do with startup, needs to go somewhere else.
+ */
 function onCalendarViewResize(aEvent) {
     let event = document.createEvent('Events');
     event.initEvent(currentView().type + "viewresized", true, false);
     document.getElementById("calendarviewBroadcaster").dispatchEvent(event);
 }
-

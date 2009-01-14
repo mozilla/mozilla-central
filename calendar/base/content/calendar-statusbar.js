@@ -34,7 +34,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
+/**
+ * This code might change soon if we support Thunderbird's activity manager.
+ * NOTE: The naming "Meteors" is historical.
+ */
  var gCalendarStatusFeedback = {
      mCalendarValue: 0,
      mCalendarStep: 0,

@@ -42,6 +42,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Controller for the views
+ * @see calIcalendarViewController
+ */
 var calendarViewController = {
     QueryInterface: function(aIID) {
         if (!aIID.equals(Components.interfaces.calICalendarViewController) &&
@@ -52,6 +56,10 @@ var calendarViewController = {
         return this;
     },
 
+    /**
+     * Creates a new event
+     * @see calICalendarViewController
+     */
     createNewEvent: function (aCalendar, aStartTime, aEndTime, aForceAllday) {
         aCalendar = aCalendar || getSelectedCalendar();
 
@@ -73,10 +81,15 @@ var calendarViewController = {
 
     pendingJobs: [],
 
-    // in order to initiate a modification for the occurrence passed as argument
-    // we create an object that records the necessary details and store it in an
-    // internal array ('pendingJobs'). this way we're in a position to terminate
-    // any pending modification if need should be.
+    /**
+     * In order to initiate a modification for the occurrence passed as argument
+     * we create an object that records the necessary details and store it in an
+     * internal array ('pendingJobs'). this way we're in a position to terminate
+     * any pending modification if need should be.
+     *
+     * @param aOccurrence       The occurrence to create the pending
+     *                            modification for.
+     */
     createPendingModification: function (aOccurrence) {
         // finalize a (possibly) pending modification. this will notify
         // an open dialog to save any outstanding modifications.
@@ -106,10 +119,14 @@ var calendarViewController = {
         modifyEventWithDialog(aOccurrence, pendingModification, true);
     },
 
-    // iterate the list of pending modifications and see if the occurrence
-    // passed as argument is currently about to be modified (event dialog is
-    // open with the item in question). if this should be the case we call
-    // finalize() in order to bring the dialog down and avoid dataloss.
+    /**
+     * Iterate the list of pending modifications and see if the occurrence
+     * passed as argument is currently about to be modified (event dialog is
+     * open with the item in question). If this should be the case we call
+     * finalize() in order to bring the dialog down and avoid dataloss.
+     *
+     * @param aOccurrence       The occurrence to finalize the modification for.
+     */
     finalizePendingModification: function (aOccurrence) {
 
       for each (var job in this.pendingJobs) {
@@ -127,6 +144,10 @@ var calendarViewController = {
       return aOccurrence;
     },
 
+    /**
+     * Modifies the given occurrence
+     * @see calICalendarViewController
+     */
     modifyOccurrence: function (aOccurrence, aNewStartTime, aNewEndTime, aNewTitle) {
 
         aOccurrence = this.finalizePendingModification(aOccurrence);
@@ -171,6 +192,10 @@ var calendarViewController = {
         }
     },
 
+    /**
+     * Deletes the given occurrences
+     * @see calICalendarViewController
+     */
     deleteOccurrences: function (aCount,
                                  aOccurrences,
                                  aUseParentItems,
@@ -250,6 +275,9 @@ var calendarViewController = {
  * XXX Kind of confusing. This function calls the app specific function, which
  * again calls the common switchToView function. They should be consolidated in
  * a different bug.
+ *
+ * @param type      The type of view to show
+ * @param event     (optional) A DOM event that caused the view to show.
  */
 function showCalendarView(type, event) {
     if (isSunbird()) {
@@ -261,8 +289,11 @@ function showCalendarView(type, event) {
 }
 
 /**
- * This function acts like the above, but does not bring the view to the front
+ * This function acts like showCalendarView, but does not bring the view to the front
  * if the application is showing other elements (i.e Lightning).
+ *
+ * @see showCalendarView
+ * @param type          The type of view to select.
  */
 function selectCalendarView(type) {
     if (isSunbird()) {
@@ -275,6 +306,8 @@ function selectCalendarView(type) {
 /**
  * This function does the common steps to switch between views. Should be called
  * from app-specific view switching functions
+ *
+ * @param aViewType     The type of view to select.
  */
 function switchToView(aViewType) {
     var viewDeck = getViewDeck();
@@ -337,22 +370,27 @@ function switchToView(aViewType) {
 }
 
 /**
- * Returns the calendar view deck.
+ * Returns the calendar view deck XUL element.
+ *
+ * @return      The view-deck element.
  */
 function getViewDeck() {
     return document.getElementById("view-deck");
 }
 
 /**
- * Returns the currently visible calendar view.
+ * Returns the currently selected calendar view.
+ *
+ * @return      The selected calendar view
  */
 function currentView() {
     return getViewDeck().selectedPanel;
 }
 
 /**
- * Returns the selected day in the views in a app (Sunbird vs. Lightning)
- * neutral way
+ * Returns the selected day in the current view.
+ *
+ * @return      The selected day
  */
 function getSelectedDay() {
     return currentView().selectedDay;
@@ -360,8 +398,15 @@ function getSelectedDay() {
 
 var gMidnightTimer;
 
-/** Creates a timer that will fire after midnight.  Pass in a function as
+/**
+ * Creates a timer that will fire after midnight.  Pass in a function as
  * aRefreshCallback that should be called at that time.
+ *
+ * XXX This function is not very usable, since there is only one midnight timer.
+ * Better would be a function that uses the observer service to notify at
+ * midnight.
+ *
+ * @param aRefreshCallback      A callback to be called at midnight.
  */
 function scheduleMidnightUpdate(aRefreshCallback) {
     var jsNow = new Date();
@@ -413,15 +458,19 @@ function scheduleMidnightUpdate(aRefreshCallback) {
     gMidnightTimer.initWithCallback(udCallback, msUntilTomorrow, gMidnightTimer.TYPE_ONE_SHOT);
 }
 
-// Returns the actual style sheet object with the specified path.  Callers are
-// responsible for any caching they may want to do.
+/**
+ * Returns the actual style sheet object with the specified path.  Callers are
+ * responsible for any caching they may want to do.
+ *
+ * @param aStyleSheetPath       The chrome:// uri of the stylesheet to retrieve.
+ * @return                      The stylesheet object from document.styleSheets.
+ */
 function getStyleSheet(aStyleSheetPath) {
     for each (var sheet in document.styleSheets) {
         if (sheet.href == aStyleSheetPath) {
             return sheet;
         }
     }
-    // Avoid the js strict "function does not always return a value" warning.
     return null;
 }
 
@@ -429,9 +478,18 @@ function getStyleSheet(aStyleSheetPath) {
  * Updates the style rules for a particular object.  If the object is a
  * category (and hence doesn't have a uri), we set the category bar color.
  * If it's a calendar, we set the background color and contrasting text color.
- * @param aObject either a calendar (with a .uri), or the category color
- * pref key suffix [the non-unicode part after "calendar.category.color.",
- * equivalent to formatStringForCSSRule(categoryNameInUnicode)].
+ *
+ * XXX This function is quite specific, needs some generalization and caller
+ * specific code for calendars and categories.
+ *
+ * TODO This function still uses the .uri, we are moving to using ids.
+ *
+ * @param aObject       Either a calendar (with a .uri), or the category color
+ *                        pref key suffix [the non-unicode part after
+ *                        "calendar.category.color.", equivalent to
+ *                        formatStringForCSSRule(categoryNameInUnicode)].
+ * @param aSheet         The stylesheet to update.
+ *
  */
 function updateStyleSheetForObject(aObject, aSheet) {
     var selectorPrefix, name, ruleUpdaterFunc, classPrefix;
@@ -486,8 +544,11 @@ function updateStyleSheetForObject(aObject, aSheet) {
 }
 
 /**
- *  Sets the selected day in the minimonth to the currently selected day
- *  in the embedded view.
+ * Handler function to set the selected day in the minimonth to the currently
+ * selected day in the current view.
+ *
+ * @param event     The "dayselect" event emitted from the views.
+ *
  */
 function observeViewDaySelect(event) {
     var date = event.detail;
@@ -525,8 +586,11 @@ function observeViewDaySelect(event) {
     currentView().focus();
 }
 
-/** Provides a neutral way to get the minimonth, regardless of whether we're in
+/**
+ * Provides a neutral way to get the minimonth, regardless of whether we're in
  * Sunbird or Lightning.
+ *
+ * @return          The XUL minimonth element.
  */
 function getMinimonth() {
     return document.getElementById("calMinimonth");
@@ -550,6 +614,9 @@ function toggleOrientation() {
 
 /**
  * Toggle the workdays only checkbox and refresh the current view
+ *
+ * XXX We shouldn't need to refresh the view just to toggle the workdays. This
+ * should happen automatically.
  */
 function toggleWorkdaysOnly() {
     var cmd = document.getElementById("calendar_toggle_workdays_only_command");
@@ -600,7 +667,9 @@ function toggleShowCompletedInView() {
 }
 
 /**
- * Provides a neutral way to go to the current day
+ * Provides a neutral way to go to the current day in the views and minimonth.
+ *
+ * @param aDate     The date to go.
  */
 function goToDate(aDate) {
     getMinimonth().value = aDate.jsDate;
@@ -610,6 +679,8 @@ function goToDate(aDate) {
 /**
  * Returns the calendar view that was selected before restart, or the current
  * calendar view if it has already been set in this session
+ *
+ * @return          The last calendar view.
  */
 function getLastCalendarView() {
     var deck = getViewDeck();
@@ -623,8 +694,7 @@ function getLastCalendarView() {
 }
 
 /**
- *  Deletes items currently selected in the view
- *  and clears selection.
+ * Deletes items currently selected in the view and clears selection.
  */
 function deleteSelectedEvents() {
     var selectedItems = currentView().getSelectedItems({});
@@ -637,7 +707,7 @@ function deleteSelectedEvents() {
 }
 
 /**
- *  Edit the items currently selected in the view.
+ * Edit the items currently selected in the view with the event dialog.
  */
 function editSelectedEvents() {
     var selectedItems = currentView().getSelectedItems({});
@@ -647,7 +717,7 @@ function editSelectedEvents() {
 }
 
 /**
- * Select all events from all calendars
+ * Select all events from all calendars. Use with care.
  */
 function selectAllEvents() {
     var items = [];

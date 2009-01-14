@@ -36,14 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+
 /**
  * Helper function to get the alarm service and cache it.
  *
  * @return The alarm service component
  */
-
-Components.utils.import("resource://gre/modules/PluralForm.jsm");
-
 function getAlarmService() {
     if (!window.mAlarmService) {
         window.mAlarmService = Components.classes["@mozilla.org/calendar/alarm-service;1"]
@@ -216,7 +215,7 @@ function setupTitle() {
     var alarmRichlist = document.getElementById("alarm-richlist");
     var reminders = alarmRichlist.childNodes.length;
 
-    let title = PluralForm.get(reminders, calGetString("calendar", "alarmWindowTitle.label")); 
+    let title = PluralForm.get(reminders, calGetString("calendar", "alarmWindowTitle.label"));
     document.title = title.replace("#1", reminders);
 }
 

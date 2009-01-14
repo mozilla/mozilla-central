@@ -35,6 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 /**
  * Helper function for filling the form,
  * Set the value of a property of a XUL element
@@ -45,9 +48,6 @@
  *                        use "checked" for radios & checkboxes, "data" for
  *                        drop-downs
  */
-
-Components.utils.import("resource://calendar/modules/calUtils.jsm");
-
 function setElementValue(aElement, aNewValue, aPropertyName) {
     ASSERT(aElement);
     var undefined;
@@ -157,6 +157,9 @@ function disableElement(aElement) {
  * the given key (lockId). In case the control should be
  * enabled again the lock gets removed, but the control only
  * gets enabled if *all* possibly held locks have been removed.
+ *
+ * @param elementId     The element ID of the element to disable.
+ * @param lockId        The ID of the lock to set.
  */
 function disableElementWithLock(elementId,lockId) {
 
@@ -180,6 +183,10 @@ function disableElementWithLock(elementId,lockId) {
  * This function is intended to be used in tandem with the
  * above defined function 'disableElementWithLock()'.
  * See the respective comment for further details.
+ *
+ * @see disableElementWithLock
+ * @param elementId     The element ID of the element to enable.
+ * @param lockId        The ID of the lock to set.
  */
 function enableElementWithLock(elementId, lockId) {
 
@@ -203,8 +210,8 @@ function enableElementWithLock(elementId, lockId) {
     }
 }
 
-/** 
- * Unchecks the commands of the child elements of a DOM-tree-node e.g of a menu
+/**
+ * Unchecks the commands of the child elements of a DOM-tree-node i.e of a menu
  *
  * @param aEvent    The event from which the target is taken to retrieve the
  *                    child elements
@@ -238,6 +245,8 @@ function removeChildren(aElement) {
 /**
  * Sorts a sorted array of calendars by pref |calendar.list.sortOrder|.
  * Repairs that pref if dangling entries exist.
+ *
+ * @param calendars     An array of calendars to sort.
  */
 function sortCalendarArray(calendars) {
     let ret = calendars.concat([]);
@@ -310,6 +319,18 @@ function appendCalendarItems(aItem, aCalendarMenuParent, aCalendarToUse, aOnComm
     return indexToSelect;
 }
 
+/**
+* Fills up a menu - either a menupopup or a menulist - with menuitems that refer
+* to categories.
+*
+* @param aItem                 The event or task
+* @param aCategoryMenuList     The direct parent of the menuitems - either a
+*                                menupopup or a menulist
+* @param aCommand              A string that is applied to the "oncommand"
+*                                attribute of each menuitem
+* @return                      The index of the category that is selected.
+*                                By default 0 is returned.
+*/
 function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
     var categoriesList = getPrefCategoriesArray();
 
@@ -329,7 +350,7 @@ function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
         }
         cal.sortArrayByLocaleCollator(categoriesList);
     }
-    
+
     while (aCategoryMenuList.hasChildNodes()) {
        aCategoryMenuList.removeChild(aCategoryMenuList.lastChild);
     }
@@ -351,6 +372,15 @@ function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
     return indexToSelect;
 }
 
+/**
+ * Helper function to add a menuitem to a menulist or similar.
+ *
+ * @param aParent     The XUL node to add the menuitem to.
+ * @param aLabel      The label string of the menuitem.
+ * @param aValue      The value attribute of the menuitem.
+ * @param aCommand    The oncommand attribute of the menuitem.
+ * @return            The newly created menuitem
+ */
 function addMenuItem(aParent, aLabel, aValue, aCommand) {
     if (aParent.localName == "menupopup") {
         var item = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
@@ -369,17 +399,16 @@ function addMenuItem(aParent, aLabel, aValue, aCommand) {
     return item;
 }
 
-
 /**
- * sets a given attribute value on the children of a passed node
+ * Sets a given attribute value on the children of a passed node
  *
- * @param aParent           the parent node.
- * @param aAttribute        the name of the attribute to be set.
- * @param aValue            the value of the attribute.
- * @param aFilterAttribute  OPTIONAL The name of an attribute that the child nodes carry
+ * @param aParent           The parent node.
+ * @param aAttribute        The name of the attribute to be set.
+ * @param aValue            The value of the attribute.
+ * @param aFilterAttribute  (optional) The name of an attribute that the child nodes carry
  *                            and that is used to filter the childnodes.
- * @param aFilterValue      OPTIONAL The value of the filterattribute. If set only those
- *                            childnodes are modified that have an attribute 
+ * @param aFilterValue      (optional) The value of the filterattribute. If set only those
+ *                            childnodes are modified that have an attribute
  *                            'aFilterAttribute' with the given value
  *                            'aFilterValue' set.
  */
@@ -387,7 +416,7 @@ function setAttributeToChildren(aParent, aAttribute, aValue, aFilterAttribute, a
     for (var i = 0; i < aParent.childNodes.length; i++) {
         var element = aParent.childNodes[i];
         if (aFilterAttribute == null) {
-            setElementValue(element, aValue, aAttribute);            
+            setElementValue(element, aValue, aAttribute);
         } else if (element.hasAttribute(aFilterAttribute)) {
             var compValue = element.getAttribute(aFilterAttribute);
             if (compValue === aFilterValue) {
@@ -398,12 +427,12 @@ function setAttributeToChildren(aParent, aAttribute, aValue, aFilterAttribute, a
 }
 
 /**
- * checks a radio control or a radio-menuitem.
+ * Checks a radio control or a radio-menuitem.
  *
- * @param aParent  the parent node of the 'radio controls', either radios
+ * @param aParent  The parent node of the 'radio controls', either radios
  *                  or menuitems of the type 'radio'.
- * @param avalue   the value of the radio control bound to be checked.
- * @return         true or false depending on if the a 'radio control' with the
+ * @param avalue   The value of the radio control bound to be checked.
+ * @return         True or false depending on if the a 'radio control' with the
  *                  given value could be checked.
  */
 function checkRadioControl(aParent, aValue) {
@@ -428,6 +457,12 @@ function checkRadioControl(aParent, aValue) {
     return false;
 }
 
+/**
+ * Sets the category on the given item, from the menuitem element.
+ *
+ * @param aItem           The item to set the category on.
+ * @param aMenuElement    The menuitem to retrieve the category from.
+ */
 function setCategory(aItem, aMenuElement) {
     // Category
     var category = getElementValue(aMenuElement);
@@ -439,13 +474,24 @@ function setCategory(aItem, aMenuElement) {
     }
 }
 
+/**
+ * Enables or disables the given element depending on the checkbox state.
+ *
+ * @param checkboxId    The ID of the XUL checkbox element.
+ * @param elementId     The element to change the disabled state on.
+ */
 function processEnableCheckbox(checkboxId, elementId) {
     var checked = document.getElementById(checkboxId).checked;
     setElementValue(elementId, !checked && "true", "disabled");
 }
 
 /**
- *  Enable/disable button if there are children in a listbox
+ * Enable/disable button if there are children in a listbox
+ *
+ * XXX This function needs renaming, it can do more than just buttons.
+ *
+ * @param listboxId     The ID of the listbox to check.
+ * @param buttonId      The element to change the disabled state on.
  */
 function updateListboxDeleteButton(listboxId, buttonId) {
     var rowCount = document.getElementById(listboxId).getRowCount();
@@ -453,7 +499,12 @@ function updateListboxDeleteButton(listboxId, buttonId) {
 }
 
 /**
- *  Update plural singular menu items
+ * Update plural singular menu items
+ *
+ * XXX This function needs fixing with PluralForm.jsm
+ *
+ * @param lengthFildId    The ID of the element containing the number
+ * @param menuId          The menu to update labels in.
  */
 function updateMenuLabels(lengthFieldId, menuId ) {
     var field = document.getElementById(lengthFieldId);
@@ -496,7 +547,13 @@ function updateMenuLabels(lengthFieldId, menuId ) {
 }
 
 /**
- * Select value in menuList.  Throws string if no such value.
+ * Select value in menuList. Throws string if no such value.
+ *
+ * XXX Isn't it enough to just do menuList.value = value ?
+ *
+ * @param menuListId    The ID of the menulist to check.
+ * @param value         The value to set.
+ * @throws              String error if value not found.
  */
 function menuListSelectItem(menuListId, value) {
     var menuList = document.getElementById(menuListId);
@@ -510,6 +567,10 @@ function menuListSelectItem(menuListId, value) {
 
 /**
  * Find index of menuitem with the given value, or return -1 if not found.
+ *
+ * @param menuListId    The XUL menulist node to check.
+ * @param value         The value to look for.
+ * @return              The child index of the node that matches, or -1.
  */
 function menuListIndexOf(menuList, value) {
     var items = menuList.menupopup.childNodes;
@@ -526,6 +587,12 @@ function menuListIndexOf(menuList, value) {
     return -1; // not found
 }
 
+/**
+ * Creates the given element in the XUL namespace.
+ *
+ * @param el    The local name of the element to create.
+ * @return      The XUL element requested.
+ */
 function createXULElement(el) {
     return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
 }
@@ -533,7 +600,7 @@ function createXULElement(el) {
 /**
  * A helper function to calculate and add up certain css-values of a box.
  * It is required, that all css values can be converted to integers
- * see also 
+ * see also
  * http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSview-getComputedStyle
  * @param aXULElement   The xul element to be inspected.
  * @param aStyleProps   The css style properties for which values are to be retrieved
@@ -545,13 +612,13 @@ function getSummarizedStyleValues(aXULElement, aStyleProps) {
     var cssStyleDeclares = document.defaultView.getComputedStyle(aXULElement, null);
     for each (var prop in aStyleProps) {
         retValue += parseInt(cssStyleDeclares.getPropertyValue(prop), 10);
-    }    
+    }
     return retValue;
 }
 
 /**
  * Calculates the optimal minimum width based on the set css style-rules
- * by considering the css rules for the min-width, padding, border, margin 
+ * by considering the css rules for the min-width, padding, border, margin
  * and border of the box.
  *
  * @param aXULElement   The xul element to be inspected.
@@ -566,7 +633,7 @@ function getOptimalMinimumWidth(aXULElement) {
 
 /**
  * Calculates the optimal minimum height based on the set css style-rules
- * by considering the css rules for the font-size, padding, border, margin 
+ * by considering the css rules for the font-size, padding, border, margin
  * and border of the box. In its current state the line-height is considered
  * by assuming that it's size is about one third of the size of the font-size
  *
@@ -574,7 +641,7 @@ function getOptimalMinimumWidth(aXULElement) {
  * @return              An integer value denoting the optimal minimum height
  */
 function getOptimalMinimumHeight(aXULElement) {
-    // the following line of code presumes that the line-height is set to "normal" 
+    // the following line of code presumes that the line-height is set to "normal"
     // which is supposed to be a "reasonable distance" between the lines
     var firstEntity = parseInt(1.35 * getSummarizedStyleValues(aXULElement, ["font-size"]), 10);
     var secondEntity = getSummarizedStyleValues(aXULElement,
@@ -634,6 +701,13 @@ function validateNaturalNums(event) {
     }
 }
 
+/**
+ * Gets the "other" orientation value, i.e if "horizontal" is passed, "vertical"
+ * is returned and vice versa.
+ *
+ * @param aOrientation    The orientation value to turn around.
+ * @return                The opposite orientation value.
+ */
 function getOtherOrientation(aOrientation) {
      return (aOrientation == "horizontal" ? "vertical" : "horizontal");
 }

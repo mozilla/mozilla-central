@@ -35,6 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Cancels any pending search operations.
+ */
 var gCurrentSearchOperation = null;
 function cancelPendingSearchOperation() {
     if (gCurrentSearchOperation && gCurrentSearchOperation.isPending) {
@@ -43,14 +46,24 @@ function cancelPendingSearchOperation() {
     gCurrentSearchOperation = null;
 }
 
+/**
+ * Sets up the subscriptions dialog.
+ */
 function onLoad() {
     opener.setCursor("auto");
 }
 
+/**
+ * Cleans up the subscriptions dialog.
+ */
 function onUnload() {
     cancelPendingSearchOperation();
 }
 
+/**
+ * Handler function to handle dialog keypress events.
+ * (Cancels the search when pressing escape)
+ */
 function onKeyPress(event) {
     switch(event.keyCode) {
         case 27: /* ESC */
@@ -64,6 +77,10 @@ function onKeyPress(event) {
     }
 }
 
+/**
+ * Handler function to handle keypress events in the textbox.
+ * (Starts the search when hitting enter)
+ */
 function onTextBoxKeyPress(event) {
     switch(event.keyCode) {
         case 13: /* RET */
@@ -74,6 +91,11 @@ function onTextBoxKeyPress(event) {
     }
 }
 
+/**
+ * Handler function to be called when the accept button is pressed.
+ *
+ * @return      Returns true if the window should be closed
+ */
 function onAccept() {
     var richListBox = document.getElementById("subscriptions-listbox");
     var rowCount = richListBox.getRowCount();
@@ -92,9 +114,15 @@ function onAccept() {
     return true;
 }
 
+/**
+ * Handler function to be called when the cancel button is pressed.
+ */
 function onCancel() {
 }
 
+/**
+ * Performs the search for subscriptions, canceling any pending searches.
+ */
 function onSearch() {
     cancelPendingSearchOperation();
 
@@ -133,6 +161,10 @@ function onSearch() {
     }
 }
 
+/**
+ * Markes the selected item in the subscriptions-listbox for subscribing. The
+ * actual subscribe happens when the window is closed.
+ */
 function onSubscribe() {
     var item = document.getElementById("subscriptions-listbox").selectedItem;
     if (item && !item.disabled) {
@@ -140,6 +172,10 @@ function onSubscribe() {
     }
 }
 
+/**
+ * Unmarkes the selected item in the subscriptions-listbox for subscribing. The
+ * actual subscribe happens when the window is closed.
+ */
 function onUnsubscribe() {
     var item = document.getElementById("subscriptions-listbox").selectedItem;
     if (item && !item.disabled) {

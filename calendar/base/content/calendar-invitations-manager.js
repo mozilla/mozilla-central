@@ -39,15 +39,27 @@
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
 
+/**
+ * This object contains functions to take care of manipulating requests.
+ */
 var gInvitationsRequestManager = {
     mRequestStatusList: {},
 
+    /**
+     * Add a request to the request manager.
+     *
+     * @param calendar    The calendar to add for.
+     * @param op          The operation to add
+     */
     addRequestStatus: function IRM_addRequestStatus(calendar, op) {
         if (op) {
             this.mRequestStatusList[calendar.id] = op;
         }
     },
 
+    /**
+     * Cancel all pending requests
+     */
     cancelPendingRequests: function IRM_cancelPendingRequests() {
         for each (var request in this.mRequestStatusList) {
             if (request && request.isPending) {
@@ -60,6 +72,11 @@ var gInvitationsRequestManager = {
 
 var gInvitationsManager = null;
 
+/**
+ * Return a cached instance of the invitations manager
+ *
+ * @return      The invitations manager instance.
+ */
 function getInvitationsManager() {
     if (!gInvitationsManager) {
         gInvitationsManager = new InvitationsManager();
@@ -67,6 +84,13 @@ function getInvitationsManager() {
     return gInvitationsManager;
 }
 
+/**
+ * The invitations manager class constructor
+ *
+ * XXX do we really need this to be an instance?
+ *
+ * @constructor
+ */
 function InvitationsManager() {
     this.mItemList = new Array();
     this.mStartDate = null;
@@ -86,6 +110,12 @@ InvitationsManager.prototype = {
     mJobsPending: 0,
     mTimer: null,
 
+    /**
+     * Schedule an update for the invitations manager asynchronously.
+     *
+     * @param firstDelay          The timeout before the operation should start.
+     * @param operationListener   The calIGenericOperationListener to notify.
+     */
     scheduleInvitationsUpdate: function IM_scheduleInvitationsUpdate(firstDelay,
                                                                      operationListener) {
         this.cancelInvitationsUpdate();
@@ -101,10 +131,21 @@ InvitationsManager.prototype = {
         }, firstDelay);
     },
 
+    /**
+     * Cancel pending any pending invitations update.
+     */
     cancelInvitationsUpdate: function IM_cancelInvitationsUpdate() {
         clearTimeout(this.mTimer);
     },
 
+    /**
+     * Retrieve invitations from all calendars. Notify all passed
+     * operation listeners.
+     *
+     * @param operationListener1    The first operation listener to notify.
+     * @param operationListener2    (optinal) The second operation listener to
+     *                                notify.
+     */
     getInvitations: function IM_getInvitations(operationListener1,
                                                operationListener2) {
         var listeners = [];
@@ -215,6 +256,18 @@ InvitationsManager.prototype = {
         }
     },
 
+    /**
+     * Open the invitations dialog, non-modal.
+     *
+     * XXX Passing these listeners in instead of keeping them in the window
+     * sounds fishy to me. Maybe there is a more encapsulated solution.
+     *
+     * @param onLoadOpListener          The operation listener to notify when
+     *                                    getting invitations. Should be passed
+     *                                    to this.getInvitations().
+     * @param finishedCallBack          A callback function to call when the
+     *                                    dialog has completed.
+     */
     openInvitationsDialog: function IM_openInvitationsDialog(onLoadOpListener,
                                                              finishedCallBack) {
         var args = new Object();
@@ -233,6 +286,15 @@ InvitationsManager.prototype = {
             args);
     },
 
+    /**
+     * Process the passed job queue. A job is an object that consists of an
+     * action, a newItem and and oldItem. This processor only takes "modify"
+     * operations into account.
+     *
+     * @param queue                         The array of objects to process.
+     * @param jobQueueFinishedCallBack      A callback function called when
+     *                                        job has finished.
+     */
     processJobQueue: function IM_processJobQueue(queue,
                                                  jobQueueFinishedCallBack) {
         // TODO: undo/redo
@@ -291,6 +353,13 @@ InvitationsManager.prototype = {
         }
     },
 
+    /**
+     * Checks if the internal item list contains the given item
+     * XXXdbo       Please document these correctly.
+     *
+     * @param item      The item to look for.
+     * @return          A boolean value indicating if the item was found.
+     */
     hasItem: function IM_hasItem(item) {
         var hid = item.hashId;
         return this.mItemList.some(
@@ -299,6 +368,12 @@ InvitationsManager.prototype = {
             });
     },
 
+    /**
+     * Adds an item to the internal item list.
+     * XXXdbo       Please document these correctly.
+     *
+     * @param item      The item to add.
+     */
     addItem: function IM_addItem(item) {
         var recInfo = item.recurrenceInfo;
         if (recInfo && !cal.isOpenInvitation(item)) {
@@ -315,6 +390,12 @@ InvitationsManager.prototype = {
         }
     },
 
+    /**
+     * Removes an item from the internal item list
+     * XXXdbo       Please document these correctly.
+     *
+     * @param item      The item to remove.
+     */
     deleteItem: function IM_deleteItem(item) {
         var id = item.id;
         this.mItemList.filter(
@@ -323,10 +404,20 @@ InvitationsManager.prototype = {
             });
     },
 
+    /**
+     * Remove all items from the internal item list
+     * XXXdbo       Please document these correctly.
+     */
     deleteAllItems: function IM_deleteAllItems() {
         this.mItemList = [];
     },
 
+    /**
+     * Helper function to create a start date to search from. This date is the
+     * current time with hour/minute/second set to zero.
+     *
+     * @return      Potential start date.
+     */
     getStartDate: function IM_getStartDate() {
         var date = now();
         date.second = 0;
@@ -335,6 +426,11 @@ InvitationsManager.prototype = {
         return date;
     },
 
+    /**
+     * Updates the start date for the invitations manager to the date returned
+     * from this.getStartDate(), unless the previously existing start date is
+     * the same or after what getStartDate() returned.
+     */
     updateStartDate: function IM_updateStartDate() {
         if (!this.mStartDate) {
             this.mStartDate = this.getStartDate();
@@ -346,6 +442,14 @@ InvitationsManager.prototype = {
         }
     },
 
+    /**
+     * Checks if the item is valid for the invitation manager. Checks if the
+     * item is in the range of the invitation manager and if the item is a valid
+     * invitation.
+     *
+     * @param item      The item to check
+     * @return          A boolean indicating if the item is a valid invitation.
+     */
     validateItem: function IM_validateItem(item) {
         if (item.calendar instanceof Components.interfaces.calISchedulingSupport &&
             !item.calendar.isInvitation(item)) {
