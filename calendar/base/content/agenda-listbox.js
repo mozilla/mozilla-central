@@ -393,7 +393,7 @@ function addItem(aItem) {
 };
 
 /**
- * Checks if the given item happens before the comparation item.
+ * Checks if the given item happens before the comparison item.
  *
  * @param aItem         The item to compare.
  * @param aCompItem     The item to compare with.

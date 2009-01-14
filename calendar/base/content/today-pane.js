@@ -292,7 +292,7 @@ var TodayPane = {
   },
 
   /**
-   * Hanlder function for the DOMAttrModified event used to observe the
+   * Handler function for the DOMAttrModified event used to observe the
    * todaypane-splitter.
    *
    * @param aEvent      The DOM event occurring on attribute modification.

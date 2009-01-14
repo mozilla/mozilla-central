@@ -45,7 +45,7 @@
  * @param endDate       (optional) The event's end date.
  * @param summary       (optional) The event's title.
  * @param event         (optional) A template event to show in the dialog
- * @param aForceAllDay  (optioanl) Make sure the event shown in the dialog is an
+ * @param aForceAllDay  (optional) Make sure the event shown in the dialog is an
  *                                   allday event.
  */
 function createEventWithDialog(calendar, startDate, endDate, summary, event, aForceAllday) {
@@ -195,7 +195,7 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
  * Modifies the passed event in the event dialog.
  *
  * @param aItem                 The item to modify.
- * @param job                   (optional) The job object that controlls this
+ * @param job                   (optional) The job object that controls this
  *                                           modification.
  * @param aPromptOccurrence     If the user should be prompted to select if the
  *                                parent item or occurrence should be modified.

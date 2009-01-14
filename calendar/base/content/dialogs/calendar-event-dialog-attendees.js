@@ -554,7 +554,7 @@ function updateAllDay() {
 /**
  * Changes the global variables to adapt for the change of the allday checkbox.
  *
- * XXX Function names are all very similar here. This needs some consistancy!
+ * XXX Function names are all very similar here. This needs some consistency!
  */
 function changeAllDay() {
     var allDayElement = document.getElementById("all-day");

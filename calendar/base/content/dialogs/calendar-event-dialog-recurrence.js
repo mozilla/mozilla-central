@@ -43,7 +43,7 @@ var gEndTime = null;
 
 /**
  * Sets up the recurrence dialog from the window arguments. Takes care of filling
- * the dialog controls with the recurrece information for this window.
+ * the dialog controls with the recurrence information for this window.
  */
 function onLoad() {
     changeWidgetsOrder();

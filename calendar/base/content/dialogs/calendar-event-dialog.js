@@ -939,7 +939,7 @@ function updateTitle() {
  * Updates the stylesheet to add rules to hide certain aspects (i.e task only
  * elements when editing an event).
  *
- * TODO We can use general rules here, i.e 
+ * TODO We can use general rules here, i.e
  *      dialog[itemType="task"] .event-only,
  *      dialog[itemType="event"] .task-only,
  *      dialog:not([product="lightning"]) .lightning-only {
@@ -969,7 +969,7 @@ function updateStyle() {
  *
  * XXX This function could go away with more general CSS rules?
  *
- * @param menuPopup   The menupopup node targetted by the event.
+ * @param menuPopup   The menupopup node targeted by the event.
  */
 function onPopupShowing(menuPopup) {
     if (isToDo(window.calendarItem)) {
