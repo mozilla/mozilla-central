@@ -57,7 +57,7 @@
   <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
 
   <vbox id="calendar-view-box">
-    <vbox id="bottom-events-box" insertbefore="nav-control" persist="height">
+    <vbox id="bottom-events-box" insertbefore="calendar-nav-control" persist="height">
       <hbox id="unifinder-searchBox" persist="collapsed">
         <box align="center">
           <menulist id="event-filter-menulist" value="next7days" persist="value">
@@ -160,7 +160,7 @@
       </tree>
     </vbox>
     <splitter id="calendar-view-splitter"
-              insertbefore="nav-control"
+              insertbefore="calendar-nav-control"
               resizebefore="closest"
               resizeafter="farthest"
               persist="state"

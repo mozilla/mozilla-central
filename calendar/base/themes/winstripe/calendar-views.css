@@ -627,7 +627,7 @@ calendar-month-day-box-item[invitation-status="DECLINED"] {
 }
 
 /* Navigation controls for the views */
-calendar-navigation-buttons {
+#calendar-nav-control {
     background-color: white;
 }
 

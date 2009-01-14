@@ -64,6 +64,10 @@ calendar-day-label {
   -moz-binding: url(chrome://calendar/content/calendar-base-view.xml#calendar-day-label);
 }
 
+nav-day-label {
+  -moz-binding: url(chrome://calendar/content/calendar-base-view.xml#nav-day-label);
+}
+
 calendar-base-view {
   -moz-binding: url(chrome://calendar/content/calendar-base-view.xml#calendar-base-view);
 }

@@ -35,18 +35,76 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay [
-]>
+<?xml-stylesheet href="chrome://calendar/skin/calendar-views.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/widgets/calendar-widgets.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/content/widgets/calendar-widget-bindings.css" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://calendar/locale/calendar.dtd" >
+
 
 <overlay id="calendar-views-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <stringbundleset id="calendar_stringbundles">
-    <stringbundle id="bundle_branding" src="chrome://branding/locale/brand.properties"/>
-  </stringbundleset>
 
     <vbox id="calendar-view-box" context="calendar-view-context-menu">
-      <calendar-navigation-buttons id="nav-control"/>
-      <deck flex="1"
+        <hbox id="calendar-nav-control">
+            <vbox flex="1">
+               <hbox flex="1" class="navigation-inner-box" align="end">
+                  <toolbarbutton id="previous-view-button"
+                                 class="view-navigation-button"
+                                 type="prev"
+                                 command="calendar_view_prev_command"/>
+                  <toolbarbutton id="today-view-button"
+                                 class="today-navigation-button"
+                                 label="&calendar.today.button.label;"
+                                 command="calendar_view_today_command"/>
+                  <toolbarbutton id="next-view-button"
+                                 class="view-navigation-button"
+                                 type="next"
+                                 command="calendar_view_next_command"/>
+                  <label id="intervalDescription"
+                                 class="view-header"
+                                 crop="end"
+                                 pack="start"/>
+                  <spacer flex="1"/>
+                  <label id="calendarWeek"
+                         class="view-header"
+                         type="end"
+                         crop="start"/>
+             </hbox>
+             <hbox flex="1" class="navigation-bottombox"/>
+         </vbox>
+         <vbox pack="end">
+             <tabs id="view-tabs"
+                   class="calview-tabs"
+                   setfocus="true">
+               <tab id="calendar-day-view-button"
+                    label="&calendar.day.button.label;"
+                    tooltiptext="&calendar.day.button.tooltip;"
+                    calview="day"
+                    observes="calendar_day-view_command"/>
+               <tab id="calendar-week-view-button"
+                    label="&calendar.week.button.label;"
+                    tooltiptext="&calendar.week.button.tooltip;"
+                    calview="week"
+                    observes="calendar_week-view_command"/>
+               <tab id="calendar-multiweek-view-button"
+                    label="&calendar.multiweek.button.label;"
+                    tooltiptext="&calendar.multiweek.button.tooltip;"
+                    calview="multiweek"
+                    observes="calendar_multiweek-view_command"/>
+               <tab id="calendar-month-view-button"
+                    label="&calendar.month.button.label;"
+                    tooltiptext="&calendar.month.button.tooltip;"
+                    calview="month"
+                    observes="calendar_month-view_command"/>
+             </tabs>
+           <box class="navigation-bottombox" type="end"/>
+         </vbox>
+         <vbox>
+           <scrollbar style="visibility:hidden;max-height:1px;height:1px" orient="vertical"/>
+         </vbox>
+       </hbox>
+       <deck flex="1"
             id="view-deck"
             persist="selectedIndex"
             ondraggesture="nsDragAndDrop.startDrag(event, calendarViewDNDObserver);"

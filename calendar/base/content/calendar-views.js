@@ -26,6 +26,7 @@
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -288,7 +289,7 @@ function switchToView(aViewType) {
         var command = document.getElementById(commandId);
         if (view.id == aViewType + "-view") {
             command.setAttribute("checked", "true");
-            document.getElementById("nav-control").setAttribute("selectedIndex", i);
+            document.getElementById("calendar-nav-control").setAttribute("selectedIndex", i);
         } else {
             command.removeAttribute("checked");
         }
@@ -484,7 +485,7 @@ function updateStyleSheetForObject(aObject, aSheet) {
     ruleUpdaterFunc(rule, ruleIndex);
 }
 
-/** 
+/**
  *  Sets the selected day in the minimonth to the currently selected day
  *  in the embedded view.
  */
@@ -622,7 +623,7 @@ function getLastCalendarView() {
 }
 
 /**
- *  Deletes items currently selected in the view 
+ *  Deletes items currently selected in the view
  *  and clears selection.
  */
 function deleteSelectedEvents() {
@@ -651,12 +652,12 @@ function editSelectedEvents() {
 function selectAllEvents() {
     var items = [];
     var listener = {
-        onOperationComplete: function selectAll_ooc(aCalendar, aStatus, 
-                                                    aOperationType, aId, 
+        onOperationComplete: function selectAll_ooc(aCalendar, aStatus,
+                                                    aOperationType, aId,
                                                     aDetail) {
             currentView().setSelectedItems(items.length, items, false);
         },
-        onGetResult: function selectAll_ogr(aCalendar, aStatus, aItemType, 
+        onGetResult: function selectAll_ogr(aCalendar, aStatus, aItemType,
                                             aDetail, aCount, aItems) {
             for each (var item in aItems) {
                 items.push(item);
@@ -668,7 +669,7 @@ function selectAllEvents() {
     var filter = composite.ITEM_FILTER_CLASS_OCCURRENCES;
 
     if (currentView().tasksInView) {
-        filter |= composite.ITEM_FILTER_TYPE_ALL; 
+        filter |= composite.ITEM_FILTER_TYPE_ALL;
     } else {
         filter |= composite.ITEM_FILTER_TYPE_EVENT;
     }
@@ -684,3 +685,54 @@ function selectAllEvents() {
 
     composite.getItems(filter, 0, currentView().startDay, end, listener);
 }
+
+let cal = cal || {};
+cal.navigationBar = {
+    onLoad: function loadNavigationBar() {
+      let viewTabs = document.getElementById("view-tabs");
+      for (let i = 0; i < viewTabs.childNodes.length; i++) {
+          let node = viewTabs.childNodes[i];
+          if (node.localName == "tab") {
+              node.setAttribute("style", "min-width: " + node.label.length + "em;");
+          }
+      }
+    },
+
+    setDateRange: function setDateRange(aStartDate, aEndDate, aToolTipTexts) {
+        let docTitle = "";
+        if (aStartDate) {
+            let intervalLabel = document.getElementById("intervalDescription");
+            let firstWeekNo = getWeekInfoService().getWeekTitle(aStartDate);
+            let secondWeekNo = firstWeekNo;
+            let weekLabel = document.getElementById("calendarWeek");
+            if (aStartDate.nativeTime == aEndDate.nativeTime) {
+                intervalLabel.value = getDateFormatter().formatDate(aStartDate);
+            } else {
+                intervalLabel.value = currentView().getRangeDescription();
+                secondWeekNo = getWeekInfoService().getWeekTitle(aEndDate);
+            }
+            if (secondWeekNo == firstWeekNo) {
+                weekLabel.value = calGetString("calendar", "singleShortCalendarWeek", [firstWeekNo]);
+                weekLabel.tooltipText = calGetString("calendar", "singleLongCalendarWeek", [firstWeekNo]);
+            } else {
+                weekLabel.value = calGetString("calendar", "severalShortCalendarWeeks", [firstWeekNo, secondWeekNo]);
+                weekLabel.tooltipText = calGetString("calendar", "severalLongCalendarWeeks", [firstWeekNo, secondWeekNo]);
+            }
+            document.getElementById("previous-view-button").setAttribute("tooltiptext", aToolTipTexts[0]);
+            document.getElementById("today-view-button").setAttribute("tooltiptext", aToolTipTexts[1]);
+            document.getElementById("next-view-button").setAttribute("tooltiptext", aToolTipTexts[2]);
+            docTitle = intervalLabel.value;
+        }
+        if (document.getElementById("modeBroadcaster").getAttribute("mode") == "calendar") {
+            document.title = (docTitle ? docTitle + " - " : "") +
+                calGetString("brand", "brandShortName", null, "branding");
+        }
+        let viewTabs = document.getElementById("view-tabs");
+        viewTabs.selectedIndex = getViewDeck().selectedIndex;
+    }
+};
+function loadNavigationBar() {
+    cal.navigationBar.onLoad();
+}
+
+window.addEventListener("load", loadNavigationBar, false);
