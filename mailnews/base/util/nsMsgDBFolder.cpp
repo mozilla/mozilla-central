@@ -4828,14 +4828,16 @@ NS_IMETHODIMP nsMsgDBFolder::GetSortOrder(PRInt32 *order)
     *order = 3;
   else if (flags & nsMsgFolderFlags::SentMail)
     *order = 4;
-  else if (flags & nsMsgFolderFlags::Junk)
+  else if (flags & nsMsgFolderFlags::Archive)
     *order = 5;
-  else if (flags & nsMsgFolderFlags::Trash)
+  else if (flags & nsMsgFolderFlags::Junk)
     *order = 6;
-  else if (flags & nsMsgFolderFlags::Virtual)
+  else if (flags & nsMsgFolderFlags::Trash)
     *order = 7;
-  else
+  else if (flags & nsMsgFolderFlags::Virtual)
     *order = 8;
+  else
+    *order = 9;
 
   return NS_OK;
 }
