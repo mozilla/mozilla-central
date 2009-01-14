@@ -214,7 +214,7 @@
         <menuseparator/>
 
         <menuitem label="Bugs Filed Today"
-                  oncommand="openTopWin('https://bugzilla.mozilla.org/buglist.cgi?product=Core&amp;product=SeaMonkey&amp;chfieldfrom=0d&amp;chfieldto=Now&amp;chfield=%5BBug+creation%5D');"/>
+                  oncommand="openTopWin('https://bugzilla.mozilla.org/buglist.cgi?product=Core&amp;product=MailNews+Core&amp;product=SeaMonkey&amp;chfieldfrom=0d&amp;chfieldto=Now&amp;chfield=%5BBug+creation%5D');"/>
         <menuitem label="Recent comm-central Checkins"
                   oncommand="openTopWin('http://hg.mozilla.org/comm-central/index.cgi/pushloghtml?startdate=24+hours+ago&amp;enddate=now');"/>
         <menuitem label="Recent mozilla-central Checkins"
