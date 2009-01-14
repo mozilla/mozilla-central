@@ -297,6 +297,7 @@ bin\components\auth.dll
 ; LDAP components need to be in the browser for AutoConfig
 bin\components\mozldap.dll
 bin\components\mozldap.xpt
+bin\components\nsLDAPProtocolHandler.js
 bin\nsldap32v60.dll
 bin\nsldappr32v60.dll
 bin\nsldif32v60.dll

@@ -143,6 +143,7 @@ bin\greprefs\*
 ; LDAP components
 bin\components\mozldap.xpt
 bin\components\nsAbLDAPAttributeMap.js
+bin\components\nsLDAPProtocolHandler.js
 bin\nsldap32v60.dll
 bin\nsldappr32v60.dll
 bin\nsldif32v60.dll

@@ -371,6 +371,7 @@ bin/libldif60.so
 bin/libprldap60.so
 bin/components/libmozldap.so
 bin/components/mozldap.xpt
+bin/components/nsLDAPProtocolHandler.js
 
 ; [Layout Engine Resources]
 ; Style Sheets, Graphics and other Resources used by the layout engine.
