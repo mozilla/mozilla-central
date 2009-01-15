@@ -28,16 +28,14 @@
 <!ENTITY useDownloadedList.accesskey "U">
 
 <!-- Passwords -->
-<!ENTITY savedPasswords.intro         "&brandShortName; can remember password information for all of your accounts so you do not need to re-enter your login details.">
-<!ENTITY  encryptEnabled.label        "Use a master password to encrypt stored passwords">
-<!ENTITY  encryptEnabled.accesskey    "s">
-<!ENTITY  masterPassword.intro        "When set, the Master Password protects all your passwords - but you must enter it once per session.">
-<!ENTITY  setMasterPassword.label     "Master Password">
-<!ENTITY  setMasterPassword.accesskey "M">
-<!ENTITY  removeMasterPassword.label  "Remove Master Password…">
-<!ENTITY  removeMasterPassword.accesskey "R">
-<!ENTITY  editPasswords.label         "Edit Saved Passwords">
-<!ENTITY  editPasswords.accesskey     "i">
+<!ENTITY savedPasswords.intro           "&brandShortName; can remember passwords for all of your accounts.">
+<!ENTITY useMasterPassword.label        "Use a master password">
+<!ENTITY useMasterPassword.accesskey    "m">
+<!ENTITY masterPassword.intro           "A Master Password protects all your passwords, but you must enter it once per session.">
+<!ENTITY changeMasterPassword.label     "Change Master Password…">
+<!ENTITY changeMasterPassword.accesskey "C">
+<!ENTITY savedPasswords.label           "Saved Passwords…">
+<!ENTITY savedPasswords.accesskey       "S">
 
 <!-- Anti Virus -->
 <!ENTITY antiVirus.intro      "&brandShortName; can make it easy for anti-virus software to analyze incoming mail messages for viruses before they are stored locally.">
