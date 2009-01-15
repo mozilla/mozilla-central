@@ -1043,6 +1043,8 @@ NS_IMETHODIMP nsAbCardProperty::GenerateName(PRInt32 aGenerateFormat,
                                              nsIStringBundle* aBundle,
                                              nsAString &aResult)
 {
+  aResult.Truncate();
+
   // Cache the first and last names
   nsAutoString firstName, lastName;
   GetFirstName(firstName);
@@ -1087,7 +1089,18 @@ NS_IMETHODIMP nsAbCardProperty::GenerateName(PRInt32 aGenerateFormat,
 
     aResult.Assign(result);
   }
-  
+
+  if (aResult.IsEmpty())
+  {
+    // The normal names have failed, does this card have a company name? If so,
+    // use that instead, because that is likely to be more meaningful than an
+    // email address.
+    //
+    // If this errors, the string isn't found and we'll fall into the next
+    // check.
+    (void) GetPropertyAsAString(kCompanyProperty, aResult);
+  }
+
   if (aResult.IsEmpty())
   {
     // see bug #211078

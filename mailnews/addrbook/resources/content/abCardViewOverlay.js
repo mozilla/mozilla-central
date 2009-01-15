@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -218,7 +218,7 @@ function DisplayCardViewPane(realCard)
   if (card.isMailList)
     cvSetNode(data.CardTitle, gAddressBookBundle.getFormattedString("viewListTitle", [generatedName]));
   else
-    cvSetNode(data.CardTitle, gAddressBookBundle.getFormattedString("viewCardTitle", [titleString]));
+    cvSetNode(data.CardTitle, titleString);
 	
   // Contact section
   cvSetNodeWithLabel(data.cvNickname, zNickname, card.getProperty("NickName"));

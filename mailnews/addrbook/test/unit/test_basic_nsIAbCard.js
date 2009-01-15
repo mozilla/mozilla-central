@@ -12,6 +12,7 @@ const kEmailValueLC = "testemail\u00D2@invalid.com";
 const kEmailValue2 = "test@test.invalid.com";
 // Email without the @ or anything after it.
 const kEmailReducedValue = "testEmail\u00D2";
+const kCompanyValue = "Test\u00D0 Company";
 
 function run_test() {
   // Create a new card
@@ -45,6 +46,9 @@ function run_test() {
   // Test - generateName. Note: if the addressBook.properties
   // value changes, this will affect these tests.
 
+  // Add a company name, so we can test fallback to company name.
+  card.setProperty("Company", kCompanyValue);
+
   do_check_eq(card.generateName(0), kDNValue);
   do_check_eq(card.generateName(1), kLNValue + ", " + kFNValue);
   do_check_eq(card.generateName(2), kFNValue + " " + kLNValue);
@@ -52,7 +56,13 @@ function run_test() {
   // Test - generateName, with missing items.
 
   card.displayName = "";
+  do_check_eq(card.generateName(0), kCompanyValue);
+
+  card.deleteProperty("Company");
   do_check_eq(card.generateName(0), kEmailReducedValue);
+
+  // Reset company name for the first/last name tests.
+  card.setProperty("Company", kCompanyValue);
 
   card.firstName = "";
   do_check_eq(card.generateName(1), kLNValue);
@@ -64,6 +74,10 @@ function run_test() {
   do_check_eq(card.generateName(2), kFNValue);
 
   card.firstName = "";
+  do_check_eq(card.generateName(1), kCompanyValue);
+  do_check_eq(card.generateName(2), kCompanyValue);
+
+  card.deleteProperty("Company");
   do_check_eq(card.generateName(1), kEmailReducedValue);
   do_check_eq(card.generateName(2), kEmailReducedValue);
 
