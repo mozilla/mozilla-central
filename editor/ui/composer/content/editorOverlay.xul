@@ -83,9 +83,9 @@
     <key keycode="&findCmd.key2;" observes="cmd_find"/>
 #endif
     <key id="checkspellingkb"
-         key="&checkSpellingCmd.key3;"
+         key="&checkSpellingCmd2.key;"
          observes="cmd_spelling"
-         modifiers="&accel,shift.emacs_conflict;"
+         modifiers="accel,shift"
          disabled="true"/>
 
     <key id="boldkb"         key="&styleBoldCmd.key;"       observes="cmd_bold" modifiers="accel"/>
@@ -423,8 +423,8 @@
                 observes="cmd_findPrev"/>
       <menuseparator id="sep_checkspelling"/>
       <menuitem id="menu_checkspelling"
-                label="&checkSpellingCmd.label;"
-                accesskey="&checkSpellingCmd.accesskey;"
+                label="&checkSpellingCmd2.label;"
+                accesskey="&checkSpellingCmd2.accesskey;"
                 key="checkspellingkb"
                 observes="cmd_spelling"
                 disabled="true"/>

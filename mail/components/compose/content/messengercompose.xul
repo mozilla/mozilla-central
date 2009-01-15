@@ -225,10 +225,10 @@
   <key id="key_addressSidebar" keycode="VK_F9" oncommand="toggleAddressPicker();"/>
 
   <!-- Options Menu -->
-  <key id="key_checkspelling" key="&checkSpellingCmd.key3;" command="cmd_spelling" modifiers="accel, shift"/>
+  <key id="key_checkspelling" key="&checkSpellingCmd2.key;" command="cmd_spelling" modifiers="accel,shift"/>
 
 #ifdef XP_WIN
-  <key keycode="&checkSpellingCmd.key2;" command="cmd_spelling"/>
+  <key keycode="&checkSpellingCmd2.key2;" command="cmd_spelling"/>
 #endif
 
    <!-- Tools Menu -->
@@ -433,7 +433,7 @@
 
       <menu id="optionsMenu" label="&optionsMenu.label;" accesskey="&optionsMenu.accesskey;">
         <menupopup id="optionsMenuPopup"> 
-          <menuitem label="&checkSpellingCmd.label;" id="menu_checkspelling" accesskey="&checkSpellingCmd.accesskey;" key="key_checkspelling" command="cmd_spelling"/>
+          <menuitem label="&checkSpellingCmd2.label;" id="menu_checkspelling" accesskey="&checkSpellingCmd2.accesskey;" key="key_checkspelling" command="cmd_spelling"/>
           <menuitem label="&enableInlineSpellChecker.label;" id="menu_inlineSpellCheck" 
                            accesskey="&enableInlineSpellChecker.accesskey;" checked="false"
                            type="checkbox" oncommand="enableInlineSpellCheck(!InlineSpellCheckerUI.enabled);"/>
