@@ -111,7 +111,7 @@
 <!ENTITY optionsMenu.label "Options">
 <!ENTITY optionsMenu.accesskey "p">
 <!ENTITY checkSpellingCmd.label "Check Spelling…">
-<!ENTITY checkSpellingCmd.key "K">
+<!ENTITY checkSpellingCmd.key3 "p">
 <!ENTITY checkSpellingCmd.key2 "VK_F7">
 <!ENTITY checkSpellingCmd.accesskey "h">
 <!ENTITY enableInlineSpellChecker.label "Spell Check As You Type">

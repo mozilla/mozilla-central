@@ -225,11 +225,7 @@
   <key id="key_addressSidebar" keycode="VK_F9" oncommand="toggleAddressPicker();"/>
 
   <!-- Options Menu -->
-#ifdef XP_UNIX
-  <key id="key_checkspelling" key="&checkSpellingCmd.key;" command="cmd_spelling" modifiers="accel, shift"/>
-#else
-  <key id="key_checkspelling" key="&checkSpellingCmd.key;" command="cmd_spelling" modifiers="accel"/>
-#endif
+  <key id="key_checkspelling" key="&checkSpellingCmd.key3;" command="cmd_spelling" modifiers="accel, shift"/>
 
 #ifdef XP_WIN
   <key keycode="&checkSpellingCmd.key2;" command="cmd_spelling"/>

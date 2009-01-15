@@ -83,9 +83,9 @@
     <key keycode="&findCmd.key2;" observes="cmd_find"/>
 #endif
     <key id="checkspellingkb"
-         key="&checkSpellingCmd.key;"
+         key="&checkSpellingCmd.key3;"
          observes="cmd_spelling"
-         modifiers="&accel.emacs_conflict;"
+         modifiers="&accel,shift.emacs_conflict;"
          disabled="true"/>
 
     <key id="boldkb"         key="&styleBoldCmd.key;"       observes="cmd_bold" modifiers="accel"/>

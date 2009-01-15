@@ -114,7 +114,7 @@
 <!ENTITY enableInlineSpellChecker.accesskey "S">
 <!ENTITY checkSpellingCmd.label "Check Spelling">
 <!ENTITY checkSpellingCmd.accesskey "h">
-<!ENTITY checkSpellingCmd.key "K">
+<!ENTITY checkSpellingCmd.key3 "p">
 <!ENTITY validateCmd.label "Validate HTML">
 <!ENTITY validateCmd.accesskey "V">
 

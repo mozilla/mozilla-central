@@ -180,9 +180,9 @@
   <!-- Options Menu -->
   <!-- key id="key_selectAddresses" xulkey="true" key="&selectAddressCmd.key;" command="cmd_selectAddress"/ -->
   <key id="key_checkspelling"
-       key="&checkSpellingCmd.key;"
+       key="&checkSpellingCmd.key3;"
        command="cmd_spelling"
-       modifiers="&accel.emacs_conflict;"
+       modifiers="&accel,shift.emacs_conflict;"
   />
 
   <key id="showHideSidebar"/>

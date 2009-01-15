@@ -84,7 +84,7 @@
 <!ENTITY selectAddressCmd.accesskey "A">
 
 <!ENTITY checkSpellingCmd.label "Check Spelling…">
-<!ENTITY checkSpellingCmd.key "K">
+<!ENTITY checkSpellingCmd.key3 "p">
 <!ENTITY checkSpellingCmd.accesskey "h">
 <!ENTITY enableInlineSpellChecker.label "Spellcheck As You Type">
 <!ENTITY enableInlineSpellChecker.accesskey "S">
