@@ -319,8 +319,6 @@ function hostHasCookies(hostName) {
  * saved passwords
  */
 function realmHasPasswords(location) {
-  return false;
-  /* XXX: use code below (instead of above line) once we are using toolkit's login manager
   if (!location) 
     return false;
   
@@ -335,7 +333,6 @@ function realmHasPasswords(location) {
 
   // XXX untested
   return passwords.some(function (login) { return (login.hostname == realm); });
-  */
 }
 
 /**

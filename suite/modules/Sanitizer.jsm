@@ -226,22 +226,17 @@ var Sanitizer = {
 
     passwords: {
       clear: function() {
-        /* XXX: commented out as long as we aren't using toolkit's login manager
         var pwmgr = Components.classes["@mozilla.org/login-manager;1"]
                               .getService(Components.interfaces.nsILoginManager);
         pwmgr.removeAllLogins();
-        */
       },
 
-      canClear: false
-      /* XXX: use code below (instead of above line) once we are using toolkit's login manager
       get canClear() {
         var pwmgr = Components.classes["@mozilla.org/login-manager;1"]
                               .getService(Components.interfaces.nsILoginManager);
         var count = pwmgr.countLogins("", "", ""); // count all logins
         return (count > 0);
       }
-      */
     },
 
     sessions: {

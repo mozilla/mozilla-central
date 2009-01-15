@@ -41,7 +41,6 @@ function Startup()
 {
   updateClearNowButtonLabel();
   document.getElementById("privacy.item.downloads").disabled = true; // XXX: as long as we aren't using toolkit's download manager
-  document.getElementById("privacy.item.passwords").disabled = true; // XXX: as long as we aren't using toolkit's login manager
 }
 
 /**

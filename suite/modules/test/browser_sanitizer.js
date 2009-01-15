@@ -208,7 +208,6 @@ var sanTests = {
   },
   */
 
-  /* XXX: commented out as long as we aren't using toolkit's login manager
   passwords: {
     desc: "Login manager",
     setup: function() {
@@ -232,7 +231,6 @@ var sanTests = {
       return false;
     }
   },
-  */
 
   sessions: {
     desc: "HTTP auth session",
