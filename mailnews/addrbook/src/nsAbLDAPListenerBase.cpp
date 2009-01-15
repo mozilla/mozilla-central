@@ -46,13 +46,8 @@
 #include "nsIProxyObjectManager.h"
 #include "nsILDAPMessage.h"
 #include "nsILDAPErrors.h"
-#ifdef USE_TK_LOGIN_MANAGER
 #include "nsILoginManager.h"
 #include "nsILoginInfo.h"
-#else
-#include "nsCategoryManagerUtils.h"
-#include "nsComponentManagerUtils.h"
-#endif
 #include "nsServiceManagerUtils.h"
 #include "nsXPCOMCIDInternal.h"
 
@@ -328,7 +323,6 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
     if (errCode == nsILDAPErrors::INAPPROPRIATE_AUTH ||
         errCode == nsILDAPErrors::INVALID_CREDENTIALS)
     {
-#ifdef USE_TK_LOGIN_MANAGER
       // Login failed, so try again - but first remove the existing login(s)
       // so that the user gets prompted. This may not be the best way of doing
       // things, we need to review that later.
@@ -365,29 +359,6 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
         }
       }
       NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
-#else
-      // make sure the wallet service has been created, and in doing so,
-      // pass in a login-failed message to tell it to forget this passwd.
-      //
-      // apparently getting passwords stored in the wallet
-      // doesn't require the service to be running, which is why
-      // this might not exist yet.
-      //
-      rv = NS_CreateServicesFromCategory("passwordmanager",
-                                         mDirectoryUrl,
-                                         "login-failed");
-      if (NS_FAILED(rv))
-      {
-        NS_ERROR("nsLDAPAutoCompleteSession::ForgetPassword(): error"
-                 " creating password manager service");
-        // not much to do at this point, though conceivably we could 
-        // pop up a dialog telling the user to go manually delete
-        // this password in the password manager.
-        return rv;
-      }
-
-      // Login failed, so try again
-#endif
 
       // XXX We should probably pop up an error dialog telling
       // the user that the login failed here, rather than just bringing 

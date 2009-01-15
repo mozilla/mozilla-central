@@ -36,21 +36,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "msgCore.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsEscape.h"
 #include "nsSmtpServer.h"
-#include "nsIObserverService.h"
 #include "nsNetUtil.h"
 #include "nsIAuthPrompt.h"
-#include "nsReadableUtils.h"
-#include "nsISmtpUrl.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
 #include "nsISmtpService.h"
 #include "nsMsgCompCID.h"
+#include "nsILoginInfo.h"
+#include "nsILoginManager.h"
 
 NS_IMPL_ADDREF(nsSmtpServer)
 NS_IMPL_RELEASE(nsSmtpServer)
@@ -453,15 +451,20 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
             rv = GetServerURI(serverUri);
             if (NS_FAILED(rv))
                 return rv;
+
             nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+            NS_ENSURE_SUCCESS(rv, rv);
+
             PRBool passwordProtectLocalCache = PR_FALSE;
 
-            (void) prefBranch->GetBoolPref( "mail.password_protect_local_cache", &passwordProtectLocalCache);
+            (void) prefBranch->GetBoolPref("mail.password_protect_local_cache",
+                                           &passwordProtectLocalCache);
 
-            PRUint32 savePasswordType = (passwordProtectLocalCache) ? nsIAuthPrompt::SAVE_PASSWORD_FOR_SESSION : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY;
             rv = aDialog->PromptPassword(aPromptTitle, aPromptMessage,
-                    NS_ConvertASCIItoUTF16(serverUri).get(), savePasswordType,
-                    getter_Copies(uniPassword), &okayValue);
+              NS_ConvertASCIItoUTF16(serverUri).get(),
+              passwordProtectLocalCache ? nsIAuthPrompt::SAVE_PASSWORD_NEVER
+                                        : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
+              getter_Copies(uniPassword), &okayValue);
             if (NS_FAILED(rv))
                 return rv;
 
@@ -505,9 +508,20 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
             rv = GetServerURI(serverUri);
             if (NS_FAILED(rv))
                 return rv;
+
+            nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+            NS_ENSURE_SUCCESS(rv, rv);
+
+            PRBool passwordProtectLocalCache = PR_FALSE;
+
+            (void) prefBranch->GetBoolPref("mail.password_protect_local_cache",
+                                           &passwordProtectLocalCache);
+
             rv = aDialog->PromptUsernameAndPassword(aPromptTitle, aPromptMessage,
-                                         NS_ConvertASCIItoUTF16(serverUri).get(), nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
-                                         getter_Copies(uniUsername), getter_Copies(uniPassword), &okayValue);
+              NS_ConvertASCIItoUTF16(serverUri).get(),
+              passwordProtectLocalCache ? nsIAuthPrompt::SAVE_PASSWORD_NEVER
+                                        : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
+              getter_Copies(uniUsername), getter_Copies(uniPassword), &okayValue);
             if (NS_FAILED(rv))
                 return rv;
 
@@ -542,37 +556,64 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
 NS_IMETHODIMP
 nsSmtpServer::ForgetPassword()
 {
-    nsresult rv;
-    nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+  nsresult rv;
+  nsCOMPtr<nsILoginManager> loginMgr =
+    do_GetService(NS_LOGINMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCString serverUri;
-    rv = GetServerURI(serverUri);
-    if (NS_FAILED(rv))
-        return rv;
+  // Get the current server URI without the username
+  nsCAutoString serverUri(NS_LITERAL_CSTRING("smtp://"));
 
-    nsCOMPtr<nsIURI> uri;
-    NS_NewURI(getter_AddRefs(uri), serverUri);
+  nsCString hostname;
+  rv = GetHostname(hostname);
 
-    //this is need to make sure wallet service has been created
-    rv = CreateServicesForPasswordManager();
-    NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_SUCCEEDED(rv) && !hostname.IsEmpty()) {
+    nsCString escapedHostname;
+    *((char **)getter_Copies(escapedHostname)) =
+      nsEscape(hostname.get(), url_Path);
+    // not all servers have a hostname
+    serverUri.Append(escapedHostname);
+  }
 
-    rv = observerService->NotifyObservers(uri, "login-failed", nsnull);
-    NS_ENSURE_SUCCESS(rv,rv);
+  PRUint32 count;
+  nsILoginInfo** logins;
 
-    rv = SetPassword(EmptyCString());
-    m_logonFailed = PR_TRUE;
-    return rv;
+  NS_ConvertUTF8toUTF16 currServer(serverUri);
+
+  nsCString serverCUsername;
+  rv = GetUsername(serverCUsername);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  NS_ConvertUTF8toUTF16 serverUsername(serverCUsername);
+
+  rv = loginMgr->FindLogins(&count, currServer, EmptyString(),
+                            currServer, &logins);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // There should only be one-login stored for this url, however just in case
+  // there isn't.
+  nsString username;
+  for (PRUint32 i = 0; i < count; ++i)
+  {
+    if (NS_SUCCEEDED(logins[i]->GetUsername(username)) &&
+        username.Equals(serverUsername))
+    {
+      // If this fails, just continue, we'll still want to remove the password
+      // from our local cache.
+      loginMgr->RemoveLogin(logins[i]);
+    }
+  }
+  NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
+
+  rv = SetPassword(EmptyCString());
+  m_logonFailed = PR_TRUE;
+  return rv;
 }
 
 NS_IMETHODIMP
 nsSmtpServer::GetServerURI(nsACString &aResult)
 {
-    nsCAutoString uri;
-
-    uri.AssignLiteral("smtp");
-    uri.AppendLiteral("://");
+    nsCAutoString uri(NS_LITERAL_CSTRING("smtp://"));
 
     nsCString username;
     nsresult rv = GetUsername(username);

@@ -58,7 +58,7 @@ interface nsILocalFile;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(b51b27f6-4c36-44ef-8457-52b40d2056ce)]
+[scriptable, uuid(2795ee91-7231-4c3b-a6ed-ea9a721371fa)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -127,11 +127,6 @@ interface nsIMsgIncomingServer : nsISupports {
 
   /* forget the password in memory and in single signon database */
   void forgetPassword();
-
-  /**
-   * logon succeeded - persist password, if user chooses.
-   */
-  void storePassword(); 
 
   /* forget the password in memory which is cached for the session */
   void forgetSessionPassword();

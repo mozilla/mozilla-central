@@ -118,8 +118,6 @@ NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
                                           nsILocalFile *aFile,
                                           nsIPrefBranch *prefBranch = nsnull);
 
-NS_MSG_BASE nsresult CreateServicesForPasswordManager();
-
 NS_MSG_BASE nsresult IsRFC822HeaderFieldName(const char *aHdr, PRBool *aResult);
 
 NS_MSG_BASE nsresult NS_GetUnicharPreferenceWithDefault(nsIPrefBranch *prefBranch,   //can be null, if so uses the root branch

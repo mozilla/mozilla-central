@@ -5,7 +5,7 @@
 
 const kLDAPDirectory = 0; // defined in nsDirPrefs.h
 const kLDAPUriPrefix = "moz-abldapdirectory://";
-const kLDAPTestSpec = "ldap://invalidhost:389//dc=intranet??sub?(objectclass=*)";
+const kLDAPTestSpec = "ldap://invalidhost//dc=intranet??sub?(objectclass=*)";
 
 function run_test() {
   // Test - Create an LDAP directory

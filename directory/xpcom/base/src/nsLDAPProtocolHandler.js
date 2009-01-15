@@ -58,13 +58,8 @@ function makeProtocolHandler(aProtocol, aDefaultPort) {
                           .createInstance(Components.interfaces.nsIURI);
 
       if (url instanceof Components.interfaces.nsILDAPURL)
-#ifdef USE_TK_LOGIN_MANAGER
 	url.init(Components.interfaces.nsIStandardURL.URLTYPE_STANDARD,
 		 aDefaultPort, aSpec, aOriginCharset, aBaseURI);
-#else
-	url.init(Components.interfaces.nsIStandardURL.URLTYPE_STANDARD,
-		 -1, aSpec, aOriginCharset, aBaseURI);
-#endif
 
       return url;
     },

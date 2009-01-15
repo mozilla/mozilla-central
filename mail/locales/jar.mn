@@ -153,6 +153,3 @@
   locale/@AB_CD@/mozldap/ldap.properties                                (%chrome/mozldap/ldap.properties)
 % locale communicator @AB_CD@ %locale/@AB_CD@/communicator/
   locale/@AB_CD@/communicator/utilityOverlay.dtd             (%chrome/communicator/utilityOverlay.dtd)
-  locale/@AB_CD@/communicator/wallet/wallet.properties       (%chrome/communicator/wallet/wallet.properties)
-+ locale/@AB_CD@/communicator/wallet/SignonViewer.properties (%chrome/communicator/wallet/SignonViewer.properties)
-+ locale/@AB_CD@/communicator/wallet/SignonViewer.dtd        (%chrome/communicator/wallet/SignonViewer.dtd)

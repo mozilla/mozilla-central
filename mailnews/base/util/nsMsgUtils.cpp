@@ -66,8 +66,6 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsIRelativeFilePref.h"
 #include "nsAppDirectoryServiceDefs.h"
-#include "nsICategoryManager.h"
-#include "nsCategoryManagerUtils.h"
 #include "nsISpamSettings.h"
 #include "nsISignatureVerifier.h"
 #include "nsICryptoHash.h"
@@ -92,9 +90,6 @@ static NS_DEFINE_CID(kCNntpUrlCID, NS_NNTPURL_CID);
 #define ILLEGAL_FOLDER_CHARS ";#"
 #define ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER "."
 #define ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER  ".~ "
-
-#define NS_PASSWORDMANAGER_CATEGORY "passwordmanager"
-static PRBool gInitPasswordManager = PR_FALSE;
 
 nsresult GetMessageServiceContractIDForURI(const char *uri, nsCString &contractID)
 {
@@ -826,19 +821,6 @@ nsresult EscapeFromSpaceLine(nsIOutputStream *outputStream, char *start, const c
       NS_ENSURE_SUCCESS(rv,rv);
       break;
     }
-  }
-  return NS_OK;
-}
-
-nsresult CreateServicesForPasswordManager()
-{
-  if (!gInitPasswordManager)
-  {
-     // Initialize the password manager category
-    gInitPasswordManager = PR_TRUE;
-    return NS_CreateServicesFromCategory(NS_PASSWORDMANAGER_CATEGORY,
-                                  nsnull,
-                                  NS_PASSWORDMANAGER_CATEGORY);
   }
   return NS_OK;
 }

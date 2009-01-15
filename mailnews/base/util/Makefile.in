@@ -84,6 +84,8 @@ REQUIRES	= xpcom \
 		  htmlparser \
 		  content \
 		  layout \
+		  loginmgr \
+		  pipnss \
 		  $(NULL)
 
 CPPSRCS		= \

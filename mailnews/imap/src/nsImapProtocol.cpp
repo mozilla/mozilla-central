@@ -8764,7 +8764,10 @@ NS_IMETHODIMP nsImapMockChannel::SetSecurityInfo(nsISupports *aSecurityInfo)
 
 NS_IMETHODIMP nsImapMockChannel::GetName(nsACString &result)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  if (m_url)
+    return m_url->GetSpec(result);
+  result.Truncate();
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsImapMockChannel::IsPending(PRBool *result)

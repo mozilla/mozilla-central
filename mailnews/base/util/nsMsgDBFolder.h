@@ -148,7 +148,10 @@ protected:
   nsresult AddDirectorySeparator(nsILocalFile *path);
   nsresult CheckIfFolderExists(const nsAString& newFolderName, nsIMsgFolder *parentFolder, nsIMsgWindow *msgWindow);
 
-  nsresult PromptForCachePassword(nsIMsgIncomingServer *server, nsIMsgWindow *aWindow, PRBool &passwordCorrect);
+  // Returns true if: a) there is no need to prompt or b) the user is already
+  // logged in or c) the user logged in successfully.
+  static PRBool PromptForMasterPasswordIfNecessary();
+
   // offline support methods.
   nsresult StartNewOfflineMessage();
   nsresult WriteStartOfNewLocalMessage();

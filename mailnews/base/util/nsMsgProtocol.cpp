@@ -646,9 +646,12 @@ NS_IMETHODIMP nsMsgProtocol::GetSecurityInfo(nsISupports * *aSecurityInfo)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgProtocol::GetName(nsACString &aName)
+NS_IMETHODIMP nsMsgProtocol::GetName(nsACString &result)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  if (m_url)
+    return m_url->GetSpec(result);
+  result.Truncate();
+  return NS_OK;
 }
 
 

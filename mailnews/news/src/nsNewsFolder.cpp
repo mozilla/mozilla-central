@@ -76,7 +76,6 @@
 #include "nsIPrompt.h"
 #include "nsIWindowWatcher.h"
 
-#include "nsIObserverService.h"
 #include "nsNetUtil.h"
 #include "nsIAuthPrompt.h"
 #include "nsIURL.h"
@@ -96,6 +95,11 @@
 #include "nsArrayUtils.h"
 #include "nsIMsgFolderNotificationService.h"
 #include "nsIMutableArray.h"
+#include "nsILoginInfo.h"
+#include "nsILoginManager.h"
+#include "nsIPromptService.h"
+#include "nsEmbedCID.h"
+#include "nsIDOMWindow.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -1068,8 +1072,6 @@ nsresult nsMsgNewsFolder::CreateNewsgroupPasswordUrlForSignon(const nsACString& 
 nsresult nsMsgNewsFolder::CreateNewsgroupUrlForSignon(const nsACString& inUriStr, const char *ref, nsACString& result)
 {
   nsresult rv;
-  PRInt32 port = 0;
-
   nsCOMPtr<nsIURL> url = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1099,8 +1101,9 @@ nsresult nsMsgNewsFolder::CreateNewsgroupUrlForSignon(const nsACString& inUriStr
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
+  PRInt32 port = 0;
   rv = url->GetPort(&port);
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (port <= 0)
   {
@@ -1112,61 +1115,110 @@ nsresult nsMsgNewsFolder::CreateNewsgroupUrlForSignon(const nsACString& inUriStr
     nsresult rv = server->GetSocketType(&socketType);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = url->SetPort((socketType == nsIMsgIncomingServer::useSSL) ?
-                      nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT);
-    NS_ENSURE_SUCCESS(rv, rv);
+    // Only set this for ssl newsgroups as for non-ssl connections, we don't
+    // need to specify the port as it is the default for the protocol and
+    // password manager "blanks" those out.
+    if (socketType == nsIMsgIncomingServer::useSSL)
+    {
+      rv = url->SetPort(nsINntpUrl::DEFAULT_NNTPS_PORT);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
   }
 
-  rv = url->SetRef(nsDependentCString(ref));
+  if (ref)
+  {
+    rv = url->SetRef(nsDependentCString(ref));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    return url->GetSpec(result);
+  }
+
+  // If the url doesn't have a path, make sure we don't get a '/' on the end
+  // as that will confuse searching in password manager.
+  nsCString spec;
+  rv = url->GetSpec(spec);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return url->GetSpec(result);
+  if (!spec.IsEmpty() && spec[spec.Length() - 1] == '/')
+    result = StringHead(spec, spec.Length() - 1);
+  else
+    result = spec;
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::ForgetGroupUsername()
 {
-  nsresult rv;
-  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = SetGroupUsername(EmptyCString());
-  if (NS_FAILED(rv)) return rv;
+  nsCString hostname;
+  nsresult rv = CreateNewsgroupUrlForSignon(mURI, nsnull, hostname);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString signonURL;
   rv = CreateNewsgroupUsernameUrlForSignon(mURI, signonURL);
-  if (NS_FAILED(rv)) return rv;
-
-  nsCOMPtr<nsIURI> uri;
-  NS_NewURI(getter_AddRefs(uri), signonURL);
-
-  //this is need to make sure wallet service has been created
-  rv = CreateServicesForPasswordManager();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return observerService->NotifyObservers(uri, "login-failed", nsnull);
+  nsCOMPtr<nsILoginManager> loginMgr =
+    do_GetService(NS_LOGINMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 count;
+  nsILoginInfo** logins;
+
+  // XXX we don't support multiple logins per news server, so just delete any
+  // we find.
+  rv = loginMgr->FindLogins(&count, NS_ConvertASCIItoUTF16(hostname),
+                            EmptyString(),
+                            NS_ConvertASCIItoUTF16(signonURL), &logins);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // There should only be one-login stored for this url, however just in case
+  // there isn't.
+  for (PRUint32 i = 0; i < count; ++i)
+  {
+    // If this fails, just continue, we'll still want to remove the password
+    // from our local cache.
+    loginMgr->RemoveLogin(logins[i]);
+  }
+  NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::ForgetGroupPassword()
 {
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = SetGroupPassword(EmptyCString());
-  if (NS_FAILED(rv)) return rv;
+  nsCString hostname;
+  nsresult rv = CreateNewsgroupUrlForSignon(mURI, nsnull, hostname);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString signonURL;
   rv = CreateNewsgroupPasswordUrlForSignon(mURI, signonURL);
-  if (NS_FAILED(rv)) return rv;
-
-  nsCOMPtr<nsIURI> uri;
-  NS_NewURI(getter_AddRefs(uri), signonURL);
-
-  //this is need to make sure wallet service has been created
-  rv = CreateServicesForPasswordManager();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return observerService->NotifyObservers(uri, "login-failed", nsnull);
+  nsCOMPtr<nsILoginManager> loginMgr =
+    do_GetService(NS_LOGINMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 count;
+  nsILoginInfo** logins;
+
+  // XXX we don't support multiple logins per news server, so just delete any
+  // we find.
+  rv = loginMgr->FindLogins(&count, NS_ConvertASCIItoUTF16(hostname),
+                            EmptyString(),
+                            NS_ConvertASCIItoUTF16(signonURL), &logins);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // There should only be one-login stored for this url, however just in case
+  // there isn't.
+  for (PRUint32 i = 0; i < count; ++i)
+  {
+    // If this fails, just continue, we'll still want to remove the password
+    // from our local cache.
+    loginMgr->RemoveLogin(logins[i]);
+  }
+  NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
+
+  return SetGroupPassword(EmptyCString());
 }
 
 // change order of subfolders (newsgroups)
@@ -1340,18 +1392,114 @@ nsMsgNewsFolder::GetGroupUsernameWithUI(const nsAString& aPromptMessage,
 
     nsCString signonURL;
     rv = CreateNewsgroupUsernameUrlForSignon(mURI, signonURL);
-    if (NS_FAILED(rv)) return rv;
+    if (NS_FAILED(rv))
+      return rv;
 
-    rv = dialog->Prompt(nsString(aPromptTitle).get(), nsString(aPromptMessage).get(),
-                        NS_ConvertASCIItoUTF16(signonURL).get(),
-                        nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY, NS_ConvertASCIItoUTF16(mPrevUsername).get(),
-                        getter_Copies(uniGroupUsername), &okayValue);
-    if (NS_FAILED(rv)) return rv;
+    // This is the hostname without the #username or #password on the end.
+    nsCString hostnameURL;
+    rv = CreateNewsgroupUrlForSignon(mURI, nsnull, hostnameURL);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Due to the way the new login manager doesn't want to let us save
+    // usernames in the password field, unfortunately the way mailnews has
+    // worked historically, means we need to do this.
+    // So we have to first check manully, then prompt, the save separately if
+    // we want to get a value.
+    nsCOMPtr<nsILoginManager> loginMgr =
+      do_GetService(NS_LOGINMANAGER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    PRUint32 count = 0;
+    nsILoginInfo **logins = nsnull;
+    rv = loginMgr->FindLogins(&count, NS_ConvertASCIItoUTF16(hostnameURL),
+                              EmptyString(), NS_ConvertASCIItoUTF16(signonURL), &logins);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (count > 0)
+    {
+      nsString username;
+      rv = logins[0]->GetPassword(username);
+
+      NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
+
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      NS_LossyConvertUTF16toASCII result(username);
+
+      // Just use the first as that is all we should have
+      rv = SetGroupUsername(result);
+      if (NS_FAILED(rv))
+        return rv;
+
+      mPrevUsername = aGroupUsername = result;
+      return NS_OK;
+    }
+    NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
+
+
+    // No logins, so time to prompt. Toolkit password manager doesn't let us
+    // use nsIAuthPrompt.prompt in the way we'd like currently, and it doesn't
+    // let us store username-only passwords. So go direct to the dialog and
+    // cut out the middle-man.
+    nsCOMPtr<nsIPromptService> promptSvc =
+      do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    PRBool saveUsername = PR_FALSE;
+
+    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIStringBundle> bundle;
+    rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsString saveUsernameText;
+    rv = bundle->GetStringFromName(NS_LITERAL_STRING("saveUsername").get(),
+                                   getter_Copies(saveUsernameText));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = promptSvc->Prompt(nsnull, nsString(aPromptTitle).get(),
+                           nsString(aPromptMessage).get(),
+                           getter_Copies(uniGroupUsername),
+                           saveUsernameText.get(), &saveUsername,
+                           &okayValue);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     if (!okayValue) // if the user pressed cancel, just return NULL;
     {
       aGroupUsername.Truncate();
       return rv;
+    }
+
+    if (saveUsername)
+    {
+      nsCOMPtr<nsILoginInfo> login =
+        do_CreateInstance("@mozilla.org/login-manager/loginInfo;1", &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = login->SetHostname(NS_ConvertASCIItoUTF16(hostnameURL));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = login->SetHttpRealm(NS_ConvertASCIItoUTF16(signonURL));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = login->SetPassword(uniGroupUsername);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      // Apparently there is a small difference between empty strings and null
+      // strings, but setting these to empty works for us.
+      rv = login->SetUsername(EmptyString());
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = login->SetUsernameField(EmptyString());
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = login->SetPasswordField(EmptyString());
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = loginMgr->AddLogin(login);
+      NS_ENSURE_SUCCESS(rv, rv);
     }
 
     // we got a username back, remember it

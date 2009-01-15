@@ -2660,6 +2660,9 @@ PRInt32 nsNNTPProtocol::BeginAuthorization()
 
     nsString usernamePromptText;
     GetNewsStringByName("enterUsername", getter_Copies(usernamePromptText));
+    nsString usernamePromptTitleText;
+    GetNewsStringByName("enterUsernameTitle",
+                        getter_Copies(usernamePromptTitleText));
     if (m_newsFolder) {
       if (!m_msgWindow) {
         nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
@@ -2667,7 +2670,9 @@ PRInt32 nsNNTPProtocol::BeginAuthorization()
           rv = mailnewsurl->GetMsgWindow(getter_AddRefs(m_msgWindow));
       }
 
-      rv = m_newsFolder->GetGroupUsernameWithUI(usernamePromptText, EmptyString(), m_msgWindow, username);
+      rv = m_newsFolder->GetGroupUsernameWithUI(usernamePromptText,
+                                                usernamePromptTitleText,
+                                                m_msgWindow, username);
     }
     else
       return(MK_NNTP_AUTH_FAILED);

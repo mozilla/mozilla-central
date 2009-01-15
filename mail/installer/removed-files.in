@@ -36,7 +36,8 @@ components/rdf.dll
 components/spellchk.dll
 components/txmgr.dll
 components/uconv.dll
-components/wallet.dll
+components/@DLL_PREFIX@wallet@DLL_SUFFIX@
+components/@DLL_PREFIX@walletviewers@DLL_SUFFIX@
 components/webbrwsr.dll
 components/wlltvwrs.dll
 components/xmlextras.dll
@@ -140,6 +141,8 @@ components/uconv.xpt
 components/unicharutil.xpt
 components/uriloader.xpt
 components/wallet.xpt
+components/walleteditor.xpt
+components/walletpreview.xpt
 components/webbrowserpersist.xpt
 components/webBrowser_core.xpt
 components/webshell_idls.xpt
@@ -204,6 +207,13 @@ defaults/isp/en-US/movemail.rdf
 defaults/isp/en-US/dotmac.rdf
 defaults/isp/en-US/
 defaults/isp/
+defaults/wallet/VcardSchema.tbl
+defaults/wallet/FieldSchema.tbl
+defaults/wallet/SchemaConcat.tbl
+defaults/wallet/DistinguishedSchema.tbl
+defaults/wallet/SchemaStrings.tbl
+defaults/wallet/PositionalSchema.tbl
+defaults/wallet/StateSchema.tbl
 isp/gmail.rdf
 
 components/@DLL_PREFIX@xpcom_compat_c@DLL_SUFFIX@

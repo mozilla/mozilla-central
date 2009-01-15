@@ -769,26 +769,11 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
         return goOnline->ProcessNextOperation();
     }
   }
-  else // we're offline - check if we're password protecting the offline store
-  {
-    nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    PRBool userNeedsToAuthenticate = PR_FALSE;
-    // if we're PasswordProtectLocalCache, then we need to find out if the server is authenticated.
-    (void) accountManager->GetUserNeedsToAuthenticate(&userNeedsToAuthenticate);
-    if (userNeedsToAuthenticate)
-    {
-      nsCOMPtr<nsIMsgIncomingServer> server;
-      rv = GetServer(getter_AddRefs(server));
-      if (NS_SUCCEEDED(rv))
-      {
-        PRBool passwordMatches = PR_FALSE;
-        rv = PromptForCachePassword(server, msgWindow, passwordMatches);
-        if (!passwordMatches)
-          return NS_ERROR_FAILURE;
-      }
-    }
-  }
+
+  // Check it we're password protecting the local store.
+  if (!PromptForMasterPasswordIfNecessary())
+    return NS_ERROR_FAILURE;
+
   if (!canOpenThisFolder)
     selectFolder = PR_FALSE;
   // don't run select if we can't select the folder...

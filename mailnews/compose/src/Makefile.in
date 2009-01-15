@@ -83,6 +83,7 @@ REQUIRES	= xpcom \
 		  windowwatcher \
 		  gfx \
 		  zipwriter \
+		  loginmgr \
 		  $(NULL)
 
 ifdef MOZ_THUNDERBIRD

@@ -947,14 +947,10 @@ function loadStartFolder(initialUri)
         // the news url comes in here.
 
         if (isLoginAtStartUpEnabled && masterPasswordSet()) {
-          let passwordMgr = Components.classes["@mozilla.org/passwordmanager;1"]
-                              .getService(Components.interfaces.nsIPasswordManagerInternal);
-          if (passwordMgr)
+          let loginMgr = Components.classes["@mozilla.org/login-manager;1"]
+                              .getService(Components.interfaces.nsILoginManager);
+          if (loginMgr)
           {
-            let hostFound = new Object;
-            let userNameFound = new Object;
-            let passwordFound = new Object;
-
             // Get password entry corresponding to the default server.
             // This will block the UI until the use enters something.
             // This throws an exception if the user cancels. For now, I'm
@@ -963,9 +959,8 @@ function loadStartFolder(initialUri)
             // and exit the app if they don't. But this assumes the
             // default server password is stored.
             try {
-                passwordMgr.findPasswordEntry(defaultServer.serverURI, "", "",
-                                           hostFound, userNameFound, 
-                                           passwordFound);
+                loginMgr.findLogins({}, defaultServer.serverURI, null,
+                                    defaultServer.serverURI, {});
             } catch(ex) {};
           }
         }

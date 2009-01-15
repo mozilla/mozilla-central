@@ -108,13 +108,6 @@ nsPop3Sink::SetUserAuthenticated(PRBool authed)
 {
   m_authed = authed;
   m_popServer->SetAuthenticated(authed);
-  if (authed)
-  {
-    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_popServer);
-    if (!server)
-      return NS_ERROR_UNEXPECTED;
-    return server->StorePassword();
-  }
   return NS_OK;
 }
 

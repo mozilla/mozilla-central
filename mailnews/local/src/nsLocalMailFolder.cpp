@@ -597,38 +597,9 @@ nsMsgLocalMailFolder::UpdateFolder(nsIMsgWindow *aWindow)
   (void) RefreshSizeOnDisk();
   nsresult rv;
 
-  nsCOMPtr<nsIMsgAccountManager> accountManager =
-           do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  PRBool userNeedsToAuthenticate = PR_FALSE;
-  // if we're PasswordProtectLocalCache, then we need to find out if the server is authenticated.
-  (void) accountManager->GetUserNeedsToAuthenticate(&userNeedsToAuthenticate);
-  if (userNeedsToAuthenticate)
-  {
-    nsCOMPtr<nsIMsgIncomingServer> server;
-    rv = GetServer(getter_AddRefs(server));
-    NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
-    // need to check if this is a pop3 or no mail server to determine which password
-    // we should challenge the user with.
-    nsCOMPtr<nsIMsgIncomingServer> serverToAuthenticateAgainst;
-    nsCOMPtr<nsINoIncomingServer> noIncomingServer = do_QueryInterface(server);
-    if (noIncomingServer)
-    {
-      nsCOMPtr<nsIMsgAccount> defaultAccount;
-      accountManager->GetDefaultAccount(getter_AddRefs(defaultAccount));
-      if (defaultAccount)
-        defaultAccount->GetIncomingServer(getter_AddRefs(serverToAuthenticateAgainst));
-    }
-    else
-      GetServer(getter_AddRefs(serverToAuthenticateAgainst));
-    if (serverToAuthenticateAgainst)
-    {
-      PRBool passwordMatches = PR_FALSE;
-      rv = PromptForCachePassword(serverToAuthenticateAgainst, aWindow, passwordMatches);
-      if (!passwordMatches)
-        return NS_ERROR_FAILURE;
-    }
-  }
+  if (!PromptForMasterPasswordIfNecessary())
+    return NS_ERROR_FAILURE;
+
   //If we don't currently have a database, get it.  Otherwise, the folder has been updated (presumably this
   //changes when we download headers when opening inbox).  If it's updated, send NotifyFolderLoaded.
   if(!mDatabase)

@@ -2050,7 +2050,14 @@ NS_IMETHODIMP nsImapIncomingServer::SetUserAuthenticated(PRBool aUserAuthenticat
 {
   m_userAuthenticated = aUserAuthenticated;
   if (aUserAuthenticated)
-    StorePassword();
+  {
+    nsresult rv;
+    nsCOMPtr<nsIMsgAccountManager> accountManager =
+      do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    accountManager->SetUserNeedsToAuthenticate(PR_FALSE);
+  }
   return NS_OK;
 }
 

@@ -190,7 +190,6 @@ bin/components/satchel.xpt
 bin/components/saxparser.xpt
 bin/components/shistory.xpt
 bin/components/shellservice.xpt
-bin/components/signonviewer.xpt
 bin/components/spellchecker.xpt
 bin/components/storage.xpt
 bin/components/libstoragecomps.so
@@ -214,11 +213,6 @@ bin/components/libuniversalchardet.so
 bin/components/update.xpt
 bin/components/uriloader.xpt
 bin/components/urlformatter.xpt
-bin/components/libwallet.so
-bin/components/libwalletviewers.so
-bin/components/wallet.xpt
-bin/components/walleteditor.xpt
-bin/components/walletpreview.xpt
 bin/components/webBrowser_core.xpt
 bin/components/webbrowserpersist.xpt
 bin/components/libwebbrwsr.so
@@ -281,6 +275,7 @@ bin/components/nsURLFormatter.js
 bin/components/nsWebHandlerApp.js
 bin/components/pluginGlue.js
 bin/components/storage-Legacy.js
+bin/components/storage-mozStorage.js
 bin/components/txEXSLTRegExFunctions.js
 
 ; Modules
@@ -355,15 +350,6 @@ bin/extensions/modern@themes.mozilla.org/preview.png
 bin/defaults/autoconfig/*
 bin/defaults/pref/*
 bin/greprefs/*
-
-; Wallet schemas
-bin/defaults/wallet/VcardSchema.tbl
-bin/defaults/wallet/FieldSchema.tbl
-bin/defaults/wallet/SchemaConcat.tbl
-bin/defaults/wallet/DistinguishedSchema.tbl
-bin/defaults/wallet/SchemaStrings.tbl
-bin/defaults/wallet/PositionalSchema.tbl
-bin/defaults/wallet/StateSchema.tbl
 
 ; LDAP components need to be in the browser for AutoConfig
 bin/libldap60.so

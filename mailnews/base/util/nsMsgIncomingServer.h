@@ -78,9 +78,10 @@ class NS_MSG_BASE nsMsgIncomingServer : public nsIMsgIncomingServer,
 protected:
   nsCString m_serverKey;
 
+  void GetPasswordWithoutUI(nsACString &aPassword);
+
   nsresult ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *filterList);
   nsresult ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filterList);
-  PRBool PasswordProtectLocalCache();
 
   nsCOMPtr <nsIMsgFolder> m_rootFolder;
   nsCOMPtr <nsIMsgRetentionSettings> m_retentionSettings;

@@ -192,7 +192,6 @@ bin\components\satchel.xpt
 bin\components\saxparser.xpt
 bin\components\shellservice.xpt
 bin\components\shistory.xpt
-bin\components\signonviewer.xpt
 bin\components\storage.xpt
 bin\components\strgcmps.dll
 bin\components\suite.dll
@@ -212,10 +211,6 @@ bin\components\universalchardet.dll
 bin\components\update.xpt
 bin\components\uriloader.xpt
 bin\components\urlformatter.xpt
-bin\components\wallet.dll
-bin\components\wallet.xpt
-bin\components\walleteditor.xpt
-bin\components\walletpreview.xpt
 bin\components\webBrowser_core.xpt
 bin\components\webbrowserpersist.xpt
 bin\components\webbrwsr.dll
@@ -281,6 +276,7 @@ bin\components\nsUpdateService.js
 bin\components\nsURLFormatter.js
 bin\components\pluginGlue.js
 bin\components\storage-Legacy.js
+bin\components\storage-mozStorage.js
 bin\components\txEXSLTRegExFunctions.js
 bin\components\nsAboutAbout.js
 bin\components\nsDefaultCLH.js
@@ -403,13 +399,6 @@ bin\res\entityTables\*
 bin\res\dtd\*
 bin\res\fonts\*
 bin\res\html\*
-bin\defaults\wallet\VcardSchema.tbl
-bin\defaults\wallet\FieldSchema.tbl
-bin\defaults\wallet\SchemaConcat.tbl
-bin\defaults\wallet\DistinguishedSchema.tbl
-bin\defaults\wallet\SchemaStrings.tbl
-bin\defaults\wallet\PositionalSchema.tbl
-bin\defaults\wallet\StateSchema.tbl
 
 ; MathML, optional for MathML charset conversion
 bin\components\ucvmath.dll

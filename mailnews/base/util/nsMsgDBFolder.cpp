@@ -71,7 +71,6 @@
 #include "nsIMsgMailSession.h"
 #include "nsIRDFService.h"
 #include "nsTextFormatter.h"
-#include "nsCPasswordManager.h"
 #include "nsMsgDBCID.h"
 #include "nsInt64.h"
 #include "nsReadLine.h"
@@ -97,6 +96,8 @@
 #include "nsITransactionManager.h"
 #include "nsMsgReadStateTxn.h"
 #include "nsAutoPtr.h"
+#include "nsIPK11TokenDB.h"
+#include "nsIPK11Token.h"
 
 #define oneHour 3600000000U
 #include "nsMsgUtils.h"
@@ -2232,79 +2233,55 @@ nsMsgDBFolder::SetLastMessageLoaded(nsMsgKey aMsgKey)
   return NS_OK;
 }
 
-nsresult nsMsgDBFolder::PromptForCachePassword(nsIMsgIncomingServer *server, nsIMsgWindow *aWindow, PRBool &passwordCorrect)
+// Returns true if: a) there is no need to prompt or b) the user is already
+// logged in or c) the user logged in successfully.
+PRBool nsMsgDBFolder::PromptForMasterPasswordIfNecessary()
 {
-  PRBool userDidntCancel;
-  passwordCorrect = PR_FALSE;
-  nsCOMPtr <nsIStringBundle> bundle;
-  nsresult rv = GetBaseStringBundle(getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCString hostName;
-  nsCString userName;
-  nsString passwordTemplate;
-  nsCString password;
-  nsString passwordTitle;
-  nsString passwordPromptString;
+  nsresult rv;
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
+    do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
-  server->GetRealHostName(hostName);
-  server->GetRealUsername(userName);
-  bundle->GetStringFromName(NS_LITERAL_STRING("passwordTitle").get(), getter_Copies(passwordTitle));
-  bundle->GetStringFromName(NS_LITERAL_STRING("passwordPrompt").get(), getter_Copies(passwordTemplate));
-  
-  NS_ConvertASCIItoUTF16 userNameStr(userName);
-  NS_ConvertASCIItoUTF16 hostNameStr(hostName);
+  PRBool userNeedsToAuthenticate = PR_FALSE;
+  // if we're PasswordProtectLocalCache, then we need to find out if the server
+  // is authenticated.
+  (void) accountManager->GetUserNeedsToAuthenticate(&userNeedsToAuthenticate);
+  if (!userNeedsToAuthenticate)
+    return PR_TRUE;
 
-  const PRUnichar *stringParams[2] = { userNameStr.get(), hostNameStr.get() };
+  // Do we have a master password?
+  nsCOMPtr<nsIPK11TokenDB> tokenDB =
+    do_GetService(NS_PK11TOKENDB_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
-  rv = bundle->FormatStringFromName(
-        NS_LITERAL_STRING("passwordPrompt").get(), stringParams, 2,
-        getter_Copies(passwordPromptString ));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIPK11Token> token;
+  rv = tokenDB->GetInternalKeyToken(getter_AddRefs(token));
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
-  do
+  PRBool result;
+  rv = token->CheckPassword(EmptyString().get(), &result);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+  if (result)
   {
-    rv = server->GetPasswordWithUI(passwordPromptString,
-                                   passwordTitle,
-                                   aWindow,
-                                   &userDidntCancel,
-                                   password);
-    if (rv != NS_MSG_PASSWORD_PROMPT_CANCELLED && !password.IsEmpty())
-    {
-      nsCOMPtr <nsIPasswordManagerInternal> passwordMgrInt = do_GetService(NS_PASSWORDMANAGER_CONTRACTID, &rv);
-      if(passwordMgrInt)
-      {
-        // Get the current server URI
-        nsCString currServerUri;
-        rv = server->GetServerURI(currServerUri);
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        currServerUri.Insert('x', 0);
-        nsCAutoString hostFound;
-        nsAutoString userNameFound;
-        nsAutoString passwordFound;
-
-        // Get password entry corresponding to the host URI we are passing in.
-        rv = passwordMgrInt->FindPasswordEntry(currServerUri, EmptyString(), EmptyString(),
-                                               hostFound, userNameFound,
-                                               passwordFound);
-        if (NS_FAILED(rv))
-          break;
-        // compare the user-entered password with the saved password with
-        // the munged uri.
-        passwordCorrect = password.Equals(NS_ConvertUTF16toUTF8(passwordFound));
-        if (!passwordCorrect)
-          server->SetPassword(EmptyCString());
-        else
-        {
-          nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID);
-          if (accountManager)
-            accountManager->SetUserNeedsToAuthenticate(PR_FALSE);
-        }
-      }
-    }
+    // We don't have a master password, so this function isn't supported,
+    // therefore just tell account manager we've authenticated and return true.
+    accountManager->SetUserNeedsToAuthenticate(PR_FALSE);
+    return PR_TRUE;
   }
-  while (NS_SUCCEEDED(rv) && rv != NS_MSG_PASSWORD_PROMPT_CANCELLED && userDidntCancel && !passwordCorrect);
-  return (!passwordCorrect) ? NS_ERROR_FAILURE : rv;
+
+  // We have a master password, so try and login to the slot.
+  rv = token->Login(PR_FALSE);
+  if (NS_FAILED(rv))
+    // Login failed, so we didn't get a password (e.g. prompt cancelled).
+    return PR_FALSE;
+
+  // Double-check that we are now logged in
+  rv = token->IsLoggedIn(&result);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+  accountManager->SetUserNeedsToAuthenticate(!result);
+  return result;
 }
 
 // this gets called after the last junk mail classification has run.

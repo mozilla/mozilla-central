@@ -148,9 +148,13 @@ bin\nsldap32v60.dll
 bin\nsldappr32v60.dll
 bin\nsldif32v60.dll
 
-; wallet
-bin\components\wallet.xpt
-bin\components\signonviewer.xpt
+; login manager
+bin\components\loginmgr.xpt
+bin\components\nsLoginInfo.js
+bin\components\nsLoginManager.js
+bin\components\nsLoginManagerPrompter.js
+bin\components\storage-Legacy.js
+bin\components\storage-mozStorage.js
 
 ; download progress
 bin\components\nsHelperAppDlg.js
