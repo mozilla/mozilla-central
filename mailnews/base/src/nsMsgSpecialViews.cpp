@@ -38,6 +38,7 @@
 #include "msgCore.h"
 #include "nsMsgSpecialViews.h"
 #include "nsIMsgThread.h"
+#include "nsMsgMessageFlags.h"
 
 nsMsgThreadsWithUnreadDBView::nsMsgThreadsWithUnreadDBView()
 {

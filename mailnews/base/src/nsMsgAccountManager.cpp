@@ -94,6 +94,7 @@
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
 #include "nsIStringBundle.h"
+#include "nsMsgMessageFlags.h"
 
 #define PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS "mail.accountmanager.accounts"
 #define PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT "mail.accountmanager.defaultaccount"

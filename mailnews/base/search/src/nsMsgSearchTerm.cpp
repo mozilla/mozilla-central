@@ -74,6 +74,7 @@
 #include <ctype.h>
 #include "nsMsgBaseCID.h"
 #include "nsIMsgTagService.h"
+#include "nsMsgMessageFlags.h"
 
 //---------------------------------------------------------------------------
 // nsMsgSearchTerm specifies one criterion, e.g. name contains phil

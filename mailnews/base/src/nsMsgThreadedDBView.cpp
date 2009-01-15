@@ -41,6 +41,7 @@
 #include "nsIMsgThread.h"
 #include "nsIDBFolderInfo.h"
 #include "nsIMsgSearchSession.h"
+#include "nsMsgMessageFlags.h"
 
 #define MSGHDR_CACHE_LOOK_AHEAD_SIZE  25    // Allocate this more to avoid reallocation on new mail.
 #define MSGHDR_CACHE_MAX_SIZE         8192  // Max msghdr cache entries.

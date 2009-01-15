@@ -49,6 +49,7 @@
 #include "nsITreeColumns.h"
 #include "nsIMsgSearchSession.h"
 #include "nsMsgDBCID.h"
+#include "nsMsgMessageFlags.h"
 
 nsMsgXFVirtualFolderDBView::nsMsgXFVirtualFolderDBView()
 {

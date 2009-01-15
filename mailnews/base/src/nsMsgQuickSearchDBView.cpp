@@ -46,6 +46,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIDBFolderInfo.h"
 #include "nsArrayEnumerator.h"
+#include "nsMsgMessageFlags.h"
 
 nsMsgQuickSearchDBView::nsMsgQuickSearchDBView()
 {

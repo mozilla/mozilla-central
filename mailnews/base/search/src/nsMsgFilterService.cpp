@@ -73,6 +73,7 @@
 #include "nsCOMArray.h"
 #include "nsIMsgFilterCustomAction.h"
 #include "nsArrayEnumerator.h"
+#include "nsMsgMessageFlags.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgFilterService, nsIMsgFilterService)
 

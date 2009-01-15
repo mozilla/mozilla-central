@@ -51,6 +51,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsIRequestObserver.h"
 #include "nsIMsgMailSession.h"
+#include "nsMsgMessageFlags.h"
 
 // This file contains the news article download state machine.
 

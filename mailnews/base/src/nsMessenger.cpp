@@ -98,6 +98,7 @@
 #include "nsIMailboxUrl.h"
 #include "nsIMsgFolder.h"
 #include "nsMsgFolderFlags.h"
+#include "nsMsgMessageFlags.h"
 #include "nsIMsgIncomingServer.h"
 
 #include "nsIMsgMessageService.h"

@@ -39,6 +39,7 @@
 #include "msgCore.h"
 #include "nsMsgXFViewThread.h"
 #include "nsMsgSearchDBView.h"
+#include "nsMsgMessageFlags.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgXFViewThread, nsIMsgThread)
 

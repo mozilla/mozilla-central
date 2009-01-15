@@ -81,6 +81,7 @@
 #include "nsILineInputStream.h"
 #include "nsLocalStrings.h"
 #include "nsIInterfaceRequestor.h"
+#include "nsMsgMessageFlags.h"
 
 #define EXTRA_SAFETY_SPACE 3096
 

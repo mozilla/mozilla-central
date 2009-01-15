@@ -71,6 +71,7 @@
 #include "nsTextFormatter.h"
 #include "nsIMutableArray.h"
 #include "nsIMimeConverter.h"
+#include "nsMsgMessageFlags.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 

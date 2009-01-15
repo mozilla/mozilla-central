@@ -69,6 +69,7 @@
 #include "nsILocalFile.h"
 #include "nsIFileStreams.h"
 #include "nsNetCID.h"
+#include "nsMsgMessageFlags.h"
 
 PRLogModuleInfo *MAPI;
 

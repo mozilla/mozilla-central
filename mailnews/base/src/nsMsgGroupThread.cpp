@@ -39,6 +39,7 @@
 #include "msgCore.h"
 #include "nsMsgGroupThread.h"
 #include "nsMsgDBView.h"
+#include "nsMsgMessageFlags.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgGroupThread, nsIMsgThread)
 

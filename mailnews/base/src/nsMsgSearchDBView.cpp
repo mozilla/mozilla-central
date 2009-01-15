@@ -53,6 +53,7 @@
 #include "nsMsgGroupThread.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
+#include "nsMsgMessageFlags.h"
 
 static PRBool gReferenceOnlyThreading;
 

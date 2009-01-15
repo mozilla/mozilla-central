@@ -59,6 +59,7 @@
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsIMsgDatabase.h"
 #include "nsArrayUtils.h"
+#include "nsMsgMessageFlags.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // nsFolderCompactState
