@@ -69,6 +69,7 @@ comm.jar:
    content/communicator/nsContextMenu.js
    content/communicator/openLocation.js
    content/communicator/openLocation.xul
+   content/communicator/passwordManager.xul
    content/communicator/printPreviewBindings.xml
    content/communicator/sanitize.xul
    content/communicator/tasksOverlay.js
