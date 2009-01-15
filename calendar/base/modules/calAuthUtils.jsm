@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -122,33 +123,18 @@ cal.auth = {
         cal.ASSERT(aPassword);
 
         try {
-            if (Components.classes["@mozilla.org/passwordmanager;1"]) {
-                cal.auth.passwordManagerRemove(aUsername, aHostName, aRealm);
-                let passwordManager = Components.classes["@mozilla.org/passwordmanager;1"]
-                                                .getService(Components.interfaces.nsIPasswordManager);
-                if (aHostName && aHostName[aHostName.length - 1] == '/') {
-                    // strip trailing slash on branch:
-                    aHostName = aHostName.substr(0, aHostName.length - 1);
-                }
-                passwordManager.addUser(aHostName, aUsername, aPassword);
-            } else if (Components.classes["@mozilla.org/login-manager;1"]) {
-                // Trunk uses LoginManager
-                let loginManager = Components.classes["@mozilla.org/login-manager;1"]
-                                             .getService(Components.interfaces.nsILoginManager);
-                let logins = loginManager.findLogins({}, aHostName, null, aRealm);
-                if (logins.length > 0) {
-                    let loginInfo = logins[0].clone();
-                    loginInfo.password = aPassword;
-                    loginManager.modifyLogin(logins[0], loginInfo);
-                } else {
-                    let loginInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
-                                              .createInstance(Components.interfaces.nsILoginInfo);
-                    loginInfo.init(aHostName,
-                                   null, aRealm,
-                                   aUsername, aPassword,
-                                   null, null);
-                    loginManager.addLogin(loginInfo);
-                }
+            let loginManager = Components.classes["@mozilla.org/login-manager;1"]
+                                         .getService(Components.interfaces.nsILoginManager);
+            let logins = loginManager.findLogins({}, aHostName, null, aRealm);
+            if (logins.length > 0) {
+                let loginInfo = logins[0].clone();
+                loginInfo.password = aPassword;
+                loginManager.modifyLogin(logins[0], loginInfo);
+            } else {
+                let loginInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
+                                          .createInstance(Components.interfaces.nsILoginInfo);
+                loginInfo.init(aHostName, null, aRealm, aUsername, aPassword, null, null);
+                loginManager.addLogin(loginInfo);
             }
         } catch (exc) {
             cal.ASSERT(false, exc);
@@ -172,39 +158,17 @@ cal.auth = {
         }
 
         try {
-            if (Components.classes["@mozilla.org/passwordmanager;1"]) {
-                // Branch uses PasswordManager
-                let passwordManager = Components.classes["@mozilla.org/passwordmanager;1"]
-                                                .getService(Components.interfaces.nsIPasswordManager);
+            let loginManager = Components.classes["@mozilla.org/login-manager;1"]
+                                         .getService(Components.interfaces.nsILoginManager);
+            if (!loginManager.getLoginSavingEnabled(aUsername)) {
+                return false;
+            }
 
-                if (aHostName && aHostName[aHostName.length - 1] == '/') {
-                    // strip trailing slash on branch:
-                    aHostName = aHostName.substr(0, aHostName.length - 1);
-                }
-
-                let enumerator = passwordManager.enumerator;
-                while (enumerator.hasMoreElements()) {
-                    let entry = enumerator.getNext().QueryInterface(Components.interfaces.nsIPassword);
-                    if ((entry.host == aHostName) &&
-                        (entry.user == aUsername)) {
-                        aPassword.value = entry.password;
-                        return true;
-                    }
-                }
-            } else if (Components.classes["@mozilla.org/login-manager;1"]) {
-                // Trunk uses LoginManager
-                let loginManager = Components.classes["@mozilla.org/login-manager;1"]
-                                             .getService(Components.interfaces.nsILoginManager);
-                if (!loginManager.getLoginSavingEnabled(aUsername)) {
-                    return false;
-                }
-
-                let logins = loginManager.findLogins({}, aHostName, null, aRealm);
-                for each (let loginInfo in logins) {
-                    if (loginInfo.username == aUsername) {
-                        aPassword.value = loginInfo.password;
-                        return true;
-                    }
+            let logins = loginManager.findLogins({}, aHostName, null, aRealm);
+            for each (let loginInfo in logins) {
+                if (loginInfo.username == aUsername) {
+                    aPassword.value = loginInfo.password;
+                    return true;
                 }
             }
         } catch (exc) {
@@ -225,26 +189,13 @@ cal.auth = {
         cal.ASSERT(aUsername);
 
         try {
-            if (Components.classes["@mozilla.org/passwordmanager;1"]) {
-                // Branch uses PasswordManager
-                let passwordManager = Components.classes["@mozilla.org/passwordmanager;1"]
-                                                .getService(Components.interfaces.nsIPasswordManager);
-                if (aHostName && aHostName[aHostName.length - 1] == '/') {
-                    // strip trailing slash on branch:
-                    aHostName = aHostName.substr(0, aHostName.length - 1);
-                }
-                passwordManager.removeUser(aHostName, aUsername);
-                return true;
-            } else if (Components.classes["@mozilla.org/login-manager;1"]) {
-                // Trunk uses LoginManager
-                let loginManager = Components.classes["@mozilla.org/login-manager;1"]
-                                             .getService(Components.interfaces.nsILoginManager);
-                let logins = loginManager.findLogins({}, aHostName, null, aRealm);
-                for each (let loginInfo in logins) {
-                    if (loginInfo.username == aUsername) {
-                        loginManager.removeLogin(loginInfo);
-                        return true;
-                    }
+            let loginManager = Components.classes["@mozilla.org/login-manager;1"]
+                                         .getService(Components.interfaces.nsILoginManager);
+            let logins = loginManager.findLogins({}, aHostName, null, aRealm);
+            for each (let loginInfo in logins) {
+                if (loginInfo.username == aUsername) {
+                    loginManager.removeLogin(loginInfo);
+                    return true;
                 }
             }
         } catch (exc) {
@@ -268,37 +219,15 @@ cal.auth.Prompt.prototype = {
         let password;
         let found = false;
 
-        if ("@mozilla.org/passwordmanager;1" in Components.classes) {
-            let passwordManager = Components.classes["@mozilla.org/passwordmanager;1"]
-                                            .getService(Components.interfaces.nsIPasswordManager);
-            let passwordRealm = aPasswordRealm.passwordRealm || aPasswordRealm;
-            let pwenum = passwordManager.enumerator;
-            // step through each password in the password manager until we find the one we want:
-            while (pwenum.hasMoreElements()) {
-                try {
-                    let pass = pwenum.getNext().QueryInterface(Components.interfaces.nsIPassword);
-                    if (pass.host == passwordRealm) {
-                         // found it!
-                         username = pass.user;
-                         password = pass.password;
-                         found = true;
-                    }
-                } catch (ex) {
-                    // don't do anything here, ignore the password that could not be read
-                }
-            }
-        } else {
-            let loginManager = Components.classes["@mozilla.org/login-manager;1"]
-                                         .getService(Components.interfaces
-                                         .nsILoginManager);
-            let logins = loginManager.findLogins({}, aPasswordRealm.prePath, null,
-                                                 aPasswordRealm.realm);
-            if (logins.length) {
-                username = logins[0].username;
-                password = logins[0].password;
-                found = true;
-            }
+        let loginManager = Components.classes["@mozilla.org/login-manager;1"]
+                                     .getService(Components.interfaces.nsILoginManager);
+        let logins = loginManager.findLogins({}, aPasswordRealm.prePath, null, aPasswordRealm.realm);
+        if (logins.length) {
+            username = logins[0].username;
+            password = logins[0].password;
+            found = true;
         }
+
         return {found: found, username: username, password: password};
     },
 
