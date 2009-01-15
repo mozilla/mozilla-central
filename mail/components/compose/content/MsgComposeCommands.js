@@ -3440,26 +3440,25 @@ function AddRecipient(recipientType, address)
 
 function loadHTMLMsgPrefs()
 {
-  var pref = GetPrefs();
   var fontFace;
   var fontSize;
   var textColor;
   var bgColor;
   
   try { 
-    fontFace = pref.getCharPref("msgcompose.font_face");
+    fontFace = getPref("msgcompose.font_face", true);
     doStatefulCommand('cmd_fontFace', fontFace);
   } catch (e) {}
 
   try { 
-    fontSize = pref.getCharPref("msgcompose.font_size");
+    fontSize = getPref("msgcompose.font_size");
     EditorSetFontSize(fontSize);
   } catch (e) {}
 
   var bodyElement = GetBodyElement();
 
   try { 
-    textColor = pref.getCharPref("msgcompose.text_color");
+    textColor = getPref("msgcompose.text_color");
     if (!bodyElement.getAttribute("text"))
     {
     bodyElement.setAttribute("text", textColor);
@@ -3470,7 +3469,7 @@ function loadHTMLMsgPrefs()
   } catch (e) {}
 
   try { 
-    bgColor = pref.getCharPref("msgcompose.background_color");
+    bgColor = getPref("msgcompose.background_color");
     if (!bodyElement.getAttribute("bgcolor"))
     {
     bodyElement.setAttribute("bgcolor", bgColor);
