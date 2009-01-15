@@ -49,7 +49,10 @@
 
 #define COMPACTOR_READ_BUFF_SIZE 16384
 
-class nsFolderCompactState : public nsIMsgFolderCompactor, public nsIStreamListener, public nsICopyMessageStreamListener, public nsIUrlListener
+class nsFolderCompactState : public nsIMsgFolderCompactor,
+                             public nsIStreamListener,
+                             public nsICopyMessageStreamListener,
+                             public nsIUrlListener
 {
 public:
   NS_DECL_ISUPPORTS
@@ -75,6 +78,7 @@ protected:
   nsresult ShowStatusMsg(const nsString& aMsg);
   nsresult ReleaseFolderLock();
   void     ShowCompactingStatusMsg();
+  void     CompactCompleted(nsresult exitCode);
   void     ShowDoneStatus();
   nsresult CompactNextFolder();
   void     AdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32 maxBufferOffset);
@@ -93,7 +97,7 @@ protected:
   char m_dataBuffer[COMPACTOR_READ_BUFF_SIZE + 1]; // temp data buffer for copying message
   nsresult m_status; // the status of the copying operation
   nsCOMPtr <nsIMsgMessageService> m_messageService; // message service for copying 
-  nsCOMPtr<nsISupportsArray> m_folderArray; // to store all the folders in case of compact all
+  nsCOMPtr<nsIArray> m_folderArray; // folders we are compacting, if compacting multiple.
   nsCOMPtr <nsIMsgWindow> m_window;
   nsCOMPtr <nsIMsgDBHdr> m_curSrcHdr;
   PRUint32 m_folderIndex; // tells which folder to compact in case of compact all
@@ -106,8 +110,8 @@ protected:
   PRBool m_startOfMsg;
   PRInt32 m_statusOffset;
   PRUint32 m_addedHeaderSize;
-  nsCOMPtr <nsISupportsArray> m_offlineFolderArray;
-
+  nsCOMPtr<nsIArray> m_offlineFolderArray;
+  nsCOMPtr<nsIUrlListener> m_listener;
 };
 
 class nsOfflineStoreCompactState : public nsFolderCompactState

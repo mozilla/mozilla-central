@@ -1219,45 +1219,50 @@ NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow 
   return  imapService->Expunge(m_thread, this, aListener, nsnull);
 }
 
-NS_IMETHODIMP nsImapMailFolder::CompactAll(nsIUrlListener *aListener,  nsIMsgWindow *aMsgWindow, nsISupportsArray *aFolderArray,
-                                           PRBool aCompactOfflineAlso, nsISupportsArray *aOfflineFolderArray)
+NS_IMETHODIMP nsImapMailFolder::CompactAll(nsIUrlListener *aListener,
+                                               nsIMsgWindow *aMsgWindow,
+                                               PRBool aCompactOfflineAlso)
 {
-  NS_ASSERTION(!aOfflineFolderArray, "compacting automatically compacts offline stores");
   nsresult rv;
-  nsCOMPtr<nsISupportsArray> folderArray;
+  nsCOMPtr<nsIMutableArray> folderArray, offlineFolderArray;
 
-  if (!aFolderArray)
+  nsCOMPtr<nsIMsgFolder> rootFolder;
+  nsCOMPtr<nsISupportsArray> allDescendents;
+  rv = GetRootFolder(getter_AddRefs(rootFolder));
+  if (NS_SUCCEEDED(rv) && rootFolder)
   {
-    nsCOMPtr<nsIMsgFolder> rootFolder;
-    nsCOMPtr<nsISupportsArray> allDescendents;
-    rv = GetRootFolder(getter_AddRefs(rootFolder));
-    if (NS_SUCCEEDED(rv) && rootFolder)
+    allDescendents = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+    NS_ENSURE_TRUE(allDescendents, rv);
+    rootFolder->ListDescendents(allDescendents);
+    PRUint32 cnt = 0;
+    rv = allDescendents->Count(&cnt);
+    NS_ENSURE_SUCCESS(rv, rv);
+    folderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    NS_ENSURE_TRUE(folderArray, rv);
+    if (aCompactOfflineAlso)
     {
-      allDescendents = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
-      NS_ENSURE_TRUE(allDescendents, rv);
-      rootFolder->ListDescendents(allDescendents);
-      PRUint32 cnt =0;
-      rv = allDescendents->Count(&cnt);
-      NS_ENSURE_SUCCESS(rv,rv);
-      folderArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
-      NS_ENSURE_TRUE(folderArray, rv);
-      for (PRUint32 i=0; i < cnt;i++)
-      {
-        nsCOMPtr<nsISupports> supports = getter_AddRefs(allDescendents->ElementAt(i));
-        nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(supports, &rv);
-        NS_ENSURE_SUCCESS(rv,rv);
-        rv = folderArray->AppendElement(supports);
-      }
-      rv = folderArray->Count(&cnt);
-      NS_ENSURE_SUCCESS(rv,rv);
-      if (cnt == 0)
-        return NotifyCompactCompleted();
+      offlineFolderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+      NS_ENSURE_TRUE(offlineFolderArray, rv);
     }
+    for (PRUint32 i = 0; i < cnt; i++)
+    {
+      nsCOMPtr<nsISupports> supports = dont_AddRef(allDescendents->ElementAt(i));
+      nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(supports, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = folderArray->AppendElement(supports, PR_FALSE);
+      if (aCompactOfflineAlso)
+        offlineFolderArray->AppendElement(supports, PR_FALSE);
+    }
+    rv = folderArray->GetLength(&cnt);
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (cnt == 0)
+      return NotifyCompactCompleted();
   }
-  nsCOMPtr <nsIMsgFolderCompactor> folderCompactor =  do_CreateInstance(NS_MSGLOCALFOLDERCOMPACTOR_CONTRACTID, &rv);
+  nsCOMPtr <nsIMsgFolderCompactor> folderCompactor =
+    do_CreateInstance(NS_MSGLOCALFOLDERCOMPACTOR_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderCompactor->CompactAll(aFolderArray ? aFolderArray : folderArray.get(), aMsgWindow,
-                                     aCompactOfflineAlso, aOfflineFolderArray);
+  return folderCompactor->CompactFolders(folderArray, offlineFolderArray,
+                                         aListener, aMsgWindow);
 }
 
 NS_IMETHODIMP nsImapMailFolder::UpdateStatus(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)

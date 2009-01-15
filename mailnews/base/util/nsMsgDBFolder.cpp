@@ -359,9 +359,9 @@ NS_IMETHODIMP nsMsgDBFolder::OpenBackupMsgDatabase()
   rv = backupDBDummyFolder->Append(folderName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mBackupDatabase = do_CreateInstance(NS_MAILBOXDB_CONTRACTID, &rv);
   nsCOMPtr<nsIMsgDBService> msgDBService =
       do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   rv = msgDBService->OpenMailDBFromFile(
       backupDBDummyFolder, PR_FALSE, PR_TRUE, getter_AddRefs(mBackupDatabase));
 
@@ -1600,12 +1600,12 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
   return NS_OK;
 }
 
-nsresult nsMsgDBFolder::CompactOfflineStore(nsIMsgWindow *inWindow)
+nsresult nsMsgDBFolder::CompactOfflineStore(nsIMsgWindow *inWindow, nsIUrlListener *aListener)
 {
   nsresult rv;
   nsCOMPtr <nsIMsgFolderCompactor> folderCompactor =  do_CreateInstance(NS_MSGOFFLINESTORECOMPACTOR_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderCompactor->Compact(this, PR_TRUE, inWindow);
+  return folderCompactor->Compact(this, PR_TRUE, aListener, inWindow);
 }
 
 nsresult
@@ -1626,18 +1626,18 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
    {
      nsCOMPtr<nsISupportsArray> allServers;
      accountMgr->GetAllServers(getter_AddRefs(allServers));
-     NS_ENSURE_SUCCESS(rv,rv);
+     NS_ENSURE_SUCCESS(rv, rv);
      PRUint32 numServers, serverIndex=0;
      rv = allServers->Count(&numServers);
      PRInt32 offlineSupportLevel;
      if ( numServers > 0 )
      {
        nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex);
-       NS_ENSURE_SUCCESS(rv,rv);
-       nsCOMPtr<nsISupportsArray> folderArray;
-       nsCOMPtr<nsISupportsArray> offlineFolderArray;
-       NS_NewISupportsArray(getter_AddRefs(folderArray));
-       NS_NewISupportsArray(getter_AddRefs(offlineFolderArray));
+       NS_ENSURE_SUCCESS(rv, rv);
+       nsCOMPtr<nsIMutableArray> folderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+       NS_ENSURE_SUCCESS(rv, rv);
+       nsCOMPtr<nsIMutableArray> offlineFolderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+       NS_ENSURE_SUCCESS(rv, rv);
        PRInt32 totalExpungedBytes = 0;
        PRInt32 offlineExpungedBytes = 0;
        PRInt32 localExpungedBytes = 0;
@@ -1648,18 +1648,18 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
          if(NS_SUCCEEDED(rv) && rootFolder)
          {
            rv = server->GetOfflineSupportLevel(&offlineSupportLevel);
-           NS_ENSURE_SUCCESS(rv,rv);
+           NS_ENSURE_SUCCESS(rv, rv);
            nsCOMPtr<nsISupportsArray> allDescendents;
            NS_NewISupportsArray(getter_AddRefs(allDescendents));
            rootFolder->ListDescendents(allDescendents);
-           PRUint32 cnt=0;
+           PRUint32 cnt = 0;
            rv = allDescendents->Count(&cnt);
-           NS_ENSURE_SUCCESS(rv,rv);
+           NS_ENSURE_SUCCESS(rv, rv);
            PRUint32 expungedBytes=0;
            if (offlineSupportLevel > 0)
            {
              PRUint32 flags;
-             for (PRUint32 i=0; i< cnt;i++)
+             for (PRUint32 i = 0; i < cnt; i++)
              {
                nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
                expungedBytes = 0;
@@ -1668,20 +1668,20 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
                  folder->GetExpungedBytes(&expungedBytes);
                if (expungedBytes > 0 )
                {
-                 offlineFolderArray->AppendElement(folder);
+                 offlineFolderArray->AppendElement(folder, PR_FALSE);
                  offlineExpungedBytes += expungedBytes;
                }
              }
            }
            else  //pop or local
            {
-             for (PRUint32 i=0; i< cnt;i++)
+             for (PRUint32 i = 0; i < cnt; i++)
              {
                nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
                folder->GetExpungedBytes(&expungedBytes);
                if (expungedBytes > 0 )
                {
-                 folderArray->AppendElement(folder);
+                 folderArray->AppendElement(folder, PR_FALSE);
                  localExpungedBytes += expungedBytes;
                }
              }
@@ -1753,15 +1753,16 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
 
            if ( localExpungedBytes > 0)
            {
-             nsCOMPtr <nsIMsgFolder> msgFolder = do_QueryElementAt(folderArray, 0, &rv);
-             if (msgFolder && NS_SUCCEEDED(rv))
+               nsCOMPtr <nsIMsgFolderCompactor> folderCompactor =  do_CreateInstance(NS_MSGOFFLINESTORECOMPACTOR_CONTRACTID, &rv);
+               NS_ENSURE_SUCCESS(rv, rv);
+
                if (offlineExpungedBytes > 0)
-                 msgFolder->CompactAll(nsnull, aWindow, folderArray, PR_TRUE, offlineFolderArray);
+                 folderCompactor->CompactFolders(folderArray, offlineFolderArray, nsnull, aWindow);
                else
-                 msgFolder->CompactAll(nsnull, aWindow, folderArray, PR_FALSE, nsnull);
+                 folderCompactor->CompactFolders(folderArray, nsnull, nsnull, aWindow);
            }
            else if (offlineExpungedBytes > 0)
-             CompactAllOfflineStores(aWindow, offlineFolderArray);
+             CompactAllOfflineStores(nsnull, aWindow, offlineFolderArray);
          }
        }
      }
@@ -1771,13 +1772,15 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::CompactAllOfflineStores(nsIMsgWindow *aWindow, nsISupportsArray *aOfflineFolderArray)
+nsMsgDBFolder::CompactAllOfflineStores(nsIUrlListener *aUrlListener,
+                                       nsIMsgWindow *aWindow,
+                                       nsIArray *aOfflineFolderArray)
 {
-  nsresult rv= NS_OK;
-  nsCOMPtr <nsIMsgFolderCompactor> folderCompactor;
-  folderCompactor = do_CreateInstance(NS_MSGOFFLINESTORECOMPACTOR_CONTRACTID, &rv);
+  nsresult rv;
+  nsCOMPtr<nsIMsgFolderCompactor> folderCompactor
+    = folderCompactor = do_CreateInstance(NS_MSGOFFLINESTORECOMPACTOR_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderCompactor->CompactAll(nsnull, aWindow, PR_TRUE, aOfflineFolderArray);
+  return folderCompactor->CompactFolders(nsnull, aOfflineFolderArray, aUrlListener, aWindow);
 }
 
 nsresult
@@ -3258,7 +3261,7 @@ NS_IMETHODIMP nsMsgDBFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *aM
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow, nsISupportsArray *aFolderArray, PRBool aCompactOfflineAlso, nsISupportsArray *aCompactOfflineArray)
+NS_IMETHODIMP nsMsgDBFolder::CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow, PRBool aCompactOfflineAlso)
 {
   NS_ASSERTION(PR_FALSE, "should be overridden by child class");
   return NS_ERROR_NOT_IMPLEMENTED;

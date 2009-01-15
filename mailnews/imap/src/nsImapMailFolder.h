@@ -70,6 +70,7 @@
 
 class nsImapMoveCoalescer;
 class nsIMsgIdentity;
+class nsIMsgOfflineImapOperation;
 
 #define COPY_BUFFER_SIZE 16384
 
@@ -241,8 +242,8 @@ public:
   NS_IMETHODIMP CreateStorageIfMissing(nsIUrlListener* urlListener);
 
   NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow);
-  NS_IMETHOD CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow, nsISupportsArray *aFolderArray,
-                        PRBool aCompactOfflineAlso, nsISupportsArray *aOfflineFolderArray);
+  NS_IMETHOD CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow,
+                        PRBool aCompactOfflineAlso);
   NS_IMETHOD EmptyTrash(nsIMsgWindow *msgWindow, nsIUrlListener *aListener);
   NS_IMETHOD CopyDataToOutputStreamForAppend(nsIInputStream *aIStream,
                      PRInt32 aLength, nsIOutputStream *outputStream);

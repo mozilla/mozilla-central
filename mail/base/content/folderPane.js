@@ -1312,11 +1312,10 @@ let gFolderTreeController = {
       return;
 
     // reset thread pane for non-imap folders.
-    if (!isImapFolder && (gDBView.msgFolder == folder || aCompactAll))
+    if (!isImapFolder && gDBView && (gDBView.msgFolder == folder || aCompactAll))
       this._resetThreadPane();
-
     if (aCompactAll)
-      folder.compactAll(null, msgWindow, null, true, null);
+      folder.compactAll(null, msgWindow, isImapFolder || folder.server.type == "news");
     else
       folder.compact(null, msgWindow);
   },

@@ -1,6 +1,7 @@
 From - Mon Jun 02 19:00:00 2008
 X-Mozilla-Status: 0001
 X-Mozilla-Status2: 00000000
+X-Mozilla-Keys:                                                                                 
 Return-path: <example@example.com>
 Delivered-To: bugmail@example.org
 Received: by 10.114.166.12 with SMTP id o12cs163262wae;

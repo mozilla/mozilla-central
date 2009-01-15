@@ -153,7 +153,7 @@ protected:
   nsresult StartNewOfflineMessage();
   nsresult WriteStartOfNewLocalMessage();
   nsresult EndNewOfflineMessage();
-  nsresult CompactOfflineStore(nsIMsgWindow *inWindow);
+  nsresult CompactOfflineStore(nsIMsgWindow *inWindow, nsIUrlListener *aUrlListener);
   nsresult AutoCompact(nsIMsgWindow *aWindow);
   // this is a helper routine that ignores whether MSG_FLAG_OFFLINE is set for the folder
   nsresult MsgFitsDownloadCriteria(nsMsgKey msgKey, PRBool *result);

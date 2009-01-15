@@ -58,6 +58,7 @@
 #include "prprf.h"
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsIMsgDatabase.h"
+#include "nsArrayUtils.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // nsFolderCompactState
@@ -148,42 +149,49 @@ nsFolderCompactState::InitDB(nsIMsgDatabase *db)
   return rv;
 }
 
-NS_IMETHODIMP nsFolderCompactState::CompactAll(nsISupportsArray *aArrayOfFoldersToCompact, nsIMsgWindow *aMsgWindow, PRBool aCompactOfflineAlso, nsISupportsArray *aOfflineFolderArray)
+NS_IMETHODIMP nsFolderCompactState::CompactFolders(nsIArray *aArrayOfFoldersToCompact,
+                                                   nsIArray *aOfflineFolderArray,
+                                                   nsIUrlListener *aUrlListener,
+                                                   nsIMsgWindow *aMsgWindow)
 {
-  nsresult rv = NS_OK;
   m_window = aMsgWindow;
-  if (aArrayOfFoldersToCompact)  
-    m_folderArray =do_QueryInterface(aArrayOfFoldersToCompact, &rv);
+  m_listener = aUrlListener;
+  if (aArrayOfFoldersToCompact)
+    m_folderArray = aArrayOfFoldersToCompact;
   else if (aOfflineFolderArray)
   {
-    m_folderArray = do_QueryInterface(aOfflineFolderArray, &rv);
+    m_folderArray = aOfflineFolderArray;
     m_compactingOfflineFolders = PR_TRUE;
     aOfflineFolderArray = nsnull;
   }
-  if (NS_FAILED(rv) || !m_folderArray)
-    return rv;
+  if (!m_folderArray)
+    return NS_OK;
  
   m_compactAll = PR_TRUE;
-  m_compactOfflineAlso = aCompactOfflineAlso;
+  m_compactOfflineAlso = aOfflineFolderArray != nsnull;
   if (m_compactOfflineAlso)
-    m_offlineFolderArray = do_QueryInterface(aOfflineFolderArray);
+    m_offlineFolderArray = aOfflineFolderArray;
 
   m_folderIndex = 0;
+  nsresult rv = NS_OK;
   nsCOMPtr<nsIMsgFolder> firstFolder = do_QueryElementAt(m_folderArray,
                                                          m_folderIndex, &rv);
 
   if (NS_SUCCEEDED(rv) && firstFolder)
-    Compact(firstFolder, m_compactingOfflineFolders, aMsgWindow);   //start with first folder from here.
+    Compact(firstFolder, m_compactingOfflineFolders, aUrlListener, 
+            aMsgWindow);   //start with first folder from here.
   
   return rv;
 }
 
 NS_IMETHODIMP
-nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsgWindow *aMsgWindow)
+nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore,
+                              nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(folder);
+  m_listener = aListener;
   if (!m_compactingOfflineFolders && !aOfflineStore)
-{
+  {
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder);
     if (imapFolder)
       return folder->Compact(this, aMsgWindow);
@@ -228,16 +236,16 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsg
    else
    {
      rv=folder->GetMsgDatabase(nsnull, getter_AddRefs(db));
-     NS_ENSURE_SUCCESS(rv,rv);
+     NS_ENSURE_SUCCESS(rv, rv);
    }
    rv = folder->GetFilePath(getter_AddRefs(path));
-   NS_ENSURE_SUCCESS(rv,rv);
+   NS_ENSURE_SUCCESS(rv, rv);
 
    rv = folder->GetBaseMessageURI(baseMessageURI);
-   NS_ENSURE_SUCCESS(rv,rv);
+   NS_ENSURE_SUCCESS(rv, rv);
     
    rv = Init(folder, baseMessageURI.get(), db, path, m_window);
-   NS_ENSURE_SUCCESS(rv,rv);
+   NS_ENSURE_SUCCESS(rv, rv);
 
    PRBool isLocked;
    m_folder->GetLocked(&isLocked);
@@ -326,9 +334,9 @@ NS_IMETHODIMP nsFolderCompactState::OnStopRunningUrl(nsIURI *url, nsresult statu
 {
   if (m_parsingFolder)
   {
-    m_parsingFolder=PR_FALSE;
+    m_parsingFolder = PR_FALSE;
     if (NS_SUCCEEDED(status))
-      status=Compact(m_folder, m_compactingOfflineFolders, m_window);
+      status = Compact(m_folder, m_compactingOfflineFolders, this, m_window);
     else if (m_compactAll)
       CompactNextFolder();
   }
@@ -339,6 +347,10 @@ NS_IMETHODIMP nsFolderCompactState::OnStopRunningUrl(nsIURI *url, nsresult statu
     if (prevFolder)
       prevFolder->SetMsgDatabase(nsnull);
     CompactNextFolder();
+  }
+  else if (m_listener)
+  {
+    CompactCompleted(status);
   }
   return NS_OK;
 }
@@ -463,10 +475,17 @@ nsFolderCompactState::FinishCompact()
 
   if (m_compactAll)
     rv = CompactNextFolder();
-  else 
-    ShowDoneStatus();
+  else
+    CompactCompleted(NS_OK);
       
   return rv;
+}
+
+void nsFolderCompactState::CompactCompleted(nsresult exitCode)
+{
+  if (m_listener)
+    m_listener->OnStopRunningUrl(nsnull, exitCode);
+  ShowDoneStatus();
 }
 
 nsresult
@@ -496,36 +515,32 @@ void nsFolderCompactState::ShowDoneStatus()
 nsresult
 nsFolderCompactState::CompactNextFolder()
 {
-   nsresult rv = NS_OK;
-   m_folderIndex++;
-   PRUint32 cnt=0;
-   rv = m_folderArray->Count(&cnt);
-   NS_ENSURE_SUCCESS(rv,rv);
-   if (m_folderIndex == cnt)
-   {
-     if (m_compactOfflineAlso)
-     {
-       m_compactingOfflineFolders = PR_TRUE;
-       nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(m_folderArray,
-                                                         m_folderIndex-1, &rv);
-       if (NS_SUCCEEDED(rv) && folder)
-         folder->CompactAllOfflineStores(m_window, m_offlineFolderArray);
-     }
-     else
-     {
-       ShowDoneStatus();
-       return rv;
-     }
-       
-   } 
-   nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(m_folderArray,
-                                                     m_folderIndex, &rv);
+  m_folderIndex++;
+  PRUint32 cnt = 0;
+  nsresult rv = m_folderArray->GetLength(&cnt);
+  NS_ENSURE_SUCCESS(rv,rv);
+  if (m_folderIndex == cnt)
+  {
+    if (!m_compactOfflineAlso)
+    {
+      CompactCompleted(NS_OK);
+      return rv;
+    }
+    m_compactingOfflineFolders = PR_TRUE;
+    nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(m_folderArray,
+                                                      m_folderIndex-1, &rv);
+    if (NS_SUCCEEDED(rv) && folder)
+      folder->CompactAllOfflineStores(this, m_window, m_offlineFolderArray);
 
-   if (NS_SUCCEEDED(rv) && folder)
-     rv = Compact(folder, m_compactingOfflineFolders, m_window);                    
-    else
-      ShowDoneStatus();
-   return rv;
+  }
+  nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(m_folderArray,
+                                                    m_folderIndex, &rv);
+
+  if (NS_SUCCEEDED(rv) && folder)
+    rv = Compact(folder, m_compactingOfflineFolders, m_listener, m_window);
+  else
+    CompactCompleted(rv);
+  return rv;
 }
 
 nsresult

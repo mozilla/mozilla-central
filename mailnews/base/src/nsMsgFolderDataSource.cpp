@@ -798,7 +798,8 @@ nsMsgFolderDataSource::DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
       }
       else if ((aCommand == kNC_CompactAll))
       {
-        rv = folder->CompactAll(nsnull, window, nsnull, PR_TRUE, nsnull);
+        // this will also compact offline stores for IMAP
+        rv = folder->CompactAll(nsnull, window, PR_TRUE);
       }
       else if ((aCommand == kNC_EmptyTrash))
       {

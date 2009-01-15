@@ -204,7 +204,7 @@ nsresult nsMsgPurgeService::PerformPurge()
           NS_ENSURE_SUCCESS(rv, rv);
           rv = rootFolder->ListDescendents(childFolders);
 
-          PRUint32 cnt =0;
+          PRUint32 cnt = 0;
           childFolders->Count(&cnt);
 
           nsCOMPtr<nsISupports> supports;

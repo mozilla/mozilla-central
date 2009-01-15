@@ -36,18 +36,44 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsISupportsArray.idl"
 
 interface nsIMsgFolder;
 interface nsIMsgDatabase;
 interface nsIMsgWindow;
+interface nsIUrlListener;
+interface nsIArray;
 
-[scriptable, uuid(2af7d7a2-e5b6-11d4-a5b7-0060b0fc04b7)]
+[scriptable, uuid(38c7e876-3083-4aea-8dcd-0ea0ec1753a3)]
 
-/*  Use this for any object that wants to handle compacting folders */
+/**
+ * Use this for any object that wants to handle compacting folders.
+ * Currently, the folders themselves create this object.
+ */
 
 interface nsIMsgFolderCompactor :  nsISupports
 {
-  void compact(in nsIMsgFolder aFolder, in boolean aOfflineStore, in nsIMsgWindow aMsgWindow);
-  void compactAll(in nsISupportsArray aArrayOfFoldersToCompact, in nsIMsgWindow aMsgWindow, in boolean compactOfflineAlso, in nsISupportsArray aOfflineFolderArray);
+  /**
+   * Compact the given folder, or its offline store (imap/news only)
+   *
+   * @param aFolder        The folder to compact
+   * @param aOfflineStore  Just compact the offline store?
+   * @param aListener      Notified of completion, can be null.
+   * @param aMsgWindow     Used for progress/status, can be null
+   */
+  void compact(in nsIMsgFolder aFolder, in boolean aOfflineStore,
+               in nsIUrlListener aListener, in nsIMsgWindow aMsgWindow);
+
+  /**
+   * Compact the passed in array of folders, and the passed in offline stores.
+   *
+   * @param aArrayOfFoldersToCompact  The folders to compact.
+   * @param aOfflineFolderArray  Folders whose offline stores we
+   *                             should compact, can be null.
+   * @param aListener            Notified of completion, can be null.
+   * @param aMsgWindow           Used for progress/status, can be null
+   */
+  void compactFolders(in nsIArray aArrayOfFoldersToCompact,
+                      in nsIArray aOfflineFolderArray,
+                      in nsIUrlListener aListener,
+                      in nsIMsgWindow aMsgWindow);
 };
