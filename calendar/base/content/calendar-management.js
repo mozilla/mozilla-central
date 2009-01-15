@@ -478,11 +478,104 @@ var calendarListTreeView = {
         return false;
     },
 
-    canDrop: function cLTV_canDrop(aRow, aOrientation) {
-        return false;
+    /**
+     * Initiate a drag operation for the calendar list. Can be used in the
+     * dragstart handler.
+     *
+     * @param event     The DOM event containing drag information.
+     */
+    onDragStart: function cLTV_onDragStart(event) {
+        let calendar = this.getCalendarFromEvent(event);
+
+        // Setting data starts a drag session
+        event.dataTransfer.setData("application/x-moz-calendarID", calendar.id);
+        event.dataTransfer.effectAllowed = "move";
     },
 
-    drop: function cLTV_drop(aRow, aOrientation) {},
+    canDrop: function cLTV_canDrop(aRow, aOrientation) {
+        let dragSession = cal.getDragService().getCurrentSession();
+        let dataTransfer = dragSession.dataTransfer;
+        if (!dataTransfer) {
+            // If there is no data transfer then we can't drop (i.e dropping a
+            // file on the calendar list.
+            return false;
+        }
+
+        let dragCalId = dataTransfer.getData("application/x-moz-calendarID");
+
+        return (aOrientation != Components.interfaces.nsITreeView.DROP_ON &&
+                dragCalId != null);
+    },
+
+    drop: function cLTV_drop(aRow, aOrientation) {
+        let dragSession = cal.getDragService().getCurrentSession();
+        let dataTransfer = dragSession.dataTransfer;
+        let dragCalId = dataTransfer &&
+                        dataTransfer.getData("application/x-moz-calendarID");
+        if (!dataTransfer || !dragCalId) {
+            return false;
+        }
+
+        let sortOrder = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
+        let oldIndex = sortOrder.indexOf(dragCalId);
+
+        // If no row is specified (-1), then assume append.
+        let row = (aRow < 0 ? sortOrder.length - 1 : aRow);
+        let targetIndex = row + Math.max(0, aOrientation);
+
+        // We don't need to move if the target row has the same index as the old
+        // row. The same goes for dropping after the row before the old row or
+        // before the row after the old row. Think about it :-)
+        if (aRow != oldIndex && row + aOrientation != oldIndex) {
+            // Add the new one, remove the old one.
+            sortOrder.splice(targetIndex, 0, dragCalId);
+            sortOrder.splice(oldIndex + (oldIndex > targetIndex ? 1 : 0), 1);
+
+            cal.setPref("calendar.list.sortOrder", sortOrder.join(" "));
+            this.mCalendarList = sortCalendarArray(this.mCalendarList);
+
+            // Invalidate the tree rows between the old item and the new one.
+            if (oldIndex < targetIndex) {
+                this.treebox.invalidateRange(oldIndex, targetIndex);
+            } else {
+                this.treebox.invalidateRange(targetIndex, oldIndex);
+            }
+        }
+        return true;
+    },
+
+    /**
+     * This function can be used by other nodes to simulate dropping on the
+     * tree. This can be used for example on the tree header so that the row
+     * will be inserted before the first visible row. The event client
+     * coordinate are used to determine if the row should be dropped before the
+     * first row (above treechildren) or below the last visible row (below top
+     * of treechildren).
+     *
+     * @param event     The DOM drop event.
+     * @return          Boolean indicating if the drop succeeded.
+     */
+    foreignDrop: function cLTV_foreignDrop(event) {
+        let treechildren = document.getElementById("calendar-treechildren");
+        if (event.clientY < this.tree.boxObject.y) {
+            return this.drop(this.treebox.getFirstVisibleRow(), -1);
+        } else {
+            return this.drop(this.treebox.getLastVisibleRow(), 1);
+        }
+    },
+
+    /**
+     * Similar function to foreignCanDrop but for the dragenter event
+     * @see calendarListTreeView::foreignDrop
+     */
+    foreignCanDrop: function cLTV_foreignCanDrop(event) {
+        let treechildren = document.getElementById("calendar-treechildren");
+        if (event.clientY < this.tree.boxObject.y) {
+            return this.canDrop(this.treebox.getFirstVisibleRow(), -1);
+        } else {
+            return this.canDrop(this.treebox.getLastVisibleRow(), 1);
+        }
+    },
 
     getParentIndex: function cLTV_getParentIndex(aRow) {
         return -1;
@@ -598,6 +691,50 @@ var calendarListTreeView = {
                 if (this.tree.currentIndex > -1 ) {
                     var cbCol = this.treebox.columns.getNamedColumn("calendar-list-tree-checkbox");
                     this.cycleCell(this.tree.currentIndex, cbCol);
+                }
+                break;
+            case kKE.DOM_VK_DOWN:
+                if (event.ctrlKey) {
+                    let ci = this.tree.currentIndex
+                    let sortOrder = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
+                    if (ci < sortOrder.length - 1) {
+                        sortOrder.splice(ci + 1, 0, sortOrder.splice(ci, 1));
+                        cal.setPref("calendar.list.sortOrder", sortOrder.join(" "));
+                        this.mCalendarList = sortCalendarArray(this.mCalendarList);
+                        this.treebox.invalidateRange(ci, ci + 1);
+
+                        if (this.tree.view.selection.isSelected(ci)) {
+                            this.tree.view.selection.toggleSelect(ci);
+                            this.tree.view.selection.toggleSelect(ci + 1);
+                        }
+                        if (this.tree.view.selection.currentIndex == ci) {
+                            this.tree.view.selection.currentIndex = ci + 1;
+                        }
+                    }
+                    // Don't call the default <key> handler.
+                    event.preventDefault();
+                }
+                break;
+            case kKE.DOM_VK_UP:
+                if (event.ctrlKey) {
+                    let ci = this.tree.currentIndex
+                    let sortOrder = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
+                    if (ci > 0) {
+                        sortOrder.splice(ci - 1, 0, sortOrder.splice(ci, 1));
+                        cal.setPref("calendar.list.sortOrder", sortOrder.join(" "));
+                        this.mCalendarList = sortCalendarArray(this.mCalendarList);
+                        this.treebox.invalidateRange(ci - 1, ci);
+
+                        if (this.tree.view.selection.isSelected(ci)) {
+                            this.tree.view.selection.toggleSelect(ci);
+                            this.tree.view.selection.toggleSelect(ci - 1);
+                        }
+                        if (this.tree.view.selection.currentIndex == ci) {
+                            this.tree.view.selection.currentIndex = ci - 1;
+                        }
+                    }
+                    // Don't call the default <key> handler.
+                    event.preventDefault();
                 }
                 break;
         }

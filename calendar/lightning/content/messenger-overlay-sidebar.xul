@@ -489,6 +489,8 @@
               <treenode-checkbox id="calendar-list-header"
                                checked="true"
                                class="treenode-checkbox"
+                               ondrop="return calendarListTreeView.foreignDrop(event)"
+                               ondragenter="return calendarListTreeview.foreignCanDrop(event)"
                                label="&calendar.list.header.label;"/>
               <modevbox id="calendar-listtree-pane" flex="1" mode="calendar,task" broadcaster="modeBroadcaster"
                         refcontrol="calendar-list-header">
