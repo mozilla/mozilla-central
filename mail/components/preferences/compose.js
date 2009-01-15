@@ -217,6 +217,9 @@ var gComposePane = {
       }
     }
     catch(e) { }
+    // Choose the item after the list is completely generated.
+    var preference = document.getElementById(fontsList.getAttribute("preference"));
+    fontsList.value = preference.value;
    },
 
    restoreHTMLDefaults: function()
