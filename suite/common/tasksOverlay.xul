@@ -25,6 +25,18 @@
       <!-- Tasks Menu -->
       <menu id="tasksMenu" label="&tasksMenu.label;" accesskey="&tasksMenu.accesskey;">
         <menupopup id="taskPopup">
+          <menu id="menu_passwordManager"
+                label="&passwordManagerCmd.label;"
+                accesskey="&passwordManagerCmd.accesskey;">
+            <menupopup>
+              <menuitem label="&passwordDisplayCmd.label;"
+                        accesskey="&passwordDisplayCmd.accesskey;"
+                        oncommand="toPasswordManager();"/>
+              <menuitem label="&passwordExpireCmd.label;"
+                        accesskey="&passwordExpireCmd.accesskey;"
+                        oncommand="ExpirePassword();"/>
+            </menupopup>
+          </menu>
           <menuitem id="downloadmgr" label="&downloadManagerCmd.label;" accesskey="&downloadManagerCmd.accesskey;" oncommand="toDownloadManager();"/>
           <menuitem id="addonsmgr" accesskey="&addonsManagerCmd.accesskey;"
                     label="&addonsManagerCmd.label;" oncommand="toEM();"/>

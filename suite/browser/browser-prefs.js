@@ -254,20 +254,7 @@ pref("offline.startup_state",            0);
 pref("offline.send.unsent_messages",            0);
 pref("offline.download.download_messages",  0);
 
-pref("signon.rememberSignons",              true);
-pref("signon.expireMasterPassword",         false);
-
 pref("browser.formfill.enable",             true);
-pref("wallet.captureForms",                 false);
-pref("wallet.enabled",                      true);
-pref("wallet.crypto",                       false);
-pref("wallet.crypto.autocompleteoverride",  false); // Ignore 'autocomplete=off' - available only when wallet.crypto is enabled. 
-pref("wallet.namePanel.hide",               false);
-pref("wallet.addressPanel.hide",            false);
-pref("wallet.phonePanel.hide",              false);
-pref("wallet.creditPanel.hide",             false);
-pref("wallet.employPanel.hide",             false);
-pref("wallet.miscPanel.hide",               false);
 
 // -- folders (Mac: these are binary aliases.)
 pref("mail.signature_file",             "");

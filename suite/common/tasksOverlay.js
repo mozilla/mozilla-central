@@ -46,6 +46,25 @@ function toNavigator()
     OpenBrowserWindow();
 }
 
+function toPasswordManager()
+{
+  toOpenWindowByType("Password:Manager",
+                     "chrome://communicator/content/passwordManager.xul");
+}
+
+function ExpirePassword()
+{
+  // Queries the HTTP Auth Manager and clears all sessions
+  Components.classes['@mozilla.org/network/http-auth-manager;1']
+            .getService(Components.interfaces.nsIHttpAuthManager)
+            .clearAll();
+
+  // Expires the master password
+  Components.classes["@mozilla.org/security/sdr;1"]
+            .getService(Components.interfaces.nsISecretDecoderRing)
+            .logoutAndTeardown();
+}
+
 function toDownloadManager()
 {
   var dlmgr = Components.classes['@mozilla.org/download-manager;1'].getService();
