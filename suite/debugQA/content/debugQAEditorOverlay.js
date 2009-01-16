@@ -512,8 +512,7 @@ sampleJSTransaction.prototype = {
         aIID.equals(Components.interfaces.nsISupports))
       return this;
 
-    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-    return null;
+    throw Components.results.NS_ERROR_NO_INTERFACE;
   },
 
   insert_node_at_point: function(node, container, offset)

@@ -961,8 +961,7 @@ httpHooks.prototype = {
         if (aIid.equals(Components.interfaces.nsIProgressEventSink)) {
             return this;
         } else {    
-            Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-            return null;
+            throw Components.results.NS_ERROR_NO_INTERFACE;
         }
     }
 };

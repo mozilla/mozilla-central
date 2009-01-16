@@ -150,8 +150,7 @@ nsLDAPDataSource.prototype = {
           iid.equals(Components.interfaces.nsIRDFObserver))
           return this;
 
-      Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-      return null;
+      throw Components.results.NS_ERROR_NO_INTERFACE;
     },
 
     /**
@@ -975,8 +974,7 @@ nsLDAPMessageRDFDelegateFactory.prototype =
             iid.equals(Components.interfaces.nsIRDFDelegateFactory))
             return this;
 
-        Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-        return null;
+        throw Components.results.NS_ERROR_NO_INTERFACE;
     },
 
     // from nsIRDFDelegateFactory:
@@ -1002,8 +1000,7 @@ nsLDAPMessageRDFDelegateFactory.prototype =
                         iid.equals(Components.interfaces.nsILDAPMessageListener))
                         return this;
 
-                    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-                    return null;
+                    throw Components.results.NS_ERROR_NO_INTERFACE;
                 }
 
             getTargetsBoundCallback.prototype.onLDAPMessage =
@@ -1078,8 +1075,7 @@ nsLDAPMessageRDFDelegateFactory.prototype =
                     iid.equals(Components.interfaces.nsILDAPMessageListener))
                     return this;
 
-                Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-                return null;
+                throw Components.results.NS_ERROR_NO_INTERFACE;
             };
 
             getTargetsSearchCallback.prototype.onLDAPMessage =

@@ -58,8 +58,8 @@ var helpContentListener = {
         aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
         aIID.equals(Components.interfaces.nsISupports))
       return this;
-    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-    return null;
+
+    throw Components.results.NS_ERROR_NO_INTERFACE;
   }
 };
 

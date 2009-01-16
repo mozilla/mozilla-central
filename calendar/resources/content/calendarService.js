@@ -158,8 +158,7 @@ function (iid) {
         iid.equals(nsISupports))
         return this;
 
-    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-    return null;
+    throw Components.results.NS_ERROR_NO_INTERFACE;
 }
 
 ICALContentHandler.prototype.handleContent =
@@ -232,8 +231,7 @@ function (iid) {
         iid.equals(nsISupports))
         return this;
 
-    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-    return null;
+    throw Components.results.NS_ERROR_NO_INTERFACE;
 }
 
 /* nsIChannel */

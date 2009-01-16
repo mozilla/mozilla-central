@@ -136,8 +136,8 @@ ldapMsgListener.prototype =
         if (iid.equals(Components.interfaces.nsISupports) ||
             iid.equals(Components.interfaces.nsILDAPMessageListener))
             return this;
-        Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-        return null;
+
+        throw Components.results.NS_ERROR_NO_INTERFACE;
     },
 
     onLDAPInit: function onLDAPInit(aConn, aStatus) {

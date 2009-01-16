@@ -228,8 +228,8 @@ var notificationCallbacks =
                                .getService(Components.interfaces.nsIWindowWatcher);
             return ww.getNewAuthPrompter(null);
         }
-        Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-        return null;
+
+        throw Components.results.NS_ERROR_NO_INTERFACE;
     }
 }
 
@@ -242,8 +242,7 @@ var publishingListener =
             aIId.equals(Components.interfaces.nsISupports))
             return this;
 
-        Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-        return null;
+        throw Components.results.NS_ERROR_NO_INTERFACE;
     },
 
     onStartRequest: function(request, ctxt)
