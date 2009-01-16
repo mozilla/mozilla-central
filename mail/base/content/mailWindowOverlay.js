@@ -2169,7 +2169,7 @@ function MsgSynchronizeOffline()
 
 function SpaceHit(event)
 {
-  var contentWindow = window.top._content;
+  var contentWindow = window.top.content;
   var rssiframe = contentWindow.document.getElementById('_mailrssiframe');
 
   // if we are displaying an RSS article, we really want to scroll the nested iframe
