@@ -697,6 +697,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CreateStorageIfMissing(nsIUrlListener* aUrlL
     nsString folderName;
     GetName(folderName);
     rv = msgParent->CreateSubfolder(folderName, nsnull);
+    // by definition, this is OK.
+    if (rv == NS_MSG_FOLDER_EXISTS)
+      return NS_OK;
   }
   return rv;
 }

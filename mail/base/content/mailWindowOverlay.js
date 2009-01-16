@@ -1085,36 +1085,38 @@ BatchMessageMover.prototype = {
       let msgYear = batch[1];
       let dstFolderName = batch[2];
       let msgs = batch.slice(3,batch.length);
-      let subfolder;
+      let subFolder, dstFolder;
 
       let archiveFolderUri =
         getIdentityForHeader(msgs[0], Components.interfaces.nsIMsgCompType.ReplyAll).archiveFolder;
 
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      // for imap folders, we need to create the sub-folders asynchronously, 
+      // so we chain the urls using the listener called back from 
+      // createStorageIfMissing. For local, creatStorageIfMissing is
+      // synchronous.
+      let isImap = archiveFolder.server.type == "imap";
       if (!archiveFolder.parent)
       {
         archiveFolder.createStorageIfMissing(this);
-        return;
+        if (isImap)
+          return;
       }
-      if (!archiveFolder.containsChildNamed(msgYear))
+      archiveFolderUri += "/" + msgYear;
+      subFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      if (!subFolder.parent)
       {
-        subfolder = archiveFolder.addSubfolder(msgYear);
-        subfolder.createStorageIfMissing(this);
-        return;
+        subFolder.createStorageIfMissing(this);
+        if (isImap)
+          return;
       }
-      else
+      archiveFolderUri += "/" + dstFolderName;
+      dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      if (!dstFolder.parent)
       {
-        subfolder = archiveFolder.getChildNamed(msgYear);
-      }
-      if (!subfolder.containsChildNamed(dstFolderName))
-      {
-        subfolder = subfolder.addSubfolder(dstFolderName);
-        subfolder.createStorageIfMissing(this);
-        return;
-      }
-      else
-      {
-        dstFolder = subfolder.getChildNamed(dstFolderName);
+        dstFolder.createStorageIfMissing(this);
+        if (isImap)
+          return;
       }
       var mutablearray = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
       msgs.forEach(function (item) {
