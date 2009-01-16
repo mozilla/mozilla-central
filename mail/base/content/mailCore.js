@@ -247,7 +247,7 @@ function SetBusyCursor(window, enable)
     // setCursor method
     if ("setCursor" in window) {
         if (enable)
-            window.setCursor("wait");
+            window.setCursor("progress");
         else
             window.setCursor("auto");
     }
