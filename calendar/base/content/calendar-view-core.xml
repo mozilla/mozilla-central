@@ -191,7 +191,7 @@
             this.setAttribute("categories", cssClassesArray.join(" "));
           }
 
-          if (item.alarmOffset && getPrefSafe("calendar.alarms.indicator.show", true)) {
+          if (item.getAlarms({}).length && getPrefSafe("calendar.alarms.indicator.show", true)) {
               var alarmImage = document.getAnonymousElementByAttribute(this, "anonid", "alarm-image");
               if (item.calendar.getProperty("suppressAlarms") &&
                   item.calendar.getProperty("capabilities.alarms.popup.supported") !== false) {
@@ -223,7 +223,7 @@
               this.setAttribute("flashing", "true");
           }
 
-          if (item.alarmOffset) {
+          if (item.getAlarms({}).length) {
               this.setAttribute("alarm", "true")
           }
 

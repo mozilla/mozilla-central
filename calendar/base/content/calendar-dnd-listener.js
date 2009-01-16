@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+
 var itemConversion = {
 
     /**
@@ -53,7 +55,7 @@ var itemConversion = {
         aItem.title = aMessage.mime2DecodedSubject;
 
         setDefaultStartEndHour(aItem);
-        setDefaultAlarmValues(aItem);
+        cal.alarms.setDefaultValues(aItem);
 
         // XXX It would be great if nsPlainTextParser could take care of this.
         function htmlToPlainText(html) {
@@ -156,10 +158,9 @@ var itemConversion = {
             item.dueDate = aEvent.endDate.clone();
 
             // Alarms
-            item.alarmOffset = (aEvent.alarmOffset ?
-                                aEvent.alarmOffset.clone() :
-                                null);
-            item.alarmRelated = aEvent.alarmRelated;
+            for each (let alarm in aEvent.getAlarms({})) {
+                item.addAlarm(alarm.clone());
+            }
             item.alarmLastAck = (aEvent.alarmLastAck ?
                                  aEvent.alarmLastAck.clone() :
                                  null);
@@ -195,10 +196,9 @@ var itemConversion = {
         }
 
         // Alarms
-        item.alarmOffset = (aTask.alarmOffset ?
-                            aTask.alarmOffset.clone() :
-                            null);
-        item.alarmRelated = aTask.alarmRelated;
+        for each (let alarm in aEvent.getAlarms({})) {
+            item.addAlarm(alarm.clone());
+        }
         item.alarmLastAck = (aTask.alarmLastAck ?
                              aTask.alarmLastAck.clone() :
                              null);

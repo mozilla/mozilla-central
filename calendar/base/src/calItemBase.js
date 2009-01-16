@@ -54,6 +54,7 @@ function calItemBase() {
 calItemBase.prototype = {
     mPropertyParams: null,
     mIsProxy: false,
+    mAlarms: null,
 
     // initialize this class's members
     initItemBase: function cib_initItemBase() {
@@ -61,6 +62,7 @@ calItemBase.prototype = {
         this.mProperties = new calPropertyBag();
         this.mPropertyParams = {};
         this.mProperties.setProperty("CREATED", jsDateToDateTime(new Date()));
+        this.mAlarms = [];
     },
 
     QueryInterface: function (aIID) {
@@ -171,9 +173,10 @@ calItemBase.prototype = {
             }
         }
 
-        if (this.mAlarmOffset) {
-            this.mAlarmOffset.makeImmutable();
+        for (let i = 0; i < this.mAlarms.length; i++) {
+            this.mAlarms[i].makeImmutable();
         }
+
         if (this.mAlarmLastAck) {
             this.mAlarmLastAck.makeImmutable();
         }
@@ -243,12 +246,11 @@ calItemBase.prototype = {
 
         m.mCategories = this.getCategories({});
 
-        // Clone any alarm info that exists, set it to null if it doesn't
-        let alarmOffset = this.alarmOffset;
-        if (alarmOffset) {
-            alarmOffset = alarmOffset.clone();
+        for each (let alarm in this.mAlarms) {
+            // Clone alarms into new item, assume the alarms from the old item
+            // are valid and don't need validation.
+            m.addAlarm(alarm.clone(), true);
         }
-        m.mAlarmOffset = alarmOffset;
 
         let alarmLastAck = this.alarmLastAck;
         if (alarmLastAck) {
@@ -256,32 +258,17 @@ calItemBase.prototype = {
         }
         m.mAlarmLastAck = alarmLastAck;
 
-        m.alarmRelated = this.alarmRelated;
-
         m.mDirty = this.mDirty;
 
         return m;
     },
 
-    get alarmOffset() {
-        if (this.mIsProxy && (this.mAlarmOffset === undefined)) {
-            return this.parentItem.alarmOffset;
-        } else {
-            return this.mAlarmOffset;
-        }
-    },
-
-    set alarmOffset(aValue) {
-        this.modify();
-        return (this.mAlarmOffset = aValue);
-    },
-
     mAlarmLastAck: null,
-    get alarmLastAck cib_get_alarmLastAck() {
+    get alarmLastAck cIB_get_alarmLastAck() {
         return this.mAlarmLastAck;
     },
 
-    set alarmLastAck cib_set_alarmLastAck(aValue) {
+    set alarmLastAck cIB_set_alarmLastAck(aValue) {
         this.modify();
         if (aValue && !aValue.timezone.isUTC) {
             aValue = aValue.getInTimezone(UTC());
@@ -698,35 +685,30 @@ calItemBase.prototype = {
         }
         this.mRecurrenceInfo = rec;
 
-        this.mAlarmOffset = null;
-        this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
+        for (let alarmComp in cal.ical.subcomponentIterator(icalcomp, "VALARM")) {
+            let alarm = cal.createAlarm();
+            try {
+                alarm.icalComponent = alarmComp;
+                if (alarm.related != Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE) {
+                    // TODO ALARMSUPPORT unconditionally add alarm when we
+                    // support multiple alarms.
+                    this.addAlarm(alarm, true);
+                }
+            } catch (e) {
+                Components.utils.reportError("Invalid alarm for item: " +
+                                             this.id + " (" +
+                                             alarmComp.serializeToICS() + ")");
+            }
+
+            // TODO ALARMSUPPORT remove break when we fully support multiple
+            // alarms
+            break;
+        }
+
+        let lastAck = icalcomp.getFirstProperty("X-MOZ-LASTACK");
         this.mAlarmLastAck = null;
-
-        let alarmComp = icalcomp.getFirstSubcomponent("VALARM");
-        if (alarmComp) {
-            let triggerProp = alarmComp.getFirstProperty("TRIGGER");
-            if (triggerProp) {
-                this.mAlarmOffset = cal.createDuration(triggerProp.valueAsIcalString);
-
-                let related = triggerProp.getParameter("RELATED");
-                if (related && related == "END") {
-                    this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_END;
-                }
-
-                let email = alarmComp.getFirstProperty("X-EMAILADDRESS");
-                if (email) {
-                    this.setProperty("alarmEmailAddress", email.value);
-                }
-            } else {
-                // Really, really old Sunbird/Calendar versions didn't give us a
-                // trigger.
-                cal.ERROR("No trigger property for alarm on item: " + this.id);
-            }
-
-            let lastAck = icalcomp.getFirstProperty("X-MOZ-LASTACK");
-            if (lastAck) {
-                this.mAlarmLastAck = cal.createDateTime(lastAck.value);
-            }
+        if (lastAck) {
+            this.mAlarmLastAck = cal.createDateTime(lastAck.value);
         }
 
         this.mDirty = false;
@@ -766,6 +748,7 @@ calItemBase.prototype = {
 
     fillIcalComponentFromBase: function (icalcomp) {
         this.ensureNotDirty();
+        let icssvc = cal.getIcsService();
 
         this.mapPropsToICS(icalcomp, this.icsBasePropMap);
 
@@ -793,44 +776,13 @@ calItemBase.prototype = {
         }
 
         for each (let cat in this.getCategories({})) {
-            let catprop = getIcsService().createIcalProperty("CATEGORIES");
+            let catprop = icssvc.createIcalProperty("CATEGORIES");
             catprop.value = cat;
             icalcomp.addProperty(catprop);
         }
 
-        let alarmOffset = this.alarmOffset;
-        if (alarmOffset) {
-            let icssvc = cal.getIcsService();
-            let alarmComp = icssvc.createIcalComponent("VALARM");
-
-            let triggerProp = icssvc.createIcalProperty("TRIGGER");
-            triggerProp.valueAsIcalString = alarmOffset.icalString;
-
-            if (this.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_END) {
-                triggerProp.setParameter("RELATED", "END");
-            }
-
-            alarmComp.addProperty(triggerProp);
-
-            // We don't use this, but the ics-spec requires it
-            let descProp = icssvc.createIcalProperty("DESCRIPTION");
-            descProp.value = "Mozilla Alarm: "+ this.title;
-            alarmComp.addProperty(descProp);
-
-            let actionProp = icssvc.createIcalProperty("ACTION");
-            actionProp.value = "DISPLAY";
-
-            let alarmEmailAddress = this.getProperty("alarmEmailAddress");
-            if (alarmEmailAddress) {
-                let emailProp = icssvc.createIcalProperty("X-EMAILADDRESS");
-                emailProp.value = alarmEmailAddress;
-                actionProp.value = "EMAIL";
-                alarmComp.addProperty(emailProp);
-            }
-
-            alarmComp.addProperty(actionProp);
-
-            icalcomp.addSubcomponent(alarmComp);
+        for each (let alarm in this.mAlarms) {
+            icalcomp.addSubcomponent(alarm.icalComponent);
         }
 
         let alarmLastAck = this.alarmLastAck;
@@ -840,6 +792,51 @@ calItemBase.prototype = {
             lastAck.value = alarmLastAck.icalString;
             icalcomp.addProperty(lastAck);
         }
+    },
+
+    getAlarms: function cIB_getAlarms(aCount) {
+        if (typeof aCount != "object") {
+            throw Components.results.NS_ERROR_XPC_NEED_OUT_OBJECT;
+        }
+
+        aCount.value = this.mAlarms.length;
+        return this.mAlarms;
+    },
+
+    /**
+     * Adds an alarm. The second parameter is for internal use only, i.e not
+     * provided on the interface.
+     *
+     * @parm aDoNotValidate     Don't serialize the component to check for
+     *                            errors.
+     */
+    addAlarm: function cIB_addAlarm(aAlarm, aDoNotValidate) {
+        if (!aDoNotValidate) {
+            try {
+                // Trigger the icalComponent getter to make sure the alarm is valid.
+                aAlarm.icalComponent;
+            } catch (e) {
+                throw Components.results.NS_ERROR_INVALID_ARG;
+            }
+        }
+
+        this.modify();
+        this.mAlarms.push(aAlarm);
+    },
+
+    deleteAlarm: function cIB_deleteAlarm(aAlarm) {
+        this.modify();
+        for (let i = 0; i < this.mAlarms.length; i++) {
+            if (compareObjects(this.mAlarms[i], aAlarm, Components.interfaces.calIAlarm)) {
+                this.mAlarms.splice(i, 1);
+                break;
+            }
+        }
+    },
+
+    clearAlarms: function cIB_clearAlarms() {
+        this.modify();
+        this.mAlarms = [];
     },
 
     getOccurrencesBetween: function cIB_getOccurrencesBetween(aStartDate, aEndDate, aCount) {

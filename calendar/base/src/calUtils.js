@@ -1837,54 +1837,6 @@ function binaryInsert(itemArray, item, comptor, discardDuplicates) {
     return newIndex;
 }
 
-/**
- * Read default alarm settings from user preferences and apply them to
- * the event/todo passed in.
- *
- * @param aItem   The event or todo the settings should be applied to.
- */
-function setDefaultAlarmValues(aItem)
-{
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefService);
-    var alarmsBranch = prefService.getBranch("calendar.alarms.");
-
-    if (isEvent(aItem)) {
-        try {
-            if (alarmsBranch.getIntPref("onforevents") == 1) {
-                let alarmOffset = createDuration();
-                let units = alarmsBranch.getCharPref("eventalarmunit");
-                alarmOffset[units] = alarmsBranch.getIntPref("eventalarmlen");
-                alarmOffset.isNegative = true;
-                aItem.alarmOffset = alarmOffset;
-                aItem.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
-            }
-        } catch (ex) {
-            Components.utils.reportError(
-                "Failed to apply default alarm settings to event: " + ex);
-        }
-    } else if (isToDo(aItem)) {
-        try {
-            if (alarmsBranch.getIntPref("onfortodos") == 1) {
-                // You can't have an alarm if the entryDate doesn't exist.
-                if (!aItem.entryDate) {
-                    aItem.entryDate = getSelectedDay() &&
-                                      getSelectedDay().clone() || now();
-                }
-                let alarmOffset = createDuration();
-                let units = alarmsBranch.getCharPref("todoalarmunit");
-                alarmOffset[units] = alarmsBranch.getIntPref("todoalarmlen");
-                alarmOffset.isNegative = true;
-                aItem.alarmOffset = alarmOffset;
-                aItem.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
-            }
-        } catch (ex) {
-            Components.utils.reportError(
-                "Failed to apply default alarm settings to task: " + ex);
-        }
-    }
-}
-
 function getCompositeCalendar() {
     if (getCompositeCalendar.mObject === undefined) {
         getCompositeCalendar.mObject = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]

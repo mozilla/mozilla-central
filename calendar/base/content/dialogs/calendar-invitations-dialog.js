@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Thomas Benisch <thomas.benisch@sun.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 
 /**
  * Sets up the invitations dialog from the window arguments, retrieves the
@@ -137,8 +139,10 @@ function fillJobQueue(queue) {
             var newCalendarItem = oldCalendarItem.clone();
 
             // set default alarm on unresponded items that have not been declined:
-            if (!newCalendarItem.alarmOffset && (oldStatus == "NEEDS-ACTION") && (newStatus != "DECLINED")) {
-                cal.setDefaultAlarmValues(newCalendarItem);
+            if (!newCalendarItem.getAlarms({}).length &&
+                (oldStatus == "NEEDS-ACTION") &&
+                (newStatus != "DECLINED")) {
+                cal.alarms.setDefaultValues(newCalendarItem);
             }
 
             richListItem.setCalendarItemParticipationStatus(newCalendarItem,

@@ -39,6 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
 /*
@@ -434,7 +435,7 @@ function stripUserData(item_) {
     let item = item_.clone();
     let stamp = item.stampTime;
     let lastModified = item.lastModifiedTime;
-    item.alarmOffset = null;
+    item.clearAlarms();
     item.alarmLastAck = null;
     item.setCategories(0, []);
     item.deleteProperty("RECEIVED-SEQUENCE");
@@ -467,8 +468,10 @@ function updateItem(item, itipItemItem) {
     function updateUserData(newItem, item) {
         // preserve user settings:
         newItem.generation = item.generation;
-        newItem.alarmOffset = item.alarmOffset;
-        newItem.alarmRelated = item.alarmRelated;
+        newItem.clearAlarms();
+        for each (let alarm in item.getAlarms({})) {
+            newItem.addAlarm(alarm);
+        }
         newItem.alarmLastAck = item.alarmLastAck;
         let cats = item.getCategories({});
         newItem.setCategories(cats.length, cats);
@@ -795,7 +798,7 @@ ItipFindItemListener.prototype = {
                             newItem.parentItem.calendar = this_.mItipItem.targetCalendar;
                             if (partStat) {
                                 if (partStat != "DECLINED") {
-                                    cal.setDefaultAlarmValues(newItem);
+                                    cal.alarms.setDefaultValues(newItem);
                                 }
                                 let att = cal.getInvitedAttendee(newItem);
                                 if (!att) { // fall back to using configured organizer

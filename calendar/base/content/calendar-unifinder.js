@@ -704,7 +704,7 @@ var unifinderTreeView = {
         }
 
         // Alarm status atom
-        if (item.alarmOffset) {
+        if (item.getAlarms({}).length) {
             aProps.AppendElement(getAtomFromService("alarm"));
         }
 

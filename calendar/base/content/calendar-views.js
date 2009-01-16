@@ -42,6 +42,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+
 /**
  * Controller for the views
  * @see calIcalendarViewController
@@ -72,7 +74,7 @@ var calendarViewController = {
                                 .getService(Components.interfaces.nsIStringBundleService);
             var props = sbs.createBundle("chrome://calendar/locale/calendar.properties");
             event.title = props.GetStringFromName("newEvent");
-            setDefaultAlarmValues(event);
+            cal.alarms.setDefaultValues(event);
             doTransaction('add', event, aCalendar, null, null);
         } else {
             createEventWithDialog(aCalendar, aStartTime, null, null, null, aForceAllday);

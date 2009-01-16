@@ -180,20 +180,27 @@ calWcapCalendar.prototype.encodeRecurrenceParams =
 
 calWcapCalendar.prototype.getAlarmParams =
 function calWcapCalendar_getAlarmParams(item) {
-    var params = null;
-    var alarmStart = item.alarmOffset;
-    if (alarmStart) {
-        if (item.alarmRelated == calIItemBase.ALARM_RELATED_END) {
+    let params = null;
+    // TODO ALARMSUPPORT This will change as soon as email alarms are supported
+    // by the UI.
+    let alarms = item.getAlarms({})
+                     .filter(function(x) x.related != x.ALARM_RELATED_ABSOLUTE);
+    let alarm = alarms[0];
+    // END TODO ALARMSUPPORT
+
+    if (alarm && alarm.offset) {
+        let alarmStart = alarm.offset;
+        if (alarm.related == alarm.ALARM_RELATED_END) {
             // cs does not support explicit RELATED=END when
             // both start|entry and end|due are written
-            var dur = item.duration;
+            let dur = item.duration;
             if (dur) { // both given
                 alarmStart = alarmStart.clone();
                 alarmStart.addDuration(dur);
             } // else only end|due is set, alarm makes little sense though
         }
         
-        var emails = "";
+        let emails = "";
         if (item.hasProperty("alarmEmailAddress")) {
             emails = encodeURIComponent(item.getProperty("alarmEmailAddress"));
         } else {
@@ -370,7 +377,7 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
             var dtend = item.dueDate;
 
             // cs bug: enforce DUE (set to DTSTART) if alarm is set
-            if (!dtend && item.alarmOffset) {
+            if (!dtend && item.getAlarms({}).length) {
                 dtend = dtstart;
             }
 
@@ -644,8 +651,8 @@ function calWcapCalendar_tunnelXProps(destItem, srcItem) {
         return;
     }
     // tunnel alarm X-MOZ-SNOOZE only if alarm is still set:
-    var alarmOffset = destItem.alarmOffset;
-    var enumerator = srcItem.propertyEnumerator;
+    let hasAlarms = destItem.getAlarms({}).length;
+    let enumerator = srcItem.propertyEnumerator;
     while (enumerator.hasMoreElements()) {
         try {
             var prop = enumerator.getNext().QueryInterface(Components.interfaces.nsIProperty);
@@ -654,7 +661,7 @@ function calWcapCalendar_tunnelXProps(destItem, srcItem) {
                 switch (name) {
                     // keep snooze stamps for occurrences only and if alarm is still set:
                     case "X-MOZ-SNOOZE-TIME":
-                        if (!alarmOffset) {
+                        if (!hasAlarms) {
                             break; // alarm has been reset
                         }
                         // fallthru intended

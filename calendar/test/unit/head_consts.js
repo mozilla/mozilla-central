@@ -137,7 +137,6 @@ function getStorageCal() {
  *                     generation, title,
  *                     id, calendar, creationDate, lastModifiedTime,
  *                     stampTime, priority, privacy, status,
- *                     alarmOffset, alarmRelated,
  *                     alarmLastAck, recurrenceStartDate
  *                     and any property that can be obtained using getProperty()
  */
@@ -183,12 +182,6 @@ function getProps(aItem, aProp) {
         case "status":
             value = aItem.status;
             break;
-        case "alarmOffset":
-            value = aItem.alarmOffset;
-            break;
-        case "alarmRelated":
-            value = aItem.alarmRelated;
-            break;
         case "alarmLastAck":
             value = aItem.alarmLastAck;
             break;
@@ -211,7 +204,7 @@ function compareItemsSpecific(aLeftItem, aRightItem, aPropArray) {
         // "stampTime" as these are expected to change
         aPropArray = ["start", "end", "duration",
                       "title", "priority", "privacy", "creationDate",
-                      "status", "alarmOffset", "alarmRelated", "alarmLastAck",
+                      "status", "alarmLastAck",
                       "recurrenceStartDate"];
     }
     for (var i = 0; i < aPropArray.length; i++) {

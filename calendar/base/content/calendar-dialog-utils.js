@@ -616,35 +616,43 @@ var gLastAlarmSelection = 0;
  */
 function loadReminder(item) {
     // select 'no reminder' by default
-    var reminderPopup = document.getElementById("item-alarm");
+    let reminderPopup = document.getElementById("item-alarm");
     reminderPopup.selectedIndex = 0;
     gLastAlarmSelection = 0;
-    if (!item.alarmOffset) {
+
+    // TODO ALARMSUPPORT right now, just consider the first relative alarm. This
+    // should change as soon as the UI supports multiple alarms.
+    let alarms = item.getAlarms({})
+                     .filter(function(x) x.related != x.ALARM_RELATED_ABSOLUTE);
+    let alarm = alarms[0];
+    if (!alarm) {
         return;
     }
+    // END TODO ALARMSUPPORT
+        
 
     // try to match the reminder setting with the available popup items
-    var origin = "1";
-    if (item.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_END) {
+    let origin = "1";
+    if (alarm.related == Components.interfaces.calIAlarm.ALARM_RELATED_END) {
         origin = "-1";
     }
-    var duration = item.alarmOffset.clone();
-    var relation = "END";
+    let duration = alarm.offset.clone();
+    let relation = "END";
     if (duration.isNegative) {
         duration.isNegative = false;
         duration.normalize();
         relation = "START";
     }
-    var matchingItem = null;
-    var menuItems = reminderPopup.getElementsByTagName("menuitem");
-    var numItems = menuItems.length;
-    for (var i=0; i<numItems; i++) {
-        var menuitem = menuItems[i];
+    let matchingItem = null;
+    let menuItems = reminderPopup.getElementsByTagName("menuitem");
+    let numItems = menuItems.length;
+    for (let i = 0; i < numItems; i++) {
+        let menuitem = menuItems[i];
         if (menuitem.hasAttribute("length")) {
             if (menuitem.getAttribute("origin") == origin &&
                 menuitem.getAttribute("relation") == relation) {
-                var unit = menuitem.getAttribute("unit");
-                var length = menuitem.getAttribute("length");
+                let unit = menuitem.getAttribute("unit");
+                let length = menuitem.getAttribute("length");
                 if (unit == "days") {
                     length = length * 60 * 60 * 24;
                 } else if (unit == "hours") {
@@ -676,13 +684,13 @@ function loadReminder(item) {
         var customReminder =
             document.getElementById("reminder-custom-menuitem");
         var reminder = {};
-        if (item.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_START) {
+        if (alarm.related == Components.interfaces.calIAlarm.ALARM_RELATED_START) {
             reminder.origin = "1";
         } else {
             reminder.origin = "-1";
         }
-        var offset = item.alarmOffset.clone();
-        var relation = "END";
+        let offset = alarm.offset.clone();
+        relation = "END";
         if (offset.isNegative) {
             offset.isNegative = false;
             offset.normalize();
@@ -690,7 +698,7 @@ function loadReminder(item) {
         }
         reminder.relation = relation;
         if (offset.minutes) {
-            var minutes = offset.minutes +
+            let minutes = offset.minutes +
                           offset.hours * 60 +
                           offset.days * 24 * 60 +
                           offset.weeks * 60 * 24 * 7;
@@ -718,11 +726,10 @@ function loadReminder(item) {
  * @param item      The item save the reminder into.
  */
 function saveReminder(item) {
+    item.clearAlarms();
     var reminderPopup = document.getElementById("item-alarm");
     if (reminderPopup.value == 'none') {
-        item.alarmOffset = null;
         item.alarmLastAck = null;
-        item.alarmRelated = null;
     } else {
         var menuitem = reminderPopup.selectedItem;
 
@@ -746,13 +753,16 @@ function saveReminder(item) {
             duration.isNegative = true;
         }
         duration.normalize();
-        item.alarmOffset = duration;
+        let alarm = cal.createAlarm();
 
         if (Number(reminder.origin) >= 0) {
-            item.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
+            alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_START;
         } else {
-            item.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_END;
+            alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_END;
         }
+
+        alarm.offset = duration;
+        item.addAlarm(alarm);
     }
 }
 

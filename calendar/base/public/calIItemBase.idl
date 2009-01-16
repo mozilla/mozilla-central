@@ -44,28 +44,23 @@ interface nsIVariant;
 
 interface nsIPropertyBag;
 
-interface calICalendar;
-
-interface calIDateTime;
-
-interface calIDuration;
-
-interface calIRecurrenceInfo;
-
-interface calIAttendee;
-
+interface calIAlarm;
 interface calIAttachment;
-
+interface calIAttendee;
+interface calICalendar;
+interface calIDateTime;
+interface calIDuration;
 interface calIIcalComponent;
-
+interface calIRecurrenceInfo;
 interface calIRelation;
+
 //
 // calIItemBase
 //
 // Base for Events, Todos, Journals, etc.
 //
 
-[scriptable, uuid(c2a21f8c-9de6-47d5-912b-d1c423ea5f2e)]
+[scriptable, uuid(9c988b8d-af45-4046-b05e-34417bba9058)]
 interface calIItemBase : nsISupports
 {
   // returns true if this thing is able to be modified;
@@ -144,27 +139,31 @@ interface calIItemBase : nsISupports
   //
 
   /**
-   * The amount of time from the date (specified by alarmRelated) to offset
-   * the alarm's firing time by
+   * Get all alarms assigned to this item
+   *
+   * @param count       The number of alarms
+   * @param aAlarms     The array of calIAlarms
    */
-  attribute calIDuration alarmOffset;
+  void getAlarms(out PRUint32 count, [array, size_is(count), retval] out calIAlarm aAlarms);
+
+   /**
+   * Add an alarm to the item
+   *
+   * @param aAlarm      The calIAlarm to add
+   */
+  void addAlarm(in calIAlarm aAlarm);
 
   /**
-   * One of the ALARM_RELATED constants below.  
+   * Delete an alarm from the item
+   *
+   * @param aAlarm      The calIAlarm to delete
    */
-  attribute unsigned long alarmRelated;
+  void deleteAlarm(in calIAlarm aAlarm);
 
   /**
-   * Corresponds to an alarmOffset that should be based off of the startDate or
-   * entryDate (for events and tasks, respectively)
+   * Clear all alarms from the item
    */
-  const unsigned long ALARM_RELATED_START = 0;
-
-  /**
-   * Corresponds to an alarmOffset that should be based off of the endDate or
-   * dueDate (for events and tasks, respectively)
-   */
-  const unsigned long ALARM_RELATED_END = 1;
+  void clearAlarms();
 
   // The last time this alarm was fired and acknowledged by the user; coerced to UTC.
   attribute calIDateTime alarmLastAck;

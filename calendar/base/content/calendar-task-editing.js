@@ -35,6 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+
 /**
  * Used by the "quick add" feature for tasks, for example in the task view or
  * the uniinder-todo.
@@ -161,7 +163,7 @@ var taskEdit = {
                 item.calendar = getSelectedCalendar();
                 item.title = edit.value;
                 edit.value = "";
-                setDefaultAlarmValues(item);
+                cal.alarms.setDefaultValues(item);
                 doTransaction('add', item, item.calendar, null, null);
             }
         }

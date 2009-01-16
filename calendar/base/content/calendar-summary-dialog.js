@@ -38,6 +38,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 
 /**
  * Sets up the summary dialog, setting all needed fields on the dialog from the
@@ -81,8 +82,9 @@ function onLoad() {
         var attendee = calendar.getInvitedAttendee(item);
         if (attendee) {
             // if this is an unresponded invitation, preset our default alarm values:
-            if (!item.alarmOffset && (attendee.participationStatus == "NEEDS-ACTION")) {
-                cal.setDefaultAlarmValues(item);
+            if (!item.getAlarms({}).length &&
+                (attendee.participationStatus == "NEEDS-ACTION")) {
+                cal.alarms.setDefaultValues(item);
             }
 
             window.attendee = attendee.clone();

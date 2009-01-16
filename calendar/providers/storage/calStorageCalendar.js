@@ -45,6 +45,8 @@
 
 Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 const kStorageServiceContractID = "@mozilla.org/storage/service;1";
 const kStorageServiceIID = Components.interfaces.mozIStorageService;
 
@@ -1733,23 +1735,28 @@ calStorageCalendar.prototype = {
             // to deal with both types of data in a calIAlarm interface, but
             // not yet.  Leaving this column around though may help ease that
             // transition in the future.
-            var alarmTime = newDateTime(row.alarm_time, row.alarm_time_tz);
-            var time;
-            var related = Components.interfaces.calIItemBase.ALARM_RELATED_START;
+            let alarmTime = newDateTime(row.alarm_time, row.alarm_time_tz);
+            let time;
+            let related = Components.interfaces.calIAlarm.ALARM_RELATED_START;
             if (isEvent(item)) {
                 time = newDateTime(row.event_start, row.event_start_tz);
             } else { //tasks
                 if (row.todo_entry) {
                     time = newDateTime(row.todo_entry, row.todo_entry_tz);
                 } else if (row.todo_due) {
-                    related = Components.interfaces.calIItemBase.ALARM_RELATED_END;
+                    related = Components.interfaces.calIAlarm.ALARM_RELATED_END;
                     time = newDateTime(row.todo_due, row.todo_due_tz);
                 }
             }
             if (time) {
-                var duration = alarmTime.subtractDate(time);
-                item.alarmOffset = duration;
-                item.alarmRelated = related;
+                // TODO ALARMSUPPORT for now just convert this to a relative
+                // alarm. Will change when supporting multiple alarms.
+                item.clearAlarms();
+                let alarm = cal.createAlarm();
+                let duration = alarmTime.subtractDate(time);
+                alarm.related = related;
+                alarm.offset = duration;
+                item.addAlarm(alarm);
             } else {
                 Components.utils.reportError("WARNING! Couldn't do alarm conversion for item:"+
                                              item.title+','+item.id+"!\n");
@@ -1758,13 +1765,16 @@ calStorageCalendar.prototype = {
 
         // Alarm offset could be 0, but this is ok, so compare with null
         if (row.alarm_offset != null) {
-            var duration = Components.classes["@mozilla.org/calendar/duration;1"]
-                                     .createInstance(Components.interfaces.calIDuration);
+            let duration = cal.createDuration(); 
             duration.inSeconds = row.alarm_offset;
             duration.normalize();
 
-            item.alarmOffset = duration;
-            item.alarmRelated = row.alarm_related;
+            // TODO ALARMSUPPORT for now just use the one relative alarm. Will
+            // change when supporting multiple alarms.
+            item.clearAlarms();
+            let alarm = cal.createAlarm();
+            alarm.related = row.alarm_related + 1;
+            alarm.offset = duration;
         }
         if (row.alarm_last_ack) {
             // alarm acks are always in utc
@@ -2374,9 +2384,13 @@ calStorageCalendar.prototype = {
         ip.privacy = item.getProperty("CLASS");
         ip.ical_status = item.getProperty("STATUS");
 
-        if (item.alarmOffset) {
-            ip.alarm_offset = item.alarmOffset.inSeconds;
-            ip.alarm_related = item.alarmRelated;
+        // TODO ALARMSUPPORT for now, just use the first relative alarm. This
+        // will change when supporting multiple alarms.
+        let alarms = item.getAlarms({})
+                         .filter(function(x) x.related != x.ALARM_RELATED_ABSOLUTE);
+        if (alarms.length) {
+            ip.alarm_offset = alarms[0].offset.inSeconds;
+            ip.alarm_related = alarms[0].related - 1;
         }
         if (item.alarmLastAck) {
             ip.alarm_last_ack = item.alarmLastAck.nativeTime;

@@ -52,7 +52,7 @@ function run_test() {
 
 function test_initial_creation() {
     dump("Testing initial creation...");
-    alarm = createAlarm();
+    alarm = cal.createAlarm();
 
     let passed;
     try {
@@ -69,7 +69,7 @@ function test_initial_creation() {
 
 function test_display_alarm() {
     dump("Testing DISPLAY alarms...");
-    let alarm = createAlarm();
+    let alarm = cal.createAlarm();
     // Set ACTION to DISPLAY, make sure this was not rejected
     alarm.action = "DISPLAY";
     do_check_eq(alarm.action, "DISPLAY");
@@ -88,7 +88,7 @@ function test_display_alarm() {
 
 function test_email_alarm() {
     dump("Testing EMAIL alarms...");
-    let alarm = createAlarm();
+    let alarm = cal.createAlarm();
     // Set ACTION to DISPLAY, make sure this was not rejected
     alarm.action = "EMAIL";
     do_check_eq(alarm.action, "EMAIL");
@@ -109,7 +109,7 @@ function test_email_alarm() {
 
 function test_audio_alarm() {
     dump("Testing AUDIO alarms...");
-    let alarm = createAlarm();
+    let alarm = cal.createAlarm();
     // Set ACTION to AUDIO, make sure this was not rejected
     alarm.action = "AUDIO";
     do_check_eq(alarm.action, "AUDIO");
@@ -129,7 +129,7 @@ function test_audio_alarm() {
 
 function test_custom_alarm() {
     dump("Testing X-SMS (custom) alarms...");
-    let alarm = createAlarm();
+    let alarm = cal.createAlarm();
     // Set ACTION to a custom value, make sure this was not rejected
     alarm.action = "X-SMS"
     do_check_eq(alarm.action, "X-SMS");
@@ -151,7 +151,7 @@ function test_custom_alarm() {
 function test_repeat() {
     dump("Testing REPEAT and DURATION properties...");
     let message;
-    let alarm = createAlarm();
+    let alarm = cal.createAlarm();
 
     // Check initial value
     do_check_eq(alarm.repeat, 0);
@@ -186,7 +186,7 @@ function test_repeat() {
 
 function test_xprop() {
     dump("Testing X-Props...");
-    let alarm = createAlarm();
+    let alarm = cal.createAlarm();
     alarm.setProperty("X-PROP", "X-VALUE");
     do_check_true(alarm.hasProperty("X-PROP"));
     do_check_eq(alarm.getProperty("X-PROP"), "X-VALUE");
@@ -200,7 +200,7 @@ function test_dates() {
     dump("Testing alarm dates...");
     let passed;
     // Initial value
-    let alarm = createAlarm();
+    let alarm = cal.createAlarm();
     do_check_eq(alarm.alarmDate, null);
     do_check_eq(alarm.offset, null);
 
@@ -302,7 +302,7 @@ function test_immutable() {
 
 function test_clone() {
     dump("Testing cloning alarms...");
-    let alarm = createAlarm();
+    let alarm = cal.createAlarm();
     // Set up each attribute
     for (let prop in propMap) {
         alarm[prop] = propMap[prop];

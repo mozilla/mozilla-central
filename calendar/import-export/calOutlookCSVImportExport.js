@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Michiel van Leeuwen <mvl@exedo.nl>
  *   Ernst Herbst <hb@calen.de>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -335,27 +336,20 @@ function csv_importFromStream(aStream, aCount) {
                 if ("alarmIndex" in args) {
                     // Is an alarm wanted for this event?
                     if (locale.valueTrue == eventFields[args.alarmIndex]) {
-                        var alarmDate =
+                        let alarmDate =
                                 parseDateTime(eventFields[args.alarmDateIndex],
                                               eventFields[args.alarmTimeIndex],
                                               locale);
-                        // Set to default if non valid alarmDate was achieved
+                        // Only set the alarm if a date was parsed
                         if (alarmDate) {
-                            event.alarmOffset = alarmDate.subtractDate(sDate);
+                            let alarm = cal.createAlarm();
+                            alarm.related = alarm.ALARM_RELATED_ABSOLUTE;
+                            alarm.alarmDate = alarmDate;
+                            event.addAlarm(alarm);
                         } else {
-                            var alarmOffset = Components
-                                              .classes["@mozilla.org/calendar/duration;1"]
-                                              .createInstance(Components
-                                              .interfaces.calIDuration);
-                            var units = getPrefSafe("calendar.alarms.eventalarmunit",
-                                                    "minutes");
-                            alarmOffset[units] = getPrefSafe("calendar.alarms.eventalarmlen",
-                                                             15);
-                            alarmOffset.isNegative = true;
-                            event.alarmOffset = alarmOffset;
+                            // XXX Is this really wanted here?
+                            cal.alarms.setDefaultValues(event);
                         }
-                        event.alarmRelated = Components.interfaces.calIItemBase
-                                                       .ALARM_RELATED_START;
                     }
                 }
 
@@ -513,21 +507,18 @@ function csv_exportToStream(aStream, aCount, aItems) {
         line.push(dateString(item.endDate));
         line.push(timeString(item.endDate));
         line.push(item.startDate.isDate ? localeEn.valueTrue : localeEn.valueFalse);
-        if (item.alarmOffset) {
-            line.push(localeEn.valueTrue);
-            var fireTime;
-            if (item.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_START) {
-                fireTime = item.startDate.clone();
+        let alarms = item.getAlarms({});
+        if (alarms.length) {
+            let alarmDate = cal.alarms.calculateAlarmDate(item, alarms[0]);
+            if (alarmDate) {
+                line.push(localeEn.valueTrue);
+                line.push(dateString(alarmDate));
+                line.push(timeString(alarmDate));
             } else {
-                fireTime = item.endDate.clone();
+                line.push(localeEn.valueFalse);
+                line.push("");
+                line.push("");
             }
-            fireTime.addDuration(item.alarmOffset);
-            line.push(dateString(fireTime));
-            line.push(timeString(fireTime));
-        } else {
-            line.push(localeEn.valueFalse);
-            line.push("");
-            line.push("");
         }
         line.push(txtString(categoriesArrayToString(item.getCategories({})))); // xxx todo: what's the correct way to encode ',' in csv?, how are multi-values expressed?
         line.push(txtString(item.getProperty("DESCRIPTION")));

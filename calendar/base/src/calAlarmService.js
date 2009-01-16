@@ -375,13 +375,23 @@ calAlarmService.prototype = {
 
     getAlarmDate: function cas_getAlarmTime(aItem) {
         var alarmDate = null;
-        if (aItem.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_START) {
+        // TODO ALARMSUPPORT This will change as soon as we support multiple
+        // alarms.
+        let alarms = aItem.getAlarms({}).filter(function(x) x.related != x.ALARM_RELATED_ABSOLUTE);
+        let alarm = alarms[0]
+        if (!alarm) {
+            // No relative alarm available.
+            return null;
+        }
+        // END TODO ALARMSUPPORT
+
+        if (alarm.related == Components.interfaces.calIAlarm.ALARM_RELATED_START) {
             alarmDate = aItem.startDate || aItem.entryDate || aItem.dueDate;
         } else {
             alarmDate = aItem.endDate || aItem.dueDate || aItem.entryDate;
         }
 
-        if (!aItem.alarmOffset || !alarmDate) {
+        if (!alarmDate) {
             // If there is no alarm offset, or no date the alarm offset could be
             // relative to, then there is no valid alarm.
             return null;
@@ -397,7 +407,7 @@ calAlarmService.prototype = {
             alarmDate.isDate = false;
         }
 
-        var offset = aItem.alarmOffset;
+        let offset = alarm.offset;
 
         alarmDate.addDuration(offset);
         alarmDate = alarmDate.getInTimezone(UTC());

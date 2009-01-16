@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+
 /**
  * Creates an event with the calendar event dialog.
  *
@@ -134,7 +136,7 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event, aFo
             event.title = summary;
         }
 
-        setDefaultAlarmValues(event);
+        cal.alarms.setDefaultValues(event);
     }
     openEventDialog(event, calendar, "new", onNewEvent, null);
 }
@@ -183,7 +185,7 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
         if (dueDate)
             todo.dueDate = dueDate;
 
-        setDefaultAlarmValues(todo);
+        cal.alarms.setDefaultValues(todo);
     }
 
     openEventDialog(todo, calendar, "new", onNewItem, null);

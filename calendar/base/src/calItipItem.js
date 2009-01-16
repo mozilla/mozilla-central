@@ -151,7 +151,7 @@ calItipItem.prototype = {
             // the following changes will bump LAST-MODIFIED/DTSTAMP, we want to preserve the originals:
             let stamp = item.stampTime;
             let lastModified = item.lastModifiedTime;
-            item.alarmOffset = null;
+            item.clearAlarms();
             item.alarmLastAck = null;
             item.deleteProperty("RECEIVED-SEQUENCE");
             item.deleteProperty("RECEIVED-DTSTAMP");
