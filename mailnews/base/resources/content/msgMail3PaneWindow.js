@@ -1349,10 +1349,10 @@ function GetSelectedIndices(dbView)
 
 function GetSelectedMessages()
 {
-  if (!gDBView)
+  if (!GetDBView())
     return null;
 
-  var messageArray = gDBView.getURIsForSelection({});
+  var messageArray = GetDBView().getURIsForSelection({});
   return messageArray.length ? messageArray : null;
 }
 
