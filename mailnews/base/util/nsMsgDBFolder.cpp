@@ -1754,7 +1754,8 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
 
            if ( localExpungedBytes > 0)
            {
-               nsCOMPtr <nsIMsgFolderCompactor> folderCompactor =  do_CreateInstance(NS_MSGOFFLINESTORECOMPACTOR_CONTRACTID, &rv);
+               nsCOMPtr<nsIMsgFolderCompactor> folderCompactor =
+                 do_CreateInstance(NS_MSGLOCALFOLDERCOMPACTOR_CONTRACTID, &rv);
                NS_ENSURE_SUCCESS(rv, rv);
 
                if (offlineExpungedBytes > 0)
@@ -1779,7 +1780,7 @@ nsMsgDBFolder::CompactAllOfflineStores(nsIUrlListener *aUrlListener,
 {
   nsresult rv;
   nsCOMPtr<nsIMsgFolderCompactor> folderCompactor
-    = folderCompactor = do_CreateInstance(NS_MSGOFFLINESTORECOMPACTOR_CONTRACTID, &rv);
+    = do_CreateInstance(NS_MSGOFFLINESTORECOMPACTOR_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   return folderCompactor->CompactFolders(nsnull, aOfflineFolderArray, aUrlListener, aWindow);
 }
