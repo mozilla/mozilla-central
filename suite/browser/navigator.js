@@ -677,6 +677,9 @@ function Startup()
                   .getService(Components.interfaces.nsIRemoteService);
       remoteService.registerWindow(window);
     }
+
+    // ensure login manager is loaded
+    Components.classes["@mozilla.org/login-manager;1"].getService();
   }
   
   // called when we go into full screen, even if it is 
@@ -2469,8 +2472,8 @@ function convertFromUnicode(charset, str)
 
 function getNotificationBox(aWindow)
 {
-  var foundBrowser = gBrowser.getBrowserForDocument(aWindow.document);
-  if (foundBrowser)
-    return gBrowser.getNotificationBox(foundBrowser)
-  return null;
+  return aWindow.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                .getInterface(Components.interfaces.nsIWebNavigation)
+                .QueryInterface(Components.interfaces.nsIDocShell)
+                .chromeEventHandler.parentNode.wrappedJSObject;
 }
