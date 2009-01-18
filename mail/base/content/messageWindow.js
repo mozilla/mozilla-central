@@ -836,13 +836,17 @@ var MessageWindowController =
       case "cmd_recalculateJunkScore":
         // can't do junk on news yet
         return (!isNewsURI(gCurrentFolderUri));
+      case "button_archive":
+        var folder = GetLoadedMsgFolder();
+        return folder &&
+          !(IsSpecialFolder(folder, Components.interfaces.nsMsgFolderFlags.Archive,
+                            true));
       case "cmd_reply":
       case "button_reply":
       case "cmd_replySender":
       case "cmd_replyGroup":
       case "cmd_replyall":
       case "button_replyall":
-      case "button_archive":
       case "cmd_forward":
       case "button_forward":
       case "cmd_forwardInline":

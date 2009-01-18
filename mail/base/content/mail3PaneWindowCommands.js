@@ -351,8 +351,12 @@ var DefaultController =
       case "button_file":
       case "cmd_file":
       case "cmd_archive":
-      case "button_archive":
         return (GetNumSelectedMessages() > 0 );
+      case "button_archive":
+        let folder = GetLoadedMsgFolder();
+        return GetNumSelectedMessages() > 0 && folder &&
+          !(IsSpecialFolder(folder, Components.interfaces.nsMsgFolderFlags.Archive,
+                            true));
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
         // can't do news on junk yet.
