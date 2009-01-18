@@ -1280,21 +1280,29 @@ void nsBayesianFilter::classifyMessage(
         double antiCount =
           static_cast<double>(mCorpus.getTraitCount(t, aAntiTraits[traitIndex]));
 
-        // if proCount and antiCount are both 0, we could end up with a
-        // divide by 0 error, tread carefully here. (Bug #240819)
-        double probDenom = (proCount * numAntiMessages[traitIndex] +
-                            antiCount * numProMessages[traitIndex]);
-        if (probDenom != 0.0)
+        double prob, proDenom, antiDenom;
+        // Prevent a divide by zero error by setting defaults for prob
+
+        // If there are no matching tokens at all, ignore.
+        if (antiCount == 0.0 && proCount == 0.0)
+          continue;
+        // if only anti match, set probability to 0%
+        if ((proDenom = proCount * numProMessages[traitIndex]) == 0.0)
+          prob = 0.0;
+        // if only pro match, set probability to 100%
+        else if ((antiDenom = antiCount * numAntiMessages[traitIndex]) == 0.0)
+          prob = 1.0;
+        else
+          prob = (proCount * numAntiMessages[traitIndex]) /
+                 (proDenom + antiDenom);
+
+        double n = proCount + antiCount;
+        prob =  (0.225 + n * prob) / (.45 + n);
+        double distance = PR_ABS(prob - 0.5);
+        if (distance >= .1)
         {
-          double prob = (proCount * numAntiMessages[traitIndex])/probDenom;
-          double n = proCount + antiCount;
-          prob =  (0.225 + n * prob) / (.45 + n);
-          double distance = PR_ABS(prob - 0.5);
-          if (distance >= .1)
-          {
-            nsresult rv = setAnalysis(token, traitIndex, distance, prob);
-            NS_ASSERTION(NS_SUCCEEDED(rv), "Problem in setAnalysis");
-          }
+          nsresult rv = setAnalysis(token, traitIndex, distance, prob);
+          NS_ASSERTION(NS_SUCCEEDED(rv), "Problem in setAnalysis");
         }
       }
     }

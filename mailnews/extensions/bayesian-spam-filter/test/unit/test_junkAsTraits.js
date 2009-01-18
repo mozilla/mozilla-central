@@ -95,10 +95,10 @@ var tests =
    junkPercent: 0,
    traitListener: false,
    junkListener: true},
-  // with ham but no spam training, percents still 50 but classifies as ham
+  // with ham but no spam training, percents are 0 and classifies as ham
   {command: kClassT,
    fileName: "ham1.eml",
-   junkPercent: 50,
+   junkPercent: 0,
    traitListener: false,
    junkListener: true},
   // train 1 spam message
