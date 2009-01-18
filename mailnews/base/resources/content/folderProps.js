@@ -206,6 +206,15 @@ function folderPropsOnLoad()
   var serverType = window.arguments[0].serverType;
 
   if (gMsgFolder) {
+    // We really need a functioning database, so we'll detect problems
+    // and create one if we have to.
+    try {
+      var db = gMsgFolder.getDatabase(null);
+    }
+    catch (e) {
+      gMsgFolder.updateFolder(window.arguments[0].msgWindow);
+    }
+
     var locationTextbox = document.getElementById("location");
 
     // Decode the displayed mailbox:// URL as it's useful primarily for debugging,
