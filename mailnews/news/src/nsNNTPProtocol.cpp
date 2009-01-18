@@ -563,6 +563,11 @@ NS_IMETHODIMP nsNNTPProtocol::SetIsBusy(PRBool aIsBusy)
 {
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) setting busy to %d",this, aIsBusy));
   m_connectionBusy = aIsBusy;
+  
+  // Maybe we could load another URI.
+  if (!aIsBusy && m_nntpServer)
+    m_nntpServer->PrepareForNextUrl(this);
+
   return NS_OK;
 }
 
@@ -858,6 +863,7 @@ PRBool nsNNTPProtocol::ReadFromLocalCache()
         {
           m_ContentType.Truncate();
           m_channelListener = nsnull;
+          NNTP_LOG_NOTE("Loading message from offline storage");
           return PR_TRUE;
         }
       }
@@ -949,21 +955,33 @@ NS_IMETHODIMP nsNNTPProtocol::AsyncOpen(nsIStreamListener *listener, nsISupports
   m_channelContext = ctxt;
   m_channelListener = listener;
   m_runningURL->GetNewsAction(&m_newsAction);
-  // first, check if this is a message load that should come from either
-  // the memory cache or the local msg cache.
-  if (mailnewsUrl && (m_newsAction == nsINntpUrl::ActionFetchArticle || m_newsAction == nsINntpUrl::ActionFetchPart
-    || m_newsAction == nsINntpUrl::ActionSaveMessageToDisk))
+
+  // Before running through the connection, try to see if we can grab the data
+  // from the offline storage or the memory cache. Only actions retrieving
+  // messages can be cached.
+  if (mailnewsUrl && (m_newsAction == nsINntpUrl::ActionFetchArticle ||
+                      m_newsAction == nsINntpUrl::ActionFetchPart ||
+                      m_newsAction == nsINntpUrl::ActionSaveMessageToDisk))
   {
-
     SetupPartExtractorListener(m_channelListener);
+
+    // Attempt to get the message from the offline storage cache. If this
+    // succeeds, we don't need to use our connection, so tell the server that we
+    // are ready for the next URL.
     if (ReadFromLocalCache())
-     return NS_OK;
+    {
+      if (m_nntpServer)
+        m_nntpServer->PrepareForNextUrl(this);
+      return NS_OK;
+    }
 
-    rv = OpenCacheEntry();
-    if (NS_SUCCEEDED(rv)) return NS_OK; // if this didn't return an error then jump out now...
-
+    // If it wasn't offline, try to get the cache from memory. If this call
+    // succeeds, we probably won't need the connection, but the cache might fail
+    // later on. The code there will determine if we need to fallback and will
+    // handle informing the server of our readiness.
+    if (NS_SUCCEEDED(OpenCacheEntry()))
+      return NS_OK;
   }
-  nsCOMPtr<nsIRequest> parentRequest;
   return nsMsgProtocol::AsyncOpen(listener, ctxt);
 }
 
@@ -5264,8 +5282,6 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       // Remember when we last used this connection
       m_lastActiveTimeStamp = PR_Now();
       CleanupAfterRunningUrl();
-      if (m_nntpServer)
-        m_nntpServer->PrepareForNextUrl(this);
     case NEWS_FINISHED:
       return NS_OK;
       break;

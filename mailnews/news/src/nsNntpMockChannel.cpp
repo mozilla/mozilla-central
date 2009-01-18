@@ -275,6 +275,7 @@ nsNntpMockChannel::AttachNNTPConnection(nsNNTPProtocol &protocol)
   if (m_channelState == CHANNEL_CLOSED || m_channelState == CHANNEL_UNOPENED)
     return NS_ERROR_FAILURE;
 
+
   // We're going to active the protocol now. Note that if the user has
   // interacted with us through the nsIChannel API, we need to pass it to the
   // protocol instance. We also need to initialize it. For best results, we're
