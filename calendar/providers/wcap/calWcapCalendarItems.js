@@ -986,6 +986,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
         if (!parent) { // a parentless one, fake a master and override it's occurrence
             parent = isEvent(item) ? createEvent() : createTodo();
             parent.id = item.id;
+            parent.calendar = this.superCalendar;
             parent.setProperty("DTSTART", item.recurrenceId);
             parent.setProperty("X-MOZ-FAKED-MASTER", "1"); // this tag might be useful in the future
             parent.recurrenceInfo = createRecurrenceInfo(parent);
