@@ -133,7 +133,7 @@ cal.auth = {
             } else {
                 let loginInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
                                           .createInstance(Components.interfaces.nsILoginInfo);
-                loginInfo.init(aHostName, null, aRealm, aUsername, aPassword, null, null);
+                loginInfo.init(aHostName, null, aRealm, aUsername, aPassword, "", "");
                 loginManager.addLogin(loginInfo);
             }
         } catch (exc) {
