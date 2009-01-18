@@ -39,7 +39,6 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAuthUtils.jsm");
-Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 
 /*
  * Provider helper code
