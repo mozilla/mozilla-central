@@ -15,10 +15,12 @@
 
 <keyset id="tasksKeys">
   <key id="key_navigator"    key="&navigatorCmd.commandkey;"   command="Tasks:Navigator" modifiers="accel"/>
-
+  <key id="key_errorConsole" key="&errorConsoleCmd.commandkey;"
+       command="Tasks:ErrorConsole" modifiers="accel,shift"/>
 </keyset>
 <commandset id="tasksCommands">
   <command id="Tasks:Navigator" oncommand="toNavigator();"/>
+  <command id="Tasks:ErrorConsole" oncommand="toJavaScriptConsole();"/>
 </commandset>
 
 
@@ -43,7 +45,9 @@
           <menuseparator/>
           <menu label="&webDevelopment.label;" accesskey="&webDevelopment.accesskey;">
             <menupopup id="toolsPopup" onpopupshowing="javaItemEnabling();">
-              <menuitem label="&errorConsoleCmd.label;" accesskey="&errorConsoleCmd.accesskey;" oncommand="toJavaScriptConsole();"/>
+              <menuitem id="javascriptConsole" label="&errorConsoleCmd.label;"
+                        accesskey="&errorConsoleCmd.accesskey;"
+                        key="key_errorConsole" command="Tasks:ErrorConsole"/>
               <menuitem id="java" label="&javaConsoleCmd.label;" accesskey="&javaConsoleCmd.accesskey;" oncommand="toJavaConsole()"/>
             </menupopup>
           </menu>
