@@ -436,7 +436,8 @@
           var aWindow;
 
           // Loop through help windows looking for one with selected helpFileURI
-          while (iterator.hasMoreElements()) {
+          while (iterator.hasMoreElements())
+          {
             aWindow = iterator.getNext();
             if (aWindow.getHelpFileURI() == helpFileURI)
               topWindow = aWindow;
@@ -453,16 +454,21 @@
         <parameter name="helpFileURI"/>
         <body>
         <![CDATA[
+          // Empty help windows are not helpful...
+          if (!helpFileURI)
+            return;
+
           // Try to find previously opened help.
           var topWindow = this.locateHelpWindow(helpFileURI);
-
-          if (topWindow) {
-          // Open topic in existing window.
+          if (topWindow)
+          {
+            // Open topic in existing window.
             topWindow.focus();
             topWindow.displayTopic(topic);
           }
-          else {
-          // Open topic in new window.
+          else
+          {
+            // Open topic in new window.
             const params = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
                                      .createInstance(Components.interfaces.nsIDialogParamBlock);
             params.SetNumberStrings(2);
