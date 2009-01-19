@@ -292,8 +292,13 @@ PlacesTreeView.prototype = {
       }
       // if we don't have a parent, we made it all the way to the root
       // and didn't find a match, so we can open our item
-      if (!parent && !item.containerOpen)
+      if (!parent && !item.containerOpen) {
+        // 474287 Places enforces title sorting for groups, which we don't want.
+        if (asQuery(item).queryOptions.resultType ==
+            Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_URI)
+          item.queryOptions.sortingMode = this._result.sortingMode;
         item.containerOpen = true;
+      }
     }
 
     this._tree.endUpdateBatch();
@@ -896,6 +901,10 @@ PlacesTreeView.prototype = {
         PlacesUIUtils.localStore.Assert(resource, openLiteral, trueLiteral, true);
     }
 
+    // 474287 Places enforces title sorting for groups, which we don't want.
+    if (!node.containerOption && asQuery(node).queryOptions.resultType ==
+        Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_URI)
+      node.queryOptions.sortingMode = this._result.sortingMode;
     node.containerOpen = !node.containerOpen;
   },
 
