@@ -6,7 +6,6 @@ LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6_RTM'
 CHATZILLA_CO_TAG = 'HEAD'
 VENKMAN_CO_TAG = 'HEAD'
 
-EXTENSION_DIRS = ('extensions/wallet',)
 LDAPCSDK_DIRS = ('directory/c-sdk',)
 
 CHATZILLA_DIRS = ('extensions/irc',)
@@ -186,9 +185,6 @@ o.add_option("--inspector-rev", dest="inspector_rev",
              default=DEFAULT_INSPECTOR_REV,
              help="Revision of DOM inspector repository to update to. Default: \"" + DEFAULT_INSPECTOR_REV + "\"")
 
-o.add_option("--skip-cvs", dest="skip_cvs",
-             action="store_true", default=False,
-             help="Skip pulling the old directories from the Mozilla CVS repository.")
 o.add_option("--skip-ldap", dest="skip_ldap",
              action="store_true", default=False,
              help="Skip pulling LDAP from the Mozilla CVS repository.")
@@ -260,14 +256,8 @@ if action in ('checkout', 'co'):
     if not options.skip_inspector:
         do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg, options.inspector_rev)
 
-    if not options.skip_cvs:
-        if not options.skip_ldap:
-          do_cvs_checkout(LDAPCSDK_DIRS, LDAPCSDK_CO_TAG, options.cvsroot, options.cvs, '')
-        if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
-          do_cvs_checkout(EXTENSION_DIRS, EXTENSION_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
-        else:
-          print >>sys.stderr, "Warning: mozilla/extensions does not exist, built-in extensions could not be checked out."
-          pass
+    if not options.skip_ldap:
+        do_cvs_checkout(LDAPCSDK_DIRS, LDAPCSDK_CO_TAG, options.cvsroot, options.cvs, '')
 
     if not options.skip_chatzilla:
         if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
