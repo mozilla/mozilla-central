@@ -56,6 +56,13 @@ DIRS	= build public src installer
 
 PREF_JS_EXPORTS = $(srcdir)/palmsync.js
 
+ifdef MOZILLA_1_9_1_BRANCH
+THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version-191.txt)
+else
+THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version.txt)
+endif
+SEAMONKEY_VERSION := $(shell cat $(topsrcdir)/suite/config/version.txt)
+
 XULAPP_DEFINES = \
 	-DINSTALL_EXTENSION_ID=$(INSTALL_EXTENSION_ID) \
 	-DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
