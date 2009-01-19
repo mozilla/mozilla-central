@@ -41,14 +41,14 @@
 #include "nsMemory.h"
 #include "nsStringGlue.h"
 #include "nsISimpleEnumerator.h"
-#include <SearchAPI.h>
-#include <winsvc.h>
-#include <ShellAPI.h>
 
 #ifdef _WIN32_WINNT
 #undef _WIN32_WINNT
 #endif
 #define _WIN32_WINNT 0x0600
+#include <SearchAPI.h>
+#include <winsvc.h>
+#include <ShellAPI.h>
 #include <shlobj.h>
 
 static const CLSID CLSID_CSearchManager = {0x7d096c5f, 0xac08, 0x4f1f, {0xbe, 0xb7, 0x5c, 0x22, 0xc5, 0x17, 0xce, 0x39}};
