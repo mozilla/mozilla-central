@@ -100,7 +100,7 @@
              </tabs>
            <box class="navigation-bottombox" type="end"/>
          </vbox>
-         <vbox>
+         <vbox class="view-scrollbarspacer">
            <scrollbar style="visibility:hidden;max-height:1px;height:1px" orient="vertical"/>
          </vbox>
        </hbox>

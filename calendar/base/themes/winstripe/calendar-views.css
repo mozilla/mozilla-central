@@ -629,6 +629,18 @@ calendar-month-day-box-item[invitation-status="DECLINED"] {
 /* Navigation controls for the views */
 #calendar-nav-control {
     background-color: white;
+    border: solid ThreeDShadow;
+    border-width: 1px 1px 0;
+}
+
+#view-deck {
+    border: solid ThreeDShadow;
+    border-width: 0 1px;
+}
+
+.view-scrollbarspacer {
+    border-bottom: 1px solid #D2D2D2;
+    margin-bottom: 4px;
 }
 
 .tabs-left,

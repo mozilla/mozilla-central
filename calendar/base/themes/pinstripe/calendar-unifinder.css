@@ -68,11 +68,6 @@
     min-height: 5px;
 }
 
-/* add view-deck-border to match Thunderbird's layout */
-#view-deck {
-    border: 1px solid ThreeDShadow;
-}
-
 /* added for new id ..... search box ..... */
 #unifinder-searchBox {
     border-top: 1px solid ThreeDHighlight;
