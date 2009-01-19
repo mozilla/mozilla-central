@@ -1425,7 +1425,8 @@ var gMsgEditorCreationObserver =
     if (aTopic == "obs_documentCreated")
     {
       var editor = GetCurrentEditor();
-      if (editor && GetCurrentCommandManager() == aSubject)
+      var commandManager = GetCurrentCommandManager();
+      if (editor && commandManager == aSubject)
         InitEditor(editor);
       // Now that we know this document is an editor, update commands now if
       // the document has focus, or next time it receives focus via
@@ -1434,6 +1435,8 @@ var gMsgEditorCreationObserver =
         updateComposeItems();
       else
         gLastWindowToHaveFocus = null;
+
+      commandManager.removeCommandObserver(this, "obs_documentCreated");
     }
   }
 }
