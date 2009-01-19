@@ -46,6 +46,7 @@
 
 <window id="calendar-alarm-snooze-popup-window"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        windowtype="Calendar:SnoozePopup"
         hidechrome="true"
         title="&calendar.alarm.snoozefor.label;"
         onkeydown="windowKeyDown(event)"

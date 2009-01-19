@@ -49,6 +49,7 @@
 <dialog
   id="calendar-subscriptions-dialog"
   title="&calendar.subscriptions.dialog.title;"
+  windowtype="Calendar:SubscriptionsDialog"
   buttons="accept,cancel"
   ondialogaccept="return onAccept();"
   ondialogcancel="return onCancel();"

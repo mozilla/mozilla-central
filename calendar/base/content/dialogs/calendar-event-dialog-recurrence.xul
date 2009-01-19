@@ -49,6 +49,7 @@
 
 <dialog id="calendar-event-dialog-recurrence"
         title="&recurrence.title.label;"
+        windowtype="Calendar:EventDialog:Recurrence"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return true;"

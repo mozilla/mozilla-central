@@ -45,6 +45,7 @@
 
 <dialog id="calendar-error-prompt"
         title="&calendar.error.title;"
+        windowtype="Calendar:ErrorPrompt"
         buttons="accept"
         onload="loadErrorPrompt()"
         persist="screenX screenY"

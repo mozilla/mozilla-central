@@ -42,6 +42,7 @@
 
 <dialog id="calendar-occurrence-prompt"
         buttons="cancel"
+        windowtype="Calendar:OccurrencePrompt"
         ondialogcancel="return exitOccurrenceDialog(0)"
         onload="onLoad()"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"

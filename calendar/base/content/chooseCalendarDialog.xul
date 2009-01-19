@@ -47,6 +47,7 @@
 
 <dialog id="chooseCalendar"
         title="&calendar.select.dialog.title;"
+        windowtype="Calendar:CalendarPicker"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         buttons="accept,cancel"
         onload="loadCalendars();"

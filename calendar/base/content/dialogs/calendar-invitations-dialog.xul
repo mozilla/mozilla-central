@@ -46,6 +46,7 @@
 <dialog
   id="calendar-invitations-dialog"
   title="&calendar.invitations.dialog.invitations.text;"
+  windowtype="Calendar:InvitationsDialog"
   buttons="accept,cancel"
   ondialogaccept="return onAccept();"
   ondialogcancel="return onCancel();"

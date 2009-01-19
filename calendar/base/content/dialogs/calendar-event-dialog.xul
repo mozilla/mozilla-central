@@ -56,6 +56,7 @@
 
 <dialog id="calendar-event-dialog"
         title="&event.title.label;"
+        windowtype="Calendar:EventDialog"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();"

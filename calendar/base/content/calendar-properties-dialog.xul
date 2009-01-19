@@ -47,6 +47,7 @@
 
 <dialog
     id="calendar-properties-dialog-2"
+    windowtype="Calendar:PropertiesDialog"
     title="&calendar.server.dialog.title.edit;"
     buttons="accept,cancel"
     ondialogaccept="return onAcceptDialog();"

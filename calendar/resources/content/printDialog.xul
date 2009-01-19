@@ -62,6 +62,7 @@
 <dialog
    id="calendar-new-printwindow"
    title="&calendar.print.window.title;"
+   windowtype="Calendar:PrintDialog"
    onload="loadCalendarPrintDialog()"
    buttons="accept,cancel"
    buttonlabelaccept="&calendar.print.button.label;"

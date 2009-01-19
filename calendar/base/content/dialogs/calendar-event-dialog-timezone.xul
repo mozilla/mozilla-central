@@ -50,6 +50,7 @@
 
 <dialog id="calendar-event-dialog-timezone"
         title="&timezone.title.label;"
+        windowtype="Calendar:EventDialog:Timezone"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();"

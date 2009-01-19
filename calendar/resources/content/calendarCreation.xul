@@ -52,6 +52,7 @@
 
 <wizard id="calendar-wizard"
         title="&wizard.title;"
+        windowtype="Calendar:NewCalendarWizard"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onwizardfinish=""
         persist="screenX screenY">

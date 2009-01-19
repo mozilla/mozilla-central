@@ -51,6 +51,7 @@
 <dialog
   id="calendar-publishwindow"
   title="&calendar.publish.dialog.title;"
+  windowtype="Calendar:PublishDialog"
   buttons="accept,cancel"
   buttonlabelaccept="&calendar.publish.publish.button;"
   ondialogaccept="return onOKCommand();"

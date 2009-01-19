@@ -47,6 +47,7 @@
 
 <dialog id="calendar-event-dialog-reminder"
         title="&reminder.title.label;"
+        windowtype="Calendar:EventDialog:Reminder"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();"

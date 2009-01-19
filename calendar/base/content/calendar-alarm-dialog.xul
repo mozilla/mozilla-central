@@ -54,7 +54,7 @@
 <window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         id="calendar-alarm-dialog"
         title="&calendar.alarm.title.label;"
-        windowtype="calendarAlarmWindow"
+        windowtype="Calendar:AlarmWindow"
         persist="screenX screenY width height"
         onload="setupWindow(); window.arguments[0].wrappedJSObject.window_onLoad();"
         onunload="finishWindow();"

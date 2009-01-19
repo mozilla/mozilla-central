@@ -49,6 +49,7 @@
      * date (optional) - initially selected date in datepicker -->
 <dialog id="calendar-gotodate-dialog"
         title="&sunbird.flat.topbar.choosedate;"
+        windowtype="Calendar:GoToDateDialog"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onload="document.getElementById('datepicker').value = window.arguments[0].date || new Date();"
         buttons="accept,cancel"
