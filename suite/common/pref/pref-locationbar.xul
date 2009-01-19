@@ -55,9 +55,6 @@
                   name="browser.urlbar.autocomplete.enabled"
                   type="bool"
                   onchange="updateDependent(this.value);"/>
-      <preference id="browser.urlbar.matchOnlyTyped"
-                  name="browser.urlbar.matchOnlyTyped"
-                  type="bool"/>
       <preference id="browser.urlbar.default.behavior"
                   name="browser.urlbar.default.behavior"
                   type="int"/>
@@ -93,7 +90,9 @@
                 class="indent"
                 label="&autoCompleteMatchOnlyTyped.label;"
                 accesskey="&autoCompleteMatchOnlyTyped.accesskey;"
-                preference="browser.urlbar.matchOnlyTyped"/>
+                preference="browser.urlbar.default.behavior"
+                onsyncfrompreference="return document.getElementById('locationBar_pane').ReadDefaultBehavior(this);"
+                onsynctopreference="return document.getElementById('locationBar_pane').WriteDefaultBehavior(this);"/>
       <checkbox id="matchOnlyURLs"
                 class="indent"
                 label="&autoCompleteMatchOnlyURLs.label;"

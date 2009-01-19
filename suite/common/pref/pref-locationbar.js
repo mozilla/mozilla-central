@@ -38,7 +38,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const kBehaviorURL = 16;
+const kBehaviorBit = {
+  matchOnlyURLs: 16,
+  matchOnlyTyped: 32
+};
 
 function Startup()
 {
@@ -88,11 +91,10 @@ function updateMatchPrefs()
   var matchDisabled = (!autoFillPref.value && !showPopupPref.value) ||
                       !autoCompletePref.value;
 
-  if (!document.getElementById("browser.urlbar.matchOnlyTyped").locked)
+  if (!document.getElementById("browser.urlbar.default.behavior").locked) {
     document.getElementById("matchOnlyTyped").disabled = matchDisabled;
-
-  if (!document.getElementById("browser.urlbar.default.behavior").locked)
     document.getElementById("matchOnlyURLs").disabled = matchDisabled;
+  }
 
   if (!document.getElementById("browser.urlbar.matchBehavior").locked)
     document.getElementById("matchBehavior").disabled = matchDisabled;
@@ -101,8 +103,8 @@ function updateMatchPrefs()
 function ReadDefaultBehavior(aField)
 {
   var curval = document.getElementById("browser.urlbar.default.behavior").value;
-  // Return the right bit
-  return (curval & kBehaviorURL) != 0;
+  // Return the right bit based on the id of "aField"
+  return (curval & kBehaviorBit[aField.id]) != 0;
 }
 
 function WriteDefaultBehavior(aField)
@@ -110,7 +112,7 @@ function WriteDefaultBehavior(aField)
   var curval = document.getElementById("browser.urlbar.default.behavior").value;
   // Only care about the bit we have to change
   if (aField.checked)
-    return curval | kBehaviorURL;
+    return curval | kBehaviorBit[aField.id];
 
-  return curval & ~kBehaviorURL;
+  return curval & ~kBehaviorBit[aField.id];
 }
