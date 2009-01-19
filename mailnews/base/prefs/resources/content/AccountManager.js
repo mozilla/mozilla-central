@@ -527,7 +527,7 @@ function saveAccount(accountValues, account)
         }
         methodName += ((methodName + "Value") in dest ? "Value" : "Attribute");
         if (dest[methodName](slot) != typeArray[slot]) {
-          methodName[0] = 's';
+          methodName = methodName.replace("get", "set");
           dest[methodName](slot, typeArray[slot]);
         }
       }
