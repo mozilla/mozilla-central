@@ -662,7 +662,7 @@ NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 
 //Makes sure the database is open and exists.  If the database is valid then
 //returns NS_OK.  Otherwise returns a failure error value.
-nsresult nsImapMailFolder::GetDatabase(nsIMsgWindow *aMsgWindow)
+nsresult nsImapMailFolder::GetDatabase()
 {
   nsresult rv = NS_OK;
   if (!mDatabase)
@@ -748,7 +748,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
     }
     selectFolder = PR_FALSE;
   }
-  rv = GetDatabase(msgWindow);
+  rv = GetDatabase();
   if (NS_FAILED(rv))
   {
     ThrowAlertMsg("errorGettingDB", msgWindow);
@@ -822,7 +822,7 @@ NS_IMETHODIMP nsImapMailFolder::GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleE
 {
   NS_ENSURE_ARG_POINTER(result);
   if (!mDatabase)
-    GetDatabase(nsnull);
+    GetDatabase();
   if (mDatabase)
     return mDatabase->EnumerateMessages(result);
   return NS_ERROR_UNEXPECTED;
@@ -1187,7 +1187,7 @@ NS_IMETHODIMP nsImapMailFolder::GetNoSelect(PRBool *aResult)
 
 NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)
 {
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   // now's a good time to apply the retention settings. If we do delete any
   // messages, the expunge is going to have to wait until the delete to
   // finish before it can run, but the multiple-connection protection code
@@ -1727,7 +1727,7 @@ nsImapMailFolder::MarkMessagesRead(nsIArray *messages, PRBool markRead)
     if (NS_FAILED(rv)) return rv;
 
     StoreImapFlags(kImapMsgSeenFlag, markRead,  keysToMarkRead.Elements(), keysToMarkRead.Length(), nsnull);
-    rv = GetDatabase(nsnull);
+    rv = GetDatabase();
     if (NS_SUCCEEDED(rv))
       mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
   }
@@ -1747,7 +1747,7 @@ nsImapMailFolder::SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabe
     nsresult rv = BuildIdsAndKeyArray(aMessages, messageIds, keysToLabel);
     NS_ENSURE_SUCCESS(rv, rv);
     StoreImapFlags((aLabel << 9), PR_TRUE, keysToLabel.Elements(), keysToLabel.Length(), nsnull);
-    rv = GetDatabase(nsnull);
+    rv = GetDatabase();
     if (NS_SUCCEEDED(rv))
       mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
   }
@@ -1757,7 +1757,7 @@ nsImapMailFolder::SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabe
 NS_IMETHODIMP
 nsImapMailFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
 {
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   if(NS_SUCCEEDED(rv))
   {
     nsTArray<nsMsgKey> thoseMarked;
@@ -1797,7 +1797,7 @@ nsImapMailFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
 
 NS_IMETHODIMP nsImapMailFolder::MarkThreadRead(nsIMsgThread *thread)
 {
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   if(NS_SUCCEEDED(rv))
   {
     nsTArray<nsMsgKey> thoseMarked;
@@ -1915,7 +1915,7 @@ nsImapMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatab
   NS_ENSURE_ARG_POINTER (folderInfo);
   NS_ENSURE_ARG_POINTER (db);
 
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   if (NS_FAILED(rv))
     return rv;
 
@@ -2481,7 +2481,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   m_numStatusUnseenMessages = 0; // clear this since we selected the folder.
 
   if (!mDatabase)
-    GetDatabase(nsnull);
+    GetDatabase();
 
   PRBool folderSelected;
   rv = aSpec->GetFolderSelected(&folderSelected);
@@ -2710,7 +2710,7 @@ NS_IMETHODIMP nsImapMailFolder::ParseMsgHdrs(nsIImapProtocol *aProtocol, nsIImap
   nsCOMPtr <nsIImapUrl> aImapUrl;
   nsImapAction imapAction = nsIImapUrl::nsImapTest; // unused value.
   if (!mDatabase)
-    GetDatabase(nsnull);
+    GetDatabase();
 
   nsresult rv = aHdrXferInfo->GetNumHeaders(&numHdrs);
   if (aProtocol)
@@ -2766,7 +2766,7 @@ nsresult nsImapMailFolder::SetupHeaderParseStream(PRUint32 aSize,
                                                   const nsACString& content_type, nsIMailboxSpec *boxSpec)
 {
   if (!mDatabase)
-    GetDatabase(nsnull);
+    GetDatabase();
   m_nextMessageByteLength = aSize;
   if (!m_msgParser)
   {
@@ -3470,7 +3470,7 @@ NS_IMETHODIMP nsImapMailFolder::StoreImapFlags(PRInt32 flags, PRBool addFlags,
   }
   else
   {
-    GetDatabase(nsnull);
+    GetDatabase();
     if (mDatabase)
     {
       PRUint32 total = numKeys;
@@ -3998,7 +3998,7 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
     nsCAutoString messageIdsToDownload;
     nsTArray<nsMsgKey> msgsToDownload;
 
-    GetDatabase(msgWindow);
+    GetDatabase();
     m_downloadingFolderForOfflineUse = PR_TRUE;
 
     rv = AcquireSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
@@ -4211,7 +4211,7 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage, nsIMsgDBHdr 
 // synchronize the message flags in the database with the server flags
 nsresult nsImapMailFolder::SyncFlags(nsIImapFlagAndUidState *flagState)
 {
-  nsresult rv = GetDatabase(nsnull); // we need a database for this
+  nsresult rv = GetDatabase(); // we need a database for this
   NS_ENSURE_SUCCESS(rv, rv);
     // update all of the database flags
   PRInt32 messageIndex;
@@ -4288,7 +4288,7 @@ nsresult nsImapMailFolder::NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKe
 NS_IMETHODIMP
 nsImapMailFolder::NotifyMessageFlags(PRUint32 aFlags, nsMsgKey aMsgKey, PRUint64 aHighestModSeq)
 {
-  if (NS_SUCCEEDED(GetDatabase(nsnull)) && mDatabase)
+  if (NS_SUCCEEDED(GetDatabase()) && mDatabase)
   {
     PRBool msgDeleted = aFlags & kImapMsgDeletedFlag;
     if (aHighestModSeq || msgDeleted)
@@ -4337,7 +4337,7 @@ nsImapMailFolder::NotifyMessageDeleted(const char * onlineFolderName, PRBool del
 
   if (msgIdString && !ShowDeletedMessages())
   {
-    GetDatabase(nsnull);
+    GetDatabase();
     NS_ENSURE_TRUE(mDatabase, NS_OK);
     if (!ShowDeletedMessages())
     {
@@ -4408,7 +4408,7 @@ nsImapMailFolder::GetMessageSizeFromDB(const char * id, PRUint32 *size)
   NS_ENSURE_ARG_POINTER(size);
   nsresult rv;
   *size = 0;
-  (void) GetDatabase(nsnull);
+  (void) GetDatabase();
   if (id && mDatabase)
   {
     PRUint32 key = atoi(id);
@@ -4983,7 +4983,7 @@ NS_IMETHODIMP
 nsImapMailFolder::NotifySearchHit(nsIMsgMailNewsUrl * aUrl,
                                   const char* searchHitLine)
 {
-  nsresult rv = GetDatabase(nsnull /* don't need msg window, that's more for local mbox parsing */);
+  nsresult rv = GetDatabase();
   if (!mDatabase || NS_FAILED(rv))
     return rv;
   
@@ -5357,7 +5357,7 @@ NS_IMETHODIMP nsImapMailFolder::SetAclFlags(PRUint32 aclFlags)
   {
     nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
     PRBool dbWasOpen = (mDatabase != nsnull);
-    rv = GetDatabase(nsnull);
+    rv = GetDatabase();
 
     m_aclFlags = aclFlags;
     if (mDatabase)
@@ -5387,7 +5387,7 @@ NS_IMETHODIMP nsImapMailFolder::GetAclFlags(PRUint32 *aclFlags)
   {
     nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
     PRBool dbWasOpen = (mDatabase != nsnull);
-    rv = GetDatabase(nsnull);
+    rv = GetDatabase();
 
     if (mDatabase)
     {
@@ -5415,7 +5415,7 @@ NS_IMETHODIMP nsImapMailFolder::GetAclFlags(PRUint32 *aclFlags)
 nsresult nsImapMailFolder::SetSupportedUserFlags(PRUint32 userFlags)
 {
   nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
 
   m_supportedUserFlags = userFlags;
   if (mDatabase)
@@ -5437,7 +5437,7 @@ nsresult nsImapMailFolder::GetSupportedUserFlags(PRUint32 *userFlags)
   if (m_supportedUserFlags == 0) // 0 means invalid value, so get it from db.
   {
     nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
-    rv = GetDatabase(nsnull);
+    rv = GetDatabase();
 
     if (mDatabase)
     {
@@ -6275,7 +6275,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       msgWindow->GetTransactionManager(getter_AddRefs(txnMgr));
     if (txnMgr)
       txnMgr->BeginBatch();
-    GetDatabase(nsnull);
+    GetDatabase();
     if (mDatabase)
     {
       // get the highest key in the dest db, so we can make up our fake keys
@@ -6616,7 +6616,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
 
   // make sure database is open to set special flags below
   if (!mDatabase)
-    GetDatabase(nsnull);
+    GetDatabase();
 
   // check if any msg hdr has special flags or properties set
   // that we need to set on the dest hdr
@@ -7888,7 +7888,7 @@ nsImapMailFolder::StoreCustomKeywords(nsIMsgWindow *aMsgWindow, const nsACString
   nsresult rv;
   if (WeAreOffline())
   {
-    GetDatabase(nsnull);
+    GetDatabase();
     if (mDatabase)
     {
       for (PRUint32 keyIndex = 0; keyIndex < aNumKeys; keyIndex++)

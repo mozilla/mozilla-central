@@ -388,7 +388,7 @@ protected:
   //nsresult RenameLocal(const char *newName);
   nsresult AddDirectorySeparator(nsILocalFile *path);
   nsresult CreateSubFolders(nsILocalFile *path);
-  nsresult GetDatabase(nsIMsgWindow *aMsgWindow);
+  nsresult GetDatabase();
   virtual void GetIncomingServerType(nsCString& serverType) { serverType.AssignLiteral("imap");}
 
   nsresult        GetFolderOwnerUserName(nsACString& userName);

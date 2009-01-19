@@ -136,7 +136,7 @@ protected:
   virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder) = 0;
   virtual nsresult ReadDBFolderInfo(PRBool force);
   virtual nsresult FlushToFolderCache();
-  virtual nsresult GetDatabase(nsIMsgWindow *aMsgWindow) = 0;
+  virtual nsresult GetDatabase() = 0;
   virtual nsresult SendFlagNotifications(nsIMsgDBHdr *item, PRUint32 oldFlags, PRUint32 newFlags);
   nsresult CheckWithNewMessagesStatus(PRBool messageAdded);
   void     UpdateNewMessages();

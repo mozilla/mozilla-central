@@ -445,7 +445,7 @@ nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
   return aResult ? NS_NewArrayEnumerator(aResult, mSubFolders) : NS_ERROR_NULL_POINTER;
 }
 
-nsresult nsMsgLocalMailFolder::GetDatabase(nsIMsgWindow *aMsgWindow)
+nsresult nsMsgLocalMailFolder::GetDatabase()
 {
   nsCOMPtr <nsIMsgDatabase> msgDB;
   return GetDatabaseWOReparse(getter_AddRefs(msgDB));
@@ -3860,7 +3860,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
 
   if (NS_SUCCEEDED(rv))
   {
-    rv = GetDatabase(nsnull);
+    rv = GetDatabase();
     NS_ENSURE_SUCCESS(rv, rv);
     // this will fail if the folder is locked.
     rv = mDatabase->StartBatch();

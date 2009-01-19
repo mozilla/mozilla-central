@@ -218,7 +218,7 @@ protected:
 
   nsresult DeleteMessage(nsISupports *message, nsIMsgWindow *msgWindow,
                    PRBool deleteStorage, PRBool commit);
-  nsresult GetDatabase(nsIMsgWindow *msgWindow);
+  nsresult GetDatabase();
 
   // copy message helper
   nsresult DisplayMoveCopyStatusMsg();

@@ -765,7 +765,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint32 *off
     rv = NS_NewLocalFileInputStream(aFileStream, localStore);
     if (NS_SUCCEEDED(rv))
     {
-      rv = GetDatabase(nsnull);
+      rv = GetDatabase();
       NS_ENSURE_SUCCESS(rv, NS_OK);
       nsCOMPtr<nsIMsgDBHdr> hdr;
       rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(hdr));
@@ -885,7 +885,7 @@ nsMsgDBFolder::GetMsgDatabase(nsIMsgWindow *aMsgWindow,
                               nsIMsgDatabase** aMsgDatabase)
 {
   NS_ENSURE_ARG_POINTER(aMsgDatabase);
-  GetDatabase(aMsgWindow);
+  GetDatabase();
   if (!mDatabase)
     return NS_ERROR_FAILURE;
   NS_ADDREF(*aMsgDatabase = mDatabase);
@@ -1335,7 +1335,7 @@ nsMsgDBFolder::AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositio
 {
   NS_ENSURE_ARG_POINTER(aMessage);
 
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   NS_ENSURE_SUCCESS(rv, NS_OK);
 
   nsMsgKey msgKey;
@@ -1351,8 +1351,7 @@ nsMsgDBFolder::AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositio
 NS_IMETHODIMP
 nsMsgDBFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
 {
-  // ### fix me need nsIMsgWindow
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   m_newMsgs.Clear();
   
   if (NS_SUCCEEDED(rv))
@@ -1392,7 +1391,7 @@ nsMsgDBFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
 
 NS_IMETHODIMP nsMsgDBFolder::MarkThreadRead(nsIMsgThread *thread)
 {
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   if(NS_SUCCEEDED(rv))
     return mDatabase->MarkThreadRead(thread, nsnull, nsnull);
   return rv;
@@ -1427,7 +1426,7 @@ nsMsgDBFolder::GetRetentionSettings(nsIMsgRetentionSettings **settings)
   nsresult rv = NS_OK;
   if (!m_retentionSettings)
   {
-    GetDatabase(nsnull);
+    GetDatabase();
     if (mDatabase)
     {
       // get the settings from the db - if the settings from the db say the folder
@@ -1455,7 +1454,7 @@ nsMsgDBFolder::GetRetentionSettings(nsIMsgRetentionSettings **settings)
 NS_IMETHODIMP nsMsgDBFolder::SetRetentionSettings(nsIMsgRetentionSettings *settings)
 {
   m_retentionSettings = settings;
-  GetDatabase(nsnull);
+  GetDatabase();
   if (mDatabase)
     mDatabase->SetMsgRetentionSettings(settings);
   return NS_OK;
@@ -1467,7 +1466,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetDownloadSettings(nsIMsgDownloadSettings **settin
   nsresult rv = NS_OK;
   if (!m_downloadSettings)
   {
-    GetDatabase(nsnull);
+    GetDatabase();
     if (mDatabase)
     {
       // get the settings from the db - if the settings from the db say the folder
@@ -1577,7 +1576,7 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
   PRUint32 messageOffset;
   nsMsgKey messageKey;
 
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   NS_ENSURE_SUCCESS(rv, rv);
 
   m_offlineHeader->GetMessageKey(&messageKey);
@@ -2031,7 +2030,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
 
   if (!mDatabase)
   {
-    rv = GetDatabase(nsnull);   // XXX is nsnull a reasonable arg here?
+    rv = GetDatabase();
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
@@ -4235,7 +4234,7 @@ NS_IMETHODIMP
 nsMsgDBFolder::SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabel)
 {
   NS_ENSURE_ARG(aMessages);
-  GetDatabase(nsnull);
+  GetDatabase();
   if (mDatabase)
   {
     PRUint32 count;
@@ -4259,7 +4258,7 @@ nsMsgDBFolder::SetJunkScoreForMessages(nsIArray *aMessages, const nsACString& ju
 {
   NS_ENSURE_ARG(aMessages);
   nsresult rv = NS_OK;
-  GetDatabase(nsnull);
+  GetDatabase();
   if (mDatabase)
   {
     PRUint32 count;
@@ -4293,7 +4292,7 @@ nsresult nsMsgDBFolder::ApplyRetentionSettings(PRBool deleteViaFolder)
   PRBool weOpenedDB = PR_FALSE;
   if (!mDatabase)
   {
-    rv = GetDatabase(nsnull);
+    rv = GetDatabase();
     NS_ENSURE_SUCCESS(rv, rv);
     weOpenedDB = PR_TRUE;
   }
@@ -5264,7 +5263,7 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsIArray *aMessages, const ns
 {
   NS_ENSURE_ARG(aMessages);
   nsresult rv = NS_OK;
-  GetDatabase(nsnull);
+  GetDatabase();
   if (mDatabase)
   {
     PRUint32 count;
@@ -5308,7 +5307,7 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
 {
   NS_ENSURE_ARG(aMessages);
   nsresult rv = NS_OK;
-  GetDatabase(nsnull);
+  GetDatabase();
   if (mDatabase)
   {
     PRUint32 count;

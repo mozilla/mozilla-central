@@ -288,7 +288,7 @@ nsMsgNewsFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 
 //Makes sure the database is open and exists.  If the database is valid then
 //returns NS_OK.  Otherwise returns a failure error value.
-nsresult nsMsgNewsFolder::GetDatabase(nsIMsgWindow *aMsgWindow)
+nsresult nsMsgNewsFolder::GetDatabase()
 {
   nsresult rv;
   if (!mDatabase)
@@ -333,7 +333,7 @@ nsMsgNewsFolder::UpdateFolder(nsIMsgWindow *aWindow)
   // Only if news.get_messages_on_select is true do we get new messages automatically
   if (getMessagesOnSelect)
   {
-    rv = GetDatabase(aWindow); // want this cached...
+    rv = GetDatabase(); // want this cached...
     if (NS_SUCCEEDED(rv))
     {
       if (mDatabase)
@@ -421,7 +421,7 @@ nsMsgNewsFolder::GetCanCompact(PRBool *aResult)
 NS_IMETHODIMP
 nsMsgNewsFolder::GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result)
 {
-  nsresult rv = GetDatabase(aMsgWindow);
+  nsresult rv = GetDatabase();
   *result = nsnull;
 
   if(NS_SUCCEEDED(rv))
@@ -519,7 +519,7 @@ NS_IMETHODIMP nsMsgNewsFolder::CreateSubfolder(const nsAString& newsgroupName,
 
 NS_IMETHODIMP nsMsgNewsFolder::Delete()
 {
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
 
   if(NS_SUCCEEDED(rv))
   {
@@ -687,7 +687,7 @@ nsMsgNewsFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDataba
   NS_ENSURE_ARG_POINTER(folderInfo);
   NS_ENSURE_ARG_POINTER(db);
   nsresult openErr;
-  openErr = GetDatabase(nsnull);
+  openErr = GetDatabase();
   *db = mDatabase;
   if (mDatabase) {
     NS_ADDREF(*db);
@@ -1633,7 +1633,7 @@ nsMsgNewsFolder::GetNntpServer(nsINntpIncomingServer **result)
 // it removes the cancelled message from the db
 NS_IMETHODIMP nsMsgNewsFolder::RemoveMessage(nsMsgKey key)
 {
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   NS_ENSURE_SUCCESS(rv, rv); // if GetDatabase succeeds, mDatabase will be non-null
 
   // Notify listeners of a delete for a single message
@@ -1654,7 +1654,7 @@ NS_IMETHODIMP nsMsgNewsFolder::RemoveMessage(nsMsgKey key)
 
 NS_IMETHODIMP nsMsgNewsFolder::RemoveMessages(nsTArray<nsMsgKey> &aMsgKeys)
 {
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   NS_ENSURE_SUCCESS(rv, rv); // if GetDatabase succeeds, mDatabase will be non-null
   
   // Notify listeners of a multiple message delete
@@ -1810,7 +1810,7 @@ NS_IMETHODIMP nsMsgNewsFolder::NotifyFinishedDownloadinghdrs()
 NS_IMETHODIMP nsMsgNewsFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
-  rv = GetDatabase(nsnull);
+  rv = GetDatabase();
   if (mDatabase)
     ApplyRetentionSettings();
   return rv;
@@ -1824,7 +1824,7 @@ nsMsgNewsFolder::ApplyRetentionSettings()
 
 NS_IMETHODIMP nsMsgNewsFolder::GetMessageIdForKey(nsMsgKey key, nsACString& result)
 {
-  nsresult rv = GetDatabase(nsnull);
+  nsresult rv = GetDatabase();
   if (!mDatabase)
     return rv;
   nsCOMPtr <nsIMsgDBHdr> hdr;
