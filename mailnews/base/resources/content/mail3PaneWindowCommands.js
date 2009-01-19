@@ -820,7 +820,12 @@ function IsSendUnsentMsgsEnabled(folderResource)
 {
   var identity;
 
-  if (messenger.sendingUnsentMsgs) // if we're currently sending unsent msgs, disable this cmd.
+  var msgSendlater =
+    Components.classes["@mozilla.org/messengercompose/sendlater;1"]
+              .getService(Components.interfaces.nsIMsgSendLater);
+
+  // If we're currently sending unsent msgs, disable this cmd.
+  if (msgSendlater.sendingMessages)
     return false;
   try {
     if (folderResource) {
@@ -849,7 +854,6 @@ function IsSendUnsentMsgsEnabled(folderResource)
       identity = am.defaultAccount.defaultIdentity;
     }
 
-    var msgSendlater = Components.classes["@mozilla.org/messengercompose/sendlater;1"].getService(Components.interfaces.nsIMsgSendLater);
     var unsentMsgsFolder = msgSendlater.getUnsentMessagesFolder(identity);
     return (unsentMsgsFolder.getTotalMessages(false) > 0);
   }

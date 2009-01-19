@@ -49,7 +49,7 @@ interface nsIMsgMessageService;
 interface nsIFile;
 interface nsIUrlListener;
 
-[scriptable, uuid(1B44C6EB-2C14-470F-AA5C-BDDCE89A4ECC)]
+[scriptable, uuid(4ef633e5-8723-44fa-aa54-34b56f67481c)]
 interface nsIMessenger : nsISupports {
 
     const long eUnknown = 0;
@@ -78,7 +78,6 @@ interface nsIMessenger : nsISupports {
     unsigned long getRedoTransactionType();
     void undo(in nsIMsgWindow msgWindow);
     void redo(in nsIMsgWindow msgWindow);
-    void sendUnsentMessages(in nsIMsgIdentity aIdentity, in nsIMsgWindow aMsgWindow);
     void setDocumentCharset(in ACString characterSet);
     void saveAs(in ACString aURI, in boolean aAsFile, in nsIMsgIdentity aIdentity, in AString aMsgFilename);
     void openAttachment(in ACString contentTpe, in ACString url, in ACString displayName, in ACString messageUri, in boolean isExternalAttachment);
@@ -97,8 +96,6 @@ interface nsIMessenger : nsISupports {
     // saveAttachmentToFolder is used by the drag and drop code to drop an attachment to a destination folder
     // We need to return the actual file path (including the filename).
     nsILocalFile saveAttachmentToFolder(in ACString contentType, in ACString url, in ACString displayName, in ACString messageUri, in nsILocalFile aDestFolder);
-
-    attribute boolean sendingUnsentMsgs;
 
     readonly attribute ACString lastDisplayedMessageUri;
 

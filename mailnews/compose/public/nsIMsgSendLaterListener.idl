@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Mark Banner <bugzilla@standard8.plus.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,43 +37,43 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsrootidl.idl"
 
-%{C++
-%}
-
-[scriptable, uuid(607DA5A8-289D-11d3-82B7-444553540002)]
+/**
+ * Implement this interface and add to nsIMsgSendLater to receive notifications
+ * of send later actions.
+ */
+[scriptable, uuid(d61d5224-c55a-4428-9c87-340a9bd0b053)]
 interface nsIMsgSendLaterListener : nsISupports {
+  /**
+   * Notify the observer that the operation of sending all unset messages has
+   * started.
+   */
+  void onStartSending(in PRUint32 aTotalMessageCount);
 
-    /**
-     * Notify the observer that the operation of sending all unset messages has
-     * started
-     */
-    void OnStartSending(in PRUint32 aTotalMessageCount);
+  /**
+   * Notify the observer that progress as occurred for send operation.
+   */
+  void onProgress(in PRUint32 aCurrentMessage, in PRUint32 aTotalMessage);
 
-    /**
-     * Notify the observer that progress as occurred for send operation
-     */
-    void OnProgress(in PRUint32 aCurrentMessage, in PRUint32 aTotalMessage);
+  /**
+   * Notify the observer with a status message for the send later operation.
+   */
+  void onStatus(in wstring aMsg);
 
-    /**
-     * Notify the observer with a status message for the send later operation
-     */
-    void OnStatus(in wstring aMsg);
-
-    /**
-     * Notify the observer that the message has been sent.  This method is 
-     * called once when the networking library has finished processing the 
-     * message.
-     * 
-     * This method is called regardless of whether the the operation was successful.
-     * aMsgID   The message id for the mail message
-     * status   Status code for the message send.
-     * msg      A text string describing the error.
-     * returnFileSpec The returned file spec for save to file operations.
-     */
-    void OnStopSending(in nsresult aStatus, in wstring aMsg, 
-					             in PRUint32 aTotalTried, in PRUint32 aSuccessful);
-
+  /**
+   * Notify the observer that the message has been sent.  This method is
+   * called once when the networking library has finished processing the
+   * message.
+   *
+   * This method is called regardless of whether the the operation was
+   * successful.
+   *
+   * @param aStatus     Status code for the message send.
+   * @param aMsg        A text string describing the error.
+   * @param aTotalTried Total number of messages that were attempted to be sent.
+   * @param aSuccessful How many messages were successfully sent.
+   */
+  void onStopSending(in nsresult aStatus, in wstring aMsg,
+                     in PRUint32 aTotalTried, in PRUint32 aSuccessful);
 };
 

@@ -36,32 +36,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsMsgSendLater.h"
-#include "nsCOMPtr.h"
 #include "nsMsgCopy.h"
+#include "nsIMsgSend.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsIEnumerator.h"
-#include "nsIFile.h"
-#include "nsISmtpService.h"
-#include "nsIMsgMailNewsUrl.h"
-#include "nsIMsgIncomingServer.h"
-#include "nsICopyMessageListener.h"
 #include "nsIMsgMessageService.h"
-#include "nsIMsgMailSession.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
 #include "nsMsgCompUtils.h"
 #include "nsMsgUtils.h"
-#include "nsMsgFolderFlags.h"
-#include "nsISupportsArray.h"
 #include "nsMailHeaders.h"
 #include "nsMsgPrompts.h"
-#include "nsIMsgSendListener.h"
-#include "nsIMsgSendLaterListener.h"
-#include "nsMsgCopy.h"
-#include "nsIPrompt.h"
-#include "nsIURI.h"
 #include "nsISmtpUrl.h"
 #include "nsIChannel.h"
 #include "nsNetUtil.h"
@@ -80,12 +66,9 @@ NS_IMPL_ISUPPORTS3(nsMsgSendLater,
 
 nsMsgSendLater::nsMsgSendLater()
 {
-  mTempFile = nsnull;
-  mOutFile = nsnull;
+  mSendingMessages = PR_FALSE;
   mTotalSentSuccessfully = 0;
   mTotalSendCount = 0;
-  mMessageFolder = nsnull;
-  mMessage = nsnull;
   mLeftoverBuffer = nsnull;
 
   m_to = nsnull;
@@ -112,7 +95,6 @@ nsMsgSendLater::nsMsgSendLater()
 
 nsMsgSendLater::~nsMsgSendLater()
 {
-  mTempFile = nsnull;
   PR_Free(m_to);
   PR_Free(m_fcc);
   PR_Free(m_bcc);
@@ -399,7 +381,7 @@ SendOperationListener::OnStopSending(const char *aMsgID, nsresult aStatus, const
 
       ++(mSendLater->mTotalSentSuccessfully);
     }
-    else if (mSendLater) 
+    else
     {
       mSendLater->NotifyListenersOnStopSending(aStatus, nsnull,
                                                mSendLater->mTotalSendCount, 
@@ -579,7 +561,10 @@ nsMsgSendLater::StartNextMailFileSend()
 #endif
 
     mMessagesToSend->Clear(); // clear out our array
+    mSendingMessages = PR_FALSE;
     NotifyListenersOnStopSending(NS_OK, nsnull, mTotalSendCount, mTotalSentSuccessfully);
+    // XXX Should we be releasing references so that we don't hold onto items
+    // unnecessarily.
     return NS_OK;
   }
 
@@ -675,18 +660,19 @@ nsMsgSendLater::GetUnsentMessagesFolder(nsIMsgIdentity *aIdentity, nsIMsgFolder 
 //
 //
 NS_IMETHODIMP 
-nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *identity)
+nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity,
+                                   nsIMsgWindow *aWindow)
 {
-  nsresult rv = GetUnsentMessagesFolder(identity, getter_AddRefs(mMessageFolder));
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsresult rv = GetUnsentMessagesFolder(aIdentity,
+                                        getter_AddRefs(mMessageFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  m_window = aWindow;
 
   // ### fix me - if we need to reparse the folder, this will be asynchronous
   nsCOMPtr<nsISimpleEnumerator> enumerator;
-  nsresult ret = mMessageFolder->GetMessages(m_window, getter_AddRefs(enumerator));
-  if (NS_FAILED(ret) || (!enumerator))
-  {
-    return NS_ERROR_FAILURE;
-  }
+  rv = mMessageFolder->GetMessages(m_window, getter_AddRefs(enumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // copy all the elements in the enumerator into our isupports array....
 
@@ -701,6 +687,15 @@ nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *identity)
 
   // now get an enumerator for our array
   mMessagesToSend->Enumerate(getter_AddRefs(mEnumerator));
+
+  mSendingMessages = PR_TRUE;
+
+  // Notify the listeners that we are starting a send.
+  PRUint32 count;
+  rv = mMessagesToSend->Count(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  NotifyListenersOnStartSending(count);
 
   return StartNextMailFileSend();
 }
@@ -1102,21 +1097,6 @@ nsMsgSendLater::DeliverQueuedLine(char *line, PRInt32 length)
 }
 
 NS_IMETHODIMP
-nsMsgSendLater::SetMsgWindow(nsIMsgWindow *aMsgWindow)
-{
-  m_window = aMsgWindow;
-  return NS_OK;
-}
-NS_IMETHODIMP
-nsMsgSendLater::GetMsgWindow(nsIMsgWindow **aMsgWindow)
-{
-  NS_ENSURE_ARG(aMsgWindow);
-  *aMsgWindow = m_window;
-  NS_IF_ADDREF(*aMsgWindow);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
 nsMsgSendLater::AddListener(nsIMsgSendLaterListener *aListener)
 {
   NS_ENSURE_ARG_POINTER(aListener);
@@ -1129,6 +1109,14 @@ nsMsgSendLater::RemoveListener(nsIMsgSendLaterListener *aListener)
 {
   NS_ENSURE_ARG_POINTER(aListener);
   return mListenerArray.RemoveElement(aListener) ? NS_OK : NS_ERROR_INVALID_ARG;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::GetSendingMessages(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = mSendingMessages;
+  return NS_OK;
 }
 
 #define NOTIFY_LISTENERS(propertyfunc_, params_) \

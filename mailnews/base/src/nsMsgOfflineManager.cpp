@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -204,8 +204,8 @@ nsresult nsMsgOfflineManager::SynchronizeOfflineImapChanges()
 
 nsresult nsMsgOfflineManager::SendUnsentMessages()
 {
-	nsresult rv;
-	nsCOMPtr<nsIMsgSendLater> pMsgSendLater = do_CreateInstance(kMsgSendLaterCID, &rv); 
+  nsresult rv;
+  nsCOMPtr<nsIMsgSendLater> pMsgSendLater(do_GetService(kMsgSendLaterCID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIMsgAccountManager> accountManager = 
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
@@ -253,8 +253,7 @@ nsresult nsMsgOfflineManager::SendUnsentMessages()
 	if (identityToUse) 
 	{ 
     pMsgSendLater->AddListener(this);
-    pMsgSendLater->SetMsgWindow(m_window);
-    rv = pMsgSendLater->SendUnsentMessages(identityToUse);
+    rv = pMsgSendLater->SendUnsentMessages(identityToUse, m_window);
     ShowStatus("sendingUnsent");
     // if we succeeded, return - we'll run the next operation when the
     // send finishes. Otherwise, advance to the next state.

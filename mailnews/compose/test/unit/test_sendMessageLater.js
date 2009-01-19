@@ -23,24 +23,36 @@ var testFile = do_get_file("../mailnews/compose/test/unit/data/429891_testcase.e
 const kSender = "from@invalid.com";
 const kTo = "invalid@invalid.com";
 
+var msgSendLater = Cc["@mozilla.org/messengercompose/sendlater;1"]
+  .getService(Ci.nsIMsgSendLater);
+
 // This listener handles the post-sending of the actual message and checks the
 // sequence and ensures the data is correct.
 function msll() {
 }
 
 msll.prototype = {
+  _initialTotal: 0,
+
   // nsIMsgSendLaterListener
-  OnStartSending: function (aTotal) {
+  onStartSending: function (aTotal) {
+    this._initialTotal = 1;
+    do_check_eq(msgSendLater.sendingMessages, true);
   },
-  OnProgress: function (aCurrentMessage, aTotal) {
+  onProgress: function (aCurrentMessage, aTotal) {
+    // XXX Enable this function
   },
-  OnStatus: function (aMsg) {
+  onStatus: function (aMsg) {
+    // XXX Do we really need this?
   },
-  OnStopSending: function (aStatus, aMsg, aTotal, aSuccessful) {
+  onStopSending: function (aStatus, aMsg, aTotal, aSuccessful) {
     do_test_finished();
     print("msll onStopSending\n");
     try {
       do_check_eq(aStatus, 0);
+      do_check_eq(aTotal, 1);
+      do_check_eq(this._initialTotal, 1);
+      do_check_eq(msgSendLater.sendingMessages, false);
 
       do_check_transaction(transaction,
                            ["EHLO test",
@@ -101,8 +113,8 @@ copyListener.prototype = {
     try {
       do_check_eq(aStatus, 0);
 
-      var msgSendLater = Cc["@mozilla.org/messengercompose/sendlater;1"]
-                           .createInstance(Ci.nsIMsgSendLater);
+      // Check this is false before we start sending
+      do_check_eq(msgSendLater.sendingMessages, false);
 
       let folder = msgSendLater.getUnsentMessagesFolder(identity);
 
@@ -167,15 +179,12 @@ function sendMessageLater()
     // what the server receives and what we output.
     test = "sendMessageLater";
 
-    var msgSendLater = Cc["@mozilla.org/messengercompose/sendlater;1"]
-      .createInstance(Ci.nsIMsgSendLater);
-
     var messageListener = new msll();
 
-    msgSendLater.AddListener(messageListener);
+    msgSendLater.addListener(messageListener);
 
     // Send the unsent message
-    msgSendLater.SendUnsentMessages(identity);
+    msgSendLater.sendUnsentMessages(identity);
 
     server.performTest();
 

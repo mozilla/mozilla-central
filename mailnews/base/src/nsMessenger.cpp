@@ -114,8 +114,6 @@
 // draft/folders/sendlater/etc
 #include "nsIMsgCopyService.h"
 #include "nsIMsgCopyServiceListener.h"
-#include "nsIMsgSendLater.h"
-#include "nsIMsgSendLaterListener.h"
 #include "nsIUrlListener.h"
 
 // undo
@@ -311,7 +309,6 @@ public:
 nsMessenger::nsMessenger()
 {
   mScriptObject = nsnull;
-  mSendingUnsentMsgs = PR_FALSE;
   mCurHistoryPos = -2; // first message selected goes at position 0.
   //  InitializeFolderRoot();
 }
@@ -324,7 +321,6 @@ nsMessenger::~nsMessenger()
 
 
 NS_IMPL_ISUPPORTS4(nsMessenger, nsIMessenger, nsIObserver, nsISupportsWeakReference, nsIFolderListener)
-NS_IMPL_GETSET(nsMessenger, SendingUnsentMsgs, PRBool, mSendingUnsentMsgs)
 
 NS_IMETHODIMP nsMessenger::SetWindow(nsIDOMWindowInternal *aWin, nsIMsgWindow *aMsgWindow)
 {
@@ -1442,113 +1438,6 @@ NS_IMETHODIMP
 nsMessenger::GetLastDisplayedMessageUri(nsACString& aLastDisplayedMessageUri)
 {
   aLastDisplayedMessageUri = mLastDisplayURI;
-  return NS_OK;
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-// This is the listener class for the send operation.
-////////////////////////////////////////////////////////////////////////////////////
-class SendLaterListener: public nsIMsgSendLaterListener
-{
-public:
-  SendLaterListener(nsIMessenger *);
-  virtual ~SendLaterListener(void);
-
-  // nsISupports interface
-  NS_DECL_ISUPPORTS
-
-  /* void OnStartSending (in PRUint32 aTotalMessageCount); */
-  NS_IMETHOD OnStartSending(PRUint32 aTotalMessageCount);
-
-  /* void OnProgress (in PRUint32 aCurrentMessage, in PRUint32 aTotalMessage); */
-  NS_IMETHOD OnProgress(PRUint32 aCurrentMessage, PRUint32 aTotalMessage);
-
-  /* void OnStatus (in wstring aMsg); */
-  NS_IMETHOD OnStatus(const PRUnichar *aMsg);
-
-  /* void OnStopSending (in nsresult aStatus, in wstring aMsg, in PRUint32 aTotalTried, in PRUint32 aSuccessful); */
-  NS_IMETHOD OnStopSending(nsresult aStatus, const PRUnichar *aMsg, PRUint32 aTotalTried, PRUint32 aSuccessful);
-protected:
-  nsWeakPtr m_messenger;
-};
-
-NS_IMPL_ISUPPORTS1(SendLaterListener, nsIMsgSendLaterListener)
-
-SendLaterListener::SendLaterListener(nsIMessenger *aMessenger)
-{
-  m_messenger = do_GetWeakReference(aMessenger);
-}
-
-SendLaterListener::~SendLaterListener()
-{
-  nsCOMPtr <nsIMessenger> messenger = do_QueryReferent(m_messenger);
-  // best to be defensive about this, in case OnStopSending doesn't get called.
-  if (messenger)
-    messenger->SetSendingUnsentMsgs(PR_FALSE);
-  m_messenger = nsnull;
-}
-
-nsresult
-SendLaterListener::OnStartSending(PRUint32 aTotalMessageCount)
-{
-  // this never gets called :-(
-  nsCOMPtr <nsIMessenger> messenger = do_QueryReferent(m_messenger);
-  if (messenger)
-    messenger->SetSendingUnsentMsgs(PR_TRUE);
-  return NS_OK;
-}
-
-nsresult
-SendLaterListener::OnProgress(PRUint32 aCurrentMessage, PRUint32 aTotalMessage)
-{
-  return NS_OK;
-}
-
-nsresult
-SendLaterListener::OnStatus(const PRUnichar *aMsg)
-{
-  return NS_OK;
-}
-
-nsresult
-SendLaterListener::OnStopSending(nsresult aStatus, const PRUnichar *aMsg, PRUint32 aTotalTried,
-                                 PRUint32 aSuccessful)
-{
-#ifdef NS_DEBUG
-  if (NS_SUCCEEDED(aStatus))
-    printf("SendLaterListener::OnStopSending: Tried to send %d messages. %d successful.\n",
-            aTotalTried, aSuccessful);
-#endif
-
-  nsCOMPtr <nsIMessenger> messenger = do_QueryReferent(m_messenger);
-  if (messenger)
-    messenger->SetSendingUnsentMsgs(PR_FALSE);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsMessenger::SendUnsentMessages(nsIMsgIdentity *aIdentity, nsIMsgWindow *aMsgWindow)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgSendLater> pMsgSendLater = do_CreateInstance(kMsgSendLaterCID, &rv);
-  if (NS_SUCCEEDED(rv) && pMsgSendLater)
-  {
-#ifdef DEBUG
-        printf("We successfully obtained a nsIMsgSendLater interface....\n");
-#endif
-
-    SendLaterListener *sendLaterListener = new SendLaterListener(this);
-    if (!sendLaterListener)
-      return NS_ERROR_OUT_OF_MEMORY;
-
-    NS_ADDREF(sendLaterListener);
-    pMsgSendLater->AddListener(sendLaterListener);
-    pMsgSendLater->SetMsgWindow(aMsgWindow);
-    mSendingUnsentMsgs = PR_TRUE;
-
-    pMsgSendLater->SendUnsentMessages(aIdentity);
-    NS_RELEASE(sendLaterListener);
-  }
   return NS_OK;
 }
 

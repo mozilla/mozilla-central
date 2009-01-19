@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Mark Banner <bugzilla@standard8.plus.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,22 +37,52 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsrootidl.idl"
-#include "nsIMsgIdentity.idl"
-#include "nsIMsgCompFields.idl"
-#include "nsIMsgSendListener.idl"
-#include "nsIMsgSendLaterListener.idl"
 #include "nsIStreamListener.idl"
 
 interface nsIMsgWindow;
+interface nsIMsgIdentity;
+interface nsIMsgSendLaterListener;
 interface nsIMsgFolder;
 
-[scriptable, uuid(E15C83E8-1CF4-11d3-8EF0-00A024A7D144)]
+/**
+ * nsIMsgSendLater is a service used for sending messages in the background.
+ * Messages should be saved to an identity's unsent messages folder, and then
+ * can be sent by calling sendUnsentMessages.
+ */
+[scriptable, uuid(5ad3e734-b68e-449e-ad8c-c59da94b2661)]
 interface nsIMsgSendLater : nsIStreamListener 
 {
-  void      SendUnsentMessages(in nsIMsgIdentity identity);
-  attribute nsIMsgWindow msgWindow;
-  void      RemoveListener(in nsIMsgSendLaterListener aListener); 
-  void      AddListener(in  nsIMsgSendLaterListener aListener); 
+  /**
+   * Sends any unsent messages in the identity's unsent messages folder.
+   *
+   * @param aIdentity   The identity to send messages for.
+   * @param aWindow     The window to give status feedback to whilst messages
+   *                    are being sent.
+   */
+  void sendUnsentMessages(in nsIMsgIdentity aIdentity,
+                          [optional] in nsIMsgWindow aWindow);
+
+  /**
+   * Adds an listener to the service to receive notifications.
+   *
+   * @param aListener   The listener to add.
+   */
+  void addListener(in nsIMsgSendLaterListener aListener);
+
+  /**
+   * Removes a listener from the service.
+   *
+   * @param aListener                 The listener to remove.
+   * @exception NS_ERROR_INVALID_ARG  If the listener was not already added to
+   *                                  the service.
+   */
+  void removeListener(in nsIMsgSendLaterListener aListener);
+
+  /**
+   * Returns the unsent messages folder for the identity.
+   */
   nsIMsgFolder getUnsentMessagesFolder(in nsIMsgIdentity userIdentity);
+
+  /// Returns true if the service is currently sending messages.
+  readonly attribute boolean sendingMessages;
 };

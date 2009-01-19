@@ -40,7 +40,6 @@
 
 #include "nsIMsgSendLater.h"
 
-#include "nsIMsgIdentity.h"
 #include "nsIEnumerator.h"
 #include "nsISupportsArray.h"
 #include "nsIMsgFolder.h"
@@ -154,6 +153,8 @@ private:
   char                      *mLeftoverBuffer;
   char                      *mIdentityKey;
   char                      *mAccountKey;
+
+  PRBool mSendingMessages;
 };
 
 
