@@ -790,13 +790,13 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
 
       serverUri.AppendLiteral("://");
       nsCString temp;
-      rv = GetRealUsername(temp);
+      rv = GetUsername(temp);
       NS_ENSURE_SUCCESS(rv, rv);
 
       serverUri.Append(temp);
       serverUri.AppendLiteral("@");
 
-      rv = GetRealHostName(temp);
+      rv = GetHostName(temp);
       NS_ENSURE_SUCCESS(rv, rv);
 
       serverUri.Append(temp);
