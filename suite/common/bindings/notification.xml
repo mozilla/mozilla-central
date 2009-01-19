@@ -36,6 +36,8 @@
         ]]>
       </field>
 
+      <field name="wrappedJSObject">this</field>
+
       <field name="_activeBrowser">null</field>
 
       <property name="activeBrowser" readonly="true">
