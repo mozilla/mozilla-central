@@ -48,11 +48,7 @@
     xmlns:xbl="http://www.mozilla.org/xbl">
 
     <binding id="calendar-decorated-multiweek-view" extends="chrome://calendar/content/calendar-decorated-month-view.xml#calendar-decorated-month-view-parent">
-        <content  flex="1" orient="vertical">
-            <xul:calendar-month-view anonid="view-element" style="overflow: auto;" flex="1" xbl:inherits="context,item-context"/>
-        </content>
-
-        <implementation implements="calIDecoratedView">
+        <implementation implements="calICalendarView">
 	        <constructor><![CDATA[
                 this.mWeeksInView = getPrefSafe("calendar.weeks.inview", 4);
             ]]></constructor>
@@ -66,10 +62,7 @@
                 <setter><![CDATA[
                     this.mWeeksInView = val;
                     setPref("calendar.weeks.inview", val);
-
-                    if (this.selectedDay) {
-                        this.goToDay(this.selectedDay);
-                    }
+                    this.refreshView();
                     return val;
                 ]]></setter>
             </property>
@@ -80,22 +73,14 @@
                 ]]></getter>
             </property>
 
-           <method name="refreshView">
-                <body><![CDATA[
-                   // Just refresh, the goToDay function will notice
-                   this.calView.goToDay(this.calView.selectedDay);
-                ]]></body>
-            </method>
-
             <!--Public methods-->
             <method name="goToDay">
                 <parameter name="aDate"/>
                 <body><![CDATA[
-                    let viewElement = this.viewElem;
-                    viewElement.showFullMonth = false;
-                    viewElement.displayDaysOff = !this.mWorkdaysOnly;
+                    this.showFullMonth = false;
+                    this.displayDaysOff = !this.mWorkdaysOnly;
 
-                    aDate = aDate.getInTimezone(viewElement.timezone);
+                    aDate = aDate.getInTimezone(this.timezone);
 
                     // Get the first date that should be shown.  This is the
                     // start of the week of the day that we're centering around
@@ -106,11 +91,11 @@
                     // The last day we're supposed to show
                     let d2 = d1.clone();
                     d2.day += ((7 * this.mWeeksInView) - 1);
+                    this.setDateRange(d1,d2);
                     let toolTips = calGetStringArray("calendar",
                                                      ["oneWeekBack", "gotoToday", "oneWeekForward"]);
-                    this.setDateRange(d1,d2, toolTips);
-                    viewElement.setDateRange(d1, d2);
-                    viewElement.selectedDay = aDate;
+                    cal.navigationBar.setDateRange(d1,d2, toolTips);
+                    this.selectedDay = aDate;
                 ]]></body>
             </method>
             <method name="moveView">
@@ -119,7 +104,7 @@
                     if (!aNumber) {
                         let date = now();
                         this.goToDay(date);
-                        this.viewElem.selectedDay = date;
+                        this.selectedDay = date;
                     } else {
                         let d1 = this.startDay.clone();
                         let savedSelectedDay = this.selectedDay.clone();
@@ -128,7 +113,7 @@
                         d1.day += 7 * (aNumber + getPrefSafe("calendar.previousweeks.inview", 4));
                         this.goToDay(d1);
                         savedSelectedDay.day += 7 * aNumber;
-                        this.viewElem.selectedDay = savedSelectedDay;
+                        this.selectedDay = savedSelectedDay;
                     }
                 ]]></body>
             </method>

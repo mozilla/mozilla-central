@@ -45,6 +45,10 @@
 
   <binding id="calendar-base-view">
     <implementation>
+      <field name="mWeekStartOffset">0</field>
+      <field name="mRangeStartDate">null</field>;
+      <field name="mRangeEndDate">null</field>;
+      <field name="mWorkdaysOnly">false</field>
       <field name="mRefreshQueue">[]</field>
       <field name="mRefreshPending">null</field>
       <field name="mCalendar">null</field>
@@ -61,6 +65,15 @@
       <field name="mBatchCount">0</field>
       <field name="mLongWeekdayTotalPixels">-1</field>
       <field name="mResizeHandler">null</field>
+      <field name="mPrefObserver"><![CDATA[
+      ({ calView: this,
+         observe: function calViewPrefChange(subj, topic, pref) {
+             this.calView.handlePreference(subj, topic, pref);
+             return;
+         }
+      })
+      ]]></field>
+
       <field name="mOperationListener"><![CDATA[
       ({
           calView: this,
@@ -277,14 +290,36 @@
       ]]></field>
 
       <constructor><![CDATA[
+        const kWorkdaysCommand = "calendar_toggle_workdays_only_command";
+        const kTasksInViewCommand = "calendar_toggle_tasks_in_view_command";
+        const kShowCompleted = "calendar_toggle_show_completed_in_view_command";
+        const kOrientation = "calendar_toggle_orientation_command";
+
+        this.workdaysOnly = (document.getElementById(kWorkdaysCommand)
+                                .getAttribute("checked") == "true");
+        this.tasksInView = (document.getElementById(kTasksInViewCommand)
+                                .getAttribute("checked") == "true");
+        this.rotated = (document.getElementById(kOrientation)
+                                .getAttribute("checked") == "true");
+        this.showCompleted = (document.getElementById(kShowCompleted)
+                                .getAttribute("checked") == "true");
+
         this.mTimezone = calendarDefaultTimezone();
         let alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
                            .getService(Components.interfaces.calIAlarmService);
         alarmService.addObserver(this.mObserver);
         let self = this;
+        this.setAttribute("type", this.type);
         this.mResizeHandler = function resizeHandler() {
-         self.onResize(self); };
+            self.onResize(self); };
         this.viewBroadcaster.addEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
+        // add a preference observer to monitor changes
+        let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
+                  getService(Components.interfaces.nsIPrefBranch2);
+
+        pb2.addObserver("calendar.", this.mPrefObserver, false);
+        this.weekStartOffset = getPrefSafe("calendar.week.start", 0);
+        this.updateDaysOffPrefs();
       ]]></constructor>
 
       <destructor><![CDATA[
@@ -295,7 +330,17 @@
                            .getService(Components.interfaces.calIAlarmService);
         alarmService.removeObserver(this.mObserver);
         this.viewBroadcaster.removeEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
+        let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
+                  getService(Components.interfaces.nsIPrefBranch2);
+        pb2.removeObserver("calendar.", this.mPrefObserver);
       ]]></destructor>
+
+      <property name="type" readonly="true">
+        <getter><![CDATA[
+            let typelist = this.id.split("-");
+            return typelist[0];
+        ]]></getter>
+      </property>
 
       <property name="viewBroadcaster" readonly="true"
                 onget="return document.getElementById('calendarviewBroadcaster')"/>
@@ -303,6 +348,9 @@
       <property name="labeldaybox" readonly="true"
                 onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'labeldaybox')"/>
 
+      <property name="rotated"
+                onget="return (this.orient == 'horizontal')"
+                onset="return (this.orient = (val ? 'horizontal' : 'vertical'))"/>
       <property name="displayDaysOff"
                 onget="return this.mDisplayDaysOff;"
                 onset="return (this.mDisplayDaysOff = val);"/>
@@ -321,6 +369,33 @@
       <property name="timezone"
                 onget="return this.mTimezone;"
                 onset="return (this.mTimezone = val);"/>
+      <property name="workdaysOnly"
+                onget="return this.mWorkdaysOnly;"
+                onset="return (this.mWorkdayOnly = val);"/>
+      <property name="selectionObserver" readonly="true"
+                onget="return this.mSelectionObserver;"/>
+      <property name="startDay" readonly="true"
+                onget="return this.startDate;"/>
+      <property name="endDay" readonly="true"
+                onget="return this.endDate;"/>
+      <property name="rangeStartDate"
+                onget="return this.mRangeStartDate;"
+                onset="return (this.mRangeStartDate = val);"/>
+      <property name="rangeEndDate"
+                onget="return this.mRangeEndDate;"
+                onset="return (this.mRangeEndDate = val);"/>
+      <property name="observerID" readonly="true"
+                onget="return 'base-view-observer';"/>
+
+      <property name="weekStartOffset">
+        <getter><![CDATA[
+           return this.mWeekStartOffset;
+        ]]></getter>
+        <setter><![CDATA[
+           this.mWeekStartOffset = val;
+           return val;
+        ]]></setter>
+      </property>
 
       <property name="displayCalendar">
         <getter><![CDATA[
@@ -335,6 +410,34 @@
           return val;
         ]]></setter>
       </property>
+
+      <property name="initialized">
+        <getter><![CDATA[
+            let retval;
+
+            // Some views throw when accessing an uninitialized startDay
+            try {
+                retval = this.displayCalendar && this.startDay
+                         && this.endDay;
+            } catch(ex) {
+                return false;
+            }
+            return retval;
+        ]]></getter>
+      </property>
+
+      <method name="goToDay">
+        <parameter name="aDate"/>
+        <body><![CDATA[
+            this.showDate(aDate);
+        ]]></body>
+      </method>
+
+      <method name="getRangeDescription">
+        <body><![CDATA[
+            return getDateFormatter().formatInterval(this.rangeStartDate, this.rangeEndDate);
+        ]]></body>
+      </method>
 
       <method name="popRefreshQueue">
         <body><![CDATA[
@@ -436,7 +539,7 @@
 
       <method name="isVisible">
         <body><![CDATA[
-            return (this.nodeName == currentView().viewElem.nodeName);
+            return (this.nodeName == currentView().nodeName);
         ]]></body>
       </method>
 
@@ -500,7 +603,101 @@
           return this.mLongWeekdayTotalPixels;
         ]]></body>
       </method>
+
+      <!-- A preference handler which is called by the preference observer.
+           Can be overwritten in derived bindings. -->
+      <method name="handleCommonPreference">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aPreference"/>
+        <body><![CDATA[
+           // refresh view if categories seem to have changed
+           if (aPreference.indexOf("calendar.category.color") == 0) {
+               this.refreshView();
+               return;
+           }
+           switch (aPreference) {
+               case "calendar.week.d0sundaysoff":
+               case "calendar.week.d1mondaysoff":
+               case "calendar.week.d2tuesdaysoff":
+               case "calendar.week.d3wednesdaysoff":
+               case "calendar.week.d4thursdaysoff":
+               case "calendar.week.d5fridaysoff":
+               case "calendar.week.d6saturdaysoff":
+                   this.updateDaysOffPrefs();
+                   break;
+               case "calendar.timezone.local":
+                   this.timezone = calendarDefaultTimezone();
+                   break;
+               case "calendar.alarms.indicator.show":
+                   //Break here to ensure the view is refreshed
+                   break;
+               case "calendar.week.start":
+                   this.weekStartOffset = aSubject.getIntPref(aPreference);
+                   break;
+               default:
+                   return;
+            }
+            this.refreshView();
+        ]]></body>
+      </method>
+
+      <method name="updateDaysOffPrefs">
+        <body><![CDATA[
+            const weekPrefix = "calendar.week.";
+            const prefNames = ["d0sundaysoff", "d1mondaysoff", "d2tuesdaysoff",
+                               "d3wednesdaysoff", "d4thursdaysoff",
+                               "d5fridaysoff", "d6saturdaysoff"];
+            const defaults = ["true", "false", "false", "false",
+                              "false", "false", "true"];
+            let daysOff = new Array();
+            for (let i in prefNames) {
+                if (getPrefSafe(weekPrefix+prefNames[i])) {
+                    daysOff.push(Number(i));
+                }
+            }
+            this.daysOffArray = daysOff;
+        ]]></body>
+       </method>
+
+       <method name="refreshView">
+         <body><![CDATA[
+           if (!this.startDay || !this.endDay) {
+               // don't refresh if we're not initialized
+               return;
+            }
+            // Just refresh, the goToDay function will notice
+            this.goToDay(this.selectedDay);
+          ]]></body>
+        </method>
+
     </implementation>
+    <handlers>
+      <handler event="move">
+        <![CDATA[
+          this.moveView(event.detail);
+        ]]>
+      </handler>
+      <handler event="keypress"><![CDATA[
+        const kKE = Components.interfaces.nsIDOMKeyEvent;
+        switch (event.keyCode) {
+            case kKE.DOM_VK_PAGE_UP:
+                this.moveView(-1);
+                break;
+            case kKE.DOM_VK_PAGE_DOWN:
+                this.moveView(1);
+                break;
+        }
+      ]]></handler>
+      <handler event="DOMMouseScroll"><![CDATA[
+        if (event.shiftKey) {
+            this.moveView(event.detail < 0 ? -1 : 1);
+        }
+
+        // Prevent default scroll handling
+        event.preventDefault();
+      ]]></handler>
+    </handlers>
   </binding>
 
   <binding id="calendar-day-label" extends="xul:box">
@@ -557,7 +754,6 @@
           // Only do this if the long weekdays are visible and we haven't already cached.
           let longNameWidth = this.longName.boxObject.width;
           if (longNameWidth > 0) {
-//              WARN("getting longWeekdayPixels..." + this.longName.boxObject.width);
               this.longWeekdayPixels = longNameWidth +
                                        getSummarizedStyleValues(this.longName, ["margin-left", "margin-right"]);
               this.longWeekdayPixels += getSummarizedStyleValues(this, ["border-left-width",

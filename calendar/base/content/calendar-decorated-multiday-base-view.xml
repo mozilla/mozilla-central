@@ -22,6 +22,7 @@
    - Contributor(s):
    -   Dan Mosedale <dan.mosedale@oracle.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,159 +45,55 @@
     xmlns:xbl="http://www.mozilla.org/xbl">
 
     <binding id="calendar-decorated-multiday-base-view"
-             extends="chrome://calendar/content/calendar-decorated-base.xml#calendar-decorated-base-view">
-        <implementation implements="calIDecoratedView">
+             extends="chrome://calendar/content/calendar-multiday-view.xml#calendar-multiday-view">
+        <implementation implements="calICalendarView">
             <constructor><![CDATA[
                 // get day start/end hour from prefs and set on the view
-                this.mDayStartMin = getPrefSafe(
-                                    "calendar.view.daystarthour", 8) * 60;
-                this.mDayEndMin = getPrefSafe(
-                                  "calendar.view.dayendhour", 17) * 60;
-                var viewElement = this.viewElem;
-                viewElement.setDayStartEndMinutes(this.mDayStartMin,
-                                                  this.mDayEndMin);
+                this.setDayStartEndMinutes(getPrefSafe("calendar.view.daystarthour", 8) * 60,
+                                           getPrefSafe("calendar.view.dayendhour", 17) * 60);
 
                 // initially scroll to the day start hour in the view
-                viewElement.scrollToMinute(this.mDayStartMin);
+                this.scrollToMinute(this.mDayStartMin);
 
                 // get visible hours from prefs and set on the view
-                var visibleMinutes = getPrefSafe(
-                                     "calendar.view.visiblehours", 9) * 60;
-                viewElement.setVisibleMinutes(visibleMinutes);
+                let visibleMinutes = getPrefSafe("calendar.view.visiblehours", 9) * 60;
+                this.setVisibleMinutes(visibleMinutes);
 
-                // add a preference observer to monitor changes
-                var pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                          getService(Components.interfaces.nsIPrefBranch2);
-                pb2.addObserver("calendar.", this.mPrefObserver, false);
-
-                this.updateDaysOffPrefs();
             ]]></constructor>
 
-            <destructor><![CDATA[
-                var pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                          getService(Components.interfaces.nsIPrefBranch2);
-                pb2.removeObserver("calendar.", this.mPrefObserver);
-            ]]></destructor>
-
-            <field name="mDayStartMin">8*60</field>
-            <field name="mDayEndMin">17*60</field>
-
-            <field name="mPrefObserver"><![CDATA[
-            ({ calView: this,
-               observe: function calDecMultidayViewPrefChange(subj, topic, pref) {
-                   this.calView.handlePreference(subj, topic, pref);
-                   return;
-               }
-            })
-            ]]></field>
-
-            <!-- A preference handler which is called by the preference observer.
-                 Can be overriden in derived bindings. -->
+            <!-- A base implementation for the handling of common preferences.
+                 Can be called in handlePreference from derived bindings. -->
             <method name="handlePreference">
                 <parameter name="aSubject"/>
                 <parameter name="aTopic"/>
                 <parameter name="aPreference"/>
                 <body><![CDATA[
-                    this.handleCommonPreference(aSubject, aTopic, aPreference);
-                ]]></body>
-            </method>
-
-            <!-- A base implementation for the handling of common preferences.
-                 Can be called in handlePreference from derived bindings. -->
-            <method name="handleCommonPreference">
-                <parameter name="aSubject"/>
-                <parameter name="aTopic"/>
-                <parameter name="aPreference"/>
-                <body><![CDATA[
                     aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
-
                     switch (aPreference) {
 
-                        case "calendar.week.d0sundaysoff":
-                        case "calendar.week.d1mondaysoff":
-                        case "calendar.week.d2tuesdaysoff":
-                        case "calendar.week.d3wednesdaysoff":
-                        case "calendar.week.d4thursdaysoff":
-                        case "calendar.week.d5fridaysoff":
-                        case "calendar.week.d6saturdaysoff":
-                            this.updateDaysOffPrefs();
-                            if (!this.startDay || !this.endDay) {
-                                // don't refresh if we're not initialized
-                                return;
-                            }
-                            this.goToDay(this.selectedDay);
-                            break;
-
                         case "calendar.view.daystarthour":
-                            this.mDayStartMin = aSubject.getIntPref(aPreference) * 60;
-                            this.viewElem.setDayStartEndMinutes(this.mDayStartMin,
-                                                                this.mDayEndMin);
-                            if (!this.startDay || !this.endDay) {
-                                // don't refresh if we're not initialized
-                                return;
-                            }
-                            this.goToDay(this.selectedDay);
+                            this.setDayStartEndMinutes(aSubject.getIntPref(aPreference) * 60,
+                                                       this.mDayEndMin);
+
+                            this.refreshView();
                             break;
 
                         case "calendar.view.dayendhour":
-                            this.mDayEndMin = aSubject.getIntPref(aPreference) * 60;
-                            this.viewElem.setDayStartEndMinutes(this.mDayStartMin,
-                                                                this.mDayEndMin);
-                            if (!this.startDay || !this.endDay) {
-                                // don't refresh if we're not initialized
-                                return;
-                            }
-                            this.goToDay(this.selectedDay);
+                            this.setDayStartEndMinutes(this.mDayStartMin,
+                                                       aSubject.getIntPref(aPreference) * 60);
+                            this.refreshView();
                             break;
 
                         case "calendar.view.visiblehours":
-                            var visibleMinutes = aSubject.getIntPref(aPreference) * 60;
-                            this.viewElem.setVisibleMinutes(visibleMinutes);
-                            if (!this.startDay || !this.endDay) {
-                                // don't refresh if we're not initialized
-                                return;
-                            }
-                            this.goToDay(this.selectedDay);
-                            break;
-
-                        case "calendar.timezone.local":
-                            this.viewElem.timezone = calendarDefaultTimezone();
-                            if (!this.startDay || !this.endDay) {
-                                // don't refresh if we're not initialized
-                                return;
-                            }
-                            this.goToDay(this.selectedDay);
-                            break;
-
-                        case "calendar.alarms.indicator.show":
-                            if (this.startDay && this.endDay) {
-                                // Refresh the view, the view core takes care of
-                                // resetting the alarm image.
-                                this.goToDay(this.selectedDay);
-                            }
+                            this.setVisibleMinutes(aSubject.getIntPref(aPreference) * 60);
+                            this.refreshView();
                             break;
 
                         default:
+                            this.handleCommonPreference(aSubject, aTopic, aPreference);
                             break;
                     }
                     return;
-                ]]></body>
-            </method>
-
-            <method name="updateDaysOffPrefs">
-                <body><![CDATA[
-                    var prefNames = ["d0sundaysoff", "d1mondaysoff", "d2tuesdaysoff",
-                                     "d3wednesdaysoff", "d4thursdaysoff",
-                                     "d5fridaysoff", "d6saturdaysoff"];
-                    var defaults = [true, false, false, false, false, false, true];
-                    var daysOff = new Array();
-                    const weekPrefix = "calendar.week.";
-                    for (var i in prefNames) {
-                         if (getPrefSafe(weekPrefix+prefNames[i], defaults[i])) {
-                                daysOff.push(Number(i));
-                         }
-                    }
-                    this.viewElem.daysOffArray = daysOff;
                 ]]></body>
             </method>
         </implementation>

@@ -18,7 +18,6 @@ calendar.jar:
     content/calendar/calendar-common-sets.js               (content/calendar-common-sets.js)
     content/calendar/calendar-creation.js                  (content/calendar-creation.js)
     content/calendar/calendar-daypicker.xml                (content/calendar-daypicker.xml)
-    content/calendar/calendar-decorated-base.xml           (content/calendar-decorated-base.xml)
     content/calendar/calendar-decorated-multiday-base-view.xml  (content/calendar-decorated-multiday-base-view.xml)
     content/calendar/calendar-decorated-day-view.xml       (content/calendar-decorated-day-view.xml)
     content/calendar/calendar-decorated-week-view.xml      (content/calendar-decorated-week-view.xml)

@@ -427,7 +427,7 @@
   </binding>
 
   <binding id="calendar-month-view" extends="chrome://calendar/content/calendar-base-view.xml#calendar-base-view">
-    <content>
+    <content style="overflow: auto;" flex="1" xbl:inherits="context,item-context">
       <xul:vbox anonid="mainbox" flex="1">
         <xul:hbox class="labeldaybox-container" anonid="labeldaybox" equalsize="always"/>
 
@@ -521,7 +521,6 @@
 
       <field name="mShowDaysOutsideMonth">true</field>
       <field name="mShowFullMonth">true</field>
-      <field name="mWeekStartOffset">0</field>
 
       <!-- other methods -->
       <method name="setAttribute">
@@ -547,17 +546,6 @@
                 onget="return false;"/>
       <property name="hasDisjointDates" readonly="true"
                 onget="return false;"/>
-
-      <property name="weekStartOffset">
-        <getter><![CDATA[
-           return this.mWeekStartOffset;
-        ]]></getter>
-        <setter><![CDATA[
-           this.mWeekStartOffset = val;
-           return val;
-        ]]></setter>
-      </property>
-
 
       <property name="startDate" readonly="true"
                 onget="return this.mStartDate"/>
@@ -663,6 +651,8 @@
         <parameter name="aStartDate"/>
         <parameter name="aEndDate"/>
         <body><![CDATA[
+          this.rangeStartDate = aStartDate;
+          this.rangeEndDate = aEndDate;
           this.mStartDate = getWeekInfoService().getStartOfWeek(aStartDate.getInTimezone(this.mTimezone))
           this.mEndDate = getWeekInfoService().getEndOfWeek(aEndDate.getInTimezone(this.mTimezone));
           this.refresh();
@@ -792,7 +782,6 @@
               } else {
                   boxClass = "calendar-month-day-box-current-month";
               }
-
               function matchesDayOff(dayOffNum) { return dayOffNum == date.weekday; }
               if (this.mDaysOffArray.some(matchesDayOff)) {
                 boxClass = "calendar-month-day-box-day-off " + boxClass;

@@ -22,6 +22,7 @@
    -
    - Contributor(s):
    -   Dan Mosedale <dan.mosedale@oracle.com>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,11 +49,7 @@
 
     <binding id="calendar-decorated-day-view"
              extends="chrome://calendar/content/calendar-decorated-multiday-base-view.xml#calendar-decorated-multiday-base-view">
-        <content flex="1" orient="vertical">
-            <xul:calendar-multiday-view anonid="view-element" flex="1" orient="vertical" xbl:inherits="context,item-context"/>
-        </content>
-
-        <implementation implements="calIDecoratedView">
+        <implementation implements="calICalendarView">
             <property name="observerID">
                 <getter><![CDATA[
                     return "day-view-observer";
@@ -63,12 +60,12 @@
             <method name="goToDay">
                 <parameter name="aDate"/>
                 <body><![CDATA[
-                    aDate = aDate.getInTimezone(this.viewElem.timezone);
+                    aDate = aDate.getInTimezone(this.timezone);
+                    this.setDateRange(aDate, aDate);
                     var toolTips = calGetStringArray("calendar",
                                                       ["oneDayBack", "gotoToday", "oneDayForward"]);
-                    this.setDateRange(aDate, aDate, toolTips);
-                    this.viewElem.setDateRange(aDate, aDate);
-                    this.viewElem.selectedDay = aDate;
+                    cal.navigationBar.setDateRange(aDate, aDate, toolTips);
+                    this.selectedDay = aDate;
                 ]]></body>
             </method>
             <method name="moveView">

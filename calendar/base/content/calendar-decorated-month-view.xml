@@ -47,11 +47,7 @@
     xmlns:xbl="http://www.mozilla.org/xbl">
 
     <binding id="calendar-decorated-month-view" extends="chrome://calendar/content/calendar-decorated-month-view.xml#calendar-decorated-month-view-parent">
-        <content  flex="1" orient="vertical">
-            <xul:calendar-month-view style="overflow: auto;" anonid="view-element" flex="1" xbl:inherits="context,item-context"/>
-        </content>
-
-        <implementation implements="calIDecoratedView">
+        <implementation implements="calICalendarView">
 
             <property name="observerID">
                 <getter><![CDATA[
@@ -63,14 +59,15 @@
             <method name="goToDay">
                 <parameter name="aDate"/>
                 <body><![CDATA[
-                    let viewElement = this.viewElem;
-                    viewElement.displayDaysOff = !this.mWorkdaysOnly;
+                    this.displayDaysOff = !this.mWorkdaysOnly;
 
-                    aDate = aDate.getInTimezone(viewElement.timezone);
+                    aDate = aDate.getInTimezone(this.timezone);
+                    this.setDateRange(aDate.startOfMonth, aDate.endOfMonth);
                     let toolTips = calGetStringArray("calendar",
                                                       ["oneMonthBack", "gotoToday", "oneMonthForward"]);
-                    this.setDateRange(aDate.startOfMonth, aDate.endOfMonth, toolTips);
-                    viewElement.showDate(aDate);
+                    cal.navigationBar.setDateRange(aDate.startOfMonth, aDate.endOfMonth, toolTips);
+                    this.showDate(aDate);
+                    this.selectedDay = aDate;
                 ]]></body>
             </method>
             <method name="getRangeDescription">
@@ -82,14 +79,13 @@
             <method name="moveView">
                 <parameter name="aNumber"/>
                 <body><![CDATA[
-                    let monthViewElement = this.viewElem;
-                    let dates = monthViewElement.getDateList({});
-                    monthViewElement.displayDaysOff = !this.mWorkdaysOnly;
+                    let dates = this.getDateList({});
+                    this.displayDaysOff = !this.mWorkdaysOnly;
 
                     if (!aNumber) {
                         let date = now();
                         this.goToDay(date);
-                        monthViewElement.selectedDay = date;
+                        this.selectedDay = date;
                     } else {
                         // The first few dates in this list are likely in the month
                         // prior to the one actually being shown (since the month
@@ -113,127 +109,55 @@
                             newSelectedDay.day = newSelectedDay.endOfMonth.day;
                         }
 
-                        monthViewElement.selectedDay = newSelectedDay;
+                        this.selectedDay = newSelectedDay;
                     }
-                ]]></body>
-            </method>
-            <method name="updateDaysOffPrefs">
-                <body><![CDATA[
-                    const weekPrefix = "calendar.week.";
-                    const prefNames = ["d0sundaysoff", "d1mondaysoff", "d2tuesdaysoff",
-                                       "d3wednesdaysoff", "d4thursdaysoff",
-                                       "d5fridaysoff", "d6saturdaysoff"];
-                    const defaults = ["true", "false", "false", "false",
-                                      "false", "false", "true"];
-                    let daysOff = new Array();
-                    for (let i in prefNames) {
-                        if (getPrefSafe(weekPrefix + prefNames[i])) {
-                            daysOff.push(Number(i));
-                        }
-                    }
-                    this.viewElem.daysOffArray = daysOff;
                 ]]></body>
             </method>
         </implementation>
     </binding>
 
-    <binding id="calendar-decorated-month-view-parent" extends="chrome://calendar/content/calendar-decorated-base.xml#calendar-decorated-base-view">
+    <binding id="calendar-decorated-month-view-parent" extends="chrome://calendar/content/calendar-month-view.xml#calendar-month-view">
         <implementation>
             <constructor><![CDATA[
                 // Set the preference for the default start of the week
-                this.viewElem.weekStartOffset = getPrefSafe("calendar.week.start", 0);
-
-                this.updateDaysOffPrefs();
-
-                // add a preference observer to monitor changes
-                let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                          getService(Components.interfaces.nsIPrefBranch2);
-                pb2.addObserver("calendar.", this.mPrefObserver, false);
-                return;
+                this.weekStartOffset = getPrefSafe("calendar.week.start", 0);
             ]]></constructor>
 
-            <destructor><![CDATA[
-                let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                          getService(Components.interfaces.nsIPrefBranch2);
-                pb2.removeObserver("calendar.", this.mPrefObserver);
-                return;
-            ]]></destructor>
-            <field name="mPrefObserver"><![CDATA[
-            ({ calView: this,
-               observe: function calDecWeekViewPrefChange(subj, topic, pref) {
+            <method name="handlePreference">
+                <parameter name="aSubject"/>
+                <parameter name="aTopic"/>
+                <parameter name="aPreference"/>
+                <body><![CDATA[
+                   aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
 
-                   subj.QueryInterface(Components.interfaces.nsIPrefBranch2);
+                   switch (aPreference) {
+                       case "calendar.previousweeks.inview":
+                           this.updateDaysOffPrefs();
+                           this.refreshView();
+                           break;
 
-                   // refresh view if categories seem to have changed
-                   if (pref.indexOf("calendar.category.color") == 0) {
-                       if (!this.calView.startDay || !this.calView.endDay) {
-                           // Don't refresh if we're not initialized
-                           return;
-                       }
-                       // Refresh the view to recreate the event boxes
-                       this.calView.goToDay(this.calView.selectedDay);
-                   }
+                       case "calendar.week.start":
+                           this.weekStartOffset = aSubject.getIntPref(aPreference);
+                           // Refresh the view so the settings take effect
+                           this.refreshView();
+                           break;
 
-                   switch (pref) {
+                       case "calendar.weeks.inview":
+                           this.weeksInView = aSubject.getIntPref(aPreference);
+                           break;
 
-                   case "calendar.previousweeks.inview":
-                   case "calendar.week.d0sundaysoff":
-                   case "calendar.week.d1mondaysoff":
-                   case "calendar.week.d2tuesdaysoff":
-                   case "calendar.week.d3wednesdaysoff":
-                   case "calendar.week.d4thursdaysoff":
-                   case "calendar.week.d5fridaysoff":
-                   case "calendar.week.d6saturdaysoff":
-                       this.calView.updateDaysOffPrefs();
-                       if (this.calView.selectedDay) {
-                           this.calView.goToDay(this.calView.selectedDay);
-                       }
-                       break;
+                       case "calendar.previousweeks.inview":
+                           this.refreshView();
+                           break;
 
-                   case "calendar.week.start":
-                       this.calView.viewElem.weekStartOffset = subj.getIntPref(pref);
-
-                       if (!this.calView.startDay || !this.calView.endDay) {
-                           // Don't refresh if we're not initialized
-                           return;
-                       }
-
-                       // Refresh the view so the settings take effect
-                       this.calView.goToDay(this.calView.selectedDay);
-                       break;
-
-                   case "calendar.weeks.inview":
-                       this.calView.weeksInView = subj.getIntPref(pref);
-                       break;
-
-                   case "calendar.previousweeks.inview":
-                       this.refresh();
-                       break;
-
-                   case "calendar.timezone.local":
-                       this.calView.viewElem.timezone = calendarDefaultTimezone();
-                       if (!this.calView.startDay || !this.calView.endDay) {
-                           // Don't refresh if we're not initialized
-                           return;
-                       }
-                       this.calView.goToDay(this.calView.selectedDay);
-                       break;
-
-                   case "calendar.alarms.indicator.show":
-                       if (this.calView.startDay && this.calView.endDay) {
-                           // Refresh the view, the view core takes care of
-                           // resetting the alarm image.
-                           this.calView.goToDay(this.calView.selectedDay);
-                       }
-                       break;
-
-                   default:
-                       break;
+                       default:
+                           this.handleCommonPreference(aSubject, aTopic, aPreference);
+                           break;
                    }
                    return;
-               }
-            })
-            ]]></field>
+                ]]></body>
+            </method>
+
             <!-- this property may be overridden by the
                 descendent classes if neeeded  -->
             <property name="weeksInView">
@@ -245,30 +169,6 @@
                 ]]></setter>
             </property>
 
-            <!-- this methody may be overridden by the
-                descendent classes if neeeded  -->
-           <method name="refreshView">
-                <body><![CDATA[
-                ]]></body>
-            </method>
-
-           <method name="updateDaysOffPrefs">
-                <body><![CDATA[
-                    const weekPrefix = "calendar.week.";
-                    const prefNames = ["d0sundaysoff", "d1mondaysoff", "d2tuesdaysoff",
-                                       "d3wednesdaysoff", "d4thursdaysoff",
-                                       "d5fridaysoff", "d6saturdaysoff"];
-                    const defaults = ["true", "false", "false", "false",
-                                      "false", "false", "true"];
-                    let daysOff = new Array();
-                    for (let i in prefNames) {
-                        if (getPrefSafe(weekPrefix+prefNames[i])) {
-                            daysOff.push(Number(i));
-                        }
-                    }
-                    this.viewElem.daysOffArray = daysOff;
-                ]]></body>
-            </method>
         </implementation>
 
         <handlers>

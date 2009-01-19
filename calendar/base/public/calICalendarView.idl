@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Dan Mosedale <dan.mosedale@oracle.com>
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -55,6 +56,22 @@ interface calIItemBase;
 [scriptable, uuid(3e567ccb-2ecf-4f59-b7ca-bf42b0fbf24a)]
 interface calICalendarView : nsISupports
 {
+
+  /**
+   * Oftentimes other elements in the DOM in which a calIDecoratedView is
+   * used want to be aware of whether or not the view is selected.  An element
+   * whose ID is observerID can be included in that DOM, and will be set to be
+   * enabled or disabled depending on whether the view is selected.
+   */
+  readonly attribute AUTF8String observerID;
+
+  /**
+   * Generally corresponds to whether or not the view has been previously shown.
+   * Strictly speaking, it reports whether displayCalendar, startDay and endDay
+   * are all non-null.
+   */
+  readonly attribute boolean initialized;
+
   /**
    * the calendar that this view is displaying
    */
@@ -64,6 +81,28 @@ interface calICalendarView : nsISupports
    * the controller for this view
    */
   attribute calICalendarViewController controller;
+
+/**
+   * If this is set to 'true', the view should not display days specified to be
+   * non-workdays.  The implementor is responsible for obtaining what those
+   * days are on its own.
+   */
+  attribute boolean workdaysOnly;
+
+  /**
+   * Whether or not tasks are to be displayed in the calICalendarView
+   */
+  attribute boolean tasksInView;
+
+  /**
+   * If set, the view will be rotated (i.e time on top, date at left)
+   */
+  attribute boolean rotated;
+
+  /**
+   * Whether or not completed tasks are shown in the calICalendarView
+   */
+  attribute boolean showCompleted;
 
   /**
    * Ensure that the given date is visible; the view is free
@@ -96,6 +135,16 @@ interface calICalendarView : nsISupports
    * setDateRange, because that date isn't actually displayed!
    */
   readonly attribute calIDateTime endDate;
+
+  /**
+   * The first day shown in the embedded view
+   */
+  readonly attribute calIDateTime startDay;
+
+  /**
+   * The last day shown in the embedded view
+   */
+  readonly attribute calIDateTime endDay;
 
   /**
    * True if this view supports disjoint dates
@@ -159,8 +208,38 @@ interface calICalendarView : nsISupports
   attribute AUTF8String timezone;
 
   /**
+   * Ensures that the given date is visible, and that the view is centered
+   * around this date.  aDate becomes the selectedDay of the view.  Calling
+   * this function with the current selectedDay effectively refreshes the view
+   *
+   * @param aDate       the date that must be shown in the view and becomes
+   *                    the selected day
+   */
+  void goToDay(in calIDateTime aDate);
+
+  /**
+   * Moves the view a specific number of pages.  Negative numbers correspond to
+   * moving the view backwards.  Note that it is up to the view to determine
+   * how the selected day ought to move as well.
+   *
+   * @param aNumber       the number of pages to move the view
+   */
+  void moveView(in long aNumber);
+
+  /**
+   * gets the description of the range displayed by the view
+   */
+  AString getRangeDescription();
+
+  /**
+   * The type of the view e.g "day", "week", "multiweek" or "month" that refers
+   * to the displayed time period.
+   */
+  readonly attribute string type;
+  /**
    * removes the dropshadows that are inserted into childelements during a
    * drag and drop session
    */
+
   void removeDropShadows();
 };

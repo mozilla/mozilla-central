@@ -112,7 +112,7 @@
             ondragdrop="nsDragAndDrop.drop(event, calendarViewDNDObserver);">
         <!-- Note: the "id" attributes of the decorated panes **must** follow the
              notation 'type + "-" + "view"', where "type" should refer to the
-             displayed time period as described in base/public/calIDecoratedView.idl -->
+             displayed time period as described in base/public/calICalendarView.idl -->
         <calendar-decorated-day-view id="day-view" flex="1"
                                      context="calendar-view-context-menu"
                                      item-context="calendar-item-context-menu"/>

@@ -60,7 +60,6 @@ XPIDLSRCS = calIAlarm.idl \
             calIChangeLog.idl \
             calIDateTime.idl \
             calIDateTimeFormatter.idl \
-            calIDecoratedView.idl \
             calIDuration.idl \
             calIErrors.idl \
             calIEvent.idl \

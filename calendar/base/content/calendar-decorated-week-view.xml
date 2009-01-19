@@ -22,6 +22,7 @@
    -
    - Contributor(s):
    -   Dan Mosedale <dan.mosedale@oracle.com>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,77 +49,28 @@
 
     <binding id="calendar-decorated-week-view"
              extends="chrome://calendar/content/calendar-decorated-multiday-base-view.xml#calendar-decorated-multiday-base-view">
-        <content flex="1" orient="vertical">
-          <xul:calendar-multiday-view anonid="view-element" flex="1" orient="vertical" xbl:inherits="context,item-context"/>
-        </content>
-
-        <implementation implements="calIDecoratedView">
-            <constructor><![CDATA[
-                this.mWeekStartOffset = getPrefSafe("calendar.week.start", 0);
-            ]]></constructor>
-
-            <field name="mWeekStartOffset">0</field>
-
+        <implementation implements="calICalendarView">
             <property name="observerID">
                 <getter><![CDATA[
                     return "week-view-observer";
                 ]]></getter>
             </property>
 
-            <method name="handlePreference">
-                <parameter name="aSubject"/>
-                <parameter name="aTopic"/>
-                <parameter name="aPreference"/>
-                <body><![CDATA[
-                    aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
-
-                    // refresh view if categories seem to have changed
-                    if (aPreference.indexOf("calendar.category.color") == 0) {
-                        if (!this.startDay || !this.endDay) {
-                            // Don't refresh if we're not initialized
-                            return;
-                        }
-                        // Refresh the view to recreate the event boxes
-                        this.goToDay(this.selectedDay);
-                    }
-
-                    switch (aPreference) {
-
-                        case "calendar.week.start":
-                            this.mWeekStartOffset = aSubject.getIntPref(aPreference);
-                            this.viewElem.weekStartOffset = aSubject.getIntPref(aPreference);
-                            if (!this.startDay || !this.endDay) {
-                                // Don't refresh if we're not initialized
-                                return;
-                            }
-                            // Refresh the view so the settings take effect
-                            this.goToDay(this.selectedDay);
-                            break;
-
-                        default:
-                            this.handleCommonPreference(aSubject, aTopic, aPreference);
-                            break;
-                    }
-                    return;
-                ]]></body>
-            </method>
-
             <!--Public methods-->
             <method name="goToDay">
                 <parameter name="aDate"/>
                 <body><![CDATA[
-                    var viewElement = this.viewElem;
-                    viewElement.displayDaysOff = !this.mWorkdaysOnly;
+                    this.displayDaysOff = !this.mWorkdaysOnly;
 
-                    aDate = aDate.getInTimezone(viewElement.timezone);
+                    aDate = aDate.getInTimezone(this.timezone);
                     var d1 = getWeekInfoService().getStartOfWeek(aDate);
                     var d2 = d1.clone();
                     d2.day += 6;
+                    this.setDateRange(d1, d2);
                     var toolTips = calGetStringArray("calendar",
                                                      ["oneWeekBack", "gotoToday", "oneWeekForward"]);
-                    this.setDateRange(d1, d2, toolTips);
-                    viewElement.setDateRange(d1, d2);
-                    viewElement.selectedDay = aDate;
+                    cal.navigationBar.setDateRange(d1, d2, toolTips);
+                    this.selectedDay = aDate;
                 ]]></body>
             </method>
             <method name="moveView">
