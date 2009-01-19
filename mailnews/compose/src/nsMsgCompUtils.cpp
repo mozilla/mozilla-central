@@ -56,15 +56,9 @@
 #include "nsNetCID.h"
 #include "nsMsgPrompts.h"
 #include "nsMsgUtils.h"
-#include "nsMsgSimulateError.h"
 #include "nsComposeStrings.h"
 #include "nsIMsgCompUtils.h"
 #include "nsIMsgMdnGenerator.h"
-
-#ifdef MOZ_THUNDERBIRD
-#include "nsIXULAppInfo.h"
-#include "nsXULAppAPI.h"
-#endif
 
 NS_IMPL_ISUPPORTS1(nsMsgCompUtils, nsIMsgCompUtils)
 
@@ -230,12 +224,11 @@ nsresult mime_sanity_check_fields (
       followup_to++;
 
   /* #### sanity check other_random_headers for newline conventions */
-  if (!from || !*from || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_6))
+  if (!from || !*from)
     return NS_MSG_NO_SENDER;
   else
-    if (((!to || !*to) && (!cc || !*cc) &&
-        (!bcc || !*bcc) && (!newsgroups || !*newsgroups)) ||
-        CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_7))
+    if ((!to || !*to) && (!cc || !*cc) &&
+        (!bcc || !*bcc) && (!newsgroups || !*newsgroups))
       return NS_MSG_NO_RECIPIENTS;
   else
     return NS_OK;

@@ -57,7 +57,6 @@
 #include "nsIMsgIdentity.h"
 #include "nsIPrompt.h"
 #include "nsIWindowWatcher.h"
-#include "nsMsgSimulateError.h"
 #include "nsIUTF8ConverterService.h"
 #include "nsUConvCID.h"
 
@@ -134,21 +133,17 @@ NS_IMETHODIMP nsSmtpService::SendMailMessage(nsIFile * aFilePath,
     if (aPassword && *aPassword)
       smtpServer->SetPassword(nsDependentCString(aPassword));
 
-    if (!CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_10)) 
-    {
-      rv = NS_MsgBuildSmtpUrl(aFilePath, smtpServer,
-                              aRecipients, aSenderIdentity, aUrlListener, aStatusFeedback, 
-                              aNotificationCallbacks, &urlToRun, aRequestDSN); // this ref counts urlToRun
-      if (NS_SUCCEEDED(rv) && urlToRun)	
-        rv = NS_MsgLoadSmtpUrl(urlToRun, nsnull, aRequest);
+    // this ref counts urlToRun
+    rv = NS_MsgBuildSmtpUrl(aFilePath, smtpServer, aRecipients, aSenderIdentity,
+                            aUrlListener, aStatusFeedback, 
+                            aNotificationCallbacks, &urlToRun, aRequestDSN);
+    if (NS_SUCCEEDED(rv) && urlToRun)	
+      rv = NS_MsgLoadSmtpUrl(urlToRun, nsnull, aRequest);
 
-      if (aURL) // does the caller want a handle on the url?
-        *aURL = urlToRun; // transfer our ref count to the caller....
-      else
-        NS_IF_RELEASE(urlToRun);
-    }
+    if (aURL) // does the caller want a handle on the url?
+      *aURL = urlToRun; // transfer our ref count to the caller....
     else
-      rv = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER;
+      NS_IF_RELEASE(urlToRun);
   }
 
   return rv;

@@ -53,7 +53,6 @@
 #include "nsMsgPrompts.h"
 #include "nsTextFormatter.h"
 #include "nsIPrompt.h"
-#include "nsMsgSimulateError.h"
 #include "nsITextToSubURI.h"
 #include "nsEscape.h"
 #include "nsIURL.h"
@@ -565,7 +564,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
 
     nsCOMPtr<nsIOutputStream> outputStream;
     rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile, -1, 00600);
-    if (NS_FAILED(rv) || !outputStream || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_3))
+    if (NS_FAILED(rv) || !outputStream)
     {
       if (m_mime_delivery_state)
       {
@@ -697,7 +696,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
 
   nsCOMPtr<nsIOutputStream> outputStream;
   rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile, -1, 00600);
-  if (NS_FAILED(rv) || !outputStream || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_3))
+  if (NS_FAILED(rv) || !outputStream)
   {
     if (m_mime_delivery_state)
     {

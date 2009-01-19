@@ -93,7 +93,6 @@
 #include "nsIDocumentEncoder.h"    // for editor output flags
 #include "nsILoadGroup.h"
 #include "nsMsgSendReport.h"
-#include "nsMsgSimulateError.h"
 #include "nsNetCID.h"
 #include "nsNetError.h"
 #include "nsMsgUtils.h"
@@ -782,7 +781,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = NS_NewLocalFileOutputStream(getter_AddRefs(mOutputFile), mTempFile, -1, 00600);
-  if (NS_FAILED(rv) || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_4))
+  if (NS_FAILED(rv))
   {
     status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
     if (mSendReport)
@@ -1387,7 +1386,7 @@ mime_write_message_body(nsIMsgSend *state, const char *buf, PRInt32 size)
   nsCOMPtr<nsIMsgComposeSecure> crypto_closure;
 
   state->GetOutputStream(getter_AddRefs(output));
-  if (!output || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_9))
+  if (!output)
     return NS_MSG_ERROR_WRITING_FILE;
 
   state->GetCryptoclosure(getter_AddRefs(crypto_closure));
@@ -3408,8 +3407,6 @@ nsMsgComposeAndSend::Init(
   if (mSendReport)
     mSendReport->SetCurrentProcess(nsIMsgSendReport::process_BuildMessage);
 
-  RETURN_SIMULATED_ERROR(SIMULATED_SEND_ERROR_1, NS_ERROR_FAILURE);
-
   //
   // The Init() method should initialize a send operation for full
   // blown create and send operations as well as just the "send a file"
@@ -3593,8 +3590,7 @@ nsMsgComposeAndSend::DeliverMessage()
   if (NS_FAILED(rv))
     return NS_ERROR_FAILURE;
 
-  if (((mMessageWarningSize > 0) && (fileSize > mMessageWarningSize) && (mGUINotificationEnabled)) ||
-      CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_15))
+  if ((mMessageWarningSize > 0) && (fileSize > mMessageWarningSize) && (mGUINotificationEnabled))
   {
     PRBool abortTheSend = PR_FALSE;
     nsString msg;
@@ -4601,7 +4597,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   //
   nsCOMPtr<nsIInputStream> inputFile;
   rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), input_file);
-  if (NS_FAILED(rv) || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_2))
+  if (NS_FAILED(rv))
   {
     if (mSendReport)
     {

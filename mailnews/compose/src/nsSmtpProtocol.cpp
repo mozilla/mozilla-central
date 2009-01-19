@@ -71,7 +71,6 @@
 #include "nsEscape.h"
 #include "nsMsgUtils.h"
 #include "nsIPipe.h"
-#include "nsMsgSimulateError.h"
 #include "nsNetUtil.h"
 #include "nsIPrefService.h"
 #include "nsISignatureVerifier.h"
@@ -604,7 +603,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
     senderIdentity->GetEmail(emailAddress);
   }
 
-  if(emailAddress.IsEmpty() || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_16))
+  if (emailAddress.IsEmpty())
   {
     m_urlErrorState = NS_ERROR_COULD_NOT_GET_USERS_MAIL_ADDRESS;
     return(NS_ERROR_COULD_NOT_GET_USERS_MAIL_ADDRESS);
@@ -1337,7 +1336,7 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
   nsCAutoString buffer;
   nsresult rv;
 
-  if (m_responseCode/10 != 25 || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_11))
+  if (m_responseCode/10 != 25)
   {
     int errorcode;
     if (TestFlag(SMTP_EHLO_SIZE_ENABLED))
@@ -1575,7 +1574,7 @@ PRInt32 nsSmtpProtocol::SendPostData()
 
 PRInt32 nsSmtpProtocol::SendMessageResponse()
 {
-  if((m_responseCode/10 != 25) || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_12))
+  if((m_responseCode/10 != 25))
   {
     nsresult rv = nsExplainErrorDetails(m_runningURL, NS_ERROR_SENDING_MESSAGE, m_responseText.get());
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to explain SMTP error");
@@ -1666,7 +1665,8 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 					PR_FREEIF (addrs1);
 				}
 
-				if (m_addressesLeft == 0 || addrs2 == nsnull || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_8)) // hmm no addresses to send message to...
+        // hmm no addresses to send message to...
+				if (m_addressesLeft == 0 || addrs2 == nsnull)
 				{
 					m_nextState = SMTP_ERROR_DONE;
 					ClearFlag(SMTP_PAUSE_FOR_READ);

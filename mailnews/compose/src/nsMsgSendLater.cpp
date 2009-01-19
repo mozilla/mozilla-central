@@ -53,7 +53,6 @@
 #include "nsNetUtil.h"
 #include "prlog.h"
 #include "prmem.h"
-#include "nsMsgSimulateError.h"
 #include "nsIMimeConverter.h"
 #include "nsMsgMimeCID.h"
 #include "nsComposeStrings.h"
@@ -124,7 +123,6 @@ nsMsgSendLater::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult s
 
   // See if we succeeded on reading the message from the message store?
   //
-  SET_SIMULATED_ERROR(SIMULATED_SEND_ERROR_13, status, NS_ERROR_FAILURE);
   if (NS_SUCCEEDED(status))
   {
     // Message is done...send it!

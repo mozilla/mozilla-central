@@ -99,7 +99,6 @@
 #include "nsImapCore.h"
 #include "nsUnicharUtils.h"
 #include "nsNetUtil.h"
-#include "nsMsgSimulateError.h"
 #include "nsIContentViewer.h"
 #include "nsIMarkupDocumentViewer.h"
 #include "nsIMsgMdnGenerator.h"
@@ -1094,7 +1093,6 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
       rv = nsMsgI18NSaveAsCharset(contentType, m_compFields->GetCharacterSet(),
                                   msgBody.get(), getter_Copies(outCString),
                                   getter_Copies(fallbackCharset), &isAsciiOnly);
-      SET_SIMULATED_ERROR(SIMULATED_SEND_ERROR_14, rv, NS_ERROR_UENC_NOMAPPING);
       if (m_compFields->GetForceMsgEncoding())
         isAsciiOnly = PR_FALSE;
       if (NS_SUCCEEDED(rv) && !outCString.IsEmpty())

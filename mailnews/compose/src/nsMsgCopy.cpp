@@ -55,7 +55,6 @@
 #include "prcmon.h"
 #include "nsIMsgImapMailFolder.h"
 #include "nsThreadUtils.h"
-#include "nsMsgSimulateError.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgProgress.h"
 #include "nsComposeStrings.h"
@@ -227,7 +226,7 @@ nsMsgCopy::StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
   {
     rv = GetTemplatesFolder(aUserIdentity, getter_AddRefs(dstFolder), &waitForUrl);
     isDraft = PR_FALSE;
-    if (!dstFolder || NS_FAILED(rv) || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_5))
+    if (!dstFolder || NS_FAILED(rv))
 	    return NS_MSG_UNABLE_TO_SAVE_TEMPLATE;
   }
   else // SaveInSentFolder (Sent) -  nsMsgDeliverNow or nsMsgSendUnsent
@@ -417,8 +416,6 @@ LocateMessageFolder(nsIMsgIdentity   *userIdentity,
                     nsIMsgFolder     **msgFolder)
 {
   nsresult                  rv = NS_OK;
-
-  RETURN_SIMULATED_ERROR(SIMULATED_SEND_ERROR_5, NS_ERROR_FAILURE)
 
   if (!msgFolder) return NS_ERROR_NULL_POINTER;
   *msgFolder = nsnull;
