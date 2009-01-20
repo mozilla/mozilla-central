@@ -513,6 +513,18 @@
         this.syncTreeWithPane(event.originalTarget, false);
       ]]>
       </handler>
+
+      <handler event="keypress" key="&focusSearch.key;" modifiers="accel">
+      <![CDATA[
+        var searchBox = this.currentPane.getElementsByAttribute("type", "search")[0];
+        if (searchBox)
+        {
+          searchBox.focus();
+          event.stopPropagation();
+          event.preventDefault();
+        }
+      ]]>
+      </handler>
     </handlers>
   </binding>
 

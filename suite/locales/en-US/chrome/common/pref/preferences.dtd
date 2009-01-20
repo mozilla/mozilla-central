@@ -1,4 +1,4 @@
-<!--LOCALIZATION NOTE : FILE Lists preferences categories that appear on the left of the preferences dialog -->
+<!--LOCALIZATION NOTE (.label): Preferences categories that appear on the left of the preferences dialog -->
 <!ENTITY prefWindow.title "Preferences">
 <!ENTITY categoryHeader "Category">
 <!ENTITY appear.label "Appearance">
@@ -33,3 +33,5 @@
 <!ENTITY policies.label "Security Policies">
 <!ENTITY mousewheel.label "Mouse Wheel">
 <!ENTITY scriptsAndWindows.label "Scripts &amp; Plugins">
+
+<!ENTITY focusSearch.key "f">
