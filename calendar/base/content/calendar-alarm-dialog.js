@@ -91,7 +91,7 @@ function onDismissAllAlarms() {
 
 /**
  * Event handler fired when the alarm widget's "Details..." label was clicked.
- * Open the event dialog in the most recent sunbird or thunderbird window
+ * Open the event dialog in the most recent Sunbird or Thunderbird window
  *
  * @param event     The itemdetails event.
  */
@@ -111,7 +111,7 @@ function onItemDetails(event) {
 var gRelativeDateUpdateTimer;
 function setupWindow() {
     // We want to update when we are at 0 seconds past the minute. To do so, use
-    // setTimeout to wait until we are there, then setInterval to exectue every
+    // setTimeout to wait until we are there, then setInterval to execute every
     // minute. Since setInterval is not totally exact, we may run into problems
     // here. I hope not!
     var current = new Date();
@@ -122,7 +122,7 @@ function setupWindow() {
         gRelativeDateUpdateTimer = setInterval(updateRelativeDates, 60 * 1000);
     }, timeout);
 
-    // Give focus to the alarm richlist after onload completes. see bug 103197
+    // Give focus to the alarm richlist after onload completes. See bug 103197
     setTimeout(onFocusWindow, 0);
 }
 

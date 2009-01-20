@@ -38,9 +38,15 @@
  * ***** END LICENSE BLOCK *****
  */
 
+/**
+ * Global Object to hold methods for the general pref pane
+ */
 var gCalendarGeneralPane = {
-
-    init: function () {
+    /**
+     * Initialize the general pref pane. Sets up dialog controls to match the
+     * values set in prefs.
+     */
+    init: function gCGP_init() {
         var df = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
                     .getService(Components.interfaces.calIDateTimeFormatter);
 
@@ -57,7 +63,11 @@ var gCalendarGeneralPane = {
         updateSelectedLabel("dateformat");
     },
 
-    autoRefreshPrefChanged: function() {
+    /**
+     * Update disabled state of the controls that depend on the
+     * calendar.autorefresh.enabled preference.
+     */
+    autoRefreshPrefChanged: function gCGP_autoRefreshPrefChanged() {
         var autoRefreshPref =
             document.getElementById("calendar.autorefresh.enabled").value;
         document.getElementById("calendar.autorefresh.timeout").disabled = 

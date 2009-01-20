@@ -267,8 +267,8 @@ interface calIItemBase : nsISupports
    * by different calendar clients.
    */
   calIAttendee getAttendeeById(in AUTF8String id);
-  void removeAttendee(in calIAttendee attendee);
   void addAttendee(in calIAttendee attendee);
+  void removeAttendee(in calIAttendee attendee);
   void removeAllAttendees();
 
   //
@@ -276,8 +276,8 @@ interface calIItemBase : nsISupports
   //
   void getAttachments(out PRUint32 count,
                       [array,size_is(count),retval] out calIAttachment attachments);
-  void removeAttachment(in calIAttachment attachment);
   void addAttachment(in calIAttachment attachment);
+  void removeAttachment(in calIAttachment attachment);
   void removeAllAttachments();
 
   //
@@ -305,7 +305,12 @@ interface calIItemBase : nsISupports
    * relation nor the referred relation
    */
   void getRelations(out PRUint32 count,
-                      [array,size_is(count),retval] out calIRelation relations);
+                    [array,size_is(count),retval] out calIRelation relations);
+
+  /**
+   * Adds a relation to the item
+   */
+  void addRelation(in calIRelation relation);
 
   /**
    * Removes the relation for this item and the referred item
@@ -316,11 +321,6 @@ interface calIItemBase : nsISupports
    * Removes every relation for this item (in this items and also where it is referred
    */
   void removeAllRelations();
-
-  /**
-   * Adds a relation to the item
-   */
-  void addRelation(in calIRelation relation);
 
   // Occurrence querying
   //

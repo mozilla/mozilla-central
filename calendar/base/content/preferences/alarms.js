@@ -38,9 +38,15 @@
  * ***** END LICENSE BLOCK *****
  */
 
+/**
+ * Global Object to hold methods for the alarms pref pane
+ */
 var gAlarmsPane = {
-
-    init: function () {
+    /**
+     * Initialize the alarms pref pane. Sets up dialog controls to match the
+     * values set in prefs.
+     */
+    init: function gAP_init() {
         // Enable/disable the alarm sound URL box and buttons
         this.alarmsPlaySoundPrefChanged();
 
@@ -49,7 +55,14 @@ var gAlarmsPane = {
         this.updateMenuPlural("tododefalarmlen",  "tododefalarmunit");
     },
 
-    updateMenuPlural: function (lengthFieldId, menuId) {
+    /**
+     * Update the given menu to show the correct plural form in the unit
+     * menulist.
+     *
+     * @param lengthFieldId     The ID of the length field textbox.
+     * @param menuId            The ID of the unit menu to update.
+     */
+    updateMenuPlural: function gAP_updateMenuPlural(lengthFieldId, menuId) {
         var field = document.getElementById(lengthFieldId);
         var menu  = document.getElementById(menuId);
 
@@ -84,8 +97,14 @@ var gAlarmsPane = {
         }
     },
 
-    convertURLToLocalFile: function (aFileURL) {
-        // convert the file url into a nsILocalFile
+    /**
+     * Converts the given file url to a nsILocalFile
+     *
+     * @param aFileURL    A string with a file:// url.
+     * @return            The corresponding nsILocalFile.
+     */
+    convertURLToLocalFile: function gAP_convertURLToLocalFile(aFileURL) {
+        // Convert the file url into a nsILocalFile
         if (aFileURL) {
             var ios = Components.classes["@mozilla.org/network/io-service;1"]
                                 .getService(Components.interfaces.nsIIOService);
@@ -97,7 +116,11 @@ var gAlarmsPane = {
         }
     },
 
-    readSoundLocation: function () {
+    /**
+     * Handler function to be called when the calendar.alarms.soundURL pref has
+     * changed. Updates the label in the dialog.
+     */
+    readSoundLocation: function gAP_readSoundLocation() {
         var soundUrl = document.getElementById("alarmSoundFileField");
         soundUrl.value = document.getElementById("calendar.alarms.soundURL").value;
         if (soundUrl.value.indexOf("file://") == 0) {
@@ -108,14 +131,20 @@ var gAlarmsPane = {
         return undefined;
     },
 
-    useDefaultSound: function () {
+    /**
+     * Causes the default sound to be selected in the dialog controls
+     */
+    useDefaultSound: function gAP_useDefaultSound() {
         var defaultSoundUrl = "chrome://calendar/content/sound.wav";
         document.getElementById("calendar.alarms.soundURL").value = defaultSoundUrl;
         document.getElementById("alarmSoundCheckbox").checked = true;
         this.readSoundLocation();
     },
 
-    browseAlarm: function () {
+    /**
+     * Opens a filepicker to open a local sound for the alarm.
+     */
+    browseAlarm: function gAP_browseAlarm() {
         const nsIFilePicker = Components.interfaces.nsIFilePicker;
         var fp = Components.classes["@mozilla.org/filepicker;1"]
                     .createInstance(nsIFilePicker);
@@ -138,7 +167,10 @@ var gAlarmsPane = {
         }
     },
 
-    previewAlarm: function () {
+    /**
+     * Plays the alarm sound currently selected.
+     */
+    previewAlarm: function gAP_previewAlarm() {
         var soundUrl = document.getElementById("alarmSoundFileField").value;
         var soundIfc = Components.classes["@mozilla.org/sound;1"]
                             .createInstance(Components.interfaces.nsISound);
@@ -158,7 +190,12 @@ var gAlarmsPane = {
         }
     },
 
-    alarmsPlaySoundPrefChanged: function () {
+    /**
+     * Handler function to call when the calendar.alarms.playsound preference
+     * has been changed. Updates the disabled state of fields that depend on
+     * playing a sound.
+     */
+    alarmsPlaySoundPrefChanged: function gAP_alarmsPlaySoundPrefChanged() {
         var alarmsPlaySoundPref =
             document.getElementById("calendar.alarms.playsound");
 
@@ -171,5 +208,4 @@ var gAlarmsPane = {
             items[i].disabled = !alarmsPlaySoundPref.value;
         }
     }
-
 };

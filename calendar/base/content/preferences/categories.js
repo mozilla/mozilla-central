@@ -46,9 +46,16 @@ var prefService = Components.classes["@mozilla.org/preferences-service;1"]
                     .getService(Components.interfaces.nsIPrefService);
 var categoryPrefBranch = prefService.getBranch("calendar.category.color.");
 
+/**
+ * Global Object to hold methods for the categories pref pane
+ */
 var gCategoriesPane = {
 
-    init: function () {
+    /**
+     * Initialize the categories pref pane. Sets up dialog controls to show the
+     * categories saved in preferences.
+     */
+    init: function gCP_init() {
         // On non-instant-apply platforms, once this pane has been loaded,
         // attach our "revert all changes" function to the parent prefwindow's
         // "ondialogcancel" event.
@@ -87,7 +94,11 @@ var gCategoriesPane = {
         this.updateCategoryList();
     },
 
-    updateCategoryList: function () {
+    /**
+     * Updates the listbox containing the categories from the categories saved
+     * in preferences.
+     */
+    updateCategoryList: function gCP_updateCategoryList () {
         cal.sortArrayByLocaleCollator(gCategoryList);
         document.getElementById("calendar.categories.names").value =
             categoriesArrayToString(gCategoryList);
@@ -122,7 +133,11 @@ var gCategoriesPane = {
         }
     },
 
-    addCategory: function () {
+    /**
+     * Adds a category, opening the edit category dialog to prompt the user to
+     * set up the category.
+     */
+    addCategory: function gCP_addCategory() {
         var list = document.getElementById("categorieslist");
         list.selectedIndex = -1;
         document.getElementById("editCButton").disabled = "true";
@@ -132,7 +147,10 @@ var gCategoriesPane = {
                           "", null, addTitle);
     },
 
-    editCategory: function () {
+    /**
+     * Edits the currently selected category using the edit category dialog.
+     */
+    editCategory: function gCP_editCategory() {
         var list = document.getElementById("categorieslist");
         var categoryNameFix = formatStringForCSSRule(gCategoryList[list.selectedIndex]);
         try {
@@ -148,7 +166,10 @@ var gCategoriesPane = {
         }
     },
 
-    deleteCategory: function () {
+    /**
+     * Removes the selected category.
+     */
+    deleteCategory: function gCP_deleteCategory() {
         var list = document.getElementById("categorieslist");
         if (list.selectedItem) {
             var categoryNameFix = formatStringForCSSRule(gCategoryList[list.selectedIndex]);
@@ -162,7 +183,13 @@ var gCategoriesPane = {
         }
     },
 
-    saveCategory: function (categoryName, categoryColor) {
+    /**
+     * Saves the given category to the preferences.
+     *
+     * @param categoryName      The name of the category.
+     * @param categoryColor     The color of the category
+     */
+    saveCategory: function gCP_saveCateogry(categoryName, categoryColor) {
         var list = document.getElementById("categorieslist");
         // Check to make sure another category doesn't have the same name
         var toBeDeleted = -1;
@@ -218,12 +245,21 @@ var gCategoriesPane = {
         this.updateCategoryList();
     },
 
-    enableButtons: function () {
+    /**
+     * Enable the edit and delete category buttons.
+     */
+    enableButtons: function  gCP_enableButtons() {
         document.getElementById("editCButton").disabled = null;
         document.getElementById("deleteCButton").disabled = null;
     },
 
-    backupData: function (categoryNameFix) {
+    /**
+     * Backs up the category name in case the dialog is canceled.
+     *
+     * @see formatStringForCSSRule
+     * @param categoryNameFix     The formatted category name.
+     */
+    backupData: function gCP_backupData(categoryNameFix) {
         var currentColor;
         try {
             currentColor = categoryPrefBranch.getCharPref(categoryNameFix);
@@ -241,7 +277,10 @@ var gCategoriesPane = {
             { name : categoryNameFix, color : currentColor };
     },
 
-    panelOnCancel: function () {
+    /**
+     * Reverts category preferences in case the cancel button is pressed.
+     */
+    panelOnCancel: function gCP_panelOnCancel() {
         for (var i=0; i < parent.backupPrefList.length; i++) {
             if (parent.backupPrefList[i].color == "##NEW") {
                 try {
@@ -255,5 +294,4 @@ var gCategoriesPane = {
             }
         }
     }
-
 };

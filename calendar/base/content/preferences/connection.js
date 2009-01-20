@@ -1,5 +1,4 @@
-/**
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -33,12 +32,17 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK *****
- */
+ * ***** END LICENSE BLOCK *****/
 
+/**
+ * Global Object to hold methods for the connections dialog.
+ */
 var gConnectionsDialog = {
-  beforeAccept: function ()
-  {
+  /**
+   * Handler function to be called before the pref window is closed (i.e
+   * onbeforeaccept attribute).
+   */
+  beforeAccept: function gCD_beforeAccept() {
     var proxyTypePref = document.getElementById("network.proxy.type");
     if (proxyTypePref.value == 2) {
       this.doAutoconfigURLFixup();
@@ -71,8 +75,12 @@ var gConnectionsDialog = {
     return true;
   },
   
-  proxyTypeChanged: function ()
-  {
+
+  /**
+   * Handler function to be called when the network.proxy.type preference has
+   * changed while the connection preferences dialog is open.
+   */
+  proxyTypeChanged: function gCD_proxyTypeChanged() {
     var proxyTypePref = document.getElementById("network.proxy.type");
     
     // Update http
@@ -96,13 +104,16 @@ var gConnectionsDialog = {
     this.updateReloadButton();
   },
 
-  updateReloadButton: function ()
-  {
-    // Disable the "Reload PAC" button if the selected proxy type is not PAC or
-    // if the current value of the PAC textbox does not match the value stored
-    // in prefs.  Likewise, disable the reload button if PAC is not configured
-    // in prefs.
-
+  /**
+   * Updates the disabled state of the Reload button depending on the selected
+   * proxy option.
+   * 
+   * Disable the "Reload PAC" button if the selected proxy type is not PAC or
+   * if the current value of the PAC textbox does not match the value stored
+   * in prefs.  Likewise, disable the reload button if PAC is not configured
+   * in prefs.
+   */
+  updateReloadButton: function gCD_updateReloadButton() {
     var typedURL = document.getElementById("networkProxyAutoconfigURL").value;
     var proxyTypeCur = document.getElementById("network.proxy.type").value;
 
@@ -118,14 +129,21 @@ var gConnectionsDialog = {
         (proxyTypeCur != 2 || proxyType != 2 || typedURL != pacURL);
   },
 
-  readProxyType: function ()
-  {
+  /**
+   * Handler function to be called when the network proxy type radiogroup
+   * receives a 'syncfrompreference' event. Updates the proxy type and disables
+   * controls related to this if needed (i.e Reload button)
+   */
+  readProxyType: function gCD_readProxyType() {
     this.proxyTypeChanged();
     return undefined;
   },
   
-  updateProtocolPrefs: function ()
-  {
+  /**
+   * Handler function to be called when the shareAllProxies checkbox receives a
+   * 'syncfrompreference' event.
+   */
+  updateProtocolPrefs: function gCD_updateProtocolPrefs() {
     var proxyTypePref = document.getElementById("network.proxy.type");
     var shareProxiesPref = document.getElementById("network.proxy.share_proxy_settings");
     var proxyPrefs = ["ssl", "ftp", "socks"];
@@ -158,8 +176,15 @@ var gConnectionsDialog = {
     return undefined;
   },
   
-  readProxyProtocolPref: function (aProtocol, aIsPort)
-  {
+  /**
+   * Handler function to be called when a proxy server host/port textbox
+   * receives a 'syncfrompreference' event.
+   *
+   * @param aProtocol       The protocol to be updated. This is the string
+   *                          contained in the respective preference.
+   * @param aIsPort         If true, the update comes from the port textbox.
+   */
+  readProxyProtocolPref: function gCD_readProxyProtocolPref (aProtocol, aIsPort) {
     var shareProxiesPref = document.getElementById("network.proxy.share_proxy_settings");
     if (shareProxiesPref.value) {
       var pref = document.getElementById("network.proxy.http" + (aIsPort ? "_port" : ""));    
@@ -170,14 +195,19 @@ var gConnectionsDialog = {
     return backupPref.hasUserValue ? backupPref.value : undefined;
   },
 
-  reloadPAC: function ()
-  {
+  /**
+   * Reloads the proxy.pac that is set in the preferences.
+   */
+  reloadPAC: function gCD_reloadPAC() {
     Components.classes["@mozilla.org/network/protocol-proxy-service;1"]
               .getService().reloadPAC();
   },
   
-  doAutoconfigURLFixup: function ()
-  {
+  /**
+   * Use nsIURIFixup to fix the url entered in the autoconfig url field and the
+   * respective preference element.
+   */
+  doAutoconfigURLFixup: function gCD_doAutoconfigURLFixup() {
     var autoURL = document.getElementById("networkProxyAutoconfigURL");
     var autoURLPref = document.getElementById("network.proxy.autoconfig_url");
     var URIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
@@ -187,16 +217,22 @@ var gConnectionsDialog = {
     } catch(ex) {}
   },
   
-  readHTTPProxyServer: function ()
-  {
+  /**
+   * Special case handler function to be called when a HTTP proxy server host
+   * textbox receives a 'syncfrompreference' event.
+   */
+  readHTTPProxyServer: function gCD_readHTTPProxyServer() {
     var shareProxiesPref = document.getElementById("network.proxy.share_proxy_settings");
     if (shareProxiesPref.value)
       this.updateProtocolPrefs();
     return undefined;
   },
   
-  readHTTPProxyPort: function ()
-  {
+  /**
+   * Special case handler function to be called when a HTTP proxy server port
+   * textbox receives a 'syncfrompreference' event.
+   */
+  readHTTPProxyPort: function gCD_readHTTPProxyPort() {
     var shareProxiesPref = document.getElementById("network.proxy.share_proxy_settings");
     if (shareProxiesPref.value)
       this.updateProtocolPrefs();

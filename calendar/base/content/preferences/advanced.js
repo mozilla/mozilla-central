@@ -39,8 +39,15 @@
  * ***** END LICENSE BLOCK *****
  */
 
+/**
+ * Global Object to hold methods for the advanced pref pane
+ */
 var gAdvancedPane = {
     _inited: false,
+    /**
+     * Initialize the advanced pref pane. Sets up dialog controls to match the
+     * values set in prefs.
+     */
     init: function advPaneInit() {
         this._inited = true;
         this._initMasterPasswordUI();
@@ -57,6 +64,10 @@ var gAdvancedPane = {
         this.updateModeItems();
     },
 
+    /**
+     * Handler function to call when the tab in the advanced pane has been
+     * changed.
+     */
     tabSelectionChanged: function advPaneTabSelectionChanged() {
         if (!this._inited) {
             return;
@@ -68,11 +79,17 @@ var gAdvancedPane = {
 
     // GENERAL TAB
 
+    /**
+     * Show the connections dialog
+     */
     showConnections: function advPaneShowConnections() {
         var url = "chrome://calendar/content/preferences/connection.xul";
         document.documentElement.openSubDialog(url, "", "chrome,dialog");
     },
 
+    /**
+     * Show the config editor dialog
+     */
     showConfigEdit: function advPaneShowConfigEdit() {
         document.documentElement.openWindow("Preferences:ConfigManager",
                                             "chrome://global/content/config.xul",

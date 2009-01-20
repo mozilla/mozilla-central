@@ -36,15 +36,26 @@
  * ***** END LICENSE BLOCK *****
  */
 
+/**
+ * Global Object to hold methods for the views pref pane
+ */
 var gViewsPane = {
-    init: function prefViewInit() {
+    /**
+     * Initialize the views pref pane. Sets up dialog controls to match the
+     * values set in prefs.
+     */
+    init: function gVP_init() {
         this.updateViewEndMenu(document.getElementById("daystarthour").value);
         this.updateViewStartMenu(document.getElementById("dayendhour").value);
         this.updateViewWorkDayCheckboxes(document.getElementById("weekstarts").value);
         this.initializeViewStartEndMenus();
     },
 
-    initializeViewStartEndMenus: function() {
+    /**
+     * Initialize the strings for the  "day starts at" and "day ends at"
+     * menulists. This is needed to respect locales that use AM/PM.
+     */
+    initializeViewStartEndMenus: function gVP_initializeViewStartEndMenus() {
         var labelIdStart;
         var labelIdEnd;
         var timeFormatter = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
@@ -67,7 +78,14 @@ var gViewsPane = {
         updateSelectedLabel("dayendhour");
     },
 
-    updateViewEndMenu: function prefUpdateViewEnd(aStartValue) {
+
+    /**
+     * Updates the view end menu to only display hours after the selected view
+     * start.
+     *
+     * @param aStartValue       The value selected for view start.
+     */
+    updateViewEndMenu: function gVP_updateViewEndMenu(aStartValue) {
         var endMenuKids = document.getElementById("dayendhourpopup")
                                   .childNodes;
         for (var i = 0; i < endMenuKids.length; i++) {
@@ -79,7 +97,13 @@ var gViewsPane = {
         }
     },
 
-    updateViewStartMenu: function prefUpdateViewStart(aEndValue) {
+    /**
+     * Updates the view start menu to only display hours before the selected view
+     * end.
+     *
+     * @param aEndValue         The value selected for view end.
+     */
+    updateViewStartMenu: function gVP_updateViewStartMenu(aEndValue) {
         var startMenuKids = document.getElementById("daystarthourpopup")
                                   .childNodes;
         for (var i = 0; i < startMenuKids.length; i++) {
@@ -91,7 +115,13 @@ var gViewsPane = {
         }
     },
 
-    updateViewWorkDayCheckboxes: function prefUpdateViewWorkDays(weekStart) {
+    /**
+     * Update the workday checkboxes based on the start of the week.
+     *
+     * @Param weekStart         The (0-based) index of the weekday the week
+     *                            should start at.
+     */
+    updateViewWorkDayCheckboxes: function gVP_updateViewWorkDayCheckboxes(weekStart) {
         weekStart = Number(weekStart);
         for (var i = weekStart; i < weekStart + 7; i++) {
             var checkbox = document.getElementById("dayoff" + (i % 7));

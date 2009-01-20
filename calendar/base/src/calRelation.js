@@ -36,9 +36,12 @@
 
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
-//
-// calRelation.js
-//
+/**
+ * calRelation prototype definition
+ *
+ * @implements calIRelation
+ * @constructor
+ */
 function calRelation() {
     this.wrappedJSObject = this;
     this.mProperties = new calPropertyBag();
@@ -49,6 +52,9 @@ calRelation.prototype = {
     mType: null,
     mId: null,
 
+    /**
+     * @see nsISupports
+     */
     QueryInterface: function (aIID) {
         return doQueryInterface(this,
                                 calRelation.prototype,
@@ -58,9 +64,8 @@ calRelation.prototype = {
     },
 
     /**
-     * nsIClassInfo
+     * @see nsIClassInfo
      */
-
     getInterfaces: function cR_getInterfaces(aCount) {
         var ifaces = [
             Components.interfaces.nsISupports,
@@ -82,7 +87,7 @@ calRelation.prototype = {
     flags: 0,
 
     /**
-     * calIRelation
+     * @see calIRelation
      */
 
     get item cR_get_item() {

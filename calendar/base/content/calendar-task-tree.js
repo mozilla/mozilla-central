@@ -44,6 +44,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Add registered calendars to the given menupopup. Removes all previous
+ * children.
+ *
+ * XXX Either replace the existing items using replaceNode, or use helper
+ * functions (cal.removeChildren).
+ *
+ * @param aEvent    The popupshowing event of the opening menu
+ */
 function addCalendarNames(aEvent) {
     var calendarMenuPopup = aEvent.target;
     var calendars = getCalendarManager().getCalendars({});
@@ -60,6 +69,15 @@ function addCalendarNames(aEvent) {
     }
 }
 
+/**
+ * Add categories to the given menupopup.
+ *
+ * XXX Either replace the existing items using replaceNode, or use helper
+ * functions (cal.removeChildren).
+ * XXX Shouldn't we be removing previous children here?
+ *
+ * @param aEvent    The popupshowing event of the opening menu
+ */
 function addCategoryNames(aEvent) {
     var tasks = getSelectedTasks(aEvent);
     var tasksSelected = (tasks.length > 0);
@@ -72,6 +90,11 @@ function addCategoryNames(aEvent) {
     }
 }
 
+/**
+ * Change the opening context menu for the selected tasks.
+ *
+ * @param aEvent    The popupshowing event of the opening menu.
+ */
 function changeContextMenuForTask(aEvent) {
     var tasks = getSelectedTasks(aEvent);
     var task = null;
@@ -87,11 +110,25 @@ function changeContextMenuForTask(aEvent) {
     }
 }
 
+/**
+ * Handler function to mark selected tasks as completed.
+ *
+ * XXXberend Please explain more and rename to something easier to understand.
+ *
+ * @param aEvent      The DOM event that triggered this command.
+ * @param aProgress   The progress percentage to set.
+ */
 function contextChangeTaskProgress2(aEvent, aProgress) {
     contextChangeTaskProgress(aEvent, aProgress);
     document.getElementById("calendar_percentComplete-100_command2").checked = false;
 }
 
+/**
+ * Handler function to change the progress of all selected tasks.
+ *
+ * @param aEvent      The DOM event that triggered this command.
+ * @param aProgress   The progress percentage to set.
+ */
 function contextChangeTaskProgress(aEvent, aProgress) {
     startBatchTransaction();
     var tasks = getSelectedTasks(aEvent);
@@ -116,6 +153,13 @@ function contextChangeTaskProgress(aEvent, aProgress) {
     endBatchTransaction();
 }
 
+/**
+ * Handler function to change the category of the selected tasks. The targeted
+ * menuitem must have a cateogory value as described in setCateogry.
+ *
+ * @see setCategory
+ * @param aEvent      The DOM event that triggered this command.
+ */
 function contextChangeTaskCategory(aEvent) {
     startBatchTransaction();
     var tasks = getSelectedTasks(aEvent);
@@ -131,6 +175,12 @@ function contextChangeTaskCategory(aEvent) {
     endBatchTransaction();
 }
 
+/**
+ * Handler function to change the calendar of the selected tasks. The targeted
+ * menuitem must have "calendar" property that implements calICalendar.
+ *
+ * @param aEvent      The DOM event that triggered this command.
+ */
 function contextChangeTaskCalendar(aEvent) {
    startBatchTransaction();
    var tasks = getSelectedTasks(aEvent);
@@ -143,6 +193,12 @@ function contextChangeTaskCalendar(aEvent) {
     endBatchTransaction();
 }
 
+/**
+ * Handler function to change the priority of the selected tasks.
+ *
+ * @param aEvent      The DOM event that triggered this command.
+ * @param aPriority   The priority to set on the selected tasks.
+ */
 function contextChangeTaskPriority(aEvent, aPriority) {
     startBatchTransaction();
     var tasks = getSelectedTasks(aEvent);
@@ -151,10 +207,15 @@ function contextChangeTaskPriority(aEvent, aPriority) {
         var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
         newTask.priority = aPriority;
         doTransaction('modify', newTask, newTask.calendar, task, null);
-     }
-     endBatchTransaction();
-  }
+    }
+    endBatchTransaction();
+}
 
+/**
+ * Modifies the selected tasks with the event dialog
+ *
+ * @param aEvent      The DOM event that triggered this command.
+ */
 function modifyTaskFromContext(aEvent) {
     var tasks = getSelectedTasks(aEvent);
     for (var t = 0; t < tasks.length; t++) {
@@ -164,6 +225,9 @@ function modifyTaskFromContext(aEvent) {
 
 /**
  *  Delete the current selected item with focus from the task tree
+ *
+ * @param aEvent          The DOM event that triggered this command.
+ * @param aDoNotConfirm   If true, the user will not be asked to delete.
  */
 function deleteToDoCommand(aEvent, aDoNotConfirm) {
     var tasks = getSelectedTasks(aEvent);
@@ -173,6 +237,11 @@ function deleteToDoCommand(aEvent, aDoNotConfirm) {
                                              aDoNotConfirm);
 }
 
+/**
+ * Gets the currently visible task tree
+ *
+ * @return    The XUL task tree element.
+ */
 function getTaskTree() {
     var currentMode = document.getElementById("modeBroadcaster").getAttribute("mode");
     if (currentMode == "task") {
@@ -182,6 +251,14 @@ function getTaskTree() {
     }
 }
 
+/**
+ * Gets the tasks selected in the currently visible task tree.
+ *
+ * XXX Parameter aEvent is unused, needs to be removed here and in calling
+ * functions.
+ *
+ * @param aEvent      Unused
+ */
 function getSelectedTasks(aEvent) {
     var taskTree = getTaskTree();
     if (taskTree != null) {
@@ -192,16 +269,29 @@ function getSelectedTasks(aEvent) {
     }
 }
 
+/**
+ * Convert selected tasks to emails.
+ */
 function tasksToMail(aEvent) {
     var tasks = getSelectedTasks(aEvent);
     calendarMailButtonDNDObserver.onDropItems(tasks);
 }
 
+/**
+ * Convert selected tasks to events.
+ */
 function tasksToEvents(aEvent) {
     var tasks = getSelectedTasks(aEvent);
     calendarCalendarButtonDNDObserver.onDropItems(tasks);
 }
 
+/**
+ * Toggle the completed state on tasks retrieved from the given event.
+ *
+ * XXXberend Please clarify if this is correct and describe more clearly.
+ *
+ * @param aEvent    The command event that holds information about the tasks.
+ */
 function toggleCompleted(aEvent) {
     if (aEvent.target.getAttribute("checked") == "true") {
         contextChangeTaskProgress(aEvent, 100);
