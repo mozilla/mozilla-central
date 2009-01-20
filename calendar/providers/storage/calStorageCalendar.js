@@ -1775,6 +1775,7 @@ calStorageCalendar.prototype = {
             let alarm = cal.createAlarm();
             alarm.related = row.alarm_related + 1;
             alarm.offset = duration;
+            item.addAlarm(alarm);
         }
         if (row.alarm_last_ack) {
             // alarm acks are always in utc
