@@ -141,7 +141,10 @@ function setTitleFromFolder(msgfolder, subject)
         if (end) title += " " + end;
       }
     }
-    title += " - " + gBrandBundle.getString("brandShortName");
+
+    if (!/Mac/.test(navigator.platform))
+      title += " - " + gBrandBundle.getString("brandShortName");
+
     document.title = title;
 }
 
