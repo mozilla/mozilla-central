@@ -466,7 +466,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWOReparse(nsIMsgDatabase **aDatab
     
     rv = msgDBService->OpenFolderDB(this, PR_TRUE, getter_AddRefs(mDatabase));
 
-    if (mDatabase && NS_SUCCEEDED(rv))
+    if (NS_FAILED(rv))
+      mDatabase = nsnull;   // comment to this function above states failure expects null db returned
+    if (mDatabase)
     {
       mDatabase->AddListener(this);
       UpdateNewMessages();
