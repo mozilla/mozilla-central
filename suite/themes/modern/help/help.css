@@ -86,9 +86,8 @@
   margin: 30px 0px 0px 34px;
 }
 
-/* Set the minimum sidebar width so the help contents aren't squeezed together.*/
 #help-sidebar {
-  min-width: 15em;
+  min-width: 30px;
   width: 20em;
   max-width: 25em;
   background-color: #BDC7D6;

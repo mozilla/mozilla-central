@@ -50,6 +50,12 @@
 
   <browser id="help-content" onclick="return contentClick(event);" />
 
+  <textbox id="findText" oncommand="showSidebar(); doFind();"/>
+
+  <splitter id="help-sidebar-splitter">
+    <grippy/>
+  </splitter>
+
   <vbox id="appcontent">
     <browser type="content" id="help-external" collapsed="true"/>
   </vbox>

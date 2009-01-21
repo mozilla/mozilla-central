@@ -43,6 +43,10 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+#help-sidebar {
+  min-width: 30px;
+}
+
 /* ::::: toolbar icons ::::: */
 
 #HelpToolbar > toolbarbutton {

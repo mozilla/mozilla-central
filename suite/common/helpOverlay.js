@@ -101,3 +101,7 @@ function contentClick(event) {
   } catch (e) {}
   return false;
 }
+
+function showSidebar() {
+  document.getElementById("help-sidebar-splitter").setAttribute("state", "open");
+}
