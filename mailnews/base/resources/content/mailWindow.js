@@ -79,8 +79,6 @@ var gAccountCentralLoaded = true;
 var gFakeAccountPageLoaded = false;
 //End progress and Status variables
 
-// for checking if the folder loaded is Draft or Unsent which msg is editable
-var gIsEditableMsgFolder = false;
 var gOfflineManager;
 
 // cache the last keywords

@@ -358,8 +358,7 @@ var messageHeaderSink = {
       
       ShowMessageHeaderPane();
       UpdateMessageHeaders();
-      if (gIsEditableMsgFolder)
-        ShowEditMessageButton();
+      ShowEditMessageButton();
 
       for (var index in gMessageListeners)
         gMessageListeners[index].onEndHeaders();
@@ -1554,9 +1553,15 @@ function ClearAttachmentList()
 
 function ShowEditMessageButton() 
 {
-  var editBox = document.getElementById("editMessageBox");
-  if (editBox)
-    editBox.collapsed = false;
+  try
+  {
+    // it would be nice if we passed in the msgHdr from the back end
+    var msgHdr = gDBView.hdrForFirstSelectedMessage;
+    const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+    if (IsSpecialFolder(msgHdr.folder, nsMsgFolderFlags.Drafts, true))
+      document.getElementById("editMessageBox").collapsed = false;
+  }
+  catch (ex) {}
 } 
 
 function ClearEditMessageButton() 
