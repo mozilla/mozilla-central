@@ -38,7 +38,7 @@
 function peekAlarmWindow() {
     var windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                                    .getService(Components.interfaces.nsIWindowMediator);
-    return windowMediator.getMostRecentWindow("calendarAlarmWindow");
+    return windowMediator.getMostRecentWindow("Calendar:AlarmWindow");
 }
 
 function calAlarmServiceObserver() {
