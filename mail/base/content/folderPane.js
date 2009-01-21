@@ -340,12 +340,7 @@ let gFolderTreeView = {
    */
   canDrop: function ftv_canDrop(aRow, aOrientation) {
     let targetFolder = gFolderTreeView._rowMap[aRow]._folder;
-    if (!targetFolder)
-      return false;
-    let dt = this._currentTransfer;
-    let types = dt.mozTypesAt(0);
-    if (Array.indexOf(types, "text/x-moz-message") != -1 &&
-        !targetFolder.canFileMessages)
+    if (!targetFolder || !targetFolder.canFileMessages)
       return false;
     if (aOrientation != Components.interfaces.nsITreeView.DROP_ON)
       return false;
