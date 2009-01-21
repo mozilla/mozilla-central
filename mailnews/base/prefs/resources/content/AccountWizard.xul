@@ -315,7 +315,11 @@
       </grid>
       <separator/>
       <hbox id="downloadMsgsBox">
-        <checkbox id="downloadMsgs" hidden="true" label="&downloadOnLogin.label;" checked="true"/>
+        <checkbox id="downloadMsgs"
+                  label="&downloadOnLogin.label;"
+                  accesskey="&downloadOnLogin.accesskey;"
+                  hidden="true"
+                  checked="true"/>
       </hbox>
       <spacer flex="1"/>
 #ifndef XP_MACOSX

@@ -74,20 +74,37 @@
       <description>&importDescription2.label;</description>
       <separator/>
       <radiogroup id="importFields">
-        <radio value="all" id="allRadio" label="&importDialog.allTitle;"/>
+        <radio id="allRadio"
+               value="all"
+               label="&importAll.label;"
+               accesskey="&importAll.accesskey;"/>
         <separator/>
         <label control="importFields">&select.label;</label>
         <separator class="thin"/>
         <vbox class="indent">
-          <radio value="addressbook" id="addressbookRadio" label="&importDialog.addressbookTitle;"/>
-          <radio value="mail" id="mailRadio" label="&importDialog.mailTitle;"/>
-          <radio value="settings" id="settingsRadio" label="&importDialog.settingsTitle;"/>
-          <radio value="filters" id="filtersRadio" label="&importDialog.filtersTitle;"/>
+          <radio id="addressbookRadio"
+                 value="addressbook"
+                 label="&importAddressbook.label;"
+                 accesskey="&importAddressbook.accesskey;"/>
+          <radio id="mailRadio"
+                 value="mail"
+                 label="&importMail.label;"
+                 accesskey="&importMail.accesskey;"/>
+          <radio id="settingsRadio"
+                 value="settings"
+                 label="&importSettings.label;"
+                 accesskey="&importSettings.accesskey;"/>
+          <radio id="filtersRadio"
+                 value="filters"
+                 label="&importFilters.label;"
+                 accesskey="&importFilters.accesskey;"/>
         </vbox>
       </radiogroup>
     </vbox>
     <vbox class="wizard-box">
-      <label control="moduleList">&selectDescription.label;</label>
+      <label control="moduleList"
+             value="&selectDescription.label;"
+             accesskey="&selectDescription.accesskey;"/>
       <listbox id="moduleList" flex="3"
                 onselect="ImportSelectionChanged(); enableAdvance();" 
                 style="height: 0px;"/>
@@ -115,8 +132,10 @@
       <separator/>
       <separator class="thin"/>
       <radiogroup id="homeorwork" class="indent">
-        <radio value="Home" id="homeRadio" label="&importDialog.homeTitle;"/>
-        <radio value="Work" id="workRadio" label="&importDialog.workTitle;"/>
+        <radio value="Home" id="homeRadio" label="&importHome.label;"
+               accesskey="&importHome.accesskey;"/>
+        <radio value="Work" id="workRadio" label="&importWork.label;"
+               accesskey="&importWork.accesskey;"/>
       </radiogroup>
          <separator/>
          <separator/>

@@ -1543,10 +1543,12 @@
       </menu>
       <menuitem id="menu_goBack"
                 label="&goBackCmd.label;"
+                accesskey="&goBackCmd.accesskey;"
                 key="key_goBack"
                 command="cmd_goBack"/>
       <menuitem id="menu_goForward"
                 label="&goForwardCmd.label;"
+                accesskey="&goForwardCmd.accesskey;"
                 key="key_goForward"
                 command="cmd_goForward"/>
       <menuseparator id="goNextAfterForwardSeparator" observes="mailHideMenus"/>

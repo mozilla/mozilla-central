@@ -37,11 +37,16 @@
  ***** END LICENSE BLOCK ***** -->
 
 <!ENTITY importDialog.windowTitle "Import">
-<!ENTITY importDialog.allTitle    "Import everything">
-<!ENTITY importDialog.mailTitle   "Mail">
-<!ENTITY importDialog.addressbookTitle "Address Books">
-<!ENTITY importDialog.settingsTitle "Settings">
-<!ENTITY importDialog.filtersTitle "Filters">
+<!ENTITY importAll.label          "Import Everything">
+<!ENTITY importAll.accesskey      "E">
+<!ENTITY importMail.label         "Mail">
+<!ENTITY importMail.accesskey     "M">
+<!ENTITY importAddressbook.label  "Address Books">
+<!ENTITY importAddressbook.accesskey "A">
+<!ENTITY importSettings.label     "Settings">
+<!ENTITY importSettings.accesskey "S">
+<!ENTITY importFilters.label      "Filters">
+<!ENTITY importFilters.accesskey  "F">
 
 <!ENTITY  window.width            "40em">
 <!ENTITY  window.macWidth         "45em">
@@ -53,6 +58,7 @@
 <!ENTITY importDescription2.label "Once they have been imported, you will be able to access them from within &brandShortName;.">
 
 <!ENTITY selectDescription.label  "Please select the type of file that you would like to import:">
+<!ENTITY selectDescription.accesskey "P">
 
 <!ENTITY back.label               "&lt; Back">
 <!ENTITY forward.label            "Next &gt;">
@@ -67,5 +73,7 @@
 <!ENTITY FieldDiscInputText1.label  "Netscape Communicator 4.x has one mailing address for each card, while &brandShortName; has two (Home and Work).">
 <!ENTITY FieldDiscInputText2.label  "Select the category in which you want to store the imported mailing addresses:">
 <!ENTITY FieldDiscWarning.label  "This category will be used for all the entries of the selected address book: ">
-<!ENTITY importDialog.homeTitle  "Home">
-<!ENTITY importDialog.workTitle  "Work">
+<!ENTITY importHome.label        "Home">
+<!ENTITY importHome.accesskey    "H">
+<!ENTITY importWork.label        "Work">
+<!ENTITY importWork.accesskey    "W">

@@ -56,9 +56,11 @@
 <!ENTITY inReplyToField.label "In-Reply-To: ">
 <!ENTITY originalWebsite.label "Website: ">
 
-<!ENTITY editMessage.label "Edit Draft…">
+<!ENTITY editMessage.label                 "Edit Draft…">
+<!ENTITY editMessage.accesskey             "D">
 
 <!ENTITY attachmentsTree.label             "Attachments:">
+<!ENTITY attachmentsTree.accesskey         "A">
 <!ENTITY openAttachmentCmd.label           "Open">
 <!ENTITY openAttachmentCmd.accesskey       "O">
 <!ENTITY viewAttachmentCmd.label           "View Source">
