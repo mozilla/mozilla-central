@@ -171,6 +171,24 @@ NS_IMETHODIMP nsOESettings::Import(nsIMsgAccount **localMailAccount, PRBool *_re
 HKEY OESettings::FindAccountsKey( void)
 {
   HKEY  sKey;
+
+
+  if (::RegOpenKeyEx( HKEY_CURRENT_USER, "Identities", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
+    BYTE *  pBytes = nsOERegUtil::GetValueBytes( sKey, "Default User ID");
+    ::RegCloseKey( sKey);
+    if (pBytes) {
+      nsCString  key( "Identities\\");
+      key += (const char *)pBytes;
+      nsOERegUtil::FreeValueBytes( pBytes);
+      key += "\\Software\\Microsoft\\Internet Account Manager\\Accounts";
+      if (::RegOpenKeyEx( HKEY_CURRENT_USER, key.get(), 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, &sKey) == ERROR_SUCCESS) {
+        return( sKey);
+      }
+    }
+  }
+
+
+
   if (::RegOpenKeyEx( HKEY_CURRENT_USER, "Software\\Microsoft\\Internet Account Manager\\Accounts", 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, &sKey) == ERROR_SUCCESS) {
     return( sKey);
   }
