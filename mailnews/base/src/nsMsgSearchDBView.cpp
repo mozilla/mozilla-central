@@ -427,6 +427,11 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
       NS_ASSERTION(!m_levels[threadIndex], "threadRoot incorrect, or level incorrect");
       viewThread->AddHdr(msgHdr, msgIsReferredTo, posInThread,
                          getter_AddRefs(parent));
+      if (threadIndex == nsMsgViewIndex_None)
+      {
+        NS_ERROR("couldn't find thread index for newly inserted header");
+        return NS_OK; // not really OK, but not failure exactly.
+      }
 
       PRBool moveThread = PR_FALSE;
       if (m_sortType == nsMsgViewSortType::byDate)
@@ -527,7 +532,6 @@ void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   PRInt32 childCount = 0;
   nsMsgKey preservedKey;
   nsAutoTArray<nsMsgKey, 1> preservedSelection;
-  PRInt32 selCount;
 
   SaveAndClearSelection(&preservedKey, preservedSelection);
   if (threadIsExpanded)
