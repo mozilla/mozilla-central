@@ -103,6 +103,10 @@ mail-tagfield {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#mail-headerfield-tags");
 }
 
+mail-tagfield[collapsed="true"] {
+  display: none;
+}
+
 searchattribute {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#searchattribute");
 }
