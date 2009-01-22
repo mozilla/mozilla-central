@@ -826,17 +826,13 @@ function setupLdapAutocompleteSession()
         // fill in the session params if there is a session
         //
         if (LDAPSession) {
-            var serverURL = Components.classes[
-                "@mozilla.org/network/ldap-url;1"].
-                createInstance().QueryInterface(
-                    Components.interfaces.nsILDAPURL);
+            let url = getPref(autocompleteDirectory + ".uri", true);
 
-            try {
-                serverURL.spec = getPref(autocompleteDirectory + ".uri", true);
-            } catch (ex) {
-                dump("ERROR: " + ex + "\n");
-            }
-            LDAPSession.serverURL = serverURL;
+            LDAPSession.serverURL =
+              Components.classes["@mozilla.org/network/io-service;1"]
+                        .getService(Components.interfaces.nsIIOService)
+                        .newURI(url, null, null)
+                        .QueryInterface(Components.interfaces.nsILDAPURL);
 
             // get the login to authenticate as, if there is one
             //
