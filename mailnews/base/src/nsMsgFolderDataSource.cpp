@@ -1124,6 +1124,8 @@ nsMsgFolderDataSource::createFolderSpecialNode(nsIMsgFolder *folder,
     specialFolderString.AssignLiteral("Junk");
   else if (flags & nsMsgFolderFlags::Virtual)
     specialFolderString.AssignLiteral("Virtual");
+  else if (flags & nsMsgFolderFlags::Archive)
+    specialFolderString.AssignLiteral("Archives");
   else {
     // XXX why do this at all? or just ""
     specialFolderString.AssignLiteral("none");

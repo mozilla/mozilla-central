@@ -148,6 +148,7 @@ nsMovemailIncomingServer::SetFlagsOnDefaultMailboxes()
     NS_ENSURE_SUCCESS(rv, rv);
 
     localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::Inbox |
+                                            nsMsgFolderFlags::Archive |
                                             nsMsgFolderFlags::SentMail |
                                             nsMsgFolderFlags::Drafts |
                                             nsMsgFolderFlags::Templates |

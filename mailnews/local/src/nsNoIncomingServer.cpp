@@ -88,6 +88,7 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRUint32 mailboxFlags = nsMsgFolderFlags::SentMail |
+                          nsMsgFolderFlags::Archive |
                           nsMsgFolderFlags::Drafts |
                           nsMsgFolderFlags::Templates |
                           nsMsgFolderFlags::Trash |

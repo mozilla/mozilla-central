@@ -368,6 +368,7 @@ nsPop3IncomingServer::SetFlagsOnDefaultMailboxes()
 
   // pop3 gets an inbox, but no queue (unsent messages)
   localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::Inbox |
+                                          nsMsgFolderFlags::Archive |
                                           nsMsgFolderFlags::SentMail |
                                           nsMsgFolderFlags::Drafts |
                                           nsMsgFolderFlags::Templates |

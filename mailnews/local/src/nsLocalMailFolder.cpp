@@ -3369,6 +3369,9 @@ nsMsgLocalMailFolder::SetFlagsOnDefaultMailboxes(PRUint32 flags)
   if (flags & nsMsgFolderFlags::Junk)
     setSubfolderFlag(NS_LITERAL_STRING("Junk"), nsMsgFolderFlags::Junk);
 
+  if (flags & nsMsgFolderFlags::Archive)
+    setSubfolderFlag(NS_LITERAL_STRING("Archives"), nsMsgFolderFlags::Archive);
+
   return NS_OK;
 }
 
