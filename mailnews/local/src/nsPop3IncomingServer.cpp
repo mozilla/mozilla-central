@@ -263,6 +263,8 @@ nsPop3IncomingServer::GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder)
         // make sure we're not deferred to ourself...
         if (incomingServer && incomingServer != this)
           rv = incomingServer->GetRootMsgFolder(getter_AddRefs(m_rootMsgFolder));
+        else
+          rv = NS_ERROR_FAILURE;
       }
     }
   }
