@@ -432,59 +432,43 @@ nsSmtpServer::SetPassword(const nsACString& aPassword)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::GetPasswordWithUI(const PRUnichar * aPromptMessage, const
-                                PRUnichar *aPromptTitle,
+nsSmtpServer::GetPasswordWithUI(const PRUnichar *aPromptMessage,
+                                const PRUnichar *aPromptTitle,
                                 nsIAuthPrompt* aDialog,
                                 nsACString &aPassword)
 {
-    nsresult rv = NS_OK;
-    if (m_password.IsEmpty())
-    {
-        NS_ENSURE_ARG_POINTER(aDialog);
-
-        // prompt the user for the password
-        if (NS_SUCCEEDED(rv))
-        {
-            nsString uniPassword;
-            PRBool okayValue = PR_TRUE;
-            nsCString serverUri;
-            rv = GetServerURI(serverUri);
-            if (NS_FAILED(rv))
-                return rv;
-
-            nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            PRBool passwordProtectLocalCache = PR_FALSE;
-
-            (void) prefBranch->GetBoolPref("mail.password_protect_local_cache",
-                                           &passwordProtectLocalCache);
-
-            rv = aDialog->PromptPassword(aPromptTitle, aPromptMessage,
-              NS_ConvertASCIItoUTF16(serverUri).get(),
-              passwordProtectLocalCache ? nsIAuthPrompt::SAVE_PASSWORD_NEVER
-                                        : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
-              getter_Copies(uniPassword), &okayValue);
-            if (NS_FAILED(rv))
-                return rv;
-
-            if (!okayValue) // if the user pressed cancel, just return NULL;
-            {
-                aPassword.Truncate();
-                return rv;
-            }
-
-            // we got a password back...so remember it
-            nsCString aCStr;
-            LossyCopyUTF16toASCII(uniPassword, aCStr);
-
-            rv = SetPassword(aCStr);
-            if (NS_FAILED(rv))
-                return rv;
-        } // if we got a prompt dialog
-    } // if the password is empty
-
+  if (!m_password.IsEmpty())
     return GetPassword(aPassword);
+
+  NS_ENSURE_ARG_POINTER(aDialog);
+
+  nsCString serverUri;
+  nsresult rv = GetServerURI(serverUri);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool okayValue = PR_TRUE;
+  nsString uniPassword;
+
+  rv = aDialog->PromptPassword(aPromptTitle, aPromptMessage,
+                               NS_ConvertASCIItoUTF16(serverUri).get(),
+                               nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
+                               getter_Copies(uniPassword), &okayValue);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // If the user pressed cancel, just return an empty string.
+  if (!okayValue)
+  {
+    aPassword.Truncate();
+    return rv;
+  }
+
+  NS_LossyConvertUTF16toASCII password(uniPassword);
+
+  rv = SetPassword(password);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  aPassword = password;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -494,63 +478,55 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
                                 nsACString &aUsername,
                                 nsACString &aPassword)
 {
-    nsresult rv = NS_OK;
-
-    if (m_password.IsEmpty()) {
-        NS_ENSURE_ARG_POINTER(aDialog);
-        // prompt the user for the password
-        if (NS_SUCCEEDED(rv))
-        {
-            nsString uniUsername;
-            nsString uniPassword;
-            PRBool okayValue = PR_TRUE;
-            nsCString serverUri;
-            rv = GetServerURI(serverUri);
-            if (NS_FAILED(rv))
-                return rv;
-
-            nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            PRBool passwordProtectLocalCache = PR_FALSE;
-
-            (void) prefBranch->GetBoolPref("mail.password_protect_local_cache",
-                                           &passwordProtectLocalCache);
-
-            rv = aDialog->PromptUsernameAndPassword(aPromptTitle, aPromptMessage,
-              NS_ConvertASCIItoUTF16(serverUri).get(),
-              passwordProtectLocalCache ? nsIAuthPrompt::SAVE_PASSWORD_NEVER
-                                        : nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
-              getter_Copies(uniUsername), getter_Copies(uniPassword), &okayValue);
-            if (NS_FAILED(rv))
-                return rv;
-
-            if (!okayValue) // if the user pressed cancel, just return NULL;
-            {
-              aUsername.Truncate();
-              aPassword.Truncate();
-              return rv;
-            }
-
-            // we got a userid and password back...so remember it
-            nsCString aCStr;
-
-            LossyCopyUTF16toASCII(uniUsername, aCStr);
-            rv = SetUsername(aCStr);
-            if (NS_FAILED(rv))
-                return rv;
-
-            LossyCopyUTF16toASCII(uniPassword, aCStr);
-            rv = SetPassword(aCStr);
-            if (NS_FAILED(rv))
-                return rv;
-        } // if we got a prompt dialog
-    } // if the password is empty
-
+  nsresult rv;
+  if (!m_password.IsEmpty())
+  {
     rv = GetUsername(aUsername);
-    if (NS_FAILED(rv))
-        return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
+
     return GetPassword(aPassword);
+  }
+
+  NS_ENSURE_ARG_POINTER(aDialog);
+
+  nsCString serverUri;
+  rv = GetServerURI(serverUri);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsString uniUsername;
+  nsString uniPassword;
+  PRBool okayValue = PR_TRUE;
+
+  rv = aDialog->PromptUsernameAndPassword(aPromptTitle, aPromptMessage,
+                                          NS_ConvertASCIItoUTF16(serverUri).get(),
+                                          nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
+                                          getter_Copies(uniUsername),
+                                          getter_Copies(uniPassword),
+                                          &okayValue);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // If the user pressed cancel, just return emtpy strings.
+  if (!okayValue)
+  {
+    aUsername.Truncate();
+    aPassword.Truncate();
+    return rv;
+  }
+
+  // We got a username and password back...so remember them.
+  NS_LossyConvertUTF16toASCII username(uniUsername);
+
+  rv = SetUsername(username);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  NS_LossyConvertUTF16toASCII password(uniPassword);
+
+  rv = SetPassword(password);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  aUsername = username;
+  aPassword = password;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
