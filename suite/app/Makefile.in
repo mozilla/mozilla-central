@@ -221,7 +221,7 @@ endif
 $(PROGRAM): $(MOZDEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
 
 ifneq (,$(filter-out OS2 WINNT Darwin,$(OS_ARCH)))
-$(MOZ_APP_NAME).1: seamonkey.man.in Makefile.in Makefile $(DEPTH)/config/autoconf.mk
+$(MOZ_APP_NAME).1: seamonkey.man.in $(GLOBAL_DEPS) $(DEPTH)/config/autoconf.mk
 	@sed -e "s|\@bindir\@|$(bindir)|g" -e "s|\@mozappdir\@|$(mozappdir)|g" \
 		-e "s|\@MOZ_APP_DISPLAYNAME\@|$(MOZ_APP_DISPLAYNAME)|g" \
 		-e "s|\@MOZ_APP_NAME\@|$(MOZ_APP_NAME)|g" \
@@ -233,7 +233,7 @@ libs:: $(MOZ_APP_NAME).1
 install:: $(MOZ_APP_NAME).1
 	$(SYSINSTALL) $(IFLAGS1) $< $(DESTDIR)$(mandir)/man1
 
-$(MOZ_APP_NAME):: $(topsrcdir)/mozilla/build/unix/mozilla.in Makefile.in Makefile $(DEPTH)/config/autoconf.mk
+$(MOZ_APP_NAME):: $(topsrcdir)/mozilla/build/unix/mozilla.in $(GLOBAL_DEPS) $(DEPTH)/config/autoconf.mk
 	cat $< | sed -e "s|%MOZAPPDIR%|$(installdir)|" \
 		-e "s|%MOZ_APP_DISPLAYNAME%|$(MOZ_APP_DISPLAYNAME)|" \
 		-e "s|%MOZILLA-BIN%|$(PROGRAM)|g" > $@
