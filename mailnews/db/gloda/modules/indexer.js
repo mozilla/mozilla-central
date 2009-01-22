@@ -872,7 +872,7 @@ var GlodaIndexer = {
       //  explicitly inherits from nsIDBChangeAnnouncer, which has the
       //  AddListener call we want.
       if (this._indexingDatabase == null)
-        this._indexingDatabase = this._indexingFolder.getMsgDatabase(null);
+        this._indexingDatabase = this._indexingFolder.msgDatabase;
       if (aNeedIterator)
         this._indexerGetIterator();
       this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
@@ -905,7 +905,7 @@ var GlodaIndexer = {
    */
   _indexerCompletePendingFolderEntry:
       function gloda_indexer_indexerCompletePendingFolderEntry() {
-    this._indexingDatabase = this._indexingFolder.getMsgDatabase(null);
+    this._indexingDatabase = this._indexingFolder.msgDatabase;
     if (this._pendingFolderWantsIterator)
       this._indexerGetIterator();
     this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
@@ -1825,7 +1825,7 @@ var GlodaIndexer = {
             }
             let glodaIds = [];
             let newMessageKeys = [];
-            for each (let destMsgHdr in fixIterator(aDestFolder.getMessages(null),
+            for each (let destMsgHdr in fixIterator(aDestFolder.messages,
                                                     Ci.nsIMsgDBHdr)) {
               let destMsgId = destMsgHdr.messageId;
               let matchingSrcHdr = srcMsgIdToHdr[destMsgId];

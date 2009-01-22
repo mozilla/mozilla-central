@@ -136,11 +136,10 @@ public:
 
   // nsIMsgFolder methods:
   NS_IMETHOD GetSubFolders(nsISimpleEnumerator* *aResult);
-  NS_IMETHOD GetMsgDatabase(nsIMsgWindow *aMsgWindow,
-                              nsIMsgDatabase** aMsgDatabase);
+  NS_IMETHOD GetMsgDatabase(nsIMsgDatabase **aMsgDatabase);
 
   NS_IMETHOD OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator);
-  NS_IMETHOD GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result);
+  NS_IMETHOD GetMessages(nsISimpleEnumerator **result);
   NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow);
 
   NS_IMETHOD CreateSubfolder(const nsAString& folderName ,nsIMsgWindow *msgWindow);

@@ -503,7 +503,7 @@ function deleteAllInFolder(commandName)
                   .createInstance(Components.interfaces.nsIMutableArray);
                   
   // Delete messages.
-  iter = folder.getMessages(msgWindow);
+  iter = folder.messages;
   while (iter.hasMoreElements()) {
     children.appendElement(iter.getNext(), false);
   }

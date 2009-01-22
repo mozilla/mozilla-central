@@ -341,8 +341,7 @@ nsresult nsMsgSearchDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index,
   if (folder)
   {
     nsCOMPtr <nsIMsgDatabase> db;
-    nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
-    rv = folder->GetMsgDatabase(msgWindow, getter_AddRefs(db));
+    rv = folder->GetMsgDatabase(getter_AddRefs(db));
     NS_ENSURE_SUCCESS(rv, rv);
     if (db)
       rv = db->GetMsgHdrForKey(m_keys[index], msgHdr);
@@ -364,7 +363,7 @@ nsresult nsMsgSearchDBView::GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDataba
   nsCOMPtr <nsIMsgFolder> aFolder;
   nsresult rv = GetFolderForViewIndex(index, getter_AddRefs(aFolder));
   NS_ENSURE_SUCCESS(rv, rv);
-  return aFolder->GetMsgDatabase(nsnull, db);
+  return aFolder->GetMsgDatabase(db);
 }
 
 nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder)
@@ -1245,7 +1244,7 @@ nsresult nsMsgSearchDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr,
   nsresult rv = msgHdr->GetFolder(getter_AddRefs(folder));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIMsgDatabase> msgDB;
-  rv = folder->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+  rv = folder->GetMsgDatabase(getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
   return msgDB->GetThreadContainingMsgHdr(msgHdr, pThread);
 }

@@ -271,8 +271,7 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
   {
     try
     {
-      var msgdb = newFolder.getMsgDatabase(msgWindow);
-      var dbFolderInfo = msgdb.dBFolderInfo;
+      var dbFolderInfo = newFolder.msgDatabase.dBFolderInfo;
       sortType = dbFolderInfo.sortType;
       sortOrder = dbFolderInfo.sortOrder;
       viewFlags = dbFolderInfo.viewFlags;
@@ -339,7 +338,7 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
        and performance outweighs footprint */
     if (!IsSpecialFolder(oldFolder, nsMsgFolderFlags.Inbox, false))
       if (oldFolder.URI != newFolder.URI)
-        oldFolder.setMsgDatabase(null);
+        oldFolder.msgDatabase = null;
   }
   // that should have initialized gDBView, now re-root the thread pane
   RerootThreadPane();
@@ -821,7 +820,7 @@ function FolderPaneSelectionChange()
             {
               try 
               {
-                var msgDatabase = msgFolder.getMsgDatabase(msgWindow);
+                var msgDatabase = msgFolder.msgDatabase;
                 if (msgDatabase)
                 {
                   gSearchSession = null;
@@ -859,7 +858,7 @@ function FolderPaneSelectionChange()
                       // will return false...
                       var realFolderRes = GetResourceFromUri(uriToLoad);
                       var realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
-                      msgDatabase = realFolder.getMsgDatabase(msgWindow);
+                      msgDatabase = realFolder.msgDatabase;
 //                      dump("search term string = " + searchTermString + "\n");
                     
                       gVirtualFolderTerms = CreateGroupedSearchTerms(tempFilter.searchTerms);
@@ -1022,7 +1021,7 @@ function  CreateVirtualFolder(newName, parentFolder, searchFolderURIs, searchTer
     {
       var newFolder = parentFolder.addSubfolder(newName);
       newFolder.setFlag(Components.interfaces.nsMsgFolderFlags.Virtual);
-      var vfdb = newFolder.getMsgDatabase(msgWindow);
+      var vfdb = newFolder.msgDatabase;
       var searchTermString = getSearchTermString(searchTerms);
       var dbFolderInfo = vfdb.dBFolderInfo;
       // set the view string as a property of the db folder info

@@ -157,7 +157,8 @@ const gTestArray =
   function testMoveMessages2() { copyMessages([gMsgHdrs[2].hdr], true, gLocalInboxFolder, gLocalTrashFolder); },
   function testMoveMessages3() {
     // This is to test whether the notification is correct for moving from trash
-    gMsgHdrs[2].hdr = gLocalTrashFolder.getMsgDatabase(null).getMsgHdrForMessageID(gMsgHdrs[2].ID);
+    gMsgHdrs[2].hdr = gLocalTrashFolder.msgDatabase
+                                       .getMsgHdrForMessageID(gMsgHdrs[2].ID);
     copyMessages([gMsgHdrs[2].hdr], true, gLocalTrashFolder, gLocalFolder3);
   },
 
@@ -171,7 +172,7 @@ const gTestArray =
     // Let's take a moment to re-initialize stuff that got moved
     gLocalFolder2 = gLocalInboxFolder.getChildNamed("folder2");
     gLocalFolder3 = gLocalFolder2.getChildNamed("folder3");
-    var folder3DB = gLocalFolder3.getMsgDatabase(null);
+    var folder3DB = gLocalFolder3.msgDatabase;
     for (var i = 0; i < gMsgHdrs.length; i++)
       gMsgHdrs[i].hdr = folder3DB.getMsgHdrForMessageID(gMsgHdrs[i].ID);
 
@@ -181,7 +182,7 @@ const gTestArray =
   // shift delete
   function testDeleteMessages2() { deleteMessages(gLocalFolder3, [gMsgHdrs[2].hdr], true, false); },
   function testDeleteMessages3() { // normal delete from trash
-    var trashDB = gLocalTrashFolder.getMsgDatabase(null);
+    var trashDB = gLocalTrashFolder.msgDatabase;
     for (var i = 0; i < gMsgHdrs.length; i++)
       gMsgHdrs[i].hdr = trashDB.getMsgHdrForMessageID(gMsgHdrs[i].ID);
     deleteMessages(gLocalTrashFolder, [gMsgHdrs[0].hdr], false, false);

@@ -588,8 +588,7 @@ function IsCurrentLoadedFolder(folder)
       var currentLoadedFolder = GetThreadPaneFolder();
       if (currentLoadedFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
       {
-        var msgDatabase = currentLoadedFolder.getMsgDatabase(msgWindow);
-        var dbFolderInfo = msgDatabase.dBFolderInfo;
+        var dbFolderInfo = currentLoadedFolder.msgDatabase.dBFolderInfo;
         var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
         var re = new RegExp("^" + folderURI + "$|^" + folderURI + "\||\|" + folderURI + "$|\|" + folderURI +"\|");
         var retval = (currentLoadedFolder.URI.match(re));

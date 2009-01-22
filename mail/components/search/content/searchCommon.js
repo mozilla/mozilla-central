@@ -283,7 +283,7 @@ let SearchSupport =
     try
     {
       if (!this._headerEnumerator)
-        this._headerEnumerator = this._currentFolderToIndex.getMessages(null);
+        this._headerEnumerator = this._currentFolderToIndex.messages;
 
       // iterate over the folder finding the next message to index
       while (this._headerEnumerator.hasMoreElements())

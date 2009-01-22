@@ -211,7 +211,7 @@ MessageClassifier.prototype =
           if (aWhiteListDirectories[abCount].cardForEmailAddress(authorEmailAddress))
           {
             // message is ham from whitelist
-            var db = aMsgHdr.folder.getMsgDatabase(msgWindow);
+            var db = aMsgHdr.folder.msgDatabase;
             db.setStringProperty(aMsgHdr.messageKey, "junkscore",
                                  Components.interfaces.nsIJunkMailPlugin.IS_HAM_SCORE);
             db.setStringProperty(aMsgHdr.messageKey, "junkscoreorigin", "whitelist");
@@ -259,7 +259,7 @@ MessageClassifier.prototype =
     // directly) so that the nsMsgDBView knows to update the UI
     //
     var msgHdr = this.mMessages[aClassifiedMsgURI];
-    var db = msgHdr.folder.getMsgDatabase(msgWindow);
+    var db = msgHdr.folder.msgDatabase;
     db.setStringProperty(msgHdr.messageKey, "junkscore", score);
     db.setStringProperty(msgHdr.messageKey, "junkscoreorigin", "plugin");
     db.setStringProperty(msgHdr.messageKey, "junkpercent", aJunkPercent);
@@ -423,7 +423,7 @@ function deleteJunkInFolder()
   {
     var junkMsgHdrs = Components.classes["@mozilla.org/array;1"]
                                 .createInstance(Components.interfaces.nsIMutableArray);
-    var enumerator = gDBView.msgFolder.getMessages(msgWindow);
+    var enumerator = gDBView.msgFolder.messages;
     while (enumerator.hasMoreElements())
     {
       var msgHdr = enumerator.getNext().QueryInterface(Components.interfaces.nsIMsgDBHdr);

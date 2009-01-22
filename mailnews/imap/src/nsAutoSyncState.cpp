@@ -138,7 +138,7 @@ nsresult nsAutoSyncState::PlaceIntoDownloadQ(const nsTArray<nsMsgKey> &aMsgKeyLi
     NS_ENSURE_SUCCESS(rv, rv);
         
     nsCOMPtr<nsIMsgDatabase> database;
-    rv = folder->GetMsgDatabase(nsnull, getter_AddRefs(database));
+    rv = folder->GetMsgDatabase(getter_AddRefs(database));
     if (!database)
       return NS_ERROR_FAILURE;
     
@@ -201,7 +201,7 @@ nsresult nsAutoSyncState::SortQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue)
   NS_ENSURE_SUCCESS(rv, rv);
   
   nsCOMPtr<nsIMsgDatabase> database;
-  rv = folder->GetMsgDatabase(nsnull, getter_AddRefs(database));
+  rv = folder->GetMsgDatabase(getter_AddRefs(database));
   if (!database)
     return NS_ERROR_FAILURE;
   
@@ -232,7 +232,7 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
   NS_ENSURE_SUCCESS(rv, rv);
   
   nsCOMPtr<nsIMsgDatabase> database;
-  folder->GetMsgDatabase(nsnull, getter_AddRefs(database));
+  folder->GetMsgDatabase(getter_AddRefs(database));
       
   nsCOMPtr<nsIMutableArray> group = do_CreateInstance(NS_ARRAY_CONTRACTID);
   if (database)
@@ -341,7 +341,7 @@ NS_IMETHODIMP nsAutoSyncState::ProcessExistingHeaders(PRUint32 aNumOfHdrsToProce
   NS_ENSURE_SUCCESS(rv, rv);
   
   nsCOMPtr<nsIMsgDatabase> database;
-  rv = folder->GetMsgDatabase(nsnull, getter_AddRefs(database));
+  rv = folder->GetMsgDatabase(getter_AddRefs(database));
   if (!database)
     return NS_ERROR_FAILURE;
   
@@ -639,7 +639,7 @@ void nsAutoSyncState::DebugPrintQWithSize(nsTArray<nsMsgKey>& q, PRUint32 toOffs
   if (ownerFolder)
   {
     nsCOMPtr<nsIMsgDatabase> database;
-    ownerFolder->GetMsgDatabase(nsnull, getter_AddRefs(database));
+    ownerFolder->GetMsgDatabase(getter_AddRefs(database));
     
     PRUint32 x = q.Length();
     while (x > toOffset && database) 
@@ -661,7 +661,7 @@ void nsAutoSyncState::DebugPrintQWithSize(nsIMutableArray *q, PRUint32 toOffset)
   if (ownerFolder)
   {
     nsCOMPtr<nsIMsgDatabase> database;
-    ownerFolder->GetMsgDatabase(nsnull, getter_AddRefs(database));
+    ownerFolder->GetMsgDatabase(getter_AddRefs(database));
 
     PRUint32 x;
     q->GetLength(&x);

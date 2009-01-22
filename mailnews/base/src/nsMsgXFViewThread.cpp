@@ -298,7 +298,7 @@ NS_IMETHODIMP nsMsgXFViewThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResul
   if (aIndex >= (PRInt32) m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
   nsCOMPtr<nsIMsgDatabase> db;
-  nsresult rv = m_folders[aIndex]->GetMsgDatabase(nsnull, getter_AddRefs(db));
+  nsresult rv = m_folders[aIndex]->GetMsgDatabase(getter_AddRefs(db));
   NS_ENSURE_SUCCESS(rv, rv);
   return db->GetMsgHdrForKey(m_keys[aIndex], aResult);
 }
@@ -492,7 +492,7 @@ NS_IMETHODIMP nsMsgXFViewThread::GetFirstUnreadChild(nsIMsgDBHdr **aResult)
       
       PRBool isRead;
       nsCOMPtr<nsIMsgDatabase> db;
-      nsresult rv = m_folders[childIndex]->GetMsgDatabase(nsnull, getter_AddRefs(db));
+      nsresult rv = m_folders[childIndex]->GetMsgDatabase(getter_AddRefs(db));
       if (NS_SUCCEEDED(rv))
         rv = db->IsRead(msgKey, &isRead);
       if (NS_SUCCEEDED(rv) && !isRead)

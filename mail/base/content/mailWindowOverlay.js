@@ -1645,7 +1645,7 @@ let mailTabType = {
           // re-select our message.
           ClearThreadPaneSelection();
 
-          var msgDB = aTab.msgSelectedFolder.getMsgDatabase(msgWindow);
+          var msgDB = aTab.msgSelectedFolder.msgDatabase;
           var msgHdr = msgDB.getMsgHdrForMessageID(aTab.selectedMsgId);
           setTimeout(gDBView.selectFolderMsgByKey, 0, aTab.msgSelectedFolder,
                      msgHdr.messageKey);
@@ -2753,7 +2753,7 @@ function OnMsgLoaded(aUrl)
 
     if (msgHdr && msgHdr.messageId.length > 0)
     {
-      var readMailDB = outputPFC.getMsgDatabase(msgWindow);
+      var readMailDB = outputPFC.msgDatabase;
       if (readMailDB && readMailDB.getMsgHdrForMessageID(msgHdr.messageId))
         return; // Don't copy to offline folder.
     }
@@ -2833,7 +2833,7 @@ function HandleMDNResponse(aUrl)
   msgHdr.OrFlags(MSG_FLAG_MDN_REPORT_SENT);
 
   // Commit db changes.
-  var msgdb = msgFolder.getMsgDatabase(msgWindow);
+  var msgdb = msgFolder.msgDatabase;
   if (msgdb)
     msgdb.Commit(ADDR_DB_LARGE_COMMIT);
 }

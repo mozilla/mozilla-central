@@ -236,7 +236,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore,
    }
    else
    {
-     rv=folder->GetMsgDatabase(nsnull, getter_AddRefs(db));
+     rv = folder->GetMsgDatabase(getter_AddRefs(db));
      NS_ENSURE_SUCCESS(rv, rv);
    }
    rv = folder->GetFilePath(getter_AddRefs(path));
@@ -717,7 +717,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           NS_ASSERTION(PR_FALSE, "not an envelope");
           // try to mark the db as invalid so it will be reparsed.
           nsCOMPtr <nsIMsgDatabase> srcDB;
-          m_folder->GetMsgDatabase(nsnull, getter_AddRefs(srcDB));
+          m_folder->GetMsgDatabase(getter_AddRefs(srcDB));
           if (srcDB)
           {
             srcDB->SetSummaryValid(PR_FALSE);

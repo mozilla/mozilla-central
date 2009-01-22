@@ -383,7 +383,8 @@ var gFeedSubscriptionsWindow = {
     var feeds = new Array();
     try
     {
-      var msgdb = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder).getMsgDatabase(null);
+      var msgdb = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder)
+                         .msgDatabase;
       var folderInfo = msgdb.dBFolderInfo;
       var feedurls = folderInfo.getCharProperty("feedUrl");
       var feedUrlArray = feedurls.split("|");
@@ -597,7 +598,7 @@ var gFeedSubscriptionsWindow = {
     // Cheat and look at the feed url property to see if anyone else is still using the feed...
     // you could also accomplish this by looking at some properties in the data source...
 
-//    var msgdb = currentFolder.QueryInterface(Components.interfaces.nsIMsgFolder).getMsgDatabase(null);
+//    var msgdb = currentFolder.QueryInterface(Components.interfaces.nsIMsgFolder).msgDatabase;
 //   var folderInfo = msgdb.dBFolderInfo;
 //    var oldFeedUrl = folderInfo.getCharProperty("feedUrl");
 

@@ -1164,7 +1164,7 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   nsCAutoString folderUri(Substring(templateUri, query)); 
   nsresult rv = GetExistingFolder(folderUri, getter_AddRefs(templateFolder));
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = templateFolder->GetMsgDatabase(aMsgWindow, getter_AddRefs(templateDB));
+  rv = templateFolder->GetMsgDatabase(getter_AddRefs(templateDB));
   NS_ENSURE_SUCCESS(rv, rv);
 
   const char *subject = PL_strstr(templateUri, "&subject=");

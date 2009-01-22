@@ -1883,8 +1883,7 @@
             var folderArray = new Array;
             if (aFolder.flags  & Components.interfaces.nsMsgFolderFlags.Virtual)
             {
-              var msgDatabase = aFolder.getMsgDatabase(null);
-              var dbFolderInfo = msgDatabase.dBFolderInfo;
+              var dbFolderInfo = aFolder.msgDatabase.dBFolderInfo;
               var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
               var srchFolderUriArray = srchFolderUri.split('|');
               var foldersAdded = 0;
@@ -1903,8 +1902,8 @@
             {
               aFolder = folderArray[folderIndex];
               // now get the database
-              var msgDatabase = aFolder.getMsgDatabase(null);
-              aFolder.setMsgDatabase(null);
+              var msgDatabase = aFolder.msgDatabase;
+              aFolder.msgDatabase = null;
               var msgKeys = {};
               var numMsgKeys = {};
               msgDatabase.getNewList(numMsgKeys, msgKeys);
@@ -1918,13 +1917,13 @@
                 // for each of the message keys.
                 try {
                   aOutAsync.value = aFolder.fetchMsgPreviewText(msgKeys.value, numMsgKeys.value, false, aUrlListener);
-                  aFolder.setMsgDatabase(null);
+                  aFolder.msgDatabase = null;
                 }
                 catch (ex)
                 {
                   // fetchMsgPreviewText throws an error when we call it on a news folder, we should just not show
                   // the tooltip if this method returns an error.
-                  aFolder.setMsgDatabase(null);
+                  aFolder.msgDatabase = null;
                   continue;
                 }
               }

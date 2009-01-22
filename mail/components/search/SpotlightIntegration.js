@@ -168,7 +168,7 @@ let SearchIntegration =
 
         this._msgHdr.setUint32Property(SearchIntegration._hdrIndexedProperty,
                                        1);
-        folder.getMsgDatabase(null).Commit(MSG_DB_LARGE_COMMIT);
+        folder.msgDatabase.Commit(MSG_DB_LARGE_COMMIT);
 
         this._message = "";
       }

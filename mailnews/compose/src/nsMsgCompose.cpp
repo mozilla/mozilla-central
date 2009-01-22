@@ -1813,7 +1813,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
           msgHdr->GetFolder(getter_AddRefs(folder));
           if (folder) {
             nsCOMPtr<nsIMsgDatabase> db;
-            folder->GetMsgDatabase(nsnull, getter_AddRefs(db));
+            folder->GetMsgDatabase(getter_AddRefs(db));
 
             if (db) {
               nsCAutoString reference;
@@ -3054,7 +3054,7 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
           if (msgFolder)
           {
             nsCOMPtr <nsIMsgDatabase> msgDB;
-            msgFolder->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+            msgFolder->GetMsgDatabase(getter_AddRefs(msgDB));
             if (msgDB)
             {
               msgDB->CreateNewHdr(msgKey, getter_AddRefs(msgHdr));

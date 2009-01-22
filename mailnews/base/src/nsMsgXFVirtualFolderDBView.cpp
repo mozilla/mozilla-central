@@ -220,7 +220,7 @@ nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, ns
 void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, PRUint32 numNewHits)
 {
   nsCOMPtr <nsIMsgDatabase> db;
-  nsresult rv = folder->GetMsgDatabase(nsnull, getter_AddRefs(db));
+  nsresult rv = folder->GetMsgDatabase(getter_AddRefs(db));
   if (NS_SUCCEEDED(rv) && db)
   {
     nsCString searchUri;
@@ -420,7 +420,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
       nsCOMPtr<nsIMsgDatabase> searchDB;
       nsCString searchUri;
       m_viewFolder->GetURI(searchUri);
-      nsresult rv = searchFolder->GetMsgDatabase(nsnull, getter_AddRefs(searchDB));
+      nsresult rv = searchFolder->GetMsgDatabase(getter_AddRefs(searchDB));
       if (NS_SUCCEEDED(rv) && searchDB)
       {
         if (msgDBService)

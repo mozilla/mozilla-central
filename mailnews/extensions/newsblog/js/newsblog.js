@@ -72,7 +72,7 @@ var nsNewsBlogFeedDownloader =
         aUrl = concatenatedUris;
         try
         {
-          var msgdb = aFolder.getMsgDatabase(null);
+          var msgdb = aFolder.msgDatabase;
           var folderInfo = msgdb.dBFolderInfo;
           folderInfo.setCharProperty("feedUrl", concatenatedUris);
         }
@@ -199,7 +199,8 @@ var nsNewsBlogFeedDownloader =
       loadScripts();
 
     // an rss folder was just renamed...we need to update our feed data source
-    var msgdb = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder).getMsgDatabase(null);
+    var msgdb = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder)
+                       .msgDatabase;
     var folderInfo = msgdb.dBFolderInfo;
     var feedurls = folderInfo.getCharProperty("feedUrl");
     var feedUrlArray = feedurls.split("|");
@@ -422,7 +423,7 @@ var progressNotifier = {
       this.mMsgWindow.windowCommands.selectFolder(feed.folder.URI);
     } 
     else if (feed.folder)
-      feed.folder.setMsgDatabase(null);
+      feed.folder.msgDatabase = null;
 
     if (this.mStatusFeedback)
     {

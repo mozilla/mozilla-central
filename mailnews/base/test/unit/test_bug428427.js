@@ -158,7 +158,7 @@ var searchListener =
   onSearchDone: function(status)
   { 
     print("Finished search hitCount = " + numTotalMessages);
-    var db = virtualFolder.getMsgDatabase(null);
+    var db = virtualFolder.msgDatabase;
     var dbFolderInfo = db.dBFolderInfo;
     dbFolderInfo.numMessages = numTotalMessages;
     dbFolderInfo.numUnreadMessages = numUnreadMessages;
@@ -206,7 +206,7 @@ function CreateVirtualFolder(newName, parentFolder, searchFolderURIs, searchTerm
 {
   var newFolder = parentFolder.addSubfolder(newName);
   newFolder.setFlag(Ci.nsMsgFolderFlags.Virtual);
-  var vfdb = newFolder.getMsgDatabase(null);
+  var vfdb = newFolder.msgDatabase;
   var searchTerms = [];
   var searchTermString = getSearchTermString(searchTerm);
   

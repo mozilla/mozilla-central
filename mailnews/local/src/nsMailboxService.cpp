@@ -145,7 +145,7 @@ nsresult nsMailboxService::CopyMessages(nsTArray<nsMsgKey> &msgKeys,
 
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   nsCOMPtr <nsIMsgDatabase> db;
-  srcFolder->GetMsgDatabase(aMsgWindow, getter_AddRefs(db));
+  srcFolder->GetMsgDatabase(getter_AddRefs(db));
   if (db)
   {
     db->GetMsgHdrForKey(msgKeys[0], getter_AddRefs(msgHdr));

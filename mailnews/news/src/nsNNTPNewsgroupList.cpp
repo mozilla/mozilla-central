@@ -296,7 +296,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
   m_msgWindow = aMsgWindow;
 
   if (!m_newsDB)
-    rv = folder->GetMsgDatabase(nsnull /* use m_msgWindow? */, getter_AddRefs(m_newsDB));
+    rv = folder->GetMsgDatabase(getter_AddRefs(m_newsDB));
 
   nsCOMPtr<nsINewsDatabase> db(do_QueryInterface(m_newsDB, &rv));
   NS_ENSURE_SUCCESS(rv,rv);

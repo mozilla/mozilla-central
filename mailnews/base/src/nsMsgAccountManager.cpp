@@ -2428,7 +2428,7 @@ VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBo
   PRUint32 flags;
   PRBool match;
   nsCOMPtr<nsIMsgDatabase> msgDB;
-  nsresult rv = m_folderWatching->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+  nsresult rv = m_folderWatching->GetMsgDatabase(getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
   // we don't want any early returns from this function, until we've
   // called ClearScopes on the search session.
@@ -2508,7 +2508,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrCh
 {
   nsCOMPtr <nsIMsgDatabase> msgDB;
 
-  nsresult rv = m_folderWatching->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+  nsresult rv = m_folderWatching->GetMsgDatabase(getter_AddRefs(msgDB));
   PRBool oldMatch = PR_FALSE, newMatch = PR_FALSE;
   // we don't want any early returns from this function, until we've
   // called ClearScopes 0n the search session.
@@ -2588,7 +2588,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
 {
   nsCOMPtr <nsIMsgDatabase> msgDB;
 
-  nsresult rv = m_folderWatching->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+  nsresult rv = m_folderWatching->GetMsgDatabase(getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
   PRBool match = PR_FALSE;
   m_searchSession->AddScopeTerm(nsMsgSearchScope::offlineMail, m_folderWatching);
@@ -2629,7 +2629,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrAdded(nsIMsgDBHdr *aNewHdr, nsMs
 {
   nsCOMPtr <nsIMsgDatabase> msgDB;
 
-  nsresult rv = m_folderWatching->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+  nsresult rv = m_folderWatching->GetMsgDatabase(getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
   PRBool match = PR_FALSE;
   m_searchSession->AddScopeTerm(nsMsgSearchScope::offlineMail, m_folderWatching);
@@ -2776,7 +2776,8 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
                 CopyUTF8toUTF16(currentFolderNameCStr, currentFolderNameStr);
                 nsCOMPtr <nsIMsgFolder> childFolder;
                 nsCOMPtr <nsIMsgDatabase> db;
-                virtualFolder->GetMsgDatabase(nsnull, getter_AddRefs(db)); // force db to get created.
+                // force db to get created.
+                virtualFolder->GetMsgDatabase(getter_AddRefs(db));
                 if (db)
                   rv = db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
                 else

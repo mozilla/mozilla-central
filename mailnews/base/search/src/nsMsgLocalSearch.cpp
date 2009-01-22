@@ -828,7 +828,7 @@ nsresult nsMsgSearchOfflineNews::OpenSummaryFile ()
   err = m_scope->GetFolder(getter_AddRefs(scopeFolder));
   // code here used to check if offline store existed, which breaks offline news.
   if (NS_SUCCEEDED(err) && scopeFolder)
-    err = scopeFolder->GetMsgDatabase(nsnull, getter_AddRefs(m_db));
+    err = scopeFolder->GetMsgDatabase(getter_AddRefs(m_db));
   return err;
 }
 

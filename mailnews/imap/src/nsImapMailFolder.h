@@ -234,7 +234,7 @@ public:
   // nsIMsgFolder methods:
   NS_IMETHOD GetSubFolders(nsISimpleEnumerator **aResult);
 
-  NS_IMETHOD GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result);
+  NS_IMETHOD GetMessages(nsISimpleEnumerator* *result);
   NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow);
 
   NS_IMETHOD CreateSubfolder(const nsAString& folderName,nsIMsgWindow *msgWindow );

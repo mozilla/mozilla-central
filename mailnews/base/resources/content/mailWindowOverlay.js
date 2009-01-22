@@ -2504,7 +2504,7 @@ function OnMsgLoaded(aUrl)
         messageID = msgHdr.messageId;
         if (messageID.length > 0)
         {
-          var readMailDB = outputPFC.getMsgDatabase(msgWindow);
+          var readMailDB = outputPFC.msgDatabase;
           if (readMailDB)
           {
             var hdrInDestDB = readMailDB.getMsgHdrForMessageID(messageID);
@@ -2585,7 +2585,7 @@ function HandleMDNResponse(aUrl)
   msgHdr.OrFlags(MSG_FLAG_MDN_REPORT_SENT);
 
   // Commit db changes.
-  var msgdb = msgFolder.getMsgDatabase(msgWindow);
+  var msgdb = msgFolder.msgDatabase;
   if (msgdb)
     msgdb.Commit(MSG_DB_LARGE_COMMIT);
 }

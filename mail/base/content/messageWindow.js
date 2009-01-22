@@ -374,7 +374,7 @@ function CreateView(originalView)
   }
   else if (msgFolder)
   {
-    var msgDatabase = msgFolder.getMsgDatabase(msgWindow);
+    var msgDatabase = msgFolder.msgDatabase;
     if (msgDatabase)
     {
       var dbFolderInfo = msgDatabase.dBFolderInfo;
@@ -628,7 +628,7 @@ function SelectFolder(folderUri)
     {
       // accessing the db causes the folder loaded notification to get sent
       // for local folders.
-      var db = msgfolder.getMsgDatabase(msgWindow);
+      var db = msgfolder.msgDatabase;
       msgfolder.startFolderLoading();
       msgfolder.updateFolder(msgWindow);
     }

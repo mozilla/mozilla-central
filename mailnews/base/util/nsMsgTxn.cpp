@@ -321,7 +321,7 @@ nsMsgTxn::CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, P
   NS_ENSURE_ARG(aResult);
   nsCOMPtr<nsIMsgDBHdr> message;
   nsCOMPtr<nsIMsgDatabase> db;
-  nsresult rv = aFolder->GetMsgDatabase(nsnull,getter_AddRefs(db));
+  nsresult rv = aFolder->GetMsgDatabase(getter_AddRefs(db));
   if (db)
   {
     PRBool containsKey;

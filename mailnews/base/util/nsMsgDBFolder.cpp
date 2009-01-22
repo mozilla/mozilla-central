@@ -881,8 +881,7 @@ nsresult nsMsgDBFolder::CreateFileForDB(const nsACString& userLeafName, nsILocal
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::GetMsgDatabase(nsIMsgWindow *aMsgWindow,
-                              nsIMsgDatabase** aMsgDatabase)
+nsMsgDBFolder::GetMsgDatabase(nsIMsgDatabase** aMsgDatabase)
 {
   NS_ENSURE_ARG_POINTER(aMsgDatabase);
   GetDatabase();
@@ -1884,7 +1883,7 @@ nsMsgDBFolder::SetDBTransferInfo(nsIDBFolderInfo *aTransferInfo)
   NS_ENSURE_ARG(aTransferInfo);
   nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
   nsCOMPtr <nsIMsgDatabase> db;
-  GetMsgDatabase(nsnull, getter_AddRefs(db));
+  GetMsgDatabase(getter_AddRefs(db));
   if (db)
   {
     db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
@@ -2489,7 +2488,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetParentMsgFolder(nsIMsgFolder **aParentMsgFolder)
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result)
+nsMsgDBFolder::GetMessages(nsISimpleEnumerator **result)
 {
   // XXX should this return an empty enumeration?
   return NS_ERROR_FAILURE;
@@ -4548,7 +4547,7 @@ NS_IMETHODIMP nsMsgDBFolder::EnableNotifications(PRInt32 notificationType, PRBoo
     nsCOMPtr <nsIMsgDatabase> database;
 
     if (dbBatching)  //only if we do dbBatching we need to get db
-      GetMsgDatabase(nsnull, getter_AddRefs(database));
+      GetMsgDatabase(getter_AddRefs(database));
 
     if (enable)
     {
@@ -4567,7 +4566,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMessageHeader(nsMsgKey msgKey, nsIMsgDBHdr **aMs
 {
   NS_ENSURE_ARG_POINTER(aMsgHdr);
   nsCOMPtr <nsIMsgDatabase> database;
-  nsresult rv = GetMsgDatabase(nsnull, getter_AddRefs(database));
+  nsresult rv = GetMsgDatabase(getter_AddRefs(database));
   NS_ENSURE_SUCCESS(rv, rv);
   return (database) ? database->GetMsgHdrForKey(msgKey, aMsgHdr) : NS_ERROR_FAILURE;
 }

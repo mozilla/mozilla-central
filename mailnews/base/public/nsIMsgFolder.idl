@@ -67,14 +67,15 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(38444311-d7fb-4fbc-a52e-1899320ce1da)]
+[scriptable, uuid(f64a0335-2b72-4320-89f6-8d57ac5e70ca)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
   const nsMsgBiffState nsMsgBiffState_NoMail =  1; // No new mail is waiting.
   const nsMsgBiffState nsMsgBiffState_Unknown = 2; // We dunno whether there is new mail.
 
-  nsISimpleEnumerator getMessages(in nsIMsgWindow aMsgWindow);
+  /// Returns an enumerator containing the messages within the current database.
+  readonly attribute nsISimpleEnumerator messages;
 
   void startFolderLoading();
   void endFolderLoading();
@@ -442,8 +443,8 @@ interface nsIMsgFolder : nsISupports {
    *                         out of date information.
    * @see nsIMsgFolder::getDBFolderInfoAndDB.
    */
-  nsIMsgDatabase getMsgDatabase(in nsIMsgWindow msgWindow);
-  void setMsgDatabase (in nsIMsgDatabase msgDatabase);
+  attribute nsIMsgDatabase msgDatabase;
+
   /**
    * Get the backup message database, used in reparsing. This database must
    * be created first using closeAndBackupFolderDB()

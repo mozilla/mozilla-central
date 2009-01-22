@@ -285,7 +285,7 @@ nsresult nsPop3IncomingServer::GetInbox(nsIMsgWindow *msgWindow, nsIMsgFolder **
   if (NS_SUCCEEDED(rv) && localInbox)
   {
     nsCOMPtr <nsIMsgDatabase> db;
-    rv = (*inbox)->GetMsgDatabase(msgWindow, getter_AddRefs(db));
+    rv = (*inbox)->GetMsgDatabase(getter_AddRefs(db));
     if (NS_FAILED(rv))
     {
       (*inbox)->SetMsgDatabase(nsnull);
@@ -331,7 +331,7 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
     {
       PRBool valid = PR_FALSE;
       nsCOMPtr <nsIMsgDatabase> db;
-      rv = inbox->GetMsgDatabase(aMsgWindow, getter_AddRefs(db));
+      rv = inbox->GetMsgDatabase(getter_AddRefs(db));
       if (NS_SUCCEEDED(rv) && db)
         rv = db->GetSummaryValid(&valid);
       if (NS_SUCCEEDED(rv) && valid)
@@ -609,7 +609,7 @@ nsresult nsPop3GetMailChainer::GetNewMailForServers(nsISupportsArray *servers, n
   m_listener = listener;
   nsCOMPtr <nsIMsgDatabase> destFolderDB;
 
-  nsresult rv = folderToDownloadTo->GetMsgDatabase(msgWindow, getter_AddRefs(destFolderDB));
+  nsresult rv = folderToDownloadTo->GetMsgDatabase(getter_AddRefs(destFolderDB));
   if (NS_FAILED(rv) || !destFolderDB)
   {
     nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(folderToDownloadTo);

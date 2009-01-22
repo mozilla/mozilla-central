@@ -3670,7 +3670,7 @@ nsMsgDBView::GetLocationCollationKey(nsIMsgDBHdr *msgHdr, PRUint8 **result, PRUi
   nsresult rv = msgHdr->GetFolder(getter_AddRefs(folder));
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr <nsIMsgDatabase> dbToUse;
-  rv = folder->GetMsgDatabase(nsnull, getter_AddRefs(dbToUse));
+  rv = folder->GetMsgDatabase(getter_AddRefs(dbToUse));
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsString locationString;
@@ -4501,7 +4501,7 @@ nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *msgHdr)
   comparisonContext.isSecondarySort = PR_FALSE;
   comparisonContext.ascendingSort = (m_sortOrder == nsMsgViewSortOrder::ascending);
   nsCOMPtr <nsIMsgDatabase> hdrDB;
-  EntryInfo1.folder->GetMsgDatabase(nsnull, getter_AddRefs(hdrDB));
+  EntryInfo1.folder->GetMsgDatabase(getter_AddRefs(hdrDB));
   comparisonContext.db = hdrDB.get();
   switch (fieldType)
   {
@@ -5021,7 +5021,7 @@ nsMsgDBView::GetThreadRootIndex(nsIMsgDBHdr *msgHdr)
   comparisonContext.isSecondarySort = PR_FALSE;
   comparisonContext.ascendingSort = (m_sortOrder == nsMsgViewSortOrder::ascending);
   nsCOMPtr<nsIMsgDatabase> hdrDB;
-  EntryInfo1.folder->GetMsgDatabase(nsnull, getter_AddRefs(hdrDB));
+  EntryInfo1.folder->GetMsgDatabase(getter_AddRefs(hdrDB));
   comparisonContext.db = hdrDB.get();
   switch (fieldType)
   {
@@ -5145,7 +5145,7 @@ void nsMsgDBView::InitEntryInfoForIndex(nsMsgViewIndex i, IdKeyPtr &EntryInfo)
   nsIMsgCustomColumnHandler* colHandler = GetCurColumnHandlerFromDBInfo();
 
   nsCOMPtr<nsIMsgDatabase> hdrDB;
-  EntryInfo.folder->GetMsgDatabase(nsnull, getter_AddRefs(hdrDB));
+  EntryInfo.folder->GetMsgDatabase(getter_AddRefs(hdrDB));
   switch (fieldType)
   {
     case kCollationKey:

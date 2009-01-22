@@ -159,12 +159,12 @@ function create_post(baseURL, file) {
 }
 
 function resetFolder(folder) {
-  var headerEnum = folder.getMessages(null);
+  var headerEnum = folder.messages;
   var headers = [];
   while (headerEnum.hasMoreElements())
     headers.push(headerEnum.getNext().QueryInterface(Ci.nsIMsgDBHdr));
 
-  var db = folder.getMsgDatabase(null);
+  var db = folder.msgDatabase;
   db.dBFolderInfo.knownArtsSet = "";
   for each (var header in headers) {
     db.DeleteHeader(header, null, true, false);

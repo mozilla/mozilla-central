@@ -190,7 +190,7 @@ NS_IMETHODIMP nsRssIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlLi
   nsresult rv;
   nsCOMPtr <nsINewsBlogFeedDownloader> rssDownloader = do_GetService("@mozilla.org/newsblog-feed-downloader;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = aFolder->GetMsgDatabase(aMsgWindow, getter_AddRefs(db));
+  rv = aFolder->GetMsgDatabase(getter_AddRefs(db));
   if (NS_SUCCEEDED(rv) && db)
   {
     rv = db->GetSummaryValid(&valid);

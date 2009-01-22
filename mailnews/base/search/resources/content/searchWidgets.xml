@@ -584,8 +584,7 @@
             var resource = rdfService.GetResource(identity.stationeryFolder);
             var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
             var msgWindow = GetFilterEditorMsgWindow();
-            var msgDatabase = msgFolder.getMsgDatabase(msgWindow);
-            var enumerator = msgDatabase.EnumerateMessages();
+            var enumerator = msgFolder.msgDatabase.EnumerateMessages();
             var templateListPopup = document.getAnonymousNodes(this)[0].menupopup;
 
             if ( enumerator )

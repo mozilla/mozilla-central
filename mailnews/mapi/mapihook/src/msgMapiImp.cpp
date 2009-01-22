@@ -531,7 +531,7 @@ nsresult MsgMapiListContext::OpenDatabase (nsIMsgFolder *folder)
   if (folder)
   {
     m_folder = folder;
-    dbErr = folder->GetMsgDatabase(nsnull, getter_AddRefs(m_db));
+    dbErr = folder->GetMsgDatabase(getter_AddRefs(m_db));
     if (m_db)
       dbErr = m_db->EnumerateMessages(getter_AddRefs(m_msgEnumerator));
   }

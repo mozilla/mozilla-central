@@ -179,7 +179,7 @@ function GetFolderInfo(aFolder)
 {
   if (aFolder)
   {
-    var db = aFolder.getMsgDatabase(msgWindow);
+    var db = aFolder.msgDatabase;
     if (db)
       return db.dBFolderInfo;
   }

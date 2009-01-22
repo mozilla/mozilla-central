@@ -71,7 +71,7 @@ nsNNTPArticleList::Initialize(nsIMsgNewsFolder *newsFolder)
     nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    rv = folder->GetMsgDatabase(nsnull /* msgWindow */, getter_AddRefs(m_newsDB));
+    rv = folder->GetMsgDatabase(getter_AddRefs(m_newsDB));
     NS_ENSURE_SUCCESS(rv,rv);
     if (!m_newsDB) return NS_ERROR_UNEXPECTED;
 

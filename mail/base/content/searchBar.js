@@ -107,13 +107,12 @@ var gSearchNotificationListener =
          (!gSearchInput || gSearchInput.value == "" || gSearchInput.showingSearchCriteria))
         {
           var vFolder = GetMsgFolderFromUri(gCurrentVirtualFolderUri, false);
-          var dbFolderInfo = vFolder.getMsgDatabase(msgWindow).dBFolderInfo;
+          var dbFolderInfo = vFolder.msgDatabase.dBFolderInfo;
           dbFolderInfo.numUnreadMessages = gNumUnreadMessages;
           dbFolderInfo.numMessages = gNumTotalMessages;
           vFolder.updateSummaryTotals(true); // force update from db.
-          var msgdb = vFolder.getMsgDatabase(msgWindow);
           const MSG_DB_LARGE_COMMIT = 1;
-          msgdb.Commit(MSG_DB_LARGE_COMMIT);
+          vFolder.msgDatabase.Commit(MSG_DB_LARGE_COMMIT);
           // now that we have finished loading a virtual folder,
           // scroll to the correct message if there is at least one.
           if (vFolder.getTotalMessages(false) > 0)
@@ -354,7 +353,7 @@ function createSearchTermsWithList(aTermsArray)
 
   if (gXFVirtualFolderTerms)
   {
-    var msgDatabase = selectedFolder.getMsgDatabase(msgWindow);
+    var msgDatabase = selectedFolder.msgDatabase;
     if (msgDatabase)
     {
       var dbFolderInfo = msgDatabase.dBFolderInfo;

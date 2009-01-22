@@ -205,7 +205,7 @@ nsLocalMoveCopyMsgTxn::UndoTransaction()
     rv = mailSession->AddFolderListener(mUndoFolderListener, nsIFolderListener::event);
     NS_ENSURE_SUCCESS(rv,rv);
     
-    rv = dstFolder->GetMsgDatabase(nsnull, getter_AddRefs(dstDB));
+    rv = dstFolder->GetMsgDatabase(getter_AddRefs(dstDB));
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else
@@ -239,10 +239,10 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
   nsCOMPtr<nsIMsgFolder> dstFolder = do_QueryReferent(m_dstFolder, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   
-  rv = srcFolder->GetMsgDatabase(nsnull, getter_AddRefs(srcDB));
+  rv = srcFolder->GetMsgDatabase(getter_AddRefs(srcDB));
   if(NS_FAILED(rv)) return rv;
 
-  rv = dstFolder->GetMsgDatabase(nsnull, getter_AddRefs(dstDB));
+  rv = dstFolder->GetMsgDatabase(getter_AddRefs(dstDB));
   if (NS_FAILED(rv)) return rv;
 
   PRUint32 count = m_srcKeyArray.Length();
@@ -313,9 +313,9 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
   nsCOMPtr<nsIMsgFolder> dstFolder = do_QueryReferent(m_dstFolder, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   
-  rv = srcFolder->GetMsgDatabase(nsnull, getter_AddRefs(srcDB));
+  rv = srcFolder->GetMsgDatabase(getter_AddRefs(srcDB));
   if(NS_FAILED(rv)) return rv;
-  rv = dstFolder->GetMsgDatabase(nsnull, getter_AddRefs(dstDB));
+  rv = dstFolder->GetMsgDatabase(getter_AddRefs(dstDB));
   if (NS_FAILED(rv)) return rv;
 
   PRUint32 count = m_srcKeyArray.Length();

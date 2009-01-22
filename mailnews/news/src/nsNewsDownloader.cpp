@@ -560,7 +560,7 @@ nsresult nsMsgDownloadAllNewsgroups::DownloadMsgsForCurrentGroup()
   NS_ENSURE_TRUE(m_downloaderForGroup, NS_ERROR_OUT_OF_MEMORY);
   nsCOMPtr <nsIMsgDatabase> db;
   nsCOMPtr <nsIMsgDownloadSettings> downloadSettings;
-  m_currentFolder->GetMsgDatabase(m_window, getter_AddRefs(db));
+  m_currentFolder->GetMsgDatabase(getter_AddRefs(db));
   nsresult rv = m_currentFolder->GetDownloadSettings(getter_AddRefs(downloadSettings));
   NS_ENSURE_SUCCESS(rv, rv);
 

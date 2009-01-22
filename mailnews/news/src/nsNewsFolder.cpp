@@ -419,7 +419,7 @@ nsMsgNewsFolder::GetCanCompact(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgNewsFolder::GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result)
+nsMsgNewsFolder::GetMessages(nsISimpleEnumerator **result)
 {
   nsresult rv = GetDatabase();
   *result = nsnull;

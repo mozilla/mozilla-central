@@ -351,7 +351,7 @@ GlodaFolder.prototype = {
       // This is the key action we take; the nsIMsgFolder will continue to
       //  exist, but we want it to forget about its database so that it can
       //  be closed and its memory can be reclaimed.
-      this._xpcomFolder.setMsgDatabase(null);
+      this._xpcomFolder.msgDatabase = null;
       this._xpcomFolder = null;
       // since the last retrieval time tracks whether we have marked live or
       //  not, this needs to be reset to 0 too.

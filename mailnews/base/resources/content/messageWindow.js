@@ -368,7 +368,7 @@ function CreateView(originalView)
   }
   else if (msgFolder)
   {
-    var msgDatabase = msgFolder.getMsgDatabase(msgWindow);
+    var msgDatabase = msgFolder.msgDatabase;
     if (msgDatabase)
     {
       var dbFolderInfo = msgDatabase.dBFolderInfo;

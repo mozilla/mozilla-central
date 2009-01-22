@@ -818,7 +818,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   return rv;
 }
 
-NS_IMETHODIMP nsImapMailFolder::GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result)
+NS_IMETHODIMP nsImapMailFolder::GetMessages(nsISimpleEnumerator* *result)
 {
   NS_ENSURE_ARG_POINTER(result);
   if (!mDatabase)
@@ -1298,7 +1298,7 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
     if (WeAreOffline())
     {
       nsCOMPtr <nsIMsgDatabase> trashDB;
-      rv = trashFolder->GetMsgDatabase(nsnull, getter_AddRefs(trashDB));
+      rv = trashFolder->GetMsgDatabase(getter_AddRefs(trashDB));
       if (trashDB)
       {
         nsMsgKey fakeKey;
@@ -4581,7 +4581,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
             {
               nsCOMPtr<nsIMsgDatabase> srcDB;
               if (srcFolder)
-                  rv = srcFolder->GetMsgDatabase(msgWindow, getter_AddRefs(srcDB));
+                  rv = srcFolder->GetMsgDatabase(getter_AddRefs(srcDB));
               if (NS_SUCCEEDED(rv) && srcDB)
               {
                 nsRefPtr<nsImapMoveCopyMsgTxn> msgTxn;
@@ -4659,7 +4659,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           if (flags & kImapMsgDeletedFlag && ShowDeletedMessages())
           {
             nsCOMPtr<nsIMsgDatabase> db;
-            rv = GetMsgDatabase(nsnull, getter_AddRefs(db));
+            rv = GetMsgDatabase(getter_AddRefs(db));
             if (NS_SUCCEEDED(rv) && db)
             {
               nsTArray<nsMsgKey> keyArray;
@@ -4686,7 +4686,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
             if (!ShowDeletedMessages())
             {
               nsCOMPtr<nsIMsgDatabase> db;
-              rv = GetMsgDatabase(nsnull, getter_AddRefs(db));
+              rv = GetMsgDatabase(getter_AddRefs(db));
               if (NS_SUCCEEDED(rv) && db)
               {
                 nsTArray<nsMsgKey> keyArray;
@@ -6870,7 +6870,7 @@ nsImapFolderCopyState::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           }
 
           nsCOMPtr<nsISimpleEnumerator> messages;
-          rv = m_srcFolder->GetMessages(m_msgWindow, getter_AddRefs(messages));
+          rv = m_srcFolder->GetMessages(getter_AddRefs(messages));
           nsCOMPtr<nsIMutableArray> msgArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
           NS_ENSURE_TRUE(msgArray, rv);
           PRBool hasMoreElements;

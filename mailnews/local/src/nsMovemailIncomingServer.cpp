@@ -103,7 +103,7 @@ nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
        {
            PRBool valid = PR_FALSE;
            nsCOMPtr <nsIMsgDatabase> db;
-           rv = inbox->GetMsgDatabase(aMsgWindow, getter_AddRefs(db));
+           rv = inbox->GetMsgDatabase(getter_AddRefs(db));
            if (NS_SUCCEEDED(rv) && db)
            {
                rv = db->GetSummaryValid(&valid);

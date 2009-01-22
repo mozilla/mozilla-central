@@ -430,7 +430,7 @@ function SearchForMessageIdInSubFolder(folder, messageId)
 // return message header if message was found
 function CheckForMessageIdInFolder(folder, messageId)
 {
-  var messageDatabase = folder.getMsgDatabase(msgWindow);
+  var messageDatabase = folder.msgDatabase;
   var messageHeader;
 
   try
@@ -448,7 +448,7 @@ function CheckForMessageIdInFolder(folder, messageId)
   if (!mailSession.IsFolderOpenInWindow(folder) &&
       !(folder.flags & (nsMsgFolderFlags.Trash | nsMsgFolderFlags.Inbox)))
   {
-    folder.setMsgDatabase(null);
+    folder.msgDatabase = null;
   }
 
   return messageHeader;

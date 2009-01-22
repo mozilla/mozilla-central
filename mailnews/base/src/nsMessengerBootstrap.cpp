@@ -261,7 +261,7 @@ nsresult nsMessengerBootstrap::OpenMessengerWindowForMessageId(nsCString &folder
   NS_ENSURE_SUCCESS(rv, rv);
   // once we have the folder uri, open the db and search for the message id.
   nsCOMPtr <nsIMsgDatabase> msgDB;
-  containingFolder->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+  containingFolder->GetMsgDatabase(getter_AddRefs(msgDB));
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
   if (msgDB)
     msgDB->GetMsgHdrForMessageID(messageId.get(), getter_AddRefs(msgHdr));

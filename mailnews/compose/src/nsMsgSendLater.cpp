@@ -669,7 +669,7 @@ nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity,
 
   // ### fix me - if we need to reparse the folder, this will be asynchronous
   nsCOMPtr<nsISimpleEnumerator> enumerator;
-  rv = mMessageFolder->GetMessages(m_window, getter_AddRefs(enumerator));
+  rv = mMessageFolder->GetMessages(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // copy all the elements in the enumerator into our isupports array....

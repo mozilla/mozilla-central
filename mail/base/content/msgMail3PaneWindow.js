@@ -263,7 +263,7 @@ var folderListener = {
               if (gRerootOnFolderLoad)
                 RerootFolder(uri, msgFolder, gCurrentLoadingFolderViewType, gCurrentLoadingFolderViewFlags, gCurrentLoadingFolderSortType, gCurrentLoadingFolderSortOrder);
 
-              var db = msgFolder.getMsgDatabase(msgWindow);
+              var db = msgFolder.msgDatabase;
               if (db)
                 db.resetHdrCacheSize(100);
 
@@ -577,8 +577,7 @@ function IsCurrentLoadedFolder(folder)
   var currentLoadedFolder = GetThreadPaneFolder();
   if (currentLoadedFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
   {
-    var msgDatabase = currentLoadedFolder.getMsgDatabase(msgWindow);
-    var dbFolderInfo = msgDatabase.dBFolderInfo;
+    var dbFolderInfo = currentLoadedFolder.msgDatabase.dBFolderInfo;
     var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
     var re = new RegExp("^" + msgfolder.URI + "$|^" + msgfolder.URI + "\||\|" +
                         msgfolder.URI + "$|\|" + msgfolder.URI +"\|");

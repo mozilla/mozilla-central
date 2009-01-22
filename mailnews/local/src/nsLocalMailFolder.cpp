@@ -355,8 +355,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::ParseFolder(nsIMsgWindow *aMsgWindow, nsIUrl
 
 // this won't force a reparse of the folder if the db is invalid.
 NS_IMETHODIMP
-nsMsgLocalMailFolder::GetMsgDatabase(nsIMsgWindow *aMsgWindow,
-                              nsIMsgDatabase** aMsgDatabase)
+nsMsgLocalMailFolder::GetMsgDatabase(nsIMsgDatabase** aMsgDatabase)
 {
   return GetDatabaseWOReparse(aMsgDatabase);
 }
@@ -639,7 +638,7 @@ nsMsgLocalMailFolder::UpdateFolder(nsIMsgWindow *aWindow)
 }
 
 NS_IMETHODIMP
-nsMsgLocalMailFolder::GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result)
+nsMsgLocalMailFolder::GetMessages(nsISimpleEnumerator **result)
 {
   nsCOMPtr <nsIMsgDatabase> msgDB;
   nsresult rv = GetDatabaseWOReparse(getter_AddRefs(msgDB));
@@ -1804,7 +1803,7 @@ nsMsgLocalMailFolder::CopyFolderAcrossServer(nsIMsgFolder* srcFolder, nsIMsgWind
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISimpleEnumerator> messages;
-  rv = srcFolder->GetMessages(msgWindow, getter_AddRefs(messages));
+  rv = srcFolder->GetMessages(getter_AddRefs(messages));
 
   nsCOMPtr<nsIMutableArray> msgArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
 
@@ -2544,7 +2543,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
                             == (nsMsgFolderFlags::Inbox|nsMsgFolderFlags::ImapBox))
               {
                 nsCOMPtr <nsIMsgDatabase> db;
-                srcFolder->GetMsgDatabase(nsnull, getter_AddRefs(db));
+                srcFolder->GetMsgDatabase(getter_AddRefs(db));
                 if (db)
                 {
                   nsMsgKey srcKey;
@@ -2772,7 +2771,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndMessage(nsMsgKey key)
       nsCOMPtr<nsIMsgFolder> srcFolder = do_QueryInterface(mCopyState->m_srcSupport, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
       nsCOMPtr<nsIMsgDatabase> srcDB;
-      srcFolder->GetMsgDatabase(nsnull, getter_AddRefs(srcDB));
+      srcFolder->GetMsgDatabase(getter_AddRefs(srcDB));
       if (srcDB)
       {
         nsCOMPtr <nsIMsgDBHdr> srcMsgHdr;

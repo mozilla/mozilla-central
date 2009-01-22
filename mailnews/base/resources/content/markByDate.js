@@ -108,7 +108,7 @@ function markInDatabase( lower, upper )
   if ( window.arguments && window.arguments[0] )
   {
     messageFolder = window.arguments[0];
-    messageDatabase = messageFolder.getMsgDatabase( null );
+    messageDatabase = messageFolder.msgDatabase;
   }
 
   if ( !messageDatabase )

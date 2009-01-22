@@ -134,8 +134,7 @@ function InitDialogWithVirtualFolder(aVirtualFolderURI)
   folderNameField.disabled = true;
 
   var msgFolder = GetMsgFolderFromUri(aVirtualFolderURI);
-  var msgDatabase = msgFolder.getMsgDatabase(msgWindow);
-  var dbFolderInfo = msgDatabase.dBFolderInfo;
+  var dbFolderInfo = msgFolder.msgDatabase.dBFolderInfo;
 
   gSearchFolderURIs = dbFolderInfo.getCharProperty("searchFolderUri");
   var searchTermString = dbFolderInfo.getCharProperty("searchStr");
@@ -186,7 +185,7 @@ function onOK()
     var searchTermString = getSearchTermString(gSearchTermSession.searchTerms);
 
     var msgFolder = window.arguments[0].folder;
-    var msgDatabase = msgFolder.getMsgDatabase(msgWindow);
+    var msgDatabase = msgFolder.msgDatabase;
     var dbFolderInfo = msgDatabase.dBFolderInfo;
 
     // set the view string as a property of the db folder info

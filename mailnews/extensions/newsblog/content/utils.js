@@ -133,7 +133,8 @@ var kFeedUrlDelimiter = '|'; // the delimiter used to delimit feed urls in the m
 
 function updateFolderFeedUrl(aFolder, aFeedUrl, aRemoveUrl)
 {
-  var msgdb = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder).getMsgDatabase(null);
+  var msgdb = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder)
+                     .msgDatabase;
   var folderInfo = msgdb.dBFolderInfo;
   var oldFeedUrl = folderInfo.getCharProperty("feedUrl");
 

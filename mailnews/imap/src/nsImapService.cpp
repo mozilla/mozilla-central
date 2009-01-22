@@ -1998,7 +1998,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
                                               nsISupports *aCopyState)
 {
   nsCOMPtr<nsIMsgDatabase> destDB;
-  nsresult rv = aDstFolder->GetMsgDatabase(nsnull, getter_AddRefs(destDB));
+  nsresult rv = aDstFolder->GetMsgDatabase(getter_AddRefs(destDB));
   // ### might need to send some notifications instead of just returning
 
   if (NS_SUCCEEDED(rv) && destDB)

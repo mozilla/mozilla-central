@@ -93,7 +93,7 @@ function deleteMessages(srcFolder, items)
 
 function calculateFolderSize(folder)
 {
-  let msgDB = folder.getMsgDatabase(null);
+  let msgDB = folder.msgDatabase;
   let enumerator = msgDB.EnumerateMessages();
   let totalSize = 0;
   if (enumerator)
@@ -128,7 +128,7 @@ const gTestArray =
   // Deleting messages
   function testDeleteMessages1() { // delete to trash
     // Let's take a moment to re-initialize stuff that got moved
-    var folder3DB = gLocalFolder3.getMsgDatabase(null);
+    var folder3DB = gLocalFolder3.msgDatabase;
     gMsgHdrs[0].hdr = folder3DB.getMsgHdrForMessageID(gMsgHdrs[0].ID);
 
     // Now delete the message

@@ -103,7 +103,7 @@ function testAttrib(handler, localserver) {
     OnStopRunningUrl: function () { localserver.closeCachedConnections() }});
   server.performTest();
 
-  var headerEnum = folder.getMessages(null);
+  var headerEnum = folder.messages;
   var headers = [];
   while (headerEnum.hasMoreElements())
     headers.push(headerEnum.getNext().QueryInterface(Ci.nsIMsgDBHdr));
@@ -131,14 +131,12 @@ var actionResults = {
   "1@regular.invalid" : ["priority", 6],
   // "2@regular.invalid" should not be in database
   "3@regular.invalid" : function (header, folder) {
-    var db = folder.getMsgDatabase(null);
-    var flags = db.GetThreadContainingMsgHdr(header).flags;
+    var flags = folder.msgDatabase.GetThreadContainingMsgHdr(header).flags;
     // This is checking the thread's kill flag
     return (flags & 0x40000) == 0x40000;
   },
   "4@regular.invalid" : function (header, folder) {
-    var db = folder.getMsgDatabase(null);
-    var flags = db.GetThreadContainingMsgHdr(header).flags;
+    var flags = folder.msgDatabase.GetThreadContainingMsgHdr(header).flags;
     // This is checking the thread's watch flag
     return (flags & 0x100) == 0x100;
   },
@@ -158,7 +156,7 @@ function testAction(handler, localserver) {
     OnStopRunningUrl: function () { localserver.closeCachedConnections() }});
   server.performTest();
 
-  var headerEnum = folder.getMessages(null);
+  var headerEnum = folder.messages;
   var headers = [];
   while (headerEnum.hasMoreElements())
     headers.push(headerEnum.getNext().QueryInterface(Ci.nsIMsgDBHdr));

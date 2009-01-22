@@ -266,7 +266,7 @@ function RebuildSummaryFile(msgFolder)
     msgFolder.throwAlertMsg("operationFailedFolderBusy", msgWindow);
     return;
   }
-  var msgDB = msgFolder.getMsgDatabase(msgWindow);
+  var msgDB = msgFolder.msgDatabase;
   msgDB.summaryValid = false;
   try {
     msgFolder.closeAndBackupFolderDB("");
