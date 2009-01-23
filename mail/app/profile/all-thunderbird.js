@@ -37,6 +37,12 @@
 
 #filter substitution
 
+#ifdef XP_UNIX
+#ifndef XP_MACOSX
+#define UNIX_BUT_NOT_MAC
+#endif
+#endif
+
 pref("general.useragent.extra.thunderbird", "@APP_UA_NAME@/@APP_VERSION@");
 
 pref("general.useragent.locale", "@AB_CD@");
@@ -265,7 +271,7 @@ pref("offline.send.unsent_messages",            0);
 // 2 Never synchronize the offline store when going offline
 pref("offline.download.download_messages",  0);
 
-#ifdef XP_UNIX
+#ifdef UNIX_BUT_NOT_MAC
 pref("offline.autoDetect", false);
 #else
 // Windows and Mac can automatically move the user offline or online based on 
