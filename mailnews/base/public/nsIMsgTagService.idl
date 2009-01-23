@@ -69,7 +69,7 @@ interface nsIMsgTag : nsISupports {
   readonly attribute ACString ordinal; // custom sort string (usually empty)
 };
 
-[scriptable, uuid(88BBCA01-9BA2-4185-9634-F82DA583D4AA)]
+[scriptable, uuid(97360ce3-0fba-4f1c-8214-af7bdc6f8587)]
 interface nsIMsgTagService : nsISupports {
   // create new tag by deriving the key from the tag
   void addTag(in AString tag, in ACString color, in ACString ordinal);
@@ -78,7 +78,7 @@ interface nsIMsgTagService : nsISupports {
   // get the key representation of a given tag
   ACString getKeyForTag(in AString tag);
   // get the first key by ordinal order
-  ACString getTopKey(in string keyList);
+  ACString getTopKey(in ACString keyList);
   // support functions for single tag aspects
   AString getTagForKey(in ACString key); // look up the tag for a key.
   void setTagForKey(in ACString key, in AString tag); // this can be used to "rename" a tag

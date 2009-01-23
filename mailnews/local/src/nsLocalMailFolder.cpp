@@ -3907,7 +3907,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
       PRUint32 desiredOffset = messageOffset + statusOffset;
 
       nsCStringArray keywordArray;
-      keywordArray.ParseString(nsCString(aKeywords).get(), " ");
+      ParseString(aKeywords, ' ', keywordArray);
       for (PRInt32 j = 0; j < keywordArray.Count(); j++)
       {
         nsCAutoString header;

@@ -89,7 +89,7 @@ public:
 protected:
   nsresult Initiate();
 
-  nsresult SplitStringList(const char *aString,
+  nsresult SplitStringList(const nsACString& aString,
                            PRUint32 *aCount,
                            char ***aValues);
 

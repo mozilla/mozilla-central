@@ -139,7 +139,7 @@ nsNNTPNewsgroupList::Initialize(nsINntpUrl *runningURL, nsIMsgNewsFolder *newsFo
   NS_ENSURE_SUCCESS(rv,rv);
   nsCString ngHeaders;
   m_filterList->GetArbitraryHeaders(ngHeaders);
-  m_filterHeaders.ParseString(ngHeaders.get(), " ");
+  ParseString(ngHeaders, ' ', m_filterHeaders);
 
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = folder->GetServer(getter_AddRefs(server));
@@ -151,7 +151,7 @@ nsNNTPNewsgroupList::Initialize(nsINntpUrl *runningURL, nsIMsgNewsFolder *newsFo
   m_serverFilterList->GetArbitraryHeaders(servHeaders);
 
   nsCStringArray servArray;
-  servArray.ParseString(servHeaders.get(), " ");
+  ParseString(servHeaders, ' ', servArray);
 
   // servArray may have duplicates already in m_filterHeaders.
   for (PRInt32 i = 0; i < servArray.Count(); i++)

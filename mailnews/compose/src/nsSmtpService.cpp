@@ -405,7 +405,7 @@ nsSmtpService::loadSmtpServers()
       // Tokenize the data and add each smtp server if it is not already there 
       // in the user's current smtp server list
       nsCStringArray servers;
-      servers.ParseString(tempServerList.get(), SERVER_DELIMITER);
+      ParseString(tempServerList.get(), SERVER_DELIMITER, servers);
       nsCAutoString tempSmtpServer;
       for (PRInt32 i = 0; i < servers.Count(); i++)
       {
@@ -468,7 +468,7 @@ nsSmtpService::loadSmtpServers()
         if (!appendServerList.IsEmpty()) {
           if (!serverList.IsEmpty()) {
             nsCStringArray existingSmtpServersArray;
-            existingSmtpServersArray.ParseString(serverList.get(), SERVER_DELIMITER);
+            ParseString(serverList.get(), SERVER_DELIMITER, existingSmtpServersArray);
 
             // Tokenize the data and add each smtp server if it is not already there 
             // in the user's current smtp server list

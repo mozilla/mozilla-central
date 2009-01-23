@@ -44,7 +44,7 @@ interface nsIMsgDBHdr;
 interface nsIMsgDatabase;
 interface nsIMsgSearchScopeTerm;
 
-[scriptable, uuid(59db8e90-cd6e-11dc-95ff-0800200c9a66)]
+[scriptable, uuid(2dd082e7-faa4-4e46-81ba-9c636bc9315a)]
 interface nsIMsgSearchTerm : nsISupports {
     attribute nsMsgSearchAttribValue attrib;
     attribute nsMsgSearchOpValue op;
@@ -105,7 +105,7 @@ interface nsIMsgSearchTerm : nsISupports {
     readonly attribute boolean matchAllBeforeDeciding;
 
     readonly attribute ACString termAsString;
-    boolean matchKeyword(in string keyword); // used for tag searches
+    boolean matchKeyword(in ACString keyword); // used for tag searches
     attribute boolean matchAll;
 };
 

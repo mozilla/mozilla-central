@@ -276,7 +276,7 @@ net_pop3_load_state(const char* searchhost,
       if (current)
       {
         nsCStringArray lineElems;
-        lineElems.ParseString(line.get(), " \t");
+        ParseString(line.get(), " \t", lineElems);
         if (lineElems.Count() < 2)
           continue;
         nsCString *flags = lineElems[0];

@@ -1436,13 +1436,13 @@ nsresult nsMsgSearchTerm::MatchStatus(PRUint32 statusToMatch, PRBool *pResult)
  *               >1           -     -   +     +   -     -   -   +   +
  */
 // look up nsMsgSearchTerm::m_value in space-delimited keywordList
-nsresult nsMsgSearchTerm::MatchKeyword(const char *keywordList, PRBool *pResult)
+nsresult nsMsgSearchTerm::MatchKeyword(const nsACString& keywordList, PRBool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
   PRBool matches = PR_FALSE;
 
   // special-case empty for performance reasons
-  if (!keywordList || !*keywordList)
+  if (keywordList.IsEmpty())
   {
     *pResult =  m_operator != nsMsgSearchOp::Contains &&
                 m_operator != nsMsgSearchOp::Is;
@@ -1453,14 +1453,15 @@ nsresult nsMsgSearchTerm::MatchKeyword(const char *keywordList, PRBool *pResult)
   if (m_operator == nsMsgSearchOp::DoesntContain ||
       m_operator == nsMsgSearchOp::Contains)
   {
+    nsCString keywordString(keywordList);
     const PRUint32 kKeywordLen = PL_strlen(m_value.string);
-    const char* matchStart = PL_strstr(keywordList, m_value.string);
+    const char* matchStart = PL_strstr(keywordString.get(), m_value.string);
     while (matchStart)
     {
       // For a real match, matchStart must be the start of the keywordList or
       // preceded by a space and matchEnd must point to a \0 or space.
       const char* matchEnd = matchStart + kKeywordLen;
-      if ((matchStart == keywordList || matchStart[-1] == ' ') &&
+      if ((matchStart == keywordString.get() || matchStart[-1] == ' ') &&
           (!*matchEnd || *matchEnd == ' '))
       {
         // found the keyword
@@ -1478,7 +1479,7 @@ nsresult nsMsgSearchTerm::MatchKeyword(const char *keywordList, PRBool *pResult)
   // Only accept valid keys in tokens.
   nsresult rv = NS_OK;
   nsCStringArray keywordArray;
-  keywordArray.ParseString(keywordList, " ");
+  ParseString(keywordList, ' ', keywordArray);
   nsCOMPtr<nsIMsgTagService> tagService(do_GetService(NS_MSGTAGSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 

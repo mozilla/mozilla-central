@@ -46,6 +46,7 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsMsgDBView.h" // for labels migration
 #include "nsQuickSort.h"
+#include "nsMsgUtils.h"
 
 #define STRLEN(s) (sizeof(s) - 1)
 
@@ -215,13 +216,13 @@ NS_IMETHODIMP nsMsgTagService::GetKeyForTag(const nsAString &aTag, nsACString &a
   return NS_OK;
 }
 
-/* ACString getTopKey (in string keylist); */
-NS_IMETHODIMP nsMsgTagService::GetTopKey(const char * keyList, nsACString & _retval)
+/* ACString getTopKey (in ACString keylist); */
+NS_IMETHODIMP nsMsgTagService::GetTopKey(const nsACString & keyList, nsACString & _retval)
 {
   _retval.Truncate();
   // find the most important key
   nsCStringArray keyArray;
-  keyArray.ParseString(keyList, " ");
+  ParseString(keyList, ' ', keyArray);
   PRUint32 keyCount = keyArray.Count();
   nsCString *topKey = nsnull, *key, topOrdinal, ordinal;
   for (PRUint32 i = 0; i < keyCount; ++i)

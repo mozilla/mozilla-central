@@ -711,7 +711,7 @@ nsresult nsMsgSendLater::SetOrigMsgDisposition()
   if (!queuedDisposition.IsEmpty())
   {
     nsCStringArray uriArray;
-    uriArray.ParseString(originalMsgURIs.get(), ",");
+    ParseString(originalMsgURIs, ',', uriArray);
     for (PRInt32 i = 0; i < uriArray.Count(); i++)
     {
       nsCOMPtr <nsIMsgDBHdr> msgHdr;

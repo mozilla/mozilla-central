@@ -61,10 +61,49 @@
 #include "nsMsgMimeCID.h"
 #include "nsDateTimeFormatCID.h"
 #include "nsMsgUtils.h"
+#include "nsAutoPtr.h"
 #include "nsINetUtil.h"
 #include "nsMemory.h"
 
 #define VIEW_ALL_HEADERS 2
+
+/**
+ * A helper class to implement nsIUTF8StringEnumerator
+ */
+
+class nsMimeStringEnumerator : public nsIUTF8StringEnumerator {
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIUTF8STRINGENUMERATOR
+
+  template<class T>
+  nsCString* Append(T value) { return values.AppendElement(value); }
+
+protected:
+  nsTArray<nsCString> values;
+};
+
+NS_IMPL_ISUPPORTS1(nsMimeStringEnumerator, nsIUTF8StringEnumerator)
+
+NS_IMETHODIMP
+nsMimeStringEnumerator::HasMore(PRBool *result)
+{
+  NS_ENSURE_ARG_POINTER(result);
+  *result = values.Length() != 0;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMimeStringEnumerator::GetNext(nsACString& result)
+{
+  PRUint32 length = values.Length();
+  if (!length)
+    return NS_ERROR_UNEXPECTED;
+
+  length--;
+  result = values[length];
+  values.RemoveElementAt(length);
+  return NS_OK;
+}
 
 /*
  * nsMimeHtmlEmitter definitions....
@@ -155,12 +194,11 @@ nsMimeHtmlDisplayEmitter::GetHeaderSink(nsIMsgHeaderSink ** aHeaderSink)
 nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, PRInt32 aHeaderMode, PRBool aFromNewsgroup)
 {
   // two string enumerators to pass out to the header sink
-  nsCOMPtr<nsIUTF8StringEnumerator> headerNameEnumerator;
-  nsCOMPtr<nsIUTF8StringEnumerator> headerValueEnumerator;
+  nsRefPtr<nsMimeStringEnumerator> headerNameEnumerator = new nsMimeStringEnumerator();
+  NS_ENSURE_TRUE(headerNameEnumerator, NS_ERROR_OUT_OF_MEMORY);
+  nsRefPtr<nsMimeStringEnumerator> headerValueEnumerator = new nsMimeStringEnumerator();
+  NS_ENSURE_TRUE(headerValueEnumerator, NS_ERROR_OUT_OF_MEMORY);
 
-  // CStringArrays which we can pass into the enumerators
-  nsCStringArray headerNameArray;
-  nsCStringArray headerValueArray;
   nsCString extraExpandedHeaders;
   nsCStringArray extraExpandedHeadersArray;
   nsCAutoString convertedDateString;
@@ -176,7 +214,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
     if (!extraExpandedHeaders.IsEmpty())
     {
       ToLowerCase(extraExpandedHeaders);
-      extraExpandedHeadersArray.ParseString(extraExpandedHeaders.get(), " ");
+      ParseString(extraExpandedHeaders, ' ', extraExpandedHeadersArray);
     }
 
   }
@@ -213,20 +251,13 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
     if (!PL_strcasecmp("Date", headerInfo->name) && !displayOriginalDate)
     {
       GenerateDateString(headerValue, convertedDateString);
-      headerValueArray.AppendCString(convertedDateString);
+      headerValueEnumerator->Append(convertedDateString);
     }
     else // append the header value as is
-      headerValueArray.AppendCString(nsCString(headerValue));
+      headerValueEnumerator->Append(headerValue);
 
-    // XXX: TODO If nsCStringArray were converted over to take nsACStrings instead of nsCStrings, we can just
-    // wrap these strings with a nsDependentCString which would avoid making a duplicate copy of the string
-    // like we are doing here....
-    headerNameArray.AppendCString(nsCString(headerInfo->name));
+    headerNameEnumerator->Append(headerInfo->name);
   }
-
-  // turn our string arrays into enumerators
-  NS_NewUTF8StringEnumerator(getter_AddRefs(headerNameEnumerator), &headerNameArray);
-  NS_NewUTF8StringEnumerator(getter_AddRefs(headerValueEnumerator), &headerValueArray);
 
   aHeaderSink->ProcessHeaders(headerNameEnumerator, headerValueEnumerator, aFromNewsgroup);
   return rv;

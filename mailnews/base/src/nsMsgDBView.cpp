@@ -338,7 +338,7 @@ nsresult nsMsgDBView::GetPrefLocalizedString(const char *aPrefName, nsString& aR
   return rv;
 }
 
-nsresult nsMsgDBView::AppendKeywordProperties(const char *keywords, nsISupportsArray *properties, PRBool addSelectedTextProperty)
+nsresult nsMsgDBView::AppendKeywordProperties(const nsACString& keywords, nsISupportsArray *properties, PRBool addSelectedTextProperty)
 {
   // get the top most keyword's color and append that as a property.
   nsresult rv;
@@ -704,7 +704,7 @@ nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, nsAString &aTagString)
   }
 
   nsCStringArray keywordsArray;
-  keywordsArray.ParseString(keywords.get(), " ");
+  ParseString(keywords, ' ', keywordsArray);
   nsAutoString tag;
 
   for (PRInt32 i = 0; i < keywordsArray.Count(); i++)
@@ -1176,7 +1176,7 @@ NS_IMETHODIMP nsMsgDBView::GetRowProperties(PRInt32 index, nsISupportsArray *pro
   nsCString keywordProperty;
   FetchKeywords(msgHdr, keywordProperty);
   if (!keywordProperty.IsEmpty())
-    AppendKeywordProperties(keywordProperty.get(), properties, PR_FALSE);
+    AppendKeywordProperties(keywordProperty, properties, PR_FALSE);
 
   // give the custom column handlers a chance to style the row.
   for (int i = 0; i < m_customColumnHandlers.Count(); i++)
@@ -1261,7 +1261,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
   nsCString keywords;
   FetchKeywords(msgHdr, keywords);
   if (!keywords.IsEmpty())
-    AppendKeywordProperties(keywords.get(), properties, PR_TRUE);
+    AppendKeywordProperties(keywords, properties, PR_TRUE);
 
   // this is a double fetch of the keywords property since we also fetch
   // it for the tags - do we want to do this?

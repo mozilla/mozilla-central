@@ -1859,3 +1859,64 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<n
 
   return rv;
 }
+
+NS_MSG_BASE PRBool ParseString(const char *string, const char *delims, nsCStringArray& array)
+{
+  if (string && *string && delims && *delims) {
+    PRInt32 count = array.Count();
+    nsCString copy(string);
+    char *buffer = copy.BeginWriting();
+    char *token;
+    while ((token = NS_strtok(delims, &buffer)) != nsnull) {
+      if (!array.AppendCString(nsDependentCString(token))) {
+        while (array.Count() > count)
+          array.RemoveCStringAt(array.Count() - 1);
+        return PR_FALSE;
+      }
+    }
+  }
+  return PR_TRUE;
+}
+
+NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsCStringArray& array)
+{
+  if (string.IsEmpty())
+    return PR_TRUE;
+
+  PRInt32 count = array.Count();
+  PRInt32 start = 0;
+  for (;;) {
+    PRInt32 end = string.FindChar(delimiter, start);
+    if (end != start && !array.AppendCString(Substring(string, start, end)))
+      break;
+    if (end == -1)
+      return PR_TRUE;
+    start = end + 1;
+  }
+
+  while (array.Count() > count)
+    array.RemoveCStringAt(array.Count() - 1);
+  return PR_FALSE;
+}
+
+#ifdef MOZILLA_1_9_1_BRANCH
+NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsTArray<nsCString>& array)
+{
+  if (string.IsEmpty())
+    return PR_TRUE;
+
+  PRUint32 count = array.Length();
+  PRInt32 start = 0;
+  for (;;) {
+    PRInt32 end = string.FindChar(delimiter, start);
+    if (end != start && !array.AppendElement(Substring(string, start, end)))
+      break;
+    if (end == -1)
+      return PR_TRUE;
+    start = end + 1;
+  }
+
+  array.RemoveElementsAt(count, array.Length() - count);
+  return PR_FALSE;
+}
+#endif

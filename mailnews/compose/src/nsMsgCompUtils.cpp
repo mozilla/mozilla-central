@@ -534,7 +534,7 @@ mime_generate_headers (nsMsgCompFields *fields,
 
     nsCString newsgroupsHeaderVal;
     nsCString newshostHeaderVal;
-    rv = nntpService->GenerateNewsHeaderValsForPosting(n2, getter_Copies(newsgroupsHeaderVal), getter_Copies(newshostHeaderVal));
+    rv = nntpService->GenerateNewsHeaderValsForPosting(nsDependentCString(n2), getter_Copies(newsgroupsHeaderVal), getter_Copies(newshostHeaderVal));
     if (NS_FAILED(rv)) 
     {
       *status = rv;

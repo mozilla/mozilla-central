@@ -526,7 +526,7 @@ nsParseMailMessageState::nsParseMailMessageState()
   {
      pPrefBranch->GetCharPref("mailnews.customDBHeaders",  getter_Copies(customDBHeaders));
      ToLowerCase(customDBHeaders);
-     m_customDBHeaders.ParseString(customDBHeaders.get(), " ");
+     ParseString(customDBHeaders, ' ', m_customDBHeaders);
      if (m_customDBHeaders.Count())
      {
        m_customDBHeaderValues = new struct message_header [m_customDBHeaders.Count()];
@@ -1540,8 +1540,8 @@ int nsParseMailMessageState::FinalizeHeaders()
           nsCAutoString oldKeywords;
           m_newMsgHdr->GetStringProperty("keywords", getter_Copies(oldKeywords));
           nsCStringArray newKeywordArray, oldKeywordArray;
-          newKeywordArray.ParseString(keywords->value, " ");
-          oldKeywordArray.ParseString(oldKeywords.get(), " ");
+          ParseString(Substring(keywords->value, keywords->value + keywords->length), ' ', newKeywordArray);
+          ParseString(oldKeywords, ' ', oldKeywordArray);
           for (PRInt32 i = 0; i < oldKeywordArray.Count(); i++)
             if (newKeywordArray.IndexOf(*oldKeywordArray.CStringAt(i)) < 0)
               newKeywordArray.AppendCString(*oldKeywordArray.CStringAt(i));

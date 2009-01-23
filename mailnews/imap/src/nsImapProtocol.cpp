@@ -397,7 +397,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
     prefBranch->GetCharPref("mailnews.customDBHeaders",
                             getter_Copies(customDBHeaders));
 
-    mCustomDBHeaders.ParseString(customDBHeaders.get(), " ");
+    ParseString(customDBHeaders, ' ', mCustomDBHeaders);
   }
 
     // ***** Thread support *****

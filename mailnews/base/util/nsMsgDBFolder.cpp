@@ -2085,7 +2085,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       NS_ENSURE_SUCCESS(rv, rv);
 
       nsCStringArray whiteListArray;
-      whiteListArray.ParseString(whiteListAbURI.get(), " ");
+      ParseString(whiteListAbURI, ' ', whiteListArray);
 
       for (PRInt32 index = 0; index < whiteListArray.Count(); index++)
       {
@@ -5277,7 +5277,7 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsIArray *aMessages, const ns
 
       message->GetStringProperty("keywords", getter_Copies(keywords));
       nsCStringArray keywordArray;
-      keywordArray.ParseString(nsCString(aKeywords).get(), " ");
+      ParseString(aKeywords, ' ', keywordArray);
       PRUint32 addCount = 0;
       for (PRInt32 j = 0; j < keywordArray.Count(); j++)
       {
@@ -5322,7 +5322,7 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
       rv = message->GetStringProperty("keywords", getter_Copies(keywords));
       nsCAutoString originalKeywords(keywords);
       nsCStringArray keywordArray;
-      keywordArray.ParseString(nsCString(aKeywords).get(), " ");
+      ParseString(aKeywords, ' ', keywordArray);
       PRUint32 removeCount = 0;
       for (PRInt32 j = 0; j < keywordArray.Count(); j++)
       {

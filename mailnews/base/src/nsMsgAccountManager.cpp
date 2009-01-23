@@ -1263,7 +1263,7 @@ nsMsgAccountManager::LoadAccounts()
       if (!appendAccountList.IsEmpty()) {
         if (!accountList.IsEmpty()) {
           nsCStringArray existingAccountsArray;
-          existingAccountsArray.ParseString(accountList.get(), ACCOUNT_DELIMITER);
+          ParseString(accountList.get(), ACCOUNT_DELIMITER, existingAccountsArray);
 
           // Tokenize the data and add each account if it is not already there
           // in the user's current mailnews account list
@@ -2808,7 +2808,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
           if (buffer.Length())
           {
             dbFolderInfo->SetCharProperty("searchFolderUri", buffer);
-            AddVFListenersForVF(virtualFolder, buffer.get(), rdf, msgDBService);
+            AddVFListenersForVF(virtualFolder, buffer, rdf, msgDBService);
           }
           else // this folder is useless
           {
@@ -2917,12 +2917,12 @@ nsresult nsMsgAccountManager::WriteLineToOutputStream(const char *prefix, const 
 }
 
 nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder,
-                                                  const char *srchFolderUris,
+                                                  const nsCString& srchFolderUris,
                                                   nsIRDFService *rdf,
                                                   nsIMsgDBService *msgDBService)
 {
   nsCStringArray folderUris;
-  folderUris.ParseString(srchFolderUris, "|");
+  ParseString(srchFolderUris, '|', folderUris);
   nsCOMPtr <nsIRDFResource> resource;
 
   for (PRInt32 i = 0; i < folderUris.Count(); i++)
@@ -2963,7 +2963,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupp
       nsCString srchFolderUri;
       dbFolderInfo->GetCharProperty("searchFolderUri", srchFolderUri);
       nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
-      AddVFListenersForVF(folder, srchFolderUri.get(), rdf, msgDBService);
+      AddVFListenersForVF(folder, srchFolderUri, rdf, msgDBService);
     }
     rv = SaveVirtualFolders();
   }

@@ -1393,7 +1393,7 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
       // Get the current html domain list into new list var
       nsCStringArray htmlDomainArray;
       if (!currentHtmlDomainList.IsEmpty())
-        htmlDomainArray.ParseString(currentHtmlDomainList.get(), DOMAIN_DELIMITER);
+        ParseString(currentHtmlDomainList.get(), DOMAIN_DELIMITER, htmlDomainArray);
 
       // Get user's current Plaintext domain set for send format
       nsCString currentPlaintextDomainList;
@@ -1403,7 +1403,7 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
       // Get the current plaintext domain list into new list var
       nsCStringArray plaintextDomainArray;
       if (!currentPlaintextDomainList.IsEmpty())
-        plaintextDomainArray.ParseString(currentPlaintextDomainList.get(), DOMAIN_DELIMITER);
+        ParseString(currentPlaintextDomainList.get(), DOMAIN_DELIMITER, plaintextDomainArray);
 
       if (htmlDomainArray.Count() || plaintextDomainArray.Count()) {
         // Tokenize the data and add each html domain if it is not alredy there in

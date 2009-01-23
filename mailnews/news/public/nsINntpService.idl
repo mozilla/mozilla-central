@@ -49,7 +49,7 @@ interface nsIMsgWindow;
 interface nsIMsgFolder;
 interface nsICacheSession;
 
-[scriptable, uuid(2777d192-fb8b-46b1-8c4c-8aa8ca62b011)]
+[scriptable, uuid(ecd8087f-f71a-4d44-a285-4caacd57f217)]
 interface nsINntpService : nsISupports {
   
   /* newsgroupsList is a comma separated list of newsgroups, which may be
@@ -62,7 +62,7 @@ interface nsINntpService : nsISupports {
    * newshostHeaderVal is a single hostname.
    * "host"
    */
-  void generateNewsHeaderValsForPosting(in string newsgroupsList, out string newsgroupsHeaderVal, out string newshostHeaderVal);
+  void generateNewsHeaderValsForPosting(in ACString newsgroupsList, out string newsgroupsHeaderVal, out string newshostHeaderVal);
 
   nsIURI postMessage(in nsIFile aFileToPost, in string newsgroupNames, in string aAccountKey, in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
 

@@ -69,6 +69,7 @@
 #include "nsIPrefService.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
+#include "nsMsgUtils.h"
 
 #define kDefaultMaxHits 100
 
@@ -752,7 +753,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::AddCard(nsIAbCard *aUpdatedCard,
   NS_ENSURE_SUCCESS(rv, rv);
 
   CharPtrArrayGuard rdnAttrs;
-  rv = SplitStringList(prefString.get(), rdnAttrs.GetSizeAddr(),
+  rv = SplitStringList(prefString, rdnAttrs.GetSizeAddr(),
     rdnAttrs.GetArrayAddr());
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -760,7 +761,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::AddCard(nsIAbCard *aUpdatedCard,
   NS_ENSURE_SUCCESS(rv, rv);
   
   CharPtrArrayGuard objClass;
-  rv = SplitStringList(prefString.get(), objClass.GetSizeAddr(),
+  rv = SplitStringList(prefString, objClass.GetSizeAddr(),
     objClass.GetArrayAddr());
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -854,7 +855,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::ModifyCard(nsIAbCard *aUpdatedCard)
   NS_ENSURE_SUCCESS(rv, rv);
   
   CharPtrArrayGuard objClass;
-  rv = SplitStringList(prefString.get(), objClass.GetSizeAddr(),
+  rv = SplitStringList(prefString, objClass.GetSizeAddr(),
     objClass.GetArrayAddr());
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -934,16 +935,15 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetObjectClasses(const nsACString &aObjectClass
 }
 
 nsresult nsAbLDAPDirectory::SplitStringList(
-  const char *aString,
+  const nsACString& aString,
   PRUint32 *aCount,
   char ***aValues)
 {
-  NS_ENSURE_ARG_POINTER(aString);
   NS_ENSURE_ARG_POINTER(aCount);
   NS_ENSURE_ARG_POINTER(aValues);
 
   nsCStringArray strarr;
-  strarr.ParseString(aString, ",");
+  ParseString(aString, ',', strarr);
 
   char **cArray = nsnull;
   if (!(cArray = static_cast<char **>(nsMemory::Alloc(

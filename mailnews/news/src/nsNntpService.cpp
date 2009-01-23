@@ -824,14 +824,12 @@ nsNntpService::SetUpNntpUrlForPosting(const char *aAccountKey, char **newsUrlSpe
 ////////////////////////////////////////////////////////////////////////////////
 // XXX : may not work with non-ASCII newsgroup names and IDN hostnames
 NS_IMETHODIMP
-nsNntpService::GenerateNewsHeaderValsForPosting(const char *newsgroupsList, char **newsgroupsHeaderVal, char **newshostHeaderVal)
+nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList, char **newsgroupsHeaderVal, char **newshostHeaderVal)
 {
   nsresult rv = NS_OK;
 
-  NS_ENSURE_ARG_POINTER(newsgroupsList);
   NS_ENSURE_ARG_POINTER(newsgroupsHeaderVal);
   NS_ENSURE_ARG_POINTER(newshostHeaderVal);
-  NS_ENSURE_ARG_POINTER(*newsgroupsList);
 
   // newsgroupsList can be a comma separated list of these:
   // news://host/group
@@ -847,7 +845,7 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const char *newsgroupsList, char
   nsCAutoString newsgroups;
 
   nsCStringArray list;
-  list.ParseString(newsgroupsList, ",");
+  ParseString(newsgroupsList, ',', list);
   for (PRInt32 index = 0; index < list.Count(); index++)
   {
     list[index]->StripWhitespace();

@@ -565,7 +565,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
             keywords.Append("$label");
             keywords.Append(label + '0');
           }
-          err = aTerm->MatchKeyword(keywords.get(), &result);
+          err = aTerm->MatchKeyword(keywords, &result);
           break;
       }
       case nsMsgSearchAttrib::JunkStatus:

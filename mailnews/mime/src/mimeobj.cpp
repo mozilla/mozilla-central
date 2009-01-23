@@ -51,6 +51,7 @@
 #include "prlog.h"
 #include "nsMimeTypes.h"
 #include "nsMimeStringResources.h"
+#include "nsMsgUtils.h"
 #include "mimemsg.h"
 #include "mimemapl.h"
 
@@ -212,13 +213,12 @@ MimeObject_parse_begin (MimeObject *obj)
       const char *delEnd = PL_strcasestr(delParts + 1, "&");
       if (!delEnd)
         delEnd = delParts + strlen(delParts);
-      nsCAutoString partsToDel(Substring(delParts + 5, delEnd));
-      obj->options->state->partsToStrip.ParseString(partsToDel.get(), ",");
+      ParseString(Substring(delParts + 5, delEnd), ',', obj->options->state->partsToStrip);
     }
     if (detachLocations)
     {
       detachLocations += 10; // advance past "&detachTo="
-      obj->options->state->detachToFiles.ParseString(detachLocations, ",");
+      ParseString(nsDependentCString(detachLocations), ',', obj->options->state->detachToFiles);
     }
   }
 

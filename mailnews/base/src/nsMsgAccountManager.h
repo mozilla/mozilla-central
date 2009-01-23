@@ -185,7 +185,7 @@ private:
   nsresult GetVirtualFoldersFile(nsCOMPtr<nsILocalFile>& file);
   nsresult WriteLineToOutputStream(const char *prefix, const char * line, nsIOutputStream *outputStream);
   nsresult AddVFListenersForVF(nsIMsgFolder *virtualFolder, 
-                               const char *srchFolderUris,
+                               const nsCString& srchFolderUris,
                                nsIRDFService *rdf,
                                nsIMsgDBService *msgDBService);
 

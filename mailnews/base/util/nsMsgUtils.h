@@ -212,5 +212,49 @@ NS_MSG_BASE PRUnichar *MsgEscapeHTML(const PRUnichar *aSourceBuffer,
 NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<nsMsgKey> &aKeys,
                                            nsIMutableArray *aHeaders);
 
+/**
+ * Parses a given string using the delimiters passed in. Items parsed from the
+ * string will be appended to the array.
+ *
+ * @param string
+ *        The string to parse.
+ * @param delims
+ *        A set of delimter characters.
+ * @param array
+ *        The array to append tokens to.
+ * @deprecated This call needs to be converted to the nsTArray<nsCString> api.
+ */
+NS_MSG_BASE PRBool ParseString(const char *string, const char *delims, nsCStringArray& array);
+
+/**
+ * Parses a given string using the delimiter passed in. Items parsed from the
+ * string will be appended to the array.
+ *
+ * @param string
+ *        The string to parse.
+ * @param delimiter
+ *        A delimter character.
+ * @param array
+ *        The array to append tokens to.
+ * @deprecated Use an nsTArray<nsCString> instead of an nsCStringArray.
+ */
+NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsCStringArray& array);
+
+#ifdef MOZILLA_1_9_1_BRANCH
+/**
+ * Parses a given string using the delimiter passed in. Items parsed from the
+ * string will be appended to the array. This version is only used on the
+ * MOZILLA_1_9_1_BRANCH as the trunk already has a suitable function.
+ *
+ * @param string
+ *        The string to parse.
+ * @param delimiter
+ *        A delimter character.
+ * @param array
+ *        The array to append tokens to.
+ */
+NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsTArray<nsCString>& array);
+#endif
+
 #endif
 
