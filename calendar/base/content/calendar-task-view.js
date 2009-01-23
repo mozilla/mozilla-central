@@ -52,20 +52,14 @@ var taskDetailsView = {
             Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
             .getService(Components.interfaces.calIDateTimeFormatter);
 
-        var displayElement = function(id,flag) {
-            var element = document.getElementById(id);
-            if (element) {
-                if (flag) {
-                    element.removeAttribute("hidden");
-                } else {
-                    element.setAttribute("hidden", "true");
-                }
-            }
+        function displayElement(id,flag) {
+            setBooleanAttribute(id, "hidden", !flag);
             return flag;
         }
 
         var item = document.getElementById("calendar-task-tree").currentTask;
-        if (displayElement("calendar-task-details",item != null)) {
+        if (displayElement("calendar-task-details-container", item != null) &&
+            displayElement("calendar-task-view-splitter", item != null)) {
             displayElement("calendar-task-details-title-row", true);
             document.getElementById("calendar-task-details-title").value = item.title;
             var organizer = item.organizer;
@@ -141,6 +135,7 @@ var taskDetailsView = {
             document.getElementById("task-due-row").Item = item;
             var parentItem = item;
             if (parentItem.parentItem != parentItem) {
+                // XXXdbo Didn't we want to get rid of these checks?
                 parentItem = parentItem.parentItem;
             }
             var recurrenceInfo = parentItem.recurrenceInfo;

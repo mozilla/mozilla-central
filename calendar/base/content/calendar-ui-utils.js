@@ -97,6 +97,18 @@ function getElementValue(aElement, aPropertyName) {
 }
 
 /**
+ * Sets the value of a boolean attribute by either setting the value or
+ * removing the attribute
+ *
+ * @param aXulElement     The XUL element/string ID the attribute is applied to.
+ * @param aAttribute      The name of the attribute
+ * @param aValue          The boolean value
+ */
+function setBooleanAttribute(aXulElement, aAttribute, aValue) {
+    setElementValue(aXulElement, (aValue ? "true" : false), aAttribute);
+}
+
+/**
  * Unconditionally show the element (hidden attribute)
  *
  * @param aElement      ID of XUL element to set, or the element node itself

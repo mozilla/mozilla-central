@@ -244,9 +244,13 @@
 
       <property name="currentTask">
         <getter><![CDATA[
-          var tree = document.getAnonymousElementByAttribute(
+          let tree = document.getAnonymousElementByAttribute(
               this, "anonid", "calendar-task-tree");
-          var index = tree.currentIndex;
+          let index = tree.currentIndex;
+          if (tree.view && tree.view.selection) {
+              // If the current index is not selected, then ignore
+              index = (tree.view.selection.isSelected(index) ? index : -1);
+          }
           return (index < 0) ? null : this.mTaskArray[index];
         ]]></getter>
       </property>

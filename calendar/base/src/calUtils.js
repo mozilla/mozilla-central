@@ -1407,6 +1407,12 @@ function calSetProdidVersion(aIcalComponent) {
     aIcalComponent.version = calGetProductVersion();
 }
 
+
+/**
+ * TODO: The following UI-related functions need to move somewhere different,
+ * i.e calendar-ui-utils.js
+ */
+
 /**
  * This function returns a sibling of a XUL element, that is positioned behind
  * it in the DOM hierarchy *
@@ -1503,27 +1509,6 @@ function isPropertyValueSame(aObjects, aPropertyName) {
         }
     }
     return true;
-}
-
-/**
- * sets the value of a boolean attribute by either setting the value or
- * removing the attribute
- *
- * @param aXulElement The XulElement the attribute is applied to
- * @param aAttribute the name of the attribute
- * @param aValue the boolean value
- */
-function setBooleanAttribute(aXulElement, aAttribute, aValue) {
-    if (aXulElement) {
-        if (aValue) {
-            aXulElement.setAttribute(aAttribute, "true");
-        }
-        else {
-            if (aXulElement.hasAttribute(aAttribute)) {
-                aXulElement.removeAttribute(aAttribute);
-            }
-        }
-    }
 }
 
 /**
@@ -1646,7 +1631,10 @@ function setItemProperty(item, propertyName, aValue, aCapability) {
             break;
     }
 }
-
+/**
+ * END TODO: The above UI-related functions need to move somewhere different,
+ * i.e calendar-ui-utils.js
+ */
 
 /**
  * Implements a property bag.
