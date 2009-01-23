@@ -450,10 +450,7 @@
         <vbox id="ltnSidebar"
               minwidth="100"
               width="200"
-              persist="collapsed width"
-              ondraggesture="nsDragAndDrop.startDrag(event, calendarViewDNDObserver);"
-              ondragover="nsDragAndDrop.dragOver(event, calendarViewDNDObserver);"
-              ondragdrop="nsDragAndDrop.drop(event, calendarViewDNDObserver);">
+              persist="collapsed width">
           <modevbox id="minimonth-pane" mode="calendar,task" broadcaster="modeBroadcaster" refcontrol="calendar_toggle_minimonthpane_command">
             <vbox align="center">
               <hbox id="calMinimonthBox" pack="center">
@@ -490,7 +487,7 @@
                                checked="true"
                                class="treenode-checkbox"
                                ondrop="return calendarListTreeView.foreignDrop(event)"
-                               ondragenter="return calendarListTreeview.foreignCanDrop(event)"
+                               ondragenter="return calendarListTreeView.foreignCanDrop(event)"
                                label="&calendar.list.header.label;"/>
               <modevbox id="calendar-listtree-pane" flex="1" mode="calendar,task" broadcaster="modeBroadcaster"
                         refcontrol="calendar-list-header">

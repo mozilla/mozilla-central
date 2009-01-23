@@ -88,7 +88,6 @@
         onkeypress="calendarListTreeView.onKeyPress(event);"
         ondblclick="calendarListTreeView.onDoubleClick(event);"
         onselect="calendarListTreeView.onSelect(event);"
-        ondragstart="calendarListTreeView.onDragStart(event);"
         context="list-calendars-context-menu">
       <treecols id="calendar-treecols" hideheader="true">
           <treecol id="calendar-list-tree-checkbox"
@@ -118,6 +117,7 @@
         </treecols>
      <treechildren id="calendar-treechildren"
                    tooltip="calendar-list-tooltip"
+                   ondragstart="calendarListTreeView.onDragStart(event);"
                    onoverflow="document.getElementById('calendar-list-tree-scrollbar-spacer').collapsed = false;"
                    onunderflow="document.getElementById('calendar-list-tree-scrollbar-spacer').collapsed = true;"/>
    </tree>

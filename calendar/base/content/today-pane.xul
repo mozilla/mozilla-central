@@ -179,10 +179,7 @@
                  </hbox>
                 </stack>
               </modebox>
-            <vbox flex="1"
-                  ondraggesture="nsDragAndDrop.startDrag(event, calendarCalendarButtonDNDObserver);"
-                  ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
-                  ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);">
+            <vbox flex="1">
               <toolbar id="agenda-toolbar" iconsize="small">
                 <toolbarbutton id="todaypane-new-event-button"
                                mode="mail"
@@ -238,7 +235,10 @@
                            onblur="agendaListbox.onBlur();"
                            onfocus="agendaListbox.onFocus();"
                            onkeypress="agendaListbox.onKeyPress(event);"
-                           ondblclick="agendaListbox.createNewEvent(event);"/>
+                           ondblclick="agendaListbox.createNewEvent(event);"
+                           ondraggesture="nsDragAndDrop.startDrag(event, calendarCalendarButtonDNDObserver);"
+                           ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
+                           ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);"/>
             </vbox>
         </modevbox>
         <splitter id="today-pane-splitter" persist="hidden"/>

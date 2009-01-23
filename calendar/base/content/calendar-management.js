@@ -486,10 +486,11 @@ var calendarListTreeView = {
      */
     onDragStart: function cLTV_onDragStart(event) {
         let calendar = this.getCalendarFromEvent(event);
-
-        // Setting data starts a drag session
-        event.dataTransfer.setData("application/x-moz-calendarID", calendar.id);
-        event.dataTransfer.effectAllowed = "move";
+        if (event.dataTransfer) {
+            // Setting data starts a drag session
+            event.dataTransfer.setData("application/x-moz-calendarID", calendar.id);
+            event.dataTransfer.effectAllowed = "move";
+        }
     },
 
     canDrop: function cLTV_canDrop(aRow, aOrientation) {

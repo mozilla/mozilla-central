@@ -367,6 +367,11 @@
        if (event.target.localName == this.localName) {
            let session = cal.getDragService().getCurrentSession();
            if (session) {
+               if (!session.sourceNode || !session.sourceNode.sourceObject) {
+                  // No source item? Then this is not for us.
+                  return;
+               }
+              
                if (!this.hasAttribute("dropbox") || this.getAttribute("dropbox") == "false") {
                    // As it turned out it was not possible to remove the remaining dropshadows
                    // at the "dragleave" or "dragexit" event, majorly because it was not reliably

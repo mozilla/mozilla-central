@@ -154,7 +154,7 @@
         <treechildren tooltip="eventTreeTooltip"
                       context="calendar-item-context-menu"
                       onkeypress="if (event.keyCode == 13) unifinderEditCommand();"
-                      ondragover="return( false );"
+                      ondragenter="return false;"
                       ondblclick="unifinderDoubleClick(event)"
                       onfocus="focusFirstItemIfNoSelection( );"/>
       </tree>
