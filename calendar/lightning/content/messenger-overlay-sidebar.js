@@ -66,6 +66,14 @@ var calendarTabType = {
       },
       showTab: function(aTab) {
         ltnSwitch2Calendar();
+      },
+      closeTab: function(aTab) {
+        if (gCurrentMode == "calendar") {
+          // Only revert menu hacks if closing the active tab, otherwise we
+          // would switch to mail mode even if in task mode and closing the
+          // calendar tab.
+          ltnSwitch2Mail();
+        }
       }
     },
     tasks: {
@@ -77,6 +85,14 @@ var calendarTabType = {
       },
       showTab: function(aTab) {
         ltnSwitch2Task();
+      },
+      closeTab: function(aTab) {
+        if (gCurrentMode == "task") {
+          // Only revert menu hacks if closing the active tab, otherwise we
+          // would switch to mail mode even if in calendar mode and closing the
+          // tasks tab.
+          ltnSwitch2Mail();
+        }
       }
     },
   },
@@ -85,9 +101,6 @@ var calendarTabType = {
    *  to the mail mode to clean up after those hacks.
    */
   saveTabState: function(aTab) {
-    ltnSwitch2Mail();
-  },
-  closeTab: function(aTab) {
     ltnSwitch2Mail();
   },
 };
