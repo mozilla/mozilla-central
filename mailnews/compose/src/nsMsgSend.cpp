@@ -4046,7 +4046,8 @@ nsMsgComposeAndSend::DoFcc()
   //
   // Just cleanup and return success if we're not allowed to save msgs to FCC folder.
   //
-  if (! CanSaveMessagesToFolder(mCompFields->GetFcc()))
+  const char* fcc = mCompFields->GetFcc();
+  if (!fcc || !*fcc || !CanSaveMessagesToFolder(fcc))
   {
 #ifdef NS_DEBUG
   printf("\nCopy operation disabled by user!\n");
@@ -4633,7 +4634,9 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   // the file for parsing...
   //
 
-  GetExistingFolder(nsDependentCString(fcc_header), getter_AddRefs(folder));
+  if (fcc_header && *fcc_header)
+    GetExistingFolder(nsDependentCString(fcc_header), getter_AddRefs(folder));
+
   if ((mode == nsMsgDeliverNow || mode == nsMsgSendUnsent) && folder)
     turi = fcc_header;
   else
