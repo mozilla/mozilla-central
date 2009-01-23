@@ -137,8 +137,12 @@
 
 #calendar-add-task-button {
     list-style-image: url(chrome://calendar/skin/toolbar-small.png);
-    -moz-image-region: rect(0px 24px 24px 0px);
+    -moz-image-region: rect(0px 384px 24px 360px);
     -moz-margin-start: 5px;
+}
+
+#calendar-add-task-button[disabled="true"] {
+    -moz-image-region: rect(48px 384px 72px 360px);
 }
 
 #calendar-add-task-button > .toolbarbutton-text {
