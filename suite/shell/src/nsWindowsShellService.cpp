@@ -55,7 +55,6 @@
 #include "nsILocalFile.h"
 #include "nsNetUtil.h"
 #include "nsNativeCharsetUtils.h"
-#include "nsStringEnumerator.h"
 #include "nsUnicharUtils.h"
 #include "nsIStringBundle.h"
 #include "nsIServiceManager.h"
