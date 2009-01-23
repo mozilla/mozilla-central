@@ -85,10 +85,12 @@ function initCopiesAndFolder(identity)
 
   document.getElementById('identity.fccFolder').value = copiesAndFoldersIdentity.fccFolder;
   document.getElementById('identity.draftFolder').value = copiesAndFoldersIdentity.draftFolder;
+  document.getElementById('identity.archiveFolder').value = copiesAndFoldersIdentity.archiveFolder;
   document.getElementById('identity.stationeryFolder').value = copiesAndFoldersIdentity.stationeryFolder;
 
   document.getElementById('identity.fccFolderPickerMode').value = copiesAndFoldersIdentity.fccFolderPickerMode ? copiesAndFoldersIdentity.fccFolderPickerMode : 0;  
   document.getElementById('identity.draftsFolderPickerMode').value = copiesAndFoldersIdentity.draftsFolderPickerMode ? copiesAndFoldersIdentity.draftsFolderPickerMode : 0;
+  document.getElementById('identity.archivesFolderPickerMode').value = copiesAndFoldersIdentity.archivesFolderPickerMode ? copiesAndFoldersIdentity.archivesFolderPickerMode : 0;
   document.getElementById('identity.tmplFolderPickerMode').value = copiesAndFoldersIdentity.tmplFolderPickerMode ? copiesAndFoldersIdentity.tmplFolderPickerMode : 0;
 
   document.getElementById('identity.doBcc').checked = copiesAndFoldersIdentity.doBcc;
@@ -212,9 +214,11 @@ function saveCopiesAndFolderSettings(identity)
 
   identity.fccFolder =  document.getElementById('identity.fccFolder').value;
   identity.draftFolder = document.getElementById('identity.draftFolder').value;
+  identity.archiveFolder = document.getElementById('identity.archiveFolder').value;
   identity.stationeryFolder = document.getElementById('identity.stationeryFolder').value;
   identity.fccFolderPickerMode = document.getElementById('identity.fccFolderPickerMode').value;
   identity.draftsFolderPickerMode = document.getElementById('identity.draftsFolderPickerMode').value;
+  identity.archivesFolderPickerMode = document.getElementById('identity.archivesFolderPickerMode').value;
   identity.tmplFolderPickerMode = document.getElementById('identity.tmplFolderPickerMode').value;
   identity.doBcc = document.getElementById('identity.doBcc').checked;
   identity.doBccList = document.getElementById('identity.doBccList').value;
