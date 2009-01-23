@@ -64,6 +64,7 @@
                   <label id="intervalDescription"
                                  class="view-header"
                                  crop="end"
+                                 flex="1"
                                  pack="start"/>
                   <spacer flex="1"/>
                   <label id="calendarWeek"

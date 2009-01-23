@@ -371,7 +371,7 @@
                 onset="return (this.mTimezone = val);"/>
       <property name="workdaysOnly"
                 onget="return this.mWorkdaysOnly;"
-                onset="return (this.mWorkdayOnly = val);"/>
+                onset="return (this.mWorkdaysOnly = val);"/>
       <property name="selectionObserver" readonly="true"
                 onget="return this.mSelectionObserver;"/>
       <property name="startDay" readonly="true"
