@@ -115,7 +115,18 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
 
   // make sure our toolbar buttons have the correct enabled state restored to them...
   if (this.UpdateMailToolbar != undefined)
-    UpdateMailToolbar(focus); 
+    UpdateMailToolbar(focus);
+
+  // The GetMail button is stuck in a strange state right now, since the
+  // customization wrapping preserves its children, but not its initialized
+  // state. Fix that here.
+  if (document.getElementById("button-getmsg")) {
+    // We can't use _teardown here, because it'll remove the Get All menuitem
+    let popup = document.getElementById("button-getMsgPopup");
+    let sep = document.getElementById("button-getAllNewMsgSeparator");
+    while (popup.lastChild != sep)
+      popup.removeChild(popup.lastChild);
+  }
 }
 
 function onViewToolbarCommand(aEvent, toolboxId)
