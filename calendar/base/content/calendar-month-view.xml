@@ -717,7 +717,7 @@
          // Adjust headers based on the starting day of the week, if necessary
          if (this.labeldaybox.firstChild.weekDay != this.weekStartOffset) {
              for (let i = 0; i < this.labeldaybox.childNodes.length; i++) {
-                 this.labeldaybox.childNodes[i].weekDay = (i++ + this.weekStartOffset) % 7;
+                 this.labeldaybox.childNodes[i].weekDay = (i + this.weekStartOffset) % 7;
              }
          }
 
