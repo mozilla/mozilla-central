@@ -316,7 +316,8 @@ let cal = {
      */
     moveItem: function cal_moveItem(aOldItem, aNewDate) {
         let newItem = aOldItem.clone();
-        let start = (aOldItem[calGetStartDateProp(aOldItem)] || aOldItem[calGetEndDateProp(aOldItem)]).clone();
+        let start = (aOldItem[calGetStartDateProp(aOldItem)] ||
+                     aOldItem[calGetEndDateProp(aOldItem)]).clone();
         let isDate = start.isDate;
         start.resetTo(aNewDate.year, aNewDate.month, aNewDate.day,
                       start.hour, start.minute, start.second,
@@ -326,7 +327,9 @@ let cal = {
             newItem[calGetStartDateProp(newItem)] = start;
             let oldDuration = aOldItem.duration;
             if (oldDuration) {
-                newItem[calGetEndDateProp(newItem)] = start.clone().addDuration(oldDuration);
+                let newEnd = start.clone();
+                newEnd.addDuration(oldDuration);
+                newItem[calGetEndDateProp(newItem)] = newEnd;
             }
         } else if (newItem[calGetEndDateProp(newItem)]) {
             newItem[calGetEndDateProp(newItem)] = start;

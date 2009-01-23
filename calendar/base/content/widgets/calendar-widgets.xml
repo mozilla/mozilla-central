@@ -392,15 +392,21 @@
       <handler event="dragdrop"><![CDATA[
          event.stopPropagation();
          let session = cal.getDragService().getCurrentSession();
+         if (!session || !session.sourceNode || !session.sourceNode.sourceObject) {
+            // No source node? Not our drag.
+            return;
+         }
          let item = session.sourceNode.sourceObject.clone();
          this.setAttribute("dropbox", "false");
          let transfer = Components.classes["@mozilla.org/widget/transferable;1"].
                         createInstance(Components.interfaces.nsITransferable);
-        if (isEvent(item)) {
-            transfer.addDataFlavor("application/x-moz-cal-event");
-        } else {
-            transfer.addDataFlavor("application/x-moz-cal-event");
-        }
+
+         if (isEvent(item)) {
+             transfer.addDataFlavor("application/x-moz-cal-event");
+         } else {
+             transfer.addDataFlavor("application/x-moz-cal-task");
+         }
+
          session.getData(transfer, 0);
          let flavor = {};
          let data = {};
@@ -409,11 +415,8 @@
          // sourceNode property and get the event that way
          //transfer.getAnyTransferData(flavor, data, {});
 
-         if (!session.sourceNode || !session.sourceNode.sourceObject) {
-             return;
-         }
          let item = session.sourceNode.sourceObject;
-         let newItem = this.onDropItem(item, session).clone();
+         let newItem = this.onDropItem(item).clone();
          let newStart = newItem.startDate || newItem.entryDate;
          let newEnd = newItem.endDate || newItem.dueDate;
          this.calendarView.controller.modifyOccurrence(item, newStart, newEnd);

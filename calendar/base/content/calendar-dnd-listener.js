@@ -196,7 +196,7 @@ var itemConversion = {
         }
 
         // Alarms
-        for each (let alarm in aEvent.getAlarms({})) {
+        for each (let alarm in aTask.getAlarms({})) {
             item.addAlarm(alarm.clone());
         }
         item.alarmLastAck = (aTask.alarmLastAck ?
