@@ -22,6 +22,7 @@
  * Michael Johnston <special.michael@gmail.com>
  * Dan Mills <thunder@mozilla.com>
  * Andrew Sutherland <asutherland@asutherland.org>
+ * David Ascher <dascher@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -85,6 +86,79 @@ let Log4Moz = {
       10: "TRACE",
       0:  "ALL"
     }
+  },
+
+  /**
+   * Create a logger and configure it with dump and console appenders as
+   * specified by prefs based on the logger name.
+   *
+   * E.g., if the loggername is foo, then look for prefs
+   *   foo.logging.console
+   *   foo.logging.dump
+   *
+   * whose values can be empty: no logging of that type; or any of
+   * 'Fatal', 'Error', 'Warn', 'Info', 'Config', 'Debug', 'Trace', 'All',
+   * in which case the logging level for each appender will be set accordingly
+   *
+   * Parameters:
+   *
+   * @param loggername The name of the logger
+   * @param level (optional) the level of the logger itself
+   * @param consoleLevel (optional) the level of the console appender
+   * @param dumpLevel (optional) the level of the dump appender
+   *
+   * As described above, well-named prefs override the last two parameters
+   **/
+
+  getConfiguredLogger: function(loggername, level, consoleLevel, dumpLevel) {
+    let log = Log4Moz.repository.getLogger(loggername);
+    if (log._configured)
+      return log
+
+    let formatter = new Log4Moz.BasicFormatter();
+
+    consoleLevel = consoleLevel || -1;
+    dumpLevel = dumpLevel || -1;
+
+    try {
+      // figure out if event-driven indexing should be enabled...
+      let prefService = Cc["@mozilla.org/preferences-service;1"].
+                          getService(Ci.nsIPrefService);
+      let branch = prefService.getBranch(loggername + ".logging.");
+      let consoleLevelString = branch.getStringPref("console");
+      if (consoleLevelString) {
+        // capitalize to fit with Log4Moz.Level expectations
+        consoleLevelString =  consoleLevelString.charAt(0).toUpperCase() +
+           consoleLevelString.substr(1).toLowerCase();
+        consoleLevel = Log4Moz.Level[consoleLevelString];
+      }
+
+      let dumpLevelString = branch.getStringPref("dump");
+      if (dumpLevelString) {
+        // capitalize to fit with Log4Moz.Level expectations
+        dumpLevelString =  dumpLevelString.charAt(0).toUpperCase() +
+           dumpLevelString.substr(1).toLowerCase();
+        dumpLevel = Log4Moz.Level[dumpLevelString]
+      }
+    } catch (ex) {}
+
+    if (consoleLevel != -1) {
+      let capp = new Log4Moz.ConsoleAppender(formatter);
+      capp.level = consoleLevel;
+      log.addAppender(capp);
+    }
+
+    if (dumpLevel != -1) {
+      let dapp = new Log4Moz.DumpAppender(formatter);
+      dapp.level = dumpLevel;
+      log.addAppender(dapp);
+    }
+
+    log.level = level || Log4Moz.Level.Debug;
+
+    log._configured = true;
+
+    return log;
   },
 
   get repository() {
