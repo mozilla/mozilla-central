@@ -216,6 +216,10 @@ function initializeControls(rule) {
             setElementValue("yearly-ordinal", ruleInfo.ordinal);
             setElementValue("yearly-weekday", ruleInfo.weekday);
             setElementValue("yearly-month-rule", byMonthRuleComponent[0]);
+        } else if (byMonthRuleComponent.length > 0) {
+            document.getElementById("yearly-group").selectedIndex = 0;
+            setElementValue("yearly-month-ordinal", byMonthRuleComponent[0]);
+            setElementValue("yearly-days", startDate.day);
         }
     }
 

@@ -2706,6 +2706,7 @@ function updateDateTime() {
 
     updateTimezone();
     updateAllDay();
+    updateRepeatDetails();
 
     gIgnoreUpdate = false;
 }
