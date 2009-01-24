@@ -198,8 +198,13 @@ for cmd in COMMANDS:
   for envkey in envkeys:
     print >> sys.stderr, "%s=%s"%(envkey, mailnewsEnv[envkey])
 
-  proc = automation.Process(binary, args, env = mailnewsEnv)
+  # The try case handles MOZILLA_1_9_1_BRANCH, the except case handles trunk.
+  try:
+    proc = automation.Process(binary, args, env = mailnewsEnv)
+  except TypeError:
+    proc = automation.Process([binary] + args, env = mailnewsEnv)
+
   status = proc.wait()
   if status != 0:
-    print >> sys.stderr, "ERROR FAIL Exited with code %d during test run"%(status)
+    print >> sys.stderr, "Error: Exited with code %d during test run"%(status)
     sys.exit(status)
