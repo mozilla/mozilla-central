@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+
 /**
  * This function takes the recurrence info passed as argument and creates a
  * literal string representing the repeat pattern in natural language.
@@ -49,14 +51,16 @@
  * @return                  A human readable string describing the recurrence.
  */
 function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
+    function getRString(name, args) calGetString("calendar-event-dialog", name, args);
+    function getDString(name, args) calGetString("dateFormat", name, args);
 
     // Retrieve a valid recurrence rule from the currently
     // set recurrence info. Bail out if there's more
     // than a single rule or something other than a rule.
     recurrenceInfo = recurrenceInfo.clone();
-    var rrules = splitRecurrenceRules(recurrenceInfo);
+    let rrules = splitRecurrenceRules(recurrenceInfo);
     if (rrules[0].length == 1) {
-        var rule = rrules[0][0];
+        let rule = rrules[0][0];
         // currently we don't allow for any BYxxx-rules.
         if (calInstanceOf(rule, Components.interfaces.calIRecurrenceRule) &&
             !checkRecurrenceRule(rule, ['BYSECOND',
@@ -72,42 +76,32 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                 return Math.abs(day) % 8;
             }
             function day_position(day) {
-                var dow = day_of_week(day);
+                let dow = day_of_week(day);
                 return (Math.abs(day) - dow) / 8 * (day < 0 ? -1 : 1);
             }
 
-            var ruleString = "???";
+            let ruleString;
             if (rule.type == 'DAILY') {
                 if (checkRecurrenceRule(rule, ['BYDAY'])) {
-                    var days = rule.getComponent("BYDAY", {});
-                    var weekdays = [2, 3, 4, 5, 6];
+                    let days = rule.getComponent("BYDAY", {});
+                    let weekdays = [2, 3, 4, 5, 6];
                     if (weekdays.length == days.length) {
-                        for (var i = 0; i < weekdays.length; i++) {
+                        let i;
+                        for (i = 0; i < weekdays.length; i++) {
                             if (weekdays[i] != days[i]) {
                                 break;
                             }
                         }
                         if (i == weekdays.length) {
-                            ruleString = calGetString(
-                                "calendar-event-dialog",
-                                "repeatDetailsRuleDaily4");
+                            ruleString = getRString("repeatDetailsRuleDaily4");
                         }
+                    } else {
+                        return getRString("ruleTooComplex");
                     }
                 } else {
-                    if (rule.interval == 1) {
-                        ruleString = calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsRuleDaily1");
-                    } else if (rule.interval == 2) {
-                        ruleString = calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsRuleDaily2");
-                    } else {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleDaily3",
-                          [ rule.interval ]);
-                    }
+                    let dailyString = getRString("dailyEveryNth");
+                    ruleString = PluralForm.get(rule.interval, dailyString)
+                                           .replace("#1", rule.interval);
                 }
             } else if (rule.type == 'WEEKLY') {
                 // weekly recurrence, currently we
@@ -115,83 +109,45 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                 if (checkRecurrenceRule(rule, ['BYDAY'])) {
                     // create a string like 'Monday, Tuesday and
                     // Wednesday'
-                    var days = rule.getComponent("BYDAY", {});
+                    let days = rule.getComponent("BYDAY", {});
                     var weekdays = "";
-                    for (var i = 0; i < days.length; i++) {
-                        weekdays += calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsDay" + days[i]);
+                    for (let i = 0; i < days.length; i++) {
+                        weekdays += getDString("day." + days[i] + ".name")
                         if (days.length > 1 && i == (days.length - 2)) {
-                            weekdays += ' ' + calGetString(
-                                "calendar-event-dialog",
-                                "repeatDetailsAnd") + ' ';
+                            weekdays += ' ' + getRString("repeatDetailsAnd") + ' ';
                         } else if (i < days.length - 1) {
                             weekdays += ', ';
                         }
                     }
 
-                    // now decorate this with 'every other week, etc'.
-                    if (rule.interval == 1) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleWeekly1", [ weekdays ]);
-                    } else if (rule.interval == 2) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleWeekly2", [ weekdays ]);
-                    } else {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleWeekly3",
-                          [ rule.interval, weekdays ]);
-                    }
+                    let weeklyString = getRString("weeklyNthOn", [weekdays]);
+                    ruleString= PluralForm.get(rule.interval, weeklyString)
+                                          .replace("#2", rule.interval);
+
                 } else {
-                    if (rule.interval == 1) {
-                        ruleString = calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsRuleWeekly4");
-                    } else if (rule.interval == 2) {
-                        ruleString = calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsRuleWeekly5");
-                    } else {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleWeekly6",
-                          [ rule.interval ]);
-                    }
+                    let weeklyString = getRString("weeklyEveryNth");
+                    ruleString = PluralForm.get(rule.interval, weeklyString)
+                                           .replace("#1", rule.interval);
                 }
             } else if (rule.type == 'MONTHLY') {
                 if (checkRecurrenceRule(rule, ['BYDAY'])) {
-                    var component = rule.getComponent("BYDAY", {});
-                    var byday = component[0];
-                    var ordinal_string =
-                        calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsOrdinal" + day_position(byday));
-                    var day_string =
-                        calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsDay" + day_of_week(byday));
-
-                    if (rule.interval == 1) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly",
-                          [ ordinal_string, day_string ]);
-                    } else if (rule.interval == 2) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly2",
-                          [ ordinal_string, day_string ]);
+                    let byday = rule.getComponent("BYDAY", {});
+                    if (day_position(byday[0]) == 0) {
+                        // i.e every MONDAY of every N months
+                        let day = getDString("day." + day_of_week(byday[0]) + ".name");
+                        ruleString = getRString("monthlyEveryOfEvery", [day]);
+                        ruleString = PluralForm.get(rule.interval, ruleString)
+                                               .replace("#2", rule.interval);
                     } else {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly3",
-                          [ ordinal_string, day_string, rule.interval ]);
+                        // i.e the FIRST MONDAY of every N months
+                        let ordinal = getRString("repeatDetailsOrdinal" + day_position(byday[0]));
+                        let day = getDString("day." + day_of_week(byday[0]) + ".name");
+                        ruleString = getRString("monthlyNthOfEvery", [ordinal, day]);
+                        ruleString = PluralForm.get(rule.interval, ruleString)
+                                               .replace("#3", rule.interval);
                     }
                 } else if (checkRecurrenceRule(rule, ['BYMONTHDAY'])) {
-                    var component = rule.getComponent("BYMONTHDAY", {});
+                    let component = rule.getComponent("BYMONTHDAY", {});
 
                     // First, find out if the 'BYMONTHDAY' component contains
                     // any elements with a negative value. If so we currently
@@ -200,72 +156,33 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                                            return element < 0;
                                        })) {
                         if (component.length == 1 && component[0] == -1) {
-                            if (rule.interval == 1) {
-                                ruleString = calGetString(
-                                  "calendar-event-dialog",
-                                  "repeatDetailsRuleMonthly7");
-                            } else if (rule.interval == 2) {
-                                ruleString = calGetString(
-                                  "calendar-event-dialog",
-                                  "repeatDetailsRuleMonthly8");
-                            } else {
-                                ruleString = calGetString(
-                                  "calendar-event-dialog",
-                                  "repeatDetailsRuleMonthly9",
-                                  [ rule.interval ]);
-                            }
+                            let monthlyString = getRString("monthlyLastDayOfNth");
+                            ruleString = PluralForm.get(rule.interval, monthlyString)
+                                                   .replace("#1", rule.interval);
                         } else {
                             // we don't support any other combination for now...
-                            return null;
+                            return getRString("ruleTooComplex");
                         }
                     } else {
-                        var day_string = "";
-                        for (var i = 0; i < component.length; i++) {
+                        let day_string = "";
+                        for (let i = 0; i < component.length; i++) {
                             day_string += component[i];
                             if (component.length > 1 &&
                                 i == (component.length - 2)) {
-                                day_string += ' ' + calGetString(
-                                    "calendar-event-dialog",
-                                    "repeatDetailsAnd") + ' ';
+                                day_string += ' ' + getRString("repeatDetailsAnd") + ' ';
                             } else if (i < component.length-1) {
                                 day_string += ', ';
                             }
                         }
+                        let monthlyString = getRString("monthlyDayOfNth", [day_string]);
+                        ruleString = PluralForm.get(rule.interval, monthlyString)
+                                               .replace("#2", rule.interval);
 
-                        if (rule.interval == 1) {
-                            ruleString = calGetString(
-                              "calendar-event-dialog",
-                              "repeatDetailsRuleMonthly4",
-                              [ day_string ]);
-                        } else if (rule.interval == 2) {
-                            ruleString = calGetString(
-                              "calendar-event-dialog",
-                              "repeatDetailsRuleMonthly5",
-                              [ day_string ]);
-                        } else {
-                            ruleString = calGetString(
-                              "calendar-event-dialog",
-                              "repeatDetailsRuleMonthly6",
-                              [ day_string, rule.interval ]);
-                        }
                     }
                 } else {
-                    if (rule.interval == 1) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly4",
-                          [ startDate.day ]);
-                    } else if (rule.interval == 2) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly5",
-                          [ startDate.day ]);
-                    } else {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleMonthly6",
-                          [ startDate.day, rule.interval ]);
-                    }
+                    let monthlyString = getRString("monthlyDayOfNth", [startDate.day]);
+                    ruleString = PluralForm.get(rule.interval, monthlyString)
+                                           .replace("#1", rule.interval);
                 }
             } else if (rule.type == 'YEARLY') {
                 if (checkRecurrenceRule(rule, ['BYMONTH']) &&
@@ -274,29 +191,12 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     bymonthday = rule.getComponent("BYMONTHDAY", {});
 
                     if (bymonth.length == 1 && bymonthday.length == 1) {
-                        var month_string =
-                            calGetString(
-                                "calendar-event-dialog",
-                                "repeatDetailsMonth" + bymonth[0]);
+                        let monthNameString = getDString("month." + bymonth[0] + ".name");
 
-                        if (rule.interval == 1) {
-                            ruleString = calGetString(
-                              "calendar-event-dialog",
-                              "repeatDetailsRuleYearly1",
-                              [ month_string, bymonthday[0] ]);
-                        } else if (rule.interval == 2) {
-                            ruleString = calGetString(
-                              "calendar-event-dialog",
-                              "repeatDetailsRuleYearly2",
-                              [ month_string, bymonthday[0] ]);
-                        } else {
-                            ruleString = calGetString(
-                              "calendar-event-dialog",
-                              "repeatDetailsRuleYearly3",
-                              [ month_string,
-                                bymonthday[0],
-                                rule.interval ]);
-                        }
+                        let yearlyString = getRString("yearlyNthOn",
+                                                      [monthNameString, bymonthday[0]]);
+                        ruleString = PluralForm.get(rule.interval, yearlyString)
+                                               .replace("#3", rule.interval);
                     }
                 } else if (checkRecurrenceRule(rule, ['BYMONTH']) &&
                            checkRecurrenceRule(rule, ['BYDAY'])) {
@@ -304,134 +204,92 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     byday = rule.getComponent("BYDAY", {});
 
                     if (bymonth.length == 1 && byday.length == 1) {
-                        var month_string =
-                            calGetString(
-                                "calendar-event-dialog",
-                                "repeatDetailsMonth" + bymonth[0]);
-                        var ordinal_string =
-                            calGetString(
-                                "calendar-event-dialog",
-                                "repeatDetailsOrdinal" +
-                                    day_position(byday[0]));
-                        var day_string =
-                            calGetString(
-                                "calendar-event-dialog",
-                                "repeatDetailsDay" + day_of_week(byday[0]));
-
-                        if (rule.interval == 1) {
-                            ruleString = calGetString(
-                              "calendar-event-dialog",
-                              "repeatDetailsRuleYearly4",
-                              [ ordinal_string, day_string, month_string ]);
-                        } else if (rule.interval == 2) {
-                            ruleString = calGetString(
-                              "calendar-event-dialog",
-                              "repeatDetailsRuleYearly5",
-                              [ ordinal_string, day_string, month_string ]);
+                        let dayString = getDString("day." + day_of_week(byday[0]) + ".name");
+                        let monthString = getDString("month." + bymonth[0] + ".name");
+                        if (day_position(byday[0]) == 0) {
+                            let yearlyString = getRString("yearlyEveryNthOfNth",
+                                                          [dayString, monthString]);
+                            ruleString = PluralForm.get(rule.interval, yearlyString)
+                                                   .replace("#3", rule.interval);
                         } else {
-                            ruleString = calGetString(
-                              "calendar-event-dialog",
-                              "repeatDetailsRuleYearly6",
-                              [ ordinal_string,
-                                day_string,
-                                month_string,
-                                rule.interval ]);
+                            let ordinalString = getRString("repeatDetailsOrdinal" +
+                                                           day_position(byday[0]));
+
+                            let yearlyString = getRString("yearlyNthOnNthOf",
+                                                          [ordinalString,
+                                                           dayString,
+                                                           monthString]);
+                            ruleString = PluralForm.get(rule.interval, yearlyString)
+                                                   .replace("#4", rule.interval);
                         }
+                    } else {
+                        return getRString("ruleTooComplex");
                     }
                 } else {
-                    var month_string =
-                        calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsMonth" + (startDate.month+1));
-                    if (rule.interval == 1) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleYearly1",
-                          [ month_string, startDate.day ]);
-                    } else if (rule.interval == 2) {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleYearly2",
-                          [ month_string, startDate.day ]);
-                    } else {
-                        ruleString = calGetString(
-                          "calendar-event-dialog",
-                          "repeatDetailsRuleYearly3",
-                          [ month_string,
-                            startDate.day,
-                            rule.interval ]);
-                    }
+                    let monthNameString = getDString("month." + (startDate.month + 1) + ".name");
+
+                    let yearlyString = getRString("yearlyNthOn",
+                                                  [monthNameString, startDate.day]);
+                    ruleString = PluralForm.get(rule.interval, yearlyString)
+                                           .replace("#3", rule.interval);
                 }
             }
 
-            var kDefaultTimezone = calendarDefaultTimezone();
+            let kDefaultTimezone = cal.calendarDefaultTimezone();
+            let dateFormatter = cal.getDateFormatter();
 
-            var dateFormatter =
-                Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                .getService(Components.interfaces.calIDateTimeFormatter);
-
-            var detailsString;
+            let detailsString;
             if (!endDate || allDay) {
                 if (rule.isFinite) {
                     if (rule.isByCount) {
-                        detailsString = calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsCountAllDay",
-                            [ ruleString,
-                              dateFormatter.formatDateShort(startDate),
-                              rule.count ]);
+                        let countString = getRString("repeatCountAllDay",
+                            [ruleString,
+                             dateFormatter.formatDateShort(startDate)]);
+                        detailsString = PluralForm.get(rule.count, countString)
+                                                  .replace("#3", rule.count);
                     } else {
-                        var untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
-                        detailsString = calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsUntilAllDay",
-                            [ ruleString,
-                              dateFormatter.formatDateShort(startDate),
-                              dateFormatter.formatDateShort(untilDate) ]);
+                        let untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
+                        detailsString = getRString("repeatDetailsUntilAllDay",
+                            [ruleString,
+                             dateFormatter.formatDateShort(startDate),
+                             dateFormatter.formatDateShort(untilDate)]);
                     }
                 } else {
-                    detailsString = calGetString(
-                        "calendar-event-dialog",
-                        "repeatDetailsInfiniteAllDay",
-                        [ ruleString,
-                          dateFormatter.formatDateShort(startDate) ]);
+                    detailsString = getRString("repeatDetailsInfiniteAllDay",
+                                               [ruleString,
+                                                dateFormatter.formatDateShort(startDate)]);
                 }
             } else {
                 if (rule.isFinite) {
                     if (rule.isByCount) {
-                        detailsString = calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsCount",
-                            [ ruleString,
-                              dateFormatter.formatDateShort(startDate),
-                              rule.count,
-                              dateFormatter.formatTime(startDate),
-                              dateFormatter.formatTime(endDate) ]);
+                        let countString = getRString("repeatCount",
+                            [ruleString,
+                             dateFormatter.formatDateShort(startDate),
+                             dateFormatter.formatTime(startDate),
+                             dateFormatter.formatTime(endDate) ]);
+                        detailsString = PluralForm.get(rule.count, countString)
+                                                  .replace("#5", rule.count);
                     } else {
-                        var untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
-                        detailsString = calGetString(
-                            "calendar-event-dialog",
-                            "repeatDetailsUntil",
-                            [ ruleString,
-                              dateFormatter.formatDateShort(startDate),
-                              dateFormatter.formatDateShort(untilDate),
-                              dateFormatter.formatTime(startDate),
-                              dateFormatter.formatTime(endDate) ]);
+                        let untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
+                        detailsString = getRString("repeatDetailsUntil",
+                            [ruleString,
+                             dateFormatter.formatDateShort(startDate),
+                             dateFormatter.formatDateShort(untilDate),
+                             dateFormatter.formatTime(startDate),
+                             dateFormatter.formatTime(endDate)]);
                     }
                 } else {
-                    detailsString = calGetString(
-                        "calendar-event-dialog",
-                        "repeatDetailsInfinite",
-                        [ ruleString,
-                          dateFormatter.formatDateShort(startDate),
-                          dateFormatter.formatTime(startDate),
-                          dateFormatter.formatTime(endDate) ]);
+                    detailsString = getRString("repeatDetailsInfinite",
+                        [ruleString,
+                         dateFormatter.formatDateShort(startDate),
+                         dateFormatter.formatTime(startDate),
+                         dateFormatter.formatTime(endDate) ]);
                 }
             }
             return detailsString;
         }
     }
-    return null;
+    return getRString("ruleTooComplex");
 }
 
 /**

@@ -2682,6 +2682,8 @@ function updateRepeatDetails() {
                     repeatDetails.appendChild(newNode);
                 }
                 repeatDetails.childNodes[i].value = lines[i];
+                repeatDetails.childNodes[i].setAttribute("tooltiptext",
+                                                         detailsString);
             }
         }
     } else {
