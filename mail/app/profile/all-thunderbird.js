@@ -117,7 +117,7 @@ pref("app.update.idletime", 60);
 pref("app.update.showInstalledUI", false);
 
 // Release notes URL
-pref("app.releaseNotesURL", "http://www.mozillamessaging.com/%LOCALE%/%APP%/%VERSION%/releasenotes/");
+pref("app.releaseNotesURL", "http://live.mozillamessaging.com/%APP%/releasenotes?locale=%LOCALE%&version=%VERSION%&os=%OS%&buildid=%APPBUILDID%");
 
 // Base URL for web-based support pages.
 pref("app.support.baseURL", "http://support.live.mozillamessaging.com/%LOCALE%/%APP%/%APPBUILDID%/");
