@@ -56,6 +56,7 @@ mail/extensions/Makefile
 mail/extensions/smime/Makefile
 mail/installer/Makefile
 mail/installer/windows/Makefile
+mail/themes/Makefile
 mail/themes/pinstripe/Makefile
 mail/themes/qute/Makefile
 mail/themes/gnomestripe/Makefile

@@ -42,28 +42,8 @@ VPATH		= @srcdir@
 
 include $(topsrcdir)/config/config.mk
 
-DIRS		= base locales components extensions
-
-#
-# Theme Selection
-#
-# Linux                   Gnomesripe
-# Windows                 Qute
-# MacOS X                 Pinstripe
-#
-
-ifneq (,$(filter gtk2 qt,$(MOZ_WIDGET_TOOLKIT)))
-DIRS += themes/gnomestripe
-else
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-DIRS += themes/pinstripe
-else
-DIRS += themes/qute
-endif
-endif
-
 # app is always last as it packages up the built files on mac
-DIRS += app
+DIRS		= base locales components extensions themes app
 
 ifeq ($(OS_ARCH),WINNT)
 ifdef MOZ_INSTALLER

@@ -1,4 +1,3 @@
-#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -35,13 +34,41 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../../../..
+DEPTH		= ../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
-include $(DEPTH)/config/autoconf.mk
+include $(topsrcdir)/config/config.mk
 
-DIRS = {972ce4c6-7e08-4474-a285-3208198ce6fd}
+#
+# Theme Selection
+#
+# Linux                   Gnomesripe
+# Windows                 Qute
+# MacOS X                 Pinstripe
+#
+
+ifneq (,$(filter gtk2 qt,$(MOZ_WIDGET_TOOLKIT)))
+DIRS += gnomestripe
+else
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
+DIRS += pinstripe
+else
+DIRS += qute
+endif
+endif
 
 include $(topsrcdir)/config/rules.mk
+
+CLASSIC_EXTENSION_DIR = {972ce4c6-7e08-4474-a285-3208198ce6fd}
+
+DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION)
+
+libs::
+	$(NSINSTALL) -D $(DIST)/bin/extensions/$(CLASSIC_EXTENSION_DIR)
+	$(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(srcdir)/install.rdf > $(DIST)/bin/extensions/$(CLASSIC_EXTENSION_DIR)/install.rdf
+
+install::
+	$(NSINSTALL) -D $(DESTDIR)$(mozappdir)/extensions/$(CLASSIC_EXTENSION_DIR)
+	$(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(srcdir)/install.rdf > $(DESTDIR)$(mozappdir)/extensions/$(CLASSIC_EXTENSION_DIR)/install.rdf
