@@ -1255,12 +1255,20 @@ let gFolderTreeController = {
       return;
     }
 
-    let array = toXPCOMArray([folder], Ci.nsIMutableArray);
     if (folder.flags & FLAGS.Virtual) {
+      let confirmation = bundle.getString("confirmSavedSearchDeleteMessage");
+      let title = bundle.getString("confirmSavedSearchTitle");
+      let IPS = Components.interfaces.nsIPromptService;
+      if (Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+            .getService(IPS)
+            .confirmEx(window, title, confirmation, IPS.STD_YES_NO_BUTTONS + IPS.BUTTON_POS_1_DEFAULT, 
+                       "", "", "", "", {}) != 0) /* the yes button is in position 0 */
+        return;
       if (gCurrentVirtualFolderUri == folder.URI)
         gCurrentVirtualFolderUri = null;
     }
 
+    let array = toXPCOMArray([folder], Ci.nsIMutableArray);
     folder.parent.deleteSubFolders(array, msgWindow);
   },
 
