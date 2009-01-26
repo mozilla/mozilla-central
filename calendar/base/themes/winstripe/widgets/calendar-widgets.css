@@ -131,3 +131,12 @@ treenode-checkbox > .checkbox-check {
 .toolbarbutton-icon-end {
   -moz-margin-start: 5px;
 }
+
+.selected-text {
+    font-weight: bold;
+}
+
+.selected-text:not([selected="true"]),
+.unselected-text[selected="true"] {
+    visibility: hidden;
+}

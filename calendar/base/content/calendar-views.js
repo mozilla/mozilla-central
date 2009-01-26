@@ -760,16 +760,6 @@ function selectAllEvents() {
 
 let cal = cal || {};
 cal.navigationBar = {
-    onLoad: function loadNavigationBar() {
-      let viewTabs = document.getElementById("view-tabs");
-      for (let i = 0; i < viewTabs.childNodes.length; i++) {
-          let node = viewTabs.childNodes[i];
-          if (node.localName == "tab") {
-              node.setAttribute("style", "min-width: " + node.label.length + "em;");
-          }
-      }
-    },
-
     setDateRange: function setDateRange(aStartDate, aEndDate, aToolTipTexts) {
         let docTitle = "";
         if (aStartDate) {
@@ -803,8 +793,3 @@ cal.navigationBar = {
         viewTabs.selectedIndex = getViewDeck().selectedIndex;
     }
 };
-function loadNavigationBar() {
-    cal.navigationBar.onLoad();
-}
-
-window.addEventListener("load", loadNavigationBar, false);

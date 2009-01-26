@@ -76,3 +76,7 @@ minimonth-header[readonly="true"] {
 dragndropContainer {
    -moz-binding: url(chrome://calendar/content/widgets/calendar-widgets.xml#dragndropContainer);
 }
+
+tab[calview] {
+   -moz-binding: url(chrome://calendar/content/widgets/calendar-widgets.xml#view-tab);
+}

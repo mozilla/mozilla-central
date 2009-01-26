@@ -35,6 +35,8 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
+<!DOCTYPE bindings SYSTEM "chrome://global/locale/global.dtd">
+
 <bindings id="calendar-widgets"
           xmlns="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -422,5 +424,24 @@
          this.calendarView.controller.modifyOccurrence(item, newStart, newEnd);
       ]]></handler>
     </handlers>
+  </binding>
+
+  <binding id="view-tab" extends="chrome://global/content/bindings/tabbox.xml#tab">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>
+    </resources>
+    <content chromedir="&locale.dir;">
+      <xul:hbox class="tab-middle box-inherit" xbl:inherits="align,dir,pack,orient,selected" flex="1">
+        <xul:image class="tab-icon" xbl:inherits="validate,src=image"/>
+        <xul:stack>
+          <xul:label class="tab-text unselected-text"
+                     xbl:inherits="value=label,accesskey,crop,disabled,selected"
+                     flex="1"/>
+          <xul:label class="tab-text selected-text"
+                     xbl:inherits="value=label,accesskey,crop,disabled,selected"
+                     flex="1"/>
+        </xul:stack>
+      </xul:hbox>
+    </content>
   </binding>
 </bindings>

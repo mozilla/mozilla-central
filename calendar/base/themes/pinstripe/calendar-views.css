@@ -667,7 +667,6 @@ tab[calview] {
 
 tab[calview][selected="true"],
 tab[calview][selected="true"]:hover {
-    font-weight: bold;
     background-color: #FFFFFF;
     margin-bottom: 0px;
     border-bottom: none;
