@@ -102,7 +102,7 @@
         <menuitem id="toolbarmode-default"
                   type="checkbox" value="default"
                   label="&customizeToolbar.useDefault.label;"
-                  accesskey="&customizeToolbar.useDefault.label;"/>
+                  accesskey="&customizeToolbar.useDefault.accesskey;"/>
       </menupopup>
     </menu>
 
