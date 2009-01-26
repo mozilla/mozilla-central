@@ -318,7 +318,8 @@ calendar-day-label[orient="vertical"] {
 }
 
 /* Month View */
-calendar-month-view {
+calendar-month-view,
+calendar-multiweek-view {
     background-color: #FFFFFF;
     padding: 0px 2px 2px 2px;
 }

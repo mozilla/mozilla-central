@@ -37,28 +37,21 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-calendar-decorated-multiday-base-view {
-  -moz-binding: url(chrome://calendar/content/calendar-decorated-multiday-base-view.xml#calendar-decorated-multiday-base-view);
+
+calendar-day-view { 
+  -moz-binding: url(chrome://calendar/content/calendar-views.xml#calendar-day-view);
 }
 
-calendar-decorated-month-view-parent {
-  -moz-binding: url(chrome://calendar/content/calendar-decorated-month-view.xml#calendar-decorated-month-view-parent);
+calendar-week-view { 
+  -moz-binding: url(chrome://calendar/content/calendar-views.xml#calendar-week-view);
 }
 
-calendar-decorated-month-view {
-  -moz-binding: url(chrome://calendar/content/calendar-decorated-month-view.xml#calendar-decorated-month-view);
+calendar-multiweek-view { 
+  -moz-binding: url(chrome://calendar/content/calendar-views.xml#calendar-multiweek-view);
 }
 
-calendar-decorated-day-view { 
-  -moz-binding: url(chrome://calendar/content/calendar-decorated-day-view.xml#calendar-decorated-day-view);
-}
-
-calendar-decorated-week-view { 
-  -moz-binding: url(chrome://calendar/content/calendar-decorated-week-view.xml#calendar-decorated-week-view);
-}
-
-calendar-decorated-multiweek-view { 
-  -moz-binding: url(chrome://calendar/content/calendar-decorated-multiweek-view.xml#calendar-decorated-multiweek-view);
+calendar-month-view {
+  -moz-binding: url(chrome://calendar/content/calendar-views.xml#calendar-month-view);
 }
 
 calendar-task-tree { 

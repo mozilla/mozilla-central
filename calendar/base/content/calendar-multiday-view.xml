@@ -2145,6 +2145,17 @@
 
     <implementation implements="calICalendarView">
       <constructor><![CDATA[
+        // get day start/end hour from prefs and set on the view
+        this.setDayStartEndMinutes(getPrefSafe("calendar.view.daystarthour", 8) * 60,
+                                   getPrefSafe("calendar.view.dayendhour", 17) * 60);
+
+        // initially scroll to the day start hour in the view
+        this.scrollToMinute(this.mDayStartMin);
+
+        // get visible hours from prefs and set on the view
+        let visibleMinutes = getPrefSafe("calendar.view.visiblehours", 9) * 60;
+        this.setVisibleMinutes(visibleMinutes);
+
         var self = this;
         // set the flex attribute at the scrollbox-innerbox
         // (this can be removed, after Bug 343555 is fixed)
@@ -2152,7 +2163,6 @@
                        this, "anonid", "scrollbox");
         document.getAnonymousElementByAttribute(
             scrollbox, "class", "box-inherit scrollbox-innerbox").flex = "1";
-
         this.reorient();
       ]]></constructor>
 
@@ -2161,6 +2171,40 @@
           return this.labeldaybox.childNodes && this.labeldaybox.childNodes.length;
         ]]></getter>
       </property>
+
+      <method name="handlePreference">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aPreference"/>
+        <body><![CDATA[
+            aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
+            switch (aPreference) {
+
+                case "calendar.view.daystarthour":
+                    this.setDayStartEndMinutes(aSubject.getIntPref(aPreference) * 60,
+                                               this.mDayEndMin);
+
+                    this.refreshView();
+                    break;
+
+                case "calendar.view.dayendhour":
+                    this.setDayStartEndMinutes(this.mDayStartMin,
+                                               aSubject.getIntPref(aPreference) * 60);
+                    this.refreshView();
+                    break;
+
+                case "calendar.view.visiblehours":
+                    this.setVisibleMinutes(aSubject.getIntPref(aPreference) * 60);
+                    this.refreshView();
+                    break;
+
+                default:
+                    this.handleCommonPreference(aSubject, aTopic, aPreference);
+                    break;
+            }
+            return;
+        ]]></body>
+      </method>
 
       <method name="onResize">
         <parameter name="aRealSelf"/>

@@ -426,7 +426,7 @@
     </handlers>
   </binding>
 
-  <binding id="calendar-month-view" extends="chrome://calendar/content/calendar-base-view.xml#calendar-base-view">
+  <binding id="calendar-month-base-view" extends="chrome://calendar/content/calendar-base-view.xml#calendar-base-view">
     <content style="overflow: auto;" flex="1" xbl:inherits="context,item-context">
       <xul:vbox anonid="mainbox" flex="1">
         <xul:hbox class="labeldaybox-container" anonid="labeldaybox" equalsize="always"/>
@@ -506,6 +506,9 @@
 
       <!-- constructor -->
       <constructor><![CDATA[
+          // Set the preference for the default start of the week
+          this.weekStartOffset = getPrefSafe("calendar.week.start", 0);
+
           for (var i = 0; i < 7; i++) {
               let hdr = createXULElement("calendar-day-label");
               this.labeldaybox.appendChild(hdr);
@@ -563,6 +566,52 @@
         ]]></setter>
       </property>
 
+      <!-- this property may be overridden by the
+          descendent classes if neeeded  -->
+      <property name="weeksInView">
+        <getter><![CDATA[
+            return 0;
+        ]]></getter>
+        <setter><![CDATA[
+            return val;
+        ]]></setter>
+      </property>
+
+      <method name="handlePreference">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aPreference"/>
+        <body><![CDATA[
+           aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
+
+           switch (aPreference) {
+               case "calendar.previousweeks.inview":
+                   this.updateDaysOffPrefs();
+                   this.refreshView();
+                   break;
+
+               case "calendar.week.start":
+                   this.weekStartOffset = aSubject.getIntPref(aPreference);
+                   // Refresh the view so the settings take effect
+                   this.refreshView();
+                   break;
+
+               case "calendar.weeks.inview":
+                   this.weeksInView = aSubject.getIntPref(aPreference);
+                   break;
+
+               case "calendar.previousweeks.inview":
+                   this.refreshView();
+                   break;
+
+               default:
+                   this.handleCommonPreference(aSubject, aTopic, aPreference);
+                   break;
+           }
+           return;
+        ]]></body>
+      </method>
+
       <method name="getSelectedItems">
         <parameter name="aCount"/>
         <body><![CDATA[
@@ -570,6 +619,7 @@
           return this.mSelectedItems;
         ]]></body>
       </method>
+
       <method name="setSelectedItems">
         <parameter name="aCount"/>
         <parameter name="aItems"/>
@@ -1004,5 +1054,21 @@
         ]]></body>
       </method>
     </implementation>
+
+    <handlers>
+      <handler event="DOMMouseScroll"><![CDATA[
+        if (!event.ctrlKey &&
+            !event.shiftKey &&
+            !event.altKey &&
+            !event.metaKey) {
+            // In the month view, the only thing that can be scrolled
+            // is the month the user is in. calendar-base-view takes care
+            // of the shift key, so only move the view when no modifier
+            // is pressed.
+            this.moveView(event.detail < 0 ? -1 : 1);
+        }
+      ]]></handler>
+    </handlers>
+
   </binding>
 </bindings>
