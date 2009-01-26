@@ -11,7 +11,7 @@ classic.jar:
   skin/classic/messenger/messageHeader.css                    (mail/messageHeader.css)
   skin/classic/messenger/messageBody.css                      (mail/messageBody.css)
   skin/classic/messenger/messageQuotes.css                    (mail/messageQuotes.css)
-* skin/classic/messenger/messenger.css                        (mail/messenger.css)
+  skin/classic/messenger/messenger.css                        (mail/messenger.css)
   skin/classic/messenger/mailWindow1.css                      (mail/mailWindow1.css)
   skin/classic/messenger/tagColors.css                        (mail/tagColors.css)
   skin/classic/messenger/messageWindow.css                    (mail/messageWindow.css)
