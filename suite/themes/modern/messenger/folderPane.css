@@ -46,7 +46,7 @@
 /* ::::: mail folder ::::: */
 
 treechildren::-moz-tree-image(folderNameCol) {
-  margin-right: 2px;
+  -moz-margin-end: 2px;
   list-style-image: url("chrome://messenger/skin/icons/folder-closed.gif");
 }
 

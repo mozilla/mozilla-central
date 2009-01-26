@@ -76,7 +76,7 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
 
 toolbar[mode="text"] .toolbarbutton-1 > .toolbarbutton-text,
 toolbar[mode="text"] .toolbarbutton-menubutton-button > .toolbarbutton-text {
-  margin: 5px 4px 3px 4px;
+  margin: 5px 4px 3px;
 }
 
 #button-getmsg {
@@ -538,7 +538,7 @@ toolbar[iconsize="small"] #button-compact[disabled] {
 }
 
 .msgNotification-smallText {
-  padding-left: 10px;
+  -moz-padding-start: 10px;
   font-size: 90%;
 }
 
@@ -575,7 +575,7 @@ toolbar[iconsize="small"] #button-compact[disabled] {
 }
 
 #remoteContentDescription {
-  margin-left: 1.1em;
+  -moz-margin-start: 1.1em;
 }
 
 #remoteContentButton {

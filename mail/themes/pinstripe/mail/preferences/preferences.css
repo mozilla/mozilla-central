@@ -57,7 +57,7 @@ prefpane {
 
 .paneSelector {
   list-style-image: url("chrome://messenger/skin/preferences/mail-options.png");
-  padding: 0 5px 2px 5px;
+  padding: 0 5px 2px;
   -moz-appearance: -moz-mac-unified-toolbar;
   margin: 0;
 }
@@ -65,7 +65,7 @@ prefpane {
 .paneSelector radio {
   border-right: 2px solid transparent;
   border-left: 2px solid transparent;
-  padding: 5px 0 3px 0;
+  padding: 5px 0 3px;
   margin: 0;
   -moz-appearance: none !important;
 }
@@ -125,7 +125,10 @@ radio[pane=paneAdvanced]:active {
 }
 
 #browserStartupHomepage {
-  padding: 2px 2px 3px 4px;
+  padding-top: 2px;
+  padding-bottom: 3px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 2px;
 }
 
 #downloadFolderIcon {
@@ -134,7 +137,10 @@ radio[pane=paneAdvanced]:active {
 }
 
 #downloadFolderContainer {
-  margin: 2px 4px 2px 27px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  -moz-margin-start: 27px;
+  -moz-margin-end: 4px;
   -moz-appearance: textfield;
 }
 
@@ -142,19 +148,22 @@ radio[pane=paneAdvanced]:active {
   background-color: -moz-Dialog;
   color: -moz-DialogText;
   margin: 1px;
-  padding: 0px 0px 0px 3px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  -moz-padding-start: 3px;
+  -moz-padding-end: 0px;
 }
 
 #downloadFolder {
   -moz-appearance: none;
   background-color: transparent;
   border: none;
-  padding: 1px 0px 0px 0px;
+  padding: 1px 0px 0px;
 }
 
 prefpane .groupbox-body {
   -moz-appearance: none;
-  padding: 8px 4px 4px 4px;
+  padding: 8px 4px 4px;
 }
 
 #paneTabs > groupbox {
@@ -172,7 +181,10 @@ prefpane .groupbox-title {
 
 caption {
   border-bottom: 1px solid #ECECEC;
-  padding: 4px 4px 0px 0px !important;
+  padding-top: 4px !important;
+  padding-bottom: 0px !important;
+  -moz-padding-start: 0px !important;
+  -moz-padding-end: 4px !important;
 }
 
 #paneContent {
@@ -192,8 +204,8 @@ caption {
 }
 
 tabpanels {
-  padding: 18px 10px 10px 10px;
-  margin: 0 6px 6px 6px;
+  padding: 18px 10px 10px;
+  margin: 0 6px 6px;
 }
 
 /* override the color style for tag items when they

@@ -91,7 +91,7 @@ tree[seltype="text"] > treechildren::-moz-tree-row {
 /* ::::: tree cells ::::: */
 
 treechildren::-moz-tree-cell {
-  padding: 0px 2px 0px 2px;
+  padding: 0px 2px;
 }
 
 tree[seltype="cell"] > treechildren::-moz-tree-cell-text,
@@ -106,12 +106,12 @@ treechildren::-moz-tree-cell-text(selected) {
 
 tree[seltype="cell"] > treechildren::-moz-tree-cell {
   border: 1px solid transparent;
-  padding: 0px 1px 0px 1px;
+  padding: 0px 1px;
 }
 
 tree[seltype="text"] > treechildren::-moz-tree-cell-text {
   border: 1px solid transparent;
-  padding: 0px 1px 1px 1px;
+  padding: 0px 1px 1px;
 }
 
 tree[seltype="cell"] > treechildren::-moz-tree-cell(active, selected) {
@@ -194,7 +194,7 @@ treechildren::-moz-tree-drop-feedback {
   background-color: Highlight;
   width: 50px;
   height: 2px;
-  margin-left: 5px;
+  -moz-margin-start: 5px;
 }
 
 /* ::::: tree progress meter ::::: */
@@ -232,11 +232,17 @@ treecolpicker {
   -moz-border-left-colors: ThreeDHighlight ThreeDLightShadow;
   background-color: -moz-Dialog;
   color: -moz-DialogText;
-  padding: 1px 4px 0px 5px;
+  padding-top: 1px;
+  padding-bottom: 0px;
+  -moz-padding-start: 5px;
+  -moz-padding-end: 4px;
 }
 
 .treecol-image {
-  padding: 1px 1px 0px 2px;
+  padding-top: 1px;
+  padding-bottom: 0px;
+  -moz-padding-start: 2px;
+  -moz-padding-end: 1px;
 }
 
 .treecol-text {
@@ -315,7 +321,7 @@ treechildren::-moz-tree-column(insertafter) {
 /* ::::: twisty :::::  */
 
 treechildren::-moz-tree-twisty {
-  padding-right: 2px;
+  -moz-padding-end: 2px;
   width: 10px; /* The image's width is 9 pixels */
   list-style-image: url("chrome://global/skin/tree/twisty-clsd.png");
 }

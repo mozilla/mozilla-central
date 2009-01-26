@@ -321,7 +321,7 @@ calendar-day-label[orient="vertical"] {
 calendar-month-view,
 calendar-multiweek-view {
     background-color: #FFFFFF;
-    padding: 0px 2px 2px 2px;
+    padding: 0px 2px 2px;
 }
 
 .calendar-month-view-grid-column {
@@ -336,7 +336,7 @@ calendar-multiweek-view {
 }
 
 calendar-month-day-box {
-    padding-right: 1px !important;
+    -moz-padding-end: 1px !important;
     padding-bottom: 1px !important;
     border:none !important;
     border-left: 1px solid #D2D2D2 !important;
@@ -395,7 +395,7 @@ calendar-month-day-box {
     text-align: right;
     margin: 0px;
     padding-top: 1px;
-    padding-right: 2px;
+    -moz-padding-end: 2px;
     padding-bottom: 1px;
 }
 

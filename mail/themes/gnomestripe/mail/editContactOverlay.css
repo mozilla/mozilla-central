@@ -53,7 +53,10 @@
 #editContactPanelTitle {
   font-size: 130%;
   font-weight: bold;
-  margin: 8px 12px 0px 9px;
+  margin-top: 8px;
+  margin-bottom: 0px;
+  -moz-margin-start: 9px;
+  -moz-margin-end: 12px;
 }
 
 #editContactEmail {

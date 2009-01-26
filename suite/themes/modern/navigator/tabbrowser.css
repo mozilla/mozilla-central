@@ -63,7 +63,7 @@ tab[busy] {
 }
 
 .tab-icon {
-  margin-right: 3px;
+  -moz-margin-end: 3px;
   width: 16px;
   height: 16px;
 }
@@ -92,7 +92,10 @@ tab[busy] {
 
 .tabs-newbutton {
   margin: 0px;
-  padding: 2px 0px 3px 2px;
+  padding-top: 2px;
+  padding-bottom: 3px;
+  -moz-padding-start: 2px;
+  -moz-padding-end: 0px;
   border: none;
   list-style-image: url("chrome://navigator/skin/icons/tab-new.gif");
 }
@@ -108,7 +111,7 @@ tab[busy] {
 .tab-drop-indicator-bar {
     height: 11px;
     margin-top: -11px;
-    margin-left: -8px;
+    -moz-margin-start: -8px;
     position: relative;
 }
 

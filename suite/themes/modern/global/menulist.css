@@ -53,17 +53,20 @@ menulist {
 }
 
 .menulist-label {
-  margin: 0 2px 0 0 !important;
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+  -moz-margin-start: 0px !important;
+  -moz-margin-end: 2px !important;
 }
 
 .menulist-description {
   font-style: italic;
   color: #5D616E;
-  margin-left: 1em !important;
+  -moz-margin-start: 1em !important;
 }
 
 .menulist-icon {
-  padding-right: 2px;
+  -moz-padding-end: 2px;
 }
 
 .menulist-label-box {
@@ -78,7 +81,7 @@ menulist {
   -moz-border-radius-topleft: 2px;
   -moz-border-radius-bottomleft: 2px;
   background-color: #A6B3C0;
-  padding-left: 8px;
+  -moz-padding-start: 8px;
 }
 
 .menulist-dropmarker {
@@ -89,7 +92,7 @@ menulist {
 }
 
 .menulist-dropmarker > .dropmarker-icon {
-  margin: 1px 2px 0px 2px;
+  margin: 1px 2px 0px;
 }
 
 /* ..... focused state ..... */
@@ -143,7 +146,10 @@ menulist[disabled="true"] > .menulist-dropmarker {
   border: 1px solid #000000;
   border-right: none;
   background-color: #FFFFFF;
-  padding: 2px 0px 2px 2px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  -moz-padding-start: 2px;
+  -moz-padding-end: 0px;
 }
 
 html|*.menulist-editable-input {
@@ -180,7 +186,10 @@ menulist[focused="true"] {
 }
 
 .menulist-compact > .menulist-label {
-  margin: 0 3px 0 0 !important;
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+  -moz-margin-start: 0px !important;
+  -moz-margin-end: 3px !important;
   text-align: right;
 }  
 

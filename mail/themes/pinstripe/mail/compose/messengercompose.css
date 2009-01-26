@@ -360,7 +360,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 .listcell-icon
 {
-  margin-left: 2px;
+  -moz-margin-start: 2px;
   margin-top: 2px;
 }
 
@@ -369,28 +369,40 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #msgSubject {
-  margin-right: 1px;
+  -moz-margin-end: 1px;
 }
 
 /* ::::: autocomplete icons ::::: */
 
 treechildren::-moz-tree-cell-text(default-match) {
-  margin: 2px -3px 2px 15px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  -moz-margin-start: 15px;
+  -moz-margin-end: -3px;
   border: none;
 }
 
 treechildren::-moz-tree-image(local-abook) {
-  margin: 2px -1px 2px 4px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  -moz-margin-start: 4px;
+  -moz-margin-end: -1px;
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addrbook.png");
 }
 
 treechildren::-moz-tree-image(remote-abook) {
-  margin: 2px -3px 2px 2px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  -moz-margin-start: 2px;
+  -moz-margin-end: -3px;
   list-style-image: url("chrome://messenger/skin/addressbook/icons/remote-addrbook.png");
 }
 
 treechildren::-moz-tree-image(remote-err) {
-  margin: 2px -3px 2px 2px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  -moz-margin-start: 2px;
+  -moz-margin-end: -3px;
   list-style-image: url("chrome://messenger/skin/addressbook/icons/remote-addrbook-error.png");
 }
 
@@ -399,7 +411,7 @@ treechildren::-moz-tree-image(remote-err) {
 #addressingWidget {
   -moz-user-focus: none;
   width: 0;
-  margin: 5px 0px 5px 0px;
+  margin: 5px 0px;
 }
 
 #typecol-addressingWidget {
@@ -444,7 +456,7 @@ treechildren::-moz-tree-image(remote-err) {
 
 .aw-menulist > .menulist-label {
   font: icon;
-  margin-right: 3px;
+  -moz-margin-end: 3px;
 }
 
 .aw-menulist:focus {
@@ -462,7 +474,7 @@ treechildren::-moz-tree-image(remote-err) {
 
 #FormatToolbar > toolbarbutton {
   height: 26px;
-  padding: 3px 0px 2px 0px;
+  padding: 3px 0px 2px;
   margin: 0px;
   border-left: 0px;
   border-right: 0px;
@@ -474,7 +486,10 @@ treechildren::-moz-tree-image(remote-err) {
 }
 
 #ColorButtons {
-  margin: 0px 5px 0px 3px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  -moz-margin-start: 3px;
+  -moz-margin-end: 5px;
 }
 
 
@@ -494,9 +509,9 @@ treechildren::-moz-tree-image(remote-err) {
 
 #DecreaseFontSizeButton, #boldButton, #ulButton {
   background: url("chrome://messenger/skin/messengercompose/left-button-base.png") no-repeat;
-  margin-right: 0px;
+  -moz-margin-end: 0px;
   width: 29px !important;
-  padding-left: 2px !important;
+  -moz-padding-start: 2px !important;
 }
 
 #DecreaseFontSizeButton[disabled="true"], #boldButton[disabled="true"], #ulButton[disabled="true"] {
@@ -509,8 +524,7 @@ treechildren::-moz-tree-image(remote-err) {
 
 #italicButton, #olButton, #outdentButton {
   background: url("chrome://messenger/skin/messengercompose/mid-button-base.png") no-repeat;
-  margin-left: 0px;
-        margin-right: 0px;
+  margin: 0;
   width: 27px !important;
 }
 
@@ -519,7 +533,6 @@ treechildren::-moz-tree-image(remote-err) {
 
 }
 
-
 #italicButton[disabled="true"], #olButton[disabled="true"], #outdentButton[disabled="true"] {
   background: url("chrome://messenger/skin/messengercompose/mid-button-disabled.png") no-repeat !important;
 
@@ -527,7 +540,7 @@ treechildren::-moz-tree-image(remote-err) {
 
 #IncreaseFontSizeButton, #underlineButton, #indentButton {
   background: url("chrome://messenger/skin/messengercompose/right-button-base.png") no-repeat;
-  margin-left: 0px;
+  -moz-margin-start: 0px;
   width: 30px !important;
 }
 
@@ -546,7 +559,7 @@ treechildren::-moz-tree-image(remote-err) {
 }
 
 #FormatToolbar > toolbarbutton > .toolbarbutton-menubutton-icon {
-  padding-left: 2px;
+  -moz-padding-start: 2px;
 }
 
 #FormatToolbar > toolbarbutton > .toolbarbutton-menubutton-dropmarker {
@@ -850,11 +863,17 @@ treechildren::-moz-tree-image(remote-err) {
 }
 
 #TextColorButton {
-  margin: 2px 9px 9px 2px;
+  margin-top: 2px;
+  margin-bottom: 9px;
+  -moz-margin-start: 2px;
+  -moz-margin-end: 9px;
 }
 
 #BackgroundColorButton {
-  margin: 9px 2px 2px 9px;
+  margin-top: 9px;
+  margin-bottom: 2px;
+  -moz-margin-start: 9px;
+  -moz-margin-end: 2px;
 }
 
 #HighlightColorButton {
@@ -907,7 +926,7 @@ sidebarheader {
 
 #searchInput #sidebar {
   -moz-appearance: textfield !important;
-        margin: 3px;
+  margin: 3px;
 }
 
 #searchInput > .textbox-input-box #sidebar {

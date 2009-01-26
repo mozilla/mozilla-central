@@ -547,7 +547,7 @@ toolbar[iconsize="small"] > #button-stop[disabled="true"] {
 }
 
 #junkIcon {
-  margin-left: 0.5ex;
+  -moz-margin-start: 0.5ex;
   list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
 }
 
@@ -557,5 +557,5 @@ toolbar[iconsize="small"] > #button-stop[disabled="true"] {
 }
 
 #allowRemoteContentForAuthorDesc {
-  padding-left: 10px;
+  -moz-padding-start: 10px;
 }

@@ -107,7 +107,7 @@ toolbargrippy:hover:active {
 }
 
 .toolbargrippy-arrow {
-  margin: 0px 1px 3px 1px;
+  margin: 0px 1px 3px;
   width: 8px;
   height: 5px;
 }
@@ -135,7 +135,10 @@ toolbargrippy[tbgrippy-collapsed="true"] {
 }
 
 toolbargrippy[tbgrippy-collapsed="true"] > .toolbargrippy-arrow {
-  margin: 1px 0px 1px 3px;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  -moz-margin-start: 3px;
+  -moz-margin-end: 0px;
   width: 5px;
   height: 8px;
 }

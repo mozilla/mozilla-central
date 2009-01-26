@@ -45,19 +45,19 @@
 .wizard-header {
   border-top: 1px solid #94AACE;
   border-bottom: 1px solid #000000;
-  padding: 10px 0px 10px 0px;
+  padding: 10px 0px;
   background-color: #5B7693;
   color: #ffffff;
 }
 
 .wizard-header-label {
-  margin-left: 23px;
+  -moz-margin-start: 23px;
   font-weight: bold;
 }
 
 .wizard-header-description {
-  margin-left: 44px;
-  margin-right: 5px;
+  -moz-margin-start: 44px;
+  -moz-margin-end: 5px;
 }
 
 .wizard-page-box {

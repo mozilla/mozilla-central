@@ -52,7 +52,7 @@ toolbarbutton {
 }
 
 .toolbarbutton-icon {
-  margin-right: 2px;
+  -moz-margin-end: 2px;
   list-style-image: inherit;
 }
 
@@ -74,7 +74,10 @@ toolbarbutton[open="true"] {
   border-right-color: #EEF0F3;
   border-bottom-color: #EEF0F3;
   border-left-color: #86929E;
-  padding: 2px 1px 0px 3px;
+  padding-top: 2px;
+  padding-bottom: 0px;
+  -moz-padding-start: 3px;
+  -moz-padding-end: 1px;
 }
 
 toolbarbutton[disabled="true"] {
@@ -127,7 +130,10 @@ toolbarbutton[checked="true"]:hover:active {
 .toolbarbutton-menubutton-dropmarker {
   -moz-box-align: center;
   -moz-box-pack: center;
-  margin: 20px 5px 15px 40px;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  -moz-margin-start: 40px;
+  -moz-margin-end: 5px;
   padding: 0px;
   border: none !important;
   background-color: transparent !important;

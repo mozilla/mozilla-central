@@ -64,7 +64,10 @@ GeneratedName {
   display:block; 
   font-weight:bold; 
   font-family:verdana; 
-  margin: 20px 10px 3px 10px;
+  margin-top: 20px;
+  margin-bottom: 3px;
+  -moz-margin-end: 10px;
+  -moz-margin-start 10px;
 }
 
 FirstName, LastName, 
@@ -98,7 +101,10 @@ WebPage1, WebPage2 {
 separator {
   display: block;
   border-bottom: 1px solid #000000;
-  margin: 0px 0px 0px 10px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  -moz-margin-end: 0px;
+  -moz-margin-start 10px;
 }
 
 table {

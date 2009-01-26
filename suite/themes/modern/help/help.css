@@ -83,7 +83,10 @@
 #help-forward-button > .toolbarbutton-menubutton-stack
     > .toolbarbutton-menubutton-dropmarker
 {
-  margin: 30px 0px 0px 34px;
+  margin-top: 30px;
+  margin-bottom: 0px;
+  -moz-margin-start: 34px;
+  -moz-margin-end: 0px;
 }
 
 #help-sidebar {

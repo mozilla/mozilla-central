@@ -86,7 +86,10 @@
 }
 
 .headerName {
-  margin: 0 .5em 5px 0;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: .5em;
   font-weight: bold;
   text-align: right;
 }
@@ -98,7 +101,7 @@
 }
 
 .headerValueBox {
-  margin: 0 0 5px 0;
+  margin: 0 0 5px;
 }
 
 .headerValueBox[singleline="true"] {
@@ -111,7 +114,7 @@
 
 .tagvalue {
   margin-top: 0;
-  margin-left: 0;
+  -moz-margin-start: 0;
 }
 
 /* ::::: msg header message ids ::::: */
@@ -128,7 +131,7 @@
 }
 
 .messageIdDisplayImage {
-  padding-left: 2px;
+  -moz-padding-start: 2px;
   -moz-box-pack: end;
 }
 
@@ -146,10 +149,10 @@
 }
 
 .emailDisplayImage {
-  padding-left: 2px;
+  -moz-padding-start: 2px;
   -moz-box-pack: end;
 }
- 
+
 /* ::::: email address twisty ::::: */
 
 .addresstwisty {
@@ -165,7 +168,7 @@
 
 .expandHeaderViewButton,
 .collapsedHeaderViewButton  {
-  margin: 2px .5em 0 .5em;
+  margin: 2px .5em 0;
 }
 
 .expandHeaderViewButton {
@@ -187,7 +190,7 @@
   text-align: right;
 }
 
-#collapseddateValue > .textbox-input-box menupopup { 
+#collapseddateValue > .textbox-input-box menupopup {
   text-align: left;
 }
 
@@ -199,8 +202,11 @@
   width: 12em;
 }
 
-.collapsedHeaderDisplayName { 
-  margin: 0 .5em 0 .55em;
+.collapsedHeaderDisplayName {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  -moz-margin-start: .55em;
+  -moz-margin-end: .5em;
   min-height: 16px;
   font-weight: bold;
 }
@@ -211,5 +217,5 @@
 
 .collapsedAttachmentButton {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-attach.png");
-  margin-right: .5em;
+  -moz-margin-end: .5em;
 }

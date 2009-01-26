@@ -47,7 +47,7 @@
 /* ::::: Select Addresses dialog ::::: */
 
 #topBox {
-  padding: 0.5em 0 1.0em 0;
+  padding: 0.5em 0 1.0em;
 }
 
 #resultsTree, #dirTree
@@ -75,8 +75,8 @@
 
 #newEditButtonBox {
   padding-top: 0.5em; 
-  padding-right: 0px;
-  margin-left: 0px;
+  -moz-padding-end: 0px;
+  -moz-margin-start: 0px;
 }
 
 .middle-button-spacer {

@@ -54,7 +54,10 @@
 /* ::::::::: Global override :::::::::: */
 
 treechildren::-moz-tree-twisty {
-  margin: 0 -4px 0 0 !important;
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+  -moz-margin-start: 0px !important;
+  -moz-margin-end: -4px !important;
 }
 
 /* :::::::::::::::::::::::::::::::::::: */
@@ -223,7 +226,7 @@ treechildren::-moz-tree-image(subjectCol, forwarded, selected) {
 treecol.attachmentColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/attachment-col.png");
 
-  padding-right: 5px;
+  -moz-padding-end: 5px;
 }
 
 treechildren::-moz-tree-image(attachmentCol, attach) {
@@ -256,8 +259,8 @@ treechildren::-moz-tree-image(flaggedCol, flagged) {
 
 treecol.junkStatusHeader {
   list-style-image: url("chrome://messenger/skin/icons/junk-column-header.png");
-  padding-right: 3px;
-  padding-left: 2px;
+  -moz-padding-end: 3px;
+  -moz-padding-start: 2px;
 }
 
 /* "unknown" now looks like "not junk".  see bug #182386 */
@@ -271,13 +274,13 @@ treechildren::-moz-tree-image(junkStatusCol, dummy) {
 
 treechildren::-moz-tree-image(junkStatusCol, junk) {
   list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
-  margin-right: -1px;
+  -moz-margin-end: -1px;
 }
 
 treechildren::-moz-tree-image(junkStatusCol, notjunk) {
   list-style-image: url("chrome://messenger/skin/icons/readmail.png");
-  padding-left: 0px;
-  padding-right: 4px;
+  -moz-padding-start: 0px;
+  -moz-padding-end: 4px;
 }
 
 /* ..... subject column ..... */
@@ -352,8 +355,7 @@ treechildren::-moz-tree-row(dummy)  {
   background-repeat: repeat-x;
   background-color: rgb(246, 246, 246);
   border: 1px solid rgb(197, 199, 202);
-  margin-right: 1px;
-  margin-left: 1px;
+  margin: 0 1px;
 }
 
 treechildren::-moz-tree-row(dummy, focus, selected)  {
@@ -361,8 +363,7 @@ treechildren::-moz-tree-row(dummy, focus, selected)  {
   border-color: #3874d1;
   background-image: none !important;
   margin: 0px;
-  padding-right: 1px;
-  padding-left: 1px;
+  padding: 0 1px;
 }
 
 /* ..... message pane adjustments ..... */

@@ -64,7 +64,7 @@
 /* ..... picker button ..... */
 
 #sidebar-panel-picker {
-  margin-right: 1px;
+  -moz-margin-end: 1px;
   margin-top: 1px;
   padding: 2px;
   /** bugzilla 89144 - must be able to access tabs dropdown **/
@@ -81,8 +81,8 @@
 
 #sidebar-panel-picker > .toolbarbutton-menu-dropmarker {
   list-style-image: url("chrome://communicator/skin/sidebar/sbpicker-arrow.gif");
-  padding-right: 2px;
-  padding-left: 2px;
+  -moz-padding-end: 2px;
+  -moz-padding-start: 2px;
 }
 
 /* ..... close button ..... */
@@ -105,7 +105,7 @@
 }
 
 .text-panel-loading[loading="false"] {
-  margin-left: 11px;
+  -moz-margin-start: 11px;
 }
 
 .image-panel-loading {

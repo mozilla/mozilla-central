@@ -88,7 +88,7 @@ div.headerdisplayname {
 .moz-text-plain[graphical-quote="false"] blockquote {
   margin: inherit;
   border-left: inherit;
-  padding-left: inherit;
+  -moz-padding-start: inherit;
 }
 
 .moz-text-plain[graphical-quote="true"] blockquote {

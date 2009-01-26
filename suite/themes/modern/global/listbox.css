@@ -83,7 +83,10 @@ listbox:focus > listitem[selected="true"] {
 }
 
 listcell {
-  padding: 0 0 1px 2px;
+  padding-top: 0px;
+  padding-bottom: 1px;
+  -moz-padding-start: 2px;
+  -moz-padding-end: 0px;
 }
 
 /* ::::: listcell checkbox ::::: */
@@ -129,11 +132,14 @@ listheader[sortable="true"]:hover:active {
   -moz-border-right-colors: #A5ABB0;
   -moz-border-bottom-colors: #A5ABB0;
   -moz-border-left-colors: #A5ABB0 #C7D0D9;
-  padding: 1px 4px 0 5px;
+  padding-top: 1px;
+  padding-bottom: 0px;
+  -moz-padding-start: 5px;
+  -moz-padding-end: 4px;
 }
 
 .listheader-icon {
-  margin-right: 2px;
+  -moz-margin-end: 2px;
 }
 
 .listheader-label {
@@ -158,15 +164,17 @@ listheader[sortable="true"]:hover:active {
 
 .listcell-label {
   margin: 0px !important;
-  padding: 0px 0px 1px 4px;
+  padding-top: 0px;
+  padding-bottom: 1px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 0px;
   white-space: nowrap;
 }
 
 .listcell-icon {
-  margin-right: 2px;
+  -moz-margin-end: 2px;
 }
 
 .listcell-label[disabled="true"] {
   color: #999999;
 }
-

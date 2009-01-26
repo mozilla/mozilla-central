@@ -147,15 +147,14 @@ groupbox {
 tree.list {
   border: 1px inset #CCCCCC;
   /* same as in menulist.css */
-  margin: 1px 5px 2px 5px;
+  margin: 1px 5px 2px;
   /* use rows="#" in XUL to define height */
 }
 
 #ColorPreview {
   border: 1px inset #CCCCCC;
   -moz-margin-start:    10px;
-  padding-left:    5px;
-  padding-right:   5px;
+  padding: 0 5px;
   min-width:     100px;
   min-height:     50px;
 }
@@ -292,7 +291,7 @@ tree.list {
   height     : 52px;
   max-height : 52px;
   min-height : 52px;
-  margin     : 6px 5px 6px 5px;
+  margin     : 6px 5px;
   overflow   : -moz-hidden-unscrollable;
 }
 

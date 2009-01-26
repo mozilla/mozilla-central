@@ -51,7 +51,7 @@
 #calendar-task-details-grid,
 #other-actions-box {
     padding: 0.5em;
-    padding-left: 0;
+    -moz-padding-start: 0;
 }
 
 #calendar-task-details {

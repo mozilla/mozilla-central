@@ -49,7 +49,7 @@
 /* ::::: msg header toolbars ::::: */
 #collapsedHeaderView {
   min-width: 1px;
-  margin-left: 0.5em;
+  -moz-margin-start: 0.5em;
   color: black;
   font-size: 110%;
   padding-bottom: 0.5em;
@@ -124,7 +124,7 @@
 }
 
 #collapsedsubjectValue {
-  margin-left: 3px !important;
+  -moz-margin-start: 3px !important;
   -moz-box-align: stretch;
   font-weight: bold;
 }
@@ -132,7 +132,7 @@
 #collapseddateValue {
   -moz-box-align: stretch;
   text-align: right;
-  padding-right: 0.5em !important;
+  -moz-padding-end: 0.5em !important;
 }
 
 #showDetailsButton {
@@ -159,7 +159,10 @@
 /* ::::: expanded header pane ::::: */
 
 header-view-button-box {
-  padding: 0.5em 0.5em 0 0;
+  padding-top: .5em;
+  padding-bottom: 0px;
+  -moz-padding-start: 0px;
+  -moz-padding-end: .5em;
 }
 
 #expandedfromBox {
@@ -197,7 +200,7 @@ description {
 descriptionitem
 {
   padding: 0px;
-  margin: 1px 1px 1px 1px;
+  margin: 1px;
   text-decoration: underline;
   color: blue;
   border: none !important;
@@ -239,7 +242,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   background-color: #E6E6E6;
   border: 1px solid #C8C8C8;
   -moz-border-radius: 7px;
-  margin: 0px 6px 6px 6px;
+  margin: 0px 6px 6px;
   padding: 4px;  
   min-height: 30px;
 }
@@ -276,11 +279,11 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-appearance: none;
   font-size: 90%;
   color: black;
-  margin: 1px 5px 2px 0;
-  padding-left: 3px;
-  padding-right: 3px;
-  padding-top: 0px;
-  padding-bottom: 0px;
+  margin-top: 1px;
+  margin-bottom: 2px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 5px;
+  padding: 0 3px;
   background-color: rgb(211,215,207);
   border: 2px solid #C0C3C6;
   -moz-border-radius: 4px;
@@ -297,7 +300,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-border-radius: 0px;
   border: 0;
   border-right: 2px solid transparent;
-  padding-right: 0.2em;
+  -moz-padding-end: 0.2em;
   margin: 0;
   -moz-border-top-colors: none;
   -moz-border-right-colors: none;
@@ -353,7 +356,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   background-color: transparent;
   padding: 0px;
   margin-top: 0;
-  margin-right: 0;
+  -moz-margin-end: 0;
 }
 
 
@@ -377,13 +380,13 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
   padding: 0px !important;
   margin: 0px !important;
-  margin-left: 3px !important;
+  -moz-margin-start: 3px !important;
   border: none !important;
   background-color: transparent;
 }
 
 .headerValue[containsEmail="true"] {
-  margin-left: 0px !important;
+  -moz-margin-start: 0px !important;
 }
 
 
@@ -445,22 +448,22 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 .tagvalue {
-  margin-left: 0px;
+  -moz-margin-start: 0px;
   background-image: url("chrome://messenger/skin/tagbg.png");
   color: black;
   -moz-border-radius: 2px;
-  padding-left: 3px;
-  padding-right: 3px;
-  padding-top: 1px;
-  padding-bottom: 1px;
+  padding: 1px 3px;
 }
 
 /* ::::: msg header message ids ::::: */
 
 .messageIdDisplayButton {
   margin: 0;
-  padding: 0 10px 0 0 !important;
-  background-color: transparent;
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  -moz-padding-start: 0px !important;
+  -moz-padding-end: 10px !important;
+  background-color: transparent !important;
   background: url("chrome://messenger/skin/icons/arrow-dn-grey.png") no-repeat center right;
 }
 
@@ -475,8 +478,8 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .emailDisplayButton {
   margin: 0;
-  padding-left: 3px !important;
-  padding-right: 3px !important;
+  -moz-padding-start: 3px !important;
+  -moz-padding-end: 3px !important;
   padding-top: 0.1em;
   padding-bottom: 0.1em;
   margin-bottom: 3px !important;
@@ -554,7 +557,7 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 .emailPopup {
   font-size: inherit;
   max-height: 7px; /* the height of the image */
-  margin: 0.2em 2px 0px 2px; /* 0.2em just to move it off the top of the text */
+  margin: 0.2em 2px 0px; /* 0.2em just to move it off the top of the text */
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-7.png");
 }
 

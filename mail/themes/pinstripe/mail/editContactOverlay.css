@@ -44,7 +44,7 @@
   border: 1px solid rgba(255,255,255,0.15);
   -moz-border-radius: 8px;
   -moz-border-radius-topleft: 0px ;
-  padding: 10px 8px 6px 8px;
+  padding: 10px 8px 6px;
   margin-top: 4px;
   color: #ffffff;
 }
@@ -62,7 +62,10 @@
 #editContactPanelTitle {
   font-size: 130%;
   font-weight: bold;
-  margin: 8px 12px 0px 9px;
+  margin-top: 8px;
+  margin-bottom: 2px;
+  -moz-margin-start: 9px;
+  -moz-margin-end: 12px;
 }
 
 #editContactEmail {

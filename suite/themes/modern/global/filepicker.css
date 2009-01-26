@@ -55,7 +55,7 @@
 /* ::::: file/directory items ::::: */
 
 treechildren::-moz-tree-image(FilenameColumn) {
-  margin-right: 2px;
+  -moz-margin-end: 2px;
 }
 
 treechildren::-moz-tree-image(FilenameColumn, directory) {

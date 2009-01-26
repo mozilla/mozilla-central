@@ -60,8 +60,7 @@
   -moz-border-radius: 10px;
   padding: 3em;
   -moz-padding-start: 30px;
-  margin-left: 1em;
-  margin-right: 1em;
+  margin: 0 1em;
 }
 
 #warningInnerBox
@@ -71,7 +70,7 @@
 
 #warningTitle
 {
-  margin: 0 0 .6em 0;
+  margin: 0 0 .6em;
   font-size: 160%;
   border-bottom: 1px solid #7A8490;
 }
@@ -79,7 +78,7 @@
 #warningText
 {
   font-size: 110%;
-  margin-left: 0;
+  -moz-margin-start: 0;
 }
 
 #warningButton
@@ -97,7 +96,7 @@
   width: 46px;
   height: 39px;
   list-style-image: url("chrome://global/skin/icons/alert-exclam.gif");
-  margin-right: 3em;
+  -moz-margin-end: 3em;
 }
 
 /* ::::: tree rows ::::: */

@@ -57,8 +57,7 @@ hr {
 div#outside {
  text-align: justify;
  width: 90%;
- margin-left: 5%;
- margin-right: 5%;
+ margin: 0 5%;
 }
 
 div#plugs {
@@ -88,7 +87,7 @@ div.plugname {
 }
 
 dl {
-  margin: 0px 0px 3px 0px;
+  margin: 0px 0px 3px;
 }
 
 table {

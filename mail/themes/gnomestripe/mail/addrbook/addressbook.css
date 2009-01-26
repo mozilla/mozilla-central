@@ -323,8 +323,7 @@ treechildren::-moz-tree-image(GeneratedName, MailList) {
 #CardViewInnerBox {
   margin-top: 2px;
   margin-bottom: 2px;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding: 0 8px;
 }
 
 #CardTitle {

@@ -43,7 +43,7 @@
 
 #multi-results-header {
   border-bottom: 1px outset #587B98;
-  padding: 5px 6px 5px 6px;
+  padding: 5px 6px;
   background-color: #587B98;
   color: #ffffff;; 
   font-weight: bold;
@@ -51,6 +51,6 @@
 
 #engineTabs {
   border-bottom: 1px outset #D7D9E0;
-  padding: 2px 3px 2px 3px;
+  padding: 2px 3px;
 }
 

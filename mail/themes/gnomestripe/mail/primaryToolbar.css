@@ -532,7 +532,7 @@ toolbar[iconsize="small"] #button-compact[disabled] {
 }
 
 .msgNotificaton-smallText {
-  padding-left: 10px;
+  -moz-padding-start: 10px;
   font-size: 90%;
 }
 

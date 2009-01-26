@@ -61,7 +61,7 @@ radio[pane=paneAdvanced] {
 
 /* File Field Widget */
 filefield {
-  margin: 2px 4px 2px 4px;
+  margin: 2px 4px;
   -moz-appearance: textfield;
 }
 
@@ -92,7 +92,7 @@ filefield[disabled="true"] .fileFieldIcon {
   -moz-appearance: none;
   background-color: transparent;
   border: none;
-  padding: 1px 0px 0px 0px;
+  padding: 1px 0px 0px;
   margin: 0px;
 }
 
@@ -103,11 +103,11 @@ filefield[disabled="true"] .fileFieldIcon {
 }
 
 .contentPane {
-  margin: 9px 8px 5px 8px;
+  margin: 9px 8px 5px;
 }
 
 .actionButtons {
-  margin: 0px 3px 6px 3px !important;
+  margin: 0px 3px 6px !important;
 }
 
 /* Download Actions Manager */

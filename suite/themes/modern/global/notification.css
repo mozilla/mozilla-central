@@ -16,11 +16,14 @@ notification[type="critical"] {
 .messageImage {
   width: 16px;
   height: 16px;
-  margin: 0px 1px 0px 6px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  -moz-margin-start: 6px;
+  -moz-margin-end: 1px;
 }
 
 .messageText {
-  margin-left: 5px;
+  -moz-margin-start: 5px;
 }
 
 .messageButton {

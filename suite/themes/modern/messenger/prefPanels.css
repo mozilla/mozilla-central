@@ -46,13 +46,10 @@
 
 /* ::::: Tags ::::: */
 
-#tagList > listhead
-{
+#tagList > listhead {
   text-align: center;
 }
 
-#tagList > listitem > listcell
-{
-  padding-left:  16px;
-  padding-right: 16px;
+#tagList > listitem > listcell {
+  padding: 0 16px;
 }

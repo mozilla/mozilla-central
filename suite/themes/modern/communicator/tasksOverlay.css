@@ -47,7 +47,7 @@
 #mini-nav {
   list-style-image: url("chrome://communicator/skin/taskbar/taskbar.png");
   -moz-image-region: rect(0 13px 13px 0);
-  margin-right: 2px;
+  -moz-margin-end: 2px;
 }
 
 #mini-nav:hover:active {
@@ -61,7 +61,7 @@
 #mini-mail {
   list-style-image: url("chrome://communicator/skin/taskbar/taskbar.png");
   -moz-image-region: rect(0 34px 13px 13px);
-  margin-left: 1px;
+  -moz-margin-start: 1px;
 }
 
 #mini-mail:hover:active {
@@ -109,7 +109,7 @@
 /* ::::: component bar ::::: */
 
 #component-bar {
-  padding: 1px 3px 0px 3px;
+  padding: 1px 3px 0px;
 }
 
 .taskbutton {

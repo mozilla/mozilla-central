@@ -46,7 +46,7 @@
  */    
 
 treechildren::-moz-tree-image(Name) {
-  margin-right: 2px;
+  -moz-margin-end: 2px;
 }
 
 .bookmark-item,
@@ -98,7 +98,7 @@ treechildren::-moz-tree-image(Name, separator) {
 
 treechildren::-moz-tree-cell-text(Name, separator) {
   color: ThreeDShadow;
-  margin: 0px 5px 0px 5px;
+  margin: 0px 5px;
 }
 
 treechildren::-moz-tree-cell-text(Name, separator, selected, focus) {

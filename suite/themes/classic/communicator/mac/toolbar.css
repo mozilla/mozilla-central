@@ -97,7 +97,7 @@ toolbargrippy[tbgrippy-collapsed="true"] {
 
 toolbargrippy[tbgrippy-collapsed="true"] > .toolbargrippy-texture {
   margin-top: 0;
-  margin-left: 2px;
+  -moz-margin-start: 2px;
   width: 0px;
   height: 6px;
 }

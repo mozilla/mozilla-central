@@ -64,7 +64,7 @@ menulist {
 }
 
 menulist > menupopup > menuitem {
-  padding-right: 2px;
+  -moz-padding-end: 2px;
 }
 
 .small-button {

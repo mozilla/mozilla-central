@@ -42,7 +42,7 @@
 /* ::::: Main Window ::::: */
 
 prefwindow {
-  padding: 7px 5px 5px 5px;
+  padding: 7px 5px 5px;
 }
 
 prefpane,
@@ -78,7 +78,10 @@ filefield[disabled="true"] {
 .fileFieldIcon {
   width: 16px;
   height: 16px;
-  margin: 1px 4px 1px 1px;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  -moz-margin-start: 1px;
+  -moz-margin-end: 4px;
 }
 
 .fileFieldLabel {

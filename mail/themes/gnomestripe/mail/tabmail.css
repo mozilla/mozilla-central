@@ -323,7 +323,7 @@ tabpanels {
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up > .toolbarbutton-icon {
-  margin: 6px 0px 0px 0px;
+  margin: 6px 0px 0px;
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-down-stack {
@@ -400,7 +400,10 @@ tabpanels {
 }
 
 .tabmail-arrowscrollbox > stack > .scrollbutton-down > .toolbarbutton-icon {
-  margin: 6px 0px 0px 1px;
+  margin-top: 6px;
+  margin-bottom: 0px;
+  -moz-margin-start: 1px;
+  -moz-margin-end: 0px;
 }
 
 /**

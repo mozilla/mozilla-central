@@ -65,7 +65,7 @@
 }
 
 #urlColumn {
-  margin-left: 1ex;
+  -moz-margin-start: 1ex;
 }
 
 #alert-image {

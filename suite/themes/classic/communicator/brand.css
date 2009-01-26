@@ -47,7 +47,10 @@
   -moz-user-focus: ignore;
   -moz-box-align: center;
   -moz-box-pack: center;
-  margin: 1px 5px 1px 10px;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  -moz-margin-start: 10px;
+  -moz-margin-end: 5px;
   border: none;
   padding: 1px;
   min-width: 0;

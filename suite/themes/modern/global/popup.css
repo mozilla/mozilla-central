@@ -66,7 +66,7 @@ popup > menu > menupopup {
 tooltip {
   margin-top: 21px;
   border: 1px solid #000000;
-  padding: 2px 3px 2px 3px;
+  padding: 2px 3px;
   max-width: 40em;
   background-color: #FFFFE7;
   color: #000000;
@@ -79,7 +79,10 @@ tooltip {
 
 tooltip[titletip="true"] {
   /* See bug 32157 comment 128
-   * margin: -2px 0px 0px -4px; 
+   * margin-top: -2px;
+   * margin-bottom: 0px;
+   * -moz-margin-start: -4px;
+   * -moz-margin-end: 0px;
    */
   max-width: none;
 }
@@ -96,4 +99,3 @@ menulist > menupopup,
   padding: 0px;
   min-width: 0px;
 }
-   

@@ -87,7 +87,7 @@ textbox {
 }
 
 .filler {
-  padding-right: 22px;
+  -moz-padding-end: 22px;
 }
 
 .ruleactionitem {

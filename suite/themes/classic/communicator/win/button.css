@@ -58,13 +58,19 @@
 .toolbarbutton-1 > .toolbarbutton-menubutton-button,
 .toolbarbutton-1[disabled="true"]:hover:active,
 .toolbarbutton-1[disabled="true"]:hover:active > .toolbarbutton-menubutton-button {
-  padding: 2px 3px 2px 2px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  -moz-padding-start: 2px;
+  -moz-padding-end: 3px;
 }
 
 .toolbarbutton-1:hover:active,
 .toolbarbutton-1[open="true"],
 .toolbarbutton-1:hover:active > .toolbarbutton-menubutton-button {
-  padding: 3px 2px 1px 3px;
+  padding-top: 3px;
+  padding-bottom: 1px;
+  -moz-padding-start: 3px;
+  -moz-padding-end: 2px;
 }
 
 .toolbarbutton-1[type="menu-button"],
@@ -116,12 +122,15 @@ toolbar[labelalign="end"] .toolbarbutton-1 > hbox > vbox {
 }
 
 .button-toolbar:hover:active > .button-box  {
-  padding: 2px 1px 0px 3px;
+  padding-top: 2px;
+  padding-bottom: 0px;
+  -moz-padding-start: 3px;
+  -moz-padding-end: 1px;
 }
 
 .button-toolbar > .button-box > .button-icon,
 .button-toolbar > .button-box > .button-text {
-  margin-right: 2px;
+  -moz-margin-end: 2px;
 }  
 
 .button-toolbar, 
@@ -139,7 +148,7 @@ toolbar[labelalign="end"] .toolbarbutton-1 > hbox > vbox {
   -moz-border-bottom-colors: ThreeDDarkShadow ThreeDShadow;
   -moz-border-left-colors: ThreeDDarkShadow ThreeDHighlight;
 }
-  
+
 .button-toolbar:hover:active {
   -moz-border-top-colors: ThreeDDarkShadow ThreeDShadow;
   -moz-border-right-colors: ThreeDDarkShadow ThreeDHighlight;
@@ -154,7 +163,10 @@ toolbar[labelalign="end"] .toolbarbutton-1 > hbox > vbox {
 }
 
 .taskbutton:hover:active {
-  padding: 2px 0 0 2px;
+  padding-top: 2px;
+  padding-bottom: 0px;
+  -moz-padding-start: 2px;
+  -moz-padding-end: 0px;
 }
 
 /* override winstripe */

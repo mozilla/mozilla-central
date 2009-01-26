@@ -59,7 +59,10 @@ separator.thin {
 /* ::::: rows ::::: */
 
 #acctCentralHeaderRow {
-  padding: 10px 0px 10px 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  -moz-padding-start: 10px;
+  -moz-padding-end: 0px;
   font-size: 180%;
   font-weight: bold;
   color: #000000;
@@ -67,14 +70,14 @@ separator.thin {
 
 .acctCentralRow {
   -moz-binding: url("chrome://communicator/skin/communicatorBindings.xml#row-iconic");
-  margin-left: 10px;
+  -moz-margin-start: 10px;
   font-size: 125%;
   color: #000000;
 }
 
 .row-iconic-icon {
   list-style-image: inherit;
-  margin-right: 10px;
+  -moz-margin-end: 10px;
 }
 
 .acctCentralRowTitleBox {

@@ -60,11 +60,14 @@ button {
 }
 
 .button-icon {
-  margin-left: 2px;
+  -moz-margin-start: 2px;
 }
 
 .button-text {
-  margin: 0px 6px 0px 4px !important;
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+  -moz-margin-start: 4px !important;
+  -moz-margin-end: 6px !important;
   text-align: center;
 }
 
@@ -148,7 +151,10 @@ button[type="menu-button"] {
 }
   
 .button-menubutton-dropmarker[open="true"] {
-  margin: 2px 0px 0px 2px;
+  margin-top: 2px;
+  margin-bottom: 0px;
+  -moz-margin-start: 2px;
+  -moz-margin-end: 0px;
 }
 
 /* ::::: plain buttons ::::: */

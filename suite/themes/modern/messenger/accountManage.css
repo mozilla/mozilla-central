@@ -46,11 +46,11 @@
 /* ::::: account manager :::::: */
 
 .specialFolderPickerGrid {
-  margin-left: 20px;
+  -moz-margin-start: 20px;
 }
 
 .fccReplyFollowsParent {
-  margin-left: 20px;
+  -moz-margin-start: 20px;
 }
 
 .selectForOfflineUseButton {
@@ -58,8 +58,8 @@
 }
 
 .selectForOfflineUseButton > .button-box > .button-icon {
-  margin-left: 4px;
-  margin-right: 4px;
+  -moz-margin-start: 4px;
+  -moz-margin-end: 4px;
 }
 
 treechildren::-moz-tree-cell-text(isDefaultServer-true) {
@@ -69,7 +69,7 @@ treechildren::-moz-tree-cell-text(isDefaultServer-true) {
 /* ::::: SMTP Server Panel :::::: */
 
 .smtpServerListItem {
-  padding-left: 3px;
+  -moz-padding-start: 3px;
 }
 
 #backgroundBox {

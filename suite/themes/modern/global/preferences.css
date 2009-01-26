@@ -48,7 +48,7 @@ prefwindow {
 }
 
 prefwindow[type="child"] {
-  padding: 7px 5px 5px 5px;
+  padding: 7px 5px 5px;
 }
 
 prefpane {
@@ -60,7 +60,7 @@ prefwindow[type="child"] > prefpane {
 }
 
 .prefWindow-dlgbuttons {
-  padding: 0px 5px 5px 5px;
+  padding: 0px 5px 5px;
 }
 
 prefwindow[type="child"] > .prefWindow-dlgbuttons {
@@ -68,8 +68,8 @@ prefwindow[type="child"] > .prefWindow-dlgbuttons {
 }
 
 radio[pane] {
-  margin: 0px 1px 0px 1px;
-  padding: 1px 3px 1px 3px;
+  margin: 0px 1px;
+  padding: 1px 3px;
   min-width: 4.5em;
   background-color: #FFFFFF;
   color: #000000;
@@ -88,7 +88,7 @@ radio[pane]:hover:active {
   border-bottom: 2px solid;
   -moz-border-bottom-colors: #ECEFF2 #2D3B49;
   margin: 0px;
-  padding-left: 10px;
+  -moz-padding-start: 10px;
   background-color: #FFFFFF;
   color: #000000;
 }

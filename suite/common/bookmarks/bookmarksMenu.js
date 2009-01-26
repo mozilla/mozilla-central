@@ -227,7 +227,7 @@ var BookmarksMenu = {
       if (target.localName == "toolbarbutton") {
         // the DROP_BEFORE area excludes the label
         var iconNode = document.getAnonymousElementByAttribute(target, "class", "toolbarbutton-icon");
-        border = parseInt(document.defaultView.getComputedStyle(target,"").getPropertyValue("padding-left")) +
+        border = parseInt(document.defaultView.getComputedStyle(target,"").getPropertyValue("-moz-padding-start")) +
                  parseInt(document.defaultView.getComputedStyle(iconNode     ,"").getPropertyValue("width"));
         border = Math.min(size/5,Math.max(border,4));
       } else

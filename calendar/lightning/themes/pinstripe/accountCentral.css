@@ -36,7 +36,7 @@
 
 #lightning-newCalendar-row > hbox > label {
   background: url(chrome://calendar/skin/cal-icon32.png) no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }

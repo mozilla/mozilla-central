@@ -122,7 +122,10 @@ groupbox {
   border : 2px outset #CCCCCC;
   width: 25px;
   height: 20px;
-  margin: 0px 3px 0px 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 3px;
 }
 
 #ColorPickerSwatch[default="true"] {
@@ -134,28 +137,30 @@ groupbox {
   width: 17px;
   height: 13px; 
   border: 1px inset #CCCCCC;
-  margin: 1px 2px 2px 4px;
+  margin-top: 1px;
+  margin-bottom: 2px;
+  -moz-margin-start: 4px;
+  -moz-margin-end: 2px;
 }
 
 /* temporary -- we need a simple box-based list defined in XBL */
 tree.list {
   border: 1px inset #CCCCCC;
   /* same as in menulist.css */
-  margin: 1px 5px 2px 5px;
+  margin: 1px 5px 2px;
   /* use rows="#" in XUL to define height */
 }
 
 #ColorPreview {
   border: 1px inset #CCCCCC;
-  margin-left:    10px;
-  padding-left:    5px;
-  padding-right:   5px;
+  -moz-margin-start:    10px;
+  padding: 0 5px;
   min-width:     100px;
   min-height:     50px;
 }
 
 #alignTypeSelect,label#alignLabel {
-  margin-left: 5px;
+  -moz-margin-start: 5px;
 }
 
 /* ::::: table properties dialog ::::: */
@@ -207,7 +212,7 @@ tree.list {
 .colorpicker {
   border: 1px outset #CCCCCC;
   /* This should be the same as for textbox */
-  margin-left: 4px;
+  -moz-margin-start: 4px;
   /* For a little extra space between buttons */
   margin-bottom: 2px;
 }
@@ -286,7 +291,7 @@ tree.list {
   height     : 52px;
   max-height : 52px;
   min-height : 52px;
-  margin     : 6px 5px 6px 5px;
+  margin     : 6px 5px;
   overflow   : -moz-hidden-unscrollable;
 }
 

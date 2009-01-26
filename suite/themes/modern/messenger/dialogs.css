@@ -55,7 +55,10 @@ menu.push {
 menu.push:hover:active,
 menu.push[open] {
   border-style: inset;
-  padding: 3px 1px 1px 3px;
+  padding-top: 3px;
+  padding-bottom: 1px;
+  -moz-padding-start: 3px;
+  -moz-padding-end: 1px;
 }
 
 menu.push[disabled="true"],
@@ -69,11 +72,11 @@ menu.push[disabled="true"]:hover:active {
 
 treecell.importsampledata {
   border-left: 3px solid #C2D0D0;
-  padding-left: 10px;
+  -moz-padding-start: 10px;
 }
 
 #fieldList-box {
-  margin: 1.5em 3em 1.5em 3em;
+  margin: 1.5em 3em;
   border: 1px inset white;
   width: 32em;
   height: 300px;
@@ -82,11 +85,14 @@ treecell.importsampledata {
 /* ::::: importDialog.xul ::::: */
 
 #progressStatus {
-  margin: 1em 0px 0px 0px;
+  margin: 1em 0px 0px;
 }
 
 #progressMeter {
-  margin: 1em 2em 2em 1em;
+  margin-top: 1em;
+  margin-bottom: 2em;
+  -moz-margin-start: 1em;
+  -moz-margin-end: 2em;
   width: 26em;
 }
 

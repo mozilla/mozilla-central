@@ -41,9 +41,11 @@
 
 /* ::::: Main Window ::::: */
 
-prefwindow
-{ 
-  padding: 8px 10px 0px 8px;
+prefwindow {
+  padding-top: 8px;
+  padding-bottom: 0px;
+  -moz-padding-start: 8px;
+  -moz-padding-end: 10px;
 }
 
 /* File Field Widget */

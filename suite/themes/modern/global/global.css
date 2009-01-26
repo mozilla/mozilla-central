@@ -72,7 +72,7 @@ prefwindow {
 
 /* deprecated */  
 window.dialog { 
-  padding: 7px 5px 5px 5px;
+  padding: 7px 5px 5px;
 }
 
 /* ::::: alert icons :::::*/
@@ -274,8 +274,7 @@ separator.groove[orient="horizontal"] {
 separator.groove[orient="vertical"] {
   border-left: 1px solid #7A8490;
   border-right: 1px solid #FEFEFE;
-  margin-left: 0.4em;
-  margin-right: 0.4em;
+  margin: 0 .4em;
 }
 
 /* ..... thin groove separators ..... */
@@ -330,7 +329,7 @@ label[disabled="true"] {
 }
 
 .indent {
-  margin-left: 20px;
+  -moz-margin-start: 20px;
 }
 
 .box-padded {
@@ -342,7 +341,7 @@ label[disabled="true"] {
 }
 
 .wizard-box {
-  padding: 20px 44px 10px 44px;
+  padding: 20px 44px 10px;
 }
 
 /* class for text with a 'link' appearance */

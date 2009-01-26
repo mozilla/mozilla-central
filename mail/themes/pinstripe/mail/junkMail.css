@@ -49,5 +49,5 @@
 /* ::::: account manager :::::: */
 
 .specialFolderPickerGrid {
-  margin-left: 20px;
+  -moz-margin-start: 20px;
 }

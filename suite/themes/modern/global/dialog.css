@@ -44,13 +44,13 @@
 /* ::::: dialog ::::: */
 
 dialog { 
-  padding: 7px 5px 5px 5px;
+  padding: 7px 5px 5px;
 }
 
 /* ::::: dialog header ::::: */
 
 dialogheader {
-  margin: 0px 5px 5px 5px;
+  margin: 0px 5px 5px;
   border: 2px solid;
   -moz-border-top-colors: #858B97 #2D3B49;
   -moz-border-right-colors: #ECEFF2 #2D3B49;
@@ -71,13 +71,19 @@ dialogheader {
 
 .header-large {
   -moz-box-orient: vertical;
-  margin: -7px -5px 5px -7px;
+  margin-top: -7px;
+  margin-bottom: 5px;
+  -moz-margin-start: -7px;
+  -moz-margin-end: -5px;
   border-left: none;
   border-right: none;
   border-top: none;
   border-bottom-width: 1px;
   -moz-border-bottom-colors: #000000;
-  padding: 12px 5px 12px 25px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  -moz-padding-start: 25px;
+  -moz-padding-end: 5px;
   background-color: #90A1B3;
   color: #000000;
 }
@@ -88,5 +94,5 @@ dialogheader {
 }
 
 .header-large > .dialogheader-description {
-  margin-left: 12px !important;
+  -moz-margin-start: 12px !important;
 }

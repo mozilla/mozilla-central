@@ -307,7 +307,10 @@ toolbar[iconsize="small"] > #home-button[disabled="true"] {
 
 #window-controls {
   -moz-box-align: center;
-  padding: 0 2px 0 4px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 2px;
   background-color: #A9B2BD;
   border-left: 2px solid;
   -moz-border-left-colors: #B6BEC5 #DDE3E8;
@@ -379,13 +382,19 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 #forward-button > .toolbarbutton-menubutton-stack
     > .toolbarbutton-menubutton-dropmarker
 {
-  margin: 20px 0px 0px 34px;
+  margin-top: 20px;
+  margin-bottom: 0px;
+  -moz-margin-start: 34px;
+  -moz-margin-end: 0px;
 }
 
 #print-button > .toolbarbutton-menubutton-stack
     > .toolbarbutton-menubutton-dropmarker
 {
-  margin: 20px 0px 0px 40px;
+  margin-top: 20px;
+  margin-bottom: 0px;
+  -moz-margin-start: 40px;
+  -moz-margin-end: 0px;
 }
 
 toolbar[mode="icons"] #back-button > .toolbarbutton-menubutton-stack
@@ -393,7 +402,10 @@ toolbar[mode="icons"] #back-button > .toolbarbutton-menubutton-stack
 toolbar[mode="icons"] #forward-button > .toolbarbutton-menubutton-stack
     > .toolbarbutton-menubutton-dropmarker
 {
-  margin: 30px 0px 0px 34px;
+  margin-top: 30px;
+  margin-bottom: 0px;
+  -moz-margin-start: 34px;
+  -moz-margin-end: 0px;
 }
 
 toolbar[iconsize=small] #back-button > .toolbarbutton-menubutton-stack
@@ -403,7 +415,10 @@ toolbar[iconsize=small] #forward-button > .toolbarbutton-menubutton-stack
 toolbar[iconsize=small] #print-button > .toolbarbutton-menubutton-stack
     > .toolbarbutton-menubutton-dropmarker
 {
-  margin: 8px 0px 8px 14px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  -moz-margin-start: 14px;
+  -moz-margin-end: 0px;
 }
 
 toolbar[iconsize=small][mode="icons"] #back-button > .toolbarbutton-menubutton-stack
@@ -413,7 +428,10 @@ toolbar[iconsize=small][mode="icons"] #forward-button > .toolbarbutton-menubutto
 toolbar[iconsize=small][mode="icons"] #print-button > .toolbarbutton-menubutton-stack
     > .toolbarbutton-menubutton-dropmarker
 {
-  margin: 8px 0px 0px 14px;
+  margin-top: 8px;
+  margin-bottom: 0px;
+  -moz-margin-start: 14px;
+  -moz-margin-end: 0px;
 }
 
 /* ::::: nav-bar - the navigator primary toolbar ::::: */
@@ -431,7 +449,10 @@ toolbar[iconsize=small][mode="icons"] #print-button > .toolbarbutton-menubutton-
 
 #nav-bar-inner {
   -moz-box-align: center;
-  margin: 7px 0px 3px 5px;
+  margin-top: 7px;
+  margin-bottom: 3px;
+  -moz-margin-start: 5px;
+  -moz-margin-end: 0px;
   border: 2px solid;
   -moz-border-top-colors: #A2AFBD #EBF4FF;
   -moz-border-right-colors: #D1D9E0 #A2AFBD;
@@ -443,7 +464,10 @@ toolbar[iconsize=small][mode="icons"] #print-button > .toolbarbutton-menubutton-
 }
 
 toolbar[mode="text"] #nav-bar-inner {
-  margin: 2px 0px 2px 5px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  -moz-margin-start: 5px;
+  -moz-margin-end: 0px;
   border: 0px;
 }
 
@@ -456,7 +480,7 @@ toolbar[iconsize="small"] > toolbarpaletteitem > #nav-bar-inner {
 }
 
 toolbar[mode="text"] #nav-bar-inner > #search-button {
-  margin-right: 0px;
+  -moz-margin-end: 0px;
 }
 
 toolbar[mode="text"] #nav-bar-inner > #search-button > .button-box
@@ -476,7 +500,10 @@ toolbar[mode="icons"] #nav-bar-inner > #search-button > .button-box
 /* ::::: urlbar - the url textbox ::::: */
 
 #urlbar {
-  margin: 2px 6px 2px 3px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  -moz-margin-start: 3px;
+  -moz-margin-end: 6px;
   border: 3px solid;
   -moz-border-top-colors: #A2AFBD #000000 #A7BACA;
   -moz-border-right-colors: #D2DAE1 #000000 #768C9F;
@@ -501,7 +528,7 @@ toolbar[mode="icons"] #nav-bar-inner > #search-button > .button-box
 
 #page-proxy-deck {
   cursor: -moz-grab;
-  margin-right: 4px;
+  -moz-margin-end: 4px;
 }
 
 #page-proxy-button {
@@ -520,7 +547,7 @@ toolbar[mode="icons"] #nav-bar-inner > #search-button > .button-box
 /* ::::: autocomplete ::::: */
 
 .autocomplete-treebody::-moz-tree-cell-text(value) {
-  padding-left: 15px;
+  -moz-padding-start: 15px;
 }
 
 .autocomplete-treebody::-moz-tree-cell-text(comment) {
@@ -546,11 +573,14 @@ panel[nomatch="true"] > .autocomplete-search-box {
 }
 
 .autocomplete-search-engine-img {
-  margin-right: 4px;
+  -moz-margin-end: 4px;
 }
 
 .autocomplete-history-dropmarker {
-  margin: 0px 3px 0px 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 3px;
   list-style-image: url("chrome://navigator/skin/toolbar/ubhist-arrow.gif");
 }
 
@@ -562,7 +592,10 @@ panel[nomatch="true"] > .autocomplete-search-box {
 
 #go-button,
 #search-button {
-  margin: 0px 4px 0px 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 4px;
   min-width: 0px;
   font: message-box;
   font-weight: bold;
@@ -576,7 +609,7 @@ panel[nomatch="true"] > .autocomplete-search-box {
 
 #throbber-box {
   background: none; /* override bg used to cover toolbar line */
-  margin: 0px 0px 2px 0px;
+  margin: 0px 0px 2px;
 }
 
 /* ::::: personal toolbar ::::: */

@@ -286,7 +286,10 @@ toolbar[iconsize="small"] > #home-button[disabled="true"] {
 
 #window-controls {
   -moz-box-align: center;
-  padding: 0 2px 0 4px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 2px;
   border-left: 2px solid;
   -moz-border-left-colors: ThreeDHighlight ThreeDShadow;
 }
@@ -381,7 +384,7 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 }
 
 .autocomplete-treebody::-moz-tree-cell-text(value) {
-  padding-left: 15px;
+  -moz-padding-start: 15px;
 }
 
 .autocomplete-search-engine {
@@ -394,14 +397,17 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
 }
 
 .autocomplete-search-engine-img {
-  margin-right: 4px;
+  -moz-margin-end: 4px;
 }
 
 /* ::::: go and searchbuttons ::::: */
 
 #search-button, 
 #go-button {
-  margin: 0px 4px 0px 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 4px;
   min-height: 25px;
   font: message-box;
   font-weight: bold;

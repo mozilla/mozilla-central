@@ -55,46 +55,48 @@ separator {
 separator.thin {
 }
 
-
 /* ::::: rows ::::: */
 
 #acctCentralHeaderRow {
-  padding: 10px 0px 5px 10px;
+  padding-top: 10px;
+  padding-bottom: 5px;
+  -moz-padding-start: 10px;
+  -moz-padding-end: 0px;
   font: menu;
   font-weight: bold;
   font-size: 150%;
   color: #000000;
   margin: 0px;
-  
 }
 
 .acctCentralRow {
   color: #000000;
   height: 48px;
   margin: 0px 20px !important;
-  
-  
 }
 
 .acctCentralRow > hbox {
- margin: 0px 6px;
-padding: 8px 7px;
+  margin: 0px 6px;
+  padding: 8px 7px;
 }
 
 
 .row-iconic-icon {
   list-style-image: inherit;
-  margin-right: 10px;
+  -moz-margin-end: 10px;
 }
 
 .acctCentralRowTitleBox {
   background-color: #E6E6E6;
   border: 1px solid #C8C8C8;
-  margin: 15px 6px 0px 6px;
+  margin: 15px 6px 0px;
   -moz-border-radius-topleft: 7px;
   -moz-border-radius-topright: 7px;
   color: #505050;
-  padding: 4px 4px 2px 8px;
+  padding-top: 4px;
+  padding-bottom: 2px;
+  -moz-padding-start: 8px;
+  -moz-padding-end: 4px;
   font-weight: bold;
   font: menu;
 }
@@ -116,21 +118,21 @@ padding: 8px 7px;
 
 #ReadMessages label {
   background: url("chrome://messenger/skin/accountcentral/mailbox.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }
 
 #ComposeMessage label {
   background: url("chrome://messenger/skin/accountcentral/writemail.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }
 
 #JunkSettingsMail label {
   background: url("chrome://messenger/skin/accountcentral/junk.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
   visibility: visible;
@@ -138,56 +140,56 @@ padding: 8px 7px;
 
 #SubscribeNewsgroups label {
   background: url("chrome://messenger/skin/accountcentral/mailbox.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }
 
 #AccountSettings label {
   background: url("chrome://messenger/skin/accountcentral/accountsettings.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }
 
 #CreateAccount label {
   background: url("chrome://messenger/skin/accountcentral/newaccount.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }
 
 #SearchMessages label {
   background: url("chrome://messenger/skin/accountcentral/search-messages.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }
 
 #CreateFilters label {
   background: url("chrome://messenger/skin/accountcentral/mailbox.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }
 
 #SubscribeImapFolders label {
   background: url("chrome://messenger/skin/accountcentral/folder.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }
 
 #SubscribeRSS label {
   background: url("chrome://messenger/skin/accountcentral/manage-rss.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }
 
 #OfflineSettings label {
   background: url("chrome://messenger/skin/accountcentral/offline.png")  no-repeat !important;
-  padding-left: 50px;
+  -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
 }

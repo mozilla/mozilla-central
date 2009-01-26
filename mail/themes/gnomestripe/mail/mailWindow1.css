@@ -286,8 +286,8 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
 /* ..... folder pane adjustments ..... */
 
 #folderpane-title {
-  padding-left: 12px;
-  padding-right: 8px;
+  -moz-padding-start: 12px;
+  -moz-padding-end: 8px;
 }
 
 .folderview-cycler {

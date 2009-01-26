@@ -167,14 +167,17 @@ treechildren::-moz-tree-image(flaggedCol, flagged) {
 
 .junkStatusHeader {
   list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
-  padding: 0px 4px 0px 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  -moz-padding-start: 0px;
+  -moz-padding-end: 4px;
 }
 
 /* "unknown" now looks like "not junk".  see bug #182386 */
 treechildren::-moz-tree-image(junkStatusCol) {
   list-style-image: url("chrome://messenger/skin/icons/dot.png");
-  padding-left: 0px;
-  padding-right: 4px;
+  -moz-padding-start: 0px;
+  -moz-padding-end: 4px;
 }
 
 treechildren::-moz-tree-image(junkStatusCol, junk) {
@@ -183,14 +186,14 @@ treechildren::-moz-tree-image(junkStatusCol, junk) {
 
 treechildren::-moz-tree-image(junkStatusCol, notjunk) {
   list-style-image: url("chrome://messenger/skin/icons/dot.png");
-  padding-left: 0px;
-  padding-right: 4px;
+  -moz-padding-start: 0px;
+  -moz-padding-end: 4px;
 }
 
 /* ..... subject column ..... */
 
 treechildren::-moz-tree-image(subjectCol) {
-  margin-right: 2px;
+  -moz-margin-end: 2px;
   list-style-image: url("chrome://messenger/skin/icons/message-mail.png");
 }
 

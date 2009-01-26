@@ -62,7 +62,7 @@ toolbar[printpreview="true"] {
   -moz-appearance: none;
   -moz-user-focus: ignore;
   -moz-box-pack: center;
-  margin: 0px 1px 0px 1px !important;
+  margin: 0px 1px !important;
   border: none !important;
   padding: 0px !important;
   min-width: 0;

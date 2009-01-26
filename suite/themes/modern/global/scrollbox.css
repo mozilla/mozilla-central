@@ -46,7 +46,10 @@
 autorepeatbutton {
   -moz-box-align: center;
   -moz-box-pack: center;
-  margin: 1px 2px 2px 1px;
+  margin-top: 1px;
+  margin-bottom: 2px;
+  -moz-margin-start: 1px;
+  -moz-margin-end: 2px;
   border: 1px solid transparent;
   padding: 3px;
 }
@@ -54,7 +57,10 @@ autorepeatbutton {
 autorepeatbutton:hover {
   margin: 1px;
   border: 1px inset #A5B2C2;
-  padding: 4px 3px 3px 4px;
+  padding-top: 4px;
+  padding-bottom: 3px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 3px;
   background-color: #A5B2C2;
 }
 

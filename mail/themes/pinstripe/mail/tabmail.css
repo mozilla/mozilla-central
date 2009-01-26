@@ -321,7 +321,7 @@ tabmail > tabbox > tabpanels {
 }
 
 .tabs-alltabs-box-animate {
-  margin: 1px 0px 0px 0px;
+  margin: 1px 0px 0px;
   width: 25px;
   background-image: url("chrome://messenger/skin/tabs/alltabs-box-overflow-bkgnd-animate.png");
   background-repeat: no-repeat;
@@ -345,7 +345,7 @@ tabmail > tabbox > tabpanels {
 }
 
 .tabs-closebutton {
-  padding-right: 4px;
+  -moz-padding-end: 4px;
   list-style-image: url("chrome://global/skin/icons/closetab.png") !important;
   list-style-image: none;
   border: none;

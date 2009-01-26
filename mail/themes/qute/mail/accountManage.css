@@ -50,7 +50,7 @@
 }
 
 .fccReplyFollowsParent {
-  margin-left: 20px;
+  -moz-margin-start: 20px;
 }
 
 .selectForOfflineUseButton {
@@ -58,8 +58,7 @@
 }
 
 .selectForOfflineUseButton > .button-box > .button-icon {
-  margin-left: 4px;
-  margin-right: 4px;
+  margin: 0 4px;
 }
 
 treechildren::-moz-tree-cell-text(isDefaultServer-true) {

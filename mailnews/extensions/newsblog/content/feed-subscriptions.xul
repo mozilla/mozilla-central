@@ -112,7 +112,7 @@
 
     <hbox id="statusContainerBox" align="center">
       <label id="statusText" class="statusbarpanel-text" crop="right" flex="1"/>
-      <progressmeter id="progressMeter" collapsed="true" class="progressmeter-statusbar" style="margin-right: 5px;" mode="normal" value="0"/>
+      <progressmeter id="progressMeter" collapsed="true" class="progressmeter-statusbar" style="-moz-margin-end: 5px;" mode="normal" value="0"/>
     </hbox>
 
     <hbox align="end">

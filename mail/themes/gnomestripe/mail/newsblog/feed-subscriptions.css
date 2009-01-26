@@ -43,7 +43,7 @@
 }
 
 #contentPane {
-  margin: 9px 8px 5px 8px;
+  margin: 9px 8px 5px;
 }
 
 #subscriptionChildren::-moz-tree-image(folderNameCol) {

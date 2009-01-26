@@ -66,9 +66,9 @@
   text-align: center;
   /* this right margin keeps us from overlapping with the
      close button. It's value should be related to the width
-     of the closeButtonImage 
+     of the closeButtonImage
   */
-  margin-right: 16px;
+  -moz-margin-end: 16px;
 }
 
 #alertTextBox {
@@ -76,13 +76,13 @@
   padding-top: 5px;
 }
 
-.folderSummary-message-row 
+.folderSummary-message-row
 {
   /* This max width ends up dictating the overall width of the alert window
      because it controls how large the preview, subject and sender text can be
      before cropping kicks in */
   max-width: 450px;
-  padding: 0px 5px 0px 5px; 
+  padding: 0px 5px;
 }
 
 .folderSummary-subject {
@@ -94,7 +94,7 @@
 }
 
 .folderSummary-previewText {
-  color: grey; 
+  color: grey;
 }
 
 .folderSummaryMessage:hover > .folderSummary-message-row {
@@ -107,7 +107,7 @@
   -moz-image-region: rect(0px, 16px, 16px, 0px);
   -moz-appearance: none;
   border: none !important;
-  padding: 2px 0px 0px 0px;
+  padding: 2px 0px 0px;
 }
 
 #closeButton > .toolbarbutton-icon {
