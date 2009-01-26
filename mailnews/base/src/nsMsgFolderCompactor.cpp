@@ -907,7 +907,7 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
    if (NS_FAILED(rv))
    {
      PRUint32 resultFlags;
-     msgHdr->AndFlags(~MSG_FLAG_OFFLINE, &resultFlags);
+     msgHdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
    }
   // if this fails, we should clear the offline flag on the source message.
     

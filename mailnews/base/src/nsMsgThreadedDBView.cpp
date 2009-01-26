@@ -106,7 +106,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeV
   {
     for (PRInt32 i = 0; i < m_flags.Length(); i++)
     {
-      if (! (m_flags[i] & MSG_FLAG_READ))
+      if (! (m_flags[i] & nsMsgMessageFlags::Read))
         unreadMsgsInView++;
     }
     if (unreadMessages != unreadMsgsInView)
@@ -202,10 +202,10 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
   for (PRUint32 j = 0; j < m_keys.Length(); j++)
   {
     PRUint32 flags = m_flags[j];
-    if ((flags & (MSG_VIEW_FLAG_HASCHILDREN | MSG_FLAG_ELIDED)) == MSG_VIEW_FLAG_HASCHILDREN)
+    if ((flags & (MSG_VIEW_FLAG_HASCHILDREN | nsMsgMessageFlags::Elided)) == MSG_VIEW_FLAG_HASCHILDREN)
     {
       PRUint32 numExpanded;
-      m_flags[j] = flags | MSG_FLAG_ELIDED;
+      m_flags[j] = flags | nsMsgMessageFlags::Elided;
       ExpandByIndex(j, &numExpanded);
       j += numExpanded;
       if (numExpanded > 0)
@@ -224,7 +224,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
           PRUint32 numChildren;
           pThread->GetNumChildren(&numChildren);
           if (numChildren > 1)
-            m_flags[j] = flags | MSG_VIEW_FLAG_HASCHILDREN | MSG_FLAG_ELIDED;
+            m_flags[j] = flags | MSG_VIEW_FLAG_HASCHILDREN | nsMsgMessageFlags::Elided;
         }
       }
     }
@@ -248,7 +248,7 @@ nsresult nsMsgThreadedDBView::AddKeys(nsMsgKey *pKeys, PRInt32 *pFlags, const ch
     PRInt32 flag = threadFlag;
     
     // skip ignored threads.
-    if ((threadFlag & MSG_FLAG_IGNORED) && !(m_viewFlags & nsMsgViewFlagsType::kShowIgnored))
+    if ((threadFlag & nsMsgMessageFlags::Ignored) && !(m_viewFlags & nsMsgViewFlagsType::kShowIgnored))
       continue;
     
     // skip ignored subthreads
@@ -265,7 +265,7 @@ nsresult nsMsgThreadedDBView::AddKeys(nsMsgKey *pKeys, PRInt32 *pFlags, const ch
     // by default, make threads collapsed, unless we're in only viewing new msgs
     
     if (flag & MSG_VIEW_FLAG_HASCHILDREN)
-      flag |= MSG_FLAG_ELIDED;
+      flag |= nsMsgMessageFlags::Elided;
     // should this be persistent? Doesn't seem to need to be.
     flag |= MSG_VIEW_FLAG_ISTHREAD;
     m_keys.AppendElement(pKeys[i]);
@@ -274,7 +274,7 @@ nsresult nsMsgThreadedDBView::AddKeys(nsMsgKey *pKeys, PRInt32 *pFlags, const ch
     numAdded++;
     // we expand as we build the view, which allows us to insert at the end of the key array,
     // instead of the middle, and is much faster.
-    if ((!(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay) || m_viewFlags & nsMsgViewFlagsType::kExpandAll) && flag & MSG_FLAG_ELIDED)
+    if ((!(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay) || m_viewFlags & nsMsgViewFlagsType::kExpandAll) && flag & nsMsgMessageFlags::Elided)
        ExpandByIndex(m_keys.Length() - 1, NULL);
   }
   return numAdded;
@@ -466,7 +466,7 @@ nsresult nsMsgThreadedDBView::ListThreadIds(nsMsgKey *startMsg, PRBool unreadOnl
         pOutput[numListed] = msgKey;
         pLevels[numListed] = 0;
         // turn off these flags on msg hdr - they belong in thread
-        msgHdr->AndFlags(~(MSG_FLAG_WATCHED), &newMsgFlags);
+        msgHdr->AndFlags(~(nsMsgMessageFlags::Watched), &newMsgFlags);
         AdjustReadFlag(msgHdr, &msgFlags);
         // try adding in MSG_VIEW_FLAG_ISTHREAD flag for unreadonly view.
         pFlags[numListed] = msgFlags | MSG_VIEW_FLAG_ISTHREAD | threadFlags;
@@ -478,7 +478,7 @@ nsresult nsMsgThreadedDBView::ListThreadIds(nsMsgKey *startMsg, PRBool unreadOnl
       else
         NS_ASSERTION(NS_SUCCEEDED(rv) && msgHdr, "couldn't get header for some reason");
     }
-    else if (threadsRemoved < 10 && !(threadFlags & (MSG_FLAG_WATCHED | MSG_FLAG_IGNORED)))
+    else if (threadsRemoved < 10 && !(threadFlags & (nsMsgMessageFlags::Watched | nsMsgMessageFlags::Ignored)))
     {
       // ### remove thread.
       threadsRemoved++;	// don't want to remove all empty threads first time
@@ -518,10 +518,10 @@ void	nsMsgThreadedDBView::OnExtraFlagChanged(nsMsgViewIndex index, PRUint32 extr
       {
         PRUint32 prevFlag = m_prevFlags[prevViewIndex];
         // don't want to change the elided bit, or has children or is thread
-        if (prevFlag & MSG_FLAG_ELIDED)
-          extraFlag |= MSG_FLAG_ELIDED;
+        if (prevFlag & nsMsgMessageFlags::Elided)
+          extraFlag |= nsMsgMessageFlags::Elided;
         else
-          extraFlag &= ~MSG_FLAG_ELIDED;
+          extraFlag &= ~nsMsgMessageFlags::Elided;
         if (prevFlag & MSG_VIEW_FLAG_ISTHREAD)
           extraFlag |= MSG_VIEW_FLAG_ISTHREAD;
         else
@@ -600,7 +600,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
   {
     PRUint32 msgFlags;
     newHdr->GetFlags(&msgFlags);
-    if ((m_viewFlags & nsMsgViewFlagsType::kUnreadOnly) && !ensureListed && (msgFlags & MSG_FLAG_READ))
+    if ((m_viewFlags & nsMsgViewFlagsType::kUnreadOnly) && !ensureListed && (msgFlags & nsMsgMessageFlags::Read))
       return NS_OK;
     // Currently, we only add the header in a threaded view if it's a thread.
     // We used to check if this was the first header in the thread, but that's
@@ -632,10 +632,10 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
         {
           flags |= MSG_VIEW_FLAG_HASCHILDREN | MSG_VIEW_FLAG_ISTHREAD;
           if (!(m_viewFlags & nsMsgViewFlagsType::kUnreadOnly))
-            flags |= MSG_FLAG_ELIDED;
+            flags |= nsMsgMessageFlags::Elided;
           m_flags[threadIndex] = flags;
         }
-        if (!(flags & MSG_FLAG_ELIDED))	// thread is expanded
+        if (!(flags & nsMsgMessageFlags::Elided))	// thread is expanded
         {								// insert child into thread
           // levels of other hdrs may have changed!
           PRUint32	newFlags = msgFlags;
@@ -760,7 +760,7 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   nsAutoTArray<nsMsgKey, 1> preservedSelection;
   SaveAndClearSelection(&preservedKey, preservedSelection);
   PRUint32 saveFlags = m_flags[threadIndex];
-  PRBool threadIsExpanded = !(saveFlags & MSG_FLAG_ELIDED);
+  PRBool threadIsExpanded = !(saveFlags & nsMsgMessageFlags::Elided);
 
   if (threadIsExpanded)
   {
@@ -817,7 +817,7 @@ nsresult nsMsgThreadedDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, n
   nsresult rv = NS_OK;
   PRUint32 threadFlags;
   threadHdr->GetFlags(&threadFlags);
-  if (!(threadFlags & MSG_FLAG_IGNORED))
+  if (!(threadFlags & nsMsgMessageFlags::Ignored))
   {
     PRBool msgKilled;
     msgHdr->GetIsKilled(&msgKilled);
@@ -851,7 +851,7 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
   if (threadHdr)
     threadHdr->GetNumChildren(&numThreadChildren);
   // check if we're the top level msg in the thread, and we're not collapsed.
-  if ((flags & MSG_VIEW_FLAG_ISTHREAD) && !(flags & MSG_FLAG_ELIDED) && (flags & MSG_VIEW_FLAG_HASCHILDREN))
+  if ((flags & MSG_VIEW_FLAG_ISTHREAD) && !(flags & nsMsgMessageFlags::Elided) && (flags & MSG_VIEW_FLAG_HASCHILDREN))
   {
     // fix flags on thread header...Newly promoted message 
     // should have flags set correctly
@@ -890,7 +890,7 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
         if (threadIndex != nsMsgViewIndex_None)
         {
           PRUint32 flags = m_flags[threadIndex];
-          flags &= ~(MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED | MSG_VIEW_FLAG_HASCHILDREN);
+          flags &= ~(MSG_VIEW_FLAG_ISTHREAD | nsMsgMessageFlags::Elided | MSG_VIEW_FLAG_HASCHILDREN);
           m_flags[threadIndex] = flags;
           NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
         }
@@ -923,14 +923,14 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
         // adjust flags.
       {
         flag &=  ~MSG_VIEW_FLAG_HASCHILDREN;
-        flag &= ~MSG_FLAG_ELIDED;
+        flag &= ~nsMsgMessageFlags::Elided;
         // tell FE that thread header needs to be repainted.
         NoteChange(index, 1, nsMsgViewNotificationCode::changed);	
       }
       else
       {
         flag |= MSG_VIEW_FLAG_HASCHILDREN;
-        flag |= MSG_FLAG_ELIDED;
+        flag |= nsMsgMessageFlags::Elided;
       }
       m_flags[index] = flag;
       mIndicesToNoteChange.RemoveElement(index);

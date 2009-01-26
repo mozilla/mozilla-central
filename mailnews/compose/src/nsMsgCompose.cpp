@@ -1991,7 +1991,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             PRUint32 flags;
 
             msgHdr->GetFlags(&flags);
-            if (flags & MSG_FLAG_HAS_RE)
+            if (flags & nsMsgMessageFlags::HasRe)
               subject.Insert(NS_LITERAL_STRING("Re: "), 0);
 
             // Setup quoting callbacks for later...

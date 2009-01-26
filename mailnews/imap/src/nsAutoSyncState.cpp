@@ -275,7 +275,7 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
         // to auto-sync kicks in
         PRUint32 msgFlags = 0;
         qhdr->GetFlags(&msgFlags);
-        if ( msgFlags & MSG_FLAG_OFFLINE )
+        if (msgFlags & nsMsgMessageFlags::Offline)
           continue;
           
         // this check point allows msg strategy function
@@ -366,7 +366,7 @@ NS_IMETHODIMP nsAutoSyncState::ProcessExistingHeaders(PRUint32 aNumOfHdrsToProce
       PRUint32 msgFlags = 0;
       hdr->GetFlags(&msgFlags);
       
-      if (!(msgFlags & MSG_FLAG_OFFLINE))
+      if (!(msgFlags & nsMsgMessageFlags::Offline))
         msgKeys.AppendElement(mExistingHeadersQ[mProcessPointer]);
     }
   }

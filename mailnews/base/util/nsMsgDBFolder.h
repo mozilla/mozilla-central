@@ -158,7 +158,7 @@ protected:
   nsresult EndNewOfflineMessage();
   nsresult CompactOfflineStore(nsIMsgWindow *inWindow, nsIUrlListener *aUrlListener);
   nsresult AutoCompact(nsIMsgWindow *aWindow);
-  // this is a helper routine that ignores whether MSG_FLAG_OFFLINE is set for the folder
+  // this is a helper routine that ignores whether nsMsgMessageFlags::Offline is set for the folder
   nsresult MsgFitsDownloadCriteria(nsMsgKey msgKey, PRBool *result);
   nsresult GetPromptPurgeThreshold(PRBool *aPrompt);
   nsresult GetPurgeThreshold(PRInt32 *aThreshold);
@@ -291,7 +291,7 @@ protected:
   {
     PRUint32 bit;
     nsMsgKeySetU* keys;
-  } mProcessingFlag[MSG_NUMBER_OF_PROCESSING_FLAGS];
+  } mProcessingFlag[nsMsgProcessingFlags::NumberOfFlags];
 };
 
 // This class is a kludge to allow nsMsgKeySet to be used with PRUint32 keys

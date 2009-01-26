@@ -2133,7 +2133,7 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
         if (msgHdr)
         {
           msgHdr->GetFlags(&flags);
-          if (!(flags & MSG_FLAG_IMAP_DELETED))
+          if (!(flags & nsMsgMessageFlags::IMAPDeleted))
           {
             deleteMsgs = PR_TRUE;
             break;
@@ -2854,7 +2854,7 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
   {
     PRUint32 msgFlags;
     newMsgHdr->GetFlags(&msgFlags);
-    if (!(msgFlags & (MSG_FLAG_READ | MSG_FLAG_IMAP_DELETED))) // only fire on unread msgs that haven't been deleted
+    if (!(msgFlags & (nsMsgMessageFlags::Read | nsMsgMessageFlags::IMAPDeleted))) // only fire on unread msgs that haven't been deleted
     {
       PRInt32 duplicateAction = nsIMsgIncomingServer::keepDups;
       if (server)
@@ -2873,7 +2873,7 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
             case nsIMsgIncomingServer::deleteDups:
               {
                 PRUint32 newFlags;
-                newMsgHdr->OrFlags(MSG_FLAG_READ | MSG_FLAG_IMAP_DELETED, &newFlags);
+                newMsgHdr->OrFlags(nsMsgMessageFlags::Read | nsMsgMessageFlags::IMAPDeleted, &newFlags);
                 StoreImapFlags(kImapMsgSeenFlag | kImapMsgDeletedFlag, PR_TRUE,
                                &m_curMsgUid, 1, nsnull);
                 m_msgMovedByFilter = PR_TRUE;
@@ -2896,7 +2896,7 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
             case nsIMsgIncomingServer::markDupsRead:
               {
                 PRUint32 newFlags;
-                newMsgHdr->OrFlags(MSG_FLAG_READ, &newFlags);
+                newMsgHdr->OrFlags(nsMsgMessageFlags::Read, &newFlags);
                 StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, &m_curMsgUid, 1, nsnull);
               }
               break;
@@ -3174,7 +3174,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
 
       msgHdr->GetFlags(&msgFlags);
       msgHdr->GetMessageKey(&msgKey);
-      PRBool isRead = (msgFlags & MSG_FLAG_READ);
+      PRBool isRead = (msgFlags & nsMsgMessageFlags::Read);
       switch (actionType)
       {
         case nsMsgFilterAction::Delete:
@@ -3186,11 +3186,11 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
             rv = GetTrashFolder(getter_AddRefs(mailTrash));
             if (NS_SUCCEEDED(rv) && mailTrash)
               rv = mailTrash->GetURI(actionTargetFolderUri);
-            // msgHdr->OrFlags(MSG_FLAG_READ, &newFlags);  // mark read in trash.
+            // msgHdr->OrFlags(nsMsgMessageFlags::Read, &newFlags);  // mark read in trash.
           }
           else  // (!deleteToTrash)
           {
-            msgHdr->OrFlags(MSG_FLAG_READ | MSG_FLAG_IMAP_DELETED, &newFlags);
+            msgHdr->OrFlags(nsMsgMessageFlags::Read | nsMsgMessageFlags::IMAPDeleted, &newFlags);
             StoreImapFlags(kImapMsgSeenFlag | kImapMsgDeletedFlag, PR_TRUE,
                            &msgKey, 1, nsnull);
             m_msgMovedByFilter = PR_TRUE; // this will prevent us from adding the header to the db.
@@ -3208,10 +3208,10 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
           {
             msgHdr->GetFlags(&msgFlags);
 
-            if (msgFlags & MSG_FLAG_MDN_REPORT_NEEDED && !isRead)
+            if (msgFlags & nsMsgMessageFlags::MDNReportNeeded && !isRead)
             {
-               msgHdr->SetFlags(msgFlags & ~MSG_FLAG_MDN_REPORT_NEEDED);
-               msgHdr->OrFlags(MSG_FLAG_MDN_REPORT_SENT, &newFlags);
+               msgHdr->SetFlags(msgFlags & ~nsMsgMessageFlags::MDNReportNeeded);
+               msgHdr->OrFlags(nsMsgMessageFlags::MDNReportSent, &newFlags);
             }
             nsresult err = MoveIncorporatedMessage(msgHdr, mDatabase, actionTargetFolderUri, filter, msgWindow);
             if (NS_SUCCEEDED(err))
@@ -3232,10 +3232,10 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
             // MDNs and copied messages, but I suspect deep down inside that
             // we probably want to suppress them only on the copies.
             msgHdr->GetFlags(&msgFlags);
-            if (msgFlags & MSG_FLAG_MDN_REPORT_NEEDED && !isRead)
+            if (msgFlags & nsMsgMessageFlags::MDNReportNeeded && !isRead)
             {
-               msgHdr->SetFlags(msgFlags & ~MSG_FLAG_MDN_REPORT_NEEDED);
-               msgHdr->OrFlags(MSG_FLAG_MDN_REPORT_SENT, &newFlags);
+               msgHdr->SetFlags(msgFlags & ~nsMsgMessageFlags::MDNReportNeeded);
+               msgHdr->OrFlags(nsMsgMessageFlags::MDNReportSent, &newFlags);
             }
 
             nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
@@ -3269,13 +3269,13 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         }
         break;
         case nsMsgFilterAction::KillThread:
-          msgHdr->SetUint32Property("ProtoThreadFlags", MSG_FLAG_IGNORED);
+          msgHdr->SetUint32Property("ProtoThreadFlags", nsMsgMessageFlags::Ignored);
           break;
         case nsMsgFilterAction::KillSubthread:
-          msgHdr->OrFlags(MSG_FLAG_IGNORED, &newFlags);
+          msgHdr->OrFlags(nsMsgMessageFlags::Ignored, &newFlags);
           break;
         case nsMsgFilterAction::WatchThread:
-          msgHdr->OrFlags(MSG_FLAG_WATCHED, &newFlags);
+          msgHdr->OrFlags(nsMsgMessageFlags::Watched, &newFlags);
         break;
         case nsMsgFilterAction::ChangePriority:
         {
@@ -3875,7 +3875,9 @@ void nsImapMailFolder::TweakHeaderFlags(nsIImapProtocol* aProtocol, nsIMsgDBHdr 
     if (NS_SUCCEEDED(rv) && foundIt)
     {
       // make a mask and clear these message flags
-      PRUint32 mask = MSG_FLAG_READ | MSG_FLAG_REPLIED | MSG_FLAG_MARKED | MSG_FLAG_IMAP_DELETED | MSG_FLAG_LABELS;
+      PRUint32 mask = nsMsgMessageFlags::Read | nsMsgMessageFlags::Replied |
+                      nsMsgMessageFlags::Marked | nsMsgMessageFlags::IMAPDeleted |
+                      nsMsgMessageFlags::Labels;
       PRUint32 dbHdrFlags;
 
       tweakMe->GetFlags(&dbHdrFlags);
@@ -3884,17 +3886,17 @@ void nsImapMailFolder::TweakHeaderFlags(nsIImapProtocol* aProtocol, nsIMsgDBHdr 
       // set the new value for these flags
       PRUint32 newFlags = 0;
       if (imap_flags & kImapMsgSeenFlag)
-        newFlags |= MSG_FLAG_READ;
+        newFlags |= nsMsgMessageFlags::Read;
       else // if (imap_flags & kImapMsgRecentFlag)
-        newFlags |= MSG_FLAG_NEW;
+        newFlags |= nsMsgMessageFlags::New;
 
       // Okay here is the MDN needed logic (if DNT header seen):
       /* if server support user defined flag:
                     MDNSent flag set => clear kMDNNeeded flag
                     MDNSent flag not set => do nothing, leave kMDNNeeded on
                     else if
-                    not MSG_FLAG_NEW => clear kMDNNeeded flag
-                   MSG_FLAG_NEW => do nothing, leave kMDNNeeded on
+                    not nsMsgMessageFlags::New => clear kMDNNeeded flag
+                   nsMsgMessageFlags::New => do nothing, leave kMDNNeeded on
                */
       PRUint16 userFlags;
       rv = aProtocol->GetSupportedUserFlags(&userFlags);
@@ -3903,20 +3905,20 @@ void nsImapMailFolder::TweakHeaderFlags(nsIImapProtocol* aProtocol, nsIMsgDBHdr 
       {
         if (imap_flags & kImapMsgMDNSentFlag)
         {
-          newFlags |= MSG_FLAG_MDN_REPORT_SENT;
-          if (dbHdrFlags & MSG_FLAG_MDN_REPORT_NEEDED)
-            tweakMe->AndFlags(~MSG_FLAG_MDN_REPORT_NEEDED, &dbHdrFlags);
+          newFlags |= nsMsgMessageFlags::MDNReportSent;
+          if (dbHdrFlags & nsMsgMessageFlags::MDNReportNeeded)
+            tweakMe->AndFlags(~nsMsgMessageFlags::MDNReportNeeded, &dbHdrFlags);
         }
       }
 
       if (imap_flags & kImapMsgAnsweredFlag)
-        newFlags |= MSG_FLAG_REPLIED;
+        newFlags |= nsMsgMessageFlags::Replied;
       if (imap_flags & kImapMsgFlaggedFlag)
-        newFlags |= MSG_FLAG_MARKED;
+        newFlags |= nsMsgMessageFlags::Marked;
       if (imap_flags & kImapMsgDeletedFlag)
-        newFlags |= MSG_FLAG_IMAP_DELETED;
+        newFlags |= nsMsgMessageFlags::IMAPDeleted;
       if (imap_flags & kImapMsgForwardedFlag)
-        newFlags |= MSG_FLAG_FORWARDED;
+        newFlags |= nsMsgMessageFlags::Forwarded;
 
       // db label flags are 0x0E000000 and imap label flags are 0x0E00
       // so we need to shift 16 bits to the left to convert them.
@@ -4190,7 +4192,7 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage, nsIMsgDBHdr 
   else if (keywords.Find("Junk", PR_TRUE /* ignore case */) != -1)
   {
     PRUint32 newFlags;
-    dbHdr->AndFlags(~MSG_FLAG_NEW, &newFlags);
+    dbHdr->AndFlags(~nsMsgMessageFlags::New, &newFlags);
     nsCAutoString msgJunkScore;
     msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_SPAM_SCORE);
     mDatabase->SetStringProperty(uidOfMessage, "junkscore", msgJunkScore.get());
@@ -4392,7 +4394,7 @@ nsresult nsImapMailFolder::GetTrashFolder(nsIMsgFolder **pTrashFolder)
 }
 
 
-// store MSG_FLAG_IMAP_DELETED in the specified mailhdr records
+// store nsMsgMessageFlags::IMAPDeleted in the specified mailhdr records
 void nsImapMailFolder::SetIMAPDeletedFlag(nsIMsgDatabase *mailDB, const nsTArray<nsMsgKey> &msgids, PRBool markDeleted)
 {
   nsresult markStatus = 0;
@@ -6225,7 +6227,7 @@ nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder, nsIMsgDBH
   if (NS_SUCCEEDED(rv))
   {
     PRUint32 resultFlags;
-    destHdr->OrFlags(MSG_FLAG_OFFLINE, &resultFlags);
+    destHdr->OrFlags(nsMsgMessageFlags::Offline, &resultFlags);
     destHdr->SetOfflineMessageSize(messageSize);
   }
   return rv;
@@ -6349,7 +6351,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
               sourceOp->SetOperation(nsIMsgOfflineImapOperation::kMsgMoved);
               sourceOp->SetMsgSize(msgSize);
               newImapFlags = msgFlags & 0x7;
-              if (msgFlags & MSG_FLAG_FORWARDED)
+              if (msgFlags & nsMsgMessageFlags::Forwarded)
                 newImapFlags |=  kImapMsgForwardedFlag;
               sourceOp->SetNewFlags(newImapFlags);
             }
@@ -7265,7 +7267,7 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
           if (message )
           {
             message->GetFlags(&flags);
-            isRead = flags & MSG_FLAG_READ;
+            isRead = flags & nsMsgMessageFlags::Read;
           }
           if (!isRead)
             numUnread++;
@@ -7284,7 +7286,7 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
     if (message )
     {
       message->GetFlags(&flags);
-      isRead = flags & MSG_FLAG_READ;
+      isRead = flags & nsMsgMessageFlags::Read;
     }
     m_copyState->m_unreadCount = (isRead) ? 0 : 1;
   }
@@ -7994,9 +7996,9 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
   PRUint32 processingFlags;
   GetProcessingFlags(msgKey, &processingFlags);
 
-  if (processingFlags & MSG_PROCESSING_FLAG_CLASSIFY_JUNK)
+  if (processingFlags & nsMsgProcessingFlags::ClassifyJunk)
   {
-    AndProcessingFlags(msgKey, ~MSG_PROCESSING_FLAG_CLASSIFY_JUNK);
+    AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::ClassifyJunk);
     nsCString spamFolderURI;
 
     nsCAutoString msgJunkScore;
@@ -8123,10 +8125,10 @@ nsImapMailFolder::OnMessageTraitsClassified(
 
   PRUint32 processingFlags;
   GetProcessingFlags(msgKey, &processingFlags);
-  if (!(processingFlags & MSG_PROCESSING_FLAG_CLASSIFY_TRAITS))
+  if (!(processingFlags & nsMsgProcessingFlags::ClassifyTraits))
     return NS_OK;
 
-  AndProcessingFlags(msgKey, ~MSG_PROCESSING_FLAG_CLASSIFY_TRAITS);
+  AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::ClassifyTraits);
 
   nsCOMPtr<nsIMsgTraitService> traitService;
   traitService = do_GetService("@mozilla.org/msg-trait-service;1", &rv);
@@ -8246,7 +8248,7 @@ NS_IMETHODIMP nsImapMailFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUi
       msgHdr->GetFlags(&msgFlags);
       nsMsgKey msgKey;
       msgHdr->GetMessageKey(&msgKey);
-      if (msgFlags & MSG_FLAG_OFFLINE)
+      if (msgFlags & nsMsgMessageFlags::Offline)
       {
         nsMsgKey messageOffset;
         PRUint32 messageSize;

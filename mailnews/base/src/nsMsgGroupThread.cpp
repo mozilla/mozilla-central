@@ -186,7 +186,7 @@ nsresult nsMsgGroupThread::AddChildFromGroupView(nsIMsgDBHdr *child, nsMsgDBView
   if (msgDate > m_newestMsgDate)
     SetNewestMsgDate(msgDate);
 
-  child->AndFlags(~(MSG_FLAG_WATCHED), &newHdrFlags);
+  child->AndFlags(~(nsMsgMessageFlags::Watched), &newHdrFlags);
   PRUint32 numChildren;
   
   // get the num children before we add the new header.
@@ -196,7 +196,7 @@ nsresult nsMsgGroupThread::AddChildFromGroupView(nsIMsgDBHdr *child, nsMsgDBView
   if (numChildren == 0)
     m_threadRootKey = newHdrKey;
   
-  if (! (newHdrFlags & MSG_FLAG_READ))
+  if (! (newHdrFlags & nsMsgMessageFlags::Read))
     ChangeUnreadChildCount(1);
 
   return AddMsgHdrInDateOrder(child, view);
@@ -272,7 +272,7 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAn
   if (date == m_newestMsgDate)
     SetNewestMsgDate(0);
 
-  if (!(flags & MSG_FLAG_READ))
+  if (!(flags & nsMsgMessageFlags::Read))
     ChangeUnreadChildCount(-1);
   PRBool keyWasFirstKey = (m_keys[0] == key);
   nsresult rv = RemoveChild(key);

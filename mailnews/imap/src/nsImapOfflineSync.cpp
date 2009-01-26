@@ -569,7 +569,7 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
             // first three bits are the same
             msgFlags |= (newImapFlags & 0x07);
             if (newImapFlags & kImapMsgForwardedFlag)
-              msgFlags |= MSG_FLAG_FORWARDED;
+              msgFlags |= nsMsgMessageFlags::Forwarded;
             mailHdr->SetFlags(msgFlags);
             mailHdr->SetMessageSize(msgSize);
           }

@@ -306,7 +306,7 @@ nsMsgCopy::DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = copyService->CopyFileMessage(aDiskFile, dstFolder, aMsgToReplace,
-                                      aIsDraft, MSG_FLAG_READ, EmptyCString(),
+                                      aIsDraft, nsMsgMessageFlags::Read, EmptyCString(),
                                       copyListener, msgWindow);
     // copyListener->mCopyInProgress can only be set when we are in the
     // middle of the shutdown process

@@ -2250,9 +2250,9 @@ nsresult nsMsgLocalMailFolder::WriteStartOfNewMessage()
       PRUint32 dbFlags = 0;
       curSourceMessage->GetFlags(&dbFlags);
 
-      // write out x-mozilla-status, but make sure we don't write out MSG_FLAG_OFFLINE
+      // write out x-mozilla-status, but make sure we don't write out nsMsgMessageFlags::Offline
       PR_snprintf(statusStrBuf, sizeof(statusStrBuf), X_MOZILLA_STATUS_FORMAT MSG_LINEBREAK,
-        dbFlags & ~(MSG_FLAG_RUNTIME_ONLY | MSG_FLAG_OFFLINE) & 0x0000FFFF);
+        dbFlags & ~(nsMsgMessageFlags::RuntimeOnly | nsMsgMessageFlags::Offline) & 0x0000FFFF);
     }
     else
       strcpy(statusStrBuf, "X-Mozilla-Status: 0001" MSG_LINEBREAK);
@@ -2473,7 +2473,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
         PRUint32 newHdrFlags;
         // turn off offline flag - it's not valid for local mail folders.
         if (newHdr)
-          newHdr->AndFlags(~MSG_FLAG_OFFLINE, &newHdrFlags);
+          newHdr->AndFlags(~nsMsgMessageFlags::Offline, &newHdrFlags);
       }
       // we can do undo with the dest folder db, see bug #198909
       //else
@@ -2530,7 +2530,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
           // deal with propagating the new flag on an imap to local folder filter action
           PRUint32 msgFlags;
           mCopyState->m_message->GetFlags(&msgFlags);
-          if (!(msgFlags & MSG_FLAG_READ))
+          if (!(msgFlags & nsMsgMessageFlags::Read))
           {
             nsCOMPtr <nsIMsgFolder> srcFolder;
             mCopyState->m_message->GetFolder(getter_AddRefs(srcFolder));
@@ -2553,7 +2553,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
                   // if the db doesn't have the key, it must be a filtered imap
                   // message, getting moved to a local folder.
                   if (!containsKey)
-                    newHdr->OrFlags(MSG_FLAG_NEW, &msgFlags);
+                    newHdr->OrFlags(nsMsgMessageFlags::New, &msgFlags);
                 }
               }
             }
@@ -2975,7 +2975,7 @@ nsMsgLocalMailFolder::MarkMsgsOnPop3Server(nsIArray *aMessages, PRInt32 aMark)
       }
       // ignore this header if not partial and leaveOnServer not set...
       // or if we can't find the pop3 server.
-      if (!msgPop3Server || (! (flags & MSG_FLAG_PARTIAL) && !leaveOnServer))
+      if (!msgPop3Server || (! (flags & nsMsgMessageFlags::Partial) && !leaveOnServer))
         continue;
       // if marking deleted, ignore header if we're not deleting from
       // server when deleting locally.
@@ -3097,7 +3097,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DownloadMessagesForOffline(nsIArray *aMessag
     {
       PRUint32 flags = 0;
       msgDBHdr->GetFlags(&flags);
-      if (flags & MSG_FLAG_PARTIAL)
+      if (flags & nsMsgMessageFlags::Partial)
         mDownloadMessages->AppendElement(msgDBHdr);
     }
   }
@@ -3505,9 +3505,9 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
   PRUint32 processingFlags;
   GetProcessingFlags(msgKey, &processingFlags);
 
-  if (processingFlags & MSG_PROCESSING_FLAG_CLASSIFY_JUNK)
+  if (processingFlags & nsMsgProcessingFlags::ClassifyJunk)
   {
-    AndProcessingFlags(msgKey, ~MSG_PROCESSING_FLAG_CLASSIFY_JUNK);
+    AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::ClassifyJunk);
 
     nsCAutoString msgJunkScore;
     msgJunkScore.AppendInt(aClassification == nsIJunkMailPlugin::JUNK ?
@@ -3637,10 +3637,10 @@ nsMsgLocalMailFolder::OnMessageTraitsClassified(
 
   PRUint32 processingFlags;
   GetProcessingFlags(msgKey, &processingFlags);
-  if (!(processingFlags & MSG_PROCESSING_FLAG_CLASSIFY_TRAITS))
+  if (!(processingFlags & nsMsgProcessingFlags::ClassifyTraits))
     return NS_OK;
 
-  AndProcessingFlags(msgKey, ~MSG_PROCESSING_FLAG_CLASSIFY_TRAITS);
+  AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::ClassifyTraits);
 
   nsCOMPtr<nsIMsgTraitService> traitService;
   traitService = do_GetService("@mozilla.org/msg-trait-service;1", &rv);

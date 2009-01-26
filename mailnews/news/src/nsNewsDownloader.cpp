@@ -167,7 +167,7 @@ PRBool DownloadNewsArticlesToOfflineStore::GetNextHdrToRetrieve()
     NS_ENSURE_SUCCESS(rv,rv);
     PRUint32 hdrFlags;
     m_newsHeader->GetFlags(&hdrFlags);
-    if (hdrFlags & MSG_FLAG_MARKED)
+    if (hdrFlags & nsMsgMessageFlags::Marked)
     {
       m_newsHeader->GetMessageKey(&m_keyToDownload);
       break;
@@ -295,7 +295,7 @@ NS_IMETHODIMP nsNewsDownloader::OnSearchHit(nsIMsgDBHdr *header, nsIMsgFolder *f
   PRUint32 msgFlags;
   header->GetFlags(&msgFlags);
   // only need to download articles we don't already have...
-  if (! (msgFlags & MSG_FLAG_OFFLINE))
+  if (! (msgFlags & nsMsgMessageFlags::Offline))
   {
     nsMsgKey key;
     header->GetMessageKey(&key);
@@ -588,7 +588,7 @@ nsresult nsMsgDownloadAllNewsgroups::DownloadMsgsForCurrentGroup()
   if (downloadUnreadOnly)
   {
     value->SetAttrib(nsMsgSearchAttrib::MsgStatus);
-    value->SetStatus(MSG_FLAG_READ);
+    value->SetStatus(nsMsgMessageFlags::Read);
     searchSession->AddSearchTerm(nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, value, PR_TRUE, nsnull);
   }
   if (downloadByDate)
@@ -598,7 +598,7 @@ nsresult nsMsgDownloadAllNewsgroups::DownloadMsgsForCurrentGroup()
     searchSession->AddSearchTerm(nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsLessThan, value, nsMsgSearchBooleanOp::BooleanAND, nsnull);
   }
   value->SetAttrib(nsMsgSearchAttrib::MsgStatus);
-  value->SetStatus(MSG_FLAG_OFFLINE);
+  value->SetStatus(nsMsgMessageFlags::Offline);
   searchSession->AddSearchTerm(nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, value, nsMsgSearchBooleanOp::BooleanAND, nsnull);
 
   m_downloaderForGroup->RunSearch(m_currentFolder, db, searchSession);

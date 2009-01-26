@@ -77,13 +77,13 @@ nsresult nsEmlxHelperUtils::ConvertToMozillaStatusFlags(const char *aXMLBufferSt
     return NS_ERROR_FAILURE;
 
   if (emlxMessageFlags & nsEmlxHelperUtils::kRead) 
-    *aMozillaStatusFlags |= MSG_FLAG_READ;
+    *aMozillaStatusFlags |= nsMsgMessageFlags::Read;
   if (emlxMessageFlags & nsEmlxHelperUtils::kForwarded)
-    *aMozillaStatusFlags |= MSG_FLAG_FORWARDED;
+    *aMozillaStatusFlags |= nsMsgMessageFlags::Forwarded;
   if (emlxMessageFlags & nsEmlxHelperUtils::kAnswered)
-    *aMozillaStatusFlags |= MSG_FLAG_REPLIED;
+    *aMozillaStatusFlags |= nsMsgMessageFlags::Replied;
   if (emlxMessageFlags & nsEmlxHelperUtils::kFlagged)
-    *aMozillaStatusFlags |= MSG_FLAG_MARKED;
+    *aMozillaStatusFlags |= nsMsgMessageFlags::Marked;
 
   return NS_OK;
 }

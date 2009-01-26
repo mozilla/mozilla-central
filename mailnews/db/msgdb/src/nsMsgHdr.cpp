@@ -124,7 +124,7 @@ nsresult nsMsgHdr::InitFlags()
   if(!(m_initedValues & FLAGS_INITED))
   {
     err = GetUInt32Column(m_mdb->m_flagsColumnToken, &m_flags);
-    m_flags &= ~MSG_FLAG_NEW; // don't get new flag from MDB
+    m_flags &= ~nsMsgMessageFlags::New; // don't get new flag from MDB
 
     if(NS_SUCCEEDED(err))
       m_initedValues |= FLAGS_INITED;
@@ -203,7 +203,7 @@ NS_IMETHODIMP nsMsgHdr::GetFlags(PRUint32 *result)
   else
     *result = m_flags;
 #ifdef DEBUG_bienvenu
-  NS_ASSERTION(! (*result & (MSG_FLAG_ELIDED)), "shouldn't be set in db");
+  NS_ASSERTION(! (*result & (nsMsgMessageFlags::Elided)), "shouldn't be set in db");
 #endif
   return NS_OK;
 }
@@ -211,12 +211,12 @@ NS_IMETHODIMP nsMsgHdr::GetFlags(PRUint32 *result)
 NS_IMETHODIMP nsMsgHdr::SetFlags(PRUint32 flags)
 {
 #ifdef DEBUG_bienvenu
-  NS_ASSERTION(! (flags & (MSG_FLAG_ELIDED)), "shouldn't set this flag on db");
+  NS_ASSERTION(! (flags & (nsMsgMessageFlags::Elided)), "shouldn't set this flag on db");
 #endif
   m_initedValues |= FLAGS_INITED;
   m_flags = flags;
-  // don't write out MSG_FLAG_NEW to MDB.
-  return SetUInt32Column(m_flags & ~MSG_FLAG_NEW, m_mdb->m_flagsColumnToken);
+  // don't write out nsMsgMessageFlags::New to MDB.
+  return SetUInt32Column(m_flags & ~nsMsgMessageFlags::New, m_mdb->m_flagsColumnToken);
 }
 
 NS_IMETHODIMP nsMsgHdr::OrFlags(PRUint32 flags, PRUint32 *result)
@@ -608,7 +608,7 @@ NS_IMETHODIMP nsMsgHdr::GetMessageOffset(PRUint32 *result)
   // (this will only be true for news and imap messages).
   PRUint32 rawFlags;
   GetRawFlags(&rawFlags);
-  if (rawFlags & MSG_FLAG_OFFLINE)
+  if (rawFlags & nsMsgMessageFlags::Offline)
   {
     return GetUInt32Column(m_mdb->m_offlineMsgOffsetColumnToken, result);
   }
@@ -920,7 +920,7 @@ NS_IMETHODIMP nsMsgHdr::GetIsRead(PRBool *isRead)
   NS_ENSURE_ARG_POINTER(isRead);
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
-  *isRead = m_flags & MSG_FLAG_READ;
+  *isRead = m_flags & nsMsgMessageFlags::Read;
   return NS_OK;
 }
 
@@ -929,7 +929,7 @@ NS_IMETHODIMP nsMsgHdr::GetIsFlagged(PRBool *isFlagged)
   NS_ENSURE_ARG_POINTER(isFlagged);
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
-  *isFlagged = m_flags & MSG_FLAG_MARKED;
+  *isFlagged = m_flags & nsMsgMessageFlags::Marked;
   return NS_OK;
 }
 
@@ -981,7 +981,7 @@ PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
 {
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
-  PRBool isKilled = m_flags & MSG_FLAG_IGNORED;
+  PRBool isKilled = m_flags & nsMsgMessageFlags::Ignored;
 
   if (!isKilled)
   {

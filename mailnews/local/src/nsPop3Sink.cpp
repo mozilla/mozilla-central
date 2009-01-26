@@ -193,7 +193,7 @@ nsPop3Sink::FindPartialMessages(nsILocalFile *folderFile)
     rv = messages->GetNext(getter_AddRefs(aSupport));
     nsCOMPtr<nsIMsgDBHdr> msgDBHdr(do_QueryInterface(aSupport, &rv));
     msgDBHdr->GetFlags(&flags);
-    if (flags & MSG_FLAG_PARTIAL)
+    if (flags & nsMsgMessageFlags::Partial)
     {
       // Open the various streams we need to seek and read from the mailbox
       if (!isOpen)
@@ -864,13 +864,13 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
           {
             PRUint32 newFlags;
             hdr->GetFlags(&newFlags);
-            if (! (newFlags & MSG_FLAG_READ))
+            if (! (newFlags & nsMsgMessageFlags::Read))
             {
               nsCString junkScoreStr;
               (void) hdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
               if (atoi(junkScoreStr.get()) < 50)
               {
-                hdr->OrFlags(MSG_FLAG_NEW, &newFlags);
+                hdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
                 m_newMailParser->m_mailDB->AddToNewList(newMsgPos);
               }
             }

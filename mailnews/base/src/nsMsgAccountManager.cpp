@@ -2443,9 +2443,9 @@ VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBo
     *aStatus = 0;
     if (match)
       *aStatus |= kMatch;
-    if (flags & MSG_FLAG_READ)
+    if (flags & nsMsgMessageFlags::Read)
       *aStatus |= kRead;
-    if (flags & MSG_FLAG_NEW)
+    if (flags & nsMsgMessageFlags::New)
       *aStatus |= kNew;
     return NS_OK;
   }
@@ -2460,8 +2460,10 @@ VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBo
 
   if (match) {
     totalDelta++;
-    if (!(flags & MSG_FLAG_READ)) unreadDelta++;
-    if (flags & MSG_FLAG_NEW) newDelta++;
+    if (!(flags & nsMsgMessageFlags::Read))
+      unreadDelta++;
+    if (flags & nsMsgMessageFlags::New)
+      newDelta++;
   }
 
   if (wasMatch) {
@@ -2533,7 +2535,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrCh
   // Maybe this needs to be handled in the view code...the view could do the same calculation
   // and also keep track of the counts changed. Then, when the view was closed, if it's a virtual
   // folder, it could update the counts for the db.
-  if (oldMatch != newMatch || (oldMatch && (aOldFlags & MSG_FLAG_READ) != (aNewFlags & MSG_FLAG_READ)))
+  if (oldMatch != newMatch || (oldMatch && (aOldFlags & nsMsgMessageFlags::Read) != (aNewFlags & nsMsgMessageFlags::Read)))
   {
     nsCOMPtr <nsIMsgDatabase> virtDatabase;
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
@@ -2556,14 +2558,14 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrCh
     if (oldMatch == newMatch) // read flag changed state
       unreadDelta = (msgHdrIsRead) ? -1 : 1;
     else if (oldMatch) // else header should removed
-      unreadDelta = (aOldFlags & MSG_FLAG_READ) ? 0 : -1;
+      unreadDelta = (aOldFlags & nsMsgMessageFlags::Read) ? 0 : -1;
     else               // header should be added
-      unreadDelta = (aNewFlags & MSG_FLAG_READ) ? 0 : 1;
+      unreadDelta = (aNewFlags & nsMsgMessageFlags::Read) ? 0 : 1;
     if (unreadDelta)
       dbFolderInfo->ChangeNumUnreadMessages(unreadDelta);
     if (totalDelta)
       dbFolderInfo->ChangeNumMessages(totalDelta);
-    if (unreadDelta == -1 && aOldFlags & MSG_FLAG_NEW)
+    if (unreadDelta == -1 && aOldFlags & nsMsgMessageFlags::New)
     {
       PRInt32 numNewMessages;
       m_virtualFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);
@@ -2606,7 +2608,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
     if (!msgHdrIsRead)
       dbFolderInfo->ChangeNumUnreadMessages(-1);
     dbFolderInfo->ChangeNumMessages(-1);
-    if (aFlags & MSG_FLAG_NEW)
+    if (aFlags & nsMsgMessageFlags::New)
     {
       PRInt32 numNewMessages;
       m_virtualFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);
@@ -2648,7 +2650,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrAdded(nsIMsgDBHdr *aNewHdr, nsMs
     aNewHdr->GetFlags(&msgFlags);
     if (!msgHdrIsRead)
       dbFolderInfo->ChangeNumUnreadMessages(1);
-    if (msgFlags & MSG_FLAG_NEW)
+    if (msgFlags & nsMsgMessageFlags::New)
     {
       PRInt32 numNewMessages;
       m_virtualFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);

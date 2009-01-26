@@ -236,10 +236,10 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   if (msgDate > m_newestMsgDate)
     SetNewestMsgDate(msgDate);
 
-  if (newHdrFlags & MSG_FLAG_WATCHED)
-    SetFlags(m_flags | MSG_FLAG_WATCHED);
+  if (newHdrFlags & nsMsgMessageFlags::Watched)
+    SetFlags(m_flags | nsMsgMessageFlags::Watched);
 
-  child->AndFlags(~(MSG_FLAG_WATCHED), &newHdrFlags);
+  child->AndFlags(~(nsMsgMessageFlags::Watched), &newHdrFlags);
   
   // These are threading flags that the child may have set before being added
   // to the database.
@@ -263,7 +263,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   {
     m_mdbTable->AddRow(m_mdbDB->GetEnv(), hdrRow);
     ChangeChildCount(1);
-    if (! (newHdrFlags & MSG_FLAG_READ))
+    if (! (newHdrFlags & nsMsgMessageFlags::Read))
       ChangeUnreadChildCount(1);
   }
   if (inReplyTo)
@@ -359,7 +359,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   // check to see if it starts with Re: - if not, and the first header does start
   // with re, should we make this header the top level header?
   // If it's date is less (or it's ID?), then yes.
-  if (numChildren > 0 && !(newHdrFlags & MSG_FLAG_HAS_RE) && !inReplyTo)
+  if (numChildren > 0 && !(newHdrFlags & nsMsgMessageFlags::HasRe) && !inReplyTo)
   {
     PRTime topLevelHdrDate;
 
@@ -402,7 +402,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   // do this after we've put the new hdr in the thread
   PRBool isKilled;
   child->GetIsKilled(&isKilled);
-  if ((m_flags & MSG_FLAG_IGNORED || isKilled) && m_mdbDB)
+  if ((m_flags & nsMsgMessageFlags::Ignored || isKilled) && m_mdbDB)
     m_mdbDB->MarkHdrRead(child, PR_TRUE, nsnull);
 
 #ifdef DEBUG_bienvenu1
@@ -590,7 +590,7 @@ NS_IMETHODIMP nsMsgThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAnnounc
   if (date == m_newestMsgDate)
     SetNewestMsgDate(0);
 
- if (!(flags & MSG_FLAG_READ))
+ if (!(flags & nsMsgMessageFlags::Read))
     ChangeUnreadChildCount(-1);
   ChangeChildCount(-1);
   return RemoveChild(key);

@@ -333,7 +333,7 @@ nsMsgTxn::CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, P
     if (NS_SUCCEEDED(rv) && message)
     {
       message->GetFlags(&flags);
-      *aResult = (flags & MSG_FLAG_IMAP_DELETED) != 0;
+      *aResult = (flags & nsMsgMessageFlags::IMAPDeleted) != 0;
     }
   }
   return rv;

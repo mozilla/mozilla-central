@@ -199,7 +199,7 @@ NS_IMETHODIMP nsMailDatabase::DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, nsID
 }
 
 // Helper routine - lowest level of flag setting
-PRBool nsMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, MsgFlags flag)
+PRBool nsMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, nsMsgMessageFlagType flag)
 {
   nsIOutputStream *fileStream = nsnull;
   PRBool ret = PR_FALSE;
@@ -244,7 +244,8 @@ int msg_UnHex(char C)
 // As an experiment, try caching the fid in the db as m_folderFile.
 // If this is set, use it but don't return *pFid.
 void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet, 
-							  MsgFlags flag, nsIOutputStream **ppFileStream)
+                                      nsMsgMessageFlagType flag,
+                                      nsIOutputStream **ppFileStream)
 {
   static char buf[50];
   PRInt64 folderStreamPos = 0; //saves the folderStream pos in case we are sharing the stream with other code
@@ -294,7 +295,7 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
           PRUint32 flags;
           PRUint32 bytesWritten;
           (void)mailHdr->GetFlags(&flags);
-          if (!(flags & MSG_FLAG_EXPUNGED))
+          if (!(flags & nsMsgMessageFlags::Expunged))
           {
             int i;
             char *p = buf + X_MOZILLA_STATUS_LEN + 2;
@@ -306,12 +307,12 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
             
             PRUint32 curFlags;
             (void)mailHdr->GetFlags(&curFlags);
-            flags = (flags & MSG_FLAG_QUEUED) |
-              (curFlags & ~MSG_FLAG_RUNTIME_ONLY);
+            flags = (flags & nsMsgMessageFlags::Queued) |
+              (curFlags & ~nsMsgMessageFlags::RuntimeOnly);
           }
           else
           {
-            flags &= ~MSG_FLAG_RUNTIME_ONLY;
+            flags &= ~nsMsgMessageFlags::RuntimeOnly;
           }
           seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, statusPos);
           // We are filing out x-mozilla-status flags here

@@ -136,11 +136,11 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
   if (msgDate > m_newestMsgDate)
     SetNewestMsgDate(msgDate);
 
-  if (newHdrFlags & MSG_FLAG_WATCHED)
-    SetFlags(m_flags | MSG_FLAG_WATCHED);
+  if (newHdrFlags & nsMsgMessageFlags::Watched)
+    SetFlags(m_flags | nsMsgMessageFlags::Watched);
 
   ChangeChildCount(1);
-  if (! (newHdrFlags & MSG_FLAG_READ))
+  if (! (newHdrFlags & nsMsgMessageFlags::Read))
     ChangeUnreadChildCount(1);
 
   if (m_numChildren == 1)
@@ -277,7 +277,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
 //  PRTime newHdrDate;
 //  newHdr->GetDate(&newHdrDate);
 
-//  if (numChildren > 0 && !(newHdrFlags & MSG_FLAG_HAS_RE))
+//  if (numChildren > 0 && !(newHdrFlags & nsMsgMessageFlags::HasRe))
 //  {
 //    PRTime topLevelHdrDate;
 
@@ -347,7 +347,7 @@ NS_IMETHODIMP nsMsgXFViewThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeA
       m_keys.RemoveElementAt(childIndex);
       m_levels.RemoveElementAt(childIndex);
       m_folders.RemoveObjectAt(childIndex);
-      if (!(msgFlags & MSG_FLAG_READ))
+      if (!(msgFlags & nsMsgMessageFlags::Read))
         ChangeUnreadChildCount(-1);
       ChangeChildCount(-1);
       return NS_OK;

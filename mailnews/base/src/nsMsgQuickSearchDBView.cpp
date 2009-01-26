@@ -168,7 +168,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged
 {
   nsresult rv = nsMsgGroupView::OnHdrFlagsChanged(aHdrChanged, aOldFlags, aNewFlags, aInstigator);
 
-  if (m_viewFolder && (aOldFlags & MSG_FLAG_READ) != (aNewFlags & MSG_FLAG_READ))
+  if (m_viewFolder && (aOldFlags & nsMsgMessageFlags::Read) != (aNewFlags & nsMsgMessageFlags::Read))
   {
     // if we're displaying a single folder virtual folder for an imap folder,
     // the search criteria might be on message body, and we might not have the
@@ -200,7 +200,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged
 
             rv = m_viewFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
             NS_ENSURE_SUCCESS(rv, rv);
-            dbFolderInfo->ChangeNumUnreadMessages((aOldFlags & MSG_FLAG_READ) ? 1 : -1);
+            dbFolderInfo->ChangeNumUnreadMessages((aOldFlags & nsMsgMessageFlags::Read) ? 1 : -1);
             m_viewFolder->UpdateSummaryTotals(PR_TRUE); // force update from db.
             virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
           }
@@ -597,7 +597,7 @@ nsresult nsMsgQuickSearchDBView::ExpansionDelta(nsMsgViewIndex index, PRInt32 *e
 
   PRInt32 numChildren = CountExpandedThread(index);
 
-  *expansionDelta = (flags & MSG_FLAG_ELIDED) ? 
+  *expansionDelta = (flags & nsMsgMessageFlags::Elided) ?
                     numChildren - 1 : - (PRInt32) (numChildren - 1);
   return NS_OK;
 }

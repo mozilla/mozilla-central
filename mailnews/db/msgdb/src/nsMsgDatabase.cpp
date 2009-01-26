@@ -1739,7 +1739,7 @@ NS_IMETHODIMP nsMsgDatabase::DeleteHeader(nsIMsgDBHdr *msg, nsIDBChangeListener 
   nsMsgKey key;
   (void)msg->GetMessageKey(&key);
   // only need to do this for mail - will this speed up news expiration?
-  SetHdrFlag(msg, PR_TRUE, MSG_FLAG_EXPUNGED);  // tell mailbox (mail)
+  SetHdrFlag(msg, PR_TRUE, nsMsgMessageFlags::Expunged);  // tell mailbox (mail)
 
   PRBool hdrWasNew = m_newSet.BinaryIndexOf(key) != -1;
   m_newSet.RemoveElement(key);
@@ -1770,7 +1770,7 @@ NS_IMETHODIMP nsMsgDatabase::DeleteHeader(nsIMsgDBHdr *msg, nsIDBChangeListener 
     // If deleted hdr was new, restore the new flag on flags 
     // so saved searches will know to reduce their new msg count.
     if (hdrWasNew)
-      flags |= MSG_FLAG_NEW;
+      flags |= nsMsgMessageFlags::New;
     NotifyHdrDeletedAll(msg, threadParent, flags, instigator); // tell listeners
   }
   //  if (!onlyRemoveFromThread)  // to speed up expiration, try this. But really need to do this in RemoveHeaderFromDB
@@ -1789,8 +1789,8 @@ nsMsgDatabase::UndoDelete(nsIMsgDBHdr *aMsgHdr)
     {
         nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(aMsgHdr);  // closed system, so this is ok
         // force deleted flag, so SetHdrFlag won't bail out because  deleted flag isn't set
-        msgHdr->m_flags |= MSG_FLAG_EXPUNGED;
-        SetHdrFlag(msgHdr, PR_FALSE, MSG_FLAG_EXPUNGED); // clear deleted flag in db
+        msgHdr->m_flags |= nsMsgMessageFlags::Expunged;
+        SetHdrFlag(msgHdr, PR_FALSE, nsMsgMessageFlags::Expunged); // clear deleted flag in db
     }
     return NS_OK;
 }
@@ -1856,11 +1856,11 @@ PRUint32  nsMsgDatabase::GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags)
   nsMsgKey key;
   (void)msgHdr->GetMessageKey(&key);
   if (!m_newSet.IsEmpty() && m_newSet[m_newSet.Length() - 1] == key || m_newSet.BinaryIndexOf(key) != kNotFound)
-    statusFlags |= MSG_FLAG_NEW;
+    statusFlags |= nsMsgMessageFlags::New;
   else
-    statusFlags &= ~MSG_FLAG_NEW;
+    statusFlags &= ~nsMsgMessageFlags::New;
   if (IsHeaderRead(msgHdr, &isRead) == NS_OK && isRead)
-    statusFlags |= MSG_FLAG_READ;
+    statusFlags |= nsMsgMessageFlags::Read;
   return statusFlags;
 }
 
@@ -1873,7 +1873,7 @@ nsresult nsMsgDatabase::IsHeaderRead(nsIMsgDBHdr *msgHdr, PRBool *pRead)
   // can't call GetFlags, because it will be recursive.
   PRUint32 flags;
   hdr->GetRawFlags(&flags);
-  *pRead = (flags & MSG_FLAG_READ) != 0;
+  *pRead = (flags & nsMsgMessageFlags::Read) != 0;
   return NS_OK;
 }
 
@@ -1887,7 +1887,7 @@ NS_IMETHODIMP nsMsgDatabase::IsMarked(nsMsgKey key, PRBool *pMarked)
 
   PRUint32 flags;
   (void)msgHdr->GetFlags(&flags);
-  *pMarked = (flags & MSG_FLAG_MARKED) == MSG_FLAG_MARKED;
+  *pMarked = (flags & nsMsgMessageFlags::Marked) == nsMsgMessageFlags::Marked;
   return rv;
 }
 
@@ -1906,7 +1906,7 @@ NS_IMETHODIMP nsMsgDatabase::IsIgnored(nsMsgKey key, PRBool *pIgnored)
 
   PRUint32 threadFlags;
   threadHdr->GetFlags(&threadFlags);
-  *pIgnored = (threadFlags & MSG_FLAG_IGNORED) ? PR_TRUE : PR_FALSE;
+  *pIgnored = (threadFlags & nsMsgMessageFlags::Ignored) ? PR_TRUE : PR_FALSE;
   return rv;
 }
 
@@ -1922,13 +1922,13 @@ nsresult nsMsgDatabase::HasAttachments(nsMsgKey key, PRBool *pHasThem)
 
   PRUint32 flags;
   (void)msgHdr->GetFlags(&flags);
-  *pHasThem = (flags & MSG_FLAG_ATTACHMENT) ? PR_TRUE : PR_FALSE;
+  *pHasThem = (flags & nsMsgMessageFlags::Attachment) ? PR_TRUE : PR_FALSE;
   return rv;
 }
 
 PRBool nsMsgDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, PRBool bRead)
 {
-  return SetHdrFlag(msgHdr, bRead, MSG_FLAG_READ);
+  return SetHdrFlag(msgHdr, bRead, nsMsgMessageFlags::Read);
 }
 
 nsresult nsMsgDatabase::MarkHdrReadInDB(nsIMsgDBHdr *msgHdr, PRBool bRead,
@@ -1955,7 +1955,7 @@ nsresult nsMsgDatabase::MarkHdrReadInDB(nsIMsgDBHdr *msgHdr, PRBool bRead,
   // the folder counts above, so they will get committed too.
   PRUint32 flags;
   rv = msgHdr->GetFlags(&flags);
-  flags &= ~MSG_FLAG_NEW;
+  flags &= ~nsMsgMessageFlags::New;
   msgHdr->SetFlags(flags);
   if (NS_FAILED(rv)) return rv;
 
@@ -1982,19 +1982,19 @@ NS_IMETHODIMP nsMsgDatabase::MarkRead(nsMsgKey key, PRBool bRead,
 NS_IMETHODIMP nsMsgDatabase::MarkReplied(nsMsgKey key, PRBool bReplied,
                                          nsIDBChangeListener *instigator /* = NULL */)
 {
-  return SetKeyFlag(key, bReplied, MSG_FLAG_REPLIED, instigator);
+  return SetKeyFlag(key, bReplied, nsMsgMessageFlags::Replied, instigator);
 }
 
 NS_IMETHODIMP nsMsgDatabase::MarkForwarded(nsMsgKey key, PRBool bForwarded,
                                            nsIDBChangeListener *instigator /* = NULL */)
 {
-  return SetKeyFlag(key, bForwarded, MSG_FLAG_FORWARDED, instigator);
+  return SetKeyFlag(key, bForwarded, nsMsgMessageFlags::Forwarded, instigator);
 }
 
 NS_IMETHODIMP nsMsgDatabase::MarkHasAttachments(nsMsgKey key, PRBool bHasAttachments,
                                                 nsIDBChangeListener *instigator)
 {
-  return SetKeyFlag(key, bHasAttachments, MSG_FLAG_ATTACHMENT, instigator);
+  return SetKeyFlag(key, bHasAttachments, nsMsgMessageFlags::Attachment, instigator);
 }
 
 NS_IMETHODIMP
@@ -2041,11 +2041,11 @@ nsMsgDatabase::MarkThreadIgnored(nsIMsgThread *thread, nsMsgKey threadKey, PRBoo
   PRUint32 oldThreadFlags = threadFlags; // not quite right, since we probably want msg hdr flags.
   if (bIgnored)
   {
-    threadFlags |= MSG_FLAG_IGNORED;
-    threadFlags &= ~MSG_FLAG_WATCHED;  // ignore is implicit un-watch
+    threadFlags |= nsMsgMessageFlags::Ignored;
+    threadFlags &= ~nsMsgMessageFlags::Watched;  // ignore is implicit un-watch
   }
   else
-    threadFlags &= ~MSG_FLAG_IGNORED;
+    threadFlags &= ~nsMsgMessageFlags::Ignored;
   thread->SetFlags(threadFlags);
 
   nsCOMPtr <nsIMsgDBHdr> msg;
@@ -2062,9 +2062,9 @@ nsMsgDatabase::MarkHeaderKilled(nsIMsgDBHdr *msg, PRBool bIgnored,
   msg->GetFlags(&msgFlags);
   PRUint32 oldFlags = msgFlags;
   if (bIgnored)
-    msgFlags |= MSG_FLAG_IGNORED;
+    msgFlags |= nsMsgMessageFlags::Ignored;
   else
-    msgFlags &= ~MSG_FLAG_IGNORED;
+    msgFlags &= ~nsMsgMessageFlags::Ignored;
   msg->SetFlags(msgFlags);
 
   return NotifyHdrChangeAll(msg, oldFlags, msgFlags, instigator);
@@ -2080,11 +2080,11 @@ nsMsgDatabase::MarkThreadWatched(nsIMsgThread *thread, nsMsgKey threadKey, PRBoo
   PRUint32 oldThreadFlags = threadFlags; // not quite right, since we probably want msg hdr flags.
   if (bWatched)
   {
-    threadFlags |= MSG_FLAG_WATCHED;
-    threadFlags &= ~MSG_FLAG_IGNORED;  // watch is implicit un-ignore
+    threadFlags |= nsMsgMessageFlags::Watched;
+    threadFlags &= ~nsMsgMessageFlags::Ignored;  // watch is implicit un-ignore
   }
   else
-    threadFlags &= ~MSG_FLAG_WATCHED;
+    threadFlags &= ~nsMsgMessageFlags::Watched;
 
   nsCOMPtr <nsIMsgDBHdr> msg;
   GetMsgHdrForKey(threadKey, getter_AddRefs(msg));
@@ -2097,13 +2097,13 @@ nsMsgDatabase::MarkThreadWatched(nsIMsgThread *thread, nsMsgKey threadKey, PRBoo
 NS_IMETHODIMP nsMsgDatabase::MarkMarked(nsMsgKey key, PRBool mark,
                                         nsIDBChangeListener *instigator)
 {
-  return SetKeyFlag(key, mark, MSG_FLAG_MARKED, instigator);
+  return SetKeyFlag(key, mark, nsMsgMessageFlags::Marked, instigator);
 }
 
 NS_IMETHODIMP nsMsgDatabase::MarkOffline(nsMsgKey key, PRBool offline,
                                          nsIDBChangeListener *instigator)
 {
-  return SetKeyFlag(key, offline, MSG_FLAG_OFFLINE, instigator);
+  return SetKeyFlag(key, offline, nsMsgMessageFlags::Offline, instigator);
 }
 
 NS_IMETHODIMP nsMsgDatabase::SetStringProperty(nsMsgKey aKey, const char *aProperty, const char *aValue)
@@ -2198,13 +2198,13 @@ NS_IMETHODIMP nsMsgDatabase::SetLabel(nsMsgKey key, nsMsgLabelValue label)
 NS_IMETHODIMP nsMsgDatabase::MarkImapDeleted(nsMsgKey key, PRBool deleted,
                                              nsIDBChangeListener *instigator)
 {
-  return SetKeyFlag(key, deleted, MSG_FLAG_IMAP_DELETED, instigator);
+  return SetKeyFlag(key, deleted, nsMsgMessageFlags::IMAPDeleted, instigator);
 }
 
 NS_IMETHODIMP nsMsgDatabase::MarkMDNNeeded(nsMsgKey key, PRBool bNeeded,
                                            nsIDBChangeListener *instigator /* = NULL */)
 {
-  return SetKeyFlag(key, bNeeded, MSG_FLAG_MDN_REPORT_NEEDED, instigator);
+  return SetKeyFlag(key, bNeeded, nsMsgMessageFlags::MDNReportNeeded, instigator);
 }
 
 NS_IMETHODIMP nsMsgDatabase::IsMDNNeeded(nsMsgKey key, PRBool *pNeeded)
@@ -2217,7 +2217,7 @@ NS_IMETHODIMP nsMsgDatabase::IsMDNNeeded(nsMsgKey key, PRBool *pNeeded)
 
   PRUint32 flags;
   (void)msgHdr->GetFlags(&flags);
-  *pNeeded = ((flags & MSG_FLAG_MDN_REPORT_NEEDED) == MSG_FLAG_MDN_REPORT_NEEDED);
+  *pNeeded = ((flags & nsMsgMessageFlags::MDNReportNeeded) == nsMsgMessageFlags::MDNReportNeeded);
   return rv;
 }
 
@@ -2225,7 +2225,7 @@ NS_IMETHODIMP nsMsgDatabase::IsMDNNeeded(nsMsgKey key, PRBool *pNeeded)
 nsresult nsMsgDatabase::MarkMDNSent(nsMsgKey key, PRBool bSent,
                                     nsIDBChangeListener *instigator /* = NULL */)
 {
-  return SetKeyFlag(key, bSent, MSG_FLAG_MDN_REPORT_SENT, instigator);
+  return SetKeyFlag(key, bSent, nsMsgMessageFlags::MDNReportSent, instigator);
 }
 
 
@@ -2239,7 +2239,7 @@ nsresult nsMsgDatabase::IsMDNSent(nsMsgKey key, PRBool *pSent)
 
   PRUint32 flags;
   (void)msgHdr->GetFlags(&flags);
-  *pSent = flags & MSG_FLAG_MDN_REPORT_SENT;
+  *pSent = flags & nsMsgMessageFlags::MDNReportSent;
   return rv;
 }
 
@@ -2286,7 +2286,7 @@ nsresult nsMsgDatabase::SetMsgHdrFlag(nsIMsgDBHdr *msgHdr, PRBool set, PRUint32 
 
 // Helper routine - lowest level of flag setting - returns PR_TRUE if flags change,
 // PR_FALSE otherwise.
-PRBool nsMsgDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, MsgFlags flag)
+PRBool nsMsgDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, nsMsgMessageFlagType flag)
 {
   PRUint32 statusFlags;
   (void)msgHdr->GetFlags(&statusFlags);
@@ -2348,14 +2348,14 @@ NS_IMETHODIMP nsMsgDatabase::MarkHdrRead(nsIMsgDBHdr *msgHdr, PRBool bRead,
 NS_IMETHODIMP nsMsgDatabase::MarkHdrReplied(nsIMsgDBHdr *msgHdr, PRBool bReplied,
                          nsIDBChangeListener *instigator)
 {
-  return SetMsgHdrFlag(msgHdr, bReplied, MSG_FLAG_REPLIED, instigator);
+  return SetMsgHdrFlag(msgHdr, bReplied, nsMsgMessageFlags::Replied, instigator);
 }
 
 
 NS_IMETHODIMP nsMsgDatabase::MarkHdrMarked(nsIMsgDBHdr *msgHdr, PRBool mark,
                          nsIDBChangeListener *instigator)
 {
-  return SetMsgHdrFlag(msgHdr, mark, MSG_FLAG_MARKED, instigator);
+  return SetMsgHdrFlag(msgHdr, mark, nsMsgMessageFlags::Marked, instigator);
 }
 
 
@@ -2480,8 +2480,8 @@ NS_IMETHODIMP nsMsgDatabase::ClearNewList(PRBool notify /* = FALSE */)
         PRUint32 flags;
         (void)msgHdr->GetFlags(&flags);
 
-        if ((flags | MSG_FLAG_NEW) != flags)
-          NotifyHdrChangeAll(msgHdr, flags | MSG_FLAG_NEW, flags, nsnull);
+        if ((flags | nsMsgMessageFlags::New) != flags)
+          NotifyHdrChangeAll(msgHdr, flags | nsMsgMessageFlags::New, flags, nsnull);
       }
       if (elementIndex == 0)
         break;
@@ -2638,7 +2638,7 @@ nsresult nsMsgDBEnumerator::PrefetchNext()
     else
       flags = 0;
   }
-  while (mFilter && NS_FAILED(mFilter(mResultHdr, mClosure)) && !(flags & MSG_FLAG_EXPUNGED));
+  while (mFilter && NS_FAILED(mFilter(mResultHdr, mClosure)) && !(flags & nsMsgMessageFlags::Expunged));
 
   if (mResultHdr)
   {
@@ -3018,10 +3018,10 @@ NS_IMETHODIMP nsMsgDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify)
     // use raw flags instead of GetFlags, because GetFlags will
     // pay attention to what's in m_newSet, and this new hdr isn't
     // in m_newSet yet.
-    if (flags & MSG_FLAG_NEW)
+    if (flags & nsMsgMessageFlags::New)
     {
       PRUint32 newFlags;
-      newHdr->AndFlags(~MSG_FLAG_NEW, &newFlags);  // make sure not filed out
+      newHdr->AndFlags(~nsMsgMessageFlags::New, &newFlags);  // make sure not filed out
       AddToNewList(key);
     }
     if (m_dbFolderInfo != NULL)
@@ -3977,7 +3977,7 @@ nsresult nsMsgDatabase::ThreadNewHdr(nsMsgHdr* newHdr, PRBool &newThread)
     // try subject threading if we couldn't find a reference and the subject starts with Re:
     nsCString subject;
     newHdr->GetSubject(getter_Copies(subject));
-    if (ThreadBySubjectWithoutRe() || (newHdrFlags & MSG_FLAG_HAS_RE))
+    if (ThreadBySubjectWithoutRe() || (newHdrFlags & nsMsgMessageFlags::HasRe))
     {
       nsCAutoString cSubject(subject);
       thread = getter_AddRefs(GetThreadForSubject(cSubject));
@@ -4285,7 +4285,7 @@ NS_IMETHODIMP  nsMsgDatabase::RemoveOfflineOp(nsIMsgOfflineImapOperation *op)
 NS_IMETHODIMP nsMsgDatabase::ListAllOfflineMsgs(nsTArray<nsMsgKey> *outputKeys)
 {
   nsCOMPtr <nsISimpleEnumerator> enumerator;
-  PRUint32 flag = MSG_FLAG_OFFLINE;
+  PRUint32 flag = nsMsgMessageFlags::Offline;
   // if we change this routine to return an enumerator that generates the keys
   // one by one, we'll need to somehow make a copy of flag for the enumerator
   // to own, since the enumerator will persist past the life of flag on the stack.
@@ -4708,7 +4708,7 @@ nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
     {
       PRUint32 flags;
       (void)pHeader->GetFlags(&flags);
-      if (flags & MSG_FLAG_MARKED)
+      if (flags & nsMsgMessageFlags::Marked)
         continue;
     }
 
@@ -4782,7 +4782,7 @@ nsresult nsMsgDatabase::PurgeExcessMessages(PRUint32 numHeadersToKeep,
     {
       PRUint32 flags;
       (void)pHeader->GetFlags(&flags);
-      if (flags & MSG_FLAG_MARKED)
+      if (flags & nsMsgMessageFlags::Marked)
         continue;
     }
 

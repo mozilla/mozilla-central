@@ -345,7 +345,7 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   PRUint32 numUnread = 0;
   PRUint32 numTotal = 0;
   for (PRUint32 i = 0; i < m_flags.Length(); i++)
-    if (m_flags[i] & MSG_FLAG_ELIDED)
+    if (m_flags[i] & nsMsgMessageFlags::Elided)
     {
       nsCOMPtr<nsIMsgThread> thread;
       GetThreadContainingIndex(i, getter_AddRefs(thread));
@@ -361,7 +361,7 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
     else
     {
       numTotal++;
-      if (!(m_flags[i] & MSG_FLAG_READ))
+      if (!(m_flags[i] & nsMsgMessageFlags::Read))
         numUnread++;
     }
   dbFolderInfo->SetNumUnreadMessages(numUnread);

@@ -397,7 +397,7 @@ PRInt32 nsMsgMailboxParser::PublishMsgHeader(nsIMsgWindow *msgWindow)
   {
     PRUint32 flags;
     (void)m_newMsgHdr->GetFlags(&flags);
-    if (flags & MSG_FLAG_EXPUNGED)
+    if (flags & nsMsgMessageFlags::Expunged)
     {
       nsCOMPtr<nsIDBFolderInfo> folderInfo;
       m_mailDB->GetDBFolderInfo(getter_AddRefs(folderInfo));
@@ -1178,9 +1178,9 @@ int nsParseMailMessageState::InternSubject (struct message_header *header)
      */
   nsCString modifiedSubject;
   if (NS_MsgStripRE((const char **) &key, &L, getter_Copies(modifiedSubject)))
-    flags |= MSG_FLAG_HAS_RE;
+    flags |= nsMsgMessageFlags::HasRe;
   else
-    flags &= ~MSG_FLAG_HAS_RE;
+    flags &= ~nsMsgMessageFlags::HasRe;
   m_newMsgHdr->SetFlags(flags); // this *does not* update the mozilla-status header in the local folder
 
   //  if (!*key) return 0; /* To catch a subject of "Re:" */
@@ -1275,9 +1275,9 @@ int nsParseMailMessageState::FinalizeHeaders()
         flags = (flags << 4) | msg_UnHex(*s);
       }
       // strip off and remember priority bits.
-      flags &= ~MSG_FLAG_RUNTIME_ONLY;
-      priorityFlags = (nsMsgPriorityValue) ((flags & MSG_FLAG_PRIORITIES) >> 13);
-      flags &= ~MSG_FLAG_PRIORITIES;
+      flags &= ~nsMsgMessageFlags::RuntimeOnly;
+      priorityFlags = (nsMsgPriorityValue) ((flags & nsMsgMessageFlags::Priorities) >> 13);
+      flags &= ~nsMsgMessageFlags::Priorities;
     }
     delta = (m_headerstartpos +
       (mozstatus->value - m_headers.GetBuffer()) -
@@ -1292,7 +1292,7 @@ int nsParseMailMessageState::FinalizeHeaders()
     flags |= flags2;
   }
 
-  if (!(flags & MSG_FLAG_EXPUNGED))  // message was deleted, don't bother creating a hdr.
+  if (!(flags & nsMsgMessageFlags::Expunged))  // message was deleted, don't bother creating a hdr.
   {
     // We'll need the message id first to recover data from the backup database
     nsCAutoString rawMsgId;
@@ -1329,16 +1329,16 @@ int nsParseMailMessageState::FinalizeHeaders()
     {
       PRUint32 origFlags;
       (void)m_newMsgHdr->GetFlags(&origFlags);
-      if (origFlags & MSG_FLAG_HAS_RE)
-        flags |= MSG_FLAG_HAS_RE;
+      if (origFlags & nsMsgMessageFlags::HasRe)
+        flags |= nsMsgMessageFlags::HasRe;
       else
-        flags &= ~MSG_FLAG_HAS_RE;
+        flags &= ~nsMsgMessageFlags::HasRe;
 
-      flags &= ~MSG_FLAG_OFFLINE; // don't keep MSG_FLAG_OFFLINE for local msgs
-      if (mdn_dnt && !(origFlags & MSG_FLAG_READ) &&
-          !(origFlags & MSG_FLAG_MDN_REPORT_SENT) &&
-          !(flags & MSG_FLAG_MDN_REPORT_SENT))
-        flags |= MSG_FLAG_MDN_REPORT_NEEDED;
+      flags &= ~nsMsgMessageFlags::Offline; // don't keep nsMsgMessageFlags::Offline for local msgs
+      if (mdn_dnt && !(origFlags & nsMsgMessageFlags::Read) &&
+          !(origFlags & nsMsgMessageFlags::MDNReportSent) &&
+          !(flags & nsMsgMessageFlags::MDNReportSent))
+        flags |= nsMsgMessageFlags::MDNReportNeeded;
 
       m_newMsgHdr->SetFlags(flags);
       if (priorityFlags != nsMsgPriority::notSet)
@@ -1351,7 +1351,7 @@ int nsParseMailMessageState::FinalizeHeaders()
       // convert the flag values (0xE000000) to label values (0-5)
       if (mozstatus2) // only do this if we have a mozstatus2 header
       {
-        labelFlags = ((flags & MSG_FLAG_LABELS) >> 25);
+        labelFlags = ((flags & nsMsgMessageFlags::Labels) >> 25);
         m_newMsgHdr->SetLabel(labelFlags);
       }
       if (delta < 0xffff)
@@ -1462,14 +1462,14 @@ int nsParseMailMessageState::FinalizeHeaders()
             switch (*s)
             {
             case 'R': case 'r':
-              m_newMsgHdr->SetFlags(msgFlags | MSG_FLAG_READ);
+              m_newMsgHdr->SetFlags(msgFlags | nsMsgMessageFlags::Read);
               break;
             case 'D': case 'd':
-              /* msg->flags |= MSG_FLAG_EXPUNGED;  ### Is this reasonable? */
+              /* msg->flags |= nsMsgMessageFlags::Expunged;  ### Is this reasonable? */
               break;
             case 'N': case 'n':
             case 'U': case 'u':
-              m_newMsgHdr->SetFlags(msgFlags & ~MSG_FLAG_READ);
+              m_newMsgHdr->SetFlags(msgFlags & ~nsMsgMessageFlags::Read);
               break;
             }
           }
@@ -1593,7 +1593,7 @@ int nsParseMailMessageState::FinalizeHeaders()
           if (substring)
           {
             PRUint32 newFlags;
-            m_newMsgHdr->OrFlags(MSG_FLAG_ATTACHMENT, &newFlags);
+            m_newMsgHdr->OrFlags(nsMsgMessageFlags::Attachment, &newFlags);
           }
         }
       }
@@ -1813,8 +1813,8 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
       {
         PRUint32 newFlags, oldFlags;
         m_newMsgHdr->GetFlags(&oldFlags);
-        if (!(oldFlags & MSG_FLAG_READ)) // don't mark read messages as new.
-          m_newMsgHdr->OrFlags(MSG_FLAG_NEW, &newFlags);
+        if (!(oldFlags & nsMsgMessageFlags::Read)) // don't mark read messages as new.
+          m_newMsgHdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
 
         m_mailDB->AddNewHdrToDB(m_newMsgHdr, PR_TRUE);
         nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
@@ -1940,7 +1940,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
           if (NS_SUCCEEDED(rv) && trash)
             rv = trash->GetURI(actionTargetFolderUri);
 
-          msgHdr->OrFlags(MSG_FLAG_READ, &newFlags); // mark read in trash.
+          msgHdr->OrFlags(nsMsgMessageFlags::Read, &newFlags); // mark read in trash.
           msgIsNew = PR_FALSE;
         }
       case nsMsgFilterAction::MoveToFolder:
@@ -2026,13 +2026,13 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         MarkFilteredMessageRead(msgHdr);
         break;
       case nsMsgFilterAction::KillThread:
-        msgHdr->SetUint32Property("ProtoThreadFlags", MSG_FLAG_IGNORED);
+        msgHdr->SetUint32Property("ProtoThreadFlags", nsMsgMessageFlags::Ignored);
         break;
       case nsMsgFilterAction::KillSubthread:
-        msgHdr->OrFlags(MSG_FLAG_IGNORED, &newFlags);
+        msgHdr->OrFlags(nsMsgMessageFlags::Ignored, &newFlags);
         break;
       case nsMsgFilterAction::WatchThread:
-        msgHdr->OrFlags(MSG_FLAG_WATCHED, &newFlags);
+        msgHdr->OrFlags(nsMsgMessageFlags::Watched, &newFlags);
         break;
       case nsMsgFilterAction::MarkFlagged:
         msgHdr->MarkFlagged(PR_TRUE);
@@ -2105,7 +2105,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
 
             // If this is just a header, throw it away. It's useless now
             // that the server copy is being deleted.
-            if (flags & MSG_FLAG_PARTIAL)
+            if (flags & nsMsgMessageFlags::Partial)
             {
               m_msgMovedByFilter = PR_TRUE;
               msgIsNew = PR_FALSE;
@@ -2120,7 +2120,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
           msgHdr->GetFolder(getter_AddRefs(downloadFolder));
           nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(downloadFolder);
           msgHdr->GetFlags(&flags);
-          if (localFolder && (flags & MSG_FLAG_PARTIAL))
+          if (localFolder && (flags & nsMsgMessageFlags::Partial))
           {
             nsCOMPtr<nsIMutableArray> messages = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
             NS_ENSURE_SUCCESS(rv, rv);
@@ -2233,7 +2233,7 @@ int nsParseNewMailState::MarkFilteredMessageRead(nsIMsgDBHdr *msgHdr)
   if (m_mailDB)
     m_mailDB->MarkHdrRead(msgHdr, PR_TRUE, nsnull);
   else
-    msgHdr->OrFlags(MSG_FLAG_READ, &newFlags);
+    msgHdr->OrFlags(nsMsgMessageFlags::Read, &newFlags);
   return 0;
 }
 
@@ -2445,13 +2445,13 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
       // set new byte offset, since the offset in the old file is certainly wrong
       newHdr->SetMessageKey (newMsgPos);
       newHdr->GetFlags(&newFlags);
-      if (! (newFlags & MSG_FLAG_READ))
+      if (! (newFlags & nsMsgMessageFlags::Read))
       {
         nsCString junkScoreStr;
         (void) newHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
         if (atoi(junkScoreStr.get()) == nsIJunkMailPlugin::IS_HAM_SCORE)
         {
-          newHdr->OrFlags(MSG_FLAG_NEW, &newFlags);
+          newHdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
           destMailDB->AddToNewList(newMsgPos);
           movedMsgIsNew = PR_TRUE;
         }

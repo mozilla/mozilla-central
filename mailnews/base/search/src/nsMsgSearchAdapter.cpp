@@ -441,16 +441,16 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
 
       switch (status)
       {
-      case MSG_FLAG_READ:
+      case nsMsgMessageFlags::Read:
         whichMnemonic = op == nsMsgSearchOp::Is ? m_kImapSeen : m_kImapNotSeen;
         break;
-      case MSG_FLAG_REPLIED:
+      case nsMsgMessageFlags::Replied:
         whichMnemonic = op == nsMsgSearchOp::Is ? m_kImapAnswered : m_kImapNotAnswered;
         break;
-      case MSG_FLAG_NEW:
+      case nsMsgMessageFlags::New:
         whichMnemonic = op == nsMsgSearchOp::Is ? m_kImapNew : m_kImapNotNew;
         break;
-      case MSG_FLAG_MARKED:
+      case nsMsgMessageFlags::Marked:
         whichMnemonic = op == nsMsgSearchOp::Is ? m_kImapFlagged : m_kImapNotFlagged;
         break;
       default:

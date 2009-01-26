@@ -569,11 +569,11 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
     /* strip "Re: " */
     nsCString modifiedSubject;
     if (NS_MsgStripRE(&subject, &subjectLen, getter_Copies(modifiedSubject)))
-      (void) newMsgHdr->OrFlags(MSG_FLAG_HAS_RE, &flags);
+      (void) newMsgHdr->OrFlags(nsMsgMessageFlags::HasRe, &flags);
     
     // this will make sure read flags agree with newsrc
-    if (! (flags & MSG_FLAG_READ))
-      rv = newMsgHdr->OrFlags(MSG_FLAG_NEW, &flags);
+    if (! (flags & nsMsgMessageFlags::Read))
+      rv = newMsgHdr->OrFlags(nsMsgMessageFlags::New, &flags);
 
     rv = newMsgHdr->SetSubject(modifiedSubject.IsEmpty() ? subject : modifiedSubject.get());
 
@@ -691,18 +691,18 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         m_newsDB->MarkHdrRead(m_newMsgHdr, PR_TRUE, nsnull);
         break;
       case nsMsgFilterAction::KillThread:
-        m_newMsgHdr->SetUint32Property("ProtoThreadFlags", MSG_FLAG_IGNORED);
+        m_newMsgHdr->SetUint32Property("ProtoThreadFlags", nsMsgMessageFlags::Ignored);
         break;
       case nsMsgFilterAction::KillSubthread:
         {
           PRUint32 newFlags;
-          m_newMsgHdr->OrFlags(MSG_FLAG_IGNORED, &newFlags);
+          m_newMsgHdr->OrFlags(nsMsgMessageFlags::Ignored, &newFlags);
         }
         break;
       case nsMsgFilterAction::WatchThread:
         {
           PRUint32 newFlags;
-          m_newMsgHdr->OrFlags(MSG_FLAG_WATCHED, &newFlags);
+          m_newMsgHdr->OrFlags(nsMsgMessageFlags::Watched, &newFlags);
         }
         break;
       case nsMsgFilterAction::MarkFlagged:
@@ -1091,10 +1091,10 @@ nsNNTPNewsgroupList::AddHeader(const char *header, const char *value)
     nsCString modifiedSubject;
     if (NS_MsgStripRE(&subject, &subjectLen, getter_Copies(modifiedSubject)))
       // this will make sure read flags agree with newsrc
-     (void) m_newMsgHdr->OrFlags(MSG_FLAG_HAS_RE, &flags);
+     (void) m_newMsgHdr->OrFlags(nsMsgMessageFlags::HasRe, &flags);
 
-    if (! (flags & MSG_FLAG_READ))
-      rv = m_newMsgHdr->OrFlags(MSG_FLAG_NEW, &flags);
+    if (! (flags & nsMsgMessageFlags::Read))
+      rv = m_newMsgHdr->OrFlags(nsMsgMessageFlags::New, &flags);
 
     rv = m_newMsgHdr->SetSubject(modifiedSubject.IsEmpty() ? subject :
       modifiedSubject.get());

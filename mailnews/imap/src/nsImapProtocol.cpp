@@ -3633,7 +3633,7 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
           // downloading to a local folder; this new line will also contain the
           // 'authed' flag we are adding here.  (If the message is again
           // uploaded to the server, this flag is lost.)
-          // 0x0200 == MSG_FLAG_SENDER_AUTHED
+          // 0x0200 == nsMsgMessageFlags::SenderAuthed
           HandleMessageDownLoadLine("X-Mozilla-Status: 0200\r\n", PR_FALSE);
       GetServerStateParser().FreeXSenderInfo();
     }
@@ -5504,18 +5504,18 @@ void nsImapProtocol::OnAppendMsgFromFile()
         m_imapMessageSink->GetCurMoveCopyMessageInfo(m_runningUrl, &date,
                                                     getter_Copies(keywords), &msgFlags);
 
-      if (msgFlags & MSG_FLAG_READ)
+      if (msgFlags & nsMsgMessageFlags::Read)
         flagsToSet |= kImapMsgSeenFlag;
-      if (msgFlags & MSG_FLAG_MDN_REPORT_SENT)
+      if (msgFlags & nsMsgMessageFlags::MDNReportSent)
         flagsToSet |= kImapMsgMDNSentFlag;
       // convert msg flag label (0xE000000) to imap flag label (0x0E00)
-      if (msgFlags & MSG_FLAG_LABELS)
-        flagsToSet |= (msgFlags & MSG_FLAG_LABELS) >> 16;
-      if (msgFlags & MSG_FLAG_MARKED)
+      if (msgFlags & nsMsgMessageFlags::Labels)
+        flagsToSet |= (msgFlags & nsMsgMessageFlags::Labels) >> 16;
+      if (msgFlags & nsMsgMessageFlags::Marked)
         flagsToSet |= kImapMsgFlaggedFlag;
-      if (msgFlags & MSG_FLAG_REPLIED)
+      if (msgFlags & nsMsgMessageFlags::Replied)
         flagsToSet |= kImapMsgAnsweredFlag;
-      if (msgFlags & MSG_FLAG_FORWARDED)
+      if (msgFlags & nsMsgMessageFlags::Forwarded)
         flagsToSet |= kImapMsgForwardedFlag;
 
       // If the message copied was a draft, flag it as such

@@ -125,21 +125,21 @@ PRUint16 EudoraTOCEntry::GetMozillaStatusFlags()
       break;
 
     case MS_READ:
-      flags = MSG_FLAG_READ;
+      flags = nsMsgMessageFlags::Read;
       break;
 
     case MS_REPLIED:
-      flags = MSG_FLAG_READ | MSG_FLAG_REPLIED;
+      flags = nsMsgMessageFlags::Read | nsMsgMessageFlags::Replied;
       break;
 
     case MS_FORWARDED:
-      flags = MSG_FLAG_READ | MSG_FLAG_FORWARDED;
+      flags = nsMsgMessageFlags::Read | nsMsgMessageFlags::Forwarded;
       break;
 
     case MS_REDIRECT:
       // Redirect doesn't really mean forwarded, but forwarded
       // seems to be the closest equivalent for now.
-      flags = MSG_FLAG_READ | MSG_FLAG_FORWARDED;
+      flags = nsMsgMessageFlags::Read | nsMsgMessageFlags::Forwarded;
       break;
 
     case MS_UNSENDABLE:
@@ -154,7 +154,7 @@ PRUint16 EudoraTOCEntry::GetMozillaStatusFlags()
       break;
 
     case MS_RECOVERED:
-      flags = MSG_FLAG_READ;
+      flags = nsMsgMessageFlags::Read;
       break;
   }
 
@@ -183,10 +183,10 @@ PRUint32 EudoraTOCEntry::GetMozillaStatus2Flags()
   PRUint32  flags = 0;
 
   if (m_Imflags & IMFLAGS_DELETED)
-    flags |= MSG_FLAG_IMAP_DELETED;
+    flags |= nsMsgMessageFlags::IMAPDeleted;
 
   if (m_Flags & MSF_READ_RECEIPT)
-    flags |= MSG_FLAG_MDN_REPORT_NEEDED;
+    flags |= nsMsgMessageFlags::MDNReportNeeded;
 
   return flags;
 #endif

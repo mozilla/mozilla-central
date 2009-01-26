@@ -289,44 +289,45 @@ nsresult NS_MsgGetStringForOperator(PRInt16 op, const char **string)
 void NS_MsgGetUntranslatedStatusName (uint32 s, nsCString *outName)
 {
   const char *tmpOutName = NULL;
-#define MSG_STATUS_MASK (MSG_FLAG_READ | MSG_FLAG_REPLIED | MSG_FLAG_FORWARDED | MSG_FLAG_NEW | MSG_FLAG_MARKED)
+#define MSG_STATUS_MASK (nsMsgMessageFlags::Read | nsMsgMessageFlags::Replied |\
+  nsMsgMessageFlags::Forwarded | nsMsgMessageFlags::New | nsMsgMessageFlags::Marked)
   PRUint32 maskOut = (s & MSG_STATUS_MASK);
 
   // diddle the flags to pay attention to the most important ones first, if multiple
   // flags are set. Should remove this code from the winfe.
-  if (maskOut & MSG_FLAG_NEW)
-    maskOut = MSG_FLAG_NEW;
-  if ( maskOut & MSG_FLAG_REPLIED &&
-     maskOut & MSG_FLAG_FORWARDED )
-    maskOut = MSG_FLAG_REPLIED|MSG_FLAG_FORWARDED;
-  else if ( maskOut & MSG_FLAG_FORWARDED )
-    maskOut = MSG_FLAG_FORWARDED;
-  else if ( maskOut & MSG_FLAG_REPLIED )
-    maskOut = MSG_FLAG_REPLIED;
+  if (maskOut & nsMsgMessageFlags::New)
+    maskOut = nsMsgMessageFlags::New;
+  if (maskOut & nsMsgMessageFlags::Replied &&
+      maskOut & nsMsgMessageFlags::Forwarded)
+    maskOut = nsMsgMessageFlags::Replied | nsMsgMessageFlags::Forwarded;
+  else if (maskOut & nsMsgMessageFlags::Forwarded)
+    maskOut = nsMsgMessageFlags::Forwarded;
+  else if (maskOut & nsMsgMessageFlags::Replied)
+    maskOut = nsMsgMessageFlags::Replied;
 
   switch (maskOut)
   {
-  case MSG_FLAG_READ:
+  case nsMsgMessageFlags::Read:
     tmpOutName = "read";
     break;
-  case MSG_FLAG_REPLIED:
+  case nsMsgMessageFlags::Replied:
     tmpOutName = "replied";
     break;
-  case MSG_FLAG_FORWARDED:
+  case nsMsgMessageFlags::Forwarded:
     tmpOutName = "forwarded";
     break;
-  case MSG_FLAG_FORWARDED|MSG_FLAG_REPLIED:
+  case nsMsgMessageFlags::Forwarded | nsMsgMessageFlags::Replied:
     tmpOutName = "replied and forwarded";
     break;
-  case MSG_FLAG_NEW:
+  case nsMsgMessageFlags::New:
     tmpOutName = "new";
     break;
-        case MSG_FLAG_MARKED:
-                tmpOutName = "flagged";
-                break;
+  case nsMsgMessageFlags::Marked:
+    tmpOutName = "flagged";
+    break;
   default:
     // This is fine, status may be "unread" for example
-        break;
+    break;
   }
 
   if (tmpOutName)
@@ -337,17 +338,17 @@ void NS_MsgGetUntranslatedStatusName (uint32 s, nsCString *outName)
 PRInt32 NS_MsgGetStatusValueFromName(char *name)
 {
   if (!strcmp("read", name))
-    return MSG_FLAG_READ;
+    return nsMsgMessageFlags::Read;
   if (!strcmp("replied", name))
-    return MSG_FLAG_REPLIED;
+    return nsMsgMessageFlags::Replied;
   if (!strcmp("forwarded", name))
-    return MSG_FLAG_FORWARDED;
+    return nsMsgMessageFlags::Forwarded;
   if (!strcmp("replied and forwarded", name))
-    return MSG_FLAG_FORWARDED|MSG_FLAG_REPLIED;
+    return nsMsgMessageFlags::Forwarded | nsMsgMessageFlags::Replied;
   if (!strcmp("new", name))
-    return MSG_FLAG_NEW;
+    return nsMsgMessageFlags::New;
   if (!strcmp("flagged", name))
-    return MSG_FLAG_MARKED;
+    return nsMsgMessageFlags::Marked;
   return 0;
 }
 
@@ -606,7 +607,7 @@ nsresult nsMsgSearchTerm::ParseValue(char *inStream)
       m_value.u.junkPercent = atoi(inStream);
       break;
     case nsMsgSearchAttrib::HasAttachmentStatus:
-      m_value.u.msgStatus = MSG_FLAG_ATTACHMENT;
+      m_value.u.msgStatus = nsMsgMessageFlags::Attachment;
       break; // this should always be true.
     case nsMsgSearchAttrib::Size:
       m_value.u.size = atoi(inStream);

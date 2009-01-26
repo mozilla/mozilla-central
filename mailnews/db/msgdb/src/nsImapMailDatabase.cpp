@@ -80,8 +80,8 @@ NS_IMETHODIMP	nsImapMailDatabase::SetSummaryValid(PRBool valid)
 }
 
 // IMAP does not set local file flags, override does nothing
-void	nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, PRBool /* bSet */,
-                                              MsgFlags /* flag */, nsIOutputStream ** /* ppFileStream */)
+void nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, PRBool /* bSet */,
+                                          nsMsgMessageFlagType /* flag */, nsIOutputStream ** /* ppFileStream */)
 {
 }
 
@@ -94,7 +94,7 @@ NS_IMETHODIMP nsImapMailDatabase::DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, 
 
 // We override this so we won't try to change the x-mozilla-status flags
 // in the offline store.
-PRBool nsImapMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, MsgFlags flag)
+PRBool nsImapMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, nsMsgMessageFlagType flag)
 {
   return nsMsgDatabase::SetHdrFlag(msgHdr, bSet, flag);
 }
@@ -114,7 +114,7 @@ nsresult nsImapMailDatabase::AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr)
 {
   PRUint32 msgFlags;
   msgHdr->GetFlags(&msgFlags);
-  if (msgFlags & MSG_FLAG_OFFLINE && m_dbFolderInfo)
+  if (msgFlags & nsMsgMessageFlags::Offline && m_dbFolderInfo)
   {
     PRUint32 size = 0;
     (void)msgHdr->GetOfflineMessageSize(&size);

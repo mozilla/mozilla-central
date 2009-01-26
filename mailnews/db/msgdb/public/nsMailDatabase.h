@@ -89,9 +89,9 @@ protected:
   mdb_token       m_offlineOpsRowScopeToken;
   mdb_token       m_offlineOpsTableKindToken;
 
-  virtual PRBool  SetHdrFlag(nsIMsgDBHdr *, PRBool bSet, MsgFlags flag);
+  virtual PRBool  SetHdrFlag(nsIMsgDBHdr *, PRBool bSet, nsMsgMessageFlagType flag);
   virtual void    UpdateFolderFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, 
-                                    MsgFlags flag, nsIOutputStream **ppFileStream);
+                                   nsMsgMessageFlagType flag, nsIOutputStream **ppFileStream);
   virtual void    SetReparse(PRBool reparse);
   
 protected:

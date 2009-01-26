@@ -206,7 +206,7 @@ protected:
   virtual nsresult SetMsgHdrFlag(nsIMsgDBHdr *msgHdr, PRBool set, PRUint32 flag, 
                                  nsIDBChangeListener *instigator);
   
-  virtual PRBool  SetHdrFlag(nsIMsgDBHdr *, PRBool bSet, MsgFlags flag);
+  virtual PRBool  SetHdrFlag(nsIMsgDBHdr *, PRBool bSet, nsMsgMessageFlagType flag);
   virtual PRBool  SetHdrReadFlag(nsIMsgDBHdr *, PRBool pRead);
   virtual PRUint32 GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags);
   // helper function which doesn't involve thread object

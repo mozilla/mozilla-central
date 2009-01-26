@@ -1521,7 +1521,8 @@ nsSaveMsgListener::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
         nsCOMPtr <nsIFile> clone;
         m_file->Clone(getter_AddRefs(clone));
         rv = copyService->CopyFileMessage(clone, templateFolder, nsnull,
-                                          PR_TRUE, MSG_FLAG_READ, EmptyCString(), this, nsnull);
+                                          PR_TRUE, nsMsgMessageFlags::Read,
+                                          EmptyCString(), this, nsnull);
       }
       killSelf = PR_FALSE;
     }

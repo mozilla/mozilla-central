@@ -2909,7 +2909,7 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
            */
         if (m_pop3ConData->truncating_cur_msg)
         { /* TOP, truncated message */
-            flags |= MSG_FLAG_PARTIAL;
+            flags |= nsMsgMessageFlags::Partial;
         }
         else
         {
@@ -2923,7 +2923,7 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
 
         /* RETR complete message */
         if (!m_senderInfo.IsEmpty())
-            flags |= MSG_FLAG_SENDER_AUTHED;
+            flags |= nsMsgMessageFlags::SenderAuthed;
 
         if(m_pop3ConData->cur_msg_size <= 0)
         {

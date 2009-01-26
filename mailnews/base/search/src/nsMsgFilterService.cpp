@@ -707,7 +707,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
               {
                 PRUint32 flags;
                 msgHdr->GetFlags(&flags);
-                if (flags & MSG_FLAG_PARTIAL)
+                if (flags & nsMsgMessageFlags::Partial)
                 {
                   if (!partialMsgs)
                     partialMsgs = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
@@ -736,7 +736,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
               {
                 PRUint32 flags = 0;
                 msgHdr->GetFlags(&flags);
-                if (flags & MSG_FLAG_PARTIAL)
+                if (flags & nsMsgMessageFlags::Partial)
                   messages->AppendElement(msgHdr, PR_FALSE);
               }
             }

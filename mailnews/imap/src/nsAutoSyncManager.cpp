@@ -1051,7 +1051,7 @@ nsAutoSyncManager::DoesMsgFitDownloadCriteria(nsIMsgDBHdr *aMsgHdr, PRBool *aRes
   aMsgHdr->GetFlags(&msgFlags);
   
   // check whether this message is marked imap deleted or not 
-  *aResult = !(msgFlags & MSG_FLAG_IMAP_DELETED);
+  *aResult = !(msgFlags & nsMsgMessageFlags::IMAPDeleted);
   if (!(*aResult))
     return NS_OK;
     

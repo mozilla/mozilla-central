@@ -99,7 +99,7 @@ void nsMsgGroupView::InternalClose()
 
       for (PRUint32 i = 0; i < num; i++)
       {
-        if (m_flags[i] & MSG_VIEW_FLAG_ISTHREAD && ! (m_flags[i] & MSG_FLAG_ELIDED))
+        if (m_flags[i] & MSG_VIEW_FLAG_ISTHREAD && ! (m_flags[i] & nsMsgMessageFlags::Elided))
         {
           nsCOMPtr <nsIMsgDBHdr> msgHdr;
           GetMsgHdrForViewIndex(i, getter_AddRefs(msgHdr));
@@ -252,14 +252,14 @@ nsresult nsMsgGroupView::HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey)
       {
         PRUint32 flags;
         msgHdr->GetFlags(&flags);
-        aHashKey.Assign(flags & MSG_FLAG_ATTACHMENT ? '1' : '0');
+        aHashKey.Assign(flags & nsMsgMessageFlags::Attachment ? '1' : '0');
         break;
       }
     case nsMsgViewSortType::byFlagged:
       {
         PRUint32 flags;
         msgHdr->GetFlags(&flags);
-        aHashKey.Assign(flags & MSG_FLAG_MARKED ? '1' : '0');
+        aHashKey.Assign(flags & nsMsgMessageFlags::Marked ? '1' : '0');
         break;
       }
     case nsMsgViewSortType::byPriority:
@@ -333,7 +333,7 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
     if (insertIndex == nsMsgViewIndex_None)
       insertIndex = m_keys.Length();
     InsertMsgHdrAt(insertIndex, msgHdr, msgKey, 
-                  msgFlags | MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED, 0);
+                  msgFlags | MSG_VIEW_FLAG_ISTHREAD | nsMsgMessageFlags::Elided, 0);
     // if grouped by date, insert dummy header for "age"
     if (GroupViewUsesDummyRow())
     {
@@ -530,12 +530,12 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
     if (threadIndex != nsMsgViewIndex_None)
     {
       if (newThread)
-        m_flags[threadIndex] &= ~MSG_FLAG_ELIDED;
+        m_flags[threadIndex] &= ~nsMsgMessageFlags::Elided;
       else
         m_flags[threadIndex] |= MSG_VIEW_FLAG_HASCHILDREN | MSG_VIEW_FLAG_ISTHREAD;
 
       PRInt32 numRowsToInvalidate = 1;
-      if (! (m_flags[threadIndex] & MSG_FLAG_ELIDED))
+      if (! (m_flags[threadIndex] & nsMsgMessageFlags::Elided))
       {
         PRUint32 msgIndexInThread = thread->m_keys.IndexOf(msgKey);
         PRBool insertedAtThreadRoot = !msgIndexInThread;
@@ -596,8 +596,8 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint
   nsresult rv = GetThreadContainingMsgHdr(aHdrChanged, getter_AddRefs(thread));
   NS_ENSURE_SUCCESS(rv, rv);
   PRUint32 deltaFlags = (aOldFlags ^ aNewFlags);
-  if (deltaFlags & MSG_FLAG_READ)
-    thread->MarkChildRead(aNewFlags & MSG_FLAG_READ);
+  if (deltaFlags & nsMsgMessageFlags::Read)
+    thread->MarkChildRead(aNewFlags & nsMsgMessageFlags::Read);
 
   return nsMsgDBView::OnHdrFlagsChanged(aHdrChanged, aOldFlags, aNewFlags, aInstigator);
 }
@@ -767,12 +767,12 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
           FetchRecipients(msgHdr, aValue);
           break;
         case nsMsgViewSortType::byAttachments:
-          aValue.Adopt(GetString(flags & MSG_FLAG_ATTACHMENT
+          aValue.Adopt(GetString(flags & nsMsgMessageFlags::Attachment
             ? NS_LITERAL_STRING("attachments").get()
             : NS_LITERAL_STRING("noAttachments").get()));
           break;
         case nsMsgViewSortType::byFlagged:
-          aValue.Adopt(GetString(flags & MSG_FLAG_MARKED 
+          aValue.Adopt(GetString(flags & nsMsgMessageFlags::Marked 
             ? NS_LITERAL_STRING("groupFlagged").get()
             : NS_LITERAL_STRING("notFlagged").get()));
           break;

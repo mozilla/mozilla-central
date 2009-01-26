@@ -226,13 +226,13 @@ nsMsgSearchDBView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey,
           nsMsgViewIndex threadIndex = GetThreadRootIndex(rootHdr);
           if (threadIndex != nsMsgViewIndex_None)
             AndExtraFlag(threadIndex, ~(MSG_VIEW_FLAG_ISTHREAD | 
-                                        MSG_FLAG_ELIDED | 
+                                        nsMsgMessageFlags::Elided | 
                                         MSG_VIEW_FLAG_HASCHILDREN));
         }
       }
       else if (savedFlags & MSG_VIEW_FLAG_HASCHILDREN)
 {
-        if (savedFlags & MSG_FLAG_ELIDED)
+        if (savedFlags & nsMsgMessageFlags::Elided)
         {
           nsCOMPtr<nsIMsgDBHdr> rootHdr;
           nsresult rv = thread->GetRootHdr(nsnull, getter_AddRefs(rootHdr));
@@ -243,7 +243,7 @@ nsMsgSearchDBView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey,
           rootHdr->GetFlags(&msgFlags);
           // promote the new thread root
           if (viewThread->MsgCount() > 1)
-            msgFlags |= MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED | 
+            msgFlags |= MSG_VIEW_FLAG_ISTHREAD | nsMsgMessageFlags::Elided | 
                         MSG_VIEW_FLAG_HASCHILDREN;
           InsertMsgHdrAt(deletedIndex, rootHdr, msgKey, msgFlags, 0);
           NoteChange(deletedIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
@@ -286,8 +286,8 @@ NS_IMETHODIMP nsMsgSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRU
     if (viewThread->HdrIndex(aHdrChanged) != -1)
     {
       PRUint32 deltaFlags = (aOldFlags ^ aNewFlags);
-      if (deltaFlags & MSG_FLAG_READ)
-        thread->MarkChildRead(aNewFlags & MSG_FLAG_READ);
+      if (deltaFlags & nsMsgMessageFlags::Read)
+        thread->MarkChildRead(aNewFlags & nsMsgMessageFlags::Read);
     }
   }
   return nsMsgDBView::OnHdrFlagsChanged(aHdrChanged, aOldFlags,
@@ -415,7 +415,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
       if (insertIndex == nsMsgViewIndex_None)
         return NS_ERROR_FAILURE;
       if (!(m_viewFlags & nsMsgViewFlagsType::kExpandAll))
-        msgFlags |= MSG_FLAG_ELIDED;
+        msgFlags |= nsMsgMessageFlags::Elided;
       InsertMsgHdrAt(insertIndex, msgHdr, msgKey, msgFlags, 0);
       NoteChange(insertIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
     }
@@ -442,7 +442,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
         moveThread = (msgDate == newestMsgInThread);
       }
       OrExtraFlag(threadIndex, MSG_VIEW_FLAG_HASCHILDREN | MSG_VIEW_FLAG_ISTHREAD);
-      if (!(m_flags[threadIndex] & MSG_FLAG_ELIDED))
+      if (!(m_flags[threadIndex] & nsMsgMessageFlags::Elided))
       {
         if (parent)
         {
@@ -474,7 +474,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
             m_levels[i] = m_levels[i] + 1;
           // turn off thread flags on old root.
           AndExtraFlag(threadIndex + 1, ~(MSG_VIEW_FLAG_ISTHREAD | 
-                                          MSG_FLAG_ELIDED | 
+                                          nsMsgMessageFlags::Elided | 
                                           MSG_VIEW_FLAG_HASCHILDREN));
 
           NoteChange(threadIndex + 1, i - threadIndex + 1, 
@@ -489,7 +489,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
         m_keys[threadIndex] = msgKey;
         m_folders.ReplaceObjectAt(msgFolder, threadIndex);
         m_flags[threadIndex] = msgFlags | MSG_VIEW_FLAG_ISTHREAD | 
-                                          MSG_FLAG_ELIDED | 
+                                          nsMsgMessageFlags::Elided | 
                                           MSG_VIEW_FLAG_HASCHILDREN;
         NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
 
@@ -528,7 +528,7 @@ void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   GetMsgHdrForViewIndex(threadIndex, getter_AddRefs(threadHdr));
 
   PRUint32 saveFlags = m_flags[threadIndex];
-  PRBool threadIsExpanded = !(saveFlags & MSG_FLAG_ELIDED);
+  PRBool threadIsExpanded = !(saveFlags & nsMsgMessageFlags::Elided);
   PRInt32 childCount = 0;
   nsMsgKey preservedKey;
   nsAutoTArray<nsMsgKey, 1> preservedSelection;
@@ -750,7 +750,7 @@ nsresult nsMsgSearchDBView::RemoveByIndex(nsMsgViewIndex index)
         nsMsgViewIndex threadIndex = m_levels[index] ? index -1 : index;
         if (threadIndex != nsMsgViewIndex_None)
         {
-          AndExtraFlag(threadIndex, ~(MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED |
+          AndExtraFlag(threadIndex, ~(MSG_VIEW_FLAG_ISTHREAD | nsMsgMessageFlags::Elided |
                                       MSG_VIEW_FLAG_HASCHILDREN));
           m_levels[threadIndex] = 0;
           NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
@@ -1072,7 +1072,7 @@ nsMsgViewIndex nsMsgSearchDBView::FindHdr(nsIMsgDBHdr *msgHdr)
   {
     GetMsgHdrForViewIndex(index, getter_AddRefs(curHdr));
     if (curHdr == msgHdr && (!(m_flags[index] & MSG_VIEW_FLAG_DUMMY) ||
-        (m_flags[index] & MSG_FLAG_ELIDED)))
+        (m_flags[index] & nsMsgMessageFlags::Elided)))
       break;
   }
   return index < GetSize() ? index : nsMsgViewIndex_None;

@@ -576,7 +576,7 @@ nsMsgKey MsgMapiListContext::GetNext ()
         PRUint32  flags = 0;
         
         (void) msgHdr->GetFlags(&flags);
-        if (flags & MSG_FLAG_OFFLINE) 
+        if (flags & nsMsgMessageFlags::Offline) 
           return key;
         
         // Ok, if we get here, we have an IMAP message without a body!
@@ -624,9 +624,9 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
       // anything to do with MAPI_SENT? Since we're only reading the Inbox, I guess not
       PRUint32 ourFlags;
       (void) msgHdr->GetFlags(&ourFlags);
-      if (!(ourFlags & MSG_FLAG_READ))
+      if (!(ourFlags & nsMsgMessageFlags::Read))
         message->flFlags |= MAPI_UNREAD;
-      if (ourFlags & (MSG_FLAG_MDN_REPORT_NEEDED | MSG_FLAG_MDN_REPORT_SENT))
+      if (ourFlags & (nsMsgMessageFlags::MDNReportNeeded | nsMsgMessageFlags::MDNReportSent))
         message->flFlags |= MAPI_RECEIPT_REQUESTED;
       
       nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);

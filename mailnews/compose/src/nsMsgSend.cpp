@@ -4686,7 +4686,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   // Write out an X-Mozilla-Status header.
   //
   // This is required for the queue file, so that we can overwrite it once
-  // the messages have been delivered, and so that the MSG_FLAG_QUEUED bit
+  // the messages have been delivered, and so that the nsMsgMessageFlags::Queued bit
   // is set.
   //
   // For FCC files, we don't necessarily need one, but we might as well put
@@ -4705,9 +4705,9 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
     // for save as draft and send later, we want to leave the message as unread.
     // See Bug #198087
     if (mode == nsMsgQueueForLater)
-      flags |= MSG_FLAG_QUEUED;
+      flags |= nsMsgMessageFlags::Queued;
     else if (mode != nsMsgSaveAsDraft)
-      flags |= MSG_FLAG_READ;
+      flags |= nsMsgMessageFlags::Read;
     buf = PR_smprintf(X_MOZILLA_STATUS_FORMAT CRLF, flags);
     if (buf)
     {
@@ -4723,11 +4723,11 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
 
     PRUint32 flags2 = 0;
     if (mode == nsMsgSaveAsTemplate)
-      flags2 |= MSG_FLAG_TEMPLATE;
+      flags2 |= nsMsgMessageFlags::Template;
     if (mode == nsMsgDeliverNow || mode == nsMsgSendUnsent)
     {
-      flags2 &= ~MSG_FLAG_MDN_REPORT_NEEDED;
-      flags2 |= MSG_FLAG_MDN_REPORT_SENT;
+      flags2 &= ~nsMsgMessageFlags::MDNReportNeeded;
+      flags2 |= nsMsgMessageFlags::MDNReportSent;
     }
     buf = PR_smprintf(X_MOZILLA_STATUS2_FORMAT CRLF, flags2);
     if (buf)

@@ -76,7 +76,7 @@ nsresult nsMsgThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *thr
   PRUint32 msgFlags;
   msgHdr->GetFlags(&msgFlags);
   GetFirstMessageHdrToDisplayInThread(threadHdr, getter_AddRefs(parentHdr));
-  if (parentHdr && (ensureListed || !(msgFlags & MSG_FLAG_READ)))
+  if (parentHdr && (ensureListed || !(msgFlags & nsMsgMessageFlags::Read)))
   {
     nsMsgKey key;
     PRUint32 numMsgsInThread;
@@ -87,7 +87,7 @@ nsresult nsMsgThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *thr
       parentHdr->GetMessageKey(&key);
       nsMsgViewIndex viewIndex = FindViewIndex(key);
       if (viewIndex != nsMsgViewIndex_None)
-        OrExtraFlag(viewIndex, MSG_FLAG_ELIDED | MSG_VIEW_FLAG_HASCHILDREN);
+        OrExtraFlag(viewIndex, nsMsgMessageFlags::Elided | MSG_VIEW_FLAG_HASCHILDREN);
     }
   }
   return rv;
@@ -125,7 +125,7 @@ PRBool nsMsgWatchedThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *thread
 
     threadHdr->GetNumUnreadChildren(&numNewChildren);
     threadHdr->GetFlags(&threadFlags);
-    if (numNewChildren > 0 && (threadFlags & MSG_FLAG_WATCHED) != 0) 
+    if (numNewChildren > 0 && (threadFlags & nsMsgMessageFlags::Watched) != 0) 
       return PR_TRUE;
   }
   return PR_FALSE;
@@ -138,11 +138,11 @@ nsresult nsMsgWatchedThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThre
   PRUint32 msgFlags;
   msgHdr->GetFlags(&msgFlags);
   threadHdr->GetFlags(&threadFlags);
-  if (threadFlags & MSG_FLAG_WATCHED)
+  if (threadFlags & nsMsgMessageFlags::Watched)
   {
     nsCOMPtr <nsIMsgDBHdr> parentHdr;
     GetFirstMessageHdrToDisplayInThread(threadHdr, getter_AddRefs(parentHdr));
-    if (parentHdr && (ensureListed || !(msgFlags & MSG_FLAG_READ)))
+    if (parentHdr && (ensureListed || !(msgFlags & nsMsgMessageFlags::Read)))
     {
       PRUint32 numChildren;
       threadHdr->GetNumChildren(&numChildren);
@@ -153,7 +153,7 @@ nsresult nsMsgWatchedThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThre
         parentHdr->GetMessageKey(&key);
         nsMsgViewIndex viewIndex = FindViewIndex(key);
         if (viewIndex != nsMsgViewIndex_None)
-          OrExtraFlag(viewIndex, MSG_FLAG_ELIDED | MSG_VIEW_FLAG_ISTHREAD | MSG_VIEW_FLAG_HASCHILDREN | MSG_FLAG_WATCHED);
+          OrExtraFlag(viewIndex, nsMsgMessageFlags::Elided | MSG_VIEW_FLAG_ISTHREAD | MSG_VIEW_FLAG_HASCHILDREN | nsMsgMessageFlags::Watched);
       }
     }
   }

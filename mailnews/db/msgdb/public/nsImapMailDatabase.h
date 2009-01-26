@@ -65,9 +65,9 @@ public:
 
 protected:
   // IMAP does not set local file flags, override does nothing
-  virtual void	UpdateFolderFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, 
-                                  MsgFlags flag, nsIOutputStream **ppFileStream);
-  virtual PRBool SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, MsgFlags flag);
+  virtual void UpdateFolderFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, 
+                                nsMsgMessageFlagType flag, nsIOutputStream **ppFileStream);
+  virtual PRBool SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, nsMsgMessageFlagType flag);
 
    nsresult     GetAllPendingHdrsTable();
    mdb_token    m_pendingHdrsRowScopeToken;

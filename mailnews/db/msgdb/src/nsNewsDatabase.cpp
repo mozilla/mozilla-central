@@ -344,7 +344,7 @@ nsresult nsNewsDatabase::AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr)
 {
   PRUint32 msgFlags;
   msgHdr->GetFlags(&msgFlags);
-  if (msgFlags & MSG_FLAG_OFFLINE && m_dbFolderInfo)
+  if (msgFlags & nsMsgMessageFlags::Offline && m_dbFolderInfo)
   {
     PRUint32 size = 0;
     (void)msgHdr->GetOfflineMessageSize(&size);

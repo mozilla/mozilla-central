@@ -206,15 +206,15 @@ nsMsgDBFolder::nsMsgDBFolder(void)
     LL_I2L(gtimeOfLastPurgeCheck, 0);
   }
 
-  mProcessingFlag[0].bit = MSG_PROCESSING_FLAG_CLASSIFY_JUNK;
-  mProcessingFlag[1].bit = MSG_PROCESSING_FLAG_CLASSIFY_TRAITS;
-  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+  mProcessingFlag[0].bit = nsMsgProcessingFlags::ClassifyJunk;
+  mProcessingFlag[1].bit = nsMsgProcessingFlags::ClassifyTraits;
+  for (PRUint32 i = 0; i < nsMsgProcessingFlags::NumberOfFlags; i++)
     mProcessingFlag[i].keys = nsMsgKeySetU::Create();
 }
 
 nsMsgDBFolder::~nsMsgDBFolder(void)
 {
-  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+  for (PRUint32 i = 0; i < nsMsgProcessingFlags::NumberOfFlags; i++)
     delete mProcessingFlag[i].keys;
 
   if (--mInstanceCount == 0) {
@@ -717,16 +717,16 @@ nsresult nsMsgDBFolder::SendFlagNotifications(nsIMsgDBHdr *item, PRUint32 oldFla
 {
   nsresult rv = NS_OK;
   PRUint32 changedFlags = oldFlags ^ newFlags;
-  if((changedFlags & MSG_FLAG_READ)  && (changedFlags & MSG_FLAG_NEW))
+  if((changedFlags & nsMsgMessageFlags::Read)  && (changedFlags & nsMsgMessageFlags::New))
   {
     //..so..if the msg is read in the folder and the folder has new msgs clear the account level and status bar biffs.
     rv = NotifyPropertyFlagChanged(item, kStatusAtom, oldFlags, newFlags);
     rv = SetBiffState(nsMsgBiffState_NoMail);
   }
-  else if(changedFlags & (MSG_FLAG_READ | MSG_FLAG_REPLIED | MSG_FLAG_FORWARDED
-    | MSG_FLAG_IMAP_DELETED | MSG_FLAG_NEW | MSG_FLAG_OFFLINE))
+  else if(changedFlags & (nsMsgMessageFlags::Read | nsMsgMessageFlags::Replied | nsMsgMessageFlags::Forwarded
+    | nsMsgMessageFlags::IMAPDeleted | nsMsgMessageFlags::New | nsMsgMessageFlags::Offline))
     rv = NotifyPropertyFlagChanged(item, kStatusAtom, oldFlags, newFlags);
-  else if((changedFlags & MSG_FLAG_MARKED))
+  else if((changedFlags & nsMsgMessageFlags::Marked))
     rv = NotifyPropertyFlagChanged(item, kFlaggedAtom, oldFlags, newFlags);
   return rv;
 }
@@ -973,10 +973,10 @@ NS_IMETHODIMP nsMsgDBFolder::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint3
 
   // The old state was new message state
   // We check and see if this state has changed
-  if(aOldFlags & MSG_FLAG_NEW)
+  if(aOldFlags & nsMsgMessageFlags::New)
   {
     // state changing from new to something else
-    if (!(aNewFlags  & MSG_FLAG_NEW))
+    if (!(aNewFlags  & nsMsgMessageFlags::New))
       CheckWithNewMessagesStatus(PR_FALSE);
   }
 
@@ -1017,7 +1017,7 @@ NS_IMETHODIMP nsMsgDBFolder::OnHdrDeleted(nsIMsgDBHdr *aHdrChanged, nsMsgKey  aP
 NS_IMETHODIMP nsMsgDBFolder::OnHdrAdded(nsIMsgDBHdr *aHdrChanged, nsMsgKey  aParentKey , PRInt32 aFlags,
                         nsIDBChangeListener * aInstigator)
 {
-  if(aFlags & MSG_FLAG_NEW)
+  if(aFlags & nsMsgMessageFlags::New)
     CheckWithNewMessagesStatus(PR_TRUE);
   return OnHdrAddedOrDeleted(aHdrChanged, PR_TRUE);
 }
@@ -1092,7 +1092,7 @@ nsresult nsMsgDBFolder::MsgFitsDownloadCriteria(nsMsgKey msgKey, PRBool *result)
     PRUint32 msgFlags = 0;
     hdr->GetFlags(&msgFlags);
     // check if we already have this message body offline
-    if (! (msgFlags & MSG_FLAG_OFFLINE))
+    if (! (msgFlags & nsMsgMessageFlags::Offline))
     {
       *result = PR_TRUE;
       // check against the server download size limit .
@@ -1170,7 +1170,7 @@ NS_IMETHODIMP nsMsgDBFolder::HasMsgOffline(nsMsgKey msgKey, PRBool *result)
     PRUint32 msgFlags = 0;
     hdr->GetFlags(&msgFlags);
     // check if we already have this message body offline
-    if ((msgFlags & MSG_FLAG_OFFLINE))
+    if ((msgFlags & nsMsgMessageFlags::Offline))
       *result = PR_TRUE;
   }
   return NS_OK;
@@ -2185,9 +2185,9 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     {
       keysToClassify.AppendElement(newMessageKeys[i]);
       if (filterMessageForJunk)
-        OrProcessingFlags(msgKey, MSG_PROCESSING_FLAG_CLASSIFY_JUNK);
+        OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyJunk);
       if (filterForOther)
-        OrProcessingFlags(msgKey, MSG_PROCESSING_FLAG_CLASSIFY_TRAITS);
+        OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyTraits);
     }
   }
 
@@ -5369,7 +5369,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetProcessingFlags(nsMsgKey aKey, PRUint32 *aFlags)
 {
   NS_ENSURE_ARG_POINTER(aFlags);
   *aFlags = 0;
-  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+  for (PRUint32 i = 0; i < nsMsgProcessingFlags::NumberOfFlags; i++)
     if (mProcessingFlag[i].keys && mProcessingFlag[i].keys->IsMember(aKey))
       *aFlags |= mProcessingFlag[i].bit;
   return NS_OK;
@@ -5377,7 +5377,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetProcessingFlags(nsMsgKey aKey, PRUint32 *aFlags)
 
 NS_IMETHODIMP nsMsgDBFolder::OrProcessingFlags(nsMsgKey aKey, PRUint32 mask)
 {
-  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+  for (PRUint32 i = 0; i < nsMsgProcessingFlags::NumberOfFlags; i++)
     if (mProcessingFlag[i].bit & mask && mProcessingFlag[i].keys)
       mProcessingFlag[i].keys->Add(aKey);
   return NS_OK;
@@ -5385,7 +5385,7 @@ NS_IMETHODIMP nsMsgDBFolder::OrProcessingFlags(nsMsgKey aKey, PRUint32 mask)
 
 NS_IMETHODIMP nsMsgDBFolder::AndProcessingFlags(nsMsgKey aKey, PRUint32 mask)
 {
-  for (PRUint32 i = 0; i < MSG_NUMBER_OF_PROCESSING_FLAGS; i++)
+  for (PRUint32 i = 0; i < nsMsgProcessingFlags::NumberOfFlags; i++)
     if (!(mProcessingFlag[i].bit & mask) && mProcessingFlag[i].keys)
       mProcessingFlag[i].keys->Remove(aKey);
   return NS_OK;

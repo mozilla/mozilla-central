@@ -170,36 +170,3 @@ interface nsMsgProcessingFlags
   /// Number of processing flags
   const nsMsgProcessingFlagType NumberOfFlags  = 2;
 };
-
-%{C++
-
-typedef PRInt32 MsgFlags;
-
-#define MSG_FLAG_READ              nsMsgMessageFlags::Read
-#define MSG_FLAG_REPLIED           nsMsgMessageFlags::Replied
-#define MSG_FLAG_MARKED            nsMsgMessageFlags::Marked
-#define MSG_FLAG_EXPUNGED          nsMsgMessageFlags::Expunged
-#define MSG_FLAG_HAS_RE            nsMsgMessageFlags::HasRe
-#define MSG_FLAG_ELIDED            nsMsgMessageFlags::Elided
-#define MSG_FLAG_OFFLINE           nsMsgMessageFlags::Offline
-#define MSG_FLAG_WATCHED           nsMsgMessageFlags::Watched
-#define MSG_FLAG_SENDER_AUTHED     nsMsgMessageFlags::SenderAuthed
-#define MSG_FLAG_PARTIAL           nsMsgMessageFlags::Partial
-#define MSG_FLAG_QUEUED            nsMsgMessageFlags::Queued
-#define MSG_FLAG_FORWARDED         nsMsgMessageFlags::Forwarded
-#define MSG_FLAG_PRIORITIES        nsMsgMessageFlags::Priorities
-#define MSG_FLAG_NEW               nsMsgMessageFlags::New
-#define MSG_FLAG_IGNORED           nsMsgMessageFlags::Ignored
-#define MSG_FLAG_IMAP_DELETED      nsMsgMessageFlags::IMAPDeleted
-#define MSG_FLAG_MDN_REPORT_NEEDED nsMsgMessageFlags::MDNReportNeeded
-#define MSG_FLAG_MDN_REPORT_SENT   nsMsgMessageFlags::MDNReportSent
-#define MSG_FLAG_TEMPLATE          nsMsgMessageFlags::Template
-#define MSG_FLAG_ATTACHMENT        nsMsgMessageFlags::Attachment
-#define MSG_FLAG_LABELS            nsMsgMessageFlags::Labels
-#define MSG_FLAG_RUNTIME_ONLY      nsMsgMessageFlags::RuntimeOnly
-
-#define MSG_PROCESSING_FLAG_CLASSIFY_JUNK   nsMsgProcessingFlags::ClassifyJunk
-#define MSG_PROCESSING_FLAG_CLASSIFY_TRAITS nsMsgProcessingFlags::ClassifyTraits
-#define MSG_NUMBER_OF_PROCESSING_FLAGS      nsMsgProcessingFlags::NumberOfFlags
-
-%}
