@@ -156,104 +156,128 @@
   display: none;
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button,
 toolbar[iconsize="small"] > #back-button {
   list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
   -moz-image-region: rect(40px 19px 59px 0);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button:hover,
 toolbar[iconsize="small"] > #back-button:hover {
   -moz-image-region: rect(40px 39px 59px 20px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button:hover:active,
 toolbar[iconsize="small"] > #back-button:hover:active {
   -moz-image-region: rect(40px 59px 59px 40px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button[disabled="true"],
 toolbar[iconsize="small"] > #back-button[disabled="true"] {
   -moz-image-region: rect(40px 79px 59px 60px) !important;
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button,
 toolbar[iconsize="small"] > #forward-button {
   list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
   -moz-image-region: rect(60px 19px 79px 0);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button:hover,
 toolbar[iconsize="small"] > #forward-button:hover {
   -moz-image-region: rect(60px 39px 79px 20px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button:hover:active,
 toolbar[iconsize="small"] > #forward-button:hover:active {
   -moz-image-region: rect(60px 59px 79px 40px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button[disabled="true"],
 toolbar[iconsize="small"] > #forward-button[disabled="true"] {
   -moz-image-region: rect(60px 79px 79px 60px) !important;
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button,
 toolbar[iconsize="small"] > #reload-button {
   list-style-image: url("chrome://navigator/skin/icons/navigatoricons-small.png");
   -moz-image-region: rect(0 19px 19px 0);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button:hover,
 toolbar[iconsize="small"] > #reload-button:hover {
   -moz-image-region: rect(0 39px 19px 20px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button:hover:active,
 toolbar[iconsize="small"] > #reload-button:hover:active {
   -moz-image-region: rect(0 59px 19px 40px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button[disabled="true"],
 toolbar[iconsize="small"] > #reload-button[disabled="true"] {
   -moz-image-region: rect(0 79px 19px 60px) !important;
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button,
 toolbar[iconsize="small"] > #stop-button {
   list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
   -moz-image-region: rect(20px 19px 39px 0);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button:hover,
 toolbar[iconsize="small"] > #stop-button:hover {
   -moz-image-region: rect(20px 39px 39px 20px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button:hover:active,
 toolbar[iconsize="small"] > #stop-button:hover:active {
   -moz-image-region: rect(20px 59px 39px 40px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button[disabled="true"],
 toolbar[iconsize="small"] > #stop-button[disabled="true"] {
   -moz-image-region: rect(20px 79px 39px 60px) !important;
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button,
 toolbar[iconsize="small"] > #print-button {
   list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
   -moz-image-region: rect(0 19px 19px 0);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button:hover,
 toolbar[iconsize="small"] > #print-button:hover {
   -moz-image-region: rect(0 39px 19px 20px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button:hover:active,
 toolbar[iconsize="small"] > #print-button:hover:active {
   -moz-image-region: rect(0 59px 19px 40px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button[disabled="true"],
 toolbar[iconsize="small"] > #print-button[disabled="true"] {
   -moz-image-region: rect(0 79px 19px 60px) !important;
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button,
 toolbar[iconsize="small"] > #home-button {
   list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
   -moz-image-region: rect(80px 19px 99px 0);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button:hover,
 toolbar[iconsize="small"] > #home-button:hover {
   -moz-image-region: rect(80px 39px 99px 20px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button:hover:active,
 toolbar[iconsize="small"] > #home-button:hover:active {
   -moz-image-region: rect(80px 59px 99px 40px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button[disabled="true"],
 toolbar[iconsize="small"] > #home-button[disabled="true"] {
   -moz-image-region: rect(80px 79px 99px 60px) !important;
 }
@@ -303,6 +327,13 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   -moz-appearance: none;
   background-color: InfoBackground;
   color: InfoText;
+}
+
+#wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner
+  > .button-toolbar,
+#wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner
+  > #urlbar > .urlbar-icons {
+  display: none;
 }
 
 /* ::::: page proxy icon ::::: */
@@ -467,6 +498,7 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
   display: -moz-box !important;
 }
 
+#PersonalToolbar[iconsize="small"] > toolbarpaletteitem > #home-button > .toolbarbutton-icon,
 #PersonalToolbar[iconsize="small"] > #home-button > .toolbarbutton-icon {
   width: 16px;
   height: 16px;
@@ -483,6 +515,34 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
 #PersonalToolbar > #home-button[disabled="true"] {
   cursor: default !important;
   text-decoration: none !important;
+}
+
+/*
+  In customize mode we hide the normal bookmark items and show a placeholder
+  for the drag/drop UI.
+*/
+.bookmarks-toolbar-customize {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-open.png");
+  display: none;
+  max-width: 15em !important;
+}
+
+toolbarpaletteitem[place] > #personal-bookmarks > .bookmarks-toolbar-customize {
+  display: -moz-box;
+}
+
+toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-customize {
+  -moz-box-orient: vertical;
+}
+
+toolbarpaletteitem[place="toolbar"] > #personal-bookmarks > .bookmarks-toolbar-overflow-items,
+toolbarpaletteitem[place="toolbar"] > #personal-bookmarks > .bookmarks-toolbar-items {
+  visibility: collapse;
+}
+
+toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-overflow-items,
+toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-items {
+  display: none;
 }
 
 /* ::::: feeds ::::: */

@@ -31,14 +31,6 @@
 <!ENTITY goButton.accesskey             "o">
 <!ENTITY searchButton.label             "Search">
 <!ENTITY searchButton.accesskey         "S">
-<!ENTITY printButton.label              "Print">
-<!ENTITY printButton.accesskey          "P">
-
-<!ENTITY persToolbarIntro.label         "Personal Toolbar">
-<!ENTITY homeButton.label               "Home">
-<!ENTITY homeButton.accesskey           "e">
-<!ENTITY bookmarksButton.label          "Bookmarks">
-<!ENTITY bookmarksButton.accesskey      "k">
 
 <!ENTITY defaultBrowserGroup.label      "Default Browser">
 <!ENTITY defaultBrowserButton.label     "Set Default Browser">

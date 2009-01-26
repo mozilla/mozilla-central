@@ -66,8 +66,21 @@ toolbar[xpfe="false"] {
   -moz-binding: url("chrome://global/content/bindings/toolbar.xml#toolbar");
 }
 
-menubar[xpfe="false"] {
+menubar[xpfe="false"],
+toolbar > toolbaritem > menubar {
   -moz-binding: url("chrome://global/content/bindings/toolbar.xml#menubar");
+}
+
+toolbar > toolbarpaletteitem > toolbaritem > menubar {
+  -moz-binding: url("chrome://global/content/bindings/toolbar.xml#menubar") !important;
+}
+
+.menubar-items {
+  -moz-box-orient: vertical; /* for flex hack */
+}
+
+.menubar-items > menubar {
+  -moz-box-flex: 1; /* make menu items expand to fill toolbar height */
 }
 
 prefwindow[xpfe="false"] {

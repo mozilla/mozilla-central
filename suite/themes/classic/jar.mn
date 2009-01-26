@@ -5,6 +5,7 @@ classic.jar:
 % skin messenger classic/1.0 %skin/classic/messenger/
 % skin navigator classic/1.0 %skin/classic/navigator/
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/
+% style chrome://global/content/customizeToolbar.xul chrome://navigator/skin/navigator.css
   skin/classic/communicator/tasksOverlay.css                            (communicator/tasksOverlay.css)
 #ifdef XP_MACOSX
   skin/classic/communicator/button.css                                  (communicator/mac/button.css)

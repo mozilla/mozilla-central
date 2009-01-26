@@ -151,7 +151,7 @@ var BookmarksMenu = {
     case "BookmarksMenu":
     case "bookmarks-button":
       return "NC:BookmarksRoot";
-    case "PersonalToolbar":
+    case "personal-bookmarks":
     case "bookmarks-chevron":
       return "NC:PersonalToolbarFolder";
     default:

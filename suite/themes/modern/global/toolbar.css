@@ -52,6 +52,7 @@ toolbox {
 toolbar {
   min-width: 1px; /* DON'T DELETE!
     Prevents hiding of scrollbars in browser when window is made smaller.*/
+  min-height: 22px;
   background: #C7D0D9;
   color: #000000;
 }
@@ -64,20 +65,26 @@ toolbar > .toolbar-box > .toolbar-holder {
 
 /* ::::: menubar ::::: */
 
-menubar {
+menubar,
+toolbar[type="menubar"] {
   cursor: default;
   min-width: 1px; /* DON'T DELETE!
     Prevents hiding of scrollbars in browser when window is made smaller.*/
   background-color: #DDE3EB;
   color: #000000;
 }
-  
-menubar > .toolbar-box > .toolbar-holder {
+
+menubar > .toolbar-box > .toolbar-holder,
+toolbar[type="menubar"] > .toolbar-box > .toolbar-holder  {
   border-top: 1px solid #EBF4FF;
   border-right: 1px solid #86929E;
   border-bottom: 1px solid #B9BFC7;
   border-left: 1px solid #EEF4FC;
 }  
+
+toolbar > toolbaritem > menubar > .toolbar-box > .toolbar-holder {
+  border: 0px none;
+}
 
 /* ::::: toolbargrippy ::::: */
  
@@ -107,7 +114,8 @@ toolbargrippy:hover:active {
 
 /* ::::: menubar grippy ::::: */
 
-menubar > .toolbar-box > toolbargrippy { 
+toolbar[type="menubar"] > .toolbar-box > toolbargrippy,
+menubar > .toolbar-box > toolbargrippy {
   border-top: 1px solid #EBF4FF;
   border-right: 1px solid #B9BFC7;
   border-bottom: 1px solid #B9BFC7;
@@ -140,7 +148,7 @@ toolbargrippy[tbgrippy-collapsed="true"]:hover:active > .toolbargrippy-arrow {
   background-color: #C7D0D9;
 }
 
-/* ::::: toolbarseparator ::::: */
+/* ::::: toolbar decorations ::::: */
 
 toolbarseparator { 
   margin: 0px 0.2em;
@@ -149,4 +157,53 @@ toolbarseparator {
   width: 0px;
 }
 
+toolbarspacer {
+  width: 15px;
+}
 
+/* ::::: toolbarpaletteitem ::::: */
+
+toolbarpaletteitem {
+  cursor: -moz-grab;
+}
+
+.toolbarpaletteitem-box[type="spacer"],
+.toolbarpaletteitem-box[type="spring"] {
+  border: 1px solid #808080;
+  background-color: #F0F0F0 !important;
+}
+
+toolbarpaletteitem[place="toolbar"] > toolbarspacer {
+  width: 11px;
+}
+
+.toolbarpaletteitem-box[type="separator"][place="palette"] {
+  width: 2px;
+  height: 50px;
+}
+
+.toolbarpaletteitem-box[type="splitter"][place="palette"] {
+  width: 8px;
+  height: 50px;
+}
+
+.toolbarpaletteitem-box[type="spacer"][place="palette"],
+.toolbarpaletteitem-box[type="spring"][place="palette"] {
+  margin-bottom: 2px;
+  width: 50px;
+  height: 50px;
+}
+
+.toolbarpaletteitem-box[type="spring"][place] {
+  background: url("chrome://global/skin/toolbar/spring.png") no-repeat center;
+}
+
+/* ..... drag and drop feedback ..... */
+
+toolbarpaletteitem[dragover="left"] {
+  border-left-color: #000000;
+}
+
+toolbarpaletteitem[dragover="right"] {
+  border-right-color: #000000;
+}

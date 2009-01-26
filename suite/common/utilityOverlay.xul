@@ -105,6 +105,13 @@
                   accesskey="&customizeToolbar.useDefault.label;"/>
       </menupopup>
     </menu>
+
+    <menuseparator id="toolbar-customize-sep"/>
+    <menuitem id = "customize_toolbars"
+              command="cmd_CustomizeToolbars"
+              label="&customizeToolbarContext.label;"
+              accesskey="&customizeToolbarContext.accesskey;"/>
+
   </popup>
 
   <statusbarpanel id="offline-status" context="networkProperties"

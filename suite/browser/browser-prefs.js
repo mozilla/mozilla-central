@@ -77,10 +77,7 @@ pref("browser.chrome.image_icons.max_size", 1024);
 // 0 = never, 1 = when in cache, 2 = always
 pref("browser.chrome.load_toolbar_icons", 0);
 
-pref("browser.toolbars.showbutton.bookmarks", true);
 pref("browser.toolbars.showbutton.go",      false);
-pref("browser.toolbars.showbutton.home",    true);
-pref("browser.toolbars.showbutton.print",   true);
 pref("browser.toolbars.showbutton.search",  true);
 
 pref("browser.download.progressDnldDialog.keepAlive", true); // keep the dnload progress dialog up after dnload is complete

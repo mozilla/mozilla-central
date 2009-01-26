@@ -49,6 +49,10 @@
   border-left: 1px solid ThreeDHighlight;
 }
 
+toolbaritem > menubar {
+  border-bottom: 0px none;
+}
+
 /* ::::: toolbargrippy ::::: */
 
 toolbargrippy {

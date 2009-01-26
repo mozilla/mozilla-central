@@ -77,6 +77,33 @@
       </xul:hbox>
     </content>
     <implementation>
+      <field name="palette">
+        this.getElementsByTagName("toolbarpalette").item(0);
+      </field>
+
+      <constructor>
+        <![CDATA[
+          var set = this.toolbarset;
+          if (!set)
+            return;
+          var toolbars = this.getElementsByAttribute("customindex", "*");
+          for (let i = 0; i < toolbars.length; ++i) {
+            let bar = toolbars[i];
+            let name = bar.getAttribute("toolbarname").replace(" ", "_");
+            if (name) {
+              let attrs = ["mode", "iconsize", "labelalign", "hidden",
+                           "moz-collapsed"];
+              for (let j = 0; j < attrs.length; j++) {
+                let attr = set.getAttribute(name + attrs[j]);
+                if (attr)
+                  bar.setAttribute(attrs[j], attr);
+              }
+              bar.setAttribute("grippytooltiptext", name);
+            }
+          }
+        ]]>
+      </constructor>
+
       <method name="collapseToolbar">
         <parameter name="toolbar"/>
         <body>
@@ -85,6 +112,8 @@
             this.createCollapsedGrippy(toolbar);
             toolbar.setAttribute("moz-collapsed", "true");
             document.persist(toolbar.id, "moz-collapsed");
+            if (toolbar.hasAttribute("customindex"))
+              this.persistCustomCollapse(toolbar, "true");
           }
           catch(e) {
           }
@@ -105,6 +134,8 @@
           if (!collapsedTray.hasChildNodes())
             document.getAnonymousElementByAttribute(this, "tbattr", "collapsed-tray-holder").setAttribute("moz-collapsed", "true");
           document.persist(toolbar.id, "moz-collapsed");
+          if (toolbar.hasAttribute("customindex"))
+            this.persistCustomCollapse(toolbar, "false");
         ]]>
         </body>
       </method>
@@ -137,6 +168,18 @@
           catch (e) {
             throw e;
           }
+        ]]>
+        </body>
+      </method>
+
+      <method name="persistCustomCollapse">
+        <parameter name="toolbar"/>
+        <parameter name="collapsed"/>
+        <body>
+        <![CDATA[
+          var attr = toolbar.getAttribute("toolbarname").replace(" ", "_") + "moz-collapsed";
+          this.toolbarset.setAttribute(attr, collapsed);
+          document.persist(this.toolbarset.id, attr);
         ]]>
         </body>
       </method>

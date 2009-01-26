@@ -173,6 +173,7 @@
     <command id="View:PageInfo"   oncommand="BrowserPageInfo();"/>
     <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
     <command id="cmd_SwitchDocumentDirection" oncommand="SwitchDocumentDirection(window.content);" />
+    <command id="cmd_CustomizeToolbars" oncommand="goCustomizeToolbar(getNavToolbox());"/>
  
     <!-- Search Menu -->
     <command id="Browser:Find" oncommand="BrowserFind();" observes="isImage"/>

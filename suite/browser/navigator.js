@@ -77,7 +77,6 @@ const gButtonPrefListener =
     var array = pref.getChildList(this.domain, {});
     for (var i in array)
       this.updateButton(array[i]);
-    this.updateSeparator();
   },
   observe: function(subject, topic, prefName)
   {
@@ -86,7 +85,6 @@ const gButtonPrefListener =
       return;
 
     this.updateButton(prefName);
-    this.updateSeparator();
   },
   updateButton: function(prefName)
   {
@@ -95,12 +93,6 @@ const gButtonPrefListener =
     var button = document.getElementById(buttonId);
     if (button)
       button.hidden = !pref.getBoolPref(prefName);
-  },
-  updateSeparator: function()
-  {
-    // If all buttons before the separator are hidden, also hide the separator
-    var separator = document.getElementById("home-bm-separator");
-    separator.hidden = allLeftButtonsAreHidden();
   }
 };
 
@@ -364,21 +356,6 @@ function UpdateBackForwardButtons()
     else
       upBroadcaster.setAttribute("disabled", true);
   }
-}
-
-// Function allLeftButtonsAreHidden
-// Returns true if all the buttons left of the separator in the personal
-// toolbar are hidden, false otherwise.
-// Used by nsButtonPrefListener to hide the separator if needed
-function allLeftButtonsAreHidden()
-{
-  var buttonNode = document.getElementById("home-bm-separator").previousSibling;
-  while (buttonNode) {
-    if (buttonNode.localName != "tooltip" && !buttonNode.hidden)
-      return false;
-    buttonNode = buttonNode.previousSibling;
-  }
-  return true;
 }
 
 const nsIBrowserDOMWindow = Components.interfaces.nsIBrowserDOMWindow;
@@ -659,7 +636,7 @@ function Startup()
     // is very likely to put some content in the new window, and then
     // the focus should be in the content area.
     var navBar = document.getElementById("nav-bar");
-    if ("arguments" in window && uriToLoad == "about:blank" && !navBar.hidden && window.locationbar.visible)
+    if ("arguments" in window && uriToLoad == "about:blank" && isElementVisible(gURLBar))
       setTimeout(WindowFocusTimerCallback, 0, gURLBar);
     else
       setTimeout(WindowFocusTimerCallback, 0, content);
@@ -701,6 +678,11 @@ function Startup()
     document.getElementById("textfieldDirection-separator").hidden = false;
     document.getElementById("textfieldDirection-swap").hidden = false;
   }
+
+  // Before and after callbacks for the customizeToolbar code
+  getNavToolbox().customizeInit = BrowserToolboxCustomizeInit;
+  getNavToolbox().customizeDone = BrowserToolboxCustomizeDone;
+  getNavToolbox().customizeChange = BrowserToolboxCustomizeChange;
 
   // now load bookmarks after a delay
   setTimeout(LoadBookmarksCallback, 0);
@@ -1059,7 +1041,7 @@ function QualifySearchTerm()
   // page's URL then treat this as an empty search term.  This way
   // the user is taken to the search page where s/he can enter a term.
   if (gBrowser.userTypedValue !== null)
-    return document.getElementById("urlbar").value;
+    return gURLBar.value;
   return "";
 }
 
@@ -1293,8 +1275,7 @@ function BrowserOpenTab()
     }
 
     gBrowser.selectedTab = gBrowser.addTab(uriToLoad);
-    var navBar = document.getElementById("nav-bar");
-    if (uriToLoad == "about:blank" && !navBar.hidden && window.locationbar.visible)
+    if (uriToLoad == "about:blank" && isElementVisible(gURLBar))
       setTimeout("gURLBar.focus();", 0);
     else
       setTimeout("content.focus();", 0);
@@ -2065,16 +2046,17 @@ function checkForDefaultBrowser()
 
 function ShowAndSelectContentsOfURLBar()
 {
-  var navBar = document.getElementById("nav-bar");
-  
-  // If it's hidden, show it.
-  if (navBar.getAttribute("hidden") == "true")
-    goToggleToolbar('nav-bar','cmd_viewnavbar');
+  if (!isElementVisible(gURLBar)) {
+    BrowserOpenWindow();
+    return;
+  }
 
-  if (gURLBar.value)
-    gURLBar.select();
-  else
-    gURLBar.focus();
+  if (!gURLBar.readOnly) {
+    if (gURLBar.value)
+      gURLBar.select();
+    else
+      gURLBar.focus();
+  }
 }
 
 // If "ESC" is pressed in the url bar, we replace the urlbar's value with the url of the page
@@ -2476,4 +2458,59 @@ function getNotificationBox(aWindow)
                 .getInterface(Components.interfaces.nsIWebNavigation)
                 .QueryInterface(Components.interfaces.nsIDocShell)
                 .chromeEventHandler.parentNode.wrappedJSObject;
+}
+
+function BrowserToolboxCustomizeInit()
+{
+  toolboxCustomizeInit("main-menubar");
+}
+
+function BrowserToolboxCustomizeDone(aToolboxChanged)
+{
+  toolboxCustomizeDone("main-menubar", getNavToolbox(), aToolboxChanged);
+
+  // Update the urlbar
+  var value = gBrowser.userTypedValue;
+  if (value == null) {
+    let URL = getWebNavigation().currentURI.spec;
+    if (URL != "about:blank" || content.opener) {
+      // XXXRatty: we might need URL = losslessDecodeURI(uri) from Firefox
+      // if we we are affected by bug 410726, bug 452979, etc.
+      // (Unfortunately I don't have access to 452979)
+      value = URL;
+    }
+    else
+      value = "";
+  }
+  gURLBar.value = value;
+
+  gButtonPrefListener.updateButton("browser.toolbars.showbutton.go");
+  gButtonPrefListener.updateButton("browser.toolbars.showbutton.search");
+
+  // XXXRatty: Remember to update Feedhandler once we get one.
+
+  // fix up the personal toolbar folder
+  var bt = document.getElementById("bookmarks-ptf");
+  if (isElementVisible(bt)) {
+    // XXXRatty: do we still need to reinstate the BookmarksToolbarRDFObserver?
+    let btchevron = document.getElementById("bookmarks-chevron");
+    // no uniqueness is guaranteed, so we have to remove first
+    try {
+      bt.database.RemoveObserver(BookmarksToolbarRDFObserver);
+    } catch (ex) {
+      // ignore
+    }
+    bt.database.AddObserver(BookmarksToolbarRDFObserver);
+    bt.builder.rebuild();
+    btchevron.builder.rebuild();
+
+    // fake a resize; this function takes care of flowing bookmarks
+    // from the bar to the overflow item
+    BookmarksToolbar.resizeFunc(null);
+  }
+}
+
+function BrowserToolboxCustomizeChange(event)
+{
+  toolboxCustomizeChange(getNavToolbox(), event);
 }

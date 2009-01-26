@@ -154,6 +154,7 @@
 <!ENTITY  bookmarksButton.label       "Bookmarks">
 <!ENTITY  bookmarksButton.tooltip     "Bookmarks list">
 <!ENTITY  homeButton.label            "Home">
+<!ENTITY  bookmarksToolbarItem.label  "Bookmarks Toolbar Items">
 
 <!-- Statusbar -->
 <!ENTITY  statusText.label            "Done">

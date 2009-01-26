@@ -160,120 +160,139 @@ toolbox {
 
 /* ::::: small primary toolbar buttons ::::: */
 
-toolbar[iconsize="small"] .toolbarbutton-1 {
+toolbar[iconsize="small"] > toolbarpaletteitem > .toolbarbutton-1,
+toolbar[iconsize="small"] > .toolbarbutton-1 {
   list-style-image: url("chrome://communicator/skin/icons/common-small.png");
 }
 
-toolbar[iconsize="small"] #back-button {
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button,
+toolbar[iconsize="small"] > #back-button {
   list-style-image: url("chrome://communicator/skin/icons/common-small.png");
   -moz-image-region: rect(38px 19px 57px 0);
 }
 
-toolbar[iconsize="small"] #back-button:hover {
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button:hover,
+toolbar[iconsize="small"] > #back-button:hover {
   -moz-image-region: rect(38px 38px 57px 19px);
 }
 
-toolbar[iconsize="small"] #back-button:hover:active {
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button:hover:active,
+toolbar[iconsize="small"] > #back-button:hover:active {
   -moz-image-region: rect(38px 57px 57px 38px);
 }
 
-toolbar[iconsize="small"] #back-button[disabled="true"] {
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button[disabled="true"],
+toolbar[iconsize="small"] > #back-button[disabled="true"] {
   -moz-image-region: rect(38px 76px 57px 57px) !important;
 }
 
-toolbar[iconsize="small"] #forward-button {
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button,
+toolbar[iconsize="small"] > #forward-button {
   list-style-image: url("chrome://communicator/skin/icons/common-small.png");
   -moz-image-region: rect(57px 19px 76px 0);
 }
 
-toolbar[iconsize="small"] #forward-button:hover {
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button:hover,
+toolbar[iconsize="small"] > #forward-button:hover {
   -moz-image-region: rect(57px 38px 76px 19px);
 }
 
-toolbar[iconsize="small"] #forward-button:hover:active {
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button:hover:active,
+toolbar[iconsize="small"] > #forward-button:hover:active {
   -moz-image-region: rect(57px 57px 76px 38px);
 }
 
-toolbar[iconsize="small"] #forward-button[disabled="true"] {
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button[disabled="true"],
+toolbar[iconsize="small"] > #forward-button[disabled="true"] {
   -moz-image-region: rect(57px 76px 76px 57px) !important;
 }
 
-toolbar[iconsize="small"] #reload-button {
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button,
+toolbar[iconsize="small"] > #reload-button {
   list-style-image: url("chrome://navigator/skin/icons/browser-small.png");
   -moz-image-region: rect(0 19px 19px 0);
 }
 
-toolbar[iconsize="small"] #reload-button:hover {
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button:hover,
+toolbar[iconsize="small"] > #reload-button:hover {
   -moz-image-region: rect(0 38px 19px 19px);
 }
 
-toolbar[iconsize="small"] #reload-button:hover:active {
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button:hover:active,
+toolbar[iconsize="small"] > #reload-button:hover:active {
   -moz-image-region: rect(0 57px 19px 38px);
 }
 
-toolbar[iconsize="small"] #reload-button[disabled="true"] {
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button[disabled="true"],
+toolbar[iconsize="small"] > #reload-button[disabled="true"] {
   -moz-image-region: rect(0 76px 19px 57px) !important;
 }
 
-toolbar[iconsize="small"] #stop-button {
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button,
+toolbar[iconsize="small"] > #stop-button {
   list-style-image: url("chrome://communicator/skin/icons/common-small.png");
   -moz-image-region: rect(19px 19px 38px 0);
 }
 
-toolbar[iconsize="small"] #stop-button:hover {
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button:hover,
+toolbar[iconsize="small"] > #stop-button:hover {
   -moz-image-region: rect(19px 38px 38px 19px);
 }
 
-toolbar[iconsize="small"] #stop-button:hover:active {
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button:hover:active,
+toolbar[iconsize="small"] > #stop-button:hover:active {
   -moz-image-region: rect(19px 57px 38px 38px);
 }
 
-toolbar[iconsize="small"] #stop-button[disabled="true"] {
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button[disabled="true"],
+toolbar[iconsize="small"] > #stop-button[disabled="true"] {
   -moz-image-region: rect(19px 76px 38px 57px) !important;
 }
 
-toolbar[iconsize="small"] #print-button {
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button,
+toolbar[iconsize="small"] > #print-button {
   list-style-image: url("chrome://communicator/skin/icons/common-small.png");
   -moz-image-region: rect(0 19px 19px 0);
 }
 
-toolbar[iconsize="small"] #print-button:hover {
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button:hover,
+toolbar[iconsize="small"] > #print-button:hover {
   -moz-image-region: rect(0 38px 19px 19px);
 }
 
-toolbar[iconsize="small"] #print-button:hover:active {
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button:hover:active,
+toolbar[iconsize="small"] > #print-button:hover:active {
   -moz-image-region: rect(0 57px 19px 38px);
 }
 
-toolbar[iconsize="small"] #print-button[disabled="true"] {
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button[disabled="true"],
+toolbar[iconsize="small"] > #print-button[disabled="true"] {
   -moz-image-region: rect(0 76px 19px 57px) !important;
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button,
 toolbar[iconsize="small"] > #home-button {
   list-style-image: url("chrome://communicator/skin/icons/common-small.png");
   -moz-image-region: rect(76px 19px 95px 0);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button:hover,
 toolbar[iconsize="small"] > #home-button:hover {
   -moz-image-region: rect(76px 38px 95px 19px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button:hover:active,
 toolbar[iconsize="small"] > #home-button:hover:active {
   -moz-image-region: rect(76px 57px 95px 38px);
 }
 
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button[disabled="true"],
 toolbar[iconsize="small"] > #home-button[disabled="true"] {
   -moz-image-region: rect(76px 76px 95px 57px) !important;
 }
 
 #nav-bar[iconsize="small"] {
   min-height: 0;
-}
-
-toolbar[mode="text"] > #nav-bar-inner,
-toolbar[iconsize="small"] > #nav-bar-inner {
-  margin: 0 !important;
-  border: none !important;
 }
 
 #nav-bar[inFullscreen] > .toolbar-primary-grippy {
@@ -428,6 +447,14 @@ toolbar[mode="text"] #nav-bar-inner {
   border: 0px;
 }
 
+toolbar[mode="text"] > #nav-bar-inner,
+toolbar[iconsize="small"] > #nav-bar-inner,
+toolbar[mode="text"] > toolbarpaletteitem > #nav-bar-inner,
+toolbar[iconsize="small"] > toolbarpaletteitem > #nav-bar-inner {
+  margin: 0 !important;
+  border: none !important;
+}
+
 toolbar[mode="text"] #nav-bar-inner > #search-button {
   margin-right: 0px;
 }
@@ -436,6 +463,13 @@ toolbar[mode="text"] #nav-bar-inner > #search-button > .button-box
   > .button-icon,
 toolbar[mode="icons"] #nav-bar-inner > #search-button > .button-box
   > .button-text {
+  display: none;
+}
+
+#wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner
+  > .button-toolbar,
+#wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner
+  > #urlbar > .urlbar-icons {
   display: none;
 }
 
@@ -585,6 +619,7 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
   display: -moz-box !important;
 }
 
+#PersonalToolbar[iconsize="small"] > toolbarpaletteitem > #home-button > .toolbarbutton-icon,
 #PersonalToolbar[iconsize="small"] > #home-button > .toolbarbutton-icon {
   width: 16px;
   height: 16px;
@@ -601,6 +636,34 @@ toolbar[mode="text"] toolbarbutton.chevron > .toolbarbutton-icon {
 #PersonalToolbar > #home-button[disabled="true"] {
   cursor: default !important;
   text-decoration: none !important;
+}
+
+/*
+  In customize mode we hide the normal bookmark items and show a placeholder
+  for the drag/drop UI.
+*/
+.bookmarks-toolbar-customize {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-open.gif");
+  display: none;
+  max-width: 15em !important;
+}
+
+toolbarpaletteitem[place] > #personal-bookmarks > .bookmarks-toolbar-customize {
+  display: -moz-box;
+}
+
+toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-customize {
+  -moz-box-orient: vertical;
+}
+
+toolbarpaletteitem[place="toolbar"] > #personal-bookmarks > .bookmarks-toolbar-overflow-items,
+toolbarpaletteitem[place="toolbar"] > #personal-bookmarks > .bookmarks-toolbar-items {
+  visibility: collapse;
+}
+
+toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-overflow-items,
+toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-items {
+  display: none;
 }
 
 /* ::::: content area ::::: */

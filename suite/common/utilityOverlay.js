@@ -267,13 +267,32 @@ function goToggleToolbar( id, elementID )
     }
     else
     {
-      toolbar.setAttribute("hidden", true );
+      toolbar.setAttribute("hidden", "true" );
       if ( element )
         element.setAttribute("checked","false")
     }
-    document.persist(id, 'hidden');
-    document.persist(elementID, 'checked');
+    document.persist(id, "hidden");
+    document.persist(elementID, "checked");
+
+    if (toolbar.hasAttribute("customindex"))
+      persistCustomToolbar(toolbar);
+
   }
+}
+
+function goCustomizeToolbar(toolbox)
+{
+  /* If the toolbox has a method "customizeInit" then call it first.
+     The optional "customizeDone" method will be invoked by the callback
+     from the Customize Window so we don't need to take care of that */
+  if ("customizeInit" in toolbox)
+    toolbox.customizeInit();
+
+  var customizeURL = "chrome://global/content/customizeToolbar.xul";
+  window.openDialog(customizeURL,
+                    "",
+                    "chrome,all,dependent",
+                    toolbox);
 }
 
 function onViewToolbarsPopupShowing(aEvent)
@@ -292,18 +311,16 @@ function onViewToolbarsPopupShowing(aEvent)
     toolbar = toolbar.parentNode;
   var toolbox = toolbar.parentNode;
 
-  for (let i = 0; i < toolbox.childNodes.length; ++i) {
-    var bar = toolbox.childNodes[i];
-    var toolbarName = bar.getAttribute("toolbarname");
-    if (toolbarName) {
-      var menuItem = document.createElement("menuitem");
-      menuItem.setAttribute("toolbarid", bar.id);
-      menuItem.setAttribute("type", "checkbox");
-      menuItem.setAttribute("label", toolbarName);
-      menuItem.setAttribute("accesskey", bar.getAttribute("accesskey"));
-      menuItem.setAttribute("checked", !bar.hidden);
-      popup.insertBefore(menuItem, firstMenuItem);
-    }
+  var toolbars = toolbox.getElementsByAttribute("toolbarname", "*");
+  for (let i = 0; i < toolbars.length; ++i) {
+    let bar = toolbars[i];
+    let menuItem = document.createElement("menuitem");
+    menuItem.setAttribute("toolbarid", bar.id);
+    menuItem.setAttribute("type", "checkbox");
+    menuItem.setAttribute("label", bar.getAttribute("toolbarname"));
+    menuItem.setAttribute("accesskey", bar.getAttribute("accesskey"));
+    menuItem.setAttribute("checked", !bar.hidden);
+    popup.insertBefore(menuItem, firstMenuItem);
   }
 
   var mode = toolbar.getAttribute("mode") || "full";
@@ -339,6 +356,11 @@ function onViewToolbarsPopupShowing(aEvent)
   var defmode = document.getElementById("toolbarmode-default");
   defmode.setAttribute("checked", !custom);
   defmode.setAttribute("disabled", !custom);
+
+  var command = document.getElementById("cmd_CustomizeToolbars");
+  var menuitem  = document.getElementById("customize_toolbars");
+  menuitem.hidden = !command;
+  menuitem.previousSibling.hidden = !command;
 }
 
 function onViewToolbarCommand(aEvent)
@@ -394,6 +416,79 @@ function goSetToolbarState(aEvent)
   document.persist(toolbar.id, "labelalign");
   if (primary)
     document.persist(toolbar.id, "ignoremodepref");
+  if (toolbar.hasAttribute("customindex"))
+    persistCustomToolbar(toolbar);
+}
+
+function persistCustomToolbar(toolbar)
+{
+  var toolbox = toolbar.parentNode;
+  var name = toolbar.getAttribute("toolbarname").replace(" ", "_");
+  var attrs = ["mode", "iconsize", "labelalign", "hidden"];
+  for (let i = 0; i < attrs.length; i++) {
+    let value = toolbar.getAttribute(attrs[i]);
+    let attr = name + attrs[i];
+    toolbox.toolbarset.setAttribute(attr, value);
+    document.persist(toolbox.toolbarset.id, attr);
+  }
+}
+
+/* Common Customize Toolbar code */
+
+function toolboxCustomizeInit(menubarID)
+{
+  // Disable the toolbar context menu items
+  var menubar = document.getElementById(menubarID);
+  for (let i = 0; i < menubar.childNodes.length; ++i) {
+    let item = menubar.childNodes[i];
+    if (item.getAttribute("disabled") != "true") {
+      item.setAttribute("disabled", "true");
+      item.setAttribute("saved-disabled", "false");
+    }
+  }
+
+  var cmd = document.getElementById("cmd_CustomizeToolbars");
+  cmd.setAttribute("disabled", "true");
+}
+
+function toolboxCustomizeDone(menubarID, toolbox, aToolboxChanged)
+{
+  // Re-enable parts of the UI we disabled during the dialog
+  var menubar = document.getElementById(menubarID);
+  for (let i = 0; i < menubar.childNodes.length; ++i) {
+    let item = menubar.childNodes[i];
+    if (item.hasAttribute("saved-disabled")) {
+      item.removeAttribute("disabled");
+      item.removeAttribute("saved-disabled");
+    }
+  }
+
+  var cmd = document.getElementById("cmd_CustomizeToolbars");
+  cmd.removeAttribute("disabled");
+
+  var toolbars = toolbox.getElementsByAttribute("customindex", "*");
+  for (let i = 0; i < toolbars.length; ++i) {
+    persistCustomToolbar(toolbars[i]);
+  }
+}
+
+function toolboxCustomizeChange(toolbox, event)
+{
+  if (event != "reset")
+    return;
+  var toolbars = toolbox.getElementsByAttribute("toolbarname", "*");
+  for (let i = 0; i < toolbars.length; ++i) {
+    let toolbar = toolbars[i];
+    toolbar.setAttribute("labelalign",
+                         toolbar.getAttribute("defaultlabelalign") ||
+                         toolbox.getAttribute("labelalign"));
+    document.persist(toolbar.id, "labelalign");
+    let primary = /toolbar-primary/.test(toolbar.getAttribute("class"));
+    if (primary) {
+      toolbar.removeAttribute("ignoremodepref");
+      document.persist(toolbar.id, "ignoremodepref");
+    }
+  }
 }
 
 function goClickThrobber( urlPref )
@@ -755,6 +850,14 @@ function validateFileName(aFileName)
     re = /[\:\/]+/g;
 
   return aFileName.replace(re, "_");
+}
+
+function isElementVisible(aElement)
+{
+  // If aElement or a direct or indirect parent is hidden or collapsed,
+  // height, width or both will be 0.
+  var bo = aElement.boxObject;
+  return (bo.height > 0 && bo.width > 0);
 }
 
 /**
