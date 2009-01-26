@@ -1484,7 +1484,7 @@ function ComposeLoad()
 
   // initialize the customizeDone method on the customizeable toolbar
   var toolbox = document.getElementById("compose-toolbox");
-  toolbox.customizeDone = MailToolboxCustomizeDone;
+  toolbox.customizeDone = function(aEvent) { MailToolboxCustomizeDone(aEvent, "CustomizeComposeToolbar"); };
 
   var toolbarset = document.getElementById('customToolbars');
   toolbox.toolbarset = toolbarset;

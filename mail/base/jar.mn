@@ -4,6 +4,12 @@ messenger.jar:
 % override chrome://messagebody/skin/messageBody.css chrome://messenger/skin/messageBody.css
 % overlay chrome://global/content/viewSource.xul chrome://messenger/content/viewSourceOverlay.xul
 % overlay chrome://global/content/config.xul chrome://messenger/content/configEditorOverlay.xul
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/content/messenger.css
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/addressbook/addressbook.css
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/messengercompose/messengercompose.css
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/smime/msgCompSMIMEOverlay.css
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/primaryToolbar.css
 *   content/messenger/mailWindow.js                 (content/mailWindow.js)
 *   content/messenger/mailWindowOverlay.js          (content/mailWindowOverlay.js)
 *   content/messenger/mailWindowOverlay.xul         (content/mailWindowOverlay.xul)
@@ -129,7 +135,4 @@ comm.jar:
 toolkit.jar:
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
 *+  content/global/customizeToolbar.xul             (content/customizeToolbarSheet.xul)
-#else
-*+  content/global/customizeToolbar.xul             (content/customizeToolbar.xul)
 #endif
-*+  content/global/customizeToolbar.js              (content/customizeToolbar.js)
