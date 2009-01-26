@@ -99,6 +99,10 @@ public:
   NS_IMETHOD HasCard(nsIAbCard *aCard, PRBool *aHasCard);
   NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, PRBool *aHasDirectory);
   NS_IMETHOD GetURI(nsACString &aURI);
+  NS_IMETHOD GetCardFromProperty(const char *aProperty,
+                                 const nsACString &aValue,
+                                 PRBool caseSensitive,
+                                 nsIAbCard **aResult);
   NS_IMETHOD CardForEmailAddress(const nsACString &aEmailAddress,
                                  nsIAbCard **aResult);
 
