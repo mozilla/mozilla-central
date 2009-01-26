@@ -19,5 +19,5 @@
 <!ENTITY serverName.label "Server Name: ">
 <!ENTITY serverPort.label "Port: ">
 <!ENTITY userName.label   "User Name: ">
-<!ENTITY useSecureConnection.label   "Secure Connection: ">
+<!ENTITY connectionSecurity.label "Connection Security: ">
 <!ENTITY useSecureAuthentication.label   "Secure Authentication: ">

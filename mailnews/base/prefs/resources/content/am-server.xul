@@ -116,25 +116,24 @@
 
   <groupbox hidefor="movemail">
     <caption label="&securitySettings.label;"/>
-    <vbox align="start" hidefor="movemail">
-      <label value="&socketType.label;" control="server.socketType"/>
-      <radiogroup wsm_persist="true" id="server.socketType"
-                  prefattribute="value"
-                  prefstring="mail.server.%serverkey%.socketType"
-                  oncommand="secureSelect();"
-                  orient="horizontal" class="indent">
-        <radio value="0" id="neverSecure"
-               label="&neverSecure.label;" accesskey="&neverSecure.accesskey;"/>
-        <radio value="1" id="sometimesSecure"
-               label="&sometimesSecure.label;" accesskey="&sometimesSecure.accesskey;"
-               hidefor="nntp"/>
-        <radio value="2" id="alwaysSecure"
-               label="&alwaysSecure.label;" accesskey="&alwaysSecure.accesskey;"
-               hidefor="nntp"/>
-        <radio value="3" id="alwaysSSL"
-               label="&alwaysSSL.label;" accesskey="&alwaysSSL.accesskey;"/>
-      </radiogroup>
-    </vbox>
+    <hbox align="center">
+      <label value="&connectionSecurity.label;"
+             accesskey="&connectionSecurity.accesskey;"
+             control="server.socketType"/>
+      <menulist wsm_persist="true" id="server.socketType"
+                oncommand="secureSelect();">
+        <menupopup id="server.socketTypePopup">
+          <menuitem value="0" label="&connectionSecurityType-0.label;"/>
+          <menuitem id="connectionSecurityType-1"
+                    value="1" label="&connectionSecurityType-1.label;"
+                    disabled="true"/>
+          <menuitem value="2" label="&connectionSecurityType-2.label;"
+                    hidefor="nntp"/>
+          <menuitem value="3" label="&connectionSecurityType-3.label;"/>
+        </menupopup>
+      </menulist>
+    </hbox>
+
     <checkbox wsm_persist="true" id="server.useSecAuth"
               label="&useSecAuth.label;" hidefor="nntp,movemail"
               accesskey="&useSecAuth.accesskey;"

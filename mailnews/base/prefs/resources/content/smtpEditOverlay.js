@@ -79,8 +79,10 @@ function initSmtpSettings(server) {
         gSmtpTrySSL.value = (server.trySSL < 4) ? server.trySSL : 1;
         gSmtpUseSecAuth.checked = server.useSecAuth == "1";
     } else {
-        gSmtpAuthMethod.setAttribute("value", "1");
-        gSmtpTrySSL.value = 1;
+        const PREF_AUTH_ANY = 1; // From nsSmtpProtocol.h
+        gSmtpAuthMethod.setAttribute("value", PREF_AUTH_ANY);
+        const PREF_SECURE_NEVER = 0; // From nsSmtpProtocol.h
+        gSmtpTrySSL.value = PREF_SECURE_NEVER;
     }
 
     gSmtpUseUsername.checked = (gSmtpAuthMethod.getAttribute("value") == "1");
@@ -89,9 +91,16 @@ function initSmtpSettings(server) {
     //dump("gSmtpAuthMethod.value = " + gSmtpAuthMethod.getAttribute("value") + "\n");
 
     onUseUsername(gSmtpUseUsername, false);
-    selectProtocol(1);
+    selectProtocol(true);
     if (gSmtpService.defaultServer)
       onLockPreference();
+
+    //"STARTTLS, if available" is vulnerable to MITM attacks so we shouldn't
+    // allow users to choose it anymore. Hide the option unless the user already
+    // has it set.
+    const PREF_SECURE_TRY_STARTTLS = 1; // From nsSmtpProtocol.h
+    var hidden = (document.getElementById("smtp.trySSL").value != PREF_SECURE_TRY_STARTTLS);
+    document.getElementById("connectionSecurityType-1").hidden = hidden;
 }
 
 // Disables xul elements that have associated preferences locked.

@@ -47,14 +47,21 @@ var gObserver;
 
 function onInit(aPageId, aServerId) 
 {
-    initServerType();
+  initServerType();
 
-    onCheckItem("server.biffMinutes", "server.doBiff");
-    onCheckItem("nntp.maxArticles", "nntp.limitArticles");
-    setupMailOnServerUI();
-    setupFixedUI();
-    if (document.getElementById("server.type").getAttribute("value") == "imap")
-      setupImapDeleteUI(aServerId);
+  onCheckItem("server.biffMinutes", "server.doBiff");
+  onCheckItem("nntp.maxArticles", "nntp.limitArticles");
+  setupMailOnServerUI();
+  setupFixedUI();
+  if (document.getElementById("server.type").getAttribute("value") == "imap")
+    setupImapDeleteUI(aServerId);
+
+  // "STARTTLS, if available" is vulnerable to MITM attacks so we shouldn't
+  // allow users to choose it anymore. Hide the option unless the user already
+  // has it set.
+  var hidden = (document.getElementById("server.socketType").value !=
+                Components.interfaces.nsIMsgIncomingServer.tryTLS);
+  document.getElementById("connectionSecurityType-1").hidden = hidden;
 }
 
 function onPreInit(account, accountValues)
@@ -73,11 +80,6 @@ function onPreInit(account, accountValues)
     document.getElementById("server.emptyTrashOnExit").setAttribute("hidden", "true");
     document.getElementById("imap.deleteModel.box").setAttribute("hidden", "true");
   }
-  var hideButton = false;
-
-  if (hideButton)
-    document.getElementById("server.advancedbutton").setAttribute("hidden", "true");  
-  // otherwise let hideShowControls decide
 }
 
 function initServerType()

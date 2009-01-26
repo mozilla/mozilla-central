@@ -71,7 +71,10 @@
               <textbox id="useSecureAuthenticationValue" readonly="true" class="plain"/>
           </row>
           <row align="center">
-            <hbox pack="end"><label id="useSecureConnectionLabel" value="&useSecureConnection.label;" control="useSecureConnectionValue"/></hbox>
+            <hbox pack="end">
+              <label id="connectionSecurityLabel" value="&connectionSecurity.label;"
+                     control="useSecureConnectionValue"/>
+            </hbox>
             <textbox id="useSecureConnectionValue" readonly="true" class="plain"/>
           </row>
         </rows>
