@@ -123,17 +123,6 @@ function ltnIsSchedulingCalendar(cal) {
             cal.getProperty("itip.transport"));
 }
 
-const gCalSetupMailContext = {
-    observe: function gCalSetupMailContext_observer(subject, topic, data) {
-        if (topic == "mail:fillMailContextMenu") {
-            var hasSelection = (GetFirstSelectedMessage() != null);
-            // Disable the convert menu altogether.
-            setElementValue("mailContext-calendar-convert-menu",
-                            !hasSelection && "true", "hidden");
-        }
-    }
-};
-
 const ltnOnItipItem = {
     observe: function ltnOnItipItem_observe(subject, topic, state) {
         if (topic == "onItipItemCreation") {
@@ -234,20 +223,15 @@ function ltnImipOnLoad() {
 
     // Set up our observers
     cal.getObserverService().addObserver(ltnOnItipItem, "onItipItemCreation", false);
-    cal.getObserverService().addObserver(gCalSetupMailContext,
-                                         "mail:fillMailContextMenu", false);
 }
 
 function ltnImipOnUnload() {
     removeEventListener("messagepane-loaded", ltnImipOnLoad, true);
     removeEventListener("messagepane-unloaded", ltnImipOnUnload, true);
 
-    cal.getObserverService().removeObserver(ltnOnItipItem, "onItipItemCreation");
-    cal.getObserverService().removeObserver(gCalSetupMailContext,
-                                            "mail:fillMailContextMenu");
-
     gItipItem = null;
     gCalItemsArrayFound = [];
+    cal.getObserverService().removeObserver(ltnOnItipItem, "onItipItemCreation");
 }
 
 addEventListener("messagepane-loaded", ltnImipOnLoad, true);

@@ -136,3 +136,15 @@ function ltnSwitch2Task() {
     window.setCursor("auto");
   }
 }
+
+const gCalSetupMailContext = {
+    popup: function gCalSetupMailContext_popup() {
+        var hasSelection = (GetFirstSelectedMessage() != null);
+        // Disable the convert menu altogether.
+        setElementValue("mailContext-calendar-convert-menu",
+                        !hasSelection && "true", "hidden");
+    }
+};
+
+
+
