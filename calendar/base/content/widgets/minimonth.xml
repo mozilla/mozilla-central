@@ -129,8 +129,7 @@
                             oncommand="this.kMinimonth.advanceMonth(parseInt(this.getAttribute('dir'), 10))"
                             tooltiptext="&onemonthbackward.tooltip;"/>
          <xul:toolbarbutton anonid="today-button" class="minimonth-nav-btns" dir="0"
-                            oncommand="var d = new Date(); this.kMinimonth.selectDate(d);
-                                       this.kMinimonth.dayClicked(this.kMinimonth.getBoxForDate(d));"
+                            oncommand="this.kMinimonth.selectDate(new Date());"
                             tooltiptext="&showToday.tooltip;"/>
          <xul:toolbarbutton anonid="right-button" class="minimonth-nav-btns" dir="1"
                             oncommand="this.kMinimonth.advanceMonth(parseInt(this.getAttribute('dir'), 10))"
