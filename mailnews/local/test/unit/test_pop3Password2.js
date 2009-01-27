@@ -192,10 +192,6 @@ function run_test() {
 
   pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
                       .getService(Ci.nsIPop3Service);
-  var prefsFile = do_get_file("../testprefs1.js", true);
-  var realPrefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-    .getService(Ci.nsIPrefService);
-  realPrefSvc.savePrefFile(prefsFile);
 
   do_test_pending();
 
