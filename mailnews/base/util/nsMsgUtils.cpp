@@ -1887,7 +1887,7 @@ NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsCStri
   PRInt32 start = 0;
   for (;;) {
     PRInt32 end = string.FindChar(delimiter, start);
-    if (end != start && !array.AppendCString(Substring(string, start, end)))
+    if (end != start && !array.AppendCString(Substring(string, start, end - start)))
       break;
     if (end == -1)
       return PR_TRUE;
@@ -1909,7 +1909,7 @@ NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsTArra
   PRInt32 start = 0;
   for (;;) {
     PRInt32 end = string.FindChar(delimiter, start);
-    if (end != start && !array.AppendElement(Substring(string, start, end)))
+    if (end != start && !array.AppendElement(Substring(string, start, end - start)))
       break;
     if (end == -1)
       return PR_TRUE;
