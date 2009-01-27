@@ -365,6 +365,15 @@
     </implementation>
 
     <handlers>
+      <handler event="dragover"><![CDATA[
+         let session = cal.getDragService().getCurrentSession();
+         if (!session || !session.sourceNode || !session.sourceNode.sourceObject) {
+            // No source node? Not our drag.
+            return false;
+         }
+         event.preventDefault();
+      ]]></handler>
+
       <handler event="dragenter"><![CDATA[
        if (event.target.localName == this.localName) {
            let session = cal.getDragService().getCurrentSession();
@@ -373,7 +382,10 @@
                   // No source item? Then this is not for us.
                   return;
                }
-              
+
+               // We can drop now, tell the drag service.
+               event.preventDefault();
+
                if (!this.hasAttribute("dropbox") || this.getAttribute("dropbox") == "false") {
                    // As it turned out it was not possible to remove the remaining dropshadows
                    // at the "dragleave" or "dragexit" event, majorly because it was not reliably
@@ -388,11 +400,9 @@
                this.setAttribute("dropbox", "true");
            }
        }
-       event.stopPropagation();
       ]]></handler>
 
       <handler event="dragdrop"><![CDATA[
-         event.stopPropagation();
          let session = cal.getDragService().getCurrentSession();
          if (!session || !session.sourceNode || !session.sourceNode.sourceObject) {
             // No source node? Not our drag.
@@ -423,6 +433,11 @@
          let newEnd = newItem.endDate || newItem.dueDate;
          this.calendarView.controller.modifyOccurrence(item, newStart, newEnd);
       ]]></handler>
+
+      <handler event="dragend"><![CDATA[
+          currentView().removeDropShadows();
+      ]]></handler>
+
     </handlers>
   </binding>
 

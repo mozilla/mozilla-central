@@ -107,10 +107,7 @@
        </hbox>
        <deck flex="1"
             id="view-deck"
-            persist="selectedIndex"
-            ondraggesture="nsDragAndDrop.startDrag(event, calendarViewDNDObserver);"
-            ondragover="nsDragAndDrop.dragOver(event, calendarViewDNDObserver);"
-            ondragdrop="nsDragAndDrop.drop(event, calendarViewDNDObserver);">
+            persist="selectedIndex">
         <!-- Note: the "id" attributes of the calendar panes **must** follow the
              notation 'type + "-" + "view"', where "type" should refer to the
              displayed time period as described in base/public/calICalendarView.idl -->
