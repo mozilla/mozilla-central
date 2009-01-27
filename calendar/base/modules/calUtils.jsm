@@ -230,10 +230,11 @@ let cal = {
           return aItem.getProperty("LOCATION") || "";
 
         case "status":
-          if (isToDo(aItem))
+          if (cal.isToDo(aItem)) {
             return ["NEEDS-ACTION", "IN-PROCESS", "COMPLETED", "CANCELLED" ].indexOf(aItem.status);
-          else
+          } else {
             return ["TENTATIVE", "CONFIRMED", "CANCELLED"].indexOf(aItem.status);
+          }
         case "calendar":
           return aItem.calendar.name || "";
 
