@@ -372,6 +372,9 @@ calStorageCalendar.prototype = {
             path = path.substr(0, pos);
         }
 
+        this.mCalId = id;
+        this.mUri = aUri;
+
         var dbService;
         if (aUri.scheme == "file") {
             var fileURL = aUri.QueryInterface(Components.interfaces.nsIFileURL);
@@ -383,11 +386,50 @@ calStorageCalendar.prototype = {
             this.mDB = dbService.openDatabase(fileURL.file);
         } else if (aUri.scheme == "moz-profile-calendar") {
             dbService = Components.classes[kStorageServiceContractID].getService(kStorageServiceIID);
-            this.mDB = dbService.openSpecialDatabase("profile");
-        }
+            let localDB = cal.getCalendarDirectory();
+            localDB.append("local.sqlite");
+            localDB = dbService.openDatabase(localDB);
 
-        this.mCalId = id;
-        this.mUri = aUri;
+            this.mDB = dbService.openSpecialDatabase("profile");
+            if (this.mDB.tableExists("cal_events")) { // migrate data to local.sqlite:
+                this.initDB(); // upgrade schema before migating data
+                let attachStatement = createStatement(this.mDB, "ATTACH DATABASE :file_path AS local_sqlite");
+                try {
+                    attachStatement.params.file_path = localDB.databaseFile.path;
+                    attachStatement.execute();
+                } catch (exc) {
+                    cal.ERROR(exc + ", error: " + this.mDB.lastErrorString);
+                    throw exc;
+                } finally {
+                    attachStatement.reset();
+                }
+                try {
+                    // hold lock on storage.sdb until we've migrated data from storage.sdb:
+                    this.mDB.beginTransactionAs(Components.interfaces.mozIStorageConnection.TRANSACTION_EXCLUSIVE);
+                    try {
+                        if (this.mDB.tableExists("cal_events")) { // check again (with lock)
+                            // take over data and drop from storage.sdb tables:
+                            for (let table in sqlTables) {
+                                this.mDB.executeSimpleSQL("CREATE TABLE local_sqlite." +  table +
+                                                          " AS SELECT * FROM " + table +
+                                                          "; DROP TABLE IF EXISTS " +  table);
+                            }
+                            this.mDB.commitTransaction();
+                        } else { // migration done in the meantime
+                            this.mDB.rollbackTransaction();
+                        }
+                    } catch (exc) {
+                        cal.ERROR(exc + ", error: " + this.mDB.lastErrorString);
+                        this.mDB.rollbackTransaction();
+                        throw exc;
+                    }
+                } finally {
+                    this.mDB.executeSimpleSQL("DETACH DATABASE local_sqlite");
+                }
+            }
+
+            this.mDB = localDB;
+        }
 
         this.initDB();
     },
