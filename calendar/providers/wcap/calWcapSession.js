@@ -62,45 +62,71 @@ calWcapTimezone.prototype = {
     }
 };
 
+function splitUriParams(uri) {
+    let spec = uri.spec;
+    let qmPos = spec.indexOf("?");
+    return ((qmPos != -1)
+            ? [spec.substring(0, qmPos), spec.substring(qmPos)]
+            : [spec, ""]);
+}
+
 function getWcapSessionFor(calendar, uri) {
     let contextId = calendar.getProperty("shared_context");
     if (!contextId) {
         contextId = getUUID();
         calendar.setProperty("shared_context", contextId);
     }
+
     if (!getWcapSessionFor.m_sessions) {
         getWcapSessionFor.m_sessions = {};
     }
     let session = getWcapSessionFor.m_sessions[contextId];
+
     if (!session) {
-        session = new calWcapSession(contextId, uri);
+        session = new calWcapSession(contextId);
         getWcapSessionFor.m_sessions[contextId] = session;
-        // install a mandatory default calendar:
-        let defaultCal = calendar;
-        for each (let regCal in session.getRegisteredCalendars()) {
+
+        let defaultCal = null;
+        let registeredCalendars = session.getRegisteredCalendars();
+        for each (let regCal in registeredCalendars) {
             if (regCal.isDefaultCalendar) {
                 defaultCal = regCal;
-                session.credentials.userId = defaultCal.getProperty("user_id");
                 break;
             }
         }
-        if (!defaultCal) {
-            logError("no default calendar!", session);
+
+        if (defaultCal) {
+            session.defaultCalendar = defaultCal;
+            let [defaultSpec,] = splitUriParams(defaultCal.uri);
+            session.uri = cal.makeURL(defaultSpec);
+            session.credentials.userId = defaultCal.getProperty("user_id");
+            log("default calendar found.", defaultCal);
+
+            // check and fix changing urls (autoconf) of subscribed calendars here:
+            for each (let regCal in registeredCalendars) {
+                if (!regCal.isDefaultCalendar) {
+                    let [spec, params] = splitUriParams(regCal.uri);
+                    if (spec != defaultSpec) {
+                        log("fixing url of subscribed calendar: " + regCal.calId, session);
+                        let uri = regCal.uri.clone();
+                        uri.spec = (defaultSpec + params);
+                        regCal.uri = uri;
+                        regCal.setProperty("uri", uri.spec);
+                    }
+                }
+            }
+        } else { // no default calendar found, dump all subscribed calendars:
+            registeredCalendars.forEach(cal.getCalendarManager().unregisterCalendar,
+                                        cal.getCalendarManager());
         }
-        session.defaultCalendar = defaultCal;
     }
     return session;
 }
 
-function calWcapSession(contextId, thatUri) {
+function calWcapSession(contextId) {
     this.wrappedJSObject = this;
     this.m_contextId = contextId;
     this.m_loginQueue = [];
-
-    this.m_uri = thatUri.clone();
-    this.m_sessionUri = thatUri.clone();
-    this.m_sessionUri.userPass = "";
-    log("new session", this);
 
     // listen for shutdown, being logged out:
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
@@ -115,7 +141,7 @@ calWcapSession.prototype = {
     },
 
     toString: function calWcapSession_toString(msg) {
-        var str = ("context-id: " + this.m_contextId + ", uri: " + this.uri.spec);
+        let str = ("context-id: " + this.m_contextId + ", uri: " + (this.uri ? this.uri.spec : "unknown"));
         if (this.credentials.userId) {
             str += (", userId=" + this.credentials.userId);
         }
@@ -776,6 +802,11 @@ calWcapSession.prototype = {
     },
     get sessionUri calWcapSession_sessionUriGetter() {
         return this.m_sessionUri;
+    },
+    set uri calWcapSession_uriSetter(thatUri) {
+        this.m_uri = thatUri.clone();
+        this.m_sessionUri = thatUri.clone();
+        this.m_sessionUri.userPass = "";
     },
 
     get userId calWcapSession_userIdGetter() {

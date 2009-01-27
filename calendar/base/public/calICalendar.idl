@@ -470,31 +470,34 @@ interface calICalendar : nsISupports
 
 /** 
  * Used to allow multiple calendars (eg work and home) to be easily queried
- * and displayed as a single unit.
+ * and displayed as a single unit. All calendars are referenced by ID, i.e.
+ * calendars need to have an ID when being added.
  */
-[scriptable, uuid(8285aa0b-594c-4f93-abe3-523df947e0ad)]
+[scriptable, uuid(6748fa00-79b5-4728-84f3-20dd47e0b031)]
 interface calICompositeCalendar : calICalendar
 {
   /**
-   * Add an already created calendar to the composite
-   * 
+   * Adds a calendar to the composite, if not already part of it.
+   *
    * @param aCalendar the calendar to be added
    */
-  void addCalendar( in calICalendar aCalendar );
+  void addCalendar(in calICalendar aCalendar);
+
   /**
    * Remove a calendar from the composite
    * 
-   * @param aServer  URI of the server to be removed
+   * @param aCalendar the calendar to be removed
    */
-  void removeCalendar( in nsIURI aServer );
+  void removeCalendar(in calICalendar aCalendar);
+
   /**
-   * If a calendar for the given URI exists in the CompositeCalendar,
+   * If a calendar for the given ID exists in the CompositeCalendar,
    * return it; otherwise return null.
    *
-   * @param aServer  URI of the server whose calendar to return
-   * @return calendar for aServer, or null if none
+   * @param aId id of calendar
+   * @return calendar, or null if none
    */
-  calICalendar getCalendar( in nsIURI aServer );
+  calICalendar getCalendarById(in AUTF8String aId);
 
   /* return a list of all calendars currently registered */
   void getCalendars(out PRUint32 count,
@@ -523,7 +526,7 @@ interface calICompositeCalendar : calICalendar
   /**
    * Sets a statusobserver for status notifications like startMeteors() and StopMeteors().
    */
-   void setStatusObserver( in calIStatusObserver aStatusObserver, in nsIDOMChromeWindow aWindow );
+  void setStatusObserver(in calIStatusObserver aStatusObserver, in nsIDOMChromeWindow aWindow);
 };
 
 /**

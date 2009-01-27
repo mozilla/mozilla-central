@@ -169,7 +169,9 @@ calCompositeCalendar.prototype = {
 
     set prefPrefix (aPrefPrefix) {
         if (this.mPrefPrefix) {
-            this.mCalendars.forEach(this.removeCalendar, this);
+            for each (let calendar in this.mCalendars) {
+                this.removeCalendar(calendar);
+            }
         }
         this.mPrefPrefix = aPrefPrefix;
         this.mActivePref = aPrefPrefix + "-in-composite";
@@ -189,17 +191,16 @@ calCompositeCalendar.prototype = {
         return this.mPrefPrefix;
     },
 
-    addCalendar: function (aCalendar) {
+    addCalendar: function cCC_addCalendar(aCalendar) {
+        cal.ASSERT(aCalendar.id, "calendar does not have an id!", true);
+
         // check if the calendar already exists
-        for each (cal in this.mCalendars) {
-            if (aCalendar.uri.equals(cal.uri)) {
-                // throw exception if calendar already exists?
-                return;
-            }
+        if (this.getCalendarById(aCalendar.id)) {
+            return;
         }
 
         // add our observer helper
-        aCalendar.addObserver(this.mObserverHelper); // XXX Never removed!
+        aCalendar.addObserver(this.mObserverHelper);
 
         this.mCalendars.push(aCalendar);
         if (this.mPrefPrefix) {
@@ -213,33 +214,26 @@ calCompositeCalendar.prototype = {
         }
     },
 
-    removeCalendar: function (aServer) {
-        var newCalendars = Array();
-        var calToRemove = null;
-        for each (cal in this.mCalendars) {
-            if (!aServer.equals(cal.uri))
-                newCalendars.push(cal);
-            else
-                calToRemove = cal;
-        }
-
-        if (calToRemove) {
+    removeCalendar: function cCC_removeCalendar(aCalendar) {
+        let id = aCalendar.id;
+        let newCalendars = this.mCalendars.filter(function(calendar) { return calendar.id != id; });
+        if (newCalendars.length != this.mCalendars) {
             this.mCalendars = newCalendars;
             if (this.mPrefPrefix) {
-                calToRemove.deleteProperty(this.mActivePref);
-                calToRemove.deleteProperty(this.mDefaultPref);
+                aCalendar.deleteProperty(this.mActivePref);
+                aCalendar.deleteProperty(this.mDefaultPref);
             }
-            calToRemove.removeObserver(this.mObserverHelper);
-            this.mCompositeObservers.notify("onCalendarRemoved", [calToRemove]);
+            aCalendar.removeObserver(this.mObserverHelper);
+            this.mCompositeObservers.notify("onCalendarRemoved", [aCalendar]);
         }
     },
 
-    getCalendar: function (aServer) {
-        for each (cal in this.mCalendars) {
-            if (aServer.equals(cal.uri))
-                return cal;
+    getCalendarById: function cCC_getCalendarById(aId) {
+        for each (let calendar in this.mCalendars) {
+            if (calendar.id == aId) {
+                return calendar;
+            }
         }
-
         return null;
     },
 

@@ -86,10 +86,7 @@ function promptDeleteCalendar(aCalendar) {
  * Ensure that the passed calendar is visible to the user in the current window.
  */
 function ensureCalendarVisible(aCalendar) {
-    var composite = getCompositeCalendar();
-    if (!composite.getCalendar(aCalendar.uri)) {
-        composite.addCalendar(aCalendar);
-    }
+    getCompositeCalendar().addCalendar(aCalendar);
 }
 
 /**
@@ -420,7 +417,7 @@ var calendarListTreeView = {
         var composite = getCompositeCalendar();
 
         // Set up the composite calendar status
-        if (composite.getCalendar(calendar.uri)) {
+        if (composite.getCalendarById(calendar.id)) {
             aProps.AppendElement(getAtomFromService("checked"));
         } else {
             aProps.AppendElement(getAtomFromService("unchecked"));
@@ -598,7 +595,7 @@ var calendarListTreeView = {
 
         switch (aCol.id) {
             case "calendar-list-tree-checkbox":
-                return composite.getCalendar(calendar.uri) ? "true" : "false";
+                return composite.getCalendarById(calendar.id) ? "true" : "false";
             case "calendar-list-tree-status":
                 // The value of this cell shows the calendar readonly state
                 return (calendar.readOnly ? "true" : "false");
@@ -607,9 +604,6 @@ var calendarListTreeView = {
     },
 
     getCellText: function cLTV_getCellText(aRow, aCol) {
-        var calendar = this.getCalendar(aRow);
-        var composite = getCompositeCalendar();
-
         switch (aCol.id) {
             case "calendar-list-tree-calendar":
                 return this.getCalendar(aRow).name;
@@ -631,17 +625,17 @@ var calendarListTreeView = {
 
         switch (aCol.id) {
             case "calendar-list-tree-checkbox":
-            try {
                 composite.startBatch();
-                if (composite.getCalendar(calendar.uri)) {
-                    composite.removeCalendar(calendar.uri);
-                } else {
-                    composite.addCalendar(calendar);
+                try {
+                    if (composite.getCalendarById(calendar.id)) {
+                        composite.removeCalendar(calendar);
+                    } else {
+                        composite.addCalendar(calendar);
+                    }
+                } finally {
+                    composite.endBatch();
                 }
-            } finally {
-                composite.endBatch();
-            }
-            break;
+                break;
         }
         this.treebox.invalidateRow(aRow);
     },
@@ -994,7 +988,7 @@ var calendarManagerObserver = {
         aCalendar.removeObserver(this);
 
         // Make sure the calendar is removed from the composite calendar
-        getCompositeCalendar().removeCalendar(aCalendar.uri);
+        getCompositeCalendar().removeCalendar(aCalendar);
 
         // Update commands to disallow deleting the last calendar and only
         // allowing reload remote calendars when there are remote calendars.

@@ -244,15 +244,7 @@ calWcapCalendar.prototype = {
     m_session: null,
     get session calWcapCalendar_sessionGetter() {
         if (!this.m_session) {
-            var uri = this.uri;
-            ASSERT(uri, "no URI set!");
-            var path = uri.path;
-            var qmPos = path.indexOf("?");
-            if (qmPos != -1) {
-                uri = uri.clone();
-                uri.path = path.substring(0, qmPos); // get rid of params
-            }
-            this.m_session = getWcapSessionFor(this, uri);
+            this.m_session = getWcapSessionFor(this);
         }
         return this.m_session;
     },
@@ -323,7 +315,7 @@ calWcapCalendar.prototype = {
     get defaultTimezone calWcapCalendar_defaultTimezoneGetter() {
         var tzid = this.getCalendarProperties("X-NSCP-CALPROPS-TZID");
         if (tzid.length == 0) {
-            logError("defaultTimezone: cannot get X-NSCP-CALPROPS-TZID!", this);
+            logWarning("defaultTimezone: cannot get X-NSCP-CALPROPS-TZID!", this);
             return "UTC"; // fallback
         }
         return tzid[0];

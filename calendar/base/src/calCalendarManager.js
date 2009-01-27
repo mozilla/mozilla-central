@@ -673,6 +673,11 @@ calCalendarManager.prototype = {
                 let curi = cal.getPrefSafe(calBranch + ".uri", null);
 
                 try {
+                    if (!ctype || !curi) { // sanity check
+                        prefService.deleteBranch(calBranch + ".");
+                        continue;
+                    }
+
                     let uri = cal.makeURL(curi);
                     let calendar = this.createCalendar(ctype, uri);
                     if (calendar) {
