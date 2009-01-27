@@ -389,11 +389,11 @@ void nsMailDatabase::GetMailboxModProperties(PRInt64 *aSize, PRUint32 *aDate)
   if (NS_FAILED(rv) || !copyFolderFile)
     return;
 
-  if (NS_FAILED(copyFolderFile->GetFileSize(aSize))
+  if (NS_FAILED(copyFolderFile->GetFileSize(aSize)))
     return;
 
   PRInt64 lastModTime;
-  if (NS_FAILED(copyFolderFile->GetLastModifiedTime(&lastModTime))
+  if (NS_FAILED(copyFolderFile->GetLastModifiedTime(&lastModTime)))
     return;
 
   PRTime  temp64;
