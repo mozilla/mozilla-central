@@ -395,11 +395,9 @@ TEST_COOKIES_FILES = \
 	$(DIST)/../_tests/xpcshell-simple/test_necko/unit/test_cookie_header.js \
 	$(NULL)
 
-libs:: $(TEST_COOKIES_FILES)
-	for file in $^; do \
+libs::
+	for file in $(TEST_COOKIES_FILES); do \
 		if test -f $$file; then $(RM) $$file; echo "function run_test() {dump('disabled for bug 431125');}" >$$file; fi; \
 	done
-
-libs::
 	$(RM) $(DIST)/bin/TestCookie
 	if test -f $(DIST)/bin/TestTArray; then cp $(DIST)/bin/TestTArray $(DIST)/bin/TestCookie; fi;
