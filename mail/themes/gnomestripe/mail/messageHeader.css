@@ -264,7 +264,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-appearance: none;
   font-size: 95%;
   color: black;
-  -moz-margin-start 0px;
+  -moz-margin-start: 0px;
   -moz-margin-end: 5px;
   margin-top: 1px;
   margin-bottom: 2px;
