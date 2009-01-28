@@ -66,10 +66,6 @@ function commonInitCalendar() {
     window.addEventListener("resize", onCalendarViewResize, true);
 
     // Set up listener for mailContext.
-    let mailContextPopup = document.getElementById("mailContext");
-    if (mailContextPopup)
-      mailContextPopup.addEventListener("popupshowing",
-                                        gCalSetupMailContext.popup, false);
 }
 
 /**
@@ -84,12 +80,6 @@ function commonFinishCalendar() {
 
     document.getElementById("calsidebar_splitter").removeEventListener("command", onCalendarViewResize, false);
     window.removeEventListener("resize", onCalendarViewResize, true);
-
-    // Remove listener for mailContext.
-    let mailContextPopup = document.getElementById("mailContext");
-    if (mailContextPopup)
-      mailContextPopup.removeEventListener("popupshowing",
-                                           gCalSetupMailContext.popup, false);
 }
 
 /**

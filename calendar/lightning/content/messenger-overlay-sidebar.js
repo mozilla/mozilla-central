@@ -133,6 +133,12 @@ function ltnOnLoad(event) {
     var filter = document.getElementById("task-tree-filtergroup");
     filter.value = filter.value || "all";
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
+
+    let mailContextPopup = document.getElementById("mailContext");
+    if (mailContextPopup)
+      mailContextPopup.addEventListener("popupshowing",
+                                        gCalSetupMailContext.popup, false);
+
 }
 
 /* Called at midnight to tell us to redraw date-specific widgets.  Do NOT call
@@ -229,6 +235,12 @@ function LtnObserveDisplayDeckChange(event) {
 
 function ltnFinish() {
     getCalendarManager().removeObserver(gInvitationsCalendarManagerObserver);
+
+    // Remove listener for mailContext.
+    let mailContextPopup = document.getElementById("mailContext");
+    if (mailContextPopup)
+      mailContextPopup.removeEventListener("popupshowing",
+                                           gCalSetupMailContext.popup, false);
 
     // Common finish steps
     commonFinishCalendar();
