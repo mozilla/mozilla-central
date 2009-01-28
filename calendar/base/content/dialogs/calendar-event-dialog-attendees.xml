@@ -99,6 +99,8 @@
       <field name="mPopupOpen">false</field>
 
       <constructor><![CDATA[
+        Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
         this.mMaxAttendees = 0;
 
         var self = this;
@@ -988,21 +990,15 @@
 
               // Fill in the session params if there is a session
               if (LDAPSession) {
-                  var serverURL = Components.classes["@mozilla.org/network/ldap-url;1"]
-                                  .createInstance(Components.interfaces.nsILDAPURL);
-                  try {
-                      serverURL.spec = this.mPrefs.getComplexValue(
-                          autocompleteDirectory + ".uri",
-                          Components.interfaces.nsISupportsString).data;
-                  } catch (ex) {
-                      dump("ERROR: " + ex + "\n");
-                  }
-                  LDAPSession.serverURL = serverURL;
+                  let url = this.mPrefs.getComplexValue(autocompleteDirectory +".uri",
+                                                        Components.interfaces.nsISupportsString).data;
+
+                  LDAPSession.serverURL =
+                      cal.makeURL(url).QueryInterface(Components.interfaces.nsILDAPURL);
 
                   // Get the login to authenticate as, if there is one
-                  var login = "";
                   try {
-                      login = this.mPrefs.getComplexValue(
+		      LDAPSession.login = this.mPrefs.getComplexValue(
                           autocompleteDirectory + ".auth.dn",
                           Components.interfaces.nsISupportsString).data;
                   } catch (ex) {
@@ -1020,21 +1016,6 @@
                   if (protocolVersion == "2") {
                       LDAPSession.version =
                           Components.interfaces.nsILDAPConnection.VERSION2;
-                  }
-
-                  // Find out if we need to authenticate, and if so, tell the LDAP
-                  // autocomplete session how to prompt for a password.  This window
-                  // is being used to parent the authprompter.
-                  LDAPSession.login = login;
-                  if (login != "") {
-                      var windowWatcherSvc = Components.classes[
-                          "@mozilla.org/embedcomp/window-watcher;1"]
-                          .getService(Components.interfaces.nsIWindowWatcher);
-                      var domWin =
-                          window.QueryInterface(Components.interfaces.nsIDOMWindow);
-                      var authPrompter =
-                          windowWatcherSvc.getNewAuthPrompter(domWin);
-                      LDAPSession.authPrompter = authPrompter;
                   }
 
                   // Don't search on non-CJK strings shorter than this
