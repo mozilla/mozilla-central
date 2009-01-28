@@ -320,7 +320,6 @@ calendar-day-label[orient="vertical"] {
 /* Month View */
 calendar-month-view,
 calendar-multiweek-view {
-    background-color: #FFFFFF;
     padding: 0px 2px 2px;
 }
 
@@ -635,6 +634,7 @@ calendar-month-day-box-item[invitation-status="DECLINED"] {
 }
 
 #view-deck {
+    background-color: white;
     border: solid ThreeDShadow;
     border-width: 0 1px;
 }
