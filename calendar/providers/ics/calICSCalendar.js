@@ -662,11 +662,8 @@ calICSCalendar.prototype = {
         var numBackupFiles = getPrefSafe("calendar.backup.filenum", 3);
 
         try {
-            var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
-                                       .getService(CI.nsIProperties);
-// xxx todo: would we want to migrate the backups into getCalendarDirectory()?
-            var backupDir = dirService.get("ProfD", CI.nsILocalFile);
-            backupDir.append("backupData");
+            var backupDir = cal.getCalendarDirectory();
+            backupDir.append("backup");
             if (!backupDir.exists()) {
                 backupDir.create(CI.nsIFile.DIRECTORY_TYPE, 0755);
             }
