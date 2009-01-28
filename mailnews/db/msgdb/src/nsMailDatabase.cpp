@@ -374,34 +374,24 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
   }
 }
 
-// Get the current attributes of the mbox file, corrected for caching
-void nsMailDatabase::GetMailboxModProperties(PRInt64 *aSize, PRUint32 *aDate)
+PRUint32 nsMailDatabase::GetMailboxModDate()
 {
-  // We'll simply return 0 on errors.
-  *aDate = 0;
-  *aSize = 0;
-  if (!m_folderFile)
-    return;
-
-  // clone file because nsLocalFile caches sizes and dates.
-  nsCOMPtr<nsIFile> copyFolderFile;
-  nsresult rv = m_folderFile->Clone(getter_AddRefs(copyFolderFile));
-  if (NS_FAILED(rv) || !copyFolderFile)
-    return;
-
-  if (NS_FAILED(copyFolderFile->GetFileSize(aSize)))
-    return;
-
+  PRUint32 retModTime = 0;
   PRInt64 lastModTime;
-  if (NS_FAILED(copyFolderFile->GetLastModifiedTime(&lastModTime)))
-    return;
+  if (m_folderFile)
+  {
+    nsresult rv = m_folderFile->GetLastModifiedTime(&lastModTime);
+    if (NS_SUCCEEDED(rv))
+    {
 
-  PRTime  temp64;
-  PRInt64 thousand;
-  LL_I2L(thousand, PR_MSEC_PER_SEC);
-  LL_DIV(temp64, lastModTime, thousand);
-  LL_L2UI(*aDate, temp64);
-  return;
+      PRTime  temp64;
+      PRInt64 thousand;
+      LL_I2L(thousand, PR_MSEC_PER_SEC);
+      LL_DIV(temp64, lastModTime, thousand);
+      LL_L2UI(retModTime, temp64);
+    }
+  }
+  return retModTime;
 }
 
 NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
@@ -409,13 +399,17 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
   NS_ENSURE_ARG_POINTER(aResult);
   PRUint32 folderSize;
   PRUint32  folderDate;
+  PRUint32  actualFolderTimeStamp;
   PRInt32 numUnreadMessages;
   nsAutoString errorMsg;
 
+        
   *aResult = PR_FALSE;
-
+  
   if (m_folderFile && m_dbFolderInfo)
   {
+    actualFolderTimeStamp = GetMailboxModDate();
+  
     m_dbFolderInfo->GetNumUnreadMessages(&numUnreadMessages);
     m_dbFolderInfo->GetFolderSize(&folderSize);
     m_dbFolderInfo->GetFolderDate(&folderDate);
@@ -423,12 +417,14 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
     // compare current version of db versus filed out version info, 
     // and file size in db vs file size on disk.
     PRUint32 version;
+
     m_dbFolderInfo->GetVersion(&version);
-
+    nsCOMPtr <nsIFile> copyFolderFile;
+    // clone file because nsLocalFile caches sizes.
+    nsresult rv = m_folderFile->Clone(getter_AddRefs(copyFolderFile));
+    NS_ENSURE_SUCCESS(rv, rv);
     PRInt64 fileSize;
-    PRUint32 actualFolderTimeStamp;
-    GetMailboxModProperties(&fileSize, &actualFolderTimeStamp);
-
+    copyFolderFile->GetFileSize(&fileSize);
     if (folderSize == fileSize &&
         numUnreadMessages >= 0 && GetCurVersion() == version)
     {
@@ -488,9 +484,13 @@ NS_IMETHODIMP nsMailDatabase::SetSummaryValid(PRBool valid)
   {
     if (valid)
     {
-      PRUint32 actualFolderTimeStamp;
+      PRUint32 actualFolderTimeStamp = GetMailboxModDate();
       PRInt64 fileSize;
-      GetMailboxModProperties(&fileSize, &actualFolderTimeStamp);
+      nsCOMPtr <nsIFile> copyFolderFile;
+      // clone file because nsLocalFile caches sizes.
+      rv = m_folderFile->Clone(getter_AddRefs(copyFolderFile));
+      NS_ENSURE_SUCCESS(rv, rv);
+      copyFolderFile->GetFileSize(&fileSize);
       m_dbFolderInfo->SetFolderSize((PRUint32) fileSize);
       m_dbFolderInfo->SetFolderDate(actualFolderTimeStamp);
       m_dbFolderInfo->SetVersion(GetCurVersion());
@@ -735,9 +735,9 @@ nsresult nsMailDatabase::SetFolderInfoValid(nsILocalFile *folderName, int num, i
   
   {
     pMessageDB->m_folderFile = folderName;
-    PRUint32 actualFolderTimeStamp;
+    PRUint32 actualFolderTimeStamp = pMessageDB->GetMailboxModDate();
     PRInt64 fileSize;
-    pMessageDB->GetMailboxModProperties(&fileSize, &actualFolderTimeStamp);
+    folderName->GetFileSize(&fileSize);
     pMessageDB->m_dbFolderInfo->SetFolderSize((PRUint32) fileSize);
     pMessageDB->m_dbFolderInfo->SetFolderDate(actualFolderTimeStamp);
     pMessageDB->m_dbFolderInfo->ChangeNumUnreadMessages(numunread);

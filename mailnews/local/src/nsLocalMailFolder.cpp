@@ -2450,20 +2450,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
     mCopyState->m_leftOver = 0; // reset to 0.
     // need to reset this in case we're move/copying multiple msgs.
     mCopyState->m_fromLineSeen = PR_FALSE;
-
-    // flush the copied message. Seeking causes a flush, w/o syncing. But we
-    // need a flush at the end to get the file size and time updated correctly.
+    // flush the copied message.
     if (mCopyState->m_fileStream)
     {
-      if (multipleCopiesFinished)
-      {
-        mCopyState->m_fileStream->Flush();
-      }
-      else
-      {
-        seekableStream = do_QueryInterface(mCopyState->m_fileStream);
-        seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, 0);
-      }
+      seekableStream = do_QueryInterface(mCopyState->m_fileStream);
+      seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, 0); // seeking causes a flush, w/o syncing
     }
   }
   //Copy the header to the new database
