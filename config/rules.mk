@@ -113,6 +113,106 @@ ifdef EXTRA_DSO_LIBS
 EXTRA_DSO_LIBS	:= $(call EXPAND_MOZLIBNAME,$(EXTRA_DSO_LIBS))
 endif
 
+################################################################################
+# Testing frameworks support
+################################################################################
+
+ifdef ENABLE_TESTS
+
+ifdef XPCSHELL_TESTS
+ifndef MODULE
+$(error Must define MODULE when defining XPCSHELL_TESTS.)
+endif
+
+# Test file installation
+libs::
+	@$(EXIT_ON_ERROR) \
+	for testdir in $(XPCSHELL_TESTS); do \
+	  $(INSTALL) \
+	    $(srcdir)/$$testdir/*.js \
+	    $(MOZDEPTH)/_tests/xpcshell-simple/$(MODULE)/$$testdir; \
+	done
+
+# Path formats on Windows are hard.  We require a topsrcdir formatted so that
+# it may be passed to nsILocalFile.initWithPath (in other words, an absolute
+# path of the form X:\path\to\topsrcdir), which we store in NATIVE_TOPSRCDIR.
+# We require a forward-slashed path to topsrcdir so that it may be combined
+# with a relative forward-slashed path for loading scripts, both dynamically
+# and statically for head/test/tail JS files.  Of course, on non-Windows none
+# of this matters, and things will work correctly because everything's
+# forward-slashed, everywhere, always.
+ifdef CYGWIN_WRAPPER
+NATIVE_TOPSRCDIR   := `cygpath -wa $(MOZILLA_SRCDIR)`
+FWDSLASH_TOPSRCDIR := `cygpath -ma $(MOZILLA_SRCDIR)`
+else
+FWDSLASH_TOPSRCDIR := $(MOZILLA_SRCDIR)
+ifeq ($(HOST_OS_ARCH),WINNT)
+NATIVE_TOPSRCDIR   := $(subst /,\\,$(WIN_TOP_SRC)/mozilla)
+else 
+NATIVE_TOPSRCDIR   := $(MOZILLA_SRCDIR)
+endif
+endif # CYGWIN_WRAPPER
+
+testxpcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
+
+# Test execution
+check::
+	@$(EXIT_ON_ERROR) \
+	for testdir in $(XPCSHELL_TESTS); do \
+	  $(RUN_TEST_PROGRAM) \
+	    $(testxpcdir)/test_all.sh \
+	      $(DIST)/bin/xpcshell \
+	      $(FWDSLASH_TOPSRCDIR) \
+	      $(NATIVE_TOPSRCDIR) \
+	      $(MOZDEPTH)/_tests/xpcshell-simple/$(MODULE)/$$testdir; \
+	done
+
+# Test execution
+check-interactive::
+	@$(EXIT_ON_ERROR) \
+	$(RUN_TEST_PROGRAM) \
+	  $(testxpcdir)/test_one.sh \
+	    $(DIST)/bin/xpcshell \
+	    $(FWDSLASH_TOPSRCDIR) \
+	    $(NATIVE_TOPSRCDIR) \
+	    $(MOZDEPTH)/_tests/xpcshell-simple/$(MODULE)/$$testdir \
+	    $(SOLO_FILE) 1;
+
+# Test execution
+check-one::
+	@$(EXIT_ON_ERROR) \
+	$(RUN_TEST_PROGRAM) \
+	  $(testxpcdir)/test_one.sh \
+	    $(DIST)/bin/xpcshell \
+	    $(FWDSLASH_TOPSRCDIR) \
+	    $(NATIVE_TOPSRCDIR) \
+	    $(MOZDEPTH)/_tests/xpcshell-simple/$(MODULE)/$$testdir \
+	    $(SOLO_FILE) 0;
+
+endif # XPCSHELL_TESTS
+
+ifdef CPP_UNIT_TESTS
+
+# Compile the tests to $(DIST)/bin.  Make lots of niceties available by default
+# through TestHarness.h, by modifying the list of includes and the libs against
+# which stuff links.
+CPPSRCS += $(CPP_UNIT_TESTS)
+SIMPLE_PROGRAMS += $(CPP_UNIT_TESTS:.cpp=$(BIN_SUFFIX))
+REQUIRES += testing xpcom
+LIBS += $(XPCOM_GLUE_LDOPTS) $(NSPR_LIBS)
+
+# ...and run them the usual way
+check::
+	@$(EXIT_ON_ERROR) \
+	  for f in $(subst .cpp,,$(CPP_UNIT_TESTS)); do \
+	    XPCOM_DEBUG_BREAK=stack-and-abort $(RUN_TEST_PROGRAM) $(DIST)/bin/$$f; \
+	  done
+
+endif # CPP_UNIT_TESTS
+
+endif # ENABLE_TESTS
+
+
 #
 # Library rules
 #
@@ -194,15 +294,22 @@ endif
 ifeq (,$(filter-out WINNT WINCE,$(OS_ARCH)))
 ifndef GNU_CC
 
-# All C++ files share a PDB file per directory. For parallel builds, this PDB
-# file is shared and locked by MSPDBSRV.EXE, starting with MSVC8 SP1. If
-# you're using MSVC 7.1 or MSVC8 without SP1, don't do parallel builds.
+# Unless we're building SIMPLE_PROGRAMS, all C++ files share a PDB file per
+# directory. For parallel builds, this PDB file is shared and locked by
+# MSPDBSRV.EXE, starting with MSVC8 SP1. If you're using MSVC 7.1 or MSVC8
+# without SP1, don't do parallel builds.
 #
 # The final PDB for libraries and programs is created by the linker and uses
 # a different name from the single PDB file created by the compiler. See
 # bug 462740.
 #
+
+ifdef SIMPLE_PROGRAMS
+COMPILE_PDBFILE = $(basename $(@F)).pdb
+else
 COMPILE_PDBFILE = generated.pdb
+endif
+
 LINK_PDBFILE = $(basename $(@F)).pdb
 ifdef MOZ_DEBUG
 CODFILE=$(basename $(@F)).cod
@@ -355,22 +462,30 @@ UPDATE_TITLE_libs = sed -e "s!Y!libs in $(shell $(BUILD_TOOLS)/print-depth-path.
 UPDATE_TITLE_tools = sed -e "s!Y!tools in $(shell $(BUILD_TOOLS)/print-depth-path.sh)/$*!" $(MOZILLA_DIR)/config/xterm.str;
 endif
 
+ifneq (,$(strip $(DIRS)))
 LOOP_OVER_DIRS = \
     @$(EXIT_ON_ERROR) \
-    $(foreach dir,$(DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) $@; ) true
+    $(foreach dir,$(DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) $@; )
+endif
 
 # we only use this for the makefiles target and other stuff that doesn't matter
+ifneq (,$(strip $(PARALLEL_DIRS)))
 LOOP_OVER_PARALLEL_DIRS = \
     @$(EXIT_ON_ERROR) \
-    $(foreach dir,$(PARALLEL_DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) $@; ) true
+    $(foreach dir,$(PARALLEL_DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) $@; )
+endif
 
+ifneq (,$(strip $(STATIC_DIRS)))
 LOOP_OVER_STATIC_DIRS = \
     @$(EXIT_ON_ERROR) \
-    $(foreach dir,$(STATIC_DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) $@; ) true
+    $(foreach dir,$(STATIC_DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) $@; )
+endif
 
+ifneq (,$(strip $(TOOL_DIRS)))
 LOOP_OVER_TOOL_DIRS = \
     @$(EXIT_ON_ERROR) \
-    $(foreach dir,$(TOOL_DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) $@; ) true
+    $(foreach dir,$(TOOL_DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) $@; )
+endif
 
 ifdef PARALLEL_DIRS
 # create a bunch of fake targets for order-only processing
@@ -599,10 +714,6 @@ SUBMAKEFILES += $(addsuffix /Makefile, $(DIRS) $(TOOL_DIRS) $(PARALLEL_DIRS))
 # default rule before including rules.mk
 ifndef SUPPRESS_DEFAULT_RULES
 ifdef TIERS
-
-DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_dirs))
-STATIC_DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_staticdirs))
-
 default all alldep::
 	$(EXIT_ON_ERROR) \
 	$(foreach tier,$(TIERS),$(MAKE) tier_$(tier); ) true
@@ -610,8 +721,9 @@ default all alldep::
 else
 
 default all::
-	@$(EXIT_ON_ERROR) \
-	$(foreach dir,$(STATIC_DIRS),$(MAKE) -C $(dir); ) true
+ifneq (,$(strip $(STATIC_DIRS)))
+	$(foreach dir,$(STATIC_DIRS),$(MAKE) -C $(dir); )
+endif
 	$(MAKE) export
 	$(MAKE) libs
 	$(MAKE) tools
@@ -713,9 +825,9 @@ endif
 
 tools:: $(SUBMAKEFILES) $(MAKE_DIRS)
 	+$(LOOP_OVER_DIRS)
-ifdef TOOL_DIRS
+ifneq (,$(strip $(TOOL_DIRS)))
 	@$(EXIT_ON_ERROR) \
-	$(foreach dir,$(TOOL_DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) libs; ) true
+	$(foreach dir,$(TOOL_DIRS),$(UPDATE_TITLE) $(MAKE) -C $(dir) libs; )
 endif
 
 #
@@ -818,21 +930,25 @@ ifeq ($(OS_ARCH)_$(GNU_CC)$(INTERNAL_TOOLS), WINNT_)
 # in both stages so you can do depend builds with PGO.
 ifdef SHARED_LIBRARY
 $(SHARED_LIBRARY): FORCE
-BINARY_BASENAME = $(SHARED_LIBRARY:$(DLL_SUFFIX)=)
 endif
 ifdef PROGRAM
 $(PROGRAM): FORCE
-BINARY_BASENAME = $(PROGRAM:$(BIN_SUFFIX)=)
 endif
 
 ifdef MOZ_PROFILE_USE
 # In the second pass, we need to merge the pgc files into the pgd file.
 # The compiler would do this for us automatically if they were in the right
 # place, but they're in dist/bin.
-ifdef BINARY_BASENAME
+ifneq (,$(SHARED_LIBRARY)$(PROGRAM))
 export::
+ifdef PROGRAM
 	$(PYTHON) $(MOZILLA_SRCDIR)/build/win32/pgomerge.py \
-	  $(BINARY_BASENAME) $(DIST)/bin
+	  $(PROGRAM:$(BIN_SUFFIX)=) $(DIST)/bin
+endif
+ifdef SHARED_LIBRARY
+	$(PYTHON) $(topsrcdir)/build/win32/pgomerge.py \
+	  $(LIBRARY_NAME) $(DIST)/bin
+endif
 endif
 endif # MOZ_PROFILE_USE
 endif # WINNT_
@@ -1405,7 +1521,7 @@ endif
 # Copy each element of EXPORTS to $(PUBLIC)
 
 ifneq ($(EXPORTS)$(XPIDLSRCS)$(SDK_HEADERS)$(SDK_XPIDLSRCS),)
-$(SDK_PUBLIC) $(PUBLIC)::
+$(SDK_PUBLIC) $(PUBLIC):
 	$(NSINSTALL) -D $@
 endif
 
@@ -1685,15 +1801,14 @@ chrome::
 $(FINAL_TARGET)/chrome:
 	$(NSINSTALL) -D $@
 
-libs realchrome:: $(CHROME_DEPS) $(FINAL_TARGET)/chrome
+ifneq (,$(wildcard $(JAR_MANIFEST)))
 ifndef NO_DIST_INSTALL
-	@$(EXIT_ON_ERROR) \
-	if test -f $(JAR_MANIFEST); then \
-	  $(PYTHON) $(MOZILLA_DIR)/config/JarMaker.py \
-	    $(QUIET) -j $(FINAL_TARGET)/chrome \
-	    $(MAKE_JARS_FLAGS) $(XULPPFLAGS) $(DEFINES) $(ACDEFINES) \
-	    $(JAR_MANIFEST); \
-	fi
+libs realchrome:: $(CHROME_DEPS) $(FINAL_TARGET)/chrome
+	$(PYTHON) $(MOZILLA_DIR)/config/JarMaker.py \
+	  $(QUIET) -j $(FINAL_TARGET)/chrome \
+	  $(MAKE_JARS_FLAGS) $(XULPPFLAGS) $(DEFINES) $(ACDEFINES) \
+	  $(JAR_MANIFEST)
+endif
 endif
 
 ifneq ($(DIST_FILES),)
@@ -1782,87 +1897,6 @@ REGCHROME_INSTALL = $(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/add-ch
 	$(if $(filter gtk2,$(MOZ_WIDGET_TOOLKIT)),-x) \
 	$(if $(CROSS_COMPILE),-o $(OS_ARCH)) $(DESTDIR)$(mozappdir)/chrome/installed-chrome.txt \
 	$(_JAR_REGCHROME_DISABLE_JAR)
-
-
-################################################################################
-# Testing frameworks support
-################################################################################
-
-ifdef ENABLE_TESTS
-
-ifdef XPCSHELL_TESTS
-ifndef MODULE
-$(error Must define MODULE when defining XPCSHELL_TESTS.)
-endif
-
-# Test file installation
-libs::
-	@$(EXIT_ON_ERROR) \
-	for testdir in $(XPCSHELL_TESTS); do \
-	  $(INSTALL) \
-	    $(srcdir)/$$testdir/*.js \
-	    $(MOZDEPTH)/_tests/xpcshell-simple/$(MODULE)/$$testdir; \
-	done
-
-# Path formats on Windows are hard.  We require a topsrcdir formatted so that
-# it may be passed to nsILocalFile.initWithPath (in other words, an absolute
-# path of the form X:\path\to\topsrcdir), which we store in NATIVE_TOPSRCDIR.
-# We require a forward-slashed path to topsrcdir so that it may be combined
-# with a relative forward-slashed path for loading scripts, both dynamically
-# and statically for head/test/tail JS files.  Of course, on non-Windows none
-# of this matters, and things will work correctly because everything's
-# forward-slashed, everywhere, always.
-ifdef CYGWIN_WRAPPER
-NATIVE_TOPSRCDIR   := `cygpath -wa $(MOZILLA_SRCDIR)`
-FWDSLASH_TOPSRCDIR := `cygpath -ma $(MOZILLA_SRCDIR)`
-else
-FWDSLASH_TOPSRCDIR := $(MOZILLA_SRCDIR)
-ifeq ($(HOST_OS_ARCH),WINNT)
-NATIVE_TOPSRCDIR   := $(subst /,\\,$(WIN_TOP_SRC)/mozilla)
-else 
-NATIVE_TOPSRCDIR   := $(MOZILLA_SRCDIR)
-endif
-endif # CYGWIN_WRAPPER
-
-testxpcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
-
-# Test execution
-check::
-	@$(EXIT_ON_ERROR) \
-	for testdir in $(XPCSHELL_TESTS); do \
-	  $(RUN_TEST_PROGRAM) \
-	    $(testxpcdir)/test_all.sh \
-	      $(DIST)/bin/xpcshell \
-	      $(FWDSLASH_TOPSRCDIR) \
-	      $(NATIVE_TOPSRCDIR) \
-	      $(MOZDEPTH)/_tests/xpcshell-simple/$(MODULE)/$$testdir; \
-	done
-
-# Test execution
-check-interactive::
-	@$(EXIT_ON_ERROR) \
-	$(RUN_TEST_PROGRAM) \
-	  $(testxpcdir)/test_one.sh \
-	    $(DIST)/bin/xpcshell \
-	    $(FWDSLASH_TOPSRCDIR) \
-	    $(NATIVE_TOPSRCDIR) \
-	    $(MOZDEPTH)/_tests/xpcshell-simple/$(MODULE)/$$testdir \
-	    $(SOLO_FILE) 1;
-
-# Test execution
-check-one::
-	@$(EXIT_ON_ERROR) \
-	$(RUN_TEST_PROGRAM) \
-	  $(testxpcdir)/test_one.sh \
-	    $(DIST)/bin/xpcshell \
-	    $(FWDSLASH_TOPSRCDIR) \
-	    $(NATIVE_TOPSRCDIR) \
-	    $(MOZDEPTH)/_tests/xpcshell-simple/$(MODULE)/$$testdir \
-	    $(SOLO_FILE) 0;
-
-endif # XPCSHELL_TESTS
-
-endif # ENABLE_TESTS
 
 
 #############################################################################
@@ -2029,7 +2063,7 @@ TAGS: $(SUBMAKEFILES) $(CSRCS) $(CPPSRCS) $(wildcard *.h)
 	+$(LOOP_OVER_DIRS)
 
 echo-variable-%:
-	@echo $($*)
+	@echo "$($*)"
 
 echo-tiers:
 	@echo $(TIERS)

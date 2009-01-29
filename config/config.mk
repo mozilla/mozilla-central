@@ -488,33 +488,7 @@ ifndef MOZILLA_INTERNAL_API
 INCLUDES	+= -I$(LIBXUL_DIST)/sdk/include
 endif
 
-# The entire tree should be subject to static analysis using the XPCOM
-# script. Additional scripts may be added by specific subdirectories.
-
-DEHYDRA_SCRIPT = $(MOZILLA_SRCDIR)/xpcom/analysis/static-checking.js
-
-DEHYDRA_MODULES = \
-  $(MOZILLA_SRCDIR)/xpcom/analysis/final.js \
-  $(NULL)
-
-TREEHYDRA_MODULES = \
-  $(MOZILLA_SRCDIR)/xpcom/analysis/outparams.js \
-  $(MOZILLA_SRCDIR)/xpcom/analysis/stack.js \
-  $(MOZILLA_SRCDIR)/xpcom/analysis/flow.js \
-  $(NULL)
-
-DEHYDRA_ARGS = \
-  --topsrcdir=$(topsrcdir) \
-  --objdir=$(DEPTH) \
-  --dehydra-modules=$(subst $(NULL) ,$(COMMA),$(strip $(DEHYDRA_MODULES))) \
-  --treehydra-modules=$(subst $(NULL) ,$(COMMA),$(strip $(TREEHYDRA_MODULES))) \
-  $(NULL)
-
-DEHYDRA_FLAGS = -fplugin=$(DEHYDRA_PATH) -fplugin-arg='$(DEHYDRA_SCRIPT) $(DEHYDRA_ARGS)'
-
-ifdef DEHYDRA_PATH
-OS_CXXFLAGS += $(DEHYDRA_FLAGS)
-endif
+include $(topsrcdir)/config/static-checking-config.mk
 
 CFLAGS		= $(OS_CFLAGS)
 CXXFLAGS	= $(OS_CXXFLAGS)
@@ -868,3 +842,7 @@ ifeq (,$(filter WINCE WINNT OS2,$(OS_ARCH)))
 RUN_TEST_PROGRAM = $(DIST)/bin/run-mozilla.sh
 endif
 
+ifdef TIERS
+DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_dirs))
+STATIC_DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_staticdirs))
+endif

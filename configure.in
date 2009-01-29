@@ -141,7 +141,7 @@ LIBGNOME_VERSION=2.0
 STARTUP_NOTIFICATION_VERSION=0.8
 DBUS_VERSION=0.60
 LCMS_VERSION=1.17
-SQLITE_VERSION=3.6.4
+SQLITE_VERSION=3.6.7
 
 MSMANIFEST_TOOL=
 
@@ -241,16 +241,33 @@ if test "$COMPILE_ENVIRONMENT"; then
 dnl Do some special WinCE toolchain stuff
 case "$target" in
 *wince)
+
+    MOZ_ARG_WITH_STRING(wince-sdk,
+    [  --with-wince-sdk=WINCE_SDK
+                        The path to the windows mobile sdk],
+    WINCE_SDK=$withval)
+
+    export WINCE=1
+    mk_add_options WINCE=1
+
     echo -----------------------------------------------------------------------------
     echo Building Windows CE Shunt Library and Tool Chain
-    echo -----------------------------------------------------------------------------
+    echo Using SDK in:
+    echo $WINCE_SDK
 
     ac_exeext=.exe
+
+
+    rm -f $srcdir/build/wince/shunt/include/windows.h
 
     echo -n "#define TOPSRCDIR \"" > $srcdir/build/wince/tools/topsrcdir.h
     echo `cd "$_topsrcdir" && pwd -W | tr '\n' '\"'` >> $srcdir/build/wince/tools/topsrcdir.h
     make -C $srcdir/build/wince/tools
+
+    echo "#include \"$WINCE_SDK/windows.h\"" > $srcdir/build/wince/shunt/include/windows.h
+    echo "#define GetProcAddress GetProcAddressA" >> $srcdir/build/wince/shunt/include/windows.h
     echo -----------------------------------------------------------------------------
+
     ;;
 esac
 
@@ -6948,28 +6965,16 @@ dnl ========================================================
 dnl Check for lcms
 dnl ========================================================
 
-MOZ_NATIVE_LCMS=
-MOZ_ARG_ENABLE_BOOL(system-lcms,
-[ --enable-system-lcms Use system lcms (located with pkgconfig)],
-MOZ_NATIVE_LCMS=1,
-MOZ_NATIVE_LCMS= )
-
-if test -z "$MOZ_NATIVE_LCMS"
-then
-    LCMS_CFLAGS=
-    if test "$_WIN32_MSVC"; then
-        if test -z "$BUILD_STATIC_LIBS" -a -z "$MOZ_ENABLE_LIBXUL"; then
-            LCMS_CFLAGS=-DLCMS_DLL
-        fi
-        LCMS_LIBS='$(LIBXUL_DIST)/lib/mozlcms.lib'
-    else
-        LCMS_LIBS='-L$(LIBXUL_DIST)/bin -lmozlcms'
+LCMS_CFLAGS=
+if test "$_WIN32_MSVC"; then
+    if test -z "$BUILD_STATIC_LIBS" -a -z "$MOZ_ENABLE_LIBXUL"; then
+        LCMS_CFLAGS=-DLCMS_DLL
     fi
+    LCMS_LIBS='$(LIBXUL_DIST)/lib/mozlcms.lib'
 else
-    PKG_CHECK_MODULES(LCMS, lcms >= $LCMS_VERSION)
+    LCMS_LIBS='-L$(LIBXUL_DIST)/bin -lmozlcms'
 fi
 
-AC_SUBST(MOZ_NATIVE_LCMS)
 AC_SUBST(LCMS_CFLAGS)
 AC_SUBST(LCMS_LIBS)
 
@@ -7163,6 +7168,7 @@ AC_SUBST(MOZ_POST_DSO_LIB_COMMAND)
 AC_SUBST(MOZ_POST_PROGRAM_COMMAND)
 AC_SUBST(MOZ_TIMELINE)
 AC_SUBST(WINCE)
+AC_SUBST(WINCE_SDK)
 AC_SUBST(TARGET_DEVICE)
 
 AC_SUBST(MOZ_APP_NAME)
