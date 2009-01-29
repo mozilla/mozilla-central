@@ -323,8 +323,8 @@ cal.fromRFC3339 = function fromRFC3339(aStr, aTimezone) {
     }
 
     // Timezone handling
-    if (matches[9] == "Z") {
-        // If the dates timezone is "Z", then this is UTC, no matter
+    if (matches[9] == "Z" || matches[9] == "z") {
+        // If the dates timezone is "Z" or "z", then this is UTC, no matter
         // what timezone was passed
         dateTime.timezone = cal.UTC();
 
