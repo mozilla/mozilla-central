@@ -61,11 +61,12 @@ SUBMAKEFILES += \
 
 AB = $(firstword $(subst -, ,$(AB_CD)))
 
-# ZIP_IN is defaulted to be compatible with the files the wget-en-US target
-# pulls. You may override ZIP_IN if you provide your own files. You also _must_
-# override ZIP_IN when MOZ_PKG_PRETTYNAMES is defined - the default will not
+# These are defaulted to be compatible with the files the wget-en-US target
+# pulls. You may override them if you provide your own files. You _must_
+# override them when MOZ_PKG_PRETTYNAMES is defined - the defaults will not
 # work in that case.
 ZIP_IN ?= $(_ABS_DIST)/$(PACKAGE)
+WIN32_INSTALLER_IN ?= $(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
 
 DEFINES += \
 	-DAB_CD=$(AB_CD) \
@@ -149,7 +150,10 @@ repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 	$(CYGWIN_WRAPPER) 7z x -ol10n-stage $(WIN32_INSTALLER_IN)
 	$(RM) -r l10n-stage/localized
 	$(RM) l10n-stage/setup.exe
+# copy xpi-stage over, but not install.rdf and chrome.manifest,
+# those are just for language packs
 	cp -r $(DIST)/xpi-stage/locale-$(AB_CD) l10n-stage/localized
+	$(RM) l10n-stage/localized/install.rdf l10n-stage/localized/chrome.manifest
 	$(MAKE) -C ../installer/windows CONFIG_DIR=l10ngen l10ngen/setup.exe l10ngen/7zSD.sfx
 	cp ../installer/windows/l10ngen/setup.exe l10n-stage
 	$(NSINSTALL) -D l10n-stage/localized/uninstall
@@ -163,7 +167,6 @@ repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 	chmod 0755 $(WIN32_INSTALLER_OUT)
 
 ifeq (WINNT,$(OS_ARCH))
-repackage-win32-installer-%: WIN32_INSTALLER_IN=$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe
 repackage-win32-installer-%: $(WIN32_INSTALLER_IN) libs-%
 	@$(MAKE) repackage-win32-installer AB_CD=$* WIN32_INSTALLER_IN=$(WIN32_INSTALLER_IN)
 else
@@ -173,7 +176,7 @@ endif
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 STAGEDIST = $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/MacOS
 else
-STAGEDIST = $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)
+STAGEDIST = $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_DIR)
 endif
 
 $(STAGEDIST): AB_CD:=en-US
@@ -193,17 +196,6 @@ endif
 	$(NSINSTALL) -D $(DIST)/l10n-stage
 	cd $(DIST)/l10n-stage && \
 	  $(UNMAKE_PACKAGE)
-ifdef MOZ_PKG_PRETTYNAMES
-ifneq (,$(filter WINNT Linux,$(OS_ARCH)))
-# Linux and Windows unpack to a directory named after the MOZ_APP_NAME
-# they were built with. This is fine when when MOZ_PKG_PRETTYNAMES
-# isn't defined, because MOZ_PKG_APPNAME will be the same as MOZ_APP_NAME.
-# However, when MOZ_PKG_PRETTYNAMES is passed MOZ_PKG_APPNAME inherits
-# from MOZ_PKG_DISPLAYNAME, which is not always the same as MOZ_APP_NAME.
-	cd $(DIST)/l10n-stage && \
-	  mv $(MOZ_APP_NAME) $(MOZ_PKG_APPNAME)
-endif
-endif
 	make clobber-zip AB_CD=en-US
 
 clobber-zip:
@@ -226,8 +218,10 @@ ifeq (WINNT,$(OS_ARCH))
 	$(NSINSTALL) -D $(STAGEDIST)/uninstall
 	cp ../installer/windows/l10ngen/helper.exe $(STAGEDIST)/uninstall
 endif
+# copy xpi-stage over, but not install.rdf and chrome.manifest,
+# those are just for language packs
 	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
-	  tar $(TAR_CREATE_FLAGS) - * | ( cd $(STAGEDIST) && tar -xf - )
+	  tar --exclude=install.rdf --exclude=chrome.manifest $(TAR_CREATE_FLAGS) - * | ( cd $(STAGEDIST) && tar -xf - )
 ifneq (en,$(AB))
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj
@@ -252,7 +246,6 @@ endif
 	$(NSINSTALL) -D $(DIST)/$(PKG_PATH)
 	mv -f "$(DIST)/l10n-stage/$(PACKAGE)" "$(DIST)/$(PACKAGE)"
 
-repackage-zip-%: ZIP_IN=$(_ABS_DIST)/$(PACKAGE)
 repackage-zip-%: $(ZIP_IN) $(STAGEDIST) libs-%
 	@$(MAKE) repackage-zip AB_CD=$* ZIP_IN=$(ZIP_IN)
 
@@ -346,6 +339,17 @@ ifeq (WINNT, $(OS_ARCH))
 endif
 # Set the permissions that the folders will have in ftp once uploaded
 	chmod -vR 775 $(UPLOAD_DIR)
+
+l10n-upload-%: AB_CD=$*
+l10n-upload-%:
+	$(PYTHON) $(MOZ_SRCDIR)/build/upload.py --base-path $(DIST) "$(DIST)/$(PACKAGE)" $(DIST)/$(LANGPACK)
+ifdef MOZ_MAKE_COMPLETE_MAR
+	$(PYTHON) $(MOZ_SRCDIR)/build/upload.py --base-path $(DIST) $(DIST)/$(COMPLETE_MAR);
+endif
+ifeq (WINNT, $(OS_ARCH))
+	$(PYTHON) $(MOZ_SRCDIR)/build/upload.py --base-path $(DIST) "$(INSTALLER_PACKAGE)"
+endif
+
 
 merge-%:
 ifdef LOCALE_MERGEDIR
