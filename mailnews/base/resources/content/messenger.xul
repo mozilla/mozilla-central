@@ -122,7 +122,7 @@
   <keyset id="tasksKeys"/>
 </keyset>
 
-<popup id="threadPaneContext"/>
+<popup id="mailContext"/>
 <popup id="folderPaneContext"/>
 <popup id="attachmentListContext"/>
 <tooltip id="attachmentListTooltip"/>
@@ -134,8 +134,6 @@
 <popup id="emailAddressPopup"/>
 
 <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
-
-<popup id="messagePaneContext"/>
 
 <popup id="toolbar-context-menu"/>
 
@@ -180,7 +178,7 @@
                   minwidth="100"
                   width="100"
                   persist="width"
-                  context="threadPaneContext"
+                  context="mailContext"
                   class="window-focusborder"
                   focusring="false"/>
           </hbox>
@@ -200,12 +198,20 @@
 
           <hbox id="msgHeaderView"/>
 
-          <browser id="messagepane" name="messagepane" height="0" flex="1"
+          <browser id="messagepane"
+                   name="messagepane"
+                   height="0"
+                   flex="1"
+                   minwidth="1"
+                   minheight="1"
                    tooltip="aHTMLTooltip"
-                   context="messagePaneContext" minwidth="1" minheight="1"
-                   disablesecurity="true" disablehistory="true" autofind="false"
+                   context="mailContext"
+                   disablesecurity="true"
+                   disablehistory="true"
+                   autofind="false"
+                   type="content-primary"
                    onresize="return messagePaneOnResize(event);"
-                   type="content-primary" onclick="return messagePaneOnClick(event);"/>
+                   onclick="return messagePaneOnClick(event);"/>
         </vbox>
       </box>
     </box>

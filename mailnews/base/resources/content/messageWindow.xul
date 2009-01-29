@@ -115,7 +115,7 @@
 
     <popup id="emailAddressPopup"/>
 
-    <popup id="messagePaneContext"/>
+    <popup id="mailContext"/>
   </popupset>
 
   <popup id="attachmentListContext"/>
@@ -142,12 +142,20 @@
     <hbox id="msgHeaderView"/>
 
     <!-- message view -->
-    <browser id="messagepane" context="messagePaneContext"
-      tooltip="aHTMLTooltip" 
-      style="height: 0px; min-height: 1px" flex="1" name="messagepane" 
-      disablesecurity="true" disablehistory="true" type="content-primary" 
-      onresize="return messagePaneOnResize(event);" autofind="false"
-      src="about:blank" onclick="return messagePaneOnClick(event);"/>
+    <browser id="messagepane"
+             name="messagepane"
+             height="0"
+             flex="1"
+             minwidth="1"
+             minheight="1"
+             context="mailContext"
+             tooltip="aHTMLTooltip"
+             disablesecurity="true"
+             disablehistory="true"
+             autofind="false"
+             type="content-primary"
+             onresize="return messagePaneOnResize(event);"
+             onclick="return messagePaneOnClick(event);"/>
   </vbox>  
 </vbox>
 

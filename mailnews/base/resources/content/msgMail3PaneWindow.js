@@ -911,12 +911,6 @@ function InitializeDataSources()
   AddDataSources();
 
   SetupMoveCopyMenus('goMenu', accountManagerDataSource, folderDataSource);
-
-  //To threadpane move context menu
-  SetupMoveCopyMenus('threadPaneContext-moveMenu', accountManagerDataSource, folderDataSource);
-
-  //To threadpane copy content menu
-  SetupMoveCopyMenus('threadPaneContext-copyMenu', accountManagerDataSource, folderDataSource);
 }
 
 function OnFolderUnreadColAttrModified(event)

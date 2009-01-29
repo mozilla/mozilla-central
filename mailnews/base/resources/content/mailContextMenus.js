@@ -24,6 +24,7 @@
  *   Jan Varga <varga@ku.sk>
  *   Hakan Waara <hwaara@chello.se>
  *   Markus Hossner <markushossner@gmx.de>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -93,14 +94,32 @@ function RestoreSelectionWithoutContentLoad(tree)
     gRightMouseButtonDown = false;
 }
 
-function threadPaneOnPopupHiding()
+function MailContextOnPopupHiding()
 {
-  RestoreSelectionWithoutContentLoad(GetThreadTree());
+  gContextMenu = null;
+  if (InThreadPane())
+    RestoreSelectionWithoutContentLoad(GetThreadTree());
 }
 
-function fillThreadPaneContextMenu()
+function InThreadPane()
 {
+  var node = document.popupNode;
+  while (node)
+  {
+    if (node.id == "threadTree")
+      return true;
+    node = node.parentNode;
+  }
+  return false;
+}
+
+function FillMailContextMenu(aTarget)
+{
+  var inThreadPane = InThreadPane();
+  gContextMenu = new nsContextMenu(aTarget);
   var numSelected = GetNumSelectedMessages();
+  var oneOrMore = (numSelected > 0);
+  var single = (numSelected == 1);
 
   var isNewsgroup = false;
   var selectedMessage = null;
@@ -109,171 +128,93 @@ function fillThreadPaneContextMenu()
   // To' command has been triggered via the thread pane context menu.
   gThreadPaneDeleteOrMoveOccurred = false;
 
-  if(numSelected >= 0) {
+  if (numSelected >= 0)
+  {
     selectedMessage = GetFirstSelectedMessage();
     isNewsgroup = IsNewsMessage(selectedMessage);
   }
 
-  SetupNewMessageWindowMenuItem("threadPaneContext-openNewWindow", numSelected, false);
-  SetupEditAsNewMenuItem("threadPaneContext-editAsNew", numSelected, false);
+  // Don't show mail items for links/images, just show related items.
+  var showMailItems = inThreadPane ||
+                      (!gContextMenu.onImage && !gContextMenu.onLink);
 
-  ShowMenuItem("threadPaneContext-sep-open", (numSelected <= 1));
+  // Select-all and copy are only available in the message-pane
+  ShowMenuItem("context-selectall", single && !inThreadPane);
+  ShowMenuItem("context-copy", !inThreadPane);
 
-  SetupReplyToSenderMenuItem("threadPaneContext-replySender", numSelected, false);
-  SetupReplyToNewsgroupMenuItem("threadPaneContext-replyNewsgroup", numSelected, isNewsgroup, false);
-  SetupReplyToSenderAndNewsgroupMenuItem("threadPaneContext-replySenderAndNewsgroup", numSelected, isNewsgroup, false);
-  SetupReplyAllMenuItem("threadPaneContext-replyAll", numSelected, false);
-  SetupForwardMenuItem("threadPaneContext-forward", numSelected, false);
-  SetupForwardAsAttachmentMenuItem("threadPaneContext-forwardAsAttachment", numSelected, false);
+  ShowMenuItem("mailContext-openNewWindow", inThreadPane && single);
+  ShowMenuItem("mailContext-openNewTab", inThreadPane);
+  ShowMenuItem("mailContext-downloadflagged",
+               inThreadPane || (numSelected > 1));
+  ShowMenuItem("mailContext-downloadselected",
+               inThreadPane || (numSelected > 1));
 
-  ShowMenuItem("threadPaneContext-sep-reply", true);
+  ShowMenuItem("mailContext-editAsNew", showMailItems && oneOrMore);
+  ShowMenuItem("mailContext-replySender", showMailItems && single);
+  ShowMenuItem("mailContext-replyNewsgroup",
+               showMailItems && single && isNewsgroup);
+  ShowMenuItem("mailContext-replySenderAndNewsgroup",
+               showMailItems && single && isNewsgroup);
+  ShowMenuItem("mailContext-replyAll", showMailItems && single);
+  ShowMenuItem("mailContext-forward", showMailItems && single);
+  ShowMenuItem("mailContext-forwardAsAttachment",
+               showMailItems && (numSelected > 1));
+  ShowMenuItem("mailContext-copyMessageUrl",
+               showMailItems && single && isNewsgroup);
 
-  SetupCopyMessageUrlMenuItem("threadPaneContext-copyMessageUrl", numSelected, isNewsgroup, numSelected != 1); 
-  SetupCopyMenuItem("threadPaneContext-copyMenu", numSelected, false);
-  SetupMoveMenuItem("threadPaneContext-moveMenu", numSelected, isNewsgroup, false);
-  EnableMenuItem("threadPaneContext-tags", (numSelected >= 1));
-  EnableMenuItem("threadPaneContext-mark", (numSelected >= 1));
-  SetupSaveAsMenuItem("threadPaneContext-saveAs", numSelected, false);
-  SetupPrintPreviewMenuItem("threadPaneContext-printpreview", numSelected, false);
-  SetupPrintMenuItem("threadPaneContext-print", numSelected, false);
-  SetupDeleteMenuItem("threadPaneContext-delete", numSelected, false);
-  SetupAddSenderToABMenuItem("threadPaneContext-addSenderToAddressBook", numSelected, false);
-  SetupAddAllToABMenuItem("threadPaneContext-addAllToAddressBook", numSelected, false);
-
-  ShowMenuItem("threadPaneContext-sep-edit", (numSelected <= 1));
-
-  return(true);
-}
-
-function SetupNewMessageWindowMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && !forceHide);
-  EnableMenuItem(menuID, (numSelected == 1));
-}
-
-function SetupEditAsNewMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1)&& !forceHide);
-  EnableMenuItem(menuID, (numSelected == 1));
-}
-
-function SetupReplyToSenderMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1)&& !forceHide);
-  EnableMenuItem(menuID, (numSelected == 1));
-}
-
-function SetupReplyToNewsgroupMenuItem(menuID, numSelected, isNewsgroup, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && isNewsgroup && !forceHide);
-  EnableMenuItem(menuID,  (numSelected == 1));
-}
-
-function SetupReplyToSenderAndNewsgroupMenuItem(menuID, numSelected, isNewsgroup, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && isNewsgroup && !forceHide);
-  EnableMenuItem(menuID,  (numSelected == 1));
-}
-
-function SetupReplyAllMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && !forceHide);
-  EnableMenuItem(menuID, (numSelected == 1));
-}
-
-function SetupForwardMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID,  (numSelected <= 1) && !forceHide);
-  EnableMenuItem(menuID, (numSelected > 0));
-}
-
-function SetupForwardAsAttachmentMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID,  (numSelected > 1) && !forceHide);
-  EnableMenuItem(menuID, (numSelected > 1));
-}
-
-function SetupMoveMenuItem(menuID, numSelected, isNewsgroup, forceHide)
-{
-  ShowMenuItem(menuID, !isNewsgroup && !forceHide);
-
+  // Set up the move menu. We can't move from newsgroups.
+  // Disable move if we can't delete message(s) from this folder.
   var msgFolder = GetLoadedMsgFolder();
-  // disable move if we can't delete message(s) from this folder
-  var enableMenuItem = (numSelected > 0) && msgFolder && msgFolder.canDeleteMessages;
-  EnableMenuItem(menuID, enableMenuItem);
-}
+  ShowMenuItem("mailContext-moveMenu",
+               showMailItems && oneOrMore && !isNewsgroup);
+  EnableMenuItem("mailContext-moveMenu",
+                 oneOrMore && msgFolder && msgFolder.canDeleteMessages);
 
-function SetupCopyMessageUrlMenuItem(menuID, numSelected, isNewsgroup, forceHide)
-{
-  ShowMenuItem(menuID, isNewsgroup && !forceHide);
-  EnableMenuItem(menuID, (numSelected > 0));
-}
+  // Copy is available as long as something is selected.
+  ShowMenuItem("mailContext-copyMenu", showMailItems && oneOrMore);
+  ShowMenuItem("mailContext-tags", showMailItems && oneOrMore);
+  ShowMenuItem("mailContext-mark", showMailItems && oneOrMore);
+  ShowMenuItem("mailContext-saveAs", showMailItems && single);
+  ShowMenuItem("mailContext-printpreview", showMailItems && single);
 
-function SetupCopyMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, !forceHide);
-  EnableMenuItem(menuID, (numSelected > 0));
-}
-
-function SetupTagsMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && !forceHide);
-  EnableMenuItem(menuID, (numSelected == 1));
-}
-
-function SetupMarkMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && !forceHide);
-  EnableMenuItem(menuID, (numSelected == 1));
-}
-
-function SetupSaveAsMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && !forceHide);
-  EnableMenuItem(menuID, (numSelected == 1));
-}
-
-function SetupPrintPreviewMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && !forceHide);
-  EnableMenuItem(menuID, (numSelected == 1));
-}
-
-function SetupPrintMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, !forceHide);
-  EnableMenuItem(menuID, (numSelected > 0));
-}
-
-function SetupAddSenderToABMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && !forceHide);
-  EnableMenuItem(menuID, false);
-}
-
-function SetupAddAllToABMenuItem(menuID, numSelected, forceHide)
-{
-  ShowMenuItem(menuID, (numSelected <= 1) && !forceHide);
-  EnableMenuItem(menuID, false);
-}
-
-function SetupDeleteMenuItem(menuID, numSelected, forceHide)
-{
-  // This function is needed for the case where a folder is just loaded (while
-  // there isn't a message loaded in the message pane), a right-click is done
-  // in the thread pane.  This function will disable enable the 'Delete
-  // Message' menu item.
-  ShowMenuItem(menuID, !forceHide);
-  EnableMenuItem(menuID, (numSelected > 0));
+  ShowMenuItem("mailContext-print", showMailItems);
+  EnableMenuItem("mailContext-print", oneOrMore);
+  ShowMenuItem("mailContext-delete", showMailItems);
+  EnableMenuItem("mailContext-delete", oneOrMore);
+  // This function is needed for the case where a folder is just loaded
+  // (while there isn't a message loaded in the message pane), a right-click
+  // is done in the thread pane.  This function will disable enable the
+  // 'Delete Message' menu item.
   goUpdateCommand('cmd_delete');
+
+  ShowMenuItem("context-addemail", gContextMenu.onMailtoLink);
+  ShowMenuItem("context-composeemailto", gContextMenu.onMailtoLink);
+  ShowMenuItem("context-createfilterfrom", gContextMenu.onMailtoLink);
+
+  // Figure out separators.
+  ShowSeparator("mailContext-sep-open");
+  ShowSeparator("mailContext-sep-edit");
+  ShowSeparator("mailContext-sep-link");
+  ShowSeparator("mailContext-sep-image");
+  ShowSeparator("mailContext-sep-copy");
+  ShowSeparator("mailContext-sep-print");
+  ShowSeparator("mailContext-sep-tags");
+  ShowSeparator("mailContext-sep-mark");
+  ShowSeparator("mailContext-sep-move");
+
+  // If we are on a link, go ahead and hide this separator.
+  if (gContextMenu.onLink)
+    ShowMenuItem("mailContext-sep-copy", false);
+
+  return true;
 }
 
-function folderPaneOnPopupHiding()
+function FolderPaneOnPopupHiding()
 {
   RestoreSelectionWithoutContentLoad(GetFolderTree());
 }
 
-function fillFolderPaneContextMenu()
+function FillFolderPaneContextMenu()
 {
   if (IsFakeAccount())
     return false;
@@ -339,9 +280,8 @@ function fillFolderPaneContextMenu()
 
   var showSendUnsentMessages = (numSelected <= 1) && (specialFolder == 'Unsent Messages');
   ShowMenuItem("folderPaneContext-sendUnsentMessages", showSendUnsentMessages);
-  if (showSendUnsentMessages) {
+  if (showSendUnsentMessages)
     EnableMenuItem("folderPaneContext-sendUnsentMessages", IsSendUnsentMsgsEnabled(folderResource));
-  }
 
   ShowMenuItem("folderPaneContext-sep-edit", (numSelected <= 1));
 
@@ -480,89 +420,32 @@ function SetMenuItemAccessKey(id, accessKey)
     item.setAttribute('accesskey', accessKey);
 }
 
-function fillMessagePaneContextMenu()
+function SiblingHidden(aSibling, aNext)
 {
-  var message = GetLoadedMessage();
-  var numSelected = (message) ? 1 : 0;
-
-  var isNewsgroup = false;
-
-  if (numSelected == 1)
-    isNewsgroup = IsNewsMessage(message);
-
-  // don't show mail items for links/images, just show related items.
-  var hideMailItems = gContextMenu.onImage || gContextMenu.onLink;
-
-  SetupEditAsNewMenuItem("messagePaneContext-editAsNew", numSelected, (numSelected == 0 || hideMailItems));
-  SetupReplyToSenderMenuItem("messagePaneContext-replySender", numSelected, (numSelected == 0 || hideMailItems));
-  SetupReplyToNewsgroupMenuItem("messagePaneContext-replyNewsgroup", numSelected, isNewsgroup, (numSelected == 0 || hideMailItems));
-  SetupReplyAllMenuItem("messagePaneContext-replyAll" , numSelected, (numSelected == 0 || hideMailItems));
-  SetupForwardMenuItem("messagePaneContext-forward", numSelected, (numSelected == 0 || hideMailItems));
-  SetupCopyMessageUrlMenuItem("messagePaneContext-copyMessageUrl", numSelected, isNewsgroup, (numSelected == 0 || hideMailItems)); 
-  SetupCopyMenuItem("messagePaneContext-copyMenu", numSelected, (numSelected == 0 || hideMailItems));
-  SetupMoveMenuItem("messagePaneContext-moveMenu", numSelected, isNewsgroup, (numSelected == 0 || hideMailItems));
-  SetupTagsMenuItem("messagePaneContext-tags", numSelected, (numSelected == 0 || hideMailItems));
-  SetupMarkMenuItem("messagePaneContext-mark", numSelected, (numSelected == 0 || hideMailItems));
-  SetupSaveAsMenuItem("messagePaneContext-saveAs", numSelected, (numSelected == 0 || hideMailItems));
-  SetupPrintPreviewMenuItem("messagePaneContext-printpreview", numSelected, (numSelected == 0 || hideMailItems));
-  SetupPrintMenuItem("messagePaneContext-print", numSelected, (numSelected == 0 || hideMailItems));
-  if (numSelected == 0 || hideMailItems)
-    ShowMenuItem("messagePaneContext-delete", false)
-  else {
-    goUpdateCommand('cmd_delete');
-    ShowMenuItem("messagePaneContext-delete", true)
+  var siblingID;
+  while (aSibling)
+  {
+    siblingID = aSibling.id;
+    // For some reason, context-blockimage and context-unblockimage are not
+    // hidden on the very first time the context menu is invoked. They are only
+    // hidden on subsequent triggers of the context menu. Since we're not
+    // using these two menuitems in mailnews, we can ignore them if encountered.
+    if (!aSibling.hidden && (siblingID != "context-blockimage") &&
+        (siblingID != "context-unblockimage"))
+      return aSibling.localName == "menuseparator";
+    aSibling = aNext ? aSibling.nextSibling : aSibling.previousSibling;
   }
-  SetupAddSenderToABMenuItem("messagePaneContext-addSenderToAddressBook", numSelected, (numSelected == 0 || hideMailItems));
-  SetupAddAllToABMenuItem("messagePaneContext-addAllToAddressBook", numSelected, (numSelected == 0 || hideMailItems));
-
-  ShowMenuItem("context-addemail", gContextMenu.onMailtoLink);
-  ShowMenuItem("context-composeemailto", gContextMenu.onMailtoLink);
-  ShowMenuItem("context-createfilterfrom", gContextMenu.onMailtoLink);
-
-  //Figure out separators
-  ShowMenuItem("messagePaneContext-sep-open", ShowSeparator("messagePaneContext-sep-open"));
-  ShowMenuItem("messagePaneContext-sep-reply", ShowSeparator("messagePaneContext-sep-reply"));
-  ShowMenuItem("messagePaneContext-sep-edit", ShowSeparator("messagePaneContext-sep-edit"));
-  ShowMenuItem("messagePaneContext-sep-link", ShowSeparator("messagePaneContext-sep-link"));
-  ShowMenuItem("messagePaneContext-sep-image", ShowSeparator("messagePaneContext-sep-image"));
-  ShowMenuItem("messagePaneContext-sep-copy", ShowSeparator("messagePaneContext-sep-copy"));
-  ShowMenuItem("messagePaneContext-sep-tags", ShowSeparator("messagePaneContext-sep-tags"));
-  ShowMenuItem("messagePaneContext-sep-mark", ShowSeparator("messagePaneContext-sep-mark"));
-  
-  // if we are on a link, go ahead and hide this separator
-  if (gContextMenu.onLink)
-    ShowMenuItem("messagePaneContext-sep-edit", false);
+  return true;
 }
 
 function ShowSeparator(aSeparatorID)
 {
   var separator = document.getElementById(aSeparatorID);
-  var sibling = separator.previousSibling;
-  var siblingID;
-  var siblingNextHiddenAttrib = separator.nextSibling.getAttribute("hidden");
-
-  while (sibling && sibling.localName != "menuseparator") {
-    siblingID = sibling.getAttribute("id");
-    // for some reason, context-blockimage and context-unblockimage is not
-    // hidden on the very first time the context menu is invoked.  It's only
-    // hidden on subsequent triggers of the context menu.  Since we're not
-    // using these two menuitems in mailnews, we can ignore it if encountered.
-    if ((sibling.getAttribute("hidden") != "true") && 
-        (siblingNextHiddenAttrib != "true") &&
-        (siblingID != "context-blockimage") &&
-        (siblingID != "context-unblockimage"))
-      return true;
-    sibling = sibling.previousSibling;
-  }
-  return false;
-}
-
-function IsMenuItemShowing(menuID)
-{
-  var item = document.getElementById(menuID);
-  if (item)
-    return item.hidden != "true";
-  return false;
+  // Check to see if there are visible siblings before the next and
+  // previous separators.
+  var hidden = SiblingHidden(separator.nextSibling, true) ||
+               SiblingHidden(separator.previousSibling, false);
+  ShowMenuItem(aSeparatorID, !hidden);
 }
 
 // message pane context menu helper methods
@@ -825,20 +708,18 @@ function CreateFilterFromMail(emailAddress)
 
 function CopyMessageUrl()
 {
-  try {
+  try
+  {
     var hdr = gDBView.hdrForFirstSelectedMessage;
     var server = hdr.folder.server;
 
     var url = (server.socketType == Components.interfaces.nsIMsgIncomingServer.useSSL) ?
               "snews://" : "news://";
-    url += server.hostName;
-    url += ":";
-    url += server.port;
-    url += "/";
-    url += hdr.messageId;
+    url += server.hostName + ":" + server.port + "/" + hdr.messageId;
     CopyString(url);
   }
-  catch (ex) {
+  catch (ex)
+  {
     dump("ex="+ex+"\n");
   }
 }

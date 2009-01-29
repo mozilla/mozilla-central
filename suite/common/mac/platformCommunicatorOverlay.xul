@@ -73,8 +73,7 @@
   <menuitem id="printPreviewMenuItem" hidden="true"/>
   <menuitem id="printPreviewMenuItemToolbar" hidden="true"/>
   <menuitem id="printPreviewAddressBook" hidden="true"/>
-  <menuitem id="threadPaneContext-printpreview" hidden="true"/>
-  <menuitem id="messagePaneContext-printpreview" hidden="true"/>
+  <menuitem id="mailContext-printpreview" hidden="true"/>
 
   <!-- Tasks Commands -->
   <commandset id="tasksCommands"> 

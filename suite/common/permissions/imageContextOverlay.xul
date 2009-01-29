@@ -119,7 +119,7 @@
         if (contextPopup)
           contextPopup.addEventListener("popupshowing", cookieContextMenu.initImageBlocking, false);
 
-        var mailContextPopup = document.getElementById("messagePaneContext");
+        var mailContextPopup = document.getElementById("mailContext");
         if (mailContextPopup)
           mailContextPopup.addEventListener("popupshowing", cookieContextMenu.initImageBlocking, false);
       }
@@ -139,8 +139,8 @@
               insertafter="context-viewimage"/>
   </popup>
 
-  <!-- Mail Message Pane context menu -->
-  <popup id="messagePaneContext">
+  <!-- Mail context menu -->
+  <popup id="mailContext">
     <menuitem id="context-blockimage"
               oncommand="cookieContextMenu.toggleImageBlocking(true);"
               insertafter="context-viewimage"/>

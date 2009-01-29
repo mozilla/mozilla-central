@@ -336,22 +336,14 @@ function AddDataSources()
 {
   accountManagerDataSource = accountManagerDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
   folderDataSource = folderDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
-  //to move menu item
+
   SetupMoveCopyMenus('moveMenu', accountManagerDataSource, folderDataSource);
-
-  //to copy menu item
   SetupMoveCopyMenus('copyMenu', accountManagerDataSource, folderDataSource);
-
-
-  //To FileButton menu
   SetupMoveCopyMenus('button-file', accountManagerDataSource, folderDataSource);
-
-  //To move and copy menus in message pane context
-  SetupMoveCopyMenus("messagePaneContext-copyMenu", accountManagerDataSource, folderDataSource);
-  SetupMoveCopyMenus("messagePaneContext-moveMenu", accountManagerDataSource, folderDataSource);
+  SetupMoveCopyMenus('mailContext-copyMenu', accountManagerDataSource, folderDataSource);
+  SetupMoveCopyMenus('mailContext-moveMenu', accountManagerDataSource, folderDataSource);
 
   //Add statusFeedback
-
   var msgDS = folderDataSource.QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
   msgDS.window = msgWindow;
 
