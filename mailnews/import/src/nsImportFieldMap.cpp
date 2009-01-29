@@ -367,6 +367,9 @@ NS_IMETHODIMP nsImportFieldMap::SetFieldValue(nsIAddrDatabase *database, nsIMdbR
   case 35:
     rv = database->AddNotes(row, pVal);
     break;
+  case 36:
+    rv = database->AddAimScreenName(row, pVal);
+    break;
   default:
     /* Get the field description, and add it as an anonymous attr? */
     /* OR WHAT???? */
@@ -520,6 +523,9 @@ NS_IMETHODIMP nsImportFieldMap::GetFieldValue(nsIAbCard *card, PRInt32 fieldNum,
     break;
   case 35:
     rv = card->GetPropertyAsAString(kNotesProperty, value);
+    break;
+  case 36:
+    rv = card->GetPropertyAsAString(kScreenNameProperty, value);
     break;
   default:
     /* Get the field description, and add it as an anonymous attr? */

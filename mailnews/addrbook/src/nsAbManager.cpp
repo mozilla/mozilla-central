@@ -103,7 +103,7 @@ const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[] = {
   {kNicknameProperty, 2103},
   {kPriEmailProperty, 2104},
   {k2ndEmailProperty, 2105},
-  {kScreenNameProperty},
+  {kScreenNameProperty, 2136},
   {kPreferMailFormatProperty},
   {kLastModifiedDateProperty},
   {kWorkPhoneProperty, 2106},

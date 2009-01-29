@@ -25,8 +25,8 @@ function AbImportHelper(aFile, aType, aAbName, aJsonName)
   this.mAbName = aAbName;
 
   /* Attribute notes:  The attributes listed in the declaration below are
-   * supported by all three text export/import types.  AimScreenName and
-   * PreferMailFormat are only supported by LDIF.
+   * supported by all three text export/import types. PreferMailFormat is only
+   * supported by LDIF.
    * The following are not supported: anniversaryYear, anniversaryMonth,
    * anniversaryDay, popularityIndex, isMailList, mailListURI, lastModifiedDate,
    * and allowRemoteContent
@@ -38,13 +38,12 @@ function AbImportHelper(aFile, aType, aAbName, aJsonName)
      "HomeZipCode", "HomeCountry", "WorkAddress", "WorkAddress2", "WorkCity",
      "WorkState", "WorkZipCode", "WorkCountry", "JobTitle", "Department",
      "Company", "BirthYear", "BirthMonth", "BirthDay", "WebPage1", "WebPage2",
-     "Custom1", "Custom2", "Custom3", "Custom4", "Notes"];
+     "Custom1", "Custom2", "Custom3", "Custom4", "Notes", "_AimScreenName"];
   // get the extra attributes supported for the given type of import
   if (aType == "LDIF")
   {
-    // LDIF: add AimScreenName and PreferMailFormat
-    this.mSupportedAttributes = supportedAttributes.concat(["_AimScreenName",
-                                                            "PreferMailFormat"]);
+    // LDIF: add PreferMailFormat
+    this.mSupportedAttributes = supportedAttributes.concat(["PreferMailFormat"]);
     this.mLdif = true;
   }
   else if (aType == "CSV" || aType == "TAB")
