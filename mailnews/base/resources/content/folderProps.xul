@@ -112,7 +112,9 @@
     </vbox>
 
     <vbox align="start">
-    <description class="desc">&retentionCleanup.label;</description>
+    <description hidable="true" hidefor="imap,pop3" class="desc">&retentionCleanup.label;</description>
+    <description hidable="true" hidefor="movemail,pop3,rss,none,nntp" class="desc">&retentionCleanupImap.label;</description>
+    <description hidable="true" hidefor="movemail,imap,rss,none,nntp" class="desc">&retentionCleanupPop.label;</description>
 
         <hbox align="center" class="indent">
           <checkbox wsm_persist="true" id="retention.useDefault" accesskey="&retentionUseDefault.accesskey;"

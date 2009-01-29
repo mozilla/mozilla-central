@@ -113,7 +113,9 @@
 
     <vbox align="start">
     <separator hidefor="none,rss"/>
-    <label id="retentionDescription" hidefor="" class="desc" control="retention.keepMsg">&retentionCleanup.label;</label>
+    <label id="retentionDescription" hidefor="imap,pop3" class="desc" control="retention.keepMsg">&retentionCleanup.label;</label>
+    <label id="retentionDescriptionImap" hidefor="movemail,pop3,nntp,none,rss" class="desc" control="retention.keepMsg">&retentionCleanupImap.label;</label>
+    <label id="retentionDescriptionPop" hidefor="movemail,imap,nntp,none,rss" class="desc" control="retention.keepMsg">&retentionCleanupPop.label;</label>
 
     <radiogroup wsm_persist="true" hidefor="" id="retention.keepMsg" class="indent">
         <radio wsm_persist="true" id="retention.keepAllMsg" value="1" accesskey="&retentionKeepAll.accesskey;"
