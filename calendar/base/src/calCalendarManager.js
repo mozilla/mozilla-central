@@ -386,19 +386,12 @@ calCalendarManager.prototype = {
 
         db.beginTransactionAs(Components.interfaces.mozIStorageConnection.TRANSACTION_EXCLUSIVE);
         try {
-            if (db.tableExists("cal_calendars")) {
-                // Check if we need to upgrade
+            if (db.tableExists("cal_calendars_prefs")) {
+                // Check if we need to upgrade:
                 let version = this.getSchemaVersion(db);
                 //cal.LOG("*** Calendar schema version is: " + version);
-
                 if (version < DB_SCHEMA_VERSION) {
                     this.upgradeDB(version, db);
-                } else if (version > DB_SCHEMA_VERSION) {
-                    db.rollbackTransaction();
-                    // Schema version is newer than what we know how to deal with.
-                    // Alert the user, and quit the app.
-                    this.alertAndQuit();
-                    return;
                 }
 
                 this.migrateDB(db);
@@ -406,6 +399,14 @@ calCalendarManager.prototype = {
                 db.executeSimpleSQL("DROP TABLE cal_calendars; " +
                                     "DROP TABLE cal_calendars_prefs; " +
                                     "DROP TABLE cal_calmgr_schema_version;");
+            }
+
+            if (!db.tableExists("cal_calendars")) {
+                // create dummy cal_calendars, so previous versions (pre 1.0pre) run into the schema check:
+                db.createTable("cal_calendars", "id INTEGER");
+                // let schema checks always fail, we cannot take the shared cal_calendar_schema_version:
+                db.createTable("cal_calmgr_schema_version", "version INTEGER");
+                db.executeSimpleSQL("INSERT INTO cal_calmgr_schema_version VALUES(" + (DB_SCHEMA_VERSION + 1) + ")");
                 db.commitTransaction();
             } else {
                 db.rollbackTransaction();
