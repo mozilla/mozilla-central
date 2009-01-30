@@ -258,13 +258,13 @@
 
 <!ENTITY event.recurrence.pattern.monthly.every.label   "Every" >
 <!ENTITY repeat.units.months.both                       "Month(s)" >
-<!ENTITY event.recurrence.the.label                     "The" >
-<!ENTITY event.recurrence.repeat.first.label            "First">
-<!ENTITY event.recurrence.repeat.second.label           "Second">
-<!ENTITY event.recurrence.repeat.third.label            "Third">
-<!ENTITY event.recurrence.repeat.fourth.label           "Fourth">
-<!ENTITY event.recurrence.repeat.fifth.label            "Fifth">
-<!ENTITY event.recurrence.repeat.last.label             "Last">
+<!ENTITY event.recurrence.monthly.every.label           "Every" >
+<!ENTITY event.recurrence.monthly.first.label           "The First">
+<!ENTITY event.recurrence.monthly.second.label          "The Second">
+<!ENTITY event.recurrence.monthly.third.label           "The Third">
+<!ENTITY event.recurrence.monthly.fourth.label          "The Fourth">
+<!ENTITY event.recurrence.monthly.fifth.label           "The Fifth">
+<!ENTITY event.recurrence.monthly.last.label            "The Last">
 <!ENTITY event.recurrence.pattern.monthly.week.1.label  "Sunday" >
 <!ENTITY event.recurrence.pattern.monthly.week.2.label  "Monday" >
 <!ENTITY event.recurrence.pattern.monthly.week.3.label  "Tuesday" >
@@ -278,7 +278,6 @@
 <!ENTITY event.recurrence.every.label                        "Every:" >
 <!ENTITY repeat.units.years.both                             "Year(s)" >
 <!ENTITY event.recurrence.pattern.yearly.every.month.label   "Every" >
-<!ENTITY event.recurrence.pattern.yearly.every.weekday.label "Every" >
 
 <!-- LOCALIZATON NOTE
      Some languages use a preposition when describing dates:
@@ -301,12 +300,13 @@
 <!ENTITY event.recurrence.pattern.yearly.month.10.label      "October" >
 <!ENTITY event.recurrence.pattern.yearly.month.11.label      "November" >
 <!ENTITY event.recurrence.pattern.yearly.month.12.label      "December" >
-<!ENTITY event.recurrence.pattern.yearly.first.label         "First">
-<!ENTITY event.recurrence.pattern.yearly.second.label        "Second">
-<!ENTITY event.recurrence.pattern.yearly.third.label         "Third">
-<!ENTITY event.recurrence.pattern.yearly.fourth.label        "Fourth">
-<!ENTITY event.recurrence.pattern.yearly.fifth.label         "Fifth">
-<!ENTITY event.recurrence.pattern.yearly.last.label          "Last">
+<!ENTITY event.recurrence.yearly.every.label                 "Every">
+<!ENTITY event.recurrence.yearly.first.label                 "The First">
+<!ENTITY event.recurrence.yearly.second.label                "The Second">
+<!ENTITY event.recurrence.yearly.third.label                 "The Third">
+<!ENTITY event.recurrence.yearly.fourth.label                "The Fourth">
+<!ENTITY event.recurrence.yearly.fifth.label                 "The Fifth">
+<!ENTITY event.recurrence.yearly.last.label                  "The Last">
 <!ENTITY event.recurrence.pattern.yearly.week.1.label        "Sunday" >
 <!ENTITY event.recurrence.pattern.yearly.week.2.label        "Monday" >
 <!ENTITY event.recurrence.pattern.yearly.week.3.label        "Tuesday" >

@@ -188,7 +188,6 @@
                 <box id="monthly-period-relative-date-box"
                          orient="horizontal" align="center">
                   <radio id="montly-period-relative-date-radio"
-                         label="&event.recurrence.the.label;"
                          selected="true"
                          disable-on-readonly="true"
                          disable-on-occurrence="true"/>
@@ -196,23 +195,26 @@
                             disable-on-readonly="true"
                             disable-on-occurrence="true">
                     <menupopup id="montly-ordinal-menupopup">
+                      <menuitem id="monthly-ordinal-every-label"
+                                label="&event.recurrence.monthly.every.label;"
+                                value="0"/>
                       <menuitem id="monthly-ordinal-first-label"
-                                label="&event.recurrence.repeat.first.label;"
+                                label="&event.recurrence.monthly.first.label;"
                                 value="1"/>
-                      <menuitem id="mnthly-ordinal-second-label"
-                                label="&event.recurrence.repeat.second.label;"
+                      <menuitem id="monthly-ordinal-second-label"
+                                label="&event.recurrence.monthly.second.label;"
                                 value="2"/>
                       <menuitem id="monthly-ordinal-third-label"
-                                label="&event.recurrence.repeat.third.label;"
+                                label="&event.recurrence.monthly.third.label;"
                                 value="3"/>
                       <menuitem id="monthly-ordinal-fourth-label"
-                                label="&event.recurrence.repeat.fourth.label;"
+                                label="&event.recurrence.monthly.fourth.label;"
                                 value="4"/>
                       <menuitem id="monthly-ordinal-fifth-label"
-                                label="&event.recurrence.repeat.fifth.label;"
+                                label="&event.recurrence.monthly.fifth.label;"
                                 value="5"/>
                       <menuitem id="monthly-ordinal-last-label"
-                                label="&event.recurrence.repeat.last.label;"
+                                label="&event.recurrence.monthly.last.label;"
                                 value="-1"/>
                     </menupopup>
                   </menulist>
@@ -350,7 +352,6 @@
                     </row>
                     <row id="yearly-period-relative-row" align="center">
                       <radio id="yearly-period-relative-radio"
-                             label="&event.recurrence.pattern.yearly.every.weekday.label;"
                              disable-on-readonly="true"
                              disable-on-occurrence="true"/>
                       <box id="yearly-period-relative-controls"
@@ -360,23 +361,26 @@
                                   disable-on-readonly="true"
                                   disable-on-occurrence="true">
                           <menupopup id="yearly-ordinal-menupopup">
+                            <menuitem id="yearly-ordinal-every"
+                                      label="&event.recurrence.yearly.every.label;"
+                                      value="0"/>
                             <menuitem id="yearly-ordinal-first"
-                                      label="&event.recurrence.pattern.yearly.first.label;"
+                                      label="&event.recurrence.yearly.first.label;"
                                       value="1"/>
                             <menuitem id="yearly-ordinal-second"
-                                      label="&event.recurrence.pattern.yearly.second.label;"
+                                      label="&event.recurrence.yearly.second.label;"
                                       value="2"/>
                             <menuitem id="yearly-ordinal-third"
-                                      label="&event.recurrence.pattern.yearly.third.label;"
+                                      label="&event.recurrence.yearly.third.label;"
                                       value="3"/>
                             <menuitem id="yearly-ordinal-fourth"
-                                      label="&event.recurrence.pattern.yearly.fourth.label;"
+                                      label="&event.recurrence.yearly.fourth.label;"
                                       value="4"/>
                             <menuitem id="yearly-ordinal-fifth"
-                                      label="&event.recurrence.pattern.yearly.fifth.label;"
+                                      label="&event.recurrence.yearly.fifth.label;"
                                       value="5"/>
                             <menuitem id="yearly-ordinal-last"
-                                      label="&event.recurrence.pattern.yearly.last.label;"
+                                      label="&event.recurrence.yearly.last.label;"
                                       value="-1"/>
                           </menupopup>
                         </menulist>

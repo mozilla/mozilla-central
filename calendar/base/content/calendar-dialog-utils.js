@@ -23,6 +23,7 @@
  *   Stefan Sitter <ssitter@gmail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
+ *   Hubert Gajewski <hubert@hubertgajewski.com>, Aviary.pl
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -55,7 +56,6 @@ Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
  */
 function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
     function getRString(name, args) calGetString("calendar-event-dialog", name, args);
-    function getDString(name, args) calGetString("dateFormat", name, args);
 
     // Retrieve a valid recurrence rule from the currently
     // set recurrence info. Bail out if there's more
@@ -115,7 +115,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     let days = rule.getComponent("BYDAY", {});
                     var weekdays = "";
                     for (let i = 0; i < days.length; i++) {
-                        weekdays += getDString("day." + days[i] + ".name")
+                        weekdays += getRString("repeatDetailsOrdinal" + days[i])
                         if (days.length > 1 && i == (days.length - 2)) {
                             weekdays += ' ' + getRString("repeatDetailsAnd") + ' ';
                         } else if (i < days.length - 1) {
@@ -137,14 +137,14 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     let byday = rule.getComponent("BYDAY", {});
                     if (day_position(byday[0]) == 0) {
                         // i.e every MONDAY of every N months
-                        let day = getDString("day." + day_of_week(byday[0]) + ".name");
+                        let day = getRString("repeatDetailsDay" + day_of_week(byday[0]));
                         ruleString = getRString("monthlyEveryOfEvery", [day]);
                         ruleString = PluralForm.get(rule.interval, ruleString)
                                                .replace("#2", rule.interval);
                     } else {
                         // i.e the FIRST MONDAY of every N months
                         let ordinal = getRString("repeatDetailsOrdinal" + day_position(byday[0]));
-                        let day = getDString("day." + day_of_week(byday[0]) + ".name");
+                        let day = getRString("repeatDetailsDay" + day_of_week(byday[0]));
                         ruleString = getRString("monthlyNthOfEvery", [ordinal, day]);
                         ruleString = PluralForm.get(rule.interval, ruleString)
                                                .replace("#3", rule.interval);
@@ -185,7 +185,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                 } else {
                     let monthlyString = getRString("monthlyDayOfNth", [startDate.day]);
                     ruleString = PluralForm.get(rule.interval, monthlyString)
-                                           .replace("#1", rule.interval);
+                                           .replace("#2", rule.interval);
                 }
             } else if (rule.type == 'YEARLY') {
                 if (checkRecurrenceRule(rule, ['BYMONTH']) &&
@@ -194,7 +194,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     bymonthday = rule.getComponent("BYMONTHDAY", {});
 
                     if (bymonth.length == 1 && bymonthday.length == 1) {
-                        let monthNameString = getDString("month." + bymonth[0] + ".name");
+                        let monthNameString = getRString("repeatDetailsMonth" + bymonth[0]);
 
                         let yearlyString = getRString("yearlyNthOn",
                                                       [monthNameString, bymonthday[0]]);
@@ -207,10 +207,10 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     byday = rule.getComponent("BYDAY", {});
 
                     if (bymonth.length == 1 && byday.length == 1) {
-                        let dayString = getDString("day." + day_of_week(byday[0]) + ".name");
-                        let monthString = getDString("month." + bymonth[0] + ".name");
+                        let dayString = getRString("repeatDetailsDay" + day_of_week(byday[0]));
+                        let monthString = getRString("repeatDetailsMonth" + bymonth[0]);
                         if (day_position(byday[0]) == 0) {
-                            let yearlyString = getRString("yearlyEveryNthOfNth",
+                            let yearlyString = getRString("yearlyOnEveryNthOfNth",
                                                           [dayString, monthString]);
                             ruleString = PluralForm.get(rule.interval, yearlyString)
                                                    .replace("#3", rule.interval);
@@ -229,7 +229,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         return getRString("ruleTooComplex");
                     }
                 } else {
-                    let monthNameString = getDString("month." + (startDate.month + 1) + ".name");
+                    let monthNameString = getRString("repeatDetailsMonth" + (startDate.month + 1));
 
                     let yearlyString = getRString("yearlyNthOn",
                                                   [monthNameString, startDate.day]);
