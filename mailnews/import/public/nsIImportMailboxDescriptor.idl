@@ -47,7 +47,7 @@
 
 interface nsILocalFile;
 
-[scriptable, uuid(d92056c0-184d-11d3-a206-00a0cc26da63)]
+[scriptable, uuid(69eba744-9c4f-4f79-a964-2134746b3656)]
 interface nsIImportMailboxDescriptor : nsISupports
 {
   attribute unsigned long identifier;

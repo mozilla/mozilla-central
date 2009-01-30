@@ -52,7 +52,7 @@ interface nsIAbDirectory;
  * returned if a match is found from the expression
  *
  */
-[scriptable, uuid(c2d83a31-eba6-4053-9273-c7a006a94311)]
+[scriptable, uuid(d6fcbedd-d574-4357-abf4-81565d867749)]
 interface nsIAbDirectoryQueryArguments : nsISupports
 {
     /**

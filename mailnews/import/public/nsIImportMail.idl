@@ -72,7 +72,7 @@ interface   nsISupportsArray;
 interface  nsIImportMailboxDescriptor;
 interface  nsIOutputStream;
 
-[scriptable, uuid(c9e314c0-234e-11d3-a206-00a0cc26da63)]
+[scriptable, uuid(cf208fac-b275-449d-9dc9-0d8f16c59fe1)]
 interface nsIImportMail : nsISupports
 {
 

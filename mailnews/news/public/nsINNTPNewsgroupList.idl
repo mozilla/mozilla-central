@@ -45,7 +45,7 @@ interface nsIMsgWindow;
 /**
  * A utility class for nsINNTPProtocol that handles the list of new headers.
  */
-[scriptable, uuid(E628ED19-9452-11d2-B7EA-00805F05FFA5)]
+[scriptable, uuid(579aa17b-4c77-465d-8eb6-feaa927cb19c)]
 interface nsINNTPNewsgroupList : nsISupports {
   
   void initialize(in nsINntpUrl runningURL, in nsIMsgNewsFolder newsFolder);
