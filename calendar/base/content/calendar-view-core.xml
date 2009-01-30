@@ -191,8 +191,8 @@
             this.setAttribute("categories", cssClassesArray.join(" "));
           }
 
-          // Add alarm icons as needed. Also add parent item alarms in case this is an occurrence.
-          let alarms = item.getAlarms({}).concat(item.parentItem.getAlarms({}));
+          // Add alarm icons as needed.
+          let alarms = item.getAlarms({});
           let iconsBox = document.getAnonymousElementByAttribute(this, "anonid", "alarm-icons-box");
           cal.alarms.addReminderImages(iconsBox, alarms);
 

@@ -72,7 +72,6 @@ calItemBase.prototype = {
         this.mProperties = new calPropertyBag();
         this.mPropertyParams = {};
         this.mProperties.setProperty("CREATED", jsDateToDateTime(new Date()));
-        this.mAlarms = [];
     },
 
     /**
@@ -203,8 +202,9 @@ calItemBase.prototype = {
         if (this.mOrganizer)
             this.mOrganizer.makeImmutable();
         if (this.mAttendees) {
-            for (var i = 0; i < this.mAttendees.length; i++)
-                this.mAttendees[i].makeImmutable();
+            for each (let att in this.mAttendees) {
+                att.makeImmutable();
+            }
         }
 
         for each (let [propKey, propValue] in this.mProperties) {
@@ -214,8 +214,10 @@ calItemBase.prototype = {
             }
         }
 
-        for (let i = 0; i < this.mAlarms.length; i++) {
-            this.mAlarms[i].makeImmutable();
+        if (this.mAlarms) {
+            for each (let alarm in this.mAlarms) {
+                alarm.makeImmutable();
+            }
         }
 
         if (this.mAlarmLastAck) {
@@ -294,10 +296,11 @@ calItemBase.prototype = {
 
         m.mCategories = this.getCategories({});
 
-        for each (let alarm in this.mAlarms) {
+        m.mAlarms = [];
+        for each (let alarm in this.getAlarms({})) {
             // Clone alarms into new item, assume the alarms from the old item
             // are valid and don't need validation.
-            m.addAlarm(alarm.clone(), true);
+            m.mAlarms.push(alarm.clone());
         }
 
         let alarmLastAck = this.alarmLastAck;
@@ -788,15 +791,16 @@ calItemBase.prototype = {
         }
         this.mRecurrenceInfo = rec;
 
+        this.mAlarms = []; // don't inherit anything from parent
         for (let alarmComp in cal.ical.subcomponentIterator(icalcomp, "VALARM")) {
             let alarm = cal.createAlarm();
             try {
                 alarm.icalComponent = alarmComp;
                 this.addAlarm(alarm, true);
             } catch (e) {
-                Components.utils.reportError("Invalid alarm for item: " +
-                                             this.id + " (" +
-                                             alarmComp.serializeToICS() + ")");
+                cal.ERROR("Invalid alarm for item: " +
+                          this.id + " (" +
+                          alarmComp.serializeToICS() + ")");
             }
         }
 
@@ -912,8 +916,16 @@ calItemBase.prototype = {
             throw Components.results.NS_ERROR_XPC_NEED_OUT_OBJECT;
         }
 
-        aCount.value = this.mAlarms.length;
-        return this.mAlarms;
+        if (!this.mAlarms && this.mIsProxy) {
+            this.mAlarms = this.mParentItem.getAlarms(aCount);
+        }
+        if (this.mAlarms) {
+            aCount.value = this.mAlarms.length;
+            return this.mAlarms.concat([]); // clone
+        } else {
+            aCount.value = 0;
+            return [];
+        }
     },
 
     /**
@@ -935,14 +947,16 @@ calItemBase.prototype = {
         }
 
         this.modify();
+        this.mAlarms = this.getAlarms({});
         this.mAlarms.push(aAlarm);
     },
 
     // void deleteAlarm(in calIAlarm aAlarm);
     deleteAlarm: function cIB_deleteAlarm(aAlarm) {
         this.modify();
+        this.mAlarms = this.getAlarms({});
         for (let i = 0; i < this.mAlarms.length; i++) {
-            if (compareObjects(this.mAlarms[i], aAlarm, Components.interfaces.calIAlarm)) {
+            if (cal.compareObjects(this.mAlarms[i], aAlarm, Components.interfaces.calIAlarm)) {
                 this.mAlarms.splice(i, 1);
                 break;
             }
