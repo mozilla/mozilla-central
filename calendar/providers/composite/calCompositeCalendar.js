@@ -146,7 +146,7 @@ calCompositeCalendar.prototype = {
         throw NS_ERROR_NOT_IMPLEMENTED;
     },
 
-    deleteCalendar: function comp_deleteCal(cal, listener) {
+    deleteCalendar: function comp_deleteCal(calendar, listener) {
         // You shouldn't be able to delete from the composite calendar.
         throw NS_ERROR_NOT_IMPLEMENTED;
     },
@@ -246,9 +246,9 @@ calCompositeCalendar.prototype = {
         return this.mDefaultCalendar;
     },
 
-    setDefaultCalendar: function (cal, usePref) {
+    setDefaultCalendar: function (calendar, usePref) {
         // Don't do anything if the passed calendar is the default calendar
-        if (cal && this.mDefaultCalendar && this.mDefaultCalendar.id == cal.id) {
+        if (calendar && this.mDefaultCalendar && this.mDefaultCalendar.id == calendar.id) {
             return;
         }
         if (usePref && this.mPrefPrefix) {
@@ -256,12 +256,12 @@ calCompositeCalendar.prototype = {
                 this.mDefaultCalendar.deleteProperty(this.mDefaultPref);
             }
             // if not null set the new calendar as default in the preferences
-            if (cal)  {
-                cal.setProperty(this.mDefaultPref, true);
+            if (calendar)  {
+                calendar.setProperty(this.mDefaultPref, true);
             }
         }
-        this.mDefaultCalendar = cal;
-        this.mCompositeObservers.notify("onDefaultCalendarChanged", [cal]);
+        this.mDefaultCalendar = calendar;
+        this.mCompositeObservers.notify("onDefaultCalendarChanged", [calendar]);
     },
 
     set defaultCalendar(v) {
@@ -355,15 +355,15 @@ calCompositeCalendar.prototype = {
         if (this.mStatusObserver) {
             this.mStatusObserver.startMeteors(Components.interfaces.calIStatusObserver.DETERMINED_PROGRESS, this.mCalendars.length);
         }
-        for each (cal in this.enabledCalendars) {
+        for each (let calendar in this.enabledCalendars) {
             try {
-                if (cal.canRefresh) {
-                    this.mObserverHelper.pendingLoads[cal.id] = true;
-                    cal.refresh();
+                if (calendar.canRefresh) {
+                    this.mObserverHelper.pendingLoads[calendar.id] = true;
+                    calendar.refresh();
                 }
             } catch (e) {
                 ASSERT(false, e);
-                delete this.mObserverHelper.pendingLoads[cal.id];
+                delete this.mObserverHelper.pendingLoads[calendar.id];
             }
         }
         // send out a single onLoad for this composite calendar,
@@ -398,9 +398,9 @@ calCompositeCalendar.prototype = {
     getItem: function (aId, aListener) {
         var enabledCalendars = this.enabledCalendars;
         var cmpListener = new calCompositeGetListenerHelper(this, aListener);
-        for each (cal in enabledCalendars) {
+        for each (let calendar in enabledCalendars) {
             try {
-                cmpListener.opGroup.add(cal.getItem(aId, cmpListener));
+                cmpListener.opGroup.add(calendar.getItem(aId, cmpListener));
             } catch (exc) {
                 ASSERT(false, exc);
             }
@@ -429,13 +429,13 @@ calCompositeCalendar.prototype = {
         }
         var cmpListener = new calCompositeGetListenerHelper(this, aListener, aCount);
 
-        for each (var cal in enabledCalendars) {
+        for each (let calendar in enabledCalendars) {
             try {
-                cmpListener.opGroup.add(cal.getItems(aItemFilter,
-                                                     aCount,
-                                                     aRangeStart,
-                                                     aRangeEnd,
-                                                     cmpListener));
+                cmpListener.opGroup.add(calendar.getItems(aItemFilter,
+                                                          aCount,
+                                                          aRangeStart,
+                                                          aRangeEnd,
+                                                          cmpListener));
             } catch (exc) {
                 ASSERT(false, exc);
             }

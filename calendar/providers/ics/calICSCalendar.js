@@ -179,11 +179,6 @@ calICSCalendar.prototype = {
         }
     },
 
-    calendarPromotedProps: {
-        "PRODID": true,
-        "VERSION": true
-    },
-
     // nsIChannelEventSink implementation
     onChannelRedirect: function(aOldChannel, aNewChannel, aFlags) {
         this.prepareChannel(aNewChannel);
@@ -333,12 +328,26 @@ calICSCalendar.prototype = {
         };
         listener.serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"].
                                          createInstance(Components.interfaces.calIIcsSerializer);
-        for each (var comp in this.unmappedComponents) {
+        for each (let comp in this.unmappedComponents) {
             listener.serializer.addComponent(comp);
         }
-        for each (var prop in this.unmappedProperties) {
-            listener.serializer.addProperty(prop);
+        for each (let prop in this.unmappedProperties) {
+            switch (prop.propertyName) {
+                // we always set the current name and timezone:
+                case "X-WR-CALNAME":
+                case "X-WR-TIMEZONE":
+                    break;
+                default:
+                    listener.serializer.addProperty(prop);
+                    break;
+            }
         }
+        let prop = cal.getIcsService().createIcalProperty("X-WR-CALNAME");
+        prop.value = this.name;
+        listener.serializer.addProperty(prop);
+        prop = cal.getIcsService().createIcalProperty("X-WR-TIMEZONE");
+        prop.value = cal.getTimezoneService().defaultTimezone.tzid;
+        listener.serializer.addProperty(prop);
 
         // don't call this.getItems, because we are locked:
         this.mMemoryCalendar.getItems(calICalendar.ITEM_FILTER_TYPE_ALL | calICalendar.ITEM_FILTER_COMPLETED_ALL,
