@@ -354,9 +354,12 @@ NS_IMETHODIMP nsImapService::OpenAttachment(const char *aContentType,
   else
   {
     // try to extract the specific part number out from the url string
+    const char *partStart = PL_strstr(aUrl, "part=");
+    if (!partStart)
+      return NS_ERROR_FAILURE;
+    nsDependentCString part(partStart);
     uri += "?";
-    const char *part = PL_strstr(aUrl, "part=");
-    uri += part;
+    uri += Substring(part, 0, part.FindChar('&'));
     uri += "&type=";
     uri += aContentType;
     uri += "&filename=";
@@ -421,7 +424,7 @@ NS_IMETHODIMP nsImapService::FetchMimePart(nsIURI *aURI,
   nsCAutoString messageURI(aMessageURI);
   nsCAutoString msgKey;
   nsCAutoString mimePart;
-  nsCAutoString	folderURI;
+  nsCAutoString folderURI;
   nsMsgKey key;
   
   rv = DecomposeImapURI(messageURI, getter_AddRefs(folder), msgKey);

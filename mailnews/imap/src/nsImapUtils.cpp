@@ -89,25 +89,33 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
 {
   if(!key)
     return NS_ERROR_NULL_POINTER;
-  
+
   nsCAutoString uriStr(uri);
-  PRInt32 keySeparator = uriStr.RFindChar('#');
+  PRInt32 folderEnd = -1;
+  // imap-message uri's can have imap:// url strings tacked on the end,
+  // e.g., when opening/saving attachments. We don't want to look for '#'
+  // in that part of the uri, if the attachment name contains '#',
+  // so check for that here.
+  if (StringBeginsWith(uriStr, NS_LITERAL_CSTRING("imap-message")))
+    folderEnd = uriStr.Find("imap://");
+
+  PRInt32 keySeparator = uriStr.RFindChar('#', folderEnd);
   if(keySeparator != -1)
   {
-    PRInt32 keyEndSeparator = uriStr.FindCharInSet("/?&", 
-      keySeparator); 
+    PRInt32 keyEndSeparator = uriStr.FindCharInSet("/?&",
+                                                   keySeparator);
     nsAutoString folderPath;
     uriStr.Left(folderURI, keySeparator);
-    folderURI.Cut(4, 8);	// cut out the _message part of imap-message:
+    folderURI.Cut(4, 8); // cut out the _message part of imap-message:
     nsCAutoString keyStr;
     if (keyEndSeparator != -1)
-      uriStr.Mid(keyStr, keySeparator+1, 
-      keyEndSeparator-(keySeparator+1));
+      uriStr.Mid(keyStr, keySeparator+1,
+                 keyEndSeparator-(keySeparator+1));
     else
       uriStr.Right(keyStr, uriStr.Length() - (keySeparator + 1));
     PRInt32 errorCode;
     *key = keyStr.ToInteger(&errorCode);
-    
+
     if (part && keyEndSeparator != -1)
     {
       PRInt32 partPos = uriStr.Find("part=", PR_FALSE, keyEndSeparator);
@@ -116,12 +124,10 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
         nsCString partSubStr;
         uriStr.Right(partSubStr, uriStr.Length() - keyEndSeparator);
         *part = ToNewCString(partSubStr);
-        
       }
     }
   }
   return NS_OK;
-  
 }
 
 nsresult nsBuildImapMessageURI(const char *baseURI, PRUint32 key, nsCString& uri)
