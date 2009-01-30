@@ -60,12 +60,8 @@ REQUIRES = 	\
 		$(NULL)
 
 CPP_UNIT_TESTS = \
-		TestImapHdrXferInfo \
+		TestImapHdrXferInfo.cpp \
 		$(NULL)
-
-CPPSRCS = $(foreach src,$(CPP_UNIT_TESTS),$(src).cpp)
-
-SIMPLE_PROGRAMS = $(CPPSRCS:.cpp=$(BIN_SUFFIX))
 
 include $(topsrcdir)/config/config.mk
 
@@ -103,10 +99,3 @@ LIBS +=		\
 		$(XPCOM_LIBS) \
 		$(NSPR_LIBS) \
 		$(NULL)
-
-check::
-	@echo "Running imap compiled CPP tests"
-	@$(EXIT_ON_ERROR) \
-	for f in $(CPP_UNIT_TESTS); do \
-	  XPCOM_DEBUG_BREAK=stack-and-abort $(RUN_TEST_PROGRAM) $(DIST)/bin/$$f; \
-	done
