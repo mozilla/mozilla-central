@@ -792,20 +792,12 @@ calItemBase.prototype = {
             let alarm = cal.createAlarm();
             try {
                 alarm.icalComponent = alarmComp;
-                if (alarm.related != Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE) {
-                    // TODO ALARMSUPPORT unconditionally add alarm when we
-                    // support multiple alarms.
-                    this.addAlarm(alarm, true);
-                }
+                this.addAlarm(alarm, true);
             } catch (e) {
                 Components.utils.reportError("Invalid alarm for item: " +
                                              this.id + " (" +
                                              alarmComp.serializeToICS() + ")");
             }
-
-            // TODO ALARMSUPPORT remove break when we fully support multiple
-            // alarms
-            break;
         }
 
         let lastAck = icalcomp.getFirstProperty("X-MOZ-LASTACK");

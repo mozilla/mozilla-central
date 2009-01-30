@@ -36,6 +36,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 calWcapCalendar.prototype.encodeAttendee =
 function calWcapCalendar_encodeAttendee(att) {
     if (LOG_LEVEL > 2) {
@@ -181,15 +184,13 @@ calWcapCalendar.prototype.encodeRecurrenceParams =
 calWcapCalendar.prototype.getAlarmParams =
 function calWcapCalendar_getAlarmParams(item) {
     let params = null;
-    // TODO ALARMSUPPORT This will change as soon as email alarms are supported
-    // by the UI.
-    let alarms = item.getAlarms({})
-                     .filter(function(x) x.related != x.ALARM_RELATED_ABSOLUTE);
+    // TODO ALARMSUPPORT check if WCAP supports multiple alarms
+    let alarms = item.getAlarms({}).filter(function(x) x.action == "EMAIL");
     let alarm = alarms[0];
     // END TODO ALARMSUPPORT
 
-    if (alarm && alarm.offset) {
-        let alarmStart = alarm.offset;
+    if (alarm) {
+        let alarmStart = cal.alarms.calculateAlarmOffset(item, alarm);
         if (alarm.related == alarm.ALARM_RELATED_END) {
             // cs does not support explicit RELATED=END when
             // both start|entry and end|due are written
@@ -651,6 +652,7 @@ function calWcapCalendar_tunnelXProps(destItem, srcItem) {
         return;
     }
     // tunnel alarm X-MOZ-SNOOZE only if alarm is still set:
+    // TODO ALARMSUPPORT still needed when showing alarms as EMAIL for wcap?
     let hasAlarms = destItem.getAlarms({}).length;
     let enumerator = srcItem.propertyEnumerator;
     while (enumerator.hasMoreElements()) {

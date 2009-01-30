@@ -376,43 +376,17 @@ calAlarmService.prototype = {
     getAlarmDate: function cas_getAlarmTime(aItem) {
         var alarmDate = null;
         // TODO ALARMSUPPORT This will change as soon as we support multiple
-        // alarms.
-        let alarms = aItem.getAlarms({}).filter(function(x) x.related != x.ALARM_RELATED_ABSOLUTE);
-        let alarm = alarms[0]
+        // alarms. Get the first alarm for now.
+        let alarms = aItem.getAlarms({});
+        let alarm = alarms[0];
         if (!alarm) {
             // No relative alarm available.
             return null;
         }
         // END TODO ALARMSUPPORT
-
-        if (alarm.related == Components.interfaces.calIAlarm.ALARM_RELATED_START) {
-            alarmDate = aItem.startDate || aItem.entryDate || aItem.dueDate;
-        } else {
-            alarmDate = aItem.endDate || aItem.dueDate || aItem.entryDate;
-        }
-
-        if (!alarmDate) {
-            // If there is no alarm offset, or no date the alarm offset could be
-            // relative to, then there is no valid alarm.
-            return null;
-        }
-
-        alarmDate = alarmDate.clone();
-
-        // Handle all day events.  This is kinda weird, because they don't have
-        // a well defined startTime.  We just consider the start/end to be
-        // midnight in the user's timezone.
-        if (alarmDate.isDate) {
-            alarmDate = alarmDate.getInTimezone(this.timezone);
-            alarmDate.isDate = false;
-        }
-
-        let offset = alarm.offset;
-
-        alarmDate.addDuration(offset);
-        alarmDate = alarmDate.getInTimezone(UTC());
-
-        return alarmDate;
+        
+        let alarmDate = cal.alarms.calculateAlarmDate(aItem, alarm)
+        return (alarmDate ? alarmDate.getInTimezone(UTC()) : null);
     },
 
     addAlarm: function cas_addAlarm(aItem) {

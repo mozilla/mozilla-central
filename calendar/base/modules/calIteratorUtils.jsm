@@ -62,6 +62,23 @@ cal.itemIterator = function cal_itemIterator(items) {
 };
 
 /**
+ * Iterator for a DOM NodeList where for each() cannot be used directly.
+ *
+ * @param nodeList          The NodeList to iterate (i.e el.childNodes)
+ */
+cal.nodeIterator = function cal_nodeIterator(nodeList) {
+    return {
+        __iterator__: function nodeIterator(aWantKeys) {
+            cal.ASSERT(!aWantKeys, "Please use for each() on the node iterator");
+            let nodeListLength = nodeList.length;
+            for (let i = 0; i < nodeListLength; i++) {
+                yield nodeList[i];
+            }
+        }
+    };
+};
+
+/**
  * "ical" namespace. Used for all iterators (and possibly other functions) that
  * are related to libical.
  */
