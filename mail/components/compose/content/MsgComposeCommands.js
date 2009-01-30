@@ -2383,7 +2383,7 @@ function ComposeCanClose()
       {
         case 0: //Save
           gCloseWindowAfterSave = true;
-          SaveAsDraft();
+          GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
           return false;
         case 1: //Cancel
           return false;

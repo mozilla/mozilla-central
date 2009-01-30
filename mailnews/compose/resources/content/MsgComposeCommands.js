@@ -2402,7 +2402,7 @@ function ComposeCanClose()
           if (!gContentChanged && !gMsgCompose.bodyModified)
             break;
           gCloseWindowAfterSave = true;
-          SaveAsDraft();
+          GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
           return false;
         case 1: //Cancel
           return false;
