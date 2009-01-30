@@ -1087,8 +1087,11 @@ BatchMessageMover.prototype = {
       let msgs = batch.slice(3,batch.length);
       let subFolder, dstFolder;
 
-      let archiveFolderUri =
-        getIdentityForHeader(msgs[0], Components.interfaces.nsIMsgCompType.ReplyAll).archiveFolder;
+      // rss servers don't have an identity so we special case the archives URI
+      let archiveFolderUri = (srcFolder.server.type == 'rss')
+        ? srcFolder.server.serverURI + "/Archives"
+        : getIdentityForHeader(msgs[0], Components.interfaces.nsIMsgCompType
+                                        .ReplyAll).archiveFolder;
 
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
       // for imap folders, we need to create the sub-folders asynchronously, 
