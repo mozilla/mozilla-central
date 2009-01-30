@@ -48,7 +48,7 @@ MODULE = caldav
 DIRS = public
 
 EXTRA_COMPONENTS = calDavCalendarModule.js
-EXTRA_SCRIPTS = calDavCalendar.js
+EXTRA_SCRIPTS = calDavCalendar.js calDavRequestHandlers.js
 
 libs:: $(EXTRA_SCRIPTS)
 	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi

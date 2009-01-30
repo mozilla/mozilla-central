@@ -931,189 +931,18 @@ calDavCalendar.prototype = {
             return;
         }
 
-        var itemsReported = {};
-        var itemsNeedFetching = [];
-        unhandledErrors = 0;
-
-        var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
-        var D = new Namespace("D", "DAV:");
+        let C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
+        let D = new Namespace("D", "DAV:");
         default xml namespace = C;
 
-        var queryXml = <D:propfind xmlns:D="DAV:">
+        let queryXml = <D:propfind xmlns:D="DAV:">
                         <D:prop>
                             <D:getcontenttype/>
                             <D:getetag/>
                         </D:prop>
                        </D:propfind>;
 
-        var queryString = xmlHeader + queryXml.toXMLString();
-
-        var multigetQueryXml =
-          <calendar-multiget xmlns:D={D} xmlns={C}>
-            <D:prop>
-              <D:getetag/>
-              <calendar-data/>
-            </D:prop>
-          </calendar-multiget>;
-
-        var thisCalendar = this;
-
-        var etagListener = {};
-
-        etagListener.onStreamComplete =
-            function getUpdatedItems_getetag_onStreamComplete(aLoader, aContext, aStatus,
-                                                              aResultLength, aResult) {
-            let responseStatus;
-            let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
-            try {
-                LOG("CalDAV: Status " + request.responseStatus +
-                    " on getetag for calendar " + thisCalendar.name);
-                responseStatus = request.responseStatus;
-            } catch (ex) {
-                LOG("CalDAV: Error without status on getetag for calendar " +
-                    thisCalendar.name);
-                responseStatus = "none";
-            }
-
-            if (responseStatus == 207) {
-                // We only need to parse 207's, anything else is probably a
-                // server error (i.e 50x).
-                let str = cal.convertByteArray(aResult, aResultLength);
-                if (!str) {
-                    LOG("CAlDAV: Failed to parse getetag PROPFIND");
-                } else if (thisCalendar.verboseLogging()) {
-                    LOG("CalDAV: recv: " + str);
-                }
-
-                let multistatus = cal.safeNewXML(str);
-                for each (let response in multistatus.*::response) {
-                    var etag = response..D::["getetag"];
-                    if (etag.length() == 0) {
-                        continue;
-                    }
-                    var contenttype = null;
-                    contenttype = response..D::["getcontenttype"];
-                    // workaround for a Scalix bug which causes incorrect
-                    // contenttype to be returned. Remove when that's fixed
-                    if (contenttype == "message/rfc822") {
-                        contenttype = "text/calendar";
-                    }
-                    // end Scalix workaround
-                    if (contenttype.toString().substr(0, 13) != "text/calendar") {
-                        continue;
-                    }
-                    var href = response..D::["href"];
-                    var resourcePath = thisCalendar.ensurePath(href);
-                    itemsReported[resourcePath.toString()] = true;
-
-                    var itemuid = thisCalendar.mHrefIndex[resourcePath];
-                    if (!itemuid || etag != thisCalendar.mItemInfoCache[itemuid].etag) {
-                        itemsNeedFetching.push(resourcePath);
-                    }
-                }
-            } else if (Math.floor(responseStatus / 100) == 4) {
-                // A 4xx error probably means the server doesn't support this
-                // type of query. Disable it for this session. This doesn't
-                // really match the spec (which requires a 207), but it works
-                // around bugs in Google and eGroupware 1.6.
-                LOG("CalDAV: Server doesn't support " + itemType + "s");
-                var itemTypeIndex = thisCalendar.supportedItemTypes.indexOf(itemType);
-                if (itemTypeIndex > -1) {
-                    thisCalendar.supportedItemTypes.splice(itemTypeIndex, 1);
-                }
-            } else {
-                unhandledErrors++;
-            }
-
-            var needsRefresh = false;
-
-            if (unhandledErrors) {
-                LOG("CalDAV: Error fetching item etags");
-                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_REPORT_ERROR);
-                if (thisCalendar.isCached && aChangeLogListener) {
-                    aChangeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
-                                                Components.results.NS_ERROR_FAILURE);
-                }
-                return;
-            }
-            if (thisCalendar.isCached) {
-                thisCalendar.superCalendar.startBatch();
-            }
-            try {
-                for (var path in thisCalendar.mHrefIndex) {
-                    if (path in itemsReported || path.indexOf(aUri.path) != 0) {
-                        // If the item is also on the server, check the next.
-                        continue;
-                    }
-                    // if an item has been deleted from the server, delete it
-                    // here too. Since the target calendar's operations are
-                    // synchronous, we can safely set variables from this
-                    // function (i.e needsRefresh)
-                    var getItemListener = {
-                        onGetResult: function caldav_gUIs_oGR(aCalendar,
-                                                              aStatus,
-                                                              aItemType,
-                                                              aDetail,
-                                                              aCount,
-                                                              aItems) {
-                            var itemToDelete = aItems[0];
-                            var wasInboxItem = thisCalendar.mItemInfoCache[itemToDelete.id].isInboxItem;
-                            if ((wasInboxItem && thisCalendar.isInbox(aUri.spec)) ||
-                                (wasInboxItem === false && !thisCalendar.isInbox(aUri.spec))) {
-                                delete thisCalendar.mItemInfoCache[itemToDelete.id];
-                                thisCalendar.mTargetCalendar.deleteItem(itemToDelete,
-                                                                        getItemListener);
-                            }
-                            delete thisCalendar.mHrefIndex[path];
-                            needsRefresh = true;
-                        },
-                        onOperationComplete: function caldav_gUIs_oOC(aCalendar,
-                                                                      aStatus,
-                                                                      aOperationType,
-                                                                      aId,
-                                                                      aDetail) {}
-                    };
-                    thisCalendar.mTargetCalendar.getItem(thisCalendar.mHrefIndex[path],
-                                                         getItemListener);
-                }
-            } finally {
-                if (thisCalendar.isCached) {
-                    thisCalendar.superCalendar.endBatch();
-                }
-            }
-
-            // Avoid sending empty multiget requests
-            // update views if something has been deleted server-side
-            if (!itemsNeedFetching.length) {
-                if (thisCalendar.isCached && aChangeLogListener) {
-                    aChangeLogListener.onResult({ status: Components.results.NS_OK },
-                                                Components.results.NS_OK);
-                }
-                if (needsRefresh) {
-                    thisCalendar.mObservers.notify("onLoad", [thisCalendar]);
-                }
-                // but do poll the inbox;
-                if (thisCalendar.hasScheduling &&
-                    !thisCalendar.isInbox(aUri.spec)) {
-                    thisCalendar.pollInbox();
-                }
-                return;
-            }
-
-            while (itemsNeedFetching.length > 0) {
-                var locpath = itemsNeedFetching.pop().toString();
-                multigetQueryXml.D::prop += <D:href xmlns:D={D}>{locpath}</D:href>;
-            }
-
-            var multigetQueryString = xmlHeader +
-                                      multigetQueryXml.toXMLString();
-            thisCalendar.getCalendarData(aUri,
-                                         multigetQueryString,
-                                         null,
-                                         null,
-                                         aChangeLogListener);
-        };
-
+        let queryString = xmlHeader + queryXml.toXMLString();
         if (this.verboseLogging()) {
             LOG("CalDAV: send(" + aUri.spec + "): " + queryString);
         }
@@ -1124,7 +953,10 @@ calDavCalendar.prototype = {
                                               this);
         httpchannel.requestMethod = "PROPFIND";
         httpchannel.setRequestHeader("Depth", "1", false);
-        cal.sendHttpRequest(cal.createStreamLoader(), httpchannel, etagListener);
+
+        // Submit the request
+        let streamListener = new etagsHandler(this, aUri, aChangeLogListener);
+        httpchannel.asyncOpen(streamListener, httpchannel);
     },
 
     getCalendarData: function caldav_getCalendarData(aUri, aQuery, aItem, aListener, aChangeLogListener) {

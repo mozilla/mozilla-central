@@ -227,6 +227,7 @@ bin\calendar-js\calCalendarManager.js
 bin\calendar-js\calCalendarSearchService.js
 bin\calendar-js\calDateTimeFormatter.js
 bin\calendar-js\calDavCalendar.js
+bin\calendar-js\calDavRequestHandlers.js
 bin\calendar-js\calEvent.js
 bin\calendar-js\calFilter.js
 bin\calendar-js\calFreeBusyService.js
