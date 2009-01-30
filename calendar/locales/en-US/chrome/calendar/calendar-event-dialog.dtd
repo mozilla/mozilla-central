@@ -44,8 +44,6 @@
 
 <!ENTITY event.title.label                  "Edit Item" >
 
-<!ENTITY newevent.before.label              "before" >
-<!ENTITY newevent.after.label               "after" >
 
 <!ENTITY newevent.from.label                "From" >
 <!ENTITY newevent.to.label                  "To" >
@@ -336,27 +334,6 @@
 <!ENTITY event.recurrence.appointments.label            "Appointment(s)" >
 <!ENTITY event.repeat.until.label                       "Repeat until" >
 <!ENTITY event.recurrence.preview.label                 "Preview">
-
-<!-- Reminder dialog -->
-<!ENTITY alarm.units.minutes                "minutes" >
-<!ENTITY alarm.units.hours                  "hours" >
-<!ENTITY alarm.units.days                   "days" >
-
-<!ENTITY reminder.title.label                           "Custom Reminder">
-<!ENTITY reminder.dialogtitle.label                     "Set up reminders">
-<!ENTITY reminder.reminderDetails.label                 "Reminder Details">
-<!ENTITY reminder.action.label                          "Choose a Reminder Action">
-<!ENTITY reminder.action.alert.label                    "Show an Alert">
-<!ENTITY reminder.action.email.label                    "Send an E-mail">
-<!ENTITY reminder.new.label                             "New">
-<!ENTITY reminder.delete.label                          "Delete">
-<!ENTITY reminder.relation.start.label                  "the event starts">
-<!ENTITY reminder.relation.end.label                    "the event ends">
-<!ENTITY reminder.add.label                             "Add">
-<!ENTITY reminder.add.accesskey                         "A">
-<!ENTITY reminder.remove.label                          "Remove">
-<!ENTITY reminder.remove.accesskey                      "R">
-
 
 <!-- Attendees dialog -->
 <!ENTITY invite.title.label                     "Invite Attendees">

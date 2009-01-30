@@ -44,6 +44,9 @@
   xmlns:xbl="http://www.mozilla.org/xbl">
 
   <binding id="calendar-base-view">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/calendar-alarms.css"/>
+    </resources>
     <implementation>
       <field name="mWeekStartOffset">0</field>
       <field name="mRangeStartDate">null</field>;

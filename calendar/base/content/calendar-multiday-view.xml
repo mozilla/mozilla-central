@@ -1911,14 +1911,13 @@
                                wrap="true"/>
                 </xul:vbox>
                 <xul:hbox pack="end">
-                  <xul:hbox align="start">
-                    <xul:image anonid="alarm-image"
-                               class="alarm-image"
-                               xbl:inherits="flashing"
-                               hidden="true"/>
-                   </xul:hbox>
+                   <xul:hbox anonid="alarm-icons-box"
+                             class="alarm-icons-box"
+                             pack="end"
+                             align="top"
+                             xbl:inherits="flashing"/>
                    <xul:calendar-category-box anonid="category-box" xbl:inherits="categories" pack="end"/>
-                 </xul:hbox>
+                </xul:hbox>
                 <xul:box xbl:inherits="orient">
                   <xul:calendar-event-gripbar anonid="gripbar1"
                                               class="calendar-event-box-grippy-top"

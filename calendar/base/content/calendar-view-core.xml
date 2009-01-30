@@ -76,12 +76,10 @@
                                  wrap="true"/>
                     <xul:spacer flex="1"/>
                   </xul:vbox>
-                  <xul:vbox pack="center">
-                    <xul:image anonid="alarm-image"
-                               class="alarm-image"
-                               xbl:inherits="flashing"
-                               hidden="true"/>
-                  </xul:vbox>
+                  <xul:hbox anonid="alarm-icons-box"
+                            class="alarm-icons-box"
+                            align="center"
+                            xbl:inherits="flashing"/>
                 </xul:hbox>
                 <xul:image anonid="gradient"
                            class="calendar-event-box-gradient"
@@ -96,6 +94,8 @@
 
     <implementation>
       <constructor><![CDATA[
+         Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+
          var self = this;
          this.eventNameInput.onblur = function onBlur() { self.stopEditing(true); };
          this.eventNameInput.onkeypress = function onKeyPress(event) {
@@ -191,18 +191,15 @@
             this.setAttribute("categories", cssClassesArray.join(" "));
           }
 
-          if (item.getAlarms({}).length && getPrefSafe("calendar.alarms.indicator.show", true)) {
-              var alarmImage = document.getAnonymousElementByAttribute(this, "anonid", "alarm-image");
-              if (item.calendar.getProperty("suppressAlarms") &&
-                  item.calendar.getProperty("capabilities.alarms.popup.supported") !== false) {
-                  // Only show the suppressed icon if alarms are suppressed and
-                  // popup alarms are supported. This keeps us from making the
-                  // alarm look disabled when the server supports only email
-                  // alarms (e.g. currently WCAP).
-                  alarmImage.setAttribute("suppressed", "true");
-              }
-              alarmImage.removeAttribute("hidden");
-          }
+          // Add alarm icons as needed. Also add parent item alarms in case this is an occurrence.
+          let alarms = item.getAlarms({}).concat(item.parentItem.getAlarms({}));
+          let iconsBox = document.getAnonymousElementByAttribute(this, "anonid", "alarm-icons-box");
+          cal.alarms.addReminderImages(iconsBox, alarms);
+
+          // Set suppressed status on the icons box
+          setElementValue(iconsBox,
+                          item.calendar.getProperty("suppressAlarms") || false,
+                          "suppressed");
 
           // Set up event box attributes for use in css selectors. Note if
           // something is added here, it should also be xbl:inherited correctly
@@ -223,7 +220,7 @@
               this.setAttribute("flashing", "true");
           }
 
-          if (item.getAlarms({}).length) {
+          if (alarms.length) {
               this.setAttribute("alarm", "true")
           }
 

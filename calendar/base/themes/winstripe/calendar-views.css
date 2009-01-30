@@ -540,22 +540,6 @@ calendar-event-box[readonly="true"]:hover .calendar-event-box-grippy-bottom {
     cursor: auto;
 }
 
-/* Alarm image */
-.alarm-image {
-    list-style-image: url(chrome://calendar/skin/alarm.png);
-    margin: 2px 2px 0px;
-}
-
-.alarm-image[flashing="true"] {
-    list-style-image: url(chrome://calendar/skin/alarm-flashing.png);
-}
-
-.alarm-image[suppressed="true"] {
-    list-style-image: url(chrome://calendar/skin/alarm-suppressed.png);
-}
-
-
-
 /* tooltips */
 vbox.tooltipBox {
     max-width: 40em;

@@ -39,6 +39,7 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-alarms.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
@@ -914,56 +915,56 @@
                             <menuitem id="reminder-5minutes-menuitem"
                                       label="&event.reminder.5minutes.before.label;"
                                       length="5"
-                                      origin="1"
+                                      origin="before"
                                       relation="START"
                                       unit="minutes"/>
                             <menuitem id="reminder-10minutes-menuitem"
                                       label="&event.reminder.10minutes.before.label;"
                                       length="10"
-                                      origin="1"
+                                      origin="before"
                                       relation="START"
                                       unit="minutes"/>
                             <menuitem id="reminder-15minutes-menuitem"
                                       label="&event.reminder.15minutes.before.label;"
                                       length="15"
-                                      origin="1"
+                                      origin="before"
                                       relation="START"
                                       unit="minutes"/>
                             <menuitem id="reminder-30minutes-menuitem"
                                       label="&event.reminder.30minutes.before.label;"
                                       length="30"
-                                      origin="1"
+                                      origin="before"
                                       relation="START"
                                       unit="minutes"/>
                             <menuitem id="reminder-45minutes-menuitem"
                                       label="&event.reminder.45minutes.before.label;"
                                       length="45"
-                                      origin="1"
+                                      origin="before"
                                       relation="START"
                                       unit="minutes"/>
                             <menuseparator id="reminder-minutes-separator"/>
                             <menuitem id="reminder-1hour-menuitem"
                                       label="&event.reminder.1hour.before.label;"
                                       length="1"
-                                      origin="1"
+                                      origin="before"
                                       relation="START"
                                       unit="hours"/>
                             <menuitem id="reminder-2hours-menuitem"
                                       label="&event.reminder.2hours.before.label;"
                                       length="2"
-                                      origin="1"
+                                      origin="before"
                                       relation="START"
                                       unit="hours"/>
                             <menuitem id="reminder-5hours-menuitem"
                                       label="&event.reminder.5hours.before.label;"
                                       length="5"
-                                      origin="1"
+                                      origin="before"
                                       relation="START"
                                       unit="hours"/>
                             <menuitem id="reminder-15hours-menuitem"
                                       label="&event.reminder.15hours.before.label;"
                                       length="15"
-                                      origin="1"
+                                      origin="before"
                                       relation="START"
                                       unit="hours"/>
                             <menuseparator id="reminder-hours-separator"/>
@@ -991,14 +992,28 @@
                                       value="custom"/>
                         </menupopup>
                     </menulist>
-                    <vbox id="reminder-details">
-                        <label class="text-link"
-                               disable-on-readonly="true"
-                               flex="1"
-                               hyperlink="true"
-                               onclick="updateReminder()"/>
-                    </vbox>
-                </hbox>
+                    <hbox id="reminder-details">
+                      <hbox id="reminder-icon-box"
+                            class="alarm-icons-box"
+                            align="center"/>
+                      <!-- TODO oncommand? onkeypress? -->
+                      <label id="reminder-multiple-alarms-label"
+                             hidden="true"
+                             value="&event.reminder.multiple.label;"
+                             class="text-link"
+                             disable-on-readonly="true"
+                             flex="1"
+                             hyperlink="true"
+                             onclick="updateReminder()"/>
+                      <label id="reminder-single-alarms-label"
+                             hidden="true"
+                             class="text-link"
+                             disable-on-readonly="true"
+                             flex="1"
+                             hyperlink="true"
+                             onclick="updateReminder()"/>
+                    </hbox>
+               </hbox>
             </row>
 
             <separator id="event-grid-description-separator"

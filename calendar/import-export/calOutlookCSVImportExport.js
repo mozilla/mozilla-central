@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+
 // Import
 
 function calOutlookCSVImporter() {

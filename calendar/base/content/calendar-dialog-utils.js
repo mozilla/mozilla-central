@@ -40,6 +40,9 @@
 
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+
 /**
  * This function takes the recurrence info passed as argument and creates a
  * literal string representing the repeat pattern in natural language.
@@ -343,17 +346,31 @@ function dispose() {
 }
 
 /**
- * Opens the edit reminder dialog modally, setting the custom menuitem's
- * 'reminder' property when done.
+ * This function opens the needed dialogs to edit the reminder. Note however
+ * that calling this function from an extension is not recommended. To allow an
+ * extension to open the reminder dialog, set the menulist "item-alarm" to the
+ * custom menuitem and call updateReminder().
  */
 function editReminder() {
-    var customReminder =
-        document.getElementById("reminder-custom-menuitem");
-    var args = new Object();
-    args.reminder = customReminder.reminder;
-    var savedWindow = window;
-    args.onOk = function(reminder) {
-        customReminder.reminder = reminder;
+    let customItem =  document.getElementById("reminder-custom-menuitem");
+    let args = {};
+    args.reminders = customItem.reminders;
+    args.item = window.calendarItem;
+    args.timezone = gStartTimezone || gEndTimezone;
+    
+    let calendarNode = document.getElementById("item-calendar");
+    args.calendar = (calendarNode && calendarNode.selectedItem ?
+                        calendarNode.selectedItem.calendar :
+                        window.calendarItem.calendar);
+    let savedWindow = window;
+
+    // While these are "just" callbacks, the dialog is opened modally, so aside
+    // from whats needed to set up the reminders, nothing else needs to be done.
+    args.onOk = function(reminders) {
+        customItem.reminders = reminders;
+    };
+    args.onCancel = function() {
+        document.getElementById("item-alarm").selectedIndex = gLastAlarmSelection;
     };
 
     window.setCursor("wait");
@@ -373,95 +390,48 @@ function editReminder() {
  */
 function updateReminderDetails() {
     // find relevant elements in the document
-    var reminderPopup = document.getElementById("item-alarm");
-    var reminderDetails = document.getElementById("reminder-details");
-    var reminder = document.getElementById("reminder-custom-menuitem").reminder;
+    let reminderList = document.getElementById("item-alarm");
+    let reminderDetails = document.getElementById("reminder-details");
+    let reminderMultipleLabel = document.getElementById("reminder-multiple-alarms-label");
 
-    // first of all collapse the details text. if we fail to
-    // create a details string, we simply don't show anything.
-    reminderDetails.setAttribute("collapsed", "true");
+    let reminderSingleLabel = document.getElementById("reminder-single-alarms-label");
+    let reminders = document.getElementById("reminder-custom-menuitem").reminders || [];
+    let calendar = document.getElementById("item-calendar")
+                           .selectedItem.calendar;
+    let actionValues = calendar.getProperty("capabilities.alarms.actionValues") || ["DISPLAY"];
+    let actionMap = {};
+    for each (var action in actionValues) {
+        actionMap[action] = true;
+    }
 
-    // don't try to show the details text
-    // for anything but a custom recurrence rule.
-    if (reminderPopup.value == "custom" && reminder) {
-        var unitString;
-        switch (reminder.unit) {
-            case 'minutes':
-                unitString = Number(reminder.length) <= 1 ?
-                    calGetString(
-                        "calendar-event-dialog",
-                        "reminderCustomUnitMinute") :
-                    calGetString(
-                        "calendar-event-dialog",
-                        "reminderCustomUnitMinutes");
-                break;
-            case 'hours':
-                unitString = Number(reminder.length) <= 1 ?
-                    calGetString(
-                        "calendar-event-dialog",
-                        "reminderCustomUnitHour") :
-                    calGetString(
-                        "calendar-event-dialog",
-                        "reminderCustomUnitHours");
-                break;
-            case 'days':
-                unitString = Number(reminder.length) <= 1 ?
-                    calGetString(
-                        "calendar-event-dialog",
-                        "reminderCustomUnitDay") :
-                    calGetString(
-                        "calendar-event-dialog",
-                        "reminderCustomUnitDays");
-                break;
-        }
+    // Filter out any unsupported action types.
+    reminders = reminders.filter(function(x) x.action in actionMap);
 
-        var relationString;
-        switch (reminder.relation) {
-            case 'START':
-                relationString = calGetString(
-                    "calendar-event-dialog",
-                    "reminderCustomRelationBefore");
-                break;
-            case 'END':
-                relationString = calGetString(
-                    "calendar-event-dialog",
-                    "reminderCustomRelationAfter");
-                break;
-        }
+    if (reminderList.value != "custom" || !reminders.length) {
+        // Don't try to show the details text for anything but a custom
+        // recurrence rule.
+        hideElement(reminderDetails);
+        return;
+    } else {
+        showElement(reminderDetails);
+    }
 
-        var originString;
-        if (reminder.origin && reminder.origin < 0) {
-            originString = calGetString(
-                "calendar-event-dialog",
-                "reminderCustomOriginEndEvent");
-        } else {
-            originString = calGetString(
-                "calendar-event-dialog",
-                "reminderCustomOriginBeginEvent");
-        }
+    // Depending on how many alarms we have, show either the "Multiple Alarms"
+    // label or the single reminder label.
+    setElementValue(reminderMultipleLabel,
+                    reminders.length < 2 && "true",
+                    "hidden");
+    setElementValue(reminderSingleLabel,
+                    reminders.length > 1 && "true",
+                    "hidden");
 
-        var detailsString = calGetString(
-          "calendar-event-dialog",
-          "reminderCustomTitle",
-          [ reminder.length,
-            unitString,
-            relationString,
-            originString]);
+    cal.alarms.addReminderImages(document.getElementById("reminder-icon-box"),
+                                 reminders);
 
-        var lines = detailsString.split("\n");
-        reminderDetails.removeAttribute("collapsed");
-        while (reminderDetails.childNodes.length > lines.length) {
-            reminderDetails.removeChild(reminderDetails.lastChild);
-        }
-        var numChilds = reminderDetails.childNodes.length;
-        for (var i = 0; i < lines.length; i++) {
-            if (i >= numChilds) {
-                var newNode = reminderDetails.childNodes[0].cloneNode(true);
-                reminderDetails.appendChild(newNode);
-            }
-            var node = reminderDetails.childNodes[i];
-            node.setAttribute('value', lines[i]);
-        }
+    // If there is only one reminder, display the reminder string
+    if (reminders.length == 1) {
+        setElementValue(reminderSingleLabel,
+                        reminders[0].toString(window.calendarItem));
     }
 }
 
@@ -470,112 +440,66 @@ var gLastAlarmSelection = 0;
 /**
  * Load an item's reminders into the dialog
  *
- * @param item      The item to load.
+ * @param reminders     An array of calIAlarms to load. 
  */
-function loadReminder(item) {
+function loadReminders(reminders) {
     // select 'no reminder' by default
-    let reminderPopup = document.getElementById("item-alarm");
-    reminderPopup.selectedIndex = 0;
+    let reminderList = document.getElementById("item-alarm");
+    let reminderPopup = reminderList.firstChild;
+    let customItem = document.getElementById("reminder-custom-menuitem");
+
+    reminderList.selectedIndex = 0;
     gLastAlarmSelection = 0;
 
-    // TODO ALARMSUPPORT right now, just consider the first relative alarm. This
-    // should change as soon as the UI supports multiple alarms.
-    let alarms = item.getAlarms({})
-                     .filter(function(x) x.related != x.ALARM_RELATED_ABSOLUTE);
-    let alarm = alarms[0];
-    if (!alarm) {
+    if (!reminders || !reminders.length) {
+        // No reminders selected, we are done
         return;
     }
-    // END TODO ALARMSUPPORT
-        
 
-    // try to match the reminder setting with the available popup items
-    let origin = "1";
-    if (alarm.related == Components.interfaces.calIAlarm.ALARM_RELATED_END) {
-        origin = "-1";
-    }
-    let duration = alarm.offset.clone();
-    let relation = "END";
-    if (duration.isNegative) {
-        duration.isNegative = false;
-        duration.normalize();
-        relation = "START";
-    }
-    let matchingItem = null;
-    let menuItems = reminderPopup.getElementsByTagName("menuitem");
-    let numItems = menuItems.length;
-    for (let i = 0; i < numItems; i++) {
-        let menuitem = menuItems[i];
-        if (menuitem.hasAttribute("length")) {
-            if (menuitem.getAttribute("origin") == origin &&
+    if (reminders.length == 1 &&
+        reminders[0].related != Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE &&
+        reminders[0].offset &&
+        reminders[0].action == "DISPLAY") {
+        // Exactly one reminder thats not absolute, we may be able to match up
+        // popup items. The reminder should also be a DISPLAY alarm
+        let reminder = reminders[0];
+
+        let relation = (reminder.related == reminder.ALARM_RELATED_START ? "START" : "END");
+        let origin = (reminder.offset.isNegative ? "before" : "after");
+
+        let unitMap = {
+          days: 86400,
+          hours: 3600,
+          minutes: 60
+        };
+
+        for each (let menuitem in Array.slice(reminderPopup.childNodes)) {
+            if (menuitem.localName == "menuitem" &&
+                menuitem.hasAttribute("length") &&
+                menuitem.getAttribute("origin") == origin &&
                 menuitem.getAttribute("relation") == relation) {
-                let unit = menuitem.getAttribute("unit");
-                let length = menuitem.getAttribute("length");
-                if (unit == "days") {
-                    length = length * 60 * 60 * 24;
-                } else if (unit == "hours") {
-                    length = length * 60 * 60;
-                } else if (unit == "minutes") {
-                    length = length * 60;
-                } else {
-                    continue;
-                }
-                if (duration.inSeconds == length) {
-                    matchingItem = menuitem;
-                    break;
+                let unitMult = unitMap[menuitem.getAttribute("unit")] || 1;
+                let length = menuitem.getAttribute("length") * unitMult;
+
+                if (Math.abs(reminder.offset.inSeconds) == length) {
+                    reminderList.selectedItem = menuitem;
+                    // We've selected an item, so we are done here.
+                    return;
                 }
             }
         }
     }
 
-    if (matchingItem) {
-        var numChilds = reminderPopup.childNodes[0].childNodes.length;
-        for (var i = 0; i < numChilds; i++) {
-            var node = reminderPopup.childNodes[0].childNodes[i];
-            if (node == matchingItem) {
-                reminderPopup.selectedIndex = i;
-                break;
-            }
-        }
-    } else {
-        reminderPopup.value = 'custom';
-        var customReminder =
-            document.getElementById("reminder-custom-menuitem");
-        var reminder = {};
-        if (alarm.related == Components.interfaces.calIAlarm.ALARM_RELATED_START) {
-            reminder.origin = "1";
-        } else {
-            reminder.origin = "-1";
-        }
-        let offset = alarm.offset.clone();
-        relation = "END";
-        if (offset.isNegative) {
-            offset.isNegative = false;
-            offset.normalize();
-            relation = "START";
-        }
-        reminder.relation = relation;
-        if (offset.minutes) {
-            let minutes = offset.minutes +
-                          offset.hours * 60 +
-                          offset.days * 24 * 60 +
-                          offset.weeks * 60 * 24 * 7;
-            reminder.unit = 'minutes';
-            reminder.length = minutes;
-        } else if (offset.hours) {
-            var hours = offset.hours + offset.days * 24 + offset.weeks * 24 * 7;
-            reminder.unit = 'hours';
-            reminder.length = hours;
-        } else {
-            var days = offset.days + offset.weeks * 7;
-            reminder.unit = 'days';
-            reminder.length = days;
-        }
-        customReminder.reminder = reminder;
+    // If more than one alarm is selected, or we didn't find a matching item
+    // above, then select the "custom" item and attach the item's reminders to
+    // it.
+    if (reminderList.selectedIndex < 1) {
+        reminderList.value = 'custom';
+        customItem.reminders = reminders;
     }
 
     // remember the selected index
-    gLastAlarmSelection = reminderPopup.selectedIndex;
+    gLastAlarmSelection = reminderList.selectedIndex;
 }
 
 /**
@@ -584,43 +508,45 @@ function loadReminder(item) {
  * @param item      The item save the reminder into.
  */
 function saveReminder(item) {
+    // Clear alarms, we'll need to remove alarms later  anyway.
     item.clearAlarms();
-    var reminderPopup = document.getElementById("item-alarm");
-    if (reminderPopup.value == 'none') {
-        item.alarmLastAck = null;
-    } else {
-        var menuitem = reminderPopup.selectedItem;
 
-        // custom reminder entries carry their own reminder object
-        // with them, pre-defined entries specify the necessary information
-        // as attributes attached to the menuitem elements.
-        var reminder = menuitem.reminder;
-        if (!reminder) {
-            reminder = {};
-            reminder.length = menuitem.getAttribute('length');
-            reminder.unit = menuitem.getAttribute('unit');
-            reminder.relation = menuitem.getAttribute('relation');
-            reminder.origin = menuitem.getAttribute('origin');
-        }
+    let reminderList = document.getElementById("item-alarm");
+    if (reminderList.value != 'none') {
+        let menuitem = reminderList.selectedItem;
+        let reminders;
 
-        var duration = Components.classes["@mozilla.org/calendar/duration;1"]
-                       .createInstance(Components.interfaces.calIDuration);
+        if (menuitem.reminders) {
+            // Custom reminder entries carry their own reminder object with
+            // them. Make sure to clone in case these are the original item's
+            // reminders.
 
-        duration[reminder.unit] = Number(reminder.length);
-        if (reminder.relation != "END") {
-            duration.isNegative = true;
-        }
-        duration.normalize();
-        let alarm = cal.createAlarm();
-
-        if (Number(reminder.origin) >= 0) {
-            alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_START;
+            // XXX do we need to clone here?
+            reminders = menuitem.reminders.map(function(x) x.clone());
         } else {
-            alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_END;
+            // Pre-defined entries specify the necessary information
+            // as attributes attached to the menuitem elements.
+            let reminder = cal.createAlarm();
+            let offset = cal.createDuration();
+            offset[menuitem.getAttribute("unit")] = menuitem.getAttribute("length");
+            offset.normalize();
+            offset.isNegative = (menuitem.getAttribute("origin") == "before");
+            reminder.related = (menuitem.getAttribute("relation") == "START" ?
+                                reminder.ALARM_RELATED_START : reminder.ALARM_RELATED_END);
+            reminder.offset = offset;
+            reminders = [reminder];
         }
 
-        alarm.offset = duration;
-        item.addAlarm(alarm);
+        let alarmCaps = item.calendar.getProperty("capabilities.alarms.actionValues") ||
+                        ["DISPLAY"];
+        let alarmActions = {};
+        for each (let action in alarmCaps) {
+            alarmActions[action] = true;
+        }
+
+        // Make sure only alarms are saved that work in the given calendar.
+        reminders.filter(function(x) x.action in alarmActions)
+                 .forEach(item.addAlarm, item);
     }
 }
 
@@ -632,27 +558,31 @@ function commonUpdateReminder() {
     // if a custom reminder has been selected, we show the appropriate
     // dialog in order to allow the user to specify the details.
     // the result will be placed in the 'reminder-custom-menuitem' tag.
-    var reminderPopup = document.getElementById("item-alarm");
-    if (reminderPopup.value == 'custom') {
-        // show the dialog.
-        // don't pop up the dialog if this happens during
-        // initialization of the dialog.
-        if (reminderPopup.hasAttribute("last-value")) {
+    let reminderList = document.getElementById("item-alarm");
+    if (reminderList.value == 'custom') {
+        // show the dialog. This call blocks until the dialog is closed. Don't
+        // pop up the dialog if this happens during initialization of the dialog
+        if (reminderList.hasAttribute("last-value")) {
             editReminder();
         }
 
-        // Now check if the resulting custom reminder is valid.
-        // possibly we receive an invalid reminder if the user cancels the
-        // dialog. In that case we revert to the previous selection of the
-        // reminder drop down.
-        if (!document.getElementById("reminder-custom-menuitem").reminder) {
-            reminderPopup.selectedIndex = gLastAlarmSelection;
+        // If one or no reminders were selected, we have a chance of mapping
+        // them to the existing elements in the dropdown.
+        let customItem = reminderList.selectedItem;
+        if (customItem.reminders.length == 0) {
+            // No reminder was selected
+            reminderList.value = "none";
+        } else if (customItem.reminders.length == 1 &&
+                   customItem.reminders[0].action == "DISPLAY") {
+            // TODO This can be taken care of in a different bug. What needs to
+            // be done is to go through the menuitems in item-alarm and check if
+            // customItem.reminders[0] matches with that.
         }
     }
 
     // remember the current reminder drop down selection index.
-    gLastAlarmSelection = reminderPopup.selectedIndex;
-    reminderPopup.setAttribute("last-value", reminderPopup.value);
+    gLastAlarmSelection = reminderList.selectedIndex;
+    reminderList.setAttribute("last-value", reminderList.value);
 
     // possibly the selected reminder conflicts with the item.
     // for example an end-relation combined with a task without duedate
@@ -665,7 +595,7 @@ function commonUpdateReminder() {
         // custom reminder entries carry their own reminder object
         // with them, pre-defined entries specify the necessary information
         // as attributes attached to the menuitem elements.
-        var menuitem = reminderPopup.selectedItem;
+        let menuitem = reminderList.selectedItem;
         if (menuitem.value == 'none') {
             enableElementWithLock("todo-has-entrydate", "reminder-lock");
             enableElementWithLock("todo-has-duedate", "reminder-lock");

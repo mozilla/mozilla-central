@@ -98,9 +98,8 @@ calendar.jar:
     content/calendar/WindowsNTToZoneInfoTZId.properties    (src/WindowsNTToZoneInfoTZId.properties)
 % skin calendar classic/1.0 %skin/calendar/
     skin/calendar/abcard.png                               (themes/common/abcard.png)
-    skin/calendar/alarm-suppressed.png                     (themes/common/alarm-suppressed.png)
     skin/calendar/alarm-flashing.png                       (themes/common/alarm-flashing.png)
-    skin/calendar/alarm.png                                (themes/common/alarm.png)
+    skin/calendar/alarm-icons.png                          (themes/common/alarm-icons.png)
     skin/calendar/calendar-day-label-back.png              (themes/common/calendar-day-label-back.png)
     skin/calendar/calendar-overlay.png                     (themes/common/calendar-overlay.png)
     skin/calendar/category-overlay.png                     (themes/common/category-overlay.png)
@@ -118,6 +117,7 @@ calendar.jar:
     skin/calendar/widgets/view-navigation.png              (themes/common/widgets/view-navigation.png)
     skin/calendar/cal-icon32.png                           (themes/@THEME@/cal-icon32.png)
     skin/calendar/calendar-alarm-dialog.css                (themes/@THEME@/calendar-alarm-dialog.css)
+    skin/calendar/calendar-alarms.css                      (themes/@THEME@/calendar-alarms.css)
     skin/calendar/calendar-creation-wizard.css             (themes/@THEME@/calendar-creation-wizard.css)
     skin/calendar/calendar-daypicker.css                   (themes/@THEME@/calendar-daypicker.css)
     skin/calendar/calendar-event-dialog.css                (themes/@THEME@/calendar-event-dialog.css)

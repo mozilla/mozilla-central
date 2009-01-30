@@ -390,7 +390,7 @@ function loadDialog(item) {
     loadRepeat(item);
 
     // load reminder details
-    loadReminder(item);
+    loadReminders(item.getAlarms({}));
 
     // hide rows based on if this is an event or todo
     updateStyle();
@@ -2844,6 +2844,7 @@ function updateCapabilities() {
     updateAttachment();
     updatePriority();
     updatePrivacy();
+    updateReminderDetails();
 }
 
 /**

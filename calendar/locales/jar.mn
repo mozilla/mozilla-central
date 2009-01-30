@@ -27,3 +27,4 @@ calendar-@AB_CD@.jar:
     locale/@AB_CD@/calendar/calendar-event-dialog.properties  (%chrome/calendar/calendar-event-dialog.properties)
     locale/@AB_CD@/calendar/calendar-invitations-dialog.dtd  (%chrome/calendar/calendar-invitations-dialog.dtd)
     locale/@AB_CD@/calendar/calendar-subscriptions-dialog.dtd  (%chrome/calendar/calendar-subscriptions-dialog.dtd)
+    locale/@AB_CD@/calendar/dialogs/calendar-event-dialog-reminder.dtd  (%chrome/calendar/dialogs/calendar-event-dialog-reminder.dtd)

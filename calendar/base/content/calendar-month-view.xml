@@ -86,12 +86,10 @@
                                  wrap="true"/>
                     <xul:spacer flex="1"/>
                   </xul:vbox>
-                  <xul:vbox pack="center">
-                    <xul:image anonid="alarm-image"
-                               class="alarm-image"
-                               xbl:inherits="flashing"
-                               hidden="true"/>
-                  </xul:vbox>
+                  <xul:hbox anonid="alarm-icons-box"
+                            class="alarm-icons-box"
+                            align="center"
+                            xbl:inherits="flashing"/>
                 </xul:hbox>
                 <xul:image anonid="gradient"
                            class="calendar-event-box-gradient"

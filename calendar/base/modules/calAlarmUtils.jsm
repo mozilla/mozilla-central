@@ -76,14 +76,25 @@ cal.alarms = {
         } else {
             let returnDate;
             if (aAlarm.related == aAlarm.ALARM_RELATED_START) {
-                let startDate = aItem[cal.calGetStartDateProp(aItem)];
-                returnDate = startDate && startDate.clone();
+                returnDate = aItem[cal.calGetStartDateProp(aItem)];
             } else if (aAlarm.related = aAlarm.ALARM_RELATED_END) {
-                let endDate = aItem[cal.calGetEndDateProp(aItem)];
-                returnDate = endDate && endDate.clone();
+                returnDate = aItem[cal.calGetEndDateProp(aItem)];
             }
 
             if (returnDate && aAlarm.offset) {
+                // Handle all day events.  This is kinda weird, because they don't
+                // have a well defined startTime.  We just consider the start/end
+                // to be midnight in the user's timezone.
+                if (returnDate.isDate) {
+                    let tz = cal.calendarDefaultTimezone();
+                    // This returns a copy, so no extra cloning needed.
+                    returnDate = alarmDate.getInTimezone(tz);
+                    returnDate.isDate = false;
+                } else {
+                    // Clone the date to correctly add the duration.
+                    returnDate = returnDate.clone();
+                }
+
                 returnDate.addDuration(aAlarm.offset);
                 return returnDate;
             }
@@ -117,6 +128,55 @@ cal.alarms = {
             return offset;
         } else {
             return aAlarm.offset;
+        }
+    },
+
+    /**
+     * Adds reminder images to a given node, making sure only one icon per alarm
+     * action is added.
+     *
+     * @param aElement    The element to add the images to.
+     * @param aReminders  The set of reminders to add images for.
+     */
+    addReminderImages: function cal_alarms_addReminderImages(aElement, aReminders) {
+        function createOwnedXULNode(el) {
+            const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+            return aElement.ownerDocument.createElementNS(XUL_NS, el);
+        }
+
+        function setupActionImage(node, reminder) {
+            let image = node || createOwnedXULNode("image");
+            image.setAttribute("class", "reminder-icon");
+            image.setAttribute("value", reminder.action);
+            return image;
+        }
+
+        // Fill up the icon box with the alarm icons, show max one icon per
+        // alarm type.
+        let countIconChildren = aElement.childNodes.length;
+        let actionMap = {};
+        let i, offset;
+        for (i = 0, offset = 0; i < aReminders.length; i++) {
+            var reminder = aReminders[i];
+            if (reminder.action in actionMap) {
+                // Only show one icon of each type;
+                offset++;
+                continue;
+            }
+            actionMap[reminder.action] = true;
+
+            if (i - offset >= countIconChildren) {
+                // Not enough nodes, append it.
+                aElement.appendChild(setupActionImage(null, reminder));
+            } else {
+                // There is already a node there, change its properties
+                setupActionImage(aElement.childNodes[i - offset], reminder);
+            }
+        }
+
+        // Remove unused image nodes
+        for (i -= offset; i < countIconChildren; i++) {
+            aElement.removeChild(aElement.childNodes[i]);
         }
     }
 };

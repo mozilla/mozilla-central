@@ -110,7 +110,7 @@ function onLoad() {
         (calendar.getProperty("capabilities.alarms.oninvitations.supported") !== false);
     if (!window.readOnly && supportsReminders) {
         document.getElementById("reminder-row").removeAttribute("hidden");
-        loadReminder(window.item);
+        loadReminders(window.item.getAlarms({}));
         updateReminderDetails();
     }
 

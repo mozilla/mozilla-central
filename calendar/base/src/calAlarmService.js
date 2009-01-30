@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+
 const kHoursBetweenUpdates = 6;
 
 function nowUTC() {
@@ -376,8 +378,8 @@ calAlarmService.prototype = {
     getAlarmDate: function cas_getAlarmTime(aItem) {
         var alarmDate = null;
         // TODO ALARMSUPPORT This will change as soon as we support multiple
-        // alarms. Get the first alarm for now.
-        let alarms = aItem.getAlarms({});
+        // alarms. Get the first DISPLAY alarm for now.
+        let alarms = aItem.getAlarms({}).filter(function(x) x.action == "DISPLAY");
         let alarm = alarms[0];
         if (!alarm) {
             // No relative alarm available.
