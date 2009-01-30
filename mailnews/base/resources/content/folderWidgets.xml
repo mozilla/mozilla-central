@@ -605,7 +605,7 @@
           else if (aFolder.flags & Ci.nsMsgFolderFlags.Trash)
             aMenuNode.setAttribute("SpecialFolder", "Trash");
           else if (aFolder.flags & Ci.nsMsgFolderFlags.Queue)
-            aMenuNode.setAttribute("SpecialFolder", "Unsent Messages");
+            aMenuNode.setAttribute("SpecialFolder", "Outbox");
           else if (aFolder.flags & Ci.nsMsgFolderFlags.SentMail)
             aMenuNode.setAttribute("SpecialFolder", "Sent");
           else if (aFolder.flags & Ci.nsMsgFolderFlags.Drafts)

@@ -90,6 +90,10 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Unsent Messages) {
   list-style-image: url("chrome://messenger/skin/icons/folder-outbox.png");
 }
 
+treechildren::-moz-tree-image(folderNameCol, specialFolder-Outbox) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-outbox.png");
+}
+
 /* ..... Drafts ..... */
 
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Drafts) {

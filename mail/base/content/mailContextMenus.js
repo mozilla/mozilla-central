@@ -510,7 +510,7 @@ function fillFolderPaneContextMenu()
   ShowMenuItem("folderPaneContext-emptyJunk", (numSelected <= 1) && (specialFolder == 'Junk'));
   EnableMenuItem("folderPaneContext-emptyJunk", true);
 
-  var showSendUnsentMessages = (numSelected <= 1) && (specialFolder == 'Unsent Messages');
+  var showSendUnsentMessages = (numSelected <= 1) && (specialFolder == 'Outbox');
   ShowMenuItem("folderPaneContext-sendUnsentMessages", showSendUnsentMessages);
   if (showSendUnsentMessages) 
     EnableMenuItem("folderPaneContext-sendUnsentMessages", IsSendUnsentMsgsEnabled(folder));

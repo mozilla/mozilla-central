@@ -1053,7 +1053,7 @@ function CanDeleteFolder(folder)
 
   if (specialFolder == "Inbox" || specialFolder == "Trash" ||
       specialFolder == "Drafts" || specialFolder == "Sent" ||
-      specialFolder == "Templates" || specialFolder == "Unsent Messages" ||
+      specialFolder == "Templates" || specialFolder == "Outbox" ||
       (specialFolder == "Junk" && !CanRenameDeleteJunkMail(folder.URI)))
     return false;
 

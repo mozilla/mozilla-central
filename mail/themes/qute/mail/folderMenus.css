@@ -79,7 +79,7 @@
   -moz-image-region: rect(0 64px 16px 48px);
 }
 
-.folderMenuItem[SpecialFolder="Unsent Messages"] {
+.folderMenuItem[SpecialFolder="Outbox"] {
   -moz-image-region: rect(0 80px 16px 64px);
 }
 

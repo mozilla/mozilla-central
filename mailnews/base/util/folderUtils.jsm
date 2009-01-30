@@ -53,7 +53,7 @@ function getSpecialFolderString(aFolder) {
   if (aFolder.flags & Ci.nsMsgFolderFlags.Trash)
     return "Trash";
   if (aFolder.flags & Ci.nsMsgFolderFlags.Queue)
-    return "Unsent Messages";
+    return "Outbox";
   if (aFolder.flags & Ci.nsMsgFolderFlags.SentMail)
     return "Sent";
   if (aFolder.flags & Ci.nsMsgFolderFlags.Drafts)
