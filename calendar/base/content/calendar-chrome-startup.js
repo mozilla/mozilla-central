@@ -64,8 +64,6 @@ function commonInitCalendar() {
               .startup();
     document.getElementById("calsidebar_splitter").addEventListener("command", onCalendarViewResize, false);
     window.addEventListener("resize", onCalendarViewResize, true);
-
-    // Set up listener for mailContext.
 }
 
 /**
