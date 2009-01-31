@@ -45,7 +45,9 @@
 #    Modify vzic Makefile to your OLSON_DIR and set *empty* TZID_PREFIX, then
 #    then make vzic and execute to produce zoneinfo.
 #
-# 2. Then, make update=<vzic-dir>/zoneinfo/zones.tab
+# 2. Bump calendar/timezones/config/version.txt
+#
+# 3. Then, make update=<vzic-dir>/zoneinfo/zones.tab
 #
 #    a)  This will read both the current (old) timezones.sqlite from
 #        mozilla/calendar/timezones/timezones.sqlite and produce a new timezones.sqlite
