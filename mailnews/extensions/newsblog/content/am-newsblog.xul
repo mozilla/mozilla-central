@@ -46,8 +46,7 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         class="color-dialog"
         title="&newsblogTitle.label;"
-        onload="parent.onPanelLoaded('am-newsblog.xul');"
-        orient="vertical">
+        onload="parent.onPanelLoaded('am-newsblog.xul');">
  
   <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
   <script type="application/x-javascript" src="chrome://messenger-newsblog/content/am-newsblog.js"/>
