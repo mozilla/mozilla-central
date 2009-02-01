@@ -286,7 +286,6 @@ function showCalendarView(type, event) {
         sbSwitchToView(type, event);
     } else if (document.getElementById('switch2calendar').getAttribute('checked')) {
         ltnShowCalendarView(type, event);
-        currentView().focus();
     }
     onCalendarViewResize(event);
 }
@@ -586,6 +585,7 @@ function observeViewDaySelect(event) {
     }
 
     getMinimonth().selectDate(jsDate, jsMainDate);
+    currentView().focus();
 }
 
 /**
