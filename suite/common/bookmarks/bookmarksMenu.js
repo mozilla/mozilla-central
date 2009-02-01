@@ -187,12 +187,8 @@ var BookmarksMenu = {
   // bridge when they turn us 90degrees.  -->
   getBTOrientation: function (aEvent, aTarget)
   {
-    var target
-    if (!aTarget)
-      target = aEvent.target;
-    else
-      target = aTarget;
-    if (target.localName == "menu"                 &&
+    var target = aTarget || aEvent.target;
+    if (target.localName == "menu" &&
         target.parentNode.localName != "menupopup")
       return BookmarksUtils.DROP_ON;
     if (target.id == "bookmarks-ptf") {
@@ -221,25 +217,26 @@ var BookmarksMenu = {
         coordValue = overButtonBoxObject.screenY;
         clientCoordValue = aEvent.screenY;
         break;
-      default: return BookmarksUtils.DROP_ON;
+      default:
+        return BookmarksUtils.DROP_ON;
     }
     if (this.isBTContainer(target))
       if (target.localName == "toolbarbutton") {
         // the DROP_BEFORE area excludes the label
         var iconNode = document.getAnonymousElementByAttribute(target, "class", "toolbarbutton-icon");
-        border = parseInt(document.defaultView.getComputedStyle(target,"").getPropertyValue("-moz-padding-start")) +
-                 parseInt(document.defaultView.getComputedStyle(iconNode     ,"").getPropertyValue("width"));
-        border = Math.min(size/5,Math.max(border,4));
+        border = parseInt(document.defaultView.getComputedStyle(target, "").getPropertyValue("padding-left")) +
+                 parseInt(document.defaultView.getComputedStyle(iconNode, "").getPropertyValue("width"));
+        border = Math.min(size / 5, Math.max(border, 4));
       } else
-        border = size/5;
+        border = size / 5;
     else
-      border = size/2;
+      border = size / 2;
 
     // in the first region?
-    if (clientCoordValue-coordValue < border)
+    if (clientCoordValue - coordValue < border)
       return BookmarksUtils.DROP_BEFORE;
     // in the last region?
-    if (clientCoordValue-coordValue >= size-border)
+    if (clientCoordValue - coordValue >= size - border)
       return BookmarksUtils.DROP_AFTER;
     // must be in the middle somewhere
     return BookmarksUtils.DROP_ON;
