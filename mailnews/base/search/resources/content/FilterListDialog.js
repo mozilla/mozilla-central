@@ -637,19 +637,30 @@ function onFilterDoubleClick(event)
 
 function onFilterTreeKeyPress(event)
 {
-  // for now, only do something on space key
-  if (event.keyCode != KeyEvent.DOM_VK_SPACE)
-    return;
-
-  var rangeCount = gFilterTree.view.selection.getRangeCount();
-  for (var i = 0; i < rangeCount; ++i) {
-    var start = {}, end = {};
-    gFilterTree.view.selection.getRangeAt(i, start, end);
-    for (var k = start.value; k <= end.value; ++k) {
-      toggleFilter(k);
+  if (event.charCode == KeyEvent.DOM_VK_SPACE)
+  {
+    var rangeCount = gFilterTree.view.selection.getRangeCount();
+    for (var i = 0; i < rangeCount; ++i)
+    {
+      var start = {}, end = {};
+      gFilterTree.view.selection.getRangeAt(i, start, end);
+      for (var k = start.value; k <= end.value; ++k)
+        toggleFilter(k);
     }
+    gFilterTree.view.selection.invalidateSelection();
   }
-  gFilterTree.view.selection.invalidateSelection();
+  else switch (event.keyCode)
+  {
+    case KeyEvent.DOM_VK_DELETE:
+      if (!gDeleteButton.disabled)
+        onDeleteFilter();
+      break;
+    case KeyEvent.DOM_VK_ENTER:
+    case KeyEvent.DOM_VK_RETURN:
+      if (!gEditButton.disabled)
+        onEditFilter();
+      break;
+  }
 }
 
 function doHelpButton()
