@@ -43,7 +43,7 @@ interface nsIMsgDBHdr;
 
 typedef unsigned long folderListenerNotifyFlagValue;
 
-[scriptable, uuid(1c8e6a86-ae35-4c95-8e43-b2e98d6d1574)]
+[scriptable, uuid(f60ee1a2-6d81-422c-958f-d408b1b2daa6)]
 interface nsIFolderListener : nsISupports {
   const folderListenerNotifyFlagValue added = 0x1;
   void OnItemAdded(in nsIMsgFolder aParentItem,
