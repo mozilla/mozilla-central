@@ -539,13 +539,24 @@ function onFilterDoubleClick(event)
 
 function onFilterListKeyPress(event)
 {
-  // for now, only do something on space key
-  if (event.charCode != KeyEvent.DOM_VK_SPACE)
-    return;
-
-  var list = document.getElementById("filterList")
-  for each (var item in list.selectedItems)
-    toggleFilter(item, list.getIndexOfItem(item));
+  if (event.charCode == KeyEvent.DOM_VK_SPACE)
+  {
+    let list = document.getElementById("filterList");
+    for each (var item in list.selectedItems)
+      toggleFilter(item, list.getIndexOfItem(item));
+  }
+  else switch (event.keyCode)
+  {
+    case KeyEvent.DOM_VK_DELETE:
+      if (!document.getElementById("deleteButton").disabled)
+        onDeleteFilter();
+      break;
+    case KeyEvent.DOM_VK_ENTER:
+    case KeyEvent.DOM_VK_RETURN:
+      if (!document.getElementById("editButton").disabled)
+        onEditFilter();
+      break;
+  }
 }
 
 function onTargetSelect(event) {
