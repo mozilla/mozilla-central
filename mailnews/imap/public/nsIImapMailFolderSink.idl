@@ -64,7 +64,7 @@ interface ImapOnlineCopyStateType
    const long kFailedMove = 9;
 };
 
-[scriptable, uuid(3b2dd7e0-e72c-11d2-ab7b-00805f8ac968)]
+[scriptable, uuid(471adbb6-95c2-4a5f-b98e-0055804fce48)]
 interface nsIImapMailFolderSink : nsISupports {
   attribute boolean folderNeedsACLListed;
   attribute boolean folderNeedsSubscribing;
