@@ -3491,6 +3491,8 @@ function AutoSave()
 function InitEditor()
 {
   var editor = GetCurrentEditor();
+  editor.QueryInterface(nsIEditorStyleSheets);
+  editor.addOverrideStyleSheet("chrome://messenger/content/composerOverlay.css");
   gMsgCompose.initEditor(editor, window.content);
   
   InlineSpellCheckerUI.init(editor);
