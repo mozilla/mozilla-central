@@ -339,16 +339,57 @@ let gFolderTreeView = {
    * drag drop interfaces
    */
   canDrop: function ftv_canDrop(aRow, aOrientation) {
+    const Cc = Components.classes;
+    const Ci = Components.interfaces;
+    if (aOrientation != Ci.nsITreeView.DROP_ON)
+      return false;
     let targetFolder = gFolderTreeView._rowMap[aRow]._folder;
     if (!targetFolder)
       return false;
     let dt = this._currentTransfer;
     let types = dt.mozTypesAt(0);
-    if (Array.indexOf(types, "text/x-moz-message") != -1 &&
-        !targetFolder.canFileMessages)
-      return false;
-    if (aOrientation != Components.interfaces.nsITreeView.DROP_ON)
-      return false;
+    if (Array.indexOf(types, "text/x-moz-message") != -1) {
+      // Don't allow drop onto server itself.
+      if (targetFolder.isServer)
+        return false;
+      // Don't allow drop into a folder that cannot take messages.
+      if (!targetFolder.canFileMessages)
+        return false;
+      let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
+      for (let i = 0; i < dt.mozItemCount; i++) {
+        let msgHdr = messenger.msgHdrFromURI(dt.mozGetDataAt("text/x-moz-message", i));
+        // Don't allow drop onto original folder.
+        if (msgHdr.folder == targetFolder)
+          return false;
+      }
+    }
+    else if (Array.indexOf(types, "text/x-moz-folder") != -1) {
+      // If cannot create subfolders then don't allow drop here.
+      if (!targetFolder.canCreateSubfolders)
+        return false;
+      for (let i = 0; i < dt.mozItemCount; i++) {
+        let folder = dt.mozGetDataAt("text/x-moz-folder", i)
+                       .QueryInterface(Ci.nsIMsgFolder);
+        // Don't allow to drop on itself.
+        if (targetFolder == folder)
+          return false;
+        // Don't allow immediate child to be dropped onto its parent.
+        if (targetFolder == folder.parent)
+          return false;
+        // Don't allow dragging of virtual folders across accounts.
+        if ((folder.flags & Ci.nsMsgFolderFlags.Virtual) &&
+            folder.server != targetFolder.server)
+          return false;
+        // Don't allow parent to be dropped on its ancestors.
+        if (folder.isAncestorOf(targetFolder))
+          return false;
+        // If there is a folder that can't be renamed, don't allow it to be
+        // dropped if it is not to "Local Folders" or is to the same account.
+        if (!folder.canRename && (targetFolder.server.type != "none" ||
+                                  folder.server == targetFolder.server))
+          return false;
+      }
+    }
     return true;
   },
   drop: function ftv_drop(aRow, aOrientation) {
@@ -366,7 +407,8 @@ let gFolderTreeView = {
     if (Array.indexOf(types, "text/x-moz-folder") != -1) {
       for (let i = 0; i < count; i++) {
         let folders = new Array;
-        folders.push(dt.mozGetDataAt("text/x-moz-folder", i));
+        folders.push(dt.mozGetDataAt("text/x-moz-folder", i)
+                       .QueryInterface(Ci.nsIMsgFolder));
         let array = toXPCOMArray(folders, Ci.nsIMutableArray);
         cs.CopyFolders(array, targetFolder,
                       (folders[0].server == targetFolder.server), null,
@@ -375,7 +417,7 @@ let gFolderTreeView = {
     } 
     else if (Array.indexOf(types, "text/x-moz-message") != -1) {
       let array = Cc["@mozilla.org/array;1"]
-                    .createInstance(Components.interfaces.nsIMutableArray);
+                    .createInstance(Ci.nsIMutableArray);
       let sourceFolder;
       let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
       for (let i = 0; i < count; i++) {
