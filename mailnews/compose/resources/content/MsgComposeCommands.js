@@ -110,7 +110,6 @@ var gMsgAttachmentElement;
 var gMsgHeadersToolbarElement;
 
 // i18n globals
-var gCurrentMailSendCharset;
 var gSendDefaultCharset;
 var gCharsetTitle;
 var gCharsetConvertManager;
@@ -148,7 +147,6 @@ function InitializeGlobalVariables()
   gLDAPSession = null;
   gSavedSendNowKey = null;
   gSendFormat = nsIMsgCompSendFormat.AskUser;
-  gCurrentMailSendCharset = null;
   gSendDefaultCharset = null;
   gCharsetTitle = null;
   gCharsetConvertManager = Components.classes['@mozilla.org/charset-converter-manager;1'].getService(Components.interfaces.nsICharsetConverterManager);
@@ -1542,7 +1540,6 @@ function SetDocumentCharacterSet(aCharset)
 
   if (gMsgCompose) {
     gMsgCompose.SetDocumentCharset(aCharset);
-    gCurrentMailSendCharset = aCharset;
     gCharsetTitle = null;
     SetComposeWindowTitle();
   }
@@ -1578,12 +1575,6 @@ function UpdateMailEditCharset()
 
 function InitCharsetMenuCheckMark()
 {
-  // return if the charset is already set explitily
-  if (gCurrentMailSendCharset != null) {
-    dump("already set to " + gCurrentMailSendCharset + "\n");
-    return;
-  }
-
   // Check the menu
   UpdateMailEditCharset();
   // use setTimeout workaround to delay checkmark the menu
@@ -1794,6 +1785,7 @@ function GenericSendMessage( msgType )
       var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
       observerService.notifyObservers(window, "mail:composeOnSend", null);
 
+      var originalCharset = gMsgCompose.compFields.characterSet;
       // Check if the headers of composing mail can be converted to a mail charset.
       if (msgType == nsIMsgCompDeliverMode.Now ||
         msgType == nsIMsgCompDeliverMode.Later ||
@@ -1803,9 +1795,21 @@ function GenericSendMessage( msgType )
         msgType == nsIMsgCompDeliverMode.SaveAsTemplate)
       {
         var fallbackCharset = new Object;
-        // Check encoding, switch to UTF-8 if the default encoding doesn't fit.
+        // Check encoding, switch to UTF-8 if the default encoding doesn't fit
+        // and disable_fallback_to_utf8 isn't set for this encoding.
         if (!gMsgCompose.checkCharsetConversion(getCurrentIdentity(), fallbackCharset))
-          fallbackCharset.value = "UTF-8";
+        {
+          var disableFallback = false;
+          try
+          {
+            disableFallback = sPrefs.getBoolPref("mailnews.disable_fallback_to_utf8." + originalCharset);
+          }
+          catch (e) {}
+          if (disableFallback)
+            msgCompFields.needToCheckCharset = false;
+          else
+            fallbackCharset.value = "UTF-8";
+        }
 
         if (fallbackCharset &&
             fallbackCharset.value && fallbackCharset.value != "")
@@ -1853,6 +1857,8 @@ function GenericSendMessage( msgType )
         enableEditableFields();
         updateComposeItems();
       }
+      if (gMsgCompose && originalCharset != gMsgCompose.compFields.characterSet)
+        SetDocumentCharacterSet(gMsgCompose.compFields.characterSet);
     }
   }
   else

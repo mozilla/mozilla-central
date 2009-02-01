@@ -302,6 +302,10 @@ pref("mailnews.send_default_charset",       "chrome://messenger/locale/messenger
 pref("mailnews.view_default_charset",       "chrome://messenger/locale/messenger.properties");
 pref("mailnews.force_charset_override",     false); // ignore specified MIME encoding and use the default encoding for display
 pref("mailnews.reply_in_default_charset",   false);
+// mailnews.disable_fallback_to_utf8.<charset>
+// don't fallback from <charset> to UTF-8 even if some characters are not found in <charset>.
+// those characters will be crippled.
+pref("mailnews.disable_fallback_to_utf8.ISO-2022-JP", false);
 pref("mailnews.localizedRe",                "chrome://messenger-region/locale/region.properties");
 
 pref("mailnews.search_date_format",        "chrome://messenger/locale/messenger.properties");

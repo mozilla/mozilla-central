@@ -1793,18 +1793,34 @@ nsMsgComposeAndSend::GetBodyFromEditor()
       rv = nsMsgI18NSaveAsCharset(TEXT_PLAIN, aCharset, bodyText,
            getter_Copies(outCString), getter_Copies(fallbackCharset));
 
-      if (NS_ERROR_UENC_NOMAPPING == rv) {
+      if (NS_ERROR_UENC_NOMAPPING == rv)
+      {
         PRBool needToCheckCharset;
         mCompFields->GetNeedToCheckCharset(&needToCheckCharset);
-        if (needToCheckCharset) {
-          // Just use UTF-8 and be done with it.
-          CopyUTF16toUTF8(bodyText, outCString);
-          mCompFields->SetCharacterSet("UTF-8");
+        if (needToCheckCharset)
+        {
+          // Just use UTF-8 and be done with it
+          // unless disable_fallback_to_utf8 is set for this charset.
+          PRBool disableFallback = PR_FALSE;
+          nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+          if (prefBranch)
+          {
+            nsCString prefName("mailnews.disable_fallback_to_utf8.");
+            prefName.Append(aCharset);
+            prefBranch->GetBoolPref(prefName.get(), &disableFallback);
+          }
+          if (!disableFallback)
+          {
+            CopyUTF16toUTF8(bodyText, outCString);
+            mCompFields->SetCharacterSet("UTF-8");
+          }
         }
       }
-      // re-label to the fallback charset
       else if (!fallbackCharset.IsEmpty())
+      {
+        // re-label to the fallback charset
         mCompFields->SetCharacterSet(fallbackCharset.get());
+      }
     }
 
     if (NS_SUCCEEDED(rv))
