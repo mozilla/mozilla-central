@@ -5318,6 +5318,8 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
     PRUint32 count;
     nsresult rv = aMessages->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
+    nsTArray<nsCString> keywordArray;
+    ParseString(aKeywords, ' ', keywordArray);
     nsCString keywords;
     // If the tag is also a label, we should remove the label too...
 
@@ -5326,39 +5328,43 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
       nsCOMPtr<nsIMsgDBHdr> message = do_QueryElementAt(aMessages, i, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
       rv = message->GetStringProperty("keywords", getter_Copies(keywords));
-      nsCAutoString originalKeywords(keywords);
-      nsCStringArray keywordArray;
-      ParseString(aKeywords, ' ', keywordArray);
       PRUint32 removeCount = 0;
-      for (PRInt32 j = 0; j < keywordArray.Count(); j++)
+      for (PRUint32 j = 0; j < keywordArray.Length(); j++)
       {
-        PRBool keywordIsLabel = (StringBeginsWith(*(keywordArray[j]), NS_LITERAL_CSTRING("$label"))
-          && keywordArray[j]->CharAt(6) >= '1' && keywordArray[j]->CharAt(6) <= '5');
+        PRBool keywordIsLabel = (StringBeginsWith(keywordArray[j], NS_LITERAL_CSTRING("$label"))
+          && keywordArray[j].CharAt(6) >= '1' && keywordArray[j].CharAt(6) <= '5');
         if (keywordIsLabel)
         {
           nsMsgLabelValue labelValue;
           message->GetLabel(&labelValue);
           // if we're removing the keyword that corresponds to a pre 2.0 label,
           // we need to clear the old label attribute on the message.
-          if (labelValue == (nsMsgLabelValue) (keywordArray[j]->CharAt(6) - '0'))
+          if (labelValue == (nsMsgLabelValue) (keywordArray[j].CharAt(6) - '0'))
             message->SetLabel((nsMsgLabelValue) 0);
         }
         PRInt32 startOffset, length;
-        if (MsgFindKeyword(*(keywordArray[j]), keywords, &startOffset,&length))
+        if (MsgFindKeyword(keywordArray[j], keywords, &startOffset, &length))
         {
-          // delete any space delimiter
-          if (keywords.CharAt(startOffset + length) == ' ')
+          // delete any leading space delimiters
+          while (startOffset && keywords.CharAt(startOffset - 1) == ' ')
+          {
+            startOffset--;
+            length++;
+          }
+          // but if the keyword is at the start then delete the following space
+          if (!startOffset && length < keywords.Length() &&
+              keywords.CharAt(length) == ' ')
             length++;
           keywords.Cut(startOffset, length);
           removeCount++;
-          NS_ASSERTION(keywords.IsEmpty() || keywords.CharAt(0) != ' ', "space only keyword");
         }
       }
 
-      mDatabase->SetStringPropertyByHdr(message, "keywords", keywords.get());
-
       if (removeCount)
+      {
+        mDatabase->SetStringPropertyByHdr(message, "keywords", keywords.get());
         NotifyPropertyFlagChanged(message, kKeywords, removeCount, 0);
+      }
     }
   }
   return rv;
