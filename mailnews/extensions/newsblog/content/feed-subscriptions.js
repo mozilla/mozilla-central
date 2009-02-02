@@ -545,9 +545,9 @@ var gFeedSubscriptionsWindow = {
 
     // ask the user if he really wants to unsubscribe from the feed
     var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(IPS);
-    var abortRemoval = promptService.confirmEx(window, this.mBundle.getString('subsribe-confirmFeedDeletionTitle'), 
-                                                  this.mBundle.getFormattedString('subsribe-confirmFeedDeletion', [itemToRemove.name], 1), 
-                                                  IPS.STD_YES_NO_BUTTONS, null, null, null, null, { });
+    var abortRemoval = promptService.confirmEx(window, this.mBundle.getString('subscribe-confirmFeedDeletionTitle'),
+                                               this.mBundle.getFormattedString('subscribe-confirmFeedDeletion', [itemToRemove.name], 1),
+                                               IPS.STD_YES_NO_BUTTONS, null, null, null, null, { });
     if (abortRemoval)
       return;
 
