@@ -43,12 +43,12 @@ const NS_ABLDAPATTRIBUTEMAP_CID = Components.ID(
 const NS_ABLDAPATTRIBUTEMAPSERVICE_CID = Components.ID(
   "{4ed7d5e1-8800-40da-9e78-c4f509d7ac5e}");
 
-function nsAbLDAPAttributeMap() {}
+function nsAbLDAPAttributeMap() {
+  this.mPropertyMap = {};
+  this.mAttrMap = {};
+}
 
 nsAbLDAPAttributeMap.prototype = {
-  mPropertyMap: {},
-  mAttrMap: {}, 
-
   getAttributeList: function getAttributeList(aProperty) {
 
     if (!(aProperty in this.mPropertyMap)) {
@@ -121,8 +121,8 @@ nsAbLDAPAttributeMap.prototype = {
 
   getAllCardAttributes: function getAllCardAttributes(aCount) {
     var attrs = [];
-    for each (var prop in this.mPropertyMap) {
-      attrs.push(prop);
+    for each (var attrArray in this.mPropertyMap) {
+      attrs = attrs.concat(attrArray);
     }
 
     if (!attrs.length) {
