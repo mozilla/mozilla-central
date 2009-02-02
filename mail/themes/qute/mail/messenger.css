@@ -19,6 +19,16 @@ toolbar[printpreview="true"] {
   -moz-binding: url("chrome://global/content/printPreviewBindings.xml#printpreviewtoolbar");
 }
 
+/* ::::: menubar ::::: */
+
+#menubar-items {
+  -moz-box-orient: vertical; /* for flex hack */
+}
+
+#menubar-items > menubar {
+  -moz-box-flex: 1; /* make menu items expand to fill toolbar height */
+} 
+
 /* ::::: throbber ::::: */
 
 #navigator-throbber {
@@ -36,6 +46,14 @@ toolbar[printpreview="true"] {
   list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif");
   opacity: 0.5;
 }
+
+/* the default settings for the throbber hbox is too tall for vista menus */
+#navigator-throbber > hbox {
+  border-top: 0px;
+  border-bottom: 0px;
+  padding-bottom: 1px;
+  -moz-margin-end: 1px;
+} 
 
 toolbar[iconsize="small"] #navigator-throbber,
 toolbar[mode="text"] #navigator-throbber {
