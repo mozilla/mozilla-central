@@ -166,8 +166,8 @@ pref("mail.imap.expunge_threshold_number",  20);
 // identity when acting on messages in other users folders.
 pref("mail.imap.delegateOtherUsersFolders", false);
 pref("mail.thread_without_re",              false); // if false, only thread by subject if Re:
-pref("mail.strict_threading",               false); // if true, don't thread by subject at all
-pref("mail.correct_threading",              false); // if true, makes sure threading works correctly always (see bug 181446)
+pref("mail.strict_threading",               true);  // if true, don't thread by subject at all
+pref("mail.correct_threading",              true);  // if true, makes sure threading works correctly always (see bug 181446)
 pref("mail.leave_on_server",                false);
 pref("mail.default_cc",                     "");
 pref("mail.default_fcc",                    ""); // maibox:URL or Imap://Host/OnLineFolderName
