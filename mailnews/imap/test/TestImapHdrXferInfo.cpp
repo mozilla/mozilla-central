@@ -136,12 +136,24 @@ int main(int argc, char** argv)
 
   int result = MainChecks(hdrInfo, hdrArray, eAddNoCheck);
   if (result)
+  {
+    printf("TEST-UNEXPECTED-FAIL | %s | %d\n", __FILE__, result);
     return result;
+  }
 
   // Now reset all
   hdrInfo->ResetAll();
 
   // and repeat
   result = MainChecks(hdrInfo, hdrArray, eCheckSame);
-  return result ? result + 100 : 0;
+  if (result)
+  {
+    // add 100 to differentiate results
+    result += 100;
+    printf("TEST-UNEXPECTED-FAIL | %s | %d\n", __FILE__, result);
+    return result;
+  }
+
+  printf("TEST-PASS | %s | all tests passed\n", __FILE__);
+  return result;
 }
