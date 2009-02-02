@@ -58,6 +58,7 @@ bin\defaults\profile\mimeTypes.rdf
 
 bin\isp\*
 
+bin\components\activity.xpt
 bin\components\addrbook.xpt
 bin\components\mime.xpt
 bin\components\msgbase.xpt
@@ -71,6 +72,9 @@ bin\components\import.xpt
 bin\components\impComm4xMail.xpt
 bin\components\mailview.xpt
 bin\components\mailprofilemigration.xpt
+bin\components\nsActivity.js
+bin\components\nsActivityManager.js
+bin\components\nsActivityManagerUI.js
 bin\components\shellservice.xpt
 bin\components\xpcom_base.xpt
 bin\components\xpcom_system.xpt
