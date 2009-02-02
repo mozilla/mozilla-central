@@ -128,6 +128,8 @@
   locale/@AB_CD@/messenger/migration/migration.dtd                      (%chrome/messenger/migration/migration.dtd)
   locale/@AB_CD@/messenger/migration/migration.properties               (%chrome/messenger/migration/migration.properties)
   locale/@AB_CD@/messenger/search/searchIntegrationDialogWin.dtd        (%chrome/messenger/search/searchIntegrationDialogWin.dtd)
+  locale/@AB_CD@/messenger/activity.dtd                                 (%chrome/messenger/activity.dtd)
+  locale/@AB_CD@/messenger/activity.properties                          (%chrome/messenger/activity.properties)
 % locale messenger-mapi @AB_CD@ %locale/@AB_CD@/messenger-mapi/
   locale/@AB_CD@/messenger-mapi/mapi.properties                         (%chrome/messenger-mapi/mapi.properties)
 % locale messenger-newsblog @AB_CD@ %locale/@AB_CD@/messenger-newsblog/

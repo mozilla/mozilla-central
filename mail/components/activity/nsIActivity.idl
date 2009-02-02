@@ -1,0 +1,528 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   David Ascher <dascher@mozillamessaging.com>
+ *   Emre Birol <emrebirol@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+#include "nsISupportsPrimitives.idl"
+
+interface nsIActivityListener;
+interface nsIActivity;
+interface nsIActivityProcess;
+interface nsIActivityEvent;
+interface nsIActivityWarning;
+interface nsIVariant;
+interface nsISupportsPRTime;
+
+/**
+ * See https://wiki.mozilla.org/Thunderbird:Activity_Manager/Developer for UML
+ * diagram and sample codes.
+ */
+
+/**
+ * Background:
+ * Activity handlers define the behavioral capabilities of the activities. They
+ * are used by the Activity Manager to change the execution flow of the activity
+ * based on the user interaction. They are not mandatory, but when set, causes
+ * behavioral changes on the binding representing the activity, such as showing
+ * a cancel button, etc. The following handlers are currently supported;
+ */
+ 
+/**
+ * The handler to invoke when the recover button is pressed. Used by a Warning
+ * to recover from the situation causing the warning. For instance, recovery
+ * action for a "Over Quota Limit" warning, would be to cleanup some disk space,
+ * and this operation can be implemented and set by the activity developer in
+ * form of nsIActivityRecoveryHandler component.
+ */
+[scriptable, uuid(30E0A76F-880A-4093-8F3C-AF2239977A3D)]
+interface nsIActivityRecoveryHandler : nsISupports {
+  nsresult recover(in nsIActivityWarning aActivity);
+};
+
+/**
+ * The handler to invoke when the cancel button is pressed. Used by a Process to
+ * cancel the operation.
+ */
+[scriptable, uuid(35ee2461-70db-4b3a-90d0-7a68c856e911)]
+interface nsIActivityCancelHandler : nsISupports {
+  nsresult cancel(in nsIActivityProcess aActivity);
+};
+
+/**
+ * The handler to invoke when the pause button is pressed. Used by a Process to
+ * pause/resume the operation.
+ */
+[scriptable, uuid(9eee22bf-5378-460e-83a7-781cdcc9050b)]
+interface nsIActivityPauseHandler : nsISupports {
+  nsresult pause(in nsIActivityProcess aActivity);
+  nsresult resume(in nsIActivityProcess aActivity);
+};
+
+/**
+ * The handler to invoke when the retry button is pressed. Used by a Process to
+ * retry the operation in case of failure.
+ */
+[scriptable, uuid(8ec42517-951f-4bc0-aba5-fde7258b1705)]
+interface nsIActivityRetryHandler : nsISupports {
+  nsresult retry(in nsIActivityProcess aActivity);
+};
+
+/**
+ * The handler to invoke when the undo button is pressed. Used by a Event to
+ * undo the operation generated the event.
+ */
+[scriptable, uuid(b8632ac7-9d8b-4341-a349-ef000e8c89ac)]
+interface nsIActivityUndoHandler : nsISupports {
+  nsresult undo(in nsIActivityEvent aActivity);
+};
+
+/**
+ * Base interface of all activity interfaces. It is abstract in a sense that
+ * there is no component in the activity management system that solely
+ * implements this interface.
+ */
+[scriptable, uuid(6CD33E65-B2D8-4634-9B6D-B80BF1273E99)]
+interface nsIActivity : nsISupports {
+  
+  /**
+   * Shows the activity as a standalone item.
+   */
+  const short GROUPING_STYLE_STANDALONE = 1;
+
+  /**
+   * Groups activity by its context.
+   */
+  const short GROUPING_STYLE_BYCONTEXT = 2;
+  
+  /**
+   * Internal ID given by the activity manager when
+   * added into the activity list.  Not readonly so that
+   * the activity manager can write to them, but not to be written to
+   * by anyone else.
+   */
+  attribute unsigned long id;
+  
+  // Following attributes change the UI characteristics of the activity
+  
+  /**
+   * A brief description of the activity, to be shown by the
+   * associated binding (XBL) in the Activity Manager window.
+   */
+  readonly attribute AString displayText;
+  
+  /**
+   * Changes the default icon associated with the activity. Core activity
+   * icons are declared in |mail/themes/pinstripe/mail/activity/activity.css|
+   * file.
+   *
+   * Extension developers can add and assign their own icons by setting
+   * this attribute.
+   */
+  attribute AString iconClass;
+  
+  /**
+   * Textual id of the XBL binding that will be used to represent the
+   * activity in the Activity Manager window.
+   *
+   * This attribute allows to associate default activity components
+   * with custom XBL bindings. See |activity.xml| file for default
+   * activity XBL bindings, and |activity.css| file for default binding
+   * associations.
+   */
+  attribute AString bindingName;
+  
+  /**
+   * Defines the grouping style of the activity when being shown in the
+   * activity manager window:
+   *  GROUPING_STYLE_STANDALONE or GROUPING_STYLE_BYCONTEXT
+   */
+  attribute short groupingStyle;
+  
+  /**
+   * A text value to associate a facet type with the activity. If empty,
+   * the activity will be shown in the 'Misc' section.
+   */
+  attribute AString facet;
+  
+  // UI related attributes end.
+  
+  /**
+   * Gets the initiator of the activity. An initiator represents an object
+   * that generates and controls the activity. For example, Copy Service can be
+   * the initiator of the copy, and move activities. Similarly Gloda can be the
+   * initiator of indexing activity, etc.
+   *
+   * This attribute is used mostly by handler components to change the execution
+   * flow of the activity such as canceling, pausing etc. Since not used by the
+   * Activity Manager, it is not mandatory to set it.
+   *
+   * An initiator can be any JS Object or an XPCOM component that provides an
+   * nsIVariant interface.
+   */
+  readonly attribute nsIVariant initiator;
+  
+  /**
+   * Adds an object to the activity's internal subject list. Subject list
+   * provides argument(s) to activity handlers to complete their operation.
+   * For example, nsIActivityUndoHandler needs the source and destination
+   * folders to undo a move operation.
+   *
+   * Since subjects are not used by the Activity Manager, it is up to the
+   * activity developer to provide these objects.
+   *
+   * A subject can be any JS object or XPCOM component that supports nsIVariant
+   * interface.
+   */
+  void addSubject(in nsIVariant aSubject);
+  
+  /**
+   * Retrieves all subjects associated with this activity.
+   *
+   * @return The list of subject objects associated by the activity.
+   */
+  void getSubjects(out unsigned long length, [retval, array,
+                   size_is(length)] out nsIVariant aSubjects);
+  
+  /*
+   * Background:
+   *  A context is a generic concept that is used to group the processes and
+   *  warnings having similar properties such as same imap server, same smtp
+   *  server etc.
+   *  A context is uniquely identified by its "type" and "object" attributes.
+   *  Each activity that has the same context type and object are considered
+   *  belong to the same logical group, context.
+   *
+   *  There are 4 predefined context types known by the Activity Manager:
+   *  Account, Smtp, Calendar, and Addressbook. The most common context type
+   *  for activities is the "Account Context" and when combined with an account
+   *  server instance, it allows to group different activities happening on the
+   *  the same account server.
+   */
+  
+  /**
+   * Sets and gets the context object of the activity. A context object can be
+   * any JS object or XPCOM component that supports nsIVariant interface.
+   */
+  attribute nsIVariant contextObj;
+  
+  /**
+   * Sets and gets the context type of the activity. The Activity Manager
+   * knows how to display a description for predefined context types.
+   *
+   * If the activity developer decides to introduce its own context type to
+   * Thunderbird, he/she _must_ implement contextDisplayText as well.
+   */
+  attribute AString contextType;
+
+  /**
+   * Return the displayText to be used for the context
+   **/
+  attribute AString contextDisplayText;
+
+  /**
+   * Adds a listener. See nsIActivityListener below.
+   */
+  void addListener(in nsIActivityListener aListener);
+
+  /**
+   * Removes the given listener. See nsIActivityListener below.
+   */
+  void removeListener(in nsIActivityListener aListener);
+};
+
+
+/**
+ * A Process represents an on-going activity.
+ */
+[scriptable, uuid(9DC7CA67-828D-4AFD-A5C6-3ECE091A98B8)]
+interface nsIActivityProcess : nsIActivity {
+  
+  /**
+   * Default state for uninitialized process activity
+   * object.
+   */
+  const short STATE_NOTSTARTED = -1;
+
+  /**
+   * Activity is currently in progress.
+   */
+  const short STATE_INPROGRESS = 0;
+
+  /**
+   * Activity is completed.
+   */
+  const short STATE_COMPLETED = 1;
+
+  /**
+   * Activity was canceled by the user.
+   * (same as completed)
+   */
+  const short STATE_CANCELED = 2;
+
+  /**
+   * Activity was paused by the user.
+   */
+  const short STATE_PAUSED = 3;
+  
+  /**
+   * Activity waits for the user input's to retry.
+   * (i.e. login password)
+   */
+  const short STATE_WAITINGFORINPUT = 4;
+
+  /**
+   * Activity is ready for an automatic or manual retry.
+   */
+  const short STATE_WAITINGFORRETRY = 5;
+  
+  /**
+   * The state of the activity.
+   * See above for possible values.
+   * @exception NS_ERROR_ILLEGAL_VALUE if the state isn't one of the states
+   *   defined above.
+   */
+  attribute short state;
+    
+  /**
+   * The percentage of activity completed.
+   * If the max value is unknown it'll be -1 here.
+   */
+  readonly attribute long percentComplete;
+  
+  /**
+   * A brief text about the process' status.
+   */
+  readonly attribute AString lastStatusText;
+  
+  /**
+   * The amount of work units completed so far.
+   */
+  readonly attribute unsigned long workUnitComplete;
+  
+  /**
+   * Total amount of work units.
+   */
+  readonly attribute unsigned long totalWorkUnits;
+
+  /**
+   * The starting time of the process.
+   * 64-bit signed integers relative to midnight (00:00:00), January 1, 1970
+   * Greenwich Mean Time (GMT). (GMT is also known as Coordinated Universal
+   * Time, UTC.). The units of time are in microseconds.
+   *
+   * In JS Date.now(), in C++ PR_Now() / PR_USEC_PER_MSEC can be used to set
+   * this value.
+   */
+  readonly attribute long long startTime;
+
+  /**
+   * The handler to invoke when the cancel button is pressed. If present
+   * (non-null), the activity can be canceled and a cancel button will be
+   * displayed to the user.  If null, it cannot be canceled and no button will
+   * be displayed.
+   */
+  attribute nsIActivityCancelHandler cancelHandler;
+  
+  /**
+   * The handler to invoke when the pause button is pressed. If present
+   * (non-null), the activity can be pauseable and a pause button will be
+   * displayed to the user.  If null, it cannot be paused and no button will
+   * be displayed.
+   */
+  attribute nsIActivityPauseHandler pauseHandler;
+  
+  /**
+   * The handler to invoke when the retry button is pressed. If present
+   * (non-null), the activity can be retryable and a retry button will be
+   * displayed to the user.  If null, it cannot be retried and no button will
+   * be displayed.
+   */
+  attribute nsIActivityRetryHandler retryHandler;
+  
+  /**
+   * Updates the activity progress info.
+   *
+   * @param aStatusText A localized text describing the current status of the
+   *                    process
+   * @param aWorkUnitComplete The amount of work units completed. Not used by
+   *                          Activity Manager or default binding for any
+   *                          purpose.
+   * @param aTotalWorkUnits Total amount of work units. Not used by
+   *                          Activity Manager or default binding for any
+   *                          purpose.
+   */
+  void setProgress(in AString aStatusText,
+                   in unsigned long aWorkUnitComplete,
+                   in unsigned long aTotalWorkUnits);
+  
+  /**
+   * Component initialization method.
+   *
+   * @param aDisplayText A localized text to be shown on the Activity Manager
+   *                     window
+   * @param aInitiator The initiator of the process
+   */
+  void init(in AString aDisplayText, in nsIVariant aInitiator);
+};
+
+/**
+ * Historical actions performed by the user, by extensions or by the system.
+ */
+[scriptable, uuid(5B1B0D03-2820-4E37-8BF8-102AFDE4FC45)]
+interface nsIActivityEvent : nsIActivity {
+  
+  /**
+   * Any localized textual information related to this event.
+   * It is shown at the bottom of the displayText area.
+   */
+  readonly attribute AString statusText;
+  
+  /**
+   * The starting time of the event.
+   * 64-bit signed integers relative to midnight (00:00:00), January 1, 1970
+   * Greenwich Mean Time (GMT). (GMT is also known as Coordinated Universal
+   * Time, UTC.). The units of time are in microseconds.
+   *
+   * In JS Date.now(), in C++ PR_Now() / PR_USEC_PER_MSEC can be used to set
+   * this value.
+   */
+  readonly attribute long long startTime;
+  
+  /**
+   * The completion time of the event in microseconds.
+   * 64-bit signed integers relative to midnight (00:00:00), January 1, 1970
+   * Greenwich Mean Time (GMT). (GMT is also known as Coordinated Universal
+   * Time, UTC.). The units of time are in microseconds.
+   *
+   * In JS Date.now(), in C++ PR_Now() / PR_USEC_PER_MSEC can be used to set
+   * this value.
+   */
+  readonly attribute long long completionTime;
+  
+  /**
+   * The handler to invoke when the undo button is pressed.  If present
+   * (non-null), the activity can be undoable and an undo button will be
+   * displayed to the user.  If null, it cannot be undone and no button will
+   * be displayed.
+   */
+  attribute nsIActivityUndoHandler undoHandler;
+  
+  /**
+   * Component initialization method.
+   *
+   * @param aDisplayText Any localized text describing the event and its context
+   * @param aInitiator The initiator of the event
+   * @param aStatusText Any localized additional information about the event
+   * @param aStartTime The starting time of the event
+   * @param aCompletionTime The completion time of the event
+   */
+  void init(in AString aDisplayText, in nsIVariant aInitiator,
+            in AString aStatusText, in long long aStartTime,
+            in long long aCompletionTime);
+};
+
+[scriptable, uuid(8265833e-c604-4585-a43c-a76bd8ed3a8c)]
+interface nsIActivityWarning : nsIActivity {
+  
+  /**
+   * Any localized textual information related to this warning.
+   */
+  readonly attribute AString warningText;
+  
+  /**
+   * The time of the warning.
+   * 64-bit signed integers relative to midnight (00:00:00), January 1, 1970
+   * Greenwich Mean Time (GMT). (GMT is also known as Coordinated Universal
+   * Time, UTC.). The units of time are in microseconds.
+   *
+   * In JS Date.now(), in C++ PR_Now() / PR_USEC_PER_MSEC can be used to set
+   * this value.
+   */
+  readonly attribute long long time;
+  
+  /**
+   * Recovery tip of the warning, localized.
+   */
+  readonly attribute AString recoveryTipText;
+  
+  /**
+   * The handler to invoke when the recover button is pressed.  If present
+   * (non-null), the activity can be recoverable and a recover button will be
+   * displayed to the user.  If null, it cannot be recovered and no button will
+   * be displayed.
+   */
+  attribute nsIActivityRecoveryHandler recoveryHandler;
+  
+  /**
+   * Component initialization method.
+   *
+   * @param aWarningText The localized text that will be shown on the display
+   *                     area
+   * @param aInitiator The initiator of the warning
+   * @param aRecoveryTip A localized textual information to guide the user in
+   *                     order to recover from the warning situation.
+   */
+  void init(in AString aWarningText, in nsIVariant aInitiator,
+            in AString aRecoveryTip);
+};
+
+[scriptable, uuid(abfcfa8a-c127-40dc-ac64-64b1ffc024ec)]
+interface nsIActivityListener : nsISupports {
+  /**
+   * Triggered after activity state is changed.
+   */
+  void onStateChanged(in nsIActivity aActivity, in short aOldState);
+  
+  /**
+   * Triggered after the progress of the process activity is changed.
+   */
+  void onProgressChanged(in nsIActivity aActivity, in long aPercentComplete,
+                         in AString aStatusText,
+                         in unsigned long aWorkUnitsCompleted,
+                         in unsigned long aTotalWorkUnits);
+  
+  /**
+   * Triggered after one of the activity handler is set.
+   *
+   * This is mostly used to update the UI of the activity when
+   * one of the handler is set to null after the operation is completed.
+   * For example after the activity is undoed, to make the undo button
+   * invisible.
+   */
+  void onHandlerChanged(in nsIActivity aActivity);
+};

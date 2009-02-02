@@ -1284,6 +1284,10 @@
 #endif
         <menuitem id="addonsManager" label="&addons.label;" accesskey="&addons.accesskey;"
                   oncommand="openAddonsMgr();"/>
+        <!--Commented out until we land some activities-->
+        <!--<menuitem id="activityManager" label="&activitymanager.label;"-->
+        <!--          accesskey="&activitymanager.accesskey;"-->
+        <!--          oncommand="openActivityMgr();"/>-->
         <menuseparator id="devToolsSeparator"/>
         <menuitem id="filtersCmd" label="&filtersCmd.label;"
                   accesskey="&filtersCmd.accesskey;"

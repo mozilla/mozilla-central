@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+
+# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is Mozilla.org Code.
+#
+# The Initial Developer of the Original Code is
+# Netscape Communications Corporation.
+# Portions created by the Initial Developer are Copyright (C) 2001
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#   Ben Goodger <ben@bengoodger.com> (v2.0)
+#   Blake Ross <blakeross@telocity.com>
+#   Shawn Wilsher <me@shawnwilsher.com> (v3.0)
+#   Edward Lee <edward.lee@engineering.uiuc.edu>
+#   David Ascher <dascher@mozillamessaging.com> (activity mgr)
+#   Emre Birol <emrebirol@gmail.com>
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+#ifdef XP_UNIX
+#ifndef XP_MACOSX
+#define XP_GNOME 1
+#endif
+#endif
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/content/activityBinding.css"?>
+<?xml-stylesheet href="chrome://messenger/skin/activity/activity.css"?>
+
+<!DOCTYPE window [
+<!ENTITY % activityManagerDTD SYSTEM "chrome://messenger/locale/activity.dtd">
+%activityManagerDTD;
+<!ENTITY % editMenuOverlayDTD SYSTEM
+"chrome://global/locale/editMenuOverlay.dtd">
+%editMenuOverlayDTD;
+]>
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        id="activityManager" windowtype="Activity:Manager"
+        orient="vertical" title="&activity.title;"
+        statictitle="&activity.title;"
+        width="&window.width2;" height="&window.height;"
+        screenX="10" screenY="10"
+        persist="width height screenX screenY sizemode"
+        onload="Startup();" onunload="Shutdown();"
+        onclose="return closeWindow(false);">
+      
+  <script type="application/javascript"
+          src="chrome://messenger/content/activity.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/contentAreaUtils.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/globalOverlay.js"/>
+  
+  <stringbundleset id="activitySet">
+    <stringbundle id="brandStrings"
+                  src="chrome://branding/locale/brand.properties"/>
+    <stringbundle id="activityStrings"
+                  src="chrome://messenger/locale/activity.properties"/>
+  </stringbundleset>
+
+  <!-- Use this commandset for command which do not depend on focus or
+       selection -->
+  <commandset id="generalCommands">
+    <command id="cmd_selectAllActivities"
+             oncommand="gActivitiesView.selectAll();"/>
+    <command id="cmd_clearList" oncommand="clearActivityList();"/>
+  </commandset>
+
+  <keyset id="activityKeys">
+    <key id="key_removeFromList"  keycode="VK_DELETE"
+         oncommand="performCommand('cmd_removeFromList');"/>
+#ifdef XP_MACOSX
+    <key id="key_removeFromList2" keycode="VK_BACK"
+         oncommand="performCommand('cmd_removeFromList');"/>
+#endif
+    <key id="key_close" key="&cmd.close.commandkey;"
+         oncommand="closeWindow(true);" modifiers="accel"/>
+#ifdef XP_GNOME
+    <key id="key_close2" key="&cmd.close2Unix.commandkey;"
+         oncommand="closeWindow(true);" modifiers="accel"/>
+#else
+    <key id="key_close2" key="&cmd.close2.commandkey;"
+         oncommand="closeWindow(true);" modifiers="accel"/>
+#endif
+    <key keycode="VK_ESCAPE" oncommand="closeWindow(true);"/>
+
+    <key id="key_selectAllActivities" key="&selectAllCmd.key;" modifiers="accel"
+         command="cmd_selectAllActivities"/>
+  </keyset>
+  
+  <vbox id="contextMenuPalette" hidden="true">
+    <menuitem id="menuitem_selectAll" label="&selectAllCmd.label;"
+              accesskey="&selectAllCmd.accesskey;"
+              command="cmd_selectAllActivities"/>
+  </vbox>
+  
+
+  <richlistbox id="activityView" class="activityview" seltype="multiple"
+               flex="1" onkeypress="processKeyEvent(event)">
+  </richlistbox>
+
+  <hbox id="search" align="center">
+    <button id="clearListButton" command="cmd_clearList"
+            label="&cmd.clearList.label;"
+            accesskey="&cmd.clearList.accesskey;"
+            tooltiptext="&cmd.clearList.tooltip;"/>
+    <spacer flex="1"/>
+  </hbox>
+
+</window>

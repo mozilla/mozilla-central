@@ -1,0 +1,836 @@
+<?xml version="1.0"?>
+
+<!--
+ -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Mozilla.org Code.
+
+ The Initial Developer of the Original Code is
+ Blake Ross.
+ Portions created by the Initial Developer are Copyright (C) 2001
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+   Ben Goodger <ben@bengoodger.com> (v2.0)
+   Blake Ross <blakeross@telocity.com>
+   Shawn Wilsher <me@shawnwilsher.com> (v3.0)
+   Edward Lee <edward.lee@engineering.uiuc.edu>
+   David Ascher <dascher@mozillamessaging.com> (activity manager)
+   Emre Birol <emrebirol@gmail.com>
+
+ Alternatively, the contents of this file may be used under the terms of
+ either the GNU General Public License Version 2 or later (the "GPL"), or
+ the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK *****
+-->
+
+<!DOCTYPE bindings [
+  <!ENTITY % activityDTD SYSTEM "chrome://messenger/locale/activity.dtd" >
+  %activityDTD;
+]>
+
+<bindings id="activityBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="activity-group"
+           extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <resources>
+      <stylesheet src="chrome://messenger/skin/activity.css"/>
+    </resources>
+    <implementation>
+      <constructor>
+       <![CDATA[
+          this.setAttribute('contextDisplayText', this.contextDisplayText);
+        ]]>
+      </constructor>
+      <field name="contextType">
+       ""
+      </field>
+      <field name="contextObj">
+       null
+      </field>
+      <field name="_contextDisplayText">
+       null
+      </field>
+      <property name="contextDisplayText">
+        <getter>
+          <![CDATA[
+            return this._contextDisplayText;
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            this._contextDisplayText = val;
+            document.getAnonymousElementByAttribute(this, "anonid", "contextlbl").setAttribute("value", val)
+          ]]>
+        </setter>
+      </property>
+      <property name="isGroup">
+        <getter>
+        <![CDATA[
+          return true;
+        ]]>
+        </getter>
+      </property>
+      <property name="processes">
+        <getter>
+        <![CDATA[
+          return document.getAnonymousElementByAttribute(this, "anonid",
+                                                         "activityGroupView");
+        ]]>
+        </getter>
+      </property>
+      <method name="retry">
+        <body>
+          <![CDATA[
+            let activityManager = Components.classes["@mozilla.org/activity-manager;1"]
+                                            .getService(Components.interfaces.nsIActivityManager);
+           
+            let processes = activityManager
+                                  .getProcessesByContext(this.contextType,
+                                                         this.contextObj, {});
+            for each (let [, process] in Iterator(processes)) {
+              if (process.retryHandler)
+                process.retryHandler.retry(process);
+            }
+          ]]>
+        </body>
+      </method>
+    </implementation>
+    <content>
+     <xul:vbox flex="1">
+        <xul:hbox>
+        <xul:vbox pack="start">
+          <xul:label xbl:inherits="value=contextDisplayText, tooltiptext=contextDisplayTextTip"
+                     crop="left" class="contextDisplayText" anonid="contextlbl"/>
+        </xul:vbox>
+        <xul:vbox pack="center" flex="2">
+        <!--instances can specify retry_enabled="true" to show the retry button-->
+        <xul:button xbl:inherits="enabled=retry_enabled" class="retry mini-button" tooltiptext="&cmd.retry.label;"
+                        anonid="button_retry" cmd="cmd_retry"
+                        ondblclick="event.stopPropagation();"
+                        oncommand="retry();"/>
+        </xul:vbox>
+        </xul:hbox>
+        <xul:vbox pack="center">
+         <xul:richlistbox class="activitygroupbox activityview" seltype="multiple"
+                          flex="1" anonid="activityGroupView"/>
+        </xul:vbox>
+      </xul:vbox>
+    </content>
+  </binding>
+
+  <binding id="activity-base" extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <resources>
+      <stylesheet src="chrome://messenger/skin/activity.css"/>
+    </resources>
+    <implementation implements="nsIActivityListener">
+      <constructor>
+       <![CDATA[
+        try {
+          Components.utils.import("resource://app/modules/gloda/log4moz.js");
+          let activityManager = Components.classes["@mozilla.org/activity-manager;1"]
+                                          .getService(Components.interfaces.nsIActivityManager);
+
+          // fetch the activity and set the base attributes
+          let actID = this.getAttribute('actID');
+          this._activity = activityManager.getActivity(actID);
+          this._activity.addListener(this);
+          this.setAttribute('iconclass', this._activity.iconClass);
+          this.log = Log4Moz.getConfiguredLogger("activity-base");
+
+          this.text = {
+            paused: "paused",
+            canceled: "canceled",
+            failed: "failed",
+            waitingforinput: "waitingForInput",
+            waitingforretry: "waitingForRetry",
+            yesterday: "yesterday",
+            monthDate: "monthDate"
+          };
+
+          // convert strings to those in the string bundle
+          let (sb = document.getElementById("activityStrings")) {
+            let getStr = function(string) sb.getString(string);
+            for (let [name, value] in Iterator(this.text))
+                this.text[name] = typeof value == "string" ? getStr(value)
+                                                           : value.map(getStr);
+          }
+        } catch (e) {
+          this.log.error("Exception: " + e);
+        }
+        ]]>
+      </constructor>
+      <destructor>
+       <![CDATA[
+        this.detachFromActivity();
+        ]]>
+      </destructor>
+      <method name="detachFromActivity">
+        <body>
+          <![CDATA[
+            this._activity.removeListener(this);
+          ]]>
+        </body>
+      </method>
+      <property name="isProcess">
+        <getter>
+        <![CDATA[
+          return this._activity && (this._activity instanceof
+                                    Components.interfaces.nsIActivityProcess);
+        ]]>
+        </getter>
+      </property>
+      <property name="isEvent">
+        <getter>
+        <![CDATA[
+          return this._activity && (this._activity instanceof
+                                    Components.interfaces.nsIActivityEvent);
+        ]]>
+        </getter>
+      </property>
+      <property name="isWarning">
+        <getter>
+        <![CDATA[
+          return this._activity && (this._activity instanceof
+                                    Components.interfaces.nsIActivityWarning);
+        ]]>
+        </getter>
+      </property>
+      <property name="isOrphan">
+        <getter>
+        <![CDATA[
+          try {
+           let activity = activityManager.getActivity(this._activity.id);
+           return false;
+          }
+          catch(e) {
+            // happens when the given activity is already removed form
+            //   the activity manager. Returning true indicates that the
+            //   XBL doesn't have any associated activity - orphan.
+          }
+          return true;
+        ]]>
+        </getter>
+      </property>
+      <property name="activity">
+        <getter>
+          <![CDATA[
+           return this._activity;
+          ]]>
+        </getter>
+      </property>
+      <property name="buttons">
+        <getter>
+        <![CDATA[
+          let startEl = document.getAnonymousNodes(this);
+          if (!startEl.length)
+            startEl = [this];
+
+          const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+          return startEl[0].getElementsByTagNameNS(XULNS, "button");
+        ]]>
+        </getter>
+      </property>
+      <method name="setVisibility">
+        <parameter name="anonid"/>
+        <parameter name="visible"/>
+        <body>
+          <![CDATA[
+            document.getAnonymousElementByAttribute(this, "anonid",
+             anonid).setAttribute('hidden', !visible);
+          ]]>
+        </body>
+      </method>
+      <method name="formatTime">
+        <parameter name="time"/>
+        <body>
+          <![CDATA[
+            let dts = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                                .getService(Components.interfaces.nsIScriptableDateFormat);
+
+            // Figure out when today begins
+            let now = new Date();
+            let today = new Date(now.getFullYear(), now.getMonth(),
+                                 now.getDate());
+              
+            // Get the end time to display
+            let end = new Date(parseInt(time));
+              
+            // Figure out if the end time is from today, yesterday,
+            // this week, etc.
+            let dateTime;
+            let kDayInMsecs = 24 * 60 * 60 * 1000;
+            let k6DaysInMsecs = 6 * kDayInMsecs;
+            if (end >= today) {
+              // activity finished after today started, show the time
+              dateTime = dts.FormatTime("", dts.timeFormatNoSeconds,
+                                            end.getHours(), end.getMinutes(),0);
+            } else if (today - end < kDayInMsecs) {
+              // activity finished after yesterday started, show yesterday
+              dateTime = this.text.yesterday;
+            } else if (today - end < k6DaysInMsecs) {
+              // activity finished after last week started, show day of week
+              dateTime = end.toLocaleFormat("%A");
+            } else {
+              // activity must have been from some time ago.. show month/day
+              let month = end.toLocaleFormat("%B");
+              // Remove leading 0 by converting the date string to a number
+              let date = Number(end.toLocaleFormat("%d"));
+              dateTime = replaceInsert(this.text.monthDate, 1, month);
+              dateTime = replaceInsert(dateTime, 2, date);
+            }
+            return dateTime;
+          ]]>
+        </body>
+      </method>
+      <method name="formatTimeTip">
+        <parameter name="time"/>
+        <body>
+          <![CDATA[
+            let dts = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                                .getService(Components.interfaces.nsIScriptableDateFormat);
+                                
+            // Get the end time to display
+            let end = new Date(parseInt(time));
+
+            // Set the tooltip to be the full date and time
+            let dateTimeTip = dts.FormatDateTime("",
+                                                dts.dateFormatLong,
+                                                dts.timeFormatNoSeconds,
+                                                end.getFullYear(),
+                                                end.getMonth() + 1,
+                                                end.getDate(),
+                                                end.getHours(),
+                                                end.getMinutes(),
+                                                0);
+            return dateTimeTip;
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+  
+  <binding id="activity-process"
+           extends="chrome://messenger/content/activity.xml#activity-base">
+    <implementation>
+      <constructor>
+       <![CDATA[
+        // We need to make this casting here in order to access to nsIActivityProcess
+        // interface of the component from the the binding.
+        // We deliberately propogate the exceptions to the caller.
+        this._activity.QueryInterface(Components.interfaces.nsIActivityProcess);
+        
+        try {
+          this.displayText = this._activity.displayText;
+          // make sure that binding reflects the latest state of the process
+          this.onStateChanged(this._activity.state,
+                              Components.interfaces.nsIActivityProcess.STATE_NOTSTARTED);
+          this.onProgressChanged(this._activity, this._activity.percentComplete,
+                                 this._activity.lastStatusText,
+                                 this._activity.workUnitComplete,
+                                 this._activity.totalWorkUnits);
+         }
+         catch(e) {
+            this.log.error("Exception constructing activity-process: " + e);
+            throw(e)
+         }
+        ]]>
+      </constructor>
+      <property name="displayText">
+        <getter>
+          <![CDATA[
+            return this.getAttribute('displayText');
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            this.setAttribute('displayText', val);
+          ]]>
+        </setter>
+      </property>
+      <property name="statusText">
+        <getter>
+          <![CDATA[
+            return this.getAttribute('statusText');
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            this.setAttribute('statusText', val);
+          ]]>
+        </setter>
+      </property>
+      <property name="inProgress">
+        <getter>
+          <![CDATA[
+           return (this._activity.state ==
+                   Components.interfaces.nsIActivityProcess.STATE_INPROGRESS);
+          ]]>
+        </getter>
+      </property>
+      <property name="isRemovable">
+        <getter>
+          <![CDATA[
+            return this._activity.state == Components.interfaces.nsIActivityProcess.STATE_COMPLETED || 
+                   this._activity.state == Components.interfaces.nsIActivityProcess.STATE_CANCELED 
+          ]]>
+        </getter>
+      </property>
+      <property name="canCancel">
+        <getter>
+        <![CDATA[
+          try {
+           return (this._activity.cancelHandler != null);
+          }
+          catch(e) {
+            // In normal conditions, we shouldn't endup here. This can only
+            // happen if the XBL is orphan - associated activity has been
+            // deleted but XBL stays alive.
+          }
+          return false;
+        ]]>
+        </getter>
+      </property>
+      <property name="canPause">
+        <getter>
+        <![CDATA[
+          try {
+           return (this._activity.pauseHandler != null);
+          }
+          catch(e) {
+            // In normal conditions, we shouldn't endup here. This can only
+            // happen if the XBL is orphan - associated activity has been
+            // deleted but XBL stays alive.
+          }
+          return false;
+        ]]>
+        </getter>
+      </property>
+      <property name="canRetry">
+        <getter>
+        <![CDATA[
+          try {
+           return (this._activity.retryHandler != null);
+          }
+          catch(e) {
+            // In normal conditions, we shouldn't endup here. This can only
+            // happen if the XBL is orphan - associated activity has been
+            // deleted but XBL stays alive.
+          }
+          return false;
+        ]]>
+        </getter>
+      </property>
+      <method name="onStateChanged">
+        <parameter name="aActivity"/>
+        <parameter name="aOldState"/>
+        <body>
+         <![CDATA[
+          // change the view of the binding according to the new state
+
+          // default states for each item
+          let hideCancelBut = true;
+          let hideRetryBut = true;
+          let hidePauseBut = true;
+          let hideResumeBut = true;
+          let hideProgressMeter = false;
+          let displayText = this.displayText;
+          let statusText = this.statusText;
+
+          switch(this._activity.state) {
+            case Components.interfaces.nsIActivityProcess.STATE_INPROGRESS:
+              hideCancelBut = !this.canCancel;
+              hidePauseBut = !this.canPause;
+               // status text is empty
+               statusText = "";
+              break;
+            case Components.interfaces.nsIActivityProcess.STATE_COMPLETED:
+              // all buttons and progress meter are hidden
+              hideProgressMeter = true;
+              // status text is empty
+              statusText = "";
+              break;
+            case Components.interfaces.nsIActivityProcess.STATE_CANCELED:
+              // all buttons and progress meter are hidden
+              hideProgressMeter = true;
+              statusText = this.text.canceled;
+              break;
+            case Components.interfaces.nsIActivityProcess.STATE_PAUSED:
+              hideCancelBut = !this.canCancel;
+              hideResumeBut = !this.canPause;
+              statusText = this.text.paused;
+              break;
+            case Components.interfaces.nsIActivityProcess.STATE_WAITINGFORINPUT:
+              hideCancelBut = !this.canCancel;
+              hideProgressMeter = true;
+              statusText = this.text.waitingforinput;
+              break;
+            case Components.interfaces.nsIActivityProcess.STATE_WAITINGFORRETRY:
+              hideCancelBut = !this.canCancel;
+              hideRetryBut = !this.canRetry;
+              hideProgressMeter = true;
+              statusText = this.text.waitingforretry;
+              break;
+          }
+
+          // Set the button visibility
+          this.setVisibility("button_cancel", !hideCancelBut);
+          this.setVisibility("button_retry", !hideRetryBut);
+          this.setVisibility("button_pause", !hidePauseBut);
+          this.setVisibility("button_resume", !hideResumeBut);
+          this.setVisibility("progressmeter", !hideProgressMeter);
+
+          // Update Status text and Display Text Areas
+          // In some states we need to modify Display Text area of
+          // the process (e.g. Failure).
+          this.displayText = displayText;
+          this.statusText = statusText;
+         ]]>
+        </body>
+      </method>
+      <method name="onProgressChanged">
+        <parameter name="aActivity"/>
+        <parameter name="aStatusText"/>
+        <parameter name="aWorkUnitsComplete"/>
+        <parameter name="aTotalWorkUnits"/>
+        <body>
+          <![CDATA[
+            let _percentComplete = 100.0 * aWorkUnitsComplete / aTotalWorkUnits;
+            document.getAnonymousElementByAttribute(this, "anonid","progressmeter")
+                    .setAttribute('value', _percentComplete);
+            this.statusText = aStatusText;
+          ]]>
+        </body>
+      </method>
+      <method name="onHandlerChanged">
+        <parameter name="aActivity"/>
+        <body>
+          <![CDATA[
+            // update handler buttons' visibilities
+            let hideCancelBut = !this.canCancel;
+            let hidePauseBut = !this.canPause;
+            let hideRetryBut = !this.canRetry;
+
+            this.setVisibility("button_cancel", !hideCancelBut);
+            this.setVisibility("button_retry", !hideRetryBut);
+            if (hidePauseBut) {
+              this.setVisibility("button_pause", !hidePauseBut);
+              this.setVisibility("button_resume", !hideResumeBut);
+            }
+            else {
+              this.setVisibility("button_pause", this.paused);
+              this.setVisibility("button_resume", !this.paused);
+            }
+          ]]>
+        </body>
+      </method>
+      <property name="paused">
+        <getter>
+        <![CDATA[
+          return parseInt(this.getAttribute("state")) ==
+            Components.interfaces.nsIActivityProcess.STATE_PAUSED;
+        ]]>
+        </getter>
+      </property>
+      <property name="waitingforinput">
+        <getter>
+        <![CDATA[
+          return parseInt(this.getAttribute("state")) ==
+            Components.interfaces.nsIActivityProcess.STATE_WAITINGFORINPUT;
+        ]]>
+        </getter>
+      </property>
+      <property name="waitingforretry">
+        <getter>
+        <![CDATA[
+          return parseInt(this.getAttribute("state")) ==
+            Components.interfaces.nsIActivityProcess.STATE_WAITINGFORRETRY;
+        ]]>
+        </getter>
+      </property>
+    </implementation>
+    <content>
+      <xul:hbox flex="1" class="activityContentBox">
+        <xul:vbox pack="center" class="processIconBox">
+          <xul:image anonid="image" xbl:inherits="class=iconclass"/>
+        </xul:vbox>
+        <xul:vbox flex="1">
+          <xul:label xbl:inherits="value=displayText,tooltiptext=displayTextTip"
+                       crop="center" flex="2" class="displayText"/>
+          <xul:hbox>
+            <xul:vbox flex="1">
+              <xul:progressmeter mode="normal" value="0" flex="1"
+                                 anonid="progressmeter"
+                                 xbl:inherits="value=progress,mode=progressmode"/>
+            </xul:vbox>
+            <xul:button class="resume mini-button"
+                        tooltiptext="&cmd.resume.label;"
+                        anonid="button_resume" cmd="cmd_resume"
+                        ondblclick="event.stopPropagation();"
+                        oncommand="activity.pauseHandler.resume(activity);"/>
+            <xul:button class="pause mini-button"
+                        tooltiptext="&cmd.pause.label;"
+                        anonid="button_pause" cmd="cmd_pause"
+                        ondblclick="event.stopPropagation();"
+                        oncommand="activity.pauseHandler.pause(activity);"/>
+            <xul:button class="retry mini-button"
+                        tooltiptext="&cmd.retry.label;"
+                        anonid="button_retry" cmd="cmd_retry"
+                        ondblclick="event.stopPropagation();"
+                        oncommand="activity.retryHandler.retry(activity);"/>
+            <xul:button class="cancel mini-button"
+                        tooltiptext="&cmd.cancel.label;"
+                        anonid="button_cancel" cmd="cmd_cancel"
+                        ondblclick="event.stopPropagation();"
+                        oncommand="activity.cancelHandler.cancel(activity);"/>
+          </xul:hbox>
+          <xul:label xbl:inherits="value=statusText,tooltiptext=statusTextTip"
+                     flex="1" crop="right" class="statusText"/>
+          <xul:spacer flex="1"/>
+        </xul:vbox>
+      </xul:hbox>
+    </content>
+  </binding>
+
+  <binding id="activity-event"
+           extends="chrome://messenger/content/activity.xml#activity-base">
+    <implementation>
+      <constructor>
+       <![CDATA[
+        // We need to make this casting here in order to access
+        // to nsIActivityEvent interface of the component from the the binding.
+        // We deliberately propogate the exceptions to the caller.
+        this._activity.QueryInterface(Components.interfaces.nsIActivityEvent);  
+
+        try {
+          this.displayText = this._activity.displayText;
+          this.statusText =  this._activity.statusText;
+          this.completionTime = this._activity.completionTime;
+          this.setVisibility("button_undo", this._activity.undoHandler);
+        }
+        catch(e) {
+          this.log.error("Exception constructing activity-event: " + e);
+          throw(e)
+        }
+        ]]>
+      </constructor>
+       <property name="displayText">
+        <getter>
+          <![CDATA[
+            return this.getAttribute('displayText');
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            this.setAttribute('displayText', val);
+          ]]>
+        </setter>
+      </property>
+      <property name="statusText">
+        <getter>
+          <![CDATA[
+            return this.getAttribute('statusText');
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            this.setAttribute('statusText', val);
+          ]]>
+        </setter>
+      </property>
+      <property name="completionTime">
+        <getter>
+          <![CDATA[
+            return this.getAttribute('completionTime');
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            this.setAttribute("completionTime", this.formatTime(val));
+            this.setAttribute("completionTimeTip", this.formatTimeTip(val));
+          ]]>
+        </setter>
+      </property>
+      <property name="canUndo">
+        <getter>
+        <![CDATA[
+          try {
+           return (this._activity.undoHandler != null);
+          }
+          catch(e) {
+            // In normal conditions, we shouldn't endup here. This can only
+            // happen if the XBL is orphan - associated activity has been
+            // deleted but XBL stays alive.
+          }
+          return false;
+        ]]>
+        </getter>
+      </property>
+      <method name="onHandlerChanged">
+        <parameter name="aActivity"/>
+        <body>
+          <![CDATA[
+            // update handler button's visibility
+            this.setVisibility("button_undo", this.canUndo);
+          ]]>
+        </body>
+      </method>
+    </implementation>
+    <content>
+      <xul:hbox flex="1">
+        <xul:vbox pack="center" class="eventIconBox">
+          <xul:image anonid="image" xbl:inherits="class=iconclass"/>
+        </xul:vbox>
+        <xul:vbox pack="start" flex="1">
+          <xul:hbox align="center" flex="1">
+            <xul:label xbl:inherits="value=displayText,tooltiptext=displayTextTip"
+                       crop="center" flex="1" class="displayText"/>
+            <xul:label xbl:inherits="value=completionTime,tooltiptext=completionTimeTip"
+                       class="dateTime"/>
+          </xul:hbox>
+          <xul:hbox align="center" flex="1">
+            <xul:label xbl:inherits="value=statusText,tooltiptext=statusTextTip"
+                       crop="end" flex="1" class="statusText"/>
+            <xul:button class="undo mini-button" tooltiptext="&cmd.undo.label;"
+                        anonid="button_undo" cmd="cmd_undo"
+                        ondblclick="event.stopPropagation();"
+                        oncommand="activity.undoHandler.undo(activity);"/>
+          </xul:hbox>
+         </xul:vbox>
+      </xul:hbox>
+    </content>
+  </binding>
+  
+  <binding id="activity-warning"
+           extends="chrome://messenger/content/activity.xml#activity-base">
+    <implementation>
+      <constructor>
+       <![CDATA[
+         
+        // We need to make this casting here in order to access to
+        // nsIActivityWarning interface of the component from the the binding.
+        // We deliberately propogate the exceptions to the caller.
+        this._activity.QueryInterface(Components.interfaces.nsIActivityWarning);
+         
+        try {
+          this.displayText = this._activity.displayText;
+          this.dateTime = this._activity.time;
+          this.recoveryTipText =  this._activity.recoveryTipText;
+          this.setVisibility("button_recover", this._activity.recoveryHandler);
+        }
+        catch(e) {
+          this.log.error("Exception constructing activity-warning: " + e);
+          throw(e)
+        }
+        ]]>
+      </constructor>
+       <property name="displayText">
+        <getter>
+          <![CDATA[
+            return this.getAttribute('displayText');
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            this.setAttribute('displayText', val);
+          ]]>
+        </setter>
+      </property>
+      <property name="recoveryTipText">
+        <getter>
+          <![CDATA[
+            return this.getAttribute('recoveryTipText');
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            this.setAttribute('recoveryTipText', val);
+          ]]>
+        </setter>
+      </property>
+      <property name="dateTime">
+        <getter>
+          <![CDATA[
+            return this.getAttribute('dateTime');
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            this.setAttribute('dateTime', this.formatTime(val));
+          ]]>
+        </setter>
+      </property>
+      <property name="canRecover">
+        <getter>
+        <![CDATA[
+          try {
+           return (this._activity.recoveryHandler != null);
+          }
+          catch(e) {
+            // In normal conditions, we shouldn't endup here. This can only
+            // happen if the XBL is orphan - associated activity has been
+            // deleted but XBL stays alive.
+          }
+          return false;
+        ]]>
+        </getter>
+      </property>
+      <method name="onHandlerChanged">
+        <parameter name="aActivity"/>
+        <body>
+          <![CDATA[
+            // update handler button's visibility
+            this.setVisibility("button_recover", this.canRecover);
+          ]]>
+        </body>
+      </method>
+    </implementation>
+    <content>
+      <xul:hbox flex="1">
+        <xul:vbox pack="center" class="warningIconBox">
+          <xul:image anonid="image"/>
+        </xul:vbox>
+        <xul:vbox pack="start" flex="1">
+          <xul:hbox align="center" flex="1">
+            <xul:label xbl:inherits="value=displayText,tooltiptext=displayTextTip"
+                       crop="center" flex="1" class="displayText"/>
+            <xul:label xbl:inherits="value=dateTime,tooltiptext=dateTimeTip"
+                       class="dateTime"/>
+            <xul:button class="recover mini-button" tooltiptext="&cmd.recover.label;"
+                        anonid="button_recover" cmd="cmd_recover"
+                        ondblclick="event.stopPropagation();"
+                        oncommand="activity.recoveryHandler.recover(activity);"/>
+          </xul:hbox>
+          <xul:hbox align="center" flex="1">
+            <xul:label xbl:inherits="value=recoveryTipText,tooltiptext=recoveryTipTextTip"
+                       crop="end" flex="1" class="statusText"/>
+          </xul:hbox>
+        </xul:vbox>
+      </xul:hbox>
+    </content>
+  </binding>
+</bindings>

@@ -1,0 +1,169 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   David Ascher <dascher@mozillamessaging.com>
+ *   Emre Birol <ebirol@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+
+interface mozIStorageConnection;
+interface nsIActivity;
+interface nsIActivityProcess;
+interface nsIVariant;
+
+/**
+ * See https://wiki.mozilla.org/Thunderbird:Activity_Manager/Developer for UML
+ * diagram and sample codes.
+ */
+
+/**
+ * An interface to get notified by the major Activity Manager events.
+ * Mostly used by UI glue code in activity.js.
+ */
+[scriptable, uuid(8ed29f45-e0c4-4259-ad80-6ff177f87aa6)]
+interface nsIActivityMgrListener : nsISupports {
+  /**
+   * Called _after_ activity manager adds an activity into
+   * the managed list.
+   */
+  void onAddedActivity(in unsigned long aID, in nsIActivity aActivity);
+  
+  /**
+   * Called _after_ activity manager removes an activity from
+   * the managed list.
+   */
+  void onRemovedActivity(in unsigned long aID);
+};
+
+/**
+ * Activity Manager is a simple component that understands how do display a
+ * combination of user activity and history. The activity manager works in
+ * conjunction with the 'Interactive Status Bar' to give the user the right
+ * level of notifications concerning what Thunderbird is doing on it's own and
+ * how Thunderbird has handled user requests.
+ *
+ * There are 3 different classifications of activity items which can be
+ * displayed in the Activity Manager Window:
+ *  o Process: Processes are transient in the display. They are not written to
+ *    disk as they are always acting on some data that already exists
+ *    locally or remotely. If a process has finished and needs to keep
+ *    some state for the user (like last sync time) it can convert
+ *    itself into an event.
+ * o Event: Historical actions performed by the user and created by a process
+ *   for the Activity Manager Window. Events can show up in the
+ *   'Interactive Status Bar' and be displayed to users as they are
+ *   created.
+ * o Warning: Alerts sent by Thunderbird or servers (i.e. imap server) that need
+ *   attention by the user. For example a Quota Alert from the imap
+ *   server can be represented as a Warning to the user. They are not
+ *   written to disk.
+ */
+[scriptable, uuid(9BFCC031-50E1-4D30-A35F-23509ABCB8D1)]
+interface nsIActivityManager : nsISupports {
+    
+  /**
+   * Adds the given activity into the managed activities list.
+   *
+   * @param aActivity The activity that will be added.
+   *
+   * @return Unique activity identifier.
+   */
+  unsigned long addActivity(in nsIActivity aActivity);
+  
+  /**
+   * Removes the activity with the given id if it's not currently
+   * in-progress.
+   *
+   * @param aID The unique ID of the activity.
+   *
+   * @throws NS_ERROR_FAILURE if the activity is in-progress.
+   * @throws NS_ERROR_NOT_AVAILABLE if the activity is not in the list.
+   */
+  void removeActivity(in unsigned long aID);
+
+  /**
+   * Retrieves an activity managed by the activity manager. This can be one that
+   * is in progress, or one that has completed in the past and is stored in the
+   * persistent store.
+   *
+   * @param aID The unique ID of the activity.
+   *
+   * @return The activity with the specified ID.
+   * @throws NS_ERROR_NOT_AVAILABLE if the activity is not in the list.
+   */
+  nsIActivity getActivity(in unsigned long aID);
+  
+  /**
+   * Tests wether the activity in question in the activity list or not.
+   */
+  boolean containsActivity(in unsigned long aID);
+  
+  /**
+   * Retrieves all activities managed by the activity manager. This can be one
+   * that is in progress (process), one that is represented as a warning, or one
+   * that has completed (event) in the past and is stored in the persistent
+   * store.
+   *
+   * @return A read-only list of activities managed by the activity manager.
+   */
+  void getActivities(out unsigned long length,
+                  [retval, array, size_is(length)] out nsIActivity aActivities);
+  
+  /**
+   * Retrieves processes with given context type and object.
+   *
+   * @return A read-only list of processes matching to given criteria.
+   */
+  void getProcessesByContext(in AString aContextType,
+                             in nsIVariant aContextObject,
+                             out unsigned long length,
+                             [retval, array, size_is(length)] out nsIActivityProcess aProcesses);
+
+  /**
+   * The number of processes in the activity list.
+   */
+  readonly attribute long processCount;
+  
+  /**
+   * Adds a listener.
+   */
+  void addListener(in nsIActivityMgrListener aListener);
+
+  /**
+   * Removes the given listener.
+   */
+  void removeListener(in nsIActivityMgrListener aListener);
+};

@@ -250,6 +250,12 @@ function openAddonsMgr()
   window.openDialog(EMURL, "", EMFEATURES);
 }
 
+function openActivityMgr()
+{
+  Components.classes['@mozilla.org/activity-manager-ui;1'].
+    getService(Components.interfaces.nsIActivityManagerUI).show(window);
+}
+
 function SetBusyCursor(window, enable)
 {
     // setCursor() is only available for chrome windows.

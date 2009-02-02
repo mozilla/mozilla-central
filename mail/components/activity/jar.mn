@@ -1,0 +1,6 @@
+messenger.jar:
+  content/messenger/activity.js (content/activity.js)
+* content/messenger/activity.xul (content/activity.xul)
+* content/messenger/activity.xml (content/activity.xml)
+  content/messenger/activityBinding.css (content/activityBinding.css)
+
