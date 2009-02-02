@@ -100,7 +100,6 @@
 #include "nsIWebNavigation.h"
 #include "nsNetUtil.h"
 #include "nsIMAPNamespace.h"
-#include "nsHashtable.h"
 #include "nsIMsgFolderCompactor.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMimeHeaders.h"

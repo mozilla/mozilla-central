@@ -68,31 +68,9 @@ static PRLogModuleInfo* gAbOutlookDirectoryLog
 
 #define PRINTF(args) PR_LOG(gAbOutlookDirectoryLog, PR_LOG_DEBUG, args)
 
-
-// Class for the int key
-class nsIntegerKey : public nsHashKey
-{
-public:
-    nsIntegerKey(PRInt32 aInteger) 
-        : mInteger(aInteger) {
-    }
-    virtual ~nsIntegerKey(void) {}
-    
-    PRUint32 HashCode(void) const { return static_cast<PRUint32>(mInteger) ; }
-    PRBool Equals(const nsHashKey *aKey) const { 
-        return aKey && reinterpret_cast<const nsIntegerKey *>(aKey)->mInteger == mInteger ; 
-    }
-    nsHashKey *Clone(void) const { return new nsIntegerKey(mInteger) ; }
-    
-protected:
-    PRInt32 mInteger ;
-    
-private:
-} ;
-
 nsAbOutlookDirectory::nsAbOutlookDirectory(void)
 : nsAbDirectoryRDFResource(), nsAbDirProperty(),
-mQueryThreads(16, PR_TRUE), mCurrentQueryId(0), mSearchContext(-1), 
+mCurrentQueryId(0), mSearchContext(-1),
 mAbWinType(nsAbWinType_Unknown), mMapiData(nsnull)
 {
     mMapiData = new nsMapiEntry ;
@@ -112,6 +90,8 @@ NS_IMPL_ISUPPORTS_INHERITED4(nsAbOutlookDirectory, nsAbDirectoryRDFResource,
 // nsIRDFResource method
 NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
 {
+  NS_ENSURE_TRUE(mQueryThreads.Init(), NS_ERROR_FAILURE);
+  NS_ENSURE_TRUE(mCardList.Init(), NS_ERROR_FAILURE);
   nsresult retCode = nsAbDirectoryRDFResource::Init(aUri);
 
   NS_ENSURE_SUCCESS(retCode, retCode);
@@ -207,7 +187,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
     nsresult retCode;
     nsCOMPtr<nsIMutableArray> cardList(do_CreateInstance(NS_ARRAY_CONTRACTID, &retCode));
 
-    mCardList.Reset() ;
+    mCardList.Clear();
 
     retCode = mIsQueryURI ? StartSearch() : GetChildCards(cardList, nsnull);
 
@@ -232,13 +212,10 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
             if (NS_FAILED(retCode))
               continue;
 
-            nsVoidKey newKey (static_cast<void *>(card));
-            nsCOMPtr<nsISupports> oldElement = mCardList.Get(&newKey) ;
-
-            if (!oldElement) {
+            if (!mCardList.Get(card, nsnull)) {
                 // We are dealing with a new element (probably directly
                 // added from Outlook), we may need to sync m_AddressList
-                mCardList.Put(&newKey, card);
+                mCardList.Put(card, card);
 
                 PRBool isMailList = PR_FALSE ;
 
@@ -276,9 +253,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
 NS_IMETHODIMP nsAbOutlookDirectory::HasCard(nsIAbCard *aCard, PRBool *aHasCard)
 {
     if (!aCard || !aHasCard) { return NS_ERROR_NULL_POINTER ; }
-    nsVoidKey key (static_cast<void *>(aCard)) ;
-
-    *aHasCard = mCardList.Exists(&key) ;
+    *aHasCard = mCardList.Get(aCard, nsnull);
     return NS_OK ;
 }
 
@@ -365,9 +340,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::DeleteCards(nsIArray *aCardList)
                 PRINTF(("Cannot delete card %s.\n", entryString.get())) ;
             }
             else {
-                nsVoidKey key (static_cast<void *>(card));
-                
-                mCardList.Remove(&key);
+                mCardList.Remove(card);
                 if (m_IsMailList && m_AddressList) 
                 {
                     PRUint32 pos;
@@ -436,9 +409,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddCard(nsIAbCard *aData, nsIAbCard **addedC
     }
     retCode = CreateCard(aData, addedCard) ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;
-    nsVoidKey newKey (static_cast<void *>(*addedCard)) ;
     
-    mCardList.Put(&newKey, *addedCard) ;
+    mCardList.Put(*addedCard, *addedCard);
 
     if (!m_AddressList)
     {
@@ -950,21 +922,18 @@ nsresult nsAbOutlookDirectory::DoQuery(nsIAbDirectory *aDirectory,
     return NS_ERROR_OUT_OF_MEMORY;
   }
 
-  nsIntegerKey newKey(*aReturnValue);
-  mQueryThreads.Put(&newKey, newThread);
+  mQueryThreads.Put(*aReturnValue, newThread);
   return NS_OK;
 }
 
 nsresult nsAbOutlookDirectory::StopQuery(PRInt32 aContext)
 {
-    nsIntegerKey contextKey(aContext) ;
-    PRThread *queryThread = reinterpret_cast<PRThread *>(mQueryThreads.Get(&contextKey)) ;
-
-    if (queryThread) { 
-        PR_Interrupt(queryThread) ; 
-        mQueryThreads.Remove(&contextKey) ;
+    PRThread *queryThread;
+    if (mQueryThreads.Get(aContext, &queryThread)) {
+        PR_Interrupt(queryThread);
+        mQueryThreads.Remove(aContext);
     }
-    return NS_OK ;
+    return NS_OK;
 }
 
 // nsIAbDirectorySearch methods
@@ -975,7 +944,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::StartSearch(void)
     
     retCode = StopSearch() ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;
-    mCardList.Reset() ;
+    mCardList.Clear();
 
     nsCOMPtr<nsIAbBooleanExpression> expression ;
 
@@ -1016,9 +985,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::OnSearchFinished(PRInt32 aResult,
 
 NS_IMETHODIMP nsAbOutlookDirectory::OnSearchFoundCard(nsIAbCard *aCard) 
 {
-  nsVoidKey newKey(static_cast<void *>(aCard));
-    
-  mCardList.Put(&newKey, aCard);
+  mCardList.Put(aCard, aCard);
   nsresult rv;
   nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv))
@@ -1069,9 +1036,7 @@ nsresult nsAbOutlookDirectory::ExecuteQuery(nsIAbDirectoryQueryArguments *aArgum
     aListener->OnSearchFoundCard(card);
   }
 
-  nsIntegerKey hashKey(aThreadId);
-    
-  mQueryThreads.Remove(&hashKey);
+  mQueryThreads.Remove(aThreadId);
 
   aListener->OnSearchFinished(nsIAbDirectoryQueryResultListener::queryResultComplete,
                               EmptyString());

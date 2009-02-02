@@ -42,7 +42,6 @@
 #include "nsIAddrDatabase.h"
 #include "mdb.h"
 #include "nsString.h"
-#include "nsHashtable.h"
 #include "nsInterfaceHashtable.h"
 
 class nsOEAddressIterator : public CWabIterator {

@@ -43,7 +43,8 @@
 #include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectorySearch.h"
 #include "nsIAbDirSearchListener.h"
-#include "nsHashtable.h"
+#include "nsDataHashtable.h"
+#include "nsInterfaceHashtable.h"
 #include "nsIMutableArray.h"
 #include "nsAbWinHelper.h"
 
@@ -108,11 +109,11 @@ protected:
 
   nsMapiEntry *mMapiData;
   // Container for the query threads
-  nsHashtable mQueryThreads;
+  nsDataHashtable<nsUint32HashKey, PRThread*> mQueryThreads;
   PRInt32 mCurrentQueryId;
   PRLock *mProtector;
   // Data for the search interfaces
-  nsSupportsHashtable mCardList;
+  nsInterfaceHashtable<nsISupportsHashKey, nsIAbCard> mCardList;
   PRInt32 mSearchContext;
   // Windows AB type
   PRUint32 mAbWinType;
