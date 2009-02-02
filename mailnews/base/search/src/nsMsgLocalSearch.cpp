@@ -180,8 +180,7 @@ PRBool nsMsgSearchBoolExpression::OfflineEvaluate(nsIMsgDBHdr *msgToMatch, const
     {
         result = m_leftChild->OfflineEvaluate(msgToMatch, defaultCharset,
           scope, db, headers, headerSize, Filtering);
-        // If (TRUE and OR) or (FALSE and AND) return result
-        if (result ^ isAnd)
+        if ( (result && !isAnd) || (!result && isAnd))
           return result;
     }
 
