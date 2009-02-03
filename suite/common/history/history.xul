@@ -46,7 +46,6 @@
 
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
-<?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/history/placesOverlay.xul"?>
 
@@ -75,7 +74,14 @@
     <command id="cmd_search_focus"
              oncommand="gSearchBox.focus();"/>
   </commandset>
-  <commandset id="editMenuCommands"/>
+  <commandset id="selectEditMenuItems">
+    <command id="cmd_cut"/>
+    <command id="cmd_copy"/>
+    <command id="cmd_delete"/>
+    <command id="placesCmd_delete:hostname" oncommand="goDoCommand('placesCmd_delete:hostname');"/>
+    <command id="placesCmd_delete:domain" oncommand="goDoCommand('placesCmd_delete:domain');"/>
+    <command id="cmd_selectAll"/>
+  </commandset>
   <commandset id="placesCommands"/>
 
   <broadcaster id="Communicator:WorkMode"/>
@@ -99,9 +105,6 @@
 
   <popupset id="placesPopupset">
     <popup id="placesContext"/>
-    <popup id="placesColumnsContext"
-           onpopupshowing="ViewMenu.fillWithColumns(event, null, null, 'checkbox', null);"
-           oncommand="ViewMenu.showHideColumn(event.target); event.stopPropagation();"/>
   </popupset>
 
   <toolbox id="history-toolbox">
@@ -116,13 +119,13 @@
 
     <menu id="menu_Edit">
       <menupopup>
-        <menuitem id="menu_cut"
-                  selection="separator|link|folder|mixed"/>
-        <menuitem id="menu_copy"
-                  selection="separator|link|folder|mixed"/>
+        <menuitem id="menu_cut"/>
+        <menuitem id="menu_copy"/>
         <menuitem id="menu_delete"/>
+        <menuitem id="menu_deleteByHostname" command="placesCmd_delete:hostname"/>
+        <menuitem id="menu_deleteByDomain" command="placesCmd_delete:domain"/>
         <menuseparator/>
-        <menuitem id="cMenu_selectAll"/>
+        <menuitem id="menu_selectAll"/>
       </menupopup>
     </menu>
     <menu id="menu_View">

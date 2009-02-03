@@ -40,14 +40,22 @@
  * ***** END LICENSE BLOCK ***** */
 
 var gHistoryTree;
+var gLastHostname;
+var gLastDomain;
 var gSearchBox;
 var gPrefService;
+var gIOService;
+var gETLDService;
+var gDeleteByHostname;
+var gDeleteByDomain;
 var gHistoryStatus;
 var gHistoryGrouping = "day";
 
 function HistoryCommonInit()
 {
   gHistoryTree = document.getElementById("historyTree");
+  gDeleteByHostname = document.getElementById("menu_deleteByHostname");
+  gDeleteByDomain = document.getElementById("menu_deleteByDomain");
   gHistoryStatus = document.getElementById("statusbar-display");
   gSearchBox = document.getElementById("search-box");
 
@@ -76,16 +84,43 @@ function HistoryCommonInit()
 
 function updateHistoryCommands()
 {
+  document.commandDispatcher.updateCommands("select");
   goUpdateCommand("placesCmd_open");
   goUpdateCommand("placesCmd_open:window");
   goUpdateCommand("placesCmd_open:tab");
+  goUpdateCommand("placesCmd_delete:hostname");
+  goUpdateCommand("placesCmd_delete:domain");
 }
 
 function historyOnSelect()
 {
+  gLastHostname = null;
+  gLastDomain = null;
+  var url = null;
+
   var selectedNode = gHistoryTree.selectedNode;
-  var url = selectedNode && PlacesUtils.nodeIsURI(selectedNode) ?
-            selectedNode.uri : null;
+  if (selectedNode) {
+    if (PlacesUtils.nodeIsURI(selectedNode)) {
+      try {
+        url = selectedNode.uri;
+        if (!gIOService)
+          gIOService = Components.classes["@mozilla.org/network/io-service;1"]
+                                 .getService(Components.interfaces.nsIIOService);
+        gLastHostname = gIOService.newURI(url, null, null).host;
+      } catch (e) {}
+    } else if (PlacesUtils.nodeIsHost(selectedNode)) {
+      gLastHostname = selectedNode.title;
+    }
+    if (gLastHostname) {
+      try {
+        if (!gETLDService)
+          gETLDService =
+            Components.classes["@mozilla.org/network/effective-tld-service;1"]
+                      .getService(Components.interfaces.nsIEffectiveTLDService);
+        gLastDomain = gETLDService.getBaseDomainFromHost(gLastHostname);
+      } catch (e) {}
+    }
+  }
 
   gHistoryStatus.label = url;
 

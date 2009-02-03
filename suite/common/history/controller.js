@@ -105,6 +105,22 @@ PlacesController.prototype = {
     case "placesCmd_open:tab":
       var selectedNode = this._view.selectedNode;
       return selectedNode && PlacesUtils.nodeIsURI(selectedNode);
+    case "placesCmd_delete:hostname":
+      gDeleteByHostname.accessKey = PlacesUIUtils.getString("delete.hostname.accesskey");
+      if (gLastHostname) {
+        gDeleteByHostname.label = PlacesUIUtils.getFormattedString("delete.hostname.true", [gLastHostname]);
+        return true;
+      }
+      gDeleteByHostname.label = PlacesUIUtils.getString("delete.hostname.false");
+      return false;
+    case "placesCmd_delete:domain":
+      gDeleteByDomain.accessKey = PlacesUIUtils.getString("delete.domain.accesskey");
+      if (gLastDomain) {
+        gDeleteByDomain.label = PlacesUIUtils.getFormattedString("delete.domain.true", [gLastDomain]);
+        return true;
+      }
+      gDeleteByDomain.label = PlacesUIUtils.getString("delete.domain.false");
+      return false;
     default:
       return false;
     }
@@ -132,6 +148,16 @@ PlacesController.prototype = {
       break;
     case "placesCmd_open:tab":
       PlacesUIUtils.openNodeIn(this._view.selectedNode, "tab");
+      break;
+    case "placesCmd_delete:hostname":
+      PlacesUtils.history
+                 .QueryInterface(Components.interfaces.nsIBrowserHistory)
+                 .removePagesFromHost(gLastHostname, false);
+      break;
+    case "placesCmd_delete:domain":
+      PlacesUtils.history
+                 .QueryInterface(Components.interfaces.nsIBrowserHistory)
+                 .removePagesFromHost(gLastDomain, true);
       break;
     }
   },
