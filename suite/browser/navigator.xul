@@ -425,6 +425,8 @@
     </vbox>  
   </hbox>
 
+  <panel id="customizeToolbarSheetPopup"/>
+
   <statusbar id="status-bar" class="chromeclass-status"
              ondragdrop="nsDragAndDrop.drop(event, contentAreaDNDObserver);">
     <statusbarpanel id="component-bar"/>

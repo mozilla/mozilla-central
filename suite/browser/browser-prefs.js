@@ -440,6 +440,8 @@ pref("xpinstall.blacklist.add", "");
 
 // Customizable toolbar stuff
 pref("custtoolbar.personal_toolbar_folder", "");
+// Use a popup window for the customize toolbar UI
+pref("toolbar.customization.usesheet", false);
 
 pref("sidebar.customize.all_panels.url", "http://sidebar-rdf.netscape.com/%LOCALE%/sidebar-rdf/%SIDEBAR_VERSION%/all-panels.rdf");
 pref("sidebar.customize.directory.url", "http://dmoz.org/Netscape/Sidebar/");
@@ -513,6 +515,9 @@ pref("browser.downloadmanager.behavior", 1);
 
 // Turn on click-and-hold contextual menus
 pref("ui.click_hold_context_menus", true);
+
+// Use a sheet instead of a popup window for the customize toolbar UI
+pref("toolbar.customization.usesheet", true);
 #endif
 
 #ifndef XP_MACOSX

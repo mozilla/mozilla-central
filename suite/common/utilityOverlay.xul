@@ -10,6 +10,8 @@
 %platformCommunicatorDTD;
 <!ENTITY % utilityDTD SYSTEM "chrome://communicator/locale/utilityOverlay.dtd">
 %utilityDTD;
+<!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
+%customizeToolbarDTD;
 
 ]>
 
@@ -113,6 +115,12 @@
               accesskey="&customizeToolbarContext.accesskey;"/>
 
   </popup>
+
+  <panel id="customizeToolbarSheetPopup" noautohide="true">
+    <iframe id="customizeToolbarSheetIFrame"
+            style="&dialog.style;"
+            hidden="true"/>
+  </panel>
 
   <statusbarpanel id="offline-status" context="networkProperties"
                   observes="Communicator:WorkMode"/>

@@ -144,6 +144,7 @@ modern.jar:
   skin/modern/global/checkbox.css                                  (global/checkbox.css)
   skin/modern/global/colorpicker.css                               (global/colorpicker.css)
   skin/modern/global/config.css                                    (global/config.css)
+  skin/modern/global/customizeToolbar.css                          (global/customizeToolbar.css)
   skin/modern/global/datetimepicker.css                            (global/datetimepicker.css)
   skin/modern/global/dialog.css                                    (global/dialog.css)
   skin/modern/global/dropmarker.css                                (global/dropmarker.css)

@@ -2,6 +2,7 @@ comm.jar:
 % content communicator %content/communicator/ xpcnativewrappers=yes contentaccessible=yes
 % override chrome://global/content/license.html chrome://communicator/content/license.html
 % override chrome://mozapps/content/profile/profileSelection.xul chrome://communicator/content/profile/profileSelection.xul
+% override chrome://global/content/customizeToolbar.xul chrome://communicator/content/customizeToolbar.xul
 % overlay chrome://communicator/content/contentAreaContextOverlay.xul chrome://communicator/content/permissions/imageContextOverlay.xul
 % overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/permissionsNavigatorOverlay.xul
 % overlay chrome://global/content/console.xul chrome://communicator/content/consoleOverlay.xul
@@ -55,6 +56,8 @@ comm.jar:
    content/communicator/contentAreaDD.js
    content/communicator/contentAreaClick.js
    content/communicator/contentAreaContextOverlay.xul
+   content/communicator/customizeToolbar.js
+   content/communicator/customizeToolbar.xul
    content/communicator/defaultClientDialog.js
    content/communicator/defaultClientDialog.xul
    content/communicator/editorBindings.xul

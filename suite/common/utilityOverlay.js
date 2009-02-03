@@ -280,6 +280,8 @@ function goToggleToolbar( id, elementID )
   }
 }
 
+var gCustomizeSheet = false;
+
 function goCustomizeToolbar(toolbox)
 {
   /* If the toolbox has a method "customizeInit" then call it first.
@@ -289,10 +291,38 @@ function goCustomizeToolbar(toolbox)
     toolbox.customizeInit();
 
   var customizeURL = "chrome://global/content/customizeToolbar.xul";
-  window.openDialog(customizeURL,
-                    "",
-                    "chrome,all,dependent",
-                    toolbox);
+
+  gCustomizeSheet = getBoolPref("toolbar.customization.usesheet", false);
+
+  if (gCustomizeSheet) {
+    var sheetFrame = document.getElementById("customizeToolbarSheetIFrame");
+    sheetFrame.hidden = false;
+    sheetFrame.toolbox = toolbox;
+
+    // The document might not have been loaded yet, if this is the first time.
+    // If it is already loaded, reload it so that the onload initialization
+    // code re-runs.
+    if (sheetFrame.getAttribute("src") == customizeURL)
+      sheetFrame.contentWindow.location.reload();
+    else
+      sheetFrame.setAttribute("src", customizeURL);
+
+    // XXXmano: there's apparently no better way to get this when the iframe
+    // is hidden
+    var sheetWidth = sheetFrame.style.width.match(/([0-9]+)px/)[1];
+    document.getElementById("customizeToolbarSheetPopup")
+            .openPopup(toolbox,
+                       "after_start",
+                       (window.innerWidth - sheetWidth) / 2, 0);
+
+    return sheetFrame.contentWindow;
+  }
+  else {
+    return window.openDialog(customizeURL,
+                             "",
+                             "chrome,all,dependent",
+                             toolbox);
+  }
 }
 
 function onViewToolbarsPopupShowing(aEvent)
@@ -453,6 +483,16 @@ function toolboxCustomizeInit(menubarID)
 
 function toolboxCustomizeDone(menubarID, toolbox, aToolboxChanged)
 {
+  if (gCustomizeSheet) {
+    var sheetFrame = document.getElementById("customizeToolbarSheetIFrame");
+    sheetFrame.hidden = true;
+    document.getElementById("customizeToolbarSheetPopup").hidePopup();
+    if (content)
+      content.focus();
+    else
+      window.focus();
+  }
+
   // Re-enable parts of the UI we disabled during the dialog
   var menubar = document.getElementById(menubarID);
   for (let i = 0; i < menubar.childNodes.length; ++i) {
