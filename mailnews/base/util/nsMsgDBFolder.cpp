@@ -707,12 +707,6 @@ nsresult nsMsgDBFolder::ReadDBFolderInfo(PRBool force)
         }
       }
     }
-    else {
-      // we tried to open DB but failed - don't keep trying.
-      // If a DB is created, we will call this method with force == TRUE,
-      // and read from the db that way.
-      mInitializedFromCache = PR_TRUE;
-    }
     if (db)
       db->Close(PR_FALSE);
   }
