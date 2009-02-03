@@ -1580,7 +1580,8 @@ PRBool nsImapProtocol::ProcessCurrentURL()
           else if (m_socketType == nsIMsgIncomingServer::alwaysUseTLS)
           {
             SetConnectionStatus(-1);        // stop netlib
-            m_transport->Close(rv);
+            if (m_transport)
+              m_transport->Close(rv);
           }
         }
         // in this case, we didn't know the server supported TLS when
@@ -7218,7 +7219,7 @@ void nsImapProtocol::List(const char *mailboxPattern, PRBool addDirectoryIfNeces
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
-    ParseIMAPandCheckForNewMail();
+    ParseIMAPandCheckForNewMail(command.get(), PR_TRUE);
 }
 
 void nsImapProtocol::Subscribe(const char *mailboxName)
