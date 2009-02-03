@@ -88,7 +88,7 @@ cal.alarms = {
                 if (returnDate.isDate) {
                     let tz = cal.calendarDefaultTimezone();
                     // This returns a copy, so no extra cloning needed.
-                    returnDate = alarmDate.getInTimezone(tz);
+                    returnDate = returnDate.getInTimezone(tz);
                     returnDate.isDate = false;
                 } else {
                     // Clone the date to correctly add the duration.
