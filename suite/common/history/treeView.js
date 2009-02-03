@@ -930,7 +930,7 @@ PlacesTreeView.prototype = {
       case "Name":
         if (oldSort == NHQO.SORT_BY_TITLE_ASCENDING)
           newSort = NHQO.SORT_BY_TITLE_DESCENDING;
-        else
+        else if (oldSort != NHQO.SORT_BY_TITLE_DESCENDING)
           newSort = NHQO.SORT_BY_TITLE_ASCENDING;
         break;
 
@@ -938,7 +938,7 @@ PlacesTreeView.prototype = {
       case "URL":
         if (oldSort == NHQO.SORT_BY_URI_ASCENDING)
           newSort = NHQO.SORT_BY_URI_DESCENDING;
-        else
+        else if (oldSort != NHQO.SORT_BY_URI_DESCENDING)
           newSort = NHQO.SORT_BY_URI_ASCENDING;
         break;
 
@@ -949,7 +949,7 @@ PlacesTreeView.prototype = {
       case "Date":
         if (oldSort == NHQO.SORT_BY_DATE_DESCENDING)
           newSort = NHQO.SORT_BY_DATE_ASCENDING;
-        else
+        else if (oldSort != NHQO.SORT_BY_DATE_ASCENDING)
           newSort = NHQO.SORT_BY_DATE_DESCENDING;
         break;
 
@@ -960,7 +960,7 @@ PlacesTreeView.prototype = {
         // highly visited sites when you click it
         if (oldSort == NHQO.SORT_BY_VISITCOUNT_DESCENDING)
           newSort = NHQO.SORT_BY_VISITCOUNT_ASCENDING;
-        else
+        else if (oldSort != NHQO.SORT_BY_VISITCOUNT_ASCENDING)
           newSort = NHQO.SORT_BY_VISITCOUNT_DESCENDING;
         break;
 
