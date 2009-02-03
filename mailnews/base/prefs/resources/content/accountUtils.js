@@ -117,7 +117,7 @@ function verifyAccounts(wizardCallback)
         // as long as we have some accounts, we're fine.
         var accountCount = accounts.Count();
         var invalidAccounts = getInvalidAccounts(accounts);
-        if (invalidAccounts.length > 0) {
+        if (invalidAccounts.length > 0 && invalidAccounts.length == accountCount) {
             prefillAccount = invalidAccounts[0];
         } else {
         }
