@@ -57,6 +57,7 @@
 #include "nsMsgMimeCID.h"
 #include "nsComposeStrings.h"
 #include "nsIMutableArray.h"
+#include "nsArrayEnumerator.h"
 
 NS_IMPL_ISUPPORTS3(nsMsgSendLater,
                    nsIMsgSendLater,
@@ -88,8 +89,6 @@ nsMsgSendLater::nsMsgSendLater()
 
   mIdentityKey = nsnull;
   mAccountKey = nsnull;
-
-  NS_NewISupportsArray(getter_AddRefs(mMessagesToSend));
 }
 
 nsMsgSendLater::~nsMsgSendLater()
@@ -551,14 +550,17 @@ nsMsgSendLater::StartNextMailFileSend()
   nsresult      rv = NS_OK;
   nsCString  messageURI;
 
-  if ( (!mEnumerator) || (mEnumerator->IsDone() == NS_OK) )
+  PRBool hasMoreElements = PR_FALSE;
+  if ((!mEnumerator) ||
+      NS_FAILED(mEnumerator->HasMoreElements(&hasMoreElements)) ||
+      !hasMoreElements)
   {
     // Call any listeners on this operation and then exit cleanly
 #ifdef NS_DEBUG
     printf("nsMsgSendLater: Finished \"Send Later\" operation.\n");
 #endif
 
-    mMessagesToSend->Clear(); // clear out our array
+    mMessagesToSend.Clear();
     mSendingMessages = PR_FALSE;
     NotifyListenersOnStopSending(NS_OK, nsnull, mTotalSendCount, mTotalSentSuccessfully);
     // XXX Should we be releasing references so that we don't hold onto items
@@ -566,13 +568,12 @@ nsMsgSendLater::StartNextMailFileSend()
     return NS_OK;
   }
 
-  nsCOMPtr<nsISupports>   currentItem;
-  mEnumerator->CurrentItem(getter_AddRefs(currentItem));
-  // advance to the next item for the next pass.
-  mEnumerator->Next();
+  nsCOMPtr<nsISupports> currentItem;
+  rv = mEnumerator->GetNext(getter_AddRefs(currentItem));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   mMessage = do_QueryInterface(currentItem); 
-  if(!mMessage)
+  if (!mMessage)
     return NS_ERROR_NOT_AVAILABLE;
 
   nsCOMPtr<nsIMsgDBHdr>  myRDFNode ;
@@ -585,7 +586,7 @@ nsMsgSendLater::StartNextMailFileSend()
   rv = nsMsgCreateTempFile("nsqmail.tmp", getter_AddRefs(mTempFile)); 
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsIMsgMessageService> messageService;
+  nsCOMPtr<nsIMsgMessageService> messageService;
   rv = GetMessageServiceFromURI(messageURI, getter_AddRefs(messageService));
   if (NS_FAILED(rv) && !messageService)
     return NS_ERROR_FACTORY_NOT_LOADED;
@@ -674,26 +675,28 @@ nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity,
 
   // copy all the elements in the enumerator into our isupports array....
 
-  nsCOMPtr<nsISupports>   currentItem;
+  nsCOMPtr<nsISupports> currentItem;
+  nsCOMPtr<nsIMsgDBHdr> messageHeader;
   PRBool hasMoreElements = PR_FALSE;
   while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMoreElements)) && hasMoreElements)
   {
     rv = enumerator->GetNext(getter_AddRefs(currentItem));
-    if (NS_SUCCEEDED(rv) && currentItem)
-      mMessagesToSend->AppendElement(currentItem);
+    if (NS_SUCCEEDED(rv))
+    {
+      messageHeader = do_QueryInterface(currentItem, &rv);
+      if (NS_SUCCEEDED(rv))
+        mMessagesToSend.AppendObject(messageHeader);
+    }
   }
 
   // now get an enumerator for our array
-  mMessagesToSend->Enumerate(getter_AddRefs(mEnumerator));
+  rv = NS_NewArrayEnumerator(getter_AddRefs(mEnumerator), mMessagesToSend);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   mSendingMessages = PR_TRUE;
 
   // Notify the listeners that we are starting a send.
-  PRUint32 count;
-  rv = mMessagesToSend->Count(&count);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  NotifyListenersOnStartSending(count);
+  NotifyListenersOnStartSending(mMessagesToSend.Count());
 
   return StartNextMailFileSend();
 }

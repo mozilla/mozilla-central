@@ -40,8 +40,7 @@
 
 #include "nsIMsgSendLater.h"
 
-#include "nsIEnumerator.h"
-#include "nsISupportsArray.h"
+#include "nsCOMArray.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgSendListener.h"
 #include "nsIMsgSendLaterListener.h"
@@ -114,8 +113,8 @@ public:
   // counters and things for enumeration 
   PRUint32                  mTotalSentSuccessfully;
   PRUint32                  mTotalSendCount;
-  nsCOMPtr<nsISupportsArray> mMessagesToSend;
-  nsCOMPtr<nsIEnumerator> mEnumerator;
+  nsCOMArray<nsIMsgDBHdr> mMessagesToSend;
+  nsCOMPtr<nsISimpleEnumerator> mEnumerator;
   nsCOMPtr<nsIMsgFolder>    mMessageFolder;
   nsCOMPtr<nsIMsgWindow>    m_window;
  
