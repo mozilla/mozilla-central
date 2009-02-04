@@ -1046,6 +1046,7 @@ PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
 NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
 {
   NS_ENSURE_ARG_POINTER(isKilled);
+  *isKilled = PR_FALSE;
   nsCOMPtr<nsIMsgThread> thread;
   (void) m_mdb->GetThreadContainingMsgHdr(this, getter_AddRefs(thread));
   // if we can't find the thread, let's at least check one level; maybe
