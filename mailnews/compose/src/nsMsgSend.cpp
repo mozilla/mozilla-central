@@ -269,12 +269,11 @@ NS_IMETHODIMP MsgDeliveryListener::OnStopRunningUrl(nsIURI *url, nsresult aExitC
     if (mailUrl)
       mailUrl->UnRegisterListener(this);
   }
-  
+
+  // Let mMsgSend sort out the OnStopSending notification - it knows more about
+  // the messages than we do.
   if (mMsgSend)
-  {
-    mMsgSend->NotifyListenerOnStopSending(nsnull, aExitCode, nsnull, nsnull);
     mMsgSend->SendDeliveryCallback(url, mIsNewsDelivery, aExitCode);
-  }
       
   return NS_OK;
 }
@@ -4066,10 +4065,11 @@ nsMsgComposeAndSend::DoFcc()
   if (!fcc || !*fcc || !CanSaveMessagesToFolder(fcc))
   {
 #ifdef NS_DEBUG
-  printf("\nCopy operation disabled by user!\n");
+    printf("\nCopy operation disabled by user!\n");
 #endif
 
-    NotifyListenerOnStopSending(nsnull, NS_OK, nsnull, nsnull);
+    // It is the caller's responsibility to say we've stopped sending, so just
+    // let the listeners know we're not doing a copy.
     NotifyListenerOnStopCopy(NS_OK);  // For closure of compose window...
     return NS_OK;
   }

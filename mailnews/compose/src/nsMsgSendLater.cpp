@@ -361,20 +361,8 @@ SendOperationListener::OnStopSending(const char *aMsgID, nsresult aStatus, const
       printf("nsMsgSendLater: Success on the message send operation!\n");
 #endif
 
-      PRBool    deleteMsgs = PR_TRUE;
-
-      //
-      // Now delete the message from the outbox folder.
-      //
-      nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-      if (pPrefBranch)
-        pPrefBranch->GetBoolPref("mail.really_delete_draft", &deleteMsgs);
-
       mSendLater->SetOrigMsgDisposition();
-      if (deleteMsgs)
-      {
-        mSendLater->DeleteCurrentMessage();
-      }
+      mSendLater->DeleteCurrentMessage();
 
       ++(mSendLater->mTotalSentSuccessfully);
     }
@@ -576,11 +564,6 @@ nsMsgSendLater::StartNextMailFileSend()
   if (!mMessage)
     return NS_ERROR_NOT_AVAILABLE;
 
-  nsCOMPtr<nsIMsgDBHdr>  myRDFNode ;
-  myRDFNode = do_QueryInterface(mMessage, &rv);
-  if(NS_FAILED(rv) || (!myRDFNode))
-    return NS_ERROR_NOT_AVAILABLE;
-
   mMessageFolder->GetUriForMsg(mMessage, messageURI);
 
   rv = nsMsgCreateTempFile("nsqmail.tmp", getter_AddRefs(mTempFile)); 
@@ -703,6 +686,9 @@ nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity,
 
 nsresult nsMsgSendLater::SetOrigMsgDisposition()
 {
+  if (!mMessage)
+    return NS_ERROR_NULL_POINTER;
+
   // We're finished sending a queued message. We need to look at mMessage 
   // and see if we need to set replied/forwarded
   // flags for the original message that this message might be a reply to
@@ -742,6 +728,12 @@ nsresult nsMsgSendLater::SetOrigMsgDisposition()
 nsresult
 nsMsgSendLater::DeleteCurrentMessage()
 {
+  if (!mMessage)
+  {
+    NS_ERROR("nsMsgSendLater: Attempt to delete an already deleted message");
+    return NS_OK;
+  }
+
   // Get the composition fields interface
   nsCOMPtr<nsIMutableArray> msgArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
   if (!msgArray)
@@ -751,6 +743,9 @@ nsMsgSendLater::DeleteCurrentMessage()
   nsresult res = mMessageFolder->DeleteMessages(msgArray, nsnull, PR_TRUE, PR_FALSE, nsnull, PR_FALSE /*allowUndo*/);
   if (NS_FAILED(res))
     return NS_ERROR_FAILURE;
+
+  // Null out the message so we don't try and delete it again.
+  mMessage = nsnull;
 
   return NS_OK;
 }

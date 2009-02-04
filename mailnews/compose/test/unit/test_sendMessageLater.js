@@ -51,6 +51,7 @@ msll.prototype = {
     try {
       do_check_eq(aStatus, 0);
       do_check_eq(aTotal, 1);
+      do_check_eq(aSuccessful, 1);
       do_check_eq(this._initialTotal, 1);
       do_check_eq(msgSendLater.sendingMessages, false);
 
@@ -208,10 +209,6 @@ function sendMessageLater()
 function run_test() {
   // Test file - for bug 429891
   originalData = loadFileToString(testFile);
-
-  Components.classes["@mozilla.org/preferences-service;1"]
-            .getService(Components.interfaces.nsIPrefBranch)
-    .setBoolPref("mail.really_delete_draft", false);
 
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.
