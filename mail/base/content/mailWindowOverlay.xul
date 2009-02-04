@@ -370,6 +370,7 @@
   <key id="key_archive" key="&archiveMsgCmd.key;"                    oncommand="goDoCommand('cmd_archive')"/>
   <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward')"/>
   <key id="key_goBack" key="&goBackCmd.commandKey;"                  oncommand="goDoCommand('cmd_goBack')"/>
+  <key id="key_goStartPage" keycode="VK_HOME"                        oncommand="goDoCommand('cmd_goStartPage')" modifiers="alt"/>
   <key id="key_reply" key="&replyMsgCmd.key;"                        oncommand="goDoCommand('cmd_reply')" modifiers="accel"/>
   <key id="key_replyall" key="&replyToAllMsgCmd.key;"                oncommand="goDoCommand('cmd_replyall')" modifiers="accel, shift"/>
   <key id="key_forward" key="&forwardMsgCmd.key;"                    oncommand="goDoCommand('cmd_forward')" modifiers="accel"/>
@@ -1133,7 +1134,11 @@
                     accesskey="&goBackCmd.accesskey;" command="cmd_goBack"
                     chromedir="&locale.dir;" key="key_goBack"/>
           <menuseparator id="goNextSeparator"/>
-          <menuitem id="goStartPage" label="&startPageCmd.label;" accesskey="&startPageCmd.accesskey;" command="cmd_goStartPage"/>
+          <menuitem id="goStartPage"
+                    label="&startPageCmd.label;"
+                    accesskey="&startPageCmd.accesskey;"
+                    command="cmd_goStartPage"
+                    key="key_goStartPage"/>
         </menupopup>
         </menu>
 
