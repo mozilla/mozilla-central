@@ -491,6 +491,10 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
         // important: leave out sender field. Too strong of an indicator
         break;
     case 'x': // (2) X-Mailer / user-agent works best if it is untokenized, just fold the case and any leading/trailing white space
+        // all headers beginning with x-mozilla are being changed by us, so ignore
+        if (Substring(headerName, 0, 9).Equals("x-mozilla"))
+          break;
+        // fall through
     case 'u':
         addTokenForHeader(headerName.get(), headerValue);
         break;
