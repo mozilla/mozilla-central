@@ -107,6 +107,7 @@
     </preferences>
 
 #ifdef HAVE_SHELL_SERVICE
+    <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
     <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
 #endif
 
