@@ -409,7 +409,6 @@ Section "-Application" APP_IDX
     ${LogMsg} "Added Shortcut: $SMPROGRAMS\$StartMenuDir\${BrandFullName} ($(SAFE_MODE)).lnk"
   ${EndIf}
 
-  ; perhaps use the uninstall keys
   ${If} $AddQuickLaunchSC == 1
     CreateShortCut "$QUICKLAUNCH\${BrandFullName}.lnk" "$INSTDIR\${FileMainEXE}" "" "$INSTDIR\${FileMainEXE}" 0
     ${LogMsg} "Added Shortcut: $QUICKLAUNCH\${BrandFullName}.lnk"
@@ -428,6 +427,14 @@ Section "-InstallEndCleanup"
   SetDetailsPrint both
   DetailPrint "$(STATUS_CLEANUP)"
   SetDetailsPrint none
+
+  ${Unless} ${Silent}
+    ${MUI_INSTALLOPTIONS_READ} $0 "options.ini" "Field 6" "State"
+    ${If} "$0" == "1"
+      ${LogHeader} "Setting as the default mail application"
+      Call SetAsDefaultMailAppUser
+    ${EndIf}
+  ${EndUnless}
 
   ${LogHeader} "Updating Uninstall Log With Previous Uninstall Log"
 
@@ -667,6 +674,7 @@ Function leaveStartMenu
 FunctionEnd
 
 Function preSummary
+  ; Setup the summary.ini file for the Custom Summary Page
   WriteINIStr "$PLUGINSDIR\summary.ini" "Settings" NumFields "3"
 
   WriteINIStr "$PLUGINSDIR\summary.ini" "Field 1" Type   "label"
@@ -677,6 +685,9 @@ Function preSummary
   WriteINIStr "$PLUGINSDIR\summary.ini" "Field 1" Bottom "15"
 
   WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" Type   "text"
+  ; The contents of this control must be set as follows in the pre function
+  ; ${MUI_INSTALLOPTIONS_READ} $1 "summary.ini" "Field 2" "HWND"
+  ; SendMessage $1 ${WM_SETTEXT} 0 "STR:$INSTDIR"
   WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" state  ""
   WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" Left   "0"
   WriteINIStr "$PLUGINSDIR\summary.ini" "Field 2" Right  "-1"
@@ -700,6 +711,27 @@ Function preSummary
     WriteINIStr "$PLUGINSDIR\summary.ini" "Field 4" Bottom "45"
 
     WriteINIStr "$PLUGINSDIR\summary.ini" "Settings" NumFields "4"
+  ${EndIf}
+
+  ReadINIStr $0 "$PLUGINSDIR\options.ini" "Field 6" "State"
+  ${If} "$0" == "1"
+    ${If} "$TmpVal" == "true"
+      ; To insert this control reset Top / Bottom for controls below this one
+      WriteINIStr "$PLUGINSDIR\summary.ini" "Field 4" Top    "50"
+      WriteINIStr "$PLUGINSDIR\summary.ini" "Field 4" Bottom "60"
+      StrCpy $0 "5"
+    ${Else}
+      StrCpy $0 "4"
+    ${EndIf}
+
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field $0" Type   "label"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field $0" Text   "$(SUMMARY_MAKE_DEFAULT)"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field $0" Left   "0"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field $0" Right  "-1"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field $0" Top    "35"
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Field $0" Bottom "45"
+
+    WriteINIStr "$PLUGINSDIR\summary.ini" "Settings" NumFields "$0"
   ${EndIf}
 
   !insertmacro MUI_HEADER_TEXT "$(SUMMARY_PAGE_TITLE)" "$(SUMMARY_PAGE_SUBTITLE)"
@@ -748,7 +780,7 @@ Function .onInit
   !insertmacro InitInstallOptionsFile "summary.ini"
 
   ; Setup the options.ini file for the Custom Options Page
-  WriteINIStr "$PLUGINSDIR\options.ini" "Settings" NumFields "5"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Settings" NumFields "6"
 
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Type   "label"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 1" Text   "$(OPTIONS_SUMMARY)"
@@ -788,7 +820,15 @@ Function .onInit
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Top    "67"
   WriteINIStr "$PLUGINSDIR\options.ini" "Field 5" Bottom "87"
 
-  ; Setup the shortcuts.ini for the Custom Shortcuts Page
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Type   "checkbox"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Text   "$(OPTIONS_MAKE_DEFAULT)"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Left   "0"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Right  "-1"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Top    "124"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" Bottom "145"
+  WriteINIStr "$PLUGINSDIR\options.ini" "Field 6" State  "1"
+
+  ; Setup the shortcuts.ini file for the Custom Shortcuts Page
   WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Settings" NumFields "4"
 
   WriteINIStr "$PLUGINSDIR\shortcuts.ini" "Field 1" Type   "label"

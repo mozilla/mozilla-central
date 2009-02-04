@@ -693,7 +693,6 @@
 
 ; The !ifdef NO_LOG prevents warnings when compiling the installer since these
 ; functions are currently only used by the uninstaller.
-!ifdef NO_LOG
 Function SetAsDefaultMailAppUser
   SetShellVarContext current  ; Set SHCTX to the current user (e.g. HKCU)
   ${SetHandlersMail}
@@ -708,6 +707,7 @@ Function SetAsDefaultMailAppUser
   ${EndIf}
 FunctionEnd
 
+!ifdef NO_LOG
 Function SetAsDefaultNewsAppUser
   SetShellVarContext current  ; Set SHCTX to the current user (e.g. HKCU)
   ${SetHandlersNews}
