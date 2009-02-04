@@ -218,6 +218,10 @@ protected:
   nsresult DeleteMessage(nsISupports *message, nsIMsgWindow *msgWindow,
                    PRBool deleteStorage, PRBool commit);
   nsresult GetDatabase();
+  // this will set mDatabase, if successful. It will also create a .msf file
+  // for an empty local mail folder. It will leave invalid DBs in place, and
+  // return an error.
+  nsresult OpenDatabase();
 
   // copy message helper
   nsresult DisplayMoveCopyStatusMsg();

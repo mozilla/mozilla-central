@@ -301,6 +301,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::AddSubfolder(const nsAString &name,
     if (!exists)
       rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
   }
+  (*child)->UpdateSummaryTotals(PR_TRUE);
   return rv;
 }
 
@@ -460,13 +461,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWOReparse(nsIMsgDatabase **aDatab
   nsresult rv = NS_OK;
   if (!mDatabase)
   {
-    nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    rv = msgDBService->OpenFolderDB(this, PR_TRUE, getter_AddRefs(mDatabase));
-
-    if (NS_FAILED(rv))
-      mDatabase = nsnull;   // comment to this function above states failure expects null db returned
+    rv = OpenDatabase();
     if (mDatabase)
     {
       mDatabase->AddListener(this);
@@ -787,6 +782,7 @@ nsMsgLocalMailFolder::CreateSubfolderInternal(const nsAString& folderName,
       }
       unusedDB->SetSummaryValid(PR_TRUE);
       unusedDB->Close(PR_TRUE);
+      UpdateSummaryTotals(PR_TRUE);
     }
     else
     {
@@ -1283,6 +1279,42 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetName(nsAString& aName)
   return nsMsgDBFolder::GetName(aName);
 }
 
+nsresult nsMsgLocalMailFolder::OpenDatabase()
+{
+  nsresult rv;
+  nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool folderEmpty = PR_FALSE;
+  nsCOMPtr <nsILocalFile> file;
+  rv = GetFilePath(getter_AddRefs(file));
+  // check for case of trying to open db for 0 byte folder (i.e., new folder),
+  // and in that case, tell msg db to create a new db and set it valid after opening it.
+  if (NS_SUCCEEDED(rv))
+  {
+    PRInt64 mailboxSize;
+    if (NS_SUCCEEDED(file->GetFileSize(&mailboxSize)))
+      folderEmpty = !mailboxSize;
+  }
+
+  rv = msgDBService->OpenFolderDB(this, PR_TRUE, getter_AddRefs(mDatabase));
+  if (folderEmpty)
+  {
+    if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
+    {
+      rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
+      if (mDatabase)
+      {
+        mDatabase->SetSummaryValid(PR_TRUE);
+        UpdateSummaryTotals(PR_TRUE);
+      }
+    }
+    else if (NS_FAILED(rv))
+      mDatabase = nsnull;
+  }
+  return rv;
+}
+
 NS_IMETHODIMP
 nsMsgLocalMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db)
 {
@@ -1294,33 +1326,8 @@ nsMsgLocalMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgD
     rv = NS_OK;
   else
   {
-    nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    rv = OpenDatabase();
 
-    PRBool folderEmpty = PR_FALSE;
-    nsCOMPtr <nsILocalFile> file;
-    rv = GetFilePath(getter_AddRefs(file));
-    // check for case of trying to open db for 0 byte folder (i.e., new folder),
-    // and in that case, tell msg db to create a new db and set it valid after opening it.
-    if (NS_SUCCEEDED(rv))
-    {
-      PRInt64 mailboxSize;
-      if (NS_SUCCEEDED(file->GetFileSize(&mailboxSize)))
-        folderEmpty = !mailboxSize;
-    }
-
-    rv = msgDBService->OpenFolderDB(this, PR_FALSE, getter_AddRefs(mDatabase));
-    if (folderEmpty)
-    {
-      if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
-      {
-        rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
-        if (mDatabase)
-          mDatabase->SetSummaryValid(PR_TRUE);
-      }
-      else if (NS_FAILED(rv))
-        mDatabase = nsnull;
-    }
     if (mAddListener && mDatabase)
       mDatabase->AddListener(this);
   }
