@@ -161,11 +161,11 @@ function notifyParentInitialized()
     gToolbox.customizeInitialized();
 }
 
-function toolboxChanged()
+function toolboxChanged(aEvent)
 {
   gToolboxChanged = true;
   if ("customizeChange" in gToolbox)
-    gToolbox.customizeChange();
+    gToolbox.customizeChange(aEvent);
 }
 
 function getToolbarAt(i)
@@ -656,7 +656,7 @@ function restoreDefaultSet()
   // Now re-wrap the items on the toolbar.
   wrapToolbarItems();
 
-  toolboxChanged();
+  toolboxChanged("reset");
 }
 
 function updateIconSize(aUseSmallIcons, localDefault)
