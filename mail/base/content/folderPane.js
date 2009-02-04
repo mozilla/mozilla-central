@@ -870,7 +870,9 @@ let gFolderTreeView = {
       let recentFolders = [];
       let oldestTime = 0;
       function addIfRecent(aFolder) {
-        let time = Number(aFolder.getStringProperty("MRUTime")) || 0;
+        try {
+          let time = Number(aFolder.getStringProperty("MRUTime")) || 0;
+        } catch (ex) {return;}
         if (time <= oldestTime)
           return;
 
