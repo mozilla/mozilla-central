@@ -196,6 +196,29 @@ function toMessengerWindow()
   toOpenWindowByType("mail:3pane", "chrome://messenger/content/messenger.xul");
 }
 
+
+function focusOnMail(tabNo, event)
+{
+  // this is invoked by accel-<number>
+  // if the window isn't visible or focused, make it so
+  const Cc = Components.classes;
+  const Ci = Components.interfaces;
+  var windowManager = Cc['@mozilla.org/appshell/window-mediator;1'].getService();
+  var windowManagerInterface = windowManager.QueryInterface(Ci.nsIWindowMediator);
+
+  var topWindow = windowManagerInterface.getMostRecentWindow("mail:3pane");
+  if (topWindow) {
+    if (topWindow != window)
+      topWindow.focus();
+    else
+      document.getElementById('tabmail').selectTabByIndex(event, tabNo);
+  }
+  else {
+    window.open("chrome://messenger/content/messenger.xul",
+                "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
+  }
+}
+
 function toAddressBook() 
 {
   toOpenWindowByType("mail:addressbook", "chrome://messenger/content/addressbook/addressbook.xul");

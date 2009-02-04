@@ -315,7 +315,7 @@
   <!-- Mac Window menu -->
   <command id="minimizeWindow" label="&minimizeWindow.label;" oncommand="window.minimize();"/>
   <command id="zoomWindow" label="&zoomWindow.label;" oncommand="zoomWindow();"/>
-  <command id="Tasks:Mail" oncommand="toMessengerWindow();"/>
+  <command id="Tasks:Mail" oncommand="focusOnMail(1);"/>
   <command id="Tasks:AddressBook" oncommand="toAddressBook();"/>
 </commandset>
 #endif
@@ -451,8 +451,29 @@
 #else
   <key id="key_searchMail" key="&searchMailCmd.key;" oncommand="goDoCommand('cmd_search')" modifiers="accel, shift"/>
 #endif
-  <key id="key_mail"  key="&messengerCmd.commandkey;" oncommand="toMessengerWindow();" modifiers="accel"/>
-  <key id="key_addressbook"  key="&addressBookCmd.commandkey;" oncommand="toAddressBook();" modifiers="accel"/>
+
+#ifdef XP_UNIX
+#ifndef XP_MACOSX
+#define XP_GNOME 1
+#endif
+#endif
+
+#ifdef XP_GNOME
+#define NUM_SELECT_TAB_MODIFIER alt
+#else
+#define NUM_SELECT_TAB_MODIFIER accel
+#endif
+
+#expand    <key id="key_mail" oncommand="focusOnMail(0, event);" key="1" modifiers="__NUM_SELECT_TAB_MODIFIER__"/>
+#expand    <key id="key_selectTab2" oncommand="focusOnMail(1, event);" key="2" modifiers="__NUM_SELECT_TAB_MODIFIER__"/>
+#expand    <key id="key_selectTab3" oncommand="focusOnMail(2, event);" key="3" modifiers="__NUM_SELECT_TAB_MODIFIER__"/>
+#expand    <key id="key_selectTab4" oncommand="focusOnMail(3, event);" key="4" modifiers="__NUM_SELECT_TAB_MODIFIER__"/>
+#expand    <key id="key_selectTab5" oncommand="focusOnMail(4, event);" key="5" modifiers="__NUM_SELECT_TAB_MODIFIER__"/>
+#expand    <key id="key_selectTab6" oncommand="focusOnMail(5, event);" key="6" modifiers="__NUM_SELECT_TAB_MODIFIER__"/>
+#expand    <key id="key_selectTab7" oncommand="focusOnMail(6, event);" key="7" modifiers="__NUM_SELECT_TAB_MODIFIER__"/>
+#expand    <key id="key_selectTab8" oncommand="focusOnMail(7, event);" key="8" modifiers="__NUM_SELECT_TAB_MODIFIER__"/>
+#expand    <key id="key_selectLastTab" oncommand="focusOnMail(-1, event);" key="9" modifiers="__NUM_SELECT_TAB_MODIFIER__"/>
+
 #ifdef XP_MACOSX
   <!-- Mac Window menu keys -->
   <key id="key_minimizeWindow" command="minimizeWindow" key="&minimizeWindow.key;" modifiers="accel"/>

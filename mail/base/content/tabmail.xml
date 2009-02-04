@@ -379,6 +379,26 @@
           }
         ]]></body>
       </method>
+      <method name="selectTabByIndex">
+        <parameter name="aEvent"/>
+        <parameter name="aIndex"/>
+        <body><![CDATA[
+          // count backwards for aIndex < 0
+          if (aIndex < 0)
+            aIndex += this.tabInfo.length;
+
+          if (aIndex >= 0 &&
+              aIndex < this.tabInfo.length &&
+              aIndex != this.tabContainer.selectedIndex) {
+            this.tabContainer.selectedIndex = aIndex;
+          }
+
+          if (aEvent) {
+            aEvent.preventDefault();
+            aEvent.stopPropagation();
+          }
+        ]]></body>
+      </method>
       <method name="closeTabs">
         <body>
           <![CDATA[

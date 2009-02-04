@@ -413,10 +413,8 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY activitymanager.accesskey "a">
 <!ENTITY messengerCmd.label "Mail &amp; Newsgroups">
 <!ENTITY messengerCmd.accesskey "m">
-<!ENTITY messengerCmd.commandkey "1">
 <!ENTITY addressBookCmd.label "Address Book">
 <!ENTITY addressBookCmd.accesskey "a">
-<!ENTITY addressBookCmd.commandkey "2">
 <!ENTITY runJunkControls.label "Run Junk Mail Controls on Folder">
 <!ENTITY runJunkControls.accesskey "u">
 <!ENTITY deleteJunk.label "Delete Mail Marked as Junk in Folder">
