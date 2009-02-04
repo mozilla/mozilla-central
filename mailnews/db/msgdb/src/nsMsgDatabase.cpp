@@ -3798,7 +3798,11 @@ nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, 
 
   *pnewThread = new nsMsgThread(this, threadTable);
   if (*pnewThread)
+  {
     (*pnewThread)->SetThreadKey(threadId);
+     m_cachedThread = *pnewThread;
+     m_cachedThreadId = threadId;
+  }
   return err;
 }
 
