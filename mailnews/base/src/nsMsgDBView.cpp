@@ -2532,8 +2532,8 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
 
   // if this is a junk command, start a batch or add to an existing one.
   //
-  if (    command == nsMsgViewCommandType::junk
-       || command == nsMsgViewCommandType::unjunk )
+  if (command == nsMsgViewCommandType::junk ||
+      command == nsMsgViewCommandType::unjunk)
   {
     // get the folder from the first item; we assume that
     // all messages in the view are from the same folder (no
@@ -2546,7 +2546,8 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
      rv = folder->GetServer(getter_AddRefs(server));
      NS_ENSURE_SUCCESS(rv, rv);
 
-    if (command == nsMsgViewCommandType::junk)
+    if (command == nsMsgViewCommandType::junk ||
+        command == nsMsgViewCommandType::unjunk)
     {
       // append this batch of junk message indices to the
       // array of junk message indices to be acted upon
@@ -2973,7 +2974,10 @@ nsMsgDBView::OnMessageClassified(const char *aMsgURI,
   // perform the action on all of the junk messages
   //
 
-  NS_ASSERTION( (aClassification == nsIJunkMailPlugin::GOOD) || (mJunkIndices != nsnull), "the classification of a manually-marked junk message has been classified as junk, yet there seem to be no such outstanding messages");
+  NS_ASSERTION((aClassification == nsIJunkMailPlugin::GOOD) ||
+                (mJunkIndices != nsnull),
+                "the classification of a manually-marked junk message has"
+                "been classified as junk, yet there seem to be no such outstanding messages");
 
   // is this the last message in the batch?
 
@@ -2981,7 +2985,7 @@ nsMsgDBView::OnMessageClassified(const char *aMsgURI,
   {
     if ( mNumJunkIndices > 0 )
     {
-      PerformActionsOnJunkMsgs();
+      PerformActionsOnJunkMsgs(aClassification == nsIJunkMailPlugin::JUNK);
       nsMemory::Free(mJunkIndices);
       mJunkIndices = nsnull;
       mNumJunkIndices = 0;
@@ -2991,10 +2995,10 @@ nsMsgDBView::OnMessageClassified(const char *aMsgURI,
 }
 
 nsresult
-nsMsgDBView::PerformActionsOnJunkMsgs()
+nsMsgDBView::PerformActionsOnJunkMsgs(PRBool msgsAreJunk)
 {
-  PRBool movingJunkMessages,markingJunkMessagesRead;
-  nsCOMPtr <nsIMsgFolder> junkTargetFolder;
+  PRBool moveMessages,changeReadState;
+  nsCOMPtr <nsIMsgFolder> targetFolder;
 
   // question: is it possible for the junk mail move/mark as read
   // options to change after we've handled some of the batches but
@@ -3008,11 +3012,13 @@ nsMsgDBView::PerformActionsOnJunkMsgs()
   // for now, we assume the options do not change between batches
   //
 
-  nsresult rv = DetermineActionsForJunkMsgs(&movingJunkMessages, &markingJunkMessagesRead, getter_AddRefs(junkTargetFolder));
+  nsresult rv = DetermineActionsForJunkChange(msgsAreJunk, moveMessages,
+                                              changeReadState,
+                                              getter_AddRefs(targetFolder));
   NS_ENSURE_SUCCESS(rv,rv);
 
   // nothing to do, bail out
-  if (!(movingJunkMessages || markingJunkMessagesRead))
+  if (!(moveMessages || changeReadState))
     return NS_OK;
 
   NS_ASSERTION( (mNumJunkIndices > 0), "no indices of marked-as-junk messages to act on");
@@ -3020,7 +3026,7 @@ nsMsgDBView::PerformActionsOnJunkMsgs()
   if (mNumJunkIndices > 1)
     NS_QuickSort(mJunkIndices, mNumJunkIndices, sizeof(nsMsgViewIndex), CompareViewIndices, nsnull);
 
-  if (markingJunkMessagesRead)
+  if (changeReadState)
   {
     // notes on marking junk as read:
     // 1. there are 2 occasions on which junk messages are marked as
@@ -3033,11 +3039,13 @@ nsMsgDBView::PerformActionsOnJunkMsgs()
     //    turned off, we might still need to mark as read
 
     NoteStartChange(nsMsgViewNotificationCode::none, 0, 0);
-    rv = ApplyCommandToIndices(nsMsgViewCommandType::markMessagesRead, mJunkIndices, mNumJunkIndices);
+    rv = ApplyCommandToIndices(msgsAreJunk ? nsMsgViewCommandType::markMessagesRead :
+                                             nsMsgViewCommandType::markMessagesUnread,
+                                             mJunkIndices, mNumJunkIndices);
     NoteEndChange(nsMsgViewNotificationCode::none, 0, 0);
     NS_ASSERTION(NS_SUCCEEDED(rv), "marking marked-as-junk messages as read failed");
   }
-  if (movingJunkMessages)
+  if (moveMessages)
   {
     // check if one of the messages to be junked is actually selected
     // if more than one message being junked, one must be selected.
@@ -3054,39 +3062,68 @@ nsMsgDBView::PerformActionsOnJunkMsgs()
     }
 
     NoteStartChange(nsMsgViewNotificationCode::none, 0, 0);
-    if (junkTargetFolder)
-      rv = ApplyCommandToIndicesWithFolder(nsMsgViewCommandType::moveMessages, mJunkIndices, mNumJunkIndices, junkTargetFolder);
-    else
+    if (targetFolder)
+      rv = ApplyCommandToIndicesWithFolder(nsMsgViewCommandType::moveMessages, mJunkIndices, mNumJunkIndices, targetFolder);
+    else if (msgsAreJunk)
       rv = ApplyCommandToIndices(nsMsgViewCommandType::deleteMsg, mJunkIndices, mNumJunkIndices);
+    else if (mDeleteModel == nsMsgImapDeleteModels::IMAPDelete)
+      rv = ApplyCommandToIndices(nsMsgViewCommandType::undeleteMsg, mJunkIndices, mNumJunkIndices);
     NoteEndChange(nsMsgViewNotificationCode::none, 0, 0);
 
-    NS_ASSERTION(NS_SUCCEEDED(rv), "move or deletion of marked-as-junk messages failed");
+    NS_ASSERTION(NS_SUCCEEDED(rv), "move or deletion of message marked-as-junk/non junk failed");
   }
   return rv;
 }
 
 nsresult
-nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* markingJunkMessagesRead, nsIMsgFolder** junkTargetFolder)
+nsMsgDBView::DetermineActionsForJunkChange(PRBool msgsAreJunk,
+                                           PRBool &moveMessages,
+                                           PRBool &changeReadState,
+                                           nsIMsgFolder** targetFolder)
 {
   // there are two possible actions which may be performed
   // on messages marked as spam: marking as read and moving
-  // somewhere...
+  // somewhere...When a message is marked as non junk,
+  // it may be moved to the inbox, and marked unread.
 
-  *movingJunkMessages = false;
-  *markingJunkMessagesRead = false;
+  moveMessages = false;
+  changeReadState = false;
 
   // ... the 'somewhere', junkTargetFolder, can be a folder,
   // but if it remains null we'll delete the messages
 
-  *junkTargetFolder = nsnull;
+  *targetFolder = nsnull;
 
   nsCOMPtr<nsIMsgFolder> folder;
   nsresult rv = GetFolderForViewIndex(mJunkIndices[0], getter_AddRefs(folder));
   NS_ENSURE_SUCCESS(rv, rv);
 
+  PRUint32 folderFlags;
+  folder->GetFlags(&folderFlags);
+
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = folder->GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // handle the easy case of marking a junk message as good first...
+  // set the move target folder to the inbox, if any.
+  if (!msgsAreJunk)
+  {
+    prefBranch->GetBoolPref("mail.spam.markAsNotJunkMarksUnRead",
+                            &changeReadState);
+    if (folderFlags & nsMsgFolderFlags::Junk)
+    {
+      nsCOMPtr<nsIMsgFolder> rootMsgFolder;
+      rv = server->GetRootMsgFolder(getter_AddRefs(rootMsgFolder));
+      NS_ENSURE_SUCCESS(rv,rv);
+      rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox, targetFolder);
+      moveMessages = targetFolder != nsnull;
+    }
+    return NS_OK;
+  }
 
   nsCOMPtr <nsISpamSettings> spamSettings;
   rv = server->GetSpamSettings(getter_AddRefs(spamSettings));
@@ -3104,11 +3141,10 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
   // only to automatically-classified messages.
   // Note that this behaviour should match the one in the front end for marking
   // as junk via toolbar/context menu.
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv))
   {
     prefBranch->GetBoolPref("mailnews.ui.junk.manualMarkAsJunkMarksRead",
-                            markingJunkMessagesRead);
+                            &changeReadState);
   }
 
   // now let's determine whether we'll be taking the second action,
@@ -3125,10 +3161,6 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
             || manualMarkMode == nsISpamSettings::MANUAL_MARK_MODE_DELETE,
             "bad manual mark mode");
 
-  // the folder must allow us to execute the move (or the deletion)
-  PRUint32 folderFlags;
-  folder->GetFlags(&folderFlags);
-
   if (manualMarkMode == nsISpamSettings::MANUAL_MARK_MODE_MOVE)
   {
     // if this is a junk folder
@@ -3144,11 +3176,10 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
     NS_ASSERTION(!spamFolderURI.IsEmpty(), "spam folder URI is empty, can't move");
     if (!spamFolderURI.IsEmpty())
     {
-      //nsCOMPtr<nsIMsgFolder> destFolder;
-      rv = GetExistingFolder(spamFolderURI, junkTargetFolder);
+      rv = GetExistingFolder(spamFolderURI, targetFolder);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      *movingJunkMessages = true;
+      moveMessages = true;
     }
     return NS_OK;
   }
@@ -3159,7 +3190,7 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
   if (folderFlags & nsMsgFolderFlags::Trash)
     return NS_OK;
 
-  return folder->GetCanDeleteMessages(movingJunkMessages);
+  return folder->GetCanDeleteMessages(&moveMessages);
 }
 
 // reversing threads involves reversing the threads but leaving the

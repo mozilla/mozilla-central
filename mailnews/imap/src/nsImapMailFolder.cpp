@@ -3421,23 +3421,77 @@ NS_IMETHODIMP nsImapMailFolder::PlaybackOfflineFolderCreate(const nsAString& aFo
   return imapService->CreateFolder(m_thread, this, aFolderName, this, url);
 }
 
-NS_IMETHODIMP nsImapMailFolder::ReplayOfflineMoveCopy(nsMsgKey *msgKeys, PRUint32 numKeys, PRBool isMove, nsIMsgFolder *aDstFolder,
-                                                      nsIUrlListener *aUrlListener, nsIMsgWindow *aWindow)
+NS_IMETHODIMP 
+nsImapMailFolder::ReplayOfflineMoveCopy(nsMsgKey *aMsgKeys, PRUint32 aNumKeys,
+                                        PRBool isMove, nsIMsgFolder *aDstFolder,
+                                        nsIUrlListener *aUrlListener, nsIMsgWindow *aWindow)
 {
   nsresult rv;
+
+  nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(aDstFolder);
+  if (imapFolder)
+  {
+    nsImapMailFolder *destImapFolder = static_cast<nsImapMailFolder*>(aDstFolder);
+    nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
+    nsCOMPtr<nsIMsgDatabase> dstFolderDB;
+    aDstFolder->GetMsgDatabase(getter_AddRefs(dstFolderDB));
+    if (dstFolderDB)
+    {
+      // find the fake header in the destination db, and use that to
+      // set the pending attributes on the real headers. To do this,
+      // we need to iterate over the offline ops in the destination db,
+      // looking for ones with matching keys and source folder uri. 
+      // If we find that offline op, its "key" will be the key of the fake
+      // header, so we just need to get the header for that key 
+      // from the dest db.
+      nsTArray<nsMsgKey> offlineOps;
+      if (NS_SUCCEEDED(dstFolderDB->ListAllOfflineOpIds(&offlineOps)))
+      {
+        nsCString srcFolderUri;
+        GetURI(srcFolderUri);
+        for (PRUint32 msgIndex = 0; msgIndex < aNumKeys; msgIndex++)
+        {
+          nsCOMPtr<nsIMsgOfflineImapOperation> currentOp;
+          for (PRUint32 opIndex = 0; opIndex < offlineOps.Length(); opIndex++)
+          {
+            dstFolderDB->GetOfflineOpForKey(offlineOps[opIndex], PR_FALSE,
+                                            getter_AddRefs(currentOp));
+            if (currentOp)
+            {
+              nsMsgKey srcMessageKey;
+              currentOp->GetSrcMessageKey(&srcMessageKey);
+              if (srcMessageKey == aMsgKeys[msgIndex])
+              {
+                nsCString opSrcUri;
+                currentOp->GetSourceFolderURI(getter_Copies(opSrcUri));
+                if (opSrcUri.Equals(srcFolderUri))
+                {
+                  nsCOMPtr<nsIMsgDBHdr> fakeDestHdr;
+                  dstFolderDB->GetMsgHdrForKey(offlineOps[opIndex],
+                    getter_AddRefs(fakeDestHdr));
+                  if (fakeDestHdr)
+                    messages->AppendElement(fakeDestHdr, PR_FALSE);
+                  break;
+                }
+              }
+            }
+          }
+        }
+        destImapFolder->SetPendingAttributes(messages);
+      }
+    }
+    // if we can't get the dst folder db, we should still try to playback
+    // the offline move/copy.
+  }
+
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsIURI> resultUrl;
   nsCAutoString uids;
-  AllocateUidStringFromKeys(msgKeys, numKeys, uids);
-  rv = imapService->OnlineMessageCopy(m_thread,
-                       this,
-                                      uids,
-                       aDstFolder,
-                       PR_TRUE,
-                       isMove,
-                       aUrlListener,
-                       getter_AddRefs(resultUrl), nsnull, aWindow);
+  AllocateUidStringFromKeys(aMsgKeys, aNumKeys, uids);
+  rv = imapService->OnlineMessageCopy(m_thread, this, uids, aDstFolder,
+                                      PR_TRUE, isMove, aUrlListener,
+                                      getter_AddRefs(resultUrl), nsnull, aWindow);
   if (resultUrl)
   {
     nsCOMPtr <nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(resultUrl, &rv);
@@ -6432,7 +6486,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
               {
                 SetFlag(nsMsgFolderFlags::OfflineEvents);
                 destOp->SetSourceFolderURI(originalSrcFolderURI.get());
-                destOp->SetMessageKey(originalKey);
+                destOp->SetSrcMessageKey(originalKey);
                 {
                   nsCOMPtr<nsIUrlListener> urlListener;
                   QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
@@ -6521,6 +6575,70 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   return rv;
 }
 
+void nsImapMailFolder::SetPendingAttributes(nsIArray* messages)
+{
+
+  GetDatabase();
+  if (!mDatabase)
+    return;
+
+  PRUint32 supportedUserFlags;
+  GetSupportedUserFlags(&supportedUserFlags);
+
+  PRUint32 i, count;
+
+  nsresult rv = messages->GetLength(&count);
+  if (NS_FAILED(rv)) 
+    return;
+
+  // check if any msg hdr has special flags or properties set
+  // that we need to set on the dest hdr
+  for (i = 0; i < count; i++)
+  {
+    nsCOMPtr <nsIMsgDBHdr> msgDBHdr = do_QueryElementAt(messages, i, &rv);
+    if (mDatabase && msgDBHdr)
+    {
+      if (!(supportedUserFlags & kImapMsgSupportUserFlag))
+      {
+        nsMsgLabelValue label;
+        nsCString junkScore;
+        msgDBHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
+        if (!junkScore.IsEmpty()) // ignore already scored messages.
+          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscore", junkScore.get(), 0);
+        msgDBHdr->GetLabel(&label);
+        if (label != 0)
+        {
+          nsCAutoString labelStr;
+          labelStr.AppendInt(label);
+          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "label", labelStr.get(), 0);
+        }
+        nsCString keywords;
+        msgDBHdr->GetStringProperty("keywords", getter_Copies(keywords));
+        if (!keywords.IsEmpty())
+          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "keywords", keywords.get(), 0);
+      } 
+      // do this even if the server supports user-defined flags.
+      
+      nsCString junkScoreOrigin, junkPercent;
+      msgDBHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
+      msgDBHdr->GetStringProperty("junkpercent", getter_Copies(junkPercent));
+      if (!junkScoreOrigin.IsEmpty())
+        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get(), 0);
+      if (!junkPercent.IsEmpty())
+        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get(), 0);             
+      
+      nsMsgPriorityValue priority;
+      msgDBHdr->GetPriority(&priority);
+      if(priority != 0)
+      {
+        nsCAutoString priorityStr;
+        priorityStr.AppendInt(priority);
+        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "priority", priorityStr.get(), 0);
+      }
+    }
+  }
+}
+
 NS_IMETHODIMP
 nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
                                nsIArray* messages,
@@ -6607,112 +6725,54 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
     nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
     
-  PRUint32 supportedUserFlags;
-  GetSupportedUserFlags(&supportedUserFlags);
-
-  PRUint32 i;
-
-  rv = messages->GetLength(&count);
-  if (NS_FAILED(rv)) return rv;
-
-  // make sure database is open to set special flags below
-  if (!mDatabase)
-    GetDatabase();
-
-  // check if any msg hdr has special flags or properties set
-  // that we need to set on the dest hdr
-  for (i = 0; i < count; i++)
-  {
-    nsCOMPtr <nsIMsgDBHdr> msgDBHdr = do_QueryElementAt(messages, i, &rv);
-    if (mDatabase && msgDBHdr)
+    SetPendingAttributes(messages);
+    // if the folders aren't on the same server, do a stream base copy
+    if (!sameServer)
     {
-      if (!(supportedUserFlags & kImapMsgSupportUserFlag))
-      {
-        nsMsgLabelValue label;
-        nsCString junkScore;
-        msgDBHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
-        if (!junkScore.IsEmpty()) // ignore already scored messages.
-          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscore", junkScore.get(), 0);
-        msgDBHdr->GetLabel(&label);
-        if (label != 0)
-        {
-          nsCAutoString labelStr;
-          labelStr.AppendInt(label);
-          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "label", labelStr.get(), 0);
-        }
-        nsCString keywords;
-        msgDBHdr->GetStringProperty("keywords", getter_Copies(keywords));
-        if (!keywords.IsEmpty())
-          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "keywords", keywords.get(), 0);
-      } 
-      // do this even if the server supports user-defined flags.
-      
-      nsCString junkScoreOrigin, junkPercent;
-      msgDBHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
-      msgDBHdr->GetStringProperty("junkpercent", getter_Copies(junkPercent));
-      if (!junkScoreOrigin.IsEmpty())
-        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get(), 0);
-      if (!junkPercent.IsEmpty())
-        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get(), 0);             
-      
-      nsMsgPriorityValue priority;
-      msgDBHdr->GetPriority(&priority);
-      if(priority != 0)
-      {
-        nsCAutoString priorityStr;
-        priorityStr.AppendInt(priority);
-        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "priority", priorityStr.get(), 0);
-      }
+      rv = CopyMessagesWithStream(srcFolder, messages, isMove, PR_TRUE, msgWindow, listener, allowUndo);
+      goto done;
     }
-  }
 
-  // if the folders aren't on the same server, do a stream base copy
-  if (!sameServer)
-  {
-    rv = CopyMessagesWithStream(srcFolder, messages, isMove, PR_TRUE, msgWindow, listener, allowUndo);
-    goto done;
-  }
+    rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
+    if(NS_FAILED(rv)) goto done;
 
-  rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
-  if(NS_FAILED(rv)) goto done;
+    rv = QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
+    rv = InitCopyState(srcSupport, messages, isMove, PR_TRUE, PR_FALSE,
+                       0, EmptyCString(), listener, msgWindow, allowUndo);
+    if (NS_FAILED(rv)) goto done;
 
-  rv = QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
-  rv = InitCopyState(srcSupport, messages, isMove, PR_TRUE, PR_FALSE,
-                     0, EmptyCString(), listener, msgWindow, allowUndo);
-  if (NS_FAILED(rv)) goto done;
+    m_copyState->m_curIndex = m_copyState->m_totalCount;
 
-  m_copyState->m_curIndex = m_copyState->m_totalCount;
-
-  if (isMove)
-    srcFolder->EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_TRUE/* dbBatching*/);  //disable message count notification
-
-  copySupport = do_QueryInterface(m_copyState);
-  rv = imapService->OnlineMessageCopy(m_thread,
-                                      srcFolder, messageIds,
-                                      this, PR_TRUE, isMove,
-                                      urlListener, nsnull,
-                                      copySupport, msgWindow);
-  if (NS_SUCCEEDED(rv) && m_copyState->m_allowUndo)
-  {
-    nsImapMoveCopyMsgTxn* undoMsgTxn = new nsImapMoveCopyMsgTxn;
-    if (!undoMsgTxn || NS_FAILED(undoMsgTxn->Init(srcFolder, &srcKeyArray,
-                                 messageIds.get(), this,
-                                 PR_TRUE, isMove, m_thread, urlListener)))
-    {
-      delete undoMsgTxn;
-      return NS_ERROR_OUT_OF_MEMORY;
-    }
     if (isMove)
+      srcFolder->EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_TRUE/* dbBatching*/);  //disable message count notification
+
+    copySupport = do_QueryInterface(m_copyState);
+    rv = imapService->OnlineMessageCopy(m_thread,
+                                        srcFolder, messageIds,
+                                        this, PR_TRUE, isMove,
+                                        urlListener, nsnull,
+                                        copySupport, msgWindow);
+    if (NS_SUCCEEDED(rv) && m_copyState->m_allowUndo)
     {
-      if (mFlags & nsMsgFolderFlags::Trash)
-        undoMsgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
+      nsImapMoveCopyMsgTxn* undoMsgTxn = new nsImapMoveCopyMsgTxn;
+      if (!undoMsgTxn || NS_FAILED(undoMsgTxn->Init(srcFolder, &srcKeyArray,
+                                   messageIds.get(), this,
+                                   PR_TRUE, isMove, m_thread, urlListener)))
+      {
+        delete undoMsgTxn;
+        return NS_ERROR_OUT_OF_MEMORY;
+      }
+      if (isMove)
+      {
+        if (mFlags & nsMsgFolderFlags::Trash)
+          undoMsgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
+        else
+          undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
+      }
       else
-        undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
+        undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
+      rv = undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(m_copyState->m_undoMsgTxn) );
     }
-    else
-      undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
-    rv = undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(m_copyState->m_undoMsgTxn) );
-  }
 
   }//endif
   

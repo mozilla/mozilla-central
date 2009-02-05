@@ -43,7 +43,7 @@ typedef unsigned short imapMessageFlagsType;
 
 typedef long nsOfflineImapOperationType;
 
-[scriptable, uuid(628a51dd-fd3c-4d2a-9441-e4f4d287b1bf)]
+[scriptable, uuid(b5229a55-22bb-444b-be92-13d719353828)]
 
 interface nsIMsgOfflineImapOperation : nsISupports
 {
@@ -64,6 +64,10 @@ interface nsIMsgOfflineImapOperation : nsISupports
   attribute nsOfflineImapOperationType operation;
   void clearOperation(in nsOfflineImapOperationType operation);
   attribute nsMsgKey messageKey;
+
+  // for move/copy operations, the msg key of the source msg.
+  attribute nsMsgKey srcMessageKey;
+
   attribute imapMessageFlagsType flagOperation;
   attribute imapMessageFlagsType newFlags; // for kFlagsChanged
   attribute string destinationFolderURI; // for move or copy

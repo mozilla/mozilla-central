@@ -429,6 +429,7 @@ protected:
                                 PRBool isMove,
                                 nsIMsgWindow *msgWindow,
                                 nsIMsgCopyServiceListener* listener);
+  void SetPendingAttributes(nsIArray* messages);
 
   nsresult CopyOfflineMsgBody(nsIMsgFolder *srcFolder, nsIMsgDBHdr *destHdr, nsIMsgDBHdr *origHdr);
 

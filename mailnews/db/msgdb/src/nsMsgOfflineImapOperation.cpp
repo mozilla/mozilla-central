@@ -140,6 +140,18 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::SetMessageKey(nsMsgKey aMessageKey)
   return m_mdb->SetUint32Property(m_mdbRow, PROP_MESSAGE_KEY, m_messageKey);
 }
 
+/* attribute nsMsgKey srcMessageKey; */
+NS_IMETHODIMP nsMsgOfflineImapOperation::GetSrcMessageKey(nsMsgKey *aMessageKey)
+{
+  NS_ENSURE_ARG(aMessageKey);
+  return m_mdb->GetUint32Property(m_mdbRow, PROP_SRC_MESSAGE_KEY, aMessageKey, nsMsgKey_None);
+}
+
+NS_IMETHODIMP nsMsgOfflineImapOperation::SetSrcMessageKey(nsMsgKey aMessageKey)
+{
+  m_messageKey = aMessageKey;
+  return m_mdb->SetUint32Property(m_mdbRow, PROP_SRC_MESSAGE_KEY, m_messageKey);
+}
 
 /* attribute imapMessageFlagsType flagOperation; */
 NS_IMETHODIMP nsMsgOfflineImapOperation::GetFlagOperation(imapMessageFlagsType *aFlagOperation)

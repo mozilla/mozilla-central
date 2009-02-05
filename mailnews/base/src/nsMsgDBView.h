@@ -488,8 +488,11 @@ private:
   static nsDateFormatSelector  m_dateFormatToday;
   PRBool ServerSupportsFilterAfterTheFact();
 
-  nsresult PerformActionsOnJunkMsgs();
-  nsresult DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* markingJunkMessagesRead, nsIMsgFolder** junkTargetFolder);
+  nsresult PerformActionsOnJunkMsgs(PRBool msgsAreJunk);
+  nsresult DetermineActionsForJunkChange(PRBool msgsAreJunk,
+                                         PRBool &moveMessages,
+                                         PRBool &changeReadState,
+                                         nsIMsgFolder** targetFolder);
 
   class nsMsgViewHdrEnumerator : public nsISimpleEnumerator 
   {
