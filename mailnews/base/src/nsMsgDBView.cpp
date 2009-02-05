@@ -2997,8 +2997,8 @@ nsMsgDBView::OnMessageClassified(const char *aMsgURI,
 nsresult
 nsMsgDBView::PerformActionsOnJunkMsgs(PRBool msgsAreJunk)
 {
-  PRBool moveMessages,changeReadState;
-  nsCOMPtr <nsIMsgFolder> targetFolder;
+  PRBool moveMessages, changeReadState;
+  nsCOMPtr<nsIMsgFolder> targetFolder;
 
   // question: is it possible for the junk mail move/mark as read
   // options to change after we've handled some of the batches but
