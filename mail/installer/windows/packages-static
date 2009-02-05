@@ -23,10 +23,14 @@ bin\plds4.dll
 bin\js3250.dll
 bin\components\jsd3250.dll
 bin\components\xpinstal.dll
+#ifndef MOZ_MEMORY
 bin\Microsoft.VC80.CRT.manifest
 bin\msvcm80.dll
 bin\msvcp80.dll
 bin\msvcr80.dll
+#else
+bin\mozcrt19.dll
+#endif
 
 ; Modules
 bin\modules\*

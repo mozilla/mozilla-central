@@ -318,6 +318,15 @@ components/airbag.xpt
 components/nsUrlClassifierTable.js
 components/nsScriptableIO.js
 #ifdef XP_WIN
+#ifdef MOZ_MEMORY
+Microsoft.VC80.CRT.manifest
+msvcm80.dll
+msvcp80.dll
+msvcr80.dll
+#else
+mozcrt19.dll
+#endif
+#ifdef XP_WIN
 xpicleanup.exe
 #else
 xpicleanup
