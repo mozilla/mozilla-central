@@ -44,10 +44,25 @@
 #include "nsIOutputStream.h"
 #include "nsNetUtil.h"
 #include "nsISeekableStream.h"
+#include "nsMsgMessageFlags.h"
 
 #define  kIndexGrowBy    100
 #define  kSignatureSize    12
 #define  kDontSeek      0xFFFFFFFF
+#define  MARKED        0x20     //  4
+#define  READ          0x80     //  1
+#define  HASATTACHMENT 0x4000   //  268435456  10000000h
+#define  ISANSWERED    0x80000  //  2
+#define  ISFORWARDED   0x100000 //  4096
+#define  ISWATCHED     0x400000 //  256
+#define  ISIGNORED     0x800000 //  262144
+#define  XLATFLAGS(s)  (((MARKED & s) ? nsMsgMessageFlags::Marked : 0) | \
+                        ((READ & s) ? nsMsgMessageFlags::Read : 0) | \
+                        ((HASATTACHMENT & s) ? nsMsgMessageFlags::Attachment : 0) | \
+                        ((ISANSWERED & s) ? nsMsgMessageFlags::Replied : 0) | \
+                        ((ISFORWARDED & s) ? nsMsgMessageFlags::Forwarded : 0) | \
+                        ((ISWATCHED & s) ? nsMsgMessageFlags::Watched : 0) | \
+                        ((ISIGNORED & s) ? nsMsgMessageFlags::Ignored : 0) )
 
 static char *gSig =
   "\xCF\xAD\x12\xFE\xC5\xFD\x74\x6F\x66\xE3\xD1\x11";
@@ -253,15 +268,17 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
 
   PRUint32 *  pIndex;
   PRUint32  indexSize;
+  PRUint32 *  pFlags;
 
   if (!ReadIndex( inputStream, &pIndex, &indexSize)) {
     IMPORT_LOG1( "No messages found in mailbox: %S\n", name.get());
     return( NS_OK);
   }
 
+  pFlags = new PRUint32[ indexSize];
   char *  pBuffer = new char[kMailboxBufferSize];
   if (!(*pAbort))
-    ConvertIndex( inputStream, pBuffer, pIndex, indexSize);
+    ConvertIndex( inputStream, pBuffer, pIndex, indexSize, pFlags);
 
   PRUint32  block[4];
   PRInt32   sepLen = (PRInt32) strlen( m_pFromLineSep);
@@ -334,7 +351,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
       }
 
       char statusLine[50];
-      PRUint32 msgFlags = 0; // need to convert from OE flags to mozilla flags
+      PRUint32 msgFlags = XLATFLAGS(pFlags[i]);
       PR_snprintf(statusLine, sizeof(statusLine), X_MOZILLA_STATUS_FORMAT MSG_LINEBREAK, msgFlags & 0xFFFF);
       rv = outputStream->Write(statusLine, strlen(statusLine), &written);
       NS_ENSURE_SUCCESS(rv,rv);
@@ -440,6 +457,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
   }
 
   delete [] pBuffer;
+  delete [] pFlags;
 
   if (NS_FAILED(rv))
     *pAbort = PR_TRUE;
@@ -452,40 +470,41 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
   A message index record consists of:
   4 byte marker - matches record offset
   4 bytes size - size of data after this header
-  2 bytes header length
-  (2 bytes - flag offset in msg hdr?) or the following?
+  2 bytes header length - not dependable
   1 bytes - number of attributes
   1 byte changes on this object
   Each attribute is a 4 byte value with the 1st byte being the tag
   and the remaing 3 bytes being data.  The data is either a direct
   offset of an offset within the message index that points to the
   data for the tag.
+  attr[0]:
+  -hi bit== 1 means PRUint24 data = attr[1]
+  -hi bit== 0 means (PRUint24) attr[1] = offset into data segment for data
+  -attr[0] & 7f == tag index
+  Header above is 0xC bytes, attr's are number * 4 bytes then follows data segment
 
   Current known tags are:
-  0x02 - a time value
+  0x01 - flags addressed
+  0x81 - flags in attr's next 3 bytes
+  0x02 - a time value - addressed- 8 bytes
   0x04 - text offset pointer, the data is the offset after the attribute
-         of a 4 byte pointer to the message text
+         of a 4 byte pointer to the message text <-- addr into data
   0x05 - offset to truncated subject
   0x08 - offste to subject
   0x0D - offset to from
   0x0E - offset to from addresses
   0x13 - offset to to name
-  0x45 - offset to to address
-  0x80 - msgId
+  0x45 - offset to to address <----correct --> 0x14
+  0x80 - msgId <-correction-> 0x07 addr to msg id
   0x84 - direct text offset, direct pointer to message text
-
-   flags we're interested in:
-      kMarked= 0x20;
-      kRead = 0x80;
-      kHasAttachment = 0x4000;
-      kIsReply= 0x80000;
-
 */
 
-void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer, PRUint32 *pIndex, PRUint32 size)
+void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
+                              PRUint32 *pIndex, PRUint32 size,
+                              PRUint32 *pFlags)
 {
-  // for each index record, get the actual message offset!  If there is a problem
-  // just record the message offset as 0 and the message reading code
+  // for each index record, get the actual message offset!  If there is a
+  // problem just record the message offset as 0 and the message reading code
   // can log that error information.
 
   PRUint8   recordHead[12];
@@ -497,9 +516,11 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer, PRUint32 *pI
   PRUint32  attrOffset;
   PRUint8   tag;
   PRUint32  tagData;
+  PRUint32  flags;
 
   for (PRUint32 i = 0; i < size; i++) {
     offset = 0;
+    flags = 0;
     if (ReadBytes( pFile, recordHead, pIndex[i], 12)) {
       memcpy( &marker, recordHead, 4);
       memcpy( &recordSize, recordHead + 4, 4);
@@ -513,7 +534,8 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer, PRUint32 *pI
               tagData = 0;
               memcpy( &tagData, pBuffer + attrOffset + 1, 3);
               offset = tagData;
-              break;
+              break;  // ok to break. 4 is last of interest
+                      // (attr's are sorted) so flags will be found.
             }
             else if (tag == (PRUint8) 0x04) {
               tagData = 0;
@@ -521,11 +543,23 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer, PRUint32 *pI
               if (((numAttrs * 4) + tagData + 4) <= recordSize)
                 memcpy( &offset, pBuffer + (numAttrs * 4) + tagData, 4);
             }
+            else if (tag == (PRUint8) 0x81) {
+              tagData = 0;
+              memcpy( &tagData, pBuffer + attrOffset +1, 3);
+              flags = tagData;
+            }
+            else if (tag == (PRUint8) 0x01) {
+              tagData = 0;
+              memcpy( &tagData, pBuffer + attrOffset +1, 3);
+              if (((numAttrs *4) + tagData + 4) <= recordSize)
+                memcpy( &flags, pBuffer + (numAttrs * 4) + tagData, 4);
+            }
           }
         }
       }
     }
     pIndex[i] = offset;
+    pFlags[i] = flags;
   }
 }
 

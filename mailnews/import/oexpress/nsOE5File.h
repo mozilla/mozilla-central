@@ -64,10 +64,11 @@ private:
 
   static const char *m_pFromLineSep;
 
-  static PRBool  ReadBytes( nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes);
-  static PRUint32 ReadMsgIndex( nsIInputStream *file, PRUint32 offset, PRUint32Array *pArray);
-  static void  ConvertIndex( nsIInputStream *pFile, char *pBuffer, PRUint32 *pIndex, PRUint32 size);
-  static PRBool  IsFromLine( char *pLine, PRUint32 len);
+  static PRBool  ReadBytes(nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes);
+  static PRUint32 ReadMsgIndex(nsIInputStream *file, PRUint32 offset, PRUint32Array *pArray);
+  static void  ConvertIndex(nsIInputStream *pFile, char *pBuffer,
+                            PRUint32 *pIndex, PRUint32 size, PRUint32 *pFlags);
+  static PRBool  IsFromLine(char *pLine, PRUint32 len);
 
 
 };
