@@ -48,6 +48,8 @@
 
 treechildren::-moz-tree-image(Name) {
   -moz-margin-end: 2px;
+  width: 16px;
+  height: 16px;
 }
 
 .bookmark-item,
@@ -95,6 +97,8 @@ treechildren::-moz-tree-image(Name, query, dayContainer) {
 
 treechildren::-moz-tree-image(Name, separator) {
   list-style-image: none;
+  width: 0px;
+  height: 0px;
 }
 
 treechildren::-moz-tree-cell-text(Name, separator) {
