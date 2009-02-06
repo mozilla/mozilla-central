@@ -1312,6 +1312,9 @@ nsresult nsMsgLocalMailFolder::OpenDatabase()
     else if (NS_FAILED(rv))
       mDatabase = nsnull;
   }
+  else if (NS_FAILED(rv))
+    mDatabase = nsnull;
+
   return rv;
 }
 
