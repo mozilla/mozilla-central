@@ -45,6 +45,7 @@
 #include "nsNetUtil.h"
 #include "nsISeekableStream.h"
 #include "nsMsgMessageFlags.h"
+#include <windows.h>
 
 #define  kIndexGrowBy    100
 #define  kSignatureSize    12
@@ -67,26 +68,43 @@
 static char *gSig =
   "\xCF\xAD\x12\xFE\xC5\xFD\x74\x6F\x66\xE3\xD1\x11";
 
+// copied from nsprpub/pr/src/{io/prfile.c | md/windows/w95io.c} :
+// PR_FileTimeToPRTime and _PR_FileTimeToPRTime
+static
+void FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm)
+{
+#ifdef __GNUC__
+    const PRTime _pr_filetime_offset = 116444736000000000LL;
+#else
+    const PRTime _pr_filetime_offset = 116444736000000000i64;
+#endif
+
+    PR_ASSERT(sizeof(FILETIME) == sizeof(PRTime));
+    ::CopyMemory(prtm, filetime, sizeof(PRTime));
+#ifdef __GNUC__
+    *prtm = (*prtm - _pr_filetime_offset) / 10LL;
+#else
+    *prtm = (*prtm - _pr_filetime_offset) / 10i64;
+#endif
+}
 
 PRBool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
 {
   char    sig[kSignatureSize];
 
-        nsCOMPtr <nsIInputStream> inputStream;
+  nsCOMPtr <nsIInputStream> inputStream;
 
-        if (NS_FAILED(NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pFile)))
-          return PR_FALSE;
+  if (NS_FAILED(NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pFile)))
+    return PR_FALSE;
 
-  if (!ReadBytes( inputStream, sig, 0, kSignatureSize)) {
-    return( PR_FALSE);
-  }
+  if (!ReadBytes( inputStream, sig, 0, kSignatureSize))
+    return PR_FALSE;
 
   PRBool  result = PR_TRUE;
 
   for (int i = 0; (i < kSignatureSize) && result; i++) {
-    if (sig[i] != gSig[i]) {
+    if (sig[i] != gSig[i])
       result = PR_FALSE;
-    }
   }
 
   char  storeName[14];
@@ -98,7 +116,7 @@ PRBool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
   if (PL_strcasecmp( "LocalStore", storeName))
     result = PR_FALSE;
 
-  return( result);
+  return result;
 }
 
 PRBool nsOE5File::IsLocalMailFile( nsIFile *pFile)
@@ -269,16 +287,18 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
   PRUint32 *  pIndex;
   PRUint32  indexSize;
   PRUint32 *  pFlags;
+  PRUint64  *  pTime;
 
   if (!ReadIndex( inputStream, &pIndex, &indexSize)) {
     IMPORT_LOG1( "No messages found in mailbox: %S\n", name.get());
     return( NS_OK);
   }
 
+  pTime  = new PRUint64[ indexSize];
   pFlags = new PRUint32[ indexSize];
   char *  pBuffer = new char[kMailboxBufferSize];
   if (!(*pAbort))
-    ConvertIndex( inputStream, pBuffer, pIndex, indexSize, pFlags);
+    ConvertIndex( inputStream, pBuffer, pIndex, indexSize, pFlags, pTime);
 
   PRUint32  block[4];
   PRInt32   sepLen = (PRInt32) strlen( m_pFromLineSep);
@@ -326,6 +346,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
       pEnd = pStart + size;
 
       // write out the from separator.
+      rv = NS_ERROR_FAILURE;
       if (IsFromLine( pBuffer, size))
       {
         char *pChar = pStart;
@@ -336,15 +357,34 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
         {
           // Get the "From " line so write it out.
           rv = outputStream->Write(pStart, pChar-pStart+2, &written);
-          NS_ENSURE_SUCCESS(rv,rv);
-          // Now buffer starts from the 2nd line.
-          pStart = pChar + 2;
+          if ( rv)
+            // Now buffer starts from the 2nd line.
+            pStart = pChar + 2;
         }
       }
-      else
+      else if (pTime[i])
+      {
+        char              result[156] = "";
+        PRExplodedTime    xpldTime;
+        char              buffer[128] = "";
+        PRTime            prt;
+
+        FileTimeToPRTime((FILETIME *)&pTime[i], &prt);
+        // modeled after nsMsgSend.cpp
+        PR_ExplodeTime(prt, PR_LocalTimeParameters, &xpldTime);
+        PR_FormatTimeUSEnglish(buffer, sizeof(buffer),
+                                "%a %b %d %H:%M:%S %Y",
+                                &xpldTime);
+        PL_strcpy(result, "From - ");
+        PL_strcpy(result + 7, buffer);
+        PL_strcpy(result + 7 + 24, CRLF);
+
+        rv = outputStream->Write(result, (PRInt32) strlen( result), &written);
+      }
+      if (NS_FAILED( rv))
       {
         // Write out the default from line since there is none in the msg.
-        rv = outputStream->Write( m_pFromLineSep, sepLen, &written);
+        rv = outputStream->Write(m_pFromLineSep, sepLen, &written);
         // FIXME: Do I need to check the return value of written???
         if (NS_FAILED( rv))
           break;
@@ -458,6 +498,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
 
   delete [] pBuffer;
   delete [] pFlags;
+  delete [] pTime;
 
   if (NS_FAILED(rv))
     *pAbort = PR_TRUE;
@@ -501,7 +542,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
 
 void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
                               PRUint32 *pIndex, PRUint32 size,
-                              PRUint32 *pFlags)
+                              PRUint32 *pFlags, PRUint64 *pTime)
 {
   // for each index record, get the actual message offset!  If there is a
   // problem just record the message offset as 0 and the message reading code
@@ -517,10 +558,12 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
   PRUint8   tag;
   PRUint32  tagData;
   PRUint32  flags;
+  PRUint64  time;
 
   for (PRUint32 i = 0; i < size; i++) {
     offset = 0;
     flags = 0;
+    time = 0;
     if (ReadBytes( pFile, recordHead, pIndex[i], 12)) {
       memcpy( &marker, recordHead, 4);
       memcpy( &recordSize, recordHead + 4, 4);
@@ -542,6 +585,7 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
               memcpy( &tagData, pBuffer + attrOffset + 1, 3);
               if (((numAttrs * 4) + tagData + 4) <= recordSize)
                 memcpy( &offset, pBuffer + (numAttrs * 4) + tagData, 4);
+              break;
             }
             else if (tag == (PRUint8) 0x81) {
               tagData = 0;
@@ -554,12 +598,19 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
               if (((numAttrs *4) + tagData + 4) <= recordSize)
                 memcpy( &flags, pBuffer + (numAttrs * 4) + tagData, 4);
             }
+            else if (tag == (PRUint8) 0x02) {
+              tagData = 0;
+              memcpy( &tagData, pBuffer + attrOffset +1, 3);
+              if (((numAttrs *4) + tagData + 4) <= recordSize)
+                memcpy( &time, pBuffer + (numAttrs * 4) + tagData, 8);
+            }
           }
         }
       }
     }
     pIndex[i] = offset;
     pFlags[i] = flags;
+    pTime[i] = time;
   }
 }
 
