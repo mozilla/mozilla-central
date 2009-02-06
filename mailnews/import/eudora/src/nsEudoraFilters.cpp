@@ -855,7 +855,7 @@ nsresult nsEudoraFilters::AddMailboxAction(const char* pMailboxPath, PRBool isTr
   if (nsEudoraWin32::GetMailboxNameHierarchy(filePath, pMailboxPath, nameHierarchy) == PR_FALSE)
     return NS_ERROR_INVALID_ARG;
 #endif
-#if defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_MACOSX
   nameHierarchy = pMailboxPath;
 #endif
 
