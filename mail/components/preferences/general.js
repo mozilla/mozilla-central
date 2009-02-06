@@ -140,7 +140,7 @@ var gGeneralPane = {
     // as the initial path in the dialog.
     var localFile = this.convertURLToLocalFile(document.getElementById('soundUrlLocation').value);
     if (localFile)
-      fp.displayDirectory = localFile;
+      fp.displayDirectory = localFile.parent;
 
     // XXX todo, persist the last sound directory and pass it in
     fp.init(window, document.getElementById("bundlePreferences").getString("soundFilePickerTitle"), nsIFilePicker.modeOpen);
