@@ -341,14 +341,14 @@ let gFolderTreeView = {
   canDrop: function ftv_canDrop(aRow, aOrientation) {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
-    if (aOrientation != Ci.nsITreeView.DROP_ON)
-      return false;
     let targetFolder = gFolderTreeView._rowMap[aRow]._folder;
     if (!targetFolder)
       return false;
     let dt = this._currentTransfer;
     let types = dt.mozTypesAt(0);
     if (Array.indexOf(types, "text/x-moz-message") != -1) {
+      if (aOrientation != Ci.nsITreeView.DROP_ON)
+        return false;
       // Don't allow drop onto server itself.
       if (targetFolder.isServer)
         return false;
@@ -364,6 +364,8 @@ let gFolderTreeView = {
       }
     }
     else if (Array.indexOf(types, "text/x-moz-folder") != -1) {
+      if (aOrientation != Ci.nsITreeView.DROP_ON)
+        return false;
       // If cannot create subfolders then don't allow drop here.
       if (!targetFolder.canCreateSubfolders)
         return false;
@@ -387,6 +389,30 @@ let gFolderTreeView = {
         // dropped if it is not to "Local Folders" or is to the same account.
         if (!folder.canRename && (targetFolder.server.type != "none" ||
                                   folder.server == targetFolder.server))
+          return false;
+      }
+    }
+    else if (Array.indexOf(types, "text/x-moz-newsfolder") != -1) {
+      // Don't allow dragging onto element.
+      if (aOrientation == Ci.nsITreeView.DROP_ON)
+        return false;
+      // Don't allow drop onto server itself.
+      if (targetFolder.isServer)
+        return false;
+      for (let i = 0; i < dt.mozItemCount; i++) {
+        let folder = dt.mozGetDataAt("text/x-moz-newsfolder", i)
+                       .QueryInterface(Ci.nsIMsgFolder);
+        // Don't allow dragging newsgroup to other account.
+        if (targetFolder.rootFolder != folder.rootFolder)
+          return false;
+        // Don't allow dragging newsgroup to before/after itself.
+        if (targetFolder == folder)
+          return false;
+        // Don't allow dragging newsgroup to before item after or
+        // after item before.
+        let row = aRow + aOrientation;
+        if (row in gFolderTreeView._rowMap &&
+            (gFolderTreeView._rowMap[row]._folder == folder))
           return false;
       }
     }
@@ -415,6 +441,28 @@ let gFolderTreeView = {
                        msgWindow);
       }
     } 
+    else if (Array.indexOf(types, "text/x-moz-newsfolder") != -1) {
+      // Start by getting folders into order.
+      let folders = new Array;
+      for (let i = 0; i < count; i++) {
+        let folder = dt.mozGetDataAt("text/x-moz-newsfolder", i)
+                       .QueryInterface(Ci.nsIMsgFolder);
+        folders[this.getIndexOfFolder(folder)] = folder;
+      }
+      let newsFolder = targetFolder.rootFolder
+                                   .QueryInterface(Ci.nsIMsgNewsFolder);
+      // When moving down, want to insert first one last.
+      // When moving up, want to insert first one first.
+      let i = (aOrientation == 1) ? folders.length - 1 : 0;
+      while (i >= 0 && i < folders.length) {
+        let folder = folders[i];
+        if (folder) {
+          newsFolder.moveFolder(folder, targetFolder, aOrientation);
+          this.selection.toggleSelect(this.getIndexOfFolder(folder));
+        }
+        i -= aOrientation;
+      }
+    }
     else if (Array.indexOf(types, "text/x-moz-message") != -1) {
       let array = Cc["@mozilla.org/array;1"]
                     .createInstance(Ci.nsIMutableArray);
@@ -464,8 +512,11 @@ let gFolderTreeView = {
 
     let folders = view.getSelectedFolders();
     folders = folders.filter(function(f) { return !f.isServer; });
-    for (let i in folders)
-      aEvent.dataTransfer.mozSetDataAt("text/x-moz-folder", folders[i], i);
+    for (let i in folders) {
+      let flavor = folders[i].server.type == "nntp" ? "text/x-moz-newsfolder" :
+                                                      "text/x-moz-folder";
+      aEvent.dataTransfer.mozSetDataAt(flavor, folders[i], i);
+    }
     aEvent.dataTransfer.effectAllowed = "copyMove";
     aEvent.dataTransfer.addElement(aEvent.originalTarget);
     return;
