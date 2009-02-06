@@ -1284,21 +1284,24 @@ void nsBayesianFilter::classifyMessage(
         double antiCount =
           static_cast<double>(mCorpus.getTraitCount(t, aAntiTraits[traitIndex]));
 
-        double prob, proDenom, antiDenom;
+        double prob, denom;
         // Prevent a divide by zero error by setting defaults for prob
 
         // If there are no matching tokens at all, ignore.
         if (antiCount == 0.0 && proCount == 0.0)
           continue;
         // if only anti match, set probability to 0%
-        if ((proDenom = proCount * numProMessages[traitIndex]) == 0.0)
+        if (proCount == 0.0)
           prob = 0.0;
         // if only pro match, set probability to 100%
-        else if ((antiDenom = antiCount * numAntiMessages[traitIndex]) == 0.0)
+        else if (antiCount == 0.0)
           prob = 1.0;
+        // not really needed, but just to be sure check the denom as well
+        else if ((denom = proCount * numAntiMessages[traitIndex] +
+                          antiCount * numProMessages[traitIndex]) == 0.0)
+          continue;
         else
-          prob = (proCount * numAntiMessages[traitIndex]) /
-                 (proDenom + antiDenom);
+          prob = (proCount * numAntiMessages[traitIndex]) / denom;
 
         double n = proCount + antiCount;
         prob =  (0.225 + n * prob) / (.45 + n);
