@@ -429,7 +429,7 @@ function awTestRowSequence()
 function awResetAllRows()
 {
   var maxRecipients = top.MAX_RECIPIENTS;
-  
+
   for (var row = 1; row <= maxRecipients ; row ++)
   {
     awGetInputElement(row).value = "";
@@ -446,7 +446,7 @@ function awCleanupRows()
   {
     var inputElem = awGetInputElement(row);
     if (inputElem.value == "" && row < maxRecipients)
-      awRemoveRow(row, 1);
+      awRemoveRow(awGetRowByInputElement(inputElem));
     else
     {
       awSetInputAndPopupId(inputElem, awGetPopupElement(row), rowID);

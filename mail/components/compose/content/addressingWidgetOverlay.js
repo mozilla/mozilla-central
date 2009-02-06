@@ -437,7 +437,7 @@ function awCleanupRows()
   {
     var inputElem = awGetInputElement(row);
     if (inputElem.value == "" && row < maxRecipients)
-      awRemoveRow(row, 1);
+      awRemoveRow(awGetRowByInputElement(inputElem));
     else
     {
       awSetInputAndPopupId(inputElem, awGetPopupElement(row), rowID);
