@@ -1385,8 +1385,6 @@ MimeDisplayOptions::MimeDisplayOptions()
 
   output_vcard_buttons_p = PR_FALSE;
 
-  fancy_links_p = PR_FALSE;
-
   variable_width_plaintext_p = PR_FALSE;
   wrap_long_lines_p = PR_FALSE;
   rot13_p = PR_FALSE;
@@ -1549,14 +1547,12 @@ mime_bridge_create_display_stream(
     case nsMimeOutput::nsMimeMessageBodyDisplay:    // the split header/body display
       msd->options->fancy_headers_p = PR_TRUE;
       msd->options->output_vcard_buttons_p = PR_TRUE;
-      msd->options->fancy_links_p = PR_TRUE;
       break;
 
     case nsMimeOutput::nsMimeMessageSaveAs:         // Save As operations
     case nsMimeOutput::nsMimeMessageQuoting:        // all HTML quoted/printed output
     case nsMimeOutput::nsMimeMessagePrintOutput:
       msd->options->fancy_headers_p = PR_TRUE;
-      msd->options->fancy_links_p = PR_TRUE;
       break;
 
     case nsMimeOutput::nsMimeMessageBodyQuoting:        // only HTML body quoted output

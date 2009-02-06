@@ -185,11 +185,6 @@ public:
   PRBool output_vcard_buttons_p;  /* Whether to output the buttons */
                   /* on vcards. */
 
-  PRBool fancy_links_p;    /* Whether to insert fancy links, so you can
-                   do things like click on an email address to
-                   add it to your address book.  Something you
-                   don't want to do while printing. */
-
   PRBool variable_width_plaintext_p;  /* Whether text/plain messages should
                        be in variable width, or fixed. */
   PRBool wrap_long_lines_p;  /* Whether to wrap long lines in text/plain
