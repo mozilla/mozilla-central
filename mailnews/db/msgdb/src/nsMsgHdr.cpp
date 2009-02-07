@@ -383,7 +383,7 @@ NS_IMETHODIMP nsMsgHdr::SetMessageId(const char *messageId)
   if (messageId && *messageId == '<')
   {
     nsCAutoString tempMessageID(messageId + 1);
-    if (tempMessageID.Last() == '>')
+    if (tempMessageID.CharAt(tempMessageID.Length() - 1) == '>')
       tempMessageID.SetLength(tempMessageID.Length() - 1);
     return SetStringColumn(tempMessageID.get(), m_mdb->m_messageIdColumnToken);
   }

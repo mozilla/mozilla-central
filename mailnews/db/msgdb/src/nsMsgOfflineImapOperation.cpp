@@ -42,7 +42,6 @@
 
 #include "msgCore.h"
 #include "nsMsgOfflineImapOperation.h"
-#include "nsReadableUtils.h"
 #include "nsMsgUtils.h"
 
 PRLogModuleInfo *IMAPOffline;
@@ -304,9 +303,9 @@ nsresult nsMsgOfflineImapOperation::GetCopiesFromDB()
       nsCString curDest;
       nextCopyDestPos = copyDests.FindChar(FOLDER_SEP_CHAR, curCopyDestStart);
       if (nextCopyDestPos > 0)
-        copyDests.Mid(curDest, curCopyDestStart, nextCopyDestPos - curCopyDestStart);
+        curDest = Substring(copyDests, curCopyDestStart, nextCopyDestPos - curCopyDestStart);
       else
-        copyDests.Mid(curDest, curCopyDestStart, copyDests.Length() - curCopyDestStart);
+        curDest = Substring(copyDests, curCopyDestStart, copyDests.Length() - curCopyDestStart);
       curCopyDestStart = nextCopyDestPos + 1;
       m_copyDestinations.AppendCString(curDest);
     }

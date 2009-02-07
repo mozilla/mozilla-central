@@ -48,8 +48,6 @@
 #include "nsMsgKeySet.h"
 #include "nsIEnumerator.h"
 #include "nsMsgThread.h"
-#include "nsDependentSubstring.h"
-#include "nsReadableUtils.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsMsgBaseCID.h"
 #include "nsMorkCID.h"
@@ -69,9 +67,10 @@
 #include "MailNewsTypes2.h"
 #include "nsMsgUtils.h"
 #include "nsIMutableArray.h"
-
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMemory.h"
 #include "nsICollation.h"
-
 #include "nsCollationCID.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
@@ -268,7 +267,7 @@ NS_IMETHODIMP nsMsgDBService::RegisterPendingListener(nsIMsgFolder *aFolder, nsI
 NS_IMETHODIMP nsMsgDBService::UnregisterPendingListener(nsIDBChangeListener *aListener)
 {
   PRInt32 listenerIndex = m_pendingListeners.IndexOfObject(aListener);
-  if (listenerIndex != kNotFound)
+  if (listenerIndex != -1)
   {
     nsCOMPtr <nsIMsgFolder> folder = m_foldersPendingListeners[listenerIndex];
     nsCOMPtr <nsIMsgDatabase> msgDB = getter_AddRefs(nsMsgDatabase::FindInCache(folder));
@@ -1855,7 +1854,7 @@ PRUint32  nsMsgDatabase::GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags)
 
   nsMsgKey key;
   (void)msgHdr->GetMessageKey(&key);
-  if (!m_newSet.IsEmpty() && m_newSet[m_newSet.Length() - 1] == key || m_newSet.BinaryIndexOf(key) != kNotFound)
+  if (!m_newSet.IsEmpty() && m_newSet[m_newSet.Length() - 1] == key || m_newSet.BinaryIndexOf(key) != -1)
     statusFlags |= nsMsgMessageFlags::New;
   else
     statusFlags &= ~nsMsgMessageFlags::New;
@@ -2120,7 +2119,7 @@ NS_IMETHODIMP nsMsgDatabase::SetStringPropertyByHdr(nsIMsgDBHdr *msgHdr, const c
   // don't do notifications if message not yet added to database.
   // Ignore errors (consequences of failure are minor).
   PRBool notify = PR_TRUE;  
-  nsMsgKey key = kNotFound;
+  nsMsgKey key = -1;
   msgHdr->GetMessageKey(&key);
   ContainsKey(key, &notify);
   
@@ -3375,7 +3374,7 @@ nsresult nsMsgDatabase::RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnT
 
 /* static */struct mdbYarn *nsMsgDatabase::nsStringToYarn(struct mdbYarn *yarn, const nsAString &str)
 {
-  yarn->mYarn_Buf = ToNewCString(str);
+  yarn->mYarn_Buf = ToNewCString(NS_ConvertUTF16toUTF8(str));
   yarn->mYarn_Size = str.Length() + 1;
   yarn->mYarn_Fill = yarn->mYarn_Size - 1;
   yarn->mYarn_Form = 0;  // what to do with this? we're storing csid in the msg hdr...

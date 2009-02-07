@@ -39,7 +39,7 @@
 #define _nsMsgThread_H
 
 #include "nsIMsgThread.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "MailNewsTypes.h"
 #include "mdb.h"
 

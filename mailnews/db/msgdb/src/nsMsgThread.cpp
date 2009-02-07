@@ -162,8 +162,12 @@ NS_IMETHODIMP nsMsgThread::SetSubject(const nsACString& aSubject)
 
 NS_IMETHODIMP nsMsgThread::GetSubject(nsACString& aSubject)
 {
-  return m_mdbDB->RowCellColumnToCharPtr(
-                    m_metaRow, m_mdbDB->m_threadSubjectColumnToken, getter_Copies(aSubject));
+  nsCString subjectStr;
+  nsresult rv = m_mdbDB->RowCellColumnToCharPtr(m_metaRow, m_mdbDB->m_threadSubjectColumnToken, 
+                                                getter_Copies(subjectStr));
+
+  aSubject.Assign(subjectStr);
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgThread::GetNumChildren(PRUint32 *result)
