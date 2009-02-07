@@ -556,6 +556,11 @@ nsMsgSendLater::StartNextMailFileSend()
     return NS_OK;
   }
 
+  // Let everyone know about our progress if we've already sent more than one
+  // message.
+  if (mTotalSendCount)
+    NotifyListenersOnProgress(mTotalSendCount, mMessagesToSend.Count());
+
   nsCOMPtr<nsISupports> currentItem;
   rv = mEnumerator->GetNext(getter_AddRefs(currentItem));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -672,11 +677,14 @@ nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity,
     }
   }
 
-  // now get an enumerator for our array
+  // Now get an enumerator for our array.
   rv = NS_NewArrayEnumerator(getter_AddRefs(mEnumerator), mMessagesToSend);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  // We're now sending messages so its time to signal that and reset our counts.
   mSendingMessages = PR_TRUE;
+  mTotalSentSuccessfully = 0;
+  mTotalSendCount = 0;
 
   // Notify the listeners that we are starting a send.
   NotifyListenersOnStartSending(mMessagesToSend.Count());

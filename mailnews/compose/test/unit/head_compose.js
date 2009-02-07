@@ -61,3 +61,35 @@ function do_check_transaction(real, expected) {
   do_check_eq(real.them.join(","), expected.join(","));
   dump("Passed test " + test + "\n");
 }
+
+// This listener is designed just to call OnStopCopy() when its OnStopCopy
+// function is called - the rest of the functions are unneeded for a lot of
+// tests.
+var copyListener = {
+  // nsIMsgSendListener
+  onStartSending: function (aMsgID, aMsgSize) {},
+  onProgress: function (aMsgID, aProgress, aProgressMax) {},
+  onStatus: function (aMsgID, aMsg) {},
+  onStopSending: function (aMsgID, aStatus, aMsg, aReturnFile) {},
+  onGetDraftFolderURI: function (aFolderURI) {},
+  onSendNotPerformed: function (aMsgID, aStatus) {},
+
+  // nsIMsgCopyServiceListener
+  OnStartCopy: function () {},
+  OnProgress: function (aProgress, aProgressMax) {},
+  SetMessageKey: function (aKey) {},
+  GetMessageId: function (aMessageId) {},
+  OnStopCopy: function (aStatus) {
+    OnStopCopy(aStatus);
+  },
+
+  // QueryInterface
+  QueryInterface: function (iid) {
+    if (iid.equals(Ci.nsIMsgSendListener) ||
+        iid.equals(Ci.nsIMsgCopyServiceListener) ||
+        iid.equals(Ci.nsISupports))
+      return this;
+
+    throw Components.results.NS_ERROR_NO_INTERFACE;
+  }
+};

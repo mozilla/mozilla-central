@@ -21,7 +21,7 @@ var identity = null;
 var testFile = do_get_file("../mailnews/compose/test/unit/data/429891_testcase.eml");
 
 const kSender = "from@invalid.com";
-const kTo = "invalid@invalid.com";
+const kTo = "to@invalid.com";
 
 var msgSendLater = Cc["@mozilla.org/messengercompose/sendlater;1"]
   .getService(Ci.nsIMsgSendLater);
@@ -78,87 +78,46 @@ msll.prototype = {
   }
 };
 
-// This listener is used to find out when the copying of the message to the
-// unsent message folder is completed, and hence can fire off the actual
-// sending of the message.
-function copyListener() {
-}
+function OnStopCopy(aStatus) {
+  do_test_finished();
 
-copyListener.prototype = {
-  // nsIMsgSendListener
-  onStartSending: function (aMsgID, aMsgSize) {
-  },
-  onProgress: function (aMsgID, aProgress, aProgressMax) {
-  },
-  onStatus: function (aMsgID, aMsg) {
-  },
-  onStopSending: function (aMsgID, aStatus, aMsg, aReturnFile) {
-  },
-  onGetDraftFolderURI: function (aFolderURI) {
-  },
-  onSendNotPerformed: function (aMsgID, aStatus) {
-  },
+  try {
+    do_check_eq(aStatus, 0);
 
-  // nsIMsgCopyServiceListener
-  OnStartCopy: function () {
-  },
-  OnProgress: function (aProgress, aProgressMax) {
-  },
-  SetMessageKey: function (aKey) {
-  },
-  GetMessageId: function (aMessageId) {
-  },
-  OnStopCopy: function (aStatus) {
-    do_test_finished();
+    // Check this is false before we start sending
+    do_check_eq(msgSendLater.sendingMessages, false);
 
-    try {
-      do_check_eq(aStatus, 0);
+    let folder = msgSendLater.getUnsentMessagesFolder(identity);
 
-      // Check this is false before we start sending
-      do_check_eq(msgSendLater.sendingMessages, false);
+    // Check we have a message in the unsent message folder
+    do_check_eq(folder.getTotalMessages(false), 1);
 
-      let folder = msgSendLater.getUnsentMessagesFolder(identity);
+    // Now do a comparison of what is in the sent mail folder
+    var fileData = loadFileToString(folder.filePath);
 
-      // Check we have a message in the unsent message folder
-      do_check_eq(folder.getTotalMessages(false), 1);
+    // Skip the headers etc that mailnews adds
+    var pos = fileData.indexOf("From:");
+    do_check_neq(pos, -1);
 
-      // Now do a comparison of what is in the sent mail folder
-      var fileData = loadFileToString(folder.filePath);
+    fileData = fileData.substr(pos);
 
-      // Skip the headers etc that mailnews adds
-      var pos = fileData.indexOf("From:");
-      do_check_neq(pos, -1);
+    // Check the data is matching.
+    do_check_eq(originalData, fileData);
 
-      fileData = fileData.substr(pos);
+    do_test_pending();
+    do_timeout(sendMessageLater(), 0);
+  } catch (e) {
+    do_throw(e);
+  } finally {
+    server.stop();
 
-      // Check the data is matching.
-      do_check_eq(originalData, fileData);
+    var thread = gThreadManager.currentThread;
+    while (thread.hasPendingEvents())
+      thread.processNextEvent(true);
 
-      do_test_pending();
-      do_timeout(sendMessageLater(), 0);
-    } catch (e) {
-      do_throw(e);
-    } finally {
-      server.stop();
-
-      var thread = gThreadManager.currentThread;
-      while (thread.hasPendingEvents())
-        thread.processNextEvent(true);
-
-      finished = true;
-    }
-  },
-
-  // QueryInterface
-  QueryInterface: function (iid) {
-    if (iid.equals(Ci.nsIMsgSendListener) ||
-        iid.equals(Ci.nsIMsgCopyServiceListener) ||
-        iid.equals(Ci.nsISupports))
-      return this;
-
-    throw Components.results.NS_ERROR_NO_INTERFACE;
+    finished = true;
   }
-};
+}
 
 // This function does the actual send later
 function sendMessageLater()
@@ -241,14 +200,12 @@ function run_test() {
   compFields.from = identity.email;
   compFields.to = kTo;
 
-  var cl = new copyListener(true);
-
   var msgSend = Cc["@mozilla.org/messengercompose/send;1"]
                   .createInstance(Ci.nsIMsgSend);
 
   msgSend.sendMessageFile(identity, "", compFields, testFile,
                           false, false, Ci.nsIMsgSend.nsMsgQueueForLater,
-                          null, cl, null, null);
+                          null, copyListener, null, null);
 
   // Now we wait till we get copy notification of completion.
   do_test_pending();
