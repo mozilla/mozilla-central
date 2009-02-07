@@ -764,7 +764,7 @@
     </toolbar>
   </toolbox>
 
-  <splitter id="compose-toolbar-sizer" onmousedown="awSizerListen()" collapse="after"/>
+  <splitter id="compose-toolbar-sizer" onmousedown="awSizerListen()"/>
 
   <!-- The mail message body frame -->
   <vbox id="appcontent" flex="1">
