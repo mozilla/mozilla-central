@@ -147,8 +147,8 @@ interface nsIActivity : nsISupports {
   
   /**
    * Changes the default icon associated with the activity. Core activity
-   * icons are declared in |mail/themes/pinstripe/mail/activity/activity.css|
-   * file.
+   * icons are declared in |mail/themes/<themename>/mail/activity/activity.css|
+   * files.
    *
    * Extension developers can add and assign their own icons by setting
    * this attribute.
@@ -241,11 +241,8 @@ interface nsIActivity : nsISupports {
   attribute nsIVariant contextObj;
   
   /**
-   * Sets and gets the context type of the activity. The Activity Manager
-   * knows how to display a description for predefined context types.
-   *
-   * If the activity developer decides to introduce its own context type to
-   * Thunderbird, he/she _must_ implement contextDisplayText as well.
+   * Sets and gets the context type of the activity. If this is set, then
+   * the contextDisplayText should also be set.
    */
   attribute AString contextType;
 
