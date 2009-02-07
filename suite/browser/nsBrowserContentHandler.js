@@ -246,6 +246,8 @@ var nsBrowserContentHandler = {
     throw Components.results.NS_ERROR_NO_INTERFACE;
   },
 
+  _handledURI: null,
+
   /* nsICommandLineHandler */
   handle: function handle(cmdLine) {
     var features = "chrome,all,dialog=no";
@@ -337,12 +339,24 @@ var nsBrowserContentHandler = {
     try {
       var urlParam = cmdLine.handleFlagWithParam("url", false);
       if (urlParam) {
-        try {
+        if (this._handledURI == urlParam) {
+          this._handledURI = null;
+        } else {
+          if (cmdLine.handleFlag("requestpending", false) &&
+              cmdLine.state == nsICommandLine.STATE_INITIAL_LAUNCH) {
+            // A DDE request with the URL will follow and the DDE handling code
+            // will send it to the commandline handler via
+            // "mozilla -url http://www.foo.com". Store the URL so we can
+            // ignore this request later
+            this._handledURI = urlParam;
+          } 
+
           urlParam = resolveURIInternal(cmdLine, urlParam);
-          handURIToExistingBrowser(urlParam, nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW, features);
-          cmdLine.preventDefault = true;
-        } catch (e) {
+          handURIToExistingBrowser(urlParam,
+                                   nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW,
+                                   features);
         }
+        cmdLine.preventDefault = true;
       }
     } catch (e) {
     }
