@@ -2091,16 +2091,16 @@
         <!-- XXXdmose need to audit our shortcut/a11y setup and make sure
              these buttons are doing the right thing -->
 
-       <xul:button anonid="hdrReplyButton" label="&replyButton.label;"
+       <xul:button anonid="hdrReplyButton" label="&hdrReplyButton.label;"
                    oncommand="MsgReplyMessage(event);" observes="button_reply"
                    class="msgHeaderView-button hdrReplyButton"/>
-       <xul:button anonid="hdrForwardButton" label="&forwardButton.label;"
+       <xul:button anonid="hdrForwardButton" label="&hdrForwardButton.label;"
                    oncommand="MsgForwardMessage(event);"
                    observes="button_forward" class="msgHeaderView-button hdrForwardButton"/>
        <xul:button anonid="archiveButton" label="&archiveButton.label;"
                    oncommand="MsgArchiveSelectedMessages(event);" observes="button_archive"
                    class="msgHeaderView-button hdrArchiveButton"/>
-       <xul:button anonid="hdrJunkButton" label="&junkButton.label;"
+       <xul:button anonid="hdrJunkButton" label="&hdrJunkButton.label;"
                    observes="button_junk" class="msgHeaderView-button hdrJunkButton"
                    oncommand="goDoCommand('button_junk')"/>
        <xul:button anonid="hdrTrashButton" tooltiptext="&trashButton.tooltiptext;"
