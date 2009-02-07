@@ -202,7 +202,7 @@ clobber-zip:
 	$(RM) $(STAGEDIST)/chrome/$(AB_CD).jar \
 	  $(STAGEDIST)/chrome/$(AB_CD).manifest \
 	  $(STAGEDIST)/defaults/pref/all-l10n.js
-	  $(STAGEDIST)/dictionaries \
+	$(RM) -r $(STAGEDIST)/dictionaries \
 	  $(STAGEDIST)/isp/$(AB_CD) \
 	  $(STAGEDIST)/chrome/$(AB_CD)
 
