@@ -115,7 +115,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     let days = rule.getComponent("BYDAY", {});
                     var weekdays = "";
                     for (let i = 0; i < days.length; i++) {
-                        weekdays += getRString("repeatDetailsOrdinal" + days[i])
+                        weekdays += getRString("repeatDetailsDay" + days[i])
                         if (days.length > 1 && i == (days.length - 2)) {
                             weekdays += ' ' + getRString("repeatDetailsAnd") + ' ';
                         } else if (i < days.length - 1) {
