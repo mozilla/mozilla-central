@@ -98,64 +98,6 @@ var gHaveLoadedMessage;
 
 var gDisplayStartupPage = false;
 
-/**
- * Tests whether the application has been upgraded
- * or not. Updates the pref with the latest version,
- * returns true if upgraded, false otherwise.
- * 
- */ 
-function IsApplicationUpgraded()
-{
-  let savedAppVersion = null;
-  try {
-    savedAppVersion = pref.getCharPref("mailnews.start_page_override.mstone");
-  } catch (ex) {}
-
-  if (savedAppVersion != "ignore")
-  {
-    let currentApplicationVersion =
-      Components.classes["@mozilla.org/xre/app-info;1"]
-                .getService(Components.interfaces.nsIXULAppInfo).version;
-    pref.setCharPref("mailnews.start_page_override.mstone", currentApplicationVersion);
-
-    // Only show if this is actually an upgraded version, not just a new
-    // installation/profile.
-    if (savedAppVersion && currentApplicationVersion != savedAppVersion)
-      return true;
-  }
-  return false;
-}
-
-const URI_UPDATES_PROPERTIES = "chrome://mozapps/locale/update/updates.properties";
-
-//a tab to show the "what's new" page to the user
-// at the very first start of upgraded TB 
-var whatsnewTabType = {
-  name: "whatsNew",
-  perTabPanel: "iframe",
-  modes: {
-    whatsNew: {
-      type: "whatsNew",    
-      maxTabs: 1
-    }
-  },
-  openTab: function onTabOpened (aTab) {
-    let startpage = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                              .getService(Components.interfaces.nsIURLFormatter)
-                              .formatURLPref("mailnews.start_page.override_url");
-    aTab.panel.setAttribute("src", startpage);
-
-    let msgBundle = document.getElementById("bundle_messenger");
-    aTab.title = msgBundle.getString("whatsNew");
-  },
-  closeTab: function onTabClosed (aTab) {
-  },
-  saveTabState: function onSaveTabState (aTab) {
-  },
-  showTab: function onShowTab (aTab) {
-  }
-};
-
 function SelectAndScrollToKey(aMsgKey)
 {
   // select the desired message
@@ -736,13 +678,8 @@ function OnLoadMessenger()
     tabmail.openFirstTab();
   }
 
-  // Show the "what's new" tab to the user
-  // if upgraded
-  if (IsApplicationUpgraded())
-  {
-    tabmail.registerTabType(whatsnewTabType);
-    tabmail.openTab("whatsNew");
-  }
+  specialTabs.openSpecialTabsOnStartup();
+
   window.addEventListener("AppCommand", HandleAppCommandEvent, true);
 }
 
