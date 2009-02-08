@@ -1866,7 +1866,9 @@ function MsgJunk()
 
 function UpdateJunkButton()
 {
-  let hdr = gDBView.hdrForFirstSelectedMessage;
+  let hdr = msgHdrForCurrentMessage();
+  if (!hdr) // .eml file
+    return;
   let junkScore = hdr.getStringProperty("junkscore");
   let hideJunk = (junkScore != "") && (junkScore != "0");
   if (isNewsURI(hdr.folder.URI))
