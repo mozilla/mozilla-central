@@ -165,6 +165,7 @@ modern.jar:
   skin/modern/global/printPageSetup.css                            (global/printPageSetup.css)
   skin/modern/global/progressmeter.css                             (global/progressmeter.css)
   skin/modern/global/radio.css                                     (global/radio.css)
+  skin/modern/global/resizer.css                                   (global/resizer.css)
   skin/modern/global/richlistbox.css                               (global/richlistbox.css)
   skin/modern/global/scale.css                                     (global/scale.css)
   skin/modern/global/scrollbox.css                                 (global/scrollbox.css)
