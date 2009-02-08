@@ -271,7 +271,7 @@ langpack-%: libs-%
 	  tar $(TAR_CREATE_FLAGS) - * | ( cd $(_ABS_DIST)/xpi-stage/locale-$(AB_CD)/chrome && tar -xf - )
 	cat $(DIST)/xpi-stage/calendar-timezones/chrome.manifest >> $(_ABS_DIST)/xpi-stage/locale-$(AB_CD)/chrome.manifest
 	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
-	  $(ZIP) -r9D $(LANGPACK_FILE) install.rdf chrome chrome.manifest defaults dictionaries searchplugins -x chrome/$(AB_CD).manifest -x chrome/sunbird-$(AB_CD).manifest -x chrome/calendar-$(AB_CD).manifest
+	  $(ZIP) -r9D $(LANGPACK_FILE) install.rdf chrome chrome.manifest defaults dictionaries -x chrome/$(AB_CD).manifest -x chrome/sunbird-$(AB_CD).manifest -x chrome/calendar-$(AB_CD).manifest
 
 # This is a generic target that will make a langpack, repack ZIP (+tarball)
 # builds, and repack an installer if applicable. It is called from the
