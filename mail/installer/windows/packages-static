@@ -62,6 +62,7 @@ bin\defaults\profile\mimeTypes.rdf
 
 bin\isp\*
 
+bin\components\aboutRights.js
 bin\components\activity.xpt
 bin\components\addrbook.xpt
 bin\components\mime.xpt

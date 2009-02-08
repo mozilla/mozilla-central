@@ -64,7 +64,10 @@ endif
 
 DIRS += build
 
-EXTRA_COMPONENTS = nsMailDefaultHandler.js
+EXTRA_COMPONENTS = \
+	nsMailDefaultHandler.js \
+	aboutRights.js \
+	$(NULL)
 
 include $(topsrcdir)/config/rules.mk
 

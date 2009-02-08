@@ -42,6 +42,7 @@ messenger.jar:
     content/messenger/subscribe.js                  (content/subscribe.js)
 *   content/messenger/aboutDialog.xul               (content/aboutDialog.xul)
 *   content/messenger/aboutDialog.js                (content/aboutDialog.js)
+*   content/messenger/aboutRights.xhtml             (content/aboutRights.xhtml)
 *   content/messenger/defaultClientDialog.xul       (content/defaultClientDialog.xul)
 *   content/messenger/defaultClientDialog.js        (content/defaultClientDialog.js)
     content/messenger/folderPane.js                 (content/folderPane.js)
