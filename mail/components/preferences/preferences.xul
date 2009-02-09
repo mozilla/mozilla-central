@@ -92,10 +92,4 @@
             src="chrome://messenger/content/preferences/downloads.xul"/>
   <prefpane id="paneAdvanced" label="&paneAdvanced.title;"
             src="chrome://messenger/content/preferences/advanced.xul"/>
-#ifdef XP_MACOSX
-  <keyset id="mainKeyset">
-    <key id="key_close" modifiers="accel" key="&cmdCloseMac.commandKey;"
-         oncommand="window.close();"/>
-  </keyset>
-#endif
 </prefwindow>
