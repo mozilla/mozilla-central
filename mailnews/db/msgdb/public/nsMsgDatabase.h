@@ -155,8 +155,8 @@ public:
   static void YarnToUInt32(struct mdbYarn *yarn, PRUint32 *i);
   
   static void   CleanupCache();
-#ifdef DEBUG
   static int    GetNumInCache(void) {return(GetDBCache()->Count());}
+#ifdef DEBUG
   static void   DumpCache();
   virtual nsresult DumpContents();
   nsresult DumpThread(nsMsgKey threadId);
