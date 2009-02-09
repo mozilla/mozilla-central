@@ -133,7 +133,6 @@ $(CONFIG_DIR)/setup.exe::
 	    $(CONFIG_DIR)/$$i; \
 	done
 	$(INSTALL) $(addprefix $(DIST)/branding/,$(BRANDING_FILES)) $(CONFIG_DIR)
-	cp $(topsrcdir)/mail/EULA.rtf $(CONFIG_DIR)/license.rtf
 	$(EXIT_ON_ERROR) \
 	for i in $(PP_LOCALIZED_FILES); do \
 	  $(PERL) $(MOZILLA_SRCDIR)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $(srcdir)/$$i > $(CONFIG_DIR)/$$i; \
