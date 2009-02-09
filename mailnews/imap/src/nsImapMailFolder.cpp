@@ -2418,6 +2418,7 @@ NS_IMETHODIMP nsImapMailFolder::Shutdown(PRBool shutdownChildren)
   // mPath is used to decide if folder pathname needs to be reconstructed in GetPath().
   mPath = nsnull;
   NS_IF_RELEASE(m_moveCoalescer);
+  m_msgParser = nsnull;
   return nsMsgDBFolder::Shutdown(shutdownChildren);
 }
 

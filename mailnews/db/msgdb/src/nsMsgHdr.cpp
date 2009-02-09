@@ -142,9 +142,9 @@ nsMsgHdr::~nsMsgHdr()
     {
       NS_RELEASE(m_mdbRow);
       m_mdb->RemoveHdrFromUseCache((nsIMsgDBHdr *) this, m_messageKey);
-      m_mdb->Release();
     }
   }
+  NS_IF_RELEASE(m_mdb);
 }
 
 NS_IMETHODIMP nsMsgHdr::GetMessageKey(nsMsgKey *result)

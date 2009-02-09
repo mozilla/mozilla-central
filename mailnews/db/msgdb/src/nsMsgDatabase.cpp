@@ -724,7 +724,10 @@ nsMsgDatabase::CleanupCache()
   if (m_dbCache) // clean up memory leak (needed because some destructors
                  // have user-visible effects, which they shouldn't)
   {
-    for (PRInt32 i = 0; i < GetDBCache()->Count(); i++)
+    for (PRInt32 i = GetNumInCache() - 1;
+         i >= 0 && GetNumInCache() > 0;
+         // prior closes may have removed more than one element
+         i >= GetNumInCache() ? i = GetNumInCache() - 1 : i--)
     {
       nsMsgDatabase* pMessageDB = static_cast<nsMsgDatabase*>(GetDBCache()->ElementAt(i));
       if (pMessageDB)
@@ -734,22 +737,15 @@ nsMsgDatabase::CleanupCache()
         // break cycle with folder -> parse msg state -> db
         pMessageDB->m_folder = nsnull;
         pMessageDB->ForceClosed();
-        nsrefcnt refcount = pMessageDB->Release();
-
-        // ForceClosed may have caused the last reference (other than
-        // this function's) to go away by breaking a cycle
-        if (refcount != 0)
-        {
-          // The destructor may cause the remaining references to be
-          // released, so stabilize the refcount and then manually
-          // delete.
-          ++pMessageDB->mRefCnt;
-          delete pMessageDB;
-        }
-        i--;  // back up array index, since closing removes db from cache.
+        pMessageDB->Release();
       }
     }
-    NS_ASSERTION(GetNumInCache() == 0, "some msg dbs left open");  // better not be any open db's.
+#ifdef DEBUG
+    // If you hit this warning, it means that ForceClosed() did not
+    // successfully remove all references to the db so that it can
+    // be shutdown.
+    NS_WARN_IF_FALSE(!GetNumInCache(), "some msg dbs left open");
+#endif
     delete m_dbCache;
   }
   m_dbCache = nsnull; // Need to reset to NULL since it's a
