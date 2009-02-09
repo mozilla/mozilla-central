@@ -67,8 +67,6 @@
   -moz-margin-end: 1px;
   margin-top: 1px;
   padding: 2px;
-  /** bugzilla 89144 - must be able to access tabs dropdown **/
-  -moz-user-focus:normal !important;
 }
 
 #sidebar-panel-picker:hover {

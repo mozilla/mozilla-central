@@ -85,7 +85,7 @@
         collapse="after" onmouseup="PersistHeight();"
         tooltipopen="&sidebar.open.tooltip;" 
         tooltipclose="&sidebar.close.tooltip;">
-        <toolbarbutton type="menu" id="sidebar-panel-picker" menubuttontype="sidebar-panels"
+        <toolbarbutton type="menu" id="sidebar-panel-picker" class="tabbable"
           onpopupshowing="SidebarBuildPickerPopup();"
           label="&sidebar.picker.label;" >
           <menupopup id="sidebar-panel-picker-popup"

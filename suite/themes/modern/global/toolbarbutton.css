@@ -61,6 +61,11 @@ toolbarbutton {
   text-align: center;
 }
 
+.tabbable {
+  -moz-user-focus: normal !important;
+}
+
+toolbarbutton:focus,
 toolbarbutton:hover {
   border-top-color: #EEF0F3;
   border-right-color: #86929E;
