@@ -87,6 +87,7 @@ classic.jar:
   skin/classic/messenger/icons/folder.png                     (mail/icons/folder.png)
   skin/classic/messenger/icons/message.png                    (mail/icons/message.png)
   skin/classic/messenger/icons/attachment-deleted.png         (mail/icons/attachment-deleted.png)
+  skin/classic/messenger/icons/attachment-deleted-large.png   (mail/icons/attachment-deleted-large.png)
   skin/classic/messenger/icons/attachment-col.png             (mail/icons/attachment-col.png)
   skin/classic/messenger/icons/attachment.png                 (mail/icons/attachment.png)
   skin/classic/messenger/icons/junk-col.png                   (mail/icons/junk-col.png)

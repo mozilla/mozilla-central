@@ -1582,16 +1582,26 @@ function displayAttachmentsForExpandedView()
  }
 }
 
-// attachment --> the attachment struct containing all the information on the attachment
-// listitem --> the listitem currently showing the attachment.
+/**
+ * Show a nice icon next to the attachment.
+ * @param attachment the nsIMsgAttachment object to show icon for
+ * @param listitem the listitem currently showing the attachment
+ * @param largeView boolean value: 32x32 vs. 16x16 size icon
+ */
 function setApplicationIconForAttachment(attachment, listitem, largeView)
 {
-  var iconSize = largeView ? 32 : 16;
-  // generate a moz-icon url for the attachment so we'll show a nice icon next to it.
-  if (attachment.contentType == 'text/x-moz-deleted')
-    listitem.setAttribute('image', 'chrome://messenger/skin/icons/message-mail-attach-del.png');
+  // Show a nice icon next to it the attachment.
+  if (attachment.contentType == "text/x-moz-deleted")
+  {
+    let fn = largeView ? "attachment-deleted-large.png" : "attachment-deleted.png";
+    listitem.setAttribute("image", "chrome://messenger/skin/icons/"+fn);
+  }
   else
-    listitem.setAttribute('image', "moz-icon:" + "//" + attachment.displayName + "?size=" + iconSize + "&contentType=" + attachment.contentType);
+  {
+    let iconSize = largeView ? 32 : 16;
+    listitem.setAttribute("image", "moz-icon://" + attachment.displayName + "?size=" +
+                                   iconSize + "&contentType=" + attachment.contentType);
+  }
 }
 
 // Public method called when we create the attachments file menu
