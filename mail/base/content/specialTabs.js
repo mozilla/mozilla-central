@@ -37,6 +37,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 var specialTabs = {
+  _kAboutRightsVersion: 1,
+
   // This will open any special tabs if necessary on startup.
   openSpecialTabsOnStartup: function() {
     let tabmail = document.getElementById('tabmail');
@@ -50,6 +52,11 @@ var specialTabs = {
         tabmail.registerTabType(this.whatsnewTabType);
         tabmail.openTab("whatsNew");
     }
+
+    tabmail.registerTabType(this.aboutTabType);
+
+    if (this.shouldShowAboutRightsNotification(prefs))
+      this.showAboutRightsNotification(prefs);
   },
 
   /**
@@ -108,5 +115,97 @@ var specialTabs = {
     },
     showTab: function onShowTab (aTab) {
     }
+  },
+
+  /**
+   * A tab to show items of the about: protocol variety.
+   */
+  aboutTabType: {
+    name: "about",
+    panelId: "aboutPanel",
+    modes: {
+      about: {
+        type: "about",
+        maxTabs: 1
+      }
+    },
+    openTab: function onTabOpened (aTab, aAboutPage) {
+      document.getElementById("aboutPanelFrame").setAttribute("src", aAboutPage);
+
+      var rightsBundle =
+        Components.classes["@mozilla.org/intl/stringbundle;1"]
+                  .getService(Components.interfaces.nsIStringBundleService)
+                  .createBundle("chrome://messenger/locale/aboutRights.properties");
+
+      aTab.title = rightsBundle.GetStringFromName("aboutRightsTitle");
+    },
+    closeTab: function onTabClosed (aTab) {
+    },
+    saveTabState: function onSaveTabState (aTab) {
+    },
+    showTab: function onShowTab (aTab) {
+    }
+  },
+
+  /**
+   * Looks at the existing prefs and determines if we should show about:rights
+   * or not.
+   *
+   * This is controlled by two prefs:
+   *
+   *   mail.rights.override
+   *     If this pref is set to false, always show the about:rights
+   *     notification.
+   *     If this pref is set to true, never show the about:rights notification.
+   *     If the pref doesn't exist, then we fallback to checking
+   *     mail.rights.version.
+   *
+   *   mail.rights.version
+   *     If this pref isn't set or the value is less than the current version
+   *     then we show the about:rights notification.
+   */
+  shouldShowAboutRightsNotification: function(prefs) {
+    try {
+      return !prefs.getBoolPref("mail.rights.override");
+    } catch (e) { }
+
+    return prefs.getIntPref("mail.rights.version") < this._kAboutRightsVersion;
+  },
+
+  showAboutRightsNotification: function(prefs) {
+    var notifyBox = document.getElementById("mail-notification-box");
+
+    var stringBundle =
+      Components.classes["@mozilla.org/intl/stringbundle;1"]
+                .getService(Components.interfaces.nsIStringBundleService)
+    var brandBundle =
+      stringBundle.createBundle("chrome://branding/locale/brand.properties");
+    var rightsBundle =
+      stringBundle.createBundle("chrome://messenger/locale/aboutRights.properties");
+
+    var productName = brandBundle.GetStringFromName("brandFullName");
+    var notifyText = rightsBundle.formatStringFromName("notifyText",
+                                                       [productName], 1);
+
+    var buttons = [
+      {
+        label: rightsBundle.GetStringFromName("buttonLabel"),
+        accessKey: rightsBundle.GetStringFromName("buttonAccessKey"),
+        popup: null,
+        callback: function(aNotificationBar, aButton) {
+          // Show the about:rights tab
+          document.getElementById('tabmail').openTab("about", "about:rights");
+        }
+      }
+    ];
+
+    var box = notifyBox.appendNotification(notifyText, "about-rights", null, notifyBox.PRIORITY_INFO_LOW, buttons);
+    // arbitrary number, just so bar sticks around for a bit
+    box.persistence = 3;
+
+    // Set the pref to say we've displayed the notification.
+    prefs.setIntPref("mail.rights.version", this._kAboutRightsVersion);
   }
+
+
 }

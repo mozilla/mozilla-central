@@ -53,6 +53,16 @@ pref("browser.chromeURL", "chrome://messenger/content/messengercompose/messenger
 pref("mail.biff.animate_dock_icon", false);
 #endif
 
+pref("mail.rights.version", 0);
+
+// Don't show the about:rights notification in debug or non-official builds.
+#ifdef DEBUG
+pref("mail.rights.override", false);
+#endif
+#ifndef OFFICIAL_BUILD
+pref("mail.rights.override", true);
+#endif
+
 // gtk2 (*nix) lacks transparent/translucent drag support (bug 376238), so we
 // want to disable it so people can see where they are dragging things.
 // (Stock gtk drag icons will be used instead.)
