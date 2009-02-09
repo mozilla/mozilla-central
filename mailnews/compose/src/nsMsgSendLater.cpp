@@ -1158,6 +1158,12 @@ nsMsgSendLater::NotifyListenersOnStopSending(nsresult aStatus,
                                              PRUint32 aTotalTried,
                                              PRUint32 aSuccessful)
 {
+  // Catch-all, we may have had an issue sending, so we may not be calling
+  // StartNextMailFileSend to fully finish the sending. Therefore set
+  // mSendingMessages to false here so that we don't think we're still trying
+  // to send messages
+  mSendingMessages = PR_FALSE;
+
   NOTIFY_LISTENERS(OnStopSending, (aStatus, aMsg, aTotalTried, aSuccessful));
 }
 
