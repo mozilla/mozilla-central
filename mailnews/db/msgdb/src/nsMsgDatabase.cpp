@@ -898,7 +898,6 @@ nsMsgDatabase::~nsMsgDatabase()
   if (m_dbFolderInfo)
     m_dbFolderInfo->ReleaseExternalReferences();
 
-  NotifyAnnouncerGoingAway();
   NS_IF_RELEASE(m_dbFolderInfo);
   if (m_HeaderParser)
   {
@@ -919,9 +918,7 @@ nsMsgDatabase::~nsMsgDatabase()
     m_mdbEnv->Release(); //??? is this right?
     m_mdbEnv = nsnull;
   }
-
-  // Better not be any listeners, because we're going away.
-  NS_ASSERTION(m_ChangeListeners.IsEmpty(), "shouldn't have any listeners");
+  m_ChangeListeners.Clear();
 }
 
 NS_IMPL_ADDREF(nsMsgDatabase)

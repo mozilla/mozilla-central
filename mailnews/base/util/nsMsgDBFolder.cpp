@@ -241,7 +241,7 @@ NS_IMETHODIMP nsMsgDBFolder::Shutdown(PRBool shutdownChildren)
   if(mDatabase)
   {
     mDatabase->RemoveListener(this);
-    mDatabase->Close(PR_TRUE);
+    mDatabase->ForceClosed();
     mDatabase = nsnull;
     if (mBackupDatabase)
     {
