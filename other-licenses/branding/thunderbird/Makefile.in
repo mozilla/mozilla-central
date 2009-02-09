@@ -33,7 +33,6 @@ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	cp $(srcdir)/background.png    $(DIST)/branding/background.png
 	cp $(srcdir)/dsstore           $(DIST)/branding/dsstore
 	cp $(srcdir)/disk.icns         $(DIST)/branding/disk.icns
-	cp $(srcdir)/license.r         $(DIST)/branding/license.r
 	cp $(srcdir)/thunderbird.icns  $(DIST)/branding/thunderbird.icns
 endif
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
