@@ -61,6 +61,7 @@ REQUIRES	= xpcom \
 		  msgcompose \
 		  msglocal \
 		  msgimap \
+		  msgnews \
 		  unicharutil \
 		  $(NULL)
 
