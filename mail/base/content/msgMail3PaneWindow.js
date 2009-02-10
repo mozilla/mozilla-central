@@ -44,6 +44,7 @@
 # ***** END LICENSE BLOCK *****
 
 Components.utils.import("resource://gre/modules/folderUtils.jsm");
+Components.utils.import("resource://app/modules/activity/activityModules.js");
 
 /* This is where functions related to the 3 pane window are kept */
 

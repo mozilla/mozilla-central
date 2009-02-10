@@ -2274,7 +2274,6 @@ function SendUnsentMessages()
     if (msgFolder) {
       var numMessages = msgFolder.getTotalMessages(false /* include subfolders */);
       if(numMessages > 0) {
-        msgSendlater.statusFeedback = msgWindow.statusFeedback;
         msgSendlater.sendUnsentMessages(currentIdentity);
         // Right now, all identities point to the same unsent messages
         // folder, so to avoid sending multiple copies of the

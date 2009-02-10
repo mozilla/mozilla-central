@@ -252,8 +252,10 @@ nsresult nsMsgOfflineManager::SendUnsentMessages()
   }
   if (identityToUse) 
   { 
+#ifdef MOZ_SUITE
     if (m_statusFeedback)
       pMsgSendLater->SetStatusFeedback(m_statusFeedback);
+#endif
 
     pMsgSendLater->AddListener(this);
     rv = pMsgSendLater->SendUnsentMessages(identityToUse);

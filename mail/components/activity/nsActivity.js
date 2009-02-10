@@ -196,10 +196,10 @@ nsActivityProcess.prototype = {
   },
 
   setProgress: function(aStatusText, aWorkUnitsComplete, aTotalWorkUnits) {
-    this._percentComplete = 100.0 * aWorkUnitsComplete / aTotalWorkUnits;
-    this._workUnitComplete = aWorkUnitsComplete;
-    this._totalWorkUnits = aTotalWorkUnits;
-    this._lastStatusText = aStatusText;
+    this.percentComplete = 100.0 * aWorkUnitsComplete / aTotalWorkUnits;
+    this.workUnitComplete = aWorkUnitsComplete;
+    this.totalWorkUnits = aTotalWorkUnits;
+    this.lastStatusText = aStatusText;
 
     // notify listeners
     for each (let [, value] in Iterator(this._listeners)) {
@@ -358,7 +358,7 @@ nsActivityWarning.prototype = {
   },
 
   set recoveryHandler(val) {
-    this._revoveryHandler = val;
+    this._recoveryHandler = val;
 
     // let the listeners know about the change
     this.log.debug("Notifying onHandlerChanged listeners");

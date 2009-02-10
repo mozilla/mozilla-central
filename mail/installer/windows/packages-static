@@ -35,6 +35,7 @@ bin\mozcrt19.dll
 ; Modules
 bin\modules\*
 bin\modules\gloda\*
+bin\modules\activity\*
 
 ; Optional RSS extension
 [newsblog]

@@ -40,6 +40,9 @@
 #
 # ***** END LICENSE BLOCK *****
 
+// Ensure the activity modules are loaded for this window.
+Components.utils.import("resource://app/modules/activity/activityModules.js");
+
 const nsIAbListener = Components.interfaces.nsIAbListener;
 const kPrefMailAddrBookLastNameFirst = "mail.addr_book.lastnamefirst";
 
