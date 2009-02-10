@@ -67,11 +67,16 @@
 #include "nsIStringBundle.h"
 #include "nsToolkitCompsCID.h"
 #include "nsINotificationsList.h"
+#include "nsIMsgDatabase.h"
+#include "nsIMsgHdr.h"
+#include "nsIMsgHeaderParser.h"
+#include "nsISupportsPrimitives.h"
 
 #include <Carbon/Carbon.h>
 
 #define kNewMailAlertIcon "chrome://messenger/skin/icons/new-mail-alert.png"
 #define kBiffShowAlertPref "mail.biff.show_alert"
+#define kMaxDisplayCount 10
 
 // HACK: Limitations in Focus/SetFocus on Mac (see bug 465446)
 nsresult FocusAppNative()
@@ -128,6 +133,7 @@ static void openMailWindow(const nsACString& aFolderUri)
 nsMessengerOSXIntegration::nsMessengerOSXIntegration()
 {
   mBiffStateAtom = do_GetAtom("BiffState");
+  mNewMailReceivedAtom = do_GetAtom("NewMailReceived");
   mBiffIconVisible = PR_FALSE;
   mAlertInProgress = PR_FALSE;
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
@@ -261,33 +267,61 @@ nsMessengerOSXIntegration::GetStringBundle(nsIStringBundle **aBundle)
 }
 
 void
-nsMessengerOSXIntegration::FillToolTipInfo(nsIMsgFolder *aFolder)
+nsMessengerOSXIntegration::FillToolTipInfo(nsIMsgFolder *aFolder, PRInt32 aNewCount)
 {
   if (aFolder)
   {
+    nsString authors;
+    PRInt32 numNotDisplayed;
+    nsresult rv = GetNewMailAuthors(aFolder, authors, aNewCount, &numNotDisplayed);
+
+    // If all senders are vetoed, the authors string will be empty.
+    if (NS_FAILED(rv) || authors.IsEmpty())
+      return;
+
+    // If this isn't the root folder, get it so we can report for it.
+    // GetRootFolder always returns the server's root, so calling on the root itself is fine.
+    nsCOMPtr<nsIMsgFolder> rootFolder;
+    aFolder->GetRootFolder(getter_AddRefs(rootFolder));
+    if (!rootFolder)
+      return;
+
     nsString accountName;
-    aFolder->GetPrettiestName(accountName);
+    rootFolder->GetPrettiestName(accountName);
 
     nsCOMPtr<nsIStringBundle> bundle; 
     GetStringBundle(getter_AddRefs(bundle));
     if (bundle)
     { 
-      PRInt32 numNewMessages = 0;   
-      aFolder->GetNumNewMessages(PR_TRUE, &numNewMessages);
       nsAutoString numNewMsgsText;     
-      numNewMsgsText.AppendInt(numNewMessages);
+      numNewMsgsText.AppendInt(aNewCount);
+      nsString finalText;
 
-      const PRUnichar *formatStrings[] =
+      if (numNotDisplayed > 0)
       {
-        numNewMsgsText.get(),       
-      };
-     
-      nsString finalText; 
-      if (numNewMessages == 1)
-        bundle->FormatStringFromName(NS_LITERAL_STRING("biffNotification_message").get(), formatStrings, 1, getter_Copies(finalText));
+        nsAutoString numNotDisplayedText;
+        numNotDisplayedText.AppendInt(numNotDisplayed);
+        const PRUnichar *formatStrings[3] = { numNewMsgsText.get(), authors.get(), numNotDisplayedText.get() };
+        bundle->FormatStringFromName(NS_LITERAL_STRING("macBiffNotification_messages_extra").get(),
+                                     formatStrings,
+                                     3,
+                                     getter_Copies(finalText));
+      }
       else
-        bundle->FormatStringFromName(NS_LITERAL_STRING("biffNotification_messages").get(), formatStrings, 1, getter_Copies(finalText));
+      {
+        const PRUnichar *formatStrings[2] = { numNewMsgsText.get(), authors.get() };
 
+        if (aNewCount == 1)
+          bundle->FormatStringFromName(NS_LITERAL_STRING("macBiffNotification_message").get(),
+                                       formatStrings,
+                                       2,
+                                       getter_Copies(finalText));
+        else
+          bundle->FormatStringFromName(NS_LITERAL_STRING("macBiffNotification_messages").get(),
+                                       formatStrings,
+                                       2,
+                                       getter_Copies(finalText));
+      }
       ShowAlertMessage(accountName, finalText, EmptyCString());
     } // if we got a bundle
   } // if we got a folder
@@ -317,24 +351,24 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
     nsCOMPtr<nsIAlertsService> alertsService (do_GetService(NS_ALERTSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv))
     {
-      nsCOMPtr<nsIStringBundle> bundle; 
+      nsCOMPtr<nsIStringBundle> bundle;
       GetStringBundle(getter_AddRefs(bundle));
       if (bundle)
       { 
         nsString growlNotification;
         bundle->GetStringFromName(NS_LITERAL_STRING("growlNotification").get(), 
                                   getter_Copies(growlNotification));
-        rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(kNewMailAlertIcon), 
+        rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(kNewMailAlertIcon),
                                                   aAlertTitle,
-                                                  aAlertText, 
-                                                  PR_TRUE, 
+                                                  aAlertText,
+                                                  PR_TRUE,
                                                   NS_ConvertASCIItoUTF16(aFolderURI),
-                                                  this, 
+                                                  this,
                                                   growlNotification);
       }
     }
     
-    PRBool bounceDockIcon = PR_FALSE; 
+    PRBool bounceDockIcon = PR_FALSE;
     prefBranch->GetBoolPref("mail.biff.animate_dock_icon", &bounceDockIcon);
 
     if (bounceDockIcon)
@@ -377,10 +411,21 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
 
       nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aFolder);
 
-      if (mFoldersWithNewMail->IndexOf(weakFolder) == kNotFound)
+      if (mFoldersWithNewMail->IndexOf(weakFolder) == -1)
           mFoldersWithNewMail->AppendElement(weakFolder);
 
-      FillToolTipInfo(aFolder);
+      // Biff happens for the root folder, but we want info for the child with new mail
+      nsCString folderUri;
+      GetFirstFolderWithNewMail(aFolder, folderUri);
+      nsCOMPtr<nsIMsgFolder> childFolder;
+      nsresult rv = aFolder->GetChildWithURI(folderUri, PR_TRUE, PR_TRUE,
+                                             getter_AddRefs(childFolder));
+      if (NS_FAILED(rv) || !childFolder)
+        return NS_ERROR_FAILURE;
+
+      PRInt32 numNewMessages = 0;
+      childFolder->GetNumNewMessages(PR_TRUE, &numNewMessages);
+      FillToolTipInfo(childFolder, numNewMessages);
     }
     else if (aNewValue == nsIMsgFolder::nsMsgBiffState_NoMail)
     {
@@ -393,16 +438,38 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
         mBiffIconVisible = PR_FALSE;
       }
     }
-  } // if the biff property changed
+  }
+  else if (mNewMailReceivedAtom == aProperty)
+  {
+    nsCOMPtr<nsIMsgFolder> rootFolder;
+    nsresult rv = aFolder->GetRootFolder(getter_AddRefs(rootFolder));
+    NS_ENSURE_SUCCESS(rv, rv);
 
+    nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(rootFolder);
+    if (mFoldersWithNewMail->IndexOf(weakFolder) == -1)
+      mFoldersWithNewMail->AppendElement(weakFolder);
+
+    FillToolTipInfo(aFolder, aNewValue);
+  }
   return NS_OK;
 }
 
 nsresult
 nsMessengerOSXIntegration::OnAlertClicked()
 {
+  NS_ENSURE_TRUE(mFoldersWithNewMail, NS_ERROR_FAILURE);
+
+  PRUint32 count = 0;
+  mFoldersWithNewMail->Count(&count);
+
+  if (!count)  // kick out if we don't have any folders with new mail
+    return NS_OK;
+
+  nsCOMPtr<nsIWeakReference> weakReference = do_QueryElementAt(mFoldersWithNewMail, 0);
+  nsCOMPtr<nsIMsgFolder> folder = do_QueryReferent(weakReference);
+
   nsCString folderURI;
-  GetFirstFolderWithNewMail(folderURI);
+  GetFirstFolderWithNewMail(folder, folderURI);
   openMailWindow(folderURI);
 
   return NS_OK;
@@ -590,34 +657,109 @@ nsMessengerOSXIntegration::OnItemEvent(nsIMsgFolder *, nsIAtom *)
   return NS_OK;
 }
 
-// get the first top level folder which we know has new mail, then enumerate over all the subfolders
-// looking for the first real folder with new mail. Return the folderURI for that folder.
 nsresult
-nsMessengerOSXIntegration::GetFirstFolderWithNewMail(nsACString& aFolderURI)
+nsMessengerOSXIntegration::GetNewMailAuthors(nsIMsgFolder* aFolder,
+                                             nsString& aAuthors,
+                                             PRInt32 aNewCount,
+                                             PRInt32* aNotDisplayed)
 {
-  nsresult rv;
-  NS_ENSURE_TRUE(mFoldersWithNewMail, NS_ERROR_FAILURE);
+  // Get a list of names or email addresses for the folder's authors
+  // with new mail. Note that we only process the most recent "new"
+  // mail (aNewCount), working from most recently added. Duplicates
+  // are removed, and names are displayed to a set limit
+  // (kMaxDisplayCount) with the remaining count being returned in
+  // aNotDisplayed. Extension developers can listen for
+  // "newmail-notification-requested" and then make a decision about
+  // including a given author or not. As a result, it is possible that
+  // the resulting length of aAuthors will be 0.
+  nsCOMPtr<nsIMsgDatabase> db;
+  nsresult rv = aFolder->GetMsgDatabase(getter_AddRefs(db));
+  PRUint32 numNewKeys = 0;
+  if (NS_SUCCEEDED(rv) && db)
+  {
+    nsCOMPtr<nsIMsgHeaderParser> parser =
+      do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIMsgFolder> folder;
-  nsCOMPtr<nsIWeakReference> weakReference;
-  PRInt32 numNewMessages = 0;
+    nsCOMPtr<nsIObserverService> os =
+      do_GetService("@mozilla.org/observer-service;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 count = 0;
-  mFoldersWithNewMail->Count(&count);
+    // Get proper l10n list separator -- ", " in English
+    nsCOMPtr<nsIStringBundle> bundle;
+    GetStringBundle(getter_AddRefs(bundle));
+    if (!bundle)
+      return NS_ERROR_FAILURE;
 
-  if (!count)  // kick out if we don't have any folders with new mail
-    return NS_OK;
+    PRUint32 *newMessageKeys;
+    rv = db->GetNewList(&numNewKeys, &newMessageKeys);
+    if (NS_SUCCEEDED(rv))
+    {
+      nsString listSeparator;
+      bundle->GetStringFromName(NS_LITERAL_STRING("macBiffNotification_separator").get(), getter_Copies(listSeparator));
 
-  weakReference = do_QueryElementAt(mFoldersWithNewMail, 0);
-  folder = do_QueryReferent(weakReference);
+      PRInt32 displayed = 0;
+      for (PRInt32 i = numNewKeys - 1; i >= 0; i--, aNewCount--)
+      {
+        if (0 == aNewCount || displayed == kMaxDisplayCount)
+          break;
+  
+        nsCOMPtr<nsIMsgDBHdr> hdr;
+        rv = db->GetMsgHdrForKey(newMessageKeys[i],
+                                 getter_AddRefs(hdr));
+        if (NS_SUCCEEDED(rv) && hdr)
+        {
+          nsString author;
+          rv = hdr->GetMime2DecodedAuthor(author);
+          if (NS_FAILED(rv))
+            continue;
 
-  if (folder)
+          nsCString name;
+          rv = parser->ExtractHeaderAddressName(NS_ConvertUTF16toUTF8(author),
+                                                name);
+          if (NS_FAILED(rv))
+            continue;
+
+          // Give extensions a chance to suppress notifications for this author
+          nsCOMPtr<nsISupportsPRBool> notify =
+            do_CreateInstance(NS_SUPPORTS_PRBOOL_CONTRACTID);
+
+          notify->SetData(PR_TRUE);
+          os->NotifyObservers(notify, "newmail-notification-requested",
+                              PromiseFlatString(author).get());
+
+          PRBool includeSender;
+          notify->GetData(&includeSender);
+
+          // Don't add unwanted or duplicate names
+          if (includeSender &&
+              aAuthors.Find(name, PR_TRUE, 0, -1) == -1)
+          {
+            if (displayed > 0)
+              aAuthors.Append(listSeparator);
+            aAuthors.Append(NS_ConvertUTF8toUTF16(name));
+            displayed++;
+          }
+        }
+      }
+    }
+    NS_Free(newMessageKeys);
+  }
+  *aNotDisplayed = aNewCount;
+  return rv;
+}
+
+nsresult
+nsMessengerOSXIntegration::GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCString& aFolderURI)
+{
+  // Find the subfolder in aFolder with new mail and return the folderURI
+  if (aFolder)
   {
     nsCOMPtr<nsIMsgFolder> msgFolder;
     // enumerate over the folders under this root folder till we find one with new mail....
     nsCOMPtr<nsISupportsArray> allFolders;
     NS_NewISupportsArray(getter_AddRefs(allFolders));
-    rv = folder->ListDescendents(allFolders);
+    nsresult rv = aFolder->ListDescendents(allFolders);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIEnumerator> enumerator;
@@ -625,6 +767,7 @@ nsMessengerOSXIntegration::GetFirstFolderWithNewMail(nsACString& aFolderURI)
     if (enumerator)
     {
       nsCOMPtr<nsISupports> supports;
+      PRInt32 numNewMessages = 0;
       nsresult more = enumerator->First();
       while (NS_SUCCEEDED(more))
       {

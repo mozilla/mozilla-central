@@ -74,15 +74,17 @@ public:
 private:
   nsCOMPtr<nsISupportsArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
   nsCOMPtr<nsIAtom> mBiffStateAtom;
+  nsCOMPtr<nsIAtom> mNewMailReceivedAtom;
   PRInt32 CountNewMessages();
   nsresult ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI);
   nsresult OnAlertFinished(const PRUnichar * aAlertCookie);
   nsresult OnAlertClicked();
   nsresult GetStringBundle(nsIStringBundle **aBundle);
-  void FillToolTipInfo(nsIMsgFolder *aFolder);
-  nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
+  void FillToolTipInfo(nsIMsgFolder *aFolder, PRInt32 aNewCount);
+  nsresult GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCString& aFolderURI);
   nsresult BadgeDockIcon();
   nsresult BounceDockIcon();
+  nsresult GetNewMailAuthors(nsIMsgFolder* aFolder, nsString& aAuthors, PRInt32 aNewCount, PRInt32* aNotDisplayed);
 
   PRPackedBool mBiffIconVisible;
   PRPackedBool mAlertInProgress;
