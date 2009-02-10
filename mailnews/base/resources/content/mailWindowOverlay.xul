@@ -1092,7 +1092,7 @@
                     accesskey="&showSearchToolbarCmd.accesskey;"
                     oncommand="goToggleToolbar('searchBox', 'menu_showSearchToolbar'); SearchBarToggled();"
                     observes="mailHideMenus"/>
-          <menuitem type="checkbox" id="menu_showTaskbar"/>
+          <menuitem id="menu_showTaskbar"/>
         </menupopup>
       </menu>
       <menu id="menu_MessagePaneLayout" label="&messagePaneLayoutStyle.label;"

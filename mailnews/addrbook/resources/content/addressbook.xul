@@ -269,8 +269,7 @@
                                   accesskey="&showSearchToolbarCmd.accesskey;" 
                                   oncommand="goToggleToolbar('searchBox','menu_showSearchToolbar')"
                                   checked="true" type="checkbox"/>
-                        <menuitem id="menu_showTaskbar" 
-                                  type="checkbox"/>
+                        <menuitem id="menu_showTaskbar"/>
                         <menuseparator/>
                         <menuitem id="menu_showCardPane"
                                   label="&showCardPane.label;"

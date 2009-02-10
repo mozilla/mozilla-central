@@ -309,8 +309,7 @@
                         command="cmd_showFormatToolbar"
                         accesskey="&showFormatToolbarCmd.accesskey;"
                         checked="true"/>
-              <menuitem id="menu_showTaskbar"
-                        type="checkbox"/>
+              <menuitem id="menu_showTaskbar"/>
             </menupopup>
           </menu>
         </menupopup>

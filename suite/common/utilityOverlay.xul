@@ -344,6 +344,7 @@
             label="&showTaskbarCmd.label;"
             accesskey="&showTaskbarCmd.accesskey;"
             oncommand="goToggleToolbar('status-bar', 'menu_showTaskbar')"
+            type="checkbox"
             checked="true"/>
 
   <!-- Help Menu -->
