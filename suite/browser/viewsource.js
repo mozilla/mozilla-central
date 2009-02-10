@@ -190,11 +190,13 @@ function viewSource(url)
           PageLoader.loadPage(arg, pageLoaderIface.DISPLAY_AS_SOURCE);
 
           // Record the page load in the session history so <back> will work.
+          var shEntrySource = arg.QueryInterface(Components.interfaces.nsISHEntry);
           var shEntry = Components.classes["@mozilla.org/browser/session-history-entry;1"]
                                   .createInstance(Components.interfaces.nsISHEntry);
           shEntry.setURI(makeURI(viewSrcUrl, null, null));
           shEntry.setTitle(viewSrcUrl);
           shEntry.loadType = Components.interfaces.nsIDocShellLoadInfo.loadHistory;
+          shEntry.cacheKey = shEntrySource.cacheKey;
           PageLoader.sessionHistory
                     .QueryInterface(Components.interfaces.nsISHistoryInternal)
                     .addEntry(shEntry, true);
