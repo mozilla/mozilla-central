@@ -68,7 +68,6 @@ public:
 
 protected:
   PRBool IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient);
-  PRBool SetDefaultClientVista(PRUint16 aApps);
   PRBool TestForDefault(SETTING aSettings[], PRInt32 aSize);
 
 private:

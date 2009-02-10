@@ -435,35 +435,6 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultCl
   return PR_FALSE;
 }
 
-PRBool
-nsWindowsShellService::SetDefaultClientVista(PRUint16 aApps)
-{
-#if !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
-  IApplicationAssociationRegistration* pAAR;
-
-  HRESULT hr = CoCreateInstance(CLSID_ApplicationAssociationRegistration,
-                                NULL,
-                                CLSCTX_INPROC,
-                                IID_IApplicationAssociationRegistration,
-                                (void**)&pAAR);
-  
-  if (SUCCEEDED(hr)) {
-    if (aApps & nsIShellService::BROWSER)
-      pAAR->SetAppAsDefaultAll(APP_REG_NAME);
-#ifdef MOZ_MAIL_NEWS
-    if (aApps & nsIShellService::MAIL)
-      pAAR->SetAppAsDefaultAll(APP_REG_NAME_MAIL);
-    if (aApps & nsIShellService::NEWS)
-      pAAR->SetAppAsDefaultAll(APP_REG_NAME_NEWS);
-#endif
-
-    pAAR->Release();
-    return PR_TRUE;
-  }
-#endif  
-  return PR_FALSE;
-}
-
 NS_IMETHODIMP
 nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBool *aIsDefaultClient)
 {
