@@ -8,41 +8,43 @@
 
 .moz-txt-sig,
 .moz-signature {
-  color: gray;
+  color: rgb(136,138,133); /* Aluminum 4 */
 }
 
 .moz-txt-sig > a,
 .moz-signature > a {
-  color: #7777FF; /* light blue */
+  color: rgb(114,159,207) /* Sky Blue 1 */
 }
 
 /* ::::: Turn on borders and padding for quotes. ::::: */
 
 blockquote[type=cite] {
-  padding: 0em 1em .5em;
-  border-right: 2px solid;
-  border-left: 2px solid;
+  padding: 0.4ex 1ex;
+  margin: 1ex;
+  border-width: 0px 2px 0px 2px;
+  border-style: none solid none solid;
+  -moz-border-radius: 2px;
 }
 
 /* ::::: Colorize block quote borders. We only go 5 levels deep. ::::: */
 
 blockquote[type=cite] {
-  border-color: blue;
+  border-color: rgb(114,159,207); /* Sky Blue 1 */
 }
 
 blockquote[type=cite] blockquote[type=cite] {
-  border-color: maroon;
+  border-color: rgb(173,127,168); /* Plum 1 */
 }
 
 blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] {
-  border-color: teal;
+  border-color: rgb(138,226,52); /* Chameleon 1 */
 }
 
 blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] {
-  border-color: purple;
+  border-color: rgb(252,175,62); /* Orange 1 */
 }
 
 blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] {
-  border-color: green;
+  border-color: rgb(233,185,110); /* Chocolate 1 */
 }
 

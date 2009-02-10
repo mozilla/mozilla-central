@@ -67,6 +67,10 @@ div.headerdisplayname {
 
 /* ::::: message text, incl. quotes ::::: */
 
+a {
+  color: rgb(32,74,135); /* Sky Blue 3 */
+}
+
 .moz-text-flowed blockquote,
 .moz-text-plain blockquote {
   margin: 0;
