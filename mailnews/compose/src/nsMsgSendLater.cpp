@@ -104,6 +104,21 @@ nsMsgSendLater::~nsMsgSendLater()
   PR_Free(mAccountKey);
 }
 
+NS_IMETHODIMP
+nsMsgSendLater::SetStatusFeedback(nsIMsgStatusFeedback *aFeedback)
+{
+  mFeedback = aFeedback;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::GetStatusFeedback(nsIMsgStatusFeedback **aFeedback)
+{
+  NS_ENSURE_ARG_POINTER(aFeedback);
+  NS_IF_ADDREF(*aFeedback = mFeedback);
+  return NS_OK;
+}
+
 // Stream is done...drive on!
 NS_IMETHODIMP
 nsMsgSendLater::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult status)
@@ -291,29 +306,22 @@ nsMsgSendLater::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
 NS_IMPL_ISUPPORTS2(SendOperationListener, nsIMsgSendListener,
                    nsIMsgCopyServiceListener)
 
-SendOperationListener::SendOperationListener(void) 
-{ 
-  mSendLater = nsnull;
+SendOperationListener::SendOperationListener(nsMsgSendLater *aSendLater)
+: mSendLater(aSendLater)
+{
 }
 
 SendOperationListener::~SendOperationListener(void) 
 {
 }
 
-nsresult
-SendOperationListener::SetSendLaterObject(nsMsgSendLater *obj)
-{
-  mSendLater = obj;
-  return NS_OK;
-}
-
-nsresult
+NS_IMETHODIMP
 SendOperationListener::OnGetDraftFolderURI(const char *aFolderURI)
 {
   return NS_OK;
 }
   
-nsresult
+NS_IMETHODIMP
 SendOperationListener::OnStartSending(const char *aMsgID, PRUint32 aMsgSize)
 {
 #ifdef NS_DEBUG
@@ -322,7 +330,7 @@ SendOperationListener::OnStartSending(const char *aMsgID, PRUint32 aMsgSize)
   return NS_OK;
 }
   
-nsresult
+NS_IMETHODIMP
 SendOperationListener::OnProgress(const char *aMsgID, PRUint32 aProgress, PRUint32 aProgressMax)
 {
 #ifdef NS_DEBUG
@@ -331,7 +339,7 @@ SendOperationListener::OnProgress(const char *aMsgID, PRUint32 aProgress, PRUint
   return NS_OK;
 }
 
-nsresult
+NS_IMETHODIMP
 SendOperationListener::OnStatus(const char *aMsgID, const PRUnichar *aMsg)
 {
 #ifdef NS_DEBUG
@@ -341,13 +349,13 @@ SendOperationListener::OnStatus(const char *aMsgID, const PRUnichar *aMsg)
   return NS_OK;
 }
 
-nsresult
+NS_IMETHODIMP
 SendOperationListener::OnSendNotPerformed(const char *aMsgID, nsresult aStatus)
 {
   return NS_OK;
 }
   
-nsresult
+NS_IMETHODIMP
 SendOperationListener::OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg, 
                                      nsIFile *returnFile)
 {
@@ -380,19 +388,19 @@ SendOperationListener::OnStopSending(const char *aMsgID, nsresult aStatus, const
 
 // nsIMsgCopyServiceListener
 
-nsresult
+NS_IMETHODIMP
 SendOperationListener::OnStartCopy(void)
 {
   return NS_OK;
 }
 
-nsresult
+NS_IMETHODIMP
 SendOperationListener::OnProgress(PRUint32 aProgress, PRUint32 aProgressMax)
 {
   return NS_OK;
 }
 
-nsresult
+NS_IMETHODIMP
 SendOperationListener::SetMessageKey(PRUint32 aKey)
 {
   NS_NOTREACHED("SendOperationListener::SetMessageKey()");
@@ -406,7 +414,7 @@ SendOperationListener::GetMessageId(nsACString& messageId)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-nsresult
+NS_IMETHODIMP
 SendOperationListener::OnStopCopy(nsresult aStatus)
 {
   if (mSendLater) 
@@ -505,17 +513,12 @@ nsMsgSendLater::CompleteMailFileSend()
 #endif
 
   // Create the listener for the send operation...
-  SendOperationListener * sendListener = new SendOperationListener();
+  SendOperationListener *sendListener = new SendOperationListener(this);
   if (!sendListener)
     return NS_ERROR_OUT_OF_MEMORY;
   
   NS_ADDREF(sendListener);
-  // set this object for use on completion...
-  sendListener->SetSendLaterObject(this);
 
-  nsCOMPtr <nsIMsgStatusFeedback> statusFeedback;
-  if (m_window)
-    m_window->GetStatusFeedback(getter_AddRefs(statusFeedback));
   NS_ADDREF(this);  //TODO: We should remove this!!!
   rv = pMsgSend->SendMessageFile(identity,
                                  mAccountKey,
@@ -526,9 +529,9 @@ nsMsgSendLater::CompleteMailFileSend()
                                  nsIMsgSend::nsMsgSendUnsent, // nsMsgDeliverMode mode,
                                  nsnull, // nsIMsgDBHdr *msgToReplace, 
                                  sendListener,
-                                 statusFeedback,
+                                 mFeedback,
                                  nsnull); 
-  NS_IF_RELEASE(sendListener);
+  NS_RELEASE(sendListener);
   return rv;
 }
 
@@ -647,14 +650,11 @@ nsMsgSendLater::GetUnsentMessagesFolder(nsIMsgIdentity *aIdentity, nsIMsgFolder 
 //
 //
 NS_IMETHODIMP 
-nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity,
-                                   nsIMsgWindow *aWindow)
+nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity)
 {
   nsresult rv = GetUnsentMessagesFolder(aIdentity,
                                         getter_AddRefs(mMessageFolder));
   NS_ENSURE_SUCCESS(rv, rv);
-
-  m_window = aWindow;
 
   // ### fix me - if we need to reparse the folder, this will be asynchronous
   nsCOMPtr<nsISimpleEnumerator> enumerator;
@@ -1144,12 +1144,6 @@ nsMsgSendLater::NotifyListenersOnProgress(PRUint32 aCurrentMessage,
                                           PRUint32 aTotalMessage)
 {
   NOTIFY_LISTENERS(OnProgress, (aCurrentMessage, aTotalMessage));
-}
-
-void
-nsMsgSendLater::NotifyListenersOnStatus(const PRUnichar *aMsg)
-{
-  NOTIFY_LISTENERS(OnStatus, (aMsg));
 }
 
 void

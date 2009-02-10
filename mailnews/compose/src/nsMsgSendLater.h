@@ -45,7 +45,7 @@
 #include "nsIMsgSendListener.h"
 #include "nsIMsgSendLaterListener.h"
 #include "nsIMsgSendLater.h"
-#include "nsIMsgWindow.h"
+#include "nsIMsgStatusFeedback.h"
 #include "nsTObserverArray.h"
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -58,8 +58,8 @@ class SendOperationListener : public nsIMsgSendListener,
                               public nsIMsgCopyServiceListener
 {
 public:
-  SendOperationListener(void);
-  virtual ~SendOperationListener(void);
+  SendOperationListener(nsMsgSendLater *aSendLater);
+  virtual ~SendOperationListener();
 
   // nsISupports interface
   NS_DECL_ISUPPORTS
@@ -69,10 +69,8 @@ public:
 
   // nsIMsgCopyServiceListener interface
   NS_DECL_NSIMSGCOPYSERVICELISTENER
-  
-  NS_IMETHOD SetSendLaterObject(nsMsgSendLater *obj);
 private:
-  nsMsgSendLater    *mSendLater;
+  nsMsgSendLater *mSendLater;
 };
 
 class nsMsgSendLater: public nsIMsgSendLater
@@ -106,7 +104,6 @@ public:
   void NotifyListenersOnStartSending(PRUint32 aTotalMessageCount);
   void NotifyListenersOnProgress(PRUint32 aCurrentMessage,
                                  PRUint32 aTotalMessage);
-  void NotifyListenersOnStatus(const PRUnichar *aMsg);
   void NotifyListenersOnStopSending(nsresult aStatus, const PRUnichar *aMsg, 
                                     PRUint32 aTotalTried, PRUint32 aSuccessful);
 
@@ -116,7 +113,7 @@ public:
   nsCOMArray<nsIMsgDBHdr> mMessagesToSend;
   nsCOMPtr<nsISimpleEnumerator> mEnumerator;
   nsCOMPtr<nsIMsgFolder>    mMessageFolder;
-  nsCOMPtr<nsIMsgWindow>    m_window;
+  nsCOMPtr<nsIMsgStatusFeedback> mFeedback;
  
   // Private Information
 private:

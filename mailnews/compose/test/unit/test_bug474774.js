@@ -35,9 +35,6 @@ msll.prototype = {
   onProgress: function (aCurrentMessage, aTotal) {
     // XXX Enable this function
   },
-  onStatus: function (aMsg) {
-    // XXX Do we really need this?
-  },
   onStopSending: function (aStatus, aMsg, aTotal, aSuccessful) {
     do_test_finished();
     print("msll onStopSending\n");

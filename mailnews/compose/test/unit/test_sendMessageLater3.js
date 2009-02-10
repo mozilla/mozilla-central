@@ -106,8 +106,6 @@ msll.prototype = {
   },
   onProgress: function (aCurrentMessage, aTotal) {
   },
-  onStatus: function (aMsg) {
-  },
   onStopSending: function (aStatus, aMsg, aTotal, aSuccessful) {
     print("msll onStopSending\n");
 

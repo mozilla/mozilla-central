@@ -86,9 +86,6 @@ msll.prototype = {
         thread.processNextEvent(true);
     }
   },
-  onStatus: function (aMsg) {
-    // XXX Do we really need this?
-  },
   onStopSending: function (aStatus, aMsg, aTotal, aSuccessful) {
     try {
       do_check_eq(aStatus, 0);

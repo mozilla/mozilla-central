@@ -250,17 +250,20 @@ nsresult nsMsgOfflineManager::SendUnsentMessages()
       }
     }
   }
-	if (identityToUse) 
-	{ 
+  if (identityToUse) 
+  { 
+    if (m_statusFeedback)
+      pMsgSendLater->SetStatusFeedback(m_statusFeedback);
+
     pMsgSendLater->AddListener(this);
-    rv = pMsgSendLater->SendUnsentMessages(identityToUse, m_window);
+    rv = pMsgSendLater->SendUnsentMessages(identityToUse);
     ShowStatus("sendingUnsent");
     // if we succeeded, return - we'll run the next operation when the
     // send finishes. Otherwise, advance to the next state.
     if (NS_SUCCEEDED(rv))
       return rv;
-	} 
-	return AdvanceToNextState(rv);
+  } 
+  return AdvanceToNextState(rv);
 
 }
 
@@ -285,8 +288,8 @@ nsresult nsMsgOfflineManager::ShowStatus(const char *statusMsgName)
     nsString statusString;
     res = mStringBundle->GetStringFromName(NS_ConvertASCIItoUTF16(statusMsgName).get(), getter_Copies(statusString));
 
-    if ( NS_SUCCEEDED(res))
-      OnStatus(statusString.get());
+    if (NS_SUCCEEDED(res) && m_statusFeedback)
+      m_statusFeedback->ShowStatusString(statusString);
   }
   return res;
 }
@@ -393,14 +396,6 @@ NS_IMETHODIMP nsMsgOfflineManager::OnProgress(PRUint32 aCurrentMessage, PRUint32
 {
   if (m_statusFeedback && aTotalMessage)
     return m_statusFeedback->ShowProgress ((100 * aCurrentMessage) / aTotalMessage);
-  else
-    return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgOfflineManager::OnStatus(const PRUnichar *aMsg)
-{
-  if (m_statusFeedback && aMsg)
-    return m_statusFeedback->ShowStatusString(nsDependentString(aMsg));
   else
     return NS_OK;
 }

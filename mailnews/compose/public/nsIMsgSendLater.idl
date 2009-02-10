@@ -39,7 +39,7 @@
 #include "nsISupports.idl"
 #include "nsIStreamListener.idl"
 
-interface nsIMsgWindow;
+interface nsIMsgStatusFeedback;
 interface nsIMsgIdentity;
 interface nsIMsgSendLaterListener;
 interface nsIMsgFolder;
@@ -49,18 +49,18 @@ interface nsIMsgFolder;
  * Messages should be saved to an identity's unsent messages folder, and then
  * can be sent by calling sendUnsentMessages.
  */
-[scriptable, uuid(5ad3e734-b68e-449e-ad8c-c59da94b2661)]
+[scriptable, uuid(2e2142b2-8f94-4604-8cc7-06a00d59f6b5)]
 interface nsIMsgSendLater : nsIStreamListener 
 {
+  /// Used to obtain status feedback for when messages are sent.
+  attribute nsIMsgStatusFeedback statusFeedback;
+
   /**
    * Sends any unsent messages in the identity's unsent messages folder.
    *
    * @param aIdentity   The identity to send messages for.
-   * @param aWindow     The window to give status feedback to whilst messages
-   *                    are being sent.
    */
-  void sendUnsentMessages(in nsIMsgIdentity aIdentity,
-                          [optional] in nsIMsgWindow aWindow);
+  void sendUnsentMessages(in nsIMsgIdentity aIdentity);
 
   /**
    * Adds an listener to the service to receive notifications.
