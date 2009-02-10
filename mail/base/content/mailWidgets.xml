@@ -2093,7 +2093,16 @@
 
        <xul:button anonid="hdrReplyButton" label="&hdrReplyButton.label;"
                    oncommand="MsgReplyMessage(event);" observes="button_reply"
-                   class="msgHeaderView-button hdrReplyButton"/>
+                   class="msgHeaderView-button hdrReplyButton"
+                   type="menu-button">
+         <xul:menupopup anonid="hdrReplyDropdown">
+           <xul:menuitem anonid="hdrReplyAllButton"
+                         label="&hdrReplyAllButton.label;"
+                         tooltiptext="&replyAllButton.tooltip;"
+                         observes="button_replyall"
+                         oncommand="MsgReplyToAllMessage(event); event.stopPropagation();"/>
+         </xul:menupopup>
+       </xul:button>
        <xul:button anonid="hdrForwardButton" label="&hdrForwardButton.label;"
                    oncommand="MsgForwardMessage(event);"
                    observes="button_forward" class="msgHeaderView-button hdrForwardButton"/>

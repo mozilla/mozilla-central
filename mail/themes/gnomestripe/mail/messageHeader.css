@@ -43,23 +43,19 @@
 
 /* ::::: for the entire area ::::: */
 .main-header-area {
-  background-color: #eeeeec;
+  color: WindowText;
+  background-color: AppWorkspace;
+  border-bottom: 2px groove ThreeDLightShadow;
+  padding: 0.4ex;
 }
 
 /* ::::: msg header toolbars ::::: */
 
 #collapsedHeaderView {
   min-width: 1px;
-  -moz-margin-start: 0.5em;
-  color: black;
-  font-size: 110%;
-  padding-bottom: 0.5em;
-  padding-top: 0.5em;
 }
 
 #expandedHeaderView {
-  color: #2e3436;
-  padding-top: 0.5em;
   overflow-y: auto;
   overflow-x: hidden;
   max-height: 14em;
@@ -81,50 +77,23 @@
 
 #otherActionsButton {
   margin-bottom: .1em;
-  background: none;
-  font-weight: normal;
-  color: #41413F; /* higher contrast */
-  border: 2px solid transparent;
-  font-size: 100%;
   padding-top: 0px;
 }
 
-#otherActionsButton:hover {
-  color: black;
-  background-color: rgb(230,231,227);
-  border: 2px solid #C0C3C6;
-}
-
-
-.msgHeaderView-button[type="menu"] > .button-box > .button-menu-dropmarker,
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-dropmarker {
+.msgHeaderView-flat-button[type="menu"] > .button-box > .button-menu-dropmarker,
+.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-dropmarker {
   -moz-appearance: none !important;
 }
 
-.msgHeaderView-button[type="menu"] > .button-box > .button-menu-dropmarker > .dropmarker-icon,
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-dropmarker > .dropmarker-icon {
+.msgHeaderView-flat-button[type="menu"] > .button-box > .button-menu-dropmarker > .dropmarker-icon,
+.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-dropmarker > .dropmarker-icon {
   -moz-padding-start: 4px;
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-grey.png");
 }
 
-.msgHeaderView-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
-.msgHeaderView-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
+.msgHeaderView-flat-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
+.msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
-}
-
-#hideDetailsButton {
-  font-weight: normal;
-  font-size: 100%;
-  background: none;
-  color: #41413F; /* higher contrast */
-  border: 2px solid transparent;
-  font-size: 100%;
-}
-
-#hideDetailsButton:hover {
-  color: black;
-  background-color: rgb(230,231,227);
-  border: 2px solid #C0C3C6;
 }
 
 #collapsedsubjectValue {
@@ -141,8 +110,6 @@
 
 #showDetailsButton {
   -moz-appearance: none !important;
-  border: 2px solid transparent;
-  background-color: transparent;
   width: 22px;
   padding-bottom: 0px !important;
   height: 22px;
@@ -151,18 +118,10 @@
   background-position: center center;
 }
 
-#showDetailsButton:hover {
-  background-color: rgb(230,231,227);
-  border: 2px solid #C0C3C6;
-}
-
 /* ::::: expanded header pane ::::: */
 
 header-view-button-box {
-  padding-top: .5em;
-  padding-bottom: 0px;
-  -moz-padding-start: 0px;
-  -moz-padding-end: .5em;
+  padding: 0px;
 }
 
 #expandedfromBox {
@@ -259,18 +218,43 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   padding: 0;
 }
 
+
+.hdrReplyButton {
+  -moz-appearance: dualbutton;
+}
+
+.hdrReplyButton > .button-menubutton-button {
+  min-width: 1em;
+  min-height: 1ex;
+  margin: 0px;
+}
+
+.hdrReplyButton > .button-menubutton-dropmarker {
+  -moz-margin-start: 2px;
+  -moz-margin-end: 2px;
+}
+
+.hdrReplyButton > .button-menubutton-dropmarker[open="true"] {
+  margin-top: 0px;
+  -moz-margin-end: 2px;
+}
+
 .msgHeaderView-button {
+  min-width: 1em;
+  min-height: 1ex;
+  margin: 0px 0px 0px 0.2em;
+  vertical-align: middle;
+}
+
+.msgHeaderView-flat-button {
   min-width: 1px !important;
   -moz-appearance: none;
-  font-size: 95%;
-  color: black;
-  -moz-margin-start: 0px;
-  -moz-margin-end: 5px;
+  color: GrayText;
+  background-color: transparent;
+  border: 3px solid transparent;
   margin-top: 1px;
   margin-bottom: 2px;
   padding: 0 3px;
-  background-color: rgb(211,215,207);
-  border: 2px solid #C0C3C6;
   -moz-border-radius: 4px;
   -moz-border-top-colors: none;
   -moz-border-right-colors: none;
@@ -287,9 +271,9 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-image-region: rect(1px 142px 15px 126px);
 }
 
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-button {
+.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button {
   -moz-appearance: none;
-  background-color: rgb(211,215,207);
+  background-color: transparent;
   -moz-border-radius: 0px;
   border: 0;
   border-right: 2px solid transparent;
@@ -307,15 +291,15 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   min-height: 16px;
 }
 
-.msgHeaderView-button[type="menu-button"]:hover > .button-menubutton-button {
-  background-color: rgb(230,231,227);
+.msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-button {
+  background-color: transparent;
 }
 
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-button:hover {
-  border-right: 2px solid #B0B3B6;
+.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button:hover {
+  border-right: 2px solid ButtonShadow;
 } 
 
-.msgHeaderView-button[secondary="true"] {
+.msgHeaderView-flat-button[secondary="true"] {
   background: none;
 }
 
@@ -323,14 +307,18 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   display: none;
 }
 
-.msgHeaderView-button > .toolbarbutton-text {
+.msgHeaderView-button .button-text {
   margin: 0;
   padding: 0;
 }
 
-.msgHeaderView-button:hover {
-  background-color: rgb(230,231,227);
-  border: 2px solid #B0B3B6;
+.msgHeaderView-flat-button:hover {
+  color: -moz-buttonhovertext;
+  background-color: -moz-buttonhoverface;
+  -moz-border-top-colors: transparent threedhighlight threedlightshadow;
+  -moz-border-right-colors: transparent threeddarkshadow threedshadow;
+  -moz-border-bottom-colors: transparent threeddarkshadow threedshadow;
+  -moz-border-left-colors: transparent threedhighlight threedlightshadow;
 }
 
 .headerNameBox {
@@ -356,7 +344,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .headerValue {
   min-width: 50px;
   white-space: normal;
-  color: black !important;
+  color: WindowText;
   line-height: 1.4em;
 
   -moz-appearance: none !important;
@@ -380,7 +368,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .headerValueUrl {
   cursor: pointer;
-  color: #0000FF;
+  color: -moz-nativehyperlinktext;
   text-decoration: underline;
 }
 
@@ -445,7 +433,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .messageIdDisplayButton {
   cursor: pointer;
-  color: #0000FF;
+  color: -moz-nativehyperlinktext;
   text-decoration: underline;
   margin: 0;
   background-color: transparent;
@@ -476,7 +464,8 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .emailDisplayButton:hover {
   cursor: pointer;
   -moz-border-radius: 2px;
-  background-color: #729fcf; /* tango blue */
+  color: HighlightText;
+  background-color: Highlight;
 }
 
 mail-emailaddress[selected="true"] .emailDisplayButton{
@@ -485,7 +474,8 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
     tweak the bottom to blend in more w/ the menu */
   cursor: pointer;
   -moz-border-radius: 3px;
-  background-color: #729fcf; /* tango orange */
+  color: HighlightText;
+  background-color: Highlight;
   -moz-border-radius-bottomleft: 0;
   -moz-border-radius-bottomright: 0;
 }
@@ -496,7 +486,7 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 }
 
 .emailDisplayButton:focus {
-  border: 1px dotted #729fcf; /* tango blue */
+  border: 1px dotted Highlight;
 }
 
 .emailStar:focus {

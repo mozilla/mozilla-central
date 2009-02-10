@@ -100,10 +100,9 @@
   <deck id="msgHeaderViewDeck" persist="selectedIndex" selectedIndex="1" flex="1">
     <!-- the message pane consists of 4 'boxes'. Box #1 is a grid, showing a brief view of the headers -->
     <vbox id="collapsedHeaderView" class="header-part1 headerContainer" flex="1" pack="start">
-      <hbox align="baseline">
-        <hbox id="collapsedfromBox" align="baseline" flex="1">
+      <hbox align="start">
+        <hbox id="collapsedfromBox" align="center" flex="1">
             <mail-multi-emailHeaderField id="collapsedfromValue"
-                                         pack="start"
                                          class="collapsedHeaderDisplayName"
                                          label="&fromField2.label;"/>
         </hbox>
@@ -132,7 +131,7 @@
         <button id="showDetailsButton"
                 tooltiptext="&showDetailsButton.label;"
                 onclick="ToggleHeaderView();"
-                class="msgHeaderView-button"/>
+                class="msgHeaderView-button msgHeaderView-flat-button"/>
       </hbox>
     </vbox>
 
@@ -220,9 +219,12 @@
           <!-- perhaps this should be a customizable toolbar too -->
           <vbox id="hideDetailsBox" align="end">
             <spacer flex="1"/>
+            <button id="hideDetailsButton" label="&hideDetailsButton.label;"
+                    onclick="ToggleHeaderView();"
+                    class="msgHeaderView-button msgHeaderView-flat-button"/>
             <button type="menu" id="otherActionsButton"
                     label="&otherActionsButton.label;"
-                    class="msgHeaderView-button">
+                    class="msgHeaderView-button msgHeaderView-flat-button">
               <menupopup id="otherActionsPopup">
                 <menuitem id="viewSourceMenuItem"
                           label="&viewSourceMenuItem.label;"
@@ -233,9 +235,6 @@
                           oncommand="MsgSaveAsFile();" />
               </menupopup>
             </button>
-            <button id="hideDetailsButton" label="&hideDetailsButton.label;"
-                    onclick="ToggleHeaderView();"
-                    class="msgHeaderView-button"/>
           </vbox>
         </hbox>
       </vbox>
