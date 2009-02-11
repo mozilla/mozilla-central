@@ -77,7 +77,8 @@
           </columns>
           <rows>
             <row align="center">
-              <label value="&sortBy.label;" control="sortBy"/>
+              <label value="&sortBy.label;" control="sortBy"
+                     accesskey="&sortBy.accesskey;"/>
               <menulist id="sortBy" oncommand="onSortByChanged()">
                 <menupopup>
                   <menuitem value="Name" label="&sortBy.name.label;"/>
@@ -91,7 +92,8 @@
               </menulist>
             </row>
             <row align="center">
-              <label value="&sortOrder.label;" control="sortOrder"/>
+              <label value="&sortOrder.label;" control="sortOrder"
+                     accesskey="&sortOrder.accesskey;"/>
               <menulist id="sortOrder">
                 <menupopup>
                   <menuitem value="ascending" label="&sortAscending.label;"/>
@@ -103,8 +105,9 @@
         </grid>
         <separator class="thin"/>
         <checkbox id="sortFoldersFirst" label="&sortFoldersFirst.label;"
-                  checked="true"/>
-        <checkbox id="sortRecursively" label="&sortRecursively.label;"/>
+                  checked="true" accesskey="&sortFoldersFirst.accesskey;"/>
+        <checkbox id="sortRecursively" label="&sortRecursively.label;"
+                  accesskey="&sortRecursively.accesskey;"/>
         <separator class="thin"/>
       </vbox>
     </tabpanels>
