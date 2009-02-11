@@ -151,8 +151,8 @@
               <hbox>
                 <checkbox id="enableGloda"
                           preference="mailnews.database.global.indexer.enabled"
-                          label="&enableGloda.label;"
-                          accesskey="&enableGloda.accesskey;"/>
+                          label="&enableGlodaSearch.label;"
+                          accesskey="&enableGlodaSearch.accesskey;"/>
               </hbox>
             </vbox>
             <vbox>
