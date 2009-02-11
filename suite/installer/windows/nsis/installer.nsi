@@ -574,7 +574,7 @@ Section /o "JavaScript Debugger" VENKMAN_IDX
     ClearErrors
     ${LogHeader} "Installing JavaScript Debugger"
     ${CopyFilesFromDir} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}" \
-                        "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org" \
+                        "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}" \
                         "$(ERROR_CREATE_DIRECTORY_PREFIX)" \
                         "$(ERROR_CREATE_DIRECTORY_SUFFIX)"
     ${If} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org"
