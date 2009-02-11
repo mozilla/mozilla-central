@@ -150,6 +150,8 @@ endif
 
 clobber-%:
 	$(RM) -rf $(DIST)/xpi-stage/locale-$*
+	$(RM) -rf $(DIST)/xpi-stage/chatzilla-$* $(DIST)/xpi-stage/chatzilla-*.$*.xpi
+	$(RM) -rf $(DIST)/xpi-stage/venkman-$* $(DIST)/xpi-stage/venkman-*.$*.xpi
 
 libs-%:
 	$(NSINSTALL) -D $(DIST)/install
@@ -245,7 +247,8 @@ clobber-zip:
 	$(RM) -r $(STAGEDIST)/searchplugins \
 	  $(STAGEDIST)/dictionaries \
 	  $(STAGEDIST)/defaults/profile \
-	  $(STAGEDIST)/chrome/$(AB_CD)
+	  $(STAGEDIST)/chrome/$(AB_CD) \
+	  $(STAGEDIST)/extensions/langpack-$(AB_CD)@*
 
 unpack: $(STAGEDIST)
 	@echo done unpacking
