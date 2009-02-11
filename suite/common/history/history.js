@@ -205,9 +205,8 @@ function historyAddBookmarks()
     }
     selNodes = gHistoryTree.getSelectionNodes();
     for (var i = 0; i < selNodes.length; i++) {
-      // skip over separators and folders
       if (PlacesUtils.nodeIsURI(selNodes[i]))
-        BookmarksUtils.addBookmark(selNodes.uri, selNodes.title, null, false);
+        BookmarksUtils.addBookmark(selNodes[i].uri, selNodes[i].title, null, false);
     }
   }
 }

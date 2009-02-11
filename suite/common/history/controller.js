@@ -89,6 +89,8 @@ PlacesController.prototype = {
     case "cmd_delete":
       return true; // history items can always be deleted
     case "cmd_copy":
+    case "placesCmd_open:window":
+    case "placesCmd_open:tab":
       return this._view.hasSelection;
     case "cmd_selectAll":
       if (this._view.selType != "single") {
@@ -144,10 +146,10 @@ PlacesController.prototype = {
       PlacesUIUtils.openNodeIn(this._view.selectedNode, "current");
       break;
     case "placesCmd_open:window":
-      PlacesUIUtils.openNodeIn(this._view.selectedNode, "window");
+      PlacesUIUtils.openSelectionIn(this._view.getSelectionNodes(), "window");
       break;
     case "placesCmd_open:tab":
-      PlacesUIUtils.openNodeIn(this._view.selectedNode, "tab");
+      PlacesUIUtils.openSelectionIn(this._view.getSelectionNodes(), "tab");
       break;
     case "placesCmd_delete:hostname":
       PlacesUtils.history
@@ -168,16 +170,13 @@ PlacesController.prototype = {
    * Gathers information about the selected nodes according to the following
    * rules:
    *    "link"              node is a URI
-   *    "folder"            node is a folder
    *    "query"             node is a query
-   *    "dynamiccontainer"  node is a dynamic container
    *    "host"              node is a host
    *    "day"               node is a date query
    *
    * @returns an array of objects corresponding the selected nodes. Each
    *          object has each of the properties above set if its corresponding
-   *          node matches the rule. In addition, the annotations names for each
-   *          node are set on its corresponding object as properties.
+   *          node matches the rule.
    * Notes:
    *   1) This can be slow, so don't call it anywhere performance critical!
    *   2) A single-object array corresponding the root node is returned if
@@ -190,58 +189,25 @@ PlacesController.prototype = {
     if (nodes.length == 0)
       nodes.push(root); // See the second note above
 
-    for (var i=0; i < nodes.length; i++) {
+    for (var i = 0; i < nodes.length; i++) {
       var nodeData = {};
       var node = nodes[i];
       var nodeType = node.type;
       var uri = null;
 
-      // We don't use the nodeIs* methods here to avoid going through the type
-      // property way too often
-      switch(nodeType) {
-        case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_QUERY:
-          nodeData["query"] = true;
-          if (node.parent) {
-            switch (asQuery(node.parent).queryOptions.resultType) {
-              case Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_SITE_QUERY:
-                nodeData["host"] = true;
-                break;
-              case Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_DATE_SITE_QUERY:
-              case Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_DATE_QUERY:
-                nodeData["day"] = true;
-                break;
-            }
-          }
-          break;
-        case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_DYNAMIC_CONTAINER:
-          nodeData["dynamiccontainer"] = true;
-          break;
-        case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_FOLDER:
-        case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_FOLDER_SHORTCUT:
-          nodeData["folder"] = true;
-          break;
-        case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_URI:
-        case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_VISIT:
-        case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_FULL_VISIT:
-          nodeData["link"] = true;
-          uri = PlacesUtils._uri(node.uri);
-          break;
+      if (node.type == Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_URI)
+        nodeData["link"] = true;
+      else {
+        nodeData["query"] = true;
+        if (node.parent) {
+          if (asQuery(node.parent).queryOptions.resultType ==
+              Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_SITE_QUERY)
+            nodeData["host"] = true;
+          else
+            nodeData["day"] = true;
+        }
       }
 
-      // annotations
-      if (uri) {
-        var names = PlacesUtils.annotations.getPageAnnotationNames(uri, {});
-        for (var j = 0; j < names.length; ++j)
-          nodeData[names[j]] = true;
-      }
-
-      // For items also include the item-specific annotations
-      if (node.itemId != -1) {
-        names = PlacesUtils.annotations
-                           .getItemAnnotationNames(node.itemId, {});
-        for (j = 0; j < names.length; ++j)
-          nodeData[names[j]] = true;
-      }
       metadata.push(nodeData);
     }
 
@@ -263,14 +229,6 @@ PlacesController.prototype = {
       return false;
     if (selectiontype == "single" && aMetaData.length != 1)
       return false;
-
-    var forceHideRules = aMenuItem.getAttribute("forcehideselection").split("|");
-    for (var i = 0; i < aMetaData.length; ++i) {
-      for (var j=0; j < forceHideRules.length; ++j) {
-        if (forceHideRules[j] in aMetaData[i])
-          return false;
-      }
-    }
 
     var selectionAttr = aMenuItem.getAttribute("selection");
     if (selectionAttr) {
@@ -315,14 +273,9 @@ PlacesController.prototype = {
    *  3) A menu-item may be visible only if at least one of the rules set in
    *     its selection attribute apply to each of the selected nodes in the
    *     view.
-   *  4) The "forcehideselection" attribute may be set on a menu-item to rules
-   *     for which it should be hidden. This attribute takes priority over the
-   *     selection attribute. A menu-item would be hidden if at least one of the
-   *     given rules apply to one of the selected nodes. The rules should be
-   *     separated with the | character.
-   *  5) The visibility state of a menu-item is unchanged if none of this
+   *  4) The visibility state of a menu-item is unchanged if none of this
    *     attribute is set.
-   *  6) This attribute should not be set on separators for which the
+   *  5) This attribute should not be set on separators for which the
    *     visibility state is "auto-detected."
    * @param   aPopup
    *          The menupopup to build children into.
@@ -419,17 +372,6 @@ PlacesController.prototype = {
       }
     }
     return reallyOpen;
-  },
-
-  /**
-   * Opens the links in the selected folder, or the selected links in new tabs.
-   */
-  openSelectionInTabs: function PC_openLinksInTabs(aEvent) {
-    var node = this._view.selectedNode;
-    if (node && PlacesUtils.nodeIsContainer(node))
-      PlacesUIUtils.openContainerNodeInTabs(this._view.selectedNode, aEvent);
-    else
-      PlacesUIUtils.openURINodesInTabs(this._view.getSelectionNodes(), aEvent);
   },
 
   /**

@@ -267,37 +267,26 @@ var PlacesUIUtils = {
     return reallyOpen;
   },
 
-  /** aItemsToOpen needs to be an array of objects of the form:
-    * {uri: string, isBookmark: boolean}
-    */
-  _openTabset: function PU__openTabset(aItemsToOpen, aEvent) {
-    var urls = [];
-    for (var i = 0; i < aItemsToOpen.length; i++) {
-      var item = aItemsToOpen[i];
-      this.markPageAsTyped(item.uri);
-
-      urls.push(item.uri);
-    }
-
-    openUILinkArrayIn(urls, whereToOpenLink(aEvent, false, true));
-  },
-
   openContainerNodeInTabs: function PU_openContainerInTabs(aNode, aEvent) {
     var urlsToOpen = PlacesUtils.getURLsForContainerNode(aNode);
     if (!this._confirmOpenInTabs(urlsToOpen.length))
       return;
 
-    this._openTabset(urlsToOpen, aEvent);
+    urlsToOpen = urlsToOpen.map(function(item) { return item.uri; });
+    openUILinkArrayIn(urlsToOpen, whereToOpenLink(aEvent, false, true));
   },
 
   openURINodesInTabs: function PU_openURINodesInTabs(aNodes, aEvent) {
+    this.openSelectionIn(aNodes, whereToOpenLink(aEvent, false, true));
+  },
+
+  openSelectionIn: function PU_openSelectionIn(aNodes, aWhere) {
     var urlsToOpen = [];
     for (var i = 0; i < aNodes.length; i++) {
-      // skip over separators and folders
       if (PlacesUtils.nodeIsURI(aNodes[i]))
-        urlsToOpen.push({uri: aNodes[i].uri});
+        urlsToOpen.push(aNodes[i].uri);
     }
-    this._openTabset(urlsToOpen, aEvent);
+    openUILinkArrayIn(urlsToOpen, aWhere);
   },
 
   /**

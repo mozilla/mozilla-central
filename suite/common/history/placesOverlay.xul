@@ -40,8 +40,8 @@
 <!DOCTYPE overlay [
 <!ENTITY % historyDTD SYSTEM "chrome://communicator/locale/history/history.dtd">
 %historyDTD;
-<!ENTITY % editMenuOverlayDTD SYSTEM "chrome://global/locale/editMenuOverlay.dtd">
-%editMenuOverlayDTD;
+<!ENTITY % utilityDTD SYSTEM "chrome://communicator/locale/utilityOverlay.dtd">
+%utilityDTD;
 ]>
 
 <?xml-stylesheet href="chrome://communicator/content/history/places.css"?>
@@ -95,33 +95,28 @@
               command="placesCmd_open:window"
               label="&cmd.open_window.label;"
               accesskey="&cmd.open_window.accesskey;"
-              selectiontype="single"
               selection="link"/>
     <menuitem id="placesContext_open:newtab"
               command="placesCmd_open:tab"
               label="&cmd.open_tab.label;"
               accesskey="&cmd.open_tab.accesskey;"
-              selectiontype="single"
-              selection="link"/>
-    <menuitem id="placesContext_openLinks:tabs"
-              oncommand="var view = PlacesUIUtils.getViewForNode(document.popupNode);
-                         view.controller.openSelectionInTabs(event);"
-              onclick="checkForMiddleClick(this, event);"
-              label="&cmd.open_all_in_tabs.label;"
-              accesskey="&cmd.open_all_in_tabs.accesskey;"
-              selectiontype="multiple"
               selection="link"/>
     <menuseparator id="placesContext_openSeparator"/>
     <menuitem id="addBookmarkContextItem"
-              label="&bookmarkCmd.label;"
-              accesskey="&bookmarkCmd.accesskey;"
-              selection="link"
+              label="&bookmarkLinkCmd.label;"
+              accesskey="&bookmarkLinkCmd.accesskey;"
               selectiontype="single"
+              selection="link"
+              oncommand="historyAddBookmarks();"/>
+    <menuitem id="addBookmarkContextItem"
+              label="&bookmarkLinksCmd.label;"
+              accesskey="&bookmarkLinksCmd.accesskey;"
+              selectiontype="multiple"
+              selection="link"
               oncommand="historyAddBookmarks();"/>
     <menuitem id="placesContext_copy"
               command="cmd_copy"
               label="&copyCmd.label;"
-              closemenu="single"
               accesskey="&copyCmd.accesskey;"
               selection="any"/>
     <menuseparator id="placesContext_editSeparator"/>
@@ -129,9 +124,12 @@
               command="cmd_delete"
               label="&deleteCmd.label;"
               accesskey="&deleteCmd.accesskey;"
-              closemenu="single"
-              selection="any"
-              forcehideselection="livemarkChild"/>
+              selection="link|host|day"/>
+    <menuitem id="placesContext_selectAll"
+              command="cmd_selectAll"
+              label="&selectAllCmd.label;"
+              accesskey="&selectAllCmd.accesskey;"
+              selection="any"/>
   </popup>
 
   <menupopup id="viewPopup">

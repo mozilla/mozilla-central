@@ -34,14 +34,14 @@
 <!ENTITY cmd.open.label                 "Open">
 <!ENTITY cmd.open.accesskey             "O">
 <!ENTITY cmd.open_window.label          "Open Link in New Window">
-<!ENTITY cmd.open_window.accesskey      "N">
+<!ENTITY cmd.open_window.accesskey      "W">
 <!ENTITY cmd.open_tab.label             "Open Link in New Tab">
-<!ENTITY cmd.open_tab.accesskey         "w">
-<!ENTITY cmd.open_all_in_tabs.label     "Open All in Tabs">
-<!ENTITY cmd.open_all_in_tabs.accesskey "O">
+<!ENTITY cmd.open_tab.accesskey         "T">
 
-<!ENTITY bookmarkCmd.label              "Bookmark This Link…">
-<!ENTITY bookmarkCmd.accesskey          "B">
+<!ENTITY bookmarkLinkCmd.label          "Bookmark This Link…">
+<!ENTITY bookmarkLinkCmd.accesskey      "B">
+<!ENTITY bookmarkLinksCmd.label         "Bookmark These Links">
+<!ENTITY bookmarkLinksCmd.accesskey     "B">
 
 <!ENTITY col.title.label                "Title">
 <!ENTITY col.title.accesskey            "T">
