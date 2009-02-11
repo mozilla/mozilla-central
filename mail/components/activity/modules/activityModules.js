@@ -43,3 +43,5 @@ const EXPORTED_SYMBOLS = [];
 
 Components.utils.import("resource://app/modules/activity/sendLater.js");
 sendLaterModule.init();
+Components.utils.import("resource://app/modules/activity/moveCopy.js");
+moveCopyModule.init();
