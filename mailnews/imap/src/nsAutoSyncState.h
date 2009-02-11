@@ -99,7 +99,9 @@ class nsAutoSyncState : public nsIAutoSyncState, public nsIUrlListener
   ~nsAutoSyncState();
   
   nsresult PlaceIntoDownloadQ(const nsTArray<nsMsgKey> &aMsgKeyList);
-  nsresult SortQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue);  
+  nsresult SortQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue);
+  nsresult SortSubQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue, 
+                                    PRUint32 aStartingOffset);
   
   #ifdef DEBUG_me
   void DebugPrintOwnerFolderName(char *s);

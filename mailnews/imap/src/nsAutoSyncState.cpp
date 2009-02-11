@@ -33,8 +33,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
-#ifdef DEBUG_David_Bienvenu
+
+#ifdef DEBUG_ebirol
 #define DEBUG_me
 #endif
 
@@ -199,22 +199,46 @@ nsresult nsAutoSyncState::SortQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue)
   nsresult rv;
   nsCOMPtr <nsIMsgFolder> folder = do_QueryReferent(mOwnerFolder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIMsgDatabase> database;
   rv = folder->GetMsgDatabase(getter_AddRefs(database));
   if (!database)
     return NS_ERROR_FAILURE;
-  
+
   nsCOMPtr<nsIAutoSyncManager> autoSyncMgr = do_GetService(NS_AUTOSYNCMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-        
+
   nsCOMPtr<nsIAutoSyncMsgStrategy> msgStrategy;
   rv = autoSyncMgr->GetMsgStrategy(getter_AddRefs(msgStrategy));
   NS_ENSURE_SUCCESS(rv, rv);
-      
+
   MsgStrategyComparatorAdaptor strategyComp(msgStrategy, folder, database);
   aQueue.Sort(strategyComp);
-  
+
+  return rv;
+}
+
+// This method is a hack to prioritize newly inserted messages,
+// without changing the size of the queue. It is required since 
+// we cannot sort ranges in nsTArray.
+nsresult nsAutoSyncState::SortSubQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue,
+                                                      PRUint32 aStartingOffset)
+{
+  NS_ASSERTION(aStartingOffset < aQueue.Length(), "*** Starting offset is out of range");
+
+  // Copy already downloaded messages into a temporary queue,
+  // we want to exclude them from the sort.
+  nsTArray<nsMsgKey> tmpQ;
+  tmpQ.AppendElements(aQueue.Elements(), aStartingOffset);
+
+  // Remove already downloaded messages and sort the resulting queue
+  aQueue.RemoveElementsAt(0, aStartingOffset);
+
+  nsresult rv = SortQueueBasedOnStrategy(aQueue);
+
+  // copy excluded messages back
+  aQueue.InsertElementsAt(0, tmpQ);
+
   return rv;
 }
 
@@ -224,16 +248,16 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
 {
   NS_ENSURE_ARG_POINTER(aMessagesList);
   NS_ENSURE_ARG_POINTER(aActualGroupSize);
-  
+
   *aActualGroupSize = 0;
-  
+
   nsresult rv;
   nsCOMPtr <nsIMsgFolder> folder = do_QueryReferent(mOwnerFolder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIMsgDatabase> database;
   folder->GetMsgDatabase(getter_AddRefs(database));
-      
+
   nsCOMPtr<nsIMutableArray> group = do_CreateInstance(NS_ARRAY_CONTRACTID);
   if (database)
   {
@@ -242,24 +266,22 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
       // sort the download queue if new items are added since the last time
       if (mIsDownloadQChanged)
       {
-        if (mOffset > 0)
-        {
-          // get rid of the downloaded message keys and reset the offsets
-          mDownloadQ.RemoveElementsAt(0, mOffset);
-          mOffset = mLastOffset = 0;
-        }
-        
-        if ( NS_SUCCEEDED(SortQueueBasedOnStrategy(mDownloadQ)) )
+        // we want to sort only pending messages. mOffset is
+        // the position of the first pending message in the download queue
+        rv = (mOffset > 0)
+          ? SortSubQueueBasedOnStrategy(mDownloadQ, mOffset)
+          : SortQueueBasedOnStrategy(mDownloadQ);
+
+        if (NS_SUCCEEDED(rv))
           mIsDownloadQChanged = PR_FALSE;
       }
-      
-      nsresult rv;
+
       nsCOMPtr<nsIAutoSyncManager> autoSyncMgr = do_GetService(NS_AUTOSYNCMANAGER_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
       PRUint32 msgCount = mDownloadQ.Length();
       PRUint32 idx = mOffset;
-     
+
       nsCOMPtr<nsIAutoSyncMsgStrategy> msgStrategy;
       autoSyncMgr->GetMsgStrategy(getter_AddRefs(msgStrategy));
 
@@ -269,7 +291,7 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
         database->GetMsgHdrForKey(mDownloadQ[idx], getter_AddRefs(qhdr));
         if(!qhdr)
           continue; //maybe deleted, skip it!
-        
+
         // ensure that we don't have this message body offline already,
         // possible if the user explicitly selects this message prior
         // to auto-sync kicks in
@@ -277,10 +299,10 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
         qhdr->GetFlags(&msgFlags);
         if (msgFlags & nsMsgMessageFlags::Offline)
           continue;
-          
+
         // this check point allows msg strategy function
         // to do last minute decisions based on the current
-        // state of TB such as the size of the message store etc..
+        // state of TB such as the size of the message store etc.
         if (msgStrategy)
         {
           PRBool excluded = PR_FALSE;
@@ -294,7 +316,7 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
         // to download them, and there's no point anyway.
         if (!msgSize)
           continue;
-        
+
         if (!*aActualGroupSize && msgSize >= aSuggestedGroupSizeLimit) 
         {
           *aActualGroupSize = msgSize;
@@ -306,15 +328,15 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
           break;
         else
         {
-         group->AppendElement(qhdr, PR_FALSE);
-         *aActualGroupSize += msgSize;
+          group->AppendElement(qhdr, PR_FALSE);
+          *aActualGroupSize += msgSize;
         }
       }// endfor
-      
+
       mLastOffset = mOffset;
       mOffset = idx;
     }
-    
+
     #if defined(DEBUG_me) && defined(DEBUG_AutoSyncState_L1)
     DebugPrintOwnerFolderName("Next group of messages to be downloaded.");
      #ifdef DEBUG_AutoSyncState_L2
@@ -322,10 +344,10 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
      #endif
     #endif
   } //endif
-  
+
    // return it to the caller
   NS_IF_ADDREF(*aMessagesList = group);
- 
+
   return NS_OK;
 }
 
@@ -503,6 +525,13 @@ NS_IMETHODIMP nsAutoSyncState::GetPendingMessageCount(PRInt32 *aMsgCount)
 {
   NS_ENSURE_ARG_POINTER(aMsgCount);
   *aMsgCount = mDownloadQ.Length() - mOffset;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAutoSyncState::GetTotalMessageCount(PRInt32 *aMsgCount)
+{
+  NS_ENSURE_ARG_POINTER(aMsgCount);
+  *aMsgCount = mDownloadQ.Length();
   return NS_OK;
 }
 

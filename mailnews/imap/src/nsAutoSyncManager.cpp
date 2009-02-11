@@ -854,24 +854,24 @@ void nsAutoSyncManager::ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAuto
  * Zero aSizeLimit means no limit 
  */
 nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj, PRUint32 aSizeLimit)
-{  
+{
   if (!aAutoSyncStateObj)
     return NS_ERROR_INVALID_ARG;
-  
+
   PRInt32 count;
   nsresult rv = aAutoSyncStateObj->GetPendingMessageCount(&count);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   // special case: no more message to download for this folder:
   // see HandleDownloadErrorFor for recovery policy
   if (!count)
     return NS_ERROR_NOT_AVAILABLE;
- 
+
   nsCOMPtr<nsIMutableArray> messagesToDownload;
   PRUint32 totalSize = 0;
   rv = aAutoSyncStateObj->GetNextGroupOfMessages(mGroupSize, &totalSize, getter_AddRefs(messagesToDownload));
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   // there are pending messages but the cumulative size is zero:
   // treat as special case.
   // Note that although it shouldn't happen, we know that sometimes
@@ -882,23 +882,26 @@ nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSy
   // being synced.
   if (!totalSize)
     return NS_ERROR_NOT_AVAILABLE;
-  
+
   // ensure that we don't exceed the given size limit for this particular group
   if (aSizeLimit && aSizeLimit < totalSize)
     return NS_ERROR_FAILURE;
-  
+
   PRUint32 length;
   rv = messagesToDownload->GetLength(&length);
   if (NS_SUCCEEDED(rv) && length > 0)
   {
     rv = aAutoSyncStateObj->DownloadMessagesForOffline(messagesToDownload);
-    
+
+    PRInt32 totalCount;
+    (void) aAutoSyncStateObj->GetTotalMessageCount(&totalCount);
+
     nsCOMPtr<nsIMsgFolder> folder;
     aAutoSyncStateObj->GetOwnerFolder(getter_AddRefs(folder));
     if (NS_SUCCEEDED(rv) && folder)
-      NOTIFY_LISTENERS(OnDownloadStarted, (folder, length, count));
+      NOTIFY_LISTENERS(OnDownloadStarted, (folder, length, totalCount));
   }
-  
+
   return rv;
 }
 

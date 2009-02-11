@@ -41,7 +41,7 @@ interface nsIMsgWindow;
 interface nsIArray;
 interface nsIMutableArray;
 
-[scriptable, uuid(4ede03df-9d8b-4c99-b462-daefb9f70493)] 
+[scriptable, uuid(8D4950BC-9D6F-4886-94A2-A0A551B3376E)] 
 interface nsIAutoSyncState : nsISupports {
 
   /**
@@ -127,6 +127,11 @@ interface nsIAutoSyncState : nsISupports {
    * Number of messages waiting to be downloaded.
    */
   readonly attribute long pendingMessageCount;
+  
+  /**
+   * Total number of messages in the download queue.
+   */
+  readonly attribute long totalMessageCount;
   
   /**
    * The folder this auto-sync object is related to.
