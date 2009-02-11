@@ -686,13 +686,13 @@ PRBool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
   // I now have a user name/server name pair, find out if it already exists?
   // NNTP can have empty user name.  This is wild card in findserver
   nsCOMPtr<nsIMsgIncomingServer> in;
-  nsresult rv = pMgr->FindServer(nsDependentCString(""),
+  nsresult rv = pMgr->FindServer(EmptyCString(),
                                  nsDependentCString(pServerName),
                                  NS_LITERAL_CSTRING("nntp"),
                                  getter_AddRefs(in));
   if (NS_FAILED( rv) || (in == nsnull)) {
     // Create the incoming server and an account for it?
-    rv = pMgr->CreateIncomingServer(nsDependentCString(""),
+    rv = pMgr->CreateIncomingServer(EmptyCString(),
                                     nsDependentCString(pServerName),
                                     NS_LITERAL_CSTRING("nntp"),
                                     getter_AddRefs(in));
@@ -704,7 +704,7 @@ PRBool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
 
       // do nntpincomingserver stuff
       nsCOMPtr<nsINntpIncomingServer> nntpServer = do_QueryInterface(in);
-      if (nntpServer && pUserName && (strnlen(pUserName, 2) > 0)) {
+      if (nntpServer && pUserName && *pUserName) {
         nntpServer->SetPushAuth(PR_TRUE);
         in->SetUsername(nsDependentCString(pUserName));
       }
