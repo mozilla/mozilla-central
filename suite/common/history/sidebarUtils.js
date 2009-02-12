@@ -58,7 +58,7 @@ var SidebarUtils = {
       mouseInGutter = aEvent.clientX < x.value;
     }
 
-    var openWhere = whereToOpenLink(aEvent);
+    var openWhere = whereToOpenLink(aEvent, false, true);
 
     var isContainer = tbo.view.isContainer(row.value);
     var openInTabs = isContainer &&
@@ -118,6 +118,7 @@ var SidebarUtils = {
   },
 
   clearURLFromStatusBar: function SU_clearURLFromStatusBar() {
-    window.top.XULBrowserWindow.setOverLink("", null);
+    if (window.top.XULBrowserWindow)
+      window.top.XULBrowserWindow.setOverLink("", null);
   }
 };

@@ -71,7 +71,7 @@
   <commandset id="placesCommands"
               commandupdater="true"
               events="focus,sort"
-              oncommandupdate="updateHistoryCommands();">
+              oncommandupdate="updateHistoryCommands(this.firstChild);">
     <command id="placesCmd_open"
              oncommand="goDoCommand('placesCmd_open');"/>
     <command id="placesCmd_open:window"

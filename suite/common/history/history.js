@@ -78,18 +78,13 @@ function HistoryCommonInit()
 
   if (gHistoryTree.view.rowCount > 0)
     gHistoryTree.view.selection.select(0);
-  else if (gHistoryStatus)
-    updateHistoryCommands();
 }
 
-function updateHistoryCommands()
+function updateHistoryCommands(aCommand)
 {
   document.commandDispatcher.updateCommands("select");
-  goUpdateCommand("placesCmd_open");
-  goUpdateCommand("placesCmd_open:window");
-  goUpdateCommand("placesCmd_open:tab");
-  goUpdateCommand("placesCmd_delete:hostname");
-  goUpdateCommand("placesCmd_delete:domain");
+  for (; aCommand; aCommand = aCommand.nextSibling)
+    goUpdateCommand(aCommand.id);
 }
 
 function historyOnSelect()

@@ -97,14 +97,12 @@ PlacesController.prototype = {
         var result = this._view.getResult();
         if (result) {
           var container = asContainer(result.root);
-          if (container.childCount > 0);
+          if (container.containerOpen && container.childCount > 0)
             return true;
         }
       }
       return false;
     case "placesCmd_open":
-    case "placesCmd_open:window":
-    case "placesCmd_open:tab":
       var selectedNode = this._view.selectedNode;
       return selectedNode && PlacesUtils.nodeIsURI(selectedNode);
     case "placesCmd_delete:hostname":

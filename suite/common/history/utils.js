@@ -300,7 +300,7 @@ var PlacesUIUtils = {
    *          user's preferred destination window or tab.
    */
   openNodeWithEvent: function PU_openNodeWithEvent(aNode, aEvent) {
-    this.openNodeIn(aNode, whereToOpenLink(aEvent));
+    this.openNodeIn(aNode, whereToOpenLink(aEvent, false, true));
   },
 
   /**
