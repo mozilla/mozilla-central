@@ -43,20 +43,18 @@
 
 /* ::::: for the entire area ::::: */
 .main-header-area {
-  background-color: #eeeeec;
+  color: rgb(46, 52, 54); /* Aluminium 6 */
+  background-color: rgb(238, 238, 236); /* Aluminium 1 */
+  border-bottom: 2px groove rgb(186,189,182); /* Aluminium 3 */
+  padding: 0.6ex;
 }
 
 /* ::::: msg header toolbars ::::: */
 #collapsedHeaderView {
   min-width: 1px;
-  -moz-margin-start: 0.5em;
-  color: black;
-  font-size: 110%;
-  padding-bottom: 0.5em;
 }
 
 #expandedHeaderView {
-  color: #2e3436;
   overflow-x: hidden;
   overflow-y: visible;
   max-height: 14em;
@@ -93,18 +91,18 @@
 }
 
 
-.msgHeaderView-button[type="menu"] > .button-box > .button-menu-dropmarker,
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-dropmarker {
+.msgHeaderView-flat-button[type="menu"] > .button-box > .button-menu-dropmarker,
+.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-dropmarker {
   -moz-appearance: none !important;
 }
 
-.msgHeaderView-button[type="menu"] > .button-box > .button-menu-dropmarker > .dropmarker-icon,
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-dropmarker > .dropmarker-icon {
+.msgHeaderView-flat-button[type="menu"] > .button-box > .button-menu-dropmarker > .dropmarker-icon,
+.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-grey.png");
 }
 
-.msgHeaderView-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
-.msgHeaderView-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
+.msgHeaderView-flat-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
+.msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
 }
 
@@ -159,10 +157,7 @@
 /* ::::: expanded header pane ::::: */
 
 header-view-button-box {
-  padding-top: .5em;
-  padding-bottom: 0px;
-  -moz-padding-start: 0px;
-  -moz-padding-end: .5em;
+  padding: 0px;
 }
 
 #expandedfromBox {
@@ -274,7 +269,37 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 
+.hdrReplyButton { 
+  -moz-appearance: dualbutton;
+}
+
+.hdrReplyButton > .button-menubutton-button {
+  -moz-appearance: none;
+  padding: 0;
+  margin: 0;
+  -moz-padding-start: 0px;
+  -moz-padding-end: 0px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 0px;
+  min-width: 1em;
+  min-height: 1ex;
+}
+
+
 .msgHeaderView-button {
+  -moz-appearance: none;
+  border: 1px solid #5F5F5F;
+  -moz-border-radius: 4px;
+  background: url(chrome://global/skin/icons/white-gray-gradient.gif) #A09E9D repeat-x top center;
+  min-height: 0;
+  min-width: 0;
+  padding: 2px;
+  margin: 0px;
+  -moz-margin-start: 0.4em;
+  vertical-align: middle;
+}
+
+.msgHeaderView-flat-button {
   min-width: 1px;
   -moz-appearance: none;
   font-size: 90%;
@@ -294,7 +319,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   min-height: 1ex;
 }
 
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-button {
+.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button {
   -moz-appearance: none;
   background-color: rgb(211,215,207);
   -moz-border-radius: 0px;
@@ -314,15 +339,15 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   min-height: 16px;
 }
 
-.msgHeaderView-button[type="menu-button"]:hover > .button-menubutton-button {
+.msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-button {
   background-color: rgb(230,231,227);
 }
 
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-button:hover {
+.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button:hover {
   border-right: 2px solid #B0B3B6;
 } 
 
-.msgHeaderView-button[secondary="true"] {
+.msgHeaderView-flat-button[secondary="true"] {
   background: none;
 }
 
@@ -330,12 +355,12 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   display: none;
 }
 
-.msgHeaderView-button > .toolbarbutton-text {
+.msgHeaderView-button .button-text {
   margin: 0;
   padding: 0;
 }
 
-.msgHeaderView-button:hover {
+.msgHeaderView-flat-button:hover {
   background-color: rgb(230,231,227);
   border: 2px solid #B0B3B6;
 }
