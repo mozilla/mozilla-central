@@ -26,6 +26,7 @@
  *                 Michiel van Leeuwen <mvl@exedo.nl>
  *                 Stefan Sitter <ssitter@gmail.com>
  *                 Philipp Kewisch <mozilla@kewis.ch>
+ *                 Archaeopteryx <archaeopteryx@coole-files.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,7 +41,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
 // File constants copied from file-utils.js
 const MODE_RDONLY   = 0x01;
 const MODE_WRONLY   = 0x02;
@@ -52,52 +53,58 @@ const MODE_SYNC     = 0x40;
 const MODE_EXCL     = 0x80;
 
 /**
- * loadEventsFromFile
- * shows a file dialog, reads the selected file(s) and tries to parse events from it.
+ * Shows a file dialog, reads the selected file(s) and tries to parse events from it.
  *
  * @param aCalendar  (optional) If specified, the items will be imported directly
  *                              into the calendar
  */
 function loadEventsFromFile(aCalendar) {
     const nsIFilePicker = Components.interfaces.nsIFilePicker;
-  
-    var fp = Components.classes["@mozilla.org/filepicker;1"]
+
+    let fp = Components.classes["@mozilla.org/filepicker;1"]
                        .createInstance(nsIFilePicker);
-    fp.init(window, calGetString("calendar", "filepickerTitleImport"), nsIFilePicker.modeOpen);
+    fp.init(window,
+            calGetString("calendar", "filepickerTitleImport"),
+            nsIFilePicker.modeOpen);
     fp.defaultExtension = "ics";
 
     // Get a list of exporters
-    var contractids = new Array();
-    var catman = Components.classes["@mozilla.org/categorymanager;1"]
+    let contractids = new Array();
+    let catman = Components.classes["@mozilla.org/categorymanager;1"]
                            .getService(Components.interfaces.nsICategoryManager);
-    var catenum = catman.enumerateCategory('cal-importers');
+    let catenum = catman.enumerateCategory('cal-importers');
+    let currentListLength = 0;
     while (catenum.hasMoreElements()) {
-        var entry = catenum.getNext();
+        let entry = catenum.getNext();
         entry = entry.QueryInterface(Components.interfaces.nsISupportsCString);
-        var contractid = catman.getCategoryEntry('cal-importers', entry);
-        var exporter = Components.classes[contractid]
+        let contractid = catman.getCategoryEntry('cal-importers', entry);
+        let exporter = Components.classes[contractid]
                                  .getService(Components.interfaces.calIImporter);
-        var types = exporter.getFileTypes({});
-        var type;
+        let types = exporter.getFileTypes({});
+        let type;
         for each (type in types) {
             fp.appendFilter(type.description, type.extensionFilter);
+            if (type.extensionFilter=="*." + fp.defaultExtension) {
+                fp.filterIndex = currentListLength;
+            }
             contractids.push(contractid);
+            currentListLength++;
         }
     }
 
     fp.show();
 
     if (fp.file && fp.file.path && fp.file.path.length > 0) {
-        var filePath = fp.file.path;
-        var importer = Components.classes[contractids[fp.filterIndex]]
+        let filePath = fp.file.path;
+        let importer = Components.classes[contractids[fp.filterIndex]]
                                  .getService(Components.interfaces.calIImporter);
 
         const nsIFileInputStream = Components.interfaces.nsIFileInputStream;
         const nsIScriptableInputStream = Components.interfaces.nsIScriptableInputStream;
 
-        var inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+        let inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
                                     .createInstance(nsIFileInputStream);
-        var items = [];
+        let items = [];
 
         try {
             inputStream.init( fp.file, MODE_RDONLY, 0444, {});
@@ -119,7 +126,7 @@ function loadEventsFromFile(aCalendar) {
             return;
         }
 
-        var calendars = getCalendarManager().getCalendars({});
+        let calendars = cal.getCalendarManager().getCalendars({});
         calendars = calendars.filter(isCalendarWritable);
 
         if (calendars.length < 1) {
@@ -131,11 +138,11 @@ function loadEventsFromFile(aCalendar) {
             putItemsIntoCal(calendars[0], items, filePath);
         } else {
             // Ask what calendar to import into
-            var args = new Object();
+            let args = new Object();
             args.onOk = function putItems(aCal) { putItemsIntoCal(aCal, items, filePath); };
             args.calendars = calendars;
             args.promptText = calGetString("calendar", "importPrompt");
-            openDialog("chrome://calendar/content/chooseCalendarDialog.xul", 
+            openDialog("chrome://calendar/content/chooseCalendarDialog.xul",
                        "_blank", "chrome,titlebar,modal,resizable", args);
         }
     }
@@ -212,8 +219,6 @@ function putItemsIntoCal(destCal, aItems, aFilePath) {
 }
 
 /**
- * saveEventsToFile
- *
  * Save data to a file. Create the file or overwrite an existing file.
  *
  * @param calendarEventArray (required) Array of calendar events that should
@@ -221,90 +226,94 @@ function putItemsIntoCal(destCal, aItems, aFilePath) {
  * @param aDefaultFileName   (optional) Initial filename shown in SaveAs dialog.
  */
 function saveEventsToFile(calendarEventArray, aDefaultFileName) {
-   if (!calendarEventArray)
-       return;
+    if (!calendarEventArray || !calendarEventArray.length) {
+        return;
+    }
 
-   // Show the 'Save As' dialog and ask for a filename to save to
-   const nsIFilePicker = Components.interfaces.nsIFilePicker;
+    // Show the 'Save As' dialog and ask for a filename to save to
+    const nsIFilePicker = Components.interfaces.nsIFilePicker;
 
-   var fp = Components.classes["@mozilla.org/filepicker;1"]
-                      .createInstance(nsIFilePicker);
+    let fp = Components.classes["@mozilla.org/filepicker;1"]
+                       .createInstance(nsIFilePicker);
 
-   fp.init(window, calGetString("calendar", "filepickerTitleExport"), nsIFilePicker.modeSave);
+    fp.init(window,
+            calGetString("calendar", "filepickerTitleExport"),
+            nsIFilePicker.modeSave);
 
-   if (aDefaultFileName && aDefaultFileName.length && aDefaultFileName.length > 0) {
-      fp.defaultString = aDefaultFileName;
-   } else if (calendarEventArray.length == 1 && calendarEventArray[0].title) {
-      fp.defaultString = calendarEventArray[0].title;
-   } else {
-      fp.defaultString = calGetString("calendar", "defaultFileName");
-   }
+    if (aDefaultFileName && aDefaultFileName.length && aDefaultFileName.length > 0) {
+        fp.defaultString = aDefaultFileName;
+    } else if (calendarEventArray.length == 1 && calendarEventArray[0].title) {
+        fp.defaultString = calendarEventArray[0].title;
+    } else {
+        fp.defaultString = calGetString("calendar", "defaultFileName");
+    }
 
-   fp.defaultExtension = "ics";
+    fp.defaultExtension = "ics";
 
-   // Get a list of exporters
-   var contractids = new Array();
-   var catman = Components.classes["@mozilla.org/categorymanager;1"]
-                          .getService(Components.interfaces.nsICategoryManager);
-   var catenum = catman.enumerateCategory('cal-exporters');
-   while (catenum.hasMoreElements()) {
-       var entry = catenum.getNext();
-       entry = entry.QueryInterface(Components.interfaces.nsISupportsCString);
-       var contractid = catman.getCategoryEntry('cal-exporters', entry);
-       var exporter = Components.classes[contractid]
-                                .getService(Components.interfaces.calIExporter);
-       var types = exporter.getFileTypes({});
-       var type;
-       for each (type in types) {
-           fp.appendFilter(type.description, type.extensionFilter);
-           contractids.push(contractid);
-       }
-   }
+    // Get a list of exporters
+    let contractids = new Array();
+    let catman = Components.classes["@mozilla.org/categorymanager;1"]
+                           .getService(Components.interfaces.nsICategoryManager);
+    let catenum = catman.enumerateCategory('cal-exporters');
+    currentListLength = 0;
+    while (catenum.hasMoreElements()) {
+        let entry = catenum.getNext();
+        entry = entry.QueryInterface(Components.interfaces.nsISupportsCString);
+        let contractid = catman.getCategoryEntry('cal-exporters', entry);
+        let exporter = Components.classes[contractid]
+                                 .getService(Components.interfaces.calIExporter);
+        let types = exporter.getFileTypes({});
+        let type;
+        for each (let type in types) {
+            fp.appendFilter(type.description, type.extensionFilter);
+            if (type.extensionFilter=="*." + fp.defaultExtension) {
+                fp.filterIndex = currentListLength;
+            }
+            contractids.push(contractid);
+            currentListLength++;
+        }
+    }
 
+    fp.show();
 
-   fp.show();
+    // Now find out as what to save, convert the events and save to file.
+    if (fp.file && fp.file.path.length > 0) {
+        const UTF8 = "UTF-8";
+        let aDataStream;
+        let extension;
+        let charset;
 
-   // Now find out as what to save, convert the events and save to file.
-   if (fp.file && fp.file.path.length > 0) 
-   {
-      const UTF8 = "UTF-8";
-      var aDataStream;
-      var extension;
-      var charset;
+        let exporter = Components.classes[contractids[fp.filterIndex]]
+                                 .getService(Components.interfaces.calIExporter);
 
-      var exporter = Components.classes[contractids[fp.filterIndex]]
-                               .getService(Components.interfaces.calIExporter);
+        let filePath = fp.file.path;
+        if (filePath.indexOf(".") == -1) {
+            filePath += "."+exporter.getFileTypes({})[0].defaultExtension;
+        }
 
-      var filePath = fp.file.path;
-      if(filePath.indexOf(".") == -1 )
-          filePath += "."+exporter.getFileTypes({})[0].defaultExtension;
+        const nsILocalFile = Components.interfaces.nsILocalFile;
+        const nsIFileOutputStream = Components.interfaces.nsIFileOutputStream;
 
-      const LOCALFILE_CTRID = "@mozilla.org/file/local;1";
-      const FILEOUT_CTRID = "@mozilla.org/network/file-output-stream;1";
-      const nsILocalFile = Components.interfaces.nsILocalFile;
-      const nsIFileOutputStream = Components.interfaces.nsIFileOutputStream;
+        let outputStream;
+        let localFileInstance = Components.classes["@mozilla.org/file/local;1"]
+                                          .createInstance(nsILocalFile);
+        localFileInstance.initWithPath(filePath);
 
-      var outputStream;
-
-      var localFileInstance = Components.classes[LOCALFILE_CTRID]
-                                        .createInstance(nsILocalFile);
-      localFileInstance.initWithPath(filePath);
-
-      outputStream = Components.classes[FILEOUT_CTRID]
-                               .createInstance(nsIFileOutputStream);
-      try
-      {
-         outputStream.init(localFileInstance, MODE_WRONLY | MODE_CREATE | MODE_TRUNCATE, 0664, 0);
-         // XXX Do the right thing with unicode and stuff. Or, again, should the
-         //     exporter handle that?
-         exporter.exportToStream(outputStream, calendarEventArray.length, calendarEventArray, null);
-         outputStream.close();
-      }
-      catch(ex)
-      {
-         showError(calGetString("calendar", "unableToWrite") + filePath);
-      }
-   }
+        outputStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
+                                 .createInstance(nsIFileOutputStream);
+        try {
+            outputStream.init(localFileInstance, MODE_WRONLY | MODE_CREATE | MODE_TRUNCATE, 0664, 0);
+            // XXX Do the right thing with unicode and stuff. Or, again, should the
+            //     exporter handle that?
+            exporter.exportToStream(outputStream,
+                                    calendarEventArray.length,
+                                    calendarEventArray,
+                                    null);
+            outputStream.close();
+        } catch(ex) {
+            showError(calGetString("calendar", "unableToWrite") + filePath);
+        }
+    }
 }
 
 /**
@@ -323,7 +332,7 @@ function exportEntireCalendar(aCalendar) {
         onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems)
         {
             for each (item in aItems) {
-                itemArray.push(item);   
+                itemArray.push(item);
             }
         }
     };
@@ -346,7 +355,7 @@ function exportEntireCalendar(aCalendar) {
             var args = new Object();
             args.onOk = getItemsFromCal;
             args.promptText = calGetString("calendar", "exportPrompt");
-            openDialog("chrome://calendar/content/chooseCalendarDialog.xul", 
+            openDialog("chrome://calendar/content/chooseCalendarDialog.xul",
                        "_blank", "chrome,titlebar,modal,resizable", args);
         }
     } else {
