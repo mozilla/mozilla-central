@@ -1568,19 +1568,18 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
   PRUint32 flags;
   msgHdr->GetFlags(&flags);
 
+  aValue.Truncate();
   // provide a string "value" for cells that do not normally have text.
   // use empty string for the normal states "Read", "Not Starred", "No Attachment" and "Not Junk"
   switch (colID[0])
   {
     case 'a': // attachment column
-      aValue.Assign(GetString ((flags & nsMsgMessageFlags::Attachment) ?
-      NS_LITERAL_STRING("messageHasAttachment").get()
-      : EmptyString().get()));
+      if (flags & nsMsgMessageFlags::Attachment)
+        aValue.Adopt(GetString(NS_LITERAL_STRING("messageHasAttachment").get()));
       break;
     case 'f': // flagged (starred) column
-      aValue.Assign(GetString ((flags & nsMsgMessageFlags::Marked) ?
-      NS_LITERAL_STRING("messageHasFlag").get()
-      : EmptyString().get()));
+      if (flags & nsMsgMessageFlags::Marked)
+        aValue.Adopt(GetString(NS_LITERAL_STRING("messageHasFlag").get()));
       break;
     case 'j': // junk column
       if (!mIsNews)
@@ -1607,22 +1606,21 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
           if (!isContainerEmpty)
           {
             IsContainerOpen(aRow, &isContainerOpen);
-            aValue.Assign(GetString (isContainerOpen ?
-             NS_LITERAL_STRING("messageExpanded").get()
-             : NS_LITERAL_STRING("messageCollapsed").get()));
+            aValue.Adopt(GetString(isContainerOpen ?
+                                   NS_LITERAL_STRING("messageExpanded").get() :
+                                   NS_LITERAL_STRING("messageCollapsed").get()));
           }
         }
       }
       break;
     case 'u': // read/unread column
-      aValue.Assign(GetString ((flags & nsMsgMessageFlags::Read) ?
-      EmptyString().get() : NS_LITERAL_STRING("messageUnread").get()));
+      if (!(flags & nsMsgMessageFlags::Read))
+        aValue.Adopt(GetString(NS_LITERAL_STRING("messageUnread").get()));
       break;
     default:
       aValue.Assign(colID);
       break;
   }
-
   return rv;
 }
 
@@ -4115,7 +4113,7 @@ nsMsgViewIndex nsMsgDBView::GetThreadIndex(nsMsgViewIndex msgIndex)
   return msgIndex;
 }
 
-nsMsgViewIndex 
+nsMsgViewIndex
 nsMsgDBView::ThreadIndexOfMsgHdr(nsIMsgDBHdr *msgHdr, 
                                  nsMsgViewIndex msgIndex,
                                  PRInt32 *pThreadCount,
@@ -5323,7 +5321,8 @@ NS_IMETHODIMP nsMsgDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 
     PRUint32 deltaFlags = (aOldFlags ^ aNewFlags);
     if (deltaFlags & (nsMsgMessageFlags::Read | nsMsgMessageFlags::New))
     {
-      nsMsgViewIndex threadIndex = GetThreadIndex(index);
+      nsMsgViewIndex threadIndex =
+            ThreadIndexOfMsgHdr(aHdrChanged, index, nsnull, nsnull);
       // may need to fix thread counts
       if (threadIndex != nsMsgViewIndex_None && threadIndex != index)
         NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
