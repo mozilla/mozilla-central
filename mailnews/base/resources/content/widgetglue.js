@@ -147,27 +147,22 @@ function MsgEmptyTrash()
     }
 }
 
-function MsgCompactFolder(isAll) 
+function MsgCompactFolder(aCompactAccount)
 {
   // Get the selected folders.
   var selectedFolders = GetSelectedMsgFolders();
-
   if (selectedFolders.length == 1)
   {
     var selectedFolder = selectedFolders[0];
-    var resource = selectedFolder.QueryInterface(Components.interfaces.nsIRDFResource);
-
-    if (selectedFolder.server.type != "imap") //can be local only
+    var isImapFolder = selectedFolder.server.type == "imap";
+    if (!isImapFolder)
     {
-      var msgfolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-      var expungedBytes = msgfolder.expungedBytes;
-
-      if (expungedBytes > 0)
-      { 
+      if (selectedFolder.expungedBytes > 0)
+      {
         if (gDBView)
         {
           gCurrentlyDisplayedMessage = gDBView.currentlyDisplayedMessage;
-          if (gDBView.msgFolder == selectedFolder || isAll)
+          if (gDBView.msgFolder == selectedFolder || aCompactAccount)
           {
             ClearThreadPaneSelection();
             ClearThreadPane();
@@ -177,12 +172,14 @@ function MsgCompactFolder(isAll)
       }
       else
       {
-        if (!isAll)  //you have one local folder with no room to compact
+        if (!aCompactAccount) // you have one local folder with no room to compact
           return;
       }
-    } 
-    var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-    msgFolder.compact(null, msgWindow);
+    }
+    if (aCompactAccount)
+      selectedFolder.compactAll(null, msgWindow, isImapFolder || selectedFolder.server.type == "news");
+    else
+      selectedFolder.compact(null, msgWindow);
   }
 }
 
