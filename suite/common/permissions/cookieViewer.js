@@ -215,7 +215,7 @@ function GetExpiresString(expires) {
     }
     return expiry;
   }
-  return cookieBundle.getString("AtEndOfSession");
+  return cookieBundle.getString("expireAtEndOfSession");
 }
 
 function CookieSelected() {
