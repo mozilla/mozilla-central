@@ -1313,27 +1313,31 @@ vwchar_t* fakeUnicode(const char *ps, int *bytes)
 
 int uStrLen(const vwchar_t *u)
 {
-    int i = 0;
-    while (*u != (vwchar_t)0) { u++; i++; }
-    return i;
+  if (!u)
+    return 0;
+  int i = 0;
+  while (*u != (vwchar_t)0) { u++; i++; }
+  return i;
 }
 
 char* fakeCString(const vwchar_t *u)
 {
-    char *s, *t;
-    int len = uStrLen(u) + 1;
-    t = s = (char*)PR_CALLOC(len);
+  char *s, *t;
+  int len = uStrLen(u) + 1;
+  t = s = (char*)PR_CALLOC(len);
+  if (u) {
     while (*u) {
-  if (*u == (vwchar_t)0x2028)
-      *t = '\n';
-  else if (*u == (vwchar_t)0x2029)
-      *t = '\r';
-  else
-      *t = (char)*u;
-  u++; t++;
+      if (*u == (vwchar_t)0x2028)
+        *t = '\n';
+      else if (*u == (vwchar_t)0x2029)
+        *t = '\r';
+      else
+        *t = (char)*u;
+      u++; t++;
+    }
   }
-    *t = 0;
-    return s;
+  *t = 0;
+  return s;
 }
 
 const char* lookupStr(const char *s)
