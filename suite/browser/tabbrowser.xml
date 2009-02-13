@@ -1283,7 +1283,7 @@
         <body>
           <![CDATA[
             if (aIndex >= this.savedBrowsers.length || aIndex < 0)
-              return;
+              return null;
 
             this._browsers = null;
 
@@ -1330,6 +1330,7 @@
               this.selectedTab = t;
               this.mStrip.collapsed = false;
             }
+            return t;
           ]]>
         </body>
       </method>
@@ -1454,7 +1455,7 @@
             //    into bfcache - allows for saving of JS modifications
             //    and also saves RAM by allowing bfcache to evict the full page
 
-            this.savedBrowsers.unshift({browser: oldBrowser, history: oldSH});
+            this.savedBrowsers.unshift({browser: oldBrowser, history: oldSH, tabData: aTab.tabData || {} });
 
             var newSH = Components.classes["@mozilla.org/browser/shistory;1"]
                                     .createInstance(Components.interfaces.nsISHistoryInternal);

@@ -239,6 +239,9 @@ bin/components/xuldoc.xpt
 bin/components/xultmpl.xpt
 bin/components/zipwriter.xpt
 bin/components/libzipwriter.so
+bin/components/nsSessionStartup.js
+bin/components/nsSessionStore.js
+bin/components/sessionstore.xpt
 
 ; JavaScript components
 bin/components/FeedProcessor.js

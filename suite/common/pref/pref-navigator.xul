@@ -109,6 +109,9 @@
             <radio value="2"
                    label="&lastPageRadio.label;"
                    accesskey="&lastPageRadio.accesskey;"/>
+            <radio value="3"
+                   label="&restoreSessionRadio.label;"
+                   accesskey="&restoreSessionRadio.accesskey;"/>
           </radiogroup>
           <radiogroup id="newWinPage" preference="browser.windows.loadOnNewWindow">
             <radio value="0"

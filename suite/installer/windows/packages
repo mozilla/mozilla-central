@@ -243,6 +243,9 @@ bin\plugins\npnul32.dll
 bin\components\helperAppDlg.xpt
 bin\AccessibleMarshal.dll
 bin\sqlite3.dll
+bin\components\nsSessionStartup.js
+bin\components\nsSessionStore.js
+bin\components\sessionstore.xpt
 
 ; JavaScript components
 bin\components\FeedProcessor.js

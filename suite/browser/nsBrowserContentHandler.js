@@ -163,6 +163,15 @@ function getURLToLoad()
   }
 
   try {
+    var ss = Components.classes["@mozilla.org/suite/sessionstartup;1"]
+             .getService(Components.interfaces.nsISessionStartup);
+    // return about:blank if we are restoring previous session
+    if (ss.doRestore())
+      return "about:blank";
+  } catch (e) {
+  }
+
+  try {
     switch (prefs.getIntPref("browser.startup.page")) {
     case 1:
       return getHomePageGroup(prefs);

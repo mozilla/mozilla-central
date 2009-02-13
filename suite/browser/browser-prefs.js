@@ -310,6 +310,18 @@ pref("browser.feeds.handler", "ask");
 pref("browser.videoFeeds.handler", "ask");
 pref("browser.audioFeeds.handler", "ask");
 
+pref("browser.sessionstore.resume_from_crash", true);
+pref("browser.sessionstore.resume_session_once", false);
+
+// minimal interval between two save operations in milliseconds
+pref("browser.sessionstore.interval", 10000);
+// maximum amount of POSTDATA to be saved in bytes per history entry (-1 = all of it)
+// (NB: POSTDATA will be saved either entirely or not at all)
+pref("browser.sessionstore.postdata", 0);
+// on which sites to save text data, POSTDATA and cookies
+// 0 = everywhere, 1 = unencrypted sites, 2 = nowhere
+pref("browser.sessionstore.privacy_level", 1);
+
 pref("shell.checkDefaultClient", true);
 // We want to check if we are the default client for browser and mail. See 
 // suite/shell/public/nsIShellService.idl for the possible constants you can use

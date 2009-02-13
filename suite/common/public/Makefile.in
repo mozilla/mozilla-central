@@ -47,6 +47,8 @@ XPIDL_MODULE	= suitecommon
 
 XPIDLSRCS = \
 	nsISuiteGlue.idl \
+	nsISessionStartup.idl \
+	nsISessionStore.idl \
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk

@@ -686,6 +686,9 @@ function Startup()
 
   // now load bookmarks after a delay
   setTimeout(LoadBookmarksCallback, 0);
+
+  // initialize the session-restore service
+  setTimeout(InitSessionStoreCallback, 0);
 }
 
 function LoadBookmarksCallback()
@@ -700,6 +703,17 @@ function LoadBookmarksCallback()
   }
   window.addEventListener("resize", BookmarksToolbar.resizeFunc, false);
   controllers.appendController(BookmarksMenuController);
+}
+
+function InitSessionStoreCallback()
+{
+  try {
+    var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                       .getService(Components.interfaces.nsISessionStore);
+    ss.init(window);
+  } catch(ex) {
+    dump("nsSessionStore could not be initialized: " + ex + "\n");
+  }
 }
 
 function WindowFocusTimerCallback(element)

@@ -48,6 +48,15 @@ function SuiteGlue() {
 }
 
 SuiteGlue.prototype = {
+  _saveSession: false,
+
+  _setPrefToSaveSession: function()
+  {
+    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
+                     getService(Components.interfaces.nsIPrefBranch);
+    prefBranch.setBoolPref("browser.sessionstore.resume_session_once", true);
+  },
+
   // nsIObserver implementation
   observe: function(subject, topic, data)
   {
@@ -68,7 +77,20 @@ SuiteGlue.prototype = {
         cs.logStringMessage(null); // clear the console (in case it's open)
         cs.reset();
         break;
-    }
+      case "quit-application-requested":
+        this._onQuitRequest(subject, data);
+        break;
+      case "quit-application-granted":
+        if (this._saveSession) {
+          this._setPrefToSaveSession();
+        }
+        break;
+      case "session-save":
+        this._setPrefToSaveSession();
+        subject.QueryInterface(Components.interfaces.nsISupportsPRBool);
+        subject.data = true;
+        break;
+   }
   },
 
   // initialization (called on application startup)
@@ -81,6 +103,9 @@ SuiteGlue.prototype = {
     osvr.addObserver(this, "quit-application", false);
     osvr.addObserver(this, "final-ui-startup", false);
     osvr.addObserver(this, "browser:purge-session-history", false);
+    osvr.addObserver(this, "quit-application-requested", false);
+    osvr.addObserver(this, "quit-application-granted", false);
+    osvr.addObserver(this, "session-save", false);
   },
 
   // cleanup (called on application shutdown)
@@ -93,7 +118,10 @@ SuiteGlue.prototype = {
     osvr.removeObserver(this, "quit-application");
     osvr.removeObserver(this, "final-ui-startup");
     osvr.removeObserver(this, "browser:purge-session-history");
-  },
+    osvr.removeObserver(this, "quit-application-requested");
+    osvr.removeObserver(this, "quit-application-granted");
+    osvr.removeObserver(this, "session-save");
+ },
 
   // profile startup handler (contains profile initialization routines)
   _onProfileStartup: function()
@@ -116,6 +144,120 @@ SuiteGlue.prototype = {
   _onProfileShutdown: function()
   {
     Sanitizer.checkAndSanitize();
+  },
+
+  _onQuitRequest: function(aCancelQuit, aQuitType)
+  {
+    // If user has already dismissed quit request, then do nothing
+    if ((aCancelQuit instanceof Components.interfaces.nsISupportsPRBool) && aCancelQuit.data)
+      return;
+
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].
+             getService(Components.interfaces.nsIWindowMediator);
+    var windowcount = 0;
+    var pagecount = 0;
+    var browserEnum = wm.getEnumerator("navigator:browser");
+    while (browserEnum.hasMoreElements()) {
+      windowcount++;
+
+      var browser = browserEnum.getNext();
+      var tabbrowser = browser.document.getElementById("content");
+      if (tabbrowser)
+        pagecount += tabbrowser.browsers.length;
+    }
+
+    this._saveSession = false;
+    if (pagecount < 2)
+      return;
+
+    if (aQuitType != "restart")
+      aQuitType = "quit";
+
+    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
+                     getService(Components.interfaces.nsIPrefBranch);
+    var showPrompt = true;
+    try {
+      // browser.warnOnQuit is a hidden global boolean to override all quit prompts
+      // browser.warnOnRestart specifically covers app-initiated restarts where we restart the app
+      // browser.tabs.warnOnClose is the global "warn when closing multiple tabs" pref
+      if (prefBranch.getBoolPref("browser.warnOnQuit") == false)
+        showPrompt = false;
+      else if (aQuitType == "restart")
+        showPrompt = prefBranch.getBoolPref("browser.warnOnRestart");
+      else
+        showPrompt = prefBranch.getBoolPref("browser.tabs.warnOnClose");
+    } catch (ex) {}
+
+    var buttonChoice = 0;
+    if (showPrompt) {
+      var bundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].
+                          getService(Components.interfaces.nsIStringBundleService);
+      var quitBundle = bundleService.createBundle("chrome://browser/locale/quitDialog.properties");
+      var brandBundle = bundleService.createBundle("chrome://branding/locale/brand.properties");
+
+      var appName = brandBundle.GetStringFromName("brandShortName");
+      var quitDialogTitle = quitBundle.formatStringFromName(aQuitType + "DialogTitle",
+                                                              [appName], 1);
+
+      var message;
+      if (aQuitType == "restart")
+        message = quitBundle.formatStringFromName("messageRestart",
+                                                  [appName], 1);
+      else if (windowcount == 1)
+        message = quitBundle.formatStringFromName("messageNoWindows",
+                                                  [appName], 1);
+      else
+        message = quitBundle.formatStringFromName("message",
+                                                  [appName], 1);
+
+      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].
+                          getService(Components.interfaces.nsIPromptService);
+
+      var flags = promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0 +
+                  promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_1 +
+                  promptService.BUTTON_POS_0_DEFAULT;
+
+      var neverAsk = {value:false};
+      var button0Title, button2Title;
+      var button1Title = quitBundle.GetStringFromName("cancelTitle");
+      var neverAskText = quitBundle.GetStringFromName("neverAsk");
+
+      if (aQuitType == "restart")
+        button0Title = quitBundle.GetStringFromName("restartTitle");
+      else {
+        flags += promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_2;
+        button0Title = quitBundle.GetStringFromName("saveTitle");
+        button2Title = quitBundle.GetStringFromName("quitTitle");
+      }
+
+      buttonChoice = promptService.confirmEx(null, quitDialogTitle, message,
+                                   flags, button0Title, button1Title, button2Title,
+                                   neverAskText, neverAsk);
+
+      switch (buttonChoice) {
+      case 2:
+        if (neverAsk.value)
+          prefBranch.setBoolPref("browser.tabs.warnOnClose", false);
+        break;
+      case 1:
+        aCancelQuit.QueryInterface(Components.interfaces.nsISupportsPRBool);
+        aCancelQuit.data = true;
+        break;
+      case 0:
+        this._saveSession = true;
+        if (neverAsk.value) {
+          if (aQuitType == "restart")
+            prefBranch.setBoolPref("browser.warnOnRestart", false);
+          else {
+            // don't prompt in the future
+            prefBranch.setBoolPref("browser.tabs.warnOnClose", false);
+            // always save state when shutting down
+            prefBranch.setIntPref("browser.startup.page", 3);
+          }
+        }
+        break;
+      }
+    }
   },
 
 
