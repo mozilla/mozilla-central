@@ -86,6 +86,7 @@
 
 #include "nsIncompleteGamma.h"
 #include <math.h>
+#include <prmem.h>
 
 static PRLogModuleInfo *BayesianFilterLogModule = nsnull;
 
@@ -1075,6 +1076,7 @@ public:
     MessageClassifier(nsBayesianFilter* aFilter,
                       nsIJunkMailClassificationListener* aJunkListener,
                       nsIMsgTraitClassificationListener* aTraitListener,
+                      nsIMsgTraitDetailListener* aDetailListener,
                       nsTArray<PRUint32>& aProTraits,
                       nsTArray<PRUint32>& aAntiTraits,
                       nsIMsgWindow *aMsgWindow,
@@ -1084,6 +1086,7 @@ public:
         mSupports(aFilter),
         mJunkListener(aJunkListener),
         mTraitListener(aTraitListener),
+        mDetailListener(aDetailListener),
         mProTraits(aProTraits),
         mAntiTraits(aAntiTraits),
         mMsgWindow(aMsgWindow)
@@ -1106,6 +1109,7 @@ public:
         mSupports(aFilter),
         mJunkListener(aJunkListener),
         mTraitListener(nsnull),
+        mDetailListener(nsnull),
         mMsgWindow(aMsgWindow)
     {
       mCurMessageToClassify = 0;
@@ -1132,7 +1136,8 @@ public:
                                  mProTraits,
                                  mAntiTraits,
                                  mJunkListener,
-                                 mTraitListener);
+                                 mTraitListener,
+                                 mDetailListener);
         tokenizer.clearTokens();
         classifyNextMessage();
     }
@@ -1156,6 +1161,7 @@ private:
     nsCOMPtr<nsISupports> mSupports;
     nsCOMPtr<nsIJunkMailClassificationListener> mJunkListener;
     nsCOMPtr<nsIMsgTraitClassificationListener> mTraitListener;
+    nsCOMPtr<nsIMsgTraitDetailListener> mDetailListener;
     nsTArray<PRUint32> mProTraits;
     nsTArray<PRUint32> mAntiTraits;
     nsCOMPtr<nsIMsgWindow> mMsgWindow;
@@ -1234,7 +1240,8 @@ void nsBayesianFilter::classifyMessage(
   nsTArray<PRUint32>& aProTraits,
   nsTArray<PRUint32>& aAntiTraits,
   nsIJunkMailClassificationListener* listener,
-  nsIMsgTraitClassificationListener* aTraitListener)
+  nsIMsgTraitClassificationListener* aTraitListener,
+  nsIMsgTraitDetailListener* aDetailListener)
 {
     Token* tokens = tokenizer.copyTokens();
     if (!tokens) return;
@@ -1335,16 +1342,28 @@ void nsBayesianFilter::classifyMessage(
       traitAnalyses.Sort(compareTraitAnalysis());
       PRUint32 count = traitAnalyses.Length();
       PRUint32 first, last = count;
-      first = ( count > 150) ? count - 150 : 0;
+      const PRUint32 kMaxTokens = 150;
+      first = ( count > kMaxTokens) ? count - kMaxTokens : 0;
+
+      // Setup the arrays to save details if needed
+      nsTArray<double> sArray;
+      nsTArray<double> hArray;
+      PRUint32 usedTokenCount = ( count > kMaxTokens) ? kMaxTokens : count;
+      if (aDetailListener)
+      {
+        sArray.SetCapacity(usedTokenCount);
+        hArray.SetCapacity(usedTokenCount);
+      }
 
       double H = 1.0, S = 1.0;
       PRInt32 Hexp = 0, Sexp = 0;
       PRUint32 goodclues=0;
       int e;
 
-      for (PRUint32 i = first; i < last; ++i)
+      // index from end to analyze most significant first
+      for (PRUint32 ip1 = last; ip1 != first; --ip1)
       {
-        TraitAnalysis& ta = traitAnalyses[i];
+        TraitAnalysis& ta = traitAnalyses[ip1 - 1];
         if (ta.mDistance > 0.0)
         {
           goodclues++;
@@ -1364,6 +1383,11 @@ void nsBayesianFilter::classifyMessage(
           PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING,
                  ("token probability (%s) is %f",
                   tokens[ta.mTokenIndex].mWord, ta.mProbability));
+        }
+        if (aDetailListener)
+        {
+          sArray.AppendElement(log(S) + Sexp * M_LN2);
+          hArray.AppendElement(log(H) + Hexp * M_LN2);
         }
       }
 
@@ -1385,6 +1409,43 @@ void nsBayesianFilter::classifyMessage(
       }
       else
           prob = 0.5;
+
+      if (aDetailListener)
+      {
+        // Prepare output arrays
+        nsTArray<PRUint32> tokenPercents(usedTokenCount);
+        nsTArray<PRUint32> runningPercents(usedTokenCount);
+        nsTArray<PRUnichar*> tokenStrings(usedTokenCount);
+
+        double clueCount = 1.0;
+        for (PRUint32 tokenIndex = 0; tokenIndex < usedTokenCount; tokenIndex++)
+        {
+          TraitAnalysis& ta = traitAnalyses[last - 1 - tokenIndex];
+          double S, H;
+          PRInt32 chi_error;
+          S = chi2P(-2.0 * sArray[tokenIndex], 2.0 * clueCount, &chi_error);
+          if (!chi_error)
+            H = chi2P(-2.0 * hArray[tokenIndex], 2.0 * clueCount, &chi_error);
+          clueCount += 1.0;
+          double runningProb;
+          if (!chi_error)
+            runningProb = (S - H + 1.0) / 2.0;
+          else
+            runningProb = 0.5;
+          runningPercents.AppendElement(static_cast<PRUint32>(runningProb *
+              100. + .5));
+          tokenPercents.AppendElement(static_cast<PRUint32>(ta.mProbability *
+              100. + .5));
+          tokenStrings.AppendElement(UTF8ToNewUnicode(nsDependentCString(
+              tokens[ta.mTokenIndex].mWord)));
+        }
+
+        aDetailListener->OnMessageTraitDetails(messageURI, aProTraits[traitIndex],
+            usedTokenCount, (const PRUnichar**)tokenStrings.Elements(),
+            tokenPercents.Elements(), runningPercents.Elements());
+        for (PRUint32 tokenIndex = 0; tokenIndex < usedTokenCount; tokenIndex++)
+          NS_Free(tokenStrings[tokenIndex]);
+      }
 
       PRUint32 proPercent = static_cast<PRUint32>(prob*100. + .5);
 
@@ -1449,7 +1510,7 @@ void nsBayesianFilter::classifyMessage(
   proTraits.AppendElement(kJunkTrait);
   antiTraits.AppendElement(kGoodTrait);
   classifyMessage(tokens, messageURI, proTraits, antiTraits,
-    aJunkListener, nsnull);
+    aJunkListener, nsnull, nsnull);
 }
 
 /* void shutdown (); */
@@ -1592,7 +1653,7 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyTraitsInMessages(
   antiTraits.AppendElements(aAntiTraits, aTraitCount);
 
   MessageClassifier* analyzer = new MessageClassifier(this, aJunkListener,
-    aTraitListener, proTraits, antiTraits, aMsgWindow, aCount, aMsgURIs);
+    aTraitListener, nsnull, proTraits, antiTraits, aMsgWindow, aCount, aMsgURIs);
   if (!analyzer)
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -1806,6 +1867,28 @@ NS_IMETHODIMP nsBayesianFilter::ResetTrainingData()
   if (mCorpus)
     return mCorpus.resetTrainingData();
   return NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP nsBayesianFilter::DetailMessage(const char *aMsgURI,
+    PRUint32 aProTrait, PRUint32 aAntiTrait,
+    nsIMsgTraitDetailListener *aDetailListener, nsIMsgWindow *aMsgWindow)
+{
+  nsAutoTArray<PRUint32, 1> proTraits;
+  nsAutoTArray<PRUint32, 1> antiTraits;
+  proTraits.AppendElement(aProTrait);
+  antiTraits.AppendElement(aAntiTrait);
+
+  MessageClassifier* analyzer = new MessageClassifier(this, nsnull,
+    nsnull, aDetailListener, proTraits, antiTraits, aMsgWindow, 1, &aMsgURI);
+  if (!analyzer)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
+  if (!tokenListener)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  analyzer->setTokenListener(tokenListener);
+  return tokenizeMessage(aMsgURI, aMsgWindow, analyzer);
 }
 
 /* Corpus Store */

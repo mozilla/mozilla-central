@@ -111,6 +111,34 @@ interface nsIMsgTraitClassificationListener : nsISupports
     [array, size_is(aTraitCount)] in unsigned long aPercents);
 };
 
+[scriptable, uuid(12667532-88D1-44a7-AD48-F73719BE5C92)]
+interface nsIMsgTraitDetailListener : nsISupports
+{
+  /**
+   * Inform a listener of details of a message's match to traits.
+   * This returns the tokens that were used in the calculation,
+   * the calculated percent probability that each token matches the trait,
+   * and a running estimate (starting with the strongest tokens) of the
+   * combined total probability that a message matches the trait, when
+   * only tokens stronger than the current token are used.
+   *
+   * @param aMsgURI         URI of the message that was classified
+   * @param aProTrait       trait id of pro trait for the calculation
+   * @param tokenCount      length of arrays that follow
+   * @param tokenStrings    the string for a particular token
+   * @param tokenPercents   calculated probability that a message with that token
+   *                        matches the trait
+   * @param runningPercents calculated probability that the message matches the
+   *                        trait, accounting for this token and all stronger tokens.
+   */
+  void onMessageTraitDetails(in string aMsgUri,
+    in unsigned long aProTrait,
+    in unsigned long tokenCount,
+    [array, size_is(tokenCount)] in wstring tokenStrings,
+    [array, size_is(tokenCount)] in unsigned long tokenPercents,
+    [array, size_is(tokenCount)] in unsigned long runningPercents);
+};
+
 [scriptable, uuid(59BA2A0D-2C87-44a0-8ADD-83266A9EA474)]
 interface nsIJunkMailPlugin : nsIMsgFilterPlugin
 {
@@ -250,4 +278,26 @@ interface nsIJunkMailPlugin : nsIMsgFilterPlugin
         User must retrain after doing this.
     **/
     void resetTrainingData();
+
+    /**
+     * Given a message URI, return a list of tokens and their contribution to
+     * the analysis of a message's match to a trait according to the
+     * current training set.
+     *
+     * @param aMsgURI          URI of the message to be evaluated
+     * @param aProTrait        trait id for trained messages that match the
+     *                         tested trait (for example, JUNK_TRAIT if testing
+     *                         for junk)
+     * @param aAntiTrait       trait id for trained messages that do not match
+     *                         the tested trait (for example, GOOD_TRAIT
+     *                         if testing for junk)
+     * @param aListener        callback listener for results
+     * @param aMsgWindow       current message window (may be null)
+     */
+    void detailMessage(
+        in string aMsgURI,
+        in unsigned long aProTrait,
+        in unsigned long aAntiTrait,
+        in nsIMsgTraitDetailListener aListener,
+        [optional] in nsIMsgWindow aMsgWindow);
 };

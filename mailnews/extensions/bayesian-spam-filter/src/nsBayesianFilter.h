@@ -327,7 +327,8 @@ public:
       nsTArray<PRUint32>& aProTraits,
       nsTArray<PRUint32>& aAntiTraits,
       nsIJunkMailClassificationListener* listener,
-      nsIMsgTraitClassificationListener* aTraitListener);
+      nsIMsgTraitClassificationListener* aTraitListener,
+      nsIMsgTraitDetailListener* aDetailListener);
 
     void observeMessage(Tokenizer& tokens, const char* messageURI,
                         nsTArray<PRUint32>& oldClassifications,

@@ -46,6 +46,7 @@ var nsIJunkMailPlugin =
 const kTrain = 0;  // train a file as a trait
 const kClass = 1;  // classify files with traits
 const kReset = 2;  // reload plugin, reading in data from disk
+const kDetail = 3; // test details
 
 var gTest; // currently active test
 
@@ -89,6 +90,14 @@ var tests =
    traitAntiIds: [3,5],
    // these are partial percents for an untrained message. ham2 is similar to ham1
    percents: [[8,95]]
+  },
+  {command: kDetail,
+   fileName: "spam2.eml",
+   traitIds: [4],
+   traitAntiIds: [3],
+   percents: [84, 84, 84, 16],
+   runnings: [84, 92, 95, 81],
+   tokens: ["lots", "money", "make", "your"]
   },
   {command: kClass,
    fileName: "spam1.eml,spam2.eml,spam3.eml,spam4.eml",
@@ -160,6 +169,22 @@ var listener =
     if (!--gTest.callbacks)
       // All done, start the next test
       startCommand();
+  },
+  onMessageTraitDetails: function(aMsgURI, aProTrait, {}, aTokenString,
+                                  aTokenPercents, aRunningPercents)
+  {
+    print("Details for " + aMsgURI);
+    for (var i = 0; i < aTokenString.length; i++)
+    {
+      print("Percent " + aTokenPercents[i] +
+            " Running " + aRunningPercents[i] +
+            " Token " + aTokenString[i]);
+      do_check_eq(aTokenString[i], gTest.tokens[i]);
+      do_check_eq(aTokenPercents[i], gTest.percents[i]);
+      do_check_eq(aRunningPercents[i], gTest.runnings[i]);
+    }
+    gTest.currentIndex++;
+    startCommand();
   }
 };
 
@@ -234,6 +259,14 @@ function startCommand()
       }
       break;
 
+    case kDetail:
+      // detail message
+      nsIJunkMailPlugin.detailMessage(
+        getSpec(gTest.fileName), // in string aMsgURI
+        gTest.traitIds[0], // proTrait
+        gTest.traitAntiIds[0],   // antiTrait
+        listener);   // in nsIMsgTraitDetailListener aDetailListener
+      break;
     case kReset:
       // reload a new nsIJunkMailPlugin, reading file in the process
       nsIJunkMailPlugin.shutdown(); // writes files
