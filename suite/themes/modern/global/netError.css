@@ -47,8 +47,8 @@ ul {
   border: 1px solid #494F5D;
   -moz-border-radius: 10px;
   padding: 3em;
-  -moz-padding-start: 30px;
-  background: url("chrome://global/skin/icons/alert-exclam.gif") left 0 no-repeat #C7D0D9;
+  -moz-padding-start: 110px;
+  background: url("chrome://global/skin/icons/alert-exclam.gif") -80px 0px no-repeat #C7D0D9;
   -moz-background-origin: content;
 }
 
@@ -60,12 +60,8 @@ body[dir="rtl"] #errorPageContainer {
   background-position: right 0;
 }
 
-#errorTitle {
-  -moz-margin-start: 80px;
-}
-
 #errorLongContent {
-  -moz-margin-start: 80px;
+  margin-bottom: 2em;
 }
 
 #errorShortDesc > p {
@@ -79,11 +75,6 @@ body[dir="rtl"] #errorPageContainer {
 #errorLongDesc {
   -moz-padding-end: 3em;
   font-size: 110%;
-}
-
-#errorTryAgain {
-  margin-top: 2em;
-  -moz-margin-start: 80px;
 }
 
 #brand {
