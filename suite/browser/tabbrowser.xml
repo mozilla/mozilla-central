@@ -744,7 +744,7 @@
 
             var undoItem = document.getAnonymousElementByAttribute(this, "tbattr", "tabbrowser-undoclosetab");
             undoItem.setAttribute("disabled", this.savedBrowsers.length == 0);
-            undoItem.hidden = this.mPrefs.getIntPref("browser.tabs.undoclose.depth") <= 0;
+            undoItem.hidden = this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
           ]]>
         </body>
       </method>
@@ -1425,7 +1425,7 @@
             // Save the tab for undo.
             // Even though we navigate to about:blank, it costs more RAM than
             // really closing the tab.  The pref controls how far you can undo
-            var maxUndoDepth = this.mPrefs.getIntPref("browser.tabs.undoclose.depth");
+            var maxUndoDepth = this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo");
             var oldSH = oldBrowser.webNavigation.sessionHistory;
             var inOnLoad = oldBrowser.docShell.isExecutingOnLoadHandler;
             if (maxUndoDepth <= 0 || oldSH.count == 0 || aDisableUndo || inOnLoad) {

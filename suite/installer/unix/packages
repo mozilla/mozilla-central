@@ -242,6 +242,7 @@ bin/components/libzipwriter.so
 bin/components/nsSessionStartup.js
 bin/components/nsSessionStore.js
 bin/components/sessionstore.xpt
+bin/components/aboutSessionRestore.js
 
 ; JavaScript components
 bin/components/FeedProcessor.js

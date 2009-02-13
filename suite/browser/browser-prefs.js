@@ -196,7 +196,6 @@ pref("browser.tabs.opentabfor.middleclick", false);
 pref("browser.tabs.opentabfor.urlbar", false);
 pref("browser.tabs.tooltippreview.enable", true);
 pref("browser.tabs.tooltippreview.width", 300);
-pref("browser.tabs.undoclose.depth", 3);
 pref("browser.tabs.autoHide", true);
 pref("browser.tabs.forceHide", false);
 pref("browser.tabs.warnOnClose", true);
@@ -321,6 +320,11 @@ pref("browser.sessionstore.postdata", 0);
 // on which sites to save text data, POSTDATA and cookies
 // 0 = everywhere, 1 = unencrypted sites, 2 = nowhere
 pref("browser.sessionstore.privacy_level", 1);
+// number of crashes that can occur before the about:sessionrestore page is displayed
+// (this pref has no effect if more than 6 hours have passed since the last crash)
+pref("browser.sessionstore.max_resumed_crashes", 1);
+// how many tabs can be reopened (per window)
+pref("browser.sessionstore.max_tabs_undo", 10);
 
 pref("shell.checkDefaultClient", true);
 // We want to check if we are the default client for browser and mail. See 

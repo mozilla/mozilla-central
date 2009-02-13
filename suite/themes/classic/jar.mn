@@ -21,6 +21,7 @@ classic.jar:
   skin/classic/communicator/preferences.css                             (communicator/preferences.css)
   skin/classic/communicator/prefpanels.css                              (communicator/prefpanels.css)
   skin/classic/communicator/smileys.css                                 (communicator/smileys.css)
+  skin/classic/communicator/aboutSessionRestore.css                     (communicator/aboutSessionRestore.css)
   skin/classic/communicator/bookmarks/bookmark-folder-button.gif        (communicator/bookmarks/bookmark-folder-button.gif)
   skin/classic/communicator/bookmarks/bookmark-folder-closed.png        (communicator/bookmarks/bookmark-folder-closed.png)
   skin/classic/communicator/bookmarks/bookmark-folder-dis.png           (communicator/bookmarks/bookmark-folder-dis.png)
