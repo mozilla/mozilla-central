@@ -860,47 +860,36 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
   if(NS_FAILED(rv))
     return rv;
 
-    NS_ConvertASCIItoUTF16 leafName(folderName);
-    nsAutoString folderNameStr;
-    nsAutoString parentName = leafName;
-    // use RFind, because folder can start with a delimiter and
-    // not be a leaf folder.
-    PRInt32 folderStart = leafName.RFindChar('/');
-    if (folderStart > 0)
-    {
-        nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
-        NS_ENSURE_SUCCESS(rv, rv);
-        nsCOMPtr<nsIRDFResource> res;
-        nsCOMPtr<nsIMsgImapMailFolder> parentFolder;
-        nsCAutoString uri (mURI);
-        parentName.Right(leafName, leafName.Length() - folderStart - 1);
-        parentName.Truncate(folderStart);
+  NS_ConvertASCIItoUTF16 leafName(folderName);
+  nsAutoString folderNameStr;
+  nsAutoString parentName = leafName;
+  // use RFind, because folder can start with a delimiter and
+  // not be a leaf folder.
+  PRInt32 folderStart = leafName.RFindChar('/');
+  if (folderStart > 0)
+  {
+    nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIRDFResource> res;
+    nsCOMPtr<nsIMsgImapMailFolder> parentFolder;
+    nsCAutoString uri (mURI);
+    parentName.Right(leafName, leafName.Length() - folderStart - 1);
+    parentName.Truncate(folderStart);
 
-        // the parentName might be too long or have some illegal chars
-        // so we make it safe.
-        // XXX Here it's assumed that IMAP folder names are stored locally
-        // in modified UTF-7 (ASCII-only) as is stored remotely.  If we ever change
-        // this, we have to work with nsString instead of nsCString
-        // (ref. bug 264071)
-        nsCAutoString safeParentName;
-        LossyCopyUTF16toASCII(parentName, safeParentName);
-        NS_MsgHashIfNecessary(safeParentName);
-        path->AppendNative(safeParentName);
-
-        // path is an out parameter to CreateDirectoryForFolder - I'm not
-        // sure why we're munging it above.
-        rv = CreateDirectoryForFolder(getter_AddRefs(path));
-        if (NS_FAILED(rv)) return rv;
-        uri.Append('/');
-        LossyAppendUTF16toASCII(parentName, uri);
-        rv = rdf->GetResource(uri, getter_AddRefs(res));
-        if (NS_FAILED(rv)) return rv;
-        parentFolder = do_QueryInterface(res, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-        nsCAutoString leafnameC;
-        LossyCopyUTF16toASCII(leafName, leafnameC);
-        return parentFolder->CreateClientSubfolderInfo(leafnameC, hierarchyDelimiter,flags, suppressNotification);
-    }
+    rv = CreateDirectoryForFolder(getter_AddRefs(path));
+    if (NS_FAILED(rv))
+      return rv;
+    uri.Append('/');
+    LossyAppendUTF16toASCII(parentName, uri);
+    rv = rdf->GetResource(uri, getter_AddRefs(res));
+    if (NS_FAILED(rv))
+      return rv;
+    parentFolder = do_QueryInterface(res, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCAutoString leafnameC;
+    LossyCopyUTF16toASCII(leafName, leafnameC);
+    return parentFolder->CreateClientSubfolderInfo(leafnameC, hierarchyDelimiter,flags, suppressNotification);
+  }
 
   // if we get here, it's really a leaf, and "this" is the parent.
   folderNameStr = leafName;
@@ -915,7 +904,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
   nsCOMPtr <nsILocalFile> dbFile;
 
   // warning, path will be changed
-  rv = CreateFileForDB(folderName, path, getter_AddRefs(dbFile));
+  rv = CreateFileForDB(folderNameStr, path, getter_AddRefs(dbFile));
   NS_ENSURE_SUCCESS(rv,rv);
 
   //Now let's create the actual new folder
@@ -7025,12 +7014,9 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
       nsString folderName;
       srcFolder->GetName(folderName);
 
-      nsCAutoString tempSafeFolderName;
-      LossyCopyUTF16toASCII(folderName, tempSafeFolderName);
-      NS_MsgHashIfNecessary(tempSafeFolderName);
+      nsAutoString safeFolderName(folderName);
+      NS_MsgHashIfNecessary(safeFolderName);
 
-      nsAutoString safeFolderName;
-      CopyASCIItoUTF16(tempSafeFolderName, safeFolderName);
       srcFolder->ForceDBClosed();
 
       nsCOMPtr<nsILocalFile> oldPathFile;
@@ -7664,10 +7650,8 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
   nsCOMPtr<nsIMsgDatabase> unusedDB;
   nsCOMPtr <nsILocalFile> dbFile;
 
-  nsCAutoString proposedDBName;
-  LossyCopyUTF16toASCII(newLeafName, proposedDBName);
   // warning, path will be changed
-  rv = CreateFileForDB(proposedDBName, pathFile, getter_AddRefs(dbFile));
+  rv = CreateFileForDB(newLeafName, pathFile, getter_AddRefs(dbFile));
   NS_ENSURE_SUCCESS(rv,rv);
 
   // Use openMailDBFromFile() and not OpenFolderDB() here, since we don't use the DB.
@@ -7680,11 +7664,9 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
 
     //Now let's create the actual new folder
     rv = AddSubfolderWithPath(folderNameStr, dbFile, getter_AddRefs(child));
-    if (!child || NS_FAILED(rv)) return rv;
-    nsString unicodeName;
-    rv = CopyMUTF7toUTF16(proposedDBName, unicodeName);
-    if (NS_SUCCEEDED(rv))
-      child->SetName(unicodeName);
+    if (!child || NS_FAILED(rv)) 
+      return rv;
+    child->SetName(newLeafName);
     imapFolder = do_QueryInterface(child);
     if (imapFolder)
     {

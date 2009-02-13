@@ -843,16 +843,11 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineStoreOutputStream(nsIOutputStream **outpu
 
 // path coming in is the root path without the leaf name,
 // on the way out, it's the whole path.
-nsresult nsMsgDBFolder::CreateFileForDB(const nsACString& userLeafName, nsILocalFile *path, nsILocalFile **dbFile)
+nsresult nsMsgDBFolder::CreateFileForDB(const nsAString& userLeafName, nsILocalFile *path, nsILocalFile **dbFile)
 {
   NS_ENSURE_ARG_POINTER(dbFile);
 
-  // XXX : This function is only called by nsImapMailFolder which calls
-  // this function with UTF-7 (ASCII only) userLeafName so that we can
-  // use 'char' version of NS_MsgHasIfNcessary (bug 264071).
-  // If this becomes not the case any more, we should use PRUnichar-version,
-  // instead.
-  nsCAutoString proposedDBName(userLeafName);
+  nsAutoString proposedDBName(userLeafName);
   NS_MsgHashIfNecessary(proposedDBName);
 
   // (note, the caller of this will be using the dbFile to call db->Open()
@@ -869,18 +864,18 @@ nsresult nsMsgDBFolder::CreateFileForDB(const nsACString& userLeafName, nsILocal
   nsCOMPtr <nsILocalFile> dbPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   dbPath->InitWithFile(path);
-  proposedDBName += SUMMARY_SUFFIX;
-  dbPath->AppendNative(proposedDBName);
+  proposedDBName.AppendLiteral(SUMMARY_SUFFIX);
+  dbPath->Append(proposedDBName);
   PRBool exists;
   dbPath->Exists(&exists);
   if (exists)
   {
     dbPath->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
-    dbPath->GetNativeLeafName(proposedDBName);
+    dbPath->GetLeafName(proposedDBName);
   }
   // now, take the ".msf" off
   proposedDBName.SetLength(proposedDBName.Length() - NS_LITERAL_CSTRING(SUMMARY_SUFFIX).Length());
-  dbPath->SetNativeLeafName(proposedDBName);
+  dbPath->SetLeafName(proposedDBName);
 
   dbPath.swap(*dbFile);
   return NS_OK;
@@ -2655,7 +2650,7 @@ nsMsgDBFolder::parseURI(PRBool needServer)
     rv = server->GetLocalPath(getter_AddRefs(serverPath));
     if (NS_FAILED(rv)) return rv;
 
-    if (serverPath)
+    if (!mPath && serverPath)
     {
       if (!newPath.IsEmpty())
       {

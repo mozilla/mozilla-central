@@ -141,7 +141,8 @@ protected:
   nsresult CheckWithNewMessagesStatus(PRBool messageAdded);
   void     UpdateNewMessages();
   nsresult OnHdrAddedOrDeleted(nsIMsgDBHdr *hdrChanged, PRBool added);
-  nsresult CreateFileForDB(const nsACString& userLeafName, nsILocalFile *baseDir, nsILocalFile **dbFile);
+  nsresult CreateFileForDB(const nsAString& userLeafName, nsILocalFile *baseDir,
+                           nsILocalFile **dbFile);
 
   nsresult GetFolderCacheKey(nsILocalFile **aFile, PRBool createDBIfMissing = PR_FALSE);
   nsresult GetFolderCacheElemFromFile(nsILocalFile *file, nsIMsgFolderCacheElement **cacheElement);
