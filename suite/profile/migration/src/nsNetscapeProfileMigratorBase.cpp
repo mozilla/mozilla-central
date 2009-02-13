@@ -53,7 +53,6 @@
 #include "nsNetscapeProfileMigratorBase.h"
 #include "nsNetUtil.h"
 #include "prtime.h"
-#include "prprf.h"
 #include "nsIPasswordManagerInternal.h"
 #include "nsINIParser.h"
 #include "nsArrayUtils.h"
@@ -62,81 +61,6 @@
 #define IMAP_MAIL_DIR_50_NAME        NS_LITERAL_STRING("ImapMail")
 #define NEWS_DIR_50_NAME             NS_LITERAL_STRING("News")
 #define DIR_NAME_CHROME              NS_LITERAL_STRING("chrome")
-
-// helper functions for news migration
-static PRUint32
-StringHash(const char *ubuf)
-{
-  unsigned char * buf = (unsigned char*) ubuf;
-  PRUint32 h=1;
-  while (*buf) {
-    h = 0x63c63cd9*h + 0x9c39c33d + (int32)*buf;
-    ++buf;
-  }
-  return h;
-}
-/// @see nsString::FindCharInSet
-PRInt32 nsString_FindCharInSet(const nsACString& aString,
-                               const char *aPattern, PRInt32 aOffset = 0)
-{
-  const char *begin, *end;
-  aString.BeginReading(&begin, &end);
-  for (const char *current = begin + aOffset; current < end; ++current)
-  {
-    for (const char *pattern = aPattern; *pattern; ++pattern)
-    {
-      if (NS_UNLIKELY(*current == *pattern))
-      {
-        return current - begin;
-      }
-    }
-  }
-  return -1;
-}
-
-nsresult
-NS_MsgHashIfNecessary(nsCString &name)
-{
-#if defined(XP_MAC)
-  const PRUint32 MAX_LEN = 25;
-#elif defined(XP_UNIX) || defined(XP_BEOS)
-  const PRUint32 MAX_LEN = 55;
-#elif defined(XP_WIN32)
-  const PRUint32 MAX_LEN = 55;
-#elif defined(XP_OS2)
-  const PRUint32 MAX_LEN = 55;
-#else
-  #error need_to_define_your_max_filename_length
-#endif
-  nsCAutoString str(name);
-
-  // Given a filename, make it safe for filesystem certain filenames require
-  // hashing because they are too long or contain illegal characters.
-  char hashedname[MAX_LEN + 1];
-  if (nsString_FindCharInSet(str, FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS) == -1) {
-    // no illegal chars, it's just too long
-    // keep the initial part of the string, but hash to make it fit
-    if (str.Length() > MAX_LEN) {
-      PL_strncpy(hashedname, str.get(), MAX_LEN + 1);
-      PR_snprintf(hashedname + MAX_LEN - 8, 9, "%08lx",
-                (unsigned long) StringHash(str.get()));
-      name = hashedname;
-    }
-  }
-  else {
-      // found illegal chars, hash the whole thing
-      // if we do substitution, then hash, two strings
-      // could hash to the same value.
-      // for example, on mac:  "foo__bar", "foo:_bar", "foo::bar"
-      // would map to "foo_bar".  this way, all three will map to
-      // different values
-      PR_snprintf(hashedname, 9, "%08lx",
-                (unsigned long) StringHash(str.get()));
-      name = hashedname;
-  }
-  
-  return NS_OK;
-}
 
 static nsresult
 regerr2nsresult(REGERR errCode)
