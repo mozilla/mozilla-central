@@ -516,7 +516,6 @@ SessionStoreService.prototype = {
     tabbrowser.removeEventListener("TabSelect", this, true);
 
     let winData = this._windows[aWindow.__SSi];
-    windata._closedTabs = tabbrowser.savedBrowsers.map(function(e) { return e.tabData; });
     if (this._loadState == STATE_RUNNING) { // window not closed during a regular shut-down
       // update all window data for a last time
       this._collectWindowData(aWindow);
