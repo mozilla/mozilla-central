@@ -250,6 +250,11 @@ MimeMultipartRelated_finalize (MimeObject *obj)
     relobj->file_buffer->Remove(PR_FALSE);
     relobj->file_buffer = nsnull;
   }
+  
+  if (relobj->headobj) {
+    mime_free(relobj->headobj);
+    relobj->headobj = nsnull;
+  }
 
   ((MimeObjectClass*)&MIME_SUPERCLASS)->finalize(obj);
 }
@@ -1000,6 +1005,7 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
      includes content-encoding handling), and intercept the output data to do
      translation of the tags.  Whee. */
   MimeMultipartRelated *relobj = (MimeMultipartRelated *) obj;
+  MimeContainer *cont = (MimeContainer *)obj;
   int status = 0;
   MimeObject *body;
   char* ct;
@@ -1028,10 +1034,15 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
     status = MIME_OUT_OF_MEMORY;
     goto FAIL;
   }
-  status = ((MimeContainerClass *) obj->clazz)->add_child(obj, body);
-  if (status < 0) {
-    mime_free(body);
-    goto FAIL;
+  // replace the existing head object with the new object
+  for (int iChild = 0; iChild < cont->nchildren; iChild++) {
+    if (cont->children[iChild] == relobj->headobj) {
+      // cleanup of the headobj is performed explicitly in our finalizer now
+      //  that it does not get cleaned up as a child.
+      cont->children[iChild] = body;
+      body->parent = obj;
+      body->options = obj->options;
+    }
   }
 
   body->dontShowAsAttachment = body->clazz->displayable_inline_p(body->clazz, body->headers);
@@ -1139,7 +1150,6 @@ FAIL:
   }
 #endif /* MIME_DRAFTS */
 
-  relobj->headobj = NULL;
   obj->options->output_fn = relobj->real_output_fn;
   obj->options->output_closure = relobj->real_output_closure;
 
