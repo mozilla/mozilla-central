@@ -190,6 +190,7 @@ bin\components\rdf.xpt
 bin\components\satchel.dll
 bin\components\satchel.xpt
 bin\components\saxparser.xpt
+bin\components\sessionstore.xpt
 bin\components\shellservice.xpt
 bin\components\shistory.xpt
 bin\components\storage.xpt
@@ -243,49 +244,48 @@ bin\plugins\npnul32.dll
 bin\components\helperAppDlg.xpt
 bin\AccessibleMarshal.dll
 bin\sqlite3.dll
-bin\components\nsSessionStartup.js
-bin\components\nsSessionStore.js
-bin\components\sessionstore.xpt
-bin\components\aboutSessionRestore.js
 
 ; JavaScript components
 bin\components\FeedProcessor.js
 bin\components\jsconsole-clhandler.js
+bin\components\nsAboutAbout.js
 bin\components\nsAboutCertError.js
+bin\components\nsAboutSessionRestore.js
 bin\components\nsAddonRepository.js
 bin\components\nsAxSecurityPolicy.js
 bin\components\nsBadCertHandler.js
 bin\components\nsBlocklistService.js
 bin\components\nsBrowserContentHandler.js
-bin\components\nsTryToClose.js
 bin\components\nsComposerCmdLineHandler.js
 bin\components\nsContentDispatchChooser.js
 bin\components\nsContentPrefService.js
+bin\components\nsDefaultCLH.js
 bin\components\nsExtensionManager.js
 bin\components\nsLivemarkService.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
+bin\components\nsHandlerService.js
 bin\components\nsPlacesDBFlush.js
 #ifdef MOZILLA_1_9_1_BRANCH
 bin\components\nsPostUpdateWin.js
 #endif
 bin\components\nsProxyAutoConfig.js
+bin\components\nsSessionStartup.js
+bin\components\nsSessionStore.js
 bin\components\nsSetDefault.js
 bin\components\nsSidebar.js
 bin\components\nsSuiteGlue.js
 bin\components\nsTaggingService.js
 bin\components\nsTypeAheadFind.js
+bin\components\nsTryToClose.js
 bin\components\nsUpdateService.js
 bin\components\nsURLFormatter.js
+bin\components\nsWebHandlerApp.js
 bin\components\pluginGlue.js
 bin\components\storage-Legacy.js
 bin\components\storage-mozStorage.js
 bin\components\txEXSLTRegExFunctions.js
-bin\components\nsAboutAbout.js
-bin\components\nsDefaultCLH.js
-bin\components\nsHandlerService.js
-bin\components\nsWebHandlerApp.js
 
 ; Modules
 bin\modules\*
