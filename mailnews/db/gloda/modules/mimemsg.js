@@ -457,9 +457,11 @@ MimeUnknown.prototype = {
  * @class An attachment proper.  We think it's an attachment because it has a
  *  filename that libmime was able to figure out.
  * 
+ * @ivar partName @see{MimeMessage.partName}
+ * @ivar name The filename of this attachment.
  * @ivar contentType The MIME content type of this part.
- * @ivar The filename of this attachment.
- * @ivar The URL to stream if you want the contents of this part.
+ * @ivar url The URL to stream if you want the contents of this part.
+ * @ivar isExternal Is the attachment stored someplace else than in the message?
  */
 function MimeMessageAttachment(aPartName, aName, aContentType, aUrl,
                                aIsExternal) {
