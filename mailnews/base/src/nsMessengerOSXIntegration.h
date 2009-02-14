@@ -87,7 +87,6 @@ private:
   nsresult GetNewMailAuthors(nsIMsgFolder* aFolder, nsString& aAuthors, PRInt32 aNewCount, PRInt32* aNotDisplayed);
 
   PRPackedBool mBiffIconVisible;
-  PRPackedBool mAlertInProgress;
 };
 
 #endif // __nsMessengerOSXIntegration_h

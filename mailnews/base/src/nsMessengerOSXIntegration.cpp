@@ -135,7 +135,6 @@ nsMessengerOSXIntegration::nsMessengerOSXIntegration()
   mBiffStateAtom = do_GetAtom("BiffState");
   mNewMailReceivedAtom = do_GetAtom("NewMailReceived");
   mBiffIconVisible = PR_FALSE;
-  mAlertInProgress = PR_FALSE;
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
 }
 
@@ -332,12 +331,6 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
                                             const nsAString& aAlertText,
                                             const nsACString& aFolderURI)
 {
-  // if we are alredy in the process of showing an alert, don't try to show another one
-  if (mAlertInProgress)
-    return NS_OK;
-
-  mAlertInProgress = PR_TRUE;
-
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -478,7 +471,6 @@ nsMessengerOSXIntegration::OnAlertClicked()
 nsresult
 nsMessengerOSXIntegration::OnAlertFinished(const PRUnichar * aAlertCookie)
 {
-  mAlertInProgress = PR_FALSE;
   return NS_OK;
 }
 
