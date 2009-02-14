@@ -82,9 +82,12 @@ function onDismissAlarm(event) {
 function onDismissAllAlarms() {
     // removes widgets on the fly:
     var alarmRichlist = document.getElementById("alarm-richlist");
-    for (var i = alarmRichlist.childNodes.length - 1; i >= 0; i--) {
-        if (alarmRichlist.childNodes[i].item) {
-            getAlarmService().dismissAlarm(alarmRichlist.childNodes[i].item);
+
+    // Make a copy of the child nodes as they get modified live
+    for each (let node in Array.slice(alarmRichlist.childNodes)) {
+        // Check if the node is a valid alarm and is still part of DOM
+        if (node.item && node.parentNode) {
+            getAlarmService().dismissAlarm(node.item);
         }
     }
 }
@@ -201,9 +204,12 @@ function snoozeAllItems(aDurationMinutes) {
     duration.normalize();
 
     var alarmRichlist = document.getElementById("alarm-richlist");
-    for (var i = alarmRichlist.childNodes.length - 1; i >= 0; i--) {
-        if (alarmRichlist.childNodes[i].item) {
-            getAlarmService().snoozeAlarm(alarmRichlist.childNodes[i].item, duration);
+
+    // Make a copy of the child nodes as they get modified live
+    for each (let node in Array.slice(alarmRichlist.childNodes)) {
+        // Check if the node is a valid alarm and is still part of DOM
+        if (node.item && node.parentNode) {
+            getAlarmService().snoozeAlarm(node.item, duration);
         }
     }
 }
