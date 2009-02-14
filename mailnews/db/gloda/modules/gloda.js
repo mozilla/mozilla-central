@@ -441,7 +441,7 @@ var Gloda = {
     let myIdentities = {};
     let myEmailAddresses = {}; // process each email at most once; stored here
 
-    let fullName = null;
+    let fullName, fallbackName;
     let existingIdentities = [];
     let identitiesToCreate = [];
 
@@ -457,8 +457,10 @@ var Gloda = {
       let msgIdentity = msgAccountManager.allIdentities.GetElementAt(iIdentity)
                                          .QueryInterface(Ci.nsIMsgIdentity);
 
-      if (fullName === null)
+      if (!fullName)
         fullName = msgIdentity.fullName;
+      if (!fallbackName)
+        fallbackName = msgIdentity.email;
 
       let emailAddress = msgIdentity.email;
       let replyTo = msgIdentity.replyTo;
@@ -501,7 +503,8 @@ var Gloda = {
     }
     else {
       // create a new contact
-      myContact = GlodaDatastore.createContact(null, null, fullName || "Me",
+      myContact = GlodaDatastore.createContact(null, null,
+                                               fullName || fallbackName,
                                                0, 0);
       GlodaDatastore.insertContact(myContact);
     }
