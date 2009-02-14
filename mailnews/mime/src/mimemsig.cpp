@@ -710,6 +710,31 @@ MimeMultipartSigned_emit_child (MimeObject *obj)
       }
     }
   }
+  
+  // The js emitter wants to know about the newly created child.  Because
+  //  MimeMultipartSigned dummies out its create_child operation, the logic
+  //  in MimeMultipart_parse_line that would normally provide this notification
+  //  does not get to fire.
+  if (obj->options && obj->options->notify_nested_bodies) {
+    MimeObject *kid = ((MimeContainer*) obj)->children[0];
+    // The emitter is expecting the content type with parameters; not the fully
+    //  parsed thing, so get it from raw.  (We do not do it in the charset
+    //  notification block that just happened because it already has complex
+    //  if-checks that do not jive with us.
+    char *ct = MimeHeaders_get(mult->hdrs, HEADER_CONTENT_TYPE, PR_FALSE,
+                               PR_FALSE);
+    mimeEmitterAddHeaderField(obj->options, HEADER_CONTENT_TYPE,
+                              ct ? ct : "text/plain");
+    PR_Free(ct);
+    
+    char *part_path = mime_part_address(kid);
+    if (part_path) {
+      mimeEmitterAddHeaderField(obj->options,
+                                "x-jsemitter-part-path",
+                                part_path);
+      PR_Free(part_path);
+    }
+  }
 
   /* Retrieve the child that it created.
    */
