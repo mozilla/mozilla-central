@@ -38,6 +38,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 function getRidKey(dt) {
     if (!dt) {
         return null;
@@ -126,13 +128,13 @@ calRecurrenceInfo.prototype = {
             return;
         }
 
-        for each (ritem in this.mRecurrenceItems) {
+        for each (let ritem in this.mRecurrenceItems) {
             if (ritem.isMutable) {
                 ritem.makeImmutable();
             }
         }
 
-        for each (item in this.mExceptionMap) {
+        for each (let item in this.mExceptionMap) {
             if (item.isMutable) {
                 item.makeImmutable();
             }
@@ -172,7 +174,7 @@ calRecurrenceInfo.prototype = {
         value = calTryWrappedJSObject(value);
         this.mBaseItem = value;
         // patch exception's parentItem:
-        for each (exitem in this.mExceptionMap) {
+        for each (let exitem in this.mExceptionMap) {
             exitem.parentItem = value;
         }
     },
@@ -763,12 +765,9 @@ calRecurrenceInfo.prototype = {
     // in case we're about to modify a parentItem (aka 'folded' item), we need
     // to modify the recurrenceId's of all possibly existing exceptions as well.
     onStartDateChange: function cRI_onStartDateChange(aNewStartTime, aOldStartTime) {
-
         // passing null for the new starttime would indicate an error condition,
         // since having a recurrence without a starttime is invalid.
-        if (!aNewStartTime) {
-            throw Components.results.NS_ERROR_INVALID_ARG;
-        }
+        cal.ASSERT(aNewStartTime, "invalid arg!", true);
 
         // no need to check for changes if there's no previous starttime.
         if (!aOldStartTime) {
@@ -776,37 +775,36 @@ calRecurrenceInfo.prototype = {
         }
 
         // convert both dates to UTC since subtractDate is not timezone aware.
-        var timeDiff = aNewStartTime.getInTimezone(UTC()).subtractDate(aOldStartTime.getInTimezone(UTC()));
+        let timeDiff = aNewStartTime.getInTimezone(UTC()).subtractDate(aOldStartTime.getInTimezone(UTC()));
 
-        var rdates = {};
+        let rdates = {};
 
         // take RDATE's and EXDATE's into account.
         const kCalIRecurrenceDate = Components.interfaces.calIRecurrenceDate;
         const kCalIRecurrenceDateSet = Components.interfaces.calIRecurrenceDateSet;
-        var ritems = this.getRecurrenceItems({});
-        for each (var ritem in ritems) {
-            if (calInstanceOf(ritem, kCalIRecurrenceDate)) {
+        let ritems = this.getRecurrenceItems({});
+        for each (let ritem in ritems) {
+            if (cal.calInstanceOf(ritem, kCalIRecurrenceDate)) {
                 ritem = ritem.QueryInterface(kCalIRecurrenceDate);
-                var date = ritem.date;
+                let date = ritem.date;
                 date.addDuration(timeDiff);
                 if (!ritem.isNegative) {
                     rdates[getRidKey(date)] = date;
                 }
                 ritem.date = date;
-            } else if (calInstanceOf(ritem, kCalIRecurrenceDateSet)) {
+            } else if (cal.calInstanceOf(ritem, kCalIRecurrenceDateSet)) {
                 ritem = ritem.QueryInterface(kCalIRecurrenceDateSet);
-                var rdates = ritem.getDates({});
-                for each (var date in rdates) {
+                for each (let date in ritem.getDates({})) {
                     date.addDuration(timeDiff);
                     if (!ritem.isNegative) {
                         rdates[getRidKey(date)] = date;
                     }
                 }
                 ritem.setDates(rdates.length,rdates);
-            } else if (calInstanceOf(ritem, Components.interfaces.calIRecurrenceRule)) {
+            } else if (cal.calInstanceOf(ritem, Components.interfaces.calIRecurrenceRule)) {
                 ritem = ritem.QueryInterface(Components.interfaces.calIRecurrenceRule);
                 if (!ritem.isByCount) {
-                    var endDate = ritem.endDate;
+                    let endDate = ritem.endDate;
                     if (endDate) {
                         endDate.addDuration(timeDiff);
                         ritem.endDate = endDate;
@@ -815,28 +813,33 @@ calRecurrenceInfo.prototype = {
             }
         }
 
-        var startTimezone = aNewStartTime.timezone;
-        var exceptions = this.getExceptionIds({});
-        var modifiedExceptions = [];
-        for each (var exid in exceptions) {
+        let startTimezone = aNewStartTime.timezone;
+        let modifiedExceptions = [];
+        for each (let exid in this.getExceptionIds({})) {
             let ex = this.getExceptionFor(exid);
             if (ex) {
                 ex = ex.clone();
                 // track RECURRENCE-IDs in DTSTART's or RDATE's timezone,
                 // otherwise those won't match any longer w.r.t DST:
-                var rid = ex.recurrenceId;
-                rid = rid.getInTimezone(rdates[getRidKey(rid)]
-                                        ? rdates[getRidKey(rid)].timezone
-                                        : startTimezone);
+                let rid = ex.recurrenceId;
+                let rdate = rdates[getRidKey(rid)];
+                rid = rid.getInTimezone(rdate ? rdate.timezone : startTimezone);
                 rid.addDuration(timeDiff);
                 ex.recurrenceId = rid;
-
+                cal.shiftItem(ex, timeDiff);
                 modifiedExceptions.push(ex);
                 this.removeExceptionFor(exid);
             }
         }
-        for each (var modifiedEx in modifiedExceptions) {
+        for each (let modifiedEx in modifiedExceptions) {
             this.modifyException(modifiedEx, true);
+        }
+    },
+
+    onIdChange: function cRI_onIdChange(aNewId) {
+        // patch all overridden items' id:
+        for each (let item in this.mExceptionMap) {
+            item.id = aNewId;
         }
     }
 };

@@ -203,7 +203,7 @@ calEvent.prototype = {
             }
         }
 
-        this.setProperty("DTSTART", value);
+        return this.setProperty("DTSTART", value);
     },
 
     get startDate() {

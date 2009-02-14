@@ -105,7 +105,11 @@ calItemBase.prototype = {
     },
     set id cIB_set_id(uid) {
         this.mHashId = null; // recompute hashId
-        return this.setProperty("UID", uid);
+        this.setProperty("UID", uid);
+        if (this.mRecurrenceInfo) {
+            this.mRecurrenceInfo.onIdChange(uid);
+        }
+        return uid;
     },
 
     // attribute calIDateTime recurrenceId;

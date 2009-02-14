@@ -88,6 +88,38 @@ let cal = {
     },
 
     /**
+     * Shifts an item by the given timely offset.
+     *
+     * @param item an item
+     * @param offset an offset (calIDuration)
+     */
+    shiftItem: function cal_shiftItem(item, offset) {
+        // When modifying dates explicitly using the setters is important
+        // since those may triggers e.g. calIRecurrenceInfo::onStartDateChange
+        // or invalidate other properties. Moreover don't modify the date-time objects
+        // without cloning, because changes cannot be calculated if doing so.
+        if (cal.isEvent(item)) {
+            let date = item.startDate.clone();
+            date.addDuration(offset);
+            item.startDate = date;
+            date = item.endDate.clone();
+            date.addDuration(offset);
+            item.endDate = date;
+        } else /* isToDo */ {
+            if (item.entryDate) {
+                let date = item.entryDate.clone();
+                date.addDuration(offset);
+                item.entryDate = date;
+            }
+            if (item.dueDate) {
+                let date = item.dueDate.clone();
+                date.addDuration(offset);
+                item.dueDate = date;
+            }
+        }
+    },
+
+    /**
      * Shortcut function to serialize an item (including all overridden items).
      */
     getSerializedItem: function cal_getSerializedItem(aItem) {

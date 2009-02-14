@@ -232,7 +232,7 @@ calTodo.prototype = {
             }
         }
 
-        this.setProperty("DTSTART", value);
+        return this.setProperty("DTSTART", value);
     },
 
     get entryDate() {

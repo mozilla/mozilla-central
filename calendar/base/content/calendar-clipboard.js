@@ -222,17 +222,7 @@ function pasteFromClipboard() {
                 // Set new UID to allow multiple paste actions of the same
                 // clipboard content.
                 newItem.id = cal.getUUID();
-                if (item.startDate) {
-                    newItem.startDate.addDuration(offset);
-                    newItem.endDate.addDuration(offset);
-                } else {
-                    if (item.entryDate) {
-                        newItem.entryDate.addDuration(offset);
-                    }
-                    if (item.dueDate) {
-                        newItem.dueDate.addDuration(offset);
-                    }
-                }
+                cal.shiftItem(newItem, offset);
                 doTransaction('add', newItem, destCal, null, null);
             }
             endBatchTransaction();
