@@ -432,6 +432,9 @@
          let newStart = newItem.startDate || newItem.entryDate;
          let newEnd = newItem.endDate || newItem.dueDate;
          this.calendarView.controller.modifyOccurrence(item, newStart, newEnd);
+
+         // We handled the event
+         event.stopPropagation();
       ]]></handler>
 
       <handler event="dragend"><![CDATA[
