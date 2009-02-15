@@ -993,7 +993,8 @@ function SetFocusThreadPane()
 function SetFocusMessagePane()
 {
   // messagePaneFrame.focus() fails to blur the currently focused element
-  document.commandDispatcher.advanceFocusIntoSubtree(GetMessagePane());
+  GetMessagePane().focus();
+  GetMessagePaneFrame().focus();
 }
 
 function isCommandEnabled(cmd)
