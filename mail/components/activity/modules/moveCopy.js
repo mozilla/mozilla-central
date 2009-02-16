@@ -177,6 +177,9 @@ let moveCopyModule =
     }
   },
 
+  folderAdded: function(aFolder) {
+  },
+
   folderDeleted : function(aFolder) {
     let displayText = this.getString("deletedFolder").replace("#1", aFolder.prettiestName);
     let statusText = aFolder.server.prettyName;
@@ -249,7 +252,12 @@ let moveCopyModule =
     // XXX when do we need to remove ourselves?
     let notificationService = Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
                                  .getService(Components.interfaces.nsIMsgFolderNotificationService);
-    notificationService.addListener(this, notificationService.all);
+    notificationService.addListener(this,
+                                    notificationService.msgsDeleted |
+                                    notificationService.msgsMoveCopyCompleted |
+                                    notificationService.folderDeleted |
+                                    notificationService.folderMoveCopyCompleted |
+                                    notificationService.folderRenamed);
   }
 }
 
