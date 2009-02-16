@@ -45,3 +45,5 @@ Components.utils.import("resource://app/modules/activity/sendLater.js");
 sendLaterModule.init();
 Components.utils.import("resource://app/modules/activity/moveCopy.js");
 moveCopyModule.init();
+Components.utils.import("resource://app/modules/activity/autosync.js");
+autosyncModule.init();

@@ -194,7 +194,7 @@ SessionStoreService.prototype = {
                                .getService(Components.interfaces.nsIProperties);
     this._sessionFile = dirService.get("ProfD", Components.interfaces.nsILocalFile);
     this._sessionFileBackup = this._sessionFile.clone();
-    this._sessionFile.append("sessionstore.js");
+    this._sessionFile.append("sessionstore.json");
     this._sessionFileBackup.append("sessionstore.bak");
 
     // get string containing session state
@@ -210,7 +210,7 @@ SessionStoreService.prototype = {
     if (iniString) {
       try {
         // parse the session state into JS objects
-        this._initialState = this._safeEval(iniString);
+        this._initialState = JSON.parse(iniString);
       }
       catch (ex) { debug("The session file is invalid: " + ex); }
 
@@ -306,13 +306,6 @@ SessionStoreService.prototype = {
       this._loadState = STATE_QUITTING;
       break;
     case "quit-application":
-      // duplicate of quit-application request. Seamonkey doesn't have these yet.
-      this._forEachBrowserWindow(function(aWindow) {
-        this._collectWindowData(aWindow);
-      });
-      this._dirtyWindows = [];
-      this._dirty = false;
-
       if (aData == "restart")
         this._prefBranch.setBoolPref("sessionstore.resume_session_once", true);
       this._loadState = STATE_QUITTING; // just to be sure
@@ -609,7 +602,7 @@ SessionStoreService.prototype = {
     event.initEvent("SSTabClosing", true, false);
     aTab.dispatchEvent(event);
 
-    var maxTabsUndo = this._prefBranch.getIntPref("browser.sessionstore.max_tabs_undo");
+    var maxTabsUndo = this._prefBranch.getIntPref("sessionstore.max_tabs_undo");
     // don't update our internal state if we don't have to
     if (maxTabsUndo == 0) {
       return;
@@ -710,7 +703,7 @@ SessionStoreService.prototype = {
 
   setBrowserState: function sss_setBrowserState(aState) {
     try {
-      var state = this._safeEval("(" + aState + ")");
+      var state = JSON.parse(aState);
     }
     catch (ex) { /* invalid state object - don't restore anything */ }
     if (!state || !state.windows)
@@ -746,7 +739,7 @@ SessionStoreService.prototype = {
     if (!aWindow.__SSi)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
-    this.restoreWindow(aWindow, "(" + aState + ")", aOverwrite);
+    this.restoreWindow(aWindow, aState, aOverwrite);
   },
 
   getTabState: function sss_getTabState(aTab) {
@@ -762,7 +755,7 @@ SessionStoreService.prototype = {
   },
 
   setTabState: function sss_setTabState(aTab, aState) {
-    var tabState = this._safeEval("(" + aState + ")");
+    var tabState = JSON.parse(aState);
     if (!tabState.entries || !aTab.ownerDocument || !aTab.ownerDocument.defaultView.__SSi)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
@@ -793,7 +786,7 @@ SessionStoreService.prototype = {
       // XXXzeniko shouldn't we throw here?
       return 0; // not a browser window, or not otherwise tracked by SS.
 
-    let closedTabs = aWindow.getBrowser().savedBrowsers.map(function(e) { return e.tabData; });
+    let closedTabs = this._getClosedTabs(aWindow);
     return closedTabs.length;
   },
 
@@ -803,7 +796,7 @@ SessionStoreService.prototype = {
 
     if (!aWindow.__SSi)
       return this._toJSONString(aWindow.__SS_dyingCache._closedTabs);
-    let closedTabs = aWindow.getBrowser().savedBrowsers.map(function(e) { return e.tabData; });
+    let closedTabs = this._getClosedTabs(aWindow);
     return this._toJSONString(closedTabs);
   },
 
@@ -811,7 +804,7 @@ SessionStoreService.prototype = {
     if (!aWindow.__SSi)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
-    var closedTabs = aWindow.getBrowser().savedBrowsers.map(function(e) { return e.tabData; });
+    var closedTabs = this._getClosedTabs(aWindow);
     // default to the most-recently closed tab
 
     aIndex = aIndex || 0;
@@ -1486,7 +1479,7 @@ SessionStoreService.prototype = {
     }
 
     var total = [this._windows[aWindow.__SSi]];
-    total._closedTabs = this._windows[aWindow.__SSi].getBrowser().savedBrowsers.map(function(e) { return e.tabData; });
+    total._closedTabs = this._getClosedTabs(this._windows[aWindow.__SSi]);
     this._updateCookies(total);
 
     return { windows: total };
@@ -1502,7 +1495,7 @@ SessionStoreService.prototype = {
     this._updateCookieHosts(aWindow);
     this._updateWindowFeatures(aWindow);
 
-    this._windows[aWindow.__SSi]._closedTabs = aWindow.getBrowser().savedBrowsers.map(function(e) { return e.tabData; });
+    this._windows[aWindow.__SSi]._closedTabs = this._getClosedTabs(aWindow);
 
     this._dirtyWindows[aWindow.__SSi] = false;
   },
@@ -1529,7 +1522,7 @@ SessionStoreService.prototype = {
       this.onLoad(aWindow);
 
     try {
-      var root = typeof aState == "string" ? this._safeEval(aState) : aState;
+      var root = typeof aState == "string" ? JSON.parse(aState) : aState;
       if (!root.windows[0]) {
         this._notifyIfAllWindowsRestored();
         return; // nothing to restore
@@ -1599,10 +1592,9 @@ SessionStoreService.prototype = {
         this._windows[aWindow.__SSi].extData[key] = winData.extData[key];
       }
     }
-    //this is firefox part of code, keeping it for reference only. Will be removed in final patch
-    //misak if (winData._closedTabs && (root._firstTabs || aOverwriteTabs)) {
-    //  this._windows[aWindow.__SSi]._closedTabs = winData._closedTabs;
-    //}
+    if (winData._closedTabs && (root._firstTabs || aOverwriteTabs)) {
+      this._windows[aWindow.__SSi]._closedTabs = winData._closedTabs;
+    }
 
     // this part of code should reconstruct savedBrowsers from session
     // file. Commenting out now, will file separate bug for this.
@@ -1676,9 +1668,6 @@ SessionStoreService.prototype = {
 
       tab.setAttribute("busy", "true");
       tab.removeAttribute("image");
-      // not implemented in suite - replacing with two lines tabbrowser.setTabTitleLoading(tab);
-      // tab.label = this.mStringBundle.getString("tabs.loading");
-      // tab.setAttribute("crop", "end");
 
       // wall-paper fix for bug 439675: make sure that the URL to be loaded
       // is always visible in the address bar
@@ -1871,7 +1860,7 @@ SessionStoreService.prototype = {
       shEntry.postData = stream;
     }
 
-    if (aEntry.owner_b64) {  // Firefox 3
+    if (aEntry.owner_b64) {
       var ownerInput = Components.classes["@mozilla.org/io/string-input-stream;1"]
                                  .createInstance(Components.interfaces.nsIStringInputStream);
       var binaryData = atob(aEntry.owner_b64);
@@ -1882,11 +1871,6 @@ SessionStoreService.prototype = {
       try { // Catch possible deserialization exceptions
         shEntry.owner = binaryStream.readObject(true);
       } catch (ex) { debug(ex); }
-    } else if (aEntry.ownerURI) { // Firefox 2
-      var uriObj = ioService.newURI(aEntry.ownerURI, null, null);
-      shEntry.owner = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
-                                .getService(Components.interfaces.nsIScriptSecurityManager)
-                                .getCodebasePrincipal(uriObj);
     }
 
     if (aEntry.children && shEntry instanceof Components.interfaces.nsISHContainer) {
@@ -1934,25 +1918,6 @@ SessionStoreService.prototype = {
     function hasExpectedURL(aDocument, aURL)
       !aURL || aURL.replace(/#.*/, "") == aDocument.location.href.replace(/#.*/, "");
 
-    // restore text data saved by SeaMonkey
-    var textArray = this.__SS_restore_text ? this.__SS_restore_text.split(" ") : [];
-    function restoreTextData(aContent, aPrefix, aURL) {
-      textArray.forEach(function(aEntry) {
-        if (/^((?:\d+\|)*)(#?)([^\s=]+)=(.*)$/.test(aEntry) &&
-            RegExp.$1 == aPrefix && hasExpectedURL(aContent.document, aURL)) {
-          var document = aContent.document;
-          var node = RegExp.$2 ? document.getElementById(RegExp.$3) : document.getElementsByName(RegExp.$3)[0] || null;
-          if (node && "value" in node && node.type != "file") {
-            node.value = decodeURI(RegExp.$4);
-
-            var event = document.createEvent("UIEvents");
-            event.initUIEvent("input", true, true, aContent, 0);
-            node.dispatchEvent(event);
-          }
-        }
-      });
-    }
-
     function restoreFormData(aDocument, aData, aURL) {
       for (let key in aData) {
         if (!hasExpectedURL(aDocument, aURL))
@@ -1996,8 +1961,6 @@ SessionStoreService.prototype = {
     function restoreTextDataAndScrolling(aContent, aData, aPrefix) {
       if (aData.formdata)
         restoreFormData(aContent.document, aData.formdata, aData.url);
-      else
-        restoreTextData(aContent, aPrefix, aData.url);
       if (aData.innerHTML) {
         window.setTimeout(function() {
           if (aContent.document.designMode == "on" &&
@@ -2219,7 +2182,7 @@ SessionStoreService.prototype = {
     var stateString = Components.classes["@mozilla.org/supports-string;1"]
                                 .createInstance(Components.interfaces.nsISupportsString);
     // parentheses are for backwards compatibility with older sessionstore files
-    stateString.data = "(" + this._toJSONString(aStateObj) + ")";
+    stateString.data = this._toJSONString(aStateObj);
 
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                     .getService(Components.interfaces.nsIObserverService);
@@ -2380,19 +2343,6 @@ SessionStoreService.prototype = {
   },
 
   /**
-   * Convenience method to get localized string bundles
-   * @param aURI
-   * @returns nsIStringBundle
-   */
-  _getStringBundle: function sss_getStringBundle(aURI) {
-     var bundleService = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                   .getService(Components.interfaces.nsIStringBundleService);
-     var appLocale = Components.classes["@mozilla.org/intl/nslocaleservice;1"]
-                               .getService(Components.interfaces.nsILocaleService).getApplicationLocale();
-     return bundleService.createBundle(aURI, appLocale);
-  },
-
-  /**
    * Get nsIURI from string
    * @param string
    * @returns nsIURI
@@ -2462,13 +2412,6 @@ SessionStoreService.prototype = {
   },
 
   /**
-   * safe eval'ing
-   */
-  _safeEval: function sss_safeEval(aStr) {
-    return Components.utils.evalInSandbox(aStr, new Components.utils.Sandbox("about:blank"));
-  },
-
-  /**
    * Converts a JavaScript object into a JSON string
    * (see http://www.json.org/ for more information).
    *
@@ -2503,6 +2446,15 @@ SessionStoreService.prototype = {
    */
   _isWindowLoaded: function sss_isWindowLoaded(aWindow) {
     return !aWindow.__SS_restoreID;
+  },
+
+  /**
+   * gets SeaMonkey's closed tabs
+   * param aWindow
+   *       Window reference
+   */
+  _getClosedTabs: function sss_getClosedTabs(aWindow) {
+    return aWindow.getBrowser().savedBrowsers.map(function(e) { return e.tabData; });
   },
 
 /* ........ Storage API .............. */

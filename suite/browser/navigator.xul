@@ -151,7 +151,16 @@
   <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true"
            mode="full" defaultmode="full">
     <!-- Menu -->
-    <menubar id="main-menubar" persist="collapsed" grippytooltiptext="&menuBar.tooltip;"/>
+    <toolbar type="menubar" id="toolbar-menubar" class="chromeclass-menubar"
+             persist="collapsed" grippytooltiptext="&menuBar.tooltip;" customizable="true"
+             defaultset="menubar-items"
+             mode="icons" iconsize="small"
+             defaultmode="icons" defaulticonsize="small"
+             context="toolbar-context-menu">
+      <toolbaritem id="menubar-items" class="menubar-items" align="center">
+        <menubar id="main-menubar"/>
+      </toolbaritem>
+    </toolbar>
 
     <toolbar class="toolbar-primary chromeclass-toolbar" id="nav-bar" persist="collapsed" 
              grippytooltiptext="&navigationToolbar.tooltip;"

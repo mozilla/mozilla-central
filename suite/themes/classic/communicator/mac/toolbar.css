@@ -52,7 +52,7 @@ toolbar {
   border-bottom: 1px solid rgba(0,0,0,0.35);
 }
 
-toolbar:not([nowindowdrag="true"]) {
+toolbar:not([nowindowdrag="true"]):not([type="menubar"]) {
   -moz-binding: url("chrome://communicator/content/bindings/toolbar.xml#grippytoolbar-drag");
 }
 

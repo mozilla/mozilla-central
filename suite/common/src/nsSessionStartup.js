@@ -98,7 +98,7 @@ SessionStartup.prototype = {
     var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
                                .getService(Components.interfaces.nsIProperties);
     let sessionFile = dirService.get("ProfD", Components.interfaces.nsILocalFile);
-    sessionFile.append("sessionstore.js");
+    sessionFile.append("sessionstore.json");
 
     let doResumeSession = prefBranch.getBoolPref("sessionstore.resume_session_once") ||
                           prefBranch.getIntPref("startup.page") == 3;
@@ -117,8 +117,7 @@ SessionStartup.prototype = {
 
     try {
       // parse the session state into JS objects
-      var s = new Components.utils.Sandbox("about:blank");
-      initialState = Components.utils.evalInSandbox(this._iniString, s);
+      initialState = JSON.parse(this._iniString);
     }
     catch (ex) {
       doResumeSession = false;

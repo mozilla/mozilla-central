@@ -233,6 +233,7 @@
 
    <!-- Tools Menu -->
   <key id="key_mail"  key="&messengerCmd.commandkey;" oncommand="toMessengerWindow();" modifiers="accel"/>
+  <key id="key_addressbook"  key="&addressBookCmd.commandkey;" oncommand="toAddressBook();" modifiers="accel"/>
 
   <!-- Tab/F6 Keys -->
   <key keycode="VK_TAB" oncommand="SwitchElementFocus(event);" modifiers="control"/>
@@ -486,11 +487,7 @@
             <!-- Moving the first two items to the Window menu on the Mac -->
 #ifndef XP_MACOSX
             <menuitem accesskey="&messengerCmd.accesskey;" label="&messengerCmd.label;"  key="key_mail" oncommand="toMessengerWindow();" id="tasksMenuMail" class="menuitem-iconic icon-mail16 menu-iconic"/>
-            <menuitem id="tasksMenuAddressBook"
-                      label="&addressBookCmd.label;"
-                      accesskey="&addressBookCmd.accesskey;"
-                      oncommand="toAddressBook();"
-                      class="menuitem-iconic icon-addressbook16 menu-iconic"/>
+            <menuitem label="&addressBookCmd.label;" accesskey="&addressBookCmd.accesskey;" key="key_addressbook" oncommand="toAddressBook();" id="tasksMenuAddressBook" class="menuitem-iconic icon-addressbook16 menu-iconic"/>
 #endif
 
 #ifndef XP_UNIX
