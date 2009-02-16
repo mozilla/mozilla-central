@@ -434,16 +434,28 @@
   <key id="key_toggleMessagePane" keycode="VK_F8" oncommand="MsgToggleMessagePane();" disabled="true"/>
 
   <!-- Tag Keys -->
-  <key id="key_tag0" key="&tagCmd0.key;" oncommand="RemoveAllMessageTags();"/>
-  <key id="key_tag1" key="&tagCmd1.key;" oncommand="ToggleMessageTagKey(1);"/>
-  <key id="key_tag2" key="&tagCmd2.key;" oncommand="ToggleMessageTagKey(2);"/>
-  <key id="key_tag3" key="&tagCmd3.key;" oncommand="ToggleMessageTagKey(3);"/>
-  <key id="key_tag4" key="&tagCmd4.key;" oncommand="ToggleMessageTagKey(4);"/>
-  <key id="key_tag5" key="&tagCmd5.key;" oncommand="ToggleMessageTagKey(5);"/>
-  <key id="key_tag6" key="&tagCmd6.key;" oncommand="ToggleMessageTagKey(6);"/>
-  <key id="key_tag7" key="&tagCmd7.key;" oncommand="ToggleMessageTagKey(7);"/>
-  <key id="key_tag8" key="&tagCmd8.key;" oncommand="ToggleMessageTagKey(8);"/>
-  <key id="key_tag9" key="&tagCmd9.key;" oncommand="ToggleMessageTagKey(9);"/>
+  <!-- Includes both shifted and not, for Azerty and other layouts where the
+       numeric keys are shifted. -->
+  <key id="key_tag0" key="&tagCmd0.key;" modifiers="shift any"
+       oncommand="RemoveAllMessageTags();"/>
+  <key id="key_tag1" key="&tagCmd1.key;" modifiers="shift any"
+       oncommand="ToggleMessageTagKey(1);"/>
+  <key id="key_tag2" key="&tagCmd2.key;" modifiers="shift any"
+       oncommand="ToggleMessageTagKey(2);"/>
+  <key id="key_tag3" key="&tagCmd3.key;" modifiers="shift any"
+       oncommand="ToggleMessageTagKey(3);"/>
+  <key id="key_tag4" key="&tagCmd4.key;" modifiers="shift any"
+       oncommand="ToggleMessageTagKey(4);"/>
+  <key id="key_tag5" key="&tagCmd5.key;" modifiers="shift any"
+       oncommand="ToggleMessageTagKey(5);"/>
+  <key id="key_tag6" key="&tagCmd6.key;" modifiers="shift any"
+       oncommand="ToggleMessageTagKey(6);"/>
+  <key id="key_tag7" key="&tagCmd7.key;" modifiers="shift any"
+       oncommand="ToggleMessageTagKey(7);"/>
+  <key id="key_tag8" key="&tagCmd8.key;" modifiers="shift any"
+       oncommand="ToggleMessageTagKey(8);"/>
+  <key id="key_tag9" key="&tagCmd9.key;" modifiers="shift any"
+       oncommand="ToggleMessageTagKey(9);"/>
 
   <!-- Tools Keys -->
 #ifdef MOZ_WIDGET_GTK2
