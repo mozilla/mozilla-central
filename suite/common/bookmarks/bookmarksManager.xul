@@ -106,8 +106,9 @@
     <key id="key_quit"/>
   </keyset>
   <keyset id="bookmarks-tasksKeys">
-    <key key="&search.key;" modifiers="accel"
-         oncommand="document.getElementById('search-box').focus();"/>
+    <key key="&search.key;"
+         modifiers="accel"
+         oncommand="focusElement(document.getElementById('search-box'));"/>
   </keyset>
 
   <toolbox id="bookmarks-toolbox">

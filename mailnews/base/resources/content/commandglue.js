@@ -429,7 +429,7 @@ function SwitchView(command)
 function SetSentFolderColumns(isSentFolder)
 {
   var tree = GetThreadTree();
-  var searchCriteria = document.getElementById("searchCriteria");
+  var searchBox = document.getElementById("searchInput");
 
   var lastFolderSent = tree.getAttribute("lastfoldersent") == "true";
   if (isSentFolder != lastFolderSent)
@@ -446,15 +446,15 @@ function SetSentFolderColumns(isSentFolder)
     recipientColumn.setAttribute("swappedhidden", saveHidden);
   }
 
-  if(isSentFolder)
+  if (isSentFolder)
   {
     tree.setAttribute("lastfoldersent", "true");
-    searchCriteria.setAttribute("value", gMessengerBundle.getString("recipientSearchCriteria"));
+    searchBox.emptyText = gMessengerBundle.getString("searchRecipientEmptyText");
   }
   else
   {
     tree.setAttribute("lastfoldersent", "false");
-    searchCriteria.setAttribute("value", gMessengerBundle.getString("fromSearchCriteria"));
+    searchBox.emptyText = gMessengerBundle.getString("searchFromEmptyText");
   }
 }
 

@@ -213,8 +213,8 @@ pref("mail.showCondensedAddresses", false);
 // the format for "mail.addr_book.quicksearchquery.format" is:
 // @V == the escaped value typed in the quick search bar in the addressbook
 //
-// note, changing this might require a change to SearchNameOrEmail.label
-// in messenger.dtd
+// note, changing this might require a change to SearchNameOrEmail.label in
+// messenger.dtd or searchNameAndEmail.emptytext in abMainWindow.dtd
 pref("mail.addr_book.quicksearchquery.format", "chrome://messenger/locale/messenger.properties");
 
 // values for "mail.addr_book.lastnamefirst" are:

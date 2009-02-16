@@ -892,6 +892,12 @@ function validateFileName(aFileName)
   return aFileName.replace(re, "_");
 }
 
+function focusElement(aElement)
+{
+  if (isElementVisible(aElement))
+    aElement.focus();
+}
+ 
 function isElementVisible(aElement)
 {
   // If aElement or a direct or indirect parent is hidden or collapsed,

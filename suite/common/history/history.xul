@@ -72,7 +72,7 @@
     <command id="bm_cmd_saveas"/>
     <!-- Search Box -->
     <command id="cmd_search_focus"
-             oncommand="gSearchBox.focus();"/>
+             oncommand="focusElement(gSearchBox);"/>
   </commandset>
   <commandset id="selectEditMenuItems">
     <command id="cmd_cut"/>

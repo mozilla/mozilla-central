@@ -416,6 +416,10 @@
 
   <key id="key_searchMail" key="&searchMailCmd.key;" oncommand="goDoCommand('cmd_search')" modifiers="accel, shift"/>
 
+  <key key="&focusSearchInput.key;"
+       modifiers="accel"
+       oncommand="focusElement(document.getElementById('searchInput'));"/>
+
 </keyset>
 
   <popup id="folderPaneContext"
@@ -2006,15 +2010,21 @@
     </menulist>
   </hbox>
 
-<hbox id="searchBox" align="center" flex="1">
-  <label id="searchCriteria" value="&SearchSubjectOrFrom.label;" control="searchInput"
-         accesskey="&SearchSubjectOrFrom.accesskey;"/>
-  <textbox id="searchInput" flex="1" type="search" clickSelectsAll="true"
-           onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"
-           oncommand="onEnterInSearchBar();"/>
-  <button id="advancedButton" label="&advancedButton.label;" tooltiptext="&advancedButton.tooltip;" oncommand="onAdvancedSearch();"
-          accesskey="&advancedButton.accesskey;"/>
-</hbox>
+  <hbox id="searchBox" align="center" flex="1">
+    <spacer id="searchSpacer" flex="2"/>
+    <textbox id="searchInput"
+             flex="1"
+             type="search"
+             emptytext="&searchSubjectAndFrom.emptytext;"
+             clickSelectsAll="true"
+             onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"
+             oncommand="onEnterInSearchBar();"/>
+    <button id="advancedButton"
+            label="&advancedButton.label;"
+            tooltiptext="&advancedButton.tooltip;"
+            accesskey="&advancedButton.accesskey;"
+            oncommand="onAdvancedSearch();"/>
+  </hbox>
 </toolbar>
 
 <!-- The msgNotificationBar appears on top of the message and displays

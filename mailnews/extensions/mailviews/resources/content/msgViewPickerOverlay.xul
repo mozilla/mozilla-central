@@ -46,7 +46,7 @@
           src="chrome://messenger/content/msgViewPickerOverlay.js"/>
   
   <hbox id="searchBox">
-    <hbox id="viewPickerBox" insertbefore="searchCriteria" align="center">
+    <hbox id="viewPickerBox" insertbefore="searchSpacer" align="center">
       <label value="&viewPicker.label;" accesskey="&viewPicker.accesskey;"
              control="viewPicker"/>
       <menulist id="viewPicker" oncommand="ViewChangeByMenuitem(event.target);">
@@ -71,8 +71,6 @@
         </menupopup>
       </menulist>
     </hbox>
-    <!-- overlay the advanced button to save space -->
-    <button id="advancedButton" hidden="true"/>
   </hbox>
 
 </overlay>

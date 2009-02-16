@@ -537,12 +537,9 @@
 <!ENTITY folderContextSettings.label "Settings…">
 <!ENTITY folderContextSettings.accesskey "e">
 
-<!-- Search Bar -->
-<!-- also used by addressbook -->
-<!ENTITY SearchSubjectOrFrom.label "Subject or From contains:">
-<!ENTITY SearchSubjectOrFrom.accesskey "S">
-<!ENTITY SearchNameOrEmail.label "Name or Email contains:">
-<!ENTITY SearchNameOrEmail.accesskey "N">
+<!-- focusSearchInput.key also used by addressbook -->
+<!ENTITY focusSearchInput.key "k">
+<!ENTITY searchSubjectAndFrom.emptytext "Search Subject and From">
 <!ENTITY advancedButton.label "Advanced…">
 <!ENTITY advancedButton.accesskey "A">
 

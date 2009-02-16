@@ -154,6 +154,12 @@
   <key keycode="VK_F6" oncommand="SwitchPaneFocus(event);" modifiers="control"/>
   <key keycode="VK_F6" oncommand="SwitchPaneFocus(event);" modifiers="shift"/>
   <key keycode="VK_F6" oncommand="SwitchPaneFocus(event);"/>
+
+  <!-- Search field -->
+  <key key="&focusSearchInput.key;"
+       modifiers="accel"
+       oncommand="focusElement(document.getElementById('searchInput'));"/>
+
 </keyset>
 
 <popup id="dirTreeContext">
@@ -263,11 +269,6 @@
                                   label="&showAbToolbarCmd.label;"
                                   accesskey="&showAbToolbarCmd.accesskey;"
                                   oncommand="goToggleToolbar('abToolbar', 'menu_showAbToolbar')"
-                                  checked="true" type="checkbox"/>
-                        <menuitem id="menu_showSearchToolbar"
-                                  label="&showSearchToolbarCmd.label;"
-                                  accesskey="&showSearchToolbarCmd.accesskey;" 
-                                  oncommand="goToggleToolbar('searchBox','menu_showSearchToolbar')"
                                   checked="true" type="checkbox"/>
                         <menuitem id="menu_showTaskbar"/>
                         <menuseparator/>
@@ -407,13 +408,24 @@
                        label="&deleteItemButton.label;" command="button_delete"
                        tooltiptext="&deleteItemButton.tooltip;"/>
 
-        <spacer flex="1"/>
+      <toolbarspring/>
+      <toolbaritem id="searchBox" align="center">
+        <textbox id="searchInput"
+                 type="search"
+                 emptytext="&searchNameAndEmail.emptytext;"
+                 clickSelectsAll="true"
+                 oninput="SearchInputChanged();"
+                 oncommand="onEnterInSearchBar();"
+                 onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"/>
+      </toolbaritem>
 
-     <hbox id="throbber-box" align="center">
-      <button id="navigator-throbber" oncommand="goClickThrobber('addressbook.throbber.url')" tooltiptext="&throbber.tooltip;">
-        <observes element="broadcaster_throbber" attribute="busy"/>
-      </button>
-     </hbox>
+      <toolbaritem id="throbber-box" align="center">
+        <button id="navigator-throbber"
+                tooltiptext="&throbber.tooltip;"
+                oncommand="goClickThrobber('addressbook.throbber.url')">
+          <observes element="broadcaster_throbber" attribute="busy"/>
+        </button>
+      </toolbaritem>
     </toolbar>
   </toolbox>
 
@@ -429,21 +441,6 @@
     </splitter>
     
     <vbox flex="1" style="min-width:100px">
-
-      <hbox id="searchBox" persist="collapsed" align="center">
-        <label id="searchCriteria" value="&SearchNameOrEmail.label;"
-               accesskey="&SearchNameOrEmail.accesskey;"
-               control="searchInput"/>
-        <textbox id="searchInput" flex="1" type="search"
-                oninput="SearchInputChanged();"
-                oncommand="onEnterInSearchBar();"
-                onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"
-                clickSelectsAll="true"/>
-        <button id="advancedButton" label="&advancedButton.label;" 
-                accesskey="&advancedButton.accesskey;"
-                tooltiptext="&advancedButton.tooltip;" 
-                oncommand="onAdvancedAbSearch();"/>
-      </hbox>
 
       <!-- results pane -->
       <tree id="abResultsTree" context="abResultsTreeContext" flex="1" />
