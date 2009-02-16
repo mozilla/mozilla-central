@@ -112,6 +112,7 @@ let Log4Moz = {
 
   getConfiguredLogger: function(loggername, level, consoleLevel, dumpLevel) {
     let log = Log4Moz.repository.getLogger(loggername);
+    let branch;
     if (log._configured)
       return log
 
@@ -119,42 +120,52 @@ let Log4Moz = {
 
     consoleLevel = consoleLevel || -1;
     dumpLevel = dumpLevel || -1;
-
-    try {
-      // figure out if event-driven indexing should be enabled...
-      let prefService = Cc["@mozilla.org/preferences-service;1"].
-                          getService(Ci.nsIPrefService);
-      let branch = prefService.getBranch(loggername + ".logging.");
-      let consoleLevelString = branch.getStringPref("console");
-      if (consoleLevelString) {
-        // capitalize to fit with Log4Moz.Level expectations
-        consoleLevelString =  consoleLevelString.charAt(0).toUpperCase() +
-           consoleLevelString.substr(1).toLowerCase();
-        consoleLevel = Log4Moz.Level[consoleLevelString];
+    let branch = Cc["@mozilla.org/preferences-service;1"].
+                 getService(Ci.nsIPrefService).getBranch(loggername + ".logging.");
+    if (branch)
+    {
+      try {
+        // figure out if event-driven indexing should be enabled...
+        let consoleLevelString = branch.getCharPref("console");
+        if (consoleLevelString) {
+          // capitalize to fit with Log4Moz.Level expectations
+          consoleLevelString =  consoleLevelString.charAt(0).toUpperCase() +
+             consoleLevelString.substr(1).toLowerCase();
+          consoleLevel = (consoleLevelString == 'None') ?
+                          100 : Log4Moz.Level[consoleLevelString];
+        }
+      } catch (ex) {
       }
-
-      let dumpLevelString = branch.getStringPref("dump");
-      if (dumpLevelString) {
-        // capitalize to fit with Log4Moz.Level expectations
-        dumpLevelString =  dumpLevelString.charAt(0).toUpperCase() +
-           dumpLevelString.substr(1).toLowerCase();
-        dumpLevel = Log4Moz.Level[dumpLevelString]
+      try {
+        let dumpLevelString = branch.getCharPref("dump");
+        if (dumpLevelString) {
+          // capitalize to fit with Log4Moz.Level expectations
+          dumpLevelString =  dumpLevelString.charAt(0).toUpperCase() +
+             dumpLevelString.substr(1).toLowerCase();
+          dumpLevel = (dumpLevelString == 'None') ?
+                       100 : Log4Moz.Level[dumpLevelString];
+        }
+      } catch (ex) {
       }
-    } catch (ex) {}
+    }
 
-    if (consoleLevel != -1) {
+    if (consoleLevel != 100) {
+      if (consoleLevel == -1)
+        consoleLevel = Log4Moz.Level.Error;
       let capp = new Log4Moz.ConsoleAppender(formatter);
       capp.level = consoleLevel;
       log.addAppender(capp);
     }
 
-    if (dumpLevel != -1) {
+    if (dumpLevel != 100) {
+      if (dumpLevel == -1)
+        dumpLevel = Log4Moz.Level.Error;
       let dapp = new Log4Moz.DumpAppender(formatter);
       dapp.level = dumpLevel;
       log.addAppender(dapp);
     }
 
-    log.level = level || Log4Moz.Level.Debug;
+    log.level = level || Math.min(consoleLevel, dumpLevel);
 
     log._configured = true;
 
