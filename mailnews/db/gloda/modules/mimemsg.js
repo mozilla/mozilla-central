@@ -209,17 +209,11 @@ MsgHdrToMimeMessage.RESULT_RENDEVOUZ = {};
  *     its first child's first child is "1.1.1", etc.
  * @ivar headers Maps lower-cased header field names to a list of the values
  *     seen for the given header.  Use get or getAll as convenience helpers.
+ * 
  * @ivar bodyParts A list of the MimeBody instances that belong to this message.
  *     If there are nested messages, any bodies under the nested messages will
  *     belong to those messages.
- * @ivar bodyPartsPlain A list of the MimeBody instances with a content type of
- *     text/plain.
- * @ivar bodyPlain The concatenation of all of the bodyPartsPlain bodies into a
- *     single string.
- * @ivar bodyPartsHTML A list of the MimeBody instances with a content type of
- *     text/html.
- * @ivar bodyHTML The concatentation of all of the bodyPartsHTML bodies into a
- *     single string. 
+ * 
  * @ivar messages A list of the sub-message children of this message.  Strict
  *     MIME part hierarchy is not maintained; a sub-message's parent is the
  *     closest sub-message above it.  Sub-messages can also be found in the
@@ -305,30 +299,57 @@ MimeMessage.prototype = {
   },
   
   /**
-   * @return a list of all of the plaintext body parts of this message.
+   * @return A list of the MimeBody instances on this message with a content
+   *     type of text/plain.
    */
   get bodyPartsPlain() {
     return [part for each ([, part] in Iterator(this.bodyParts)) if
             (part.contentType == "text/plain")];
   },
   /**
-   * @return all of the plaintext body parts of this message, concatenated
-   *  together into a single string.
+   * @return all of the plaintext body parts of this message (as provided by
+   *     bodyPartsPlain), concatenated together into a single string.
    */
   get bodyPlain() {
     return [bodyPart.body for each
             ([, bodyPart] in Iterator(this.bodyPartsPlain))].join("");
   },
   /**
-   * @return a list of all of the HTML body parts of this message.
+   * @param aMsgFolder A message folder, any message folder.  Because this is
+   *    a hack.
+   * @return The concatenation of all of the bodyParts where parts
+   *    available as text/plain are pulled from there, and parts only available
+   *    as text/html are converted to plaintext form first.  In other words,
+   *    if we see a multipart/alternative with a text/plain, we take the
+   *    text/plain.  If we see a text/html without an alternative, we convert
+   *    that to text.
+   */
+  coerceBodyToPlaintext:
+      function MimeMessage_coerceBodyToPlaintext(aMsgFolder) {
+    let bodies = [];
+    for each (let [, part] in Iterator(this.parts)) {
+      // an undefined value for something not having the method is fine
+      let body = part.coerceBodyToPlaintext &&
+                 part.coerceBodyToPlaintext(aMsgFolder);
+      if (body)
+        bodies.push(body);
+    }
+    if (bodies)
+      return bodies.join("");
+    else
+      return "";
+  },
+  /**
+   * @return a list of the MimeBody instances on this message with a content
+   *     type of text/html.
    */
   get bodyPartsHTML() {
     return [part for each ([, part] in Iterator(this.bodyParts)) if
         (part.contentType == "text/html")];
   },
   /**
-   * @return all of the HTML body parts of this message, concatenated together
-   *  into a single string.
+   * @return all of the HTML body parts of this message (as provided by
+   *     bodyPartsHTML), concatenated together into a single string.
    */
   get bodyHTML() {
     return [bodyPart.body for each
@@ -360,6 +381,7 @@ MimeMessage.prototype = {
   },
 };
 
+
 /**
  * @ivar contentType The content-type of this container.
  * @ivar parts The parts held by this container.  These can be instances of any
@@ -379,6 +401,24 @@ MimeContainer.prototype = {
       results = results.concat(child.allAttachments);
     }
     return results;
+  },
+  coerceBodyToPlaintext:
+      function MimeContainer_coerceBodyToPlaintext(aMsgFolder) {
+    if (this.contentType == "multipart/alternative") {
+      let htmlPart;
+      // pick the text/plain if we can find one, otherwise remember the HTML one
+      for each (let [, part] in Iterator(this.parts)) {
+        if (part.contentType == "text/plain")
+          return part.body;
+        if (part.contentType == "text/html")
+          htmlPart = part;
+      }
+      // convert the HTML part if we have one
+      if (htmlPart)
+        return aMsgFolder.convertMsgSnippetToPlainText(htmlPart.body);
+    }
+    // if it's not alternative, recurse/aggregate using MimeMessage logic
+    return MimeMessage.prototype.coerceBodyToPlaintext.call(this, aMsgFolder);
   },
   prettyString: function MimeContainer_prettyString(aIndent) {
     let nextIndent = aIndent + "  ";
@@ -416,6 +456,14 @@ function MimeBody(aContentType, aIsPart) {
 MimeBody.prototype = {
   get allAttachments() {
     return []; // we are a leaf
+  },
+  coerceBodyToPlaintext:
+      function MimeBody_coerceBodyToPlaintext(aMsgFolder) {
+    if (this.contentType == "text/plain")
+      return this.body;
+    if (this.contentType == "text/html")
+      return aMsgFolder.convertMsgSnippetToPlainText(this.body);
+    return "";
   },
   prettyString: function MimeBody_prettyString(aIndent) {
     return "Body: " + this.contentType + " (" + this.body.length + " bytes)";

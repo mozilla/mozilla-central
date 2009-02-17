@@ -2298,17 +2298,11 @@ var GlodaIndexer = {
     }
 
     if (aMimeMsg) {
-      let bodyPlain = aMimeMsg.bodyPlain;
+      let bodyPlain = aMimeMsg.coerceBodyToPlaintext(aMsgHdr.folder);
       if (bodyPlain) {
         curMsg._bodyLines = bodyPlain.split(/\r?\n/);
         curMsg._content = new GlodaContent();
       }
-      else {
-        this._log.warn("Have aMimeMsg but not bodyPlain?");
-      }
-    }
-    else {
-      this._log.warn("aMimeMsg went away?");
     }
     
     if (isConceptuallyNew) {

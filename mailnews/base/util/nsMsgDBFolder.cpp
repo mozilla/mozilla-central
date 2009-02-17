@@ -5089,7 +5089,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
 
   // now we've got a msg body. If it's html, convert it to plain text.
   if (msgBodyIsHtml && aStripHTMLTags)
-    convertMsgSnippetToPlainText(unicodeMsgBodyStr);
+    ConvertMsgSnippetToPlainText(unicodeMsgBodyStr, unicodeMsgBodyStr);
 
   // We want to remove any whitespace from the beginning and end of the string
   unicodeMsgBodyStr.Trim(" \t\r\n", PR_TRUE, PR_TRUE);
@@ -5205,11 +5205,8 @@ void nsMsgDBFolder::compressQuotesInMsgSnippet(const nsString& aMsgSnippet, nsAS
   }
 }
 
-/**
- * converts an html mail snippet to plain text
- * @param aMessageText - in place conversion
- */
-nsresult nsMsgDBFolder::convertMsgSnippetToPlainText(nsAString& aMessageText)
+NS_IMETHODIMP nsMsgDBFolder::ConvertMsgSnippetToPlainText(
+    const nsAString& aMessageText, nsAString& aOutText)
 {
   nsString bodyText;
   nsresult rv = NS_OK;
@@ -5232,7 +5229,7 @@ nsresult nsMsgDBFolder::convertMsgSnippetToPlainText(nsAString& aMessageText)
   textSink->Initialize(&bodyText, flags, 80);
   parser->SetContentSink(sink);
   rv = parser->Parse(aMessageText, 0, NS_LITERAL_CSTRING("text/html"), PR_TRUE);
-  aMessageText.Assign(bodyText);
+  aOutText.Assign(bodyText);
   return rv;
 }
 

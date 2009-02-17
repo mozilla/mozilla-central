@@ -67,7 +67,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(f64a0335-2b72-4320-89f6-8d57ac5e70ca)]
+[scriptable, uuid(240c34dc-eb95-422b-a1e9-99cf6a23830b)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -658,6 +658,8 @@ interface nsIMsgFolder : nsISupports {
                                    in unsigned long aBytesToRead, in unsigned long aMaxOutputLen, 
                                    in boolean aCompressQuotes, in boolean aStripHTMLTags,
                                    out ACString aContentType);
+
+  AString convertMsgSnippetToPlainText(in AString aMessageText);
 
   // this allows a folder to have a special identity. E.g., you might want to
   // associate an identity with a particular newsgroup, or for IMAP shared folders in

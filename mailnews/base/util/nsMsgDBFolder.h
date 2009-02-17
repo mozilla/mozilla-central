@@ -118,7 +118,6 @@ protected:
 
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
 
-  nsresult convertMsgSnippetToPlainText(nsAString& aMessageText);
   void compressQuotesInMsgSnippet(const nsString& aMessageText, nsAString& aCompressedQuotesStr);
   void decodeMsgSnippet(const nsACString& aEncodingType, PRBool aIsComplete, nsCString& aMsgSnippet);
 
