@@ -827,6 +827,16 @@ function WhichPaneHasFocus()
   return null;
 }
 
+function RestoreFocusAfterHdrButton()
+{
+  // I would love to really restore the focus to the pane that had
+  // focus before the user clicked on the hdr button, and gLastFocusedElement
+  // would almost do that, except that clicking on the hdr button sets
+  // gLastFocusedElement to the message pane. What I need is
+  // gPenultimateFocusedElement.
+  SetFocusThreadPane();
+}
+
 function SetupCommandUpdateHandlers()
 {
   // folder pane

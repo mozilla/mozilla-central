@@ -1199,3 +1199,9 @@ function getMailToolbox ()
 {
   return document.getElementById("mail-toolbox");
 }
+
+function RestoreFocusAfterHdrButton()
+{
+  // set focus to the message pane
+  window.content.focus();
+}

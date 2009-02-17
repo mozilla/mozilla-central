@@ -2092,7 +2092,8 @@
              these buttons are doing the right thing -->
 
        <xul:button anonid="hdrReplyButton" label="&hdrReplyButton.label;"
-                   oncommand="MsgReplyMessage(event);" observes="button_reply"
+                   oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
+                   observes="button_reply"
                    class="msgHeaderView-button hdrReplyButton"
                    type="menu-button">
          <xul:menupopup anonid="hdrReplyDropdown">
@@ -2100,22 +2101,25 @@
                          label="&hdrReplyAllButton.label;"
                          tooltiptext="&replyAllButton.tooltip;"
                          observes="button_replyall"
-                         oncommand="MsgReplyToAllMessage(event); event.stopPropagation();"/>
+                         oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
+                         RestoreFocusAfterHdrButton();"/>
          </xul:menupopup>
        </xul:button>
        <xul:button anonid="hdrForwardButton" label="&hdrForwardButton.label;"
-                   oncommand="MsgForwardMessage(event);"
+                   oncommand="MsgForwardMessage(event);RestoreFocusAfterHdrButton();"
                    observes="button_forward" class="msgHeaderView-button hdrForwardButton"/>
        <xul:button anonid="archiveButton" label="&archiveButton.label;"
-                   oncommand="MsgArchiveSelectedMessages(event);" observes="button_archive"
+                   oncommand="MsgArchiveSelectedMessages(event);RestoreFocusAfterHdrButton();"
+                   observes="button_archive"
                    class="msgHeaderView-button hdrArchiveButton"/>
        <xul:button anonid="hdrJunkButton" label="&hdrJunkButton.label;"
                    observes="button_junk" class="msgHeaderView-button hdrJunkButton"
-                   oncommand="goDoCommand('button_junk')"/>
+                   oncommand="goDoCommand('button_junk');RestoreFocusAfterHdrButton();"/>
        <xul:button anonid="hdrTrashButton" tooltiptext="&trashButton.tooltiptext;"
                    observes="button_delete" trash="true"
                    class="msgHeaderView-button hdrTrashButton" 
-                   oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
+                   oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' :
+                              'cmd_delete');RestoreFocusAfterHdrButton();"/>
       </xul:hbox>
     </content>
 
