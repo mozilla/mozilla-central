@@ -48,58 +48,59 @@ interface nsIMsgFolder;
 interface nsIImapHostSessionList;
 interface nsIMsgWindow;
 
-[scriptable, uuid(9410ec75-854c-4b0e-96f4-b485ffe1f0d4)]
+[scriptable, uuid(49816377-9319-48f8-8c90-7efadff8e628)]
 interface nsIImapProtocol : nsISupports {
-	/////////////////////////////////////////////////////////////////////////
-	/* LoadUrl should really be pushed into a generic protocol interface
-	// I think. Imap happens to be the only case where we need to push back
-	// a thread safe object to our test app. 
-	///////////////////////////////////////////////////////////////////////// */
-	void LoadImapUrl(in nsIURI aUrl, in nsISupports aConsumer);
+  void LoadImapUrl(in nsIURI aUrl, in nsISupports aConsumer);
 
-	///////////////////////////////////////////////////////////////////////// 
-	// IsBusy returns true if the connection is currently processing a url
-	// and false otherwise.
-	/////////////////////////////////////////////////////////////////////////
-	void IsBusy(out boolean aIsConnectionBusy, 
-                      out boolean isInboxConnection);
+  /**
+   * IsBusy returns true if the connection is currently processing a url
+   * and false otherwise.
+   */
+  void IsBusy(out boolean aIsConnectionBusy,
+              out boolean isInboxConnection);
 
-	// Protocol instance examines the url, looking at the host name,
-	// user name and folder the action would be on in order to figure out
-	// if it can process this url. I decided to push the semantics about
-	// whether a connection can handle a url down into the connection level
-	// instead of in the connection cache.
-	void CanHandleUrl(in nsIImapUrl aImapUrl, out boolean aCanRunUrl,
-                            out boolean hasToWait);
+  /** Protocol instance examines the url, looking at the host name,
+   * user name and folder the action would be on in order to figure out
+   * if it can process this url. I decided to push the semantics about
+   * whether a connection can handle a url down into the connection level
+   * instead of in the connection cache.
+   */
+  void CanHandleUrl(in nsIImapUrl aImapUrl, out boolean aCanRunUrl,
+                    out boolean hasToWait);
 
-	/////////////////////////////////////////////////////////////////////////
-	// Right now, initialize requires the event queue of the UI thread, 
-	// or more importantly the event queue of the consumer of the imap
-	// protocol data. The protocol also needs a host session list.
-	/////////////////////////////////////////////////////////////////////////
-	void Initialize(in nsIImapHostSessionList aHostSessionList, in nsIImapIncomingServer aServer, 
-                  in nsIEventTarget aSinkEventTarget) ;
+  /**
+   * Right now, initialize requires the event queue of the UI thread,
+   * or more importantly the event queue of the consumer of the imap
+   * protocol data. The protocol also needs a host session list.
+   */
+  void Initialize(in nsIImapHostSessionList aHostSessionList, in nsIImapIncomingServer aServer,
+                  in nsIEventTarget aSinkEventTarget);
 
-	void NotifyHdrsToDownload(out unsigned long keys, in unsigned long keyCount);
-	void NotifyBodysToDownload(out unsigned long keys, in unsigned long count);
-	// methods to get data from the imap parser flag state.
-	void GetFlagsForUID(in unsigned long uid, out boolean foundIt, out unsigned short flags, out string customFlags);
-	void GetSupportedUserFlags(out unsigned short flags);
+  void NotifyHdrsToDownload(out unsigned long keys, in unsigned long keyCount);
+  void NotifyBodysToDownload(out unsigned long keys, in unsigned long count);
+  // methods to get data from the imap parser flag state.
+  void GetFlagsForUID(in unsigned long uid, out boolean foundIt, out unsigned short flags, out string customFlags);
+  void GetSupportedUserFlags(out unsigned short flags);
 
-	void GetRunningImapURL(out nsIImapUrl aImapUrl);
+  void GetRunningImapURL(out nsIImapUrl aImapUrl);
 
   void GetRunningUrl(out nsIURI aUrl);
 
-  // Tell thread to die
-  void TellThreadToDie(in boolean isSafeToDie);
+  /**
+   * Tell thread to die - only call from the UI thread
+   *
+   * @param aIsSafeToClose false if we're dropping a timed out connection.
+   */
+  void tellThreadToDie(in boolean aIsSafeToClose);
+
   // Get last active time stamp
   void GetLastActiveTimeStamp(out PRTime aTimeStamp);
 
-	void pseudoInterruptMsgLoad(in nsIMsgFolder imapFolder, in nsIMsgWindow aMsgWindow, out boolean interrupted);
+  void pseudoInterruptMsgLoad(in nsIMsgFolder imapFolder, in nsIMsgWindow aMsgWindow, out boolean interrupted);
   void GetSelectedMailboxName(out string folderName);
   // Reset folder connection to authenticated state
   void ResetToAuthenticatedState();
 
-	void OverrideConnectionInfo(in wstring pHost, in unsigned short pPort, in string pCookieData);
+  void OverrideConnectionInfo(in wstring pHost, in unsigned short pPort, in string pCookieData);
 };
 

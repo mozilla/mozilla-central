@@ -240,6 +240,9 @@ public:
   PRInt32 GetConnectionStatus();
   void SetConnectionStatus(PRInt32 status);
 
+  // Cleanup the connection and shutdown the thread.
+  void TellThreadToDie();
+
   const nsCString& GetImapHostName(); // return the host name from the url for the
   // current connection
   const nsCString& GetImapUserName(); // return the user name from the identity;
@@ -443,11 +446,16 @@ private:
   nsresult SendData(const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
 
   // state ported over from 4.5
-  PRBool  m_pseudoInterrupted;
-  PRBool  m_active;
-  PRBool  m_folderNeedsSubscribing;
-  PRBool  m_folderNeedsACLRefreshed;
-  PRBool  m_threadShouldDie;
+  PRBool m_pseudoInterrupted;
+  PRBool m_active;
+  PRBool m_folderNeedsSubscribing;
+  PRBool m_folderNeedsACLRefreshed;
+
+  PRBool m_threadShouldDie;
+  // if the UI thread has signalled the IMAP thread to die, and the
+  // connection has timed out, this will be set to FALSE.
+  PRBool m_safeToCloseConnection;
+
   nsImapFlagAndUidState  *m_flagState;
   nsMsgBiffState        m_currentBiffState;
   // manage the IMAP server command tags

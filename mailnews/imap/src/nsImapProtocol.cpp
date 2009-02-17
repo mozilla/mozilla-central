@@ -372,6 +372,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_useSecAuth = PR_FALSE;
   m_socketType = nsIMsgIncomingServer::tryTLS;
   m_connectionStatus = 0;
+  m_safeToCloseConnection = PR_FALSE;
   m_hostSessionList = nsnull;
   m_flagState = nsnull;
   m_fetchBodyIdList = nsnull;
@@ -1131,14 +1132,51 @@ NS_IMETHODIMP nsImapProtocol::OnInputStreamReady(nsIAsyncInputStream *inStr)
   return NS_OK;
 }
 
-
+// this is to be called from the UI thread. It sets m_threadShouldDie,
+// and then signals the imap thread, which, when it wakes up, should exit.
+// The imap thread cleanup code will check m_safeToCloseConnection.
 NS_IMETHODIMP
-nsImapProtocol::TellThreadToDie(PRBool isSafeToClose)
+nsImapProtocol::TellThreadToDie(PRBool aIsSafeToClose)
+{
+  NS_WARN_IF_FALSE(NS_IsMainThread(),
+                   "TellThreadToDie(aIsSafeToClose) should only be called from UI thread");
+  nsAutoCMonitor mon(this);
+
+  nsCOMPtr<nsIMsgIncomingServer> me_server = do_QueryReferent(m_server);
+  if (me_server)
+  {
+    nsresult rv;
+    nsCOMPtr<nsIImapIncomingServer>
+      aImapServer(do_QueryInterface(me_server, &rv));
+    if (NS_SUCCEEDED(rv))
+      aImapServer->RemoveConnection(this);
+    m_server = nsnull;
+    me_server = nsnull;
+  }
+
+  PR_EnterMonitor(m_threadDeathMonitor);
+  m_safeToCloseConnection = aIsSafeToClose;
+  m_threadShouldDie = PR_TRUE;
+  PR_ExitMonitor(m_threadDeathMonitor);
+  PR_EnterMonitor(m_urlReadyToRunMonitor);
+  m_nextUrlReadyToRun = PR_TRUE;
+  PR_Notify(m_urlReadyToRunMonitor);
+  PR_ExitMonitor(m_urlReadyToRunMonitor);
+
+  return NS_OK;
+}
+
+void
+nsImapProtocol::TellThreadToDie()
 {
   nsresult rv = NS_OK;
-  // ** This routine is called from the ui thread and the imap protocol thread.
-  // The UI thread  passes in FALSE if it's dropping a timed out connection,
-  // true when closing a cached connection.
+  NS_WARN_IF_FALSE(!NS_IsMainThread(),
+                   "TellThreadToDie() should not be called from UI thread");
+
+  // This routine is called only from the imap protocol thread.
+  // The UI thread causes this to be called by calling TellThreadToDie.
+  // In that case, m_safeToCloseConnection will be FALSE if it's dropping a
+  // timed out connection, true when closing a cached connection.
   {
     nsAutoCMonitor mon(this);
 
@@ -1152,7 +1190,7 @@ nsImapProtocol::TellThreadToDie(PRBool isSafeToClose)
         || m_imapAction == nsIImapUrl::nsImapAppendDraftFromFile;
 
     PRBool closeNeeded = GetServerStateParser().GetIMAPstate() ==
-                  nsImapServerResponseParser::kFolderSelected && isSafeToClose;
+                  nsImapServerResponseParser::kFolderSelected && m_safeToCloseConnection;
     nsCString command;
 
     // if a url is writing data, we can't even logout, so we're just
@@ -1194,7 +1232,6 @@ nsImapProtocol::TellThreadToDie(PRBool isSafeToClose)
   PR_EnterMonitor(m_urlReadyToRunMonitor);
   PR_NotifyAll(m_urlReadyToRunMonitor);
   PR_ExitMonitor(m_urlReadyToRunMonitor);
-  return rv;
 }
 
 NS_IMETHODIMP
@@ -1264,6 +1301,12 @@ nsImapProtocol::ImapThreadMainLoop()
       while (NS_SUCCEEDED(rv) && !DeathSignalReceived() && !m_nextUrlReadyToRun)
         rv = mon.Wait(sleepTime);
 
+      // This will happen if the UI thread signals us to die
+      if (m_threadShouldDie)
+      {
+        TellThreadToDie();
+        break;
+      }
       readyToRun = m_nextUrlReadyToRun;
       m_nextUrlReadyToRun = PR_FALSE;
     }
@@ -1716,7 +1759,7 @@ PRBool nsImapProtocol::ProcessCurrentURL()
 
     if (!DeathSignalReceived())
     {
-        TellThreadToDie(PR_FALSE);
+        TellThreadToDie();
     }
   }
   else
@@ -1799,7 +1842,7 @@ nsresult nsImapProtocol::SendData(const char * dataBuffer, PRBool aSuppressLoggi
       Log("SendData", nsnull, "clearing IMAP_CONNECTION_IS_OPEN");
       // the connection died unexpectedly! so clear the open connection flag
       ClearFlag(IMAP_CONNECTION_IS_OPEN);
-      TellThreadToDie(PR_FALSE);
+      TellThreadToDie();
       SetConnectionStatus(-1);
       return NS_ERROR_FAILURE;
   }
@@ -1825,7 +1868,7 @@ nsresult nsImapProtocol::SendData(const char * dataBuffer, PRBool aSuppressLoggi
       Log("SendData", nsnull, "clearing IMAP_CONNECTION_IS_OPEN");
       // the connection died unexpectedly! so clear the open connection flag
       ClearFlag(IMAP_CONNECTION_IS_OPEN);
-      TellThreadToDie(PR_FALSE);
+      TellThreadToDie();
       SetConnectionStatus(-1);
       if (m_runningUrl && !m_retryUrlOnError)
       {
@@ -1967,7 +2010,7 @@ NS_IMETHODIMP nsImapProtocol::CanHandleUrl(nsIImapUrl * aImapUrl,
     // otherwise, we've probably just not finished setting it so don't kill it!
     if (NS_FAILED(rv) || !isAlive)
     {
-      TellThreadToDie(PR_FALSE);
+      TellThreadToDie();
       return NS_ERROR_FAILURE;
     }
   }
@@ -4353,7 +4396,7 @@ PRBool nsImapProtocol::DeathSignalReceived()
     if (request)
       request->GetStatus(&returnValue);
   }
-  if (NS_SUCCEEDED(returnValue))	// check the other way of cancelling.
+  if (NS_SUCCEEDED(returnValue)) // check the other way of cancelling.
   {
     PR_EnterMonitor(m_threadDeathMonitor);
     returnValue = m_threadShouldDie;
@@ -4558,7 +4601,7 @@ char* nsImapProtocol::CreateNewLineFromSocket()
     logMsg.AppendInt(rv, 16);
     Log("CreateNewLineFromSocket", nsnull, logMsg.get());
     ClearFlag(IMAP_CONNECTION_IS_OPEN);
-    TellThreadToDie(PR_FALSE);
+    TellThreadToDie();
   }
   Log("CreateNewLineFromSocket", nsnull, newLine);
   SetConnectionStatus(newLine && numBytesInLine ? 1 : -1); // set > 0 if string is not null or empty
@@ -8810,8 +8853,9 @@ NS_IMETHODIMP nsImapMockChannel::Cancel(nsresult status)
     }
   }
 
+  // ### Perhaps this can be removed, but I'm not at all convinced yet.
   if (imapProtocol)
-    imapProtocol->TellThreadToDie(PR_FALSE);
+    static_cast<nsImapProtocol*>(imapProtocol.get())->TellThreadToDie();
 
   return NS_OK;
 }
