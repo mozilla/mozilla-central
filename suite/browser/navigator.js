@@ -1511,15 +1511,8 @@ function BrowserLoadURL(aTriggeringEvent)
         // Open a new window with the URL
         var newWin = openDialog(getBrowserURL(), "_blank", "all,dialog=no", url,
             null, null, nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP);
-        // Reset url in the urlbar, copied from handleURLBarRevert()
-        var oldURL = browser.currentURI.spec;
-        if (oldURL != "about:blank" || content.opener) {
-          gURLBar.value = oldURL;
-          SetPageProxyState("valid", null);
-        } else
-          gURLBar.value = "";
-
-        browser.userTypedValue = null;
+        // Reset url in the urlbar
+        URLBarSetURI();
 
         // Focus old window if shift was pressed, as there's no
         // way to open a new window in the background
@@ -1851,6 +1844,60 @@ function checkForDirectoryListing()
   }
 }
 
+function URLBarSetURI(aURI, aValid) {
+  var uri = aURI || getWebNavigation().currentURI;
+
+  // If the url has "wyciwyg://" as the protocol, strip it off.
+  // Nobody wants to see it on the urlbar for dynamically generated pages.
+  if (!gURIFixup)
+    gURIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
+                          .getService(Components.interfaces.nsIURIFixup);
+  try {
+    aURI = gURIFixup.createExposableURI(aURI);
+    uri = aURI || getWebNavigation().currentURI;
+  } catch (ex) {}
+
+  // Replace "about:blank" with an empty string
+  // only if there's no opener (bug 370555).
+  if (uri.spec == "about:blank")
+    value = content.opener ? "about:blank" : "";
+  else
+    value = losslessDecodeURI(uri);
+
+  gURLBar.value = value;
+  // In some cases, setting the urlBar value causes userTypedValue to
+  // become set because of oninput, so reset it to null.
+  getBrowser().userTypedValue = null;
+
+  SetPageProxyState((value && (!aURI || aValid)) ? "valid" : "invalid", null);
+}
+
+function losslessDecodeURI(aURI) {
+  var value = aURI.spec;
+  // Try to decode as UTF-8 if there's no encoding sequence that we would break.
+  if (!/%25(?:3B|2F|3F|3A|40|26|3D|2B|24|2C|23)/i.test(value))
+    try {
+      value = decodeURI(value)
+                // decodeURI decodes %25 to %, which creates unintended
+                // encoding sequences. Re-encode it, unless it's part of
+                // a sequence that survived decodeURI, i.e. one for:
+                // ';', '/', '?', ':', '@', '&', '=', '+', '$', ',', '#'
+                // (RFC 3987 section 3.2)
+                .replace(/%(?!3B|2F|3F|3A|40|26|3D|2B|24|2C|23)/ig,
+                         encodeURIComponent);
+    } catch (e) {}
+
+  // Encode invisible characters (soft hyphen, zero-width space, BOM,
+  // line and paragraph separator, word joiner, invisible times,
+  // invisible separator, object replacement character) (bug 452979)
+  // Encode bidirectional formatting characters.
+  // (RFC 3987 sections 3.2 and 4.1 paragraph 6)
+  // Re-encode whitespace so that it doesn't get eaten away
+  // by the location bar (bug 410726).
+  return value.replace(/[\x09-\x0d\x1c-\x1f\u00ad\u200b\u200e\u200f\u2028-\u202e\u2060\u2062\u2063\ufeff\ufffc]/g,
+                        encodeURIComponent);
+}
+
 /**
  * Use Stylesheet functions.
  *     Written by Tim Hill (bug 6782)
@@ -2085,20 +2132,16 @@ function handleURLBarRevert()
   // don't revert to last valid url unless page is NOT loading
   // and user is NOT key-scrolling through autocomplete list
   if (!throbberElement.hasAttribute("busy") && !isScrolling) {
-    if (url != "about:blank" || content.opener) {
-      gURLBar.value = url;
-      gURLBar.select();
-      SetPageProxyState("valid", null); // XXX Build a URI and pass it in here.
-    } else { //if about:blank, urlbar becomes ""
-      gURLBar.value = "";
-    }
+    URLBarSetURI();
 
-    gBrowser.userTypedValue = null;
+    // If the value isn't empty, select it.
+    if (gURLBar.value)
+      gURLBar.select();
   }
 
   // tell widget to revert to last typed text only if the user
   // was scrolling when they hit escape
-  return isScrolling; 
+  return isScrolling;
 }
 
 function handleURLBarCommand(aUserAction, aTriggeringEvent)

@@ -319,28 +319,6 @@ nsBrowserStatusHandler.prototype =
 
     this.setOverLink("");
 
-    var locationURI = null;
-    var location = "";    
-
-    if (aLocation) {
-      try {
-        if (!gURIFixup)
-          gURIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
-                                .getService(Components.interfaces.nsIURIFixup);
-        // If the url has "wyciwyg://" as the protocol, strip it off.
-        // Nobody wants to see it on the urlbar for dynamically generated
-        // pages.
-        locationURI = gURIFixup.createExposableURI(aLocation);
-        location = locationURI.spec;
-      }
-      catch(ex) {
-        location = aLocation.spec;
-      }
-    }
-
-    if (!getWebNavigation().canGoBack && location == "about:blank" && !content.opener)
-      location = "";
-
     // Disable menu entries for images, enable otherwise
     if (content.document && this.mimeTypeIsTextBased(content.document.contentType))
       this.isImage.removeAttribute('disabled');
@@ -356,12 +334,7 @@ nsBrowserStatusHandler.prototype =
     if (aWebProgress.DOMWindow == content) {
       var userTypedValue = browser.userTypedValue;
       if (userTypedValue === null) {
-        this.urlBar.value = location;
-        SetPageProxyState("valid", aLocation);
-
-        // Setting the urlBar value in some cases causes userTypedValue to
-        // become set because of oninput, so reset it to null
-        browser.userTypedValue = null;
+        URLBarSetURI(aLocation, true);
       } else {
         this.urlBar.value = userTypedValue;
         SetPageProxyState("invalid", null);
@@ -425,12 +398,15 @@ nsBrowserStatusHandler.prototype =
 
   startDocumentLoad : function(aRequest)
   {
-    const nsIChannel = Components.interfaces.nsIChannel;
-    var urlStr = aRequest.QueryInterface(nsIChannel).URI.spec;
+    var uri = aRequest.QueryInterface(Components.interfaces.nsIChannel).URI;
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                     .getService(Components.interfaces.nsIObserverService);
+
+    if (gURLBar.value && getWebNavigation().currentURI.spec == "about:blank")
+      URLBarSetURI(uri);
+
     try {
-      observerService.notifyObservers(content, "StartDocumentLoad", urlStr);
+      observerService.notifyObservers(content, "StartDocumentLoad", uri.spec);
     } catch (e) {
     }
   },
