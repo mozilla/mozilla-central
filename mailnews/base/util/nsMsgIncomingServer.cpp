@@ -693,10 +693,9 @@ NS_IMETHODIMP nsMsgIncomingServer::GetServerRequiresPasswordForBiff(PRBool *aSer
   return NS_OK;
 }
 
-void nsMsgIncomingServer::GetPasswordWithoutUI(nsACString &aPassword)
+// This sets m_password if we find a password in the pw mgr.
+void nsMsgIncomingServer::GetPasswordWithoutUI()
 {
-  aPassword.Truncate();
-
   nsresult rv;
   nsCOMPtr<nsILoginManager> loginMgr(do_GetService(NS_LOGINMANAGER_CONTRACTID,
                                                    &rv));
@@ -767,7 +766,7 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
     // let's see if we have the password in the password manager and
     // can avoid this prompting thing. This makes it easier to get embedders
     // to get up and running w/o a password prompting UI.
-    GetPasswordWithoutUI(aPassword);
+    GetPasswordWithoutUI();
   }
   if (m_password.IsEmpty())
   {
@@ -1672,17 +1671,9 @@ nsMsgIncomingServer::GetPasswordPromptRequired(PRBool *aPasswordIsRequired)
     return NS_OK;
 
   // If the password is empty, check to see if it is stored and to be retrieved
-  if (m_password.IsEmpty()) {
-    nsCString password;
-    GetPasswordWithoutUI(password);
+  if (m_password.IsEmpty())
+    GetPasswordWithoutUI();
 
-    // If a match is found, password element is filled in. Convert the
-    // obtained password and store it for the session.
-    if (!password.IsEmpty())
-    {
-      rv = SetPassword(password);
-    }
-  }
   *aPasswordIsRequired = m_password.IsEmpty();
   return rv;
 }
