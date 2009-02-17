@@ -1479,7 +1479,7 @@ SessionStoreService.prototype = {
     }
 
     var total = [this._windows[aWindow.__SSi]];
-    total._closedTabs = this._getClosedTabs(this._windows[aWindow.__SSi]);
+    total._closedTabs = this._getClosedTabs(aWindow);
     this._updateCookies(total);
 
     return { windows: total };
