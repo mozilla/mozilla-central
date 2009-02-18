@@ -267,7 +267,7 @@ let gFolderTreeView = {
    * that the folder is actually being displayed (that is, that none of its
    * ancestors are collapsed.
    *
-   * @param aFolderUri  the nsIMsgFolder to select
+   * @param aFolder  the nsIMsgFolder to select
    */
   selectFolder: function ftv_selectFolder(aFolder) {
     // "this" inside the nested function refers to the function...

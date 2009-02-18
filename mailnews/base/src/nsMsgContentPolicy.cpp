@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Scott MacGregor <scott@scott-macgregor.org>
+ *   Dan Mosedale <dmose@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -75,6 +76,8 @@
 #include "nsContentPolicyUtils.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsILoadContext.h"
+#include "nsIFrameLoader.h"
+#include "nsIWebProgress.h"
 
 static const char kBlockRemoteImages[] = "mailnews.message_display.disable_remote_image";
 static const char kAllowPlugins[] = "mailnews.message_display.allow.plugins";
@@ -88,8 +91,9 @@ static const char kTrustedDomains[] =  "mail.trusteddomains";
 #define kBlockRemoteContent 1
 #define kAllowRemoteContent 2
 
-NS_IMPL_ISUPPORTS3(nsMsgContentPolicy, 
+NS_IMPL_ISUPPORTS4(nsMsgContentPolicy, 
                    nsIContentPolicy,
+                   nsIWebProgressListener,
                    nsIObserver,
                    nsISupportsWeakReference)
 
@@ -217,11 +221,6 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
 
   NS_ENSURE_ARG_POINTER(aContentLocation);
 
-  // NOTE: Not using NS_ENSURE_ARG_POINTER because this is a legitimate case
-  // that can happen.
-  if (!aRequestingLocation)
-    return NS_ERROR_INVALID_POINTER;
-
 #ifndef MOZ_THUNDERBIRD
   // Go find out if we are dealing with mailnews. Anything else
   // isn't our concern and we accept content.
@@ -236,13 +235,52 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
     return NS_OK;
 #endif
 
-  if (aContentType == nsIContentPolicy::TYPE_OBJECT)
-  {
+#ifdef DEBUG_MsgContentPolicy
+  nsCString spec;
+#endif
+  switch(aContentType) {
+
+  case nsIContentPolicy::TYPE_OBJECT:
     // only allow the plugin to load if the allow plugins pref has been set
     if (!mAllowPlugins)
       *aDecision = nsIContentPolicy::REJECT_TYPE;
     return NS_OK;
+
+  case nsIContentPolicy::TYPE_DOCUMENT:
+    // At this point, we have no intention of supporting a different JS
+    // setting on a subdocument, so we don't worry about TYPE_SUBDOCUMENT here.
+   
+#ifdef DEBUG_MsgContentPolicy
+    (void)aContentLocation->GetSpec(spec);
+    fprintf(stderr, "aContentLocation = %s\n", spec.get());
+#endif
+    
+    // If the timing were right, we'd enable JavaScript on the docshell
+    // for non mailnews URIs here.  However, at this point, the
+    // old document may still be around, so we can't do any enabling just yet.  
+    // Instead, we apply the policy in nsIWebProgressListener::OnLocationChange. 
+    // For now, we explicitly disable JavaScript in order to be safe rather than
+    // sorry, because OnLocationChange isn't guaranteed to necessarily be called
+    // soon enough to disable it in time (though bz says it _should_ be called 
+    // soon enough "in all sane cases").
+    rv = DisableJSOnMailNewsUrlDocshells(aContentLocation, aRequestingContext);
+
+    // if something went wrong during the tweaking, reject this content
+    if (NS_FAILED(rv)) {
+      *aDecision = nsIContentPolicy::REJECT_TYPE;
+      return NS_OK;
+    }
+    break;
+
+  default:
+    break;
   }
+  
+  // NOTE: Not using NS_ENSURE_ARG_POINTER because this is a legitimate case
+  // that can happen.  Also keep in mind that the default policy used for a
+  // failure code is ACCEPT.
+  if (!aRequestingLocation)
+    return NS_ERROR_INVALID_POINTER;
 
   // if aRequestingLocation is chrome, resource about or file, allow
   // aContentLocation to load
@@ -533,6 +571,60 @@ nsresult nsMsgContentPolicy::ComposeShouldLoad(nsIDocShell * aRootDocShell, nsIS
   return NS_OK;
 }
 
+nsresult nsMsgContentPolicy::DisableJSOnMailNewsUrlDocshells(
+  nsIURI *aContentLocation, nsISupports *aRequestingContext)
+{
+  // XXX if this class changes so that this method can be called from
+  // ShouldProcess, and if it's possible for this to be null when called from
+  // ShouldLoad, but not in the corresponding ShouldProcess call,
+  // we need to re-think the assumptions underlying this code.
+  
+  // If there's no docshell to get to, there's nowhere for the JavaScript to 
+  // run, so we're already safe and don't need to disable anything.
+  if (!aRequestingContext) {
+    return NS_OK;
+  }
+
+  // the policy we're trying to enforce is around the settings for 
+  // message URLs, so if this isn't one of those, bail out
+  nsresult rv;
+  nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(aContentLocation, &rv);
+  if (NS_FAILED(rv)) {
+    return NS_OK;
+  }
+
+  // since NS_CP_GetDocShellFromContext returns the containing docshell rather
+  // than the contained one we need, we can't use that here, so...
+  
+  nsCOMPtr<nsIFrameLoaderOwner> flOwner = do_QueryInterface(aRequestingContext,
+                                                            &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIFrameLoader> frameLoader;
+  rv = flOwner->GetFrameLoader(getter_AddRefs(frameLoader));
+  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_TRUE(frameLoader, NS_ERROR_INVALID_POINTER);
+  
+  nsCOMPtr<nsIDocShell> shell;
+  rv = frameLoader->GetDocShell(getter_AddRefs(shell));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDocShellTreeItem> docshellTreeItem(do_QueryInterface(shell, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // what sort of docshell is this?
+  PRInt32 itemType;
+  rv = docshellTreeItem->GetItemType(&itemType);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // we're only worried about policy settings in content docshells
+  if (itemType != nsIDocShellTreeItem::typeContent) {
+    return NS_OK;
+  }
+
+  return shell->SetAllowJavascript(PR_FALSE);
+}
+
 /**
  * helper routine to get the root docshell for the window requesting the load
  */
@@ -586,6 +678,11 @@ nsMsgContentPolicy::ShouldProcess(PRUint32          aContentType,
                                   nsISupports      *aExtra,
                                   PRInt16          *aDecision)
 {
+  // XXX Returning ACCEPT is presumably only a reasonable thing to do if we
+  // think that ShouldLoad is going to catch all possible cases (i.e. that
+  // everything we use to make decisions is going to be available at 
+  // ShouldLoad time, and not only become available in time for ShouldProcess).
+  // Do we think that's actually the case?
   *aDecision = nsIContentPolicy::ACCEPT;
   return NS_OK;
 }
@@ -605,6 +702,74 @@ NS_IMETHODIMP nsMsgContentPolicy::Observe(nsISupports *aSubject, const char *aTo
       prefBranchInt->GetBoolPref(kBlockRemoteImages, &mBlockRemoteImages);
   }
 
+  return NS_OK;
+}
+
+/** 
+ * We implement the nsIWebProgressListener interface in order to enforce
+ * settings at onLocationChange time.
+ */
+NS_IMETHODIMP 
+nsMsgContentPolicy::OnStateChange(nsIWebProgress *aWebProgress,
+                                  nsIRequest *aRequest, PRUint32 aStateFlags,
+                                  nsresult aStatus)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgContentPolicy::OnProgressChange(nsIWebProgress *aWebProgress,
+                                     nsIRequest *aRequest,
+                                     PRInt32 aCurSelfProgress,
+                                     PRInt32 aMaxSelfProgress,
+                                     PRInt32 aCurTotalProgress,
+                                     PRInt32 aMaxTotalProgress)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP 
+nsMsgContentPolicy::OnLocationChange(nsIWebProgress *aWebProgress,
+                                     nsIRequest *aRequest, nsIURI *aLocation)
+{
+  nsresult rv;
+
+  // If anything goes wrong and/or there's no docshell associated with this
+  // request, just give up.  The behavior ends up being "don't consider 
+  // re-enabling JS on the docshell", which is the safe thing to do (and if
+  // the problem was that there's no docshell, that means that there was 
+  // nowhere for any JavaScript to run, so we're already safe
+  
+  nsCOMPtr<nsIDocShell> docShell = do_QueryInterface(aWebProgress, &rv);
+  if (NS_FAILED(rv)) {
+    return NS_OK;
+  }
+
+#ifdef DEBUG
+  nsCOMPtr<nsIChannel> channel = do_QueryInterface(aRequest, &rv);
+  nsCOMPtr<nsIDocShell> docShell2;
+  NS_QueryNotificationCallbacks(channel, docShell2);
+  NS_ASSERTION(docShell == docShell2, "aWebProgress and channel callbacks"
+                                      " do not point to the same docshell");
+#endif
+  
+  // If this is a mailnews url, turn off JavaScript, otherwise turn it on
+  nsCOMPtr<nsIMsgMessageUrl> messageUrl = do_QueryInterface(aLocation, &rv);
+  return docShell->SetAllowJavascript(NS_FAILED(rv));
+}
+
+NS_IMETHODIMP
+nsMsgContentPolicy::OnStatusChange(nsIWebProgress *aWebProgress,
+                                   nsIRequest *aRequest, nsresult aStatus,
+                                   const PRUnichar *aMessage)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgContentPolicy::OnSecurityChange(nsIWebProgress *aWebProgress,
+                                     nsIRequest *aRequest, PRUint32 aState)
+{
   return NS_OK;
 }
 

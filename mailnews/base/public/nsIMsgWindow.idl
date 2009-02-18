@@ -60,7 +60,15 @@ interface nsIMsgWindow : nsISupports {
   attribute nsIMsgHeaderSink msgHeaderSink;
   attribute nsITransactionManager transactionManager;
   attribute nsIMsgFolder openFolder;
+  
+  /**
+   * @note Setting this attribute has various side effects, including
+   * wiring up this object as the parent nsIURIContentListener for the
+   * passed-in docshell as well as setting the message content policy service
+   * to listen for OnLocationChange notifications.
+   */
   attribute nsIDocShell rootDocShell;
+  
   /**
    * These are currently used to set notification callbacks on
    * protocol channels to handle things like bad cert exceptions.

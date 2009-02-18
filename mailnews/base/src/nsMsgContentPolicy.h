@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Scott MacGregor <scott@scott-macgregor.org>
+ *   Dan Mosedale <dmose@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -52,6 +53,7 @@
 #include "nsString.h"
 
 #include "nsICookiePermission.h" 
+#include "nsIWebProgressListener.h"
 
 /* DBFCFDF0-4489-4faa-8122-190FD1EFA16C */
 #define NS_MSGCONTENTPOLICY_CID \
@@ -64,6 +66,7 @@ class nsIDocShell;
 
 class nsMsgContentPolicy : public nsIContentPolicy,
                            public nsIObserver,
+                           public nsIWebProgressListener,
                            public nsSupportsWeakReference
 {
 public:
@@ -75,7 +78,8 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSICONTENTPOLICY
   NS_DECL_NSIOBSERVER
-
+  NS_DECL_NSIWEBPROGRESSLISTENER
+  
 protected:
   PRBool   mBlockRemoteImages;
   PRBool   mAllowPlugins;
@@ -90,6 +94,8 @@ protected:
 
   nsresult GetRootDocShellForContext(nsISupports * aRequestingContext, nsIDocShell ** aDocShell);
   nsresult GetMessagePaneURI(nsIDocShell * aRootDocShell, nsIURI ** aURI);
+  nsresult DisableJSOnMailNewsUrlDocshells(nsIURI *aContentLocation,
+                                           nsISupports *aRequestingContext);
 };
 
 #ifdef MOZ_THUNDERBIRD

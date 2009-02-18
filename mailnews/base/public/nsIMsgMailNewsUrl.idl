@@ -140,7 +140,15 @@ interface nsIMsgMessageUrl : nsISupports {
   attribute boolean AddDummyEnvelope;  
   attribute boolean canonicalLineEnding;
   attribute string originalSpec;
-  // a message db header for that message.
+  
+  /**
+   *  A message db header for that message.
+   *  
+   *  @note This attribute is not guaranteed to be set, so callers that
+   *  actually require an nsIMsgDBHdr will need to use the uri attribute
+   *  on this interface to get the  appropriate nsIMsgMessageService and
+   *  then get the header from there.
+   */
   readonly attribute nsIMsgDBHdr messageHeader;
 };
 
