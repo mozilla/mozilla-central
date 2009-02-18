@@ -299,6 +299,10 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   vertical-align: middle;
 }
 
+.msgHeaderView-button:active {
+  background-image: url(chrome://global/skin/icons/white-gray-gradient-active.gif);
+}
+
 .msgHeaderView-flat-button {
   min-width: 1px;
   -moz-appearance: none;
