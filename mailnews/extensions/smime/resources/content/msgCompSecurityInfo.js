@@ -277,7 +277,7 @@ function viewSelectedCert()
 
 function doHelpButton()
 {
-  openHelp('compose_security');
+  openHelp('compose_security', 'chrome://communicator/locale/help/suitehelp.rdf');
 }
 
 function createCell(label)

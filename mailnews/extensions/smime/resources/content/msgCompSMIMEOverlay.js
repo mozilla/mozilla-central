@@ -165,7 +165,7 @@ function showNeedSetupInfo()
       dummy);
     
     if (0 == buttonPressed) {
-      openHelp("sign-encrypt");
+      openHelp("sign-encrypt", "chrome://communicator/locale/help/suitehelp.rdf");
     }
   }
 }

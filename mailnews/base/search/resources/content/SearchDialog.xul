@@ -128,7 +128,7 @@
          <hbox align="center">
            <checkbox id="checkSearchLocalSystem" label="&searchLocalSystem.label;" persist="checked" accesskey="&searchLocalSystem.accesskey;" oncommand="updateSearchLocalSystem();"/>
            <spacer flex="2"/>
-           <button label="&helpButton.label;" align="end" oncommand="openHelp('search_messages');" accesskey="&helpButton.accesskey;"/> 
+           <button label="&helpButton.label;" align="end" oncommand="openHelp('search_messages', 'chrome://communicator/locale/help/suitehelp.rdf');" accesskey="&helpButton.accesskey;"/> 
          </hbox>
       </vbox>
 

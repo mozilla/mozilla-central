@@ -164,7 +164,7 @@
           <button id="deleteButton" label="&deleteButton.label;" accesskey="&deleteButton.accesskey;" 
                   oncommand="onDeleteFilter();"/>
           <button label="&helpButton.label;" accesskey="&helpButton.accesskey;" 
-                  oncommand="openHelp('mail-filters');"/>
+                  oncommand="openHelp('mail-filters', 'chrome://communicator/locale/help/suitehelp.rdf');"/>
           <spacer flex="1"/>
           <button id="reorderUpButton" label="&reorderUpButton.label;" accesskey="&reorderUpButton.accesskey;" 
                   class="up"
