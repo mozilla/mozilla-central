@@ -11,16 +11,17 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Thunderbird Activity Manager CSS.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
+ * Mozilla Messaging, Inc.
  * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   David Ascher <dascher@mozillamessaging.com>
  *   Emre Birol <ebirol@gmail.com>
+ *   David Ascher <dascher@mozillamessaging.com>
+ *
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,46 +37,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+
 .activityview {
-  -moz-appearance: none;
+  -moz-appearance: none !important;
   margin: 0;
-  padding: 0;
-  border-width: 0;
+  border-bottom: 2px solid;
+  -moz-border-bottom-colors: ThreeDHighlight ThreeDLightShadow;
 }
 
 #search {
   -moz-box-pack: end;
-  padding-top: 4px;
-  padding-right: 4px;
-  padding-bottom: 4px;
-  background-image: url("chrome://global/skin/toolbar/toolbar-background.gif");
-  background-color: #9f9f9f;
-  background-repeat: repeat-x;
-  background-position: top left;
-}
-
-#activityManager:not([active="true"]) #search {
-  background-image: url("chrome://global/skin/toolbar/toolbar-background-inactive.png");
-  background-color: #cfcfcf;
-}
-
-#activityManager:not([active="true"]) #search > * {
-  opacity: 0.7;
 }
 
 #clearListButton {
-  -moz-appearance: none;
-  border: 1px solid #5F5F5F;
-  -moz-border-radius: 4px;
-  background: url(chrome://global/skin/icons/white-gray-gradient.gif) #A09E9D repeat-x top center;
   min-height: 0;
   min-width: 0;
-  padding: 2px;
-  margin: 0 6px;
+  margin-top: 3px;
 }
 
-#clearListButton:hover:active:not([disabled="true"]) {
-  background: url(chrome://global/skin/icons/white-gray-gradient-active.gif);
+activity-event:not([selected="true"]):nth-child(odd) {
+  background-color: -moz-oddtreerow;
 }
 
 /**
@@ -143,7 +124,7 @@ activity-process button {
   max-height: 16px;
   max-width: 16px;
   padding: 0;
-  margin: 0 1px 0 1px;
+  margin: 0 1px;
 }
 
 activity-event button {
@@ -166,7 +147,7 @@ activity-event button {
   max-height: 16px;
   max-width: 16px;
   padding: 0;
-  margin: 0 1px 0 1px;
+  margin: 0 1px;
 }
 
 activity-warning button {
@@ -189,13 +170,13 @@ activity-warning button {
   max-height: 16px;
   max-width: 16px;
   padding: 0;
-  margin: 0 1px 0 1px;
+  margin: 0 1px;
 }
 
 .activitygroupbox activity-event,
 .activitygroupbox activity-warning,
 .activitygroupbox activity-process {
-  padding-left: 2em;
+  -moz-padding-start: 2em;
 }
 
 activity-group button {
@@ -218,7 +199,7 @@ activity-group button {
   max-height: 16px;
   max-width: 16px;
   padding: 0;
-  margin: 0 1px 0 1px;
+  margin: 0 1px;
 }
 
 /* Specialized Activity Bindings */
