@@ -11,16 +11,16 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Thunderbird Activity Manager CSS.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2008
+ * Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   David Ascher <dascher@mozillamessaging.com>
  *   Emre Birol <ebirol@gmail.com>
+ *   David Ascher <dascher@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -76,6 +76,10 @@
 
 #clearListButton:hover:active:not([disabled="true"]) {
   background: url(chrome://global/skin/icons/white-gray-gradient-active.gif);
+}
+
+activity-event:not([selected="true"]):nth-child(odd) {
+  background-color: -moz-oddtreerow;
 }
 
 /**
@@ -143,7 +147,7 @@ activity-process button {
   max-height: 16px;
   max-width: 16px;
   padding: 0;
-  margin: 0 1px 0 1px;
+  margin: 0 1px;
 }
 
 activity-event button {
@@ -166,7 +170,7 @@ activity-event button {
   max-height: 16px;
   max-width: 16px;
   padding: 0;
-  margin: 0 1px 0 1px;
+  margin: 0 1px;
 }
 
 activity-warning button {
@@ -189,13 +193,13 @@ activity-warning button {
   max-height: 16px;
   max-width: 16px;
   padding: 0;
-  margin: 0 1px 0 1px;
+  margin: 0 1px;
 }
 
 .activitygroupbox activity-event,
 .activitygroupbox activity-warning,
 .activitygroupbox activity-process {
-  padding-left: 2em;
+  -moz-padding-start: 2em;
 }
 
 activity-group button {
@@ -218,7 +222,7 @@ activity-group button {
   max-height: 16px;
   max-width: 16px;
   padding: 0;
-  margin: 0 1px 0 1px;
+  margin: 0 1px;
 }
 
 /* Specialized Activity Bindings */
