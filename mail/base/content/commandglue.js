@@ -224,6 +224,18 @@ function isNewsURI(uri)
     }
 }
 
+function UpdateColumnsForView(folder, viewType)
+{
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+  // if this is the drafts, sent, or send later folder,
+  // we show "Recipient" instead of "Author"
+  SetSentFolderColumns(IsSpecialFolder(folder, nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue, true));
+  ShowLocationColumn(viewType == nsMsgViewType.eShowVirtualFolderResults);
+  // Only show 'Received' column for e-mails.  For newsgroup messages, the 'Date' header is as reliable as an e-mail's
+  // 'Received' header, as it is replaced with the news server's (more reliable) date.
+  UpdateReceivedColumn(folder);
+}
+
 function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
 {
   viewDebug("In reroot folder, sortType = " +  sortType + "viewType = " + viewType + "\n");
@@ -279,14 +291,7 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
   // cancel the pending mark as read timer
   ClearPendingReadTimer();
 
-  // if this is the drafts, sent, or send later folder,
-  // we show "Recipient" instead of "Author"
-  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-  SetSentFolderColumns(IsSpecialFolder(newFolder, nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue, true));
-  ShowLocationColumn(viewType == nsMsgViewType.eShowVirtualFolderResults);
-  // Only show 'Received' column for e-mails.  For newsgroup messages, the 'Date' header is as reliable as an e-mail's
-  // 'Received' header, as it is replaced with the news server's (more reliable) date.
-  UpdateReceivedColumn(newFolder);
+  UpdateColumnsForView(newFolder, viewType);
   // now create the db view, which will sort it.
   CreateDBView(newFolder, viewType, viewFlags, sortType, sortOrder);
 

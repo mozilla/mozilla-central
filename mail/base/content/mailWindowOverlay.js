@@ -1628,8 +1628,9 @@ let mailTabType = {
     }
     if (gDBView)
     {
-      // This sets the thread pane tree's view to the gDBView view.
+      UpdateColumnsForView(gMsgFolderSelected, gDBView.viewType);
       UpdateSortIndicators(gDBView.sortType, gDBView.sortOrder);
+      // This sets the thread pane tree's view to the gDBView view.
       RerootThreadPane();
       // Only refresh the view picker if the views toolbar is visible.
       if (document.getElementById("mailviews-container")) 
