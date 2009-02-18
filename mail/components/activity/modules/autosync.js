@@ -144,7 +144,7 @@ let autosyncModule =
         statusMsg = this.bundle.formatStringFromName("autosyncEventStatusText",
                                                      [numOfMessages], 1);
       else
-        statusMsg = this.bundle.getString("autosyncEventStatusTextNoMsgs");
+        statusMsg = this.getString("autosyncEventStatusTextNoMsgs");
 
       let event = new nsActEvent(msg, this.autoSyncManager, statusMsg,
                                  this._syncInfoPerServer[folder.server].startTime,
