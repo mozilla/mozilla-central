@@ -559,10 +559,12 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
 
   // get localizedRe pref
   nsresult rv;
-  nsCString localizedRe;
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv))
-    prefBranch->GetCharPref("mailnews.localizedRe", getter_Copies(localizedRe));
+  nsString utf16LocalizedRe;
+  NS_GetLocalizedUnicharPreferenceWithDefault(nsnull,
+                                              "mailnews.localizedRe",
+                                              EmptyString(),
+                                              utf16LocalizedRe);
+  NS_ConvertUTF16toUTF8 localizedRe(utf16LocalizedRe);
 
   // hardcoded "Re" so that noone can configure Mozilla standards incompatible
   nsCAutoString checkString("Re,RE,re,rE");
