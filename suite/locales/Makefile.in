@@ -302,7 +302,11 @@ langpack-%: libs-%
 	@$(NSINSTALL) -D $(DIST)/$(PKG_LANGPACK_PATH)
 	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) -I$(call EXPAND_LOCALE_SRCDIR,toolkit/locales)/defines.inc -I$(LOCALE_SRCDIR)/defines.inc $(srcdir)/generic/install.rdf > $(FINAL_TARGET)/install.rdf
 	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
-	  $(ZIP) -r9D $(LANGPACK_FILE) install.rdf chrome chrome.manifest defaults dictionaries searchplugins -x chrome/$(AB_CD).manifest
+	  if test -d dictionaries; then \
+	    $(ZIP) -r9D $(LANGPACK_FILE) install.rdf chrome chrome.manifest defaults dictionaries searchplugins -x chrome/$(AB_CD).manifest; \
+	  else \
+	    $(ZIP) -r9D $(LANGPACK_FILE) install.rdf chrome chrome.manifest defaults searchplugins -x chrome/$(AB_CD).manifest; \
+	  fi
 
 # This is a generic target that will make a langpack, repack ZIP (+tarball)
 # builds, and repack an installer if applicable. It is called from the
