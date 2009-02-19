@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 EXTENSION_CO_TAG = 'SEAMONKEY_2_0a3_RELEASE'
-LDAPCSDK_CO_TAG = 'SEAMONKEY_2_0a3_RELEASE'
+LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6_RTM'
 
 CHATZILLA_CO_TAG = 'SEAMONKEY_2_0a3_RELEASE'
 VENKMAN_CO_TAG = 'SEAMONKEY_2_0a3_RELEASE'
@@ -18,7 +18,7 @@ DEFAULT_MOZILLA_REV = "SEAMONKEY_2_0a3_RELEASE"
 
 # REGEX to match against, $1 should refer to protocol scheme
 MOZILLA_TRUNK_REPO_REGEXP = "(ssh|http|https):\/\/hg\.mozilla\.org\/mozilla-central\/?$"
-MOZILLA_BASE_REV = "SEAMONKEY_2_0a3_RELEASE"
+MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
 
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
