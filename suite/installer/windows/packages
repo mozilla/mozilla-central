@@ -432,7 +432,7 @@ bin\components\spellchecker.xpt
 bin\gksvggdiplus.dll
 bin\res\svg.css
 bin\components\dom_svg.xpt
-#ifdef MOZ_SMIL           
+#ifdef MOZ_SMIL
 bin\components\dom_smil.xpt
 #endif
 
