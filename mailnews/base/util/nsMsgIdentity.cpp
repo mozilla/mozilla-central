@@ -293,9 +293,18 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
       folderResource->GetServer(getter_AddRefs(server));
       if (server)
       {
-        nsCOMPtr <nsIMsgFolder> msgFolder;
-        rv = server->GetMsgFolderFromURI(folderResource, retval, getter_AddRefs(msgFolder));
-        return NS_SUCCEEDED(rv) ? msgFolder->GetURI(retval) : rv;
+        nsCOMPtr<nsIMsgFolder> rootFolder;
+        nsCOMPtr<nsIMsgFolder> deferredToRootFolder;
+        server->GetRootFolder(getter_AddRefs(rootFolder));
+        server->GetRootMsgFolder(getter_AddRefs(deferredToRootFolder));
+        // check if we're using a deferred account - if not, use the uri;
+        // otherwise, fall through to code that will fix this pref.
+        if (rootFolder == deferredToRootFolder)
+        {
+          nsCOMPtr <nsIMsgFolder> msgFolder;
+          rv = server->GetMsgFolderFromURI(folderResource, retval, getter_AddRefs(msgFolder));
+          return NS_SUCCEEDED(rv) ? msgFolder->GetURI(retval) : rv;
+        }
       }
     }
   }
@@ -326,7 +335,12 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
       rv = accountManager->GetLocalFoldersServer(getter_AddRefs(server));
       NS_ENSURE_SUCCESS(rv, rv);
     }
-    rv = server->GetServerURI(retval);
+    nsCOMPtr<nsIMsgFolder> rootFolder;
+    // this will get the deferred to server's root folder, if "server"
+    // is deferred, e.g., using the pop3 global inbox.
+    rv = server->GetRootMsgFolder(getter_AddRefs(rootFolder));
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = rootFolder->GetURI(retval);
     NS_ENSURE_SUCCESS(rv, rv);
     retval.Append('/');
     retval.Append(folderName);
