@@ -1820,12 +1820,12 @@ nsresult nsMsgDatabase::RemoveHeaderFromDB(nsMsgHdr *msgHdr)
   nsresult ret = NS_OK;
 
   RemoveHdrFromCache(msgHdr, nsMsgKey_None);
+  if (UseCorrectThreading())
+    RemoveMsgRefsFromHash(msgHdr);
   nsIMdbRow* row = msgHdr->GetMDBRow();
   ret = m_mdbAllMsgHeadersTable->CutRow(GetEnv(), row);
   row->CutAllColumns(GetEnv());
   msgHdr->m_initedValues = 0; // invalidate cached values.
-  if (UseCorrectThreading())
-    RemoveMsgRefsFromHash(msgHdr);
   return ret;
 }
 
@@ -3062,6 +3062,9 @@ NS_IMETHODIMP nsMsgDatabase::CopyHdrFromExistingHdr(nsMsgKey key, nsIMsgDBHdr *e
     err = destRow->SetRow(GetEnv(), sourceRow);
     if (NS_SUCCEEDED(err))
     {
+      // we may have gotten the header from a cache - calling SetRow
+      // basically invalidates any cached values, so invalidate them.
+      destMsgHdr->m_initedValues = 0;
       if(addHdrToDB)
         err = AddNewHdrToDB(destMsgHdr, PR_TRUE);
       if (NS_SUCCEEDED(err) && newHdr)
