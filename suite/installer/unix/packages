@@ -105,6 +105,9 @@ bin/components/dom_loadsave.xpt
 bin/components/dom_offline.xpt
 bin/components/dom_range.xpt
 bin/components/dom_sidebar.xpt
+#ifdef MOZ_SMIL           
+bin/components/dom_smil.xpt
+#endif
 bin/components/dom_storage.xpt
 bin/components/dom_stylesheets.xpt
 bin/components/dom_svg.xpt
