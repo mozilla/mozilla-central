@@ -2063,20 +2063,20 @@ SessionStoreService.prototype = {
     if (!isNaN(aLeft) && !isNaN(aTop) && (aLeft != win_("screenX") || aTop != win_("screenY"))) {
       aWindow.moveTo(aLeft, aTop);
     }
-    switch (aSizeMode)
+    if (aSizeMode && win_("sizemode") != aSizeMode)
     {
-    case "maximized":
-       if (win_("sizemode") != "maximized")
-         aWindow.maximize();
-    break
-    case "minimized":
-       if (win_("sizemode") != "minimized")
-         aWindow.minimize();
-       break
-    default:
-       if (win_("sizemode") != "normal")
-         aWindow.restore();
-       break
+      switch (aSizeMode)
+      {
+      case "maximized":
+        aWindow.maximize();
+        break;
+      case "minimized":
+        aWindow.minimize();
+        break;
+      case "normal":
+        aWindow.restore();
+        break;
+      }
     }
     var sidebar = aWindow.document.getElementById("sidebar-box");
     if (sidebar.getAttribute("sidebarcommand") != aSidebar) {
