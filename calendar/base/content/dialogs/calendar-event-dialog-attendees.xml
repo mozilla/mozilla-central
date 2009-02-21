@@ -388,6 +388,12 @@
               var nextDummy = this.getNextDummyRow();
               var newNode = listitem1.cloneNode(true);
 
+              if (nextDummy) {
+                  listbox.replaceChild(newNode, nextDummy);
+              } else {
+                  listbox.appendChild(newNode);
+              }
+
               var input =
                   document.getAnonymousElementByAttribute(
                       newNode, "anonid", "input");
@@ -416,11 +422,6 @@
               input.removeAttribute("value");
               input.attendee = newAttendee;
 
-              // this copies the autocomplete sessions list from first attendee
-              if (this.mLDAPSession && this.mSessionAdded) {
-                  input.syncSessions(document.getElementById('attendeeCol2#1'));
-              }
-
               // set role and participation status
               //status.setAttribute("status", newAttendee.participationStatus);
               //role.setAttribute("role", newAttendee.role);
@@ -439,10 +440,9 @@
                   input.removeAttribute('focused');
               }
 
-              if (nextDummy) {
-                  listbox.replaceChild(newNode, nextDummy);
-              } else {
-                  listbox.appendChild(newNode);
+              // this copies the autocomplete sessions list from first attendee
+              if (this.mLDAPSession && this.mSessionAdded) {
+                  input.syncSessions(document.getElementById('attendeeCol2#1'));
               }
 
               // focus on new input widget
