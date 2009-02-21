@@ -1860,7 +1860,7 @@ function URLBarSetURI(aURI, aValid) {
   // Replace "about:blank" with an empty string
   // only if there's no opener (bug 370555).
   if (uri.spec == "about:blank")
-    value = content.opener ? "about:blank" : "";
+    value = content.opener || getWebNavigation().canGoBack ? "about:blank" : "";
   else
     value = losslessDecodeURI(uri);
 

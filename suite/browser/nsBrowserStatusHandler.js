@@ -402,7 +402,7 @@ nsBrowserStatusHandler.prototype =
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                     .getService(Components.interfaces.nsIObserverService);
 
-    if (gURLBar.value && getWebNavigation().currentURI.spec == "about:blank")
+    if (!gURLBar.value && getWebNavigation().currentURI.spec == "about:blank")
       URLBarSetURI(uri);
 
     try {
