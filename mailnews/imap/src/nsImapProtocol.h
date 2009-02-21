@@ -67,6 +67,7 @@
 #include "nsImapFlagAndUidState.h"
 #include "nsIMAPNamespace.h"
 #include "nsVoidArray.h"
+#include "nsTArray.h"
 #include "nsWeakPtr.h"
 #include "nsMsgLineBuffer.h" // we need this to use the nsMsgLineStreamBuffer helper class...
 #include "nsIInputStream.h"
@@ -569,7 +570,7 @@ private:
   PRUint32 mFolderHighestUID;
   PRUint32 mFolderNumDeleted;
 
-  nsCStringArray mCustomDBHeaders;
+  nsTArray<nsCString> mCustomDBHeaders;
   PRBool  m_trackingTime;
   PRTime  m_startTime;
   PRTime  m_endTime;

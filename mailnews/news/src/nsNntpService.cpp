@@ -844,29 +844,29 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
   nsCAutoString str;
   nsCAutoString newsgroups;
 
-  nsCStringArray list;
+  nsTArray<nsCString> list;
   ParseString(newsgroupsList, ',', list);
-  for (PRInt32 index = 0; index < list.Count(); index++)
+  for (PRUint32 index = 0; index < list.Length(); index++)
   {
-    list[index]->StripWhitespace();
-    if (!list[index]->IsEmpty())
+    list[index].StripWhitespace();
+    if (!list[index].IsEmpty())
     {
       nsCAutoString currentHost;
       nsCAutoString theRest;
       // does str start with "news:/"?
-      if (StringBeginsWith(*list[index], NS_LITERAL_CSTRING(kNewsRootURI)))
+      if (StringBeginsWith(list[index], NS_LITERAL_CSTRING(kNewsRootURI)))
       {
         // we have news://group or news://host/group
         // set theRest to what's after news://
-        list[index]->Right(theRest, list[index]->Length() - kNewsRootURILen /* for news:/ */ - 1 /* for the slash */);
+        list[index].Right(theRest, list[index].Length() - kNewsRootURILen /* for news:/ */ - 1 /* for the slash */);
       }
-      else if (list[index]->Find(":/") != -1)
+      else if (list[index].Find(":/") != -1)
       {
         // we have x:/y where x != news. this is bad, return failure
         return NS_ERROR_FAILURE;
       }
       else
-        theRest = *list[index];
+        theRest = list[index];
 
       // theRest is "group" or "host/group"
       PRInt32 slashpos = theRest.FindChar('/');
@@ -898,7 +898,7 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
         // build up the newsgroups
         if (!newsgroups.IsEmpty())
           newsgroups += ",";
-        newsgroups += *list[index];
+        newsgroups += list[index];
       }
 
       if (!currentHost.IsEmpty())

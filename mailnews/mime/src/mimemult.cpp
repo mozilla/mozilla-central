@@ -198,7 +198,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       mult->hdrs = MimeHeaders_new();
       if (!mult->hdrs)
         return MIME_OUT_OF_MEMORY;
-      if (obj->options->state->partsToStrip.Count() > 0)
+      if (obj->options->state->partsToStrip.Length() > 0)
       {
         nsCAutoString newPart(mime_part_address(obj));
         MimeContainer *container = (MimeContainer*) obj; 
@@ -206,14 +206,14 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
         newPart.AppendInt(container->nchildren + 1);
         obj->options->state->strippingPart = PR_FALSE;
         // check if this is a sub-part of a part we're stripping.
-        for (PRInt32 partIndex = 0; partIndex < obj->options->state->partsToStrip.Count(); partIndex++)
+        for (PRUint32 partIndex = 0; partIndex < obj->options->state->partsToStrip.Length(); partIndex++)
         {
-          nsCString *curPartToStrip = obj->options->state->partsToStrip.CStringAt(partIndex);
-          if (newPart.Find(*curPartToStrip) == 0 && (newPart.Length() == curPartToStrip->Length() || newPart.CharAt(curPartToStrip->Length()) == '.'))
+          nsCString &curPartToStrip = obj->options->state->partsToStrip[partIndex];
+          if (newPart.Find(curPartToStrip) == 0 && (newPart.Length() == curPartToStrip.Length() || newPart.CharAt(curPartToStrip.Length()) == '.'))
           {
             obj->options->state->strippingPart = PR_TRUE;
-            if (partIndex < obj->options->state->detachToFiles.Count())
-              obj->options->state->detachedFilePath = *obj->options->state->detachToFiles.CStringAt(partIndex);
+            if (partIndex < obj->options->state->detachToFiles.Length())
+              obj->options->state->detachedFilePath = obj->options->state->detachToFiles[partIndex];
             break;
           }
         }

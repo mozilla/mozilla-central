@@ -1880,27 +1880,6 @@ NS_MSG_BASE PRBool ParseString(const char *string, const char *delims, nsCString
   return PR_TRUE;
 }
 
-NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsCStringArray& array)
-{
-  if (string.IsEmpty())
-    return PR_TRUE;
-
-  PRInt32 count = array.Count();
-  PRInt32 start = 0;
-  for (;;) {
-    PRInt32 end = string.FindChar(delimiter, start);
-    if (end != start && !array.AppendCString(Substring(string, start, end - start)))
-      break;
-    if (end == -1)
-      return PR_TRUE;
-    start = end + 1;
-  }
-
-  while (array.Count() > count)
-    array.RemoveCStringAt(array.Count() - 1);
-  return PR_FALSE;
-}
-
 #ifdef MOZILLA_1_9_1_BRANCH
 NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsTArray<nsCString>& array)
 {

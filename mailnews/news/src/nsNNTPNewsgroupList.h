@@ -54,6 +54,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgWindow.h"
 #include "nsCOMArray.h"
+#include "nsTArray.h"
 
 /* The below is all stuff that we remember for netlib about which
    articles we've already seen in the current newsgroup. */
@@ -135,8 +136,8 @@ protected:
   struct MSG_NewsKnown m_knownArts;
   nsMsgKeySet *m_set;
 
-  nsCStringArray m_filterHeaders;
-  PRInt32 m_currentXHDRIndex;
+  nsTArray<nsCString> m_filterHeaders;
+  PRUint32 m_currentXHDRIndex;
   nsCString m_lastHeader;
   nsCString m_thisLine;
 

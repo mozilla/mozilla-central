@@ -150,14 +150,14 @@ nsNNTPNewsgroupList::Initialize(nsINntpUrl *runningURL, nsIMsgNewsFolder *newsFo
   nsCAutoString servHeaders;
   m_serverFilterList->GetArbitraryHeaders(servHeaders);
 
-  nsCStringArray servArray;
+  nsTArray<nsCString> servArray;
   ParseString(servHeaders, ' ', servArray);
 
   // servArray may have duplicates already in m_filterHeaders.
-  for (PRInt32 i = 0; i < servArray.Count(); i++)
+  for (PRUint32 i = 0; i < servArray.Length(); i++)
   {
-    if (m_filterHeaders.IndexOf(*(servArray[i])) == -1)
-      m_filterHeaders.AppendCString(*(servArray[i]));
+    if (m_filterHeaders.IndexOf(servArray[i]) == -1)
+      m_filterHeaders.AppendElement(servArray[i]);
   }
   return NS_OK;
 }
@@ -931,10 +931,10 @@ nsNNTPNewsgroupList::FinishXOVERLINE(int status, int *newstatus)
 NS_IMETHODIMP
 nsNNTPNewsgroupList::InitXHDR(nsACString &header)
 {
-  if (++m_currentXHDRIndex >= m_filterHeaders.Count())
+  if (++m_currentXHDRIndex >= m_filterHeaders.Length())
     header.Truncate();
   else
-    header.Assign(*m_filterHeaders[m_currentXHDRIndex]);
+    header.Assign(m_filterHeaders[m_currentXHDRIndex]);
   // Don't include these in our XHDR bouts, as they are already provided through
   // XOVER. 
   if (header.EqualsLiteral("message-id") ||
@@ -969,7 +969,7 @@ nsNNTPNewsgroupList::ProcessXHDRLine(const nsACString &line)
   nsresult rv = m_newsDB->GetMsgHdrForKey(number, getter_AddRefs(header));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = header->SetStringProperty(m_filterHeaders[m_currentXHDRIndex]->get(), value.get());
+  rv = header->SetStringProperty(m_filterHeaders[m_currentXHDRIndex].get(), value.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRInt32 totalToDownload = m_lastMsgToDownload - m_firstMsgToDownload + 1;
@@ -1186,14 +1186,14 @@ nsNNTPNewsgroupList::CallFilters()
       fullHeaders += '\0';
     }
 
-    for (PRInt32 header = 0; header < m_filterHeaders.Count(); header++)
+    for (PRUint32 header = 0; header < m_filterHeaders.Length(); header++)
     {
       nsCString retValue;
-      m_newMsgHdr->GetStringProperty(m_filterHeaders[header]->get(),
+      m_newMsgHdr->GetStringProperty(m_filterHeaders[header].get(),
                                      getter_Copies(retValue));
       if (!retValue.IsEmpty())
       {
-        fullHeaders += *(m_filterHeaders[header]);
+        fullHeaders += m_filterHeaders[header];
         fullHeaders.AppendLiteral(": ");
         fullHeaders += retValue;
         fullHeaders += '\0';
@@ -1267,7 +1267,7 @@ void
 nsNNTPNewsgroupList::UpdateStatus(PRBool filtering, PRInt32 numDLed, PRInt32 totToDL)
 {
   PRInt32 numerator = (filtering ? m_currentXHDRIndex + 1 : 1) * numDLed;
-  PRInt32 denominator = (m_filterHeaders.Count() + 1) * totToDL;
+  PRInt32 denominator = (m_filterHeaders.Length() + 1) * totToDL;
   PRInt32 percent = numerator * 100 / denominator;
   
   nsAutoString numDownloadedStr;
@@ -1289,7 +1289,7 @@ nsNNTPNewsgroupList::UpdateStatus(PRBool filtering, PRInt32 numDLed, PRInt32 tot
 
   if (filtering)
   {
-    NS_ConvertUTF8toUTF16 header(*m_filterHeaders[m_currentXHDRIndex]);
+    NS_ConvertUTF8toUTF16 header(m_filterHeaders[m_currentXHDRIndex]);
     const PRUnichar *formatStrings[3] = { header.get(),
       numDownloadedStr.get(), totalToDownloadStr.get() };
     rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingFilterHeaders").get(),

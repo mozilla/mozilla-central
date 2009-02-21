@@ -2085,13 +2085,13 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       nsCOMPtr <nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      nsCStringArray whiteListArray;
+      nsTArray<nsCString> whiteListArray;
       ParseString(whiteListAbURI, ' ', whiteListArray);
 
-      for (PRInt32 index = 0; index < whiteListArray.Count(); index++)
+      for (PRUint32 index = 0; index < whiteListArray.Length(); index++)
       {
         nsCOMPtr<nsIRDFResource> resource;
-        rv = rdfService->GetResource(*whiteListArray[index], getter_AddRefs(resource));
+        rv = rdfService->GetResource(whiteListArray[index], getter_AddRefs(resource));
 
         nsCOMPtr<nsIAbDirectory> whiteListDirectory =
           do_QueryInterface(resource, &rv);
@@ -5274,17 +5274,17 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsIArray *aMessages, const ns
       NS_ENSURE_SUCCESS(rv, rv);
 
       message->GetStringProperty("keywords", getter_Copies(keywords));
-      nsCStringArray keywordArray;
+      nsTArray<nsCString> keywordArray;
       ParseString(aKeywords, ' ', keywordArray);
       PRUint32 addCount = 0;
-      for (PRInt32 j = 0; j < keywordArray.Count(); j++)
+      for (PRUint32 j = 0; j < keywordArray.Length(); j++)
       {
         PRInt32 start, length;
-        if (!MsgFindKeyword(*(keywordArray[j]), keywords, &start, &length))
+        if (!MsgFindKeyword(keywordArray[j], keywords, &start, &length))
         {
           if (!keywords.IsEmpty())
             keywords.Append(' ');
-          keywords.Append(keywordArray[j]->get());
+          keywords.Append(keywordArray[j]);
           addCount++;
         }
       }

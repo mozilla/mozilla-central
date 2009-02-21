@@ -226,20 +226,6 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<n
  */
 NS_MSG_BASE PRBool ParseString(const char *string, const char *delims, nsCStringArray& array);
 
-/**
- * Parses a given string using the delimiter passed in. Items parsed from the
- * string will be appended to the array.
- *
- * @param string
- *        The string to parse.
- * @param delimiter
- *        A delimter character.
- * @param array
- *        The array to append tokens to.
- * @deprecated Use an nsTArray<nsCString> instead of an nsCStringArray.
- */
-NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsCStringArray& array);
-
 #ifdef MOZILLA_1_9_1_BRANCH
 /**
  * Parses a given string using the delimiter passed in. Items parsed from the

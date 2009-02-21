@@ -942,24 +942,24 @@ nsresult nsAbLDAPDirectory::SplitStringList(
   NS_ENSURE_ARG_POINTER(aCount);
   NS_ENSURE_ARG_POINTER(aValues);
 
-  nsCStringArray strarr;
+  nsTArray<nsCString> strarr;
   ParseString(aString, ',', strarr);
 
   char **cArray = nsnull;
   if (!(cArray = static_cast<char **>(nsMemory::Alloc(
-      strarr.Count() * sizeof(char *)))))
+      strarr.Length() * sizeof(char *)))))
     return NS_ERROR_OUT_OF_MEMORY;
 
-  for (PRInt32 i = 0; i < strarr.Count(); ++i)
+  for (PRUint32 i = 0; i < strarr.Length(); ++i)
   {
-    if (!(cArray[i] = ToNewCString(*strarr.CStringAt(i))))
+    if (!(cArray[i] = ToNewCString(strarr[i])))
     {
-      NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(strarr.Count(), cArray);
+      NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(strarr.Length(), cArray);
       return NS_ERROR_OUT_OF_MEMORY;
     }
   }
 
-  *aCount = strarr.Count();
+  *aCount = strarr.Length();
   *aValues = cArray;
   return NS_OK;
 }

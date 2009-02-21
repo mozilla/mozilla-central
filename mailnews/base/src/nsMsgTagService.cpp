@@ -221,13 +221,13 @@ NS_IMETHODIMP nsMsgTagService::GetTopKey(const nsACString & keyList, nsACString 
 {
   _retval.Truncate();
   // find the most important key
-  nsCStringArray keyArray;
+  nsTArray<nsCString> keyArray;
   ParseString(keyList, ' ', keyArray);
-  PRUint32 keyCount = keyArray.Count();
+  PRUint32 keyCount = keyArray.Length();
   nsCString *topKey = nsnull, *key, topOrdinal, ordinal;
   for (PRUint32 i = 0; i < keyCount; ++i)
   {
-    key = keyArray[i];
+    key = &keyArray[i];
     if (key->IsEmpty())
       continue;
 

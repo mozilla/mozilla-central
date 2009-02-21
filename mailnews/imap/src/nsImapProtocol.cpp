@@ -3213,13 +3213,13 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
         const char *dbHeaders = (gUseEnvelopeCmd) ? IMAP_DB_HEADERS : IMAP_ENV_AND_DB_HEADERS;
         nsCString arbitraryHeaders;
         GetArbitraryHeadersToDownload(arbitraryHeaders);
-        for (PRInt32 i = 0; i < mCustomDBHeaders.Count(); i++)
+        for (PRUint32 i = 0; i < mCustomDBHeaders.Length(); i++)
         {
-          if (arbitraryHeaders.Find(* (mCustomDBHeaders[i]), PR_TRUE) == kNotFound)
+          if (arbitraryHeaders.Find(mCustomDBHeaders[i], PR_TRUE) == kNotFound)
           {
             if (!arbitraryHeaders.IsEmpty())
               arbitraryHeaders.Append(' ');
-            arbitraryHeaders.Append(mCustomDBHeaders[i]->get());
+            arbitraryHeaders.Append(mCustomDBHeaders[i]);
           }
         }
         if (arbitraryHeaders.IsEmpty())

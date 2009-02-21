@@ -3922,9 +3922,9 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
       (void)message->GetStatusOffset(&statusOffset);
       PRUint32 desiredOffset = messageOffset + statusOffset;
 
-      nsCStringArray keywordArray;
+      nsTArray<nsCString> keywordArray;
       ParseString(aKeywords, ' ', keywordArray);
-      for (PRInt32 j = 0; j < keywordArray.Count(); j++)
+      for (PRUint32 j = 0; j < keywordArray.Length(); j++)
       {
         nsCAutoString header;
         nsCAutoString keywords;
@@ -3932,7 +3932,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
         PRUint32 len = 0;
         nsCAutoString keywordToWrite(" ");
 
-        keywordToWrite.Append(*(keywordArray[j]));
+        keywordToWrite.Append(keywordArray[j]);
         seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, desiredOffset);
         // need to reset lineBuffer, which is cheaper than creating a new one.
         lineBuffer->start = lineBuffer->end = lineBuffer->buf;
@@ -3967,7 +3967,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
             PRInt32 keywordHdrLength = keywordHeaders.Length();
             PRInt32 startOffset, keywordLength;
             // check if we have the keyword
-            if (MsgFindKeyword(*(keywordArray[j]), keywordHeaders, &startOffset, &keywordLength))
+            if (MsgFindKeyword(keywordArray[j], keywordHeaders, &startOffset, &keywordLength))
             {
               foundKeyword = PR_TRUE;
               if (!add) // if we're removing, remove it, and break;

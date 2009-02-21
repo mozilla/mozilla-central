@@ -1479,18 +1479,18 @@ nsresult nsMsgSearchTerm::MatchKeyword(const nsACString& keywordList, PRBool *pR
 
   // Only accept valid keys in tokens.
   nsresult rv = NS_OK;
-  nsCStringArray keywordArray;
+  nsTArray<nsCString> keywordArray;
   ParseString(keywordList, ' ', keywordArray);
   nsCOMPtr<nsIMsgTagService> tagService(do_GetService(NS_MSGTAGSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Loop through tokens in keywords
-  PRUint32 count = keywordArray.Count();
+  PRUint32 count = keywordArray.Length();
   for (PRUint32 i = 0; i < count; i++)
   {
     // is this token a valid tag? Otherwise ignore it
     PRBool isValid;
-    rv = tagService->IsValidKey(*keywordArray[i], &isValid);
+    rv = tagService->IsValidKey(keywordArray[i], &isValid);
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (isValid)
@@ -1503,7 +1503,7 @@ nsresult nsMsgSearchTerm::MatchKeyword(const nsACString& keywordList, PRBool *pR
       }
 
       // Does this valid tag key match our search term?
-      matches = keywordArray[i]->Equals(m_value.string);
+      matches = keywordArray[i].Equals(m_value.string);
 
       // Is or Isn't partly determined on a single unmatched token
       if (!matches)

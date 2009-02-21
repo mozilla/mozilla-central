@@ -2923,13 +2923,13 @@ nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder,
                                                   nsIRDFService *rdf,
                                                   nsIMsgDBService *msgDBService)
 {
-  nsCStringArray folderUris;
+  nsTArray<nsCString> folderUris;
   ParseString(srchFolderUris, '|', folderUris);
   nsCOMPtr <nsIRDFResource> resource;
 
-  for (PRInt32 i = 0; i < folderUris.Count(); i++)
+  for (PRUint32 i = 0; i < folderUris.Length(); i++)
   {
-    rdf->GetResource(*(folderUris[i]), getter_AddRefs(resource));
+    rdf->GetResource(folderUris[i], getter_AddRefs(resource));
     nsCOMPtr <nsIMsgFolder> realFolder = do_QueryInterface(resource);
     VirtualFolderChangeListener *dbListener = new VirtualFolderChangeListener();
     NS_ENSURE_TRUE(dbListener, NS_ERROR_OUT_OF_MEMORY);

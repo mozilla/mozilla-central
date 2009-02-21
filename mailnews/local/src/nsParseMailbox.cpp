@@ -527,9 +527,9 @@ nsParseMailMessageState::nsParseMailMessageState()
      pPrefBranch->GetCharPref("mailnews.customDBHeaders",  getter_Copies(customDBHeaders));
      ToLowerCase(customDBHeaders);
      ParseString(customDBHeaders, ' ', m_customDBHeaders);
-     if (m_customDBHeaders.Count())
+     if (m_customDBHeaders.Length())
      {
-       m_customDBHeaderValues = new struct message_header [m_customDBHeaders.Count()];
+       m_customDBHeaderValues = new struct message_header [m_customDBHeaders.Length()];
        if (!m_customDBHeaderValues)
          m_customDBHeaders.Clear();
      }
@@ -584,7 +584,7 @@ NS_IMETHODIMP nsParseMailMessageState::Clear()
   m_headers.ResetWritePos();
   m_envelope.ResetWritePos();
   m_receivedTime = LL_ZERO;
-  for (PRInt32 i = 0; i < m_customDBHeaders.Count(); i++)
+  for (PRUint32 i = 0; i < m_customDBHeaders.Length(); i++)
     m_customDBHeaderValues[i].length = 0;
 
   return NS_OK;
@@ -1016,7 +1016,7 @@ int nsParseMailMessageState::ParseHeaders ()
         header = &m_keywords;
       break;
     }
-    if (!header && m_customDBHeaders.Count())
+    if (!header && m_customDBHeaders.Length())
     {
       nsDependentCSubstring headerStr(buf, end);
 
@@ -1539,25 +1539,25 @@ int nsParseMailMessageState::FinalizeHeaders()
           // to the message file, so add extra keywords from the backup
           nsCAutoString oldKeywords;
           m_newMsgHdr->GetStringProperty("keywords", getter_Copies(oldKeywords));
-          nsCStringArray newKeywordArray, oldKeywordArray;
+          nsTArray<nsCString> newKeywordArray, oldKeywordArray;
           ParseString(Substring(keywords->value, keywords->value + keywords->length), ' ', newKeywordArray);
           ParseString(oldKeywords, ' ', oldKeywordArray);
-          for (PRInt32 i = 0; i < oldKeywordArray.Count(); i++)
-            if (newKeywordArray.IndexOf(*oldKeywordArray.CStringAt(i)) < 0)
-              newKeywordArray.AppendCString(*oldKeywordArray.CStringAt(i));
+          for (PRUint32 i = 0; i < oldKeywordArray.Length(); i++)
+            if (!newKeywordArray.Contains(oldKeywordArray[i]))
+              newKeywordArray.AppendElement(oldKeywordArray[i]);
           nsCAutoString newKeywords;
-          for (PRInt32 i = 0; i < newKeywordArray.Count(); i++)
+          for (PRUint32 i = 0; i < newKeywordArray.Length(); i++)
           {
             if (i)
               newKeywords.Append(" ");
-            newKeywords.Append(*newKeywordArray.CStringAt(i));
+            newKeywords.Append(newKeywordArray[i]);
           }
           m_newMsgHdr->SetStringProperty("keywords", newKeywords.get());
         }
-        for (PRInt32 i = 0; i < m_customDBHeaders.Count(); i++)
+        for (PRUint32 i = 0; i < m_customDBHeaders.Length(); i++)
         {
           if (m_customDBHeaderValues[i].length)
-            m_newMsgHdr->SetStringProperty((m_customDBHeaders[i])->get(), m_customDBHeaderValues[i].value);
+            m_newMsgHdr->SetStringProperty(m_customDBHeaders[i].get(), m_customDBHeaderValues[i].value);
         }
         if (content_type)
         {

@@ -229,7 +229,7 @@
  */
 
 #include "mimehdrs.h"
-#include "nsVoidArray.h"
+#include "nsTArray.h"
 
 typedef struct MimeObject      MimeObject;
 typedef struct MimeObjectClass MimeObjectClass;
@@ -404,8 +404,8 @@ public:
                         will be set to indicate whether any
                         dexlateion did in fact occur.
                       */
-  nsCStringArray partsToStrip;      /* if we're stripping parts, what parts to strip */
-  nsCStringArray detachToFiles;      /* if we're detaching parts, where each part was detached to */
+  nsTArray<nsCString> partsToStrip; /* if we're stripping parts, what parts to strip */
+  nsTArray<nsCString> detachToFiles; /* if we're detaching parts, where each part was detached to */
   PRBool strippingPart;
   nsCString detachedFilePath;       /* if we've detached this part, filepath of detached part */
 };

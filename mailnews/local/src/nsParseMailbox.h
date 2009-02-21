@@ -152,7 +152,7 @@ public:
   // this enables extensions to add the values of particular headers to
   // the .msf file as properties of nsIMsgHdr. It is initialized from a
   // pref, mailnews.customDBHeaders
-  nsCStringArray        m_customDBHeaders;
+  nsTArray<nsCString>   m_customDBHeaders;
   struct message_header *m_customDBHeaderValues;
 protected:
 };

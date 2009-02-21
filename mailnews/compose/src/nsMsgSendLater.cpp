@@ -707,12 +707,12 @@ nsresult nsMsgSendLater::SetOrigMsgDisposition()
   mMessage->GetStringProperty(QUEUED_DISPOSITION_PROPERTY, getter_Copies(queuedDisposition));
   if (!queuedDisposition.IsEmpty())
   {
-    nsCStringArray uriArray;
+    nsTArray<nsCString> uriArray;
     ParseString(originalMsgURIs, ',', uriArray);
-    for (PRInt32 i = 0; i < uriArray.Count(); i++)
+    for (PRUint32 i = 0; i < uriArray.Length(); i++)
     {
       nsCOMPtr <nsIMsgDBHdr> msgHdr;
-      nsresult rv = GetMsgDBHdrFromURI(uriArray[i]->get(), getter_AddRefs(msgHdr));
+      nsresult rv = GetMsgDBHdrFromURI(uriArray[i].get(), getter_AddRefs(msgHdr));
       NS_ENSURE_SUCCESS(rv,rv);
       if (msgHdr)
       {

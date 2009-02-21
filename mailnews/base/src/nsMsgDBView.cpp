@@ -703,13 +703,13 @@ nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, nsAString &aTagString)
       FetchLabel(aHdr, tags);
   }
 
-  nsCStringArray keywordsArray;
+  nsTArray<nsCString> keywordsArray;
   ParseString(keywords, ' ', keywordsArray);
   nsAutoString tag;
 
-  for (PRInt32 i = 0; i < keywordsArray.Count(); i++)
+  for (PRUint32 i = 0; i < keywordsArray.Length(); i++)
   {
-    rv = mTagService->GetTagForKey(*(keywordsArray[i]), tag);
+    rv = mTagService->GetTagForKey(keywordsArray[i], tag);
     if (NS_SUCCEEDED(rv) && !tag.IsEmpty())
     {
       if (!tags.IsEmpty())

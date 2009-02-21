@@ -200,7 +200,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
   NS_ENSURE_TRUE(headerValueEnumerator, NS_ERROR_OUT_OF_MEMORY);
 
   nsCString extraExpandedHeaders;
-  nsCStringArray extraExpandedHeadersArray;
+  nsTArray<nsCString> extraExpandedHeadersArray;
   nsCAutoString convertedDateString;
 
   PRBool displayOriginalDate = PR_FALSE;
@@ -243,7 +243,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
           PL_strcasecmp("x-newsreader", headerInfo->name) && PL_strcasecmp("x-mimeole", headerInfo->name) &&
           PL_strcasecmp("references", headerInfo->name) && PL_strcasecmp("in-reply-to", headerInfo->name) &&
           // make headerStr lower case because IndexOf is case-sensitive
-         (!extraExpandedHeadersArray.Count() || (ToLowerCase(headerStr),
+         (!extraExpandedHeadersArray.Length() || (ToLowerCase(headerStr),
             extraExpandedHeadersArray.IndexOf(headerStr) == -1)))
             continue;
     }
