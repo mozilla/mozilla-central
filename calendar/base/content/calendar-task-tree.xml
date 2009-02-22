@@ -732,13 +732,13 @@
 
           // Set the context menu on mousedown to change it before it is opened
           onMouseDown: function tTV_onMouseDown(event) {
-            let tree = document.getAnonymousElementByAttribute(this.binding,
-                                                               "anonid",
-                                                               "calendar-task-tree");
+              let tree = document.getAnonymousElementByAttribute(this.binding,
+                                                                 "anonid",
+                                                                 "calendar-task-tree");
 
-            if (!this._getItemFromEvent(event)) {
-                tree.view.selection.clearSelection();
-            }
+              if (!this._getItemFromEvent(event)) {
+                  tree.view.selection.invalidateSelection();
+              }
           },
 
           /**
@@ -1085,6 +1085,10 @@
         this.mTreeView.onMouseDown(event);
       ]]></handler>
       <handler event="draggesture"><![CDATA[
+        if (event.originalTarget.localName != "treechildren") {
+            // We should only drag treechildren, not for example the scrollbar.
+            return;
+        }
         var item = this.mTreeView._getItemFromEvent(event);
         if (!item || item.calendar.readOnly) {
             return;
