@@ -346,6 +346,25 @@ function dispose() {
 }
 
 /**
+ * Create a calIAlarm from the given menuitem. The menuitem must have the
+ * following attributes: unit, length, origin, relation.
+ *
+ * @param menuitem      The menuitem to create the alarm from.
+ * @return              The calIAlarm with information from the menuitem.
+ */
+function createReminderFromMenuitem(aMenuitem) {
+    let reminder = cal.createAlarm();
+    let offset = cal.createDuration();
+    offset[aMenuitem.getAttribute("unit")] = aMenuitem.getAttribute("length");
+    offset.normalize();
+    offset.isNegative = (aMenuitem.getAttribute("origin") == "before");
+    reminder.related = (aMenuitem.getAttribute("relation") == "START" ?
+                        reminder.ALARM_RELATED_START : reminder.ALARM_RELATED_END);
+    reminder.offset = offset;
+    return reminder;
+}
+
+/**
  * This function opens the needed dialogs to edit the reminder. Note however
  * that calling this function from an extension is not recommended. To allow an
  * extension to open the reminder dialog, set the menulist "item-alarm" to the
@@ -526,15 +545,7 @@ function saveReminder(item) {
         } else {
             // Pre-defined entries specify the necessary information
             // as attributes attached to the menuitem elements.
-            let reminder = cal.createAlarm();
-            let offset = cal.createDuration();
-            offset[menuitem.getAttribute("unit")] = menuitem.getAttribute("length");
-            offset.normalize();
-            offset.isNegative = (menuitem.getAttribute("origin") == "before");
-            reminder.related = (menuitem.getAttribute("relation") == "START" ?
-                                reminder.ALARM_RELATED_START : reminder.ALARM_RELATED_END);
-            reminder.offset = offset;
-            reminders = [reminder];
+            reminders = [createReminderFromMenuitem(menuitem)];
         }
 
         let alarmCaps = item.calendar.getProperty("capabilities.alarms.actionValues") ||
@@ -591,58 +602,43 @@ function commonUpdateReminder() {
     // to the entry date we check the entry date automatically and disable
     // the checkbox. the same goes for end related reminder and the due date.
     if (isToDo(window.calendarItem)) {
+        // In general, (re-)enable the due/entry checkboxes. This will be
+        // changed in case the alarms are related to START/END below.
+        enableElementWithLock("todo-has-duedate", "reminder-lock");
+        enableElementWithLock("todo-has-entrydate", "reminder-lock");
 
-        // custom reminder entries carry their own reminder object
-        // with them, pre-defined entries specify the necessary information
-        // as attributes attached to the menuitem elements.
         let menuitem = reminderList.selectedItem;
-        if (menuitem.value == 'none') {
-            enableElementWithLock("todo-has-entrydate", "reminder-lock");
-            enableElementWithLock("todo-has-duedate", "reminder-lock");
-        } else {
-            var reminder = menuitem.reminder;
-            if (!reminder) {
-                reminder = {};
-                reminder.length = menuitem.getAttribute('length');
-                reminder.unit = menuitem.getAttribute('unit');
-                reminder.relation = menuitem.getAttribute('relation');
-                reminder.origin = menuitem.getAttribute('origin');
-            }
+        if (menuitem.value != 'none') {
+            // In case a reminder is selected, retrieve the array of alarms from
+            // it, or create one from the currently selected menuitem.
+            let reminders = menuitem.reminders || [createReminderFromMenuitem(menuitem)];
 
-            // if this reminder is related to the entry date...
-            if (Number(reminder.origin) > 0) {
-
+            // If a reminder is related to the entry date...
+            if (reminders.some(function(x) x.related == x.ALARM_RELATED_START)) {
                 // ...automatically check 'has entrydate'.
                 if (!getElementValue("todo-has-entrydate", "checked")) {
                     setElementValue("todo-has-entrydate", "true", "checked");
 
-                    // make sure gStartTime is properly initialized
+                    // Make sure gStartTime is properly initialized
                     updateEntryDate();
                 }
 
-                // disable the checkbox to indicate that we need
-                // the entry-date. the 'disabled' state will be
-                // revoked if the user turns off the repeat pattern.
+                // Disable the checkbox to indicate that we need the entry-date.
                 disableElementWithLock("todo-has-entrydate", "reminder-lock");
-                enableElementWithLock("todo-has-duedate", "reminder-lock");
             }
 
-            // if this reminder is related to the due date...
-            if (Number(reminder.origin) < 0) {
-
+            // If a reminder is related to the due date...
+            if (reminders.some(function(x) x.related == x.ALARM_RELATED_END)) {
                 // ...automatically check 'has duedate'.
                 if (!getElementValue("todo-has-duedate", "checked")) {
                     setElementValue("todo-has-duedate", "true", "checked");
 
-                    // make sure gStartTime is properly initialized
+                    // Make sure gStartTime is properly initialized
                     updateDueDate();
                 }
 
-                // disable the checkbox to indicate that we need
-                // the entry-date. the 'disabled' state will be
-                // revoked if the user turns off the repeat pattern.
+                // Disable the checkbox to indicate that we need the entry-date.
                 disableElementWithLock("todo-has-duedate", "reminder-lock");
-                enableElementWithLock("todo-has-entrydate", "reminder-lock");
             }
         }
     }
