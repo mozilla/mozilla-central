@@ -1225,6 +1225,12 @@ calDavCalendar.prototype = {
             // check for server-side ctag support
             var ctag = multistatus..CS::["getctag"].toString();
             if (ctag.length) {
+                // We compare the stored ctag with the one we just got, if
+                // they don't match, we update the items in safeRefresh.
+                if (ctag == thisCalendar.mCtag) {
+                    thisCalendar.mFirstRefreshDone = true;
+                }
+
                 thisCalendar.mCtag = ctag;
                 thisCalendar.mTargetCalendar.setMetaData("ctag", ctag);
                 if (thisCalendar.verboseLogging()) {
