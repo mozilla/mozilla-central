@@ -504,7 +504,7 @@ RFC822AddressList * construct_addresslist(char *s)
           if (--comment == 0) {
             *s = '\0';
             PR_FREEIF(list->displayname);
-            list->displayname = strdup(displayname);
+            list->displayname = displayname ? strdup(displayname) : nsnull;
             list->asciionly = intlmime_only_ascii_str(displayname);
             *s = ')';
           }
@@ -521,7 +521,7 @@ RFC822AddressList * construct_addresslist(char *s)
           char tmp = *(s+1);
           *(s+1) = '\0';
           PR_FREEIF(list->displayname);
-          list->displayname = strdup(displayname);
+          list->displayname = displayname ? strdup(displayname) : nsnull;
           list->asciionly = intlmime_only_ascii_str(displayname);
           *(s+1) = tmp;
         }
@@ -540,7 +540,7 @@ RFC822AddressList * construct_addresslist(char *s)
             tmp = *++e;
             *e = '\0';
             PR_FREEIF(list->displayname);
-            list->displayname = strdup(displayname);
+            list->displayname = displayname ? strdup(displayname) : nsnull;
             list->asciionly = intlmime_only_ascii_str(displayname);
             *e = tmp;
           }
@@ -551,7 +551,7 @@ RFC822AddressList * construct_addresslist(char *s)
           tmp = *(s+1);
           *(s+1) = '\0';
           PR_FREEIF(list->addrspec);
-          list->addrspec = strdup(addrspec);
+          list->addrspec = addrspec ? strdup(addrspec) : nsnull;
           *(s+1) = tmp;
         }
         continue;
