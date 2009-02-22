@@ -811,6 +811,13 @@
                   let rangeStart = entry.interval.start.getInTimezone(kDefaultTimezone);
                   let rangeEnd = entry.interval.end.getInTimezone(kDefaultTimezone);
                   
+		  if (rangeStart.compare(start) < 0) {
+		      rangeStart = start.clone();
+		  }
+		  if (rangeEnd.compare(end) > 0) {
+		      rangeEnd = end.clone();
+		  }
+
                   if (rangeStart.compare(start) >= 0 &&
                       rangeEnd.compare(end) <= 0) {
                       let rangeDuration = rangeEnd.subtractDate(rangeStart);
