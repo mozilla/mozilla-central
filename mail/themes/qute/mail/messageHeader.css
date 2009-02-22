@@ -44,7 +44,7 @@
 /* ::::: for the entire area ::::: */
 .main-header-area {
   color: WindowText;
-  background-color: Menu;
+  background-color: ButtonFace;
   border-bottom: 2px groove ThreeDLightShadow;
   padding: 0.4ex;
 }
@@ -78,22 +78,6 @@
 #otherActionsButton {
   margin-bottom: .1em;
   padding-top: 0px;
-}
-
-.msgHeaderView-flat-button[type="menu"] > .button-box > .button-menu-dropmarker,
-.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-dropmarker {
-  -moz-appearance: none !important;
-}
-
-.msgHeaderView-flat-button[type="menu"] > .button-box > .button-menu-dropmarker > .dropmarker-icon,
-.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-dropmarker > .dropmarker-icon {
-  -moz-padding-start: 4px;
-  list-style-image: url("chrome://messenger/skin/icons/arrow-dn-grey.png");
-}
-
-.msgHeaderView-flat-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
-.msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
-  list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
 }
 
 #collapsedsubjectValue {
@@ -244,7 +228,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .msgHeaderView-flat-button {
   min-width: 1px;
   -moz-appearance: none;
-  color: GrayText;
+  color: ButtonText;
   background-color: transparent;
   border: 3px solid transparent;
   margin-top: 1px;
@@ -308,12 +292,8 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 .msgHeaderView-flat-button:hover {
+  -moz-appearance: button;
   color: -moz-buttonhovertext;
-  background-color: -moz-buttonhoverface;
-  -moz-border-top-colors: transparent threedhighlight threedlightshadow;
-  -moz-border-right-colors: transparent threeddarkshadow threedshadow;
-  -moz-border-bottom-colors: transparent threeddarkshadow threedshadow;
-  -moz-border-left-colors: transparent threedhighlight threedlightshadow;
 }
 
 .headerNameBox {
