@@ -537,7 +537,6 @@ calDavCalendar.prototype = {
      * @param aIgnoreEtag ignore item etag
      */
     doModifyItem: function caldav_doModifyItem(aNewItem, aOldItem, aListener, aIgnoreEtag) {
-
         if (aNewItem.id == null) {
             this.notifyOperationComplete(aListener,
                                          Components.results.NS_ERROR_FAILURE,
@@ -547,13 +546,9 @@ calDavCalendar.prototype = {
             return;
         }
 
-        var wasInboxItem = false;
-        if (this.mItemInfoCache[aNewItem.id].isInboxItem) {
-            aIgnoreEtag = true;
-            wasInboxItem = true;
-        }
+        let wasInboxItem = this.mItemInfoCache[aNewItem.id].isInboxItem; 
 
-        var newItem_ = aNewItem;
+        let newItem_ = aNewItem;
         aNewItem = aNewItem.parentItem.clone();
         if (newItem_.parentItem != newItem_) {
             aNewItem.recurrenceInfo.modifyException(newItem_, false);
