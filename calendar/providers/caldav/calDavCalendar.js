@@ -1192,6 +1192,8 @@ calDavCalendar.prototype = {
             } catch (ex) {
                 LOG("CalDAV: Error without status on initial PROPFIND for calendar " +
                     thisCalendar.name);
+                thisCalendar.completeCheckServerInfo(aChangeLogListener,
+                                                     Components.interfaces.calIErrors.DAV_NOT_DAV);
             }
             var wwwauth;
             try {
@@ -1215,7 +1217,8 @@ calDavCalendar.prototype = {
             }
 
             let str = cal.convertByteArray(aResult, aResultLength);
-            if (!str) {
+            if (!str || request.responseStatus == 404) {
+                // No response, or the calendar no longer exists.
                 LOG("CalDAV: Failed to determine resource type");
                 thisCalendar.completeCheckServerInfo(aChangeLogListener,
                                                      Components.interfaces.calIErrors.DAV_NOT_DAV);
