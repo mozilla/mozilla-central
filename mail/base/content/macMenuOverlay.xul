@@ -50,9 +50,10 @@
               label="&messengerCmd.label;"  key="key_mail"
               oncommand="toMessengerWindow();" id="tasksMenuMail"
               insertbefore="sep-window-list"/>
-    <menuitem label="&addressBookCmd.label;"
-              accesskey="&addressBookCmd.accesskey;" key="key_addressbook"
-              oncommand="toAddressBook();" id="tasksMenuAddressBook"
+    <menuitem id="tasksMenuAddressBook"
+              label="&addressBookCmd.label;"
+              accesskey="&addressBookCmd.accesskey;"
+              oncommand="toAddressBook();"
               insertbefore="sep-window-list"/>
   </menupopup>
 </overlay>
