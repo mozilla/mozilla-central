@@ -156,7 +156,7 @@ nsNNTPNewsgroupList::Initialize(nsINntpUrl *runningURL, nsIMsgNewsFolder *newsFo
   // servArray may have duplicates already in m_filterHeaders.
   for (PRUint32 i = 0; i < servArray.Length(); i++)
   {
-    if (m_filterHeaders.IndexOf(servArray[i]) == -1)
+    if (m_filterHeaders.IndexOf(servArray[i]) == m_filterHeaders.NoIndex)
       m_filterHeaders.AppendElement(servArray[i]);
   }
   return NS_OK;

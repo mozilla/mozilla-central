@@ -244,7 +244,8 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
           PL_strcasecmp("references", headerInfo->name) && PL_strcasecmp("in-reply-to", headerInfo->name) &&
           // make headerStr lower case because IndexOf is case-sensitive
          (!extraExpandedHeadersArray.Length() || (ToLowerCase(headerStr),
-            extraExpandedHeadersArray.IndexOf(headerStr) == -1)))
+            extraExpandedHeadersArray.IndexOf(headerStr) ==
+            extraExpandedHeadersArray.NoIndex)))
             continue;
     }
 
