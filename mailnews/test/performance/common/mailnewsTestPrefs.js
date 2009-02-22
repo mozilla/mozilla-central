@@ -1,6 +1,8 @@
 // This set of prefs is copyied over the defaults that build-seamonkey-util.pl
 // sets up.
 user_pref("browser.dom.window.dump.enabled", true);
+// no slow script dialogs
+user_pref("dom.max_script_run_time", 0);
 user_pref("extensions.palmsync.conduitRegistered", true);
 user_pref("mail.account.account1.server", "server1");
 user_pref("mail.account.account2.identities", "id1");
@@ -34,6 +36,7 @@ user_pref("mail.smtpservers", "smtp1");
 user_pref("mail.startup.enabledMailCheckOnce", true);
 user_pref("mailnews.start_page_override.mstone", "ignore");
 user_pref("mail.shell.checkDefaultClient", false);
+user_pref("mail.winsearch.enable", false);
 // Ensure OS X and Outlook/OE books are disabled
 user_pref("ldap_2.servers.osx.position", 0);
 user_pref("ldap_2.servers.oe.position", 0);
