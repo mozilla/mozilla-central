@@ -687,7 +687,6 @@ calDavCalendar.prototype = {
                     } else {
                         thisCalendar.mTargetCalendar.deleteItem(aItem, aListener);
                     }
-                    thisCalendar.mTargetCalendar.deleteItem(aItem, aListener);
                     delete thisCalendar.mHrefIndex[eventUri.path];
                     delete thisCalendar.mItemInfoCache[aItem.id];
                     LOG("CalDAV: Item deleted successfully.");
