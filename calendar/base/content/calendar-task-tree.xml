@@ -536,7 +536,15 @@
                   }
               }
               this.selectedColumn = aCol.element;
+              let selectedItems = this.binding.selectedTasks;
               this.binding.sortItems();
+              if (selectedItems != undefined) {
+                  this.tree.view.selection.clearSelection();
+                  for each (item in selectedItems){
+                      let index = this.binding.mHash2Index[item.hashId];
+                      this.tree.view.selection.toggleSelect(index);
+                  }
+              }
           },
 
           // The text for a given cell. If a column consists only of an
