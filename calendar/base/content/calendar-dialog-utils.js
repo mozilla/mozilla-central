@@ -577,17 +577,23 @@ function commonUpdateReminder() {
             editReminder();
         }
 
-        // If one or no reminders were selected, we have a chance of mapping
-        // them to the existing elements in the dropdown.
-        let customItem = reminderList.selectedItem;
-        if (customItem.reminders.length == 0) {
-            // No reminder was selected
-            reminderList.value = "none";
-        } else if (customItem.reminders.length == 1 &&
-                   customItem.reminders[0].action == "DISPLAY") {
-            // TODO This can be taken care of in a different bug. What needs to
-            // be done is to go through the menuitems in item-alarm and check if
-            // customItem.reminders[0] matches with that.
+        if (reminderList.value == 'custom') {
+            // Only do this if the 'custom' item is still selected. If the edit
+            // reminder dialog was canceled then the previously selected
+            // menuitem is selected, which may not be the custom menuitem.
+
+            // If one or no reminders were selected, we have a chance of mapping
+            // them to the existing elements in the dropdown.
+            let customItem = reminderList.selectedItem;
+            if (customItem.reminders.length == 0) {
+                // No reminder was selected
+                reminderList.value = "none";
+            } else if (customItem.reminders.length == 1 &&
+                       customItem.reminders[0].action == "DISPLAY") {
+                // TODO This can be taken care of in a different bug. What needs to
+                // be done is to go through the menuitems in item-alarm and check if
+                // customItem.reminders[0] matches with that.
+            }
         }
     }
 
