@@ -863,6 +863,10 @@ calDavCalendar.prototype = {
                 var multistatus = cal.safeNewXML(str);
             } catch (ex) {
                 LOG("CalDAV: Failed to get ctag from server");
+                if (thisCalendar.isCached && aChangeLogListener) {
+                    aChangeLogListener.onResult({ status: Components.results.NS_OK },
+                                                Components.results.NS_OK);
+                }
                 return;
             }
 
@@ -881,6 +885,12 @@ calDavCalendar.prototype = {
                     LOG("CalDAV: ctag matches, no need to fetch data for calendar "
                         + thisCalendar.name);
                 }
+
+                if (thisCalendar.isCached && aChangeLogListener) {
+                    aChangeLogListener.onResult({ status: Components.results.NS_OK },
+                                                Components.results.NS_OK);
+                }
+
                 // we may still need to poll the inbox
                 if (thisCalendar.firstInRealm()) {
                     thisCalendar.pollInbox();
