@@ -320,7 +320,7 @@ SessionStoreService.prototype = {
         openWindows[aWindow.__SSi] = true;
       });
       // also clear all data about closed tabs and windows
-      for (ix in this._windows) {
+      for (let ix in this._windows) {
         if (ix in openWindows)
           this._windows[ix]._closedTabs = [];
         else
