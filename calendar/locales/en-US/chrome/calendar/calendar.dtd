@@ -323,6 +323,6 @@
 
 <!-- Error reporting -->
 <!ENTITY calendar.error.detail "Details…">
-<!ENTITY calendar.error.number "Error number:">
+<!ENTITY calendar.error.code "Error code:">
 <!ENTITY calendar.error.description "Description:">
 <!ENTITY calendar.error.title "An error has occurred">

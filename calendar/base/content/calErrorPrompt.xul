@@ -57,7 +57,7 @@
         function loadErrorPrompt() {
             var args = window.arguments[0].QueryInterface(Components.interfaces.nsIDialogParamBlock);
             document.getElementById("general-text").value = args.GetString(0);
-            document.getElementById("error-number").value = args.GetString(1);
+            document.getElementById("error-code").value = args.GetString(1);
             document.getElementById("error-description").value = args.GetString(2);
             this.sizeToContent();
         }
@@ -84,8 +84,8 @@
             </columns>
             <rows>
                 <row>
-                    <label value="&calendar.error.number;"/>
-                    <label id="error-number" value=""/>
+                    <label value="&calendar.error.code;"/>
+                    <label id="error-code" value=""/>
                 </row>
                 <row flex="1">
                     <label value="&calendar.error.description;" control="error-description"/>
