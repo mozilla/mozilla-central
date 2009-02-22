@@ -737,19 +737,14 @@ function WindowFocusTimerCallback(element)
   }
 }
 
-function BrowserFlushBookmarksAndHistory()
+function BrowserFlushBookmarks()
 {
-  // Flush bookmarks and history (used when window closes or is cached).
+  // Flush bookmarks (used when window closes or is cached).
   try {
     // If bookmarks are dirty, flush 'em to disk
     var bmks = Components.classes["@mozilla.org/browser/bookmarks-service;1"]
                          .getService(Components.interfaces.nsIRDFRemoteDataSource);
     bmks.Flush();
-
-    // give history a chance at flushing to disk also
-    var history = Components.classes["@mozilla.org/browser/global-history;2"]
-                            .getService(Components.interfaces.nsIRDFRemoteDataSource);
-    history.Flush();
   } catch(ex) {
   }
 }
@@ -786,7 +781,7 @@ function Shutdown()
         .getInterface(Components.interfaces.nsIXULWindow)
         .XULBrowserWindow = null;
 
-  BrowserFlushBookmarksAndHistory();
+  BrowserFlushBookmarks();
 
   // unregister us as a pref listener
   removePrefListener(gButtonPrefListener);
