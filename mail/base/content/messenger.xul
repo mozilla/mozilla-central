@@ -233,7 +233,7 @@
                   treelines="true"
                   flex="2"
                   enableColumnDrag="true"
-                  _selectDelay="500"
+                  _selectDelay="250"
                   class="plain focusring"
                   lastfoldersent="false"
                   keepcurrentinview="true"

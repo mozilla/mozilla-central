@@ -759,6 +759,10 @@ pref("mailnews.mark_message_read.auto", true);
 pref("mailnews.mark_message_read.delay", false);
 pref("mailnews.mark_message_read.delay.interval", 5); // measured in seconds
 
+// delay after which messages are showed when moving through them with cursors
+// during thread pane navigation
+pref("mailnews.threadpane_select_delay", 250); // measured in milliseconds
+
 // require a password before showing imap or local headers in thread pane
 pref("mail.password_protect_local_cache", false);
 

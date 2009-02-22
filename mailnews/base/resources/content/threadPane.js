@@ -469,6 +469,8 @@ function ThreadPaneOnLoad()
     return;
 
   tree.addEventListener("mousedown",TreeOnMouseDown,true);
+  let delay = pref.getIntPref("mailnews.threadpane_select_delay");
+  document.getElementById("threadTree")._selectDelay = delay;
 }
 
 function ThreadPaneSelectionChanged()
