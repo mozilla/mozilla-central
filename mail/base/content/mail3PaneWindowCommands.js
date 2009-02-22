@@ -486,9 +486,14 @@ var DefaultController =
       case "cmd_close":
         let tabmail = document.getElementById('tabmail');
         if (tabmail.tabInfo.length == 1)
-          window.close();
+        {
+          if (pref.getBoolPref("mail.tabs.closeWindowWithLastTab"))
+            window.close();
+        }
         else
+        {
           tabmail.removeCurrentTab();
+        }
         break;
       case "button_getNewMessages":
       case "cmd_getNewMessages":

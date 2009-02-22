@@ -426,6 +426,7 @@ pref("mail.tabs.tabMinWidth", 100);
 pref("mail.tabs.tabMaxWidth", 250);
 pref("mail.tabs.tabClipWidth", 140);
 pref("mail.tabs.autoHide", false);
+pref("mail.tabs.closeWindowWithLastTab", true);
 
 // Where to show tab close buttons:
 // 0 - active tab only
