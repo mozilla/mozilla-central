@@ -77,7 +77,7 @@ cal.alarms = {
             let returnDate;
             if (aAlarm.related == aAlarm.ALARM_RELATED_START) {
                 returnDate = aItem[cal.calGetStartDateProp(aItem)];
-            } else if (aAlarm.related = aAlarm.ALARM_RELATED_END) {
+            } else if (aAlarm.related == aAlarm.ALARM_RELATED_END) {
                 returnDate = aItem[cal.calGetEndDateProp(aItem)];
             }
 
