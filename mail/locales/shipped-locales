@@ -1,37 +1,44 @@
-af
-ar
-be
-cs
-de
-en-GB
+af         7d6244d64068
+ar         cd4ba18a091a
+be         d26b75ec8e92
+bg         841141bb596a
+ca         eac288686e5b
+cs         02454672ed4a
+de         91a79ec822ec
+el         47a9924bd422
 en-US
-es-AR
-es-ES
-et
-eu
-fr
-fy-NL
-ga-IE
-he
-hu
-id
-it
-ja linux win32
-ja-JP-mac osx
-ka
-ko
-lt
-nb-NO
-nl
-nn-NO
-pl
-pt-BR
-pt-PT
-ro
-ru
-si
-sk
-sq
-sv-SE
-zh-CN
-zh-TW
+es-AR      7161e288c77d
+es-ES      c3217aa83747
+et         0a920d0bd0f1
+eu         2a91db4ba513
+fi         1d7e9d8be745
+fr         b29589bb2cfd
+fy-NL      52002015cda8
+ga-IE      6ab7b4d42631
+gl         3b754ad31788
+he         b963c9e7532f
+hu         4b52426d1d52
+id         53f0d973bda7
+is         6771403691eb
+it         00fb1eea5403
+ja linux win32 1c204da4594e
+ja-JP-mac osx 2b6a94f3d6dc
+ko         e37413083e3f
+lt         e1a553990bea
+nb-NO      6117e945ffd4
+nl         0f58af8f23ef
+nn-NO      fbc36386037d
+pa-IN      cc48247ea64f
+pl         e839cd199224
+pt-BR      cb0209728cc9
+pt-PT      192d810bd813
+ro         74d1a9dd9e04
+ru         9ad4611da7a9
+si         77f7cf80b921
+sk         bc6dcfe33275
+sr         171d567bb410
+sv-SE      5e84cabe4acc
+ta-LK      39908593677a
+uk         b0ab6a564a89
+vi         d4a16e006f81
+zh-CN      8258055067cc
