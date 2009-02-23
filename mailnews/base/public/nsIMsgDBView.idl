@@ -42,6 +42,7 @@ interface nsIMsgFolder;
 interface nsIMsgWindow;
 interface nsIMessenger;
 interface nsIMsgDBHdr;
+interface nsIMsgThread;
 interface nsIMsgDBViewCommandUpdater;
 interface nsIMsgDatabase;
 interface nsIMsgSearchSession;
@@ -244,7 +245,7 @@ interface nsMsgNavigationType
 };
 
 
-[scriptable, uuid(de4c3458-5222-4cf5-b883-0c42aad848e6)]
+[scriptable, uuid(cf0da6e5-2a95-4c30-9751-6646ee99b970)]
 interface nsIMsgDBView : nsISupports
 {
   void open(in nsIMsgFolder folder, in nsMsgViewSortTypeValue sortType, in nsMsgViewSortOrderValue sortOrder, in nsMsgViewFlagsTypeValue viewFlags, out long count);
@@ -283,6 +284,26 @@ interface nsIMsgDBView : nsISupports
   attribute nsIMsgFolder viewFolder; // in the case of virtual folders, the VF db.
 
   nsMsgKey getKeyAt(in nsMsgViewIndex index);
+
+  /**
+   * Get the view flags at the passed in index.
+   *
+   * @param aIndex - index to get the view flags for
+   *
+   * @ return - 32 bit view flags (e.g., elided)
+   */
+  unsigned long getFlagsAt(in nsMsgViewIndex aIndex);
+
+  /**
+   * Get the msg hdr at the passed in index
+   *
+   * @param aIndex - index to get the msg hdr at.
+   *
+   * @return - msg hdr at the passed in index
+   * @exception - NS_MSG_INVALID_DBVIEW_INDEX
+   */
+  nsIMsgDBHdr getMsgHdrAt(in nsMsgViewIndex aIndex);
+
   nsIMsgFolder getFolderForViewIndex(in nsMsgViewIndex index); // mainly for search
   ACString getURIForViewIndex(in nsMsgViewIndex index);
   nsIMsgDBView cloneDBView(in nsIMessenger aMessengerInstance, in nsIMsgWindow aMsgWindow, in nsIMsgDBViewCommandUpdater aCommandUpdater);
@@ -323,8 +344,37 @@ interface nsIMsgDBView : nsISupports
   attribute nsIMsgSearchSession searchSession;
   readonly attribute boolean removeRowOnMoveOrDelete; 
 
+  /**
+   * Finds the view index of the passed in msgKey. Note this should not
+   * be called on cross-folder views since the msgKey may not be unique.
+   *
+   * @param aMsgKey - key to find.
+   * @param aExpand - whether to expand a collapsed thread to find the key.
+   *
+   * @return        - view index of msg hdr, -1 if hdr not found.
+   */
   nsMsgViewIndex findIndexFromKey(in nsMsgKey aMsgKey, in boolean aExpand);
+  /**
+   * Finds the view index of the passed in msgHdr.
+   *
+   * @param aMsgHdr - hdr to find.
+   * @param aExpand - whether to expand a collapsed thread to find the hdr.
+   *
+   * @return        - view index of msg hdr, -1 if hdr not found.
+   */
+  nsMsgViewIndex findIndexOfMsgHdr(in nsIMsgDBHdr aMsgHdr, in boolean aExpand);
   void ExpandAndSelectThreadByIndex(in nsMsgViewIndex aIndex, in boolean aAugment);
+
+  /**
+   * This method returns the nsIMsgThread object containing the header displayed
+   * at the desired row. For grouped views and cross folder saved searches,
+   * this will be the view thread, not the db thread.
+   *
+   * @param aIndex   view index we want corresponding thread object of.
+   *
+   * @return         the thread object at the requested view index
+   */
+  nsIMsgThread getThreadContainingIndex(in nsMsgViewIndex aIndex);
 
   // use lines or kB for size?
   readonly attribute boolean usingLines;

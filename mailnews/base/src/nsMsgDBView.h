@@ -253,7 +253,6 @@ protected:
   virtual nsMsgViewIndex GetInsertIndex(nsIMsgDBHdr *msgHdr);
   nsMsgViewIndex GetIndexForThread(nsIMsgDBHdr *hdr);
   nsMsgViewIndex GetThreadRootIndex(nsIMsgDBHdr *msgHdr);
-  virtual nsresult GetThreadContainingIndex(nsMsgViewIndex index, nsIMsgThread **thread);
   virtual nsresult GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDBHdr **msgHdr);
   // given a view index, return the index of the top-level msg in the thread.
   nsMsgViewIndex GetThreadIndex(nsMsgViewIndex msgIndex);
@@ -275,11 +274,11 @@ protected:
   nsresult GetThreadCount(nsMsgViewIndex viewIndex, PRUint32 *pThreadCount);
   nsMsgViewIndex GetIndexOfFirstDisplayedKeyInThread(nsIMsgThread *threadHdr);
   virtual nsresult GetFirstMessageHdrToDisplayInThread(nsIMsgThread *threadHdr, nsIMsgDBHdr **result);
-  virtual nsMsgViewIndex ThreadIndexOfMsg(nsMsgKey msgKey, 
-				  nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
-				  PRInt32 *pThreadCount = nsnull,
-				  PRUint32 *pFlags = nsnull);
-  nsMsgViewIndex ThreadIndexOfMsgHdr(nsIMsgDBHdr *msgHdr, 
+  virtual nsMsgViewIndex ThreadIndexOfMsg(nsMsgKey msgKey,
+                            nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
+                            PRInt32 *pThreadCount = nsnull,
+                            PRUint32 *pFlags = nsnull);
+  nsMsgViewIndex ThreadIndexOfMsgHdr(nsIMsgDBHdr *msgHdr,
                                  nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
                                  PRInt32 *pThreadCount = nsnull,
                                  PRUint32 *pFlags = nsnull);
@@ -293,12 +292,12 @@ protected:
   nsresult PersistFolderInfo(nsIDBFolderInfo **dbFolderInfo);
   void     SetMRUTimeForFolder(nsIMsgFolder *folder);
 
-  nsMsgKey		GetAt(nsMsgViewIndex index)
-                      {return m_keys.SafeElementAt(index, nsMsgKey_None);}
-  nsMsgViewIndex	FindViewIndex(nsMsgKey  key) 
-					  {return FindKey(key, PR_FALSE);}
-  virtual nsMsgViewIndex        FindHdr(nsIMsgDBHdr *msgHdr);
-  virtual nsMsgViewIndex	FindKey(nsMsgKey key, PRBool expand);
+  nsMsgKey  GetAt(nsMsgViewIndex index)
+                  {return m_keys.SafeElementAt(index, nsMsgKey_None);}
+  nsMsgViewIndex FindViewIndex(nsMsgKey  key)
+     {return FindKey(key, PR_FALSE);}
+  virtual nsMsgViewIndex FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex = 0);
+  virtual nsMsgViewIndex FindKey(nsMsgKey key, PRBool expand);
   virtual nsresult GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDatabase **db);
   virtual nsCOMArray<nsIMsgFolder>* GetFolders();
   virtual nsresult GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFolder);

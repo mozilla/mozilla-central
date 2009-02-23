@@ -1063,12 +1063,12 @@ nsMsgSearchDBView::GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFold
   return msgHdr->GetFolder(aFolder);
 }
 
-nsMsgViewIndex nsMsgSearchDBView::FindHdr(nsIMsgDBHdr *msgHdr)
+nsMsgViewIndex nsMsgSearchDBView::FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex)
 {
   nsCOMPtr<nsIMsgDBHdr> curHdr;
   PRInt32 index;
   // it would be nice to take advantage of sorted views when possible.
-  for (index = 0; index < GetSize(); index++)
+  for (index = startIndex; index < GetSize(); index++)
   {
     GetMsgHdrForViewIndex(index, getter_AddRefs(curHdr));
     if (curHdr == msgHdr && (!(m_flags[index] & MSG_VIEW_FLAG_DUMMY) ||
