@@ -394,9 +394,9 @@ install:: $(srcdir)/profile/prefs.js
 
 # Disable these tests due to bug 431125
 TEST_COOKIES_FILES = \
-	$(DIST)/../_tests/xpcshell-simple/test_cookies/unit/test_cookies.js \
-	$(DIST)/../_tests/xpcshell-simple/test_cookies/unit/test_bug468700.js \
-	$(DIST)/../_tests/xpcshell-simple/test_necko/unit/test_cookie_header.js \
+	$(DIST)/../_tests/xpcshell/test_cookies/unit/test_bug468700.js \
+	$(DIST)/../_tests/xpcshell/test_cookies/unit/test_cookies.js \
+	$(DIST)/../_tests/xpcshell/test_necko/unit/test_cookie_header.js \
 	$(NULL)
 
 libs::
