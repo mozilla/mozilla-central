@@ -4186,11 +4186,30 @@ NS_IMETHODIMP nsMsgDBView::GetKeyAt(nsMsgViewIndex index, nsMsgKey *result)
   return NS_OK;
 }
 
-nsMsgViewIndex nsMsgDBView::FindHdr(nsIMsgDBHdr *msgHdr)
+NS_IMETHODIMP nsMsgDBView::GetFlagsAt(nsMsgViewIndex aIndex, PRUint32 *aResult)
+{
+  NS_ENSURE_ARG(aResult);
+  if (!IsValidIndex(aIndex))
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+
+  *aResult = m_flags[aIndex];
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDBView::GetMsgHdrAt(nsMsgViewIndex aIndex, nsIMsgDBHdr **aResult)
+{
+  NS_ENSURE_ARG(aResult);
+  if (!IsValidIndex(aIndex))
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+
+  return GetMsgHdrForViewIndex(aIndex, aResult);
+}
+
+nsMsgViewIndex nsMsgDBView::FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex)
 {
   nsMsgKey msgKey;
   msgHdr->GetMessageKey(&msgKey);
-  return FindViewIndex(msgKey);
+  return (nsMsgViewIndex) m_keys.IndexOf(msgKey, startIndex);
 }
 
 nsMsgViewIndex  nsMsgDBView::FindKey(nsMsgKey key, PRBool expand)
@@ -4490,7 +4509,7 @@ nsresult nsMsgDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBo
     return rv;
 }
 
-nsresult nsMsgDBView::GetThreadContainingIndex(nsMsgViewIndex index, nsIMsgThread **resultThread)
+NS_IMETHODIMP nsMsgDBView::GetThreadContainingIndex(nsMsgViewIndex index, nsIMsgThread **resultThread)
 {
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   nsresult rv = GetMsgHdrForViewIndex(index, getter_AddRefs(msgHdr));
@@ -6782,6 +6801,30 @@ nsMsgDBView::FindIndexFromKey(nsMsgKey aMsgKey, PRBool aExpand, nsMsgViewIndex *
   NS_ENSURE_ARG_POINTER(aIndex);
 
   *aIndex = FindKey(aMsgKey, aExpand);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgDBView::FindIndexOfMsgHdr(nsIMsgDBHdr *aMsgHdr, PRBool aExpand, nsMsgViewIndex *aIndex)
+{
+  NS_ENSURE_ARG(aMsgHdr);
+  NS_ENSURE_ARG_POINTER(aIndex);
+
+  if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+  {
+    nsMsgViewIndex threadIndex = ThreadIndexOfMsgHdr(aMsgHdr);
+    if (threadIndex != nsMsgViewIndex_None)
+    {
+      if (m_flags[threadIndex] & nsMsgMessageFlags::Elided)
+        ExpandByIndex(threadIndex, nsnull);
+      *aIndex = FindHdr(aMsgHdr, threadIndex);
+    }
+    else
+      *aIndex = nsMsgViewIndex_None;
+  }
+  else
+    *aIndex = FindHdr(aMsgHdr);
+
   return NS_OK;
 }
 

@@ -100,11 +100,11 @@ protected:
   virtual nsresult DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage);
   virtual void InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,
                               nsMsgKey msgKey, PRUint32 flags, PRUint32 level);
-  virtual void SetMsgHdrAt(nsIMsgDBHdr *hdr, nsMsgViewIndex index, 
+  virtual void SetMsgHdrAt(nsIMsgDBHdr *hdr, nsMsgViewIndex index,
                               nsMsgKey msgKey, PRUint32 flags, PRUint32 level);
   virtual PRBool InsertEmptyRows(nsMsgViewIndex viewIndex, PRInt32 numRows);
   virtual void RemoveRows(nsMsgViewIndex viewIndex, PRInt32 numRows);
-  virtual nsMsgViewIndex FindHdr(nsIMsgDBHdr *msgHdr);
+  virtual nsMsgViewIndex FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex = 0);
   virtual nsresult GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
   nsresult GetFoldersAndHdrsForSelection(nsMsgViewIndex *indices, PRInt32 numIndices);
   nsresult GroupSearchResultsByFolder();
