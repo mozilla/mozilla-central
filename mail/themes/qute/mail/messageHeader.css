@@ -93,12 +93,20 @@
 }
 
 #showDetailsButton {
-  width: 22px;
-  padding-bottom: 0px !important;
-  height: 22px;
-  background-image: url("chrome://messenger/skin/icons/chevron.png");
-  background-repeat: no-repeat;
-  background-position: center center;
+  width: 26px;
+  padding-bottom: 0px;
+  height: 23px;
+  border: solid 3px transparent;
+  margin: 0;
+  text-align: center;
+  list-style-image: url("chrome://messenger/skin/icons/croppedchevron.png");
+}
+
+#showDetailsButton > .button-box,
+#showDetailsButton > .button-box > .button-icon,
+#showDetailsButton > .button-box > .button-text{
+  margin: 0;
+  padding: 0;
 }
 
 /* ::::: expanded header pane ::::: */
