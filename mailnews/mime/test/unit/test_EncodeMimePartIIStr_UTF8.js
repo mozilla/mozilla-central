@@ -44,15 +44,17 @@ function run_test() {
 
   var checks =
   [
-    ["", ""],
-    ["\u0436", "=?UTF-8?B?0LY=?="], //CYRILLIC SMALL LETTER ZHE
-    ["IamASCII", "IamASCII"],
+    ["", false, ""],
+    ["\u0436", false, "=?UTF-8?B?0LY=?="], //CYRILLIC SMALL LETTER ZHE
+    ["IamASCII", false, "IamASCII"],
+    // Although an invalid email, we shouldn't crash on it (bug 479206)
+    ["crash test@invalid.com>", true, "crash test@invalid.com>"],
   ];
 
   for (i = 0; i < checks.length; ++i)
   {
     do_check_eq(
-      converter.encodeMimePartIIStr_UTF8(checks[i][0], false, "UTF-8", 0, 72),
-      checks[i][1]);
+      converter.encodeMimePartIIStr_UTF8(checks[i][0], checks[i][1], "UTF-8", 0, 72),
+      checks[i][2]);
   }
 }
