@@ -52,6 +52,7 @@
 #include "NSReg.h"
 #include "msgCore.h"
 #include "nsDirectoryServiceUtils.h"
+#include <limits.h>
 
 // lots of includes required for the nsPrefMigration.cpp code that we copied:
 #include "nsICharsetConverterManager.h"
@@ -60,7 +61,9 @@
 #define MIGRATION_PROPERTIES_URL "chrome://messenger/locale/migration/migration.properties"
 
 #ifndef MAXPATHLEN
-#ifdef _MAX_PATH
+#ifdef PATH_MAX
+#define MAXPATHLEN PATH_MAX
+#elif defined(_MAX_PATH)
 #define MAXPATHLEN _MAX_PATH
 #elif defined(CCHMAXPATH)
 #define MAXPATHLEN CCHMAXPATH

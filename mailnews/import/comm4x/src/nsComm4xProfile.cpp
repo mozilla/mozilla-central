@@ -44,6 +44,10 @@
 #include "NSReg.h"
 #include "nsComponentManagerUtils.h"
 
+#ifdef XP_UNIX
+#include <limits.h>
+#endif
+
 #if defined(XP_MACOSX)
 #define PREF_FILE_NAME_IN_4x "Netscape Preferences"
 #define OLDREG_NAME               "Netscape Registry"
@@ -65,7 +69,9 @@
 #endif
 
 #ifndef MAXPATHLEN
-#ifdef _MAX_PATH
+#ifdef PATH_MAX
+#define MAXPATHLEN PATH_MAX
+#elif defined(_MAX_PATH)
 #define MAXPATHLEN _MAX_PATH
 #elif defined(CCHMAXPATH)
 #define MAXPATHLEN CCHMAXPATH
