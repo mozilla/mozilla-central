@@ -505,14 +505,16 @@
           <!-- vbox "calendar-view-box will be overlayed..." -->
           <vbox id="calendar-view-box"/>
         </deck>
-
-        <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed">
-          <grippy/>
-        </splitter>
-        <modevbox id="today-pane-panel" persist="width"/>
       </box>
     </vbox>
   </tabpanels>
+
+  <hbox id="tabmail-container">
+    <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed">
+      <grippy/>
+    </splitter>
+    <modevbox id="today-pane-panel" persist="width"/>
+  </hbox>
 
   <statusbar id="status-bar">
     <statusbarpanel id="calendar-show-todaypane-panel"
