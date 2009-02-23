@@ -275,6 +275,14 @@
             aEmailNode.setAttribute("fullAddress", aAddress.fullAddress);
             aEmailNode.setAttribute("displayName", aAddress.displayName);
 
+            // Add aria-label with header field type and header field content
+            // for better accessibility.
+            // Note: No extra colon and space needed, since it is
+            // already provided by this object's label attribute.
+            var ariaLabel = this.getAttribute("label") +
+                            aEmailNode.getAttribute("label");
+            aEmailNode.setAttribute("aria-label", ariaLabel);
+
             try
             {
               if ("AddExtraAddressProcessing" in top)
@@ -465,7 +473,7 @@
   <binding id="mail-emailaddress">
     <content popup="emailAddressPopup" context="emailAddressPopup">
       <xul:description anonid="emailValue" class="emailDisplayButton plain"
-                 xbl:inherits="xbl:text=label,crop" flex="1"/>
+                 xbl:inherits="xbl:text=label,crop,aria-label" flex="1"/>
       <xul:image class="emailDisplayImage" anonid="emailImage"
                  xbl:inherits="src=image"/>
     </content>
