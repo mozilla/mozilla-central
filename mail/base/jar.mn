@@ -109,7 +109,6 @@ messenger.jar:
     content/messenger/markByDate.js                 (/mailnews/base/resources/content/markByDate.js)
     content/messenger/markByDate.xul                (/mailnews/base/resources/content/markByDate.xul)
     content/messenger/dateFormat.js                 (/mailnews/base/resources/content/dateFormat.js)
-    content/messenger/msgViewPickerOverlay.xul      (/mailnews/extensions/mailviews/resources/content/msgViewPickerOverlay.xul)
     content/messenger/msgViewPickerOverlay.js       (/mailnews/extensions/mailviews/resources/content/msgViewPickerOverlay.js)
     content/messenger/mailViewSetup.js              (/mailnews/extensions/mailviews/resources/content/mailViewSetup.js)
     content/messenger/mailViewSetup.xul             (/mailnews/extensions/mailviews/resources/content/mailViewSetup.xul)
