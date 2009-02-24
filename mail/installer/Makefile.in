@@ -47,7 +47,6 @@ NO_PKG_FILES = \
 	thunderbird-config \
 	regxpcom* \
 	xpcshell* \
-	js \
 	xpidl* \
 	xpt_dump* \
 	xpt_link* \
