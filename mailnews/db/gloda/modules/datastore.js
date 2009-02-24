@@ -2839,7 +2839,7 @@ var GlodaDatastore = {
     if (nounDef.dbQueryJoinMagic)
       sqlString += nounDef.dbQueryJoinMagic;
     if (whereClauses.length)
-      sqlString += " WHERE " + whereClauses.join(" OR ");
+      sqlString += " WHERE (" + whereClauses.join(") OR (") + ")";
     
     if (aQuery._order.length) {
       let orderClauses = [];

@@ -44,9 +44,8 @@ var EXPORTED_SYMBOLS = ["fixIterator", "toXPCOMArray"];
 let Ci = Components.interfaces;
 
 /**
- * This function will take a variety of xpcom iterators designed for c++ and
- * turns them into a nice JavaScript style object that can be iterated using
- * for...in
+ * Given a JS array, JS iterator, or one of a variety of XPCOM collections or
+ * iterators, return a JS iterator suitable for use in a for...in expression.
  *
  * Currently, we support the following types of xpcom iterators:
  *   nsISupportsArray
@@ -62,6 +61,24 @@ let Ci = Components.interfaces;
  *         var array = [a for each (a in fixIterator(xpcomEnumerator))];
  */
 function fixIterator(aEnum, aIface) {
+  // is it a javascript array?  We can't do instanceof because we, as a module,
+  //  get our own copy of Array, which is guaranteed distinct from our caller's
+  //  Array instance.  So we test for .length
+  if (aEnum.length) {
+    if (!aIface)
+      return Iterator(aEnum);
+    else // use a cool generator expression
+      return (o.QueryInterface(aIface) for ([,o] in Iterator(aEnum)));
+  }
+
+  // is it a javascript Iterator?  same deal on instanceof
+  if (aEnum.next) {
+    if (!aIface)
+      return aEnum;
+    else // use a cool generator expression
+      return (o.QueryInterface(aIface) for (o in aEnum));
+  }
+
   let face = aIface || Ci.nsISupports;
   // Figure out which kind of iterator we have
   if (aEnum instanceof Ci.nsISupportsArray) {

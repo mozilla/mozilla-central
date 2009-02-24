@@ -51,6 +51,8 @@ Cu.import("resource://app/modules/gloda/connotent.js");
 Cu.import("resource://app/modules/gloda/query.js");
 Cu.import("resource://app/modules/gloda/utils.js");
 
+Cu.import("resource://app/modules/iteratorUtils.jsm");
+
 /**
  * Provides the user-visible (and extension visible) global database
  *  functionality.  There is currently a dependency/ordering
@@ -246,12 +248,19 @@ var Gloda = {
   kWorkDoneWithResult: 4,
 
   /**
-   * Lookup a gloda message from an nsIMsgDBHdr.
+   * Lookup a gloda message from an nsIMsgDBHdr, with the result returned as a
+   *  collection.  Keep in mind that the message may not be indexed, so you
+   *  may end up with an empty collection.  (Also keep in mind that this query
+   *  is asynchronous, so you will want your action-taking logic to be found
+   *  in your listener's onQueryCompleted method; the result will not be in
+   *  the collection when this method returns.)
    *
    * @param aMsgHdr The header of the message you want the gloda message for.
+   * @param aListener The listener that should be registered with the collection
+   * @param aData The (optional) value to set as the data attribute on the
+   *     collection.
    *
-   * @return the gloda messages that corresponds to the provided nsIMsgDBHdr
-   *    if one exists, null if one cannot be found.
+   * @return The collection that will receive the results.
    */
   getMessageCollectionForHeader: function gloda_ns_getMessageForHeader(aMsgHdr,
       aListener, aData) {
@@ -260,6 +269,56 @@ var Gloda = {
     return query.getCollection(aListener, aData);
   },
   
+  /**
+   * Given a list of message headers, return a collection containing the gloda
+   *  messages that correspond to those headers.  Keep in mind that gloda may
+   *  not have indexed all the messages, so the returned collection may not have
+   *  a message for each header you provide. (Also keep in mind that this query
+   *  is asynchronous, so you will want your action-taking logic to be found
+   *  in your listener's onQueryCompleted method; no results will be present in
+   *  the collection when this method returns.)
+   *
+   * @param aHeaders A javascript Array or and XPCOM list that fixIterator can
+   *     can handle.
+   * @param aListener The listener that should be registered with the collection
+   * @param aData The (optional) value to set as the data attribute on the
+   *     collection.
+   *
+   * @return The collection that will receive the results.
+   */
+  getMessageCollectionForHeaders: function gloda_ns_getMessagesForHeaders(
+      aHeaders, aListener, aData) {
+    // group the headers by the folder they are found in
+    let headersByFolder = {};
+    let iter;
+    for (let [, header] in fixIterator(aHeaders)) {
+      let folderURI = header.folder.URI;
+      let headersForFolder = headersByFolder[folderURI];
+      if (headersForFolder === undefined)
+        headersByFolder[folderURI] = [header];
+      else
+        headersForFolder.push(header);
+    }
+
+    let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
+    let clause;
+    // build a query, using a separate union clause for each folder.
+    for each (let [folderURI, headersForFolder] in Iterator(headersByFolder)) {
+      let folder = this.getFolderForFolder(headersForFolder[0].folder);
+      // if this is the first or clause, just use the query itself
+      if (!clause)
+        clause = query;
+      else // create a new query clause via the 'or' command
+        clause = query.or();
+
+      clause.folder(folder);
+      let messageKeys = [hdr.messageKey for each (hdr in headersForFolder)];
+      clause.messageKey.apply(clause, messageKeys);
+    }
+
+    return query.getCollection(aListener, aData);
+  },
+
   getMessageContent: function gloda_ns_getMessageContent(aGlodaMessage,
       aMimeMsg) {
     let content = new GlodaContent();

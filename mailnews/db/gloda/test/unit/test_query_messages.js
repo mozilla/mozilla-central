@@ -1,6 +1,4 @@
 /* This file tests our querying support.
- * This file is ugly.  Very ugly.  It's an equipotential problem; I'll refactor
- *  this into something pretty later.  Sorry :(
  */
 
 do_import_script("../mailnews/db/gloda/test/resources/messageGenerator.js");
@@ -39,7 +37,14 @@ var world = {
   outlierMessages: []
 };
 
-function lumpIt(aSynthMessage) {
+/**
+ * Categorize a synthetic message by conversation/folder/people in the 'world'
+ *  structure.  This is then used by the test code to generate and verify query
+ *  data.
+ *
+ * @param aSynthMessage The synthetic message.
+ */
+function categorizeMessage(aSynthMessage) {
   // lump by author
   let author = aSynthMessage.fromAddress;
   if (!(author in world.authorGroups))
@@ -59,7 +64,10 @@ function lumpIt(aSynthMessage) {
   // folder lumping happens in a big glob
 }
 
-function likeIt() {
+/**
+ * Generate messages in a single folder, categorizing them as we go.
+ */
+function generateFolderMessages() {
   let messages = [];
   
   let iAuthor = 0;
@@ -78,10 +86,10 @@ function likeIt() {
     // so, everyone is talking to everyone for this stuff
     smsg.to = world.peoples;
     world.lastMessagesInConvos[iConvo] = smsg;
-    // simplify lumpIt and glodaInfoStasher's life
+    // simplify categorizeMessage and glodaInfoStasher's life
     smsg.iConvo = iConvo;
     
-    lumpIt(smsg);
+    categorizeMessage(smsg);
     messages.push(smsg);
     world.peoplesMessages.push(smsg);
   }
@@ -125,12 +133,13 @@ function setup_populate() {
     world.glodaConversationIds.push(null);
   }
   
-  indexMessages(likeIt(), glodaInfoStasher, setup_populate_phase_two);
+  indexMessages(generateFolderMessages(), glodaInfoStasher,
+                setup_populate_phase_two);
 }
 
 function setup_populate_phase_two() {
   world.phase++;
-  indexMessages(likeIt(), glodaInfoStasher, next_test);
+  indexMessages(generateFolderMessages(), glodaInfoStasher, next_test);
 }
 
 /* ===== Non-text queries ===== */
@@ -195,6 +204,35 @@ function test_query_messages_by_folder() {
 function test_query_messages_by_folder_nonmatches() {
   verify_nonMatches(ts_folderQueries, ts_folderCollections);
   next_test();
+}
+
+/**
+ * @tests Gloda.getMessageCollectionForHeader
+ */
+function test_get_message_for_header() {
+  // pick an arbitrary message
+  let glodaMessage = ts_convCollections[1].items[0];
+  // find the synthetic message that matches (ordering must not be assumed)
+  let synthMessage = [sm for each (sm in world.conversationLists[1])
+                      if (sm.messageId == glodaMessage.headerMessageID)][0];
+  queryExpect({queryFunc: Gloda.getMessageCollectionForHeader,
+               queryThis: Gloda,
+               args: [glodaMessage.folderMessage], nounId: Gloda.NOUN_MESSAGE},
+              [synthMessage]);
+  // queryExpect calls next_test
+}
+
+/**
+ * @tests Gloda.getMessageCollectionForHeaders
+ */
+function test_get_messages_for_headers() {
+  let messageCollection = ts_convCollections[0];
+  let headers = [m.folderMessage for each (m in messageCollection.items)];
+  queryExpect({queryFunc: Gloda.getMessageCollectionForHeaders,
+               queryThis: Gloda,
+               args: [headers], nounId: Gloda.NOUN_MESSAGE},
+              world.conversationLists[0]);
+  // queryExpect calls next_test
 }
 
 // at this point we go run the identity and contact tests for side-effects
@@ -337,6 +375,8 @@ var tests = [
   test_query_messages_by_folder,
   test_query_messages_by_folder,
   test_query_messages_by_folder_nonmatches,
+  test_get_message_for_header,
+  test_get_messages_for_headers,
   // need to do the identity and contact lookups so we can have their results
   //  for the other message-related queries
   test_query_identities_for_peoples,

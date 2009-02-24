@@ -767,6 +767,7 @@ QueryExpectationListener.prototype = {
       else {
         ddumpObject(item, "item", 0);
         ddumpObject(this.expectedSet, "expectedSet", 1);
+        dump("glodaStringRep: " + glodaStringRep + "\n");
         do_throw("Query returned unexpected result! gloda rep:" +
                  glodaStringRep);
       }
@@ -810,7 +811,12 @@ QueryExpectationListener.prototype = {
  * Calls next_test automatically once the query completes and the results are
  *  checked.
  * 
- * @param aQuery The query to execute.
+ * @param aQuery Either a query to execute, or a dict with the following keys:
+ *     - queryFunc: The function to call that returns a function.
+ *     - queryThis: The 'this' to use for the invocation of queryFunc.
+ *     - args: A list (possibly empty) or arguments to precede the traditional
+ *         arguments to query.getCollection.
+ *     - nounId: The (numeric) noun id of the noun type expected to be returned.
  * @param aExpectedSet The list of expected results from the query.
  * @param aGlodaExtractor The extractor function to take an instance of the
  *     gloda representation and return a string for comparison/equivalence
@@ -828,16 +834,20 @@ QueryExpectationListener.prototype = {
  */
 function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
     aExpectedExtractor) {
+  if (aQuery.test)
+    aQuery = {queryFunc: aQuery.getCollection, queryThis: aQuery, args: [],
+              nounId: aQuery._nounDef.id};
+
   // - set extractor functions to defaults if omitted
   if (aGlodaExtractor == null) {
-    if (_defaultExpectationExtractors[aQuery._nounDef.id] !== undefined)
-      aGlodaExtractor = _defaultExpectationExtractors[aQuery._nounDef.id][0];
+    if (_defaultExpectationExtractors[aQuery.nounId] !== undefined)
+      aGlodaExtractor = _defaultExpectationExtractors[aQuery.nounId][0];
     else
       aGlodaExtractor = expectExtract_default_toString;
   }
   if (aExpectedExtractor == null) {
-    if (_defaultExpectationExtractors[aQuery._nounDef.id] !== undefined)
-      aExpectedExtractor = _defaultExpectationExtractors[aQuery._nounDef.id][1];
+    if (_defaultExpectationExtractors[aQuery.nounId] !== undefined)
+      aExpectedExtractor = _defaultExpectationExtractors[aQuery.nounId][1];
     else
       aExpectedExtractor = expectExtract_default_toString;
   }
@@ -855,8 +865,9 @@ function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
   }
   
   // - create the listener...
-  return aQuery.getCollection(new QueryExpectationListener(expectedSet,
-                                                           aGlodaExtractor));
+  aQuery.args.push(new QueryExpectationListener(expectedSet,
+                                                aGlodaExtractor));
+  return aQuery.queryFunc.apply(aQuery.queryThis, aQuery.args);
 }
 
 var glodaHelperTests = [];
