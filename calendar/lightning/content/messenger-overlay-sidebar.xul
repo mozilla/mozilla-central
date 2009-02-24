@@ -438,15 +438,15 @@
     </popupset>
   </window>
 
-  <box id="tabmail-buttons">
+  <hbox id="tabmail-buttons">
     <toolbarbutton id="calendar-tab-button" command="new_calendar_tab"
       tooltiptext="&lightning.toolbar.calendar.label;"/>
     <toolbarbutton id="task-tab-button" command="new_task_tab"
       tooltiptext="&lightning.toolbar.task.label;"/>
-  </box>
+  </hbox>
   <tabpanels id="tabpanelcontainer">
-    <vbox id="calendarTabPanel" orientation="vertical">
-      <box id="calendarContent" orientation="horizontal" flex="1">
+    <vbox id="calendarTabPanel">
+      <hbox id="calendarContent" flex="1">
         <vbox id="ltnSidebar"
               minwidth="100"
               width="200"
@@ -505,7 +505,7 @@
           <!-- vbox "calendar-view-box will be overlayed..." -->
           <vbox id="calendar-view-box"/>
         </deck>
-      </box>
+      </hbox>
     </vbox>
   </tabpanels>
 
