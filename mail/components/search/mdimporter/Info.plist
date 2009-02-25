@@ -7,6 +7,10 @@
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>TBMZ</string>
+			</array>
 			<key>CFBundleTypeRole</key>
 			<string>MDImporter</string>
 			<key>LSItemContentTypes</key>
@@ -18,7 +22,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Thunderbird</string>
 	<key>CFBundleIconFile</key>
-	<string></string>
+	<string>thunderbird</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.apple.yourcfbundle</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -45,31 +49,5 @@
 	</dict>
 	<key>CFPlugInUnloadFunction</key>
 	<string></string>
-	<key>UTExportedTypeDeclarations</key>
-	<array>
-		<dict>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.data</string>
-				<string>public.content</string>
-				<string>public.email-message</string>
-			</array>
-			<key>UTTypeDescription</key>
-			<string>Thunderbird e-mail</string>
-			<key>UTTypeIdentifier</key>
-			<string>com.mozilla.thunderbird.mozeml</string>
-			<key>UTTypeReferenceURL</key>
-			<string>http://www.mozilla.com/Thunderbird</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>com.apple.ostype</key>
-				<string>XXXX</string>
-				<key>public.filename-extension</key>
-				<array>
-					<string>mozeml</string>
-				</array>
-			</dict>
-		</dict>
-	</array>
 </dict>
 </plist>

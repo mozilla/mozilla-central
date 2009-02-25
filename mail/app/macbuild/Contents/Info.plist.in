@@ -55,5 +55,67 @@
 	<true/>
 	<key>CGDisableCoalescedUpdates</key>
 	<true/>
+
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.mozilla.thunderbird.mozeml</string>
+			<key>UTTypeReferenceURL</key>
+			<string>http://www.mozilla.com/Thunderbird</string>
+			<key>UTTypeDescription</key>
+			<string>Thunderbird Spotlight Metadata</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.content</string>
+				<string>public.email-message</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>com.apple.ostype</key>
+				<string>TBMZ</string>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mozeml</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>mozeml</string>
+			</array>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>TBMZ</string>
+			</array>
+
+			<key>CFBundleTypeName</key>
+			<string>Thunderbird Spotlight Metadata</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.mozilla.thunderbird.mozeml</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+			    <string>eml</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Thunderbird E-mail</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+		</dict>
+	</array>
 </dict>
 </plist>
