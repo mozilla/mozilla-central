@@ -475,8 +475,11 @@ function GetCardValues(cardproperty, doc)
 function HideNonVcardFields()
 {
   document.getElementById("homeTabButton").hidden = true;
-  for (var i = kNonVcardFields.length; i-- > 0; )
+  var i;
+  for (i = kNonVcardFields.length; i-- > 0; )
     document.getElementById(kNonVcardFields[i]).collapsed = true;
+  for (i = kPhoneticFields.length; i-- > 0; )
+    document.getElementById(kPhoneticFields[i]).collapsed = true;
 }
 
 // Move the data from the dialog to the cardproperty to be stored in the database

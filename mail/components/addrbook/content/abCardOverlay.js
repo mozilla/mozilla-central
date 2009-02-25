@@ -1,4 +1,4 @@
-# -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -478,8 +478,11 @@ function GetCardValues(cardproperty, doc)
 function HideNonVcardFields()
 {
   document.getElementById("homeTabButton").hidden = true;
-  for (var i = kNonVcardFields.length; i-- > 0; )
+  var i;
+  for (i = kNonVcardFields.length; i-- > 0; )
     document.getElementById(kNonVcardFields[i]).collapsed = true;
+  for (i = kPhoneticFields.length; i-- > 0; )
+    document.getElementById(kPhoneticFields[i]).collapsed = true;
 }
 
 // Move the data from the dialog to the cardproperty to be stored in the database
