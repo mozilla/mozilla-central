@@ -10,27 +10,27 @@
 <!ENTITY manualMarkModeMove.label "Move them to the account's &quot;Junk&quot; folder">
 <!ENTITY manualMarkModeMove.accesskey "o">
 <!ENTITY manualMarkModeDelete.label "Delete them">
-<!ENTITY manualMarkModeDelete.accesskey "t">
+<!ENTITY manualMarkModeDelete.accesskey "D">
 <!ENTITY markAsReadOnSpam.label "Mark messages determined to be Junk as read">
-<!ENTITY markAsReadOnSpam.accesskey "k">
+<!ENTITY markAsReadOnSpam.accesskey "M">
 <!ENTITY enableJunkLogging.label "Enable junk filter logging">
-<!ENTITY enableJunkLogging.accesskey "g">
+<!ENTITY enableJunkLogging.accesskey "E">
 <!ENTITY openJunkLog.label "Show log">
-<!ENTITY openJunkLog.accesskey "h">
+<!ENTITY openJunkLog.accesskey "S">
 <!ENTITY resetTrainingData.label "Reset Training Data">
-<!ENTITY resetTrainingData.accesskey "D">
+<!ENTITY resetTrainingData.accesskey "R">
 
 <!-- Phishing Detector -->
 <!ENTITY phishingDetector1.intro  "&brandShortName; can analyze messages for suspected email scams by looking for common techniques used to deceive you.">
 <!ENTITY enablePhishingDetector1.label    "Tell me if the message I'm reading is a suspected email scam">
-<!ENTITY enablePhishingDetector1.accesskey  "e">
+<!ENTITY enablePhishingDetector1.accesskey  "T">
 <!ENTITY useDownloadedList.label "Use a downloaded list of suspected email scams">
 <!ENTITY useDownloadedList.accesskey "U">
 
 <!-- Passwords -->
 <!ENTITY savedPasswords.intro           "&brandShortName; can remember passwords for all of your accounts.">
 <!ENTITY useMasterPassword.label        "Use a master password">
-<!ENTITY useMasterPassword.accesskey    "m">
+<!ENTITY useMasterPassword.accesskey    "U">
 <!ENTITY masterPassword.intro           "A Master Password protects all your passwords, but you must enter it once per session.">
 <!ENTITY changeMasterPassword.label     "Change Master Password…">
 <!ENTITY changeMasterPassword.accesskey "C">
@@ -40,4 +40,4 @@
 <!-- Anti Virus -->
 <!ENTITY antiVirus.intro      "&brandShortName; can make it easy for anti-virus software to analyze incoming mail messages for viruses before they are stored locally.">
 <!ENTITY antiVirus.label      "Allow anti-virus clients to quarantine individual incoming messages">
-<!ENTITY antiVirus.accesskey  "l">
+<!ENTITY antiVirus.accesskey  "A">

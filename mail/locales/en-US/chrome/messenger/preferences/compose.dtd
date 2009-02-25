@@ -3,13 +3,11 @@
 <!ENTITY itemSpellCheck.label                "Spelling">
 
 <!ENTITY forwardMsg.label                     "Forward messages:">
-<!ENTITY forwardMsg.accesskey                 "w">
+<!ENTITY forwardMsg.accesskey                 "F">
 <!ENTITY inline.label                         "Inline">
-<!ENTITY inline.accesskey                     "I">
 <!ENTITY asAttachment.label                   "As Attachment">
-<!ENTITY asAttachment.accesskey               "A">
 <!ENTITY addExtension.label                   "add extension to file name">
-<!ENTITY addExtension.accesskey               "f">
+<!ENTITY addExtension.accesskey               "e">
 
 <!ENTITY htmlComposeHeader.label              "HTML">
 <!ENTITY font.label                           "Font:">
@@ -17,7 +15,7 @@
 <!ENTITY size.label                           "Size:">
 <!ENTITY size.accesskey                       "z">
 <!ENTITY fontColor.label                      "Text Color:">
-<!ENTITY fontColor.accesskey                  "x">
+<!ENTITY fontColor.accesskey                  "T">
 <!ENTITY bgColor.label                        "Background Color:">
 <!ENTITY bgColor.accesskey                    "B">
 <!ENTITY restoreHTMLDefaults.label            "Restore Defaults">
@@ -26,23 +24,23 @@
 <!ENTITY spellCheck.label                     "Check spelling before sending">
 <!ENTITY spellCheck.accesskey                 "C">
 <!ENTITY spellCheckInline.label               "Enable spell check as you type">
-<!ENTITY spellCheckInline1.accesskey           "k">
+<!ENTITY spellCheckInline1.accesskey          "E">
 <!ENTITY languagePopup.label                  "Language:">
-<!ENTITY languagePopup.accessKey              "g">
+<!ENTITY languagePopup.accessKey              "L">
 <!ENTITY downloadDictionaries.label           "Download More Dictionaries">
 
 <!ENTITY warnOnSendAccelKey.label             "Confirm when using keyboard shortcut to send message">
-<!ENTITY warnOnSendAccelKey.accesskey         "i">
+<!ENTITY warnOnSendAccelKey.accesskey         "C">
 <!ENTITY autoSave.label                       "Auto Save every">
-<!ENTITY autoSave.accesskey                   "u">
+<!ENTITY autoSave.accesskey                   "A">
 <!ENTITY autoSaveEnd.label                    "minutes">
 
 <!ENTITY emailCollectionPicker.label           "Automatically add outgoing e-mail addresses to my:">
-<!ENTITY emailCollectionPicker.accesskey       "t">
+<!ENTITY emailCollectionPicker.accesskey       "A">
 <!ENTITY addressingTitle.label                 "Address Autocompletion">
 <!ENTITY autocompleteText.label                "When addressing messages, look for matching entries in:">
 <!ENTITY addressingEnable.label                "Local Address Books">
-<!ENTITY addressingEnable.accesskey            "A">
+<!ENTITY addressingEnable.accesskey            "L">
 <!ENTITY directories.label                     "Directory Server:">
 <!ENTITY directories.accesskey                 "D">
 <!ENTITY directoriesNone.label                 "None">

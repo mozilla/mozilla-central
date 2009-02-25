@@ -7,15 +7,15 @@
 <!-- General Settings -->
 
 <!ENTITY enableGlodaSearch.label       "Enable Global Search and Indexer">
-<!ENTITY enableGlodaSearch.accesskey   "i">
+<!ENTITY enableGlodaSearch.accesskey   "E">
 <!ENTITY systemDefaults.label          "System Defaults">
 <!ENTITY alwaysCheckDefault.label      "Always check to see if &brandShortName; is the default mail client on startup">
-<!ENTITY alwaysCheckDefault.accesskey  "l">
+<!ENTITY alwaysCheckDefault.accesskey  "A">
 <!ENTITY checkNow.label                "Check Now">
 <!ENTITY checkNow.accesskey            "N">
 <!ENTITY configEditDesc.label          "Advanced Configuration">
 <!ENTITY configEdit.label              "Config Editor…">
-<!ENTITY configEdit.accesskey          "g">
+<!ENTITY configEdit.accesskey          "C">
 <!ENTITY returnReceiptsInfo.label      "Determine how &brandShortName; handles return receipts">
 <!ENTITY showReturnReceipts.label      "Return Receipts…">
 <!ENTITY showReturnReceipts.accesskey  "R">
@@ -24,43 +24,43 @@
 <!ENTITY reading.caption               "Reading">
 <!ENTITY display.caption               "Display">
 <!ENTITY showCondensedAddresses.label  "Show only display name for people in my address book">
-<!ENTITY showCondensedAddresses.accesskey "p">
+<!ENTITY showCondensedAddresses.accesskey "S">
 
 <!ENTITY autoMarkAsRead.label          "Automatically mark messages as read">
 <!ENTITY autoMarkAsRead.accesskey      "A">
 <!ENTITY markAsReadNoDelay.label       "Immediately on display">
-<!ENTITY markAsReadNoDelay.accesskey   "d">
+<!ENTITY markAsReadNoDelay.accesskey   "o">
 <!-- LOCALIZATION NOTE (markAsReadDelay.label): This will concatenate to
      "After displaying for [___] seconds",
      using (markAsReadDelay.label) and a number (secondsLabel.label). -->
 <!ENTITY markAsReadDelay.label         "After displaying for">
-<!ENTITY markAsReadDelay.accesskey     "e">
+<!ENTITY markAsReadDelay.accesskey     "d">
 <!ENTITY secondsLabel.label            "seconds">
 <!ENTITY openMsgIn.label               "Open messages in:">
 <!ENTITY reuseExpRadio0.label          "A new message window">
-<!ENTITY reuseExpRadio0.accesskey      "i">
+<!ENTITY reuseExpRadio0.accesskey      "n">
 <!ENTITY reuseExpRadio1.label          "An existing message window">
-<!ENTITY reuseExpRadio1.accesskey      "x">
+<!ENTITY reuseExpRadio1.accesskey      "e">
 
 <!-- Update -->
 <!ENTITY autoCheck.label                "Automatically check for updates to:">
 <!ENTITY enableAppUpdate.label          "&brandShortName;">
 <!ENTITY enableAppUpdate.accesskey      "h">
 <!ENTITY enableAddonsUpdate.label       "Installed Add-ons">
-<!ENTITY enableAddonsUpdate.accesskey   "t">
+<!ENTITY enableAddonsUpdate.accesskey   "A">
 <!ENTITY whenUpdatesFound.label         "When updates to &brandShortName; are found,">
 <!ENTITY modeAskMe.label                "Ask me what I want to do">
-<!ENTITY modeAskMe.accesskey            "k">
+<!ENTITY modeAskMe.accesskey            "m">
 <!ENTITY modeAutomatic.label            "Automatically download and install the update">
-<!ENTITY modeAutomatic.accesskey        "m">
+<!ENTITY modeAutomatic.accesskey        "d">
 <!ENTITY modeAutoAddonWarn.label        "Warn me if this will disable any of my add-ons">
-<!ENTITY modeAutoAddonWarn.accesskey    "-">
+<!ENTITY modeAutoAddonWarn.accesskey    "W">
 <!ENTITY showUpdates.label              "Show Update History">
-<!ENTITY showUpdates.accesskey          "y">
+<!ENTITY showUpdates.accesskey          "S">
 
 <!-- Networking and Disk Space -->
 <!ENTITY showSettings.label            "Settings…">
-<!ENTITY showSettings.accesskey        "n">
+<!ENTITY showSettings.accesskey        "S">
 <!ENTITY proxiesConfigure.label        "Configure how &brandShortName; connects to the Internet">
 <!ENTITY connectionsInfo.caption       "Connection">
 <!ENTITY offlineInfo.caption           "Offline">
@@ -70,7 +70,7 @@
 
 <!ENTITY Diskspace "Disk Space">
 <!ENTITY offlineCompact.label "Compact folders when it will save over">
-<!ENTITY offlineCompact.accesskey "v">
+<!ENTITY offlineCompact.accesskey "a">
 <!ENTITY kb.label "KB">
 
 <!-- LOCALIZATION NOTE:
@@ -87,10 +87,10 @@
 
 <!-- Certificates -->
 <!ENTITY viewCertificates.label         "View Certificates">
-<!ENTITY viewCertificates.accesskey     "a">
+<!ENTITY viewCertificates.accesskey     "C">
 <!ENTITY viewCRLs.label                 "Revocation Lists">
-<!ENTITY viewCRLs.accesskey             "e">
+<!ENTITY viewCRLs.accesskey             "R">
 <!ENTITY validation.label               "Validation">
-<!ENTITY validation.accesskey           "d">
+<!ENTITY validation.accesskey           "V">
 <!ENTITY viewSecurityDevices.label      "Security Devices">
-<!ENTITY viewSecurityDevices.accesskey  "u">
+<!ENTITY viewSecurityDevices.accesskey  "S">

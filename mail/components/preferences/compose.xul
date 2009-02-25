@@ -95,8 +95,8 @@
               <label value="&forwardMsg.label;" accesskey="&forwardMsg.accesskey;" control="forwardMessageMode"/>
               <menulist id="forwardMessageMode" preference="mail.forward_message_mode">
                 <menupopup>
-                  <menuitem value="2" label="&inline.label;" accesskey="&inline.accesskey;"/>
-                  <menuitem value="0" label="&asAttachment.label;" accesskey="&asAttachment.accesskey;"/>
+                  <menuitem value="2" label="&inline.label;"/>
+                  <menuitem value="0" label="&asAttachment.label;"/>
                 </menupopup>
               </menulist>
               <checkbox id="addExtension" label="&addExtension.label;" preference="mail.forward_add_extension"
