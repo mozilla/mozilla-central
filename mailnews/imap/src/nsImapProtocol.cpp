@@ -4868,7 +4868,7 @@ nsImapProtocol::AlertUserEvent(const char * message)
 void
 nsImapProtocol::AlertUserEventFromServer(const char * aServerEvent)
 {
-    if (m_imapServerSink)
+    if (m_imapServerSink && aServerEvent)
     {
       nsCOMPtr<nsIMsgWindow> msgWindow;
       GetMsgWindow(getter_AddRefs(msgWindow));
