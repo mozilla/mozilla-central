@@ -1553,8 +1553,6 @@ let mailTabType = {
       aTab.mailView = GetMailViewForFolder(aTab.msgSelectedFolder);
   },
 
-  _lastMessagePaneCollapsed: false,
-
   _displayFolderAndThreadPane: function(show) {
     let collapse = !show;
     let layout = pref.getIntPref("mail.pane_config.dynamic");
@@ -1571,20 +1569,38 @@ let mailTabType = {
     else
       document.getElementById("displayDeck").collapsed = collapse;
 
-    document.getElementById("threadpane-splitter").collapsed = collapse;
-    document.getElementById("folderpane_splitter").collapsed = collapse;
-    document.getElementById("folderPaneBox").collapsed = collapse;
-
-    // Remember the state of the message pane before going to a message-only
-    // view so that we can restore that state when going back to a normal
-    // 3-pane view.
-    let messagePane = document.getElementById("messagepanebox");
-    if (!show) {
-      this._lastMessagePaneCollapsed = messagePane.collapsed;
-      messagePane.collapsed = false;
+    let fpSplitter = document.getElementById("folderpane_splitter");
+    if (show && fpSplitter.getAttribute("state") == "collapsed")
+    {
+      // If we're showing everything but the folder pane splitter was
+      // previously collapsed, then keep it collapsed.
+      // However, in the case of it being collapsed from showing a
+      // a full message in a tab, then uncollapse just the splitter.
+      if (fpSplitter.getAttribute("substate"))
+        fpSplitter.collapsed = false;
     }
-    else if (this._lastMessagePaneCollapsed)
-      messagePane.collapsed = true;
+    else
+    {
+      fpSplitter.collapsed = collapse;
+      document.getElementById("folderPaneBox").collapsed = collapse;
+    }
+
+    let tpSplitter = document.getElementById("threadpane-splitter");
+    if (show && tpSplitter.getAttribute("state") == "collapsed")
+    {
+      // If we're showing everything but the thread pane splitter was
+      // previously collapsed, then keep it collapsed.
+      // However, in the case of it being collapsed from showing a
+      // a full message in a tab, then uncollapse just the splitter.
+      tpSplitter.collapsed = tpSplitter.getAttribute("substate") ? false : true;
+      document.getElementById("messagepanebox").collapsed = true;
+    }
+    else
+    {
+      tpSplitter.collapsed = collapse;
+      document.getElementById("messagepanebox").collapsed = false;
+    }
+    ChangeMessagePaneVisibility(IsMessagePaneCollapsed());
 
     try {
       document.getElementById("search-container").collapsed = collapse;
