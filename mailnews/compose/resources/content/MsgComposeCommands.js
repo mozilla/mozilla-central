@@ -2508,8 +2508,6 @@ function SetLastAttachDirectory(attachedLocalFile)
 
 function AttachFile()
 {
-  var attachments;
-
   //Get file using nsIFilePicker and convert to URL
   try {
       var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
@@ -2521,24 +2519,28 @@ function AttachFile()
 
       fp.appendFilters(nsIFilePicker.filterAll);
       if (fp.show() == nsIFilePicker.returnOK) {
-        attachments = fp.files;
+        var firstAttachedFile = AttachFiles(fp.files);
+        if (firstAttachedFile)
+          SetLastAttachDirectory(firstAttachedFile);
       }
   }
   catch (ex) {
     dump("failed to get attachments: " + ex + "\n");
   }
+}
 
+function AttachFiles(attachments)
+{
   if (!attachments || !attachments.hasMoreElements())
-    return;
+    return null;
 
-  var haveSetAttachDirectory = false;
+  var firstAttachedFile = null;
 
   while (attachments.hasMoreElements()) {
     var currentFile = attachments.getNext().QueryInterface(Components.interfaces.nsILocalFile);
 
-    if (!haveSetAttachDirectory) {
-      SetLastAttachDirectory(currentFile);
-      haveSetAttachDirectory = true;
+    if (!firstAttachedFile) {
+      firstAttachedFile = currentFile;
     }
 
     var ioService = Components.classes["@mozilla.org/network/io-service;1"]
@@ -2553,6 +2555,7 @@ function AttachFile()
       gContentChanged = true;
     }
   }
+  return firstAttachedFile;
 }
 
 function AddAttachment(attachment)
