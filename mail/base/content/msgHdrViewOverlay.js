@@ -381,6 +381,8 @@ var messageHeaderSink = {
         if (gViewAllHeaders) // if we currently are in view all header mode, rebuild our header view so we remove most of the header data
         {
           hideHeaderView(gExpandedHeaderView);
+          removeNewHeaderViews(gExpandedHeaderView);
+          gDummyHeaderIdIndex = 0;
           gExpandedHeaderView = {};
           initializeHeaderViewTables();
         }
@@ -828,7 +830,20 @@ function createNewHeaderView(headerName, label)
   this.enclosingBox = newHeader;
   this.isValid = false;
   this.useToggle = false;
+  this.isNewView = true;
   this.outputFunction = updateHeaderValue;
+}
+
+// remove all non-predefined header nodes from the view
+function removeNewHeaderViews(headerTable)
+{
+  for (index in headerTable)
+  {
+    var headerEntry = headerTable[index];
+    if (headerEntry.isNewView)
+      headerEntry.enclosingBox.parentNode
+                 .removeChild(headerEntry.enclosingBox);
+  }
 }
 
 // UpdateMessageHeaders: Iterate through all the current header data we received from mime for this message
