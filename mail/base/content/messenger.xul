@@ -172,6 +172,8 @@
 
 <tooltip id="folderpopup" class="folderSummaryPopup"/>
 
+<tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
+
   <toolbox id="mail-toolbox" class="toolbox-top">
   </toolbox>
   <!-- XXX This extension point (tabmail-container) is only temporary!
@@ -327,7 +329,7 @@
                   <hbox id="editMessageBox"/>
                   <deck id="msgNotificationBar"/>
                   <browser id="messagepane" context="mailContext" autofind="false"
-                           minheight="1" flex="1" name="messagepane"
+                           minheight="1" flex="1" name="messagepane" tooltip="aHTMLTooltip"
                            disablehistory="true" type="content-primary" src="about:blank"
                            onresize="return messagePaneOnResize(event);"
                            disablesecurity="true" onclick="return contentAreaClick(event);"/>

@@ -156,6 +156,8 @@
   <toolbox id="mail-toolbox" class="toolbox-top">
   </toolbox>
 
+  <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
+
  <!-- msg header view -->
   <vbox id="messagepanebox" flex="3" persist="collapsed"
         ondragover="nsDragAndDrop.dragOver(event, messagepaneObserver);"
@@ -167,7 +169,7 @@
     <deck id="msgNotificationBar"/>
 
     <!-- message view -->
-    <browser id="messagepane" context="mailContext"
+    <browser id="messagepane" context="mailContext" tooltip="aHTMLTooltip"
              style="height: 0px; min-height: 1px" flex="1" name="messagepane"
              disablesecurity="true" disablehistory="true" type="content-primary"
              onresize="return messagePaneOnResize(event);" autofind="false"
