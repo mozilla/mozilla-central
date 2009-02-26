@@ -1075,10 +1075,10 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
     m_currentlyDisplayedMsgUri.Truncate();
     m_currentlyDisplayedViewIndex = nsMsgViewIndex_None;
 
-    // if we used to have one item selected, and now we have more than one, we should clear the message pane.
+    // if we used to have one item selected, and now we have zero or more than one, we should clear the message pane.
     nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
     nsCOMPtr <nsIMsgWindowCommands> windowCommands;
-    if ((mNumSelectedRows == 1) && (numSelected > 1) && msgWindow
+    if ((mNumSelectedRows == 1) && (numSelected != 1) && msgWindow
         && NS_SUCCEEDED(msgWindow->GetWindowCommands(getter_AddRefs(windowCommands)))
         && windowCommands) {
       windowCommands->ClearMsgPane();
