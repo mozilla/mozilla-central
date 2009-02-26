@@ -399,7 +399,8 @@ function NewCardOKButton()
       // the card that got created.
       gEditCard.card = GetDirectoryFromURI(uri).addCard(gEditCard.card);
       NotifySaveListeners();
-      if ("arguments" in window && window.arguments[0])
+      if ("arguments" in window && window.arguments[0] &&
+          "allowRemoteContent" in window.arguments[0])
         window.arguments[0].allowRemoteContent =
           gEditCard.card.getProperty("AllowRemoteContent", false);
     }
