@@ -45,7 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/package-name.mk
 
 CONFIG_DIR = instgen
-SFX_MODULE = $(MOZILLA_SRCDIR)/other-licenses/7zstub/sunbird/7zSD.sfx
+SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/sunbird/7zSD.sfx
 
 PP_LOCALIZED_FILES = \
 	packages-static \
