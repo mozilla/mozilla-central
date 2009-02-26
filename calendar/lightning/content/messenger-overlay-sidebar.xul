@@ -486,14 +486,16 @@
               <treenode-checkbox id="calendar-list-header"
                                checked="true"
                                class="treenode-checkbox"
-                               ondrop="return calendarListTreeView.foreignDrop(event)"
-                               ondragenter="return calendarListTreeView.foreignCanDrop(event)"
+                               ondrop="return document.getElementById('calendar-list-tree-widget').foreignDrop(event)"
+                               ondragenter="return document.getElementById('calendar-list-tree-widget').foreignCanDrop(event)"
+                               ondragover="return document.getElementById('calendar-list-tree-widget').foreignCanDrop(event)"
                                label="&calendar.list.header.label;"/>
               <modevbox id="calendar-listtree-pane" flex="1" mode="calendar,task" broadcaster="modeBroadcaster"
                         refcontrol="calendar-list-header">
                 
-                <tree id="calendar-list-tree-widget"  class="task-tree-subpane"
-                  flex="1"/>
+                <calendar-list-tree id="calendar-list-tree-widget"
+                                    class="task-tree-subpane"
+                                    flex="1"/>
               </modevbox>
           </modevbox>
           </vbox>

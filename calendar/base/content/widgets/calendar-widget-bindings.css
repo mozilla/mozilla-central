@@ -80,3 +80,11 @@ dragndropContainer {
 tab[calview] {
    -moz-binding: url(chrome://calendar/content/widgets/calendar-widgets.xml#view-tab);
 }
+
+calendar-list-tree {
+   -moz-binding: url(chrome://calendar/content/widgets/calendar-list-tree.xml#calendar-list-tree);
+}
+
+calendar-list-tree[type="full"] {
+   -moz-binding: url(chrome://calendar/content/widgets/calendar-list-tree.xml#full-calendar-list-tree);
+}

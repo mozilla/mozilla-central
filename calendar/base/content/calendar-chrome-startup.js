@@ -64,6 +64,9 @@ function commonInitCalendar() {
               .startup();
     document.getElementById("calsidebar_splitter").addEventListener("command", onCalendarViewResize, false);
     window.addEventListener("resize", onCalendarViewResize, true);
+
+    // Set up the category colors
+    categoryManagement.initCategories();
 }
 
 /**
@@ -78,6 +81,9 @@ function commonFinishCalendar() {
 
     document.getElementById("calsidebar_splitter").removeEventListener("command", onCalendarViewResize, false);
     window.removeEventListener("resize", onCalendarViewResize, true);
+
+    // Clean up the category colors
+    categoryManagement.cleanupCategories();
 }
 
 /**

@@ -34,46 +34,46 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-checkbox) {
+calendar-list-tree > tree > treechildren::-moz-tree-image(checkbox-treecol) {
     list-style-image: url(chrome://calendar/skin/unifinder-images.png);
     -moz-image-region: rect(0 13px 13px 0);
 }
 
-#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-checkbox, checked) {
+calendar-list-tree > tree > treechildren::-moz-tree-image(checkbox-treecol, checked) {
     -moz-image-region: rect(0 26px 13px 13px);
 }
 
-#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-checkbox, disabled) {
+calendar-list-tree > tree > treechildren::-moz-tree-image(checkbox-treecol, disabled) {
     -moz-image-region: rect(0 39px 13px 26px);
 }
 
-#calendar-list-tree-widget > treechildren::-moz-tree-cell(calendar-list-tree-color, color-default) {
+calendar-list-tree > tree > treechildren::-moz-tree-cell(color-treecol, color-default) {
     background-color: #a8c2e1;
 }
 
-#calendar-list-tree-widget > treechildren::-moz-tree-cell(calendar-list-tree-checkbox) {
+calendar-list-tree > tree > treechildren::-moz-tree-cell(checkbox-treecol) {
     padding: 0;
 }
 
-#calendar-list-tree-widget > treechildren::-moz-tree-cell(calendar-list-tree-color) {
+calendar-list-tree > tree > treechildren::-moz-tree-cell(color-treecol) {
     margin: 1px;
 }
 
-#calendar-list-tree-widget > treechildren::-moz-tree-cell(calendar-list-tree-calendar) {
+calendar-list-tree > tree > treechildren::-moz-tree-cell(calendarname-treecol) {
     -moz-margin-start: 1px;
 }
 
-#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-status, readonly) {
+calendar-list-tree > tree > treechildren::-moz-tree-image(status-treecol, readonly) {
     list-style-image: url(chrome://calendar/skin/calendar-status.png);
     -moz-image-region: rect(0px, 14px, 14px, 0px);
 }
 
-#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-status, readfailed) {
+calendar-list-tree > tree > treechildren::-moz-tree-image(status-treecol, readfailed) {
     list-style-image: url(chrome://calendar/skin/calendar-status.png);
     -moz-image-region: rect(0px, 28px, 14px, 14px);
 }
 
-#calendar-list-tree-widget {
+calendar-list-tree > tree {
   border: none;
   padding: 0;
   margin: 4px;
@@ -84,8 +84,8 @@
   -moz-appearance: none;
 }
 
-treecol[hideheader="true"],
-treecols[hideheader="true"] {
+calendar-list-tree > tree > treecols > treecol[hideheader="true"],
+calendar-list-tree > tree > treecols > treecol[hideheader="true"] {
   font-size: 0px;
   border: none;
   padding: 0;

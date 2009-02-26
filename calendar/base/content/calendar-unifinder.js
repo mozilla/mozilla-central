@@ -98,13 +98,12 @@ var unifinderObserver = {
     mInBatch: false,
 
     QueryInterface: function uO_QueryInterface (aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calICompositeObserver) &&
-            !aIID.equals(Components.interfaces.calIObserver)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
+        return cal.doQueryInterface(this,
+                                    unifinderObserver.prototype,
+                                    aIID,
+                                    [Components.interfaces.calICompositeObserver,
+                                     Components.interfaces.nsIObserver,
+                                     Components.interfaces.calIObserver]);
     },
 
     // calIObserver:
@@ -218,6 +217,15 @@ var unifinderObserver = {
         }
         // XXX: do we really still need this, we are always checking it in the refreshInternal
         unifinderTreeView.removeItems(items.filter(filter.isItemInFilters, filter));
+    }, 
+
+    observe: function uO_observe(aSubject, aTopic, aPrefName) {
+        switch (aPrefName) {
+            case "calendar.date.format":
+            case "calendar.timezone.local":
+                refreshEventTree();
+                break;
+        }
     }
 };
 
@@ -229,6 +237,13 @@ function prepareCalendarUnifinder() {
     // Only load once
     window.removeEventListener("load", prepareCalendarUnifinder, false);
     var unifinderTree = document.getElementById("unifinder-search-results-tree");
+
+    // Add pref observer
+    let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                .getService(Components.interfaces.nsIPrefService);
+    let branch = prefService.getBranch("")
+                            .QueryInterface(Components.interfaces.nsIPrefBranch2);
+    branch.addObserver("calendar.", unifinderObserver, false);
 
     // Check if this is not the hidden window, which has no UI elements
     if (unifinderTree) {
@@ -280,10 +295,17 @@ function prepareCalendarUnifinder() {
  * added.
  */
 function finishCalendarUnifinder() {
-    var ccalendar = getCompositeCalendar();
+    let ccalendar = getCompositeCalendar();
     ccalendar.removeObserver(unifinderObserver);
 
-    var viewDeck = getViewDeck();
+    // Remove pref observer
+    let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                .getService(Components.interfaces.nsIPrefService);
+    let branch = prefService.getBranch("")
+                            .QueryInterface(Components.interfaces.nsIPrefBranch2);
+    branch.removeObserver("calendar.", unifinderObserver, false);
+
+    let viewDeck = getViewDeck();
     if (viewDeck) {
         viewDeck.removeEventListener("dayselect", unifinderDaySelect, false);
         viewDeck.removeEventListener("itemselect", unifinderItemSelect, true);

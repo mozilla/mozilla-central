@@ -58,7 +58,7 @@
         <xul:hbox>
           <xul:box anonid="event-container"
                    class="calendar-color-box"
-                   xbl:inherits="item-calendar"
+                   xbl:inherits="calendar-uri,calendar-id"
                    flex="1">
             <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
               <xul:stack anonid="eventbox"
@@ -379,7 +379,8 @@
 
               var box = createXULElement("calendar-month-day-box-item");
               box.setAttribute("context", this.getAttribute("item-context") || this.getAttribute("context"));
-              box.setAttribute("item-calendar", itd.item.calendar.uri.spec);
+              box.setAttribute("calendar-uri", itd.item.calendar.uri.spec);
+              box.setAttribute("calendar-id", itd.item.calendar.id);
 
               this.insertBefore(box, before);
 

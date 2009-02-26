@@ -423,7 +423,7 @@
     </content>
 
     <!-- ::::::::::::::::: INTERFACE ::::::::::::::::::::::::: -->
-    <implementation implements="calICompositeObserver calIOperationListener" >
+    <implementation implements="calICompositeObserver calIOperationListener nsIObserver" >
       <property name="value"
                 onget="return this.mValue"
                 onset="this.update(val)"/>
@@ -464,12 +464,26 @@
           if (this.hasAttribute("freebusy")) {
               this._setFreeBusy(this.getAttribute("freebusy") == "true");
           }
+
+          // Add pref observer for calendar.week.start
+          let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                      .getService(Components.interfaces.nsIPrefService);
+          let branch = prefService.getBranch("")
+                                  .QueryInterface(Components.interfaces.nsIPrefBranch2);
+          branch.addObserver("calendar.week.start", this, false);
       ]]></constructor>
       <destructor><![CDATA[
           var composite = getCompositeCalendar();
           if (composite && this.mObservesComposite == true) {
               getCompositeCalendar().removeObserver(this);
           }
+
+          // Remove pref observer for calendar.week.start
+          let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                      .getService(Components.interfaces.nsIPrefService);
+          let branch = prefService.getBranch("")
+                                  .QueryInterface(Components.interfaces.nsIPrefBranch2);
+          branch.removeObserver("calendar.week.start", this, false);
       ]]></destructor>
 
      <!-- calIOperationListener methods -->
@@ -657,6 +671,23 @@
       <method name="onDefaultCalendarChanged">
         <parameter name="aCalendar"/>
         <body><![CDATA[
+        ]]></body>
+      </method>
+
+      <!-- nsIObserver methods -->
+      <method name="observe">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
+        <body><![CDATA[
+          // WARNING: In the constructor, only calendar.week.start is observed.
+          // If you decide to add further prefs to this observer, you'll need to
+          // modify constructor and destructor.
+          switch (aData) {
+              case "calendar.week.start":
+                  this.refreshDisplay(true);
+                  break;
+          }
         ]]></body>
       </method>
 

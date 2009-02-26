@@ -1893,7 +1893,7 @@
         <xul:box xbl:inherits="orient,width,height" flex="1">
           <xul:box anonid="event-container"
                    class="calendar-color-box"
-                   xbl:inherits="orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories,item-calendar"
+                   xbl:inherits="orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories,calendar-uri,calendar-id"
                    flex="1">
             <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
               <xul:stack anonid="eventbox"

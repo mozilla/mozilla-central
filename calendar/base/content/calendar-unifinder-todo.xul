@@ -63,7 +63,7 @@
                 label="&calendar.unifinder.showcompletedtodos.label;"
                 flex="1"
                 crop="end"
-                oncommand="toDoUnifinderRefresh();"
+                oncommand="updateShowCompleted()"
                 persist="checked"/>
     </box>
     <vbox id="calendar-task-tree-detail" flex="1">

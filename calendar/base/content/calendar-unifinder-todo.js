@@ -50,13 +50,13 @@ function prepareCalendarToDoUnifinder() {
     if (isSunbird()) {
         document.getElementById("todo-label").removeAttribute("collapsed");
     }
-    toDoUnifinderRefresh();
+    updateShowCompleted();
 }
 
 /**
- * Called by event observers to update the task display
+ * Handler function to update the show completed view in the unifinder todo.
  */
-function toDoUnifinderRefresh() {
+function updateShowCompleted() {
     // Set up hiding completed tasks for the unifinder-todo tree
     var showCompleted = document.getElementById("show-completed-checkbox").checked;
     var tree = document.getElementById("unifinder-todo-tree");

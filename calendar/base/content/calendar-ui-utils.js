@@ -103,9 +103,11 @@ function getElementValue(aElement, aPropertyName) {
  * @param aXulElement     The XUL element/string ID the attribute is applied to.
  * @param aAttribute      The name of the attribute
  * @param aValue          The boolean value
+ * @return                Returns aValue (for chaining)
  */
 function setBooleanAttribute(aXulElement, aAttribute, aValue) {
     setElementValue(aXulElement, (aValue ? "true" : false), aAttribute);
+    return aValue;
 }
 
 /**

@@ -631,12 +631,16 @@
                    break;
                case "calendar.timezone.local":
                    this.timezone = calendarDefaultTimezone();
+                   this.refreshView();
                    break;
                case "calendar.alarms.indicator.show":
                    //Break here to ensure the view is refreshed
                    break;
                case "calendar.week.start":
                    this.weekStartOffset = aSubject.getIntPref(aPreference);
+                   break;
+               case "calendar.date.format":
+                   this.refreshView();
                    break;
                default:
                    return;

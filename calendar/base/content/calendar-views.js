@@ -42,6 +42,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 
 /**
@@ -461,89 +462,127 @@ function scheduleMidnightUpdate(aRefreshCallback) {
 }
 
 /**
- * Returns the actual style sheet object with the specified path.  Callers are
- * responsible for any caching they may want to do.
+ * Retuns a cached copy of the view stylesheet.
  *
- * @param aStyleSheetPath       The chrome:// uri of the stylesheet to retrieve.
- * @return                      The stylesheet object from document.styleSheets.
+ * @return      The view stylesheet object.
  */
-function getStyleSheet(aStyleSheetPath) {
-    for each (var sheet in document.styleSheets) {
-        if (sheet.href == aStyleSheetPath) {
-            return sheet;
-        }
-    }
-    return null;
+function getViewStyleSheet() {
+  if (!getViewStyleSheet.sheet) {
+      const cssUri = "chrome://calendar/content/calendar-view-bindings.css";
+      for each (let sheet in document.styleSheets) {
+          if (sheet.href == cssUri) {
+              getViewStyleSheet.sheet = sheet;
+              break;
+          }
+      }
+  }
+  return getViewStyleSheet.sheet;
 }
 
 /**
- * Updates the style rules for a particular object.  If the object is a
- * category (and hence doesn't have a uri), we set the category bar color.
- * If it's a calendar, we set the background color and contrasting text color.
+ * Updates the view stylesheet to contain rules that give all boxes with class
+ * .calendar-color-box and an attribute calendar-id="<id of the calendar>" the
+ * background color of the specified calendar.
  *
- * XXX This function is quite specific, needs some generalization and caller
- * specific code for calendars and categories.
- *
- * TODO This function still uses the .uri, we are moving to using ids.
- *
- * @param aObject       Either a calendar (with a .uri), or the category color
- *                        pref key suffix [the non-unicode part after
- *                        "calendar.category.color.", equivalent to
- *                        formatStringForCSSRule(categoryNameInUnicode)].
- * @param aSheet         The stylesheet to update.
- *
+ * @param aCalendar     The calendar to update the stylesheet for.
  */
-function updateStyleSheetForObject(aObject, aSheet) {
-    var selectorPrefix, name, ruleUpdaterFunc, classPrefix;
-    if (aObject.uri) {
-        // For a calendar, set background and contrasting text colors
-        name = aObject.uri.spec;
-        classPrefix = ".calendar-color-box";
-        selectorPrefix = "item-calendar=";
-        ruleUpdaterFunc = function calendarRuleFunc(aRule, aIndex) {
-            var color = aObject.getProperty('color');
-            if (!color) {
-                color = "#A8C2E1";
-            }
-            aRule.style.backgroundColor = color;
-            aRule.style.color = getContrastingTextColor(color);
-        };
-    } else {
-        // For a category, set the category bar color.  Also note that
-        // it uses the ~= selector, since there could be multiple categories.
-        name = aObject;
-        selectorPrefix = "categories~=";
-        classPrefix = ".category-color-box"
-        ruleUpdaterFunc = function categoryRuleFunc(aRule, aIndex) {
-            var color = getPrefSafe("calendar.category.color."+name, null);
-            if (color) {
-                aRule.style.backgroundColor = color;
-            } else {
-                aSheet.deleteRule(aIndex);
-            }
-        };
+function updateStyleSheetForViews(aCalendar) {
+    if (!updateStyleSheetForViews.ruleCache) {
+        updateStyleSheetForViews.ruleCache = {};
+    }
+    let ruleCache = updateStyleSheetForViews.ruleCache;
+
+    if (!(aCalendar.id in ruleCache)) {
+        // We haven't create a rule for this calendar yet, do so now.
+        let sheet = getViewStyleSheet();
+        let ruleString = '.calendar-color-box[calendar-id="' + aCalendar.id + '"] {} ';
+        let ruleIndex = sheet.insertRule(ruleString, sheet.cssRules.length);
+
+        ruleCache[aCalendar.id] = sheet.cssRules[ruleIndex];
     }
 
-    var selector = classPrefix + '[' + selectorPrefix + '"' + name + '"]';
-
-    // Now go find our rule
-    var rule, ruleIndex;
-    for (var i = 0; i < aSheet.cssRules.length; i++) {
-        var maybeRule = aSheet.cssRules[i];
-        if (maybeRule.selectorText && (maybeRule.selectorText == selector)) {
-            rule = maybeRule;
-            ruleIndex = i;
-            break;
-        }
-    }
-
-    if (!rule) {
-        aSheet.insertRule(selector + ' { }', aSheet.cssRules.length);
-        rule = aSheet.cssRules[aSheet.cssRules.length-1];
-    }
-
-    ruleUpdaterFunc(rule, ruleIndex);
+    let color = aCalendar.getProperty("color") || "#A8C2E1";
+    ruleCache[aCalendar.id].style.backgroundColor = color;
+    ruleCache[aCalendar.id].style.color = cal.getContrastingTextColor(color);
 }
+
+/**
+ * Category preferences observer. Used to update the stylesheets for category
+ * colors.
+ */
+var categoryManagement = {
+    QueryInterface: function cM_QueryInterface(aIID) {
+        return cal.doQueryInterface(this,
+                                    categoryPrefObserver.prototype,
+                                    aIID,
+                                    [Components.interfaces.nsIObserver]);
+    },
+
+    initCategories: function cM_initCategories() {
+      let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                  .getService(Components.interfaces.nsIPrefService);
+      let categoryPrefBranch = prefService.getBranch("calendar.category.color.")
+                                          .QueryInterface(Components.interfaces.nsIPrefBranch2);
+      let categories = categoryPrefBranch.getChildList("", {});
+
+      // Fix illegally formatted category prefs.
+      for (let i in categories) {
+          let category = categories[i];
+          if (category.search(/[^_0-9a-z-]/) != -1) {
+              let categoryFix = formatStringForCSSRule(category);
+              if (!categoryPrefBranch.prefHasUserValue(categoryFix)) {
+                  let color = categoryPrefBranch.getCharPref(category);
+                  categoryPrefBranch.setCharPref(categoryFix, color);
+                  categoryPrefBranch.clearUserPref(category); // not usable
+                  categories[i] = categoryFix;  // replace illegal name
+              } else {
+                  categories.splice(i, 1); // remove illegal name
+              }
+          }
+      }
+
+      // Add color information to the stylesheets.
+      categories.forEach(categoryManagement.updateStyleSheetForCategory,
+                         categoryManagement);
+
+      categoryPrefBranch.addObserver("", this, false);
+    },
+
+    cleanupCategories: function cM_cleanupCategories() {
+      let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                  .getService(Components.interfaces.nsIPrefService);
+      let categoryPrefBranch = prefService.getBranch("calendar.category.color.");
+      categoryPrefBranch.removeObserver("", this, false);
+    },
+
+    observe: function cM_observe(aSubject, aTopic, aPrefName) {
+        if (aPrefName.substring(0, 24) == "calendar.category.color.") {
+            this.updateStyleSheetForCateogry(aPrefName.substring(24));
+        }
+        // TODO Currently, the only way to find out if categories are removed is
+        // to initially grab the calendar.categories.names preference and then
+        // observe changes to it. it would be better if we had hooks for this,
+        // so we could delete the rule from our style cache and also remove its
+        // color preference.
+        
+    },
+
+    categoryStyleCache: {},
+
+    updateStyleSheetForCategory: function cM_updateStyleSheetForCategory(aCatName) {
+        if (!(aCatName in this.categoryStyleCache)) {
+            // We haven't created a rule for this category yet, do so now.
+            let sheet = getViewStyleSheet();
+            let ruleString = '.category-color-box[categories~="' + aCalendar.id + '"] {} ';
+            let ruleIndex = sheet.insertRule(ruleString, sheet.cssRules.length);
+
+            this.categoryStyleCache[aCatName] = sheet.cssRules[ruleIndex];
+        }
+
+        let color = cal.getPrefSafe("calendar.category.color." + aCatName) || "";
+        this.categoryStyleCache[aCatName].style.backgroundColor = color;
+    }
+};
 
 /**
  * Handler function to set the selected day in the minimonth to the currently

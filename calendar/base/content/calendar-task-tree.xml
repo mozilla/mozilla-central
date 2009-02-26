@@ -137,7 +137,7 @@
       </xul:tree>
     </content>
 
-    <implementation>
+    <implementation implements="nsIObserver">
       <constructor><![CDATA[
         Components.utils.import("resource://gre/modules/PluralForm.jsm");
         let self = this;
@@ -153,6 +153,14 @@
         // set up our calendar event observer
         let composite = getCompositeCalendar();
         composite.addObserver(this.mTaskTreeObserver);
+
+        // set up the preference observer
+        let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                    .getService(Components.interfaces.nsIPrefService);
+        let branch = prefService.getBranch("")
+                                .QueryInterface(Components.interfaces.nsIPrefBranch2);
+        branch.addObserver("calendar.", this, false);
+
 
         // we want to make several attributes on the column
         // elements persistent, but unfortunately there's no
@@ -191,9 +199,16 @@
         }
       ]]></constructor>
       <destructor><![CDATA[
-          // remove out calendar event observer
+          // remove composite calendar observer
           let composite = getCompositeCalendar();
           composite.removeObserver(this.mTaskTreeObserver);
+
+          // remove the preference observer
+          let prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                                      .getService(Components.interfaces.nsIPrefService);
+          let branch = prefService.getBranch("")
+                                  .QueryInterface(Components.interfaces.nsIPrefBranch2);
+          branch.removeObserver("calendar.", this, false);
 
           let widths = "";
           let ordinals = "";
@@ -879,6 +894,21 @@
           onDefaultCalendarChanged: function tTO_onDefaultCalendarChanged(aNewDefaultCalendar) {}
       })
       ]]></field>
+
+      <method name="observe">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
+        <body><![CDATA[
+          switch (aPrefName) {
+              case "calendar.date.format":
+              case "calendar.timezone.local":
+                  this.refresh();
+                  break;
+          }
+
+        ]]></body>
+      </method>
 
       <!-- Called by event observers to update the display -->
       <method name="refresh">

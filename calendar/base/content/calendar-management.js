@@ -43,12 +43,7 @@
  * @return      The currently selected calendar.
  */
 function getSelectedCalendar() {
-    var tree = document.getElementById("calendar-list-tree-widget");
-    if (tree) {
-        return calendarListTreeView.getCalendar(tree.currentIndex);
-    } else { // make robust in startup scenarios when calendar list is not yet loaded:
-        return getCompositeCalendar().defaultCalendar;
-    }
+    return getCompositeCalendar().defaultCalendar;
 }
 
 /**
@@ -83,1021 +78,161 @@ function promptDeleteCalendar(aCalendar) {
 }
 
 /**
- * Ensure that the passed calendar is visible to the user in the current window.
- */
-function ensureCalendarVisible(aCalendar) {
-    getCompositeCalendar().addCalendar(aCalendar);
-}
-
-/**
  * Called to initialize the calendar manager for a window.
  */
 function loadCalendarManager() {
-    var calMgr = getCalendarManager();
-    var composite = getCompositeCalendar();
-    var calendars = calMgr.getCalendars({});
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefService);
-    var branch = prefService.getBranch("").QueryInterface(Components.interfaces.nsIPrefBranch2);
+    // Create the home calendar if no calendar exists.
+    let calendars = getCalendarManager().getCalendars({});
+    if (!calendars.length) {
+        initHomeCalendar();
+    }
 
-    if (calendars.length == 0) {
-        var url = makeURL("moz-profile-calendar://");
-        var homeCalendar = calMgr.createCalendar("storage", url);
+    // Set up the composite calendar in the calendar list widget.
+    let tree = document.getElementById("calendar-list-tree-widget");
+    tree.compositeCalendar = getCompositeCalendar();
+}
 
-        calMgr.registerCalendar(homeCalendar);
-        var name = calGetString("calendar", "homeCalendarName");
+/**
+ * Creates the initial "Home" calendar if no calendar exists.
+ */
+function initHomeCalendar() {
+    let url = makeURL("moz-profile-calendar://");
+    let homeCalendar = calMgr.createCalendar("storage", url);
 
-        homeCalendar.name = name;
-        cal.setPref("calendar.list.sortOrder", homeCalendar.id);
-        composite.addCalendar(homeCalendar);
+    calMgr.registerCalendar(homeCalendar);
+    let name = calGetString("calendar", "homeCalendarName");
 
-        // Wrapping this in a try/catch block, as if any of the migration code
-        // fails, the app may not load.
-        if (getPrefSafe("calendar.migrator.enabled", true)) {
-            try {
-                gDataMigrator.checkAndMigrate();
-            } catch (e) {
-                Components.utils.reportError("Migrator error: " + e);
-            }
+    homeCalendar.name = name;
+    cal.setPref("calendar.list.sortOrder", homeCalendar.id);
+    composite.addCalendar(homeCalendar);
+
+    // Wrapping this in a try/catch block, as if any of the migration code
+    // fails, the app may not load.
+    if (getPrefSafe("calendar.migrator.enabled", true)) {
+        try {
+            gDataMigrator.checkAndMigrate();
+        } catch (e) {
+            Components.utils.reportError("Migrator error: " + e);
         }
-
-        calendars = [homeCalendar];
     }
 
-    calendarListInitCategoryColors();
-
-    // Set up the tree view
-    var tree = document.getElementById("calendar-list-tree-widget");
-    calendarListTreeView.tree = tree;
-    tree.view = calendarListTreeView;
-
-    calMgr.addObserver(calendarManagerObserver);
-    composite.addObserver(calendarManagerCompositeObserver);
-    branch.addObserver("calendar.", calendarManagerObserver, false);
-
-    // The calendar manager will not notify for existing calendars. Go through
-    // them all and set up manually.
-    for each (let calendar in sortCalendarArray(calendars)) {
-        calendarManagerObserver.initializeCalendar(calendar);
-    }
+    return homeCalendar;
 }
 
 /**
  * Called to clean up the calendar manager for a window.
  */
 function unloadCalendarManager() {
-    calendarManagerObserver.unload();
-    var calMgr = getCalendarManager();
     var composite = getCompositeCalendar();
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefService);
-    var branch = prefService.getBranch("").QueryInterface(Components.interfaces.nsIPrefBranch2);
-
-    branch.removeObserver("calendar.", calendarManagerObserver);
-    composite.removeObserver(calendarManagerCompositeObserver);
     composite.setStatusObserver(null, null);
-    calMgr.removeObserver(calendarManagerObserver);
 }
 
 /**
- * Color specific functions
- */
-/**
- * Update the calendar-view-bindings.css stylesheet to provide rules for
- * category colors.
+ * Updates the sort order preference based on the given event. The event is a
+ * "SortOrderChanged" event, emitted from the calendar-list-tree binding. You
+ * can also pass in an object like { sortOrder: "Space separated calendar ids" }
  *
- * XXX This doesn't really fit into the calendar manager and is here for
- * historical reasons.
+ * @param event     The SortOrderChanged event described above.
  */
-var gCachedStyleSheet;
-function calendarListInitCategoryColors() {
-    var calendars = getCalendarManager().getCalendars({});
-    if (!gCachedStyleSheet) {
-        var cssUri = "chrome://calendar/content/calendar-view-bindings.css";
-        gCachedStyleSheet = getStyleSheet(cssUri);
-    }
-
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefService);
-    var categoryPrefBranch = prefService.getBranch("calendar.category.color.");
-    var categories = categoryPrefBranch.getChildList("", {});
-
-    // check category preference name syntax
-    categories = calendarConvertObsoleteColorPrefs(categoryPrefBranch, categories);
-
-    // Update all categories
-    for each (var category in categories) {
-        updateStyleSheetForObject(category, gCachedStyleSheet);
-    }
+function updateSortOrderPref(event) {
+    let sortOrderString = event.sortOrder.join(" ");
+    cal.setPref("calendar.list.sortOrder", sortOrderString);
 }
 
 /**
- * Remove illegally formatted category names from the array coloredCategories
- * so they don't cause CSS errors.  For each illegal colored category c, if
- * its color preference has not yet been replaced with a converted preference
- * with key formatStringForCSSRule(c), create the preference with the
- * converted key and with the previous preference value, and clear the old
- * preference.  (For most users who upgrade and do not later add colors with a
- * downgrade version, this should convert any illegal preferences once, so
- * future runs have no illegal preferences.)
+ * Handler function to call when the tooltip is showing on the calendar list.
  *
- * @param categoryPrefBranch        PrefBranch for "calendar.category.color."
- * @param coloredCategories         Array of preference name suffixes under the
- *                                    prefBranch.
- * @return                          Same array with each illegal name replaced
- *                                    with formatted name if it doesn't already
- *                                    exist, or simply removed from array if it
- *                                    does.
- *
+ * @param event     The DOM event provoked by the tooltip showing.
  */
-function calendarConvertObsoleteColorPrefs(categoryPrefBranch, coloredCategories) {
-    for (var i in coloredCategories) {
-        var category = coloredCategories[i];
-        if (category.search(/[^_0-9a-z-]/) != -1) {
-            var categoryFix = formatStringForCSSRule(category);
-            if (!categoryPrefBranch.prefHasUserValue(categoryFix)) {
-                var color = categoryPrefBranch.getCharPref(category);
-                categoryPrefBranch.setCharPref(categoryFix, color);
-                categoryPrefBranch.clearUserPref(category); // not usable
-                coloredCategories[i] = categoryFix;  // replace illegal name
-            } else {
-                coloredCategories.splice(i, 1); // remove illegal name
-            }
-        }
-    }
-    return coloredCategories;
-}
-
-/**
- * Update the cached stylesheet to provide rules for the calendar list's
- * calendar colors.
- *
- * @param aCalendar         The calendar to update rules for.
- */
-function calendarListUpdateColor(aCalendar) {
-    var selectorPrefix = "treechildren::-moz-tree-cell";
-    var color = aCalendar.getProperty("color");
-    if (!color) {
-        return;
-    }
-    var selector = selectorPrefix + "color-"  + color.substr(1);
-
-    for (var i = 0; i < gCachedStyleSheet.cssRules.length; i++) {
-        var thisrule = gCachedStyleSheet.cssRules[i];
-        if (thisrule.selectorText && thisrule.selectorText == selector) {
-            return;
-        }
-    }
-
-    var ruleString = selectorPrefix + "(calendar-list-tree-color, color-" + color.substr(1) + ") { }";
-
-    var rule = gCachedStyleSheet
-               .insertRule(ruleString, gCachedStyleSheet.cssRules.length);
-
-    gCachedStyleSheet.cssRules[rule].style.backgroundColor = color;
-    return;
-}
-
-/**
- * Calendar Tree View
- */
-var calendarListTreeView = {
-    mCalendarList: [],
-    tree: null,
-    treebox: null,
-    mContextElement: null,
-
-    QueryInterface: function cLTV_QueryInterface(aIID) {
-        return doQueryInterface(this, calendarListTreeView.__proto__, aIID,
-                                [Components.interfaces.nsISupports,
-                                 Components.interfaces.nsITreeView]);
-    },
-
-    /**
-     * High-level calendar tree manipulation
-     */
-
-    /**
-     * Find the array index of the passed calendar
-     *
-     * @param aCalendar     The calendar to find an index for.
-     * @return              The array index, or -1 if not found.
-     */
-    findIndex: function cLTV_findIndex(aCalendar) {
-        for (var i = 0; i < this.mCalendarList.length; i++) {
-            if (this.mCalendarList[i].id == aCalendar.id) {
-                return i;
-            }
-        }
-        return -1;
-    },
-
-    /**
-     * Find the array index of a calendar by its uri.
-     *
-     * @param aUri          The uri to find an index for.
-     * @return              The array index, or -1 if not found.
-     */
-    findIndexByUri: function cLTV_findIndexByUri(aUri) {
-        for (var i = 0; i < this.mCalendarList.length; i++) {
-            if (this.mCalendarList[i].uri.equals(aUri)) {
-                return i;
-            }
-        }
-        return -1;
-    },
-
-    /**
-     * Add a calendar to the calendar list
-     * 
-     * @param aCalendar     The calendar to add.
-     */
-    addCalendar: function cLTV_addCalendar(aCalendar) {
-        var composite = getCompositeCalendar();
-        this.mCalendarList.push(aCalendar);
-        calendarListUpdateColor(aCalendar);
-        this.treebox.rowCountChanged(this.mCalendarList.length - 1, 1);
-
-        if (!composite.defaultCalendar ||
-            aCalendar.id == composite.defaultCalendar.id) {
-            this.tree.view.selection.select(this.mCalendarList.length - 1);
-        }
-    },
-
-    /**
-     * Remove a calendar from the calendar list
-     * 
-     * @param aCalendar     The calendar to remove.
-     */
-    removeCalendar: function cLTV_removeCalendar(aCalendar) {
-        var index = this.findIndex(aCalendar);
-        if (index < 0) {
-            return;
-        }
-
-        this.mCalendarList.splice(index, 1);
-        if (index == this.rowCount) {
-            index--;
-        }
-
-        this.tree.view.selection.select(index + 1);
-        this.treebox.rowCountChanged(index, -1);
-    },
-
-    /**
-     * Update a calendar's tree row (to refresh the color and such)
-     * 
-     * @param aCalendar     The calendar to update.
-     */
-    updateCalendar: function cLTV_updateCalendar(aCalendar) {
-        var index = this.findIndex(aCalendar);
-        this.treebox.invalidateRow(index);
-    },
-
-    /**
-     * Get the calendar from the given DOM event. This can be a Mouse event or a
-     * keyboard event.
-     *
-     * @param event     The DOM event to check
-     * @param aCol      An out-object for the column id.
-     * @param aRow      An out-object for the row index.
-     */
-    getCalendarFromEvent: function cLTV_getCalendarFromEvent(event,
-                                                             aCol,
-                                                             aRow) {
-        if (event.clientX && event.clientY) {
-            // If we have a client point, get the row directly from the client
-            // point.
-            aRow = aRow || {};
-            this.treebox.getCellAt(event.clientX,
-                                   event.clientY,
-                                   aRow,
-                                   aCol || {},
-                                   {});
-
-        } else {
-            // The event is probably coming from a context menu oncommand
-            // handler. We saved the row and column where the context menu
-            // showed up in setupContextMenu().
-            aCol = { value: this.mContextElement.column };
-            aRow = { value: this.mContextElement.row };
-        }
-        return aRow && aRow.value > -1 && this.mCalendarList[aRow.value];
-    },
-
-
-    /**
-     * Get the calendar from a certain index.
-     * 
-     * @param index     The index to get the calendar for.
-     */
-    getCalendar: function cLTV_getCalendar(index) {
-        if (index < 0) {
-            index = 0;
-        } else if (index >= this.mCalendarList.length) {
-            index = (this.mCalendarList.length - 1);
-        }
-        return this.mCalendarList[index];
-    },
-
-    /**
-     * nsITreeView methods and properties
-     */
-    get rowCount() {
-        return this.mCalendarList.length;
-    },
-
-    getCellProperties: function cLTV_getCellProperties(aRow, aCol, aProps) {
-        this.getRowProperties(aRow, aProps);
-        this.getColumnProperties(aCol, aProps);
-    },
-
-    getRowProperties: function cLTV_getRowProperties(aRow, aProps) {
-        var calendar = this.getCalendar(aRow);
-        var composite = getCompositeCalendar();
-
-        // Set up the composite calendar status
-        if (composite.getCalendarById(calendar.id)) {
-            aProps.AppendElement(getAtomFromService("checked"));
-        } else {
-            aProps.AppendElement(getAtomFromService("unchecked"));
-        }
-
-        // Get the calendar color
-        var color = calendar.getProperty("color");
-        color = color && color.substr(1);
-
-        // Set up the calendar color (background)
-        var bgColorProp = "color-" + (color || "default");
-        aProps.AppendElement(getAtomFromService(bgColorProp));
-
-        // Set a property to get the contrasting text color (foreground)
-        var fgColorProp = getContrastingTextColor(color || "a8c2e1");
-        aProps.AppendElement(getAtomFromService(fgColorProp));
-
-        var currentStatus = calendar.getProperty("currentStatus");
+function calendarListTooltipShowing(event) {
+    let tree = document.getElementById("calendar-list-tree-widget");
+    let calendar = tree.getCalendarFromEvent(event);
+    let tooltipText = false;
+    if (calendar) {
+        let currentStatus = calendar.getProperty("currentStatus");
         if (!Components.isSuccessCode(currentStatus)){
-            aProps.AppendElement(getAtomFromService("readfailed"));
-        // 'readfailed' is supposed to "win" over 'readonly', meaning that 
-        // if reading from a calendar fails there is no further need to also display
-        // information about 'readonly' status
+            tooltipText = calGetString("calendar", "tooltipCalendarDisabled", [calendar.name]);
         } else if (calendar.readOnly) {
-            aProps.AppendElement(getAtomFromService("readonly"));
+            tooltipText = calGetString("calendar", "tooltipCalendarReadOnly", [calendar.name]);
         }
-
-        // Set up the disabled state
-        if (calendar.getProperty("disabled")) {
-            aProps.AppendElement(getAtomFromService("disabled"));
-        } else {
-            aProps.AppendElement(getAtomFromService("enabled"));
-        }
-    },
-
-    getColumnProperties: function cLTV_getColumnProperties(aCol, aProps) {},
-
-    isContainer: function cLTV_isContainer(aRow) {
-        return false;
-    },
-
-    isContainerOpen: function cLTV_isContainerOpen(aRow) {
-        return false;
-    },
-
-    isContainerEmpty: function cLTV_isContainerEmpty(aRow) {
-        return false;
-    },
-
-    isSeparator: function cLTV_isSeparator(aRow) {
-        return false;
-    },
-
-    isSorted: function cLTV_isSorted(aRow) {
-        return false;
-    },
-
-    /**
-     * Initiate a drag operation for the calendar list. Can be used in the
-     * dragstart handler.
-     *
-     * @param event     The DOM event containing drag information.
-     */
-    onDragStart: function cLTV_onDragStart(event) {
-        let calendar = this.getCalendarFromEvent(event);
-        if (event.dataTransfer) {
-            // Setting data starts a drag session
-            event.dataTransfer.setData("application/x-moz-calendarID", calendar.id);
-            event.dataTransfer.effectAllowed = "move";
-        }
-    },
-
-    canDrop: function cLTV_canDrop(aRow, aOrientation) {
-        let dragSession = cal.getDragService().getCurrentSession();
-        let dataTransfer = dragSession.dataTransfer;
-        if (!dataTransfer) {
-            // If there is no data transfer then we can't drop (i.e dropping a
-            // file on the calendar list.
-            return false;
-        }
-
-        let dragCalId = dataTransfer.getData("application/x-moz-calendarID");
-
-        return (aOrientation != Components.interfaces.nsITreeView.DROP_ON &&
-                dragCalId != null);
-    },
-
-    drop: function cLTV_drop(aRow, aOrientation) {
-        let dragSession = cal.getDragService().getCurrentSession();
-        let dataTransfer = dragSession.dataTransfer;
-        let dragCalId = dataTransfer &&
-                        dataTransfer.getData("application/x-moz-calendarID");
-        if (!dataTransfer || !dragCalId) {
-            return false;
-        }
-
-        let sortOrder = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
-        let oldIndex = sortOrder.indexOf(dragCalId);
-
-        // If no row is specified (-1), then assume append.
-        let row = (aRow < 0 ? sortOrder.length - 1 : aRow);
-        let targetIndex = row + Math.max(0, aOrientation);
-
-        // We don't need to move if the target row has the same index as the old
-        // row. The same goes for dropping after the row before the old row or
-        // before the row after the old row. Think about it :-)
-        if (aRow != oldIndex && row + aOrientation != oldIndex) {
-            // Add the new one, remove the old one.
-            sortOrder.splice(targetIndex, 0, dragCalId);
-            sortOrder.splice(oldIndex + (oldIndex > targetIndex ? 1 : 0), 1);
-
-            cal.setPref("calendar.list.sortOrder", sortOrder.join(" "));
-            this.mCalendarList = sortCalendarArray(this.mCalendarList);
-
-            // Invalidate the tree rows between the old item and the new one.
-            if (oldIndex < targetIndex) {
-                this.treebox.invalidateRange(oldIndex, targetIndex);
-            } else {
-                this.treebox.invalidateRange(targetIndex, oldIndex);
-            }
-        }
-        return true;
-    },
-
-    /**
-     * This function can be used by other nodes to simulate dropping on the
-     * tree. This can be used for example on the tree header so that the row
-     * will be inserted before the first visible row. The event client
-     * coordinate are used to determine if the row should be dropped before the
-     * first row (above treechildren) or below the last visible row (below top
-     * of treechildren).
-     *
-     * @param event     The DOM drop event.
-     * @return          Boolean indicating if the drop succeeded.
-     */
-    foreignDrop: function cLTV_foreignDrop(event) {
-        let treechildren = document.getElementById("calendar-treechildren");
-        if (event.clientY < this.tree.boxObject.y) {
-            return this.drop(this.treebox.getFirstVisibleRow(), -1);
-        } else {
-            return this.drop(this.treebox.getLastVisibleRow(), 1);
-        }
-    },
-
-    /**
-     * Similar function to foreignCanDrop but for the dragenter event
-     * @see calendarListTreeView::foreignDrop
-     */
-    foreignCanDrop: function cLTV_foreignCanDrop(event) {
-        let treechildren = document.getElementById("calendar-treechildren");
-        if (event.clientY < this.tree.boxObject.y) {
-            return this.canDrop(this.treebox.getFirstVisibleRow(), -1);
-        } else {
-            return this.canDrop(this.treebox.getLastVisibleRow(), 1);
-        }
-    },
-
-    getParentIndex: function cLTV_getParentIndex(aRow) {
-        return -1;
-    },
-
-    hasNextSibling: function cLTV_hasNextSibling(aRow, aAfterIndex) {},
-
-    getLevel: function cLTV_getLevel(aRow) {
-        return 0;
-    },
-
-    getImageSrc: function cLTV_getImageSrc(aRow, aOrientation) {},
-
-    getProgressMode: function cLTV_getProgressMode(aRow, aCol) {},
-
-    getCellValue: function cLTV_getCellValue(aRow, aCol) {
-        var calendar = this.getCalendar(aRow);
-        var composite = getCompositeCalendar();
-
-        switch (aCol.id) {
-            case "calendar-list-tree-checkbox":
-                return composite.getCalendarById(calendar.id) ? "true" : "false";
-            case "calendar-list-tree-status":
-                // The value of this cell shows the calendar readonly state
-                return (calendar.readOnly ? "true" : "false");
-        }
-        return null;
-    },
-
-    getCellText: function cLTV_getCellText(aRow, aCol) {
-        switch (aCol.id) {
-            case "calendar-list-tree-calendar":
-                return this.getCalendar(aRow).name;
-        }
-        return "";
-    },
-
-    setTree: function cLTV_setTree(aTreeBox) {
-        this.treebox = aTreeBox;
-    },
-
-    toggleOpenState: function cLTV_toggleOpenState(aRow) {},
-
-    cycleHeader: function cLTV_cycleHeader(aCol) { },
-
-    cycleCell: function cLTV_cycleCell(aRow, aCol) {
-        var calendar = this.getCalendar(aRow);
-        var composite = getCompositeCalendar();
-
-        switch (aCol.id) {
-            case "calendar-list-tree-checkbox":
-                composite.startBatch();
-                try {
-                    if (composite.getCalendarById(calendar.id)) {
-                        composite.removeCalendar(calendar);
-                    } else {
-                        composite.addCalendar(calendar);
-                    }
-                } finally {
-                    composite.endBatch();
-                }
-                break;
-        }
-        this.treebox.invalidateRow(aRow);
-    },
-
-    isEditable: function cLTV_isEditable(aRow, aCol) {
-        return false;
-    },
-
-    setCellValue: function cLTV_setCellValue(aRow, aCol, aValue) {
-        var calendar = this.getCalendar(aRow);
-        var composite = getCompositeCalendar();
-
-        switch (aCol.id) {
-            case "calendar-list-tree-checkbox":
-                if (aValue == "true") {
-                    composite.addCalendar(calendar);
-                } else {
-                    composite.removeCalendar(calendar);
-                }
-                break;
-            case "calendar-list-tree-status":
-                calendar.readOnly = (aValue == "true");
-                break;
-            default:
-                return null;
-        }
-        return aValue;
-    },
-
-    setCellText: function cLTV_setCellText(aRow, aCol, aValue) {},
-
-    performAction: function cLTV_performAction(aAction) {},
-
-    performActionOnRow: function cLTV_performActionOnRow(aAction, aRow) {},
-
-    performActionOnCell: function cLTV_performActionOnCell(aAction, aRow, aCol) {},
-
-    /**
-     * Calendar Tree Events
-     */
-    onKeyPress: function cLTV_onKeyPress(event) {
-        const kKE = Components.interfaces.nsIDOMKeyEvent;
-        switch (event.keyCode || event.which) {
-            case kKE.DOM_VK_DELETE:
-                promptDeleteCalendar(getSelectedCalendar());
-                break;
-            case kKE.DOM_VK_SPACE:
-                if (this.tree.currentIndex > -1 ) {
-                    var cbCol = this.treebox.columns.getNamedColumn("calendar-list-tree-checkbox");
-                    this.cycleCell(this.tree.currentIndex, cbCol);
-                }
-                break;
-            case kKE.DOM_VK_DOWN:
-                if (event.ctrlKey) {
-                    let ci = this.tree.currentIndex
-                    let sortOrder = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
-                    if (ci < sortOrder.length - 1) {
-                        sortOrder.splice(ci + 1, 0, sortOrder.splice(ci, 1));
-                        cal.setPref("calendar.list.sortOrder", sortOrder.join(" "));
-                        this.mCalendarList = sortCalendarArray(this.mCalendarList);
-                        this.treebox.invalidateRange(ci, ci + 1);
-
-                        if (this.tree.view.selection.isSelected(ci)) {
-                            this.tree.view.selection.toggleSelect(ci);
-                            this.tree.view.selection.toggleSelect(ci + 1);
-                        }
-                        if (this.tree.view.selection.currentIndex == ci) {
-                            this.tree.view.selection.currentIndex = ci + 1;
-                        }
-                    }
-                    // Don't call the default <key> handler.
-                    event.preventDefault();
-                }
-                break;
-            case kKE.DOM_VK_UP:
-                if (event.ctrlKey) {
-                    let ci = this.tree.currentIndex
-                    let sortOrder = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
-                    if (ci > 0) {
-                        sortOrder.splice(ci - 1, 0, sortOrder.splice(ci, 1));
-                        cal.setPref("calendar.list.sortOrder", sortOrder.join(" "));
-                        this.mCalendarList = sortCalendarArray(this.mCalendarList);
-                        this.treebox.invalidateRange(ci - 1, ci);
-
-                        if (this.tree.view.selection.isSelected(ci)) {
-                            this.tree.view.selection.toggleSelect(ci);
-                            this.tree.view.selection.toggleSelect(ci - 1);
-                        }
-                        if (this.tree.view.selection.currentIndex == ci) {
-                            this.tree.view.selection.currentIndex = ci - 1;
-                        }
-                    }
-                    // Don't call the default <key> handler.
-                    event.preventDefault();
-                }
-                break;
-        }
-    },
-
-    onDoubleClick: function cLTV_onDoubleClick(event) {
-        var col = {};
-        var calendar = this.getCalendarFromEvent(event, col);
-        if (event.button != 0 ||
-            (col.value && col.value.id == "calendar-list-tree-checkbox")) {
-            // Only left clicks that are not on the checkbox column
-            return;
-        }
-        if (calendar) {
-            openCalendarProperties(calendar);
-        } else {
-            openCalendarWizard();
-        }
-    },
-
-    onSelect: function cLTV_onSelect(event) {
-        // The select event should only fire when an item is actually selected,
-        // therefore we can assume that getSelectedCalendar() returns a
-        // calendar.
-        var composite = getCompositeCalendar();
-        composite.defaultCalendar = getSelectedCalendar();
-        document.commandDispatcher.updateCommands("calendar_commands");
-    },
-
-    onTooltipShowing: function cLTV_onTooltipShowing(event) {
-        var calendar = this.getCalendarFromEvent(event);
-        var tooltipText = false;
-        if (calendar) {
-            var currentStatus = calendar.getProperty("currentStatus");
-            if (!Components.isSuccessCode(currentStatus)){
-                tooltipText = calGetString("calendar", "tooltipCalendarDisabled", [calendar.name]);
-            } else if (calendar.readOnly) {
-                tooltipText = calGetString("calendar", "tooltipCalendarReadOnly", [calendar.name]);
-            }
-
-        }
-        setElementValue("calendar-list-tooltip", tooltipText, "label");
-        return (tooltipText != false);
-    },
-
-    /**
-     * A handler called to set up the context menu on the calendar list.
-     *
-     * @param event         The DOM event that caused the context menu to open.
-     * @return              Returns true if the context menu should be shown.
-     */
-    setupContextMenu: function cLTV_setupContextMenu(event) {
-        var col = {};
-        var row = {};
-        var calendar;
-        var calendars = getCalendarManager().getCalendars({});
-
-        if (document.popupNode.localName == "tree") {
-            // Using VK_APPS to open the context menu will target the tree
-            // itself. In that case we won't have a client point even for
-            // opening the context menu. The "target" element should then be the
-            // selected element.
-            row.value =  this.tree.currentIndex;
-            col.value = this.treebox.columns
-                            .getNamedColumn("calendar-list-tree-calendar");
-            calendar = this.getCalendar(row.value);
-        } else {
-            // Using the mouse, the context menu will open on the treechildren
-            // element. Here we can use client points.
-            calendar = this.getCalendarFromEvent(event, col, row);
-        }
-
-        if (col.value && col.value.id == "calendar-list-tree-checkbox") {
-            // Don't show the context menu if the checkbox was clicked.
-            return false;
-        }
-
-        // We need to save the row to return the correct calendar in
-        // getCalendarFromEvent()
-        this.mContextElement = {
-            row: row && row.value,
-            column: col && col.value
-        };
-
-        // Only enable calendar search if there's actually the chance of finding something:
-        document.getElementById("list-calendars-context-find").setAttribute(
-            "collapsed", (getCalendarSearchService().getProviders({}).length > 0 ? "false" : "true"));
-
-        if (calendar) {
-            document.getElementById("list-calendars-context-edit")
-                    .removeAttribute("disabled");
-            document.getElementById("list-calendars-context-publish")
-                    .removeAttribute("disabled");
-            // Only enable the delete calendars item if there is more than one
-            // calendar. We don't want to have the last calendar deleted.
-            if (calendars.length > 1) {
-                document.getElementById("list-calendars-context-delete")
-                        .removeAttribute("disabled");
-            }
-        } else {
-            document.getElementById("list-calendars-context-edit")
-                    .setAttribute("disabled", "true");
-            document.getElementById("list-calendars-context-publish")
-                    .setAttribute("disabled", "true");
-            document.getElementById("list-calendars-context-delete")
-                    .setAttribute("disabled", "true");
-        }
-        return true;
     }
-};
-
-/**
- * An observer of the composite calendar to keep the calendar list in sync.
- * Implements calICompositeObserver and calIObserver.
- */
-var calendarManagerCompositeObserver = {
-    QueryInterface: function cMCO_QueryInterface(aIID) {
-        if (!aIID.equals(Components.interfaces.calICompositeObserver) &&
-            !aIID.equals(Components.interfaces.calIObserver) &&
-            !aIID.equals(Components.interfaces.nsISupports)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-        return this;
-    },
-
-    onCalendarAdded: function cMO_onCalendarAdded(aCalendar) {
-        // Make sure the checkbox state is updated
-        var index = calendarListTreeView.findIndex(aCalendar);
-        calendarListTreeView.treebox.invalidateRow(index);
-    },
-
-    onCalendarRemoved: function cMO_onCalendarRemoved(aCalendar) {
-        // Make sure the checkbox state is updated
-        var index = calendarListTreeView.findIndex(aCalendar);
-        calendarListTreeView.treebox.invalidateRow(index);
-    },
-
-    onDefaultCalendarChanged: function cMO_onDefaultCalendarChanged(aCalendar) {
-    },
-
-    // calIObserver. Note that each registered calendar uses this observer, not
-    // only the composite calendar.
-    onStartBatch: function cMO_onStartBatch() { },
-    onEndBatch: function cMO_onEndBatch() { },
-    onLoad: function cMO_onLoad() { },
-
-    // TODO: remove these temporary caldav exclusions when it is safe to do so
-    // needed to allow cadav refresh() to update w/o forcing visibility
-    onAddItem: function cMO_onAddItem(aItem) {
-        if (aItem.calendar.type != "caldav") {
-            ensureCalendarVisible(aItem.calendar);
-        }
-    },
-
-    onModifyItem: function cMO_onModifyItem(aNewItem, aOldItem) {
-        if (aNewItem.calendar.type != "caldav") {
-            ensureCalendarVisible(aNewItem.calendar);
-        }
-    },
-
-    onDeleteItem: function cMO_onDeleteItem(aDeletedItem) { },
-    onError: function cMO_onError(aCalendar, aErrNo, aMessage) { },
-
-    onPropertyChanged: function cMO_onPropertyChanged(aCalendar,
-                                                      aName,
-                                                      aValue,
-                                                      aOldValue) {
-    },
-    
-    onPropertyDeleting: function cMO_onPropertyDeleting(aCalendar,
-                                                        aName) {}
+    setElementValue("calendar-list-tooltip", tooltipText, "label");
+    return (tooltipText != false);
 }
 
 /**
- * An observer for the calendar manager xpcom component, to keep the calendar
- * list in sync.
+ * A handler called to set up the context menu on the calendar list.
+ *
+ * @param event         The DOM event that caused the context menu to open.
+ * @return              Returns true if the context menu should be shown.
  */
-var calendarManagerObserver = {
-    mDefaultCalendarItem: null,
+function calendarListSetupContextMenu(event) {
+    let col = {};
+    let row = {};
+    let calendar;
+    let calendars = getCalendarManager().getCalendars({});
+    let treeNode = document.getElementById("calendar-list-tree-widget");
 
-    QueryInterface: function cMO_QueryInterface(aIID) {
-        if (!aIID.equals(Components.interfaces.calICalendarManagerObserver) &&
-            !aIID.equals(Components.interfaces.calIObserver) &&
-            !aIID.equals(Components.interfaces.nsIObserver) &&
-            !aIID.equals(Components.interfaces.nsISupports)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
+    if (document.popupNode.localName == "tree") {
+        // Using VK_APPS to open the context menu will target the tree
+        // itself. In that case we won't have a client point even for
+        // opening the context menu. The "target" element should then be the
+        // selected calendar.
+        row.value =  treeNode.tree.currentIndex;
+        col.value = treeNode.getColumn("calendarname-treecol");
+        calendar = treeNode.getCalendar(row.value);
+    } else {
+        // Using the mouse, the context menu will open on the treechildren
+        // element. Here we can use client points.
+        calendar = treeNode.getCalendarFromEvent(event, col, row);
+    }
+
+    if (col.value &&
+        col.value.element.getAttribute("anonid") == "checkbox-treecol") {
+        // Don't show the context menu if the checkbox was clicked.
+        return false;
+    }
+
+    document.getElementById("list-calendars-context-menu").contextCalendar = calendar;
+
+    // Only enable calendar search if there's actually the chance of finding something:
+    let hasProviders = getCalendarSearchService().getProviders({}).length < 1 && "true";
+    setElementValue("list-calendars-context-find", hasProviders, "collapsed");
+
+    if (calendar) {
+        enableElement("list-calendars-context-edit");
+        enableElement("list-calendars-context-publish");
+        // Only enable the delete calendars item if there is more than one
+        // calendar. We don't want to have the last calendar deleted.
+        if (calendars.length > 1) {
+            enableElement("list-calendars-context-delete");
         }
-        return this;
+    } else {
+        disableElement("list-calendars-context-edit");
+        disableElement("list-calendars-context-publish");
+        disableElement("list-calendars-context-delete");
+    }
+    return true;
+}
+
+var compositeObserver = {
+    QueryInterface: function cO_QueryInterface(aIID) {
+        return cal.doQueryInterface(this,
+                                    calendarManagementCompositeObserver.prototype,
+                                    aIID,
+                                    [Components.interfaces.calICompositeObserver]);
     },
 
-    /**
-     * Set up the UI for a new calendar.
-     *
-     * @param aCalendar     The calendar to add.
-     */
-    initializeCalendar: function cMO_initializeCalendar(aCalendar) {
-        calendarListTreeView.addCalendar(aCalendar);
-
-        updateStyleSheetForObject(aCalendar, gCachedStyleSheet);
-        calendarListUpdateColor(aCalendar);
-
-        // Watch the calendar for changes, to ensure its visibility when adding
-        // or changing items.
-        aCalendar.addObserver(this);
-
+    onCalendarAdded: function cO_onCalendarAdded(aCalendar) {
         // Update the calendar commands for number of remote calendars and for
         // more than one calendar
         document.commandDispatcher.updateCommands("calendar_commands");
     },
 
-    /**
-     * Clean up function to remove observers when closing the window
-     */
-    unload: function cMO_unload() {
-        var calendars = getCalendarManager().getCalendars({});
-        for each (var calendar in calendars) {
-            calendar.removeObserver(this);
-        }
-    },
-
-    /**
-     * Disables all elements with the attribute
-     * 'disable-when-no-writable-calendars' set to 'true'.
-     */
-    setupWritableCalendars: function cMO_setupWritableCalendars() {
-        var nodes = document.getElementsByAttribute("disable-when-no-writable-calendars", "true");
-        for (var i = 0; i < nodes.length; i++) {
-            if (this.mWritableCalendars < 1) {
-                nodes[i].setAttribute("disabled", "true");
-            } else {
-                nodes[i].removeAttribute("disabled");
-            }
-        }
-    },
-
-    // calICalendarManagerObserver
-    onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
-        // append by default:
-        let sortOrder = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
-        sortOrder.push(aCalendar.id);
-        cal.setPref("calendar.list.sortOrder", sortOrder.join(" "));
-
-        this.initializeCalendar(aCalendar);
-        var composite = getCompositeCalendar();
-        var inComposite = aCalendar.getProperty(composite.prefPrefix +
-                                                "-in-composite");
-        if ((inComposite === null) || inComposite) {
-            composite.addCalendar(aCalendar);
-        }
-    },
-
-    onCalendarUnregistering: function cMO_onCalendarUnregistering(aCalendar) {
-        var calendars = getCalendarManager().getCalendars({});
-
-        calendarListTreeView.removeCalendar(aCalendar);
-        aCalendar.removeObserver(this);
-
-        // Make sure the calendar is removed from the composite calendar
-        getCompositeCalendar().removeCalendar(aCalendar);
-
+    onCalendarRemoved: function cO_onCalendarRemoved(aCalendar) {
         // Update commands to disallow deleting the last calendar and only
         // allowing reload remote calendars when there are remote calendars.
         document.commandDispatcher.updateCommands("calendar_commands");
-    },
-
-    onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) {
-    },
-
-    // calIObserver. Note that each registered calendar uses this observer, not
-    // only the composite calendar.
-    onStartBatch: function cMO_onStartBatch() { },
-    onEndBatch: function cMO_onEndBatch() { },
-    onLoad: function cMO_onLoad() { },
-
-    // TODO: remove these temporary caldav exclusions when it is safe to do so
-    // needed to allow cadav refresh() to update w/o forcing visibility
-    onAddItem: function cMO_onAddItem(aItem) {
-        if (aItem.calendar.type != "caldav") {
-            ensureCalendarVisible(aItem.calendar);
-        }
-    },
-
-    onModifyItem: function cMO_onModifyItem(aNewItem, aOldItem) {
-        if (aNewItem.calendar.type != "caldav") {
-            ensureCalendarVisible(aNewItem.calendar);
-        }
-    },
-
-    onDeleteItem: function cMO_onDeleteItem(aDeletedItem) { },
-    onError: function cMO_onError(aCalendar, aErrNo, aMessage) { },
-
-    onPropertyChanged: function cMO_onPropertyChanged(aCalendar,
-                                                      aName,
-                                                      aValue,
-                                                      aOldValue) {
-        switch (aName) {
-            case "color":
-                updateStyleSheetForObject(aCalendar, gCachedStyleSheet);
-                calendarListUpdateColor(aCalendar);
-                // Fall through, update item in any case
-            case "name":
-            case "currentStatus":
-            case "readOnly":
-            case "disabled":
-                calendarListTreeView.updateCalendar(aCalendar);
-                // Fall through, update commands in any cases.
-            case "requiresNetwork":
-                document.commandDispatcher.updateCommands("calendar_commands");
-                break;
-        }
-    },
-
-    onPropertyDeleting: function cMO_onPropertyDeleting(aCalendar,
-                                                        aName) {
-        // Since the old value is not used directly in onPropertyChanged,
-        // but should not be the same as the value, set it to a different
-        // value.
-        this.onPropertyChanged(aCalendar, aName, null, null);
-    },
-
-    // nsIObserver
-    observe: function cMO_observe(aSubject, aTopic, aPrefName) {
-
-        switch (aPrefName) {
-            case "calendar.week.start":
-                getMinimonth().refreshDisplay(true);
-                break;
-            case "calendar.date.format":
-                var view = currentView();
-                var day = view.selectedDay;
-                if (day) {
-                    // The view may not be initialized, only refresh if there is
-                    // a selected day.
-                    view.goToDay(day);
-                }
-
-                if (isSunbird()) {
-                    refreshEventTree();
-                }
-                toDoUnifinderRefresh();
-                break;
-            case "calendar.timezone.local":
-                var subject = aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
-                gDefaultTimezone = subject.getCharPref(aPrefName);
-
-                var view = currentView();
-                var day = view.selectedDay;
-                if (day) {
-                    // The view may not be initialized, only refresh if there is
-                    // a selected day.
-                    view.goToDay(day);
-                }
-
-                if (isSunbird()) {
-                    refreshEventTree();
-                }
-                toDoUnifinderRefresh();
-                break;
-            default :
-                break;
-        }
-
-        // Since we want to take care of all categories, this must be done
-        // extra.
-        if (aPrefName.substring(0, 24) == "calendar.category.color.") {
-            var categoryName = aPrefName.substring(24);
-            updateStyleSheetForObject(categoryName, gCachedStyleSheet);
-        }
     }
 };
 
