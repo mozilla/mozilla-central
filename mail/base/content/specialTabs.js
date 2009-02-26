@@ -184,8 +184,8 @@ var specialTabs = {
       stringBundle.createBundle("chrome://messenger/locale/aboutRights.properties");
 
     var productName = brandBundle.GetStringFromName("brandFullName");
-    var notifyText = rightsBundle.formatStringFromName("notifyText",
-                                                       [productName], 1);
+    var notifyRightsText = rightsBundle.formatStringFromName("notifyRightsText",
+                                                             [productName], 1);
 
     var buttons = [
       {
@@ -199,7 +199,9 @@ var specialTabs = {
       }
     ];
 
-    var box = notifyBox.appendNotification(notifyText, "about-rights", null, notifyBox.PRIORITY_INFO_LOW, buttons);
+    var box = notifyBox.appendNotification(notifyRightsText, "about-rights",
+                                           null, notifyBox.PRIORITY_INFO_LOW,
+                                           buttons);
     // arbitrary number, just so bar sticks around for a bit
     box.persistence = 3;
 
