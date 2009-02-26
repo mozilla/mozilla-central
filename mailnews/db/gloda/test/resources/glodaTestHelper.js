@@ -220,6 +220,8 @@ function imsInit() {
     
     // The indexer doesn't need to worry about load; zero his rescheduling time. 
     GlodaIndexer._indexInterval = 0;
+    // And it doesn't need to adjust its performance, either.
+    GlodaIndexer._PERF_SAMPLE_RATE_MS = 24 * 60 * 60 * 1000;
     
     if (ims.injectMechanism == INJECT_FAKE_SERVER) {
       // set up POP3 fakeserver to feed things in...
@@ -470,15 +472,30 @@ var messageCollectionListener = {
 };
 
 /**
+ * Allow tests to register a callback to be invoked when the indexing completes.
+ *   Only one at a time, etc.  
+ */
+function runOnIndexingComplete(aCallback) {
+  messageIndexerListener.callbackOnDone = aCallback; 
+}
+
+/**
  * Gloda indexer listener, used to know when all active indexing jobs have
  *  completed so that we can try and process all the things that should have
  *  been processed.
  */
 var messageIndexerListener = {
+  callbackOnDone: null,
   onIndexNotification: function(aStatus, aPrettyName, aJobIndex, aJobTotal,
                                 aJobItemIndex, aJobItemGoal) {
     // we only care if indexing has just completed...
     if (!GlodaIndexer.indexing) {
+      if (messageIndexerListener.callbackOnDone) {
+        let callback = messageIndexerListener.callbackOnDone;
+        messageIndexerListener.callbackOnDone = null;
+        callback();
+      }
+      
       let ims = indexMessageState;
       
       // this is just the synthetic notification if inputMessages is null
@@ -890,7 +907,6 @@ function _gh_test_iterator() {
   // once the control flow hits the root after do_test_finished, we're done,
   //  so let's just yield something to avoid callers having to deal with an
   //  exception indicating completion.
-  glodaHelperIterator = null;
   yield null;
 }
 
@@ -923,7 +939,7 @@ DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS = 180;
  * @param aLongestTestRunTimeConceivableInSecs Optional parameter 
  */
 function glodaHelperRunTests(aTests, aLongestTestRunTimeConceivableInSecs) {
-  if (aLongestTestRunTimeConceivableInSecs === undefined)
+  if (aLongestTestRunTimeConceivableInSecs == null)
     aLongestTestRunTimeConceivableInSecs =
         DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS;
   do_timeout(aLongestTestRunTimeConceivableInSecs * 1000,

@@ -296,6 +296,15 @@ var GlodaIndexer = {
    *  seconds after startup. 
    */
   _longTimer: null,
+  /**
+   * Our performance stopwatch that helps us adapt our indexing constants so
+   *  as to not explode your computer.  Kind of us, no?
+   */
+  _perfStopwatch: null,
+  /**
+   * Of course, we need a timer to actually drive our stopwatch usage.
+   */
+  _perfTimer: null,
 
   _inited: false,
   /**
@@ -317,6 +326,15 @@ var GlodaIndexer = {
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     // create the timer for larger offsets independent of indexing
     this._longTimer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    
+    // create our performance stopwatch and timer
+    try {
+    this._perfStopwatch = Cc["@mozilla.org/stopwatch;1"]
+                            .createInstance(Ci.nsIStopwatch);
+    } catch (ex) {
+      this._log.error("problem creating stopwatch!: " + ex);
+    }
+    this._perfTimer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 
     // figure out if event-driven indexing should be enabled...
     let prefService = Cc["@mozilla.org/preferences-service;1"].
@@ -364,6 +382,12 @@ var GlodaIndexer = {
       this._longTimer.cancel();
     } catch (ex) {}
     this._longTimer = null;
+    
+    this._perfStopwatch = null;
+    try {
+      this._perfTimer.cancel();
+    } catch (ex) {}
+    this._perfTimer = null;
     
     this._indexerIsShutdown = true;
     
@@ -534,6 +558,10 @@ var GlodaIndexer = {
         this._timer.initWithCallback(this._wrapCallbackDriver,
                                      this._indexInterval,
                                      Ci.nsITimer.TYPE_ONE_SHOT);
+        // Start the performance sampling timer since indexing is now active.
+        // (That's the dude who tracks processor utilization and adjusts our
+        // indexing constants.)
+        this.perfSampling = true;
       }
     }
   },
@@ -558,6 +586,13 @@ var GlodaIndexer = {
         this._timer.initWithCallback(this._wrapCallbackDriver,
                                      this._indexInterval,
                                      Ci.nsITimer.TYPE_ONE_SHOT);
+        // Start the performance sampling clock now rather than in the timer
+        //  callbacks because it reduces the number of states the system can
+        //  be in.  If we are indexing and we are in control of utilization,
+        //  sampling is active.  If we are indexing but not in control, we do
+        //  stop sampling (not ideal, but realistic).  If we are not indexing,
+        //  we are not performance sampling.
+        this.perfSampling = true;
     }
   },
 
@@ -591,7 +626,142 @@ var GlodaIndexer = {
       this.indexing = true;
     }
   },
-
+  
+  /**
+   * Number of milliseconds between performance samples.
+   */
+  _PERF_SAMPLE_RATE_MS: 1000,
+  set perfSampling(aEnable) {
+    if (aEnable) {
+      this._perfSamples = [];
+      this._perfTimer.initWithCallback(this._perfTimerFire,
+                                       this._PERF_SAMPLE_RATE_MS,
+          Ci.nsITimer.TYPE_REPEATING_SLACK);
+      this._perfStopwatch.start();
+    }
+    else {
+      this._perfTimer.cancel();
+      // we stop the stopwatch mainly so our state makes sense to anyone
+      //  debugging and for our unit test.  In reality, the stopwatch only
+      //  does work on the calls to start and stop, and no expense is incurred
+      //  in the interim, so this is actually expense with no benefit.  But it's
+      //  not much of an expense.
+      this._perfStopwatch.stop();
+    }
+  },
+  
+  /**
+   * Number of performance samples to average together.  We average to try and
+   *  stabilize our decision making in the face of transient thunderbird CPU
+   *  utilization spikes that are not our fault.  (User activity, garbage
+   *  collection, etc.
+   */
+  _perfSamplePointCount: 2,
+  _perfSamples: [],
+  _perfTimerFire: function() {
+    GlodaIndexer.perfTimerFire();
+  },
+  /**
+   * Smallest allowable sleep time, in milliseconds.  This must be a multiple of
+   *  _TIMER_STEP_SIZE.  Keep in mind that we effectively run in a timer-with-
+   *  slack mode of operation.  This means that the time between our timer
+   *  firing is actually (_indexInterval + the time we actually spend
+   *  processing), so 1000/_indexInterval is really our maximum firing rate if
+   *  we did no work.
+   */
+  _MIN_TIMER_INTERVAL_MS: 20,
+  /**
+   * The timer interval adjustment size, in milliseconds.
+   */
+  _TIMER_STEP_SIZE: 10,
+  /**
+   * The maximum amount of time in milliseconds we will sleep between firings.
+   *  The reason we cap ourselves is that although we are aware of our cpu
+   *  utilization, the autosync logic is not.  The autosync logic can easily
+   *  drive thunderbird's utilization above our acceptable threshold for
+   *  extended periods of time, resulting in our logic deciding to back off
+   *  every time it makes a decision, even though it will have no meaningful
+   *  impact.  If we did not do this, it might be some time before indexing
+   *  would resume at any meaningful rate.
+   */
+  _MAX_TIMER_INTERVAL_MS: 400,
+  /**
+   * Periodic performance adjustment logic.  The overall goal is to adjust our
+   *  rate of work so that we don't interfere with the user's activities when
+   *  they are around (non-idle), and the system in general (when idle).  Being
+   *  nice when idle isn't quite as important, but is a good idea so that when
+   *  the user un-idles we are able to back off nicely.  Also, we give other
+   *  processes on the system a chance to do something.
+   * 
+   * The two knobs we have to play with are:
+   * - The amount of time we sleep between work batch processing.  Keep in mind
+   *   that many of our operations are actually asynchronous, so we aren't
+   *   entirely starving the event queue.  However, a lot of the async stuff
+   *   can end up not having any actual delay between events. For example, we
+   *   only index offline message bodies, so there's no network latency
+   *   involved, just disk IO; the only meaningful latency will be the initial
+   *   disk seek (if there is one... pre-fetching may seriously be our friend).
+   * - The amount of work we do between intentional sleeps (number of tokens).
+   * 
+   * In order to maintain responsiveness, I assert that we want to minimize the
+   *  length of the time we are dominating the event queue.  This suggests
+   *  that we want break up our blocks of work frequently.  But not so
+   *  frequently that there is a lot of waste.  Accordingly our algorithm is
+   *  basically:
+   *  
+   * Using too much cpu:
+   *  First, do less work per slice = reduce tokens.
+   *  Second, space our work batches out more = increase sleep time.
+   *  
+   * Using less cpu than budgeted:
+   *  First, reduce the spacing between our work batches = decrease sleep time.
+   *  Second, do more work per slice = increase tokens.
+   */
+  perfTimerFire: function perfTimerFire() {
+    let stopwatch = this._perfStopwatch;
+    stopwatch.stop();
+    
+    let realTime = stopwatch.realTimeSeconds;
+    let cpuTime = stopwatch.cpuTimeSeconds;
+    
+    let dir = "none", averagePercent = 0;
+    if (realTime) {
+      while (this._perfSamples.length >= this._perfSamplePointCount)
+        this._perfSamples.shift();
+      
+      let cpuPercent = cpuTime / realTime;
+      this._perfSamples.push(cpuPercent);
+      
+      if (this._perfSamples.length == this._perfSamplePointCount) { 
+        for (let i = 0; i < this._perfSamples.length; i++)
+          averagePercent += this._perfSamples[i];
+        averagePercent /= this._perfSamples.length;
+        
+        if (averagePercent > this._cpuTarget) {
+          dir = "down";
+          if (this._indexTokens > 1)
+            this._indexTokens--;
+          else if (this._indexInterval < this._MAX_TIMER_INTERVAL_MS)
+            this._indexInterval += this._TIMER_STEP_SIZE;
+        }
+        else if (averagePercent + 0.1 < this._cpuTarget) {
+          dir = "up";
+          if (this._indexInterval > this._MIN_TIMER_INTERVAL_MS)
+            this._indexInterval -= this._TIMER_STEP_SIZE;
+          else
+            this._indexTokens++;
+        }
+      }
+    
+      GlodaIndexer._log.debug("PERFORMANCE " + dir +
+                              " average: " + averagePercent +
+                              " interval: " + this._indexInterval +
+                              " tokens: " + this._indexTokens);
+    }
+    
+    stopwatch.start();
+  },
+  
   /**
    * Indicates that we have pending deletions to process, meaning that there
    *  are gloda message rows flagged for deletion.  If this value is a boolean,
@@ -684,12 +854,16 @@ var GlodaIndexer = {
    */
   _initialSweepDelay: 10000,
   
+  _cpuTarget: 0.4,
+  _cpuTarget_whenActive: 0.4,
+  _cpuTarget_whenIdle: 0.8,
+  
   /**
    * The time interval, in milliseconds between performing indexing work.
    *  This may be altered by user session (in)activity.
    */ 
-  _indexInterval: 100,
-  _indexInterval_whenActive: 100,
+  _indexInterval: 60,
+  _indexInterval_whenActive: 60,
   _indexInterval_whenIdle: 20,
   /**
    * Number of indexing 'tokens' we are allowed to consume before yielding for
@@ -698,8 +872,8 @@ var GlodaIndexer = {
    * Because we fetch message bodies, which is potentially asynchronous, this
    *  is not a precise knob to twiddle.
    */
-  _indexTokens: 2,
-  _indexTokens_whenActive: 2,
+  _indexTokens: 5,
+  _indexTokens_whenActive: 5,
   _indexTokens_whenIdle: 10,
   
   /**
@@ -708,7 +882,7 @@ var GlodaIndexer = {
    *  far better for user responsiveness to take lots of little bites instead
    *  of a few big ones, but bites that result in commits cannot be little... 
    */
-  _indexCommitTokens: 10,
+  _indexCommitTokens: 40,
   
   /**
    * The number of messages that we should queue for processing before letting
@@ -838,7 +1012,11 @@ var GlodaIndexer = {
     this._indexingGlodaFolder = GlodaDatastore._mapFolderID(aFolderID);
     this._indexingFolder = this._indexingGlodaFolder.getXPCOMFolder(
                              this._indexingGlodaFolder.kActivityIndexing);
-    
+
+    // The processor utilization required to enter a folder is not our
+    //  fault; don't sample this.  We turn it back on once we are in the folder.
+    this.perfSampling = false;
+
     if (this._indexingFolder)
       this._log.debug("Entering folder: " + this._indexingFolder.URI);
 
@@ -875,6 +1053,8 @@ var GlodaIndexer = {
         this._indexingDatabase = this._indexingFolder.msgDatabase;
       if (aNeedIterator)
         this._indexerGetIterator();
+      // re-enable performance sampling; we're responsible for our actions again
+      this.perfSampling = true;
       this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
     }
     catch (ex) {
@@ -910,6 +1090,8 @@ var GlodaIndexer = {
       this._indexerGetIterator();
     this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
     this._log.debug("...Folder Loaded!");
+    // re-enable performance sampling; we're responsible for our actions again
+    this.perfSampling = true;
 
     // the load is no longer pending; we certainly don't want more notifications 
     this._pendingFolderEntry = null;
@@ -1043,8 +1225,11 @@ var GlodaIndexer = {
             this._timer.initWithCallback(this._wrapCallbackDriver,
                                          this._indexInterval,
                                          Ci.nsITimer.TYPE_ONE_SHOT);
-          else // it's important to indicate no more callbacks are in flight
+          else { // it's important to indicate no more callbacks are in flight
             this._indexingActive = false;
+            // we're not indexing anymore, so we're not sampling anymore.
+            this.perfSampling = false;
+          }
           break;
         case this.kWorkAsync:
           // there is nothing to do.  some other code is now responsible for
@@ -1113,8 +1298,6 @@ var GlodaIndexer = {
       GlodaIndexer.callbackDriver();
     }
   },
-  _forceGCCounter: 0,
-  FORCE_GC_THRESHOLD: 256,
   _workBatchData: undefined,
   /**
    * The workBatch generator handles a single 'batch' of processing, managing
@@ -1131,14 +1314,20 @@ var GlodaIndexer = {
     GlodaDatastore._beginTransaction();
 
     while (commitTokens > 0) {
+      // both explicit work activity points (sync + async) and transfer of
+      //  control return (via kWorkDone*) results in a token being eaten.  The
+      //  idea now is to make tokens less precious so that the adaptive logic
+      //  can adjust them with less impact.  (Before this change, doing 1
+      //  token's work per cycle ended up being an entire non-idle time-slice's
+      //  work.)
       for (let tokensLeft = this._indexTokens; tokensLeft > 0;
           tokensLeft--, commitTokens--) {
         // we need to periodically force a GC to avoid excessive process size
         //  and because nsAutoLock is a jerk on debug builds
-        if (++this._forceGCCounter >= this.FORCE_GC_THRESHOLD) {
-          Cu.forceGC();
-          this._forceGCCounter = 0;
-        }
+        // there is a constant in GlodaUtils that may need to be adjusted (and
+        //  potentially augmented with time-awareness) as token logic is
+        //  adjusted; or just for tuning purposes.
+        GlodaUtils.maybeGarbageCollect();
         
         if ((this._callbackHandle.activeIterator === null) &&
             !this._hireJobWorker()) {
@@ -1161,11 +1350,9 @@ var GlodaIndexer = {
             case this.kWorkDone:
               this._callbackHandle.pop();
               this._workBatchData = undefined;
-              tokensLeft++; // don't eat a token for this pass
               break;
             case this.kWorkDoneWithResult:
               this._workBatchData = this._callbackHandle.popWithResult();
-              tokensLeft++; // don't eat a token for this pass
               continue;
           }
         }
@@ -1228,6 +1415,8 @@ var GlodaIndexer = {
       
       this._curIndexingJob = null;
       this._indexingDesired = false;
+      // we're not indexing anymore, so we're not sampling anymore
+      this.perfSampling = false;
       this._indexingJobCount = 0;
       this._indexingJobGoal = 0;
       return false;
@@ -1395,7 +1584,7 @@ var GlodaIndexer = {
     
     // there is of course a cost to all this header investigation even if we
     //  don't do something.  so we will yield with kWorkSync for every block. 
-    const HEADER_CHECK_BLOCK_SIZE = 100;
+    const HEADER_CHECK_BLOCK_SIZE = 10;
     
     let isLocal = this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
     // we can safely presume if we are here that this folder has been selected
@@ -1435,12 +1624,13 @@ var GlodaIndexer = {
       // We used up the iterator, get a new one.
       this._indexerGetIterator();
     }
-    
+
     for (let msgHdr in this._indexingIterator) {
       // per above, we want to periodically release control while doing all
       //  this header traversal/investigation.
-      if (++aJob.offset % HEADER_CHECK_BLOCK_SIZE == 0)
+      if (++aJob.offset % HEADER_CHECK_BLOCK_SIZE == 0) {
         yield this.kWorkSync;
+      }
       
       if ((isLocal || (msgHdr.flags & MSG_FLAG_OFFLINE)) &&
           !(msgHdr.flags & MSG_FLAG_EXPUNGED)) {
@@ -1657,14 +1847,24 @@ var GlodaIndexer = {
     if (aTopic == "idle") {
       if (this.indexing)
         this._log.debug("Detected idle, throttling up.");
+      // save off our adapted active values
+      this._indexInterval_whenActive = this._indexInterval;
+      this._indexTokens_whenActive = this._indexTokens;
+      // start using our idle values
       this._indexInterval = this._indexInterval_whenIdle;
       this._indexTokens = this._indexTokens_whenIdle;
+      this._cpuTarget = this._cpuTarget_whenIdle; // (don't need to save)
     }
     else if (aTopic == "back") {
       if (this.indexing)
         this._log.debug("Detected un-idle, throttling down.");
+      // save off our idle values
+      this._indexInterval_whenIdle = this._indexInterval;
+      this._indexTokens_whenIdle = this._indexTokens;
+      // start using our active values
       this._indexInterval = this._indexInterval_whenActive;
       this._indexTokens = this._indexTokens_whenActive;
+      this._cpuTarget = this._cpuTarget_whenActive; // (don't need to save)
     }
     // offline status
     else if (aTopic == "network:offline-status-changed") {

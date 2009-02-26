@@ -123,6 +123,8 @@
 #include "nsCURILoader.h"
 #include "nsMessengerContentHandler.h"
 
+#include "nsStopwatch.h"
+
 // private factory declarations for each component we know how to produce
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessengerBootstrap)
@@ -183,6 +185,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessengerContentHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgContentPolicy, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailDirProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgShutdownService)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsStopwatch)
 
 static NS_METHOD
 RegisterMailnewsContentPolicy(nsIComponentManager *aCompMgr, nsIFile *aPath,
@@ -510,6 +513,11 @@ static const nsModuleComponentInfo gComponents[] = {
       nsMailDirProviderConstructor,
       nsMailDirProvider::Register,
       nsMailDirProvider::Unregister
+    },
+    {
+      "stopwatch", NS_STOPWATCH_CID,
+      NS_STOPWATCH_CONTRACTID,
+      nsStopwatchConstructor
     }
 };
 

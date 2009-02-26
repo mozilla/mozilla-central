@@ -101,6 +101,7 @@ XPIDLSRCS	= \
 		nsIMsgShutdown.idl \
 		nsMsgFolderFlags.idl \
 		nsMsgMessageFlags.idl \
+		nsIStopwatch.idl \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

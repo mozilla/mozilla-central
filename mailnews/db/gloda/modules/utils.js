@@ -154,4 +154,49 @@ var GlodaUtils = {
 
     return data;
   },
+  
+  /**
+   * Force a garbage-collection sweep.  Gloda has to force garbage collection
+   *  periodically because XPConnect's XPCJSRuntime::DeferredRelease mechanism
+   *  can end up holding onto a ridiculously high number of XPConnect objects in
+   *  between normal garbage collections.  This has mainly posed a problem
+   *  because nsAutolock is a jerk in DEBUG builds, but in theory this also
+   *  helps us even out our memory usage.
+   * We also are starting to do this more to try and keep the garbage collection
+   *  durations acceptable.  We intentionally avoid triggering the cycle
+   *  collector in those cases, as we do presume a non-trivial fixed cost for
+   *  cycle collection.  (And really all we want is XPConnect to not be a jerk.)
+   * This method exists mainly to centralize our GC activities and because if
+   *  we do start involving the cycle collector, that is a non-trivial block of
+   *  code to copy-and-paste all over the place (at least in a module).
+   * 
+   * @param aCycleCollecting Do we need the cycle collector to run?  Currently
+   *     unused / unimplemented, but we would use
+   *     nsIDOMWindowUtils.garbageCollect() to do so.
+   */
+  forceGarbageCollection:
+    function gloda_utils_garbageCollection(aCycleCollecting) {
+    Cu.forceGC();
+  },
+  
+  _forceGCCounter: 0,
+  /**
+   * The question of when we should actually force the garbage collection is
+   *  tricky.  Right now, our only caller is from the indexer, and the indexer
+   *  issues its calls based on token consumption, which is already a fairly
+   *  nebulous sort of thing.  On the upside, tokens do correlate with
+   *  XPConnect activity fairly well, although just how much does vary a bit.
+   */
+  FORCE_GC_THRESHOLD: 64,
+  /**
+   * Along the lines of forceGarbageCollection, allow code to hint that it is
+   *  doing a fair bit of garbage generation as it relates to XPConnect and that
+   *  we should note it and consider garbage collecting.
+   */
+  maybeGarbageCollect: function gloda_utils_maybeGarbageCollect() {
+    if (++this._forceGCCounter >= this.FORCE_GC_THRESHOLD) {
+      GlodaUtils.forceGarbageCollection(false);
+      this._forceGCCounter = 0;
+    }
+  }
 };

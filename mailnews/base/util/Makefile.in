@@ -102,6 +102,7 @@ CPPSRCS		= \
 		nsImapMoveCoalescer.cpp \
 		nsMsgFileStream.cpp \
 		nsMsgReadStateTxn.cpp \
+		nsStopwatch.cpp \
 		$(NULL)
 
 EXPORTS		= \
