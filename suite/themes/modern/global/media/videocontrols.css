@@ -1,0 +1,79 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+.controlBar {
+  height: 28px;
+  background-color: #989EA6;
+}
+
+/* Remove the button styling */
+button {
+  -moz-binding: none;
+  min-height: 28px;
+  min-width: 28px;
+}
+
+.playButton {
+  background: url(chrome://global/skin/media/pauseButton.png) no-repeat center;
+}
+
+.playButton[paused="true"] {
+  background: url(chrome://global/skin/media/playButton.png) no-repeat center;
+}
+
+.muteButton {
+  background: url(chrome://global/skin/media/muteButton.png) no-repeat center;
+}
+.muteButton[muted="true"] {
+  background: url(chrome://global/skin/media/unmuteButton.png) no-repeat center;
+}
+
+.backgroundBar {
+  /* make bar 8px tall (control height = 28, minus 2 * 10 margin) */
+  margin: 10px 0px;
+  background-color: #C7D0D9;
+  -moz-border-radius: 4px;
+}
+
+.bufferBar, .progressBar {
+  /* make bar 8px tall (control height = 28, minus 2 * 10 margin) */
+  margin: 10px 0px;
+  height: 8px;
+  border: none;
+  min-width: 0px;
+  min-height: 0px;
+}
+
+/* .progress-bar is an element inside the <progressmeter> implementation. */
+.bufferBar > .progress-bar {
+  background-color: #B1BBC5;
+  -moz-border-radius: 4px;
+}
+
+.progressBar > .progress-bar {
+  background-color: #6B7B8D;
+  -moz-border-radius: 4px;
+}
+
+/* .scale-slider is an element inside the <scale> implementation. */
+.scale-slider {
+  /* Hide the default box. */
+  background: none;
+  border: none;
+  margin: 0px;
+  min-height: 20px;
+}
+
+/* .scale-thumb is an element inside the <scale> implementation. */
+.scale-thumb {
+  /* Override the default thumb appearance. */
+  background-color: #B1BBC5;
+  background-image: none;
+  border: 2px solid;
+  -moz-border-top-colors: #000000;
+  -moz-border-right-colors: #000000;
+  -moz-border-bottom-colors: #000000;
+  -moz-border-left-colors: #000000;
+  -moz-border-radius: 5px;
+  min-width: 11px;
+  min-height: 20px;
+}

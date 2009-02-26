@@ -80,7 +80,7 @@
 .scale-thumb[orient="vertical"] {
   background-image: url("chrome://global/skin/scrollbar/thumb-vrt-grip.gif");
   min-height: 18px;
-  min-width: none;
+  min-width: 0px;
 }
 
 .scale-thumb[disabled="true"] {
