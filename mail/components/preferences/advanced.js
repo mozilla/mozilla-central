@@ -53,11 +53,11 @@ var gAdvancedPane = {
       if (preference.value)
         document.getElementById("advancedPrefs").selectedIndex = preference.value;
     }
-
+#ifdef MOZ_UPDATER
     this.updateAppUpdateItems();
     this.updateAutoItems();
-    this.updateModeItems();   
-
+    this.updateModeItems();
+#endif
     this.mInitialized = true;
   },
 
@@ -199,6 +199,7 @@ var gAdvancedPane = {
    *             iii 0/1/2   t         true   
    *
    */
+#ifdef MOZ_UPDATER
   updateAppUpdateItems: function () 
   {
     var aus = 
@@ -238,18 +239,6 @@ var gAdvancedPane = {
   },
 
   /**
-   * The Extensions checkbox and button are disabled only if the enable Addon
-   * update preference is locked. 
-   */
-  updateAddonUpdateUI: function ()
-  {
-    var enabledPref = document.getElementById("extensions.update.enabled");
-    var enableAddonUpdate = document.getElementById("enableAddonUpdate");
-
-    enableAddonUpdate.disabled = enabledPref.locked;
-  },  
-
-  /**
    * app.update.mode is a three state integer preference, and we have to 
    * express all three values in a single checkbox:
    * "Warn me if this will disable extensions or themes"
@@ -280,6 +269,19 @@ var gAdvancedPane = {
                              .createInstance(Components.interfaces.nsIUpdatePrompt);
     prompter.showUpdateHistory(window);
   },
+#endif
+
+  /**
+   * The Extensions checkbox and button are disabled only if the enable Addon
+   * update preference is locked. 
+   */
+  updateAddonUpdateUI: function ()
+  {
+    var enabledPref = document.getElementById("extensions.update.enabled");
+    var enableAddonUpdate = document.getElementById("enableAddonUpdate");
+
+    enableAddonUpdate.disabled = enabledPref.locked;
+  },  
 
   updateMarkAsReadOptions: function(enableRadioGroup)
   {

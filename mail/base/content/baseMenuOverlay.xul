@@ -75,8 +75,12 @@
                 oncommand="openFormattedURL('app.releaseNotesURL');"/>
       <menuseparator id="menu_HelpAboutSeparator"/>
       <menuitem id="checkForUpdates" class="menuitem-iconic"
+#ifdef MOZ_UPDATER
                 label="&updateCmd.label;" accesskey="&updateCmd.accesskey;"
                 oncommand="checkForUpdates();"/>
+#else
+                hidden="true"/>
+#endif
 #ifndef XP_MACOSX
       <menuseparator id="menu_HelpAfterUpdatesSeparator"/>
 #endif

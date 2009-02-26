@@ -81,6 +81,7 @@
       <preference id="browser.cache.disk.capacity"
                   name="browser.cache.disk.capacity" type="int"/>
       <!-- Update tab -->
+#ifdef MOZ_UPDATER
       <preference id="app.update.enabled" name="app.update.enabled" type="bool"
                   onchange="gAdvancedPane.updateAppUpdateItems();
                             gAdvancedPane.updateAutoItems();
@@ -89,11 +90,12 @@
                   onchange="gAdvancedPane.updateAutoItems(); gAdvancedPane.updateModeItems();"/>
       <preference id="app.update.mode" name="app.update.mode" type="int"
                   onchange="gAdvancedPane.updateModeItems();"/>
-      <preference id="extensions.update.enabled" name="extensions.update.enabled" type="bool"
-                  onchange="gAdvancedPane.updateAddonUpdateUI();"/>
       <preference id="app.update.disable_button.showUpdateHistory"
                   name="app.update.disable_button.showUpdateHistory"
                   type="bool"/>
+#endif
+      <preference id="extensions.update.enabled" name="extensions.update.enabled" type="bool"
+                  onchange="gAdvancedPane.updateAddonUpdateUI();"/>
       <!-- Certificates tab -->
       <preference id="security.disable_button.openCertManager"
                   name="security.disable_button.openCertManager"
@@ -286,15 +288,18 @@
         <tabpanel orient="vertical" align="start">
           <label control="autoUpdateGroup">&autoCheck.label;</label>
           <vbox class="indent" id="autoUpdateGroup" role="group">
+#ifdef MOZ_UPDATER
             <checkbox id="enableAppUpdate"
                       label="&enableAppUpdate.label;"
                       accesskey="&enableAppUpdate.accesskey;"
                       preference="app.update.enabled"/>
+#endif
             <checkbox id="enableAddonUpdate"
                       label="&enableAddonsUpdate.label;"
                       accesskey="&enableAddonsUpdate.accesskey;"
                       preference="extensions.update.enabled"/>
           </vbox>
+#ifdef MOZ_UPDATER
           <separator/>
           <label id="updateModeLabel" control="updateMode">&whenUpdatesFound.label;</label>
           <radiogroup id="updateMode" class="indent"
@@ -320,6 +325,7 @@
                     preference="app.update.disable_button.showUpdateHistory"
                     oncommand="gAdvancedPane.showUpdates();"/>
           </hbox>
+#endif
         </tabpanel>
 
         <!-- Certificates -->

@@ -196,6 +196,7 @@ function goToggleToolbar( id, elementID )
   }
 }
 
+#ifdef MOZ_UPDATER
 /**
  * Opens the update manager and checks for updates to the application.
  */
@@ -216,6 +217,7 @@ function checkForUpdates()
   else
     prompter.checkForUpdates();
 }
+#endif
 
 /**
  * Set up the help menu software update items to show proper status,
@@ -223,6 +225,7 @@ function checkForUpdates()
  */
 function buildHelpMenu()
 {
+#ifdef MOZ_UPDATER
   var updates =
       Components.classes["@mozilla.org/updates/update-service;1"].
       getService(Components.interfaces.nsIApplicationUpdateService);
@@ -247,7 +250,7 @@ function buildHelpMenu()
     if (activeUpdate && activeUpdate.name)
       return strings.getFormattedString(key, [activeUpdate.name]);
     return strings.getString(key + "Fallback");
-    }
+  }
 
   // By default, show "Check for Updates..."
   var key = "default";
@@ -272,6 +275,19 @@ function buildHelpMenu()
     checkForUpdates.setAttribute("loading", "true");
   else
     checkForUpdates.removeAttribute("loading");
+#else
+#ifndef XP_MACOSX
+  // Some extensions may rely on these being present so only hide the updates
+  // separator when there are no elements besides the check for updates menuitem
+  // in between the about separator and the updates separator.
+  var aboutSeparator = document.getElementById("menu_HelpAboutSeparator");
+  var updatesSeparator = document.getElementById("menu_HelpAfterUpdatesSeparator");
+  var checkForUpdates = document.getElementById("checkForUpdates");
+  if (aboutSeparator.nextSibling === checkForUpdates &&
+      checkForUpdates.nextSibling === updatesSeparator)
+    updatesSeparator.hidden = true;
+#endif
+#endif
 }
 
 // openUILink handles clicks on UI elements that cause URLs to load.
