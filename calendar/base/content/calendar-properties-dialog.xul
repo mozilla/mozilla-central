@@ -49,7 +49,10 @@
     id="calendar-properties-dialog-2"
     windowtype="Calendar:PropertiesDialog"
     title="&calendar.server.dialog.title.edit;"
-    buttons="accept,cancel"
+    buttons="accept,cancel,extra1"
+    buttonlabelextra1="&calendarproperties.unsubscribe.label;"
+    buttonaccesskeyextra1="&calendarproperties.unsubscribe.accesskey;"
+    ondialogextra1="unsubscribeCalendar()"
     ondialogaccept="return onAcceptDialog();"
     ondialogcancel="return true;"
     onload="onLoad()"
@@ -59,6 +62,9 @@
 
   <script type="application/javascript" src="chrome://calendar/content/calendar-properties-dialog.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
+
+  <description id="force-disabled-description" hidden="true">&calendarproperties.forceDisabled.label;</description>
 
   <checkbox id="calendar-enabled-checkbox"
             label="&calendarproperties.enabled.label;"

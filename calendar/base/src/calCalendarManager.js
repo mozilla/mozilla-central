@@ -113,6 +113,7 @@ calCalendarManager.prototype = {
 
         observerSvc.addObserver(this, "profile-after-change", false);
         observerSvc.addObserver(this, "profile-before-change", false);
+        observerSvc.addObserver(this, "em-action-requested", false);
     },
     
     startup: function ccm_startup() {
@@ -141,6 +142,7 @@ calCalendarManager.prototype = {
 
         observerSvc.removeObserver(this, "profile-after-change");
         observerSvc.removeObserver(this, "profile-before-change");
+        observerSvc.removeObserver(this, "em-action-requested");
     },
 
     setUpPrefObservers: function ccm_setUpPrefObservers() {
@@ -228,8 +230,68 @@ calCalendarManager.prototype = {
                     }
                 }
                 break;
+            case "em-action-requested":
+                let extension = aSubject.QueryInterface(Components.interfaces.nsIUpdateItem);
+                let extMgr = Components.classes["@mozilla.org/extensions/manager;1"]
+                                       .getService(Components.interfaces.nsIExtensionManager);
+                try {
+                    switch (aData) {
+                        case "item-disabled":
+                            if (!this.queryUninstallProvider(extension)) {
+                                // If the extension should not be disabled,
+                                // then re-enable it. 
+                                extMgr.enableItem(extension.id);
+                            }
+                            break;
+                        case "item-uninstalled":
+                            if (!this.queryUninstallProvider(extension)) {
+                                // If the extension should not be uninstalled,
+                                // then cancel the uninstall
+                                extMgr.cancelUninstallItem(extension.id);
+                            }
+                            break;
+                    }
+                } catch (e) {
+                    // It seems this observer swallows exceptions
+                    cal.ERROR(e);
+                }
+                break;
         }
 
+    },
+
+    queryUninstallProvider: function cCM_queryUninstallProvider(aExtension) {
+        const uri = "chrome://calendar/content/calendar-providerUninstall-dialog.xul";
+        const features = "chrome,titlebar,resizable,modal";
+        let affectedCalendars =
+            [ cal for each (cal in this.getCalendars({}))
+              if (cal.providerID == aExtension.id) ];
+        if (!affectedCalendars.length) {
+            // If no calendars are affected, then everything is fine.
+            return true;
+        }
+
+        let args = { shouldUninstall: false, extension: aExtension };
+
+        // Now find a window. The best choice would be the most recent
+        // addons window, otherwise the most recent calendar window, or we
+        // create a new toplevel window.
+        let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                           .getService(Components.interfaces.nsIWindowMediator);
+        let win = wm.getMostRecentWindow("Extension:Manager") ||
+                  cal.getCalendarWindow();
+        if (win) {
+            win.openDialog(uri, uri, features, args);
+        } else {
+            // Use the window watcher to open a parentless window.
+            let ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                               .getService(Components.interfaces.nsIWindowWatcher);
+            ww.openWindow(null, uri, uri, features, args);
+        }
+
+
+        // Now that we are done, check if the dialog was accepted or canceled.
+        return args.shouldUninstall;
     },
 
     //
@@ -517,7 +579,12 @@ calCalendarManager.prototype = {
      */
     createCalendar: function cmgr_createCalendar(type, uri) {
         try {
-            var calendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + type]
+            if (!Components.classes["@mozilla.org/calendar/calendar;1?type=" + type]) {
+                // Don't notify the user with an extra dialog if the provider
+                // interface is missing.
+                return null;
+            }
+            let calendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + type]
                                      .createInstance(Components.interfaces.calICalendar);
             calendar.uri = uri;
             return calendar;

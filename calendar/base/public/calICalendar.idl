@@ -59,7 +59,8 @@ interface calIOperation;
 interface calIStatusObserver;
 interface nsIDOMChromeWindow;
 
-[scriptable, uuid(74e685e4-d863-11d9-88f2-000b7d081f44)]
+
+[scriptable, uuid(b18782c0-6557-4e8e-931d-4bf052f0a31e)]
 interface calICalendar : nsISupports
 {
   /**
@@ -81,6 +82,12 @@ interface calICalendar : nsISupports
    *   'memory', 'storage', 'caldav', etc
    */
   readonly attribute AUTF8String type;
+
+  /**
+   * If this calendar is provided by an extension, this attribute should return
+   * the extension's id, otherwise null.
+   */
+  readonly attribute AString providerID;
   
   /**
    * Multiple calendar instances may be composited, logically acting as a

@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 /**
  * The calendar to modify, is retrieved from window.arguments[0].calendar
  */
@@ -78,10 +80,12 @@ function onLoad() {
     // Set up the disabled checkbox
     let calendarDisabled = false;
     if (gCalendar.getProperty("force-disabled")) {
-        document.getElementById("calendar-enabled-checkbox").disabled = true;
+        showElement("force-disabled-description");
+        disableElement("calendar-enabled-checkbox");
     } else {
         calendarDisabled = gCalendar.getProperty("disabled");
         document.getElementById("calendar-enabled-checkbox").checked = !calendarDisabled;
+        hideElement(document.documentElement.getButton("extra1"));
     }
     setupEnabledCheckbox();
 
@@ -133,4 +137,15 @@ function setupEnabledCheckbox() {
     for (var i = 0; i < els.length; i++) {
         els[i].disabled = !isEnabled || (els[i].getAttribute("disable-capability") == "true");
     }
+}
+
+/**
+ * Called to unsubscribe from a calendar. The button for this function is not
+ * shown unless the provider for the calendar is missing (i.e force-disabled)
+ */
+function unsubscribeCalendar() {
+    let calmgr =  cal.getCalendarManager();
+
+    calmgr.unregisterCalendar(gCalendar);
+    window.close();
 }

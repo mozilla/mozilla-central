@@ -286,17 +286,20 @@
 <!ENTITY calendar.server.dialog.name.label          "Calendar Name:">
 
 <!-- Calendar Properties -->
-<!ENTITY calendarproperties.color.label    "Color:">
-<!ENTITY calendarproperties.webdav.label   "iCalendar (ICS)">
-<!ENTITY calendarproperties.caldav.label   "CalDAV">
-<!ENTITY calendarproperties.wcap.label     "Sun Java System Calendar Server (WCAP)">
-<!ENTITY calendarproperties.format.label   "Format:">
-<!ENTITY calendarproperties.location.label "Location:">
-<!ENTITY calendarproperties.name.label     "Name:">
-<!ENTITY calendarproperties.readonly.label "Read Only">
-<!ENTITY calendarproperties.firealarms.label "Show Alarms">
-<!ENTITY calendarproperties.cache.label    "Cache (EXPERIMENTAL, requires restart)">
-<!ENTITY calendarproperties.enabled.label "Switch this calendar on">
+<!ENTITY calendarproperties.color.label                    "Color:">
+<!ENTITY calendarproperties.webdav.label                   "iCalendar (ICS)">
+<!ENTITY calendarproperties.caldav.label                   "CalDAV">
+<!ENTITY calendarproperties.wcap.label                     "Sun Java System Calendar Server (WCAP)">
+<!ENTITY calendarproperties.format.label                   "Format:">
+<!ENTITY calendarproperties.location.label                 "Location:">
+<!ENTITY calendarproperties.name.label                     "Name:">
+<!ENTITY calendarproperties.readonly.label                 "Read Only">
+<!ENTITY calendarproperties.firealarms.label               "Show Alarms">
+<!ENTITY calendarproperties.cache.label                    "Cache (EXPERIMENTAL, requires restart)">
+<!ENTITY calendarproperties.enabled.label                  "Switch this calendar on">
+<!ENTITY calendarproperties.forceDisabled.label            "The provider for this calendar could not be found. This often happens if you have disabled or uninstalled certain addons.">
+<!ENTITY calendarproperties.unsubscribe.label              "Unsubscribe">
+<!ENTITY calendarproperties.unsubscribe.accesskey          "U">
 
 <!-- Calendar Publish Dialog -->
 <!ENTITY calendar.publish.dialog.title              "Publish Calendar">

@@ -445,6 +445,16 @@ let cal = {
     },
 
     /**
+     * Returns the most recent calendar window in an application independent way
+     */
+    getCalendarWindow: function cal_getCalendarWindow() {
+        let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                           .getService(Components.interfaces.nsIWindowMediator);
+        return wm.getMostRecentWindow("calendarMainWindow") ||
+               wm.getMostRecentWindow("mail:3pane");
+    },
+
+    /**
      * Due to wrapped js objects, some objects may have cyclic references.
      * You can register properties of objects to be cleaned up on xpcom-shutdown.
      *
